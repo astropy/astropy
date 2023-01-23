@@ -534,6 +534,8 @@ class WCS(FITSWCSAPIMixin, WCSBase):
 
             det2im = self._read_det2im_kw(header, fobj, err=minerr)
             cpdis = self._read_distortion_kw(header, fobj, dist="CPDIS", err=minerr)
+            self._fix_pre2012_scamp_tpv(header)
+
             sip = self._read_sip_kw(header, wcskey=key)
             self._remove_sip_kw(header)
 
@@ -714,12 +716,27 @@ reduce these to 2 dimensions using the naxis kwarg.
         SIP distortion parameters.
 
         See https://github.com/astropy/astropy/issues/299.
+
+        SCAMP uses TAN projection exclusively. The case of CTYPE ending
+        in -TAN should have been handled by ``_fix_pre2012_scamp_tpv()`` before
+        calling this function.
         """
-        # Nothing to be done if no WCS attached
         if self.wcs is None:
             return
 
-        # Nothing to be done if no PV parameters attached
+        # Delete SIP if CTYPE explicitly has '-TPV' code:
+        if sum(ct.strip().endswith('-TPV') for ct in self.wcs.ctype) == 2:
+            if self.sip is not None:
+                self.sip = None
+                warnings.warn(
+                    "Removed redundant SIP distortion parameters "
+                    + "because CTYPE explicitly specifies TPV distortions",
+                    FITSFixedWarning,
+                )
+            return
+
+        # Nothing to be done if no PV parameters attached since SCAMP
+        # encodes distortion coefficients using PV keywords
         pv = self.wcs.get_pv()
         if not pv:
             return
@@ -728,28 +745,28 @@ reduce these to 2 dimensions using the naxis kwarg.
         if self.sip is None:
             return
 
-        # Nothing to be done if any radial terms are present...
-        # Loop over list to find any radial terms.
-        # Certain values of the `j' index are used for storing
-        # radial terms; refer to Equation (1) in
-        # <http://web.ipac.caltech.edu/staff/shupe/reprints/SIP_to_PV_SPIE2012.pdf>.
-        pv = np.asarray(pv)
         # Loop over distinct values of `i' index
-        for i in set(pv[:, 0]):
+        has_scamp = False
+        for i in set(v[0] for v in pv):
             # Get all values of `j' index for this value of `i' index
-            js = set(pv[:, 1][pv[:, 0] == i])
-            # Find max value of `j' index
-            max_j = max(js)
-            for j in (3, 11, 23, 39):
-                if j < max_j and j in js:
-                    return
+            js = tuple(v[1] for v in pv if v[0] == i)
+            if '-TAN' in self.wcs.ctype[i - 1].upper() and js and max(js) >= 5:
+                # TAN projection *may* use PVi_j with j up to 4 - see
+                # Sections 2.5, 2.6, and Table 13
+                # in https://doi.org/10.1051/0004-6361:20021327
+                has_scamp = True
+                break
 
-        self.wcs.set_pv([])
-        warnings.warn(
-            "Removed redundant SCAMP distortion parameters "
-            + "because SIP parameters are also present",
-            FITSFixedWarning,
-        )
+        if all(ct.strip().upper().endswith('-SIP') for ct in self.wcs.ctype) and has_scamp:
+            # Prefer SIP - see recommendations in Section 7 in
+            # http://web.ipac.caltech.edu/staff/shupe/reprints/SIP_to_PV_SPIE2012.pdf
+            self.wcs.set_pv([])
+            warnings.warn(
+                "Removed redundant SCAMP distortion parameters "
+                + "because SIP parameters are also present",
+                FITSFixedWarning,
+            )
+            return
 
     def fix(self, translate_units="", naxis=None):
         """
@@ -1175,7 +1192,54 @@ reduce these to 2 dimensions using the naxis kwarg.
         write_dist(1, self.cpdis1)
         write_dist(2, self.cpdis2)
 
-    def _remove_sip_kw(self, header):
+    def _fix_pre2012_scamp_tpv(self, header, wcskey=''):
+        """
+        Replace -TAN with TPV (for pre-2012 SCAMP headers that use -TAN
+        in CTYPE). Ignore SIP if present. This follows recommendations in
+        Section 7 in
+        http://web.ipac.caltech.edu/staff/shupe/reprints/SIP_to_PV_SPIE2012.pdf
+
+        This is to deal with pre-2012 headers that may contain TPV with a
+        CTYPE that ends in '-TAN' (post-2012 they should end in '-TPV' when
+        SCAMP has adopted the new TPV convention).
+        """
+        if isinstance(header, (str, bytes)):
+            return
+
+        wcskey = wcskey.strip().upper()
+        cntype = [
+            (nax, header.get(f"CTYPE{nax}{wcskey}", '').strip())
+            for nax in range(1, self.naxis + 1)
+        ]
+
+        tan_axes = [ct[0] for ct in cntype if ct[1].endswith('-TAN')]
+
+        if len(tan_axes) == 2:
+            # check if PVi_j with j >= 5 is present and if so, do not load SIP
+            tan_to_tpv = False
+            for nax in tan_axes:
+                js = [
+                    int(p.removeprefix(f'PV{nax}_').rstrip(wcskey))
+                    for p in header[f'PV{nax}_*{wcskey}'].keys()
+                ]
+                if js and max(js) >= 5:
+                    tan_to_tpv = True
+                    break
+
+            if tan_to_tpv:
+                warnings.warn(
+                    "Removed redundant SIP distortion parameters "
+                    + "because SCAMP' PV distortions are also present",
+                    FITSFixedWarning,
+                )
+                self._remove_sip_kw(header, del_order=True)
+                for i in tan_axes:
+                    kwd = f'CTYPE{i:d}{wcskey}'
+                    if kwd in header:
+                        header[kwd] = header[kwd].strip().upper().replace('-TAN', '-TPV')
+
+    @staticmethod
+    def _remove_sip_kw(header, del_order=False):
         """
         Remove SIP information from a header.
         """
@@ -1185,6 +1249,11 @@ reduce these to 2 dimensions using the naxis kwarg.
             m.group() for m in map(SIP_KW.match, list(header)) if m is not None
         }:
             del header[key]
+
+        if del_order:
+            for kwd in ['A_ORDER', 'B_ORDER', 'AP_ORDER', 'BP_ORDER']:
+                if kwd in header:
+                    del header[kwd]
 
     def _read_sip_kw(self, header, wcskey=""):
         """
