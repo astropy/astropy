@@ -299,7 +299,7 @@ name and format. Here is a summary of all allowed formats for a binary table:
 
 We will concentrate on binary tables in this chapter. ASCII tables will be
 discussed in a later chapter. The less frequently used X format (bit array) and
-P format (used in variable length tables) will also be discussed in a later
+P format (used in :ref:`variable_length_array_tables`) will also be discussed in a later
 chapter.
 
 Besides the required name and format arguments in constructing a
