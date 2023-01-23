@@ -93,7 +93,7 @@ repos:
     rev: "v0.0.239"
     hooks:
       - id: ruff
-        args: ["--fix", "--force-exclude"]
+        args: ["--fix"]
 
   - repo: local
     hooks:
