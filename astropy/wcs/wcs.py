@@ -726,7 +726,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         # Delete SIP if CTYPE explicitly has '-TPV' code:
         ctype = [ct.strip().upper() for ct in self.wcs.ctype]
-        if sum(ct.endswith('-TPV') for ct in ctype) == 2:
+        if sum(ct.endswith("-TPV") for ct in ctype) == 2:
             if self.sip is not None:
                 self.sip = None
                 warnings.warn(
@@ -748,18 +748,17 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         # Loop over distinct values of `i' index
         has_scamp = False
-        for i in set(v[0] for v in pv):
+        for i in {v[0] for v in pv}:
             # Get all values of `j' index for this value of `i' index
             js = tuple(v[1] for v in pv if v[0] == i)
-            if '-TAN' in self.wcs.ctype[i - 1].upper() and js and max(js) >= 5:
+            if "-TAN" in self.wcs.ctype[i - 1].upper() and js and max(js) >= 5:
                 # TAN projection *may* use PVi_j with j up to 4 - see
                 # Sections 2.5, 2.6, and Table 13
                 # in https://doi.org/10.1051/0004-6361:20021327
                 has_scamp = True
                 break
 
-        if (has_scamp and
-                all(ct.endswith('-SIP') for ct in ctype)):
+        if has_scamp and all(ct.endswith("-SIP") for ct in ctype):
             # Prefer SIP - see recommendations in Section 7 in
             # http://web.ipac.caltech.edu/staff/shupe/reprints/SIP_to_PV_SPIE2012.pdf
             self.wcs.set_pv([])
@@ -1194,12 +1193,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         write_dist(1, self.cpdis1)
         write_dist(2, self.cpdis2)
 
-    def _fix_pre2012_scamp_tpv(self, header, wcskey=''):
+    def _fix_pre2012_scamp_tpv(self, header, wcskey=""):
         """
         Replace -TAN with TPV (for pre-2012 SCAMP headers that use -TAN
         in CTYPE). Ignore SIP if present. This follows recommendations in
         Section 7 in
-        http://web.ipac.caltech.edu/staff/shupe/reprints/SIP_to_PV_SPIE2012.pdf
+        http://web.ipac.caltech.edu/staff/shupe/reprints/SIP_to_PV_SPIE2012.pdf.
 
         This is to deal with pre-2012 headers that may contain TPV with a
         CTYPE that ends in '-TAN' (post-2012 they should end in '-TPV' when
@@ -1210,23 +1209,27 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         wcskey = wcskey.strip().upper()
         cntype = [
-            (nax, header.get(f"CTYPE{nax}{wcskey}", '').strip())
+            (nax, header.get(f"CTYPE{nax}{wcskey}", "").strip())
             for nax in range(1, self.naxis + 1)
         ]
 
-        tan_axes = [ct[0] for ct in cntype if ct[1].endswith('-TAN')]
+        tan_axes = [ct[0] for ct in cntype if ct[1].endswith("-TAN")]
 
         if len(tan_axes) == 2:
             # check if PVi_j with j >= 5 is present and if so, do not load SIP
             tan_to_tpv = False
             for nax in tan_axes:
                 js = []
-                for p in header[f'PV{nax}_*{wcskey}'].keys():
-                    prefix = f'PV{nax}_'
+                for p in header[f"PV{nax}_*{wcskey}"].keys():
+                    prefix = f"PV{nax}_"
                     if p.startswith(prefix):
-                        p = p[len(prefix):]
-                    p = p.rstrip(wcskey)
-                    js.append(int(p))
+                        p = p[len(prefix) :]
+                        p = p.rstrip(wcskey)
+                        try:
+                            p = int(p)
+                        except ValueError:
+                            continue
+                        js.append(p)
 
                 if js and max(js) >= 5:
                     tan_to_tpv = True
@@ -1240,9 +1243,11 @@ reduce these to 2 dimensions using the naxis kwarg.
                 )
                 self._remove_sip_kw(header, del_order=True)
                 for i in tan_axes:
-                    kwd = f'CTYPE{i:d}{wcskey}'
+                    kwd = f"CTYPE{i:d}{wcskey}"
                     if kwd in header:
-                        header[kwd] = header[kwd].strip().upper().replace('-TAN', '-TPV')
+                        header[kwd] = (
+                            header[kwd].strip().upper().replace("-TAN", "-TPV")
+                        )
 
     @staticmethod
     def _remove_sip_kw(header, del_order=False):
@@ -1257,7 +1262,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             del header[key]
 
         if del_order:
-            for kwd in ['A_ORDER', 'B_ORDER', 'AP_ORDER', 'BP_ORDER']:
+            for kwd in ["A_ORDER", "B_ORDER", "AP_ORDER", "BP_ORDER"]:
                 if kwd in header:
                     del header[kwd]
 
