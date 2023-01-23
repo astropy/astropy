@@ -212,7 +212,9 @@ Use ``git diff`` to see what changes have been made::
     +    assert len(c) == input_length
 
 A graphical interface to git makes keeping track of these sorts of changes
-even easier; see :ref:`git_gui_options` if you are interested.
+even easier; see this
+`list of GUI Clients <https://git-scm.com/downloads/guis/>`_ if you are
+interested.
 
 Stage the change
 ----------------
@@ -354,8 +356,9 @@ snippet below accomplishes that in bash (and similar shells)::
     [fix-1761 f196771] Add len() to coordinates
      1 file changed, 4 insertions(+)
 
-Another option for multi-line commit message is to use a Git GUI or to
-run ``git commit`` without a message to get prompted by an editor.
+Another option for multi-line commit message is to use a
+`Git GUI Client <https://git-scm.com/downloads/guis/>`_ or to run
+``git commit`` without a message to get prompted by an editor.
 
 The message after committing should look like this when you inspect with
 ``git log``::

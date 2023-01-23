@@ -35,29 +35,3 @@ Check it with::
     user.name=Your Name
     user.email=you@yourdomain.example.com
     # ...likely followed by many other configuration values
-
-.. _git_gui_options:
-
-Get a git GUI (optional)
-========================
-
-There are several good, free graphical interfaces for git.
-Even if you are proficient with `git`_ at the command line a GUI can be useful.
-
-Mac and Windows:
-
-+ `SourceTree`_
-+ The github client for `Mac`_ or `Windows`_
-
-Linux, Mac and Windows:
-
-+ `git-cola`_
-
-There is a more extensive list of `git GUIs`_, including non-free options, for
-all platforms.
-
-.. _git GUIs: https://git-scm.com/downloads/guis
-.. _SourceTree: https://www.sourcetreeapp.com/
-.. _Mac: https://desktop.github.com/
-.. _Windows: https://desktop.github.com/
-.. _git-cola: http://git-cola.github.io/
