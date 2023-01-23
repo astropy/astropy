@@ -667,7 +667,7 @@ def test_raw_html_write_clean():
         format="ascii.html",
         htmldict={
             "raw_html_cols": t.colnames,
-            "raw_html_clean_kwargs": {"tags": bleach.ALLOWED_TAGS + ["p"]},
+            "raw_html_clean_kwargs": {"tags": list(bleach.ALLOWED_TAGS) + ["p"]},
         },
     )
     expected = """\
