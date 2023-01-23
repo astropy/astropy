@@ -107,4 +107,4 @@ def dtype(comp_param_dtype):
 
 @pytest.fixture(scope="session")
 def numpy_rng():
-    return np.random.default_rng()
+    return np.random.default_rng(0)
