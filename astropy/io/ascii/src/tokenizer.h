@@ -38,7 +38,6 @@ typedef enum
     START_QUOTED_FIELD,
     FIELD,
     QUOTED_FIELD,
-    QUOTED_FIELD_NEWLINE,
     QUOTED_FIELD_DOUBLE_QUOTE,
     COMMENT,
 } tokenizer_state;

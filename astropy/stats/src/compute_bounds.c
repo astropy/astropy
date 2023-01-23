@@ -7,7 +7,7 @@ void compute_sigma_clipped_bounds(double data_buffer[], int count, int use_media
                                   double sigma_upper, double *lower_bound,
                                   double *upper_bound, double  mad_buffer[]) {
 
-  double mean, std, median, cen;
+  double mean, std, median = 0, cen;
   int i, new_count, iteration = 0;
 
   while (1) {
