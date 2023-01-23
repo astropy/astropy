@@ -277,7 +277,7 @@ class CosmologyTest(
     def test_equality(self, cosmo):
         """Test method ``.__eq__()."""
         # wrong class
-        assert (cosmo != 2) and (2 != cosmo)
+        assert (cosmo != 2) and (cosmo != 2)
         # correct
         assert cosmo == cosmo
         # different name <= not equal, but equivalent

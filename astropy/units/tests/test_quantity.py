@@ -1349,7 +1349,7 @@ def test_equality_numpy_scalar():
     A regression test to ensure that numpy scalars are correctly compared
     (which originally failed due to the lack of ``__array_priority__``).
     """
-    assert 10 != 10.0 * u.m
+    assert 10.0 != 10 * u.m  # noqa: SIM300
     assert np.int64(10) != 10 * u.m
     assert 10 * u.m != np.int64(10)
 

@@ -295,7 +295,7 @@ def test_parameter_quantity_comparison():
     assert g.mean == 1 * u.m
     assert 1 * u.m == g.mean
     assert g.mean != 1
-    assert 1 != g.mean
+    assert 1 != g.mean  # noqa: SIM300
 
     assert g.mean < 2 * u.m
     assert 2 * u.m > g.mean
@@ -308,7 +308,7 @@ def test_parameter_quantity_comparison():
         g.mean < 2
 
     with pytest.raises(UnitsError, match=MESSAGE):
-        2 > g.mean
+        2 > g.mean  # noqa: SIM300
 
     g = Gaussian1D([1, 2] * u.J, [1, 2] * u.m, [0.1, 0.2] * u.m)
 

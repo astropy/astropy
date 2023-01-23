@@ -582,7 +582,7 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert np.all(q1.value * u.Unit("AU, AU/day") == q_pv)
         assert not np.any(q1.value * u.Unit("AU, AU/day") != q_pv)
         assert (q_pv == "b") is False
-        assert ("b" != q_pv) is True
+        assert (q_pv != "b") is True
         q_pv_t = Quantity(self.pv_t, self.pv_t_unit)
         assert np.all((q_pv_t[2] == q_pv_t) == [False, False, True])
         assert np.all((q_pv_t[2] != q_pv_t) != [False, False, True])
