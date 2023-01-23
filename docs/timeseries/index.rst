@@ -169,7 +169,7 @@ details). We can use what we have seen so far to make a plot:
     from astropy.utils.data import get_pkg_data_filename
     filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
     from astropy.timeseries import TimeSeries
-    ts = TimeSeries.read(filename, format='kepler.fits')
+    ts = TimeSeries.read(filename, format='kepler.fits', unit_parse_strict='silent')
 
 .. plot::
    :include-source:
