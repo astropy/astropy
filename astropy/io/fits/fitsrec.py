@@ -893,16 +893,8 @@ class FITS_rec(np.recarray):
             # special handling for the X format
             return self._convert_x(field, recformat)
 
-        (
-            _str,
-            _bool,
-            _number,
-            _scale,
-            _zero,
-            bscale,
-            bzero,
-            dim,
-        ) = self._get_scale_factors(column)
+        scale_factors = self._get_scale_factors(column)
+        _str, _bool, _number, _scale, _zero, bscale, bzero, dim = scale_factors
 
         indx = self.names.index(column.name)
 
@@ -936,9 +928,8 @@ class FITS_rec(np.recarray):
                 nitems = reduce(operator.mul, dim)
                 if _str:
                     actual_nitems = field.itemsize
-                elif (
-                    len(field.shape) == 1
-                ):  # No repeat count in TFORMn, equivalent to 1
+                elif len(field.shape) == 1:
+                    # No repeat count in TFORMn, equivalent to 1
                     actual_nitems = 1
                 else:
                     actual_nitems = field.shape[1]
@@ -1140,25 +1131,15 @@ class FITS_rec(np.recarray):
                 # total
                 if heapsize >= 2**31:
                     raise ValueError(
-                        "The heapsize limit for 'P' format "
-                        "has been reached. "
-                        "Please consider using the 'Q' format "
-                        "for your file."
+                        "The heapsize limit for 'P' format has been reached. "
+                        "Please consider using the 'Q' format for your file."
                     )
             if isinstance(recformat, _FormatX) and name in self._converted:
                 _wrapx(self._converted[name], raw_field, recformat.repeat)
                 continue
 
-            (
-                _str,
-                _bool,
-                _number,
-                _scale,
-                _zero,
-                bscale,
-                bzero,
-                _,
-            ) = self._get_scale_factors(column)
+            scale_factors = self._get_scale_factors(column)
+            _str, _bool, _number, _scale, _zero, bscale, bzero, _ = scale_factors
 
             field = self._converted.get(name, raw_field)
 

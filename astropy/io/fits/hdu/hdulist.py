@@ -519,12 +519,11 @@ class HDUList(list, _Verify):
             np.ndarray((), dtype="ubyte", buffer=data)
         except TypeError:
             raise TypeError(
-                "The provided object {} does not contain an underlying "
+                f"The provided object {data} does not contain an underlying "
                 "memory buffer.  fromstring() requires an object that "
                 "supports the buffer interface such as bytes, buffer, "
                 "memoryview, ndarray, etc.  This restriction is to ensure "
                 "that efficient access to the array/table data is possible."
-                "".format(data)
             )
 
         return cls._readfrom(data=data, **kwargs)
@@ -899,8 +898,7 @@ class HDUList(list, _Verify):
                     backup = filename + ".bak." + str(idx)
                     idx += 1
                 warnings.warn(
-                    f"Saving a backup of {filename} to {backup}.",
-                    AstropyUserWarning,
+                    f"Saving a backup of {filename} to {backup}.", AstropyUserWarning
                 )
                 try:
                     shutil.copy(filename, backup)
