@@ -290,8 +290,7 @@ class FITSDiff(_BaseDiff):
             try:
                 a = fitsopen(a)
             except Exception as exc:
-                exc_name = exc.__class__.__name__
-                raise OSError(f"error opening file a ({a}): {exc_name}: {exc.args[0]}")
+                raise OSError(f"error opening file a ({a})") from exc
             close_a = True
         else:
             close_a = False
@@ -300,8 +299,7 @@ class FITSDiff(_BaseDiff):
             try:
                 b = fitsopen(b)
             except Exception as exc:
-                exc_name = exc.__class__.__name__
-                raise OSError(f"error opening file b ({b}): {exc_name}: {exc.args[0]}")
+                raise OSError(f"error opening file b ({b})") from exc
             close_b = True
         else:
             close_b = False
@@ -357,10 +355,10 @@ class FITSDiff(_BaseDiff):
             a_names = [hdu.name for hdu in self.a]
             b_names = [hdu.name for hdu in self.b]
             for pattern in self.ignore_hdu_patterns:
-                a_filt = fnmatch.filter(a_names, pattern)
-                self.a = HDUList([h for h in self.a if h.name not in a_filt])
-                b_filt = fnmatch.filter(b_names, pattern)
-                self.b = HDUList([h for h in self.b if h.name not in b_filt])
+                a_ignored = fnmatch.filter(a_names, pattern)
+                self.a = HDUList([h for h in self.a if h.name not in a_ignored])
+                b_ignored = fnmatch.filter(b_names, pattern)
+                self.b = HDUList([h for h in self.b if h.name not in b_ignored])
 
         # For now, just compare the extensions one by one in order.
         # Might allow some more sophisticated types of diffing later.

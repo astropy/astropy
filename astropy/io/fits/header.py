@@ -1903,8 +1903,8 @@ class Header:
         """
         pattern = pattern.replace("*", r".*").replace("?", r".")
         pattern = pattern.replace("...", r"\S*") + "$"
-        pattern = re.compile(pattern, re.I)
-        return [i for i, card in enumerate(self._cards) if pattern.match(card.keyword)]
+        match_pattern = re.compile(pattern, re.I).match
+        return [i for i, card in enumerate(self._cards) if match_pattern(card.keyword)]
 
     def _set_slice(self, key, value, target):
         """
