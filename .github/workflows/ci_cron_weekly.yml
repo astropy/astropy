@@ -140,7 +140,6 @@ jobs:
                                   cython3 \
                                   libwcs7 \
                                   wcslib-dev \
-                                  libcfitsio-dev \
                                   liberfa1
 
           run: |
