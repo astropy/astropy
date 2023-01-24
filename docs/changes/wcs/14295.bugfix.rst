@@ -1,0 +1,2 @@
+Fixed a bug in how WCS handles ``PVi_ja`` header coefficients when ``CTYPE``
+has ``-SIP`` suffix and in how code detects TPV distortions.
