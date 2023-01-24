@@ -267,6 +267,9 @@ extend-ignore = [
     # flake8-print (T20)
     "T201",  # PrintUsed                             # TODO: change to logging
 
+    # tryceratops (TRY)
+    "TRY004",  # prefer-type-error                   # TODO: fix, but breaks API
+
     # pyupgrade (UP)
     # TODO: replace pyupgrade with this
     "UP",
