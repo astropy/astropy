@@ -1058,3 +1058,20 @@ def test_timesys_errors():
     assert "E23: Invalid timeorigin attribute 'bad-origin'" in outstr
     assert "E22: ID attribute is required for all TIMESYS elements" in outstr
     assert "W48: Unknown attribute 'refposition_mispelled' on TIMESYS" in outstr
+
+
+def test_get_infos_by_name():
+    vot = parse(
+        io.BytesIO(
+            b"""
+        <VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.4">
+          <RESOURCE type="results">
+            <INFO name="creator-name" value="Cannon, A."/>
+            <INFO name="creator-name" value="Fleming, W."/>
+          </RESOURCE>
+        </VOTABLE>"""
+        )
+    )
+    infos = vot.get_infos_by_name("creator-name")
+    assert [i.value for i in infos] == ["Cannon, A.", "Fleming, W."]
