@@ -536,7 +536,7 @@ class Chebyshev1D(_PolyDomainWindow1D):
             The Vandermonde matrix
         """
         x = np.array(x, dtype=float, copy=False, ndmin=1)
-        v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
+        v = np.empty((self.degree + 1, *x.shape), dtype=x.dtype)
         v[0] = 1
         if self.degree > 0:
             x2 = 2 * x
@@ -658,7 +658,7 @@ class Hermite1D(_PolyDomainWindow1D):
             The Vandermonde matrix
         """
         x = np.array(x, dtype=float, copy=False, ndmin=1)
-        v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
+        v = np.empty((self.degree + 1, *x.shape), dtype=x.dtype)
         v[0] = 1
         if self.degree > 0:
             x2 = 2 * x
@@ -943,7 +943,7 @@ class Legendre1D(_PolyDomainWindow1D):
             The Vandermonde matrix
         """
         x = np.array(x, dtype=float, copy=False, ndmin=1)
-        v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
+        v = np.empty((self.degree + 1, *x.shape), dtype=x.dtype)
         v[0] = 1
         if self.degree > 0:
             v[1] = x
@@ -1061,7 +1061,7 @@ class Polynomial1D(_PolyDomainWindow1D):
         result : ndarray
             The Vandermonde matrix
         """
-        v = np.empty((self.degree + 1,) + x.shape, dtype=float)
+        v = np.empty((self.degree + 1, *x.shape), dtype=float)
         v[0] = 1
         if self.degree > 0:
             v[1] = x
@@ -1651,7 +1651,7 @@ class Legendre2D(OrthoPolynomialBase):
     def _legendderiv1d(self, x, deg):
         """Derivative of 1D Legendre polynomial."""
         x = np.array(x, dtype=float, copy=False, ndmin=1)
-        d = np.empty((deg + 1,) + x.shape, dtype=x.dtype)
+        d = np.empty((deg + 1, *x.shape), dtype=x.dtype)
         d[0] = x * 0 + 1
         if deg > 0:
             d[1] = x

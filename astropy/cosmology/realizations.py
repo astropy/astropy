@@ -18,7 +18,8 @@ _COSMOLOGY_DATA_DIR = pathlib.Path(
 available = tuple(sorted(p.stem for p in _COSMOLOGY_DATA_DIR.glob("*.ecsv")))
 
 
-__all__ = ["available", "default_cosmology"] + list(available)
+__all__ = ["available", "default_cosmology"]
+__all__ += list(available)
 
 __doctest_requires__ = {"*": ["scipy"]}
 

@@ -300,9 +300,9 @@ def join_distance(distance, kdtree_args=None, query_args=None):
 
         # Ensure columns are pure np.array and are 2-D for use with KDTree
         if col1.ndim == 1:
-            col1.shape = col1.shape + (1,)
+            col1.shape = (*col1.shape, 1)
         if col2.ndim == 1:
-            col2.shape = col2.shape + (1,)
+            col2.shape = (*col2.shape, 1)
 
         # Cross-match col1 and col2 within dist using KDTree
         kd1 = cKDTree(col1, **kdtree_args)

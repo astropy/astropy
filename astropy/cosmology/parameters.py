@@ -63,7 +63,8 @@ from types import MappingProxyType
 # LOCAL
 from .realizations import available
 
-__all__ = ["available"] + list(available)
+__all__ = ["available"]
+__all__ += list(available)
 
 
 def __getattr__(name):

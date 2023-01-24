@@ -235,8 +235,8 @@ def test_Ellipse2D():
     rotation = models.Rotation2D(angle=theta.degree)
     point1 = [2, 0]  # Rotation2D center is (0, 0)
     point2 = rotation(*point1)
-    point1 = np.array(point1) + [x0, y0]
-    point2 = np.array(point2) + [x0, y0]
+    point1 = np.array(point1) + np.array([x0, y0])
+    point2 = np.array(point2) + np.array([x0, y0])
     e1 = models.Ellipse2D(amplitude, x0, y0, 7, 3, theta=0.0)
     e2 = models.Ellipse2D(amplitude, x0, y0, 7, 3, theta=theta.radian)
     assert e1(*point1) == e2(*point2)

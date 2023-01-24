@@ -731,7 +731,7 @@ class FunctionQuantity(Quantity):
         # For dimensionless, we can convert to regular quantities.
         if all(
             arg.unit.physical_unit == dimensionless_unscaled
-            for arg in (self,) + args
+            for arg in (self, *args)
             if (hasattr(arg, "unit") and hasattr(arg.unit, "physical_unit"))
         ):
             args = tuple(getattr(arg, "_function_view", arg) for arg in args)

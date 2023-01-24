@@ -66,7 +66,7 @@ def normal(
     else:
         std = np.asanyarray(std)
 
-    randshape = np.broadcast(std, center).shape + (n_samples,)
+    randshape = (*np.broadcast(std, center).shape, n_samples)
     samples = (
         center[..., np.newaxis] + np.random.randn(*randshape) * std[..., np.newaxis]
     )
@@ -114,7 +114,7 @@ def poisson(center, n_samples, cls=Distribution, **kwargs):
         poissonarr = np.asanyarray(center.value)
     else:
         poissonarr = np.asanyarray(center)
-    randshape = poissonarr.shape + (n_samples,)
+    randshape = (*poissonarr.shape, n_samples)
 
     samples = np.random.poisson(poissonarr[..., np.newaxis], randshape)
     if has_unit:
@@ -197,7 +197,7 @@ def uniform(
             "to uniform - other combinations are not valid"
         )
 
-    newshape = lower.shape + (n_samples,)
+    newshape = (*lower.shape, n_samples)
     if lower.shape == tuple() and upper.shape == tuple():
         width = upper - lower  # scalar
     else:

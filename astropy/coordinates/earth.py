@@ -157,7 +157,7 @@ class EarthLocationInfo(QuantityInfoBase):
         # Make empty EarthLocation using the dtype and unit of the last column.
         # Use zeros so we do not get problems for possible conversion to
         # geodetic coordinates.
-        shape = (length,) + attrs.pop("shape")
+        shape = (length, *attrs.pop("shape"))
         data = u.Quantity(
             np.zeros(shape=shape, dtype=cols[0].dtype), unit=cols[0].unit, copy=False
         )

@@ -120,7 +120,7 @@ class SiteRegistry(Mapping):
                 aliases.append(name)
             location.info.meta = site_info  # whatever is left
 
-            reg.add_site([site] + aliases, location)
+            reg.add_site([site, *aliases], location)
 
         reg._loaded_jsondb = jsondb
         return reg

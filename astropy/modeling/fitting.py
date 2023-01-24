@@ -1338,10 +1338,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
 
         if filter_non_finite:
             x, y, z = self._filter_non_finite(x, y, z)
-        farg = (
-            model_copy,
-            weights,
-        ) + _convert_input(x, y, z)
+        farg = (model_copy, weights, *_convert_input(x, y, z))
 
         init_values, fitparams, cov_x = self._run_fitter(
             model_copy, farg, maxiter, acc, epsilon, estimate_jacobian
@@ -1670,10 +1667,7 @@ class SLSQPLSQFitter(Fitter):
         model_copy = _validate_model(model, self._opt_method.supported_constraints)
         model_copy.sync_constraints = False
         farg = _convert_input(x, y, z)
-        farg = (
-            model_copy,
-            weights,
-        ) + farg
+        farg = (model_copy, weights, *farg)
         init_values, _, _ = model_to_fit_params(model_copy)
         fitparams, self.fit_info = self._opt_method(
             self.objective_function, init_values, farg, **kwargs
@@ -1739,10 +1733,7 @@ class SimplexLSQFitter(Fitter):
         model_copy = _validate_model(model, self._opt_method.supported_constraints)
         model_copy.sync_constraints = False
         farg = _convert_input(x, y, z)
-        farg = (
-            model_copy,
-            weights,
-        ) + farg
+        farg = (model_copy, weights, *farg)
 
         init_values, _, _ = model_to_fit_params(model_copy)
 

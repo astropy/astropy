@@ -331,7 +331,7 @@ class TimeInfoBase(MixinInfo):
                 raise ValueError("input columns have inconsistent locations")
 
         # Make a new Time object with the desired shape and attributes
-        shape = (length,) + attrs.pop("shape")
+        shape = (length, *attrs.pop("shape"))
         jd2000 = 2451544.5  # Arbitrary JD value J2000.0 that will work with ERFA
         jd1 = np.full(shape, jd2000, dtype="f8")
         jd2 = np.zeros(shape, dtype="f8")
@@ -456,7 +456,7 @@ class TimeDeltaInfo(TimeInfoBase):
         col0 = cols[0]
 
         # Make a new Time object with the desired shape and attributes
-        shape = (length,) + attrs.pop("shape")
+        shape = (length, *attrs.pop("shape"))
         jd1 = np.zeros(shape, dtype="f8")
         jd2 = np.zeros(shape, dtype="f8")
         out = self._parent_cls(jd1, jd2, format="jd", scale=col0.scale)

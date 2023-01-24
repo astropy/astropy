@@ -223,7 +223,7 @@ class QuantityInfo(QuantityInfoBase):
         )
 
         # Make an empty quantity using the unit of the last one.
-        shape = (length,) + attrs.pop("shape")
+        shape = (length, *attrs.pop("shape"))
         dtype = attrs.pop("dtype")
         # Use zeros so we do not get problems for Quantity subclasses such
         # as Longitude and Latitude, which cannot take arbitrary values.
@@ -1942,8 +1942,9 @@ class Quantity(np.ndarray):
         if unit is None:
             unit = self.unit
         # Ensure we don't loop back by turning any Quantity into array views.
-        args = (self.value,) + tuple(
-            (arg.value if isinstance(arg, Quantity) else arg) for arg in args
+        args = (
+            self.value,
+            *tuple(arg.value if isinstance(arg, Quantity) else arg for arg in args),
         )
         if out is not None:
             # If pre-allocated output is used, check it is suitable.

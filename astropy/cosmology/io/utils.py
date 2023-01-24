@@ -35,7 +35,7 @@ def convert_parameter_to_column(parameter, value, meta=None):
     -------
     `astropy.table.Column`
     """
-    shape = (1,) + np.shape(value)  # minimum of 1d
+    shape = (1, *np.shape(value))  # minimum of 1d
 
     col = Column(
         data=np.reshape(value, shape),

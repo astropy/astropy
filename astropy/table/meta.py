@@ -204,7 +204,7 @@ def _get_variable_length_array_shape(col):
             if not issubclass(val.dtype.type, np_classes) or val.shape[:-1] != shape:
                 raise ConvertError
             dtype = np.promote_types(dtype, val.dtype)
-        shape = shape + (None,)
+        shape = (*shape, None)
 
     except ConvertError:
         # `col` is not a variable length array, return shape and dtype to

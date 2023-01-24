@@ -35,9 +35,7 @@ class TestPVUfuncs:
     def test_p2pv(self):
         p2pv = erfa_ufunc.p2pv(self.pv["p"])
         assert_array_equal(p2pv["p"], self.pv["p"])
-        assert_array_equal(
-            p2pv["v"], np.zeros(self.pv.shape + (3,), float) << u.m / u.s
-        )
+        assert_array_equal(p2pv["v"], np.zeros((*self.pv.shape, 3), float) << u.m / u.s)
 
     @pytest.mark.xfail(
         erfa.__version__ <= "2.0.0",
@@ -49,9 +47,7 @@ class TestPVUfuncs:
         p2pv = erfa_ufunc.p2pv(self.pv["p"], out=out)
         assert out is p2pv
         assert_array_equal(p2pv["p"], self.pv["p"])
-        assert_array_equal(
-            p2pv["v"], np.zeros(self.pv.shape + (3,), float) << u.m / u.s
-        )
+        assert_array_equal(p2pv["v"], np.zeros((*self.pv.shape, 3), float) << u.m / u.s)
 
     def test_pv2p(self):
         p = erfa_ufunc.pv2p(self.pv)

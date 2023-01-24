@@ -256,9 +256,9 @@ class Distribution:
             bin_edges.append(bin_edge)
 
         nhists = np.array(nhists)
-        nh_shape = self.shape + (nhists.size // self.size,)
+        nh_shape = (*self.shape, nhists.size // self.size)
         bin_edges = np.array(bin_edges)
-        be_shape = self.shape + (bin_edges.size // self.size,)
+        be_shape = (*self.shape, bin_edges.size // self.size)
         return nhists.reshape(nh_shape), bin_edges.reshape(be_shape)
 
 

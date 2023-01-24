@@ -246,7 +246,8 @@ extend-ignore = [
 
     # Ruff-specific rules (RUF)
     "RUF001", "RUF002", "RUF003",  # AmbiguousUnicode, maybe fix?
-    "RUF004", # KeywordArgumentBeforeStarArgument    # TODO: fix
+    "RUF004",  # KeywordArgumentBeforeStarArgument    # TODO: fix
+    "RUF005",  # unpack-instead-of-concatenating-to-collection-literal -- it's not clearly faster.
 
     # flake8-bandit (S)
     "S101",  # UseOfAssert                           # TODO: fix
@@ -269,6 +270,7 @@ extend-ignore = [
 
     # tryceratops (TRY)
     "TRY004",  # prefer-type-error                   # TODO: fix, but breaks API
+    "TRY300",  # Consider `else` block               # TODO: fix
 
     # pyupgrade (UP)
     # TODO: replace pyupgrade with this

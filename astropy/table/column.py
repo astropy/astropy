@@ -517,7 +517,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         copy_indices=True,
     ):
         if data is None:
-            self_data = np.zeros((length,) + shape, dtype=dtype)
+            self_data = np.zeros((length, *shape), dtype=dtype)
         elif isinstance(data, BaseColumn) and hasattr(data, "_name"):
             # When unpickling a MaskedColumn, ``data`` will be a bare
             # BaseColumn with none of the expected attributes.  In this case
@@ -692,7 +692,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             self.meta,
             self.indices,
         )
-        state = state + (column_state,)
+        state = (*state, column_state)
 
         return reconstruct_func, reconstruct_func_args, state
 

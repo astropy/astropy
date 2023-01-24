@@ -167,7 +167,7 @@ def get_sun(time):
     dsun = np.sqrt(np.sum(earth_p**2, axis=-1))
     invlorentz = (1 - np.sum(earth_v**2, axis=-1)) ** 0.5
     properdir = erfa.ab(
-        earth_p / dsun.reshape(dsun.shape + (1,)), -earth_v, dsun, invlorentz
+        earth_p / dsun.reshape((*dsun.shape, 1)), -earth_v, dsun, invlorentz
     )
 
     cartrep = CartesianRepresentation(

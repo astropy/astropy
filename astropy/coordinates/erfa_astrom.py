@@ -267,7 +267,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
         # do interpolation
         earth_pv = np.empty(obstime.shape, dtype=erfa.dt_pv)
-        earth_heliocentric = np.empty(obstime.shape + (3,))
+        earth_heliocentric = np.empty((*obstime.shape, 3))
         for dim in range(3):
             for key in "pv":
                 earth_pv[key][..., dim] = np.interp(
@@ -289,7 +289,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
         """
         jd1_tt_support, jd2_tt_support = get_jd12(support, "tt")
         c2i_support = erfa.c2i06a(jd1_tt_support, jd2_tt_support)
-        c2i = np.empty(obstime.shape + (3, 3))
+        c2i = np.empty((*obstime.shape, 3, 3))
         for dim1 in range(3):
             for dim2 in range(3):
                 c2i[..., dim1, dim2] = np.interp(
