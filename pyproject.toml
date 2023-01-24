@@ -62,6 +62,21 @@ force-exclude = '''
 )
 '''
 
+
+[tool.flynt]
+exclude= [
+    "astropy/extern",
+    "astropy/coordinates/angle_lextab.py",
+    "astropy/units/format/cds_lextab.py",
+    "astropy/units/format/general_lextab.py",
+    "astropy/units/format/ogip_lextab.py",
+    "astropy/coordinates/angle_parsetab.py",
+    "astropy/units/format/cds_parsetab.py",
+    "astropy/units/format/general_parsetab.py",
+    "astropy/units/format/ogip_parsetab.py",
+]
+
+
 [tool.isort]
     profile = "black"
     extend_skip_glob = [
@@ -256,19 +271,6 @@ extend-ignore = [
 ]
 unfixable = [
     "E711"  # NoneComparison. Hard to fix b/c numpy has it's own None.
-]
-
-[tool.flynt]
-exclude= [
-    "astropy/extern",
-    "astropy/coordinates/angle_lextab.py",
-    "astropy/units/format/cds_lextab.py",
-    "astropy/units/format/general_lextab.py",
-    "astropy/units/format/ogip_lextab.py",
-    "astropy/coordinates/angle_parsetab.py",
-    "astropy/units/format/cds_parsetab.py",
-    "astropy/units/format/general_parsetab.py",
-    "astropy/units/format/ogip_parsetab.py",
 ]
 
 [tool.ruff.pydocstyle]
