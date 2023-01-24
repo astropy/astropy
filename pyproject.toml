@@ -163,6 +163,7 @@ extend-ignore = [
     "D404",  # NoThisPrefix
     "D410",  # BlankLineAfterSection. Using D412 instead.
     "D400",  # EndsInPeriod. Using D415 instead.
+    "D401",  # non-imperative-mood.
     "D413",  # BlankLineAfterLastSection. Don't check.
     "D414",  # NonEmptySection                         # TODO: fix
     "D416",  # SectionNameEndsInColon. Don't check.
@@ -189,6 +190,9 @@ extend-ignore = [
     # NOTE: autofix, but be careful that some developer notes are kept.
     "ERA001",  # CommentedOutCode
 
+    # flake8-executable (EXE)
+    "EXE002",  # shebang-missing-executable-file
+
     # Pyflakes (F)
     "F403",  # ImportStarUsed
     "F821",  # UndefinedName                           # TODO: fix
@@ -197,6 +201,11 @@ extend-ignore = [
     # flake8-boolean-trap (FBT)  : boolean flags should be kwargs, not args
     # NOTE: a good thing to fix, but changes API.
     "FBT001", "FBT002", "FBT003",
+
+    # flake8-logging-format (G)
+    "G001",  # logging-string-format                   # TODO: fix
+    "G003",  # logging-string-concat                   # TODO: fix
+    "G004",  # logging-f-string                        # TODO: fix
 
     # isort (I)
     # TODO: replace isort with this.
@@ -216,6 +225,7 @@ extend-ignore = [
     # flake8-pie (PIE)
     "PIE790",  # NoUnnecessaryPass                   # TODO: autofix
     "PIE794",  # DupeClassFieldDefinitions           # TODO: autofix
+    "PIE804",  # no-unnecessary-dict-kwargs          # TODO: fix
 
     # pandas-vet (PD)
     "PD",
@@ -224,9 +234,11 @@ extend-ignore = [
     "PGH001",  # TODO: fix in astropy.utils.introspection
 
     # Pylint (PLC, PLE, PLR, PLW)
+    "PLE0605",  # invalid-all-format	             # TODO: fix
     "PLR0402",  # ConsiderUsingFromImport            # TODO: fix
     "PLR1701",  # ConsiderMergingIsinstance          # TODO: fix
     "PLR2004",  # MagicValueComparison               # Note: low priority fix
+    "PLR0913",  # too-many-args
     "PLW0120",  # UselessElseOnLoop                  # Note: low priority fix
     "PLW0602",  # GlobalVariableNotAssigned          # TODO: fix
 
@@ -234,18 +246,27 @@ extend-ignore = [
     # TODO: fix many of these.
     "PT",
 
+    # flake8-use-pathlib (PTH)
+    # TODO: fix many / all of these. ``pathlib`` is often preferred.
+    "PTH",
+
     # flake8-return (RET)
     "RET",
 
+    # flake8-raise (RSE)
+    "RSE102",  # unnecessary-paren-on-raise-exception  # TODO: fix
+
     # Ruff-specific rules (RUF)
     "RUF001", "RUF002", "RUF003",  # AmbiguousUnicode, maybe fix?
-    "RUF004", # KeywordArgumentBeforeStarArgument    # TODO: fix
+    "RUF004",  # KeywordArgumentBeforeStarArgument    # TODO: fix
+    "RUF005",  # unpack-instead-of-concatenating-to-collection-literal -- it's not clearly faster.
 
     # flake8-bandit (S)
     "S101",  # UseOfAssert                           # TODO: fix
     "S105",  # HardcodedPasswordString               # TODO: fix by adding noqa
+    "S110",  # TryExceptPass                         # TODO: fix
     "S506",  # UnsafeYAMLLoad                        # TODO: fix
-    "S324",	 # HashlibInsecureHashFunction           # TODO: fix or noqa
+    "S324",  # hashlib-insecure-hash-function
 
     # flake8-simplify (SIM)
     "SIM102",  # NestedIfStatements                  # TODO: fixable with `pass`.
@@ -260,6 +281,16 @@ extend-ignore = [
 
     # flake8-print (T20)
     "T201",  # PrintUsed                             # TODO: change to logging
+
+    # tryceratops (TRY)
+    "TRY002",  # raise-vanilla-class                 # NOTE: low priority fix, requiring API change
+    "TRY003",  # raise-vanilla-args
+    "TRY004",  # prefer-type-error                   # TODO: fix, but breaks API
+    "TRY200",  # reraise-no-cause                    # TODO: fix
+    "TRY201",  # verbose-raise                       # TODO: fix
+    "TRY300",  # Consider `else` block               # TODO: fix
+    "TRY301",  # raise-within-try                    # TODO: fix
+    "TRY400",  # error-instead-of-exception          # TODO: fix
 
     # pyupgrade (UP)
     # TODO: replace pyupgrade with this
@@ -277,6 +308,7 @@ unfixable = [
 convention = "numpy"
 
 [tool.ruff.per-file-ignores]
+"setup.py" = ["INP001"]  # Part of configuration, not a package.
 "__init__.py" = ["E402", "F401", "F403"]
 "astropy/coordinates/angle_formats.py" = ["D415"]  # The docstrings are regexes.
 "astropy/io/registry/compat.py" = ["F822"]
@@ -287,9 +319,15 @@ convention = "numpy"
     "D411",  # sphinx treats spaced example sections as real sections
 ]
 "test_*.py" = ["B011", "D", "E402", "PGH001", "S101"]
+".pyinstaller/*.py" = ["INP001"]  # Not a package.
+"conftest.py" = ["INP001"]  # Part of configuration, not a package.
+"docs/*.py" = [
+    "INP001",  # implicit-namespace-package. The examples are not a package.
+]
 "examples/*.py" = [
     "D415",  # EndsInPeriod. The examples use RST syntax, not a one-line title.
     "E402",  # Imports are done as needed.
+    "INP001", # implicit-namespace-package. The examples are not a package.
     "T203"
 ]
 
