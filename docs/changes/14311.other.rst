@@ -1,0 +1,4 @@
+The CFITSIO library is no longer bundled in full with astropy and
+the option to build against an external installation of CFITSIO
+has now been removed, so the ASTROPY_USE_SYSTEM_CFITSIO environment
+variable will be ignored during building.

@@ -372,10 +372,6 @@ The C libraries currently bundled with ``astropy`` include:
   ``cextern/wcslib/README`` for the bundled version. To use the
   system version, set ``ASTROPY_USE_SYSTEM_WCSLIB=1``.
 
-- `cfitsio <https://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ see
-  ``cextern/cfitsio/changes.txt`` for the bundled version. To use the
-  system version, set ``ASTROPY_USE_SYSTEM_CFITSIO=1``.
-
 - `expat <https://libexpat.github.io/>`_ see ``cextern/expat/README`` for the
   bundled version. To use the system version, set ``ASTROPY_USE_SYSTEM_EXPAT=1``.
 
