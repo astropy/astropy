@@ -767,7 +767,7 @@ def test_convert_comment_convention():
     filename = get_pkg_data_filename("data/stddata.fits")
     with pytest.warns(
         AstropyUserWarning,
-        match=r"hdu= was not specified but " r"multiple tables are present",
+        match=r"hdu= was not specified but multiple tables are present",
     ):
         t = Table.read(filename)
 

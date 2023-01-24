@@ -240,17 +240,21 @@ def ignore_sigint(func):
     return wrapped
 
 
-def pairwise(iterable):
-    """Return the items of an iterable paired with its next item.
+if sys.version_info[:2] >= (3, 10):
+    from itertools import pairwise
+else:
 
-    Ex: s -> (s0,s1), (s1,s2), (s2,s3), ....
-    """
-    a, b = itertools.tee(iterable)
-    for _ in b:
-        # Just a little trick to advance b without having to catch
-        # StopIter if b happens to be empty
-        break
-    return zip(a, b)
+    def pairwise(iterable):
+        """Return the items of an iterable paired with its next item.
+
+        Ex: s -> (s0,s1), (s1,s2), (s2,s3), ....
+        """
+        a, b = itertools.tee(iterable)
+        for _ in b:
+            # Just a little trick to advance b without having to catch
+            # StopIter if b happens to be empty
+            break
+        return zip(a, b)
 
 
 def encode_ascii(s):
@@ -273,8 +277,7 @@ def decode_ascii(s):
         except UnicodeDecodeError:
             warnings.warn(
                 "non-ASCII characters are present in the FITS "
-                'file header and have been replaced by "?" '
-                "characters",
+                'file header and have been replaced by "?" characters',
                 AstropyUserWarning,
             )
             s = s.decode("ascii", errors="replace")
@@ -508,7 +511,7 @@ def fill(text, width, **kwargs):
     paragraphs = text.split("\n\n")
 
     def maybe_fill(t):
-        if all(len(l) < width for l in t.splitlines()):
+        if all(len(line) < width for line in t.splitlines()):
             return t
         else:
             return textwrap.fill(t, width, **kwargs)
@@ -810,9 +813,7 @@ def _free_space_check(hdulist, dirname=None):
     except OSError as exc:
         error_message = ""
         if not isinstance(hdulist, list):
-            hdulist = [
-                hdulist,
-            ]
+            hdulist = [hdulist]
         if dirname is None:
             dirname = os.path.dirname(hdulist._file.name)
         if os.path.isdir(dirname):

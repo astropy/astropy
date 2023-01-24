@@ -1590,12 +1590,11 @@ class CompImageHDU(BinTableHDU):
             if CompImageHeader._is_reserved_keyword(keyword, warn=False):
                 del image_header[keyword]
 
+        hcomments = self._header.comments
+
         if "ZSIMPLE" in self._header:
             image_header.set(
-                "SIMPLE",
-                self._header["ZSIMPLE"],
-                self._header.comments["ZSIMPLE"],
-                before=0,
+                "SIMPLE", self._header["ZSIMPLE"], hcomments["ZSIMPLE"], before=0
             )
             del image_header["XTENSION"]
         elif "ZTENSION" in self._header:
@@ -1604,32 +1603,22 @@ class CompImageHDU(BinTableHDU):
                     "ZTENSION keyword in compressed extension != 'IMAGE'",
                     AstropyUserWarning,
                 )
-            image_header.set(
-                "XTENSION", "IMAGE", self._header.comments["ZTENSION"], before=0
-            )
+            image_header.set("XTENSION", "IMAGE", hcomments["ZTENSION"], before=0)
         else:
             image_header.set("XTENSION", "IMAGE", before=0)
 
         image_header.set(
-            "BITPIX",
-            self._header["ZBITPIX"],
-            self._header.comments["ZBITPIX"],
-            before=1,
+            "BITPIX", self._header["ZBITPIX"], hcomments["ZBITPIX"], before=1
         )
 
-        image_header.set(
-            "NAXIS", self._header["ZNAXIS"], self._header.comments["ZNAXIS"], before=2
-        )
+        image_header.set("NAXIS", self._header["ZNAXIS"], hcomments["ZNAXIS"], before=2)
 
         last_naxis = "NAXIS"
         for idx in range(image_header["NAXIS"]):
             znaxis = "ZNAXIS" + str(idx + 1)
             naxis = znaxis[1:]
             image_header.set(
-                naxis,
-                self._header[znaxis],
-                self._header.comments[znaxis],
-                after=last_naxis,
+                naxis, self._header[znaxis], hcomments[znaxis], after=last_naxis
             )
             last_naxis = naxis
 
@@ -1651,7 +1640,7 @@ class CompImageHDU(BinTableHDU):
             image_header.set(
                 "PCOUNT",
                 self._header["ZPCOUNT"],
-                self._header.comments["ZPCOUNT"],
+                hcomments["ZPCOUNT"],
                 after=last_naxis,
             )
         else:
@@ -1659,35 +1648,26 @@ class CompImageHDU(BinTableHDU):
 
         if "ZGCOUNT" in self._header:
             image_header.set(
-                "GCOUNT",
-                self._header["ZGCOUNT"],
-                self._header.comments["ZGCOUNT"],
-                after="PCOUNT",
+                "GCOUNT", self._header["ZGCOUNT"], hcomments["ZGCOUNT"], after="PCOUNT"
             )
         else:
             image_header.set("GCOUNT", 1, after="PCOUNT")
 
         if "ZEXTEND" in self._header:
-            image_header.set(
-                "EXTEND", self._header["ZEXTEND"], self._header.comments["ZEXTEND"]
-            )
+            image_header.set("EXTEND", self._header["ZEXTEND"], hcomments["ZEXTEND"])
 
         if "ZBLOCKED" in self._header:
-            image_header.set(
-                "BLOCKED", self._header["ZBLOCKED"], self._header.comments["ZBLOCKED"]
-            )
+            image_header.set("BLOCKED", self._header["ZBLOCKED"], hcomments["ZBLOCKED"])
 
         # Move the ZHECKSUM and ZDATASUM cards to the image header
         # as CHECKSUM and DATASUM
         if "ZHECKSUM" in self._header:
             image_header.set(
-                "CHECKSUM", self._header["ZHECKSUM"], self._header.comments["ZHECKSUM"]
+                "CHECKSUM", self._header["ZHECKSUM"], hcomments["ZHECKSUM"]
             )
 
         if "ZDATASUM" in self._header:
-            image_header.set(
-                "DATASUM", self._header["ZDATASUM"], self._header.comments["ZDATASUM"]
-            )
+            image_header.set("DATASUM", self._header["ZDATASUM"], hcomments["ZDATASUM"])
 
         # Remove the EXTNAME card if the value in the table header
         # is the default value of COMPRESSED_IMAGE.

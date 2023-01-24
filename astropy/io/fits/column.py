@@ -95,7 +95,7 @@ ASCII_DEFAULT_WIDTHS = {
 # TDISPn for both ASCII and Binary tables
 TDISP_RE_DICT = {}
 TDISP_RE_DICT["F"] = re.compile(
-    r"(?:(?P<formatc>[F])(?:(?P<width>[0-9]+)\.{1}" r"(?P<precision>[0-9])+)+)|"
+    r"(?:(?P<formatc>[F])(?:(?P<width>[0-9]+)\.{1}(?P<precision>[0-9])+)+)|"
 )
 TDISP_RE_DICT["A"] = TDISP_RE_DICT["L"] = re.compile(
     r"(?:(?P<formatc>[AL])(?P<width>[0-9]+)+)|"
@@ -112,7 +112,7 @@ TDISP_RE_DICT["E"] = TDISP_RE_DICT["G"] = TDISP_RE_DICT["D"] = re.compile(
     r"(?:E{0,1}(?P<exponential>[0-9]+)?)|"
 )
 TDISP_RE_DICT["EN"] = TDISP_RE_DICT["ES"] = re.compile(
-    r"(?:(?P<formatc>E[NS])(?:(?P<width>[0-9]+)\.{1}" r"(?P<precision>[0-9])+)+)"
+    r"(?:(?P<formatc>E[NS])(?:(?P<width>[0-9]+)\.{1}(?P<precision>[0-9])+)+)"
 )
 
 # mapping from TDISP format to python format
@@ -198,7 +198,7 @@ ATTRIBUTE_TO_KEYWORD = OrderedDict(zip(KEYWORD_ATTRIBUTES, KEYWORD_NAMES))
 
 # TFORMn regular expression
 TFORMAT_RE = re.compile(
-    r"(?P<repeat>^[0-9]*)(?P<format>[LXBIJKAEDCMPQ])" r"(?P<option>[!-~]*)", re.I
+    r"(?P<repeat>^[0-9]*)(?P<format>[LXBIJKAEDCMPQ])(?P<option>[!-~]*)", re.I
 )
 
 # TFORMn for ASCII tables; two different versions depending on whether
@@ -213,8 +213,7 @@ TFORMAT_ASCII_RE = re.compile(
 
 TTYPE_RE = re.compile(r"[0-9a-zA-Z_]+")
 """
-Regular expression for valid table column names.  See FITS Standard v3.0 section
-7.2.2.
+Regular expression for valid table column names.  See FITS Standard v3.0 section 7.2.2.
 """
 
 # table definition keyword regular expression
@@ -433,7 +432,7 @@ class _FormatP(str):
     # As far as I can tell from my reading of the FITS standard, a type code is
     # *required* for P and Q formats; there is no default
     _format_re_template = (
-        r"(?P<repeat>\d+)?{}(?P<dtype>[LXBIJKAEDCM])" r"(?:\((?P<max>\d*)\))?"
+        r"(?P<repeat>\d+)?{}(?P<dtype>[LXBIJKAEDCM])(?:\((?P<max>\d*)\))?"
     )
     _format_code = "P"
     _format_re = re.compile(_format_re_template.format(_format_code))
@@ -1329,8 +1328,7 @@ class Column(NotifierMixin):
             raise ValueError(
                 "Columns cannot have both a start (TCOLn) and dim "
                 "(TDIMn) option, since the former is only applies to "
-                "ASCII tables, and the latter is only valid for binary "
-                "tables."
+                "ASCII tables, and the latter is only valid for binary tables."
             )
         elif start:
             # Only ASCII table columns can have a 'start' option
@@ -2350,9 +2348,8 @@ def _parse_ascii_tformat(tform, strict=False):
 
     if precision >= width:
         raise VerifyError(
-            "Format {!r} not valid--the number of decimal digits "
-            "must be less than the format's total "
-            "width {}.".format(tform, width)
+            f"Format {tform!r} not valid--the number of decimal digits "
+            f"must be less than the format's total width {width}."
         )
 
     return format, width, precision
@@ -2731,13 +2728,10 @@ def python_to_tdisp(format_string, logical_dtype=False):
             width, precision = fmt_str.split(".")
             sep = "."
             if width == "":
-                ascii_key = ftype if ftype != "G" else "F"
+                key = ftype if ftype != "G" else "F"
                 width = str(
                     int(precision)
-                    + (
-                        ASCII_DEFAULT_WIDTHS[ascii_key][0]
-                        - ASCII_DEFAULT_WIDTHS[ascii_key][1]
-                    )
+                    + (ASCII_DEFAULT_WIDTHS[key][0] - ASCII_DEFAULT_WIDTHS[key][1])
                 )
         # Otherwise we just have a width
         else:
@@ -2745,9 +2739,8 @@ def python_to_tdisp(format_string, logical_dtype=False):
 
     else:
         warnings.warn(
-            "Format {} cannot be mapped to the accepted "
-            "TDISPn keyword values.  Format will not be "
-            "moved into TDISPn keyword.".format(format_string),
+            f"Format {format_string} cannot be mapped to the accepted TDISPn "
+            "keyword values.  Format will not be moved into TDISPn keyword.",
             AstropyUserWarning,
         )
         return None

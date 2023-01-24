@@ -1878,7 +1878,7 @@ class TestHeaderFunctions(FitsTestCase):
         s = invalid_header("END$%&%^*%*", True)
         with pytest.warns(
             AstropyUserWarning,
-            match=r"Unexpected bytes trailing " r"END keyword: '\$%&%\^\*%\*'",
+            match=r"Unexpected bytes trailing END keyword: '\$%&%\^\*%\*'",
         ) as w:
             h = fits.Header.fromfile(s)
             assert h == horig
