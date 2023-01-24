@@ -4176,6 +4176,14 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         "ID", True, "iter_info", "INFO", """Looks up a INFO element by the given ID."""
     )
 
+    get_infos_by_name = _lookup_by_attr_factory(
+        "name",
+        False,
+        "iter_info",
+        "INFO",
+        """Returns all INFO children with the given name.""",
+    )
+
     def set_all_tables_format(self, format):
         """
         Set the output storage format of all tables in the file.
