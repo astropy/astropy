@@ -153,6 +153,7 @@ extend-ignore = [
     "D409",  # SectionUnderlineMatchesSectionLength    # TODO: autofix
     "D410", "D412",  # (No)BlankLineAfterSection       # TODO: choose one and autofix
     "D400",  # EndsInPeriod. Using D415 instead.
+    "D401",  # non-imperative-mood.
     "D411",  # BlankLineBeforeSection                  # TODO: autofix
     "D413",  # BlankLineAfterLastSection. Don't check.
     "D414",  # NonEmptySection                         # TODO: fix
