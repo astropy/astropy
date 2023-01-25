@@ -209,6 +209,16 @@ Astropy Test Function
 Test-running options
 ====================
 
+.. _open-files:
+
+Testing for open files
+----------------------
+
+There is a configuration inside the ``setup.cfg`` file that converts all
+unhandled warnings to errors during a test run. As a result, any open file(s)
+that throw ``ResourceWarning`` (except the specific ones already ignored)
+would fail the affected test(s).
+
 Test coverage reports
 ---------------------
 
@@ -218,7 +228,7 @@ automatically when installing pytest-astropy) by using e.g.::
 
     pytest --cov astropy --cov-report html
 
-There is some configuration inside the ``setup.cfg`` file that
+There is some configuration inside the ``pyproject.toml`` file that
 defines files to omit as well as lines to exclude.
 
 Running tests in parallel
