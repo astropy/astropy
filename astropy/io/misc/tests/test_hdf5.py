@@ -633,7 +633,7 @@ def test_read_h5py_objects(tmp_path):
     t4 = Table.read(f["the_table"])
     assert np.all(t4["a"] == [1, 2, 3])
 
-    f.close()  # don't raise an error in 'test --open-files'
+    f.close()  # don't leave the file open
 
 
 @pytest.mark.skipif(not HAS_H5PY, reason="requires h5py")

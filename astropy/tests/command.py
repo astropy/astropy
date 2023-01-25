@@ -100,11 +100,6 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         ("pdb", "d", "Start the interactive Python debugger on errors."),
         ("coverage", "c", "Create a coverage report. Requires the coverage package."),
         (
-            "open-files",
-            "o",
-            "Fail if any tests leave files open.  Requires the psutil package.",
-        ),
-        (
             "parallel=",
             "j",
             "Run the tests in parallel on the specified number of "
@@ -154,7 +149,6 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         self.pep8 = False
         self.pdb = False
         self.coverage = False
-        self.open_files = False
         self.parallel = 0
         self.docs_path = None
         self.skip_docs = False
@@ -194,7 +188,6 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             "remote_data={1.remote_data!r}, "
             "pep8={1.pep8!r}, "
             "pdb={1.pdb!r}, "
-            "open_files={1.open_files!r}, "
             "parallel={1.parallel!r}, "
             "docs_path={1.docs_path!r}, "
             "skip_docs={1.skip_docs!r}, "

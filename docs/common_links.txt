@@ -148,7 +148,6 @@
 .. _pytest: https://pytest.org/en/latest/index.html
 .. _pytest-astropy: https://github.com/astropy/pytest-astropy
 .. _pytest-doctestplus: https://github.com/astropy/pytest-doctestplus
-.. _pytest-openfiles: https://github.com/astropy/pytest-openfiles
 .. _pytest-remotedata: https://github.com/astropy/pytest-remotedata
 
 .. fsspec
