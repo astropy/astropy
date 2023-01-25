@@ -57,10 +57,10 @@ class TestRunnerBase:
     defining 'keyword' methods. These are methods that have the
     :class:`~astropy.tests.runner.keyword` decorator, these methods are used to
     construct allowed keyword arguments to the
-    ``run_tests`` method as a way to allow
+    `~astropy.tests.runner.TestRunnerBase.run_tests` method as a way to allow
     customization of individual keyword arguments (and associated logic)
     without having to re-implement the whole
-    ``run_tests`` method.
+    `~astropy.tests.runner.TestRunnerBase.run_tests` method.
 
     Examples
     --------
@@ -252,7 +252,7 @@ class TestRunnerBase:
         """
         Constructs a `TestRunner` to run in the given path, and returns a
         ``test()`` function which takes the same arguments as
-        ``TestRunner.run_tests``.
+        `~astropy.tests.runner.TestRunner.run_tests`.
 
         The returned ``test()`` function will be defined in the module this
         was called from.  This is used to implement the ``astropy.test()``
