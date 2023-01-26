@@ -14,7 +14,7 @@ body:
         quick look to see if you are satisfied by the resolution.
         If not please go ahead and open an issue!
         Please check that the development version still produces the same bug.
-        You can install development version with
+        You can install the development version with
         `pip install git+https://github.com/astropy/astropy` command.
   - type: textarea
     attributes:
