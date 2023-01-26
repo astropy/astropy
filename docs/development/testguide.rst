@@ -817,6 +817,28 @@ logs. If any changes/additions look good, you can download from the summary page
 a JSON file with the hashes which you can use to replace the existing one in
 ``astropy/tests/figures``.
 
+New hash libraries
+------------------
+
+When adding a new tox environment for image testing, such as for a new Matplotlib
+or Python version, the tests will fail as the hash library does not exist yet. To
+generate it, you should run the tests the first time with::
+
+    tox -e <envname> -- --mpl-generate-hash-library=astropy/tests/figures/<envname>.json
+
+for example::
+
+    tox -e py39-test-image-mpl322-cov -- --mpl-generate-hash-library=astropy/tests/figures/py39-test-image-mpl322-cov.json
+
+Then add and commit the new JSON file and try running the tests again. The tests
+may fail in the continuous integration if e.g. the freetype version does not
+match or if you generated the JSON file on a Mac or Windows machine - if that is
+the case, follow the instructions in `Failing tests`_ to update the hashes.
+
+As an alternative to generating the JSON file above, you can also simply copy a
+previous version of the JSON file and update any failing hashes as described
+in `Failing tests`_.
+
 Generating reference images
 ---------------------------
 
