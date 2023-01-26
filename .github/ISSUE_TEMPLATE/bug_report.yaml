@@ -13,9 +13,9 @@ body:
         issue has already been posted. If a similar issue is closed, have a
         quick look to see if you are satisfied by the resolution.
         If not please go ahead and open an issue!
-        Please check that the development version still produces the same bug.
-        You can install the development version with
-        `pip install git+https://github.com/astropy/astropy` command.
+        Please check that the
+        [development version](https://docs.astropy.org/en/latest/development/workflow/get_devel_version.html)
+        still produces the same bug.
   - type: textarea
     attributes:
       label: Description
@@ -30,14 +30,10 @@ body:
         A clear and concise description of what you expected to happen.
   - type: textarea
     attributes:
-      label: Actual behavior
+      label: How to Reproduce
       description: >-
         A clear and concise description of what actually happened instead.
-        Was the output confusing or poorly described?
-  - type: textarea
-    attributes:
-      label: How to Reproduce
-      description: Please provide steps to reproduce this bug.
+        Was the output confusing or poorly described? Please provide steps to reproduce this bug.
       placeholder: |
         1. Get package from '...'
         2. Then run '...'
