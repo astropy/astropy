@@ -16,8 +16,6 @@ body:
       description: >-
         What are you trying to do, that you are unable to achieve with astropy
         and its affiliated packages as it currently stands?
-    validations:
-      required: true
   - type: textarea
     attributes:
       label: Describe the desired outcome
@@ -26,8 +24,6 @@ body:
         of real world use cases that this would help with, and how it solves the
         problem described above. If you want to, you can suggest a draft design or API
         so we can have a deeper discussion on the feature.
-    validations:
-      required: true
   - type: textarea
     attributes:
       label: Additional context

@@ -18,8 +18,6 @@ body:
       label: Description
       description: >-
         A clear and concise description of what the bug is.
-    validations:
-      required: true
   - type: textarea
     attributes:
       label: Expected behavior
@@ -39,23 +37,15 @@ body:
         ```python
         # Put your Python code snippet here.
         ```
-    validations:
-      required: true
   - type: input
     attributes:
       label: astropy version
-    validations:
-      required: true
   - type: input
     attributes:
       label: Python version
-    validations:
-      required: true
   - type: input
     attributes:
       label: OS
-    validations:
-      required: true
   - type: textarea
     attributes:
       label: Other relevant versions
