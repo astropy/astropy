@@ -6,31 +6,16 @@ body:
     attributes:
       value: >-
         Thanks for taking the time to fill out this bug report!
-  - type: checkboxes
-    attributes:
-      label: Code of Conduct
-      options:
-        - label: >-
-            I agree to follow the [Astropy Code of Conduct](https://github.com/astropy/astropy/blob/main/CODE_OF_CONDUCT.md).
-          required: true
-  - type: checkboxes
-    attributes:
-      label: Contributing guidelines
-      options:
-        - label: >-
-            I have read the [Astropy Contributing Guidelines](https://github.com/astropy/astropy/blob/main/CONTRIBUTING.md).
-  - type: checkboxes
-    attributes:
-      label: Check for existing issue
-      options:
-        - label: >-
-            I found no existing issues already reported of the same problem on [astropy GitHub issues](https://github.com/astropy/astropy/issues).
-  - type: checkboxes
-    attributes:
-      label: Bug still in dev
-      options:
-        - label: >-
-            I checked that this bug still occurs in the dev version of astropy.
+        Please be sure to check out our
+        [contributing guidelines](https://github.com/astropy/astropy/blob/main/CONTRIBUTING.md)
+        and [code of conduct](https://github.com/astropy/astropy/blob/main/CODE_OF_CONDUCT.md).
+        Please have a search on our GitHub repository to see if a similar
+        issue has already been posted. If a similar issue is closed, have a
+        quick look to see if you are satisfied by the resolution.
+        If not please go ahead and open an issue!
+        Please check that the development version still produces the same bug.
+        You can install development version with
+        `pip install git+https://github.com/astropy/astropy` command.
   - type: textarea
     attributes:
       label: Description
@@ -57,6 +42,10 @@ body:
         1. Get package from '...'
         2. Then run '...'
         3. An error occurs.
+
+        ```python
+        # Put your Python code snippet here.
+        ```
     validations:
       required: true
   - type: input

@@ -6,25 +6,13 @@ body:
     attributes:
       value: >-
         Thanks for taking the time to fill out this feature request!
-  - type: checkboxes
-    attributes:
-      label: Code of Conduct
-      options:
-        - label: >-
-            I agree to follow the [Astropy Code of Conduct](https://github.com/astropy/astropy/blob/main/CODE_OF_CONDUCT.md).
-          required: true
-  - type: checkboxes
-    attributes:
-      label: Contributing guidelines
-      options:
-        - label: >-
-            I have read the [Astropy Contributing Guidelines](https://github.com/astropy/astropy/blob/main/CONTRIBUTING.md).
-  - type: checkboxes
-    attributes:
-      label: Check for existing issue
-      options:
-        - label: >-
-            I found no existing issues already reported of the same request on [astropy GitHub issues](https://github.com/astropy/astropy/issues).
+        Please be sure to check out our
+        [contributing guidelines](https://github.com/astropy/astropy/blob/main/CONTRIBUTING.md)
+        and [code of conduct](https://github.com/astropy/astropy/blob/main/CODE_OF_CONDUCT.md).
+        Please have a search on our GitHub repository to see if a similar
+        issue has already been posted. If a similar issue is closed, have a
+        quick look to see if you are satisfied by the resolution.
+        If not please go ahead and open an issue!
   - type: textarea
     attributes:
       label: What is the problem this feature will solve?
