@@ -37,20 +37,14 @@ body:
         ```python
         # Put your Python code snippet here.
         ```
-  - type: input
-    attributes:
-      label: astropy version
-  - type: input
-    attributes:
-      label: Python version
-  - type: input
-    attributes:
-      label: OS
   - type: textarea
     attributes:
-      label: Other relevant versions
-      description: Version of other relevant packages.
+      label: Versions
+      description: Version of relevant packages.
       placeholder: |
+        import platform; print(platform.platform())
+        import sys; print("Python", sys.version)
+        import astropy; print("astropy", astropy.__version__)
         import numpy; print("Numpy", numpy.__version__)
         import erfa; print("pyerfa", erfa.__version__)
         import scipy; print("Scipy", scipy.__version__)
