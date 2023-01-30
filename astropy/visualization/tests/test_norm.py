@@ -4,17 +4,11 @@ import numpy as np
 import pytest
 from numpy import ma
 from numpy.testing import assert_allclose, assert_equal
-from packaging.version import Version
 
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB, HAS_PLT
 from astropy.visualization.interval import ManualInterval, PercentileInterval
 from astropy.visualization.mpl_normalize import ImageNormalize, imshow_norm, simple_norm
 from astropy.visualization.stretch import LogStretch, PowerStretch, SqrtStretch
-
-if HAS_MATPLOTLIB:
-    import matplotlib
-
-    MATPLOTLIB_LT_32 = Version(matplotlib.__version__) < Version("3.2")
 
 DATA = np.linspace(0.0, 15.0, 6)
 DATA2 = np.arange(3)

@@ -154,13 +154,6 @@ def time_support(*, scale=None, format=None, simplify=True):
             self.set_useOffset(False)
             self.set_scientific(False)
 
-        def __call__(self, value, pos=None):
-            # Needed for Matplotlib <3.1
-            if self._converter.format in STR_FORMATS:
-                return self.format_ticks([value])[0]
-            else:
-                return super().__call__(value, pos=pos)
-
         def format_ticks(self, values):
             if len(values) == 0:
                 return []

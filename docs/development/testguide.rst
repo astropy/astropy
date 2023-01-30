@@ -763,7 +763,7 @@ hashes and images.
 
 To run the Astropy tests with the image comparison, use e.g.::
 
-    tox -e py39-test-image-mpl311-cov
+    tox -e py39-test-image-mpl322-cov
 
 However, note that the output can be sensitive to the operating system and
 specific version of libraries such as freetype. In general, using tox will
