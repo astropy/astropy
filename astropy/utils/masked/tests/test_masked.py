@@ -850,6 +850,14 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         assert_array_equal(ma_mean.unmasked, expected_data)
         assert_array_equal(ma_mean.mask, expected_mask)
 
+    @pytest.mark.parametrize("axis", (0, 1, None))
+    def test_mean_all_masked(self, axis):
+        # test corner case when all values are masked
+        md = Masked(self.a, np.ones(self.a.shape, dtype=bool))
+        md_mean = md.mean(axis)
+        assert np.all(np.isnan(md_mean.unmasked))
+        assert np.all(md_mean.mask)
+
     def test_mean_int16(self):
         ma = self.ma.astype("i2")
         ma_mean = ma.mean()
