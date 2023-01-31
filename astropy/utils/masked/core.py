@@ -1113,7 +1113,16 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             axis=axis, dtype=dtype, out=out, keepdims=keepdims, where=where
         )
         n = np.add.reduce(where, axis=axis, keepdims=keepdims)
+
+        # catch the case when an axis is fully masked to prevent div by zero:
+        n = np.add.reduce(where, axis=axis, keepdims=keepdims)
+        neq0 = n == 0
+        n += neq0
         result /= n
+
+        # correct fully-masked slice results to what is expected for 0/0 division
+        result.unmasked[neq0] = np.nan
+
         if is_float16_result:
             result = result.astype(self.dtype)
         return result

@@ -1,0 +1,3 @@
+The ``mean`` method on ``NDDataArray`` now avoids a division by zero
+warning when taking the mean of a fully-masked slice (and still
+returns ``np.nan``).
