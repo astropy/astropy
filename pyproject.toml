@@ -271,6 +271,9 @@ exclude= [
     "astropy/units/format/ogip_parsetab.py",
 ]
 
+[tool.ruff.pydocstyle]
+convention = "numpy"
+
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["E402", "F401", "F403"]
 "astropy/coordinates/angle_formats.py" = ["D415"]  # The docstrings are regexes.
