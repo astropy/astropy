@@ -1469,7 +1469,6 @@ class ColDefs(NotifierMixin):
         """
         Parameters
         ----------
-
         input : sequence of `Column` or `ColDefs` or ndarray or `~numpy.recarray`
             An existing table HDU, an existing `ColDefs`, or any multi-field
             Numpy array or `numpy.recarray`.

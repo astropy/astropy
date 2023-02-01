@@ -41,7 +41,6 @@ class IllegalHourError(RangeError):
 
     Examples
     --------
-
     .. code-block:: python
 
         if not 0 <= hr < 24:
@@ -90,7 +89,6 @@ class IllegalMinuteError(RangeError):
 
     Examples
     --------
-
     .. code-block:: python
 
         if not 0 <= min < 60:
@@ -140,7 +138,6 @@ class IllegalSecondError(RangeError):
 
     Examples
     --------
-
     .. code-block:: python
 
         if not 0 <= sec < 60:

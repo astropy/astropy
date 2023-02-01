@@ -84,7 +84,7 @@ def read_table_parquet(
     ``value`` must be a collection such as a ``list``, a ``set`` or a
     ``tuple``.
 
-    Examples:
+    For example:
 
     .. code-block:: python
 

@@ -25,7 +25,6 @@ def calculate_bin_edges(a, bins=10, range=None, weights=None):
 
     Parameters
     ----------
-
     a : array-like
         Input data. The bin edges are calculated over the flattened array.
 

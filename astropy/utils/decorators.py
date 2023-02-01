@@ -275,7 +275,6 @@ def deprecated_attribute(
 
     Examples
     --------
-
     ::
 
         class MyClass:
@@ -648,7 +647,6 @@ class classproperty(property):
 
     Examples
     --------
-
     ::
 
         >>> class Foo:
@@ -972,7 +970,6 @@ def format_doc(docstring, *args, **kwargs):
 
     Examples
     --------
-
     Replacing the current docstring is very easy::
 
         >>> from astropy.utils.decorators import format_doc

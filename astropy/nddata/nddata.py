@@ -112,7 +112,7 @@ class NDData(NDDataBase):
         >>> nd2.unit
         Unit("cm")
 
-    See also
+    See Also
     --------
     NDDataRef
     NDDataArray

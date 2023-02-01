@@ -929,7 +929,7 @@ class Quantity(np.ndarray):
             If `True` (default), then the value is copied.  Otherwise, a copy
             will only be made if necessary.
 
-        See also
+        See Also
         --------
         to_value : get the numerical value in a given unit.
         """
@@ -969,7 +969,7 @@ class Quantity(np.ndarray):
             The value in the units specified. For arrays, this will be a view
             of the data if no unit conversion was necessary.
 
-        See also
+        See Also
         --------
         to : Get a new instance in a different unit.
         """
@@ -2170,7 +2170,7 @@ def isclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False, **kwargs):
         If the dimensions of ``a``, ``b``, or ``atol`` are incompatible,
         or if ``rtol`` is not dimensionless.
 
-    See also
+    See Also
     --------
     allclose
     """
@@ -2214,7 +2214,7 @@ def allclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False, **kwargs) -> bool:
         If the dimensions of ``a``, ``b``, or ``atol`` are incompatible,
         or if ``rtol`` is not dimensionless.
 
-    See also
+    See Also
     --------
     isclose
     """

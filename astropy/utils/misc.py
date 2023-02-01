@@ -368,7 +368,7 @@ def walk_skip_hidden(top, onerror=None, followlinks=False):
     `os.walk`: the directories must always be recursed top-down when
     using this function.
 
-    See also
+    See Also
     --------
     os.walk : For a description of the parameters
     """
@@ -643,7 +643,6 @@ class OrderedDescriptorContainer(type):
 
     Examples
     --------
-
     >>> from astropy.utils import OrderedDescriptor, OrderedDescriptorContainer
     >>> class TypedAttribute(OrderedDescriptor):
     ...     \"\"\"
@@ -830,7 +829,7 @@ def _set_locale(name):
     This code taken from https://stackoverflow.com/questions/18593661/how-do-i-strftime-a-date-object-in-a-different-locale.
 
     Parameters
-    ==========
+    ----------
     name : str
         Locale name, e.g. "C" or "fr_FR".
     """

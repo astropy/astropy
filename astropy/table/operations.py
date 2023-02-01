@@ -253,7 +253,6 @@ def join_distance(distance, kdtree_args=None, query_args=None):
 
     Examples
     --------
-
       >>> from astropy.table import Table, join_distance
       >>> from astropy import table
 

@@ -250,7 +250,6 @@ class AsinhMapping(Mapping):
 
     Parameters
     ----------
-
     minimum : float
         Intensity that should be mapped to black (a scalar or array for R, G, B).
     stretch : float

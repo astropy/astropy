@@ -1554,7 +1554,6 @@ class Table:
 
         Examples
         --------
-
         To iterate over the columns of a table::
 
             >>> t = Table([[1], [2]])
@@ -4164,7 +4163,7 @@ class QTable(Table):
     except that columns with an associated ``unit`` attribute are converted to
     `~astropy.units.Quantity` objects.
 
-    See also:
+    For more information see:
 
     - https://docs.astropy.org/en/stable/table/
     - https://docs.astropy.org/en/stable/table/mixin_columns.html
