@@ -422,7 +422,6 @@ class AstropyLogger(Logger):
 
         Notes
         -----
-
         By default, the logger already outputs log messages to a file set in
         the Astropy configuration file. Using this context manager does not
         stop log messages from being output to that file, nor does it stop log
@@ -430,7 +429,6 @@ class AstropyLogger(Logger):
 
         Examples
         --------
-
         The context manager is used as::
 
             with logger.log_to_file('myfile.log'):
@@ -471,13 +469,11 @@ class AstropyLogger(Logger):
 
         Notes
         -----
-
         Using this context manager does not stop log messages from being
         output to standard output.
 
         Examples
         --------
-
         The context manager is used as::
 
             with logger.log_to_list() as log_list:

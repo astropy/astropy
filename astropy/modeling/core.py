@@ -1428,7 +1428,6 @@ class Model(metaclass=_ModelMeta):
 
         Examples
         --------
-
         Setting the ``bounding_box`` limits for a 1D and 2D model:
 
         >>> from astropy.modeling.models import Gaussian1D, Gaussian2D
@@ -1605,7 +1604,6 @@ class Model(metaclass=_ModelMeta):
 
         Notes
         -----
-
         This method is needed in order to be able to fit models with units in
         the parameters, since we need to temporarily strip away the units from
         the model during the fitting (which might be done by e.g. scipy
@@ -1656,7 +1654,6 @@ class Model(metaclass=_ModelMeta):
 
         Notes
         -----
-
         This method is needed in order to be able to fit models with units in
         the parameters, since we need to temporarily strip away the units from
         the model during the fitting (which might be done by e.g. scipy
@@ -1698,7 +1695,6 @@ class Model(metaclass=_ModelMeta):
 
         Notes
         -----
-
         This method is needed in order to be able to fit models with units in
         the parameters, since we need to temporarily strip away the units from
         the model during the fitting (which might be done by e.g. scipy
@@ -2330,7 +2326,6 @@ class Model(metaclass=_ModelMeta):
 
         Examples
         --------
-
         Wrapping a unitless model to require and convert units:
 
         >>> from astropy.modeling.models import Polynomial1D
@@ -4253,7 +4248,6 @@ def fix_inputs(modelinstance, values, bounding_boxes=None, selector_args=None):
 
     Examples
     --------
-
     >>> from astropy.modeling.models import Gaussian2D
     >>> g = Gaussian2D(1, 2, 3, 4, 5)
     >>> gv = fix_inputs(g, {0: 2.5})
@@ -4646,7 +4640,8 @@ def hide_inverse(model):
     model's inverse. This is to handle cases where user provided inverse
     functions are not compatible within an expression.
 
-    Example:
+    For example::
+
         compound_model.inverse = hide_inverse(m1) + m2 + m3
 
     This will insure that the defined inverse itself won't attempt to

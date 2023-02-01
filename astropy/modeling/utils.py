@@ -47,7 +47,6 @@ class AliasDict(MutableMapping):
 
     Examples
     --------
-
     >>> parent = {'a': 1, 'b': 2, 'c': 3}
     >>> aliases = {'foo': 'a', 'bar': 'c'}
     >>> alias_dict = AliasDict(parent, aliases)
@@ -169,7 +168,6 @@ def make_binary_operator_eval(oper, f, g):
 
     Example
     -------
-
     >>> from operator import add
     >>> def prod(x, y):
     ...     return (x * y,)

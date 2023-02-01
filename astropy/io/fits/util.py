@@ -54,7 +54,6 @@ class NotifierMixin:
 
     Examples
     --------
-
     >>> class Widget(NotifierMixin):
     ...     state = 1
     ...     def __init__(self, name):
@@ -147,8 +146,8 @@ def first(iterable):
     """
     Returns the first item returned by iterating over an iterable object.
 
-    Example:
-
+    Examples
+    --------
     >>> a = [1, 2, 3]
     >>> first(a)
     1

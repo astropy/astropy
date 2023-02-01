@@ -205,7 +205,6 @@ def get_readable_fileobj(
 
     Notes
     -----
-
     This function is a context manager, and should be used for example
     as::
 
@@ -571,7 +570,6 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
 
     Examples
     --------
-
     This will retrieve a data file and its contents for the `astropy.wcs`
     tests::
 
@@ -686,7 +684,6 @@ def get_pkg_data_filename(
 
     Examples
     --------
-
     This will retrieve the contents of the data file for the `astropy.wcs`
     tests::
 

@@ -5,7 +5,6 @@
 
 Warnings
 --------
-
 .. note::
     Most of the following warnings indicate violations of the VOTable
     specification.  They should be reported to the authors of the

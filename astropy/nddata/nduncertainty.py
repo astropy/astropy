@@ -501,7 +501,6 @@ class _VariancePropagationMixin:
 
         Parameters
         ----------
-
         other_uncert : `~astropy.nddata.NDUncertainty` instance
             The uncertainty, if any, of the other operand.
 
@@ -595,7 +594,6 @@ class _VariancePropagationMixin:
 
         Parameters
         ----------
-
         other_uncert : `~astropy.nddata.NDUncertainty` instance
             The uncertainty, if any, of the other operand.
 

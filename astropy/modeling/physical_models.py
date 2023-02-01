@@ -37,7 +37,6 @@ class BlackBody(Fittable1DModel):
 
     Notes
     -----
-
     Model formula:
 
         .. math:: B_{\\nu}(T) = A \\frac{2 h \\nu^{3} / c^{2}}{exp(h \\nu / k T) - 1}
@@ -268,7 +267,6 @@ class Drude1D(Fittable1DModel):
 
     Examples
     --------
-
     .. plot::
         :include-source:
 
@@ -464,7 +462,6 @@ class NFW(Fittable1DModel):
 
     Notes
     -----
-
     Model formula:
 
     .. math:: \rho(r)=\frac{\delta_c\rho_{c}}{r/r_s(1+r/r_s)^2}
@@ -651,7 +648,6 @@ class NFW(Fittable1DModel):
 
         Notes
         -----
-
         Model formula:
 
         .. math:: A_{NFW} = [\ln(1+y) - \frac{y}{1+y}]
@@ -753,7 +749,6 @@ class NFW(Fittable1DModel):
 
         Notes
         -----
-
         Model formula:
 
         .. math:: v_{circ}(r)^2 = \frac{1}{x}\frac{\ln(1+cx)-(cx)/(1+cx)}{\ln(1+c)-c/(1+c)}

@@ -371,7 +371,6 @@ class Header:
 
         Examples
         --------
-
         >>> from astropy.io.fits import Header
         >>> hdr = Header({'SIMPLE': True})
         >>> Header.fromstring(hdr.tostring()) == hdr

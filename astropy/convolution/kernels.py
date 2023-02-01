@@ -881,7 +881,7 @@ class Model1DKernel(Kernel1D):
     TypeError
         If model is not an instance of `~astropy.modeling.Fittable1DModel`
 
-    See also
+    See Also
     --------
     Model2DKernel : Create kernel from `~astropy.modeling.Fittable2DModel`
     CustomKernel : Create kernel from list or array
@@ -949,7 +949,7 @@ class Model2DKernel(Kernel2D):
     TypeError
         If model is not an instance of `~astropy.modeling.Fittable2DModel`
 
-    See also
+    See Also
     --------
     Model1DKernel : Create kernel from `~astropy.modeling.Fittable1DModel`
     CustomKernel : Create kernel from list or array
@@ -997,7 +997,7 @@ class CustomKernel(Kernel):
     `~astropy.convolution.KernelSizeError`
         If array size is even.
 
-    See also
+    See Also
     --------
     Model2DKernel, Model1DKernel
 

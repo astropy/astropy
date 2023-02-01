@@ -388,6 +388,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
     Uses `numpy.linalg.lstsq` to do the fitting.
     Given a model and data, fits the model to the data and changes the
     model's parameters. Keeps a dictionary of auxiliary fitting information.
+
     Notes
     -----
     Note that currently LinearLSQFitter does not support compound models.
@@ -925,6 +926,7 @@ class FittingWithOutlierRemoval:
             Weights to be passed to the fitter.
         kwargs : dict, optional
             Keyword arguments to be passed to the fitter.
+
         Returns
         -------
         fitted_model : `~astropy.modeling.FittableModel`

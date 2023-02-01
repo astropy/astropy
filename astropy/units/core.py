@@ -383,7 +383,6 @@ def set_enabled_units(units):
 
     Examples
     --------
-
     >>> from astropy import units as u
     >>> with u.set_enabled_units([u.pc]):
     ...     u.m.find_equivalent_units()
@@ -436,7 +435,6 @@ def add_enabled_units(units):
 
     Examples
     --------
-
     >>> from astropy import units as u
     >>> from astropy.units import imperial
     >>> with u.add_enabled_units(imperial):
