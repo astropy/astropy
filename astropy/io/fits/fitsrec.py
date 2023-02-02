@@ -158,6 +158,7 @@ class FITS_rec(np.recarray):
 
     _record_type = FITS_record
     _character_as_bytes = False
+    _load_variable_length_data = True
 
     def __new__(subtype, input):
         """
@@ -717,7 +718,7 @@ class FITS_rec(np.recarray):
             recformat = format.recformat
             # TODO: If we're now passing the column to these subroutines, do we
             # really need to pass them the recformat?
-            if isinstance(recformat, _FormatP):
+            if isinstance(recformat, _FormatP) and self._load_variable_length_data:
                 # for P format
                 converted = self._convert_p(column, field, recformat)
             else:
