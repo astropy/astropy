@@ -174,7 +174,8 @@ class _TableLikeHDU(_ValidHDU):
         # specifically in the BinTableHDU class, since they're a detail
         # specific to FITS binary tables
         if (
-            any(type(r) in (_FormatP, _FormatQ) for r in columns._recformats)
+            self._load_variable_length_data
+            and any(type(r) in (_FormatP, _FormatQ) for r in columns._recformats)
             and self._data_size is not None
             and self._data_size > self._theap
         ):
@@ -194,8 +195,12 @@ class _TableLikeHDU(_ValidHDU):
 
         self._init_tbdata(data)
         data = data.view(self._data_type)
+        data._load_variable_length_data = self._load_variable_length_data
         columns._add_listener(data)
         return data
+
+    def get_data_from_heap(self, offset, shape, dtype):
+        return self._get_raw_data(shape, dtype, self._data_offset + self._theap + offset)
 
     def _init_tbdata(self, data):
         columns = self.columns
@@ -895,6 +900,7 @@ class BinTableHDU(_TableBaseHDU):
         uint=False,
         ver=None,
         character_as_bytes=False,
+        load_variable_length_data=True,
     ):
         from astropy.table import Table
 
@@ -906,6 +912,8 @@ class BinTableHDU(_TableBaseHDU):
                 hdu.header.update(header)
             data = hdu.data
             header = hdu.header
+
+        self._load_variable_length_data = load_variable_length_data
 
         super().__init__(
             data,
