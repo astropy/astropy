@@ -69,6 +69,13 @@ class _TableLikeHDU(_ValidHDU):
     # after restructuring to support uints by default on a per-column basis
     _uint = False
 
+    # The following flag can be used by subclasses to determine whether to load
+    # variable length data from the heap automatically or whether the columns
+    # should contain the size and offset in the heap and let the subclass
+    # decide when to load the data from the heap. This can be used for example
+    # in CompImageHDU to only load data tiles that are needed.
+    _load_variable_length_data = True
+
     @classmethod
     def match_header(cls, header):
         """
@@ -900,7 +907,6 @@ class BinTableHDU(_TableBaseHDU):
         uint=False,
         ver=None,
         character_as_bytes=False,
-        load_variable_length_data=True,
     ):
         from astropy.table import Table
 
@@ -912,8 +918,6 @@ class BinTableHDU(_TableBaseHDU):
                 hdu.header.update(header)
             data = hdu.data
             header = hdu.header
-
-        self._load_variable_length_data = load_variable_length_data
 
         super().__init__(
             data,
