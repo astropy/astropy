@@ -777,6 +777,7 @@ def test_full_repr_roundtrip():
 # of `datatype` for each column.
 #############################################################################
 
+
 # First here is some helper code used to make the expected outputs code.
 def _get_ecsv_header_dict(text):
     lines = [line.strip() for line in text.splitlines()]

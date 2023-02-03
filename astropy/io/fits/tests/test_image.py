@@ -302,7 +302,6 @@ class TestImageFunctions(FitsTestCase):
             os.rename(self.temp("test_new.fits"), self.temp("test_append.fits"))
 
             with fits.open(self.temp("test_append.fits"), mode="append") as a:
-
                 # The above change did not take effect since this was made
                 # after the flush().
                 assert a[1].data[1, 1] == 349
@@ -315,7 +314,6 @@ class TestImageFunctions(FitsTestCase):
             os.rename(self.temp("test_append.fits"), self.temp("test_update.fits"))
 
             with fits.open(self.temp("test_update.fits"), mode="update") as u:
-
                 # When the changes do not alter the size structures of the
                 # original (or since last flush) HDUList, the changes are
                 # written back "in place".
@@ -1988,7 +1986,6 @@ def test_comphdu_bscale(tmp_path):
 
 
 def test_scale_implicit_casting():
-
     # Regression test for an issue that occurred because Numpy now does not
     # allow implicit type casting during inplace operations.
 
@@ -1997,7 +1994,6 @@ def test_scale_implicit_casting():
 
 
 def test_bzero_implicit_casting_compressed():
-
     # Regression test for an issue that occurred because Numpy now does not
     # allow implicit type casting during inplace operations. Astropy is
     # actually not able to produce a file that triggers the failure - the
@@ -2026,7 +2022,6 @@ def test_bzero_mishandled_info(tmp_path):
 
 
 def test_image_write_readonly(tmp_path):
-
     # Regression test to make sure that we can write out read-only arrays (#5512)
 
     x = np.array([1, 2, 3])

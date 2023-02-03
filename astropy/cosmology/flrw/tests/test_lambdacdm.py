@@ -489,7 +489,6 @@ def test_comoving_transverse_distance_z1z2():
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_angular_diameter_distance_z1z2():
-
     tcos = FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
 
     with pytest.raises(ValueError):  # test diff size z1, z2 fail
