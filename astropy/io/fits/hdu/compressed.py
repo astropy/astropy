@@ -419,6 +419,12 @@ class CompImageHDU(BinTableHDU):
     responsibility).
     """
 
+    _load_variable_length_data = False
+    """
+    We don't want to always load all the tiles so by setting this option
+    we can then access the tiles as needed.
+    """
+
     _default_name = "COMPRESSED_IMAGE"
 
     def __init__(
@@ -1467,6 +1473,23 @@ class CompImageHDU(BinTableHDU):
 
             for _ in range(required_blanks - table_blanks):
                 self._header.append()
+
+    def _get_raw_tile_from_heap(self, column_name, row_index):
+        """
+        Get the raw data for a given tile from the heap.
+        """
+        size, offset = self.compressed_data[column_name][row_index]
+        tform = self.columns[column_name].format
+        if tform[2] == 'B':
+            dtype = np.uint8
+        elif tform[2] == 'I':
+            dtype = '>i2'
+        elif tform[2] == 'J':
+            dtype = '>i4'
+        raw = self._get_data_from_heap(offset, size, dtype)
+        # Return tile in native endian since this is what is expected
+        # by the decompression functions
+        return raw.astype(raw.dtype.newbyteorder('='), copy=False)
 
     @lazyproperty
     def data(self):
