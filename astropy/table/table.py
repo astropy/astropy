@@ -919,7 +919,12 @@ class Table:
                     value = None
 
             if value not in (np.ma.masked, None):
-                setattr(self[name].info, attr, value)
+                col = self[name]
+                if attr == "unit" and isinstance(col, Quantity):
+                    # Update the Quantity unit in-place
+                    col <<= value
+                else:
+                    setattr(col.info, attr, value)
 
     def __getstate__(self):
         columns = OrderedDict(

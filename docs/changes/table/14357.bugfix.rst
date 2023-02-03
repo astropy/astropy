@@ -1,0 +1,3 @@
+Fix a bug when creating a ``QTable`` when a ``Quantity`` input column is present and the
+``units`` argument modifies the unit of that column. This now works as expected where
+previously this caused an exception.
