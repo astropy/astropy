@@ -26,7 +26,7 @@ ALGORITHMS = {
 DEFAULT_ZBLANK = -2147483648
 
 
-__all__ = ["compress_hdu", "decompress_hdu"]
+__all__ = ["compress_hdu", "decompress_hdu", "decompress_single_tile"]
 
 
 def _decompress_tile(buf, *, algorithm: str, **settings):
@@ -241,6 +241,122 @@ def _get_compression_setting(header, name, default):
     return default
 
 
+def _decompress_tile_common(hdu, *, row_index, tile_shape, data_shape, quantized):
+
+    row = hdu.compressed_data[row_index]
+
+    settings = _header_to_settings(hdu._header, tile_shape)
+
+    cdata = hdu._get_raw_tile_from_heap("COMPRESSED_DATA", row_index)
+
+    # When quantizing floating point data, sometimes the data will not
+    # quantize efficiently. In these cases the raw floating point data can
+    # be losslessly GZIP compressed and stored in the `GZIP_COMPRESSED_DATA`
+    # column.
+    gzip_fallback = len(cdata) == 0
+
+    if gzip_fallback:
+
+        cdata = hdu._get_raw_tile_from_heap("GZIP_COMPRESSED_DATA", row_index)
+
+        tile_buffer = _decompress_tile(cdata, algorithm="GZIP_1")
+
+        tile_data = _finalize_array(
+            tile_buffer,
+            bitpix=hdu._header["ZBITPIX"],
+            tile_shape=tile_shape,
+            algorithm="GZIP_1",
+            lossless=True,
+        )
+
+    else:
+
+        if hdu._header["ZCMPTYPE"] == "GZIP_2":
+            # Decompress with GZIP_1 just to find the total number of
+            # elements in the uncompressed data.
+            # TODO: find a way to avoid doing this for all tiles in decompress_hdu
+            tile_data = np.asarray(_decompress_tile(cdata, algorithm="GZIP_1"))
+            settings["itemsize"] = tile_data.size // int(np.product(tile_shape))
+
+        tile_buffer = _decompress_tile(
+            cdata, algorithm=hdu._header["ZCMPTYPE"], **settings
+        )
+
+        tile_data = _finalize_array(
+            tile_buffer,
+            bitpix=hdu._header["ZBITPIX"],
+            tile_shape=tile_shape,
+            algorithm=hdu._header["ZCMPTYPE"],
+            lossless=not quantized,
+        )
+
+        if "ZBLANK" in row.array.names:
+            zblank = row["ZBLANK"]
+        else:
+            zblank = hdu._header.get("ZBLANK", None)
+
+        if zblank is not None:
+            blank_mask = tile_data == zblank
+
+        if quantized:
+            dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
+            dither_seed = hdu._header.get("ZDITHER0", 0)
+            q = Quantize(
+                row=(row_index + dither_seed) if dither_method != -1 else 0,
+                dither_method=dither_method,
+                quantize_level=None,
+                bitpix=hdu._header["ZBITPIX"],
+            )
+            tile_data = np.asarray(
+                q.decode_quantized(tile_data, row["ZSCALE"], row["ZZERO"])
+            ).reshape(tile_shape)
+
+        if zblank is not None:
+            if not tile_data.flags.writeable:
+                tile_data = tile_data.copy()
+            tile_data[blank_mask] = np.nan
+
+    return tile_data
+
+
+def decompress_single_tile(hdu, *, row_index):
+
+    _check_compressed_header(hdu._header)
+
+    tile_shape = _tile_shape(hdu._header)
+    data_shape = _data_shape(hdu._header)
+
+    data = np.zeros(data_shape, dtype=BITPIX2DTYPE[hdu._header["ZBITPIX"]])
+
+    quantized = "ZSCALE" in hdu.compressed_data.dtype.names
+
+    if len(hdu.compressed_data) == 0:
+        return None
+
+    # For tiles near the edge, the tile shape from the header might not be
+    # correct so we have to pass the shape manually. Since we don't want to
+    # have to allocate a real array for the data as done in decompress_hdu,
+    # we create a broadcasted array that will use only a small amount of
+    # memory
+
+    # TODO: for now we do an iteration to get tile_slices but we should be able
+    # to get it without interation.
+    for irow, tile_slices in enumerate(_iter_array_tiles(data_shape, tile_shape)):
+        if irow == row_index:
+            break
+
+    data = np.broadcast_to(0, data_shape)
+    actual_tile_shape = data[tile_slices].shape
+
+    return _decompress_tile_common(
+        hdu,
+        row_index=row_index,
+        tile_shape=actual_tile_shape,
+        data_shape=data_shape,
+        quantized=quantized,
+    )
+
+
 def decompress_hdu(hdu):
     """
     Decompress the data in a `~astropy.io.fits.CompImageHDU`.
@@ -255,6 +371,7 @@ def decompress_hdu(hdu):
     data : `numpy.ndarray`
         The decompressed data array.
     """
+
     _check_compressed_header(hdu._header)
 
     tile_shape = _tile_shape(hdu._header)
@@ -267,89 +384,17 @@ def decompress_hdu(hdu):
     if len(hdu.compressed_data) == 0:
         return None
 
-    override_itemsize = None
-
     for irow, tile_slices in enumerate(_iter_array_tiles(data_shape, tile_shape)):
-        row = hdu.compressed_data[irow]
-
         # For tiles near the edge, the tile shape from the header might not be
         # correct so we have to pass the shape manually.
         actual_tile_shape = data[tile_slices].shape
-        settings = _header_to_settings(hdu._header, actual_tile_shape)
-
-        cdata = hdu._get_raw_tile_from_heap('COMPRESSED_DATA', irow)
-
-        # When quantizing floating point data, sometimes the data will not
-        # quantize efficiently. In these cases the raw floating point data can
-        # be losslessly GZIP compressed and stored in the `GZIP_COMPRESSED_DATA`
-        # column.
-        gzip_fallback = len(cdata) == 0
-
-        if gzip_fallback:
-
-            cdata = hdu._get_raw_tile_from_heap('GZIP_COMPRESSED_DATA', irow)
-
-            tile_buffer = _decompress_tile(cdata, algorithm="GZIP_1")
-
-            tile_data = _finalize_array(
-                tile_buffer,
-                bitpix=hdu._header["ZBITPIX"],
-                tile_shape=actual_tile_shape,
-                algorithm="GZIP_1",
-                lossless=True,
-            )
-
-        else:
-            if hdu._header["ZCMPTYPE"] == "GZIP_2":
-                # Decompress with GZIP_1 just to find the total number of
-                # elements in the uncompressed data. We just need to do this once
-                # as this will be the same for all tiles.
-                if override_itemsize is None:
-                    tile_data = np.asarray(_decompress_tile(cdata, algorithm="GZIP_1"))
-                    override_itemsize = tile_data.size // int(
-                        np.product(actual_tile_shape)
-                    )
-                settings["itemsize"] = override_itemsize
-
-            tile_buffer = _decompress_tile(
-                cdata, algorithm=hdu._header["ZCMPTYPE"], **settings
-            )
-
-            tile_data = _finalize_array(
-                tile_buffer,
-                bitpix=hdu._header["ZBITPIX"],
-                tile_shape=actual_tile_shape,
-                algorithm=hdu._header["ZCMPTYPE"],
-                lossless=not quantized,
-            )
-
-            if "ZBLANK" in row.array.names:
-                zblank = row["ZBLANK"]
-            else:
-                zblank = hdu._header.get("ZBLANK", None)
-
-            if zblank is not None:
-                blank_mask = tile_data == zblank
-
-            if quantized:
-                dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
-                dither_seed = hdu._header.get("ZDITHER0", 0)
-                q = Quantize(
-                    row=(irow + dither_seed) if dither_method != -1 else 0,
-                    dither_method=dither_method,
-                    quantize_level=None,
-                    bitpix=hdu._header["ZBITPIX"],
-                )
-                tile_data = np.asarray(
-                    q.decode_quantized(tile_data, row["ZSCALE"], row["ZZERO"])
-                ).reshape(actual_tile_shape)
-
-            if zblank is not None:
-                if not tile_data.flags.writeable:
-                    tile_data = tile_data.copy()
-                tile_data[blank_mask] = np.nan
-
-        data[tile_slices] = tile_data
+        data[tile_slices] = _decompress_tile_common(
+            hdu,
+            row_index=row_index,
+            tile_shape=actual_tile_shape,
+            data_shape=data_shape,
+            quantized=quantized,
+        )
 
     return data
 
