@@ -390,7 +390,7 @@ def decompress_hdu(hdu):
         actual_tile_shape = data[tile_slices].shape
         data[tile_slices] = _decompress_tile_common(
             hdu,
-            row_index=row_index,
+            row_index=irow,
             tile_shape=actual_tile_shape,
             data_shape=data_shape,
             quantized=quantized,
