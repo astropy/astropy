@@ -209,7 +209,6 @@ extend-ignore = [
     "PGH001",  # TODO: fix in astropy.utils.introspection
 
     # Pylint (PLC, PLE, PLR, PLW)
-    "PLC2201",  # MisplacedComparisonConstant        # TODO: autofix
     "PLR0402",  # ConsiderUsingFromImport            # TODO: fix
     "PLR1701",  # ConsiderMergingIsinstance          # TODO: fix
     "PLR2004",  # MagicValueComparison               # Note: low priority fix
