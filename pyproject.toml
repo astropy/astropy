@@ -242,6 +242,7 @@ extend-ignore = [
     "SIM118",  # KeyInDict                           # TODO: autofix, but be careful of Mapping
     "SIM201",  # NegateEqualOp                       # TODO: autofix, ensure neq is implemented
     "SIM202",  # NegateNotEqualOp                    # TODO: autofix, ensure eq is implemented
+    "SIM300",  # yoda condition                      # TODO: partially on & not aggressive
 
     # flake8-print (T20)
     "T201",  # PrintUsed                             # TODO: change to logging
