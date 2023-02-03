@@ -277,7 +277,7 @@ def decompress_hdu(hdu):
         actual_tile_shape = data[tile_slices].shape
         settings = _header_to_settings(hdu._header, actual_tile_shape)
 
-        cdata = row["COMPRESSED_DATA"]
+        cdata = hdu._get_raw_tile_from_heap('COMPRESSED_DATA', irow)
 
         # When quantizing floating point data, sometimes the data will not
         # quantize efficiently. In these cases the raw floating point data can
@@ -286,9 +286,10 @@ def decompress_hdu(hdu):
         gzip_fallback = len(cdata) == 0
 
         if gzip_fallback:
-            tile_buffer = _decompress_tile(
-                row["GZIP_COMPRESSED_DATA"], algorithm="GZIP_1"
-            )
+
+            cdata = hdu._get_raw_tile_from_heap('GZIP_COMPRESSED_DATA', irow)
+
+            tile_buffer = _decompress_tile(cdata, algorithm="GZIP_1")
 
             tile_data = _finalize_array(
                 tile_buffer,
