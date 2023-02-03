@@ -12,7 +12,7 @@ from contextlib import suppress
 import numpy as np
 
 from astropy.io.fits import conf
-from astropy.io.fits._tiled_compression import compress_hdu, decompress_hdu
+from astropy.io.fits._tiled_compression import compress_hdu, decompress_hdu, decompress_single_tile
 from astropy.io.fits.card import Card
 from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from astropy.io.fits.column import TDEF_RE, ColDefs, Column
@@ -1490,6 +1490,12 @@ class CompImageHDU(BinTableHDU):
         # Return tile in native endian since this is what is expected
         # by the decompression functions
         return raw.astype(raw.dtype.newbyteorder('='), copy=False)
+
+    def tile(self, row_index):
+        """
+        Get a decompressed tile by row in the table
+        """
+        return decompress_single_tile(self, row_index=row_index)
 
     @lazyproperty
     def data(self):
