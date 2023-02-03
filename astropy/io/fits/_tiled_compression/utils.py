@@ -10,7 +10,6 @@ def _iter_array_tiles(data_shape, tile_shape):
     istart = np.zeros(ndim, dtype=int)
 
     while True:
-
         # In the following, we don't need to special case tiles near the edge
         # as Numpy will automatically ignore parts of the slices that are out
         # of bounds.

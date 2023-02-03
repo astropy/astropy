@@ -480,6 +480,7 @@ def test_table_aggregate_reduceat(T1):
     """
     Aggregate table with functions which have a reduceat method
     """
+
     # Comparison functions without reduceat
     def np_mean(x):
         return np.mean(x)

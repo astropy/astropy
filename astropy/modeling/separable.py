@@ -132,7 +132,6 @@ def _arith_oper(left, right):
 
     This always returns a nonseparable output.
 
-
     Parameters
     ----------
     left, right : `astropy.modeling.Model` or ndarray
@@ -143,8 +142,9 @@ def _arith_oper(left, right):
     result : ndarray
         Result from this operation.
     """
-    # models have the same number of inputs and outputs
+
     def _n_inputs_outputs(input):
+        """Models have the same number of inputs and outputs."""
         if isinstance(input, Model):
             n_outputs, n_inputs = input.n_outputs, input.n_inputs
         else:
