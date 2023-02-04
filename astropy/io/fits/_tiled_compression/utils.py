@@ -31,3 +31,11 @@ def _iter_array_tiles(data_shape, tile_shape):
 
         if istart[0] >= data_shape[0]:
             break
+
+
+def _tile_shape(header):
+    return tuple(header[f"ZTILE{idx}"] for idx in range(header["ZNAXIS"], 0, -1))
+
+
+def _data_shape(header):
+    return tuple(header[f"ZNAXIS{idx}"] for idx in range(header["ZNAXIS"], 0, -1))

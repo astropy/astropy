@@ -12,7 +12,7 @@ from astropy.io.fits.hdu.base import BITPIX2DTYPE
 
 from .codecs import PLIO1, Gzip1, Gzip2, HCompress1, Rice1
 from .quantization import DITHER_METHODS, QuantizationFailedException, Quantize
-from .utils import _iter_array_tiles
+from .utils import _iter_array_tiles, _data_shape, _tile_shape
 
 ALGORITHMS = {
     "GZIP_1": Gzip1,
@@ -59,14 +59,6 @@ def _compress_tile(buf, *, algorithm: str, **settings):
         Any parameters for the given compression algorithm
     """
     return ALGORITHMS[algorithm](**settings).encode(buf)
-
-
-def _tile_shape(header):
-    return tuple(header[f"ZTILE{idx}"] for idx in range(header["ZNAXIS"], 0, -1))
-
-
-def _data_shape(header):
-    return tuple(header[f"ZNAXIS{idx}"] for idx in range(header["ZNAXIS"], 0, -1))
 
 
 def _header_to_settings(header, actual_tile_shape):
