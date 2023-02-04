@@ -1,0 +1,2 @@
+Two new cosmologies have been added, ``FlatwpwaCDM`` and ``Flatw0wzCDM``, which are the
+flat variants of ``wpwaCDM`` and ``w0wzCDM``, respectively.

@@ -22,6 +22,22 @@ By the numbers:
 * X pull requests have been merged since v4.2
 * X distinct people have contributed code
 
+.. _whatsnew-5.3-cosmology:
+
+New flat :mod:`astropy.cosmology` classes
+=========================================
+
+Two new cosmologies have been added, :class:`~astropy.cosmology.FlatwpwaCDM` and
+:class:`~astropy.cosmology.Flatw0wzCDM`, which are the flat variants of
+:class:`~astropy.cosmology.wpwaCDM` and :class:`~astropy.cosmology.w0wzCDM`,
+respectively.
+
+    >>> from astropy.cosmology import Flatw0wzCDM
+    >>> cosmo = Flatw0wzCDM(H0=70, Om0=0.3, w0=-0.9, wz=0.2)
+    >>> cosmo.comoving_distance(0.5)  # doctest: +SKIP
+    <Quantity 1982.66012926 Mpc>
+
+
 Full change log
 ===============
 
