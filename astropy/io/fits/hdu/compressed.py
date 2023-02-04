@@ -13,6 +13,7 @@ import numpy as np
 
 from astropy.io.fits import conf
 from astropy.io.fits._tiled_compression import compress_hdu, decompress_hdu, decompress_single_tile
+from astropy.io.fits._tiled_compression.utils import _data_shape, _tile_shape
 from astropy.io.fits.card import Card
 from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from astropy.io.fits.column import TDEF_RE, ColDefs, Column
@@ -2082,3 +2083,63 @@ class CompImageHDU(BinTableHDU):
             ) + 1
         else:
             return seed
+
+    @property
+    def section(self):
+        return CompImageSection(self)
+
+
+class CompImageSection:
+    """
+    Class enabling subsets of CompImageHDU data to be loaded lazily via slicing.
+
+    Slices of this object load the corresponding section of an image array from
+    the underlying FITS file, and applies any BSCALE/BZERO factors.
+
+    Section slices cannot be assigned to, and modifications to a section are
+    not saved back to the underlying file.
+
+    See the :ref:`astropy:data-sections` section of the Astropy documentation
+    for more details.
+    """
+
+    def __init__(self, hdu):
+        self.hdu = hdu
+        self._data_shape = _data_shape(self.hdu._header)
+        self._tile_shape = _tile_shape(self.hdu._header)
+        self._n_tiles = tuple(int(np.ceil(d / t)) for d, t in zip(self._data_shape, self._tile_shape))
+
+    @property
+    def shape(self):
+        return self._data_shape
+
+    def __getitem__(self, index):
+
+        if any(isinstance(x, slice) for x in index):
+
+            raise NotImplementedError("slices are not yet supported")
+
+        elif any(x < 0 for x in index):
+
+            raise NotImplementedError("negative indices are not yet supported")
+
+        else:
+
+            # If we are here we can assume key is a tuple of integers giving
+            # the index of a single point in the array. We can convert this
+            # to the index of the tile in each dimension
+            tile_index = tuple(int(i / t) for i, t in zip(index, self._tile_shape))
+
+            # Convert this to the row index in the binary table - we assume that
+            # the tiles vary by x then y etc.
+            row_index = tile_index[0]
+            for dim in range(1, len(self.shape)):
+                row_index = tile_index[dim] + row_index * self._n_tiles[dim]
+
+            # Get corresponding tile
+            tile_data = self.hdu.tile(row_index)
+
+            # Find index in tile
+            sub_index = tuple(int(i % t) for i, t in zip(index, self._tile_shape))
+
+            return tile_data[sub_index]
