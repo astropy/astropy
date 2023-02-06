@@ -20,6 +20,9 @@ from asdf.tags.core.ndarray import NDArrayType
 from astropy.io.misc.asdf.tags.tests.helpers import run_schema_example_test
 
 
+@pytest.mark.filterwarnings(
+    "ignore:The property AsdfFile.blocks has been deprecated:asdf.exceptions.AsdfDeprecationWarning"
+)
 def test_table(tmpdir):
     data_rows = [(1, 2.0, "x"), (4, 5.0, "y"), (5, 8.2, "z")]
     t = table.Table(rows=data_rows, names=("a", "b", "c"), dtype=("i4", "f8", "S1"))
@@ -34,6 +37,9 @@ def test_table(tmpdir):
     helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
+@pytest.mark.filterwarnings(
+    "ignore:The property AsdfFile.blocks has been deprecated:asdf.exceptions.AsdfDeprecationWarning"
+)
 def test_array_columns(tmpdir):
     a = np.array(
         [
@@ -53,6 +59,9 @@ def test_array_columns(tmpdir):
     helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
+@pytest.mark.filterwarnings(
+    "ignore:The property AsdfFile.blocks has been deprecated:asdf.exceptions.AsdfDeprecationWarning"
+)
 def test_structured_array_columns(tmpdir):
     a = np.array(
         [((1, "a"), 2.0, "x"), ((4, "b"), 5.0, "y"), ((5, "c"), 8.2, "z")],
@@ -67,6 +76,9 @@ def test_structured_array_columns(tmpdir):
     helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
+@pytest.mark.filterwarnings(
+    "ignore:The property AsdfFile.blocks has been deprecated:asdf.exceptions.AsdfDeprecationWarning"
+)
 def test_table_row_order(tmpdir):
     a = np.array(
         [(1, 2.0, "x"), (4, 5.0, "y"), (5, 8.2, "z")],
@@ -85,6 +97,9 @@ def test_table_row_order(tmpdir):
     helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
+@pytest.mark.filterwarnings(
+    "ignore:The property AsdfFile.blocks has been deprecated:asdf.exceptions.AsdfDeprecationWarning"
+)
 def test_table_inline(tmpdir):
     data_rows = [(1, 2.0, "x"), (4, 5.0, "y"), (5, 8.2, "z")]
     t = table.Table(rows=data_rows, names=("a", "b", "c"), dtype=("i4", "f8", "S1"))
@@ -133,6 +148,9 @@ table: !<tag:astropy.org:astropy/table/table-1.0.0>
     assert "Inconsistent data column lengths" in str(err.value)
 
 
+@pytest.mark.filterwarnings(
+    "ignore:The property AsdfFile.blocks has been deprecated:asdf.exceptions.AsdfDeprecationWarning"
+)
 def test_masked_table(tmpdir):
     data_rows = [(1, 2.0, "x"), (4, 5.0, "y"), (5, 8.2, "z")]
     t = table.Table(
@@ -226,6 +244,9 @@ def test_ndarray_mixin(tmpdir):
     helpers.assert_roundtrip_tree({"table": t}, tmpdir)
 
 
+@pytest.mark.filterwarnings(
+    "ignore:The property AsdfFile.blocks has been deprecated:asdf.exceptions.AsdfDeprecationWarning"
+)
 def test_backwards_compat():
     """
     Make sure that we can continue to read tables that use the schema from
