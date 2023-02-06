@@ -180,7 +180,6 @@ def test_decompress(
     fitsio_compressed_file_path,
     comp_param_dtype,
 ):
-
     compression_type, param, dtype = comp_param_dtype
 
     with fits.open(fitsio_compressed_file_path) as hdul:
@@ -209,7 +208,6 @@ def test_compress(
     compression_type,
     dtype,
 ):
-
     fts = fitsio.FITS(astropy_compressed_file_path, "r")
     header = fts[1].read_header()
     data = fts[1].read()

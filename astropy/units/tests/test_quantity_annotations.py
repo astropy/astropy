@@ -17,6 +17,7 @@ def test_ignore_generic_type_annotations():
 
     This test passes if the function works.
     """
+
     # one unit, one not (should be ignored)
     @u.quantity_input
     def func(x: u.m, y: str):

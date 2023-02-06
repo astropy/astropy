@@ -141,7 +141,7 @@ test = TestRunner.make_test_runner_in(__path__[0])
 # configuration file with the defaults
 def _initialize_astropy():
     try:
-        from .utils import _compiler  # noqa: F401
+        from .utils import _compiler
     except ImportError:
         # If this __init__.py file is in ./astropy/ then import is within a source
         # dir .astropy-root is a file distributed with the source, but that should
@@ -175,7 +175,7 @@ log = _init_log()
 
 _initialize_astropy()
 
-from .utils.misc import find_api_page  # noqa: F401
+from .utils.misc import find_api_page
 
 
 def online_help(query):
