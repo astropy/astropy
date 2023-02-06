@@ -12,7 +12,11 @@ from contextlib import suppress
 import numpy as np
 
 from astropy.io.fits import conf
-from astropy.io.fits._tiled_compression import compress_hdu, decompress_hdu, decompress_single_tile
+from astropy.io.fits._tiled_compression import (
+    compress_hdu,
+    decompress_hdu,
+    decompress_single_tile,
+)
 from astropy.io.fits._tiled_compression.utils import _data_shape, _tile_shape
 from astropy.io.fits.card import Card
 from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
@@ -1481,16 +1485,16 @@ class CompImageHDU(BinTableHDU):
         """
         size, offset = self.compressed_data[column_name][row_index]
         tform = self.columns[column_name].format
-        if tform[2] == 'B':
+        if tform[2] == "B":
             dtype = np.uint8
-        elif tform[2] == 'I':
-            dtype = '>i2'
-        elif tform[2] == 'J':
-            dtype = '>i4'
+        elif tform[2] == "I":
+            dtype = ">i2"
+        elif tform[2] == "J":
+            dtype = ">i4"
         raw = self._get_data_from_heap(offset, size, dtype)
         # Return tile in native endian since this is what is expected
         # by the decompression functions
-        return raw.astype(raw.dtype.newbyteorder('='), copy=False)
+        return raw.astype(raw.dtype.newbyteorder("="), copy=False)
 
     def tile(self, row_index):
         """
@@ -2107,7 +2111,9 @@ class CompImageSection:
         self.hdu = hdu
         self._data_shape = _data_shape(self.hdu._header)
         self._tile_shape = _tile_shape(self.hdu._header)
-        self._n_tiles = tuple(int(np.ceil(d / t)) for d, t in zip(self._data_shape, self._tile_shape))
+        self._n_tiles = tuple(
+            int(np.ceil(d / t)) for d, t in zip(self._data_shape, self._tile_shape)
+        )
 
     @property
     def shape(self):
