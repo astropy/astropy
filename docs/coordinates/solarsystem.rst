@@ -19,11 +19,10 @@ use cases you may have (see the examples below).
    most conveniently achieved via ``pip install jplephem``, although whatever
    package management system you use might have it as well.
 
-Three functions are provided; :meth:`~astropy.coordinates.get_body`,
-:meth:`~astropy.coordinates.get_moon` and
-:meth:`~astropy.coordinates.get_body_barycentric`. The first two functions
-return |SkyCoord| objects in the `~astropy.coordinates.GCRS` frame, while the
-latter returns a `~astropy.coordinates.CartesianRepresentation` of the
+Two functions are provided; :func:`~astropy.coordinates.get_body` and
+:func:`~astropy.coordinates.get_body_barycentric`.
+The first returns |SkyCoord| objects in the `~astropy.coordinates.GCRS` frame,
+while the latter returns a `~astropy.coordinates.CartesianRepresentation` of the
 barycentric position of a body (i.e., in the `~astropy.coordinates.ICRS` frame).
 
 Examples
@@ -38,7 +37,7 @@ without the need to download a large ephemerides file)::
 
   >>> from astropy.time import Time
   >>> from astropy.coordinates import solar_system_ephemeris, EarthLocation
-  >>> from astropy.coordinates import get_body_barycentric, get_body, get_moon
+  >>> from astropy.coordinates import get_body_barycentric, get_body
   >>> t = Time("2014-09-22 23:22")
   >>> loc = EarthLocation.of_site('greenwich') # doctest: +REMOTE_DATA
   >>> with solar_system_ephemeris.set('builtin'):
@@ -64,7 +63,7 @@ ephemeris is set):
   >>> get_body('jupiter', t, loc) # doctest: +REMOTE_DATA, +FLOAT_CMP
   <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=(3949481.69182405, -550931.91022387, 4961151.73597633) m, obsgeovel=(40.159527, 287.47873161, -0.04597922) m / s): (ra, dec, distance) in (deg, deg, km)
       (136.90234846, 17.03160654, 8.89196021e+08)>
-  >>> get_moon(t, loc) # doctest: +REMOTE_DATA, +FLOAT_CMP
+  >>> get_body('moon', t, loc) # doctest: +REMOTE_DATA, +FLOAT_CMP
   <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=(3949481.69182405, -550931.91022387, 4961151.73597633) m, obsgeovel=(40.159527, 287.47873161, -0.04597922) m / s): (ra, dec, distance) in (deg, deg, km)
       (165.51854528, 2.32861794, 407229.55638763)>
   >>> get_body_barycentric('moon', t) # doctest: +REMOTE_DATA, +FLOAT_CMP
