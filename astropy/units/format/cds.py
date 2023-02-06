@@ -138,8 +138,7 @@ class CDS(Base):
         for Astronomical Catalogues 2.0
         <http://vizier.u-strasbg.fr/vizier/doc/catstd-3.2.htx>`_, which is not
         terribly precise.  The exact grammar is here is based on the
-        YACC grammar in the `unity library
-        <https://bitbucket.org/nxg/unity/>`_.
+        YACC grammar in the `unity library <https://purl.org/nxg/dist/unity/>`_.
         """
         tokens = cls._tokens
 
@@ -182,7 +181,7 @@ class CDS(Base):
         def p_division_of_units(p):
             """
             division_of_units : DIVISION unit_expression
-                              | unit_expression DIVISION combined_units
+                              | combined_units DIVISION unit_expression
             """
             if len(p) == 3:
                 p[0] = p[2] ** -1
