@@ -13,6 +13,9 @@ from astropy.io import fits
 from astropy.io.misc.asdf.tags.tests.helpers import run_schema_example_test
 
 
+@pytest.mark.filterwarnings(
+    "ignore:The property AsdfFile.blocks has been deprecated:asdf.exceptions.AsdfDeprecationWarning"
+)
 def test_complex_structure(tmpdir):
     with fits.open(
         os.path.join(os.path.dirname(__file__), "data", "complex.fits"), memmap=False
@@ -22,6 +25,9 @@ def test_complex_structure(tmpdir):
         helpers.assert_roundtrip_tree(tree, tmpdir)
 
 
+@pytest.mark.filterwarnings(
+    "ignore:The property AsdfFile.blocks has been deprecated:asdf.exceptions.AsdfDeprecationWarning"
+)
 def test_fits_table(tmpdir):
     a = np.array([(0, 1), (2, 3)], dtype=[("A", int), ("B", int)])
 
@@ -35,6 +41,9 @@ def test_fits_table(tmpdir):
     helpers.assert_roundtrip_tree(tree, tmpdir, raw_yaml_check_func=check_yaml)
 
 
+@pytest.mark.filterwarnings(
+    "ignore:The property AsdfFile.blocks has been deprecated:asdf.exceptions.AsdfDeprecationWarning"
+)
 def test_backwards_compat():
     """
     Make sure that we can continue to read FITS HDUs that use the schema from
