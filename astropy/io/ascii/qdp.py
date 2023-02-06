@@ -72,7 +72,7 @@ def _line_type(line, delimiter=None):
     line = line.strip()
     if not line:
         return "comment"
-    match = _line_type_re.match(line)
+    match = _line_type_re.match(line.upper())
 
     if match is None:
         raise ValueError(f"Unrecognized QDP line: {line}")
