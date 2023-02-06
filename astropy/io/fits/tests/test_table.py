@@ -9,7 +9,6 @@ import sys
 import warnings
 
 import numpy as np
-from numpy.testing import assert_equal
 import pytest
 from numpy import char as chararray
 

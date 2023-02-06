@@ -1957,13 +1957,12 @@ class TestCompressedImage(FitsTestCase):
         shape = (13, 17, 25)
         data = np.arange(np.product(shape)).reshape(shape).astype(np.int32)
 
-        hdu = fits.CompImageHDU(data,
-                                fits.Header(),
-                                compression_type='RICE_1',
-                                tile_size=(5, 4, 5))
-        hdu.writeto(tmp_path / 'sections.fits')
+        hdu = fits.CompImageHDU(
+            data, fits.Header(), compression_type="RICE_1", tile_size=(5, 4, 5)
+        )
+        hdu.writeto(tmp_path / "sections.fits")
 
-        with fits.open(tmp_path / 'sections.fits') as hdul:
+        with fits.open(tmp_path / "sections.fits") as hdul:
 
             # Single pixels
             assert hdul[1].section[0, 0, 0] == data[0, 0, 0]

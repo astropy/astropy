@@ -12,7 +12,7 @@ from astropy.io.fits.hdu.base import BITPIX2DTYPE
 
 from .codecs import PLIO1, Gzip1, Gzip2, HCompress1, Rice1
 from .quantization import DITHER_METHODS, QuantizationFailedException, Quantize
-from .utils import _iter_array_tiles, _data_shape, _tile_shape
+from .utils import _data_shape, _iter_array_tiles, _tile_shape
 
 ALGORITHMS = {
     "GZIP_1": Gzip1,
@@ -332,7 +332,7 @@ def decompress_single_tile(hdu, *, row_index):
     # memory
 
     # TODO: for now we do an iteration to get tile_slices but we should be able
-    # to get it without interation.
+    # to get it without iteration.
     for irow, tile_slices in enumerate(_iter_array_tiles(data_shape, tile_shape)):
         if irow == row_index:
             break
@@ -363,7 +363,6 @@ def decompress_hdu(hdu):
     data : `numpy.ndarray`
         The decompressed data array.
     """
-
     _check_compressed_header(hdu._header)
 
     tile_shape = _tile_shape(hdu._header)

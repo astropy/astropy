@@ -207,7 +207,9 @@ class _TableLikeHDU(_ValidHDU):
         return data
 
     def _get_data_from_heap(self, offset, shape, dtype):
-        return self._get_raw_data(shape, dtype, self._data_offset + self._theap + offset)
+        return self._get_raw_data(
+            shape, dtype, self._data_offset + self._theap + offset
+        )
 
     def _init_tbdata(self, data):
         columns = self.columns
