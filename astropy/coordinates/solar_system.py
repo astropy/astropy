@@ -500,6 +500,7 @@ def get_body(body, time, location=None, ephemeris=None):
     return SkyCoord(gcrs)
 
 
+@deprecated("5.3", alternative='get_body("moon")')
 def get_moon(time, location=None, ephemeris=None):
     """
     Get a `~astropy.coordinates.SkyCoord` for the Earth's Moon as observed

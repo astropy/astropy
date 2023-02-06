@@ -28,12 +28,12 @@ from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_JPLEPHEM, HAS_SKYFIELD
 from astropy.utils.data import download_file, get_pkg_data_filename
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 if HAS_SKYFIELD:
     from skyfield.api import Loader, Topos
 
 de432s_separation_tolerance_planets = 5 * u.arcsec
-de432s_separation_tolerance_moon = 5 * u.arcsec
 de432s_distance_tolerance = 20 * u.km
 
 skyfield_angular_separation_tolerance = 1 * u.arcsec
@@ -99,7 +99,7 @@ def test_positions_skyfield(tmp_path):
     )
 
     # planet positions w.r.t true equator and equinox
-    moon_astropy = get_moon(t, location, ephemeris="de430").transform_to(frame)
+    moon_astropy = get_body("moon", t, location, ephemeris="de430").transform_to(frame)
     mercury_astropy = get_body("mercury", t, location, ephemeris="de430").transform_to(
         frame
     )
@@ -196,7 +196,7 @@ class TestPositionsGeocentric:
 
     @pytest.mark.remote_data
     @pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
-    @pytest.mark.parametrize("body", ("mercury", "jupiter", "sun"))
+    @pytest.mark.parametrize("body", ("mercury", "jupiter", "sun", "moon"))
     def test_de432s_planet(self, body):
         astropy = get_body(body, self.t, ephemeris="de432s")
         horizons = self.horizons[body]
@@ -206,23 +206,6 @@ class TestPositionsGeocentric:
 
         # Assert sky coordinates are close.
         assert astropy.separation(horizons) < de432s_separation_tolerance_planets
-
-        # Assert distances are close.
-        assert_quantity_allclose(
-            astropy.distance, horizons.distance, atol=de432s_distance_tolerance
-        )
-
-    @pytest.mark.remote_data
-    @pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
-    def test_de432s_moon(self):
-        astropy = get_moon(self.t, ephemeris="de432s")
-        horizons = self.horizons["moon"]
-
-        # convert to true equator and equinox
-        astropy = astropy.transform_to(self.apparent_frame)
-
-        # Assert sky coordinates are close.
-        assert astropy.separation(horizons) < de432s_separation_tolerance_moon
 
         # Assert distances are close.
         assert_quantity_allclose(
@@ -293,7 +276,7 @@ class TestPositionKittPeak:
 
     @pytest.mark.remote_data
     @pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
-    @pytest.mark.parametrize("body", ("mercury", "jupiter"))
+    @pytest.mark.parametrize("body", ("mercury", "jupiter", "moon"))
     def test_de432s_planet(self, body):
         astropy = get_body(body, self.t, ephemeris="de432s")
         horizons = self.horizons[body]
@@ -303,23 +286,6 @@ class TestPositionKittPeak:
 
         # Assert sky coordinates are close.
         assert astropy.separation(horizons) < de432s_separation_tolerance_planets
-
-        # Assert distances are close.
-        assert_quantity_allclose(
-            astropy.distance, horizons.distance, atol=de432s_distance_tolerance
-        )
-
-    @pytest.mark.remote_data
-    @pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
-    def test_de432s_moon(self):
-        astropy = get_moon(self.t, ephemeris="de432s")
-        horizons = self.horizons["moon"]
-
-        # convert to true equator and equinox
-        astropy = astropy.transform_to(self.apparent_frame)
-
-        # Assert sky coordinates are close.
-        assert astropy.separation(horizons) < de432s_separation_tolerance_moon
 
         # Assert distances are close.
         assert_quantity_allclose(
@@ -440,7 +406,7 @@ def test_get_sun_consistency(time):
     assert sep < 0.1 * u.arcsec
 
 
-def test_get_moon_nonscalar_regression():
+def test_get_body_nonscalar_regression():
     """
     Test that the builtin ephemeris works with non-scalar times.
 
@@ -448,7 +414,7 @@ def test_get_moon_nonscalar_regression():
     """
     times = Time(["2015-08-28 03:30", "2015-09-05 10:30"])
     # the following line will raise an Exception if the bug recurs.
-    get_moon(times, ephemeris="builtin")
+    get_body("moon", times, ephemeris="builtin")
 
 
 def test_barycentric_pos_posvel_same():
@@ -593,3 +559,12 @@ def test_regression_10271():
 
     difference = (icrs_sun_from_alma - icrs_sun_from_geocentre).norm()
     assert_quantity_allclose(difference, 0.13046941 * u.m, atol=1 * u.mm)
+
+
+def test_get_moon_deprecation():
+    time_now = Time.now()
+    with pytest.warns(
+        AstropyDeprecationWarning, match=r'Use get_body\("moon"\) instead\.$'
+    ):
+        moon = get_moon(time_now)
+    assert moon == get_body("moon", time_now)
