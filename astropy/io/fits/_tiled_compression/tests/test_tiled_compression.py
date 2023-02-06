@@ -39,7 +39,6 @@ def test_canonical_data(original_int_hdu, canonical_int_hdus):
 
 
 def test_zblank_support(canonical_data_base_path, tmp_path):
-
     # This uses a test 12x12 image which contains a NaN value in the [1, 1]
     # pixel - it was compressed using fpack which automatically added a ZBLANK
     # header keyword

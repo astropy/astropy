@@ -70,7 +70,6 @@ def _data_shape(header):
 
 
 def _header_to_settings(header, actual_tile_shape):
-
     settings = {}
 
     if header["ZCMPTYPE"] == "GZIP_2":
@@ -144,7 +143,6 @@ def _finalize_array(tile_buffer, *, bitpix, tile_shape, algorithm, lossless):
 
 
 def _check_compressed_header(header):
-
     # NOTE: this could potentially be moved up into CompImageHDU, e.g. in a
     # _verify method.
 
@@ -229,7 +227,6 @@ def _check_compressed_header(header):
 
 
 def _get_compression_setting(header, name, default):
-
     # Settings for the various compression algorithms are stored in pairs of
     # keywords called ZNAME? and ZVAL? - a given compression setting could be
     # in any ZNAME? so we need to check through all the possible ZNAMEs which
@@ -273,7 +270,6 @@ def decompress_hdu(hdu):
     override_itemsize = None
 
     for irow, tile_slices in enumerate(_iter_array_tiles(data_shape, tile_shape)):
-
         row = hdu.compressed_data[irow]
 
         # For tiles near the edge, the tile shape from the header might not be
@@ -290,7 +286,6 @@ def decompress_hdu(hdu):
         gzip_fallback = len(cdata) == 0
 
         if gzip_fallback:
-
             tile_buffer = _decompress_tile(
                 row["GZIP_COMPRESSED_DATA"], algorithm="GZIP_1"
             )
@@ -304,7 +299,6 @@ def decompress_hdu(hdu):
             )
 
         else:
-
             if hdu._header["ZCMPTYPE"] == "GZIP_2":
                 # Decompress with GZIP_1 just to find the total number of
                 # elements in the uncompressed data. We just need to do this once
@@ -400,7 +394,6 @@ def compress_hdu(hdu):
     noisebit = _get_compression_setting(hdu._header, "noisebit", 0)
 
     for irow, tile_slices in enumerate(_iter_array_tiles(data_shape, tile_shape)):
-
         data = hdu.data[tile_slices]
 
         settings = _header_to_settings(hdu._header, data.shape)
@@ -435,7 +428,6 @@ def compress_hdu(hdu):
             try:
                 data, scale, zero = q.encode_quantized(data)
             except QuantizationFailedException:
-
                 if any_nan:
                     # reset NaN values since we will losslessly compress.
                     data[nan_mask] = np.nan

@@ -520,6 +520,7 @@ def test__nonflatclass__multiple_nonflat_inheritance():
     Test :meth:`astropy.cosmology.core.FlatCosmologyMixin.__nonflatclass__`
     when there's more than one non-flat class in the inheritance.
     """
+
     # Define a non-operable minimal subclass of Cosmology.
     class SubCosmology2(Cosmology):
         def __init__(self, H0, Tcmb0=0 * u.K, m_nu=0 * u.eV, name=None, meta=None):

@@ -291,7 +291,6 @@ class TestConvenience(FitsTestCase):
         # Test HDU object inputs
         with fits.open(self.data("stddata.fits"), mode="readonly") as in1:
             with fits.open(self.data("checksum.fits"), mode="readonly") as in2:
-
                 assert printdiff(in1[0], in2[0]) is None
 
                 with pytest.raises(ValueError):

@@ -99,8 +99,7 @@ def test_table(tmp_path):
         ("bitarray2", {"datatype": "bit", "arraysize": "16"}),
     ]
 
-    for field, type in zip(t.fields, field_types):
-        name, d = type
+    for field, (name, d) in zip(t.fields, field_types):
         assert field.ID == name
         assert (
             field.datatype == d["datatype"]
