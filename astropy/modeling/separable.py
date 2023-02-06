@@ -144,8 +144,8 @@ def _arith_oper(left, right):
     """
 
     def _n_inputs_outputs(input):
-        """Models have the same number of inputs and outputs."""
         if isinstance(input, Model):
+            # Models have the same number of inputs and outputs.
             n_outputs, n_inputs = input.n_outputs, input.n_inputs
         else:
             n_outputs, n_inputs = input.shape
