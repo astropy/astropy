@@ -167,7 +167,9 @@ def test_extract_array_even_shape_rounding():
     positions = (-0.99, -0.51, -0.5, -0.49, -0.01, 0)
     exp1 = (-99, 0)
     exp2 = (0, 1)
-    expected = [exp1,] * 6 + [
+    expected = [
+        exp1,
+    ] * 6 + [
         exp2,
     ]
 
@@ -207,7 +209,9 @@ def test_extract_array_odd_shape_rounding():
     positions = (-0.99, -0.51, -0.5, -0.49, -0.01, 0)
     exp1 = (-99, -99, 0)
     exp2 = (-99, 0, 1)
-    expected = [exp1,] * 3 + [
+    expected = [
+        exp1,
+    ] * 3 + [
         exp2,
     ] * 4
 

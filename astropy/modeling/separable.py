@@ -143,6 +143,7 @@ def _arith_oper(left, right):
     result : ndarray
         Result from this operation.
     """
+
     # models have the same number of inputs and outputs
     def _n_inputs_outputs(input):
         if isinstance(input, Model):
