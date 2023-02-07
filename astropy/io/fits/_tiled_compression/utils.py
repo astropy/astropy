@@ -57,7 +57,6 @@ def _n_tiles(data_shape, tile_shape):
 
 
 def _iter_array_tiles_subset(data_shape, tile_shape, first_tile_index, last_tile_index):
-
     ndim = len(tile_shape)
 
     n_tiles = _n_tiles(data_shape, tile_shape)
@@ -68,7 +67,6 @@ def _iter_array_tiles_subset(data_shape, tile_shape, first_tile_index, last_tile
     tile_index = first_tile_index.copy()
 
     while True:
-
         tile_slices = _tile_index_to_tile_slices(
             tile_index - first_tile_index, tile_shape
         )
