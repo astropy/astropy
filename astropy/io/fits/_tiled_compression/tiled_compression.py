@@ -239,7 +239,6 @@ def _get_compression_setting(header, name, default):
 
 
 def _decompress_tile_common(hdu, *, row_index, tile_shape, data_shape, quantized):
-
     row = hdu.compressed_data[row_index]
 
     settings = _header_to_settings(hdu._header, tile_shape)
@@ -253,7 +252,6 @@ def _decompress_tile_common(hdu, *, row_index, tile_shape, data_shape, quantized
     gzip_fallback = len(cdata) == 0
 
     if gzip_fallback:
-
         cdata = hdu._get_raw_tile_from_heap("GZIP_COMPRESSED_DATA", row_index)
 
         tile_buffer = _decompress_tile(cdata, algorithm="GZIP_1")
@@ -267,7 +265,6 @@ def _decompress_tile_common(hdu, *, row_index, tile_shape, data_shape, quantized
         )
 
     else:
-
         if hdu._header["ZCMPTYPE"] == "GZIP_2":
             # Decompress with GZIP_1 just to find the total number of
             # elements in the uncompressed data.
@@ -317,7 +314,6 @@ def _decompress_tile_common(hdu, *, row_index, tile_shape, data_shape, quantized
 
 
 def decompress_single_tile(hdu, *, row_index):
-
     _check_compressed_header(hdu._header)
 
     tile_shape = _tile_shape(hdu._header)

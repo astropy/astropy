@@ -51,7 +51,6 @@ def simplify_basic_index(basic_index, *, shape):
         if i < len(new_index):
             slc = new_index[i]
             if isinstance(slc, slice):
-
                 if slc.start is None:
                     if slc.step is not None and slc.step < 0:
                         start = shape[i]
@@ -84,14 +83,12 @@ def simplify_basic_index(basic_index, *, shape):
                 new_index[i] = slice(start, stop, step)
 
             elif isinstance(slc, numbers.Integral):
-
                 if slc < 0:
                     slc = shape[i] + slc
 
                 new_index[i] = int(slc)
 
             else:
-
                 raise IndexError("Only integer or range new_index are accepted.")
         else:
             new_index.append(slice(None))

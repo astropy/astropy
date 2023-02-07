@@ -2129,11 +2129,9 @@ class CompImageSection:
         return self._data_shape
 
     def __getitem__(self, index):
-
         index = simplify_basic_index(index, shape=self._data_shape)
 
         if any(isinstance(x, slice) for x in index):
-
             # Determine for each dimension the first and last tile to extract
 
             first_tile_index = np.zeros(self._n_dim, dtype=int)
@@ -2157,20 +2155,27 @@ class CompImageSection:
                     if idx.step < 0 and idx.stop is None:
                         final_array_index.append(idx)
                     else:
-                        final_array_index.append(slice(idx.start - self._tile_shape[dim] * first_tile_index[dim],
-                                                       idx.stop - self._tile_shape[dim] * first_tile_index[dim],
-                                                       idx.step))
+                        final_array_index.append(
+                            slice(
+                                idx.start
+                                - self._tile_shape[dim] * first_tile_index[dim],
+                                idx.stop
+                                - self._tile_shape[dim] * first_tile_index[dim],
+                                idx.step,
+                            )
+                        )
                 else:
                     first_tile_index[dim] = idx // self._tile_shape[dim]
                     last_tile_index[dim] = first_tile_index[dim]
-                    final_array_index.append(idx - self._tile_shape[dim] * first_tile_index[dim])
+                    final_array_index.append(
+                        idx - self._tile_shape[dim] * first_tile_index[dim]
+                    )
 
             data = decompress_section(self.hdu, first_tile_index, last_tile_index)
 
             return data[tuple(final_array_index)]
 
         else:
-
             # Shortcut when all indices are integers, can be removed if it does
             # not provide a significant performance benefit compared to above.
 
