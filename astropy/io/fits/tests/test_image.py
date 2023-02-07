@@ -7,6 +7,8 @@ import time
 
 import numpy as np
 import pytest
+from hypothesis import given
+from hypothesis.extra.numpy import basic_indices
 from numpy.testing import assert_equal
 
 from astropy.io import fits
