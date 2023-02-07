@@ -1952,27 +1952,27 @@ class TestCompressedImage(FitsTestCase):
             with fits.open(self.temp("test.fits")) as hdul2:
                 assert_equal(hdul1[1].data[:200, :100], hdul2[1].data)
 
-    def test_sections(self, tmp_path):
 
+class TestCompHDUSections:
+    @pytest.fixture(autouse=True)
+    def setup_method(self, tmp_path):
         shape = (13, 17, 25)
-        data = np.arange(np.product(shape)).reshape(shape).astype(np.int32)
+        self.data = np.arange(np.product(shape)).reshape(shape).astype(np.int32)
 
         hdu = fits.CompImageHDU(
-            data, fits.Header(), compression_type="RICE_1", tile_size=(5, 4, 5)
+            self.data, fits.Header(), compression_type="RICE_1", tile_size=(5, 4, 5)
         )
         hdu.writeto(tmp_path / "sections.fits")
 
-        with fits.open(tmp_path / "sections.fits") as hdul:
+        self.hdul = fits.open(tmp_path / "sections.fits")
 
-            # Single pixels
-            assert hdul[1].section[0, 0, 0] == data[0, 0, 0]
-            assert hdul[1].section[1, 2, 3] == data[1, 2, 3]
-            assert hdul[1].section[10, 15, 20] == data[10, 15, 20]
-            assert hdul[1].section[12, 16, 24] == data[12, 16, 24]
+    def teardown_method(self):
+        self.hdul.close()
+        self.hdul = None
 
-            # Negative indices - not yet implemented
-
-            # Slices - not yet implemented
+    @given(basic_indices((13, 17, 25)))
+    def test_section_slicing(self, index):
+        assert_equal(self.hdul[1].section[index], self.data[index])
 
 
 def test_comphdu_bscale(tmp_path):

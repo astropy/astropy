@@ -15,9 +15,10 @@ from astropy.io.fits import conf
 from astropy.io.fits._tiled_compression import (
     compress_hdu,
     decompress_hdu,
+    decompress_section,
     decompress_single_tile,
 )
-from astropy.io.fits._tiled_compression.utils import _data_shape, _tile_shape
+from astropy.io.fits._tiled_compression.utils import _data_shape, _n_tiles, _tile_shape
 from astropy.io.fits.card import Card
 from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from astropy.io.fits.column import TDEF_RE, ColDefs, Column
@@ -31,6 +32,7 @@ from astropy.io.fits.util import (
 )
 from astropy.utils import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.slicing import simplify_basic_index
 
 from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU
 from .image import ImageHDU
@@ -2090,6 +2092,14 @@ class CompImageHDU(BinTableHDU):
 
     @property
     def section(self):
+        """
+        Access a section of the image array without loading and decompressing
+        the entire array into memory.  The :class:`CompImageSection` object
+        returned by this attribute is not meant to be used directly by itself.
+        Rather, slices of the section return the appropriate slice of the data,
+        and loads *only* that section into memory. Any valid basic Numpy index
+        can be used to slice :class:`CompImageSection`.
+        """
         return CompImageSection(self)
 
 
@@ -2109,11 +2119,10 @@ class CompImageSection:
 
     def __init__(self, hdu):
         self.hdu = hdu
-        self._data_shape = _data_shape(self.hdu._header)
-        self._tile_shape = _tile_shape(self.hdu._header)
-        self._n_tiles = tuple(
-            int(np.ceil(d / t)) for d, t in zip(self._data_shape, self._tile_shape)
-        )
+        self._data_shape = np.array(_data_shape(self.hdu._header))
+        self._tile_shape = np.array(_tile_shape(self.hdu._header))
+        self._n_dim = len(self._data_shape)
+        self._n_tiles = np.array(_n_tiles(self._data_shape, self._tile_shape))
 
     @property
     def shape(self):
@@ -2121,15 +2130,49 @@ class CompImageSection:
 
     def __getitem__(self, index):
 
+        index = simplify_basic_index(index, shape=self._data_shape)
+
         if any(isinstance(x, slice) for x in index):
 
-            raise NotImplementedError("slices are not yet supported")
+            # Determine for each dimension the first and last tile to extract
 
-        elif any(x < 0 for x in index):
+            first_tile_index = np.zeros(self._n_dim, dtype=int)
+            last_tile_index = np.zeros(self._n_dim, dtype=int)
 
-            raise NotImplementedError("negative indices are not yet supported")
+            final_array_index = []
+
+            for dim, idx in enumerate(index):
+                if isinstance(idx, slice):
+                    if idx.stop is None and idx.step < 0:
+                        stop = 0
+                    else:
+                        stop = idx.stop - 1
+                    if idx.step > 0:
+                        first_tile_index[dim] = idx.start // self._tile_shape[dim]
+                        last_tile_index[dim] = (idx.stop - 1) // self._tile_shape[dim]
+                    else:
+                        stop = 0 if idx.stop is None else max(idx.stop - 1, 0)
+                        first_tile_index[dim] = stop // self._tile_shape[dim]
+                        last_tile_index[dim] = idx.start // self._tile_shape[dim]
+                    if idx.step < 0 and idx.stop is None:
+                        final_array_index.append(idx)
+                    else:
+                        final_array_index.append(slice(idx.start - self._tile_shape[dim] * first_tile_index[dim],
+                                                       idx.stop - self._tile_shape[dim] * first_tile_index[dim],
+                                                       idx.step))
+                else:
+                    first_tile_index[dim] = idx // self._tile_shape[dim]
+                    last_tile_index[dim] = first_tile_index[dim]
+                    final_array_index.append(idx - self._tile_shape[dim] * first_tile_index[dim])
+
+            data = decompress_section(self.hdu, first_tile_index, last_tile_index)
+
+            return data[tuple(final_array_index)]
 
         else:
+
+            # Shortcut when all indices are integers, can be removed if it does
+            # not provide a significant performance benefit compared to above.
 
             # If we are here we can assume key is a tuple of integers giving
             # the index of a single point in the array. We can convert this
