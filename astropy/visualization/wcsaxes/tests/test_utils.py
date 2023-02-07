@@ -4,10 +4,12 @@
 from numpy.testing import assert_almost_equal
 
 from astropy import units as u
+from astropy.coordinates import Angle, Galactic, HADec
 from astropy.tests.helper import (
     assert_quantity_allclose as assert_almost_equal_quantity,
 )
 from astropy.visualization.wcsaxes.utils import (
+    get_coord_meta,
     select_step_degree,
     select_step_hour,
     select_step_scalar,
@@ -71,3 +73,15 @@ def test_select_step_scalar():
     assert_almost_equal(select_step_scalar(0.00022), 0.0002)
     assert_almost_equal(select_step_scalar(0.000012), 0.00001)
     assert_almost_equal(select_step_scalar(0.000000443), 0.0000005)
+
+
+def test_get_coord_meta():
+    galactic_meta = get_coord_meta(Galactic)
+    assert galactic_meta["name"] == ["l", "b"]
+    assert galactic_meta["wrap"] == (Angle(360 * u.deg), None)
+    assert galactic_meta["unit"] == (u.deg, u.deg)
+
+    hadec_meta = get_coord_meta(HADec)
+    assert hadec_meta["name"] == ["ha", "dec"]
+    assert hadec_meta["wrap"] == (Angle(180 * u.deg), None)
+    assert hadec_meta["unit"] == (u.hourangle, u.deg)
