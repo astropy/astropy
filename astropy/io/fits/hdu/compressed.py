@@ -1498,12 +1498,6 @@ class CompImageHDU(BinTableHDU):
         # by the decompression functions
         return raw.astype(raw.dtype.newbyteorder("="), copy=False)
 
-    def tile(self, row_index):
-        """
-        Get a decompressed tile by row in the table
-        """
-        return decompress_single_tile(self, row_index=row_index)
-
     @lazyproperty
     def data(self):
         # The data attribute is the image data (not the table data).
@@ -2191,7 +2185,7 @@ class CompImageSection:
                 row_index = tile_index[dim] + row_index * self._n_tiles[dim]
 
             # Get corresponding tile
-            tile_data = self.hdu.tile(row_index)
+            tile_data = decompress_single_tile(self.hdu, row_index=row_index)
 
             # Find index in tile
             sub_index = tuple(int(i % t) for i, t in zip(index, self._tile_shape))
