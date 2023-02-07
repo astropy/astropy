@@ -22,9 +22,17 @@ Images
    :show-inheritance:
 
 `Section`
----------
+=========
 
 .. autoclass:: Section
+   :members:
+   :inherited-members:
+   :show-inheritance:
+
+`CompImageSection`
+==================
+
+.. autoclass:: CompImageSection
    :members:
    :inherited-members:
    :show-inheritance:

@@ -1502,6 +1502,14 @@ class CompImageHDU(BinTableHDU):
 
     @lazyproperty
     def data(self):
+        """
+        The decompressed data array.
+
+        Note that accessing this will cause all the tiles to be loaded,
+        decompressed, and combined into a single data array. If you do
+        not need to access the whole array, consider instead using the
+        :attr:`~astropy.io.fits.CompImageHDU.section` property.
+        """
         # The data attribute is the image data (not the table data).
         data = decompress_hdu(self)
 
@@ -2090,11 +2098,11 @@ class CompImageHDU(BinTableHDU):
     def section(self):
         """
         Access a section of the image array without loading and decompressing
-        the entire array into memory.  The :class:`CompImageSection` object
+        the entire array into memory.  The :class:`~astropy.io.fits.CompImageSection` object
         returned by this attribute is not meant to be used directly by itself.
         Rather, slices of the section return the appropriate slice of the data,
         and loads *only* that section into memory. Any valid basic Numpy index
-        can be used to slice :class:`CompImageSection`.
+        can be used to slice :class:`~astropy.io.fits.CompImageSection`.
         """
         return CompImageSection(self)
 
