@@ -81,6 +81,7 @@ from .hdu import *
 from .hdu.groups import GroupData
 from .hdu.hdulist import fitsopen as open
 from .hdu.image import Section
+from .hdu.compressed import CompImageSection
 from .header import Header
 from .verify import VerifyError
 

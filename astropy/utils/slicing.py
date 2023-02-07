@@ -1,6 +1,6 @@
 import numbers
 
-__all__ = ['simplify_basic_index']
+__all__ = ["simplify_basic_index"]
 
 
 def simplify_basic_index(basic_index, *, shape):
@@ -22,7 +22,6 @@ def simplify_basic_index(basic_index, *, shape):
     shape
         The shape of the array being indexed
     """
-
     ndim = len(shape)
 
     if not isinstance(basic_index, (tuple, list)):  # We just have a single int

@@ -12,7 +12,7 @@ from astropy.io.fits.hdu.base import BITPIX2DTYPE
 
 from .codecs import PLIO1, Gzip1, Gzip2, HCompress1, Rice1
 from .quantization import DITHER_METHODS, QuantizationFailedException, Quantize
-from .utils import _data_shape, _iter_array_tiles, _tile_shape
+from .utils import _data_shape, _iter_array_tiles, _iter_array_tiles_subset, _tile_shape
 
 ALGORITHMS = {
     "GZIP_1": Gzip1,
@@ -26,7 +26,12 @@ ALGORITHMS = {
 DEFAULT_ZBLANK = -2147483648
 
 
-__all__ = ["compress_hdu", "decompress_hdu", "decompress_single_tile"]
+__all__ = [
+    "compress_hdu",
+    "decompress_hdu",
+    "decompress_single_tile",
+    "decompress_section",
+]
 
 
 def _decompress_tile(buf, *, algorithm: str, **settings):
@@ -347,6 +352,59 @@ def decompress_single_tile(hdu, *, row_index):
         data_shape=data_shape,
         quantized=quantized,
     )
+
+
+def decompress_section(hdu, first_tile_index, last_tile_index):
+    """
+    Decompress the data in a `~astropy.io.fits.CompImageHDU`.
+
+    Parameters
+    ----------
+    hdu : `astropy.io.fits.CompImageHDU`
+        Input HDU to decompress the data for.
+
+    Returns
+    -------
+    data : `numpy.ndarray`
+        The decompressed data array.
+    """
+    _check_compressed_header(hdu._header)
+
+    tile_shape = _tile_shape(hdu._header)
+    data_shape = _data_shape(hdu._header)
+
+    first_array_index = first_tile_index * tile_shape
+    last_array_index = (last_tile_index + 1) * tile_shape
+
+    last_array_index = np.minimum(data_shape, last_array_index)
+
+    buffer_shape = tuple((last_array_index - first_array_index).astype(int))
+
+    data = np.zeros(buffer_shape, dtype=BITPIX2DTYPE[hdu._header["ZBITPIX"]])
+
+    quantized = "ZSCALE" in hdu.compressed_data.dtype.names
+
+    if len(hdu.compressed_data) == 0:
+        return None
+
+    if np.product(data.shape) == 0:
+        return data
+
+    for irow, tile_slices in _iter_array_tiles_subset(
+        data_shape, tile_shape, first_tile_index, last_tile_index
+    ):
+        # For tiles near the edge, the tile shape from the header might not be
+        # correct so we have to pass the shape manually.
+        actual_tile_shape = data[tile_slices].shape
+        data[tile_slices] = _decompress_tile_common(
+            hdu,
+            row_index=irow,
+            tile_shape=actual_tile_shape,
+            data_shape=data_shape,
+            quantized=quantized,
+        )
+
+    return data
 
 
 def decompress_hdu(hdu):
