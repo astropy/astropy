@@ -1500,6 +1500,30 @@ class CompImageHDU(BinTableHDU):
         # by the decompression functions
         return raw.astype(raw.dtype.newbyteorder("="), copy=False)
 
+    def _scale_data(self, data):
+        if self._orig_bzero != 0 or self._orig_bscale != 1:
+            new_dtype = self._dtype_for_bitpix()
+            data = np.array(data, dtype=new_dtype)
+
+            if "BLANK" in self._header:
+                blanks = data == np.array(self._header["BLANK"], dtype="int32")
+            else:
+                blanks = None
+
+            if self._orig_bscale != 1:
+                np.multiply(data, self._orig_bscale, data)
+            if self._orig_bzero != 0:
+                # We have to explicitly cast self._bzero to prevent numpy from
+                # raising an error when doing self.data += self._bzero, and we
+                # do this instead of self.data = self.data + self._bzero to
+                # avoid doubling memory usage.
+                np.add(data, self._orig_bzero, out=data, casting="unsafe")
+
+            if blanks is not None:
+                data = np.where(blanks, np.nan, data)
+
+        return data
+
     @lazyproperty
     def data(self):
         """
@@ -1517,26 +1541,7 @@ class CompImageHDU(BinTableHDU):
             return data
 
         # Scale the data if necessary
-        if self._orig_bzero != 0 or self._orig_bscale != 1:
-            new_dtype = self._dtype_for_bitpix()
-            data = np.array(data, dtype=new_dtype)
-
-            if "BLANK" in self._header:
-                blanks = data == np.array(self._header["BLANK"], dtype="int32")
-            else:
-                blanks = None
-
-            if self._bscale != 1:
-                np.multiply(data, self._bscale, data)
-            if self._bzero != 0:
-                # We have to explicitly cast self._bzero to prevent numpy from
-                # raising an error when doing self.data += self._bzero, and we
-                # do this instead of self.data = self.data + self._bzero to
-                # avoid doubling memory usage.
-                np.add(data, self._bzero, out=data, casting="unsafe")
-
-            if blanks is not None:
-                data = np.where(blanks, np.nan, data)
+        data = self._scale_data(data)
 
         # Right out of _ImageBaseHDU.data
         self._update_header_scale_info(data.dtype)
@@ -2156,6 +2161,12 @@ class CompImageSection:
                         stop = 0 if idx.stop is None else max(idx.stop - 1, 0)
                         first_tile_index[dim] = stop // self._tile_shape[dim]
                         last_tile_index[dim] = idx.start // self._tile_shape[dim]
+
+                    # Because slices such as slice(5, 0, 1) can exist (which
+                    # would be empty) we need to make sure last_tile_index is
+                    # always larger than first_tile_index
+                    last_tile_index = np.maximum(last_tile_index, first_tile_index)
+
                     if idx.step < 0 and idx.stop is None:
                         final_array_index.append(idx)
                     else:
@@ -2177,7 +2188,7 @@ class CompImageSection:
 
             data = decompress_section(self.hdu, first_tile_index, last_tile_index)
 
-            return data[tuple(final_array_index)]
+            return self.hdu._scale_data(data[tuple(final_array_index)])
 
         else:
             # Shortcut when all indices are integers, can be removed if it does
@@ -2200,4 +2211,4 @@ class CompImageSection:
             # Find index in tile
             sub_index = tuple(int(i % t) for i, t in zip(index, self._tile_shape))
 
-            return tile_data[sub_index]
+            return self.hdu._scale_data(tile_data[sub_index])
