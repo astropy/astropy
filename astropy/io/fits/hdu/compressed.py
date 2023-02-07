@@ -1493,6 +1493,8 @@ class CompImageHDU(BinTableHDU):
             dtype = ">i2"
         elif tform[2] == "J":
             dtype = ">i4"
+        if size == 0:
+            return np.array([], dtype=dtype)
         raw = self._get_data_from_heap(offset, size, dtype)
         # Return tile in native endian since this is what is expected
         # by the decompression functions

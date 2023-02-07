@@ -65,11 +65,8 @@ def test_fsspec_compressed():
     with fits.open(fn, use_fsspec=True) as hdul:
         # The .data attribute should work as normal
         assert hdul[1].data[0, 0] == 7
-        # However the .section attribute does not support compressed data
-        with pytest.raises(
-            AttributeError, match="'CompImageHDU' object has no attribute 'section'"
-        ) as excinfo:
-            hdul[1].section[1, 2]
+        # And the .section attribute should work too
+        assert hdul[1].section[0, 0] == 7
 
 
 @pytest.mark.remote_data
