@@ -1600,7 +1600,7 @@ class UnitBase:
                     for i, col in enumerate(line):
                         widths[i] = max(widths[i], len(col))
 
-                f = "  {{0:<{0}s}} | {{1:<{1}s}} | {{2:<{2}s}}".format(*widths)
+                f = "  {{0:<{}s}} | {{1:<{}s}} | {{2:<{}s}}".format(*widths)
                 lines = [f.format(*line) for line in lines]
                 lines = lines[0:1] + ["["] + [f"{x} ," for x in lines[1:]] + ["]"]
                 return "\n".join(lines)

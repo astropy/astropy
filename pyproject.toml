@@ -88,6 +88,7 @@ exclude= [
 
 
 [tool.ruff]
+target-version = "py38"
 line-length = 88
 select = ["ALL"]
 exclude=[
@@ -291,10 +292,6 @@ extend-ignore = [
     "TRY300",  # Consider `else` block               # TODO: fix
     "TRY301",  # raise-within-try                    # TODO: fix
     "TRY400",  # error-instead-of-exception          # TODO: fix
-
-    # pyupgrade (UP)
-    # TODO: replace pyupgrade with this
-    "UP",
 
     # flake8-quotes (Q)
     "Q000",  # use double quotes                     # TODO: fix
