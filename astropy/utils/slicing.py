@@ -92,6 +92,6 @@ def simplify_basic_index(basic_index, *, shape):
                 raise RuntimeError(f"Unexpected index element: {slc}")
 
         else:
-            new_index.append(slice(None))
+            new_index.append(slice(0, shape[i], 1))
 
     return tuple(new_index)

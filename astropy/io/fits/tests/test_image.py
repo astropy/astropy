@@ -1961,10 +1961,19 @@ class TestCompHDUSections:
         shape = (13, 17, 25)
         self.data = np.arange(np.product(shape)).reshape(shape).astype(np.int32)
 
-        hdu = fits.CompImageHDU(
-            self.data, fits.Header(), compression_type="RICE_1", tile_size=(5, 4, 5)
+        header1 = fits.Header()
+        hdu1 = fits.CompImageHDU(
+            self.data, header1, compression_type="RICE_1", tile_size=(5, 4, 5)
         )
-        hdu.writeto(tmp_path / "sections.fits")
+
+        header2 = fits.Header()
+        header2["BSCALE"] = 2
+        header2["BZERO"] = 100
+        hdu2 = fits.CompImageHDU(
+            self.data, header2, compression_type="RICE_1", tile_size=(5, 4, 5)
+        )
+        hdulist = fits.HDUList([fits.PrimaryHDU(), hdu1, hdu2])
+        hdulist.writeto(tmp_path / "sections.fits")
 
         self.hdul = fits.open(tmp_path / "sections.fits")
 
@@ -1974,7 +1983,13 @@ class TestCompHDUSections:
 
     @given(basic_indices((13, 17, 25)))
     def test_section_slicing(self, index):
+        assert_equal(self.hdul[1].section[index], self.hdul[1].data[index])
         assert_equal(self.hdul[1].section[index], self.data[index])
+
+    @given(basic_indices((13, 17, 25)))
+    def test_section_slicing_scaling(self, index):
+        assert_equal(self.hdul[2].section[index], self.hdul[2].data[index])
+        assert_equal(self.hdul[2].section[index], self.data[index] * 2 + 100)
 
 
 def test_comphdu_bscale(tmp_path):
