@@ -89,7 +89,8 @@ def simplify_basic_index(basic_index, *, shape):
                 new_index[i] = int(slc)
 
             else:
-                raise IndexError("Only integer or range new_index are accepted.")
+                raise RuntimeError(f"Unexpected index element: {slc}")
+
         else:
             new_index.append(slice(None))
 
