@@ -12,12 +12,7 @@ from contextlib import suppress
 import numpy as np
 
 from astropy.io.fits import conf
-from astropy.io.fits._tiled_compression import (
-    compress_hdu,
-    decompress_hdu,
-    decompress_section,
-    decompress_single_tile,
-)
+from astropy.io.fits._tiled_compression import compress_hdu, decompress_hdu_section
 from astropy.io.fits._tiled_compression.utils import _data_shape, _n_tiles, _tile_shape
 from astropy.io.fits.card import Card
 from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
@@ -1534,14 +1529,13 @@ class CompImageHDU(BinTableHDU):
         not need to access the whole array, consider instead using the
         :attr:`~astropy.io.fits.CompImageHDU.section` property.
         """
-        # The data attribute is the image data (not the table data).
-        data = decompress_hdu(self)
+        if len(self.compressed_data) == 0:
+            return None
 
-        if data is None:
-            return data
-
-        # Scale the data if necessary
-        data = self._scale_data(data)
+        # Since .section has general code to load any arbitrary part of the
+        # data, we can just use this - and the @lazyproperty on the current
+        # property will ensure that we do this only once.
+        data = self.section[...]
 
         # Right out of _ImageBaseHDU.data
         self._update_header_scale_info(data.dtype)
@@ -2131,84 +2125,66 @@ class CompImageSection:
         self._data_shape = np.array(_data_shape(self.hdu._header))
         self._tile_shape = np.array(_tile_shape(self.hdu._header))
         self._n_dim = len(self._data_shape)
-        self._n_tiles = np.array(_n_tiles(self._data_shape, self._tile_shape))
+        self._n_tiles = _n_tiles(self._data_shape, self._tile_shape)
 
     @property
     def shape(self):
         return self._data_shape
 
     def __getitem__(self, index):
+        # Shortcut if the whole data is requested (this is used by the
+        # data property, so we optimize it as it is frequently used)
+        if index is Ellipsis:
+            first_tile_index = np.zeros(self._n_dim, dtype=int)
+            last_tile_index = self._n_tiles - 1
+            data = decompress_hdu_section(self.hdu, first_tile_index, last_tile_index)
+            return self.hdu._scale_data(data)
+
         index = simplify_basic_index(index, shape=self._data_shape)
 
-        if any(isinstance(x, slice) for x in index):
-            # Determine for each dimension the first and last tile to extract
+        # Determine for each dimension the first and last tile to extract
 
-            first_tile_index = np.zeros(self._n_dim, dtype=int)
-            last_tile_index = np.zeros(self._n_dim, dtype=int)
+        first_tile_index = np.zeros(self._n_dim, dtype=int)
+        last_tile_index = np.zeros(self._n_dim, dtype=int)
 
-            final_array_index = []
+        final_array_index = []
 
-            for dim, idx in enumerate(index):
-                if isinstance(idx, slice):
-                    if idx.stop is None and idx.step < 0:
-                        stop = 0
-                    else:
-                        stop = idx.stop - 1
-                    if idx.step > 0:
-                        first_tile_index[dim] = idx.start // self._tile_shape[dim]
-                        last_tile_index[dim] = (idx.stop - 1) // self._tile_shape[dim]
-                    else:
-                        stop = 0 if idx.stop is None else max(idx.stop - 1, 0)
-                        first_tile_index[dim] = stop // self._tile_shape[dim]
-                        last_tile_index[dim] = idx.start // self._tile_shape[dim]
-
-                    # Because slices such as slice(5, 0, 1) can exist (which
-                    # would be empty) we need to make sure last_tile_index is
-                    # always larger than first_tile_index
-                    last_tile_index = np.maximum(last_tile_index, first_tile_index)
-
-                    if idx.step < 0 and idx.stop is None:
-                        final_array_index.append(idx)
-                    else:
-                        final_array_index.append(
-                            slice(
-                                idx.start
-                                - self._tile_shape[dim] * first_tile_index[dim],
-                                idx.stop
-                                - self._tile_shape[dim] * first_tile_index[dim],
-                                idx.step,
-                            )
-                        )
+        for dim, idx in enumerate(index):
+            if isinstance(idx, slice):
+                if idx.stop is None and idx.step < 0:
+                    stop = 0
                 else:
-                    first_tile_index[dim] = idx // self._tile_shape[dim]
-                    last_tile_index[dim] = first_tile_index[dim]
+                    stop = idx.stop - 1
+                if idx.step > 0:
+                    first_tile_index[dim] = idx.start // self._tile_shape[dim]
+                    last_tile_index[dim] = (idx.stop - 1) // self._tile_shape[dim]
+                else:
+                    stop = 0 if idx.stop is None else max(idx.stop - 1, 0)
+                    first_tile_index[dim] = stop // self._tile_shape[dim]
+                    last_tile_index[dim] = idx.start // self._tile_shape[dim]
+
+                # Because slices such as slice(5, 0, 1) can exist (which
+                # would be empty) we need to make sure last_tile_index is
+                # always larger than first_tile_index
+                last_tile_index = np.maximum(last_tile_index, first_tile_index)
+
+                if idx.step < 0 and idx.stop is None:
+                    final_array_index.append(idx)
+                else:
                     final_array_index.append(
-                        idx - self._tile_shape[dim] * first_tile_index[dim]
+                        slice(
+                            idx.start - self._tile_shape[dim] * first_tile_index[dim],
+                            idx.stop - self._tile_shape[dim] * first_tile_index[dim],
+                            idx.step,
+                        )
                     )
+            else:
+                first_tile_index[dim] = idx // self._tile_shape[dim]
+                last_tile_index[dim] = first_tile_index[dim]
+                final_array_index.append(
+                    idx - self._tile_shape[dim] * first_tile_index[dim]
+                )
 
-            data = decompress_section(self.hdu, first_tile_index, last_tile_index)
+        data = decompress_hdu_section(self.hdu, first_tile_index, last_tile_index)
 
-            return self.hdu._scale_data(data[tuple(final_array_index)])
-
-        else:
-            # Shortcut when all indices are integers, can be removed if it does
-            # not provide a significant performance benefit compared to above.
-
-            # If we are here we can assume key is a tuple of integers giving
-            # the index of a single point in the array. We can convert this
-            # to the index of the tile in each dimension
-            tile_index = tuple(int(i / t) for i, t in zip(index, self._tile_shape))
-
-            # Convert this to the row index in the binary table - we assume that
-            # the tiles vary by x then y etc.
-            row_index = tile_index[0]
-            for dim in range(1, len(self.shape)):
-                row_index = tile_index[dim] + row_index * self._n_tiles[dim]
-
-            # Get corresponding tile
-            tile_data = decompress_single_tile(self.hdu, row_index=row_index)
-
-            # Find index in tile
-            sub_index = tuple(int(i % t) for i, t in zip(index, self._tile_shape))
-
-            return self.hdu._scale_data(tile_data[sub_index])
+        return self.hdu._scale_data(data[tuple(final_array_index)])

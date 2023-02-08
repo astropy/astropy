@@ -1,38 +1,6 @@
 import numpy as np
 
 
-def _iter_array_tiles(data_shape, tile_shape):
-    """
-    Given an array shape and a tile shape, iterate over the tiles in the array
-    returning at each iteration the slices for the array.
-    """
-    ndim = len(data_shape)
-    istart = np.zeros(ndim, dtype=int)
-
-    while True:
-        # In the following, we don't need to special case tiles near the edge
-        # as Numpy will automatically ignore parts of the slices that are out
-        # of bounds.
-        tile_slices = tuple(
-            [
-                slice(istart[idx], istart[idx] + tile_shape[idx])
-                for idx in range(len(istart))
-            ]
-        )
-
-        yield tile_slices
-
-        istart[-1] += tile_shape[-1]
-
-        for idx in range(ndim - 1, 0, -1):
-            if istart[idx] >= data_shape[idx]:
-                istart[idx] = 0
-                istart[idx - 1] += tile_shape[idx - 1]
-
-        if istart[0] >= data_shape[0]:
-            break
-
-
 def _tile_index_to_row_index(tile_index, n_tiles):
     row_index = tile_index[0]
     for dim in range(1, len(tile_index)):
@@ -53,16 +21,27 @@ def _tile_index_to_tile_slices(tile_index, tile_shape):
 
 
 def _n_tiles(data_shape, tile_shape):
-    return tuple(int(np.ceil(d / t)) for d, t in zip(data_shape, tile_shape))
+    return np.array(
+        [int(np.ceil(d / t)) for d, t in zip(data_shape, tile_shape)], dtype=int
+    )
 
 
-def _iter_array_tiles_subset(data_shape, tile_shape, first_tile_index, last_tile_index):
+def _iter_array_tiles(
+    data_shape, tile_shape, first_tile_index=None, last_tile_index=None
+):
     ndim = len(tile_shape)
 
     n_tiles = _n_tiles(data_shape, tile_shape)
 
-    first_tile_index = np.asarray(first_tile_index, dtype=int)
-    last_tile_index = np.asarray(last_tile_index, dtype=int)
+    if first_tile_index is None:
+        first_tile_index = np.zeros(ndim, dtype=int)
+    else:
+        first_tile_index = np.asarray(first_tile_index, dtype=int)
+
+    if last_tile_index is None:
+        last_tile_index = n_tiles - 1
+    else:
+        last_tile_index = np.asarray(last_tile_index, dtype=int)
 
     tile_index = first_tile_index.copy()
 
