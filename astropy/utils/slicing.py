@@ -51,46 +51,19 @@ def simplify_basic_index(basic_index, *, shape):
         if i < len(new_index):
             slc = new_index[i]
             if isinstance(slc, slice):
-                if slc.start is None:
-                    if slc.step is not None and slc.step < 0:
-                        start = shape[i]
-                    else:
-                        start = 0
-                elif slc.start < 0:
-                    start = shape[i] + slc.start
-                else:
-                    start = slc.start
-
-                if slc.stop is None:
-                    if slc.step is not None and slc.step < 0:
-                        stop = None
-                    else:
-                        stop = shape[i]
-                elif slc.stop < 0:
-                    stop = shape[i] + slc.stop
-                else:
-                    stop = slc.stop
-
-                if slc.step is None:
-                    step = 1
-                else:
-                    step = slc.step
-
-                start = min(start, shape[i] - 1)
-                if stop is not None:
-                    stop = min(stop, shape[i])
-
-                new_index[i] = slice(start, stop, step)
-
+                indices = list(slc.indices(shape[i]))
+                # The following case is the only one where slice(*indices) does
+                # not give the 'correct' answer because it will set stop to -1
+                # which means the last element in the array.
+                if slc.step is not None and slc.step < 0 and slc.stop is None:
+                    indices[1] = None
+                new_index[i] = slice(*indices)
             elif isinstance(slc, numbers.Integral):
                 if slc < 0:
                     slc = shape[i] + slc
-
                 new_index[i] = int(slc)
-
             else:
                 raise RuntimeError(f"Unexpected index element: {slc}")
-
         else:
             new_index.append(slice(0, shape[i], 1))
 
