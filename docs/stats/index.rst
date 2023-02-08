@@ -50,9 +50,10 @@ and so functions like ``mean`` will ignore the outlier::
 
     >>> clipped = sigma_clip(x)
     >>> clipped
-    masked_array(x = [1 0 0 1 -- 0 0 1 0],
-                mask = [False False False False  True False False False False],
-          fill_value = 999999)
+    masked_array(data=[1, 0, 0, 1, --, 0, 0, 1, 0],
+                 mask=[False, False, False, False,  True, False, False, False,
+                       False],
+           fill_value=999999)
     >>> clipped.mean()
     0.375
 
