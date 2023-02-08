@@ -209,7 +209,7 @@ class Angle(u.SpecificTypeQuantity):
         pad=False,
         fields=3,
         format=None,
-        oldstyle=False
+        oldstyle=False,
     ):
         """A string representation of the angle.
 
@@ -272,7 +272,7 @@ class Angle(u.SpecificTypeQuantity):
 
             - 'unicode': Return a string containing non-ASCII unicode
               characters, such as the degree symbol
-        
+
         oldstyle : bool, optional
             If `False`, include a space between value and unit. If `True`,
             no space is included. Doesn't work with 'latex' or 'unicode'
@@ -332,7 +332,11 @@ class Angle(u.SpecificTypeQuantity):
                     unit_string = unit_string[1:-1]
                 format_func = func
                 # Add a space if no format(i.e unicode or latex) is given
-                func = lambda x: (format_func(x) + (" "*((format == None) and (oldstyle == False))) + unit_string)
+                func = lambda x: (
+                    format_func(x)
+                    + (" " * ((format == None) and (oldstyle is False)))
+                    + unit_string
+                )
 
         def do_format(val):
             # Check if value is not nan to avoid ValueErrors when turning it into
