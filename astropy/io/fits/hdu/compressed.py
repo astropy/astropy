@@ -32,7 +32,7 @@ from astropy.io.fits.util import (
 )
 from astropy.utils import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.slicing import simplify_basic_index
+from astropy.utils.shapes import simplify_basic_index
 
 from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU
 from .image import ImageHDU
