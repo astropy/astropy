@@ -43,6 +43,13 @@ ALL_DTYPES = [
     "U3",
 ]
 
+BIGENDIAN_DTYPES = [
+    np.dtype(">i4"),
+    np.dtype(">i8"),
+    np.dtype(">f4"),
+    np.dtype(">f8"),
+]
+
 
 def _default_values(dtype):
     if dtype == np.bool_:
@@ -218,6 +225,25 @@ def test_preserve_single_dtypes(tmp_path, dtype):
     assert t2["a"].dtype == dtype
 
 
+@pytest.mark.parametrize("dtype", BIGENDIAN_DTYPES)
+def test_preserve_single_bigendian_dtypes(tmp_path, dtype):
+    """Test that round-tripping a single big-endian column preserves data."""
+
+    test_file = tmp_path / "test.parquet"
+
+    values = _default_values(dtype)
+
+    t1 = Table()
+    t1.add_column(Column(name="a", data=np.array(values, dtype=dtype)))
+    t1.write(test_file)
+
+    t2 = Table.read(test_file)
+
+    assert np.all(t2["a"] == values)
+    # The parquet serialization will turn all arrays into little-endian.
+    assert t2["a"].dtype == dtype.newbyteorder("<")
+
+
 @pytest.mark.parametrize("dtype", ALL_DTYPES)
 def test_preserve_single_array_dtypes(tmp_path, dtype):
     """Test that round-tripping a single array column preserves datatypes."""
@@ -235,6 +261,25 @@ def test_preserve_single_array_dtypes(tmp_path, dtype):
     assert np.all(t2["a"] == t1["a"])
     assert np.all(t2["a"].shape == np.array(values).shape)
     assert t2["a"].dtype == dtype
+
+
+@pytest.mark.parametrize("dtype", BIGENDIAN_DTYPES)
+def test_preserve_single_bigendian_array_dtypes(tmp_path, dtype):
+    """Test that round-tripping a single array column (big-endian) preserves data."""
+
+    test_file = tmp_path / "test.parquet"
+
+    values = _default_array_values(dtype)
+
+    t1 = Table()
+    t1.add_column(Column(name="a", data=np.array(values, dtype=dtype)))
+    t1.write(test_file)
+
+    t2 = Table.read(test_file)
+
+    assert np.all(t2["a"] == t1["a"])
+    assert np.all(t2["a"].shape == np.array(values).shape)
+    assert t2["a"].dtype == dtype.newbyteorder("<")
 
 
 @pytest.mark.parametrize("dtype", ALL_DTYPES)
@@ -258,6 +303,29 @@ def test_preserve_single_var_length_array_dtypes(tmp_path, dtype):
     for row1, row2 in zip(t1["a"], t2["a"]):
         assert np.all(row1 == row2)
         assert row1.dtype == row2.dtype
+
+
+@pytest.mark.parametrize("dtype", BIGENDIAN_DTYPES)
+def test_preserve_single_bigendian_var_length_array_dtypes(tmp_path, dtype):
+    """
+    Test that round-tripping a single big-endian variable length array column preserves
+    datatypes.
+    """
+
+    test_file = tmp_path / "test.parquet"
+
+    values = _default_var_length_array_values(dtype)
+
+    t1 = Table()
+    data = np.array([np.array(val, dtype=dtype) for val in values], dtype=np.object_)
+    t1.add_column(Column(name="a", data=data))
+    t1.write(test_file)
+
+    t2 = Table.read(test_file)
+
+    for row1, row2 in zip(t1["a"], t2["a"]):
+        assert np.all(row1 == row2)
+        assert row1.dtype.newbyteorder(">") == row2.dtype.newbyteorder(">")
 
 
 def test_preserve_all_dtypes(tmp_path):
