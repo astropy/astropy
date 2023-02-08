@@ -1,0 +1,1 @@
+Columns with big-endian byte ordering (such as those read in from a FITS table) can now be serialized with Parquet.
