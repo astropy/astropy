@@ -228,9 +228,7 @@ class HeaderFormatter:
                 except KeyError:  # Keyword does not exist
                     if self.verbose:
                         log.warning(
-                            "{filename} (HDU {hdukey}): Keyword {kw} not found.".format(
-                                filename=self.filename, hdukey=hdukey, kw=kw
-                            )
+                            f"{self.filename} (HDU {hdukey}): Keyword {kw} not found."
                         )
         return cards
 
@@ -404,7 +402,6 @@ def print_headers_as_comparison(args):
 
 def main(args=None):
     """This is the main function called by the `fitsheader` script."""
-
     parser = argparse.ArgumentParser(
         description=DESCRIPTION, formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -420,9 +417,8 @@ def main(args=None):
         action="append",
         dest="extensions",
         help=(
-            "specify the extension by name or number; "
-            "this argument can be repeated "
-            "to select multiple extensions"
+            "specify the extension by name or number; this argument can "
+            "be repeated to select multiple extensions"
         ),
     )
     parser.add_argument(
@@ -432,9 +428,8 @@ def main(args=None):
         action="append",
         type=str,
         help=(
-            "specify a keyword; this argument can be "
-            "repeated to select multiple keywords; "
-            "also supports wildcards"
+            "specify a keyword; this argument can be repeated to select "
+            "multiple keywords; also supports wildcards"
         ),
     )
     mode_group = parser.add_mutually_exclusive_group()
@@ -445,9 +440,8 @@ def main(args=None):
         default=False,
         metavar="FORMAT",
         help=(
-            "print the header(s) in machine-readable table "
-            "format; the default format is "
-            '"ascii.fixed_width" (can be "ascii.csv", '
+            "print the header(s) in machine-readable table format; the "
+            'default format is "ascii.fixed_width" (can be "ascii.csv", '
             '"ascii.html", "ascii.latex", "fits", etc)'
         ),
     )
@@ -467,9 +461,8 @@ def main(args=None):
         action="append",
         type=str,
         help=(
-            "sort output by the specified header keywords, "
-            "can be repeated to sort by multiple keywords; "
-            "Only supported with -f/--fitsort"
+            "sort output by the specified header keywords, can be repeated to "
+            "sort by multiple keywords; Only supported with -f/--fitsort"
         ),
     )
     parser.add_argument(
@@ -477,8 +470,7 @@ def main(args=None):
         "--compressed",
         action="store_true",
         help=(
-            "for compressed image data, "
-            "show the true header which describes "
+            "for compressed image data, show the true header which describes "
             "the compression rather than the data"
         ),
     )

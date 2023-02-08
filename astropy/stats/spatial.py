@@ -153,7 +153,6 @@ class RipleysKEstimator:
         output : 1D array
             Ripley's K function evaluated at ``radii``.
         """
-
         return np.pi * radii * radii
 
     def Lfunction(self, data, radii, mode="none"):
@@ -161,7 +160,6 @@ class RipleysKEstimator:
         Evaluates the L function at ``radii``. For parameter description
         see ``evaluate`` method.
         """
-
         return np.sqrt(self.evaluate(data, radii, mode=mode) / np.pi)
 
     def Hfunction(self, data, radii, mode="none"):
@@ -169,7 +167,6 @@ class RipleysKEstimator:
         Evaluates the H function at ``radii``. For parameter description
         see ``evaluate`` method.
         """
-
         return self.Lfunction(data, radii, mode=mode) - radii
 
     def evaluate(self, data, radii, mode="none"):
@@ -221,7 +218,6 @@ class RipleysKEstimator:
         ripley : 1D array
             Ripley's K function estimator evaluated at ``radii``.
         """
-
         data = np.asarray(data)
 
         if not data.shape[1] == 2:

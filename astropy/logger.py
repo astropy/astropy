@@ -104,7 +104,6 @@ def _init_log():
     """Initializes the Astropy log--in most circumstances this is called
     automatically when importing astropy.
     """
-
     global log
 
     orig_logger_cls = logging.getLoggerClass()
@@ -125,7 +124,6 @@ def _teardown_log():
     This involves poking some logging module internals, so much if it is 'at
     your own risk' and is allowed to pass silently if any exceptions occur.
     """
-
     global log
 
     if log.exception_logging_enabled():
@@ -243,7 +241,7 @@ class AstropyLogger(Logger):
 
     def enable_warnings_logging(self):
         """
-        Enable logging of warnings.warn() calls
+        Enable logging of warnings.warn() calls.
 
         Once called, any subsequent calls to ``warnings.warn()`` are
         redirected to this logger and emitted with level ``WARN``. Note that
@@ -258,7 +256,7 @@ class AstropyLogger(Logger):
 
     def disable_warnings_logging(self):
         """
-        Disable logging of warnings.warn() calls
+        Disable logging of warnings.warn() calls.
 
         Once called, any subsequent calls to ``warnings.warn()`` are no longer
         redirected to this logger.
@@ -320,7 +318,7 @@ class AstropyLogger(Logger):
 
     def enable_exception_logging(self):
         """
-        Enable logging of exceptions
+        Enable logging of exceptions.
 
         Once called, any uncaught exceptions will be emitted with level
         ``ERROR`` by this logger, before being raised.
@@ -361,7 +359,7 @@ class AstropyLogger(Logger):
 
     def disable_exception_logging(self):
         """
-        Disable logging of exceptions
+        Disable logging of exceptions.
 
         Once called, any uncaught exceptions will no longer be emitted by this
         logger.
@@ -392,13 +390,13 @@ class AstropyLogger(Logger):
 
     def enable_color(self):
         """
-        Enable colorized output
+        Enable colorized output.
         """
         _conf.use_color = True
 
     def disable_color(self):
         """
-        Disable colorized output
+        Disable colorized output.
         """
         _conf.use_color = False
 
@@ -424,7 +422,6 @@ class AstropyLogger(Logger):
 
         Notes
         -----
-
         By default, the logger already outputs log messages to a file set in
         the Astropy configuration file. Using this context manager does not
         stop log messages from being output to that file, nor does it stop log
@@ -432,7 +429,6 @@ class AstropyLogger(Logger):
 
         Examples
         --------
-
         The context manager is used as::
 
             with logger.log_to_file('myfile.log'):
@@ -473,13 +469,11 @@ class AstropyLogger(Logger):
 
         Notes
         -----
-
         Using this context manager does not stop log messages from being
         output to standard output.
 
         Examples
         --------
-
         The context manager is used as::
 
             with logger.log_to_list() as log_list:
@@ -496,9 +490,8 @@ class AstropyLogger(Logger):
 
     def _set_defaults(self):
         """
-        Reset logger to its initial state
+        Reset logger to its initial state.
         """
-
         # Reset any previously installed hooks
         if self.warnings_logging_enabled():
             self.disable_warnings_logging()
@@ -566,7 +559,7 @@ class StreamHandler(logging.StreamHandler):
 
     def emit(self, record):
         """
-        The formatter for stderr
+        The formatter for stderr.
         """
         if record.levelno <= logging.INFO:
             stream = sys.stdout
@@ -593,7 +586,7 @@ class StreamHandler(logging.StreamHandler):
 
 
 class FilterOrigin:
-    """A filter for the record origin"""
+    """A filter for the record origin."""
 
     def __init__(self, origin):
         self.origin = origin
@@ -603,7 +596,7 @@ class FilterOrigin:
 
 
 class ListHandler(logging.Handler):
-    """A handler that can be used to capture the records in a list"""
+    """A handler that can be used to capture the records in a list."""
 
     def __init__(self, filter_level=None, filter_origin=None):
         logging.Handler.__init__(self)

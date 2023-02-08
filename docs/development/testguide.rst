@@ -214,22 +214,10 @@ Test-running options
 Testing for open files
 ----------------------
 
-Using the :ref:`openfiles-plugin` plugin (which is installed automatically
-when installing pytest-astropy),  we can test whether any of the unit tests
-inadvertently leave any files open.  Since this greatly slows down the time it
-takes to run the tests, it is turned off by default.
-
-To use it from the commandline, do::
-
-    pytest --open-files
-
-To use it from Python, do::
-
-    >>> import astropy
-    >>> astropy.test(open_files=True)
-
-For more information on the ``pytest-openfiles`` plugin see
-:ref:`openfiles-plugin`
+There is a configuration inside the ``setup.cfg`` file that converts all
+unhandled warnings to errors during a test run. As a result, any open file(s)
+that throw ``ResourceWarning`` (except the specific ones already ignored)
+would fail the affected test(s).
 
 Test coverage reports
 ---------------------
@@ -240,7 +228,7 @@ automatically when installing pytest-astropy) by using e.g.::
 
     pytest --cov astropy --cov-report html
 
-There is some configuration inside the ``setup.cfg`` file that
+There is some configuration inside the ``pyproject.toml`` file that
 defines files to omit as well as lines to exclude.
 
 Running tests in parallel
@@ -775,7 +763,7 @@ hashes and images.
 
 To run the Astropy tests with the image comparison, use e.g.::
 
-    tox -e py39-test-image-mpl311-cov
+    tox -e py39-test-image-mpl322-cov
 
 However, note that the output can be sensitive to the operating system and
 specific version of libraries such as freetype. In general, using tox will
@@ -828,6 +816,28 @@ list of statuses for pull requests, and can also be found in the CircleCI
 logs. If any changes/additions look good, you can download from the summary page
 a JSON file with the hashes which you can use to replace the existing one in
 ``astropy/tests/figures``.
+
+New hash libraries
+------------------
+
+When adding a new tox environment for image testing, such as for a new Matplotlib
+or Python version, the tests will fail as the hash library does not exist yet. To
+generate it, you should run the tests the first time with::
+
+    tox -e <envname> -- --mpl-generate-hash-library=astropy/tests/figures/<envname>.json
+
+for example::
+
+    tox -e py39-test-image-mpl322-cov -- --mpl-generate-hash-library=astropy/tests/figures/py39-test-image-mpl322-cov.json
+
+Then add and commit the new JSON file and try running the tests again. The tests
+may fail in the continuous integration if e.g. the freetype version does not
+match or if you generated the JSON file on a Mac or Windows machine - if that is
+the case, follow the instructions in `Failing tests`_ to update the hashes.
+
+As an alternative to generating the JSON file above, you can also simply copy a
+previous version of the JSON file and update any failing hashes as described
+in `Failing tests`_.
 
 Generating reference images
 ---------------------------
@@ -1119,20 +1129,3 @@ The Astropy test runner enables both of these options by default. When running
 the test suite directly from ``pytest`` (instead of through the Astropy test
 runner), it is necessary to explicitly provide these options when they are
 needed.
-
-.. _openfiles-plugin:
-
-pytest-openfiles
-================
-
-The `pytest-openfiles`_ plugin allows for the detection of open I/O resources
-at the end of unit tests. This plugin adds the ``--open-files`` option to the
-``pytest`` command (which is also exposed through the Astropy test runner).
-
-When running tests with ``--open-files``, if a file is opened during the course
-of a unit test but that file  not closed before the test finishes, the test
-will fail. This is particularly useful for testing code that manipulates file
-handles or other I/O resources. It allows developers to ensure that this kind
-of code properly cleans up I/O resources when they are no longer needed.
-
-Also see :ref:`open-files`.

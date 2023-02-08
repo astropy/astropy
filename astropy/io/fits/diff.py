@@ -77,7 +77,6 @@ class _BaseDiff:
         appropriate subclass of ``_BaseDiff`` for the objects being compared
         (for example, use `HeaderDiff` to compare two `Header` objects.
         """
-
         self.a = a
         self.b = b
 
@@ -92,7 +91,6 @@ class _BaseDiff:
         A ``_BaseDiff`` object acts as `True` in a boolean context if the two
         objects compared are different.  Otherwise it acts as `False`.
         """
-
         return not self.identical
 
     @classmethod
@@ -112,7 +110,6 @@ class _BaseDiff:
             >>> list(hd.ignore_keywords)
             ['*']
         """
-
         sig = signature(cls.__init__)
         # The first 3 arguments of any Diff initializer are self, a, and b.
         kwargs = {}
@@ -132,7 +129,6 @@ class _BaseDiff:
         attribute, which contains a non-empty value if and only if some
         difference was found between the two objects being compared.
         """
-
         return not any(
             getattr(self, attr) for attr in self.__dict__ if attr.startswith("diff_")
         )
@@ -163,7 +159,6 @@ class _BaseDiff:
         -------
         report : str or None
         """
-
         return_string = False
         filepath = None
 
@@ -291,16 +286,11 @@ class FITSDiff(_BaseDiff):
             Ignore all cards that are blank, i.e. they only contain
             whitespace (default: True).
         """
-
         if isinstance(a, (str, os.PathLike)):
             try:
                 a = fitsopen(a)
             except Exception as exc:
-                raise OSError(
-                    "error opening file a ({}): {}: {}".format(
-                        a, exc.__class__.__name__, exc.args[0]
-                    )
-                )
+                raise OSError(f"error opening file a ({a})") from exc
             close_a = True
         else:
             close_a = False
@@ -309,11 +299,7 @@ class FITSDiff(_BaseDiff):
             try:
                 b = fitsopen(b)
             except Exception as exc:
-                raise OSError(
-                    "error opening file b ({}): {}: {}".format(
-                        b, exc.__class__.__name__, exc.args[0]
-                    )
-                )
+                raise OSError(f"error opening file b ({b})") from exc
             close_b = True
         else:
             close_b = False
@@ -369,20 +355,10 @@ class FITSDiff(_BaseDiff):
             a_names = [hdu.name for hdu in self.a]
             b_names = [hdu.name for hdu in self.b]
             for pattern in self.ignore_hdu_patterns:
-                self.a = HDUList(
-                    [
-                        h
-                        for h in self.a
-                        if h.name not in fnmatch.filter(a_names, pattern)
-                    ]
-                )
-                self.b = HDUList(
-                    [
-                        h
-                        for h in self.b
-                        if h.name not in fnmatch.filter(b_names, pattern)
-                    ]
-                )
+                a_ignored = fnmatch.filter(a_names, pattern)
+                self.a = HDUList([h for h in self.a if h.name not in a_ignored])
+                b_ignored = fnmatch.filter(b_names, pattern)
+                self.b = HDUList([h for h in self.b if h.name not in b_ignored])
 
         # For now, just compare the extensions one by one in order.
         # Might allow some more sophisticated types of diffing later.
@@ -412,49 +388,38 @@ class FITSDiff(_BaseDiff):
 
         if self.ignore_hdus:
             ignore_hdus = " ".join(sorted(self.ignore_hdus))
-            self._writeln(f" HDU(s) not to be compared:\n{wrapper.fill(ignore_hdus)}")
+            self._writeln(" HDU(s) not to be compared:\n" + wrapper.fill(ignore_hdus))
 
         if self.ignore_hdu_patterns:
             ignore_hdu_patterns = " ".join(sorted(self.ignore_hdu_patterns))
             self._writeln(
-                " HDU(s) not to be compared:\n{}".format(
-                    wrapper.fill(ignore_hdu_patterns)
-                )
+                " HDU(s) not to be compared:\n" + wrapper.fill(ignore_hdu_patterns)
             )
 
         if self.ignore_keywords:
             ignore_keywords = " ".join(sorted(self.ignore_keywords))
             self._writeln(
-                " Keyword(s) not to be compared:\n{}".format(
-                    wrapper.fill(ignore_keywords)
-                )
+                " Keyword(s) not to be compared:\n" + wrapper.fill(ignore_keywords)
             )
 
         if self.ignore_comments:
             ignore_comments = " ".join(sorted(self.ignore_comments))
             self._writeln(
-                " Keyword(s) whose comments are not to be compared:\n{}".format(
-                    wrapper.fill(ignore_comments)
-                )
+                " Keyword(s) whose comments are not to be compared:\n"
+                + wrapper.fill(ignore_comments)
             )
 
         if self.ignore_fields:
             ignore_fields = " ".join(sorted(self.ignore_fields))
             self._writeln(
-                " Table column(s) not to be compared:\n{}".format(
-                    wrapper.fill(ignore_fields)
-                )
+                " Table column(s) not to be compared:\n" + wrapper.fill(ignore_fields)
             )
 
         self._writeln(
-            " Maximum number of different data values to be reported: {}".format(
-                self.numdiffs
-            )
+            f" Maximum number of different data values to be reported: {self.numdiffs}"
         )
         self._writeln(
-            " Relative tolerance: {}, Absolute tolerance: {}".format(
-                self.rtol, self.atol
-            )
+            f" Relative tolerance: {self.rtol}, Absolute tolerance: {self.atol}"
         )
 
         if self.diff_hdu_count:
@@ -584,7 +549,6 @@ class HDUDiff(_BaseDiff):
             Ignore all cards that are blank, i.e. they only contain
             whitespace (default: True).
         """
-
         self.ignore_keywords = {k.upper() for k in ignore_keywords}
         self.ignore_comments = {k.upper() for k in ignore_comments}
         self.ignore_fields = {k.upper() for k in ignore_fields}
@@ -795,7 +759,6 @@ class HeaderDiff(_BaseDiff):
             Ignore all cards that are blank, i.e. they only contain
             whitespace (default: True).
         """
-
         self.ignore_keywords = {k.upper() for k in ignore_keywords}
         self.ignore_comments = {k.upper() for k in ignore_comments}
 
@@ -1081,7 +1044,6 @@ class ImageDataDiff(_BaseDiff):
 
             .. versionadded:: 2.0
         """
-
         self.numdiffs = numdiffs
         self.rtol = rtol
         self.atol = atol
@@ -1213,7 +1175,6 @@ class RawDataDiff(ImageDataDiff):
             are kept in memory or output.  If a negative value is given, then
             numdiffs is treated as unlimited (default: 10).
         """
-
         self.diff_dimensions = ()
         self.diff_bytes = []
 
@@ -1351,7 +1312,6 @@ class TableDataDiff(_BaseDiff):
 
             .. versionadded:: 2.0
         """
-
         self.ignore_fields = set(ignore_fields)
         self.numdiffs = numdiffs
         self.rtol = rtol
@@ -1581,9 +1541,7 @@ class TableDataDiff(_BaseDiff):
 
         if self.diff_values and self.numdiffs < self.diff_total:
             self._writeln(
-                " ...{} additional difference(s) found.".format(
-                    self.diff_total - self.numdiffs
-                )
+                f" ...{self.diff_total - self.numdiffs} additional difference(s) found."
             )
 
         if self.diff_total > self.numdiffs:
@@ -1601,7 +1559,6 @@ def report_diff_keyword_attr(fileobj, attr, diffs, keyword, ind=0):
     Write a diff between two header keyword values or comments to the specified
     file-like object.
     """
-
     if keyword in diffs:
         vals = diffs[keyword]
         for idx, val in enumerate(vals):

@@ -39,10 +39,8 @@ def is_votable(origin, filepath, fileobj, *args, **kwargs):
             return result
         elif filepath is not None:
             return is_votable(filepath)
-        elif isinstance(args[0], (VOTableFile, VOTable)):
-            return True
-        else:
-            return False
+        return isinstance(args[0], (VOTableFile, VOTable))
+
     else:
         return False
 
@@ -51,7 +49,7 @@ def read_table_votable(
     input, table_id=None, use_names_over_ids=False, verify=None, **kwargs
 ):
     """
-    Read a Table object from an VO table file
+    Read a Table object from an VO table file.
 
     Parameters
     ----------
@@ -134,7 +132,7 @@ def write_table_votable(
     input, output, table_id=None, overwrite=False, tabledata_format=None
 ):
     """
-    Write a Table object to an VO table file
+    Write a Table object to an VO table file.
 
     Parameters
     ----------
@@ -156,7 +154,6 @@ def write_table_votable(
         (text representation), ``binary`` or ``binary2``.  Default is
         ``tabledata``.  See :ref:`astropy:votable-serialization`.
     """
-
     # Only those columns which are instances of BaseColumn or Quantity can be written
     unsupported_cols = input.columns.not_isinstance((BaseColumn, Quantity))
     if unsupported_cols:

@@ -120,7 +120,7 @@ def _table_group_by(table, keys):
 
 def column_group_by(column, keys):
     """
-    Get groups for ``column`` on specified ``keys``
+    Get groups for ``column`` on specified ``keys``.
 
     Parameters
     ----------
@@ -366,7 +366,6 @@ class TableGroups(BaseGroups):
         out : Table
             New table with the aggregated rows.
         """
-
         i0s = self.indices[:-1]
         out_cols = []
         parent_table = self.parent_table

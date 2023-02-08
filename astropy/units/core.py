@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-Core units classes and functions
+Core units classes and functions.
 """
 
 
@@ -81,10 +81,11 @@ def _flatten_units_collection(items):
 
 
 def _normalize_equivalencies(equivalencies):
-    """
-    Normalizes equivalencies, ensuring each is a 4-tuple of the form::
+    """Normalizes equivalencies ensuring each is a 4-tuple.
 
-    (from_unit, to_unit, forward_func, backward_func)
+    The resulting tuple is of the form::
+
+        (from_unit, to_unit, forward_func, backward_func)
 
     Parameters
     ----------
@@ -382,7 +383,6 @@ def set_enabled_units(units):
 
     Examples
     --------
-
     >>> from astropy import units as u
     >>> with u.set_enabled_units([u.pc]):
     ...     u.m.find_equivalent_units()
@@ -435,7 +435,6 @@ def add_enabled_units(units):
 
     Examples
     --------
-
     >>> from astropy import units as u
     >>> from astropy.units import imperial
     >>> with u.add_enabled_units(imperial):
@@ -673,11 +672,11 @@ class UnitBase:
         return unit_format.Latex.to_string(self)
 
     def __bytes__(self):
-        """Return string representation for unit"""
+        """Return string representation for unit."""
         return unit_format.Generic.to_string(self).encode("unicode_escape")
 
     def __str__(self):
-        """Return string representation for unit"""
+        """Return string representation for unit."""
         return unit_format.Generic.to_string(self)
 
     def __repr__(self):
@@ -756,7 +755,6 @@ class UnitBase:
             The name of a format or a formatter object.  If not
             provided, defaults to the generic format.
         """
-
         f = unit_format.get_format(format)
         return f.to_string(self)
 
@@ -769,10 +767,11 @@ class UnitBase:
 
     @staticmethod
     def _normalize_equivalencies(equivalencies):
-        """
-        Normalizes equivalencies, ensuring each is a 4-tuple of the form::
+        """Normalizes equivalencies, ensuring each is a 4-tuple.
 
-        (from_unit, to_unit, forward_func, backward_func)
+        The resulting tuple is of the form::
+
+            (from_unit, to_unit, forward_func, backward_func)
 
         Parameters
         ----------
@@ -1060,7 +1059,6 @@ class UnitBase:
         (which is used as a check in quantity helpers).
 
         """
-
         # First see if it is just a scaling.
         try:
             scale = self._to(other)
@@ -1196,10 +1194,7 @@ class UnitBase:
         def is_final_result(unit):
             # Returns True if this result contains only the expected
             # units
-            for base in unit.bases:
-                if base not in namespace:
-                    return False
-            return True
+            return all(base in namespace for base in unit.bases)
 
         unit = self.decompose()
         key = hash(unit)
@@ -1500,7 +1495,6 @@ class UnitBase:
         """
         Returns a copy of the current `Unit` instance in SI units.
         """
-
         from . import si
 
         return self.to_system(si)[0]
@@ -1606,7 +1600,7 @@ class UnitBase:
                     for i, col in enumerate(line):
                         widths[i] = max(widths[i], len(col))
 
-                f = "  {{0:<{0}s}} | {{1:<{1}s}} | {{2:<{2}s}}".format(*widths)
+                f = "  {{0:<{}s}} | {{1:<{}s}} | {{2:<{}s}}".format(*widths)
                 lines = [f.format(*line) for line in lines]
                 lines = lines[0:1] + ["["] + [f"{x} ," for x in lines[1:]] + ["]"]
                 return "\n".join(lines)
@@ -2588,7 +2582,6 @@ def def_unit(
         The newly-defined unit, or a matching unit that was already
         defined.
     """
-
     if represents is not None:
         result = Unit(s, represents, namespace=namespace, doc=doc, format=format)
     else:

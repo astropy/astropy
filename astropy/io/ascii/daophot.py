@@ -37,10 +37,12 @@ class DaophotHeader(core.BaseHeader):
         core.BaseHeader.__init__(self)
 
     def parse_col_defs(self, grouped_lines_dict):
-        """
-        Parse a series of column definition lines like below.  There may be several
-        such blocks in a single file (where continuation characters have already been
-        stripped).
+        """Parse a series of column definition lines.
+
+        Examples
+        --------
+        When parsing, there may be several such blocks in a single file
+        (where continuation characters have already been stripped).
         #N ID    XCENTER   YCENTER   MAG         MERR          MSKY           NITER
         #U ##    pixels    pixels    magnitudes  magnitudes    counts         ##
         #F %-9d  %-10.3f   %-10.3f   %-12.3f     %-14.3f       %-15.7g        %-6d
@@ -135,7 +137,7 @@ class DaophotHeader(core.BaseHeader):
 
     def extract_keyword_line(self, line):
         """
-        Extract info from a header keyword line (#K)
+        Extract info from a header keyword line (#K).
         """
         m = self.re_header_keyword.match(line)
         if m:
@@ -163,7 +165,6 @@ class DaophotHeader(core.BaseHeader):
         col : list
             List of table Columns
         """
-
         if not self.names:
             raise core.InconsistentTableError("No column names found in DAOphot header")
 
@@ -232,7 +233,6 @@ class DaophotInputter(core.ContinuationLinesInputter):
         continued rows in a datablock.  For efficiency, depth gives the upper
         limit of lines to search.
         """
-
         # The list of apertures given in the #K APERTURES keyword may not be
         # complete!!  This happens if the string description of the aperture
         # list is longer than the field width of the #K APERTURES field.  In

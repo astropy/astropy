@@ -39,7 +39,8 @@ class _WCSAxesArtist(Artist):
     ersatz ticks, labels, and gridlines by explicitly calling the functions
     ``CoordinateHelper._draw_ticks``, ``CoordinateHelper._draw_grid``, etc.
     This hack would not be necessary if ``WCSAxes`` drew ticks, tick labels,
-    and gridlines in the standary way."""
+    and gridlines in the standary way.
+    """
 
     def draw(self, renderer, *args, **kwargs):
         self.axes.draw_wcsaxes(renderer)
@@ -206,7 +207,6 @@ class WCSAxes(Axes):
 
         All arguments are passed to :meth:`~matplotlib.axes.Axes.imshow`.
         """
-
         origin = kwargs.pop("origin", "lower")
 
         # plt.imshow passes origin as None, which we should default to lower.
@@ -240,7 +240,6 @@ class WCSAxes(Axes):
         positional and keyword arguments are the same as for
         :meth:`~matplotlib.axes.Axes.contour`.
         """
-
         # In Matplotlib, when calling contour() with a transform, each
         # individual path in the contour map is transformed separately. However,
         # this is much too slow for us since each call to the transforms results
@@ -272,7 +271,6 @@ class WCSAxes(Axes):
         positional and keyword arguments are the same as for
         :meth:`~matplotlib.axes.Axes.contourf`.
         """
-
         # See notes for contour above.
 
         transform = kwargs.pop("transform", None)
@@ -291,7 +289,7 @@ class WCSAxes(Axes):
     def _transform_plot_args(self, *args, **kwargs):
         """
         Apply transformations to arguments to ``plot_coord`` and
-        ``scatter_coord``
+        ``scatter_coord``.
         """
         if isinstance(args[0], (SkyCoord, BaseCoordinateFrame)):
             # Extract the frame from the first argument.
@@ -352,7 +350,6 @@ class WCSAxes(Axes):
             This method is called from this function with all arguments passed to it.
 
         """
-
         args, kwargs = self._transform_plot_args(*args, **kwargs)
 
         return super().plot(*args, **kwargs)
@@ -379,7 +376,6 @@ class WCSAxes(Axes):
         --------
         matplotlib.axes.Axes.scatter : This method is called from this function with all arguments passed to it.
         """
-
         args, kwargs = self._transform_plot_args(*args, **kwargs)
 
         return super().scatter(*args, **kwargs)
@@ -388,7 +384,6 @@ class WCSAxes(Axes):
         """
         Reset the current Axes, to use a new WCS object.
         """
-
         # Here determine all the coordinate axes that should be shown.
         if wcs is None and transform is None:
             self.wcs = IDENTITY
@@ -505,7 +500,6 @@ class WCSAxes(Axes):
 
     def draw(self, renderer, **kwargs):
         """Draw the axes."""
-
         # Before we do any drawing, we need to remove any existing grid lines
         # drawn with contours, otherwise if we try and remove the contours
         # part way through drawing, we end up with the issue mentioned in
@@ -557,7 +551,7 @@ class WCSAxes(Axes):
                 break
 
     def set_ylabel(self, ylabel=None, labelpad=1, loc=None, **kwargs):
-        """Set y-label"""
+        """Set y-label."""
         if ylabel is None:
             ylabel = kwargs.pop("label", None)
             if ylabel is None:
@@ -679,9 +673,8 @@ class WCSAxes(Axes):
 
     def _get_transform_no_transdata(self, frame):
         """
-        Return a transform from data to the specified frame
+        Return a transform from data to the specified frame.
         """
-
         if isinstance(frame, (BaseLowLevelWCS, BaseHighLevelWCS)):
             if isinstance(frame, BaseHighLevelWCS):
                 frame = frame.low_level_wcs
@@ -761,7 +754,6 @@ class WCSAxes(Axes):
         which : str
             Currently only ``'major'`` is supported.
         """
-
         if not hasattr(self, "coords"):
             return
 
@@ -838,7 +830,6 @@ class WCSAxes(Axes):
             The style of the grid lines (accepts any valid Matplotlib line
             style).
         """
-
         if not hasattr(self, "coords"):
             # Axes haven't been fully initialized yet, so just ignore, as
             # Axes.__init__ calls this method
@@ -872,7 +863,7 @@ class WCSAxes(Axes):
 
 class WCSAxesSubplot(subplot_class_factory(WCSAxes)):
     """
-    A subclass class for WCSAxes
+    A subclass class for WCSAxes.
     """
 
     pass

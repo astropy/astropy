@@ -231,23 +231,9 @@ class TestTableFunctions(FitsTestCase):
         fout.writeto(self.temp("tableout1.fits"), overwrite=True)
 
         with fits.open(self.temp("tableout1.fits")) as f2:
+            exp = [True, True, False, True, False, True, True, True, False, False, True]
             temp = f2[1].data.field(7)
-            assert (
-                temp[0]
-                == [
-                    True,
-                    True,
-                    False,
-                    True,
-                    False,
-                    True,
-                    True,
-                    True,
-                    False,
-                    False,
-                    True,
-                ]
-            ).all()
+            assert (temp[0] == exp).all()
 
         # An alternative way to create an output table FITS file:
         fout2 = fits.open(self.temp("tableout2.fits"), "append")
@@ -941,18 +927,10 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.columns.columns[1].array[0] == 80
         assert hdu.data[0][1] == 80
 
+        columns_info = "[10A, J, 10A, 5E, L, 10A, J, 10A, 5E, L]"
         info = [
             (0, "PRIMARY", 1, "PrimaryHDU", 4, (), "", ""),
-            (
-                1,
-                "",
-                1,
-                "BinTableHDU",
-                30,
-                "4R x 10C",
-                "[10A, J, 10A, 5E, L, 10A, J, 10A, 5E, L]",
-                "",
-            ),
+            (1, "", 1, "BinTableHDU", 30, "4R x 10C", columns_info, ""),
         ]
 
         assert fits.info(self.temp("newtable.fits"), output=False) == info
@@ -1074,8 +1052,8 @@ class TestTableFunctions(FitsTestCase):
         dx = fits.getdata(self.temp("test.fits"))
         assert data["x"].dtype == dx["x"].dtype
         assert data["y"].dtype == dx["y"].dtype
-        assert np.all(data["x"] == dx["x"]), "x: {} != {}".format(data["x"], dx["x"])
-        assert np.all(data["y"] == dx["y"]), "y: {} != {}".format(data["y"], dx["y"])
+        assert np.all(data["x"] == dx["x"]), f"x: {data['x']} != {dx['x']}"
+        assert np.all(data["y"] == dx["y"]), f"y: {data['y']} != {dx['y']}"
 
         # Test fits.BinTableHDU(data) and avoid convenience functions
         hdu0 = fits.PrimaryHDU()
@@ -1087,16 +1065,16 @@ class TestTableFunctions(FitsTestCase):
         fx.close()
         assert data["x"].dtype == dx["x"].dtype
         assert data["y"].dtype == dx["y"].dtype
-        assert np.all(data["x"] == dx["x"]), "x: {} != {}".format(data["x"], dx["x"])
-        assert np.all(data["y"] == dx["y"]), "y: {} != {}".format(data["y"], dx["y"])
+        assert np.all(data["x"] == dx["x"]), f"x: {data['x']} != {dx['x']}"
+        assert np.all(data["y"] == dx["y"]), f"y: {data['y']} != {dx['y']}"
 
         # Test Table write and read
         table.write(self.temp("test3.fits"))
         tx = Table.read(self.temp("test3.fits"), character_as_bytes=False)
         assert table["x"].dtype == tx["x"].dtype
         assert table["y"].dtype == tx["y"].dtype
-        assert np.all(table["x"] == tx["x"]), "x: {} != {}".format(table["x"], tx["x"])
-        assert np.all(table["y"] == tx["y"]), "y: {} != {}".format(table["y"], tx["y"])
+        assert np.all(table["x"] == tx["x"]), f"x: {table['x']} != {tx['x']}"
+        assert np.all(table["y"] == tx["y"]), f"y: {table['y']} != {tx['y']}"
 
     def test_mask_array(self):
         t = fits.open(self.data("table.fits"))
@@ -3517,7 +3495,7 @@ class TestColumnFunctions(FitsTestCase):
             zwc_pl = pickle.loads(zwc_pd)
             with pytest.warns(
                 UserWarning,
-                match=r"Field 2 has a repeat count " r"of 0 in its format code",
+                match=r"Field 2 has a repeat count of 0 in its format code",
             ):
                 assert comparerecords(zwc_pl, zwc[2].data)
 

@@ -26,7 +26,7 @@ __doctest_requires__ = {"Spline1D": ["scipy"]}
 
 
 class _Spline(FittableModel):
-    """Base class for spline models"""
+    """Base class for spline models."""
 
     _knot_names = ()
     _coeff_names = ()
@@ -67,7 +67,6 @@ class _Spline(FittableModel):
         Coefficient names generated based on the spline's degree and
         number of knots.
         """
-
         return tuple(list(self._knot_names) + list(self._coeff_names))
 
     @staticmethod
@@ -100,8 +99,7 @@ class _Spline(FittableModel):
         return new_kwargs
 
     def evaluate(self, *args, **kwargs):
-        """Extract the optional kwargs passed to call"""
-
+        """Extract the optional kwargs passed to call."""
         optional_inputs = kwargs
         for arg in self.optional_inputs:
             attribute = self._optional_arg(arg)
@@ -121,9 +119,8 @@ class _Spline(FittableModel):
 
     def __call__(self, *args, **kwargs):
         """
-        Make model callable to model evaluation
+        Make model callable to model evaluation.
         """
-
         # Hack to allow an optional model argument
         kwargs = self._intercept_optional_inputs(**kwargs)
 
@@ -144,7 +141,6 @@ class _Spline(FittableModel):
         fixed : optional, bool
             If the parameter should be fixed or not
         """
-
         # Hack to allow parameters and attribute array to freely exchange values
         #   _getter forces reading value from attribute array
         #   _setter forces setting value to attribute array
@@ -174,7 +170,7 @@ class _Spline(FittableModel):
     def _create_parameters(self, base_name: str, attr: str, fixed=False):
         """
         Create a spline parameters linked to an attribute array for all
-        elements in that array
+        elements in that array.
 
         Parameters
         ----------
@@ -222,7 +218,7 @@ class _Spline(FittableModel):
 
 class Spline1D(_Spline):
     """
-    One dimensional Spline Model
+    One dimensional Spline Model.
 
     Parameters
     ----------
@@ -322,9 +318,8 @@ class Spline1D(_Spline):
     @property
     def t(self):
         """
-        The knots vector
+        The knots vector.
         """
-
         if self._t is None:
             return np.concatenate(
                 (np.zeros(self._degree + 1), np.ones(self._degree + 1))
@@ -348,17 +343,15 @@ class Spline1D(_Spline):
     @property
     def t_interior(self):
         """
-        The interior knots
+        The interior knots.
         """
-
         return self.t[self.degree + 1 : -(self.degree + 1)]
 
     @property
     def c(self):
         """
-        The coefficients vector
+        The coefficients vector.
         """
-
         if self._c is None:
             return np.zeros(len(self.t))
         else:
@@ -380,9 +373,8 @@ class Spline1D(_Spline):
     @property
     def degree(self):
         """
-        The degree of the spline polynomials
+        The degree of the spline polynomials.
         """
-
         return self._degree
 
     @property
@@ -392,9 +384,8 @@ class Spline1D(_Spline):
     @property
     def tck(self):
         """
-        Scipy 'tck' tuple representation
+        Scipy 'tck' tuple representation.
         """
-
         return (self.t, self.c, self.degree)
 
     @tck.setter
@@ -415,9 +406,8 @@ class Spline1D(_Spline):
     @property
     def bspline(self):
         """
-        Scipy bspline object representation
+        Scipy bspline object representation.
         """
-
         from scipy.interpolate import BSpline
 
         return BSpline(*self.tck)
@@ -434,14 +424,13 @@ class Spline1D(_Spline):
     @property
     def knots(self):
         """
-        Dictionary of knot parameters
+        Dictionary of knot parameters.
         """
-
         return [getattr(self, knot) for knot in self._knot_names]
 
     @property
     def user_knots(self):
-        """If the knots have been supplied by the user"""
+        """If the knots have been supplied by the user."""
         return self._user_knots
 
     @user_knots.setter
@@ -451,9 +440,8 @@ class Spline1D(_Spline):
     @property
     def coeffs(self):
         """
-        Dictionary of coefficient parameters
+        Dictionary of coefficient parameters.
         """
-
         return [getattr(self, coeff) for coeff in self._coeff_names]
 
     def _init_parameters(self):
@@ -540,7 +528,7 @@ class Spline1D(_Spline):
 
     def derivative(self, nu=1):
         """
-        Create a spline that is the derivative of this one
+        Create a spline that is the derivative of this one.
 
         Parameters
         ----------
@@ -559,7 +547,7 @@ class Spline1D(_Spline):
 
     def antiderivative(self, nu=1):
         """
-        Create a spline that is an antiderivative of this one
+        Create a spline that is an antiderivative of this one.
 
         Parameters
         ----------
@@ -586,7 +574,7 @@ class Spline1D(_Spline):
 
 class _SplineFitter(abc.ABC):
     """
-    Base Spline Fitter
+    Base Spline Fitter.
     """
 
     def __init__(self):
@@ -620,7 +608,7 @@ class _SplineFitter(abc.ABC):
 
 class SplineInterpolateFitter(_SplineFitter):
     """
-    Fit an interpolating spline
+    Fit an interpolating spline.
     """
 
     def _fit_method(self, model, x, y, **kwargs):
@@ -649,7 +637,7 @@ class SplineInterpolateFitter(_SplineFitter):
 
 class SplineSmoothingFitter(_SplineFitter):
     """
-    Fit a smoothing spline
+    Fit a smoothing spline.
     """
 
     def _fit_method(self, model, x, y, **kwargs):

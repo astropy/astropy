@@ -59,7 +59,7 @@ CUSTOM_UNITS = {
 
 class BaseFormatterLocator:
     """
-    A joint formatter/locator
+    A joint formatter/locator.
     """
 
     def __init__(
@@ -154,7 +154,7 @@ class BaseFormatterLocator:
 
 class AngleFormatterLocator(BaseFormatterLocator):
     """
-    A joint formatter/locator
+    A joint formatter/locator.
     """
 
     def __init__(
@@ -491,7 +491,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
 class ScalarFormatterLocator(BaseFormatterLocator):
     """
-    A joint formatter/locator
+    A joint formatter/locator.
     """
 
     def __init__(

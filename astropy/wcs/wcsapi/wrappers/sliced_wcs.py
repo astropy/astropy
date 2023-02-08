@@ -13,11 +13,10 @@ __all__ = ["sanitize_slices", "SlicedLowLevelWCS"]
 
 def sanitize_slices(slices, ndim):
     """
-    Given a slice as input sanitise it to an easier to parse format.format
+    Given a slice as input sanitise it to an easier to parse format.format.
 
     This function returns a list ``ndim`` long containing slice objects (or ints).
     """
-
     if not isinstance(slices, (tuple, list)):  # We just have a single int
         slices = (slices,)
 
@@ -66,7 +65,6 @@ def combine_slices(slice1, slice2):
     slice that corresponds to the combination of both slices. We assume that
     slice2 can be an integer, but slice1 cannot.
     """
-
     if isinstance(slice1, slice) and slice1.step is not None:
         raise ValueError("Only slices with steps of 1 are supported")
 

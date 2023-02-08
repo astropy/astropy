@@ -61,7 +61,6 @@ class StreamingHDU:
         be modified to an image extension header and appended to the
         end of the file.
         """
-
         if isinstance(name, gzip.GzipFile):
             raise TypeError("StreamingHDU not supported for GzipFile objects.")
 
@@ -165,7 +164,6 @@ class StreamingHDU:
         dtype of the input data does not match what is expected by the header,
         a `TypeError` exception is raised.
         """
-
         size = self._ffo.tell() - self._data_offset
 
         if self.writecomplete or size + data.nbytes > self._size:
@@ -200,7 +198,6 @@ class StreamingHDU:
         """
         Return the size (in bytes) of the data portion of the HDU.
         """
-
         size = 0
         naxis = self._header.get("NAXIS", 0)
 
@@ -227,5 +224,4 @@ class StreamingHDU:
         """
         Close the physical FITS file.
         """
-
         self._ffo.close()

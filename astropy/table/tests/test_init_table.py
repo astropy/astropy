@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 import astropy.units as u
-from astropy.table import Column, MaskedColumn, Table, TableColumns
+from astropy.table import Column, MaskedColumn, QTable, Table, TableColumns
 
 
 class DictLike(Mapping):
@@ -619,3 +619,16 @@ def test_init_Table_from_list_of_quantity():
     assert np.all(t["x"] == [5, 10])
     assert t["y"][0] == 1 * u.m
     assert t["y"][1] == 3
+
+
+def test_init_QTable_and_set_units():
+    """
+    Test fix for #14336 where providing units to QTable init fails.
+
+    This applies when the input is a Quantity.
+    """
+    t = QTable([[1, 2] * u.km, [1, 2]], units={"col0": u.m, "col1": u.s})
+    assert t["col0"].unit == u.m
+    assert np.all(t["col0"].value == [1000, 2000])
+    assert t["col1"].unit == u.s
+    assert np.all(t["col1"].value == [1, 2])

@@ -154,7 +154,6 @@ def _compress_array_dims(arr):
     out : array-like
         Compressed array.
     """
-
     idxs = []
     edgeitems = np.get_printoptions()["edgeitems"]
 
@@ -562,7 +561,6 @@ class TimeBase(ShapedLikeNDArray):
         If format is `None` and the input is a string-type or object array then
         guess available formats and stop when one matches.
         """
-
         if format is None and (
             val.dtype.kind in ("S", "U", "O", "M") or val.dtype.names
         ):
@@ -645,7 +643,7 @@ class TimeBase(ShapedLikeNDArray):
 
     @format.setter
     def format(self, format):
-        """Set time format"""
+        """Set time format."""
         if format not in self.FORMATS:
             raise ValueError(f"format must be one of {list(self.FORMATS)}")
         format_cls = self.FORMATS[format]
@@ -720,7 +718,7 @@ class TimeBase(ShapedLikeNDArray):
 
     @property
     def scale(self):
-        """Time scale"""
+        """Time scale."""
         return self._time.scale
 
     def _set_scale(self, scale):
@@ -728,7 +726,6 @@ class TimeBase(ShapedLikeNDArray):
         This is the key routine that actually does time scale conversions.
         This is not public and not connected to the read-only scale property.
         """
-
         if scale == self.scale:
             return
         if scale not in self.SCALES:
@@ -1009,7 +1006,7 @@ class TimeBase(ShapedLikeNDArray):
 
     @property
     def value(self):
-        """Time value(s) in current format"""
+        """Time value(s) in current format."""
         return self.to_value(self.format, None)
 
     @property
@@ -1682,7 +1679,7 @@ class TimeBase(ShapedLikeNDArray):
 
     def _time_comparison(self, other, op):
         """If other is of same class as self, compare difference in self.scale.
-        Otherwise, return NotImplemented
+        Otherwise, return NotImplemented.
         """
         if other.__class__ is not self.__class__:
             try:
@@ -1869,8 +1866,7 @@ class Time(TimeBase):
                 ) from err
 
     def _make_value_equivalent(self, item, value):
-        """Coerce setitem value into an equivalent Time object"""
-
+        """Coerce setitem value into an equivalent Time object."""
         # If there is a vector location then broadcast to the Time shape
         # and then select with ``item``
         if self.location is not None and self.location.shape:
@@ -2074,7 +2070,6 @@ class Time(TimeBase):
             time in the Solar system barycentre or the Heliocentre.
             Also, the time conversion to BJD will then include the relativistic correction as well.
         """
-
         if kind.lower() not in ("barycentric", "heliocentric"):
             raise ValueError(
                 "'kind' parameter must be one of 'heliocentric' or 'barycentric'"
@@ -2241,7 +2236,6 @@ class Time(TimeBase):
         corrected for polar motion (except when ``longitude='tio'`` or ``'greenwich'``).
 
         """  # (docstring is formatted below)
-
         if kind.lower() not in SIDEREAL_TIME_MODELS:
             raise ValueError(
                 "The kind of sidereal time has to be "
@@ -2695,7 +2689,7 @@ class Time(TimeBase):
 
 
 class TimeDeltaMissingUnitWarning(AstropyDeprecationWarning):
-    """Warning for missing unit or format in TimeDelta"""
+    """Warning for missing unit or format in TimeDelta."""
 
     pass
 
@@ -2724,7 +2718,7 @@ class TimeDelta(TimeBase):
     a similar reason, 'utc' is not a valid scale for a time difference: a UTC
     day is not always 86400 seconds.
 
-    See also:
+    For more information see:
 
     - https://docs.astropy.org/en/stable/time/
     - https://docs.astropy.org/en/stable/time/index.html#time-deltas
@@ -2820,7 +2814,6 @@ class TimeDelta(TimeBase):
         This is the key routine that actually does time scale conversions.
         This is not public and not connected to the read-only scale property.
         """
-
         if scale == self.scale:
             return
         if scale not in self.SCALES:
@@ -2847,7 +2840,7 @@ class TimeDelta(TimeBase):
             )
 
     def _add_sub(self, other, op):
-        """Perform common elements of addition / subtraction for two delta times"""
+        """Perform common elements of addition / subtraction for two delta times."""
         # If not a TimeDelta then see if it can be turned into a TimeDelta.
         if not isinstance(other, TimeDelta):
             try:
@@ -3010,7 +3003,7 @@ class TimeDelta(TimeBase):
         quantity : `~astropy.units.Quantity`
             The quantity in the units specified.
 
-        See also
+        See Also
         --------
         to_value : get the numerical value in a given unit.
         """
@@ -3077,7 +3070,7 @@ class TimeDelta(TimeBase):
         value : ndarray or scalar
             The value in the format or units specified.
 
-        See also
+        See Also
         --------
         to : Convert to a `~astropy.units.Quantity` instance in a given unit.
         value : The time value in the current format.
@@ -3112,7 +3105,7 @@ class TimeDelta(TimeBase):
         )
 
     def _make_value_equivalent(self, item, value):
-        """Coerce setitem value into an equivalent TimeDelta object"""
+        """Coerce setitem value into an equivalent TimeDelta object."""
         if not isinstance(value, TimeDelta):
             try:
                 value = self.__class__(value, scale=self.scale, format=self.format)

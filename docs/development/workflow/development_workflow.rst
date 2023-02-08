@@ -109,7 +109,9 @@ to Astropy:
 
 .. note::
     A good graphical interface to git makes some of these steps much
-    easier. Some options are described in :ref:`git_gui_options`.
+    easier.
+    You might find this
+    `list of GUI Clients <https://git-scm.com/downloads/guis/>`_ to be helpful.
 
 If something goes wrong
 =======================

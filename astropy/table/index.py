@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""
+"""Indexing for Table columns.
+
 The Index class can use several implementations as its
 engine. Any implementation should implement the following:
 
@@ -754,7 +755,6 @@ class _IndexModeContext:
         case where a copy of the indices is not needed.  See the docstring for
         ``astropy.table._column_mixins`` for more information on that.
         """
-
         if cls in self._col_subclasses:
             return self._col_subclasses[cls]
 
@@ -836,7 +836,6 @@ class TableLoc:
         """
         Retrieve Table rows indexes by value slice.
         """
-
         if isinstance(item, tuple):
             key, item = item
         else:

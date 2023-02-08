@@ -261,7 +261,6 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
         Returns `True` if no warnings were found.  If ``output`` is
         `None`, the return value will be a string.
     """
-
     from astropy.utils.console import color_print, print_code_line
 
     return_as_str = False

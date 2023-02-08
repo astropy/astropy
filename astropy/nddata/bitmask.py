@@ -186,20 +186,16 @@ class BitFlagNameMeta(type):
 
     def __delattr__(cls, name):
         raise AttributeError(
-            "{:s}: cannot delete {:s} member.".format(
-                cls.__name__, cls.mro()[-2].__name__
-            )
+            f"{cls.__name__}: cannot delete {cls.mro()[-2].__name__} member."
         )
 
     def __delitem__(cls, name):
         raise AttributeError(
-            "{:s}: cannot delete {:s} member.".format(
-                cls.__name__, cls.mro()[-2].__name__
-            )
+            f"{cls.__name__}: cannot delete {cls.mro()[-2].__name__} member."
         )
 
     def __repr__(cls):
-        return f"<{cls.mro()[-2].__name__:s} '{cls.__name__:s}'>"
+        return f"<{cls.mro()[-2].__name__} '{cls.__name__}'>"
 
 
 class BitFlagNameMap(metaclass=BitFlagNameMeta):
@@ -215,7 +211,6 @@ class BitFlagNameMap(metaclass=BitFlagNameMeta):
 
     Examples
     --------
-
         >>> from astropy.nddata.bitmask import BitFlagNameMap
         >>> class ST_DQ(BitFlagNameMap):
         ...     __version__ = '1.0.0'  # optional
@@ -252,7 +247,6 @@ def extend_bit_flag_map(cls_name, base_cls=BitFlagNameMap, **kwargs):
 
     Examples
     --------
-
         >>> from astropy.nddata.bitmask import extend_bit_flag_map
         >>> ST_DQ = extend_bit_flag_map('ST_DQ', __version__='1.0.0', CR=1, CLOUDY=4, RAINY=8)
         >>> ST_CAM1_DQ = extend_bit_flag_map('ST_CAM1_DQ', ST_DQ, HOT=16, DEAD=32)
@@ -334,7 +328,6 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
 
     Examples
     --------
-
         >>> from astropy.nddata.bitmask import interpret_bit_flags, extend_bit_flag_map
         >>> ST_DQ = extend_bit_flag_map('ST_DQ', CR=1, CLOUDY=4, RAINY=8, HOT=16, DEAD=32)
         >>> "{0:016b}".format(0xFFFF & interpret_bit_flags(28))
@@ -469,9 +462,7 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
     for v in bitset:
         if not _is_bit_flag(v) and not allow_non_flags:
             raise ValueError(
-                "Input list contains invalid (not powers of two) bit flag: {:d}".format(
-                    v
-                )
+                f"Input list contains invalid (not powers of two) bit flag: {v}"
             )
         bitmask += v
 
@@ -643,7 +634,6 @@ good_mask_value=False, dtype=numpy.bool_)
 
     Examples
     --------
-
         >>> from astropy.nddata import bitmask
         >>> import numpy as np
         >>> dqarr = np.asarray([[0, 0, 1, 2, 0, 8, 12, 0],

@@ -100,9 +100,8 @@ def dtype_info_name(dtype):
     """
     dtype = np.dtype(dtype)
     if dtype.names is not None:
-        return "({})".format(
-            ", ".join(dtype_info_name(dt[0]) for dt in dtype.fields.values())
-        )
+        info_names = ", ".join(dtype_info_name(dt[0]) for dt in dtype.fields.values())
+        return f"({info_names})"
     if dtype.subdtype is not None:
         dtype, shape = dtype.subdtype
     else:
@@ -192,7 +191,7 @@ def _get_obj_attrs_map(obj, attrs):
 
 def _get_data_attribute(dat, attr=None):
     """
-    Get a data object attribute for the ``attributes`` info summary method
+    Get a data object attribute for the ``attributes`` info summary method.
     """
     if attr == "class":
         val = type(dat).__name__
@@ -449,7 +448,6 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
 
         Examples
         --------
-
         >>> from astropy.table import Column
         >>> c = Column([1, 2], unit='m', dtype='int32')
         >>> c.info()
@@ -536,9 +534,9 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
 
 
 class BaseColumnInfo(DataInfo):
-    """
-    Base info class for anything that can be a column in an astropy
-    Table.  There are at least two classes that inherit from this:
+    """Base info class for anything that can be a column in an astropy Table.
+
+    There are at least two classes that inherit from this:
 
       ColumnInfo: for native astropy Column / MaskedColumn objects
       MixinInfo: for mixin column objects
@@ -807,6 +805,6 @@ class MixinInfo(BaseColumnInfo):
 
 
 class ParentDtypeInfo(MixinInfo):
-    """Mixin that gets info.dtype from parent"""
+    """Mixin that gets info.dtype from parent."""
 
     attrs_from_parent = {"dtype"}  # dtype and unit taken from parent

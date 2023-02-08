@@ -84,7 +84,7 @@ def dimensionless_angles():
 
 
 def logarithmic():
-    """Allow logarithmic units to be converted to dimensionless fractions"""
+    """Allow logarithmic units to be converted to dimensionless fractions."""
     return Equivalency(
         [(dimensionless_unscaled, function_units.dex, np.log10, lambda x: 10.0**x)],
         "logarithmic",
@@ -351,7 +351,6 @@ def doppler_radio(rest):
     >>> radio_velocity  # doctest: +FLOAT_CMP
     <Quantity -31.209092088877583 km / s>
     """
-
     assert_is_spectral_unit(rest)
 
     ckms = _si.c.to_value("km/s")
@@ -421,7 +420,6 @@ def doppler_optical(rest):
     >>> optical_velocity  # doctest: +FLOAT_CMP
     <Quantity -31.20584348799674 km / s>
     """
-
     assert_is_spectral_unit(rest)
 
     ckms = _si.c.to_value("km/s")
@@ -499,7 +497,6 @@ def doppler_relativistic(rest):
     >>> relativistic_wavelength  # doctest: +FLOAT_CMP
     <Quantity 2.6116243681798923 mm>
     """
-
     assert_is_spectral_unit(rest)
 
     ckms = _si.c.to_value("km/s")
@@ -726,7 +723,7 @@ def beam_angular_area(beam_area):
 def thermodynamic_temperature(frequency, T_cmb=None):
     r"""Defines the conversion between Jy/sr and "thermodynamic temperature",
     :math:`T_{CMB}`, in Kelvins.  The thermodynamic temperature is a unit very
-    commonly used in cosmology. See eqn 8 in [1]
+    commonly used in cosmology. See eqn 8 in [1].
 
     :math:`K_{CMB} \equiv I_\nu / \left(2 k \nu^2 / c^2  f(\nu) \right)`
 
@@ -847,7 +844,6 @@ def pixel_scale(pixscale):
     pixscale : `~astropy.units.Quantity`
         The pixel scale either in units of <unit>/pixel or pixel/<unit>.
     """
-
     decomposed = pixscale.unit.decompose()
     dimensions = dict(zip(decomposed.bases, decomposed.powers))
     pix_power = dimensions.get(misc.pix, 0)

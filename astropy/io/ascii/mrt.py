@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Classes to read AAS MRT table format
+"""Classes to read AAS MRT table format.
 
 Ref: https://journals.aas.org/mrt-standards
 
@@ -640,7 +640,7 @@ class MrtHeader(cds.CdsHeader):
 
 
 class MrtData(cds.CdsData):
-    """MRT table data reader"""
+    """MRT table data reader."""
 
     _subfmt = "MRT"
     splitter_class = MrtSplitter

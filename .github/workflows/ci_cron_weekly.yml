@@ -58,6 +58,11 @@ jobs:
             python: 3.8
             toxenv: linkcheck
 
+          - name: Run flynt to check string formatting
+            os: ubuntu-latest
+            python: '3.10'
+            toxenv: flynt
+
           # TODO: Uncomment when 3.10 is more mature. Should we use devdeps?
           # Test against Python dev in cron job.
           #- name: Python dev with basic dependencies
@@ -83,7 +88,7 @@ jobs:
       if: ${{ matrix.toxenv == 'linkcheck' }}
       run: sudo apt-get install graphviz
     - name: Install Python dependencies
-      run: python -m pip install --upgrade "tox<4"
+      run: python -m pip install --upgrade tox
     - name: Run tests
       run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}
 
@@ -106,8 +111,7 @@ jobs:
         include:
           - arch: aarch64
           - arch: s390x
-          # Uncomment when we ready to fix the failures, see PR 11697
-          #- arch: ppc64le
+          - arch: ppc64le
 
     steps:
       - uses: actions/checkout@v3
@@ -135,7 +139,6 @@ jobs:
                                   cython3 \
                                   libwcs7 \
                                   wcslib-dev \
-                                  libcfitsio-dev \
                                   liberfa1
 
           run: |

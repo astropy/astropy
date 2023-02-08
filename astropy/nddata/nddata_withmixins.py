@@ -25,7 +25,7 @@ class NDDataRef(NDArithmeticMixin, NDIOMixin, NDSlicingMixin, NDData):
     A key distinction from `NDDataArray` is that this class does not attempt
     to provide anything that was not defined in any of the parent classes.
 
-    See also
+    See Also
     --------
     NDData
     NDArithmeticMixin

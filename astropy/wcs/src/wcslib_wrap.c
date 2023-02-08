@@ -630,8 +630,7 @@ PyWcsprm_copy(
     PyWcsprm* self) {
 
   PyWcsprm*     copy = NULL;
-  int           status, nelem, i, j, ndim;
-  struct wtbarr *wtb, *wtb0;
+  int           status;
 
   copy = PyWcsprm_cnew();
   if (copy == NULL) {

@@ -212,7 +212,6 @@ class NoConvergence(Exception):
 
     Attributes
     ----------
-
     best_solution : `numpy.ndarray`
         Best solution achieved by the numerical method.
 
@@ -377,7 +376,6 @@ class WCS(FITSWCSAPIMixin, WCSBase):
 
     Notes
     -----
-
     1. astropy.wcs supports arbitrary *n* dimensions for the core WCS
        (the transformations handled by WCSLIB).  However, the
        `distortion paper`_ lookup table and `SIP`_ distortions must be
@@ -534,6 +532,8 @@ class WCS(FITSWCSAPIMixin, WCSBase):
 
             det2im = self._read_det2im_kw(header, fobj, err=minerr)
             cpdis = self._read_distortion_kw(header, fobj, dist="CPDIS", err=minerr)
+            self._fix_pre2012_scamp_tpv(header)
+
             sip = self._read_sip_kw(header, wcskey=key)
             self._remove_sip_kw(header)
 
@@ -714,12 +714,28 @@ reduce these to 2 dimensions using the naxis kwarg.
         SIP distortion parameters.
 
         See https://github.com/astropy/astropy/issues/299.
+
+        SCAMP uses TAN projection exclusively. The case of CTYPE ending
+        in -TAN should have been handled by ``_fix_pre2012_scamp_tpv()`` before
+        calling this function.
         """
-        # Nothing to be done if no WCS attached
         if self.wcs is None:
             return
 
-        # Nothing to be done if no PV parameters attached
+        # Delete SIP if CTYPE explicitly has '-TPV' code:
+        ctype = [ct.strip().upper() for ct in self.wcs.ctype]
+        if sum(ct.endswith("-TPV") for ct in ctype) == 2:
+            if self.sip is not None:
+                self.sip = None
+                warnings.warn(
+                    "Removed redundant SIP distortion parameters "
+                    + "because CTYPE explicitly specifies TPV distortions",
+                    FITSFixedWarning,
+                )
+            return
+
+        # Nothing to be done if no PV parameters attached since SCAMP
+        # encodes distortion coefficients using PV keywords
         pv = self.wcs.get_pv()
         if not pv:
             return
@@ -728,28 +744,28 @@ reduce these to 2 dimensions using the naxis kwarg.
         if self.sip is None:
             return
 
-        # Nothing to be done if any radial terms are present...
-        # Loop over list to find any radial terms.
-        # Certain values of the `j' index are used for storing
-        # radial terms; refer to Equation (1) in
-        # <http://web.ipac.caltech.edu/staff/shupe/reprints/SIP_to_PV_SPIE2012.pdf>.
-        pv = np.asarray(pv)
         # Loop over distinct values of `i' index
-        for i in set(pv[:, 0]):
+        has_scamp = False
+        for i in {v[0] for v in pv}:
             # Get all values of `j' index for this value of `i' index
-            js = set(pv[:, 1][pv[:, 0] == i])
-            # Find max value of `j' index
-            max_j = max(js)
-            for j in (3, 11, 23, 39):
-                if j < max_j and j in js:
-                    return
+            js = tuple(v[1] for v in pv if v[0] == i)
+            if "-TAN" in self.wcs.ctype[i - 1].upper() and js and max(js) >= 5:
+                # TAN projection *may* use PVi_j with j up to 4 - see
+                # Sections 2.5, 2.6, and Table 13
+                # in https://doi.org/10.1051/0004-6361:20021327
+                has_scamp = True
+                break
 
-        self.wcs.set_pv([])
-        warnings.warn(
-            "Removed redundant SCAMP distortion parameters "
-            + "because SIP parameters are also present",
-            FITSFixedWarning,
-        )
+        if has_scamp and all(ct.endswith("-SIP") for ct in ctype):
+            # Prefer SIP - see recommendations in Section 7 in
+            # http://web.ipac.caltech.edu/staff/shupe/reprints/SIP_to_PV_SPIE2012.pdf
+            self.wcs.set_pv([])
+            warnings.warn(
+                "Removed redundant SCAMP distortion parameters "
+                + "because SIP parameters are also present",
+                FITSFixedWarning,
+            )
+            return
 
     def fix(self, translate_units="", naxis=None):
         """
@@ -991,7 +1007,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         Writes a `distortion paper`_ type lookup table to the given
         `~astropy.io.fits.HDUList`.
         """
-
         if self.det2im1 is None and self.det2im2 is None:
             return
         dist = "D2IMDIS"
@@ -1176,7 +1191,64 @@ reduce these to 2 dimensions using the naxis kwarg.
         write_dist(1, self.cpdis1)
         write_dist(2, self.cpdis2)
 
-    def _remove_sip_kw(self, header):
+    def _fix_pre2012_scamp_tpv(self, header, wcskey=""):
+        """
+        Replace -TAN with TPV (for pre-2012 SCAMP headers that use -TAN
+        in CTYPE). Ignore SIP if present. This follows recommendations in
+        Section 7 in
+        http://web.ipac.caltech.edu/staff/shupe/reprints/SIP_to_PV_SPIE2012.pdf.
+
+        This is to deal with pre-2012 headers that may contain TPV with a
+        CTYPE that ends in '-TAN' (post-2012 they should end in '-TPV' when
+        SCAMP has adopted the new TPV convention).
+        """
+        if isinstance(header, (str, bytes)):
+            return
+
+        wcskey = wcskey.strip().upper()
+        cntype = [
+            (nax, header.get(f"CTYPE{nax}{wcskey}", "").strip())
+            for nax in range(1, self.naxis + 1)
+        ]
+
+        tan_axes = [ct[0] for ct in cntype if ct[1].endswith("-TAN")]
+
+        if len(tan_axes) == 2:
+            # check if PVi_j with j >= 5 is present and if so, do not load SIP
+            tan_to_tpv = False
+            for nax in tan_axes:
+                js = []
+                for p in header[f"PV{nax}_*{wcskey}"].keys():
+                    prefix = f"PV{nax}_"
+                    if p.startswith(prefix):
+                        p = p[len(prefix) :]
+                        p = p.rstrip(wcskey)
+                        try:
+                            p = int(p)
+                        except ValueError:
+                            continue
+                        js.append(p)
+
+                if js and max(js) >= 5:
+                    tan_to_tpv = True
+                    break
+
+            if tan_to_tpv:
+                warnings.warn(
+                    "Removed redundant SIP distortion parameters "
+                    + "because SCAMP' PV distortions are also present",
+                    FITSFixedWarning,
+                )
+                self._remove_sip_kw(header, del_order=True)
+                for i in tan_axes:
+                    kwd = f"CTYPE{i:d}{wcskey}"
+                    if kwd in header:
+                        header[kwd] = (
+                            header[kwd].strip().upper().replace("-TAN", "-TPV")
+                        )
+
+    @staticmethod
+    def _remove_sip_kw(header, del_order=False):
         """
         Remove SIP information from a header.
         """
@@ -1186,6 +1258,11 @@ reduce these to 2 dimensions using the naxis kwarg.
             m.group() for m in map(SIP_KW.match, list(header)) if m is not None
         }:
             del header[key]
+
+        if del_order:
+            for kwd in ["A_ORDER", "B_ORDER", "AP_ORDER", "BP_ORDER"]:
+                if kwd in header:
+                    del header[kwd]
 
     def _read_sip_kw(self, header, wcskey=""):
         """
@@ -2680,7 +2757,6 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Notes
         -----
-
         Depending on the application, square root of the pixel area can be used to
         represent a single pixel scale of an equivalent square pixel
         whose area is equal to the area of a generally non-square pixel.
@@ -2706,7 +2782,6 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-
         relax : bool or int, optional
             Degree of permissiveness:
 
@@ -2728,7 +2803,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         -------
         hdulist : `~astropy.io.fits.HDUList`
         """
-
         header = self.to_header(relax=relax, key=key)
 
         hdu = fits.PrimaryHDU(header=header)
@@ -2921,7 +2995,6 @@ reduce these to 2 dimensions using the naxis kwarg.
             If the user requested SIP distortion to be written out add "-SIP" to
             CTYPE if it is missing.
         """
-
         _add_sip_to_ctype = """
         Inconsistent SIP distortion information is present in the current WCS:
         SIP coefficients were detected, but CTYPE is missing "-SIP" suffix,
@@ -3171,7 +3244,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         Support pickling of WCS objects.  This is done by serializing
         to an in-memory FITS file and dumping that as a string.
         """
-
         hdulist = self.to_fits(relax=True)
 
         buffer = io.BytesIO()
@@ -3365,7 +3437,7 @@ reduce these to 2 dimensions using the naxis kwarg.
     @property
     def axis_type_names(self):
         """
-        World names for each coordinate axis
+        World names for each coordinate axis.
 
         Returns
         -------
@@ -3383,7 +3455,7 @@ reduce these to 2 dimensions using the naxis kwarg.
     @property
     def celestial(self):
         """
-        A copy of the current WCS with only the celestial axes included
+        A copy of the current WCS with only the celestial axes included.
         """
         return self.sub([WCSSUB_CELESTIAL])  # Defined by C-ext
 
@@ -3401,7 +3473,7 @@ reduce these to 2 dimensions using the naxis kwarg.
     @property
     def spectral(self):
         """
-        A copy of the current WCS with only the spectral axes included
+        A copy of the current WCS with only the spectral axes included.
         """
         return self.sub([WCSSUB_SPECTRAL])  # Defined by C-ext
 
@@ -3419,7 +3491,7 @@ reduce these to 2 dimensions using the naxis kwarg.
     @property
     def temporal(self):
         """
-        A copy of the current WCS with only the time axes included
+        A copy of the current WCS with only the time axes included.
         """
         if not _WCSSUB_TIME_SUPPORT:
             raise NotImplementedError(
@@ -3493,7 +3565,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         response : bool
            True means the WCS footprint contains the coordinate, False means it does not.
         """
-
         return coord.contained_by(self, **kwargs)
 
 
@@ -3501,7 +3572,6 @@ def __WCS_unpickle__(cls, dct, fits_data):
     """
     Unpickles a WCS object from a serialized FITS string.
     """
-
     self = cls.__new__(cls)
 
     buffer = io.BytesIO(fits_data)
@@ -3582,7 +3652,6 @@ def find_all_wcs(
     -------
     wcses : list of `WCS`
     """
-
     if isinstance(header, (str, bytes)):
         header_string = header
     elif isinstance(header, fits.Header):

@@ -6,7 +6,7 @@ __all__ = ["hist"]
 
 
 def hist(x, bins=10, ax=None, max_bins=1e5, **kwargs):
-    """Enhanced histogram function
+    """Enhanced histogram function.
 
     This is a histogram function that enables the use of more sophisticated
     algorithms for determining bins.  Aside from the ``bins`` argument allowing

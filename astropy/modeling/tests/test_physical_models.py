@@ -82,7 +82,7 @@ def test_blackbody_return_units():
 def test_blackbody_fit(fitter):
     fitter = fitter()
 
-    if isinstance(fitter, TRFLSQFitter) or isinstance(fitter, DogBoxLSQFitter):
+    if isinstance(fitter, (TRFLSQFitter, DogBoxLSQFitter)):
         rtol = 0.54
         atol = 1e-15
     else:

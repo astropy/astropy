@@ -167,9 +167,7 @@ def test_extract_array_even_shape_rounding():
     positions = (-0.99, -0.51, -0.5, -0.49, -0.01, 0)
     exp1 = (-99, 0)
     exp2 = (0, 1)
-    expected = [exp1,] * 6 + [
-        exp2,
-    ]
+    expected = [exp1] * 6 + [exp2]
 
     for pos, exp in zip(positions, expected):
         out = extract_array(data, shape, (pos,), mode="partial", fill_value=-99)
@@ -207,9 +205,7 @@ def test_extract_array_odd_shape_rounding():
     positions = (-0.99, -0.51, -0.5, -0.49, -0.01, 0)
     exp1 = (-99, -99, 0)
     exp2 = (-99, 0, 1)
-    expected = [exp1,] * 3 + [
-        exp2,
-    ] * 4
+    expected = [exp1] * 3 + [exp2] * 4
 
     for pos, exp in zip(positions, expected):
         out = extract_array(data, shape, (pos,), mode="partial", fill_value=-99)
@@ -218,9 +214,10 @@ def test_extract_array_odd_shape_rounding():
 
 def test_extract_array_wrong_mode():
     """Call extract_array with non-existing mode."""
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(
+        ValueError, match="Valid modes are 'partial', 'trim', and 'strict'."
+    ):
         extract_array(np.arange(4), (2,), (0,), mode="full")
-    assert "Valid modes are 'partial', 'trim', and 'strict'." == str(e.value)
 
 
 def test_extract_array_1d_even():

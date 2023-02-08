@@ -74,8 +74,8 @@ class CoordinateHelper:
         The unit that this coordinate is in given the output of transform.
     format_unit : `~astropy.units.Unit`, optional
         The unit to use to display the coordinates.
-    coord_wrap : float
-        The angle at which the longitude wraps (defaults to 360)
+    coord_wrap : `astropy.units.Quantity`
+        The angle at which the longitude wraps (defaults to 360 degrees).
     frame : `~astropy.visualization.wcsaxes.frame.BaseFrame`
         The frame of the :class:`~astropy.visualization.wcsaxes.WCSAxes`.
     """
@@ -167,7 +167,6 @@ class CoordinateHelper:
             is recommended. By default, 'lines' is used if the transform has
             an inverse, otherwise 'contours' is used.
         """
-
         if grid_type == "lines" and not self.transform.has_inverse:
             raise ValueError(
                 "The specified transform has no inverse, so the "
@@ -201,14 +200,20 @@ class CoordinateHelper:
         ----------
         coord_type : str
             One of 'longitude', 'latitude' or 'scalar'
-        coord_wrap : float, optional
-            The value to wrap at for angular coordinates
+        coord_wrap : `~astropy.units.Quantity`, optional
+            The value to wrap at for angular coordinates.
         """
-
         self.coord_type = coord_type
 
+        if coord_wrap is not None and not isinstance(coord_wrap, u.Quantity):
+            warnings.warn(
+                "Passing 'coord_wrap' as a number is deprecated. Use a Quantity with units convertible to angular degrees instead.",
+                AstropyDeprecationWarning,
+            )
+            coord_wrap = coord_wrap * u.deg
+
         if coord_type == "longitude" and coord_wrap is None:
-            self.coord_wrap = 360
+            self.coord_wrap = 360 * u.deg
         elif coord_type != "longitude" and coord_wrap is not None:
             raise NotImplementedError(
                 "coord_wrap is not yet supported for non-longitude coordinates"
@@ -263,7 +268,6 @@ class CoordinateHelper:
             depending on whether Matplotlib is using LaTeX or MathTex. To
             get plain ASCII strings, use format='ascii'.
         """
-
         if not hasattr(self, "_fl_spacing"):
             return ""  # _update_ticks has not been called yet
 
@@ -274,7 +278,7 @@ class CoordinateHelper:
                 value *= self._coord_scale_to_deg
 
             if self.coord_type == "longitude":
-                value = wrap_angle_at(value, self.coord_wrap)
+                value = wrap_angle_at(value, self.coord_wrap.to_value(u.deg))
             value = value * u.degree
             value = value.to_value(fl._unit)
 
@@ -360,7 +364,6 @@ class CoordinateHelper:
         direction : {'in','out'}, optional
             Whether the ticks should point inwards or outwards.
         """
-
         if sum([values is None, spacing is None, number is None]) < 2:
             raise ValueError(
                 "At most one of values, spacing, or number should be specified"
@@ -401,7 +404,7 @@ class CoordinateHelper:
 
     def set_ticks_position(self, position):
         """
-        Set where ticks should appear
+        Set where ticks should appear.
 
         Parameters
         ----------
@@ -456,7 +459,7 @@ class CoordinateHelper:
 
     def set_ticklabel_position(self, position):
         """
-        Set where tick labels should appear
+        Set where tick labels should appear.
 
         Parameters
         ----------
@@ -512,7 +515,7 @@ class CoordinateHelper:
 
     def get_axislabel(self):
         """
-        Get the text for the axis label
+        Get the text for the axis label.
 
         Returns
         -------
@@ -553,7 +556,7 @@ class CoordinateHelper:
 
     def set_axislabel_position(self, position):
         """
-        Set where axis labels should appear
+        Set where axis labels should appear.
 
         Parameters
         ----------
@@ -625,7 +628,6 @@ class CoordinateHelper:
         """
         Draw all ticks and ticklabels.
         """
-
         renderer.open_group("ticks")
         self.ticks.draw(renderer)
         self.ticklabels.draw(
@@ -768,8 +770,8 @@ class CoordinateHelper:
                     w1 = w1 * self._coord_scale_to_deg
                     w2 = w2 * self._coord_scale_to_deg
 
-                w1 = wrap_angle_at(w1, self.coord_wrap)
-                w2 = wrap_angle_at(w2, self.coord_wrap)
+                w1 = wrap_angle_at(w1, self.coord_wrap.to_value(u.deg))
+                w2 = wrap_angle_at(w2, self.coord_wrap.to_value(u.deg))
                 with np.errstate(invalid="ignore"):
                     w1[w2 - w1 > 180.0] += 360
                     w2[w1 - w2 > 180.0] += 360
@@ -859,7 +861,7 @@ class CoordinateHelper:
                     if self._coord_scale_to_deg is not None:
                         t *= self._coord_scale_to_deg
 
-                    world = wrap_angle_at(t, self.coord_wrap)
+                    world = wrap_angle_at(t, self.coord_wrap.to_value(u.deg))
 
                     if self._coord_scale_to_deg is not None:
                         world /= self._coord_scale_to_deg
@@ -1228,7 +1230,6 @@ class CoordinateHelper:
             The style of the grid lines (accepts any valid Matplotlib line
             style).
         """
-
         # First do some sanity checking on the keyword arguments
 
         # colors= is a fallback default for color and labelcolor

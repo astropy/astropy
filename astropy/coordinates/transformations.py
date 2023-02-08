@@ -170,7 +170,6 @@ class TransformGraph:
             not callable.
 
         """
-
         if not inspect.isclass(fromsys):
             raise TypeError("fromsys must be a class")
         if not inspect.isclass(tosys):
@@ -290,7 +289,6 @@ class TransformGraph:
             priorities are not set this is the number of transforms
             needed. Is ``inf`` if there is no possible path.
         """
-
         inf = float("inf")
 
         # special-case the 0 or 1-path
@@ -407,7 +405,6 @@ class TransformGraph:
 
         Notes
         -----
-
         A `~astropy.coordinates.CompositeTransform` is always returned, because
         `~astropy.coordinates.CompositeTransform` is slightly more adaptable in
         the way it can be called than other transform classes. Specifically, it
@@ -454,7 +451,6 @@ class TransformGraph:
             The coordinate class corresponding to the ``name`` or `None` if
             no such class exists.
         """
-
         return self._cached_names.get(name, None)
 
     def get_names(self):
@@ -514,7 +510,6 @@ class TransformGraph:
         dotgraph : str
             A string with the DOT format graph.
         """
-
         nodes = []
         # find the node names
         for a in self._graph:
@@ -767,7 +762,7 @@ class TransformGraph:
     @contextmanager
     def impose_finite_difference_dt(self, dt):
         """
-        Context manager to impose a finite-difference time step on all applicable transformations
+        Context manager to impose a finite-difference time step on all applicable transformations.
 
         For each transformation in this transformation graph that has the attribute
         ``finite_difference_dt``, that attribute is set to the provided value.  The only standard

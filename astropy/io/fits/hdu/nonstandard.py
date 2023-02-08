@@ -51,7 +51,6 @@ class FitsHDU(NonstandardExtHDU):
         compress : bool, optional
             Gzip compress the FITS file
         """
-
         with HDUList.fromfile(filename) as hdulist:
             return cls.fromhdulist(hdulist, compress=compress)
 
@@ -67,7 +66,6 @@ class FitsHDU(NonstandardExtHDU):
         compress : bool, optional
             Gzip compress the FITS file
         """
-
         fileobj = bs = io.BytesIO()
         if compress:
             if hasattr(hdulist, "_file"):

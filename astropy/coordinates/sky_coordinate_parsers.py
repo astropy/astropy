@@ -42,7 +42,6 @@ def _get_frame_class(frame):
     Get a frame class from the input `frame`, which could be a frame name
     string, or frame class.
     """
-
     if isinstance(frame, str):
         frame_names = frame_transform_graph.get_names()
         if frame not in frame_names:
@@ -672,9 +671,9 @@ def _get_representation_attrs(frame, units, kwargs):
 
 
 def _parse_ra_dec(coord_str):
-    """
-    Parse RA and Dec values from a coordinate string. Currently the
-    following formats are supported:
+    """Parse RA and Dec values from a coordinate string.
+
+    Currently the following formats are supported:
 
      * space separated 6-value format
      * space separated <6-value format, this requires a plus or minus sign
@@ -693,7 +692,6 @@ def _parse_ra_dec(coord_str):
     coord : str or list of str
         Parsed coordinate values.
     """
-
     if isinstance(coord_str, str):
         coord1 = coord_str.split()
     else:

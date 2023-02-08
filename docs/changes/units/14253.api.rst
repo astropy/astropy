@@ -1,0 +1,4 @@
+Operations on ``Quantity`` in tables are sped up by only copying ``info`` when
+it makes sense (i.e., when the object can still logically be thought of as the
+same, such as in unit changes or slicing). ``info`` is no longer copied if a
+``Quantity`` is part of an operation.

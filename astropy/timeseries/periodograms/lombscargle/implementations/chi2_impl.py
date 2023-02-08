@@ -13,7 +13,7 @@ def lombscargle_chi2(
     center_data=True,
     nterms=1,
 ):
-    """Lomb-Scargle Periodogram
+    """Lomb-Scargle Periodogram.
 
     This implements a chi-squared-based periodogram, which is relatively slow
     but useful for validating the faster algorithms in the package.

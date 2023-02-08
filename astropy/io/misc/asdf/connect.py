@@ -10,7 +10,7 @@ from astropy.utils.compat import optional_deps
 
 def read_table(filename, data_key=None, find_table=None, **kwargs):
     """
-    Read a `~astropy.table.Table` object from an ASDF file
+    Read a `~astropy.table.Table` object from an ASDF file.
 
     This requires `asdf <https://pypi.org/project/asdf/>`_ to be installed.
     By default, this function will look for a Table object with the key of

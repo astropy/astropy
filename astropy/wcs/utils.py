@@ -49,7 +49,6 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
     `~astropy.wcs.WCS`
         A new `~astropy.wcs.WCS` instance with an additional axis
     """
-
     inds = [i + 1 for i in range(wcs.wcs.naxis)]
     inds.insert(add_before_ind, 0)
     newwcs = wcs.sub(inds)
@@ -224,7 +223,6 @@ def wcs_to_celestial_frame(wcs):
 
     Notes
     -----
-
     To extend this function to frames not defined in astropy.coordinates, you
     can write your own function which should take a :class:`~astropy.wcs.WCS`
     instance and should return either an instance of a frame, or `None` if no
@@ -267,7 +265,6 @@ def celestial_frame_to_wcs(frame, projection="TAN"):
 
     Examples
     --------
-
     ::
 
         >>> from astropy.wcs.utils import celestial_frame_to_wcs
@@ -294,7 +291,6 @@ def celestial_frame_to_wcs(frame, projection="TAN"):
 
     Notes
     -----
-
     To extend this function to frames not defined in astropy.coordinates, you
     can write your own function which should take a
     :class:`~astropy.coordinates.BaseCoordinateFrame` subclass
@@ -406,7 +402,6 @@ def proj_plane_pixel_area(wcs):
 
     Notes
     -----
-
     Depending on the application, square root of the pixel area can be used to
     represent a single pixel scale of an equivalent square pixel
     whose area is equal to the area of a generally non-square pixel.
@@ -503,7 +498,6 @@ def non_celestial_pixel_scales(inwcs):
     scale : `numpy.ndarray`
         The pixel scale along each axis.
     """
-
     if inwcs.is_celestial:
         raise ValueError("WCS is celestial, use celestial_pixel_scales instead")
 
@@ -554,7 +548,6 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode="all"):
     --------
     astropy.coordinates.SkyCoord.from_pixel
     """
-
     if _has_distortion(wcs) and wcs.naxis != 2:
         raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
@@ -627,7 +620,6 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode="all", cls=None):
     --------
     astropy.coordinates.SkyCoord.from_pixel
     """
-
     # Import astropy.coordinates here to avoid circular imports
     from astropy.coordinates import SkyCoord, UnitSphericalRepresentation
 
@@ -693,7 +685,6 @@ def _pixel_to_world_correlation_matrix(wcs):
     The shape of the matrix is ``(n_world, n_pix)``, where ``n_world`` is the
     number of high level world coordinates.
     """
-
     # We basically want to collapse the world dimensions together that are
     # combined into the same high-level objects.
 
@@ -725,7 +716,6 @@ def _pixel_to_pixel_correlation_matrix(wcs_in, wcs_out):
     pixel transformation. The shape of the matrix is
     ``(n_pixel_out, n_pixel_in)``.
     """
-
     matrix1, classes1 = _pixel_to_world_correlation_matrix(wcs_in)
     matrix2, classes2 = _pixel_to_world_correlation_matrix(wcs_out)
 
@@ -777,7 +767,6 @@ def _split_matrix(matrix):
 
     and this function will return ``[([0, 1], [0, 1]), ([2], [2])]``.
     """
-
     pixel_used = []
 
     split_info = []
@@ -820,7 +809,6 @@ def pixel_to_pixel(wcs_in, wcs_out, *inputs):
     *inputs :
         Scalars or arrays giving the pixel coordinates to transform.
     """
-
     # Shortcut for scalars
     if np.isscalar(inputs[0]):
         world_outputs = wcs_in.pixel_to_world(*inputs)
@@ -879,7 +867,6 @@ def local_partial_pixel_derivatives(wcs, *pixel, normalize_by_world=False):
         If `True`, the matrix is normalized so that for each world entry
         the derivatives add up to 1.
     """
-
     # Find the world coordinates at the requested pixel
     pixel_ref = np.array(pixel)
     world_ref = np.array(wcs.pixel_to_world_values(*pixel_ref))
@@ -945,7 +932,6 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
     w_obj: `~astropy.wcs.WCS`
         WCS object
     """
-
     from astropy.modeling.models import SIP  # here to avoid circular import
 
     # unpack params
@@ -1040,7 +1026,6 @@ def fit_wcs_from_points(
     wcs : `~astropy.wcs.WCS`
         The best-fit WCS to the points given.
     """
-
     from scipy.optimize import least_squares
 
     import astropy.units as u
@@ -1246,7 +1231,6 @@ def obsgeo_to_frame(obsgeo, obstime):
 
     Notes
     -----
-
     The obsgeo array as accessed on a `.WCS` object is a length 6 numpy array
     where the first three elements are the coordinate in a cartesian
     representation and the second 3 are the coordinate in a spherical

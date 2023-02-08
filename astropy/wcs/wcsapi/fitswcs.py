@@ -174,7 +174,6 @@ class custom_ctype_to_ucd_mapping:
 
     Examples
     --------
-
     Consider a WCS with the following CTYPE::
 
         >>> from astropy.wcs import WCS
@@ -209,7 +208,7 @@ class SlicedFITSWCS(SlicedLowLevelWCS, HighLevelWCSMixin):
 class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
     """
     A mix-in class that is intended to be inherited by the
-    :class:`~astropy.wcs.WCS` class and provides the low- and high-level WCS API
+    :class:`~astropy.wcs.WCS` class and provides the low- and high-level WCS API.
     """
 
     @property

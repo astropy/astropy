@@ -110,8 +110,7 @@ class NDUncertainty(metaclass=ABCMeta):
 
     @property
     def supports_correlated(self):
-        """`bool` : Supports uncertainty propagation with correlated \
-                 uncertainties?
+        """`bool` : Supports uncertainty propagation with correlated uncertainties?
 
         .. versionadded:: 1.2
         """
@@ -502,7 +501,6 @@ class _VariancePropagationMixin:
 
         Parameters
         ----------
-
         other_uncert : `~astropy.nddata.NDUncertainty` instance
             The uncertainty, if any, of the other operand.
 
@@ -596,7 +594,6 @@ class _VariancePropagationMixin:
 
         Parameters
         ----------
-
         other_uncert : `~astropy.nddata.NDUncertainty` instance
             The uncertainty, if any, of the other operand.
 
@@ -931,7 +928,7 @@ class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
 
 
 def _inverse(x):
-    """Just a simple inverse for use in the InverseVariance"""
+    """Just a simple inverse for use in the InverseVariance."""
     return 1 / x
 
 

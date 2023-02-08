@@ -30,7 +30,6 @@ def validate_schema(filename, schema_file):
         Returns the returncode from xmllint and the stdout and stderr
         as strings
     """
-
     base, ext = os.path.splitext(schema_file)
     if ext == ".xsd":
         schema_part = "--schema"
@@ -52,9 +51,7 @@ def validate_schema(filename, schema_file):
         from astropy.utils.misc import signal_number_to_name
 
         raise OSError(
-            "xmllint was terminated by signal '{}'".format(
-                signal_number_to_name(-p.returncode)
-            )
+            f"xmllint was terminated by signal '{signal_number_to_name(-p.returncode)}'"
         )
 
     return p.returncode, stdout, stderr

@@ -1,0 +1,3 @@
+Removed a large fraction of the bundled CFITSIO code and internally refactored
+FITS compression-related code, which has resulted in a speedup when compiling
+astropy from source (40% faster in some cases).

@@ -101,7 +101,7 @@ For example, to find the overhead latitude, longitude, and height of the satelli
 
 Or, if you want to find the altitude and azimuth of the satellite from a particular location:
 
-.. note ::
+.. note::
     In this example, the intermediate step of manually setting up a topocentric `~astropy.coordinates.ITRS`
     frame is necessary in order to avoid the change in stellar aberration that would occur if a direct
     transform from geocentric to topocentric coordinates using ``transform_to`` was used. Please see

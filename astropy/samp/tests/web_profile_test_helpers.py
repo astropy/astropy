@@ -38,7 +38,7 @@ class SAMPWebHubProxy(SAMPHubProxy):
 
     def connect(self, pool_size=20, web_port=21012):
         """
-        Connect to the current SAMP Hub on localhost:web_port
+        Connect to the current SAMP Hub on localhost:web_port.
 
         Parameters
         ----------
@@ -46,7 +46,6 @@ class SAMPWebHubProxy(SAMPHubProxy):
             The number of socket connections opened to communicate with the
             Hub.
         """
-
         self._connected = False
 
         try:

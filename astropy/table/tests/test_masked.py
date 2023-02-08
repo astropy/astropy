@@ -621,6 +621,7 @@ def test_mask_slicing_count_array_finalize():
 
     Regression test for gh-6721.
     """
+
     # Create a new BaseColumn class that counts how often
     # ``__array_finalize__`` is called.
     class MyBaseColumn(BaseColumn):

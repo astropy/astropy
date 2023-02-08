@@ -403,9 +403,7 @@ class CCDData(NDDataArray):
             uncertainty_cls = self.uncertainty.__class__
             if uncertainty_cls not in _known_uncertainties:
                 raise ValueError(
-                    "only uncertainties of type {} can be saved.".format(
-                        _known_uncertainties
-                    )
+                    f"only uncertainties of type {_known_uncertainties} can be saved."
                 )
             uncertainty_name = _unc_cls_to_name[uncertainty_cls]
 
@@ -479,7 +477,6 @@ class CCDData(NDDataArray):
         This addresses that case by checking the length of the ``key`` and
         ``value`` and, if necessary, shortening the key.
         """
-
         if len(key) > 8 and len(value) > 72:
             short_name = key[:8]
             self.meta[f"HIERARCH {key.upper()}"] = (
@@ -511,15 +508,12 @@ def _generate_wcs_and_update_header(hdr):
 
     Parameters
     ----------
-
     hdr : astropy.io.fits.header or other dict-like
 
     Returns
     -------
-
     new_header, wcs
     """
-
     # Try constructing a WCS object.
     try:
         wcs = WCS(hdr)

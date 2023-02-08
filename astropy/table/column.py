@@ -122,9 +122,7 @@ class FalseArray(np.ndarray):
         val = np.asarray(val)
         if np.any(val):
             raise ValueError(
-                "Cannot set any element of {} class to True".format(
-                    self.__class__.__name__
-                )
+                f"Cannot set any element of {type(self).__name__} class to True"
             )
 
 
@@ -768,7 +766,6 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         """
         Format string for displaying values in this column.
         """
-
         return self._format
 
     @format.setter
@@ -1036,7 +1033,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def group_by(self, keys):
         """
-        Group this column by the specified ``keys``
+        Group this column by the specified ``keys``.
 
         This effectively splits the column into groups which correspond to
         unique values of the ``keys`` grouping object.  The output is a new
@@ -1060,7 +1057,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def _copy_groups(self, out):
         """
-        Copy current groups into a copy of self ``out``
+        Copy current groups into a copy of self ``out``.
         """
         if self.parent_table:
             if hasattr(self.parent_table, "_groups"):
@@ -1113,7 +1110,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def _copy_attrs(self, obj):
         """
-        Copy key column attributes from ``obj`` to self
+        Copy key column attributes from ``obj`` to self.
         """
         for attr in ("name", "unit", "_format", "description"):
             val = getattr(obj, attr, None)
@@ -1668,8 +1665,8 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
     @fill_value.setter
     def fill_value(self, val):
         """Set fill value both in the masked column view and in the parent table
-        if it exists.  Setting one or the other alone doesn't work."""
-
+        if it exists.  Setting one or the other alone doesn't work.
+        """
         # another ma bug workaround: If the value of fill_value for a string array is
         # requested but not yet set then it gets created as 'N/A'.  From this point onward
         # any new fill_values are truncated to 3 characters.  Note that this does not

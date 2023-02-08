@@ -30,7 +30,7 @@ __all__ = [
 
 class CurvedTransform(Transform, metaclass=abc.ABCMeta):
     """
-    Abstract base class for non-affine curved transforms
+    Abstract base class for non-affine curved transforms.
     """
 
     input_dims = 2
@@ -39,7 +39,7 @@ class CurvedTransform(Transform, metaclass=abc.ABCMeta):
 
     def transform_path(self, path):
         """
-        Transform a Matplotlib Path
+        Transform a Matplotlib Path.
 
         Parameters
         ----------
@@ -114,7 +114,7 @@ class CoordinateTransform(CurvedTransform):
 
     def transform(self, input_coords):
         """
-        Transform one set of coordinates to another
+        Transform one set of coordinates to another.
         """
         if self.same_frames:
             return input_coords
@@ -141,14 +141,14 @@ class CoordinateTransform(CurvedTransform):
 
     def inverted(self):
         """
-        Return the inverse of the transform
+        Return the inverse of the transform.
         """
         return CoordinateTransform(self._output_system_name, self._input_system_name)
 
 
 class World2PixelTransform(CurvedTransform, metaclass=abc.ABCMeta):
     """
-    Base transformation from world to pixel coordinates
+    Base transformation from world to pixel coordinates.
     """
 
     has_inverse = True
@@ -158,7 +158,7 @@ class World2PixelTransform(CurvedTransform, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def input_dims(self):
         """
-        The number of input world dimensions
+        The number of input world dimensions.
         """
 
     @abc.abstractmethod
@@ -173,13 +173,13 @@ class World2PixelTransform(CurvedTransform, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def inverted(self):
         """
-        Return the inverse of the transform
+        Return the inverse of the transform.
         """
 
 
 class Pixel2WorldTransform(CurvedTransform, metaclass=abc.ABCMeta):
     """
-    Base transformation from pixel to world coordinates
+    Base transformation from pixel to world coordinates.
     """
 
     has_inverse = True
@@ -189,7 +189,7 @@ class Pixel2WorldTransform(CurvedTransform, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def output_dims(self):
         """
-        The number of output world dimensions
+        The number of output world dimensions.
         """
 
     @abc.abstractmethod
@@ -203,5 +203,5 @@ class Pixel2WorldTransform(CurvedTransform, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def inverted(self):
         """
-        Return the inverse of the transform
+        Return the inverse of the transform.
         """

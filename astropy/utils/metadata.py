@@ -306,7 +306,6 @@ def enable_merge_strategies(*merge_strategies):
         Merge strategies that will be enabled.
 
     """
-
     return _EnableMergeStrategies(*merge_strategies)
 
 

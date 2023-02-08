@@ -327,7 +327,6 @@ def _quantities2arrays(*args, unit_from_first=False):
     If unit_from_first, take the unit of the first argument regardless
     whether it actually defined a unit (e.g., dimensionless for arrays).
     """
-
     # Turn first argument into a quantity.
     q = _as_quantity(args[0])
     if len(args) == 1:
@@ -1143,7 +1142,7 @@ def structured_to_unstructured(arr, *args, **kwargs):
 
 
 def _build_structured_unit(dtype, unit):
-    """Build structured unit from dtype
+    """Build structured unit from dtype.
 
     Parameters
     ----------

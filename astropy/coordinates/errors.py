@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-""" This module defines custom errors and exceptions used in astropy.coordinates.
+"""This module defines custom errors and exceptions used in astropy.coordinates.
 """
 
 from astropy.utils.exceptions import AstropyWarning
@@ -41,7 +41,6 @@ class IllegalHourError(RangeError):
 
     Examples
     --------
-
     .. code-block:: python
 
         if not 0 <= hr < 24:
@@ -90,7 +89,6 @@ class IllegalMinuteError(RangeError):
 
     Examples
     --------
-
     .. code-block:: python
 
         if not 0 <= min < 60:
@@ -140,7 +138,6 @@ class IllegalSecondError(RangeError):
 
     Examples
     --------
-
     .. code-block:: python
 
         if not 0 <= sec < 60:
@@ -188,7 +185,7 @@ class UnitsError(ValueError):
 
 class ConvertError(Exception):
     """
-    Raised if a coordinate system cannot be converted to another
+    Raised if a coordinate system cannot be converted to another.
     """
 
 

@@ -24,7 +24,7 @@ else:
     def packages_distributions():
         """
         Return a mapping of top-level packages to their distributions.
-        Note: copied from https://github.com/python/importlib_metadata/pull/287
+        Note: copied from https://github.com/python/importlib_metadata/pull/287.
         """
         pkg_to_dist = collections.defaultdict(list)
         for dist in metadata.distributions():
@@ -42,7 +42,6 @@ def resolve_name(name, *additional_parts):
 
     Parameters
     ----------
-
     name : `str`
         A dotted path to a Python object--that is, the name of a function,
         class, or other object in a module with the full path to that module,
@@ -55,7 +54,6 @@ def resolve_name(name, *additional_parts):
 
     Examples
     --------
-
     >>> resolve_name('astropy.utils.introspection.resolve_name')
     <function resolve_name at 0x...>
     >>> resolve_name('astropy', 'utils', 'introspection', 'resolve_name')
@@ -66,7 +64,6 @@ def resolve_name(name, *additional_parts):
     `ImportError`
         If the module or named object is not found.
     """
-
     additional_parts = ".".join(additional_parts)
 
     if additional_parts:
@@ -132,7 +129,6 @@ def minversion(module, version, inclusive=True, version_path="__version__"):
 
     Examples
     --------
-
     >>> import astropy
     >>> minversion(astropy, '0.4.4')
     True
@@ -248,7 +244,6 @@ def find_current_module(depth=1, finddiff=False):
         pkg.mod1
 
     """
-
     frm = inspect.currentframe()
     for i in range(depth):
         frm = frm.f_back
@@ -290,7 +285,6 @@ def _get_module_from_frame(frm):
     reliable in general, but more reliable than inspect.getmodule() for this
     particular case.
     """
-
     mod = inspect.getmodule(frm)
     if mod is not None:
         return mod
@@ -357,7 +351,6 @@ def find_mod_objs(modname, onlylocals=False):
         the other arguments)
 
     """
-
     mod = resolve_name(modname)
 
     if hasattr(mod, "__all__"):
@@ -431,7 +424,6 @@ def isinstancemethod(cls, obj):
     >>> isinstancemethod(MyClass, MyClass.an_instancemethod)
     True
     """
-
     return _isinstancemethod(cls, obj)
 
 

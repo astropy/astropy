@@ -40,7 +40,6 @@ def _rotate_polygon(lon, lat, lon0, lat0):
     lat0). Therefore, to end up with a polygon centered on (lon0, lat0), the
     polygon should initially be drawn around the North pole.
     """
-
     # Create a representation object
     polygon = UnitSphericalRepresentation(lon=lon, lat=lat)
 
@@ -62,7 +61,7 @@ class SphericalCircle(Polygon):
     """
     Create a patch representing a spherical circle - that is, a circle that is
     formed of all the points that are within a certain angle of the central
-    coordinates on a sphere. Here we assume that latitude goes from -90 to +90
+    coordinates on a sphere. Here we assume that latitude goes from -90 to +90.
 
     This class is needed in cases where the user wants to add a circular patch
     to a celestial image, since otherwise the circle will be distorted, because

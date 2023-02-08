@@ -12,6 +12,7 @@ from contextlib import suppress
 import numpy as np
 
 from astropy.io.fits import conf
+from astropy.io.fits._tiled_compression import compress_hdu, decompress_hdu
 from astropy.io.fits.card import Card
 from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from astropy.io.fits.column import TDEF_RE, ColDefs, Column
@@ -30,13 +31,11 @@ from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU
 from .image import ImageHDU
 from .table import BinTableHDU
 
-try:
-    from astropy.io.fits import compression
-
-    COMPRESSION_SUPPORTED = COMPRESSION_ENABLED = True
-except ImportError:
-    COMPRESSION_SUPPORTED = COMPRESSION_ENABLED = False
-
+# This global variable is used e.g., when calling fits.open with
+# disable_image_compression which temporarily changes the global variable to
+# False. This should ideally be refactored to avoid relying on global module
+# variables.
+COMPRESSION_ENABLED = True
 
 # Quantization dithering method constants; these are right out of fitsio.h
 NO_DITHER = -1
@@ -400,7 +399,6 @@ class CompImageHeader(Header):
         """
         Remove all cards from the header.
         """
-
         self._table_header.clear()
         super().clear()
 
@@ -641,15 +639,6 @@ class CompImageHDU(BinTableHDU):
         This is particularly useful for software testing as it ensures that the
         same image will always use the same seed.
         """
-
-        if not COMPRESSION_SUPPORTED:
-            # TODO: Raise a more specific Exception type
-            raise Exception(
-                "The astropy.io.fits.compression module is not "
-                "available.  Creation of compressed image HDUs is "
-                "disabled."
-            )
-
         compression_type = CMTYPE_ALIASES.get(compression_type, compression_type)
 
         if data is DELAYED:
@@ -764,19 +753,7 @@ class CompImageHDU(BinTableHDU):
         if "ZIMAGE" not in header or not header["ZIMAGE"]:
             return False
 
-        if COMPRESSION_SUPPORTED and COMPRESSION_ENABLED:
-            return True
-        elif not COMPRESSION_SUPPORTED:
-            warnings.warn(
-                "Failure matching header to a compressed image "
-                "HDU: The compression module is not available.\n"
-                "The HDU will be treated as a Binary Table HDU.",
-                AstropyUserWarning,
-            )
-            return False
-        else:
-            # Compression is supported but disabled; just pass silently (#92)
-            return False
+        return COMPRESSION_ENABLED
 
     def _update_header_data(
         self,
@@ -844,7 +821,6 @@ class CompImageHDU(BinTableHDU):
             range 1 to 1000 (inclusive), DITHER_SEED_CLOCK (0; default), or
             DITHER_SEED_CHECKSUM (-1)
         """
-
         # Clean up EXTNAME duplicates
         self._remove_unnecessary_default_extnames(self._header)
 
@@ -1495,7 +1471,7 @@ class CompImageHDU(BinTableHDU):
     @lazyproperty
     def data(self):
         # The data attribute is the image data (not the table data).
-        data = compression.decompress_hdu(self)
+        data = decompress_hdu(self)
 
         if data is None:
             return data
@@ -1505,18 +1481,10 @@ class CompImageHDU(BinTableHDU):
             new_dtype = self._dtype_for_bitpix()
             data = np.array(data, dtype=new_dtype)
 
-            zblank = None
-
-            if "ZBLANK" in self.compressed_data.columns.names:
-                zblank = self.compressed_data["ZBLANK"]
+            if "BLANK" in self._header:
+                blanks = data == np.array(self._header["BLANK"], dtype="int32")
             else:
-                if "ZBLANK" in self._header:
-                    zblank = np.array(self._header["ZBLANK"], dtype="int32")
-                elif "BLANK" in self._header:
-                    zblank = np.array(self._header["BLANK"], dtype="int32")
-
-            if zblank is not None:
-                blanks = data == zblank
+                blanks = None
 
             if self._bscale != 1:
                 np.multiply(data, self._bscale, data)
@@ -1527,7 +1495,7 @@ class CompImageHDU(BinTableHDU):
                 # avoid doubling memory usage.
                 np.add(data, self._bzero, out=data, casting="unsafe")
 
-            if zblank is not None:
+            if blanks is not None:
                 data = np.where(blanks, np.nan, data)
 
         # Right out of _ImageBaseHDU.data
@@ -1590,7 +1558,6 @@ class CompImageHDU(BinTableHDU):
         """
         Shape of the image array--should be equivalent to ``self.data.shape``.
         """
-
         # Determine from the values read from the header
         return tuple(reversed(self._axes))
 
@@ -1623,12 +1590,11 @@ class CompImageHDU(BinTableHDU):
             if CompImageHeader._is_reserved_keyword(keyword, warn=False):
                 del image_header[keyword]
 
+        hcomments = self._header.comments
+
         if "ZSIMPLE" in self._header:
             image_header.set(
-                "SIMPLE",
-                self._header["ZSIMPLE"],
-                self._header.comments["ZSIMPLE"],
-                before=0,
+                "SIMPLE", self._header["ZSIMPLE"], hcomments["ZSIMPLE"], before=0
             )
             del image_header["XTENSION"]
         elif "ZTENSION" in self._header:
@@ -1637,32 +1603,22 @@ class CompImageHDU(BinTableHDU):
                     "ZTENSION keyword in compressed extension != 'IMAGE'",
                     AstropyUserWarning,
                 )
-            image_header.set(
-                "XTENSION", "IMAGE", self._header.comments["ZTENSION"], before=0
-            )
+            image_header.set("XTENSION", "IMAGE", hcomments["ZTENSION"], before=0)
         else:
             image_header.set("XTENSION", "IMAGE", before=0)
 
         image_header.set(
-            "BITPIX",
-            self._header["ZBITPIX"],
-            self._header.comments["ZBITPIX"],
-            before=1,
+            "BITPIX", self._header["ZBITPIX"], hcomments["ZBITPIX"], before=1
         )
 
-        image_header.set(
-            "NAXIS", self._header["ZNAXIS"], self._header.comments["ZNAXIS"], before=2
-        )
+        image_header.set("NAXIS", self._header["ZNAXIS"], hcomments["ZNAXIS"], before=2)
 
         last_naxis = "NAXIS"
         for idx in range(image_header["NAXIS"]):
             znaxis = "ZNAXIS" + str(idx + 1)
             naxis = znaxis[1:]
             image_header.set(
-                naxis,
-                self._header[znaxis],
-                self._header.comments[znaxis],
-                after=last_naxis,
+                naxis, self._header[znaxis], hcomments[znaxis], after=last_naxis
             )
             last_naxis = naxis
 
@@ -1684,7 +1640,7 @@ class CompImageHDU(BinTableHDU):
             image_header.set(
                 "PCOUNT",
                 self._header["ZPCOUNT"],
-                self._header.comments["ZPCOUNT"],
+                hcomments["ZPCOUNT"],
                 after=last_naxis,
             )
         else:
@@ -1692,35 +1648,26 @@ class CompImageHDU(BinTableHDU):
 
         if "ZGCOUNT" in self._header:
             image_header.set(
-                "GCOUNT",
-                self._header["ZGCOUNT"],
-                self._header.comments["ZGCOUNT"],
-                after="PCOUNT",
+                "GCOUNT", self._header["ZGCOUNT"], hcomments["ZGCOUNT"], after="PCOUNT"
             )
         else:
             image_header.set("GCOUNT", 1, after="PCOUNT")
 
         if "ZEXTEND" in self._header:
-            image_header.set(
-                "EXTEND", self._header["ZEXTEND"], self._header.comments["ZEXTEND"]
-            )
+            image_header.set("EXTEND", self._header["ZEXTEND"], hcomments["ZEXTEND"])
 
         if "ZBLOCKED" in self._header:
-            image_header.set(
-                "BLOCKED", self._header["ZBLOCKED"], self._header.comments["ZBLOCKED"]
-            )
+            image_header.set("BLOCKED", self._header["ZBLOCKED"], hcomments["ZBLOCKED"])
 
         # Move the ZHECKSUM and ZDATASUM cards to the image header
         # as CHECKSUM and DATASUM
         if "ZHECKSUM" in self._header:
             image_header.set(
-                "CHECKSUM", self._header["ZHECKSUM"], self._header.comments["ZHECKSUM"]
+                "CHECKSUM", self._header["ZHECKSUM"], hcomments["ZHECKSUM"]
             )
 
         if "ZDATASUM" in self._header:
-            image_header.set(
-                "DATASUM", self._header["ZDATASUM"], self._header.comments["ZDATASUM"]
-            )
+            image_header.set("DATASUM", self._header["ZDATASUM"], hcomments["ZDATASUM"])
 
         # Remove the EXTNAME card if the value in the table header
         # is the default value of COMPRESSED_IMAGE.
@@ -1784,7 +1731,6 @@ class CompImageHDU(BinTableHDU):
         """
         Compress the image data so that it may be written to a file.
         """
-
         # Check to see that the image_header matches the image data
         image_bitpix = DTYPE2BITPIX[self.data.dtype.name]
 
@@ -1802,17 +1748,6 @@ class CompImageHDU(BinTableHDU):
                 self.data - _pseudo_zero(self.data.dtype),
                 dtype=f"=i{self.data.dtype.itemsize}",
             )
-            should_swap = False
-        else:
-            should_swap = not self.data.dtype.isnative
-
-        if should_swap:
-            if self.data.flags.writeable:
-                self.data.byteswap(True)
-            else:
-                # For read-only arrays, there is no way around making
-                # a byteswapped copy of the data.
-                self.data = self.data.byteswap(False)
 
         try:
             nrows = self._header["NAXIS2"]
@@ -1831,16 +1766,10 @@ class CompImageHDU(BinTableHDU):
             self.data = np.ascontiguousarray(self.data)
 
             # Compress the data.
-            # The current implementation of compress_hdu assumes the empty
-            # compressed data table has already been initialized in
-            # self.compressed_data, and writes directly to it
             # compress_hdu returns the size of the heap for the written
             # compressed image table
-            heapsize, self.compressed_data = compression.compress_hdu(self)
+            heapsize, self.compressed_data = compress_hdu(self)
         finally:
-            # if data was byteswapped return it to its original order
-            if should_swap:
-                self.data.byteswap(True)
             self.data = old_data
 
         # CFITSIO will write the compressed data in big-endian order
@@ -1864,7 +1793,6 @@ class CompImageHDU(BinTableHDU):
 
         Parameters
         ----------
-
         type : str, optional
             destination data type, use a string representing a numpy dtype
             name, (e.g. ``'uint8'``, ``'int16'``, ``'float32'`` etc.).  If is
@@ -1880,7 +1808,6 @@ class CompImageHDU(BinTableHDU):
         bscale, bzero : int, optional
             user specified ``BSCALE`` and ``BZERO`` values.
         """
-
         if self.data is None:
             return
 
@@ -2006,7 +1933,6 @@ class CompImageHDU(BinTableHDU):
         metadata about the data that is meaningless here; another reason
         why this class maybe shouldn't inherit directly from BinTableHDU...
         """
-
         return ExtensionHDU._writeheader(self, fileobj)
 
     def _writedata(self, fileobj):
@@ -2014,7 +1940,6 @@ class CompImageHDU(BinTableHDU):
         Wrap the basic ``_writedata`` method to restore the ``.data``
         attribute to the uncompressed image data in the case of an exception.
         """
-
         try:
             return super()._writedata(fileobj)
         finally:
@@ -2045,7 +1970,6 @@ class CompImageHDU(BinTableHDU):
         the BITPIX value in the header, and possibly on the BSCALE value as
         well.  Returns None if there should not be any change.
         """
-
         bitpix = self._orig_bitpix
         # Handle possible conversion to uints if enabled
         if self._uint and self._orig_bscale == 1:

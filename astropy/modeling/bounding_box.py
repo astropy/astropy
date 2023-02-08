@@ -2,7 +2,7 @@
 
 
 """
-This module is to contain an improved bounding box
+This module is to contain an improved bounding box.
 """
 
 import abc
@@ -54,7 +54,7 @@ class _Interval(_BaseInterval):
 
     @staticmethod
     def _validate_shape(interval):
-        """Validate the shape of an interval representation"""
+        """Validate the shape of an interval representation."""
         MESSAGE = """An interval must be some sort of sequence of length 2"""
 
         try:
@@ -94,7 +94,7 @@ class _Interval(_BaseInterval):
     @classmethod
     def validate(cls, interval):
         """
-        Construct and validate an interval
+        Construct and validate an interval.
 
         Parameters
         ----------
@@ -163,7 +163,7 @@ def get_index(model, key) -> int:
 
 
 def get_name(model, index: int):
-    """Get the input name corresponding to the input index"""
+    """Get the input name corresponding to the input index."""
     return model.inputs[index]
 
 
@@ -214,7 +214,7 @@ class _BoundingDomain(abc.ABC):
     def _get_order(self, order: str = None) -> str:
         """
         Get if bounding_box is C/python ordered or Fortran/mathematically
-        ordered
+        ordered.
         """
         if order is None:
             order = self._order
@@ -234,11 +234,10 @@ class _BoundingDomain(abc.ABC):
                 the string name of the input or
                 the input index itself.
         """
-
         return get_index(self._model, key)
 
     def _get_name(self, index: int):
-        """Get the input name corresponding to the input index"""
+        """Get the input name corresponding to the input index."""
         return get_name(self._model, index)
 
     @property
@@ -269,7 +268,6 @@ class _BoundingDomain(abc.ABC):
         fixed_inputs : dict
             Dictionary of inputs which have been fixed by this bounding box.
         """
-
         raise NotImplementedError("This should be implemented by a child class.")
 
     @abc.abstractmethod
@@ -300,7 +298,7 @@ class _BoundingDomain(abc.ABC):
     def _base_output(input_shape, fill_value):
         """
         Create a baseline output, assuming that the entire input is outside
-        the bounding box
+        the bounding box.
 
         Parameters
         ----------
@@ -318,7 +316,7 @@ class _BoundingDomain(abc.ABC):
 
     def _all_out_output(self, input_shape, fill_value):
         """
-        Create output if all inputs are outside the domain
+        Create output if all inputs are outside the domain.
 
         Parameters
         ----------
@@ -332,7 +330,6 @@ class _BoundingDomain(abc.ABC):
         -------
         A full set of outputs for case that all inputs are outside domain.
         """
-
         return [
             self._base_output(input_shape, fill_value)
             for _ in range(self._model.n_outputs)
@@ -441,7 +438,6 @@ class _BoundingDomain(abc.ABC):
         with_units : bool
             whether or not a unit is required
         """
-
         if with_units:
             return getattr(valid_outputs, "unit", None)
 
@@ -455,7 +451,7 @@ class _BoundingDomain(abc.ABC):
         with_units: bool,
     ):
         """
-        Evaluate the model using the given evaluate routine
+        Evaluate the model using the given evaluate routine.
 
         Parameters
         ----------
@@ -492,9 +488,7 @@ class _BoundingDomain(abc.ABC):
     def _evaluate(
         self, evaluate: Callable, inputs, input_shape, fill_value, with_units: bool
     ):
-        """
-        Perform model evaluation steps:
-            prepare_inputs -> evaluate -> prepare_outputs
+        """Evaluate model with steps: prepare_inputs -> evaluate -> prepare_outputs.
 
         Parameters
         ----------
@@ -533,7 +527,7 @@ class _BoundingDomain(abc.ABC):
     def _set_outputs_unit(outputs, valid_outputs_unit):
         """
         Set the units on the outputs
-            prepare_inputs -> evaluate -> prepare_outputs -> set output units
+            prepare_inputs -> evaluate -> prepare_outputs -> set output units.
 
         Parameters
         ----------
@@ -546,7 +540,6 @@ class _BoundingDomain(abc.ABC):
         -------
         List containing filled in output values and units
         """
-
         if valid_outputs_unit is not None:
             return Quantity(outputs, valid_outputs_unit, copy=False, subok=True)
 
@@ -555,7 +548,7 @@ class _BoundingDomain(abc.ABC):
     def evaluate(self, evaluate: Callable, inputs, fill_value):
         """
         Perform full model evaluation steps:
-            prepare_inputs -> evaluate -> prepare_outputs -> set output units
+            prepare_inputs -> evaluate -> prepare_outputs -> set output units.
 
         Parameters
         ----------
@@ -583,7 +576,7 @@ class _BoundingDomain(abc.ABC):
 
 class ModelBoundingBox(_BoundingDomain):
     """
-    A model's bounding box
+    A model's bounding box.
 
     Parameters
     ----------
@@ -632,12 +625,12 @@ class ModelBoundingBox(_BoundingDomain):
 
     @property
     def intervals(self) -> Dict[int, _Interval]:
-        """Return bounding_box labeled using input positions"""
+        """Return bounding_box labeled using input positions."""
         return self._intervals
 
     @property
     def named_intervals(self) -> Dict[str, _Interval]:
-        """Return bounding_box labeled using input names"""
+        """Return bounding_box labeled using input names."""
         return {self._get_name(index): bbox for index, bbox in self._intervals.items()}
 
     def __repr__(self):
@@ -671,7 +664,7 @@ class ModelBoundingBox(_BoundingDomain):
         return self._get_index(key) in self._intervals
 
     def __getitem__(self, key):
-        """Get bounding_box entries by either input name or input index"""
+        """Get bounding_box entries by either input name or input index."""
         index = self._get_index(key)
         if index in self._ignored:
             return _ignored_interval
@@ -718,7 +711,7 @@ class ModelBoundingBox(_BoundingDomain):
         self._intervals[index] = _Interval.validate(value)
 
     def __delitem__(self, key):
-        """Delete stored interval"""
+        """Delete stored interval."""
         index = self._get_index(key)
         if index in self._ignored:
             raise RuntimeError(f"Cannot delete ignored input: {key}!")
@@ -758,7 +751,7 @@ class ModelBoundingBox(_BoundingDomain):
             return 0
 
     def _validate_iterable(self, bounding_box, order: str = None):
-        """Validate and set any iterable representation"""
+        """Validate and set any iterable representation."""
         if len(bounding_box) != self._n_inputs:
             raise ValueError(
                 f"Found {len(bounding_box)} intervals, "
@@ -771,7 +764,7 @@ class ModelBoundingBox(_BoundingDomain):
             self._validate_sequence(bounding_box, order)
 
     def _validate(self, bounding_box, order: str = None):
-        """Validate and set any representation"""
+        """Validate and set any representation."""
         if self._n_inputs == 1 and not isinstance(bounding_box, dict):
             self[self._available_input_index[0]] = bounding_box
         else:
@@ -824,7 +817,6 @@ class ModelBoundingBox(_BoundingDomain):
         keep_ignored : bool
             Keep the ignored inputs of the bounding box (internal argument only)
         """
-
         new = self.copy()
 
         for _input in fixed_inputs.keys():
@@ -1007,7 +999,7 @@ class _SelectorArgument(_BaseSelectorArgument):
 
     def get_selector(self, *inputs):
         """
-        Get the selector value corresponding to this argument
+        Get the selector value corresponding to this argument.
 
         Parameters
         ----------
@@ -1024,7 +1016,7 @@ class _SelectorArgument(_BaseSelectorArgument):
 
     def name(self, model) -> str:
         """
-        Get the name of the input described by this selector argument
+        Get the name of the input described by this selector argument.
 
         Parameters
         ----------
@@ -1035,7 +1027,7 @@ class _SelectorArgument(_BaseSelectorArgument):
 
     def pretty_repr(self, model):
         """
-        Get a pretty-print representation of this object
+        Get a pretty-print representation of this object.
 
         Parameters
         ----------
@@ -1046,7 +1038,7 @@ class _SelectorArgument(_BaseSelectorArgument):
 
     def get_fixed_value(self, model, values: dict):
         """
-        Gets the value fixed input corresponding to this argument
+        Gets the value fixed input corresponding to this argument.
 
         Parameters
         ----------
@@ -1068,7 +1060,7 @@ class _SelectorArgument(_BaseSelectorArgument):
 
     def is_argument(self, model, argument) -> bool:
         """
-        Determine if passed argument is described by this selector argument
+        Determine if passed argument is described by this selector argument.
 
         Parameters
         ----------
@@ -1078,7 +1070,6 @@ class _SelectorArgument(_BaseSelectorArgument):
         argument : int or str
             A representation of which evaluation input is being used
         """
-
         return self.index == get_index(model, argument)
 
     def named_tuple(self, model):
@@ -1096,7 +1087,7 @@ class _SelectorArgument(_BaseSelectorArgument):
 
 class _SelectorArguments(tuple):
     """
-    Contains the CompoundBoundingBox slicing description
+    Contains the CompoundBoundingBox slicing description.
 
     Parameters
     ----------
@@ -1132,7 +1123,7 @@ class _SelectorArguments(tuple):
 
     def pretty_repr(self, model):
         """
-        Get a pretty-print representation of this object
+        Get a pretty-print representation of this object.
 
         Parameters
         ----------
@@ -1148,7 +1139,7 @@ class _SelectorArguments(tuple):
 
     @property
     def ignore(self):
-        """Get the list of ignored inputs"""
+        """Get the list of ignored inputs."""
         ignore = [argument.index for argument in self if argument.ignore]
         ignore.extend(self._kept_ignore)
 
@@ -1156,7 +1147,7 @@ class _SelectorArguments(tuple):
 
     @property
     def kept_ignore(self):
-        """The arguments to persist in ignoring"""
+        """The arguments to persist in ignoring."""
         return self._kept_ignore
 
     @classmethod
@@ -1197,7 +1188,7 @@ class _SelectorArguments(tuple):
 
     def get_selector(self, *inputs):
         """
-        Get the selector corresponding to these inputs
+        Get the selector corresponding to these inputs.
 
         Parameters
         ----------
@@ -1208,7 +1199,7 @@ class _SelectorArguments(tuple):
 
     def is_selector(self, _selector):
         """
-        Determine if this is a reasonable selector
+        Determine if this is a reasonable selector.
 
         Parameters
         ----------
@@ -1219,7 +1210,7 @@ class _SelectorArguments(tuple):
 
     def get_fixed_values(self, model, values: dict):
         """
-        Gets the value fixed input corresponding to this argument
+        Gets the value fixed input corresponding to this argument.
 
         Parameters
         ----------
@@ -1233,7 +1224,7 @@ class _SelectorArguments(tuple):
 
     def is_argument(self, model, argument) -> bool:
         """
-        Determine if passed argument is one of the selector arguments
+        Determine if passed argument is one of the selector arguments.
 
         Parameters
         ----------
@@ -1243,16 +1234,11 @@ class _SelectorArguments(tuple):
         argument : int or str
             A representation of which evaluation input is being used
         """
-
-        for selector_arg in self:
-            if selector_arg.is_argument(model, argument):
-                return True
-        else:
-            return False
+        return any(selector_arg.is_argument(model, argument) for selector_arg in self)
 
     def selector_index(self, model, argument):
         """
-        Get the index of the argument passed in the selector tuples
+        Get the index of the argument passed in the selector tuples.
 
         Parameters
         ----------
@@ -1262,7 +1248,6 @@ class _SelectorArguments(tuple):
         argument : int or str
             A representation of which argument is being used
         """
-
         for index, selector_arg in enumerate(self):
             if selector_arg.is_argument(model, argument):
                 return index
@@ -1273,7 +1258,7 @@ class _SelectorArguments(tuple):
 
     def reduce(self, model, argument):
         """
-        Reduce the selector arguments by the argument given
+        Reduce the selector arguments by the argument given.
 
         Parameters
         ----------
@@ -1283,7 +1268,6 @@ class _SelectorArguments(tuple):
         argument : int or str
             A representation of which argument is being used
         """
-
         arguments = list(self)
         kept_ignore = [arguments.pop(self.selector_index(model, argument)).index]
         kept_ignore.extend(self._kept_ignore)
@@ -1292,7 +1276,7 @@ class _SelectorArguments(tuple):
 
     def add_ignore(self, model, argument):
         """
-        Add argument to the kept_ignore list
+        Add argument to the kept_ignore list.
 
         Parameters
         ----------
@@ -1302,7 +1286,6 @@ class _SelectorArguments(tuple):
         argument : int or str
             A representation of which argument is being used
         """
-
         if self.is_argument(model, argument):
             raise ValueError(
                 f"{argument}: is a selector argument and cannot be ignored."
@@ -1314,7 +1297,7 @@ class _SelectorArguments(tuple):
 
     def named_tuple(self, model):
         """
-        Get a tuple of selector argument tuples using input names
+        Get a tuple of selector argument tuples using input names.
 
         Parameters
         ----------
@@ -1326,7 +1309,7 @@ class _SelectorArguments(tuple):
 
 class CompoundBoundingBox(_BoundingDomain):
     """
-    A model's compound bounding box
+    A model's compound bounding box.
 
     Parameters
     ----------
@@ -1620,7 +1603,6 @@ class CompoundBoundingBox(_BoundingDomain):
         fixed_inputs : dict
             Dictionary of inputs which have been fixed by this bounding box.
         """
-
         fixed_input_keys = list(fixed_inputs.keys())
         argument = fixed_input_keys.pop()
         value = fixed_inputs[argument]

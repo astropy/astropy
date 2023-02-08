@@ -56,7 +56,6 @@ _NOT_OVERWRITING_MSG_MATCH = (
 
 def isiterable(obj):
     """Returns `True` if the given object is iterable."""
-
     try:
         iter(obj)
         return True
@@ -66,7 +65,6 @@ def isiterable(obj):
 
 def indent(s, shift=1, width=4):
     """Indent a block of text.  The indentation is applied to each line."""
-
     indented = "\n".join(" " * (width * shift) + l if l else "" for l in s.splitlines())
     if s[-1] == "\n":
         indented += "\n"
@@ -84,7 +82,6 @@ class _DummyFile:
 @contextlib.contextmanager
 def silence():
     """A context manager that silences sys.stdout and sys.stderr."""
-
     old_stdout = sys.stdout
     old_stderr = sys.stderr
     sys.stdout = _DummyFile()
@@ -95,7 +92,8 @@ def silence():
 
 
 def format_exception(msg, *args, **kwargs):
-    """
+    """Fill in information about the exception that occurred.
+
     Given an exception message string, uses new-style formatting arguments
     ``{filename}``, ``{lineno}``, ``{func}`` and/or ``{text}`` to fill in
     information about the exception that occurred.  For example:
@@ -117,7 +115,6 @@ def format_exception(msg, *args, **kwargs):
         outside of an ``except`` clause - if it is, this will substitute
         '<unknown>' for the 4 formatting arguments.
     """
-
     tb = traceback.extract_tb(sys.exc_info()[2], limit=1)
     if len(tb) > 0:
         filename, lineno, func, text = tb[0]
@@ -324,7 +321,7 @@ if sys.platform == "win32":
         """
         Returns True if the given filepath has the hidden attribute on
         MS-Windows.  Based on a post here:
-        https://stackoverflow.com/questions/284115/cross-platform-hidden-file-detection
+        https://stackoverflow.com/questions/284115/cross-platform-hidden-file-detection.
         """
         if isinstance(filepath, bytes):
             filepath = filepath.decode(sys.getfilesystemencoding())
@@ -371,7 +368,7 @@ def walk_skip_hidden(top, onerror=None, followlinks=False):
     `os.walk`: the directories must always be recursed top-down when
     using this function.
 
-    See also
+    See Also
     --------
     os.walk : For a description of the parameters
     """
@@ -602,7 +599,6 @@ class OrderedDescriptor(metaclass=abc.ABCMeta):
         Defined for convenient sorting of `OrderedDescriptor` instances, which
         are defined to sort in their creation order.
         """
-
         if isinstance(self, OrderedDescriptor) and isinstance(other, OrderedDescriptor):
             try:
                 return self.__order < other.__order
@@ -647,7 +643,6 @@ class OrderedDescriptorContainer(type):
 
     Examples
     --------
-
     >>> from astropy.utils import OrderedDescriptor, OrderedDescriptorContainer
     >>> class TypedAttribute(OrderedDescriptor):
     ...     \"\"\"
@@ -834,7 +829,7 @@ def _set_locale(name):
     This code taken from https://stackoverflow.com/questions/18593661/how-do-i-strftime-a-date-object-in-a-different-locale.
 
     Parameters
-    ==========
+    ----------
     name : str
         Locale name, e.g. "C" or "fr_FR".
     """
@@ -897,12 +892,12 @@ def _hungry_for(option):  # pragma: no cover
 
 
 def pizza():  # pragma: no cover
-    """``/pizza``"""
+    """``/pizza``."""
     _hungry_for("pizza")
 
 
 def coffee(is_adam=False, is_brigitta=False):  # pragma: no cover
-    """``/coffee``"""
+    """``/coffee``."""
     if is_adam and is_brigitta:
         raise ValueError("There can be only one!")
     if is_adam:

@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module contains utility functions for working with angles. These are both
-used internally in astropy.coordinates.angles, and of possible
+used internally in astropy.coordinates.angles, and of possible.
 """
 
 __all__ = [
@@ -51,7 +51,6 @@ def angular_separation(lon1, lat1, lon2, lat2):
 
     .. [1] https://en.wikipedia.org/wiki/Great-circle_distance
     """
-
     sdlon = np.sin(lon2 - lon1)
     cdlon = np.cos(lon2 - lon1)
     slat1 = np.sin(lat1)
@@ -201,7 +200,6 @@ def uniform_spherical_random_surface(size=1):
     rep : `~astropy.coordinates.UnitSphericalRepresentation`
         The random points.
     """
-
     rng = np.random  # can maybe switch to this being an input later - see #11628
 
     lon = rng.uniform(0, _TWOPI, size) * u.rad

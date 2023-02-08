@@ -250,7 +250,7 @@ No differences found.
         assert fitsdiff.main(["-q", tmp_d, self.data_dir]) == 1
         with pytest.warns(
             UserWarning,
-            match=r"Field 'ORBPARM' has a repeat " r"count of 0 in its format code",
+            match=r"Field 'ORBPARM' has a repeat count of 0 in its format code",
         ):
             assert fitsdiff.main(["-q", self.data_dir, self.data_dir]) == 0
 
@@ -263,7 +263,7 @@ No differences found.
         # globbing
         with pytest.warns(
             UserWarning,
-            match=r"Field 'ORBPARM' has a repeat " r"count of 0 in its format code",
+            match=r"Field 'ORBPARM' has a repeat count of 0 in its format code",
         ):
             assert fitsdiff.main(["-q", self.data_dir + "/*.fits", self.data_dir]) == 0
         assert fitsdiff.main(["-q", self.data_dir + "/g*.fits", tmp_d]) == 0

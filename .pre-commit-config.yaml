@@ -24,6 +24,7 @@ repos:
         # Attempts to load all xml files to verify syntax.
       - id: check-yaml
         # Attempts to load all yaml files to verify syntax.
+        exclude: ".*(.github.*)$"
       - id: debug-statements
         # Check for debugger imports and py37+ breakpoint() calls in python
         # source.
@@ -38,7 +39,7 @@ repos:
         exclude: ".*(data.*|extern.*|licenses.*|_parsetab.py|test_cds.py)$"
 
   - repo: https://github.com/pre-commit/pygrep-hooks
-    rev: v1.9.0
+    rev: v1.10.0
     hooks:
       - id: python-check-mock-methods
         # Prevent common mistakes of assert mck.not_called(), assert
@@ -52,13 +53,6 @@ repos:
       - id: python-check-blanket-noqa
         # Enforce that all noqa annotations always occur with specific codes.
 
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.3.1
-    hooks:
-      - id: pyupgrade
-        args: ["--py38-plus"]
-        exclude: ".*(extern.*|_parsetab.py|_lextab.py)$"
-
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.2
@@ -69,7 +63,7 @@ repos:
           - tomli
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.11.4
+    rev: 5.12.0
     hooks:
       - id: isort
         name: isort (python)
@@ -84,15 +78,15 @@ repos:
         additional_dependencies: [toml]
 
   - repo: https://github.com/psf/black
-    rev: 22.12.0
+    rev: 23.1.0
     hooks:
       - id: black
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: "v0.0.206"
+    rev: "v0.0.239"
     hooks:
       - id: ruff
-        args: ["--fix", "--force-exclude"]
+        args: ["--fix"]
 
   - repo: local
     hooks:

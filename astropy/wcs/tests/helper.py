@@ -14,7 +14,7 @@ class SimModelTAB:
         cdelt=[1, 1],
         pc={"PC1_1": 1, "PC2_2": 1},
     ):
-        """set essential parameters of the model (coord transformations)"""
+        # set essential parameters of the model (coord transformations):
         assert nx > 2 and ny > 1  # a limitation of this particular simulation
         self.nx = nx
         self.ny = ny
