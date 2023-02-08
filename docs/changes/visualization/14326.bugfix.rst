@@ -1,0 +1,2 @@
+Fixed a bug where coordinate overlays did not automatically determine the
+longitude wrap angle or the appropriate units.

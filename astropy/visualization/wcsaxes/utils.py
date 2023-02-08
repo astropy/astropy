@@ -4,7 +4,7 @@
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates import BaseCoordinateFrame
+from astropy.coordinates import BaseCoordinateFrame, UnitSphericalRepresentation
 
 __all__ = [
     "select_step_degree",
@@ -92,8 +92,6 @@ def select_step_scalar(dv):
 def get_coord_meta(frame):
     coord_meta = {}
     coord_meta["type"] = ("longitude", "latitude")
-    coord_meta["wrap"] = (None, None)
-    coord_meta["unit"] = (u.deg, u.deg)
 
     from astropy.coordinates import frame_transform_graph
 
@@ -108,6 +106,11 @@ def get_coord_meta(frame):
 
     names = list(frame.representation_component_names.keys())
     coord_meta["name"] = names[:2]
+
+    # Add dummy data to the frame to determine the longitude wrap angle and the units
+    frame = frame.realize_frame(UnitSphericalRepresentation(0 * u.deg, 0 * u.deg))
+    coord_meta["wrap"] = (frame.spherical.lon.wrap_angle, None)
+    coord_meta["unit"] = (frame.spherical.lon.unit, frame.spherical.lat.unit)
 
     return coord_meta
 
