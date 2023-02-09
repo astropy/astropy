@@ -28,9 +28,48 @@ they can be accessed by importing them::
 A full list of the different tools are provided below. Please see the
 documentation for their different usages. For example, sigma clipping,
 which is a common way to estimate the background of an image, can be
-performed with the :func:`~astropy.stats.sigma_clip` function. By
-default, the function returns a masked array where outliers are
-masked.
+performed with the :func:`~astropy.stats.sigma_clip` function.
+By default, the function returns a masked array, a type of Numpy array
+used for handling missing or invalid entries.  Masked arrays retain the
+original data but also store another boolean array of the same shape
+where ``True`` indicates that the value is masked. Most Numpy ufuncs
+will understand masked arrays and treat them appropriately.
+For example, consider the following dataset with a clear outlier::
+
+    >>> import numpy as np
+    >>> from astropy.stats import sigma_clip
+    >>> x = np.array([1, 0, 0, 1, 99, 0, 0, 1, 0])
+
+The mean is skewed by the outlier::
+
+    >>> x.mean()
+    11.333333333333334
+
+Sigma-clipping (3 sigma by default) returns a masked array,
+and so functions like ``mean`` will ignore the outlier::
+
+    >>> clipped = sigma_clip(x)
+    >>> clipped
+    masked_array(data=[1, 0, 0, 1, --, 0, 0, 1, 0],
+                 mask=[False, False, False, False,  True, False, False, False,
+                       False],
+           fill_value=999999)
+    >>> clipped.mean()
+    0.375
+
+If you need to access the original data directly, you can use the ``.data``
+property. Combined with the ``.mask`` property, you can get the original
+outliers, or the values that were not clipped::
+
+    >>> outliers = clipped.data[clipped.mask]
+    >>> outliers
+    array([99])
+    >>> valid = clipped.data[~clipped.mask]
+    >>> valid
+    array([1, 0, 0, 1, 0, 0, 1, 0])
+
+For more information on masked arrays, including see the
+:ref:`numpy:maskedarray.generic`.
 
 Examples
 --------
