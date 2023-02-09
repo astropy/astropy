@@ -275,7 +275,7 @@ class Angle(u.SpecificTypeQuantity):
 
         oldstyle : bool, optional
             If `False`, include a space between value and unit. If `True`,
-            no space is included. Doesn't work with 'latex' or 'unicode'
+            no space is included. This option does not work with 'latex' or 'unicode'
             format. By default a space is generated.
 
         Returns
