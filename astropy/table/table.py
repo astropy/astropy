@@ -2242,6 +2242,21 @@ class Table:
             self._first_colname = next(iter(self.columns))
             return len(self.columns[self._first_colname])
 
+    def __or__(self, other):
+        if isinstance(other, Table):
+            updated_table = self.copy()
+            updated_table.update(other)
+            return updated_table
+        else:
+            return NotImplemented
+
+    def __ior__(self, other):
+        try:
+            self.update(other)
+            return self
+        except TypeError:
+            return NotImplemented
+
     def index_column(self, name):
         """
         Return the positional index of column ``name``.
@@ -3331,7 +3346,9 @@ class Table:
         The argument ``other`` must be a |Table|, or something that can be used
         to initialize a table. Columns from (possibly converted) ``other`` are
         added to this table. In case of matching column names the column from
-        this table is replaced with the one from ``other``.
+        this table is replaced with the one from ``other``. If ``other`` is a
+        |Table| instance then ``|=`` is available as alternate syntax for in-place
+        update and ``|`` can be used merge data to a new table.
 
         Parameters
         ----------

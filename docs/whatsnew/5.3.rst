@@ -12,7 +12,7 @@ the 5.2 release.
 
 In particular, this release includes:
 
-.. * :ref:`whatsnew-5.3-example`
+.. * :ref:`whatsnew-5.3-table-union-operators`
 
 In addition to these major changes, Astropy v5.3 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -37,6 +37,41 @@ respectively.
     >>> cosmo.comoving_distance(0.5)  # doctest: +SKIP
     <Quantity 1982.66012926 Mpc>
 
+.. _whatsnew-5.3-table-union-operators:
+
+New union operators for |Table|
+===============================
+
+We have added support for dictionary-style merge (``|``) and update (``|=``)
+of columns in the |Table| class. This follows the  behavior for ``dict`` defined
+in `PEP 584 <https://peps.python.org/pep-0584/>`_. ``|=`` works the same way as
+:meth:`~astropy.table.Table.update` and updates the table in place. ``|``
+return the updated table::
+
+	>>> from astropy.table import Table, QTable
+	>>> t1 = Table({'a': ['foo', 'bar'], 'b': [0., 0.]})
+	>>> t2 = QTable({'b': [1., 2.], 'c': [7., 11.]})
+	>>> t3 = t1 | t2  # Create new table which merges columns from t1 and t2
+	>>> t3
+	<Table length=2>
+	a      b       c
+	str3 float64 float64
+	---- ------- -------
+	foo     1.0     7.0
+	bar     2.0    11.0
+
+	>>> t2 |= t1  # Update t2 columns in-place with t1 columns
+	>>> t2
+	<QTable length=2>
+	   b       c     a
+	float64 float64 str3
+	------- ------- ----
+	    0.0     7.0  foo
+	    0.0    11.0  bar
+
+When using ``|=``, the other object does not need to be a |Table|, it can be
+anything that can be used for :ref:`construct_table` with a compatible number
+of rows.
 
 Full change log
 ===============
