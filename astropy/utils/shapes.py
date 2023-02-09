@@ -455,7 +455,9 @@ def simplify_basic_index(basic_index, *, shape):
                     indices[1] = None
                 new_index[i] = slice(*indices)
             elif isinstance(slc, numbers.Integral):
-                new_index[i] = np.core.multiarray.normalize_axis_index(int(slc), shape[i])
+                new_index[i] = np.core.multiarray.normalize_axis_index(
+                    int(slc), shape[i]
+                )
             else:
                 raise ValueError(f"Unexpected index element in basic index: {slc}")
         else:
