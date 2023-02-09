@@ -81,11 +81,11 @@ this page.
 
 .. note::
 
-    The `ImageHDU.section` and `CompImageHDU.section` feature is only available
+    The `ImageHDU.section` and `CompImageHDU.section` feature is only efficient
     for files that are not externally compressed (such as ``.fits.gz`` files).
-    Files that are compressed using internal tile compression should work.
-    Attempting to use ``.section`` on an externally compressed image will yield
-    an `AttributeError`.
+    Files that are compressed using internal tile compression should work properly.
+    Use ``.section`` on an externally compressed image will cause the whole FITS
+    file to be downloaded.
 
 
 Subsetting FITS files hosted in Amazon S3 cloud storage
