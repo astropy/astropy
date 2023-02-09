@@ -602,9 +602,9 @@ collapse_units = [None, u.Jy]
 collapse_propagate = [True, False]
 collapse_data_shapes = [
     # 3D example:
-    # (4, 3, 2),
+    (4, 3, 2),
     # 5D example
-    (6, 5, 4, 3, 2)
+    (6, 5, 4, 3, 2),
 ]
 collapse_masks = list(
     chain.from_iterable(
@@ -620,27 +620,21 @@ collapse_masks = list(
         for collapse_data_shape in collapse_data_shapes
     )
 )
+
+# the following provides pytest.mark.parametrize with every
+# permutation of (1) the units, (2) propagating/not propagating
+# uncertainties, and (3) the data shapes of different ndim.
 permute = len(collapse_masks) * len(collapse_propagate) * len(collapse_units)
 collapse_units = permute // len(collapse_units) * collapse_units
 collapse_propagate = permute // len(collapse_propagate) * collapse_propagate
 collapse_masks = permute // len(collapse_masks) * collapse_masks
 
 
-# The filtered warning below is given when "invalid value
-# encountered in divide", and can be removed when this div by zero
-# errors are prevented in the Masked implementation of `mean`.
-@pytest.mark.filterwarnings("ignore::RuntimeWarning")
 @pytest.mark.parametrize(
     "mask, unit, propagate_uncertainties",
-    [
-        (mask, unit, propagate_uncertainties)
-        for mask, unit, propagate_uncertainties in zip(
-            collapse_masks, collapse_units, collapse_propagate
-        )
-    ],
+    list(zip(collapse_masks, collapse_units, collapse_propagate)),
 )
 def test_collapse(mask, unit, propagate_uncertainties):
-
     # unique set of combinations of each of the N-1 axes for an N-D cube:
     axes_permutations = {tuple(axes[:2]) for axes in permutations(range(mask.ndim))}
 
