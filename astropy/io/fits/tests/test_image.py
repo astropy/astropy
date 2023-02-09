@@ -1992,11 +1992,11 @@ class TestCompHDUSections:
         assert_equal(self.hdul[2].section[index], self.hdul[2].data[index])
         assert_equal(self.hdul[2].section[index], self.data[index] * 2 + 100)
 
-def test_comphdu_fileobj():
 
+def test_comphdu_fileobj():
     # Regression test for a bug that caused an error to happen
     # internally when reading the data if requested data shapes
-    # were not plain integers - this was triggerd when accessing
+    # were not plain integers - this was triggered when accessing
     # sections on data backed by certain kinds of objects such as
     # BytesIO (but not regular file handles)
 
@@ -2010,7 +2010,7 @@ def test_comphdu_fileobj():
 
     byte_buffer.seek(0)
 
-    hdu2 = fits.open(byte_buffer, mode='readonly')[1]
+    hdu2 = fits.open(byte_buffer, mode="readonly")[1]
     assert hdu2.section[1, 2] == 5
 
 

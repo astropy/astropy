@@ -60,8 +60,12 @@ def _iter_array_tiles(
 
 
 def _tile_shape(header):
-    return np.array([header[f"ZTILE{idx}"] for idx in range(header["ZNAXIS"], 0, -1)], dtype=int)
+    return np.array(
+        [header[f"ZTILE{idx}"] for idx in range(header["ZNAXIS"], 0, -1)], dtype=int
+    )
 
 
 def _data_shape(header):
-    return np.array([header[f"ZNAXIS{idx}"] for idx in range(header["ZNAXIS"], 0, -1)], dtype=int)
+    return np.array(
+        [header[f"ZNAXIS{idx}"] for idx in range(header["ZNAXIS"], 0, -1)], dtype=int
+    )
