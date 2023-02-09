@@ -1,0 +1,2 @@
+``Table`` and ``QTable`` can now use the ``|`` and ``|=`` operators for
+dictionary-style merge and update.
