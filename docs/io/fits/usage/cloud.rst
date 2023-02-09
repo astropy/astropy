@@ -70,9 +70,10 @@ two *lazy data loading* features available in Astropy:
    This parameter is set to ``True`` by default.  You do not need to pass it
    explicitly, unless you changed its default value in the
    :ref:`astropy:astropy_config`.
-2. The `ImageHDU.section` property enables a subset of a data array to be
-   read into memory without downloading the entire image or cube. See the
-   :ref:`astropy:data-sections` part of the documentation for more details.
+2. The `ImageHDU.section` and `CompImageHDU.section` properties enables a
+   subset of a data array to be read into memory without downloading the entire
+   image or cube. See the :ref:`astropy:data-sections` part of the documentation
+   for more details.
 
 Additional tips for achieving good performance when working with remote files
 are provided in the :ref:`astropy:optimizing_fsspec` section further down
@@ -80,11 +81,11 @@ this page.
 
 .. note::
 
-    The `ImageHDU.section` feature is only available for uncompressed FITS
-    image extensions.  This includes file-level compression like gzip as
-    well as compression internal to the FITS format, like tile compression.
-    Attempting to use ``.section`` on a compressed image will yield an
-    `AttributeError`.
+    The `ImageHDU.section` and `CompImageHDU.section` feature is only available
+    for files that are not externally compressed (such as ``.fits.gz`` files).
+    Files that are compressed using internal tile compression should work.
+    Attempting to use ``.section`` on an externally compressed image will yield
+    an `AttributeError`.
 
 
 Subsetting FITS files hosted in Amazon S3 cloud storage
