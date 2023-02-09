@@ -30,7 +30,6 @@ external:
 installation:
   - docs/install.rst
   - MANIFEST.in
-  - pip-requirements
   - pyproject.toml
   - setup.*
 
