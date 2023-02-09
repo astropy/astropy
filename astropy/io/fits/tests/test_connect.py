@@ -7,14 +7,7 @@ from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
 from astropy.io import fits
-from astropy.io.fits import (
-    BinTableHDU,
-    HDUList,
-    ImageHDU,
-    PrimaryHDU,
-    connect,
-    table_to_hdu,
-)
+from astropy.io.fits import BinTableHDU, HDUList, ImageHDU, PrimaryHDU, table_to_hdu
 from astropy.io.fits.column import (
     _fortran_to_python_format,
     _parse_tdisp_format,
@@ -57,7 +50,10 @@ mixin_cols = {
 
 
 def equal_data(a, b):
-    return all(np.all(a[name] == b[name]) for name in a.dtype.names)
+    for name in a.dtype.names:
+        if not np.all(a[name] == b[name]):
+            return False
+    return True
 
 
 class TestSingleTable:
@@ -296,7 +292,7 @@ class TestSingleTable:
         t2 = Table.read(filename, memmap=False)
         t3 = Table.read(filename, memmap=True)
         assert equal_data(t2, t3)
-        # To avoid issues with open files, we need to remove references to
+        # To avoid issues with --open-files, we need to remove references to
         # data that uses memory mapping and force the garbage collection
         del t1, t2, t3
         gc.collect()
@@ -311,7 +307,7 @@ class TestSingleTable:
         assert t2["b"].dtype.kind == "U"
         assert t3["b"].dtype.kind == "S"
         assert equal_data(t2, t3)
-        # To avoid issues with open files, we need to remove references to
+        # To avoid issues with --open-files, we need to remove references to
         # data that uses memory mapping and force the garbage collection
         del t1, t2, t3
         gc.collect()
@@ -767,7 +763,7 @@ def test_convert_comment_convention():
     filename = get_pkg_data_filename("data/stddata.fits")
     with pytest.warns(
         AstropyUserWarning,
-        match=r"hdu= was not specified but multiple tables are present",
+        match=r"hdu= was not specified but " r"multiple tables are present",
     ):
         t = Table.read(filename)
 
@@ -1009,8 +1005,3 @@ def test_meta_not_modified(tmp_path):
     t.write(filename)
     assert len(t.meta) == 1
     assert t.meta["comments"] == ["a", "b"]
-
-
-def test_is_fits_gh_14305():
-    """Regression test for https://github.com/astropy/astropy/issues/14305"""
-    assert not connect.is_fits("", "foo.bar", None)

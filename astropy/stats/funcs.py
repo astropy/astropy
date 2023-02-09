@@ -480,7 +480,7 @@ def _check_poisson_conf_inputs(sigma, background, confidence_level, name):
 def poisson_conf_interval(
     n, interval="root-n", sigma=1, background=0, confidence_level=None
 ):
-    r"""Poisson parameter confidence interval given observed counts.
+    r"""Poisson parameter confidence interval given observed counts
 
     Parameters
     ----------
@@ -508,6 +508,7 @@ def poisson_conf_interval(
 
     Notes
     -----
+
     The "right" confidence interval to use for Poisson data is a
     matter of debate. The CDF working group `recommends
     <https://web.archive.org/web/20210222093249/https://www-cdf.fnal.gov/physics/statistics/notes/pois_eb.txt>`_
@@ -680,6 +681,7 @@ def poisson_conf_interval(
     array([[ 3.47894005, 16.113329533]])
 
     """
+
     if not np.isscalar(n):
         n = np.asanyarray(n)
 
@@ -792,6 +794,7 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
     --------
     mad_std
     """
+
     if func is None:
         # Check if the array has a mask and if so use np.ma.median
         # See https://github.com/numpy/numpy/issues/7330 why using np.ma.median
@@ -904,6 +907,7 @@ def mad_std(data, axis=None, func=None, ignore_nan=False):
     --------
     biweight_midvariance, biweight_midcovariance, median_absolute_deviation
     """
+
     # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
     MAD = median_absolute_deviation(data, axis=axis, func=func, ignore_nan=ignore_nan)
     return MAD * 1.482602218505602
@@ -1066,7 +1070,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
 
 
 def _scipy_kraft_burrows_nousek(N, B, CL):
-    """Upper limit on a poisson count rate.
+    """Upper limit on a poisson count rate
 
     The implementation is based on Kraft, Burrows and Nousek
     `ApJ 374, 344 (1991) <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
@@ -1094,6 +1098,7 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
     implementation that is slower, but can deal with arbitrarily high numbers
     since it is based on the `mpmath <http://mpmath.org/>`_ library.
     """
+
     from math import exp
 
     from scipy.integrate import quad
@@ -1144,7 +1149,7 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
 
 
 def _mpmath_kraft_burrows_nousek(N, B, CL):
-    """Upper limit on a poisson count rate.
+    """Upper limit on a poisson count rate
 
     The implementation is based on Kraft, Burrows and Nousek in
     `ApJ 374, 344 (1991) <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
@@ -1239,7 +1244,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
 
 
 def _kraft_burrows_nousek(N, B, CL):
-    """Upper limit on a poisson count rate.
+    """Upper limit on a poisson count rate
 
     The implementation is based on Kraft, Burrows and Nousek in
     `ApJ 374, 344 (1991) <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
@@ -1307,6 +1312,7 @@ def kuiper_false_positive_probability(D, N):
 
     References
     ----------
+
     .. [1] Paltani, S., "Searching for periods in X-ray observations using
            Kuiper's test. Application to the ROSAT PSPC archive",
            Astronomy and Astrophysics, v.240, p.789-790, 2004.
@@ -1424,6 +1430,7 @@ def kuiper(data, cdf=lambda x: x, args=()):
 
     References
     ----------
+
     .. [1] Stephens, M. A., "Use of the Kolmogorov-Smirnov, Cramer-Von Mises
            and Related Statistics Without Extensive Tables", Journal of the
            Royal Statistical Society. Series B (Methodological), Vol. 32,
@@ -1431,6 +1438,7 @@ def kuiper(data, cdf=lambda x: x, args=()):
 
 
     """
+
     data = np.sort(data)
     cdfv = cdf(data, *args)
     N = len(data)

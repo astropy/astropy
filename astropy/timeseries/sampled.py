@@ -196,6 +196,7 @@ class TimeSeries(BaseTimeSeries):
         folded_timeseries : `~astropy.timeseries.TimeSeries`
             The folded time series object with phase as the ``time`` column.
         """
+
         if not isinstance(period, Quantity) or period.unit.physical_type != "time":
             raise UnitsError("period should be a Quantity in units of time")
 

@@ -9,11 +9,15 @@ def test_reraise():
     def fail():
         raise RuntimeError("This failed")
 
-    with pytest.raises(RuntimeError, match="From here"):
+    try:
         try:
             fail()
         except RuntimeError as e:
             exceptions.vo_reraise(e, additional="From here")
+    except RuntimeError as e:
+        assert "From here" in str(e)
+    else:
+        assert False
 
 
 def test_parse_vowarning():

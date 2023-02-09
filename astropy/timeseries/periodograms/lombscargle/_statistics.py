@@ -48,7 +48,7 @@ def vectorize_first_argument(func):
 
 
 def pdf_single(z, N, normalization, dH=1, dK=3):
-    """Probability density function for Lomb-Scargle periodogram.
+    """Probability density function for Lomb-Scargle periodogram
 
     Compute the expected probability density function of the periodogram
     for the null hypothesis - i.e. data consisting of Gaussian noise.
@@ -97,7 +97,7 @@ def pdf_single(z, N, normalization, dH=1, dK=3):
 
 
 def fap_single(z, N, normalization, dH=1, dK=3):
-    """Single-frequency false alarm probability for the Lomb-Scargle periodogram.
+    """Single-frequency false alarm probability for the Lomb-Scargle periodogram
 
     This is equal to 1 - cdf, where cdf is the cumulative distribution.
     The single-frequency false alarm probability should not be confused with
@@ -147,7 +147,7 @@ def fap_single(z, N, normalization, dH=1, dK=3):
 
 
 def inv_fap_single(fap, N, normalization, dH=1, dK=3):
-    """Single-frequency inverse false alarm probability.
+    """Single-frequency inverse false alarm probability
 
     This function computes the periodogram value associated with the specified
     single-frequency false alarm probability. This should not be confused with
@@ -200,7 +200,7 @@ def inv_fap_single(fap, N, normalization, dH=1, dK=3):
 
 
 def cdf_single(z, N, normalization, dH=1, dK=3):
-    """Cumulative distribution for the Lomb-Scargle periodogram.
+    """Cumulative distribution for the Lomb-Scargle periodogram
 
     Compute the expected cumulative distribution of the periodogram
     for the null hypothesis - i.e. data consisting of Gaussian noise.
@@ -235,7 +235,7 @@ def cdf_single(z, N, normalization, dH=1, dK=3):
 
 
 def tau_davies(Z, fmax, t, y, dy, normalization="standard", dH=1, dK=3):
-    """tau factor for estimating Davies bound (Baluev 2008, Table 1)."""
+    """tau factor for estimating Davies bound (Baluev 2008, Table 1)"""
     N = len(t)
     NH = N - dH  # DOF for null hypothesis
     NK = N - dK  # DOF for periodic hypothesis
@@ -265,7 +265,7 @@ def tau_davies(Z, fmax, t, y, dy, normalization="standard", dH=1, dK=3):
 
 
 def fap_naive(Z, fmax, t, y, dy, normalization="standard"):
-    """False Alarm Probability based on estimated number of indep frequencies."""
+    """False Alarm Probability based on estimated number of indep frequencies"""
     N = len(t)
     T = max(t) - min(t)
     N_eff = fmax * T
@@ -278,7 +278,7 @@ def fap_naive(Z, fmax, t, y, dy, normalization="standard"):
 
 
 def inv_fap_naive(fap, fmax, t, y, dy, normalization="standard"):
-    """Inverse FAP based on estimated number of indep frequencies."""
+    """Inverse FAP based on estimated number of indep frequencies"""
     fap = np.asarray(fap)
     N = len(t)
     T = max(t) - min(t)
@@ -291,7 +291,7 @@ def inv_fap_naive(fap, fmax, t, y, dy, normalization="standard"):
 
 
 def fap_davies(Z, fmax, t, y, dy, normalization="standard"):
-    """Davies upper-bound to the false alarm probability.
+    """Davies upper-bound to the false alarm probability
 
     (Eqn 5 of Baluev 2008)
     """
@@ -303,7 +303,7 @@ def fap_davies(Z, fmax, t, y, dy, normalization="standard"):
 
 @vectorize_first_argument
 def inv_fap_davies(p, fmax, t, y, dy, normalization="standard"):
-    """Inverse of the davies upper-bound."""
+    """Inverse of the davies upper-bound"""
     from scipy import optimize
 
     args = (fmax, t, y, dy, normalization)
@@ -316,7 +316,7 @@ def inv_fap_davies(p, fmax, t, y, dy, normalization="standard"):
 
 
 def fap_baluev(Z, fmax, t, y, dy, normalization="standard"):
-    """Alias-free approximation to false alarm probability.
+    """Alias-free approximation to false alarm probability
 
     (Eqn 6 of Baluev 2008)
     """
@@ -329,7 +329,7 @@ def fap_baluev(Z, fmax, t, y, dy, normalization="standard"):
 
 @vectorize_first_argument
 def inv_fap_baluev(p, fmax, t, y, dy, normalization="standard"):
-    """Inverse of the Baluev alias-free approximation."""
+    """Inverse of the Baluev alias-free approximation"""
     from scipy import optimize
 
     args = (fmax, t, y, dy, normalization)
@@ -342,7 +342,7 @@ def inv_fap_baluev(p, fmax, t, y, dy, normalization="standard"):
 
 
 def _bootstrap_max(t, y, dy, fmax, normalization, random_seed, n_bootstrap=1000):
-    """Generate a sequence of bootstrap estimates of the max."""
+    """Generate a sequence of bootstrap estimates of the max"""
     from .core import LombScargle
 
     rng = np.random.default_rng(random_seed)
@@ -364,7 +364,7 @@ def _bootstrap_max(t, y, dy, fmax, normalization, random_seed, n_bootstrap=1000)
 def fap_bootstrap(
     Z, fmax, t, y, dy, normalization="standard", n_bootstraps=1000, random_seed=None
 ):
-    """Bootstrap estimate of the false alarm probability."""
+    """Bootstrap estimate of the false alarm probability"""
     pmax = _bootstrap_max(t, y, dy, fmax, normalization, random_seed, n_bootstraps)
 
     return 1 - np.searchsorted(pmax, Z) / len(pmax)
@@ -373,7 +373,7 @@ def fap_bootstrap(
 def inv_fap_bootstrap(
     fap, fmax, t, y, dy, normalization="standard", n_bootstraps=1000, random_seed=None
 ):
-    """Bootstrap estimate of the inverse false alarm probability."""
+    """Bootstrap estimate of the inverse false alarm probability"""
     fap = np.asarray(fap)
     pmax = _bootstrap_max(t, y, dy, fmax, normalization, random_seed, n_bootstraps)
 
@@ -392,7 +392,7 @@ METHODS = {
 def false_alarm_probability(
     Z, fmax, t, y, dy, normalization="standard", method="baluev", method_kwds=None
 ):
-    """Compute the approximate false alarm probability for periodogram peaks Z.
+    """Compute the approximate false alarm probability for periodogram peaks Z
 
     This gives an estimate of the false alarm probability for the largest value
     in a periodogram, based on the null hypothesis of non-varying data with
@@ -454,7 +454,7 @@ INV_METHODS = {
 def false_alarm_level(
     p, fmax, t, y, dy, normalization, method="baluev", method_kwds=None
 ):
-    """Compute the approximate periodogram level given a false alarm probability.
+    """Compute the approximate periodogram level given a false alarm probability
 
     This gives an estimate of the periodogram level corresponding to a specified
     false alarm probability for the largest peak, assuming a null hypothesis

@@ -60,7 +60,7 @@ def test_unit_format():
 def test_namespace_warning():
     """
     A version 1.4 VOTable must use the same namespace as 1.3.
-    (see https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html#ToC16).
+    (see https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html#ToC16)
     """
     bad_namespace = b"""<?xml version="1.0" encoding="utf-8"?>
         <VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.4"
@@ -94,6 +94,7 @@ def test_version():
     The '1.0' is curious since other checks in parse() and the version setter do not allow '1.0'.
     This test confirms that behavior for now.  A future change may remove the '1.0'.
     """
+
     # Exercise the checks in __init__
     with pytest.warns(AstropyDeprecationWarning):
         VOTableFile(version="1.0")

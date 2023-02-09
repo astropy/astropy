@@ -1,4 +1,4 @@
-"""Various implementations of the Lomb-Scargle Periodogram."""
+"""Various implementations of the Lomb-Scargle Periodogram"""
 
 from .chi2_impl import lombscargle_chi2
 from .fast_impl import lombscargle_fast

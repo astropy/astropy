@@ -4,7 +4,7 @@
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates import BaseCoordinateFrame, UnitSphericalRepresentation
+from astropy.coordinates import BaseCoordinateFrame
 
 __all__ = [
     "select_step_degree",
@@ -92,6 +92,8 @@ def select_step_scalar(dv):
 def get_coord_meta(frame):
     coord_meta = {}
     coord_meta["type"] = ("longitude", "latitude")
+    coord_meta["wrap"] = (None, None)
+    coord_meta["unit"] = (u.deg, u.deg)
 
     from astropy.coordinates import frame_transform_graph
 
@@ -107,18 +109,13 @@ def get_coord_meta(frame):
     names = list(frame.representation_component_names.keys())
     coord_meta["name"] = names[:2]
 
-    # Add dummy data to the frame to determine the longitude wrap angle and the units
-    frame = frame.realize_frame(UnitSphericalRepresentation(0 * u.deg, 0 * u.deg))
-    coord_meta["wrap"] = (frame.spherical.lon.wrap_angle, None)
-    coord_meta["unit"] = (frame.spherical.lon.unit, frame.spherical.lat.unit)
-
     return coord_meta
 
 
 def transform_contour_set_inplace(cset, transform):
     """
     Transform a contour set in-place using a specified
-    :class:`matplotlib.transform.Transform`.
+    :class:`matplotlib.transform.Transform`
 
     Using transforms with the native Matplotlib contour/contourf can be slow if
     the transforms have a non-negligible overhead (which is the case for
@@ -126,6 +123,7 @@ def transform_contour_set_inplace(cset, transform):
     contour line. It is more efficient to stack all the contour lines together
     temporarily and transform them in one go.
     """
+
     # The contours are represented as paths grouped into levels. Each can have
     # one or more paths. The approach we take here is to stack the vertices of
     # all paths and transform them in one go. The pos_level list helps us keep

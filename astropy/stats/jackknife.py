@@ -39,6 +39,7 @@ def jackknife_resampling(data):
 
     .. [3] Jackknife resampling <https://en.wikipedia.org/wiki/Jackknife_resampling>
     """
+
     n = data.shape[0]
     if n <= 0:
         raise ValueError("data must contain at least one measurement.")

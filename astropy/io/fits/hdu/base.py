@@ -97,6 +97,7 @@ def _hdu_class_from_header(cls, header):
     Used primarily by _BaseHDU._readfrom_internal and _BaseHDU._from_data to
     find an appropriate HDU class to use based on values in the header.
     """
+
     klass = cls  # By default, if no subclasses are defined
     if header:
         for c in reversed(list(itersubclasses(cls))):
@@ -185,24 +186,19 @@ class _BaseHDU:
             def data(self):
                 # The deleter
                 if self._file is not None and self._data_loaded:
-                    # sys.getrefcount is CPython specific and not on PyPy.
-                    has_getrefcount = hasattr(sys, "getrefcount")
-                    if has_getrefcount:
-                        data_refcount = sys.getrefcount(self.data)
-
+                    data_refcount = sys.getrefcount(self.data)
                     # Manually delete *now* so that FITS_rec.__del__
                     # cleanup can happen if applicable
                     del self.__dict__["data"]
-
                     # Don't even do this unless the *only* reference to the
                     # .data array was the one we're deleting by deleting
                     # this attribute; if any other references to the array
                     # are hanging around (perhaps the user ran ``data =
                     # hdu.data``) don't even consider this:
-                    if has_getrefcount and data_refcount == 2:
+                    if data_refcount == 2:
                         self._file._maybe_close_mmap()
 
-            cls.data = data_prop.deleter(data)
+            setattr(cls, "data", data_prop.deleter(data))
 
         return super().__init_subclass__(**kwargs)
 
@@ -325,6 +321,7 @@ class _BaseHDU:
             `BinTableHDU`.  Any unrecognized keyword arguments are simply
             ignored.
         """
+
         return cls._readfrom_internal(
             data, checksum=checksum, ignore_missing_end=ignore_missing_end, **kwargs
         )
@@ -351,6 +348,7 @@ class _BaseHDU:
             Do not issue an exception when opening a file that is missing an
             ``END`` card in the last header.
         """
+
         # TODO: Figure out a way to make it possible for the _File
         # constructor to be a noop if the argument is already a _File
         if not isinstance(fileobj, _File):
@@ -393,6 +391,7 @@ class _BaseHDU:
             When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
             to the header of the HDU when written to the file.
         """
+
         from .hdulist import HDUList
 
         hdulist = HDUList([self])
@@ -418,6 +417,7 @@ class _BaseHDU:
         For some special cases, supports using a header that was already
         created, and just using the input data for the actual array data.
         """
+
         hdu_buffer = None
         hdu_fileobj = None
         header_offset = 0
@@ -447,11 +447,13 @@ class _BaseHDU:
                 np.ndarray((), dtype="ubyte", buffer=data)
             except TypeError:
                 raise TypeError(
-                    f"The provided object {data!r} does not contain an underlying "
+                    "The provided object {!r} does not contain an underlying "
                     "memory buffer.  fromstring() requires an object that "
                     "supports the buffer interface such as bytes, buffer, "
                     "memoryview, ndarray, etc.  This restriction is to ensure "
-                    "that efficient access to the array/table data is possible."
+                    "that efficient access to the array/table data is possible.".format(
+                        data
+                    )
                 )
 
             if header is None:
@@ -537,6 +539,7 @@ class _BaseHDU:
         Return raw array from either the HDU's memory buffer or underlying
         file.
         """
+
         if isinstance(shape, int):
             shape = (shape,)
 
@@ -562,6 +565,7 @@ class _BaseHDU:
         If the data is signed int 8, unsigned int 16, 32, or 64,
         add BSCALE/BZERO cards to header.
         """
+
         if self._has_data and self._standard and _is_pseudo_integer(self.data.dtype):
             # CompImageHDUs need TFIELDS immediately after GCOUNT,
             # so BSCALE has to go after TFIELDS if it exists.
@@ -581,6 +585,7 @@ class _BaseHDU:
         and ``datasum_keyword`` arguments--see for example ``CompImageHDU``
         for an example of why this might need to be overridden).
         """
+
         # If the data is loaded it isn't necessarily 'modified', but we have no
         # way of knowing for sure
         modified = self._header._modified or self._data_loaded
@@ -675,6 +680,7 @@ class _BaseHDU:
 
         Should return the size in bytes of the data written.
         """
+
         fileobj.writearray(self.data)
         return self.data.size * self.data.itemsize
 
@@ -815,6 +821,7 @@ class _CorruptedHDU(_BaseHDU):
         """
         Returns the size (in bytes) of the HDU's data part.
         """
+
         # Note: On compressed files this might report a negative size; but the
         # file is corrupt anyways so I'm not too worried about it.
         if self._buffer is not None:
@@ -852,6 +859,7 @@ class _NonstandardHDU(_BaseHDU, _Verify):
         Matches any HDU that has the 'SIMPLE' keyword but is not a standard
         Primary or Groups HDU.
         """
+
         # The SIMPLE keyword must be in the first card
         card = header.cards[0]
 
@@ -870,6 +878,7 @@ class _NonstandardHDU(_BaseHDU, _Verify):
         """
         Returns the size (in bytes) of the HDU's data part.
         """
+
         if self._buffer is not None:
             return len(self._buffer) - self._data_offset
 
@@ -881,6 +890,7 @@ class _NonstandardHDU(_BaseHDU, _Verify):
         automatically add padding, and treats the data as a string of raw bytes
         instead of an array.
         """
+
         offset = 0
         size = 0
 
@@ -907,6 +917,7 @@ class _NonstandardHDU(_BaseHDU, _Verify):
         """
         Return the file data.
         """
+
         return self._get_raw_data(self.size, "ubyte", self._data_offset)
 
     def _verify(self, option="warn"):
@@ -955,6 +966,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         TODO: Maybe it would make more sense to use _NonstandardHDU in this
         case?  Not sure...
         """
+
         return first(header.keys()) not in ("SIMPLE", "XTENSION")
 
     @property
@@ -969,6 +981,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         Calculates and returns the number of bytes that this HDU will write to
         a file.
         """
+
         f = _File()
         # TODO: Fix this once new HDU writing API is settled on
         return self._writeheader(f)[1] + self._writedata(f)[1]
@@ -1000,6 +1013,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             datSpan    Data size including padding
             ========== ================================================
         """
+
         if hasattr(self, "_file") and self._file:
             return {
                 "file": self._file,
@@ -1015,6 +1029,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         """
         Make a copy of the HDU, both header and data are copied.
         """
+
         if self.data is not None:
             data = self.data.copy()
         else:
@@ -1155,6 +1170,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         when created.  Also check the card's value by using the ``test``
         argument.
         """
+
         errs = errlist
         fix = None
 
@@ -1265,6 +1281,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         value in the card to remain consistent.  This will enable the
         generation of a ``CHECKSUM`` card with a consistent value.
         """
+
         cs = self._calculate_datasum()
 
         if when is None:
@@ -1309,6 +1326,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         comments for both cards and enable the generation of a ``CHECKSUM``
         card with a consistent value.
         """
+
         if not override_datasum:
             # Calculate and add the data checksum to the header.
             data_cs = self.add_datasum(when, datasum_keyword=datasum_keyword)
@@ -1340,6 +1358,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             - 1 - success
             - 2 - no ``DATASUM`` keyword present
         """
+
         if "DATASUM" in self._header:
             datasum = self._calculate_datasum()
             if datasum == int(self._header["DATASUM"]):
@@ -1362,6 +1381,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             - 1 - success
             - 2 - no ``CHECKSUM`` keyword present
         """
+
         if "CHECKSUM" in self._header:
             if "DATASUM" in self._header:
                 datasum = self._calculate_datasum()
@@ -1381,12 +1401,15 @@ class _ValidHDU(_BaseHDU, _Verify):
         Verify the checksum/datasum values if the cards exist in the header.
         Simply displays warnings if either the checksum or datasum don't match.
         """
+
         if "CHECKSUM" in self._header:
             self._checksum = self._header["CHECKSUM"]
             self._checksum_valid = self.verify_checksum()
             if not self._checksum_valid:
                 warnings.warn(
-                    f"Checksum verification failed for HDU {self.name, self.ver}.\n",
+                    "Checksum verification failed for HDU {}.\n".format(
+                        (self.name, self.ver)
+                    ),
                     AstropyUserWarning,
                 )
 
@@ -1395,7 +1418,9 @@ class _ValidHDU(_BaseHDU, _Verify):
             self._datasum_valid = self.verify_datasum()
             if not self._datasum_valid:
                 warnings.warn(
-                    f"Datasum verification failed for HDU {self.name, self.ver}.\n",
+                    "Datasum verification failed for HDU {}.\n".format(
+                        (self.name, self.ver)
+                    ),
                     AstropyUserWarning,
                 )
 
@@ -1406,12 +1431,14 @@ class _ValidHDU(_BaseHDU, _Verify):
 
         Ex.: 2007-05-30T19:05:11
         """
+
         return datetime.datetime.now().isoformat()[:19]
 
     def _calculate_datasum(self):
         """
         Calculate the value for the ``DATASUM`` card in the HDU.
         """
+
         if not self._data_loaded:
             # This is the case where the data has not been read from the file
             # yet.  We find the data in the file, read it, and calculate the
@@ -1432,6 +1459,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         """
         Calculate the value of the ``CHECKSUM`` card in the HDU.
         """
+
         old_checksum = self._header[checksum_keyword]
         self._header[checksum_keyword] = "0" * 16
 
@@ -1465,6 +1493,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         -------
         ones complement checksum
         """
+
         blocklen = 2880
         sum32 = np.uint32(sum32)
         for i in range(0, len(data), blocklen):
@@ -1482,6 +1511,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         Historically,  this code *was* called with larger blocks and for that
         reason still needs to be for backward compatibility.
         """
+
         u8 = np.uint32(8)
         u16 = np.uint32(16)
         uFFFF = np.uint32(0xFFFF)
@@ -1519,13 +1549,27 @@ class _ValidHDU(_BaseHDU, _Verify):
     # string.
     _MASK = [0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF]
 
-    _EXCLUDE = [0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x40,
-                0x5B, 0x5C, 0x5D, 0x5E, 0x5F, 0x60]  # fmt: skip
+    _EXCLUDE = [
+        0x3A,
+        0x3B,
+        0x3C,
+        0x3D,
+        0x3E,
+        0x3F,
+        0x40,
+        0x5B,
+        0x5C,
+        0x5D,
+        0x5E,
+        0x5F,
+        0x60,
+    ]
 
     def _encode_byte(self, byte):
         """
         Encode a single byte.
         """
+
         quotient = byte // 4 + ord("0")
         remainder = byte % 4
 
@@ -1558,6 +1602,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         -------
         ascii encoded checksum
         """
+
         value = np.uint32(value)
 
         asc = np.zeros((16,), dtype="byte")
@@ -1592,6 +1637,7 @@ class ExtensionHDU(_ValidHDU):
         extension HDU type should be used for a specific extension, or
         NonstandardExtHDU should be used.
         """
+
         raise NotImplementedError
 
     def writeto(self, name, output_verify="exception", overwrite=False, checksum=False):
@@ -1600,6 +1646,7 @@ class ExtensionHDU(_ValidHDU):
         `PrimaryHDU` are required by extension HDUs (which cannot stand on
         their own).
         """
+
         from .hdulist import HDUList
         from .image import PrimaryHDU
 
@@ -1646,6 +1693,7 @@ class NonstandardExtHDU(ExtensionHDU):
         Matches any extension HDU that is not one of the standard extension HDU
         types.
         """
+
         card = header.cards[0]
         xtension = card.value
         if isinstance(xtension, str):
@@ -1667,6 +1715,7 @@ class NonstandardExtHDU(ExtensionHDU):
         """
         Return the file data.
         """
+
         return self._get_raw_data(self.size, "ubyte", self._data_offset)
 
 

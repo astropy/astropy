@@ -437,6 +437,7 @@ class EarthLocation(u.Quantity):
         .. [4] https://developers.google.com/maps/documentation/geocoding/get-api-key
 
         """
+
         use_google = google_api_key is not None
 
         # Fail fast if invalid options are passed:
@@ -635,11 +636,11 @@ class EarthLocation(u.Quantity):
     # mostly for symmetry with geodetic and to_geodetic.
     @property
     def geocentric(self):
-        """Convert to a tuple with X, Y, and Z as quantities."""
+        """Convert to a tuple with X, Y, and Z as quantities"""
         return self.to_geocentric()
 
     def to_geocentric(self):
-        """Convert to a tuple with X, Y, and Z as quantities."""
+        """Convert to a tuple with X, Y, and Z as quantities"""
         return (self.x, self.y, self.z)
 
     def get_itrs(self, obstime=None):

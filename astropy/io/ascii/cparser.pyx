@@ -36,6 +36,7 @@ cdef extern from "src/tokenizer.h":
         START_QUOTED_FIELD
         FIELD
         QUOTED_FIELD
+        QUOTED_FIELD_NEWLINE
         COMMENT
         CARRIAGE_RETURN
 

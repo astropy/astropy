@@ -19,7 +19,6 @@ import numpy as np
 from astropy import config as _config
 from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.data_info import ParentDtypeInfo
-from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import isiterable
 
@@ -62,7 +61,7 @@ _UFUNCS_FILTER_WARNINGS = {np.arcsin, np.arccos, np.arccosh, np.arctanh}
 
 class Conf(_config.ConfigNamespace):
     """
-    Configuration parameters for Quantity.
+    Configuration parameters for Quantity
     """
 
     latex_array_threshold = _config.ConfigItem(
@@ -80,7 +79,7 @@ conf = Conf()
 
 class QuantityIterator:
     """
-    Flat iterator object to iterate over Quantities.
+    Flat iterator object to iterate over Quantities
 
     A `QuantityIterator` iterator is returned by ``q.flat`` for any Quantity
     ``q``.  It allows iterating over the array as if it were a 1-D array,
@@ -217,6 +216,7 @@ class QuantityInfo(QuantityInfoBase):
             Empty instance of this class consistent with ``cols``
 
         """
+
         # Get merged info attributes like shape, dtype, format, description, etc.
         attrs = self.merge_cols_attributes(
             cols, metadata_conflicts, name, ("meta", "format", "description")
@@ -731,9 +731,7 @@ class Quantity(np.ndarray):
 
         if out is None:
             # View the result array as a Quantity with the proper unit.
-            return (
-                result if unit is None else self._new_view(result, unit, finalize=False)
-            )
+            return result if unit is None else self._new_view(result, unit)
 
         elif isinstance(out, Quantity):
             # For given Quantity output, just set the unit. We know the unit
@@ -763,8 +761,9 @@ class Quantity(np.ndarray):
         """
         return Quantity, True
 
-    def _new_view(self, obj=None, unit=None, finalize=True):
-        """Create a Quantity view of some array-like input, and set the unit.
+    def _new_view(self, obj=None, unit=None):
+        """
+        Create a Quantity view of some array-like input, and set the unit
 
         By default, return a view of ``obj`` of the same class as ``self`` and
         with the same unit.  Subclasses can override the type of class for a
@@ -786,17 +785,9 @@ class Quantity(np.ndarray):
             subclass, and explicitly assigned to the view if given.
             If not given, the subclass and unit will be that of ``self``.
 
-        finalize : bool, optional
-            Whether to call ``__array_finalize__`` to transfer properties from
-            ``self`` to the new view of ``obj`` (e.g., ``info`` for all
-            subclasses, or ``_wrap_angle`` for `~astropy.coordinates.Latitude`).
-            Default: `True`, as appropriate for, e.g., unit conversions or slicing,
-            where the nature of the object does not change.
-
         Returns
         -------
         view : `~astropy.units.Quantity` subclass
-
         """
         # Determine the unit and quantity subclass that we need for the view.
         if unit is None:
@@ -832,15 +823,14 @@ class Quantity(np.ndarray):
         # such as ``info``, ``wrap_angle`` in `Longitude`, etc.
         view = obj.view(quantity_subclass)
         view._set_unit(unit)
-        if finalize:
-            view.__array_finalize__(self)
+        view.__array_finalize__(self)
         return view
 
     def _set_unit(self, unit):
         """Set the unit.
 
         This is used anywhere the unit is set or modified, i.e., in the
-        initializer, in ``__imul__`` and ``__itruediv__`` for in-place
+        initilizer, in ``__imul__`` and ``__itruediv__`` for in-place
         multiplication and division by another unit, as well as in
         ``__array_finalize__`` for wrapping up views.  For Quantity, it just
         sets the unit, but subclasses can override it to check that, e.g.,
@@ -929,7 +919,7 @@ class Quantity(np.ndarray):
             If `True` (default), then the value is copied.  Otherwise, a copy
             will only be made if necessary.
 
-        See Also
+        See also
         --------
         to_value : get the numerical value in a given unit.
         """
@@ -969,7 +959,7 @@ class Quantity(np.ndarray):
             The value in the units specified. For arrays, this will be a view
             of the data if no unit conversion was necessary.
 
-        See Also
+        See also
         --------
         to : Get a new instance in a different unit.
         """
@@ -1015,6 +1005,7 @@ class Quantity(np.ndarray):
         A `~astropy.units.UnitBase` object representing the unit of this
         quantity.
         """
+
         return self._unit
 
     @property
@@ -1023,6 +1014,7 @@ class Quantity(np.ndarray):
         A list of equivalencies that will be applied by default during
         unit conversions.
         """
+
         return self._equivalencies
 
     def _recursively_apply(self, func):
@@ -1211,11 +1203,10 @@ class Quantity(np.ndarray):
     # Arithmetic operations
     def __mul__(self, other):
         """Multiplication between `Quantity` objects and other objects."""
+
         if isinstance(other, (UnitBase, str)):
             try:
-                return self._new_view(
-                    self.value.copy(), other * self.unit, finalize=False
-                )
+                return self._new_view(self.copy(), other * self.unit)
             except UnitsError:  # let other try to deal with it
                 return NotImplemented
 
@@ -1223,6 +1214,7 @@ class Quantity(np.ndarray):
 
     def __imul__(self, other):
         """In-place multiplication between `Quantity` objects and others."""
+
         if isinstance(other, (UnitBase, str)):
             self._set_unit(other * self.unit)
             return self
@@ -1233,15 +1225,15 @@ class Quantity(np.ndarray):
         """
         Right Multiplication between `Quantity` objects and other objects.
         """
+
         return self.__mul__(other)
 
     def __truediv__(self, other):
         """Division between `Quantity` objects and other objects."""
+
         if isinstance(other, (UnitBase, str)):
             try:
-                return self._new_view(
-                    self.value.copy(), self.unit / other, finalize=False
-                )
+                return self._new_view(self.copy(), self.unit / other)
             except UnitsError:  # let other try to deal with it
                 return NotImplemented
 
@@ -1249,6 +1241,7 @@ class Quantity(np.ndarray):
 
     def __itruediv__(self, other):
         """Inplace division between `Quantity` objects and other objects."""
+
         if isinstance(other, (UnitBase, str)):
             self._set_unit(self.unit / other)
             return self
@@ -1257,17 +1250,16 @@ class Quantity(np.ndarray):
 
     def __rtruediv__(self, other):
         """Right Division between `Quantity` objects and other objects."""
+
         if isinstance(other, (UnitBase, str)):
-            return self._new_view(1.0 / self.value, other / self.unit, finalize=False)
+            return self._new_view(1.0 / self.value, other / self.unit)
 
         return super().__rtruediv__(other)
 
     def __pow__(self, other):
         if isinstance(other, Fraction):
             # Avoid getting object arrays by raising the value to a Fraction.
-            return self._new_view(
-                self.value ** float(other), self.unit**other, finalize=False
-            )
+            return self._new_view(self.value ** float(other), self.unit**other)
 
         return super().__pow__(other)
 
@@ -1291,9 +1283,7 @@ class Quantity(np.ndarray):
 
     def __getitem__(self, key):
         if isinstance(key, str) and isinstance(self.unit, StructuredUnit):
-            return self._new_view(
-                self.view(np.ndarray)[key], self.unit[key], finalize=False
-            )
+            return self._new_view(self.view(np.ndarray)[key], self.unit[key])
 
         try:
             out = super().__getitem__(key)
@@ -1597,6 +1587,7 @@ class Quantity(np.ndarray):
             A new object equal to this quantity with units decomposed.
 
         """
+
         new_unit = self.unit.decompose(bases=bases)
 
         # Be careful here because self.value usually is a view of self;
@@ -2014,13 +2005,12 @@ class Quantity(np.ndarray):
 
     if NUMPY_LT_1_22:
 
-        @deprecated("5.3", alternative="np.nansum", obj_type="method")
         def nansum(self, axis=None, out=None, keepdims=False):
             return self._wrap_function(np.nansum, axis, out=out, keepdims=keepdims)
 
     else:
-
-        @deprecated("5.3", alternative="np.nansum", obj_type="method")
+        # TODO: deprecate this method? It is not on ndarray, and we do not
+        # support nanmean, etc., so why this one?
         def nansum(
             self, axis=None, out=None, keepdims=False, *, initial=None, where=True
         ):
@@ -2170,7 +2160,7 @@ def isclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False, **kwargs):
         If the dimensions of ``a``, ``b``, or ``atol`` are incompatible,
         or if ``rtol`` is not dimensionless.
 
-    See Also
+    See also
     --------
     allclose
     """
@@ -2214,7 +2204,7 @@ def allclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False, **kwargs) -> bool:
         If the dimensions of ``a``, ``b``, or ``atol`` are incompatible,
         or if ``rtol`` is not dimensionless.
 
-    See Also
+    See also
     --------
     isclose
     """

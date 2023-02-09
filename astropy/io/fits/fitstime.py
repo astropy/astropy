@@ -32,30 +32,30 @@ FITS_TIME_UNIT = ["s", "d", "a", "cy", "min", "h", "yr", "ta", "Ba"]
 
 
 # Global time reference coordinate keywords
-OBSGEO_XYZ = ("OBSGEO-X", "OBSGEO-Y", "OBSGEO-Z")
-OBSGEO_LBH = ("OBSGEO-L", "OBSGEO-B", "OBSGEO-H")
 TIME_KEYWORDS = (
-    (
-        "DATE",
-        "DATE-AVG",
-        "DATE-BEG",
-        "DATE-END",
-        "DATE-OBS",
-        "DATEREF",
-        "JDREF",
-        "MJD-AVG",
-        "MJD-BEG",
-        "MJD-END",
-        "MJD-OBS",
-        "MJDREF",
-        "TIMEOFFS",
-        "TIMESYS",
-        "TIMEUNIT",
-        "TREFDIR",
-        "TREFPOS",
-    )
-    + OBSGEO_LBH
-    + OBSGEO_XYZ
+    "TIMESYS",
+    "MJDREF",
+    "JDREF",
+    "DATEREF",
+    "TREFPOS",
+    "TREFDIR",
+    "TIMEUNIT",
+    "TIMEOFFS",
+    "OBSGEO-X",
+    "OBSGEO-Y",
+    "OBSGEO-Z",
+    "OBSGEO-L",
+    "OBSGEO-B",
+    "OBSGEO-H",
+    "DATE",
+    "DATE-OBS",
+    "DATE-AVG",
+    "DATE-BEG",
+    "DATE-END",
+    "MJD-OBS",
+    "MJD-AVG",
+    "MJD-BEG",
+    "MJD-END",
 )
 
 
@@ -97,6 +97,7 @@ def _verify_global_info(global_info):
     global_info : dict
         Global time reference frame information.
     """
+
     # Translate FITS deprecated scale into astropy scale, or else just convert
     # to lower case for further checks.
     global_info["scale"] = FITS_DEPRECATED_SCALES.get(
@@ -145,7 +146,11 @@ def _verify_global_info(global_info):
         global_info["format"] = None
 
     # Check if geocentric global location is specified
-    obs_geo = [global_info[attr] for attr in OBSGEO_XYZ if attr in global_info]
+    obs_geo = [
+        global_info[attr]
+        for attr in ("OBSGEO-X", "OBSGEO-Y", "OBSGEO-Z")
+        if attr in global_info
+    ]
 
     # Location full specification is (X, Y, Z)
     if len(obs_geo) == 3:
@@ -162,7 +167,11 @@ def _verify_global_info(global_info):
             )
 
         # Check geodetic location
-        obs_geo = [global_info[attr] for attr in OBSGEO_LBH if attr in global_info]
+        obs_geo = [
+            global_info[attr]
+            for attr in ("OBSGEO-L", "OBSGEO-B", "OBSGEO-H")
+            if attr in global_info
+        ]
 
         if len(obs_geo) == 3:
             global_info["location"] = EarthLocation.from_geodetic(*obs_geo)
@@ -203,6 +212,7 @@ def _verify_column_info(column_info, global_info):
     column_info : dict
         Column-specific time reference frame override information.
     """
+
     scale = column_info.get("TCTYP", None)
     unit = column_info.get("TCUNI", None)
     location = column_info.get("TRPOS", None)
@@ -310,6 +320,7 @@ def _get_info_if_time_column(col, global_info):
     This is only applicable to the special-case where a column has the
     name 'TIME' and a time unit.
     """
+
     # Column with TTYPEn = 'TIME' and lacking any TC*n or time
     # specific keywords will be controlled by the global keywords.
     if col.info.name.upper() == "TIME" and col.info.unit in FITS_TIME_UNIT:
@@ -399,6 +410,7 @@ def _convert_time_column(col, column_info):
     column_info : dict
         Column-specific time reference frame override information.
     """
+
     # The code might fail while attempting to read FITS files not written by astropy.
     try:
         # ISO-8601 is the only string representation of time in FITS
@@ -485,6 +497,7 @@ def fits_to_time(hdr, table):
     hdr : `~astropy.io.fits.header.Header`
         Modified FITS Header (time metadata removed)
     """
+
     # Set defaults for global time scale, reference, etc.
     global_info = {"TIMESYS": "UTC", "TREFPOS": "TOPOCENTER"}
 
@@ -506,7 +519,9 @@ def fits_to_time(hdr, table):
             time_columns[int(idx)][base] = value
             hcopy.remove(key)
 
-        elif value in OBSGEO_XYZ and re.match("TTYPE[0-9]+", key):
+        elif value in ("OBSGEO-X", "OBSGEO-Y", "OBSGEO-Z") and re.match(
+            "TTYPE[0-9]+", key
+        ):
             global_info[value] = table[value]
 
     # Verify and get the global time reference frame information
@@ -605,7 +620,7 @@ def time_to_fits(table):
         coord_meta[col.info.name]["coord_unit"] = "d"
 
         # Time column reference position
-        if col.location is None:
+        if getattr(col, "location") is None:
             coord_meta[col.info.name]["time_ref_pos"] = None
             if location is not None:
                 warnings.warn(

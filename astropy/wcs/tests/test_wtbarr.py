@@ -43,16 +43,16 @@ def test_wtbarr_print(tab_wcs_2di, capfd):
     s = str(tab_wcs_2di.wcs.wtb[0])
     lines = s.split("\n")
     assert captured.out == s
-    assert lines[0] == "     i: 1"
-    assert lines[1] == "     m: 1"
-    assert lines[2] == "  kind: c"
-    assert lines[3] == "extnam: WCS-TABLE"
-    assert lines[4] == "extver: 1"
-    assert lines[5] == "extlev: 1"
-    assert lines[6] == " ttype: wavelength"
-    assert lines[7] == "   row: 1"
-    assert lines[8] == "  ndim: 3"
+    assert "     i: 1" == lines[0]
+    assert "     m: 1" == lines[1]
+    assert "  kind: c" == lines[2]
+    assert "extnam: WCS-TABLE" == lines[3]
+    assert "extver: 1" == lines[4]
+    assert "extlev: 1" == lines[5]
+    assert " ttype: wavelength" == lines[6]
+    assert "   row: 1" == lines[7]
+    assert "  ndim: 3" == lines[8]
     assert lines[9].startswith("dimlen: ")
-    assert lines[10] == "        0:   4"
-    assert lines[11] == "        1:   2"
+    assert "        0:   4" == lines[10]
+    assert "        1:   2" == lines[11]
     assert lines[12].startswith("arrayp: ")

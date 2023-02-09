@@ -37,6 +37,7 @@ def fnunpickle(fileorname, number=0):
         from the file.
 
     """
+
     if isinstance(fileorname, str):
         f = open(fileorname, "rb")
         close = True

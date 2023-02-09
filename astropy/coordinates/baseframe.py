@@ -42,6 +42,7 @@ def _get_repr_cls(value):
     """
     Return a valid representation class from ``value`` or raise exception.
     """
+
     if value in r.REPRESENTATION_CLASSES:
         value = r.REPRESENTATION_CLASSES[value]
     elif not isinstance(value, type) or not issubclass(value, r.BaseRepresentation):
@@ -59,6 +60,7 @@ def _get_diff_cls(value):
     As originally created, this is only used in the SkyCoord initializer, so if
     that is refactored, this function my no longer be necessary.
     """
+
     if value in r.DIFFERENTIAL_CLASSES:
         value = r.DIFFERENTIAL_CLASSES[value]
     elif not isinstance(value, type) or not issubclass(value, r.BaseDifferential):
@@ -684,11 +686,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     @lazyproperty
     def cache(self):
-        """Cache for this frame, a dict.
-
-        It stores anything that should be computed from the coordinate data (*not* from
-        the frame attributes). This can be used in functions to store anything that
-        might be expensive to compute but might be re-used by some other function.
+        """
+        Cache for this frame, a dict.  It stores anything that should be
+        computed from the coordinate data (*not* from the frame attributes).
+        This can be used in functions to store anything that might be
+        expensive to compute but might be re-used by some other function.
         E.g.::
 
             if 'user_data' in myframe.cache:
@@ -746,7 +748,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     @classmethod
     def get_frame_attr_defaults(cls):
-        """Return a dict with the defaults for each frame attribute."""
+        """Return a dict with the defaults for each frame attribute"""
         return {name: getattr(cls, name) for name in cls.frame_attributes}
 
     @deprecated(
@@ -761,7 +763,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     )
     @classmethod
     def get_frame_attr_names(cls):
-        """Return a dict with the defaults for each frame attribute."""
+        """Return a dict with the defaults for each frame attribute"""
         return cls.get_frame_attr_defaults()
 
     def get_representation_cls(self, which="base"):
@@ -1088,6 +1090,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         <SkyCoord (ICRS): (x, y, z) [dimensionless]
             (1., 0., 0.)>
         """
+
         # For backwards compatibility (because in_frame_units used to be the
         # 2nd argument), we check to see if `new_differential` is a boolean. If
         # it is, we ignore the value of `new_differential` and warn about the
@@ -1482,6 +1485,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     def _data_repr(self):
         """Returns a string representation of the coordinate data."""
+
         if not self.has_data:
             return ""
 
@@ -1725,6 +1729,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         TODO: We should handle dynamic representation transforms here (e.g.,
         `.cylindrical`) instead of defining properties as below.
         """
+
         # attr == '_representation' is likely from the hasattr() test in the
         # representation property which is used for
         # self.representation_component_names.
@@ -1866,6 +1871,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         ValueError
             If this or the other coordinate do not have distances.
         """
+
         from .distances import Distance
 
         if issubclass(self.data.__class__, r.UnitSphericalRepresentation):
@@ -1902,6 +1908,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         Shorthand for a cartesian representation of the coordinates in this
         object.
         """
+
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
         return self.represent_as("cartesian", in_frame_units=True)
@@ -1912,6 +1919,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         Shorthand for a cylindrical representation of the coordinates in this
         object.
         """
+
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
         return self.represent_as("cylindrical", in_frame_units=True)
@@ -1922,6 +1930,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         Shorthand for a spherical representation of the coordinates in this
         object.
         """
+
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
         return self.represent_as("spherical", in_frame_units=True)
@@ -1933,6 +1942,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         `~astropy.coordinates.SphericalCosLatDifferential` for the velocity
         data in this object.
         """
+
         # TODO: if representations are updated to use a full transform graph,
         #       the representation aliases should not be hard-coded like this
         return self.represent_as("spherical", "sphericalcoslat", in_frame_units=True)

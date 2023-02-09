@@ -17,7 +17,7 @@ from . import core
 
 class BasicHeader(core.BaseHeader):
     """
-    Basic table Header Reader.
+    Basic table Header Reader
 
     Set a few defaults for common ascii table formats
     (start at line 0, comments begin with ``#`` and possibly white space)
@@ -30,7 +30,7 @@ class BasicHeader(core.BaseHeader):
 
 class BasicData(core.BaseData):
     """
-    Basic table Data Reader.
+    Basic table Data Reader
 
     Set a few defaults for common ascii table formats
     (start at line 1, comments begin with ``#`` and possibly white space)
@@ -57,7 +57,6 @@ class Basic(core.BaseReader):
       1 2 3
       4 5 6
     """
-
     _format_name = "basic"
     _description = "Basic table with custom delimiters"
     _io_registry_format_aliases = ["ascii"]
@@ -68,7 +67,7 @@ class Basic(core.BaseReader):
 
 class NoHeaderHeader(BasicHeader):
     """
-    Reader for table header without a header.
+    Reader for table header without a header
 
     Set the start of header line number to `None`, which tells the basic
     reader there is no header line.
@@ -79,7 +78,7 @@ class NoHeaderHeader(BasicHeader):
 
 class NoHeaderData(BasicData):
     """
-    Reader for table data without a header.
+    Reader for table data without a header
 
     Data starts at first uncommented line since there is no header line.
     """
@@ -183,7 +182,7 @@ class CommentedHeader(Basic):
 
 
 class TabHeaderSplitter(core.DefaultSplitter):
-    """Split lines on tab and do not remove whitespace."""
+    """Split lines on tab and do not remove whitespace"""
 
     delimiter = "\t"
 
@@ -193,7 +192,7 @@ class TabHeaderSplitter(core.DefaultSplitter):
 
 class TabDataSplitter(TabHeaderSplitter):
     """
-    Don't strip data value whitespace since that is significant in TSV tables.
+    Don't strip data value whitespace since that is significant in TSV tables
     """
 
     process_val = None
@@ -202,7 +201,7 @@ class TabDataSplitter(TabHeaderSplitter):
 
 class TabHeader(BasicHeader):
     """
-    Reader for header of tables with tab separated header.
+    Reader for header of tables with tab separated header
     """
 
     splitter_class = TabHeaderSplitter
@@ -210,7 +209,7 @@ class TabHeader(BasicHeader):
 
 class TabData(BasicData):
     """
-    Reader for data of tables with tab separated data.
+    Reader for data of tables with tab separated data
     """
 
     splitter_class = TabDataSplitter
@@ -238,7 +237,7 @@ class Tab(Basic):
 
 class CsvSplitter(core.DefaultSplitter):
     """
-    Split on comma for CSV (comma-separated-value) tables.
+    Split on comma for CSV (comma-separated-value) tables
     """
 
     delimiter = ","
@@ -246,7 +245,7 @@ class CsvSplitter(core.DefaultSplitter):
 
 class CsvHeader(BasicHeader):
     """
-    Header that uses the :class:`astropy.io.ascii.basic.CsvSplitter`.
+    Header that uses the :class:`astropy.io.ascii.basic.CsvSplitter`
     """
 
     splitter_class = CsvSplitter
@@ -256,7 +255,7 @@ class CsvHeader(BasicHeader):
 
 class CsvData(BasicData):
     """
-    Data that uses the :class:`astropy.io.ascii.basic.CsvSplitter`.
+    Data that uses the :class:`astropy.io.ascii.basic.CsvSplitter`
     """
 
     splitter_class = CsvSplitter
@@ -328,7 +327,7 @@ class Csv(Basic):
 
 class RdbHeader(TabHeader):
     """
-    Header for RDB tables.
+    Header for RDB tables
     """
 
     col_type_map = {"n": core.NumType, "s": core.StrType}

@@ -466,6 +466,7 @@ def hms_to_hours(h, m, s=None):
     """
     Convert hour, minute, second to a float hour value.
     """
+
     check_hms_ranges(h, m, s)
 
     # determine sign
@@ -497,6 +498,7 @@ def hms_to_degrees(h, m, s):
     """
     Convert hour, minute, second to a float degrees value.
     """
+
     return hms_to_hours(h, m, s) * 15.0
 
 
@@ -504,6 +506,7 @@ def hms_to_radians(h, m, s):
     """
     Convert hour, minute, second to a float radians value.
     """
+
     return u.degree.to(u.radian, hms_to_degrees(h, m, s))
 
 
@@ -512,6 +515,7 @@ def hms_to_dms(h, m, s):
     Convert degrees, arcminutes, arcseconds to an ``(hour, minute, second)``
     tuple.
     """
+
     return degrees_to_dms(hms_to_degrees(h, m, s))
 
 
@@ -528,6 +532,7 @@ def hours_to_radians(h):
     """
     Convert an angle in Hours to Radians.
     """
+
     return u.hourangle.to(u.radian, h)
 
 
@@ -536,6 +541,7 @@ def hours_to_hms(h):
     Convert an floating-point hour value into an ``(hour, minute,
     second)`` tuple.
     """
+
     sign = np.copysign(1.0, h)
 
     (hf, h) = np.modf(np.abs(h))  # (degree fraction, degree)
@@ -563,6 +569,7 @@ def radians_to_hms(r):
     """
     Convert an angle in Radians to an ``(hour, minute, second)`` tuple.
     """
+
     hours = radians_to_hours(r)
     return hours_to_hms(hours)
 
@@ -572,6 +579,7 @@ def radians_to_dms(r):
     Convert an angle in Radians to an ``(degree, arcminute,
     arcsecond)`` tuple.
     """
+
     degrees = u.radian.to(u.degree, r)
     return degrees_to_dms(degrees)
 
@@ -584,6 +592,7 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(":",), fields=
     See `hours_to_string` and `degrees_to_string` for a higher-level
     interface to this functionality.
     """
+
     # Check to see if values[0] is negative, using np.copysign to handle -0
     sign = np.copysign(1.0, values[0])
     # If the coordinates are negative, we need to take the absolute values.

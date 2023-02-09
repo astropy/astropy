@@ -47,6 +47,7 @@ def leastsquare(measured_vals, updated_model, weights, *x):
     direct control.
 
     """
+
     model_vals = updated_model(*x)
 
     if np.shape(model_vals) != np.shape(measured_vals):

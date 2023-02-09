@@ -125,6 +125,7 @@ def pytest_unconfigure(config):
 
 def pytest_terminal_summary(terminalreporter):
     """Output a warning to IPython users in case any tests failed."""
+
     try:
         get_ipython()
     except NameError:

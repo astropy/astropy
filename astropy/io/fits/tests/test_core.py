@@ -1056,6 +1056,7 @@ class TestFileFunctions(FitsTestCase):
             mmap.mmap = old_mmap
             _File.__dict__["_mmap_available"]._cache.clear()
 
+    @pytest.mark.openfiles_ignore
     def test_mmap_allocate_error(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/1380
@@ -1081,7 +1082,7 @@ class TestFileFunctions(FitsTestCase):
             with patch.object(mmap, "mmap", side_effect=mmap_patched) as p:
                 with pytest.warns(
                     AstropyUserWarning,
-                    match=r"Could not memory map array with mode='readonly'",
+                    match=r"Could not memory " r"map array with mode='readonly'",
                 ):
                     data = hdulist[1].data
                 p.reset_mock()
@@ -1227,11 +1228,7 @@ class TestFileFunctions(FitsTestCase):
         def get_free_space_in_dir(path):
             return 0
 
-        msg = (
-            "Not enough space on disk: requested 8000, available 0. "
-            "Fake error raised when writing file."
-        )
-        with pytest.raises(OSError, match=msg) as exc:
+        with pytest.raises(OSError) as exc:
             monkeypatch.setattr(fits.hdu.base._BaseHDU, "_writeto", _writeto)
             monkeypatch.setattr(data, "get_free_space_in_dir", get_free_space_in_dir)
 
@@ -1242,6 +1239,11 @@ class TestFileFunctions(FitsTestCase):
 
             with open(filename, mode="wb") as fileobj:
                 hdulist.writeto(fileobj)
+
+        assert (
+            "Not enough space on disk: requested 8000, available 0. "
+            "Fake error raised when writing file." == exc.value.args[0]
+        )
 
     def test_flush_full_disk(self, monkeypatch):
         """
@@ -1263,15 +1265,16 @@ class TestFileFunctions(FitsTestCase):
         monkeypatch.setattr(fits.hdu.base._BaseHDU, "_writedata", _writedata)
         monkeypatch.setattr(data, "get_free_space_in_dir", get_free_space_in_dir)
 
-        msg = (
-            "Not enough space on disk: requested 8000, available 0. "
-            "Fake error raised when writing file."
-        )
-        with pytest.raises(OSError, match=msg) as exc:
+        with pytest.raises(OSError) as exc:
             with fits.open(filename, mode="update") as hdul:
                 hdul[0].data = np.arange(0, 1000, dtype="int64")
                 hdul.insert(1, fits.ImageHDU())
                 hdul.flush()
+
+        assert (
+            "Not enough space on disk: requested 8000, available 0. "
+            "Fake error raised when writing file." == exc.value.args[0]
+        )
 
     def _test_write_string_bytes_io(self, fileobj):
         """

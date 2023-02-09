@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-Helpers functions for different kinds of WCSAxes instances.
+Helpers functions for different kinds of WCSAxes instances
 """
 
 import numpy as np
@@ -37,7 +37,7 @@ def add_beam(
     **kwargs,
 ):
     """
-    Display the beam shape and size.
+    Display the beam shape and size
 
     Parameters
     ----------
@@ -79,6 +79,7 @@ def add_beam(
       (e.g., rectangular pixels)
 
     """
+
     if header and major:
         raise ValueError(
             "Either header or major/minor/angle must be specified, not both."
@@ -136,7 +137,7 @@ def add_scalebar(
     pad=0.5,
     **kwargs,
 ):
-    """Add a scale bar.
+    """Add a scale bar
 
     Parameters
     ----------
@@ -172,6 +173,7 @@ def add_scalebar(
       (e.g., rectangular pixels)
 
     """
+
     if isinstance(length, u.Quantity):
         length = length.to(u.degree).value
 

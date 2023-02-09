@@ -36,7 +36,8 @@ class ParameterDefinitionError(ParameterError):
 
 
 def _tofloat(value):
-    """Convert a parameter to float or float array."""
+    """Convert a parameter to float or float array"""
+
     if isiterable(value):
         try:
             value = np.asanyarray(value, dtype=float)
@@ -322,12 +323,13 @@ class Parameter:
 
     @property
     def name(self):
-        """Parameter name."""
+        """Parameter name"""
+
         return self._name
 
     @property
     def default(self):
-        """Parameter default value."""
+        """Parameter default value"""
         return self._default
 
     @property
@@ -375,6 +377,7 @@ class Parameter:
         model class, rather than a model instance) this is the required/
         default unit for the parameter.
         """
+
         return self._unit
 
     @unit.setter
@@ -404,7 +407,7 @@ class Parameter:
     @property
     def internal_unit(self):
         """
-        Return the internal unit the parameter uses for the internal value stored.
+        Return the internal unit the parameter uses for the internal value stored
         """
         return self._internal_unit
 
@@ -452,11 +455,13 @@ class Parameter:
     @property
     def size(self):
         """The size of this parameter's value array."""
+
         return np.size(self.value)
 
     @property
     def std(self):
         """Standard deviation, if available from fit."""
+
         return self._std
 
     @std.setter
@@ -500,23 +505,27 @@ class Parameter:
 
         A callable which provides the relationship of the two parameters.
         """
+
         return self._tied
 
     @tied.setter
     def tied(self, value):
-        """Tie a parameter."""
+        """Tie a parameter"""
+
         if not callable(value) and value not in (False, None):
             raise TypeError("Tied must be a callable or set to False or None")
         self._tied = value
 
     @property
     def bounds(self):
-        """The minimum and maximum values of a parameter as a tuple."""
+        """The minimum and maximum values of a parameter as a tuple"""
+
         return self._bounds
 
     @bounds.setter
     def bounds(self, value):
-        """Set the minimum and maximum values of a parameter from a tuple."""
+        """Set the minimum and maximum values of a parameter from a tuple"""
+
         _min, _max = value
         if _min is not None:
             if not isinstance(_min, (numbers.Number, Quantity)):
@@ -538,22 +547,26 @@ class Parameter:
 
     @property
     def min(self):
-        """A value used as a lower bound when fitting a parameter."""
+        """A value used as a lower bound when fitting a parameter"""
+
         return self.bounds[0]
 
     @min.setter
     def min(self, value):
-        """Set a minimum value of a parameter."""
+        """Set a minimum value of a parameter"""
+
         self.bounds = (value, self.max)
 
     @property
     def max(self):
-        """A value used as an upper bound when fitting a parameter."""
+        """A value used as an upper bound when fitting a parameter"""
+
         return self.bounds[1]
 
     @max.setter
     def max(self, value):
         """Set a maximum value of a parameter."""
+
         self.bounds = (self.min, value)
 
     @property
@@ -584,7 +597,7 @@ class Parameter:
         return validator
 
     def validate(self, value):
-        """Run the validator on this parameter."""
+        """Run the validator on this parameter"""
         if self._validator is not None and self._model is not None:
             self._validator(self._model, value)
 
@@ -617,6 +630,7 @@ class Parameter:
             Parameter(self.name, self.description, ...)
 
         """
+
         kwargs = locals().copy()
         del kwargs["self"]
 
@@ -674,6 +688,7 @@ class Parameter:
         a second argument then this creates a partial function using the model
         instance as the second argument.
         """
+
         if isinstance(wrapper, np.ufunc):
             if wrapper.nin != 1:
                 raise TypeError(
@@ -742,6 +757,7 @@ def param_repr_oneline(param):
     Like array_repr_oneline but works on `Parameter` objects and supports
     rendering parameters with units like quantities.
     """
+
     out = array_repr_oneline(param.value)
     if param.unit is not None:
         out = f"{out} {param.unit!s}"

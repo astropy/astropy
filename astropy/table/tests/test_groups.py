@@ -480,7 +480,6 @@ def test_table_aggregate_reduceat(T1):
     """
     Aggregate table with functions which have a reduceat method
     """
-
     # Comparison functions without reduceat
     def np_mean(x):
         return np.mean(x)
@@ -558,11 +557,11 @@ def test_table_filter():
     """
 
     def all_positive(table, key_colnames):
-        return all(
-            np.all(table[colname] >= 0)
-            for colname in table.colnames
-            if colname not in key_colnames
-        )
+        colnames = [name for name in table.colnames if name not in key_colnames]
+        for colname in colnames:
+            if np.any(table[colname] < 0):
+                return False
+        return True
 
     # Negative value in 'a' column should not filter because it is a key col
     t = Table.read(

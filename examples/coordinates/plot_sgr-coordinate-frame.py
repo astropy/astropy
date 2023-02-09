@@ -21,6 +21,7 @@ by the `~astropy.coordinates.Galactic` class.
 
 See Also
 --------
+
 * The `gala package <http://gala.adrian.pw/>`_, which defines a number of
   Astropy coordinate frames for stellar stream coordinate systems.
 * Majewski et al. 2003, "A Two Micron All Sky Survey View of the Sagittarius
@@ -144,7 +145,9 @@ SGR_MATRIX = (
 
 @frame_transform_graph.transform(coord.StaticMatrixTransform, coord.Galactic, Sagittarius)
 def galactic_to_sgr():
-    """Compute the Galactic spherical to heliocentric Sgr transformation matrix."""
+    """ Compute the transformation matrix from Galactic spherical to
+        heliocentric Sgr coordinates.
+    """
     return SGR_MATRIX
 
 
@@ -159,7 +162,9 @@ def galactic_to_sgr():
 
 @frame_transform_graph.transform(coord.StaticMatrixTransform, Sagittarius, coord.Galactic)
 def sgr_to_galactic():
-    """Compute the heliocentric Sgr to spherical Galactic transformation matrix."""
+    """ Compute the transformation matrix from heliocentric Sgr coordinates to
+        spherical Galactic.
+    """
     return matrix_transpose(SGR_MATRIX)
 
 

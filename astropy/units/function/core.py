@@ -304,7 +304,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
         return not self.__eq__(other)
 
     def __rlshift__(self, other):
-        """Unit conversion operator ``<<``."""
+        """Unit conversion operator ``<<``"""
         try:
             return self._quantity_class(other, self, copy=False, subok=True)
         except Exception:
@@ -543,7 +543,7 @@ class FunctionQuantity(Quantity):
                 # if iterable, see if first item has a unit
                 # (mixed lists fail in super call below).
                 try:
-                    value_unit = value[0].unit
+                    value_unit = getattr(value[0], "unit")
                 except Exception:
                     pass
             physical_unit = getattr(value_unit, "physical_unit", value_unit)
@@ -669,8 +669,7 @@ class FunctionQuantity(Quantity):
     def _comparison(self, other, comparison_func):
         """Do a comparison between self and other, raising UnitsError when
         other cannot be converted to self because it has different physical
-        unit, and returning NotImplemented when there are other errors.
-        """
+        unit, and returning NotImplemented when there are other errors."""
         try:
             # will raise a UnitsError if physical units not equivalent
             other_in_own_unit = self._to_own_unit(other, check_precision=False)
@@ -715,7 +714,7 @@ class FunctionQuantity(Quantity):
         return self._comparison(other, self.value.__le__)
 
     def __lshift__(self, other):
-        """Unit conversion operator `<<`."""
+        """Unit conversion operator `<<`"""
         try:
             other = Unit(other, parse_strict="silent")
         except UnitTypeError:

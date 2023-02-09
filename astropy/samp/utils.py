@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Utility functions and classes.
+Utility functions and classes
 """
 
 
@@ -83,6 +83,7 @@ class ServerProxyPool:
 
     def shutdown(self):
         """Shut down the proxy pool by closing all active connections."""
+
         while True:
             try:
                 proxy = self._proxies.get_nowait()

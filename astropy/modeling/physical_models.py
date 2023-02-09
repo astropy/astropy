@@ -37,6 +37,7 @@ class BlackBody(Fittable1DModel):
 
     Notes
     -----
+
     Model formula:
 
         .. math:: B_{\\nu}(T) = A \\frac{2 h \\nu^{3} / c^{2}}{exp(h \\nu / k T) - 1}
@@ -267,6 +268,7 @@ class Drude1D(Fittable1DModel):
 
     Examples
     --------
+
     .. plot::
         :include-source:
 
@@ -296,7 +298,7 @@ class Drude1D(Fittable1DModel):
     @staticmethod
     def evaluate(x, amplitude, x_0, fwhm):
         """
-        One dimensional Drude model function.
+        One dimensional Drude model function
         """
         return (
             amplitude
@@ -462,6 +464,7 @@ class NFW(Fittable1DModel):
 
     Notes
     -----
+
     Model formula:
 
     .. math:: \rho(r)=\frac{\delta_c\rho_{c}}{r/r_s(1+r/r_s)^2}
@@ -530,7 +533,7 @@ class NFW(Fittable1DModel):
 
     def evaluate(self, r, mass, concentration, redshift):
         """
-        One dimensional NFW profile function.
+        One dimensional NFW profile function
 
         Parameters
         ----------
@@ -648,6 +651,7 @@ class NFW(Fittable1DModel):
 
         Notes
         -----
+
         Model formula:
 
         .. math:: A_{NFW} = [\ln(1+y) - \frac{y}{1+y}]
@@ -678,7 +682,7 @@ class NFW(Fittable1DModel):
     @property
     def rho_scale(self):
         r"""
-        Scale density of the NFW profile. Often written in the literature as :math:`\rho_s`.
+        Scale density of the NFW profile. Often written in the literature as :math:`\rho_s`
         """
         return self.density_s
 
@@ -749,6 +753,7 @@ class NFW(Fittable1DModel):
 
         Notes
         -----
+
         Model formula:
 
         .. math:: v_{circ}(r)^2 = \frac{1}{x}\frac{\ln(1+cx)-(cx)/(1+cx)}{\ln(1+c)-c/(1+c)}

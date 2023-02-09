@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""Implements rotations, including spherical rotations as defined in WCS Paper II [1]_.
+"""
+Implements rotations, including spherical rotations as defined in WCS Paper II
+[1]_
 
 `RotateNative2Celestial` and `RotateCelestial2Native` follow the convention in
 WCS Paper II to rotate to/from a native sphere and the celestial sphere.
@@ -506,6 +508,7 @@ class Rotation2D(Model):
     @property
     def inverse(self):
         """Inverse rotation."""
+
         return self.__class__(angle=-self.angle)
 
     @classmethod
@@ -522,6 +525,7 @@ class Rotation2D(Model):
             If float, assumed in degrees.
 
         """
+
         if x.shape != y.shape:
             raise ValueError("Expected input arrays to have the same shape")
 

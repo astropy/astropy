@@ -50,6 +50,7 @@ def _validate_arg_value(
     Validates the object passed in to the wrapped function, ``arg``, with target
     unit or physical type, ``target``.
     """
+
     if len(targets) == 0:
         return
 
@@ -157,6 +158,7 @@ class QuantityInput:
 
         Notes
         -----
+
         The checking of arguments inside variable arguments to a function is not
         supported (i.e. \*arg or \**kwargs).
 
@@ -165,6 +167,7 @@ class QuantityInput:
 
         Examples
         --------
+
         .. code-block:: python
 
             import astropy.units as u

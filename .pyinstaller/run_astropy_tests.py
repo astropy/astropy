@@ -119,6 +119,7 @@ sys.exit(
         plugins=[
             "pytest_astropy.plugin",
             "pytest_doctestplus.plugin",
+            "pytest_openfiles.plugin",
             "pytest_remotedata.plugin",
             "pytest_astropy_header.display",
         ],

@@ -113,8 +113,6 @@ specifying ``ascii=True`` is a good practice (though ``astropy`` will still
 figure out what you meant in most cases).
 
 
-.. _variable_length_array_tables:
-
 Variable Length Array Tables
 ============================
 

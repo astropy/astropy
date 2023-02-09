@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""This module contains functions to determine where configuration and
+""" This module contains functions to determine where configuration and
 data/cache files used by Astropy should be placed.
 """
 
@@ -99,6 +99,7 @@ def get_config_dir(rootname="astropy"):
         The absolute path to the configuration directory.
 
     """
+
     # symlink will be set to this if the directory is created
     linkto = None
 
@@ -146,6 +147,7 @@ def get_cache_dir(rootname="astropy"):
         The absolute path to the cache directory.
 
     """
+
     # symlink will be set to this if the directory is created
     linkto = None
 
@@ -221,6 +223,7 @@ class set_temp_config(_SetTempPath):
 
     Parameters
     ----------
+
     path : str, optional
         The directory (which must exist) in which to find the Astropy config
         files, or create them if they do not already exist.  If None, this
@@ -271,6 +274,7 @@ class set_temp_cache(_SetTempPath):
 
     Parameters
     ----------
+
     path : str
         The directory (which must exist) in which to find the Astropy cache
         files, or create them if they do not already exist.  If None, this

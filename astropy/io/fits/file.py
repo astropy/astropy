@@ -111,7 +111,8 @@ def _normalize_fits_mode(mode):
     if mode is not None and mode not in IO_FITS_MODES:
         if TEXT_RE.match(mode):
             raise ValueError(
-                f"Text mode '{mode}' not supported: files must be opened in binary mode"
+                "Text mode '{}' not supported: "
+                "files must be opened in binary mode".format(mode)
             )
         new_mode = FILE_MODES.get(mode)
         if new_mode not in IO_FITS_MODES:
@@ -292,6 +293,7 @@ class _File:
         Usually it's best not to use the `size` argument with this method, but
         it's provided for compatibility.
         """
+
         if not hasattr(self._file, "read"):
             raise EOFError
 
@@ -319,11 +321,15 @@ class _File:
 
             if actualsize > size:
                 raise ValueError(
-                    f"size {size} is too few bytes for a {shape} array of {dtype}"
+                    "size {} is too few bytes for a {} array of {}".format(
+                        size, shape, dtype
+                    )
                 )
             elif actualsize < size:
                 raise ValueError(
-                    f"size {size} is too many bytes for a {shape} array of {dtype}"
+                    "size {} is too many bytes for a {} array of {}".format(
+                        size, shape, dtype
+                    )
                 )
 
         filepos = self._file.tell()
@@ -411,6 +417,7 @@ class _File:
         Also like file.write(), a flush() or close() may be needed before
         the file on disk reflects the data written.
         """
+
         if self.simulateonly:
             return
         if hasattr(self._file, "write"):
@@ -449,6 +456,7 @@ class _File:
         """
         Close the 'physical' FITS file.
         """
+
         if hasattr(self._file, "close"):
             self._file.close()
 
@@ -468,12 +476,8 @@ class _File:
 
         This will close the mmap if there are no arrays referencing it.
         """
-        # sys.getrefcount is CPython specific and not on PyPy.
-        if (
-            self._mmap is not None
-            and hasattr(sys, "getrefcount")
-            and sys.getrefcount(self._mmap) == 2 + refcount_delta
-        ):
+
+        if self._mmap is not None and sys.getrefcount(self._mmap) == 2 + refcount_delta:
             self._mmap.close()
             self._mmap = None
 
@@ -483,6 +487,7 @@ class _File:
         _File object state and is only meant for use within the ``_open_*``
         internal methods.
         """
+
         # The file will be overwritten...
         if (self.file_like and hasattr(fileobj, "len") and fileobj.len > 0) or (
             os.path.exists(self.name) and os.path.getsize(self.name) != 0
@@ -498,7 +503,7 @@ class _File:
                 raise OSError(NOT_OVERWRITING_MSG.format(self.name))
 
     def _try_read_compressed(self, obj_or_name, magic, mode, ext=""):
-        """Attempt to determine if the given file is compressed."""
+        """Attempt to determine if the given file is compressed"""
         is_ostream = mode == "ostream"
         if (is_ostream and ext == ".gz") or magic.startswith(GZIP_MAGIC):
             if mode == "append":
@@ -536,6 +541,7 @@ class _File:
 
     def _open_fileobj(self, fileobj, mode, overwrite):
         """Open a FITS file from a file object (including compressed files)."""
+
         closed = fileobj_closed(fileobj)
         # FIXME: this variable was unused, check if it was useful
         # fmode = fileobj_mode(fileobj) or IO_FITS_MODES[mode]
@@ -571,12 +577,15 @@ class _File:
         """Open a FITS file from a file-like object, i.e. one that has
         read and/or write methods.
         """
+
         self.file_like = True
         self._file = fileobj
 
         if fileobj_closed(fileobj):
             raise OSError(
-                f"Cannot read from/write to a closed file-like object ({fileobj!r})."
+                "Cannot read from/write to a closed file-like object ({!r}).".format(
+                    fileobj
+                )
             )
 
         if isinstance(fileobj, zipfile.ZipFile):
@@ -611,6 +620,7 @@ class _File:
 
     def _open_filename(self, filename, mode, overwrite):
         """Open a FITS file from a filename string."""
+
         if mode == "ostream":
             self._overwrite_existing(overwrite, None, True)
 
@@ -641,6 +651,7 @@ class _File:
         If mmap.flush is found not to work, ``self.memmap = False`` is
         set and a warning is issued.
         """
+
         tmpfd, tmpname = tempfile.mkstemp()
         try:
             # Windows does not allow mappings on empty files
@@ -650,7 +661,9 @@ class _File:
                 mm = mmap.mmap(tmpfd, 1, access=mmap.ACCESS_WRITE)
             except OSError as exc:
                 warnings.warn(
-                    f"Failed to create mmap: {exc}; mmap use will be disabled",
+                    "Failed to create mmap: {}; mmap use will be disabled".format(
+                        str(exc)
+                    ),
                     AstropyUserWarning,
                 )
                 del exc
@@ -677,6 +690,7 @@ class _File:
         a file.  Allows reading only for now by extracting the file to a
         tempfile.
         """
+
         if mode in ("update", "append"):
             raise OSError("Writing to zipped fits files is not currently supported")
 

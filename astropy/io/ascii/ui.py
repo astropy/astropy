@@ -106,7 +106,7 @@ def _probably_html(table, maxchars=100000):
 
 def set_guess(guess):
     """
-    Set the default value of the ``guess`` parameter for read().
+    Set the default value of the ``guess`` parameter for read()
 
     Parameters
     ----------
@@ -470,6 +470,7 @@ def _guess(table, read_kwargs, format, fast_reader):
     dat : `~astropy.table.Table` or None
         Output table or None if only one guess format was available
     """
+
     # Keep a trace of all failed guesses kwarg
     failed_kwargs = []
 
@@ -651,10 +652,9 @@ def _guess(table, read_kwargs, format, fast_reader):
 
 
 def _get_guess_kwargs_list(read_kwargs):
-    """Get the full list of reader keyword argument dicts.
-
-    These are the basis for the format guessing process.
-    The returned full list will then be:
+    """
+    Get the full list of reader keyword argument dicts that are the basis
+    for the format guessing process.  The returned full list will then be:
 
     - Filtered to be consistent with user-supplied kwargs
     - Cleaned to have only unique entries
@@ -788,8 +788,7 @@ def _read_in_chunks_generator(table, chunk_size, **kwargs):
     @contextlib.contextmanager
     def passthrough_fileobj(fileobj, encoding=None):
         """Stub for get_readable_fileobj, which does not seem to work in Py3
-        for input file-like object, see #6460.
-        """
+        for input file-like object, see #6460"""
         yield fileobj
 
     # Set up to coerce `table` input into a readable file object by selecting
@@ -1013,4 +1012,5 @@ def get_read_trace():
     trace : list of dict
         Ordered list of format guesses and status
     """
+
     return copy.deepcopy(_read_trace)

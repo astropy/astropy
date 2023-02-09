@@ -155,6 +155,7 @@ def circvar(data, axis=None, weights=None):
     Precisely, Scipy circvar uses an approximation based on the limit of small
     angles which approaches the linear variance.
     """
+
     return 1.0 - _length(data, 1, 0.0, axis, weights)
 
 

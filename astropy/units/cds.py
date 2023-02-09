@@ -27,6 +27,7 @@ _ns = globals()
 
 def _initialize_module():
     """Initialize CDS units module."""
+
     # Local imports to avoid polluting top-level namespace
     import numpy as np
 

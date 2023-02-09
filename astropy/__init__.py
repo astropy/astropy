@@ -68,7 +68,7 @@ from .utils.state import ScienceState
 
 class base_constants_version(ScienceState):
     """
-    Base class for the real version-setters below.
+    Base class for the real version-setters below
     """
 
     _value = "test"
@@ -98,7 +98,7 @@ class base_constants_version(ScienceState):
 
 class physical_constants(base_constants_version):
     """
-    The version of physical constants to use.
+    The version of physical constants to use
     """
 
     # Maintainers: update when new constants are added
@@ -116,7 +116,7 @@ class physical_constants(base_constants_version):
 
 class astronomical_constants(base_constants_version):
     """
-    The version of astronomical constants to use.
+    The version of astronomical constants to use
     """
 
     # Maintainers: update when new constants are added
@@ -141,7 +141,7 @@ test = TestRunner.make_test_runner_in(__path__[0])
 # configuration file with the defaults
 def _initialize_astropy():
     try:
-        from .utils import _compiler
+        from .utils import _compiler  # noqa: F401
     except ImportError:
         # If this __init__.py file is in ./astropy/ then import is within a source
         # dir .astropy-root is a file distributed with the source, but that should
@@ -175,7 +175,7 @@ log = _init_log()
 
 _initialize_astropy()
 
-from .utils.misc import find_api_page
+from .utils.misc import find_api_page  # noqa: F401
 
 
 def online_help(query):

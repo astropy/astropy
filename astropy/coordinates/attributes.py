@@ -175,6 +175,7 @@ class TimeAttribute(Attribute):
         ValueError
             If the input is not valid for this attribute.
         """
+
         from astropy.time import Time
 
         if value is None:
@@ -239,6 +240,7 @@ class CartesianRepresentationAttribute(Attribute):
         ValueError
             If the input is not valid for this attribute.
         """
+
         if (
             isinstance(value, list)
             and len(value) == 3
@@ -327,6 +329,7 @@ class QuantityAttribute(Attribute):
         ValueError
             If the input is not valid for this attribute.
         """
+
         if value is None:
             return None, False
 
@@ -393,6 +396,7 @@ class EarthLocationAttribute(Attribute):
         ValueError
             If the input is not valid for this attribute.
         """
+
         if value is None:
             return None, False
         elif isinstance(value, EarthLocation):
@@ -516,6 +520,7 @@ class DifferentialAttribute(Attribute):
         ValueError
             If the input is not valid for this attribute.
         """
+
         if value is None:
             return None, False
 

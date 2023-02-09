@@ -98,23 +98,37 @@ class MetaTestMixin:
         cosmo.meta[key] = cosmo.meta.pop(key)  # will error if immutable
 
 
-class CosmologyTest(
+class TestCosmology(
     ParameterTestMixin,
     MetaTestMixin,
     ReadWriteTestMixin,
     ToFromFormatTestMixin,
     metaclass=abc.ABCMeta,
 ):
-    """
-    Test subclasses of :class:`astropy.cosmology.Cosmology`.
+    """Test :class:`astropy.cosmology.Cosmology`.
+
+    Subclasses should define tests for:
+
+    - ``test_clone_change_param()``
+    - ``test_repr()``
     """
 
-    @abc.abstractmethod
     def setup_class(self):
-        """Setup for testing."""
+        """
+        Setup for testing.
+        Cosmology should not be instantiated, so tests are done on a subclass.
+        """
+        # make sure SubCosmology is known
+        _COSMOLOGY_CLASSES["SubCosmology"] = SubCosmology
+
+        self.cls = SubCosmology
+        self._cls_args = dict(
+            H0=70 * (u.km / u.s / u.Mpc), Tcmb0=2.7 * u.K, m_nu=0.6 * u.eV
+        )
+        self.cls_kwargs = dict(name=self.__class__.__name__, meta={"a": "b"})
 
     def teardown_class(self):
-        pass
+        _COSMOLOGY_CLASSES.pop("SubCosmology", None)
 
     @property
     def cls_args(self):
@@ -206,9 +220,10 @@ class CosmologyTest(
         with pytest.raises(AttributeError, match=match):
             cosmo.name = None
 
-    @abc.abstractmethod
     def test_is_flat(self, cosmo_cls, cosmo):
-        """Test property ``is_flat``."""
+        """Test property ``is_flat``. It's an ABC."""
+        with pytest.raises(NotImplementedError, match="is_flat is not implemented"):
+            cosmo.is_flat
 
     # ------------------------------------------------
     # clone
@@ -370,41 +385,26 @@ class CosmologyTest(
         assert unpickled.meta == cosmo.meta
 
 
-class TestCosmology(CosmologyTest):
-    """Test :class:`astropy.cosmology.Cosmology`.
-
-    Subclasses should define tests for:
-
-    - ``test_clone_change_param()``
-    - ``test_repr()``
+class CosmologySubclassTest(TestCosmology):
+    """
+    Test subclasses of :class:`astropy.cosmology.Cosmology`.
+    This is broken away from ``TestCosmology``, because |Cosmology| is/will be
+    an ABC and subclasses must override some methods.
     """
 
+    @abc.abstractmethod
     def setup_class(self):
-        """
-        Setup for testing.
-        Cosmology should not be instantiated, so tests are done on a subclass.
-        """
-        # make sure SubCosmology is known
-        _COSMOLOGY_CLASSES["SubCosmology"] = SubCosmology
-
-        self.cls = SubCosmology
-        self._cls_args = dict(
-            H0=70 * (u.km / u.s / u.Mpc), Tcmb0=2.7 * u.K, m_nu=0.6 * u.eV
-        )
-        self.cls_kwargs = dict(name=self.__class__.__name__, meta={"a": "b"})
-
-    def teardown_class(self):
-        """Teardown for testing."""
-        super().teardown_class(self)
-        _COSMOLOGY_CLASSES.pop("SubCosmology", None)
+        """Setup for testing."""
 
     # ===============================================================
     # Method & Attribute Tests
 
+    # ---------------------------------------------------------------
+    # instance-level
+
+    @abc.abstractmethod
     def test_is_flat(self, cosmo_cls, cosmo):
-        """Test property ``is_flat``. It's an ABC."""
-        with pytest.raises(NotImplementedError, match="is_flat is not implemented"):
-            cosmo.is_flat
+        """Test property ``is_flat``."""
 
 
 # -----------------------------------------------------------------------------
@@ -480,7 +480,7 @@ class FlatCosmologyMixinTest:
         e.g. FlatFLRWMixinTest -> FlatCosmologyMixinTest -> TestCosmology
         vs   FlatFLRWMixinTest -> FlatCosmologyMixinTest -> TestFLRW -> TestCosmology
         """
-        CosmologyTest.test_is_equivalent(self, cosmo)
+        CosmologySubclassTest.test_is_equivalent(self, cosmo)
 
         # See FlatFLRWMixinTest for tests. It's a bit hard here since this class
         # is for an ABC.
@@ -520,7 +520,6 @@ def test__nonflatclass__multiple_nonflat_inheritance():
     Test :meth:`astropy.cosmology.core.FlatCosmologyMixin.__nonflatclass__`
     when there's more than one non-flat class in the inheritance.
     """
-
     # Define a non-operable minimal subclass of Cosmology.
     class SubCosmology2(Cosmology):
         def __init__(self, H0, Tcmb0=0 * u.K, m_nu=0 * u.eV, name=None, meta=None):

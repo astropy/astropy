@@ -33,7 +33,7 @@ __all__ = [
 
 
 class LogUnit(FunctionUnitBase):
-    """Logarithmic unit containing a physical one.
+    """Logarithmic unit containing a physical one
 
     Usually, logarithmic units are instantiated via specific subclasses
     such `~astropy.units.MagUnit`, `~astropy.units.DecibelUnit`, and
@@ -61,14 +61,12 @@ class LogUnit(FunctionUnitBase):
 
     def from_physical(self, x):
         """Transformation from value in physical to value in logarithmic units.
-        Used in equivalency.
-        """
+        Used in equivalency."""
         return dex.to(self._function_unit, np.log10(x))
 
     def to_physical(self, x):
         """Transformation from value in logarithmic to value in physical units.
-        Used in equivalency.
-        """
+        Used in equivalency."""
         return 10 ** self._function_unit.to(dex, x)
 
     # ^^^^ the four essential overrides of FunctionUnitBase
@@ -129,7 +127,7 @@ class LogUnit(FunctionUnitBase):
 
 
 class MagUnit(LogUnit):
-    """Logarithmic physical units expressed in magnitudes.
+    """Logarithmic physical units expressed in magnitudes
 
     Parameters
     ----------
@@ -152,7 +150,7 @@ class MagUnit(LogUnit):
 
 
 class DexUnit(LogUnit):
-    """Logarithmic physical units expressed in magnitudes.
+    """Logarithmic physical units expressed in magnitudes
 
     Parameters
     ----------
@@ -184,7 +182,7 @@ class DexUnit(LogUnit):
 
 
 class DecibelUnit(LogUnit):
-    """Logarithmic physical units expressed in dB.
+    """Logarithmic physical units expressed in dB
 
     Parameters
     ----------
@@ -207,7 +205,7 @@ class DecibelUnit(LogUnit):
 
 
 class LogQuantity(FunctionQuantity):
-    """A representation of a (scaled) logarithm of a number with a unit.
+    """A representation of a (scaled) logarithm of a number with a unit
 
     Parameters
     ----------

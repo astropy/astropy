@@ -103,6 +103,7 @@ def support_nddata(
 
     Examples
     --------
+
     This function takes a Numpy array for the data, and some WCS information
     with the ``wcs`` keyword argument::
 

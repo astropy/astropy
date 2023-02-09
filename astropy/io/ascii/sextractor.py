@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""sextractor.py:
-  Classes to read SExtractor table format.
+""" sextractor.py:
+  Classes to read SExtractor table format
 
 Built on daophot.py:
 :Copyright: Smithsonian Astrophysical Observatory (2011)
@@ -30,6 +30,7 @@ class SExtractorHeader(core.BaseHeader):
             List of table lines
 
         """
+
         # This assumes that the columns are listed in order, one per line with a
         # header comment string of the format: "# 1 ID short description [unit]"
         # However, some may be missing and must be inferred from skipped column numbers

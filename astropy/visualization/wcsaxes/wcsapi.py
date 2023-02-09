@@ -63,21 +63,21 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
             axis_type_split = axis_type.split(".")
 
             if "pos.helioprojective.lon" in axis_type:
-                coord_wrap = 180.0 * u.deg
+                coord_wrap = 180.0
                 format_unit = u.arcsec
                 coord_type = "longitude"
             elif "pos.helioprojective.lat" in axis_type:
                 format_unit = u.arcsec
                 coord_type = "latitude"
             elif "pos.heliographic.stonyhurst.lon" in axis_type:
-                coord_wrap = 180.0 * u.deg
+                coord_wrap = 180.0
                 format_unit = u.deg
                 coord_type = "longitude"
             elif "pos.heliographic.stonyhurst.lat" in axis_type:
                 format_unit = u.deg
                 coord_type = "latitude"
             elif "pos.heliographic.carrington.lon" in axis_type:
-                coord_wrap = 360.0 * u.deg
+                coord_wrap = 360.0
                 format_unit = u.deg
                 coord_type = "longitude"
             elif "pos.heliographic.carrington.lat" in axis_type:
@@ -282,7 +282,7 @@ def wcsapi_to_celestial_frame(wcs):
 
 class WCSWorld2PixelTransform(CurvedTransform):
     """
-    WCS transformation from world to pixel coordinates.
+    WCS transformation from world to pixel coordinates
     """
 
     has_inverse = True
@@ -335,14 +335,14 @@ class WCSWorld2PixelTransform(CurvedTransform):
 
     def inverted(self):
         """
-        Return the inverse of the transform.
+        Return the inverse of the transform
         """
         return WCSPixel2WorldTransform(self.wcs, invert_xy=self.invert_xy)
 
 
 class WCSPixel2WorldTransform(CurvedTransform):
     """
-    WCS transformation from pixel to world coordinates.
+    WCS transformation from pixel to world coordinates
     """
 
     has_inverse = True
@@ -397,6 +397,6 @@ class WCSPixel2WorldTransform(CurvedTransform):
 
     def inverted(self):
         """
-        Return the inverse of the transform.
+        Return the inverse of the transform
         """
         return WCSWorld2PixelTransform(self.wcs, invert_xy=self.invert_xy)

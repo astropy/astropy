@@ -76,6 +76,7 @@ class _TableLikeHDU(_ValidHDU):
         This is even more abstract than _TableBaseHDU which is specifically for
         the standard ASCII and Binary Table types.
         """
+
         raise NotImplementedError
 
     @classmethod
@@ -137,6 +138,7 @@ class _TableLikeHDU(_ValidHDU):
         Any additional keyword arguments accepted by the HDU class's
         ``__init__`` may also be passed in as keyword arguments.
         """
+
         coldefs = cls._columns_type(columns)
         data = FITS_rec.from_columns(
             coldefs, nrows=nrows, fill=fill, character_as_bytes=character_as_bytes
@@ -152,6 +154,7 @@ class _TableLikeHDU(_ValidHDU):
         """
         The :class:`ColDefs` objects describing the columns in this table.
         """
+
         # The base class doesn't make any assumptions about where the column
         # definitions come from, so just return an empty ColDefs
         return ColDefs([])
@@ -164,10 +167,12 @@ class _TableLikeHDU(_ValidHDU):
 
         For now this is an internal-only attribute.
         """
+
         raise NotImplementedError
 
     def _get_tbdata(self):
         """Get the table data from an input HDU object."""
+
         columns = self.columns
 
         # TODO: Details related to variable length arrays need to be dealt with
@@ -417,6 +422,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         the ASCII and Binary Table HDU types, which should be used instead of
         this.
         """
+
         raise NotImplementedError
 
     @lazyproperty
@@ -424,6 +430,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         """
         The :class:`ColDefs` objects describing the columns in this table.
         """
+
         if self._has_data and hasattr(self.data, "_coldefs"):
             return self.data._coldefs
         return self._columns_type(self)
@@ -515,6 +522,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         """
         Update header keywords to reflect recent changes of columns.
         """
+
         self._header.set("NAXIS1", self.data._raw_itemsize, after="NAXIS")
         self._header.set("NAXIS2", self.data.shape[0], after="NAXIS1")
         self._header.set("TFIELDS", len(self.columns), after="GCOUNT")
@@ -526,6 +534,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         """
         Make a copy of the table HDU, both header and data are copied.
         """
+
         # touch the data, so it's defined (in the case of reading from a
         # FITS file)
         return self.__class__(data=self.data.copy(), header=self._header.copy())
@@ -563,6 +572,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         """
         _TableBaseHDU verify method.
         """
+
         errs = super()._verify(option=option)
         if len(self._header) > 1:
             if not (
@@ -600,6 +610,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         """
         Summarize the HDU: name, dimensions, and formats.
         """
+
         class_name = self.__class__.__name__
 
         # if data is touched, use data info.
@@ -637,6 +648,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         """
         Update the header when one of the column objects is updated.
         """
+
         # base_keyword is the keyword without the index such as TDIM
         # while keyword is like TDIM1
         base_keyword = ATTRIBUTE_TO_KEYWORD[attr]
@@ -679,6 +691,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         up keywords for any other columns).  The index is zero-based.
         Otherwise keywords for all columns.
         """
+
         # First collect all the table structure related keyword in the header
         # into a single list so we can then sort them by index, which will be
         # useful later for updating the header in a sensible order (since the
@@ -736,6 +749,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
     def _populate_table_keywords(self):
         """Populate the new table definition keywords from the header."""
+
         for idx, column in enumerate(self.columns):
             for keyword, attr in KEYWORD_TO_ATTRIBUTE.items():
                 val = getattr(column, attr)
@@ -828,6 +842,7 @@ class TableHDU(_TableBaseHDU):
         """
         Calculate the value for the ``DATASUM`` card in the HDU.
         """
+
         if self._has_data:
             # We have the data to be used.
             # We need to pad the data to a block length before calculating
@@ -850,6 +865,7 @@ class TableHDU(_TableBaseHDU):
         """
         `TableHDU` verify method.
         """
+
         errs = super()._verify(option=option)
         self.req_cards("PCOUNT", None, lambda v: (v == 0), 0, option, errs)
         tfields = self._header["TFIELDS"]
@@ -926,8 +942,9 @@ class BinTableHDU(_TableBaseHDU):
 
     def _calculate_datasum_with_heap(self):
         """
-        Calculate the value for the ``DATASUM`` card given the input data.
+        Calculate the value for the ``DATASUM`` card given the input data
         """
+
         with _binary_table_byte_swap(self.data) as data:
             dout = data.view(type=np.ndarray, dtype=np.ubyte)
             csum = self._compute_checksum(dout)
@@ -959,6 +976,7 @@ class BinTableHDU(_TableBaseHDU):
         """
         Calculate the value for the ``DATASUM`` card in the HDU.
         """
+
         if self._has_data:
             # This method calculates the datasum while incorporating any
             # heap data, which is obviously not handled from the base
@@ -1134,6 +1152,7 @@ class BinTableHDU(_TableBaseHDU):
         The `load` method can be used to create a new table from the three
         plain text (ASCII) files.
         """
+
         if isinstance(datafile, path_like):
             datafile = os.path.expanduser(datafile)
         if isinstance(cdfile, path_like):
@@ -1155,7 +1174,9 @@ class BinTableHDU(_TableBaseHDU):
         if exist:
             raise OSError(
                 "  ".join([f"File '{f}' already exists." for f in exist])
-                + "  If you mean to replace the file(s) then use the argument "
+                + "  If you mean to "
+                "replace the file(s) "
+                "then use the argument "
                 "'overwrite=True'."
             )
 
@@ -1223,6 +1244,7 @@ class BinTableHDU(_TableBaseHDU):
         parameters.  The `dump` method can be used to create the initial ASCII
         files.
         """
+
         # Process the parameter file
         if header is None:
             header = Header()
@@ -1262,6 +1284,7 @@ class BinTableHDU(_TableBaseHDU):
         Write the table data in the ASCII format read by BinTableHDU.load()
         to fileobj.
         """
+
         if not fileobj and self._file:
             root = os.path.splitext(self._file.name)[0]
             fileobj = root + ".txt"
@@ -1334,6 +1357,7 @@ class BinTableHDU(_TableBaseHDU):
         Write the column definition parameters in the ASCII format read by
         BinTableHDU.load() to fileobj.
         """
+
         close_file = False
 
         if isinstance(fileobj, str):
@@ -1360,6 +1384,7 @@ class BinTableHDU(_TableBaseHDU):
         """
         Read the table data from the ASCII file output by BinTableHDU.dump().
         """
+
         close_file = False
 
         if isinstance(fileobj, path_like):
@@ -1505,6 +1530,7 @@ class BinTableHDU(_TableBaseHDU):
         Read the table column definitions from the ASCII file output by
         BinTableHDU.dump().
         """
+
         close_file = False
 
         if isinstance(fileobj, path_like):
@@ -1544,6 +1570,7 @@ def _binary_table_byte_swap(data):
     Because a new dtype is needed to represent the byte-swapped columns, the
     new dtype is temporarily applied as well.
     """
+
     orig_dtype = data.dtype
 
     names = []

@@ -1310,9 +1310,13 @@ class DuckQuantity2(DuckQuantity1):
 @dataclasses.dataclass(eq=False)
 class DuckQuantity3(DuckQuantity2):
     def __array_ufunc__(self, function, method, *inputs, **kwargs):
+
         inputs = [inp.data if isinstance(inp, type(self)) else inp for inp in inputs]
 
-        out = kwargs.get("out", None)
+        if "out" in kwargs:
+            out = kwargs["out"]
+        else:
+            out = None
 
         kwargs_copy = {}
         for k in kwargs:

@@ -57,13 +57,14 @@ class TestRunnerBase:
     defining 'keyword' methods. These are methods that have the
     :class:`~astropy.tests.runner.keyword` decorator, these methods are used to
     construct allowed keyword arguments to the
-    `~astropy.tests.runner.TestRunnerBase.run_tests` method as a way to allow
+    ``run_tests`` method as a way to allow
     customization of individual keyword arguments (and associated logic)
     without having to re-implement the whole
-    `~astropy.tests.runner.TestRunnerBase.run_tests` method.
+    ``run_tests`` method.
 
     Examples
     --------
+
     A simple keyword method::
 
         class MyRunner(TestRunnerBase):
@@ -183,7 +184,8 @@ class TestRunnerBase:
 
     @classmethod
     def _has_test_dependencies(cls):  # pragma: no cover
-        # Using the test runner will not work without these dependencies.
+        # Using the test runner will not work without these dependencies, but
+        # pytest-openfiles is optional, so it's not listed here.
         for module in cls._required_dependencies:
             spec = find_spec(module)
             # Checking loader accounts for packages that were uninstalled
@@ -250,12 +252,13 @@ class TestRunnerBase:
         """
         Constructs a `TestRunner` to run in the given path, and returns a
         ``test()`` function which takes the same arguments as
-        `~astropy.tests.runner.TestRunner.run_tests`.
+        ``TestRunner.run_tests``.
 
         The returned ``test()`` function will be defined in the module this
         was called from.  This is used to implement the ``astropy.test()``
         function (or the equivalent for affiliated packages).
         """
+
         runner = cls(path)
 
         @wraps(runner.run_tests, ("__doc__",))
@@ -281,7 +284,7 @@ class TestRunnerBase:
 
 class TestRunner(TestRunnerBase):
     """
-    A test runner for astropy tests.
+    A test runner for astropy tests
     """
 
     def packages_path(self, packages, base_path, error=None, warning=None):
@@ -467,6 +470,7 @@ class TestRunner(TestRunnerBase):
             data from http://data.astropy.org (``astropy``), or all tests that
             use remote data (``any``). The default is ``none``.
         """
+
         if remote_data is True:
             remote_data = "any"
         elif remote_data is False:
@@ -515,6 +519,35 @@ class TestRunner(TestRunnerBase):
             return ["--pdb"]
         return []
 
+    @keyword()
+    def open_files(self, open_files, kwargs):
+        """
+        open_files : bool, optional
+            Fail when any tests leave files open.  Off by default, because
+            this adds extra run time to the test suite.  Requires the
+            ``psutil`` package.
+        """
+        if open_files:
+            if kwargs["parallel"] != 0:
+                raise SystemError(
+                    "open file detection may not be used in conjunction with "
+                    "parallel testing."
+                )
+
+            try:
+                import psutil  # noqa: F401
+            except ImportError:
+                raise SystemError(
+                    "open file detection requested, but psutil package "
+                    "is not installed."
+                )
+
+            return ["--open-files"]
+
+            print("Checking for unclosed files")
+
+        return []
+
     @keyword(0)
     def parallel(self, parallel, kwargs):
         """
@@ -541,6 +574,7 @@ class TestRunner(TestRunnerBase):
         docs_path : str, optional
             The path to the documentation .rst files.
         """
+
         paths = []
         if docs_path is not None and not kwargs["skip_docs"]:
             if kwargs["package"] is not None:

@@ -218,7 +218,7 @@ class ToFromTableTestMixin(ToFromTestMixinBase):
         assert not isinstance(obj, Cosmology)
 
         is_equiv = cosmo.is_equivalent(obj, format=format)
-        assert is_equiv is (format is not False)
+        assert is_equiv is (True if format is not False else False)
 
 
 class TestToFromTable(ToFromDirectTestBase, ToFromTableTestMixin):

@@ -121,7 +121,7 @@ UNSUPPORTED_UFUNCS = UFUNC_HELPERS.UNSUPPORTED
 
 
 def can_have_arbitrary_unit(value):
-    """Test whether the items in value can have arbitrary units.
+    """Test whether the items in value can have arbitrary units
 
     Numbers whose value does not change upon a unit change, i.e.,
     zero, infinity, or not-a-number
@@ -165,6 +165,7 @@ def converters_and_unit(function, method, *args):
     UnitTypeError : when the conversion to the required (or consistent) units
         is not possible.
     """
+
     # Check whether we support this ufunc, by getting the helper function
     # (defined in helpers) which returns a list of function(s) that convert the
     # input(s) to the unit required for the ufunc, as well as the unit the

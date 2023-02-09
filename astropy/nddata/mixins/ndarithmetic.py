@@ -305,7 +305,7 @@ class NDArithmeticMixin:
 
     def _arithmetic_data(self, operation, operand, **kwds):
         """
-        Calculate the resulting data.
+        Calculate the resulting data
 
         Parameters
         ----------
@@ -326,6 +326,7 @@ class NDArithmeticMixin:
             array, but if any of the operands had a unit the return is a
             Quantity.
         """
+
         # Do the calculation with or without units
         if self.unit is None and operand.unit is None:
             result = operation(self.data, operand.data)
@@ -371,6 +372,7 @@ class NDArithmeticMixin:
             subclass that ``self`` had (or ``operand`` if self had no
             uncertainty). ``None`` only if both had no uncertainty.
         """
+
         # Make sure these uncertainties are NDUncertainties so this kind of
         # propagation is possible.
         if self.uncertainty is not None and not isinstance(
@@ -421,7 +423,7 @@ class NDArithmeticMixin:
 
     def _arithmetic_mask(self, operation, operand, handle_mask, **kwds):
         """
-        Calculate the resulting mask.
+        Calculate the resulting mask
 
         This is implemented as the piecewise ``or`` operation if both have a
         mask.
@@ -449,6 +451,7 @@ class NDArithmeticMixin:
             If neither had a mask ``None`` is returned. Otherwise
             ``handle_mask`` must create (and copy) the returned mask.
         """
+
         # If only one mask is present we need not bother about any type checks
         if self.mask is None and operand.mask is None:
             return None
@@ -496,6 +499,7 @@ class NDArithmeticMixin:
         result_wcs : any type
             The ``wcs`` of the first operand is returned.
         """
+
         # ok, not really arithmetic but we need to check which wcs makes sense
         # for the result and this is an ideal place to compare the two WCS,
         # too.

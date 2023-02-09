@@ -163,6 +163,7 @@ class _ModelMeta(abc.ABCMeta):
         """
         Custom repr for Model subclasses.
         """
+
         return cls._format_cls_repr()
 
     def _repr_pretty_(cls, p, cycle):
@@ -172,6 +173,7 @@ class _ModelMeta(abc.ABCMeta):
         By default IPython "pretty prints" classes, so we need to implement
         this so that IPython displays the custom repr for Models.
         """
+
         p.text(repr(cls))
 
     def __reduce__(cls):
@@ -201,6 +203,7 @@ class _ModelMeta(abc.ABCMeta):
         This attribute is provided for symmetry with the `Model.name` attribute
         of model instances.
         """
+
         return cls.__name__
 
     @property
@@ -233,6 +236,7 @@ class _ModelMeta(abc.ABCMeta):
             >>> isinstance(r, Rotation2D)
             True
         """
+
         mod = find_current_module(2)
         if mod:
             modname = mod.__name__
@@ -286,6 +290,7 @@ class _ModelMeta(abc.ABCMeta):
         as a fixed tuple or a property or method) and wraps it in the generic
         getter/setter interface for the bounding_box attribute.
         """
+
         # TODO: Much of this is verbatim from _create_inverse_property--I feel
         # like there could be a way to generify properties that work this way,
         # but for the time being that would probably only confuse things more.
@@ -330,6 +335,7 @@ class _ModelMeta(abc.ABCMeta):
         computed in _create_bounding_box_property, so no need to duplicate that
         effort.
         """
+
         # TODO: Might be convenient if calling the bounding box also
         # automatically sets the _user_bounding_box.  So that
         #
@@ -480,6 +486,7 @@ class _ModelMeta(abc.ABCMeta):
         override the default ``__repr__`` while keeping the same basic
         formatting.
         """
+
         # For the sake of familiarity start the output with the standard class
         # __repr__
         parts = [super().__repr__()]
@@ -885,6 +892,7 @@ class Model(metaclass=_ModelMeta):
         dimensionless numbers for that input.
         Only has an effect if input_units is defined.
         """
+
         val = self._input_units_allow_dimensionless
         if isinstance(val, bool):
             return {key: val for key in self.inputs}
@@ -963,8 +971,9 @@ class Model(metaclass=_ModelMeta):
 
     def _pre_evaluate(self, *args, **kwargs):
         """
-        Model specific input setup that needs to occur prior to model evaluation.
+        Model specific input setup that needs to occur prior to model evaluation
         """
+
         # Broadcast inputs into common size
         inputs, broadcasted_shapes = self.prepare_inputs(*args, **kwargs)
 
@@ -1005,15 +1014,15 @@ class Model(metaclass=_ModelMeta):
 
     @property
     def _argnames(self):
-        """The inputs used to determine input_shape for bounding_box evaluation."""
+        """The inputs used to determine input_shape for bounding_box evaluation"""
         return self.inputs
 
     def _validate_input_shape(
         self, _input, idx, argnames, model_set_axis, check_model_set_axis
     ):
-        """Perform basic validation of a single model input's shape.
-
-        The shape has the minimum dimensions for the given model_set_axis.
+        """
+        Perform basic validation of a single model input's shape
+            -- it has the minimum dimensions for the given model_set_axis
 
         Returns the shape of the input if validation succeeds.
         """
@@ -1051,6 +1060,7 @@ class Model(metaclass=_ModelMeta):
         If validation succeeds, returns the total shape that will result from
         broadcasting the input arrays with each other.
         """
+
         check_model_set_axis = self._n_models > 1 and model_set_axis is not False
 
         all_shapes = []
@@ -1070,14 +1080,15 @@ class Model(metaclass=_ModelMeta):
         return input_shape
 
     def input_shape(self, inputs):
-        """Get input shape for bounding_box evaluation."""
+        """Get input shape for bounding_box evaluation"""
         return self._validate_input_shapes(inputs, self._argnames, self.model_set_axis)
 
     def _generic_evaluate(self, evaluate, _inputs, fill_value, with_bbox):
-        """Generic model evaluation routine.
-
-        Selects and evaluates model with or without bounding_box enforcement.
         """
+        Generic model evaluation routine
+            Selects and evaluates model with or without bounding_box enforcement
+        """
+
         # Evaluate the model using the prepared evaluation method either
         #   enforcing the bounding_box or not.
         bbox = self.get_bounding_box(with_bbox)
@@ -1089,7 +1100,7 @@ class Model(metaclass=_ModelMeta):
 
     def _post_evaluate(self, inputs, outputs, broadcasted_shapes, with_bbox, **kwargs):
         """
-        Model specific post evaluation processing of outputs.
+        Model specific post evaluation processing of outputs
         """
         if self.get_bounding_box(with_bbox) is None and self.n_outputs == 1:
             outputs = (outputs,)
@@ -1198,11 +1209,13 @@ class Model(metaclass=_ModelMeta):
     @property
     def name(self):
         """User-provided name for this model instance."""
+
         return self._name
 
     @name.setter
     def name(self, val):
         """Assign a (new) name to this model."""
+
         self._name = val
 
     @property
@@ -1215,6 +1228,7 @@ class Model(metaclass=_ModelMeta):
         See the documentation on :ref:`astropy:modeling-model-sets`
         for more details.
         """
+
         return self._model_set_axis
 
     @property
@@ -1226,6 +1240,7 @@ class Model(metaclass=_ModelMeta):
         that parameter's values across all parameter sets, with the last axis
         associated with the parameter set.
         """
+
         return self._param_sets()
 
     @property
@@ -1235,6 +1250,7 @@ class Model(metaclass=_ModelMeta):
 
         Fittable parameters maintain this list and fitters modify it.
         """
+
         # Currently the sequence of a model's parameters must be contiguous
         # within the _parameters array (which may be a view of a larger array,
         # for example when taking a sub-expression of a compound model), so
@@ -1255,6 +1271,7 @@ class Model(metaclass=_ModelMeta):
         Assigning to this attribute updates the parameters array rather than
         replacing it.
         """
+
         if not self.param_names:
             return
 
@@ -1320,11 +1337,13 @@ class Model(metaclass=_ModelMeta):
     @property
     def eqcons(self):
         """List of parameter equality constraints."""
+
         return self._mconstraints["eqcons"]
 
     @property
     def ineqcons(self):
         """List of parameter inequality constraints."""
+
         return self._mconstraints["ineqcons"]
 
     def has_inverse(self):
@@ -1392,6 +1411,7 @@ class Model(metaclass=_ModelMeta):
         Resets the model's inverse to its default (if one exists, otherwise
         the model will have no inverse).
         """
+
         try:
             del self._user_inverse
         except AttributeError:
@@ -1428,6 +1448,7 @@ class Model(metaclass=_ModelMeta):
 
         Examples
         --------
+
         Setting the ``bounding_box`` limits for a 1D and 2D model:
 
         >>> from astropy.modeling.models import Gaussian1D, Gaussian2D
@@ -1463,6 +1484,7 @@ class Model(metaclass=_ModelMeta):
         use `del model.bounding_box` to restore the default bounding box,
         if one is defined for this model).
         """
+
         if self._user_bounding_box is not None:
             if self._user_bounding_box is NotImplemented:
                 raise NotImplementedError(
@@ -1494,12 +1516,15 @@ class Model(metaclass=_ModelMeta):
         """
         Assigns the bounding box limits.
         """
+
         if bounding_box is None:
             cls = None
             # We use this to explicitly set an unimplemented bounding box (as
             # opposed to no user bounding box defined)
             bounding_box = NotImplemented
-        elif isinstance(bounding_box, (CompoundBoundingBox, dict)):
+        elif isinstance(bounding_box, CompoundBoundingBox) or isinstance(
+            bounding_box, dict
+        ):
             cls = CompoundBoundingBox
         elif isinstance(self._bounding_box, type) and issubclass(
             self._bounding_box, ModelBoundingBox
@@ -1533,6 +1558,7 @@ class Model(metaclass=_ModelMeta):
         assigned to this model by a user, via assignment to
         ``model.bounding_box``.
         """
+
         return self._user_bounding_box is not None
 
     @property
@@ -1584,6 +1610,7 @@ class Model(metaclass=_ModelMeta):
     @property
     def separable(self):
         """A flag indicating whether a model is separable."""
+
         if self._separable is not None:
             return self._separable
         raise NotImplementedError(
@@ -1604,6 +1631,7 @@ class Model(metaclass=_ModelMeta):
 
         Notes
         -----
+
         This method is needed in order to be able to fit models with units in
         the parameters, since we need to temporarily strip away the units from
         the model during the fitting (which might be done by e.g. scipy
@@ -1647,13 +1675,14 @@ class Model(metaclass=_ModelMeta):
     def output_units(self, **kwargs):
         """
         Return a dictionary of output units for this model given a dictionary
-        of fitting inputs and outputs.
+        of fitting inputs and outputs
 
         The input and output Quantity objects should be given as keyword
         arguments.
 
         Notes
         -----
+
         This method is needed in order to be able to fit models with units in
         the parameters, since we need to temporarily strip away the units from
         the model during the fitting (which might be done by e.g. scipy
@@ -1695,6 +1724,7 @@ class Model(metaclass=_ModelMeta):
 
         Notes
         -----
+
         This method is needed in order to be able to fit models with units in
         the parameters, since we need to temporarily strip away the units from
         the model during the fitting (which might be done by e.g. scipy
@@ -1736,7 +1766,11 @@ class Model(metaclass=_ModelMeta):
     @property
     def _has_units(self):
         # Returns True if any of the parameters have units
-        return any(getattr(self, param).unit is not None for param in self.param_names)
+        for param in self.param_names:
+            if getattr(self, param).unit is not None:
+                return True
+        else:
+            return False
 
     @property
     def _supports_unit_fitting(self):
@@ -1803,6 +1837,7 @@ class Model(metaclass=_ModelMeta):
         --------
         :ref:`astropy:bounding-boxes`
         """
+
         try:
             bbox = self.bounding_box
         except NotImplementedError:
@@ -2265,6 +2300,7 @@ class Model(metaclass=_ModelMeta):
         Uses a deep copy so that all model attributes, including parameter
         values, are copied as well.
         """
+
         return copy.deepcopy(self)
 
     def deepcopy(self):
@@ -2272,6 +2308,7 @@ class Model(metaclass=_ModelMeta):
         Return a deep copy of this model.
 
         """
+
         return self.copy()
 
     @sharedmethod
@@ -2326,6 +2363,7 @@ class Model(metaclass=_ModelMeta):
 
         Examples
         --------
+
         Wrapping a unitless model to require and convert units:
 
         >>> from astropy.modeling.models import Polynomial1D
@@ -2447,6 +2485,7 @@ class Model(metaclass=_ModelMeta):
         Pop parameter constraint values off the keyword arguments passed to
         `Model.__init__` and store them in private instance attributes.
         """
+
         # Pop any constraints off the keyword arguments
         for constraint in self.parameter_constraints:
             values = kwargs.pop(constraint, {})
@@ -2766,6 +2805,7 @@ class Model(metaclass=_ModelMeta):
         Note: This is notably an overcomplicated device and may be removed
         entirely in the near future.
         """
+
         values = []
         shapes = []
         for name in self.param_names:
@@ -2821,6 +2861,7 @@ class Model(metaclass=_ModelMeta):
         override the default ``__repr__`` while keeping the same basic
         formatting.
         """
+
         parts = [repr(a) for a in args]
 
         parts.extend(
@@ -2849,6 +2890,7 @@ class Model(metaclass=_ModelMeta):
         override the default ``__str__`` while keeping the same basic
         formatting.
         """
+
         default_keywords = [
             ("Model", self.__class__.__name__),
             ("Name", self.name),
@@ -3264,8 +3306,9 @@ class CompoundModel(Model):
 
     def both_inverses_exist(self):
         """
-        if both members of this compound model have inverses return True.
+        if both members of this compound model have inverses return True
         """
+
         import warnings
 
         from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -3293,6 +3336,7 @@ class CompoundModel(Model):
             All of the _pre_evaluate for each component model will be
             performed at the time that the individual model is evaluated.
         """
+
         # If equivalencies are provided, necessary to map parameters and pass
         # the leaflist as a keyword input for use by model evaluation so that
         # the compound model input names can be matched to the model input
@@ -3312,13 +3356,13 @@ class CompoundModel(Model):
     @property
     def _argnames(self):
         """
-        No inputs should be used to determine input_shape when handling compound models.
+        No inputs should be used to determine input_shape when handling compound models
         """
         return ()
 
     def _post_evaluate(self, inputs, outputs, broadcasted_shapes, with_bbox, **kwargs):
         """
-        CompoundModel specific post evaluation processing of outputs.
+        CompoundModel specific post evaluation processing of outputs
 
         Note
         ----
@@ -3410,7 +3454,7 @@ class CompoundModel(Model):
         """
         If someone accesses an attribute not already defined, map the
         parameters, and then see if the requested attribute is one of
-        the parameters.
+        the parameters
         """
         # The following test is needed to avoid infinite recursion
         # caused by deepcopy. There may be other such cases discovered.
@@ -3867,6 +3911,7 @@ class CompoundModel(Model):
         assigned to this model by a user, via assignment to
         ``model.bounding_box``.
         """
+
         return self._user_bounding_box is not None
 
     def render(self, out=None, coords=None):
@@ -3910,6 +3955,7 @@ class CompoundModel(Model):
         --------
         :ref:`astropy:bounding-boxes`
         """
+
         bbox = self.get_bounding_box()
 
         ndim = self.n_inputs
@@ -4149,6 +4195,7 @@ class CompoundModel(Model):
         Outside the mixed output units, this method is identical to the
         base method.
         """
+
         if self.op in ["*", "/"]:
             left_kwargs = kwargs.pop("_left_kwargs")
             right_kwargs = kwargs.pop("_right_kwargs")
@@ -4166,8 +4213,7 @@ class CompoundModel(Model):
 
 def _get_submodel_path(model, name):
     """Find the route down a CompoundModel's tree to the model with the
-    specified name (whether it's a leaf or not).
-    """
+    specified name (whether it's a leaf or not)"""
     if getattr(model, "name", None) == name:
         return []
     try:
@@ -4202,10 +4248,10 @@ def get_ops(tree, opset):
 
 
 def make_subtree_dict(tree, nodepath, tdict, leaflist):
-    """Traverse a tree noting each node by a key.
-
-    The key indicates all the left/right choices necessary to reach that node.
-    Each key will reference a tuple that contains:
+    """
+    Traverse a tree noting each node by a key that indicates all the
+    left/right choices necessary to reach that node. Each key will
+    reference a tuple that contains:
 
     - reference to the compound model for that node.
     - left most index contained within that subtree
@@ -4248,6 +4294,7 @@ def fix_inputs(modelinstance, values, bounding_boxes=None, selector_args=None):
 
     Examples
     --------
+
     >>> from astropy.modeling.models import Gaussian2D
     >>> g = Gaussian2D(1, 2, 3, 4, 5)
     >>> gv = fix_inputs(g, {0: 2.5})
@@ -4411,6 +4458,7 @@ def custom_model(*args, fit_deriv=None):
         >>> model(1, 1)  # doctest: +FLOAT_CMP
         0.3333333333333333
     """
+
     if len(args) == 1 and callable(args[0]):
         return _custom_model_wrapper(args[0], fit_deriv=fit_deriv)
     elif not args:
@@ -4486,6 +4534,7 @@ def _custom_model_wrapper(func, fit_deriv=None):
     When `custom_model` is used as a decorator a partial evaluation of this
     function is returned by `custom_model`.
     """
+
     if not callable(func):
         raise ModelDefinitionError(
             "func is not callable; it must be a function or other callable object"
@@ -4530,7 +4579,7 @@ def _custom_model_wrapper(func, fit_deriv=None):
     members.update(params)
 
     cls = type(model_name, (FittableModel,), members)
-    cls._separable = len(inputs) == 1
+    cls._separable = True if (len(inputs) == 1) else False
     return cls
 
 
@@ -4562,6 +4611,7 @@ def render_model(model, arr=None, coords=None):
     --------
     :ref:`astropy:bounding-boxes`
     """
+
     bbox = model.bounding_box
 
     if (coords is None) & (arr is None) & (bbox is None):
@@ -4640,8 +4690,7 @@ def hide_inverse(model):
     model's inverse. This is to handle cases where user provided inverse
     functions are not compatible within an expression.
 
-    For example::
-
+    Example:
         compound_model.inverse = hide_inverse(m1) + m2 + m3
 
     This will insure that the defined inverse itself won't attempt to

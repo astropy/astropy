@@ -202,6 +202,7 @@ class FixedWidthHeader(basic.BasicHeader):
             List of ending indices.
 
         """
+
         # If column positions are already specified then just use those.
         # If neither column starts or ends are given, figure out positions
         # between delimiters. Otherwise, either the starts or the ends have
@@ -357,13 +358,13 @@ class FixedWidth(basic.Basic):
 
 
 class FixedWidthNoHeaderHeader(FixedWidthHeader):
-    """Header reader for fixed with tables with no header line."""
+    """Header reader for fixed with tables with no header line"""
 
     start_line = None
 
 
 class FixedWidthNoHeaderData(FixedWidthData):
-    """Data reader for fixed width tables with no header line."""
+    """Data reader for fixed width tables with no header line"""
 
     start_line = 0
 

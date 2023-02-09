@@ -1047,7 +1047,6 @@ Reference/API
     api/images.rst
     api/diff.rst
     api/verification.rst
-    api/tiled_compression.rst
 
 .. rubric:: Footnotes
 

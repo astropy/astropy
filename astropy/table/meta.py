@@ -177,12 +177,12 @@ def _get_variable_length_array_shape(col):
     be ``np.dtype(object)``.
 
     Parameters
-    ----------
+    ==========
     col : column-like
         Input table column, assumed to be object-type
 
     Returns
-    -------
+    =======
     shape : tuple
         Inferred variable length shape or None
     dtype : np.dtype
@@ -190,7 +190,7 @@ def _get_variable_length_array_shape(col):
     """
 
     class ConvertError(ValueError):
-        """Local conversion error used below."""
+        """Local conversion error used below"""
 
     # Numpy types supported as variable-length arrays
     np_classes = (np.floating, np.integer, np.bool_, np.unicode_)
@@ -217,7 +217,7 @@ def _get_variable_length_array_shape(col):
 
 
 def _get_datatype_from_dtype(dtype):
-    """Return string version of ``dtype`` for writing to ECSV ``datatype``."""
+    """Return string version of ``dtype`` for writing to ECSV ``datatype``"""
     datatype = dtype.name
     if datatype.startswith(("bytes", "str")):
         datatype = "string"
@@ -300,6 +300,7 @@ def get_yaml_from_table(table):
     lines : list
         List of text lines with YAML header content
     """
+
     header = {"cols": list(table.columns.values())}
     if table.meta:
         header["meta"] = table.meta

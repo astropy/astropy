@@ -28,6 +28,7 @@ class Base:
         """
         Convert a string to a unit object.
         """
+
         raise NotImplementedError(f"Can not parse with {cls.__name__} format")
 
     @classmethod
@@ -35,4 +36,5 @@ class Base:
         """
         Convert a unit object to a string.
         """
+
         raise NotImplementedError(f"Can not output in {cls.__name__} format")

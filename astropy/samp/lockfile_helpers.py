@@ -149,6 +149,7 @@ def get_running_hubs():
     running_hubs : dict
         Lock-file contents of all the currently running hubs.
     """
+
     hubs = {}
     lockfilename = ""
 
@@ -200,6 +201,7 @@ def check_running_hub(lockfilename):
     hub_params : dict
         If the hub is running this contains the parameters from the lockfile
     """
+
     is_running = False
     lockfiledict = {}
 

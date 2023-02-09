@@ -37,7 +37,9 @@ class Row:
 
         if index < -n or index >= n:
             raise IndexError(
-                f"index {index} out of range for table with length {len(table)}"
+                "index {} out of range for table with length {}".format(
+                    index, len(table)
+                )
             )
 
         # Finally, ensure the index is positive [#8422] and set Row attributes

@@ -62,21 +62,6 @@ force-exclude = '''
 )
 '''
 
-
-[tool.flynt]
-exclude= [
-    "astropy/extern",
-    "astropy/coordinates/angle_lextab.py",
-    "astropy/units/format/cds_lextab.py",
-    "astropy/units/format/general_lextab.py",
-    "astropy/units/format/ogip_lextab.py",
-    "astropy/coordinates/angle_parsetab.py",
-    "astropy/units/format/cds_parsetab.py",
-    "astropy/units/format/general_parsetab.py",
-    "astropy/units/format/ogip_parsetab.py",
-]
-
-
 [tool.isort]
     profile = "black"
     extend_skip_glob = [
@@ -88,245 +73,23 @@ exclude= [
 
 
 [tool.ruff]
-target-version = "py38"
 line-length = 88
-select = ["ALL"]
+select = ["E", "F", "RUF100", "T100", "W", "YTT"]
+extend-ignore = ["E501","E711","E721","E731","E741","F403","F821","F841"]
+unfixable = ["E711"]
 exclude=[
     "astropy/extern/*",
-    "*_parsetab.py",
-    "*_lextab.py"
+    "*parsetab.py",
+    "*lextab.py"
 ]
-extend-ignore = [
-    # flake8-builtins (A) : shadowing a Python built-in.
-    # New ones should be avoided and is up to maintainers to enforce.
-    "A00",
-
-    # flake8-annotations (ANN) : static typing
-    # TODO: revisit this when Astropy implements typing.
-    "ANN",
-
-    # flake8-unused-arguments (ARG)
-    # TODO: fix all of these.
-    "ARG001", "ARG002", "ARG003", "ARG004", "ARG005",
-
-    # flake8-bugbear (B)
-    "B004",  # UnreliableCallableCheck                 # TODO: fix
-    "B005",  # StripWithMultiCharacters                # NOTE: low priority fix
-    "B006",  # MutableArgumentDefault                  # NOTE: low priority fix
-    "B007",  # UnusedLoopControlVariable               # TODO: autofix
-    "B008",  # FunctionCallArgumentDefault
-    "B015",  # UselessComparison                       # TODO: fix
-    "B020",  # LoopVariableOverridesIterator           # TODO: fix
-    "B023",  # FunctionUsesLoopVariable                # TODO: fix
-    "B024",  # AbstractBaseClassWithoutAbstractMethod  # TODO: fix
-    "B026",  # StarArgUnpackingAfterKeywordArg         # NOTE: low priority fix
-    "B904",  # RaiseWithoutFromInsideExcept            # TODO: fix
-    "B905",  # ZipWithoutExplicitStrict                # TODO: fix
-
-    # flake8-blind-except (BLE)
-    "BLE001",  # BlindExcept                           # TODO: fix
-
-    # flake8-comprehensions (C4)
-    # these detect if there are better and faster list/set/dict comprehensions.
-    "C400", "C406", "C408", "C413", "C416",            # TODO: autofix
-    "C414",  # UnnecessaryDoubleCastOrProcess          # TODO: fix
-    "C417",  # UnnecessaryMap (over a comprehension)   # NOTE: low priority fix
-
-    # mccabe (C90) : code complexity
-    # TODO: fix, but probably pretty challenging.
-    "C901",
-
-    # flake8-commas (COM)
-    "COM812",  # TrailingCommaMissing
-    "COM818",  # TrailingCommaOnBareTupleProhibited
-    "COM819",  # TrailingCommaProhibited
-
-    # pydocstyle (D)
-    # Missing Docstrings
-    "D100",  # PublicModule                            # TODO: fix
-    "D101",  # PublicClass                             # TODO: fix
-    "D102",  # Missing docstring in public method. Don't check b/c docstring inheritance.
-    "D103",  # PublicFunction                          # TODO: fix
-    "D104",  # PublicPackage                           # TODO: fix
-    "D105",  # Missing docstring in magic method. Don't check b/c class docstring.
-    "D107",  # Missing docstring in __init__. Don't check b/c class docstring.
-    # Whitespace Issues
-    "D200",  # FitsOnOneLine
-    "D203",  # OneBlankLineBeforeClass. Don't check.
-    "D205",  # BlankLineAfterSummary                   # TODO: fix
-    "D212", "D213",  # MultiLineSummaryFirst/Second Line  # TODO: fix one of these
-    # Quotes Issues
-    "D300",  # UsesTripleQuotes                        # TODO: fix
-    "D301",  # UsesRPrefixForBackslashedContent        # TODO: fix
-    # Docstring Content Issues
-    "D402",  # NoSignature                             # TODO: fix
-    "D403",  # FirstLineCapitalized
-    "D404",  # NoThisPrefix
-    "D410",  # BlankLineAfterSection. Using D412 instead.
-    "D400",  # EndsInPeriod. Using D415 instead.
-    "D401",  # non-imperative-mood.
-    "D413",  # BlankLineAfterLastSection. Don't check.
-    "D414",  # NonEmptySection                         # TODO: fix
-    "D416",  # SectionNameEndsInColon. Don't check.
-    "D417",  # DocumentAllArguments                    # TODO: fix
-    "D419",  # docstring is empty                      # TODO: fix
-
-    # flake8-datetimez (DTZ)
-    # TODO: fix by including the tzinfo.
-    "DTZ001", "DTZ003", "DTZ005", "DTZ007",
-
-    # pycodestyle (E, W)
-    "E501",  # LineTooLong                             # TODO! fix
-    "E711",  # NoneComparison  (see unfixable)
-    "E721",  # TypeComparison                          # TODO: fix
-    "E731",  # DoNotAssignLambda                       # TODO: autofix
-    "E741",  # AmbiguousVariableName
-    "E999",  # SyntaxError                             # TODO: fix
-
-    # flake8-errmsg (EM)  : nicer error tracebacks
-    # NOTE: low priority fix
-    "EM",
-
-    # eradicate (ERA)
-    # NOTE: autofix, but be careful that some developer notes are kept.
-    "ERA001",  # CommentedOutCode
-
-    # flake8-executable (EXE)
-    "EXE002",  # shebang-missing-executable-file
-
-    # Pyflakes (F)
-    "F403",  # ImportStarUsed
-    "F821",  # UndefinedName                           # TODO: fix
-    "F841",  # UnusedVariable                          # TODO: autofix
-
-    # flake8-boolean-trap (FBT)  : boolean flags should be kwargs, not args
-    # NOTE: a good thing to fix, but changes API.
-    "FBT001", "FBT002", "FBT003",
-
-    # flake8-logging-format (G)
-    "G001",  # logging-string-format                   # TODO: fix
-    "G003",  # logging-string-concat                   # TODO: fix
-    "G004",  # logging-f-string                        # TODO: fix
-
-    # isort (I)
-    # TODO: replace isort with this.
-    "I001",
-
-    # flake8-import-conventions (ICN)  : use conventional import aliases
-    # TODO: fix.
-    "ICN001",
-
-    # flake8-implicit-str-concat (ISC)
-    "ISC001", "ISC003",
-
-    # pep8-naming (N)
-    # NOTE: some of these can/should be fixed, but this changes the API.
-    "N8",
-
-    # flake8-pie (PIE)
-    "PIE790",  # NoUnnecessaryPass                   # TODO: autofix
-    "PIE794",  # DupeClassFieldDefinitions           # TODO: autofix
-    "PIE804",  # no-unnecessary-dict-kwargs          # TODO: fix
-
-    # pandas-vet (PD)
-    "PD",
-
-    # pygrep-hooks (PGH)
-    "PGH001",  # TODO: fix in astropy.utils.introspection
-
-    # Pylint (PLC, PLE, PLR, PLW)
-    "PLE0605",  # invalid-all-format	             # TODO: fix
-    "PLR0402",  # ConsiderUsingFromImport            # TODO: fix
-    "PLR1701",  # ConsiderMergingIsinstance          # TODO: fix
-    "PLR2004",  # MagicValueComparison               # Note: low priority fix
-    "PLR0913",  # too-many-args
-    "PLW0120",  # UselessElseOnLoop                  # Note: low priority fix
-    "PLW0602",  # GlobalVariableNotAssigned          # TODO: fix
-
-    # flake8-pytest-style (PT)
-    # TODO: fix many of these.
-    "PT",
-
-    # flake8-use-pathlib (PTH)
-    # TODO: fix many / all of these. ``pathlib`` is often preferred.
-    "PTH",
-
-    # flake8-return (RET)
-    "RET",
-
-    # flake8-raise (RSE)
-    "RSE102",  # unnecessary-paren-on-raise-exception  # TODO: fix
-
-    # Ruff-specific rules (RUF)
-    "RUF001", "RUF002", "RUF003",  # AmbiguousUnicode, maybe fix?
-    "RUF004",  # KeywordArgumentBeforeStarArgument    # TODO: fix
-    "RUF005",  # unpack-instead-of-concatenating-to-collection-literal -- it's not clearly faster.
-
-    # flake8-bandit (S)
-    "S101",  # UseOfAssert                           # TODO: fix
-    "S105",  # HardcodedPasswordString               # TODO: fix by adding noqa
-    "S110",  # TryExceptPass                         # TODO: fix
-    "S506",  # UnsafeYAMLLoad                        # TODO: fix
-    "S324",  # hashlib-insecure-hash-function
-
-    # flake8-simplify (SIM)
-    "SIM102",  # NestedIfStatements                  # TODO: fixable with `pass`.
-    "SIM105",  # UseContextlibSuppress
-    "SIM108",  # UseTernaryOperator                  # TODO? autofix. Impact on readability?
-    "SIM115",  # OpenFileWithContextHandler          # TODO: fix to prevent resource leak
-    "SIM117",  # MultipleWithStatements              # TODO: fix
-    "SIM118",  # KeyInDict                           # TODO: autofix, but be careful of Mapping
-    "SIM201",  # NegateEqualOp                       # TODO: autofix, ensure neq is implemented
-    "SIM202",  # NegateNotEqualOp                    # TODO: autofix, ensure eq is implemented
-    "SIM300",  # yoda condition                      # TODO: partially on & not aggressive
-
-    # flake8-print (T20)
-    "T201",  # PrintUsed                             # TODO: change to logging
-
-    # tryceratops (TRY)
-    "TRY002",  # raise-vanilla-class                 # NOTE: low priority fix, requiring API change
-    "TRY003",  # raise-vanilla-args
-    "TRY004",  # prefer-type-error                   # TODO: fix, but breaks API
-    "TRY200",  # reraise-no-cause                    # TODO: fix
-    "TRY201",  # verbose-raise                       # TODO: fix
-    "TRY300",  # Consider `else` block               # TODO: fix
-    "TRY301",  # raise-within-try                    # TODO: fix
-    "TRY400",  # error-instead-of-exception          # TODO: fix
-
-    # flake8-quotes (Q)
-    "Q000",  # use double quotes                     # TODO: fix
-    "Q002",  # double quote docstring (D300)         # TODO: fix
-]
-unfixable = [
-    "E711"  # NoneComparison. Hard to fix b/c numpy has it's own None.
-]
-
-[tool.ruff.pydocstyle]
-convention = "numpy"
 
 [tool.ruff.per-file-ignores]
-"setup.py" = ["INP001"]  # Part of configuration, not a package.
 "__init__.py" = ["E402", "F401", "F403"]
-"astropy/coordinates/angle_formats.py" = ["D415"]  # The docstrings are regexes.
 "astropy/io/registry/compat.py" = ["F822"]
 "astropy/modeling/models.py" = ["F401", "F403", "F405"]
-"astropy/units/format/*.py" = ["D415"]  # The docstrings are regexes.
-"astropy/utils/decorators.py" = [
-    "D214", "D215",  # keep Examples section indented.
-    "D411",  # sphinx treats spaced example sections as real sections
-]
-"test_*.py" = ["B011", "D", "E402", "PGH001", "S101"]
-".pyinstaller/*.py" = ["INP001"]  # Not a package.
-"conftest.py" = ["INP001"]  # Part of configuration, not a package.
-"docs/*.py" = [
-    "INP001",  # implicit-namespace-package. The examples are not a package.
-]
-"examples/*.py" = [
-    "D415",  # EndsInPeriod. The examples use RST syntax, not a one-line title.
-    "E402",  # Imports are done as needed.
-    "INP001", # implicit-namespace-package. The examples are not a package.
-    "T203"
-]
+"test_*.py" = ["E402"]
+"examples/*.py" = ["E402"]
+"*/examples/*.py" = ["E402"]
 
 
 [tool.coverage]

@@ -5,8 +5,9 @@
 ##############################################################################
 # IMPORTS
 
+# STDLIB
+
 # THIRD PARTY
-import numpy as np
 import pytest
 
 # LOCAL
@@ -14,9 +15,8 @@ import astropy.units as u
 from astropy.cosmology import FlatwCDM, wCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin, valid_zs
-from astropy.utils.compat.optional_deps import HAS_SCIPY
 
-from .test_base import FlatFLRWMixinTest, FLRWTest
+from .test_base import FlatFLRWMixinTest, FLRWSubclassTest
 
 ##############################################################################
 # TESTS
@@ -60,7 +60,7 @@ class Parameterw0TestMixin(ParameterTestMixin):
             cosmo_cls(*ba.args, **ba.kwargs)
 
 
-class TestwCDM(FLRWTest, Parameterw0TestMixin):
+class TestwCDM(FLRWSubclassTest, Parameterw0TestMixin):
     """Test :class:`astropy.cosmology.wCDM`."""
 
     def setup_class(self):
@@ -108,38 +108,6 @@ class TestwCDM(FLRWTest, Parameterw0TestMixin):
         )
         assert repr(cosmo) == expected
 
-    # ===============================================================
-    # Usage Tests
-
-    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
-    @pytest.mark.parametrize(
-        ("args", "kwargs", "expected"),
-        [
-            (  # no relativistic species
-                (75.0, 0.25, 0.4),
-                {"w0": -0.9, "Tcmb0": 0.0},
-                [2849.6163356, 4428.71661565, 5450.97862778, 6179.37072324] * u.Mpc,
-            ),
-            (  # massless neutrinos
-                (75.0, 0.25, 0.4),
-                {"w0": -1.1, "Tcmb0": 3.0, "Neff": 3, "m_nu": u.Quantity(0.0, u.eV)},
-                [2904.35580229, 4511.11471267, 5543.43643353, 6275.9206788] * u.Mpc,
-            ),
-            (  # massive neutrinos
-                (75.0, 0.25, 0.4),
-                {"w0": -0.9, "Tcmb0": 3.0, "Neff": 3, "m_nu": u.Quantity(10.0, u.eV)},
-                [2473.32522734, 3581.54519631, 4232.41674426, 4671.83818117] * u.Mpc,
-            ),
-        ],
-    )
-    def test_comoving_distance_example(self, cosmo_cls, args, kwargs, expected):
-        """Test :meth:`astropy.cosmology.LambdaCDM.comoving_distance`.
-
-        These do not come from external codes -- they are just internal checks to make
-        sure nothing changes if we muck with the distance calculators.
-        """
-        super().test_comoving_distance_example(cosmo_cls, args, kwargs, expected)
-
 
 # -----------------------------------------------------------------------------
 
@@ -163,59 +131,3 @@ class TestFlatwCDM(FlatFLRWMixinTest, TestwCDM):
             " Ob0=0.03)"
         )
         assert repr(cosmo) == expected
-
-    # ===============================================================
-    # Usage Tests
-
-    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
-    @pytest.mark.parametrize(
-        ("args", "kwargs", "expected"),
-        [
-            (  # no relativistic species
-                (75.0, 0.25),
-                {"w0": -1.05, "Tcmb0": 0.0},
-                [3216.8296894, 5117.2097601, 6317.05995437, 7149.68648536] * u.Mpc,
-            ),
-            (  # massless neutrinos
-                (75.0, 0.25),
-                {"w0": -0.95, "Tcmb0": 3.0, "Neff": 3, "m_nu": u.Quantity(0.0, u.eV)},
-                [3143.56537758, 5000.32196494, 6184.11444601, 7009.80166062] * u.Mpc,
-            ),
-            (  # massive neutrinos
-                (75.0, 0.25),
-                {"w0": -0.9, "Tcmb0": 3.0, "Neff": 3, "m_nu": u.Quantity(10.0, u.eV)},
-                [2337.76035371, 3372.1971387, 3988.71362289, 4409.40817174] * u.Mpc,
-            ),
-        ],
-    )
-    def test_comoving_distance_example(self, cosmo_cls, args, kwargs, expected):
-        """Test :meth:`astropy.cosmology.LambdaCDM.comoving_distance`.
-
-        These do not come from external codes -- they are just internal checks to make
-        sure nothing changes if we muck with the distance calculators.
-        """
-        super().test_comoving_distance_example(cosmo_cls, args, kwargs, expected)
-
-
-##############################################################################
-# Miscellaneous
-# TODO: these should be better integrated into the new test framework
-
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-def test_de_densityscale():
-    cosmo = wCDM(H0=70, Om0=0.3, Ode0=0.60, w0=-0.5)
-
-    z = np.array([0.1, 0.2, 0.5, 1.5, 2.5])
-    assert u.allclose(
-        cosmo.de_density_scale(z),
-        [1.15369, 1.31453, 1.83712, 3.95285, 6.5479],
-        rtol=1e-4,
-    )
-
-    assert u.allclose(cosmo.de_density_scale(3), cosmo.de_density_scale(3.0), rtol=1e-7)
-    assert u.allclose(
-        cosmo.de_density_scale([1, 2, 3]),
-        cosmo.de_density_scale([1.0, 2.0, 3.0]),
-        rtol=1e-7,
-    )

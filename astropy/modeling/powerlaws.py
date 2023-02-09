@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Power law model variants.
+Power law model variants
 """
 # pylint: disable=invalid-name
 import numpy as np
@@ -51,13 +51,14 @@ class PowerLaw1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha):
-        """One dimensional power law model function."""
+        """One dimensional power law model function"""
         xx = x / x_0
         return amplitude * xx ** (-alpha)
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, alpha):
-        """One dimensional power law derivative with respect to parameters."""
+        """One dimensional power law derivative with respect to parameters"""
+
         xx = x / x_0
 
         d_amplitude = xx ** (-alpha)
@@ -120,14 +121,16 @@ class BrokenPowerLaw1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_break, alpha_1, alpha_2):
-        """One dimensional broken power law model function."""
+        """One dimensional broken power law model function"""
+
         alpha = np.where(x < x_break, alpha_1, alpha_2)
         xx = x / x_break
         return amplitude * xx ** (-alpha)
 
     @staticmethod
     def fit_deriv(x, amplitude, x_break, alpha_1, alpha_2):
-        """One dimensional broken power law derivative with respect to parameters."""
+        """One dimensional broken power law derivative with respect to parameters"""
+
         alpha = np.where(x < x_break, alpha_1, alpha_2)
         xx = x / x_break
 
@@ -265,7 +268,8 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_break, alpha_1, alpha_2, delta):
-        """One dimensional smoothly broken power law model function."""
+        """One dimensional smoothly broken power law model function"""
+
         # Pre-calculate `x/x_b`
         xx = x / x_break
 
@@ -321,8 +325,8 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     @staticmethod
     def fit_deriv(x, amplitude, x_break, alpha_1, alpha_2, delta):
         """One dimensional smoothly broken power law derivative with respect
-        to parameters.
-        """
+        to parameters"""
+
         # Pre-calculate `x_b` and `x/x_b` and `logt` (see comments in
         # SmoothlyBrokenPowerLaw1D.evaluate)
         xx = x / x_break
@@ -428,15 +432,17 @@ class ExponentialCutoffPowerLaw1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha, x_cutoff):
-        """One dimensional exponential cutoff power law model function."""
+        """One dimensional exponential cutoff power law model function"""
+
         xx = x / x_0
         return amplitude * xx ** (-alpha) * np.exp(-x / x_cutoff)
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, alpha, x_cutoff):
         """
-        One dimensional exponential cutoff power law derivative with respect to parameters.
+        One dimensional exponential cutoff power law derivative with respect to parameters
         """
+
         xx = x / x_0
         xc = x / x_cutoff
 
@@ -498,14 +504,16 @@ class LogParabola1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha, beta):
-        """One dimensional log parabola model function."""
+        """One dimensional log parabola model function"""
+
         xx = x / x_0
         exponent = -alpha - beta * np.log(xx)
         return amplitude * xx**exponent
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, alpha, beta):
-        """One dimensional log parabola derivative with respect to parameters."""
+        """One dimensional log parabola derivative with respect to parameters"""
+
         xx = x / x_0
         log_xx = np.log(xx)
         exponent = -alpha - beta * log_xx
@@ -625,6 +633,7 @@ class Schechter1D(Fittable1DModel):
 
     def evaluate(self, mag, phi_star, m_star, alpha):
         """Schechter luminosity function model function."""
+
         factor = self._factor(mag, m_star)
 
         return 0.4 * np.log(10) * phi_star * factor ** (alpha + 1) * np.exp(-factor)

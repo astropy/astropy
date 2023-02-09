@@ -51,8 +51,7 @@ class EcsvHeader(basic.BasicHeader):
 
     def process_lines(self, lines):
         """Return only non-blank lines that start with the comment regexp.  For these
-        lines strip out the matching characters and leading/trailing whitespace.
-        """
+        lines strip out the matching characters and leading/trailing whitespace."""
         re_comment = re.compile(self.comment)
         for line in lines:
             line = line.strip()
@@ -375,7 +374,7 @@ class EcsvOutputter(core.TableOutputter):
 
 class EcsvData(basic.BasicData):
     def _set_fill_values(self, cols):
-        """READ: Set the fill values of the individual cols based on fill_values of BaseData.
+        """READ: Set the fill values of the individual cols based on fill_values of BaseData
 
         For ECSV handle the corner case of data that has been serialized using
         the serialize_method='data_mask' option, which writes the full data and
@@ -407,7 +406,7 @@ class EcsvData(basic.BasicData):
                 col.fill_values = {}  # No data value replacement
 
     def str_vals(self):
-        """WRITE: convert all values in table to a list of lists of strings.
+        """WRITE: convert all values in table to a list of lists of strings
 
         This version considerably simplifies the base method:
         - No need to set fill values and column formats
@@ -459,6 +458,7 @@ class Ecsv(basic.Basic):
 
     Examples
     --------
+
     >>> from astropy.table import Table
     >>> ecsv_content = '''# %ECSV 0.9
     ... # ---

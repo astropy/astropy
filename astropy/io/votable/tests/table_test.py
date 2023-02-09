@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Test the conversion to/from astropy.table.
+Test the conversion to/from astropy.table
 """
 import io
 import os
@@ -99,7 +99,8 @@ def test_table(tmp_path):
         ("bitarray2", {"datatype": "bit", "arraysize": "16"}),
     ]
 
-    for field, (name, d) in zip(t.fields, field_types):
+    for field, type in zip(t.fields, field_types):
+        name, d = type
         assert field.ID == name
         assert (
             field.datatype == d["datatype"]
@@ -216,7 +217,7 @@ def test_explicit_ids():
 
 def test_table_read_with_unnamed_tables():
     """
-    Issue #927.
+    Issue #927
     """
     with get_pkg_data_fileobj("data/names.xml", encoding="binary") as fd:
         t = Table.read(fd, format="votable")
@@ -337,7 +338,7 @@ def test_no_field_not_empty_table_exception():
 
 def test_binary2_masked_strings():
     """
-    Issue #8995.
+    Issue #8995
     """
     # Read a VOTable which sets the null mask bit for each empty string value.
     votable = parse(get_pkg_data_filename("data/binary2_masked_strings.xml"))
@@ -355,6 +356,7 @@ def test_validate_output_invalid():
     Issue #12603. Test that we get the correct output from votable.validate with an invalid
     votable.
     """
+
     # A votable with errors
     invalid_votable_filepath = get_pkg_data_filename("data/regression.xml")
 
@@ -374,8 +376,9 @@ def test_validate_output_invalid():
 def test_validate_output_valid():
     """
     Issue #12603. Test that we get the correct output from votable.validate with a valid
-    votable.
+    votable
     """
+
     # A valid votable. (Example from the votable standard:
     # https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html )
     valid_votable_filepath = get_pkg_data_filename("data/valid_votable.xml")

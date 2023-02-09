@@ -111,6 +111,7 @@ def _get_stdout(stderr=False):
     logic for use in IPython on Windows to determine the correct stream to use
     (usually ``IPython.util.io.stdout`` but only if sys.stdout is a TTY).
     """
+
     if stderr:
         stream = "stderr"
     else:
@@ -171,6 +172,7 @@ def terminal_size(file=None):
     before falling back on the width and height in astropy's
     configuration.
     """
+
     if file is None:
         file = _get_stdout()
 
@@ -202,9 +204,9 @@ def terminal_size(file=None):
 
 
 def _color_text(text, color):
-    """Returns a string wrapped in ANSI color codes for coloring the text in a terminal.
-
-    ::
+    """
+    Returns a string wrapped in ANSI color codes for coloring the
+    text in a terminal::
 
         colored_text = color_text('Here is a message', 'blue')
 
@@ -255,6 +257,7 @@ def _decode_preferred_encoding(s):
     is invalid, fall back first on utf-8, then on latin-1 if the message cannot
     be decoded with utf-8.
     """
+
     enc = locale.getpreferredencoding()
     try:
         try:
@@ -331,6 +334,7 @@ def color_print(*args, end="\n", **kwargs):
         The ending of the message.  Defaults to ``\\n``.  The end will
         be printed after resetting any color or font state.
     """
+
     file = kwargs.get("file", _get_stdout())
 
     write = file.write
@@ -581,6 +585,7 @@ class ProgressBar:
         """
         Update progress bar via the console or notebook accordingly.
         """
+
         # Update self.value
         if value is None:
             value = self._current_value + 1
@@ -597,6 +602,7 @@ class ProgressBar:
         Update the progress bar to the given value (out of the total
         given to the constructor).
         """
+
         if self._total == 0:
             frac = 1.0
         else:
@@ -639,6 +645,7 @@ class ProgressBar:
 
         This method is for use in the IPython notebook 2+.
         """
+
         # Create and display an empty progress bar widget,
         # if none exists.
         if not hasattr(self, "_widget"):
@@ -728,6 +735,7 @@ class ProgressBar:
             other anomalies occur with the "fork" method (the default on
             Linux).
         """
+
         if multiprocess:
             function = _mapfunc(function)
             items = list(enumerate(items))
@@ -889,6 +897,7 @@ class Spinner:
         chars : str, optional
             The character sequence to use for the spinner
         """
+
         if file is None:
             file = _get_stdout()
 
@@ -973,6 +982,7 @@ class Spinner:
             Ignored (present just for compatibility with `ProgressBar.update`).
 
         """
+
         next(self)
 
     def _silent_iterator(self):
@@ -1028,6 +1038,7 @@ class ProgressBarOrSpinner:
             member, if any), only ``msg`` will be displayed: the
             `ProgressBar` or `Spinner` will be silent.
         """
+
         if file is None:
             file = _get_stdout()
 
@@ -1090,6 +1101,7 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
         truncated.  Defaults to 70 (this matches the default in the
         standard library's `textwrap` module).
     """
+
     if file is None:
         file = _get_stdout()
 

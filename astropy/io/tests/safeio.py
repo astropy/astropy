@@ -4,7 +4,7 @@ import io
 
 
 class CatchZeroByteWriter(io.BufferedWriter):
-    """File handle to intercept 0-byte writes."""
+    """File handle to intercept 0-byte writes"""
 
     def write(self, buffer):
         nbytes = super().write(buffer)

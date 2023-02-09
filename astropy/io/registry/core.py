@@ -110,7 +110,7 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
 
     def unregister_reader(self, data_format, data_class):
         """
-        Unregister a reader function.
+        Unregister a reader function
 
         Parameters
         ----------
@@ -119,6 +119,7 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
         data_class : class
             The class of the object that the reader produces.
         """
+
         if (data_format, data_class) in self._readers:
             self._readers.pop((data_format, data_class))
         else:
@@ -289,7 +290,7 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
 
     def unregister_writer(self, data_format, data_class):
         """
-        Unregister a writer function.
+        Unregister a writer function
 
         Parameters
         ----------
@@ -298,6 +299,7 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
         data_class : class
             The class of the object that can be written.
         """
+
         if (data_format, data_class) in self._writers:
             self._writers.pop((data_format, data_class))
         else:

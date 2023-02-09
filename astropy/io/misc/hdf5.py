@@ -27,7 +27,7 @@ def meta_path(path):
 
 def _find_all_structured_arrays(handle):
     """
-    Find all structured arrays in an HDF5 file.
+    Find all structured arrays in an HDF5 file
     """
     import h5py
 
@@ -62,7 +62,7 @@ def is_hdf5(origin, filepath, fileobj, *args, **kwargs):
 
 def read_table_hdf5(input, path=None, character_as_bytes=True):
     """
-    Read a Table object from an HDF5 file.
+    Read a Table object from an HDF5 file
 
     This requires `h5py <http://www.h5py.org/>`_ to be installed. If more than one
     table is present in the HDF5 file or group, the first table is read in and
@@ -81,6 +81,7 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
         If `True` then Table columns are left as bytes.
         If `False` then Table columns are converted to unicode.
     """
+
     try:
         import h5py
     except ImportError:
@@ -217,7 +218,7 @@ def write_table_hdf5(
     **create_dataset_kwargs,
 ):
     """
-    Write a Table object to an HDF5 file.
+    Write a Table object to an HDF5 file
 
     This requires `h5py <http://www.h5py.org/>`_ to be installed.
 
@@ -252,6 +253,7 @@ def write_table_hdf5(
         Additional keyword arguments are passed to
         ``h5py.File.create_dataset()`` or ``h5py.Group.create_dataset()``.
     """
+
     from astropy.table import meta
 
     try:

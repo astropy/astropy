@@ -47,6 +47,7 @@ def make_function_with_signature(
 
     Note, the names may only be valid Python variable names.
     """
+
     pos_args = []
     key_args = []
 

@@ -37,6 +37,7 @@ class ScienceState:
 
     Examples
     --------
+
     ::
 
         class MyState(ScienceState):

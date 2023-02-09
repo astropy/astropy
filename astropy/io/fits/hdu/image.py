@@ -179,6 +179,7 @@ class _ImageBaseHDU(_ValidHDU):
         _ImageBaseHDU is sort of an abstract class for HDUs containing image
         data (as opposed to table data) and should never be used directly.
         """
+
         raise NotImplementedError
 
     @property
@@ -210,6 +211,7 @@ class _ImageBaseHDU(_ValidHDU):
         :ref:`astropy:data-sections` section of the documentation for
         more details.
         """
+
         return Section(self)
 
     @property
@@ -217,6 +219,7 @@ class _ImageBaseHDU(_ValidHDU):
         """
         Shape of the image array--should be equivalent to ``self.data.shape``.
         """
+
         # Determine from the values read from the header
         return tuple(reversed(self._axes))
 
@@ -244,6 +247,7 @@ class _ImageBaseHDU(_ValidHDU):
         attribute returns the data scaled to its physical values unless the
         file was opened with ``do_not_scale_image_data=True``.
         """
+
         if len(self._axes) < 1:
             return
 
@@ -326,6 +330,7 @@ class _ImageBaseHDU(_ValidHDU):
         """
         Update the header keywords to agree with the data.
         """
+
         if not (
             self._modified
             or self._header._modified
@@ -394,6 +399,7 @@ class _ImageBaseHDU(_ValidHDU):
         """
         Delete BSCALE/BZERO from header if necessary.
         """
+
         # Note that _dtype_for_bitpix determines the dtype based on the
         # "original" values of bitpix, bscale, and bzero, stored in
         # self._orig_bitpix, etc. It contains the logic for determining which
@@ -473,6 +479,7 @@ class _ImageBaseHDU(_ValidHDU):
         bscale, bzero : int, optional
             User-specified ``BSCALE`` and ``BZERO`` values
         """
+
         # Disable blank support for now
         self._scale_internal(
             type=type, option=option, bscale=bscale, bzero=bzero, blank=None
@@ -495,6 +502,7 @@ class _ImageBaseHDU(_ValidHDU):
         conversion of floats to ints without specifying a BLANK if there are
         NaN/inf values).
         """
+
         if self.data is None:
             return
 
@@ -759,6 +767,7 @@ class _ImageBaseHDU(_ValidHDU):
         the BITPIX value in the header, and possibly on the BSCALE value as
         well.  Returns None if there should not be any change.
         """
+
         bitpix = self._orig_bitpix
         # Handle possible conversion to uints if enabled
         if self._uint and self._orig_bscale == 1:
@@ -787,6 +796,7 @@ class _ImageBaseHDU(_ValidHDU):
         since we can't do NaNs with integers, anyway, i.e. the user is
         responsible for managing blanks.
         """
+
         dtype = self._dtype_for_bitpix()
         # bool(dtype) is always False--have to explicitly compare to None; this
         # caused a fair amount of hair loss
@@ -807,6 +817,7 @@ class _ImageBaseHDU(_ValidHDU):
         factors to it.  Normally this is used for the entire image, but it
         supports alternate offset/shape for Section support.
         """
+
         code = BITPIX2DTYPE[self._orig_bitpix]
 
         raw_data = self._get_raw_data(shape, code, offset)
@@ -879,6 +890,7 @@ class _ImageBaseHDU(_ValidHDU):
         """
         Summarize the HDU: name, dimensions, and formats.
         """
+
         class_name = self.__class__.__name__
 
         # if data is touched, use data info.
@@ -914,6 +926,7 @@ class _ImageBaseHDU(_ValidHDU):
         """
         Calculate the value for the ``DATASUM`` card in the HDU.
         """
+
         if self._has_data:
             # We have the data to be used.
             d = self.data
@@ -1122,6 +1135,7 @@ class PrimaryHDU(_ImageBaseHDU):
             rescaled unless scale_back is explicitly set to `False`.
             (default: None)
         """
+
         super().__init__(
             data=data,
             header=header,
@@ -1234,6 +1248,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
             card of the ``header`` or 1.
             (default: None)
         """
+
         # This __init__ currently does nothing differently from the base class,
         # and is only explicitly defined for the docstring.
 
@@ -1259,6 +1274,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         """
         ImageHDU verify method.
         """
+
         errs = super()._verify(option=option)
         naxis = self._header.get("NAXIS", 0)
         # PCOUNT must == 0, GCOUNT must == 1; the former is verified in

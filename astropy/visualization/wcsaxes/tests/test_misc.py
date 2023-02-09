@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import warnings
-from contextlib import nullcontext
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -31,8 +30,7 @@ FREETYPE_261 = ft_version == Version("2.6.1")
 # https://github.com/matplotlib/matplotlib/issues/23244
 TEX_UNAVAILABLE = True
 
-# matplotlib 3.7 is not released yet.
-MATPLOTLIB_LT_3_7 = Version(matplotlib.__version__) < Version("3.6.99")
+MATPLOTLIB_DEV = Version(matplotlib.__version__).is_devrelease
 
 
 def teardown_function(function):
@@ -327,15 +325,9 @@ def test_contour_empty():
     fig = plt.figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
     fig.add_axes(ax)
-
-    if MATPLOTLIB_LT_3_7:
-        ctx = pytest.warns(
-            UserWarning, match="No contour levels were found within the data range"
-        )
-    else:
-        ctx = nullcontext()
-
-    with ctx:
+    with pytest.warns(
+        UserWarning, match="No contour levels were found within the data range"
+    ):
         ax.contour(np.zeros((4, 4)), transform=ax.get_transform("world"))
 
 
@@ -412,11 +404,11 @@ def test_invalid_slices_errors(ignore_matplotlibrc):
 EXPECTED_REPR_1 = """
 <CoordinatesMap with 3 world coordinates:
 
-  index            aliases                type   ...    wrap   format_unit visible
-  ----- ------------------------------ --------- ... --------- ----------- -------
-      0                   distmod dist    scalar ...      None                  no
-      1 pos.galactic.lon glon-car glon longitude ... 360.0 deg         deg     yes
-      2 pos.galactic.lat glat-car glat  latitude ...      None         deg     yes
+  index            aliases                type   unit wrap format_unit visible
+  ----- ------------------------------ --------- ---- ---- ----------- -------
+      0                   distmod dist    scalar      None                  no
+      1 pos.galactic.lon glon-car glon longitude  deg  360         deg     yes
+      2 pos.galactic.lat glat-car glat  latitude  deg None         deg     yes
 
 >
  """.strip()
@@ -424,11 +416,11 @@ EXPECTED_REPR_1 = """
 EXPECTED_REPR_2 = """
 <CoordinatesMap with 3 world coordinates:
 
-  index            aliases                type   ...    wrap   format_unit visible
-  ----- ------------------------------ --------- ... --------- ----------- -------
-      0                   distmod dist    scalar ...      None                 yes
-      1 pos.galactic.lon glon-car glon longitude ... 360.0 deg         deg     yes
-      2 pos.galactic.lat glat-car glat  latitude ...      None         deg     yes
+  index            aliases                type   unit wrap format_unit visible
+  ----- ------------------------------ --------- ---- ---- ----------- -------
+      0                   distmod dist    scalar      None                 yes
+      1 pos.galactic.lon glon-car glon longitude  deg  360         deg     yes
+      2 pos.galactic.lat glat-car glat  latitude  deg None         deg     yes
 
 >
  """.strip()

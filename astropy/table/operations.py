@@ -1,4 +1,5 @@
-"""High-level table operations.
+"""
+High-level table operations:
 
 - join()
 - setdiff()
@@ -51,6 +52,7 @@ def _get_list_of_tables(tables):
     Check that tables is a Table or sequence of Tables.  Returns the
     corresponding list of Tables.
     """
+
     # Make sure we have a list of things
     if not isinstance(tables, Sequence):
         tables = [tables]
@@ -97,7 +99,9 @@ def _get_out_class(objs):
         for obj in objs
     ):
         raise ValueError(
-            f"unmergeable object classes {[type(obj).__name__ for obj in objs]}"
+            "unmergeable object classes {}".format(
+                [obj.__class__.__name__ for obj in objs]
+            )
         )
 
     return out_class
@@ -253,6 +257,7 @@ def join_distance(distance, kdtree_args=None, query_args=None):
 
     Examples
     --------
+
       >>> from astropy.table import Table, join_distance
       >>> from astropy import table
 
@@ -403,6 +408,7 @@ def join(
     joined_table : `~astropy.table.Table` object
         New table containing the result of the join operation.
     """
+
     # Try converting inputs to Table as needed
     if not isinstance(left, Table):
         left = Table(left)
@@ -528,7 +534,7 @@ def setdiff(table1, table2, keys=None):
 
 def dstack(tables, join_type="outer", metadata_conflicts="warn"):
     """
-    Stack columns within tables depth-wise.
+    Stack columns within tables depth-wise
 
     A ``join_type`` of 'exact' means that the tables must all have exactly
     the same column names (though the order can vary).  If ``join_type``
@@ -621,7 +627,7 @@ def dstack(tables, join_type="outer", metadata_conflicts="warn"):
 
 def vstack(tables, join_type="outer", metadata_conflicts="warn"):
     """
-    Stack tables vertically (along rows).
+    Stack tables vertically (along rows)
 
     A ``join_type`` of 'exact' means that the tables must all have exactly
     the same column names (though the order can vary).  If ``join_type``
@@ -695,7 +701,7 @@ def hstack(
     metadata_conflicts="warn",
 ):
     """
-    Stack tables along columns (horizontally).
+    Stack tables along columns (horizontally)
 
     A ``join_type`` of 'exact' means that the tables must all
     have exactly the same number of rows.  If ``join_type`` is 'inner' then
@@ -858,6 +864,7 @@ def unique(input_table, keys=None, silent=False, keep="first"):
         1     2     3
 
     """
+
     if keep not in ("first", "last", "none"):
         raise ValueError("'keep' should be one of 'first', 'last', 'none'")
 
@@ -914,6 +921,7 @@ def get_col_name_map(
     will be present, while for the other non-key columns the value will be (col_name_0,
     None, ..) or (None, col_name_1, ..) etc.
     """
+
     col_name_map = collections.defaultdict(lambda: [None] * len(arrays))
     col_name_list = []
 
@@ -967,6 +975,7 @@ def get_descrs(arrays, col_name_map):
 
     Return a list of descrs for the output.
     """
+
     out_descrs = []
 
     for out_name, in_names in col_name_map.items():
@@ -1079,7 +1088,7 @@ def _get_join_sort_idxs(keys, left, right):
 
 
 def _apply_join_funcs(left, right, keys, join_funcs):
-    """Apply join_funcs."""
+    """Apply join_funcs"""
     # Make light copies of left and right, then add new index columns.
     left = left.copy(copy_data=False)
     right = right.copy(copy_data=False)
@@ -1261,7 +1270,9 @@ def _join(
             col_cls = _get_out_class(cols)
             if not hasattr(col_cls.info, "new_like"):
                 raise NotImplementedError(
-                    f"join unavailable for mixin column type(s): {col_cls.__name__}"
+                    "join unavailable for mixin column type(s): {}".format(
+                        col_cls.__name__
+                    )
                 )
 
             out[out_name] = col_cls.info.new_like(
@@ -1407,7 +1418,7 @@ def _check_join_type(join_type, func_name):
 
 def _vstack(arrays, join_type="outer", col_name_map=None, metadata_conflicts="warn"):
     """
-    Stack Tables vertically (by rows).
+    Stack Tables vertically (by rows)
 
     A ``join_type`` of 'exact' (default) means that the arrays must all
     have exactly the same column names (though the order can vary).  If
@@ -1475,7 +1486,9 @@ def _vstack(arrays, join_type="outer", col_name_map=None, metadata_conflicts="wa
         col_cls = _get_out_class(cols)
         if not hasattr(col_cls.info, "new_like"):
             raise NotImplementedError(
-                f"vstack unavailable for mixin column type(s): {col_cls.__name__}"
+                "vstack unavailable for mixin column type(s): {}".format(
+                    col_cls.__name__
+                )
             )
         try:
             col = col_cls.info.new_like(cols, n_rows, metadata_conflicts, out_name)
@@ -1530,7 +1543,7 @@ def _hstack(
     col_name_map=None,
 ):
     """
-    Stack tables horizontally (by columns).
+    Stack tables horizontally (by columns)
 
     A ``join_type`` of 'exact' (default) means that the arrays must all
     have exactly the same number of rows.  If ``join_type`` is 'inner' then
@@ -1556,6 +1569,7 @@ def _hstack(
     stacked_table : `~astropy.table.Table` object
         New table containing the stacked data from the input tables.
     """
+
     # Store user-provided col_name_map until the end
     _col_name_map = col_name_map
 

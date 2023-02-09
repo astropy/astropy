@@ -11,7 +11,7 @@ from astropy.timeseries.sampled import TimeSeries
 __all__ = ["kepler_fits_reader"]
 
 
-def kepler_fits_reader(filename, unit_parse_strict="warn"):
+def kepler_fits_reader(filename):
     """
     This serves as the FITS reader for KEPLER or TESS files within
     astropy-timeseries.
@@ -27,12 +27,6 @@ def kepler_fits_reader(filename, unit_parse_strict="warn"):
     ----------
     filename : `str` or `pathlib.Path`
         File to load.
-    unit_parse_strict : str, optional
-        Behaviour when encountering invalid column units in the FITS header.
-        Default is "warn", which will emit a ``UnitsWarning`` and create a
-        :class:`~astropy.units.core.UnrecognizedUnit`.
-        Values are the ones allowed by the ``parse_strict`` argument of
-        :class:`~astropy.units.core.Unit`: ``raise``, ``warn`` and ``silent``.
 
     Returns
     -------
@@ -66,7 +60,7 @@ def kepler_fits_reader(filename, unit_parse_strict="warn"):
             f" {hdu.header['TELESCOP']} reader"
         )
 
-    tab = Table.read(hdu, format="fits", unit_parse_strict=unit_parse_strict)
+    tab = Table.read(hdu, format="fits")
 
     # Some KEPLER files have a T column instead of TIME.
     if "T" in tab.colnames:
@@ -100,7 +94,7 @@ def kepler_fits_reader(filename, unit_parse_strict="warn"):
         scale=hdu.header["TIMESYS"].lower(),
         format="jd",
     )
-    time = reference_date + TimeDelta(tab["time"].data, format="jd")
+    time = reference_date + TimeDelta(tab["time"].data)
     time.format = "isot"
 
     # Remove original time column

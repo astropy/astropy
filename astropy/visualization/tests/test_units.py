@@ -79,7 +79,9 @@ def test_incompatible_units():
 def test_quantity_subclass():
     """Check that subclasses are recognized.
 
-    Also see https://github.com/matplotlib/matplotlib/pull/13536
+    This sadly is not done by matplotlib.units itself, though
+    there is a PR to change it:
+    https://github.com/matplotlib/matplotlib/pull/13536
     """
     plt.figure()
 

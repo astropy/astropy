@@ -98,6 +98,7 @@ class Kernel:
                 * 'peak'
                     Kernel is normalized such that its peak = 1.
         """
+
         if mode == "integral":
             normalization = self._array.sum()
         elif mode == "peak":

@@ -43,6 +43,7 @@ def time_support(*, scale=None, format=None, simplify=True):
         If possible, simplify labels, e.g. by removing 00:00:00.000 times from
         ISO strings if all labels fall on that time.
     """
+
     import matplotlib.units as units
     from matplotlib.ticker import MaxNLocator, ScalarFormatter
 
@@ -153,6 +154,13 @@ def time_support(*, scale=None, format=None, simplify=True):
             self._converter = converter
             self.set_useOffset(False)
             self.set_scientific(False)
+
+        def __call__(self, value, pos=None):
+            # Needed for Matplotlib <3.1
+            if self._converter.format in STR_FORMATS:
+                return self.format_ticks([value])[0]
+            else:
+                return super().__call__(value, pos=pos)
 
         def format_ticks(self, values):
             if len(values) == 0:

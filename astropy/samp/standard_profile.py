@@ -34,6 +34,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
         which are forwarded to the server's ``_dispatch`` method for
         handling.
         """
+
         # Check that the path is legal
         if not self.is_rpc_path_valid():
             self.report_404()

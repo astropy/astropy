@@ -408,6 +408,7 @@ class SAMPHubServer:
             process runs in a separated thread. `False` is usually used in a
             Python shell.
         """
+
         if self._is_running:
             raise SAMPHubError("Hub is already running")
 
@@ -440,8 +441,9 @@ class SAMPHubServer:
     @property
     def params(self):
         """
-        The hub parameters (which are written to the logfile).
+        The hub parameters (which are written to the logfile)
         """
+
         params = {}
 
         # Keys required by standard profile
@@ -495,6 +497,7 @@ class SAMPHubServer:
         """
         Stop the current SAMP Hub instance and delete the lock file.
         """
+
         if not self._is_running:
             return
 
@@ -842,7 +845,9 @@ class SAMPHubServer:
         if private_key in self._private_keys:
             client_private_key = self._public_id_to_private_key(client_id)
             log.debug(
-                f"get_metadata: private-key = {private_key} client-id = {client_id}"
+                "get_metadata: private-key = {} client-id = {}".format(
+                    private_key, client_id
+                )
             )
             if client_private_key is not None:
                 if client_private_key in self._metadata:
@@ -922,7 +927,9 @@ class SAMPHubServer:
                     return self._id2mtypes[client_private_key]
                 else:
                     log.debug(
-                        f"get_subscriptions: client-id = {client_id} mtypes = missing"
+                        "get_subscriptions: client-id = {} mtypes = missing".format(
+                            client_id
+                        )
                     )
                     return {}
             else:
@@ -986,6 +993,7 @@ class SAMPHubServer:
         >>> SAMPHubServer.get_mtype_subtypes("samp.app.ping")
         ['samp.app.ping', 'samp.app.*', 'samp.*', '*']
         """
+
         subtypes = []
 
         msubs = mtype.split(".")
@@ -1165,7 +1173,9 @@ class SAMPHubServer:
             if "samp.mtype" not in message:
                 raise SAMPProxyError(
                     3,
-                    f"samp.mtype keyword is missing in message tagged as {msg_tag}",
+                    "samp.mtype keyword is missing in message tagged as {}".format(
+                        msg_tag
+                    ),
                 )
 
             public_id = self._private_keys[private_key][0]
@@ -1250,7 +1260,9 @@ class SAMPHubServer:
 
         try:
             log.debug(
-                f"reply {counter} from {responder_public_id} to {recipient_public_id}"
+                "reply {} from {} to {}".format(
+                    counter, responder_public_id, recipient_public_id
+                )
             )
 
             if recipient_msg_tag == "samp::sync::call":
@@ -1296,6 +1308,7 @@ class SAMPHubServer:
         arg_params : tuple
             Any additional arguments to be passed to the SAMP method
         """
+
         if recipient_private_key is None:
             raise SAMPHubError("Invalid client ID")
 

@@ -93,7 +93,7 @@ class TestHeaderFunctions(FitsTestCase):
         """Test Card constructor with default argument values."""
 
         c = fits.Card()
-        assert c.keyword == ""
+        assert "" == c.keyword
 
     def test_card_from_bytes(self):
         """
@@ -1878,7 +1878,7 @@ class TestHeaderFunctions(FitsTestCase):
         s = invalid_header("END$%&%^*%*", True)
         with pytest.warns(
             AstropyUserWarning,
-            match=r"Unexpected bytes trailing END keyword: '\$%&%\^\*%\*'",
+            match=r"Unexpected bytes trailing " r"END keyword: '\$%&%\^\*%\*'",
         ) as w:
             h = fits.Header.fromfile(s)
             assert h == horig
@@ -3132,6 +3132,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
 
     @pytest.mark.parametrize("mode", ["wb", "wb+", "ab", "ab+"])
     def test_hdu_writeto_mode(self, mode):
+
         with open(self.temp("mode.fits"), mode=mode) as ff:
             hdu = fits.ImageHDU(data=np.ones(5))
             hdu.writeto(ff)

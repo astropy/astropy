@@ -148,7 +148,6 @@ def test_useful_error_missing():
 
 # ----------------------Operations on SkyCoords w/ velocities-------------------
 
-
 # define some fixtures to get baseline coordinates to try operations with
 @pytest.fixture(
     scope="module", params=[(False, False), (True, False), (False, True), (True, True)]

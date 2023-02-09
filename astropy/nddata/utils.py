@@ -84,6 +84,7 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode="partial
         that ``small_array[slices_small]`` extracts the region that is
         inside the large array.
     """
+
     if mode not in ["partial", "trim", "strict"]:
         raise ValueError('Mode can be only "partial", "trim", or "strict".')
     if np.isscalar(small_array_shape):
@@ -228,6 +229,7 @@ def extract_array(
            [75, 76, 77, 78, 79],
            [85, 86, 87, 88, 89]])
     """
+
     if np.isscalar(shape):
         shape = (shape,)
     if np.isscalar(position):
@@ -345,6 +347,7 @@ def subpixel_indices(position, subsampling):
 
     Examples
     --------
+
     If no subsampling is used, then the subpixel indices returned are always 0:
 
     >>> from astropy.nddata.utils import subpixel_indices
@@ -713,6 +716,7 @@ class Cutout2D:
             ``ax=None``.  Otherwise the output ``ax`` is the same as the
             input ``ax``.
         """
+
         import matplotlib.patches as mpatches
         import matplotlib.pyplot as plt
 

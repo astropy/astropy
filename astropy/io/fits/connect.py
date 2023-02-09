@@ -65,10 +65,14 @@ def is_fits(origin, filepath, fileobj, *args, **kwargs):
         fileobj.seek(pos)
         return sig == FITS_SIGNATURE
     elif filepath is not None:
-        return filepath.lower().endswith(
+        if filepath.lower().endswith(
             (".fits", ".fits.gz", ".fit", ".fit.gz", ".fts", ".fts.gz")
-        )
-    return isinstance(args[0], (HDUList, TableHDU, BinTableHDU, GroupsHDU))
+        ):
+            return True
+    elif isinstance(args[0], (HDUList, TableHDU, BinTableHDU, GroupsHDU)):
+        return True
+    else:
+        return False
 
 
 def _decode_mixins(tbl):
@@ -128,7 +132,7 @@ def read_table_fits(
     mask_invalid=True,
 ):
     """
-    Read a Table object from an FITS file.
+    Read a Table object from an FITS file
 
     If the ``astropy_native`` argument is ``True``, then input FITS columns
     which are representations of an astropy core object will be converted to
@@ -181,6 +185,7 @@ def read_table_fits(
         when using ``memmap=True`` (see above).
 
     """
+
     if isinstance(input, HDUList):
         # Parse all table objects
         tables = dict()
@@ -416,7 +421,7 @@ def _encode_mixins(tbl):
 
 def write_table_fits(input, output, overwrite=False, append=False):
     """
-    Write a Table object to a FITS file.
+    Write a Table object to a FITS file
 
     Parameters
     ----------
@@ -429,6 +434,7 @@ def write_table_fits(input, output, overwrite=False, append=False):
     append : bool
         Whether to append the table to an existing file
     """
+
     # Encode any mixin columns into standard Columns.
     input = _encode_mixins(input)
 

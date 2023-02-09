@@ -45,6 +45,7 @@ class _Verify:
         """
         Execute the verification with selected option.
         """
+
         text = err_text
 
         if option in ["warn", "exception"]:
@@ -72,6 +73,7 @@ class _Verify:
             ``"silentfix"`` with ``"+ignore"``, ``"+warn"``, or ``"+exception"``
             (e.g. ``"fix+warn"``).  See :ref:`astropy:verify` for more info.
         """
+
         opt = option.lower()
         if opt not in VERIFY_OPTIONS:
             raise ValueError(f"Option {option!r} not recognized.")
@@ -147,6 +149,7 @@ class _ErrList(list):
         Iterate the nested structure as a list of strings with appropriate
         indentations for each level of structure.
         """
+
         element = 0
         # go through the list twice, first time print out all top level
         # messages
