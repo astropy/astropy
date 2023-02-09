@@ -136,7 +136,7 @@ def angle_axis(matrix):
     return Angle(angle, u.radian), -axis / r
 
 
-def is_O3(matrix):
+def is_O3(matrix, atol=None):
     """Check whether a matrix is in the length-preserving group O(3).
 
     Parameters
@@ -144,6 +144,11 @@ def is_O3(matrix):
     matrix : (..., N, N) array-like
         Must have attribute ``.shape`` and method ``.swapaxes()`` and not error
         when using `~numpy.isclose`.
+    atol : float, optional
+        The allowed absolute difference.
+        If `None` it defaults to 1e-15 or 5 * epsilon of the matrix's dtype, if floating.
+
+        .. versionadded:: 5.3
 
     Returns
     -------
@@ -159,14 +164,20 @@ def is_O3(matrix):
     """
     # matrix is in O(3) (rotations, proper and improper).
     I = np.identity(matrix.shape[-1])
+    if atol is None:
+        if np.issubdtype(matrix.dtype, np.floating):
+            atol = np.finfo(matrix.dtype).eps * 5
+        else:
+            atol = 1e-15
+
     is_o3 = np.all(
-        np.isclose(matrix @ matrix.swapaxes(-2, -1), I, atol=1e-15), axis=(-2, -1)
+        np.isclose(matrix @ matrix.swapaxes(-2, -1), I, atol=atol), axis=(-2, -1)
     )
 
     return is_o3
 
 
-def is_rotation(matrix, allow_improper=False):
+def is_rotation(matrix, allow_improper=False, atol=None):
     """Check whether a matrix is a rotation, proper or improper.
 
     Parameters
@@ -178,6 +189,11 @@ def is_rotation(matrix, allow_improper=False):
         Whether to restrict check to the SO(3), the group of proper rotations,
         or also allow improper rotations (with determinant -1).
         The default (False) is only SO(3).
+    atol : float, optional
+        The allowed absolute difference.
+        If `None` it defaults to 1e-15 or 5 * epsilon of the matrix's dtype, if floating.
+
+        .. versionadded:: 5.3
 
     Returns
     -------
@@ -198,13 +214,19 @@ def is_rotation(matrix, allow_improper=False):
     For more information, see https://en.wikipedia.org/wiki/Orthogonal_group
 
     """
+    if atol is None:
+        if np.issubdtype(matrix.dtype, np.floating):
+            atol = np.finfo(matrix.dtype).eps * 5
+        else:
+            atol = 1e-15
+
     # matrix is in O(3).
-    is_o3 = is_O3(matrix)
+    is_o3 = is_O3(matrix, atol=atol)
 
     # determinant checks  for rotation (proper and improper)
     if allow_improper:  # determinant can be +/- 1
-        is_det1 = np.isclose(np.abs(np.linalg.det(matrix)), 1.0)
+        is_det1 = np.isclose(np.abs(np.linalg.det(matrix)), 1.0, atol=atol)
     else:  # restrict to SO(3)
-        is_det1 = np.isclose(np.linalg.det(matrix), 1.0)
+        is_det1 = np.isclose(np.linalg.det(matrix), 1.0, atol=atol)
 
     return is_o3 & is_det1

@@ -72,6 +72,10 @@ def test_is_O3():
     # and (M, 3, 3)
     n1 = np.tile(m1, (2, 1, 1))
     assert tuple(is_O3(n1)) == (True, True)  # (show the broadcasting)
+    # Test atol parameter
+    nn1 = np.tile(0.5 * m1, (2, 1, 1))
+    assert tuple(is_O3(nn1)) == (False, False)  # (show the broadcasting)
+    assert tuple(is_O3(nn1, atol=1)) == (True, True)  # (show the broadcasting)
 
     # reflection
     m2 = m1.copy()
@@ -98,6 +102,10 @@ def test_is_rotation():
     # and (M, 3, 3)
     n1 = np.tile(m1, (2, 1, 1))
     assert tuple(is_rotation(n1)) == (True, True)  # (show the broadcasting)
+    # Test atol parameter
+    nn1 = np.tile(0.5 * m1, (2, 1, 1))
+    assert tuple(is_rotation(nn1)) == (False, False)  # (show the broadcasting)
+    assert tuple(is_rotation(nn1, atol=10)) == (True, True)  # (show the broadcasting)
 
     # Improper rotation (unit rotation + reflection)
     m2 = np.identity(3)
