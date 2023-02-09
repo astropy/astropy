@@ -5,6 +5,7 @@ import datetime
 import os
 import sys
 import warnings
+import numbers
 from contextlib import suppress
 from inspect import Parameter, signature
 
@@ -537,7 +538,7 @@ class _BaseHDU:
         Return raw array from either the HDU's memory buffer or underlying
         file.
         """
-        if isinstance(shape, int):
+        if isinstance(shape, numbers.Integral):
             shape = (shape,)
 
         if self._buffer:

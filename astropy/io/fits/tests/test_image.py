@@ -4,6 +4,7 @@ import math
 import os
 import re
 import time
+from io import BytesIO
 
 import numpy as np
 import pytest
@@ -1990,6 +1991,27 @@ class TestCompHDUSections:
     def test_section_slicing_scaling(self, index):
         assert_equal(self.hdul[2].section[index], self.hdul[2].data[index])
         assert_equal(self.hdul[2].section[index], self.data[index] * 2 + 100)
+
+def test_comphdu_fileobj():
+
+    # Regression test for a bug that caused an error to happen
+    # internally when reading the data if requested data shapes
+    # were not plain integers - this was triggerd when accessing
+    # sections on data backed by certain kinds of objects such as
+    # BytesIO (but not regular file handles)
+
+    data = np.arange(6).reshape((2, 3)).astype(np.int32)
+
+    byte_buffer = BytesIO()
+
+    header = fits.Header()
+    hdu = fits.CompImageHDU(data, header, compression_type="RICE_1")
+    hdu.writeto(byte_buffer)
+
+    byte_buffer.seek(0)
+
+    hdu2 = fits.open(byte_buffer, mode='readonly')[1]
+    assert hdu2.section[1, 2] == 5
 
 
 def test_comphdu_bscale(tmp_path):
