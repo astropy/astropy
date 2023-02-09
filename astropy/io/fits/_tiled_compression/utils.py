@@ -35,13 +35,9 @@ def _iter_array_tiles(
 
     if first_tile_index is None:
         first_tile_index = np.zeros(ndim, dtype=int)
-    else:
-        first_tile_index = np.asarray(first_tile_index, dtype=int)
 
     if last_tile_index is None:
         last_tile_index = n_tiles - 1
-    else:
-        last_tile_index = np.asarray(last_tile_index, dtype=int)
 
     tile_index = first_tile_index.copy()
 
@@ -64,8 +60,8 @@ def _iter_array_tiles(
 
 
 def _tile_shape(header):
-    return tuple(header[f"ZTILE{idx}"] for idx in range(header["ZNAXIS"], 0, -1))
+    return np.array([header[f"ZTILE{idx}"] for idx in range(header["ZNAXIS"], 0, -1)], dtype=int)
 
 
 def _data_shape(header):
-    return tuple(header[f"ZNAXIS{idx}"] for idx in range(header["ZNAXIS"], 0, -1))
+    return np.array([header[f"ZNAXIS{idx}"] for idx in range(header["ZNAXIS"], 0, -1)], dtype=int)

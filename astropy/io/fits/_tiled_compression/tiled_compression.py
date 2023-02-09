@@ -266,7 +266,7 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
 
     quantized = "ZSCALE" in hdu.compressed_data.dtype.names
 
-    if np.product(data.shape) == 0:
+    if data.size == 0:
         return data
 
     for row_index, tile_slices in _iter_array_tiles(

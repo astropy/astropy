@@ -435,7 +435,7 @@ def simplify_basic_index(basic_index, *, shape):
         n_e = ndim - len(new_index)
         for i in range(n_e):
             ind = e_ind + i
-            new_index.insert(ind, slice(None))
+            new_index.insert(ind, slice(0, shape[ind], 1))
 
     if len(new_index) > ndim:
         raise ValueError(
@@ -451,15 +451,13 @@ def simplify_basic_index(basic_index, *, shape):
                 # The following case is the only one where slice(*indices) does
                 # not give the 'correct' answer because it will set stop to -1
                 # which means the last element in the array.
-                if slc.step is not None and slc.step < 0 and slc.stop is None:
+                if indices[1] == -1:
                     indices[1] = None
                 new_index[i] = slice(*indices)
             elif isinstance(slc, numbers.Integral):
-                if slc < 0:
-                    slc = shape[i] + slc
-                new_index[i] = int(slc)
+                new_index[i] = np.core.multiarray.normalize_axis_index(int(slc), shape[i])
             else:
-                raise RuntimeError(f"Unexpected index element: {slc}")
+                raise ValueError(f"Unexpected index element in basic index: {slc}")
         else:
             new_index.append(slice(0, shape[i], 1))
 
