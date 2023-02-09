@@ -1,0 +1,1 @@
+Added ``atol`` argument to function ``is_O3`` and ``is_rotation`` in matrix utilities.
