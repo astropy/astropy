@@ -2122,8 +2122,8 @@ class CompImageSection:
 
     def __init__(self, hdu):
         self.hdu = hdu
-        self._data_shape = np.array(_data_shape(self.hdu._header))
-        self._tile_shape = np.array(_tile_shape(self.hdu._header))
+        self._data_shape = _data_shape(self.hdu._header)
+        self._tile_shape = _tile_shape(self.hdu._header)
         self._n_dim = len(self._data_shape)
         self._n_tiles = _n_tiles(self._data_shape, self._tile_shape)
 
@@ -2151,10 +2151,6 @@ class CompImageSection:
 
         for dim, idx in enumerate(index):
             if isinstance(idx, slice):
-                if idx.stop is None and idx.step < 0:
-                    stop = 0
-                else:
-                    stop = idx.stop - 1
                 if idx.step > 0:
                     first_tile_index[dim] = idx.start // self._tile_shape[dim]
                     last_tile_index[dim] = (idx.stop - 1) // self._tile_shape[dim]

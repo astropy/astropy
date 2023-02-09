@@ -39,8 +39,7 @@ class TestSimplifyBasicIndex:
     # We use a class here so that we can allocate the data once and for all to
     # speed up the testing.
 
-    @pytest.fixture(autouse=True)
-    def setup_class(self, tmp_path):
+    def setup_class(self):
         self.shape = TEST_SHAPE
         self.data = np.random.random(TEST_SHAPE)
 
@@ -51,16 +50,15 @@ class TestSimplifyBasicIndex:
         assert isinstance(new_index, tuple)
         assert len(new_index) == len(self.shape)
         for idim, idx in enumerate(new_index):
-            if isinstance(idx, slice):
+            assert isinstance(idx, (slice, int))
+            if isinstance(idx, int):
+                assert idx >= 0
+            else:
                 assert isinstance(idx.start, int)
                 assert idx.start >= 0
                 assert idx.start < TEST_SHAPE[idim]
-                if idx.step is None or idx.step > 0:
+                if idx.stop is not None:
                     assert isinstance(idx.stop, int)
                     assert idx.stop >= 0
                     assert idx.stop <= TEST_SHAPE[idim]
                 assert isinstance(idx.step, int)
-            elif isinstance(idx, int):
-                assert idx >= 0
-            else:
-                raise TypeError("Expected slice or int")

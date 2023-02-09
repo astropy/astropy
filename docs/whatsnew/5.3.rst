@@ -80,34 +80,26 @@ Efficient data access for compressed FITS files
 In previous astropy versions, when accessing data for a compressed
 FITS file via the :attr:`~astropy.io.fits.CompImageHDU.data` property of
 :class:`~astropy.io.fits.CompImageHDU`,
-the whole data was read in and decompressed even if a small part of
+the whole data was read in and decompressed even if only a small part of
 the data was required. The :class:`~astropy.io.fits.CompImageHDU` class
 now has a :attr:`~astropy.io.fits.CompImageHDU.section` property which
 can be used to access specific sections of the data and will result in
-as little data as possible being read in and decompressed. The following
-example shows a speedup of 60x when accessing a 8192 by 8192 image
-with 256 by 256 tiles but larger speedups are possible for larger data
-and/or smaller tiles:
+as little data as possible being read in and decompressed. For a compressed
+image:
 
-**Before**::
+.. doctest-skip::
 
-    In [1]: from astropy.io import fits
+    >>> hdu.section[300:400, 100:200]
 
-    In [2]: hdu = fits.open('test_8k.fits')[1]
+will therefore return the same result as:
 
-    In [3]: %time hdu.data[300:500, 800:850:2]
-    CPU times: user 566 ms, sys: 53 ms, total: 619 ms
-    Wall time: 691 ms
+.. doctest-skip::
 
-**After**::
+    >>> hdu.data[300:400, 100:200]
 
-    In [1]: from astropy.io import fits
+but the former will be faster. The exact speedup will depend on the size of the
+data and the size of the tiles but could be 10-100x or more.
 
-    In [2]: hdu = fits.open('test_8k.fits')[1]
-
-    In [3]: %time hdu.section[300:500, 800:850:2]
-    CPU times: user 5.62 ms, sys: 3.5 ms, total: 9.12 ms
-    Wall time: 29.7 ms
 
 Full change log
 ===============
