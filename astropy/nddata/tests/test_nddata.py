@@ -194,6 +194,11 @@ def test_nddata_init_data_quantity(data):
         quantity.value[1] = 5
         assert ndd.data[1] != quantity.value[1]
 
+    # provide a quantity and override the unit
+    ndd_unit = NDData(data * u.erg, unit=u.J)
+    assert ndd_unit.unit == u.J
+    np.testing.assert_allclose((ndd_unit.data * ndd_unit.unit).to_value(u.erg), data)
+
 
 def test_nddata_init_data_masked_quantity():
     a = np.array([2, 3])

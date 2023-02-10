@@ -56,22 +56,12 @@ def _unravel_preserved_axes(arr, collapsed_arr, preserve_axes):
 
 
 def from_variance_for_mean(x, axis):
-    if not hasattr(x, "mask"):
-        if axis is None:
-            # do operation on all dimensions:
-            denom = np.prod(x.shape)
-        elif hasattr(axis, "__len__"):
-            denom = np.prod([x.shape[i] for i in axis])
-        else:
-            denom = x.shape[axis]
-        return np.sqrt(np.sum(x, axis)) / denom
+    if axis is None:
+        # do operation on all dimensions:
+        denom = np.ma.count(x)
     else:
-        if axis is None:
-            # do operation on all dimensions:
-            denom = np.ma.count(x)
-        else:
-            denom = np.ma.count(x, axis)
-        return np.sqrt(np.ma.sum(x, axis)) / denom
+        denom = np.ma.count(x, axis)
+    return np.sqrt(np.ma.sum(x, axis)) / denom
 
 
 # mapping from collapsing operations to the complementary methods used for `from_variance`
