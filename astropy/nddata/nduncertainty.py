@@ -24,7 +24,6 @@ __all__ = [
 collapse_to_variance_mapping = {
     np.sum: np.square,
     np.mean: np.square,
-    np.median: None,
 }
 
 
@@ -57,23 +56,27 @@ def _unravel_preserved_axes(arr, collapsed_arr, preserve_axes):
 
 
 def from_variance_for_mean(x, axis):
-    # when computing the error on a mean along one or more axes,
-    # normalize the root-mean-square of stddev uncertainties by
-    # sqrt(N) along each axis, which is equivalent to assuming
-    # uncertainties are Gaussian and uncorrelated.
-    if axis is None:
-        # do operation on all dimensions:
-        denom = np.prod(x.shape) ** 0.5
-    elif hasattr(axis, "__len__"):
-        denom = np.prod([x.shape[i] for i in axis]) ** 0.5
+    if not hasattr(x, "mask"):
+        if axis is None:
+            # do operation on all dimensions:
+            denom = np.prod(x.shape)
+        elif hasattr(axis, "__len__"):
+            denom = np.prod([x.shape[i] for i in axis])
+        else:
+            denom = x.shape[axis]
+        return np.sqrt(np.sum(x, axis)) / denom
     else:
-        denom = x.shape[axis] ** 0.5
-    return np.sqrt(np.sum(x, axis)) / denom
+        if axis is None:
+            # do operation on all dimensions:
+            denom = np.ma.count(x)
+        else:
+            denom = np.ma.count(x, axis)
+        return np.sqrt(np.ma.sum(x, axis)) / denom
 
 
 # mapping from collapsing operations to the complementary methods used for `from_variance`
 collapse_from_variance_mapping = {
-    np.sum: lambda x, axis: np.sqrt(np.sum(x, axis)),
+    np.sum: lambda x, axis: np.sqrt(np.ma.sum(x, axis)),
     np.mean: from_variance_for_mean,
     np.median: None,
 }
@@ -596,16 +599,22 @@ class _VariancePropagationMixin:
                 # numpy operation:
                 to_variance = collapse_to_variance_mapping[numpy_op]
                 from_variance = collapse_from_variance_mapping[numpy_op]
-
+                masked_uncertainty = np.ma.masked_array(
+                    self.array, self.parent_nddata.mask
+                )
                 if (
                     self.unit is not None
                     and to_variance(self.unit) != self.parent_nddata.unit**2
                 ):
                     # If the uncertainty has a different unit than the result we
                     # need to convert it to the results unit.
-                    this = to_variance(self.array << self.unit).to(result_unit_sq).value
+                    this = (
+                        to_variance(masked_uncertainty << self.unit)
+                        .to(result_unit_sq)
+                        .value
+                    )
                 else:
-                    this = to_variance(self.array)
+                    this = to_variance(masked_uncertainty)
 
                 return from_variance(this, axis=axis)
 

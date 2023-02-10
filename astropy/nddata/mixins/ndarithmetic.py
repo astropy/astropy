@@ -297,10 +297,12 @@ class NDArithmeticMixin:
                 AstropyUserWarning,
             )
 
-        if hasattr(result, "mask"):
-            # if astropy.utils.masked is being used, we can use
-            # the mask attribute directly:
-            kwargs["mask"] = result.mask
+        if handle_mask is None:
+            pass
+        elif hasattr(result, "mask"):
+            # if astropy.utils.masked is being used, the constructor
+            # will pick up the mask from the Masked object:
+            kwargs["mask"] = None
         elif handle_mask in ["ff", "first_found"]:
             if self.mask is None:
                 kwargs["mask"] = deepcopy(operand.mask)
@@ -612,7 +614,7 @@ class NDArithmeticMixin:
     @sharedmethod
     def min(self, **kwargs):
         # use the provided propagate_uncertainties if available, otherwise default is False:
-        propagate_uncertainties = kwargs.pop("propagate_uncertainties", False)
+        propagate_uncertainties = kwargs.pop("propagate_uncertainties", None)
         return self._prepare_then_do_arithmetic(
             np.min, propagate_uncertainties=propagate_uncertainties, **kwargs
         )
@@ -620,7 +622,7 @@ class NDArithmeticMixin:
     @sharedmethod
     def max(self, **kwargs):
         # use the provided propagate_uncertainties if available, otherwise default is False:
-        propagate_uncertainties = kwargs.pop("propagate_uncertainties", False)
+        propagate_uncertainties = kwargs.pop("propagate_uncertainties", None)
         return self._prepare_then_do_arithmetic(
             np.max, propagate_uncertainties=propagate_uncertainties, **kwargs
         )
