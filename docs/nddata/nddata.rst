@@ -495,8 +495,8 @@ Converting the ``data`` and ``unit`` to a Quantity::
     >>> quantity  # doctest: +FLOAT_CMP
     <Quantity [1., 2., 3., 4.] m>
 
-`~astropy.utils.masked.core.MaskedQuantity`
--------------------------------------------
+`MaskedQuantity`
+----------------
 
 Converting the ``data``, ``unit``, and ``mask`` to a ``MaskedQuantity``::
 
