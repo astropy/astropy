@@ -363,6 +363,94 @@ copies during initialization by setting the ``copy`` parameter to ``True``::
 ..
   EXAMPLE END
 
+
+Collapsing an NDData object along one or more axes
+==================================================
+
+..
+  EXAMPLE START
+  Collapsing an NDData object along one or more axes
+
+A common operation on an `~numpy.ndarray` is to take the sum, mean,
+maximum, or minimum along one or more axes, reducing the dimensions
+of the output. These four operations are implemented on
+`~astropy.nddata.NDData` with appropriate propagation of uncertainties,
+masks, and units.
+
+For example, let's work on the the following ``data`` with a mask, unit, and
+(uniform) uncertainty::
+
+    >>> import numpy as np
+    >>> import astropy.units as u
+    >>> from astropy.nddata import NDDataArray, StdDevUncertainty
+    >>>
+    >>> data = [
+    ...     [1, 2, 3],
+    ...     [2, 3, 4]
+    ... ]
+    >>> mask = [
+    ...     [True, False, False],
+    ...     [False, False, False]
+    ... ]
+    >>> uncertainty = StdDevUncertainty(np.ones_like(data))
+    >>> nddata = NDDataArray(data=data, uncertainty=uncertainty, mask=mask, unit='m')
+
+The sum along axis ``1`` gives one result per row::
+
+    >>> sum_axis_1 = nddata.sum(axis=1)  # this is a new NDDataArray
+    >>> print(np.asanyarray(sum_axis_1))  # this converts data to a numpy masked array. doctest: +FLOAT_CMP
+    [-- 9.0]
+    >>> print(sum_axis_1.uncertainty)  # doctest: +FLOAT_CMP
+    StdDevUncertainty([1.41421356, 1.73205081])
+
+The result has one masked value derived from the logical OR of the original mask
+along ``axis=1``. The uncertainties are the square-root of the sum of the squares
+of the input uncertainties. Since the original uncertainties were all unity, the
+result is the square root of the number of unmasked data entries,
+:math:`[\sqrt{2},\,\sqrt{3}]`.
+
+We can similarly take the mean along ``axis=1``::
+
+    >>> mean_axis_1 = nddata.mean(axis=1)
+    >>> print(np.asanyarray(mean_axis_1))  # doctest: +FLOAT_CMP
+    [2.5 3.0]
+    >>> print(mean_axis_1.uncertainty)  # doctest: +FLOAT_CMP
+    StdDevUncertainty([0.70710678, 0.57735027])
+
+The result is the mean of the values where ``mask==False``, and in this example,
+the result would only have ``mask==True`` if an entire row was masked. Since the
+uncertainties were given as `~astropy.nddata.StdDevUncertainty`, the propagated
+uncertainties decrease proportional to the number of unmasked measurements in each
+row, following :math:`[2^{-1/2},\,3^{-1/2}]`.
+
+There's no single, correct way of defining the uncertainties associated
+with the ``min`` or ``max`` of a set of measurements, so
+`~astropy.nddata.NDData` resists the temptation to guess, and returns
+the minimum data value along the axis/axes, and the propagated mask, but
+no uncertainties::
+
+    >>> min_axis_1 = nddata.min(axis=1)
+    >>> print(np.asanyarray(min_axis_1))  # doctest: +FLOAT_CMP
+    [2.0 2.0]
+    >>> print(min_axis_1.uncertainty)
+    None
+
+For some use cases, it may be helpful to return the uncertainty
+at the same index as the minimum/maximum ``data`` value, so that
+the original ``data`` retains its uncertainty. You can get this
+behavior with::
+
+    >>> min_axis_1 = nddata.min(axis=1, propagate_uncertainties=True)
+
+    >>> print(np.asanyarray(min_axis_1))  # doctest: +FLOAT_CMP
+    [2.0 2.0]
+    >>> print(min_axis_1.uncertainty)  # doctest: +FLOAT_CMP
+    StdDevUncertainty([1, 1])
+
+
+..
+  EXAMPLE END
+
 Converting NDData to Other Classes
 ==================================
 
@@ -407,6 +495,12 @@ Converting the ``data`` and ``unit`` to a Quantity::
     >>> quantity  # doctest: +FLOAT_CMP
     <Quantity [1., 2., 3., 4.] m>
 
-.. note::
-    Ideally, you would construct masked quantities, but these are not properly
-    supported: many operations on them fail.
+`~astropy.utils.masked.core.MaskedQuantity`
+-------------------------------------------
+
+Converting the ``data``, ``unit``, and ``mask`` to a ``MaskedQuantity``::
+
+    >>> from astropy.utils.masked import Masked
+    >>> Masked(u.Quantity(ndd.data, ndd.unit), ndd.mask)  # doctest: +FLOAT_CMP
+    <MaskedQuantity [——, 2., 3., ——] m>
+
