@@ -1,0 +1,2 @@
+CDS and MRT tables with units that contain with multiple divisions, such as
+``km/s/Mpc`` now parse correctly as being equal to ``km/(s.Mpc)``.
