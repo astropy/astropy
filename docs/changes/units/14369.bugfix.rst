@@ -1,0 +1,2 @@
+CDS units with multiple divisions, such as ``km/s/Mpc`` now parse
+correctly as being equal to ``km/(s.Mpc)``.
