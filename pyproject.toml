@@ -227,6 +227,7 @@ extend-ignore = [
     "PIE790",  # NoUnnecessaryPass                   # TODO: autofix
     "PIE794",  # DupeClassFieldDefinitions           # TODO: autofix
     "PIE804",  # no-unnecessary-dict-kwargs          # TODO: fix
+    "PIE810",  # single-starts-ends-with             # TODO: fix
 
     # pandas-vet (PD)
     "PD",
@@ -239,7 +240,10 @@ extend-ignore = [
     "PLR0402",  # ConsiderUsingFromImport            # TODO: fix
     "PLR1701",  # ConsiderMergingIsinstance          # TODO: fix
     "PLR2004",  # MagicValueComparison               # Note: low priority fix
+    "PLR0911",  # too-many-return-statements
+    "PLR0912",  # too-many-branches
     "PLR0913",  # too-many-args
+    "PLR0915",  # too-many-statements
     "PLW0120",  # UselessElseOnLoop                  # Note: low priority fix
     "PLW0602",  # GlobalVariableNotAssigned          # TODO: fix
 
@@ -266,19 +270,25 @@ extend-ignore = [
     "S101",  # UseOfAssert                           # TODO: fix
     "S105",  # HardcodedPasswordString               # TODO: fix by adding noqa
     "S110",  # TryExceptPass                         # TODO: fix
+    "S112",  # try-except-continue                   # TODO: fix
     "S506",  # UnsafeYAMLLoad                        # TODO: fix
+    "S608",  # Posslibe SQL injection                # TODO: fix
     "S324",  # hashlib-insecure-hash-function
 
     # flake8-simplify (SIM)
     "SIM102",  # NestedIfStatements                  # TODO: fixable with `pass`.
     "SIM105",  # UseContextlibSuppress
     "SIM108",  # UseTernaryOperator                  # TODO? autofix. Impact on readability?
+    "SIM114",  # if-with-same-arms                   # TODO: fix by combining with `or`
     "SIM115",  # OpenFileWithContextHandler          # TODO: fix to prevent resource leak
     "SIM117",  # MultipleWithStatements              # TODO: fix
     "SIM118",  # KeyInDict                           # TODO: autofix, but be careful of Mapping
     "SIM201",  # NegateEqualOp                       # TODO: autofix, ensure neq is implemented
     "SIM202",  # NegateNotEqualOp                    # TODO: autofix, ensure eq is implemented
     "SIM300",  # yoda condition                      # TODO: partially on & not aggressive
+
+    # flake8-self
+    "SLF001", # private member access
 
     # flake8-print (T20)
     "T201",  # PrintUsed                             # TODO: change to logging
