@@ -319,7 +319,7 @@ class Angle(u.SpecificTypeQuantity):
                 if format == "latex" or format == "latex_inline":
                     unit_string = unit_string[1:-1]
                 format_func = func
-                func = lambda x: format_func(x) + unit_string
+                func = lambda x: format_func(x) + (" " * (format == None)) + unit_string
 
         def do_format(val):
             # Check if value is not nan to avoid ValueErrors when turning it into

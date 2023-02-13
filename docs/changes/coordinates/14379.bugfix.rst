@@ -1,0 +1,5 @@
+``Angle.to_string()`` was changed to ensure it matches the behaviour of
+``Quantity.to_string()`` in having a space between the value and the unit
+for display with non-degree and hourangle units (i.e., the case in which
+units are displayed by their name; the sexagesimal case for degrees or
+hourangle that uses symbols is not changed).
