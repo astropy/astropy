@@ -1084,6 +1084,9 @@ def test_aa_hd_high_precision():
     Updated 2020-11-29, after the comparison between codes became even better,
     down to 100 nas.
 
+    Updated 2023-02-14, after IERS changes the IERS B format and analysis,
+    causing small deviations.
+
     NOTE: the agreement reflects consistency in approach between two codes,
     not necessarily absolute precision.  If this test starts failing, the
     tolerance can and should be weakened *if* it is clear that the change is
@@ -1105,8 +1108,9 @@ def test_aa_hd_high_precision():
     # Numbers from
     # https://github.com/astropy/astropy/pull/11073#issuecomment-735486271
     # updated in https://github.com/astropy/astropy/issues/11683
-    TARGET_AZ, TARGET_EL = 15.032673509956 * u.deg, 50.303110133923 * u.deg
-    TARGET_DISTANCE = 376252883.247239 * u.m
+    # and again after the IERS_B change.
+    TARGET_AZ, TARGET_EL = 15.032673662647138 * u.deg, 50.303110087520054 * u.deg
+    TARGET_DISTANCE = 376252.88325051306 * u.km
     assert_allclose(moon_aa.az, TARGET_AZ, atol=0.1 * u.uas, rtol=0)
     assert_allclose(moon_aa.alt, TARGET_EL, atol=0.1 * u.uas, rtol=0)
     assert_allclose(moon_aa.distance, TARGET_DISTANCE, atol=0.1 * u.mm, rtol=0)
@@ -1129,8 +1133,8 @@ def test_aa_high_precision_nodata():
     with a version of the code that passes the tests above, but for the internal solar system
     ephemerides to avoid the use of remote data.
     """
-    # Last updated when switching to erfa 2.0.0 and its moon98 function.
-    TARGET_AZ, TARGET_EL = 15.03231495 * u.deg, 50.3027193 * u.deg
+    # Last updated when the new IERS B format and analysis was introduced.
+    TARGET_AZ, TARGET_EL = 15.0323151 * u.deg, 50.30271925 * u.deg
     lat = -22.959748 * u.deg
     lon = -67.787260 * u.deg
     elev = 5186 * u.m
