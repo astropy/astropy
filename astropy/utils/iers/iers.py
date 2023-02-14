@@ -68,9 +68,9 @@ IERS_A_URL_MIRROR = "https://maia.usno.navy.mil/ser7/finals2000A.all"
 IERS_A_README = get_pkg_data_filename("data/ReadMe.finals2000A")
 
 # IERS-B default file name, URL, and ReadMe with content description
-IERS_B_FILE = get_pkg_data_filename("data/eopc04_IAU2000.62-now")
-IERS_B_URL = "http://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now"
-IERS_B_README = get_pkg_data_filename("data/ReadMe.eopc04_IAU2000")
+IERS_B_FILE = get_pkg_data_filename("data/eopc04.1962-now")
+IERS_B_URL = "http://hpiers.obspm.fr/iers/eop/eopc04/eopc04.1962-now"
+IERS_B_README = get_pkg_data_filename("data/ReadMe.eopc04")
 
 # LEAP SECONDS default file name, URL, and alternative format/URL
 IERS_LEAP_SECOND_FILE = get_pkg_data_filename("data/Leap_Second.dat")
@@ -679,7 +679,7 @@ class IERS_B(IERS):
 
     @classmethod
     def read(cls, file=None, readme=None, data_start=14):
-        """Read IERS-B table from a eopc04_iau2000.* file provided by IERS.
+        """Read IERS-B table from a eopc04.* file provided by IERS.
 
         Parameters
         ----------
