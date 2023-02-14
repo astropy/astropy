@@ -1,1 +1,1 @@
-The URLs and naming conventions for the International Earth Rotation and Reference Systems Service (IERS) files are updated to reflect recent changes. 
+The URLs and naming conventions for the International Earth Rotation and Reference Systems Service (IERS) files are updated to reflect recent changes.
