@@ -109,6 +109,28 @@ class TestBasic:
         iers.IERS_A.close()
 
 
+def test_IERS_B_old_style_excerpt():
+    """Check that the instructions given in `IERS_B.read` actually work."""
+    # If this test is changed, be sure to also adjust the instructions.
+    #
+    # TODO: this test and the note can probably be removed after
+    # enough time has passed that old-style IERS_B files are simply
+    # not around any more, say in 2025.  If so, also remove the excerpt
+    # and the ReadMe.eopc04_IAU2000 file.
+    old_style_file = get_pkg_data_filename(
+        os.path.join("data", "iers_b_old_style_excerpt")
+    )
+    excerpt = iers.IERS_B.read(
+        old_style_file,
+        readme=get_pkg_data_filename(
+            "data/ReadMe.eopc04_IAU2000", package="astropy.utils.iers"
+        ),
+        data_start=14,
+    )
+    assert isinstance(excerpt, QTable)
+    assert "PM_x_dot" not in excerpt.colnames
+
+
 class TestIERS_AExcerpt:
     def test_simple(self):
         # Test the IERS A reader. It is also a regression tests that ensures
