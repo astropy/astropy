@@ -6,10 +6,10 @@ set -euv
 # It downloads up-to-date versions of the earth rotation and leap
 # second tables.
 
-rm Leap_Second.dat
-rm eopc04_IAU2000.62-now
+rm -f Leap_Second.dat
+rm -f eopc04.1962-now
 
 # iers.IERS_B_URL
-wget https://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now
+wget https://hpiers.obspm.fr/iers/eop/eopc04/eopc04.1962-now
 # iers.IERS_LEAP_SECOND_URL
 wget https://hpiers.obspm.fr/iers/bul/bulc/Leap_Second.dat
