@@ -3204,7 +3204,7 @@ class Sersic2D(Fittable2DModel):
         plt.ylabel('y')
         cbar = plt.colorbar()
         cbar.set_label('Log Brightness', rotation=270, labelpad=25)
-        cbar.set_ticks([-1, 0, 1, 2], update_ticks=True)
+        cbar.set_ticks([-1, 0, 1, 2])
         plt.show()
 
     References
