@@ -1,3 +1,0 @@
-Update the ``IERS_B_URL`` following a change at the International
-Earth Rotation and Reference System site layout.  Also update the
-corresponding bundled file.
