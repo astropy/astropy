@@ -10,6 +10,6 @@ rm Leap_Second.dat
 rm eopc04_IAU2000.62-now
 
 # iers.IERS_B_URL
-wget https://hpiers.obspm.fr/iers/eop/eopc04_14/eopc04_IAU2000.62-now
+wget https://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now
 # iers.IERS_LEAP_SECOND_URL
 wget https://hpiers.obspm.fr/iers/bul/bulc/Leap_Second.dat
