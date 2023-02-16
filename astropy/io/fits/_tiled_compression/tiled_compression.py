@@ -10,7 +10,7 @@ import numpy as np
 
 from astropy.io.fits.hdu.base import BITPIX2DTYPE
 
-from .codecs import PLIO1, Gzip1, Gzip2, HCompress1, Rice1
+from .codecs import NoCompress, PLIO1, Gzip1, Gzip2, HCompress1, Rice1
 from .quantization import DITHER_METHODS, QuantizationFailedException, Quantize
 from .utils import _data_shape, _iter_array_tiles, _tile_shape
 
@@ -21,6 +21,7 @@ ALGORITHMS = {
     "RICE_ONE": Rice1,
     "PLIO_1": PLIO1,
     "HCOMPRESS_1": HCompress1,
+    "NOCOMPRESS": NoCompress,
 }
 
 DEFAULT_ZBLANK = -2147483648
@@ -459,16 +460,6 @@ def compress_hdu(hdu):
             scales.append(0)
             zeros.append(0)
             gzip_fallback.append(False)
-
-        # The original compress_hdu assumed the data was in native endian, so we
-        # change this here:
-        if hdu._header["ZCMPTYPE"].startswith("GZIP") or gzip_fallback[-1]:
-            # This is apparently needed so that our heap data agrees with
-            # the C implementation!?
-            data = data.astype(data.dtype.newbyteorder(">"))
-        else:
-            if not data.dtype.isnative:
-                data = data.astype(data.dtype.newbyteorder("="))
 
         if gzip_fallback[-1]:
             cbytes = _compress_tile(data, algorithm="GZIP_1")
