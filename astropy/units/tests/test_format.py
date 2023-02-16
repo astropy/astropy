@@ -818,3 +818,32 @@ def test_celsius_fits():
     assert u.Unit("deg C kg-1", format="fits") == u.C * u.deg / u.kg
     assert u.Unit("Celsius kg-1", format="fits") == u.deg_C / u.kg
     assert u.deg_C.to_string("fits") == "Celsius"
+
+
+@pytest.mark.parametrize(
+    "format_spec, string",
+    [
+        ("generic", "dB(1 / m)"),
+        ("unscaled", "dB(1 / m)"),
+        ("latex", r"$\mathrm{dB}$$\mathrm{\left( \mathrm{\frac{1}{m}} \right)}$"),
+        ("latex_inline", r"$\mathrm{dB}$$\mathrm{\left( \mathrm{m^{-1}} \right)}$"),
+        ("console", "dB(m^-1)"),
+        ("unicode", "dB(m⁻¹)"),
+    ],
+)
+def test_function_format_styles(format_spec, string):
+    dbunit = u.decibel(u.m**-1)
+    assert dbunit.to_string(format_spec) == string
+
+
+@pytest.mark.parametrize(
+    "format_spec, inline, string",
+    [
+        ("console", False, "    1\ndB( -)\n    m"),
+        ("unicode", False, "    1\ndB( ─)\n    m"),
+        ("latex", True, r"$\mathrm{dB}$$\mathrm{\left( \mathrm{m^{-1}} \right)}$"),
+    ],
+)
+def test_function_format_styles_inline(format_spec, inline, string):
+    dbunit = u.decibel(u.m**-1)
+    assert dbunit.to_string(format_spec, inline=inline) == string

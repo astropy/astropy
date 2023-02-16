@@ -378,7 +378,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
     def __pos__(self):
         return self._copy()
 
-    def to_string(self, format="generic"):
+    def to_string(self, format="generic", **kwargs):
         """
         Output the unit in the given format as a string.
 
@@ -391,21 +391,42 @@ class FunctionUnitBase(metaclass=ABCMeta):
             The name of a format or a formatter object.  If not
             provided, defaults to the generic format.
         """
-        if format not in ("generic", "unscaled", "latex", "latex_inline"):
+        supported_formats = (
+            "generic",
+            "unscaled",
+            "latex",
+            "latex_inline",
+            "unicode",
+            "console",
+        )
+        if format not in supported_formats:
             raise ValueError(
                 f"Function units cannot be written in {format} "
-                "format. Only 'generic', 'unscaled', 'latex' and "
-                "'latex_inline' are supported."
+                f"format. Only {', '.join(supported_formats)} are supported."
             )
-        self_str = self.function_unit.to_string(format)
-        pu_str = self.physical_unit.to_string(format)
+        self_str = self.function_unit.to_string(format, **kwargs)
+        pu_str = self.physical_unit.to_string(format, **kwargs)
         if pu_str == "":
             pu_str = "1"
         if format.startswith("latex"):
             # need to strip leading and trailing "$"
             self_str += rf"$\mathrm{{\left( {pu_str[1:-1]} \right)}}$"
         else:
-            self_str += f"({pu_str})"
+            pu_lines = pu_str.splitlines()
+            if len(pu_lines) == 1:
+                self_str += f"({pu_str})"
+            else:
+                # If the physical unit is formatted into a multiline
+                # string, the lines need to be adjusted so that the
+                # functional string is aligned with the fraction line
+                # (second one), and all other lines are indented
+                # accordingly.
+                f = f"{{0:^{len(self_str)+1}s}}{{1:s}}"
+                lines = [
+                    f.format("", pu_lines[0]),
+                    f.format(f"{self_str}(", f"{pu_lines[1]})"),
+                ] + [f.format("", line) for line in pu_lines[2:]]
+                self_str = "\n".join(lines)
         return self_str
 
     def __str__(self):
