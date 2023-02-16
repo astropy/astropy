@@ -429,6 +429,13 @@ class FunctionUnitBase(metaclass=ABCMeta):
                 self_str = "\n".join(lines)
         return self_str
 
+    def __format__(self, format_spec):
+        """Try to format units using a formatter."""
+        try:
+            return self.to_string(format=format_spec)
+        except ValueError:
+            return format(str(self), format_spec)
+
     def __str__(self):
         """Return string representation for unit."""
         self_str = str(self.function_unit)
