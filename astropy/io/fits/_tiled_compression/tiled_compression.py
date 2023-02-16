@@ -102,7 +102,7 @@ def _finalize_array(tile_buffer, *, bitpix, tile_shape, algorithm, lossless):
     and translates it into a numpy array with the correct dtype, endianness and
     shape.
     """
-    if algorithm.startswith("GZIP"):
+    if algorithm.startswith("GZIP") or algorithm == "NOCOMPRESS":
         # This algorithm is taken from fitsio
         # https://github.com/astropy/astropy/blob/a8cb1668d4835562b89c0d0b3448ac72ca44db63/cextern/cfitsio/lib/imcompress.c#L6345-L6388
         tilelen = np.product(tile_shape)

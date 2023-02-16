@@ -9,6 +9,7 @@ COMPRESSION_TYPES = [
     "RICE_1",
     "HCOMPRESS_1",
     "PLIO_1",
+    "NOCOMPRESS",
 ]
 
 
@@ -55,9 +56,9 @@ ALL_FLOAT_DTYPES = ["".join(ele) for ele in _expand([("<", ">"), ("f",), ("4", "
             ({},),
             ALL_INTEGER_DTYPES,
         ],
-        # GZIP supports lossless non-quantized floating point data
+        # GZIP and NOCOMPRESS support lossless non-quantized floating point data
         [
-            ("GZIP_1", "GZIP_2"),
+            ("GZIP_1", "GZIP_2", "NOCOMPRESS"),
             ({"qlevel": None},),
             ALL_FLOAT_DTYPES,
         ],
