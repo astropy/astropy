@@ -34,16 +34,18 @@ def _to_string(cls, unit):
             parts.append(f"{unit.scale:g}")
 
         if len(unit.bases):
-            positives, negatives = utils.get_grouped_by_powers(unit.bases, unit.powers)
-            if len(positives):
-                parts.append(cls._format_unit_list(positives))
+            nominator, denominator = utils.get_grouped_by_powers(
+                unit.bases, unit.powers
+            )
+            if len(nominator):
+                parts.append(cls._format_unit_list(nominator))
             elif len(parts) == 0:
                 parts.append("1")
 
-            if len(negatives):
+            if len(denominator):
                 parts.append("/")
-                unit_list = cls._format_unit_list(negatives)
-                if len(negatives) == 1:
+                unit_list = cls._format_unit_list(denominator)
+                if len(denominator) == 1:
                     parts.append(f"{unit_list}")
                 else:
                     parts.append(f"({unit_list})")

@@ -745,18 +745,23 @@ class UnitBase:
         """
         return [1]
 
-    def to_string(self, format=unit_format.Generic):
-        """
-        Output the unit in the given format as a string.
+    def to_string(self, format=unit_format.Generic, **kwargs):
+        """Output the unit in the given format as a string.
 
         Parameters
         ----------
         format : `astropy.units.format.Base` instance or str
             The name of a format or a formatter object.  If not
             provided, defaults to the generic format.
+
+        **kwargs :
+            Further options forwarded to the formatter. Currently
+            recognized is **inline** (:class:`bool`) for the
+            ``"latex"``, ``"console"``, and``"unicode"`` formats.
+
         """
         f = unit_format.get_format(format)
-        return f.to_string(self)
+        return f.to_string(self, **kwargs)
 
     def __format__(self, format_spec):
         """Try to format units using a formatter."""
