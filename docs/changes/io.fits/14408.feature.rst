@@ -1,0 +1,1 @@
+Added support for ``'NOCOMPRESS'`` for the ``compression_type`` option in ``CompImageHDU``.
