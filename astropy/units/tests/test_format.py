@@ -834,6 +834,7 @@ def test_celsius_fits():
 def test_function_format_styles(format_spec, string):
     dbunit = u.decibel(u.m**-1)
     assert dbunit.to_string(format_spec) == string
+    assert f"{dbunit:{format_spec}}" == string
 
 
 @pytest.mark.parametrize(
