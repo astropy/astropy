@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import warnings
 
+from asdf.exceptions import AsdfDeprecationWarning
 from asdf.types import CustomType, ExtensionTypeMeta
 
 from astropy.io.misc.asdf.deprecation import create_asdf_deprecation_warning
@@ -34,47 +35,53 @@ class AstropyTypeMeta(ExtensionTypeMeta):
         return cls
 
 
-class AstropyType(CustomType, metaclass=AstropyTypeMeta):
-    """
-    This class represents types that have schemas and tags that are defined by
-    Astropy.
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        category=AsdfDeprecationWarning,
+        message=r".*from astropy.io.misc.asdf.* subclasses the deprecated CustomType .*",
+    )
 
-    IMPORTANT: This parent class should **not** be used for types that have
-    schemas that are defined by the ASDF standard.
-    """
+    class AstropyType(CustomType, metaclass=AstropyTypeMeta):
+        """
+        This class represents types that have schemas and tags that are defined by
+        Astropy.
 
-    organization = "astropy.org"
-    standard = "astropy"
+        IMPORTANT: This parent class should **not** be used for types that have
+        schemas that are defined by the ASDF standard.
+        """
 
-    @classmethod
-    def to_tree_tagged(cls, node, ctx):
-        warnings.warn(create_asdf_deprecation_warning())
-        return super().to_tree_tagged(node, ctx)
+        organization = "astropy.org"
+        standard = "astropy"
 
-    @classmethod
-    def from_tree_tagged(cls, tree, ctx):
-        warnings.warn(create_asdf_deprecation_warning())
-        return super().from_tree_tagged(tree, ctx)
+        @classmethod
+        def to_tree_tagged(cls, node, ctx):
+            warnings.warn(create_asdf_deprecation_warning())
+            return super().to_tree_tagged(node, ctx)
 
+        @classmethod
+        def from_tree_tagged(cls, tree, ctx):
+            warnings.warn(create_asdf_deprecation_warning())
+            return super().from_tree_tagged(tree, ctx)
 
-class AstropyAsdfType(CustomType, metaclass=AstropyTypeMeta):
-    """
-    This class represents types that have schemas that are defined in the ASDF
-    standard, but have tags that are implemented within astropy.
+    class AstropyAsdfType(CustomType, metaclass=AstropyTypeMeta):
+        """
+        This class represents types that have schemas that are defined in the ASDF
+        standard, but have tags that are implemented within astropy.
 
-    IMPORTANT: This parent class should **not** be used for types that also
-    have schemas that are defined by astropy.
-    """
+        IMPORTANT: This parent class should **not** be used for types that also
+        have schemas that are defined by astropy.
+        """
 
-    organization = "stsci.edu"
-    standard = "asdf"
+        organization = "stsci.edu"
+        standard = "asdf"
 
-    @classmethod
-    def to_tree_tagged(cls, node, ctx):
-        warnings.warn(create_asdf_deprecation_warning())
-        return super().to_tree_tagged(node, ctx)
+        @classmethod
+        def to_tree_tagged(cls, node, ctx):
+            warnings.warn(create_asdf_deprecation_warning())
+            return super().to_tree_tagged(node, ctx)
 
-    @classmethod
-    def from_tree_tagged(cls, tree, ctx):
-        warnings.warn(create_asdf_deprecation_warning())
-        return super().from_tree_tagged(tree, ctx)
+        @classmethod
+        def from_tree_tagged(cls, tree, ctx):
+            warnings.warn(create_asdf_deprecation_warning())
+            return super().from_tree_tagged(tree, ctx)
