@@ -125,6 +125,9 @@ jobs:
           distro: ubuntu_latest
 
           shell: /bin/bash
+          env: |
+            ARCH_ON_CI: ${{ env.ARCH_ON_CI }}
+            IS_CRON: ${{ env.IS_CRON }}
 
           install: |
             apt-get update -q -y
