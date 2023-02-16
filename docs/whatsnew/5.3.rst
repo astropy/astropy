@@ -73,6 +73,33 @@ When using ``|=``, the other object does not need to be a |Table|, it can be
 anything that can be used for :ref:`construct_table` with a compatible number
 of rows.
 
+.. _whatsnew-5.3-unit-formats-inline:
+
+New "inline" option for ``"unicode"``, ``"console"``, and ``"latex"`` unit formats
+==================================================================================
+
+A new formatting option for unit is added to switch between inline and
+multiline prettyprinting of quantities::
+
+	>>> import astropy.units as u
+	>>> unit = u.Unit("erg / (s cm2)")
+	>>> print(unit.to_string('console'))
+	erg s^-1 cm^-2
+	>>> print(unit.to_string('console', inline=False))
+         erg
+        ------
+        s cm^2
+	>>> print(unit.to_string('unicode'))
+	erg s⁻¹ cm⁻²
+	>>> print(unit.to_string('unicode', inline=False))
+         erg
+        ─────
+        s cm²
+
+Note that the ``"console"`` and ``"unicode"`` formats now use
+``inline=False`` as default, while for ``"latex"`` the default remains
+``inline=True``, for an unchanged experience with IPython notebook.
+
 Full change log
 ===============
 

@@ -17,6 +17,8 @@ class Console(base.Base):
 
       >>> import astropy.units as u
       >>> print(u.Ry.decompose().to_string('console'))  # doctest: +FLOAT_CMP
+      2.1798721*10^-18m^2 kg s^-2
+      >>> print(u.Ry.decompose().to_string('console', inline=False))  # doctest: +FLOAT_CMP
                        m^2 kg
       2.1798721*10^-18 ------
                         s^2
@@ -60,7 +62,7 @@ class Console(base.Base):
         return cls._times.join(parts)
 
     @classmethod
-    def to_string(cls, unit):
+    def to_string(cls, unit, inline=True):
         if isinstance(unit, core.CompositeUnit):
             if unit.scale == 1:
                 s = ""
@@ -68,29 +70,32 @@ class Console(base.Base):
                 s = cls.format_exponential_notation(unit.scale)
 
             if len(unit.bases):
-                positives, negatives = utils.get_grouped_by_powers(
-                    unit.bases, unit.powers
-                )
-                if len(negatives):
-                    if len(positives):
-                        positives = cls._format_unit_list(positives)
+                if inline:
+                    nominator = zip(unit.bases, unit.powers)
+                    denominator = []
+                else:
+                    nominator, denominator = utils.get_grouped_by_powers(
+                        unit.bases, unit.powers
+                    )
+                if len(denominator):
+                    if len(nominator):
+                        nominator = cls._format_unit_list(nominator)
                     else:
-                        positives = "1"
-                    negatives = cls._format_unit_list(negatives)
-                    l = len(s)
-                    r = max(len(positives), len(negatives))
-                    f = f"{{0:^{l}s}} {{1:^{r}s}}"
+                        nominator = "1"
+                    denominator = cls._format_unit_list(denominator)
+                    fraclength = max(len(nominator), len(denominator))
+                    f = f"{{0:^{len(s)}s}} {{1:^{fraclength}s}}"
 
                     lines = [
-                        f.format("", positives),
-                        f.format(s, cls._line * r),
-                        f.format("", negatives),
+                        f.format("", nominator),
+                        f.format(s, cls._line * fraclength),
+                        f.format("", denominator),
                     ]
 
                     s = "\n".join(lines)
                 else:
-                    positives = cls._format_unit_list(positives)
-                    s += positives
+                    nominator = cls._format_unit_list(nominator)
+                    s += nominator
         elif isinstance(unit, core.NamedUnit):
             s = cls._get_unit_name(unit)
 
