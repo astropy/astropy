@@ -71,32 +71,32 @@ class Console(base.Base):
 
             if len(unit.bases):
                 if inline:
-                    positives = zip(unit.bases, unit.powers)
-                    negatives = []
+                    nominator = zip(unit.bases, unit.powers)
+                    denominator = []
                 else:
-                    positives, negatives = utils.get_grouped_by_powers(
+                    nominator, denominator = utils.get_grouped_by_powers(
                         unit.bases, unit.powers
                     )
-                if len(negatives):
-                    if len(positives):
-                        positives = cls._format_unit_list(positives)
+                if len(denominator):
+                    if len(nominator):
+                        nominator = cls._format_unit_list(nominator)
                     else:
-                        positives = "1"
-                    negatives = cls._format_unit_list(negatives)
+                        nominator = "1"
+                    denominator = cls._format_unit_list(denominator)
                     l = len(s)
-                    r = max(len(positives), len(negatives))
+                    r = max(len(nominator), len(denominator))
                     f = f"{{0:^{l}s}} {{1:^{r}s}}"
 
                     lines = [
-                        f.format("", positives),
+                        f.format("", nominator),
                         f.format(s, cls._line * r),
-                        f.format("", negatives),
+                        f.format("", denominator),
                     ]
 
                     s = "\n".join(lines)
                 else:
-                    positives = cls._format_unit_list(positives)
-                    s += positives
+                    nominator = cls._format_unit_list(nominator)
+                    s += nominator
         elif isinstance(unit, core.NamedUnit):
             s = cls._get_unit_name(unit)
 
