@@ -66,22 +66,22 @@ class Latex(base.Base):
 
             if len(unit.bases):
                 if inline:
-                    positives = zip(unit.bases, unit.powers)
-                    negatives = []
+                    nominator = zip(unit.bases, unit.powers)
+                    denominator = []
                 else:
-                    positives, negatives = utils.get_grouped_by_powers(
+                    nominator, denominator = utils.get_grouped_by_powers(
                         unit.bases, unit.powers
                     )
-                if len(negatives):
-                    if len(positives):
-                        positives = cls._format_unit_list(positives)
+                if len(denominator):
+                    if len(nominator):
+                        nominator = cls._format_unit_list(nominator)
                     else:
-                        positives = "1"
-                    negatives = cls._format_unit_list(negatives)
-                    s += rf"\frac{{{positives}}}{{{negatives}}}"
+                        nominator = "1"
+                    denominator = cls._format_unit_list(denominator)
+                    s += rf"\frac{{{nominator}}}{{{denominator}}}"
                 else:
-                    positives = cls._format_unit_list(positives)
-                    s += positives
+                    nominator = cls._format_unit_list(nominator)
+                    s += nominator
 
         elif isinstance(unit, core.NamedUnit):
             s = cls._latex_escape(unit.name)
