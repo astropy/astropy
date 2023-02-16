@@ -17,6 +17,8 @@ class Unicode(console.Console):
 
       >>> import astropy.units as u
       >>> print(u.bar.decompose().to_string('unicode'))
+      100000kg m⁻¹ s⁻²
+      >>> print(u.bar.decompose().to_string('unicode', inline=False))
               kg
       100000 ────
              m s²

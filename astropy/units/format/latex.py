@@ -51,24 +51,7 @@ class Latex(base.Base):
         return r"\,".join(out)
 
     @classmethod
-    def _format_bases(cls, unit):
-        positives, negatives = utils.get_grouped_by_powers(unit.bases, unit.powers)
-
-        if len(negatives):
-            if len(positives):
-                positives = cls._format_unit_list(positives)
-            else:
-                positives = "1"
-            negatives = cls._format_unit_list(negatives)
-            s = rf"\frac{{{positives}}}{{{negatives}}}"
-        else:
-            positives = cls._format_unit_list(positives)
-            s = positives
-
-        return s
-
-    @classmethod
-    def to_string(cls, unit):
+    def to_string(cls, unit, inline=False):
         latex_name = None
         if hasattr(unit, "_format"):
             latex_name = unit._format.get("latex")
@@ -82,7 +65,23 @@ class Latex(base.Base):
                 s = cls.format_exponential_notation(unit.scale) + r"\,"
 
             if len(unit.bases):
-                s += cls._format_bases(unit)
+                if inline:
+                    positives = zip(unit.bases, unit.powers)
+                    negatives = []
+                else:
+                    positives, negatives = utils.get_grouped_by_powers(
+                        unit.bases, unit.powers
+                    )
+                if len(negatives):
+                    if len(positives):
+                        positives = cls._format_unit_list(positives)
+                    else:
+                        positives = "1"
+                    negatives = cls._format_unit_list(negatives)
+                    s += rf"\frac{{{positives}}}{{{negatives}}}"
+                else:
+                    positives = cls._format_unit_list(positives)
+                    s += positives
 
         elif isinstance(unit, core.NamedUnit):
             s = cls._latex_escape(unit.name)
@@ -142,5 +141,5 @@ class LatexInline(Latex):
     name = "latex_inline"
 
     @classmethod
-    def _format_bases(cls, unit):
-        return cls._format_unit_list(zip(unit.bases, unit.powers))
+    def to_string(cls, unit, inline=True):
+        return super().to_string(unit, inline)

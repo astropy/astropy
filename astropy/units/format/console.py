@@ -17,6 +17,8 @@ class Console(base.Base):
 
       >>> import astropy.units as u
       >>> print(u.Ry.decompose().to_string('console'))  # doctest: +FLOAT_CMP
+      2.1798721*10^-18m^2 kg s^-2
+      >>> print(u.Ry.decompose().to_string('console', inline=False))  # doctest: +FLOAT_CMP
                        m^2 kg
       2.1798721*10^-18 ------
                         s^2
@@ -60,7 +62,7 @@ class Console(base.Base):
         return cls._times.join(parts)
 
     @classmethod
-    def to_string(cls, unit):
+    def to_string(cls, unit, inline=True):
         if isinstance(unit, core.CompositeUnit):
             if unit.scale == 1:
                 s = ""
@@ -68,9 +70,13 @@ class Console(base.Base):
                 s = cls.format_exponential_notation(unit.scale)
 
             if len(unit.bases):
-                positives, negatives = utils.get_grouped_by_powers(
-                    unit.bases, unit.powers
-                )
+                if inline:
+                    positives = zip(unit.bases, unit.powers)
+                    negatives = []
+                else:
+                    positives, negatives = utils.get_grouped_by_powers(
+                        unit.bases, unit.powers
+                    )
                 if len(negatives):
                     if len(positives):
                         positives = cls._format_unit_list(positives)

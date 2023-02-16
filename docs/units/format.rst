@@ -91,10 +91,8 @@ take an optional parameter to select a different format::
     >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
     >>> f"{fluxunit}"
     'erg / (cm2 s)'
-    >>> print(f"{fluxunit:console}")
-     erg
-    ------
-    s cm^2
+    >>> print(f"{fluxunit:unicode}")
+    erg s⁻¹ cm⁻²
     >>> f"{fluxunit:latex}"
     '$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
     >>> f"{fluxunit:>20s}"
@@ -200,10 +198,15 @@ following formats:
 
        \mathrm{erg\,s^{-1}\,cm^{-2}}
 
-  - ``"console"``: Writes a multiline representation of the unit
-    useful for display in a text console::
+  - ``"console"``: Writes a representation of the unit useful for
+    display in a text console::
 
       >>> print(fluxunit.to_string('console'))
+       erg s^-1 cm^-2
+
+    It is also possible to write a multiline representation:
+
+      >>> print(fluxunit.to_string('console', inline=False))
        erg
       ------
       s cm^2
@@ -212,6 +215,8 @@ following formats:
     characters::
 
       >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +FLOAT_CMP
+      2.1798724×10⁻¹⁸m² kg s⁻²
+      >>> print(u.Ry.decompose().to_string('unicode', inline=False))  # doctest: +FLOAT_CMP
                       m² kg
       2.1798724×10⁻¹⁸ ─────
                        s²
