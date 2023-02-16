@@ -1,0 +1,2 @@
+Allow "console" and "unicode" formats for conversion to string of
+function units.
