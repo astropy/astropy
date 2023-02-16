@@ -83,13 +83,12 @@ class Console(base.Base):
                     else:
                         nominator = "1"
                     denominator = cls._format_unit_list(denominator)
-                    l = len(s)
-                    r = max(len(nominator), len(denominator))
-                    f = f"{{0:^{l}s}} {{1:^{r}s}}"
+                    fraclength = max(len(nominator), len(denominator))
+                    f = f"{{0:^{len(s)}s}} {{1:^{fraclength}s}}"
 
                     lines = [
                         f.format("", nominator),
-                        f.format(s, cls._line * r),
+                        f.format(s, cls._line * fraclength),
                         f.format("", denominator),
                     ]
 
