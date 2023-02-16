@@ -1,0 +1,2 @@
+Add "inline" option to and "unicode and "console" unit formats to use
+negative powers instead of fractions.
