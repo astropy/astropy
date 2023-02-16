@@ -129,6 +129,9 @@ def fitsio_compressed_file_path(
         # fitsio fails with a compression error
         pytest.xfail("fitsio fails to write these")
 
+    if compression_type == "NOCOMPRESS":
+        pytest.xfail("fitsio does not support NOCOMPRESS")
+
     if (
         compression_type == "HCOMPRESS_1"
         and "f" in dtype
@@ -208,6 +211,10 @@ def test_compress(
     compression_type,
     dtype,
 ):
+
+    if compression_type == "NOCOMPRESS":
+        pytest.xfail("fitsio does not support NOCOMPRESS")
+
     fts = fitsio.FITS(astropy_compressed_file_path, "r")
     header = fts[1].read_header()
     data = fts[1].read()

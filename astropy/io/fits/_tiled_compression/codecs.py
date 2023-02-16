@@ -34,6 +34,7 @@ __all__ = [
     "Rice1",
     "PLIO1",
     "HCompress1",
+    "NoCompress",
 ]
 
 
@@ -46,6 +47,50 @@ def _as_native_endian_array(data):
         return data
     else:
         return data.astype(np.asarray(data).dtype.newbyteorder("="))
+
+
+class NoCompress(Codec):
+    """
+    A dummy compression/decompression algorithm that stores the data as-is.
+
+    While the data is not compressed/decompressed, it is converted to big
+    endian during encoding as this is what is expected in FITS files.
+    """
+
+    codec_id = "FITS_NOCOMPRESS"
+
+    def decode(self, buf):
+        """
+        Decompress buffer using the PLIO_1 algorithm.
+
+        Parameters
+        ----------
+        buf : bytes or array_like
+            The buffer to decompress.
+
+        Returns
+        -------
+        buf : np.ndarray
+            The decompressed buffer.
+        """
+        return np.frombuffer(buf, dtype=np.uint8)
+
+    def encode(self, buf):
+        """
+        Compress the data in the buffer using the PLIO_1 algorithm.
+
+        Parameters
+        ----------
+        buf : bytes or array_like
+            The buffer to compress.
+
+        Returns
+        -------
+        bytes
+            The compressed bytes.
+        """
+        return _as_big_endian_array(buf).tobytes()
+
 
 class Gzip1(Codec):
     """
