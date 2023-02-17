@@ -88,7 +88,7 @@ class Console(base.Base):
                         nominator = "1"
                     denominator = cls._format_unit_list(denominator)
                     fraclength = max(len(nominator), len(denominator))
-                    f = f"{{0:^{len(s)}s}} {{1:^{fraclength}s}}"
+                    f = f"{{0:<{len(s)+1 if len(s) else 0}s}}{{1:^{fraclength}s}}"
 
                     lines = [
                         f.format("", nominator),

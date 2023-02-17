@@ -449,8 +449,8 @@ def test_format_styles(format_spec, string):
 @pytest.mark.parametrize(
     "format_spec, inline, string",
     [
-        ("console", False, "  erg  \n ------\n s cm^2"),
-        ("unicode", False, "  erg \n ─────\n s cm²"),
+        ("console", False, " erg  \n------\ns cm^2"),
+        ("unicode", False, " erg \n─────\ns cm²"),
         ("latex", True, "$\\mathrm{erg\\,s^{-1}\\,cm^{-2}}$"),
     ],
 )
@@ -840,8 +840,8 @@ def test_function_format_styles(format_spec, string):
 @pytest.mark.parametrize(
     "format_spec, inline, string",
     [
-        ("console", False, "    1\ndB( -)\n    m"),
-        ("unicode", False, "    1\ndB( ─)\n    m"),
+        ("console", False, "   1\ndB(-)\n   m"),
+        ("unicode", False, "   1\ndB(─)\n   m"),
         ("latex", True, r"$\mathrm{dB}$$\mathrm{\left( \mathrm{m^{-1}} \right)}$"),
     ],
 )
