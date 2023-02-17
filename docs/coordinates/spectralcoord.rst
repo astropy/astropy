@@ -460,7 +460,7 @@ T Tau. We can convert these frequencies to velocities assuming the Doppler shift
           redshift=0.0
         doppler_rest=115.2712018 GHz
         doppler_convention=radio)
-      [-11.90160353, -27.50828545, -30.1093991 ] km / s>
+      [-11.90160348, -27.50828539, -30.10939905] km / s>
 
 Note that these resulting velocities are different from the ``radial_velocity``
 property (which is still zero here) - the latter is the difference in velocity

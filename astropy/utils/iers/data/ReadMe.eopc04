@@ -1,0 +1,50 @@
+Table: eopc04.1962-now
+================================================================================
+
+from https://hpiers.obspm.fr/iers/eop/eopc04/eopc04.1962-now
+
+# EARTH ORIENTATION PARAMETER (EOP) PRODUCT CENTER CENTER (PARIS OBSERVATORY) - INTERNATIONAL EARTH ROTATION AND REFERENCE SYSTEMS SERVICE  
+# EOP (IERS) 20 C04 TIME SERIES  consistent with ITRF 2020 - sampled at 0h UTC     
+# Contact: christian.bizouard@obspm.fr                                       
+# Reference Precession-Nutation Model: IAU 2000
+# format(4(i4),f10.2,2(f12.6),f12.7,2(f12.6),2(f12.6),f12.7,2(f12.6),f12.7,2(f12.6),2(f12.6),f12.7)
+# YR  MM  DD  HH       MJD        x(")        y(")  UT1-UTC(s)       dX(")      dY(")       xrt(")      yrt(")      LOD(s)        x Er        y Er  UT1-UTC Er      dX Er       dY Er       xrt Er      yrt Er      LOD Er
+1962   1   1   0  37665.00   -0.012700    0.213000   0.0326338    0.000000    0.000000    0.000000    0.000000   0.0017230    0.030000    0.030000   0.0020000    0.004774    0.002000    0.000000    0.000000   0.0014000
+# 345678901234567890123456789012345678901234567890123456789012345678901234567890
+================================================================================
+
+File Summary:
+--------------------------------------------------------------------------------
+ FileName           Lrecl    Records    Explanations
+--------------------------------------------------------------------------------
+ReadMe              80       .          This file, made using header
+eopc04.1962-now     218      22301      All EOP values since 01 January 1962
+--------------------------------------------------------------------------------
+
+================================================================================
+Byte-by-byte Description of file: *
+--------------------------------------------------------------------------------
+  Bytes  Format Units    Label        Explanations
+--------------------------------------------------------------------------------
+  1-  4   I4    ---      year         Calendar year
+  5-  8   I4    ---      month        Month
+  9- 12   I4    ---      day          Day of month
+ 13- 16   I4    ---      hour         Hour UTC
+ 17- 26   F10.2 d        MJD          Modified Julian Date
+ 27- 38   F12.6 arcsec   PM_x         Pole coordinate x
+ 39- 50   F12.6 arcsec   PM_y         Pole coordinate y
+ 51- 62   F12.7 s        UT1_UTC      Difference UT1-UTC
+ 63- 74   F12.6 arcsec   dX_2000A     Pole offset dX wrt IAU2000A Nutation 
+ 75- 86   F12.6 arcsec   dY_2000A     Pole offset dY wrt IAU2000A Nutation
+ 87- 98   F12.6 arcsec/d PM_x_dot     Pole coordinate rate x
+ 99-110   F12.6 arcsec/d PM_y_dot     Pole coordinate rate y
+111-122   F12.7 s        LOD          Length of day offset
+123-134   F12.6 arcsec   e_PM_x       Error in PM_x
+135-146   F12.6 arcsec   e_PM_y       Error in PM_y
+147-158   F12.7 s        e_UT1_UTC    Error in UT1_UTC
+159-170   F12.6 arcsec   e_dX_2000A   Error in dX_2000A
+171-182   F12.6 arcsec   e_dY_2000A   Error in dY_2000A
+183-194   F12.6 arcsec/d e_PM_x_dot   Error in PM_x_dot
+195-206   F12.6 arcsec/d e_PM_y_dot   Error in PM_y_dot
+207-218   F12.7 s        e_LOD        Error in LOD
+--------------------------------------------------------------------------------
