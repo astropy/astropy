@@ -109,6 +109,28 @@ class TestBasic:
         iers.IERS_A.close()
 
 
+def test_IERS_B_old_style_excerpt():
+    """Check that the instructions given in `IERS_B.read` actually work."""
+    # If this test is changed, be sure to also adjust the instructions.
+    #
+    # TODO: this test and the note can probably be removed after
+    # enough time has passed that old-style IERS_B files are simply
+    # not around any more, say in 2025.  If so, also remove the excerpt
+    # and the ReadMe.eopc04_IAU2000 file.
+    old_style_file = get_pkg_data_filename(
+        os.path.join("data", "iers_b_old_style_excerpt")
+    )
+    excerpt = iers.IERS_B.read(
+        old_style_file,
+        readme=get_pkg_data_filename(
+            "data/ReadMe.eopc04_IAU2000", package="astropy.utils.iers"
+        ),
+        data_start=14,
+    )
+    assert isinstance(excerpt, QTable)
+    assert "PM_x_dot" not in excerpt.colnames
+
+
 class TestIERS_AExcerpt:
     def test_simple(self):
         # Test the IERS A reader. It is also a regression tests that ensures
@@ -291,11 +313,11 @@ class TestIERS_Auto:
             predictive_mjd = dat.meta["predictive_mjd"]
             dat._time_now = Time(predictive_mjd, format="mjd") + 7 * u.d
 
-            # Look at times before and after the test file begins.  0.1292905 is
+            # Look at times before and after the test file begins.  0.1292934 is
             # the IERS-B value from MJD=57359.  The value in
             # finals2000A-2016-02-30-test has been replaced at this point.
             assert np.allclose(
-                dat.ut1_utc(Time(50000, format="mjd").jd).value, 0.1293286
+                dat.ut1_utc(Time(50000, format="mjd").jd).value, 0.1292934
             )
             assert np.allclose(
                 dat.ut1_utc(Time(60000, format="mjd").jd).value, -0.2246227
@@ -306,7 +328,7 @@ class TestIERS_Auto:
             # and an exception when extrapolating into the future with insufficient data.
             dat._time_now = Time(predictive_mjd, format="mjd") + 60 * u.d
             assert np.allclose(
-                dat.ut1_utc(Time(50000, format="mjd").jd).value, 0.1293286
+                dat.ut1_utc(Time(50000, format="mjd").jd).value, 0.1292934
             )
             with pytest.warns(
                 iers.IERSStaleWarning, match="IERS_Auto predictive values are older"
@@ -336,7 +358,7 @@ class TestIERS_Auto:
         with iers.conf.set_temp("iers_auto_url", self.iers_a_url_2):
             # Look at times before and after the test file begins.  This forces a new download.
             assert np.allclose(
-                dat.ut1_utc(Time(50000, format="mjd").jd).value, 0.1293286
+                dat.ut1_utc(Time(50000, format="mjd").jd).value, 0.1292934
             )
             assert np.allclose(dat.ut1_utc(Time(60000, format="mjd").jd).value, -0.3)
 

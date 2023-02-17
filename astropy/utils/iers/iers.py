@@ -68,9 +68,9 @@ IERS_A_URL_MIRROR = "https://maia.usno.navy.mil/ser7/finals2000A.all"
 IERS_A_README = get_pkg_data_filename("data/ReadMe.finals2000A")
 
 # IERS-B default file name, URL, and ReadMe with content description
-IERS_B_FILE = get_pkg_data_filename("data/eopc04_IAU2000.62-now")
-IERS_B_URL = "https://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now"
-IERS_B_README = get_pkg_data_filename("data/ReadMe.eopc04_IAU2000")
+IERS_B_FILE = get_pkg_data_filename("data/eopc04.1962-now")
+IERS_B_URL = "https://hpiers.obspm.fr/iers/eop/eopc04/eopc04.1962-now"
+IERS_B_README = get_pkg_data_filename("data/ReadMe.eopc04")
 
 # LEAP SECONDS default file name, URL, and alternative format/URL
 IERS_LEAP_SECOND_FILE = get_pkg_data_filename("data/Leap_Second.dat")
@@ -673,13 +673,16 @@ class IERS_B(IERS):
     -----
     If the package IERS B file (```iers.IERS_B_FILE``) is out of date, a new
     version can be downloaded from ``iers.IERS_B_URL``.
+
+    See `~astropy.utils.iers.IERS_B.read` for instructions on how to read
+    a pre-2023 style IERS B file (usually named ``eopc04_IAU2000.62-now``).
     """
 
     iers_table = None
 
     @classmethod
-    def read(cls, file=None, readme=None, data_start=14):
-        """Read IERS-B table from a eopc04_iau2000.* file provided by IERS.
+    def read(cls, file=None, readme=None, data_start=6):
+        """Read IERS-B table from a eopc04.* file provided by IERS.
 
         Parameters
         ----------
@@ -690,11 +693,29 @@ class IERS_B(IERS):
             full path to ascii file holding CDS-style readme.
             Defaults to package version, ``iers.IERS_B_README``.
         data_start : int
-            starting row. Default is 14, appropriate for standard IERS files.
+            Starting row. Default is 6, appropriate for standard IERS files.
 
         Returns
         -------
         ``IERS_B`` class instance
+
+        Notes
+        -----
+        To read a pre-2023 style IERS B file (usually named something like
+        ``eopc04_IAU2000.62-now``), do something like this example with an
+        excerpt that is used for testing::
+
+            >>> from astropy.utils.iers import IERS_B
+            >>> from astropy.utils.data import get_pkg_data_filename
+            >>> old_style_file = get_pkg_data_filename(
+            ...     "tests/data/iers_b_old_style_excerpt",
+            ...     package="astropy.utils.iers")
+            >>> iers_b = IERS_B.read(
+            ...     old_style_file,
+            ...     readme=get_pkg_data_filename("data/ReadMe.eopc04_IAU2000",
+            ...                                  package="astropy.utils.iers"),
+            ...     data_start=14)
+
         """
         if file is None:
             file = IERS_B_FILE
