@@ -1137,11 +1137,12 @@ class CompImageHDU(BinTableHDU):
                     )
 
             if tile_size != original_tile_size:
-                warnings.warn(f"The data size should be a multiple of the tile "
-                            f"size. The tile size has automatically been changed "
-                            f"from {original_tile_size} to {tile_size}, but in "
-                            f"future this will raise an error and the correct tile "
-                            f"size should be specified directly.", AstropyDeprecationWarning)
+                warnings.warn(f"The tile size should be such that no tiles have "
+                              f"fewer than 4 pixels. The tile size has "
+                              f"automatically been changed from {original_tile_size} "
+                              f"to {tile_size}, but in future this will raise an "
+                              f"error and the correct tile size should be specified "
+                              f"directly.", AstropyDeprecationWarning)
 
         # Set up locations for writing the next cards in the header.
         last_znaxis = "ZNAXIS"
