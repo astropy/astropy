@@ -102,6 +102,9 @@ jobs:
           distro: bullseye
 
           shell: /bin/bash
+          env: |
+            ARCH_ON_CI: ${{ env.ARCH_ON_CI }}
+            IS_CRON: ${{ env.IS_CRON }}
 
           install: |
             echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list
