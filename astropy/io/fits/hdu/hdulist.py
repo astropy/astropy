@@ -51,7 +51,6 @@ def fitsopen(
     cache=True,
     lazy_load_hdus=None,
     ignore_missing_simple=False,
-    load_variable_length_data=True,
     *,
     use_fsspec=None,
     fsspec_kwargs=None,
@@ -221,7 +220,6 @@ def fitsopen(
         ignore_missing_simple,
         use_fsspec=use_fsspec,
         fsspec_kwargs=fsspec_kwargs,
-        load_variable_length_data=load_variable_length_data,
         **kwargs,
     )
 
@@ -466,7 +464,6 @@ class HDUList(list, _Verify):
         cache=True,
         lazy_load_hdus=True,
         ignore_missing_simple=False,
-        load_variable_length_data=True,
         **kwargs,
     ):
         """
@@ -484,7 +481,6 @@ class HDUList(list, _Verify):
             cache=cache,
             ignore_missing_simple=ignore_missing_simple,
             lazy_load_hdus=lazy_load_hdus,
-            load_variable_length_data=load_variable_length_data,
             **kwargs,
         )
 
