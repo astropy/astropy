@@ -46,24 +46,23 @@ class Unicode(console.Console):
 
     @classmethod
     def _format_superscript(cls, number):
-        mapping = {
-            "0": "⁰",
-            "1": "¹",
-            "2": "²",
-            "3": "³",
-            "4": "⁴",
-            "5": "⁵",
-            "6": "⁶",
-            "7": "⁷",
-            "8": "⁸",
-            "9": "⁹",
-            "-": "⁻",
-            "−": "⁻",
-            # This is actually a "raised omission bracket", but it's
-            # the closest thing I could find to a superscript solidus.
-            "/": "⸍",
-        }
-        output = []
-        for c in number:
-            output.append(mapping[c])
-        return "".join(output)
+        mapping = str.maketrans(
+            {
+                "0": "⁰",
+                "1": "¹",
+                "2": "²",
+                "3": "³",
+                "4": "⁴",
+                "5": "⁵",
+                "6": "⁶",
+                "7": "⁷",
+                "8": "⁸",
+                "9": "⁹",
+                "-": "⁻",
+                "−": "⁻",
+                # This is actually a "raised omission bracket", but it's
+                # the closest thing I could find to a superscript solidus.
+                "/": "⸍",
+            }
+        )
+        return number.translate(mapping)
