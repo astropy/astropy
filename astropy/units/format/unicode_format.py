@@ -5,7 +5,7 @@ Handles the "Unicode" unit format.
 """
 
 
-from . import console, utils
+from . import console
 
 
 class Unicode(console.Console):
@@ -32,17 +32,8 @@ class Unicode(console.Console):
         return unit.get_format_name("unicode")
 
     @classmethod
-    def format_exponential_notation(cls, val):
-        m, ex = utils.split_mantissa_exponent(val)
-
-        parts = []
-        if m:
-            parts.append(m.replace("-", "−"))
-
-        if ex:
-            parts.append(f"10{cls._format_superscript(ex)}")
-
-        return cls._times.join(parts)
+    def _format_mantissa(cls, m):
+        return m.replace("-", "−")
 
     @classmethod
     def _format_superscript(cls, number):

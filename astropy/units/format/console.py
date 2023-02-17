@@ -32,6 +32,10 @@ class Console(base.Base):
         return unit.get_format_name("console")
 
     @classmethod
+    def _format_mantissa(cls, m):
+        return m
+
+    @classmethod
     def _format_superscript(cls, number):
         return f"^{number}"
 
@@ -54,7 +58,7 @@ class Console(base.Base):
 
         parts = []
         if m:
-            parts.append(m)
+            parts.append(cls._format_mantissa(m))
 
         if ex:
             parts.append(f"10{cls._format_superscript(ex)}")
