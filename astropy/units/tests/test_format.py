@@ -425,38 +425,55 @@ def test_latex_scale():
 
 def test_latex_inline_scale():
     fluxunit = u.Unit(1.0e-24 * u.erg / (u.cm**2 * u.s * u.Hz))
-    latex_inline = r"$\mathrm{1 \times 10^{-24}\,erg" r"\,Hz^{-1}\,s^{-1}\,cm^{-2}}$"
+    latex_inline = r"$\mathrm{1 \times 10^{-24}\,erg\,Hz^{-1}\,s^{-1}\,cm^{-2}}$"
     assert fluxunit.to_string("latex_inline") == latex_inline
 
 
 @pytest.mark.parametrize(
-    "format_spec, string",
+    "format_spec, string, decomposed",
     [
-        ("generic", "erg / (cm2 s)"),
-        ("s", "erg / (cm2 s)"),
-        ("console", "erg s^-1 cm^-2"),
-        ("latex", "$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$"),
-        ("latex_inline", "$\\mathrm{erg\\,s^{-1}\\,cm^{-2}}$"),
-        ("unicode", "erg s⁻¹ cm⁻²"),
-        (">20s", "       erg / (cm2 s)"),
+        ("generic", "erg / (cm2 s)", "0.001 kg / s3"),
+        ("s", "erg / (cm2 s)", "0.001 kg / s3"),
+        ("console", "erg s^-1 cm^-2", "0.001 kg s^-3"),
+        (
+            "latex",
+            r"$\mathrm{\frac{erg}{s\,cm^{2}}}$",
+            r"$\mathrm{0.001\,\frac{kg}{s^{3}}}$",
+        ),
+        (
+            "latex_inline",
+            r"$\mathrm{erg\,s^{-1}\,cm^{-2}}$",
+            r"$\mathrm{0.001\,kg\,s^{-3}}$",
+        ),
+        ("unicode", "erg s⁻¹ cm⁻²", "0.001 kg s⁻³"),
+        (">20s", "       erg / (cm2 s)", "       0.001 kg / s3"),
     ],
 )
-def test_format_styles(format_spec, string):
+def test_format_styles(format_spec, string, decomposed):
     fluxunit = u.erg / (u.cm**2 * u.s)
     assert format(fluxunit, format_spec) == string
+    # Decomposed mostly to test that scale factors are dealt with properly
+    # in the various formats.
+    assert format(fluxunit.decompose(), format_spec) == decomposed
 
 
 @pytest.mark.parametrize(
-    "format_spec, inline, string",
+    "format_spec, inline, string, decomposed",
     [
-        ("console", False, " erg  \n------\ns cm^2"),
-        ("unicode", False, " erg \n─────\ns cm²"),
-        ("latex", True, "$\\mathrm{erg\\,s^{-1}\\,cm^{-2}}$"),
+        ("console", False, " erg  \n------\ns cm^2", "      kg \n0.001 ---\n      s^3"),
+        ("unicode", False, " erg \n─────\ns cm²", "      kg\n0.001 ──\n      s³"),
+        (
+            "latex",
+            True,
+            r"$\mathrm{erg\,s^{-1}\,cm^{-2}}$",
+            r"$\mathrm{0.001\,kg\,s^{-3}}$",
+        ),
     ],
 )
-def test_format_styles_inline(format_spec, inline, string):
+def test_format_styles_inline(format_spec, inline, string, decomposed):
     fluxunit = u.erg / (u.cm**2 * u.s)
     assert fluxunit.to_string(format_spec, inline=inline) == string
+    assert fluxunit.decompose().to_string(format_spec, inline=inline) == decomposed
 
 
 def test_flatten_to_known():
@@ -477,6 +494,21 @@ def test_console_out():
     Issue #436.
     """
     u.Jy.decompose().to_string("console")
+
+
+@pytest.mark.parametrize(
+    "format,string",
+    [
+        ("generic", "10"),
+        ("console", "10"),
+        ("unicode", "10"),
+        ("cds", "10"),
+        ("latex", r"$\mathrm{10}$"),
+    ],
+)
+def test_scale_only(format, string):
+    unit = u.Unit(10)
+    assert unit.to_string(format) == string
 
 
 def test_flexible_float():
