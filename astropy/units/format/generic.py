@@ -26,35 +26,6 @@ from . import core, utils
 from .base import Base
 
 
-def _to_string(cls, unit):
-    if isinstance(unit, core.CompositeUnit):
-        parts = []
-
-        if unit.scale != 1:
-            parts.append(f"{unit.scale:g}")
-
-        if len(unit.bases):
-            nominator, denominator = utils.get_grouped_by_powers(
-                unit.bases, unit.powers
-            )
-            if len(nominator):
-                parts.append(cls._format_unit_list(nominator))
-            elif len(parts) == 0:
-                parts.append("1")
-
-            if len(denominator):
-                parts.append("/")
-                unit_list = cls._format_unit_list(denominator)
-                if len(denominator) == 1:
-                    parts.append(f"{unit_list}")
-                else:
-                    parts.append(f"({unit_list})")
-
-        return " ".join(parts)
-    elif isinstance(unit, core.NamedUnit):
-        return cls._get_unit_name(unit)
-
-
 class Generic(Base):
     """
     A "generic" format.
@@ -645,7 +616,29 @@ class Generic(Base):
 
     @classmethod
     def to_string(cls, unit):
-        return _to_string(cls, unit)
+        parts = []
+
+        if unit.scale != 1:
+            parts.append(f"{unit.scale:g}")
+
+        if len(unit.bases):
+            nominator, denominator = utils.get_grouped_by_powers(
+                unit.bases, unit.powers
+            )
+            if len(nominator):
+                parts.append(cls._format_unit_list(nominator))
+            elif len(parts) == 0:
+                parts.append("1")
+
+            if len(denominator):
+                parts.append("/")
+                unit_list = cls._format_unit_list(denominator)
+                if len(denominator) == 1:
+                    parts.append(f"{unit_list}")
+                else:
+                    parts.append(f"({unit_list})")
+
+        return " ".join(parts)
 
 
 # 2023-02-18: The statement in the docstring is no longer true, the class is not used
