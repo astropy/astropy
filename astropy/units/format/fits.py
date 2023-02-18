@@ -115,26 +115,23 @@ class Fits(generic.Generic):
 
         parts = []
 
-        if isinstance(unit, core.CompositeUnit):
-            base = np.log10(unit.scale)
+        base = np.log10(unit.scale)
 
-            if base % 1.0 != 0.0:
-                raise core.UnitScaleError(
-                    "The FITS unit format is not able to represent scales "
-                    "that are not powers of 10.  Multiply your data by "
-                    f"{unit.scale:e}."
-                )
-            elif unit.scale != 1.0:
-                parts.append(f"10**{int(base)}")
+        if base % 1.0 != 0.0:
+            raise core.UnitScaleError(
+                "The FITS unit format is not able to represent scales "
+                "that are not powers of 10.  Multiply your data by "
+                f"{unit.scale:e}."
+            )
+        elif unit.scale != 1.0:
+            parts.append(f"10**{int(base)}")
 
-            pairs = list(zip(unit.bases, unit.powers))
-            if len(pairs):
-                pairs.sort(key=operator.itemgetter(1), reverse=True)
-                parts.append(cls._format_unit_list(pairs))
+        pairs = list(zip(unit.bases, unit.powers))
+        if len(pairs):
+            pairs.sort(key=operator.itemgetter(1), reverse=True)
+            parts.append(cls._format_unit_list(pairs))
 
-            s = " ".join(parts)
-        elif isinstance(unit, core.NamedUnit):
-            s = cls._get_unit_name(unit)
+        s = " ".join(parts)
 
         return s
 
