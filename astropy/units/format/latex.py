@@ -8,7 +8,7 @@ import re
 
 import numpy as np
 
-from . import base, core, utils
+from . import base, utils
 
 
 class Latex(base.Base):
@@ -52,41 +52,31 @@ class Latex(base.Base):
 
     @classmethod
     def to_string(cls, unit, inline=False):
-        latex_name = None
-        if hasattr(unit, "_format"):
-            latex_name = unit._format.get("latex")
+        if unit.scale == 1:
+            s = ""
+        else:
+            s = cls.format_exponential_notation(unit.scale)
 
-        if latex_name is not None:
-            s = latex_name
-        elif isinstance(unit, core.CompositeUnit):
-            if unit.scale == 1:
-                s = ""
+        if len(unit.bases):
+            if s:
+                s += r"\,"
+            if inline:
+                nominator = zip(unit.bases, unit.powers)
+                denominator = []
             else:
-                s = cls.format_exponential_notation(unit.scale)
-
-            if len(unit.bases):
-                if s:
-                    s += r"\,"
-                if inline:
-                    nominator = zip(unit.bases, unit.powers)
-                    denominator = []
-                else:
-                    nominator, denominator = utils.get_grouped_by_powers(
-                        unit.bases, unit.powers
-                    )
-                if len(denominator):
-                    if len(nominator):
-                        nominator = cls._format_unit_list(nominator)
-                    else:
-                        nominator = "1"
-                    denominator = cls._format_unit_list(denominator)
-                    s += rf"\frac{{{nominator}}}{{{denominator}}}"
-                else:
+                nominator, denominator = utils.get_grouped_by_powers(
+                    unit.bases, unit.powers
+                )
+            if len(denominator):
+                if len(nominator):
                     nominator = cls._format_unit_list(nominator)
-                    s += nominator
-
-        elif isinstance(unit, core.NamedUnit):
-            s = cls._latex_escape(unit.name)
+                else:
+                    nominator = "1"
+                denominator = cls._format_unit_list(denominator)
+                s += rf"\frac{{{nominator}}}{{{denominator}}}"
+            else:
+                nominator = cls._format_unit_list(nominator)
+                s += nominator
 
         return rf"$\mathrm{{{s}}}$"
 
