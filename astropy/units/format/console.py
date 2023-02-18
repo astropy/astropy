@@ -17,7 +17,7 @@ class Console(base.Base):
 
       >>> import astropy.units as u
       >>> print(u.Ry.decompose().to_string('console'))  # doctest: +FLOAT_CMP
-      2.1798721*10^-18m^2 kg s^-2
+      2.1798721*10^-18 m^2 kg s^-2
       >>> print(u.Ry.decompose().to_string('console', inline=False))  # doctest: +FLOAT_CMP
                        m^2 kg
       2.1798721*10^-18 ------
@@ -74,6 +74,8 @@ class Console(base.Base):
                 s = cls.format_exponential_notation(unit.scale)
 
             if len(unit.bases):
+                if s:
+                    s += " "
                 if inline:
                     nominator = zip(unit.bases, unit.powers)
                     denominator = []
@@ -88,7 +90,7 @@ class Console(base.Base):
                         nominator = "1"
                     denominator = cls._format_unit_list(denominator)
                     fraclength = max(len(nominator), len(denominator))
-                    f = f"{{0:<{len(s)+1 if len(s) else 0}s}}{{1:^{fraclength}s}}"
+                    f = f"{{0:<{len(s)}s}}{{1:^{fraclength}s}}"
 
                     lines = [
                         f.format("", nominator),

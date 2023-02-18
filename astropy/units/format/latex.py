@@ -62,9 +62,11 @@ class Latex(base.Base):
             if unit.scale == 1:
                 s = ""
             else:
-                s = cls.format_exponential_notation(unit.scale) + r"\,"
+                s = cls.format_exponential_notation(unit.scale)
 
             if len(unit.bases):
+                if s:
+                    s += r"\,"
                 if inline:
                     nominator = zip(unit.bases, unit.powers)
                     denominator = []
