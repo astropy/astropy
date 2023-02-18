@@ -1106,7 +1106,7 @@ def test_arithmetics_handle_switches(use_abbreviation):
     # Only second has attributes and False is chosen
     nd_ = nd3.add(
         nd2,
-        propagate_uncertainties=False,
+        propagate_uncertainties="first_found",
         handle_meta=use_abbreviation,
         handle_mask=use_abbreviation,
         compare_wcs=use_abbreviation,
@@ -1119,7 +1119,7 @@ def test_arithmetics_handle_switches(use_abbreviation):
     # Only first has attributes and False is chosen
     nd_ = nd1.add(
         nd3,
-        propagate_uncertainties=False,
+        propagate_uncertainties="first_found",
         handle_meta=use_abbreviation,
         handle_mask=use_abbreviation,
         compare_wcs=use_abbreviation,
@@ -1276,7 +1276,7 @@ def test_arithmetics_unknown_uncertainties():
     with pytest.raises(IncompatibleUncertaintiesException):
         ndd1.add(ndd2)
     # But it should be possible without propagation
-    ndd3 = ndd1.add(ndd2, propagate_uncertainties=False)
+    ndd3 = ndd1.add(ndd2, propagate_uncertainties="first_found")
     np.testing.assert_array_equal(ndd1.uncertainty.array, ndd3.uncertainty.array)
 
     ndd4 = ndd1.add(ndd2, propagate_uncertainties=None)
