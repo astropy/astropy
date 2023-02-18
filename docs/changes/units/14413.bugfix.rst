@@ -1,0 +1,3 @@
+Spaces have been regularized for the ``unicode`` and ``console`` output
+formats: no extraneous spaces in front of the unit, and always a space
+between a possible scale factor and the unit.

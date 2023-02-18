@@ -215,7 +215,7 @@ following formats:
     characters::
 
       >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +FLOAT_CMP
-      2.1798724×10⁻¹⁸m² kg s⁻²
+      2.1798724×10⁻¹⁸ m² kg s⁻²
       >>> print(u.Ry.decompose().to_string('unicode', inline=False))  # doctest: +FLOAT_CMP
                       m² kg
       2.1798724×10⁻¹⁸ ─────
