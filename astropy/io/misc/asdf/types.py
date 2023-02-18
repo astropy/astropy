@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
+import warnings
 
+from asdf.exceptions import AsdfDeprecationWarning
 from asdf.types import CustomType, ExtensionTypeMeta
 
 __all__ = ["AstropyType", "AstropyAsdfType"]
@@ -32,27 +34,33 @@ class AstropyTypeMeta(ExtensionTypeMeta):
         return cls
 
 
-class AstropyType(CustomType, metaclass=AstropyTypeMeta):
-    """
-    This class represents types that have schemas and tags that are defined by
-    Astropy.
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        category=AsdfDeprecationWarning,
+        message=r".*from astropy.io.misc.asdf.* subclasses the deprecated CustomType .*",
+    )
 
-    IMPORTANT: This parent class should **not** be used for types that have
-    schemas that are defined by the ASDF standard.
-    """
+    class AstropyType(CustomType, metaclass=AstropyTypeMeta):
+        """
+        This class represents types that have schemas and tags that are defined by
+        Astropy.
 
-    organization = "astropy.org"
-    standard = "astropy"
+        IMPORTANT: This parent class should **not** be used for types that have
+        schemas that are defined by the ASDF standard.
+        """
 
+        organization = "astropy.org"
+        standard = "astropy"
 
-class AstropyAsdfType(CustomType, metaclass=AstropyTypeMeta):
-    """
-    This class represents types that have schemas that are defined in the ASDF
-    standard, but have tags that are implemented within astropy.
+    class AstropyAsdfType(CustomType, metaclass=AstropyTypeMeta):
+        """
+        This class represents types that have schemas that are defined in the ASDF
+        standard, but have tags that are implemented within astropy.
 
-    IMPORTANT: This parent class should **not** be used for types that also
-    have schemas that are defined by astropy.
-    """
+        IMPORTANT: This parent class should **not** be used for types that also
+        have schemas that are defined by astropy.
+        """
 
-    organization = "stsci.edu"
-    standard = "asdf"
+        organization = "stsci.edu"
+        standard = "asdf"
