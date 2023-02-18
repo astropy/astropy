@@ -28,10 +28,6 @@ class Console(base.Base):
     _line = "-"
 
     @classmethod
-    def _get_unit_name(cls, unit):
-        return unit.get_format_name("console")
-
-    @classmethod
     def _format_mantissa(cls, m):
         return m
 

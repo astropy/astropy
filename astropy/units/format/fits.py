@@ -22,8 +22,6 @@ class Fits(generic.Generic):
     Standard <https://fits.gsfc.nasa.gov/fits_standard.html>`_.
     """
 
-    name = "fits"
-
     @staticmethod
     def _generate_unit_names():
         from astropy import units as u
@@ -104,7 +102,7 @@ class Fits(generic.Generic):
 
     @classmethod
     def _get_unit_name(cls, unit):
-        name = unit.get_format_name("fits")
+        name = super()._get_unit_name(unit)
         cls._validate_unit(name)
         return name
 

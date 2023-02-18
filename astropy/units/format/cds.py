@@ -307,10 +307,6 @@ class CDS(Base):
                 else:
                     raise ValueError("Syntax error")
 
-    @staticmethod
-    def _get_unit_name(unit):
-        return unit.get_format_name("cds")
-
     @classmethod
     def _format_unit_list(cls, units):
         out = []

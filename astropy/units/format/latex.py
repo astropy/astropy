@@ -20,18 +20,16 @@ class Latex(base.Base):
     """
 
     @classmethod
-    def _latex_escape(cls, name):
-        # This doesn't escape arbitrary LaTeX strings, but it should
-        # be good enough for unit names which are required to be alpha
-        # + "_" anyway.
-        return name.replace("_", r"\_")
-
-    @classmethod
     def _get_unit_name(cls, unit):
+        # Do not use super() to help latex_inline subclass.
         name = unit.get_format_name("latex")
         if name == unit.name:
-            return cls._latex_escape(name)
-        return name
+            # This doesn't escape arbitrary LaTeX strings, but it should
+            # be good enough for unit names which are required to be alpha
+            # + "_" anyway.
+            return name.replace("_", r"\_")
+        else:
+            return name
 
     @classmethod
     def _format_unit_list(cls, units):
