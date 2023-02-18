@@ -5,7 +5,7 @@ Handles the "Unicode" unit format.
 """
 
 
-from . import console, utils
+from . import console
 
 
 class Unicode(console.Console):
@@ -17,7 +17,7 @@ class Unicode(console.Console):
 
       >>> import astropy.units as u
       >>> print(u.bar.decompose().to_string('unicode'))
-      100000kg m⁻¹ s⁻²
+      100000 kg m⁻¹ s⁻²
       >>> print(u.bar.decompose().to_string('unicode', inline=False))
               kg
       100000 ────
@@ -32,38 +32,28 @@ class Unicode(console.Console):
         return unit.get_format_name("unicode")
 
     @classmethod
-    def format_exponential_notation(cls, val):
-        m, ex = utils.split_mantissa_exponent(val)
-
-        parts = []
-        if m:
-            parts.append(m.replace("-", "−"))
-
-        if ex:
-            parts.append(f"10{cls._format_superscript(ex)}")
-
-        return cls._times.join(parts)
+    def _format_mantissa(cls, m):
+        return m.replace("-", "−")
 
     @classmethod
     def _format_superscript(cls, number):
-        mapping = {
-            "0": "⁰",
-            "1": "¹",
-            "2": "²",
-            "3": "³",
-            "4": "⁴",
-            "5": "⁵",
-            "6": "⁶",
-            "7": "⁷",
-            "8": "⁸",
-            "9": "⁹",
-            "-": "⁻",
-            "−": "⁻",
-            # This is actually a "raised omission bracket", but it's
-            # the closest thing I could find to a superscript solidus.
-            "/": "⸍",
-        }
-        output = []
-        for c in number:
-            output.append(mapping[c])
-        return "".join(output)
+        mapping = str.maketrans(
+            {
+                "0": "⁰",
+                "1": "¹",
+                "2": "²",
+                "3": "³",
+                "4": "⁴",
+                "5": "⁵",
+                "6": "⁶",
+                "7": "⁷",
+                "8": "⁸",
+                "9": "⁹",
+                "-": "⁻",
+                "−": "⁻",
+                # This is actually a "raised omission bracket", but it's
+                # the closest thing I could find to a superscript solidus.
+                "/": "⸍",
+            }
+        )
+        return number.translate(mapping)
