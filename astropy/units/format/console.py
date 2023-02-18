@@ -5,7 +5,7 @@ Handles the "Console" unit format.
 """
 
 
-from . import base, core, utils
+from . import base, utils
 
 
 class Console(base.Base):
@@ -67,42 +67,39 @@ class Console(base.Base):
 
     @classmethod
     def to_string(cls, unit, inline=True):
-        if isinstance(unit, core.CompositeUnit):
-            if unit.scale == 1:
-                s = ""
+        if unit.scale == 1:
+            s = ""
+        else:
+            s = cls.format_exponential_notation(unit.scale)
+
+        if len(unit.bases):
+            if s:
+                s += " "
+            if inline:
+                nominator = zip(unit.bases, unit.powers)
+                denominator = []
             else:
-                s = cls.format_exponential_notation(unit.scale)
-
-            if len(unit.bases):
-                if s:
-                    s += " "
-                if inline:
-                    nominator = zip(unit.bases, unit.powers)
-                    denominator = []
+                nominator, denominator = utils.get_grouped_by_powers(
+                    unit.bases, unit.powers
+                )
+            if len(denominator):
+                if len(nominator):
+                    nominator = cls._format_unit_list(nominator)
                 else:
-                    nominator, denominator = utils.get_grouped_by_powers(
-                        unit.bases, unit.powers
-                    )
-                if len(denominator):
-                    if len(nominator):
-                        nominator = cls._format_unit_list(nominator)
-                    else:
-                        nominator = "1"
-                    denominator = cls._format_unit_list(denominator)
-                    fraclength = max(len(nominator), len(denominator))
-                    f = f"{{0:<{len(s)}s}}{{1:^{fraclength}s}}"
+                    nominator = "1"
+                denominator = cls._format_unit_list(denominator)
+                fraclength = max(len(nominator), len(denominator))
+                f = f"{{0:<{len(s)}s}}{{1:^{fraclength}s}}"
 
-                    lines = [
+                s = "\n".join(
+                    (
                         f.format("", nominator),
                         f.format(s, cls._line * fraclength),
                         f.format("", denominator),
-                    ]
-
-                    s = "\n".join(lines)
-                else:
-                    nominator = cls._format_unit_list(nominator)
-                    s += nominator
-        elif isinstance(unit, core.NamedUnit):
-            s = cls._get_unit_name(unit)
+                    )
+                )
+            else:
+                nominator = cls._format_unit_list(nominator)
+                s += nominator
 
         return s
