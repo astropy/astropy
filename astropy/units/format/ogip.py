@@ -386,7 +386,7 @@ class OGIP(generic.Generic):
 
     @classmethod
     def _get_unit_name(cls, unit):
-        name = unit.get_format_name("ogip")
+        name = super()._get_unit_name(unit)
         cls._validate_unit(name)
         return name
 

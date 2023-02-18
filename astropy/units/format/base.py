@@ -24,6 +24,10 @@ class Base:
         super().__init_subclass__(**kwargs)
 
     @classmethod
+    def _get_unit_name(cls, unit):
+        return unit.get_format_name(cls.name)
+
+    @classmethod
     def parse(cls, s):
         """
         Convert a string to a unit object.

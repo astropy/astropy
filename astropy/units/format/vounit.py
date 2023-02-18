@@ -141,7 +141,7 @@ class VOUnit(generic.Generic):
                     "(deci) prefix"
                 )
 
-        name = unit.get_format_name("vounit")
+        name = super()._get_unit_name(unit)
 
         if unit in cls._custom_units.values():
             return name

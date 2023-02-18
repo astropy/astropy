@@ -432,25 +432,25 @@ def test_latex_inline_scale():
 @pytest.mark.parametrize(
     "format_spec, string, decomposed",
     [
-        ("generic", "erg / (cm2 s)", "0.001 kg / s3"),
-        ("s", "erg / (cm2 s)", "0.001 kg / s3"),
-        ("console", "erg s^-1 cm^-2", "0.001 kg s^-3"),
+        ("generic", "erg / (Angstrom cm2 s)", "1e+07 kg / (m s3)"),
+        ("s", "erg / (Angstrom cm2 s)", "1e+07 kg / (m s3)"),
+        ("console", "erg Angstrom^-1 s^-1 cm^-2", "10000000 kg m^-1 s^-3"),
         (
             "latex",
-            r"$\mathrm{\frac{erg}{s\,cm^{2}}}$",
-            r"$\mathrm{0.001\,\frac{kg}{s^{3}}}$",
+            r"$\mathrm{\frac{erg}{\mathring{A}\,s\,cm^{2}}}$",
+            r"$\mathrm{10000000\,\frac{kg}{m\,s^{3}}}$",
         ),
         (
             "latex_inline",
-            r"$\mathrm{erg\,s^{-1}\,cm^{-2}}$",
-            r"$\mathrm{0.001\,kg\,s^{-3}}$",
+            r"$\mathrm{erg\,\mathring{A}^{-1}\,s^{-1}\,cm^{-2}}$",
+            r"$\mathrm{10000000\,kg\,m^{-1}\,s^{-3}}$",
         ),
-        ("unicode", "erg s⁻¹ cm⁻²", "0.001 kg s⁻³"),
-        (">20s", "       erg / (cm2 s)", "       0.001 kg / s3"),
+        ("unicode", "erg Å⁻¹ s⁻¹ cm⁻²", "10000000 kg m⁻¹ s⁻³"),
+        (">25s", "   erg / (Angstrom cm2 s)", "        1e+07 kg / (m s3)"),
     ],
 )
 def test_format_styles(format_spec, string, decomposed):
-    fluxunit = u.erg / (u.cm**2 * u.s)
+    fluxunit = u.erg / (u.cm**2 * u.s * u.Angstrom)
     assert format(fluxunit, format_spec) == string
     # Decomposed mostly to test that scale factors are dealt with properly
     # in the various formats.

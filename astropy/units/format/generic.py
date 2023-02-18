@@ -595,10 +595,6 @@ class Generic(Base):
                     raise ValueError(f"Syntax error parsing unit '{s}'")
 
     @classmethod
-    def _get_unit_name(cls, unit):
-        return unit.get_format_name("generic")
-
-    @classmethod
     def _format_unit_list(cls, units):
         out = []
         units.sort(key=lambda x: cls._get_unit_name(x[0]).lower())
