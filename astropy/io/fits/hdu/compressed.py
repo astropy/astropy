@@ -12,7 +12,8 @@ from contextlib import suppress
 import numpy as np
 
 from astropy.io.fits import conf
-from astropy.io.fits._tiled_compression import compress_hdu, decompress_hdu
+from astropy.io.fits._tiled_compression import compress_hdu, decompress_hdu_section
+from astropy.io.fits._tiled_compression.utils import _data_shape, _n_tiles, _tile_shape
 from astropy.io.fits.card import Card
 from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from astropy.io.fits.column import TDEF_RE, ColDefs, Column
@@ -26,6 +27,7 @@ from astropy.io.fits.util import (
 )
 from astropy.utils import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.shapes import simplify_basic_index
 
 from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU
 from .image import ImageHDU
@@ -417,6 +419,12 @@ class CompImageHDU(BinTableHDU):
     manually changes the underlying compressed data by hand, but there is no
     reason they would want to do that (and if they do that's their
     responsibility).
+    """
+
+    _load_variable_length_data = False
+    """
+    We don't want to always load all the tiles so by setting this option
+    we can then access the tiles as needed.
     """
 
     _default_name = "COMPRESSED_IMAGE"
@@ -1468,15 +1476,26 @@ class CompImageHDU(BinTableHDU):
             for _ in range(required_blanks - table_blanks):
                 self._header.append()
 
-    @lazyproperty
-    def data(self):
-        # The data attribute is the image data (not the table data).
-        data = decompress_hdu(self)
+    def _get_raw_tile_from_heap(self, column_name, row_index):
+        """
+        Get the raw data for a given tile from the heap.
+        """
+        size, offset = self.compressed_data[column_name][row_index]
+        tform = self.columns[column_name].format
+        if tform[2] == "B":
+            dtype = np.uint8
+        elif tform[2] == "I":
+            dtype = ">i2"
+        elif tform[2] == "J":
+            dtype = ">i4"
+        if size == 0:
+            return np.array([], dtype=dtype)
+        raw = self._get_data_from_heap(offset, size, dtype)
+        # Return tile in native endian since this is what is expected
+        # by the decompression functions
+        return raw.astype(raw.dtype.newbyteorder("="), copy=False)
 
-        if data is None:
-            return data
-
-        # Scale the data if necessary
+    def _scale_data(self, data):
         if self._orig_bzero != 0 or self._orig_bscale != 1:
             new_dtype = self._dtype_for_bitpix()
             data = np.array(data, dtype=new_dtype)
@@ -1486,17 +1505,37 @@ class CompImageHDU(BinTableHDU):
             else:
                 blanks = None
 
-            if self._bscale != 1:
-                np.multiply(data, self._bscale, data)
-            if self._bzero != 0:
+            if self._orig_bscale != 1:
+                np.multiply(data, self._orig_bscale, data)
+            if self._orig_bzero != 0:
                 # We have to explicitly cast self._bzero to prevent numpy from
                 # raising an error when doing self.data += self._bzero, and we
                 # do this instead of self.data = self.data + self._bzero to
                 # avoid doubling memory usage.
-                np.add(data, self._bzero, out=data, casting="unsafe")
+                np.add(data, self._orig_bzero, out=data, casting="unsafe")
 
             if blanks is not None:
                 data = np.where(blanks, np.nan, data)
+
+        return data
+
+    @lazyproperty
+    def data(self):
+        """
+        The decompressed data array.
+
+        Note that accessing this will cause all the tiles to be loaded,
+        decompressed, and combined into a single data array. If you do
+        not need to access the whole array, consider instead using the
+        :attr:`~astropy.io.fits.CompImageHDU.section` property.
+        """
+        if len(self.compressed_data) == 0:
+            return None
+
+        # Since .section has general code to load any arbitrary part of the
+        # data, we can just use this - and the @lazyproperty on the current
+        # property will ensure that we do this only once.
+        data = self.section[...]
 
         # Right out of _ImageBaseHDU.data
         self._update_header_scale_info(data.dtype)
@@ -2053,3 +2092,95 @@ class CompImageHDU(BinTableHDU):
             ) + 1
         else:
             return seed
+
+    @property
+    def section(self):
+        """
+        Access a section of the image array without loading and decompressing
+        the entire array into memory.  The :class:`~astropy.io.fits.CompImageSection` object
+        returned by this attribute is not meant to be used directly by itself.
+        Rather, slices of the section return the appropriate slice of the data,
+        and loads *only* that section into memory. Any valid basic Numpy index
+        can be used to slice :class:`~astropy.io.fits.CompImageSection`.
+        """
+        return CompImageSection(self)
+
+
+class CompImageSection:
+    """
+    Class enabling subsets of CompImageHDU data to be loaded lazily via slicing.
+
+    Slices of this object load the corresponding section of an image array from
+    the underlying FITS file, and applies any BSCALE/BZERO factors.
+
+    Section slices cannot be assigned to, and modifications to a section are
+    not saved back to the underlying file.
+
+    See the :ref:`astropy:data-sections` section of the Astropy documentation
+    for more details.
+    """
+
+    def __init__(self, hdu):
+        self.hdu = hdu
+        self._data_shape = _data_shape(self.hdu._header)
+        self._tile_shape = _tile_shape(self.hdu._header)
+        self._n_dim = len(self._data_shape)
+        self._n_tiles = _n_tiles(self._data_shape, self._tile_shape)
+
+    @property
+    def shape(self):
+        return self._data_shape
+
+    def __getitem__(self, index):
+        # Shortcut if the whole data is requested (this is used by the
+        # data property, so we optimize it as it is frequently used)
+        if index is Ellipsis:
+            first_tile_index = np.zeros(self._n_dim, dtype=int)
+            last_tile_index = self._n_tiles - 1
+            data = decompress_hdu_section(self.hdu, first_tile_index, last_tile_index)
+            return self.hdu._scale_data(data)
+
+        index = simplify_basic_index(index, shape=self._data_shape)
+
+        # Determine for each dimension the first and last tile to extract
+
+        first_tile_index = np.zeros(self._n_dim, dtype=int)
+        last_tile_index = np.zeros(self._n_dim, dtype=int)
+
+        final_array_index = []
+
+        for dim, idx in enumerate(index):
+            if isinstance(idx, slice):
+                if idx.step > 0:
+                    first_tile_index[dim] = idx.start // self._tile_shape[dim]
+                    last_tile_index[dim] = (idx.stop - 1) // self._tile_shape[dim]
+                else:
+                    stop = 0 if idx.stop is None else max(idx.stop - 1, 0)
+                    first_tile_index[dim] = stop // self._tile_shape[dim]
+                    last_tile_index[dim] = idx.start // self._tile_shape[dim]
+
+                # Because slices such as slice(5, 0, 1) can exist (which
+                # would be empty) we need to make sure last_tile_index is
+                # always larger than first_tile_index
+                last_tile_index = np.maximum(last_tile_index, first_tile_index)
+
+                if idx.step < 0 and idx.stop is None:
+                    final_array_index.append(idx)
+                else:
+                    final_array_index.append(
+                        slice(
+                            idx.start - self._tile_shape[dim] * first_tile_index[dim],
+                            idx.stop - self._tile_shape[dim] * first_tile_index[dim],
+                            idx.step,
+                        )
+                    )
+            else:
+                first_tile_index[dim] = idx // self._tile_shape[dim]
+                last_tile_index[dim] = first_tile_index[dim]
+                final_array_index.append(
+                    idx - self._tile_shape[dim] * first_tile_index[dim]
+                )
+
+        data = decompress_hdu_section(self.hdu, first_tile_index, last_tile_index)
+
+        return self.hdu._scale_data(data[tuple(final_array_index)])

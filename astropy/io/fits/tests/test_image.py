@@ -4,9 +4,12 @@ import math
 import os
 import re
 import time
+from io import BytesIO
 
 import numpy as np
 import pytest
+from hypothesis import given
+from hypothesis.extra.numpy import basic_indices
 from numpy.testing import assert_equal
 
 from astropy.io import fits
@@ -1951,6 +1954,64 @@ class TestCompressedImage(FitsTestCase):
         with fits.open(self.data("comp.fits")) as hdul1:
             with fits.open(self.temp("test.fits")) as hdul2:
                 assert_equal(hdul1[1].data[:200, :100], hdul2[1].data)
+
+
+class TestCompHDUSections:
+    @pytest.fixture(autouse=True)
+    def setup_method(self, tmp_path):
+        shape = (13, 17, 25)
+        self.data = np.arange(np.product(shape)).reshape(shape).astype(np.int32)
+
+        header1 = fits.Header()
+        hdu1 = fits.CompImageHDU(
+            self.data, header1, compression_type="RICE_1", tile_size=(5, 4, 5)
+        )
+
+        header2 = fits.Header()
+        header2["BSCALE"] = 2
+        header2["BZERO"] = 100
+        hdu2 = fits.CompImageHDU(
+            self.data, header2, compression_type="RICE_1", tile_size=(5, 4, 5)
+        )
+        hdulist = fits.HDUList([fits.PrimaryHDU(), hdu1, hdu2])
+        hdulist.writeto(tmp_path / "sections.fits")
+
+        self.hdul = fits.open(tmp_path / "sections.fits")
+
+    def teardown_method(self):
+        self.hdul.close()
+        self.hdul = None
+
+    @given(basic_indices((13, 17, 25)))
+    def test_section_slicing(self, index):
+        assert_equal(self.hdul[1].section[index], self.hdul[1].data[index])
+        assert_equal(self.hdul[1].section[index], self.data[index])
+
+    @given(basic_indices((13, 17, 25)))
+    def test_section_slicing_scaling(self, index):
+        assert_equal(self.hdul[2].section[index], self.hdul[2].data[index])
+        assert_equal(self.hdul[2].section[index], self.data[index] * 2 + 100)
+
+
+def test_comphdu_fileobj():
+    # Regression test for a bug that caused an error to happen
+    # internally when reading the data if requested data shapes
+    # were not plain integers - this was triggered when accessing
+    # sections on data backed by certain kinds of objects such as
+    # BytesIO (but not regular file handles)
+
+    data = np.arange(6).reshape((2, 3)).astype(np.int32)
+
+    byte_buffer = BytesIO()
+
+    header = fits.Header()
+    hdu = fits.CompImageHDU(data, header, compression_type="RICE_1")
+    hdu.writeto(byte_buffer)
+
+    byte_buffer.seek(0)
+
+    hdu2 = fits.open(byte_buffer, mode="readonly")[1]
+    assert hdu2.section[1, 2] == 5
 
 
 def test_comphdu_bscale(tmp_path):
