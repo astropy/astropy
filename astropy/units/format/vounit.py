@@ -24,6 +24,7 @@ class VOUnit(generic.Generic):
     _explicit_custom_unit_regex = re.compile(r"^[YZEPTGMkhdcmunpfazy]?'((?!\d)\w)+'$")
     _custom_unit_regex = re.compile(r"^((?!\d)\w)+$")
     _custom_units = {}
+    _space = "."
 
     @staticmethod
     def _generate_unit_names():
@@ -191,20 +192,8 @@ class VOUnit(generic.Generic):
         return def_base(unit)
 
     @classmethod
-    def _format_unit_list(cls, units):
-        out = []
-        units.sort(key=lambda x: cls._get_unit_name(x[0]).lower())
-
-        for base, power in units:
-            if power == 1:
-                out.append(cls._get_unit_name(base))
-            else:
-                power = utils.format_power(power)
-                if "/" in power or "." in power:
-                    out.append(f"{cls._get_unit_name(base)}({power})")
-                else:
-                    out.append(f"{cls._get_unit_name(base)}**{power}")
-        return ".".join(out)
+    def _format_superscript(cls, number):
+        return f"({number})" if "/" in number or "." in number else f"**{number}"
 
     @classmethod
     def to_string(cls, unit):

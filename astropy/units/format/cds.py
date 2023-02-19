@@ -33,6 +33,7 @@ class CDS(Base):
     by VOTable up to version 1.2.
     """
 
+    _space = "."
     _tokens = (
         "PRODUCT",
         "DIVISION",
@@ -308,14 +309,8 @@ class CDS(Base):
                     raise ValueError("Syntax error")
 
     @classmethod
-    def _format_unit_list(cls, units):
-        out = []
-        for base, power in units:
-            if power == 1:
-                out.append(cls._get_unit_name(base))
-            else:
-                out.append(f"{cls._get_unit_name(base)}{int(power)}")
-        return ".".join(out)
+    def _format_superscript(cls, number):
+        return number
 
     @classmethod
     def to_string(cls, unit):
