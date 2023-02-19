@@ -33,28 +33,6 @@ class Console(base.Base):
         return m
 
     @classmethod
-    def _format_superscript(cls, number):
-        return f"^{number}"
-
-    @classmethod
-    def _format_unit_power(cls, unit, power=1):
-        """Format the unit for this format class raised to the given power.
-
-        This is overridden in Latex where the name of the unit can depend on the power
-        (e.g., for degrees).
-        """
-        name = cls._get_unit_name(unit)
-        if power != 1:
-            name += cls._format_superscript(utils.format_power(power))
-        return name
-
-    @classmethod
-    def _format_unit_list(cls, units):
-        return cls._space.join(
-            cls._format_unit_power(base_, power) for base_, power in units
-        )
-
-    @classmethod
     def format_exponential_notation(cls, val, format_spec=".8g"):
         """
         Formats a value in exponential notation.

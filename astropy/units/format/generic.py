@@ -595,20 +595,13 @@ class Generic(Base):
                     raise ValueError(f"Syntax error parsing unit '{s}'")
 
     @classmethod
-    def _format_unit_list(cls, units):
-        out = []
-        units.sort(key=lambda x: cls._get_unit_name(x[0]).lower())
+    def _format_superscript(cls, number):
+        return f"({number})" if "/" in number or "." in number else number
 
-        for base, power in units:
-            if power == 1:
-                out.append(cls._get_unit_name(base))
-            else:
-                power = utils.format_power(power)
-                if "/" in power or "." in power:
-                    out.append(f"{cls._get_unit_name(base)}({power})")
-                else:
-                    out.append(f"{cls._get_unit_name(base)}{power}")
-        return " ".join(out)
+    @classmethod
+    def _format_unit_list(cls, units):
+        units.sort(key=lambda x: cls._get_unit_name(x[0]).lower())
+        return super()._format_unit_list(units)
 
     @classmethod
     def to_string(cls, unit):
