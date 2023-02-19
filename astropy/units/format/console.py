@@ -26,6 +26,7 @@ class Console(base.Base):
 
     _times = "*"
     _line = "-"
+    _space = " "
 
     @classmethod
     def _format_mantissa(cls, m):
@@ -46,7 +47,7 @@ class Console(base.Base):
                     cls._get_unit_name(base_)
                     + cls._format_superscript(utils.format_power(power))
                 )
-        return " ".join(out)
+        return cls._space.join(out)
 
     @classmethod
     def format_exponential_notation(cls, val):
@@ -62,6 +63,19 @@ class Console(base.Base):
         return cls._times.join(parts)
 
     @classmethod
+    def _format_fraction(cls, scale, nominator, denominator):
+        fraclength = max(len(nominator), len(denominator))
+        f = f"{{0:<{len(scale)}s}}{{1:^{fraclength}s}}"
+
+        return "\n".join(
+            (
+                f.format("", nominator),
+                f.format(scale, cls._line * fraclength),
+                f.format("", denominator),
+            )
+        )
+
+    @classmethod
     def to_string(cls, unit, inline=True):
         if unit.scale == 1:
             s = ""
@@ -74,7 +88,7 @@ class Console(base.Base):
         # have a scale; e.g., u.percent.decompose() gives "0.01").
         if len(unit.bases):
             if s:
-                s += " "
+                s += cls._space
             if inline:
                 nominator = zip(unit.bases, unit.powers)
                 denominator = []
@@ -88,16 +102,7 @@ class Console(base.Base):
                 else:
                     nominator = "1"
                 denominator = cls._format_unit_list(denominator)
-                fraclength = max(len(nominator), len(denominator))
-                f = f"{{0:<{len(s)}s}}{{1:^{fraclength}s}}"
-
-                s = "\n".join(
-                    (
-                        f.format("", nominator),
-                        f.format(s, cls._line * fraclength),
-                        f.format("", denominator),
-                    )
-                )
+                s = cls._format_fraction(s, nominator, denominator)
             else:
                 nominator = cls._format_unit_list(nominator)
                 s += nominator
