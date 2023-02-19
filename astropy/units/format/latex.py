@@ -33,29 +33,25 @@ class Latex(console.Console):
             return name
 
     @classmethod
-    def _format_unit_list(cls, units):
-        out = []
-        for base_, power in units:
-            base_latex = cls._get_unit_name(base_)
-            if power == 1:
-                out.append(base_latex)
-            else:
-                # If the LaTeX representation of the base unit already ends with
-                # a superscript, we need to spell out the unit to avoid double
-                # superscripts. For example, the logic below ensures that
-                # `u.deg**2` returns `deg^{2}` instead of `{}^{\circ}^{2}`.
-                if re.match(r".*\^{[^}]*}$", base_latex):  # ends w/ superscript?
-                    base_latex = base_.short_names[0]
-                out.append(f"{base_latex}^{{{utils.format_power(power)}}}")
-        return r"\,".join(out)
-
-    @classmethod
     def _format_mantissa(cls, m):
         return m.replace("nan", r"{\rm NaN}").replace("inf", r"\infty")
 
     @classmethod
     def _format_superscript(cls, number):
         return f"^{{{number}}}"
+
+    @classmethod
+    def _format_unit_power(cls, unit, power=1):
+        name = cls._get_unit_name(unit)
+        if power != 1:
+            # If the LaTeX representation of the base unit already ends with
+            # a superscript, we need to spell out the unit to avoid double
+            # superscripts. For example, the logic below ensures that
+            # `u.deg**2` returns `deg^{2}` instead of `{}^{\circ}^{2}`.
+            if re.match(r".*\^{[^}]*}$", name):  # ends w/ superscript?
+                name = unit.short_names[0]
+            name += cls._format_superscript(utils.format_power(power))
+        return name
 
     @classmethod
     def _format_fraction(cls, scale, nominator, denominator):
