@@ -30,15 +30,28 @@ class Base:
         return unit.get_format_name(cls.name)
 
     @classmethod
-    def parse(cls, s):
+    def format_exponential_notation(cls, val, format_spec="g"):
         """
-        Convert a string to a unit object.
+        Formats a value in exponential notation.
+
+        Parameters
+        ----------
+        val : number
+            The value to be formatted
+
+        format_spec : str, optional
+            Format used to split up mantissa and exponent
+
+        Returns
+        -------
+        str
+            The value in exponential notation in a this class's format.
         """
-        raise NotImplementedError(f"Can not parse with {cls.__name__} format")
+        return format(val, format_spec)
 
     @classmethod
     def _format_superscript(cls, number):
-        return f"^{number}"
+        return f"({number})" if "/" in number or "." in number else number
 
     @classmethod
     def _format_unit_power(cls, unit, power=1):
@@ -59,8 +72,51 @@ class Base:
         )
 
     @classmethod
-    def to_string(cls, u):
+    def _format_fraction(cls, scale, nominator, denominator):
+        if cls._space in denominator:
+            denominator = f"({denominator})"
+        if scale and nominator == "1":
+            return f"{scale}/ {denominator}"
+        return f"{scale}{nominator} / {denominator}"
+
+    @classmethod
+    def to_string(cls, unit, inline=False):
+        # First the scale.  Normally unity, in which case we omit
+        # it, but non-unity scale can happen, e.g., in decompositions
+        # like u.Ry.decompose(), which gives "2.17987e-18 kg m2 / s2".
+        if unit.scale == 1:
+            s = ""
+        else:
+            s = cls.format_exponential_notation(unit.scale)
+
+        # Now the unit baes, taking care that dimensionless does not have any
+        # (but can have a scale; e.g., u.percent.decompose() gives "0.01").
+        if len(unit.bases):
+            if s:
+                s += cls._space
+            if inline:
+                nominator = list(zip(unit.bases, unit.powers))
+                denominator = []
+            else:
+                nominator, denominator = utils.get_grouped_by_powers(
+                    unit.bases, unit.powers
+                )
+            if len(denominator):
+                if len(nominator):
+                    nominator = cls._format_unit_list(nominator)
+                else:
+                    nominator = "1"
+                denominator = cls._format_unit_list(denominator)
+                s = cls._format_fraction(s, nominator, denominator)
+            else:
+                nominator = cls._format_unit_list(nominator)
+                s += nominator
+
+        return s
+
+    @classmethod
+    def parse(cls, s):
         """
-        Convert a unit object to a string.
+        Convert a string to a unit object.
         """
-        raise NotImplementedError(f"Can not output in {cls.__name__} format")
+        raise NotImplementedError(f"Can not parse with {cls.__name__} format")
