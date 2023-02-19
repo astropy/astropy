@@ -244,6 +244,10 @@ However, it remains very useful in the following circumstances:
 * Memory mapping does not work for accessing remote FITS files.
   In this case sections may be your only option. See :ref:`astropy:fits_io_cloud`.
 
+In addition, for compressed FITS files, :attr:`CompImageHDU.section` can be used
+to access and decompress only parts of the data, and can provide a significant
+speedup.
+
 Example
 -------
 

@@ -1,0 +1,4 @@
+Added a ``CompImageHDU.section`` property which can be used to
+efficiently access subsets of the data, similarly to ``ImageHDU.section``.
+When using this, only the tiles required to cover the section are
+read from disk and decompressed.

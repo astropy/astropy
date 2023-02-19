@@ -69,6 +69,13 @@ class _TableLikeHDU(_ValidHDU):
     # after restructuring to support uints by default on a per-column basis
     _uint = False
 
+    # The following flag can be used by subclasses to determine whether to load
+    # variable length data from the heap automatically or whether the columns
+    # should contain the size and offset in the heap and let the subclass
+    # decide when to load the data from the heap. This can be used for example
+    # in CompImageHDU to only load data tiles that are needed.
+    _load_variable_length_data = True
+
     @classmethod
     def match_header(cls, header):
         """
@@ -174,7 +181,8 @@ class _TableLikeHDU(_ValidHDU):
         # specifically in the BinTableHDU class, since they're a detail
         # specific to FITS binary tables
         if (
-            any(type(r) in (_FormatP, _FormatQ) for r in columns._recformats)
+            self._load_variable_length_data
+            and any(type(r) in (_FormatP, _FormatQ) for r in columns._recformats)
             and self._data_size is not None
             and self._data_size > self._theap
         ):
@@ -194,8 +202,14 @@ class _TableLikeHDU(_ValidHDU):
 
         self._init_tbdata(data)
         data = data.view(self._data_type)
+        data._load_variable_length_data = self._load_variable_length_data
         columns._add_listener(data)
         return data
+
+    def _get_data_from_heap(self, offset, shape, dtype):
+        return self._get_raw_data(
+            shape, dtype, self._data_offset + self._theap + offset
+        )
 
     def _init_tbdata(self, data):
         columns = self.columns
