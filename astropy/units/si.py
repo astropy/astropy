@@ -83,7 +83,6 @@ def_unit(
     namespace=_ns,
     prefixes=True,
     doc="degree: angular measurement 1/360 of full rotation",
-    format={"latex": r"{}^{\circ}", "unicode": "°"},
 )
 def_unit(
     ["hourangle"],
@@ -99,7 +98,6 @@ def_unit(
     namespace=_ns,
     prefixes=True,
     doc="arc minute: angular measurement",
-    format={"latex": r"{}^{\prime}", "unicode": "′"},
 )
 def_unit(
     ["arcsec", "arcsecond"],
@@ -109,6 +107,8 @@ def_unit(
     doc="arc second: angular measurement",
 )
 # These special formats should only be used for the non-prefix versions
+deg._format = {"latex": r"{}^{\circ}", "unicode": "°"}
+arcmin._format = {"latex": r"{}^{\prime}", "unicode": "′"}
 arcsec._format = {"latex": r"{}^{\prime\prime}", "unicode": "″"}
 def_unit(
     ["mas"],
