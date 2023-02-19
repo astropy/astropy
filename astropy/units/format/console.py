@@ -50,8 +50,24 @@ class Console(base.Base):
         return cls._space.join(out)
 
     @classmethod
-    def format_exponential_notation(cls, val):
-        m, ex = utils.split_mantissa_exponent(val)
+    def format_exponential_notation(cls, val, format_spec=".8g"):
+        """
+        Formats a value in exponential notation.
+
+        Parameters
+        ----------
+        val : number
+            The value to be formatted
+
+        format_spec : str, optional
+            Format used to split up mantissa and exponent
+
+        Returns
+        -------
+        string : str
+            The value in exponential notation in a this class's format.
+        """
+        m, ex = utils.split_mantissa_exponent(val, format_spec)
 
         parts = []
         if m:
