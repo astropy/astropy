@@ -22,7 +22,7 @@ from fractions import Fraction
 from astropy.utils import classproperty, deprecated, parsing
 from astropy.utils.misc import did_you_mean
 
-from . import core, utils
+from . import core
 from .base import Base
 
 
@@ -595,39 +595,9 @@ class Generic(Base):
                     raise ValueError(f"Syntax error parsing unit '{s}'")
 
     @classmethod
-    def _format_superscript(cls, number):
-        return f"({number})" if "/" in number or "." in number else number
-
-    @classmethod
     def _format_unit_list(cls, units):
         units.sort(key=lambda x: cls._get_unit_name(x[0]).lower())
         return super()._format_unit_list(units)
-
-    @classmethod
-    def to_string(cls, unit):
-        parts = []
-
-        if unit.scale != 1:
-            parts.append(f"{unit.scale:g}")
-
-        if len(unit.bases):
-            nominator, denominator = utils.get_grouped_by_powers(
-                unit.bases, unit.powers
-            )
-            if len(nominator):
-                parts.append(cls._format_unit_list(nominator))
-            elif len(parts) == 0:
-                parts.append("1")
-
-            if len(denominator):
-                parts.append("/")
-                unit_list = cls._format_unit_list(denominator)
-                if len(denominator) == 1:
-                    parts.append(f"{unit_list}")
-                else:
-                    parts.append(f"({unit_list})")
-
-        return " ".join(parts)
 
 
 # 2023-02-18: The statement in the docstring is no longer true, the class is not used
