@@ -37,17 +37,22 @@ class Console(base.Base):
         return f"^{number}"
 
     @classmethod
+    def _format_unit_power(cls, unit, power=1):
+        """Format the unit for this format class raised to the given power.
+
+        This is overridden in Latex where the name of the unit can depend on the power
+        (e.g., for degrees).
+        """
+        name = cls._get_unit_name(unit)
+        if power != 1:
+            name += cls._format_superscript(utils.format_power(power))
+        return name
+
+    @classmethod
     def _format_unit_list(cls, units):
-        out = []
-        for base_, power in units:
-            if power == 1:
-                out.append(cls._get_unit_name(base_))
-            else:
-                out.append(
-                    cls._get_unit_name(base_)
-                    + cls._format_superscript(utils.format_power(power))
-                )
-        return cls._space.join(out)
+        return cls._space.join(
+            cls._format_unit_power(base_, power) for base_, power in units
+        )
 
     @classmethod
     def format_exponential_notation(cls, val, format_spec=".8g"):
