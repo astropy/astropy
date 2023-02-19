@@ -19,7 +19,7 @@ import unicodedata
 import warnings
 from fractions import Fraction
 
-from astropy.utils import classproperty, parsing
+from astropy.utils import classproperty, deprecated, parsing
 from astropy.utils.misc import did_you_mean
 
 from . import core, utils
@@ -30,7 +30,7 @@ def _to_string(cls, unit):
     if isinstance(unit, core.CompositeUnit):
         parts = []
 
-        if cls._show_scale and unit.scale != 1:
+        if unit.scale != 1:
             parts.append(f"{unit.scale:g}")
 
         if len(unit.bases):
@@ -63,8 +63,6 @@ class Generic(Base):
     but instead of only supporting the units that FITS knows about, it
     supports any unit available in the `astropy.units` namespace.
     """
-
-    _show_scale = True
 
     _tokens = (
         "COMMA",
@@ -650,6 +648,9 @@ class Generic(Base):
         return _to_string(cls, unit)
 
 
+# 2023-02-18: The statement in the docstring is no longer true, the class is not used
+# anywhere so can be safely removed in 6.0.
+@deprecated("5.3", alternative="Generic")
 class Unscaled(Generic):
     """
     A format that doesn't display the scale part of the unit, other
@@ -658,4 +659,8 @@ class Unscaled(Generic):
     This is used in some error messages where the scale is irrelevant.
     """
 
-    _show_scale = False
+    @classmethod
+    def to_string(cls, unit):
+        if unit.scale != 1:
+            unit = core.Unit(unit / unit.scale)
+        return super().to_string(unit)
