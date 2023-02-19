@@ -6,8 +6,6 @@ Handles the "LaTeX" unit format.
 
 import re
 
-import numpy as np
-
 from . import console, utils
 
 
@@ -20,6 +18,7 @@ class Latex(console.Console):
     """
 
     _space = r"\,"
+    _times = r" \times "
 
     @classmethod
     def _get_unit_name(cls, unit):
@@ -51,6 +50,14 @@ class Latex(console.Console):
         return r"\,".join(out)
 
     @classmethod
+    def _format_mantissa(cls, m):
+        return m.replace("nan", r"{\rm NaN}").replace("inf", r"\infty")
+
+    @classmethod
+    def _format_superscript(cls, number):
+        return f"^{{{number}}}"
+
+    @classmethod
     def _format_fraction(cls, scale, nominator, denominator):
         return rf"{scale}\frac{{{nominator}}}{{{denominator}}}"
 
@@ -58,44 +65,6 @@ class Latex(console.Console):
     def to_string(cls, unit, inline=False):
         s = super().to_string(unit, inline=inline)
         return rf"$\mathrm{{{s}}}$"
-
-    @classmethod
-    def format_exponential_notation(cls, val, format_spec=".8g"):
-        """
-        Formats a value in exponential notation for LaTeX.
-
-        Parameters
-        ----------
-        val : number
-            The value to be formatted
-
-        format_spec : str, optional
-            Format used to split up mantissa and exponent
-
-        Returns
-        -------
-        latex_string : str
-            The value in exponential notation in a format suitable for LaTeX.
-        """
-        if np.isfinite(val):
-            m, ex = utils.split_mantissa_exponent(val, format_spec)
-
-            parts = []
-            if m:
-                parts.append(m)
-            if ex:
-                parts.append(f"10^{{{ex}}}")
-
-            return r" \times ".join(parts)
-        else:
-            if np.isnan(val):
-                return r"{\rm NaN}"
-            elif val > 0:
-                # positive infinity
-                return r"\infty"
-            else:
-                # negative infinity
-                return r"-\infty"
 
 
 class LatexInline(Latex):
