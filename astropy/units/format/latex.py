@@ -8,16 +8,18 @@ import re
 
 import numpy as np
 
-from . import base, utils
+from . import console, utils
 
 
-class Latex(base.Base):
+class Latex(console.Console):
     """
     Output LaTeX to display the unit based on IAU style guidelines.
 
     Attempts to follow the `IAU Style Manual
     <https://www.iau.org/static/publications/stylemanual1989.pdf>`_.
     """
+
+    _space = r"\,"
 
     @classmethod
     def _get_unit_name(cls, unit):
@@ -49,33 +51,12 @@ class Latex(base.Base):
         return r"\,".join(out)
 
     @classmethod
+    def _format_fraction(cls, scale, nominator, denominator):
+        return rf"{scale}\frac{{{nominator}}}{{{denominator}}}"
+
+    @classmethod
     def to_string(cls, unit, inline=False):
-        if unit.scale == 1:
-            s = ""
-        else:
-            s = cls.format_exponential_notation(unit.scale)
-
-        if len(unit.bases):
-            if s:
-                s += r"\,"
-            if inline:
-                nominator = zip(unit.bases, unit.powers)
-                denominator = []
-            else:
-                nominator, denominator = utils.get_grouped_by_powers(
-                    unit.bases, unit.powers
-                )
-            if len(denominator):
-                if len(nominator):
-                    nominator = cls._format_unit_list(nominator)
-                else:
-                    nominator = "1"
-                denominator = cls._format_unit_list(denominator)
-                s += rf"\frac{{{nominator}}}{{{denominator}}}"
-            else:
-                nominator = cls._format_unit_list(nominator)
-                s += nominator
-
+        s = super().to_string(unit, inline=inline)
         return rf"$\mathrm{{{s}}}$"
 
     @classmethod
