@@ -223,6 +223,9 @@ extend-ignore = [
     # NOTE: some of these can/should be fixed, but this changes the API.
     "N8",
 
+    # NumPy-specific rules (NPY)
+    "NPY002", # Replace legacy `np.random.rand` call with `np.random.Generator`
+
     # flake8-pie (PIE)
     "PIE790",  # NoUnnecessaryPass                   # TODO: autofix
     "PIE794",  # DupeClassFieldDefinitions           # TODO: autofix
@@ -236,6 +239,7 @@ extend-ignore = [
     "PGH001",  # TODO: fix in astropy.utils.introspection
 
     # Pylint (PLC, PLE, PLR, PLW)
+    "PLE0101",  # return-in-init                     # TODO: fix
     "PLE0605",  # invalid-all-format	             # TODO: fix
     "PLR0402",  # ConsiderUsingFromImport            # TODO: fix
     "PLR1701",  # ConsiderMergingIsinstance          # TODO: fix
