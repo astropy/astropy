@@ -1,0 +1,3 @@
+Prefixed degrees and arcmin are now typeset without using the symbol in
+``latex`` and ``unicode`` formats (i.e., ``mdeg`` instead of ``m°``),
+as was already the case for arcsec.
