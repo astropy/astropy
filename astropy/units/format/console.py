@@ -70,8 +70,12 @@ class Console(base.Base):
         if unit.scale == 1:
             s = ""
         else:
+            # Non-unity scale happens mostly for decomposed units.
+            # E.g., u.Ry.decompose() gives "2.17987e-18 kg m2 / s2".
             s = cls.format_exponential_notation(unit.scale)
 
+        # Take care that dimensionless does not have bases (but can
+        # have a scale; e.g., u.percent.decompose() gives "0.01").
         if len(unit.bases):
             if s:
                 s += " "
