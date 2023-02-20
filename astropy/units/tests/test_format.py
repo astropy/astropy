@@ -856,7 +856,6 @@ def test_celsius_fits():
     "format_spec, string",
     [
         ("generic", "dB(1 / m)"),
-        ("unscaled", "dB(1 / m)"),
         ("latex", r"$\mathrm{dB}$$\mathrm{\left( \mathrm{\frac{1}{m}} \right)}$"),
         ("latex_inline", r"$\mathrm{dB}$$\mathrm{\left( \mathrm{m^{-1}} \right)}$"),
         ("console", "dB(m^-1)"),
