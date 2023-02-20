@@ -635,8 +635,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     info = RepresentationInfo()
 
     def __init_subclass__(cls, **kwargs):
-        # Register representation name (except for BaseRepresentation)
-        if cls.__name__ == "BaseRepresentation":
+        # Register representation name (except for anything starting with Base).
+        if cls.__name__.startswith("Base"):
             return
 
         if not hasattr(cls, "attr_classes"):
@@ -1313,7 +1313,7 @@ class CartesianRepresentation(BaseRepresentation):
         self, x, y=None, z=None, unit=None, xyz_axis=None, differentials=None, copy=True
     ):
         if y is None and z is None:
-            if isinstance(x, np.ndarray) and x.dtype.kind not in "OV":
+            if isinstance(x, np.ndarray):
                 # Short-cut for 3-D array input.
                 x = u.Quantity(x, unit, copy=copy, subok=True)
                 # Keep a link to the array with all three coordinates
