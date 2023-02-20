@@ -755,6 +755,16 @@ def test_double_superscript():
     assert (u.electron**2).to_string("latex") == r"$\mathrm{electron^{2}}$"
 
 
+def test_no_prefix_superscript():
+    """Regression test for gh-911 and #14419."""
+    assert u.mdeg.to_string("latex") == r"$\mathrm{mdeg}$"
+    assert u.narcmin.to_string("latex") == r"$\mathrm{narcmin}$"
+    assert u.parcsec.to_string("latex") == r"$\mathrm{parcsec}$"
+    assert u.mdeg.to_string("unicode") == "mdeg"
+    assert u.narcmin.to_string("unicode") == "narcmin"
+    assert u.parcsec.to_string("unicode") == "parcsec"
+
+
 @pytest.mark.parametrize(
     "power,expected",
     (
