@@ -320,6 +320,23 @@ class ArrayDistribution(Distribution, np.ndarray):
         else:
             return result
 
+    # Override __eq__ and __ne__ to pass on directly to the ufunc since
+    # otherwise comparisons with non-distributions do not work (but
+    # deferring if other defines __array_ufunc__ = None -- see
+    # numpy/core/src/common/binop_override.h for the logic; we assume we
+    # will never deal with __array_priority__ any more).  Note: there is no
+    # problem for other comparisons, since for those, structured arrays are
+    # not treated differently in numpy/core/src/multiarray/arrayobject.c.
+    def __eq__(self, other):
+        if getattr(other, "__array_ufunc__", False) is None:
+            return NotImplemented
+        return np.equal(self, other)
+
+    def __ne__(self, other):
+        if getattr(other, "__array_ufunc__", False) is None:
+            return NotImplemented
+        return np.not_equal(self, other)
+
 
 class _DistributionRepr:
     def __repr__(self):
