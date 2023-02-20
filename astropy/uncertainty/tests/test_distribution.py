@@ -501,3 +501,15 @@ class TestComparison:
     def test_distribution_comparison_defers_correctly(self, op):
         result = op(self.d, self.override)
         assert result == op.__name__
+
+
+class TestSetItemWithSelection:
+    def test_setitem(self):
+        d = Distribution([90.0, 30.0, 0.0])
+        d[d > 50] = 0.0
+        assert_array_equal(d, Distribution([0.0, 30.0, 0.0]))
+
+    def test_inplace_operation(self):
+        d = Distribution([90.0, 30.0, 0.0])
+        d[d > 50] *= -1.0
+        assert_array_equal(d, Distribution([-90.0, 30.0, 0.0]))
