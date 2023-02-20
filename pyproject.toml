@@ -222,7 +222,6 @@ extend-ignore = [
     # pep8-naming (N)
     # NOTE: some of these can/should be fixed, but this changes the API.
     "N8",
-    "N999",  # Invalid module name                     # TODO: fix
 
     # NumPy-specific rules (NPY)
     "NPY002", # Replace legacy `np.random.rand` call with `np.random.Generator`
