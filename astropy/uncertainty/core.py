@@ -311,6 +311,9 @@ class ArrayDistribution(Distribution, np.ndarray):
 
     # Override __getitem__ so that 'samples' is returned as the sample class.
     def __getitem__(self, item):
+        if isinstance(item, Distribution):
+            # Required for in-place operations like dist[dist < 0] += 360.
+            return self.distribution[item.distribution]
         result = super().__getitem__(item)
         if item == "samples":
             # Here, we need to avoid our own redefinition of view.
@@ -319,6 +322,13 @@ class ArrayDistribution(Distribution, np.ndarray):
             return result.view((ScalarDistribution, result.dtype))
         else:
             return result
+
+    def __setitem__(self, item, value):
+        if isinstance(item, Distribution):
+            # Support operations like dist[dist < 0] = 0.
+            self.distribution[item.distribution] = value
+        else:
+            super().__setitem__(item, value)
 
     # Override __eq__ and __ne__ to pass on directly to the ufunc since
     # otherwise comparisons with non-distributions do not work (but
