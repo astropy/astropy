@@ -9,6 +9,12 @@ import numpy as np
 
 from astropy import stats
 from astropy import units as u
+from astropy.uncertainty.distribution_helpers import (
+    DISPATCHED_FUNCTIONS,
+    DISTRIBUTION_SAFE_FUNCTIONS,
+    FUNCTION_HELPERS,
+    UNSUPPORTED_FUNCTIONS,
+)
 
 __all__ = ["Distribution"]
 
@@ -86,6 +92,9 @@ class Distribution:
                 (output.distribution if isinstance(output, Distribution) else output)
                 for output in outputs
             )
+            if ufunc.nout == 1:
+                outputs = outputs[0]
+
         if method in {"reduce", "accumulate", "reduceat"}:
             axis = kwargs.get("axis", None)
             if axis is None:
@@ -111,23 +120,72 @@ class Distribution:
             kwargs["axis"] = axis
 
         results = getattr(ufunc, method)(*converted, **kwargs)
+        return self._result_as_distribution(results, outputs)
 
-        if not isinstance(results, tuple):
-            results = (results,)
-        if outputs is None:
-            outputs = (None,) * len(results)
+    def _result_as_distribution(self, result, out=None):
+        if isinstance(result, (tuple, list)):
+            if out is None:
+                out = (None,) * len(result)
+            return result.__class__(
+                self._result_as_distribution(result_, out_)
+                for (result_, out_) in zip(result, out)
+            )
 
-        finals = []
-        for result, output in zip(results, outputs):
-            if output is not None:
-                finals.append(output)
-            else:
-                if getattr(result, "shape", False):
-                    finals.append(Distribution(result))
-                else:
-                    finals.append(result)
+        if out is not None:
+            return out
+        elif getattr(result, "shape", ()):
+            return Distribution(result)
+        else:
+            return result
 
-        return finals if len(finals) > 1 else finals[0]
+    def _not_implemented_or_raise(self, function, types):
+        # Our function helper or dispatcher found that the function does not
+        # work with Distribution.  In principle, there may be another class that
+        # knows what to do with us, for which we should return NotImplemented.
+        # But if there is ndarray (or a non-Distribution subclass of it) around,
+        # it quite likely coerces, so we should just break.
+        if any(
+            issubclass(t, np.ndarray) and not issubclass(t, Distribution) for t in types
+        ):
+            raise TypeError(
+                f"the Distribution implementation cannot handle {function} "
+                "with the given arguments."
+            ) from None
+        else:
+            return NotImplemented
+
+    def __array_function__(self, function, types, args, kwargs):
+        """Wrap numpy functions that make sense."""
+        if function in DISTRIBUTION_SAFE_FUNCTIONS:
+            return super().__array_function__(function, types, args, kwargs)
+
+        elif function in FUNCTION_HELPERS:
+            function_helper = FUNCTION_HELPERS[function]
+            try:
+                args, kwargs, out = function_helper(*args, **kwargs)
+            except NotImplementedError:
+                return self._not_implemented_or_raise(function, types)
+            result = super().__array_function__(function, types, args, kwargs)
+
+            return self._result_as_distribution(result, out)
+
+        elif function in DISPATCHED_FUNCTIONS:
+            dispatched_function = DISPATCHED_FUNCTIONS[function]
+            try:
+                result, out = dispatched_function(*args, **kwargs)
+            except NotImplementedError:
+                return self._not_implemented_or_raise(function, types)
+
+            return self._result_as_distribution(result, out)
+
+        elif function in UNSUPPORTED_FUNCTIONS:
+            return NotImplemented
+
+        else:
+            # Fall-back, just pass the arguments on since perhaps the function
+            # works already.
+            # TODO: once more functions are defined, add warning.
+            return super().__array_function__(function, types, args, kwargs)
 
     @property
     def n_samples(self):
