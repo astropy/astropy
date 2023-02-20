@@ -102,6 +102,14 @@ class Distribution:
                 else:
                     converted.append(input_)
 
+        if ufunc.signature:
+            # We're dealing with a gufunc.  This is OK only for a single axis.
+            # Need to generalize!!
+            axis = kwargs.get("axis", -1)
+            if axis < 0:
+                axis -= 1
+            kwargs["axis"] = axis
+
         results = getattr(ufunc, method)(*converted, **kwargs)
 
         if not isinstance(results, tuple):
