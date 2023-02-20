@@ -6,7 +6,12 @@ import pytest
 from numpy.testing import assert_array_equal
 
 import astropy.units as u
-from astropy.coordinates import Angle, Latitude, Longitude
+from astropy.coordinates import Angle, Latitude, Longitude, SphericalRepresentation
+from astropy.coordinates.tests.test_representation import (
+    REPRESENTATION_CLASSES,
+    components_allclose,
+    representation_equal,
+)
 from astropy.uncertainty import Distribution
 
 
@@ -70,3 +75,40 @@ class TestAngles:
         std = da.pdf_std()
         assert isinstance(std, Angle)
         assert_array_equal(std, Angle(self.q.std(-1)))
+
+
+class TestRepresentation:
+    @classmethod
+    def setup_class(cls):
+        cls.lon = Distribution(np.linspace(0.0, 360 * u.deg, 10, endpoint=False))
+        cls.lat = Angle([-45.0, 0.0, 45.0], u.deg)
+        cls.r = 6000 * u.km  # Sort of OK for Geodetic representations.
+        cls.sph = SphericalRepresentation(
+            cls.lon.distribution, cls.lat[:, np.newaxis], cls.r
+        )
+        cls.dsph = SphericalRepresentation(cls.lon, cls.lat, cls.r)
+
+    def get_distribution(self, rep):
+        return rep._apply(lambda x: getattr(x, "distribution", x[..., np.newaxis]))
+
+    @staticmethod
+    def assert_representation_equal(rep1, rep2):
+        assert np.all(representation_equal(rep1, rep2))
+
+    def test_cartesian(self):
+        dcart = self.dsph.to_cartesian()
+        cart = self.sph.to_cartesian()
+        # Explicit for one component
+        assert isinstance(dcart.x, Distribution)
+        assert_array_equal(dcart.x.distribution, cart.x)
+        # Check all just in case
+        self.assert_representation_equal(self.get_distribution(dcart), cart)
+
+        sph = SphericalRepresentation.from_cartesian(dcart)
+        assert components_allclose(self.get_distribution(sph), self.sph)
+
+    @pytest.mark.parametrize("rep_cls", REPRESENTATION_CLASSES.values())
+    def test_other_reps(self, rep_cls):
+        drep = self.dsph.represent_as(rep_cls)
+        rep = self.sph.represent_as(rep_cls)
+        self.assert_representation_equal(self.get_distribution(drep), rep)
