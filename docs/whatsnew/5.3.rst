@@ -72,6 +72,7 @@ return the updated table::
 When using ``|=``, the other object does not need to be a |Table|, it can be
 anything that can be used for :ref:`construct_table` with a compatible number
 of rows.
+
 .. _whatsnew-5.3-compressed-fits:
 
 Efficient data access for compressed FITS files
@@ -100,6 +101,15 @@ will therefore return the same result as:
 but the former will be faster. The exact speedup will depend on the size of the
 data and the size of the tiles but could be 10-100x or more.
 
+.. _whatsnew-5.3-compressed-fits-nocompress:
+
+Added support for ``NOCOMPRESS`` for compressed FITS files
+==========================================================
+
+It is now possible to read and write compressed FITS files that make use of the
+``NOCOMPRESS`` compression algorithm. This allows users to store data in
+uncompressed tiles by specifying ``compression_type='NOCOMPRESS'`` in
+:class:`~astropy.io.fits.CompImageHDU`.
 
 .. _whatsnew-5.3-unit-formats-inline:
 
