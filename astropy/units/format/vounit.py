@@ -213,23 +213,20 @@ class VOUnit(generic.Generic):
         # Remove units that aren't known to the format
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
-        if isinstance(unit, core.CompositeUnit):
-            if unit.physical_type == "dimensionless" and unit.scale != 1:
-                raise core.UnitScaleError(
-                    "The VOUnit format is not able to "
-                    "represent scale for dimensionless units. "
-                    f"Multiply your data by {unit.scale:e}."
-                )
-            s = ""
-            if unit.scale != 1:
-                s += f"{unit.scale:.8g}"
+        if unit.physical_type == "dimensionless" and unit.scale != 1:
+            raise core.UnitScaleError(
+                "The VOUnit format is not able to "
+                "represent scale for dimensionless units. "
+                f"Multiply your data by {unit.scale:e}."
+            )
+        s = ""
+        if unit.scale != 1:
+            s += f"{unit.scale:.8g}"
 
-            pairs = list(zip(unit.bases, unit.powers))
-            pairs.sort(key=operator.itemgetter(1), reverse=True)
+        pairs = list(zip(unit.bases, unit.powers))
+        pairs.sort(key=operator.itemgetter(1), reverse=True)
 
-            s += cls._format_unit_list(pairs)
-        elif isinstance(unit, core.NamedUnit):
-            s = cls._get_unit_name(unit)
+        s += cls._format_unit_list(pairs)
 
         return s
 

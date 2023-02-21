@@ -419,7 +419,7 @@ class OGIP(generic.Generic):
                     core.UnitsWarning,
                 )
 
-        return generic._to_string(cls, unit)
+        return super().to_string(unit)
 
     @classmethod
     def _to_decomposed_alternative(cls, unit):
@@ -436,4 +436,4 @@ class OGIP(generic.Generic):
                     f"{generic._to_string(cls, unit)} (with data multiplied by {scale})"
                 )
 
-        return generic._to_string(unit)
+        return super().to_string(unit)
