@@ -4,6 +4,7 @@ decompressing buffer for the Tiled Table Compression algorithms as specified in
 the FITS 4 standard.
 """
 import sys
+from math import prod
 
 import numpy as np
 
@@ -90,9 +91,9 @@ def _update_tile_settings(settings, comp_type, actual_tile_shape):
     if comp_type == "PLIO_1":
         # We have to calculate the tilesize from the shape of the tile not the
         # header, so that it's correct for edge tiles etc.
-        settings["tilesize"] = np.product(actual_tile_shape)
+        settings["tilesize"] = prod(actual_tile_shape)
     elif comp_type in ("RICE_1", "RICE_ONE"):
-        settings["tilesize"] = np.product(actual_tile_shape)
+        settings["tilesize"] = prod(actual_tile_shape)
     elif comp_type == "HCOMPRESS_1":
         # HCOMPRESS requires 2D tiles, so to find the shape of the 2D tile we
         # need to ignore all length 1 tile dimensions
@@ -114,19 +115,21 @@ def _finalize_array(tile_buffer, *, bitpix, tile_shape, algorithm, lossless):
     and translates it into a numpy array with the correct dtype, endianness and
     shape.
     """
+
+    tile_size = prod(tile_shape)
+
     if algorithm.startswith("GZIP") or algorithm == "NOCOMPRESS":
         # This algorithm is taken from fitsio
         # https://github.com/astropy/astropy/blob/a8cb1668d4835562b89c0d0b3448ac72ca44db63/cextern/cfitsio/lib/imcompress.c#L6345-L6388
-        tilelen = np.product(tile_shape)
-        tilebytesize = len(tile_buffer)
-        if tilebytesize == tilelen * 2:
+        tile_bytesize = len(tile_buffer)
+        if tile_bytesize == tile_size * 2:
             dtype = ">i2"
-        elif tilebytesize == tilelen * 4:
+        elif tile_bytesize == tile_size * 4:
             if bitpix < 0 and lossless:
                 dtype = ">f4"
             else:
                 dtype = ">i4"
-        elif tilebytesize == tilelen * 8:
+        elif tile_bytesize == tile_size * 8:
             if bitpix < 0 and lossless:
                 dtype = ">f8"
             else:
@@ -138,8 +141,8 @@ def _finalize_array(tile_buffer, *, bitpix, tile_shape, algorithm, lossless):
     else:
         # For RICE_1 compression the tiles that are on the edge can end up
         # being padded, so we truncate excess values
-        if algorithm in ("RICE_1", "RICE_ONE", "PLIO_1"):
-            tile_buffer = tile_buffer[: np.product(tile_shape)]
+        if algorithm in ("RICE_1", "RICE_ONE", "PLIO_1") and tile_size < len(tile_buffer):
+            tile_buffer = tile_buffer[: tile_size]
 
         if tile_buffer.data.format == "b":
             # NOTE: this feels like a Numpy bug - need to investigate
@@ -249,6 +252,31 @@ def _get_compression_setting(header, name, default):
     return default
 
 
+def _column_dtype(hdu, column_name):
+    tform = hdu.columns[column_name].format
+    if tform[2] == "B":
+        dtype = np.uint8
+    elif tform[2] == "I":
+        dtype = ">i2"
+    elif tform[2] == "J":
+        dtype = ">i4"
+    return np.dtype(dtype)
+
+
+def _get_data_from_heap(hdu, size, offset, dtype, heap_cache=None):
+    if heap_cache is None:
+        return hdu._get_raw_data(
+            size, dtype, hdu._data_offset + hdu._theap + offset
+        )
+    else:
+        itemsize = dtype.itemsize
+        data = heap_cache[offset:offset + size * itemsize]
+        if itemsize > 1:
+            return data.view(dtype)
+        else:
+            return data
+
+
 def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
     """
     Decompress the data in a `~astropy.io.fits.CompImageHDU`.
@@ -288,6 +316,43 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
     dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
     dither_seed = hdu._header.get("ZDITHER0", 0)
 
+    compressed_data_column = np.array(hdu.compressed_data['COMPRESSED_DATA'])
+    compressed_data_dtype = _column_dtype(hdu, 'COMPRESSED_DATA')
+
+    try:
+        zblank_column = np.array(hdu.compressed_data['ZBLANK'])
+    except KeyError:
+        zblank_column = None
+
+    try:
+        zscale_column = np.array(hdu.compressed_data['ZSCALE'])
+    except KeyError:
+        zscale_column = None
+
+    try:
+        zzero_column = np.array(hdu.compressed_data['ZZERO'])
+    except KeyError:
+        zzero_column = None
+
+    zblank_header = hdu._header.get("ZBLANK", None)
+
+    gzip_compressed_data_column = None
+    gzip_compressed_data_dtype = None
+
+    # If more than half the data is requested, read in all the heap.
+    # TODO: decide what heuristic we actually want here
+    if np.product(buffer_shape) > 0.5 * np.product(data_shape):
+        heap_cache = hdu._get_raw_data(hdu._header["PCOUNT"], np.uint8, hdu._data_offset + hdu._theap)
+    else:
+        heap_cache = None
+
+        # if size == 0:
+        #     return np.array([], dtype=dtype)
+        # raw = self._get_data_from_heap(offset, size, dtype)
+        # Return tile in native endian since this is what is expected
+        # by the decompression functions
+        # return raw.astype(raw.dtype.newbyteorder("="), copy=False)
+
     for row_index, tile_slices in _iter_array_tiles(
         data_shape, tile_shape, first_tile_index, last_tile_index
     ):
@@ -295,20 +360,20 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
         # correct so we have to pass the shape manually.
         actual_tile_shape = data[tile_slices].shape
 
-        row = hdu.compressed_data[row_index]
-
         settings = _update_tile_settings(settings, ZCMPTYPE, actual_tile_shape)
 
-        cdata = hdu._get_raw_tile_from_heap("COMPRESSED_DATA", row_index)
+        if compressed_data_column[row_index][0] == 0:
 
-        # When quantizing floating point data, sometimes the data will not
-        # quantize efficiently. In these cases the raw floating point data can
-        # be losslessly GZIP compressed and stored in the `GZIP_COMPRESSED_DATA`
-        # column.
-        gzip_fallback = len(cdata) == 0
+            if gzip_compressed_data_column is None:
+                gzip_compressed_data_column = np.array(hdu.compressed_data['GZIP_COMPRESSED_DATA'])
+                gzip_compressed_data_dtype = _column_dtype(hdu, 'GZIP_COMPRESSED_DATA')
 
-        if gzip_fallback:
-            cdata = hdu._get_raw_tile_from_heap("GZIP_COMPRESSED_DATA", row_index)
+            # When quantizing floating point data, sometimes the data will not
+            # quantize efficiently. In these cases the raw floating point data can
+            # be losslessly GZIP compressed and stored in the `GZIP_COMPRESSED_DATA`
+            # column.
+
+            cdata = _get_data_from_heap(hdu, *gzip_compressed_data_column[row_index], gzip_compressed_data_dtype, heap_cache=heap_cache)
 
             tile_buffer = _decompress_tile(cdata, algorithm="GZIP_1")
 
@@ -321,13 +386,16 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
             )
 
         else:
+
+            cdata = _get_data_from_heap(hdu, *compressed_data_column[row_index], compressed_data_dtype, heap_cache=heap_cache)
+
             if ZCMPTYPE == "GZIP_2":
                 # Decompress with GZIP_1 just to find the total number of
                 # elements in the uncompressed data.
                 # TODO: find a way to avoid doing this for all tiles
                 tile_data = np.asarray(_decompress_tile(cdata, algorithm="GZIP_1"))
                 settings["itemsize"] = tile_data.size // int(
-                    np.product(actual_tile_shape)
+                    prod(actual_tile_shape)
                 )
 
             tile_buffer = _decompress_tile(cdata, algorithm=ZCMPTYPE, **settings)
@@ -340,10 +408,10 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
                 lossless=not quantized,
             )
 
-            if "ZBLANK" in row.array.names:
-                zblank = row["ZBLANK"]
+            if zblank_column is None:
+                zblank = zblank_header
             else:
-                zblank = hdu._header.get("ZBLANK", None)
+                zblank = zblank_column[row_index]
 
             if zblank is not None:
                 blank_mask = tile_data == zblank
@@ -356,7 +424,7 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
                     bitpix=ZBITPIX,
                 )
                 tile_data = np.asarray(
-                    q.decode_quantized(tile_data, row["ZSCALE"], row["ZZERO"])
+                    q.decode_quantized(tile_data, zscale_column[row_index], zzero_column[row_index])
                 ).reshape(actual_tile_shape)
 
             if zblank is not None:
@@ -410,7 +478,7 @@ def compress_hdu(hdu):
     noisebit = _get_compression_setting(hdu._header, "noisebit", 0)
 
     settings = _header_to_settings(hdu._header)
-    comp_type = header["ZCMPTYPE"]
+    comp_type = hdu._header["ZCMPTYPE"]
 
     for irow, tile_slices in _iter_array_tiles(data_shape, tile_shape):
         data = hdu.data[tile_slices]
