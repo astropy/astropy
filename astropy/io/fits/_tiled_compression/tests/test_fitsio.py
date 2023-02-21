@@ -211,7 +211,6 @@ def test_compress(
     compression_type,
     dtype,
 ):
-
     if compression_type == "NOCOMPRESS":
         pytest.xfail("fitsio does not support NOCOMPRESS")
 
