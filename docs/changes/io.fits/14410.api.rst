@@ -1,0 +1,3 @@
+Deprecate the auto-fixing of tile sizes for HCOMPRESS_1 tiled
+image compression when the tile size could be changed by +1
+to make it acceptable.

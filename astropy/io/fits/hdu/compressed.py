@@ -26,7 +26,7 @@ from astropy.io.fits.util import (
     _pseudo_zero,
 )
 from astropy.utils import lazyproperty
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.shapes import simplify_basic_index
 
 from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU
@@ -1111,6 +1111,8 @@ class CompImageHDU(BinTableHDU):
 
             remain = self._image_header["NAXIS1"] % tile_size[0]  # 1st dimen
 
+            original_tile_size = tile_size[:]
+
             if remain > 0 and remain < 4:
                 tile_size[0] += 1  # try increasing tile size by 1
 
@@ -1132,6 +1134,17 @@ class CompImageHDU(BinTableHDU):
                     raise ValueError(
                         "Last tile along 2nd dimension has less than 4 pixels"
                     )
+
+            if tile_size != original_tile_size:
+                warnings.warn(
+                    f"The tile size should be such that no tiles have "
+                    f"fewer than 4 pixels. The tile size has "
+                    f"automatically been changed from {original_tile_size} "
+                    f"to {tile_size}, but in future this will raise an "
+                    f"error and the correct tile size should be specified "
+                    f"directly.",
+                    AstropyDeprecationWarning,
+                )
 
         # Set up locations for writing the next cards in the header.
         last_znaxis = "ZNAXIS"
