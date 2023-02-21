@@ -5,6 +5,7 @@ import os
 import re
 import time
 from io import BytesIO
+from itertools import product
 
 import numpy as np
 import pytest
@@ -13,7 +14,7 @@ from hypothesis.extra.numpy import basic_indices
 from numpy.testing import assert_equal
 
 from astropy.io import fits
-from astropy.io.fits.hdu.compressed import DITHER_SEED_CHECKSUM, SUBTRACTIVE_DITHER_1
+from astropy.io.fits.hdu.compressed import DITHER_SEED_CHECKSUM, SUBTRACTIVE_DITHER_1, COMPRESSION_TYPES
 from astropy.utils.data import download_file, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -1928,14 +1929,21 @@ class TestCompressedImage(FitsTestCase):
         new = fits.getdata(testfile)
         np.testing.assert_array_equal(data, new)
 
-    def test_write_non_contiguous_data(self):
+    @pytest.mark.parametrize(('dtype', 'compression_type'), product(('f', 'i4'), COMPRESSION_TYPES))
+    def test_write_non_contiguous_data(self, dtype, compression_type):
         """
         Regression test for https://github.com/astropy/astropy/issues/2150
+
+        This used to require changing the whole array to be C-contiguous before
+        passing to CFITSIO, but we no longer need this - our explicit conversion
+        to bytes in the compression codecs returns contiguous bytes for each
+        tile on-the-fly.
         """
-        orig = np.arange(100, dtype=float).reshape((10, 10), order="f")
+
+        orig = np.arange(400, dtype=dtype).reshape((20, 20), order="f")[::2, ::2]
         assert not orig.flags.contiguous
         primary = fits.PrimaryHDU()
-        hdu = fits.CompImageHDU(orig)
+        hdu = fits.CompImageHDU(orig, compression_type=compression_type)
         hdulist = fits.HDUList([primary, hdu])
         hdulist.writeto(self.temp("test.fits"))
 
