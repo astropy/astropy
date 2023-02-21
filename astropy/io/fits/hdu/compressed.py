@@ -890,7 +890,7 @@ class CompImageHDU(BinTableHDU):
                 "ZCMPTYPE", compression_type, "compression algorithm", after="TFIELDS"
             )
         else:
-            compression_type = self._header.get("ZCMPTYPE", DEFAULT_COMPRESSION_TYPE)
+            compression_type = self.compression_type
             compression_type = CMTYPE_ALIASES.get(compression_type, compression_type)
 
         # If the input image header had BSCALE/BZERO cards, then insert
@@ -2080,9 +2080,7 @@ class CompImageHDU(BinTableHDU):
 
         if seed == DITHER_SEED_CHECKSUM:
             # Determine the tile dimensions from the ZTILEn keywords
-            naxis = self._header["ZNAXIS"]
-            tile_dims = [self._header[f"ZTILE{idx + 1}"] for idx in range(naxis)]
-            tile_dims.reverse()
+            tile_dims = self.tile_size
 
             # Get the first tile by using the tile dimensions as the end
             # indices of slices (starting from 0)
@@ -2121,6 +2119,16 @@ class CompImageHDU(BinTableHDU):
         can be used to slice :class:`~astropy.io.fits.CompImageSection`.
         """
         return CompImageSection(self)
+
+    @property
+    def tile_size(self):
+        return tuple(
+            [self._header[f"ZTILE{idx + 1}"] for idx in range(self._header["ZNAXIS"])]
+        )
+
+    @property
+    def compression_type(self):
+        return self._header.get("ZCMPTYPE", DEFAULT_COMPRESSION_TYPE)
 
 
 class CompImageSection:

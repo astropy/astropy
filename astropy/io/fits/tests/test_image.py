@@ -1969,6 +1969,16 @@ class TestCompressedImage(FitsTestCase):
             with fits.open(self.temp("test.fits")) as hdul2:
                 assert_equal(hdul1[1].data[:200, :100], hdul2[1].data)
 
+    def test_comp_image_properties_default(self):
+        chdu = fits.CompImageHDU(np.zeros((3, 4, 5)))
+        assert chdu.tile_size == (5, 1, 1)
+        assert chdu.compression_type == 'RICE_1'
+
+    def test_comp_image_properties_set(self):
+        chdu = fits.CompImageHDU(np.zeros((3, 4, 5)), compression_type='PLIO_1', tile_size=(2, 3, 4))
+        assert chdu.tile_size == (2, 3, 4)
+        assert chdu.compression_type == 'PLIO_1'
+
 
 class TestCompHDUSections:
     @pytest.fixture(autouse=True)
