@@ -369,7 +369,7 @@ class NDArithmeticMixin:
         elif operand is not None:
             result = operation(self.data << self.unit, operand.data << operand.unit)
         else:
-            result = operation(self.data << self.unit, axis=kwds["axis"])
+            result = operation(self.data, axis=kwds["axis"])
 
         return result
 
