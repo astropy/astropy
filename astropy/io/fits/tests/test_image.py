@@ -14,7 +14,11 @@ from hypothesis.extra.numpy import basic_indices
 from numpy.testing import assert_equal
 
 from astropy.io import fits
-from astropy.io.fits.hdu.compressed import DITHER_SEED_CHECKSUM, SUBTRACTIVE_DITHER_1, COMPRESSION_TYPES
+from astropy.io.fits.hdu.compressed import (
+    COMPRESSION_TYPES,
+    DITHER_SEED_CHECKSUM,
+    SUBTRACTIVE_DITHER_1,
+)
 from astropy.utils.data import download_file, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -1929,7 +1933,9 @@ class TestCompressedImage(FitsTestCase):
         new = fits.getdata(testfile)
         np.testing.assert_array_equal(data, new)
 
-    @pytest.mark.parametrize(('dtype', 'compression_type'), product(('f', 'i4'), COMPRESSION_TYPES))
+    @pytest.mark.parametrize(
+        ("dtype", "compression_type"), product(("f", "i4"), COMPRESSION_TYPES)
+    )
     def test_write_non_contiguous_data(self, dtype, compression_type):
         """
         Regression test for https://github.com/astropy/astropy/issues/2150
