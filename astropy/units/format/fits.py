@@ -7,7 +7,6 @@ Handles the "FITS" unit format.
 
 import copy
 import keyword
-import operator
 
 import numpy as np
 
@@ -107,7 +106,7 @@ class Fits(generic.Generic):
         return name
 
     @classmethod
-    def to_string(cls, unit):
+    def to_string(cls, unit, inline=True):
         # Remove units that aren't known to the format
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
@@ -122,16 +121,17 @@ class Fits(generic.Generic):
                 f"{unit.scale:e}."
             )
         elif unit.scale != 1.0:
+            # We could override format_exponential_notation to set the
+            # scale factor but that would give the wrong impression that
+            # all values in FITS are set that way.  So, instead do it
+            # here, and use a unity-scale unit for the rest.
             parts.append(f"10**{int(base)}")
+            unit = core.CompositeUnit(1, unit.bases, unit.powers)
 
-        pairs = list(zip(unit.bases, unit.powers))
-        if len(pairs):
-            pairs.sort(key=operator.itemgetter(1), reverse=True)
-            parts.append(cls._format_unit_list(pairs))
+        if unit.bases:
+            parts.append(super().to_string(unit, inline=inline))
 
-        s = " ".join(parts)
-
-        return s
+        return cls._scale_unit_separator.join(parts)
 
     @classmethod
     def _to_decomposed_alternative(cls, unit):
