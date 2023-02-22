@@ -17,6 +17,7 @@ In particular, this release includes:
 .. * :ref:`whatsnew-5.3-compressed-fits`
 .. * :ref:`whatsnew-5.3-compressed-fits-nocompress`
 .. * :ref:`whatsnew-5.3-unit-formats-fraction`
+.. * :ref:`whatsnew-5.3-unit-formats-order`
 .. * :ref:`whatsnew-5.3-nddata-collapse-arbitrary-axes`
 .. * :ref:`whatsnew-5.3-coordinates-refresh-site-registry`
 
@@ -151,6 +152,21 @@ Note that the ``'console'`` and ``'unicode'`` formats now use
 readable results when printing quantities, table headers and cells, etc.
 For ``'latex'`` the default remains ``fraction='display'``, for an
 unchanged experience with IPython notebook.
+
+.. _whatsnew-5.3-unit-formats-order:
+
+Change in order in unit string representations
+==============================================
+
+In string representations of units, the order of bases now is by decreasing
+power first, then alphabetical, instead of alphabetical independent of power.
+This is also how unit bases are stored internally and helps particularly for
+units without fractions (such as FITS), where a unit like ``Jy/beam`` was
+typeset as ``beam-1 Jy`` instead of the more logical ``Jy beam-1``.
+
+For typesetting with fractions, there is usually less effect, but the string
+representations of complicated units will change (e.g., what previously was
+``erg / (Angstrom cm2 s)`` will now be ``erg / (Angstrom s cm2)``).
 
 .. _whatsnew-5.3-nddata-collapse-arbitrary-axes:
 

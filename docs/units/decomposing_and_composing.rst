@@ -22,7 +22,7 @@ To decompose a unit with :meth:`~astropy.units.core.UnitBase.decompose`::
   >>> u.Ry
   Unit("Ry")
   >>> u.Ry.decompose()
-  Unit("2.17987e-18 kg m2 / s2")
+  Unit("2.17987e-18 m2 kg / s2")
 
 To get the list of units in the decomposition, the
 `~astropy.units.core.UnitBase.bases` and `~astropy.units.core.UnitBase.powers`
@@ -36,7 +36,7 @@ You can limit the selection of units that you want to decompose by
 using the ``bases`` keyword argument::
 
   >>> u.Ry.decompose(bases=[u.m, u.N])
-  Unit("2.17987e-18 m N")
+  Unit("2.17987e-18 N m")
 
 This is also useful to decompose to a particular system. For example,
 to decompose the Rydberg unit of energy in terms of `CGS
@@ -104,7 +104,7 @@ imaginable. In that case, the system will do its best to reduce the
 unit to the fewest possible symbols::
 
    >>> (u.cd * u.sr * u.V * u.s).compose()
-   [Unit("lm Wb"), Unit("1e+08 lm Mx")]
+   [Unit("Wb lm"), Unit("1e+08 Mx lm")]
 
 .. EXAMPLE END
 
