@@ -219,10 +219,10 @@ To perform unit conversions with
 
     >>> (1.5 * u.Jy).to(u.photon / u.cm**2 / u.s / u.Hz,
     ...                 equivalencies=u.spectral_density(3500 * u.AA)) # doctest: +FLOAT_CMP
-    <Quantity 2.6429114293019694e-12 ph / (cm2 Hz s)>
+    <Quantity 2.6429112e-12 ph / (Hz s cm2)>
     >>> (1.5 * u.Jy).to(u.photon / u.cm**2 / u.s / u.micron,
     ...                 equivalencies=u.spectral_density(3500 * u.AA))  # doctest: +FLOAT_CMP
-    <Quantity 6467.9584789120845 ph / (cm2 micron s)>
+    <Quantity 6467.95791275 ph / (micron s cm2)>
     >>> a = 1. * (u.photon / u.s / u.angstrom)
     >>> a.to(u.erg / u.s / u.Hz,
     ...      equivalencies=u.spectral_density(5500 * u.AA))  # doctest: +FLOAT_CMP
@@ -231,9 +231,9 @@ To perform unit conversions with
     >>> a = 1. * (u.erg / u.cm**2 / u.s)
     >>> b = a.to(u.photon / u.cm**2 / u.s, u.spectral_density(w))
     >>> b  # doctest: +FLOAT_CMP
-    <Quantity 2.51705828e+11 ph / (cm2 s)>
+    <Quantity 2.51705828e+11 ph / (s cm2)>
     >>> b.to(a.unit, u.spectral_density(w))  # doctest: +FLOAT_CMP
-    <Quantity 1. erg / (cm2 s)>
+    <Quantity 1. erg / (s cm2)>
 
 .. EXAMPLE END
 
@@ -626,27 +626,27 @@ However, when passing the spectral equivalency, you can see there are
 all kinds of things that ``Hz`` can be converted to::
 
   >>> u.Hz.find_equivalent_units(equivalencies=u.spectral())
-    Primary name | Unit definition        | Aliases
+  Primary name | Unit definition        | Aliases
   [
-    AU           | 1.49598e+11 m          | au, astronomical_unit ,
-    Angstrom     | 1e-10 m                | AA, angstrom          ,
-    Bq           | 1 / s                  | becquerel             ,
-    Ci           | 3.7e+10 / s            | curie                 ,
-    Hz           | 1 / s                  | Hertz, hertz          ,
-    J            | kg m2 / s2             | Joule, joule          ,
-    Ry           | 2.17987e-18 kg m2 / s2 | rydberg               ,
-    cm           | 0.01 m                 | centimeter            ,
-    eV           | 1.60218e-19 kg m2 / s2 | electronvolt          ,
-    earthRad     | 6.3781e+06 m           | R_earth, Rearth       ,
-    erg          | 1e-07 kg m2 / s2       |                       ,
+    AU           | 1.49598e+11 m          | au, astronomical_unit            ,
+    Angstrom     | 1e-10 m                | AA, angstrom                     ,
+    Bq           | 1 / s                  | becquerel                        ,
+    Ci           | 3.7e+10 / s            | curie                            ,
+    Hz           | 1 / s                  | Hertz, hertz                     ,
+    J            | m2 kg / s2             | Joule, joule                     ,
+    Ry           | 2.17987e-18 m2 kg / s2 | rydberg                          ,
+    cm           | 0.01 m                 | centimeter                       ,
+    eV           | 1.60218e-19 m2 kg / s2 | electronvolt                     ,
+    earthRad     | 6.3781e+06 m           | R_earth, Rearth                  ,
+    erg          | 1e-07 m2 kg / s2       |                                  ,
     jupiterRad   | 7.1492e+07 m           | R_jup, Rjup, R_jupiter, Rjupiter ,
-    k            | 100 / m                | Kayser, kayser        ,
-    lsec         | 2.99792e+08 m          | lightsecond           ,
-    lyr          | 9.46073e+15 m          | lightyear             ,
-    m            | irreducible            | meter                 ,
-    micron       | 1e-06 m                |                       ,
-    pc           | 3.08568e+16 m          | parsec                ,
-    solRad       | 6.957e+08 m            | R_sun, Rsun           ,
+    k            | 100 / m                | Kayser, kayser                   ,
+    lsec         | 2.99792e+08 m          | lightsecond                      ,
+    lyr          | 9.46073e+15 m          | lightyear                        ,
+    m            | irreducible            | meter                            ,
+    micron       | 1e-06 m                |                                  ,
+    pc           | 3.08568e+16 m          | parsec                           ,
+    solRad       | 6.957e+08 m            | R_sun, Rsun                      ,
   ]
 
 .. EXAMPLE END

@@ -135,15 +135,15 @@ first star has a known ST magnitude, so we can calculate zero points::
     (<Magnitude 17.2 mag(ST)>, <Magnitude 17. mag(ST)>)
     >>> zp_b, zp_v = b_ref - b_i0[0], v_ref - v_i0[0]
     >>> zp_b, zp_v  # doctest: +FLOAT_CMP
-    (<Magnitude 18.56250876 mag(s ST / ct)>,
-     <Magnitude 18.67485561 mag(s ST / ct)>)
+    (<Magnitude 18.56250876 mag(ST s / ct)>,
+     <Magnitude 18.67485561 mag(ST s / ct)>)
 
 Here, ``ST`` is shorthand for the ST zero-point flux::
 
     >>> (0. * u.STmag).to(u.erg/u.s/u.cm**2/u.AA)  # doctest: +FLOAT_CMP
-    <Quantity 3.63078055e-09 erg / (Angstrom cm2 s)>
+    <Quantity 3.63078055e-09 erg / (Angstrom s cm2)>
     >>> (-21.1 * u.STmag).to(u.erg/u.s/u.cm**2/u.AA)  # doctest: +FLOAT_CMP
-    <Quantity 1. erg / (Angstrom cm2 s)>
+    <Quantity 1. erg / (Angstrom s cm2)>
 
 .. Note::
 
@@ -173,7 +173,7 @@ flux density per unit wavelength using the
 
     >>> flam = V.to(u.erg/u.s/u.cm**2/u.AA)
     >>> flam  # doctest: +FLOAT_CMP
-    <Quantity [5.75439937e-16, 1.29473986e-17, 3.59649961e-18] erg / (Angstrom cm2 s)>
+    <Quantity [5.75439937e-16, 1.29473986e-17, 3.59649961e-18] erg / (Angstrom s cm2)>
 
 To convert ``V`` to flux density per unit frequency (:math:`f_\nu`), we again
 need the appropriate :ref:`equivalency <unit_equivalencies>`, which in this case
@@ -182,14 +182,14 @@ is the central wavelength of the magnitude band, 5500 Angstroms::
     >>> lam = 5500 * u.AA
     >>> fnu = V.to(u.erg/u.s/u.cm**2/u.Hz, u.spectral_density(lam))
     >>> fnu  # doctest: +FLOAT_CMP
-    <Quantity [5.80636959e-27, 1.30643316e-28, 3.62898099e-29] erg / (cm2 Hz s)>
+    <Quantity [5.80636959e-27, 1.30643316e-28, 3.62898099e-29] erg / (Hz s cm2)>
 
 We could have used the central frequency instead::
 
     >>> nu = 5.45077196e+14 * u.Hz
     >>> fnu = V.to(u.erg/u.s/u.cm**2/u.Hz, u.spectral_density(nu))
     >>> fnu  # doctest: +FLOAT_CMP
-    <Quantity [5.80636959e-27, 1.30643316e-28, 3.62898099e-29] erg / (cm2 Hz s)>
+    <Quantity [5.80636959e-27, 1.30643316e-28, 3.62898099e-29] erg / (Hz s cm2)>
 
 .. Note::
 
