@@ -6,7 +6,6 @@ Handles the "VOUnit" unit format.
 
 import copy
 import keyword
-import operator
 import re
 import warnings
 
@@ -25,6 +24,7 @@ class VOUnit(generic.Generic):
     _custom_unit_regex = re.compile(r"^((?!\d)\w)+$")
     _custom_units = {}
     _space = "."
+    _scale_unit_separator = ""
 
     @staticmethod
     def _generate_unit_names():
@@ -196,7 +196,11 @@ class VOUnit(generic.Generic):
         return f"({number})" if "/" in number or "." in number else f"**{number}"
 
     @classmethod
-    def to_string(cls, unit):
+    def format_exponential_notation(cls, val, format_spec=".8g"):
+        return super().format_exponential_notation(val, format_spec)
+
+    @classmethod
+    def to_string(cls, unit, inline=True):
         from astropy.units import core
 
         # Remove units that aren't known to the format
@@ -208,16 +212,8 @@ class VOUnit(generic.Generic):
                 "represent scale for dimensionless units. "
                 f"Multiply your data by {unit.scale:e}."
             )
-        s = ""
-        if unit.scale != 1:
-            s += f"{unit.scale:.8g}"
 
-        pairs = list(zip(unit.bases, unit.powers))
-        pairs.sort(key=operator.itemgetter(1), reverse=True)
-
-        s += cls._format_unit_list(pairs)
-
-        return s
+        return super().to_string(unit, inline=inline)
 
     @classmethod
     def _to_decomposed_alternative(cls, unit):

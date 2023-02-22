@@ -9,6 +9,7 @@ class Base:
 
     registry = {}
     _space = " "
+    _scale_unit_separator = " "
 
     def __new__(cls, *args, **kwargs):
         # This __new__ is to make it clear that there is no reason to
@@ -93,7 +94,7 @@ class Base:
         # (but can have a scale; e.g., u.percent.decompose() gives "0.01").
         if len(unit.bases):
             if s:
-                s += cls._space
+                s += cls._scale_unit_separator
             if inline:
                 nominator = list(zip(unit.bases, unit.powers))
                 denominator = []
