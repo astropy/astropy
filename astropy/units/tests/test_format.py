@@ -469,24 +469,24 @@ def test_format_styles(format_spec, string, decomposed):
 
 
 @pytest.mark.parametrize(
-    "format_spec, inline, string, decomposed",
+    "format_spec, fraction, string, decomposed",
     [
-        ("generic", True, "cm-2 erg s-1", "0.001 kg s-3"),
-        ("console", False, " erg  \n------\ns cm^2", "      kg \n0.001 ---\n      s^3"),
-        ("unicode", False, " erg \n─────\ns cm²", "      kg\n0.001 ──\n      s³"),
+        ("generic", False, "cm-2 erg s-1", "0.001 kg s-3"),
+        ("console", True, " erg  \n------\ns cm^2", "      kg \n0.001 ---\n      s^3"),
+        ("unicode", True, " erg \n─────\ns cm²", "      kg\n0.001 ──\n      s³"),
         (
             "latex",
-            True,
+            False,
             r"$\mathrm{erg\,s^{-1}\,cm^{-2}}$",
             r"$\mathrm{0.001\,kg\,s^{-3}}$",
         ),
         # TODO: make generic with inline=True less awful!
     ],
 )
-def test_format_styles_non_default_inline(format_spec, inline, string, decomposed):
+def test_format_styles_non_default_fraction(format_spec, fraction, string, decomposed):
     fluxunit = u.erg / (u.cm**2 * u.s)
-    assert fluxunit.to_string(format_spec, inline=inline) == string
-    assert fluxunit.decompose().to_string(format_spec, inline=inline) == decomposed
+    assert fluxunit.to_string(format_spec, fraction=fraction) == string
+    assert fluxunit.decompose().to_string(format_spec, fraction=fraction) == decomposed
 
 
 def test_flatten_to_known():
@@ -892,13 +892,13 @@ def test_function_format_styles(format_spec, string):
 
 
 @pytest.mark.parametrize(
-    "format_spec, inline, string",
+    "format_spec, fraction, string",
     [
-        ("console", False, "   1\ndB(-)\n   m"),
-        ("unicode", False, "   1\ndB(─)\n   m"),
-        ("latex", True, r"$\mathrm{dB}$$\mathrm{\left( \mathrm{m^{-1}} \right)}$"),
+        ("console", True, "   1\ndB(-)\n   m"),
+        ("unicode", True, "   1\ndB(─)\n   m"),
+        ("latex", False, r"$\mathrm{dB}$$\mathrm{\left( \mathrm{m^{-1}} \right)}$"),
     ],
 )
-def test_function_format_styles_inline(format_spec, inline, string):
+def test_function_format_styles_non_default_fraction(format_spec, fraction, string):
     dbunit = u.decibel(u.m**-1)
-    assert dbunit.to_string(format_spec, inline=inline) == string
+    assert dbunit.to_string(format_spec, fraction=fraction) == string

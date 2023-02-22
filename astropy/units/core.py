@@ -756,8 +756,9 @@ class UnitBase:
 
         **kwargs :
             Further options forwarded to the formatter. Currently
-            recognized is **inline** (:class:`bool`) for the
-            ``"latex"``, ``"console"``, and``"unicode"`` formats.
+            recognized is **fraction** (:class:`bool`), which determines
+            whether a unit with bases raised to negative powers is
+            represented using a fraction or not.
 
         """
         f = unit_format.get_format(format)

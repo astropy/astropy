@@ -59,8 +59,8 @@ class Latex(console.Console):
         return rf"{scale}\frac{{{numerator}}}{{{denominator}}}"
 
     @classmethod
-    def to_string(cls, unit, inline=False):
-        s = super().to_string(unit, inline=inline)
+    def to_string(cls, unit, fraction=True):
+        s = super().to_string(unit, fraction=fraction)
         return rf"$\mathrm{{{s}}}$"
 
 
@@ -78,5 +78,5 @@ class LatexInline(Latex):
     name = "latex_inline"
 
     @classmethod
-    def to_string(cls, unit, inline=True):
-        return super().to_string(unit, inline)
+    def to_string(cls, unit, fraction=False):
+        return super().to_string(unit, fraction=fraction)
