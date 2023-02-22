@@ -9,17 +9,24 @@ def run_schema_example_test(organization, standard, name, version, check_func=No
     from asdf.exceptions import AsdfDeprecationWarning
     from asdf.schema import load_schema
     from asdf.tests import helpers
-    from asdf.types import format_tag
-
-    tag = format_tag(organization, standard, version, name)
 
     with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            category=AsdfDeprecationWarning,
+            message=r"asdf.types.format_tag is deprecated.*",
+        )
+        from asdf.types import format_tag
+
+        tag = format_tag(organization, standard, version, name)
+
         warnings.filterwarnings(
             "ignore",
             category=AsdfDeprecationWarning,
             message=r"default_extensions is deprecated.*",
         )
         uri = asdf.extension.default_extensions.extension_list.tag_mapping(tag)
+
         warnings.filterwarnings(
             "ignore",
             category=AsdfDeprecationWarning,
