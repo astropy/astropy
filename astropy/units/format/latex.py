@@ -18,6 +18,7 @@ class Latex(console.Console):
     """
 
     _space = r"\,"
+    _scale_unit_separator = r"\,"
     _times = r" \times "
 
     @classmethod
