@@ -81,7 +81,7 @@ class Base:
         return f"{scale}{numerator} / {denominator}"
 
     @classmethod
-    def to_string(cls, unit, inline=False):
+    def to_string(cls, unit, fraction=True):
         # First the scale.  Normally unity, in which case we omit
         # it, but non-unity scale can happen, e.g., in decompositions
         # like u.Ry.decompose(), which gives "2.17987e-18 kg m2 / s2".
@@ -95,13 +95,13 @@ class Base:
         if len(unit.bases):
             if s:
                 s += cls._scale_unit_separator
-            if inline:
-                numerator = list(zip(unit.bases, unit.powers))
-                denominator = []
-            else:
+            if fraction:
                 numerator, denominator = utils.get_grouped_by_powers(
                     unit.bases, unit.powers
                 )
+            else:
+                numerator = list(zip(unit.bases, unit.powers))
+                denominator = []
             if len(denominator):
                 if len(numerator):
                     numerator = cls._format_unit_list(numerator)

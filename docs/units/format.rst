@@ -206,7 +206,7 @@ following formats:
 
     It is also possible to write a multiline representation:
 
-      >>> print(fluxunit.to_string('console', inline=False))
+      >>> print(fluxunit.to_string('console', fraction=True))
        erg
       ------
       s cm^2
@@ -216,7 +216,7 @@ following formats:
 
       >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +FLOAT_CMP
       2.1798724×10⁻¹⁸ m² kg s⁻²
-      >>> print(u.Ry.decompose().to_string('unicode', inline=False))  # doctest: +FLOAT_CMP
+      >>> print(u.Ry.decompose().to_string('unicode', fraction=True))  # doctest: +FLOAT_CMP
                       m² kg
       2.1798724×10⁻¹⁸ ─────
                        s²
