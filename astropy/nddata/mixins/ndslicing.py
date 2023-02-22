@@ -42,7 +42,7 @@ class NDSlicingMixin:
         >>> nd2 = NDDataSliceable(nd, mask=mask)
         >>> nd2slc = nd2[1:3]
         >>> nd2slc[nd2slc.mask]
-        NDDataSliceable([3])
+        NDDataSliceable([--])
 
     Be aware that changing values of the sliced instance will change the values
     of the original::
@@ -50,7 +50,7 @@ class NDSlicingMixin:
         >>> nd3 = nd2[1:3]
         >>> nd3.data[0] = 100
         >>> nd2
-        NDDataSliceable([  1, 100,   3,   4,   5])
+        NDDataSliceable([--, 100, --, --, 5])
 
     See Also
     --------
