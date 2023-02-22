@@ -172,6 +172,7 @@ class NDArithmeticMixin:
         handle_meta=None,
         uncertainty_correlation=0,
         compare_wcs="first_found",
+        ignore_masked_data=False,
         axis=None,
         **kwds,
     ):
@@ -206,6 +207,11 @@ class NDArithmeticMixin:
 
         uncertainty_correlation : ``Number`` or `~numpy.ndarray`, optional
             see :meth:`NDArithmeticMixin.add`
+
+        ignore_masked_data : bool, optional
+            When True, masked values will be excluded from operations;
+            otherwise the operation will be performed on all values,
+            including masked ones.
 
         axis : int or tuple of ints, optional
             axis or axes over which to perform collapse operations like min, max, sum or mean.
@@ -254,17 +260,30 @@ class NDArithmeticMixin:
             )
 
         # collapse operations on masked quantities/arrays which are supported by
-        # the astropy.utils.masked module should use that module to do the
-        # arithmetic on the data and propagate masks.
-        use_astropy_mask = operand is None and self.mask is not None
-        if use_astropy_mask:
-            # call the numpy operation on a Masked NDDataArray
-            # representation of the nddata, with units when available:
-            if self.unit is not None and not hasattr(self.data, "unit"):
-                masked_input = Masked(self.data << self.unit, mask=self.mask)
+        # the astropy.utils.masked or np.ma modules should use those modules to
+        # do the arithmetic on the data and propagate masks.
+        use_masked_arith = operand is None and self.mask is not None
+        if use_masked_arith:
+            # if we're *including* masked values in the operation,
+            # use the astropy Masked module:
+            if not ignore_masked_data:
+                # call the numpy operation on a Masked NDDataArray
+                # representation of the nddata, with units when available:
+                if self.unit is not None and not hasattr(self.data, "unit"):
+                    masked_input = Masked(self.data << self.unit, mask=self.mask)
+                else:
+                    masked_input = Masked(self.data, mask=self.mask)
+            # if we're *excluding* masked values in the operation,
+            # we use the numpy.ma module:
             else:
-                masked_input = Masked(self.data, mask=self.mask)
+                masked_input = np.ma.masked_array(self.data, self.mask)
             result = operation(masked_input, axis=axis)
+            # since result may be e.g. a float if operation is a sum over all axes,
+            # let's ensure that result is a masked array, since we'll assume this later:
+            if not hasattr(result, "mask"):
+                result = np.ma.masked_array(
+                    result, mask=np.zeros_like(result, dtype=bool)
+                )
         else:
             # Then calculate the resulting data (which can but needs not be a
             # quantity)
@@ -300,8 +319,8 @@ class NDArithmeticMixin:
         if handle_mask is None:
             pass
         elif hasattr(result, "mask"):
-            # if astropy.utils.masked is being used, the constructor
-            # will pick up the mask from the Masked object:
+            # if numpy.ma or astropy.utils.masked is being used, the constructor
+            # will pick up the mask from the masked object:
             kwargs["mask"] = None
         elif handle_mask in ["ff", "first_found"]:
             if self.mask is None:
@@ -310,7 +329,7 @@ class NDArithmeticMixin:
                 kwargs["mask"] = deepcopy(self.mask)
         else:
             kwargs["mask"] = self._arithmetic_mask(
-                operation, operand, handle_mask, **kwds2["mask"]
+                operation, operand, handle_mask, axis=axis, **kwds2["mask"]
             )
 
         if handle_meta is None:
@@ -459,7 +478,7 @@ class NDArithmeticMixin:
                 operation, operand, result, correlation, **axis_kwarg
             )
 
-    def _arithmetic_mask(self, operation, operand, handle_mask, **kwds):
+    def _arithmetic_mask(self, operation, operand, handle_mask, axis=None, **kwds):
         """
         Calculate the resulting mask.
 

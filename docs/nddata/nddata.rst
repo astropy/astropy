@@ -447,6 +447,21 @@ behavior with::
     >>> print(min_axis_1.uncertainty)  # doctest: +FLOAT_CMP
     StdDevUncertainty([1, 1])
 
+Finally, in some cases it may be useful to do perform a collapse
+operation only on the unmasked values, and only return a masked
+result when all of the input values are masked. If we refer back to
+the first example in this section, we see that the underlying
+``data`` attribute has been summed over all values, including
+masked ones::
+
+    >>> sum_axis_1  # doctest: +FLOAT_CMP
+    NDDataArray([6., 9.], unit='m')
+
+where the first data element is masked. We can instead get the sum
+for only unmasked values with the ``ignore_masked_data`` option::
+
+    >>> nddata.sum(axis=1, ignore_masked_data=True)
+    NDDataArray([5, 9])
 
 ..
   EXAMPLE END

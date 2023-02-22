@@ -170,7 +170,8 @@ we can take the sum of ND masked quantities along the ``1`` axis like so::
     ... ]
     >>> uncertainty = StdDevUncertainty(np.ones_like(data))
     >>> nddata = NDDataArray(data=data, uncertainty=uncertainty, mask=mask, unit='m')
-    >>> nddata.sum(axis=1), sum_axis_1.mask, sum_axis_1.uncertainty
+    >>> sum_axis_1 = nddata.sum(axis=1)
+    >>> sum_axis_1, sum_axis_1.mask, sum_axis_1.uncertainty
     (NDDataArray([6., 9.], unit='m'),
      array([ True, False]),
      StdDevUncertainty([1.41421356, 1.73205081]))
