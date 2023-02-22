@@ -758,7 +758,10 @@ class UnitBase:
             Further options forwarded to the formatter. Currently
             recognized is **fraction** (:class:`bool`), which determines
             whether a unit with bases raised to negative powers is
-            represented using a fraction or not.
+            represented using a fraction or not, and **inline**, which
+            determines whether the fraction is set with a solidus, or
+            displayed with a numerator and denominator (the latter only
+            for the ``latex``, ``console``, and ``unicode`` formats).
 
         """
         f = unit_format.get_format(format)

@@ -22,6 +22,8 @@ class Unicode(console.Console):
               kg
       100000 ────
              m s²
+      >>> print(u.bar.decompose().to_string('unicode', fraction=True, inline=True))
+      100000 kg / (m s²)
     """
 
     _times = "×"
