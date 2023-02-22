@@ -26,10 +26,7 @@ class Console(base.Base):
 
     _times = "*"
     _line = "-"
-
-    @classmethod
-    def _get_unit_name(cls, unit):
-        return unit.get_format_name("console")
+    _space = " "
 
     @classmethod
     def _format_mantissa(cls, m):
@@ -40,21 +37,8 @@ class Console(base.Base):
         return f"^{number}"
 
     @classmethod
-    def _format_unit_list(cls, units):
-        out = []
-        for base_, power in units:
-            if power == 1:
-                out.append(cls._get_unit_name(base_))
-            else:
-                out.append(
-                    cls._get_unit_name(base_)
-                    + cls._format_superscript(utils.format_power(power))
-                )
-        return " ".join(out)
-
-    @classmethod
-    def format_exponential_notation(cls, val):
-        m, ex = utils.split_mantissa_exponent(val)
+    def format_exponential_notation(cls, val, format_spec=".8g"):
+        m, ex = utils.split_mantissa_exponent(val, format_spec)
 
         parts = []
         if m:
@@ -66,44 +50,19 @@ class Console(base.Base):
         return cls._times.join(parts)
 
     @classmethod
+    def _format_fraction(cls, scale, nominator, denominator):
+        fraclength = max(len(nominator), len(denominator))
+        f = f"{{0:<{len(scale)}s}}{{1:^{fraclength}s}}"
+
+        return "\n".join(
+            (
+                f.format("", nominator),
+                f.format(scale, cls._line * fraclength),
+                f.format("", denominator),
+            )
+        )
+
+    @classmethod
     def to_string(cls, unit, inline=True):
-        if unit.scale == 1:
-            s = ""
-        else:
-            # Non-unity scale happens mostly for decomposed units.
-            # E.g., u.Ry.decompose() gives "2.17987e-18 kg m2 / s2".
-            s = cls.format_exponential_notation(unit.scale)
-
-        # Take care that dimensionless does not have bases (but can
-        # have a scale; e.g., u.percent.decompose() gives "0.01").
-        if len(unit.bases):
-            if s:
-                s += " "
-            if inline:
-                nominator = zip(unit.bases, unit.powers)
-                denominator = []
-            else:
-                nominator, denominator = utils.get_grouped_by_powers(
-                    unit.bases, unit.powers
-                )
-            if len(denominator):
-                if len(nominator):
-                    nominator = cls._format_unit_list(nominator)
-                else:
-                    nominator = "1"
-                denominator = cls._format_unit_list(denominator)
-                fraclength = max(len(nominator), len(denominator))
-                f = f"{{0:<{len(s)}s}}{{1:^{fraclength}s}}"
-
-                s = "\n".join(
-                    (
-                        f.format("", nominator),
-                        f.format(s, cls._line * fraclength),
-                        f.format("", denominator),
-                    )
-                )
-            else:
-                nominator = cls._format_unit_list(nominator)
-                s += nominator
-
-        return s
+        # Change default of inline to True.
+        return super().to_string(unit, inline=inline)

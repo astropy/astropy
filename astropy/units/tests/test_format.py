@@ -432,26 +432,37 @@ def test_latex_inline_scale():
 @pytest.mark.parametrize(
     "format_spec, string, decomposed",
     [
-        ("generic", "erg / (cm2 s)", "0.001 kg / s3"),
-        ("s", "erg / (cm2 s)", "0.001 kg / s3"),
-        ("console", "erg s^-1 cm^-2", "0.001 kg s^-3"),
+        ("generic", "erg / (Angstrom cm2 s)", "1e+07 kg / (m s3)"),
+        ("s", "erg / (Angstrom cm2 s)", "1e+07 kg / (m s3)"),
+        ("console", "erg Angstrom^-1 s^-1 cm^-2", "10000000 kg m^-1 s^-3"),
         (
             "latex",
-            r"$\mathrm{\frac{erg}{s\,cm^{2}}}$",
-            r"$\mathrm{0.001\,\frac{kg}{s^{3}}}$",
+            r"$\mathrm{\frac{erg}{\mathring{A}\,s\,cm^{2}}}$",
+            r"$\mathrm{10000000\,\frac{kg}{m\,s^{3}}}$",
         ),
         (
             "latex_inline",
-            r"$\mathrm{erg\,s^{-1}\,cm^{-2}}$",
-            r"$\mathrm{0.001\,kg\,s^{-3}}$",
+            r"$\mathrm{erg\,\mathring{A}^{-1}\,s^{-1}\,cm^{-2}}$",
+            r"$\mathrm{10000000\,kg\,m^{-1}\,s^{-3}}$",
         ),
-        ("unicode", "erg s⁻¹ cm⁻²", "0.001 kg s⁻³"),
-        (">20s", "       erg / (cm2 s)", "       0.001 kg / s3"),
+        ("unicode", "erg Å⁻¹ s⁻¹ cm⁻²", "10000000 kg m⁻¹ s⁻³"),
+        (">25s", "   erg / (Angstrom cm2 s)", "        1e+07 kg / (m s3)"),
+        ("cds", "erg.Angstrom-1.s-1.cm-2", "10000000kg.m-1.s-3"),
+        ("ogip", "10 erg / (cm**2 nm s)", "1e+07 kg / (m s**3)"),
+        ("fits", "Angstrom-1 cm-2 erg s-1", "10**7 kg m-1 s-3"),
+        ("vounit", "Angstrom**-1.cm**-2.erg.s**-1", "10000000kg.m**-1.s**-3"),
+        # TODO: make fits and vounit less awful!
     ],
 )
 def test_format_styles(format_spec, string, decomposed):
-    fluxunit = u.erg / (u.cm**2 * u.s)
-    assert format(fluxunit, format_spec) == string
+    fluxunit = u.erg / (u.cm**2 * u.s * u.Angstrom)
+    if format_spec == "vounit":
+        # erg is deprecated in vounit.
+        with pytest.warns(UnitsWarning, match="deprecated"):
+            formatted = format(fluxunit, format_spec)
+    else:
+        formatted = format(fluxunit, format_spec)
+    assert formatted == string
     # Decomposed mostly to test that scale factors are dealt with properly
     # in the various formats.
     assert format(fluxunit.decompose(), format_spec) == decomposed
@@ -460,6 +471,7 @@ def test_format_styles(format_spec, string, decomposed):
 @pytest.mark.parametrize(
     "format_spec, inline, string, decomposed",
     [
+        ("generic", True, "cm-2 erg s-1", "0.001 kg s-3"),
         ("console", False, " erg  \n------\ns cm^2", "      kg \n0.001 ---\n      s^3"),
         ("unicode", False, " erg \n─────\ns cm²", "      kg\n0.001 ──\n      s³"),
         (
@@ -468,9 +480,10 @@ def test_format_styles(format_spec, string, decomposed):
             r"$\mathrm{erg\,s^{-1}\,cm^{-2}}$",
             r"$\mathrm{0.001\,kg\,s^{-3}}$",
         ),
+        # TODO: make generic with inline=True less awful!
     ],
 )
-def test_format_styles_inline(format_spec, inline, string, decomposed):
+def test_format_styles_non_default_inline(format_spec, inline, string, decomposed):
     fluxunit = u.erg / (u.cm**2 * u.s)
     assert fluxunit.to_string(format_spec, inline=inline) == string
     assert fluxunit.decompose().to_string(format_spec, inline=inline) == decomposed
