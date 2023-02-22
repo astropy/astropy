@@ -49,7 +49,7 @@ jobs:
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     with:
       submodules: false
-      coverage: codecov
+      coverage: ''
       libraries: |
         apt:
           - language-pack-fr
@@ -59,6 +59,7 @@ jobs:
         #       run only with minimal dependencies.
         - name: Python 3.10 with minimal dependencies and full coverage
           linux: py310-test-cov
+          coverage: codecov
 
         - name: Python 3.9 with all optional dependencies
           linux: py39-test-alldeps-fitsio
@@ -73,6 +74,7 @@ jobs:
         - name: Python 3.8 with oldest supported version of all dependencies
           linux: py38-test-oldestdeps-alldeps-cov-clocale
           posargs: --remote-data=astropy
+          coverage: codecov
 
         - name: Python 3.9 with all optional dependencies (Windows)
           windows: py39-test-alldeps
@@ -87,7 +89,7 @@ jobs:
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     with:
       submodules: false
-      coverage: codecov
+      coverage: ''
       libraries: |
         apt:
           - language-pack-de
