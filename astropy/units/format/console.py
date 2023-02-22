@@ -22,6 +22,8 @@ class Console(base.Base):
                        m^2 kg
       2.1798721*10^-18 ------
                         s^2
+      >>> print(u.Ry.decompose().to_string('console', fraction=True, inline=True))  # doctest: +FLOAT_CMP
+      2.1798721*10^-18 m^2 kg / s^2
     """
 
     _times = "*"
@@ -50,7 +52,12 @@ class Console(base.Base):
         return cls._times.join(parts)
 
     @classmethod
-    def _format_fraction(cls, scale, numerator, denominator):
+    def _format_fraction(cls, scale, numerator, denominator, inline=False):
+        if inline is not False:
+            return super()._format_fraction(
+                scale, numerator, denominator, inline=inline
+            )
+
         fraclength = max(len(numerator), len(denominator))
         f = f"{{0:<{len(scale)}s}}{{1:^{fraclength}s}}"
 
@@ -63,6 +70,8 @@ class Console(base.Base):
         )
 
     @classmethod
-    def to_string(cls, unit, fraction=False):
-        # Change default of fraction to False.
-        return super().to_string(unit, fraction=fraction)
+    def to_string(cls, unit, fraction=False, inline=False):
+        # Change default of fraction and inline to False, i.e., we
+        # typeset without a fraction by default, and using display style if
+        # Fraction is True.
+        return super().to_string(unit, fraction=fraction, inline=inline)

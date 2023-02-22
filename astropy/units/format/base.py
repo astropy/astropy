@@ -73,7 +73,7 @@ class Base:
         )
 
     @classmethod
-    def _format_fraction(cls, scale, numerator, denominator):
+    def _format_fraction(cls, scale, numerator, denominator, inline=True):
         if cls._space in denominator:
             denominator = f"({denominator})"
         if scale and numerator == "1":
@@ -81,7 +81,21 @@ class Base:
         return f"{scale}{numerator} / {denominator}"
 
     @classmethod
-    def to_string(cls, unit, fraction=True):
+    def to_string(cls, unit, *, fraction=True, inline=True):
+        """Convert a unit to its string representation.
+
+        Parameters
+        ----------
+        unit : |Unit|
+            The unit to convert.
+        fraction : bool, optional
+            Whether to use a fraction if the unit has bases raised to negative powers
+            (e.g., ``km / s``), or to just display those as is (e.g., ``km s^-1``).
+        inline : bool, optional
+            For a fraction, whether to use a solidus to keep the unit on a single
+            line, or to use display style, with parts above and below a horizontal line.
+            Ignored if ``fraction=False`` or if the format class does not support it.
+        """
         # First the scale.  Normally unity, in which case we omit
         # it, but non-unity scale can happen, e.g., in decompositions
         # like u.Ry.decompose(), which gives "2.17987e-18 kg m2 / s2".
@@ -108,7 +122,7 @@ class Base:
                 else:
                     numerator = "1"
                 denominator = cls._format_unit_list(denominator)
-                s = cls._format_fraction(s, numerator, denominator)
+                s = cls._format_fraction(s, numerator, denominator, inline=inline)
             else:
                 s += cls._format_unit_list(numerator)
 

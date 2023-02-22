@@ -211,6 +211,11 @@ following formats:
       ------
       s cm^2
 
+    Or to have just a fraction:
+
+      >>> print(fluxunit.to_string('console', fraction=True, inline=True))
+      erg / (s cm^2)
+
   - ``"unicode"``: Same as ``"console"``, except uses Unicode
     characters::
 
@@ -220,6 +225,8 @@ following formats:
                       m² kg
       2.1798724×10⁻¹⁸ ─────
                        s²
+      >>> print(u.Ry.decompose().to_string('unicode', fraction=True, inline=True))  # doctest: +FLOAT_CMP
+      2.1798724×10⁻¹⁸ m² kg / s²
 
 .. _astropy-units-format-unrecognized:
 

@@ -469,24 +469,45 @@ def test_format_styles(format_spec, string, decomposed):
 
 
 @pytest.mark.parametrize(
-    "format_spec, fraction, string, decomposed",
+    "format_spec, fraction, inline, string, decomposed",
     [
-        ("generic", False, "cm-2 erg s-1", "0.001 kg s-3"),
-        ("console", True, " erg  \n------\ns cm^2", "      kg \n0.001 ---\n      s^3"),
-        ("unicode", True, " erg \n─────\ns cm²", "      kg\n0.001 ──\n      s³"),
+        ("generic", False, False, "cm-2 erg s-1", "0.001 kg s-3"),
+        (
+            "console",
+            True,
+            False,
+            " erg  \n------\ns cm^2",
+            "      kg \n0.001 ---\n      s^3",
+        ),
+        ("console", True, True, "erg / (s cm^2)", "0.001 kg / s^3"),
+        ("unicode", True, False, " erg \n─────\ns cm²", "      kg\n0.001 ──\n      s³"),
+        ("unicode", True, True, "erg / (s cm²)", "0.001 kg / s³"),
         (
             "latex",
+            False,
             False,
             r"$\mathrm{erg\,s^{-1}\,cm^{-2}}$",
             r"$\mathrm{0.001\,kg\,s^{-3}}$",
         ),
+        (
+            "latex",
+            True,
+            True,
+            r"$\mathrm{erg / (s\,cm^{2})}$",
+            r"$\mathrm{0.001\,kg / s^{3}}$",
+        ),
         # TODO: make generic with inline=True less awful!
     ],
 )
-def test_format_styles_non_default_fraction(format_spec, fraction, string, decomposed):
+def test_format_styles_non_default_fraction(
+    format_spec, fraction, inline, string, decomposed
+):
     fluxunit = u.erg / (u.cm**2 * u.s)
-    assert fluxunit.to_string(format_spec, fraction=fraction) == string
-    assert fluxunit.decompose().to_string(format_spec, fraction=fraction) == decomposed
+    assert fluxunit.to_string(format_spec, fraction=fraction, inline=inline) == string
+    assert (
+        fluxunit.decompose().to_string(format_spec, fraction=fraction, inline=inline)
+        == decomposed
+    )
 
 
 def test_flatten_to_known():

@@ -106,7 +106,7 @@ class Fits(generic.Generic):
         return name
 
     @classmethod
-    def to_string(cls, unit, fraction=False):
+    def to_string(cls, unit, fraction=False, inline=True):
         # Remove units that aren't known to the format
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
@@ -129,7 +129,7 @@ class Fits(generic.Generic):
             unit = core.CompositeUnit(1, unit.bases, unit.powers)
 
         if unit.bases:
-            parts.append(super().to_string(unit, fraction=fraction))
+            parts.append(super().to_string(unit, fraction=fraction, inline=inline))
 
         return cls._scale_unit_separator.join(parts)
 
