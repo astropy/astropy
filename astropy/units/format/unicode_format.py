@@ -28,10 +28,6 @@ class Unicode(console.Console):
     _line = "─"
 
     @classmethod
-    def _get_unit_name(cls, unit):
-        return unit.get_format_name("unicode")
-
-    @classmethod
     def _format_mantissa(cls, m):
         return m.replace("-", "−")
 
