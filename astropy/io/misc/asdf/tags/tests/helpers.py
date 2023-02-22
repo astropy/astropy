@@ -1,16 +1,31 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import warnings
+
 import numpy as np
 
 
 def run_schema_example_test(organization, standard, name, version, check_func=None):
     import asdf
+    from asdf.exceptions import AsdfDeprecationWarning
     from asdf.schema import load_schema
     from asdf.tests import helpers
     from asdf.types import format_tag
 
     tag = format_tag(organization, standard, version, name)
-    uri = asdf.extension.default_extensions.extension_list.tag_mapping(tag)
-    r = asdf.extension.get_default_resolver()
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            category=AsdfDeprecationWarning,
+            message=r"default_extensions is deprecated.*",
+        )
+        uri = asdf.extension.default_extensions.extension_list.tag_mapping(tag)
+        warnings.filterwarnings(
+            "ignore",
+            category=AsdfDeprecationWarning,
+            message=r"get_default_resolver is deprecated.*",
+        )
+        r = asdf.extension.get_default_resolver()
 
     examples = []
     schema = load_schema(uri, resolver=r)
