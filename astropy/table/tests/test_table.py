@@ -2149,11 +2149,20 @@ class TestPandas:
             # No warning with the default use_nullable_int=True
             d = t.to_pandas(use_nullable_int=use_nullable_int)
         else:
-            with pytest.warns(
-                TableReplaceWarning,
-                match=r"converted column 'a' from int(32|64) to float64",
-            ):
-                d = t.to_pandas(use_nullable_int=use_nullable_int)
+            import pandas
+            from packaging.version import Version
+            PANDAS_LT_2_0 = Version(pandas.__version__) < Version('2.0dev')
+            if PANDAS_LT_2_0:
+                with pytest.warns(
+                    TableReplaceWarning,
+                    match=r"converted column 'a' from int(32|64) to float64",
+                ):
+                    d = t.to_pandas(use_nullable_int=use_nullable_int)
+            else:
+                from pandas.core.dtypes.cast import IntCastingNaNError
+                with pytest.raises(IntCastingNaNError, match=r"Cannot convert non-finite values \(NA or inf\) to integer"):
+                    d = t.to_pandas(use_nullable_int=use_nullable_int)
+                return  # Do not continue
 
         t2 = table.Table.from_pandas(d)
 
