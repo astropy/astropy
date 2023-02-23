@@ -302,7 +302,7 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
 
     buffer_shape = tuple((last_array_index - first_array_index).astype(int))
 
-    data = np.zeros(buffer_shape, dtype=BITPIX2DTYPE[hdu._header["ZBITPIX"]])
+    data = np.empty(buffer_shape, dtype=BITPIX2DTYPE[hdu._header["ZBITPIX"]])
 
     quantized = "ZSCALE" in hdu.compressed_data.dtype.names
 
@@ -563,7 +563,7 @@ def compress_hdu(hdu):
     if zblank is not None:
         hdu._header["ZBLANK"] = zblank
 
-    table = np.zeros(len(compressed_bytes), dtype=hdu.columns.dtype.newbyteorder(">"))
+    table = np.empty(len(compressed_bytes), dtype=hdu.columns.dtype.newbyteorder(">"))
 
     if "ZSCALE" in table.dtype.names:
         table["ZSCALE"] = np.array(scales)
