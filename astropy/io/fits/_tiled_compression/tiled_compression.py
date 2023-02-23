@@ -10,7 +10,7 @@ import numpy as np
 
 from astropy.io.fits.hdu.base import BITPIX2DTYPE
 
-from .codecs import PLIO1, Gzip1, Gzip2, HCompress1, Rice1
+from .codecs import PLIO1, Gzip1, Gzip2, HCompress1, NoCompress, Rice1
 from .quantization import DITHER_METHODS, QuantizationFailedException, Quantize
 from .utils import _data_shape, _iter_array_tiles, _tile_shape
 
@@ -21,6 +21,7 @@ ALGORITHMS = {
     "RICE_ONE": Rice1,
     "PLIO_1": PLIO1,
     "HCOMPRESS_1": HCompress1,
+    "NOCOMPRESS": NoCompress,
 }
 
 DEFAULT_ZBLANK = -2147483648
@@ -101,7 +102,7 @@ def _finalize_array(tile_buffer, *, bitpix, tile_shape, algorithm, lossless):
     and translates it into a numpy array with the correct dtype, endianness and
     shape.
     """
-    if algorithm.startswith("GZIP"):
+    if algorithm.startswith("GZIP") or algorithm == "NOCOMPRESS":
         # This algorithm is taken from fitsio
         # https://github.com/astropy/astropy/blob/a8cb1668d4835562b89c0d0b3448ac72ca44db63/cextern/cfitsio/lib/imcompress.c#L6345-L6388
         tilelen = np.product(tile_shape)
@@ -460,16 +461,6 @@ def compress_hdu(hdu):
             zeros.append(0)
             gzip_fallback.append(False)
 
-        # The original compress_hdu assumed the data was in native endian, so we
-        # change this here:
-        if hdu._header["ZCMPTYPE"].startswith("GZIP") or gzip_fallback[-1]:
-            # This is apparently needed so that our heap data agrees with
-            # the C implementation!?
-            data = data.astype(data.dtype.newbyteorder(">"))
-        else:
-            if not data.dtype.isnative:
-                data = data.astype(data.dtype.newbyteorder("="))
-
         if gzip_fallback[-1]:
             cbytes = _compress_tile(data, algorithm="GZIP_1")
         else:
@@ -509,7 +500,7 @@ def compress_hdu(hdu):
                 if array.dtype.byteorder == "<" or (
                     array.dtype.byteorder == "=" and sys.byteorder == "little"
                 ):
-                    compressed_bytes[irow] = array.astype(">i2").tobytes()
+                    compressed_bytes[irow] = array.astype(">i2", copy=False).tobytes()
 
     compressed_bytes = b"".join(compressed_bytes)
 
