@@ -754,14 +754,13 @@ class UnitBase:
             The name of a format or a formatter object.  If not
             provided, defaults to the generic format.
 
-        **kwargs :
+        **kwargs
             Further options forwarded to the formatter. Currently
-            recognized is **fraction** (:class:`bool`), which determines
-            whether a unit with bases raised to negative powers is
-            represented using a fraction or not, and **inline**, which
-            determines whether the fraction is set with a solidus, or
-            displayed with a numerator and denominator (the latter only
-            for the ``latex``, ``console``, and ``unicode`` formats).
+            recognized is **fraction**.  If not `False`, units with
+            bases raised to negative powers are represented using a
+            fraction, with `True` or 'inline' used to produce a single
+            line, and 'display' to produce a multi-line string (for
+            the ``latex``, ``console`` and ``unicode`` formats only).
 
         """
         f = unit_format.get_format(format)
