@@ -326,7 +326,7 @@ class LogQuantity(FunctionQuantity):
     def __truediv__(self, other):
         # Divide by a float or a dimensionless quantity
         if isinstance(other, numbers.Number):
-            # Dividing a log means putting the nominator into the exponent
+            # Dividing a log means putting the denominator into the exponent
             # of the unit
             new_physical_unit = self.unit.physical_unit ** (1 / other)
             result = self.view(np.ndarray) / other
