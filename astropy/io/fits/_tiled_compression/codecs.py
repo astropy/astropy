@@ -39,14 +39,14 @@ __all__ = [
 
 
 def _as_big_endian_array(data):
-    return data.astype(np.asarray(data).dtype.newbyteorder(">"))
+    return data.astype(np.asarray(data).dtype.newbyteorder(">"), copy=False)
 
 
 def _as_native_endian_array(data):
     if data.dtype.isnative:
         return data
     else:
-        return data.astype(np.asarray(data).dtype.newbyteorder("="))
+        return data.astype(np.asarray(data).dtype.newbyteorder("="), copy=False)
 
 
 class NoCompress(Codec):
@@ -61,7 +61,7 @@ class NoCompress(Codec):
 
     def decode(self, buf):
         """
-        Decompress buffer using the PLIO_1 algorithm.
+        Decompress buffer using the NOCOMPRESS algorithm.
 
         Parameters
         ----------
@@ -77,7 +77,7 @@ class NoCompress(Codec):
 
     def encode(self, buf):
         """
-        Compress the data in the buffer using the PLIO_1 algorithm.
+        Compress the data in the buffer using the NOCOMPRESS algorithm.
 
         Parameters
         ----------
@@ -295,7 +295,11 @@ class Rice1(Codec):
         """
         # We convert the data to native endian because it is passed to the
         # C compression code which will interpret it as being native endian.
-        dbytes = _as_native_endian_array(buf).astype(f"i{self.bytepix}").tobytes()
+        dbytes = (
+            _as_native_endian_array(buf)
+            .astype(f"i{self.bytepix}", copy=False)
+            .tobytes()
+        )
         return compress_rice_1_c(dbytes, self.blocksize, self.bytepix)
 
 
@@ -350,7 +354,7 @@ class PLIO1(Codec):
         """
         # We convert the data to native endian because it is passed to the
         # C compression code which will interpret it as being native endian.
-        dbytes = _as_native_endian_array(buf).astype("i4").tobytes()
+        dbytes = _as_native_endian_array(buf).astype("i4", copy=False).tobytes()
         return compress_plio_1_c(dbytes, self.tilesize)
 
 
@@ -438,7 +442,11 @@ class HCompress1(Codec):
         """
         # We convert the data to native endian because it is passed to the
         # C compression code which will interpret it as being native endian.
-        dbytes = _as_native_endian_array(buf).astype(f"i{self.bytepix}").tobytes()
+        dbytes = (
+            _as_native_endian_array(buf)
+            .astype(f"i{self.bytepix}", copy=False)
+            .tobytes()
+        )
         return compress_hcompress_1_c(
             dbytes, self.nx, self.ny, self.scale, self.bytepix
         )

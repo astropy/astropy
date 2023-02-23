@@ -500,7 +500,7 @@ def compress_hdu(hdu):
                 if array.dtype.byteorder == "<" or (
                     array.dtype.byteorder == "=" and sys.byteorder == "little"
                 ):
-                    compressed_bytes[irow] = array.astype(">i2").tobytes()
+                    compressed_bytes[irow] = array.astype(">i2", copy=False).tobytes()
 
     compressed_bytes = b"".join(compressed_bytes)
 
