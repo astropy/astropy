@@ -124,7 +124,7 @@ def format_power(power):
     if not hasattr(power, "denominator"):
         power = maybe_simple_fraction(power)
         if getattr(power, "denonimator", None) == 1:
-            power = power.nominator
+            power = power.numerator
 
     return str(power)
 
