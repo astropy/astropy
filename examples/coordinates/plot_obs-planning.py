@@ -119,13 +119,13 @@ sunaltazs_July12_to_13 = get_sun(times_July12_to_13).transform_to(frame_July12_t
 
 
 ##############################################################################
-# Do the same with `~astropy.coordinates.get_moon` to find when the moon is
+# Do the same with `~astropy.coordinates.get_body` to find when the moon is
 # up. Be aware that this will need to download a 10MB file from the internet
 # to get a precise location of the moon.
 
-from astropy.coordinates import get_moon
+from astropy.coordinates import get_body
 
-moon_July12_to_13 = get_moon(times_July12_to_13)
+moon_July12_to_13 = get_body("moon", times_July12_to_13)
 moonaltazs_July12_to_13 = moon_July12_to_13.transform_to(frame_July12_to_13)
 
 ##############################################################################

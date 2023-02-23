@@ -1,0 +1,3 @@
+``get_moon()`` is deprecated and may be removed in a future version of
+``astropy``. Calling ``get_moon(...)`` should be replaced with
+``get_body("moon", ...)``.
