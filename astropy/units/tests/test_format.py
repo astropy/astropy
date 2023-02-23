@@ -510,6 +510,13 @@ def test_format_styles_non_default_fraction(
     )
 
 
+@pytest.mark.parametrize("format_spec", ["generic", "cds", "fits", "ogip", "vounit"])
+def test_no_display_fraction(format_spec):
+    fluxunit = u.W / u.m**2
+    with pytest.raises(ValueError, match="only supports"):
+        fluxunit.to_string(format_spec, fraction=True, inline=False)
+
+
 def test_flatten_to_known():
     myunit = u.def_unit("FOOBAR_One", u.erg / u.Hz)
     assert myunit.to_string("fits") == "erg Hz-1"

@@ -74,6 +74,9 @@ class Base:
 
     @classmethod
     def _format_fraction(cls, scale, numerator, denominator, inline=True):
+        if not inline:
+            raise ValueError("format {cls.name!r} only supports inline fractions.")
+
         if cls._space in denominator:
             denominator = f"({denominator})"
         if scale and numerator == "1":
