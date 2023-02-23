@@ -51,7 +51,14 @@ QUANTIZE_METHOD_NAMES = {
 DITHER_SEED_CLOCK = 0
 DITHER_SEED_CHECKSUM = -1
 
-COMPRESSION_TYPES = ("RICE_1", "GZIP_1", "GZIP_2", "PLIO_1", "HCOMPRESS_1")
+COMPRESSION_TYPES = (
+    "NOCOMPRESS",
+    "RICE_1",
+    "GZIP_1",
+    "GZIP_2",
+    "PLIO_1",
+    "HCOMPRESS_1",
+)
 
 # Default compression parameter values
 DEFAULT_COMPRESSION_TYPE = "RICE_1"
@@ -465,7 +472,7 @@ class CompImageHDU(BinTableHDU):
         compression_type : str, optional
             Compression algorithm: one of
             ``'RICE_1'``, ``'RICE_ONE'``, ``'PLIO_1'``, ``'GZIP_1'``,
-            ``'GZIP_2'``, ``'HCOMPRESS_1'``
+            ``'GZIP_2'``, ``'HCOMPRESS_1'``, ``'NOCOMPRESS'``
 
         tile_size : int, optional
             Compression tile sizes.  Default treats each row of image as a
@@ -799,8 +806,9 @@ class CompImageHDU(BinTableHDU):
 
         compression_type : str, optional
             compression algorithm 'RICE_1', 'PLIO_1', 'GZIP_1', 'GZIP_2',
-            'HCOMPRESS_1'; if this value is `None`, use value already in the
-            header; if no value already in the header, use 'RICE_1'
+            'HCOMPRESS_1', 'NOCOMPRESS'; if this value is `None`, use value
+            already in the header; if no value already in the header, use
+            'RICE_1'
 
         tile_size : sequence of int, optional
             compression tile sizes as a list; if this value is `None`, use

@@ -34,7 +34,62 @@ __all__ = [
     "Rice1",
     "PLIO1",
     "HCompress1",
+    "NoCompress",
 ]
+
+
+def _as_big_endian_array(data):
+    return data.astype(np.asarray(data).dtype.newbyteorder(">"), copy=False)
+
+
+def _as_native_endian_array(data):
+    if data.dtype.isnative:
+        return data
+    else:
+        return data.astype(np.asarray(data).dtype.newbyteorder("="), copy=False)
+
+
+class NoCompress(Codec):
+    """
+    A dummy compression/decompression algorithm that stores the data as-is.
+
+    While the data is not compressed/decompressed, it is converted to big
+    endian during encoding as this is what is expected in FITS files.
+    """
+
+    codec_id = "FITS_NOCOMPRESS"
+
+    def decode(self, buf):
+        """
+        Decompress buffer using the NOCOMPRESS algorithm.
+
+        Parameters
+        ----------
+        buf : bytes or array_like
+            The buffer to decompress.
+
+        Returns
+        -------
+        buf : np.ndarray
+            The decompressed buffer.
+        """
+        return np.frombuffer(buf, dtype=np.uint8)
+
+    def encode(self, buf):
+        """
+        Compress the data in the buffer using the NOCOMPRESS algorithm.
+
+        Parameters
+        ----------
+        buf : bytes or array_like
+            The buffer to compress.
+
+        Returns
+        -------
+        bytes
+            The compressed bytes.
+        """
+        return _as_big_endian_array(buf).tobytes()
 
 
 class Gzip1(Codec):
@@ -83,9 +138,10 @@ class Gzip1(Codec):
         bytes
             The compressed bytes.
         """
+        # Data bytes should be stored as big endian in files
         # In principle we should be able to not have .tobytes() here and avoid
         # the copy but this does not work correctly in Python 3.11.
-        dbytes = np.asarray(buf).tobytes()
+        dbytes = _as_big_endian_array(buf).tobytes()
         return gzip_compress(dbytes)
 
 
@@ -161,8 +217,9 @@ class Gzip2(Codec):
         bytes
             The compressed bytes.
         """
-        # Start off by shuffling buffer
-        array = np.asarray(buf).ravel()
+        # Data bytes should be stored as big endian in files
+        array = _as_big_endian_array(buf).ravel()
+        # Shuffle the buffer
         itemsize = array.dtype.itemsize
         array = array.view(np.uint8)
         shuffled_buffer = array.reshape((-1, itemsize)).T.ravel().tobytes()
@@ -236,7 +293,13 @@ class Rice1(Codec):
         bytes
             The compressed bytes.
         """
-        dbytes = np.asarray(buf).astype(f"i{self.bytepix}").tobytes()
+        # We convert the data to native endian because it is passed to the
+        # C compression code which will interpret it as being native endian.
+        dbytes = (
+            _as_native_endian_array(buf)
+            .astype(f"i{self.bytepix}", copy=False)
+            .tobytes()
+        )
         return compress_rice_1_c(dbytes, self.blocksize, self.bytepix)
 
 
@@ -289,7 +352,9 @@ class PLIO1(Codec):
         bytes
             The compressed bytes.
         """
-        dbytes = np.asarray(buf).astype("i4").tobytes()
+        # We convert the data to native endian because it is passed to the
+        # C compression code which will interpret it as being native endian.
+        dbytes = _as_native_endian_array(buf).astype("i4", copy=False).tobytes()
         return compress_plio_1_c(dbytes, self.tilesize)
 
 
@@ -375,7 +440,13 @@ class HCompress1(Codec):
         bytes
             The compressed bytes.
         """
-        dbytes = np.asarray(buf).astype(f"i{self.bytepix}").tobytes()
+        # We convert the data to native endian because it is passed to the
+        # C compression code which will interpret it as being native endian.
+        dbytes = (
+            _as_native_endian_array(buf)
+            .astype(f"i{self.bytepix}", copy=False)
+            .tobytes()
+        )
         return compress_hcompress_1_c(
             dbytes, self.nx, self.ny, self.scale, self.bytepix
         )
