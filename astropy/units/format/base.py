@@ -9,6 +9,7 @@ class Base:
 
     registry = {}
     _space = " "
+    _scale_unit_separator = " "
 
     def __new__(cls, *args, **kwargs):
         # This __new__ is to make it clear that there is no reason to
@@ -72,12 +73,12 @@ class Base:
         )
 
     @classmethod
-    def _format_fraction(cls, scale, nominator, denominator):
+    def _format_fraction(cls, scale, numerator, denominator):
         if cls._space in denominator:
             denominator = f"({denominator})"
-        if scale and nominator == "1":
+        if scale and numerator == "1":
             return f"{scale}/ {denominator}"
-        return f"{scale}{nominator} / {denominator}"
+        return f"{scale}{numerator} / {denominator}"
 
     @classmethod
     def to_string(cls, unit, inline=False):
@@ -93,24 +94,23 @@ class Base:
         # (but can have a scale; e.g., u.percent.decompose() gives "0.01").
         if len(unit.bases):
             if s:
-                s += cls._space
+                s += cls._scale_unit_separator
             if inline:
-                nominator = list(zip(unit.bases, unit.powers))
+                numerator = list(zip(unit.bases, unit.powers))
                 denominator = []
             else:
-                nominator, denominator = utils.get_grouped_by_powers(
+                numerator, denominator = utils.get_grouped_by_powers(
                     unit.bases, unit.powers
                 )
             if len(denominator):
-                if len(nominator):
-                    nominator = cls._format_unit_list(nominator)
+                if len(numerator):
+                    numerator = cls._format_unit_list(numerator)
                 else:
-                    nominator = "1"
+                    numerator = "1"
                 denominator = cls._format_unit_list(denominator)
-                s = cls._format_fraction(s, nominator, denominator)
+                s = cls._format_fraction(s, numerator, denominator)
             else:
-                nominator = cls._format_unit_list(nominator)
-                s += nominator
+                s += cls._format_unit_list(numerator)
 
         return s
 

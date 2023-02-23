@@ -18,6 +18,7 @@ class Latex(console.Console):
     """
 
     _space = r"\,"
+    _scale_unit_separator = r"\,"
     _times = r" \times "
 
     @classmethod
@@ -54,8 +55,8 @@ class Latex(console.Console):
         return name
 
     @classmethod
-    def _format_fraction(cls, scale, nominator, denominator):
-        return rf"{scale}\frac{{{nominator}}}{{{denominator}}}"
+    def _format_fraction(cls, scale, numerator, denominator):
+        return rf"{scale}\frac{{{numerator}}}{{{denominator}}}"
 
     @classmethod
     def to_string(cls, unit, inline=False):

@@ -50,13 +50,13 @@ class Console(base.Base):
         return cls._times.join(parts)
 
     @classmethod
-    def _format_fraction(cls, scale, nominator, denominator):
-        fraclength = max(len(nominator), len(denominator))
+    def _format_fraction(cls, scale, numerator, denominator):
+        fraclength = max(len(numerator), len(denominator))
         f = f"{{0:<{len(scale)}s}}{{1:^{fraclength}s}}"
 
         return "\n".join(
             (
-                f.format("", nominator),
+                f.format("", numerator),
                 f.format(scale, cls._line * fraclength),
                 f.format("", denominator),
             )
