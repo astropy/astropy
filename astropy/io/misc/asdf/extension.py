@@ -2,8 +2,23 @@
 # -*- coding: utf-8 -*-
 
 import os
+import warnings
 
-from asdf.extension import AsdfExtension, BuiltinExtension
+from asdf.exceptions import AsdfDeprecationWarning
+
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        category=AsdfDeprecationWarning,
+        message=r"AsdfExtension is deprecated.*",
+    )
+    warnings.filterwarnings(
+        "ignore",
+        category=AsdfDeprecationWarning,
+        message=r"BuiltinExtension is deprecated.*",
+    )
+    from asdf.extension import AsdfExtension, BuiltinExtension
+
 from asdf.util import filepath_to_url
 
 # Make sure that all tag implementations are imported by the time we create
