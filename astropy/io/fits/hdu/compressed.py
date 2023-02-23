@@ -2167,7 +2167,15 @@ class CompImageSection:
 
     @property
     def shape(self):
-        return self._data_shape
+        return tuple(self._data_shape)
+
+    @property
+    def ndim(self):
+        return self.hdu._header['ZNAXIS']
+
+    @property
+    def dtype(self):
+        return BITPIX2DTYPE[self.hdu._header["ZBITPIX"]]
 
     def __getitem__(self, index):
         # Shortcut if the whole data is requested (this is used by the
