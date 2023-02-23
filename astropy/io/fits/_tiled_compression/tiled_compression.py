@@ -315,22 +315,25 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
     dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
     dither_seed = hdu._header.get("ZDITHER0", 0)
 
+    # NOTE: in the following and below we convert the column to a Numpy array
+    # for performance reasons, as accessing rows from a FITS_rec column is
+    # otherwise slow.
     compressed_data_column = np.array(hdu.compressed_data["COMPRESSED_DATA"])
     compressed_data_dtype = _column_dtype(hdu, "COMPRESSED_DATA")
 
-    try:
+    if "ZBLANK" in hdu.columns.dtype.names:
         zblank_column = np.array(hdu.compressed_data["ZBLANK"])
-    except KeyError:
+    else:
         zblank_column = None
 
-    try:
+    if "ZSCALE" in hdu.columns.dtype.names:
         zscale_column = np.array(hdu.compressed_data["ZSCALE"])
-    except KeyError:
+    else:
         zscale_column = None
 
-    try:
+    if "ZZERO" in hdu.columns.dtype.names:
         zzero_column = np.array(hdu.compressed_data["ZZERO"])
-    except KeyError:
+    else:
         zzero_column = None
 
     zblank_header = hdu._header.get("ZBLANK", None)
@@ -347,16 +350,10 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
     else:
         heap_cache = None
 
-        # if size == 0:
-        #     return np.array([], dtype=dtype)
-        # raw = self._get_data_from_heap(offset, size, dtype)
-        # Return tile in native endian since this is what is expected
-        # by the decompression functions
-        # return raw.astype(raw.dtype.newbyteorder("="), copy=False)
-
     for row_index, tile_slices in _iter_array_tiles(
         data_shape, tile_shape, first_tile_index, last_tile_index
     ):
+
         # For tiles near the edge, the tile shape from the header might not be
         # correct so we have to pass the shape manually.
         actual_tile_shape = data[tile_slices].shape
