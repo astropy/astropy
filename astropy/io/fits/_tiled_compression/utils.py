@@ -1,29 +1,10 @@
+from math import ceil
+
 import numpy as np
 
 
-def _tile_index_to_row_index(tile_index, n_tiles):
-    row_index = tile_index[0]
-    for dim in range(1, len(tile_index)):
-        row_index = tile_index[dim] + row_index * n_tiles[dim]
-    return row_index
-
-
-def _tile_index_to_tile_slices(tile_index, tile_shape):
-    return tuple(
-        [
-            slice(
-                tile_index[idx] * tile_shape[idx],
-                (tile_index[idx] + 1) * tile_shape[idx],
-            )
-            for idx in range(len(tile_index))
-        ]
-    )
-
-
 def _n_tiles(data_shape, tile_shape):
-    return np.array(
-        [int(np.ceil(d / t)) for d, t in zip(data_shape, tile_shape)], dtype=int
-    )
+    return [int(ceil(d / t)) for d, t in zip(data_shape, tile_shape)]
 
 
 def _iter_array_tiles(
@@ -34,19 +15,27 @@ def _iter_array_tiles(
     n_tiles = _n_tiles(data_shape, tile_shape)
 
     if first_tile_index is None:
-        first_tile_index = np.zeros(ndim, dtype=int)
+        first_tile_index = (0,) * ndim
 
     if last_tile_index is None:
-        last_tile_index = n_tiles - 1
+        last_tile_index = tuple(n - 1 for n in n_tiles)
 
-    tile_index = first_tile_index.copy()
+    tile_index = list(first_tile_index)
 
     while True:
-        tile_slices = _tile_index_to_tile_slices(
-            tile_index - first_tile_index, tile_shape
+        tile_slices = tuple(
+            slice(
+                (tile_index[idx] - first_tile_index[idx]) * tile_shape[idx],
+                (tile_index[idx] - first_tile_index[idx] + 1) * tile_shape[idx],
+            )
+            for idx in range(ndim)
         )
 
-        yield _tile_index_to_row_index(tile_index, n_tiles), tile_slices
+        row_index = tile_index[0]
+        for dim in range(1, ndim):
+            row_index = tile_index[dim] + row_index * n_tiles[dim]
+
+        yield row_index, tile_slices
 
         tile_index[-1] += 1
 

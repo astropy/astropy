@@ -115,7 +115,6 @@ def _finalize_array(tile_buffer, *, bitpix, tile_shape, algorithm, lossless):
     and translates it into a numpy array with the correct dtype, endianness and
     shape.
     """
-
     tile_size = prod(tile_shape)
 
     if algorithm.startswith("GZIP") or algorithm == "NOCOMPRESS":
@@ -141,8 +140,10 @@ def _finalize_array(tile_buffer, *, bitpix, tile_shape, algorithm, lossless):
     else:
         # For RICE_1 compression the tiles that are on the edge can end up
         # being padded, so we truncate excess values
-        if algorithm in ("RICE_1", "RICE_ONE", "PLIO_1") and tile_size < len(tile_buffer):
-            tile_buffer = tile_buffer[: tile_size]
+        if algorithm in ("RICE_1", "RICE_ONE", "PLIO_1") and tile_size < len(
+            tile_buffer
+        ):
+            tile_buffer = tile_buffer[:tile_size]
 
         if tile_buffer.data.format == "b":
             # NOTE: this feels like a Numpy bug - need to investigate
@@ -265,12 +266,10 @@ def _column_dtype(hdu, column_name):
 
 def _get_data_from_heap(hdu, size, offset, dtype, heap_cache=None):
     if heap_cache is None:
-        return hdu._get_raw_data(
-            size, dtype, hdu._data_offset + hdu._theap + offset
-        )
+        return hdu._get_raw_data(size, dtype, hdu._data_offset + hdu._theap + offset)
     else:
         itemsize = dtype.itemsize
-        data = heap_cache[offset:offset + size * itemsize]
+        data = heap_cache[offset : offset + size * itemsize]
         if itemsize > 1:
             return data.view(dtype)
         else:
@@ -316,21 +315,21 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
     dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
     dither_seed = hdu._header.get("ZDITHER0", 0)
 
-    compressed_data_column = np.array(hdu.compressed_data['COMPRESSED_DATA'])
-    compressed_data_dtype = _column_dtype(hdu, 'COMPRESSED_DATA')
+    compressed_data_column = np.array(hdu.compressed_data["COMPRESSED_DATA"])
+    compressed_data_dtype = _column_dtype(hdu, "COMPRESSED_DATA")
 
     try:
-        zblank_column = np.array(hdu.compressed_data['ZBLANK'])
+        zblank_column = np.array(hdu.compressed_data["ZBLANK"])
     except KeyError:
         zblank_column = None
 
     try:
-        zscale_column = np.array(hdu.compressed_data['ZSCALE'])
+        zscale_column = np.array(hdu.compressed_data["ZSCALE"])
     except KeyError:
         zscale_column = None
 
     try:
-        zzero_column = np.array(hdu.compressed_data['ZZERO'])
+        zzero_column = np.array(hdu.compressed_data["ZZERO"])
     except KeyError:
         zzero_column = None
 
@@ -342,7 +341,9 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
     # If more than half the data is requested, read in all the heap.
     # TODO: decide what heuristic we actually want here
     if np.product(buffer_shape) > 0.5 * np.product(data_shape):
-        heap_cache = hdu._get_raw_data(hdu._header["PCOUNT"], np.uint8, hdu._data_offset + hdu._theap)
+        heap_cache = hdu._get_raw_data(
+            hdu._header["PCOUNT"], np.uint8, hdu._data_offset + hdu._theap
+        )
     else:
         heap_cache = None
 
@@ -363,17 +364,23 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
         settings = _update_tile_settings(settings, ZCMPTYPE, actual_tile_shape)
 
         if compressed_data_column[row_index][0] == 0:
-
             if gzip_compressed_data_column is None:
-                gzip_compressed_data_column = np.array(hdu.compressed_data['GZIP_COMPRESSED_DATA'])
-                gzip_compressed_data_dtype = _column_dtype(hdu, 'GZIP_COMPRESSED_DATA')
+                gzip_compressed_data_column = np.array(
+                    hdu.compressed_data["GZIP_COMPRESSED_DATA"]
+                )
+                gzip_compressed_data_dtype = _column_dtype(hdu, "GZIP_COMPRESSED_DATA")
 
             # When quantizing floating point data, sometimes the data will not
             # quantize efficiently. In these cases the raw floating point data can
             # be losslessly GZIP compressed and stored in the `GZIP_COMPRESSED_DATA`
             # column.
 
-            cdata = _get_data_from_heap(hdu, *gzip_compressed_data_column[row_index], gzip_compressed_data_dtype, heap_cache=heap_cache)
+            cdata = _get_data_from_heap(
+                hdu,
+                *gzip_compressed_data_column[row_index],
+                gzip_compressed_data_dtype,
+                heap_cache=heap_cache,
+            )
 
             tile_buffer = _decompress_tile(cdata, algorithm="GZIP_1")
 
@@ -386,17 +393,19 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
             )
 
         else:
-
-            cdata = _get_data_from_heap(hdu, *compressed_data_column[row_index], compressed_data_dtype, heap_cache=heap_cache)
+            cdata = _get_data_from_heap(
+                hdu,
+                *compressed_data_column[row_index],
+                compressed_data_dtype,
+                heap_cache=heap_cache,
+            )
 
             if ZCMPTYPE == "GZIP_2":
                 # Decompress with GZIP_1 just to find the total number of
                 # elements in the uncompressed data.
                 # TODO: find a way to avoid doing this for all tiles
                 tile_data = np.asarray(_decompress_tile(cdata, algorithm="GZIP_1"))
-                settings["itemsize"] = tile_data.size // int(
-                    prod(actual_tile_shape)
-                )
+                settings["itemsize"] = tile_data.size // int(prod(actual_tile_shape))
 
             tile_buffer = _decompress_tile(cdata, algorithm=ZCMPTYPE, **settings)
 
@@ -424,7 +433,9 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
                     bitpix=ZBITPIX,
                 )
                 tile_data = np.asarray(
-                    q.decode_quantized(tile_data, zscale_column[row_index], zzero_column[row_index])
+                    q.decode_quantized(
+                        tile_data, zscale_column[row_index], zzero_column[row_index]
+                    )
                 ).reshape(actual_tile_shape)
 
             if zblank is not None:
