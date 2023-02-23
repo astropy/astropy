@@ -307,11 +307,10 @@ class NDData(NDDataBase):
 
     def __repr__(self):
         prefix = self.__class__.__name__ + "("
-        ma = np.ma.masked_array(self.data, self.mask)
-        data = np.array2string(ma._insert_masked_print(), separator=", ", prefix=prefix)
+        ma = Masked(self.data, self.mask)
+        data_str = str(ma).replace("\n", f'\n{" " * len(prefix)}')
         unit = f", unit='{self.unit}'" if self.unit is not None else ""
-
-        return f"{prefix}{data}{unit})"
+        return f"{prefix}{data_str}{unit})"
 
     @property
     def data(self):

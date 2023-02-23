@@ -41,9 +41,9 @@ To create an instance::
     >>> array = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]])
     >>> ndd = NDData(array)
     >>> ndd
-    NDData([[0, 1, 0],
-            [1, 0, 1],
-            [0, 1, 0]])
+    NDData([[0 1 0]
+            [1 0 1]
+            [0 1 0]])
 
 And access by the ``data`` attribute::
 

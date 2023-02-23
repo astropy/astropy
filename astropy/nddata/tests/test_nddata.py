@@ -2,6 +2,7 @@
 
 
 import pickle
+import re
 import textwrap
 from collections import OrderedDict
 from itertools import chain, permutations
@@ -483,11 +484,24 @@ def test_nddata_str():
 
 def test_nddata_repr():
     # The big test is eval(repr()) should be equal to the original!
+    # but this must be modified slightly since adopting the
+    # repr machinery from astropy.utils.masked
+
+    def _repr_to_eval(x):
+        # convert spaces between numbers to commas, and
+        # skip empty lines
+        return re.sub(
+            r"(?<=\d)\s+(?=\d)",
+            ",",
+            ",".join(
+                [line.strip() for line in x.splitlines() if len(line.strip()) > 0]
+            ),
+        )
 
     arr1d = NDData(np.array([1, 2, 3]))
     s = repr(arr1d)
-    assert s == "NDData([1, 2, 3])"
-    got = eval(s)
+    assert s == "NDData([1 2 3])"
+    got = eval(_repr_to_eval(s))
     assert np.all(got.data == arr1d.data)
     assert got.unit == arr1d.unit
 
@@ -495,36 +509,29 @@ def test_nddata_repr():
     s = repr(arr2d)
     assert s == textwrap.dedent(
         """
-        NDData([[1, 2],
-                [3, 4]])"""[
+        NDData([[1 2]
+                [3 4]])"""[
             1:
         ]
     )
-    got = eval(s)
+    got = eval(_repr_to_eval(s))
     assert np.all(got.data == arr2d.data)
     assert got.unit == arr2d.unit
 
     arr3d = NDData(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
     s = repr(arr3d)
-    assert s == textwrap.dedent(
-        """
-        NDData([[[1, 2],
-                 [3, 4]],
-
-                [[5, 6],
-                 [7, 8]]])"""[
-            1:
-        ]
+    assert s == (
+        "NDData([[[1 2]\n         [3 4]]\n       " "\n        [[5 6]\n         [7 8]]])"
     )
-    got = eval(s)
+    got = eval(_repr_to_eval(s))
     assert np.all(got.data == arr3d.data)
     assert got.unit == arr3d.unit
 
     # let's add units!
     arr = NDData(np.array([1, 2, 3]), unit="km")
     s = repr(arr)
-    assert s == "NDData([1, 2, 3], unit='km')"
-    got = eval(s)
+    assert s == "NDData([1 2 3], unit='km')"
+    got = eval(_repr_to_eval(s))
     assert np.all(got.data == arr.data)
     assert got.unit == arr.unit
 

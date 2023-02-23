@@ -28,22 +28,21 @@ While the requirement for the second operand is that it must be convertible
 to the first operand. It can be a number::
 
     >>> ndd1.add(3)
-    NDDataRef([4, 5, 6, 7])
+    NDDataRef([4 5 6 7])
 
 Or a `list`::
 
     >>> ndd1.subtract([1,1,1,1])
-    NDDataRef([0, 1, 2, 3])
+    NDDataRef([0 1 2 3])
 
 Or a `numpy.ndarray`::
 
     >>> ndd1.multiply(np.arange(4, 8))
-    NDDataRef([4, 10, 18, 28])
+    NDDataRef([ 4 10 18 28])
     >>> ndd1.divide(np.arange(1,13).reshape(3,4))  # a 3 x 4 numpy array  # doctest: +FLOAT_CMP
-    NDDataRef([[1.0, 1.0, 1.0, 1.0],
-               [0.2, 0.3333333333333333, 0.42857142857142855, 0.5],
-               [0.1111111111111111, 0.2, 0.2727272727272727,
-                0.3333333333333333]])
+    NDDataRef([[1.         1.         1.         1.        ]
+               [0.2        0.33333333 0.42857143 0.5       ]
+               [0.11111111 0.2        0.27272727 0.33333333]])
 
 Here, broadcasting takes care of the different dimensions. Several other
 classes are also possible.
@@ -61,14 +60,14 @@ To wrap the result of an arithmetic operation between two Quantities::
     >>> import astropy.units as u
     >>> ndd = NDDataRef.multiply([1,2] * u.m, [10, 20] * u.cm)
     >>> ndd  # doctest: +FLOAT_CMP
-    NDDataRef([10., 40.], unit='cm m')
+    NDDataRef([10. 40.], unit='cm m')
     >>> ndd.unit
     Unit("cm m")
 
 Or take the inverse of an `~astropy.nddata.NDDataRef` object::
 
     >>> NDDataRef.divide(1, ndd1)  # doctest: +FLOAT_CMP
-    NDDataRef([1.0, 0.5, 0.3333333333333333, 0.25])
+    NDDataRef([1.         0.5        0.33333333 0.25      ])
 
 
 Possible Operands
