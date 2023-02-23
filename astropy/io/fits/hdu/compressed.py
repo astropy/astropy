@@ -2161,7 +2161,9 @@ class CompImageSection:
         self._data_shape = _data_shape(self.hdu._header)
         self._tile_shape = _tile_shape(self.hdu._header)
         self._n_dim = len(self._data_shape)
-        self._n_tiles = _n_tiles(self._data_shape, self._tile_shape)
+        self._n_tiles = np.array(
+            _n_tiles(self._data_shape, self._tile_shape), dtype=int
+        )
 
     @property
     def shape(self):
