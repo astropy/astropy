@@ -28,6 +28,7 @@ from astropy.io.fits.util import (
 from astropy.utils import lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.shapes import simplify_basic_index
+from astropy.utils.decorators import deprecated_renamed_argument
 
 from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU
 from .image import ImageHDU
@@ -436,13 +437,21 @@ class CompImageHDU(BinTableHDU):
 
     _default_name = "COMPRESSED_IMAGE"
 
+    @deprecated_renamed_argument(
+        "tile_size",
+        None,
+        since="5.3",
+        message="The tile_size argument has been deprecated. Use tile_shape "
+        "instead, but note that this should be given in the reverse "
+        "order to tile_size (tile_shape should be in Numpy order).",
+    )
     def __init__(
         self,
         data=None,
         header=None,
         name=None,
         compression_type=DEFAULT_COMPRESSION_TYPE,
-        tile_size=None,
+        tile_shape=None,
         hcomp_scale=DEFAULT_HCOMP_SCALE,
         hcomp_smooth=DEFAULT_HCOMP_SMOOTH,
         quantize_level=DEFAULT_QUANTIZE_LEVEL,
@@ -451,7 +460,7 @@ class CompImageHDU(BinTableHDU):
         do_not_scale_image_data=False,
         uint=False,
         scale_back=False,
-        **kwargs,
+        tile_size=None,
     ):
         """
         Parameters
@@ -474,7 +483,7 @@ class CompImageHDU(BinTableHDU):
             ``'RICE_1'``, ``'RICE_ONE'``, ``'PLIO_1'``, ``'GZIP_1'``,
             ``'GZIP_2'``, ``'HCOMPRESS_1'``, ``'NOCOMPRESS'``
 
-        tile_size : int, optional
+        tile_shape : tuple, optional
             Compression tile sizes.  Default treats each row of image as a
             tile.
 
@@ -545,9 +554,9 @@ class CompImageHDU(BinTableHDU):
         efficient to compress the whole image as a single tile.  Note that the
         image dimensions are not required to be an integer multiple of the tile
         dimensions; if not, then the tiles at the edges of the image will be
-        smaller than the other tiles.  The ``tile_size`` parameter may be
+        smaller than the other tiles.  The ``tile_shape`` parameter may be
         provided as a list of tile sizes, one for each dimension in the image.
-        For example a ``tile_size`` value of ``[100,100]`` would divide a 300 X
+        For example a ``tile_shape`` value of ``(100,100)`` would divide a 300 X
         300 image into 9 100 X 100 tiles.
 
         The 4 supported image compression algorithms are all 'lossless' when
@@ -656,6 +665,9 @@ class CompImageHDU(BinTableHDU):
         """
         compression_type = CMTYPE_ALIASES.get(compression_type, compression_type)
 
+        if tile_shape is None and tile_size is not None:
+            tile_shape = tuple(tile_size[::-1])
+
         if data is DELAYED:
             # Reading the HDU from a file
             super().__init__(data=data, header=header)
@@ -677,7 +689,7 @@ class CompImageHDU(BinTableHDU):
                 header,
                 name,
                 compression_type=compression_type,
-                tile_size=tile_size,
+                tile_size=list(tile_shape[::-1]) if tile_shape else None,
                 hcomp_scale=hcomp_scale,
                 hcomp_smooth=hcomp_smooth,
                 quantize_level=quantize_level,
@@ -2080,7 +2092,7 @@ class CompImageHDU(BinTableHDU):
 
         if seed == DITHER_SEED_CHECKSUM:
             # Determine the tile dimensions from the ZTILEn keywords
-            tile_dims = self.tile_size
+            tile_dims = self.tile_shape
 
             # Get the first tile by using the tile dimensions as the end
             # indices of slices (starting from 0)
@@ -2121,9 +2133,12 @@ class CompImageHDU(BinTableHDU):
         return CompImageSection(self)
 
     @property
-    def tile_size(self):
+    def tile_shape(self):
         return tuple(
-            [self._header[f"ZTILE{idx + 1}"] for idx in range(self._header["ZNAXIS"])]
+            [
+                self._header[f"ZTILE{idx + 1}"]
+                for idx in range(self._header["ZNAXIS"] - 1, -1, -1)
+            ]
         )
 
     @property

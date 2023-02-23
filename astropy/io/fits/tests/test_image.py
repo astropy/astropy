@@ -1243,7 +1243,7 @@ class TestCompressedImage(FitsTestCase):
             name="SCI",
             compression_type="HCOMPRESS_1",
             quantize_level=16,
-            tile_size=[2, 10, 10],
+            tile_shape=(2, 10, 10),
         )
 
     def test_comp_image_hcompress_image_stack(self):
@@ -1261,7 +1261,7 @@ class TestCompressedImage(FitsTestCase):
             name="SCI",
             compression_type="HCOMPRESS_1",
             quantize_level=16,
-            tile_size=[5, 5, 1],
+            tile_shape=(1, 1, 5),
         )
         hdu.writeto(self.temp("test.fits"))
 
@@ -1971,12 +1971,12 @@ class TestCompressedImage(FitsTestCase):
 
     def test_comp_image_properties_default(self):
         chdu = fits.CompImageHDU(np.zeros((3, 4, 5)))
-        assert chdu.tile_size == (5, 1, 1)
+        assert chdu.tile_shape == (1, 1, 5)
         assert chdu.compression_type == 'RICE_1'
 
     def test_comp_image_properties_set(self):
-        chdu = fits.CompImageHDU(np.zeros((3, 4, 5)), compression_type='PLIO_1', tile_size=(2, 3, 4))
-        assert chdu.tile_size == (2, 3, 4)
+        chdu = fits.CompImageHDU(np.zeros((3, 4, 5)), compression_type='PLIO_1', tile_shape=(2, 3, 4))
+        assert chdu.tile_shape == (2, 3, 4)
         assert chdu.compression_type == 'PLIO_1'
 
 
