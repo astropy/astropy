@@ -73,9 +73,12 @@ class Base:
         )
 
     @classmethod
-    def _format_fraction(cls, scale, numerator, denominator, inline=True):
-        if not inline:
-            raise ValueError("format {cls.name!r} only supports inline fractions.")
+    def _format_fraction(cls, scale, numerator, denominator, *, fraction="inline"):
+        if not (fraction is True or fraction == "inline"):
+            raise ValueError(
+                "format {cls.name!r} only supports inline fractions,"
+                f"not fraction={fraction!r}."
+            )
 
         if cls._space in denominator:
             denominator = f"({denominator})"
@@ -84,20 +87,19 @@ class Base:
         return f"{scale}{numerator} / {denominator}"
 
     @classmethod
-    def to_string(cls, unit, *, fraction=True, inline=True):
+    def to_string(cls, unit, *, fraction=True):
         """Convert a unit to its string representation.
 
         Parameters
         ----------
         unit : |Unit|
             The unit to convert.
-        fraction : bool, optional
-            Whether to use a fraction if the unit has bases raised to negative powers
-            (e.g., ``km / s``), or to just display those as is (e.g., ``km s^-1``).
-        inline : bool, optional
-            For a fraction, whether to use a solidus to keep the unit on a single
-            line, or to use display style, with parts above and below a horizontal line.
-            Ignored if ``fraction=False`` or if the format class does not support it.
+        fraction : {False|True|'inline'|'display'}, optional
+            If `False`, display any unit bases raised to negative powers as
+            they are (e.g., ``km s^-1``).  If not `False`, use a fraction
+            instead (e.g., ``km / s``), either inline or with a multiline
+            display (if the format class supports it). If `True`, use the
+            default fraction style.
         """
         # First the scale.  Normally unity, in which case we omit
         # it, but non-unity scale can happen, e.g., in decompositions
@@ -125,7 +127,7 @@ class Base:
                 else:
                     numerator = "1"
                 denominator = cls._format_unit_list(denominator)
-                s = cls._format_fraction(s, numerator, denominator, inline=inline)
+                s = cls._format_fraction(s, numerator, denominator, fraction=fraction)
             else:
                 s += cls._format_unit_list(numerator)
 

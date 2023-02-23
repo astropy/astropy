@@ -395,7 +395,7 @@ class OGIP(generic.Generic):
         return f"**({number})" if "/" in number else f"**{number}"
 
     @classmethod
-    def to_string(cls, unit, fraction=True, inline=True):
+    def to_string(cls, unit, fraction="inline"):
         # Remove units that aren't known to the format
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
@@ -407,7 +407,7 @@ class OGIP(generic.Generic):
                     core.UnitsWarning,
                 )
 
-        return super().to_string(unit, fraction=fraction, inline=inline)
+        return super().to_string(unit, fraction=fraction)
 
     @classmethod
     def _to_decomposed_alternative(cls, unit):

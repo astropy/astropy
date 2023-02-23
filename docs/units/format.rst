@@ -204,17 +204,17 @@ following formats:
       >>> print(fluxunit.to_string('console'))
        erg s^-1 cm^-2
 
-    It is also possible to write a multiline representation:
+    It is also possible to use a fraction, either on a single line,
 
-      >>> print(fluxunit.to_string('console', fraction=True))
+      >>> print(fluxunit.to_string('console', fraction='inline'))
+      erg / (s cm^2)
+
+    or using a multiline representation:
+
+      >>> print(fluxunit.to_string('console', fraction='display'))
        erg
       ------
       s cm^2
-
-    Or to have just a fraction:
-
-      >>> print(fluxunit.to_string('console', fraction=True, inline=True))
-      erg / (s cm^2)
 
   - ``"unicode"``: Same as ``"console"``, except uses Unicode
     characters::
@@ -222,11 +222,11 @@ following formats:
       >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +FLOAT_CMP
       2.1798724×10⁻¹⁸ m² kg s⁻²
       >>> print(u.Ry.decompose().to_string('unicode', fraction=True))  # doctest: +FLOAT_CMP
+      2.1798724×10⁻¹⁸ m² kg / s²
+      >>> print(u.Ry.decompose().to_string('unicode', fraction='display'))  # doctest: +FLOAT_CMP
                       m² kg
       2.1798724×10⁻¹⁸ ─────
                        s²
-      >>> print(u.Ry.decompose().to_string('unicode', fraction=True, inline=True))  # doctest: +FLOAT_CMP
-      2.1798724×10⁻¹⁸ m² kg / s²
 
 .. _astropy-units-format-unrecognized:
 

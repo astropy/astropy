@@ -327,7 +327,7 @@ class CDS(Base):
         return number
 
     @classmethod
-    def to_string(cls, unit, fraction=False, inline=True):
+    def to_string(cls, unit, fraction=False):
         # Remove units that aren't known to the format
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
@@ -337,4 +337,4 @@ class CDS(Base):
             elif is_effectively_unity(unit.scale * 100.0):
                 return "%"
 
-        return super().to_string(unit, fraction=fraction, inline=inline)
+        return super().to_string(unit, fraction=fraction)

@@ -200,7 +200,7 @@ class VOUnit(generic.Generic):
         return super().format_exponential_notation(val, format_spec)
 
     @classmethod
-    def to_string(cls, unit, fraction=False, inline=True):
+    def to_string(cls, unit, fraction=False):
         from astropy.units import core
 
         # Remove units that aren't known to the format
@@ -213,7 +213,7 @@ class VOUnit(generic.Generic):
                 f"Multiply your data by {unit.scale:e}."
             )
 
-        return super().to_string(unit, fraction=fraction, inline=inline)
+        return super().to_string(unit, fraction=fraction)
 
     @classmethod
     def _to_decomposed_alternative(cls, unit):
