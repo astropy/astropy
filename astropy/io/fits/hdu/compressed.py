@@ -484,8 +484,9 @@ class CompImageHDU(BinTableHDU):
             ``'GZIP_2'``, ``'HCOMPRESS_1'``, ``'NOCOMPRESS'``
 
         tile_shape : tuple, optional
-            Compression tile sizes.  Default treats each row of image as a
-            tile.
+            Compression tile shape, which should be specified using the Numpy
+            convention for axis order. The default is to treat each row of
+            image as a tile.
 
         hcomp_scale : float, optional
             HCOMPRESS scale parameter
