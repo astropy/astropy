@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
+
 import numpy as np
 import pytest
 
@@ -7,7 +9,16 @@ from astropy import units as u
 from astropy.coordinates import FK4, ICRS, Galactic, Longitude, SkyCoord
 
 asdf = pytest.importorskip("asdf")
-from asdf.tests.helpers import assert_roundtrip_tree
+
+from asdf.exceptions import AsdfDeprecationWarning
+
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        category=AsdfDeprecationWarning,
+        message=r"asdf.tests.helpers is deprecated.*",
+    )
+    from asdf.tests.helpers import assert_roundtrip_tree
 
 # These tests are cribbed directly from the Examples section of
 # https://docs.astropy.org/en/stable/api/astropy.coordinates.SkyCoord.html

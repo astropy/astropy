@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
+
 import pytest
 
 from astropy import units as u
@@ -7,7 +9,16 @@ from astropy.coordinates import ICRS, Galactic, SpectralCoord
 from astropy.tests.helper import assert_quantity_allclose
 
 asdf = pytest.importorskip("asdf")
-from asdf.tests.helpers import assert_roundtrip_tree
+
+from asdf.exceptions import AsdfDeprecationWarning
+
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        category=AsdfDeprecationWarning,
+        message=r"asdf.tests.helpers is deprecated.*",
+    )
+    from asdf.tests.helpers import assert_roundtrip_tree
 
 
 def test_scalar_spectralcoord(tmpdir):
