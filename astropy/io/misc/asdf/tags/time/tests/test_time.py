@@ -1,17 +1,27 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
+
 import pytest
 
 asdf = pytest.importorskip("asdf")
 
 import datetime  # noqa: E402
 
-import asdf.schema as asdf_schema  # noqa: E402
-import numpy as np  # noqa: E402
-from asdf import AsdfFile, tagged, yamlutil  # noqa: E402
-from asdf.tests import helpers  # noqa: E402
+import asdf.schema as asdf_schema
+import numpy as np
+from asdf import AsdfFile, tagged, yamlutil
+from asdf.exceptions import AsdfDeprecationWarning
 
-from astropy import time  # noqa: E402
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        category=AsdfDeprecationWarning,
+        message=r"asdf.tests.helpers is deprecated.*",
+    )
+    from asdf.tests.helpers import assert_roundtrip_tree
+
+from astropy import time
 
 
 def _flatten_combiners(schema):
@@ -44,7 +54,7 @@ def test_time(tmpdir):
 
     tree = {"large_time_array": time_array}
 
-    helpers.assert_roundtrip_tree(tree, tmpdir)
+    assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_time_with_location(tmpdir):
@@ -58,7 +68,7 @@ def test_time_with_location(tmpdir):
 
     tree = {"time": t}
 
-    helpers.assert_roundtrip_tree(tree, tmpdir)
+    assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_time_with_location_1_0_0(tmpdir):
@@ -72,7 +82,7 @@ def test_time_with_location_1_0_0(tmpdir):
     tree = {"time": t}
 
     # The version refers to ASDF Standard 1.0.0, which includes time-1.0.0
-    helpers.assert_roundtrip_tree(tree, tmpdir, init_options={"version": "1.0.0"})
+    assert_roundtrip_tree(tree, tmpdir, init_options={"version": "1.0.0"})
 
 
 def test_isot(tmpdir):
@@ -80,7 +90,7 @@ def test_isot(tmpdir):
 
     tree = {"time": isot}
 
-    helpers.assert_roundtrip_tree(tree, tmpdir)
+    assert_roundtrip_tree(tree, tmpdir)
 
     ff = asdf.AsdfFile(tree)
     tree = yamlutil.custom_tree_to_tagged_tree(ff.tree, ff)
@@ -96,7 +106,7 @@ def test_isot(tmpdir):
 def test_isot_array(tmpdir):
     tree = {"time": time.Time(["2001-01-02T12:34:56", "2001-02-03T00:01:02"])}
 
-    helpers.assert_roundtrip_tree(tree, tmpdir)
+    assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_time_tag():

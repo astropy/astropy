@@ -1,13 +1,24 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
+
 import pytest
 
 asdf = pytest.importorskip("asdf")
 
-import numpy as np  # noqa: E402
-from asdf.tags.core.ndarray import NDArrayType  # noqa: E402
-from asdf.tests import helpers  # noqa: E402
-from packaging.version import Version  # noqa: E402
+import numpy as np
+from asdf.exceptions import AsdfDeprecationWarning
+from asdf.tags.core.ndarray import NDArrayType
+
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        category=AsdfDeprecationWarning,
+        message=r"asdf.tests.helpers is deprecated.*",
+    )
+    from asdf.tests.helpers import assert_roundtrip_tree, yaml_to_asdf
+
+from packaging.version import Version
 
 import astropy.units as u  # noqa: E402
 from astropy import table  # noqa: E402
@@ -33,7 +44,7 @@ def test_table(tmpdir):
     def check(ff):
         assert len(ff.blocks) == 3
 
-    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
+    assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 @pytest.mark.filterwarnings(
@@ -55,7 +66,7 @@ def test_array_columns(tmpdir):
     def check(ff):
         assert len(ff.blocks) == 1
 
-    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
+    assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 @pytest.mark.filterwarnings(
@@ -72,7 +83,7 @@ def test_structured_array_columns(tmpdir):
     def check(ff):
         assert len(ff.blocks) == 1
 
-    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
+    assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 @pytest.mark.filterwarnings(
@@ -93,7 +104,7 @@ def test_table_row_order(tmpdir):
     def check(ff):
         assert len(ff.blocks) == 1
 
-    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
+    assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 @pytest.mark.filterwarnings(
@@ -114,9 +125,9 @@ def test_table_inline(tmpdir):
         # The auto_inline argument is deprecated as of asdf 2.8.0.
         with asdf.config_context() as config:
             config.array_inline_threshold = 64
-            helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
+            assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
     else:
-        helpers.assert_roundtrip_tree(
+        assert_roundtrip_tree(
             {"table": t},
             tmpdir,
             asdf_check_func=check,
@@ -139,7 +150,7 @@ table: !<tag:astropy.org:astropy/table/table-1.0.0>
   colnames: [a, b]
     """
 
-    buff = helpers.yaml_to_asdf(yaml)
+    buff = yaml_to_asdf(yaml)
 
     with pytest.raises(ValueError) as err:
         with asdf.open(buff):
@@ -164,7 +175,7 @@ def test_masked_table(tmpdir):
     def check(ff):
         assert len(ff.blocks) == 4
 
-    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
+    assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 def test_quantity_mixin(tmpdir):
@@ -176,7 +187,7 @@ def test_quantity_mixin(tmpdir):
     def check(ff):
         assert isinstance(ff["table"]["c"], u.Quantity)
 
-    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
+    assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 def test_time_mixin(tmpdir):
@@ -188,7 +199,7 @@ def test_time_mixin(tmpdir):
     def check(ff):
         assert isinstance(ff["table"]["c"], Time)
 
-    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
+    assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 def test_timedelta_mixin(tmpdir):
@@ -200,7 +211,7 @@ def test_timedelta_mixin(tmpdir):
     def check(ff):
         assert isinstance(ff["table"]["c"], TimeDelta)
 
-    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
+    assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 def test_skycoord_mixin(tmpdir):
@@ -217,7 +228,7 @@ def test_skycoord_mixin(tmpdir):
         NDArrayType.assert_equal(new["b"], old["b"])
         assert skycoord_equal(new["c"], old["c"])
 
-    helpers.assert_roundtrip_tree(
+    assert_roundtrip_tree(
         {"table": t}, tmpdir, asdf_check_func=check, tree_match_func=tree_match
     )
 
@@ -231,7 +242,7 @@ def test_earthlocation_mixin(tmpdir):
     def check(ff):
         assert isinstance(ff["table"]["c"], EarthLocation)
 
-    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
+    assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 def test_ndarray_mixin(tmpdir):
@@ -240,7 +251,7 @@ def test_ndarray_mixin(tmpdir):
     t["b"] = ["x", "y"]
     t["c"] = table.NdarrayMixin([5, 6])
 
-    helpers.assert_roundtrip_tree({"table": t}, tmpdir)
+    assert_roundtrip_tree({"table": t}, tmpdir)
 
 
 @pytest.mark.filterwarnings(
