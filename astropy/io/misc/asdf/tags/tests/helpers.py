@@ -8,9 +8,15 @@ def run_schema_example_test(organization, standard, name, version, check_func=No
     import asdf
     from asdf.exceptions import AsdfDeprecationWarning
     from asdf.schema import load_schema
-    from asdf.tests import helpers
 
     with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            category=AsdfDeprecationWarning,
+            message=r"asdf.tests.helpers is deprecated.*",
+        )
+        from asdf.tests.helpers import yaml_to_asdf
+
         warnings.filterwarnings(
             "ignore",
             category=AsdfDeprecationWarning,
@@ -46,7 +52,7 @@ def run_schema_example_test(organization, standard, name, version, check_func=No
                 examples.append(example)
 
     for example in examples:
-        buff = helpers.yaml_to_asdf("example: " + example.strip())
+        buff = yaml_to_asdf("example: " + example.strip())
         ff = asdf.AsdfFile(uri=uri)
         # Add some dummy blocks so that the ndarray examples work
         for i in range(3):
