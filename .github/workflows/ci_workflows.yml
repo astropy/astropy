@@ -57,8 +57,8 @@ jobs:
       envs: |
         # NOTE: this coverage test is needed for tests and code that
         #       run only with minimal dependencies.
-        - name: Python 3.10 with minimal dependencies and full coverage
-          linux: py310-test-cov
+        - name: Python 3.11 with minimal dependencies and full coverage
+          linux: py311-test-cov
           coverage: codecov
 
         - name: Python 3.9 with all optional dependencies
