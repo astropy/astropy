@@ -20,7 +20,7 @@ from astropy.io.fits.hdu.compressed import (
     SUBTRACTIVE_DITHER_1,
 )
 from astropy.utils.data import download_file, get_pkg_data_filename
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from .conftest import FitsTestCase
 from .test_table import comparerecords
@@ -1261,7 +1261,7 @@ class TestCompressedImage(FitsTestCase):
             name="SCI",
             compression_type="HCOMPRESS_1",
             quantize_level=16,
-            tile_shape=(1, 1, 5),
+            tile_shape=(1, 5, 5),
         )
         hdu.writeto(self.temp("test.fits"))
 
@@ -1969,15 +1969,38 @@ class TestCompressedImage(FitsTestCase):
             with fits.open(self.temp("test.fits")) as hdul2:
                 assert_equal(hdul1[1].data[:200, :100], hdul2[1].data)
 
+    def test_comp_image_deprecated_tile_size(self):
+        # Ensure that tile_size works but is deprecated. This test
+        # can be removed once support for tile_size is removed.
+
+        with pytest.warns(
+            AstropyDeprecationWarning,
+            match="The tile_size argument has been deprecated",
+        ):
+            chdu = fits.CompImageHDU(np.zeros((3, 4, 5)), tile_size=(5, 2, 1))
+
+        assert chdu.tile_shape == (1, 2, 5)
+
+        # Make sure that tile_size and tile_shape are not both specified
+
+        with pytest.raises(
+            ValueError, match="Cannot specify both tile_size and tile_shape."
+        ):
+            fits.CompImageHDU(
+                np.zeros((3, 4, 5)), tile_size=(5, 2, 1), tile_shape=(3, 2, 3)
+            )
+
     def test_comp_image_properties_default(self):
         chdu = fits.CompImageHDU(np.zeros((3, 4, 5)))
         assert chdu.tile_shape == (1, 1, 5)
-        assert chdu.compression_type == 'RICE_1'
+        assert chdu.compression_type == "RICE_1"
 
     def test_comp_image_properties_set(self):
-        chdu = fits.CompImageHDU(np.zeros((3, 4, 5)), compression_type='PLIO_1', tile_shape=(2, 3, 4))
+        chdu = fits.CompImageHDU(
+            np.zeros((3, 4, 5)), compression_type="PLIO_1", tile_shape=(2, 3, 4)
+        )
         assert chdu.tile_shape == (2, 3, 4)
-        assert chdu.compression_type == 'PLIO_1'
+        assert chdu.compression_type == "PLIO_1"
 
 
 class TestCompHDUSections:

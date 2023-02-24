@@ -26,9 +26,9 @@ from astropy.io.fits.util import (
     _pseudo_zero,
 )
 from astropy.utils import lazyproperty
+from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.shapes import simplify_basic_index
-from astropy.utils.decorators import deprecated_renamed_argument
 
 from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU
 from .image import ImageHDU
@@ -667,6 +667,12 @@ class CompImageHDU(BinTableHDU):
 
         if tile_shape is None and tile_size is not None:
             tile_shape = tuple(tile_size[::-1])
+        elif tile_shape is not None and tile_size is not None:
+            raise ValueError(
+                "Cannot specify both tile_size and tile_shape. "
+                "Note that tile_size is deprecated and tile_shape "
+                "alone should be used."
+            )
 
         if data is DELAYED:
             # Reading the HDU from a file
