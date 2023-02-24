@@ -9,11 +9,18 @@ import warnings
 
 from packaging.version import Version
 import numpy as np
+from asdf import AsdfFile, util
+from asdf.exceptions import AsdfDeprecationWarning
 
-from asdf import util
-from asdf.tests import helpers
-from asdf import AsdfFile
-import asdf
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        category=AsdfDeprecationWarning,
+        message=r"asdf.tests.helpers is deprecated.*",
+    )
+    from asdf.tests.helpers import assert_roundtrip_tree, yaml_to_asdf
+
+from packaging.version import Version
 
 import astropy.units as u
 from astropy.modeling.core import fix_inputs
@@ -143,7 +150,7 @@ def test_transforms_compound(tmpdir):
         + astmodels.Rotation2D(32)
     }
 
-    helpers.assert_roundtrip_tree(tree, tmpdir)
+    assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_inverse_transforms(tmpdir):
@@ -157,7 +164,7 @@ def test_inverse_transforms(tmpdir):
     def check(ff):
         assert ff.tree["rotation"].inverse.angle == 45
 
-    helpers.assert_roundtrip_tree(tree, tmpdir, asdf_check_func=check)
+    assert_roundtrip_tree(tree, tmpdir, asdf_check_func=check)
 
 
 @pytest.mark.parametrize("model", test_models)
@@ -167,7 +174,7 @@ def test_single_model(tmpdir, model):
         if Version(asdf.__version__) <= Version("2.6.0"):
             warnings.filterwarnings("ignore", "Unable to locate schema file")
         tree = {"single_model": model}
-        helpers.assert_roundtrip_tree(tree, tmpdir)
+        assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_name(tmpdir):
@@ -175,13 +182,13 @@ def test_name(tmpdir):
         assert ff.tree["rot"].name == "foo"
 
     tree = {"rot": astmodels.Rotation2D(23, name="foo")}
-    helpers.assert_roundtrip_tree(tree, tmpdir, asdf_check_func=check)
+    assert_roundtrip_tree(tree, tmpdir, asdf_check_func=check)
 
 
 def test_zenithal_with_arguments(tmpdir):
     tree = {"azp": astmodels.Sky2Pix_AZP(0.5, 0.3)}
 
-    helpers.assert_roundtrip_tree(tree, tmpdir)
+    assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_naming_of_compound_model(tmpdir):
@@ -194,7 +201,7 @@ def test_naming_of_compound_model(tmpdir):
     scl = astmodels.Scale(2)
     model = (offx | scl).rename("compound_model")
     tree = {"model": model}
-    helpers.assert_roundtrip_tree(tree, tmpdir, asdf_check_func=asdf_check)
+    assert_roundtrip_tree(tree, tmpdir, asdf_check_func=asdf_check)
 
 
 def test_generic_projections(tmpdir):
@@ -213,7 +220,7 @@ def test_generic_projections(tmpdir):
             # Some schema files are missing from asdf<=2.4.2 which causes warnings
             if Version(asdf.__version__) <= Version("2.5.1"):
                 warnings.filterwarnings("ignore", "Unable to locate schema file")
-            helpers.assert_roundtrip_tree(tree, tmpdir)
+            assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_tabular_model(tmpdir):
@@ -221,7 +228,7 @@ def test_tabular_model(tmpdir):
     values = [1.0, 10, 2, 45, -3]
     model = astmodels.Tabular1D(points=points, lookup_table=values)
     tree = {"model": model}
-    helpers.assert_roundtrip_tree(tree, tmpdir)
+    assert_roundtrip_tree(tree, tmpdir)
     table = np.array([[3.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 0.0]])
     points = ([1, 2, 3], [1, 2, 3])
     model2 = astmodels.Tabular2D(
@@ -232,19 +239,19 @@ def test_tabular_model(tmpdir):
         method="nearest",
     )
     tree = {"model": model2}
-    helpers.assert_roundtrip_tree(tree, tmpdir)
+    assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_bounding_box(tmpdir):
     model = astmodels.Shift(1) & astmodels.Shift(2)
     model.bounding_box = ((1, 3), (2, 4))
     tree = {"model": model}
-    helpers.assert_roundtrip_tree(tree, tmpdir)
+    assert_roundtrip_tree(tree, tmpdir)
 
 
 @pytest.mark.parametrize("standard_version", asdf.versioning.supported_versions)
 def test_const1d(tmpdir, standard_version):
-    helpers.assert_roundtrip_tree(
+    assert_roundtrip_tree(
         {"model": astmodels.Const1D(amplitude=5.0)},
         tmpdir,
         init_options={"version": standard_version},
@@ -271,7 +278,7 @@ def test_const1d(tmpdir, standard_version):
     ],
 )
 def test_polynomial(tmpdir, standard_version, model):
-    helpers.assert_roundtrip_tree(
+    assert_roundtrip_tree(
         {"model": model}, tmpdir, init_options={"version": standard_version}
     )
 
@@ -321,13 +328,13 @@ def test_window_orthopoly(tmpdir):
 def test_linear1d(tmpdir):
     model = astmodels.Linear1D()
     tree = {"model": model}
-    helpers.assert_roundtrip_tree(tree, tmpdir)
+    assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_linear1d_quantity(tmpdir):
     model = astmodels.Linear1D(1 * u.nm, 1 * (u.nm / u.pixel))
     tree = {"model": model}
-    helpers.assert_roundtrip_tree(tree, tmpdir)
+    assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_tabular_model_units(tmpdir):
@@ -335,7 +342,7 @@ def test_tabular_model_units(tmpdir):
     values = [1.0, 10, 2, 45, -3] * u.nm
     model = astmodels.Tabular1D(points=points, lookup_table=values)
     tree = {"model": model}
-    helpers.assert_roundtrip_tree(tree, tmpdir)
+    assert_roundtrip_tree(tree, tmpdir)
     table = np.array([[3.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 0.0]]) * u.nm
     points = ([1, 2, 3], [1, 2, 3]) * u.pix
     model2 = astmodels.Tabular2D(
@@ -346,7 +353,7 @@ def test_tabular_model_units(tmpdir):
         method="nearest",
     )
     tree = {"model": model2}
-    helpers.assert_roundtrip_tree(tree, tmpdir)
+    assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_fix_inputs(tmpdir):
@@ -361,17 +368,17 @@ def test_fix_inputs(tmpdir):
             "compound1": fix_inputs(model, {0: 45}),
         }
 
-        helpers.assert_roundtrip_tree(tree, tmpdir)
+        assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_fix_inputs_type():
     with pytest.raises(TypeError):
         tree = {"compound": fix_inputs(3, {"x": 45})}
-        helpers.assert_roundtrip_tree(tree, tmpdir)
+        assert_roundtrip_tree(tree, tmpdir)
 
     with pytest.raises(AttributeError):
         tree = {"compound": astmodels.Pix2Sky_TAN() & {"x": 45}}
-        helpers.assert_roundtrip_tree(tree, tmpdir)
+        assert_roundtrip_tree(tree, tmpdir)
 
 
 comp_model = custom_and_analytical_inverse()
@@ -415,7 +422,7 @@ model: !transform/concatenate-1.2.0
     offset: -10.0
   - !transform/shift-1.2.0 {offset: -20.0}
   """
-    buff = helpers.yaml_to_asdf(yaml)
+    buff = yaml_to_asdf(yaml)
     with asdf.open(buff) as af:
         model = af["model"]
         assert model.has_inverse()

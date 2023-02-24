@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
+import warnings
+
 import pytest
 
 from astropy import units as u
@@ -8,7 +10,16 @@ from astropy.units import equivalencies as eq
 from astropy.cosmology import Planck15
 
 asdf = pytest.importorskip("asdf", minversion="2.3.0.dev0")
-from asdf.tests import helpers
+
+from asdf.exceptions import AsdfDeprecationWarning
+
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        category=AsdfDeprecationWarning,
+        message=r"asdf.tests.helpers is deprecated.*",
+    )
+    from asdf.tests.helpers import assert_roundtrip_tree
 
 
 def get_equivalencies():
@@ -53,4 +64,4 @@ def get_equivalencies():
 @pytest.mark.parametrize("equiv", get_equivalencies())
 def test_equivalencies(tmpdir, equiv):
     tree = {"equiv": equiv}
-    helpers.assert_roundtrip_tree(tree, tmpdir)
+    assert_roundtrip_tree(tree, tmpdir)
