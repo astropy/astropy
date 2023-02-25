@@ -52,7 +52,7 @@ def test_zblank_support(canonical_data_base_path, tmp_path):
     # Now generate a file ourselves and check that the output has the ZBLANK
     # keyword set automatically
 
-    hdu = fits.CompImageHDU(data=reference, compression_type="RICE_1", tile_size=(6, 6))
+    hdu = fits.CompImageHDU(data=reference, compression_type="RICE_1", tile_shape=(6, 6))
 
     hdu.writeto(tmp_path / "test_zblank.fits")
 
@@ -62,7 +62,7 @@ def test_zblank_support(canonical_data_base_path, tmp_path):
 
 
 @pytest.mark.parametrize(
-    ("shape", "tile_dim"),
+    ("shape", "tile_shape"),
     (
         ([10, 10], [5, 5]),  # something for HCOMPRESS
         ([5, 5, 5], [5, 5, 5]),
@@ -75,22 +75,22 @@ def test_zblank_support(canonical_data_base_path, tmp_path):
     ),
 )
 def test_roundtrip_high_D(
-    numpy_rng, compression_type, compression_param, tmp_path, dtype, shape, tile_dim
+    numpy_rng, compression_type, compression_param, tmp_path, dtype, shape, tile_shape
 ):
     if compression_type == "HCOMPRESS_1" and (
         # We don't have at least a 2D image
         len(shape) < 2
         or
         # We don't have 2D tiles
-        np.count_nonzero(np.array(tile_dim) != 1) != 2
+        np.count_nonzero(np.array(tile_shape) != 1) != 2
         or
         # TODO: The following restrictions can be lifted with some extra work.
         # The tile is not the first two dimensions of the data
-        tile_dim[0] == 1
-        or tile_dim[1] == 1
+        tile_shape[0] == 1
+        or tile_shape[1] == 1
         or
         # The tile dimensions not an integer multiple of the array dims
-        np.count_nonzero(np.array(shape[:2]) % tile_dim[:2]) != 0
+        np.count_nonzero(np.array(shape[:2]) % tile_shape[:2]) != 0
     ):
         pytest.xfail("HCOMPRESS requires 2D tiles.")
     random = numpy_rng.uniform(high=255, size=shape)
@@ -112,7 +112,7 @@ def test_roundtrip_high_D(
     hdu = fits.CompImageHDU(
         data=original_data,
         compression_type=compression_type,
-        tile_size=tile_dim,
+        tile_shape=tile_shape,
         **param,
     )
     hdu.writeto(filename)

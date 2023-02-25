@@ -1511,7 +1511,7 @@ class TestCompressedImage(FitsTestCase):
         np.random.seed(1337)
         data1 = np.random.uniform(size=(6 * 4, 7 * 4))
         data1[: data2.shape[0], : data2.shape[1]] = data2
-        chdu = fits.CompImageHDU(data1, compression_type="RICE_1", tile_size=(6, 7))
+        chdu = fits.CompImageHDU(data1, compression_type="RICE_1", tile_shape=(6, 7))
         chdu.writeto(self.temp("test.fits"))
 
         with fits.open(self.temp("test.fits"), disable_image_compression=True) as h:
@@ -1981,14 +1981,17 @@ class TestCompressedImage(FitsTestCase):
 
         assert chdu.tile_shape == (1, 2, 5)
 
+    def test_comp_image_deprecated_tile_size_and_tile_shape(self):
+
         # Make sure that tile_size and tile_shape are not both specified
 
-        with pytest.raises(
-            ValueError, match="Cannot specify both tile_size and tile_shape."
-        ):
-            fits.CompImageHDU(
-                np.zeros((3, 4, 5)), tile_size=(5, 2, 1), tile_shape=(3, 2, 3)
-            )
+        with pytest.warns(AstropyDeprecationWarning) as w:
+            with pytest.raises(
+                ValueError, match="Cannot specify both tile_size and tile_shape."
+            ):
+                fits.CompImageHDU(
+                    np.zeros((3, 4, 5)), tile_size=(5, 2, 1), tile_shape=(3, 2, 3)
+                )
 
     def test_comp_image_properties_default(self):
         chdu = fits.CompImageHDU(np.zeros((3, 4, 5)))
@@ -2011,14 +2014,14 @@ class TestCompHDUSections:
 
         header1 = fits.Header()
         hdu1 = fits.CompImageHDU(
-            self.data, header1, compression_type="RICE_1", tile_size=(5, 4, 5)
+            self.data, header1, compression_type="RICE_1", tile_shape=(5, 4, 5)
         )
 
         header2 = fits.Header()
         header2["BSCALE"] = 2
         header2["BZERO"] = 100
         hdu2 = fits.CompImageHDU(
-            self.data, header2, compression_type="RICE_1", tile_size=(5, 4, 5)
+            self.data, header2, compression_type="RICE_1", tile_shape=(5, 4, 5)
         )
         hdulist = fits.HDUList([fits.PrimaryHDU(), hdu1, hdu2])
         hdulist.writeto(tmp_path / "sections.fits")

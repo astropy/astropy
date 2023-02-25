@@ -56,9 +56,9 @@ else:
         # ],
         # >3D Data are not currently supported by cfitsio
     ),
-    ids=lambda x: f"shape: {x[0]} tile_dims: {x[1]}",
+    ids=lambda x: f"shape: {x[0]} tile_shape: {x[1]}",
 )
-def array_shapes_tile_dims(request, compression_type):
+def array_shapes_tile_shape(request, compression_type):
     shape, tile_dim = request.param
     # H_COMPRESS needs >=2D data and always 2D tiles
     if compression_type == "HCOMPRESS_1":
@@ -86,13 +86,13 @@ def array_shapes_tile_dims(request, compression_type):
 
 
 @pytest.fixture(scope="module")
-def tile_dims(array_shapes_tile_dims):
-    return array_shapes_tile_dims[1]
+def tile_shape(array_shapes_tile_shape):
+    return array_shapes_tile_shape[1]
 
 
 @pytest.fixture(scope="module")
-def data_shape(array_shapes_tile_dims):
-    return array_shapes_tile_dims[0]
+def data_shape(array_shapes_tile_shape):
+    return array_shapes_tile_shape[0]
 
 
 @pytest.fixture(scope="module")
@@ -114,7 +114,7 @@ def fitsio_compressed_file_path(
     comp_param_dtype,
     base_original_data,
     data_shape,  # For debugging
-    tile_dims,
+    tile_shape,
 ):
     compression_type, param, dtype = comp_param_dtype
 
@@ -147,7 +147,7 @@ def fitsio_compressed_file_path(
 
     filename = tmp_path / f"{compression_type}_{dtype}.fits"
     fits = fitsio.FITS(filename, "rw")
-    fits.write(original_data, compress=compression_type, tile_dims=tile_dims, **param)
+    fits.write(original_data, compress=compression_type, tile_shape=tile_shape, **param)
 
     return filename
 
@@ -158,7 +158,7 @@ def astropy_compressed_file_path(
     tmp_path_factory,
     base_original_data,
     data_shape,  # For debugging
-    tile_dims,
+    tile_shape,
 ):
     compression_type, param, dtype = comp_param_dtype
     original_data = base_original_data.astype(dtype)
@@ -170,8 +170,7 @@ def astropy_compressed_file_path(
     hdu = fits.CompImageHDU(
         data=original_data,
         compression_type=compression_type,
-        # TODO: why does this require a list??
-        tile_size=list(tile_dims) if tile_dims is not None else tile_dims,
+        tile_shape=tile_shape,
         **param,
     )
     hdu.writeto(filename)
