@@ -52,7 +52,9 @@ def test_zblank_support(canonical_data_base_path, tmp_path):
     # Now generate a file ourselves and check that the output has the ZBLANK
     # keyword set automatically
 
-    hdu = fits.CompImageHDU(data=reference, compression_type="RICE_1", tile_shape=(6, 6))
+    hdu = fits.CompImageHDU(
+        data=reference, compression_type="RICE_1", tile_shape=(6, 6)
+    )
 
     hdu.writeto(tmp_path / "test_zblank.fits")
 
