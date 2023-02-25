@@ -1,7 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
+import warnings
+
 from asdf import tagged
-from asdf.tests.helpers import assert_tree_match
+from asdf.exceptions import AsdfDeprecationWarning
 from .basic import TransformType
 from astropy.modeling.core import Model, CompoundModel
 from astropy.modeling.models import Identity, Mapping, Const1D
@@ -86,6 +88,13 @@ class CompoundType(TransformType):
 
     @classmethod
     def assert_equal(cls, a, b):
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                category=AsdfDeprecationWarning,
+                message=r"asdf.tests.helpers is deprecated.*",
+            )
+            from asdf.tests.helpers import assert_tree_match
         # TODO: If models become comparable themselves, remove this.
         TransformType.assert_equal(a, b)
         assert_tree_match(a.left, b.left)

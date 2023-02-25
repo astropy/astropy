@@ -1,10 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# -*- coding: utf-8 -*-
+import warnings
+
 import pytest
 
 asdf = pytest.importorskip("asdf")
 
-from numpy.random import random, randint
+from asdf.exceptions import AsdfDeprecationWarning
+
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        category=AsdfDeprecationWarning,
+        message=r"asdf.tests.helpers is deprecated.*",
+    )
+    from asdf.tests.helpers import assert_roundtrip_tree
+
+from numpy.random import randint, random
 
 import astropy.units as u
 

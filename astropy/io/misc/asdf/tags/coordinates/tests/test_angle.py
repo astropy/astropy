@@ -1,15 +1,24 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
+import warnings
+
 import pytest
 
 asdf = pytest.importorskip("asdf")
 
+from asdf.exceptions import AsdfDeprecationWarning
+
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        category=AsdfDeprecationWarning,
+        message=r"asdf.tests.helpers is deprecated.*",
+    )
+    from asdf.tests.helpers import assert_roundtrip_tree
+
 import astropy.units as u
-
-from asdf.tests.helpers import assert_roundtrip_tree
-
-from astropy.coordinates import Longitude, Latitude, Angle
+from astropy.coordinates import Angle, Latitude, Longitude
 
 from astropy.io.misc.asdf.extension import AstropyExtension
 
