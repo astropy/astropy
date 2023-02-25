@@ -1982,7 +1982,6 @@ class TestCompressedImage(FitsTestCase):
         assert chdu.tile_shape == (1, 2, 5)
 
     def test_comp_image_deprecated_tile_size_and_tile_shape(self):
-
         # Make sure that tile_size and tile_shape are not both specified
 
         with pytest.warns(AstropyDeprecationWarning) as w:
