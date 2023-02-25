@@ -1,12 +1,22 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
+
 import pytest
 
 asdf = pytest.importorskip("asdf")
-from asdf.tests.helpers import assert_roundtrip_tree  # noqa: E402
+from asdf.exceptions import AsdfDeprecationWarning
 
-from astropy import units as u  # noqa: E402
-from astropy.time import Time, TimeDelta  # noqa: E402
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        category=AsdfDeprecationWarning,
+        message=r"asdf.tests.helpers is deprecated.*",
+    )
+    from asdf.tests.helpers import assert_roundtrip_tree
+
+from astropy import units as u
+from astropy.time import Time, TimeDelta
 
 
 @pytest.mark.parametrize("fmt", TimeDelta.FORMATS.keys())

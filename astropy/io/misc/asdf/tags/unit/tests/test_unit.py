@@ -1,14 +1,23 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import io
+import warnings
 
 import pytest
 
 asdf = pytest.importorskip("asdf")
 
-from asdf.tests import helpers  # noqa: E402
+from asdf.exceptions import AsdfDeprecationWarning
 
-from astropy import units as u  # noqa: E402
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        category=AsdfDeprecationWarning,
+        message=r"asdf.tests.helpers is deprecated.*",
+    )
+    from asdf.tests.helpers import yaml_to_asdf
+
+from astropy import units as u
 
 # TODO: Implement defunit
 
@@ -18,7 +27,7 @@ def test_unit():
 unit: !unit/unit-1.0.0 "2.1798721  10-18kg m2 s-2"
     """
 
-    buff = helpers.yaml_to_asdf(yaml)
+    buff = yaml_to_asdf(yaml)
     with asdf.open(buff) as ff:
         assert ff.tree["unit"].is_equivalent(u.Ry)
 

@@ -1,18 +1,28 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import io
+import warnings
+
 import pytest
 
 asdf = pytest.importorskip("asdf")
 
-import io  # noqa: E402
 
-from asdf.tests import helpers  # noqa: E402
+from asdf.exceptions import AsdfDeprecationWarning
 
-from astropy import units  # noqa: E402
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        category=AsdfDeprecationWarning,
+        message=r"asdf.tests.helpers is deprecated.*",
+    )
+    from asdf.tests.helpers import yaml_to_asdf
+
+from astropy import units
 
 
 def roundtrip_quantity(yaml, quantity):
-    buff = helpers.yaml_to_asdf(yaml)
+    buff = yaml_to_asdf(yaml)
     with asdf.open(buff) as ff:
         assert (ff.tree["quantity"] == quantity).all()
         buff2 = io.BytesIO()

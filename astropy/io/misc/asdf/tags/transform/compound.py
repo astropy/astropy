@@ -2,7 +2,7 @@
 import warnings
 
 from asdf import tagged
-from asdf.tests.helpers import assert_tree_match
+from asdf.exceptions import AsdfDeprecationWarning
 
 from astropy.io.misc.asdf.deprecation import create_asdf_deprecation_warning
 from astropy.io.misc.asdf.tags.transform.basic import TransformType
@@ -92,6 +92,13 @@ class CompoundType(TransformType):
 
     @classmethod
     def assert_equal(cls, a, b):
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                category=AsdfDeprecationWarning,
+                message=r"asdf.tests.helpers is deprecated.*",
+            )
+            from asdf.tests.helpers import assert_tree_match
         # TODO: If models become comparable themselves, remove this.
         TransformType.assert_equal(a, b)
         assert_tree_match(a.left, b.left)

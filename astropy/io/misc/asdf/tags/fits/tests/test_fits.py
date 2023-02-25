@@ -1,18 +1,26 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
+
 import pytest
 
 asdf = pytest.importorskip("asdf")
 
 import os  # noqa: E402
 
-import numpy as np  # noqa: E402
-from asdf.tests import helpers  # noqa: E402
+import numpy as np
+from asdf.exceptions import AsdfDeprecationWarning
 
-from astropy.io import fits  # noqa: E402
-from astropy.io.misc.asdf.tags.tests.helpers import (  # noqa: E402
-    run_schema_example_test,
-)
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        category=AsdfDeprecationWarning,
+        message=r"asdf.tests.helpers is deprecated.*",
+    )
+    from asdf.tests.helpers import assert_roundtrip_tree
+
+from astropy.io import fits
+from astropy.io.misc.asdf.tags.tests.helpers import run_schema_example_test
 
 
 @pytest.mark.filterwarnings(
@@ -24,7 +32,7 @@ def test_complex_structure(tmpdir):
     ) as hdulist:
         tree = {"fits": hdulist}
 
-        helpers.assert_roundtrip_tree(tree, tmpdir)
+        assert_roundtrip_tree(tree, tmpdir)
 
 
 @pytest.mark.filterwarnings(
@@ -40,7 +48,7 @@ def test_fits_table(tmpdir):
     def check_yaml(content):
         assert b"!<tag:astropy.org:astropy/table/table-1.0.0>" in content
 
-    helpers.assert_roundtrip_tree(tree, tmpdir, raw_yaml_check_func=check_yaml)
+    assert_roundtrip_tree(tree, tmpdir, raw_yaml_check_func=check_yaml)
 
 
 @pytest.mark.filterwarnings(
