@@ -56,10 +56,10 @@ else:
         # ],
         # >3D Data are not currently supported by cfitsio
     ),
-    ids=lambda x: f"shape: {x[0]} tile_shape: {x[1]}",
+    ids=lambda x: f"shape: {x[0]} tile_dims: {x[1]}",
 )
-def array_shapes_tile_shape(request, compression_type):
-    shape, tile_dim = request.param
+def array_shapes_tile_dims(request, compression_type):
+    shape, tile_dims = request.param
     # H_COMPRESS needs >=2D data and always 2D tiles
     if compression_type == "HCOMPRESS_1":
         if (
@@ -67,32 +67,32 @@ def array_shapes_tile_shape(request, compression_type):
             len(shape) < 2
             or
             # We don't have 2D tiles
-            np.count_nonzero(np.array(tile_dim) != 1) != 2
+            np.count_nonzero(np.array(tile_dims) != 1) != 2
             or
             # TODO: The following restrictions can be lifted with some extra work.
             # The tile is not the first two dimensions of the data
-            tile_dim[0] == 1
-            or tile_dim[1] == 1
+            tile_dims[0] == 1
+            or tile_dims[1] == 1
             or
             # The tile dimensions not an integer multiple of the array dims
-            np.count_nonzero(np.array(shape[:2]) % tile_dim[:2]) != 0
+            np.count_nonzero(np.array(shape[:2]) % tile_dims[:2]) != 0
         ):
             pytest.xfail(
                 "HCOMPRESS requires 2D tiles, from the first two"
                 "dimensions, and an integer number of tiles along the first two"
                 "axes."
             )
-    return shape, tile_dim
+    return shape, tile_dims
 
 
 @pytest.fixture(scope="module")
-def tile_shape(array_shapes_tile_shape):
-    return array_shapes_tile_shape[1]
+def tile_dims(array_shapes_tile_dims):
+    return array_shapes_tile_dims[1]
 
 
 @pytest.fixture(scope="module")
-def data_shape(array_shapes_tile_shape):
-    return array_shapes_tile_shape[0]
+def data_shape(array_shapes_tile_dims):
+    return array_shapes_tile_dims[0]
 
 
 @pytest.fixture(scope="module")
@@ -114,7 +114,7 @@ def fitsio_compressed_file_path(
     comp_param_dtype,
     base_original_data,
     data_shape,  # For debugging
-    tile_shape,
+    tile_dims,
 ):
     compression_type, param, dtype = comp_param_dtype
 
@@ -147,7 +147,7 @@ def fitsio_compressed_file_path(
 
     filename = tmp_path / f"{compression_type}_{dtype}.fits"
     fits = fitsio.FITS(filename, "rw")
-    fits.write(original_data, compress=compression_type, tile_shape=tile_shape, **param)
+    fits.write(original_data, compress=compression_type, tile_dims=tile_dims, **param)
 
     return filename
 
@@ -158,7 +158,7 @@ def astropy_compressed_file_path(
     tmp_path_factory,
     base_original_data,
     data_shape,  # For debugging
-    tile_shape,
+    tile_dims,
 ):
     compression_type, param, dtype = comp_param_dtype
     original_data = base_original_data.astype(dtype)
@@ -170,7 +170,7 @@ def astropy_compressed_file_path(
     hdu = fits.CompImageHDU(
         data=original_data,
         compression_type=compression_type,
-        tile_shape=tile_shape,
+        tile_shape=None if tile_dims is None else tile_dims[::-1],
         **param,
     )
     hdu.writeto(filename)
