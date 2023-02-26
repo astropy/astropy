@@ -55,8 +55,8 @@ class Latex(console.Console):
         return name
 
     @classmethod
-    def _format_fraction(cls, scale, numerator, denominator, *, fraction="display"):
-        if fraction != "display":
+    def _format_fraction(cls, scale, numerator, denominator, *, fraction="multiline"):
+        if fraction != "multiline":
             return super()._format_fraction(
                 scale, numerator, denominator, fraction=fraction
             )
@@ -64,7 +64,7 @@ class Latex(console.Console):
         return rf"{scale}\frac{{{numerator}}}{{{denominator}}}"
 
     @classmethod
-    def to_string(cls, unit, fraction="display"):
+    def to_string(cls, unit, fraction="multiline"):
         s = super().to_string(unit, fraction=fraction)
         return rf"$\mathrm{{{s}}}$"
 

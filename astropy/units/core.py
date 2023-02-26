@@ -746,7 +746,7 @@ class UnitBase:
         return [1]
 
     def to_string(self, format=unit_format.Generic, **kwargs):
-        """Output the unit in the given format as a string.
+        r"""Output the unit in the given format as a string.
 
         Parameters
         ----------
@@ -756,12 +756,36 @@ class UnitBase:
 
         **kwargs
             Further options forwarded to the formatter. Currently
-            recognized is **fraction**.  If not `False`, units with
-            bases raised to negative powers are represented using a
-            fraction, with `True` or 'inline' used to produce a single
-            line, and 'display' to produce a multi-line string (for
-            the ``latex``, ``console`` and ``unicode`` formats only).
+            recognized is ``fraction``, which can take the following values:
 
+            - `False` : display unit bases with negative powers as they are;
+            - 'inline' or `True` : use a single-line fraction;
+            - 'multiline' : use a multiline fraction (available for the
+              'latex', 'console' and 'unicode' formats only).
+
+        Raises
+        ------
+        TypeError
+            If ``format`` is of the wrong type.
+        ValueError
+            If ``format`` or ``fraction`` are not recognized.
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> kms = u.Unit('km / s')
+        >>> kms.to_string()  # Generic uses fraction='inline' by default
+        'km / s'
+        >>> kms.to_string('latex')  # Latex uses fraction='multiline' by default
+        '$\\mathrm{\\frac{km}{s}}$'
+        >>> print(kms.to_string('unicode', fraction=False))
+        km s⁻¹
+        >>> print(kms.to_string('unicode', fraction='inline'))
+        km / s
+        >>> print(kms.to_string('unicode', fraction='multiline'))
+        km
+        ──
+        s
         """
         f = unit_format.get_format(format)
         return f.to_string(self, **kwargs)

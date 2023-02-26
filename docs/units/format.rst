@@ -211,7 +211,7 @@ following formats:
 
     or using a multiline representation:
 
-      >>> print(fluxunit.to_string('console', fraction='display'))
+      >>> print(fluxunit.to_string('console', fraction='multiline'))
        erg
       ------
       s cm^2
@@ -223,7 +223,7 @@ following formats:
       2.1798724×10⁻¹⁸ m² kg s⁻²
       >>> print(u.Ry.decompose().to_string('unicode', fraction=True))  # doctest: +FLOAT_CMP
       2.1798724×10⁻¹⁸ m² kg / s²
-      >>> print(u.Ry.decompose().to_string('unicode', fraction='display'))  # doctest: +FLOAT_CMP
+      >>> print(u.Ry.decompose().to_string('unicode', fraction='multiline'))  # doctest: +FLOAT_CMP
                       m² kg
       2.1798724×10⁻¹⁸ ─────
                        s²

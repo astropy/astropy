@@ -18,7 +18,7 @@ class Console(base.Base):
       >>> import astropy.units as u
       >>> print(u.Ry.decompose().to_string('console'))  # doctest: +FLOAT_CMP
       2.1798721*10^-18 m^2 kg s^-2
-      >>> print(u.Ry.decompose().to_string('console', fraction='display'))  # doctest: +FLOAT_CMP
+      >>> print(u.Ry.decompose().to_string('console', fraction='multiline'))  # doctest: +FLOAT_CMP
                        m^2 kg
       2.1798721*10^-18 ------
                         s^2
@@ -52,9 +52,8 @@ class Console(base.Base):
         return cls._times.join(parts)
 
     @classmethod
-    def _format_fraction(cls, scale, numerator, denominator, fraction="display"):
-        # Default for fraction=True is multi-line display.
-        if fraction != "display":
+    def _format_fraction(cls, scale, numerator, denominator, fraction="multiline"):
+        if fraction != "multiline":
             return super()._format_fraction(
                 scale, numerator, denominator, fraction=fraction
             )

@@ -474,12 +474,12 @@ def test_format_styles(format_spec, string, decomposed):
         ("generic", False, "cm-2 erg s-1", "0.001 kg s-3"),
         (
             "console",
-            "display",
+            "multiline",
             " erg  \n------\ns cm^2",
             "      kg \n0.001 ---\n      s^3",
         ),
         ("console", "inline", "erg / (s cm^2)", "0.001 kg / s^3"),
-        ("unicode", "display", " erg \n─────\ns cm²", "      kg\n0.001 ──\n      s³"),
+        ("unicode", "multiline", " erg \n─────\ns cm²", "      kg\n0.001 ──\n      s³"),
         ("unicode", "inline", "erg / (s cm²)", "0.001 kg / s³"),
         (
             "latex",
@@ -503,10 +503,10 @@ def test_format_styles_non_default_fraction(format_spec, fraction, string, decom
 
 
 @pytest.mark.parametrize("format_spec", ["generic", "cds", "fits", "ogip", "vounit"])
-def test_no_display_fraction(format_spec):
+def test_no_multiline_fraction(format_spec):
     fluxunit = u.W / u.m**2
-    with pytest.raises(ValueError, match="only supports.*not fraction='display'"):
-        fluxunit.to_string(format_spec, fraction="display")
+    with pytest.raises(ValueError, match="only supports.*not fraction='multiline'"):
+        fluxunit.to_string(format_spec, fraction="multiline")
 
 
 @pytest.mark.parametrize(
@@ -924,9 +924,9 @@ def test_function_format_styles(format_spec, string):
 @pytest.mark.parametrize(
     "format_spec, fraction, string",
     [
-        ("console", "display", "   1\ndB(-)\n   m"),
+        ("console", "multiline", "   1\ndB(-)\n   m"),
         ("console", "inline", "dB(1 / m)"),
-        ("unicode", "display", "   1\ndB(─)\n   m"),
+        ("unicode", "multiline", "   1\ndB(─)\n   m"),
         ("unicode", "inline", "dB(1 / m)"),
         ("latex", False, r"$\mathrm{dB}$$\mathrm{\left( \mathrm{m^{-1}} \right)}$"),
         ("latex", "inline", r"$\mathrm{dB}$$\mathrm{\left( \mathrm{1 / m} \right)}$"),

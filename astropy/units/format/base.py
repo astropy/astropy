@@ -90,16 +90,26 @@ class Base:
     def to_string(cls, unit, *, fraction=True):
         """Convert a unit to its string representation.
 
+        Implementation for `~astropy.units.UnitBase.to_string`.
+
         Parameters
         ----------
         unit : |Unit|
             The unit to convert.
-        fraction : {False|True|'inline'|'display'}, optional
-            If `False`, display any unit bases raised to negative powers as
-            they are (e.g., ``km s^-1``).  If not `False`, use a fraction
-            instead (e.g., ``km / s``), either inline or with a multiline
-            display (if the format class supports it). If `True`, use the
-            default fraction style.
+        fraction : {False|True|'inline'|'multiline'}, optional
+            Options are as follows:
+
+            - `False` : display unit bases with negative powers as they are
+              (e.g., ``km s-1``);
+            - 'inline' or `True` : use a single-line fraction (e.g., ``km / s``);
+            - 'multiline' : use a multiline fraction (available for the
+              ``latex``, ``console`` and ``unicode`` formats only; e.g.,
+              ``$\\mathrm{\\frac{km}{s}}$``).
+
+        Raises
+        ------
+        ValueError
+            If ``fraction`` is not recognized.
         """
         # First the scale.  Normally unity, in which case we omit
         # it, but non-unity scale can happen, e.g., in decompositions
