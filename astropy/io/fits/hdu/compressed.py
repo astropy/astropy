@@ -696,7 +696,7 @@ class CompImageHDU(BinTableHDU):
                 header,
                 name,
                 compression_type=compression_type,
-                tile_size=list(tile_shape[::-1]) if tile_shape else None,
+                tile_shape=tile_shape,
                 hcomp_scale=hcomp_scale,
                 hcomp_smooth=hcomp_smooth,
                 quantize_level=quantize_level,
@@ -794,7 +794,7 @@ class CompImageHDU(BinTableHDU):
         image_header,
         name=None,
         compression_type=None,
-        tile_size=None,
+        tile_shape=None,
         hcomp_scale=None,
         hcomp_smooth=None,
         quantize_level=None,
@@ -829,8 +829,8 @@ class CompImageHDU(BinTableHDU):
             already in the header; if no value already in the header, use
             'RICE_1'
 
-        tile_size : sequence of int, optional
-            compression tile sizes as a list; if this value is `None`, use
+        tile_shape : tuple of int, optional
+            compression tile shape (in C order); if this value is `None`, use
             value already in the header; if no value already in the header,
             treat each row of image as a tile
 
@@ -1066,42 +1066,42 @@ class CompImageHDU(BinTableHDU):
 
         naxis = self._image_header["NAXIS"]
 
-        if not tile_size:
-            tile_size = []
-        elif len(tile_size) != naxis:
+        if not tile_shape:
+            tile_shape = []
+        elif len(tile_shape) != naxis:
             warnings.warn(
                 "Provided tile size not appropriate for the data.  "
                 "Default tile size will be used.",
                 AstropyUserWarning,
             )
-            tile_size = []
+            tile_shape = []
 
         # Set default tile dimensions for HCOMPRESS_1
 
         if compression_type == "HCOMPRESS_1":
             if self._image_header["NAXIS1"] < 4 or self._image_header["NAXIS2"] < 4:
                 raise ValueError("Hcompress minimum image dimension is 4 pixels")
-            elif tile_size:
-                if tile_size[0] < 4 or tile_size[1] < 4:
+            elif tile_shape:
+                if tile_shape[-1] < 4 or tile_shape[-2] < 4:
                     # user specified tile size is too small
                     raise ValueError("Hcompress minimum tile dimension is 4 pixels")
-                major_dims = len([ts for ts in tile_size if ts > 1])
+                major_dims = len([ts for ts in tile_shape if ts > 1])
                 if major_dims > 2:
                     raise ValueError(
                         "HCOMPRESS can only support 2-dimensional tile sizes."
-                        "All but two of the tile_size dimensions must be set "
+                        "All but two of the tile_shape dimensions must be set "
                         "to 1."
                     )
 
-            if tile_size and (tile_size[0] == 0 and tile_size[1] == 0):
+            if tile_shape and (tile_shape[-1] == 0 and tile_shape[-2] == 0):
                 # compress the whole image as a single tile
-                tile_size[0] = self._image_header["NAXIS1"]
-                tile_size[1] = self._image_header["NAXIS2"]
+                tile_shape[-1] = self._image_header["NAXIS1"]
+                tile_shape[-2] = self._image_header["NAXIS2"]
 
                 for i in range(2, naxis):
                     # set all higher tile dimensions = 1
-                    tile_size[i] = 1
-            elif not tile_size:
+                    tile_shape[i] = 1
+            elif not tile_shape:
                 # The Hcompress algorithm is inherently 2D in nature, so the
                 # row by row tiling that is used for other compression
                 # algorithms is not appropriate.  If the image has less than 30
@@ -1115,60 +1115,60 @@ class CompImageHDU(BinTableHDU):
                 # least 4 rows.
 
                 # 1st tile dimension is the row length of the image
-                tile_size.append(self._image_header["NAXIS1"])
+                tile_shape = [self._image_header["NAXIS1"]]
 
                 if self._image_header["NAXIS2"] <= 30:
-                    tile_size.append(self._image_header["NAXIS1"])
+                    tile_shape.insert(0, self._image_header["NAXIS1"])
                 else:
                     # look for another good tile dimension
                     naxis2 = self._image_header["NAXIS2"]
                     for dim in [16, 24, 20, 30, 28, 26, 22, 18, 14]:
                         if naxis2 % dim == 0 or naxis2 % dim > 3:
-                            tile_size.append(dim)
+                            tile_shape.insert(0, dim)
                             break
                     else:
-                        tile_size.append(17)
+                        tile_shape.insert(0, 17)
 
                 for i in range(2, naxis):
                     # set all higher tile dimensions = 1
-                    tile_size.append(1)
+                    tile_shape.insert(0, 1)
 
             # check if requested tile size causes the last tile to have
             # less than 4 pixels
 
-            remain = self._image_header["NAXIS1"] % tile_size[0]  # 1st dimen
+            remain = self._image_header["NAXIS1"] % tile_shape[-1]  # 1st dimen
 
-            original_tile_size = tile_size[:]
+            original_tile_shape = tile_shape[:]
 
             if remain > 0 and remain < 4:
-                tile_size[0] += 1  # try increasing tile size by 1
+                tile_shape[-1] += 1  # try increasing tile size by 1
 
-                remain = self._image_header["NAXIS1"] % tile_size[0]
+                remain = self._image_header["NAXIS1"] % tile_shape[-1]
 
                 if remain > 0 and remain < 4:
                     raise ValueError(
                         "Last tile along 1st dimension has less than 4 pixels"
                     )
 
-            remain = self._image_header["NAXIS2"] % tile_size[1]  # 2nd dimen
+            remain = self._image_header["NAXIS2"] % tile_shape[-2]  # 2nd dimen
 
             if remain > 0 and remain < 4:
-                tile_size[1] += 1  # try increasing tile size by 1
+                tile_shape[-2] += 1  # try increasing tile size by 1
 
-                remain = self._image_header["NAXIS2"] % tile_size[1]
+                remain = self._image_header["NAXIS2"] % tile_shape[-2]
 
                 if remain > 0 and remain < 4:
                     raise ValueError(
                         "Last tile along 2nd dimension has less than 4 pixels"
                     )
 
-            if tile_size != original_tile_size:
+            if tile_shape != original_tile_shape:
                 warnings.warn(
-                    f"The tile size should be such that no tiles have "
-                    f"fewer than 4 pixels. The tile size has "
-                    f"automatically been changed from {original_tile_size} "
-                    f"to {tile_size}, but in future this will raise an "
-                    f"error and the correct tile size should be specified "
+                    f"The tile shape should be such that no tiles have "
+                    f"fewer than 4 pixels. The tile shape has "
+                    f"automatically been changed from {original_tile_shape} "
+                    f"to {tile_shape}, but in future this will raise an "
+                    f"error and the correct tile shape should be specified "
                     f"directly.",
                     AstropyDeprecationWarning,
                 )
@@ -1190,8 +1190,8 @@ class CompImageHDU(BinTableHDU):
             znaxis = "ZNAXIS" + str(idx + 1)
             ztile = "ZTILE" + str(idx + 1)
 
-            if tile_size and len(tile_size) >= idx + 1:
-                ts = tile_size[idx]
+            if tile_shape and len(tile_shape) >= idx + 1:
+                ts = tile_shape[len(self._axes) - 1 - idx]
             else:
                 if ztile not in self._header:
                     # Default tile size
@@ -1201,7 +1201,7 @@ class CompImageHDU(BinTableHDU):
                         ts = 1
                 else:
                     ts = self._header[ztile]
-                tile_size.append(ts)
+                tile_shape.insert(0, ts)
 
             if not nrows:
                 nrows = (axis - 1) // ts + 1
