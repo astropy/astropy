@@ -291,6 +291,10 @@ class NDArithmeticMixin:
                 operation, operand, axis=axis, **kwds2["data"]
             )
 
+        # preserve original units
+        if not hasattr(result, "unit") and hasattr(self, "unit"):
+            kwargs["unit"] = self.unit
+
         # Determine the other properties
         if propagate_uncertainties is None:
             kwargs["uncertainty"] = None
