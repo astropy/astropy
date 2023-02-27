@@ -443,7 +443,7 @@ class CompImageHDU(BinTableHDU):
         since="5.3",
         message="The tile_size argument has been deprecated. Use tile_shape "
         "instead, but note that this should be given in the reverse "
-        "order to tile_size (tile_shape should be in Numpy order).",
+        "order to tile_size (tile_shape should be in Numpy C order).",
     )
     def __init__(
         self,
@@ -484,9 +484,9 @@ class CompImageHDU(BinTableHDU):
             ``'GZIP_2'``, ``'HCOMPRESS_1'``, ``'NOCOMPRESS'``
 
         tile_shape : tuple, optional
-            Compression tile shape, which should be specified using the Numpy
-            convention for axis order. The default is to treat each row of
-            image as a tile.
+            Compression tile shape, which should be specified using the default
+            Numpy convention for array shapes (C order). The default is to
+            treat each row of image as a tile.
 
         hcomp_scale : float, optional
             HCOMPRESS scale parameter
