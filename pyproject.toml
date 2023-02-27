@@ -250,6 +250,7 @@ extend-ignore = [
     "PLR0915",  # too-many-statements
     "PLW0120",  # UselessElseOnLoop                  # Note: low priority fix
     "PLW0602",  # GlobalVariableNotAssigned          # TODO: fix
+    "PLW2901",  # redefined-loop-name                # TODO: fix. Easy source of bugs!
 
     # flake8-pytest-style (PT)
     # TODO: fix many of these.
