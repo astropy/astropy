@@ -22,8 +22,6 @@ import astropy.units as u
 from astropy.coordinates import Angle
 import astropy.coordinates.representation as r
 
-from asdf.tests.helpers import assert_roundtrip_tree
-
 
 @pytest.fixture(params=filter(lambda x: "Base" not in x, r.__all__))
 def representation(request):
