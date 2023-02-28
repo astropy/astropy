@@ -20,7 +20,7 @@ def run_schema_example_test(organization, standard, name, version, check_func=No
         warnings.filterwarnings(
             "ignore",
             category=AsdfDeprecationWarning,
-            message=r"asdf.types.format_tag is deprecated.*",
+            message=r"asdf.types.*is deprecated.*",
         )
         from asdf.types import format_tag
 
