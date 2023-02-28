@@ -20,8 +20,6 @@ with warnings.catch_warnings():
 
 from astropy import units as u
 
-from asdf.tests import helpers
-
 
 # TODO: Implement defunit
 
