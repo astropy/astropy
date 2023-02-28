@@ -172,7 +172,7 @@ class NDArithmeticMixin:
         handle_meta=None,
         uncertainty_correlation=0,
         compare_wcs="first_found",
-        ignore_masked_data=False,
+        operation_ignores_mask=False,
         axis=None,
         **kwds,
     ):
@@ -208,7 +208,7 @@ class NDArithmeticMixin:
         uncertainty_correlation : ``Number`` or `~numpy.ndarray`, optional
             see :meth:`NDArithmeticMixin.add`
 
-        ignore_masked_data : bool, optional
+        operation_ignores_mask : bool, optional
             When True, masked values will be excluded from operations;
             otherwise the operation will be performed on all values,
             including masked ones.
@@ -266,7 +266,7 @@ class NDArithmeticMixin:
         if use_masked_arith:
             # if we're *including* masked values in the operation,
             # use the astropy Masked module:
-            if not ignore_masked_data:
+            if not operation_ignores_mask:
                 # call the numpy operation on a Masked NDDataArray
                 # representation of the nddata, with units when available:
                 if self.unit is not None and not hasattr(self.data, "unit"):

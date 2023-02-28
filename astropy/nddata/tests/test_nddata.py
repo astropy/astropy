@@ -643,10 +643,10 @@ collapse_ignore_masked = permute // len(collapse_ignore_masked) * collapse_ignor
 
 
 @pytest.mark.parametrize(
-    "mask, unit, propagate_uncertainties, ignore_masked_data",
+    "mask, unit, propagate_uncertainties, operation_ignores_mask",
     zip(collapse_masks, collapse_units, collapse_propagate, collapse_ignore_masked),
 )
-def test_collapse(mask, unit, propagate_uncertainties, ignore_masked_data):
+def test_collapse(mask, unit, propagate_uncertainties, operation_ignores_mask):
     # unique set of combinations of each of the N-1 axes for an N-D cube:
     axes_permutations = {tuple(axes[:2]) for axes in permutations(range(mask.ndim))}
 
@@ -681,7 +681,7 @@ def test_collapse(mask, unit, propagate_uncertainties, ignore_masked_data):
             nddata_method = getattr(ndarr, method)(
                 axis=axes,
                 propagate_uncertainties=propagate_uncertainties,
-                ignore_masked_data=ignore_masked_data,
+                operation_ignores_mask=operation_ignores_mask,
             )
             astropy_unmasked = astropy_method.base[~astropy_method.mask]
             nddata_unmasked = nddata_method.data[~nddata_method.mask]
@@ -692,7 +692,7 @@ def test_collapse(mask, unit, propagate_uncertainties, ignore_masked_data):
             # check if the numpy and astropy.utils.masked results agree when
             # the result is not fully masked:
             if len(astropy_unmasked) > 0:
-                if not ignore_masked_data:
+                if not operation_ignores_mask:
                     # compare with astropy
                     assert np.all(np.equal(astropy_unmasked, nddata_unmasked))
                     assert np.all(np.equal(astropy_method.mask, nddata_method.mask))

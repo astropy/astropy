@@ -458,9 +458,9 @@ masked ones::
     NDDataArray([6., 9.], unit='m')
 
 where the first data element is masked. We can instead get the sum
-for only unmasked values with the ``ignore_masked_data`` option::
+for only unmasked values with the ``operation_ignores_mask`` option::
 
-    >>> nddata.sum(axis=1, ignore_masked_data=True)
+    >>> nddata.sum(axis=1, operation_ignores_mask=True)
     NDDataArray([5, 9])
 
 ..
