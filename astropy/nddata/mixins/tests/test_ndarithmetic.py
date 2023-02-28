@@ -1297,3 +1297,16 @@ def test_psf_warning():
         ndd2.add(ndd1)
     with pytest.warns(AstropyUserWarning, match="Not setting psf attribute during add"):
         ndd1.add(ndd1)
+
+
+def test_raise_method_not_supported():
+    ndd1 = NDDataArithmetic(np.zeros(3), uncertainty=StdDevUncertainty(np.zeros(3)))
+    ndd2 = NDDataArithmetic(np.ones(3), uncertainty=StdDevUncertainty(np.ones(3)))
+    result = np.zeros(3)
+    correlation = 0
+    # no error should be raised for supported operations:
+    ndd1.uncertainty.propagate(np.add, ndd2, result, correlation)
+
+    # raise error for unsupported propagation operations:
+    with pytest.raises(ValueError):
+        ndd1.uncertainty.propagate(np.mod, ndd2, result, correlation)
