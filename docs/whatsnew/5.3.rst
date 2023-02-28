@@ -12,8 +12,12 @@ the 5.2 release.
 
 In particular, this release includes:
 
+.. * :ref:`whatsnew-5.3-cosmology`
 .. * :ref:`whatsnew-5.3-table-union-operators`
+.. * :ref:`whatsnew-5.3-compressed-fits`
+.. * :ref:`whatsnew-5.3-compressed-fits-nocompress`
 .. * :ref:`whatsnew-5.3-unit-formats-fraction`
+.. * :ref:`whatsnew-5.3-nddata-collapse-arbitrary-axes`
 
 In addition to these major changes, Astropy v5.3 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -147,9 +151,10 @@ readable results when printing quantities, table headers and cells, etc.
 For ``'latex'`` the default remains ``fraction='display'``, for an
 unchanged experience with IPython notebook.
 
+.. _whatsnew-5.3-nddata-collapse-arbitrary-axes:
+
 Support for collapse operations on arbitrary axes in ``nddata``
 ===============================================================
-
 
 Take the sum, mean, maximum, or minimum along one or more axes,
 reducing the dimensions of the output, on `~astropy.nddata.NDData` objects
