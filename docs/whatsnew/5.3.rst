@@ -12,8 +12,12 @@ the 5.2 release.
 
 In particular, this release includes:
 
+.. * :ref:`whatsnew-5.3-cosmology`
 .. * :ref:`whatsnew-5.3-table-union-operators`
+.. * :ref:`whatsnew-5.3-compressed-fits`
+.. * :ref:`whatsnew-5.3-compressed-fits-nocompress`
 .. * :ref:`whatsnew-5.3-unit-formats-fraction`
+.. * :ref:`whatsnew-5.3-nddata-collapse-arbitrary-axes`
 
 In addition to these major changes, Astropy v5.3 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -146,6 +150,36 @@ Note that the ``'console'`` and ``'unicode'`` formats now use
 readable results when printing quantities, table headers and cells, etc.
 For ``'latex'`` the default remains ``fraction='display'``, for an
 unchanged experience with IPython notebook.
+
+.. _whatsnew-5.3-nddata-collapse-arbitrary-axes:
+
+Support for collapse operations on arbitrary axes in ``nddata``
+===============================================================
+
+Take the sum, mean, maximum, or minimum along one or more axes,
+reducing the dimensions of the output, on `~astropy.nddata.NDData` objects
+with appropriate propagation of uncertainties, masks, and units. For example,
+we can take the sum of ND masked quantities along the ``1`` axis like so::
+
+    >>> import numpy as np
+    >>> import astropy.units as u
+    >>> from astropy.nddata import NDDataArray, StdDevUncertainty
+    >>>
+    >>> data = [
+    ...     [1, 2, 3],
+    ...     [2, 3, 4]
+    ... ]
+    >>> mask = [
+    ...     [True, False, False],
+    ...     [False, False, False]
+    ... ]
+    >>> uncertainty = StdDevUncertainty(np.ones_like(data))
+    >>> nddata = NDDataArray(data=data, uncertainty=uncertainty, mask=mask, unit='m')
+    >>> sum_axis_1 = nddata.sum(axis=1)
+    >>> sum_axis_1, sum_axis_1.mask, sum_axis_1.uncertainty
+    (NDDataArray([6., 9.], unit='m'),
+     array([ True, False]),
+     StdDevUncertainty([1.41421356, 1.73205081]))
 
 Full change log
 ===============

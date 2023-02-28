@@ -170,7 +170,9 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         if (value is not None) and (value is not np.ma.nomask):
             mask = np.array(value, dtype=np.bool_, copy=False)
             if mask.shape != self.data.shape:
-                raise ValueError("dimensions of mask do not match data")
+                raise ValueError(
+                    f"dimensions of mask {mask.shape} and data {self.data.shape} do not match"
+                )
             else:
                 self._mask = mask
         else:
