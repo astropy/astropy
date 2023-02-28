@@ -12,7 +12,6 @@
 
 """Handles the CDS string format for units."""
 
-import operator
 import re
 
 from astropy.units.utils import is_effectively_unity
@@ -34,6 +33,9 @@ class CDS(Base):
     """
 
     _space = "."
+    _times = "x"
+    _scale_unit_separator = ""
+
     _tokens = (
         "PRODUCT",
         "DIVISION",
@@ -309,40 +311,30 @@ class CDS(Base):
                     raise ValueError("Syntax error")
 
     @classmethod
+    def format_exponential_notation(cls, val, format_spec=".8g"):
+        m, ex = utils.split_mantissa_exponent(val)
+        parts = []
+        if m not in ("", "1"):
+            parts.append(m)
+        if ex:
+            if not ex.startswith("-"):
+                ex = "+" + ex
+            parts.append(f"10{cls._format_superscript(ex)}")
+        return cls._times.join(parts)
+
+    @classmethod
     def _format_superscript(cls, number):
         return number
 
     @classmethod
-    def to_string(cls, unit):
+    def to_string(cls, unit, fraction=False):
         # Remove units that aren't known to the format
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
-        if isinstance(unit, core.CompositeUnit):
-            if unit == core.dimensionless_unscaled:
+        if not unit.bases:
+            if unit.scale == 1:
                 return "---"
             elif is_effectively_unity(unit.scale * 100.0):
                 return "%"
 
-            if unit.scale == 1:
-                s = ""
-            else:
-                m, e = utils.split_mantissa_exponent(unit.scale)
-                parts = []
-                if m not in ("", "1"):
-                    parts.append(m)
-                if e:
-                    if not e.startswith("-"):
-                        e = "+" + e
-                    parts.append(f"10{e}")
-                s = "x".join(parts)
-
-            pairs = list(zip(unit.bases, unit.powers))
-            if len(pairs) > 0:
-                pairs.sort(key=operator.itemgetter(1), reverse=True)
-
-                s += cls._format_unit_list(pairs)
-
-        elif isinstance(unit, core.NamedUnit):
-            s = cls._get_unit_name(unit)
-
-        return s
+        return super().to_string(unit, fraction=fraction)

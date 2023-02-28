@@ -1,0 +1,7 @@
+Add a "fraction" options to all the unit ``format`` classes, which determine
+whether, if a unit has bases raised to a negative power, a string
+representation should just show the negative powers (``fraction=False``) or
+use a fraction, and, in the latter case, whether to use a single-line
+representation using a solidus (``fraction='inline'`` or ``fraction=True``)
+or, if the format supports it, a multi-line presentation with the numerator
+and denominator separated by a horizontal line (``fraction='multiline'``).

@@ -469,24 +469,54 @@ def test_format_styles(format_spec, string, decomposed):
 
 
 @pytest.mark.parametrize(
-    "format_spec, inline, string, decomposed",
+    "format_spec, fraction, string, decomposed",
     [
-        ("generic", True, "cm-2 erg s-1", "0.001 kg s-3"),
-        ("console", False, " erg  \n------\ns cm^2", "      kg \n0.001 ---\n      s^3"),
-        ("unicode", False, " erg \n─────\ns cm²", "      kg\n0.001 ──\n      s³"),
+        ("generic", False, "cm-2 erg s-1", "0.001 kg s-3"),
+        (
+            "console",
+            "multiline",
+            " erg  \n------\ns cm^2",
+            "      kg \n0.001 ---\n      s^3",
+        ),
+        ("console", "inline", "erg / (s cm^2)", "0.001 kg / s^3"),
+        ("unicode", "multiline", " erg \n─────\ns cm²", "      kg\n0.001 ──\n      s³"),
+        ("unicode", "inline", "erg / (s cm²)", "0.001 kg / s³"),
         (
             "latex",
-            True,
+            False,
             r"$\mathrm{erg\,s^{-1}\,cm^{-2}}$",
             r"$\mathrm{0.001\,kg\,s^{-3}}$",
         ),
-        # TODO: make generic with inline=True less awful!
+        (
+            "latex",
+            "inline",
+            r"$\mathrm{erg / (s\,cm^{2})}$",
+            r"$\mathrm{0.001\,kg / s^{3}}$",
+        ),
+        # TODO: make generic with fraction=False less awful!
     ],
 )
-def test_format_styles_non_default_inline(format_spec, inline, string, decomposed):
+def test_format_styles_non_default_fraction(format_spec, fraction, string, decomposed):
     fluxunit = u.erg / (u.cm**2 * u.s)
-    assert fluxunit.to_string(format_spec, inline=inline) == string
-    assert fluxunit.decompose().to_string(format_spec, inline=inline) == decomposed
+    assert fluxunit.to_string(format_spec, fraction=fraction) == string
+    assert fluxunit.decompose().to_string(format_spec, fraction=fraction) == decomposed
+
+
+@pytest.mark.parametrize("format_spec", ["generic", "cds", "fits", "ogip", "vounit"])
+def test_no_multiline_fraction(format_spec):
+    fluxunit = u.W / u.m**2
+    with pytest.raises(ValueError, match="only supports.*not fraction='multiline'"):
+        fluxunit.to_string(format_spec, fraction="multiline")
+
+
+@pytest.mark.parametrize(
+    "format_spec",
+    ["generic", "cds", "fits", "ogip", "vounit", "latex", "console", "unicode"],
+)
+def test_unknown_fraction_style(format_spec):
+    fluxunit = u.W / u.m**2
+    with pytest.raises(ValueError, match="only supports.*parrot"):
+        fluxunit.to_string(format_spec, fraction="parrot")
 
 
 def test_flatten_to_known():
@@ -892,13 +922,16 @@ def test_function_format_styles(format_spec, string):
 
 
 @pytest.mark.parametrize(
-    "format_spec, inline, string",
+    "format_spec, fraction, string",
     [
-        ("console", False, "   1\ndB(-)\n   m"),
-        ("unicode", False, "   1\ndB(─)\n   m"),
-        ("latex", True, r"$\mathrm{dB}$$\mathrm{\left( \mathrm{m^{-1}} \right)}$"),
+        ("console", "multiline", "   1\ndB(-)\n   m"),
+        ("console", "inline", "dB(1 / m)"),
+        ("unicode", "multiline", "   1\ndB(─)\n   m"),
+        ("unicode", "inline", "dB(1 / m)"),
+        ("latex", False, r"$\mathrm{dB}$$\mathrm{\left( \mathrm{m^{-1}} \right)}$"),
+        ("latex", "inline", r"$\mathrm{dB}$$\mathrm{\left( \mathrm{1 / m} \right)}$"),
     ],
 )
-def test_function_format_styles_inline(format_spec, inline, string):
+def test_function_format_styles_non_default_fraction(format_spec, fraction, string):
     dbunit = u.decibel(u.m**-1)
-    assert dbunit.to_string(format_spec, inline=inline) == string
+    assert dbunit.to_string(format_spec, fraction=fraction) == string

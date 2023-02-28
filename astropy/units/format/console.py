@@ -18,10 +18,12 @@ class Console(base.Base):
       >>> import astropy.units as u
       >>> print(u.Ry.decompose().to_string('console'))  # doctest: +FLOAT_CMP
       2.1798721*10^-18 m^2 kg s^-2
-      >>> print(u.Ry.decompose().to_string('console', inline=False))  # doctest: +FLOAT_CMP
+      >>> print(u.Ry.decompose().to_string('console', fraction='multiline'))  # doctest: +FLOAT_CMP
                        m^2 kg
       2.1798721*10^-18 ------
                         s^2
+      >>> print(u.Ry.decompose().to_string('console', fraction='inline'))  # doctest: +FLOAT_CMP
+      2.1798721*10^-18 m^2 kg / s^2
     """
 
     _times = "*"
@@ -50,7 +52,12 @@ class Console(base.Base):
         return cls._times.join(parts)
 
     @classmethod
-    def _format_fraction(cls, scale, numerator, denominator):
+    def _format_fraction(cls, scale, numerator, denominator, fraction="multiline"):
+        if fraction != "multiline":
+            return super()._format_fraction(
+                scale, numerator, denominator, fraction=fraction
+            )
+
         fraclength = max(len(numerator), len(denominator))
         f = f"{{0:<{len(scale)}s}}{{1:^{fraclength}s}}"
 
@@ -63,6 +70,7 @@ class Console(base.Base):
         )
 
     @classmethod
-    def to_string(cls, unit, inline=True):
-        # Change default of inline to True.
-        return super().to_string(unit, inline=inline)
+    def to_string(cls, unit, fraction=False):
+        # Change default of fraction to False, i.e., we typeset
+        # without a fraction by default.
+        return super().to_string(unit, fraction=fraction)
