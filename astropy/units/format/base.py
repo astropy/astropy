@@ -73,7 +73,13 @@ class Base:
         )
 
     @classmethod
-    def _format_fraction(cls, scale, numerator, denominator):
+    def _format_fraction(cls, scale, numerator, denominator, *, fraction="inline"):
+        if not (fraction is True or fraction == "inline"):
+            raise ValueError(
+                "format {cls.name!r} only supports inline fractions,"
+                f"not fraction={fraction!r}."
+            )
+
         if cls._space in denominator:
             denominator = f"({denominator})"
         if scale and numerator == "1":
@@ -81,7 +87,30 @@ class Base:
         return f"{scale}{numerator} / {denominator}"
 
     @classmethod
-    def to_string(cls, unit, inline=False):
+    def to_string(cls, unit, *, fraction=True):
+        """Convert a unit to its string representation.
+
+        Implementation for `~astropy.units.UnitBase.to_string`.
+
+        Parameters
+        ----------
+        unit : |Unit|
+            The unit to convert.
+        fraction : {False|True|'inline'|'multiline'}, optional
+            Options are as follows:
+
+            - `False` : display unit bases with negative powers as they are
+              (e.g., ``km s-1``);
+            - 'inline' or `True` : use a single-line fraction (e.g., ``km / s``);
+            - 'multiline' : use a multiline fraction (available for the
+              ``latex``, ``console`` and ``unicode`` formats only; e.g.,
+              ``$\\mathrm{\\frac{km}{s}}$``).
+
+        Raises
+        ------
+        ValueError
+            If ``fraction`` is not recognized.
+        """
         # First the scale.  Normally unity, in which case we omit
         # it, but non-unity scale can happen, e.g., in decompositions
         # like u.Ry.decompose(), which gives "2.17987e-18 kg m2 / s2".
@@ -95,20 +124,20 @@ class Base:
         if len(unit.bases):
             if s:
                 s += cls._scale_unit_separator
-            if inline:
-                numerator = list(zip(unit.bases, unit.powers))
-                denominator = []
-            else:
+            if fraction:
                 numerator, denominator = utils.get_grouped_by_powers(
                     unit.bases, unit.powers
                 )
+            else:
+                numerator = list(zip(unit.bases, unit.powers))
+                denominator = []
             if len(denominator):
                 if len(numerator):
                     numerator = cls._format_unit_list(numerator)
                 else:
                     numerator = "1"
                 denominator = cls._format_unit_list(denominator)
-                s = cls._format_fraction(s, numerator, denominator)
+                s = cls._format_fraction(s, numerator, denominator, fraction=fraction)
             else:
                 s += cls._format_unit_list(numerator)
 
