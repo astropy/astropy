@@ -551,7 +551,7 @@ def poisson_conf_interval(
 
     **4. 'sherpagehrels'** This rule is used by default in the fitting
     package 'sherpa'. The `documentation
-    <https://cxc.harvard.edu/sherpa4.4/statistics/#chigehrels>`_ claims
+    <https://cxc.cfa.harvard.edu/sherpa/statistics/#chigehrels>`_ claims
     it is based on a numerical approximation published in `Gehrels
     (1986) <https://ui.adsabs.harvard.edu/abs/1986ApJ...303..336G>`_ but it
     does not actually appear there.  It is symmetrical, and while the
