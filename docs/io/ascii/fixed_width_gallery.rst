@@ -494,7 +494,7 @@ column attributes are ``name``, ``dtype``, ``format``, ``description`` and
     |     2 |    2.00 |        d |     5 |
     |     3 |    3.00 |        e |     6 |
 
-In this example the 1st row is the ``dtype``, the 2nd row is the ``name``, and
+In this example the 1st row is the ``name``, the 2nd row is the ``unit``, and
 so forth. You must supply the ``name`` value in the ``header_rows`` list in
 order to get an output with the column name included.
 
