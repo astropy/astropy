@@ -77,16 +77,6 @@ exclude= [
 ]
 
 
-[tool.isort]
-    profile = "black"
-    extend_skip_glob = [
-        "astropy/extern/*",
-    ]
-    known_third_party = ["erfa", "PyYAML", "packaging", "pytest", "scipy", "matplotlib"]
-    known_first_party = ["astropy", "extension_helpers"]
-    group_by_package = true
-
-
 [tool.ruff]
 target-version = "py38"
 line-length = 88
@@ -316,9 +306,6 @@ unfixable = [
     "E711"  # NoneComparison. Hard to fix b/c numpy has it's own None.
 ]
 
-[tool.ruff.pydocstyle]
-convention = "numpy"
-
 [tool.ruff.per-file-ignores]
 "setup.py" = ["INP001"]  # Part of configuration, not a package.
 "__init__.py" = ["E402", "F401", "F403"]
@@ -342,6 +329,14 @@ convention = "numpy"
     "INP001", # implicit-namespace-package. The examples are not a package.
     "T203"
 ]
+
+[tool.ruff.isort]
+    known-third-party = ["erfa", "PyYAML", "packaging", "pytest", "scipy", "matplotlib"]
+    known-first-party = ["astropy", "extension_helpers"]
+    force-sort-within-sections = true
+
+[tool.ruff.pydocstyle]
+convention = "numpy"
 
 
 [tool.coverage]
