@@ -245,11 +245,12 @@ html_logo = "_static/astropy_banner_96.png"
 html_theme = "pydata_sphinx_theme"
 
 html_theme_options = {
+    "collapse_navigation": True,
     "github_url": "https://github.com/astropy/astropy",
+    "icon_links": [],
     "navigation_depth": 2,
     "show_nav_level": 2,
     "use_edit_page_button": True,
-    "icon_links": [],
 }
 
 # The name for this set of Sphinx documents.  If None, it defaults to
