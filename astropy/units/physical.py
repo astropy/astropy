@@ -4,6 +4,7 @@
 
 import numbers
 import warnings
+import numpy as np
 
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -200,7 +201,7 @@ def _standardize_physical_type_names(physical_type_input):
     return standardized_physical_types
 
 
-class PhysicalType:
+class PhysicalType(np.lib.mixins.NDArrayOperatorsMixin):
     """
     Represents the physical type(s) that are dimensionally compatible
     with a set of units.
@@ -397,22 +398,45 @@ class PhysicalType:
         new_unit = getattr(self._unit, operation)(other_unit)
         return new_unit.physical_type
 
-    def __mul__(self, other):
+    def __array_ufunc__(self, function, method, *inputs, **kwargs):
+        if not method == "__call__":
+            return NotImplemented
+
+        if function is np.multiply:
+            x1, x2 = inputs
+            if isinstance(x1, PhysicalType):
+                return x1._mul(x2)
+            elif isinstance(x2, PhysicalType):
+                return x2._rmul(x1)
+        elif function is np.divide:
+            x1, x2 = inputs
+            if isinstance(x1, PhysicalType):
+                return x1._truediv(x2)
+            elif isinstance(x2, PhysicalType):
+                return x2._rtruediv(x1)
+        elif function is np.power:
+            base, p = inputs
+            if isinstance(base, PhysicalType):
+                return base._pow(p)
+
+        return NotImplemented
+
+    def _mul(self, other):
         return self._dimensional_analysis(other, "__mul__")
 
-    def __rmul__(self, other):
+    def _rmul(self, other):
         return self.__mul__(other)
 
-    def __truediv__(self, other):
+    def _truediv(self, other):
         return self._dimensional_analysis(other, "__truediv__")
 
-    def __rtruediv__(self, other):
+    def _rtruediv(self, other):
         other = self._dimensionally_compatible_unit(other)
         if other is NotImplemented:
             return NotImplemented
         return other.physical_type._dimensional_analysis(self, "__truediv__")
 
-    def __pow__(self, power):
+    def _pow(self, power):
         return (self._unit**power).physical_type
 
     def __hash__(self):

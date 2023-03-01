@@ -1,0 +1,5 @@
+Modified ``astropy.units.core.UnitBase``,
+``astropy.units.function.core.FunctionUnitBase``,
+``astropy.units.function.logarithmic.LogUnit``, and
+``astropy.units.physical.PhysicalType`` to use the ``__array_ufunc__``
+infrastructure instead of overriding the arithmetic operators directly.

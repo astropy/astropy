@@ -49,7 +49,7 @@ SUPPORTED_FUNCTIONS = {
 
 # subclassing UnitBase or CompositeUnit was found to be problematic, requiring
 # a large number of overrides. Hence, define new class.
-class FunctionUnitBase(metaclass=ABCMeta):
+class FunctionUnitBase(np.lib.mixins.NDArrayOperatorsMixin, metaclass=ABCMeta):
     """Abstract base class for function units.
 
     Function units are functions containing a physical unit, such as dB(mW).
@@ -303,14 +303,58 @@ class FunctionUnitBase(metaclass=ABCMeta):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __rlshift__(self, other):
+    def __array_ufunc__(self, function, method, *inputs, **kwargs):
+        if not (method == "__call__"):
+            return NotImplemented
+
+        if function is np.power:
+            base, p = inputs
+            if isinstance(base, FunctionUnitBase):
+                return base._pow(p)
+        elif function is np.sqrt:
+            (x1,) = inputs
+            return x1._pow(1 / 2)
+        elif function is np.square:
+            (x1,) = inputs
+            return x1._pow(2)
+        elif function is np.divide:
+            x1, x2 = inputs
+            if isinstance(x1, FunctionUnitBase):
+                return x1._truediv(x2)
+            elif isinstance(x2, FunctionUnitBase):
+                return x2._rtruediv(x1)
+        elif function is np.multiply:
+            x1, x2 = inputs
+            if isinstance(x1, FunctionUnitBase):
+                return x1._mul(x2)
+            elif isinstance(x2, FunctionUnitBase):
+                return x2._rmul(x1)
+        elif function is np.left_shift:
+            x1, x2 = inputs
+            if isinstance(x1, FunctionUnitBase):
+                return NotImplemented
+            elif isinstance(x2, FunctionUnitBase):
+                return x2._rlshift(x1)
+        elif function is np.right_shift:
+            x1, x2 = inputs
+            if isinstance(x1, FunctionUnitBase):
+                return NotImplemented
+            elif isinstance(x2, FunctionUnitBase):
+                return x2._rrshift(x1)
+        elif function is np.positive:
+            (x1,) = inputs
+            return x1._pos()
+
+        return NotImplemented
+
+    def _rlshift(self, other):
         """Unit conversion operator ``<<``."""
         try:
             return self._quantity_class(other, self, copy=False, subok=True)
         except Exception:
             return NotImplemented
 
-    def __mul__(self, other):
+    def _mul(self, other):
         if isinstance(other, (str, UnitBase, FunctionUnitBase)):
             if self.physical_unit == dimensionless_unscaled:
                 # If dimensionless, drop back to normal unit and retry.
@@ -327,10 +371,10 @@ class FunctionUnitBase(metaclass=ABCMeta):
             except Exception:
                 return NotImplemented
 
-    def __rmul__(self, other):
+    def _rmul(self, other):
         return self.__mul__(other)
 
-    def __truediv__(self, other):
+    def _truediv(self, other):
         if isinstance(other, (str, UnitBase, FunctionUnitBase)):
             if self.physical_unit == dimensionless_unscaled:
                 # If dimensionless, drop back to normal unit and retry.
@@ -347,7 +391,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
             except Exception:
                 return NotImplemented
 
-    def __rtruediv__(self, other):
+    def _rtruediv(self, other):
         if isinstance(other, (str, UnitBase, FunctionUnitBase)):
             if self.physical_unit == dimensionless_unscaled:
                 # If dimensionless, drop back to normal unit and retry.
@@ -361,7 +405,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
             # Don't know what to do with anything not like a unit.
             return NotImplemented
 
-    def __pow__(self, power):
+    def _pow(self, power):
         if power == 0:
             return dimensionless_unscaled
         elif power == 1:
@@ -375,7 +419,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
             "to any power but 0 or 1."
         )
 
-    def __pos__(self):
+    def _pos(self):
         return self._copy()
 
     def to_string(self, format="generic", **kwargs):

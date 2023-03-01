@@ -108,21 +108,47 @@ class LogUnit(FunctionUnitBase):
 
         return self._copy(physical_unit)
 
-    def __neg__(self):
+    def __array_ufunc__(self, function, method, *inputs, **kwargs):
+        result = super().__array_ufunc__(function, method, *inputs, **kwargs)
+        if result is not NotImplemented:
+            return result
+
+        if not method == "__call__":
+            return NotImplemented
+
+        if function is np.negative:
+            (x1,) = inputs
+            return x1._neg()
+        elif function is np.add:
+            x1, x2 = inputs
+            if isinstance(x1, LogUnit):
+                return x1._add(x2)
+            elif isinstance(x2, LogUnit):
+                return x2._radd(x1)
+        elif function is np.subtract:
+            x1, x2 = inputs
+            if isinstance(x1, LogUnit):
+                return x1._sub(x2)
+            elif isinstance(x2, LogUnit):
+                return x2._rsub(x1)
+
+        return NotImplemented
+
+    def _neg(self):
         return self._copy(self.physical_unit ** (-1))
 
-    def __add__(self, other):
+    def _add(self, other):
         # Only know how to add to a logarithmic unit with compatible type,
         # be it a plain one (u.mag, etc.,) or another LogUnit
         return self._add_and_adjust_physical_unit(other, +1, +1)
 
-    def __radd__(self, other):
+    def _radd(self, other):
         return self._add_and_adjust_physical_unit(other, +1, +1)
 
-    def __sub__(self, other):
+    def _sub(self, other):
         return self._add_and_adjust_physical_unit(other, +1, -1)
 
-    def __rsub__(self, other):
+    def _rsub(self, other):
         # here, in normal usage other cannot be LogUnit; only equivalent one
         # would be u.mag,u.dB,u.dex.  But might as well use common routine.
         return self._add_and_adjust_physical_unit(other, -1, +1)

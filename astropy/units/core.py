@@ -637,7 +637,7 @@ class UnitsWarning(AstropyWarning):
     """
 
 
-class UnitBase:
+class UnitBase(np.lib.mixins.NDArrayOperatorsMixin):
     """
     Abstract base class for units.
 
@@ -825,11 +825,52 @@ class UnitBase:
 
         return normalized
 
-    def __pow__(self, p):
+    def __array_ufunc__(self, function, method, *inputs, **kwargs):
+        if not method == "__call__":
+            return NotImplemented
+
+        if function is np.power:
+            base, p = inputs
+            if isinstance(base, UnitBase):
+                return base._pow(p)
+        elif function is np.sqrt:
+            (x1,) = inputs
+            return x1._pow(1 / 2)
+        elif function is np.square:
+            (x1,) = inputs
+            return x1._pow(2)
+        elif function is np.divide:
+            x1, x2 = inputs
+            if isinstance(x1, UnitBase):
+                return x1._truediv(x2)
+            elif isinstance(x2, UnitBase):
+                return x2._rtruediv(x1)
+        elif function is np.multiply:
+            x1, x2 = inputs
+            if isinstance(x1, UnitBase):
+                return x1._mul(x2)
+            elif isinstance(x2, UnitBase):
+                return x2._rmul(x1)
+        elif function is np.left_shift:
+            x1, x2 = inputs
+            if isinstance(x1, UnitBase):
+                return NotImplemented
+            elif isinstance(x2, UnitBase):
+                return x2._rlshift(x1)
+        elif function is np.right_shift:
+            x1, x2 = inputs
+            if isinstance(x1, UnitBase):
+                return NotImplemented
+            elif isinstance(x2, UnitBase):
+                return x2._rrshift(x1)
+
+        return NotImplemented
+
+    def _pow(self, p):
         p = validate_power(p)
         return CompositeUnit(1, [self], [p], _error_check=False)
 
-    def __truediv__(self, m):
+    def _truediv(self, m):
         if isinstance(m, (bytes, str)):
             m = Unit(m)
 
@@ -846,7 +887,7 @@ class UnitBase:
         except TypeError:
             return NotImplemented
 
-    def __rtruediv__(self, m):
+    def _rtruediv(self, m):
         if isinstance(m, (bytes, str)):
             return Unit(m) / self
 
@@ -865,7 +906,7 @@ class UnitBase:
         except TypeError:
             return NotImplemented
 
-    def __mul__(self, m):
+    def _mul(self, m):
         if isinstance(m, (bytes, str)):
             m = Unit(m)
 
@@ -884,7 +925,7 @@ class UnitBase:
         except TypeError:
             return NotImplemented
 
-    def __rmul__(self, m):
+    def _rmul(self, m):
         if isinstance(m, (bytes, str)):
             return Unit(m) * self
 
@@ -903,7 +944,7 @@ class UnitBase:
         except TypeError:
             return NotImplemented
 
-    def __rlshift__(self, m):
+    def _rlshift(self, m):
         try:
             from .quantity import Quantity
 
@@ -911,7 +952,7 @@ class UnitBase:
         except Exception:
             return NotImplemented
 
-    def __rrshift__(self, m):
+    def _rrshift(self, m):
         warnings.warn(
             ">> is not implemented. Did you mean to convert "
             f"to a Quantity with unit {m} using '<<'?",

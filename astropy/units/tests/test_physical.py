@@ -218,9 +218,9 @@ operation_parameters = [
     (length, 2, "__pow__", area),
     (area, 0.5, "__pow__", length),
     (dimensionless, 4, "__pow__", dimensionless),
-    (u.m, length, "__mul__", NotImplemented),
+    (u.m, length, "__mul__", area),
     (3.2, length, "__mul__", NotImplemented),
-    (u.m, time, "__truediv__", NotImplemented),
+    (u.m, time, "__truediv__", speed),
     (3.2, length, "__truediv__", NotImplemented),
     (length, u.m, "__mul__", area),
     (length, u.m, "__rmul__", area),
@@ -232,10 +232,10 @@ operation_parameters = [
     (time, u.m, "__rtruediv__", speed),
     (length, 1.0, "__rtruediv__", wavenumber),
     (length, 2, "__pow__", area),
-    (length, 32, "__mul__", NotImplemented),
-    (length, 0, "__rmul__", NotImplemented),
-    (length, 3.2, "__truediv__", NotImplemented),
-    (length, -1, "__rtruediv__", NotImplemented),
+    (length, 32, "__mul__", TypeError()),
+    (length, 0, "__rmul__", TypeError()),
+    (length, 3.2, "__truediv__", TypeError()),
+    (length, -1, "__rtruediv__", TypeError()),
     (length, "length", "__mul__", area),
     (length, "length", "__rmul__", area),
     (area, "length", "__truediv__", length),
@@ -249,7 +249,11 @@ def test_physical_type_operations(left, right, operator, expected):
     Test that `PhysicalType` dunder methods that require another
     argument behave as intended.
     """
-    assert getattr(left, operator)(right) == expected
+    if isinstance(expected, Exception):
+        with pytest.raises(type(expected)):
+            getattr(left, operator)(right)
+    else:
+        assert getattr(left, operator)(right) == expected
 
 
 unit_with_physical_type_set = [
