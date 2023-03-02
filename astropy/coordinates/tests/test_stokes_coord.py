@@ -157,11 +157,14 @@ def test_comparison_other_coord():
 
 def test_efficient():
     # Make sure that if we pass a broadcasted array in we get a broadcasted
-    # arrayt of symbols.
+    # array of symbols.
 
-    values = np.broadcast_to(np.arange(1, 5), (512, 256, 4))
-    sk = StokesCoord(values)
+    values = np.broadcast_to(np.arange(1, 5, dtype=float), (512, 256, 4))
+    sk = StokesCoord(values, copy=False)
+    # Sanity check
+    assert unbroadcast(sk.value).shape == (4,)
+
     assert sk.symbol.shape == (512, 256, 4)
-    assert unbroadcast(sk.value).shape == (1, 1, 4)
-    assert unbroadcast(sk.symbol).shape == (1, 1, 4)
-    assert_equal(unbroadcast(sk.symbol)[0, 0], np.array(["I", "Q", "U", "V"]))
+    assert unbroadcast(sk.value).shape == (4,)
+    assert unbroadcast(sk.symbol).shape == (4,)
+    assert_equal(unbroadcast(sk.symbol), np.array(["I", "Q", "U", "V"]))

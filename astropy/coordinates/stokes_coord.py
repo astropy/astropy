@@ -7,6 +7,7 @@ import numpy as np
 
 import astropy.units as u
 from astropy.units.quantity import Quantity
+from astropy.utils import unbroadcast
 
 __all__ = ["StokesCoord", "custom_stokes_symbol_mapping"]
 
@@ -71,7 +72,7 @@ class StokesCoord(Quantity):
 
     def __new__(cls, value, unit=None, **kwargs):
         if unit is not None and unit is not u.dimensionless_unscaled:
-            raise u.UnitsError("unit should not be specified explicitly")
+            raise u.UnitsError("unit should not be specified explicitly to StokesCoord")
 
         value_as_array = np.array(value, copy=False, subok=True)
         if value_as_array.dtype.kind == "U":
@@ -100,8 +101,11 @@ class StokesCoord(Quantity):
         """
         A representation of the coordinate as integers.
         """
-        # TODO: Unbroadcast here
-        return type(self)(np.round(self))
+        # Note we unbroadcast and re-broadcast here to prevent the new array
+        # using more memory than the old one.
+        return type(self)(
+            np.broadcast_to(np.round(unbroadcast(self)), self.shape), copy=False
+        )
 
     @property
     def symbol(self):
@@ -113,12 +117,14 @@ class StokesCoord(Quantity):
         )
         max_len = np.max([len(s) for s in known_symbols])
 
-        symbolarr = np.full(self.shape, "?", dtype=f"<U{max_len}")
+        # Note we unbroadcast and re-broadcast here to prevent the new array
+        # using more memory than the old one.
+        symbolarr = np.full(unbroadcast(self).shape, "?", dtype=f"<U{max_len}")
 
         for value, symbol in STOKES_VALUE_SYMBOL_MAP.items():
-            symbolarr[self._stokes_values == value] = symbol.symbol
+            symbolarr[unbroadcast(self._stokes_values) == value] = symbol.symbol
 
-        return symbolarr
+        return np.broadcast_to(symbolarr, self.shape)
 
     def __eq__(self, other):
         if isinstance(other, str):
