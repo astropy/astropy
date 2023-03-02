@@ -75,7 +75,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.put, np.fill_diagonal, np.tile, np.repeat,
     np.split, np.array_split, np.hsplit, np.vsplit, np.dsplit,
     np.stack, np.column_stack, np.hstack, np.vstack, np.dstack,
-    np.amax, np.amin, np.ptp, np.sum, np.cumsum,
+    np.max, np.min, np.amax, np.amin, np.ptp, np.sum, np.cumsum,
     np.prod, np.product, np.cumprod, np.cumproduct,
     np.round, np.around,
     np.fix, np.angle, np.i0, np.clip,
