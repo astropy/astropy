@@ -9,7 +9,7 @@ import astropy.units as u
 from astropy.units.quantity import Quantity
 from astropy.utils import unbroadcast
 
-__all__ = ["StokesCoord", "custom_stokes_symbol_mapping"]
+__all__ = ["StokesCoord", "custom_stokes_symbol_mapping", "StokesSymbol"]
 
 
 StokesSymbol = namedtuple("StokesSymbol", ["symbol", "description"], defaults=[""])
@@ -33,10 +33,6 @@ FITS_STOKES_VALUE_SYMBOL_MAP = {
 STOKES_VALUE_SYMBOL_MAP = copy(FITS_STOKES_VALUE_SYMBOL_MAP)
 
 
-def _reverse_stokes_map():
-    return {v.symbol: k for k, v in STOKES_VALUE_SYMBOL_MAP.items()}
-
-
 @contextmanager
 def custom_stokes_symbol_mapping(
     mapping: Dict[int, StokesSymbol], replace: bool = False
@@ -48,7 +44,7 @@ def custom_stokes_symbol_mapping(
     ----------
     mappings
         A list of dictionaries with custom mappings between values (integers)
-        and `StokesSymbol` classes.
+        and `.StokesSymbol` classes.
     replace
         Replace all mappings with this one.
     """
@@ -134,7 +130,6 @@ class StokesCoord(Quantity):
 
     def __array_ufunc__(self, function, method, *inputs, **kwargs):
         if function is np.equal:
-            print(inputs[0] is self)
             if inputs[0] is self:
                 return self.symbol == inputs[1]
             else:

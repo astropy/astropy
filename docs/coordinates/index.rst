@@ -501,6 +501,7 @@ listed below.
    velocities
    apply_space_motion
    spectralcoord
+   stokescoord
    galactocentric
    remote_methods
    common_errors
