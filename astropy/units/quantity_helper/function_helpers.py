@@ -70,9 +70,10 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.put, np.fill_diagonal, np.tile, np.repeat,
     np.split, np.array_split, np.hsplit, np.vsplit, np.dsplit,
     np.stack, np.column_stack, np.hstack, np.vstack, np.dstack,
-    np.amax, np.amin, np.ptp, np.sum, np.cumsum,
+    np.max, np.min, np.amax, np.amin, np.ptp, np.sum, np.cumsum,
     np.prod, np.product, np.cumprod, np.cumproduct,
     np.round, np.around,
+    np.round_,  # Alias for np.round in NUMPY_LT_1_25, but deprecated since.
     np.fix, np.angle, np.i0, np.clip,
     np.isposinf, np.isneginf, np.isreal, np.iscomplex,
     np.average, np.mean, np.std, np.var, np.median, np.trace,
