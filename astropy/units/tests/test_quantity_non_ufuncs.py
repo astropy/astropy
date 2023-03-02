@@ -16,7 +16,12 @@ from astropy.units.quantity_helper.function_helpers import (
     DISPATCHED_FUNCTIONS,
     IGNORED_FUNCTIONS,
 )
-from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_23, NUMPY_LT_1_24
+from astropy.utils.compat import (
+    NUMPY_LT_1_20,
+    NUMPY_LT_1_23,
+    NUMPY_LT_1_24,
+    NUMPY_LT_1_25,
+)
 
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
@@ -607,6 +612,12 @@ class TestSplit(metaclass=CoverageMeta):
 
 
 class TestUfuncReductions(InvariantUnitTestSetup):
+    def test_max(self):
+        self.check(np.max)
+
+    def test_min(self):
+        self.check(np.min)
+
     def test_amax(self):
         self.check(np.amax)
 
@@ -657,8 +668,17 @@ class TestUfuncLike(InvariantUnitTestSetup):
         self.check(np.ptp)
         self.check(np.ptp, axis=0)
 
+    def test_round(self):
+        self.check(np.round)
+
     def test_round_(self):
-        self.check(np.round_)
+        if NUMPY_LT_1_25:
+            self.check(np.round_)
+        else:
+            with pytest.warns(
+                DeprecationWarning, match="`round_` is deprecated as of NumPy 1.25.0"
+            ):
+                self.check(np.round_)
 
     def test_around(self):
         self.check(np.around)
