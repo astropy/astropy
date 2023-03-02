@@ -19,6 +19,7 @@ from astropy.coordinates import (
     Galactic,
     SkyCoord,
     SpectralCoord,
+    StokesCoord,
 )
 from astropy.io import fits
 from astropy.io.fits import Header
@@ -1403,4 +1404,4 @@ def test_pixel_to_world_stokes(wcs_polarized):
     world = w.pixel_to_world(0, 0, [0, 1, 2, 3])
     assert isinstance(world[2], StokesCoord)
     assert u.allclose(world[2], [1, 2, 3, 4])
-    assert np.equal(world[2].symbol, ["I", "U", "Q", "V"])
+    assert np.equal(world[2].symbol, ["I", "U", "Q", "V"]).all()
