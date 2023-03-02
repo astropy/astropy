@@ -608,6 +608,12 @@ class TestSplit(metaclass=CoverageMeta):
 
 
 class TestUfuncReductions(InvariantUnitTestSetup):
+    def test_max(self):
+        self.check(np.max)
+
+    def test_min(self):
+        self.check(np.min)
+
     def test_amax(self):
         self.check(np.amax)
 
