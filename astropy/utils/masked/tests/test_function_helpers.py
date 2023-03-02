@@ -579,6 +579,12 @@ class TestMethodLikes(MaskedArraySetup):
         x = getattr(self.ma, method)(*args, **kwargs)
         assert_masked_equal(o, x)
 
+    def test_max(self):
+        self.check(np.max, method="max")
+
+    def test_min(self):
+        self.check(np.min, method="min")
+
     def test_amax(self):
         self.check(np.amax, method="max")
 
@@ -619,8 +625,17 @@ class TestMethodLikes(MaskedArraySetup):
         self.check(np.ptp)
         self.check(np.ptp, axis=0)
 
+    def test_round(self):
+        self.check(np.round, method="round")
+
     def test_round_(self):
-        self.check(np.round_, method="round")
+        if NUMPY_LT_1_25:
+            self.check(np.round_, method="round")
+        else:
+            with pytest.warns(
+                DeprecationWarning, match="`round_` is deprecated as of NumPy 1.25.0"
+            ):
+                self.check(np.round_, method="round")
 
     def test_around(self):
         self.check(np.around, method="round")
