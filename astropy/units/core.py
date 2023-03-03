@@ -650,6 +650,7 @@ class UnitBase:
     # Make sure that __rmul__ of units gets called over the __mul__ of Numpy
     # arrays to avoid element-wise multiplication.
     __array_priority__ = 1000
+    __array_ufunc__ = None
 
     _hash = None
     _type_id = None
@@ -842,7 +843,13 @@ class UnitBase:
             # Cannot handle this as Unit, re-try as Quantity
             from .quantity import Quantity
 
-            return Quantity(1, self) / m
+            if isinstance(m, Quantity):
+                return NotImplemented
+            elif isinstance(m, np.ndarray):
+                return Quantity(1 / m, unit=self)
+            else:
+                return Quantity(1, unit=self) / m
+
         except TypeError:
             return NotImplemented
 
@@ -856,12 +863,12 @@ class UnitBase:
             # unit, for the common case of <array> / <unit>.
             from .quantity import Quantity
 
-            if hasattr(m, "unit"):
-                result = Quantity(m)
-                result /= self
-                return result
+            if isinstance(m, Quantity):
+                return NotImplemented
+            elif isinstance(m, np.ndarray):
+                return Quantity(m, unit=self ** (-1))
             else:
-                return Quantity(m, self ** (-1))
+                return m / Quantity(1, unit=self)
         except TypeError:
             return NotImplemented
 
@@ -880,28 +887,18 @@ class UnitBase:
         try:
             from .quantity import Quantity
 
-            return Quantity(1, unit=self) * m
+            if isinstance(m, Quantity):
+                return NotImplemented
+            elif isinstance(m, np.ndarray):
+                return Quantity(m, unit=self)
+            else:
+                return Quantity(1, unit=self) * m
+
         except TypeError:
             return NotImplemented
 
     def __rmul__(self, m):
-        if isinstance(m, (bytes, str)):
-            return Unit(m) * self
-
-        # Cannot handle this as Unit.  Here, m cannot be a Quantity,
-        # so we make it into one, fasttracking when it does not have a unit
-        # for the common case of <array> * <unit>.
-        try:
-            from .quantity import Quantity
-
-            if hasattr(m, "unit"):
-                result = Quantity(m)
-                result *= self
-                return result
-            else:
-                return Quantity(m, unit=self)
-        except TypeError:
-            return NotImplemented
+        return self.__mul__(m)
 
     def __rlshift__(self, m):
         try:

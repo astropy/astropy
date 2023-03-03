@@ -439,7 +439,7 @@ def convolve(
     # Convert result to original data type
     array_unit = getattr(passed_array, "unit", None)
     if array_unit is not None:
-        result <<= array_unit
+        result = result << array_unit
 
     if isinstance(passed_array, Kernel):
         if isinstance(passed_array, Kernel1D):
@@ -921,7 +921,7 @@ def convolve_fft(
     fftmult *= kernel_scale
 
     if array_unit is not None:
-        fftmult <<= array_unit
+        fftmult = fftmult << array_unit
 
     if return_fft:
         return fftmult

@@ -2075,7 +2075,7 @@ class TestLinAlg(metaclass=CoverageMeta):
         m = np.arange(10.0) * np.arange(5.0)[:, np.newaxis] * u.m
         svd_u, svd_s, svd_vt = np.linalg.svd(m, full_matrices=False)
         svd_ux, svd_sx, svd_vtx = np.linalg.svd(m.value, full_matrices=False)
-        svd_sx <<= m.unit
+        svd_sx = svd_sx << m.unit
         assert_array_equal(svd_u, svd_ux)
         assert_array_equal(svd_vt, svd_vtx)
         assert_array_equal(svd_s, svd_sx)
@@ -2132,7 +2132,7 @@ class TestLinAlg(metaclass=CoverageMeta):
         b = np.array([1.0, 2.0, 4.0]) * u.m / u.s
         x = np.linalg.solve(self.q, b)
         xx = np.linalg.solve(self.q.value, b.value)
-        xx <<= b.unit / self.q.unit
+        xx = xx << b.unit / self.q.unit
         assert_array_equal(x, xx)
         assert u.allclose(self.q @ x, b)
 
@@ -2141,7 +2141,7 @@ class TestLinAlg(metaclass=CoverageMeta):
         b = np.array([1.0, 2.0, 4.0]) * u.m / u.s
         x = np.linalg.tensorsolve(self.q, b)
         xx = np.linalg.tensorsolve(self.q.value, b.value)
-        xx <<= b.unit / self.q.unit
+        xx = xx << b.unit / self.q.unit
         assert_array_equal(x, xx)
         assert u.allclose(self.q @ x, b)
 
@@ -2150,9 +2150,9 @@ class TestLinAlg(metaclass=CoverageMeta):
         b = np.array([1.0, 2.0, 4.0]) * u.m / u.s
         x, residuals, rank, s = np.linalg.lstsq(self.q, b, rcond=None)
         xx, residualsx, rankx, sx = np.linalg.lstsq(self.q.value, b.value, rcond=None)
-        xx <<= b.unit / self.q.unit
-        residualsx <<= b.unit**2
-        sx <<= self.q.unit
+        xx = xx << b.unit / self.q.unit
+        residualsx = residualsx << b.unit**2
+        sx = sx << self.q.unit
 
         assert_array_equal(x, xx)
         assert_array_equal(residuals, residualsx)
@@ -2197,8 +2197,8 @@ class TestLinAlg(metaclass=CoverageMeta):
         a = np.array([[1, -2j], [2j, 5]]) * u.m
         q, r = np.linalg.qr(a)
         qx, rx = np.linalg.qr(a.value)
-        qx <<= u.one
-        rx <<= a.unit
+        qx = qx << u.one
+        rx = rx << a.unit
         assert_array_equal(q, qx)
         assert_array_equal(r, rx)
         assert u.allclose(q @ r, a)
@@ -2207,8 +2207,8 @@ class TestLinAlg(metaclass=CoverageMeta):
     def test_eig(self):
         w, v = np.linalg.eig(self.q)
         wx, vx = np.linalg.eig(self.q.value)
-        wx <<= self.q.unit
-        vx <<= u.one
+        wx = wx << self.q.unit
+        vx = vx << u.one
         assert_array_equal(w, wx)
         assert_array_equal(v, vx)
 
@@ -2232,8 +2232,8 @@ class TestLinAlg(metaclass=CoverageMeta):
     def test_eigh(self):
         w, v = np.linalg.eigh(self.q)
         wx, vx = np.linalg.eigh(self.q.value)
-        wx <<= self.q.unit
-        vx <<= u.one
+        wx = wx << self.q.unit
+        vx = vx << u.one
         assert_array_equal(w, wx)
         assert_array_equal(v, vx)
 
