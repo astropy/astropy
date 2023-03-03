@@ -101,6 +101,11 @@ class WCSAxes(Axes):
         The class for the frame, which should be a subclass of
         :class:`~astropy.visualization.wcsaxes.frame.BaseFrame`. The default is to use a
         :class:`~astropy.visualization.wcsaxes.frame.RectangularFrame`
+
+    Attributes
+    ----------
+    coords : :class:`~astropy.visualization.wcsaxes.CoordinatesMap`
+        Container for coordinate information.
     """
 
     def __init__(
