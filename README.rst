@@ -33,6 +33,19 @@ page. A `summary of contribution guidelines <CONTRIBUTING.md>`_ can also be
 used as a quick reference when you are ready to start writing or validating
 code for submission.
 
+Getting started with GitHub Codespaces
+--------------------------------------
+
+Codespaces is a cloud development environment supported by GitHub. None of the Astropy build machinery depends on it, but it is a convenient way to quickly get started doing development on Astropy.
+
+To get started, create a codespace for this repository by clicking this 👇
+
+|Codespaces|
+
+A codespace will open in a web-based version of Visual Studio Code. The `dev container <.devcontainer/devcontainer.json>`_ is fully configured with software needed for this project. Feel free to take a look at `GitHub Codespaces Support <https://support.github.com/features/codespaces>`_ page for help.
+
+**Note**: Dev containers is an open spec which is supported by `GitHub Codespaces <https://github.com/codespaces>`_ and `other tools <https://containers.dev/supporting>`_.
+
 Supporting the Project
 ----------------------
 
@@ -91,6 +104,10 @@ Astropy is licensed under a 3-clause BSD style license - see the
 
 .. |Donate| image:: https://img.shields.io/badge/Donate-to%20Astropy-brightgreen.svg
     :target: https://numfocus.salsalabs.org/donate-to-astropy/index.html
+
+.. |Codespaces| image:: https://github.com/codespaces/badge.svg
+    :target: https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=2081289
+    :alt: Open in GitHub Codespaces
 
 
 If you locally cloned this repo before 7 Apr 2021
