@@ -2141,6 +2141,11 @@ class CompImageHDU(BinTableHDU):
 
     @property
     def tile_shape(self):
+        """
+        The tile shape used for the tiled compression.
+
+        This shape is given in Numpy/C order
+        """
         return tuple(
             [
                 self._header[f"ZTILE{idx + 1}"]
@@ -2150,6 +2155,9 @@ class CompImageHDU(BinTableHDU):
 
     @property
     def compression_type(self):
+        """
+        The name of the compression algorithm.
+        """
         return self._header.get("ZCMPTYPE", DEFAULT_COMPRESSION_TYPE)
 
 
