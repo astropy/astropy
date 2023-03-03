@@ -32,13 +32,36 @@ processing, and data analysis.
    software or `affiliated packages`_ that depend on the astropy
    core package.
 
-.. toctree::
-   :maxdepth: 1
+Getting Started
+===============
 
-   Getting Started <getting_started/index>
-   User Guide <user/index>
+.. toctree::
+   :maxdepth: 2
+
+   getting_started/index
+
+User Guide
+==========
+
+.. toctree::
+   :maxdepth: 2
+
+   user/index
+
+Development
+===========
+
+.. toctree::
+   :maxdepth: 2
+
    Development <development/index>
-   Tutorials <https://learn.astropy.org/>
+
+Release Notes
+=============
+
+.. toctree::
+   :maxdepth: 2
+
    Release Notes <whatsnew/index>
 
 .. *****

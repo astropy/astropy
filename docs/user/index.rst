@@ -1,8 +1,8 @@
 .. _user-docs:
 
-******************
-User Documentation
-******************
+**********
+User Guide
+**********
 
 .. toctree::
    :caption: Data structures and transformations
