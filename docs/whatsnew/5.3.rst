@@ -18,6 +18,7 @@ In particular, this release includes:
 .. * :ref:`whatsnew-5.3-compressed-fits-nocompress`
 .. * :ref:`whatsnew-5.3-unit-formats-fraction`
 .. * :ref:`whatsnew-5.3-nddata-collapse-arbitrary-axes`
+.. * :ref:`whatsnew-5.3-coordinates-refresh-site-registry`
 
 In addition to these major changes, Astropy v5.3 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -180,6 +181,22 @@ we can take the sum of ND masked quantities along the ``1`` axis like so::
     (NDDataArray([6., 9.], unit='m'),
      array([ True, False]),
      StdDevUncertainty([1.41421356, 1.73205081]))
+
+.. _whatsnew-5.3-coordinates-refresh-site-registry:
+
+Refresh cached observatory site registry for |EarthLocation| methods
+====================================================================
+
+The |EarthLocation| convenience methods
+:meth:`~astropy.coordinates.EarthLocation.of_site` and
+:meth:`~astropy.coordinates.EarthLocation.get_site_names` use the observatory
+site registry from the
+`astropy-data repository <https://github.com/astropy/astropy-data>`_ to
+return site data by name.  Usually, the site registry is cached on the
+user's computer for quick access.  The online version of the registry,
+however, is updated from time to time to include new locations.  The user
+may refresh their locally cached site registry by passing the new
+``refresh_cache=True`` option to these two functions.
 
 Full change log
 ===============
