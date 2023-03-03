@@ -127,7 +127,7 @@ if "templates_path" not in locals():  # in case parent conf.py defines it
     templates_path = []
 templates_path.append("_templates")
 
-extensions += ["sphinx_changelog"]
+extensions += ["sphinx_changelog", "sphinx_copybutton"]
 
 extensions.remove("sphinx_automodapi.automodapi")
 extensions.remove("sphinx_automodapi.smart_resolver")
