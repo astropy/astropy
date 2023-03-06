@@ -1478,8 +1478,8 @@ class TestConvertNumpyArray:
         d = table_types.Table([[1, 2], [3, 4]], names=("a", "b"))
         ds = [d, d, d]
         np_ds = np.array(ds, dtype=object)
-        assert all([isinstance(t, table_types.Table) for t in np_ds])
-        assert all([np.array_equal(t, d) for t in np_ds])
+        assert all(isinstance(t, table_types.Table) for t in np_ds)
+        assert all(np.array_equal(t, d) for t in np_ds)
 
 
 def _assert_copies(t, t2, deep=True):

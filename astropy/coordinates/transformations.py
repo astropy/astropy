@@ -1596,7 +1596,7 @@ class CompositeTransform(CoordinateTransform):
             for t in self.transforms
         ]
 
-        if all([isinstance(t, BaseAffineTransform) for t in transforms]):
+        if all(isinstance(t, BaseAffineTransform) for t in transforms):
             # Check if there may be an origin shift
             fixed_origin = all(
                 isinstance(t, (StaticMatrixTransform, DynamicMatrixTransform))
