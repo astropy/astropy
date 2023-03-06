@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.testing import assert_allclose
 
+from astropy.wcs import WCS
 from astropy.coordinates import SkyCoord
 from astropy.units import Quantity
 from astropy.wcs.wcsapi.high_level_api import (
@@ -202,3 +203,29 @@ def test_values_to_objects():
 
     assert c1.dec == c1_out.dec
     assert c2.b == c2_out.b
+
+
+class MinimalHighLevelWCS(HighLevelWCSMixin):
+    def __init__(self, low_level_wcs):
+        self._low_level_wcs = low_level_wcs
+
+    @property
+    def low_level_wcs(self):
+        return self._low_level_wcs
+
+
+def test_minimal_mixin_subclass():
+    # Regression test for a bug that caused coordinate conversions to fail
+    # unless the WCS dimensions were defined on the high level WCS (which they
+    # are not required to be)
+
+    fits_wcs = WCS(naxis=2)
+    high_level_wcs = MinimalHighLevelWCS(fits_wcs)
+
+    coord = high_level_wcs.pixel_to_world(1, 2)
+    pixel = high_level_wcs.world_to_pixel(*coord)
+
+    coord = high_level_wcs.array_index_to_world(1, 2)
+    pixel = high_level_wcs.world_to_array_index(*coord)
+
+    assert_allclose(pixel, (1, 2))
