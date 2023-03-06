@@ -258,7 +258,6 @@ extend-ignore = [
 
     # Ruff-specific rules (RUF)
     "RUF001", "RUF002", "RUF003",  # AmbiguousUnicode, maybe fix?
-    "RUF004",  # KeywordArgumentBeforeStarArgument    # TODO: fix
     "RUF005",  # unpack-instead-of-concatenating-to-collection-literal -- it's not clearly faster.
 
     # flake8-bandit (S)
