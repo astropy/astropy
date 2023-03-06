@@ -303,7 +303,7 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
             )
 
         else:
-            if hdu._header["ZCMPTYPE"] == "GZIP_2":
+            if hdu.compression_type == "GZIP_2":
                 # Decompress with GZIP_1 just to find the total number of
                 # elements in the uncompressed data.
                 # TODO: find a way to avoid doing this for all tiles
@@ -313,14 +313,14 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
                 )
 
             tile_buffer = _decompress_tile(
-                cdata, algorithm=hdu._header["ZCMPTYPE"], **settings
+                cdata, algorithm=hdu.compression_type, **settings
             )
 
             tile_data = _finalize_array(
                 tile_buffer,
                 bitpix=hdu._header["ZBITPIX"],
                 tile_shape=actual_tile_shape,
-                algorithm=hdu._header["ZCMPTYPE"],
+                algorithm=hdu.compression_type,
                 lossless=not quantized,
             )
 
@@ -464,7 +464,7 @@ def compress_hdu(hdu):
         if gzip_fallback[-1]:
             cbytes = _compress_tile(data, algorithm="GZIP_1")
         else:
-            cbytes = _compress_tile(data, algorithm=hdu._header["ZCMPTYPE"], **settings)
+            cbytes = _compress_tile(data, algorithm=hdu.compression_type, **settings)
         compressed_bytes.append(cbytes)
 
     if zblank is not None:
@@ -489,11 +489,11 @@ def compress_hdu(hdu):
 
     # For PLIO_1, the size of each heap element is a factor of two lower than
     # the real size - not clear if this is deliberate or bug somewhere.
-    if hdu._header["ZCMPTYPE"] == "PLIO_1":
+    if hdu.compression_type == "PLIO_1":
         table["COMPRESSED_DATA"][:, 0] //= 2
 
     # For PLIO_1, it looks like the compressed data is always stored big endian
-    if hdu._header["ZCMPTYPE"] == "PLIO_1":
+    if hdu.compression_type == "PLIO_1":
         for irow in range(len(compressed_bytes)):
             if not gzip_fallback[irow]:
                 array = np.frombuffer(compressed_bytes[irow], dtype="i2")

@@ -1,0 +1,5 @@
+The ``tile_size=`` argument to ``CompImageHDU`` has been deprecated
+as it was confusing that it was required to be in the opposite
+order to the data shape (it was in header rather than Numpy order).
+Instead, users should make use of the ``tile_shape=`` argument which
+is in Numpy shape order.

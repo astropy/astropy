@@ -59,7 +59,7 @@ else:
     ids=lambda x: f"shape: {x[0]} tile_dims: {x[1]}",
 )
 def array_shapes_tile_dims(request, compression_type):
-    shape, tile_dim = request.param
+    shape, tile_dims = request.param
     # H_COMPRESS needs >=2D data and always 2D tiles
     if compression_type == "HCOMPRESS_1":
         if (
@@ -67,22 +67,22 @@ def array_shapes_tile_dims(request, compression_type):
             len(shape) < 2
             or
             # We don't have 2D tiles
-            np.count_nonzero(np.array(tile_dim) != 1) != 2
+            np.count_nonzero(np.array(tile_dims) != 1) != 2
             or
             # TODO: The following restrictions can be lifted with some extra work.
             # The tile is not the first two dimensions of the data
-            tile_dim[0] == 1
-            or tile_dim[1] == 1
+            tile_dims[0] == 1
+            or tile_dims[1] == 1
             or
             # The tile dimensions not an integer multiple of the array dims
-            np.count_nonzero(np.array(shape[:2]) % tile_dim[:2]) != 0
+            np.count_nonzero(np.array(shape[:2]) % tile_dims[:2]) != 0
         ):
             pytest.xfail(
                 "HCOMPRESS requires 2D tiles, from the first two"
                 "dimensions, and an integer number of tiles along the first two"
                 "axes."
             )
-    return shape, tile_dim
+    return shape, tile_dims
 
 
 @pytest.fixture(scope="module")
@@ -170,8 +170,7 @@ def astropy_compressed_file_path(
     hdu = fits.CompImageHDU(
         data=original_data,
         compression_type=compression_type,
-        # TODO: why does this require a list??
-        tile_size=list(tile_dims) if tile_dims is not None else tile_dims,
+        tile_shape=None if tile_dims is None else tile_dims[::-1],
         **param,
     )
     hdu.writeto(filename)

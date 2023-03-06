@@ -1,0 +1,3 @@
+Added new properties ``compression_type`` and ``tile_shape`` on
+``CompImageHDU``, giving the name of the compression algorithm
+and the shape of the tiles in the tiled compression respectively.
