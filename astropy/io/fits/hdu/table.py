@@ -910,8 +910,7 @@ class BinTableHDU(_TableBaseHDU):
         ver=None,
         character_as_bytes=False,
     ):
-        # stops unnecessary import of astropy.table.Table if data is None
-        if data is not None:
+        if data is not None and data is not DELAYED:
             from astropy.table import Table
 
             if isinstance(data, Table):
