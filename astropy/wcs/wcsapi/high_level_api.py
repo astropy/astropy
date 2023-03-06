@@ -111,7 +111,7 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         pixel indexing and ordering conventions. The indices should be returned
         as rounded integers.
         """
-        if self.pixel_n_dim == 1:
+        if self.low_level_wcs.pixel_n_dim == 1:
             return _toindex(self.world_to_pixel(*world_objects))
         else:
             return tuple(_toindex(self.world_to_pixel(*world_objects)[::-1]).tolist())
@@ -327,7 +327,7 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         # Compute the world coordinate values
         world_values = self.low_level_wcs.pixel_to_world_values(*pixel_arrays)
 
-        if self.world_n_dim == 1:
+        if self.low_level_wcs.world_n_dim == 1:
             world_values = (world_values,)
 
         pixel_values = values_to_high_level_objects(
