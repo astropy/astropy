@@ -236,11 +236,13 @@ extend-ignore = [
     "PLR2004",  # MagicValueComparison               # Note: low priority fix
     "PLR0911",  # too-many-return-statements
     "PLR0912",  # too-many-branches
+    "PLR5501",  # collapsible-else-if                # TODO: fix
     "PLR0913",  # too-many-args
     "PLR0915",  # too-many-statements
     "PLW0120",  # UselessElseOnLoop                  # Note: low priority fix
     "PLW0602",  # GlobalVariableNotAssigned          # TODO: fix
     "PLW2901",  # redefined-loop-name                # TODO: fix. Easy source of bugs!
+    "PLW0603",  # global-statement                   # Maybe fix?
 
     # flake8-pytest-style (PT)
     # TODO: fix many of these.
