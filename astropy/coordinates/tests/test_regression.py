@@ -384,7 +384,7 @@ def test_itrs_vals_5133():
     aaf = AltAz(obstime=time, location=el)
     aacs = [coo.transform_to(aaf) for coo in coos]
 
-    assert all([coo.isscalar for coo in aacs])
+    assert all(coo.isscalar for coo in aacs)
 
     # the ~1 degree tolerance is b/c aberration makes it not exact
     assert_quantity_allclose(aacs[0].az, 180 * u.deg, atol=1 * u.deg)

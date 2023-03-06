@@ -1493,7 +1493,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
 
         def _return_list_of_arrays(axes, origin):
-            if any([x.size == 0 for x in axes]):
+            if any(x.size == 0 for x in axes):
                 return axes
 
             try:

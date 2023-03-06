@@ -162,11 +162,11 @@ def time_support(*, scale=None, format=None, simplify=True):
                 formatted = getattr(times, self._converter.format)
                 if self._converter.simplify:
                     if self._converter.format in ("fits", "iso", "isot"):
-                        if all([x.endswith("00:00:00.000") for x in formatted]):
+                        if all(x.endswith("00:00:00.000") for x in formatted):
                             split = " " if self._converter.format == "iso" else "T"
                             formatted = [x.split(split)[0] for x in formatted]
                     elif self._converter.format == "yday":
-                        if all([x.endswith(":001:00:00:00.000") for x in formatted]):
+                        if all(x.endswith(":001:00:00:00.000") for x in formatted):
                             formatted = [x.split(":", 1)[0] for x in formatted]
                 return formatted
             elif self._converter.format == "byear_str":

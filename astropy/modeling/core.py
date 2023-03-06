@@ -2193,7 +2193,7 @@ class Model(metaclass=_ModelMeta):
         return inputs
 
     def _process_output_units(self, inputs, outputs):
-        inputs_are_quantity = any([isinstance(i, Quantity) for i in inputs])
+        inputs_are_quantity = any(isinstance(i, Quantity) for i in inputs)
         if self.return_units and inputs_are_quantity:
             # We allow a non-iterable unit only if there is one output
             if self.n_outputs == 1 and not isiterable(self.return_units):
