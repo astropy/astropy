@@ -601,3 +601,41 @@ def test_get_coord_range_nan_regression():
             [(-131.3193386797236, 180.0), (-44.02289164685554, 44.80732766607591)]
         ),
     )
+
+
+def test_imshow_error():
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection=WCS())
+    with pytest.raises(ValueError, match="Cannot use images with origin='upper"):
+        ax.imshow(np.ones(100).reshape(10, 10), origin="upper")
+
+
+def test_label_setting():
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection=WCS())
+    # Check both xlabel and label kwargs work
+    ax.set_xlabel(xlabel="label")
+    ax.set_xlabel(label="label")
+    # Check no label errors:
+    with pytest.raises(
+        TypeError, match=r"set_xlabel\(\) missing 1 required positional argument"
+    ):
+        ax.set_xlabel()
+
+    # Check both xlabel and label kwargs work
+    ax.set_ylabel(ylabel="label")
+    ax.set_ylabel(label="label")
+    # Check no label errors:
+    with pytest.raises(
+        TypeError, match=r"set_ylabel\(\) missing 1 required positional argument"
+    ):
+        ax.set_ylabel()
+
+
+def test_invisible_bbox():
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection=WCS())
+
+    assert ax.get_tightbbox(fig.canvas.get_renderer()) is not None
+    ax.set_visible(False)
+    assert ax.get_tightbbox(fig.canvas.get_renderer()) is None
