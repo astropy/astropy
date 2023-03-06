@@ -1,9 +1,9 @@
 import numpy as np
 from numpy.testing import assert_allclose
 
-from astropy.wcs import WCS
 from astropy.coordinates import SkyCoord
 from astropy.units import Quantity
+from astropy.wcs import WCS
 from astropy.wcs.wcsapi.high_level_api import (
     HighLevelWCSMixin,
     high_level_objects_to_values,
