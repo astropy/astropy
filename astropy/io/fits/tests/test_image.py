@@ -20,7 +20,7 @@ from astropy.io.fits.hdu.compressed import (
     SUBTRACTIVE_DITHER_1,
 )
 from astropy.utils.data import download_file, get_pkg_data_filename
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from .conftest import FitsTestCase
 from .test_table import comparerecords
@@ -1243,7 +1243,7 @@ class TestCompressedImage(FitsTestCase):
             name="SCI",
             compression_type="HCOMPRESS_1",
             quantize_level=16,
-            tile_size=[2, 10, 10],
+            tile_shape=(2, 10, 10),
         )
 
     def test_comp_image_hcompress_image_stack(self):
@@ -1261,7 +1261,7 @@ class TestCompressedImage(FitsTestCase):
             name="SCI",
             compression_type="HCOMPRESS_1",
             quantize_level=16,
-            tile_size=[5, 5, 1],
+            tile_shape=(1, 5, 5),
         )
         hdu.writeto(self.temp("test.fits"))
 
@@ -1511,7 +1511,7 @@ class TestCompressedImage(FitsTestCase):
         np.random.seed(1337)
         data1 = np.random.uniform(size=(6 * 4, 7 * 4))
         data1[: data2.shape[0], : data2.shape[1]] = data2
-        chdu = fits.CompImageHDU(data1, compression_type="RICE_1", tile_size=(6, 7))
+        chdu = fits.CompImageHDU(data1, compression_type="RICE_1", tile_shape=(6, 7))
         chdu.writeto(self.temp("test.fits"))
 
         with fits.open(self.temp("test.fits"), disable_image_compression=True) as h:
@@ -1969,6 +1969,41 @@ class TestCompressedImage(FitsTestCase):
             with fits.open(self.temp("test.fits")) as hdul2:
                 assert_equal(hdul1[1].data[:200, :100], hdul2[1].data)
 
+    def test_comp_image_deprecated_tile_size(self):
+        # Ensure that tile_size works but is deprecated. This test
+        # can be removed once support for tile_size is removed.
+
+        with pytest.warns(
+            AstropyDeprecationWarning,
+            match="The tile_size argument has been deprecated",
+        ):
+            chdu = fits.CompImageHDU(np.zeros((3, 4, 5)), tile_size=(5, 2, 1))
+
+        assert chdu.tile_shape == (1, 2, 5)
+
+    def test_comp_image_deprecated_tile_size_and_tile_shape(self):
+        # Make sure that tile_size and tile_shape are not both specified
+
+        with pytest.warns(AstropyDeprecationWarning) as w:
+            with pytest.raises(
+                ValueError, match="Cannot specify both tile_size and tile_shape."
+            ):
+                fits.CompImageHDU(
+                    np.zeros((3, 4, 5)), tile_size=(5, 2, 1), tile_shape=(3, 2, 3)
+                )
+
+    def test_comp_image_properties_default(self):
+        chdu = fits.CompImageHDU(np.zeros((3, 4, 5)))
+        assert chdu.tile_shape == (1, 1, 5)
+        assert chdu.compression_type == "RICE_1"
+
+    def test_comp_image_properties_set(self):
+        chdu = fits.CompImageHDU(
+            np.zeros((3, 4, 5)), compression_type="PLIO_1", tile_shape=(2, 3, 4)
+        )
+        assert chdu.tile_shape == (2, 3, 4)
+        assert chdu.compression_type == "PLIO_1"
+
 
 class TestCompHDUSections:
     @pytest.fixture(autouse=True)
@@ -1978,14 +2013,14 @@ class TestCompHDUSections:
 
         header1 = fits.Header()
         hdu1 = fits.CompImageHDU(
-            self.data, header1, compression_type="RICE_1", tile_size=(5, 4, 5)
+            self.data, header1, compression_type="RICE_1", tile_shape=(5, 4, 5)
         )
 
         header2 = fits.Header()
         header2["BSCALE"] = 2
         header2["BZERO"] = 100
         hdu2 = fits.CompImageHDU(
-            self.data, header2, compression_type="RICE_1", tile_size=(5, 4, 5)
+            self.data, header2, compression_type="RICE_1", tile_shape=(5, 4, 5)
         )
         hdulist = fits.HDUList([fits.PrimaryHDU(), hdu1, hdu2])
         hdulist.writeto(tmp_path / "sections.fits")
