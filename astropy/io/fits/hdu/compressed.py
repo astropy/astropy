@@ -2171,7 +2171,7 @@ class CompImageSection:
 
     @property
     def ndim(self):
-        return self.hdu._header['ZNAXIS']
+        return self.hdu._header["ZNAXIS"]
 
     @property
     def dtype(self):
