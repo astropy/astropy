@@ -310,7 +310,7 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
         return data
 
     settings = _header_to_settings(hdu._header)
-    compression_type = hdu._header["ZCMPTYPE"]
+    compression_type = hdu.compression_type
     zbitpix = hdu._header["ZBITPIX"]
     dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
     dither_seed = hdu._header.get("ZDITHER0", 0)
@@ -486,7 +486,7 @@ def compress_hdu(hdu):
     noisebit = _get_compression_setting(hdu._header, "noisebit", 0)
 
     settings = _header_to_settings(hdu._header)
-    compression_type = hdu._header["ZCMPTYPE"]
+    compression_type = hdu.compression_type
 
     for irow, tile_slices in _iter_array_tiles(data_shape, tile_shape):
         data = hdu.data[tile_slices]
@@ -557,7 +557,7 @@ def compress_hdu(hdu):
         if gzip_fallback[-1]:
             cbytes = _compress_tile(data, algorithm="GZIP_1")
         else:
-            cbytes = _compress_tile(data, algorithm=comp_type, **settings)
+            cbytes = _compress_tile(data, algorithm=compression_type, **settings)
         compressed_bytes.append(cbytes)
 
     if zblank is not None:
@@ -582,11 +582,11 @@ def compress_hdu(hdu):
 
     # For PLIO_1, the size of each heap element is a factor of two lower than
     # the real size - not clear if this is deliberate or bug somewhere.
-    if comp_type == "PLIO_1":
+    if compression_type == "PLIO_1":
         table["COMPRESSED_DATA"][:, 0] //= 2
 
     # For PLIO_1, it looks like the compressed data is always stored big endian
-    if comp_type == "PLIO_1":
+    if compression_type == "PLIO_1":
         for irow in range(len(compressed_bytes)):
             if not gzip_fallback[irow]:
                 array = np.frombuffer(compressed_bytes[irow], dtype="i2")
