@@ -440,9 +440,9 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
         allow_non_flags = len(bit_flags) == 1
 
     elif hasattr(bit_flags, "__iter__"):
-        if not all([_is_int(flag) for flag in bit_flags]):
+        if not all(_is_int(flag) for flag in bit_flags):
             if flag_name_map is not None and all(
-                [isinstance(flag, str) for flag in bit_flags]
+                isinstance(flag, str) for flag in bit_flags
             ):
                 bit_flags = [flag_name_map[f] for f in bit_flags]
             else:

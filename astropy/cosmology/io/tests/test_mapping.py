@@ -93,16 +93,16 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
         # Metadata is 'separate' from main mapping
         m = to_format("mapping", move_from_meta=False)
         assert "meta" in m.keys()
-        assert not any([k in m for k in m["meta"]])  # Not added to main
+        assert not any(k in m for k in m["meta"])  # Not added to main
 
         assert m == default  # False is the default option
 
         # Metadata is mixed into main mapping.
         m = to_format("mapping", move_from_meta=True)
         assert "meta" not in m.keys()
-        assert all([k in m for k in default["meta"]])  # All added to main
+        assert all(k in m for k in default["meta"])  # All added to main
         #  The parameters take precedence over the metadata
-        assert all([np.array_equal(v, m[k]) for k, v in default.items() if k != "meta"])
+        assert all(np.array_equal(v, m[k]) for k, v in default.items() if k != "meta")
 
     def test_tofrom_mapping_move_tofrom_meta(self, cosmo, to_format, from_format):
         """Test roundtrip of ``move_from/to_meta`` in ``to/from_mapping()``."""
