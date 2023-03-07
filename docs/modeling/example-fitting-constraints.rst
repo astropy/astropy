@@ -75,21 +75,25 @@ algorithm handles bounds internally.
 Tied Constraints
 ----------------
 
-The `~astropy.modeling.Parameter.tied` constraint is often useful with :ref:`Compound models <compound-models-intro>`.
-In this example we will read a spectrum from a file called ``spec.txt``
-and fit Gaussians to the lines simultaneously while linking the flux of the OIII_1 and OIII_2 lines.
+The `~astropy.modeling.Parameter.tied` constraint is often useful with
+:ref:`Compound models <compound-models-intro>`. In this example we will
+read a spectrum from a file called ``spec.txt`` and simultaneously fit
+Gaussians to the emission lines while linking their wavelengths and
+linking the flux of the [OIII] λ4959 line to the [OIII] λ5007 line.
 
 .. plot::
     :include-source:
 
     import numpy as np
     from astropy.io import ascii
+    from astropy.modeling import fitting, models
     from astropy.utils.data import get_pkg_data_filename
-    from astropy.modeling import models, fitting
-    fname = get_pkg_data_filename('data/spec.txt', package='astropy.modeling.tests')
+    from matplotlib import pyplot as plt
+
+    fname = get_pkg_data_filename("data/spec.txt", package="astropy.modeling.tests")
     spec = ascii.read(fname)
-    wave = spec['lambda']
-    flux = spec['flux']
+    wave = spec["lambda"]
+    flux = spec["flux"]
 
     # Use the (vacuum) rest wavelengths of known lines as initial values
     # for the fit.
@@ -98,38 +102,49 @@ and fit Gaussians to the lines simultaneously while linking the flux of the OIII
     O3_5007 = 5008.239
 
     # Create Gaussian1D models for each of the H-beta and [OIII] lines.
-    h_beta = models.Gaussian1D(amplitude=34, mean=Hbeta, stddev=5)
-    o3_4959 = models.Gaussian1D(amplitude=57, mean=O3_4959, stddev=5)
-    o3_5007 = models.Gaussian1D(amplitude=170, mean=O3_5007, stddev=5)
+    hbeta_broad = models.Gaussian1D(amplitude=15, mean=Hbeta, stddev=20)
+    hbeta_narrow = models.Gaussian1D(amplitude=20, mean=Hbeta, stddev=2)
+    o3_4959 = models.Gaussian1D(amplitude=70, mean=O3_4959, stddev=2)
+    o3_5007 = models.Gaussian1D(amplitude=180, mean=O3_5007, stddev=2)
 
-    # Tie the ratio of the intensity of the two [OIII] lines.
-    def tie_ampl(model):
-        return model.amplitude_2 / 3.1
-
-    o3_4959.amplitude.tied = tie_ampl
-
-    # Also tie the wavelength of the H-beta line to the [OIII] wavelength.
-    def tie_wave(model):
-        return model.mean_0 * O3_5007 / Hbeta
-
-    o3_5007.mean.tied = tie_wave
-
-    # Create a Polynomial model to fit the continuum.
+    # Create a polynomial model to fit the continuum.
     mean_flux = flux.mean()
     cont = np.where(flux > mean_flux, mean_flux, flux)
     linfitter = fitting.LinearLSQFitter()
     poly_cont = linfitter(models.Polynomial1D(1), wave, cont)
 
-    # Create a compound model for the three lines and the continuum.
-    hbeta_combo = h_beta + o3_4959 + o3_5007 + poly_cont
+    # Create a compound model for the four emission lines and the continuum.
+    model = hbeta_broad + hbeta_narrow + o3_4959 + o3_5007 + poly_cont
 
-    # Fit all lines simultaneously -
-    # this will need one iteration more than the default of 100.
+    # Tie the ratio of the intensity of the two [OIII] lines.
+    def tie_o3_ampl(model):
+        return model.amplitude_3 / 3.1
+
+    o3_4959.amplitude.tied = tie_o3_ampl
+
+    # Tie the wavelengths of the two [OIII] lines
+    def tie_o3_wave(model):
+        return model.mean_3 * O3_4959 / O3_5007
+
+    o3_4959.mean.tied = tie_o3_wave
+
+    # Tie the wavelengths of the two (narrow and broad) H-beta lines
+    def tie_hbeta_wave1(model):
+        return model.mean_1
+
+    hbeta_broad.mean.tied = tie_hbeta_wave1
+
+    # Tie the wavelengths of the H-beta lines to the [OIII] 5007 line
+    def tie_hbeta_wave2(model):
+        return model.mean_3 * Hbeta / O3_5007
+
+    hbeta_narrow.mean.tied = tie_hbeta_wave2
+
+    # Simultaneously fit all the emission lines and continuum.
     fitter = fitting.LevMarLSQFitter()
-    fitted_model = fitter(hbeta_combo, wave, flux, maxiter=111)
+    fitted_model = fitter(model, wave, flux)
     fitted_lines = fitted_model(wave)
 
-    from matplotlib import pyplot as plt
     fig = plt.figure(figsize=(9, 6))
     p = plt.plot(wave, flux, label="data")
     p = plt.plot(wave, fitted_lines, 'r', label="fit")
