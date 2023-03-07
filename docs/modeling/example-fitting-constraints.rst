@@ -91,48 +91,40 @@ and fit Gaussians to the lines simultaneously while linking the flux of the OIII
     wave = spec['lambda']
     flux = spec['flux']
 
-    # Use the rest wavelengths of known lines as initial values for the fit.
-
+    # Use the (vacuum) rest wavelengths of known lines as initial values
+    # for the fit.
     Hbeta = 4862.721
-    OIII_1 = 4958.911
-    OIII_2 = 5008.239
+    O3_4959 = 4960.295
+    O3_5007 = 5008.239
 
-    # Create Gaussian1D models for each of the Hbeta and OIII lines.
-
+    # Create Gaussian1D models for each of the H-beta and [OIII] lines.
     h_beta = models.Gaussian1D(amplitude=34, mean=Hbeta, stddev=5)
-    o3_2 = models.Gaussian1D(amplitude=170, mean=OIII_2, stddev=5)
-    o3_1 = models.Gaussian1D(amplitude=57, mean=OIII_1, stddev=5)
+    o3_4959 = models.Gaussian1D(amplitude=57, mean=O3_4959, stddev=5)
+    o3_5007 = models.Gaussian1D(amplitude=170, mean=O3_5007, stddev=5)
 
-
-    # Tie the ratio of the intensity of the two OIII lines.
-
+    # Tie the ratio of the intensity of the two [OIII] lines.
     def tie_ampl(model):
         return model.amplitude_2 / 3.1
 
-    o3_1.amplitude.tied = tie_ampl
+    o3_4959.amplitude.tied = tie_ampl
 
-
-    # Also tie the wavelength of the Hbeta line to the OIII wavelength.
-
+    # Also tie the wavelength of the H-beta line to the [OIII] wavelength.
     def tie_wave(model):
-        return model.mean_0 * OIII_1 / Hbeta
+        return model.mean_0 * O3_5007 / Hbeta
 
-    o3_1.mean.tied = tie_wave
+    o3_5007.mean.tied = tie_wave
 
     # Create a Polynomial model to fit the continuum.
-
     mean_flux = flux.mean()
     cont = np.where(flux > mean_flux, mean_flux, flux)
     linfitter = fitting.LinearLSQFitter()
     poly_cont = linfitter(models.Polynomial1D(1), wave, cont)
 
     # Create a compound model for the three lines and the continuum.
-
-    hbeta_combo = h_beta + o3_1 + o3_2 + poly_cont
+    hbeta_combo = h_beta + o3_4959 + o3_5007 + poly_cont
 
     # Fit all lines simultaneously -
     # this will need one iteration more than the default of 100.
-
     fitter = fitting.LevMarLSQFitter()
     fitted_model = fitter(hbeta_combo, wave, flux, maxiter=111)
     fitted_lines = fitted_model(wave)
