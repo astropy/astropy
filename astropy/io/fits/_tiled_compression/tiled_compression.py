@@ -88,11 +88,9 @@ def _update_tile_settings(settings, compression_type, actual_tile_shape):
     """
     Update the settings with tile-specific settings
     """
-    if compression_type == "PLIO_1":
+    if compression_type in ("PLIO_1", "RICE_1", "RICE_ONE"):
         # We have to calculate the tilesize from the shape of the tile not the
         # header, so that it's correct for edge tiles etc.
-        settings["tilesize"] = prod(actual_tile_shape)
-    elif compression_type in ("RICE_1", "RICE_ONE"):
         settings["tilesize"] = prod(actual_tile_shape)
     elif compression_type == "HCOMPRESS_1":
         # HCOMPRESS requires 2D tiles, so to find the shape of the 2D tile we
