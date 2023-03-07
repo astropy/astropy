@@ -563,7 +563,7 @@ def compress_hdu(hdu):
     if zblank is not None:
         hdu._header["ZBLANK"] = zblank
 
-    table = np.empty(len(compressed_bytes), dtype=hdu.columns.dtype.newbyteorder(">"))
+    table = np.zeros(len(compressed_bytes), dtype=hdu.columns.dtype.newbyteorder(">"))
 
     if "ZSCALE" in table.dtype.names:
         table["ZSCALE"] = np.array(scales)
