@@ -114,7 +114,7 @@ class RemapAxesType(TransformType):
     def from_tree_transform(cls, node, ctx):
         mapping = node["mapping"]
         n_inputs = node.get("n_inputs")
-        if all([isinstance(x, int) for x in mapping]):
+        if all(isinstance(x, int) for x in mapping):
             return Mapping(tuple(mapping), n_inputs)
 
         if n_inputs is None:

@@ -688,7 +688,7 @@ def test_download_parallel_from_internet_works(temp_cache):
         urls.append(main_url + s)
         sources[urls[-1]] = [urls[-1], mirror_url + s]
     fnout = download_files_in_parallel(urls, sources=sources)
-    assert all([os.path.isfile(f) for f in fnout]), fnout
+    assert all(os.path.isfile(f) for f in fnout), fnout
 
 
 @pytest.mark.parametrize("method", [None, "spawn"])
