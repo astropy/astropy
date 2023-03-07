@@ -246,7 +246,10 @@ However, it remains very useful in the following circumstances:
 
 In addition, for compressed FITS files, :attr:`CompImageHDU.section` can be used
 to access and decompress only parts of the data, and can provide a significant
-speedup.
+speedup. Note however that accessing data using :attr:`CompImageHDU.section` will
+always load tiles one at a time from disk, and therefore when accessing a large
+fraction of the data (or slicing it in a way that would cause most tiles to be
+loaded) you may obtain better performance by using :attr:`CompImageHDU.data`.
 
 Example
 -------

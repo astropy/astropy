@@ -341,8 +341,8 @@ def decompress_hdu_section(hdu, first_tile_index, last_tile_index):
     gzip_compressed_data_column = None
     gzip_compressed_data_dtype = None
 
-    # If more than half the data is requested, read in all the heap.
-    if np.product(buffer_shape) > 0.5 * np.product(data_shape):
+    # If all the data is requested, read in all the heap.
+    if tuple(buffer_shape) == tuple(data_shape):
         heap_cache = hdu._get_raw_data(
             hdu._header["PCOUNT"], np.uint8, hdu._data_offset + hdu._theap
         )
