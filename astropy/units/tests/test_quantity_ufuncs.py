@@ -1343,6 +1343,12 @@ class DuckQuantity3(DuckQuantity2):
         return NotImplemented
 
 
+class DuckQuantity4(DuckQuantity3):
+    @property
+    def unit(self):
+        return DuckQuantity1(1 * self.data.unit)
+
+
 class TestUfuncReturnsNotImplemented:
     @pytest.mark.parametrize("ufunc", (np.negative, np.abs))
     class TestUnaryUfuncs:
@@ -1355,7 +1361,12 @@ class TestUfuncReturnsNotImplemented:
                 ufunc(duck_quantity)
 
         @pytest.mark.parametrize(
-            "duck_quantity", [DuckQuantity3(1 * u.mm), DuckQuantity3([1, 2] * u.mm)]
+            "duck_quantity",
+            [
+                DuckQuantity3(1 * u.mm),
+                DuckQuantity3([1, 2] * u.mm),
+                DuckQuantity4(1 * u.mm),
+            ],
         )
         @pytest.mark.parametrize("out", [None, "empty"])
         def test_full(self, ufunc, duck_quantity, out):
@@ -1391,7 +1402,11 @@ class TestUfuncReturnsNotImplemented:
 
         @pytest.mark.parametrize(
             "duck_quantity",
-            [DuckQuantity3(1 * u.mm), DuckQuantity3([1, 2] * u.mm)],
+            [
+                DuckQuantity3(1 * u.mm),
+                DuckQuantity3([1, 2] * u.mm),
+                DuckQuantity4(1 * u.mm),
+            ],
         )
         @pytest.mark.parametrize("out", [None, "empty"])
         def test_full(self, ufunc, quantity, duck_quantity, out):
