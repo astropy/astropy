@@ -910,16 +910,17 @@ class BinTableHDU(_TableBaseHDU):
         ver=None,
         character_as_bytes=False,
     ):
-        from astropy.table import Table
+        if data is not None and data is not DELAYED:
+            from astropy.table import Table
 
-        if isinstance(data, Table):
-            from astropy.io.fits.convenience import table_to_hdu
+            if isinstance(data, Table):
+                from astropy.io.fits.convenience import table_to_hdu
 
-            hdu = table_to_hdu(data)
-            if header is not None:
-                hdu.header.update(header)
-            data = hdu.data
-            header = hdu.header
+                hdu = table_to_hdu(data)
+                if header is not None:
+                    hdu.header.update(header)
+                data = hdu.data
+                header = hdu.header
 
         super().__init__(
             data,
