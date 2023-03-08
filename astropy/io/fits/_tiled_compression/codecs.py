@@ -273,7 +273,7 @@ class Rice1(Codec):
         buf : np.ndarray
             The decompressed buffer.
         """
-        cbytes = np.frombuffer(buf, dtype=np.uint8).tobytes()
+        cbytes = np.frombuffer(_as_native_endian_array(buf), dtype=np.uint8).tobytes()
         dbytes = decompress_rice_1_c(
             cbytes, self.blocksize, self.bytepix, self.tilesize
         )
@@ -334,7 +334,7 @@ class PLIO1(Codec):
         buf : np.ndarray
             The decompressed buffer.
         """
-        cbytes = np.frombuffer(buf, dtype=np.uint8).tobytes()
+        cbytes = np.frombuffer(_as_native_endian_array(buf), dtype=np.uint8).tobytes()
         dbytes = decompress_plio_1_c(cbytes, self.tilesize)
         return np.frombuffer(dbytes, dtype="i4")
 
@@ -419,7 +419,7 @@ class HCompress1(Codec):
         buf : np.ndarray
             The decompressed buffer.
         """
-        cbytes = np.frombuffer(buf, dtype=np.uint8).tobytes()
+        cbytes = np.frombuffer(_as_native_endian_array(buf), dtype=np.uint8).tobytes()
         dbytes = decompress_hcompress_1_c(
             cbytes, self.nx, self.ny, self.scale, self.smooth, self.bytepix
         )

@@ -208,6 +208,8 @@ static PyObject *compress_rice_1_c(PyObject *self, PyObject *args) {
     return NULL;
   }
 
+  Py_BEGIN_ALLOW_THREADS
+
   // maxelem adapted from cfitsio's imcomp_calc_max_elem function
   maxelem = count + count / bytepix / blocksize + 2 + 4;
 
@@ -223,6 +225,8 @@ static PyObject *compress_rice_1_c(PyObject *self, PyObject *args) {
     decompressed_values_int = (int *)str;
     compressed_length = fits_rcomp(decompressed_values_int, (int)count / 4, compressed_values, count * 16, blocksize);
   }
+
+  Py_END_ALLOW_THREADS
 
   if (PyErr_Occurred() != NULL) {
     // If an error condition inside the cfitsio function, the call inside
@@ -254,6 +258,8 @@ static PyObject *decompress_rice_1_c(PyObject *self, PyObject *args) {
     return NULL;
   }
 
+  Py_BEGIN_ALLOW_THREADS
+
   compressed_values = (unsigned char *)str;
 
   if (bytepix == 1) {
@@ -269,6 +275,8 @@ static PyObject *decompress_rice_1_c(PyObject *self, PyObject *args) {
     fits_rdecomp(compressed_values, (int)count, decompressed_values_int, tilesize, blocksize);
     dbytes = (char *)decompressed_values_int;
   }
+
+  Py_END_ALLOW_THREADS
 
   if (PyErr_Occurred() != NULL) {
     // If an error condition inside the cfitsio function, the call inside
@@ -296,6 +304,7 @@ static PyObject *compress_hcompress_1_c(PyObject *self, PyObject *args) {
   int maxelem;
   char *compressed_values;
   int *decompressed_values_int;
+  long buffer_size;
   long long *decompressed_values_longlong;
 
   if (!PyArg_ParseTuple(args, "y#iiii", &str, &count, &nx, &ny, &scale, &bytepix)) {
@@ -321,6 +330,8 @@ static PyObject *compress_hcompress_1_c(PyObject *self, PyObject *args) {
     return (PyObject *)NULL;
   }
 
+  Py_BEGIN_ALLOW_THREADS
+
   // maxelem adapted from cfitsio's imcomp_calc_max_elem function
   maxelem = count / 4 * 2.2 + 26;
 
@@ -329,7 +340,7 @@ static PyObject *compress_hcompress_1_c(PyObject *self, PyObject *args) {
   // riiiiiight.
   // TODO: Do a small buffer calculation to tune this number like we did for PLIO
   compressed_values = (char *)calloc(maxelem + 4, sizeof(long long));
-  long buffer_size = (maxelem + 4) * sizeof(long long);
+  buffer_size = (maxelem + 4) * sizeof(long long);
 
   if (bytepix == 4) {
     decompressed_values_int = (int *)str;
@@ -338,6 +349,8 @@ static PyObject *compress_hcompress_1_c(PyObject *self, PyObject *args) {
     decompressed_values_longlong = (long long *)str;
     fits_hcompress64(decompressed_values_longlong, ny, nx, scale, compressed_values, &buffer_size, &status);
   }
+
+  Py_END_ALLOW_THREADS
 
   if (PyErr_Occurred() != NULL) {
     // If an error condition inside the cfitsio function, the call inside
@@ -375,14 +388,16 @@ static PyObject *decompress_hcompress_1_c(PyObject *self, PyObject *args) {
     return NULL;
   }
 
-  compressed_values = (unsigned char *)str;
-
   if (bytepix != 4 && bytepix != 8) {
     PyErr_SetString(PyExc_ValueError,
                     "HCompress can only work with 4 or 8 byte integers.");
     return (PyObject *)NULL;
 
   }
+
+  Py_BEGIN_ALLOW_THREADS
+
+  compressed_values = (unsigned char *)str;
 
   dbytes = malloc(nx * ny * bytepix);
 
@@ -393,6 +408,8 @@ static PyObject *decompress_hcompress_1_c(PyObject *self, PyObject *args) {
     decompressed_values_longlong = (long long *)dbytes;
     fits_hdecompress64(compressed_values, smooth, decompressed_values_longlong, &ny, &nx, &scale, &status);
   }
+
+  Py_END_ALLOW_THREADS
 
   if (PyErr_Occurred() != NULL) {
     // If an error condition inside the cfitsio function, the call inside
@@ -434,11 +451,15 @@ static PyObject *quantize_float_c(PyObject *self, PyObject *args) {
 
   int status;
 
+  Py_ssize_t output_length;
+
   if (!PyArg_ParseTuple(args, "y#lllidfi", &input_bytes, &nbytes, &row, &nx,
                         &ny, &nullcheck, &in_null_value, &qlevel,
                         &dither_method)) {
     return NULL;
   }
+
+  Py_BEGIN_ALLOW_THREADS
 
   input_data = (float *)input_bytes;
   quantized_data = (int *)malloc(nx * ny * sizeof(int));
@@ -449,7 +470,9 @@ static PyObject *quantize_float_c(PyObject *self, PyObject *args) {
 
   quantized_bytes = (char *)quantized_data;
 
-  Py_ssize_t output_length = nx * ny * sizeof(int);
+  output_length = nx * ny * sizeof(int);
+
+  Py_END_ALLOW_THREADS
 
   result = Py_BuildValue("y#iddii", quantized_bytes, output_length, status,
                          bscale, bzero, iminval, imaxval);
@@ -484,6 +507,8 @@ static PyObject *quantize_double_c(PyObject *self, PyObject *args) {
     return NULL;
   }
 
+  Py_BEGIN_ALLOW_THREADS
+
   input_data = (double *)input_bytes;
   quantized_data = (int *)malloc(nx * ny * sizeof(int));
 
@@ -492,6 +517,8 @@ static PyObject *quantize_double_c(PyObject *self, PyObject *args) {
                                 &iminval, &imaxval);
 
   quantized_bytes = (char *)quantized_data;
+
+  Py_END_ALLOW_THREADS
 
   result = Py_BuildValue("y#iddii", quantized_bytes, nx * ny * sizeof(int), status,
                                     bscale, bzero, iminval, imaxval);
@@ -527,6 +554,8 @@ static PyObject *unquantize_float_c(PyObject *self, PyObject *args) {
 
   // TODO: add support, if needed, for nullcheck=1
 
+  Py_BEGIN_ALLOW_THREADS
+
   anynull = (int *)malloc(npix * sizeof(int));
   output_data = (float *)calloc(npix, sizeof(float));
 
@@ -545,6 +574,8 @@ static PyObject *unquantize_float_c(PyObject *self, PyObject *args) {
   }
 
   output_bytes = (char *)output_data;
+
+  Py_END_ALLOW_THREADS
 
   result = Py_BuildValue("y#", output_bytes, npix * sizeof(float));
   free(output_bytes);
@@ -579,6 +610,8 @@ static PyObject *unquantize_double_c(PyObject *self, PyObject *args) {
 
   // TODO: add support, if needed, for nullcheck=1
 
+  Py_BEGIN_ALLOW_THREADS
+
   anynull = (int *)malloc(npix * sizeof(int));
   output_data = (double *)malloc(npix * sizeof(double));
 
@@ -597,6 +630,8 @@ static PyObject *unquantize_double_c(PyObject *self, PyObject *args) {
   }
 
   output_bytes = (char *)output_data;
+
+  Py_END_ALLOW_THREADS
 
   result = Py_BuildValue("y#", output_bytes, npix * sizeof(double));
   free(output_bytes);

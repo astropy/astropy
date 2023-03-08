@@ -14,7 +14,12 @@ from astropy.io.fits.hdu.base import BITPIX2DTYPE
 __all__ = ["Quantize"]
 
 
-DITHER_METHODS = {"NO_DITHER": -1, "SUBTRACTIVE_DITHER_1": 1, "SUBTRACTIVE_DITHER_2": 2}
+DITHER_METHODS = {
+    "NONE": 0,
+    "NO_DITHER": -1,
+    "SUBTRACTIVE_DITHER_1": 1,
+    "SUBTRACTIVE_DITHER_2": 2,
+}
 
 
 class QuantizationFailedException(Exception):
