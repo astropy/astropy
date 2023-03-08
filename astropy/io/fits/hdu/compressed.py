@@ -1516,25 +1516,6 @@ class CompImageHDU(BinTableHDU):
             for _ in range(required_blanks - table_blanks):
                 self._header.append()
 
-    def _get_raw_tile_from_heap(self, column_name, row_index):
-        """
-        Get the raw data for a given tile from the heap.
-        """
-        size, offset = self.compressed_data[column_name][row_index]
-        tform = self.columns[column_name].format
-        if tform[2] == "B":
-            dtype = np.uint8
-        elif tform[2] == "I":
-            dtype = ">i2"
-        elif tform[2] == "J":
-            dtype = ">i4"
-        if size == 0:
-            return np.array([], dtype=dtype)
-        raw = self._get_data_from_heap(offset, size, dtype)
-        # Return tile in native endian since this is what is expected
-        # by the decompression functions
-        return raw.astype(raw.dtype.newbyteorder("="), copy=False)
-
     def _scale_data(self, data):
         if self._orig_bzero != 0 or self._orig_bscale != 1:
             new_dtype = self._dtype_for_bitpix()
@@ -2130,12 +2111,22 @@ class CompImageHDU(BinTableHDU):
     @property
     def section(self):
         """
-        Access a section of the image array without loading and decompressing
-        the entire array into memory.  The :class:`~astropy.io.fits.CompImageSection` object
-        returned by this attribute is not meant to be used directly by itself.
-        Rather, slices of the section return the appropriate slice of the data,
-        and loads *only* that section into memory. Any valid basic Numpy index
-        can be used to slice :class:`~astropy.io.fits.CompImageSection`.
+        Efficiently access a section of the image array
+
+        This property can be used to access a section of the data without
+        loading and decompressing the entire array into memory.
+
+        The :class:`~astropy.io.fits.CompImageSection` object returned by this
+        attribute is not meant to be used directly by itself. Rather, slices of
+        the section return the appropriate slice of the data, and loads *only*
+        that section into memory. Any valid basic Numpy index can be used to
+        slice :class:`~astropy.io.fits.CompImageSection`.
+
+        Note that accessing data using :attr:`CompImageHDU.section` will always
+        load tiles one at a time from disk, and therefore when accessing a large
+        fraction of the data (or slicing it in a way that would cause most tiles
+        to be loaded) you may obtain better performance by using
+        :attr:`CompImageHDU.data`.
         """
         return CompImageSection(self)
 
@@ -2180,11 +2171,21 @@ class CompImageSection:
         self._data_shape = _data_shape(self.hdu._header)
         self._tile_shape = _tile_shape(self.hdu._header)
         self._n_dim = len(self._data_shape)
-        self._n_tiles = _n_tiles(self._data_shape, self._tile_shape)
+        self._n_tiles = np.array(
+            _n_tiles(self._data_shape, self._tile_shape), dtype=int
+        )
 
     @property
     def shape(self):
-        return self._data_shape
+        return tuple(self._data_shape)
+
+    @property
+    def ndim(self):
+        return self.hdu._header["ZNAXIS"]
+
+    @property
+    def dtype(self):
+        return BITPIX2DTYPE[self.hdu._header["ZBITPIX"]]
 
     def __getitem__(self, index):
         # Shortcut if the whole data is requested (this is used by the
