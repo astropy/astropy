@@ -1304,13 +1304,12 @@ def _format_float(value):
     # Limit the value string to at most 20 characters.
     if (str_len := len(value_str)) > 20:
         idx = value_str.find("E")
-        if idx > 0:
-            # truncate significand (mantissa)
-            value_str = value_str[: 20 - (str_len - idx)] + value_str[idx:]
+        if idx < 0:
+            # No scientific notation, truncate decimal places
+            value_str = value_str[:20]
         else:
-            # Python should never return a float representation larger than 20
-            # characters unless it is using scientific notation
-            raise RuntimeError("_format_float did not receive a float.")
+            # Scientific notation, truncate significand (mantissa)
+            value_str = value_str[: 20 - (str_len - idx)] + value_str[idx:]
 
     return value_str
 
