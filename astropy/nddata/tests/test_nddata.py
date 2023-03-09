@@ -478,7 +478,7 @@ def test_nddata_str():
 
     # what if it had these units?
     arr = NDData(np.array([1, 2, 3]), unit="erg cm^-2 s^-1 A^-1")
-    assert str(arr) == "[1 2 3] erg / (A cm2 s)"
+    assert str(arr) == "[1 2 3] erg / (A s cm2)"
 
 
 def test_nddata_repr():

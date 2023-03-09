@@ -432,8 +432,8 @@ def test_latex_inline_scale():
 @pytest.mark.parametrize(
     "format_spec, string, decomposed",
     [
-        ("generic", "erg / (Angstrom cm2 s)", "1e+07 kg / (m s3)"),
-        ("s", "erg / (Angstrom cm2 s)", "1e+07 kg / (m s3)"),
+        ("generic", "erg / (Angstrom s cm2)", "1e+07 kg / (m s3)"),
+        ("s", "erg / (Angstrom s cm2)", "1e+07 kg / (m s3)"),
         ("console", "erg Angstrom^-1 s^-1 cm^-2", "10000000 kg m^-1 s^-3"),
         (
             "latex",
@@ -446,11 +446,11 @@ def test_latex_inline_scale():
             r"$\mathrm{10000000\,kg\,m^{-1}\,s^{-3}}$",
         ),
         ("unicode", "erg Å⁻¹ s⁻¹ cm⁻²", "10000000 kg m⁻¹ s⁻³"),
-        (">25s", "   erg / (Angstrom cm2 s)", "        1e+07 kg / (m s3)"),
+        (">25s", "   erg / (Angstrom s cm2)", "        1e+07 kg / (m s3)"),
         ("cds", "erg.Angstrom-1.s-1.cm-2", "10000000kg.m-1.s-3"),
-        ("ogip", "10 erg / (cm**2 nm s)", "1e+07 kg / (m s**3)"),
-        ("fits", "Angstrom-1 cm-2 erg s-1", "10**7 kg m-1 s-3"),
-        ("vounit", "Angstrom**-1.cm**-2.erg.s**-1", "10000000kg.m**-1.s**-3"),
+        ("ogip", "10 erg / (nm s cm**2)", "1e+07 kg / (m s**3)"),
+        ("fits", "erg Angstrom-1 s-1 cm-2", "10**7 kg m-1 s-3"),
+        ("vounit", "erg.Angstrom**-1.s**-1.cm**-2", "10000000kg.m**-1.s**-3"),
         # TODO: make fits and vounit less awful!
     ],
 )
@@ -471,7 +471,7 @@ def test_format_styles(format_spec, string, decomposed):
 @pytest.mark.parametrize(
     "format_spec, fraction, string, decomposed",
     [
-        ("generic", False, "cm-2 erg s-1", "0.001 kg s-3"),
+        ("generic", False, "erg s-1 cm-2", "0.001 kg s-3"),
         (
             "console",
             "multiline",
@@ -689,7 +689,7 @@ def test_vounit_details():
     with pytest.warns(UnitsWarning, match="deprecated"):
         flam = u.erg / u.cm / u.cm / u.s / u.AA
         x = u.format.VOUnit.to_string(flam)
-        assert x == "Angstrom**-1.cm**-2.erg.s**-1"
+        assert x == "erg.Angstrom**-1.s**-1.cm**-2"
         new_flam = u.format.VOUnit.parse(x)
         assert new_flam == flam
 
@@ -762,11 +762,11 @@ def test_vounit_implicit_custom():
 def test_fits_scale_factor(scale, number, string):
     x = u.Unit(scale + " erg/(s cm**2 Angstrom)", format="fits")
     assert x == number * (u.erg / u.s / u.cm**2 / u.Angstrom)
-    assert x.to_string(format="fits") == string + " Angstrom-1 cm-2 erg s-1"
+    assert x.to_string(format="fits") == string + " erg Angstrom-1 s-1 cm-2"
 
     x = u.Unit(scale + "*erg/(s cm**2 Angstrom)", format="fits")
     assert x == number * (u.erg / u.s / u.cm**2 / u.Angstrom)
-    assert x.to_string(format="fits") == string + " Angstrom-1 cm-2 erg s-1"
+    assert x.to_string(format="fits") == string + " erg Angstrom-1 s-1 cm-2"
 
 
 def test_fits_scale_factor_errors():

@@ -12,9 +12,9 @@ numeric operators::
   >>> from astropy import units as u
   >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
   >>> fluxunit
-  Unit("erg / (cm2 s)")
+  Unit("erg / (s cm2)")
   >>> 52.0 * fluxunit  # doctest: +FLOAT_CMP
-  <Quantity  52. erg / (cm2 s)>
+  <Quantity  52. erg / (s cm2)>
   >>> 52.0 * fluxunit / u.s  # doctest: +FLOAT_CMP
   <Quantity  52. erg / (cm2 s2)>
 
