@@ -2009,7 +2009,7 @@ class TestCompHDUSections:
     @pytest.fixture(autouse=True)
     def setup_method(self, tmp_path):
         shape = (13, 17, 25)
-        self.data = np.arange(np.product(shape)).reshape(shape).astype(np.int32)
+        self.data = np.arange(np.prod(shape)).reshape(shape).astype(np.int32)
 
         header1 = fits.Header()
         hdu1 = fits.CompImageHDU(
