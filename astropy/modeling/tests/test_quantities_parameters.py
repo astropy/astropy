@@ -15,6 +15,7 @@ from astropy.modeling.models import (
     Pix2Sky_TAN,
     RotateNative2Celestial,
     Rotation2D,
+    BlackBody,
 )
 from astropy.modeling.parameters import Parameter, ParameterDefinitionError
 from astropy.tests.helper import assert_quantity_allclose
@@ -341,3 +342,19 @@ def test_magunit_parameter():
     model = Const1D(c)
 
     assert model(-23.0 * unit) == c
+
+
+def test_log_getter():
+    """Regression test for issue #14511"""
+
+    class CustomBlackBody(BlackBody):
+        scale = Parameter(
+            "scale",
+            default=0,
+            bounds=(-1000, 1000),
+            getter=np.log,
+            setter=np.exp,
+            unit=u.dimensionless_unscaled,
+        )
+
+    CustomBlackBody(temperature=5000 * u.K, scale=u.Quantity(1))

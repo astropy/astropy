@@ -723,7 +723,14 @@ class TestParameters:
         with pytest.raises(TypeError, match=MESSAGE):
             param._create_value_wrapper(np.add, mk.MagicMock())
         # Good ufunc
-        assert param._create_value_wrapper(np.negative, mk.MagicMock()) == np.negative
+        with mk.patch(
+            "astropy.modeling.parameters._wrap_ufunc", autospec=True
+        ) as mkWrap:
+            assert (
+                param._create_value_wrapper(np.negative, mk.MagicMock())
+                == mkWrap.return_value
+            )
+            assert mkWrap.call_args_list == [mk.call(np.negative)]
 
         # None
         assert param._create_value_wrapper(None, mk.MagicMock()) is None
