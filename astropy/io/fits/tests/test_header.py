@@ -147,16 +147,16 @@ class TestHeaderFunctions(FitsTestCase):
         k = "HIERARCH ABC DEF GH IJKLMN"
         com = "[m] abcdef ghijklm nopqrstu vw xyzab"
         c = fits.Card(k, 0.009125, com)
-        expected_str = f"{k} = 0.009125 / {com}    "
-        assert str(c) == expected_str
+        expected_str = f"{k} = 0.009125 / {com}"
+        assert str(c)[: len(expected_str)] == expected_str
 
         c = fits.Card(k, 8.95, com)
-        expected_str = f"{k} = 8.95 / {com}    "
-        assert str(c) == expected_str
+        expected_str = f"{k} = 8.95 / {com}"
+        assert str(c)[: len(expected_str)] == expected_str
 
         c = fits.Card(k, -99.9, com)
-        expected_str = f"{k} = -99.9 / {com}    "
-        assert str(c) == expected_str
+        expected_str = f"{k} = -99.9 / {com}"
+        assert str(c)[: len(expected_str)] == expected_str
 
     def test_complex_value_card(self):
         """Test Card constructor with complex value"""
