@@ -116,10 +116,7 @@ arrays that cannot fit entirely into physical memory. Here ``memmap=True`` by
 default, and this value is obtained from the configuration item ``astropy.io.fits.Conf.use_memmap``.
 
 This has minimal impact on smaller files as well, though some operations, such
-as reading the array data sequentially, may incur some additional overhead. On
-32-bit systems, arrays larger than 2 to 3 GB cannot be mmap'd (which is fine,
-because by that point you are likely to run out of physical memory anyways), but
-64-bit systems are much less limited in this respect.
+as reading the array data sequentially, may incur some additional overhead.
 
 .. warning::
     When opening a file with ``memmap=True``, because of how mmap works this

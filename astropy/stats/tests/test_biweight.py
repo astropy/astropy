@@ -558,15 +558,6 @@ def test_biweight_midcorrelation_inputs():
         biweight_midcorrelation(a2, a3)
 
 
-def test_biweight_32bit_runtime_warnings():
-    """Regression test for #6905."""
-    with NumpyRNGContext(12345):
-        data = np.random.random(100).astype(np.float32)
-        data[50] = 30000.0
-        biweight_scale(data)
-        biweight_midvariance(data)
-
-
 def test_biweight_scl_var_constant_units():
     unit = u.km
     data = np.ones(10) << unit

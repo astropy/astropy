@@ -1569,25 +1569,6 @@ def data():
     )
 
 
-def test_32bit_bug():
-    rand = np.random.default_rng(42)
-    t = rand.uniform(0, 10, 500)
-    y = np.ones_like(t)
-    y[np.abs((t + 1.0) % 2.0 - 1) < 0.08] = 1.0 - 0.1
-    y += 0.01 * rand.standard_normal(len(t))
-
-    model = BoxLeastSquares(t, y)
-    results = model.autopower(0.16)
-    assert_allclose(results.period[np.argmax(results.power)], 2.000412388152837)
-    periods = np.linspace(1.9, 2.1, 5)
-    results = model.power(periods, 0.16)
-    assert_allclose(
-        results.power,
-        [0.01723948, 0.0643028, 0.1338783, 0.09428816, 0.03577543],
-        rtol=1.1e-7,
-    )
-
-
 @pytest.mark.parametrize("objective", ["likelihood", "snr"])
 def test_correct_model(data, objective):
     t, y, dy, params = data

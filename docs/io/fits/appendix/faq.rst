@@ -238,7 +238,7 @@ entire array, though this is an area that will see improvement in the future.
 An alternative, which currently only works for image data (that is, non-tables)
 is the sections interface. It is largely replaced by the better support for
 mmap, but may still be useful on systems with more limited virtual memory
-space, such as on 32-bit systems. Support for scaled image data is flaky with
+space. Support for scaled image data is flaky with
 sections too, though that will be fixed. See the documentation on :ref:`image
 sections <data-sections>` for more details on using this interface.
 

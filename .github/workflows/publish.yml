@@ -51,11 +51,6 @@ jobs:
       targets: |
         # Linux wheels
 
-        - cp38-manylinux_i686
-        - cp39-manylinux_i686
-        # - cp310*manylinux_i686  # We can't build this as PyYAML doesn't have i686 wheels for 3.10 yet so the build takes too long
-        # - cp311*manylinux_i686
-
         - cp38-manylinux_x86_64
         - cp39-manylinux_x86_64
         - cp310-manylinux_x86_64
@@ -88,11 +83,6 @@ jobs:
         - cp311*macosx_arm64
 
         # Windows wheels
-
-        - cp38*win32
-        - cp39*win32
-        - cp310*win32
-        - cp311*win32
 
         - cp38*win_amd64
         - cp39*win_amd64

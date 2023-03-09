@@ -1057,8 +1057,7 @@ These continuously test the package for each commit and pull request that is
 pushed to GitHub to notice when something breaks.
 
 In some cases, you may see failures on continuous integration services that
-you do not see locally, for example because the operating system is different,
-or because the failure happens with only 32-bit Python.
+you do not see locally, for example because the operating system is different.
 
 .. _pytest-plugins:
 

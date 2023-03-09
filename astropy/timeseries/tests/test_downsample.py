@@ -136,15 +136,9 @@ def test_downsample():
         time=INPUT_TIME, data=[[1, 2, 3, 4, 5] * u.count], names=["a"]
     )
 
-    # Avoid precision problems with floating-point comparisons on 32bit
-    if sys.maxsize > 2**32:
-        # 64 bit
-        time_bin_incr = 1 * u.s
-        time_bin_start = None
-    else:
-        # 32 bit
-        time_bin_incr = (1 - 1e-6) * u.s
-        time_bin_start = ts.time[0] - 1 * u.ns
+    # 64 bit
+    time_bin_incr = 1 * u.s
+    time_bin_start = None
 
     down_1 = aggregate_downsample(
         ts, time_bin_size=time_bin_incr, time_bin_start=time_bin_start

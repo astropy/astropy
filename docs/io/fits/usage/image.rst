@@ -239,8 +239,6 @@ However, it remains very useful in the following circumstances:
 
 * If the image's data is scaled with non-trivial BSCALE/BZERO values, accessing the
   data in sections may still be necessary under the current implementation.
-* Memory mapping is insufficient for loading images larger than 2 to 4 GB on a 32-bit
-  system — in such cases it may be necessary to use sections.
 * Memory mapping does not work for accessing remote FITS files.
   In this case sections may be your only option. See :ref:`astropy:fits_io_cloud`.
 

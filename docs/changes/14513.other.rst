@@ -1,0 +1,1 @@
+``astropy`` no longer run tests on 32-bit machine nor generate release wheels for it.
