@@ -1302,7 +1302,7 @@ def _format_float(value):
     value_str = str(value).replace("e", "E")
 
     # Limit the value string to at most 20 characters.
-    if str_len := len(value_str) > 20:
+    if (str_len := len(value_str)) > 20:
         idx = value_str.find("E")
         if idx > 0:
             # truncate significand (mantissa)
