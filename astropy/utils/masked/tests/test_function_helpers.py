@@ -603,21 +603,25 @@ class TestMethodLikes(MaskedArraySetup):
     def test_all(self):
         self.check(np.all)
 
+    @pytest.mark.filterwarnings("ignore:`sometrue` is deprecated as of NumPy 1.25.0")
     def test_sometrue(self):
         self.check(np.sometrue, method="any")
 
+    @pytest.mark.filterwarnings("ignore:`alltrue` is deprecated as of NumPy 1.25.0")
     def test_alltrue(self):
         self.check(np.alltrue, method="all")
 
     def test_prod(self):
         self.check(np.prod)
 
+    @pytest.mark.filterwarnings("ignore:`product` is deprecated as of NumPy 1.25.0")
     def test_product(self):
         self.check(np.product, method="prod")
 
     def test_cumprod(self):
         self.check(np.cumprod)
 
+    @pytest.mark.filterwarnings("ignore:`cumproduct` is deprecated as of NumPy 1.25.0")
     def test_cumproduct(self):
         self.check(np.cumproduct, method="cumprod")
 

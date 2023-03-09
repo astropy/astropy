@@ -634,10 +634,12 @@ class TestUfuncReductions(InvariantUnitTestSetup):
         with pytest.raises(TypeError):
             np.all(self.q)
 
+    @pytest.mark.filterwarnings("ignore:`sometrue` is deprecated as of NumPy 1.25.0")
     def test_sometrue(self):
         with pytest.raises(TypeError):
             np.sometrue(self.q)
 
+    @pytest.mark.filterwarnings("ignore:`alltrue` is deprecated as of NumPy 1.25.0")
     def test_alltrue(self):
         with pytest.raises(TypeError):
             np.alltrue(self.q)
@@ -646,6 +648,7 @@ class TestUfuncReductions(InvariantUnitTestSetup):
         with pytest.raises(u.UnitsError):
             np.prod(self.q)
 
+    @pytest.mark.filterwarnings("ignore:`product` is deprecated as of NumPy 1.25.0")
     def test_product(self):
         with pytest.raises(u.UnitsError):
             np.product(self.q)
@@ -654,6 +657,7 @@ class TestUfuncReductions(InvariantUnitTestSetup):
         with pytest.raises(u.UnitsError):
             np.cumprod(self.q)
 
+    @pytest.mark.filterwarnings("ignore:`cumproduct` is deprecated as of NumPy 1.25.0")
     def test_cumproduct(self):
         with pytest.raises(u.UnitsError):
             np.cumproduct(self.q)
