@@ -1299,7 +1299,7 @@ def _format_value(value):
 
 def _format_float(value):
     """Format a floating number to make sure it gets the decimal point."""
-    value_str = f"{value:.16G}"
+    value_str = str(value_str)
     if "." not in value_str and "E" not in value_str:
         value_str += ".0"
     elif "E" in value_str:
