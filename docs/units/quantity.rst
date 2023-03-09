@@ -239,7 +239,7 @@ This method is also useful for more complicated arithmetic:
     >>> 15. * u.kg * 32. * u.cm * 15 * u.m / (11. * u.s * 1914.15 * u.ms)  # doctest: +FLOAT_CMP
     <Quantity 0.34195097 cm kg m / (ms s)>
     >>> (15. * u.kg * 32. * u.cm * 15 * u.m / (11. * u.s * 1914.15 * u.ms)).decompose()  # doctest: +FLOAT_CMP
-    <Quantity 3.41950973 kg m2 / s2>
+    <Quantity 3.41950973 m2 kg / s2>
 
 .. EXAMPLE END
 

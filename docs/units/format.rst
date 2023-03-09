@@ -90,13 +90,13 @@ take an optional parameter to select a different format::
     '$10 \\; \\mathrm{km}$'
     >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
     >>> f"{fluxunit}"
-    'erg / (cm2 s)'
+    'erg / (s cm2)'
     >>> print(f"{fluxunit:unicode}")
     erg s⁻¹ cm⁻²
     >>> f"{fluxunit:latex}"
     '$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
     >>> f"{fluxunit:>20s}"
-    '       erg / (cm2 s)'
+    '       erg / (s cm2)'
 
 The `UnitBase.to_string() <astropy.units.core.UnitBase.to_string>` method is an
 alternative way to format units as strings, and is the underlying
@@ -117,9 +117,9 @@ formats using the `~astropy.units.Unit` class::
   >>> u.Unit("m")
   Unit("m")
   >>> u.Unit("erg / (s cm2)")
-  Unit("erg / (cm2 s)")
+  Unit("erg / (s cm2)")
   >>> u.Unit("erg.s-1.cm-2", format="cds")
-  Unit("erg / (cm2 s)")
+  Unit("erg / (s cm2)")
 
 It is also possible to create a scalar |Quantity| from a string::
 

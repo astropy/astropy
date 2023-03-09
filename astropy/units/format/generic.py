@@ -594,11 +594,6 @@ class Generic(Base):
                 else:
                     raise ValueError(f"Syntax error parsing unit '{s}'")
 
-    @classmethod
-    def _format_unit_list(cls, units):
-        units.sort(key=lambda x: cls._get_unit_name(x[0]).lower())
-        return super()._format_unit_list(units)
-
 
 # 2023-02-18: The statement in the docstring is no longer true, the class is not used
 # anywhere so can be safely removed in 6.0.

@@ -1,0 +1,6 @@
+The order in which unit bases are displayed has been changed to match the
+order bases are stored in internally, which is by descending power to which
+the base is raised, and alphabetical after. This helps avoid monstrosities
+like ``beam^-1 Jy`` for ``format='fits'``.
+
+Note that this may affect doctests that use quantities with complicated units.
