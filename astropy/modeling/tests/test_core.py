@@ -803,7 +803,7 @@ def test_prepare_outputs_sparse_grid():
     """
 
     shape = (3, 3)
-    data = np.arange(np.product(shape)).reshape(shape) * u.m / u.s
+    data = np.arange(np.prod(shape)).reshape(shape) * u.m / u.s
 
     points_unit = u.pix
     points = [np.arange(size) * points_unit for size in shape]
