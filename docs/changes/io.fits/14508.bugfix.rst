@@ -1,2 +1,2 @@
-`io.fits.Card` now uses the default Python representation for floating point
+`Card` now uses the default Python representation for floating point
 values.
