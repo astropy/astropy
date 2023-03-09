@@ -342,6 +342,9 @@ class Parameter:
             # units that the parameter advertises to what it actually
             # uses internally.
             if self.internal_unit:
+                # assert self.unit == u.dimensionless_unscaled
+                # assert self.internal_unit == u.dimensionless_unscaled
+                # raise RuntimeError(f"FAIL {self._getter}, {self._internal_value}, {type(self.internal_unit)}, {type(self.unit)}, {self._description}")
                 return np.float64(
                     self._getter(
                         self._internal_value, self.internal_unit, self.unit
@@ -681,6 +684,8 @@ class Parameter:
                     "getter/setter may only take one input "
                     "argument"
                 )
+
+            return _wrap_ufunc(wrapper)
         elif wrapper is None:
             # Just allow non-wrappers to fall through silently, for convenience
             return None
@@ -746,3 +751,12 @@ def param_repr_oneline(param):
     if param.unit is not None:
         out = f"{out} {param.unit!s}"
     return out
+
+
+def _wrap_ufunc(ufunc):
+    def _wrapper(value, raw_unit=None, orig_unit=None):
+        if orig_unit is not None:
+            return ufunc(value) * orig_unit
+        return ufunc(value)
+
+    return _wrapper
