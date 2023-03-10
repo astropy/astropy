@@ -1240,15 +1240,26 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
                     for _ in weights * np.array(model.fit_deriv(x, y, *params))
                 ]
 
-    def _compute_param_cov(self, model, y, init_values, cov_x, fitparams, farg):
+    def _compute_param_cov(
+        self, model, y, init_values, cov_x, fitparams, farg, weights=None
+    ):
         # now try to compute the true covariance matrix
         if (len(y) > len(init_values)) and cov_x is not None:
-            sum_sqrs = np.sum(self.objective_function(fitparams, *farg) ** 2)
-            dof = len(y) - len(init_values)
-            self.fit_info["param_cov"] = cov_x * sum_sqrs / dof
+            self.fit_info["param_cov"] = cov_x
+            if weights is None:
+                # if there are no measurement uncertainties given in `weights`,
+                # fall back on the default behavior in scipy.optimize.curve_fit
+                # when `absolute_sigma == False`. If there are uncertainties,
+                # assume they are "absolute" and not "relative".
+                # For details, see curve_fit:
+                #   https://github.com/scipy/scipy/blob/
+                #   c1ed5ece8ffbf05356a22a8106affcd11bd3aee0/scipy/
+                #   optimize/_minpack_py.py#L591-L602
+                sum_sqrs = np.sum(self.objective_function(fitparams, *farg) ** 2)
+                dof = len(y) - len(init_values)
+                self.fit_info["param_cov"] *= sum_sqrs / dof
         else:
             self.fit_info["param_cov"] = None
-
         if self._calc_uncertainties is True:
             if self.fit_info["param_cov"] is not None:
                 self._add_fitting_uncertainties(model, self.fit_info["param_cov"])
@@ -1349,7 +1360,9 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
             model_copy, farg, maxiter, acc, epsilon, estimate_jacobian
         )
 
-        self._compute_param_cov(model_copy, y, init_values, cov_x, fitparams, farg)
+        self._compute_param_cov(
+            model_copy, y, init_values, cov_x, fitparams, farg, weights
+        )
 
         model.sync_constraints = True
         return model_copy
