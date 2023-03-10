@@ -619,7 +619,7 @@ class TestNonLinearFitters:
 
         with NumpyRNGContext(_RANDOM_SEED):
             x = np.linspace(0, 1, 100)
-            # y scatter is amplitude ~1 to make sure covarience is
+            # y scatter is amplitude ~1 to make sure covariance is
             # non-negligible
             y = x * a + b + np.random.randn(len(x))
 
@@ -637,6 +637,40 @@ class TestNonLinearFitters:
 
         assert_allclose(fmod.parameters, beta.ravel())
         assert_allclose(olscov, fitter.fit_info["param_cov"])
+
+    @pytest.mark.parametrize("fitter", non_linear_fitters)
+    def test_param_cov_with_uncertainties(self, fitter):
+        """
+        Tests that the 'param_cov' fit_info entry gets the right answer for
+        *linear* least squares, where the answer is exact
+        """
+        fitter = fitter()
+
+        a = 2
+        b = 100
+
+        with NumpyRNGContext(_RANDOM_SEED):
+            x = np.linspace(0, 1, 100)
+            # y scatter is amplitude ~1 to make sure covariance is
+            # non-negligible
+            y = x * a + b + np.random.normal(size=len(x))
+            sigma = np.random.normal(loc=1, scale=0.1, size=len(x))
+
+        # compute the ordinary least squares covariance matrix
+        # accounting for measurement uncertainties `sigma`
+        X = np.vstack([x, np.ones(len(x))]).T
+        inv_N = np.linalg.inv(np.diag(sigma) ** 2)
+        cov = np.linalg.inv(X.T @ inv_N @ X)
+        beta = cov @ X.T @ inv_N @ y.T
+
+        # now do the non-linear least squares fit
+        mod = models.Linear1D(a, b)
+
+        with pytest.warns(AstropyUserWarning, match=r"Model is linear in parameters"):
+            fmod = fitter(mod, x, y, weights=sigma**-1)
+
+        assert_allclose(fmod.parameters, beta.ravel())
+        assert_allclose(cov, fitter.fit_info["param_cov"])
 
 
 class TestEntryPoint:
