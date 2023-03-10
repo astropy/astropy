@@ -350,8 +350,8 @@ def test_log_getter():
     class CustomBlackBody(BlackBody):
         scale = Parameter(
             "scale",
-            default=0,
-            bounds=(-1000, 1000),
+            default=1,
+            bounds=(0, None),
             getter=np.log,
             setter=np.exp,
             unit=u.dimensionless_unscaled,
