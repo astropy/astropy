@@ -593,17 +593,20 @@ class Quantity(np.ndarray):
         if obj is None or obj.__class__ is np.ndarray:
             return
 
-        # If our unit is not set and obj has a valid one, use it.
+        # Copy over the unit and possibly info.  Note that the only way the
+        # unit can already be set is if one enters via _new_view(), where the
+        # unit is often different from that of self, and where propagation of
+        # info is not always desirable.
         if self._unit is None:
             unit = getattr(obj, "_unit", None)
             if unit is not None:
                 self._set_unit(unit)
 
-        # Copy info if the original had `info` defined.  Because of the way the
-        # DataInfo works, `'info' in obj.__dict__` is False until the
-        # `info` attribute is accessed or set.
-        if "info" in obj.__dict__:
-            self.info = obj.info
+            # Copy info if the original had `info` defined.  Because of the way the
+            # DataInfo works, `'info' in obj.__dict__` is False until the
+            # `info` attribute is accessed or set.
+            if "info" in obj.__dict__:
+                self.info = obj.info
 
     def __array_wrap__(self, obj, context=None):
         if context is None:
@@ -732,7 +735,9 @@ class Quantity(np.ndarray):
         if out is None:
             # View the result array as a Quantity with the proper unit.
             return (
-                result if unit is None else self._new_view(result, unit, finalize=False)
+                result
+                if unit is None
+                else self._new_view(result, unit, propagate_info=False)
             )
 
         elif isinstance(out, Quantity):
@@ -763,7 +768,7 @@ class Quantity(np.ndarray):
         """
         return Quantity, True
 
-    def _new_view(self, obj=None, unit=None, finalize=True):
+    def _new_view(self, obj=None, unit=None, propagate_info=True):
         """Create a Quantity view of some array-like input, and set the unit.
 
         By default, return a view of ``obj`` of the same class as ``self`` and
@@ -786,12 +791,10 @@ class Quantity(np.ndarray):
             subclass, and explicitly assigned to the view if given.
             If not given, the subclass and unit will be that of ``self``.
 
-        finalize : bool, optional
-            Whether to call ``__array_finalize__`` to transfer properties from
-            ``self`` to the new view of ``obj`` (e.g., ``info`` for all
-            subclasses, or ``_wrap_angle`` for `~astropy.coordinates.Latitude`).
-            Default: `True`, as appropriate for, e.g., unit conversions or slicing,
-            where the nature of the object does not change.
+        propagate_info : bool, optional
+            Whether to transfer ``info`` if present.  Default: `True`, as
+            appropriate for, e.g., unit conversions or slicing, where the
+            nature of the object does not change.
 
         Returns
         -------
@@ -832,8 +835,9 @@ class Quantity(np.ndarray):
         # such as ``info``, ``wrap_angle`` in `Longitude`, etc.
         view = obj.view(quantity_subclass)
         view._set_unit(unit)
-        if finalize:
-            view.__array_finalize__(self)
+        view.__array_finalize__(self)
+        if propagate_info and "info" in self.__dict__:
+            view.info = self.info
         return view
 
     def _set_unit(self, unit):
@@ -1214,7 +1218,7 @@ class Quantity(np.ndarray):
         if isinstance(other, (UnitBase, str)):
             try:
                 return self._new_view(
-                    self.value.copy(), other * self.unit, finalize=False
+                    self.value.copy(), other * self.unit, propagate_info=False
                 )
             except UnitsError:  # let other try to deal with it
                 return NotImplemented
@@ -1240,7 +1244,7 @@ class Quantity(np.ndarray):
         if isinstance(other, (UnitBase, str)):
             try:
                 return self._new_view(
-                    self.value.copy(), self.unit / other, finalize=False
+                    self.value.copy(), self.unit / other, propagate_info=False
                 )
             except UnitsError:  # let other try to deal with it
                 return NotImplemented
@@ -1258,7 +1262,9 @@ class Quantity(np.ndarray):
     def __rtruediv__(self, other):
         """Right Division between `Quantity` objects and other objects."""
         if isinstance(other, (UnitBase, str)):
-            return self._new_view(1.0 / self.value, other / self.unit, finalize=False)
+            return self._new_view(
+                1.0 / self.value, other / self.unit, propagate_info=False
+            )
 
         return super().__rtruediv__(other)
 
@@ -1266,7 +1272,7 @@ class Quantity(np.ndarray):
         if isinstance(other, Fraction):
             # Avoid getting object arrays by raising the value to a Fraction.
             return self._new_view(
-                self.value ** float(other), self.unit**other, finalize=False
+                self.value ** float(other), self.unit**other, propagate_info=False
             )
 
         return super().__pow__(other)
@@ -1292,7 +1298,7 @@ class Quantity(np.ndarray):
     def __getitem__(self, key):
         if isinstance(key, str) and isinstance(self.unit, StructuredUnit):
             return self._new_view(
-                self.view(np.ndarray)[key], self.unit[key], finalize=False
+                self.view(np.ndarray)[key], self.unit[key], propagate_info=False
             )
 
         try:

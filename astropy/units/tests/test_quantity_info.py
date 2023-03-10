@@ -119,3 +119,44 @@ class TestStructuredQuantity:
         # Scalars do not get info set.
         q = self.q[1]
         assert_no_info(q)
+
+
+class TestQuantitySubclass:
+    """Regression test for gh-14514: _new_view should __array_finalize__.
+
+    But info should be propagated only for slicing, etc.
+    """
+
+    @classmethod
+    def setup_class(self):
+        class MyQuantity(u.Quantity):
+            def __array_finalize__(self, obj):
+                super().__array_finalize__(obj)
+                if hasattr(obj, "swallow"):
+                    self.swallow = obj.swallow
+
+        self.my_q = MyQuantity([10.0, 20.0], u.m / u.s)
+        self.my_q.swallow = "African"
+        self.my_q_w_info = self.my_q.copy()
+        self.my_q_w_info.info.name = "swallow"
+
+    def test_setup(self):
+        assert_no_info(self.my_q)
+        assert self.my_q_w_info.swallow == self.my_q.swallow
+        assert self.my_q_w_info.info.name == "swallow"
+
+    def test_slice(self):
+        slc1 = self.my_q[:1]
+        assert slc1.swallow == self.my_q.swallow
+        assert_no_info(slc1)
+        slc2 = self.my_q_w_info[1:]
+        assert slc2.swallow == self.my_q.swallow
+        assert_info_equal(slc2, self.my_q_w_info)
+
+    def test_op(self):
+        square1 = self.my_q**2
+        assert square1.swallow == self.my_q.swallow
+        assert_no_info(square1)
+        square2 = self.my_q_w_info**2
+        assert square2.swallow == self.my_q.swallow
+        assert_no_info(square2)
