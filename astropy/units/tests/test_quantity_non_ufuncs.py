@@ -17,7 +17,7 @@ from astropy.units.quantity_helper.function_helpers import (
     TBD_FUNCTIONS,
     UNSUPPORTED_FUNCTIONS,
 )
-from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24, NUMPY_LT_1_25
+from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24
 
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
@@ -671,14 +671,9 @@ class TestUfuncLike(InvariantUnitTestSetup):
     def test_round(self):
         self.check(np.round)
 
+    @pytest.mark.filterwarnings("ignore:`round_` is deprecated as of NumPy 1.25.0")
     def test_round_(self):
-        if NUMPY_LT_1_25:
-            self.check(np.round_)
-        else:
-            with pytest.warns(
-                DeprecationWarning, match="`round_` is deprecated as of NumPy 1.25.0"
-            ):
-                self.check(np.round_)
+        self.check(np.round_)
 
     def test_around(self):
         self.check(np.around)
