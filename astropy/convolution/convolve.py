@@ -734,7 +734,7 @@ def convolve_fft(
     kernshape = kernel.shape
 
     array_size_B = (
-        np.product(arrayshape, dtype=np.int64) * np.dtype(complex_dtype).itemsize
+        np.prod(arrayshape, dtype=np.int64) * np.dtype(complex_dtype).itemsize
     ) * u.byte
     if array_size_B > 1 * u.GB and not allow_huge:
         raise ValueError(
@@ -840,7 +840,7 @@ def convolve_fft(
 
     # perform a second check after padding
     array_size_C = (
-        np.product(newshape, dtype=np.int64) * np.dtype(complex_dtype).itemsize
+        np.prod(newshape, dtype=np.int64) * np.dtype(complex_dtype).itemsize
     ) * u.byte
     if array_size_C > 1 * u.GB and not allow_huge:
         raise ValueError(
@@ -854,12 +854,12 @@ def convolve_fft(
     #         (kernel*array)fft +
     #         optional(weight image + weight_fft + weight_ifft) +
     #         optional(returned_fft))
-    # total_memory_used_GB = (np.product(newshape)*np.dtype(complex_dtype).itemsize
+    # total_memory_used_GB = (np.prod(newshape)*np.dtype(complex_dtype).itemsize
     #                        * (5 + 3*((interpolate_nan or ) and kernel_is_normalized))
     #                        + (1 + (not return_fft)) *
-    #                          np.product(arrayshape)*np.dtype(complex_dtype).itemsize
-    #                        + np.product(arrayshape)*np.dtype(bool).itemsize
-    #                        + np.product(kernshape)*np.dtype(bool).itemsize)
+    #                          np.prod(arrayshape)*np.dtype(complex_dtype).itemsize
+    #                        + np.prod(arrayshape)*np.dtype(bool).itemsize
+    #                        + np.prod(kernshape)*np.dtype(bool).itemsize)
     #                        ) / 1024.**3
 
     # separate each dimension by the padding size...  this is to determine the
