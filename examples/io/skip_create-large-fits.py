@@ -90,7 +90,7 @@ with open('large.fits', 'rb+') as fobj:
 
 shape = tuple(header[f'NAXIS{ii}'] for ii in range(1, header['NAXIS']+1))
 with open('large.fits', 'rb+') as fobj:
-    fobj.seek(len(header.tostring()) + (np.product(shape) * np.abs(header['BITPIX']//8)) - 1)
+    fobj.seek(len(header.tostring()) + (np.prod(shape) * np.abs(header['BITPIX']//8)) - 1)
     fobj.write(b'\0')
 
 ##############################################################################
