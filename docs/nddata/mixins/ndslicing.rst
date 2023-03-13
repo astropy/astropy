@@ -39,7 +39,7 @@ Getting one element::
 Getting a sliced portion of the original::
 
     >>> ndd[1:3]  # Get element 1 (inclusive) to 3 (exclusive)
-     NDDataRef([2 3])
+    NDDataRef([2, 3])
 
 This will return a reference (and as such **not a copy**) of the original
 properties, so changing a slice will affect the original::
@@ -47,9 +47,9 @@ properties, so changing a slice will affect the original::
     >>> ndd_sliced = ndd[1:3]
     >>> ndd_sliced.data[0] = 5
     >>> ndd_sliced
-    NDDataRef([5 3])
+    NDDataRef([5, 3])
     >>> ndd
-    NDDataRef([1 5 3 4])
+    NDDataRef([1, 5, 3, 4])
 
 But only the one element that was indexed is affected (for example,
 ``ndd_sliced = ndd[1]``). The element is a scalar and changes will not
@@ -134,7 +134,7 @@ To get all of the valid data points by slicing with the mask::
     >>> # don't forget that ~ or you'll get the invalid points
     >>> ndd_sliced = ndd[~ndd.mask]
     >>> ndd_sliced
-    NDDataRef([1 3 7 8])
+    NDDataRef([1, 3, 7, 8])
 
     >>> ndd_sliced.mask
     array([False, False, False, False]...)
@@ -146,7 +146,7 @@ Or all invalid points::
 
     >>> ndd_sliced = ndd[ndd.mask] # without the ~ now!
     >>> ndd_sliced
-    NDDataRef([— — — — —])
+    NDDataRef([—, —, —, —, —])
 
     >>> ndd_sliced.mask
     array([ True,  True,  True,  True,  True]...)

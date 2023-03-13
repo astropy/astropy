@@ -41,9 +41,9 @@ To create an instance::
     >>> array = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]])
     >>> ndd = NDData(array)
     >>> ndd
-    NDData([[0 1 0]
-            [1 0 1]
-            [0 1 0]])
+    NDData([[0, 1, 0],
+            [1, 0, 1],
+            [0, 1, 0]])
 
 And access by the ``data`` attribute::
 
@@ -455,7 +455,7 @@ the first example in this section, we see that the underlying
 masked ones::
 
     >>> sum_axis_1  # doctest: +FLOAT_CMP
-    NDDataArray([6., 9.], unit='m')
+    NDDataArray([——, 9.], unit='m')
 
 where the first data element is masked. We can instead get the sum
 for only unmasked values with the ``operation_ignores_mask`` option::
