@@ -11,7 +11,7 @@ For example, the default representation of the `.StokesCoord` object uses the na
   >>> import numpy as np
   >>> from astropy.coordinates import StokesCoord
   >>> StokesCoord([1, 2, 3, 4])
-  <StokesCoord ['I', 'Q', 'U', 'V']>
+  StokesCoord(['I', 'Q', 'U', 'V'])
 
 These "symbols" as the `.StokesCoord` class refers to them as can also be accessed via the `.StokesCoord.symbol` property::
 
@@ -22,12 +22,12 @@ These "symbols" as the `.StokesCoord` class refers to them as can also be access
 And the `.StokesCoord` class can also be instantiated with symbols rather than numbers:
 
   >>> StokesCoord("I")
-  <StokesCoord 'I'>
+  StokesCoord('I')
 
 Numeric values which are not present in the mapping will be represented by the string ``"?"``::
 
   >>> StokesCoord([1, 10])
-  <StokesCoord ['I', '?']>
+  StokesCoord(['I', '?'])
 
 It is possible to add custom number - symbol mappings see :ref:`mapping-stokes-symbols`.
 

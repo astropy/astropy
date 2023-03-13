@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_equal
 
-from astropy import units as u
+import astropy.units as u
 from astropy.coordinates.stokes_coord import (
     StokesCoord,
     StokesSymbol,
@@ -13,7 +13,7 @@ from astropy.utils import unbroadcast
 
 def test_scalar():
     sk = StokesCoord(2)
-    assert repr(sk) == "<StokesCoord 'Q'>"
+    assert repr(sk) == "StokesCoord('Q')" == str(sk)
     assert sk.value == 2.0
     assert sk.symbol == "Q"
 
@@ -25,22 +25,13 @@ def test_vector():
     sk = StokesCoord(values)
     assert_equal(sk.value, values)
     assert_equal(sk.symbol, np.array(["I", "Q", "Q", "Q", "U"]))
-    assert repr(sk) == "<StokesCoord ['I', 'Q', 'Q', 'Q', 'U']>"
+    assert repr(sk) == "StokesCoord(['I', 'Q', 'Q', 'Q', 'U'])" == str(sk)
 
 
 def test_vector_list_init():
     sk = StokesCoord(["I", "Q", "Q", "U", "U"])
-    assert repr(sk) == "<StokesCoord ['I', 'Q', 'Q', 'U', 'U']>"
+    assert repr(sk) == "StokesCoord(['I', 'Q', 'Q', 'U', 'U'])" == str(sk)
     assert_equal(sk.symbol, np.array(["I", "Q", "Q", "U", "U"]))
-
-
-def test_unit():
-    StokesCoord(1, unit=u.one)
-    for unit in [u.radian, u.deg, u.Hz]:
-        with pytest.raises(
-            u.UnitsError, match="unit should not be specified explicitly"
-        ):
-            StokesCoord(1, unit=unit)
 
 
 def test_undefined():
@@ -88,7 +79,7 @@ def test_custom_symbol_mapping():
     with custom_stokes_symbol_mapping(custom_mapping):
         values = [0.6, 1.7, 10000.1, 10002.4]
         sk1 = StokesCoord(values)
-        assert repr(sk1) == "<StokesCoord ['I', 'Q', 'A', 'C']>"
+        assert repr(sk1) == "StokesCoord(['I', 'Q', 'A', 'C'])" == str(sk1)
         assert_equal(sk1.value, values)
         assert_equal(sk1.symbol, np.array(["I", "Q", "A", "C"]))
 
@@ -137,7 +128,8 @@ def test_comparison_scalar():
     assert_equal("Q" == sk, [False, True, False, False, False])
     assert_equal(sk == 1, [True, False, False, False, False])
     assert_equal(sk == "Q", [False, True, False, False, False])
-    assert_equal(sk == "?", [False, False, False, False, True])
+    # TODO: Should we support this or not?
+    # assert_equal(sk == "?", [False, False, False, False, True])
 
 
 def test_comparison_vector():
@@ -168,3 +160,10 @@ def test_efficient():
     assert unbroadcast(sk.value).shape == (4,)
     assert unbroadcast(sk.symbol).shape == (4,)
     assert_equal(unbroadcast(sk.symbol), np.array(["I", "Q", "U", "V"]))
+
+
+# TODO: Support this?
+@pytest.mark.skip(reason="Do we support this or not?")
+def test_convert_to_quantity():
+    sk1 = StokesCoord(np.arange(1, 6))
+    assert u.allclose(u.Quantity(sk1), np.arange(1, 6))

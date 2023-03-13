@@ -35,6 +35,7 @@ __construct_mixin_classes = (
     "astropy.coordinates.distances.Distance",
     "astropy.coordinates.earth.EarthLocation",
     "astropy.coordinates.sky_coordinate.SkyCoord",
+    "astropy.coordinates.stokes_coord.StokesCoord",
     "astropy.table.ndarray_mixin.NdarrayMixin",
     "astropy.table.table_helpers.ArrayWrapper",
     "astropy.table.column.Column",

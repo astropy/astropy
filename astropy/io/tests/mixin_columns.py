@@ -60,6 +60,7 @@ su2 = table.Column(
     [(["snake", "c"], [1.6, 1.5]), (["eal", "a"], [2.5, 2.6])],
     dtype=[("name", "U5", (2,)), ("f", "f8", (2,))],
 )
+stokes = coordinates.StokesCoord(range(1, 6))
 
 # NOTE: for testing, the name of the column "x" for the
 # Quantity is important since it tests the fix for #10215
@@ -91,6 +92,7 @@ mixin_cols = {
     "obj": obj,
     "su": su,
     "su2": su2,
+    "stokes": stokes,
 }
 time_attrs = [
     "value",
@@ -160,6 +162,7 @@ compare_attrs = {
     "obj": [],
     "su": ["i", "f.p0", "f.p1"],
     "su2": ["name", "f"],
+    "stokes": ["_data"],
 }
 non_trivial_names = {
     "cr": ["cr.x", "cr.y", "cr.z"],
