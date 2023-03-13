@@ -1,0 +1,2 @@
+Propagate measurement uncertainties via the ``weights`` keyword argument into the
+parameter covariances.

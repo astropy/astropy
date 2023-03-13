@@ -19,6 +19,7 @@ In particular, this release includes:
 .. * :ref:`whatsnew-5.3-unit-formats-fraction`
 .. * :ref:`whatsnew-5.3-unit-formats-order`
 .. * :ref:`whatsnew-5.3-nddata-collapse-arbitrary-axes`
+.. * :ref:`whatsnew-5.3-modeling-measurement-uncertainties`
 .. * :ref:`whatsnew-5.3-coordinates-refresh-site-registry`
 
 In addition to these major changes, Astropy v5.3 includes a large number of
@@ -198,6 +199,7 @@ we can take the sum of ND masked quantities along the ``1`` axis like so::
      array([ True, False]),
      StdDevUncertainty([1.41421356, 1.73205081]))
 
+
 .. _whatsnew-5.3-coordinates-refresh-site-registry:
 
 Refresh cached observatory site registry for |EarthLocation| methods
@@ -213,6 +215,16 @@ user's computer for quick access.  The online version of the registry,
 however, is updated from time to time to include new locations.  The user
 may refresh their locally cached site registry by passing the new
 ``refresh_cache=True`` option to these two functions.
+
+.. _whatsnew-5.3-modeling-measurement-uncertainties:
+
+Support for collapse operations on arbitrary axes in ``nddata``
+===============================================================
+
+Propagate measurement uncertainties into the best-fit parameter covariances
+via the ``weights`` keyword argument in non-linear fitters. Decreasing
+the ``weights`` will now increase the uncertainties on the best-fit parameters.
+
 
 Full change log
 ===============
