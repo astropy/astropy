@@ -591,4 +591,5 @@ ignore-words-list = """
     valu,
     watn,
     watstr,
-    wirth"""
+    wirth,
+    ndefined"""

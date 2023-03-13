@@ -951,7 +951,7 @@ class TestHeaderFunctions(FitsTestCase):
 
         # Create a header that contains an undefined value and a defined
         # value.
-        hstr = "UNDEF   = \undefined = 42"
+        hstr = "UNDEF   = \nDEFINED = 42"
         header = fits.Header.fromstring(hstr, sep="\n")
 
         # Explicitly add a card with an UNDEFINED value
