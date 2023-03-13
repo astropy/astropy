@@ -952,7 +952,7 @@ def test_asteroid_velocity_frame_shifts():
     dt = 12 * u.hour
     time2 = time1 + dt
 
-    # make the silly but simplifying assumption that the astroid is moving along
+    # make the silly but simplifying assumption that the asteroid is moving along
     # the x-axis of GCRS, and makes a 10 earth-radius closest approach
 
     v_ast = [5, 0, 0] * u.km / u.s
