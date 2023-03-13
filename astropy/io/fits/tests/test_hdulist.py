@@ -656,7 +656,7 @@ class TestHDUListFunctions(FitsTestCase):
     def test_update_resized_header(self, home_is_temp):
         """
         Test saving updates to a file where the header is one block smaller
-        than before, and in the case where the heade ris one block larger than
+        than before, and in the case where the header is one block larger than
         before.
         """
 

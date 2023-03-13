@@ -195,12 +195,12 @@ class SAMPWebClient(SAMPClient):
 
             if result["samp.self-id"] == "":
                 raise SAMPClientError(
-                    "Registation failed - samp.self-id was not set by the hub."
+                    "Registration failed - samp.self-id was not set by the hub."
                 )
 
             if result["samp.private-key"] == "":
                 raise SAMPClientError(
-                    "Registation failed - samp.private-key was not set by the hub."
+                    "Registration failed - samp.private-key was not set by the hub."
                 )
 
             self._public_id = result["samp.self-id"]

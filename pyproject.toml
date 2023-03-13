@@ -568,6 +568,7 @@ ignore-words-list = """
     moreso,
     nax,
     nd,
+    ndefined,
     ned,
     nin,
     numer,
