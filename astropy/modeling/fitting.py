@@ -1317,9 +1317,14 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         z : array, optional
            input coordinates
         weights : array, optional
-            Weights for fitting.
-            For data with Gaussian uncertainties, the weights should be
-            1/sigma.
+            Weights for fitting. For data with Gaussian uncertainties, the weights
+            should be 1/sigma.
+
+            .. versionchanged:: 5.3
+                Calculate parameter covariances while accounting for ``weights``
+                as "absolute" inverse uncertainties. To recover the old behavior,
+                choose ``weights=None``.
+
         maxiter : int
             maximum number of iterations
         acc : float
