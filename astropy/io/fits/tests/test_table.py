@@ -3808,7 +3808,7 @@ def test_new_column_attributes_preserved(tmp_path):
     assert hdu.header["DEC"] == 3.0
 
     # Now we can write this HDU to a file and re-load. Re-loading *should*
-    # cause the special column attribtues to be picked up (it's just that when a
+    # cause the special column attributes to be picked up (it's just that when a
     # header is manually specified, these values are ignored)
 
     filename = tmp_path / "test.fits"
