@@ -5,9 +5,9 @@ from typing import Dict
 
 import numpy as np
 
-import astropy.units as u
-from astropy.units.quantity import Quantity
 from astropy.utils import unbroadcast
+from astropy.utils.data_info import MixinInfo
+from astropy.utils.shapes import ShapedLikeNDArray
 
 __all__ = ["StokesCoord", "custom_stokes_symbol_mapping", "StokesSymbol"]
 
@@ -61,36 +61,74 @@ def custom_stokes_symbol_mapping(
     STOKES_VALUE_SYMBOL_MAP = original_mapping
 
 
-class StokesCoord(Quantity):
+class StokesCoordInfo(MixinInfo):
+    _represent_as_dict_attrs = {"_data"}
+    _represent_as_dict_primary_data = "_data"
+
+    @property
+    def unit(self):
+        return None
+
+    @property
+    def dtype(self):
+        return self._parent._data.dtype
+
+
+class StokesCoord(ShapedLikeNDArray):
     """
     A representation of stokes coordinates with helpers for converting to profile names.
+
+    Parameters
+    ----------
+    stokes_values : array-like
+        The numeric values representing stokes coordinates.
     """
 
-    def __new__(cls, value, unit=None, **kwargs):
-        if unit is not None and unit is not u.dimensionless_unscaled:
-            raise u.UnitsError("unit should not be specified explicitly to StokesCoord")
+    info = StokesCoordInfo()
 
-        value_as_array = np.array(value, copy=False, subok=True)
-        if value_as_array.dtype.kind == "U":
-            return cls.from_symbols(value_as_array)
+    def __init__(self, stokes, copy=False):
+        stokes = np.asanyarray(stokes)
+        if stokes.dtype.kind == "U":
+            self._data = self._from_symbols(stokes)
+        else:
+            self._data = stokes
 
-        return super().__new__(cls, value, unit=u.dimensionless_unscaled, **kwargs)
+    @property
+    def shape(self):
+        return self._data.shape
 
-    @classmethod
-    def from_symbols(cls, value):
+    @property
+    def value(self):
+        return self._data
+
+    # def __array__(self):
+    #     return self._data
+
+    def _apply(self, method, *args, **kwargs):
+        cls = type(self)
+
+        if callable(method):
+            return cls(method(self._data, *args, **kwargs))
+        elif method == "__getitem__":
+            return cls(self._data.__getitem__(*args))
+        else:
+            return getattr(self, method)(*args, **kwargs)
+
+    @staticmethod
+    def _from_symbols(symbols):
         """
         Construct a StokesCoord from strings representing the stokes symbols.
         """
-        values_array = np.full_like(value, np.nan, dtype=float, subok=False)
+        values_array = np.full_like(symbols, np.nan, dtype=float, subok=False)
         for stokes_value, symbol in STOKES_VALUE_SYMBOL_MAP.items():
-            values_array[value == symbol.symbol] = stokes_value
+            values_array[symbols == symbol.symbol] = stokes_value
 
         if (nan_values := np.isnan(values_array)).any():
             raise ValueError(
-                f"Unknown stokes symbols present in the input array: {np.unique(value[nan_values])}"
+                f"Unknown stokes symbols present in the input array: {np.unique(symbols[nan_values])}"
             )
 
-        return super().__new__(cls, values_array, unit=u.dimensionless_unscaled)
+        return values_array
 
     @property
     def _stokes_values(self):
@@ -99,9 +137,7 @@ class StokesCoord(Quantity):
         """
         # Note we unbroadcast and re-broadcast here to prevent the new array
         # using more memory than the old one.
-        return type(self)(
-            np.broadcast_to(np.round(unbroadcast(self)), self.shape), copy=False
-        )
+        return np.broadcast_to(np.round(unbroadcast(self._data)), self.shape)
 
     @property
     def symbol(self):
@@ -115,7 +151,7 @@ class StokesCoord(Quantity):
 
         # Note we unbroadcast and re-broadcast here to prevent the new array
         # using more memory than the old one.
-        symbolarr = np.full(unbroadcast(self).shape, "?", dtype=f"<U{max_len}")
+        symbolarr = np.full(unbroadcast(self._data).shape, "?", dtype=f"<U{max_len}")
 
         for value, symbol in STOKES_VALUE_SYMBOL_MAP.items():
             symbolarr[unbroadcast(self._stokes_values) == value] = symbol.symbol
@@ -123,28 +159,13 @@ class StokesCoord(Quantity):
         return np.broadcast_to(symbolarr, self.shape)
 
     def __eq__(self, other):
-        if isinstance(other, str):
-            return self.symbol == other
-        else:
-            return super().__eq__(other)
+        try:
+            other = self.__class__(other)
+        except Exception:
+            return NotImplemented
 
-    def __array_ufunc__(self, function, method, *inputs, **kwargs):
-        if function is np.equal:
-            if inputs[0] is self:
-                return self.symbol == inputs[1]
-            else:
-                return self.symbol == inputs[0]
-        else:
-            raise NotImplementedError()
-
-    def __str__(self):
-        arrstr = np.array2string(
-            self.symbol.view(np.ndarray), separator=", ", prefix="  "
-        )
-        return f"{type(self).__name__}({arrstr})"
+        return self._data == other._data
 
     def __repr__(self):
-        arrstr = np.array2string(
-            self.symbol.view(np.ndarray), separator=", ", prefix="  "
-        )
-        return f"<{type(self).__name__} {arrstr}>"
+        arrstr = np.array2string(self.symbol, separator=", ", prefix="  ")
+        return f"{type(self).__name__}({arrstr})"

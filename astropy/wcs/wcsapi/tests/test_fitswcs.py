@@ -7,7 +7,7 @@ from itertools import product
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose, assert_array_equal, assert_equal
 from packaging.version import Version
 
 from astropy import units as u
@@ -1397,11 +1397,11 @@ def test_phys_type_polarization(wcs_polarized):
 def test_pixel_to_world_stokes(wcs_polarized):
     w = wcs_polarized
     world = w.pixel_to_world(0, 0, 0)
-    assert u.allclose(world[2], 1)
+    assert world[2] == 1
     assert isinstance(world[2], StokesCoord)
-    assert np.equal(world[2].symbol, "I")
+    assert_equal(world[2].symbol, "I")
 
     world = w.pixel_to_world(0, 0, [0, 1, 2, 3])
     assert isinstance(world[2], StokesCoord)
-    assert u.allclose(world[2], [1, 2, 3, 4])
-    assert np.equal(world[2].symbol, ["I", "U", "Q", "V"]).all()
+    assert_array_equal(world[2], [1, 2, 3, 4])
+    assert_array_equal(world[2].symbol, ["I", "Q", "U", "V"])
