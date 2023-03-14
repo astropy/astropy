@@ -150,9 +150,11 @@ def circvar(data, axis=None, weights=None):
 
     Notes
     -----
-    The definition used here differs from the one in scipy.stats.circvar.
-    Precisely, Scipy circvar uses an approximation based on the limit of small
-    angles which approaches the linear variance.
+    For Scipy < 1.9.0, ``scipy.stats.circvar`` uses a different
+    definition based on an approximation using the limit of small
+    angles that approaches the linear variance. For Scipy >= 1.9.0,
+    ``scipy.stats.cirvar`` uses a definition consistent with this
+    implementation.
     """
 
     return 1.0 - _length(data, 1, 0.0, axis, weights)
