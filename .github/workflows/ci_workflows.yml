@@ -47,7 +47,12 @@ jobs:
   tests:
     needs: [initial_checks]
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
+      setenv: |
+        ARCH_ON_CI: "normal"
+        IS_CRON: "false"
       submodules: false
       coverage: ''
       libraries: |
@@ -88,6 +93,9 @@ jobs:
     needs: [initial_checks]
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     with:
+      setenv: |
+        ARCH_ON_CI: "normal"
+        IS_CRON: "false"
       submodules: false
       coverage: ''
       libraries: |
