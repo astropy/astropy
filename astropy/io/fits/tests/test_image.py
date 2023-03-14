@@ -1126,6 +1126,11 @@ class TestImageFunctions(FitsTestCase):
             fits.ImageHDU(data=1)
         with pytest.raises(TypeError, match=msg):
             fits.PrimaryHDU(data=1)
+        # Regression test for https://github.com/astropy/astropy/issues/14527
+        with pytest.raises(TypeError, match=msg):
+            fits.ImageHDU(data=np.array(1))
+        with pytest.raises(TypeError, match=msg):
+            fits.PrimaryHDU(data=np.array(1))
 
 
 class TestCompressedImage(FitsTestCase):
