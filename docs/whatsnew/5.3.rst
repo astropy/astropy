@@ -198,8 +198,8 @@ Example in a Python module that skips doctest for ``astropy`` 5.3 or later::
 Example in ``setup.cfg``::
 
     doctest_subpackage_requires =
-        docs/somedocpage.rst = astropy<5.3
-        package/somemodule.py = astropy<5.3
+        docs/somedocpage.rst = astropy>=5.3  # units updated to new ordering
+        package/somemodule.py = astropy<5.3  # TODO: update units to new ordering
 
 .. _whatsnew-5.3-nddata-collapse-arbitrary-axes:
 
