@@ -169,6 +169,38 @@ For typesetting with fractions, there is usually less effect, but the string
 representations of complicated units will change (e.g., what previously was
 ``erg / (Angstrom cm2 s)`` will now be ``erg / (Angstrom s cm2)``).
 
+Unfortunately, this is a breaking change if you test for unit *string*
+downstream. To workaround a unit string comparison failure that you see,
+you can filter by ``astropy`` version either in the Python module or
+in ``setup.cfg``. We provide some examples below but these are not
+exhaustive; please adapt them to your own use cases and refer to
+`pytest-doctestplus documentation <https://github.com/astropy/pytest-doctestplus>`_.
+
+Example in a Python module that enables the same test for all
+supported ``astropy`` versions::
+
+    import astropy
+    from astropy.utils.introspection import minversion
+
+    ASTROPY_LT_5_3 = not minversion(astropy, "5.3.dev")
+
+    if ASTROPY_LT_5_3:
+        flux_unit_str = "erg / (Angstrom cm2 s)"
+    else:
+        flux_unit_str = "erg / (Angstrom s cm2)"
+    # Some code that compares against flux_unit_str here.
+
+Example in a Python module that skips doctest for ``astropy`` 5.3 or later::
+
+    # ASTROPY_LT_5_3
+    __doctest_requires__ = {"class_or_function_name": ["astropy<5.3"]}
+
+Example in ``setup.cfg``::
+
+    doctest_subpackage_requires =
+        docs/somedocpage.rst = astropy<5.3
+        package/somemodule.py = astropy<5.3
+
 .. _whatsnew-5.3-nddata-collapse-arbitrary-axes:
 
 Support for collapse operations on arbitrary axes in ``nddata``
