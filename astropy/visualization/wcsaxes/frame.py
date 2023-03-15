@@ -148,10 +148,8 @@ class SpineXAligned(Spine):
     def data(self, value):
         self._data = value
         if value is None:
-            self._data = None
             self._world = None
         else:
-            self._data = value
             with np.errstate(invalid="ignore"):
                 self._world = self.transform.transform(self._data[:, 0:1])
             self._update_normal()
