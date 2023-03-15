@@ -547,11 +547,14 @@ class TestHDUListFunctions(FitsTestCase):
 
         h0 = fits.Header()
         hdu = fits.PrimaryHDU(header=h0)
-        sci = fits.ImageHDU(data=np.array(10))
-        image = fits.HDUList([hdu, sci])
-        image.writeto(self.temp("temp.fits"))
+        sci = fits.ImageHDU(data=np.array([10]))
+        hdul = fits.HDUList([hdu, sci])
         assert "EXTEND" in hdu.header
         assert hdu.header["EXTEND"] is True
+        hdul.writeto(self.temp("temp.fits"))
+        hdr = fits.getheader(self.temp("temp.fits"))
+        assert "EXTEND" in hdr
+        assert hdr["EXTEND"] is True
 
     def test_replace_memmaped_array(self, home_is_temp):
         # Copy the original before we modify it
