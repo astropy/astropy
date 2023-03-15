@@ -1,0 +1,1 @@
+``ImageHDU`` now properly rejects Numpy scalars, avoiding data corruption.

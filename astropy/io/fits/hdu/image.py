@@ -264,19 +264,16 @@ class _ImageBaseHDU(_ValidHDU):
             self._data_replaced = True
             was_unsigned = False
 
-        if (
-            data is not None
-            and not isinstance(data, np.ndarray)
-            and not _is_dask_array(data)
-        ):
-            # Try to coerce the data into a numpy array--this will work, on
-            # some level, for most objects
-            try:
-                data = np.array(data)
-            except Exception:
-                raise TypeError(
-                    f"data object {data!r} could not be coerced into an ndarray"
-                )
+        if data is not None:
+            if not isinstance(data, np.ndarray) and not _is_dask_array(data):
+                # Try to coerce the data into a numpy array--this will work, on
+                # some level, for most objects
+                try:
+                    data = np.array(data)
+                except Exception:  # pragma: no cover
+                    raise TypeError(
+                        f"data object {data!r} could not be coerced into an " f"ndarray"
+                    )
 
             if data.shape == ():
                 raise TypeError(
