@@ -30,13 +30,6 @@ test-skip = "*-macosx_arm64 *-manylinux_aarch64 *-musllinux_x86_64"
 # set this for Python<=3.10.
 select = "cp3{8,9,10}-*"
 manylinux-x86_64-image = "manylinux2010"
-manylinux-i686-image = "manylinux2010"
-
-[[tool.cibuildwheel.overrides]]
-# Numpy 1.22 doesn't have wheels for i386, so we pin Numpy to an older version
-# that does - this pin can be removed once we drop support for 32-bit wheels.
-select = "cp3{8,9}-*"
-test-requires = "numpy==1.21.*"
 
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"]
