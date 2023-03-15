@@ -11,6 +11,11 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import allclose as quantity_allclose
 
 
+@pytest.fixture
+def earthlocation_without_site_registry(monkeypatch):
+    monkeypatch.setattr(EarthLocation, "_site_registry", None)
+
+
 def test_builtin_sites():
     reg = get_builtin_sites()
 
@@ -118,47 +123,28 @@ def test_Earthlocation_refresh_cache(class_method, args, refresh_cache, monkeypa
     class_method(*args, refresh_cache=refresh_cache)
 
 
-def test_EarthLocation_state_offline():
-    EarthLocation._site_registry = None
-    EarthLocation._get_site_registry(force_builtin=True)
-    assert EarthLocation._site_registry is not None
+@pytest.mark.parametrize(
+    "registry_kwarg",
+    ["force_builtin", pytest.param("force_download", marks=pytest.mark.remote_data)],
+)
+def test_EarthLocation_state(earthlocation_without_site_registry, registry_kwarg):
+    EarthLocation._get_site_registry(**{registry_kwarg: True})
+    assert isinstance(EarthLocation._site_registry, SiteRegistry)
 
     oldreg = EarthLocation._site_registry
-    newreg = EarthLocation._get_site_registry()
-    assert oldreg is newreg
-    newreg = EarthLocation._get_site_registry(force_builtin=True)
-    assert oldreg is not newreg
-
-
-@pytest.mark.remote_data(source="astropy")
-def test_EarthLocation_state_online():
-    EarthLocation._site_registry = None
-    EarthLocation._get_site_registry(force_download=True)
-    assert EarthLocation._site_registry is not None
-
-    oldreg = EarthLocation._site_registry
-    newreg = EarthLocation._get_site_registry()
-    assert oldreg is newreg
-    newreg = EarthLocation._get_site_registry(force_download=True)
-    assert oldreg is not newreg
+    assert oldreg is EarthLocation._get_site_registry()
+    assert oldreg is not EarthLocation._get_site_registry(**{registry_kwarg: True})
 
 
 def test_registry():
     reg = SiteRegistry()
-
     assert len(reg.names) == 0
 
-    names = ["sitea", "site A"]
     loc = EarthLocation.from_geodetic(lat=1 * u.deg, lon=2 * u.deg, height=3 * u.km)
-    reg.add_site(names, loc)
-
+    reg.add_site(["sitea", "site A"], loc)
     assert len(reg.names) == 2
-
-    loc1 = reg["SIteA"]
-    assert loc1 is loc
-
-    loc2 = reg["sIte a"]
-    assert loc2 is loc
+    assert reg["SIteA"] is loc
+    assert reg["sIte a"] is loc
 
 
 def test_non_EarthLocation():
@@ -227,10 +213,7 @@ def check_builtin_matches_remote(download_url=True):
 
 
 def test_meta_present():
-    reg = get_builtin_sites()
-
-    greenwich = reg["greenwich"]
     assert (
-        greenwich.info.meta["source"]
+        get_builtin_sites()["greenwich"].info.meta["source"]
         == "Ordnance Survey via http://gpsinformation.net/main/greenwich.htm and UNESCO"
     )
