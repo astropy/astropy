@@ -9,6 +9,7 @@ from astropy.coordinates.sites import (
 )
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import allclose as quantity_allclose
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 @pytest.fixture
@@ -121,6 +122,39 @@ def test_Earthlocation_refresh_cache(class_method, args, refresh_cache, monkeypa
     )
 
     class_method(*args, refresh_cache=refresh_cache)
+
+
+@pytest.mark.parametrize(
+    "force_download,expectation",
+    [
+        (
+            False,
+            pytest.warns(
+                AstropyUserWarning, match=r"use the option 'refresh_cache=True'\.$"
+            ),
+        ),
+        (True, pytest.raises(OSError, match=r"^fail for test$")),
+        ("url", pytest.raises(OSError, match=r"^fail for test$")),
+    ],
+)
+@pytest.mark.parametrize(
+    "class_method,args",
+    [(EarthLocation.get_site_names, []), (EarthLocation.of_site, ["greenwich"])],
+)
+def test_EarthLocation_site_registry_connection_fail(
+    force_download,
+    expectation,
+    class_method,
+    args,
+    earthlocation_without_site_registry,
+    monkeypatch,
+):
+    def fail_download(*args, **kwargs):
+        raise OSError("fail for test")
+
+    monkeypatch.setattr(get_downloaded_sites, "__code__", fail_download.__code__)
+    with expectation:
+        class_method(*args, refresh_cache=force_download)
 
 
 @pytest.mark.parametrize(
