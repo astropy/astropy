@@ -20,8 +20,8 @@ readers.
     use in science research to production pipelines and data systems.
 
     In addition to Python, ECSV is supported in `TOPCAT
-    <http://www.star.bris.ac.uk/~mbt/topcat/>`_ and in the java `STIL
-    <http://www.star.bris.ac.uk/~mbt/topcat/sun253/inEcsv.html>`_ library. .
+    <https://www.g-vo.org/topcat/topcat/>`_ and in the Java `STIL
+    <https://www.g-vo.org/topcat/topcat/sun253/inEcsv.html>`_ library.
 
 Usage
 -----
