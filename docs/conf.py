@@ -381,9 +381,9 @@ linkcheck_ignore = [
     "https://www.usno.navy.mil/USNO/time/gps/usno-gps-time-transfer",
     "https://aa.usno.navy.mil/publications/docs/Circular_179.php",
     "http://data.astropy.org",
-    "https://doi.org/10.1017/S0251107X00002406",  # internal server error
-    "https://doi.org/10.1017/pasa.2013.31",  # internal server error
+    "https://doi.org/",  # CI blocked by service provider
     "https://www.tandfonline.com/",  # 403 Client Error: Forbidden
+    "https://physics.nist.gov/",  # SSL: CERTIFICATE_VERIFY_FAILED
     "https://pyfits.readthedocs.io/en/v3.2.1/",  # defunct page in CHANGES.rst
     r"https://github\.com/astropy/astropy/(?:issues|pull)/\d+",
 ]
