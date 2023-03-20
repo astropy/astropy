@@ -325,7 +325,6 @@ def put(a, ind, v, mode="raise"):
         np.put(a.unmasked, ind, v_data, mode=mode)
     # v_mask of None will be correctly interpreted as False.
     np.put(a.mask, ind, v_mask, mode=mode)
-    return None
 
 
 @dispatched_function
@@ -344,7 +343,6 @@ def putmask(a, mask, values):
     if values_data is not None:
         np.putmask(a.unmasked, mask, values_data)
     np.putmask(a.mask, mask, values_mask)
-    return None
 
 
 @dispatched_function
@@ -363,7 +361,6 @@ def place(arr, mask, vals):
     if vals_data is not None:
         np.place(arr.unmasked, mask, vals_data)
     np.place(arr.mask, mask, vals_mask)
-    return None
 
 
 @dispatched_function
@@ -384,7 +381,6 @@ def copyto(dst, src, casting="same_kind", where=True):
         np.copyto(dst.unmasked, src_data, casting=casting, where=where)
     if src_mask is not None:
         np.copyto(dst.mask, src_mask, where=where)
-    return None
 
 
 @dispatched_function

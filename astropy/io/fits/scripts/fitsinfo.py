@@ -50,7 +50,6 @@ def fitsinfo(filename):
         fits.info(filename)
     except OSError as e:
         log.error(str(e))
-    return
 
 
 def main(args=None):

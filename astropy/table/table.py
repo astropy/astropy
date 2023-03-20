@@ -1218,7 +1218,6 @@ class Table:
 
                 # Finally do the masking in a mixin-safe way.
                 self[name][indexes] = np.ma.masked
-        return
 
     def _init_from_list(self, data, names, dtype, n_cols, copy):
         """Initialize table from a list of column data.  A column can be a
