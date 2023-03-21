@@ -1,0 +1,2 @@
+Updating the built-in UCD list to upstream 1.5 (which requires a minor
+update to the parser)
