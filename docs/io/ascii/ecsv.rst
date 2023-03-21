@@ -19,9 +19,8 @@ readers.
     human-readable ASCII file. This includes use cases from informal
     use in science research to production pipelines and data systems.
 
-    In addition to Python, ECSV is supported in `TOPCAT
-    <https://www.g-vo.org/topcat/topcat/>`_ and in the Java `STIL
-    <https://www.g-vo.org/topcat/topcat/sun253/inEcsv.html>`_ library.
+    In addition to Python, ECSV is supported in `TOPCAT`_
+    and in the Java `STIL`_ library.
 
 Usage
 -----

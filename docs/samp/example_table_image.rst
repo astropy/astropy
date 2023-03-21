@@ -7,8 +7,7 @@ Sending and Receiving Tables and Images over SAMP
 
 In the following examples, we make use of:
 
-* `TOPCAT <https://www.g-vo.org/topcat/topcat/>`_, which is a tool to
-  explore tabular data.
+* `TOPCAT`_, which is a tool to explore tabular data.
 * `SAO DS9 <http://ds9.si.edu/>`_, which is an image
   visualization tool that can overplot catalogs.
 * `Aladin Desktop <http://aladin.u-strasbg.fr>`_, which is another tool that
