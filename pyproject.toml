@@ -103,6 +103,7 @@ extend-ignore = [
     "B023",  # FunctionUsesLoopVariable                # TODO: fix
     "B024",  # AbstractBaseClassWithoutAbstractMethod  # TODO: fix
     "B026",  # StarArgUnpackingAfterKeywordArg         # NOTE: low priority fix
+    "B028",  # No-explicit-stacklevel                  # TODO: fix
     "B904",  # RaiseWithoutFromInsideExcept            # TODO: fix
     "B905",  # ZipWithoutExplicitStrict                # TODO: fix
 
@@ -222,6 +223,7 @@ extend-ignore = [
     "PGH001",  # TODO: fix in astropy.utils.introspection
 
     # Pylint (PLC, PLE, PLR, PLW)
+    "PLC1901",  # compare-to-empty-string            # TODO: fix
     "PLE0101",  # return-in-init                     # TODO: fix
     "PLE0605",  # invalid-all-format	             # TODO: fix
     "PLR0402",  # ConsiderUsingFromImport            # TODO: fix
