@@ -363,7 +363,6 @@ def check_hms_ranges(h, m, s):
     _check_hour_range(h)
     _check_minute_range(m)
     _check_second_range(s)
-    return None
 
 
 def parse_angle(angle, unit=None, debug=False):
