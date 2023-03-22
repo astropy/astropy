@@ -158,3 +158,8 @@
 .. s3fs
 .. _s3fs: https://s3fs.readthedocs.io
 .. |minimum_s3fs_version| replace:: {s3fs}
+
+.. TOPCAT
+.. _`STIL`: http://www.starlink.ac.uk/stil/
+.. _`STILTS`: http://www.starlink.ac.uk/stilts/
+.. _`TOPCAT`: http://www.starlink.ac.uk/topcat/

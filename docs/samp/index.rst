@@ -13,8 +13,7 @@ system that allows different client programs, usually running on the same
 computer, to communicate with each other by exchanging short messages that may
 reference external data files. The protocol has been developed within the
 International Virtual Observatory Alliance (IVOA) and is understood by many
-desktop astronomy tools, including `TOPCAT
-<https://www.g-vo.org/topcat/topcat/>`_, `SAO DS9 <http://ds9.si.edu/>`_,
+desktop astronomy tools, including `TOPCAT`_, `SAO DS9 <http://ds9.si.edu/>`_,
 and `Aladin <http://aladin.u-strasbg.fr>`_.
 
 So by using the classes in `astropy.samp`, Python code can interact with
@@ -39,7 +38,7 @@ The following classes are available in `astropy.samp`:
 * |SAMPHubServer|, which is used to instantiate a hub server that clients can
   then connect to.
 * |SAMPHubProxy|, which is used to connect to an existing hub (including hubs
-  started from other applications such as TOPCAT).
+  started from other applications such as `TOPCAT`_).
 * |SAMPClient|, which is used to create a SAMP client.
 * |SAMPIntegratedClient|, which is the same as |SAMPClient| except that it has
   a self-contained |SAMPHubProxy| to provide a simpler user interface.
