@@ -100,9 +100,8 @@ def make_validation_report(
         of the cores on this machine.
 
     stilts : path-like, optional
-        To perform validation with ``votlint`` from the the Java-based
-        `STILTS <https://www.g-vo.org/topcat/stilts/>`_ VOTable
-        parser, in addition to `astropy.io.votable`, set this to the
+        To perform validation with ``votlint`` from the the Java-based `STILTS`_
+        VOTable parser, in addition to `astropy.io.votable`, set this to the
         path of the ``'stilts.jar'`` file.  ``java`` on the system shell
         path will be used to run it.
 

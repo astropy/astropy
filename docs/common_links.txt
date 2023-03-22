@@ -148,3 +148,8 @@
 .. _pytest-doctestplus: https://github.com/astropy/pytest-doctestplus
 .. _pytest-openfiles: https://github.com/astropy/pytest-openfiles
 .. _pytest-remotedata: https://github.com/astropy/pytest-remotedata
+
+.. TOPCAT
+.. _`STIL`: http://www.starlink.ac.uk/stil/
+.. _`STILTS`: http://www.starlink.ac.uk/stilts/
+.. _`TOPCAT`: http://www.starlink.ac.uk/topcat/
