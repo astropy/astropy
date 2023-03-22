@@ -589,6 +589,16 @@ class TimeDecimalYear(TimeNumeric):
 
     name = "decimalyear"
 
+    def _check_val_type(self, val1, val2):
+        if hasattr(val1, "to") and hasattr(val1, "unit") and val1.unit is not None:
+            raise ValueError(
+                "cannot use Quantities for 'decimalyear' format, as the unit of year "
+                "is defined as 365.25 days, while the length of the year is variable "
+                "in the 'decimalyear' format. Use float instead."
+            )
+        # if val2 is a Quantity, super() will raise a TypeError.
+        return super()._check_val_type(val1, val2)
+
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
 
