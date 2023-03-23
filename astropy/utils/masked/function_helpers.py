@@ -107,7 +107,7 @@ MASKED_SAFE_FUNCTIONS |= {
     np.iscomplexobj, np.isrealobj, np.imag, np.isreal, np.real,
     np.real_if_close, np.common_type,
     # np.lib.ufunclike
-    np.fix, np.isneginf, np.isposinf,
+    np.isneginf, np.isposinf,
     # np.lib.function_base
     np.angle, np.i0,
 }  # fmt: skip
@@ -200,6 +200,20 @@ def unwrap(p, *args, **kwargs):
 def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
     data = np.nan_to_num(x.unmasked, copy=copy, nan=nan, posinf=posinf, neginf=neginf)
     return (data, x.mask.copy(), None) if copy else x
+
+
+@dispatched_function
+def fix(x, out=None):
+    if out is None:
+        return np.fix(x.unmasked), x.mask, None
+
+    from astropy.utils.masked import Masked
+
+    if not isinstance(out, Masked):
+        raise NotImplementedError
+
+    data, mask = _get_data_and_masks(x)
+    return np.fix(data[0], out=out.unmasked), mask[0], out
 
 
 # Following are simple functions related to shapes, where the same function
