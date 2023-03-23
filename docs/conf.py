@@ -366,6 +366,7 @@ linkcheck_ignore = [
     "https://aa.usno.navy.mil/publications/docs/Circular_179.php",
     "http://data.astropy.org",
     "https://doi.org/",  # CI blocked by service provider
+    "https://ui.adsabs.harvard.edu",  # CI blocked by service provider
     "https://www.tandfonline.com/",  # 403 Client Error: Forbidden
     "https://physics.nist.gov/",  # SSL: CERTIFICATE_VERIFY_FAILED
     "https://pyfits.readthedocs.io/en/v3.2.1/",  # defunct page in CHANGES.rst
