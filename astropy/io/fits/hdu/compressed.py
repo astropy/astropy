@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import ctypes
-import gc
 import itertools
 import math
 import re
@@ -1606,12 +1605,6 @@ class CompImageHDU(BinTableHDU):
             # lazyproperty.__delete__ does this for us, but we can prempt it to
             # do some additional cleanup
             del self.__dict__["compressed_data"]
-
-            # If this file was mmap'd, numpy.memmap will hold open a file
-            # handle until the underlying mmap object is garbage-collected;
-            # since this reference leak can sometimes hang around longer than
-            # welcome go ahead and force a garbage collection
-            gc.collect()
 
     @property
     def shape(self):
