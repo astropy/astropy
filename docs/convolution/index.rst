@@ -35,7 +35,7 @@ result.
     from astropy.io import fits
     from astropy.utils.data import get_pkg_data_filename
     from astropy.convolution import Gaussian2DKernel
-    from scipy.signal import convolve as scipy_convolve
+    from scipy.ndimage import convolve as scipy_convolve
     from astropy.convolution import convolve
 
 
@@ -64,13 +64,12 @@ result.
 
     # Convolution: scipy's direct convolution mode spreads out NaNs (see
     # panel 2 below)
-    scipy_conv = scipy_convolve(img, kernel, mode='same', method='direct')
+    scipy_conv = scipy_convolve(img, kernel)
 
     # scipy's direct convolution mode run on the 'zero'd' image will not
     # have NaNs, but will have some very low value zones where the NaNs were
     # (see panel 3 below)
-    scipy_conv_zerod = scipy_convolve(img_zerod, kernel, mode='same',
-                                      method='direct')
+    scipy_conv_zerod = scipy_convolve(img_zerod, kernel)
 
     # astropy's convolution replaces the NaN pixels with a kernel-weighted
     # interpolation from their neighbors
