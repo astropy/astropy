@@ -19,5 +19,5 @@ try:
 except ImportError:
     pass
 else:
-    if not minversion(asdf, "3.0.0"):
+    if not minversion(asdf, "3.0.0.dev"):
         collect_ignore = []
