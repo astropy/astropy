@@ -124,8 +124,8 @@ result.
              drawstyle='steps-mid', linewidth=2, alpha=0.5, marker='s')
     plt.plot(astropy_conv[:, 25], label='astropy', drawstyle='steps-mid',
              linewidth=2, alpha=0.5)
+    plt.xlabel("Pixel")
     plt.ylabel("Amplitude")
-    plt.ylabel("Position Offset")
     plt.legend(loc='best')
     plt.show()
 
