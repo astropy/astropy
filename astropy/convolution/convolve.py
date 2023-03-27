@@ -194,7 +194,7 @@ def convolve(
         (i.e., not 0/`False`) will be set to NaN for the convolution.  If
         `None`, no masking will be performed unless ``array`` is a masked array.
         If ``mask`` is not `None` *and* ``array`` is a masked array, a pixel is
-        masked of it is masked in either ``mask`` *or* ``array.mask``.
+        masked if it is masked in either ``mask`` *or* ``array.mask``.
     normalization_zero_tol : float, optional
         The absolute tolerance on whether the kernel is different than zero.
         If the kernel sums to zero to within this precision, it cannot be
@@ -564,7 +564,7 @@ def convolve_fft(
         (i.e., not 0/`False`) will be set to NaN for the convolution.  If
         `None`, no masking will be performed unless ``array`` is a masked array.
         If ``mask`` is not `None` *and* ``array`` is a masked array, a pixel is
-        masked of it is masked in either ``mask`` *or* ``array.mask``.
+        masked if it is masked in either ``mask`` *or* ``array.mask``.
     crop : bool, optional
         Default on.  Return an image of the size of the larger of the input
         image and the kernel.
