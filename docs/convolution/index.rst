@@ -14,18 +14,15 @@ including:
 * Proper treatment of NaN values (ignoring them during convolution and
   replacing NaN pixels with interpolated values)
 
-* A single function for 1D, 2D, and 3D convolution
-
-* Improved options for the treatment of edges
-
 * Both direct and Fast Fourier Transform (FFT) versions
 
 * Built-in kernels that are commonly used in Astronomy
 
-The following thumbnails show the difference between ``scipy`` and
-``astropy`` convolve functions on an astronomical image that contains NaN
-values. ``scipy``'s function essentially returns NaN for all pixels that are
-within a kernel of any NaN value, which is often not the desired result.
+The following thumbnails show the difference between SciPy and
+Astropy's convolve functions on an astronomical image that contains NaN
+values. Scipy's function returns NaN for all pixels that are within a
+kernel-sized region of any NaN value, which is often not the desired
+result.
 
 .. plot::
    :context: reset
