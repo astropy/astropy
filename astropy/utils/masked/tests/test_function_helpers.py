@@ -661,6 +661,15 @@ class TestMethodLikes(MaskedArraySetup):
 class TestUfuncLike(InvariantMaskTestSetup):
     def test_fix(self):
         self.check(np.fix)
+        # Check np.fix with out argument for completeness
+        # (Note: could be done in self.check, but np.fix is the only
+        # invariant mask function that has `out`, so no point.)
+        out = np.zeros_like(self.ma)
+        result = np.fix(self.ma, out=out)
+        assert result is out
+        expected = np.fix(self.a)
+        assert_array_equal(out.unmasked, expected)
+        assert_array_equal(out.mask, self.mask_a)
 
     def test_angle(self):
         a = np.array([1 + 0j, 0 + 1j, 1 + 1j, 0 + 0j])

@@ -15,6 +15,7 @@ from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
 from astropy.units.quantity_helper.helpers import helper_sqrt
+from astropy.utils.compat.numpycompat import NUMPY_LT_1_25
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 testcase = namedtuple("testcase", ["f", "q_in", "q_out"])
@@ -1001,6 +1002,26 @@ class TestInplaceUfuncs:
         q = u.Quantity([12.5, 25.0], u.percent)
         a[:2] += q  # This used to fail
         assert_array_equal(a, np.array([0.125, 1.25, 2.0]))
+
+
+class TestWhere:
+    """Test the where argument in ufuncs."""
+
+    def test_where(self):
+        q = np.arange(4.0) << u.m
+        out = np.zeros(4) << u.m
+        result = np.add(q, 1 * u.km, out=out, where=[True, True, True, False])
+        assert result is out
+        assert_array_equal(result, [1000.0, 1001.0, 1002.0, 0.0] << u.m)
+
+    @pytest.mark.xfail(
+        NUMPY_LT_1_25, reason="where array_ufunc support introduced in numpy 1.25"
+    )
+    def test_exception_with_where_quantity(self):
+        a = np.ones(2)
+        where = np.ones(2, bool) << u.m
+        with pytest.raises(TypeError, match="all returned NotImplemented"):
+            np.add(a, a, out=a, where=where)
 
 
 @pytest.mark.skipif(
