@@ -1,4 +1,0 @@
-Ensure that ``angle.to_string()`` continues to work after pickling,
-and that units passed on to ``to_string()`` or the ``Angle``
-initializer can be composite units (like ``u.hour**1``), which might
-result from preceding calculations.
