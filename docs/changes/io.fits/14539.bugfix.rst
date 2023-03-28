@@ -1,1 +1,0 @@
-Fix ``FITSDiff`` when table contains a VLA column with the Q type.
