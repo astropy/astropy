@@ -1,1 +1,0 @@
-Ensure dimensionless quantities can be added inplace to regular ndarray.

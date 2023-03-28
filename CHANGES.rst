@@ -1,3 +1,113 @@
+Version 5.0.6 (2023-03-28)
+==========================
+
+New Features
+------------
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Added SI prefixes for quecto ("q", :math:`10^{-30}`), ronto ("r",
+  :math:`10^{-27}`), ronna ("R", :math:`10^{27}`), and quetta ("Q",
+  :math:`10^{30}`). [#14046]
+
+Bug Fixes
+---------
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+- Fix import error with setuptools v65.6.0 by replacing
+  ``numpy.ctypeslib.load_library`` with Cython to load the C convolution
+  extension. [#14035]
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Ensure that ``angle.to_string()`` continues to work after pickling,
+  and that units passed on to ``to_string()`` or the ``Angle``
+  initializer can be composite units (like ``u.hour**1``), which might
+  result from preceding calculations. [#13933]
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+- Bounds are no longer passed to the scipy minimizer for methods Brent and Golden. The scipy minimizer never used the
+  bounds but silently accepted them. In scipy v1.11.0.dev0+ an error is raised, so we now pass None as the bounds to the
+  minimizer. Users should not be affected by this change. [#14232]
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- CDS and MRT tables with units that contain with multiple divisions, such as
+  ``km/s/Mpc`` now parse correctly as being equal to ``km/(s.Mpc)``. [#14369]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Tables with multidimensional variable length array can now be properly read and written. [#13417]
+
+- Fix ``FITSDiff`` when table contains a VLA column with the Q type. [#14539]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Fixed two bugs in validator.validator.make_validation_report:
+  - ProgressBar iterator was not called correctly.
+  - make_validation_report now handles input string urls correctly. [#14102]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fix a bug when creating a ``QTable`` when a ``Quantity`` input column is present and the
+  ``units`` argument modifies the unit of that column. This now works as expected where
+  previously this caused an exception. [#14357]
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+- Fixed a performance regression in ``timeseries.aggregate_downsample``
+  introduced in Astropy 5.0 / #11266. [#13069]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Ensure dimensionless quantities can be added inplace to regular ndarray. [#13913]
+
+- CDS units with multiple divisions, such as ``km/s/Mpc`` now parse
+  correctly as being equal to ``km/(s.Mpc)``. [#14369]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Fixed an incompatibility with latest Python 3.1x versions that kept
+  ``astropy.utils.data.download_file`` from switching to TLS+FTP mode. [#14092]
+
+- ``np.quantile`` and ``np.percentile`` can now be used on ``Masked``
+   arrays and quantities also with ``keepdims=True``. [#14113]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Significantly improve performance of ``ManualInterval`` when both limits
+  are specified manually. [#13898]
+
+- Fixed WCSAxes sometimes triggering a NumPy RuntimeWarning when determining the coordinate range of the axes. [#14211]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fixed a bug that caused subclasses of BaseHighLevelWCS and HighLevelWCSMixin to
+  not work correctly under certain conditions if they did not have ``world_n_dim``
+  and ``pixel_n_dim`` defined on them. [#14495]
+
+
+Other Changes and Additions
+---------------------------
+
+- Updated the bundled CFITSIO library to 4.2.0. [#14020]
+
+
 Version 5.0.5 (2022-10-20)
 ==========================
 
