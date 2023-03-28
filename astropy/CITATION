@@ -97,7 +97,7 @@ archivePrefix = {arXiv},
 }
 
 @ARTICLE{astropy:2018,
-   author = {{The Astropy Collaboration} and {Price-Whelan}, A.~M. and {Sip{\H o}cz}, B.~M. and
+   author = {{Astropy Collaboration} and {Price-Whelan}, A.~M. and {Sip{\H o}cz}, B.~M. and
 	{G{\"u}nther}, H.~M. and {Lim}, P.~L. and {Crawford}, S.~M. and
 	{Conseil}, S. and {Shupe}, D.~L. and {Craig}, M.~W. and {Dencheva}, N. and
 	{Ginsburg}, A. and {VanderPlas}, J.~T. and {Bradley}, L.~D. and
