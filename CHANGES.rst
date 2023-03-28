@@ -1,3 +1,41 @@
+Version 5.2.2 (2023-03-28)
+==========================
+
+Bug Fixes
+---------
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- CDS and MRT tables with units that contain with multiple divisions, such as
+  ``km/s/Mpc`` now parse correctly as being equal to ``km/(s.Mpc)``. [#14369]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix ``FITSDiff`` when table contains a VLA column with the Q type. [#14539]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fix a bug when creating a ``QTable`` when a ``Quantity`` input column is present and the
+  ``units`` argument modifies the unit of that column. This now works as expected where
+  previously this caused an exception. [#14357]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- CDS units with multiple divisions, such as ``km/s/Mpc`` now parse
+  correctly as being equal to ``km/(s.Mpc)``. [#14369]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fixed a bug that caused subclasses of BaseHighLevelWCS and HighLevelWCSMixin to
+  not work correctly under certain conditions if they did not have ``world_n_dim``
+  and ``pixel_n_dim`` defined on them. [#14495]
+
+
 Version 5.2.1 (2023-01-06)
 ==========================
 
