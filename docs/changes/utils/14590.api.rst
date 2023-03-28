@@ -1,0 +1,4 @@
+For ``Masked`` instances, the ``where`` argument for any ufunc can now
+also be masked (with any masked elements masked in the output as well).
+This is not very useful in itself, but avoids problems in conditional
+functions (like ``np.add(ma, 1, where=ma>10)``).
