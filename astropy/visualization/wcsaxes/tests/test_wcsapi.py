@@ -539,3 +539,67 @@ def test_wcsapi_5d_with_names(plt_close):
     ax.set_xlim(-0.5, 148.5)
     ax.set_ylim(-0.5, 148.5)
     return fig
+
+
+
+class LowLevelWCSCelestial2D(BaseLowLevelWCS):
+
+    # APE 14 WCS that has celestial coordinates that are deliberately not in degrees
+
+    @property
+    def pixel_n_dim(self):
+        return 2
+
+    @property
+    def world_n_dim(self):
+        return 2
+
+    @property
+    def world_axis_physical_types(self):
+        return [
+            "pos.eq.ra",
+            "pos.eq.dec",
+        ]
+
+    @property
+    def world_axis_units(self):
+        return ["arcsec", "arcsec"]
+
+    @property
+    def world_axis_names(self):
+        return ["RA", "DEC"]
+
+    # Since the units are in arcsec, we can just go for an identity transform
+    # where 1 pixel = 1" since this is not completely unrealistic
+
+    def pixel_to_world_values(self, *pixel_arrays):
+        return pixel_arrays
+
+    def world_to_pixel_values(self, *world_arrays):
+        return world_arrays
+
+    @property
+    def world_axis_object_components(self):
+        return [
+            ("celestial", 0, "spherical.lon.arcsec"),
+            ("celestial", 1, "spherical.lat.arcsec"),
+        ]
+
+    @property
+    def world_axis_object_classes(self):
+        return {
+            "celestial": (SkyCoord, (), {"unit": "arcsec"}),
+        }
+
+
+@figure_test
+def test_wcsapi_2d_celestial_arcsec(plt_close):
+    # Regression test for plot_coord/scatter_coord with celestial WCS that is not in degrees
+    fig = plt.figure(figsize=(6, 6))
+    ax = fig.add_axes([0.15, 0.1, 0.8, 0.8], projection=LowLevelWCSCelestial2D())
+    ax.set_xlim(-0.5, 200.5)
+    ax.set_ylim(-0.5, 200.5)
+    ax.coords[0].set_format_unit('arcsec')
+    ax.plot_coord(SkyCoord([50, 150], [100, 100], unit='arcsec'), 'ro')
+    ax.scatter_coord(SkyCoord([100, 100], [50, 150], unit='arcsec'), color='green', s=50)
+    return fig
