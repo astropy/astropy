@@ -1,0 +1,1 @@
+``WCSAxes.plot_coord`` and ``plot_scatter`` now work correctly for APE 14 compliant WCSes where the units are not always converted to degrees.
