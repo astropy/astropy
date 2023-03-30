@@ -541,9 +541,7 @@ def test_wcsapi_5d_with_names(plt_close):
     return fig
 
 
-
 class LowLevelWCSCelestial2D(BaseLowLevelWCS):
-
     # APE 14 WCS that has celestial coordinates that are deliberately not in degrees
 
     @property
@@ -599,7 +597,9 @@ def test_wcsapi_2d_celestial_arcsec(plt_close):
     ax = fig.add_axes([0.15, 0.1, 0.8, 0.8], projection=LowLevelWCSCelestial2D())
     ax.set_xlim(-0.5, 200.5)
     ax.set_ylim(-0.5, 200.5)
-    ax.coords[0].set_format_unit('arcsec')
-    ax.plot_coord(SkyCoord([50, 150], [100, 100], unit='arcsec'), 'ro')
-    ax.scatter_coord(SkyCoord([100, 100], [50, 150], unit='arcsec'), color='green', s=50)
+    ax.coords[0].set_format_unit("arcsec")
+    ax.plot_coord(SkyCoord([50, 150], [100, 100], unit="arcsec"), "ro")
+    ax.scatter_coord(
+        SkyCoord([100, 100], [50, 150], unit="arcsec"), color="green", s=50
+    )
     return fig
