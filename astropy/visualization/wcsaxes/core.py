@@ -328,9 +328,9 @@ class WCSAxes(Axes):
             plot_data = []
             for coord in self.coords:
                 if coord.coord_type == "longitude":
-                    plot_data.append(frame0.spherical.lon.to_value(u.deg))
+                    plot_data.append(frame0.spherical.lon.to_value(coord.coord_unit))
                 elif coord.coord_type == "latitude":
-                    plot_data.append(frame0.spherical.lat.to_value(u.deg))
+                    plot_data.append(frame0.spherical.lat.to_value(coord.coord_unit))
                 else:
                     raise NotImplementedError(
                         "Coordinates cannot be plotted with this "
