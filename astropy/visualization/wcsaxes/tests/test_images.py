@@ -496,6 +496,7 @@ class TestBasic(BaseImageTests):
         ax.set_xlim(-0.5, 148.5)
         ax.set_ylim(-0.5, 148.5)
         ax.coords[0].set_ticks(number=0)
+        ax.coords[0].grid(True)
         return fig
 
     @figure_test
