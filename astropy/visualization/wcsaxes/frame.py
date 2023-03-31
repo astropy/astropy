@@ -58,7 +58,6 @@ class Spine:
     def data(self, value):
         self._data = value
         if value is None:
-            self._data = None
             self._world = None
         else:
             with np.errstate(invalid="ignore"):
