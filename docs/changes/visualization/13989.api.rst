@@ -1,0 +1,5 @@
+The pixel attribute of ``astropy.visualization.wcsaxes.frame.Spine`` is deprecated
+and will be removed in a future astropy version.
+Because it is (in general) not possible to correctly calculate pixel
+coordinates before Matplotlib is drawing a figure, instead set the world or data
+coordinates of the ``Spine`` using the appropriate setters.
