@@ -1,0 +1,3 @@
+The location of a ``astropy.visualization.wcsaxes.frame.Spine`` in a plot is now
+correctly calculated when the DPI of a figure changes between a WCSAxes being
+created and the figure being drawn.
