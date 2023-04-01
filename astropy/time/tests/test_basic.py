@@ -20,6 +20,7 @@ from astropy.table import Column, Table
 from astropy.time import (
     STANDARD_TIME_SCALES,
     TIME_FORMATS,
+    AstropyDatetimeLeapSecondWarning,
     ScaleValueError,
     Time,
     TimeDelta,
@@ -1759,6 +1760,14 @@ def test_to_datetime():
 
     with pytest.raises(ValueError, match=r"does not support leap seconds"):
         Time("2015-06-30 23:59:60.000").to_datetime()
+
+
+def test_to_datetime_warn():
+    with pytest.warns(
+        AstropyDatetimeLeapSecondWarning, match=r"does not support leap seconds"
+    ):
+        dt = Time("2015-06-30 23:59:60.000").to_datetime(strict=False)
+        assert dt == datetime.datetime(2015, 7, 1, 0, 0, 0)
 
 
 @pytest.mark.skipif(not HAS_PYTZ, reason="requires pytz")
