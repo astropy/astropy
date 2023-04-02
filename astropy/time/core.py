@@ -2679,11 +2679,13 @@ class Time(TimeBase):
         else:
             return super().__array_function__(function, types, args, kwargs)
 
-    def to_datetime(self, timezone=None, strict=True):
+    def to_datetime(self, timezone=None, leap_second_strict="raise"):
         # TODO: this could likely go through to_value, as long as that
         # had an **kwargs part that was just passed on to _time.
         tm = self.replicate(format="datetime")
-        return tm._shaped_like_input(tm._time.to_value(timezone, strict=strict))
+        return tm._shaped_like_input(
+            tm._time.to_value(timezone, leap_second_strict=leap_second_strict)
+        )
 
     to_datetime.__doc__ = TimeDatetime.to_value.__doc__
 

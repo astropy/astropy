@@ -1062,20 +1062,31 @@ class TimeDatetime(TimeUnique):
         )
         self.jd1, self.jd2 = day_frac(jd1, jd2)
 
-    def to_value(self, timezone=None, strict=True, parent=None, out_subfmt=None):
+    def to_value(
+        self, timezone=None, leap_second_strict="raise", parent=None, out_subfmt=None
+    ):
         """
         Convert to (potentially timezone-aware) `~datetime.datetime` object.
 
-        If ``timezone`` is not ``None``, return a timezone-aware datetime
-        object.
+        If ``timezone`` is not ``None``, return a timezone-aware datetime object.
+
+        Since the `~datetime.datetime` class does not natively handle leap seconds, the
+        behavior when converting a time within a leap second is controlled by the
+        ``leap_second_strict`` argument. For example::
+
+          >>> from astropy.time import Time
+          >>> t = Time("2015-06-30 23:59:60.500")
+          >>> print(t.to_datetime(leap_second_strict='silent'))
+          2015-07-01 00:00:00.500000
 
         Parameters
         ----------
         timezone : {`~datetime.tzinfo`, None}, optional
             If not `None`, return timezone-aware datetime.
-        strict : bool, optional
-            If `True` (default), raise an exception if the time is within a leap second,
-            otherwise warn.
+        leap_second_strict : str, optional
+            If ``raise`` (default), raise an exception if the time is within a leap
+            second. If ``warn`` then issue a warning. If ``silent`` then silently
+            handle the leap second.
 
         Returns
         -------
@@ -1112,9 +1123,9 @@ class TimeDatetime(TimeUnique):
         for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
             if isec >= 60:
                 isec = isec - 1
-                leap_second = True
+                in_leap_second = True
             else:
-                leap_second = False
+                in_leap_second = False
 
             if timezone is not None:
                 dt = datetime.datetime(
@@ -1123,19 +1134,23 @@ class TimeDatetime(TimeUnique):
             else:
                 dt = datetime.datetime(iy, im, id, ihr, imin, isec, ifracsec)
 
-            if leap_second:
+            if in_leap_second:
                 dt += datetime.timedelta(seconds=1)
                 msg = (
-                    f"Time {dt} is within a leap second but datetime does not "
-                    "support leap seconds"
+                    f"Time {dt} is within a leap second but `datetime` does not "
+                    "support leap seconds. Use the `leap_second_strict` argument "
+                    "of the `Time.to_datetime()` method with value of 'raise', 'warn', "
+                    "or 'silent' to control how leap seconds are handled."
                 )
-                if strict:
-                    raise ValueError(
-                        msg
-                        + ".  Use `.to_datetime(strict=False)` to suppress this exception."
-                    )
-                else:
+                if leap_second_strict == "raise":
+                    raise ValueError(msg)
+                elif leap_second_strict == "warn":
                     warnings.warn(msg, AstropyDatetimeLeapSecondWarning)
+                elif leap_second_strict != "silent":
+                    raise ValueError(
+                        f"leap_second_strict must be 'raise', 'warn', or 'silent', "
+                        f"not '{leap_second_strict}'"
+                    )
 
             out[...] = dt
 

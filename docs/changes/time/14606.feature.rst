@@ -1,3 +1,3 @@
-Add a ``strict`` option to the ``Time.to_datetime()`` method. If set to ``False`` this
-will allow converting a time within a leap second to a datetime object with only an
-``AstropyDatetimeLeapSecondWarning`` instead of raising an exception.
+Add a ``leap_second_strict`` argument to the ``Time.to_datetime()`` method. This
+controls the behavior when converting a time within a leap second to the ``datetime``
+format and can take the values ``raise`` (the default), ``warn``, or ``silent``.
