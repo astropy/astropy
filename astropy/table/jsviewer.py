@@ -59,26 +59,24 @@ jQuery.extend( jQuery.fn.dataTableExt.oSort, {{
 
 IPYNB_JS_SCRIPT = """
 <script>
-{sorting_script1}
-require.config({{{{paths: {{{{
-    datatables: '{{datatables_url}}'
-}}}}}}}});
-require(["datatables"], function(){{{{
-    console.log("$('#{{tid}}').dataTable()");
-    {sorting_script2}
-    $('#{{tid}}').dataTable({{{{
-        order: [],
-        pageLength: {{display_length}},
-        lengthMenu: {{display_length_menu}},
-        pagingType: "full_numbers",
-        columnDefs: [{{{{targets: {{sort_columns}}, type: "optionalnum"}}}}]
-    }}}});
+%(sorting_script1)s
+require.config({{paths: {{
+    datatables: '{datatables_url}'
 }}}});
+require(["datatables"], function(){{
+    console.log("$('#{tid}').dataTable()");
+    %(sorting_script2)s
+    $('#{tid}').dataTable({{
+        order: [],
+        pageLength: {display_length},
+        lengthMenu: {display_length_menu},
+        pagingType: "full_numbers",
+        columnDefs: [{{targets: {sort_columns}, type: "optionalnum"}}]
+    }});
+}});
 </script>
-""".format(
-    **dict(
-        sorting_script1=_SORTING_SCRIPT_PART_1, sorting_script2=_SORTING_SCRIPT_PART_2
-    )
+""" % dict(
+    sorting_script1=_SORTING_SCRIPT_PART_1, sorting_script2=_SORTING_SCRIPT_PART_2
 )
 
 HTML_JS_SCRIPT = (
