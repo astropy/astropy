@@ -99,6 +99,7 @@ extend-ignore = [
     "B007",  # UnusedLoopControlVariable               # TODO: autofix
     "B008",  # FunctionCallArgumentDefault
     "B015",  # UselessComparison                       # TODO: fix
+    "B018",  # UselessExpression                       # TODO: fix
     "B020",  # LoopVariableOverridesIterator           # TODO: fix
     "B023",  # FunctionUsesLoopVariable                # TODO: fix
     "B024",  # AbstractBaseClassWithoutAbstractMethod  # TODO: fix
@@ -235,6 +236,7 @@ extend-ignore = [
     "PLR0913",  # too-many-args
     "PLR0915",  # too-many-statements
     "PLW0120",  # UselessElseOnLoop                  # Note: low priority fix
+    "PLW0129",  # assert-on-string-literal           # TODO: fix
     "PLW0602",  # GlobalVariableNotAssigned          # TODO: fix
     "PLW2901",  # redefined-loop-name                # TODO: fix. Easy source of bugs!
     "PLW0603",  # global-statement                   # Maybe fix?
@@ -258,12 +260,16 @@ extend-ignore = [
     "RUF005",  # unpack-instead-of-concatenating-to-collection-literal -- it's not clearly faster.
 
     # flake8-bandit (S)
-    "S101",  # UseOfAssert                           # TODO: fix
-    "S105",  # HardcodedPasswordString               # TODO: fix by adding noqa
-    "S110",  # TryExceptPass                         # TODO: fix
-    "S112",  # try-except-continue                   # TODO: fix
-    "S506",  # UnsafeYAMLLoad                        # TODO: fix
-    "S608",  # Posslibe SQL injection                # TODO: fix
+    "S101",  # UseOfAssert                              # TODO: fix
+    "S105",  # HardcodedPasswordString                  # TODO: fix by adding noqa
+    "S110",  # TryExceptPass                            # TODO: fix
+    "S112",  # try-except-continue                      # TODO: fix
+    "S301",  # suspeciious-pickle-usage                 # TODO: fix
+    "S311",  # Suspecious-non-cryptographic-randomness  # TODO: fix
+    "S506",  # UnsafeYAMLLoad                           # TODO: fix
+    "S310",  # Suspicious-url-open-usage                # TODO: fix
+    "S321",  # Suspecious-ftp-lib-usage                 # TODO: fix
+    "S608",  # Posslibe SQL injection                   # TODO: fix
     "S324",  # hashlib-insecure-hash-function
 
     # flake8-simplify (SIM)

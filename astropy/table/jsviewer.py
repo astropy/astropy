@@ -75,7 +75,7 @@ require(["datatables"], function(){{
     }});
 }});
 </script>
-""" % dict(
+""" % dict(  # noqa: UP031
     sorting_script1=_SORTING_SCRIPT_PART_1, sorting_script2=_SORTING_SCRIPT_PART_2
 )
 
