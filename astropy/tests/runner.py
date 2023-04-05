@@ -186,9 +186,17 @@ class TestRunnerBase:
         # Using the test runner will not work without these dependencies.
         for module in cls._required_dependencies:
             spec = find_spec(module)
-            # Checking loader accounts for packages that were uninstalled
+            # Checking loader accounts for packages that were uninstalled.
+            # pytest plugins are special, it's enough if they are picked up the
+            # pytest independently of how they are installed.
             if spec is None or spec.loader is None:
-                raise RuntimeError(cls._missing_dependancy_error.format(module=module))
+                # Don't import pytest until it's actually needed
+                import pytest
+                pluginmanager = pytest.PytestPluginManager()
+                try:
+                    pluginmanager.import_plugin(module)
+                except ImportError:
+                    raise RuntimeError(cls._missing_dependancy_error.format(module=module))
 
     def run_tests(self, **kwargs):
         # The following option will include eggs inside a .eggs folder in
