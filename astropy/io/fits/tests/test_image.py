@@ -25,6 +25,12 @@ from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarni
 from .conftest import FitsTestCase
 from .test_table import comparerecords
 
+try:
+    import dask.array as da
+    DASK_INSTALLED = True
+except ImportError:
+    DASK_INSTALLED = False
+
 
 class TestImageFunctions(FitsTestCase):
     def test_constructor_name_arg(self):
@@ -2178,3 +2184,24 @@ def test_int8(tmp_path):
         assert hdul[0].header["BSCALE"] == 1.0
         assert_equal(hdul[0].data, img)
         assert hdul[0].data.dtype == img.dtype
+
+
+@pytest.mark.skipif(not DASK_INSTALLED, reason='Dask is required for this test')
+def test_data_astype(tmp_path):
+
+    data = np.arange(21 * 33).reshape((21, 33)).astype(np.int32)
+
+    header = fits.Header()
+    hdu = fits.CompImageHDU(data, header, compression_type="RICE_1", tile_shape=(5, 6))
+    hdu.writeto(tmp_path / 'test.fits')
+
+    with fits.open(tmp_path / 'test.fits') as hdulist:
+
+        # Check numpy option
+        assert_equal(hdulist[1].data_astype('numpy'), data)
+
+        # Check dask option
+        darray = hdulist[1].data_astype('dask')
+        assert darray.chunksize == (5, 6)
+        assert darray.dtype is np.dtype('int32')
+        assert_equal(darray.compute(), data)

@@ -461,7 +461,6 @@ class CompImageHDU(BinTableHDU):
         uint=False,
         scale_back=False,
         tile_size=None,
-        use_dask=False,
     ):
         """
         Parameters
@@ -710,8 +709,6 @@ class CompImageHDU(BinTableHDU):
         self._do_not_scale_image_data = do_not_scale_image_data
         self._uint = uint
         self._scale_back = scale_back
-
-        self._use_dask = use_dask
 
         self._axes = [
             self._header.get("ZNAXIS" + str(axis + 1), 0)
@@ -1556,21 +1553,13 @@ class CompImageHDU(BinTableHDU):
         if len(self.compressed_data) == 0:
             return None
 
-        if self._use_dask:
+        # Since .section has general code to load any arbitrary part of the
+        # data, we can just use this - and the @lazyproperty on the current
+        # property will ensure that we do this only once.
+        data = self.section[...]
 
-            import dask.array as da
-
-            data = da.from_array(self.section, chunks=_tile_shape(self._header))
-
-        else:
-
-            # Since .section has general code to load any arbitrary part of the
-            # data, we can just use this - and the @lazyproperty on the current
-            # property will ensure that we do this only once.
-            data = self.section[...]
-
-            # Right out of _ImageBaseHDU.data
-            self._update_header_scale_info(data.dtype)
+        # Right out of _ImageBaseHDU.data
+        self._update_header_scale_info(data.dtype)
 
         return data
 
@@ -1584,6 +1573,34 @@ class CompImageHDU(BinTableHDU):
                     type(data), data.dtype.fields
                 )
             )
+
+    def data_astype(self, data_type):
+        """
+        Return an object representing the data.
+
+        Whenever possible, this will return an object that provides a view of
+        the data without copying the data.
+
+        Parameters
+        ----------
+        data_type : str
+            The object type to return. The following values are supported:
+
+            * ``'numpy'``: an in-memory Numpy array. This is equivalent to
+              accessing the `data` attribute and is not efficient as it
+              decompresses all the data into memory.
+            * ``'dask'``: Dask array with chunks corresponding to the
+              individual compressed tiles. Tiles are then only decompressed as
+              needed when a computation occurs.
+        """
+
+        if data_type == 'numpy':
+            return self.data
+        elif data_type == 'dask':
+            import dask.array as da
+            return da.from_array(self.section, chunks=self.tile_shape)
+        else:
+            raise TypeError("data_type should be 'numpy' or 'dask'")
 
     @lazyproperty
     def compressed_data(self):
