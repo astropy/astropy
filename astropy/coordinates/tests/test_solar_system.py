@@ -1,5 +1,5 @@
 import os
-from urllib.error import HTTPError, URLError
+from urllib.error import HTTPError
 
 import numpy as np
 import pytest
@@ -366,18 +366,24 @@ def test_url_or_file_ephemeris(time):
     assert_quantity_allclose(coord_by_url.distance, coord_by_filepath.distance)
 
 
+@pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
+def test_ephemeris_non_existing_url(monkeypatch):
+    def request_invalid_url(*args, **kwargs):
+        raise HTTPError(code=404, msg="Not Found", fp=None, hdrs=None, url="")
+
+    monkeypatch.setattr("urllib.request.OpenerDirector.open", request_invalid_url)
+    with pytest.raises(HTTPError, match="^HTTP Error 404: Not Found$"):
+        get_body(
+            "earth",
+            time=Time("1960-01-12 00:00"),
+            ephemeris="https://www.astropy.org/path/to/nonexisting/file.bsp",
+        )
+
+
 @pytest.mark.remote_data
 @pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
 def test_url_ephemeris_wrong_input():
     time = Time("1960-01-12 00:00")
-    with pytest.raises((HTTPError, URLError)):
-        # A non-existent URL
-        get_body(
-            "earth",
-            time,
-            ephemeris=get_pkg_data_filename("path/to/nonexisting/file.bsp"),
-        )
-
     with pytest.raises(HTTPError):
         # A non-existent version of the JPL ephemeris
         get_body("earth", time, ephemeris="de001")
