@@ -119,6 +119,8 @@ class TimeFormat:
     ----------
     val1 : numpy ndarray, list, number, str, or bytes
         Values to initialize the time or times.  Bytes are decoded as ascii.
+        Quantities with time units are allowed for formats where the
+        interpretation is unambiguous.
     val2 : numpy ndarray, list, or number; optional
         Value(s) to initialize the time or times.  Only used for numerical
         input, to help preserve precision.
@@ -541,6 +543,7 @@ class TimeNumeric(TimeFormat):
 class TimeJD(TimeNumeric):
     """
     Julian Date time format.
+
     This represents the number of days since the beginning of
     the Julian Period.
     For example, 2451544.5 in JD is midnight on January 1, 2000.
@@ -556,6 +559,7 @@ class TimeJD(TimeNumeric):
 class TimeMJD(TimeNumeric):
     """
     Modified Julian Date time format.
+
     This represents the number of days since midnight on November 17, 1858.
     For example, 51544.0 in MJD is midnight on January 1, 2000.
     """
@@ -576,14 +580,35 @@ class TimeMJD(TimeNumeric):
     value = property(to_value)
 
 
+def _check_val_type_not_quantity(format_name, val1, val2):
+    # If val2 is a Quantity, the super() call that follows this check
+    # will raise a TypeError.
+    if hasattr(val1, "to") and getattr(val1, "unit", None) is not None:
+        raise ValueError(
+            f"cannot use Quantities for {format_name!r} format, as the unit of year "
+            "is defined as 365.25 days, while the length of year is variable "
+            "in this format. Use float instead."
+        )
+
+
 class TimeDecimalYear(TimeNumeric):
     """
     Time as a decimal year, with integer values corresponding to midnight
-    of the first day of each year.  For example 2000.5 corresponds to the
-    ISO time '2000-07-02 00:00:00'.
+    of the first day of each year.
+
+    For example 2000.5 corresponds to the ISO time '2000-07-02 00:00:00'.
+
+    Since for this format the length of the year varies between 365 and
+    366 days, it is not possible to use Quantity input, in which a year
+    is always 365.25 days.
     """
 
     name = "decimalyear"
+
+    def _check_val_type(self, val1, val2):
+        _check_val_type_not_quantity(self.name, val1, val2)
+        # if val2 is a Quantity, super() will raise a TypeError.
+        return super()._check_val_type(val1, val2)
 
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
@@ -643,7 +668,7 @@ class TimeDecimalYear(TimeNumeric):
 class TimeFromEpoch(TimeNumeric):
     """
     Base class for times that represent the interval from a particular
-    epoch as a floating point multiple of a unit time interval (e.g. seconds
+    epoch as a numerical multiple of a unit time interval (e.g. seconds
     or days).
     """
 
@@ -1925,7 +1950,7 @@ class TimeFITS(TimeString):
 
 class TimeEpochDate(TimeNumeric):
     """
-    Base class for support floating point Besselian and Julian epoch dates
+    Base class for support of Besselian and Julian epoch dates.
     """
 
     _default_scale = "tt"  # As of astropy 3.2, this is no longer 'utc'.
@@ -1945,26 +1970,25 @@ class TimeEpochDate(TimeNumeric):
 
 
 class TimeBesselianEpoch(TimeEpochDate):
-    """Besselian Epoch year as floating point value(s) like 1950.0"""
+    """Besselian Epoch year as value(s) like 1950.0.
+
+    Since for this format the length of the year varies, input needs to
+    be floating point; it is not possible to use Quantity input, for
+    which a year always equals 365.25 days.
+    """
 
     name = "byear"
     epoch_to_jd = "epb2jd"
     jd_to_epoch = "epb"
 
     def _check_val_type(self, val1, val2):
-        """Input value validation, typically overridden by derived classes"""
-        if hasattr(val1, "to") and hasattr(val1, "unit"):
-            raise ValueError(
-                "Cannot use Quantities for 'byear' format, "
-                "as the interpretation would be ambiguous. "
-                "Use float with Besselian year instead. "
-            )
+        _check_val_type_not_quantity(self.name, val1, val2)
         # FIXME: is val2 really okay here?
         return super()._check_val_type(val1, val2)
 
 
 class TimeJulianEpoch(TimeEpochDate):
-    """Julian Epoch year as floating point value(s) like 2000.0"""
+    """Julian Epoch year as value(s) like 2000.0."""
 
     name = "jyear"
     unit = erfa.DJY  # 365.25, the Julian year, for conversion to quantities

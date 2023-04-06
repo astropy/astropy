@@ -1502,6 +1502,11 @@ def test_decimalyear():
     assert np.all(t.jd == [jd0 + 0.5 * d_jd, jd0 + 0.75 * d_jd])
 
 
+def test_decimalyear_no_quantity():
+    with pytest.raises(ValueError, match="cannot use Quantities"):
+        Time(2005.5 * u.yr, format="decimalyear")
+
+
 def test_fits_year0():
     t = Time(1721425.5, format="jd", scale="tai")
     assert t.fits == "0001-01-01T00:00:00.000"

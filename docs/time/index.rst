@@ -1420,7 +1420,7 @@ To use |Quantity| objects with units of time::
   Traceback (most recent call last):
     ...
   ValueError: Input values did not match the format class byear:
-  ValueError: Cannot use Quantities for 'byear' format, as the interpretation would be ambiguous. Use float with Besselian year instead.
+  ValueError: cannot use Quantities for 'byear' format, as the unit of year is defined as 365.25 days, while the length of year is variable in this format. Use float instead.
 
   >>> TimeDelta(10.*u.yr)            # With a quantity, no format is required
   <TimeDelta object: scale='None' format='jd' value=3652.5>
