@@ -230,60 +230,7 @@ def test_horizons_consistency_with_precision():
     We use the Moon since it is nearby, and moves fast in the sky so we are
     testing for parallax, proper handling of light deflection and aberration.
     """
-    # JPL Horizon values for 2020_04_06 00:00 to 23:00 in 1 hour steps
-    # JPL Horizons has a known offset (frame bias) of 51.02 mas in RA. We correct that here
-    ra_apparent_horizons = [
-        170.167332531,
-        170.560688674,
-        170.923834838,
-        171.271663481,
-        171.620188972,
-        171.985340827,
-        172.381766539,
-        172.821772139,
-        173.314502650,
-        173.865422398,
-        174.476108551,
-        175.144332386,
-        175.864375310,
-        176.627519827,
-        177.422655853,
-        178.236955730,
-        179.056584831,
-        179.867427392,
-        180.655815385,
-        181.409252074,
-        182.117113814,
-        182.771311578,
-        183.366872837,
-        183.902395443,
-    ] * u.deg + 51.02376467 * u.mas
-    dec_apparent_horizons = [
-        10.269112037,
-        10.058820647,
-        9.837152044,
-        9.603724551,
-        9.358956528,
-        9.104012390,
-        8.840674927,
-        8.571162442,
-        8.297917326,
-        8.023394488,
-        7.749873882,
-        7.479312991,
-        7.213246666,
-        6.952732614,
-        6.698336823,
-        6.450150213,
-        6.207828142,
-        5.970645962,
-        5.737565957,
-        5.507313851,
-        5.278462034,
-        5.049521497,
-        4.819038911,
-        4.585696512,
-    ] * u.deg
+    moon_data = np.loadtxt(get_pkg_data_filename("data/jpl_moon.dat"))
     with solar_system_ephemeris.set("de430"):
         loc = EarthLocation.from_geodetic(
             -67.787260 * u.deg, -22.959748 * u.deg, 5186 * u.m
@@ -293,8 +240,9 @@ def test_horizons_consistency_with_precision():
 
         apparent_frame = TETE(obstime=times, location=loc)
         astropy = astropy.transform_to(apparent_frame)
+        # JPL Horizons has a known offset (frame bias) of 51.02 mas in RA.
         usrepr = UnitSphericalRepresentation(
-            ra_apparent_horizons, dec_apparent_horizons
+            moon_data[:, 0] * u.deg + 51.02376467 * u.mas, moon_data[:, 1] * u.deg
         )
         horizons = apparent_frame.realize_frame(usrepr)
     assert_quantity_allclose(astropy.separation(horizons), 0 * u.mas, atol=1.5 * u.mas)
