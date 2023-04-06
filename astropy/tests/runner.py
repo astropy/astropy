@@ -175,7 +175,7 @@ class TestRunnerBase:
         "pytest_astropy_header",
     ]
     _missing_dependancy_error = (
-        "Test dependencies are missing: {module}. You should install the "
+        "Test dependencies are missing: {}. You should install the "
         "'pytest-astropy' package (you may need to update the package if you "
         "have a previous version installed, e.g., "
         "'pip install pytest-astropy --upgrade' or the equivalent with conda)."
@@ -196,7 +196,7 @@ class TestRunnerBase:
                 try:
                     pluginmanager.import_plugin(module)
                 except ImportError:
-                    raise RuntimeError(cls._missing_dependancy_error.format(module=module))
+                    raise RuntimeError(cls._missing_dependancy_error.format(module))
 
     def run_tests(self, **kwargs):
         # The following option will include eggs inside a .eggs folder in
