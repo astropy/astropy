@@ -1,0 +1,6 @@
+Using quantities with units of time for ``Time`` format 'decimalyear' will now
+raise an error instead of converting the quantity to days and then
+interpreting the value as years. An error is raised instead of attempting to
+interpret the unit as years, since the interpretation is ambiguous: in
+'decimaltime' years are equal to 365 or 366 days, while for regular time units
+the year is defined as 365.25 days.
