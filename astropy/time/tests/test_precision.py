@@ -345,12 +345,13 @@ def test_two_sum_symmetric(f1, f2):
 @example(f1=8.988465674311579e307, f2=8.98846567431158e307)
 @example(f1=8.988465674311579e307, f2=-8.98846567431158e307)
 @example(f1=-8.988465674311579e307, f2=-8.98846567431158e307)
+@example(f1=-7.303128360378417e307, f2=1.7976931348623157e308)
 def test_two_sum_size(f1, f2):
     r1, r2 = two_sum(f1, f2)
     assert (
         abs(r1) > abs(r2) / np.finfo(float).eps
         or r1 == r2 == 0
-        or not np.isfinite(f1 + f2)
+        or not np.isfinite(abs(f1) + abs(f2))
     )
 
 
