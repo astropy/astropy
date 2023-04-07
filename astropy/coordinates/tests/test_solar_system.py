@@ -161,15 +161,11 @@ def test_erfa_planet(body, sep_tol, dist_tol, location, horizons_ephemeris):
         dist_tol += 1300 * u.km
 
     horizons = horizons_ephemeris[location][body]
-    astropy = get_body(body, horizons.frame.obstime, ephemeris="builtin")
+    astropy = get_body(body, horizons.frame.obstime, ephemeris="builtin").transform_to(
+        horizons.frame
+    )
 
-    # convert to true equator and equinox
-    astropy = astropy.transform_to(horizons.frame)
-
-    # Assert sky coordinates are close.
     assert astropy.separation(horizons) < sep_tol
-
-    # Assert distances are close.
     assert_quantity_allclose(astropy.distance, horizons.distance, atol=dist_tol)
 
 
@@ -189,15 +185,11 @@ def test_erfa_planet(body, sep_tol, dist_tol, location, horizons_ephemeris):
 )
 def test_de432s_planet(body, location, horizons_ephemeris):
     horizons = horizons_ephemeris[location][body]
-    astropy = get_body(body, horizons.frame.obstime, ephemeris="de432s")
+    astropy = get_body(body, horizons.frame.obstime, ephemeris="de432s").transform_to(
+        horizons.frame
+    )
 
-    # convert to true equator and equinox
-    astropy = astropy.transform_to(horizons.frame)
-
-    # Assert sky coordinates are close.
     assert astropy.separation(horizons) < 5 * u.arcsec
-
-    # Assert distances are close.
     assert_quantity_allclose(astropy.distance, horizons.distance, atol=20 * u.km)
 
 
@@ -210,8 +202,7 @@ def test_custom_kernel_spec_body(bodyname):
     """
     t = Time("2014-09-25T00:00", location=KITT_PEAK)
     coord_by_name = get_body(bodyname, t, ephemeris="de432s")
-    kspec = BODY_NAME_TO_KERNEL_SPEC[bodyname]
-    coord_by_kspec = get_body(kspec, t, ephemeris="de432s")
+    coord_by_kspec = get_body(BODY_NAME_TO_KERNEL_SPEC[bodyname], t, ephemeris="de432s")
 
     assert_quantity_allclose(coord_by_name.ra, coord_by_kspec.ra)
     assert_quantity_allclose(coord_by_name.dec, coord_by_kspec.dec)
@@ -231,20 +222,19 @@ def test_horizons_consistency_with_precision():
     testing for parallax, proper handling of light deflection and aberration.
     """
     moon_data = np.loadtxt(get_pkg_data_filename("data/jpl_moon.dat"))
-    with solar_system_ephemeris.set("de430"):
-        loc = EarthLocation.from_geodetic(
-            -67.787260 * u.deg, -22.959748 * u.deg, 5186 * u.m
-        )
-        times = Time("2020-04-06 00:00") + np.arange(0, 24, 1) * u.hour
-        astropy = get_body("moon", times, loc)
+    loc = EarthLocation.from_geodetic(
+        -67.787260 * u.deg, -22.959748 * u.deg, 5186 * u.m
+    )
+    times = Time("2020-04-06 00:00") + np.arange(0, 24, 1) * u.hour
 
-        apparent_frame = TETE(obstime=times, location=loc)
-        astropy = astropy.transform_to(apparent_frame)
-        # JPL Horizons has a known offset (frame bias) of 51.02 mas in RA.
-        usrepr = UnitSphericalRepresentation(
-            moon_data[:, 0] * u.deg + 51.02376467 * u.mas, moon_data[:, 1] * u.deg
-        )
-        horizons = apparent_frame.realize_frame(usrepr)
+    apparent_frame = TETE(obstime=times, location=loc)
+    with solar_system_ephemeris.set("de430"):
+        astropy = get_body("moon", times, loc).transform_to(apparent_frame)
+    # JPL Horizons has a known offset (frame bias) of 51.02 mas in RA.
+    usrepr = UnitSphericalRepresentation(
+        moon_data[:, 0] * u.deg + 51.02376467 * u.mas, moon_data[:, 1] * u.deg
+    )
+    horizons = apparent_frame.realize_frame(usrepr)
     assert_quantity_allclose(astropy.separation(horizons), 0 * u.mas, atol=1.5 * u.mas)
 
 
@@ -259,9 +249,7 @@ def test_get_sun_consistency(time):
     Test that the sun from JPL and the builtin get_sun match
     """
     sun_jpl_gcrs = get_body("sun", time, ephemeris="de432s")
-    builtin_get_sun = get_sun(time)
-    sep = builtin_get_sun.separation(sun_jpl_gcrs)
-    assert sep < 0.1 * u.arcsec
+    assert get_sun(time).separation(sun_jpl_gcrs) < 0.1 * u.arcsec
 
 
 def test_get_body_nonscalar_regression():
@@ -279,7 +267,7 @@ def test_barycentric_pos_posvel_same():
     # Check that the two routines give identical results.
     ep1 = get_body_barycentric("earth", Time("2016-03-20T12:30:00"))
     ep2, _ = get_body_barycentric_posvel("earth", Time("2016-03-20T12:30:00"))
-    assert np.all(ep1.xyz == ep2.xyz)
+    np.testing.assert_array_equal(ep1.xyz, ep2.xyz)
 
 
 def test_earth_barycentric_velocity_rough():
@@ -317,10 +305,10 @@ def test_earth_barycentric_velocity_multi_d():
 @pytest.mark.parametrize(
     ("body", "pos_tol", "vel_tol"),
     (
-        ("mercury", 1000.0 * u.km, 1.0 * u.km / u.s),
-        ("jupiter", 100000.0 * u.km, 2.0 * u.km / u.s),
-        ("earth", 10 * u.km, 10 * u.mm / u.s),
-        ("moon", 18 * u.km, 50 * u.mm / u.s),
+        pytest.param("mercury", 1000.0 * u.km, 1.0 * u.km / u.s, id="mercury"),
+        pytest.param("jupiter", 100000.0 * u.km, 2.0 * u.km / u.s, id="jupiter"),
+        pytest.param("earth", 10 * u.km, 10 * u.mm / u.s, id="earth"),
+        pytest.param("moon", 18 * u.km, 50 * u.mm / u.s, id="moon"),
     ),
 )
 def test_barycentric_velocity_consistency(body, pos_tol, vel_tol):
@@ -361,9 +349,9 @@ def test_url_or_file_ephemeris(time):
     coord_by_filepath = get_body("earth", time, ephemeris=filepath)
 
     # Using the URL or filepath should give exactly the same results:
-    assert_quantity_allclose(coord_by_url.ra, coord_by_filepath.ra)
-    assert_quantity_allclose(coord_by_url.dec, coord_by_filepath.dec)
-    assert_quantity_allclose(coord_by_url.distance, coord_by_filepath.distance)
+    np.testing.assert_array_equal(coord_by_url.ra, coord_by_filepath.ra)
+    np.testing.assert_array_equal(coord_by_url.dec, coord_by_filepath.dec)
+    np.testing.assert_array_equal(coord_by_url.distance, coord_by_filepath.distance)
 
 
 @pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
@@ -380,45 +368,56 @@ def test_ephemeris_non_existing_url(monkeypatch):
         )
 
 
-@pytest.mark.remote_data
 @pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
-def test_url_ephemeris_wrong_input():
-    time = Time("1960-01-12 00:00")
-    with pytest.raises(HTTPError):
-        # A non-existent version of the JPL ephemeris
-        get_body("earth", time, ephemeris="de001")
-
-    with pytest.raises(ValueError):
-        # An invalid string
-        get_body("earth", time, ephemeris="not_an_ephemeris")
+@pytest.mark.parametrize(
+    "ephemeris,expected_error",
+    [
+        pytest.param(
+            "de001",
+            pytest.raises(HTTPError, match="^HTTP Error 404: Not Found$"),
+            marks=pytest.mark.remote_data,
+            id="non_existing_JPL_ephemeris_version",
+        ),
+        pytest.param(
+            "not_an_ephemeris",
+            pytest.raises(ValueError, match="^Malformed URL: 'not_an_ephemeris'$"),
+            marks=pytest.mark.remote_data,
+            id="invalid_string",
+        ),
+        pytest.param(
+            "/path/to/nonexisting/file.bsp",
+            pytest.raises(
+                ValueError, match="^Malformed URL: '/path/to/nonexisting/file.bsp'$"
+            ),
+            id="missing_local_file",
+        ),
+    ],
+)
+def test_ephemeris_wrong_input(ephemeris, expected_error):
+    with expected_error:
+        get_body("earth", Time("1960-01-12 00:00"), ephemeris=ephemeris)
 
 
 @pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
-def test_file_ephemeris_wrong_input():
-    time = Time("1960-01-12 00:00")
-    # Try loading a non-existing file:
-    with pytest.raises(ValueError):
-        get_body("earth", time, ephemeris="/path/to/nonexisting/file.bsp")
-
+def test_ephemeris_local_file_not_ephemeris():
     # NOTE: This test currently leaves the file open (ResourceWarning).
     # To fix this issue, an upstream fix is required in jplephem
     # package.
-    # Try loading a file that does exist, but is not an ephemeris file:
-    with pytest.warns(ResourceWarning), pytest.raises(ValueError):
-        get_body("earth", time, ephemeris=__file__)
+    with pytest.warns(ResourceWarning), pytest.raises(ValueError, match="^file starts"):
+        get_body("earth", Time("1960-01-12 00:00"), ephemeris=__file__)
 
 
-def test_regression_10271():
+def test_get_body_accounts_for_location_on_Earth():
+    """Regression test for #10271"""
     t = Time(58973.534052125986, format="mjd")
     # GCRS position of ALMA at this time
     obs_p = CartesianRepresentation(
         5724535.74068625, -1311071.58985697, -2492738.93017009, u.m
     )
 
-    geocentre = CartesianRepresentation(0, 0, 0, u.m)
     icrs_sun_from_alma = _get_apparent_body_position("sun", t, "builtin", obs_p)
     icrs_sun_from_geocentre = _get_apparent_body_position(
-        "sun", t, "builtin", geocentre
+        "sun", t, "builtin", CartesianRepresentation(0, 0, 0, u.m)
     )
 
     difference = (icrs_sun_from_alma - icrs_sun_from_geocentre).norm()
