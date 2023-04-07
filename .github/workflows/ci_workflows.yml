@@ -74,7 +74,7 @@ jobs:
             toxposargs: --open-files
 
           - name: Python 3.8 with oldest supported version of all dependencies
-            os: ubuntu-18.04
+            os: ubuntu-20.04
             python: 3.8
             toxenv: py38-test-oldestdeps
 
