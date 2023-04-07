@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
+import warnings
 
-import numpy as np
+from asdf.exceptions import AsdfDeprecationWarning
 from numpy.testing import assert_array_equal
 
 from astropy import table
@@ -72,7 +73,9 @@ class FitsType:
     def reserve_blocks(cls, data, ctx):
         for hdu in data:
             if hdu.data is not None:
-                yield ctx.blocks.find_or_create_block_for_array(hdu.data, ctx)
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("ignore", category=AsdfDeprecationWarning)
+                    yield ctx.blocks.find_or_create_block_for_array(hdu.data, ctx)
 
     @classmethod
     def assert_equal(cls, old, new):
