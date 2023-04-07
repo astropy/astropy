@@ -192,6 +192,7 @@ class TestRunnerBase:
             if spec is None or spec.loader is None:
                 # Don't import pytest until it's actually needed
                 import pytest
+
                 pluginmanager = pytest.PytestPluginManager()
                 try:
                     pluginmanager.import_plugin(module)
