@@ -190,7 +190,7 @@ The further dependencies provide more specific features:
 - `setuptools <https://setuptools.readthedocs.io>`_: Used for discovery of
   entry points which are used to insert fitters into `astropy.modeling.fitting`.
 
-- `mpmath <http://mpmath.org/>`_: Used for the 'kraft-burrows-nousek'
+- `mpmath <https://mpmath.org/>`_: Used for the 'kraft-burrows-nousek'
   interval in `~astropy.stats.poisson_conf_interval`.
 
 - `asdf <https://github.com/spacetelescope/asdf>`_ |minimum_asdf_version| or later: Enables the
