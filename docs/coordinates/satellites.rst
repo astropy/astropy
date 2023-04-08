@@ -19,7 +19,7 @@ The history of such models is discussed in detail in
 who also provide a reference implementation of the SGP4 orbital propagation
 code, designed to be compatible with the TLE sets provided by the United
 States Department of Defense, which are available from a source like
-`Celestrak <http://celestrak.com/>`_.
+`Celestrak <http://celestrak.org/>`_.
 
 The output coordinate frame of the SGP4 model is the True Equator, Mean Equinox
 frame (TEME), which is one of the frames built-in to `astropy.coordinates`.

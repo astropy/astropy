@@ -569,7 +569,7 @@ radial velocity and :math:`v_b` is the barycentric correction returned by
 the barycentric correction in this way leads to errors of order 3 m/s.
 
 The barycentric correction in `~astropy.coordinates.SkyCoord.radial_velocity_correction` is consistent
-with the `IDL implementation <http://astroutils.astronomy.ohio-state.edu/exofast/barycorr.html>`_ of
+with the `IDL implementation <https://astroutils.astronomy.ohio-state.edu/exofast/barycorr.html>`_ of
 the Wright & Eastmann (2014) paper to a level of 10 mm/s for a source at
 infinite distance. We do not include the Shapiro delay nor the light
 travel time correction from equation 28 of that paper. The neglected terms

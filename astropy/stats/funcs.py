@@ -611,7 +611,7 @@ def poisson_conf_interval(
     insensitive to the choice of prior.
 
     This function has an optional dependency: Either `Scipy
-    <https://www.scipy.org/>`_ or `mpmath <http://mpmath.org/>`_  need
+    <https://www.scipy.org/>`_ or `mpmath <https://mpmath.org/>`_  need
     to be available (Scipy works only for N < 100).
     This code is very intense numerically, which makes it much slower than
     the other methods, in particular for large count numbers (above 1000
@@ -1073,7 +1073,7 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
     about N > 100 (the exact limit depends on details of how scipy was
     compiled). See `~astropy.stats.mpmath_poisson_upper_limit` for an
     implementation that is slower, but can deal with arbitrarily high numbers
-    since it is based on the `mpmath <http://mpmath.org/>`_ library.
+    since it is based on the `mpmath <https://mpmath.org/>`_ library.
     """
     from math import exp
 
@@ -1147,7 +1147,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
 
     Notes
     -----
-    Requires the `mpmath <http://mpmath.org/>`_ library.  See
+    Requires the `mpmath <https://mpmath.org/>`_ library.  See
     `~astropy.stats.scipy_poisson_upper_limit` for an implementation
     that is based on scipy and evaluates faster, but runs only to about
     N = 100.
@@ -1243,7 +1243,7 @@ def _kraft_burrows_nousek(N, B, CL):
     Notes
     -----
     This functions has an optional dependency: Either :mod:`scipy` or `mpmath
-    <http://mpmath.org/>`_  need to be available. (Scipy only works for
+    <https://mpmath.org/>`_  need to be available. (Scipy only works for
     N < 100).
     """
     from astropy.utils.compat.optional_deps import HAS_MPMATH, HAS_SCIPY
