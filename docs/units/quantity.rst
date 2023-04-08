@@ -403,10 +403,8 @@ Alternatively, you can use the `annotations syntax
 <https://docs.python.org/3/library/typing.html>`_ to provide the units.
 While the raw unit or string can be used, the preferred method is with the
 unit-aware Quantity-annotation syntax.
-This requires Python 3.9 or the package ``typing_extensions``.
 
 ``Quantity[unit or "string", metadata, ...]``
-.. doctest-skip::
 
     >>> @u.quantity_input
     ... def myfunction(myarg: u.Quantity[u.arcsec]):
@@ -416,7 +414,6 @@ This requires Python 3.9 or the package ``typing_extensions``.
     Unit("arcsec")
 
 You can also annotate for different types in non-unit expecting arguments:
-.. doctest-skip::
 
     >>> @u.quantity_input
     ... def myfunction(myarg: u.Quantity[u.arcsec], nice_string: str):
@@ -426,7 +423,6 @@ You can also annotate for different types in non-unit expecting arguments:
 
 The output can be specified to have a desired unit with a function annotation,
 for example
-.. doctest-skip::
 
     >>> @u.quantity_input
     ... def myfunction(myarg: u.Quantity[u.arcsec]) -> u.deg:

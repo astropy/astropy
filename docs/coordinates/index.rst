@@ -414,7 +414,7 @@ third-party package that supports timezone solving, such as `timezonefinder
 <https://timezonefinder.readthedocs.io/>`_. For example, ``timezonefinder`` can
 be used to retrieve the timezone name for an address with:
 
-.. doctest-skip::
+.. doctest-remote-data::
 
     >>> loc = EarthLocation.of_address('Tucson, AZ')
     >>> from timezonefinder import TimezoneFinder
@@ -427,14 +427,13 @@ The resulting timezone name could then be used with any packages that support
 time zone definitions, such as the (Python 3.9 default package) `zoneinfo
 <https://docs.python.org/3/library/zoneinfo.html>`_:
 
-.. doctest-skip::
+.. doctest-remote-data::
 
-    >>> from zoneinfo import ZoneInfo  # requires Python 3.9 or greater
+    >>> import datetime
+    >>> from zoneinfo import ZoneInfo
     >>> tz = ZoneInfo(tz_name)
     >>> dt = datetime.datetime(2021, 4, 12, 20, 0, 0, tzinfo=tz)
 
-(Please note that the above code is not tested regularly with the ``astropy`` test
-suite, so please raise an issue if this no longer works.)
 
 Velocities (Proper Motions and Radial Velocities)
 -------------------------------------------------
