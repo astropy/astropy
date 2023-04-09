@@ -26,24 +26,23 @@ class MaskedUfuncTests(MaskedArraySetup):
     @pytest.mark.parametrize(
         "ufunc", (np.add, np.subtract, np.divide, np.arctan2, np.minimum)
     )
-    def test_2op_ufunc(self, ufunc):
-        ma_mb = ufunc(self.ma, self.mb)
+    @pytest.mark.parametrize("a, b", [("ma", "mb"), ("ma", "b"), ("a", "mb")])
+    def test_2op_ufunc(self, ufunc, a, b):
+        a, b = getattr(self, a), getattr(self, b)
+        mask_a = getattr(a, "mask", np.zeros(a.shape, bool))
+        mask_b = getattr(b, "mask", np.zeros(b.shape, bool))
+        result = ufunc(a, b)
         expected_data = ufunc(self.a, self.b)
-        expected_mask = self.ma.mask | self.mb.mask
+        expected_mask = mask_a | mask_b
         # Note: assert_array_equal also checks type, i.e., that, e.g.,
         # Longitude decays into an Angle.
-        assert_array_equal(ma_mb.unmasked, expected_data)
-        assert_array_equal(ma_mb.mask, expected_mask)
+        assert_array_equal(result.unmasked, expected_data)
+        assert_array_equal(result.mask, expected_mask)
 
-    @pytest.mark.parametrize(
-        "ufunc", (np.add, np.subtract, np.divide, np.arctan2, np.minimum)
-    )
-    def test_ufunc_inplace(self, ufunc):
-        ma_mb = ufunc(self.ma, self.mb)
-        out = Masked(np.zeros_like(ma_mb.unmasked))
-        result = ufunc(self.ma, self.mb, out=out)
-        assert result is out
-        assert_masked_equal(result, ma_mb)
+        out = Masked(np.zeros_like(result.unmasked))
+        result2 = ufunc(a, b, out=out)
+        assert result2 is out
+        assert_masked_equal(result2, result)
 
     @pytest.mark.parametrize("base_mask", [True, False])
     def test_ufunc_inplace_where(self, base_mask):
@@ -119,14 +118,31 @@ class MaskedUfuncTests(MaskedArraySetup):
             np.add(self.a, self.b, out=out, where=Masked(True, mask=True))
 
     @pytest.mark.parametrize("ufunc", (np.add.outer, np.minimum.outer))
-    def test_2op_ufunc_outer(self, ufunc):
-        ma_mb = ufunc(self.ma, self.mb)
+    @pytest.mark.parametrize("a, b", [("ma", "mb"), ("ma", "b"), ("a", "mb")])
+    def test_2op_ufunc_outer(self, ufunc, a, b):
+        a, b = getattr(self, a), getattr(self, b)
+        mask_a = getattr(a, "mask", np.zeros(a.shape, bool))
+        mask_b = getattr(b, "mask", np.zeros(b.shape, bool))
+        result = ufunc(a, b)
         expected_data = ufunc(self.a, self.b)
-        expected_mask = np.logical_or.outer(self.mask_a, self.mask_b)
+        expected_mask = np.logical_or.outer(mask_a, mask_b)
         # Note: assert_array_equal also checks type, i.e., that, e.g.,
         # Longitude decays into an Angle.
-        assert_array_equal(ma_mb.unmasked, expected_data)
-        assert_array_equal(ma_mb.mask, expected_mask)
+        assert_array_equal(result.unmasked, expected_data)
+        assert_array_equal(result.mask, expected_mask)
+
+        out = Masked(np.zeros_like(result.unmasked))
+        result2 = ufunc(a, b, out=out)
+        assert result2 is out
+        assert_masked_equal(result2, result)
+
+    @pytest.mark.parametrize("ufunc", (np.add.outer, np.minimum.outer))
+    def test_2op_ufunc_outer_no_masked_input(self, ufunc):
+        expected_data = ufunc(self.a, self.b)
+        out = Masked(np.zeros_like(expected_data), True)
+        result = ufunc(self.a, self.b, out=out)
+        assert_array_equal(out.unmasked, expected_data)
+        assert_array_equal(out.mask, np.zeros(out.shape, dtype=bool))
 
     def test_3op_ufunc(self):
         ma_mb = np.clip(self.ma, self.b, self.c)
