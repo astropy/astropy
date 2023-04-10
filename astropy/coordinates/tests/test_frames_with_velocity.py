@@ -233,8 +233,6 @@ def test_differential_type_arg():
     Test passing in an explicit differential class to the initializer or
     changing the differential class via set_representation_cls
     """
-    from astropy.coordinates.builtin_frames import ICRS
-
     icrs = ICRS(
         ra=1 * u.deg,
         dec=60 * u.deg,
