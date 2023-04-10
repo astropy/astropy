@@ -3,12 +3,26 @@ import pytest
 
 from astropy import units as u
 from astropy.constants import c as speed_of_light
-from astropy.coordinates import Angle, Distance, EarthLocation, SkyCoord
+from astropy.coordinates import Distance, EarthLocation, SkyCoord
 from astropy.coordinates.sites import get_builtin_sites
 from astropy.table import Table
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
+
+
+@pytest.fixture(scope="module")
+def input_radecs():
+    ras = []
+    decs = []
+
+    for dec in np.linspace(-85, 85, 15):
+        nra = int(np.round(10 * np.cos(dec * u.deg)).value)
+        ras1 = np.linspace(-180, 180 - 1e-6, nra)
+        ras.extend(ras1)
+        decs.extend([dec] * len(ras1))
+
+    return SkyCoord(ra=ras, dec=decs, unit=u.deg)
 
 
 @pytest.mark.parametrize("kind", ["heliocentric", "barycentric"])
@@ -36,14 +50,34 @@ test_input_loc = EarthLocation.from_geodetic(
 )
 
 
-def test_helio_iraf():
+def test_helio_iraf(input_radecs):
     """
     Compare the heliocentric correction to the IRAF rvcorrect.
     `generate_IRAF_input` function is provided to show how the comparison data
     was produced
 
+    def generate_IRAF_input(writefn=None):
+        dt = test_input_time.utc.datetime
+
+        coos = input_radecs  # `input_radecs` is implemented as pytest fixture
+
+        lines = []
+        for ra, dec in zip(coos.ra, coos.dec):
+            rastr = Angle(ra).to_string(u.hour, sep=":")
+            decstr = Angle(dec).to_string(u.deg, sep=":")
+
+            lines.append(
+                f"{dt.year} {dt.month} {dt.day} {dt.hour}:{dt.minute} {rastr} {decstr}"
+            )
+        if writefn:
+            with open(writefn, "w") as f:
+                for l in lines:
+                    f.write(l)
+        else:
+            for l in lines:
+                print(l)
+        print("Run IRAF as:\nastutil\nrvcorrect f=<filename> observatory=Paranal")
     """
-    # this is based on running IRAF with the output of `generate_IRAF_input` below
     rvcorr_result = """
     # RVCORRECT: Observatory parameters for European Southern Observatory: Paranal
     #       latitude = -24:37.5
@@ -153,50 +187,12 @@ def test_helio_iraf():
             vhs_iraf.append(float(line.split()[2]))
     vhs_iraf = vhs_iraf * u.km / u.s
 
-    targets = SkyCoord(
-        _get_test_input_radecs(), obstime=test_input_time, location=test_input_loc
-    )
+    targets = SkyCoord(input_radecs, obstime=test_input_time, location=test_input_loc)
     vhs_astropy = targets.radial_velocity_correction("heliocentric")
     assert_quantity_allclose(vhs_astropy, vhs_iraf, atol=150 * u.m / u.s)
 
 
-def generate_IRAF_input(writefn=None):
-    dt = test_input_time.utc.datetime
-
-    coos = _get_test_input_radecs()
-
-    lines = []
-    for ra, dec in zip(coos.ra, coos.dec):
-        rastr = Angle(ra).to_string(u.hour, sep=":")
-        decstr = Angle(dec).to_string(u.deg, sep=":")
-
-        lines.append(
-            f"{dt.year} {dt.month} {dt.day} {dt.hour}:{dt.minute} {rastr} {decstr}"
-        )
-    if writefn:
-        with open(writefn, "w") as f:
-            for l in lines:
-                f.write(l)
-    else:
-        for l in lines:
-            print(l)
-    print("Run IRAF as:\nastutil\nrvcorrect f=<filename> observatory=Paranal")
-
-
-def _get_test_input_radecs():
-    ras = []
-    decs = []
-
-    for dec in np.linspace(-85, 85, 15):
-        nra = int(np.round(10 * np.cos(dec * u.deg)).value)
-        ras1 = np.linspace(-180, 180 - 1e-6, nra)
-        ras.extend(ras1)
-        decs.extend([dec] * len(ras1))
-
-    return SkyCoord(ra=ras, dec=decs, unit=u.deg)
-
-
-def test_barycorr():
+def test_barycorr(input_radecs):
     # this is the result of calling _get_barycorr_bvcs
     # fmt: off
     barycorr_bvcs = u.Quantity([
@@ -229,8 +225,7 @@ def test_barycorr():
 
     # this tries the *other* way of calling radial_velocity_correction relative
     # to the IRAF tests
-    targets = _get_test_input_radecs()
-    bvcs_astropy = targets.radial_velocity_correction(
+    bvcs_astropy = input_radecs.radial_velocity_correction(
         obstime=test_input_time, location=test_input_loc, kind="barycentric"
     )
 
@@ -327,7 +322,7 @@ def test_regression_9645():
     assert_quantity_allclose(corr, corr_novel)
 
 
-def test_barycorr_withvels():
+def test_barycorr_withvels(input_radecs):
     # this is the result of calling _get_barycorr_bvcs_withvels
     # fmt: off
     barycorr_bvcs = u.Quantity(
@@ -364,30 +359,16 @@ def test_barycorr_withvels():
          17140.87204017,  -2415.1771038,   2246.79688215,
          14207.61339552,   2246.79790276,   6808.43888253], u.m/u.s)
     # fmt: on
-    coos = _get_test_input_radecvels()
-    bvcs_astropy = coos.radial_velocity_correction(
-        obstime=test_input_time, location=test_input_loc
-    )
-    assert_quantity_allclose(bvcs_astropy, barycorr_bvcs, atol=10 * u.mm / u.s)
-
-
-def _get_test_input_radecvels():
-    coos = _get_test_input_radecs()
-    ras = coos.ra
-    decs = coos.dec
-    pmra = np.linspace(-1000, 1000, coos.size) * u.mas / u.yr
-    pmdec = np.linspace(0, 1000, coos.size) * u.mas / u.yr
-    rvs = np.linspace(0, 100, coos.size) * u.km / u.s
-    distance = np.linspace(10, 100, coos.size) * u.pc
-    return SkyCoord(
-        ras,
-        decs,
-        pm_ra_cosdec=pmra,
-        pm_dec=pmdec,
-        radial_velocity=rvs,
-        distance=distance,
+    bvcs_astropy = SkyCoord(
+        input_radecs.ra,
+        input_radecs.dec,
+        pm_ra_cosdec=np.linspace(-1000, 1000, input_radecs.size) * u.mas / u.yr,
+        pm_dec=np.linspace(0, 1000, input_radecs.size) * u.mas / u.yr,
+        radial_velocity=np.linspace(0, 100, input_radecs.size) * u.km / u.s,
+        distance=np.linspace(10, 100, input_radecs.size) * u.pc,
         obstime=test_input_time,
-    )
+    ).radial_velocity_correction(obstime=test_input_time, location=test_input_loc)
+    assert_quantity_allclose(bvcs_astropy, barycorr_bvcs, atol=10 * u.mm / u.s)
 
 
 def _get_barycorr_bvcs_withvels(coos, loc, injupyter=False):
