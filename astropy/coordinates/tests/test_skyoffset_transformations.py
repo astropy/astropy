@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from astropy import units as u
-from astropy.coordinates import EarthLocation, SkyCoord
+from astropy.coordinates import Angle, EarthLocation, SkyCoord
 from astropy.coordinates.builtin_frames import (
     FK5,
     ICRS,
@@ -24,6 +24,27 @@ M31_DISTANCE = Distance(770 * u.kpc)
 POSITION_ON_SKY = {"ra": 36.4 * u.deg, "dec": -55.8 * u.deg}
 DISTANCE = {"distance": 150 * u.pc}
 PROPER_MOTION = {"pm_ra_cosdec": -21.2 * u.mas / u.yr, "pm_dec": 17.1 * u.mas / u.yr}
+
+
+@pytest.fixture(scope="module")
+def icrs_coords_with_trig_values():
+    # we do the 12)[1:-1] business because sometimes machine precision issues
+    # lead to results that are either ~0 or ~360, which mucks up the final
+    # comparison and leads to spurious failures.  So this just avoids that by
+    # staying away from the edges.  Explicit conversion to radians in the trig
+    # functions is needed so that output would be a bare `ndarray`, not a `Quantity`.
+    icrs_coord = ICRS(
+        ra=np.linspace(0, 360, 12)[1:-1] * u.deg,
+        dec=np.linspace(-90, 90, 12)[1:-1] * u.deg,
+        distance=1.0 * u.kpc,
+    )
+    return (
+        icrs_coord,
+        np.sin(icrs_coord.dec.rad),
+        np.cos(icrs_coord.dec.rad),
+        np.sin(icrs_coord.ra.rad),
+        np.cos(icrs_coord.ra.rad),
+    )
 
 
 def test_altaz_attribute_transforms():
@@ -119,101 +140,72 @@ def test_skyoffset_functional_ra():
         assert_allclose(icrs_coord.distance, roundtrip.distance, atol=1e-5 * u.kpc)
 
 
-def test_skyoffset_functional_dec():
-    # we do the 12)[1:-1] business because sometimes machine precision issues
-    # lead to results that are either ~0 or ~360, which mucks up the final
-    # comparison and leads to spurious failures.  So this just avoids that by
-    # staying away from the edges
-    input_ra = np.linspace(0, 360, 12)[1:-1]
-    input_dec = np.linspace(-90, 90, 12)[1:-1]
-    input_ra_rad = np.deg2rad(input_ra)
-    input_dec_rad = np.deg2rad(input_dec)
-    icrs_coord = ICRS(ra=input_ra * u.deg, dec=input_dec * u.deg, distance=1.0 * u.kpc)
+@pytest.mark.parametrize("dec", Angle(np.linspace(-90, 90, 13), u.deg))
+def test_skyoffset_functional_dec(dec, icrs_coords_with_trig_values):
+    icrs_coord, sin_dec_i, cos_dec_i, sin_ra_i, cos_ra_i = icrs_coords_with_trig_values
     # Dec rotations
     # Done in xyz space because dec must be [-90,90]
 
-    for dec in np.linspace(-90, 90, 13):
-        # expected rotation
-        dec_rad = -np.deg2rad(dec)
-        # fmt: off
-        expected_x = (-np.sin(input_dec_rad) * np.sin(dec_rad) +
-                       np.cos(input_ra_rad) * np.cos(input_dec_rad) * np.cos(dec_rad))
-        expected_y = (np.sin(input_ra_rad) * np.cos(input_dec_rad))
-        expected_z = (np.sin(input_dec_rad) * np.cos(dec_rad) +
-                      np.sin(dec_rad) * np.cos(input_ra_rad) * np.cos(input_dec_rad))
-        # fmt: on
-        expected = SkyCoord(
-            x=expected_x,
-            y=expected_y,
-            z=expected_z,
-            unit="kpc",
-            representation_type="cartesian",
-        )
-        expected_xyz = expected.cartesian.xyz
+    # expected rotation
+    sin_dec = np.sin(-dec.rad)
+    cos_dec = np.cos(dec.rad)
+    expected = SkyCoord(
+        x=-sin_dec_i * sin_dec + cos_ra_i * cos_dec_i * cos_dec,
+        y=sin_ra_i * cos_dec_i,
+        z=sin_dec_i * cos_dec + sin_dec * cos_ra_i * cos_dec_i,
+        unit="kpc",
+        representation_type="cartesian",
+    )
 
-        # actual transformation to the frame
-        skyoffset_frame = SkyOffsetFrame(origin=ICRS(0 * u.deg, dec * u.deg))
-        actual = icrs_coord.transform_to(skyoffset_frame)
-        actual_xyz = actual.cartesian.xyz
+    # actual transformation to the frame
+    actual = icrs_coord.transform_to(SkyOffsetFrame(origin=ICRS(0 * u.deg, dec)))
 
-        # back to ICRS
-        roundtrip = actual.transform_to(ICRS())
+    # back to ICRS
+    roundtrip = actual.transform_to(ICRS())
 
-        # Verify
-        assert_allclose(actual_xyz, expected_xyz, atol=1e-5 * u.kpc)
-        assert_allclose(icrs_coord.ra, roundtrip.ra, atol=1e-5 * u.deg)
-        assert_allclose(icrs_coord.dec, roundtrip.dec, atol=1e-5 * u.deg)
-        assert_allclose(icrs_coord.distance, roundtrip.distance, atol=1e-5 * u.kpc)
+    # Verify
+    assert_allclose(actual.cartesian.xyz, expected.cartesian.xyz, atol=1e-5 * u.kpc)
+    assert_allclose(icrs_coord.ra, roundtrip.ra, atol=1e-5 * u.deg)
+    assert_allclose(icrs_coord.dec, roundtrip.dec, atol=1e-5 * u.deg)
+    assert_allclose(icrs_coord.distance, roundtrip.distance, atol=1e-5 * u.kpc)
 
 
-def test_skyoffset_functional_ra_dec():
-    # we do the 12)[1:-1] business because sometimes machine precision issues
-    # lead to results that are either ~0 or ~360, which mucks up the final
-    # comparison and leads to spurious failures.  So this just avoids that by
-    # staying away from the edges
-    input_ra = np.linspace(0, 360, 12)[1:-1]
-    input_dec = np.linspace(-90, 90, 12)[1:-1]
-    input_ra_rad = np.deg2rad(input_ra)
-    input_dec_rad = np.deg2rad(input_dec)
-    icrs_coord = ICRS(ra=input_ra * u.deg, dec=input_dec * u.deg, distance=1.0 * u.kpc)
+@pytest.mark.parametrize("ra", Angle(np.linspace(0, 360, 10), u.deg))
+@pytest.mark.parametrize("dec", Angle(np.linspace(-90, 90, 5), u.deg))
+def test_skyoffset_functional_ra_dec(ra, dec, icrs_coords_with_trig_values):
+    icrs_coord, sin_dec_i, cos_dec_i, sin_ra_i, cos_ra_i = icrs_coords_with_trig_values
+    cos_dec = np.cos(dec.rad)
+    sin_dec = np.sin(-dec.rad)
+    cos_ra = np.cos(ra.rad)
+    sin_ra = np.sin(ra.rad)
+    # expected rotation
+    expected = SkyCoord(
+        x=(
+            -sin_dec_i * sin_dec
+            + cos_ra_i * cos_dec_i * cos_dec * cos_ra
+            + sin_ra_i * cos_dec_i * cos_dec * sin_ra
+        ),
+        y=sin_ra_i * cos_dec_i * cos_ra - cos_ra_i * cos_dec_i * sin_ra,
+        z=(
+            sin_dec_i * cos_dec
+            + sin_dec * cos_ra * cos_ra_i * cos_dec_i
+            + sin_dec * sin_ra * sin_ra_i * cos_dec_i
+        ),
+        unit="kpc",
+        representation_type="cartesian",
+    )
 
-    for ra in np.linspace(0, 360, 10):
-        for dec in np.linspace(-90, 90, 5):
-            # expected rotation
-            dec_rad = -np.deg2rad(dec)
-            ra_rad = np.deg2rad(ra)
-            # fmt: off
-            expected_x = (-np.sin(input_dec_rad) * np.sin(dec_rad) +
-                           np.cos(input_ra_rad) * np.cos(input_dec_rad) * np.cos(dec_rad) * np.cos(ra_rad) +
-                           np.sin(input_ra_rad) * np.cos(input_dec_rad) * np.cos(dec_rad) * np.sin(ra_rad))
-            expected_y = (np.sin(input_ra_rad) * np.cos(input_dec_rad) * np.cos(ra_rad) -
-                          np.cos(input_ra_rad) * np.cos(input_dec_rad) * np.sin(ra_rad))
-            expected_z = (np.sin(input_dec_rad) * np.cos(dec_rad) +
-                          np.sin(dec_rad) * np.cos(ra_rad) * np.cos(input_ra_rad) * np.cos(input_dec_rad) +
-                          np.sin(dec_rad) * np.sin(ra_rad) * np.sin(input_ra_rad) * np.cos(input_dec_rad))
-            # fmp: on
-            expected = SkyCoord(
-                x=expected_x,
-                y=expected_y,
-                z=expected_z,
-                unit='kpc',
-                representation_type='cartesian',
-            )
-            expected_xyz = expected.cartesian.xyz
+    # actual transformation to the frame
+    actual = icrs_coord.transform_to(SkyOffsetFrame(origin=ICRS(ra, dec)))
 
-            # actual transformation to the frame
-            skyoffset_frame = SkyOffsetFrame(origin=ICRS(ra * u.deg, dec * u.deg))
-            actual = icrs_coord.transform_to(skyoffset_frame)
-            actual_xyz = actual.cartesian.xyz
+    # back to ICRS
+    roundtrip = actual.transform_to(ICRS())
 
-            # back to ICRS
-            roundtrip = actual.transform_to(ICRS())
-
-            # Verify
-            assert_allclose(actual_xyz, expected_xyz, atol=1e-5 * u.kpc)
-            assert_allclose(icrs_coord.ra, roundtrip.ra, atol=1e-4 * u.deg)
-            assert_allclose(icrs_coord.dec, roundtrip.dec, atol=1e-5 * u.deg)
-            assert_allclose(icrs_coord.distance, roundtrip.distance, atol=1e-5 * u.kpc)
+    # Verify
+    assert_allclose(actual.cartesian.xyz, expected.cartesian.xyz, atol=1e-5 * u.kpc)
+    assert_allclose(icrs_coord.ra, roundtrip.ra, atol=1e-4 * u.deg)
+    assert_allclose(icrs_coord.dec, roundtrip.dec, atol=1e-5 * u.deg)
+    assert_allclose(icrs_coord.distance, roundtrip.distance, atol=1e-5 * u.kpc)
 
 
 def test_skycoord_skyoffset_frame():
@@ -320,19 +312,11 @@ def test_skyoffset_origindata():
         SkyOffsetFrame(origin=origin)
 
 
-def test_skyoffset_lonwrap():
-    origin = ICRS(45 * u.deg, 45 * u.deg)
-    sc = SkyCoord(190 * u.deg, -45 * u.deg, frame=SkyOffsetFrame(origin=origin))
+@pytest.mark.parametrize("lon", (190, -10) * u.deg)
+def test_skyoffset_lonwrap(lon):
+    sc = SkyCoord(lon=lon, lat=-45 * u.deg, frame=SkyOffsetFrame(origin=ICRS_45_45))
     assert sc.lon < 180 * u.deg
-
-    sc2 = SkyCoord(-10 * u.deg, -45 * u.deg, frame=SkyOffsetFrame(origin=origin))
-    assert sc2.lon < 180 * u.deg
-
-    sc3 = sc.realize_frame(sc.represent_as("cartesian"))
-    assert sc3.lon < 180 * u.deg
-
-    sc4 = sc2.realize_frame(sc2.represent_as("cartesian"))
-    assert sc4.lon < 180 * u.deg
+    assert sc.realize_frame(sc.represent_as("cartesian")).lon < 180 * u.deg
 
 
 def test_skyoffset_velocity():

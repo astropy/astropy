@@ -307,26 +307,16 @@ def test_shorthand_attributes():
     icrs4.radial_velocity
 
 
-def test_negative_distance():
+@pytest.mark.parametrize(
+    "icrs_coords", [POSITION_ON_SKY, {**POSITION_ON_SKY, **PROPER_MOTION}]
+)
+def test_negative_distance(icrs_coords):
     """Regression test: #7408
     Make sure that negative parallaxes turned into distances are handled right
     """
-
-    RA = 150 * u.deg
-    DEC = -11 * u.deg
-    c = ICRS(
-        ra=RA,
-        dec=DEC,
-        distance=(-10 * u.mas).to(u.pc, u.parallax()),
-        pm_ra_cosdec=10 * u.mas / u.yr,
-        pm_dec=10 * u.mas / u.yr,
-    )
-    assert quantity_allclose(c.ra, RA)
-    assert quantity_allclose(c.dec, DEC)
-
-    c = ICRS(ra=RA, dec=DEC, distance=(-10 * u.mas).to(u.pc, u.parallax()))
-    assert quantity_allclose(c.ra, RA)
-    assert quantity_allclose(c.dec, DEC)
+    c = ICRS(distance=(-10 * u.mas).to(u.pc, u.parallax()), **icrs_coords)
+    assert quantity_allclose(c.ra, 37.4 * u.deg)
+    assert quantity_allclose(c.dec, -55.8 * u.deg)
 
 
 def test_velocity_units():
