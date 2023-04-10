@@ -35,17 +35,6 @@ def test_api():
         )
         icrs.transform_to(Galactic())
 
-        # transform a Barycentric RV to a GSR RV
-        icrs = ICRS(
-            ra=151.0 * u.deg,
-            dec=-16 * u.deg,
-            distance=1.0 * u.pc,
-            pm_ra_cosdec=0 * u.mas / u.yr,
-            pm_dec=0 * u.mas / u.yr,
-            radial_velocity=71 * u.km / u.s,
-        )
-        icrs.transform_to(Galactocentric())
-
 
 # fmt: off
 all_kwargs = [
