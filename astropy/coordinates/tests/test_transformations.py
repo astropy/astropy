@@ -7,7 +7,8 @@ import pytest
 from astropy import units as u
 from astropy.coordinates import representation as r
 from astropy.coordinates import transformations as t
-from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.attributes import Attribute
+from astropy.coordinates.baseframe import BaseCoordinateFrame, frame_transform_graph
 from astropy.coordinates.builtin_frames import (
     FK4,
     FK5,
@@ -460,8 +461,6 @@ def test_frame_override_component_with_attribute():
     It was previously possible to define a frame with an attribute with the
     same name as a component. We don't want to allow this!
     """
-    from astropy.coordinates.attributes import Attribute
-    from astropy.coordinates.baseframe import BaseCoordinateFrame
 
     class BorkedFrame(BaseCoordinateFrame):
         ra = Attribute(default=150)
@@ -488,8 +487,6 @@ def test_static_matrix_combine_paths():
 
     This is somewhat of a regression test for #7706
     """
-    from astropy.coordinates.baseframe import BaseCoordinateFrame
-    from astropy.coordinates.matrix_utilities import rotation_matrix
 
     class AFrame(BaseCoordinateFrame):
         default_representation = r.SphericalRepresentation
@@ -525,8 +522,6 @@ def test_static_matrix_combine_paths():
 
 
 def test_multiple_aliases():
-    from astropy.coordinates.baseframe import BaseCoordinateFrame
-
     # Define a frame with multiple aliases
     class MultipleAliasesFrame(BaseCoordinateFrame):
         name = ["alias_1", "alias_2"]

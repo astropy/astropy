@@ -10,6 +10,14 @@ import pytest
 from numpy import testing as npt
 
 from astropy import units as u
+from astropy.coordinates import FK5, ICRS, SkyCoord
+from astropy.coordinates import representation as r
+from astropy.coordinates.funcs import (
+    concatenate,
+    concatenate_representations,
+    get_constellation,
+    get_sun,
+)
 from astropy.time import Time
 
 
@@ -17,7 +25,6 @@ def test_sun():
     """
     Test that `get_sun` works and it behaves roughly as it should (in GCRS)
     """
-    from astropy.coordinates.funcs import get_sun
 
     northern_summer_solstice = Time("2010-6-21")
     northern_winter_solstice = Time("2010-12-21")
@@ -34,9 +41,6 @@ def test_sun():
 
 
 def test_constellations(recwarn):
-    from astropy.coordinates import FK5, ICRS, SkyCoord
-    from astropy.coordinates.funcs import get_constellation
-
     inuma = ICRS(9 * u.hour, 65 * u.deg)
 
     n_prewarn = len(recwarn)
@@ -66,9 +70,6 @@ def test_constellations(recwarn):
 
 @pytest.mark.xfail
 def test_constellation_edge_cases():
-    from astropy.coordinates import FK5
-    from astropy.coordinates.funcs import get_constellation
-
     # Test edge cases close to borders, using B1875.0 coordinates
     # Look for HMS / DMS roundoff-to-decimal issues from Roman (1987) data,
     # and misuse of PrecessedGeocentric, as documented in
@@ -103,9 +104,6 @@ def test_constellation_edge_cases():
 
 
 def test_concatenate():
-    from astropy.coordinates import FK5, ICRS, SkyCoord
-    from astropy.coordinates.funcs import concatenate
-
     # Just positions
     fk5 = FK5(1 * u.deg, 2 * u.deg)
     sc = SkyCoord(3 * u.deg, 4 * u.deg, frame="fk5")
@@ -145,9 +143,6 @@ def test_concatenate():
 
 
 def test_concatenate_representations():
-    from astropy.coordinates import representation as r
-    from astropy.coordinates.funcs import concatenate_representations
-
     # fmt: off
     reps = [r.CartesianRepresentation([1, 2, 3.]*u.kpc),
             r.SphericalRepresentation(lon=1*u.deg, lat=2.*u.deg,
@@ -211,9 +206,6 @@ def test_concatenate_representations():
 
 
 def test_concatenate_representations_different_units():
-    from astropy.coordinates import representation as r
-    from astropy.coordinates.funcs import concatenate_representations
-
     reps = [
         r.CartesianRepresentation([1, 2, 3.0] * u.pc),
         r.CartesianRepresentation([1, 2, 3.0] * u.kpc),
