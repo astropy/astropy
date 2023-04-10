@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from itertools import combinations
+
 import numpy as np
 import pytest
 
@@ -15,6 +17,13 @@ from astropy.coordinates.builtin_frames import (
 from astropy.coordinates.distances import Distance
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
+
+CONVERT_PRECISION = 1 * u.arcsec
+ICRS_45_45 = SkyCoord(ra=45 * u.deg, dec=45 * u.deg, frame=ICRS())
+M31_DISTANCE = Distance(770 * u.kpc)
+POSITION_ON_SKY = {"ra": 36.4 * u.deg, "dec": -55.8 * u.deg}
+DISTANCE = {"distance": 150 * u.pc}
+PROPER_MOTION = {"pm_ra_cosdec": -21.2 * u.mas / u.yr, "pm_dec": 17.1 * u.mas / u.yr}
 
 
 def test_altaz_attribute_transforms():
@@ -34,7 +43,9 @@ def test_altaz_attribute_transforms():
     coo2 = coo1.transform_to(frame2)
     coo2_expected = [1.22522446, 0.70624298] * u.deg
     assert_allclose(
-        [coo2.lon.wrap_at(180 * u.deg), coo2.lat], coo2_expected, atol=convert_precision
+        [coo2.lon.wrap_at(180 * u.deg), coo2.lat],
+        [1.22522446, 0.70624298] * u.deg,
+        atol=CONVERT_PRECISION,
     )
 
     el3 = EarthLocation(0 * u.deg, 90 * u.deg, 0 * u.m)
@@ -46,7 +57,7 @@ def test_altaz_attribute_transforms():
     assert_allclose(
         [coo3.lon.wrap_at(180 * u.deg), coo3.lat],
         [1 * u.deg, 1 * u.deg],
-        atol=convert_precision,
+        atol=CONVERT_PRECISION,
     )
 
 
@@ -59,9 +70,8 @@ def test_altaz_attribute_transforms():
         ((46, 45) * u.deg, (1 * np.cos(45 * u.deg), 0) * u.deg, 16 * u.arcsec),
     ],
 )
-def test_skyoffset(inradec, expectedlatlon, tolsep, originradec=(45, 45) * u.deg):
-    origin = ICRS(*originradec)
-    skyoffset_frame = SkyOffsetFrame(origin=origin)
+def test_skyoffset(inradec, expectedlatlon, tolsep):
+    skyoffset_frame = SkyOffsetFrame(origin=ICRS_45_45)
 
     skycoord = SkyCoord(*inradec, frame=ICRS)
     skycoord_inaf = skycoord.transform_to(skyoffset_frame)
@@ -226,34 +236,23 @@ def test_skycoord_skyoffset_frame():
     )
 
 
-# used below in the next parametrized test
-m31_sys = [ICRS, FK5, Galactic]
-m31_coo = [
-    (10.6847929, 41.2690650),
-    (10.6847929, 41.2690650),
-    (121.1744050, -21.5729360),
-]
-m31_dist = Distance(770, u.kpc)
-convert_precision = 1 * u.arcsec
-roundtrip_precision = 1e-4 * u.degree
-dist_precision = 1e-9 * u.kpc
-
-m31_params = []
-for i in range(len(m31_sys)):
-    for j in range(len(m31_sys)):
-        if i < j:
-            m31_params.append((m31_sys[i], m31_sys[j], m31_coo[i], m31_coo[j]))
-
-
-@pytest.mark.parametrize(("fromsys", "tosys", "fromcoo", "tocoo"), m31_params)
-def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
+@pytest.mark.parametrize(
+    "from_origin,to_origin",
+    combinations(
+        (
+            ICRS(10.6847929 * u.deg, 41.2690650 * u.deg, M31_DISTANCE),
+            FK5(10.6847929 * u.deg, 41.2690650 * u.deg, M31_DISTANCE),
+            Galactic(121.1744050 * u.deg, -21.5729360 * u.deg, M31_DISTANCE),
+        ),
+        r=2,
+    ),
+)
+def test_m31_coord_transforms(from_origin, to_origin):
     """
     This tests a variety of coordinate conversions for the Chandra point-source
     catalog location of M31 from NED, via SkyOffsetFrames
     """
-    from_origin = fromsys(fromcoo[0] * u.deg, fromcoo[1] * u.deg, distance=m31_dist)
     from_pos = SkyOffsetFrame(1 * u.deg, 1 * u.deg, origin=from_origin)
-    to_origin = tosys(tocoo[0] * u.deg, tocoo[1] * u.deg, distance=m31_dist)
 
     to_astroframe = SkyOffsetFrame(origin=to_origin)
     target_pos = from_pos.transform_to(to_astroframe)
@@ -261,13 +260,13 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
     assert_allclose(
         to_origin.separation(target_pos),
         np.hypot(from_pos.lon, from_pos.lat),
-        atol=convert_precision,
+        atol=CONVERT_PRECISION,
     )
     roundtrip_pos = target_pos.transform_to(from_pos)
     assert_allclose(
         [roundtrip_pos.lon.wrap_at(180 * u.deg), roundtrip_pos.lat],
         [1.0 * u.deg, 1.0 * u.deg],
-        atol=convert_precision,
+        atol=CONVERT_PRECISION,
     )
 
 
@@ -281,12 +280,8 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
     ],
 )
 def test_rotation(rotation, expectedlatlon):
-    origin = ICRS(45 * u.deg, 45 * u.deg)
     target = ICRS(45 * u.deg, 46 * u.deg)
-
-    aframe = SkyOffsetFrame(origin=origin, rotation=rotation)
-    trans = target.transform_to(aframe)
-
+    trans = target.transform_to(SkyOffsetFrame(origin=ICRS_45_45, rotation=rotation))
     assert_allclose(
         [trans.lon.wrap_at(180 * u.deg), trans.lat], expectedlatlon, atol=1e-10 * u.deg
     )
@@ -303,20 +298,15 @@ def test_rotation(rotation, expectedlatlon):
 )
 def test_skycoord_skyoffset_frame_rotation(rotation, expectedlatlon):
     """Test if passing a rotation argument via SkyCoord works"""
-    origin = SkyCoord(45 * u.deg, 45 * u.deg)
     target = SkyCoord(45 * u.deg, 46 * u.deg)
-
-    aframe = origin.skyoffset_frame(rotation=rotation)
-    trans = target.transform_to(aframe)
-
+    trans = target.transform_to(ICRS_45_45.skyoffset_frame(rotation=rotation))
     assert_allclose(
         [trans.lon.wrap_at(180 * u.deg), trans.lat], expectedlatlon, atol=1e-10 * u.deg
     )
 
 
 def test_skyoffset_names():
-    origin1 = ICRS(45 * u.deg, 45 * u.deg)
-    aframe1 = SkyOffsetFrame(origin=origin1)
+    aframe1 = SkyOffsetFrame(origin=ICRS_45_45)
     assert type(aframe1).__name__ == "SkyOffsetICRS"
 
     origin2 = Galactic(45 * u.deg, 45 * u.deg)
@@ -346,14 +336,8 @@ def test_skyoffset_lonwrap():
 
 
 def test_skyoffset_velocity():
-    c = ICRS(
-        ra=170.9 * u.deg,
-        dec=-78.4 * u.deg,
-        pm_ra_cosdec=74.4134 * u.mas / u.yr,
-        pm_dec=-93.2342 * u.mas / u.yr,
-    )
-    skyoffset_frame = SkyOffsetFrame(origin=c)
-    c_skyoffset = c.transform_to(skyoffset_frame)
+    c = ICRS(**POSITION_ON_SKY, **PROPER_MOTION)
+    c_skyoffset = c.transform_to(SkyOffsetFrame(origin=c))
 
     assert_allclose(c_skyoffset.pm_lon_coslat, c.pm_ra_cosdec)
     assert_allclose(c_skyoffset.pm_lat, c.pm_dec)
@@ -371,10 +355,7 @@ def test_skyoffset_velocity():
 )
 def test_skyoffset_velocity_rotation(rotation, expectedpmlonlat):
     sc = SkyCoord(
-        ra=170.9 * u.deg,
-        dec=-78.4 * u.deg,
-        pm_ra_cosdec=1 * u.mas / u.yr,
-        pm_dec=2 * u.mas / u.yr,
+        **POSITION_ON_SKY, pm_ra_cosdec=1 * u.mas / u.yr, pm_dec=2 * u.mas / u.yr
     )
 
     c_skyoffset0 = sc.transform_to(sc.skyoffset_frame(rotation=rotation))

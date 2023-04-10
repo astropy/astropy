@@ -24,6 +24,29 @@ from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 from astropy.utils.exceptions import AstropyWarning
 
+CARTESIAN_POS = r.CartesianRepresentation([1, 2, 3] * u.kpc)
+CARTESIAN_VEL = r.CartesianDifferential([8, 9, 10] * u.km / u.s)
+CARTESIAN_POS_AND_VEL = CARTESIAN_POS.with_differentials(CARTESIAN_VEL)
+
+RADIAL_VEL = r.RadialDifferential(1 * u.km / u.s)
+SPHERICAL_COS_LAT_VEL = r.SphericalCosLatDifferential(
+    1 * u.mas / u.yr, 2 * u.mas / u.yr, 3 * u.km / u.s
+)
+SPHERICAL_POS = r.SphericalRepresentation(
+    lon=1 * u.deg, lat=2.0 * u.deg, distance=10 * u.pc
+)
+UNIT_SPHERICAL_POS = r.UnitSphericalRepresentation(lon=1 * u.deg, lat=2.0 * u.deg)
+
+ROT_30 = rotation_matrix(30 * u.deg)
+ROT_45 = rotation_matrix(45 * u.deg)
+ROT_75 = rotation_matrix(75 * u.deg)
+OFFSET_X = r.CartesianRepresentation([1, 0, 0])
+OFFSET_Z = r.CartesianRepresentation([0, 0, 1])
+OFFSET_123 = r.CartesianRepresentation([1, 2, 3])
+OFFSET_456 = r.CartesianRepresentation([4, 5, 6])
+OFFSET_579 = r.CartesianRepresentation([5, 7, 9])
+SQRT_2 = np.sqrt(2)
+
 
 # Coordinates just for these tests.
 class TCoo1(ICRS):
@@ -263,18 +286,16 @@ class transfunc:
         transfunc.just_matrix,
     ],
 )
-# fmt: off
-@pytest.mark.parametrize('rep', [
-    r.CartesianRepresentation(5, 6, 7, unit=u.pc),
-    r.CartesianRepresentation(5, 6, 7, unit=u.pc,
-                              differentials=r.CartesianDifferential(8, 9, 10,
-                                                                    unit=u.pc/u.Myr)),
-    r.CartesianRepresentation(5, 6, 7, unit=u.pc,
-                              differentials=r.CartesianDifferential(8, 9, 10,
-                                                                    unit=u.pc/u.Myr))
-     .represent_as(r.CylindricalRepresentation, r.CylindricalDifferential)
-])
-# fmt: on
+@pytest.mark.parametrize(
+    "rep",
+    (
+        CARTESIAN_POS,
+        CARTESIAN_POS_AND_VEL,
+        CARTESIAN_POS_AND_VEL.represent_as(
+            r.CylindricalRepresentation, r.CylindricalDifferential
+        ),
+    ),
+)
 def test_affine_transform_succeed(transfunc, rep):
     c = TCoo1(rep)
 
@@ -329,9 +350,7 @@ def transfunc_invalid_matrix(coo, fr):
 
 @pytest.mark.parametrize("transfunc", [transfunc_invalid_matrix])
 def test_affine_transform_fail(transfunc):
-    diff = r.CartesianDifferential(8, 9, 10, unit=u.pc / u.Myr)
-    rep = r.CartesianRepresentation(5, 6, 7, unit=u.pc, differentials=diff)
-    c = TCoo1(rep)
+    c = TCoo1(CARTESIAN_POS_AND_VEL)
 
     # register and do the transformation and check against expected
     trans = t.AffineTransform(transfunc, TCoo1, TCoo2)
@@ -344,11 +363,8 @@ def test_affine_transform_fail(transfunc):
 
 
 def test_too_many_differentials():
-    dif1 = r.CartesianDifferential(*np.arange(3, 6) * u.pc / u.Myr)
     dif2 = r.CartesianDifferential(*np.arange(3, 6) * u.pc / u.Myr**2)
-    rep = r.CartesianRepresentation(
-        np.arange(3) * u.pc, differentials={"s": dif1, "s2": dif2}
-    )
+    rep = CARTESIAN_POS_AND_VEL.with_differentials(dif2)
 
     with pytest.raises(ValueError):
         c = TCoo1(rep)
@@ -360,7 +376,7 @@ def test_too_many_differentials():
     # Check that if frame somehow gets through to transformation, multiple
     # differentials are caught
     c = TCoo1(rep.without_differentials())
-    c._data = c._data.with_differentials({"s": dif1, "s2": dif2})
+    c._data = c._data.with_differentials({"s": CARTESIAN_VEL, "s2": dif2})
     with pytest.raises(ValueError):
         c.transform_to(TCoo2())
 
@@ -370,19 +386,16 @@ def test_too_many_differentials():
 # A matrix transform of a unit spherical with differentials should work
 
 
-# fmt: off
-@pytest.mark.parametrize('rep', [
-    r.UnitSphericalRepresentation(lon=15*u.degree, lat=-11*u.degree,
-        differentials=r.SphericalDifferential(d_lon=15*u.mas/u.yr,
-                                              d_lat=11*u.mas/u.yr,
-                                              d_distance=-110*u.km/u.s)),
-    r.UnitSphericalRepresentation(lon=15*u.degree, lat=-11*u.degree,
-        differentials={'s': r.RadialDifferential(d_distance=-110*u.km/u.s)}),
-    r.SphericalRepresentation(lon=15*u.degree, lat=-11*u.degree,
-                              distance=150*u.pc,
-        differentials={'s': r.RadialDifferential(d_distance=-110*u.km/u.s)})
-])
-# fmt: on
+@pytest.mark.parametrize(
+    "rep",
+    (
+        UNIT_SPHERICAL_POS.with_differentials(SPHERICAL_COS_LAT_VEL),
+        r.UnitSphericalRepresentation(
+            UNIT_SPHERICAL_POS, differentials={"s": RADIAL_VEL}
+        ),
+        SPHERICAL_POS.with_differentials(RADIAL_VEL),
+    ),
+)
 def test_unit_spherical_with_differentials(rep):
     c = TCoo1(rep)
 
@@ -640,39 +653,33 @@ def test_impose_finite_difference_dt():
     assert transform3.finite_difference_dt == old_dt * 3
 
 
-# fmt: off
-@pytest.mark.parametrize("first, second, check",
-                         [((rotation_matrix(30*u.deg), None),
-                           (rotation_matrix(45*u.deg), None),
-                           (rotation_matrix(75*u.deg), None)),
-                          ((rotation_matrix(30*u.deg), r.CartesianRepresentation([1, 0, 0])),
-                           (rotation_matrix(45*u.deg), None),
-                           (rotation_matrix(75*u.deg), r.CartesianRepresentation([1/np.sqrt(2), -1/np.sqrt(2), 0]))),
-                          ((rotation_matrix(30*u.deg), None),
-                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([0, 0, 1])),
-                           (rotation_matrix(75*u.deg), r.CartesianRepresentation([0, 0, 1]))),
-                          ((rotation_matrix(30*u.deg), r.CartesianRepresentation([1, 0, 0])),
-                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([0, 0, 1])),
-                           (rotation_matrix(75*u.deg), r.CartesianRepresentation([1/np.sqrt(2), -1/np.sqrt(2), 1]))),
-                          ((rotation_matrix(30*u.deg), r.CartesianRepresentation([1, 2 ,3])),
-                           (None, r.CartesianRepresentation([4, 5, 6])),
-                           (rotation_matrix(30*u.deg), r.CartesianRepresentation([5, 7, 9]))),
-                          ((None, r.CartesianRepresentation([1, 2, 3])),
-                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([4, 5, 6])),
-                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([3/np.sqrt(2)+4, 1/np.sqrt(2)+5, 9]))),
-                          ((None, r.CartesianRepresentation([1, 2, 3])),
-                           (None, r.CartesianRepresentation([4, 5, 6])),
-                           (None, r.CartesianRepresentation([5, 7, 9]))),
-                          ((rotation_matrix(30*u.deg), r.CartesianRepresentation([1, 0, 0])),
-                           (None, None),
-                           (rotation_matrix(30*u.deg), r.CartesianRepresentation([1, 0, 0]))),
-                          ((None, None),
-                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([0, 0, 1])),
-                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([0, 0, 1]))),
-                          ((None, None),
-                           (None, None),
-                           (None, None))])
-# fmt: on
+@pytest.mark.parametrize(
+    "first,second,check",
+    (
+        ([ROT_30, None], [ROT_45, None], [ROT_75, None]),
+        ([ROT_30, None], [ROT_45, OFFSET_Z], [ROT_75, OFFSET_Z]),
+        ([ROT_30, OFFSET_123], [None, OFFSET_456], [ROT_30, OFFSET_579]),
+        ([None, OFFSET_123], [None, OFFSET_456], [None, OFFSET_579]),
+        ([ROT_30, OFFSET_X], [None, None], [ROT_30, OFFSET_X]),
+        ([None, None], [ROT_45, OFFSET_Z], [ROT_45, OFFSET_Z]),
+        ([None, None], [None, None], [None, None]),
+        (
+            [ROT_30, OFFSET_X],
+            [ROT_45, None],
+            [ROT_75, r.CartesianRepresentation([1 / SQRT_2, -1 / SQRT_2, 0])],
+        ),
+        (
+            [ROT_30, OFFSET_X],
+            [ROT_45, OFFSET_Z],
+            [ROT_75, r.CartesianRepresentation([1 / SQRT_2, -1 / SQRT_2, 1])],
+        ),
+        (
+            [None, OFFSET_123],
+            [ROT_45, OFFSET_456],
+            [ROT_45, r.CartesianRepresentation([3 / SQRT_2 + 4, 1 / SQRT_2 + 5, 9])],
+        ),
+    ),
+)
 def test_combine_affine_params(first, second, check):
     result = t._combine_affine_params(first, second)
     if check[0] is None:
