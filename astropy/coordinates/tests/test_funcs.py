@@ -20,6 +20,26 @@ from astropy.coordinates.funcs import (
 )
 from astropy.time import Time
 
+CARTESIAN_POS = r.CartesianRepresentation([1, 2, 3] * u.kpc)
+CARTESIAN_VEL = r.CartesianDifferential([8, 9, 10] * u.km / u.s)
+CARTESIAN_POS_AND_VEL = CARTESIAN_POS.with_differentials(CARTESIAN_VEL)
+
+RADIAL_VEL = r.RadialDifferential(1 * u.km / u.s)
+SPHERICAL_COS_LAT_VEL = r.SphericalCosLatDifferential(
+    1 * u.mas / u.yr, 2 * u.mas / u.yr, 3 * u.km / u.s
+)
+SPHERICAL_POS = r.SphericalRepresentation(
+    lon=1 * u.deg, lat=2.0 * u.deg, distance=10 * u.pc
+)
+UNIT_SPHERICAL_POS = r.UnitSphericalRepresentation(lon=1 * u.deg, lat=2.0 * u.deg)
+CARTESIAN_POS_2D_ARR = r.CartesianRepresentation(np.ones((3, 100)) * u.kpc)
+CARTESIAN_POS_3D_ARR = r.CartesianRepresentation(np.ones((3, 16, 8)) * u.kpc)
+UNIT_SPHERICAL_COS_LAT_VEL = r.UnitSphericalCosLatDifferential(
+    1 * u.mas / u.yr, 2 * u.mas / u.yr
+)
+CARTESIAN_VEL_2D_ARR = r.CartesianDifferential(*np.ones((3, 100)) * u.km / u.s)
+CARTESIAN_VEL_3D_ARR = r.CartesianDifferential(*np.ones((3, 16, 8)) * u.km / u.s)
+
 
 def test_sun():
     """
@@ -193,16 +213,18 @@ def test_concatenate_representations():
         if "s" in rep.differentials:
             assert tmp.differentials["s"].shape == expected_shape
 
+
+def test_concatenate_representations_invalid_input():
     # Test that combining pairs fails
     with pytest.raises(TypeError):
-        concatenate_representations((reps[0], reps[1]))
+        concatenate_representations((CARTESIAN_POS, SPHERICAL_POS))
 
     with pytest.raises(ValueError):
-        concatenate_representations((reps[0], reps[5]))
+        concatenate_representations((CARTESIAN_POS, CARTESIAN_POS_AND_VEL))
 
     # Check that passing in a single object fails
     with pytest.raises(TypeError):
-        concatenate_representations(reps[0])
+        concatenate_representations(CARTESIAN_POS)
 
 
 def test_concatenate_representations_different_units():
