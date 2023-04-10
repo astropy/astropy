@@ -82,8 +82,7 @@ def test_constellations(recwarn):
 
     # test on a SkyCoord, *and* test Boötes, which is special in that it has a
     # non-ASCII character
-    bootest = SkyCoord(15 * u.hour, 30 * u.deg, frame="icrs")
-    boores = get_constellation(bootest)
+    boores = get_constellation(SkyCoord(15 * u.hour, 30 * u.deg, frame="icrs"))
     assert boores == "Boötes"
     assert isinstance(boores, str) or getattr(boores, "shape", None) == tuple()
 
@@ -205,10 +204,7 @@ def test_concatenate_representations_invalid_input():
 
 
 def test_concatenate_representations_different_units():
-    reps = [
-        r.CartesianRepresentation([1, 2, 3.0] * u.pc),
-        r.CartesianRepresentation([1, 2, 3.0] * u.kpc),
-    ]
-    concat = concatenate_representations(reps)
-    assert concat.shape == (2,)
-    assert np.all(concat.xyz == ([[1.0, 2.0, 3.0], [1000.0, 2000.0, 3000.0]] * u.pc).T)
+    concat = concatenate_representations(
+        [r.CartesianRepresentation([1, 2, 3] * unit) for unit in (u.pc, u.kpc)]
+    )
+    assert np.array_equal(concat.xyz, [[1, 1000], [2, 2000], [3, 3000]] * u.pc)

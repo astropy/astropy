@@ -53,16 +53,12 @@ def test_altaz_attribute_transforms():
     origin1 = AltAz(
         0 * u.deg, 0 * u.deg, obstime=Time("2000-01-01T12:00:00"), location=el1
     )
-    frame1 = SkyOffsetFrame(origin=origin1)
-    coo1 = SkyCoord(1 * u.deg, 1 * u.deg, frame=frame1)
+    coo1 = SkyCoord(1 * u.deg, 1 * u.deg, frame=SkyOffsetFrame(origin=origin1))
 
-    el2 = EarthLocation(0 * u.deg, 0 * u.deg, 0 * u.m)
     origin2 = AltAz(
-        0 * u.deg, 0 * u.deg, obstime=Time("2000-01-01T11:00:00"), location=el2
+        0 * u.deg, 0 * u.deg, obstime=Time("2000-01-01T11:00:00"), location=el1
     )
-    frame2 = SkyOffsetFrame(origin=origin2)
-    coo2 = coo1.transform_to(frame2)
-    coo2_expected = [1.22522446, 0.70624298] * u.deg
+    coo2 = coo1.transform_to(SkyOffsetFrame(origin=origin2))
     assert_allclose(
         [coo2.lon.wrap_at(180 * u.deg), coo2.lat],
         [1.22522446, 0.70624298] * u.deg,
@@ -73,8 +69,7 @@ def test_altaz_attribute_transforms():
     origin3 = AltAz(
         0 * u.deg, 90 * u.deg, obstime=Time("2000-01-01T12:00:00"), location=el3
     )
-    frame3 = SkyOffsetFrame(origin=origin3)
-    coo3 = coo2.transform_to(frame3)
+    coo3 = coo2.transform_to(SkyOffsetFrame(origin=origin3))
     assert_allclose(
         [coo3.lon.wrap_at(180 * u.deg), coo3.lat],
         [1 * u.deg, 1 * u.deg],
@@ -301,8 +296,7 @@ def test_skyoffset_names():
     aframe1 = SkyOffsetFrame(origin=ICRS_45_45)
     assert type(aframe1).__name__ == "SkyOffsetICRS"
 
-    origin2 = Galactic(45 * u.deg, 45 * u.deg)
-    aframe2 = SkyOffsetFrame(origin=origin2)
+    aframe2 = SkyOffsetFrame(origin=Galactic(45 * u.deg, 45 * u.deg))
     assert type(aframe2).__name__ == "SkyOffsetGalactic"
 
 

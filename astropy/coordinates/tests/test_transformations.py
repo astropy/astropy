@@ -195,8 +195,7 @@ def test_sphere_cart():
     with NumpyRNGContext(13579):
         x, y, z = np.random.randn(3, 5)
 
-    r, lat, lon = cartesian_to_spherical(x, y, z)
-    x2, y2, z2 = spherical_to_cartesian(r, lat, lon)
+    x2, y2, z2 = spherical_to_cartesian(*cartesian_to_spherical(x, y, z))
 
     assert_allclose(x, x2)
     assert_allclose(y, y2)
@@ -302,26 +301,26 @@ def test_affine_transform_succeed(transfunc, rep):
     # compute expected output
     M, offset = transfunc(c, TCoo2)
 
-    _rep = rep.to_cartesian()
-    diffs = {
-        k: diff.represent_as(r.CartesianDifferential, rep)
-        for k, diff in rep.differentials.items()
-    }
-    expected_rep = _rep.with_differentials(diffs)
+    expected_rep = rep.to_cartesian().with_differentials(
+        {
+            k: diff.represent_as(r.CartesianDifferential, rep)
+            for k, diff in rep.differentials.items()
+        }
+    )
 
     if M is not None:
         expected_rep = expected_rep.transform(M)
 
     expected_pos = expected_rep.without_differentials()
     if offset is not None:
-        expected_pos = expected_pos + offset.without_differentials()
+        expected_pos += offset.without_differentials()
 
     expected_vel = None
     if c.data.differentials:
         expected_vel = expected_rep.differentials["s"]
 
         if offset and offset.differentials:
-            expected_vel = expected_vel + offset.differentials["s"]
+            expected_vel += offset.differentials["s"]
 
     # register and do the transformation and check against expected
     trans = t.AffineTransform(transfunc, TCoo1, TCoo2)
@@ -405,7 +404,7 @@ def test_unit_spherical_with_differentials(rep):
     c2 = c.transform_to(TCoo2())
 
     assert "s" in rep.differentials
-    assert isinstance(c2.data.differentials["s"], rep.differentials["s"].__class__)
+    assert isinstance(c2.data.differentials["s"], type(rep.differentials["s"]))
 
     if isinstance(rep.differentials["s"], r.RadialDifferential):
         assert c2.data.differentials["s"] is rep.differentials["s"]
@@ -520,15 +519,15 @@ def test_static_matrix_combine_paths():
     t4.register(frame_transform_graph)
 
     c = Galactic(123 * u.deg, 45 * u.deg)
-    c1 = c.transform_to(BFrame())  # direct
-    c2 = c.transform_to(AFrame()).transform_to(BFrame())  # thru A
-    c3 = c.transform_to(ICRS()).transform_to(BFrame())  # thru ICRS
+    c_direct = c.transform_to(BFrame())
+    c_through_A = c.transform_to(AFrame()).transform_to(BFrame())
+    c_through_ICRS = c.transform_to(ICRS()).transform_to(BFrame())
 
-    assert quantity_allclose(c1.lon, c2.lon)
-    assert quantity_allclose(c1.lat, c2.lat)
+    assert quantity_allclose(c_direct.lon, c_through_A.lon)
+    assert quantity_allclose(c_direct.lat, c_through_A.lat)
 
-    assert quantity_allclose(c1.lon, c3.lon)
-    assert quantity_allclose(c1.lat, c3.lat)
+    assert quantity_allclose(c_direct.lon, c_through_ICRS.lon)
+    assert quantity_allclose(c_direct.lat, c_through_ICRS.lat)
 
     for t_ in [t1, t2, t3, t4]:
         t_.unregister(frame_transform_graph)
@@ -626,7 +625,7 @@ def test_impose_finite_difference_dt():
         pass
 
     graph = t.TransformGraph()
-    tfun = lambda c, f: f.__class__(ra=c.ra, dec=c.dec)
+    tfun = lambda c, f: type(f)(ra=c.ra, dec=c.dec)
 
     # Set up a number of transforms with different time steps
     old_dt = 1 * u.min

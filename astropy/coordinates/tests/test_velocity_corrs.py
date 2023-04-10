@@ -182,9 +182,8 @@ def test_helio_iraf(input_radecs):
     2457244.49805     0.00     6.84    16.77     -0.034   -0.001    6.874    9.935
     """
     vhs_iraf = []
-    for line in rvcorr_result.strip().split("\n"):
-        if not line.strip().startswith("#"):
-            vhs_iraf.append(float(line.split()[2]))
+    for line in rvcorr_result.strip().split("\n")[5:]:
+        vhs_iraf.append(float(line.split()[2]))
     vhs_iraf = vhs_iraf * u.km / u.s
 
     targets = SkyCoord(input_radecs, obstime=test_input_time, location=test_input_loc)
