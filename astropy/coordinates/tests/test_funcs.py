@@ -162,56 +162,33 @@ def test_concatenate():
         concatenate([fr, fr2])
 
 
-def test_concatenate_representations():
-    # fmt: off
-    reps = [r.CartesianRepresentation([1, 2, 3.]*u.kpc),
-            r.SphericalRepresentation(lon=1*u.deg, lat=2.*u.deg,
-                                      distance=10*u.pc),
-            r.UnitSphericalRepresentation(lon=1*u.deg, lat=2.*u.deg),
-            r.CartesianRepresentation(np.ones((3, 100)) * u.kpc),
-            r.CartesianRepresentation(np.ones((3, 16, 8)) * u.kpc)]
+@pytest.mark.parametrize(
+    "rep",
+    (
+        CARTESIAN_POS,
+        SPHERICAL_POS,
+        UNIT_SPHERICAL_POS,
+        CARTESIAN_POS_2D_ARR,
+        CARTESIAN_POS_3D_ARR,
+        CARTESIAN_POS_AND_VEL,
+        SPHERICAL_POS.with_differentials(SPHERICAL_COS_LAT_VEL),
+        UNIT_SPHERICAL_POS.with_differentials(SPHERICAL_COS_LAT_VEL),
+        UNIT_SPHERICAL_POS.with_differentials(UNIT_SPHERICAL_COS_LAT_VEL),
+        UNIT_SPHERICAL_POS.with_differentials({"s": RADIAL_VEL}),
+        CARTESIAN_POS_2D_ARR.with_differentials(CARTESIAN_VEL_2D_ARR),
+        CARTESIAN_POS_3D_ARR.with_differentials(CARTESIAN_VEL_3D_ARR),
+    ),
+)
+@pytest.mark.parametrize("n", (2, 4))
+def test_concatenate_representations(rep, n):
+    # Test that combining with itself succeeds
+    expected_shape = (n * rep.shape[0],) + rep.shape[1:] if rep.shape else (n,)
 
-    reps.append(reps[0].with_differentials(
-        r.CartesianDifferential([1, 2, 3.] * u.km/u.s)))
-    reps.append(reps[1].with_differentials(
-        r.SphericalCosLatDifferential(1*u.mas/u.yr, 2*u.mas/u.yr, 3*u.km/u.s)))
-    reps.append(reps[2].with_differentials(
-        r.SphericalCosLatDifferential(1*u.mas/u.yr, 2*u.mas/u.yr, 3*u.km/u.s)))
-    reps.append(reps[2].with_differentials(
-        r.UnitSphericalCosLatDifferential(1*u.mas/u.yr, 2*u.mas/u.yr)))
-    reps.append(reps[2].with_differentials(
-        {'s': r.RadialDifferential(1*u.km/u.s)}))
-    reps.append(reps[3].with_differentials(
-        r.CartesianDifferential(*np.ones((3, 100)) * u.km/u.s)))
-    reps.append(reps[4].with_differentials(
-        r.CartesianDifferential(*np.ones((3, 16, 8)) * u.km/u.s)))
-    # fmt: on
+    tmp = concatenate_representations(n * (rep,))
+    assert tmp.shape == expected_shape
 
-    # Test that combining all of the above with itself succeeds
-    for rep in reps:
-        if not rep.shape:
-            expected_shape = (2,)
-        else:
-            expected_shape = (2 * rep.shape[0],) + rep.shape[1:]
-
-        tmp = concatenate_representations((rep, rep))
-        assert tmp.shape == expected_shape
-
-        if "s" in rep.differentials:
-            assert tmp.differentials["s"].shape == expected_shape
-
-    # Try combining 4, just for something different
-    for rep in reps:
-        if not rep.shape:
-            expected_shape = (4,)
-        else:
-            expected_shape = (4 * rep.shape[0],) + rep.shape[1:]
-
-        tmp = concatenate_representations((rep, rep, rep, rep))
-        assert tmp.shape == expected_shape
-
-        if "s" in rep.differentials:
-            assert tmp.differentials["s"].shape == expected_shape
+    if "s" in rep.differentials:
+        assert tmp.differentials["s"].shape == expected_shape
 
 
 def test_concatenate_representations_invalid_input():
