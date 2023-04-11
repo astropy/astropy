@@ -774,9 +774,10 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
         elif method == "outer":
             # Must have two arguments; adjust masks as will be done for data.
-            assert len(masks) == 2
-            masks = [(m if m is not None else False) for m in masks]
-            mask = np.logical_or.outer(masks[0], masks[1], out=out_mask)
+            m0, m1 = masks
+            if m0 is not None and m0.ndim > 0:
+                m0 = m0[(...,) + (np.newaxis,) * np.ndim(unmasked[1])]
+            mask = self._combine_masks((m0, m1), out=out_mask)
 
         elif method in {"reduce", "accumulate"}:
             # Reductions like np.add.reduce (sum).
