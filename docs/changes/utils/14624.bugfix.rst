@@ -1,0 +1,2 @@
+Ensure masks are propagated correctly for ``outer`` methods of ufuncs also if
+one of the inputs is not actually masked.
