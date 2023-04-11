@@ -202,6 +202,7 @@ class EarthLocation(u.Quantity):
     _ellipsoid = "WGS84"
     _location_dtype = np.dtype({"names": ["x", "y", "z"], "formats": [np.float64] * 3})
     _array_dtype = np.dtype((np.float64, (3,)))
+    _site_registry = None
 
     info = EarthLocationInfo()
 
@@ -558,15 +559,14 @@ class EarthLocation(u.Quantity):
             raise ValueError("Cannot have both force_builtin and force_download True")
 
         if force_builtin:
-            reg = cls._site_registry = get_builtin_sites()
+            cls._site_registry = get_builtin_sites()
         else:
-            reg = getattr(cls, "_site_registry", None)
-            if force_download or not reg:
+            if force_download or not cls._site_registry:
                 try:
                     if isinstance(force_download, str):
-                        reg = get_downloaded_sites(force_download)
+                        cls._site_registry = get_downloaded_sites(force_download)
                     else:
-                        reg = get_downloaded_sites()
+                        cls._site_registry = get_downloaded_sites()
                 except OSError:
                     if force_download:
                         raise
@@ -576,10 +576,8 @@ class EarthLocation(u.Quantity):
                         "retry the download, use the option 'refresh_cache=True'."
                     )
                     warn(msg, AstropyUserWarning)
-                    reg = get_builtin_sites()
-                cls._site_registry = reg
-
-        return reg
+                    cls._site_registry = get_builtin_sites()
+        return cls._site_registry
 
     @property
     def ellipsoid(self):
