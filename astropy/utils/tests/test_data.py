@@ -1825,6 +1825,26 @@ def test_import_file_cache_readonly(readonly_cache, tmp_path):
     assert not is_url_in_cache(url)
 
 
+def test_import_file_cache_invalid_cross_device_link(tmp_path, monkeypatch):
+    def no_rename(path, mode=None):
+        if os.path.exists(path):
+            raise OSError(errno.EXDEV, "os.rename monkeypatched out")
+        else:
+            raise FileNotFoundError(f"File {path} does not exist.")
+
+    monkeypatch.setattr(os, "rename", no_rename)
+
+    filename = tmp_path / "test-file"
+    content = "Some text or other"
+    url = "http://example.com/"
+    with open(filename, "w") as f:
+        f.write(content)
+
+    with pytest.warns(AstropyWarning, match="os.rename monkeypatched out"):
+        import_file_to_cache(url, filename, remove_original=True, replace=True)
+    assert is_url_in_cache(url)
+
+
 def test_download_file_cache_readonly_cache_miss(readonly_cache, valid_urls):
     u, c = next(valid_urls)
     with pytest.warns(CacheMissingWarning):
@@ -2136,6 +2156,37 @@ def test_clear_download_cache_variants(temp_cache, valid_urls):
     h = compute_hash(f)
     clear_download_cache(h)
     assert not is_url_in_cache(u)
+
+
+def test_clear_download_cache_invalid_cross_device_link(
+    temp_cache, valid_urls, monkeypatch
+):
+    def no_rename(path, mode=None):
+        raise OSError(errno.EXDEV, "os.rename monkeypatched out")
+
+    u, c = next(valid_urls)
+    download_file(u, cache=True)
+
+    monkeypatch.setattr(os, "rename", no_rename)
+
+    assert is_url_in_cache(u)
+    with pytest.warns(AstropyWarning, match="os.rename monkeypatched out"):
+        clear_download_cache(u)
+    assert not is_url_in_cache(u)
+
+
+def test_clear_download_cache_raises_os_error(temp_cache, valid_urls, monkeypatch):
+    def no_rename(path, mode=None):
+        raise OSError(errno.EBUSY, "os.rename monkeypatched out")
+
+    u, c = next(valid_urls)
+    download_file(u, cache=True)
+
+    monkeypatch.setattr(os, "rename", no_rename)
+
+    assert is_url_in_cache(u)
+    with pytest.warns(CacheMissingWarning, match="os.rename monkeypatched out"):
+        clear_download_cache(u)
 
 
 @pytest.mark.skipif(

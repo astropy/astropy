@@ -2046,6 +2046,13 @@ def _rmtree(path, replace=None):
                 )
             )
             raise
+        except OSError as e:
+            if e.errno == errno.EXDEV:
+                warn(e.strerror, AstropyWarning)
+                shutil.move(path, os.path.join(d, "to-zap"))
+            else:
+                raise
+
         if replace is not None:
             try:
                 os.rename(replace, path)
@@ -2056,6 +2063,9 @@ def _rmtree(path, replace=None):
                 if e.errno == errno.ENOTEMPTY:
                     # already there, fine
                     pass
+                elif e.errno == errno.EXDEV:
+                    warn(e.strerror, AstropyWarning)
+                    shutil.move(replace, path)
                 else:
                     raise
 
