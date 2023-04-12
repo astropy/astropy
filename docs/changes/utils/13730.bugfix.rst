@@ -1,0 +1,3 @@
+When using astropy in environments with sparse file systems (e.g., where the temporary directory and astropy data directory resides in different volumes), ``os.rename`` may fail with ``OSError: [Errno 18] Invalid cross-device link``.
+This may affect some clean-up operations executed by the ``data`` module, causing them to fail.
+This patch is to catch ``OSError`` with ``errno == EXDEV`` (i.e., Errno 18) when performing these operations and try to use ``shutil.move`` instead to relocate the data.
