@@ -3020,12 +3020,10 @@ class Table:
         """
         Rename a column.
 
-        This can also be done directly with by setting the ``name`` attribute
-        for a column::
+        This can also be done directly by setting the ``name`` attribute
+        of the ``info`` property of the column::
 
-          table[name].name = new_name
-
-        TODO: this won't work for mixins
+          table[name].info.name = new_name
 
         Parameters
         ----------
