@@ -80,14 +80,6 @@ def _invalidate_reprdiff_cls_hash():
     _REPRDIFF_HASH = None
 
 
-def _array2string(values, prefix=""):
-    # Work around version differences for array2string.
-    kwargs = {"separator": ", ", "prefix": prefix}
-    kwargs["formatter"] = {}
-
-    return np.array2string(values, **kwargs)
-
-
 class BaseRepresentationOrDifferentialInfo(MixinInfo):
     """
     Container for meta information like name, description, format.  This is
@@ -546,11 +538,11 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         return unitstr
 
     def __str__(self):
-        return f"{_array2string(self._values)} {self._unitstr:s}"
+        return f"{np.array2string(self._values, separator=', ')} {self._unitstr:s}"
 
     def __repr__(self):
         prefixstr = "    "
-        arrstr = _array2string(self._values, prefix=prefixstr)
+        arrstr = np.array2string(self._values, prefix=prefixstr, separator=", ")
 
         diffstr = ""
         if getattr(self, "differentials", None):
