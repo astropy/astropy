@@ -655,21 +655,26 @@ class EarthLocation(u.Quantity):
         """Convert to a tuple with X, Y, and Z as quantities."""
         return (self.x, self.y, self.z)
 
-    def get_itrs(self, obstime=None):
+    def get_itrs(self, obstime=None, location=None):
         """
         Generates an `~astropy.coordinates.ITRS` object with the location of
-        this object at the requested ``obstime``.
+        this object at the requested ``obstime``, either geocentric, or
+        topocentric relative to a given ``location``.
 
         Parameters
         ----------
         obstime : `~astropy.time.Time` or None
             The ``obstime`` to apply to the new `~astropy.coordinates.ITRS`, or
             if None, the default ``obstime`` will be used.
+        location : `~astropy.coordinates.EarthLocation` or None
+            A possible observer's location, for a topocentric ITRS position.
+            If not given (default), a geocentric ITRS object will be created.
 
         Returns
         -------
         itrs : `~astropy.coordinates.ITRS`
-            The new object in the ITRS frame
+            The new object in the ITRS frame, either geocentric or topocentric
+            relative to the given ``location``.
         """
         # Broadcast for a single position at multiple times, but don't attempt
         # to be more general here.
@@ -679,7 +684,18 @@ class EarthLocation(u.Quantity):
         # do this here to prevent a series of complicated circular imports
         from .builtin_frames import ITRS
 
-        return ITRS(x=self.x, y=self.y, z=self.z, obstime=obstime)
+        if location is None:
+            # No location provided, return geocentric ITRS coordinates
+            return ITRS(x=self.x, y=self.y, z=self.z, obstime=obstime)
+        else:
+            return ITRS(
+                self.x - location.x,
+                self.y - location.y,
+                self.z - location.z,
+                copy=False,
+                obstime=obstime,
+                location=location,
+            )
 
     itrs = property(
         get_itrs,
