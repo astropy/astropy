@@ -70,13 +70,7 @@ as follows::
     >>> obj = EarthLocation(-1*u.deg, 52*u.deg, height=10.*u.km)
     >>> home = EarthLocation(-1*u.deg, 52*u.deg, height=0.*u.km)
 
-    >>> # First we make an ITRS vector of a straight overhead object
-    >>> itrs_vec = obj.get_itrs(t).cartesian - home.get_itrs(t).cartesian
-
-    >>> # Now we create a topocentric ITRS frame with this data
-    >>> itrs_topo = ITRS(itrs_vec, obstime=t, location=home)
-
     >>> # convert to AltAz
-    >>> aa = itrs_topo.transform_to(AltAz(obstime=t, location=home))
+    >>> aa = obj.get_itrs(t, location=home).transform_to(AltAz(obstime=t, location=home))
     >>> aa.alt # doctest: +FLOAT_CMP
     <Latitude 90. deg>
