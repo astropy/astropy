@@ -815,7 +815,7 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
     # np.nanmedian has `keepdims`, which is a good option if we're not allowing
     # user-passed functions here
     data_median = func(data, axis=axis)
-    # this conditional can be removed for minimum supported Numpy >= 1.22
+    # this conditional can be removed for minimum supported Numpy >= 1.22 (NUMPY_LT_1_22)
     if (
         isinstance(data, u.Quantity)
         and func is np.median
