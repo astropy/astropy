@@ -41,7 +41,7 @@ import operator
 import numpy as np
 
 from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
-from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_23
+from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_22, NUMPY_LT_1_23
 from astropy.utils import isiterable
 
 # In 1.17, overrides are enabled by default, but it is still possible to
@@ -77,7 +77,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.round_,  # Alias for np.round in NUMPY_LT_1_25, but deprecated since.
     np.fix, np.angle, np.i0, np.clip,
     np.isposinf, np.isneginf, np.isreal, np.iscomplex,
-    np.average, np.mean, np.std, np.var, np.median, np.trace,
+    np.average, np.mean, np.std, np.var, np.trace,
     np.nanmax, np.nanmin, np.nanargmin, np.nanargmax, np.nanmean,
     np.nanmedian, np.nansum, np.nancumsum, np.nanstd, np.nanvar,
     np.nanprod, np.nancumprod,
@@ -89,6 +89,10 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.apply_along_axis, np.take_along_axis, np.put_along_axis,
     np.linalg.cond, np.linalg.multi_dot,
 }  # fmt: skip
+
+if not NUMPY_LT_1_22:
+    SUBCLASS_SAFE_FUNCTIONS |= {np.median}
+
 
 # Implemented as methods on Quantity:
 # np.ediff1d is from setops, but we support it anyway; the others
@@ -423,6 +427,23 @@ def _iterable_helper(*args, out=None, **kwargs):
 
     arrays, unit = _quantities2arrays(*args)
     return arrays, kwargs, unit, out
+
+
+if NUMPY_LT_1_22:
+
+    @function_helper
+    def median(a, axis=None, out=None, overwrite_input=False, keepdims=False):
+        kwargs = {"overwrite_input": overwrite_input, "keepdims": keepdims}
+        if out is not None:
+            from astropy.units import Quantity
+
+            if not isinstance(out, Quantity):
+                raise NotImplementedError
+            # We may get here just because of out, so ensure input is Quantity.
+            a = _as_quantity(a)
+            kwargs["out"] = out.view(np.ndarray)
+
+        return (a.value, axis), kwargs, a.unit, out
 
 
 @function_helper
