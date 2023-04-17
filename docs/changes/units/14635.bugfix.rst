@@ -1,0 +1,2 @@
+Ensure the unit is kept in ``np.median`` even if the result is a scalar ``nan``
+(the unit was lost for numpy < 1.22).

@@ -13,7 +13,6 @@ import math
 
 import numpy as np
 
-import astropy.units as u
 
 from . import _stats
 
@@ -815,30 +814,12 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
     # np.nanmedian has `keepdims`, which is a good option if we're not allowing
     # user-passed functions here
     data_median = func(data, axis=axis)
-    # this conditional can be removed after this PR is merged:
-    # https://github.com/astropy/astropy/issues/12165
-    if (
-        isinstance(data, u.Quantity)
-        and func is np.median
-        and data_median.ndim == 0
-        and np.isnan(data_median)
-    ):
-        data_median = data.__array_wrap__(data_median)
 
     # broadcast the median array before subtraction
     if axis is not None:
         data_median = np.expand_dims(data_median, axis=axis)
 
     result = func(np.abs(data - data_median), axis=axis, overwrite_input=True)
-    # this conditional can be removed after this PR is merged:
-    # https://github.com/astropy/astropy/issues/12165
-    if (
-        isinstance(data, u.Quantity)
-        and func is np.median
-        and result.ndim == 0
-        and np.isnan(result)
-    ):
-        result = data.__array_wrap__(result)
 
     if axis is None and np.ma.isMaskedArray(result):
         # return scalar version
