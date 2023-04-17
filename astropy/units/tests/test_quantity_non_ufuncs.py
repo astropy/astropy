@@ -872,6 +872,12 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
     def test_median(self):
         self.check(np.median)
 
+    def test_median_nan_scalar(self):
+        # See gh-12165; this dropped the unit in numpy < 1.22
+        data = [1.0, 2, np.nan, 3, 4] << u.km
+        result = np.median(data)
+        assert_array_equal(result, np.nan * u.km)
+
     @needs_array_function
     def test_quantile(self):
         self.check(np.quantile, 0.5)
