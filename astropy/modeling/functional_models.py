@@ -2,10 +2,14 @@
 
 """Mathematical models."""
 # pylint: disable=line-too-long, too-many-lines, too-many-arguments, invalid-name
+import warnings
+
 import numpy as np
 
 from astropy import units as u
 from astropy.units import Quantity, UnitsError
+from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .core import Fittable1DModel, Fittable2DModel
 from .parameters import InputParameterError, Parameter
@@ -1719,9 +1723,23 @@ class Voigt1D(Fittable1DModel):
         amplitude_L=amplitude_L.default,
         fwhm_L=fwhm_L.default,
         fwhm_G=fwhm_G.default,
-        method="humlicek2",
+        method=None,
         **kwargs,
     ):
+        if str(method).lower() == "humlicek2" and HAS_SCIPY:
+            warnings.warn(
+                f"{method} has been deprecated since Astropy 5.3 and will be removed in a future version.\n"
+                "It is recommended to always use the `~scipy.special.wofz` implementation "
+                "when `scipy` is installed.",
+                AstropyDeprecationWarning,
+            )
+
+        if method is None:
+            if HAS_SCIPY:
+                method = "wofz"
+            else:
+                method = "humlicek2"
+
         if str(method).lower() in ("wofz", "scipy"):
             from scipy.special import wofz
 
@@ -1747,8 +1765,11 @@ class Voigt1D(Fittable1DModel):
         ):
             return self._last_w
 
-        self._last_w = self._faddeeva(z)
-        self._last_z = z
+        self._last_z = (
+            z.to_value(u.dimensionless_unscaled) if isinstance(z, u.Quantity) else z
+        )
+        self._last_w = self._faddeeva(self._last_z)
+
         return self._last_w
 
     def evaluate(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):
