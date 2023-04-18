@@ -224,8 +224,8 @@ The kernel can then be used directly when calling
     z = convolve(y, g)
 
     # Plot data before and after convolution
-    plt.plot(x, y, 'k-', label='Before')
-    plt.plot(x, z, 'b-', label='After', alpha=0.5, linewidth=2)
+    plt.plot(x, y, label='Data')
+    plt.plot(x, z, label='Convolved Data', linewidth=2)
     plt.legend(loc='best')
     plt.show()
 
