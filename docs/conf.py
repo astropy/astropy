@@ -108,10 +108,6 @@ intersphinx_mapping.update(
             "https://sphinx-automodapi.readthedocs.io/en/stable/",
             None,
         ),
-        "packagetemplate": (
-            "https://docs.astropy.org/projects/package-template/en/latest/",
-            None,
-        ),
         "asdf-astropy": ("https://asdf-astropy.readthedocs.io/en/latest/", None),
         "fsspec": ("https://filesystem-spec.readthedocs.io/en/latest/", None),
     }
