@@ -143,6 +143,8 @@ Astropy Guidelines for `git`_
 * Never merge changes from ``astropy/main`` into your feature branch. If
   changes in the development version require changes to our code you can
   :ref:`rebase`.
+* If you need to edit `.mailmap <https://git-scm.com/docs/gitmailmap>`_ and
+  know how to do it then you can open a pull request for that.
 
 In addition there are a couple of `git`_ naming conventions used in this
 document:
