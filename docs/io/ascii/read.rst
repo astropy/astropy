@@ -1015,12 +1015,21 @@ very helpful. We can now fix that line by hand in the file by adding quotes
 around ``"alpha Cen"``. Then we can try to read the table again and see
 if it works or if there is a another badly formatted data line.
 
+.. _io-ascii-read-gaia-tables:
+
 Reading Gaia Data Tables
 ========================
 
+.. note::
+
+    The recommended way to access Gaia is via its
+    `astroquery.gaia <https://astroquery.readthedocs.io/en/latest/gaia/gaia.html>`_ module.
+    However, if you need to access its data file separately via
+    ``astropy``, then read on.
+
 Gaia data tables are available in `ECSV
 <https://github.com/astropy/astropy-APEs/blob/main/APE6.rst>`_ format including detailed
-metadata for the tables and columns (e.g. column descriptions, units, and data types).
+metadata for the tables and columns (e.g., column descriptions, units, and data types).
 For example the DR3 tables are at http://cdn.gea.esac.esa.int/Gaia/gdr3/gaia_source/.
 
 The DR3 data files are not strictly compliant with the ECSV standard because they use
