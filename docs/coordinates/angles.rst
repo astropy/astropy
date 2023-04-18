@@ -101,7 +101,7 @@ There are many ways to represent the value of an |Angle|::
     >>> f"{a}"
     '1.0 rad'
     >>> f"{a:latex}"
-    '$1\\mathrm{rad}$'
+    '$1\\;\\mathrm{rad}$'
     >>> f"{a.to(u.deg):latex}"
     '$57^\\circ17{}^\\prime44.8062471{}^{\\prime\\prime}$'
     >>> a.to_string()
