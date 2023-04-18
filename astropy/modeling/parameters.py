@@ -162,7 +162,8 @@ class Parameter:
         a function that wraps the raw (internal) value of the parameter
         when returning the value through the parameter proxy (eg. a
         parameter may be stored internally as radians but returned to the
-        user as degrees)
+        user as degrees). The internal value is what is used for computations
+        while the proxy value is what users will interact with (passing and viewing).
     setter : callable
         a function that wraps any values assigned to this parameter; should
         be the inverse of getter
