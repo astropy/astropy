@@ -17,6 +17,9 @@ from astropy.io.votable.table import parse, writeto
 from astropy.table import Column, Table
 from astropy.table.table_helpers import simple_table
 from astropy.utils.compat.optional_deps import HAS_PYARROW
+from astropy.units import Unit
+from astropy.time import Time
+from astropy.units import Unit
 from astropy.utils.data import (
     get_pkg_data_filename,
     get_pkg_data_fileobj,
@@ -513,3 +516,37 @@ class TestVerifyOptions:
         with conf.set_temp("verify", "exception"):
             with pytest.raises(VOWarning):
                 parse(get_pkg_data_filename("data/gemini.xml"))
+
+    # And make sure the old configuration item will keep working
+
+    def test_conf_pedantic_false(self, tmp_path):
+        with set_temp_config(tmp_path):
+            with open(tmp_path / "astropy" / "astropy.cfg", "w") as f:
+                f.write("[io.votable]\npedantic = False")
+
+            reload_config("astropy.io.votable")
+
+            with pytest.warns(VOWarning) as w:
+                parse(get_pkg_data_filename("data/gemini.xml"))
+            assert len(w) == 25
+
+    def test_conf_pedantic_true(self, tmp_path):
+        with set_temp_config(tmp_path):
+            with open(tmp_path / "astropy" / "astropy.cfg", "w") as f:
+                f.write("[io.votable]\npedantic = True")
+
+            reload_config("astropy.io.votable")
+
+            with pytest.warns(AstropyDeprecationWarning):
+                with pytest.raises(VOWarning):
+                    parse(get_pkg_data_filename("data/gemini.xml"))
+
+
+def test_get_skycoord():
+    table = parse(get_pkg_data_filename("data/with-coosys-roles.xml"))
+    system = next(table.iter_coosys())
+    skf = system._get_sky_coord_factory()
+    sky_coords = skf(table.get_first_table().to_table())
+    assert sky_coords[0].ra.value == 303.2227395326406
+    transformed = sky_coords.apply_space_motion(new_obstime=Time("J1992.5"))
+    assert transformed[0].ra.value == 303.22269614621274
