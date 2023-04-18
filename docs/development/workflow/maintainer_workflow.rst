@@ -7,105 +7,88 @@ Workflow for Maintainers
 This page is for maintainers |emdash| those of us who merge our own or other
 peoples' changes into the upstream repository.
 
-Being as how you're a maintainer, you are completely on top of the basic stuff
+Being a maintainer with write access, you are expected to be on top of the basic stuff
 in :ref:`development-workflow`.
 
-=======================================================
-Integrating changes via the web interface (recommended)
-=======================================================
+=========================================
+Integrating changes via the web interface
+=========================================
 
-Whenever possible, merge pull requests automatically via the pull request manager on GitHub. Merging should only be done manually if there is a really good reason to do this!
+Pull requests should always be merged via GitHub.
 
-Make sure that pull requests do not contain a messy history with merges, etc. If this is the case, then follow the manual instructions, and make sure the fork is rebased to tidy the history before committing.
+Make sure that pull requests do not contain a messy history with merges, etc.
+If this is the case, ask the author to squash the commits or
+:ref:`take over the pull request <maintainer-pr-takeover>`.
+If necessary, you may also :ref:`request a rebase <rebase>`.
 
-============================
-Integrating changes manually
-============================
+.. _maintainer-pr-takeover:
 
-First, check out the ``astropy`` repository. The instructions in :ref:`set_upstream_main` add a remote that has read-only
-access to the upstream repo.  Being a maintainer, you've got read-write access.
+==========================
+Taking over a pull request
+==========================
 
-It's good to have your upstream remote have a scary name, to remind you that
-it's a read-write remote::
+Remember that, if you take over a pull request, you will show up as
+co-author on the GitHub commit history. Furthermore, the author will
+need to know how to grab your changes back onto their local branch,
+which might be daunting for new contributors. If you are not sure
+the author would be okay with this, ask first.
 
-    git remote add upstream-rw git@github.com:astropy/astropy.git
-    git fetch upstream-rw --tags
+If author is not okay with this or has disabled "edit by maintainers"
+option, you can still cherry-pick their commits onto a new branch of
+your own and create a new pull request off that, which would close out
+the original pull request.
 
-Let's say you have some changes that need to go into trunk
-(``upstream-rw/main``).
+But let's say the author is okay with you taking over...
 
-The changes are in some branch that you are currently on. For example, you are
-looking at someone's changes like this::
+First, check out the ``astropy`` repository and :ref:`set_upstream_main`.
+Now, you need to point a remote to the pull request author's fork.
+In this example, the author's username is ``octocat`` and the pull request
+branch name is ``cool-feature`` that is tied to pull request number 99999::
 
-    git remote add someone https://github.com/someone/astropy.git
-    git fetch someone
-    git branch cool-feature --track someone/cool-feature
-    git checkout cool-feature
+    git remote add octocat git@github.com:octocat/astropy.git
+    git fetch octocat cool-feature
+    git checkout octocat/cool-feature -b pr99999
 
-So now you are on the branch with the changes to be incorporated upstream. The
+Now you are on the branch with the changes to be incorporated upstream. The
 rest of this section assumes you are on this branch.
-
-A few commits
--------------
-
-If there are only a few commits, consider rebasing to upstream::
-
-    # Fetch upstream changes
-    git fetch upstream-rw
-
-    # Rebase
-    git rebase upstream-rw/main
-
-Remember that, if you do a rebase, and push that, you'll have to close any
-github pull requests manually, because github will not be able to detect the
-changes have already been merged.
-
-A long series of commits
-------------------------
-
-If there are a longer series of related commits, consider a merge instead::
-
-    git fetch upstream-rw
-    git merge --no-ff upstream-rw/main
-
-The merge will be detected by github, and should close any related pull
-requests automatically.
-
-Note the ``--no-ff`` above. This forces git to make a merge commit, rather
-than doing a fast-forward, so that these set of commits branch off trunk then
-rejoin the main history with a merge, rather than appearing to have been made
-directly on top of trunk.
+You can now edit files and add commits as if it were your pull request,
+including :ref:`howto_rebase` and :ref:`howto_squash`.
 
 Check the history
------------------
+=================
 
 Now, in either case, you should check that the history is sensible and you
 have the right commits::
 
     git log --oneline --graph
-    git log -p upstream-rw/main..
+    git log -p astropy/main..
 
 The first line above just shows the history in a compact way, with a text
 representation of the history graph. The second line shows the log of commits
-excluding those that can be reached from trunk (``upstream-rw/main``), and
+excluding those that can be reached from trunk (``origin/main``), and
 including those that can be reached from current HEAD (implied with the ``..``
 at the end). So, it shows the commits unique to this branch compared to trunk.
 The ``-p`` option shows the diff for these commits in patch form.
 
-Push to trunk
--------------
+Push to back pull request
+=========================
 
-::
+When you are ready, you can push your changes to that pull request on GitHub::
 
-    git push upstream-rw my-new-feature:main
+    git push octocat pr99999:cool-feature
 
-This pushes the ``my-new-feature`` branch in this repository to the ``main``
-branch in the ``upstream-rw`` repository.
+If you have rewritten the history on the branch, you need to add a ``--force``
+option.
+
+After the push, you should look at the pull request history and diff again on
+GitHub to ensure nothing is amiss. If something is wrong and you have to undo
+a push, GitHub should show you the necessary hashes.
 
 .. _pre-commit_bot:
 
+==========================
 Fixing coding style issues
---------------------------
+==========================
 
 Astropy now uses the `pre-commit.ci bot <https://pre-commit.ci/>`_ to assist
 with maintaining the astropy coding style and fixing code style
@@ -220,7 +203,7 @@ If you notice unintended stale-bot behaviors, please report them to the Astropy
 maintainers.
 
 Issues
-------
+======
 
 A maintainer applies the "Closed?" label to mark an issue as stale, otherwise it
 stays open until someone manually closes it. Once marked as stale, a warning will
@@ -234,7 +217,7 @@ When both "keep-open" and "Close?" labels exist, the former will take precedence
 and the latter will be removed from the issue.
 
 Pull Requests
--------------
+=============
 
 A pull request becomes stale after about 4-5 months since the last commit (stale-bot
 counts in seconds and naively assumes 30 days per month). When this happens, stale-bot

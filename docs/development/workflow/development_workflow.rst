@@ -253,7 +253,7 @@ details.
 Fetch the latest Astropy
 ************************
 
-From time to time you should fetch the development version (i.e. Astropy
+From time to time you should fetch the development version (i.e., Astropy
 ``astropy/main``) changes from GitHub::
 
    git fetch astropy --tags
@@ -461,18 +461,13 @@ names and the like is encouraged.
 
 .. _push-to-github:
 
-Copy your changes to GitHub
+Push your changes to GitHub
 ***************************
 
-If you followed the instructions to `Connect the branch to GitHub`_ then you
-can simply use::
+To push your changes on a branch named ``my-new-feature`` to your
+GitHub fork of ``astropy`` with the same branch name::
 
-    git push
-
-If you skipped that step then you need to write out the remote and branch
-names::
-
-    git push your-github-username my-new-feature
+    git push origin my-new-feature
 
 .. _pull-request:
 
@@ -568,8 +563,8 @@ start make a branch to serve as a backup copy of your work::
 
     git branch tmp my-new-feature # make temporary branch--will be deleted later
 
-After altering the history, e.g. with ``git rebase``, a normal ``git push``
-is prevented, and a ``git push --force`` will be required.
+After altering the history, e.g., with ``git rebase``, a normal ``git push``
+is prevented, and a ``--force`` option will be required.
 
 .. warning::
 
@@ -587,10 +582,14 @@ Behind the scenes, `git`_ is deleting the changes and branch you made, making th
 changes others made to the development branch of Astropy, then re-making your
 branch from the development branch and applying your changes to your branch.
 
-The actual rebasing is usually easy::
+First, fetch the latest development astropy and go to your branch of interest::
 
-    git fetch astropy main # get the latest development astropy
-    git rebase astropy/main my-new-feature
+    git fetch astropy main
+    git checkout my-new-feature
+
+Now, do the rebase::
+
+    git rebase astropy/main
 
 You are more likely to run into *conflicts* here — places where the changes you
 made conflict with changes that someone else made — than anywhere else. Ask for
@@ -612,10 +611,11 @@ exporting the final diff from a feature branch, then starting a new branch and
 applying only that patch.
 
 Many of us find that is it actually easiest to squash using rebase. In particular,
-you can rebase and squash within the existing branch using::
+you can rebase and squash within the existing branch using, where you have to replace
+``N`` in the command below with the number of commits you need to handle::
 
-  git fetch astropy
-  git rebase -i astropy/main
+  git checkout my-new-feature
+  git rebase -i HEAD~N
 
 The last command will open an editor with all your commits, allowing you to
 squash several commits together, rename them, etc. Helpfully, the file you are
@@ -631,7 +631,7 @@ GitHub so that they are visible to others and the pull request can be
 updated.  Use of a simple ``git push`` will be prevented because of the
 changed history, and will need to be manually overridden using::
 
-    git push --force
+    git push origin my-new-feature --force
 
 If you run into any problems, do not hesitate to ask. A more detailed conceptual
 discussing of rebasing is at :ref:`rebase-on-trunk`.
