@@ -496,15 +496,21 @@ def vtest(data, mu=0.0, axis=None, weights=None):
 def _A1inv(x):
     # Approximation for _A1inv(x) according R Package 'CircStats'
     # See http://www.scienceasia.org/2012.38.n1/scias38_118.pdf, equation (4)
-    if 0 <= x < 0.53:
-        return 2.0 * x + x * x * x + (5.0 * x**5) / 6.0
-    elif x < 0.85:
-        return -0.4 + 1.39 * x + 0.43 / (1.0 - x)
-    else:
-        return 1.0 / (x * x * x - 4.0 * x * x + 3.0 * x)
+
+    kappa1 = np.where(
+        np.logical_and(0 <= x, x < 0.53), 2.0 * x + x * x * x + (5.0 * x**5) / 6.0, 0
+    )
+    kappa2 = np.where(
+        np.logical_and(0.53 <= x, x < 0.85), -0.4 + 1.39 * x + 0.43 / (1.0 - x), 0
+    )
+    kappa3 = np.where(
+        np.logical_or(x < 0, 0.85 <= x), 1.0 / (x * x * x - 4.0 * x * x + 3.0 * x), 0
+    )
+
+    return kappa1 + kappa2 + kappa3
 
 
-def vonmisesmle(data, axis=None):
+def vonmisesmle(data, axis=None, weights=None):
     """Computes the Maximum Likelihood Estimator (MLE) for the parameters of
     the von Mises distribution.
 
@@ -515,6 +521,11 @@ def vonmisesmle(data, axis=None):
         radians whenever ``data`` is ``numpy.ndarray``.
     axis : int, optional
         Axis along which the mle will be computed.
+    weights : numpy.ndarray, optional
+        In case of grouped data, the i-th element of ``weights`` represents a
+        weighting factor for each group such that ``sum(weights, axis)``
+        equals the number of observations. See [1]_, remark 1.4, page 22,
+        for detailed explanation.
 
     Returns
     -------
@@ -540,7 +551,7 @@ def vonmisesmle(data, axis=None):
        Circular Statistics (2001)'". 2015.
        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     """
-    mu = circmean(data, axis=None)
+    mu = circmean(data, axis=axis, weights=weights)
 
-    kappa = _A1inv(np.mean(np.cos(data - mu), axis))
+    kappa = _A1inv(_length(data, p=1, phi=0.0, axis=axis, weights=weights))
     return mu, kappa

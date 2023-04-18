@@ -1,0 +1,2 @@
+``vonmisesmle`` has now functioning "weights" and "axis" parameters that work equivalently
+to the rest of the functions in the ``circstats`` module (``circmean``, ``rayleightest``, etc.)
