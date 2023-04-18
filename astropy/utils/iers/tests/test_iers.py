@@ -411,6 +411,7 @@ def test_iers_a_dl():
 
 
 @pytest.mark.remote_data
+@pytest.mark.xfail(reason="SSL cert error, see astropy/astropy#14638")
 def test_iers_a_dl_mirror():
     iersa_tab = iers.IERS_A.open(iers.IERS_A_URL_MIRROR, cache=False)
     try:
