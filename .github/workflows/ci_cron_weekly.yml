@@ -43,19 +43,19 @@ jobs:
           # that gives too many false positives due to URL timeouts. We also
           # install all dependencies via pip here so we pick up the latest
           # releases.
-          - name: Python 3.10 with dev version of key dependencies
+          - name: Python 3.11 with dev version of key dependencies
             os: ubuntu-latest
-            python: '3.10'
-            toxenv: py310-test-devdeps
+            python: '3.11'
+            toxenv: py311-test-devdeps
 
-          - name: Python 3.10 with dev version of infrastructure dependencies
+          - name: Python 3.11 with dev version of infrastructure dependencies
             os: ubuntu-latest
-            python: '3.10'
-            toxenv: py310-test-devinfra
+            python: '3.11'
+            toxenv: py311-test-devinfra
 
           - name: Documentation link check
             os: ubuntu-latest
-            python: 3.8
+            python: '3.10'
             toxenv: linkcheck
 
           - name: Run flynt to check string formatting
@@ -63,11 +63,11 @@ jobs:
             python: '3.10'
             toxenv: flynt
 
-          # TODO: Uncomment when 3.10 is more mature. Should we use devdeps?
+          # TODO: Uncomment when 3.12 is more mature. Should we use devdeps?
           # Test against Python dev in cron job.
           #- name: Python dev with basic dependencies
           #  os: ubuntu-latest
-          #  python: 3.10-dev
+          #  python: 3.12-dev
           #  toxenv: pydev-test
 
     steps:
@@ -100,7 +100,7 @@ jobs:
     # of using system libraries and using pytest directly.
 
     runs-on: ubuntu-20.04
-    name: Python 3.9
+    name: Python 3.10
     if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
     env:
       ARCH_ON_CI: ${{ matrix.arch }}

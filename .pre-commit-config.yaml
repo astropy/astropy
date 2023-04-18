@@ -53,7 +53,6 @@ repos:
       - id: python-check-blanket-noqa
         # Enforce that all noqa annotations always occur with specific codes.
 
-
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.4
     hooks:

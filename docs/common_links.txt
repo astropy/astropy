@@ -119,7 +119,7 @@
 .. |minimum_packaging_version| replace:: {packaging}
 
 .. IPython
-.. _IPython: http://ipython.org/
+.. _IPython: https://ipython.org/
 .. _`ipython github`: https://github.com/ipython/ipython
 .. _`ipython mailing list`: http://mail.python.org/mailman/listinfo/IPython-dev
 .. |minimum_ipython_version| replace:: {ipython}

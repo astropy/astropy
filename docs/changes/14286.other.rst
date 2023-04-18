@@ -1,0 +1,2 @@
+The minimum supported version of Python is now 3.9, changing from 3.8.
+The minimum supported version of matplotlib is now 3.3, changing from 3.2.
