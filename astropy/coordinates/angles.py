@@ -553,11 +553,17 @@ class Latitude(Angle):
         if angles.unit is u.deg:
             limit = 90
         elif angles.unit is u.rad:
-            limit = self.dtype.type(0.5 * np.pi)
+            limit = 0.5 * np.pi
         else:
             limit = u.degree.to(angles.unit, 90.0)
 
-        invalid_angles = np.any(angles.value < -limit) or np.any(angles.value > limit)
+        # Ensure ndim>=1 so that comparison is done using the angle dtype.
+        # Otherwise, e.g., np.array(np.pi/2, 'f4') > np.pi/2 will yield True.
+        # (This feels like a bug -- see https://github.com/numpy/numpy/issues/23247)
+        # Note that we should avoid using `angles.dtype` directly since for
+        # structured arrays like Distribution this will be `void`.
+        angles_view = angles.view(np.ndarray)[np.newaxis]
+        invalid_angles = np.any(angles_view < -limit) or np.any(angles_view > limit)
         if invalid_angles:
             raise ValueError(
                 "Latitude angle(s) must be within -90 deg <= angle <= 90 deg, "
