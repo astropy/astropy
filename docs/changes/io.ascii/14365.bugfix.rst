@@ -1,0 +1,2 @@
+Fix an issue in the ``io.ascii`` QDP format reader to allow lower-case commands in the
+table data file. Previously it required all upper case in order to parse QDP files.
