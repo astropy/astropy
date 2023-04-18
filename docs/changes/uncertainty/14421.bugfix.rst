@@ -1,0 +1,3 @@
+Ensure that ``Distribution`` can be compared with ``==`` and ``!=``
+with regular arrays or scalars, and that inplace operations like
+``dist[dist<0] *= -1`` work.

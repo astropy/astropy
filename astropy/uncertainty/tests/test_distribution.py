@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import operator
 
 import numpy as np
 import pytest
@@ -471,3 +472,44 @@ def test_scalar_quantity_distribution():
     assert isinstance(sin_angles, Distribution)
     assert isinstance(sin_angles, u.Quantity)
     assert_array_equal(sin_angles, Distribution(np.sin([90.0, 30.0, 0.0] * u.deg)))
+
+
+@pytest.mark.parametrize("op", [operator.eq, operator.ne, operator.gt])
+class TestComparison:
+    @classmethod
+    def setup_class(cls):
+        cls.d = Distribution([90.0, 30.0, 0.0])
+
+        class Override:
+            __array_ufunc__ = None
+
+            def __eq__(self, other):
+                return "eq"
+
+            def __ne__(self, other):
+                return "ne"
+
+            def __lt__(self, other):
+                return "gt"  # Since it is called for the reverse of gt
+
+        cls.override = Override()
+
+    def test_distribution_can_be_compared_to_non_distribution(self, op):
+        result = op(self.d, 0.0)
+        assert_array_equal(result, Distribution(op(self.d.distribution, 0.0)))
+
+    def test_distribution_comparison_defers_correctly(self, op):
+        result = op(self.d, self.override)
+        assert result == op.__name__
+
+
+class TestSetItemWithSelection:
+    def test_setitem(self):
+        d = Distribution([90.0, 30.0, 0.0])
+        d[d > 50] = 0.0
+        assert_array_equal(d, Distribution([0.0, 30.0, 0.0]))
+
+    def test_inplace_operation(self):
+        d = Distribution([90.0, 30.0, 0.0])
+        d[d > 50] *= -1.0
+        assert_array_equal(d, Distribution([-90.0, 30.0, 0.0]))
