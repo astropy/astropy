@@ -314,12 +314,23 @@ class Angle(u.SpecificTypeQuantity):
                 )
             func = ("{:g}" if precision is None else f"{{0:0.{precision}f}}").format
             # Don't add unit by default for decimal.
+            # TODO: could we use Quantity.to_string() here?
             if not (decimal and format is None):
                 unit_string = unit.to_string(format=format)
                 if format == "latex" or format == "latex_inline":
-                    unit_string = unit_string[1:-1]
+                    # Remove $ and add space in front if unit is not a superscript.
+                    if "^" in unit_string:
+                        unit_string = unit_string[1:-1]
+                    else:
+                        unit_string = r"\;" + unit_string[1:-1]
+                elif len(unit_string) > 1:
+                    # Length one for angular units can only happen for
+                    # superscript degree, arcmin, arcsec, hour, minute, second,
+                    # and those should not get an extra space.
+                    unit_string = " " + unit_string
+
                 format_func = func
-                func = lambda x: format_func(x) + (" " * (format == None)) + unit_string
+                func = lambda x: format_func(x) + unit_string
 
         def do_format(val):
             # Check if value is not nan to avoid ValueErrors when turning it into
