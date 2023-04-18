@@ -440,16 +440,24 @@ def write_table_parquet(table, output, overwrite=False):
         arrays = []
         for name in encode_table.dtype.names:
             dt = encode_table.dtype[name]
+            # Parquet must be stored little-endian.  When we use astype(..., copy=False)
+            # we get a very fast conversion when the dtype is unchanged, and only
+            # incur a cost when we need to do a byte-swap operation.
+            dt_new = dt.newbyteorder("<")
             if dt.type == np.object_:
                 # Turn the column into a list of numpy arrays.
-                val = [row for row in encode_table[name]]
+                val = [row.astype(dt_new, copy=False) for row in encode_table[name]]
             elif len(dt.shape) > 0:
                 if len(encode_table) > 0:
-                    val = np.split(encode_table[name].ravel(), len(encode_table))
+                    val = np.split(
+                        encode_table[name].ravel().astype(dt_new.base, copy=False),
+                        len(encode_table),
+                    )
                 else:
                     val = []
             else:
-                val = encode_table[name]
+                val = encode_table[name].astype(dt_new, copy=False)
+
             arrays.append(pa.array(val, type=schema.field(name).type))
 
         # Create a pyarrow table from the list of arrays and the schema
