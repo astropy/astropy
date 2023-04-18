@@ -227,9 +227,9 @@ class Gaussian1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.mean.unit is None:
+        if self.mean.input_unit is None:
             return None
-        return {self.inputs[0]: self.mean.unit}
+        return {self.inputs[0]: self.mean.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {

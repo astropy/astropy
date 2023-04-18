@@ -347,6 +347,9 @@ def test_magunit_parameter():
 def test_log_getter():
     """Regression test for issue #14511"""
 
+    x = 6000 * u.AA
+    mdl_base = BlackBody(temperature=5000 * u.K, scale=u.Quantity(1))
+
     class CustomBlackBody(BlackBody):
         scale = Parameter(
             "scale",
@@ -357,4 +360,44 @@ def test_log_getter():
             unit=u.dimensionless_unscaled,
         )
 
-    CustomBlackBody(temperature=5000 * u.K, scale=u.Quantity(1))
+    mdl = CustomBlackBody(temperature=5000 * u.K, scale=u.Quantity(np.log(1)))
+    assert mdl.scale == np.log(1)
+    assert_quantity_allclose(mdl(x), mdl_base(x))
+
+
+def test_sqrt_getter():
+    """Regression test for issue #14511"""
+
+    x = 1 * u.m
+    mdl_base = Gaussian1D(mean=32 * u.m, stddev=3 * u.m)
+
+    class CustomGaussian1D(Gaussian1D):
+        mean = Parameter(
+            "mean",
+            default=1 * u.m,
+            bounds=(0, None),
+            getter=np.sqrt,
+            setter=np.square,
+            unit=u.m,
+        )
+        stddev = Parameter(
+            "stddev",
+            default=1 * u.m,
+            bounds=(0, None),
+            getter=np.sqrt,
+            setter=np.square,
+            unit=u.m,
+        )
+
+    mdl = CustomGaussian1D(mean=np.sqrt(32 * u.m), stddev=np.sqrt(3 * u.m))
+    assert mdl.mean == np.sqrt(32 * u.m)
+    assert (
+        mdl.mean._internal_value == np.sqrt(32) ** 2
+    )  # numerical inaccuracy results in 32.00000000000001
+    assert mdl.mean._internal_unit == u.m
+    assert mdl.stddev == np.sqrt(3 * u.m)
+    assert (
+        mdl.stddev._internal_value == np.sqrt(3) ** 2
+    )  # numerical inaccuracy results in 3.0000000000000004
+    assert mdl.stddev._internal_unit == u.m
+    assert_quantity_allclose(mdl(x), mdl_base(x))
