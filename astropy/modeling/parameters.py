@@ -762,8 +762,17 @@ def param_repr_oneline(param):
 
 def _wrap_ufunc(ufunc):
     def _wrapper(value, raw_unit=None, orig_unit=None):
+        """
+        Wrap ufuncs to support passing in units
+            raw_unit is the unit of the value
+            orig_unit is the value after the ufunc has been applied
+            it is assumed ufunc(raw_unit) == orig_unit
+        """
         if orig_unit is not None:
-            return ufunc(value * raw_unit) * orig_unit
+            return ufunc(value) * orig_unit
+        elif raw_unit is not None:
+            return ufunc(value * raw_unit)
+
         return ufunc(value)
 
     return _wrapper
