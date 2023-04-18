@@ -532,9 +532,13 @@ class Gaussian2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        if self.x_mean.unit is None and self.y_mean.unit is None:
+        x_unit = self.x_mean.input_unit
+        y_unit = self.y_mean.input_unit
+
+        if x_unit is None and y_unit is None:
             return None
-        return {self.inputs[0]: self.x_mean.unit, self.inputs[1]: self.y_mean.unit}
+
+        return {self.inputs[0]: x_unit, self.inputs[1]: y_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -569,9 +573,9 @@ class Shift(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.offset.unit is None:
+        if self.offset.input_unit is None:
             return None
-        return {self.inputs[0]: self.offset.unit}
+        return {self.inputs[0]: self.offset.input_unit}
 
     @property
     def inverse(self):
@@ -637,9 +641,9 @@ class Scale(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.factor.unit is None:
+        if self.factor.input_unit is None:
             return None
-        return {self.inputs[0]: self.factor.unit}
+        return {self.inputs[0]: self.factor.input_unit}
 
     @property
     def inverse(self):
@@ -856,9 +860,9 @@ class Sersic1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.r_eff.unit is None:
+        if self.r_eff.input_unit is None:
             return None
-        return {self.inputs[0]: self.r_eff.unit}
+        return {self.inputs[0]: self.r_eff.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -887,9 +891,9 @@ class _Trigonometric1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.frequency.unit is None:
+        if self.frequency.input_unit is None:
             return None
-        return {self.inputs[0]: 1.0 / self.frequency.unit}
+        return {self.inputs[0]: 1.0 / self.frequency.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -1160,9 +1164,9 @@ class _InverseTrigonometric1D(_Trigonometric1D):
 
     @property
     def input_units(self):
-        if self.amplitude.unit is None:
+        if self.amplitude.input_unit is None:
             return None
-        return {self.inputs[0]: self.amplitude.unit}
+        return {self.inputs[0]: self.amplitude.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -1487,9 +1491,9 @@ class Linear1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.intercept.unit is None and self.slope.unit is None:
+        if self.intercept.input_unit is None and self.slope.input_unit is None:
             return None
-        return {self.inputs[0]: self.intercept.unit / self.slope.unit}
+        return {self.inputs[0]: self.intercept.input_unit / self.slope.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -1638,9 +1642,9 @@ class Lorentz1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None:
+        if self.x_0.input_unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit}
+        return {self.inputs[0]: self.x_0.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -1800,9 +1804,9 @@ class Voigt1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None:
+        if self.x_0.input_unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit}
+        return {self.inputs[0]: self.x_0.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -2130,9 +2134,12 @@ class Ellipse2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None:
+        if self.x_0.input_unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
+        return {
+            self.inputs[0]: self.x_0.input_unit,
+            self.inputs[1]: self.y_0.input_unit,
+        }
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2212,9 +2219,12 @@ class Disk2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None and self.y_0.unit is None:
+        x_unit = self.x_0.input_unit
+        y_unit = self.y_0.input_unit
+
+        if x_unit is None and y_unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
+        return {self.inputs[0]: x_unit, self.inputs[1]: y_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2334,9 +2344,12 @@ class Ring2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None:
+        if self.x_0.input_unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
+        return {
+            self.inputs[0]: self.x_0.input_unit,
+            self.inputs[1]: self.y_0.input_unit,
+        }
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2429,9 +2442,9 @@ class Box1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None:
+        if self.x_0.input_unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit}
+        return {self.inputs[0]: self.x_0.input_unit}
 
     @property
     def return_units(self):
@@ -2520,9 +2533,12 @@ class Box2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None:
+        if self.x_0.input_unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
+        return {
+            self.inputs[0]: self.x_0.input_unit,
+            self.inputs[1]: self.y_0.input_unit,
+        }
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -2617,9 +2633,9 @@ class Trapezoid1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None:
+        if self.x_0.input_unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit}
+        return {self.inputs[0]: self.x_0.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -2687,9 +2703,13 @@ class TrapezoidDisk2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None and self.y_0.unit is None:
+        x_unit = self.x_0.input_unit
+        y_unit = self.y_0.input_unit
+
+        if x_unit is None and y_unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
+
+        return {self.inputs[0]: x_unit, self.inputs[1]: y_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2788,9 +2808,9 @@ class RickerWavelet1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None:
+        if self.x_0.input_unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit}
+        return {self.inputs[0]: self.x_0.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -2850,9 +2870,12 @@ class RickerWavelet2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None:
+        if self.x_0.input_unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
+        return {
+            self.inputs[0]: self.x_0.input_unit,
+            self.inputs[1]: self.y_0.input_unit,
+        }
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2955,9 +2978,12 @@ class AiryDisk2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None:
+        if self.x_0.input_unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
+        return {
+            self.inputs[0]: self.x_0.input_unit,
+            self.inputs[1]: self.y_0.input_unit,
+        }
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -3055,9 +3081,9 @@ class Moffat1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None:
+        if self.x_0.input_unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit}
+        return {self.inputs[0]: self.x_0.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -3137,10 +3163,13 @@ class Moffat2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None:
+        if self.x_0.input_unit is None:
             return None
         else:
-            return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
+            return {
+                self.inputs[0]: self.x_0.input_unit,
+                self.inputs[1]: self.y_0.input_unit,
+            }
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -3266,9 +3295,12 @@ class Sersic2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None:
+        if self.x_0.input_unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
+        return {
+            self.inputs[0]: self.x_0.input_unit,
+            self.inputs[1]: self.y_0.input_unit,
+        }
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -3420,9 +3452,9 @@ class KingProjectedAnalytic1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.r_core.unit is None:
+        if self.r_core.input_unit is None:
             return None
-        return {self.inputs[0]: self.r_core.unit}
+        return {self.inputs[0]: self.r_core.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -3472,9 +3504,9 @@ class Logarithmic1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.tau.unit is None:
+        if self.tau.input_unit is None:
             return None
-        return {self.inputs[0]: self.tau.unit}
+        return {self.inputs[0]: self.tau.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -3525,9 +3557,9 @@ class Exponential1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.tau.unit is None:
+        if self.tau.input_unit is None:
             return None
-        return {self.inputs[0]: self.tau.unit}
+        return {self.inputs[0]: self.tau.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
