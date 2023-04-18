@@ -155,21 +155,19 @@ To convolve a 1D dataset with a user-specified kernel, you can do::
     >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])  # doctest: +FLOAT_CMP
     array([1.4, 3.6, 5. , 5.6, 5.6, 6.8, 6.2])
 
-Notice that the end points are set to zero — by default, points that are too
-close to the boundary to have a convolved value calculated are set to zero.
-However, the :func:`~astropy.convolution.convolve` function allows for a
-``boundary`` argument that can be used to specify alternate behaviors. For
-example, setting ``boundary='extend'`` causes values near the edges to be
-computed, assuming the original data is simply extended using a constant
-extrapolation beyond the boundary::
+The ``boundary`` keyword determines how the input array is extended
+beyond its boundaries. The default value is ``'fill'``, meaning values
+outside of the array boundary are set to the input ``fill_value``
+(default is 0.0). Setting ``boundary='extend'`` causes values near the
+edges to be extended using a constant extrapolation beyond the boundary.
+The values at the end are computed assuming that any value below the
+first point is ``1``, and any value above the last point is ``8``::
 
     >>> from astropy.convolution import convolve
     >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2], boundary='extend')  # doctest: +FLOAT_CMP
     array([1.6, 3.6, 5. , 5.6, 5.6, 6.8, 7.8])
 
-The values at the end are computed assuming that any value below the first
-point is ``1``, and any value above the last point is ``8``. For a more
-detailed discussion of boundary treatment, see :doc:`using`.
+For a more detailed discussion of boundary treatment, see :doc:`using`.
 
 ..
   EXAMPLE END
