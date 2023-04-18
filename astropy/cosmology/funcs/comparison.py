@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import functools
 import inspect
-from typing import Any, Callable, Tuple, Union
+from typing import Any, Callable, Union
 
 import numpy as np
 from numpy import False_, True_, ndarray
@@ -26,7 +26,7 @@ __all__ = []  # Nothing is scoped here
 # PARAMETERS
 
 _FormatType = Union[bool, None, str]
-_FormatsT = Union[_FormatType, Tuple[_FormatType, ...]]
+_FormatsT = Union[_FormatType, tuple[_FormatType, ...]]
 _CompFnT = Callable[[Any, _FormatType], Cosmology]
 
 _COSMO_AOK: set[Any] = {None, True_, False_, "astropy.cosmology"}

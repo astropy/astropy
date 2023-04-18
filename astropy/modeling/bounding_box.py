@@ -1,15 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 """
 This module is to contain an improved bounding box.
 """
+
+from __future__ import annotations
 
 import abc
 import copy
 import warnings
 from collections import namedtuple
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable
 
 import numpy as np
 
@@ -194,7 +195,7 @@ class _BoundingDomain(abc.ABC):
         on the inputs and returns a complete output.
     """
 
-    def __init__(self, model, ignored: List[int] = None, order: str = "C"):
+    def __init__(self, model, ignored: list[int] = None, order: str = "C"):
         self._model = model
         self._ignored = self._validate_ignored(ignored)
         self._order = self._get_order(order)
@@ -208,7 +209,7 @@ class _BoundingDomain(abc.ABC):
         return self._order
 
     @property
-    def ignored(self) -> List[int]:
+    def ignored(self) -> list[int]:
         return self._ignored
 
     def _get_order(self, order: str = None) -> str:
@@ -241,10 +242,10 @@ class _BoundingDomain(abc.ABC):
         return get_name(self._model, index)
 
     @property
-    def ignored_inputs(self) -> List[str]:
+    def ignored_inputs(self) -> list[str]:
         return [self._get_name(index) for index in self._ignored]
 
-    def _validate_ignored(self, ignored: list) -> List[int]:
+    def _validate_ignored(self, ignored: list) -> list[int]:
         if ignored is None:
             return []
         else:
@@ -271,7 +272,7 @@ class _BoundingDomain(abc.ABC):
         raise NotImplementedError("This should be implemented by a child class.")
 
     @abc.abstractmethod
-    def prepare_inputs(self, input_shape, inputs) -> Tuple[Any, Any, Any]:
+    def prepare_inputs(self, input_shape, inputs) -> tuple[Any, Any, Any]:
         """
         Get prepare the inputs with respect to the bounding box.
 
@@ -600,9 +601,9 @@ class ModelBoundingBox(_BoundingDomain):
 
     def __init__(
         self,
-        intervals: Dict[int, _Interval],
+        intervals: dict[int, _Interval],
         model,
-        ignored: List[int] = None,
+        ignored: list[int] = None,
         order: str = "C",
     ):
         super().__init__(model, ignored, order)
@@ -624,12 +625,12 @@ class ModelBoundingBox(_BoundingDomain):
         )
 
     @property
-    def intervals(self) -> Dict[int, _Interval]:
+    def intervals(self) -> dict[int, _Interval]:
         """Return bounding_box labeled using input positions."""
         return self._intervals
 
     @property
-    def named_intervals(self) -> Dict[str, _Interval]:
+    def named_intervals(self) -> dict[str, _Interval]:
         """Return bounding_box labeled using input names."""
         return {self._get_name(index): bbox for index, bbox in self._intervals.items()}
 
@@ -905,7 +906,7 @@ class ModelBoundingBox(_BoundingDomain):
 
         return valid_index, all_out
 
-    def prepare_inputs(self, input_shape, inputs) -> Tuple[Any, Any, Any]:
+    def prepare_inputs(self, input_shape, inputs) -> tuple[Any, Any, Any]:
         """
         Get prepare the inputs with respect to the bounding box.
 
@@ -1111,7 +1112,7 @@ class _SelectorArguments(tuple):
 
     _kept_ignore = None
 
-    def __new__(cls, input_: Tuple[_SelectorArgument], kept_ignore: List = None):
+    def __new__(cls, input_: tuple[_SelectorArgument], kept_ignore: list = None):
         self = super().__new__(cls, input_)
 
         if kept_ignore is None:
@@ -1151,7 +1152,7 @@ class _SelectorArguments(tuple):
         return self._kept_ignore
 
     @classmethod
-    def validate(cls, model, arguments, kept_ignore: List = None):
+    def validate(cls, model, arguments, kept_ignore: list = None):
         """
         Construct a valid Selector description for a CompoundBoundingBox.
 
@@ -1337,11 +1338,11 @@ class CompoundBoundingBox(_BoundingDomain):
 
     def __init__(
         self,
-        bounding_boxes: Dict[Any, ModelBoundingBox],
+        bounding_boxes: dict[Any, ModelBoundingBox],
         model,
         selector_args: _SelectorArguments,
         create_selector: Callable = None,
-        ignored: List[int] = None,
+        ignored: list[int] = None,
         order: str = "C",
     ):
         super().__init__(model, ignored, order)
@@ -1386,7 +1387,7 @@ class CompoundBoundingBox(_BoundingDomain):
         return "\n".join(parts)
 
     @property
-    def bounding_boxes(self) -> Dict[Any, ModelBoundingBox]:
+    def bounding_boxes(self) -> dict[Any, ModelBoundingBox]:
         return self._bounding_boxes
 
     @property
@@ -1518,7 +1519,7 @@ class CompoundBoundingBox(_BoundingDomain):
 
         return self[_selector]
 
-    def prepare_inputs(self, input_shape, inputs) -> Tuple[Any, Any, Any]:
+    def prepare_inputs(self, input_shape, inputs) -> tuple[Any, Any, Any]:
         """
         Get prepare the inputs with respect to the bounding box.
 
@@ -1542,7 +1543,7 @@ class CompoundBoundingBox(_BoundingDomain):
         bounding_box = self._select_bounding_box(inputs)
         return bounding_box.prepare_inputs(input_shape, inputs)
 
-    def _matching_bounding_boxes(self, argument, value) -> Dict[Any, ModelBoundingBox]:
+    def _matching_bounding_boxes(self, argument, value) -> dict[Any, ModelBoundingBox]:
         selector_index = self.selector_args.selector_index(self._model, argument)
         matching = {}
         for selector_key, bbox in self._bounding_boxes.items():

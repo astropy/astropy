@@ -3,13 +3,13 @@
 __all__ = ["quantity_input"]
 
 import inspect
+import typing as T
 from collections.abc import Sequence
 from functools import wraps
 from numbers import Number
 
 import numpy as np
 
-from . import _typing as T
 from .core import (
     Unit,
     UnitBase,
