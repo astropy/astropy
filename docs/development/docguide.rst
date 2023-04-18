@@ -52,7 +52,7 @@ the standard Astropy docstring format.
   consistency across the documentation and docstrings. These should be used over
   custom redefinitions; and new substitutions should probably be placed there.
 
-* The `package template <https://github.com/astropy/package-template>`_ provides
+* The `OpenAstronomy Packaging Guide`_ provides
   a recommended general structure for documentation.
 
 * Docstrings must be provided for all public classes, methods, and functions.

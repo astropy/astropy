@@ -13,8 +13,8 @@ affiliated packages.
 Testing Framework
 *****************
 
-The testing framework used by astropy (and packages using the :doc:`Astropy
-package template <astropy-package-template>`) is the `pytest`_ framework.
+The testing framework used by astropy (and packages using the
+`OpenAstronomy Packaging Guide`_) is the `pytest`_ framework.
 
 .. _testing-dependencies:
 
