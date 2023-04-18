@@ -23,9 +23,6 @@ single |SkyCoord| with arrays of values as opposed to looping over the
 Finally, for more advanced users, note that you can use broadcasting to
 transform |SkyCoord| objects into frames with vector properties.
 
-Example
--------
-
 ..
   EXAMPLE START
   Performance Tips for Transforming SkyCoord Objects
