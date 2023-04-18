@@ -150,25 +150,49 @@ def test_vonmisesmle():
     # testing for weighted vonmisesmle
     data = np.array(
         [
-            np.pi/2, np.pi, np.pi/2,
+            np.pi / 2,
+            np.pi,
+            np.pi / 2,
         ]
-    ) # this data has twice more np.pi/2 than np.pi
+    )  # this data has twice more np.pi/2 than np.pi
     # get answer using astropy vonmisesmle to test
     answer = vonmisesmle(data)
-    data_to_weigh = np.array(
-        [np.pi/2, np.pi]
-    )
+    data_to_weigh = np.array([np.pi / 2, np.pi])
     weights = [2, 1]
-    assert_allclose(answer[0], vonmisesmle(data_to_weigh, weights=weights)[0], atol=1e-5)
-    assert_allclose(answer[1], vonmisesmle(data_to_weigh, weights=weights)[1], atol=1e-5)
+    assert_allclose(
+        answer[0], vonmisesmle(data_to_weigh, weights=weights)[0], atol=1e-5
+    )
+    assert_allclose(
+        answer[1], vonmisesmle(data_to_weigh, weights=weights)[1], atol=1e-5
+    )
 
     # testing for axis argument (stacking the data from the first test)
     data = np.array(
         [
-            [3.3699057, 4.0411630, 0.5014477, 2.6223103, 3.7336524,
-            1.8136389, 4.1566039, 2.7806317, 2.4672173, 2.8493644],
-            [3.3699057, 4.0411630, 0.5014477, 2.6223103, 3.7336524,
-            1.8136389, 4.1566039, 2.7806317, 2.4672173, 2.8493644]
+            [
+                3.3699057,
+                4.0411630,
+                0.5014477,
+                2.6223103,
+                3.7336524,
+                1.8136389,
+                4.1566039,
+                2.7806317,
+                2.4672173,
+                2.8493644,
+            ],
+            [
+                3.3699057,
+                4.0411630,
+                0.5014477,
+                2.6223103,
+                3.7336524,
+                1.8136389,
+                4.1566039,
+                2.7806317,
+                2.4672173,
+                2.8493644,
+            ],
         ]
     )
     # answer should be duplicated
@@ -181,4 +205,3 @@ def test_vonmisesmle():
     answer = (np.rad2deg(answer[0]) * u.deg, answer[1])
     assert_allclose(answer[0], vonmisesmle(data, axis=1)[0], atol=1e-5)
     assert_allclose(answer[1], vonmisesmle(data, axis=1)[1], atol=1e-5)
-

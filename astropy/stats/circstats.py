@@ -498,18 +498,15 @@ def _A1inv(x):
     # See http://www.scienceasia.org/2012.38.n1/scias38_118.pdf, equation (4)
 
     kappa1 = np.where(
-        np.logical_and(0 <= x, x < 0.53),
-        2.0 * x + x * x * x + (5.0 * x**5) / 6.0,
-        0)
+        np.logical_and(0 <= x, x < 0.53), 2.0 * x + x * x * x + (5.0 * x**5) / 6.0, 0
+    )
     kappa2 = np.where(
-        np.logical_and(0.53 <= x, x < 0.85),
-        -0.4 + 1.39 * x + 0.43 / (1.0 - x),
-        0)
+        np.logical_and(0.53 <= x, x < 0.85), -0.4 + 1.39 * x + 0.43 / (1.0 - x), 0
+    )
     kappa3 = np.where(
-        np.logical_or(x < 0, 0.85 <= x),
-        1.0 / (x * x * x - 4.0 * x * x + 3.0 * x),
-        0)
-    
+        np.logical_or(x < 0, 0.85 <= x), 1.0 / (x * x * x - 4.0 * x * x + 3.0 * x), 0
+    )
+
     return kappa1 + kappa2 + kappa3
 
 
@@ -556,5 +553,5 @@ def vonmisesmle(data, axis=None, weights=None):
     """
     mu = circmean(data, axis=axis, weights=weights)
 
-    kappa = _A1inv(_length(data, p=1, phi=0., axis=axis, weights=weights))
+    kappa = _A1inv(_length(data, p=1, phi=0.0, axis=axis, weights=weights))
     return mu, kappa
