@@ -1,5 +1,7 @@
 import numpy as np
 
+__all__ = ["lombscargle_mbflex"]
+
 
 def lombscargle_mbflex(
     t,

@@ -2,6 +2,8 @@ import numpy as np
 
 from astropy.timeseries.periodograms.lombscargle.implementations import lombscargle
 
+__all__ = ["lombscargle_mbfast"]
+
 
 def lombscargle_mbfast(
     t,

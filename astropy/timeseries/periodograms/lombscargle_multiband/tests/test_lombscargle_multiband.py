@@ -6,6 +6,7 @@ from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time, TimeDelta
 from astropy.timeseries import TimeSeries
+from astropy.table import MaskedColumn
 from astropy.timeseries.periodograms.lombscargle_multiband import LombScargleMultiband
 from astropy.timeseries.periodograms.lombscargle import LombScargle
 
@@ -51,35 +52,36 @@ def data(N=100, period=1, theta=[10, 2, 3], nbands=3, dy=1, rseed=0):
 def timeseries_data():
     """Generate an astropy.timeseries.TimeSeries table"""
     rng = np.random.default_rng(1)
-
     deltas = 240 * rng.random(180)
     ts1 = TimeSeries(time_start="2011-01-01T00:00:00", time_delta=deltas * u.minute)
 
     # g band fluxes
-    ts1["g_flux"] = [np.nan] * 180 * u.mJy
-    ts1["g_err"] = [np.nan] * 180 * u.mJy
-    y_g = 3 + 2 * np.sin(10 * np.pi * ts1["time"].mjd[0:60])
-    dy_g = 0.01 * (0.5 + rng.random(60))  # uncertainties
-    ts1["g_flux"].value[0:60] = y_g
-    ts1["g_err"].value[0:60] = dy_g
-
+    g_flux = [0] * 180 * u.mJy
+    g_err = [0] * 180 * u.mJy
+    y_g = np.round(3 + 2 * np.sin(10 * np.pi * ts1["time"].mjd[0:60]), 3)
+    dy_g = np.round(0.01 * (0.5 + rng.random(60)), 3)  # uncertainties
+    g_flux.value[0:60] = y_g
+    g_err.value[0:60] = dy_g
+    ts1["g_flux"] = MaskedColumn(g_flux, mask=[False] * 60 + [True] * 120)
+    ts1["g_err"] = MaskedColumn(g_err, mask=[False] * 60 + [True] * 120)
     # r band fluxes
-    ts1["r_flux"] = [np.nan] * 180 * u.mJy
-    ts1["r_err"] = [np.nan] * 180 * u.mJy
-    y_r = 3 + 2 * np.sin(10 * np.pi * ts1["time"].mjd[60:120])
-    dy_r = 0.01 * (0.5 + rng.random(60))  # uncertainties
-    y_r += dy_r * rng.standard_normal(60)
-    ts1["r_flux"].value[60:120] = y_r
-    ts1["r_err"].value[60:120] = dy_r
-
+    r_flux = [0] * 180 * u.mJy
+    r_err = [0] * 180 * u.mJy
+    y_r = np.round(3 + 2 * np.sin(10 * np.pi * ts1["time"].mjd[60:120]), 3)
+    dy_r = np.round(0.01 * (0.5 + rng.random(60)), 3)  # uncertainties
+    r_flux.value[60:120] = y_r
+    r_err.value[60:120] = dy_r
+    ts1["r_flux"] = MaskedColumn(r_flux, mask=[True] * 60 + [False] * 60 + [True] * 60)
+    ts1["r_err"] = MaskedColumn(r_err, mask=[True] * 60 + [False] * 60 + [True] * 60)
     # i band fluxes
-    ts1["i_flux"] = [np.nan] * 180 * u.mJy
-    ts1["i_err"] = [np.nan] * 180 * u.mJy
-    y_i = 3 + 2 * np.sin(10 * np.pi * ts1["time"].mjd[120:])
-    dy_i = 0.01 * (0.5 + rng.random(60))  # uncertainties
-    y_i += dy_i * rng.standard_normal(60)
-    ts1["i_flux"].value[120:] = y_i
-    ts1["i_err"].value[120:] = dy_i
+    i_flux = [0] * 180 * u.mJy
+    i_err = [0] * 180 * u.mJy
+    y_i = np.round(3 + 2 * np.sin(10 * np.pi * ts1["time"].mjd[120:]), 3)
+    dy_i = np.round(0.01 * (0.5 + rng.random(60)), 3)  # uncertainties
+    i_flux.value[120:] = y_i
+    i_err.value[120:] = dy_i
+    ts1["i_flux"] = MaskedColumn(i_flux, mask=[True] * 120 + [False] * 60)
+    ts1["i_err"] = MaskedColumn(i_err, mask=[True] * 120 + [False] * 60)
 
     return ts1
 
