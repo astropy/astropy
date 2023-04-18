@@ -21,6 +21,27 @@ If this is the case, ask the author to squash the commits or
 :ref:`take over the pull request <maintainer-pr-takeover>`.
 If necessary, you may also :ref:`request a rebase <rebase>`.
 
+.. _maintainer-pr-auto-merge:
+
+Auto-merge
+==========
+
+If a pull request is ready for merge but only waiting CI to pass, you may use the
+`Enable auto-merge <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/automatically-merging-a-pull-request>`_
+option.
+
+However, this feature should *not* be used in the following cases:
+
+* You should not enable auto-merge on your own pull request unless
+  other maintainers are okay with it. There might be exceptions but
+  they should be handled on a case-by-case basis.
+* If a pull request requires job(s) that is not required to pass
+  branch protection rules (e.g., allowed to fail job, cron jobs) to pass
+  to be acceptable (say, it touches remote data or has very big changes that need extra checks).
+* If a pull request requires approvals from multiple reviewers and
+  not all the reviews are in but you are happy with it.
+* If you are unsure of all the implications of using this feature.
+
 .. _maintainer-pr-takeover:
 
 ==========================
