@@ -30,9 +30,6 @@ optional velocities) with specified units and a coordinate frame. Sky positions
 are commonly passed in as `~astropy.units.Quantity` objects and the frame is
 specified with the string name.
 
-Example
--------
-
 ..
   EXAMPLE START
   Using the SkyCoord Class
@@ -144,9 +141,6 @@ Transformation
 One convenient way to transform to a new coordinate frame is by accessing
 the appropriately named attribute.
 
-Example
-^^^^^^^
-
 ..
   EXAMPLE START
   Transforming to a New Coordinate Frame
@@ -196,9 +190,6 @@ representation such as Cartesian or Cylindrical. This can be done by setting
 the ``representation_type`` for either |SkyCoord| objects or low-level frame
 coordinate objects.
 
-Example
-^^^^^^^
-
 ..
   EXAMPLE START
   Working with Nonspherical Coordinate Representations
@@ -230,9 +221,6 @@ Distance
 from the frame origin. The origin depends on the particular coordinate frame;
 this can be, for example, centered on the earth, centered on the solar system
 barycenter, etc.
-
-Examples
-^^^^^^^^
 
 ..
   EXAMPLE START
@@ -266,9 +254,6 @@ Convenience Methods
 
 |SkyCoord| defines a number of convenience methods that support, for example,
 computing on-sky (i.e., angular) and 3D separations between two coordinates.
-
-Examples
-^^^^^^^^
 
 ..
   EXAMPLE START
