@@ -1633,12 +1633,15 @@ class AffineTransformation2D(Model):
 
     @property
     def input_units(self):
-        if self.translation.unit is None and self.matrix.unit is None:
+        translation_unit = self.translation.input_unit
+        matrix_unit = self.matrix.input_unit
+
+        if translation_unit is None and matrix_unit is None:
             return None
-        elif self.translation.unit is not None:
-            return dict(zip(self.inputs, [self.translation.unit] * 2))
+        elif translation_unit is not None:
+            return dict(zip(self.inputs, [translation_unit] * 2))
         else:
-            return dict(zip(self.inputs, [self.matrix.unit] * 2))
+            return dict(zip(self.inputs, [matrix_unit] * 2))
 
 
 for long_name, short_name in _PROJ_NAME_CODE:
