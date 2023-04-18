@@ -202,7 +202,7 @@ The kernel can then be used directly when calling
 :func:`~astropy.convolution.convolve`:
 
 .. plot::
-   :include-source:
+    :show-source-link:
 
     import numpy as np
     import matplotlib.pyplot as plt
@@ -278,8 +278,7 @@ flagged-out pixels:
 
 .. plot::
    :context:
-   :include-source:
-   :align: center
+   :show-source-link:
 
    import numpy as np
    import matplotlib.pyplot as plt
@@ -345,8 +344,7 @@ eye.
 
 .. plot::
    :context:
-   :include-source:
-   :align: center
+   :show-source-link:
 
    import numpy as np
    import matplotlib.pyplot as plt
