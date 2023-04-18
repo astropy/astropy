@@ -8,10 +8,10 @@ The code is adapted from the `astroml`_ package and the
 established in :class:`~astropy.timeseries.LombScargle`.
 
 Two implementations of the Multiband Lomb-Scargle Periodogram are available
-within :class:`~astropy.timeseries.LombScargleMultiband`, ``gatspy`` and
-``fast``. ``gatspy`` is a direct port of the LombScargleMultiband algorithm
+within :class:`~astropy.timeseries.LombScargleMultiband`, ``flexible`` and
+``fast``. ``flexible`` is a direct port of the LombScargleMultiband algorithm
 used in the gatspy `gatspy`_ package. ``fast`` serves as a similar
-implementation to ``gatspy`` LombScargleMultibandFast, but leverages
+implementation to ``flexible`` LombScargleMultibandFast, but leverages
 :class:`~astropy.timeseries.LombScargle` to do its independent band-by-band
 fits.
 

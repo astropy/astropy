@@ -11,6 +11,8 @@ from astropy.timeseries.sampled import TimeSeries
 from .implementations import available_methods, lombscargle_multiband
 from .implementations.mle import construct_regularization, design_matrix, periodic_fit
 
+__all__ = ["LombScargleMultiband"]
+
 
 def has_units(obj):
     return hasattr(obj, "unit")
@@ -187,10 +189,17 @@ class LombScargleMultiband(LombScargle):
         dy = []
         band = []
         for i, col in enumerate(signal_column):
-            signal_mask = ~np.isnan(timeseries[col])
+            if np.ma.is_masked(timeseries[col]):
+                signal_mask = ~timeseries[col].mask
+            else:
+                signal_mask = ~np.isnan(timeseries[col])
+
             if uncertainty_column is not None:
                 dy_col = timeseries[uncertainty_column[i]]
-                signal_mask &= ~np.isnan(dy_col)
+                if np.ma.is_masked(dy_col):
+                    signal_mask &= ~dy_col.mask
+                else:
+                    signal_mask &= ~np.isnan(dy_col)
 
             t.append(time[signal_mask].mjd * u.day)
             y.append(timeseries[col][signal_mask])

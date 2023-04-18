@@ -124,10 +124,11 @@ Example
 .. EXAMPLE START: Loading from a :class:`~astropy.timeseries.TimeSeries` object
 
 Consider the following generator code for a
-:class:`~astropy.timeseries.TimeSeries` object. Where timeseries data is
+:class:`~astropy.timeseries.TimeSeries` object where timeseries data is
 populated for three photometric bands (g,r,i).
 
 >>> from astropy.timeseries import LombScargleMultiband, TimeSeries
+>>> from astropy.table import MaskedColumn
 >>> import numpy as np
 >>> import astropy.units as u
 
@@ -137,28 +138,58 @@ populated for three photometric bands (g,r,i).
 ...                  time_delta=deltas*u.minute)
 
 >>> # g band fluxes
->>> ts1['g_flux'] = [np.nan] * 180 * u.mJy
->>> ts1['g_err'] = [np.nan] * 180 * u.mJy
->>> y_g = 3 + 2 * np.sin(10 * np.pi * ts1['time'].mjd[0:60])
->>> dy_g = 0.01 * (0.5 + rng.random(60)) # uncertainties
->>> ts1['g_flux'].value[0:60] = y_g
->>> ts1['g_err'].value[0:60] = dy_g
+>>> g_flux = [0] * 180 * u.mJy
+>>> g_err = [0] * 180 * u.mJy
+>>> y_g = np.round(3 + 2 * np.sin(10 * np.pi * ts1['time'].mjd[0:60]),3)
+>>> dy_g = np.round(0.01 * (0.5 + rng.random(60)), 3) # uncertainties
+>>> g_flux.value[0:60] = y_g
+>>> g_err.value[0:60] = dy_g
+>>> ts1["g_flux"]  = MaskedColumn(g_flux, mask=[False]*60+[True]*120)
+>>> ts1["g_err"]  = MaskedColumn(g_err, mask=[False]*60+[True]*120)
 >>> # r band fluxes
->>> ts1['r_flux'] = [np.nan] * 180 * u.mJy
->>> ts1['r_err'] = [np.nan] * 180 * u.mJy
->>> y_r = 3 + 2 * np.sin(10 * np.pi * ts1['time'].mjd[60:120])
->>> dy_r = 0.01 * (0.5 + rng.random(60)) # uncertainties
->>> y_r += dy_r * rng.standard_normal(60)
->>> ts1['r_flux'].value[60:120] = y_r
->>> ts1['r_err'].value[60:120] = dy_r
+>>> r_flux = [0] * 180 * u.mJy
+>>> r_err = [0] * 180 * u.mJy
+>>> y_r = np.round(3 + 2 * np.sin(10 * np.pi * ts1['time'].mjd[60:120]),3)
+>>> dy_r = np.round(0.01 * (0.5 + rng.random(60)), 3) # uncertainties
+>>> r_flux.value[60:120] = y_r
+>>> r_err.value[60:120] = dy_r
+>>> ts1['r_flux'] = MaskedColumn(r_flux, mask=[True]*60+[False]*60+[True]*60)
+>>> ts1['r_err'] = MaskedColumn(r_err, mask=[True]*60+[False]*60+[True]*60)
 >>> # i band fluxes
->>> ts1['i_flux'] = [np.nan] * 180 * u.mJy
->>> ts1['i_err'] = [np.nan] * 180 * u.mJy
->>> y_i = 3 + 2 * np.sin(10 * np.pi * ts1['time'].mjd[120:])
->>> dy_i = 0.01 * (0.5 + rng.random(60)) # uncertainties
->>> y_i += dy_i * rng.standard_normal(60)
->>> ts1['i_flux'].value[120:] = y_i
->>> ts1['i_err'].value[120:] = dy_i
+>>> i_flux = [0] * 180 * u.mJy
+>>> i_err = [0] * 180 * u.mJy
+>>> y_i = np.round(3 + 2 * np.sin(10 * np.pi * ts1['time'].mjd[120:]),3)
+>>> dy_i = np.round(0.01 * (0.5 + rng.random(60)), 3) # uncertainties
+>>> i_flux.value[120:] = y_i
+>>> i_err.value[120:] = dy_i
+>>> ts1["i_flux"]  = MaskedColumn(i_flux, mask=[True]*120+[False]*60)
+>>> ts1["i_err"]  = MaskedColumn(i_err, mask=[True]*120+[False]*60)
+>>> ts1
+<TimeSeries length=180>
+          time           g_flux  g_err   r_flux  r_err   i_flux  i_err
+                          mJy     mJy     mJy     mJy     mJy     mJy
+          Time          float64 float64 float64 float64 float64 float64
+----------------------- ------- ------- ------- ------- ------- -------
+2011-01-01T00:00:00.000     3.0   0.012     ———     ———     ———     ———
+2011-01-01T02:02:50.231   3.891   0.009     ———     ———     ———     ———
+2011-01-01T05:50:56.909   4.961   0.007     ———     ———     ———     ———
+2011-01-01T06:25:32.807   4.697   0.014     ———     ———     ———     ———
+2011-01-01T10:13:13.359   4.451   0.005     ———     ———     ———     ———
+2011-01-01T11:28:03.732   4.283   0.008     ———     ———     ———     ———
+2011-01-01T13:09:39.633   1.003   0.015     ———     ———     ———     ———
+2011-01-01T16:28:18.550   3.833   0.008     ———     ———     ———     ———
+2011-01-01T18:06:31.018    1.02   0.013     ———     ———     ———     ———
+                    ...     ...     ...     ...     ...     ...     ...
+2011-01-15T13:01:17.603     ———     ———     ———     ———   1.054   0.008
+2011-01-15T16:03:17.207     ———     ———     ———     ———   4.656   0.014
+2011-01-15T17:29:38.139     ———     ———     ———     ———   1.423    0.01
+2011-01-15T20:03:35.935     ———     ———     ———     ———   4.805   0.008
+2011-01-15T21:35:02.069     ———     ———     ———     ———   3.042   0.007
+2011-01-15T23:06:35.567     ———     ———     ———     ———   1.162    0.01
+2011-01-16T01:07:30.330     ———     ———     ———     ———    4.99   0.009
+2011-01-16T01:11:31.138     ———     ———     ———     ———     5.0   0.011
+2011-01-16T03:09:58.569     ———     ———     ———     ———   1.314    0.01
+2011-01-16T07:03:09.586     ———     ———     ———     ———   3.383   0.005
 
 Our timeseries data is set up to be asynchronous, where a given timestamp
 corresponds to a measurement in a single band. However, if your data instead
