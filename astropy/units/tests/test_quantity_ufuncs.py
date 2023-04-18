@@ -50,8 +50,8 @@ def test_testwarn(tw):
 
 
 class TestUfuncHelpers:
-    # Note that this test may fail even if scipy is present, since
-    # the scipy.special ufuncs are only loaded on demand. This is because
+    # Note that this test may fail if scipy is present, although the
+    # scipy.special ufuncs are only loaded on demand. This is because
     # if a prior test has already imported scipy.special, then this test will be
     # disrupted.
     # The test passes independently of whether erfa is already loaded
