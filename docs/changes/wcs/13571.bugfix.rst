@@ -1,0 +1,2 @@
+Fix bugs with high-level WCS API on ``wcs.WCS`` object when using ``-TAB``
+coordinates.
