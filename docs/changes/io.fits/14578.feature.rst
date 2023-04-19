@@ -1,0 +1,3 @@
+VLA tables can now be written with the unified I/O interface.
+When object types are present or the VLA contains different types a `TypeError`
+is thrown.

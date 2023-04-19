@@ -1528,7 +1528,19 @@ class ColDefs(NotifierMixin):
         for idx in range(len(array.dtype)):
             cname = array.dtype.names[idx]
             ftype = array.dtype.fields[cname][0]
-            format = self._col_format_cls.from_recformat(ftype)
+
+            if ftype.kind == "O":
+                dtypes = {np.array(array[cname][i]).dtype for i in range(len(array))}
+                if (len(dtypes) > 1) or (np.dtype("O") in dtypes):
+                    raise TypeError(
+                        f"Column '{cname}' contains unsupported object types or "
+                        f"mixed types: {dtypes}"
+                    )
+                ftype = dtypes.pop()
+                format = self._col_format_cls.from_recformat(ftype)
+                format = f"P{format}()"
+            else:
+                format = self._col_format_cls.from_recformat(ftype)
 
             # Determine the appropriate dimensions for items in the column
             dim = array.dtype[idx].shape[::-1]
