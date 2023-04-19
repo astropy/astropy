@@ -6,7 +6,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 import astropy.units as u
-from astropy.coordinates import Angle, Latitude, Longitude
+from astropy.coordinates import Angle, EarthLocation, Latitude, Longitude
 from astropy.uncertainty import Distribution
 
 
@@ -70,3 +70,28 @@ class TestAngles:
         std = da.pdf_std()
         assert isinstance(std, Angle)
         assert_array_equal(std, Angle(self.q.std(-1)))
+
+    @pytest.mark.xfail
+    def test_earthlocation_geocentric_distribution(self):
+        x = y = z = self.a << u.km
+
+        eloc = EarthLocation.from_geocentric(x=x, y=y, z=z)
+
+        xd = Distribution(x)
+        yd = Distribution(y)
+        zd = Distribution(z)
+        deloc = EarthLocation.from_geocentric(x=xd, y=yd, z=zd)
+
+        assert isinstance(deloc.x, Distribution)
+        assert_array_equal(np.median(eloc.x, axis=1), deloc.x.pdf_median())
+
+    @pytest.mark.xfail
+    def test_earthlocation_geodetic_distribution(self):
+        h = self.a << u.km
+        eloc = EarthLocation.from_geodetic(lon=self.q, lat=self.q, height=h)
+
+        hq = Distribution(h)
+        deloc = EarthLocation.from_geodetic(lon=self.dq, lat=self.dq, height=hq)
+
+        assert isinstance(deloc.x, Distribution)
+        assert_array_equal(np.median(eloc.x, axis=1), deloc.x.pdf_median())
