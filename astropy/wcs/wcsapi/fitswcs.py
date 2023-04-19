@@ -416,7 +416,11 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             else:
                 kwargs = {}
                 kwargs["frame"] = celestial_frame
-                kwargs["unit"] = u.deg
+                # Very occasionally (i.e. with TAB) wcs does not convert the units to degrees
+                kwargs["unit"] = (
+                    u.Unit(self.wcs.cunit[self.wcs.lng]),
+                    u.Unit(self.wcs.cunit[self.wcs.lat]),
+                )
 
                 classes["celestial"] = (SkyCoord, (), kwargs)
 
@@ -445,7 +449,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 earth_location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m)
 
                 # Get the time scale from TIMESYS or fall back to 'utc'
-                tscale = self.wcs.timesys or "utc"
+                tscale = self.wcs.timesys.lower() or "utc"
 
                 if np.isnan(self.wcs.mjdavg):
                     obstime = Time(
@@ -695,8 +699,8 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     # Initialize delta
                     reference_time_delta = None
 
-                    # Extract time scale
-                    scale = self.wcs.ctype[i].lower()
+                    # Extract time scale, and remove any algorithm code
+                    scale = self.wcs.ctype[i].split("-")[0].lower()
 
                     if scale == "time":
                         if self.wcs.timesys:
