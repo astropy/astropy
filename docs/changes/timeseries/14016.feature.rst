@@ -1,0 +1,19 @@
+Adds the :class:`~astropy.timeseries.LombScargleMultiband` class, which is an
+extension of the :class:`~astropy.timeseries.LombScargle` class. It enables the
+generation of periodograms for datasets with measurements taken in more than
+one photometric band.
+
+The code is adapted from the `astroml`_ package and the
+`gatspy`_ package, but conforms closely to the design paradigms
+established in :class:`~astropy.timeseries.LombScargle`.
+
+Two implementations of the Multiband Lomb-Scargle Periodogram are available
+within :class:`~astropy.timeseries.LombScargleMultiband`, ``flexible`` and
+``fast``. ``flexible`` is a direct port of the LombScargleMultiband algorithm
+used in the gatspy `gatspy`_ package. ``fast`` serves as a similar
+implementation to ``flexible`` LombScargleMultibandFast, but leverages
+:class:`~astropy.timeseries.LombScargle` to do its independent band-by-band
+fits.
+
+.. _gatspy: https://www.astroml.org/gatspy/
+.. _astroml: https://www.astroml.org/

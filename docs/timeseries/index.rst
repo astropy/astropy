@@ -364,6 +364,7 @@ Periodogram Algorithms
    :maxdepth: 2
 
    lombscargle
+   lombscarglemb
    bls
 
 Reference/API
