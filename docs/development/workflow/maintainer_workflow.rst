@@ -67,8 +67,7 @@ In this example, the author's username is ``octocat`` and the pull request
 branch name is ``cool-feature`` that is tied to pull request number 99999::
 
     git remote add octocat git@github.com:octocat/astropy.git
-    git fetch octocat cool-feature
-    git checkout octocat/cool-feature -b pr99999
+    git switch -c pr99999 --track octocat/cool-feature
 
 Now you are on the branch with the changes to be incorporated upstream. The
 rest of this section assumes you are on this branch.
