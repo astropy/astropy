@@ -61,12 +61,12 @@ Before going further, make sure you have set up astropy as described in
 In a terminal window, change directory to the one containing your clone of
 Astropy. Then, run ``git remote``; the output should look something like this::
 
-    your-github-username
     astropy
+    origin
 
 If that works, also run ``git fetch --all``. If it runs without errors then
 your installation is working and you have a complete list of all branches in
-your clone, ``your-github-username`` and ``astropy``.
+your clone, ``origin`` and ``astropy``.
 
 About names in `git`_
 =====================
@@ -78,8 +78,8 @@ your clone of git knows about with ``git branch -a`` you will see there are
 *three* different branches called ``main``::
 
     * main                              # this is main in your local repo
-    remotes/your-github-username/main   # main on your fork of Astropy on GitHub
     remotes/astropy/main                # the official development branch of Astropy
+    remotes/origin/main                 # main on your fork of Astropy on GitHub
 
 The naming scheme used by `git`_ will also be used here. A plain branch name,
 like ``main`` means a branch in your local copy of Astropy. A branch on a
@@ -149,10 +149,9 @@ Astropy Guidelines for `git`_
   first with your changes to make sure your
   edit is correct, and you only appear in the list once.
 
-In addition there are a couple of `git`_ naming conventions used in this
+In addition, there is a `git`_ naming convention used in this
 document:
 
-* Change the name of the remote ``origin`` to ``your-github-username``.
 * Name the remote that is the primary Astropy repository
   ``astropy``; in prior versions of this documentation it was referred to as
   ``upstream``.
@@ -303,7 +302,7 @@ The most convenient way for connecting your local branch to GitHub is to `git
 push`_ this new branch up to your GitHub repo with the ``--set-upstream``
 option::
 
-   git push --set-upstream your-github-username my-new-feature
+   git push --set-upstream origin my-new-feature
 
 From now on git will know that ``my-new-feature`` is related to the
 ``your-github-username/my-new-feature`` branch in your GitHub fork of Astropy.
@@ -611,11 +610,10 @@ exporting the final diff from a feature branch, then starting a new branch and
 applying only that patch.
 
 Many of us find that is it actually easiest to squash using rebase. In particular,
-you can rebase and squash within the existing branch using, where you have to replace
-``N`` in the command below with the number of commits you need to handle::
+you can rebase and squash within the existing branch using::
 
-  git checkout my-new-feature
-  git rebase -i HEAD~N
+  git fetch astropy
+  git rebase -i astropy/main
 
 The last command will open an editor with all your commits, allowing you to
 squash several commits together, rename them, etc. Helpfully, the file you are
