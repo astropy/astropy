@@ -68,9 +68,9 @@ class PowerLaw1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None:
+        if self.x_0.input_unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit}
+        return {self.inputs[0]: self.x_0.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -141,9 +141,9 @@ class BrokenPowerLaw1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_break.unit is None:
+        if self.x_break.input_unit is None:
             return None
-        return {self.inputs[0]: self.x_break.unit}
+        return {self.inputs[0]: self.x_break.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -383,9 +383,9 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_break.unit is None:
+        if self.x_break.input_unit is None:
             return None
-        return {self.inputs[0]: self.x_break.unit}
+        return {self.inputs[0]: self.x_break.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -449,9 +449,9 @@ class ExponentialCutoffPowerLaw1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None:
+        if self.x_0.input_unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit}
+        return {self.inputs[0]: self.x_0.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -518,9 +518,9 @@ class LogParabola1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_0.unit is None:
+        if self.x_0.input_unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit}
+        return {self.inputs[0]: self.x_0.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -647,9 +647,9 @@ class Schechter1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.m_star.unit is None:
+        if self.m_star.input_unit is None:
             return None
-        return {self.inputs[0]: self.m_star.unit}
+        return {self.inputs[0]: self.m_star.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
