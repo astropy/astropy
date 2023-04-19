@@ -579,6 +579,7 @@ static PyObject *unquantize_float_c(PyObject *self, PyObject *args) {
 
   result = Py_BuildValue("y#", output_bytes, npix * sizeof(float));
   free(output_bytes);
+  free(anynull);
   return result;
 }
 
