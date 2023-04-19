@@ -95,4 +95,3 @@ class TestAngles:
 
         assert isinstance(deloc.x, Distribution)
         assert_array_equal(np.median(eloc.x, axis=1), deloc.x.pdf_median())
-        
