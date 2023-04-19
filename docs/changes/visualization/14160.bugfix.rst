@@ -1,1 +1,1 @@
-``CoordinateHelper.set_ticks()`` now accepts ``nticks=0``. Previously it errored.
+``CoordinateHelper.set_ticks()`` now accepts ``number=0``. Previously it errored.
