@@ -1,1 +1,1 @@
-Fix issues with double quotes in CONTINUE cards
+Fix issues with double quotes in CONTINUE cards.
