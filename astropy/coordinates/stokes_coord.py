@@ -62,8 +62,14 @@ def custom_stokes_symbol_mapping(
 
 
 class StokesCoordInfo(MixinInfo):
-    _represent_as_dict_attrs = {"_data"}
-    _represent_as_dict_primary_data = "_data"
+    # The attributes containing actual information.
+    _represent_as_dict_attrs = {"value"}
+    # Since there is only one attribute, use a column with the name to represent it
+    # (rather than as name.value)
+    _represent_as_dict_primary_data = "value"
+    # Attributes that should be presented as positional arguments to
+    # the class initializer (which takes "stokes" as an argument, not "value").
+    _construct_from_dict_args = ("value",)
 
     @property
     def unit(self):
@@ -72,6 +78,61 @@ class StokesCoordInfo(MixinInfo):
     @property
     def dtype(self):
         return self._parent._data.dtype
+
+    def new_like(self, cols, length, metadata_conflicts="warn", name=None):
+        """
+        Return a new StokesCoord instance which is consistent with the
+        input ``cols`` and has ``length`` rows.
+
+        This is intended for creating an empty column object whose elements can
+        be set in-place for table operations like join or vstack.
+
+        Parameters
+        ----------
+        cols : list
+            List of input columns
+        length : int
+            Length of the output column object
+        metadata_conflicts : str ('warn'|'error'|'silent')
+            How to handle metadata conflicts
+        name : str
+            Output column name
+
+        Returns
+        -------
+        col : `~astropy.coordinates.StokesCoord` (or subclass)
+            Empty instance of this class consistent with ``cols``
+
+        """
+        # Get merged info attributes like shape, dtype, format, description, etc.
+        attrs = self.merge_cols_attributes(
+            cols, metadata_conflicts, name, ("meta", "format", "description")
+        )
+
+        # Make an empty StokesCoord.
+        shape = (length,) + attrs.pop("shape")
+        data = np.empty(shape=shape, dtype=dtype)
+        # Get arguments needed to reconstruct class
+        out = self._construct_from_dict(stokes=data)
+
+        # Set remaining info attributes
+        for attr, value in attrs.items():
+            setattr(out.info, attr, value)
+
+        return out
+
+    def get_sortable_arrays(self):
+        """
+        Return a list of arrays which can be lexically sorted to represent
+        the order of the parent column.
+
+        For StokesCoord this is just the underlying values.
+
+        Returns
+        -------
+        arrays : list of ndarray
+        """
+        return [self._parent._data]
 
 
 class StokesCoord(ShapedLikeNDArray):
@@ -108,11 +169,17 @@ class StokesCoord(ShapedLikeNDArray):
         cls = type(self)
 
         if callable(method):
-            return cls(method(self._data, *args, **kwargs))
-        elif method == "__getitem__":
-            return cls(self._data.__getitem__(*args))
+            new = cls(method(self._data, *args, **kwargs))
         else:
-            return getattr(self, method)(*args, **kwargs)
+            new = cls(getattr(self._data, method)(*args, **kwargs))
+
+        # Copy other 'info' attr only if it has actually been defined.
+        # See PR #3898 for further explanation and justification, along
+        # with Quantity.__array_finalize__
+        if "info" in self.__dict__:
+            new.info = self.info
+
+        return new
 
     @staticmethod
     def _from_symbols(symbols):

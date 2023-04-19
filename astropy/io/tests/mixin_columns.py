@@ -2,6 +2,8 @@
 """
 Mixin columns for use in ascii/tests/test_ecsv.py, fits/tests/test_connect.py,
 and misc/tests/test_hdf5.py.
+
+All columns should have length 2.
 """
 
 import numpy as np
@@ -60,7 +62,7 @@ su2 = table.Column(
     [(["snake", "c"], [1.6, 1.5]), (["eal", "a"], [2.5, 2.6])],
     dtype=[("name", "U5", (2,)), ("f", "f8", (2,))],
 )
-stokes = coordinates.StokesCoord(range(1, 6))
+stokes = coordinates.StokesCoord(["RR", "LL"])
 
 # NOTE: for testing, the name of the column "x" for the
 # Quantity is important since it tests the fix for #10215
