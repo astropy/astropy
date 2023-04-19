@@ -73,28 +73,28 @@ def test_to_string_formats():
     assert a.to_string(format="unicode") == "1ʰ06ᵐ48.078ˢ"
 
     a = Angle(1.113355, unit=u.radian)
-    assert a.to_string(format="latex") == r"$1.11336\mathrm{rad}$"
-    assert a.to_string(format="latex_inline") == r"$1.11336\mathrm{rad}$"
-    assert a.to_string(format="unicode") == "1.11336rad"
+    assert a.to_string(format="latex") == r"$1.11336\;\mathrm{rad}$"
+    assert a.to_string(format="latex_inline") == r"$1.11336\;\mathrm{rad}$"
+    assert a.to_string(format="unicode") == "1.11336 rad"
 
 
 def test_to_string_decimal_formats():
     angle1 = Angle(2.0, unit=u.degree)
 
-    assert angle1.to_string(decimal=True, format="generic") == "2deg"
+    assert angle1.to_string(decimal=True, format="generic") == "2 deg"
     assert angle1.to_string(decimal=True, format="latex") == "$2\\mathrm{{}^{\\circ}}$"
     assert angle1.to_string(decimal=True, format="unicode") == "2°"
 
     angle2 = Angle(3.0, unit=u.hourangle)
-    assert angle2.to_string(decimal=True, format="generic") == "3hourangle"
+    assert angle2.to_string(decimal=True, format="generic") == "3 hourangle"
     assert angle2.to_string(decimal=True, format="latex") == "$3\\mathrm{{}^{h}}$"
     assert angle2.to_string(decimal=True, format="unicode") == "3ʰ"
 
     angle3 = Angle(4.0, unit=u.radian)
 
-    assert angle3.to_string(decimal=True, format="generic") == "4rad"
-    assert angle3.to_string(decimal=True, format="latex") == "$4\\mathrm{rad}$"
-    assert angle3.to_string(decimal=True, format="unicode") == "4rad"
+    assert angle3.to_string(decimal=True, format="generic") == "4 rad"
+    assert angle3.to_string(decimal=True, format="latex") == "$4\\;\\mathrm{rad}$"
+    assert angle3.to_string(decimal=True, format="unicode") == "4 rad"
 
     with pytest.raises(ValueError, match="Unknown format"):
         angle3.to_string(decimal=True, format="myformat")
@@ -148,7 +148,7 @@ def test_to_string_radian_with_precision():
 
     # Check that specifying the precision works
     a = Angle(3.0, unit=u.rad)
-    assert a.to_string(precision=3, sep="fromunit") == "3.000rad"
+    assert a.to_string(precision=3, sep="fromunit") == "3.000 rad"
 
 
 def test_sexagesimal_round_down():
