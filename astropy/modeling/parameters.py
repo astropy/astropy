@@ -162,7 +162,8 @@ class Parameter:
         a function that wraps the raw (internal) value of the parameter
         when returning the value through the parameter proxy (eg. a
         parameter may be stored internally as radians but returned to the
-        user as degrees)
+        user as degrees). The internal value is what is used for computations
+        while the proxy value is what users will interact with (passing and viewing).
     setter : callable
         a function that wraps any values assigned to this parameter; should
         be the inverse of getter
@@ -415,6 +416,16 @@ class Parameter:
         representation used internally.
         """
         self._internal_unit = internal_unit
+
+    @property
+    def input_unit(self):
+        """Unit for the input value."""
+        if self.internal_unit is not None:
+            return self.internal_unit
+        elif self.unit is not None:
+            return self.unit
+        else:
+            return None
 
     @property
     def quantity(self):
@@ -681,6 +692,8 @@ class Parameter:
                     "getter/setter may only take one input "
                     "argument"
                 )
+
+            return _wrap_ufunc(wrapper)
         elif wrapper is None:
             # Just allow non-wrappers to fall through silently, for convenience
             return None
@@ -746,3 +759,21 @@ def param_repr_oneline(param):
     if param.unit is not None:
         out = f"{out} {param.unit!s}"
     return out
+
+
+def _wrap_ufunc(ufunc):
+    def _wrapper(value, raw_unit=None, orig_unit=None):
+        """
+        Wrap ufuncs to support passing in units
+            raw_unit is the unit of the value
+            orig_unit is the value after the ufunc has been applied
+            it is assumed ufunc(raw_unit) == orig_unit
+        """
+        if orig_unit is not None:
+            return ufunc(value) * orig_unit
+        elif raw_unit is not None:
+            return ufunc(value * raw_unit)
+
+        return ufunc(value)
+
+    return _wrapper

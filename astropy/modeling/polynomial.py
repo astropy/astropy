@@ -1075,10 +1075,10 @@ class Polynomial1D(_PolyDomainWindow1D):
 
     @property
     def input_units(self):
-        if self.degree == 0 or self.c1.unit is None:
+        if self.degree == 0 or self.c1.input_unit is None:
             return None
         else:
-            return {self.inputs[0]: self.c0.unit / self.c1.unit}
+            return {self.inputs[0]: self.c0.input_unit / self.c1.input_unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         mapping = {}
@@ -1296,11 +1296,13 @@ class Polynomial2D(PolynomialModel):
 
     @property
     def input_units(self):
-        if self.degree == 0 or (self.c1_0.unit is None and self.c0_1.unit is None):
+        if self.degree == 0 or (
+            self.c1_0.input_unit is None and self.c0_1.input_unit is None
+        ):
             return None
         return {
-            self.inputs[0]: self.c0_0.unit / self.c1_0.unit,
-            self.inputs[1]: self.c0_0.unit / self.c0_1.unit,
+            self.inputs[0]: self.c0_0.input_unit / self.c1_0.input_unit,
+            self.inputs[1]: self.c0_0.input_unit / self.c0_1.input_unit,
         }
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
