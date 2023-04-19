@@ -3,7 +3,7 @@
 import pytest
 
 # By default, tests should not use the internet.
-from astropy.samp import conf, SAMPProxyError
+from astropy.samp import SAMPWarning, conf
 from astropy.samp.client import SAMPClient
 from astropy.samp.hub import SAMPHubServer
 from astropy.samp.hub_proxy import SAMPHubProxy
@@ -43,7 +43,7 @@ def test_SAMPIntegratedClient_notify_all(samp_hub):
     client = SAMPIntegratedClient()
     client.connect()
     message = {"samp.mtype": "coverage.load.moc.fits"}
-    with pytest.raises(SAMPProxyError):
+    with pytest.warns(SAMPWarning):
         client.notify_all(message)
     client.disconnect()
 
