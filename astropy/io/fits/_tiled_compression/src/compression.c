@@ -636,5 +636,6 @@ static PyObject *unquantize_double_c(PyObject *self, PyObject *args) {
 
   result = Py_BuildValue("y#", output_bytes, npix * sizeof(double));
   free(output_bytes);
+  free(anynull);
   return result;
 }
