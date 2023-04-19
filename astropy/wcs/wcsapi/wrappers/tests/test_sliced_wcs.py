@@ -150,7 +150,7 @@ def test_ellipsis():
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
     assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], Galactic)
-    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] == (u.deg, u.deg)
 
     assert wcs.world_axis_object_classes["spectral"][0] is Quantity
     assert wcs.world_axis_object_classes["spectral"][1] == ()
@@ -231,7 +231,7 @@ def test_spectral_slice():
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
     assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], Galactic)
-    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] == (u.deg, u.deg)
 
     assert_allclose(wcs.pixel_to_world_values(29, 44), (10, 25))
     assert_allclose(wcs.array_index_to_world_values(44, 29), (10, 25))
@@ -309,7 +309,7 @@ def test_spectral_range():
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
     assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], Galactic)
-    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] == (u.deg, u.deg)
 
     assert wcs.world_axis_object_classes["spectral"][0] is Quantity
     assert wcs.world_axis_object_classes["spectral"][1] == ()
@@ -389,7 +389,7 @@ def test_celestial_slice():
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
     assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], Galactic)
-    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] == (u.deg, u.deg)
 
     assert wcs.world_axis_object_classes["spectral"][0] is Quantity
     assert wcs.world_axis_object_classes["spectral"][1] == ()
@@ -471,7 +471,7 @@ def test_celestial_range():
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
     assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], Galactic)
-    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] == (u.deg, u.deg)
 
     assert wcs.world_axis_object_classes["spectral"][0] is Quantity
     assert wcs.world_axis_object_classes["spectral"][1] == ()
@@ -562,7 +562,7 @@ def test_celestial_range_rot():
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
     assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], Galactic)
-    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] == (u.deg, u.deg)
 
     assert wcs.world_axis_object_classes["spectral"][0] is Quantity
     assert wcs.world_axis_object_classes["spectral"][1] == ()
@@ -665,7 +665,7 @@ def test_no_array_shape():
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
     assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], Galactic)
-    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] == (u.deg, u.deg)
 
     assert wcs.world_axis_object_classes["spectral"][0] is Quantity
     assert wcs.world_axis_object_classes["spectral"][1] == ()
@@ -762,7 +762,7 @@ def test_ellipsis_none_types():
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
     assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], Galactic)
-    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] == (u.deg, u.deg)
 
     assert_allclose(wcs.pixel_to_world_values(29, 39, 44), (10, 20, 25))
     assert_allclose(wcs.array_index_to_world_values(44, 39, 29), (10, 20, 25))
@@ -955,7 +955,7 @@ def test_dropped_dimensions():
     assert wao_classes["celestial"][0] is SkyCoord
     assert wao_classes["celestial"][1] == ()
     assert isinstance(wao_classes["celestial"][2]["frame"], Galactic)
-    assert wao_classes["celestial"][2]["unit"] is u.deg
+    assert wao_classes["celestial"][2]["unit"] == (u.deg, u.deg)
 
     sub = SlicedLowLevelWCS(wcs, np.s_[5, :5, 12])
 
@@ -979,7 +979,7 @@ def test_dropped_dimensions():
     assert wao_classes["celestial"][0] is SkyCoord
     assert wao_classes["celestial"][1] == ()
     assert isinstance(wao_classes["celestial"][2]["frame"], Galactic)
-    assert wao_classes["celestial"][2]["unit"] is u.deg
+    assert wao_classes["celestial"][2]["unit"] == (u.deg, u.deg)
 
 
 def test_dropped_dimensions_4d(cube_4d_fitswcs):
@@ -1003,7 +1003,7 @@ def test_dropped_dimensions_4d(cube_4d_fitswcs):
     assert wao_classes["celestial"][0] is SkyCoord
     assert wao_classes["celestial"][1] == ()
     assert isinstance(wao_classes["celestial"][2]["frame"], ICRS)
-    assert wao_classes["celestial"][2]["unit"] is u.deg
+    assert wao_classes["celestial"][2]["unit"] == (u.deg, u.deg)
     assert wao_classes["spectral"][0:3] == (u.Quantity, (), {})
 
     assert wao_components[0] == ("celestial", 0, "spherical.lon.degree")
