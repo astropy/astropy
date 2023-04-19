@@ -1,0 +1,2 @@
+Do not call ``gc.collect()`` when closing a ``CompImageHDU`` object as it has a
+large performance penalty.
