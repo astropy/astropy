@@ -1,6 +1,5 @@
 from collections import namedtuple
 from contextlib import contextmanager
-from copy import copy
 from typing import Dict
 
 import numpy as np
@@ -20,17 +19,18 @@ FITS_STOKES_VALUE_SYMBOL_MAP = {
     2: StokesSymbol("Q", "Standard Stokes linear"),
     3: StokesSymbol("U", "Standard Stokes linear"),
     4: StokesSymbol("V", "Standard Stokes circular"),
-    -1: StokesSymbol("RR", "Right-right circular"),
-    -2: StokesSymbol("LL", "Left-left circular"),
-    -3: StokesSymbol("RL", "Right-left cross-circular"),
-    -4: StokesSymbol("LR", "Left-right cross-circular"),
-    -5: StokesSymbol("XX", "X parallel linear"),
-    -6: StokesSymbol("YY", "Y parallel linear"),
-    -7: StokesSymbol("XY", "XY cross linear"),
-    -8: StokesSymbol("YX", "YX cross linear"),
+    -1: StokesSymbol("RR", "Right-right circular: <RR*>"),
+    -2: StokesSymbol("LL", "Left-left circular: <LL*>"),
+    -3: StokesSymbol("RL", "Right-left cross-circular: Re(<RL*>))"),
+    -4: StokesSymbol("LR", "Left-right cross-circular: Re(<LR*>)=Im(<RL*>)"),
+    -5: StokesSymbol("XX", "X parallel linear: <XX*>"),
+    -6: StokesSymbol("YY", "Y parallel linear: <YY*>"),
+    -7: StokesSymbol("XY", "XY cross linear: Re(<XY*>)"),
+    -8: StokesSymbol("YX", "YX cross linear: Im(<XY*>)"),
 }
 
-STOKES_VALUE_SYMBOL_MAP = copy(FITS_STOKES_VALUE_SYMBOL_MAP)
+STOKES_VALUE_SYMBOL_MAP = FITS_STOKES_VALUE_SYMBOL_MAP.copy()
+UNKNOWN_STOKES_VALUE = -99999
 
 
 @contextmanager
@@ -50,7 +50,7 @@ def custom_stokes_symbol_mapping(
     """
     global STOKES_VALUE_SYMBOL_MAP
 
-    original_mapping = copy(STOKES_VALUE_SYMBOL_MAP)
+    original_mapping = STOKES_VALUE_SYMBOL_MAP.copy()
     if not replace:
         STOKES_VALUE_SYMBOL_MAP = {**original_mapping, **mapping}
     else:
@@ -148,11 +148,11 @@ class StokesCoord(ShapedLikeNDArray):
     info = StokesCoordInfo()
 
     def __init__(self, stokes, copy=False):
-        stokes = np.asanyarray(stokes)
-        if stokes.dtype.kind == "U":
-            self._data = self._from_symbols(stokes)
+        data = np.asanyarray(stokes)
+        if data.dtype.kind == "U":
+            self._data = self._from_symbols(data)
         else:
-            self._data = stokes
+            self._data = data.copy() if copy and data is stokes else data
 
     @property
     def shape(self):
@@ -161,9 +161,6 @@ class StokesCoord(ShapedLikeNDArray):
     @property
     def value(self):
         return self._data
-
-    # def __array__(self):
-    #     return self._data
 
     def _apply(self, method, *args, **kwargs):
         cls = type(self)
@@ -186,25 +183,18 @@ class StokesCoord(ShapedLikeNDArray):
         """
         Construct a StokesCoord from strings representing the stokes symbols.
         """
-        values_array = np.full_like(symbols, np.nan, dtype=float, subok=False)
+        values_array = np.full_like(
+            symbols, UNKNOWN_STOKES_VALUE, dtype=int, subok=False
+        )
         for stokes_value, symbol in STOKES_VALUE_SYMBOL_MAP.items():
             values_array[symbols == symbol.symbol] = stokes_value
 
-        if (nan_values := np.isnan(values_array)).any():
+        if (unknown_values := np.equal(values_array, UNKNOWN_STOKES_VALUE)).any():
             raise ValueError(
-                f"Unknown stokes symbols present in the input array: {np.unique(symbols[nan_values])}"
+                f"Unknown stokes symbols present in the input array: {np.unique(symbols[unknown_values])}"
             )
 
         return values_array
-
-    @property
-    def _stokes_values(self):
-        """
-        A representation of the coordinate as integers.
-        """
-        # Note we unbroadcast and re-broadcast here to prevent the new array
-        # using more memory than the old one.
-        return np.broadcast_to(np.round(unbroadcast(self._data)), self.shape)
 
     @property
     def symbol(self):
@@ -218,10 +208,10 @@ class StokesCoord(ShapedLikeNDArray):
 
         # Note we unbroadcast and re-broadcast here to prevent the new array
         # using more memory than the old one.
-        symbolarr = np.full(unbroadcast(self._data).shape, "?", dtype=f"<U{max_len}")
-
+        unbroadcasted = np.round(unbroadcast(self.value))
+        symbolarr = np.full(unbroadcasted.shape, "?", dtype=f"<U{max_len}")
         for value, symbol in STOKES_VALUE_SYMBOL_MAP.items():
-            symbolarr[unbroadcast(self._stokes_values) == value] = symbol.symbol
+            symbolarr[unbroadcasted == value] = symbol.symbol
 
         return np.broadcast_to(symbolarr, self.shape)
 
@@ -233,6 +223,9 @@ class StokesCoord(ShapedLikeNDArray):
 
         return self._data == other._data
 
-    def __repr__(self):
+    def __str__(self):
         arrstr = np.array2string(self.symbol, separator=", ", prefix="  ")
         return f"{type(self).__name__}({arrstr})"
+
+    def __repr__(self):
+        return self.__str__()

@@ -164,7 +164,7 @@ compare_attrs = {
     "obj": [],
     "su": ["i", "f.p0", "f.p1"],
     "su2": ["name", "f"],
-    "stokes": ["_data"],
+    "stokes": ["value"],
 }
 non_trivial_names = {
     "cr": ["cr.x", "cr.y", "cr.z"],
