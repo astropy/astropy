@@ -17,6 +17,7 @@
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_cube_slice_image_lonlat": "224f7e2f7d106ab028584bdc51c73296e277a211b7f3ed36a0452eb4842afa5b",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_plot_coord": "c76ac28ace10ca5186c3dcb396fca0d1a050e498e806841ad25e4bf06f37fa78",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_scatter_coord": "c76ac28ace10ca5186c3dcb396fca0d1a050e498e806841ad25e4bf06f37fa78",
+  "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_text_coord": "6ff1884670d2ead8f8d5c351f80f35baf15afa4d6321b8c53aa7e89ba413325c",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_plot_line": "977c21ed46b84138bf53b7aa809dc4b95fafce1e3cc88fa354a44e19e0d020cd",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_changed_axis_units": "056ec7123c67fa7ee6269bec47641bfe4932630a79d02029e71164b522fadacd",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_minor_ticks": "5224f8fa725901ff74a4558987ceaae0363f98894d2c6a12d8c557db500ff7fe",
@@ -50,5 +51,5 @@
   "astropy.visualization.wcsaxes.tests.test_transform_coord_meta.TestTransformCoordMeta.test_coords_overlay_auto_coord_meta": "4ab8cade790f7ab36c620cb136e076a14eccf1dac7109a3d4d5601cebc46ac8a",
   "astropy.visualization.wcsaxes.tests.test_transform_coord_meta.TestTransformCoordMeta.test_direct_init": "1f24c5243bfdf0f30e88afc4f2f5d66db85954cea50a2910af94975ff8765b45",
   "astropy.visualization.wcsaxes.tests.test_wcsapi.test_wcsapi_5d_with_names": "d2dd2f7efef595a5819906c3f4f77f68d70d29efca5851d19528aecb0e3f8035",
-  "astropy.visualization.wcsaxes.tests.test_wcsapi.test_wcsapi_2d_celestial_arcsec": "645d52dd264a02cf70fb85408f698930863f09f633eab37f0d8d06495a43e3cc"
+  "astropy.visualization.wcsaxes.tests.test_wcsapi.test_wcsapi_2d_celestial_arcsec": "4b743d645a85d7516decbcf4a831c127af5a1800072597c2a1299d17fb186adb"
 }
