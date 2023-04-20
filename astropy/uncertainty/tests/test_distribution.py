@@ -564,3 +564,96 @@ class TestQuantityDistributionGetSetItemAdvancedIndex(TestGetSetItemAdvancedInde
     def setup_class(self):
         self.distribution = np.arange(60.0).reshape(3, 4, 5) << u.m
         self.d = Distribution(self.distribution)
+
+
+class StructuredDtypeBase:
+    @classmethod
+    def setup_class(self):
+        self.dtype = np.dtype([("a", "f8"), ("b", "(2,2)f8")])
+        data = np.arange(5.0) + (np.arange(60.0) * 10).reshape(3, 4, 5, 1)
+        self.distribution = data.view(self.dtype).reshape(3, 4, 5)
+        self.d = Distribution(self.distribution)
+
+
+class TestStructuredQuantityDistributionInit(StructuredDtypeBase):
+    @classmethod
+    def setup_class(self):
+        super().setup_class()
+        self.unit = u.Unit("km, m")
+        self.d_unit = self.unit
+
+    def test_init_via_structured_samples(self):
+        distribution = self.distribution << self.unit
+        d = Distribution(distribution)
+        assert d.unit == self.d_unit
+        assert_array_equal(d.distribution, distribution)
+        assert_array_equal(d.value.distribution, self.distribution)
+
+    def test_init_via_structured_distribution(self):
+        d = self.d << self.unit
+        assert d.unit == self.d_unit
+
+
+class TestStructuredAdvancedIndex(StructuredDtypeBase, TestGetSetItemAdvancedIndex):
+    def test_init(self):
+        assert self.d.shape == (3, 4)
+        assert self.d.n_samples == 5
+        assert_array_equal(self.d.distribution, self.distribution)
+
+
+class TestStructuredDistribution(StructuredDtypeBase):
+    @classmethod
+    def setup_class(self):
+        super().setup_class()
+        self.item = (0.0, [[-1.0, -2.0], [-3.0, -4.0]])
+        self.b_item = [[-1.0, -2.0], [-3.0, -4.0]]
+
+    @pytest.mark.parametrize("item", [-2, slice(1, 3), "a", "b"])
+    def test_getitem(self, item):
+        d_i = self.d[item]
+        assert isinstance(d_i, Distribution)
+        if item in self.dtype.names:
+            assert d_i.shape == self.d.shape + self.dtype[item].shape
+        else:
+            assert d_i.shape == np.ones(self.d.shape)[item].shape
+        assert np.may_share_memory(d_i, self.d)
+        expected = self.distribution[item]
+        if isinstance(item, str):
+            # Sample axis should always be at the end.
+            expected = np.moveaxis(self.distribution[item], self.d.ndim, -1)
+        assert_array_equal(d_i.distribution, expected)
+
+    @pytest.mark.parametrize("item", [1, slice(0, 2)])
+    def test_setitem_index_slice(self, item):
+        d = self.d.copy()
+        distribution = self.distribution.copy()
+        value = self.item
+        d[item] = value
+        distribution[item] = value
+        assert_array_equal(d.distribution, distribution)
+        d[item] = self.d[item]
+        assert_array_equal(d.distribution, self.distribution)
+
+    @pytest.mark.parametrize("item", ["a", "b"])
+    def test_setitem_field(self, item):
+        d = self.d.copy()
+        d[item] = 0.0
+        assert_array_equal(d.distribution[item], np.zeros_like(self.distribution[item]))
+        if item == "b":
+            value = self.b_item  # selected to be a bit tricky.
+            d[item] = value
+            assert_array_equal(
+                d.distribution[item], np.full_like(self.distribution[item], value)
+            )
+        d[item] = self.d[item] * 2.0
+        assert_array_equal(d.distribution[item], self.distribution[item] * 2)
+
+
+class TestStructuredQuantityDistribution(TestStructuredDistribution):
+    @classmethod
+    def setup_class(self):
+        super().setup_class()
+        self.distribution = self.distribution * u.Unit("km,m")
+        self.d = self.d * u.Unit("km,m")
+        self.item = self.item * u.Unit("Mm,km")
+        self.b_item = self.b_item * u.km
