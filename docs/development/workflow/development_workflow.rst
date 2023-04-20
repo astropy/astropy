@@ -144,7 +144,10 @@ Astropy Guidelines for `git`_
   changes in the development version require changes to our code you can
   :ref:`rebase`.
 * If you need to edit `.mailmap <https://git-scm.com/docs/gitmailmap>`_ and
-  know how to do it then you can open a pull request for that.
+  know how to do it then you can open a pull request for that. Please run
+  `git shortlog -es <https://git-scm.com/docs/git-shortlog>`_ locally
+  first with your changes to make sure your
+  edit is correct, and you only appear in the list once.
 
 In addition there are a couple of `git`_ naming conventions used in this
 document:
