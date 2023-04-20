@@ -175,10 +175,10 @@ class TestInput:
             EarthLocation(self.lon, self.y, self.z)
 
         # wrong units
-        with pytest.raises(u.UnitsError):
+        with pytest.raises(u.UnitsError, match="should be in units of length"):
             EarthLocation.from_geocentric(self.lon, self.lat, self.lat)
         # inconsistent units
-        with pytest.raises(u.UnitsError):
+        with pytest.raises(u.UnitsError, match="should all be consistent"):
             EarthLocation.from_geocentric(self.h, self.lon, self.lat)
         # floats without a unit
         with pytest.raises(TypeError):
