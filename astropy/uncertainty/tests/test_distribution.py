@@ -513,3 +513,50 @@ class TestSetItemWithSelection:
         d = Distribution([90.0, 30.0, 0.0])
         d[d > 50] *= -1.0
         assert_array_equal(d, Distribution([-90.0, 30.0, 0.0]))
+
+
+ADVANCED_INDICES = [
+    (np.array([[1, 2], [0, 1]]), np.array([[1, 3], [0, 2]])),
+    # Same advanced index, but also using negative numbers
+    (np.array([[-2, -1], [0, -2]]), np.array([[1, -1], [-4, -2]])),
+]
+
+
+class TestGetSetItemAdvancedIndex:
+    @classmethod
+    def setup_class(self):
+        self.distribution = np.arange(60.0).reshape(3, 4, 5)
+        self.d = Distribution(self.distribution)
+
+    def test_setup(self):
+        ai1, ai2 = ADVANCED_INDICES[:2]
+        # Check that the first two indices produce the same output.
+        assert_array_equal(self.distribution[ai1], self.distribution[ai2])
+
+    @pytest.mark.parametrize("item", ADVANCED_INDICES)
+    def test_getitem(self, item):
+        v = self.d[item]
+        assert v.shape == item[0].shape
+        assert_array_equal(v.distribution, self.distribution[item])
+
+    @pytest.mark.parametrize("item", [([0, 4],), ([0], [0], [0])])
+    def test_getitem_bad(self, item):
+        with pytest.raises(IndexError):
+            self.d[item]
+
+    @pytest.mark.parametrize("item", ADVANCED_INDICES)
+    def test_setitem(self, item):
+        d = self.d.copy()
+        d[item] = 0.0
+        distribution = self.distribution.copy()
+        distribution[item] = 0.0
+        assert_array_equal(d.distribution, distribution)
+        d[item] = self.d[item]
+        assert_array_equal(d.distribution, self.distribution)
+
+
+class TestQuantityDistributionGetSetItemAdvancedIndex(TestGetSetItemAdvancedIndex):
+    @classmethod
+    def setup_class(self):
+        self.distribution = np.arange(60.0).reshape(3, 4, 5) << u.m
+        self.d = Distribution(self.distribution)
