@@ -33,8 +33,8 @@ def reduceat(array, indices, function):
             if indices[i + 1] <= indices[i] + 1:
                 result.append(function(array[indices[i]]))
             else:
-                result.append(function(array[indices[i]:indices[i+1]]))
-        result.append(function(array[indices[-1]:]))
+                result.append(function(array[indices[i] : indices[i + 1]]))
+        result.append(function(array[indices[-1] :]))
         return as_array(result)
 
 
@@ -45,7 +45,7 @@ def aggregate_downsample(
     time_bin_start=None,
     time_bin_end=None,
     n_bins=None,
-    aggregate_func=None
+    aggregate_func=None,
 ):
     """
     Downsample a time series by binning values into bins with a fixed size or
@@ -193,7 +193,7 @@ def aggregate_downsample(
     rel_bin_start = (bin_start - rel_base).to_value(format="sec", subfmt="long")
     rel_bin_end = (bin_end - rel_base).to_value(format="sec", subfmt="long")
     rel_ts_sorted_t = (ts_sorted.time - rel_base).to_value(format="sec", subfmt="long")
-    keep = ((rel_ts_sorted_t >= rel_bin_start[0]) & (rel_ts_sorted_t <= rel_bin_end[-1]))
+    keep = (rel_ts_sorted_t >= rel_bin_start[0]) & (rel_ts_sorted_t <= rel_bin_end[-1])
 
     # Find out indices to be removed because of noncontiguous bins
     #
@@ -247,7 +247,7 @@ def aggregate_downsample(
                 reduceat(values.value, groups, aggregate_func), values.unit, copy=False
             )
         elif isinstance(values, NdarrayMixin):
-            data = NdarrayMixin(np.repeat(np.nan,  n_bins))
+            data = NdarrayMixin(np.repeat(np.nan, n_bins))
             data[unique_indices] = reduceat(values, groups, aggregate_func)
         elif isinstance(values, np.ndarray):
             data = np.ma.zeros(n_bins, dtype=values.dtype)
@@ -256,8 +256,10 @@ def aggregate_downsample(
             data.mask[unique_indices] = 0
         # FIXME: figure out how to avoid the following, if possible (and if still happening)
         else:
-            warnings.warn(f"Skipping column '{colname}' since it has an unsupported mix-in type",
-                          AstropyUserWarning)
+            warnings.warn(
+                f"Skipping column '{colname}' since it has an unsupported mix-in type",
+                AstropyUserWarning,
+            )
             continue
 
         binned[colname] = data

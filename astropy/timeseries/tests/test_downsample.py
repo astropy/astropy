@@ -131,9 +131,10 @@ def test_nbins():
         assert len(down_nbins) == n_times
 
 
-@pytest.mark.parametrize("data_type", [np.array, NdarrayMixin,
-                                       lambda x: x * u.ct,
-                                       lambda x: u.Quantity(x, unit='ct')])
+@pytest.mark.parametrize(
+    "data_type",
+    [np.array, NdarrayMixin, lambda x: x * u.ct, lambda x: u.Quantity(x, unit="ct")],
+)
 def test_downsample(data_type):
     ts = TimeSeries(time=INPUT_TIME, data=[data_type([1.0, 2, 3, 4, 5])], names=["a"])
     ts_units = TimeSeries(
@@ -207,7 +208,7 @@ def test_downsample(data_type):
     # Specific data type properties
     if isinstance(down_4["a"], u.Quantity):
         assert_equal(down_4["a"].value, np.array([2.5, 5]))
-        assert down_4["a"].unit.name == 'ct'
+        assert down_4["a"].unit.name == "ct"
     elif isinstance(down_4["a"], NdarrayMixin):
         assert_equal(np.array(down_4["a"]), np.array([2.5, 5]))
     else:
