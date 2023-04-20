@@ -265,6 +265,10 @@ class EarthLocation(u.Quantity):
         if unit.physical_type != "length":
             raise u.UnitsError("Geocentric coordinates should be in units of length.")
 
+        # TODO: this part could be removed, with the try/except around the
+        # assignment to struc["x"], ..., below.  But this is a small API change
+        # in that it will no longer possible to initialize with a unit-full x,
+        # and unit-less y, z. Arguably, though, that would just solve a bug.
         try:
             x = u.Quantity(x, unit, copy=False)
             y = u.Quantity(y, unit, copy=False)
@@ -272,8 +276,8 @@ class EarthLocation(u.Quantity):
         except u.UnitsError:
             raise u.UnitsError("Geocentric coordinate units should all be consistent.")
 
-        x, y, z = np.broadcast_arrays(x, y, z)
-        struc = np.empty(x.shape, cls._location_dtype)
+        x, y, z = np.broadcast_arrays(x, y, z, subok=True)
+        struc = np.empty_like(x, dtype=cls._location_dtype)
         struc["x"], struc["y"], struc["z"] = x, y, z
         return super().__new__(cls, struc, unit, copy=False)
 
