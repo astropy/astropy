@@ -2,8 +2,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_equal
 
-import astropy.units as u
-from astropy.coordinates.stokes_coord import (
+from astropy.coordinates.polarization import (
     StokesCoord,
     StokesSymbol,
     custom_stokes_symbol_mapping,
@@ -38,27 +37,10 @@ def test_undefined():
     sk = StokesCoord(np.arange(-10, 7))
     assert_equal(
         sk.symbol,
-        np.array(
-            [
-                "?",
-                "?",
-                "YX",
-                "XY",
-                "YY",
-                "XX",
-                "LR",
-                "RL",
-                "LL",
-                "RR",
-                "?",
-                "I",
-                "Q",
-                "U",
-                "V",
-                "?",
-                "?",
-            ]
-        ),
+        # fmt: off
+        np.array(["?", "?", "YX", "XY", "YY", "XX", "LR", "RL",
+                  "LL", "RR", "?", "I", "Q", "U", "V", "?", "?"]),
+        # fmt: on
     )
 
 
@@ -86,7 +68,7 @@ def test_custom_symbol_mapping():
     # Check that the mapping is not active outside the context manager
     assert_equal(sk1.symbol, np.array(["I", "Q", "?", "?"]))
 
-    # But not for new StokesCoords
+    # Also not for new StokesCoords
     sk2 = StokesCoord(values)
     assert_equal(sk2.symbol, np.array(["I", "Q", "?", "?"]))
 
@@ -128,8 +110,6 @@ def test_comparison_scalar():
     assert_equal("Q" == sk, [False, True, False, False, False])
     assert_equal(sk == 1, [True, False, False, False, False])
     assert_equal(sk == "Q", [False, True, False, False, False])
-    # TODO: Should we support this or not?
-    # assert_equal(sk == "?", [False, False, False, False, True])
 
 
 def test_comparison_vector():
@@ -153,8 +133,6 @@ def test_efficient():
 
     values = np.broadcast_to(np.arange(1, 5, dtype=float), (512, 256, 4))
     sk = StokesCoord(values, copy=False)
-    # Sanity check
-    assert unbroadcast(sk.value).shape == (4,)
 
     assert sk.symbol.shape == (512, 256, 4)
     assert unbroadcast(sk.value).shape == (4,)
@@ -162,8 +140,11 @@ def test_efficient():
     assert_equal(unbroadcast(sk.symbol), np.array(["I", "Q", "U", "V"]))
 
 
-# TODO: Support this?
-@pytest.mark.skip(reason="Do we support this or not?")
-def test_convert_to_quantity():
-    sk1 = StokesCoord(np.arange(1, 6))
-    assert u.allclose(u.Quantity(sk1), np.arange(1, 6))
+def test_broadcast_to():
+    sk = StokesCoord(np.arange(1, 5, dtype=int), copy=False)
+    sk2 = np.broadcast_to(sk, (512, 256, 4))
+
+    assert sk2.symbol.shape == (512, 256, 4)
+    assert unbroadcast(sk2.value).shape == (4,)
+    assert unbroadcast(sk2.symbol).shape == (4,)
+    assert_equal(unbroadcast(sk.symbol), np.array(["I", "Q", "U", "V"]))
