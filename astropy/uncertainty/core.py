@@ -6,9 +6,11 @@ Distribution class and associated machinery.
 import builtins
 
 import numpy as np
+from numpy.lib.stride_tricks import DummyArray
 
 from astropy import stats
 from astropy import units as u
+from astropy.utils.compat.numpycompat import NUMPY_LT_1_23
 
 __all__ = ["Distribution"]
 
@@ -43,21 +45,57 @@ class Distribution:
         if isinstance(samples, Distribution):
             samples = samples.distribution
         else:
-            samples = np.asanyarray(samples, order="C")
-        if samples.shape == ():
-            raise TypeError("Attempted to initialize a Distribution with a scalar")
+            # We can handle strides larger than the itemsize by stride trickery,
+            # but the samples do have to have positive offset from each other,
+            # so if that's not the case, we make a copy.
+            if not isinstance(samples, np.ndarray) or (
+                samples.strides[-1] < samples.dtype.itemsize
+                and samples.shape[-1:] != (1,)  # strides[-1] can be 0.
+            ):
+                samples = np.asanyarray(samples, order="C")
+            if samples.shape == ():
+                raise TypeError("Attempted to initialize a Distribution with a scalar")
 
         # Do the view in two stages, since for viewing as a new class, it is good
         # to have with the dtype in place (e.g., for Quantity.__array_finalize__,
         # it is needed to create the correct StructuredUnit).
-        new_dtype = cls._get_distribution_dtype(samples.dtype, samples.shape[-1])
-        self = samples.view(new_dtype)
+        # First, get the structured dtype with a single "samples" field that holds
+        # a size n_samples array of "sample" fields with individual samples.
+        # We need the double indirection to be able to deal with non-contiguous samples
+        # (such as result from indexing a structured array).
+        # Note that for a single sample, samples.strides[-1] can be 0.
+        new_dtype = cls._get_distribution_dtype(
+            samples.dtype, samples.shape[-1], itemsize=samples.strides[-1]
+        )
+        # Create a structured array with the new dtype. We ensure we start with a
+        # regular ndarray, to avoid interference between our complicated dtype and
+        # something else (such as would be the case for Quantity.__array_finalize__,
+        # which needs the dtype to be correct for creating a StructuredUnit).
+        if samples.dtype.itemsize == samples.strides[-1]:
+            # For contiguous last axis, a plain new view suffices.
+            structured = samples.view(np.ndarray)
+        else:
+            # But if the last axis is not contiguous, we use __array_interface__ (as in
+            # np.lib.stridetricks.as_strided) to create a new ndarray where the last
+            # axis is covered by a void of the same size as the structured new_dtype
+            # (assigning it directly does not work: possible empty fields get entries).
+            interface = dict(samples.__array_interface__)
+            interface["descr"] = interface["typestr"] = f"|V{new_dtype.itemsize}"
+            interface["shape"] = samples.shape[:-1]
+            interface["strides"] = samples.strides[:-1]
+            structured = np.asarray(DummyArray(interface, base=samples))
+        # Set our new structured dtype.
+        structured.dtype = new_dtype
         # Get rid of trailing dimension of 1.
-        self.shape = samples.shape[:-1]
+        structured.shape = samples.shape[:-1]
 
-        # Now view as the Distribution subclass.
+        # Now view as the Distribution subclass, and finalize based on the
+        # original samples (e.g., to set the unit for QuantityDistribution).
         new_cls = cls._get_distribution_cls(type(samples))
-        return self.view(new_cls)
+        self = structured.view(new_cls)
+        if not NUMPY_LT_1_23 or callable(self.__array_finalize__):
+            self.__array_finalize__(samples)
+        return self
 
     @classmethod
     def _get_distribution_cls(cls, samples_cls):
@@ -105,19 +143,34 @@ class Distribution:
         return new_cls
 
     @classmethod
-    def _get_distribution_dtype(cls, sample_dtype, n_samples):
-        dtype = np.dtype(sample_dtype)
+    def _get_distribution_dtype(cls, dtype, n_samples, itemsize=None):
+        dtype = np.dtype(dtype)
+        # If not a sample dtype already, create one with a "samples" entry that holds
+        # all the samples.  Here, we create an indirection via "sample" because
+        # selecting an item from a structured array will necessarily give
+        # non-consecutive samples, and these can only be dealt with samples that are
+        # larger than a single element (plus stride tricks; see __new__). For those
+        # cases, itemsize larger than dtype.itemsize will be passed in (note that for
+        # the n_sample=1 case, itemsize can be 0; like itemsize=None, this will be dealt
+        # with by "or dtype.itemsize" below).
         if dtype.names != ("samples",):
-            dtype = np.dtype([("samples", (dtype, (n_samples,)))])
+            sample_dtype = np.dtype(
+                dict(
+                    names=["sample"],
+                    formats=[dtype],
+                    itemsize=itemsize or dtype.itemsize,
+                )
+            )
+            dtype = np.dtype([("samples", sample_dtype, (n_samples,))])
         return dtype
 
     @property
     def distribution(self):
-        return self["samples"]
+        return self["samples"]["sample"]
 
     @property
     def dtype(self):
-        return super().dtype["samples"].base
+        return super().dtype["samples"].base["sample"]
 
     @dtype.setter
     def dtype(self, dtype):
@@ -136,6 +189,7 @@ class Distribution:
                 (output.distribution if isinstance(output, Distribution) else output)
                 for output in outputs
             )
+
         if method in {"reduce", "accumulate", "reduceat"}:
             axis = kwargs.get("axis", None)
             if axis is None:
@@ -143,6 +197,8 @@ class Distribution:
                 kwargs["axis"] = tuple(range(inputs[0].ndim))
 
         for input_ in inputs:
+            # For any input that is not a Distribution, we add an axis at the
+            # end, to allow proper broadcasting with the distributions.
             if isinstance(input_, Distribution):
                 converted.append(input_.distribution)
             else:
@@ -370,16 +426,34 @@ class ArrayDistribution(Distribution, np.ndarray):
             # TODO: relax this constraint.
             raise ValueError("cannot view as Distribution subclass with a new dtype.")
 
-    # Override __getitem__ so that 'samples' is returned as the sample class.
+    @property
+    def distribution(self):
+        # Like in the creation, we go through an ndarray to ensure we have our
+        # actual dtype and to avoid entering, e.g., Quantity.__getitem__, which
+        # would give problems with units.
+        structured = super().view(np.ndarray)
+        distribution = structured["samples"]["sample"].view(self._samples_cls)
+        if not NUMPY_LT_1_23 or callable(self.__array_finalize__):
+            distribution.__array_finalize__(self)
+        return distribution
+
     def __getitem__(self, item):
+        if isinstance(item, str):
+            # "samples" should always get back to the samples class.
+            if item == "samples":
+                return self.distribution
+            else:
+                # Hard to get this right directly, so instead get item from the
+                # distribution, and create a new instance.  We move the sample axis to
+                # the end to ensure the order is right for possible subarrays.
+                return Distribution(np.moveaxis(self.distribution[item], self.ndim, -1))
+
         if isinstance(item, Distribution):
             # Required for in-place operations like dist[dist < 0] += 360.
             return self.distribution[item.distribution]
+
         result = super().__getitem__(item)
-        if item == "samples":
-            # Here, we need to avoid our own redefinition of view.
-            return super(ArrayDistribution, result).view(self._samples_cls)
-        elif isinstance(result, np.void):
+        if isinstance(result, np.void):
             return result.view((ScalarDistribution, result.dtype))
         else:
             return result
@@ -388,8 +462,25 @@ class ArrayDistribution(Distribution, np.ndarray):
         if isinstance(item, Distribution):
             # Support operations like dist[dist < 0] = 0.
             self.distribution[item.distribution] = value
-        else:
-            super().__setitem__(item, value)
+            return
+
+        if isinstance(item, str):
+            if item == "samples":
+                self.distribution[()] = value
+                return
+
+            # Get a view of this item (non-trivial; see above).
+            self = self[item]
+            item = ()
+
+        if not isinstance(value, Distribution):
+            # If value is not already a Distribution, first make it an array
+            # to help interpret possible structured dtype, and then turn it
+            # into a Distribution with n_samples=1 (which will broadcast).
+            value = np.array(value, dtype=self.dtype, copy=False, subok=True)
+            value = Distribution(value[..., np.newaxis])
+
+        super().__setitem__(item, value)
 
 
 class _DistributionRepr:
