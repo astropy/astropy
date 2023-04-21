@@ -17,10 +17,9 @@ PYTHON_LT_3_11 = sys.version_info < (3, 11)
 
 
 @deprecated(
-    since="v5.2",
-    message=(
-        "http://bugs.python.org/issue12166 is resolved. See docstring for alternatives."
-    ),
+    since="5.2",
+    message="http://bugs.python.org/issue12166 is resolved, {alternative}.",
+    alternative="use ``sorted(super().__dir__() + ...)`` instead",
 )
 def override__dir__(f):
     """
@@ -28,9 +27,6 @@ def override__dir__(f):
     "standard" members on the object as well.  This decorator takes care of that
     automatically, and all the wrapped function needs to do is return a list of
     the "special" members that wouldn't be found by the normal Python means.
-
-    .. deprecated:: v5.2
-        Use ``sorted(super().__dir__() + ...)`` instead.
 
     Example
     -------
