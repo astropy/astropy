@@ -108,8 +108,8 @@
 .. _`scipy mailing list`: http://mail.python.org/mailman/listinfo/scipy-dev
 .. |minimum_scipy_version| replace:: {scipy}
 
-.. asdf
-.. |minimum_asdf_version| replace:: {asdf}
+.. asdf-astropy
+.. |minimum_asdf_astropy_version| replace:: {asdf_astropy}
 
 .. pyyaml
 .. |minimum_pyyaml_version| replace:: {pyyaml}
