@@ -21,6 +21,7 @@
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_changed_axis_units": "056ec7123c67fa7ee6269bec47641bfe4932630a79d02029e71164b522fadacd",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_minor_ticks": "5224f8fa725901ff74a4558987ceaae0363f98894d2c6a12d8c557db500ff7fe",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_ticks_labels": "f4944296c37a6e8ea9d30126709da3567a25908c1665e8cad10e894dd87cd54d",
+  "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_no_ticks": "14c20201942f1db9796db8747ffcdec77254d79a9ae7dc45ce668ebf07c6de8e",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_rcparams": "1af0c66ba343df4f03efc18e707f5b0c2a54dbce7351e0f9024154937a30b371",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_tick_angles": "475f028bd48a51fe9dfc07fe3d58e63e629511fffeb3a4db27a26f6427b4256b",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_tick_angles_non_square_axes": "3a3a15f71e7303368bd7cebb70c6fd1f9d6710edf8af2ceb68642c64c74492a2",
