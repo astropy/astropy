@@ -100,7 +100,6 @@ class ParameterTestMixin:
         assert hasattr(all_parameter, "_unit")
         assert hasattr(all_parameter, "_equivalencies")
         assert hasattr(all_parameter, "_derived")
-        assert hasattr(all_parameter, "_format_spec")
 
         # __set_name__
         assert hasattr(all_parameter, "_attr_name")
@@ -303,7 +302,6 @@ class TestParameter(ParameterTestMixin):
         # custom from init
         assert param._unit == u.m
         assert param._equivalencies == u.mass_energy()
-        assert param._format_spec == ""
         assert param._derived == np.False_
 
         # custom from set_name
