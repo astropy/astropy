@@ -13,7 +13,6 @@ import textwrap
 import warnings
 
 from astropy.utils import data
-from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.xml import iterparser
 
 # LOCAL
@@ -31,7 +30,6 @@ __all__ = [
 VERIFY_OPTIONS = ["ignore", "warn", "exception"]
 
 
-@deprecated_renamed_argument("pedantic", "verify", since="5.0")
 def parse(
     source,
     columns=None,
@@ -80,6 +78,8 @@ def parse(
            deprecated in future.
         .. versionchanged:: 5.0
             The ``pedantic`` argument is deprecated.
+        .. versionchanged:: 6.0
+            The ``pedantic`` argument is removed.
 
     chunk_size : int, optional
         The number of rows to read before converting to an array.
@@ -136,18 +136,7 @@ def parse(
         )
 
     if verify is None:
-        conf_verify_lowercase = conf.verify.lower()
-
-        # We need to allow verify to be booleans as strings since the
-        # configuration framework doesn't make it easy/possible to have mixed
-        # types.
-        if conf_verify_lowercase in ["false", "true"]:
-            verify = conf_verify_lowercase == "true"
-        else:
-            verify = conf_verify_lowercase
-
-    if isinstance(verify, bool):
-        verify = "exception" if verify else "warn"
+        verify = conf.verify
     elif verify not in VERIFY_OPTIONS:
         raise ValueError(f"verify should be one of {'/'.join(VERIFY_OPTIONS)}")
 
