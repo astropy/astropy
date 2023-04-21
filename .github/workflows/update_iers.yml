@@ -27,7 +27,7 @@ jobs:
         git config user.name github-actions
         git config user.email github-actions@github.com
         git add astropy/utils/iers/data/Leap_Second.dat
-        git add astropy/utils/iers/data/eopc04_IAU2000.62-now
+        git add astropy/utils/iers/data/eopc04.62-now
         if ! git diff --cached --exit-code; then
           git commit -m "Update IERS Earth rotation and leap second tables"
         fi
