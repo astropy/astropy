@@ -305,12 +305,12 @@ option::
    git push --set-upstream origin my-new-feature
 
 From now on git will know that ``my-new-feature`` is related to the
-``your-github-username/my-new-feature`` branch in your GitHub fork of Astropy.
+``my-new-feature`` branch in your GitHub fork of Astropy.
 
-You will still need to ``git push`` your changes to GitHub periodically. The
+You will still need to :ref:`push-to-github` periodically. The
 setup in this section will make that easier because any following pushes of
 this branch can be performed without having to write out the remote and branch
-names.
+names, but it never hurts to be explicit in typing out the commands.
 
 .. _install-branch:
 
