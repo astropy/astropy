@@ -18,9 +18,9 @@ from astropy.utils.data import download_file
 from astropy.utils.decorators import classproperty, deprecated
 from astropy.utils.state import ScienceState
 
-from .builtin_frames import GCRS, ICRS, ITRS, TETE
+from .builtin_frames import GCRS, ICRS
 from .builtin_frames.utils import get_jd12
-from .representation import CartesianDifferential, CartesianRepresentation
+from .representation import CartesianRepresentation
 from .sky_coordinate import SkyCoord
 
 __all__ = [
@@ -543,30 +543,3 @@ for f in [
     if callable(f) and f.__doc__ is not None and "{_EPHEMERIS_NOTE}" in f.__doc__
 ]:
     f.__doc__ = f.__doc__.format(_EPHEMERIS_NOTE=indent(_EPHEMERIS_NOTE)[4:])
-
-
-deprecation_msg = """
-The use of _apparent_position_in_true_coordinates is deprecated because
-astropy now implements a True Equator True Equinox Frame (TETE), which
-should be used instead.
-"""
-
-
-@deprecated("4.2", deprecation_msg)
-def _apparent_position_in_true_coordinates(skycoord):
-    """
-    Convert Skycoord in GCRS frame into one in which RA and Dec
-    are defined w.r.t to the true equinox and poles of the Earth.
-    """
-    location = getattr(skycoord, "location", None)
-    if location is None:
-        gcrs_rep = skycoord.obsgeoloc.with_differentials(
-            {"s": CartesianDifferential.from_cartesian(skycoord.obsgeovel)}
-        )
-        location = (
-            GCRS(gcrs_rep, obstime=skycoord.obstime)
-            .transform_to(ITRS(obstime=skycoord.obstime))
-            .earth_location
-        )
-    tete_frame = TETE(obstime=skycoord.obstime, location=location)
-    return skycoord.transform_to(tete_frame)

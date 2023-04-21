@@ -1,0 +1,1 @@
+Removed deprecated angle utilities and orbital elements (``calc_moon``).

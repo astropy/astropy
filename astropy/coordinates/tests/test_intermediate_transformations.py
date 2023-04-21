@@ -40,16 +40,13 @@ from astropy.coordinates.builtin_frames.intermediate_rotation_transforms import 
     tete_to_itrs_mat,
 )
 from astropy.coordinates.builtin_frames.utils import get_jd12
-from astropy.coordinates.solar_system import (
-    _apparent_position_in_true_coordinates,
-    get_body,
-)
+from astropy.coordinates.solar_system import get_body
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
 from astropy.utils import iers
 from astropy.utils.compat.optional_deps import HAS_JPLEPHEM
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils.exceptions import AstropyWarning
 
 CI = os.environ.get("CI", False) == "true"
 
@@ -984,12 +981,6 @@ def test_tete_transforms():
     # test round trip via ITRS
     tete_rt = tete_coo1.transform_to(ITRS(obstime=time)).transform_to(tete_coo1)
     assert_allclose(tete_rt.separation_3d(tete_coo1), 0 * u.mm, atol=1 * u.mm)
-
-    # ensure deprecated routine remains consistent
-    # make sure test raises warning!
-    with pytest.warns(AstropyDeprecationWarning, match="The use of"):
-        tete_alt = _apparent_position_in_true_coordinates(moon)
-    assert_allclose(tete_coo1.separation_3d(tete_alt), 0 * u.mm, atol=100 * u.mm)
 
 
 def test_straight_overhead():
