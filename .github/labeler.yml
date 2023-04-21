@@ -65,10 +65,6 @@ io.misc:
   - astropy/io/misc/tests/**/*
   - docs/io/misc.rst
 
-io.misc.asdf:
-  - astropy/io/misc/asdf/**/*
-  - docs/io/asdf-schemas.rst
-
 io.registry:
   - astropy/io/*
   - astropy/io/tests/*
