@@ -27,14 +27,14 @@ directory where your local of ``astropy`` resides, should be something like this
 
     astropy   git@github.com:astropy/astropy.git (fetch)
     astropy   git@github.com:astropy/astropy.git (push)
-    your-user-name     git@github.com:your-user-name/astropy.git (fetch)
-    your-user-name     git@github.com:your-user-name/astropy.git (push)
+    origin    git@github.com:your-user-name/astropy.git (fetch)
+    origin    git@github.com:your-user-name/astropy.git (push)
 
-The precise form of the URLs for ``your-user-name`` depends on the
+The precise form of the URLs for ``origin`` depends on the
 authentication method you set up with GitHub.
 
 The important point is that ``astropy`` should point to the official ``astropy``
-repo and ``your-user-name`` should point to *your* copy of ``astropy`` on GitHub.
+repo and ``origin`` should point to *your* copy of ``astropy`` on GitHub.
 
 
 Grab the latest updates to astropy
@@ -478,7 +478,7 @@ Push your changes to your GitHub fork of astropy
 Use this command to push your local changes out to your copy of ``astropy``
 on GitHub before asking for the changes to be reviewed::
 
-    git push your-user-name fix-1761
+    git push origin fix-1761
 
 Propose your changes as a pull request
 ======================================

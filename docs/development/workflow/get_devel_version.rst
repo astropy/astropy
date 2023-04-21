@@ -166,10 +166,8 @@ show you all of the remotes it knows about for your local repository of
 Note that `git`_ already knew about one remote, called *origin*; that is your
 fork of `Astropy`_ on `GitHub`_.
 
-To make more explicit that origin is really *your* fork of `Astropy`_, rename that
-remote to your `GitHub`_ user name::
-
-  git remote rename origin your-user-name
+Remember that ``origin`` points to *your* fork of `Astropy`_ that is tied to
+``your-user-name`` account on `GitHub`_.
 
 .. _make_a_branch:
 
