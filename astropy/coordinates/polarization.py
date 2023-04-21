@@ -111,7 +111,7 @@ class StokesCoordInfo(MixinInfo):
 
         # Make an empty StokesCoord.
         shape = (length,) + attrs.pop("shape")
-        data = np.empty(shape=shape, dtype=dtype)
+        data = np.empty(shape=shape, dtype=self.dtype)
         # Get arguments needed to reconstruct class
         out = self._construct_from_dict(stokes=data)
 

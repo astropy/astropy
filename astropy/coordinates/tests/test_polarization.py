@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_equal
 
+from astropy.table import Table, vstack, hstack
 from astropy.coordinates.polarization import (
     StokesCoord,
     StokesSymbol,
@@ -148,3 +149,23 @@ def test_broadcast_to():
     assert unbroadcast(sk2.value).shape == (4,)
     assert unbroadcast(sk2.symbol).shape == (4,)
     assert_equal(unbroadcast(sk.symbol), np.array(["I", "Q", "U", "V"]))
+
+
+def test_table_vstack_stokes():
+    sk = StokesCoord(np.arange(1, 5, dtype=int), copy=False)
+    tt = Table([sk])
+    sk2 = StokesCoord([1, 2, 2, 2, 4, 5])
+    tt2 = Table([sk2])
+
+    tt3 = vstack([tt, tt2])
+    assert len(tt3) == 10
+
+
+def test_table_hstack_stokes():
+    sk = StokesCoord(np.arange(1, 5, dtype=int), copy=False)
+    tt = Table([sk])
+    sk2 = StokesCoord([1, 2, 2, 2, 4, 5])
+    tt2 = Table([sk2])
+
+    tt3 = hstack([tt, tt2])
+    assert len(tt3) == 10
