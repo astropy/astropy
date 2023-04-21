@@ -25,7 +25,7 @@ inside astropy.
 """
 
 
-@deprecated("5.0", deprecation_msg)
+@deprecated("5.0", message=deprecation_msg)
 class AliasDict(MutableMapping):
     """
     Creates a `dict` like object that wraps an existing `dict` or other

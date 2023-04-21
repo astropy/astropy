@@ -552,7 +552,7 @@ should be used instead.
 """
 
 
-@deprecated("4.2", deprecation_msg)
+@deprecated("4.2", message=deprecation_msg)
 def _apparent_position_in_true_coordinates(skycoord):
     """
     Convert Skycoord in GCRS frame into one in which RA and Dec

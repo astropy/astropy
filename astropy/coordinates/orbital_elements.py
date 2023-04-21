@@ -169,7 +169,7 @@ _coE = (1.0, -0.002516, -0.0000074)
 
 
 @deprecated(
-    since="5.0",
+    "5.0",
     alternative="astropy.coordinates.get_body('moon')",
     message=(
         "The private calc_moon function has been deprecated, as its functionality is"

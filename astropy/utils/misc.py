@@ -528,7 +528,7 @@ The {func} {obj_type} is deprecated and may be removed in a future version.
 """
 
 
-@deprecated("4.3", _ordered_descriptor_deprecation_message)
+@deprecated("4.3", message=_ordered_descriptor_deprecation_message)
 class OrderedDescriptor(metaclass=abc.ABCMeta):
     """
     Base class for descriptors whose order in the class body should be
@@ -612,7 +612,7 @@ class OrderedDescriptor(metaclass=abc.ABCMeta):
             return NotImplemented
 
 
-@deprecated("4.3", _ordered_descriptor_deprecation_message)
+@deprecated("4.3", message=_ordered_descriptor_deprecation_message)
 class OrderedDescriptorContainer(type):
     """
     Classes should use this metaclass if they wish to use `OrderedDescriptor`

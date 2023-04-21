@@ -260,7 +260,7 @@ __old_angle_utilities_funcs = [
 ]
 for funcname in __old_angle_utilities_funcs:
     vars()[funcname] = deprecated(
+        "4.3",
         name="astropy.coordinates.angle_utilities." + funcname,
         alternative="astropy.coordinates.angle_formats." + funcname,
-        since="v4.3",
     )(getattr(angle_formats, funcname))

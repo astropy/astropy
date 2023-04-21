@@ -63,7 +63,7 @@ def vectorize_redshift_method(func=None, nin=1):
 
 
 @deprecated(
-    since="5.0",
+    "5.0",
     message=(
         "vectorize_if_needed has been removed because it constructs a new ufunc on each"
         " call"
@@ -95,7 +95,7 @@ def vectorize_if_needed(f, *x, **vkw):
 
 
 @deprecated(
-    since="5.0",
+    "5.0",
     message=(
         "inf_like has been removed because it duplicates "
         "functionality provided by numpy.full_like()"
