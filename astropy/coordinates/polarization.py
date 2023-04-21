@@ -79,6 +79,10 @@ class StokesCoordInfo(MixinInfo):
     def dtype(self):
         return self._parent._data.dtype
 
+    @staticmethod
+    def default_format(val):
+        return f"{val.symbol}"
+
     def new_like(self, cols, length, metadata_conflicts="warn", name=None):
         """
         Return a new StokesCoord instance which is consistent with the
