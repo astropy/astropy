@@ -118,15 +118,13 @@ def set_guess(guess):
     _GUESS = guess
 
 
-def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
+def get_reader(*, Inputter=None, Outputter=None, **kwargs):
     """
     Initialize a table reader allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Reader class.
 
     Parameters
     ----------
-    Reader : `~astropy.io.ascii.BaseReader`
-        Reader class (DEPRECATED). Default is :class:`Basic`.
     Inputter : `~astropy.io.ascii.BaseInputter`
         Inputter class
     Outputter : `~astropy.io.ascii.BaseOutputter`
@@ -172,13 +170,12 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
     """
     # This function is a light wrapper around core._get_reader to provide a
     # public interface with a default Reader.
-    if Reader is None:
-        # Default reader is Basic unless fast reader is forced
-        fast_reader = _get_fast_reader_dict(kwargs)
-        if fast_reader["enable"] == "force":
-            Reader = fastbasic.FastBasic
-        else:
-            Reader = basic.Basic
+    # Default reader is Basic unless fast reader is forced
+    fast_reader = _get_fast_reader_dict(kwargs)
+    if fast_reader["enable"] == "force":
+        Reader = fastbasic.FastBasic
+    else:
+        Reader = basic.Basic
 
     reader = core._get_reader(Reader, Inputter=Inputter, Outputter=Outputter, **kwargs)
     return reader
@@ -318,7 +315,6 @@ def read(table, guess=None, **kwargs):
     # Get the Reader class based on possible format and Reader kwarg inputs.
     Reader = _get_format_class(format, kwargs.get("Reader"), "Reader")
     if Reader is not None:
-        new_kwargs["Reader"] = Reader
         format = Reader._format_name
 
     # Remove format keyword if there, this is only allowed in read() not get_reader()
@@ -387,7 +383,6 @@ def read(table, guess=None, **kwargs):
         # will fail and the else-clause below will be used.
         if fast_reader["enable"] and f"fast_{format}" in core.FAST_CLASSES:
             fast_kwargs = copy.deepcopy(new_kwargs)
-            fast_kwargs["Reader"] = core.FAST_CLASSES[f"fast_{format}"]
             fast_reader_rdr = get_reader(**fast_kwargs)
             try:
                 dat = fast_reader_rdr.read(table)
@@ -862,15 +857,13 @@ extra_writer_pars = (
 )
 
 
-def get_writer(Writer=None, fast_writer=True, **kwargs):
+def get_writer(*, fast_writer=True, **kwargs):
     """
     Initialize a table writer allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Writer class.
 
     Parameters
     ----------
-    Writer : ``Writer``
-        Writer class (DEPRECATED). Defaults to :class:`Basic`.
     delimiter : str
         Column delimiter string
     comment : str
@@ -895,8 +888,7 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
     writer : `~astropy.io.ascii.BaseReader` subclass
         ASCII format writer instance
     """
-    if Writer is None:
-        Writer = basic.Basic
+    Writer = basic.Basic
     if "strip_whitespace" not in kwargs:
         kwargs["strip_whitespace"] = True
     writer = core._get_writer(Writer, fast_writer, **kwargs)
@@ -923,7 +915,6 @@ def write(
     table,
     output=None,
     format=None,
-    Writer=None,
     fast_writer=True,
     *,
     overwrite=False,
@@ -972,8 +963,7 @@ def write(
     if table.has_mixin_columns:
         fast_writer = False
 
-    Writer = _get_format_class(format, Writer, "Writer")
-    writer = get_writer(Writer=Writer, fast_writer=fast_writer, **kwargs)
+    writer = get_writer(fast_writer=fast_writer, **kwargs)
     if writer._format_name in core.FAST_CLASSES:
         writer.write(table, output)
         return
