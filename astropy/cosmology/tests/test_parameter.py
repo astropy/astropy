@@ -21,7 +21,6 @@ from astropy.cosmology.parameter import (
     _validate_to_float,
     _validate_with_unit,
 )
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 ##############################################################################
 # TESTS
@@ -90,17 +89,6 @@ class ParameterTestMixin:
         assert parameter.equivalencies == [u.mass_energy()]
         assert parameter.derived is True
 
-    def test_Parameter_init_deprecated_fmt(self):
-        """Test that passing the argument ``fmt`` is deprecated."""
-        with pytest.warns(AstropyDeprecationWarning):
-            parameter = Parameter(fmt=".4f")
-
-        assert parameter._format_spec == ".4f"
-
-        # Test that it appears in initializing arguments
-        init_args = parameter._get_init_arguments()
-        assert init_args["fmt"] == ".4f"
-
     def test_Parameter_instance_attributes(self, all_parameter):
         """Test :class:`astropy.cosmology.Parameter` attributes from init."""
         assert hasattr(all_parameter, "fvalidate")
@@ -112,7 +100,6 @@ class ParameterTestMixin:
         assert hasattr(all_parameter, "_unit")
         assert hasattr(all_parameter, "_equivalencies")
         assert hasattr(all_parameter, "_derived")
-        assert hasattr(all_parameter, "_format_spec")
 
         # __set_name__
         assert hasattr(all_parameter, "_attr_name")
@@ -140,14 +127,6 @@ class ParameterTestMixin:
         assert hasattr(all_parameter, "equivalencies")
         assert isinstance(all_parameter.equivalencies, (list, u.Equivalency))
         assert all_parameter.equivalencies is all_parameter._equivalencies
-
-    def test_Parameter_format_spec(self, all_parameter):
-        """Test :attr:`astropy.cosmology.Parameter.format_spec`."""
-        with pytest.warns(AstropyDeprecationWarning):
-            fmt = all_parameter.format_spec
-
-        assert isinstance(fmt, str)
-        assert fmt is all_parameter._format_spec
 
     def test_Parameter_derived(self, cosmo_cls, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.derived`."""
@@ -323,7 +302,6 @@ class TestParameter(ParameterTestMixin):
         # custom from init
         assert param._unit == u.m
         assert param._equivalencies == u.mass_energy()
-        assert param._format_spec == ""
         assert param._derived == np.False_
 
         # custom from set_name
@@ -354,13 +332,6 @@ class TestParameter(ParameterTestMixin):
         super().test_Parameter_equivalencies(param)
 
         assert param.equivalencies == u.mass_energy()
-
-    def test_Parameter_format_spec(self, param):
-        """Test :attr:`astropy.cosmology.Parameter.format_spec`."""
-        super().test_Parameter_format_spec(param)
-
-        with pytest.warns(AstropyDeprecationWarning):
-            assert param.format_spec == ""
 
     def test_Parameter_derived(self, cosmo_cls, param):
         """Test :attr:`astropy.cosmology.Parameter.derived`."""

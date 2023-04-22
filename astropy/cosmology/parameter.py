@@ -3,7 +3,6 @@
 import copy
 
 import astropy.units as u
-from astropy.utils.decorators import deprecated_attribute, deprecated_renamed_argument
 
 __all__ = ["Parameter"]
 
@@ -34,13 +33,6 @@ class Parameter:
         For other valid string options, see ``Parameter._registry_validators``.
         'fvalidate' can also be set through a decorator with
         :meth:`~astropy.cosmology.Parameter.validator`.
-    fmt : str (optional, keyword-only)
-        `format` specification, used when making string representation
-        of the containing Cosmology.
-        See https://docs.python.org/3/library/string.html#formatspec
-
-        .. deprecated::  5.1
-
     doc : str or None (optional, keyword-only)
         Parameter description.
 
@@ -51,7 +43,6 @@ class Parameter:
 
     _registry_validators = {}
 
-    @deprecated_renamed_argument("fmt", None, since="5.1")
     def __init__(
         self,
         *,
@@ -59,7 +50,6 @@ class Parameter:
         unit=None,
         equivalencies=[],
         fvalidate="default",
-        fmt="",
         doc=None,
     ):
         # attribute name on container cosmology class.
@@ -68,7 +58,6 @@ class Parameter:
         self._attr_name = self._attr_name_private = None
 
         self._derived = derived
-        self._format_spec = str(fmt)  # deprecated.
         self.__doc__ = doc
 
         # units stuff
@@ -110,8 +99,6 @@ class Parameter:
     def equivalencies(self):
         """Equivalencies used when initializing Parameter."""
         return self._equivalencies
-
-    format_spec = deprecated_attribute("format_spec", since="5.1")
 
     @property
     def derived(self):
@@ -254,10 +241,6 @@ class Parameter:
             "fvalidate": self.fvalidate if processed else self._fvalidate_in,
             "doc": self.__doc__,
         }
-        # fmt will issue a deprecation warning if passed, so only passed if
-        # it's not the default.
-        if self._format_spec:
-            kw["fmt"] = self._format_spec
         return kw
 
     def clone(self, **kw):
