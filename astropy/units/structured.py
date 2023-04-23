@@ -22,7 +22,7 @@ def _names_from_dtype(dtype):
     """Recursively extract field names from a dtype."""
     names = []
     for name in dtype.names:
-        subdtype = dtype.fields[name][0]
+        subdtype = dtype.fields[name][0].base
         if subdtype.names:
             names.append([name, _names_from_dtype(subdtype)])
         else:
