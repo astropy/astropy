@@ -1,0 +1,1 @@
+Removed deprecated ``OrderedDescriptor``, ``OrderedDescriptorContainer``, and ``set_locale`` in ``astropy.utils.misc``.
