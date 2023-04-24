@@ -1762,15 +1762,15 @@ class _SIP1D(PolynomialBase):
         mat = np.zeros((self.order + 1, self.order + 1))
         for i in range(2, self.order + 1):
             attr = f"{coeff_prefix}_{i}_{0}"
-            mat[i, 0] = coeffs[self.param_names.index(attr)]
+            mat[i, 0] = coeffs[self.param_names.index(attr)][0]
         for i in range(2, self.order + 1):
             attr = f"{coeff_prefix}_{0}_{i}"
-            mat[0, i] = coeffs[self.param_names.index(attr)]
+            mat[0, i] = coeffs[self.param_names.index(attr)][0]
         for i in range(1, self.order):
             for j in range(1, self.order):
                 if i + j < self.order + 1:
                     attr = f"{coeff_prefix}_{i}_{j}"
-                    mat[i, j] = coeffs[self.param_names.index(attr)]
+                    mat[i, j] = coeffs[self.param_names.index(attr)][0]
         return mat
 
     def _eval_sip(self, x, y, coef):
