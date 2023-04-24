@@ -20,6 +20,7 @@ from astropy.modeling.parameters import (
     param_repr_oneline,
 )
 from astropy import units as u
+from astropy.utils.compat import NUMPY_LT_1_25
 from astropy.utils.data import get_pkg_data_filename
 from . import irafutil
 
@@ -542,9 +543,13 @@ class TestParameters:
         param = Parameter(name="test", default=np.array([1]))
         assert param.shape == (1,)
         # Reshape error
-        with pytest.raises(ValueError) as err:
+        if not NUMPY_LT_1_25:
+            # error message changed in numpy 1.25
+            MESSAGE = r"cannot reshape array of size 1"
+        else:
+            MESSAGE = r"Cannot assign this shape to a scalar quantity"
+        with pytest.raises(ValueError, match=MESSAGE):
             param.shape = (5,)
-        assert str(err.value) == "Cannot assign this shape to a scalar quantity"
         param.shape = ()
 
     def test_size(self):

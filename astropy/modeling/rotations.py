@@ -559,6 +559,8 @@ class Rotation2D(Model):
 
     @staticmethod
     def _compute_matrix(angle):
+        if not np.isscalar(angle):
+            angle = angle[0]
         return np.array(
             [[math.cos(angle), -math.sin(angle)], [math.sin(angle), math.cos(angle)]],
             dtype=np.float64,
