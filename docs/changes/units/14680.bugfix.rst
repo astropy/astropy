@@ -1,0 +1,4 @@
+Ensure that ``Quantity`` with structured dtype can be set using non-structured
+``Quantity`` (if units match), and that structured dtype names are inferred
+correctly in the creation of ``StructuredUnit``, thus avoiding mismatches
+when setting units.
