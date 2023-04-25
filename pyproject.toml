@@ -105,7 +105,7 @@ extend-ignore = [
     "B026",  # StarArgUnpackingAfterKeywordArg         # NOTE: low priority fix
     "B028",  # No-explicit-stacklevel                  # TODO: fix
     "B904",  # RaiseWithoutFromInsideExcept            # TODO: fix
-    "B905",  # ZipWithoutExplicitStrict                # TODO: fix
+    "B905",  # ZipWithoutExplicitStrict                # TODO: fix on py3.10+
 
     # flake8-blind-except (BLE)
     "BLE001",  # BlindExcept                           # TODO: fix
