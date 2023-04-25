@@ -166,3 +166,24 @@ def test_table_vstack_stokes():
     assert isinstance(tt3["col0"], StokesCoord)
     assert len(tt3) == 10
     assert np.allclose(tt3["col0"].value, np.array([1, 2, 3, 4, 1, 2, 2, 2, 4, 5]))
+
+
+def test_init_copy():
+    input = np.arange(1, 5, dtype=int)
+    sk1 = StokesCoord(input, copy=False)
+    assert sk1._data is input
+
+    skc = StokesCoord(input, copy=True)
+    assert skc._data is not input
+
+    sk2 = StokesCoord(sk1)
+    assert sk1._data is sk2._data
+
+    sk3 = StokesCoord(sk1, copy=True)
+    assert sk1._data is not sk3._data
+    assert np.allclose(sk1._data, sk3._data)
+
+
+def test_init_error():
+    with pytest.raises(ValueError, match="object array"):
+        StokesCoord(None)
