@@ -1672,8 +1672,9 @@ class Quantity(np.ndarray):
 
         # Setting names to ensure things like equality work (note that
         # above will have failed already if units did not match).
-        if self.dtype.names:
-            _value.dtype.names = self.dtype.names
+        # TODO: is this the best place to do this?
+        if _value.dtype.names is not None:
+            _value = _value.astype(self.dtype, copy=False)
         return _value
 
     def itemset(self, *args):

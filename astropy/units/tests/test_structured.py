@@ -99,6 +99,21 @@ class TestStructuredUnitBasics(StructuredTestBase):
             "l",
         )
 
+        dt = np.dtype(
+            [("t", "f8"),
+             ("pvhd1d2",
+              ([("p", "f8"), ("v", "f8"), ("hd1d2",
+                                           [("h", "f8"), ("d1d2",
+                                                          [("d1", "f8"), ("d2", "f8")]),
+                                            ]),
+                ], (5, 5))),  # Note: structured subarray to improve test!
+             ("l", "f8")
+             ])  # fmt: skip
+
+        su2 = StructuredUnit("(yr,(AU,AU/day,(km,(day,day))),m)", dt)
+        assert su2.field_names == su.field_names
+        assert su2 == su
+
     @pytest.mark.parametrize(
         "names, invalid",
         [
@@ -112,7 +127,7 @@ class TestStructuredUnitBasics(StructuredTestBase):
     )
     def test_initialization_names_invalid_list_errors(self, names, invalid):
         with pytest.raises(ValueError) as exc:
-            StructuredUnit("(yr,(AU,AU/day)", names)
+            StructuredUnit("yr,(AU,AU/day)", names)
         assert f"invalid entry {invalid}" in str(exc)
 
     def test_looks_like_unit(self):
