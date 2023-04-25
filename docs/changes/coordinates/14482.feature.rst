@@ -1,0 +1,2 @@
+A new class ``astropy.coordinates.StokesCoord`` has been added to represent world coordinates describing polarization state.
+This change introduces a breaking change to the return value of ``astropy.wcs.WCS.pixel_to_world`` where before a ``u.Quantity`` object would be returned containing numerical values representing a Stokes profile now a ``StokesCoord`` object is returned. The previous numerical values can be accessed with ``StokesCoord.value``.
