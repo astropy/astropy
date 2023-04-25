@@ -93,7 +93,6 @@ extend-ignore = [
     "ARG001", "ARG002", "ARG003", "ARG004", "ARG005",
 
     # flake8-bugbear (B)
-    "B004",  # UnreliableCallableCheck                 # TODO: fix
     "B005",  # StripWithMultiCharacters                # NOTE: low priority fix
     "B006",  # MutableArgumentDefault                  # NOTE: low priority fix
     "B007",  # UnusedLoopControlVariable               # TODO: autofix
