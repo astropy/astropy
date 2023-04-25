@@ -358,11 +358,11 @@ def test_apply_slices(sub_wcs, wcs_slice, wcsaxes_slices, world_map, ndim):
 def test_sliced_ND_input(wcs_4d, sub_wcs, wcs_slice, plt_close):
     slices_wcsaxes = [0, "x", "y"]
 
-    for sub_wcs in (sub_wcs, SlicedLowLevelWCS(wcs_4d, wcs_slice)):
+    for sub_wcs_ in (sub_wcs, SlicedLowLevelWCS(wcs_4d, wcs_slice)):
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=FutureWarning)
             _, coord_meta = transform_coord_meta_from_wcs(
-                sub_wcs, RectangularFrame, slices=slices_wcsaxes
+                sub_wcs_, RectangularFrame, slices=slices_wcsaxes
             )
 
         assert all(len(x) == 3 for x in coord_meta.values())
@@ -387,7 +387,7 @@ def test_sliced_ND_input(wcs_4d, sub_wcs, wcs_slice, plt_close):
 
         # Validate the axes initialize correctly
         plt.clf()
-        plt.subplot(projection=sub_wcs, slices=slices_wcsaxes)
+        plt.subplot(projection=sub_wcs_, slices=slices_wcsaxes)
 
 
 class LowLevelWCS5D(BaseLowLevelWCS):
