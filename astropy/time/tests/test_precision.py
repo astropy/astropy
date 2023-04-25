@@ -45,17 +45,12 @@ def setup_module():
     # See https://github.com/astropy/astropy/issues/11030
     Time("2020-01-01").ut1
 
-
-@pytest.fixture(scope="module")
-def iers_b():
-    """This is an expensive operation, so we share it between tests using a
-    module-scoped fixture instead of using the context manager form.  This
-    is particularly important for Hypothesis, which invokes the decorated
-    test function many times (100 by default; see conftest.py for details).
-    """
+    # This is an expensive operation, so we share it between tests using
+    # setup_module instead of using the context manager form.  This
+    # is particularly important for Hypothesis, which invokes the decorated
+    # test function many times (100 by default; see conftest.py for details).
     with iers.earth_orientation_table.set(iers.IERS_B.open(iers.IERS_B_FILE)):
         yield "<using IERS-B orientation table>"
-
 
 @contextlib.contextmanager
 def quiet_erfa():
@@ -444,7 +439,7 @@ def test_resolution_never_decreases_utc(jds):
 @example(scale1="tcg", scale2="ut1", jds=(2445149.5, 0.47187700984387526))
 @example(scale1="tai", scale2="tcb", jds=(2441316.5, 0.0))
 @example(scale1="tai", scale2="tcb", jds=(0.0, 0.0))
-def test_conversion_preserves_jd1_jd2_invariant(iers_b, scale1, scale2, jds):
+def test_conversion_preserves_jd1_jd2_invariant(scale1, scale2, jds):
     jd1, jd2 = jds
     t = Time(jd1, jd2, scale=scale1, format="jd")
     try:
@@ -467,7 +462,7 @@ def test_conversion_preserves_jd1_jd2_invariant(iers_b, scale1, scale2, jds):
 @example(scale1="tai", scale2="utc", jds=(0.0, 0.0))
 @example(scale1="utc", scale2="ut1", jds=(2441316.5, 0.9999999999999991))
 @example(scale1="ut1", scale2="tai", jds=(2441498.5, 0.9999999999999999))
-def test_conversion_never_loses_precision(iers_b, scale1, scale2, jds):
+def test_conversion_never_loses_precision(scale1, scale2, jds):
     """Check that time ordering remains if we convert to another scale.
 
     Here, since scale differences can involve multiplication, we allow
@@ -696,14 +691,16 @@ def test_timedelta_conversion(scale1, scale2, jds_a, jds_b):
 
 # UTC disagrees when there are leap seconds
 _utc_bad = [
-    (pytest.param(s, marks=pytest.mark.xfail) if s == "utc" else s)
-    for s in STANDARD_TIME_SCALES
+    s for s in STANDARD_TIME_SCALES if s != "utc"
 ]
 
 
-@given(datetimes(), datetimes())  # datetimes have microsecond resolution
+@given(
+    scale=sampled_from(_utc_bad),
+    dt1=datetimes(),
+    dt2=datetimes()
+)  # datetimes have microsecond resolution
 @example(dt1=datetime(1235, 1, 1, 0, 0), dt2=datetime(9950, 1, 1, 0, 0, 0, 890773))
-@pytest.mark.parametrize("scale", _utc_bad)
 def test_datetime_difference_agrees_with_timedelta(scale, dt1, dt2):
     t1 = Time(dt1, scale=scale)
     t2 = Time(dt2, scale=scale)
@@ -715,10 +712,10 @@ def test_datetime_difference_agrees_with_timedelta(scale, dt1, dt2):
 
 
 @given(
+    scale=sampled_from(_utc_bad),
     days=integers(-3000 * 365, 3000 * 365),
     microseconds=integers(0, 24 * 60 * 60 * 1000000),
 )
-@pytest.mark.parametrize("scale", _utc_bad)
 def test_datetime_to_timedelta(scale, days, microseconds):
     td = timedelta(days=days, microseconds=microseconds)
     assert TimeDelta(td, scale=scale) == TimeDelta(
@@ -727,28 +724,34 @@ def test_datetime_to_timedelta(scale, days, microseconds):
 
 
 @given(
+    scale=sampled_from(_utc_bad),
     days=integers(-3000 * 365, 3000 * 365),
     microseconds=integers(0, 24 * 60 * 60 * 1000000),
 )
-@pytest.mark.parametrize("scale", _utc_bad)
 def test_datetime_timedelta_roundtrip(scale, days, microseconds):
     td = timedelta(days=days, microseconds=microseconds)
     assert td == TimeDelta(td, scale=scale).value
 
 
-@given(days=integers(-3000 * 365, 3000 * 365), day_frac=floats(0, 1))
+@given(
+    scale=sampled_from(_utc_bad),
+    days=integers(-3000 * 365, 3000 * 365),
+    day_frac=floats(0, 1)
+)
 @example(days=262144, day_frac=2.314815006343452e-11)
 @example(days=1048576, day_frac=1.157407503171726e-10)
-@pytest.mark.parametrize("scale", _utc_bad)
 def test_timedelta_datetime_roundtrip(scale, days, day_frac):
     td = TimeDelta(days, day_frac, format="jd", scale=scale)
     td.format = "datetime"
     assert_almost_equal(td, TimeDelta(td.value, scale=scale), atol=2 * u.us)
 
 
-@given(integers(-3000 * 365, 3000 * 365), floats(0, 1))
+@given(
+    scale=sampled_from(_utc_bad),
+    days=integers(-3000 * 365, 3000 * 365),
+    day_frac=floats(0, 1)
+)
 @example(days=262144, day_frac=2.314815006343452e-11)
-@pytest.mark.parametrize("scale", _utc_bad)
 def test_timedelta_from_parts(scale, days, day_frac):
     kwargs = dict(format="jd", scale=scale)
     whole = TimeDelta(days, day_frac, **kwargs)
@@ -766,7 +769,11 @@ def test_datetime_difference_agrees_with_timedelta_no_hypothesis():
 
 
 # datetimes have microsecond resolution
-@given(datetimes(), timedeltas())
+@given(
+    scale=sampled_from(_utc_bad),
+    dt=datetimes(),
+    td=timedeltas()
+)
 @example(dt=datetime(2000, 1, 1, 0, 0), td=timedelta(days=-397683, microseconds=2))
 @example(dt=datetime(2179, 1, 1, 0, 0), td=timedelta(days=-795365, microseconds=53))
 @example(dt=datetime(2000, 1, 1, 0, 0), td=timedelta(days=1590729, microseconds=10))
@@ -777,7 +784,6 @@ def test_datetime_difference_agrees_with_timedelta_no_hypothesis():
     dt=datetime(4357, 1, 1, 0, 0, 0, 29),
     td=timedelta(days=-1590729, microseconds=746292),
 )
-@pytest.mark.parametrize("scale", _utc_bad)
 def test_datetime_timedelta_sum(scale, dt, td):
     try:
         dt + td
@@ -789,13 +795,13 @@ def test_datetime_timedelta_sum(scale, dt, td):
 
 
 @given(
+    kind=sampled_from(["apparent", "mean"]),
     jds=reasonable_jd(),
     lat1=floats(-90, 90),
     lat2=floats(-90, 90),
     lon=floats(-180, 180),
 )
-@pytest.mark.parametrize("kind", ["apparent", "mean"])
-def test_sidereal_lat_independent(iers_b, kind, jds, lat1, lat2, lon):
+def test_sidereal_lat_independent(kind, jds, lat1, lat2, lon):
     jd1, jd2 = jds
     t1 = Time(jd1, jd2, scale="ut1", format="jd", location=(lon, lat1))
     t2 = Time(jd1, jd2, scale="ut1", format="jd", location=(lon, lat2))
@@ -808,13 +814,13 @@ def test_sidereal_lat_independent(iers_b, kind, jds, lat1, lat2, lon):
 
 
 @given(
+    kind=sampled_from(["apparent", "mean"]),
     jds=reasonable_jd(),
     lat=floats(-90, 90),
     lon=floats(-180, 180),
     lon_delta=floats(-360, 360),
 )
-@pytest.mark.parametrize("kind", ["apparent", "mean"])
-def test_sidereal_lon_independent(iers_b, kind, jds, lat, lon, lon_delta):
+def test_sidereal_lon_independent(kind, jds, lat, lon, lon_delta):
     jd1, jd2 = jds
     t1 = Time(jd1, jd2, scale="ut1", format="jd", location=(lon, lat))
     t2 = Time(jd1, jd2, scale="ut1", format="jd", location=(lon + lon_delta, lat))
