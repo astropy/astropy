@@ -98,7 +98,6 @@ extend-ignore = [
     "B007",  # UnusedLoopControlVariable               # TODO: autofix
     "B008",  # FunctionCallArgumentDefault
     "B015",  # UselessComparison                       # TODO: fix
-    "B020",  # LoopVariableOverridesIterator           # TODO: fix
     "B023",  # FunctionUsesLoopVariable                # TODO: fix
     "B026",  # StarArgUnpackingAfterKeywordArg         # NOTE: low priority fix
     "B028",  # No-explicit-stacklevel                  # TODO: fix
