@@ -101,7 +101,6 @@ extend-ignore = [
     "B018",  # UselessExpression                       # TODO: fix
     "B020",  # LoopVariableOverridesIterator           # TODO: fix
     "B023",  # FunctionUsesLoopVariable                # TODO: fix
-    "B024",  # AbstractBaseClassWithoutAbstractMethod  # TODO: fix
     "B026",  # StarArgUnpackingAfterKeywordArg         # NOTE: low priority fix
     "B028",  # No-explicit-stacklevel                  # TODO: fix
     "B904",  # RaiseWithoutFromInsideExcept            # TODO: fix
