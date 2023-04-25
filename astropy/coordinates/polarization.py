@@ -153,15 +153,20 @@ class StokesCoord(ShapedLikeNDArray):
 
     def __init__(self, stokes, copy=False):
         if isinstance(stokes, type(self)):
-            data = stokes._data
+            self._data = stokes._data.copy() if copy else stokes._data
             self.info = stokes.info
         else:
             data = np.asanyarray(stokes)
 
-        if data.dtype.kind == "U":
-            self._data = self._from_symbols(data)
-        else:
-            self._data = data.copy() if copy and data is stokes else data
+            if data.dtype.kind == "O":
+                raise ValueError(
+                    "StokesCoord objects can not be initialised with an object array."
+                )
+
+            if data.dtype.kind == "U":
+                self._data = self._from_symbols(data)
+            else:
+                self._data = data.copy() if copy and data is stokes else data
 
     @property
     def shape(self):
