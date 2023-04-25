@@ -610,9 +610,13 @@ class TestArrayConversion:
             q1.dumps()
 
 
-class TestRecArray:
-    """Record arrays are not specifically supported, but we should not
-    prevent their use unnecessarily"""
+class TestStructuredArray:
+    """Structured arrays are not specifically supported, but we should not
+    prevent their use unnecessarily.
+
+    Note that these tests use simple units.  Now that structured units are
+    supported, it may make sense to deprecate this.
+    """
 
     def setup_method(self):
         self.ra = (
@@ -627,3 +631,18 @@ class TestRecArray:
         qra = u.Quantity(self.ra, u.m)
         qra[1] = qra[2]
         assert qra[1] == qra[2]
+
+    def test_assignment_with_non_structured(self):
+        qra = u.Quantity(self.ra, u.m)
+        qra[1] = 0
+        assert qra[1] == np.zeros(3).view(qra.dtype)
+
+    def test_assignment_with_different_names(self):
+        qra = u.Quantity(self.ra, u.m)
+        dtype = np.dtype([("x", "f8"), ("y", "f8"), ("z", "f8")])
+        value = np.array((-1.0, -2.0, -3.0), dtype) << u.km
+        qra[1] = value
+        assert qra[1] == value
+        assert qra[1].value == np.array((-1000.0, -2000.0, -3000.0), qra.dtype)
+        # Ensure we do not override dtype names of value.
+        assert value.dtype.names == ("x", "y", "z")
