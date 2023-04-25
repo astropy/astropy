@@ -266,11 +266,14 @@ extend-ignore = [
     "S112",  # try-except-continue                      # TODO: fix
     "S301",  # suspeciious-pickle-usage                 # TODO: fix
     "S311",  # Suspecious-non-cryptographic-randomness  # TODO: fix
+    "S324",  # hashlib-insecure-hash-function
     "S506",  # UnsafeYAMLLoad                           # TODO: fix
     "S310",  # Suspicious-url-open-usage                # TODO: fix
     "S321",  # Suspecious-ftp-lib-usage                 # TODO: fix
+    "S603",  # `subprocess` call: check for execution of untrusted input
+    "S605",  # Starting a process with a shell, possible injection detected  # TODO: fix
+    "S607",  # Starting a process with a partial executable path
     "S608",  # Posslibe SQL injection                   # TODO: fix
-    "S324",  # hashlib-insecure-hash-function
 
     # flake8-simplify (SIM)
     "SIM102",  # NestedIfStatements                  # TODO: fixable with `pass`.
