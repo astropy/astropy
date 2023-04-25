@@ -1276,7 +1276,11 @@ def _download_file_from_source(
         except urllib.error.URLError as e:
             # e.reason might not be a string, e.g. socket.gaierror
             # URLError changed to report original exception in Python 3.10, 3.11 (bpo-43564)
-            if str(e.reason).lstrip("ftp error: ").startswith(("error_perm", "5")):
+            if (
+                str(e.reason)
+                .removeprefix("ftp error: ")
+                .startswith(("error_perm", "5"))
+            ):
                 ftp_tls = True
             else:
                 raise

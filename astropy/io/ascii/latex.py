@@ -109,15 +109,12 @@ class LatexSplitter(core.BaseSplitter):
         """Remove whitespace at the beginning or end of line. Also remove
         \\ at end of line.
         """
-        line = RE_COMMENT.split(line)[0]
-        line = line.strip()
-        if line.endswith(r"\\"):
-            line = line.rstrip(r"\\")
-        else:
+        line = RE_COMMENT.split(line)[0].strip()
+        if not line.endswith(r"\\"):
             raise core.InconsistentTableError(
                 r"Lines in LaTeX table have to end with \\"
             )
-        return line
+        return line.removesuffix(r"\\")
 
     def process_val(self, val):
         """Remove whitespace and {} at the beginning or end of value."""
