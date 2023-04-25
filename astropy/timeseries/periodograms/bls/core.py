@@ -423,8 +423,8 @@ class BoxLeastSquares(BasePeriodogram):
         transit_time = self._as_relative_time("transit_time", transit_time)
         t_model = strip_units(self._as_relative_time("t_model", t_model))
 
-        period = float(strip_units(period))
-        duration = float(strip_units(duration))
+        period = float(strip_units(period[0]))
+        duration = float(strip_units(duration[0]))
         transit_time = float(strip_units(transit_time))
 
         t = np.ascontiguousarray(strip_units(self._trel), dtype=np.float64)
@@ -499,8 +499,8 @@ class BoxLeastSquares(BasePeriodogram):
         period, duration = self._validate_period_and_duration(period, duration)
         transit_time = self._as_relative_time("transit_time", transit_time)
 
-        period = float(strip_units(period))
-        duration = float(strip_units(duration))
+        period = float(strip_units(period[0]))
+        duration = float(strip_units(duration[0]))
         transit_time = float(strip_units(transit_time))
 
         t = np.ascontiguousarray(strip_units(self._trel), dtype=np.float64)
@@ -627,8 +627,8 @@ class BoxLeastSquares(BasePeriodogram):
         transit_time = self._as_relative_time("transit_time", transit_time)
         t = strip_units(self._as_relative_time("t", t))
 
-        period = float(strip_units(period))
-        duration = float(strip_units(duration))
+        period = float(strip_units(period[0]))
+        duration = float(strip_units(duration[0]))
         transit_time = float(strip_units(transit_time))
 
         hp = 0.5 * period
