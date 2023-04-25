@@ -115,9 +115,9 @@ class StokesCoordInfo(MixinInfo):
 
         # Make an empty StokesCoord.
         shape = (length,) + attrs.pop("shape")
-        data = np.empty(shape=shape, dtype=self.dtype)
+        data = np.zeros(shape=shape, dtype=attrs.pop("dtype"))
         # Get arguments needed to reconstruct class
-        out = self._construct_from_dict(stokes=data)
+        out = self._construct_from_dict(dict(value=data))
 
         # Set remaining info attributes
         for attr, value in attrs.items():
@@ -152,7 +152,12 @@ class StokesCoord(ShapedLikeNDArray):
     info = StokesCoordInfo()
 
     def __init__(self, stokes, copy=False):
-        data = np.asanyarray(stokes)
+        if isinstance(stokes, type(self)):
+            data = stokes._data
+            self.info = stokes.info
+        else:
+            data = np.asanyarray(stokes)
+
         if data.dtype.kind == "U":
             self._data = self._from_symbols(data)
         else:
@@ -165,6 +170,10 @@ class StokesCoord(ShapedLikeNDArray):
     @property
     def value(self):
         return self._data
+
+    @property
+    def dtype(self):
+        return self._data.dtype
 
     def _apply(self, method, *args, **kwargs):
         cls = type(self)
@@ -218,6 +227,9 @@ class StokesCoord(ShapedLikeNDArray):
             symbolarr[unbroadcasted == value] = symbol.symbol
 
         return np.broadcast_to(symbolarr, self.shape)
+
+    def __setitem__(self, item, value):
+        self._data[item] = type(self)(value)._data
 
     def __eq__(self, other):
         try:
