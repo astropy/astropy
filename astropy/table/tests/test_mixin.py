@@ -54,6 +54,7 @@ def test_attributes(mixin_cols):
             time.Time,
             time.TimeDelta,
             coordinates.BaseRepresentationOrDifferential,
+            coordinates.StokesCoord,
         ),
     ):
         with pytest.raises(AttributeError):
