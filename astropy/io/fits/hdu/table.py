@@ -232,7 +232,7 @@ class _TableLikeHDU(_ValidHDU):
     def _update_load_data(self):
         """Load the data if asked to."""
         if not self._data_loaded:
-            self.data
+            self.data  # noqa: B018
 
     def _update_column_added(self, columns, column):
         """

@@ -1203,7 +1203,7 @@ class _GetchMacCarbon:
     def __init__(self):
         import Carbon
 
-        Carbon.Evt  # see if it has this (in Unix, it doesn't)
+        Carbon.Evt  # noqa: B018  # see if it has this (in Unix, it doesn't)
 
     def __call__(self):
         import Carbon

@@ -516,7 +516,7 @@ class AstropyLogger(Logger):
 
             # "None" as a string because it comes from config
             try:
-                _ASTROPY_TEST_
+                _ASTROPY_TEST_  # noqa: B018
                 testing_mode = True
             except NameError:
                 testing_mode = False
