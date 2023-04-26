@@ -1,0 +1,1 @@
+Removed the ``AliasDict`` class from ``modeling.utils``.
