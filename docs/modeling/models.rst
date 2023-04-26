@@ -970,4 +970,4 @@ To read the file and create the model:
 
 Compound models can also be serialized. Please note that some model attributes (e.g ``meta``,
 ``tied`` parameter constraints used in fitting), as well as model sets are not yet serializable.
-For more information on serialization of models, see :ref:`asdf_dev`.
+For more information on serialization of models, see :ref:`asdf-astropy:asdf-astropy`.
