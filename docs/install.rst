@@ -88,7 +88,7 @@ or::
 
     conda install -c conda-forge -c defaults scipy matplotlib \
       h5py beautifulsoup4 html5lib bleach pandas sortedcontainers \
-      pytz setuptools mpmath bottleneck jplephem asdf pyarrow
+      pytz setuptools mpmath bottleneck jplephem asdf-astropy pyarrow
 
 To also be able to run tests (see below) and support :ref:`builddocs` use the
 following. We use ``pip`` for these packages to ensure getting the latest
@@ -193,7 +193,7 @@ The further dependencies provide more specific features:
 - `mpmath <https://mpmath.org/>`_: Used for the 'kraft-burrows-nousek'
   interval in `~astropy.stats.poisson_conf_interval`.
 
-- `asdf <https://github.com/spacetelescope/asdf>`_ |minimum_asdf_version| or later: Enables the
+- `asdf-astropy <https://github.com/astropy/asdf-astropy>`_ |minimum_asdf_astropy_version| or later: Enables the
   serialization of various Astropy classes into a portable, hierarchical,
   human-readable representation.
 

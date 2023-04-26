@@ -125,5 +125,3 @@ with registry.delay_doc_updates(Table):
 
     if optional_deps.HAS_ASDF_ASTROPY:
         import asdf_astropy.io.connect
-    else:
-        import astropy.io.misc.asdf.connect
