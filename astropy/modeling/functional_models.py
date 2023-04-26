@@ -584,7 +584,7 @@ class Shift(Fittable1DModel):
         inv.offset *= -1
 
         try:
-            self.bounding_box
+            self.bounding_box  # noqa: B018
         except NotImplementedError:
             pass
         else:
@@ -652,7 +652,7 @@ class Scale(Fittable1DModel):
         inv.factor = 1 / self.factor
 
         try:
-            self.bounding_box
+            self.bounding_box  # noqa: B018
         except NotImplementedError:
             pass
         else:
@@ -703,7 +703,7 @@ class Multiply(Fittable1DModel):
         inv.factor = 1 / self.factor
 
         try:
-            self.bounding_box
+            self.bounding_box  # noqa: B018
         except NotImplementedError:
             pass
         else:
@@ -766,7 +766,7 @@ class RedshiftScaleFactor(Fittable1DModel):
         inv.z = 1.0 / (1.0 + self.z) - 1.0
 
         try:
-            self.bounding_box
+            self.bounding_box  # noqa: B018
         except NotImplementedError:
             pass
         else:

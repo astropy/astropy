@@ -98,7 +98,6 @@ extend-ignore = [
     "B007",  # UnusedLoopControlVariable               # TODO: autofix
     "B008",  # FunctionCallArgumentDefault
     "B015",  # UselessComparison                       # TODO: fix
-    "B018",  # UselessExpression                       # TODO: fix
     "B020",  # LoopVariableOverridesIterator           # TODO: fix
     "B023",  # FunctionUsesLoopVariable                # TODO: fix
     "B026",  # StarArgUnpackingAfterKeywordArg         # NOTE: low priority fix
@@ -317,7 +316,14 @@ unfixable = [
     "D214", "D215",  # keep Examples section indented.
     "D411",  # sphinx treats spaced example sections as real sections
 ]
-"test_*.py" = ["B011", "D", "E402", "PGH001", "S101"]
+"test_*.py" = [
+    "B018",  # UselessExpression
+    "B011",  # Do not assert False, raise AssertionError()
+    "D",  # pydocstyle
+    "E402",  # Module level import not at top of file
+    "PGH001",  # No builtin eval() allowed
+    "S101",  # Use of assert detected
+]
 ".pyinstaller/*.py" = ["INP001"]  # Not a package.
 "conftest.py" = ["INP001"]  # Part of configuration, not a package.
 "docs/*.py" = [
@@ -327,7 +333,7 @@ unfixable = [
     "D415",  # EndsInPeriod. The examples use RST syntax, not a one-line title.
     "E402",  # Imports are done as needed.
     "INP001", # implicit-namespace-package. The examples are not a package.
-    "T203"
+    "T203"  # pprint found
 ]
 
 [tool.ruff.isort]
