@@ -37,8 +37,8 @@ Numeric values which are not present in the mapping will be represented by the s
 It is possible to add custom number - symbol mappings see :ref:`mapping-stokes-symbols`.
 
 
-Comparing to Parameters and Numbers
------------------------------------
+Comparing to Symbols and Numbers
+--------------------------------
 
 It is possible to compare the values in a `.StokesCoord` with their parameter names::
 
@@ -57,6 +57,8 @@ To directly compare the symbols you can do::
 This comparison matches all values where the equivalent symbol isn't known, in
 comparison to comparing to values where the underlying numbers could vary but
 all are unknown (so they are not equal).
+
+Note that comparing to symbols does not work with ``numpy.equal`` only the ``==`` operator.
 
 .. _mapping-stokes-symbols:
 

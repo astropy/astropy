@@ -106,8 +106,6 @@ def test_custom_symbol_mapping_replace():
 
 def test_comparison_scalar():
     sk = StokesCoord(np.arange(1, 6))
-    assert_equal(np.equal(sk, "Q"), [False, True, False, False, False])
-    assert_equal(np.equal("Q", sk), [False, True, False, False, False])
     assert_equal("Q" == sk, [False, True, False, False, False])
     assert_equal(sk == 1, [True, False, False, False, False])
     assert_equal(sk == "Q", [False, True, False, False, False])

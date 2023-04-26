@@ -180,6 +180,9 @@ class StokesCoord(ShapedLikeNDArray):
     def dtype(self):
         return self._data.dtype
 
+    def __array__(self, dtype=None):
+        return self._data.astype(dtype, copy=False)
+
     def _apply(self, method, *args, **kwargs):
         cls = type(self)
 
