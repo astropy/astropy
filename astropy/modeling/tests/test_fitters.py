@@ -1442,7 +1442,8 @@ def test_non_finite_filter_1D(fitter, weights):
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 @pytest.mark.parametrize("fitter", non_linear_fitters)
-def test_non_finite_filter_2D(fitter):
+@pytest.mark.parametrize("weights", [np.ones((10, 10)), None])
+def test_non_finite_filter_2D(fitter, weights):
     """Regression test filter introduced to remove non-finte values from data"""
 
     x, y = np.mgrid[0:10, 0:10]
@@ -1461,7 +1462,7 @@ def test_non_finite_filter_2D(fitter):
         AstropyUserWarning,
         match=r"Non-Finite input data has been removed by the fitter",
     ):
-        fit(m_init, x, y, z, filter_non_finite=True)
+        fit(m_init, x, y, z, filter_non_finite=True, weights=weights)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
