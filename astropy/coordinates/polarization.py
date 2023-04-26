@@ -36,7 +36,7 @@ UNKNOWN_STOKES_VALUE = -99999
 @contextmanager
 def custom_stokes_symbol_mapping(
     mapping: Dict[int, StokesSymbol], replace: bool = False
-):
+) -> None:
     """
     Add a custom set of mappings from values to Stokes symbols.
 
