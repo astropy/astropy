@@ -1404,7 +1404,8 @@ class TestFittingUncertanties:
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 @pytest.mark.parametrize("fitter", non_linear_fitters)
-def test_non_finite_error(fitter):
+@pytest.mark.parametrize("weights", [np.ones(8), None])
+def test_non_finite_error(fitter, weights):
     """Regression test error introduced to solve issues #3575 and #12809"""
 
     x = np.array([1, 2, 3, 4, 5, np.nan, 7, np.inf])
@@ -1417,12 +1418,13 @@ def test_non_finite_error(fitter):
     with pytest.raises(
         NonFiniteValueError, match=r"Objective function has encountered.*"
     ):
-        fit(m_init, x, y)
+        fit(m_init, x, y, weights=weights)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 @pytest.mark.parametrize("fitter", non_linear_fitters)
-def test_non_finite_filter_1D(fitter):
+@pytest.mark.parametrize("weights", [np.ones(8), None])
+def test_non_finite_filter_1D(fitter, weights):
     """Regression test filter introduced to remove non-finte values from data"""
 
     x = np.array([1, 2, 3, 4, 5, 6, 7, 8])
@@ -1435,12 +1437,13 @@ def test_non_finite_filter_1D(fitter):
         AstropyUserWarning,
         match=r"Non-Finite input data has been removed by the fitter",
     ):
-        fit(m_init, x, y, filter_non_finite=True)
+        fit(m_init, x, y, filter_non_finite=True, weights=weights)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 @pytest.mark.parametrize("fitter", non_linear_fitters)
-def test_non_finite_filter_2D(fitter):
+@pytest.mark.parametrize("weights", [np.ones((10, 10)), None])
+def test_non_finite_filter_2D(fitter, weights):
     """Regression test filter introduced to remove non-finte values from data"""
 
     x, y = np.mgrid[0:10, 0:10]
@@ -1459,7 +1462,7 @@ def test_non_finite_filter_2D(fitter):
         AstropyUserWarning,
         match=r"Non-Finite input data has been removed by the fitter",
     ):
-        fit(m_init, x, y, z, filter_non_finite=True)
+        fit(m_init, x, y, z, filter_non_finite=True, weights=weights)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
