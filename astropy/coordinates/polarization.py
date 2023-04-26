@@ -1,6 +1,6 @@
 from collections import namedtuple
 from contextlib import contextmanager
-from typing import Dict
+from typing import Dict, NamedTuple
 
 import numpy as np
 
@@ -11,7 +11,11 @@ from astropy.utils.shapes import ShapedLikeNDArray
 __all__ = ["StokesCoord", "custom_stokes_symbol_mapping", "StokesSymbol"]
 
 
-StokesSymbol = namedtuple("StokesSymbol", ["symbol", "description"], defaults=[""])
+class StokesSymbol(NamedTuple):
+    """Symbol for a Stokes coordinate."""
+
+    symbol: str = ""
+    description: str = ""
 
 # This is table 29 in the FITS 4.0 paper
 FITS_STOKES_VALUE_SYMBOL_MAP = {
@@ -159,9 +163,8 @@ class StokesCoord(ShapedLikeNDArray):
             data = np.asanyarray(stokes)
 
             if data.dtype.kind == "O":
-                raise ValueError(
-                    "StokesCoord objects can not be initialised with an object array."
-                )
+                msg = "StokesCoord objects cannot be initialised with an object array."
+                raise ValueError(msg)
 
             if data.dtype.kind == "U":
                 self._data = self._from_symbols(data)
