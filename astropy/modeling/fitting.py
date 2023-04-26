@@ -1267,7 +1267,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
     def _run_fitter(self, model, farg, maxiter, acc, epsilon, estimate_jacobian):
         return None, None, None
 
-    def _filter_non_finite(self, x, y, z=None):
+    def _filter_non_finite(self, x, y, z=None, weights=None):
         """
         Filter out non-finite values in x, y, z.
 
@@ -1282,12 +1282,14 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
             mask = np.isfinite(y)
             if not np.all(mask):
                 warnings.warn(MESSAGE, AstropyUserWarning)
-            return x[mask], y[mask], None
+            z_out = None
         else:
             mask = np.isfinite(z)
             if not np.all(mask):
                 warnings.warn(MESSAGE, AstropyUserWarning)
-            return x[mask], y[mask], z[mask]
+            z_out = z[mask]
+
+        return x[mask], y[mask], z_out, None if weights is None else weights[mask]
 
     @fitter_unit_support
     def __call__(
@@ -1355,7 +1357,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         model_copy.sync_constraints = False
 
         if filter_non_finite:
-            x, y, z = self._filter_non_finite(x, y, z)
+            x, y, z, weights = self._filter_non_finite(x, y, z, weights)
         farg = (
             model_copy,
             weights,

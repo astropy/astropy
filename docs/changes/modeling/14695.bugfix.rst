@@ -1,0 +1,2 @@
+Fix issue with ``filter_non_finite`` option when fitting with ``weights`` via passing
+the ``weights`` through the non-finite-filter alongside the input data.
