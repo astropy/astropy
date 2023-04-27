@@ -2,7 +2,7 @@ import contextlib
 import decimal
 import functools
 import warnings
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from decimal import Decimal
 
 import erfa
@@ -52,6 +52,7 @@ def setup_module():
     with iers.earth_orientation_table.set(iers.IERS_B.open(iers.IERS_B_FILE)):
         yield "<using IERS-B orientation table>"
 
+
 @contextlib.contextmanager
 def quiet_erfa():
     with warnings.catch_warnings():
@@ -73,7 +74,6 @@ def assert_almost_equal(a, b, *, rtol=None, atol=None, label=""):
         thresh = rtol * (abs(a) + abs(b)) / 2
     else:
         thresh = atol + rtol * (abs(a) + abs(b)) / 2
-
     amb = a - b
     if isinstance(amb, TimeDelta):
         ambv = amb.to_value(u.s)
@@ -89,7 +89,6 @@ def assert_almost_equal(a, b, *, rtol=None, atol=None, label=""):
         else:
             target(target_value, label=label + " float(a-b)")
             target(-target_value, label=label + " float(b-a)")
-
     assert abs(amb) < thresh
 
 
@@ -344,9 +343,9 @@ def test_two_sum_symmetric(f1, f2):
 def test_two_sum_size(f1, f2):
     r1, r2 = two_sum(f1, f2)
     assert (
-        abs(r1) > abs(r2) / np.finfo(float).eps
-        or r1 == r2 == 0
-        or not np.isfinite(abs(f1) + abs(f2))
+        abs(r1) > abs(r2) / np.finfo(float).eps or
+        r1 == r2 == 0 or
+        not np.isfinite(abs(f1) + abs(f2))
     )
 
 
@@ -606,8 +605,8 @@ def test_timedelta_full_precision(scale, jds_a, jds_b):
     jd1_a, jd2_a = jds_a
     jd1_b, jd2_b = jds_b
     assume(
-        scale != "utc"
-        or (2440000 < jd1_a + jd2_a < 2460000 and 2440000 < jd1_b + jd2_b < 2460000)
+        scale != "utc" or
+        (2440000 < jd1_a + jd2_a < 2460000 and 2440000 < jd1_b + jd2_b < 2460000)
     )
     if scale == "utc":
         # UTC subtraction implies a scale change, so possible rounding errors.
@@ -651,10 +650,10 @@ def test_timedelta_full_precision_arithmetic(scale, jds_a, jds_b, x, y):
             assert_almost_equal(dt_x + dt_y, dt, atol=(x + y) * dt_tiny, rtol=0)
         except ErfaError:
             assume(
-                scale != "utc"
-                or (
-                    2440000 < jd1_a + jd2_a < 2460000
-                    and 2440000 < jd1_b + jd2_b < 2460000
+                scale != "utc" or
+                (
+                    2440000 < jd1_a + jd2_a < 2460000 and
+                    2440000 < jd1_b + jd2_b < 2460000
                 )
             )
             raise
@@ -690,51 +689,77 @@ def test_timedelta_conversion(scale1, scale2, jds_a, jds_b):
 
 
 # UTC disagrees when there are leap seconds
-_utc_bad = [
-    s for s in STANDARD_TIME_SCALES if s != "utc"
-]
+# _utc_bad = [
+#     (pytest.param(s, marks=pytest.mark.xfail) if s == "utc" else s)
+#     for s in STANDARD_TIME_SCALES
+# ]
 
 
+# an example that allows 'utc' to fail as expectedly while catching when it doesn't
+# (could put this into a wrapper function for wide-spread use)
 @given(
-    scale=sampled_from(_utc_bad),
+    scale=sampled_from(STANDARD_TIME_SCALES),
     dt1=datetimes(),
     dt2=datetimes()
 )  # datetimes have microsecond resolution
 @example(dt1=datetime(1235, 1, 1, 0, 0), dt2=datetime(9950, 1, 1, 0, 0, 0, 890773))
 def test_datetime_difference_agrees_with_timedelta(scale, dt1, dt2):
-    t1 = Time(dt1, scale=scale)
-    t2 = Time(dt2, scale=scale)
-    assert_almost_equal(
-        t2 - t1,
-        TimeDelta(dt2 - dt1, scale=None if scale == "utc" else scale),
-        atol=2 * u.us,
-    )
+    try:
+        t1 = Time(dt1, scale=scale)
+        t2 = Time(dt2, scale=scale)
+        assert_almost_equal(
+            t2 - t1,
+            TimeDelta(dt2 - dt1, scale=None if scale == "utc" else scale), atol=2 * u.us)
+    except Exception as e:
+        if scale != "utc":
+            raise (e)
+    else:
+        if scale == "utc":
+            raise AssertionError("This test should always raise an exception.")
 
 
+# an example that allows 'utc' to fail as expectedly while catching when it doesn't
+# (could put this into a wrapper function for wide-spread use)
 @given(
-    scale=sampled_from(_utc_bad),
+    scale=sampled_from(STANDARD_TIME_SCALES),
     days=integers(-3000 * 365, 3000 * 365),
     microseconds=integers(0, 24 * 60 * 60 * 1000000),
 )
 def test_datetime_to_timedelta(scale, days, microseconds):
-    td = timedelta(days=days, microseconds=microseconds)
-    assert TimeDelta(td, scale=scale) == TimeDelta(
-        days, microseconds / (86400 * 1e6), scale=scale, format="jd"
-    )
+    try:
+        td = timedelta(days=days, microseconds=microseconds)
+        assert TimeDelta(td, scale=scale) == TimeDelta(
+            days, microseconds / (86400 * 1e6), scale=scale, format="jd"
+        )
+    except Exception as e:
+        if scale != "utc":
+            raise (e)
+    else:
+        if scale == "utc":
+            raise AssertionError("This test should always raise an exception.")
 
 
+# an example that allows 'utc' to fail as expectedly while catching when it doesn't
+# (could put this into a wrapper function for wide-spread use)
 @given(
-    scale=sampled_from(_utc_bad),
+    scale=sampled_from(STANDARD_TIME_SCALES),
     days=integers(-3000 * 365, 3000 * 365),
     microseconds=integers(0, 24 * 60 * 60 * 1000000),
 )
 def test_datetime_timedelta_roundtrip(scale, days, microseconds):
-    td = timedelta(days=days, microseconds=microseconds)
-    assert td == TimeDelta(td, scale=scale).value
+    try:
+        td = timedelta(days=days, microseconds=microseconds)
+        assert td == TimeDelta(td, scale=scale).value
+    except Exception as e:
+        if scale != "utc":
+            raise (e)
+    else:
+        if scale == "utc":
+            raise AssertionError("This test should always raise an exception.")
 
 
 @given(
-    scale=sampled_from(_utc_bad),
+    scale=sampled_from(STANDARD_TIME_SCALES),
     days=integers(-3000 * 365, 3000 * 365),
     day_frac=floats(0, 1)
 )
@@ -747,7 +772,7 @@ def test_timedelta_datetime_roundtrip(scale, days, day_frac):
 
 
 @given(
-    scale=sampled_from(_utc_bad),
+    scale=sampled_from(STANDARD_TIME_SCALES),
     days=integers(-3000 * 365, 3000 * 365),
     day_frac=floats(0, 1)
 )
@@ -770,7 +795,7 @@ def test_datetime_difference_agrees_with_timedelta_no_hypothesis():
 
 # datetimes have microsecond resolution
 @given(
-    scale=sampled_from(_utc_bad),
+    scale=sampled_from(STANDARD_TIME_SCALES),
     dt=datetimes(),
     td=timedeltas()
 )
