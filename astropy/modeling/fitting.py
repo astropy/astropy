@@ -2049,7 +2049,10 @@ def fitter_to_model_params(model, fps, use_min_max_bounds=True):
                 model._array_to_parameters()
 
 
-@deprecated("5.1", "private method: _fitter_to_model_params has been made public now")
+@deprecated(
+    since="5.1",
+    message="private method: _fitter_to_model_params has been made public now",
+)
 def _fitter_to_model_params(model, fps):
     return fitter_to_model_params(model, fps)
 
@@ -2094,7 +2097,10 @@ def model_to_fit_params(model):
     return model_params, fitparam_indices, model_bounds
 
 
-@deprecated("5.1", "private method: _model_to_fit_params has been made public now")
+@deprecated(
+    since="5.1",
+    message="private method: _model_to_fit_params has been made public now",
+)
 def _model_to_fit_params(model):
     return model_to_fit_params(model)
 
