@@ -1,0 +1,1 @@
+Output of ``repr`` for VOTable instance now clearly shows it is a VOTable and not generic astropy Table.
