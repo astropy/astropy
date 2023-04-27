@@ -27,8 +27,6 @@ __all__ = [
     "reset_vo_warnings",
 ]
 
-VERIFY_OPTIONS = ["ignore", "warn", "exception"]
-
 
 def parse(
     source,
@@ -127,7 +125,7 @@ def parse(
     --------
     astropy.io.votable.exceptions : The exceptions this function may raise.
     """
-    from . import conf
+    from . import conf, VERIFY_OPTIONS
 
     invalid = invalid.lower()
     if invalid not in ("exception", "mask"):
