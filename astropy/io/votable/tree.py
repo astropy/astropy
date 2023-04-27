@@ -2420,7 +2420,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
         warn_unknown_attrs("TABLE", extra.keys(), config, pos)
 
     def __repr__(self):
-        return repr(self.to_table())
+        s = repr(self.to_table())
+        if s.startswith("<Table"):
+            s = "<VO" + s[1:]
+        return s
 
     def __bytes__(self):
         return bytes(self.to_table())
