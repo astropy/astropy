@@ -415,11 +415,14 @@ def degrees_to_dms(d):
 
 
 @deprecated(
-    "dms_to_degrees (or creating an Angle with a tuple) has ambiguous "
-    "behavior when the degree value is 0",
+    since="5.1",
+    message=(
+        "dms_to_degrees (or creating an Angle with a tuple) has ambiguous "
+        "behavior when the degree value is 0. Use {alternative}."
+    ),
     alternative=(
         "another way of creating angles instead (e.g. a less "
-        "ambiguous string like '-0d1m2.3s'"
+        "ambiguous string like '-0d1m2.3s')"
     ),
 )
 def dms_to_degrees(d, m, s=None):
@@ -455,11 +458,14 @@ def dms_to_degrees(d, m, s=None):
 
 
 @deprecated(
-    "hms_to_hours (or creating an Angle with a tuple) has ambiguous "
-    "behavior when the hour value is 0",
+    since="5.1",
+    message=(
+        "hms_to_hours (or creating an Angle with a tuple) has ambiguous "
+        "behavior when the hour value is 0. Use {alternative}."
+    ),
     alternative=(
         "another way of creating angles instead (e.g. a less "
-        "ambiguous string like '-0h1m2.3s'"
+        "ambiguous string like '-0h1m2.3s')"
     ),
 )
 def hms_to_hours(h, m, s=None):
