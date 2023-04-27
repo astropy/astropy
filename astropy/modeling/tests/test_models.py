@@ -127,7 +127,7 @@ def test_custom_model_bounding_box():
     bbox = model.bounding_box
 
     zlim, ylim, xlim = bbox.bounding_box()
-    dz, dy, dx = np.diff(bbox) / 2
+    dz, dy, dx = (np.diff(bbox) / 2).ravel()
     z1, y1, x1 = np.mgrid[
         slice(zlim[0], zlim[1] + 1),
         slice(ylim[0], ylim[1] + 1),
@@ -244,7 +244,7 @@ class Fittable2DModelTester:
         bbox = model.bounding_box
 
         ylim, xlim = bbox
-        dy, dx = np.diff(bbox) / 2
+        dy, dx = (np.diff(bbox) / 2).ravel()
         y1, x1 = np.mgrid[slice(ylim[0], ylim[1] + 1), slice(xlim[0], xlim[1] + 1)]
         y2, x2 = np.mgrid[
             slice(ylim[0] - dy, ylim[1] + dy + 1), slice(xlim[0] - dx, xlim[1] + dx + 1)
@@ -466,7 +466,7 @@ class Fittable1DModelTester:
         if isinstance(bbox, ModelBoundingBox):
             bbox = bbox.bounding_box()
 
-        dx = np.diff(bbox) / 2
+        dx = (np.diff(bbox) / 2)[0]
         x1 = np.mgrid[slice(bbox[0], bbox[1] + 1, ddx)]
         x2 = np.mgrid[slice(bbox[0] - dx, bbox[1] + dx + 1, ddx)]
         arr = model(x2)
