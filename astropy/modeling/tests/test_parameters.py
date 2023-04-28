@@ -20,7 +20,6 @@ from astropy.modeling.parameters import (
     _tofloat,
     param_repr_oneline,
 )
-from astropy.utils.compat import NUMPY_LT_1_25
 from astropy.utils.data import get_pkg_data_filename
 
 from . import irafutil
@@ -534,9 +533,6 @@ class TestParameters:
         param = Parameter(name="test", default=np.array([1]))
         assert param.shape == (1,)
         # Reshape error
-        if not NUMPY_LT_1_25:
-            # error message changed in numpy 1.25
-            MESSAGE = r"cannot reshape array of size 1"
         with pytest.raises(ValueError, match=MESSAGE):
             param.shape = (5,)
         param.shape = ()
