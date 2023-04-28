@@ -1076,3 +1076,28 @@ def test_keep_masked_state_integer_columns(tmp_path):
     assert not isinstance(tr["a"], MaskedColumn)
     assert not isinstance(tr["b"], MaskedColumn)
     assert isinstance(tr["c"], MaskedColumn)
+
+
+def test_null_propagation_in_table_read(tmp_path):
+    """Checks that integer columns with a TNULL value set (e.g. masked columns)
+    have their TNULL value propagated when being read in by Table.read"""
+
+    # Could be anything except for 999999, which is the "default" fill_value
+    # for masked int arrays
+    NULL_VALUE = -1
+
+    output_filename = tmp_path / "null_table.fits"
+
+    data = np.asarray([1, 2, NULL_VALUE, 4], dtype=np.int32)
+
+    # Create table with BinTableHDU, with integer column containing a custom
+    # null
+    c = fits.Column(name="a", array=data, null=NULL_VALUE, format="J")
+    hdu = BinTableHDU.from_columns([c])
+    hdul = fits.HDUList([PrimaryHDU(), hdu])
+    hdul.writeto(output_filename)
+
+    # Read the table in with Table.read, and ensure the column's fill_value is
+    # equal to NULL_VALUE
+    t = Table.read(output_filename)
+    assert t["a"].fill_value == NULL_VALUE
