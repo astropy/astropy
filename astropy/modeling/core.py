@@ -4389,7 +4389,7 @@ def custom_model(*args, fit_deriv=None):
     Create an instance of the custom model and evaluate it::
 
         >>> model = SineModel()
-        >>> model(0.25)
+        >>> model(0.25)  # doctest: +FLOAT_CMP
         1.0
 
     This model instance can now be used like a usual astropy model.
