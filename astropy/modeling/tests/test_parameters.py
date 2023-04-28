@@ -704,6 +704,27 @@ class TestParameters:
             ]
             assert param._value is None
 
+    def test_value(self):
+        param = Parameter(name="test", default=1)
+        assert not isinstance(param.value, np.ndarray)
+        assert param.value == 1
+
+        param = Parameter(name="test", default=[1])
+        assert not isinstance(param.value, np.ndarray)
+        assert param.value == 1
+
+        param = Parameter(name="test", default=[[1]])
+        assert not isinstance(param.value, np.ndarray)
+        assert param.value == 1
+
+        param = Parameter(name="test", default=np.array([1]))
+        assert not isinstance(param.value, np.ndarray)
+        assert param.value == 1
+
+        param = Parameter(name="test", default=[1, 2, 3])
+        assert isinstance(param.value, np.ndarray)
+        assert (param.value == [1, 2, 3]).all()
+
     def test_raw_value(self):
         param = Parameter(name="test", default=[1, 2, 3, 4])
 
