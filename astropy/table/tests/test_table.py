@@ -3289,3 +3289,29 @@ def test_add_list_order():
     array = np.empty((20, 1))
     t.add_columns(array, names=names)
     assert t.colnames == names
+
+
+def test_table_write_preserves_nulls(tmp_path):
+    """Ensures that upon writing a table, the fill_value attribute of a
+    masked (integer) column is correctly propagated into the TNULL parameter
+    in the FITS header"""
+
+    # Could be anything except for 999999, which is the "default" fill_value
+    # for masked int arrays
+    NULL_VALUE = -1
+
+    # Create table with an integer MaskedColumn with custom fill_value
+    c1 = MaskedColumn(name="a", data=np.asarray([1, 2, 3], dtype=np.int32),
+                      mask=[True, False, True], fill_value=NULL_VALUE)
+    t = Table([c1])
+
+    table_filename = tmp_path / "nultable.fits"
+
+    # Write the table out with Table.write()
+    t.write(table_filename)
+
+    # Open the output file, and check the TNULL parameter is NULL_VALUE
+    with fits.open(table_filename) as hdul:
+        header = hdul[1].header
+
+    assert header["TNULL1"] == NULL_VALUE
