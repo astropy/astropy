@@ -1,0 +1,2 @@
+Removed deprecated angle parsing and formatting utilities from ``angle_utilities``.
+Use the functions from ``angle_formats`` instead.
