@@ -170,7 +170,7 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
         model = custom_model(model)()
     ndim = model.n_inputs
     if ndim > 2:
-        raise ValueError("discretize_model only supports 1-d and 2-d models.")
+        raise ValueError("discretize_model supports only 1D and 2D models.")
 
     dxrange = np.diff(x_range)[0]
     if dxrange != int(dxrange):
@@ -188,9 +188,9 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
             )
 
     if ndim == 2 and y_range is None:
-        raise ValueError("y range not specified, but model is 2-d")
+        raise ValueError("y_range must be specified for a 2D model")
     if ndim == 1 and y_range is not None:
-        raise ValueError("y range specified, but model is only 1-d.")
+        raise ValueError("y_range should not be input for a 1D model")
     if mode == "center":
         if ndim == 1:
             return discretize_center_1D(model, x_range)

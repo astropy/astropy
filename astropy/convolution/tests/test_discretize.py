@@ -202,7 +202,7 @@ def test_dim_exception_1d():
     def f(x):
         return x**2
 
-    with pytest.raises(ValueError, match=r"y range specified, but model is only 1-d\."):
+    with pytest.raises(ValueError, match=r"y_range should not be input for a 1D model"):
         discretize_model(f, (-10, 11), (-10, 11))
 
 
@@ -214,7 +214,7 @@ def test_dim_exception_2d():
     def f(x, y):
         return x**2 + y**2
 
-    with pytest.raises(ValueError, match=r"y range not specified, but model is 2-d"):
+    with pytest.raises(ValueError, match=r"y_range must be specified for a 2D model"):
         discretize_model(f, (-10, 11))
 
 
