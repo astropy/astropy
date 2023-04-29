@@ -542,6 +542,7 @@ class TestParameters:
         param = Parameter(name="test", default=np.array([1]))
         assert param.shape == (1,)
         # Reshape error
+        MESSAGE = r"Cannot assign this shape to a scalar quantity"
         with pytest.raises(ValueError, match=MESSAGE):
             param.shape = (5,)
         param.shape = ()
