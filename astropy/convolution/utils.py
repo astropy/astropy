@@ -92,13 +92,13 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
         not a `~astropy.modeling.Model` instance is converted to a model
         using `~astropy.modeling.custom_model`.
     x_range : 2-tuple
-        Lower and upper bounds of x pixel values over which the model is
+        Lower and upper bounds of x pixel values at which the model is
         evaluated. The upper bound is non-inclusive. A ``x_range`` of
         ``(0, 3)`` means the model will be evaluated at x pixels 0, 1,
         and 2. The difference between the upper and lower bound must be
         a whole number so that the output array size is well defined.
     y_range : 2-tuple or `None`, optional
-        Lower and upper bounds of y pixel values over which the model is
+        Lower and upper bounds of y pixel values at which the model is
         evaluated. The upper bound is non-inclusive. A ``y_range`` of
         ``(0, 3)`` means the model will be evaluated at y pixels of 0,
         1, and 2. The difference between the upper and lower bound must
@@ -132,25 +132,37 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
 
     Examples
     --------
+    In this example, we define a
+    `~astropy.modeling.functional_models.Gaussian1D` model that has been
+    normalized so that it sums to 1.0. We then discretize this model
+    using the ``'center'``, ``'linear_interp'``, and ``'oversample'``
+    (with ``factor=10``) modes.
+
     .. plot::
-        :include-source:
+        :show-source-link:
 
         import matplotlib.pyplot as plt
         import numpy as np
-        from astropy.modeling.models import Gaussian1D
         from astropy.convolution.utils import discretize_model
+        from astropy.modeling.models import Gaussian1D
 
         gauss_1D = Gaussian1D(1 / (0.5 * np.sqrt(2 * np.pi)), 0, 0.5)
-        y_center = discretize_model(gauss_1D, (-2, 3), mode='center')
-        y_corner = discretize_model(gauss_1D, (-2, 3), mode='linear_interp')
-        y_oversample = discretize_model(gauss_1D, (-2, 3), mode='oversample')
-        plt.plot(y_center, label='center sum = {0:3f}'.format(y_center.sum()))
-        plt.plot(y_corner, label='linear_interp sum = {0:3f}'.format(y_corner.sum()))
-        plt.plot(y_oversample, label='oversample sum = {0:3f}'.format(y_oversample.sum()))
-        plt.xlabel('pixels')
-        plt.ylabel('value')
+        x_range = (-2, 3)
+        x = np.arange(*x_range)
+        y_center = discretize_model(gauss_1D, x_range, mode='center')
+        y_edge = discretize_model(gauss_1D, x_range, mode='linear_interp')
+        y_oversample = discretize_model(gauss_1D, x_range, mode='oversample')
+
+        fig, ax = plt.subplots(figsize=(8, 6))
+        label = f'center (sum={y_center.sum():.3f})'
+        ax.plot(x, y_center, '.-', label=label)
+        label = f'linear_interp (sum={y_edge.sum():.3f})'
+        ax.plot(x, y_edge, '.-', label=label)
+        label = f'oversample (sum={y_oversample.sum():.3f})'
+        ax.plot(x, y_oversample, '.-', label=label)
+        ax.set_xlabel('x')
+        ax.set_ylabel('Value')
         plt.legend()
-        plt.show()
     """
     if not callable(model):
         raise TypeError("Model must be callable.")
