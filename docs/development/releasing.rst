@@ -8,7 +8,7 @@ coordinated or affiliated package, you can instead check
 
 The core package has adopted the following release plan:
 
-* Major releases every two years. These are releases that can introduce breaking API changes, and should be numbered as x.0.0 (e.g. 6.0.0).
+* Major releases every two years. These are releases that can introduce breaking API changes, and should be numbered as x.0.0 (e.g., 6.0.0).
 * Minor releases every six months in between. These releases should minimize any API changes and focus on adding new features.
 * Bugfix releases as needed between minor releases.
 
@@ -78,7 +78,7 @@ The procedure for the feature freeze is as follows:
       $ cp docs/whatsnew/<current_version>.rst docs/whatsnew/<next_version>.rst
 
    Note that for these pages we leave out the tailing .0 from the version number
-   in the filenames (e.g. ``6.1.rst``) since the What's New applies in principle
+   in the filenames (e.g., ``6.1.rst``) since the What's New applies in principle
    to the whole release cycle.
    You'll then need to edit ``docs/whatsnew/<next_version>.rst``, removing all
    the content but leaving the basic structure.  You may also need to
@@ -131,7 +131,7 @@ The procedure for the feature freeze is as follows:
 .. _release-procedure-first-rc:
 
 Releasing the first feature release candidate
-===========================================
+=============================================
 
 .. _release-procedure-restrict-branch:
 
@@ -356,7 +356,7 @@ You can potentially repeat this section for a third or even fourth release candi
 come up with a release candidate, you are ready to proceed to the next section.
 
 Releasing the final version of the feature release
-================================================
+==================================================
 
 .. _release-procedure-render-changelog:
 
