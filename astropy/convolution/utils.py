@@ -83,73 +83,86 @@ def add_kernel_arrays_2D(array_1, array_2):
 
 def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
     """
-    Function to evaluate analytical model functions on a grid.
-
-    So far the function can only deal with pixel coordinates.
+    Evaluate an analytical model function on a pixel grid.
 
     Parameters
     ----------
     model : `~astropy.modeling.Model` or callable.
-        Analytic model function to be discretized. Callables, which are not an
-        instances of `~astropy.modeling.Model` are passed to
-        `~astropy.modeling.custom_model` and then evaluated.
-    x_range : tuple
-        x range in which the model is evaluated. The difference between the
-        upper an lower limit must be a whole number, so that the output array
-        size is well defined.
-    y_range : tuple, optional
-        y range in which the model is evaluated. The difference between the
-        upper an lower limit must be a whole number, so that the output array
-        size is well defined. Necessary only for 2D models.
-    mode : str, optional
+        Analytical model function to be discretized. A callable that is
+        not a `~astropy.modeling.Model` instance is converted to a model
+        using `~astropy.modeling.custom_model`.
+    x_range : 2-tuple
+        Lower and upper bounds of x pixel values at which the model is
+        evaluated. The upper bound is non-inclusive. A ``x_range`` of
+        ``(0, 3)`` means the model will be evaluated at x pixels 0, 1,
+        and 2. The difference between the upper and lower bound must be
+        a whole number so that the output array size is well defined.
+    y_range : 2-tuple or `None`, optional
+        Lower and upper bounds of y pixel values at which the model is
+        evaluated. The upper bound is non-inclusive. A ``y_range`` of
+        ``(0, 3)`` means the model will be evaluated at y pixels of 0,
+        1, and 2. The difference between the upper and lower bound must
+        be a whole number so that the output array size is well defined.
+        ``y_range`` is necessary only for 2D models.
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following modes:
             * ``'center'`` (default)
-                Discretize model by taking the value
-                at the center of the bin.
+                Discretize model by taking the value at the center of
+                the pixel bins.
             * ``'linear_interp'``
-                Discretize model by linearly interpolating
-                between the values at the corners of the bin.
-                For 2D models interpolation is bilinear.
+                Discretize model by linearly interpolating between the
+                values at the edges (1D) or corners (2D) of the pixel
+                bins. For 2D models, the interpolation is bilinear.
             * ``'oversample'``
-                Discretize model by taking the average
+                Discretize model by taking the average of model values
                 on an oversampled grid.
             * ``'integrate'``
-                Discretize model by integrating the model
-                over the bin using `scipy.integrate.quad`.
-                Very slow.
-    factor : float or int
-        Factor of oversampling. Default = 10.
+                Discretize model by integrating the model over the pixel
+                bins using `scipy.integrate.quad`. This mode conserves
+                the model integral on a subpixel scale, but is very
+                slow.
+    factor : int, optional
+        The oversampling factor used when ``mode='oversample'``. Ignored
+        otherwise.
 
     Returns
     -------
-    array : `numpy.array`
-        Model value array
+    array : `numpy.ndarray`
+        The discretized model array.
 
-    Notes
-    -----
-    The ``oversample`` mode allows to conserve the integral on a subpixel
-    scale. Here is the example of a normalized Gaussian1D:
+    Examples
+    --------
+    In this example, we define a
+    `~astropy.modeling.functional_models.Gaussian1D` model that has been
+    normalized so that it sums to 1.0. We then discretize this model
+    using the ``'center'``, ``'linear_interp'``, and ``'oversample'``
+    (with ``factor=10``) modes.
 
     .. plot::
-        :include-source:
+        :show-source-link:
 
         import matplotlib.pyplot as plt
         import numpy as np
-        from astropy.modeling.models import Gaussian1D
         from astropy.convolution.utils import discretize_model
+        from astropy.modeling.models import Gaussian1D
+
         gauss_1D = Gaussian1D(1 / (0.5 * np.sqrt(2 * np.pi)), 0, 0.5)
-        y_center = discretize_model(gauss_1D, (-2, 3), mode='center')
-        y_corner = discretize_model(gauss_1D, (-2, 3), mode='linear_interp')
-        y_oversample = discretize_model(gauss_1D, (-2, 3), mode='oversample')
-        plt.plot(y_center, label='center sum = {0:3f}'.format(y_center.sum()))
-        plt.plot(y_corner, label='linear_interp sum = {0:3f}'.format(y_corner.sum()))
-        plt.plot(y_oversample, label='oversample sum = {0:3f}'.format(y_oversample.sum()))
-        plt.xlabel('pixels')
-        plt.ylabel('value')
+        x_range = (-2, 3)
+        x = np.arange(*x_range)
+        y_center = discretize_model(gauss_1D, x_range, mode='center')
+        y_edge = discretize_model(gauss_1D, x_range, mode='linear_interp')
+        y_oversample = discretize_model(gauss_1D, x_range, mode='oversample')
+
+        fig, ax = plt.subplots(figsize=(8, 6))
+        label = f'center (sum={y_center.sum():.3f})'
+        ax.plot(x, y_center, '.-', label=label)
+        label = f'linear_interp (sum={y_edge.sum():.3f})'
+        ax.plot(x, y_edge, '.-', label=label)
+        label = f'oversample (sum={y_oversample.sum():.3f})'
+        ax.plot(x, y_oversample, '.-', label=label)
+        ax.set_xlabel('x')
+        ax.set_ylabel('Value')
         plt.legend()
-        plt.show()
-
-
     """
     if not callable(model):
         raise TypeError("Model must be callable.")
@@ -157,7 +170,7 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
         model = custom_model(model)()
     ndim = model.n_inputs
     if ndim > 2:
-        raise ValueError("discretize_model only supports 1-d and 2-d models.")
+        raise ValueError("discretize_model supports only 1D and 2D models.")
 
     dxrange = np.diff(x_range)[0]
     if dxrange != int(dxrange):
@@ -175,9 +188,9 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
             )
 
     if ndim == 2 and y_range is None:
-        raise ValueError("y range not specified, but model is 2-d")
+        raise ValueError("y_range must be specified for a 2D model")
     if ndim == 1 and y_range is not None:
-        raise ValueError("y range specified, but model is only 1-d.")
+        raise ValueError("y_range should not be input for a 1D model")
     if mode == "center":
         if ndim == 1:
             return discretize_center_1D(model, x_range)
