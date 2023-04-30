@@ -47,32 +47,65 @@ class Distribution:
         if samples.shape == ():
             raise TypeError("Attempted to initialize a Distribution with a scalar")
 
+        # Do the view in two stages, since for viewing as a new class, it is good
+        # to have with the dtype in place (e.g., for Quantity.__array_finalize__,
+        # it is needed to create the correct StructuredUnit).
         new_dtype = np.dtype(
             {"names": ["samples"], "formats": [(samples.dtype, (samples.shape[-1],))]}
         )
-        samples_cls = type(samples)
+        self = samples.view(new_dtype)
+        # Get rid of trailing dimension of 1.
+        self.shape = samples.shape[:-1]
+
+        # Now view as the Distribution subclass.
+        new_cls = cls._get_distribution_cls(type(samples))
+        return self.view(new_cls)
+
+    @classmethod
+    def _get_distribution_cls(cls, samples_cls):
+        if issubclass(samples_cls, Distribution):
+            return samples_cls
+
         new_cls = cls._generated_subclasses.get(samples_cls)
         if new_cls is None:
-            # Make a new class with the combined name, inserting Distribution
-            # itself below the samples class since that way Quantity methods
-            # like ".to" just work (as .view() gets intercepted).  However,
-            # repr and str are problems, so we put those on top.
-            # TODO: try to deal with this at the lower level.  The problem is
-            # that array2string does not allow one to override how structured
-            # arrays are typeset, leading to all samples to be shown.  It may
-            # be possible to hack oneself out by temporarily becoming a void.
-            new_name = samples_cls.__name__ + cls.__name__
+            # Walk through MRO and find closest base data class.
+            # Note: right now, will basically always be ndarray, but
+            # one could imagine needing some special care for one subclass,
+            # which would then get its own entry.  E.g., if MaskedAngle
+            # defined something special, then MaskedLongitude should depend
+            # on it.
+            for mro_item in samples_cls.__mro__:
+                base_cls = cls._generated_subclasses.get(mro_item)
+                if base_cls is not None:
+                    break
+            else:
+                # Just hope that NdarrayDistribution can handle it.
+                # TODO: this covers the case where a user puts in a list or so,
+                # but for those one could just explicitly do something like
+                # _generated_subclasses[list] = NdarrayDistribution
+                return NdarrayDistribution
+
+            # We need to get rid of the top _DistributionRepr, since we add
+            # it again below (it should always be on top).
+            # TODO: remove the need for _DistributionRepr by defining
+            # __array_function__ and overriding array2string.
+            if base_cls.__mro__[1] is not _DistributionRepr:
+                # Sanity check. This should never happen!
+                raise RuntimeError(
+                    f"found {base_cls=}, which does not have _DistributionRepr at "
+                    "__mro__[1]. Please raise an issue at "
+                    "https://github.com/astropy/astropy/issues/new/choose."
+                )
+            # Create (and therefore register) new Distribution subclass for the
+            # given samples_cls.
             new_cls = type(
-                new_name,
-                (_DistributionRepr, samples_cls, ArrayDistribution),
+                samples_cls.__name__ + "Distribution",
+                (_DistributionRepr, samples_cls) + base_cls.__mro__[2:],
                 {"_samples_cls": samples_cls},
             )
             cls._generated_subclasses[samples_cls] = new_cls
 
-        self = samples.view(dtype=new_dtype, type=new_cls)
-        # Get rid of trailing dimension of 1.
-        self.shape = samples.shape[:-1]
-        return self
+        return new_cls
 
     @property
     def distribution(self):
@@ -288,26 +321,20 @@ class ArrayDistribution(Distribution, np.ndarray):
         ``dtype`` is allowed.
 
         """
-        if type is None and (
-            isinstance(dtype, builtins.type) and issubclass(dtype, np.ndarray)
-        ):
-            type = dtype
-            dtype = None
+        if type is None:
+            if isinstance(dtype, builtins.type) and issubclass(dtype, np.ndarray):
+                type = self._get_distribution_cls(dtype)
+                dtype = None
+            else:
+                type = self.__class__
+        else:
+            type = self._get_distribution_cls(type)
 
-        view_args = [item for item in (dtype, type) if item is not None]
-
-        if type is None or (
-            isinstance(type, builtins.type) and issubclass(type, Distribution)
-        ):
-            if dtype is not None and dtype != self.dtype:
-                raise ValueError(
-                    "cannot view as Distribution subclass with a new dtype."
-                )
-            return super().view(*view_args)
-
-        # View as the new non-Distribution class, but turn into a Distribution again.
-        result = self.distribution.view(*view_args)
-        return Distribution(result)
+        if dtype is None or dtype == self.dtype:
+            return super().view(type)
+        else:
+            # TODO: relax this constraint.
+            raise ValueError("cannot view as Distribution subclass with a new dtype.")
 
     # Override __getitem__ so that 'samples' is returned as the sample class.
     def __getitem__(self, item):
