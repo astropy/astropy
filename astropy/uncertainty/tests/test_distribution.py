@@ -445,6 +445,10 @@ def test_distr_angle_view_as_quantity():
     assert isinstance(qd3, u.Quantity)
     assert isinstance(qd3, Distribution)
     assert_array_equal(qd3.distribution, qd.distribution)
+    # Simple view with no arguments
+    qd4 = qd3.view()
+    assert qd4.__class__ is qd3.__class__
+    assert np.may_share_memory(qd4, qd3)
 
 
 def test_distr_cannot_view_new_dtype():
@@ -462,7 +466,7 @@ def test_distr_cannot_view_new_dtype():
         ad.view(np.dtype("f8"))
 
     with pytest.raises(ValueError, match="with a new dtype"):
-        ad.view(np.dtype("f8"), Distribution)
+        ad.view(np.dtype("f8"), distr.__class__)
 
 
 def test_scalar_quantity_distribution():
