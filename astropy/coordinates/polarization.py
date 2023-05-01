@@ -1,4 +1,3 @@
-from collections import namedtuple
 from contextlib import contextmanager
 from typing import Dict, NamedTuple
 
@@ -16,6 +15,7 @@ class StokesSymbol(NamedTuple):
 
     symbol: str = ""
     description: str = ""
+
 
 # This is table 29 in the FITS 4.0 paper
 FITS_STOKES_VALUE_SYMBOL_MAP = {
