@@ -355,15 +355,13 @@ class Parameter:
             # units that the parameter advertises to what it actually
             # uses internally.
             if self.internal_unit:
-                return np.float64(
-                    self._getter(
-                        self._internal_value, self.internal_unit, self.unit
-                    ).value
-                )
-            elif self._getter:
-                return np.float64(self._getter(self._internal_value))
-            elif self._setter:
-                return np.float64(self._internal_value)
+                value = self._getter(
+                    self._internal_value, self.internal_unit, self.unit
+                ).value
+            else:
+                value = self._getter(self._internal_value)
+
+            return np.float64(value)
 
     @value.setter
     def value(self, value):
