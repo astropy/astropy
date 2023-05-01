@@ -18,6 +18,10 @@ class KernelSizeError(Exception):
     """
 
 
+class KernelArithmeticError(Exception):
+    """Called when doing invalid arithmetic with a kernel."""
+
+
 def has_even_axis(array):
     if isinstance(array, (list, tuple)):
         return not len(array) % 2
