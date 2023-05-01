@@ -840,6 +840,16 @@ class TestParameters:
         param = Parameter(name="test", default=[1, 2, 3, 4] * u.m)
         assert param_repr_oneline(param) == "[1., 2., 3., 4.] m"
 
+    def test_getter_setter(self):
+        def my_getter(value):
+            return value
+
+        msg = "setter and getter must both be input"
+        with pytest.raises(ValueError, match=msg):
+            Parameter(name="test", default=1, getter=my_getter)
+        with pytest.raises(ValueError, match=msg):
+            Parameter(name="test", default=1, setter=setter1)
+
 
 class TestMultipleParameterSets:
     def setup_class(self):
