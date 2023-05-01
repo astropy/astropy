@@ -274,13 +274,13 @@ class TestKernels:
     def test_multiply_kernel1d(self):
         """Test that multiplying two 1D kernels raises an exception."""
         gauss = Gaussian1DKernel(3)
-        with pytest.raises(Exception):
+        with pytest.raises(Exception, match="Kernel operation not supported."):
             gauss * gauss
 
     def test_multiply_kernel2d(self):
         """Test that multiplying two 2D kernels raises an exception."""
         gauss = Gaussian2DKernel(3)
-        with pytest.raises(Exception):
+        with pytest.raises(Exception, match="Kernel operation not supported."):
             gauss * gauss
 
     def test_multiply_kernel1d_kernel2d(self):
@@ -288,12 +288,12 @@ class TestKernels:
         Test that multiplying a 1D kernel with a 2D kernel raises an
         exception.
         """
-        with pytest.raises(Exception):
+        with pytest.raises(Exception, match="Kernel operation not supported."):
             Gaussian1DKernel(3) * Gaussian2DKernel(3)
 
     def test_add_kernel_scalar(self):
         """Test that adding a scalar to a kernel raises an exception."""
-        with pytest.raises(Exception):
+        with pytest.raises(Exception, match="Kernel operation not supported."):
             Gaussian1DKernel(3) + 1
 
     def test_model_1D_kernel(self):
