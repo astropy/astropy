@@ -192,6 +192,10 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
                 " 'y_range' must be a whole number."
             )
 
+    if factor != int(factor):
+        raise ValueError("factor must have an integer value")
+    factor = int(factor)
+
     if ndim == 2 and y_range is None:
         raise ValueError("y_range must be specified for a 2D model")
     if ndim == 1 and y_range is not None:
