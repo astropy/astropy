@@ -26,9 +26,11 @@ In addition to these major changes, Astropy v5.3 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
 By the numbers:
 
-* X issues have been closed since v4.2
-* X pull requests have been merged since v4.2
-* X distinct people have contributed code
+* 984 commits have been added since 5.2
+* 156 issues have been closed since 5.2
+* 238 pull requests have been merged since 5.2
+* 46 people have contributed since 5.2
+* 16 of which are new contributors
 
 .. _whatsnew-5.3-cosmology:
 
@@ -288,3 +290,58 @@ Full change log
 
 To see a detailed list of all changes in version v5.3, including changes in
 API, please see the :ref:`changelog`.
+
+Contributors to the v5.3 release
+================================
+
+The people who have contributed to the code for this release are:
+
+.. hlist::
+  :columns: 4
+
+  -  Abdu Zoghbi  *
+  -  Albert Y. Shih
+  -  Brett Graham  *
+  -  Brett M. Morris  *
+  -  Brigitta Sipőcz
+  -  Caden Gobat  *
+  -  Chiara Marmo
+  -  David Stansby
+  -  Derek Homeier
+  -  Doug Branton  *
+  -  E. Rykoff
+  -  Eero Vaher
+  -  Felipe Cybis Pereira  *
+  -  Jamie Kennea  *
+  -  Larry Bradley
+  -  Manon Marchand  *
+  -  Markus Demleitner
+  -  Marten van Kerkwijk
+  -  Maximilian Linhoff
+  -  Michael Brewer
+  -  Mihai Cara
+  -  Mubin17  *
+  -  Nabil Freij
+  -  Nathaniel Starkman
+  -  naveen  *
+  -  Nick Murphy
+  -  Ole Streicher
+  -  P. L. Lim
+  -  Paul Price
+  -  Roy Smart
+  -  Samruddhi Khandale  *
+  -  Sandeep Desai  *
+  -  Simon Alinder  *
+  -  Simon Conseil
+  -  Stuart Mumford
+  -  Telomelonia  *
+  -  Thomas J. Fan  *
+  -  Thomas Robitaille
+  -  Tiago Gomes
+  -  Tiago Ribeiro  *
+  -  Timothy P. Ellsworth Bowers
+  -  Tom Aldcroft
+  -  Tom Donaldson
+  -  William Jamieson
+
+Where a * indicates that this release contains their first contribution to astropy.
