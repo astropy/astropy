@@ -34,12 +34,16 @@ def setter2(val, model):
     return val * model.p
 
 
+def getter1(val):
+    return val
+
+
 class SetterModel(FittableModel):
     n_inputs = 2
     n_outputs = 1
 
-    xc = Parameter(default=1, setter=setter1)
-    yc = Parameter(default=1, setter=setter2)
+    xc = Parameter(default=1, setter=setter1, getter=getter1)
+    yc = Parameter(default=1, setter=setter2, getter=getter1)
 
     def do_something(self, v):
         pass
@@ -841,12 +845,9 @@ class TestParameters:
         assert param_repr_oneline(param) == "[1., 2., 3., 4.] m"
 
     def test_getter_setter(self):
-        def my_getter(value):
-            return value
-
         msg = "setter and getter must both be input"
         with pytest.raises(ValueError, match=msg):
-            Parameter(name="test", default=1, getter=my_getter)
+            Parameter(name="test", default=1, getter=getter1)
         with pytest.raises(ValueError, match=msg):
             Parameter(name="test", default=1, setter=setter1)
 
