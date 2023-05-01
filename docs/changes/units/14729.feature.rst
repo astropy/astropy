@@ -1,0 +1,2 @@
+Add support for gc2gde and gd2gce erfa functions to allow geodetic representations
+using equatorial radius and flattening.
