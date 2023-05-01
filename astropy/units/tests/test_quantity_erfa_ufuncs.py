@@ -15,6 +15,11 @@ from astropy.utils.introspection import minversion
 ERFA_LE_2_0_0 = not minversion(erfa, "2.0.0.1")
 
 
+def vvd(val, valok, dval, func, test, status):
+    """Mimic routine of erfa/src/t_erfa_c.c (to help copy & paste)"""
+    assert u.allclose(val, valok * val.unit, atol=dval * val.unit)
+
+
 class TestPVUfuncs:
     def setup_class(self):
         self.pv_unit = u.Unit("AU,AU/day")
@@ -504,3 +509,93 @@ class TestEraStructUfuncs:
                 rtol=1e-12,
                 atol=0 * self.astrom_unit[name],
             )
+
+
+class TestGeodetic:
+    def setup_class(self):
+        self.ellipsoid = 1
+        self.length_unit = u.Unit("m")
+        self.equatorial_radius_value = 6378136.0
+        self.equatorial_radius = self.equatorial_radius_value << self.length_unit
+        self.flattening = 0.0033528 * u.dimensionless_unscaled
+        self.lon_value = 0.9827937232473290680
+        self.lon_unit = u.Unit("rad")
+        self.lon = self.lon_value << self.lon_unit
+        self.lat_value = 0.9716018377570411532
+        self.lat_unit = u.Unit("rad")
+        self.lat = self.lat_value << self.lat_unit
+        self.height_value = 332.36862495764397
+        self.height = self.height_value << self.length_unit
+        self.x_value = 2e6
+        self.x = self.x_value << self.length_unit
+        self.y_value = 3e6
+        self.y = self.y_value << self.length_unit
+        self.z_value = 5.244e6
+        self.z = self.z_value << self.length_unit
+
+    def test_unit_errors(self):
+        """Test unit errors when dimensionless parameters are used"""
+
+        msg = "'NoneType' object has no attribute '_get_converter'"
+        xyz = np.array([self.x_value, self.y_value, self.z_value]) << self.length_unit
+        status = 0
+        with pytest.raises(AttributeError, match=msg):
+            e, p, h, status = erfa_ufunc.gc2gde(
+                self.equatorial_radius_value, self.flattening, xyz
+            )
+        with pytest.raises(AttributeError, match=msg):
+            xyz, status = erfa_ufunc.gd2gce(
+                self.equatorial_radius_value,
+                self.flattening,
+                self.lon,
+                self.lat,
+                self.height,
+            )
+        xyz = np.array([self.x_value, self.y_value, self.z_value])
+        status = 0
+        with pytest.raises(AttributeError, match=msg):
+            e, p, h, status = erfa_ufunc.gc2gde(
+                self.equatorial_radius, self.flattening, xyz
+            )
+        status = 0
+        with pytest.raises(AttributeError, match=msg):
+            xyz, status = erfa_ufunc.gd2gce(
+                self.equatorial_radius,
+                self.flattening,
+                self.lon_value,
+                self.lat,
+                self.height,
+            )
+        with pytest.raises(AttributeError, match=msg):
+            xyz, status = erfa_ufunc.gd2gce(
+                self.equatorial_radius,
+                self.flattening,
+                self.lon,
+                self.lat,
+                self.height_value,
+            )
+
+    def test_gc2gde(self):
+        """Test that we reproduce erfa/src/t_erfa_c.c t_gc2gd"""
+
+        xyz = np.array([self.x_value, self.y_value, self.z_value]) << self.length_unit
+        status = 0
+        e, p, h, status = erfa_ufunc.gc2gde(
+            self.equatorial_radius, self.flattening, xyz
+        )
+
+        vvd(e, self.lon_value, 1e-14, "eraGc2gde", "e", status)
+        vvd(p, self.lat_value, 1e-14, "eraGc2gde", "p", status)
+        vvd(h, self.height_value, 1e-8, "eraGc2gde", "h", status)
+
+    def test_gd2gce(self):
+        """Test that we reproduce erfa/src/t_erfa_c.c t_gc2gd"""
+
+        status = 0
+        xyz, status = erfa_ufunc.gd2gce(
+            self.equatorial_radius, self.flattening, self.lon, self.lat, self.height
+        )
+
+        vvd(xyz[0], self.x_value, 1e-7, "eraGd2gce", "e", status)
+        vvd(xyz[1], self.y_value, 1e-7, "eraGd2gce", "p", status)
+        vvd(xyz[2], self.z_value, 1e-7, "eraGd2gce", "h", status)
