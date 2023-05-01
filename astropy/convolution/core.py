@@ -22,7 +22,12 @@ import numpy as np
 
 from astropy.utils.exceptions import AstropyUserWarning
 
-from .utils import add_kernel_arrays_1D, add_kernel_arrays_2D, discretize_model
+from .utils import (
+    add_kernel_arrays_1D,
+    add_kernel_arrays_2D,
+    discretize_model,
+    KernelArithmeticError,
+)
 
 MAX_NORMALIZATION = 100
 
@@ -344,10 +349,10 @@ def kernel_arithmetics(kernel, value, operation):
     if isinstance(kernel, Kernel1D) and isinstance(value, Kernel1D):
         if operation == "add":
             new_array = add_kernel_arrays_1D(kernel.array, value.array)
-        if operation == "sub":
+        elif operation == "sub":
             new_array = add_kernel_arrays_1D(kernel.array, -value.array)
-        if operation == "mul":
-            raise Exception(
+        elif operation == "mul":
+            raise KernelArithmeticError(
                 "Kernel operation not supported. Maybe you want "
                 "to use convolve(kernel1, kernel2) instead."
             )
@@ -359,10 +364,10 @@ def kernel_arithmetics(kernel, value, operation):
     elif isinstance(kernel, Kernel2D) and isinstance(value, Kernel2D):
         if operation == "add":
             new_array = add_kernel_arrays_2D(kernel.array, value.array)
-        if operation == "sub":
+        elif operation == "sub":
             new_array = add_kernel_arrays_2D(kernel.array, -value.array)
-        if operation == "mul":
-            raise Exception(
+        elif operation == "mul":
+            raise KernelArithmeticError(
                 "Kernel operation not supported. Maybe you want "
                 "to use convolve(kernel1, kernel2) instead."
             )
@@ -372,11 +377,10 @@ def kernel_arithmetics(kernel, value, operation):
 
     # kernel and number
     elif isinstance(kernel, (Kernel1D, Kernel2D)) and np.isscalar(value):
-        if operation == "mul":
-            new_kernel = copy.copy(kernel)
-            new_kernel._array *= value
-        else:
-            raise Exception("Kernel operation not supported.")
+        if operation != "mul":
+            raise KernelArithmeticError("Kernel operation not supported.")
+        new_kernel = copy.copy(kernel)
+        new_kernel._array *= value
     else:
-        raise Exception("Kernel operation not supported.")
+        raise KernelArithmeticError("Kernel operation not supported.")
     return new_kernel

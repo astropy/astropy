@@ -1,0 +1,2 @@
+Invalid kernel arithmetic operations now raise a ``KernelArithmeticError`` instead of a
+bare ``Exception``.
