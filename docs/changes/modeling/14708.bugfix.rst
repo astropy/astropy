@@ -1,0 +1,2 @@
+Fixed an issue with Parameter where a getter could be input without a
+setter (or vice versa).
