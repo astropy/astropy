@@ -158,15 +158,18 @@ class Parameter:
         if specified, the parameter will be in these units, and when the
         parameter is updated in future, it should be set to a
         :class:`~astropy.units.Quantity` that has equivalent units.
-    getter : callable
-        a function that wraps the raw (internal) value of the parameter
-        when returning the value through the parameter proxy (eg. a
-        parameter may be stored internally as radians but returned to the
-        user as degrees). The internal value is what is used for computations
-        while the proxy value is what users will interact with (passing and viewing).
-    setter : callable
-        a function that wraps any values assigned to this parameter; should
-        be the inverse of getter
+    getter : callable or `None`, optional
+        A function that wraps the raw (internal) value of the parameter
+        when returning the value through the parameter proxy (e.g., a
+        parameter may be stored internally as radians but returned to
+        the user as degrees). The internal value is what is used for
+        computations while the proxy value is what users will interact
+        with (passing and viewing). If ``getter`` is not `None`, then a
+        ``setter`` must also be input.
+    setter : callable or `None`, optional
+        A function that wraps any values assigned to this parameter; should
+        be the inverse of ``getter``.  If ``setter`` is not `None`, then a
+        ``getter`` must also be input.
     fixed : bool
         if True the parameter is not varied during fitting
     tied : callable or False
@@ -213,6 +216,11 @@ class Parameter:
 
         self._model = None
         self._model_required = False
+
+        if (setter is not None and getter is None) or (
+            getter is not None and setter is None
+        ):
+            raise ValueError("setter and getter must both be input")
         self._setter = self._create_value_wrapper(setter, None)
         self._getter = self._create_value_wrapper(getter, None)
         self._name = name
