@@ -107,12 +107,12 @@ class TestKernels:
         )
 
         MESSAGE = r"sum is close to zero"
-        with pytest.raises(Exception, match=MESSAGE):
+        with pytest.raises(ValueError, match=MESSAGE):
             astropy_1D = convolve(
                 delta_pulse_1D, ricker_kernel_1D, boundary="fill", normalize_kernel=True
             )
 
-        with pytest.raises(Exception, match=MESSAGE):
+        with pytest.raises(ValueError, match=MESSAGE):
             astropy_2D = convolve(
                 delta_pulse_2D, ricker_kernel_2D, boundary="fill", normalize_kernel=True
             )
