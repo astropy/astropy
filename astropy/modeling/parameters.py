@@ -343,11 +343,7 @@ class Parameter:
     def value(self):
         """The unadorned value proxied by this parameter."""
         if self._getter is None and self._setter is None:
-            if self._value.size == 1:
-                return np.float64(
-                    self._value.item()
-                )  # return scalar number as np.float64 object
-            return self._value
+            value = self._value
         else:
             # This new implementation uses the names of internal_unit
             # in place of raw_unit used previously. The contrast between
@@ -361,7 +357,11 @@ class Parameter:
             else:
                 value = self._getter(self._internal_value)
 
-            return np.float64(value)
+        if value.size == 1:
+            # return scalar number as np.float64 object
+            return np.float64(value.item())
+
+        return np.float64(value)
 
     @value.setter
     def value(self, value):
