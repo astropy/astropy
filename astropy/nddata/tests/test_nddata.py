@@ -36,7 +36,7 @@ class FakeNumpyArray:
     def shape(self):
         pass
 
-    def __getitem__(self):
+    def __getitem__(self, key):
         pass
 
     def __array__(self):
