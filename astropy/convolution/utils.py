@@ -3,7 +3,12 @@ import numpy as np
 
 from astropy.modeling.core import Model, custom_model
 
-__all__ = ["discretize_model", "KernelSizeError"]
+__all__ = [
+    "discretize_model",
+    "KernelError",
+    "KernelSizeError",
+    "KernelArithmeticError",
+]
 
 
 class DiscretizationError(Exception):
@@ -12,13 +17,19 @@ class DiscretizationError(Exception):
     """
 
 
-class KernelSizeError(Exception):
+class KernelError(Exception):
+    """
+    Base error class for kernel errors.
+    """
+
+
+class KernelSizeError(KernelError):
     """
     Called when size of kernels is even.
     """
 
 
-class KernelArithmeticError(Exception):
+class KernelArithmeticError(KernelError):
     """Called when doing invalid arithmetic with a kernel."""
 
 
