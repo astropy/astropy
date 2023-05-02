@@ -677,8 +677,8 @@ class TestParameters:
         model1 = mk.MagicMock()
         setter1 = mk.MagicMock()
         getter1 = mk.MagicMock()
-        setter1.return_value = [9, 10, 11, 12]
-        getter1.return_value = [9, 10, 11, 12]
+        setter1.return_value = np.array([9, 10, 11, 12])
+        getter1.return_value = np.array([9, 10, 11, 12])
         with mk.patch.object(
             Parameter, "_create_value_wrapper", side_effect=[setter1, getter1]
         ) as mkCreate:
