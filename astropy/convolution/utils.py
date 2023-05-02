@@ -11,12 +11,6 @@ __all__ = [
 ]
 
 
-class DiscretizationError(Exception):
-    """
-    Called when discretization of models goes wrong.
-    """
-
-
 class KernelError(Exception):
     """
     Base error class for kernel errors.
@@ -227,7 +221,7 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
         if ndim == 2:
             return discretize_integrate_2D(model, x_range, y_range)
     else:
-        raise DiscretizationError("Invalid mode.")
+        raise ValueError("Invalid mode for discretize_model.")
 
 
 def discretize_center_1D(model, x_range):
