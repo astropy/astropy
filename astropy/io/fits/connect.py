@@ -285,7 +285,10 @@ def read_table_fits(
 
         if masked or np.any(mask):
             column = MaskedColumn(
-                data=data[col.name], name=col.name, mask=mask, copy=False,
+                data=data[col.name],
+                name=col.name,
+                mask=mask,
+                copy=False,
                 fill_value=fill_value,
             )
         else:

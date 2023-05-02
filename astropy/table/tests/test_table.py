@@ -3301,8 +3301,12 @@ def test_table_write_preserves_nulls(tmp_path):
     NULL_VALUE = -1
 
     # Create table with an integer MaskedColumn with custom fill_value
-    c1 = MaskedColumn(name="a", data=np.asarray([1, 2, 3], dtype=np.int32),
-                      mask=[True, False, True], fill_value=NULL_VALUE)
+    c1 = MaskedColumn(
+        name="a",
+        data=np.asarray([1, 2, 3], dtype=np.int32),
+        mask=[True, False, True],
+        fill_value=NULL_VALUE,
+    )
     t = Table([c1])
 
     table_filename = tmp_path / "nultable.fits"
