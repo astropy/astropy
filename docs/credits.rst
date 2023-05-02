@@ -7,7 +7,7 @@ Core Package Contributors
 
 * Aaron Meisner
 * Aarya Patil
-* Abdu Zoghbi  
+* Abdu Zoghbi
 * Abhinuv Nitin Pitale
 * Abigail Stevens
 * Adam Broussard
@@ -66,7 +66,7 @@ Core Package Contributors
 * Bili Dong
 * Bogdan Nicula
 * Bojan Nikolic
-* Brett Graham 
+* Brett Graham
 * Brett Morris
 * Brett Woltz
 * Brian Soto
@@ -76,7 +76,7 @@ Core Package Contributors
 * Bruno Oliveira
 * Bryce Kalmbach
 * Bryce Nordgren
-* Caden Gobat  
+* Caden Gobat
 * Carl Osterwisch
 * Carl Schaffer
 * Chiara Marmo
@@ -121,7 +121,7 @@ Core Package Contributors
 * Diego Asterio de Zaballa
 * disha
 * Dominik Klaes
-* Doug Branton  
+* Doug Branton
 * Douglas Burke
 * Drew Leonard
 * Duncan Macleod
@@ -146,7 +146,7 @@ Core Package Contributors
 * Esteban Pardo Sánchez
 * Even Rouault
 * Evert Rol
-* Felipe Cybis Pereira  
+* Felipe Cybis Pereira
 * Felix Yan
 * fockez
 * Francesc Vilardell
@@ -195,7 +195,7 @@ Core Package Contributors
 * James Taylor
 * James Tocknell
 * James Turner
-* Jamie Kennea  
+* Jamie Kennea
 * Jan Skowron
 * Jane Rigby
 * Jani Šumak
@@ -284,7 +284,7 @@ Core Package Contributors
 * Malynda Chizek Frouard
 * Manas Satish Bedmutha
 * Maneesh Yadav
-* Manon Marchand  
+* Manon Marchand
 * Mangala Gowri Krishnamoorthy
 * Manish Biswas
 * Manodeep Sinha
@@ -404,9 +404,9 @@ Core Package Contributors
 * Sadie Bartholomew
 * Sam Van Kooten
 * Sam Verstocken
-* Samruddhi Khandale  
+* Samruddhi Khandale
 * Samuel Brice
-* Sandeep Desai  
+* Sandeep Desai
 * Sanjeev Dubey
 * Sara Ogaz
 * Sarah Graves
@@ -430,7 +430,7 @@ Core Package Contributors
 * Shresth Verma
 * Shreyas Bapat
 * Sigurd Næss
-* Simon Alinder  
+* Simon Alinder
 * Simon Conseil
 * Simon Gibbons
 * Simon Liedtke
@@ -453,12 +453,12 @@ Core Package Contributors
 * T\. Carl Beery
 * T\. E\. Pickering
 * Tanuj Rastogi
-* Thomas J. Fan  
+* Thomas J. Fan
 * Thomas Erben
 * Thomas Robitaille
 * Thompson Le Blanc
 * Tiago Gomes
-* Tiago Ribeiro  
+* Tiago Ribeiro
 * Tiffany Jansen
 * Tim Gates
 * Tim Jenness
