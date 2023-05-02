@@ -1,0 +1,1 @@
+Added base ``KernelError`` error class and removed ``DiscretizationError`` error class (a ``ValueError`` will be raised instead).

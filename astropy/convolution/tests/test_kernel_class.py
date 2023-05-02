@@ -25,7 +25,7 @@ from astropy.convolution.kernels import (
     Trapezoid1DKernel,
     TrapezoidDisk2DKernel,
 )
-from astropy.convolution.utils import KernelSizeError
+from astropy.convolution.utils import KernelArithmeticError, KernelSizeError
 from astropy.modeling.models import Box2D, Gaussian1D, Gaussian2D
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
@@ -107,12 +107,12 @@ class TestKernels:
         )
 
         MESSAGE = r"sum is close to zero"
-        with pytest.raises(Exception, match=MESSAGE):
+        with pytest.raises(ValueError, match=MESSAGE):
             astropy_1D = convolve(
                 delta_pulse_1D, ricker_kernel_1D, boundary="fill", normalize_kernel=True
             )
 
-        with pytest.raises(Exception, match=MESSAGE):
+        with pytest.raises(ValueError, match=MESSAGE):
             astropy_2D = convolve(
                 delta_pulse_2D, ricker_kernel_2D, boundary="fill", normalize_kernel=True
             )
@@ -274,13 +274,15 @@ class TestKernels:
     def test_multiply_kernel1d(self):
         """Test that multiplying two 1D kernels raises an exception."""
         gauss = Gaussian1DKernel(3)
-        with pytest.raises(Exception):
+        msg = "Kernel operation not supported."
+        with pytest.raises(KernelArithmeticError, match=msg):
             gauss * gauss
 
     def test_multiply_kernel2d(self):
         """Test that multiplying two 2D kernels raises an exception."""
         gauss = Gaussian2DKernel(3)
-        with pytest.raises(Exception):
+        msg = "Kernel operation not supported."
+        with pytest.raises(KernelArithmeticError, match=msg):
             gauss * gauss
 
     def test_multiply_kernel1d_kernel2d(self):
@@ -288,12 +290,14 @@ class TestKernels:
         Test that multiplying a 1D kernel with a 2D kernel raises an
         exception.
         """
-        with pytest.raises(Exception):
+        msg = "Kernel operation not supported."
+        with pytest.raises(KernelArithmeticError, match=msg):
             Gaussian1DKernel(3) * Gaussian2DKernel(3)
 
     def test_add_kernel_scalar(self):
         """Test that adding a scalar to a kernel raises an exception."""
-        with pytest.raises(Exception):
+        msg = "Kernel operation not supported."
+        with pytest.raises(KernelArithmeticError, match=msg):
             Gaussian1DKernel(3) + 1
 
     def test_model_1D_kernel(self):

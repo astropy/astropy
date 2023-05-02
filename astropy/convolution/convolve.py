@@ -14,7 +14,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 from ._convolve import _convolveNd_c
 from .core import MAX_NORMALIZATION, Kernel, Kernel1D, Kernel2D
-from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
+from .utils import KernelSizeError, has_even_axis
 
 # np.unique([scipy.fft.next_fast_len(i, real=True) for i in range(10000)])
 # fmt: off
@@ -262,7 +262,7 @@ def convolve(
 
     # Make sure kernel has all odd axes
     if has_even_axis(kernel_internal):
-        raise_even_kernel_exception()
+        raise KernelSizeError("Kernel size must be odd in all axes.")
 
     # If both image array and kernel are Kernel instances
     # constrain convolution method
