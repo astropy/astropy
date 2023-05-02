@@ -149,7 +149,7 @@ class StokesCoord(ShapedLikeNDArray):
 
     Parameters
     ----------
-    stokes_values : array-like
+    stokes : array-like
         The numeric values representing stokes coordinates.
     """
 
@@ -157,7 +157,7 @@ class StokesCoord(ShapedLikeNDArray):
 
     def __init__(self, stokes, copy=False):
         if isinstance(stokes, type(self)):
-            self._data = stokes._data.copy() if copy else stokes._data
+            data = stokes._data.copy() if copy else stokes._data
             self.info = stokes.info
         else:
             data = np.asanyarray(stokes)
@@ -167,9 +167,10 @@ class StokesCoord(ShapedLikeNDArray):
                 raise ValueError(msg)
 
             if data.dtype.kind == "U":
-                self._data = self._from_symbols(data)
+                data = self._from_symbols(data)
             else:
-                self._data = data.copy() if copy and data is stokes else data
+                data = data.copy() if copy and data is stokes else data
+        self._data = data
 
     @property
     def shape(self):
@@ -222,9 +223,7 @@ class StokesCoord(ShapedLikeNDArray):
 
     @property
     def symbol(self):
-        """
-        The coordinate represented as strings
-        """
+        """The coordinate represented as strings."""
         known_symbols = tuple(
             ["?"] + [s.symbol for s in STOKES_VALUE_SYMBOL_MAP.values()]
         )
