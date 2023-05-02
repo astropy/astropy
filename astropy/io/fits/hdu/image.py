@@ -283,7 +283,7 @@ class _ImageBaseHDU(_ValidHDU):
         self.__dict__["data"] = data
         self._modified = True
 
-        if self.data is None:
+        if data is None:
             self._axes = []
         else:
             # Set new values of bitpix, bzero, and bscale now, but wait to
