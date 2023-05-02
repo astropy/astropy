@@ -3,22 +3,27 @@ import numpy as np
 
 from astropy.modeling.core import Model, custom_model
 
-__all__ = ["discretize_model", "KernelSizeError"]
+__all__ = [
+    "discretize_model",
+    "KernelError",
+    "KernelSizeError",
+    "KernelArithmeticError",
+]
 
 
-class DiscretizationError(Exception):
+class KernelError(Exception):
     """
-    Called when discretization of models goes wrong.
+    Base error class for kernel errors.
     """
 
 
-class KernelSizeError(Exception):
+class KernelSizeError(KernelError):
     """
     Called when size of kernels is even.
     """
 
 
-class KernelArithmeticError(Exception):
+class KernelArithmeticError(KernelError):
     """Called when doing invalid arithmetic with a kernel."""
 
 
@@ -27,10 +32,6 @@ def has_even_axis(array):
         return not len(array) % 2
     else:
         return any(not axes_size % 2 for axes_size in array.shape)
-
-
-def raise_even_kernel_exception():
-    raise KernelSizeError("Kernel size must be odd in all axes.")
 
 
 def add_kernel_arrays_1D(array_1, array_2):
@@ -216,7 +217,7 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
         if ndim == 2:
             return discretize_integrate_2D(model, x_range, y_range)
     else:
-        raise DiscretizationError("Invalid mode.")
+        raise ValueError("Invalid mode for discretize_model.")
 
 
 def discretize_center_1D(model, x_range):
