@@ -34,10 +34,6 @@ def has_even_axis(array):
         return any(not axes_size % 2 for axes_size in array.shape)
 
 
-def raise_even_kernel_exception():
-    raise KernelSizeError("Kernel size must be odd in all axes.")
-
-
 def add_kernel_arrays_1D(array_1, array_2):
     """
     Add two 1D kernel arrays of different size.

@@ -8,7 +8,7 @@ from astropy.modeling import models
 from astropy.modeling.core import Fittable1DModel, Fittable2DModel
 
 from .core import Kernel, Kernel1D, Kernel2D
-from .utils import has_even_axis, raise_even_kernel_exception
+from .utils import has_even_axis, KernelSizeError
 
 __all__ = [
     "Gaussian1DKernel",
@@ -1045,7 +1045,7 @@ class CustomKernel(Kernel):
 
         # Check if array is odd in all axes
         if has_even_axis(self):
-            raise_even_kernel_exception()
+            raise KernelSizeError("Kernel size must be odd in all axes.")
 
         # Check if array is bool
         ones = self._array == 1.0
