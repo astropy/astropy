@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import abc
 import contextlib
 import re
 import warnings
@@ -21,7 +20,7 @@ class IORegistryError(Exception):
 # -----------------------------------------------------------------------------
 
 
-class _UnifiedIORegistryBase(metaclass=abc.ABCMeta):
+class _UnifiedIORegistryBase:
     """Base class for registries in Astropy's Unified IO.
 
     This base class provides identification functions and miscellaneous

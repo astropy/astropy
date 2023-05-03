@@ -390,8 +390,8 @@ def test_download_file_threaded_many(temp_cache, valid_urls):
         r = list(P.map(lambda u: download_file(u, cache=True), [u for (u, c) in urls]))
     check_download_cache()
     assert len(r) == len(urls)
-    for r, (u, c) in zip(r, urls):
-        assert get_file_contents(r) == c
+    for r_, (u, c) in zip(r, urls):
+        assert get_file_contents(r_) == c
 
 
 @pytest.mark.skipif(
@@ -442,11 +442,11 @@ def test_download_file_threaded_many_partial_success(
         r = list(P.map(get, urls))
     check_download_cache()
     assert len(r) == len(urls)
-    for r, u in zip(r, urls):
+    for r_, u in zip(r, urls):
         if u in contents:
-            assert get_file_contents(r) == contents[u]
+            assert get_file_contents(r_) == contents[u]
         else:
-            assert r is None
+            assert r_ is None
 
 
 def test_clear_download_cache(valid_urls):
@@ -756,8 +756,8 @@ def test_download_parallel_many(temp_cache, valid_urls):
 
     r = download_files_in_parallel([u for (u, c) in td])
     assert len(r) == len(td)
-    for r, (u, c) in zip(r, td):
-        assert get_file_contents(r) == c
+    for r_, (_, c) in zip(r, td):
+        assert get_file_contents(r_) == c
 
 
 def test_download_parallel_partial_success(temp_cache, valid_urls, invalid_urls):

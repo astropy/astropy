@@ -410,7 +410,7 @@ class TimeSeries(BaseTimeSeries):
         """
         try:
             # First we try the readers defined for the BinnedTimeSeries class
-            return super().read(filename, format=format, *args, **kwargs)
+            return super().read(filename, *args, format=format, **kwargs)
 
         except TypeError:
             # Otherwise we fall back to the default Table readers
@@ -421,7 +421,7 @@ class TimeSeries(BaseTimeSeries):
                     " are being used."
                 )
 
-            table = Table.read(filename, format=format, *args, **kwargs)
+            table = Table.read(filename, *args, format=format, **kwargs)
 
             if time_column in table.colnames:
                 time = Time(

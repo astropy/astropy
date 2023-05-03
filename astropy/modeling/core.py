@@ -1333,7 +1333,7 @@ class Model(metaclass=_ModelMeta):
         inverse defined.
         """
         try:
-            self.inverse
+            self.inverse  # noqa: B018
         except NotImplementedError:
             return False
 
@@ -3276,8 +3276,8 @@ class CompoundModel(Model):
         )
 
         try:
-            self.left.inverse
-            self.right.inverse
+            self.left.inverse  # noqa: B018
+            self.right.inverse  # noqa: B018
         except NotImplementedError:
             return False
 

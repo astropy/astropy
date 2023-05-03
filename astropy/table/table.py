@@ -1231,8 +1231,8 @@ class Table:
         cols = []
         default_names = _auto_names(n_cols)
 
-        for col, name, default_name, dtype in zip(data, names, default_names, dtype):
-            col = self._convert_data_to_col(col, copy, default_name, dtype, name)
+        for col, name, default_name, dt in zip(data, names, default_names, dtype):
+            col = self._convert_data_to_col(col, copy, default_name, dt, name)
 
             cols.append(col)
 

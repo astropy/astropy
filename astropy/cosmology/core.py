@@ -421,7 +421,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
 
         # Determine the non-flat class.
         # This will raise a TypeError if the MRO is inconsistent.
-        cls.__nonflatclass__
+        cls.__nonflatclass__  # noqa: B018
 
     # ===============================================================
 
