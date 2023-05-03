@@ -57,3 +57,4 @@ docs/visualization          @astrofrog          @Cadair      @larrybradley
 docs/wcs                    @mcara
 
 .pre-commit-config.yaml     @WilliamJamieson    @nstarman
+.ruff.toml                   @WilliamJamieson    @nstarman
