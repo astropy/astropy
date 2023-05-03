@@ -309,6 +309,6 @@ def quantity_asanyarray(a, dtype=None):
     ):
         return Quantity(a, dtype=dtype)
     else:
-        # skip over some dtype deprecation deprecation.
+        # skip over some dtype deprecation.
         dtype = np.float64 if dtype is np.inexact else dtype
         return np.asanyarray(a, dtype=dtype)
