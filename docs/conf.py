@@ -237,7 +237,7 @@ html_title = f"{project} v{release}"
 # Output file base name for HTML help builder.
 htmlhelp_basename = project + "doc"
 
-# A dictionary of values to pass into the template engine’s context for all pages.
+# A dictionary of values to pass into the template engine's context for all pages.
 html_context = {"to_be_indexed": ["stable", "latest"], "is_development": dev}
 
 # Add any extra paths that contain custom files (such as robots.txt or
