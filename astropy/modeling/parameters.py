@@ -158,15 +158,18 @@ class Parameter:
         if specified, the parameter will be in these units, and when the
         parameter is updated in future, it should be set to a
         :class:`~astropy.units.Quantity` that has equivalent units.
-    getter : callable
-        a function that wraps the raw (internal) value of the parameter
-        when returning the value through the parameter proxy (eg. a
-        parameter may be stored internally as radians but returned to the
-        user as degrees). The internal value is what is used for computations
-        while the proxy value is what users will interact with (passing and viewing).
-    setter : callable
-        a function that wraps any values assigned to this parameter; should
-        be the inverse of getter
+    getter : callable or `None`, optional
+        A function that wraps the raw (internal) value of the parameter
+        when returning the value through the parameter proxy (e.g., a
+        parameter may be stored internally as radians but returned to
+        the user as degrees). The internal value is what is used for
+        computations while the proxy value is what users will interact
+        with (passing and viewing). If ``getter`` is not `None`, then a
+        ``setter`` must also be input.
+    setter : callable or `None`, optional
+        A function that wraps any values assigned to this parameter; should
+        be the inverse of ``getter``.  If ``setter`` is not `None`, then a
+        ``getter`` must also be input.
     fixed : bool
         if True the parameter is not varied during fitting
     tied : callable or False
@@ -213,6 +216,11 @@ class Parameter:
 
         self._model = None
         self._model_required = False
+
+        if (setter is not None and getter is None) or (
+            getter is not None and setter is None
+        ):
+            raise ValueError("setter and getter must both be input")
         self._setter = self._create_value_wrapper(setter, None)
         self._getter = self._create_value_wrapper(getter, None)
         self._name = name
@@ -335,11 +343,7 @@ class Parameter:
     def value(self):
         """The unadorned value proxied by this parameter."""
         if self._getter is None and self._setter is None:
-            if self._value.size == 1:
-                return np.float64(
-                    self._value.item()
-                )  # return scalar number as np.float64 object
-            return self._value
+            value = self._value
         else:
             # This new implementation uses the names of internal_unit
             # in place of raw_unit used previously. The contrast between
@@ -347,15 +351,17 @@ class Parameter:
             # units that the parameter advertises to what it actually
             # uses internally.
             if self.internal_unit:
-                return np.float64(
-                    self._getter(
-                        self._internal_value, self.internal_unit, self.unit
-                    ).value
-                )
-            elif self._getter:
-                return np.float64(self._getter(self._internal_value))
-            elif self._setter:
-                return np.float64(self._internal_value)
+                value = self._getter(
+                    self._internal_value, self.internal_unit, self.unit
+                ).value
+            else:
+                value = self._getter(self._internal_value)
+
+        if value.size == 1:
+            # return scalar number as np.float64 object
+            return np.float64(value.item())
+
+        return np.float64(value)
 
     @value.setter
     def value(self, value):
