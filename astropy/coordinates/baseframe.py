@@ -1736,8 +1736,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         repr_names = self.representation_component_names
         if attr in repr_names:
             if self._data is None:
-                self.data  # this raises the "no data" error by design - doing it
-                # this way means we don't have to replicate the error message here
+                # this raises the "no data" error by design - doing it this way means we
+                # don't have to replicate the error message here.
+                self.data  # noqa: B018
 
             rep = self.represent_as(self.representation_type, in_frame_units=True)
             val = getattr(rep, repr_names[attr])
@@ -1746,7 +1747,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         diff_names = self.get_representation_component_names("s")
         if attr in diff_names:
             if self._data is None:
-                self.data  # see above.
+                self.data  # noqa: B018  # see above.
             # TODO: this doesn't work for the case when there is only
             # unitspherical information. The differential_type gets set to the
             # default_differential, which expects full information, so the
