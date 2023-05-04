@@ -532,34 +532,26 @@ class TestGeodetic:
         self.y = self.y_value << self.length_unit
         self.z_value = 5.244e6
         self.z = self.z_value << self.length_unit
+        self.xyz = np.stack([self.x, self.y, self.z])
 
     def test_unit_errors(self):
         """Test unit errors when dimensionless parameters are used"""
 
         msg = "'NoneType' object has no attribute '_get_converter'"
-        xyz = np.array([self.x_value, self.y_value, self.z_value]) << self.length_unit
-        status = 0
         with pytest.raises(AttributeError, match=msg):
-            e, p, h, status = erfa_ufunc.gc2gde(
-                self.equatorial_radius_value, self.flattening, xyz
-            )
+            erfa_ufunc.gc2gde(self.equatorial_radius_value, self.flattening, self.xyz)
         with pytest.raises(AttributeError, match=msg):
-            xyz, status = erfa_ufunc.gd2gce(
+            erfa_ufunc.gd2gce(
                 self.equatorial_radius_value,
                 self.flattening,
                 self.lon,
                 self.lat,
                 self.height,
             )
-        xyz = np.array([self.x_value, self.y_value, self.z_value])
-        status = 0
         with pytest.raises(AttributeError, match=msg):
-            e, p, h, status = erfa_ufunc.gc2gde(
-                self.equatorial_radius, self.flattening, xyz
-            )
-        status = 0
+            erfa_ufunc.gc2gde(self.equatorial_radius, self.flattening, self.xyz.value)
         with pytest.raises(AttributeError, match=msg):
-            xyz, status = erfa_ufunc.gd2gce(
+            erfa_ufunc.gd2gce(
                 self.equatorial_radius,
                 self.flattening,
                 self.lon_value,
@@ -567,7 +559,7 @@ class TestGeodetic:
                 self.height,
             )
         with pytest.raises(AttributeError, match=msg):
-            xyz, status = erfa_ufunc.gd2gce(
+            erfa_ufunc.gd2gce(
                 self.equatorial_radius,
                 self.flattening,
                 self.lon,
@@ -578,10 +570,9 @@ class TestGeodetic:
     def test_gc2gde(self):
         """Test that we reproduce erfa/src/t_erfa_c.c t_gc2gd"""
 
-        xyz = np.array([self.x_value, self.y_value, self.z_value]) << self.length_unit
         status = 0
         e, p, h, status = erfa_ufunc.gc2gde(
-            self.equatorial_radius, self.flattening, xyz
+            self.equatorial_radius, self.flattening, self.xyz
         )
 
         vvd(e, self.lon_value, 1e-14, "eraGc2gde", "e", status)
