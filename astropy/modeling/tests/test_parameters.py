@@ -34,12 +34,16 @@ def setter2(val, model):
     return val * model.p
 
 
+def getter1(val):
+    return val
+
+
 class SetterModel(FittableModel):
     n_inputs = 2
     n_outputs = 1
 
-    xc = Parameter(default=1, setter=setter1)
-    yc = Parameter(default=1, setter=setter2)
+    xc = Parameter(default=1, setter=setter1, getter=getter1)
+    yc = Parameter(default=1, setter=setter2, getter=getter1)
 
     def do_something(self, v):
         pass
@@ -673,8 +677,8 @@ class TestParameters:
         model1 = mk.MagicMock()
         setter1 = mk.MagicMock()
         getter1 = mk.MagicMock()
-        setter1.return_value = [9, 10, 11, 12]
-        getter1.return_value = [9, 10, 11, 12]
+        setter1.return_value = np.array([9, 10, 11, 12])
+        getter1.return_value = np.array([9, 10, 11, 12])
         with mk.patch.object(
             Parameter, "_create_value_wrapper", side_effect=[setter1, getter1]
         ) as mkCreate:
@@ -724,6 +728,20 @@ class TestParameters:
         param = Parameter(name="test", default=[1, 2, 3])
         assert isinstance(param.value, np.ndarray)
         assert (param.value == [1, 2, 3]).all()
+
+        param = Parameter(name="test", default=[1], setter=setter1, getter=getter1)
+        assert not isinstance(param.value, np.ndarray)
+        assert param.value == 1
+
+        param = Parameter(name="test", default=[[1]], setter=setter1, getter=getter1)
+        assert not isinstance(param.value, np.ndarray)
+        assert param.value == 1
+
+        param = Parameter(
+            name="test", default=np.array([1]), setter=setter1, getter=getter1
+        )
+        assert not isinstance(param.value, np.ndarray)
+        assert param.value == 1
 
     def test_raw_value(self):
         param = Parameter(name="test", default=[1, 2, 3, 4])
@@ -839,6 +857,13 @@ class TestParameters:
         # Vector value units
         param = Parameter(name="test", default=[1, 2, 3, 4] * u.m)
         assert param_repr_oneline(param) == "[1., 2., 3., 4.] m"
+
+    def test_getter_setter(self):
+        msg = "setter and getter must both be input"
+        with pytest.raises(ValueError, match=msg):
+            Parameter(name="test", default=1, getter=getter1)
+        with pytest.raises(ValueError, match=msg):
+            Parameter(name="test", default=1, setter=setter1)
 
 
 class TestMultipleParameterSets:
