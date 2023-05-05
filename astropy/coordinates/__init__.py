@@ -23,4 +23,5 @@ from .sky_coordinate import *
 from .solar_system import *
 from .spectral_coordinate import *
 from .spectral_quantity import *
+from .polarization import *
 from .transformations import *
