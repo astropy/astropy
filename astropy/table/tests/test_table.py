@@ -3319,3 +3319,32 @@ def test_table_write_preserves_nulls(tmp_path):
         header = hdul[1].header
 
     assert header["TNULL1"] == NULL_VALUE
+
+
+def test_as_array_preserve_fill_value():
+    """Ensures that Table.as_array propagates a MaskedColumn's fill_value to
+    the output array"""
+
+    INT_FILL = 123
+    FLOAT_FILL = 123.0
+    STR_FILL = "xyz"
+    CMPLX_FILL = complex(3.14, 2.71)
+
+    # set up a table with some columns with different data types
+    c_int = MaskedColumn(name="int", data=[1, 2, 3], fill_value=INT_FILL)
+    c_float = MaskedColumn(name="float", data=[1.0, 2.0, 3.0], fill_value=FLOAT_FILL)
+    c_str = MaskedColumn(name="str", data=["abc", "def", "ghi"], fill_value=STR_FILL)
+    c_cmplx = MaskedColumn(
+        name="cmplx",
+        data=[complex(1, 0), complex(0, 1), complex(1, 1)],
+        fill_value=CMPLX_FILL,
+    )
+
+    t = Table([c_int, c_float, c_str, c_cmplx])
+
+    tn = t.as_array()
+
+    assert tn["int"].fill_value == INT_FILL
+    assert tn["float"].fill_value == FLOAT_FILL
+    assert tn["str"].fill_value == STR_FILL
+    assert tn["cmplx"].fill_value == CMPLX_FILL
