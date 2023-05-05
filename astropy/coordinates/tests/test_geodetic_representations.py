@@ -2,49 +2,116 @@
 
 """Test geodetic representations"""
 import pytest
-from numpy.testing import assert_array_equal
 
 from astropy import units as u
-from astropy.coordinates.earth import (
+from astropy.coordinates.geodetic import (
+    BaseGeodeticRepresentation,
     GRS80GeodeticRepresentation,
     WGS72GeodeticRepresentation,
     WGS84GeodeticRepresentation,
 )
-from astropy.coordinates.representation import CartesianRepresentation
+
+from astropy.coordinates.representation import (
+    CartesianRepresentation,
+    REPRESENTATION_CLASSES,
+)
 from astropy.units import allclose as quantity_allclose
+from astropy.units.tests.test_quantity_erfa_ufuncs import vvd
+
+# Preserve the original REPRESENTATION_CLASSES dict so that importing
+#   the test file doesn't add a persistent test subclass (LogDRepresentation)
+from astropy.coordinates.tests.test_representation import (
+    setup_function,
+    teardown_function,
+)
 
 
-def test_cartesian_wgs84geodetic_roundtrip():
+def test_custombasegeodetic_error():
+    # Test incomplete initialization.
+
+    msg = "module 'erfa' has no attribute 'foo'"
+    with pytest.raises(AttributeError, match=msg):
+
+        class CustomGeodeticEllipsoidError(BaseGeodeticRepresentation):
+            _ellipsoid = "foo"
+
+    assert "customgeodeticellipsoiderror" not in REPRESENTATION_CLASSES
+
+    msg = "CustomGeodeticError requires '_ellipsoid' or '_equatorial_radius' and '_flattening'."
+    with pytest.raises(AttributeError, match=msg):
+
+        class CustomGeodeticError(BaseGeodeticRepresentation):
+            _flattening = 0.075 * u.dimensionless_unscaled
+
+    assert "customgeodeticerror" not in REPRESENTATION_CLASSES
+
+
+def test_custombasegeodetic_roundtrip():
     # Test array-valued input in the process.
-    s1 = CartesianRepresentation(
+
+    class CustomGeodetic(BaseGeodeticRepresentation):
+        _flattening = 0.075 * u.dimensionless_unscaled
+        _equatorial_radius = 3000000.0 * u.m
+
+    # Test cartesian initialization round-trip
+    s1c = CartesianRepresentation(
         x=[1, 3000.0] * u.km, y=[7000.0, 4.0] * u.km, z=[5.0, 6000.0] * u.km
     )
 
-    s2 = WGS84GeodeticRepresentation.from_representation(s1)
+    s2c = CustomGeodetic.from_representation(s1c)
 
-    s3 = CartesianRepresentation.from_representation(s2)
+    s3c = CartesianRepresentation.from_representation(s2c)
 
-    s4 = WGS84GeodeticRepresentation.from_representation(s3)
+    assert quantity_allclose(s1c.x, s3c.x)
+    assert quantity_allclose(s1c.y, s3c.y)
+    assert quantity_allclose(s1c.z, s3c.z)
 
-    assert quantity_allclose(s1.x, s3.x)
-    assert quantity_allclose(s1.y, s3.y)
-    assert quantity_allclose(s1.z, s3.z)
+    # Test geodetic initialization round-trip
+    s1g = CustomGeodetic(
+        lon=[0.8, 1.3] * u.radian,
+        lat=[0.3, 0.98] * u.radian,
+        height=[100.0, 367.0] * u.m,
+    )
 
-    assert quantity_allclose(s2.lon, s4.lon)
-    assert quantity_allclose(s2.lat, s4.lat)
-    assert quantity_allclose(s2.height, s4.height)
+    s2g = CartesianRepresentation.from_representation(s1g)
 
-    # Test initializer just for the sake of it.
-    s5 = WGS84GeodeticRepresentation(s2.lon, s2.lat, s2.height)
+    s3g = CustomGeodetic.from_representation(s2g)
 
-    assert_array_equal(s2.lon, s5.lon)
-    assert_array_equal(s2.lat, s5.lat)
-    assert_array_equal(s2.height, s5.height)
+    assert quantity_allclose(s1g.lon, s3g.lon)
+    assert quantity_allclose(s1g.lat, s3g.lat)
+    assert quantity_allclose(s1g.height, s3g.height)
 
 
-def vvd(val, valok, dval, func, test, status):
-    """Mimic routine of erfa/src/t_erfa_c.c (to help copy & paste)"""
-    assert quantity_allclose(val, valok * val.unit, atol=dval * val.unit)
+def test_wgs84geodetic_roundtrip():
+    # Test array-valued input in the process.
+
+    # Test cartesian initialization round-trip
+    s1c = CartesianRepresentation(
+        x=[1, 3000.0] * u.km, y=[7000.0, 4.0] * u.km, z=[5.0, 6000.0] * u.km
+    )
+
+    s2c = WGS84GeodeticRepresentation.from_representation(s1c)
+
+    s3c = CartesianRepresentation.from_representation(s2c)
+
+    assert quantity_allclose(s1c.x, s3c.x)
+    assert quantity_allclose(s1c.y, s3c.y)
+    assert quantity_allclose(s1c.z, s3c.z)
+
+    # Test geodetic initialization round-trip
+    s1g = WGS84GeodeticRepresentation(
+        lon=[0.8, 1.3] * u.radian,
+        lat=[0.3, 0.98] * u.radian,
+        height=[100.0, 367.0] * u.m,
+    )
+
+    s2g = CartesianRepresentation.from_representation(s1g)
+
+    s3g = WGS84GeodeticRepresentation.from_representation(s2g)
+
+    assert quantity_allclose(s1g.lon, s3g.lon)
+    assert quantity_allclose(s1g.lat, s3g.lat)
+    assert quantity_allclose(s1g.height, s3g.height)
 
 
 def test_geocentric_to_geodetic():

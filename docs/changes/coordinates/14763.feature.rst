@@ -1,0 +1,2 @@
+Support for ``_equatorial_radius`` and ``_flattening`` is added in
+``BaseGeodeticRepresentation``.

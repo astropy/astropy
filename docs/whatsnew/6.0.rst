@@ -12,7 +12,7 @@ the 5.3 release.
 
 In particular, this release includes:
 
-* nothing yet
+* :ref:`whatsnew-6.0-geodetic-representation-geometry`
 
 In addition to these major changes, Astropy v6.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -21,6 +21,29 @@ By the numbers:
 * X issues have been closed since v5.3
 * X pull requests have been merged since v5.3
 * X distinct people have contributed code
+
+.. _whatsnew-6.0-geodetic-representation-geometry:
+
+Define Geodetic Representations via their geometric parameters
+==============================================================
+
+The `~astropy.coordinates.BaseGeodeticRepresentation` now exposes its geometric
+parameters via the attributes ``_equatorial_radius`` and ``_flattening``.
+The user may now define custom spheroidal models for the Earth or other Solar System
+bodies::
+
+    >>> from astropy.coordinates import BaseGeodeticRepresentation
+    >>> from astropy import units as u
+    >>> class IAU1976EarthGeodeticRepresentation(BaseGeodeticRepresentation):
+    ...     _equatorial_radius = 6378140 * u.m
+    ...     _flattening = 0.003352805 * u.dimensionless_unscaled
+    >>> representation = IAU1976EarthGeodeticRepresentation(lon=0.8*u.radian,
+    ...     lat=0.98*u.radian, height=367*u.m)
+    >>> representation.to_cartesian()
+    <CartesianRepresentation (x, y, z) in m
+        (2481113.87541373, 2554650.51055863, 5274062.32189811)>
+
+See :ref:`astropy-coordinates-create-geodetic` for more details.
 
 Full change log
 ===============

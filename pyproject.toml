@@ -309,6 +309,7 @@ unfixable = [
 "setup.py" = ["INP001"]  # Part of configuration, not a package.
 "__init__.py" = ["E402", "F401", "F403"]
 "astropy/coordinates/angle_formats.py" = ["D415"]  # The docstrings are regexes.
+"astropy/coordinates/tests/test_geodetic_representations.py" = ["F401"]  # Unused import needed.
 "astropy/io/registry/compat.py" = ["F822"]
 "astropy/modeling/models.py" = ["F401", "F403", "F405"]
 "astropy/units/format/*.py" = ["D415"]  # The docstrings are regexes.
