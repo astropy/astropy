@@ -175,6 +175,7 @@ MIXIN_COLS = {
     "ndarraybig": np.array(
         [(7, "a"), (8, "b"), (9, "c"), (9, "c")], dtype=">i4,|S1"
     ).view(table.NdarrayMixin),
+    "stokescoord": coordinates.StokesCoord(range(1, 5)),
 }
 MIXIN_COLS["earthlocation"] = coordinates.EarthLocation(
     lon=MIXIN_COLS["longitude"],

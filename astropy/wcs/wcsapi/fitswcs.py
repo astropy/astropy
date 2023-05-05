@@ -395,7 +395,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 self._components_and_classes_cache = None
 
         # Avoid circular imports by importing here
-        from astropy.coordinates import EarthLocation, SkyCoord
+        from astropy.coordinates import EarthLocation, SkyCoord, StokesCoord
         from astropy.time import Time, TimeDelta
         from astropy.time.formats import FITS_DEPRECATED_SCALES
         from astropy.wcs.utils import wcs_to_celestial_frame
@@ -778,6 +778,13 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
                     classes[name] = (Time, (), {}, time_from_reference_and_offset)
                     components[i] = (name, 0, offset_from_time_and_reference)
+
+        if "phys.polarization.stokes" in self.world_axis_physical_types:
+            for i in range(self.naxis):
+                if self.world_axis_physical_types[i] == "phys.polarization.stokes":
+                    name = "stokes"
+                    classes[name] = (StokesCoord, (), {})
+                    components[i] = (name, 0, "value")
 
         # Fallback: for any remaining components that haven't been identified, just
         # return Quantity as the class to use

@@ -7,7 +7,7 @@ from itertools import product
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose, assert_array_equal, assert_equal
 from packaging.version import Version
 
 from astropy import units as u
@@ -19,6 +19,7 @@ from astropy.coordinates import (
     Galactic,
     SkyCoord,
     SpectralCoord,
+    StokesCoord,
 )
 from astropy.io import fits
 from astropy.io.fits import Header
@@ -993,23 +994,6 @@ def test_sub_wcsapi_attributes():
     assert wcs_sub4.world_axis_names == ["", ""]
 
 
-HEADER_POLARIZED = """
-CTYPE1  = 'HPLT-TAN'
-CTYPE2  = 'HPLN-TAN'
-CTYPE3  = 'STOKES'
-"""
-
-
-@pytest.fixture
-def header_polarized():
-    return Header.fromstring(HEADER_POLARIZED, sep="\n")
-
-
-def test_phys_type_polarization(header_polarized):
-    w = WCS(header_polarized)
-    assert w.world_axis_physical_types[2] == "phys.polarization.stokes"
-
-
 ###############################################################################
 # Spectral transformations
 ###############################################################################
@@ -1381,3 +1365,43 @@ def test_fits_tab_time_and_units():
     assert isinstance(world[2], Time)
     assert world[2].scale == "utc"
     assert u.allclose(world[2].mjd, 0.00032986111111110716)
+
+
+################################################################################
+# Tests with Stokes
+################################################################################
+
+
+HEADER_POLARIZED = """
+CTYPE1  = 'HPLT-TAN'
+CTYPE2  = 'HPLN-TAN'
+CTYPE3  = 'STOKES'
+"""
+
+
+@pytest.fixture
+def header_polarized():
+    return Header.fromstring(HEADER_POLARIZED, sep="\n")
+
+
+@pytest.fixture()
+def wcs_polarized(header_polarized):
+    return WCS(header_polarized)
+
+
+def test_phys_type_polarization(wcs_polarized):
+    w = wcs_polarized
+    assert w.world_axis_physical_types[2] == "phys.polarization.stokes"
+
+
+def test_pixel_to_world_stokes(wcs_polarized):
+    w = wcs_polarized
+    world = w.pixel_to_world(0, 0, 0)
+    assert world[2] == 1
+    assert isinstance(world[2], StokesCoord)
+    assert_equal(world[2].symbol, "I")
+
+    world = w.pixel_to_world(0, 0, [0, 1, 2, 3])
+    assert isinstance(world[2], StokesCoord)
+    assert_array_equal(world[2], [1, 2, 3, 4])
+    assert_array_equal(world[2].symbol, ["I", "Q", "U", "V"])
