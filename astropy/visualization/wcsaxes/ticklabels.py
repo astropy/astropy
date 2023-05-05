@@ -26,12 +26,14 @@ class TickLabels(Text):
         self.set_pad(rcParams["xtick.major.pad"])
         self._exclude_overlapping = False
 
+        # Mapping from axis > list[bounding boxes]
+        self._axis_bboxes = defaultdict(list)
+
         # Stale if either xy positions haven't been calculated, or if
         # something changes that requires recomputing the positions
         self._stale = True
 
         # Check rcParams
-
         if "color" not in kwargs:
             self.set_color(rcParams["xtick.color"])
 
@@ -306,9 +308,12 @@ class TickLabels(Text):
             ret += self._axis_bboxes[axis]
         return ret
 
+    def _set_existing_bboxes(self, bboxes):
+        self._existing_bboxes = bboxes
+
     @allow_rasterization
     def draw(self, renderer, bboxes=None, ticklabels_bbox=None, tick_out_size=None):
-        # Mapping from axis > list[bounding boxes]
+        # Reset bounding boxes
         self._axis_bboxes = defaultdict(list)
 
         if not self.get_visible():
@@ -326,10 +331,9 @@ class TickLabels(Text):
                 # TODO: the problem here is that we might get rid of a label
                 # that has a key starting bit such as -0:30 where the -0
                 # might be dropped from all other labels.
-
                 if (
                     not self._exclude_overlapping
-                    or bb.count_overlaps(self._all_bboxes) == 0
+                    or bb.count_overlaps(self._all_bboxes + self._existing_bboxes) == 0
                 ):
                     super().draw(renderer)
                     self._axis_bboxes[axis].append(bb)

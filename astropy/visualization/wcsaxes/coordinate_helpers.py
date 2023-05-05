@@ -628,14 +628,22 @@ class CoordinateHelper:
 
         renderer.close_group("grid lines")
 
-    def _draw_ticks(self, renderer):
+    def _draw_ticks(self, renderer, existing_bboxes):
         """
         Draw all ticks and ticklabels.
+
+        Parameters
+        ----------
+        existing_bboxes : list[Bbox]
+            All bboxes for ticks that have already been drawn by other
+            coordinates.
         """
         renderer.open_group("ticks")
         self.ticks.draw(renderer)
 
         self.ticklabels._tick_out_size = self.ticks.out_size
+
+        self.ticklabels._set_existing_bboxes(existing_bboxes)
         self.ticklabels.draw(renderer)
 
         renderer.close_group("ticks")

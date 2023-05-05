@@ -511,7 +511,7 @@ class WCSAxes(Axes):
         for coords in self._all_coords:
             # Draw tick labels
             for coord in coords:
-                coord._draw_ticks(renderer)
+                coord._draw_ticks(renderer, self._bboxes)
 
                 visible_ticks.extend(coord.ticklabels.get_visible_axes())
                 # Save ticklabel bboxes
