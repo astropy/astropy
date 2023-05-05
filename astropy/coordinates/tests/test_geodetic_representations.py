@@ -2,49 +2,68 @@
 
 """Test geodetic representations"""
 import pytest
-from numpy.testing import assert_array_equal
 
 from astropy import units as u
-from astropy.coordinates.earth import (
+from astropy.coordinates.representation import (
+    CartesianRepresentation,
+    REPRESENTATION_CLASSES,
+    BaseGeodeticRepresentation,
     GRS80GeodeticRepresentation,
     WGS72GeodeticRepresentation,
     WGS84GeodeticRepresentation,
 )
-from astropy.coordinates.representation import CartesianRepresentation
-from astropy.units import allclose as quantity_allclose
+from astropy.coordinates.representation.geodetic import ELLIPSOIDS
+from astropy.tests.helper import assert_quantity_allclose
+from astropy.units.tests.test_quantity_erfa_ufuncs import vvd
+
+# Preserve the original REPRESENTATION_CLASSES dict so that importing
+#   the test file doesn't add a persistent test subclass
+from astropy.coordinates.tests.test_representation import (  # noqa: F401
+    setup_function,
+    teardown_function,
+)
 
 
-def test_cartesian_wgs84geodetic_roundtrip():
+class CustomGeodetic(BaseGeodeticRepresentation):
+    _flattening = 0.01832
+    _equatorial_radius = 4000000.0 * u.m
+
+
+@pytest.mark.parametrize(
+    "geodeticrepresentation", [CustomGeodetic, WGS84GeodeticRepresentation]
+)
+def test_cartesian_geodetic_roundtrip(geodeticrepresentation):
     # Test array-valued input in the process.
-    s1 = CartesianRepresentation(
+    initial_cartesian = CartesianRepresentation(
         x=[1, 3000.0] * u.km, y=[7000.0, 4.0] * u.km, z=[5.0, 6000.0] * u.km
     )
 
-    s2 = WGS84GeodeticRepresentation.from_representation(s1)
+    transformed = geodeticrepresentation.from_representation(initial_cartesian)
 
-    s3 = CartesianRepresentation.from_representation(s2)
+    roundtripped = CartesianRepresentation.from_representation(transformed)
 
-    s4 = WGS84GeodeticRepresentation.from_representation(s3)
-
-    assert quantity_allclose(s1.x, s3.x)
-    assert quantity_allclose(s1.y, s3.y)
-    assert quantity_allclose(s1.z, s3.z)
-
-    assert quantity_allclose(s2.lon, s4.lon)
-    assert quantity_allclose(s2.lat, s4.lat)
-    assert quantity_allclose(s2.height, s4.height)
-
-    # Test initializer just for the sake of it.
-    s5 = WGS84GeodeticRepresentation(s2.lon, s2.lat, s2.height)
-
-    assert_array_equal(s2.lon, s5.lon)
-    assert_array_equal(s2.lat, s5.lat)
-    assert_array_equal(s2.height, s5.height)
+    assert_quantity_allclose(initial_cartesian.x, roundtripped.x)
+    assert_quantity_allclose(initial_cartesian.y, roundtripped.y)
+    assert_quantity_allclose(initial_cartesian.z, roundtripped.z)
 
 
-def vvd(val, valok, dval, func, test, status):
-    """Mimic routine of erfa/src/t_erfa_c.c (to help copy & paste)"""
-    assert quantity_allclose(val, valok * val.unit, atol=dval * val.unit)
+@pytest.mark.parametrize(
+    "geodeticrepresentation", [CustomGeodetic, WGS84GeodeticRepresentation]
+)
+def test_geodetic_cartesian_roundtrip(geodeticrepresentation):
+    initial_geodetic = geodeticrepresentation(
+        lon=[0.8, 1.3] * u.radian,
+        lat=[0.3, 0.98] * u.radian,
+        height=[100.0, 367.0] * u.m,
+    )
+
+    transformed = CartesianRepresentation.from_representation(initial_geodetic)
+
+    roundtripped = geodeticrepresentation.from_representation(transformed)
+
+    assert_quantity_allclose(initial_geodetic.lon, roundtripped.lon)
+    assert_quantity_allclose(initial_geodetic.lat, roundtripped.lat)
+    assert_quantity_allclose(initial_geodetic.height, roundtripped.height)
 
 
 def test_geocentric_to_geodetic():
@@ -118,3 +137,26 @@ def test_non_angle_error():
 def test_non_length_error():
     with pytest.raises(u.UnitTypeError, match="units of length"):
         WGS84GeodeticRepresentation(10 * u.deg, 20 * u.deg, 30)
+
+
+def test_geodetic_subclass_bad_ellipsoid():
+    # Test incomplete initialization.
+
+    msg = "module 'erfa' has no attribute 'foo'"
+    with pytest.raises(AttributeError, match=msg):
+
+        class InvalidCustomGeodeticEllipsoid(BaseGeodeticRepresentation):
+            _ellipsoid = "foo"
+
+    assert "foo" not in ELLIPSOIDS
+    assert "customgeodeticellipsoiderror" not in REPRESENTATION_CLASSES
+
+
+def test_geodetic_subclass_missing_equatorial_radius():
+    msg = "MissingCustomGeodeticAttribute requires '_ellipsoid' or '_equatorial_radius' and '_flattening'."
+    with pytest.raises(AttributeError, match=msg):
+
+        class MissingCustomGeodeticAttribute(BaseGeodeticRepresentation):
+            _flattening = 0.075 * u.dimensionless_unscaled
+
+    assert "customgeodeticerror" not in REPRESENTATION_CLASSES

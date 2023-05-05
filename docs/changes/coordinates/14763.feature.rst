@@ -1,0 +1,4 @@
+Support has been added to create geodetic representations not just for existing ellipsoids
+from ERFA, but also with explicitly provided values, by defining a subclass of
+``BaseGeodeticRepresentation`` with the equatorial radius and flattening assigned to
+``_equatorial_radius`` and ``_flattening`` attributes.
