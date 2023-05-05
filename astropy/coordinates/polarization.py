@@ -206,7 +206,7 @@ class StokesCoord(ShapedLikeNDArray):
     @staticmethod
     def _from_symbols(symbols):
         """
-        Construct a StokesCoord from strings representing the stokes symbols.
+        Convert an array of symbols to an array of values
         """
         values_array = np.full_like(
             symbols, UNKNOWN_STOKES_VALUE, dtype=int, subok=False
