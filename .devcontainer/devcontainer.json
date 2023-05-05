@@ -2,7 +2,7 @@
     "name": "AstroPy",
     "image": "mcr.microsoft.com/devcontainers/miniconda:0-3",
     "onCreateCommand": "conda init bash && sudo cp .devcontainer/welcome-message.txt /usr/local/etc/vscode-dev-containers/first-run-notice.txt",
-    "postCreateCommand": "git fetch --tags && pip install tox && pip install -e .[all,test_all,docs]",
+    "postCreateCommand": "git fetch --tags && pip install -e . && pip install -e .[all,test_all,docs] && pip install tox",
     "waitFor": "postCreateCommand",
     "customizations": {
         "vscode": {
