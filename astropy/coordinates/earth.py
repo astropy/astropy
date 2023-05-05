@@ -8,38 +8,28 @@ import urllib.parse
 import urllib.request
 from warnings import warn
 
-import erfa
 import numpy as np
 
 from astropy import constants as consts
 from astropy import units as u
 from astropy.units.quantity import QuantityInfoBase
 from astropy.utils import data
-from astropy.utils.decorators import format_doc
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .angles import Angle, Latitude, Longitude
 from .errors import UnknownSiteException
 from .matrix_utilities import matrix_transpose
 from .representation import (
-    BaseRepresentation,
     CartesianDifferential,
     CartesianRepresentation,
 )
+from .geodetic import ELLIPSOIDS
 
 __all__ = [
     "EarthLocation",
-    "BaseGeodeticRepresentation",
-    "WGS84GeodeticRepresentation",
-    "WGS72GeodeticRepresentation",
-    "GRS80GeodeticRepresentation",
 ]
 
 GeodeticLocation = collections.namedtuple("GeodeticLocation", ["lon", "lat", "height"])
-
-ELLIPSOIDS = {}
-"""Available ellipsoids (defined in erfam.h, with numbers exposed in erfa)."""
-# Note: they get filled by the creation of the geodetic classes.
 
 OMEGA_EARTH = (1.002_737_811_911_354_48 * u.cycle / u.day).to(
     1 / u.s, u.dimensionless_angles()
@@ -905,87 +895,3 @@ class EarthLocation(u.Quantity):
             equivalencies = self._equivalencies
         new_array = self.unit.to(unit, array_view, equivalencies=equivalencies)
         return new_array.view(self.dtype).reshape(self.shape)
-
-
-geodetic_base_doc = """{__doc__}
-
-    Parameters
-    ----------
-    lon, lat : angle-like
-        The longitude and latitude of the point(s), in angular units. The
-        latitude should be between -90 and 90 degrees, and the longitude will
-        be wrapped to an angle between 0 and 360 degrees. These can also be
-        instances of `~astropy.coordinates.Angle` and either
-        `~astropy.coordinates.Longitude` not `~astropy.coordinates.Latitude`,
-        depending on the parameter.
-    height : `~astropy.units.Quantity` ['length']
-        The height to the point(s).
-    copy : bool, optional
-        If `True` (default), arrays will be copied. If `False`, arrays will
-        be references, though possibly broadcast to ensure matching shapes.
-
-"""
-
-
-@format_doc(geodetic_base_doc)
-class BaseGeodeticRepresentation(BaseRepresentation):
-    """Base geodetic representation."""
-
-    attr_classes = {"lon": Longitude, "lat": Latitude, "height": u.Quantity}
-
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        if "_ellipsoid" in cls.__dict__:
-            ELLIPSOIDS[cls._ellipsoid] = cls
-
-    def __init__(self, lon, lat=None, height=None, copy=True):
-        if height is None and not isinstance(lon, self.__class__):
-            height = 0 << u.m
-
-        super().__init__(lon, lat, height, copy=copy)
-        if not self.height.unit.is_equivalent(u.m):
-            raise u.UnitTypeError(
-                f"{self.__class__.__name__} requires height with units of length."
-            )
-
-    def to_cartesian(self):
-        """
-        Converts WGS84 geodetic coordinates to 3D rectangular (geocentric)
-        cartesian coordinates.
-        """
-        xyz = erfa.gd2gc(
-            getattr(erfa, self._ellipsoid), self.lon, self.lat, self.height
-        )
-        return CartesianRepresentation(xyz, xyz_axis=-1, copy=False)
-
-    @classmethod
-    def from_cartesian(cls, cart):
-        """
-        Converts 3D rectangular cartesian coordinates (assumed geocentric) to
-        WGS84 geodetic coordinates.
-        """
-        lon, lat, height = erfa.gc2gd(
-            getattr(erfa, cls._ellipsoid), cart.get_xyz(xyz_axis=-1)
-        )
-        return cls(lon, lat, height, copy=False)
-
-
-@format_doc(geodetic_base_doc)
-class WGS84GeodeticRepresentation(BaseGeodeticRepresentation):
-    """Representation of points in WGS84 3D geodetic coordinates."""
-
-    _ellipsoid = "WGS84"
-
-
-@format_doc(geodetic_base_doc)
-class WGS72GeodeticRepresentation(BaseGeodeticRepresentation):
-    """Representation of points in WGS72 3D geodetic coordinates."""
-
-    _ellipsoid = "WGS72"
-
-
-@format_doc(geodetic_base_doc)
-class GRS80GeodeticRepresentation(BaseGeodeticRepresentation):
-    """Representation of points in GRS80 3D geodetic coordinates."""
-
-    _ellipsoid = "GRS80"

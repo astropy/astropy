@@ -30,6 +30,14 @@ The built-in representation classes are:
 * `~astropy.coordinates.CylindricalRepresentation`:
   cylindrical polar coordinates, represented by a cylindrical radius
   (``rho``), azimuthal angle (``phi``), and height (``z``).
+* `~astropy.coordinates.BaseGeodeticRepresentation`:
+  coordinates on a surface of a spheroid (an ellipsoid with equal equatorial radii),
+  represented by a longitude (``lon``) a geodetical latitude (``lat``) and a height
+  (``height``) above the surface. The geodetical latitude is defined by the angle
+  between the vertical to the surface at a specific point of the spheroid and its
+  projection onto the equatorial plane.
+  The latitude is a value ranging from -90 to 90 degrees, the longitude from 0 to 360
+  degrees.
 
 .. Note::
    For information about using and changing the representation of
@@ -685,3 +693,21 @@ In pseudo-code, this means that a class will look like::
 
     class MyDifferential(BaseDifferential):
         base_representation = MyRepresentation
+
+.. _astropy-coordinates-create-geodetic:
+
+Creating Your Own Geodetic Representation
+-----------------------------------------
+
+If you would like to use geodetic coordinates on planetary bodies other than the Earth,
+you can define a new class that inherits from  `~astropy.coordinates.BaseGeodeticRepresentation`.
+The equatorial radius and flattening must be both assigned via the attributes
+`_equatorial_radius` and `_flattening`.
+
+For example the spheroid describing Mars as in the
+`1979 IAU standard <https://doi.org/10.1007/BF01229508>`_ could be defined like::
+
+    class IAUMARS1979GeodeticRepresentation(BaseGeodeticRepresentation):
+
+        _equatorial_radius = 3393400.0 * u.m
+        _flattening = 0.518650 * u.percent
