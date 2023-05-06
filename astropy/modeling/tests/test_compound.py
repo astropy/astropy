@@ -389,7 +389,7 @@ def test_fix_inputs_invalid():
 def test_fix_inputs_with_bounding_box():
     g1 = Gaussian2D(1, 0, 0, 1, 1)
     g2 = Gaussian2D(1, 0, 0, 1, 1)
-    assert g1.bounding_box == ((-5.5, 5.5), (-5.5, 5.5))
+    assert_allclose(g1.bounding_box, ((-5.5, 5.5), (-5.5, 5.5)))
 
     gg1 = g1 & g2
     gg1.bounding_box = ((-5.5, 5.5), (-5.4, 5.4), (-5.3, 5.3), (-5.2, 5.2))
