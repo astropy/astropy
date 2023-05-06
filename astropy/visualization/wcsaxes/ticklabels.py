@@ -11,6 +11,8 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .frame import RectangularFrame
 
+from astropy.utils.decorators import deprecated_renamed_argument
+
 
 def sort_using(X, Y):
     return [x for (y, x) in sorted(zip(Y, X))]
@@ -312,6 +314,9 @@ class TickLabels(Text):
         self._existing_bboxes = bboxes
 
     @allow_rasterization
+    @deprecated_renamed_argument(old_name="bboxes", new_name=None, since="6.0")
+    @deprecated_renamed_argument(old_name="ticklabels_bbox", new_name=None, since="6.0")
+    @deprecated_renamed_argument(old_name="tick_out_size", new_name=None, since="6.0")
     def draw(self, renderer, bboxes=None, ticklabels_bbox=None, tick_out_size=None):
         # Reset bounding boxes
         self._axis_bboxes = defaultdict(list)
