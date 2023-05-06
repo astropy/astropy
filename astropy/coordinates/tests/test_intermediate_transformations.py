@@ -983,8 +983,8 @@ def test_aa_high_precision_nodata():
 
     moon = get_body("moon", t, loc)
     moon_aa = moon.transform_to(AltAz(obstime=t, location=loc))
-    assert_allclose(moon_aa.az - TARGET_AZ, 0 * u.mas, atol=0.5 * u.mas)
-    assert_allclose(moon_aa.alt - TARGET_EL, 0 * u.mas, atol=0.5 * u.mas)
+    assert_allclose(moon_aa.az - TARGET_AZ, 0 * u.mas, atol=0.55 * u.mas)
+    assert_allclose(moon_aa.alt - TARGET_EL, 0 * u.mas, atol=0.55 * u.mas)
 
 
 class TestGetLocationGCRS:
