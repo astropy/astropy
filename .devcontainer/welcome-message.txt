@@ -1,6 +1,8 @@
 👋 Welcome to "AstroPy" in GitHub Codespaces!
 
-🛠️  Your environment is fully setup with all the required software.
+🛠️  To complete setup of your development environment run the following in the terminal:
+
+pip install -e ".[all,test_all,docs]"
 
 🔍 To explore VS Code to its fullest, search using the Command Palette (Cmd/Ctrl + Shift + P or F1).
 
