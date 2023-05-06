@@ -166,13 +166,15 @@ Coding Style/Conventions
             ]
 
 
-* Our testing infrastructure currently enforces a subset of the PEP8 style
-  guide. In addition, these checks also enforce
-  `isort <https://pycqa.github.io/isort/>`_ to sort the module imports.
+* Our testing infrastructure currently enforces a subset of the PEP8_ style guide. In
+  addition, these checks also enforce `isort <https://pycqa.github.io/isort/>`_ to sort
+  the module imports and a large set of style-checks supported by ruff_.
 
-  * We provide a ``pre-commit`` hook which automatically enforces and fixes
-    (whenever possible) the coding style, see :ref:`pre-commit` for details on
-    how to setup and use this.
+  * We provide a ``pre-commit`` hook which automatically enforces and fixes (whenever
+    possible) the coding style, see :ref:`pre-commit` for details on how to set up and
+    use this. We note that the particular set of PEP8_ and style-related checks that are
+    used in Astropy do not need to be used in affiliated packages. In particular, the
+    set of ruff_ checks is not required for affiliated packages.
 
   * Alternately, you can manually check and fix your changes by running the
     following `tox <https://tox.readthedocs.io/>`__ command::
@@ -570,3 +572,4 @@ Further tips and hints relating to the coding guidelines are included below.
 .. _matplotlib: https://matplotlib.org/
 .. _Cython: https://cython.org/
 .. _PyPI: https://pypi.org/project
+.. _ruff: https://beta.ruff.rs/docs
