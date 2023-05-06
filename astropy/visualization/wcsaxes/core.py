@@ -41,7 +41,7 @@ class _WCSAxesArtist(Artist):
     and gridlines in the standary way.
     """
 
-    def draw(self, renderer, *args, **kwargs):
+    def draw(self, renderer):
         self.axes.draw_wcsaxes(renderer)
 
 
@@ -502,7 +502,7 @@ class WCSAxes(Axes):
 
         self.coords.frame.draw(renderer)
 
-    def draw(self, renderer, **kwargs):
+    def draw(self, renderer):
         """Draw the axes."""
         # Before we do any drawing, we need to remove any existing grid lines
         # drawn with contours, otherwise if we try and remove the contours
@@ -533,7 +533,7 @@ class WCSAxes(Axes):
         # We need to make sure that that frame path is up to date
         self.coords.frame._update_patch_path()
 
-        super().draw(renderer, **kwargs)
+        super().draw(renderer)
 
         self._drawn = True
 
