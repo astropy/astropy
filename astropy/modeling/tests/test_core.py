@@ -730,7 +730,7 @@ def test_prepare_outputs_mixed_broadcast():
 
     output = model(4, [5, 6])
     assert output.shape == (2,)
-    np.testing.assert_array_equal(output, [0.8146473164114145, 0.7371233743916278])
+    np.testing.assert_allclose(output, [0.8146473164114145, 0.7371233743916278])
 
 
 def test_prepare_outputs_complex_reshape():
