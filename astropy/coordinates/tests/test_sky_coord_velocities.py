@@ -279,10 +279,10 @@ def test_cartesian_to_spherical(sph_type):
     assert c.ra == 0
     assert c.dec == 0
     assert c.pm_ra == 0
-    assert u.allclose(c.pm_dec, 1 * u.mas / u.yr, rtol=1e-3)
-    assert c.radial_velocity == 10 * u.km / u.s
+    assert u.allclose(c.pm_dec, 1 * (u.mas / u.yr), rtol=1e-3)
+    assert u.allclose(c.radial_velocity, 10 * (u.km / u.s))
     if sph_type == "spherical":
-        assert c.distance == 1 * u.kpc
+        assert u.allclose(c.distance, 1 * u.kpc)
     else:
         assert not hasattr(c, "distance")
 
