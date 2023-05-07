@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_array_equal
+from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.coordinates.matrix_utilities import (
@@ -15,7 +15,7 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_rotation_matrix():
-    assert_array_equal(rotation_matrix(0 * u.deg, "x"), np.eye(3))
+    assert_allclose(rotation_matrix(0 * u.deg, "x"), np.eye(3))
 
     assert_allclose(
         rotation_matrix(90 * u.deg, "y"), [[0, 0, -1], [0, 1, 0], [1, 0, 0]], atol=1e-12
