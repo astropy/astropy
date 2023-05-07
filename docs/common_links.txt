@@ -76,6 +76,7 @@
 
 .. _Python: https://www.python.org/
 .. |minimum_python_version| replace:: {minimum_python}
+.. _PEP8: https://www.python.org/dev/peps/pep-0008/
 
 .. Astropy
 .. _`Astropy mailing list`: https://mail.python.org/mailman/listinfo/astropy
