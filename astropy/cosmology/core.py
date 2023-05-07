@@ -589,26 +589,3 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
         )
 
         return params_eq
-
-
-# -----------------------------------------------------------------------------
-
-
-def __getattr__(attr):
-    from . import flrw
-
-    if hasattr(flrw, attr) and attr not in ("__path__",):
-        import warnings
-
-        from astropy.utils.exceptions import AstropyDeprecationWarning
-
-        warnings.warn(
-            f"`astropy.cosmology.core.{attr}` has been moved (since v5.0) and "
-            f"should be imported as ``from astropy.cosmology import {attr}``."
-            " In future this will raise an exception.",
-            AstropyDeprecationWarning,
-        )
-
-        return getattr(flrw, attr)
-
-    raise AttributeError(f"module {__name__!r} has no attribute {attr!r}.")
