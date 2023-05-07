@@ -1,0 +1,1 @@
+Removed deprecated import paths from ``astropy.cosmology.core``.
