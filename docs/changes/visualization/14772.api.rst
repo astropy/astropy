@@ -1,0 +1,2 @@
+It is now not possible to pass any keyword arguments to ``astropy.visualization.wcsaxes.WCSAxes.draw()``.
+Previously passing any keyword arguments would have errored anyway, as ``matplotlib.axes.Axes.draw()`` does not accept keyword arguments.
