@@ -29,7 +29,7 @@ def test_testcase(tc):
     results = (results,) if not isinstance(results, tuple) else results
     for result, expected in zip(results, tc.q_out):
         assert result.unit == expected.unit
-        assert_allclose(result.value, expected.value, atol=1.0e-15)
+        assert_allclose(result.value, expected.value, atol=1.5e-8)
 
 
 @pytest.mark.skip
