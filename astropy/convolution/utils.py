@@ -120,7 +120,8 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
                 bins. For 2D models, the interpolation is bilinear.
             * ``'oversample'``
                 Discretize model by taking the average of model values
-                on an oversampled grid.
+                in the pixel bins on an oversampled grid. Use the
+                ``factor`` keyword to set the oversampling factor.
             * ``'integrate'``
                 Discretize model by integrating the model over the pixel
                 bins using `scipy.integrate.quad`. This mode conserves
