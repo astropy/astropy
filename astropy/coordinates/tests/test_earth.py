@@ -290,17 +290,17 @@ def test_repr_latex():
 # as an environment variable (for security).
 @pytest.mark.parametrize("google_api_key", [None])
 def test_of_address(google_api_key):
-    NYC_lon = -74.0 * u.deg
-    NYC_lat = 40.7 * u.deg
+    NYC_lon = -74.04201353 * u.deg
+    NYC_lat = 40.69859355 * u.deg
     # ~10 km tolerance to address difference between OpenStreetMap and Google
-    # for "New York, NY". This doesn't matter in practice because this test is
+    # for "Ellis Island, New York, NY". This doesn't matter in practice because this test is
     # only used to verify that the query succeeded, not that the returned
     # position is precise.
     NYC_tol = 0.1 * u.deg
 
     # just a location
     try:
-        loc = EarthLocation.of_address("New York, NY")
+        loc = EarthLocation.of_address("Ellis Island, New York, NY")
     except NameResolveError as e:
         # API limit might surface even here in CI.
         if "unknown failure with" not in str(e):
@@ -315,10 +315,10 @@ def test_of_address(google_api_key):
     with pytest.raises(NameResolveError):
         EarthLocation.of_address("lkjasdflkja")
 
-    if google_api_key is not None:
+    if google_api_key is not None:  # pragma: no cover
         # a location and height
         try:
-            loc = EarthLocation.of_address("New York, NY", get_height=True)
+            loc = EarthLocation.of_address("Ellis Island, New York, NY", get_height=True)
         except NameResolveError as e:
             # Buffer above sometimes insufficient to get around API limit but
             # we also do not want to drag things out with time.sleep(0.195),
@@ -327,7 +327,7 @@ def test_of_address(google_api_key):
         else:
             assert quantity_allclose(loc.lat, NYC_lat, atol=NYC_tol)
             assert quantity_allclose(loc.lon, NYC_lon, atol=NYC_tol)
-            assert quantity_allclose(loc.height, 10.438 * u.meter, atol=1.0 * u.cm)
+            assert quantity_allclose(loc.height, 1.26379005e-09 * u.meter, atol=1.0 * u.cm)
 
 
 def test_geodetic_tuple():
