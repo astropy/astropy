@@ -8,7 +8,7 @@ import numpy as np
 import astropy.units as u
 from astropy.coordinates.angles import Angle
 
-from . import BaseRepresentation, BaseDifferential
+from .base import BaseRepresentation, BaseDifferential
 from .cartesian import CartesianRepresentation
 from .spherical import _spherical_op_funcs
 
