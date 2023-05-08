@@ -10,7 +10,7 @@ from astropy.coordinates.angles import Angle
 
 from . import BaseRepresentation, BaseDifferential
 from .cartesian import CartesianRepresentation
-from . import _spherical_op_funcs
+from .spherical import _spherical_op_funcs
 
 
 class CylindricalRepresentation(BaseRepresentation):

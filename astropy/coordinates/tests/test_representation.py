@@ -1689,7 +1689,7 @@ def test_duplicate_warning():
     assert "unitspherical" in DUPLICATE_REPRESENTATIONS
     assert "unitspherical" not in REPRESENTATION_CLASSES
     assert (
-        "astropy.coordinates.representation.UnitSphericalRepresentation"
+        "astropy.coordinates.representation.spherical.UnitSphericalRepresentation"
         in REPRESENTATION_CLASSES
     )
     assert (
