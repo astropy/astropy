@@ -18,9 +18,9 @@ from astropy.utils import ShapedLikeNDArray, classproperty
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.exceptions import DuplicateRepresentationWarning
 
-from .angles import Angle, Latitude, Longitude
-from .distances import Distance
-from .matrix_utilities import is_O3
+from astropy.coordinates.angles import Angle, Latitude, Longitude
+from astropy.coordinates.distances import Distance
+from astropy.coordinates.matrix_utilities import is_O3
 
 __all__ = [
     "BaseRepresentationOrDifferential",
