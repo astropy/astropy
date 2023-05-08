@@ -318,7 +318,9 @@ def test_of_address(google_api_key):
     if google_api_key is not None:  # pragma: no cover
         # a location and height
         try:
-            loc = EarthLocation.of_address("Ellis Island, New York, NY", get_height=True)
+            loc = EarthLocation.of_address(
+                "Ellis Island, New York, NY", get_height=True
+            )
         except NameResolveError as e:
             # Buffer above sometimes insufficient to get around API limit but
             # we also do not want to drag things out with time.sleep(0.195),
@@ -327,7 +329,9 @@ def test_of_address(google_api_key):
         else:
             assert quantity_allclose(loc.lat, NYC_lat, atol=NYC_tol)
             assert quantity_allclose(loc.lon, NYC_lon, atol=NYC_tol)
-            assert quantity_allclose(loc.height, 1.26379005e-09 * u.meter, atol=1.0 * u.cm)
+            assert quantity_allclose(
+                loc.height, 1.26379005e-09 * u.meter, atol=1.0 * u.cm
+            )
 
 
 def test_geodetic_tuple():
