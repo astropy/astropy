@@ -11,8 +11,8 @@ from astropy.coordinates.representation import (
     REPRESENTATION_CLASSES,
     SphericalRepresentation,
     UnitSphericalRepresentation,
-    _invalidate_reprdiff_cls_hash,
 )
+from astropy.coordinates.representation.base import _invalidate_reprdiff_cls_hash
 from astropy.coordinates.transformations import FunctionTransform
 
 # Classes setup, borrowed from SunPy.

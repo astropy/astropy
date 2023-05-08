@@ -12,7 +12,7 @@ from astropy.coordinates.distances import Distance
 from astropy.coordinates.matrix_utilities import is_O3
 from astropy.utils import classproperty
 
-from . import BaseRepresentation, BaseDifferential
+from .base import BaseRepresentation, BaseDifferential
 from .cartesian import CartesianRepresentation
 
 
