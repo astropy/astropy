@@ -8,6 +8,7 @@ import pytest
 from astropy import units as u
 from astropy.units import equivalencies as eq
 from astropy.cosmology import Planck15
+from astropy.cosmology.units import with_H0
 
 asdf = pytest.importorskip("asdf", minversion="2.3.0.dev0")
 
@@ -58,10 +59,16 @@ def get_equivalencies():
             + eq.spectral_density(35 * u.nm)
             + eq.brightness_temperature(5 * u.Hz, beam_area=2 * u.sr)
         ),
+        with_H0(),
     ]
 
 
 @pytest.mark.parametrize("equiv", get_equivalencies())
+@pytest.mark.filterwarnings(
+    "ignore:`with_H0` is deprecated from `astropy.units.equivalencies` "
+    "since astropy 5.0 and may be removed in a future version. "
+    "Use `astropy.cosmology.units.with_H0` instead."
+)
 def test_equivalencies(tmpdir, equiv):
     tree = {"equiv": equiv}
     assert_roundtrip_tree(tree, tmpdir)
