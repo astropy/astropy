@@ -942,7 +942,7 @@ format. This can be useful in many contexts, one of which is the implementation 
 
 Serializing a model to disk is possible by assigning the object to ``AsdfFile.tree``:
 
-.. doctest-requires:: asdf
+.. doctest-requires:: asdf<3.0.0.dev
 
     >>> from asdf import AsdfFile
     >>> from astropy.modeling import models
@@ -953,7 +953,7 @@ Serializing a model to disk is possible by assigning the object to ``AsdfFile.tr
 
 To read the file and create the model:
 
-.. doctest-requires:: asdf
+.. doctest-requires:: asdf<3.0.0.dev
 
     >>> import asdf
     >>> with asdf.open('rotation.asdf') as f:
