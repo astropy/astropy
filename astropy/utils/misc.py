@@ -18,6 +18,8 @@ import traceback
 import unicodedata
 from contextlib import contextmanager
 
+from astropy.utils import deprecated
+
 __all__ = [
     "isiterable",
     "silence",
@@ -303,6 +305,8 @@ def signal_number_to_name(signum):
     return signal_to_name_map.get(signum, "UNKNOWN")
 
 
+# _has_hidden_attribute() can be deleted together with deprecated is_path_hidden() and
+# walk_skip_hidden().
 if sys.platform == "win32":
     import ctypes
 
@@ -327,6 +331,7 @@ else:
         return False
 
 
+@deprecated(since="6.0")
 def is_path_hidden(filepath):
     """
     Determines if a given file or directory is hidden.
@@ -349,6 +354,7 @@ def is_path_hidden(filepath):
     return is_dotted or _has_hidden_attribute(filepath)
 
 
+@deprecated(since="6.0")
 def walk_skip_hidden(top, onerror=None, followlinks=False):
     """
     A wrapper for `os.walk` that skips hidden files and directories.
