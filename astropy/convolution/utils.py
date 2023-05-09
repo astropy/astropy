@@ -121,15 +121,16 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
             * ``'oversample'``
                 Discretize model by taking the average of model values
                 in the pixel bins on an oversampled grid. Use the
-                ``factor`` keyword to set the oversampling factor.
+                ``factor`` keyword to set the integer oversampling
+                factor.
             * ``'integrate'``
                 Discretize model by integrating the model over the pixel
                 bins using `scipy.integrate.quad`. This mode conserves
                 the model integral on a subpixel scale, but is very
                 slow.
     factor : int, optional
-        The oversampling factor used when ``mode='oversample'``. Ignored
-        otherwise.
+        The integer oversampling factor used when ``mode='oversample'``.
+        Ignored otherwise.
 
     Returns
     -------
