@@ -1,0 +1,1 @@
+LTS is not compatible with asdf 3 or later.
