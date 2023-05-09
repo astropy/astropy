@@ -1,0 +1,2 @@
+``discretize_model`` will now raise a ``ValueError`` if
+``mode='oversample'`` and ``factor`` does not have an integer value.
