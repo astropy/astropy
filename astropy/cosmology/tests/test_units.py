@@ -13,7 +13,7 @@ import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import Planck13, default_cosmology, flrw
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils.compat.optional_deps import HAS_ASDF, HAS_SCIPY
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 ##############################################################################
@@ -388,17 +388,6 @@ class Test_with_redshift:
         # this is really just a test that 'atzkw' doesn't fail
         equivalency = cu.with_redshift(cosmo, distance=kind, atzkw={"ztol": 1e-10})
         assert_quantity_allclose(dist.to(cu.redshift, equivalency), z)
-
-
-# FIXME! get "dimensionless_redshift", "with_redshift" to work in this
-# they are not in ``astropy.units.equivalencies``, so the following fails
-@pytest.mark.skipif(not HAS_ASDF, reason="requires ASDF")
-@pytest.mark.parametrize("equiv", [cu.with_H0])
-def test_equivalencies_asdf(tmpdir, equiv, recwarn):
-    from asdf.tests import helpers
-
-    tree = {"equiv": equiv()}
-    helpers.assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_equivalency_context_manager():
