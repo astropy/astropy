@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import matplotlib.lines
+import matplotlib.text
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -356,6 +357,31 @@ class TestBasic(BaseImageTests):
 
         # Test that plot_coord returns the results from ax.plot
         assert isinstance(sc, PathCollection)
+
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
+        ax.coords[0].set_format_unit(u.degree)
+
+        return fig
+
+    @figure_test
+    def test_text_coord(self):
+        fig = plt.figure(figsize=(6, 6))
+        ax = fig.add_axes(
+            [0.15, 0.15, 0.8, 0.8],
+            projection=WCS(self.twoMASS_k_header),
+            aspect="equal",
+        )
+        ax.set_xlim(-0.5, 720.5)
+        ax.set_ylim(-0.5, 720.5)
+
+        c = SkyCoord(266 * u.deg, -29 * u.deg)
+        text = ax.text_coord(c, "Sample Label", color="blue", ha="right", va="top")
+
+        # Test that plot_coord returns the results from ax.text
+        assert isinstance(text, matplotlib.text.Text)
 
         # In previous versions, all angle axes defaulted to being displayed in
         # degrees. We now automatically show RA axes in hour angle units, but

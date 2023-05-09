@@ -1,0 +1,2 @@
+Add ``WCSAxes.text_coord`` method to print text using ``SkyCoord`` objects
+parallel to plotting data points with ``WCSAxes.plot_coord``.
