@@ -120,15 +120,17 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
                 bins. For 2D models, the interpolation is bilinear.
             * ``'oversample'``
                 Discretize model by taking the average of model values
-                on an oversampled grid.
+                in the pixel bins on an oversampled grid. Use the
+                ``factor`` keyword to set the integer oversampling
+                factor.
             * ``'integrate'``
                 Discretize model by integrating the model over the pixel
                 bins using `scipy.integrate.quad`. This mode conserves
                 the model integral on a subpixel scale, but is very
                 slow.
     factor : int, optional
-        The oversampling factor used when ``mode='oversample'``. Ignored
-        otherwise.
+        The integer oversampling factor used when ``mode='oversample'``.
+        Ignored otherwise.
 
     Returns
     -------
@@ -191,6 +193,10 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
                 "The difference between the upper and lower limit of"
                 " 'y_range' must be a whole number."
             )
+
+    if factor != int(factor):
+        raise ValueError("factor must have an integer value")
+    factor = int(factor)
 
     if ndim == 2 and y_range is None:
         raise ValueError("y_range must be specified for a 2D model")
