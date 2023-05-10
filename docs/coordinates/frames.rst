@@ -110,7 +110,7 @@ frame to the attribute name on the representation class::
     >>> import astropy.units as u
     >>> icrs = ICRS(1*u.deg, 2*u.deg)
     >>> icrs.representation_type
-    <class 'astropy.coordinates.representation.SphericalRepresentation'>
+    <class 'astropy.coordinates...SphericalRepresentation'>
     >>> icrs.representation_component_names
     {'ra': 'lon', 'dec': 'lat', 'distance': 'distance'}
 
