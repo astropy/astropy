@@ -23,7 +23,7 @@ from .representation import (
     CartesianDifferential,
     CartesianRepresentation,
 )
-from .geodetic import ELLIPSOIDS
+from .representation.geodetic import ELLIPSOIDS
 
 __all__ = [
     "EarthLocation",

@@ -12,7 +12,7 @@ from astropy import units as u
 from astropy.coordinates.angles import Latitude, Longitude
 from astropy.coordinates.earth import EarthLocation
 from astropy.coordinates.name_resolve import NameResolveError
-from astropy.coordinates.geodetic import ELLIPSOIDS
+from astropy.coordinates.representation.geodetic import ELLIPSOIDS
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 from astropy.units.tests.test_quantity_erfa_ufuncs import vvd
