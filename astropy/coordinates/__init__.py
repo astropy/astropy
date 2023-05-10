@@ -16,7 +16,6 @@ from .distances import *
 from .earth import *
 from .errors import *
 from .funcs import *
-from .geodetic import *
 from .matching import *
 from .name_resolve import *
 from .representation import *
