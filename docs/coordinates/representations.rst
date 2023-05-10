@@ -30,14 +30,24 @@ The built-in representation classes are:
 * `~astropy.coordinates.CylindricalRepresentation`:
   cylindrical polar coordinates, represented by a cylindrical radius
   (``rho``), azimuthal angle (``phi``), and height (``z``).
-* `~astropy.coordinates.BaseGeodeticRepresentation`:
-  coordinates on a surface of a spheroid (an ellipsoid with equal equatorial radii),
-  represented by a longitude (``lon``) a geodetical latitude (``lat``) and a height
-  (``height``) above the surface. The geodetical latitude is defined by the angle
-  between the vertical to the surface at a specific point of the spheroid and its
-  projection onto the equatorial plane.
-  The latitude is a value ranging from -90 to 90 degrees, the longitude from 0 to 360
-  degrees.
+
+
+Astropy also offers a `~astropy.coordinates.BaseGeodeticRepresentation` useful to
+create specific representations on spheroidal bodies.
+This is used internally for the standard Earth ellipsoids used in
+`~astropy.coordinates.EarthLocation`
+(`~astropy.coordinates.WGS84GeodeticRepresentation`,
+`~astropy.coordinates.WGS72GeodeticRepresentation`, and
+`~astropy.coordinates.GRS80GeodeticRepresentation`), but
+can also be customized; see :ref:`astropy-coordinates-create-geodetic`.
+All these are coordinates on a surface of a spheroid (an ellipsoid with equal
+equatorial radii), represented by a longitude (``lon``) a geodetical latitude (``lat``)
+and a height (``height``) above the surface.
+The geodetical latitude is defined by the angle
+between the vertical to the surface at a specific point of the spheroid and its
+projection onto the equatorial plane.
+The latitude is a value ranging from -90 to 90 degrees, the longitude from 0 to 360
+degrees.
 
 .. Note::
    For information about using and changing the representation of
