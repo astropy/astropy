@@ -1,0 +1,1 @@
+``CompoundModel`` now has a ``submodel_classnames`` property that returns a tuple of string class names.

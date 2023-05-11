@@ -612,6 +612,13 @@ def test_name():
     assert m1.name == "M1"
 
 
+def test_types():
+    poly = Polynomial1D(1, c0=1, c1=2)
+    g1 = Gaussian1D(1, 1, 1)
+    m = poly + g1
+    assert m.submodel_types == ("Polynomial1D", "Gaussian1D")
+
+
 def test_name_index():
     g1 = Gaussian1D(1, 1, 1)
     g2 = Gaussian1D(1, 2, 1)
