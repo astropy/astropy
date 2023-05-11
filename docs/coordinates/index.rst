@@ -347,8 +347,6 @@ names, city names, etc:
 
     >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO')  # doctest: +FLOAT_CMP
     <EarthLocation (-26769.86528679, -4997007.71191864, 3950273.57633915) m>
-    >>> EarthLocation.of_address('Danbury, CT')  # doctest: +FLOAT_CMP
-    <EarthLocation (1362610.66896362, -4590755.48088484, 4198817.69912853) m>
 
 By default the `OpenStreetMap Nominatim service
 <https://wiki.openstreetmap.org/wiki/Nominatim>`_ is used, but by providing a
