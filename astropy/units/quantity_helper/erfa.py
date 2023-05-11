@@ -104,7 +104,7 @@ def helper_gc2gde(f, unit_r, unit_flat, unit_xyz):
 
     return [
         get_converter(unit_r, m),
-        get_converter(unit_flat, dimensionless_unscaled),
+        get_converter(_d(unit_flat), dimensionless_unscaled),
         get_converter(unit_xyz, m),
     ], (
         radian,
@@ -138,7 +138,7 @@ def helper_gd2gce(f, unit_r, unit_flat, unit_long, unit_lat, unit_h):
 
     return [
         get_converter(unit_r, m),
-        get_converter(unit_flat, dimensionless_unscaled),
+        get_converter(_d(unit_flat), dimensionless_unscaled),
         get_converter(unit_long, radian),
         get_converter(unit_lat, radian),
         get_converter(unit_h, m),

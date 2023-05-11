@@ -6,6 +6,12 @@ coordinates.
 from .base import BaseRepresentationOrDifferential, BaseRepresentation, BaseDifferential
 from .cartesian import CartesianRepresentation, CartesianDifferential
 from .cylindrical import CylindricalRepresentation, CylindricalDifferential
+from .geodetic import (
+    BaseGeodeticRepresentation,
+    WGS84GeodeticRepresentation,
+    WGS72GeodeticRepresentation,
+    GRS80GeodeticRepresentation,
+)
 from .spherical import (
     SphericalRepresentation,
     UnitSphericalRepresentation,
@@ -49,4 +55,8 @@ __all__ = [
     "RadialDifferential",
     "CylindricalDifferential",
     "PhysicsSphericalDifferential",
+    "BaseGeodeticRepresentation",
+    "WGS84GeodeticRepresentation",
+    "WGS72GeodeticRepresentation",
+    "GRS80GeodeticRepresentation",
 ]
