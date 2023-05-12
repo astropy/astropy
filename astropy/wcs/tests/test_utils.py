@@ -8,6 +8,10 @@ from packaging.version import Version
 
 from astropy import units as u
 from astropy.coordinates import ITRS, EarthLocation, SkyCoord
+from astropy.coordinates.representation.geodetic import (
+    BaseBodycentricRepresentation,
+    BaseGeodeticRepresentation,
+)
 from astropy.io import fits
 from astropy.time import Time
 from astropy.units import Quantity
@@ -43,6 +47,11 @@ from astropy.wcs.wcs import (
     Sip,
 )
 from astropy.wcs.wcsapi.fitswcs import SlicedFITSWCS
+
+from astropy.coordinates.tests.test_geodetic_representations import (
+    IAUMARS2000GeodeticRepresentation,
+    IAUMARS2000BodycentricRepresentation,
+)
 
 
 def test_wcs_dropping():
@@ -267,7 +276,14 @@ def test_celestial():
 
 def test_wcs_to_celestial_frame():
     # Import astropy.coordinates here to avoid circular imports
-    from astropy.coordinates.builtin_frames import FK4, FK5, ICRS, ITRS, Galactic
+    from astropy.coordinates import BaseCoordinateFrame
+    from astropy.coordinates.builtin_frames import (
+        FK4,
+        FK5,
+        ICRS,
+        ITRS,
+        Galactic,
+    )
 
     mywcs = WCS(naxis=2)
     mywcs.wcs.set()
@@ -296,7 +312,6 @@ def test_wcs_to_celestial_frame():
     mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     mywcs.wcs.equinox = 1987.0
     mywcs.wcs.set()
-    print(mywcs.to_header())
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, FK5)
     assert frame.equinox == Time(1987.0, format="jyear")
@@ -322,6 +337,38 @@ def test_wcs_to_celestial_frame():
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, ITRS)
     assert frame.obstime == Time("2017-08-17T12:41:04.430")
+
+    mywcs = WCS(naxis=2)
+    mywcs.wcs.ctype = ["MALN-TAN", "MALT-TAN"]
+    mywcs.wcs.radesys = "ICRS"
+    mywcs.wcs.dateobs = "2017-08-17T12:41:04.430"
+    mywcs.wcs.name = "Mars Bodycentric Body-Fixed"
+
+    if Version(_wcs.__version__) >= Version("8.0"):
+        mywcs.wcs.aux.a_radius = 3396190.0
+        mywcs.wcs.aux.b_radius = 3396190.0
+        mywcs.wcs.aux.c_radius = 3376190.0
+    frame = wcs_to_celestial_frame(mywcs)
+    assert issubclass(frame, BaseCoordinateFrame)
+    assert frame.representation_type == BaseBodycentricRepresentation
+    assert frame.name == "mars"
+    if Version(_wcs.__version__) >= Version("8.0"):
+        assert frame.representation_type._equatorial_radius == 3396190.0 * u.m
+
+    mywcs = WCS(naxis=2)
+    mywcs.wcs.ctype = ["EALN-TAN", "EALT-TAN"]
+    mywcs.wcs.radesys = "ICRS"
+    mywcs.wcs.name = "Earth Geodetic Body-Fixed"
+    if Version(_wcs.__version__) >= Version("8.0"):
+        mywcs.wcs.aux.a_radius = 6378137.0
+        mywcs.wcs.aux.b_radius = 6378137.0
+        mywcs.wcs.aux.c_radius = 6356752.3
+    mywcs.wcs.set()
+    frame = wcs_to_celestial_frame(mywcs)
+    assert issubclass(frame, BaseCoordinateFrame)
+    assert frame.representation_type == BaseGeodeticRepresentation
+    if Version(_wcs.__version__) >= Version("8.0"):
+        assert frame.representation_type._equatorial_radius == 6378137.0 * u.m
 
     for equinox in [np.nan, 1987, 1982]:
         mywcs = WCS(naxis=2)
@@ -393,12 +440,12 @@ def test_wcs_to_celestial_frame_extend():
 
 def test_celestial_frame_to_wcs():
     # Import astropy.coordinates here to avoid circular imports
+    from astropy.coordinates import BaseCoordinateFrame
     from astropy.coordinates import (
         FK4,
         FK5,
         ICRS,
         ITRS,
-        BaseCoordinateFrame,
         FK4NoETerms,
         Galactic,
     )
@@ -471,6 +518,28 @@ def test_celestial_frame_to_wcs():
     assert tuple(mywcs.wcs.ctype) == ("TLON-CAR", "TLAT-CAR")
     assert mywcs.wcs.radesys == "ITRS"
     assert mywcs.wcs.dateobs == Time("J2000").utc.fits
+
+    class IAUMARS2000BodyFrame(BaseCoordinateFrame):
+        name = "Mars"
+
+    frame = IAUMARS2000BodyFrame()
+
+    frame.representation_type = IAUMARS2000GeodeticRepresentation
+    mywcs = celestial_frame_to_wcs(frame, projection="CAR")
+    assert mywcs.wcs.ctype[0] == "MALN-CAR"
+    assert mywcs.wcs.ctype[1] == "MALT-CAR"
+    assert mywcs.wcs.name == "Planetographic Body-Fixed"
+
+    frame.representation_type = IAUMARS2000BodycentricRepresentation
+    mywcs = celestial_frame_to_wcs(frame, projection="CAR")
+    assert mywcs.wcs.ctype[0] == "MALN-CAR"
+    assert mywcs.wcs.ctype[1] == "MALT-CAR"
+    assert mywcs.wcs.name == "Bodycentric Body-Fixed"
+
+    if Version(_wcs.__version__) >= Version("8.0"):
+        assert mywcs.wcs.aux.a_radius == 3396190.0
+        assert mywcs.wcs.aux.b_radius == 3396190.0
+        assert_almost_equal(mywcs.wcs.aux.c_radius, 3376200.0)
 
 
 def test_celestial_frame_to_wcs_extend():

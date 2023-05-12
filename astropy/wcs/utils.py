@@ -5,10 +5,18 @@ import copy
 import numpy as np
 
 import astropy.units as u
-from astropy.coordinates import ITRS, CartesianRepresentation, SphericalRepresentation
+from astropy.coordinates import (
+    ITRS,
+    CartesianRepresentation,
+    SphericalRepresentation,
+    BaseGeodeticRepresentation,
+    BaseBodycentricRepresentation,
+    BaseCoordinateFrame,
+)
 from astropy.utils import unbroadcast
 
-from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
+from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE, _wcs
+from packaging.version import Version
 
 __doctest_skip__ = ["wcs_to_celestial_frame", "celestial_frame_to_wcs"]
 
@@ -29,6 +37,22 @@ __all__ = [
     "local_partial_pixel_derivatives",
     "fit_wcs_from_points",
 ]
+
+
+solar_system_obj_dict = {
+    "EA": "Earth",
+    "SE": "Moon",
+    "ME": "Mercury",
+    "VE": "Venus",
+    "MA": "Mars",
+    "JU": "Jupiter",
+    "SA": "Saturn",
+    "UR": "Uranus",
+    "NE": "Neptune",
+}
+
+
+solar_system_body_frames = {}
 
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
@@ -118,6 +142,35 @@ def _wcs_to_celestial_frame_builtin(wcs):
                 representation_type=SphericalRepresentation,
                 obstime=wcs.wcs.dateobs or None,
             )
+        elif (
+            "LN" in xcoord
+            and "LT" in ycoord
+            and "H" not in xcoord
+            and "CR" not in xcoord
+        ):
+            if Version(_wcs.__version__) >= Version("8.0"):
+                a_radius = wcs.wcs.aux.a_radius
+                b_radius = wcs.wcs.aux.b_radius
+                c_radius = wcs.wcs.aux.c_radius
+
+            if "bodycentric" in wcs.wcs.name.lower():
+                baserepresentation = BaseBodycentricRepresentation
+            else:
+                baserepresentation = BaseGeodeticRepresentation
+
+            if Version(_wcs.__version__) >= Version("8.0"):
+                baserepresentation._equatorial_radius = a_radius * u.m
+                baserepresentation._flattening = (a_radius - c_radius) / a_radius
+
+            frame = solar_system_body_frames.get(xcoord[:2])
+            object_name = solar_system_obj_dict.get(xcoord[:2])
+            if frame is None and object_name is not None:
+                frame = type(
+                    object_name,
+                    (BaseCoordinateFrame,),
+                    dict(representation_type=baserepresentation, obstime=None),
+                )
+                solar_system_body_frames[xcoord[:2]] = frame
         else:
             frame = None
 
@@ -163,6 +216,28 @@ def _celestial_frame_to_wcs_builtin(frame, projection="TAN"):
         ycoord = "TLAT"
         wcs.wcs.radesys = "ITRS"
         wcs.wcs.dateobs = frame.obstime.utc.isot
+    elif hasattr(frame, "name") and frame.name in solar_system_obj_dict.values():
+        xcoord = frame.name[:2].upper().replace("MO", "SE") + "LN"
+        ycoord = frame.name[:2].upper().replace("MO", "SE") + "LT"
+        if issubclass(frame.representation_type, BaseGeodeticRepresentation):
+            wcs.wcs.name = "Planetographic Body-Fixed"
+        elif issubclass(frame.representation_type, BaseBodycentricRepresentation):
+            wcs.wcs.name = "Bodycentric Body-Fixed"
+        if Version(_wcs.__version__) >= Version("8.0"):
+            if hasattr(frame.representation_type, "_equatorial_radius"):
+                wcs.wcs.aux.a_radius = (
+                    frame.representation_type._equatorial_radius.value
+                )
+                wcs.wcs.aux.b_radius = (
+                    frame.representation_type._equatorial_radius.value
+                )
+            if hasattr(frame.representation_type, "_flattening"):
+                wcs.wcs.aux.c_radius = wcs.wcs.aux.a_radius * (
+                    1.0
+                    - frame.representation_type._flattening.to(
+                        u.dimensionless_unscaled
+                    ).value
+                )
     else:
         return None
 
