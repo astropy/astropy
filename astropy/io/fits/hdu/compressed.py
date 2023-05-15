@@ -85,7 +85,6 @@ COMPRESSION_KEYWORDS = {
 
 
 def _validate_tile_shape(*, tile_shape, compression_type, image_header):
-
     naxis = image_header["NAXIS"]
 
     if not tile_shape:
@@ -97,6 +96,8 @@ def _validate_tile_shape(*, tile_shape, compression_type, image_header):
             AstropyUserWarning,
         )
         tile_shape = []
+    else:
+        tile_shape = list(tile_shape)
 
     # Set default tile dimensions for HCOMPRESS_1
 
@@ -168,9 +169,7 @@ def _validate_tile_shape(*, tile_shape, compression_type, image_header):
             remain = image_header["NAXIS1"] % tile_shape[-1]
 
             if remain > 0 and remain < 4:
-                raise ValueError(
-                    "Last tile along 1st dimension has less than 4 pixels"
-                )
+                raise ValueError("Last tile along 1st dimension has less than 4 pixels")
 
         remain = image_header["NAXIS2"] % tile_shape[-2]  # 2nd dimen
 
@@ -180,9 +179,7 @@ def _validate_tile_shape(*, tile_shape, compression_type, image_header):
             remain = image_header["NAXIS2"] % tile_shape[-2]
 
             if remain > 0 and remain < 4:
-                raise ValueError(
-                    "Last tile along 2nd dimension has less than 4 pixels"
-                )
+                raise ValueError("Last tile along 2nd dimension has less than 4 pixels")
 
         if tile_shape != original_tile_shape:
             warnings.warn(
@@ -194,6 +191,12 @@ def _validate_tile_shape(*, tile_shape, compression_type, image_header):
                 f"directly.",
                 AstropyDeprecationWarning,
             )
+
+    if len(tile_shape) == 0 and image_header["NAXIS"] > 0:
+        tile_shape = [1] * (naxis - 1) + [image_header["NAXIS1"]]
+
+    return tuple(tile_shape)
+
 
 
 class CompImageHeader(Header):
