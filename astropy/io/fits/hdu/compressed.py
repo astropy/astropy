@@ -1200,18 +1200,7 @@ class CompImageHDU(BinTableHDU):
             znaxis = "ZNAXIS" + str(idx + 1)
             ztile = "ZTILE" + str(idx + 1)
 
-            if tile_shape and len(tile_shape) >= idx + 1:
-                ts = tile_shape[len(self._axes) - 1 - idx]
-            else:
-                if ztile not in self._header:
-                    # Default tile size
-                    if not idx:
-                        ts = self._image_header["NAXIS1"]
-                    else:
-                        ts = 1
-                else:
-                    ts = self._header[ztile]
-                tile_shape.insert(0, ts)
+            ts = tile_shape[len(self._axes) - 1 - idx]
 
             if not nrows:
                 nrows = (axis - 1) // ts + 1
