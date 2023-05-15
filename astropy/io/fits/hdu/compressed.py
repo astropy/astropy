@@ -198,7 +198,6 @@ def _validate_tile_shape(*, tile_shape, compression_type, image_header):
     return tuple(tile_shape)
 
 
-
 class CompImageHeader(Header):
     """
     Header object for compressed image HDUs designed to keep the compression
@@ -1178,9 +1177,11 @@ class CompImageHDU(BinTableHDU):
         # Verify that any input tile size parameter is the appropriate
         # size to match the HDU's data.
 
-        tile_shape = _validate_tile_shape(tile_shape=tile_shape,
-                                          compression_type=compression_type,
-                                          image_header=self._image_header)
+        tile_shape = _validate_tile_shape(
+            tile_shape=tile_shape,
+            compression_type=compression_type,
+            image_header=self._image_header,
+        )
 
         # Set up locations for writing the next cards in the header.
         last_znaxis = "ZNAXIS"
