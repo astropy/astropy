@@ -11,7 +11,10 @@ from contextlib import suppress
 import numpy as np
 
 from astropy.io.fits import conf
-from astropy.io.fits._tiled_compression import compress_hdu, decompress_hdu_section
+from astropy.io.fits._tiled_compression import (
+    compress_image_data,
+    decompress_image_data_section,
+)
 from astropy.io.fits._tiled_compression.utils import _data_shape, _n_tiles, _tile_shape
 from astropy.io.fits.card import Card
 from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
@@ -1815,11 +1818,19 @@ class CompImageHDU(BinTableHDU):
             del self.compressed_data
 
             # Compress the data.
-            # compress_hdu returns the size of the heap for the written
+            # compress_image_data returns the size of the heap for the written
             # compressed image table
-            heapsize, self.compressed_data = compress_hdu(self)
+            heapsize, self.compressed_data = compress_image_data(
+                self.data, self.compression_type, self._header, self.columns
+            )
         finally:
             self.data = old_data
+
+        table_len = len(self.compressed_data) - heapsize
+        if table_len != self._theap:
+            raise Exception(
+                f"Unexpected compressed table size (expected {self._theap}, got {table_len})"
+            )
 
         # CFITSIO will write the compressed data in big-endian order
         dtype = self.columns.dtype.newbyteorder(">")
@@ -2186,7 +2197,14 @@ class CompImageSection:
         if index is Ellipsis:
             first_tile_index = np.zeros(self._n_dim, dtype=int)
             last_tile_index = self._n_tiles - 1
-            data = decompress_hdu_section(self.hdu, first_tile_index, last_tile_index)
+            data = decompress_image_data_section(
+                self.hdu.compressed_data,
+                self.hdu.compression_type,
+                self.hdu._header,
+                self.hdu,
+                first_tile_index,
+                last_tile_index,
+            )
             return self.hdu._scale_data(data)
 
         index = simplify_basic_index(index, shape=self._data_shape)
@@ -2230,6 +2248,13 @@ class CompImageSection:
                     idx - self._tile_shape[dim] * first_tile_index[dim]
                 )
 
-        data = decompress_hdu_section(self.hdu, first_tile_index, last_tile_index)
+        data = decompress_image_data_section(
+            self.hdu.compressed_data,
+            self.hdu.compression_type,
+            self.hdu._header,
+            self.hdu,
+            first_tile_index,
+            last_tile_index,
+        )
 
         return self.hdu._scale_data(data[tuple(final_array_index)])

@@ -15,8 +15,8 @@ The functionality is roughly split up into the following sections:
 2. The quantize and dequantize functions from cfitsio.
 3. A Python C-API module which wraps all the compression and quantize cfitsio functions.
 4. `numcodecs <https://numcodecs.readthedocs.io/>`__ style ``Codec`` classes for each compression algorithms.
-5. `~astropy.io.fits._tiled_compression.compress_hdu` and
-   `~astropy.io.fits._tiled_compression.decompress_hdu_section` functions which
+5. `~astropy.io.fits._tiled_compression.compress_image_data` and
+   `~astropy.io.fits._tiled_compression.decompress_image_data_section` functions which
    are called from `~astropy.io.fits.CompImageHDU`.
 
 
