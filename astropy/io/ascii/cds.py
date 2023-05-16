@@ -209,7 +209,7 @@ class CdsData(core.BaseData):
 class Cds(core.BaseReader):
     """CDS format table.
 
-    See: http://vizier.u-strasbg.fr/doc/catstd.htx
+    See: https://vizier.unistra.fr/doc/catstd.htx
 
     Example::
 

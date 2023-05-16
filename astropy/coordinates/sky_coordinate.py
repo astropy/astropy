@@ -1730,7 +1730,7 @@ class SkyCoord(ShapedLikeNDArray):
         To determine which constellation a point on the sky is in, this first
         precesses to B1875, and then uses the Delporte boundaries of the 88
         modern constellations, as tabulated by
-        `Roman 1987 <http://cdsarc.u-strasbg.fr/viz-bin/Cat?VI/42>`_.
+        `Roman 1987 <https://cdsarc.cds.unistra.fr/viz-bin/Cat?VI/42>`_.
 
         See Also
         --------

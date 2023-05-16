@@ -238,7 +238,7 @@ Machine-Readable Table Format
 The American Astronomical Society Journals' `Machine-Readable Table (MRT)
 <https://journals.aas.org/mrt-standards/>`_ format consists of single file with
 the table description header and the table data itself. MRT is similar to the
-`CDS <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ format standard, but differs
+`CDS <https://vizier.unistra.fr/doc/catstd.htx>`_ format standard, but differs
 in the table description sections and the lack of a separate ``ReadMe`` file.
 Astropy does not support writing in the CDS format.
 

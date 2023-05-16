@@ -412,7 +412,7 @@ class W06(VOTableSpecWarning):
     """
     This warning is emitted when a ``ucd`` attribute does not match
     the syntax of a `unified content descriptor
-    <http://vizier.u-strasbg.fr/doc/UCD.htx>`__.
+    <https://vizier.unistra.fr/doc/UCD.htx>`__.
 
     If the VOTable version is 1.2 or later, the UCD will also be
     checked to ensure it conforms to the controlled vocabulary defined
@@ -501,7 +501,7 @@ class W11(VOTableSpecWarning):
     """
     Earlier versions of the VOTable specification used a ``gref``
     attribute on the ``LINK`` element to specify a `GLU reference
-    <http://aladin.u-strasbg.fr/glu/>`__.  New files should
+    <http://aladin.unistra.fr/glu/>`__.  New files should
     specify a ``glu:`` protocol using the ``href`` attribute.
 
     Since ``astropy.io.votable`` does not currently support GLU references, it
@@ -1068,7 +1068,7 @@ class W50(VOTableSpecWarning):
     Invalid unit string as defined in the `Units in the VO, Version 1.0
     <https://www.ivoa.net/documents/VOUnits>`_ (VOTable version >= 1.4)
     or `Standards for Astronomical Catalogues, Version 2.0
-    <http://cdsarc.u-strasbg.fr/doc/catstd-3.2.htx>`_ (version < 1.4).
+    <https://cdsarc.cds.unistra.fr/doc/catstd-3.2.htx>`_ (version < 1.4).
 
     Consider passing an explicit ``unit_format`` parameter if the units
     in this file conform to another specification.
