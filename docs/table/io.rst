@@ -32,7 +32,7 @@ method with the name of the file and the file format, for instance
     >>> t = Table.read('photometry.dat', format='ascii.daophot')
 
 It is possible to load tables directly from the Internet using URLs. For
-example, download tables from `VizieR catalogs <https://vizier.u-strasbg.fr/>`_
+example, download tables from `VizieR catalogs <https://vizier.unistra.fr/>`_
 in CDS format (``'ascii.cds'``)::
 
     >>> t = Table.read("ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/snrs.dat",

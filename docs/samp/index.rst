@@ -14,7 +14,7 @@ computer, to communicate with each other by exchanging short messages that may
 reference external data files. The protocol has been developed within the
 International Virtual Observatory Alliance (IVOA) and is understood by many
 desktop astronomy tools, including `TOPCAT`_, `SAO DS9 <http://ds9.si.edu/>`_,
-and `Aladin <http://aladin.u-strasbg.fr>`_.
+and `Aladin <https://aladin.unistra.fr>`_.
 
 So by using the classes in `astropy.samp`, Python code can interact with
 other running desktop clients, for instance displaying a named FITS file in DS9,

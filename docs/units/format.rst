@@ -155,8 +155,8 @@ formats:
 
   - ``"cds"``: `Standards for astronomical catalogues from Centre de
     Données astronomiques de Strasbourg
-    <http://vizier.u-strasbg.fr/vizier/doc/catstd-3.2.htx>`_: This is the
-    standard used by `Vizier tables <http://vizier.u-strasbg.fr/>`__,
+    <https://vizier.unistra.fr/vizier/doc/catstd-3.2.htx>`_: This is the
+    standard used by `Vizier tables <https://vizier.unistra.fr/>`__,
     as well as what is used by VOTable versions 1.3 and earlier.
 
   - ``"ogip"``: A standard for storing units as recommended by the
