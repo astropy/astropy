@@ -212,7 +212,7 @@ class MrtHeader(cds.CdsHeader):
         See the Vizier MRT Standard documentation in the link below for more details
         on these. An example Byte-By-Byte table is shown here.
 
-        See: http://vizier.u-strasbg.fr/doc/catstd-3.1.htx
+        See: https://vizier.unistra.fr/doc/catstd-3.1.htx
 
         Example::
 

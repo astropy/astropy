@@ -280,7 +280,7 @@ Or cross-matching catalog coordinates (detailed in
 The `astropy.coordinates` sub-package also provides a quick way to get
 coordinates for named objects, assuming you have an active internet
 connection. The `~astropy.coordinates.SkyCoord.from_name` method of |SkyCoord|
-uses `Sesame <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve coordinates
+uses `Sesame <https://cds.unistra.fr/cgi-bin/Sesame>`_ to retrieve coordinates
 for a particular named object.
 
 ..

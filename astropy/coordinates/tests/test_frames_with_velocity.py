@@ -125,8 +125,8 @@ def test_expected_arg_names(cls, lon, lat):
     frame = cls(**kwargs, **DISTANCE, **RADIAL_VELOCITY)
 
 
-# these data are extracted from the vizier copy of XHIP:
-# http://vizier.u-strasbg.fr/viz-bin/VizieR-3?-source=+V/137A/XHIP
+# these data are extracted from the vizier version of XHIP:
+# https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=+V/137A/XHIP
 _xhip_head = """
 ------ ------------ ------------ -------- -------- ------------ ------------ ------- -------- -------- ------- ------ ------ ------
        R            D            pmRA     pmDE                               Di      pmGLon   pmGLat   RV      U      V      W
