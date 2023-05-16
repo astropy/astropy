@@ -33,7 +33,7 @@ class sesame_url(ScienceState):
     """
 
     _value = [
-        "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/",
+        "https://cds.unistra.fr/cgi-bin/nph-sesame/",
         "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/",
     ]
 
