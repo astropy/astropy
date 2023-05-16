@@ -253,7 +253,7 @@ For the target, the simplest way is to use the |SkyCoord| class::
 
 In this case we specified a radial velocity and a distance for the target (using
 the `T Tauri SIMBAD entry
-<http://simbad.u-strasbg.fr/simbad/sim-id?Ident=T+Tauri>`_, but it is also
+<https://simbad.unistra.fr/simbad/sim-id?Ident=T+Tauri>`_, but it is also
 possible to not specify these, which means the target is assumed to be
 stationary in the frame in which it is observed, and are assumed to be at large
 distance from the Sun (such that any parallax effects would be unimportant if

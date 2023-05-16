@@ -212,7 +212,7 @@ See Also
   <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.
 
 - `Standards for astronomical catalogues: units
-  <http://vizier.u-strasbg.fr/vizier/doc/catstd-3.2.htx>`_.
+  <https://vizier.unistra.fr/vizier/doc/catstd-3.2.htx>`_.
 
 - `IAU Style Manual
   <https://www.iau.org/static/publications/stylemanual1989.pdf>`_.

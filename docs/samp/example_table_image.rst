@@ -10,7 +10,7 @@ In the following examples, we make use of:
 * `TOPCAT`_, which is a tool to explore tabular data.
 * `SAO DS9 <http://ds9.si.edu/>`_, which is an image
   visualization tool that can overplot catalogs.
-* `Aladin Desktop <http://aladin.u-strasbg.fr>`_, which is another tool that
+* `Aladin Desktop <https://aladin.unistra.fr>`_, which is another tool that
   can visualize images and catalogs.
 
 TOPCAT and Aladin will run a SAMP Hub if none is found, so for the following
