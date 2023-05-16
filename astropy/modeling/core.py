@@ -3267,8 +3267,7 @@ class CompoundModel(Model):
         """Return the types of submodels in a ``CompoundModel``."""
         if self._leaflist is None:
             self._make_leaflist()
-        classnames = [item.__class__.name for item in self._leaflist]
-        return tuple(classnames)
+        return tuple(type(item).__name__ for item in self._leaflist)
 
     def both_inverses_exist(self):
         """
