@@ -3252,6 +3252,29 @@ class TestVLATables(FitsTestCase):
         ):
             t.writeto(self.temp("matrix.fits"))
 
+    @pytest.mark.skipif(sys.maxsize < 2**32, reason="requires 64-bit system")
+    @pytest.mark.skipif(sys.platform == "win32", reason="Cannot test on Windows")
+    @pytest.mark.hugemem
+    def test_heapsize_Q_limit(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/14808
+
+        Check if the error is no longer raised when the heap size is bigger than what can be
+        indexed with a 32 bit signed int.
+        """
+
+        # a matrix with variable length array elements is created
+        nelem = 2**28
+        matrix = np.zeros(1, dtype=np.object_)
+        matrix[0] = np.arange(0.0, float(nelem + 1))
+
+        col = fits.Column(name="MATRIX", format=f"QD({nelem})", unit="", array=matrix)
+
+        t = fits.BinTableHDU.from_columns([col])
+        t.name = "MATRIX"
+
+        t.writeto(self.temp("matrix.fits"))
+
     def test_empty_vla_raw_data(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/12881
