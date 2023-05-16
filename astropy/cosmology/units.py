@@ -79,7 +79,7 @@ def redshift_distance(cosmology=None, kind="comoving", **atzkw):
         A cosmology realization or built-in cosmology's name (e.g. 'Planck18').
         If None, will use the default cosmology
         (controlled by :class:`~astropy.cosmology.default_cosmology`).
-    kind : {'comoving', 'lookback', 'luminosity'} or None, optional
+    kind : {'comoving', 'lookback', 'luminosity'}, optional
         The distance type for the Equivalency.
         Note this does NOT include the angular diameter distance as this
         distance measure is not monotonic.
