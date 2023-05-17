@@ -6,10 +6,63 @@ Creates a common namespace for all pre-defined models.
 
 from . import math_functions as math
 from .core import custom_model, fix_inputs, hide_inverse
-from .functional_models import *
-from .mappings import *
-from .physical_models import *
-from .polynomial import *
+from .functional_models import (
+    Scale,
+    Shift,
+    Multiply,
+    Planar2D,
+    Exponential1D,
+    Logarithmic1D,
+    RedshiftScaleFactor,
+    Ring2D,
+    AiryDisk2D,
+    Moffat1D,
+    Moffat2D,
+    Box1D,
+    Box2D,
+    Const1D,
+    Const2D,
+    Ellipse2D,
+    Disk2D,
+    Gaussian1D,
+    Gaussian2D,
+    Linear1D,
+    Lorentz1D,
+    RickerWavelet1D,
+    RickerWavelet2D,
+    Sersic1D,
+    Sersic2D,
+    Sine1D,
+    Cosine1D,
+    Tangent1D,
+    ArcSine1D,
+    ArcCosine1D,
+    ArcTangent1D,
+    Trapezoid1D,
+    TrapezoidDisk2D,
+    Voigt1D,
+    KingProjectedAnalytic1D,
+)
+from .mappings import (
+    Identity,
+    Mapping,
+    UnitsMapping
+)
+from .physical_models import (
+    BlackBody,
+    NFW,
+    Drude1D
+)
+from .polynomial import (
+    Chebyshev1D,
+    Chebyshev2D,
+    Hermite1D,
+    Hermite2D,
+    Legendre2D,
+    Legendre1D,
+    Polynomial1D,
+    Polynomial2D
+)
 from .powerlaws import *
 from .projections import *
 from .rotations import *
@@ -94,3 +147,4 @@ MODELS_WITH_CONSTRAINTS = [
 for item in MODELS_WITH_CONSTRAINTS:
     if isinstance(item.__doc__, str):
         item.__doc__ += CONSTRAINTS_DOC
+#2601 passed, 4 skipped, 6 xfailed in 30.37s
