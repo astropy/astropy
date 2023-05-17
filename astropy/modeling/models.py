@@ -54,6 +54,7 @@ from .physical_models import (
     Drude1D
 )
 from .polynomial import (
+    SIP,
     Chebyshev1D,
     Chebyshev2D,
     Hermite1D,
@@ -63,11 +64,94 @@ from .polynomial import (
     Polynomial1D,
     Polynomial2D
 )
-from .powerlaws import *
-from .projections import *
-from .rotations import *
-from .spline import *
-from .tabular import *
+from .powerlaws import (
+    PowerLaw1D,
+    BrokenPowerLaw1D
+)
+from .projections import (
+    Pix2Sky_TAN
+)
+from .rotations import (
+    Rotation2D,
+    RotateNative2Celestial,
+    RotateCelestial2Native,
+    EulerAngleRotation
+)
+from .spline import (
+    Spline1D
+)
+from .tabular import (
+    Tabular1D,
+    Tabular2D,
+    tabular_model
+)
+
+__all__ = [
+    'math',
+    'custom_model',
+    'fix_inputs',
+    'hide_inverse',
+    'Scale',
+    'Shift',
+    'Multiply',
+    'Planar2D',
+    'Exponential1D',
+    'Logarithmic1D',
+    'RedshiftScaleFactor',
+    'Ring2D',
+    'AiryDisk2D',
+    'Moffat1D',
+    'Moffat2D',
+    'Box1D',
+    'Box2D',
+    'Const1D',
+    'Const2D',
+    'Ellipse2D',
+    'Disk2D',
+    'Gaussian1D',
+    'Gaussian2D',
+    'Linear1D',
+    'Lorentz1D',
+    'RickerWavelet1D',
+    'RickerWavelet2D',
+    'Sersic1D',
+    'Sersic2D',
+    'Sine1D',
+    'Cosine1D',
+    'Tangent1D',
+    'ArcSine1D',
+    'ArcCosine1D',
+    'ArcTangent1D',
+    'Trapezoid1D',
+    'TrapezoidDisk2D',
+    'Voigt1D',
+    'KingProjectedAnalytic1D',
+    'Identity',
+    'Mapping',
+    'UnitsMapping',
+    'BlackBody',
+    'NFW',
+    'Drude1D',
+    'Chebyshev1D',
+    'Chebyshev2D',
+    'Hermite1D',
+    'Hermite2D',
+    'Legendre2D',
+    'Legendre1D',
+    'Polynomial1D',
+    'Polynomial2D',
+    'PowerLaw1D',
+    'BrokenPowerLaw1D',
+    'Pix2Sky_TAN',
+    'Rotation2D',
+    'RotateNative2Celestial',
+    'RotateCelestial2Native',
+    'EulerAngleRotation',
+    'Spline1D',
+    'Tabular1D',
+    'Tabular2D',
+    'tabular_model',
+]
 
 # Attach a docstring explaining constraints to all models which support them.
 # Note: add new models to this list
@@ -147,4 +231,3 @@ MODELS_WITH_CONSTRAINTS = [
 for item in MODELS_WITH_CONSTRAINTS:
     if isinstance(item.__doc__, str):
         item.__doc__ += CONSTRAINTS_DOC
-#2601 passed, 4 skipped, 6 xfailed in 30.37s
