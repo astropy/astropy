@@ -1,0 +1,2 @@
+Added argument ``rename`` to Cosmology's I/O, allowing for input and output symbols to
+be renamed.

@@ -203,6 +203,37 @@ Like for the other formats, the |Planck18| cosmology can be recovered with
 |Cosmology.from_format|.
 
 
+.. _cosmology_io_renaming_fields:
+
+Renaming Fields
+===============
+
+Many I/O methods in :mod:`~astropy.cosmology` support renaming fields of the
+|Cosmology| class when converting to a different format. This is done by
+passing a ``rename`` dictionary to the ``to_format`` method.
+Similarly, when converting from a different format, a ``rename`` dictionary
+can be passed to the ``from_format`` method, mapping the fields of the input
+to the fields of the |Cosmology| class.
+
+For example, to rename the ``H0`` field to ``Hubble`` when converting to a table
+format::
+
+    >>> from astropy.cosmology import Planck18
+    >>> renamed_table = Planck18.to_format("astropy.table", rename={"H0": "Hubble"})
+    >>> renamed_table
+    <QTable length=1>
+        name      Hubble      Om0    Tcmb0    Neff      m_nu      Ob0
+                km / (Mpc s)            K                 eV
+        str8     float64    float64 float64 float64  float64[3] float64
+    -------- ------------ ------- ------- ------- ----------- -------
+    Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
+
+    >>> cosmo = Cosmology.from_format(renamed_table, format="astropy.table",
+    ...                               rename={"Hubble": "H0"})
+    >>> cosmo == Planck18
+    True
+
+
 .. _custom_cosmology_converters:
 
 Custom Cosmology To/From Formats

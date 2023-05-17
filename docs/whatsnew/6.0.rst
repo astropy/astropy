@@ -55,6 +55,9 @@ See :ref:`astropy-coordinates-create-geodetic` for more details.
 Updates to `~astropy.cosmology`
 ===============================
 
+Writing to LaTeX
+----------------
+
 The :class:`~astropy.cosmology.Cosmology` class in :mod:`~astropy.cosmology` now
 supports the latex format in its :attr:`~astropy.cosmology.Cosmology.write()`
 method, allowing users to export a cosmology object to a LaTeX table.::
@@ -64,6 +67,37 @@ method, allowing users to export a cosmology object to a LaTeX table.::
 
 This will write the cosmology object to a file in LaTeX format,
 with appropriate formatting of units and table alignment.
+
+Renaming fields in I/O
+----------------------
+
+Most I/O methods in :mod:`~astropy.cosmology` (accessed by
+:meth:`~astropy.cosmology.Cosmology.read`,
+:meth:`~astropy.cosmology.Cosmology.write`,
+:meth:`~astropy.cosmology.Cosmology.from_format`,
+:meth:`~astropy.cosmology.Cosmology.to_format`) now support
+:ref:`renaming fields<cosmology_io_renaming_fields>`.
+
+For example, to rename the ``H0`` field to ``Hubble`` when converting to a table
+format::
+
+    >>> from astropy.cosmology import Planck18
+    >>> Planck18.to_format("astropy.table")  # No renaming
+    <QTable length=1>
+      name        H0        Om0    Tcmb0    Neff      m_nu      Ob0
+             km / (Mpc s)            K                 eV
+      str8     float64    float64 float64 float64  float64[3] float64
+    -------- ------------ ------- ------- ------- ----------- -------
+    Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
+
+    >>> Planck18.to_format("astropy.table", rename={"H0": "Hubble"})
+    <QTable length=1>
+      name      Hubble      Om0    Tcmb0    Neff      m_nu      Ob0
+             km / (Mpc s)            K                 eV
+      str8     float64    float64 float64 float64  float64[3] float64
+    -------- ------------ ------- ------- ------- ----------- -------
+    Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
+
 
 Full change log
 ===============
