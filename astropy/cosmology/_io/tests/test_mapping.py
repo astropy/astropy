@@ -126,6 +126,46 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
         assert got == cosmo  # (Doesn't check metadata)
         assert got.meta["mismatching"] == "will error"
 
+    def test_to_mapping_rename_conflict(self, cosmo, to_format):
+        """Test ``rename`` in ``to_mapping()``."""
+        to_rename = {"name": "name", "H0": "H_0"}
+        match = (
+            "'renames' values must be disjoint from 'map' keys, "
+            "the common keys are: {'name'}"
+        )
+        with pytest.raises(ValueError, match=match):
+            to_format("mapping", rename=to_rename)
+
+    def test_from_mapping_rename_conflict(self, cosmo, to_format, from_format):
+        """Test ``rename`` in `from_mapping()``."""
+        m = to_format("mapping")
+
+        match = (
+            "'renames' values must be disjoint from 'map' keys, "
+            "the common keys are: {'name'}"
+        )
+        with pytest.raises(ValueError, match=match):
+            from_format(m, format="mapping", rename={"name": "name", "H0": "H_0"})
+
+    def test_tofrom_mapping_rename_roundtrip(self, cosmo, to_format, from_format):
+        """Test roundtrip in ``to/from_mapping()`` with ``rename``."""
+        to_rename = {"name": "cosmo_name"}
+        m = to_format("mapping", rename=to_rename)
+
+        assert "name" not in m
+        assert "cosmo_name" in m
+
+        # Wrong names = error
+        with pytest.raises(
+            TypeError, match="there are unused parameters {'cosmo_name':"
+        ):
+            from_format(m, format="mapping")
+
+        # Roundtrip. correct names = success
+        from_rename = {v: k for k, v in to_rename.items()}
+        got = from_format(m, format="mapping", rename=from_rename)
+        assert got == cosmo
+
     # -----------------------------------------------------
 
     def test_from_not_mapping(self, cosmo, from_format):
