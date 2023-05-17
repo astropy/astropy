@@ -153,6 +153,23 @@ class FLRW(Cosmology):
     Ob0 = Parameter(
         doc="Omega baryon; baryonic matter density/critical density at z=0."
     )
+    # Add format_spec type info (private API)
+    H0._format_spec_type = {"latex": r"$$H_{0}$$", "latex_inline": r"$H_{0}$"}
+    Om0._format_spec_type = {
+        "latex": r"$$\Omega_{m,0}$$",
+        "latex_inline": r"$\Omega_{m,0}$",
+    }
+    Ode0._format_spec_type = {
+        "latex": r"$$\Omega_{\Lambda,0}$$",
+        "latex_inline": r"$\Omega_{\Lambda,0}$",
+    }
+    Tcmb0._format_spec_type = {"latex": r"$$T_{0}$$", "latex_inline": r"$T_{0}$"}
+    Neff._format_spec_type = {"latex": r"$$N_{eff}$$", "latex_inline": r"$N_{eff}$"}
+    m_nu._format_spec_type = {"latex": r"$$m_{nu}$$", "latex_inline": r"$m_{nu}$"}
+    Ob0._format_spec_type = {
+        "latex": r"$$\Omega_{b,0}$$",
+        "latex_inline": r"$\Omega_{b,0}$",
+    }
 
     def __init__(
         self,

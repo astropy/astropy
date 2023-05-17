@@ -79,6 +79,8 @@ class wCDM(FLRW):
     """
 
     w0 = Parameter(doc="Dark energy equation of state.", fvalidate="float")
+    # Add format_spec type info (private API)
+    w0._format_spec_type = {"latex": r"$$w_{0}$$", "latex_inline": r"$w_{0}$"}
 
     def __init__(
         self,

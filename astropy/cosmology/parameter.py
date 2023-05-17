@@ -1,8 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import annotations
+
 import copy
+from typing import TYPE_CHECKING
 
 import astropy.units as u
+
+if TYPE_CHECKING:
+    from astropy.cosmology.core import Cosmology
 
 __all__ = ["Parameter"]
 
@@ -15,15 +21,15 @@ class Parameter:
     Parameters
     ----------
     derived : bool (optional, keyword-only)
-        Whether the Parameter is 'derived', default `False`.
-        Derived parameters behave similarly to normal parameters, but are not
-        sorted by the |Cosmology| signature (probably not there) and are not
-        included in all methods. For reference, see ``Ode0`` in
-        ``FlatFLRWMixin``, which removes :math:`\Omega_{de,0}`` as an
-        independent parameter (:math:`\Omega_{de,0} \equiv 1 - \Omega_{tot}`).
+        Whether the Parameter is 'derived', default `False`. Derived parameters
+        behave similarly to normal parameters, but are not sorted by the
+        |Cosmology| signature (probably not there) and are not included in all
+        methods. For reference, see ``Ode0`` in ``FlatFLRWMixin``, which removes
+        :math:`\Omega_{de,0}`` as an independent parameter (:math:`\Omega_{de,0}
+        \equiv 1 - \Omega_{tot}`).
     unit : unit-like or None (optional, keyword-only)
-        The `~astropy.units.Unit` for the Parameter. If None (default) no
-        unit as assumed.
+        The `~astropy.units.Unit` for the Parameter. If None (default) no unit
+        as assumed.
     equivalencies : `~astropy.units.Equivalency` or sequence thereof
         Unit equivalencies for this Parameter.
     fvalidate : callable[[object, object, Any], Any] or str (optional, keyword-only)
@@ -55,7 +61,8 @@ class Parameter:
         # attribute name on container cosmology class.
         # really set in __set_name__, but if Parameter is not init'ed as a
         # descriptor this ensures that the attributes exist.
-        self._attr_name = self._attr_name_private = None
+        self._attr_name = ""
+        self._attr_name_private = ""
 
         self._derived = derived
         self.__doc__ = doc
@@ -80,15 +87,13 @@ class Parameter:
             )
         self._fvalidate = fvalidate
 
-    def __set_name__(self, cosmo_cls, name):
-        # attribute name on container cosmology class
-        self._attr_name = name
-        self._attr_name_private = "_" + name
+        # Display stuff
+        self._format_spec_type = {}  # TODO: make a public attribute
 
     @property
-    def name(self):
+    def name(self) -> str | None:
         """Parameter name."""
-        return self._attr_name
+        return self._attr_name if self._attr_name else None  # empty str -> None
 
     @property
     def unit(self):
@@ -105,8 +110,13 @@ class Parameter:
         """Whether the Parameter is derived; true parameters are not."""
         return self._derived
 
-    # -------------------------------------------
-    # descriptor and property-like methods
+    # ===============================================================
+    # Descriptor methods
+
+    def __set_name__(self, _: type[Cosmology], name: str):
+        # attribute name on container cosmology class
+        self._attr_name: str = name
+        self._attr_name_private: str = "_" + name
 
     def __get__(self, cosmology, cosmo_cls=None):
         # Get from class
@@ -131,8 +141,8 @@ class Parameter:
         # Set the value on the cosmology
         setattr(cosmology, self._attr_name_private, value)
 
-    # -------------------------------------------
-    # validate value
+    # ===============================================================
+    # Validation
 
     @property
     def fvalidate(self):
@@ -215,7 +225,8 @@ class Parameter:
 
         return register
 
-    # -------------------------------------------
+    # ===============================================================
+    # Misc
 
     def _get_init_arguments(self, processed=False):
         """Initialization arguments.
@@ -271,8 +282,13 @@ class Parameter:
         # new descriptor, __set_name__ will be called again, overwriting this.
         cloned._attr_name = self._attr_name
         cloned._attr_name_private = self._attr_name_private
+        # Transfer private data
+        cloned._format_spec_type = self._format_spec_type
 
         return cloned
+
+    # ===============================================================
+    # Dunder Methods
 
     def __eq__(self, other):
         """Check Parameter equality. Only equal to other Parameter objects.

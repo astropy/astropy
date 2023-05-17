@@ -88,6 +88,9 @@ class w0wzCDM(FLRW):
         doc="Derivative of the dark energy equation of state w.r.t. z.",
         fvalidate="float",
     )
+    # Add format_spec type info (private API)
+    w0._format_spec_type = {"latex": r"$$w_{0}$$", "latex_inline": r"$w_{0}$"}
+    wz._format_spec_type = {"latex": r"$$w_{z}$$", "latex_inline": r"$w_{z}$"}
 
     def __init__(
         self,

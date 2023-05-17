@@ -75,6 +75,7 @@ class ParameterTestMixin:
         assert parameter.equivalencies == []
         assert parameter.derived is False
         assert parameter.name is None
+        assert parameter.__doc__ is None
 
         # setting all kwargs
         parameter = Parameter(
@@ -84,10 +85,12 @@ class ParameterTestMixin:
             equivalencies=[u.mass_energy()],
             derived=True,
         )
+        parameter._format_spec_type = {"latex": "P"}
         assert parameter.fvalidate is _validate_to_float
         assert parameter.unit is u.km
         assert parameter.equivalencies == [u.mass_energy()]
         assert parameter.derived is True
+        assert parameter.__doc__ == "DOCSTRING"
 
     def test_Parameter_instance_attributes(self, all_parameter):
         """Test :class:`astropy.cosmology.Parameter` attributes from init."""
@@ -100,6 +103,7 @@ class ParameterTestMixin:
         assert hasattr(all_parameter, "_unit")
         assert hasattr(all_parameter, "_equivalencies")
         assert hasattr(all_parameter, "_derived")
+        assert hasattr(all_parameter, "_format_spec_type")
 
         # __set_name__
         assert hasattr(all_parameter, "_attr_name")
@@ -251,6 +255,7 @@ class TestParameter(ParameterTestMixin):
                 unit=u.m,
                 equivalencies=u.mass_energy(),
             )
+            param._format_spec_type = dict(latex=r"$p_0$")
 
             def __init__(self, param=15):
                 self.param = param
@@ -338,6 +343,13 @@ class TestParameter(ParameterTestMixin):
         super().test_Parameter_derived(cosmo_cls, param)
 
         assert param.derived is False
+
+    def test_Parameter_format_spec_type_example(self, param):
+        """
+        Test :attr:`astropy.cosmology.Parameter._format_spec_type` with a
+        specific example.
+        """
+        assert param._format_spec_type["latex"] == r"$p_0$"
 
     # -------------------------------------------
     # descriptor methods

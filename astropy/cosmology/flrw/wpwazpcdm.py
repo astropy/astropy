@@ -108,6 +108,10 @@ class wpwaCDM(FLRW):
         fvalidate="float",
     )
     zp = Parameter(doc="The pivot redshift, where w(z) = wp.", unit=cu.redshift)
+    # Add format_spec type info (private API)
+    wp._format_spec_type = {"latex": r"$$w_{p}$$", "latex_inline": r"$w_{p}$"}
+    wa._format_spec_type = {"latex": r"$$w_{a}$$", "latex_inline": r"$w_{a}$"}
+    zp._format_spec_type = {"latex": r"$$z_{p}$$", "latex_inline": r"$z_{p}$"}
 
     def __init__(
         self,
