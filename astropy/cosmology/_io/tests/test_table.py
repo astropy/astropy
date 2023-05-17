@@ -204,6 +204,39 @@ class ToFromTableTestMixin(ToFromTestMixinBase):
         with pytest.raises(ValueError, match="more than one"):
             from_format(tbls, index=cosmo.name, format="astropy.table")
 
+    def test_tofrom_table_rename(self, cosmo, to_format, from_format):
+        """Test renaming columns in row."""
+        rename = {"name": "cosmo_name"}
+        table = to_format("astropy.table", rename=rename)
+
+        assert "name" not in table.colnames
+        assert "cosmo_name" in table.colnames
+
+        # Error if just reading
+        with pytest.raises(TypeError, match="there are unused parameters"):
+            from_format(table)
+
+        # Roundtrip
+        inv_rename = {v: k for k, v in rename.items()}
+        got = from_format(table, rename=inv_rename)
+        assert got == cosmo
+
+    def test_from_table_renamed_index_column(self, cosmo, to_format, from_format):
+        """Test reading from a table with a renamed index column."""
+        cosmo1 = cosmo.clone(name="row 0")
+        cosmo2 = cosmo.clone(name="row 2")
+        tbl = vstack(
+            [c.to_format("astropy.table") for c in (cosmo1, cosmo, cosmo2)],
+            metadata_conflicts="silent",
+        )
+        tbl.rename_column("name", "cosmo_name")
+
+        inv_rename = {"cosmo_name": "name"}
+        newcosmo = from_format(
+            tbl, index="row 0", rename=inv_rename, format="astropy.table"
+        )
+        assert newcosmo == cosmo1
+
     @pytest.mark.parametrize("format", [True, False, None, "astropy.table"])
     def test_is_equivalent_to_table(self, cosmo, to_format, format):
         """Test :meth:`astropy.cosmology.Cosmology.is_equivalent`.
