@@ -92,6 +92,23 @@ class ToFromRowTestMixin(ToFromTestMixinBase):
         got = from_format(row)
         assert got == cosmo
 
+    def test_tofrom_row_rename(self, cosmo, to_format, from_format):
+        """Test renaming columns in row."""
+        rename = {"name": "cosmo_name"}
+        row = to_format("astropy.row", rename=rename)
+
+        assert "name" not in row.colnames
+        assert "cosmo_name" in row.colnames
+
+        # Error if just reading
+        with pytest.raises(TypeError, match="there are unused parameters"):
+            from_format(row)
+
+        # Roundtrip
+        inv_rename = {v: k for k, v in rename.items()}
+        got = from_format(row, rename=inv_rename)
+        assert got == cosmo
+
     def test_fromformat_row_subclass_partial_info(self, cosmo):
         """
         Test writing from an instance and reading from that class.
@@ -114,7 +131,7 @@ class ToFromRowTestMixin(ToFromTestMixinBase):
         assert is_equiv is (format is not False)
 
 
-class TestToFromTable(ToFromDirectTestBase, ToFromRowTestMixin):
+class TestToFromRow(ToFromDirectTestBase, ToFromRowTestMixin):
     """
     Directly test ``to/from_row``.
     These are not public API and are discouraged from use, in favor of

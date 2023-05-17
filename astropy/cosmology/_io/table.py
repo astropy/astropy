@@ -11,7 +11,7 @@ from .row import from_row
 from .utils import convert_parameter_to_column
 
 
-def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
+def from_table(table, index=None, *, move_to_meta=False, cosmology=None, rename=None):
     """Instantiate a `~astropy.cosmology.Cosmology` from a |QTable|.
 
     Parameters
@@ -33,14 +33,17 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
         (e.g. for ``Cosmology(meta={'key':10}, key=42)``, the ``Cosmology.meta``
         will be ``{'key': 10}``).
 
-    cosmology : str, `~astropy.cosmology.Cosmology` class, or None (optional, keyword-only)
+    cosmology : str or type or None (optional, keyword-only)
         The cosmology class (or string name thereof) to use when constructing
         the cosmology instance. The class also provides default parameter values,
         filling in any non-mandatory arguments missing in 'table'.
 
+    rename : dict or None (optional, keyword-only)
+        A dictionary mapping columns in 'table' to fields of the `~astropy.cosmology.Cosmology` class.
+
     Returns
     -------
-    `~astropy.cosmology.Cosmology` subclass instance
+    `~astropy.cosmology.Cosmology`
 
     Examples
     --------
@@ -104,13 +107,38 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
         >>> cosmo == Planck15
         True
 
+    Fields in the table can be renamed to match the `~astropy.cosmology.Cosmology`
+    class' signature using the ``rename`` argument. This is useful when the
+    table's column names do not match the class' parameter names.
+
+        >>> renamed_table = Planck18.to_format("astropy.table", rename={"H0": "Hubble"})
+        >>> renamed_table
+        <QTable length=1>
+          name      Hubble      Om0    Tcmb0    Neff      m_nu      Ob0
+                 km / (Mpc s)            K                 eV
+          str8     float64    float64 float64 float64  float64[3] float64
+        -------- ------------ ------- ------- ------- ----------- -------
+        Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
+
+        >>> cosmo = Cosmology.from_format(renamed_table, format="astropy.table",
+        ...                               rename={"Hubble": "H0"})
+        >>> cosmo == Planck18
+        True
+
     For further examples, see :doc:`astropy:cosmology/io`.
     """
     # Get row from table
     # string index uses the indexed column on the table to find the row index.
     if isinstance(index, str):
         if not table.indices:  # no indexing column, find by string match
-            indices = np.where(table["name"] == index)[0]
+            nc = "name"  # default name column
+            if rename is not None:  # from inverted `rename`
+                for key, value in rename.items():
+                    if value == "name":
+                        nc = key
+                        break
+
+            indices = np.where(table[nc] == index)[0]
         else:  # has indexing column
             indices = table.loc_indices[index]  # need to convert to row index (int)
 
@@ -135,22 +163,23 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
     row = table[index]  # index is now the row index (int)
 
     # parse row to cosmo
-    return from_row(row, move_to_meta=move_to_meta, cosmology=cosmology)
+    return from_row(row, move_to_meta=move_to_meta, cosmology=cosmology, rename=rename)
 
 
-def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True):
+def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True, rename=None):
     """Serialize the cosmology into a `~astropy.table.QTable`.
 
     Parameters
     ----------
-    cosmology : `~astropy.cosmology.Cosmology` subclass instance
+    cosmology : `~astropy.cosmology.Cosmology`
+        The cosmology instance to convert to a table.
     *args
         Not used. Needed for compatibility with
         `~astropy.io.registry.UnifiedReadWriteMethod`
     cls : type (optional, keyword-only)
         Astropy :class:`~astropy.table.Table` class or subclass type to return.
         Default is :class:`~astropy.table.QTable`.
-    cosmology_in_meta : bool
+    cosmology_in_meta : bool (optional, keyword-only)
         Whether to put the cosmology class in the Table metadata (if `True`,
         default) or as the first column (if `False`).
 
@@ -205,6 +234,16 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True):
         >>> Planck18.to_format("astropy.table", cls=Table)
         <Table length=1>
         ...
+
+    Fields of the cosmology may be renamed using the ``rename`` argument.
+
+        >>> Planck18.to_format("astropy.table", rename={"H0": "Hubble"})
+        <QTable length=1>
+          name      Hubble      Om0    Tcmb0    Neff      m_nu      Ob0
+                 km / (Mpc s)            K                 eV
+          str8     float64    float64 float64 float64  float64[3] float64
+        -------- ------------ ------- ------- ------- ----------- -------
+        Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
     """
     if not issubclass(cls, Table):
         raise TypeError(f"'cls' must be a (sub)class of Table, not {type(cls)}")
@@ -232,7 +271,15 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True):
         data[k] = col
 
     tbl = cls(data, meta=meta)
-    tbl.add_index("name", unique=True)
+
+    # Renames
+    renames = rename or {}
+    for name in tbl.colnames:
+        tbl.rename_column(name, renames.get(name, name))
+
+    # Add index
+    tbl.add_index(renames.get("name", "name"), unique=True)
+
     return tbl
 
 
