@@ -261,7 +261,7 @@ class TestUnifiedIORegistryBase:
 
     def test_compat_identify_format(self, registry, fmtcls1):
         fmt, cls = fmtcls1
-        args = (None, cls, None, None, (None,), dict())
+        args = (None, cls, None, None, (None,), {})
 
         # with registry specified
         registry.register_identifier(*fmtcls1, empty_identifier)
@@ -360,7 +360,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
 
     def test_identify_read_format(self, registry):
         """Test ``registry.identify_format()``."""
-        args = ("read", EmptyData, None, None, (None,), dict())
+        args = ("read", EmptyData, None, None, (None,), {})
 
         # test there is no format to identify
         formats = registry.identify_format(*args)
