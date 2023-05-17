@@ -9,7 +9,9 @@ from astropy.table import QTable
 from .table import from_table, to_table
 
 
-def read_ecsv(filename, index=None, *, move_to_meta=False, cosmology=None, **kwargs):
+def read_ecsv(
+    filename, index=None, *, move_to_meta=False, cosmology=None, rename=None, **kwargs
+):
     """Read a `~astropy.cosmology.Cosmology` from an ECSV file.
 
     Parameters
@@ -31,10 +33,9 @@ def read_ecsv(filename, index=None, *, move_to_meta=False, cosmology=None, **kwa
         (e.g. for ``Cosmology(meta={'key':10}, key=42)``, the ``Cosmology.meta``
         will be ``{'key': 10}``).
 
-    cosmology : str, `~astropy.cosmology.Cosmology` class, or None (optional, keyword-only)
-        The cosmology class (or string name thereof) to use when constructing
-        the cosmology instance. The class also provides default parameter values,
-        filling in any non-mandatory arguments missing in 'table'.
+    rename : dict or None (optional keyword-only)
+        A dictionary mapping column names to fields of the
+        `~astropy.cosmology.Cosmology`.
 
     **kwargs
         Passed to :attr:`astropy.table.QTable.read`
@@ -49,18 +50,30 @@ def read_ecsv(filename, index=None, *, move_to_meta=False, cosmology=None, **kwa
 
     # build cosmology from table
     return from_table(
-        table, index=index, move_to_meta=move_to_meta, cosmology=cosmology
+        table,
+        index=index,
+        move_to_meta=move_to_meta,
+        cosmology=cosmology,
+        rename=rename,
     )
 
 
 def write_ecsv(
-    cosmology, file, *, overwrite=False, cls=QTable, cosmology_in_meta=True, **kwargs
+    cosmology,
+    file,
+    *,
+    overwrite=False,
+    cls=QTable,
+    cosmology_in_meta=True,
+    rename=None,
+    **kwargs
 ):
     """Serialize the cosmology into a ECSV.
 
     Parameters
     ----------
-    cosmology : `~astropy.cosmology.Cosmology` subclass instance
+    cosmology : `~astropy.cosmology.Cosmology`
+        The cosmology instance to convert to a mapping.
     file : path-like or file-like
         Location to save the serialized cosmology.
 
@@ -69,9 +82,13 @@ def write_ecsv(
     cls : type (optional, keyword-only)
         Astropy :class:`~astropy.table.Table` (sub)class to use when writing.
         Default is :class:`~astropy.table.QTable`.
-    cosmology_in_meta : bool
+    cosmology_in_meta : bool (optional, keyword-only)
         Whether to put the cosmology class in the Table metadata (if `True`,
         default) or as the first column (if `False`).
+    rename : dict or None (optional keyword-only)
+        A dictionary mapping fields of the `~astropy.cosmology.Cosmology` to
+        columns of the table.
+
     **kwargs
         Passed to ``cls.write``
 
@@ -80,7 +97,9 @@ def write_ecsv(
     TypeError
         If kwarg (optional) 'cls' is not a subclass of `astropy.table.Table`
     """
-    table = to_table(cosmology, cls=cls, cosmology_in_meta=cosmology_in_meta)
+    table = to_table(
+        cosmology, cls=cls, cosmology_in_meta=cosmology_in_meta, rename=rename
+    )
 
     kwargs["format"] = "ascii.ecsv"
     table.write(file, overwrite=overwrite, **kwargs)
