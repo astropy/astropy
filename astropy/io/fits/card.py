@@ -1123,14 +1123,14 @@ class Card(_Verify):
             and self._image.find("=") != 8
         ):
             errs.append(
-                dict(
-                    err_text=(
+                {
+                    "err_text": (
                         "Card {!r} is not FITS standard (equal sign not "
                         "at column 8).".format(self.keyword)
                     ),
-                    fix_text=fix_text,
-                    fix=self._fix_value,
-                )
+                    "fix_text": fix_text,
+                    "fix": self._fix_value,
+                }
             )
 
         # verify the key, it is never fixable
@@ -1146,11 +1146,11 @@ class Card(_Verify):
                 if keyword != keyword.upper():
                     # Keyword should be uppercase unless it's a HIERARCH card
                     errs.append(
-                        dict(
-                            err_text=f"Card keyword {keyword!r} is not upper case.",
-                            fix_text=fix_text,
-                            fix=self._fix_keyword,
-                        )
+                        {
+                            "err_text": f"Card keyword {keyword!r} is not upper case.",
+                            "fix_text": fix_text,
+                            "fix": self._fix_keyword,
+                        }
                     )
 
             keyword = self.keyword
@@ -1159,7 +1159,7 @@ class Card(_Verify):
 
             if not self._keywd_FSC_RE.match(keyword):
                 errs.append(
-                    dict(err_text=f"Illegal keyword name {keyword!r}", fixable=False)
+                    {"err_text": f"Illegal keyword name {keyword!r}", "fixable": False}
                 )
 
         # verify the value, it may be fixable
@@ -1169,13 +1169,13 @@ class Card(_Verify):
             # contains only printable ASCII characters
             if not self._ascii_text_re.match(valuecomment):
                 errs.append(
-                    dict(
-                        err_text=(
+                    {
+                        "err_text": (
                             f"Unprintable string {valuecomment!r}; commentary "
                             "cards may only contain printable ASCII characters"
                         ),
-                        fixable=False,
-                    )
+                        "fixable": False,
+                    }
                 )
         else:
             if not self._valuemodified:
@@ -1186,14 +1186,14 @@ class Card(_Verify):
                 # https://github.com/astropy/astropy/issues/5408
                 if m is None:
                     errs.append(
-                        dict(
-                            err_text=(
+                        {
+                            "err_text": (
                                 f"Card {self.keyword!r} is not FITS standard "
                                 f"(invalid value string: {valuecomment!r})."
                             ),
-                            fix_text=fix_text,
-                            fix=self._fix_value,
-                        )
+                            "fix_text": fix_text,
+                            "fix": self._fix_value,
+                        }
                     )
 
         # verify the comment (string), it is never fixable
@@ -1203,13 +1203,13 @@ class Card(_Verify):
             if comment is not None:
                 if not self._ascii_text_re.match(comment):
                     errs.append(
-                        dict(
-                            err_text=(
+                        {
+                            "err_text": (
                                 f"Unprintable string {comment!r}; header comments "
                                 "may only contain printable ASCII characters"
                             ),
-                            fixable=False,
-                        )
+                            "fixable": False,
+                        }
                     )
 
         errs = _ErrList([self.run_option(option, **err) for err in errs])

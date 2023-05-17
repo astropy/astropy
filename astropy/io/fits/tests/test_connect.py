@@ -179,7 +179,7 @@ class TestSingleTable:
         hdu = BinTableHDU(self.data)
         hdu.columns[0].unit = "Angstroms"
         hdu.columns[2].unit = "ergs/(cm.s.Angstroms)"
-        with u.set_enabled_aliases(dict(Angstroms=u.AA, ergs=u.erg)):
+        with u.set_enabled_aliases({"Angstroms": u.AA, "ergs": u.erg}):
             t = table_type.read(hdu)
         assert t["a"].unit == u.AA
         assert t["c"].unit == u.erg / (u.cm * u.s * u.AA)
