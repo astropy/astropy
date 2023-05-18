@@ -1,11 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# THIRD PARTY
 import pytest
 
-# LOCAL
+from astropy.cosmology._io.ecsv import read_ecsv, write_ecsv
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
-from astropy.cosmology.io.ecsv import read_ecsv, write_ecsv
 from astropy.table import QTable, Table, vstack
 
 from .base import ReadWriteDirectTestBase, ReadWriteTestMixinBase

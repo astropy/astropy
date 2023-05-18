@@ -1,10 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# THIRD PARTY
 import pytest
 
 import astropy.units as u
-from astropy.cosmology.io.html import _FORMAT_TABLE, read_html_table, write_html_table
+from astropy.cosmology._io.html import _FORMAT_TABLE, read_html_table, write_html_table
 from astropy.cosmology.parameter import Parameter
 from astropy.table import QTable, Table, vstack
 from astropy.units.decorators import NoneType

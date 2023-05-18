@@ -11,7 +11,7 @@ detailed usage examples and references.
 from . import core, flrw, funcs, parameter, units, utils
 
 # isort: split
-from . import io  # needed before 'realizations'
+from . import _io  # needed before 'realizations'
 
 # isort: split
 from . import realizations
