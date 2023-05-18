@@ -17,12 +17,12 @@ from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 __all__ = []  # nothing is publicly scoped
 
 
-def from_mapping(map, *, move_to_meta=False, cosmology=None):
+def from_mapping(mapping, /, *, move_to_meta=False, cosmology=None):
     """Load `~astropy.cosmology.Cosmology` from mapping object.
 
     Parameters
     ----------
-    map : mapping
+    mapping : Mapping
         Arguments into the class -- like "name" or "meta".
         If 'cosmology' is None, must have field "cosmology" which can be either
         the string name of the cosmology class (e.g. "FlatLambdaCDM") or the
@@ -79,7 +79,7 @@ def from_mapping(map, *, move_to_meta=False, cosmology=None):
         FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                       Tcmb0=0.0 K, Neff=3.046, m_nu=None, Ob0=0.04897)
     """
-    params = dict(map)  # so we are guaranteed to have a poppable map
+    params = dict(mapping)  # so we are guaranteed to have a poppable map
 
     # get cosmology
     # 1st from argument. Allows for override of the cosmology, if on file.
