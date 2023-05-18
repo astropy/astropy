@@ -1794,7 +1794,7 @@ def test_swapaxes_same_val_roundtrip():
     w.wcs.cdelt = [1.0, 1.0, 1.0]
     w.wcs.set()
     axes_order = [3, 2, 1]
-    axes_order0 = list(i - 1 for i in axes_order)
+    axes_order0 = [i - 1 for i in axes_order]
     ws = w.sub(axes_order)
     imcoord = np.array([3, 5, 7])
     imcoords = imcoord[axes_order0]
