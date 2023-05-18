@@ -94,7 +94,7 @@ def simple_table(size=3, cols=None, kinds="ifS", masked=False):
 
     columns = []
     names = [chr(ord("a") + ii) for ii in range(cols)]
-    letters = np.array([c for c in string.ascii_letters])
+    letters = np.array(list(string.ascii_letters))
     for jj, kind in zip(range(cols), cycle(kinds)):
         if kind == "i":
             data = np.arange(1, size + 1, dtype=np.int64) + jj

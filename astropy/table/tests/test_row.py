@@ -209,9 +209,7 @@ class TestRow:
     def test_create_rows_from_list(self, table_types):
         """https://github.com/astropy/astropy/issues/8976"""
         orig_tab = table_types.Table([[1, 2, 3], [4, 5, 6]], names=("a", "b"))
-        new_tab = type(orig_tab)(
-            rows=[row for row in orig_tab], names=orig_tab.dtype.names
-        )
+        new_tab = type(orig_tab)(rows=list(orig_tab), names=orig_tab.dtype.names)
         assert np.all(orig_tab == new_tab)
 
     def test_row_keys_values(self, table_types):

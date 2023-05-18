@@ -62,10 +62,8 @@ class TestQuantityArrayCopy:
         # and that getting a range works as well
         assert np.all(q_flat[0:2] == np.arange(2.0) * u.m / u.s)
         # as well as getting items via iteration
-        q_flat_list = [_q for _q in q.flat]
-        assert np.all(
-            u.Quantity(q_flat_list) == u.Quantity([_a for _a in q.value.flat], q.unit)
-        )
+        q_flat_list = list(q.flat)
+        assert np.all(u.Quantity(q_flat_list) == u.Quantity(list(q.value.flat), q.unit))
         # check that flat works like a view of the real array
         q_flat[8] = -1.0 * u.km / u.s
         assert q_flat[8] == -1.0 * u.km / u.s

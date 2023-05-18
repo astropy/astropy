@@ -176,7 +176,7 @@ class BitFlagNameMeta(type):
             items = dict(items)
 
         return extend_bit_flag_map(
-            cls.__name__ + "_" + "_".join([k for k in items]), cls, **items
+            cls.__name__ + "_" + "_".join(list(items)), cls, **items
         )
 
     def __iadd__(cls, other):

@@ -656,7 +656,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         """
         # Get the Column attributes
         names = ("_name", "_unit", "_format", "description", "meta", "indices")
-        attrs = {name: val for name, val in zip(names, state[-1])}
+        attrs = dict(zip(names, state[-1]))
 
         state = state[:-1]
 
