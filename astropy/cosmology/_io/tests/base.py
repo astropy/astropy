@@ -1,9 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# THIRD PARTY
 import pytest
 
-# LOCAL
 import astropy.units as u
 from astropy.cosmology import Cosmology, Parameter, realizations
 from astropy.cosmology import units as cu
