@@ -2621,7 +2621,7 @@ def test_to_value_with_subfmt_for_every_format(fmt_name, fmt_class):
     to_value(format, subfmt) works.  See #9812, #9361.
     """
     t = Time("2000-01-01")
-    subfmts = list(subfmt[0] for subfmt in fmt_class.subfmts) + [None, "*"]
+    subfmts = [subfmt[0] for subfmt in fmt_class.subfmts] + [None, "*"]
     for subfmt in subfmts:
         t.to_value(fmt_name, subfmt)
 
