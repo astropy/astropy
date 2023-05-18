@@ -93,9 +93,6 @@ ignore = [
     "G001",  # logging-string-format
     "G004",  # logging-f-string
 
-    # isort (I)
-    "I001",  # TODO!
-
     # flake8-import-conventions (ICN)  : use conventional import aliases
     "ICN001",  # import-conventions
 
@@ -288,22 +285,26 @@ unfixable = [
 # When a general exclusion is being fixed, but it affects many subpackages, it
 # is better to fix for subpackages individually. The general exclusion should be
 # copied to these subpackage sections and fixed there.
-"astropy/config" = []
-"astropy/constants" = []
-"astropy/convolution" = []
-"astropy/coordinates" = []
-"astropy/cosmology" = []
-"astropy/io" = []
-"astropy/modeling" = []
-"astropy/nddata" = []
-"astropy/samp" = []
-"astropy/stats" = []
-"astropy/table" = []
-"astropy/tests" = []
-"astropy/time" = []
-"astropy/timeseries" = []
-"astropy/uncertainty" = []
-"astropy/units" = []
-"astropy/utils" = []
-"astropy/visualization" = []
-"astropy/wcs" = []
+"astropy/__init__.py" = []
+"astropy/config/*" = []
+"astropy/constants/*" = []
+"astropy/convolution/*" = ["I001"]
+"astropy/coordinates/*" = ["I001"]
+"astropy/cosmology/*" = []
+"astropy/io/*" = ["I001"]
+"astropy/logger.py" = []
+"astropy/modeling/*" = ["I001"]
+"astropy/nddata/*" = ["I001"]
+"astropy/samp/*" = []
+"astropy/stats/*" = ["I001"]
+"astropy/table/*" = ["I001"]
+"astropy/tests/*" = []
+"astropy/time/*" = ["I001"]
+"astropy/timeseries/*" = ["I001"]
+"astropy/units/*" = ["I001"]
+"astropy/uncertainty/*" = []
+"astropy/utils/*" = []
+"astropy/visualization/*" = ["I001"]
+"astropy/wcs/*" = ["I001"]
+"docs/*" = []
+"examples/coordinates/*" = []

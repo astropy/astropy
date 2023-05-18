@@ -4,7 +4,6 @@ from astropy.cosmology.core import Cosmology
 from astropy.cosmology.parameter import Parameter
 from astropy.table import QTable
 
-
 from .table import to_table
 
 _FORMAT_TABLE = {

@@ -13,12 +13,12 @@ from astropy.cosmology.io.tests import (
     test_ecsv,
     test_html,
     test_json,
+    test_latex,
     test_mapping,
     test_model,
     test_row,
     test_table,
     test_yaml,
-    test_latex,
 )
 from astropy.table import QTable, Row
 from astropy.utils.compat.optional_deps import HAS_BS4
