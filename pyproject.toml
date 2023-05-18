@@ -174,7 +174,7 @@ ignore = [
 [tool.ruff.isort]
     known-third-party = ["erfa", "PyYAML", "packaging", "pytest", "scipy", "matplotlib"]
     known-first-party = ["astropy", "extension_helpers"]
-    force-sort-within-sections = true
+    force-sort-within-sections = false
 
 [tool.ruff.pydocstyle]
 convention = "numpy"
