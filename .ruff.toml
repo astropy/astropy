@@ -31,7 +31,6 @@ ignore = [
     "C406",  # unnecessary-literal-dict
     "C408",  # unnecessary-collection-call
     "C413",  # unnecessary-call-around-sorted
-    "C416",  # unnecessary-comprehension
     "C414",  # unnecessary-double-cast-or-process
     "C417",  # unnecessary-map (over a comprehension)
 

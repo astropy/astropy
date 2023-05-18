@@ -257,9 +257,7 @@ class TestFitting:
             assert_allclose(model_nlin.parameters, model.parameters, atol=0.2)
 
 
-@pytest.mark.parametrize(
-    "model_class", [cls for cls in list(linear1d) + list(linear2d)]
-)
+@pytest.mark.parametrize("model_class", list(list(linear1d) + list(linear2d)))
 def test_polynomial_init_with_constraints(model_class):
     """
     Test that polynomial models can be instantiated with constraints, but no

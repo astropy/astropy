@@ -1644,7 +1644,7 @@ class TestModelBoundingBox:
         inputs = (x, y)
         valid_index, all_out = bounding_box._valid_index(input_shape, inputs)
         assert len(valid_index) == 1
-        assert (valid_index[0] == [idx for idx in range(13)]).all()
+        assert (valid_index[0] == list(range(13))).all()
         assert not all_out and isinstance(all_out, bool)
 
         # Normal array input, some inside and some outside
@@ -1698,7 +1698,7 @@ class TestModelBoundingBox:
         )
         assert (np.array(new_inputs) == np.array(inputs)).all()
         assert len(valid_index) == 1
-        assert (valid_index[0] == [idx for idx in range(13)]).all()
+        assert (valid_index[0] == list(range(13))).all()
         assert not all_out and isinstance(all_out, bool)
 
         # Normal array input, some inside and some outside
