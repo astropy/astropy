@@ -7,18 +7,18 @@ from astropy.table import QTable
 from .table import to_table
 
 _FORMAT_TABLE = {
-    "H0": "$$H_0$$",
-    "Om0": "$$\\Omega_{m,0}$$",
-    "Ode0": "$$\\Omega_{\\Lambda,0}$$",
-    "Tcmb0": "$$T_{0}$$",
-    "Neff": "$$N_{eff}$$",
-    "m_nu": "$$m_{nu}$$",
-    "Ob0": "$$\\Omega_{b,0}$$",
-    "w0": "$$w_{0}$$",
-    "wa": "$$w_{a}$$",
-    "wz": "$$w_{z}$$",
-    "wp": "$$w_{p}$$",
-    "zp": "$$z_{p}$$",
+    "H0": "$H_0$",
+    "Om0": r"$\Omega_{m,0}$",
+    "Ode0": r"$\Omega_{\Lambda,0}$",
+    "Tcmb0": "$T_{0}$",
+    "Neff": "$N_{eff}$",
+    "m_nu": "$m_{nu}$",
+    "Ob0": r"$\Omega_{b,0}$",
+    "w0": "$w_{0}$",
+    "wa": "$w_{a}$",
+    "wz": "$w_{z}$",
+    "wp": "$w_{p}$",
+    "zp": "$z_{p}$",
 }
 
 
