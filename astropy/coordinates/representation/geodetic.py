@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import numpy as np
 import erfa
 
 from astropy import units as u
@@ -45,6 +46,7 @@ class BaseGeodeticRepresentation(BaseRepresentation):
     to quantities holding correct values (with units of length and dimensionless,
     respectively), or alternatively an ``_ellipsoid`` attribute to the relevant ERFA
     index (as passed in to `erfa.eform`).
+    Longitudes are east positive and span from 0 to 360 degrees by default.
     """
 
     attr_classes = {"lon": Longitude, "lat": Latitude, "height": u.Quantity}
@@ -94,10 +96,93 @@ class BaseGeodeticRepresentation(BaseRepresentation):
         Converts 3D rectangular cartesian coordinates (assumed geocentric) to
         geodetic coordinates.
         """
+        # Compute geodetic/planetodetic angles
         lon, lat, height = erfa.gc2gde(
             cls._equatorial_radius, cls._flattening, cart.get_xyz(xyz_axis=-1)
         )
-        return cls(lon, lat, height, copy=False)
+        return cls(
+            lon,
+            lat,
+            height,
+            copy=False,
+        )
+
+
+@format_doc(geodetic_base_doc)
+class BaseBodycentricRepresentation(BaseRepresentation):
+    """Representation of points in bodycentric 3D coordinates.
+
+    Subclasses need to set attributes ``_equatorial_radius`` and ``_flattening``
+    to quantities holding correct values (with units of length and dimensionless,
+    respectively).
+    Longitudes are east positive and span from 0 to 360 degrees by default.
+    """
+
+    attr_classes = {"lon": Longitude, "lat": Latitude, "height": u.Quantity}
+
+    def __init_subclass__(cls, **kwargs):
+        if (
+            "_equatorial_radius" not in cls.__dict__
+            or "_flattening" not in cls.__dict__
+        ):
+            raise AttributeError(
+                f"{cls.__name__} requires '_equatorial_radius' and '_flattening'."
+            )
+        super().__init_subclass__(**kwargs)
+
+    def __init__(self, lon, lat=None, height=None, copy=True):
+        if height is None and not isinstance(lon, self.__class__):
+            height = 0 << u.m
+
+        super().__init__(lon, lat, height, copy=copy)
+        if not self.height.unit.is_equivalent(u.m):
+            raise u.UnitTypeError(
+                f"{self.__class__.__name__} requires height with units of length."
+            )
+
+    def to_cartesian(self):
+        """
+        Converts bodycentric coordinates to 3D rectangular (geocentric)
+        cartesian coordinates.
+        """
+        coslat = np.cos(self.lat)
+        sinlat = np.sin(self.lat)
+        coslon = np.cos(self.lon)
+        sinlon = np.sin(self.lon)
+        x_spheroid = self._equatorial_radius * coslat * coslon
+        y_spheroid = self._equatorial_radius * coslat * sinlon
+        z_spheroid = self._equatorial_radius * (1 - self._flattening) * sinlat
+        r = (
+            self._equatorial_radius
+            * np.sqrt(coslat**2 + ((1 - self._flattening) * sinlat) ** 2)
+            + self.height
+        )
+        x = r * coslon * coslat
+        y = r * sinlon * coslat
+        z = r * sinlat
+        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+
+    @classmethod
+    def from_cartesian(cls, cart):
+        """
+        Converts 3D rectangular cartesian coordinates (assumed geocentric) to
+        bodycentric coordinates.
+        """
+        # Compute bodycentric latitude
+        p = np.hypot(cart.x, cart.y)
+        d = np.hypot(p, cart.z)
+        lat = np.arctan2(cart.z, p)
+        p_spheroid = cls._equatorial_radius * np.cos(lat)
+        z_spheroid = (cls._equatorial_radius * (1 - cls._flattening)) * np.sin(lat)
+        r_spheroid = np.hypot(p_spheroid, z_spheroid)
+        height = d - r_spheroid
+        lon = np.arctan2(cart.y, cart.x)
+        return cls(
+            lon,
+            lat,
+            height,
+            copy=False,
+        )
 
 
 @format_doc(geodetic_base_doc)
