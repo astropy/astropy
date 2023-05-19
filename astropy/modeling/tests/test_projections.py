@@ -4,6 +4,7 @@
 # pylint: disable=invalid-name, no-member
 import os
 import unittest.mock as mk
+from pickle import loads, dumps
 
 import numpy as np
 import pytest
@@ -1327,3 +1328,32 @@ def test_Sky2Pix_HEALPixPolar_inverse():
     a, b = inverse(*model(x, y))
     assert_allclose(a, x, atol=1e-12)
     assert_allclose(b, y, atol=1e-12)
+
+
+@pytest.mark.parametrize(("code",), pars)
+def test_pickle(code):
+
+    # Check that pickling/unpickling works for projection models
+
+    model = getattr(projections, "Sky2Pix_" + code)
+    m = model()
+    assert_allclose(m(45, 45), loads(dumps(m))(45, 45))
+
+    model = getattr(projections, "Pix2Sky_" + code)
+    m = model()
+    assert_allclose(m(45, 45), loads(dumps(m))(45, 45))
+
+
+def test_pickle_with_parameters():
+
+    # Check a projection model with custom parameters
+
+    m = projections.Pix2Sky_CylindricalPerspective(mu=2, lam=30)
+    assert m.mu == 2
+    assert m.lam == 30
+    m_clone = loads(dumps(m))
+    assert m.mu == 2
+    assert m.lam == 30
+    assert m_clone.mu == 2
+    assert m_clone.lam == 30
+    assert_allclose(m(45, 45), m_clone(45, 45))

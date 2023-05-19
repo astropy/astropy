@@ -158,6 +158,20 @@ class Projection(Model):
             self._prj.pv = None, *pv
             self._prj.set()
 
+    # Note that the Prjprm object can't be pickled, but we don't actually
+    # need to pickle it as it is recreated during __init__ and can be
+    # updated with update_prj.
+
+    def __getstate__(self):
+        state = super().__getstate__()
+        if '_prj' in state:
+            _ = state.pop('_prj')
+        return state
+
+    def __setstate__(self, state):
+        self.__init__()
+        self._update_prj()
+
 
 class Pix2SkyProjection(Projection):
     """Base class for all Pix2Sky projections."""
