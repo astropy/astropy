@@ -8,6 +8,7 @@ from astropy.coordinates.representation import (
     CartesianRepresentation,
     REPRESENTATION_CLASSES,
     BaseGeodeticRepresentation,
+    BaseBodycentricRepresentation,
     GRS80GeodeticRepresentation,
     WGS72GeodeticRepresentation,
     WGS84GeodeticRepresentation,
@@ -29,8 +30,46 @@ class CustomGeodetic(BaseGeodeticRepresentation):
     _equatorial_radius = 4000000.0 * u.m
 
 
+class CustomSphericGeodetic(BaseGeodeticRepresentation):
+    _flattening = 0.0
+    _equatorial_radius = 4000000.0 * u.m
+
+
+class CustomSphericBodycentric(BaseBodycentricRepresentation):
+    _flattening = 0.0
+    _equatorial_radius = 4000000.0 * u.m
+
+
+class IAUMARS2000GeodeticRepresentation(BaseGeodeticRepresentation):
+    _equatorial_radius = 3396190.0 * u.m
+    _flattening = 0.5886007555512007 * u.percent
+
+
+class IAUMARS2000BodycentricRepresentation(BaseBodycentricRepresentation):
+    _equatorial_radius = 3396190.0 * u.m
+    _flattening = 0.5886007555512007 * u.percent
+
+
+def test_geodetic_bodycentric_equivalence_spherical_bodies():
+    initial_cartesian = CartesianRepresentation(
+        x=[1, 3000.0] * u.km, y=[7000.0, 4.0] * u.km, z=[5.0, 6000.0] * u.km
+    )
+
+    gd_transformed = CustomSphericGeodetic.from_representation(initial_cartesian)
+    bc_transformed = CustomSphericBodycentric.from_representation(initial_cartesian)
+    assert_quantity_allclose(gd_transformed.lon, bc_transformed.lon)
+    assert_quantity_allclose(gd_transformed.lat, bc_transformed.lat)
+    assert_quantity_allclose(gd_transformed.height, bc_transformed.height)
+
+
 @pytest.mark.parametrize(
-    "geodeticrepresentation", [CustomGeodetic, WGS84GeodeticRepresentation]
+    "geodeticrepresentation",
+    [
+        CustomGeodetic,
+        WGS84GeodeticRepresentation,
+        IAUMARS2000GeodeticRepresentation,
+        IAUMARS2000BodycentricRepresentation,
+    ],
 )
 def test_cartesian_geodetic_roundtrip(geodeticrepresentation):
     # Test array-valued input in the process.
@@ -48,7 +87,13 @@ def test_cartesian_geodetic_roundtrip(geodeticrepresentation):
 
 
 @pytest.mark.parametrize(
-    "geodeticrepresentation", [CustomGeodetic, WGS84GeodeticRepresentation]
+    "geodeticrepresentation",
+    [
+        CustomGeodetic,
+        WGS84GeodeticRepresentation,
+        IAUMARS2000GeodeticRepresentation,
+        IAUMARS2000BodycentricRepresentation,
+    ],
 )
 def test_geodetic_cartesian_roundtrip(geodeticrepresentation):
     initial_geodetic = geodeticrepresentation(
@@ -122,41 +167,69 @@ def test_geodetic_to_geocentric():
     vvd(xyz[2], -3040908.6861467111, 1e-7, "eraGd2gc", "2/3", status)
 
 
-def test_default_height_is_zero():
-    gd = WGS84GeodeticRepresentation(10 * u.deg, 20 * u.deg)
+@pytest.mark.parametrize(
+    "representation",
+    [
+        WGS84GeodeticRepresentation,
+        IAUMARS2000BodycentricRepresentation,
+    ],
+)
+def test_default_height_is_zero(representation):
+    gd = representation(10 * u.deg, 20 * u.deg)
     assert gd.lon == 10 * u.deg
     assert gd.lat == 20 * u.deg
     assert gd.height == 0 * u.m
 
 
-def test_non_angle_error():
-    with pytest.raises(u.UnitTypeError):
-        WGS84GeodeticRepresentation(20 * u.m, 20 * u.deg, 20 * u.m)
+@pytest.mark.parametrize(
+    "representation",
+    [
+        WGS84GeodeticRepresentation,
+        IAUMARS2000BodycentricRepresentation,
+    ],
+)
+def test_non_angle_error(representation):
+    with pytest.raises(u.UnitTypeError, match="require units equivalent to 'rad'"):
+        representation(20 * u.m, 20 * u.deg, 20 * u.m)
 
 
-def test_non_length_error():
+@pytest.mark.parametrize(
+    "representation",
+    [
+        WGS84GeodeticRepresentation,
+        IAUMARS2000BodycentricRepresentation,
+    ],
+)
+def test_non_length_error(representation):
     with pytest.raises(u.UnitTypeError, match="units of length"):
-        WGS84GeodeticRepresentation(10 * u.deg, 20 * u.deg, 30)
+        representation(10 * u.deg, 20 * u.deg, 30)
 
 
-def test_geodetic_subclass_bad_ellipsoid():
+def test_subclass_bad_ellipsoid():
     # Test incomplete initialization.
 
     msg = "module 'erfa' has no attribute 'foo'"
     with pytest.raises(AttributeError, match=msg):
 
-        class InvalidCustomGeodeticEllipsoid(BaseGeodeticRepresentation):
+        class InvalidCustomEllipsoid(BaseGeodeticRepresentation):
             _ellipsoid = "foo"
 
     assert "foo" not in ELLIPSOIDS
-    assert "customgeodeticellipsoiderror" not in REPRESENTATION_CLASSES
+    assert "invalidcustomellipsoid" not in REPRESENTATION_CLASSES
 
 
-def test_geodetic_subclass_missing_equatorial_radius():
-    msg = "MissingCustomGeodeticAttribute requires '_ellipsoid' or '_equatorial_radius' and '_flattening'."
+@pytest.mark.parametrize(
+    "baserepresentation",
+    [
+        BaseGeodeticRepresentation,
+        BaseBodycentricRepresentation,
+    ],
+)
+def test_geodetic_subclass_missing_equatorial_radius(baserepresentation):
+    msg = "'_equatorial_radius' and '_flattening'."
     with pytest.raises(AttributeError, match=msg):
 
-        class MissingCustomGeodeticAttribute(BaseGeodeticRepresentation):
+        class MissingCustomAttribute(baserepresentation):
             _flattening = 0.075 * u.dimensionless_unscaled
 
-    assert "customgeodeticerror" not in REPRESENTATION_CLASSES
+    assert "missingcustomattribute" not in REPRESENTATION_CLASSES

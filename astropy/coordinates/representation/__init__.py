@@ -8,6 +8,7 @@ from .cartesian import CartesianRepresentation, CartesianDifferential
 from .cylindrical import CylindricalRepresentation, CylindricalDifferential
 from .geodetic import (
     BaseGeodeticRepresentation,
+    BaseBodycentricRepresentation,
     WGS84GeodeticRepresentation,
     WGS72GeodeticRepresentation,
     GRS80GeodeticRepresentation,
@@ -56,6 +57,7 @@ __all__ = [
     "CylindricalDifferential",
     "PhysicsSphericalDifferential",
     "BaseGeodeticRepresentation",
+    "BaseBodycentricRepresentation",
     "WGS84GeodeticRepresentation",
     "WGS72GeodeticRepresentation",
     "GRS80GeodeticRepresentation",
