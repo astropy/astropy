@@ -160,17 +160,14 @@ class Projection(Model):
 
     # Note that the Prjprm object can't be pickled, but we don't actually
     # need to pickle it as it is recreated during __init__ and can be
-    # updated with update_prj.
+    # updated with update_prj. So instead we represent the state with a
+    # simple dictionary of parameter values.
 
     def __getstate__(self):
-        state = super().__getstate__()
-        if '_prj' in state:
-            _ = state.pop('_prj')
-        return state
+        return {p: getattr(self, p).value for p in self.param_names}
 
     def __setstate__(self, state):
-        self.__init__()
-        self._update_prj()
+        self.__init__(**state)
 
 
 class Pix2SkyProjection(Projection):

@@ -1332,7 +1332,6 @@ def test_Sky2Pix_HEALPixPolar_inverse():
 
 @pytest.mark.parametrize(("code",), pars)
 def test_pickle(code):
-
     # Check that pickling/unpickling works for projection models
 
     model = getattr(projections, "Sky2Pix_" + code)
@@ -1345,7 +1344,6 @@ def test_pickle(code):
 
 
 def test_pickle_with_parameters():
-
     # Check a projection model with custom parameters
 
     m = projections.Pix2Sky_CylindricalPerspective(mu=2, lam=30)
