@@ -1,2 +1,0 @@
-Added a method ``get_infos_by_name`` to make it easier to implement
-DALI-compliant protocols
