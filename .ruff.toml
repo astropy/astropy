@@ -27,7 +27,6 @@ ignore = [
     "BLE001",  # blind-except
 
     # flake8-comprehensions (C4)
-    "C400",  # unnecessary-generator-list
     "C406",  # unnecessary-literal-dict
     "C408",  # unnecessary-collection-call
     "C413",  # unnecessary-call-around-sorted
