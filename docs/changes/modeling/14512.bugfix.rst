@@ -1,2 +1,0 @@
-Bugfix for using ``getter/setter`` in properties to adjust the internal (computational)
-value of a property vs its external proxy value when the values involve units.

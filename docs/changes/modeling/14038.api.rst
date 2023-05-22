@@ -1,2 +1,0 @@
-Deprecated ``astropy.modeling.utils.comb()`` function in favor of ``comb()``
-from ``math`` standard library.
