@@ -1,2 +1,0 @@
-``Card`` now uses the default Python representation for floating point
-values.

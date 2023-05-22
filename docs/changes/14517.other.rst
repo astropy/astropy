@@ -1,1 +1,0 @@
-``astropy`` no longer publishes wheels for i686 architecture.

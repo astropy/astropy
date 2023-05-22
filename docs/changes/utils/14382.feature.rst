@@ -1,3 +1,0 @@
-Ensure we can read the newer ``IERS_B`` files produced by the International
-Earth Rotation and Reference Systems Service, and point
-``astropy.utils.iers.IERS_B_URL`` to the new location.

@@ -1,3 +1,0 @@
-Deprecate the ``humlicek2`` method for `~astropy.modeling.functional_models.Voigt1D` in favor
-of using the ``wofz`` method using the `scipy.special.wofz` implementation of the
-Fadeeva function whenever `scipy` is installed.

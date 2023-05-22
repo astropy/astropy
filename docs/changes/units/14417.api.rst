@@ -1,1 +1,0 @@
-The unused ``units.format.Unscaled`` format class has been deprecated.
