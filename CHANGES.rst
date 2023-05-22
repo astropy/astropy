@@ -1,7 +1,6 @@
 Version 5.3 (2023-05-22)
 ========================
 
-
 New Features
 ------------
 
@@ -372,25 +371,24 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
+- The minimum supported version of Python is now 3.9, changing from 3.8. [#14286]
+
+- The minimum supported version of Numpy is now 1.21. [#14349]
+
+- The minimum supported version of matplotlib is now 3.3. [#14286, #14321]
+
+- ``astropy`` no longer publishes wheels for i686 architecture. [#14517]
+
 - Added a pre-commit configuration for codespell. [#13985]
 
 - Removed a large fraction of the bundled CFITSIO code and internally refactored
   FITS compression-related code, which has resulted in a speedup when compiling
   astropy from source (40% faster in some cases). [#14252]
 
-- The minimum supported version of Python is now 3.9, changing from 3.8.
-  The minimum supported version of matplotlib is now 3.3, changing from 3.2. [#14286]
-
 - The CFITSIO library is no longer bundled in full with astropy and
   the option to build against an external installation of CFITSIO
   has now been removed, so the ASTROPY_USE_SYSTEM_CFITSIO environment
   variable will be ignored during building. [#14311]
-
-- Dropped support for matplotlib 3.1. Minimum version is now 3.2. [#14321]
-
-- Drop support for NumPy 1.20 per APE 18. [#14349]
-
-- ``astropy`` no longer publishes wheels for i686 architecture. [#14517]
 
 - Updated CDS URL for Sesame look-up as the old URL is deprecated. [#14681]
 
