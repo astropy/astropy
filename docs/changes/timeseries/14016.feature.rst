@@ -1,4 +1,0 @@
-Adds the ``astropy.timeseries.LombScargleMultiband`` class, which is an
-extension of the ``astropy.timeseries.LombScargle`` class. It enables the
-generation of periodograms for datasets with measurements taken in more than
-one photometric band.

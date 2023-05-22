@@ -1,2 +1,0 @@
-Add ``unit_parse_strict`` parameter to the Kepler reader to control the warnings
-emitted when reading files.

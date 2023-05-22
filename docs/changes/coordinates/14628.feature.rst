@@ -1,3 +1,0 @@
-Add an optional parameter ``location`` to ``EarthLocation.get_itrs()``
-to allow the generation of topocentric ITRS coordinates with respect
-to a specific location.
