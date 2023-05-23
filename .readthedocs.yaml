@@ -4,6 +4,9 @@ build:
   os: "ubuntu-20.04"
   tools:
     python: "mambaforge-4.10"
+  jobs:
+    pre_install:
+      - git update-index --assume-unchanged docs/conf.py docs/rtd_environment.yaml
 
 conda:
   environment: docs/rtd_environment.yaml
