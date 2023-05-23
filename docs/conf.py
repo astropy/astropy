@@ -318,9 +318,12 @@ for line in open("nitpick-exceptions"):
 try:
     import warnings
 
-    import sphinx_gallery
+    # import sphinx_gallery
 
-    extensions += ["sphinx_gallery.gen_gallery"]
+    # extensions += ["sphinx_gallery.gen_gallery"]
+
+    # TMP: Disable sphinx-gallery because I don't want to deal with remote failures locally.
+    sphinx_gallery = None
 
     sphinx_gallery_conf = {
         "backreferences_dir": "generated/modules",  # path to store the module using example template
