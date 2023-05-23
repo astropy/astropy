@@ -1448,7 +1448,7 @@ def kuiper_two(data1, data2):
     data2 = np.sort(data2)
     (n1,) = data1.shape
     (n2,) = data2.shape
-    common_type = np.find_common_type([], [data1.dtype, data2.dtype])
+    common_type = np.result_type(data1.dtype, data2.dtype)
     if not (
         np.issubdtype(common_type, np.number)
         and not np.issubdtype(common_type, np.complexfloating)
