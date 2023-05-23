@@ -240,6 +240,11 @@ modindex_common_prefix = ["astropy."]
 
 del html_sidebars, html_theme_path
 
+# FIXME: Revisit sidebar from first page later.
+#html_sidebars = {
+#    "index": ["global_toc"]
+#}
+
 # html_static_path = ["_static"]
 html_logo = "_static/astropy_banner_96.png"
 html_theme = "pydata_sphinx_theme"
@@ -252,7 +257,7 @@ html_theme_options = {
     "github_url": "https://github.com/astropy/astropy",
     "icon_links": [],
     "navigation_depth": 2,
-    "show_nav_level": 2,
+    "show_nav_level": 1,  # FIXME: Need separate RST pages with toctree within.
     "use_edit_page_button": True,
 }
 
