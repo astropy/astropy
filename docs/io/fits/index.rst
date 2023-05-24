@@ -660,11 +660,11 @@ file consisting of only the primary HDU with image data.
 First, we create a ``numpy`` object for the data part::
 
     >>> import numpy as np
-    >>> n = np.arange(100.0) # a simple sequence of floats from 0.0 to 99.0
+    >>> data = np.arange(100.0) # a simple sequence of floats from 0.0 to 99.0
 
 Next, we create a :class:`PrimaryHDU` object to encapsulate the data::
 
-    >>> hdu = fits.PrimaryHDU(n)
+    >>> hdu = fits.PrimaryHDU(data=data)
 
 We then create an :class:`HDUList` to contain the newly created primary HDU, and write to
 a new file::
@@ -760,27 +760,20 @@ additional data or header keywords in the primary HDU you may still create a
 :class:`PrimaryHDU` object and build up the FITS file manually using an
 :class:`HDUList`, as described in the next section.
 
-Creating a File with Multiple Extensions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Creating a Multi-Extension FITS (MEF) file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In the previous examples we created files with a single meaningful extension (a
 :class:`PrimaryHDU` or :class:`BinTableHDU`). To create a file with multiple
 extensions we need to create extension HDUs and append them to an :class:`HDUList`.
 
-First, we create some data for Image extensions::
+First, we create some data for Image extensions and we place the data into
+separate :class:`PrimaryHDU` and :class:`ImageHDU` objects::
 
     >>> import numpy as np
-    >>> n = np.ones((3, 3))
-    >>> n2 = np.ones((100, 100))
-    >>> n3 = np.ones((10, 10, 10))
-
-Note that the data shapes of the different extensions do not need to be the same.
-Next, place the data into separate :class:`PrimaryHDU` and :class:`ImageHDU`
-objects::
-
-    >>> primary_hdu = fits.PrimaryHDU(n)
-    >>> image_hdu = fits.ImageHDU(n2)
-    >>> image_hdu2 = fits.ImageHDU(n3)
+    >>> primary_hdu = fits.PrimaryHDU(data=np.ones((3, 3)))
+    >>> image_hdu = fits.ImageHDU(data=np.ones((100, 100)), name="MYIMAGE")
+    >>> image_hdu2 = fits.ImageHDU(data=np.ones((10, 10, 10)), name="MYCUBE")
 
 A multi-extension FITS file is not constrained to be only imaging or table data, we
 can mix them. To show this we'll use the example from the previous section to make a
@@ -831,10 +824,6 @@ and should only create and modify observation-specific informational keywords.
 We then create an HDUList containing both the primary HDU and any other HDUs want::
 
     >>> hdul = fits.HDUList([empty_primary, image_hdu2, table_hdu])
-
-.. topic:: Examples:
-
-    See also :ref:`sphx_glr_generated_examples_io_create-mef.py`.
 
 .. _io-fits-intro-convenience-functions:
 
