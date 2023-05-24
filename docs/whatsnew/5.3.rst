@@ -252,8 +252,8 @@ may refresh their locally cached site registry by passing the new
 
 .. _whatsnew-5.3-modeling-measurement-uncertainties:
 
-Support for collapse operations on arbitrary axes in ``nddata``
-===============================================================
+Propagation of measurement uncertainties into parameter covariances
+===================================================================
 
 Propagate measurement uncertainties into the best-fit parameter covariances
 via the ``weights`` keyword argument in non-linear fitters. Decreasing
