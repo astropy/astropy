@@ -5,28 +5,19 @@
 
 :tocdepth: 3
 
-.. the "raw" directive below is used to hide the title in favor of just the logo being visible
-.. raw:: html
-
-    <style media="screen" type="text/css">
-      h1 { display:none; }
-    </style>
-
 #####################
 Astropy Documentation
 #####################
 
-.. |logo_svg| image:: _static/astropy_banner.svg
+**Version**: |version|  **Date**: |today|
 
-.. |logo_png| image:: _static/astropy_banner_96.png
-
-.. raw:: html
-
-   <img src="_static/astropy_banner.svg" onerror="this.src='_static/astropy_banner_96.png'; this.onerror=null;" width="485"/>
-
-.. only:: latex
-
-    .. image:: _static/astropy_logo.pdf
+**Useful links**:
+:ref:`Installation <installing-astropy>` |
+`Source Repository <https://github.com/astropy/astropy>`__ |
+`Issues & Ideas <https://github.com/astropy/astropy/issues>`__ |
+`Get Help <http://www.astropy.org/help.html>`__ |
+`Contribute <http://www.astropy.org/contribute.html>`__ |
+`About <http://www.astropy.org/about.html>`__
 
 The ``astropy`` package contains key functionality and common tools needed for
 performing astronomy and astrophysics with Python.  It is at the core of the
@@ -41,121 +32,13 @@ processing, and data analysis.
    software or `affiliated packages`_ that depend on the astropy
    core package.
 
-.. _getting-started:
-
-***************
-Getting Started
-***************
-
-.. toctree::
-   :maxdepth: 1
-
-   install
-   whatsnew/6.0
-   importing_astropy
-   Example Gallery <generated/examples/index>
-   Tutorials <https://learn.astropy.org/>
-   Get Help <http://www.astropy.org/help.html>
-   Contribute and Report Problems <http://www.astropy.org/contribute.html>
-   About the Astropy Project <http://www.astropy.org/about.html>
-
-.. _user-docs:
-
-******************
-User Documentation
-******************
-
-Data structures and transformations
------------------------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   constants/index
-   units/index
-   nddata/index
-   table/index
-   time/index
-   timeseries/index
-   coordinates/index
-   wcs/index
-   modeling/index
-   uncertainty/index
-
-Files, I/O, and Communication
------------------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   io/unified
-   io/fits/index
-   io/ascii/index
-   io/votable/index
-   io/misc
-   samp/index
-
-Computations and utilities
---------------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   cosmology/index
-   convolution/index
-   utils/iers
-   visualization/index
-   stats/index
-
-Nuts and bolts
---------------
-
-.. toctree::
-   :maxdepth: 1
-
-   config/index
-   io/registry
-   logging
-   warnings
-   utils/index
-   glossary
-
-***********
-Development
-***********
-
 .. toctree::
    :maxdepth: 2
 
+   index_getting_started
+   index_user_docs
    development/index
-
-.. toctree::
-   :maxdepth: 1
-
-   changelog
-
-.. _project-details:
-
-***************
-Project details
-***************
-
-.. toctree::
-   :maxdepth: 1
-
-   whatsnew/index
-   lts_policy
-   known_issues
-   credits
-   license
-
-*****
-Index
-*****
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   index_project_details
 
 .. _feedback@astropy.org: mailto:feedback@astropy.org
 .. _affiliated packages: https://www.astropy.org/affiliated/
