@@ -370,7 +370,7 @@ class EcsvOutputter(core.TableOutputter):
                     "column value is not valid JSON"
                 )
             except Exception as exc:
-                raise ValueError(f"column {col.name!r} failed to convert: {exc}")
+                raise ValueError(f"column {col.name!r} failed to convert.") from exc
 
 
 class EcsvData(basic.BasicData):
@@ -436,7 +436,7 @@ class EcsvData(basic.BasicData):
                 col.str_vals = [format_col_item(idx) for idx in range(len(col))]
             except TypeError as exc:
                 raise TypeError(
-                    f"could not convert column {col.info.name!r} to string: {exc}"
+                    f"could not convert column {col.info.name!r} to string."
                 ) from exc
 
             # Replace every masked value in a 1-d column with an empty string.

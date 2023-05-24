@@ -879,8 +879,8 @@ class FITS_rec(np.recarray):
             indx = self.names.index(column.name)
             raise ValueError(
                 "{}; the header may be missing the necessary TNULL{} "
-                "keyword or the table contains invalid data".format(exc, indx + 1)
-            )
+                "keyword or the table contains invalid data".format(indx + 1)
+            )from exc
 
         return dummy
 

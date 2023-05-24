@@ -827,7 +827,7 @@ def _free_space_check(hdulist, dirname=None):
         for hdu in hdulist:
             hdu._close()
 
-        raise OSError(error_message + str(exc))
+        raise OSError(error_message) from exc
 
 
 def _extract_number(value, default):
