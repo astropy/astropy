@@ -120,57 +120,19 @@ Nuts and bolts
    utils/index
    glossary
 
-.. _developer-docs:
-
-***********************
-Developer Documentation
-***********************
-
-The developer documentation contains instructions for how to contribute to
-Astropy or affiliated packages, install and test the development version,
-as well as coding, documentation, and testing guidelines.
-
-{% if is_development %}
-
-For the guiding vision of this process and the project
-as a whole, see :doc:`development/vision`.
+***********
+Development
+***********
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   development/workflow/development_workflow
-   development/workflow/virtual_pythons
-   development/workflow/get_devel_version
-   development/when_to_rebase
-   development/codeguide
-   development/docguide
-   development/style-guide
-   development/testguide
-   testhelpers
-   development/scripts
-   development/building
-   development/ccython
-   development/releasing
-   development/workflow/maintainer_workflow
-   development/astropy-package-template
-   changelog
-
-There are some additional tools, mostly of use for maintainers, in the
-`astropy/astropy-tools repository
-<https://github.com/astropy/astropy-tools>`__.
-
-{%else%}
-
-To read the developer documentation, you will need to go to the :ref:`latest
-developer version of the documentation
-<astropy-dev:developer-docs>`.
+   development/index
 
 .. toctree::
    :maxdepth: 1
 
    changelog
-
-{%endif%}
 
 .. _project-details:
 

@@ -340,7 +340,7 @@ def rstjinja(app, docname, source):
     # Make sure we're outputting HTML
     if app.builder.format != "html":
         return
-    files_to_render = ["index", "install"]
+    files_to_render = ["index", "install", "development/index"]
     if docname in files_to_render:
         print(f"Jinja rendering {docname}")
         rendered = app.builder.templates.render_string(
