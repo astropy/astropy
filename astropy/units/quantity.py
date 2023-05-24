@@ -716,7 +716,10 @@ class Quantity(np.ndarray):
         if isinstance(result, (tuple, list)):
             if out is None:
                 out = (None,) * len(result)
-            return result.__class__(
+            # Some np.linalg functions return namedtuple, which is handy to access
+            # elements by name, but cannot be directly initialized with an iterator.
+            result_cls = getattr(result, "_make", result.__class__)
+            return result_cls(
                 self._result_as_quantity(result_, unit_, out_)
                 for (result_, unit_, out_) in zip(result, unit, out)
             )
