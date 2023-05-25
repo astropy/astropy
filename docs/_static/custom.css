@@ -1,0 +1,4 @@
+.sidebar-primary-item > ul > li.toctree-l1 {
+    display: inline;
+    font-size: larger;
+}
