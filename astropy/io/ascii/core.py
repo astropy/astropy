@@ -1091,7 +1091,7 @@ class BaseOutputter:
             raise ValueError(
                 "Error: invalid format for converters, see "
                 f"documentation\n{converters}"
-            ) from err 
+            ) from err
         return converters_out
 
     def _convert_vals(self, cols):
