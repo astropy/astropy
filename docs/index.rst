@@ -5,15 +5,12 @@
 
 :tocdepth: 3
 
-#####################
-Astropy Documentation
-#####################
-
-**Version**: |version|  **Date**: |today|
+#################################################
+astropy: A Community Python Library for Astronomy
+#################################################
 
 **Useful links**:
 :ref:`Installation <installing-astropy>` |
-`Source Repository <https://github.com/astropy/astropy>`__ |
 `Issues & Ideas <https://github.com/astropy/astropy/issues>`__ |
 `Get Help <http://www.astropy.org/help.html>`__ |
 `Contribute <http://www.astropy.org/contribute.html>`__ |

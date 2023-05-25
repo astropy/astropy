@@ -5,7 +5,7 @@ Installation
 .. _installing-astropy:
 
 Installing ``astropy``
-======================
+**********************
 
 If you are new to Python and/or do not have familiarity with `Python virtual
 environments <https://docs.python.org/3/tutorial/venv.html>`_, then we recommend
@@ -15,7 +15,7 @@ Mac, Windows) and installs a full-featured scientific Python in a user directory
 without requiring root permissions.
 
 Using pip
----------
+=========
 
 .. warning::
 
@@ -64,7 +64,7 @@ unless you are fully aware of the risks.
 .. _anaconda_install:
 
 Using Conda
------------
+===========
 
 To install ``astropy`` using conda run::
 
@@ -104,7 +104,7 @@ releases which are compatible with the latest ``pytest`` and ``sphinx`` releases
 .. _testing_installed_astropy:
 
 Testing an Installed ``astropy``
---------------------------------
+================================
 
 {% if is_development %}
 
@@ -131,7 +131,7 @@ astropy <astropy-dev:testing_installed_astropy>`.
 .. _astropy-main-req:
 
 Requirements
-============
+************
 
 ``astropy`` has the following strict requirements:
 
@@ -247,10 +247,10 @@ The following packages can optionally be used when testing:
   and documentation builds.
 
 Building from Source
-====================
+********************
 
 Prerequisites
--------------
+=============
 
 You will need a compiler suite and the development headers for Python in order
 to build ``astropy``. You do not need to install any other specific build
@@ -259,7 +259,7 @@ declared in the ``pyproject.toml`` file and will be automatically installed into
 a temporary build environment by pip.
 
 Prerequisites for Linux
------------------------
+=======================
 
 On Linux, using the package manager for your distribution will usually be the
 easiest route to making sure you have the prerequisites to build ``astropy``. In
@@ -282,7 +282,7 @@ For Fedora/RHEL::
           ``pip`` or ``conda`` in a virtual environment.
 
 Prerequisites for Mac OS X
---------------------------
+==========================
 
 On MacOS X you will need the XCode command line tools which can be installed
 using::
@@ -298,16 +298,16 @@ The `instructions for building NumPy from source
 resource for setting up your environment to build Python packages.
 
 Obtaining the Source Packages
------------------------------
+=============================
 
 Source Packages
-^^^^^^^^^^^^^^^
+---------------
 
 The latest stable source package for ``astropy`` can be `downloaded here
 <https://pypi.org/project/astropy>`_.
 
 Development Repository
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 The latest development version of ``astropy`` can be cloned from GitHub
 using this command::
@@ -319,7 +319,7 @@ If you wish to participate in the development of ``astropy``, see the
 installing ``astropy``.
 
 Building and Installing
------------------------
+=======================
 
 To build and install ``astropy`` (from the root of the source tree)::
 
@@ -335,7 +335,7 @@ which installs ``astropy`` in develop/editable mode -- this then means that
 changes in the code are immediately reflected in the installed version.
 
 Troubleshooting
----------------
+===============
 
 If you get an error mentioning that you do not have the correct permissions to
 install ``astropy`` into the default ``site-packages`` directory, you can try
@@ -355,7 +355,7 @@ This is necessary for use with CentOS7.
 .. _external_c_libraries:
 
 External C Libraries
-^^^^^^^^^^^^^^^^^^^^
+--------------------
 
 The ``astropy`` source ships with the C source code of a number of
 libraries. By default, these internal copies are used to build
@@ -385,7 +385,7 @@ The C libraries currently bundled with ``astropy`` include:
 .. _install_astropy_nightly:
 
 Installing pre-built Development Versions of ``astropy``
---------------------------------------------------------
+========================================================
 
 Most nights a development snapshot of ``astropy`` will be compiled.
 This is useful if you want to test against a development version of astropy but
@@ -404,7 +404,7 @@ tells ``pip`` to install pre-release versions (in this case ``.dev`` releases).
 .. _builddocs:
 
 Building Documentation
-----------------------
+======================
 
 .. note::
 
@@ -414,7 +414,7 @@ Building Documentation
     be available at `docs.astropy.org <https://docs.astropy.org>`_ .
 
 Dependencies
-^^^^^^^^^^^^
+------------
 
 Building the documentation requires the ``astropy`` source code and some
 additional packages. The easiest way to build the documentation is to use `tox
@@ -468,7 +468,7 @@ dependencies, including:
 .. _astropy-doc-building:
 
 Building
-^^^^^^^^
+--------
 
 There are two ways to build the Astropy documentation. The easiest way is to
 execute the following tox command (from the ``astropy`` source directory)::
@@ -513,7 +513,7 @@ The LaTeX file ``Astropy.tex`` will be created in the ``docs/_build/latex``
 directory, and can be compiled using ``pdflatex``.
 
 Reporting Issues/Requesting Features
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------
 
 As mentioned above, building the documentation depends on a number of Sphinx
 extensions and other packages. Since it is not always possible to know which
@@ -538,7 +538,7 @@ can also open issues in the repositories for some of the dependencies:
 .. _sourcebuildtest:
 
 Testing a Source Code Build of ``astropy``
-------------------------------------------
+==========================================
 
 {% if is_development %}
 
