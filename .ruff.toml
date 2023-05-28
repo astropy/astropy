@@ -28,7 +28,6 @@ ignore = [
 
     # flake8-comprehensions (C4)
     "C406",  # unnecessary-literal-dict
-    "C408",  # unnecessary-collection-call
     "C413",  # unnecessary-call-around-sorted
     "C416",  # unnecessary-comprehension
     "C414",  # unnecessary-double-cast-or-process
@@ -284,26 +283,26 @@ unfixable = [
 # When a general exclusion is being fixed, but it affects many subpackages, it
 # is better to fix for subpackages individually. The general exclusion should be
 # copied to these subpackage sections and fixed there.
-"astropy/__init__.py" = []
+"astropy/__init__.py" = ["C408"]
 "astropy/config/*" = []
 "astropy/constants/*" = []
 "astropy/convolution/*" = ["I001"]
-"astropy/coordinates/*" = ["I001"]
-"astropy/cosmology/*" = []
+"astropy/coordinates/*" = ["I001", "C408"]
+"astropy/cosmology/*" = ["C408"]
 "astropy/io/*" = ["I001"]
-"astropy/logger.py" = []
-"astropy/modeling/*" = ["I001"]
-"astropy/nddata/*" = ["I001"]
+"astropy/logger.py" = ["C408"]
+"astropy/modeling/*" = ["I001", "C408"]
+"astropy/nddata/*" = ["I001", "C408"]
 "astropy/samp/*" = []
 "astropy/stats/*" = ["I001"]
-"astropy/table/*" = ["I001"]
-"astropy/tests/*" = []
-"astropy/time/*" = ["I001"]
-"astropy/timeseries/*" = ["I001"]
-"astropy/units/*" = ["I001"]
-"astropy/uncertainty/*" = []
-"astropy/utils/*" = []
-"astropy/visualization/*" = ["I001"]
-"astropy/wcs/*" = ["I001"]
+"astropy/table/*" = ["I001", "C408"]
+"astropy/tests/*" = ["C408"]
+"astropy/time/*" = ["I001", "C408"]
+"astropy/timeseries/*" = ["I001", "C408"]
+"astropy/units/*" = ["I001", "C408"]
+"astropy/uncertainty/*" = ["C408"]
+"astropy/utils/*" = ["C408"]
+"astropy/visualization/*" = ["I001", "C408"]
+"astropy/wcs/*" = ["I001", "C408"]
 "docs/*" = []
 "examples/coordinates/*" = []

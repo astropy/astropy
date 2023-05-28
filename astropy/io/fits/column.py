@@ -1170,7 +1170,7 @@ class Column(NotifierMixin):
         # TODO: This should be checked by the FITS verification code
         if dim is not None and dim != "":
             msg = None
-            dims_tuple = tuple()
+            dims_tuple = ()
             # NOTE: If valid, the dim keyword's value in the the valid dict is
             # a tuple, not the original string; if invalid just the original
             # string is returned
@@ -2376,7 +2376,7 @@ def _parse_tdim(tdim):
         return tuple(int(d.strip()) for d in dims.split(","))[::-1]
 
     # Ignore any dim values that don't specify a multidimensional column
-    return tuple()
+    return ()
 
 
 def _scalar_to_format(value):

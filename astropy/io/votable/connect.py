@@ -88,7 +88,7 @@ def read_table_votable(
         input = parse(input, table_id=table_id, verify=verify, **kwargs)
 
     # Parse all table objects
-    table_id_mapping = dict()
+    table_id_mapping = {}
     tables = []
     if isinstance(input, VOTableFile):
         for table in input.iter_tables():
