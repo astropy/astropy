@@ -21,85 +21,85 @@ from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 from .common import setup_function, teardown_function  # noqa: F401
 
 test_defs = [
-    dict(
-        kwargs=dict(),
-        out="""\
+    {
+        "kwargs": {},
+        "out": """\
 ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
 18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """,
-    ),
-    dict(
-        kwargs=dict(delimiter=None),
-        out="""\
+    },
+    {
+        "kwargs": {"delimiter": None},
+        "out": """\
 ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
 18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """,
-    ),
-    dict(
-        kwargs=dict(
-            formats={"XCENTER": "%12.1f", "YCENTER": "{0:.1f}"},
-            include_names=["XCENTER", "YCENTER"],
-            strip_whitespace=False,
-        ),
-        out="""\
+    },
+    {
+        "kwargs": {
+            "formats": {"XCENTER": "%12.1f", "YCENTER": "{0:.1f}"},
+            "include_names": ["XCENTER", "YCENTER"],
+            "strip_whitespace": False,
+        },
+        "out": """\
 XCENTER YCENTER
 "       138.5" 256.4
 "        18.1" 280.2
 """,
-    ),
-    dict(
-        kwargs=dict(Writer=ascii.Rdb, exclude_names=["CHI"]),
-        out="""\
+    },
+    {
+        "kwargs": {"Writer": ascii.Rdb, "exclude_names": ["CHI"]},
+        "out": """\
 ID\tXCENTER\tYCENTER\tMAG\tMERR\tMSKY\tNITER\tSHARPNESS\tPIER\tPERROR
 N\tN\tN\tN\tN\tN\tN\tN\tN\tS
 14\t138.538\t256.405\t15.461\t0.003\t34.85955\t4\t-0.032\t0\tNo_error
 18\t18.114\t280.170\t22.329\t0.206\t30.12784\t4\t-2.544\t0\tNo_error
 """,
-    ),
-    dict(
-        kwargs=dict(Writer=ascii.Tab),
-        out="""\
+    },
+    {
+        "kwargs": {"Writer": ascii.Tab},
+        "out": """\
 ID\tXCENTER\tYCENTER\tMAG\tMERR\tMSKY\tNITER\tSHARPNESS\tCHI\tPIER\tPERROR
 14\t138.538\t256.405\t15.461\t0.003\t34.85955\t4\t-0.032\t0.802\t0\tNo_error
 18\t18.114\t280.170\t22.329\t0.206\t30.12784\t4\t-2.544\t1.104\t0\tNo_error
 """,
-    ),
-    dict(
-        kwargs=dict(Writer=ascii.Csv),
-        out="""\
+    },
+    {
+        "kwargs": {"Writer": ascii.Csv},
+        "out": """\
 ID,XCENTER,YCENTER,MAG,MERR,MSKY,NITER,SHARPNESS,CHI,PIER,PERROR
 14,138.538,256.405,15.461,0.003,34.85955,4,-0.032,0.802,0,No_error
 18,18.114,280.170,22.329,0.206,30.12784,4,-2.544,1.104,0,No_error
 """,
-    ),
-    dict(
-        kwargs=dict(Writer=ascii.NoHeader),
-        out="""\
+    },
+    {
+        "kwargs": {"Writer": ascii.NoHeader},
+        "out": """\
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
 18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """,
-    ),
-    dict(
-        kwargs=dict(Writer=ascii.CommentedHeader),
-        out="""\
+    },
+    {
+        "kwargs": {"Writer": ascii.CommentedHeader},
+        "out": """\
 # ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
 18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """,
-    ),
-    dict(
-        kwargs=dict(Writer=ascii.CommentedHeader, comment="&"),
-        out="""\
+    },
+    {
+        "kwargs": {"Writer": ascii.CommentedHeader, "comment": "&"},
+        "out": """\
 &ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
 18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """,
-    ),
-    dict(
-        kwargs=dict(Writer=ascii.Latex),
-        out="""\
+    },
+    {
+        "kwargs": {"Writer": ascii.Latex},
+        "out": """\
 \\begin{table}
 \\begin{tabular}{ccccccccccc}
 ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PERROR \\\\
@@ -109,10 +109,10 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 \\end{tabular}
 \\end{table}
 """,
-    ),
-    dict(
-        kwargs=dict(Writer=ascii.AASTex),
-        out="""\
+    },
+    {
+        "kwargs": {"Writer": ascii.AASTex},
+        "out": """\
 \\begin{deluxetable}{ccccccccccc}
 \\tablehead{\\colhead{ID} & \\colhead{XCENTER} & \\colhead{YCENTER} & \\colhead{MAG} & \\colhead{MERR} & \\colhead{MSKY} & \\colhead{NITER} & \\colhead{SHARPNESS} & \\colhead{CHI} & \\colhead{PIER} & \\colhead{PERROR}\\\\ \\colhead{ } & \\colhead{pixels} & \\colhead{pixels} & \\colhead{magnitudes} & \\colhead{magnitudes} & \\colhead{counts} & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{perrors}}
 \\startdata
@@ -121,18 +121,18 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 \\enddata
 \\end{deluxetable}
 """,
-    ),
-    dict(
-        kwargs=dict(
-            Writer=ascii.AASTex,
-            caption="Mag values \\label{tab1}",
-            latexdict={
+    },
+    {
+        "kwargs": {
+            "Writer": ascii.AASTex,
+            "caption": "Mag values \\label{tab1}",
+            "latexdict": {
                 "units": {"MAG": "[mag]", "XCENTER": "[pixel]"},
                 "tabletype": "deluxetable*",
                 "tablealign": "htpb",
             },
-        ),
-        out="""\
+        },
+        "out": """\
 \\begin{deluxetable*}{ccccccccccc}[htpb]
 \\tablecaption{Mag values \\label{tab1}}
 \\tablehead{\\colhead{ID} & \\colhead{XCENTER} & \\colhead{YCENTER} & \\colhead{MAG} & \\colhead{MERR} & \\colhead{MSKY} & \\colhead{NITER} & \\colhead{SHARPNESS} & \\colhead{CHI} & \\colhead{PIER} & \\colhead{PERROR}\\\\ \\colhead{ } & \\colhead{[pixel]} & \\colhead{pixels} & \\colhead{[mag]} & \\colhead{magnitudes} & \\colhead{counts} & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{perrors}}
@@ -142,12 +142,12 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 \\enddata
 \\end{deluxetable*}
 """,
-    ),
-    dict(
-        kwargs=dict(
-            Writer=ascii.Latex,
-            caption="Mag values \\label{tab1}",
-            latexdict={
+    },
+    {
+        "kwargs": {
+            "Writer": ascii.Latex,
+            "caption": "Mag values \\label{tab1}",
+            "latexdict": {
                 "preamble": "\\begin{center}",
                 "tablefoot": "\\end{center}",
                 "data_end": ["\\hline", "\\hline"],
@@ -155,9 +155,9 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
                 "tabletype": "table*",
                 "tablealign": "h",
             },
-            col_align="|lcccccccccc|",
-        ),
-        out="""\
+            "col_align": "|lcccccccccc|",
+        },
+        "out": """\
 \\begin{table*}[h]
 \\begin{center}
 \\caption{Mag values \\label{tab1}}
@@ -172,10 +172,10 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 \\end{center}
 \\end{table*}
 """,
-    ),
-    dict(
-        kwargs=dict(Writer=ascii.Latex, latexdict=ascii.latexdicts["template"]),
-        out="""\
+    },
+    {
+        "kwargs": {"Writer": ascii.Latex, "latexdict": ascii.latexdicts["template"]},
+        "out": """\
 \\begin{tabletype}[tablealign]
 preamble
 \\caption{caption}
@@ -192,10 +192,10 @@ data_end
 tablefoot
 \\end{tabletype}
 """,
-    ),
-    dict(
-        kwargs=dict(Writer=ascii.Latex, latexdict={"tabletype": None}),
-        out="""\
+    },
+    {
+        "kwargs": {"Writer": ascii.Latex, "latexdict": {"tabletype": None}},
+        "out": """\
 \\begin{tabular}{ccccccccccc}
 ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PERROR \\\\
  & pixels & pixels & magnitudes & magnitudes & counts &  &  &  &  & perrors \\\\
@@ -203,12 +203,13 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
 \\end{tabular}
 """,
-    ),
-    dict(
-        kwargs=dict(
-            Writer=ascii.HTML, htmldict={"css": "table,th,td{border:1px solid black;"}
-        ),
-        out="""\
+    },
+    {
+        "kwargs": {
+            "Writer": ascii.HTML,
+            "htmldict": {"css": "table,th,td{border:1px solid black;"},
+        },
+        "out": """\
 <html>
  <head>
   <meta charset="utf-8"/>
@@ -263,10 +264,10 @@ table,th,td{border:1px solid black;  </style>
  </body>
 </html>
 """,
-    ),
-    dict(
-        kwargs=dict(Writer=ascii.Ipac),
-        out="""\
+    },
+    {
+        "kwargs": {"Writer": ascii.Ipac},
+        "out": """\
 \\MERGERAD='INDEF'
 \\IRAF='NOAO/IRAFV2.10EXPORT'
 \\USER=''
@@ -306,13 +307,13 @@ table,th,td{border:1px solid black;  </style>
  14        138.538    256.405    15.461       0.003          34.85955        4      -0.032                  0.802        0      No_error
  18        18.114     280.170    22.329       0.206          30.12784        4      -2.544                  1.104        0      No_error
 """,
-    ),
+    },
 ]
 
 test_defs_no_data = [
-    dict(
-        kwargs=dict(Writer=ascii.Ipac),
-        out="""\
+    {
+        "kwargs": {"Writer": ascii.Ipac},
+        "out": """\
 \\ This is an example of a valid comment.
 \\ The 2nd data line is used to verify the exact column parsing
 \\ (unclear if this is a valid for the IPAC format)
@@ -324,109 +325,110 @@ test_defs_no_data = [
 |  unit|  unit|unit|  unit|  ergs|
 |  null|  null|null|  null|  null|
 """,
-    ),
+    },
 ]
 
 tab_to_fill = ["a b c", "1 2 3", "1 1 3"]
 
 test_defs_fill_value = [
-    dict(
-        kwargs=dict(),
-        out="""\
+    {
+        "kwargs": {},
+        "out": """\
 a b c
 1 2 3
 1 1 3
 """,
-    ),
-    dict(
-        kwargs=dict(fill_values=("1", "w")),
-        out="""\
+    },
+    {
+        "kwargs": {"fill_values": ("1", "w")},
+        "out": """\
 a b c
 w 2 3
 w w 3
 """,
-    ),
-    dict(
-        kwargs=dict(fill_values=("1", "w", "b")),
-        out="""\
+    },
+    {
+        "kwargs": {"fill_values": ("1", "w", "b")},
+        "out": """\
 a b c
 1 2 3
 1 w 3
 """,
-    ),
-    dict(
-        kwargs=dict(fill_values=("1", "w"), fill_include_names=["b"]),
-        out="""\
+    },
+    {
+        "kwargs": {"fill_values": ("1", "w"), "fill_include_names": ["b"]},
+        "out": """\
 a b c
 1 2 3
 1 w 3
 """,
-    ),
-    dict(
-        kwargs=dict(fill_values=("1", "w"), fill_exclude_names=["a"]),
-        out="""\
+    },
+    {
+        "kwargs": {"fill_values": ("1", "w"), "fill_exclude_names": ["a"]},
+        "out": """\
 a b c
 1 2 3
 1 w 3
 """,
-    ),
-    dict(
-        kwargs=dict(
-            fill_values=("1", "w"),
-            fill_include_names=["a"],
-            fill_exclude_names=["a", "b"],
-        ),
-        out="""\
+    },
+    {
+        "kwargs": {
+            "fill_values": ("1", "w"),
+            "fill_include_names": ["a"],
+            "fill_exclude_names": ["a", "b"],
+        },
+        "out": """\
 a b c
 1 2 3
 1 1 3
 """,
-    ),
-    dict(
-        kwargs=dict(fill_values=[("1", "w")], formats={"a": "%4.2f"}),
-        out="""\
+    },
+    {
+        "kwargs": {"fill_values": [("1", "w")], "formats": {"a": "%4.2f"}},
+        "out": """\
 a b c
 1.00 2 3
 1.00 w 3
 """,
-    ),
+    },
 ]
 
 test_def_masked_fill_value = [
-    dict(
-        kwargs=dict(),
-        out="""\
+    {
+        "kwargs": {},
+        "out": """\
 a b c
 "" 2 3
 1 1 ""
 """,
-    ),
-    dict(
-        kwargs=dict(fill_values=[("1", "w"), (ascii.masked, "X")]),
-        out="""\
+    },
+    {
+        "kwargs": {"fill_values": [("1", "w"), (ascii.masked, "X")]},
+        "out": """\
 a b c
 X 2 3
 w w X
 """,
-    ),
-    dict(
-        kwargs=dict(
-            fill_values=[("1", "w"), (ascii.masked, "XXX")], formats={"a": "%4.1f"}
-        ),
-        out="""\
+    },
+    {
+        "kwargs": {
+            "fill_values": [("1", "w"), (ascii.masked, "XXX")],
+            "formats": {"a": "%4.1f"},
+        },
+        "out": """\
 a b c
 XXX 2 3
 1.0 w XXX
 """,
-    ),
-    dict(
-        kwargs=dict(Writer=ascii.Csv),
-        out="""\
+    },
+    {
+        "kwargs": {"Writer": ascii.Csv},
+        "out": """\
 a,b,c
 ,2,3
 1,1,
 """,
-    ),
+    },
 ]
 
 

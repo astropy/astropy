@@ -1221,7 +1221,7 @@ def test_read_big_table2(tmp_path):
 # fast_reader configurations: False| 'use_fast_converter'=False|True
 @pytest.mark.parametrize(
     "fast_reader",
-    [False, dict(use_fast_converter=False), dict(use_fast_converter=True)],
+    [False, {"use_fast_converter": False}, {"use_fast_converter": True}],
 )
 @pytest.mark.parametrize("parallel", [False, True])
 def test_data_out_of_range(parallel, fast_reader, guess):
@@ -1335,7 +1335,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
 # fast_reader configurations: False| 'use_fast_converter'=False|True
 @pytest.mark.parametrize(
     "fast_reader",
-    [False, dict(use_fast_converter=False), dict(use_fast_converter=True)],
+    [False, {"use_fast_converter": False}, {"use_fast_converter": True}],
 )
 @pytest.mark.parametrize("parallel", [False, True])
 def test_data_at_range_limit(parallel, fast_reader, guess):
@@ -1648,7 +1648,7 @@ def test_fortran_reader_notbasic():
     """
     )[1:-1]
 
-    t1 = ascii.read(tabstr.split("\n"), fast_reader=dict(exponent_style="D"))
+    t1 = ascii.read(tabstr.split("\n"), fast_reader={"exponent_style": "D"})
 
     assert t1["b"].dtype.kind == "f"
 
@@ -1663,7 +1663,7 @@ def test_fortran_reader_notbasic():
     )[1:-1]
 
     t2 = ascii.read(
-        tabrdb.split("\n"), format="rdb", fast_reader=dict(exponent_style="fortran")
+        tabrdb.split("\n"), format="rdb", fast_reader={"exponent_style": "fortran"}
     )
 
     assert t2["b"].dtype.kind == "f"
@@ -1701,7 +1701,7 @@ def test_fortran_reader_notbasic():
             tabrst.split("\n"),
             format="rst",
             guess=False,
-            fast_reader=dict(use_fast_converter=False),
+            fast_reader={"use_fast_converter": False},
         )
 
     tabrst = tabrst.replace("E", "D")
@@ -1711,13 +1711,13 @@ def test_fortran_reader_notbasic():
             tabrst.split("\n"),
             format="rst",
             guess=False,
-            fast_reader=dict(exponent_style="D"),
+            fast_reader={"exponent_style": "D"},
         )
 
 
 @pytest.mark.parametrize("guess", [True, False])
 @pytest.mark.parametrize(
-    "fast_reader", [dict(exponent_style="D"), dict(exponent_style="A")]
+    "fast_reader", [{"exponent_style": "D"}, {"exponent_style": "A"}]
 )
 def test_dict_kwarg_integrity(fast_reader, guess):
     """
@@ -1732,7 +1732,7 @@ def test_dict_kwarg_integrity(fast_reader, guess):
 
 
 @pytest.mark.parametrize(
-    "fast_reader", [False, dict(parallel=True), dict(parallel=False)]
+    "fast_reader", [False, {"parallel": True}, {"parallel": False}]
 )
 def test_read_empty_basic_table_with_comments(fast_reader):
     """
@@ -1751,7 +1751,7 @@ def test_read_empty_basic_table_with_comments(fast_reader):
 
 
 @pytest.mark.parametrize(
-    "fast_reader", [dict(use_fast_converter=True), dict(exponent_style="A")]
+    "fast_reader", [{"use_fast_converter": True}, {"exponent_style": "A"}]
 )
 def test_conversion_fast(fast_reader):
     """

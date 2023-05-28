@@ -42,8 +42,11 @@ class _UnifiedIORegistryBase:
         self._identifiers = OrderedDict()
 
         # what this class can do: e.g. 'read' &/or 'write'
-        self._registries = dict()
-        self._registries["identify"] = dict(attr="_identifiers", column="Auto-identify")
+        self._registries = {}
+        self._registries["identify"] = {
+            "attr": "_identifiers",
+            "column": "Auto-identify",
+        }
         self._registries_order = ("identify",)  # match keys in `_registries`
 
         # If multiple formats are added to one class the update of the docs is quite

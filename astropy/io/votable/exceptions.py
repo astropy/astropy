@@ -84,7 +84,7 @@ def _format_message(message, name, config=None, pos=None):
 
 def _suppressed_warning(warning, config, stacklevel=2):
     warning_class = type(warning)
-    config.setdefault("_warning_counts", dict()).setdefault(warning_class, 0)
+    config.setdefault("_warning_counts", {}).setdefault(warning_class, 0)
     config["_warning_counts"][warning_class] += 1
     message_count = config["_warning_counts"][warning_class]
     if message_count <= conf.max_warnings:
