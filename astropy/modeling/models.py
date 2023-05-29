@@ -51,7 +51,8 @@ from .mappings import (
 from .physical_models import (
     BlackBody,
     NFW,
-    Drude1D
+    Drude1D,
+    Plummer1D
 )
 from .polynomial import (
     SIP,
@@ -66,19 +67,29 @@ from .polynomial import (
 )
 from .powerlaws import (
     PowerLaw1D,
-    BrokenPowerLaw1D
+    BrokenPowerLaw1D,
+    SmoothlyBrokenPowerLaw1D, 
+    ExponentialCutoffPowerLaw1D, 
+    LogParabola1D, 
+    Schechter1D, 
 )
 from .projections import (
     Pix2Sky_TAN
 )
 from .rotations import (
-    Rotation2D,
-    RotateNative2Celestial,
-    RotateCelestial2Native,
-    EulerAngleRotation
+    RotateCelestial2Native, 
+    RotateNative2Celestial, 
+    Rotation2D, 
+    EulerAngleRotation, 
+    RotationSequence3D, 
+    SphericalRotationSequence
 )
 from .spline import (
-    Spline1D
+    Spline1D,
+    SplineInterpolateFitter, 
+    SplineSmoothingFitter, 
+    SplineExactKnotsFitter, 
+    SplineSplrepFitter, 
 )
 from .tabular import (
     Tabular1D,
@@ -88,6 +99,7 @@ from .tabular import (
 
 __all__ = [
     'math',
+    'Plummer1D',
     'custom_model',
     'fix_inputs',
     'hide_inverse',
@@ -132,6 +144,8 @@ __all__ = [
     'BlackBody',
     'NFW',
     'Drude1D',
+    'SIP',
+    'OrthoPolynomialBase',
     'Chebyshev1D',
     'Chebyshev2D',
     'Hermite1D',
@@ -142,12 +156,22 @@ __all__ = [
     'Polynomial2D',
     'PowerLaw1D',
     'BrokenPowerLaw1D',
+    'SmoothlyBrokenPowerLaw1D', 
+    'ExponentialCutoffPowerLaw1D', 
+    'LogParabola1D', 
+    'Schechter1D', 
     'Pix2Sky_TAN',
     'Rotation2D',
     'RotateNative2Celestial',
     'RotateCelestial2Native',
     'EulerAngleRotation',
+    'RotationSequence3D', 
+    'SphericalRotationSequence',
     'Spline1D',
+    'SplineInterpolateFitter', 
+    'SplineSmoothingFitter', 
+    'SplineExactKnotsFitter', 
+    'SplineSplrepFitter', 
     'Tabular1D',
     'Tabular2D',
     'tabular_model',
