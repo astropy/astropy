@@ -118,6 +118,9 @@ class Parameter:
     doc: str | None = None
     """Parameter description."""
 
+    name: str | None = field(init=False, compare=True, default=None, repr=False)
+    """The name of the Parameter on the Cosmology. Cannot be set directly."""
+
     if PYTHON_LT_3_10:
 
         def __init__(
@@ -144,20 +147,14 @@ class Parameter:
         # attribute name on container cosmology class.
         # really set in __set_name__, but if Parameter is not init'ed as a
         # descriptor this ensures that the attributes exist.
+        object.__setattr__(self, "name", None)
         object.__setattr__(self, "_attr_name", None)
-        object.__setattr__(self, "_attr_name_private", None)
 
     def __set_name__(self, cosmo_cls: type, name: str) -> None:
         # attribute name on container cosmology class
         self._attr_name: str
-        self._attr_name_private: str
-        object.__setattr__(self, "_attr_name", name)
-        object.__setattr__(self, "_attr_name_private", "_" + name)
-
-    @property
-    def name(self):
-        """Parameter name."""
-        return self._attr_name
+        object.__setattr__(self, "name", name)
+        object.__setattr__(self, "_attr_name", "_" + name)
 
     # -------------------------------------------
     # descriptor and property-like methods
@@ -167,13 +164,13 @@ class Parameter:
         if cosmology is None:
             return self
         # Get from instance
-        return getattr(cosmology, self._attr_name_private)
+        return getattr(cosmology, self._attr_name)
 
     def __set__(self, cosmology, value):
         """Allows attribute setting once. Raises AttributeError subsequently."""
         # Raise error if setting 2nd time.
-        if hasattr(cosmology, self._attr_name_private):
-            raise AttributeError(f"can't set attribute {self._attr_name} again")
+        if hasattr(cosmology, self._attr_name):
+            raise AttributeError(f"can't set attribute {self.name} again")
 
         # Validate value, generally setting units if present
         value = self.validate(cosmology, copy.deepcopy(value))
@@ -183,7 +180,7 @@ class Parameter:
             value.setflags(write=False)
 
         # Set the value on the cosmology
-        setattr(cosmology, self._attr_name_private, value)
+        setattr(cosmology, self._attr_name, value)
 
     # -------------------------------------------
     # validate value
@@ -266,8 +263,8 @@ class Parameter:
         cloned = replace(self, **kw)
         # Transfer over the __set_name__ stuff. If `clone` is used to make a
         # new descriptor, __set_name__ will be called again, overwriting this.
+        object.__setattr__(cloned, "name", self.name)
         object.__setattr__(cloned, "_attr_name", self._attr_name)
-        object.__setattr__(cloned, "_attr_name_private", self._attr_name_private)
 
         return cloned
 
