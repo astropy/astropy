@@ -253,15 +253,17 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     alpha_2 = Parameter(default=2, description="Power law index after break point")
     delta = Parameter(default=1, min=1.0e-3, description="Smoothness Parameter")
 
-    @amplitude.validator
-    def amplitude(self, value):
+    def _amplitude_validator(self, value):
         if np.any(value <= 0):
             raise InputParameterError("amplitude parameter must be > 0")
 
-    @delta.validator
-    def delta(self, value):
+    amplitude._validator = _amplitude_validator
+
+    def _delta_validator(self, value):
         if np.any(value < 0.001):
             raise InputParameterError("delta parameter must be >= 0.001")
+
+    delta._validator = _delta_validator
 
     @staticmethod
     def evaluate(x, amplitude, x_break, alpha_1, alpha_2, delta):

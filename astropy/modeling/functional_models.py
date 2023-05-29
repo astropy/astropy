@@ -3497,10 +3497,11 @@ class Logarithmic1D(Fittable1DModel):
         new_tau = self.amplitude
         return Exponential1D(amplitude=new_amplitude, tau=new_tau)
 
-    @tau.validator
-    def tau(self, val):
+    def _tau_validator(self, val):
         if np.all(val == 0):
             raise ValueError("0 is not an allowed value for tau")
+
+    tau._validator = _tau_validator
 
     @property
     def input_units(self):
@@ -3549,11 +3550,12 @@ class Exponential1D(Fittable1DModel):
         new_tau = self.amplitude
         return Logarithmic1D(amplitude=new_amplitude, tau=new_tau)
 
-    @tau.validator
-    def tau(self, val):
+    def _tau_validator(self, val):
         """tau cannot be 0."""
         if np.all(val == 0):
             raise ValueError("0 is not an allowed value for tau")
+
+    tau._validator = _tau_validator
 
     @property
     def input_units(self):
