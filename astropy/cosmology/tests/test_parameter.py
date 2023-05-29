@@ -102,8 +102,8 @@ class ParameterTestMixin:
         assert hasattr(all_parameter, "derived")
 
         # __set_name__
+        assert hasattr(all_parameter, "name")
         assert hasattr(all_parameter, "_attr_name")
-        assert hasattr(all_parameter, "_attr_name_private")
 
     def test_Parameter_fvalidate(self, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.fvalidate`."""
@@ -116,7 +116,7 @@ class ParameterTestMixin:
         """Test :attr:`astropy.cosmology.Parameter.name`."""
         assert hasattr(all_parameter, "name")
         assert isinstance(all_parameter.name, str)
-        assert all_parameter.name is all_parameter._attr_name
+        assert all_parameter._attr_name == f"_{all_parameter.name}"
 
     def test_Parameter_unit(self, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.unit`."""
@@ -151,16 +151,16 @@ class ParameterTestMixin:
 
         # from instance
         parameter = getattr(cosmo, all_parameter.name)
-        assert np.all(parameter == getattr(cosmo, all_parameter._attr_name_private))
+        assert np.all(parameter == getattr(cosmo, all_parameter._attr_name))
 
     def test_Parameter_descriptor_set(self, cosmo, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.__set__`."""
         # test it's already set
-        assert hasattr(cosmo, all_parameter._attr_name_private)
+        assert hasattr(cosmo, all_parameter._attr_name)
 
         # and raises an error if set again
         with pytest.raises(AttributeError, match="can't set attribute"):
-            setattr(cosmo, all_parameter._attr_name, None)
+            setattr(cosmo, all_parameter.name, None)
 
     # -------------------------------------------
     # validate value
@@ -309,8 +309,8 @@ class TestParameter(ParameterTestMixin):
         assert param.derived == np.False_
 
         # custom from set_name
-        assert param._attr_name == "param"
-        assert param._attr_name_private == "_param"
+        assert param.name == "param"
+        assert param._attr_name == "_param"
 
     def test_Parameter_fvalidate(self, cosmo, param):
         """Test :attr:`astropy.cosmology.Parameter.fvalidate`."""
