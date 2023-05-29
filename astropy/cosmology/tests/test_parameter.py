@@ -16,8 +16,9 @@ import pytest
 import astropy.units as u
 from astropy.cosmology import Cosmology
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
-from astropy.cosmology.parameter import (
-    Parameter,
+from astropy.cosmology.parameter import Parameter
+from astropy.cosmology.parameter._converter import (
+    _REGISTRY_FVALIDATORS,
     _validate_to_float,
     _validate_with_unit,
 )
@@ -25,6 +26,14 @@ from astropy.cosmology.parameter import (
 ##############################################################################
 # TESTS
 ##############################################################################
+
+
+def test_registry_validators():
+    """Test :class:`astropy.cosmology.Parameter` attributes on class."""
+    # _registry_validators
+    assert isinstance(_REGISTRY_FVALIDATORS, dict)
+    assert all(isinstance(k, str) for k in _REGISTRY_FVALIDATORS.keys())
+    assert all(callable(v) for v in _REGISTRY_FVALIDATORS.values())
 
 
 class ParameterTestMixin:
@@ -55,16 +64,6 @@ class ParameterTestMixin:
 
     # ===============================================================
     # Method Tests
-
-    def test_Parameter_class_attributes(self, all_parameter):
-        """Test :class:`astropy.cosmology.Parameter` attributes on class."""
-        # _registry_validators
-        assert hasattr(all_parameter, "_registry_validators")
-        assert isinstance(all_parameter._registry_validators, dict)
-        assert all(
-            isinstance(k, str) for k in all_parameter._registry_validators.keys()
-        )
-        assert all(callable(v) for v in all_parameter._registry_validators.values())
 
     def test_Parameter_init(self):
         """Test :class:`astropy.cosmology.Parameter` instantiation."""
@@ -290,6 +289,11 @@ class TestParameter(ParameterTestMixin):
         """Get Parameter 'param' from cosmology class."""
         return cosmo_cls.param
 
+    @pytest.fixture(scope="class")
+    def param_cls(self, cosmo_cls):
+        """Get Parameter class from cosmology class."""
+        return cosmo_cls.param.__class__
+
     # ==============================================================
 
     def test_Parameter_instance_attributes(self, param):
@@ -355,9 +359,9 @@ class TestParameter(ParameterTestMixin):
 
     def test_Parameter_validator(self, param):
         """Test :meth:`astropy.cosmology.Parameter.validator`."""
-        for k in Parameter._registry_validators:
+        for k in _REGISTRY_FVALIDATORS:
             newparam = param.validator(k)
-            assert newparam.fvalidate == newparam._registry_validators[k]
+            assert newparam.fvalidate == _REGISTRY_FVALIDATORS[k]
 
         # error for non-registered str
         with pytest.raises(ValueError, match="`fvalidate`, if str"):
@@ -372,39 +376,39 @@ class TestParameter(ParameterTestMixin):
         value = param.validate(cosmo, 1000 * u.m)
 
         # whether has custom validator
-        if param.fvalidate is param._registry_validators["default"]:
+        if param.fvalidate is _REGISTRY_FVALIDATORS["default"]:
             assert value.unit == u.m
             assert value.value == 1000
         else:
             assert value.unit == u.km
             assert value.value == 1
 
-    def test_Parameter_register_validator(self, param):
+    def test_Parameter_register_validator(self, param_cls):
         """Test :meth:`astropy.cosmology.Parameter.register_validator`."""
         # already registered
         with pytest.raises(KeyError, match="validator 'default' already"):
-            param.__class__.register_validator("default", None)
+            param_cls.register_validator("default", None)
 
         # validator not None
         def notnonefunc(x):
             return x
 
         try:
-            validator = param.__class__.register_validator("newvalidator", notnonefunc)
+            validator = param_cls.register_validator("newvalidator", notnonefunc)
             assert validator is notnonefunc
         finally:
-            param.__class__._registry_validators.pop("newvalidator", None)
+            _REGISTRY_FVALIDATORS.pop("newvalidator", None)
 
         # used as decorator
         try:
 
-            @param.__class__.register_validator("newvalidator")
+            @param_cls.register_validator("newvalidator")
             def func(cosmology, param, value):
                 return value
 
-            assert param.__class__._registry_validators["newvalidator"] is func
+            assert _REGISTRY_FVALIDATORS["newvalidator"] is func
         finally:
-            param.__class__._registry_validators.pop("newvalidator", None)
+            _REGISTRY_FVALIDATORS.pop("newvalidator", None)
 
     # -------------------------------------------
 
@@ -459,7 +463,7 @@ class TestParameter(ParameterTestMixin):
             assert subs in r, subs
 
         # `fvalidate` is a little tricker b/c one of them is custom!
-        if param.fvalidate in param._registry_validators.values():  # not custom
+        if param.fvalidate in _REGISTRY_FVALIDATORS.values():  # not custom
             assert "fvalidate='default'" in r
         else:
             assert "fvalidate=<" in r  # Some function, don't care about details.

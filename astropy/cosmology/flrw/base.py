@@ -14,8 +14,8 @@ from numpy import inf, sin
 import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology.core import Cosmology, FlatCosmologyMixin
-from astropy.cosmology.parameter import (
-    Parameter,
+from astropy.cosmology.parameter import Parameter
+from astropy.cosmology.parameter._converter import (
     _validate_non_negative,
     _validate_with_unit,
 )
