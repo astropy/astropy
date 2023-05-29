@@ -4,7 +4,9 @@ import copy
 
 import astropy.units as u
 
-__all__ = ["Parameter"]
+from ._converter import _REGISTRY_FVALIDATORS, _register_validator
+
+__all__ = []
 
 
 class Parameter:
@@ -41,8 +43,6 @@ class Parameter:
     For worked examples see :class:`~astropy.cosmology.FLRW`.
     """
 
-    _registry_validators = {}
-
     def __init__(
         self,
         *,
@@ -68,15 +68,15 @@ class Parameter:
         self._fvalidate_in = fvalidate  # Always store input fvalidate.
         if callable(fvalidate):
             pass
-        elif fvalidate in self._registry_validators:
-            fvalidate = self._registry_validators[fvalidate]
+        elif fvalidate in _REGISTRY_FVALIDATORS:
+            fvalidate = _REGISTRY_FVALIDATORS[fvalidate]
         elif isinstance(fvalidate, str):
             raise ValueError(
-                f"`fvalidate`, if str, must be in {self._registry_validators.keys()}"
+                f"`fvalidate`, if str, must be in {_REGISTRY_FVALIDATORS.keys()}"
             )
         else:
             raise TypeError(
-                f"`fvalidate` must be a function or {self._registry_validators.keys()}"
+                f"`fvalidate` must be a function or {_REGISTRY_FVALIDATORS.keys()}"
             )
         self._fvalidate = fvalidate
 
@@ -172,8 +172,8 @@ class Parameter:
         """
         return self.fvalidate(cosmology, self, value)
 
-    @classmethod
-    def register_validator(cls, key, fvalidate=None):
+    @staticmethod
+    def register_validator(key, fvalidate=None):
         """Decorator to register a new kind of validator function.
 
         Parameters
@@ -189,31 +189,7 @@ class Parameter:
             validator. This allows ``register_validator`` to be used as a
             decorator.
         """
-        if key in cls._registry_validators:
-            raise KeyError(f"validator {key!r} already registered with Parameter.")
-
-        # fvalidate directly passed
-        if fvalidate is not None:
-            cls._registry_validators[key] = fvalidate
-            return fvalidate
-
-        # for use as a decorator
-        def register(fvalidate):
-            """Register validator function.
-
-            Parameters
-            ----------
-            fvalidate : callable[[object, object, Any], Any]
-                Validation function.
-
-            Returns
-            -------
-            ``validator``
-            """
-            cls._registry_validators[key] = fvalidate
-            return fvalidate
-
-        return register
+        return _register_validator(key, fvalidate=fvalidate)
 
     # -------------------------------------------
 
@@ -314,44 +290,3 @@ class Parameter:
         return "Parameter({})".format(
             ", ".join(f"{k}={v!r}" for k, v in self._get_init_arguments().items())
         )
-
-
-# ===================================================================
-# Built-in validators
-
-
-@Parameter.register_validator("default")
-def _validate_with_unit(cosmology, param, value):
-    """
-    Default Parameter value validator.
-    Adds/converts units if Parameter has a unit.
-    """
-    if param.unit is not None:
-        with u.add_enabled_equivalencies(param.equivalencies):
-            value = u.Quantity(value, param.unit)
-    return value
-
-
-@Parameter.register_validator("float")
-def _validate_to_float(cosmology, param, value):
-    """Parameter value validator with units, and converted to float."""
-    value = _validate_with_unit(cosmology, param, value)
-    return float(value)
-
-
-@Parameter.register_validator("scalar")
-def _validate_to_scalar(cosmology, param, value):
-    """"""
-    value = _validate_with_unit(cosmology, param, value)
-    if not value.isscalar:
-        raise ValueError(f"{param.name} is a non-scalar quantity")
-    return value
-
-
-@Parameter.register_validator("non-negative")
-def _validate_non_negative(cosmology, param, value):
-    """Parameter value validator where value is a positive float."""
-    value = _validate_to_float(cosmology, param, value)
-    if value < 0.0:
-        raise ValueError(f"{param.name} cannot be negative.")
-    return value
