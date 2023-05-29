@@ -111,7 +111,7 @@ def sortmore(*args, **kw):
             )
         )
 
-    res = sorted(list(zip(*args)), key=k)
+    res = sorted(zip(*args), key=k)
     if "order" in kw:
         if kw["order"].startswith(("descend", "reverse")):
             res = reversed(res)
