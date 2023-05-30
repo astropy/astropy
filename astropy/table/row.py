@@ -106,6 +106,35 @@ class Row:
         for col in self._table.columns.values():
             yield col[index]
 
+    def get(self, key, default=None, /):
+        """Return the value for key if key is in the columns, else default.
+
+        Parameters
+        ----------
+        key : `str`, positional-only
+            The name of the column to look for.
+        default : `object`, optional, positional-only
+            The value to return if the ``key`` is not among the columns.
+
+        Returns
+        -------
+        `object`
+            The value in the ``key`` column of the row if present,
+            ``default`` otherwise.
+
+        Examples
+        --------
+        >>> from astropy.table import Table
+        >>> t = Table({"a": [2, 3, 5], "b": [7, 11, 13]})
+        >>> t[0].get("a")
+        2
+        >>> t[1].get("b", 0)
+        11
+        >>> t[2].get("c", 0)
+        0
+        """
+        return self[key] if key in self._table.columns else default
+
     def keys(self):
         return self._table.columns.keys()
 
