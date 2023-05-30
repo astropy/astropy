@@ -1,0 +1,3 @@
+The new ``Row.get()`` method, analogous to ``dict.get()``, returns the value of
+the specified column from the row if the column present, otherwise it returns a
+fallback value, which by default is ``None``.

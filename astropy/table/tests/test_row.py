@@ -372,3 +372,11 @@ def test_uint_indexing():
     assert repr(t[1]).splitlines() == trepr
     assert repr(t[np.int_(1)]).splitlines() == trepr
     assert repr(t[np.uint(1)]).splitlines() == trepr
+
+
+def test_row_get():
+    row = table.Table({"a": [2, 4], "b": [3, 9]})[0]
+    assert row.get("a") == 2
+    assert row.get("x") is None
+    assert row.get("b", -1) == 3
+    assert row.get("y", -1) == -1

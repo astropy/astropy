@@ -334,6 +334,16 @@ columns can be provided using the :meth:`dict.get` method::
     >>> t.columns.get("x", np.zeros(len(t)))
     array([0., 0., 0., 0., 0.])
 
+In case of a single |Row| it is possible to use its
+:meth:`~astropy.table.Row.get` method without having to go through
+``columns``::
+
+    >>> row = t[2]
+    >>> row.get("c", -1)
+    8
+    >>> row.get("y", -1)
+    -1
+
 
 Table Equality
 --------------
