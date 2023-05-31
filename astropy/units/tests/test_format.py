@@ -662,9 +662,9 @@ def test_vounit_function(string):
 
 
 def test_vounit_binary_prefix():
-    u.Unit("KiB", format="vounit") == u.Unit("1024 B")
-    u.Unit("Kibyte", format="vounit") == u.Unit("1024 B")
-    u.Unit("Kibit", format="vounit") == u.Unit("1024 B")
+    assert u.Unit("KiB", format="vounit") == u.Unit("1024 B")
+    assert u.Unit("Kibyte", format="vounit") == u.Unit("1024 B")
+    assert u.Unit("Kibit", format="vounit") == u.Unit("128 B")
     with pytest.warns(UnitsWarning) as w:
         u.Unit("kibibyte", format="vounit")
     assert len(w) == 1
@@ -678,6 +678,8 @@ def test_vounit_unknown():
 
 def test_vounit_details():
     assert u.Unit("Pa", format="vounit") is u.Pascal
+    assert u.Unit("ka", format="vounit") == u.Unit("1000 yr")
+    assert u.Unit("pix", format="vounit") == u.Unit("pixel", format="vounit")
 
     # The da- prefix is not allowed, and the d- prefix is discouraged
     assert u.dam.to_string("vounit") == "10m"
