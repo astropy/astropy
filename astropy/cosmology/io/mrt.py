@@ -3,11 +3,12 @@ from astropy.cosmology.core import Cosmology
 from astropy.table import QTable
 from astropy.table.serialize import represent_mixins_as_columns
 
-from .table import to_table, from_table
+from .table import from_table, to_table
+
 
 def read_mrt(filename, index=None, *, move_to_meta=False, cosmology=None, **kwargs):
     """Read a |Cosmology| from an MRT file.
-    
+
     Parameters
     ----------
     filename : path-like or file-like
@@ -46,25 +47,26 @@ def read_mrt(filename, index=None, *, move_to_meta=False, cosmology=None, **kwar
     format = kwargs.pop("format", "mrt")
     if format != "mrt":
         raise ValueError(f"format must be 'mrt', not {format}")
-    
+
     # Reading is handled by `QTable`.
     table = QTable.read(filename, format="mrt", **kwargs)
 
     # Create a single column named 'm_nu' by combining the values from the 'mnu0', 'mnu1', and 'mnu2' columns
     m_nu_data = []
-    for i in ['mnu0', 'mnu1', 'mnu2']:
+    for i in ["mnu0", "mnu1", "mnu2"]:
         column_data = table[i][0]
         m_nu_data.append(column_data.value)
         table.remove_column(i)
-    
-    table.add_column([m_nu_data], name='m_nu', index=-2)
-    
-    # Build the cosmology from table, using the private backend.
-    return from_table(table, index=index, move_to_meta=move_to_meta, cosmology=cosmology)
 
-def write_mrt(
-    cosmology, file, *, overwrite=False, cls=QTable, **kwargs
-):
+    table.add_column([m_nu_data], name="m_nu", index=-2)
+
+    # Build the cosmology from table, using the private backend.
+    return from_table(
+        table, index=index, move_to_meta=move_to_meta, cosmology=cosmology
+    )
+
+
+def write_mrt(cosmology, file, *, overwrite=False, cls=QTable, **kwargs):
     """Serialize the |Cosmology| into an MRT file.
 
     Parameters
@@ -97,15 +99,15 @@ def write_mrt(
     table = represent_mixins_as_columns(table_main)
 
     # Replace the m_nu column with three columns with names 'mnu0', 'mnu1', 'mnu2'
-    m_nu = table_main['m_nu']  
-    print(m_nu)
-    table.remove_column('m_nu')
+    m_nu = table_main["m_nu"]
+    table.remove_column("m_nu")
     for i in range(len(m_nu[0])):
-        column_name = f'mnu{i}'
+        column_name = f"mnu{i}"
         column_data = m_nu[0][i]
         table.add_column(column_data, name=column_name, index=-2)
 
     table.write(file, overwrite=overwrite, format="mrt", **kwargs)
+
 
 # ===================================================================
 # Register
