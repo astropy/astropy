@@ -9,6 +9,7 @@ from astropy.table import QTable, Table
 
 from .base import ReadWriteDirectTestBase, ReadWriteTestMixinBase
 
+
 class ReadWriteMRTTestMixin(ReadWriteTestMixinBase):
     """
     Tests for a Cosmology[Read/Write] with ``format="mrt"``.
@@ -18,12 +19,13 @@ class ReadWriteMRTTestMixin(ReadWriteTestMixinBase):
     ``cosmo`` that returns/yields an instance of a |Cosmology|.
     See ``TestCosmology`` for an example.
     """
+
     def test_to_mrt_bad_index(self, read, write, tmp_path):
         """Test if argument ``index`` is incorrect"""
         fp = tmp_path / "test_to_mrt_bad_index.mrt"
 
         write(fp, format="mrt")
-        
+
         # single-row table and has a non-0/None index
         with pytest.raises(IndexError, match="index 2 out of range"):
             read(fp, index=2, format="mrt")
@@ -31,16 +33,16 @@ class ReadWriteMRTTestMixin(ReadWriteTestMixinBase):
         # string index where doesn't match
         with pytest.raises(KeyError, match="No matches found for key"):
             read(fp, index="row 0", format="mrt")
-    
+
     # -----------------------
 
     def test_to_mrt_failed_cls(self, write, tmp_path):
         """Test failed table type."""
         fp = tmp_path / "test_to_mrt_failed_cls.mrt"
-        
+
         with pytest.raises(TypeError, match="'cls' must be"):
             write(fp, format="mrt", cls=list)
-    
+
     # -----------------------
 
     @pytest.mark.parametrize("tbl_cls", [QTable, Table])
@@ -50,9 +52,7 @@ class ReadWriteMRTTestMixin(ReadWriteTestMixinBase):
 
     # -----------------------
 
-    def test_readwrite_mrt_instance(
-        self, cosmo_cls, cosmo, read, write, tmp_path
-    ):
+    def test_readwrite_mrt_instance(self, cosmo_cls, cosmo, read, write, tmp_path):
         """Test cosmology -> mrt -> cosmology."""
         fp = tmp_path / "test_readwrite_mrt_instance.mrt"
 
@@ -70,7 +70,7 @@ class ReadWriteMRTTestMixin(ReadWriteTestMixinBase):
 
         tbl["mismatching"] = "will error"
         tbl.write(fp, format="mrt", overwrite=True)
-        
+
         # tests are different if the last argument is a **kwarg
         if tuple(cosmo._init_signature.parameters.values())[-1].kind == 4:
             got = read(fp, format="mrt")
@@ -89,7 +89,7 @@ class ReadWriteMRTTestMixin(ReadWriteTestMixinBase):
         got = read(fp, format="mrt", move_to_meta=True)
         assert got == cosmo
         assert got.meta["mismatching"] == "will error"
-        
+
         # it won't error if everything matches up
         tbl.remove_column("mismatching")
         tbl.write(fp, format="mrt", overwrite=True)
@@ -128,6 +128,7 @@ class ReadWriteMRTTestMixin(ReadWriteTestMixinBase):
         assert got != cosmo
         assert got.Tcmb0 == cosmo_cls._init_signature.parameters["Tcmb0"].default
         assert got.clone(name=cosmo.name, Tcmb0=cosmo.Tcmb0, m_nu=cosmo.m_nu) == cosmo
+
 
 class TestReadWriteMRT(ReadWriteDirectTestBase, ReadWriteMRTTestMixin):
     """
