@@ -457,7 +457,7 @@ def test_latex_inline_scale():
 def test_format_styles(format_spec, string, decomposed):
     fluxunit = u.erg / (u.cm**2 * u.s * u.Angstrom)
     if format_spec == "vounit":
-        # erg is deprecated in vounit.
+        # erg and Angstrom are deprecated in vounit.
         with pytest.warns(UnitsWarning, match="deprecated"):
             formatted = format(fluxunit, format_spec)
     else:
@@ -677,9 +677,7 @@ def test_vounit_unknown():
 
 
 def test_vounit_details():
-    with pytest.warns(UnitsWarning, match="deprecated") as w:
-        assert u.Unit("Pa", format="vounit") is u.Pascal
-    assert len(w) == 1
+    assert u.Unit("Pa", format="vounit") is u.Pascal
 
     # The da- prefix is not allowed, and the d- prefix is discouraged
     assert u.dam.to_string("vounit") == "10m"
