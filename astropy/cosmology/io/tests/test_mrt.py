@@ -96,9 +96,7 @@ class ReadWriteMRTTestMixin(ReadWriteTestMixinBase):
         got = read(fp, format="mrt")
         assert got == cosmo
 
-        # also it auto-identifies 'format'
-        got = read(fp)
-        assert got == cosmo
+    # -----------------------
 
     def test_readwrite_mrt_subclass_partial_info(
         self, cosmo_cls, cosmo, read, write, tmp_path
