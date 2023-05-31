@@ -16,6 +16,7 @@ from astropy.cosmology.io.tests import (
     test_latex,
     test_mapping,
     test_model,
+    test_mrt,
     test_row,
     test_table,
     test_yaml,
@@ -36,6 +37,7 @@ readwrite_formats = {
     ("ascii.latex", False, True),
     ("json", True, True),
     ("latex", False, True),
+    ("mrt", False, True),
 }
 
 
@@ -59,6 +61,7 @@ class ReadWriteTestMixin(
     test_html.ReadWriteHTMLTestMixin,
     test_json.ReadWriteJSONTestMixin,
     test_latex.WriteLATEXTestMixin,
+    test_mrt.ReadWriteMRTTestMixin,
 ):
     """
     Tests for a CosmologyRead/Write on a |Cosmology|.

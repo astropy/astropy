@@ -53,7 +53,7 @@ def read_mrt(filename, index=None, *, move_to_meta=False, cosmology=None, **kwar
 
     # Create a single column named 'm_nu' by combining the values from the 'mnu0', 'mnu1', and 'mnu2' columns
     m_nu_data = []
-    for i in ["mnu0", "mnu1", "mnu2"]:
+    for i in ("mnu0", "mnu1", "mnu2"):
         column_data = table[i][0]
         m_nu_data.append(column_data.value)
         table.remove_column(i)
