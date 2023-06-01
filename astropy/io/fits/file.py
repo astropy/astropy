@@ -507,7 +507,7 @@ class _File:
                     "Use 'update' mode instead"
                 )
             # Handle gzip files
-            kwargs = dict(mode=IO_FITS_MODES[mode])
+            kwargs = {"mode": IO_FITS_MODES[mode]}
             if isinstance(obj_or_name, str):
                 kwargs["filename"] = obj_or_name
             else:

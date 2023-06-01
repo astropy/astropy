@@ -1093,6 +1093,11 @@ class SAMPHubServer:
                             target=self._notify,
                             args=(sender_private_key, _recipient_id, message),
                         )
+        if not recipient_ids:
+            warnings.warn(
+                "No client was able to receive this message",
+                SAMPWarning,
+            )
 
         return recipient_ids
 

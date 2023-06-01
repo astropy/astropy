@@ -143,7 +143,7 @@ def test_custom_model_bounding_box():
     bbox = model.bounding_box
 
     zlim, ylim, xlim = bbox.bounding_box()
-    dz, dy, dx = np.diff(bbox) / 2
+    dz, dy, dx = (np.diff(bbox) / 2).ravel()
     z1, y1, x1 = np.mgrid[
         slice(zlim[0], zlim[1] + 1),
         slice(ylim[0], ylim[1] + 1),
@@ -262,7 +262,7 @@ class Fittable2DModelTester:
         bbox = model.bounding_box
 
         ylim, xlim = bbox
-        dy, dx = np.diff(bbox) / 2
+        dy, dx = (np.diff(bbox) / 2).ravel()
         y1, x1 = np.mgrid[slice(ylim[0], ylim[1] + 1), slice(xlim[0], xlim[1] + 1)]
         y2, x2 = np.mgrid[
             slice(ylim[0] - dy, ylim[1] + dy + 1), slice(xlim[0] - dx, xlim[1] + dx + 1)
@@ -390,6 +390,7 @@ class Fittable2DModelTester:
             )
 
 
+@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 class Fittable1DModelTester:
     """
     Test class for all one dimensional parametric models.
@@ -499,7 +500,7 @@ class Fittable1DModelTester:
         if isinstance(bbox, ModelBoundingBox):
             bbox = bbox.bounding_box()
 
-        dx = np.diff(bbox) / 2
+        dx = (np.diff(bbox) / 2)[0]
         x1 = np.mgrid[slice(bbox[0], bbox[1] + 1, ddx)]
         x2 = np.mgrid[slice(bbox[0] - dx, bbox[1] + dx + 1, ddx)]
         arr = model(x2)
@@ -687,6 +688,7 @@ def test_ScaleModel():
     assert_equal(m([1, 2], model_set_axis=False), [[42, 84], [43, 86]])
 
 
+@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_voigt_model():
     """
     Currently just tests that the model peaks at its origin.
@@ -1061,6 +1063,7 @@ def test_parameter_inheritance():
     assert b.f.fixed == True  # noqa: E712
 
 
+@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_parameter_description():
     model = models.Gaussian1D(1.5, 2.5, 3.5)
     assert model.amplitude._description == "Amplitude (peak value) of the Gaussian"

@@ -121,12 +121,12 @@ def _ndarray_representer(dumper, obj):
 
     data_b64 = base64.b64encode(obj.tobytes())
 
-    out = dict(
-        buffer=data_b64,
-        dtype=str(obj.dtype) if not obj.dtype.fields else obj.dtype.descr,
-        shape=obj.shape,
-        order=order,
-    )
+    out = {
+        "buffer": data_b64,
+        "dtype": str(obj.dtype) if not obj.dtype.fields else obj.dtype.descr,
+        "shape": obj.shape,
+        "order": order,
+    }
 
     return dumper.represent_mapping("!numpy.ndarray", out)
 
@@ -143,10 +143,10 @@ def _ndarray_constructor(loader, node):
 
 def _void_representer(dumper, obj):
     data_b64 = base64.b64encode(obj.tobytes())
-    out = dict(
-        buffer=data_b64,
-        dtype=str(obj.dtype) if not obj.dtype.fields else obj.dtype.descr,
-    )
+    out = {
+        "buffer": data_b64,
+        "dtype": str(obj.dtype) if not obj.dtype.fields else obj.dtype.descr,
+    }
     return dumper.represent_mapping("!numpy.void", out)
 
 

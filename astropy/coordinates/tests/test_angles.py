@@ -352,7 +352,7 @@ def test_angle_formatting():
         f"Angle as DMS: {angle.to_string(unit=u.degree, precision=4, pad=True)}" == res
     )
 
-    res = "Angle as rad: 0.0629763rad"
+    res = "Angle as rad: 0.0629763 rad"
     assert f"Angle as rad: {angle.to_string(unit=u.radian)}" == res
 
     res = "Angle as rad decimal: 0.0629763"
@@ -588,9 +588,9 @@ def test_angle_string():
     a = Angle("00:00:59W", u.hour)
     assert str(a) == "-0h00m59s"
     a = Angle(3.2, u.radian)
-    assert str(a) == "3.2rad"
+    assert str(a) == "3.2 rad"
     a = Angle(4.2, u.microarcsecond)
-    assert str(a) == "4.2uarcsec"
+    assert str(a) == "4.2 uarcsec"
     a = Angle("1.0uarcsec")
     assert a.value == 1.0
     assert a.unit == u.microarcsecond
@@ -1096,8 +1096,8 @@ def test_angle_multithreading():
             "[nan, nan, nan] hourangle",
         ),
         (np.nan * u.rad, "nan", "nan rad"),
-        ([np.nan, 1, 0] * u.rad, "[nan 1rad 0rad]", "[nan, 1., 0.] rad"),
-        ([1.50, np.nan, 0] * u.rad, "[1.5rad nan 0rad]", "[1.5, nan, 0.] rad"),
+        ([np.nan, 1, 0] * u.rad, "[nan 1 rad 0 rad]", "[nan, 1., 0.] rad"),
+        ([1.50, np.nan, 0] * u.rad, "[1.5 rad nan 0 rad]", "[1.5, nan, 0.] rad"),
         ([np.nan, np.nan, np.nan] * u.rad, "[nan nan nan]", "[nan, nan, nan] rad"),
     ],
 )

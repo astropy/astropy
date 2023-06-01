@@ -31,8 +31,7 @@ FREETYPE_261 = ft_version == Version("2.6.1")
 # https://github.com/matplotlib/matplotlib/issues/23244
 TEX_UNAVAILABLE = True
 
-# matplotlib 3.7 is not released yet.
-MATPLOTLIB_LT_3_7 = Version(matplotlib.__version__) < Version("3.6.99")
+MATPLOTLIB_LT_3_7 = Version(matplotlib.__version__) < Version("3.7")
 
 
 def teardown_function(function):

@@ -6,7 +6,7 @@ import warnings
 from abc import abstractmethod
 from math import exp, floor, log, pi, sqrt
 from numbers import Number
-from typing import Any, Mapping, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import numpy as np
 from numpy import inf, sin
@@ -14,8 +14,8 @@ from numpy import inf, sin
 import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology.core import Cosmology, FlatCosmologyMixin
-from astropy.cosmology.parameter import (
-    Parameter,
+from astropy.cosmology.parameter import Parameter
+from astropy.cosmology.parameter._converter import (
     _validate_non_negative,
     _validate_with_unit,
 )
@@ -24,6 +24,14 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
+__all__ = ["FLRW", "FlatFLRWMixin"]
+
+__doctest_requires__ = {"*": ["scipy"]}
+
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
 # isort: split
 if HAS_SCIPY:
     from scipy.integrate import quad
@@ -31,11 +39,6 @@ else:
 
     def quad(*args, **kwargs):
         raise ModuleNotFoundError("No module named 'scipy.integrate'")
-
-
-__all__ = ["FLRW", "FlatFLRWMixin"]
-
-__doctest_requires__ = {"*": ["scipy"]}
 
 
 ##############################################################################

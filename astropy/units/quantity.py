@@ -363,10 +363,9 @@ class Quantity(np.ndarray):
 
         Returns
         -------
-        `typing.Annotated`, `typing_extensions.Annotated`, `astropy.units.Unit`, or `astropy.units.PhysicalType`
+        `typing.Annotated`, `astropy.units.Unit`, or `astropy.units.PhysicalType`
             Return type in this preference order:
-            * if python v3.9+ : `typing.Annotated`
-            * if :mod:`typing_extensions` is installed : `typing_extensions.Annotated`
+            * `typing.Annotated`
             * `astropy.units.Unit` or `astropy.units.PhysicalType`
 
         Raises
@@ -392,8 +391,7 @@ class Quantity(np.ndarray):
         With Python 3.9+ or :mod:`typing_extensions`, |Quantity| types are also
         static-type compatible.
         """
-        # LOCAL
-        from ._typing import HAS_ANNOTATED, Annotated
+        from typing import Annotated
 
         # process whether [unit] or [unit, shape, ptype]
         if isinstance(unit_shape_dtype, tuple):  # unit, shape, dtype
@@ -416,20 +414,11 @@ class Quantity(np.ndarray):
                     "unit annotation is not a Unit or PhysicalType"
                 ) from None
 
-        # Allow to sort of work for python 3.8- / no typing_extensions
-        # instead of bailing out, return the unit for `quantity_input`
-        if not HAS_ANNOTATED:
-            warnings.warn(
-                "Quantity annotations are valid static type annotations only"
-                " if Python is v3.9+ or `typing_extensions` is installed."
-            )
-            return unit
-
         # Quantity does not (yet) properly extend the NumPy generics types,
         # introduced in numpy v1.22+, instead just including the unit info as
         # metadata using Annotated.
         # TODO: ensure we do interact with NDArray.__class_getitem__.
-        return Annotated.__class_getitem__((cls, unit))
+        return Annotated[cls, unit]
 
     def __new__(
         cls,
@@ -727,7 +716,10 @@ class Quantity(np.ndarray):
         if isinstance(result, (tuple, list)):
             if out is None:
                 out = (None,) * len(result)
-            return result.__class__(
+            # Some np.linalg functions return namedtuple, which is handy to access
+            # elements by name, but cannot be directly initialized with an iterator.
+            result_cls = getattr(result, "_make", result.__class__)
+            return result_cls(
                 self._result_as_quantity(result_, unit_, out_)
                 for (result_, unit_, out_) in zip(result, unit, out)
             )
@@ -1698,8 +1690,9 @@ class Quantity(np.ndarray):
 
         # Setting names to ensure things like equality work (note that
         # above will have failed already if units did not match).
-        if self.dtype.names:
-            _value.dtype.names = self.dtype.names
+        # TODO: is this the best place to do this?
+        if _value.dtype.names is not None:
+            _value = _value.astype(self.dtype, copy=False)
         return _value
 
     def itemset(self, *args):

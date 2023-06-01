@@ -1,5 +1,6 @@
 ci:
   autofix_prs: false
+  autoupdate_schedule: 'monthly'
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -53,7 +54,6 @@ repos:
       - id: python-check-blanket-noqa
         # Enforce that all noqa annotations always occur with specific codes.
 
-
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.4
     hooks:
@@ -63,7 +63,7 @@ repos:
           - tomli
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: "v0.0.260"
+    rev: "v0.0.263"
     hooks:
       - id: ruff
         args: ["--fix"]

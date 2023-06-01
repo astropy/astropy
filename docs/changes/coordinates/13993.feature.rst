@@ -1,3 +1,0 @@
-Add optional parameter ``refresh_cache`` to ``EarthLocation.of_site()`` and
-``EarthLocation.get_site_names()`` to force the download of the latest site
-registry.

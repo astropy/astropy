@@ -217,7 +217,7 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
             if not isinstance(w, klass):
                 raise ValueError(
                     "Expected the following order of world arguments:"
-                    f" {', '.join([k.__name__ for (k, _, _) in classes.values()])}"
+                    f" {', '.join([k.__name__ for (k, *_) in classes.values()])}"
                 )
 
             # FIXME: For now SkyCoord won't auto-convert upon initialization

@@ -358,11 +358,11 @@ def test_apply_slices(sub_wcs, wcs_slice, wcsaxes_slices, world_map, ndim):
 def test_sliced_ND_input(wcs_4d, sub_wcs, wcs_slice, plt_close):
     slices_wcsaxes = [0, "x", "y"]
 
-    for sub_wcs in (sub_wcs, SlicedLowLevelWCS(wcs_4d, wcs_slice)):
+    for sub_wcs_ in (sub_wcs, SlicedLowLevelWCS(wcs_4d, wcs_slice)):
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=FutureWarning)
             _, coord_meta = transform_coord_meta_from_wcs(
-                sub_wcs, RectangularFrame, slices=slices_wcsaxes
+                sub_wcs_, RectangularFrame, slices=slices_wcsaxes
             )
 
         assert all(len(x) == 3 for x in coord_meta.values())
@@ -387,7 +387,7 @@ def test_sliced_ND_input(wcs_4d, sub_wcs, wcs_slice, plt_close):
 
         # Validate the axes initialize correctly
         plt.clf()
-        plt.subplot(projection=sub_wcs, slices=slices_wcsaxes)
+        plt.subplot(projection=sub_wcs_, slices=slices_wcsaxes)
 
 
 class LowLevelWCS5D(BaseLowLevelWCS):
@@ -592,7 +592,7 @@ class LowLevelWCSCelestial2D(BaseLowLevelWCS):
 
 @figure_test
 def test_wcsapi_2d_celestial_arcsec(plt_close):
-    # Regression test for plot_coord/scatter_coord with celestial WCS that is not in degrees
+    # Regression test for plot_coord/scatter_coord/text_coord with celestial WCS that is not in degrees
     fig = plt.figure(figsize=(6, 6))
     ax = fig.add_axes([0.15, 0.1, 0.8, 0.8], projection=LowLevelWCSCelestial2D())
     ax.set_xlim(-0.5, 200.5)
@@ -601,5 +601,12 @@ def test_wcsapi_2d_celestial_arcsec(plt_close):
     ax.plot_coord(SkyCoord([50, 150], [100, 100], unit="arcsec"), "ro")
     ax.scatter_coord(
         SkyCoord([100, 100], [50, 150], unit="arcsec"), color="green", s=50
+    )
+    ax.text_coord(
+        SkyCoord(50, 50, unit="arcsec"),
+        "Plot Label",
+        color="blue",
+        ha="right",
+        va="top",
     )
     return fig

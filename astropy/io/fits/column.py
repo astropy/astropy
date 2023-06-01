@@ -1170,7 +1170,7 @@ class Column(NotifierMixin):
         # TODO: This should be checked by the FITS verification code
         if dim is not None and dim != "":
             msg = None
-            dims_tuple = tuple()
+            dims_tuple = ()
             # NOTE: If valid, the dim keyword's value in the the valid dict is
             # a tuple, not the original string; if invalid just the original
             # string is returned
@@ -1528,7 +1528,19 @@ class ColDefs(NotifierMixin):
         for idx in range(len(array.dtype)):
             cname = array.dtype.names[idx]
             ftype = array.dtype.fields[cname][0]
-            format = self._col_format_cls.from_recformat(ftype)
+
+            if ftype.kind == "O":
+                dtypes = {np.array(array[cname][i]).dtype for i in range(len(array))}
+                if (len(dtypes) > 1) or (np.dtype("O") in dtypes):
+                    raise TypeError(
+                        f"Column '{cname}' contains unsupported object types or "
+                        f"mixed types: {dtypes}"
+                    )
+                ftype = dtypes.pop()
+                format = self._col_format_cls.from_recformat(ftype)
+                format = f"P{format}()"
+            else:
+                format = self._col_format_cls.from_recformat(ftype)
 
             # Determine the appropriate dimensions for items in the column
             dim = array.dtype[idx].shape[::-1]
@@ -2364,7 +2376,7 @@ def _parse_tdim(tdim):
         return tuple(int(d.strip()) for d in dims.split(","))[::-1]
 
     # Ignore any dim values that don't specify a multidimensional column
-    return tuple()
+    return ()
 
 
 def _scalar_to_format(value):

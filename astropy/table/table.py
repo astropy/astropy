@@ -1231,8 +1231,8 @@ class Table:
         cols = []
         default_names = _auto_names(n_cols)
 
-        for col, name, default_name, dtype in zip(data, names, default_names, dtype):
-            col = self._convert_data_to_col(col, copy, default_name, dtype, name)
+        for col, name, default_name, dt in zip(data, names, default_names, dtype):
+            col = self._convert_data_to_col(col, copy, default_name, dt, name)
 
             cols.append(col)
 
@@ -3020,12 +3020,10 @@ class Table:
         """
         Rename a column.
 
-        This can also be done directly with by setting the ``name`` attribute
-        for a column::
+        This can also be done directly by setting the ``name`` attribute
+        of the ``info`` property of the column::
 
-          table[name].name = new_name
-
-        TODO: this won't work for mixins
+          table[name].info.name = new_name
 
         Parameters
         ----------

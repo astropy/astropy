@@ -1,0 +1,72 @@
+.. _whatsnew-6.0:
+
+**************************
+What's New in Astropy 6.0?
+**************************
+
+Overview
+========
+
+Astropy 6.0 is a major release that adds significant new functionality since
+the 5.3 release.
+
+In particular, this release includes:
+
+* :ref:`whatsnew-6.0-geodetic-representation-geometry`
+* :ref:`whatsnew-6.0-cosmology-latex-export`
+
+In addition to these major changes, Astropy v6.0 includes a large number of
+smaller improvements and bug fixes, which are described in the :ref:`changelog`.
+By the numbers:
+
+* X issues have been closed since v5.3
+* X pull requests have been merged since v5.3
+* X distinct people have contributed code
+
+.. _whatsnew-6.0-geodetic-representation-geometry:
+
+Define Geodetic Representations via their geometric parameters
+==============================================================
+
+The user may now define custom spheroidal models for the Earth or other planetary
+bodies by subclassing `~astropy.coordinates.BaseGeodeticRepresentation` and defining
+``_equatorial_radius`` and ``_flattening`` attributes::
+
+
+    >>> from astropy.coordinates import BaseGeodeticRepresentation, WGS84GeodeticRepresentation
+    >>> from astropy import units as u
+    >>> class IAU1976EarthGeodeticRepresentation(BaseGeodeticRepresentation):
+    ...     _equatorial_radius = 6378140 * u.m
+    ...     _flattening = 0.3352805 * u.percent
+    >>> representation = IAU1976EarthGeodeticRepresentation(lon=45.8366*u.deg,
+    ...     lat=56.1499*u.deg, height=367*u.m)
+    >>> representation.to_cartesian() # doctest: +FLOAT_CMP
+    <CartesianRepresentation (x, y, z) in m
+        (2481112.60371134, 2554647.09482601, 5274064.55958489)>
+    >>> representation.represent_as(WGS84GeodeticRepresentation) # doctest: +FLOAT_CMP
+    <WGS84GeodeticRepresentation (lon, lat, height) in (rad, rad, m)
+        (0.79999959, 0.98000063, 370.01796023)>
+
+See :ref:`astropy-coordinates-create-geodetic` for more details.
+
+
+.. _whatsnew-6.0-cosmology-latex-export:
+
+Updates to `~astropy.cosmology`
+===============================
+
+The :class:`~astropy.cosmology.Cosmology` class in :mod:`~astropy.cosmology` now
+supports the latex format in its :attr:`~astropy.cosmology.Cosmology.write()`
+method, allowing users to export a cosmology object to a LaTeX table.::
+
+    >>> from astropy.cosmology import Planck18
+    >>> Planck18.write("example_cosmology.tex", format="latex")
+
+This will write the cosmology object to a file in LaTeX format,
+with appropriate formatting of units and table alignment.
+
+Full change log
+===============
+
+To see a detailed list of all changes in version v6.0, including changes in
+API, please see the :ref:`changelog`.

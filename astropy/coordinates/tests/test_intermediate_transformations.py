@@ -40,16 +40,13 @@ from astropy.coordinates.builtin_frames.intermediate_rotation_transforms import 
     tete_to_itrs_mat,
 )
 from astropy.coordinates.builtin_frames.utils import get_jd12
-from astropy.coordinates.solar_system import (
-    _apparent_position_in_true_coordinates,
-    get_body,
-)
+from astropy.coordinates.solar_system import get_body
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
 from astropy.utils import iers
 from astropy.utils.compat.optional_deps import HAS_JPLEPHEM
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils.exceptions import AstropyWarning
 
 CI = os.environ.get("CI", False) == "true"
 
@@ -272,7 +269,7 @@ def test_itrs_topo_to_altaz_with_refraction():
 
     assert_allclose(altaz33.az - altaz3.az, 0 * u.mas, atol=0.1 * u.mas)
     assert_allclose(altaz33.alt - altaz3.alt, 0 * u.mas, atol=0.1 * u.mas)
-    assert_allclose(altaz33.distance - altaz3.distance, 0 * u.cm, atol=10.0 * u.cm)
+    assert_allclose(altaz33.distance, altaz3.distance, rtol=2e-15)
 
 
 def test_itrs_topo_to_hadec_with_refraction():
@@ -319,7 +316,7 @@ def test_itrs_topo_to_hadec_with_refraction():
 
     assert_allclose(hadec22.ha - hadec2.ha, 0 * u.mas, atol=0.1 * u.mas)
     assert_allclose(hadec22.dec - hadec2.dec, 0 * u.mas, atol=0.1 * u.mas)
-    assert_allclose(hadec22.distance - hadec2.distance, 0 * u.cm, atol=10.0 * u.cm)
+    assert_allclose(hadec22.distance, hadec2.distance, rtol=2e-15)
 
     # Refraction removed
     itrs = hadec22.transform_to(itrs_frame)
@@ -327,7 +324,7 @@ def test_itrs_topo_to_hadec_with_refraction():
 
     assert_allclose(hadec33.ha - hadec3.ha, 0 * u.mas, atol=0.1 * u.mas)
     assert_allclose(hadec33.dec - hadec3.dec, 0 * u.mas, atol=0.1 * u.mas)
-    assert_allclose(hadec33.distance - hadec3.distance, 0 * u.cm, atol=10.0 * u.cm)
+    assert_allclose(hadec33.distance, hadec3.distance, rtol=2e-15)
 
 
 def test_gcrs_itrs():
@@ -891,7 +888,7 @@ def test_earth_orientation_table(monkeypatch):
 
     # Check we returned to regular IERS system.
     altaz_auto2 = sc.transform_to(altaz)
-    assert altaz_auto2.separation(altaz_auto) == 0.0
+    assert_allclose(altaz_auto2.separation(altaz_auto), 0 * u.deg, atol=5e-15 * u.deg)
 
 
 @pytest.mark.remote_data
@@ -985,12 +982,6 @@ def test_tete_transforms():
     tete_rt = tete_coo1.transform_to(ITRS(obstime=time)).transform_to(tete_coo1)
     assert_allclose(tete_rt.separation_3d(tete_coo1), 0 * u.mm, atol=1 * u.mm)
 
-    # ensure deprecated routine remains consistent
-    # make sure test raises warning!
-    with pytest.warns(AstropyDeprecationWarning, match="The use of"):
-        tete_alt = _apparent_position_in_true_coordinates(moon)
-    assert_allclose(tete_coo1.separation_3d(tete_alt), 0 * u.mm, atol=100 * u.mm)
-
 
 def test_straight_overhead():
     """
@@ -1036,24 +1027,12 @@ def test_itrs_straight_overhead():
     obj = EarthLocation(-1 * u.deg, 52 * u.deg, height=10.0 * u.km)
     home = EarthLocation(-1 * u.deg, 52 * u.deg, height=0.0 * u.km)
 
-    # An object that appears straight overhead - FOR A GEOCENTRIC OBSERVER.
-    itrs_geo = obj.get_itrs(t).cartesian
-
-    # now get the Geocentric ITRS position of observatory
-    obsrepr = home.get_itrs(t).cartesian
-
-    # topocentric ITRS position of a straight overhead object
-    itrs_repr = itrs_geo - obsrepr
-
-    # create a ITRS object that appears straight overhead for a TOPOCENTRIC OBSERVER
-    itrs_topo = ITRS(itrs_repr, obstime=t, location=home)
-
     # Check AltAz (though Azimuth can be anything so is not tested).
-    aa = itrs_topo.transform_to(AltAz(obstime=t, location=home))
+    aa = obj.get_itrs(t, location=home).transform_to(AltAz(obstime=t, location=home))
     assert_allclose(aa.alt, 90 * u.deg, atol=1 * u.uas, rtol=0)
 
     # Check HADec.
-    hd = itrs_topo.transform_to(HADec(obstime=t, location=home))
+    hd = obj.get_itrs(t, location=home).transform_to(HADec(obstime=t, location=home))
     assert_allclose(hd.ha, 0 * u.hourangle, atol=1 * u.uas, rtol=0)
     assert_allclose(hd.dec, 52 * u.deg, atol=1 * u.uas, rtol=0)
 

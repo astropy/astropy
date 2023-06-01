@@ -19,6 +19,7 @@ from astropy.coordinates import (
     SpectralQuantity,
     get_body_barycentric_posvel,
 )
+from astropy.coordinates.sites import get_builtin_sites
 from astropy.coordinates.spectral_coordinate import (
     SpectralCoord,
     _apply_relativistic_doppler_shift,
@@ -29,6 +30,9 @@ from astropy.utils import iers
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
 from astropy.wcs.wcsapi.fitswcs import VELOCITY_FRAMES as FITSWCS_VELOCITY_FRAMES
+
+
+GREENWICH = get_builtin_sites()["greenwich"]
 
 
 def assert_frame_allclose(
@@ -71,16 +75,6 @@ def assert_frame_allclose(
         ).differentials["s"]
 
         assert_quantity_allclose(d1.norm(d1), d1.norm(d2), rtol=vel_rtol, atol=vel_atol)
-
-
-@pytest.fixture(scope="module")
-def greenwich_earthlocation(request):
-    if (
-        not hasattr(EarthLocation, "_site_registry")
-        and request.config.getoption("remote_data") == "none"
-    ):
-        EarthLocation._get_site_registry(force_builtin=True)
-    return EarthLocation.of_site("Greenwich")
 
 
 # GENERAL TESTS
@@ -746,12 +740,12 @@ def test_relativistic_radial_velocity():
 # SCIENCE USE CASE TESTS
 
 
-def test_spectral_coord_jupiter(greenwich_earthlocation):
+def test_spectral_coord_jupiter():
     """
     Checks radial velocity between Earth and Jupiter
     """
     obstime = time.Time("2018-12-13 9:00")
-    obs = greenwich_earthlocation.get_gcrs(obstime)
+    obs = GREENWICH.get_gcrs(obstime)
 
     pos, vel = get_body_barycentric_posvel("jupiter", obstime)
     jupiter = SkyCoord(
@@ -767,12 +761,12 @@ def test_spectral_coord_jupiter(greenwich_earthlocation):
     assert_quantity_allclose(spc.radial_velocity, -7.35219854 * u.km / u.s)
 
 
-def test_spectral_coord_alphacen(greenwich_earthlocation):
+def test_spectral_coord_alphacen():
     """
     Checks radial velocity between Earth and Alpha Centauri
     """
     obstime = time.Time("2018-12-13 9:00")
-    obs = greenwich_earthlocation.get_gcrs(obstime)
+    obs = GREENWICH.get_gcrs(obstime)
 
     # Coordinates were obtained from the following then hard-coded to avoid download
     # acen = SkyCoord.from_name('alpha cen')
@@ -793,12 +787,12 @@ def test_spectral_coord_alphacen(greenwich_earthlocation):
     assert_quantity_allclose(spc.radial_velocity, -26.328301 * u.km / u.s)
 
 
-def test_spectral_coord_m31(greenwich_earthlocation):
+def test_spectral_coord_m31():
     """
     Checks radial velocity between Earth and M31
     """
     obstime = time.Time("2018-12-13 9:00")
-    obs = greenwich_earthlocation.get_gcrs(obstime)
+    obs = GREENWICH.get_gcrs(obstime)
 
     # Coordinates were obtained from the following then hard-coded to avoid download
     # m31 = SkyCoord.from_name('M31')
@@ -842,13 +836,12 @@ def test_shift_to_rest_galaxy():
         assert_frame_allclose(rest_spc.observer, rest_spc.target)
 
 
-def test_shift_to_rest_star_withobserver(greenwich_earthlocation):
+def test_shift_to_rest_star_withobserver():
     rv = -8.3283011 * u.km / u.s
     rest_line_wls = [5007, 6563] * u.AA
 
     obstime = time.Time("2018-12-13 9:00")
-    eloc = greenwich_earthlocation
-    obs = eloc.get_gcrs(obstime)
+    obs = GREENWICH.get_gcrs(obstime)
     acen = SkyCoord(
         ra=219.90085 * u.deg,
         dec=-60.83562 * u.deg,
@@ -880,7 +873,7 @@ def test_shift_to_rest_star_withobserver(greenwich_earthlocation):
         frame=barycentric_spc.target.realize_frame(None),
     )
     vcorr = barytarg.radial_velocity_correction(
-        kind="barycentric", obstime=obstime, location=eloc
+        kind="barycentric", obstime=obstime, location=GREENWICH
     )
 
     drv = baryrest_spc.radial_velocity - observed_spc.radial_velocity

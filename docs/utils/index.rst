@@ -94,7 +94,7 @@ File Downloads
 XML
 ---
 The ``astropy.utils.xml.*`` modules provide various
-`XML <http://www.w3.org/XML/>`_ processing tools.
+`XML <https://www.w3.org/XML/>`_ processing tools.
 
 .. automodapi:: astropy.utils.xml.check
     :no-inheritance-diagram:

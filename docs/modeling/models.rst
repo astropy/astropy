@@ -942,7 +942,7 @@ format. This can be useful in many contexts, one of which is the implementation 
 
 Serializing a model to disk is possible by assigning the object to ``AsdfFile.tree``:
 
-.. doctest-requires:: asdf
+.. doctest-requires:: asdf-astropy
 
     >>> from asdf import AsdfFile
     >>> from astropy.modeling import models
@@ -953,7 +953,7 @@ Serializing a model to disk is possible by assigning the object to ``AsdfFile.tr
 
 To read the file and create the model:
 
-.. doctest-requires:: asdf
+.. doctest-requires:: asdf-astropy
 
     >>> import asdf
     >>> with asdf.open('rotation.asdf') as f:
@@ -970,4 +970,4 @@ To read the file and create the model:
 
 Compound models can also be serialized. Please note that some model attributes (e.g ``meta``,
 ``tied`` parameter constraints used in fitting), as well as model sets are not yet serializable.
-For more information on serialization of models, see :ref:`asdf_dev`.
+For more information on serialization of models, see :ref:`asdf-astropy:asdf-astropy`.

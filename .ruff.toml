@@ -1,0 +1,308 @@
+extend = "pyproject.toml"
+ignore = [
+    # NOTE: to find a good code to fix, run:
+    # ruff --select="ALL" --statistics astropy/<subpackage>
+
+    # flake8-annotations (ANN) : static typing
+    # TODO: revisit this when Astropy implements typing.
+    "ANN",
+
+    # flake8-unused-arguments (ARG)
+    "ARG001",  # unused-function-argument
+    "ARG002",  # unused-method-argument
+    "ARG003",  # unused-class-method-argument
+    "ARG004",  # unused-static-method-argument
+    "ARG005",  # unused-lambda-argument
+
+    # flake8-bugbear (B)
+    "B006",  # MutableArgumentDefault
+    "B007",  # UnusedLoopControlVariable
+    "B015",  # UselessComparison
+    "B023",  # FunctionUsesLoopVariable
+    "B028",  # No-explicit-stacklevel
+    "B904",  # RaiseWithoutFromInsideExcept
+    "B905",  # ZipWithoutExplicitStrict   # requires 3.10+
+
+    # flake8-blind-except (BLE)
+    "BLE001",  # blind-except
+
+    # flake8-comprehensions (C4)
+    "C406",  # unnecessary-literal-dict
+    "C413",  # unnecessary-call-around-sorted
+    "C416",  # unnecessary-comprehension
+    "C414",  # unnecessary-double-cast-or-process
+    "C417",  # unnecessary-map (over a comprehension)
+
+    # mccabe (C90) : code complexity
+    # TODO: configure maximum allowed complexity.
+    "C901",  # McCabeComplexity
+
+    # pydocstyle (D)
+    # Missing Docstrings
+    "D100",  # undocumented-public-module
+    "D101",  # undocumented-public-class
+    "D103",  # undocumented-public-function
+    "D104",  # undocumented-public-package
+    "D205",  # blank-line-after-summary
+    # Quotes Issues
+    "D300",  # triple-single-quotes
+    "D301",  # escape-sequence-in-docstring
+    # Docstring Content Issues
+    "D403",  # first-line-capitalized
+    "D404",  # docstring-starts-with-this
+    "D401",  # non-imperative-mood.
+    "D414",  # empty-docstring-section
+    "D419",  # docstring is empty
+
+    # flake8-datetimez (DTZ)
+    "DTZ001",  # call-datetime-without-tzinfo
+    "DTZ003",  # call-datetime-utcnow
+    "DTZ005",  # call-datetime-now-without-tzinfo
+    "DTZ007",  # call-datetime-strptime-without-zone
+
+    # pycodestyle (E, W)
+    "E501",  # line-too-long
+    "E721",  # type-comparison
+    "E731",  # lambda-assignment
+
+    # flake8-errmsg (EM)  : nicer error tracebacks
+    "EM101",   # raw-string-in-exception
+    "EM102",   # f-string-in-exception
+    "EM103",   # dot-format-in-exception
+
+    # eradicate (ERA)
+    # NOTE: be careful that developer notes are kept.
+    "ERA001",  # commented-out-code
+
+    # flake8-executable (EXE)
+    "EXE002",  # shebang-missing-executable-file
+
+    # Pyflakes (F)
+    "F821",  # undefined-name
+    "F841",  # unused-variable
+
+    # flake8-boolean-trap (FBT)  : boolean flags should be kwargs, not args
+    # NOTE: a good thing to fix, but changes API.
+    "FBT001",  # boolean-positional-arg-in-function-definition
+    "FBT002",  # boolean-default-value-in-function-definition
+    "FBT003",  # boolean-positional-value-in-function-call
+
+    # flake8-logging-format (G)
+    "G001",  # logging-string-format
+    "G004",  # logging-f-string
+
+    # flake8-import-conventions (ICN)  : use conventional import aliases
+    "ICN001",  # import-conventions
+
+    # flake8-implicit-str-concat (ISC)
+    "ISC001",  # single-line-implicit-string-concatenation
+    "ISC003",  # explicit-string-concatenation
+
+    # pep8-naming (N)
+    # NOTE: some of these can/should be fixed, but this changes the API.
+    "N801",  # invalid-class-name
+    "N802",  # invalid-function-name
+    "N803",  # invalid-argument-name
+    "N804",  # invalid-first-argument-name-for-class-method
+    "N805",  # invalid-first-argument-name-for-method
+    "N807",  # dunder-function-name
+    "N811",  # constant-imported-as-non-constant
+    "N812",  # lowercase-imported-as-non-lowercase
+    "N813",  # camelcase-imported-as-lowercase
+    "N815",  # mixed-case-variable-in-class-scope
+    "N816",  # mixed-case-variable-in-global-scope
+    "N817",  # camelcase-imported-as-acronym
+    "N818",  # error-suffix-on-exception-name
+
+    # NumPy-specific rules (NPY)
+    "NPY002", # Replace legacy `np.random.rand` call with `np.random.Generator`  (2023-05-03)
+
+    # flake8-pie (PIE)
+    "PIE790",  # unnecessary-pass
+    "PIE794",  # duplicate-class-field-definition
+    "PIE804",  # no-unnecessary-dict-kwargs
+    "PIE810",  # single-starts-ends-with
+
+    # pygrep-hooks (PGH)
+    "PGH001",  # eval
+
+    # Pylint (PLC, PLE, PLR, PLW)
+    "PLC1901",  # compare-to-empty-string
+    "PLE0101",  # return-in-init
+    "PLE0605",  # invalid-all-format
+    "PLR0402",  # ConsiderUsingFromImport
+    "PLR0911",  # too-many-return-statements
+    "PLR0912",  # too-many-branches
+    "PLR0913",  # too-many-args
+    "PLR0915",  # too-many-statements
+    "PLR2004",  # MagicValueComparison
+    "PLR5501",  # collapsible-else-if
+    "PLW0120",  # useless-else-on-loop
+    "PLW0129",  # assert-on-string-literal
+    "PLW0602",  # global-variable-not-assigned
+    "PLW0603",  # global-statement
+    "PLW2901",  # redefined-loop-name
+
+    # flake8-pytest-style (PT)
+    "PT001",   # pytest-fixture-incorrect-parentheses-style
+    "PT003",   # pytest-extraneous-scope-function
+    "PT004",   # pytest-missing-fixture-name-underscore
+    "PT006",   # pytest-parametrize-names-wrong-type
+    "PT007",   # pytest-parametrize-values-wrong-type
+    "PT011",   # pytest-raises-too-broad
+    "PT012",   # pytest-raises-with-multiple-statements
+    "PT013",   # pytest-incorrect-pytest-import
+    "PT015",   # pytest-assert-always-false
+    "PT017",   # pytest-assert-in-exceptinstead
+    "PT018",   # pytest-composite-assertion
+    "PT019",   # pytest-fixture-param-without-value
+    "PT021",   # pytest-fixture-finalizer-callback
+    "PT022",   # pytest-useless-yield-fixture
+    "PT023",   # pytest-incorrect-mark-parentheses-style
+
+    # flake8-use-pathlib (PTH)
+    "PTH100",  # os-path-abspath
+    "PTH101",  # os-chmod
+    "PTH102",  # os-mkdir
+    "PTH103",  # os-makedirs
+    "PTH104",  # os-rename
+    "PTH107",  # os-remove
+    "PTH108",  # os-unlink
+    "PTH109",  # os-getcwd
+    "PTH110",  # os-path-exists
+    "PTH111",  # os-path-expanduser
+    "PTH112",  # os-path-isdir
+    "PTH113",  # os-path-isfile
+    "PTH114",  # os-path-islink
+    "PTH116",  # os-stat
+    "PTH118",  # os-path-join
+    "PTH119",  # os-path-basename
+    "PTH120",  # os-path-dirname
+    "PTH122",  # os-path-splitext
+    "PTH123",  # builtin-open
+    "PTH124",  # py-path
+
+    # flake8-return (RET)
+    "RET501",  # unnecessary-return-none
+    "RET502",  # implicit-return-value
+    "RET503",  # implicit-return
+    "RET504",  # unnecessary-assign
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
+    "RET507",  # superfluous-else-continue
+    "RET508",  # superfluous-else-break
+
+    # flake8-raise (RSE)
+    "RSE102",  # unnecessary-paren-on-raise-exception
+
+    # Ruff-specific rules (RUF)
+    "RUF001",  # ambiguous-unicode-character-string
+    "RUF002",  # ambiguous-unicode-character-docstring
+
+    # flake8-bandit (S)
+    "S101",  # Use of `assert` detected
+    "S105",  # hardcoded-password-string
+    "S110",  # try-except-pass
+    "S112",  # try-except-continue
+    "S301",  # suspicious-pickle-usage
+    "S311",  # suspecious-non-cryptographic-randomness
+    "S324",  # hashlib-insecure-hash-function
+    "S506",  # UnsafeYAMLLoad
+    "S310",  # Suspicious-url-open-usage
+    "S321",  # Suspecious-ftp-lib-usage
+    "S603",  # `subprocess` call: check for execution of untrusted input
+    "S605",  # Starting a process with a shell, possible injection detected  (2023-05-03)
+    "S607",  # Starting a process with a partial executable path
+    "S608",  # Posslibe SQL injection
+
+    # flake8-simplify (SIM)
+    "SIM102",  # NestedIfStatements
+    "SIM105",  # UseContextlibSuppress
+    "SIM108",  # UseTernaryOperator
+    "SIM114",  # if-with-same-arms
+    "SIM115",  # OpenFileWithContextHandler
+    "SIM117",  # MultipleWithStatements
+    "SIM118",  # KeyInDict
+    "SIM201",  # NegateEqualOp
+    "SIM202",  # NegateNotEqualOp
+    "SIM300",  # yoda condition
+
+    # flake8-print (T20)
+    "T201",  # PrintUsed
+
+    # tryceratops (TRY)
+    "TRY002",  # raise-vanilla-class
+    "TRY003",  # raise-vanilla-args
+    "TRY004",  # prefer-type-error
+    "TRY200",  # reraise-no-cause
+    "TRY201",  # verbose-raise
+    "TRY300",  # Consider `else` block
+    "TRY301",  # raise-within-try
+    "TRY400",  # error-instead-of-exception
+
+    # flake8-quotes (Q)
+    "Q000",  # use double quotes
+]
+unfixable = [
+    "E711"  # NoneComparison. Hard to fix b/c numpy has it's own None.
+]
+
+# TODO: move these to pyproject.toml when ruff allows cascading per-file-ignores.
+[per-file-ignores]
+"setup.py" = ["INP001"]  # Part of configuration, not a package.
+"__init__.py" = ["E402", "F401", "F403"]
+"astropy/coordinates/angle_formats.py" = ["D415"]  # The docstrings are regexes.
+"astropy/io/registry/compat.py" = ["F822"]
+"astropy/modeling/models.py" = ["F401", "F403", "F405"]
+"astropy/units/format/*.py" = ["D415"]  # The docstrings are regexes.
+"astropy/utils/decorators.py" = [
+    "D214", "D215",  # keep Examples section indented.
+    "D411",  # sphinx treats spaced example sections as real sections
+]
+"test_*.py" = [
+    "B018",  # UselessExpression
+    "B011",  # Do not assert False, raise AssertionError()
+    "D",  # pydocstyle
+    "E402",  # Module level import not at top of file
+    "PGH001",  # No builtin eval() allowed
+    "S101",  # Use of assert detected
+]
+".pyinstaller/*.py" = ["INP001"]  # Not a package.
+"conftest.py" = ["INP001"]  # Part of configuration, not a package.
+"docs/*.py" = [
+    "INP001",  # implicit-namespace-package. The examples are not a package.
+]
+"examples/*.py" = [
+    "D415",   # EndsInPeriod. The examples use RST syntax, not a one-line title.
+    "E402",   # Imports are done as needed.
+    "INP001", # implicit-namespace-package. The examples are not a package.
+    "T203"    # pprint found
+]
+
+# TODO: fix these, on a per-subpackage basis.
+# When a general exclusion is being fixed, but it affects many subpackages, it
+# is better to fix for subpackages individually. The general exclusion should be
+# copied to these subpackage sections and fixed there.
+"astropy/__init__.py" = ["C408"]
+"astropy/config/*" = []
+"astropy/constants/*" = []
+"astropy/convolution/*" = ["I001"]
+"astropy/coordinates/*" = ["I001", "C408"]
+"astropy/cosmology/*" = ["C408"]
+"astropy/io/*" = ["I001"]
+"astropy/logger.py" = ["C408"]
+"astropy/modeling/*" = ["I001", "C408"]
+"astropy/nddata/*" = ["I001", "C408"]
+"astropy/samp/*" = []
+"astropy/stats/*" = ["I001"]
+"astropy/table/*" = ["I001", "C408"]
+"astropy/tests/*" = ["C408"]
+"astropy/time/*" = ["I001", "C408"]
+"astropy/timeseries/*" = ["I001", "C408"]
+"astropy/units/*" = ["I001", "C408"]
+"astropy/uncertainty/*" = ["C408"]
+"astropy/utils/*" = ["C408"]
+"astropy/visualization/*" = ["I001", "C408"]
+"astropy/wcs/*" = ["I001", "C408"]
+"docs/*" = []
+"examples/coordinates/*" = []

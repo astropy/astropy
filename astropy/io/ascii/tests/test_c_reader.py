@@ -468,7 +468,7 @@ def test_doubled_quotes_segv():
     tbl = dedent(
         """
     "ID","TIMESTAMP","addendum_id","bib_reference","bib_reference_url","client_application","client_category","client_sort_key","color","coordsys","creator","creator_did","data_pixel_bitpix","dataproduct_subtype","dataproduct_type","em_max","em_min","format","hips_builder","hips_copyright","hips_creation_date","hips_creation_date_1","hips_creator","hips_data_range","hips_estsize","hips_frame","hips_glu_tag","hips_hierarchy","hips_initial_dec","hips_initial_fov","hips_initial_ra","hips_lon_asc","hips_master_url","hips_order","hips_order_1","hips_order_4","hips_order_min","hips_overlay","hips_pixel_bitpix","hips_pixel_cut","hips_pixel_scale","hips_progenitor_url","hips_publisher","hips_release_date","hips_release_date_1","hips_rgb_blue","hips_rgb_green","hips_rgb_red","hips_sampling","hips_service_url","hips_service_url_1","hips_service_url_2","hips_service_url_3","hips_service_url_4","hips_service_url_5","hips_service_url_6","hips_service_url_7","hips_service_url_8","hips_skyval","hips_skyval_method","hips_skyval_value","hips_status","hips_status_1","hips_status_2","hips_status_3","hips_status_4","hips_status_5","hips_status_6","hips_status_7","hips_status_8","hips_tile_format","hips_tile_format_1","hips_tile_format_4","hips_tile_width","hips_version","hipsgen_date","hipsgen_date_1","hipsgen_date_10","hipsgen_date_11","hipsgen_date_12","hipsgen_date_2","hipsgen_date_3","hipsgen_date_4","hipsgen_date_5","hipsgen_date_6","hipsgen_date_7","hipsgen_date_8","hipsgen_date_9","hipsgen_params","hipsgen_params_1","hipsgen_params_10","hipsgen_params_11","hipsgen_params_12","hipsgen_params_2","hipsgen_params_3","hipsgen_params_4","hipsgen_params_5","hipsgen_params_6","hipsgen_params_7","hipsgen_params_8","hipsgen_params_9","label","maxOrder","moc_access_url","moc_order","moc_release_date","moc_sky_fraction","obs_ack","obs_collection","obs_copyrigh_url","obs_copyright","obs_copyright_1","obs_copyright_url","obs_copyright_url_1","obs_description","obs_description_url","obs_descrition_url","obs_id","obs_initial_dec","obs_initial_fov","obs_initial_ra","obs_provenance","obs_regime","obs_title","ohips_frame","pixelCut","pixelRange","prov_did","prov_progenitor","prov_progenitor_url","publisher_did","publisher_id","s_pixel_scale","t_max","t_min"
-    "CDS/P/2MASS/H","1524123841000","","2006AJ....131.1163S","http://cdsbib.u-strasbg.fr/cgi-bin/cdsbib?2006AJ....131.1163S","AladinDesktop","Image/Infrared/2MASS","04-001-03","","","","ivo://CDS/P/2MASS/H","","","image","1.798E-6","1.525E-6","","Aladin/HipsGen v9.017","CNRS/Unistra","2013-05-06T20:36Z","","CDS (A.Oberto)","","","equatorial","","mean","","","","","","9","","","","","","0 60","2.236E-4","","","2016-04-22T13:48Z","","","","","","http://alasky.u-strasbg.fr/2MASS/H","https://irsa.ipac.caltech.edu/data/hips/CDS/2MASS/H","http://alaskybis.u-strasbg.fr/2MASS/H","https://alaskybis.u-strasbg.fr/2MASS/H","","","","","","","","","public master clonableOnce","public mirror unclonable","public mirror clonableOnce","public mirror clonableOnce","","","","","","jpeg fits","","","512","1.31","","","","","","","","","","","","","","","","","","","","","","","","","","","","","http://alasky.u-strasbg.fr/2MASS/H/Moc.fits","9","","1","University of Massachusetts & IPAC/Caltech","The Two Micron All Sky Survey - H band (2MASS H)","","University of Massachusetts & IPAC/Caltech","","http://www.ipac.caltech.edu/2mass/","","2MASS has uniformly scanned the entire sky in three near-infrared bands to detect and characterize point sources brighter than about 1 mJy in each band, with signal-to-noise ratio (SNR) greater than 10, using a pixel size of 2.0"". This has achieved an 80,000-fold improvement in sensitivity relative to earlier surveys. 2MASS used two highly-automated 1.3-m telescopes, one at Mt. Hopkins, AZ, and one at CTIO, Chile. Each telescope was equipped with a three-channel camera, each channel consisting of a 256x256 array of HgCdTe detectors, capable of observing the sky simultaneously at J (1.25 microns), H (1.65 microns), and Ks (2.17 microns). The University of Massachusetts (UMass) was responsible for the overall management of the project, and for developing the infrared cameras and on-site computing systems at both facilities. The Infrared Processing and Analysis Center (IPAC) is responsible for all data processing through the Production Pipeline, and construction and distribution of the data products. Funding is provided primarily by NASA and the NSF","","","","+0","0.11451621372724685","0","","Infrared","2MASS H (1.66um)","","","","","IPAC/NASA","","","","","51941","50600"
+    "CDS/P/2MASS/H","1524123841000","","2006AJ....131.1163S","http://cdsbib.unistra.fr/cgi-bin/cdsbib?2006AJ....131.1163S","AladinDesktop","Image/Infrared/2MASS","04-001-03","","","","ivo://CDS/P/2MASS/H","","","image","1.798E-6","1.525E-6","","Aladin/HipsGen v9.017","CNRS/Unistra","2013-05-06T20:36Z","","CDS (A.Oberto)","","","equatorial","","mean","","","","","","9","","","","","","0 60","2.236E-4","","","2016-04-22T13:48Z","","","","","","http://alasky.unistra.fr/2MASS/H","https://irsa.ipac.caltech.edu/data/hips/CDS/2MASS/H","http://alaskybis.unistra.fr/2MASS/H","https://alaskybis.unistra.fr/2MASS/H","","","","","","","","","public master clonableOnce","public mirror unclonable","public mirror clonableOnce","public mirror clonableOnce","","","","","","jpeg fits","","","512","1.31","","","","","","","","","","","","","","","","","","","","","","","","","","","","","http://alasky.unistra.fr/2MASS/H/Moc.fits","9","","1","University of Massachusetts & IPAC/Caltech","The Two Micron All Sky Survey - H band (2MASS H)","","University of Massachusetts & IPAC/Caltech","","http://www.ipac.caltech.edu/2mass/","","2MASS has uniformly scanned the entire sky in three near-infrared bands to detect and characterize point sources brighter than about 1 mJy in each band, with signal-to-noise ratio (SNR) greater than 10, using a pixel size of 2.0"". This has achieved an 80,000-fold improvement in sensitivity relative to earlier surveys. 2MASS used two highly-automated 1.3-m telescopes, one at Mt. Hopkins, AZ, and one at CTIO, Chile. Each telescope was equipped with a three-channel camera, each channel consisting of a 256x256 array of HgCdTe detectors, capable of observing the sky simultaneously at J (1.25 microns), H (1.65 microns), and Ks (2.17 microns). The University of Massachusetts (UMass) was responsible for the overall management of the project, and for developing the infrared cameras and on-site computing systems at both facilities. The Infrared Processing and Analysis Center (IPAC) is responsible for all data processing through the Production Pipeline, and construction and distribution of the data products. Funding is provided primarily by NASA and the NSF","","","","+0","0.11451621372724685","0","","Infrared","2MASS H (1.66um)","","","","","IPAC/NASA","","","","","51941","50600"
     """
     )
     ascii.read(tbl, format="csv", fast_reader=True, guess=False)
@@ -1221,7 +1221,7 @@ def test_read_big_table2(tmp_path):
 # fast_reader configurations: False| 'use_fast_converter'=False|True
 @pytest.mark.parametrize(
     "fast_reader",
-    [False, dict(use_fast_converter=False), dict(use_fast_converter=True)],
+    [False, {"use_fast_converter": False}, {"use_fast_converter": True}],
 )
 @pytest.mark.parametrize("parallel", [False, True])
 def test_data_out_of_range(parallel, fast_reader, guess):
@@ -1335,7 +1335,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
 # fast_reader configurations: False| 'use_fast_converter'=False|True
 @pytest.mark.parametrize(
     "fast_reader",
-    [False, dict(use_fast_converter=False), dict(use_fast_converter=True)],
+    [False, {"use_fast_converter": False}, {"use_fast_converter": True}],
 )
 @pytest.mark.parametrize("parallel", [False, True])
 def test_data_at_range_limit(parallel, fast_reader, guess):
@@ -1648,7 +1648,7 @@ def test_fortran_reader_notbasic():
     """
     )[1:-1]
 
-    t1 = ascii.read(tabstr.split("\n"), fast_reader=dict(exponent_style="D"))
+    t1 = ascii.read(tabstr.split("\n"), fast_reader={"exponent_style": "D"})
 
     assert t1["b"].dtype.kind == "f"
 
@@ -1663,7 +1663,7 @@ def test_fortran_reader_notbasic():
     )[1:-1]
 
     t2 = ascii.read(
-        tabrdb.split("\n"), format="rdb", fast_reader=dict(exponent_style="fortran")
+        tabrdb.split("\n"), format="rdb", fast_reader={"exponent_style": "fortran"}
     )
 
     assert t2["b"].dtype.kind == "f"
@@ -1701,7 +1701,7 @@ def test_fortran_reader_notbasic():
             tabrst.split("\n"),
             format="rst",
             guess=False,
-            fast_reader=dict(use_fast_converter=False),
+            fast_reader={"use_fast_converter": False},
         )
 
     tabrst = tabrst.replace("E", "D")
@@ -1711,13 +1711,13 @@ def test_fortran_reader_notbasic():
             tabrst.split("\n"),
             format="rst",
             guess=False,
-            fast_reader=dict(exponent_style="D"),
+            fast_reader={"exponent_style": "D"},
         )
 
 
 @pytest.mark.parametrize("guess", [True, False])
 @pytest.mark.parametrize(
-    "fast_reader", [dict(exponent_style="D"), dict(exponent_style="A")]
+    "fast_reader", [{"exponent_style": "D"}, {"exponent_style": "A"}]
 )
 def test_dict_kwarg_integrity(fast_reader, guess):
     """
@@ -1732,7 +1732,7 @@ def test_dict_kwarg_integrity(fast_reader, guess):
 
 
 @pytest.mark.parametrize(
-    "fast_reader", [False, dict(parallel=True), dict(parallel=False)]
+    "fast_reader", [False, {"parallel": True}, {"parallel": False}]
 )
 def test_read_empty_basic_table_with_comments(fast_reader):
     """
@@ -1751,7 +1751,7 @@ def test_read_empty_basic_table_with_comments(fast_reader):
 
 
 @pytest.mark.parametrize(
-    "fast_reader", [dict(use_fast_converter=True), dict(exponent_style="A")]
+    "fast_reader", [{"use_fast_converter": True}, {"exponent_style": "A"}]
 )
 def test_conversion_fast(fast_reader):
     """

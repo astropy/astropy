@@ -1650,7 +1650,7 @@ def test_minimal_subclass():
     ld3 = LogDRepresentation.from_cartesian(c)
     assert np.all(ld3.lon == ld2.lon)
     assert np.all(ld3.lat == ld2.lat)
-    assert np.all(ld3.logd == ld2.logd)
+    assert_allclose_quantity(ld3.logd, ld2.logd)
     s = ld1.represent_as(SphericalRepresentation)
     assert_allclose_quantity(s.lon, ld1.lon)
     assert_allclose_quantity(s.distance, 10.0 * u.kpc)
@@ -1689,7 +1689,7 @@ def test_duplicate_warning():
     assert "unitspherical" in DUPLICATE_REPRESENTATIONS
     assert "unitspherical" not in REPRESENTATION_CLASSES
     assert (
-        "astropy.coordinates.representation.UnitSphericalRepresentation"
+        "astropy.coordinates.representation.spherical.UnitSphericalRepresentation"
         in REPRESENTATION_CLASSES
     )
     assert (

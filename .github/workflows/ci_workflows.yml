@@ -62,12 +62,12 @@ jobs:
       envs: |
         # NOTE: this coverage test is needed for tests and code that
         #       run only with minimal dependencies.
-        - name: Python 3.10 with minimal dependencies and full coverage
-          linux: py310-test-cov
+        - name: Python 3.11 with minimal dependencies and full coverage
+          linux: py311-test-cov
           coverage: codecov
 
-        - name: Python 3.9 with all optional dependencies
-          linux: py39-test-alldeps-fitsio
+        - name: Python 3.10 with all optional dependencies
+          linux: py310-test-alldeps-fitsio
           libraries:
             apt:
               - language-pack-fr
@@ -76,17 +76,17 @@ jobs:
           toxargs: -v --develop
           posargs: --run-slow
 
-        - name: Python 3.8 with oldest supported version of all dependencies
-          linux: py38-test-oldestdeps-alldeps-cov-clocale
+        - name: Python 3.9 with oldest supported version of all dependencies
+          linux: py39-test-oldestdeps-alldeps-cov-clocale
           posargs: --remote-data=astropy
           coverage: codecov
 
-        - name: Python 3.9 with all optional dependencies (Windows)
-          windows: py39-test-alldeps
+        - name: Python 3.10 with all optional dependencies (Windows)
+          windows: py310-test-alldeps
           posargs: --durations=50
 
-        - name: Python 3.9 with all optional dependencies (MacOS X)
-          macos: py39-test-alldeps
+        - name: Python 3.10 with all optional dependencies (MacOS X)
+          macos: py310-test-alldeps
           posargs: --durations=50 --run-slow
 
   allowed_failures:
@@ -102,7 +102,6 @@ jobs:
         apt:
           - language-pack-de
           - tzdata
-          - libopenblas-dev  # To enable compiling scipy from source if a wheel doesn't exist
       envs: |
         - name: (Allowed Failure) Python 3.11 with remote data and dev version of key dependencies
           linux: py311-test-devdeps
@@ -124,19 +123,19 @@ jobs:
       run: |
         mkdir -p $HOME/.astropy/config/
         printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
-    # In addition to testing 32-bit, we also use the 3.8 builds to
+    # In addition to testing 32-bit, we also use the 3.9 builds to
     # test the ability to run the test suite in parallel.
     # Numpy is pinned to avoid building it from source for numpy 1.21.5
-    - name: Install dependencies for Python 3.8
-      run: /opt/python/cp38-cp38/bin/pip install --upgrade tox
-    - name: Run tests for Python 3.8
-      run: /opt/python/cp38-cp38/bin/python -m tox -e py38-numpy121-test -- -n=4 --durations=50
-    # We use the 3.8 build to check that running tests twice in a row in the
+    - name: Install dependencies for Python 3.9
+      run: /opt/python/cp39-cp39/bin/pip install --upgrade tox
+    - name: Run tests for Python 3.9
+      run: /opt/python/cp39-cp39/bin/python -m tox -e py39-numpy121-test -- -n=4 --durations=50
+    # We use the 3.9 build to check that running tests twice in a row in the
     # same Python session works without issues. This catches cases where
     # running the tests changes the module state permanently. Note that we
     # shouldn't also test the parallel build here since that enforces a degree
     # of isolation of tests which will interfere with what we are trying to do
     # here.
     # Numpy is pinned to avoid building it from source for numpy 1.21.5
-    - name: Run tests for Python 3.8
-      run: /opt/python/cp38-cp38/bin/python -m tox -e py38-numpy121-test-double
+    - name: Run tests for Python 3.9
+      run: /opt/python/cp39-cp39/bin/python -m tox -e py39-numpy121-test-double

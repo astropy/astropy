@@ -108,10 +108,6 @@ intersphinx_mapping.update(
             "https://sphinx-automodapi.readthedocs.io/en/stable/",
             None,
         ),
-        "packagetemplate": (
-            "https://docs.astropy.org/projects/package-template/en/latest/",
-            None,
-        ),
         "asdf-astropy": ("https://asdf-astropy.readthedocs.io/en/latest/", None),
         "fsspec": ("https://filesystem-spec.readthedocs.io/en/latest/", None),
     }
@@ -241,7 +237,7 @@ html_title = f"{project} v{release}"
 # Output file base name for HTML help builder.
 htmlhelp_basename = project + "doc"
 
-# A dictionary of values to pass into the template engine’s context for all pages.
+# A dictionary of values to pass into the template engine's context for all pages.
 html_context = {"to_be_indexed": ["stable", "latest"], "is_development": dev}
 
 # Add any extra paths that contain custom files (such as robots.txt or
@@ -331,6 +327,7 @@ linkcheck_ignore = [
     "https://ui.adsabs.harvard.edu",  # CI blocked by service provider
     "https://www.tandfonline.com/",  # 403 Client Error: Forbidden
     "https://physics.nist.gov/",  # SSL: CERTIFICATE_VERIFY_FAILED
+    "https://ieeexplore.ieee.org/",  # 418 Client Error: I'm a teapot
     "https://pyfits.readthedocs.io/en/v3.2.1/",  # defunct page in CHANGES.rst
     r"https://github\.com/astropy/astropy/(?:issues|pull)/\d+",
 ]
@@ -343,7 +340,7 @@ def rstjinja(app, docname, source):
     # Make sure we're outputting HTML
     if app.builder.format != "html":
         return
-    files_to_render = ["index", "install"]
+    files_to_render = ["index", "install", "development/index"]
     if docname in files_to_render:
         print(f"Jinja rendering {docname}")
         rendered = app.builder.templates.render_string(

@@ -158,14 +158,18 @@ class Parameter:
         if specified, the parameter will be in these units, and when the
         parameter is updated in future, it should be set to a
         :class:`~astropy.units.Quantity` that has equivalent units.
-    getter : callable
-        a function that wraps the raw (internal) value of the parameter
-        when returning the value through the parameter proxy (eg. a
-        parameter may be stored internally as radians but returned to the
-        user as degrees)
-    setter : callable
-        a function that wraps any values assigned to this parameter; should
-        be the inverse of getter
+    getter : callable or `None`, optional
+        A function that wraps the raw (internal) value of the parameter
+        when returning the value through the parameter proxy (e.g., a
+        parameter may be stored internally as radians but returned to
+        the user as degrees). The internal value is what is used for
+        computations while the proxy value is what users will interact
+        with (passing and viewing). If ``getter`` is not `None`, then a
+        ``setter`` must also be input.
+    setter : callable or `None`, optional
+        A function that wraps any values assigned to this parameter; should
+        be the inverse of ``getter``.  If ``setter`` is not `None`, then a
+        ``getter`` must also be input.
     fixed : bool
         if True the parameter is not varied during fitting
     tied : callable or False
@@ -212,6 +216,11 @@ class Parameter:
 
         self._model = None
         self._model_required = False
+
+        if (setter is not None and getter is None) or (
+            getter is not None and setter is None
+        ):
+            raise ValueError("setter and getter must both be input")
         self._setter = self._create_value_wrapper(setter, None)
         self._getter = self._create_value_wrapper(getter, None)
         self._name = name
@@ -334,7 +343,7 @@ class Parameter:
     def value(self):
         """The unadorned value proxied by this parameter."""
         if self._getter is None and self._setter is None:
-            return np.float64(self._value)
+            value = self._value
         else:
             # This new implementation uses the names of internal_unit
             # in place of raw_unit used previously. The contrast between
@@ -342,15 +351,17 @@ class Parameter:
             # units that the parameter advertises to what it actually
             # uses internally.
             if self.internal_unit:
-                return np.float64(
-                    self._getter(
-                        self._internal_value, self.internal_unit, self.unit
-                    ).value
-                )
-            elif self._getter:
-                return np.float64(self._getter(self._internal_value))
-            elif self._setter:
-                return np.float64(self._internal_value)
+                value = self._getter(
+                    self._internal_value, self.internal_unit, self.unit
+                ).value
+            else:
+                value = self._getter(self._internal_value)
+
+        if value.size == 1:
+            # return scalar number as np.float64 object
+            return np.float64(value.item())
+
+        return np.float64(value)
 
     @value.setter
     def value(self, value):
@@ -415,6 +426,16 @@ class Parameter:
         representation used internally.
         """
         self._internal_unit = internal_unit
+
+    @property
+    def input_unit(self):
+        """Unit for the input value."""
+        if self.internal_unit is not None:
+            return self.internal_unit
+        elif self.unit is not None:
+            return self.unit
+        else:
+            return None
 
     @property
     def quantity(self):
@@ -681,6 +702,8 @@ class Parameter:
                     "getter/setter may only take one input "
                     "argument"
                 )
+
+            return _wrap_ufunc(wrapper)
         elif wrapper is None:
             # Just allow non-wrappers to fall through silently, for convenience
             return None
@@ -746,3 +769,21 @@ def param_repr_oneline(param):
     if param.unit is not None:
         out = f"{out} {param.unit!s}"
     return out
+
+
+def _wrap_ufunc(ufunc):
+    def _wrapper(value, raw_unit=None, orig_unit=None):
+        """
+        Wrap ufuncs to support passing in units
+            raw_unit is the unit of the value
+            orig_unit is the value after the ufunc has been applied
+            it is assumed ufunc(raw_unit) == orig_unit
+        """
+        if orig_unit is not None:
+            return ufunc(value) * orig_unit
+        elif raw_unit is not None:
+            return ufunc(value * raw_unit)
+
+        return ufunc(value)
+
+    return _wrapper

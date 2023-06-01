@@ -1267,7 +1267,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
     def _run_fitter(self, model, farg, maxiter, acc, epsilon, estimate_jacobian):
         return None, None, None
 
-    def _filter_non_finite(self, x, y, z=None):
+    def _filter_non_finite(self, x, y, z=None, weights=None):
         """
         Filter out non-finite values in x, y, z.
 
@@ -1282,12 +1282,14 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
             mask = np.isfinite(y)
             if not np.all(mask):
                 warnings.warn(MESSAGE, AstropyUserWarning)
-            return x[mask], y[mask], None
+            z_out = None
         else:
             mask = np.isfinite(z)
             if not np.all(mask):
                 warnings.warn(MESSAGE, AstropyUserWarning)
-            return x[mask], y[mask], z[mask]
+            z_out = z[mask]
+
+        return x[mask], y[mask], z_out, None if weights is None else weights[mask]
 
     @fitter_unit_support
     def __call__(
@@ -1355,7 +1357,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         model_copy.sync_constraints = False
 
         if filter_non_finite:
-            x, y, z = self._filter_non_finite(x, y, z)
+            x, y, z, weights = self._filter_non_finite(x, y, z, weights)
         farg = (
             model_copy,
             weights,
@@ -2055,7 +2057,10 @@ def fitter_to_model_params(model, fps, use_min_max_bounds=True):
                 model._array_to_parameters()
 
 
-@deprecated("5.1", "private method: _fitter_to_model_params has been made public now")
+@deprecated(
+    since="5.1",
+    message="private method: _fitter_to_model_params has been made public now",
+)
 def _fitter_to_model_params(model, fps):
     return fitter_to_model_params(model, fps)
 
@@ -2099,7 +2104,10 @@ def model_to_fit_params(model):
     return model_params, fitparam_indices, model_bounds
 
 
-@deprecated("5.1", "private method: _model_to_fit_params has been made public now")
+@deprecated(
+    since="5.1",
+    message="private method: _model_to_fit_params has been made public now",
+)
 def _model_to_fit_params(model):
     return model_to_fit_params(model)
 

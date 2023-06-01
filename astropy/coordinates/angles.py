@@ -314,10 +314,21 @@ class Angle(u.SpecificTypeQuantity):
                 )
             func = ("{:g}" if precision is None else f"{{0:0.{precision}f}}").format
             # Don't add unit by default for decimal.
+            # TODO: could we use Quantity.to_string() here?
             if not (decimal and format is None):
                 unit_string = unit.to_string(format=format)
                 if format == "latex" or format == "latex_inline":
-                    unit_string = unit_string[1:-1]
+                    # Remove $ and add space in front if unit is not a superscript.
+                    if "^" in unit_string:
+                        unit_string = unit_string[1:-1]
+                    else:
+                        unit_string = r"\;" + unit_string[1:-1]
+                elif len(unit_string) > 1:
+                    # Length one for angular units can only happen for
+                    # superscript degree, arcmin, arcsec, hour, minute, second,
+                    # and those should not get an extra space.
+                    unit_string = " " + unit_string
+
                 format_func = func
                 func = lambda x: format_func(x) + unit_string
 
@@ -553,11 +564,17 @@ class Latitude(Angle):
         if angles.unit is u.deg:
             limit = 90
         elif angles.unit is u.rad:
-            limit = self.dtype.type(0.5 * np.pi)
+            limit = 0.5 * np.pi
         else:
             limit = u.degree.to(angles.unit, 90.0)
 
-        invalid_angles = np.any(angles.value < -limit) or np.any(angles.value > limit)
+        # Ensure ndim>=1 so that comparison is done using the angle dtype.
+        # Otherwise, e.g., np.array(np.pi/2, 'f4') > np.pi/2 will yield True.
+        # (This feels like a bug -- see https://github.com/numpy/numpy/issues/23247)
+        # Note that we should avoid using `angles.dtype` directly since for
+        # structured arrays like Distribution this will be `void`.
+        angles_view = angles.view(np.ndarray)[np.newaxis]
+        invalid_angles = np.any(angles_view < -limit) or np.any(angles_view > limit)
         if invalid_angles:
             raise ValueError(
                 "Latitude angle(s) must be within -90 deg <= angle <= 90 deg, "

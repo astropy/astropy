@@ -41,7 +41,7 @@ class _WCSAxesArtist(Artist):
     and gridlines in the standary way.
     """
 
-    def draw(self, renderer, *args, **kwargs):
+    def draw(self, renderer):
         self.axes.draw_wcsaxes(renderer)
 
 
@@ -358,6 +358,34 @@ class WCSAxes(Axes):
 
         return super().plot(*args, **kwargs)
 
+    def text_coord(self, *args, **kwargs):
+        """
+        Print a text string using `~astropy.coordinates.SkyCoord` or
+        `~astropy.coordinates.BaseCoordinateFrame` objects onto the axes.
+
+        The first argument to
+        :meth:`~astropy.visualization.wcsaxes.WCSAxes.text_coord` should be a
+        coordinate, which will then be converted to the first two parameters to
+        `matplotlib.axes.Axes.text`. All other arguments are the same as
+        `matplotlib.axes.Axes.text`. If not specified a ``transform`` keyword
+        argument will be created based on the coordinate.
+
+        Parameters
+        ----------
+        coordinate : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
+            The coordinate object to plot on the axes. This is converted to the
+            first two arguments to `matplotlib.axes.Axes.text`.
+
+        See Also
+        --------
+        matplotlib.axes.Axes.text :
+            This method is called from this function with all arguments passed to it.
+
+        """
+        args, kwargs = self._transform_plot_args(*args, **kwargs)
+
+        return super().text(*args, **kwargs)
+
     def scatter_coord(self, *args, **kwargs):
         """
         Scatter `~astropy.coordinates.SkyCoord` or
@@ -502,7 +530,7 @@ class WCSAxes(Axes):
 
         self.coords.frame.draw(renderer)
 
-    def draw(self, renderer, **kwargs):
+    def draw(self, renderer):
         """Draw the axes."""
         # Before we do any drawing, we need to remove any existing grid lines
         # drawn with contours, otherwise if we try and remove the contours
@@ -533,7 +561,7 @@ class WCSAxes(Axes):
         # We need to make sure that that frame path is up to date
         self.coords.frame._update_patch_path()
 
-        super().draw(renderer, **kwargs)
+        super().draw(renderer)
 
         self._drawn = True
 

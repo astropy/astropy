@@ -554,7 +554,7 @@ def _get_line_index(line_or_func, lines):
     """Return the appropriate line index, depending on ``line_or_func`` which
     can be either a function, a positive or negative int, or None.
     """
-    if hasattr(line_or_func, "__call__"):
+    if callable(line_or_func):
         return line_or_func(lines)
     elif line_or_func:
         if line_or_func >= 0:
@@ -955,7 +955,7 @@ class BaseData:
         lines : list
             List for collecting output of writing self.cols.
         """
-        if hasattr(self.start_line, "__call__"):
+        if callable(self.start_line):
             raise TypeError("Start_line attribute cannot be callable for write()")
         else:
             data_start_line = self.start_line or 0

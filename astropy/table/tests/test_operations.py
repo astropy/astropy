@@ -12,6 +12,7 @@ from astropy.coordinates import (
     BaseRepresentationOrDifferential,
     CartesianRepresentation,
     SkyCoord,
+    StokesCoord,
     SphericalRepresentation,
     UnitSphericalRepresentation,
     search_around_3d,
@@ -1441,6 +1442,7 @@ class TestVStack:
                 SkyCoord,
                 EarthLocation,
                 BaseRepresentationOrDifferential,
+                StokesCoord,
             ),
         ):
             out = table.vstack([t, t])

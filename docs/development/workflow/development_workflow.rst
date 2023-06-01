@@ -61,12 +61,12 @@ Before going further, make sure you have set up astropy as described in
 In a terminal window, change directory to the one containing your clone of
 Astropy. Then, run ``git remote``; the output should look something like this::
 
-    your-github-username
     astropy
+    origin
 
 If that works, also run ``git fetch --all``. If it runs without errors then
 your installation is working and you have a complete list of all branches in
-your clone, ``your-github-username`` and ``astropy``.
+your clone, ``origin`` and ``astropy``.
 
 About names in `git`_
 =====================
@@ -78,8 +78,8 @@ your clone of git knows about with ``git branch -a`` you will see there are
 *three* different branches called ``main``::
 
     * main                              # this is main in your local repo
-    remotes/your-github-username/main   # main on your fork of Astropy on GitHub
     remotes/astropy/main                # the official development branch of Astropy
+    remotes/origin/main                 # main on your fork of Astropy on GitHub
 
 The naming scheme used by `git`_ will also be used here. A plain branch name,
 like ``main`` means a branch in your local copy of Astropy. A branch on a
@@ -143,11 +143,15 @@ Astropy Guidelines for `git`_
 * Never merge changes from ``astropy/main`` into your feature branch. If
   changes in the development version require changes to our code you can
   :ref:`rebase`.
+* If you need to edit `.mailmap <https://git-scm.com/docs/gitmailmap>`_ and
+  know how to do it then you can open a pull request for that. Please run
+  `git shortlog -es <https://git-scm.com/docs/git-shortlog>`_ locally
+  first with your changes to make sure your
+  edit is correct, and you only appear in the list once.
 
-In addition there are a couple of `git`_ naming conventions used in this
+In addition, there is a `git`_ naming convention used in this
 document:
 
-* Change the name of the remote ``origin`` to ``your-github-username``.
 * Name the remote that is the primary Astropy repository
   ``astropy``; in prior versions of this documentation it was referred to as
   ``upstream``.
@@ -248,7 +252,7 @@ details.
 Fetch the latest Astropy
 ************************
 
-From time to time you should fetch the development version (i.e. Astropy
+From time to time you should fetch the development version (i.e., Astropy
 ``astropy/main``) changes from GitHub::
 
    git fetch astropy --tags
@@ -298,15 +302,15 @@ The most convenient way for connecting your local branch to GitHub is to `git
 push`_ this new branch up to your GitHub repo with the ``--set-upstream``
 option::
 
-   git push --set-upstream your-github-username my-new-feature
+   git push --set-upstream origin my-new-feature
 
 From now on git will know that ``my-new-feature`` is related to the
-``your-github-username/my-new-feature`` branch in your GitHub fork of Astropy.
+``my-new-feature`` branch in your GitHub fork of Astropy.
 
-You will still need to ``git push`` your changes to GitHub periodically. The
+You will still need to :ref:`push-to-github` periodically. The
 setup in this section will make that easier because any following pushes of
 this branch can be performed without having to write out the remote and branch
-names.
+names, but it never hurts to be explicit in typing out the commands.
 
 .. _install-branch:
 
@@ -456,18 +460,13 @@ names and the like is encouraged.
 
 .. _push-to-github:
 
-Copy your changes to GitHub
+Push your changes to GitHub
 ***************************
 
-If you followed the instructions to `Connect the branch to GitHub`_ then you
-can simply use::
+To push your changes on a branch named ``my-new-feature`` to your
+GitHub fork of ``astropy`` with the same branch name::
 
-    git push
-
-If you skipped that step then you need to write out the remote and branch
-names::
-
-    git push your-github-username my-new-feature
+    git push origin my-new-feature
 
 .. _pull-request:
 
@@ -563,8 +562,8 @@ start make a branch to serve as a backup copy of your work::
 
     git branch tmp my-new-feature # make temporary branch--will be deleted later
 
-After altering the history, e.g. with ``git rebase``, a normal ``git push``
-is prevented, and a ``git push --force`` will be required.
+After altering the history, e.g., with ``git rebase``, a normal ``git push``
+is prevented, and a ``--force`` option will be required.
 
 .. warning::
 
@@ -582,10 +581,14 @@ Behind the scenes, `git`_ is deleting the changes and branch you made, making th
 changes others made to the development branch of Astropy, then re-making your
 branch from the development branch and applying your changes to your branch.
 
-The actual rebasing is usually easy::
+First, fetch the latest development astropy and go to your branch of interest::
 
-    git fetch astropy main # get the latest development astropy
-    git rebase astropy/main my-new-feature
+    git fetch astropy main
+    git checkout my-new-feature
+
+Now, do the rebase::
+
+    git rebase astropy/main
 
 You are more likely to run into *conflicts* here — places where the changes you
 made conflict with changes that someone else made — than anywhere else. Ask for
@@ -626,7 +629,7 @@ GitHub so that they are visible to others and the pull request can be
 updated.  Use of a simple ``git push`` will be prevented because of the
 changed history, and will need to be manually overridden using::
 
-    git push --force
+    git push origin my-new-feature --force
 
 If you run into any problems, do not hesitate to ask. A more detailed conceptual
 discussing of rebasing is at :ref:`rebase-on-trunk`.

@@ -22,8 +22,8 @@ def pytest_configure(config):
     PYTEST_HEADER_MODULES["PyERFA"] = "erfa"
     PYTEST_HEADER_MODULES["Cython"] = "cython"
     PYTEST_HEADER_MODULES["Scikit-image"] = "skimage"
-    PYTEST_HEADER_MODULES["asdf"] = "asdf"
     PYTEST_HEADER_MODULES["pyarrow"] = "pyarrow"
+    PYTEST_HEADER_MODULES["asdf-astropy"] = "asdf_astropy"
     TESTED_VERSIONS["Astropy"] = __version__
 
 

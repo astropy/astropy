@@ -123,9 +123,7 @@ _cached_castor[
 def test_names():
     # First check that sesame is up
     if (
-        urllib.request.urlopen(
-            "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame"
-        ).getcode()
+        urllib.request.urlopen("https://cdsweb.unistra.fr/cgi-bin/nph-sesame").getcode()
         != 200
     ):
         pytest.skip(

@@ -395,7 +395,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 self._components_and_classes_cache = None
 
         # Avoid circular imports by importing here
-        from astropy.coordinates import EarthLocation, SkyCoord
+        from astropy.coordinates import EarthLocation, SkyCoord, StokesCoord
         from astropy.time import Time, TimeDelta
         from astropy.time.formats import FITS_DEPRECATED_SCALES
         from astropy.wcs.utils import wcs_to_celestial_frame
@@ -416,7 +416,11 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             else:
                 kwargs = {}
                 kwargs["frame"] = celestial_frame
-                kwargs["unit"] = u.deg
+                # Very occasionally (i.e. with TAB) wcs does not convert the units to degrees
+                kwargs["unit"] = (
+                    u.Unit(self.wcs.cunit[self.wcs.lng]),
+                    u.Unit(self.wcs.cunit[self.wcs.lat]),
+                )
 
                 classes["celestial"] = (SkyCoord, (), kwargs)
 
@@ -445,7 +449,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 earth_location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m)
 
                 # Get the time scale from TIMESYS or fall back to 'utc'
-                tscale = self.wcs.timesys or "utc"
+                tscale = self.wcs.timesys.lower() or "utc"
 
                 if np.isnan(self.wcs.mjdavg):
                     obstime = Time(
@@ -695,8 +699,8 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     # Initialize delta
                     reference_time_delta = None
 
-                    # Extract time scale
-                    scale = self.wcs.ctype[i].lower()
+                    # Extract time scale, and remove any algorithm code
+                    scale = self.wcs.ctype[i].split("-")[0].lower()
 
                     if scale == "time":
                         if self.wcs.timesys:
@@ -774,6 +778,13 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
                     classes[name] = (Time, (), {}, time_from_reference_and_offset)
                     components[i] = (name, 0, offset_from_time_and_reference)
+
+        if "phys.polarization.stokes" in self.world_axis_physical_types:
+            for i in range(self.naxis):
+                if self.world_axis_physical_types[i] == "phys.polarization.stokes":
+                    name = "stokes"
+                    classes[name] = (StokesCoord, (), {})
+                    components[i] = (name, 0, "value")
 
         # Fallback: for any remaining components that haven't been identified, just
         # return Quantity as the class to use

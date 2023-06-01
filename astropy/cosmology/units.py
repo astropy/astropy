@@ -79,17 +79,26 @@ def redshift_distance(cosmology=None, kind="comoving", **atzkw):
         A cosmology realization or built-in cosmology's name (e.g. 'Planck18').
         If None, will use the default cosmology
         (controlled by :class:`~astropy.cosmology.default_cosmology`).
-    kind : {'comoving', 'lookback', 'luminosity'} or None, optional
+    kind : {'comoving', 'lookback', 'luminosity'}, optional
         The distance type for the Equivalency.
         Note this does NOT include the angular diameter distance as this
         distance measure is not monotonic.
     **atzkw
-        keyword arguments for :func:`~astropy.cosmology.z_at_value`
+        keyword arguments for :func:`~astropy.cosmology.z_at_value`, which is used to
+        convert distance to redshift.
 
     Returns
     -------
     `~astropy.units.equivalencies.Equivalency`
         Equivalency between redshift and temperature.
+
+    Raises
+    ------
+    `~astropy.cosmology.CosmologyError`
+        If the distance corresponds to a redshift that is larger than ``zmax``.
+    Exception
+        See :func:`~astropy.cosmology.z_at_value` for possible exceptions, e.g. if the
+        distance maps to a redshift that is larger than ``zmax``, the maximum redshift.
 
     Examples
     --------
@@ -98,8 +107,16 @@ def redshift_distance(cosmology=None, kind="comoving", **atzkw):
     >>> from astropy.cosmology import WMAP9
 
     >>> z = 1100 * cu.redshift
-    >>> z.to(u.Mpc, cu.redshift_distance(WMAP9, kind="comoving"))  # doctest: +FLOAT_CMP
+    >>> d = z.to(u.Mpc, cu.redshift_distance(WMAP9, kind="comoving"))
+    >>> d  # doctest: +FLOAT_CMP
     <Quantity 14004.03157418 Mpc>
+
+    The reverse operation is also possible, though not always as simple. To convert a
+    very large distance to a redshift it might be necessary to specify a large enough
+    ``zmax`` value. See :func:`~astropy.cosmology.z_at_value` for details.
+
+    >>> d.to(cu.redshift, cu.redshift_distance(WMAP9, kind="comoving", zmax=1200))  # doctest: +FLOAT_CMP
+    <Quantity 1100.000 redshift>
     """
     from astropy.cosmology import default_cosmology, z_at_value
 

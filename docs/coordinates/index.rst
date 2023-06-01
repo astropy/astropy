@@ -30,9 +30,6 @@ optional velocities) with specified units and a coordinate frame. Sky positions
 are commonly passed in as `~astropy.units.Quantity` objects and the frame is
 specified with the string name.
 
-Example
--------
-
 ..
   EXAMPLE START
   Using the SkyCoord Class
@@ -144,9 +141,6 @@ Transformation
 One convenient way to transform to a new coordinate frame is by accessing
 the appropriately named attribute.
 
-Example
-^^^^^^^
-
 ..
   EXAMPLE START
   Transforming to a New Coordinate Frame
@@ -196,9 +190,6 @@ representation such as Cartesian or Cylindrical. This can be done by setting
 the ``representation_type`` for either |SkyCoord| objects or low-level frame
 coordinate objects.
 
-Example
-^^^^^^^
-
 ..
   EXAMPLE START
   Working with Nonspherical Coordinate Representations
@@ -230,9 +221,6 @@ Distance
 from the frame origin. The origin depends on the particular coordinate frame;
 this can be, for example, centered on the earth, centered on the solar system
 barycenter, etc.
-
-Examples
-^^^^^^^^
 
 ..
   EXAMPLE START
@@ -267,9 +255,6 @@ Convenience Methods
 |SkyCoord| defines a number of convenience methods that support, for example,
 computing on-sky (i.e., angular) and 3D separations between two coordinates.
 
-Examples
-^^^^^^^^
-
 ..
   EXAMPLE START
   SkyCoord Convenience Methods
@@ -295,7 +280,7 @@ Or cross-matching catalog coordinates (detailed in
 The `astropy.coordinates` sub-package also provides a quick way to get
 coordinates for named objects, assuming you have an active internet
 connection. The `~astropy.coordinates.SkyCoord.from_name` method of |SkyCoord|
-uses `Sesame <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve coordinates
+uses `Sesame <https://cds.unistra.fr/cgi-bin/Sesame>`_ to retrieve coordinates
 for a particular named object.
 
 ..
@@ -362,8 +347,6 @@ names, city names, etc:
 
     >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO')  # doctest: +FLOAT_CMP
     <EarthLocation (-26769.86528679, -4997007.71191864, 3950273.57633915) m>
-    >>> EarthLocation.of_address('Danbury, CT')  # doctest: +FLOAT_CMP
-    <EarthLocation (1362610.66896362, -4590755.48088484, 4198817.69912853) m>
 
 By default the `OpenStreetMap Nominatim service
 <https://wiki.openstreetmap.org/wiki/Nominatim>`_ is used, but by providing a
@@ -411,30 +394,20 @@ While ``astropy.coordinates`` does not natively support converting an Earth
 location to a timezone, the longitude and latitude can be retrieved from any
 `~astropy.coordinates.EarthLocation` object, which could then be passed to any
 third-party package that supports timezone solving, such as `timezonefinder
-<https://timezonefinder.readthedocs.io/>`_. For example, ``timezonefinder`` can
-be used to retrieve the timezone name for an address with:
-
-.. doctest-skip::
-
-    >>> loc = EarthLocation.of_address('Tucson, AZ')
-    >>> from timezonefinder import TimezoneFinder
-    >>> tz_name = TimezoneFinder().timezone_at(lng=loc.lon.degree,
-    ...                                        lat=loc.lat.degree)
-    >>> tz_name
-    'America/Phoenix'
+<https://timezonefinder.readthedocs.io/>`_, in which case you might have to
+pass in their ``.degree`` attributes.
 
 The resulting timezone name could then be used with any packages that support
 time zone definitions, such as the (Python 3.9 default package) `zoneinfo
 <https://docs.python.org/3/library/zoneinfo.html>`_:
 
-.. doctest-skip::
+.. doctest-remote-data::
 
-    >>> from zoneinfo import ZoneInfo  # requires Python 3.9 or greater
-    >>> tz = ZoneInfo(tz_name)
+    >>> import datetime
+    >>> from zoneinfo import ZoneInfo
+    >>> tz = ZoneInfo('America/Phoenix')
     >>> dt = datetime.datetime(2021, 4, 12, 20, 0, 0, tzinfo=tz)
 
-(Please note that the above code is not tested regularly with the ``astropy`` test
-suite, so please raise an issue if this no longer works.)
 
 Velocities (Proper Motions and Radial Velocities)
 -------------------------------------------------
@@ -517,6 +490,7 @@ listed below.
    velocities
    apply_space_motion
    spectralcoord
+   stokescoord
    galactocentric
    remote_methods
    common_errors

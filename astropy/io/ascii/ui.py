@@ -682,11 +682,11 @@ def _get_guess_kwargs_list(read_kwargs):
     # If the table is probably HTML based on some heuristics then start with the
     # HTML reader.
     if read_kwargs.pop("guess_html", None):
-        guess_kwargs_list.append(dict(Reader=html.HTML))
+        guess_kwargs_list.append({"Reader": html.HTML})
 
     # Start with ECSV because an ECSV file will be read by Basic.  This format
     # has very specific header requirements and fails out quickly.
-    guess_kwargs_list.append(dict(Reader=ecsv.Ecsv))
+    guess_kwargs_list.append({"Reader": ecsv.Ecsv})
 
     # Now try readers that accept the user-supplied keyword arguments
     # (actually include all here - check for compatibility of arguments later).
@@ -709,7 +709,7 @@ def _get_guess_kwargs_list(read_kwargs):
         latex.Latex,
         latex.AASTex,
     ):
-        guess_kwargs_list.append(dict(Reader=reader))
+        guess_kwargs_list.append({"Reader": reader})
 
     # Cycle through the basic-style readers using all combinations of delimiter
     # and quotechar.
@@ -724,7 +724,7 @@ def _get_guess_kwargs_list(read_kwargs):
         for delimiter in ("|", ",", " ", r"\s"):
             for quotechar in ('"', "'"):
                 guess_kwargs_list.append(
-                    dict(Reader=Reader, delimiter=delimiter, quotechar=quotechar)
+                    {"Reader": Reader, "delimiter": delimiter, "quotechar": quotechar}
                 )
 
     return guess_kwargs_list

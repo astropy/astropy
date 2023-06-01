@@ -76,6 +76,7 @@
 
 .. _Python: https://www.python.org/
 .. |minimum_python_version| replace:: {minimum_python}
+.. _PEP8: https://www.python.org/dev/peps/pep-0008/
 
 .. Astropy
 .. _`Astropy mailing list`: https://mail.python.org/mailman/listinfo/astropy
@@ -108,8 +109,8 @@
 .. _`scipy mailing list`: http://mail.python.org/mailman/listinfo/scipy-dev
 .. |minimum_scipy_version| replace:: {scipy}
 
-.. asdf
-.. |minimum_asdf_version| replace:: {asdf}
+.. asdf-astropy
+.. |minimum_asdf_astropy_version| replace:: {asdf-astropy}
 
 .. pyyaml
 .. |minimum_pyyaml_version| replace:: {pyyaml}
@@ -119,7 +120,7 @@
 .. |minimum_packaging_version| replace:: {packaging}
 
 .. IPython
-.. _IPython: http://ipython.org/
+.. _IPython: https://ipython.org/
 .. _`ipython github`: https://github.com/ipython/ipython
 .. _`ipython mailing list`: http://mail.python.org/mailman/listinfo/IPython-dev
 .. |minimum_ipython_version| replace:: {ipython}
@@ -162,3 +163,6 @@
 .. _`STIL`: http://www.starlink.ac.uk/stil/
 .. _`STILTS`: http://www.starlink.ac.uk/stilts/
 .. _`TOPCAT`: http://www.starlink.ac.uk/topcat/
+
+.. OpenAstronomy
+.. _`OpenAstronomy Packaging Guide`: https://packaging-guide.openastronomy.org/en/latest/

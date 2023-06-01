@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import abc
 import contextlib
 import re
 import warnings
@@ -21,7 +20,7 @@ class IORegistryError(Exception):
 # -----------------------------------------------------------------------------
 
 
-class _UnifiedIORegistryBase(metaclass=abc.ABCMeta):
+class _UnifiedIORegistryBase:
     """Base class for registries in Astropy's Unified IO.
 
     This base class provides identification functions and miscellaneous
@@ -43,8 +42,11 @@ class _UnifiedIORegistryBase(metaclass=abc.ABCMeta):
         self._identifiers = OrderedDict()
 
         # what this class can do: e.g. 'read' &/or 'write'
-        self._registries = dict()
-        self._registries["identify"] = dict(attr="_identifiers", column="Auto-identify")
+        self._registries = {}
+        self._registries["identify"] = {
+            "attr": "_identifiers",
+            "column": "Auto-identify",
+        }
         self._registries_order = ("identify",)  # match keys in `_registries`
 
         # If multiple formats are added to one class the update of the docs is quite

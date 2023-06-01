@@ -1333,7 +1333,7 @@ class Model(metaclass=_ModelMeta):
         inverse defined.
         """
         try:
-            self.inverse
+            self.inverse  # noqa: B018
         except NotImplementedError:
             return False
 
@@ -3276,8 +3276,8 @@ class CompoundModel(Model):
         )
 
         try:
-            self.left.inverse
-            self.right.inverse
+            self.left.inverse  # noqa: B018
+            self.right.inverse  # noqa: B018
         except NotImplementedError:
             return False
 
@@ -4389,7 +4389,7 @@ def custom_model(*args, fit_deriv=None):
     Create an instance of the custom model and evaluate it::
 
         >>> model = SineModel()
-        >>> model(0.25)
+        >>> model(0.25)  # doctest: +FLOAT_CMP
         1.0
 
     This model instance can now be used like a usual astropy model.

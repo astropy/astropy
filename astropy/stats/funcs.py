@@ -13,7 +13,6 @@ import math
 
 import numpy as np
 
-import astropy.units as u
 
 from . import _stats
 
@@ -612,7 +611,7 @@ def poisson_conf_interval(
     insensitive to the choice of prior.
 
     This function has an optional dependency: Either `Scipy
-    <https://www.scipy.org/>`_ or `mpmath <http://mpmath.org/>`_  need
+    <https://www.scipy.org/>`_ or `mpmath <https://mpmath.org/>`_  need
     to be available (Scipy works only for N < 100).
     This code is very intense numerically, which makes it much slower than
     the other methods, in particular for large count numbers (above 1000
@@ -815,30 +814,12 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
     # np.nanmedian has `keepdims`, which is a good option if we're not allowing
     # user-passed functions here
     data_median = func(data, axis=axis)
-    # this conditional can be removed after this PR is merged:
-    # https://github.com/astropy/astropy/issues/12165
-    if (
-        isinstance(data, u.Quantity)
-        and func is np.median
-        and data_median.ndim == 0
-        and np.isnan(data_median)
-    ):
-        data_median = data.__array_wrap__(data_median)
 
     # broadcast the median array before subtraction
     if axis is not None:
         data_median = np.expand_dims(data_median, axis=axis)
 
     result = func(np.abs(data - data_median), axis=axis, overwrite_input=True)
-    # this conditional can be removed after this PR is merged:
-    # https://github.com/astropy/astropy/issues/12165
-    if (
-        isinstance(data, u.Quantity)
-        and func is np.median
-        and result.ndim == 0
-        and np.isnan(result)
-    ):
-        result = data.__array_wrap__(result)
 
     if axis is None and np.ma.isMaskedArray(result):
         # return scalar version
@@ -1092,7 +1073,7 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
     about N > 100 (the exact limit depends on details of how scipy was
     compiled). See `~astropy.stats.mpmath_poisson_upper_limit` for an
     implementation that is slower, but can deal with arbitrarily high numbers
-    since it is based on the `mpmath <http://mpmath.org/>`_ library.
+    since it is based on the `mpmath <https://mpmath.org/>`_ library.
     """
     from math import exp
 
@@ -1166,7 +1147,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
 
     Notes
     -----
-    Requires the `mpmath <http://mpmath.org/>`_ library.  See
+    Requires the `mpmath <https://mpmath.org/>`_ library.  See
     `~astropy.stats.scipy_poisson_upper_limit` for an implementation
     that is based on scipy and evaluates faster, but runs only to about
     N = 100.
@@ -1262,7 +1243,7 @@ def _kraft_burrows_nousek(N, B, CL):
     Notes
     -----
     This functions has an optional dependency: Either :mod:`scipy` or `mpmath
-    <http://mpmath.org/>`_  need to be available. (Scipy only works for
+    <https://mpmath.org/>`_  need to be available. (Scipy only works for
     N < 100).
     """
     from astropy.utils.compat.optional_deps import HAS_MPMATH, HAS_SCIPY
@@ -1467,7 +1448,7 @@ def kuiper_two(data1, data2):
     data2 = np.sort(data2)
     (n1,) = data1.shape
     (n2,) = data2.shape
-    common_type = np.find_common_type([], [data1.dtype, data2.dtype])
+    common_type = np.result_type(data1.dtype, data2.dtype)
     if not (
         np.issubdtype(common_type, np.number)
         and not np.issubdtype(common_type, np.complexfloating)

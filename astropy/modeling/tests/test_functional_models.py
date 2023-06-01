@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # pylint: disable=invalid-name
+from contextlib import nullcontext
+
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_array_equal, assert_array_less
@@ -9,7 +11,7 @@ from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.modeling import InputParameterError, fitting, models
 from astropy.utils.compat.optional_deps import HAS_SCIPY
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 fitters = [
     fitting.LevMarLSQFitter,
@@ -478,18 +480,31 @@ def test_Voigt1D_norm(algorithm):
     """Test integral of normalized Voigt profile."""
     from scipy.integrate import quad
 
-    voi = models.Voigt1D(
-        amplitude_L=1.0 / np.pi, x_0=0.0, fwhm_L=2.0, fwhm_G=1.5, method=algorithm
-    )
-    if algorithm == "wofz":
-        atol = 1e-14
-    else:
+    if algorithm == "humlicek2":
+        ctx = pytest.warns(
+            AstropyDeprecationWarning, match=r"humlicek2 has been deprecated since .*"
+        )
         atol = 1e-8
+    else:
+        ctx = nullcontext()
+        atol = 1e-14
+
+    def voigt(algorithm):
+        return models.Voigt1D(
+            amplitude_L=1.0 / np.pi, x_0=0.0, fwhm_L=2.0, fwhm_G=1.5, method=algorithm
+        )
+
+    with ctx:
+        voi = models.Voigt1D(
+            amplitude_L=1.0 / np.pi, x_0=0.0, fwhm_L=2.0, fwhm_G=1.5, method=algorithm
+        )
+
     assert_allclose(quad(voi, -np.inf, np.inf)[0], 1.0, atol=atol)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 @pytest.mark.parametrize("doppler", (1.0e-3, 1.0e-2, 0.1, 0.5, 1.0, 2.5, 5.0, 10))
+@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_Voigt1D_hum2(doppler):
     """
     Verify accuracy of Voigt profile in Humlicek approximation to Faddeeva.cc (SciPy).
@@ -514,6 +529,26 @@ def test_Voigt1D_hum2(doppler):
 
     assert_allclose(vf_h, vf_w, rtol=1e-7 * (2 + 1 / np.sqrt(doppler)))
     assert_allclose(dvda_h, dvda_w, rtol=1e-9, atol=1e-7 * (1 + 30 / doppler))
+
+
+@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
+def test_Voigt1D_method():
+    """Test Voigt1D default method"""
+
+    voi = models.Voigt1D(method="humlicek2")
+    assert voi.method == "_hum2zpf16c"
+
+    voi = models.Voigt1D()
+    if HAS_SCIPY:
+        assert voi.method == "wofz"
+
+        voi = models.Voigt1D(method="wofz")
+        assert voi.method == "wofz"
+
+        voi = models.Voigt1D(method="scipy")
+        assert voi.method == "wofz"
+    else:
+        assert voi.method == "_hum2zpf16c"
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
@@ -568,8 +603,8 @@ def test_trig_inverse(trig):
     lower, upper = trig[1]
 
     x = np.arange(lower, upper, 0.01)
-    assert_allclose(mdl.inverse(mdl(x)), x, atol=1e-10)
-    assert_allclose(mdl(mdl.inverse(x)), x, atol=1e-10)
+    assert_allclose(mdl.inverse(mdl(x)), x, rtol=1e-13, atol=1e-8)
+    assert_allclose(mdl(mdl.inverse(x)), x, rtol=1e-13, atol=1e-8)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")

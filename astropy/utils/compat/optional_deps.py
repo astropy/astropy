@@ -10,7 +10,6 @@ import warnings
 # some of the package names are different from the pip-install name (e.g.,
 # beautifulsoup4 -> bs4).
 _optional_deps = [
-    "asdf",
     "asdf_astropy",
     "bleach",
     "bottleneck",

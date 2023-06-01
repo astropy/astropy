@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import abc
 import inspect
-from typing import TYPE_CHECKING, Any, Mapping, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import numpy as np
 
@@ -21,6 +21,8 @@ from .connect import (
 from .parameter import Parameter
 
 if TYPE_CHECKING:  # pragma: no cover
+    from collections.abc import Mapping
+
     from astropy.cosmology.funcs.comparison import _FormatType
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
@@ -419,7 +421,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
 
         # Determine the non-flat class.
         # This will raise a TypeError if the MRO is inconsistent.
-        cls.__nonflatclass__
+        cls.__nonflatclass__  # noqa: B018
 
     # ===============================================================
 
@@ -587,26 +589,3 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
         )
 
         return params_eq
-
-
-# -----------------------------------------------------------------------------
-
-
-def __getattr__(attr):
-    from . import flrw
-
-    if hasattr(flrw, attr) and attr not in ("__path__",):
-        import warnings
-
-        from astropy.utils.exceptions import AstropyDeprecationWarning
-
-        warnings.warn(
-            f"`astropy.cosmology.core.{attr}` has been moved (since v5.0) and "
-            f"should be imported as ``from astropy.cosmology import {attr}``."
-            " In future this will raise an exception.",
-            AstropyDeprecationWarning,
-        )
-
-        return getattr(flrw, attr)
-
-    raise AttributeError(f"module {__name__!r} has no attribute {attr!r}.")
