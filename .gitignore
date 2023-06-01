@@ -28,6 +28,7 @@ docs/api
 docs/generated
 docs/visualization/ngc6976.jpeg
 docs/visualization/ngc6976-default.jpeg
+docs/coordinates/TabCompleteList.txt
 
 # Packages/installer info
 *.egg
