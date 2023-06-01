@@ -315,6 +315,36 @@ structured array by creating a copy or reference with :func:`numpy.array`::
   >>> data = np.array(t, copy=False)  # reference to data in t
 
 
+Possibly missing columns
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+In some cases it might not be guaranteed that a column is present in a table,
+but there does exist a good default value that can be used if it is not. The
+columns of a |Table| can be represented as a :class:`dict` subclass instance
+through the ``columns`` attribute, which means that a replacement for missing
+columns can be provided using the :meth:`dict.get` method::
+
+    >>> t.columns.get("b", np.zeros(len(t)))
+    <Column name='b' dtype='int32' length=5>
+     1
+     4
+     7
+    10
+    13
+    >>> t.columns.get("x", np.zeros(len(t)))
+    array([0., 0., 0., 0., 0.])
+
+In case of a single |Row| it is possible to use its
+:meth:`~astropy.table.Row.get` method without having to go through
+``columns``::
+
+    >>> row = t[2]
+    >>> row.get("c", -1)
+    8
+    >>> row.get("y", -1)
+    -1
+
+
 Table Equality
 --------------
 
