@@ -1,0 +1,3 @@
+Removed deprecated ``pedantic`` option from the
+``astropy.io.votable.table.parse()`` function and the corresponding configuration
+setting. Use the ``verify`` option instead.

@@ -34,6 +34,8 @@ __all__ = [
     "VOTableSpecError",
 ]
 
+VERIFY_OPTIONS = ["ignore", "warn", "exception"]  # First one is default
+
 
 class Conf(_config.ConfigNamespace):
     """
@@ -41,11 +43,10 @@ class Conf(_config.ConfigNamespace):
     """
 
     verify = _config.ConfigItem(
-        "ignore",
+        VERIFY_OPTIONS,
         "Can be 'exception' (treat fixable violations of the VOTable spec as "
         "exceptions), 'warn' (show warnings for VOTable spec violations), or "
         "'ignore' (silently ignore VOTable spec violations)",
-        aliases=["astropy.io.votable.table.pedantic", "astropy.io.votable.pedantic"],
     )
 
 
