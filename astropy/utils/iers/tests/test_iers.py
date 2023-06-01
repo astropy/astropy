@@ -7,6 +7,12 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from astropy_iers_data import (
+    IERS_A_README,
+    IERS_B_FILE,
+    IERS_B_README,
+    IERS_LEAP_SECOND_FILE,
+)
 
 from astropy import units as u
 from astropy.config import set_temp_cache
@@ -484,3 +490,22 @@ def test_iers_download_error_handling(tmp_path):
                 assert str(record[2].message).startswith(
                     "unable to download valid IERS file, using local IERS-B"
                 )
+
+
+OLD_DATA_FILES = {
+    "Leap_Second.dat": IERS_LEAP_SECOND_FILE,
+    "ReadMe.finals2000A": IERS_A_README,
+    "ReadMe.eopc04": IERS_B_README,
+    "eopc04.1962-now": IERS_B_FILE,
+}
+
+
+@pytest.mark.parametrize("data_file", sorted(OLD_DATA_FILES))
+def test_get_pkg_data_filename_backcompat(data_file):
+    # Check that get_pkg_data_filename continues to work without breakage
+    # if users use it to access IERS tables and READMEs that used to be in
+    # astropy/utils/iers/data.
+
+    filename = get_pkg_data_filename("data/" + data_file, package="astropy.utils.iers")
+
+    assert filename == OLD_DATA_FILES[data_file]

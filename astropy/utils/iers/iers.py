@@ -16,6 +16,18 @@ from warnings import warn
 
 import erfa
 import numpy as np
+from astropy_iers_data import (
+    IERS_A_FILE,
+    IERS_A_README,
+    IERS_A_URL,
+    IERS_A_URL_MIRROR,
+    IERS_B_FILE,
+    IERS_B_README,
+    IERS_B_URL,
+    IERS_LEAP_SECOND_FILE,
+    IERS_LEAP_SECOND_URL,
+)
+from astropy_iers_data import IERS_LEAP_SECOND_URL_MIRROR as IETF_LEAP_SECOND_URL
 
 from astropy import config as _config
 from astropy import units as u
@@ -24,7 +36,6 @@ from astropy.table import MaskedColumn, QTable
 from astropy.time import Time, TimeDelta
 from astropy.utils.data import (
     clear_download_cache,
-    get_pkg_data_filename,
     get_readable_fileobj,
     is_url_in_cache,
 )
@@ -60,22 +71,6 @@ __all__ = [
     "IERS_LEAP_SECOND_URL",
     "IETF_LEAP_SECOND_URL",
 ]
-
-# IERS-A default file name, URL, and ReadMe with content description
-IERS_A_FILE = "finals2000A.all"
-IERS_A_URL = "https://datacenter.iers.org/data/9/finals2000A.all"
-IERS_A_URL_MIRROR = "https://maia.usno.navy.mil/ser7/finals2000A.all"
-IERS_A_README = get_pkg_data_filename("data/ReadMe.finals2000A")
-
-# IERS-B default file name, URL, and ReadMe with content description
-IERS_B_FILE = get_pkg_data_filename("data/eopc04.1962-now")
-IERS_B_URL = "https://hpiers.obspm.fr/iers/eop/eopc04/eopc04.1962-now"
-IERS_B_README = get_pkg_data_filename("data/ReadMe.eopc04")
-
-# LEAP SECONDS default file name, URL, and alternative format/URL
-IERS_LEAP_SECOND_FILE = get_pkg_data_filename("data/Leap_Second.dat")
-IERS_LEAP_SECOND_URL = "https://hpiers.obspm.fr/iers/bul/bulc/Leap_Second.dat"
-IETF_LEAP_SECOND_URL = "https://www.ietf.org/timezones/data/leap-seconds.list"
 
 # Status/source values returned by IERS.ut1_utc
 FROM_IERS_B = 0
