@@ -394,17 +394,8 @@ While ``astropy.coordinates`` does not natively support converting an Earth
 location to a timezone, the longitude and latitude can be retrieved from any
 `~astropy.coordinates.EarthLocation` object, which could then be passed to any
 third-party package that supports timezone solving, such as `timezonefinder
-<https://timezonefinder.readthedocs.io/>`_. For example, ``timezonefinder`` can
-be used to retrieve the timezone name for an address with:
-
-.. doctest-remote-data::
-
-    >>> loc = EarthLocation.of_address('Tucson, AZ')
-    >>> from timezonefinder import TimezoneFinder
-    >>> tz_name = TimezoneFinder().timezone_at(lng=loc.lon.degree,
-    ...                                        lat=loc.lat.degree)
-    >>> tz_name
-    'America/Phoenix'
+<https://timezonefinder.readthedocs.io/>`_, in which case you might have to
+pass in their ``.degree`` attributes.
 
 The resulting timezone name could then be used with any packages that support
 time zone definitions, such as the (Python 3.9 default package) `zoneinfo
@@ -414,7 +405,7 @@ time zone definitions, such as the (Python 3.9 default package) `zoneinfo
 
     >>> import datetime
     >>> from zoneinfo import ZoneInfo
-    >>> tz = ZoneInfo(tz_name)
+    >>> tz = ZoneInfo('America/Phoenix')
     >>> dt = datetime.datetime(2021, 4, 12, 20, 0, 0, tzinfo=tz)
 
 
