@@ -31,6 +31,8 @@ except ImportError:
     # downloads
     certifi = None
 
+import astropy_iers_data
+
 import astropy.config.paths
 from astropy import config as _config
 from astropy.utils.compat.optional_deps import HAS_FSSPEC
@@ -69,6 +71,14 @@ __all__ = [
 ]
 
 _dataurls_to_alias = {}
+
+
+_IERS_DATA_REDIRECTS = {
+    "Leap_Second.dat": astropy_iers_data.IERS_LEAP_SECOND_FILE,
+    "ReadMe.finals2000A": astropy_iers_data.IERS_A_README,
+    "ReadMe.eopc04": astropy_iers_data.IERS_B_README,
+    "eopc04.1962-now": astropy_iers_data.IERS_B_FILE,
+}
 
 
 class _NonClosingBufferedReader(io.BufferedReader):
@@ -1017,6 +1027,12 @@ def get_pkg_data_path(*path, package=None):
         else:
             package = module.__package__
     else:
+        # Backward-compatibility for files that used to exist in astropy.utils.iers
+        if package == "astropy.utils.iers":
+            filename = os.path.basename(path[-1])
+            if filename in _IERS_DATA_REDIRECTS:
+                return _IERS_DATA_REDIRECTS[filename]
+
         # package errors if it isn't a str
         # so there is no need for checks in the containing if/else
         module = resolve_name(package)
