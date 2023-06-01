@@ -32,7 +32,7 @@ jobs:
           git commit -m "Update IERS Earth rotation and leap second tables"
         fi
     - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v4
+      uses: peter-evans/create-pull-request@v5
       with:
         branch: update-iers
         branch-suffix: timestamp
