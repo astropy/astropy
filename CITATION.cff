@@ -20,6 +20,9 @@ identifiers:
   - type: doi
     description: DOI for version 5.3
     value: "10.5281/zenodo.7963327"
+  - type: url
+    description: ASCL entry
+    value: https://ascl.net/1304.002
 
 # Associated papers
 preferred-citation:
