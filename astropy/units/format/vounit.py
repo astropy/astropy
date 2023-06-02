@@ -33,14 +33,14 @@ class VOUnit(generic.Generic):
 
         names = {}
         deprecated_names = set()
+        # The tropical year is missing here compared to the standard
         bases = [
-            "A", "C", "D", "F", "G", "H", "Hz", "J", "Jy", "K", "N",
-            "Ohm", "Pa", "R", "Ry", "S", "T", "V", "W", "Wb", "a",
-            "adu", "arcmin", "arcsec", "barn", "beam", "bin", "cd",
-            "chan", "count", "ct", "d", "deg", "eV", "erg", "g", "h",
-            "lm", "lx", "lyr", "m", "mag", "min", "mol", "pc", "ph",
-            "photon", "pix", "pixel", "rad", "rad", "s", "solLum",
-            "solMass", "solRad", "sr", "u", "voxel", "yr",
+            "A", "a", "adu", "arcmin", "arcsec", "barn", "beam", "bin",
+            "C", "cd", "chan", "count", "ct", "d", "D", "deg", "erg", "eV",
+            "F", "g", "G", "H", "h", "Hz", "J", "Jy", "K", "lm", "lx", "lyr",
+            "m", "mag", "min", "mol", "N", "Ohm", "Pa", "pc", "ph", "photon",
+            "pix", "pixel", "R", "rad", "Ry", "s", "S", "solLum", "solMass",
+            "solRad", "sr", "T", "u", "V", "voxel", "W", "Wb", "yr",
         ]  # fmt: skip
         binary_bases = ["bit", "byte", "B"]
         simple_units = ["Angstrom", "angstrom", "AU", "au", "Ba", "dB", "mas"]
@@ -48,10 +48,11 @@ class VOUnit(generic.Generic):
             "y", "z", "a", "f", "p", "n", "u", "m", "c", "d",
             "", "da", "h", "k", "M", "G", "T", "P", "E", "Z", "Y"
         ]  # fmt: skip
+        # While zebi and yobi are part of the standard for binary prefixes,
+        # they are not implemented here due to computation limitations
         binary_prefixes = ["Ki", "Mi", "Gi", "Ti", "Pi", "Ei"]
         deprecated_units = {
-            "a", "angstrom", "Angstrom", "au", "Ba", "barn", "ct",
-            "erg", "G", "ph", "pix",
+            "angstrom", "Angstrom", "Ba", "barn", "erg", "G", "ta",
         }  # fmt: skip
 
         def do_defines(bases, prefixes, skips=[]):

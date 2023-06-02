@@ -457,7 +457,7 @@ def test_latex_inline_scale():
 def test_format_styles(format_spec, string, decomposed):
     fluxunit = u.erg / (u.cm**2 * u.s * u.Angstrom)
     if format_spec == "vounit":
-        # erg is deprecated in vounit.
+        # erg and Angstrom are deprecated in vounit.
         with pytest.warns(UnitsWarning, match="deprecated"):
             formatted = format(fluxunit, format_spec)
     else:
@@ -662,9 +662,9 @@ def test_vounit_function(string):
 
 
 def test_vounit_binary_prefix():
-    u.Unit("KiB", format="vounit") == u.Unit("1024 B")
-    u.Unit("Kibyte", format="vounit") == u.Unit("1024 B")
-    u.Unit("Kibit", format="vounit") == u.Unit("1024 B")
+    assert u.Unit("KiB", format="vounit") == u.Unit("1024 B")
+    assert u.Unit("Kibyte", format="vounit") == u.Unit("1024 B")
+    assert u.Unit("Kibit", format="vounit") == u.Unit("128 B")
     with pytest.warns(UnitsWarning) as w:
         u.Unit("kibibyte", format="vounit")
     assert len(w) == 1
@@ -677,9 +677,9 @@ def test_vounit_unknown():
 
 
 def test_vounit_details():
-    with pytest.warns(UnitsWarning, match="deprecated") as w:
-        assert u.Unit("Pa", format="vounit") is u.Pascal
-    assert len(w) == 1
+    assert u.Unit("Pa", format="vounit") is u.Pascal
+    assert u.Unit("ka", format="vounit") == u.Unit("1000 yr")
+    assert u.Unit("pix", format="vounit") == u.Unit("pixel", format="vounit")
 
     # The da- prefix is not allowed, and the d- prefix is discouraged
     assert u.dam.to_string("vounit") == "10m"
