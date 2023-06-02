@@ -231,8 +231,6 @@ modindex_common_prefix = ["astropy."]
 
 # -- Options for HTML output ---------------------------------------------------
 
-html_static_path = ["_static"]
-html_css_files = ["custom.css"]
 html_logo = "_static/astropy_banner_96.png"
 html_theme_options.update(
     {

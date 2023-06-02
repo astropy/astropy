@@ -113,7 +113,7 @@ listed below.
 
    Reading and Writing <io>
    Units and Equivalencies <units>
-
+   For Developers <dev>
 
 Most of the functionality is enabled by the |FLRW| object. This represents a
 homogeneous and isotropic cosmology (characterized by the
@@ -510,15 +510,7 @@ better than that, despite the fact that five digits are quoted in the papers.
 Reference/API
 =============
 
-More detailed information on using the package is provided on separate pages,
-listed below.
-
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   Reading and Writing <io>
-   For Developers <dev>
-
-
-.. automodapi:: astropy.cosmology
-   :inherited-members:
+   ref_api

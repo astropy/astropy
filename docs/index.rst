@@ -29,12 +29,40 @@ processing, and data analysis.
    software or `affiliated packages`_ that depend on the astropy
    core package.
 
+***************
+Getting Started
+***************
+
 .. toctree::
    :maxdepth: 2
 
    index_getting_started
+
+**********
+User Guide
+**********
+
+.. toctree::
+   :maxdepth: 2
+
    index_user_docs
+
+***********************
+Developer Documentation
+***********************
+
+.. toctree::
+   :maxdepth: 2
+
    development/index
+
+***************
+Project details
+***************
+
+.. toctree::
+   :maxdepth: 2
+
    index_project_details
 
 .. _feedback@astropy.org: mailto:feedback@astropy.org

@@ -6,7 +6,7 @@ Astropy Glossary
 
 .. glossary::
 
-   (`n`,)
+   (``n``,)
       A parenthesized number followed by a comma denotes a tuple with one
       element. The trailing comma distinguishes a one-element tuple from a
       parenthesized ``n``.
@@ -80,7 +80,6 @@ Astropy Glossary
       that supports writing with a method ``read``.
 
 
-***************************
 Optional Packages' Glossary
 ***************************
 

@@ -370,8 +370,7 @@ Periodogram Algorithms
 Reference/API
 =============
 
-.. automodapi:: astropy.timeseries
-   :inherited-members:
+.. toctree::
+   :maxdepth: 2
 
-.. automodapi:: astropy.timeseries.io
-   :inherited-members:
+   ref_api
