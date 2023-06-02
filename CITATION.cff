@@ -686,15 +686,15 @@ preferred-citation:
   pages: 20
   year: 2022
   identifiers:
+    - description: ADS bibcode
+      type: url
+      value: "https://ui.adsabs.harvard.edu/abs/2022ApJ...935..167A"
     - description: The Astrophysical Journal
       type: doi
       value: 10.3847/1538-4357/ac7c74
     - description: arXiv
       type: doi
       value: 10.48550/arXiv.2206.14220
-    - description: ADS bibcode
-      type: other
-      value: 2022ApJ...935..167A
     - description: Publisher PDF (open access)
       type: url
       value: "https://iopscience.iop.org/article/10.3847/1538-4357/ac7c74/pdf"
@@ -1311,15 +1311,15 @@ references:
     pages: 19
     year: 2018
     identifiers:
+      - description: ADS bibcode
+        type: url
+        value: "https://ui.adsabs.harvard.edu/abs/2018AJ....156..123A"
       - description: The Astrophysical Journal
         type: doi
         value: 10.3847/1538-3881/aabc4f
       - description: arXiv
         type: doi
         value: 10.48550/arXiv.1801.02634
-      - description: ADS bibcode
-        type: other
-        value: 2018AJ....156..123A
       - description: Publisher PDF (open access)
         type: url
         value: https://iopscience.iop.org/article/10.3847/1538-3881/aabc4f/pdf
@@ -1546,15 +1546,15 @@ references:
     pages: 9
     year: 2013
     identifiers:
+      - description: ADS bibcode
+        type: url
+        value: "https://ui.adsabs.harvard.edu/abs/2013A&A...558A..33A"
       - description: "Astronomy & Astrophysics"
         type: doi
         value: 10.1051/0004-6361/201322068
       - description: arXiv
         type: doi
         value: 10.48550/arXiv.1307.6212
-      - description: ADS bibcode
-        type: other
-        value: 2013A&A...558A..33A
       - description: Publisher PDF (open access)
         type: url
         value: "https://www.aanda.org/articles/aa/pdf/2013/10/aa22068-13.pdf"
