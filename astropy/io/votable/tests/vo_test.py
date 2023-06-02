@@ -596,6 +596,9 @@ class TestParse:
         # Resource
         assert repr(self.votable.resources) == "[</>]"
 
+        # Table
+        assert repr(self.table).startswith("<VOTable")
+
 
 class TestThroughTableData(TestParse):
     def setup_class(self):
