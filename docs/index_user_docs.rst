@@ -5,9 +5,48 @@ User Guide
 **********
 
 .. toctree::
-   :maxdepth: 2
+   :caption: Data structures and transformations
+   :maxdepth: 1
 
-   index_user_docs_sec01_data_struct
-   index_user_docs_sec02_io
-   index_user_docs_sec03_utils
-   index_user_docs_sec04_lowlevel
+   constants/index
+   units/index
+   nddata/index
+   table/index
+   time/index
+   timeseries/index
+   coordinates/index
+   wcs/index
+   modeling/index
+   uncertainty/index
+
+.. toctree::
+   :caption: Files, I/O, and Communication
+   :maxdepth: 1
+
+   io/unified
+   io/fits/index
+   io/ascii/index
+   io/votable/index
+   io/misc
+   samp/index
+
+.. toctree::
+   :caption: Computations and utilities
+   :maxdepth: 1
+
+   cosmology/index
+   convolution/index
+   utils/iers
+   visualization/index
+   stats/index
+
+.. toctree::
+   :caption: Nuts and bolts
+   :maxdepth: 1
+
+   config/index
+   io/registry
+   logging
+   warnings
+   utils/index
+   glossary

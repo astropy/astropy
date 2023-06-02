@@ -70,7 +70,10 @@ Using `astropy.samp`
 Reference/API
 =============
 
-.. automodapi:: astropy.samp
+.. toctree::
+   :maxdepth: 2
+
+   ref_api
 
 Acknowledgments
 ===============

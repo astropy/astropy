@@ -44,6 +44,7 @@ more about the available options and how to use it, type::
 Reference/API
 =============
 
-.. automodapi:: astropy.visualization
+.. toctree::
+   :maxdepth: 2
 
-.. automodapi:: astropy.visualization.mpl_normalize
+   ref_api

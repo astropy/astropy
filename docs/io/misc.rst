@@ -11,14 +11,10 @@ functionality via the :class:`~astropy.table.Table` class itself (see
 :ref:`table_io`). Routines that are intended to be used directly by users are
 listed in the `astropy.io.misc` section.
 
-.. automodapi:: astropy.io.misc
-   :headings: =-
+Reference/API
+=============
 
-.. automodapi:: astropy.io.misc.hdf5
-   :headings: =-
+.. toctree::
+   :maxdepth: 2
 
-.. automodapi:: astropy.io.misc.yaml
-   :headings: =-
-
-.. automodapi:: astropy.io.misc.parquet
-   :headings: =-
+   misc_ref_api

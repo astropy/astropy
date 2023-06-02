@@ -507,7 +507,10 @@ See Also
 Reference/API
 =============
 
-.. automodapi:: astropy.config
+.. toctree::
+   :maxdepth: 2
+
+   ref_api
 
 .. testcleanup::
 
