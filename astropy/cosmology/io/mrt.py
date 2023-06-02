@@ -7,7 +7,7 @@ from .table import from_table, to_table
 
 
 def read_mrt(filename, index=None, *, move_to_meta=False, cosmology=None, **kwargs):
-    """Read a |Cosmology| from an MRT file.
+    """Read a |Cosmology| from a MRT file.
 
     Parameters
     ----------
@@ -15,9 +15,8 @@ def read_mrt(filename, index=None, *, move_to_meta=False, cosmology=None, **kwar
         The file from which to read the MRT data.
     index : int or str or None, optional
         Needed to select the row in tables with multiple rows. ``index`` can be
-        an integer for the row number or, if the table is indexed by a column,
-        the value of that column. If the table is not indexed and ``index`` is a
-        string, the "name" column is used as the indexing column.
+        an integer for the row number or, if ``index`` is a string, the "name"
+        column is used as the indexing column.
     move_to_meta : bool, optional keyword-only
         Whether to move keyword arguments that are not in the Cosmology class'
         signature to the Cosmology's metadata. This will only be applied if the
@@ -41,15 +40,15 @@ def read_mrt(filename, index=None, *, move_to_meta=False, cosmology=None, **kwar
     Raises
     ------
     ValueError
-        If the keyword argument 'format' is given and is not "mrt".
+        If the keyword argument 'format' is given and is not "ascii.mrt".
     """
     # Check that the format is 'mrt' (or not specified)
-    format = kwargs.pop("format", "mrt")
-    if format != "mrt":
-        raise ValueError(f"format must be 'mrt', not {format}")
+    format = kwargs.pop("format", "ascii.mrt")
+    if format != "ascii.mrt":
+        raise ValueError(f"format must be 'ascii.mrt', not {format}")
 
     # Reading is handled by `QTable`.
-    table = QTable.read(filename, format="mrt", **kwargs)
+    table = QTable.read(filename, format="ascii.mrt", **kwargs)
 
     # Create a single column named 'm_nu' by combining the values from the 'mnu0', 'mnu1', and 'mnu2' columns
     m_nu_data = []
@@ -87,12 +86,12 @@ def write_mrt(cosmology, file, *, overwrite=False, cls=QTable, **kwargs):
     TypeError
         If kwarg (optional) 'cls' is not a subclass of `astropy.table.Table`
     ValueError
-        If the keyword argument 'format' is given and is not "mrt".
+        If the keyword argument 'format' is given and is not "ascii.mrt".
     """
     # Check that the format is 'mrt' (or not specified)
-    format = kwargs.pop("format", "mrt")
-    if format != "mrt":
-        raise ValueError(f"format must be 'mrt', not {format}")
+    format = kwargs.pop("format", "ascii.mrt")
+    if format != "ascii.mrt":
+        raise ValueError(f"format must be 'ascii.mrt', not {format}")
 
     # Set cosmology_in_meta as false for now since there is no metadata being kept
     table_main = to_table(cosmology, cls=cls, cosmology_in_meta=False)
@@ -106,11 +105,11 @@ def write_mrt(cosmology, file, *, overwrite=False, cls=QTable, **kwargs):
         column_data = m_nu[0][i]
         table.add_column(column_data, name=column_name, index=-2)
 
-    table.write(file, overwrite=overwrite, format="mrt", **kwargs)
+    table.write(file, overwrite=overwrite, format="ascii.mrt", **kwargs)
 
 
 # ===================================================================
 # Register
 
-readwrite_registry.register_reader("mrt", Cosmology, read_mrt)
-readwrite_registry.register_writer("mrt", Cosmology, write_mrt)
+readwrite_registry.register_reader("ascii.mrt", Cosmology, read_mrt)
+readwrite_registry.register_writer("ascii.mrt", Cosmology, write_mrt)

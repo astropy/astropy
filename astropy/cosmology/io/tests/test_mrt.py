@@ -24,15 +24,15 @@ class ReadWriteMRTTestMixin(ReadWriteTestMixinBase):
         """Test if argument ``index`` is incorrect"""
         fp = tmp_path / "test_to_mrt_bad_index.mrt"
 
-        write(fp, format="mrt")
+        write(fp, format="ascii.mrt")
 
         # single-row table and has a non-0/None index
         with pytest.raises(IndexError, match="index 2 out of range"):
-            read(fp, index=2, format="mrt")
+            read(fp, index=2, format="ascii.mrt")
 
         # string index where doesn't match
         with pytest.raises(KeyError, match="No matches found for key"):
-            read(fp, index="row 0", format="mrt")
+            read(fp, index="row 0", format="ascii.mrt")
 
     # -----------------------
 
@@ -41,39 +41,39 @@ class ReadWriteMRTTestMixin(ReadWriteTestMixinBase):
         fp = tmp_path / "test_to_mrt_failed_cls.mrt"
 
         with pytest.raises(TypeError, match="'cls' must be"):
-            write(fp, format="mrt", cls=list)
+            write(fp, format="ascii.mrt", cls=list)
 
     # -----------------------
 
     @pytest.mark.parametrize("tbl_cls", [QTable, Table])
     def test_to_mrt_cls(self, write, tbl_cls, tmp_path):
         fp = tmp_path / "test_to_mrt_cls.mrt"
-        write(fp, format="mrt", cls=tbl_cls)
+        write(fp, format="ascii.mrt", cls=tbl_cls)
 
     # -----------------------
 
     def test_readwrite_mrt_instance(self, cosmo_cls, cosmo, read, write, tmp_path):
-        """Test cosmology -> mrt -> cosmology."""
+        """Test cosmology -> ascii.mrt -> cosmology."""
         fp = tmp_path / "test_readwrite_mrt_instance.mrt"
 
         # ------------
         # To Table
 
-        write(fp, format="mrt")
+        write(fp, format="ascii.mrt")
 
         # some checks on the saved file
-        tbl = Table.read(fp, format="mrt")
+        tbl = Table.read(fp, format="ascii.mrt")
         assert tbl["name"] == cosmo.name
 
         # ------------
         # From Table
 
         tbl["mismatching"] = "will error"
-        tbl.write(fp, format="mrt", overwrite=True)
+        tbl.write(fp, format="ascii.mrt", overwrite=True)
 
         # tests are different if the last argument is a **kwarg
         if tuple(cosmo._init_signature.parameters.values())[-1].kind == 4:
-            got = read(fp, format="mrt")
+            got = read(fp, format="ascii.mrt")
 
             assert got.__class__ is cosmo_cls
             assert got.name == cosmo.name
@@ -83,17 +83,17 @@ class ReadWriteMRTTestMixin(ReadWriteTestMixinBase):
 
         # read with mismatching parameters errors
         with pytest.raises(TypeError, match="there are unused parameters"):
-            read(fp, format="mrt")
+            read(fp, format="ascii.mrt")
 
         # unless mismatched are moved to meta
-        got = read(fp, format="mrt", move_to_meta=True)
+        got = read(fp, format="ascii.mrt", move_to_meta=True)
         assert got == cosmo
         assert got.meta["mismatching"] == "will error"
 
         # it won't error if everything matches up
         tbl.remove_column("mismatching")
-        tbl.write(fp, format="mrt", overwrite=True)
-        got = read(fp, format="mrt")
+        tbl.write(fp, format="ascii.mrt", overwrite=True)
+        got = read(fp, format="ascii.mrt")
         assert got == cosmo
 
     # -----------------------
@@ -108,17 +108,17 @@ class ReadWriteMRTTestMixin(ReadWriteTestMixinBase):
         fp = tmp_path / "test_read_mrt_subclass_partial_info.mrt"
 
         # test write
-        write(fp, format="mrt")
+        write(fp, format="ascii.mrt")
 
         # partial information
-        tbl = Table.read(fp, format="mrt")
+        tbl = Table.read(fp, format="ascii.mrt")
         del tbl["Tcmb0"]
-        tbl.write(fp, format="mrt", overwrite=True)
+        tbl.write(fp, format="ascii.mrt", overwrite=True)
 
         # read with the same class that wrote fills in the missing info with
         # the default value
-        got = cosmo_cls.read(fp, format="mrt")
-        got2 = read(fp, format="mrt", cosmology=cosmo_cls)
+        got = cosmo_cls.read(fp, format="ascii.mrt")
+        got2 = read(fp, format="ascii.mrt", cosmology=cosmo_cls)
 
         assert got == got2  # internal consistency
 

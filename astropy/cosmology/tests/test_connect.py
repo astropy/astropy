@@ -35,9 +35,9 @@ readwrite_formats = {
     ("ascii.ecsv", True, True),
     ("ascii.html", False, HAS_BS4),
     ("ascii.latex", False, True),
+    ("ascii.mrt", False, True),
     ("json", True, True),
     ("latex", False, True),
-    ("mrt", False, True),
 }
 
 
