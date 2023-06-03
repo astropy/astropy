@@ -72,7 +72,7 @@ _filename_counter = 0
 def _read(
     tmp_path,
     table,
-    Reader=None,
+    reader_cls=None,
     format=None,
     parallel=False,
     check_meta=False,
@@ -82,7 +82,7 @@ def _read(
     global _filename_counter
 
     table += "\n"
-    reader = Reader(**kwargs)
+    reader = reader_cls(**kwargs)
     t1 = reader.read(table)
     t2 = reader.read(StringIO(table))
     t3 = reader.read(table.splitlines())
@@ -126,34 +126,36 @@ def _read(
 
 @pytest.fixture(scope="function")
 def read_basic(tmp_path, request):
-    return functools.partial(_read, tmp_path, Reader=FastBasic, format="basic")
+    return functools.partial(_read, tmp_path, reader_cls=FastBasic, format="basic")
 
 
 @pytest.fixture(scope="function")
 def read_csv(tmp_path, request):
-    return functools.partial(_read, tmp_path, Reader=FastCsv, format="csv")
+    return functools.partial(_read, tmp_path, reader_cls=FastCsv, format="csv")
 
 
 @pytest.fixture(scope="function")
 def read_tab(tmp_path, request):
-    return functools.partial(_read, tmp_path, Reader=FastTab, format="tab")
+    return functools.partial(_read, tmp_path, reader_cls=FastTab, format="tab")
 
 
 @pytest.fixture(scope="function")
 def read_commented_header(tmp_path, request):
     return functools.partial(
-        _read, tmp_path, Reader=FastCommentedHeader, format="commented_header"
+        _read, tmp_path, reader_cls=FastCommentedHeader, format="commented_header"
     )
 
 
 @pytest.fixture(scope="function")
 def read_rdb(tmp_path, request):
-    return functools.partial(_read, tmp_path, Reader=FastRdb, format="rdb")
+    return functools.partial(_read, tmp_path, reader_cls=FastRdb, format="rdb")
 
 
 @pytest.fixture(scope="function")
 def read_no_header(tmp_path, request):
-    return functools.partial(_read, tmp_path, Reader=FastNoHeader, format="no_header")
+    return functools.partial(
+        _read, tmp_path, reader_cls=FastNoHeader, format="no_header"
+    )
 
 
 @pytest.mark.parametrize("delimiter", [",", "\t", " ", "csv"])

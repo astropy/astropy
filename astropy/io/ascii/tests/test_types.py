@@ -14,7 +14,7 @@ def test_types_from_dat():
     converters = {"a": [ascii.convert_numpy(float)], "e": [ascii.convert_numpy(str)]}
 
     dat = ascii.read(
-        ["a b c d e", "1 1 cat 2.1 4.2"], Reader=ascii.Basic, converters=converters
+        ["a b c d e", "1 1 cat 2.1 4.2"], reader_cls=ascii.Basic, converters=converters
     )
 
     assert dat["a"].dtype.kind == "f"
@@ -25,7 +25,7 @@ def test_types_from_dat():
 
 
 def test_rdb_write_types():
-    dat = ascii.read(["a b c d", "1 1.0 cat 2.1"], Reader=ascii.Basic)
+    dat = ascii.read(["a b c d", "1 1.0 cat 2.1"], reader_cls=ascii.Basic)
     out = StringIO()
     ascii.write(dat, out, Writer=ascii.Rdb)
     outs = out.getvalue().splitlines()
@@ -40,7 +40,7 @@ def test_ipac_read_types():
 |    null  |   null   |   null  |    null  |     -999         |
    2.09708   2956        73765    2.06000   B8IVpMnHg
 """
-    reader = ascii.get_reader(Reader=ascii.Ipac)
+    reader = ascii.get_reader(reader_cls=ascii.Ipac)
     reader.read(table)
     types = [
         ascii.FloatType,
@@ -66,7 +66,7 @@ def test_col_dtype_in_custom_class():
 
     class TestDtype(ascii.Basic):
         """
-        Basic table Data Reader with data type alternating float32, int8
+        Basic table Data reader_cls with data type alternating float32, int8
         """
 
         header_class = TestDtypeHeader

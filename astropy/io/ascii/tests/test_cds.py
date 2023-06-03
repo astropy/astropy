@@ -36,7 +36,7 @@ def test_roundtrip_mrt_table():
     and the data section of the table can be compared between
     original and the newly written table.
 
-    Further, the CDS Reader does not have capability to recognize
+    Further, the CDS reader_cls does not have capability to recognize
     column format from the header of a CDS/MRT table, so this test
     can work for a limited set of simple tables, which don't have
     whitespaces in the column values or mix-in columns. Because of

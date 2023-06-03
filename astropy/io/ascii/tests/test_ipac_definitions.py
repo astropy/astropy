@@ -20,25 +20,25 @@ ABBBBBBABBBBBBBA
 
 def test_ipac_default():
     # default should be ignore
-    table = read(DATA, Reader=Ipac)
+    table = read(DATA, reader_cls=Ipac)
     assert table["a"][0] == "BBBBBB"
     assert table["b"][0] == "BBBBBBB"
 
 
 def test_ipac_ignore():
-    table = read(DATA, Reader=Ipac, definition="ignore")
+    table = read(DATA, reader_cls=Ipac, definition="ignore")
     assert table["a"][0] == "BBBBBB"
     assert table["b"][0] == "BBBBBBB"
 
 
 def test_ipac_left():
-    table = read(DATA, Reader=Ipac, definition="left")
+    table = read(DATA, reader_cls=Ipac, definition="left")
     assert table["a"][0] == "BBBBBBA"
     assert table["b"][0] == "BBBBBBBA"
 
 
 def test_ipac_right():
-    table = read(DATA, Reader=Ipac, definition="right")
+    table = read(DATA, reader_cls=Ipac, definition="right")
     assert table["a"][0] == "ABBBBBB"
     assert table["b"][0] == "ABBBBBBB"
 

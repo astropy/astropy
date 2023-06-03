@@ -20,7 +20,7 @@ def read_table1(readme, data):
 
 
 def read_table2(readme, data):
-    reader = ascii.get_reader(Reader=ascii.Cds, readme=readme)
+    reader = ascii.get_reader(reader_cls=ascii.Cds, readme=readme)
     reader.outputter = ascii.TableOutputter()
     return reader.read(data)
 
@@ -205,7 +205,7 @@ def test_cds_function_units2(reader_cls):
 
 
 def test_cds_ignore_nullable():
-    # Make sure CDS Reader does not ignore nullabilty for columns
+    # Make sure CDS reader_cls does not ignore nullabilty for columns
     # with a limit specifier
     readme = "data/cds/null/ReadMe"
     data = "data/cds/null/table.dat"
@@ -217,7 +217,7 @@ def test_cds_ignore_nullable():
 
 
 def test_cds_no_whitespace():
-    # Make sure CDS Reader only checks null values when an '=' symbol is present,
+    # Make sure CDS reader_cls only checks null values when an '=' symbol is present,
     # and read description text even if there is no whitespace after '?'.
     readme = "data/cds/null/ReadMe1"
     data = "data/cds/null/table.dat"
@@ -235,7 +235,7 @@ def test_cds_no_whitespace():
 
 
 def test_cds_order():
-    # Make sure CDS Reader does not ignore order specifier that maybe present after
+    # Make sure CDS reader_cls does not ignore order specifier that maybe present after
     # the null specifier '?'
     readme = "data/cds/null/ReadMe1"
     data = "data/cds/null/table.dat"
