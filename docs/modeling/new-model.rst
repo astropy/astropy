@@ -87,7 +87,7 @@ define a "validator" method for each parameter, enabling custom code to check
 whether that parameter's value is valid according to the model definition (for
 example if it must be non-negative).  See the example in
 `Parameter.validator <astropy.modeling.Parameter.validator>` for more details.
-Note, that if pickling the model is important the validator function should be 
+Note, that if pickling the model is important the validator function should be
 assigned directly to the instance ``Parameter._validator`` instead of using
 the decorator.
 
