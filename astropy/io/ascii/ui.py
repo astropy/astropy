@@ -598,56 +598,53 @@ def _guess(table, read_kwargs, format, fast_reader):
                 }
             )
             failed_kwargs.append(guess_kwargs)
-    else:
-        # Failed all guesses, try the original read_kwargs without column requirements
-        try:
-            reader = get_reader(**read_kwargs)
-            dat = reader.read(table)
-            _read_trace.append(
-                {
-                    "kwargs": copy.deepcopy(read_kwargs),
-                    "Reader": reader.__class__,
-                    "status": (
-                        "Success with original kwargs without strict_names (guessing)"
-                    ),
-                }
-            )
-            return dat
+    # Failed all guesses, try the original read_kwargs without column requirements
+    try:
+        reader = get_reader(**read_kwargs)
+        dat = reader.read(table)
+        _read_trace.append(
+            {
+                "kwargs": copy.deepcopy(read_kwargs),
+                "Reader": reader.__class__,
+                "status": (
+                    "Success with original kwargs without strict_names (guessing)"
+                ),
+            }
+        )
+        return dat
 
-        except guess_exception_classes as err:
-            _read_trace.append(
-                {
-                    "kwargs": copy.deepcopy(read_kwargs),
-                    "status": f"{err.__class__.__name__}: {str(err)}",
-                }
+    except guess_exception_classes as err:
+        _read_trace.append(
+            {
+                "kwargs": copy.deepcopy(read_kwargs),
+                "status": f"{err.__class__.__name__}: {str(err)}",
+            }
+        )
+        failed_kwargs.append(read_kwargs)
+        lines = ["\nERROR: Unable to guess table format with the guesses listed below:"]
+        for kwargs in failed_kwargs:
+            sorted_keys = sorted(
+                x for x in sorted(kwargs) if x not in ("Reader", "Outputter")
             )
-            failed_kwargs.append(read_kwargs)
-            lines = [
-                "\nERROR: Unable to guess table format with the guesses listed below:"
-            ]
-            for kwargs in failed_kwargs:
-                sorted_keys = sorted(
-                    x for x in sorted(kwargs) if x not in ("Reader", "Outputter")
-                )
-                reader_repr = repr(kwargs.get("Reader", basic.Basic))
-                keys_vals = ["Reader:" + re.search(r"\.(\w+)'>", reader_repr).group(1)]
-                kwargs_sorted = ((key, kwargs[key]) for key in sorted_keys)
-                keys_vals.extend([f"{key}: {val!r}" for key, val in kwargs_sorted])
-                lines.append(" ".join(keys_vals))
+            reader_repr = repr(kwargs.get("Reader", basic.Basic))
+            keys_vals = ["Reader:" + re.search(r"\.(\w+)'>", reader_repr).group(1)]
+            kwargs_sorted = ((key, kwargs[key]) for key in sorted_keys)
+            keys_vals.extend([f"{key}: {val!r}" for key, val in kwargs_sorted])
+            lines.append(" ".join(keys_vals))
 
-            msg = [
-                "",
-                "************************************************************************",
-                "** ERROR: Unable to guess table format with the guesses listed above. **",
-                "**                                                                    **",
-                "** To figure out why the table did not read, use guess=False and      **",
-                "** fast_reader=False, along with any appropriate arguments to read(). **",
-                "** In particular specify the format and any known attributes like the **",
-                "** delimiter.                                                         **",
-                "************************************************************************",
-            ]
-            lines.extend(msg)
-            raise core.InconsistentTableError("\n".join(lines)) from None
+        msg = [
+            "",
+            "************************************************************************",
+            "** ERROR: Unable to guess table format with the guesses listed above. **",
+            "**                                                                    **",
+            "** To figure out why the table did not read, use guess=False and      **",
+            "** fast_reader=False, along with any appropriate arguments to read(). **",
+            "** In particular specify the format and any known attributes like the **",
+            "** delimiter.                                                         **",
+            "************************************************************************",
+        ]
+        lines.extend(msg)
+        raise core.InconsistentTableError("\n".join(lines)) from None
 
 
 def _get_guess_kwargs_list(read_kwargs):

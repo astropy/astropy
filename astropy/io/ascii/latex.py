@@ -84,8 +84,7 @@ def find_latex_line(lines, latex):
     for i, line in enumerate(lines):
         if re_string.match(line):
             return i
-    else:
-        return None
+    return None
 
 
 class LatexInputter(core.BaseInputter):

@@ -1348,15 +1348,13 @@ class BaseDifferential(BaseRepresentationOrDifferential):
                 d_unit_si._scale = 1  # remove the scale from the unit
 
                 return str(d_unit_si)
-
-        else:
-            raise RuntimeError(
-                "Invalid representation-differential units! This likely happened "
-                "because either the representation or the associated differential "
-                "have non-standard units. Check that the input positional data have "
-                "positional units, and the input velocity data have velocity units, "
-                "or are both dimensionless."
-            )
+        raise RuntimeError(
+            "Invalid representation-differential units! This likely happened "
+            "because either the representation or the associated differential "
+            "have non-standard units. Check that the input positional data have "
+            "positional units, and the input velocity data have velocity units, "
+            "or are both dimensionless."
+        )
 
     @classmethod
     def _get_base_vectors(cls, base):
