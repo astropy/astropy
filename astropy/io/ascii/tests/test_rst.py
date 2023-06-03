@@ -177,7 +177,7 @@ dat = ascii.read(table, reader_cls=ascii.RST)
 def test_write_normal():
     """Write a table as a normal SimpleRST Table"""
     out = StringIO()
-    ascii.write(dat, out, Writer=ascii.RST)
+    ascii.write(dat, out, writer_cls=ascii.RST)
     assert_equal_splitlines(
         out.getvalue(),
         """\

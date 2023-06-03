@@ -27,7 +27,7 @@ def test_types_from_dat():
 def test_rdb_write_types():
     dat = ascii.read(["a b c d", "1 1.0 cat 2.1"], reader_cls=ascii.Basic)
     out = StringIO()
-    ascii.write(dat, out, Writer=ascii.Rdb)
+    ascii.write(dat, out, writer_cls=ascii.Rdb)
     outs = out.getvalue().splitlines()
     assert_equal(outs[1], "N\tN\tS\tN")
 
