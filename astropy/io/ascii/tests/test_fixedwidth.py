@@ -252,7 +252,7 @@ dat = ascii.read(table, reader_cls=ascii.FixedWidth)
 def test_write_normal():
     """Write a table as a normal fixed width table."""
     out = StringIO()
-    ascii.write(dat, out, Writer=ascii.FixedWidth)
+    ascii.write(dat, out, writer_cls=ascii.FixedWidth)
     assert_equal_splitlines(
         out.getvalue(),
         """\
@@ -266,7 +266,7 @@ def test_write_normal():
 def test_write_fill_values():
     """Write a table as a normal fixed width table."""
     out = StringIO()
-    ascii.write(dat, out, Writer=ascii.FixedWidth, fill_values=("a", "N/A"))
+    ascii.write(dat, out, writer_cls=ascii.FixedWidth, fill_values=("a", "N/A"))
     assert_equal_splitlines(
         out.getvalue(),
         """\
@@ -280,7 +280,7 @@ def test_write_fill_values():
 def test_write_no_pad():
     """Write a table as a fixed width table with no padding."""
     out = StringIO()
-    ascii.write(dat, out, Writer=ascii.FixedWidth, delimiter_pad=None)
+    ascii.write(dat, out, writer_cls=ascii.FixedWidth, delimiter_pad=None)
     assert_equal_splitlines(
         out.getvalue(),
         """\
@@ -294,7 +294,7 @@ def test_write_no_pad():
 def test_write_no_bookend():
     """Write a table as a fixed width table with no bookend."""
     out = StringIO()
-    ascii.write(dat, out, Writer=ascii.FixedWidth, bookend=False)
+    ascii.write(dat, out, writer_cls=ascii.FixedWidth, bookend=False)
     assert_equal_splitlines(
         out.getvalue(),
         """\
@@ -308,7 +308,7 @@ Col1 |      Col2 | Col3 | Col4
 def test_write_no_delimiter():
     """Write a table as a fixed width table with no delimiter."""
     out = StringIO()
-    ascii.write(dat, out, Writer=ascii.FixedWidth, bookend=False, delimiter=None)
+    ascii.write(dat, out, writer_cls=ascii.FixedWidth, bookend=False, delimiter=None)
     assert_equal_splitlines(
         out.getvalue(),
         """\
@@ -322,7 +322,7 @@ Col1       Col2  Col3  Col4
 def test_write_noheader_normal():
     """Write a table as a normal fixed width table."""
     out = StringIO()
-    ascii.write(dat, out, Writer=ascii.FixedWidthNoHeader)
+    ascii.write(dat, out, writer_cls=ascii.FixedWidthNoHeader)
     assert_equal_splitlines(
         out.getvalue(),
         """\
@@ -335,7 +335,7 @@ def test_write_noheader_normal():
 def test_write_noheader_no_pad():
     """Write a table as a fixed width table with no padding."""
     out = StringIO()
-    ascii.write(dat, out, Writer=ascii.FixedWidthNoHeader, delimiter_pad=None)
+    ascii.write(dat, out, writer_cls=ascii.FixedWidthNoHeader, delimiter_pad=None)
     assert_equal_splitlines(
         out.getvalue(),
         """\
@@ -348,7 +348,7 @@ def test_write_noheader_no_pad():
 def test_write_noheader_no_bookend():
     """Write a table as a fixed width table with no bookend."""
     out = StringIO()
-    ascii.write(dat, out, Writer=ascii.FixedWidthNoHeader, bookend=False)
+    ascii.write(dat, out, writer_cls=ascii.FixedWidthNoHeader, bookend=False)
     assert_equal_splitlines(
         out.getvalue(),
         """\
@@ -362,7 +362,7 @@ def test_write_noheader_no_delimiter():
     """Write a table as a fixed width table with no delimiter."""
     out = StringIO()
     ascii.write(
-        dat, out, Writer=ascii.FixedWidthNoHeader, bookend=False, delimiter=None
+        dat, out, writer_cls=ascii.FixedWidthNoHeader, bookend=False, delimiter=None
     )
     assert_equal_splitlines(
         out.getvalue(),
@@ -377,7 +377,10 @@ def test_write_formats():
     """Write a table as a fixed width table with no delimiter."""
     out = StringIO()
     ascii.write(
-        dat, out, Writer=ascii.FixedWidth, formats={"Col1": "%-8.3f", "Col2": "%-15s"}
+        dat,
+        out,
+        writer_cls=ascii.FixedWidth,
+        formats={"Col1": "%-8.3f", "Col2": "%-15s"},
     )
     assert_equal_splitlines(
         out.getvalue(),
@@ -498,7 +501,7 @@ def test_read_twoline_wrong_marker():
 def test_write_twoline_normal():
     """Write a table as a normal fixed width table."""
     out = StringIO()
-    ascii.write(dat, out, Writer=ascii.FixedWidthTwoLine)
+    ascii.write(dat, out, writer_cls=ascii.FixedWidthTwoLine)
     assert_equal_splitlines(
         out.getvalue(),
         """\
@@ -514,7 +517,11 @@ def test_write_twoline_no_pad():
     """Write a table as a fixed width table with no padding."""
     out = StringIO()
     ascii.write(
-        dat, out, Writer=ascii.FixedWidthTwoLine, delimiter_pad=" ", position_char="="
+        dat,
+        out,
+        writer_cls=ascii.FixedWidthTwoLine,
+        delimiter_pad=" ",
+        position_char="=",
     )
     assert_equal_splitlines(
         out.getvalue(),
@@ -530,7 +537,9 @@ Col1        Col2   Col3   Col4
 def test_write_twoline_no_bookend():
     """Write a table as a fixed width table with no bookend."""
     out = StringIO()
-    ascii.write(dat, out, Writer=ascii.FixedWidthTwoLine, bookend=True, delimiter="|")
+    ascii.write(
+        dat, out, writer_cls=ascii.FixedWidthTwoLine, bookend=True, delimiter="|"
+    )
     assert_equal_splitlines(
         out.getvalue(),
         """\

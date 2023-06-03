@@ -50,7 +50,7 @@ XCENTER YCENTER
 """,
     },
     {
-        "kwargs": {"Writer": ascii.Rdb, "exclude_names": ["CHI"]},
+        "kwargs": {"writer_cls": ascii.Rdb, "exclude_names": ["CHI"]},
         "out": """\
 ID\tXCENTER\tYCENTER\tMAG\tMERR\tMSKY\tNITER\tSHARPNESS\tPIER\tPERROR
 N\tN\tN\tN\tN\tN\tN\tN\tN\tS
@@ -59,7 +59,7 @@ N\tN\tN\tN\tN\tN\tN\tN\tN\tS
 """,
     },
     {
-        "kwargs": {"Writer": ascii.Tab},
+        "kwargs": {"writer_cls": ascii.Tab},
         "out": """\
 ID\tXCENTER\tYCENTER\tMAG\tMERR\tMSKY\tNITER\tSHARPNESS\tCHI\tPIER\tPERROR
 14\t138.538\t256.405\t15.461\t0.003\t34.85955\t4\t-0.032\t0.802\t0\tNo_error
@@ -67,7 +67,7 @@ ID\tXCENTER\tYCENTER\tMAG\tMERR\tMSKY\tNITER\tSHARPNESS\tCHI\tPIER\tPERROR
 """,
     },
     {
-        "kwargs": {"Writer": ascii.Csv},
+        "kwargs": {"writer_cls": ascii.Csv},
         "out": """\
 ID,XCENTER,YCENTER,MAG,MERR,MSKY,NITER,SHARPNESS,CHI,PIER,PERROR
 14,138.538,256.405,15.461,0.003,34.85955,4,-0.032,0.802,0,No_error
@@ -75,14 +75,14 @@ ID,XCENTER,YCENTER,MAG,MERR,MSKY,NITER,SHARPNESS,CHI,PIER,PERROR
 """,
     },
     {
-        "kwargs": {"Writer": ascii.NoHeader},
+        "kwargs": {"writer_cls": ascii.NoHeader},
         "out": """\
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
 18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """,
     },
     {
-        "kwargs": {"Writer": ascii.CommentedHeader},
+        "kwargs": {"writer_cls": ascii.CommentedHeader},
         "out": """\
 # ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
@@ -90,7 +90,7 @@ ID,XCENTER,YCENTER,MAG,MERR,MSKY,NITER,SHARPNESS,CHI,PIER,PERROR
 """,
     },
     {
-        "kwargs": {"Writer": ascii.CommentedHeader, "comment": "&"},
+        "kwargs": {"writer_cls": ascii.CommentedHeader, "comment": "&"},
         "out": """\
 &ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
@@ -98,7 +98,7 @@ ID,XCENTER,YCENTER,MAG,MERR,MSKY,NITER,SHARPNESS,CHI,PIER,PERROR
 """,
     },
     {
-        "kwargs": {"Writer": ascii.Latex},
+        "kwargs": {"writer_cls": ascii.Latex},
         "out": """\
 \\begin{table}
 \\begin{tabular}{ccccccccccc}
@@ -111,7 +111,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 """,
     },
     {
-        "kwargs": {"Writer": ascii.AASTex},
+        "kwargs": {"writer_cls": ascii.AASTex},
         "out": """\
 \\begin{deluxetable}{ccccccccccc}
 \\tablehead{\\colhead{ID} & \\colhead{XCENTER} & \\colhead{YCENTER} & \\colhead{MAG} & \\colhead{MERR} & \\colhead{MSKY} & \\colhead{NITER} & \\colhead{SHARPNESS} & \\colhead{CHI} & \\colhead{PIER} & \\colhead{PERROR}\\\\ \\colhead{ } & \\colhead{pixels} & \\colhead{pixels} & \\colhead{magnitudes} & \\colhead{magnitudes} & \\colhead{counts} & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{perrors}}
@@ -124,7 +124,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
     },
     {
         "kwargs": {
-            "Writer": ascii.AASTex,
+            "writer_cls": ascii.AASTex,
             "caption": "Mag values \\label{tab1}",
             "latexdict": {
                 "units": {"MAG": "[mag]", "XCENTER": "[pixel]"},
@@ -145,7 +145,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
     },
     {
         "kwargs": {
-            "Writer": ascii.Latex,
+            "writer_cls": ascii.Latex,
             "caption": "Mag values \\label{tab1}",
             "latexdict": {
                 "preamble": "\\begin{center}",
@@ -174,7 +174,10 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 """,
     },
     {
-        "kwargs": {"Writer": ascii.Latex, "latexdict": ascii.latexdicts["template"]},
+        "kwargs": {
+            "writer_cls": ascii.Latex,
+            "latexdict": ascii.latexdicts["template"],
+        },
         "out": """\
 \\begin{tabletype}[tablealign]
 preamble
@@ -194,7 +197,7 @@ tablefoot
 """,
     },
     {
-        "kwargs": {"Writer": ascii.Latex, "latexdict": {"tabletype": None}},
+        "kwargs": {"writer_cls": ascii.Latex, "latexdict": {"tabletype": None}},
         "out": """\
 \\begin{tabular}{ccccccccccc}
 ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PERROR \\\\
@@ -206,7 +209,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
     },
     {
         "kwargs": {
-            "Writer": ascii.HTML,
+            "writer_cls": ascii.HTML,
             "htmldict": {"css": "table,th,td{border:1px solid black;"},
         },
         "out": """\
@@ -266,7 +269,7 @@ table,th,td{border:1px solid black;  </style>
 """,
     },
     {
-        "kwargs": {"Writer": ascii.Ipac},
+        "kwargs": {"writer_cls": ascii.Ipac},
         "out": """\
 \\MERGERAD='INDEF'
 \\IRAF='NOAO/IRAFV2.10EXPORT'
@@ -312,7 +315,7 @@ table,th,td{border:1px solid black;  </style>
 
 test_defs_no_data = [
     {
-        "kwargs": {"Writer": ascii.Ipac},
+        "kwargs": {"writer_cls": ascii.Ipac},
         "out": """\
 \\ This is an example of a valid comment.
 \\ The 2nd data line is used to verify the exact column parsing
@@ -422,7 +425,7 @@ XXX 2 3
 """,
     },
     {
-        "kwargs": {"Writer": ascii.Csv},
+        "kwargs": {"writer_cls": ascii.Csv},
         "out": """\
 a,b,c
 ,2,3
@@ -484,9 +487,9 @@ def check_write_table_via_table(test_def, table, fast_writer, out=None):
         out = StringIO()
 
     test_def = copy.deepcopy(test_def)
-    if "Writer" in test_def["kwargs"]:
-        format = f"ascii.{test_def['kwargs']['Writer']._format_name}"
-        del test_def["kwargs"]["Writer"]
+    if "writer_cls" in test_def["kwargs"]:
+        format = f"ascii.{test_def['kwargs']['writer_cls']._format_name}"
+        del test_def["kwargs"]["writer_cls"]
     else:
         format = "ascii"
 

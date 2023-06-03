@@ -868,15 +868,15 @@ extra_writer_pars = (
 )
 
 
-def get_writer(Writer=None, fast_writer=True, **kwargs):
+def get_writer(writer_cls=None, fast_writer=True, **kwargs):
     """
     Initialize a table writer allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Writer class.
 
     Parameters
     ----------
-    Writer : ``Writer``
-        Writer class (DEPRECATED). Defaults to :class:`Basic`.
+    writer_cls : ``writer_cls``
+        writer_cls class (DEPRECATED). Defaults to :class:`Basic`.
     delimiter : str
         Column delimiter string
     comment : str
@@ -901,11 +901,11 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
     writer : `~astropy.io.ascii.BaseReader` subclass
         ASCII format writer instance
     """
-    if Writer is None:
-        Writer = basic.Basic
+    if writer_cls is None:
+        writer_cls = basic.Basic
     if "strip_whitespace" not in kwargs:
         kwargs["strip_whitespace"] = True
-    writer = core._get_writer(Writer, fast_writer, **kwargs)
+    writer = core._get_writer(writer_cls, fast_writer, **kwargs)
 
     # Handle the corner case of wanting to disable writing table comments for the
     # commented_header format.  This format *requires* a string for `write_comment`
@@ -929,7 +929,7 @@ def write(
     table,
     output=None,
     format=None,
-    Writer=None,
+    writer_cls=None,
     fast_writer=True,
     *,
     overwrite=False,
@@ -978,8 +978,8 @@ def write(
     if table.has_mixin_columns:
         fast_writer = False
 
-    Writer = _get_format_class(format, Writer, "Writer")
-    writer = get_writer(Writer=Writer, fast_writer=fast_writer, **kwargs)
+    writer_cls = _get_format_class(format, writer_cls, "writer_cls")
+    writer = get_writer(writer_cls=writer_cls, fast_writer=fast_writer, **kwargs)
     if writer._format_name in core.FAST_CLASSES:
         writer.write(table, output)
         return
