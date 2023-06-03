@@ -108,9 +108,9 @@ class FastBasic(metaclass=core.MetaBaseReader):
             raise core.ParameterError(
                 "The C reader does not use the Outputter parameter"
             )
-        elif "Inputter" in self.kwargs:
+        elif "inputter_cls" in self.kwargs:
             raise core.ParameterError(
-                "The C reader does not use the Inputter parameter"
+                "The C reader does not use the inputter_cls parameter"
             )
         elif "data_Splitter" in self.kwargs or "header_Splitter" in self.kwargs:
             raise core.ParameterError("The C reader does not use a Splitter class")

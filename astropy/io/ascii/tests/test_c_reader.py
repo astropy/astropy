@@ -519,7 +519,7 @@ def test_quoted_fields(parallel, read_basic):
             "converters",
             {i + 1: ascii.convert_numpy(np.uint) for i in range(3)},
         ),  # passing converters
-        ("Inputter", ascii.ContinuationLinesInputter),  # passing Inputter
+        ("inputter_cls", ascii.ContinuationLinesInputter),  # passing inputter_cls
         ("header_Splitter", ascii.DefaultSplitter),  # passing Splitter
         ("data_Splitter", ascii.DefaultSplitter),
     ],

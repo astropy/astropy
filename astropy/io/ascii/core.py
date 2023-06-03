@@ -1638,7 +1638,7 @@ class WhitespaceSplitter(DefaultSplitter):
 
 extra_reader_pars = (
     "Reader",
-    "Inputter",
+    "inputter_cls",
     "Outputter",
     "delimiter",
     "comment",
@@ -1660,7 +1660,7 @@ extra_reader_pars = (
 )
 
 
-def _get_reader(reader_cls, Inputter=None, Outputter=None, **kwargs):
+def _get_reader(reader_cls, inputter_cls=None, Outputter=None, **kwargs):
     """Initialize a table reader allowing for common customizations.  See ui.get_reader()
     for param docs.  This routine is for internal (package) use only and is useful
     because it depends only on the "core" module.
@@ -1668,8 +1668,8 @@ def _get_reader(reader_cls, Inputter=None, Outputter=None, **kwargs):
     from .fastbasic import FastBasic
 
     if issubclass(reader_cls, FastBasic):  # Fast readers handle args separately
-        if Inputter is not None:
-            kwargs["Inputter"] = Inputter
+        if inputter_cls is not None:
+            kwargs["inputter_cls"] = inputter_cls
         return reader_cls(**kwargs)
 
     # If user explicitly passed a fast reader with enable='force'
@@ -1688,8 +1688,8 @@ def _get_reader(reader_cls, Inputter=None, Outputter=None, **kwargs):
     reader_kwargs = {k: v for k, v in kwargs.items() if k not in extra_reader_pars}
     reader = reader_cls(**reader_kwargs)
 
-    if Inputter is not None:
-        reader.inputter = Inputter()
+    if inputter_cls is not None:
+        reader.inputter = inputter_cls()
 
     if Outputter is not None:
         reader.outputter = Outputter()

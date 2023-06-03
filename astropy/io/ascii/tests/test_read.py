@@ -225,7 +225,7 @@ def test_read_all_files(fast_reader, path_format, home_is_data):
                 "reader_cls" in test_opts
                 and f"fast_{test_opts['reader_cls']._format_name}" in core.FAST_CLASSES
             ):  # has fast version
-                if "Inputter" not in test_opts:  # fast reader doesn't allow this
+                if "inputter_cls" not in test_opts:  # fast reader doesn't allow this
                     test_opts["fast_reader"] = fast_reader
             table = ascii.read(testfile["name"], **test_opts)
             assert_equal(table.dtype.names, testfile["cols"])
@@ -836,7 +836,7 @@ def get_testfiles(name=None):
             "name": "data/continuation.dat",
             "nrows": 2,
             "opts": {
-                "Inputter": ascii.ContinuationLinesInputter,
+                "inputter_cls": ascii.ContinuationLinesInputter,
                 "reader_cls": ascii.NoHeader,
             },
         },

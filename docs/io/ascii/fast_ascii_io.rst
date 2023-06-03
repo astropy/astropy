@@ -81,7 +81,7 @@ These parameters are:
  * ``quotechar`` string not of length 1
  * ``converters``
  * ``Outputter``
- * ``Inputter``
+ * ``inputter_cls``
  * ``data_Splitter``
  * ``header_Splitter``
 

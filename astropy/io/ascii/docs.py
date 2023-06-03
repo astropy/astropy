@@ -17,7 +17,7 @@ READ_DOCSTRING = """
         Try to guess the table format. Defaults to None.
     format : str, `~astropy.io.ascii.BaseReader`
         Input table format
-    Inputter : `~astropy.io.ascii.BaseInputter`
+    inputter_cls : `~astropy.io.ascii.BaseInputter`
         Inputter class
     Outputter : `~astropy.io.ascii.BaseOutputter`
         Outputter class
@@ -99,7 +99,7 @@ READ_KWARG_TYPES = {
     "guess": bool,
     # 'format'
     # 'reader_cls'
-    # 'Inputter'
+    # 'inputter_cls'
     # 'Outputter'
     "delimiter": str,
     "comment": str,

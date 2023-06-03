@@ -118,7 +118,7 @@ def set_guess(guess):
     _GUESS = guess
 
 
-def get_reader(reader_cls=None, Inputter=None, Outputter=None, **kwargs):
+def get_reader(reader_cls=None, inputter_cls=None, Outputter=None, **kwargs):
     """
     Initialize a table reader allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Reader class.
@@ -127,7 +127,7 @@ def get_reader(reader_cls=None, Inputter=None, Outputter=None, **kwargs):
     ----------
     reader_cls : `~astropy.io.ascii.BaseReader`
         reader_cls class (DEPRECATED). Default is :class:`Basic`.
-    Inputter : `~astropy.io.ascii.BaseInputter`
+    inputter_cls : `~astropy.io.ascii.BaseInputter`
         Inputter class
     Outputter : `~astropy.io.ascii.BaseOutputter`
         Outputter class
@@ -181,7 +181,7 @@ def get_reader(reader_cls=None, Inputter=None, Outputter=None, **kwargs):
             reader_cls = basic.Basic
 
     reader = core._get_reader(
-        reader_cls, Inputter=Inputter, Outputter=Outputter, **kwargs
+        reader_cls, inputter_cls=inputter_cls, Outputter=Outputter, **kwargs
     )
     return reader
 
