@@ -19,7 +19,7 @@ READ_DOCSTRING = """
         Input table format
     inputter_cls : `~astropy.io.ascii.BaseInputter`
         Inputter class
-    Outputter : `~astropy.io.ascii.BaseOutputter`
+    outputter_cls : `~astropy.io.ascii.BaseOutputter`
         Outputter class
     delimiter : str
         Column delimiter string
@@ -100,7 +100,7 @@ READ_KWARG_TYPES = {
     # 'format'
     # 'reader_cls'
     # 'inputter_cls'
-    # 'Outputter'
+    # 'outputter_cls'
     "delimiter": str,
     "comment": str,
     "quotechar": str,

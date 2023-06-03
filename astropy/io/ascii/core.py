@@ -1639,7 +1639,7 @@ class WhitespaceSplitter(DefaultSplitter):
 extra_reader_pars = (
     "Reader",
     "inputter_cls",
-    "Outputter",
+    "outputter_cls",
     "delimiter",
     "comment",
     "quotechar",
@@ -1660,7 +1660,7 @@ extra_reader_pars = (
 )
 
 
-def _get_reader(reader_cls, inputter_cls=None, Outputter=None, **kwargs):
+def _get_reader(reader_cls, inputter_cls=None, outputter_cls=None, **kwargs):
     """Initialize a table reader allowing for common customizations.  See ui.get_reader()
     for param docs.  This routine is for internal (package) use only and is useful
     because it depends only on the "core" module.
@@ -1691,8 +1691,8 @@ def _get_reader(reader_cls, inputter_cls=None, Outputter=None, **kwargs):
     if inputter_cls is not None:
         reader.inputter = inputter_cls()
 
-    if Outputter is not None:
-        reader.outputter = Outputter()
+    if outputter_cls is not None:
+        reader.outputter = outputter_cls()
 
     # Issue #855 suggested to set data_start to header_start + default_header_length
     # Thus, we need to retrieve this from the class definition before resetting these numbers.

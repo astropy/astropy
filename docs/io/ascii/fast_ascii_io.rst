@@ -80,7 +80,7 @@ These parameters are:
  * ``delimiter`` string not of length 1
  * ``quotechar`` string not of length 1
  * ``converters``
- * ``Outputter``
+ * ``outputter_cls``
  * ``inputter_cls``
  * ``data_Splitter``
  * ``header_Splitter``

@@ -118,7 +118,7 @@ def set_guess(guess):
     _GUESS = guess
 
 
-def get_reader(reader_cls=None, inputter_cls=None, Outputter=None, **kwargs):
+def get_reader(reader_cls=None, inputter_cls=None, outputter_cls=None, **kwargs):
     """
     Initialize a table reader allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Reader class.
@@ -129,7 +129,7 @@ def get_reader(reader_cls=None, inputter_cls=None, Outputter=None, **kwargs):
         reader_cls class (DEPRECATED). Default is :class:`Basic`.
     inputter_cls : `~astropy.io.ascii.BaseInputter`
         Inputter class
-    Outputter : `~astropy.io.ascii.BaseOutputter`
+    outputter_cls : `~astropy.io.ascii.BaseOutputter`
         Outputter class
     delimiter : str
         Column delimiter string
@@ -181,7 +181,7 @@ def get_reader(reader_cls=None, inputter_cls=None, Outputter=None, **kwargs):
             reader_cls = basic.Basic
 
     reader = core._get_reader(
-        reader_cls, inputter_cls=inputter_cls, Outputter=Outputter, **kwargs
+        reader_cls, inputter_cls=inputter_cls, outputter_cls=outputter_cls, **kwargs
     )
     return reader
 
@@ -305,9 +305,9 @@ def read(table, guess=None, **kwargs):
     if "fill_values" not in kwargs:
         kwargs["fill_values"] = [("", "0")]
 
-    # If an Outputter is supplied in kwargs that will take precedence.
+    # If an outputter_cls is supplied in kwargs that will take precedence.
     if (
-        "Outputter" in kwargs
+        "outputter_cls" in kwargs
     ):  # user specified Outputter, not supported for fast reading
         fast_reader["enable"] = False
 
@@ -629,10 +629,14 @@ def _guess(table, read_kwargs, format, fast_reader):
         ]
         for kwargs in failed_kwargs:
             sorted_keys = sorted(
-                x for x in sorted(kwargs) if x not in ("Reader", "Outputter")
+                x
+                for x in sorted(kwargs)
+                if x not in ("reader_cls", "outputter_cls")
             )
-            reader_repr = repr(kwargs.get("Reader", basic.Basic))
-            keys_vals = ["Reader:" + re.search(r"\.(\w+)'>", reader_repr).group(1)]
+            reader_repr = repr(kwargs.get("reader_cls", basic.Basic))
+            keys_vals = [
+                "reader_cls:" + re.search(r"\.(\w+)'>", reader_repr).group(1)
+            ]
             kwargs_sorted = ((key, kwargs[key]) for key in sorted_keys)
             keys_vals.extend([f"{key}: {val!r}" for key, val in kwargs_sorted])
             lines.append(" ".join(keys_vals))
