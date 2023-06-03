@@ -690,3 +690,23 @@ def test_group_mixins_unsupported(col):
     tg = t.group_by("a")
     with pytest.warns(AstropyUserWarning, match="Cannot aggregate column 'mix'"):
         tg.groups.aggregate(np.sum)
+
+
+@pytest.mark.parametrize("add_index", [False, True])
+def test_group_stable_sort(add_index):
+    """Test that group_by preserves the order of the table.
+
+    This table has 5 groups with an average of 200 rows per group, so it is not
+    statistically possible that the groups will be in order by chance.
+
+    This tests explicitly the case where grouping is done via the index sort.
+    See: https://github.com/astropy/astropy/issues/14882
+    """
+    a = np.random.randint(0, 5, 1000)
+    b = np.arange(len(a))
+    t = Table([a, b], names=["a", "b"])
+    if add_index:
+        t.add_index("a")
+    tg = t.group_by("a")
+    for grp in tg.groups:
+        assert np.all(grp["b"] == np.sort(grp["b"]))
