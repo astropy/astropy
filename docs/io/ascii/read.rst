@@ -200,7 +200,7 @@ Parameters for ``read()``
   :class:`~astropy.io.ascii.TableOutputter`, which returns a
   :class:`~astropy.table.Table` object (see :ref:`Data Tables <astropy-table>`).
 
-**Inputter** : Inputter class
+**inputter_cls** : Inputter class
   This is generally not specified.
 
 **data_Splitter** : Splitter class to split data columns
