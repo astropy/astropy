@@ -94,7 +94,7 @@ class Index:
             raise ValueError("Cannot create index without at least one column")
         elif len(columns) == 1:
             col = columns[0]
-            row_index = Column(col.argsort())
+            row_index = Column(col.argsort(kind="stable"))
             data = Table([col[row_index]])
         else:
             num_rows = len(columns[0])
@@ -117,7 +117,7 @@ class Index:
             try:
                 lines = table[np.lexsort(sort_columns)]
             except TypeError:  # arbitrary mixins might not work with lexsort
-                lines = table[table.argsort()]
+                lines = table[table.argsort(kind="stable")]
             data = lines[lines.colnames[:-1]]
             row_index = lines[lines.colnames[-1]]
 
