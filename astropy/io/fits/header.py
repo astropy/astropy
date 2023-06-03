@@ -1400,8 +1400,7 @@ class Header:
         for idx in range(start, stop, step):
             if self._cards[idx].keyword.upper() == norm_keyword:
                 return idx
-        else:
-            raise ValueError(f"The keyword {keyword!r} is not in the  header.")
+        raise ValueError(f"The keyword {keyword!r} is not in the  header.")
 
     def insert(self, key, card, useblanks=True, after=False):
         """
