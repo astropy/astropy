@@ -194,7 +194,7 @@ Parameters for ``read()``
   This parameter takes precedence over ``fill_include_names``.  A value
   of `None` (default) does not exclude any columns.
 
-**Outputter** : Outputter class
+**outputter_cls** : Outputter class
   This converts the raw data tables value into the
   output object that gets returned by |read|. The default is
   :class:`~astropy.io.ascii.TableOutputter`, which returns a

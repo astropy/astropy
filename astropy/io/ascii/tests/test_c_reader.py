@@ -540,8 +540,8 @@ def test_invalid_parameters_other():
     with pytest.raises(FastOptionsError):  # don't fall back on the slow reader
         ascii.read("1 2 3\n4 5 6", format="basic", fast_reader={"foo": 7})
     with pytest.raises(ParameterError):
-        # Outputter cannot be specified in constructor
-        FastBasic(Outputter=ascii.TableOutputter).read("1 2 3\n4 5 6")
+        # outputter_cls cannot be specified in constructor
+        FastBasic(outputter_cls=ascii.TableOutputter).read("1 2 3\n4 5 6")
 
 
 def test_too_many_cols1():

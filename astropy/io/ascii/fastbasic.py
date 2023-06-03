@@ -104,9 +104,9 @@ class FastBasic(metaclass=core.MetaBaseReader):
             raise core.ParameterError(
                 "The C reader does not use the encoding parameter"
             )
-        elif "Outputter" in self.kwargs:
+        elif "outputter_cls" in self.kwargs:
             raise core.ParameterError(
-                "The C reader does not use the Outputter parameter"
+                "The C reader does not use the outputter_cls parameter"
             )
         elif "inputter_cls" in self.kwargs:
             raise core.ParameterError(
