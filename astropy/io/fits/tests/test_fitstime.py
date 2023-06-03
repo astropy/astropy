@@ -389,7 +389,7 @@ class TestFitsTime(FitsTestCase):
         filename = self.data("chandra_time.fits")
         with pytest.warns(
             AstropyUserWarning,
-            match=r'Time column "time" reference ' r"position will be ignored",
+            match=r'Time column "time" reference position will be ignored',
         ):
             tm = table_types.read(filename, astropy_native=True)
 
