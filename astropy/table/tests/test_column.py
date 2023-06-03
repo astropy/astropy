@@ -759,7 +759,7 @@ def test_string_truncation_warning(masked):
 
     with pytest.warns(
         table.StringTruncateWarning,
-        match=r"truncated right side " r"string\(s\) longer than 2 character\(s\)",
+        match=r"truncated right side string\(s\) longer than 2 character\(s\)",
     ) as w:
         frameinfo = getframeinfo(currentframe())
         t["a"][0] = "eee"  # replace item with string that gets truncated
@@ -772,7 +772,7 @@ def test_string_truncation_warning(masked):
 
     with pytest.warns(
         table.StringTruncateWarning,
-        match=r"truncated right side " r"string\(s\) longer than 2 character\(s\)",
+        match=r"truncated right side string\(s\) longer than 2 character\(s\)",
     ) as w:
         t["a"][:] = ["ff", "ggg"]  # replace item with string that gets truncated
     assert np.all(t["a"] == ["ff", "gg"])
@@ -812,7 +812,7 @@ def test_string_truncation_warning_masked():
 
     with pytest.warns(
         table.StringTruncateWarning,
-        match=r"truncated right side " r"string\(s\) longer than 2 character\(s\)",
+        match=r"truncated right side string\(s\) longer than 2 character\(s\)",
     ) as w:
         mc[:] = [np.ma.masked, "ggg"]  # replace item with string that gets truncated
     assert mc[1] == "gg"

@@ -2234,7 +2234,7 @@ class TestReplaceColumn(SetupData):
 
         with pytest.raises(
             ValueError,
-            match=r"Cannot replace column 'a'.  Use " "Table.replace_column.. instead.",
+            match=r"Cannot replace column 'a'.  Use Table.replace_column.. instead.",
         ):
             t.columns["a"] = [1, 2, 3]
 
@@ -2669,7 +2669,7 @@ def test_replace_update_column_via_setitem_warnings_attributes():
 
     with pytest.warns(
         TableReplaceWarning,
-        match=r"replaced column 'a' " r"and column attributes \['unit'\]",
+        match=r"replaced column 'a' and column attributes \['unit'\]",
     ) as w:
         with table.conf.set_temp(
             "replace_warnings", ["refcount", "attributes", "slice"]

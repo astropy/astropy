@@ -206,9 +206,9 @@ class TestLogUnitStrings:
 
         lu5 = u.mag(u.ct / u.s)
         assert lu5.to_string("latex") == (
-            r"$\mathrm{mag}$$\mathrm{\left( " r"\mathrm{\frac{ct}{s}} \right)}$"
+            r"$\mathrm{mag}$$\mathrm{\left( \mathrm{\frac{ct}{s}} \right)}$"
         )
-        latex_str = r"$\mathrm{mag}$$\mathrm{\left( \mathrm{ct\,s^{-1}} " r"\right)}$"
+        latex_str = r"$\mathrm{mag}$$\mathrm{\left( \mathrm{ct\,s^{-1}} \right)}$"
         assert lu5.to_string("latex_inline") == latex_str
 
 

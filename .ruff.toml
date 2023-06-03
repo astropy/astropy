@@ -91,7 +91,6 @@ ignore = [
     "ICN001",  # import-conventions
 
     # flake8-implicit-str-concat (ISC)
-    "ISC001",  # single-line-implicit-string-concatenation
     "ISC003",  # explicit-string-concatenation
 
     # pep8-naming (N)

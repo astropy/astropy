@@ -203,7 +203,7 @@ def test_future_altaz():
     # --remote-data, i.e. for all CI testing) do we expect another warning.
     with pytest.warns(
         AstropyWarning,
-        match=r"Tried to get polar motions for " "times after IERS data is valid.*",
+        match=r"Tried to get polar motions for times after IERS data is valid.*",
     ) as found_warnings:
         SkyCoord(1 * u.deg, 2 * u.deg).transform_to(AltAz(location=location, obstime=t))
 
