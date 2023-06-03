@@ -524,7 +524,7 @@ def check_write_table_via_table(test_def, table, fast_writer, out=None):
     "path_format", ["buffer", "plain", "tilde-str", "tilde-pathlib"]
 )
 def test_write_table(fast_writer, tmp_path, home_is_tmpdir, path_format):
-    table = ascii.get_reader(Reader=ascii.Daophot)
+    table = ascii.get_reader(reader_cls=ascii.Daophot)
     data = table.read("data/daophot.dat")
 
     if path_format == "buffer":
@@ -564,7 +564,7 @@ def test_write_fill_masked_different(fast_writer):
 @pytest.mark.parametrize("fast_writer", [True, False])
 def test_write_no_data_ipac(fast_writer):
     """Write an IPAC table that contains no data."""
-    table = ascii.get_reader(Reader=ascii.Ipac)
+    table = ascii.get_reader(reader_cls=ascii.Ipac)
     data = table.read("data/no_data_ipac.dat")
 
     for test_def in test_defs_no_data:
@@ -576,7 +576,7 @@ def test_write_invalid_toplevel_meta_ipac():
     """Write an IPAC table that contains no data but has invalid (incorrectly
     specified) metadata stored in the top-level metadata and therefore should
     raise a warning, and check that the warning has been raised"""
-    table = ascii.get_reader(Reader=ascii.Ipac)
+    table = ascii.get_reader(reader_cls=ascii.Ipac)
     data = table.read("data/no_data_ipac.dat")
     data.meta["blah"] = "extra"
     out = StringIO()
@@ -591,7 +591,7 @@ def test_write_invalid_keyword_meta_ipac():
     specified) metadata stored appropriately in the ``keywords`` section
     of the metadata but with invalid format and therefore should raise a
     warning, and check that the warning has been raised"""
-    table = ascii.get_reader(Reader=ascii.Ipac)
+    table = ascii.get_reader(reader_cls=ascii.Ipac)
     data = table.read("data/no_data_ipac.dat")
     data.meta["keywords"]["blah"] = "invalid"
     out = StringIO()
@@ -604,7 +604,7 @@ def test_write_invalid_keyword_meta_ipac():
 def test_write_valid_meta_ipac():
     """Write an IPAC table that contains no data and has *correctly* specified
     metadata.  No warnings should be issued"""
-    table = ascii.get_reader(Reader=ascii.Ipac)
+    table = ascii.get_reader(reader_cls=ascii.Ipac)
     data = table.read("data/no_data_ipac.dat")
     data.meta["keywords"]["blah"] = {"value": "invalid"}
     out = StringIO()

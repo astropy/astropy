@@ -26,7 +26,7 @@ def test_read_normal():
    2.4  's worlds
 ======= =========
 """
-    reader = ascii.get_reader(Reader=ascii.RST)
+    reader = ascii.get_reader(reader_cls=ascii.RST)
     dat = reader.read(table)
     assert_equal(dat.colnames, ["Col1", "Col2"])
     assert_almost_equal(dat[1][0], 2.4)
@@ -45,7 +45,7 @@ def test_read_normal_names():
    2.4  's worlds
 ======= =========
 """
-    reader = ascii.get_reader(Reader=ascii.RST, names=("name1", "name2"))
+    reader = ascii.get_reader(reader_cls=ascii.RST, names=("name1", "name2"))
     dat = reader.read(table)
     assert_equal(dat.colnames, ["name1", "name2"])
     assert_almost_equal(dat[1][0], 2.4)
@@ -63,7 +63,7 @@ def test_read_normal_names_include():
 =======  ========== ======
 """
     reader = ascii.get_reader(
-        Reader=ascii.RST,
+        reader_cls=ascii.RST,
         names=("name1", "name2", "name3"),
         include_names=("name1", "name3"),
     )
@@ -83,7 +83,7 @@ def test_read_normal_exclude():
   2.4    's worlds
 ======= ==========
 """
-    reader = ascii.get_reader(Reader=ascii.RST, exclude_names=("Col1",))
+    reader = ascii.get_reader(reader_cls=ascii.RST, exclude_names=("Col1",))
     dat = reader.read(table)
     assert_equal(dat.colnames, ["Col2"])
     assert_equal(dat[1][0], "'s worlds")
@@ -100,7 +100,7 @@ def test_read_unbounded_right_column():
  2.4     4   Worlds
 ===== ===== ====
 """
-    reader = ascii.get_reader(Reader=ascii.RST)
+    reader = ascii.get_reader(reader_cls=ascii.RST)
     dat = reader.read(table)
     assert_equal(dat[0][2], "Hello")
     assert_equal(dat[1][2], "Worlds")
@@ -117,7 +117,7 @@ def test_read_unbounded_right_column_header():
  2.4     4   Worlds
 ===== ===== ====
 """
-    reader = ascii.get_reader(Reader=ascii.RST)
+    reader = ascii.get_reader(reader_cls=ascii.RST)
     dat = reader.read(table)
     assert_equal(dat.colnames[-1], "Col3Long")
 
@@ -133,7 +133,7 @@ def test_read_right_indented_table():
     1    4.5  bar
    ==== ==== ====
 """
-    reader = ascii.get_reader(Reader=ascii.RST)
+    reader = ascii.get_reader(reader_cls=ascii.RST)
     dat = reader.read(table)
     assert_equal(dat.colnames, ["Col1", "Col2", "Col3"])
     assert_equal(dat[0][2], "foo")
@@ -156,7 +156,7 @@ def test_trailing_spaces_in_row_definition():
     # table.
     assert len(table) == 151
 
-    reader = ascii.get_reader(Reader=ascii.RST)
+    reader = ascii.get_reader(reader_cls=ascii.RST)
     dat = reader.read(table)
     assert_equal(dat.colnames, ["Col1", "Col2", "Col3"])
     assert_equal(dat[0][2], "foo")
@@ -171,7 +171,7 @@ table = """\
   2.4   's worlds          2           2
 ====== =========== ============ ===========
 """
-dat = ascii.read(table, Reader=ascii.RST)
+dat = ascii.read(table, reader_cls=ascii.RST)
 
 
 def test_write_normal():

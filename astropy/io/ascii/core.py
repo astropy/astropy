@@ -1660,17 +1660,17 @@ extra_reader_pars = (
 )
 
 
-def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
+def _get_reader(reader_cls, Inputter=None, Outputter=None, **kwargs):
     """Initialize a table reader allowing for common customizations.  See ui.get_reader()
     for param docs.  This routine is for internal (package) use only and is useful
     because it depends only on the "core" module.
     """
     from .fastbasic import FastBasic
 
-    if issubclass(Reader, FastBasic):  # Fast readers handle args separately
+    if issubclass(reader_cls, FastBasic):  # Fast readers handle args separately
         if Inputter is not None:
             kwargs["Inputter"] = Inputter
-        return Reader(**kwargs)
+        return reader_cls(**kwargs)
 
     # If user explicitly passed a fast reader with enable='force'
     # (e.g. by passing non-default options), raise an error for slow readers
@@ -1679,14 +1679,14 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
             raise ParameterError(
                 "fast_reader required with "
                 "{}, but this is not a fast C reader: {}".format(
-                    kwargs["fast_reader"], Reader
+                    kwargs["fast_reader"], reader_cls
                 )
             )
         else:
             del kwargs["fast_reader"]  # Otherwise ignore fast_reader parameter
 
     reader_kwargs = {k: v for k, v in kwargs.items() if k not in extra_reader_pars}
-    reader = Reader(**reader_kwargs)
+    reader = reader_cls(**reader_kwargs)
 
     if Inputter is not None:
         reader.inputter = Inputter()

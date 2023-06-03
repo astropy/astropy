@@ -98,7 +98,7 @@ READ_KWARG_TYPES = {
     # 'table'
     "guess": bool,
     # 'format'
-    # 'Reader'
+    # 'reader_cls'
     # 'Inputter'
     # 'Outputter'
     "delimiter": str,
