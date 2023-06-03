@@ -603,6 +603,10 @@ class TestParameters:
         param = Parameter(name="test", default=[1, 2, 3, 4])
         assert param._validator is None
 
+        valid = mk.MagicMock()
+        param.validator(valid)
+        assert param._validator == valid
+
         MESSAGE = r"This decorator method expects a callable.*"
         with pytest.raises(ValueError, match=MESSAGE):
             param.validator(mk.NonCallableMagicMock())
