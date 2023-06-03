@@ -1637,9 +1637,6 @@ class WhitespaceSplitter(DefaultSplitter):
 
 
 extra_reader_pars = (
-    "Reader",
-    "inputter_cls",
-    "outputter_cls",
     "delimiter",
     "comment",
     "quotechar",
