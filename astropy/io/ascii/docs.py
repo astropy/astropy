@@ -89,7 +89,7 @@ READ_DOCSTRING = """
 
     """
 
-# Specify allowed types for core write() keyword arguments.  Each entry
+# Specify allowed types for core read() keyword arguments.  Each entry
 # corresponds to the name of an argument and either a type (e.g. int) or a
 # list of types.  These get used in io.ascii.ui._validate_read_write_kwargs().
 # -  The commented-out kwargs are too flexible for a useful check

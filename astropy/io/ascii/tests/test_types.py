@@ -14,7 +14,7 @@ def test_types_from_dat():
     converters = {"a": [ascii.convert_numpy(float)], "e": [ascii.convert_numpy(str)]}
 
     dat = ascii.read(
-        ["a b c d e", "1 1 cat 2.1 4.2"], reader_cls=ascii.Basic, converters=converters
+        ["a b c d e", "1 1 cat 2.1 4.2"], format="basic", converters=converters
     )
 
     assert dat["a"].dtype.kind == "f"
@@ -25,9 +25,9 @@ def test_types_from_dat():
 
 
 def test_rdb_write_types():
-    dat = ascii.read(["a b c d", "1 1.0 cat 2.1"], reader_cls=ascii.Basic)
+    dat = ascii.read(["a b c d", "1 1.0 cat 2.1"], format="basic")
     out = StringIO()
-    ascii.write(dat, out, writer_cls=ascii.Rdb)
+    ascii.write(dat, out, format="rdb")
     outs = out.getvalue().splitlines()
     assert_equal(outs[1], "N\tN\tS\tN")
 

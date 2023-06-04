@@ -138,22 +138,14 @@ def test_guess_with_names_arg():
 
 def test_guess_with_format_arg():
     """
-    When the format or reader_cls is explicitly given then disable the
-    strict column name checking in guessing.
+    When the format is explicitly given then disable the strict column name checking in
+    guessing.
     """
     dat = ascii.read(["1,2", "3,4"], format="basic")
     assert len(dat) == 1
     assert dat.colnames == ["1", "2"]
 
     dat = ascii.read(["1,2", "3,4"], names=("a", "b"), format="basic")
-    assert len(dat) == 1
-    assert dat.colnames == ["a", "b"]
-
-    dat = ascii.read(["1,2", "3,4"], reader_cls=ascii.Basic)
-    assert len(dat) == 1
-    assert dat.colnames == ["1", "2"]
-
-    dat = ascii.read(["1,2", "3,4"], names=("a", "b"), reader_cls=ascii.Basic)
     assert len(dat) == 1
     assert dat.colnames == ["a", "b"]
 
@@ -222,8 +214,8 @@ def test_read_all_files(fast_reader, path_format, home_is_data):
             if "guess" not in test_opts:
                 test_opts["guess"] = guess
             if (
-                "reader_cls" in test_opts
-                and f"fast_{test_opts['reader_cls']._format_name}" in core.FAST_CLASSES
+                "format" in test_opts
+                and f"fast_{test_opts['format']}" in core.FAST_CLASSES
             ):  # has fast version
                 if "inputter_cls" not in test_opts:  # fast reader doesn't allow this
                     test_opts["fast_reader"] = fast_reader
@@ -250,9 +242,9 @@ def test_read_all_files_via_table(fast_reader, path_format, home_is_data):
             test_opts = testfile["opts"].copy()
             if "guess" not in test_opts:
                 test_opts["guess"] = guess
-            if "reader_cls" in test_opts:
-                format = f"ascii.{test_opts['reader_cls']._format_name}"
-                del test_opts["reader_cls"]
+            if "format" in test_opts:
+                format = f"ascii.{test_opts['format']}"
+                del test_opts["format"]
             else:
                 format = "ascii"
             if f"fast_{format}" in core.FAST_CLASSES:
@@ -271,7 +263,7 @@ def test_guess_all_files():
         if not testfile["opts"].get("guess", True):
             continue
         print(f"\n\n******** READING {testfile['name']}")
-        for filter_read_opts in (["reader_cls", "delimiter", "quotechar"], []):
+        for filter_read_opts in (["format", "delimiter", "quotechar"], []):
             # Copy read options except for those in filter_read_opts
             guess_opts = {
                 k: v for k, v in testfile["opts"].items() if k not in filter_read_opts
@@ -306,7 +298,7 @@ def test_validate_read_kwargs():
 
 def test_daophot_indef():
     """Test that INDEF is correctly interpreted as a missing value"""
-    table = ascii.read("data/daophot2.dat", reader_cls=ascii.Daophot)
+    table = ascii.read("data/daophot2.dat", format="daophot")
     for col in table.itercols():
         # Four columns have all INDEF values and are masked, rest are normal Column
         if col.name in ("OTIME", "MAG", "MERR", "XAIRMASS"):
@@ -321,7 +313,7 @@ def test_daophot_types():
     inferred automatically based only data values.  DAOphot reader uses
     the header information to assign types.
     """
-    table = ascii.read("data/daophot2.dat", reader_cls=ascii.Daophot)
+    table = ascii.read("data/daophot2.dat", format="daophot")
     assert table["LID"].dtype.char in "fd"  # float or double
     assert table["MAG"].dtype.char in "fd"  # even without any data values
     assert (
@@ -331,7 +323,7 @@ def test_daophot_types():
 
 
 def test_daophot_header_keywords():
-    table = ascii.read("data/daophot.dat", reader_cls=ascii.Daophot)
+    table = ascii.read("data/daophot.dat", format="daophot")
     expected_keywords = (
         ("NSTARFILE", "test.nst.1", "filename", "%-23s"),
         ("REJFILE", '"hello world"', "filename", "%-23s"),
@@ -347,7 +339,7 @@ def test_daophot_header_keywords():
 
 
 def test_daophot_multiple_aperture():
-    table = ascii.read("data/daophot3.dat", reader_cls=ascii.Daophot)
+    table = ascii.read("data/daophot3.dat", format="daophot")
     assert "MAG5" in table.colnames  # MAG5 is one of the newly created column names
     assert table["MAG5"][4] == 22.13  # A sample entry in daophot3.dat file
     assert table["MERR2"][0] == 1.171
@@ -357,7 +349,7 @@ def test_daophot_multiple_aperture():
 
 
 def test_daophot_multiple_aperture2():
-    table = ascii.read("data/daophot4.dat", reader_cls=ascii.Daophot)
+    table = ascii.read("data/daophot4.dat", format="daophot")
     assert "MAG15" in table.colnames  # MAG15 is one of the newly created column name
     assert table["MAG15"][1] == -7.573  # A sample entry in daophot4.dat file
     assert table["MERR2"][0] == 0.049
@@ -369,7 +361,7 @@ def test_empty_table_no_header(fast_reader):
     with pytest.raises(ascii.InconsistentTableError):
         ascii.read(
             "data/no_data_without_header.dat",
-            reader_cls=ascii.NoHeader,
+            format="no_header",
             guess=False,
             fast_reader=fast_reader,
         )
@@ -677,7 +669,7 @@ def test_read_rdb_wrong_type(fast_reader):
 N\tN
 1\tHello"""
     with pytest.raises(ValueError):
-        ascii.read(table, reader_cls=ascii.Rdb, fast_reader=fast_reader)
+        ascii.read(table, format="rdb", fast_reader=fast_reader)
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -716,7 +708,7 @@ def test_default_missing(fast_reader):
             "  2     4.0  ss",
         ]
     )
-    dat = ascii.read(table, reader_cls=ascii.FixedWidthTwoLine)
+    dat = ascii.read(table, format="fixed_width_two_line")
     assert dat.masked is False
     assert dat.pformat() == [
         " a   b   c   d ",
@@ -725,7 +717,7 @@ def test_default_missing(fast_reader):
         "  2  -- 4.0  ss",
     ]
 
-    dat = ascii.read(table, reader_cls=ascii.FixedWidthTwoLine, fill_values=None)
+    dat = ascii.read(table, format="fixed_width_two_line", fill_values=None)
     assert dat.masked is False
     assert dat.pformat() == [
         " a   b   c   d ",
@@ -734,7 +726,7 @@ def test_default_missing(fast_reader):
         "  2     4.0  ss",
     ]
 
-    dat = ascii.read(table, reader_cls=ascii.FixedWidthTwoLine, fill_values=[])
+    dat = ascii.read(table, format="fixed_width_two_line", fill_values=[])
     assert dat.masked is False
     assert dat.pformat() == [
         " a   b   c   d ",
@@ -753,13 +745,13 @@ def get_testfiles(name=None):
             "cols": ("agasc_id", "n_noids", "n_obs"),
             "name": "data/apostrophe.rdb",
             "nrows": 2,
-            "opts": {"reader_cls": ascii.Rdb},
+            "opts": {"format": "rdb"},
         },
         {
             "cols": ("agasc_id", "n_noids", "n_obs"),
             "name": "data/apostrophe.tab",
             "nrows": 2,
-            "opts": {"reader_cls": ascii.Tab},
+            "opts": {"format": "tab"},
         },
         {
             "cols": (
@@ -778,7 +770,7 @@ def get_testfiles(name=None):
             ),
             "name": "data/cds.dat",
             "nrows": 1,
-            "opts": {"reader_cls": ascii.Cds},
+            "opts": {"format": "cds"},
         },
         {
             "cols": (
@@ -797,7 +789,7 @@ def get_testfiles(name=None):
             ),
             "name": "data/cds.dat",
             "nrows": 1,
-            "opts": {"reader_cls": ascii.Mrt},
+            "opts": {"format": "mrt"},
         },
         # Test malformed CDS file (issues #2241 #467)
         {
@@ -817,19 +809,19 @@ def get_testfiles(name=None):
             ),
             "name": "data/cds_malformed.dat",
             "nrows": 1,
-            "opts": {"reader_cls": ascii.Cds, "data_start": "guess"},
+            "opts": {"format": "cds", "data_start": "guess"},
         },
         {
             "cols": ("a", "b", "c"),
             "name": "data/commented_header.dat",
             "nrows": 2,
-            "opts": {"reader_cls": ascii.CommentedHeader},
+            "opts": {"format": "commented_header"},
         },
         {
             "cols": ("a", "b", "c"),
             "name": "data/commented_header2.dat",
             "nrows": 2,
-            "opts": {"reader_cls": ascii.CommentedHeader, "header_start": -1},
+            "opts": {"format": "commented_header", "header_start": -1},
         },
         {
             "cols": ("col1", "col2", "col3", "col4", "col5"),
@@ -837,7 +829,7 @@ def get_testfiles(name=None):
             "nrows": 2,
             "opts": {
                 "inputter_cls": ascii.ContinuationLinesInputter,
-                "reader_cls": ascii.NoHeader,
+                "format": "no_header",
             },
         },
         {
@@ -856,7 +848,7 @@ def get_testfiles(name=None):
             ),
             "name": "data/daophot.dat",
             "nrows": 2,
-            "opts": {"reader_cls": ascii.Daophot},
+            "opts": {"format": "daophot"},
         },
         {
             "cols": (
@@ -869,13 +861,13 @@ def get_testfiles(name=None):
             ),
             "name": "data/sextractor.dat",
             "nrows": 3,
-            "opts": {"reader_cls": ascii.SExtractor},
+            "opts": {"format": "sextractor"},
         },
         {
             "cols": ("ra", "dec", "sai", "v2", "sptype"),
             "name": "data/ipac.dat",
             "nrows": 2,
-            "opts": {"reader_cls": ascii.Ipac},
+            "opts": {"format": "ipac"},
         },
         {
             "cols": (
@@ -920,7 +912,7 @@ def get_testfiles(name=None):
             ),
             "name": "data/no_data_cds.dat",
             "nrows": 0,
-            "opts": {"reader_cls": ascii.Cds},
+            "opts": {"format": "cds"},
         },
         {
             "cols": (
@@ -939,7 +931,7 @@ def get_testfiles(name=None):
             ),
             "name": "data/no_data_cds.dat",
             "nrows": 0,
-            "opts": {"reader_cls": ascii.Mrt},
+            "opts": {"format": "mrt"},
         },
         {
             "cols": (
@@ -957,25 +949,25 @@ def get_testfiles(name=None):
             ),
             "name": "data/no_data_daophot.dat",
             "nrows": 0,
-            "opts": {"reader_cls": ascii.Daophot},
+            "opts": {"format": "daophot"},
         },
         {
             "cols": ("NUMBER", "FLUX_ISO", "FLUXERR_ISO", "VALUES", "VALUES_1", "FLAG"),
             "name": "data/no_data_sextractor.dat",
             "nrows": 0,
-            "opts": {"reader_cls": ascii.SExtractor},
+            "opts": {"format": "sextractor"},
         },
         {
             "cols": ("ra", "dec", "sai", "v2", "sptype"),
             "name": "data/no_data_ipac.dat",
             "nrows": 0,
-            "opts": {"reader_cls": ascii.Ipac},
+            "opts": {"format": "ipac"},
         },
         {
             "cols": ("ra", "v2"),
             "name": "data/ipac.dat",
             "nrows": 2,
-            "opts": {"reader_cls": ascii.Ipac, "include_names": ["ra", "v2"]},
+            "opts": {"format": "ipac", "include_names": ["ra", "v2"]},
         },
         {
             "cols": ("a", "b", "c"),
@@ -987,13 +979,13 @@ def get_testfiles(name=None):
             "cols": ("agasc_id", "n_noids", "n_obs"),
             "name": "data/short.rdb",
             "nrows": 7,
-            "opts": {"reader_cls": ascii.Rdb},
+            "opts": {"format": "rdb"},
         },
         {
             "cols": ("agasc_id", "n_noids", "n_obs"),
             "name": "data/short.tab",
             "nrows": 7,
-            "opts": {"reader_cls": ascii.Tab},
+            "opts": {"format": "tab"},
         },
         {
             "cols": ("test 1a", "test2", "test3", "test4"),
@@ -1035,19 +1027,19 @@ def get_testfiles(name=None):
             "cols": ("col1", "col2", "col3", "col4", "col5", "col6"),
             "name": "data/simple4.txt",
             "nrows": 3,
-            "opts": {"reader_cls": ascii.NoHeader, "delimiter": "|"},
+            "opts": {"format": "no_header", "delimiter": "|"},
         },
         {
             "cols": ("col1", "col2", "col3"),
             "name": "data/space_delim_no_header.dat",
             "nrows": 2,
-            "opts": {"reader_cls": ascii.NoHeader},
+            "opts": {"format": "no_header"},
         },
         {
             "cols": ("col1", "col2", "col3"),
             "name": "data/space_delim_no_header.dat",
             "nrows": 2,
-            "opts": {"reader_cls": ascii.NoHeader, "header_start": None},
+            "opts": {"format": "no_header", "header_start": None},
         },
         {
             "cols": ("obsid", "offset", "x", "y", "name", "oaa"),
@@ -1077,38 +1069,38 @@ def get_testfiles(name=None):
             "name": "data/simple_csv.csv",
             "cols": ("a", "b", "c"),
             "nrows": 2,
-            "opts": {"reader_cls": ascii.Csv},
+            "opts": {"format": "csv"},
         },
         {
             "name": "data/simple_csv_missing.csv",
             "cols": ("a", "b", "c"),
             "nrows": 2,
             "skip": True,
-            "opts": {"reader_cls": ascii.Csv},
+            "opts": {"format": "csv"},
         },
         {
             "cols": ("cola", "colb", "colc"),
             "name": "data/latex1.tex",
             "nrows": 2,
-            "opts": {"reader_cls": ascii.Latex},
+            "opts": {"format": "latex"},
         },
         {
             "cols": ("Facility", "Id", "exposure", "date"),
             "name": "data/latex2.tex",
             "nrows": 3,
-            "opts": {"reader_cls": ascii.AASTex},
+            "opts": {"format": "aastex"},
         },
         {
             "cols": ("cola", "colb", "colc"),
             "name": "data/latex3.tex",
             "nrows": 2,
-            "opts": {"reader_cls": ascii.Latex},
+            "opts": {"format": "latex"},
         },
         {
             "cols": ("Col1", "Col2", "Col3", "Col4"),
             "name": "data/fixed_width_2_line.txt",
             "nrows": 2,
-            "opts": {"reader_cls": ascii.FixedWidthTwoLine},
+            "opts": {"format": "fixed_width_two_line"},
         },
     ]
 
@@ -1120,7 +1112,7 @@ def get_testfiles(name=None):
                 "cols": ("Column 1", "Column 2", "Column 3"),
                 "name": "data/html.html",
                 "nrows": 3,
-                "opts": {"reader_cls": ascii.HTML},
+                "opts": {"format": "html"},
             }
         )
     except ImportError:
@@ -1183,7 +1175,7 @@ def test_sextractor_units():
     """
     Make sure that the SExtractor reader correctly inputs descriptions and units.
     """
-    table = ascii.read("data/sextractor2.dat", reader_cls=ascii.SExtractor, guess=False)
+    table = ascii.read("data/sextractor2.dat", format="sextractor", guess=False)
     expected_units = [
         None,
         Unit("pix"),
@@ -1215,7 +1207,7 @@ def test_sextractor_last_column_array():
     """
     Make sure that the SExtractor reader handles the last column correctly when it is array-like.
     """
-    table = ascii.read("data/sextractor3.dat", reader_cls=ascii.SExtractor, guess=False)
+    table = ascii.read("data/sextractor3.dat", format="sextractor", guess=False)
     expected_columns = [
         "X_IMAGE",
         "Y_IMAGE",
