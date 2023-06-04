@@ -1,3 +1,4 @@
+import astropy.units as u
 from astropy.cosmology.connect import readwrite_registry
 from astropy.cosmology.core import Cosmology
 from astropy.table import QTable
@@ -50,14 +51,26 @@ def read_mrt(filename, index=None, *, move_to_meta=False, cosmology=None, **kwar
     # Reading is handled by `QTable`.
     table = QTable.read(filename, format="ascii.mrt", **kwargs)
 
-    # Create a single column named 'm_nu' by combining the values from the 'mnu0', 'mnu1', and 'mnu2' columns
+    # Create a single column named 'm_nu' by combining the values from the 'm_nu_i' columns
     m_nu_data = []
-    for i in ("mnu0", "mnu1", "mnu2"):
-        column_data = table[i][0]
-        m_nu_data.append(column_data.value)
-        table.remove_column(i)
+    i, more_m_nu = 0, True
+    while more_m_nu:
+        cn = f"m_nu[{i}]"  # column name
+        if cn not in table.colnames:
+            more_m_nu = False
+            continue
 
-    table.add_column([m_nu_data], name="m_nu", index=-2)
+        m_nu_data.append(table[cn][0])
+        table.remove_column(cn)
+
+        i += 1  # increment the m_nu index
+
+    col = (
+        [m_nu_data]
+        if not isinstance(m_nu_data[0], u.Quantity)
+        else [u.Quantity(m_nu_data)]
+    )
+    table.add_column(col, name="m_nu", index=-2)
 
     # Build the cosmology from table, using the private backend.
     return from_table(
@@ -97,13 +110,12 @@ def write_mrt(cosmology, file, *, overwrite=False, cls=QTable, **kwargs):
     table_main = to_table(cosmology, cls=cls, cosmology_in_meta=False)
     table = represent_mixins_as_columns(table_main)
 
-    # Replace the m_nu column with three columns with names 'mnu0', 'mnu1', 'mnu2'
-    m_nu = table_main["m_nu"]
-    table.remove_column("m_nu")
-    for i in range(len(m_nu[0])):
-        column_name = f"mnu{i}"
-        column_data = m_nu[0][i]
-        table.add_column(column_data, name=column_name, index=-2)
+    # Replace the m_nu column with three columns with names 'm_nu_[i]'
+    if "m_nu" in table.colnames:
+        m_nu = table_main["m_nu"]
+        table.remove_column("m_nu")
+        cols, names = tuple(zip(*((m, f"m_nu[{i}]") for i, m in enumerate(m_nu[0]))))
+        table.add_columns(cols, names=names, indexes=(-2, -2, -2))
 
     table.write(file, overwrite=overwrite, format="ascii.mrt", **kwargs)
 
