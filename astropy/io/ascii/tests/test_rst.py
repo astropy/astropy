@@ -171,13 +171,13 @@ table = """\
   2.4   's worlds          2           2
 ====== =========== ============ ===========
 """
-dat = ascii.read(table, reader_cls=ascii.RST)
+dat = ascii.read(table, format="rst")
 
 
 def test_write_normal():
     """Write a table as a normal SimpleRST Table"""
     out = StringIO()
-    ascii.write(dat, out, writer_cls=ascii.RST)
+    ascii.write(dat, out, format="rst")
     assert_equal_splitlines(
         out.getvalue(),
         """\
