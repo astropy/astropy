@@ -221,7 +221,7 @@ details.
   to use the faster writer (described in :ref:`fast_ascii_io`) if possible.
   Specifying ``fast_writer=False`` disables this behavior.
 
-**writer_cls** : Writer class (*deprecated* in favor of ``format``)
+**Writer** : Writer class (*deprecated* in favor of ``format``)
   This specifies the top-level format of the ASCII table to be written, such as
   a basic character delimited table, fixed-format table, or a CDS-compatible
   table, etc. The value of this parameter must be a Writer class. For basic
