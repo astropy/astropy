@@ -593,7 +593,6 @@ class Parameter:
         pickling the model. An alternative is to assign the actual validator
         function to ``Parameter._validator`` (see examples in modeling).
 
-
         """
 
         def validator(func, self=self):
