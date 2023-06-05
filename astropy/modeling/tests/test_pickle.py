@@ -188,7 +188,7 @@ def test_pickle_projections(model):
 
 
 def test_pickle_rotations():
-    for model in ["RotateCelestial2Native", "RotateNative2Celestial"]:
+    for model in ("RotateCelestial2Native", "RotateNative2Celestial"):
         m = getattr(rotations, model)(12, 23, 34)
         m1 = loads(dumps(m))
         assert_allclose(m(x, y), m1(x, y))
