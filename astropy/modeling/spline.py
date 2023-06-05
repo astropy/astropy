@@ -215,6 +215,16 @@ class _Spline(FittableModel):
         self._t = None
         self._degree = degree
 
+    def __getstate__(self):
+        return {
+            "t": self._t,
+            "c": self._c,
+            "k": self._degree,
+        }
+
+    def __setstate__(self, state):
+        return self.__init__(knots=state["t"], coeffs=state["c"], degree=state["k"])
+
 
 class Spline1D(_Spline):
     """

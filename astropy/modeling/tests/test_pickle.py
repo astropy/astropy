@@ -2,6 +2,7 @@
 
 from pickle import dumps, loads
 
+import numpy as np
 from numpy.testing import assert_allclose
 import pytest
 
@@ -16,6 +17,7 @@ from astropy.modeling import polynomial
 from astropy.modeling import powerlaws
 from astropy.modeling import projections
 from astropy.modeling import rotations
+from astropy.modeling import spline
 from astropy.modeling import tabular
 
 from astropy.modeling.math_functions import ArctanhUfunc
@@ -189,3 +191,19 @@ def test_pickle_rotations(inputs, m):
         assert_allclose(m(*inputs), mp(*inputs))
     else:
         assert_allclose(m(inputs[0], *inputs), mp(inputs[0], *inputs))
+
+
+def test_pickle_spline(inputs):
+    def func(x, noise):
+        return np.exp(-(x**2)) + 0.1 * noise
+
+    noise = np.random.randn(50)
+    x = np.linspace(-3, 3, 50)
+    y = func(x, noise)
+
+    fitter = spline.SplineInterpolateFitter()
+    spl = spline.Spline1D(degree=3)
+    m = fitter(spl, x, y)
+
+    mp = loads(dumps(m))
+    assert_allclose(m(inputs[0]), mp(inputs[0]))
