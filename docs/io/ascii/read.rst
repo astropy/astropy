@@ -449,7 +449,7 @@ look like a number.
 Guess Order
 -----------
 
-The order of guessing is shown by this Python code:
+The order of guessing is shown by this Python code::
 
   for format in ("ecsv", "fixed_width_two_line", "rst", "fast_basic", "basic",
                  "fast_rdb", "rdb", "fast_tab", "tab", "cds", "daophot", "sextractor",
