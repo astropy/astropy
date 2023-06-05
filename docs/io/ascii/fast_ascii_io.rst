@@ -82,8 +82,8 @@ These parameters are:
  * ``converters``
  * ``outputter_cls``
  * ``inputter_cls``
- * ``data_Splitter``
- * ``header_Splitter``
+ * ``data_splitter_cls``
+ * ``header_splitter_cls``
 
 .. _fast_conversion_opts:
 

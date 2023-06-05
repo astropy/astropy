@@ -520,8 +520,8 @@ def test_quoted_fields(parallel, read_basic):
             {i + 1: ascii.convert_numpy(np.uint) for i in range(3)},
         ),  # passing converters
         ("inputter_cls", ascii.ContinuationLinesInputter),  # passing inputter_cls
-        ("header_Splitter", ascii.DefaultSplitter),  # passing Splitter
-        ("data_Splitter", ascii.DefaultSplitter),
+        ("header_splitter_cls", ascii.DefaultSplitter),  # passing Splitter
+        ("data_splitter_cls", ascii.DefaultSplitter),
     ],
 )
 def test_invalid_parameters(key, val):
