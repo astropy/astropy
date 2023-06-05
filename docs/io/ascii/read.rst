@@ -203,9 +203,9 @@ Parameters for ``read()``
 **inputter_cls** : Inputter class
   This is generally not specified.
 
-**data_Splitter** : Splitter class to split data columns
+**data_splitter_cls** : Splitter class to split data columns
 
-**header_Splitter** : Splitter class to split header columns
+**header_splitter_cls** : Splitter class to split header columns
 
 **fast_reader** : whether to use the C engine
   This can be ``True`` or ``False``, and also be a ``dict`` with options.
@@ -449,18 +449,17 @@ look like a number.
 Guess Order
 -----------
 
-The order of guessing is shown by this Python code, where ``reader_cls`` is the
-class which actually implements reading the different file formats::
+The order of guessing is shown by this Python code:
 
-  for reader_cls in (Ecsv, FixedWidthTwoLine, Rst, FastBasic, Basic,
-                 FastRdb, Rdb, FastTab, Tab, Cds, Daophot, SExtractor,
-                 Ipac, Latex, AASTex):
-      read(reader_cls=reader_cls)
+  for format in ("ecsv", "fixed_width_two_line", "rst", "fast_basic", "basic",
+                 "fast_rdb", "rdb", "fast_tab", "tab", "cds", "daophot", "sextractor",
+                 "ipac", "latex", "aastex"):
+      read(format=format)
 
-  for reader_cls in (CommentedHeader, FastBasic, Basic, FastNoHeader, NoHeader):
+  for format in ("commented_header", "fast_basic", "basic", "fast_noheader", ""noheader"):
       for delimiter in ("|", ",", " ", "\\s"):
           for quotechar in ('"', "'"):
-              read(reader_cls=reader_cls, delimiter=delimiter, quotechar=quotechar)
+              read(format=format, delimiter=delimiter, quotechar=quotechar)
 
 Note that the :class:`~astropy.io.ascii.FixedWidth` derived-readers are not
 included in the default guess sequence (this causes problems), so to read such
@@ -473,17 +472,17 @@ requirements), a final try is made using just the user-supplied parameters but
 without checking the column requirements. In this way, a table with only one
 column or column names that look like a number can still be successfully read.
 
-The guessing process respects any values of the reader_cls, delimiter, and
+The guessing process respects any values of the format, delimiter, and
 quotechar parameters as well as options for the fast reader that were
 supplied to the read() function. Any guesses that would conflict are
 skipped. For example, the call::
 
- >>> data = ascii.read(table, reader_cls=ascii.NoHeader, quotechar="'")
+ >>> data = ascii.read(table, format="no_header", quotechar="'")
 
 would only try the four delimiter possibilities, skipping all the conflicting
-reader_cls and quotechar combinations. Similarly, with any setting of
+format and quotechar combinations. Similarly, with any setting of
 ``fast_reader`` that requires use of the fast engine, only the fast
-variants in the reader_cls list above will be tried.
+variants in the format list above will be tried.
 
 Disabling
 ---------
@@ -673,18 +672,18 @@ the basic reader, but header and data start in different lines of the file::
 
   # Note: NoHeader is already included in astropy.io.ascii for convenience.
   class NoHeaderHeader(BasicHeader):
-      '''reader_cls for table header without a header
+      """Reader for table header without a header
 
       Set the start of header line number to `None`, which tells the basic
       reader there is no header line.
-      '''
+      """
       start_line = None
 
   class NoHeaderData(BasicData):
-      '''reader_cls for table data without a header
+      """Reader for table data without a header
 
       Data starts at first uncommented line since there is no header line.
-      '''
+      """
       start_line = 0
 
   class NoHeader(Basic):
