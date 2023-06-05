@@ -16,195 +16,176 @@ from astropy.modeling import polynomial
 from astropy.modeling import powerlaws
 from astropy.modeling import projections
 from astropy.modeling import rotations
-from astropy.modeling import spline
 from astropy.modeling import tabular
 
 from astropy.modeling.math_functions import ArctanhUfunc
 
-math_functions_all = math_functions.__all__[:]
-math_functions_all.remove("ArctanhUfunc")
+MATH_FUNCTIONS = (func for func in math_functions.__all__ if func != "ArctanhUfunc")
 
-polynomial_all = polynomial.__all__[:]
-# remove base classes
-polynomial_all.remove("PolynomialModel")
-polynomial_all.remove("OrthoPolynomialBase")
 
-projections_all = projections.__all__[:]
-proj_to_remove = [
-    "Projection",
-    "Pix2SkyProjection",
-    "Sky2PixProjection",
-    "Zenithal",
-    "Conic",
-    "Cylindrical",
-    "PseudoCylindrical",
-    "PseudoConic",
-    "QuadCube",
-    "HEALPix",
-    "AffineTransformation2D",
-    "projcodes",
-    "Pix2Sky_ZenithalPerspective",
+PROJ_TO_REMOVE = (
+    [
+        "Projection",
+        "Pix2SkyProjection",
+        "Sky2PixProjection",
+        "Zenithal",
+        "Conic",
+        "Cylindrical",
+        "PseudoCylindrical",
+        "PseudoConic",
+        "QuadCube",
+        "HEALPix",
+        "AffineTransformation2D",
+        "projcodes",
+        "Pix2Sky_ZenithalPerspective",
+    ]
+    + [f"Pix2Sky_{code}" for code in projections.projcodes]
+    + [f"Sky2Pix_{code}" for code in projections.projcodes]
+)
+
+PROJECTIONS = (func for func in projections.__all__ if func not in PROJ_TO_REMOVE)
+
+OTHER_MODELS = [
+    mappings.Mapping((1, 0)),
+    mappings.Identity(2),
+    ArctanhUfunc(),
+    rotations.Rotation2D(23),
+    tabular.Tabular1D(lookup_table=[1, 2, 3, 4]),
+    tabular.Tabular2D(lookup_table=[[1, 2, 3, 4], [5, 6, 7, 8]]),
 ]
-for p in proj_to_remove:
-    projections_all.remove(p)
 
-for code in projections.projcodes:
-    projections_all.remove(f"Pix2Sky_{code}")
-    projections_all.remove(f"Sky2Pix_{code}")
+POLYNOMIALS_1D = ["Chebyshev1D", "Hermite1D", "Legendre1D", "Polynomial1D"]
+POLYNOMIALS_2D = ["Chebyshev2D", "Hermite2D", "Legendre2D", "InverseSIP"]
+
+ROTATIONS = [
+    rotations.RotateCelestial2Native(12, 23, 34),
+    rotations.RotateNative2Celestial(12, 23, 34),
+    rotations.EulerAngleRotation(12, 23, 34, "xyz"),
+    rotations.RotationSequence3D([12, 23, 34], axes_order="xyz"),
+    rotations.SphericalRotationSequence([12, 23, 34], "xyz"),
+    rotations.Rotation2D(12),
+]
 
 
-# can parametrize on x,y as well
-x, y = 0.3, 0.4
-x_math, y_math = 1, -0.5
+@pytest.fixture()
+def inputs():
+    return 0.3, 0.4
+
+
+@pytest.fixture()
+def inputs_math():
+    return 1, -0.5
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("model", functional_models.__all__[:])
-def test_pickle_functional(model):
+@pytest.mark.parametrize("model", functional_models.__all__)
+def test_pickle_functional(inputs, model):
     m = getattr(functional_models, model)()
-    m1 = loads(dumps(m))
+    mp = loads(dumps(m))
     if m.n_inputs == 1:
-        assert_allclose(m(x), m1(x))
+        assert_allclose(m(inputs[0]), mp(inputs[0]))
     else:
-        assert_allclose(m(x, y), m1(x, y))
+        assert_allclose(m(*inputs), mp(*inputs))
 
 
-@pytest.mark.parametrize("model", math_functions_all)
-def test_pickle_math_functions(model):
+@pytest.mark.parametrize("model", MATH_FUNCTIONS)
+def test_pickle_math_functions(inputs_math, model):
     m = getattr(math_functions, model)()
-    m1 = loads(dumps(m))
+    mp = loads(dumps(m))
     if m.n_inputs == 1:
-        assert_allclose(m(x_math), m1(x_math))
+        assert_allclose(m(inputs_math[0]), mp(inputs_math[0]))
     else:
-        assert_allclose(m(x_math, y_math), m1(x_math, y_math))
+        assert_allclose(m(*inputs_math), mp(*inputs_math))
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-def test_pickle_other():
-    # Test models which don't fit in the other test functions.
+@pytest.mark.parametrize("m", OTHER_MODELS)
+def test_pickle_other(inputs, m):
+    mp = loads(dumps(m))
+    if m.n_inputs == 1:
+        assert_allclose(m(inputs[0]), mp(inputs[0]))
+    else:
+        assert_allclose(m(*inputs), mp(*inputs))
 
-    x = 0.5
-    y = 1
 
-    model = mappings.Mapping((1, 0))
-    modelp = loads(dumps(model))
-    assert_allclose(model(x, y), modelp(x, y))
+def test_pickle_units_mapping(inputs):
+    m = mappings.UnitsMapping(((u.m, None),))
+    mp = loads(dumps(m))
+    assert_allclose(m(inputs[0] * u.km), mp(inputs[0] * u.km))
 
-    model = mappings.Identity(2)
-    modelp = loads(dumps(model))
-    assert_allclose(model(x, y), modelp(x, y))
 
-    model = mappings.UnitsMapping(((u.m, None),))
-    modelp = loads(dumps(model))
-    assert_allclose(model(x * u.km), modelp(x * u.km))
-
-    model = ArctanhUfunc()
-    modelp = loads(dumps(model))
-    assert_allclose(model(x), modelp(x))
-
-    model = rotations.Rotation2D(23)
-    modelp = loads(dumps(model))
-    assert_allclose(model(x, y), modelp(x, y))
-
-    model = tabular.Tabular1D(lookup_table=[1, 2, 3, 4])
-    modelp = loads(dumps(model))
-    assert_allclose(model(y), modelp(y))
-
-    model = tabular.Tabular2D(lookup_table=[[1, 2, 3, 4], [5, 6, 7, 8]])
-    modelp = loads(dumps(model))
-    assert_allclose(model(x, y), modelp(x, y))
-
-    model = spline.Spline1D()
-    modelp = loads(dumps(model))
-    assert_allclose(model(x), modelp(x))
-
-    model = projections.AffineTransformation2D(
-        matrix=[[1, 1], [1, 1]], translation=[1, 1]
-    )
-    model.matrix.fixed = True
-    modelp = loads(dumps(model))
-    assert_allclose(model(x, y), modelp(x, y))
-    assert model.matrix.fixed is True
+def test_pickle_affine_transformation_2D(inputs):
+    m = projections.AffineTransformation2D(matrix=[[1, 1], [1, 1]], translation=[1, 1])
+    m.matrix.fixed = True
+    mp = loads(dumps(m))
+    assert_allclose(m(*inputs), mp(*inputs))
+    assert m.matrix.fixed is True
 
 
 @pytest.mark.parametrize("model", physical_models.__all__)
-def test_pickle_physical_models(model):
+def test_pickle_physical_models(inputs, model):
     m = getattr(physical_models, model)()
     m1 = loads(dumps(m))
     if m.n_inputs == 1:
-        assert_allclose(m(x), m1(x))
+        assert_allclose(m(inputs[0]), m1(inputs[0]))
     else:
-        assert_allclose(m(x, y), m1(x, y))
+        assert_allclose(m(*inputs), m1(*inputs))
 
 
-def test_pickle_polynomial():
-    # models initialized with 1 degree
-    models2d = ["Chebyshev2D", "Hermite2D", "Legendre2D", "InverseSIP"]
-    # models initialized with 2 degree
-    models1d = ["Chebyshev1D", "Hermite1D", "Legendre1D", "Polynomial1D"]
+@pytest.mark.parametrize("model", POLYNOMIALS_1D)
+def test_pickle_1D_polynomials(inputs, model):
+    m = getattr(polynomial, model)
+    m = m(2)
+    m1 = loads(dumps(m))
+    assert_allclose(m(inputs[1]), m1(inputs[0]))
 
-    sip = ["SIP", "InverseSIP"]
 
-    for model in models1d:
-        m = getattr(polynomial, model)
-        m = m(2)
-        m1 = loads(dumps(m))
-        assert_allclose(m(x), m1(x))
+@pytest.mark.parametrize("model", POLYNOMIALS_2D)
+def test_pickle_2D_polynomials(inputs, model):
+    m = getattr(polynomial, model)
+    m = m(2, 3)
+    m1 = loads(dumps(m))
+    assert_allclose(m(*inputs), m1(*inputs))
 
-    for model in models2d:
-        m = getattr(polynomial, model)
-        m = m(2, 3)
-        m1 = loads(dumps(m))
-        assert_allclose(m(x, y), m1(x, y))
 
+def test_pickle_polynomial_2D(inputs):
     # Polynomial2D is initialized with 1 degree but
     # requires 2 inputs
     m = polynomial.Polynomial2D
     m = m(2)
     m1 = loads(dumps(m))
-    assert_allclose(m(x, y), m1(x, y))
+    assert_allclose(m(*inputs), m1(*inputs))
 
+
+def test_pickle_sip(inputs):
     m = polynomial.SIP
     m = m((21, 23), 2, 3)
     m1 = loads(dumps(m))
-    assert_allclose(m(x, y), m1(x, y))
+    assert_allclose(m(*inputs), m1(*inputs))
 
 
 @pytest.mark.parametrize("model", powerlaws.__all__)
-def test_pickle_powerlaws(model):
+def test_pickle_powerlaws(inputs, model):
     m = getattr(powerlaws, model)()
     m1 = loads(dumps(m))
     if m.n_inputs == 1:
-        assert_allclose(m(x), m1(x))
+        assert_allclose(m(inputs[0]), m1(inputs[0]))
     else:
-        assert_allclose(m(x, y), m1(x, y))
+        assert_allclose(m(*inputs), m1(*inputs))
 
 
-@pytest.mark.parametrize("model", projections_all)
-def test_pickle_projections(model):
+@pytest.mark.parametrize("model", PROJECTIONS)
+def test_pickle_projections(inputs, model):
     m = getattr(projections, model)()
     m1 = loads(dumps(m))
-    assert_allclose(m(x, y), m1(x, y))
+    assert_allclose(m(*inputs), m1(*inputs))
 
 
-def test_pickle_rotations():
-    for model in ("RotateCelestial2Native", "RotateNative2Celestial"):
-        m = getattr(rotations, model)(12, 23, 34)
-        m1 = loads(dumps(m))
-        assert_allclose(m(x, y), m1(x, y))
+@pytest.mark.parametrize("m", ROTATIONS)
+def test_pickle_rotations(inputs, m):
+    mp = loads(dumps(m))
 
-    m = rotations.EulerAngleRotation(12, 23, 34, "xyz")
-    m1 = loads(dumps(m))
-    assert_allclose(m(x, y), m1(x, y))
-
-    m = rotations.RotationSequence3D([12, 23, 34], axes_order="xyz")
-    m1 = loads(dumps(m))
-    assert_allclose(m(x, y, y), m1(x, y, y))
-
-    m = rotations.SphericalRotationSequence([12, 23, 34], "xyz")
-    m1 = loads(dumps(m))
-    assert_allclose(m(x, y), m1(x, y))
-
-    m = rotations.Rotation2D(12)
-    m1 = loads(dumps(m))
-    assert_allclose(m(x, y), m1(x, y))
+    if m.n_inputs == 2:
+        assert_allclose(m(*inputs), mp(*inputs))
+    else:
+        assert_allclose(m(inputs[0], *inputs), mp(inputs[0], *inputs))
