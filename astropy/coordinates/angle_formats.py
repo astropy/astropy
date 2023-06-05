@@ -309,7 +309,7 @@ class _AngleParser:
             )
         except ValueError as e:
             if str(e):
-                raise ValueError(f"{str(e)} in angle {angle!r}") from e
+                raise ValueError(f"{e!s} in angle {angle!r}") from e
             else:
                 raise ValueError(f"Syntax error parsing angle {angle!r}") from e
 

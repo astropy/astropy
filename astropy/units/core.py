@@ -1975,7 +1975,7 @@ class UnrecognizedUnit(IrreducibleUnit):
     __reduce__ = object.__reduce__
 
     def __repr__(self):
-        return f"UnrecognizedUnit({str(self)})"
+        return f"UnrecognizedUnit({self!s})"
 
     def __bytes__(self):
         return self.name.encode("ascii", "replace")

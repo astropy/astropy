@@ -162,7 +162,7 @@ class GroupData(FITS_rec):
 
             fits_fmt = GroupsHDU._bitpix2tform[bitpix]  # -32 -> 'E'
             format = FITS2NUMPY[fits_fmt]  # 'E' -> 'f4'
-            data_fmt = f"{str(input.shape[1:])}{format}"
+            data_fmt = f"{input.shape[1:]!s}{format}"
             formats = ",".join(([format] * npars) + [data_fmt])
             gcount = input.shape[0]
 

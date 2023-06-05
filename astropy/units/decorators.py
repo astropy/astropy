@@ -91,7 +91,7 @@ def _validate_arg_value(
             "be in units convertible to"
         )
         if len(targets) > 1:
-            targ_names = ", ".join([f"'{str(targ)}'" for targ in targets])
+            targ_names = ", ".join([f"'{targ!s}'" for targ in targets])
             raise UnitsError(f"{error_msg} one of: {targ_names}.")
         else:
             raise UnitsError(f"{error_msg} '{str(targets[0])}'.")

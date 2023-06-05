@@ -198,7 +198,7 @@ class TestUnitsMapping:
 
     def test_repr(self):
         model = UnitsMapping(((u.m, None),), name="foo")
-        assert repr(model) == f"<UnitsMapping((({repr(u.m)}, None),), name='foo')>"
+        assert repr(model) == f"<UnitsMapping((({u.m!r}, None),), name='foo')>"
 
         model = UnitsMapping(((u.m, None),))
-        assert repr(model) == f"<UnitsMapping((({repr(u.m)}, None),))>"
+        assert repr(model) == f"<UnitsMapping((({u.m!r}, None),))>"

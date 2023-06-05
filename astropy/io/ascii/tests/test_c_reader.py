@@ -438,9 +438,7 @@ def test_doubled_quotes(read_csv):
 
     """
     # fmt: off
-    tbl = '\n'.join(['a,b',
-                     '"d""","d""q"',
-                     '"""q",""""'])
+    tbl = 'a,b\n"d""","d""q"\n"""q",""""'
     expected = Table([['d"', '"q'],
                       ['d"q', '"']],
                      names=('a', 'b'))
