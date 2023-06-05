@@ -488,7 +488,7 @@ def test_deprecated_argument_remove():
     assert len(w) == 1
 
     with pytest.warns(AstropyDeprecationWarning, match=r"Use astropy\.y instead"):
-        test(121, 1) == (121, 1)
+        test(121, 1) == (121, 1)  # noqa: B015
 
     assert test() == (11, 3)
     assert test(121) == (121, 3)

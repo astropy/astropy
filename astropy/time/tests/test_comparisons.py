@@ -89,7 +89,7 @@ class TestTimeComparisons:
     def test_timedelta(self):
         dt = self.t2 - self.t1
         with pytest.raises(TypeError):
-            self.t1 > dt
+            self.t1 > dt  # noqa: B015
         dt_gt_td0 = dt > TimeDelta(0.0, format="sec")
         assert np.all(
             dt_gt_td0
