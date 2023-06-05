@@ -83,7 +83,7 @@ class TestRow:
         np_t = self.t.as_array()
         if table_types.Table is MaskedTable:
             with pytest.raises(ValueError):
-                self.t[0] == np_t[0]
+                self.t[0] == np_t[0]  # noqa: B015
         else:
             for row, np_row in zip(self.t, np_t):
                 assert np.all(row == np_row)
@@ -95,7 +95,7 @@ class TestRow:
         np_t["a"] = [0, 0, 0]
         if table_types.Table is MaskedTable:
             with pytest.raises(ValueError):
-                self.t[0] == np_t[0]
+                self.t[0] == np_t[0]  # noqa: B015
         else:
             for row, np_row in zip(self.t, np_t):
                 assert np.all(row != np_row)
@@ -106,7 +106,7 @@ class TestRow:
         np_t = self.t.as_array()
         if table_types.Table is MaskedTable:
             with pytest.raises(ValueError):
-                self.t[0] == np_t[0]
+                self.t[0] == np_t[0]  # noqa: B015
         else:
             for row, np_row in zip(self.t, np_t):
                 assert np.all(np_row == row)

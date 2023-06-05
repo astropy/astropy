@@ -688,7 +688,7 @@ class MaskedOperatorTests(MaskedArraySetup):
 
     def test_not_implemented(self):
         with pytest.raises(TypeError):
-            self.ma > "abc"
+            self.ma > "abc"  # noqa: B015
 
     @pytest.mark.parametrize("different_names", [False, True])
     @pytest.mark.parametrize("op", (operator.eq, operator.ne))
@@ -785,7 +785,7 @@ class TestMaskedArrayOperators(MaskedOperatorTests):
 
     def test_not_implemented(self):
         with pytest.raises(TypeError):
-            Masked(["a", "b"]) > object()
+            Masked(["a", "b"]) > object()  # noqa: B015
 
 
 class TestMaskedQuantityOperators(MaskedOperatorTests, QuantitySetup):

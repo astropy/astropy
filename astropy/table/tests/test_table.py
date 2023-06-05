@@ -1389,7 +1389,7 @@ class TestIterator:
         t = table_types.Table(d)
         if t.masked:
             with pytest.raises(ValueError):
-                t[0] == d[0]
+                t[0] == d[0]  # noqa: B015
         else:
             for row, np_row in zip(t, d):
                 assert np.all(row == np_row)
@@ -1504,7 +1504,7 @@ def test_copy_masked():
     t = table.Table(
         [[1, 2, 3], [2, 3, 4]], names=["x", "y"], masked=True, meta={"name": "test"}
     )
-    t["x"].mask == [True, False, True]
+    t["x"].mask = [True, False, True]
     t2 = t.copy()
     _assert_copies(t, t2)
 
@@ -1527,16 +1527,16 @@ def test_disallow_inequality_comparisons():
     t = table.Table()
 
     with pytest.raises(TypeError):
-        t > 2
+        t > 2  # noqa: B015
 
     with pytest.raises(TypeError):
-        t < 1.1
+        t < 1.1  # noqa: B015
 
     with pytest.raises(TypeError):
-        t >= 5.5
+        t >= 5.5  # noqa: B015
 
     with pytest.raises(TypeError):
-        t <= -1.1
+        t <= -1.1  # noqa: B015
 
 
 def test_values_equal_part1():

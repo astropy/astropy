@@ -18,7 +18,7 @@ def test_science_state():
     res = 300 * u.s
     with erfa_astrom.set(ErfaAstromInterpolator(res)):
         assert isinstance(erfa_astrom.get(), ErfaAstromInterpolator)
-        erfa_astrom.get().mjd_resolution == res.to_value(u.day)
+        assert erfa_astrom.get().mjd_resolution == res.to_value(u.day)
 
     # context manager should have switched it back
     assert erfa_astrom.get().__class__ is ErfaAstrom

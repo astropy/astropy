@@ -1203,9 +1203,9 @@ def test_optimizers(fitter_class):
             )
         assert fit_info == fitter._opt_method.fit_info
         if isinstance(fitter, SLSQPLSQFitter):
-            fitter._opt_method.acc == 1e-16
+            assert fitter._opt_method.acc == 1e-16
         else:
-            fitter._opt_method.acc == xtol
+            assert fitter._opt_method.acc == xtol
 
 
 @mk.patch.multiple(Optimization, __abstractmethods__=set())

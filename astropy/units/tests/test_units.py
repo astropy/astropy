@@ -643,7 +643,7 @@ def test_comparison():
     assert u.cm <= u.m
 
     with pytest.raises(u.UnitsError):
-        u.m > u.kg
+        u.m > u.kg  # noqa: B015
 
 
 def test_compose_into_arbitrary_units():
