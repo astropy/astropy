@@ -1,1 +1,1 @@
-All models except splines can be pickled now.
+All models can be pickled now.
