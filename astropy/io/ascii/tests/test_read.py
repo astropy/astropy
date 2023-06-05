@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import io
 import locale
 import pathlib
 import platform
@@ -22,7 +23,7 @@ from astropy.units import Unit
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2
 from astropy.utils.data import get_pkg_data_path
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 # setup/teardown function to have the tests run in the correct directory
 from .common import (
@@ -2066,3 +2067,33 @@ def test_read_converters_simplified():
             t2 = Table.read(
                 out.getvalue(), format="ascii.basic", converters=converters, guess=False
             )
+
+
+def test_read_write_deprecations():
+    lines = ["a b", "1 2"]
+    with pytest.warns(AstropyDeprecationWarning, match='"Reader" was deprecated'):
+        t = ascii.read(lines, Reader=ascii.Basic, guess=False)
+
+    with pytest.warns(AstropyDeprecationWarning, match='"Inputter" was deprecated'):
+        t = ascii.read(lines, format="basic", guess=False, Inputter=ascii.BaseInputter)
+
+    with pytest.warns(AstropyDeprecationWarning, match='"Outputter" was deprecated'):
+        t = ascii.read(
+            lines, format="basic", guess=False, Outputter=ascii.TableOutputter
+        )
+
+    with pytest.warns(AstropyDeprecationWarning, match='"Reader" was deprecated'):
+        ascii.get_reader(Reader=ascii.Basic)
+
+    with pytest.warns(AstropyDeprecationWarning, match='"Inputter" was deprecated'):
+        ascii.get_reader(reader_cls=ascii.Basic, Inputter=ascii.BaseInputter)
+
+    with pytest.warns(AstropyDeprecationWarning, match='"Outputter" was deprecated'):
+        ascii.get_reader(reader_cls=ascii.Basic, Outputter=ascii.TableOutputter)
+
+    with pytest.warns(AstropyDeprecationWarning, match='"Writer" was deprecated'):
+        output = io.StringIO()
+        ascii.write(t, output, Writer=ascii.Csv)
+
+    with pytest.warns(AstropyDeprecationWarning, match='"Writer" was deprecated'):
+        ascii.get_writer(Writer=ascii.Csv)

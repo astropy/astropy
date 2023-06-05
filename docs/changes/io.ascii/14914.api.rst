@@ -1,0 +1,18 @@
+Several arguments in functions within ``astropy.io.ascii`` have been deprecated and
+are either renamed or scheduled to be removed.
+
+``read()``:
+- ``Reader`` will be removed. Instead supply the equivalent ``format`` argument.
+- ``Inputter`` has been renamed to ``inputter_cls``.
+- ``Outputter`` has been renamed to ``outputter_cls``.
+
+``get_reader()``:
+- ``Reader`` has been renamed to ``reader_cls``.
+- ``Inputter`` has been renamed to ``inputter_cls``.
+- ``Outputter`` has been renamed to ``outputter_cls``.
+
+``write()``:
+- ``Writer`` will be removed. Instead supply the equivalent ``format`` argument.
+
+``get_writer()``:
+- ``Writer`` has been renamed to ``writer_cls``.

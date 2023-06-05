@@ -119,6 +119,10 @@ def set_guess(guess):
     _GUESS = guess
 
 
+# Make these changes in version 7.0 (hopefully!).
+@deprecated_renamed_argument("Reader", "reader_cls", "6.0")
+@deprecated_renamed_argument("Inputter", "inputter_cls", "6.0")
+@deprecated_renamed_argument("Outputter", "outputter_cls", "6.0")
 def get_reader(reader_cls=None, inputter_cls=None, outputter_cls=None, **kwargs):
     """
     Initialize a table reader allowing for common customizations.
@@ -286,7 +290,9 @@ def _expand_user_if_path(argument):
 
 
 # Make these changes in version 7.0 (hopefully!).
-@deprecated_renamed_argument("Reader", None, "6.0", arg_in_kwargs=True)
+@deprecated_renamed_argument(
+    "Reader", None, "6.0", arg_in_kwargs=True, alternative='"format"'
+)
 @deprecated_renamed_argument("Inputter", "inputter_cls", "6.0", arg_in_kwargs=True)
 @deprecated_renamed_argument("Outputter", "outputter_cls", "6.0", arg_in_kwargs=True)
 def read(table, guess=None, **kwargs):
@@ -889,6 +895,7 @@ extra_writer_pars = (
 )
 
 
+@deprecated_renamed_argument("Writer", "writer_cls", "6.0")
 def get_writer(writer_cls=None, fast_writer=True, **kwargs):
     """
     Initialize a table writer allowing for common customizations.
@@ -948,9 +955,7 @@ def get_writer(writer_cls=None, fast_writer=True, **kwargs):
     return writer
 
 
-@deprecated_renamed_argument("Writer", None, "6.0", arg_in_kwargs=False)
-@deprecated_renamed_argument("Inputter", "inputter_cls", "6.0", arg_in_kwargs=True)
-@deprecated_renamed_argument("Outputter", "outputter_cls", "6.0", arg_in_kwargs=True)
+@deprecated_renamed_argument("Writer", None, "6.0", alternative='"format"')
 def write(
     table,
     output=None,
