@@ -2069,31 +2069,36 @@ def test_read_converters_simplified():
             )
 
 
-def test_read_write_deprecations():
-    lines = ["a b", "1 2"]
-    with pytest.warns(AstropyDeprecationWarning, match='"Reader" was deprecated'):
-        t = ascii.read(lines, Reader=ascii.Basic, guess=False)
+def test_read_deprecations():
+    def check_warns(func, *args):
+        with pytest.warns(AstropyDeprecationWarning) as warns:
+            func(
+                *args,
+                Reader=ascii.Basic,
+                Inputter=ascii.BaseInputter,
+                Outputter=ascii.TableOutputter,
+                header_Splitter=ascii.DefaultSplitter,
+                data_Splitter=ascii.DefaultSplitter,
+            )
+            assert len(warns) == 5
+            for kwarg in (
+                "Reader",
+                "Inputter",
+                "Outputter",
+                "header_Splitter",
+                "data_Splitter",
+            ):
+                msg = f'"{kwarg}" was deprecated'
+                assert any(warn.message.args[0].startswith(msg) for warn in warns)
 
-    with pytest.warns(AstropyDeprecationWarning, match='"Inputter" was deprecated'):
-        t = ascii.read(lines, format="basic", guess=False, Inputter=ascii.BaseInputter)
+    check_warns(ascii.read, ["a b", "1 2"])
+    check_warns(ascii.get_reader)
 
-    with pytest.warns(AstropyDeprecationWarning, match='"Outputter" was deprecated'):
-        t = ascii.read(
-            lines, format="basic", guess=False, Outputter=ascii.TableOutputter
-        )
 
-    with pytest.warns(AstropyDeprecationWarning, match='"Reader" was deprecated'):
-        ascii.get_reader(Reader=ascii.Basic)
-
-    with pytest.warns(AstropyDeprecationWarning, match='"Inputter" was deprecated'):
-        ascii.get_reader(reader_cls=ascii.Basic, Inputter=ascii.BaseInputter)
-
-    with pytest.warns(AstropyDeprecationWarning, match='"Outputter" was deprecated'):
-        ascii.get_reader(reader_cls=ascii.Basic, Outputter=ascii.TableOutputter)
-
+def test_write_deprecations():
+    t = simple_table()
     with pytest.warns(AstropyDeprecationWarning, match='"Writer" was deprecated'):
-        output = io.StringIO()
-        ascii.write(t, output, Writer=ascii.Csv)
+        ascii.write(t, io.StringIO(), Writer=ascii.Csv)
 
     with pytest.warns(AstropyDeprecationWarning, match='"Writer" was deprecated'):
         ascii.get_writer(Writer=ascii.Csv)

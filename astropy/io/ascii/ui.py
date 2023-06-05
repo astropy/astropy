@@ -123,6 +123,12 @@ def set_guess(guess):
 @deprecated_renamed_argument("Reader", "reader_cls", "6.0")
 @deprecated_renamed_argument("Inputter", "inputter_cls", "6.0")
 @deprecated_renamed_argument("Outputter", "outputter_cls", "6.0")
+@deprecated_renamed_argument(
+    "header_Splitter", "header_splitter_cls", "6.0", arg_in_kwargs=True
+)
+@deprecated_renamed_argument(
+    "data_Splitter", "data_splitter_cls", "6.0", arg_in_kwargs=True
+)
 def get_reader(reader_cls=None, inputter_cls=None, outputter_cls=None, **kwargs):
     """
     Initialize a table reader allowing for common customizations.
@@ -155,9 +161,9 @@ def get_reader(reader_cls=None, inputter_cls=None, outputter_cls=None, **kwargs)
         can be negative to count from the end.
     converters : dict
         Dict of converters.
-    data_Splitter : `~astropy.io.ascii.BaseSplitter`
+    data_splitter_cls : `~astropy.io.ascii.BaseSplitter`
         Splitter class to split data columns.
-    header_Splitter : `~astropy.io.ascii.BaseSplitter`
+    header_splitter_cls : `~astropy.io.ascii.BaseSplitter`
         Splitter class to split header columns.
     names : list
         List of names corresponding to each data column.
@@ -295,6 +301,12 @@ def _expand_user_if_path(argument):
 )
 @deprecated_renamed_argument("Inputter", "inputter_cls", "6.0", arg_in_kwargs=True)
 @deprecated_renamed_argument("Outputter", "outputter_cls", "6.0", arg_in_kwargs=True)
+@deprecated_renamed_argument(
+    "header_Splitter", "header_splitter_cls", "6.0", arg_in_kwargs=True
+)
+@deprecated_renamed_argument(
+    "data_Splitter", "data_splitter_cls", "6.0", arg_in_kwargs=True
+)
 def read(table, guess=None, **kwargs):
     # This the final output from reading. Static analysis indicates the reading
     # logic (which is indeed complex) might not define `dat`, thus do so here.

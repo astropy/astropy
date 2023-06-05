@@ -43,9 +43,9 @@ READ_DOCSTRING = """
         ``np.float32``; a list of such types which is tried in order until a
         successful conversion is achieved; or a list of converter tuples (see
         the `~astropy.io.ascii.convert_numpy` function for details).
-    data_Splitter : `~astropy.io.ascii.BaseSplitter`
+    data_splitter_cls : `~astropy.io.ascii.BaseSplitter`
         Splitter class to split data columns
-    header_Splitter : `~astropy.io.ascii.BaseSplitter`
+    header_splitter_cls : `~astropy.io.ascii.BaseSplitter`
         Splitter class to split header columns
     names : list
         List of names corresponding to each data column
@@ -108,8 +108,8 @@ READ_KWARG_TYPES = {
     "data_start": (int, str),  # CDS allows 'guess'
     "data_end": int,
     "converters": dict,
-    # 'data_Splitter'
-    # 'header_Splitter'
+    # 'data_splitter_cls'
+    # 'header_splitter_cls'
     "names": "list-like",
     "include_names": "list-like",
     "exclude_names": "list-like",

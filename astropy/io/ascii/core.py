@@ -1645,8 +1645,8 @@ extra_reader_pars = (
     "data_end",
     "converters",
     "encoding",
-    "data_Splitter",
-    "header_Splitter",
+    "data_splitter_cls",
+    "header_splitter_cls",
     "names",
     "include_names",
     "exclude_names",
@@ -1736,10 +1736,10 @@ def _get_reader(reader_cls, inputter_cls=None, outputter_cls=None, **kwargs):
             raise ValueError("header_start cannot be modified for this Reader")
     if "converters" in kwargs:
         reader.outputter.converters = kwargs["converters"]
-    if "data_Splitter" in kwargs:
-        reader.data.splitter = kwargs["data_Splitter"]()
-    if "header_Splitter" in kwargs:
-        reader.header.splitter = kwargs["header_Splitter"]()
+    if "data_splitter_cls" in kwargs:
+        reader.data.splitter = kwargs["data_splitter_cls"]()
+    if "header_splitter_cls" in kwargs:
+        reader.header.splitter = kwargs["header_splitter_cls"]()
     if "names" in kwargs:
         reader.names = kwargs["names"]
         if None in reader.names:
