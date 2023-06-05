@@ -1,6 +1,7 @@
 """Tests that models are picklable."""
 
 from pickle import dumps, loads
+
 from numpy.testing import assert_allclose
 import pytest
 
