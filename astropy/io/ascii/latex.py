@@ -244,8 +244,8 @@ class Latex(core.BaseReader):
             The default is ``\\begin{table}``.  The following would generate a table,
             which spans the whole page in a two-column document::
 
-                ascii.write(data, sys.stdout, writer_cls = ascii.Latex,
-                            latexdict = {'tabletype': 'table*'})
+                ascii.write(data, sys.stdout, format="latex",
+                            latexdict={'tabletype': 'table*'})
 
             If ``None``, the table environment will be dropped, keeping only
             the ``tabular`` environment.
@@ -276,8 +276,8 @@ class Latex(core.BaseReader):
 
               from astropy.io import ascii
               data = {'name': ['bike', 'car'], 'mass': [75,1200], 'speed': [10, 130]}
-              ascii.write(data, writer_cls=ascii.Latex,
-                               latexdict = {'units': {'mass': 'kg', 'speed': 'km/h'}})
+              ascii.write(data, format="latex",
+                          latexdict={'units': {'mass': 'kg', 'speed': 'km/h'}})
 
             If the column has no entry in the ``units`` dictionary, it defaults
             to the **unit** attribute of the column. If this attribute is not
@@ -288,18 +288,18 @@ class Latex(core.BaseReader):
 
             from astropy.io import ascii
             data = {'cola': [1,2], 'colb': [3,4]}
-            ascii.write(data, writer_cls=ascii.Latex, latexdict=ascii.latex.latexdicts['template'])
+            ascii.write(data, format="latex", latexdict=ascii.latex.latexdicts['template'])
 
         Some table styles are predefined in the dictionary
         ``ascii.latex.latexdicts``. The following generates in table in
         style preferred by A&A and some other journals::
 
-            ascii.write(data, writer_cls=ascii.Latex, latexdict=ascii.latex.latexdicts['AA'])
+            ascii.write(data, format="latex", latexdict=ascii.latex.latexdicts['AA'])
 
         As an example, this generates a table, which spans all columns
         and is centered on the page::
 
-            ascii.write(data, writer_cls=ascii.Latex, col_align='|lr|',
+            ascii.write(data, format="latex", col_align='|lr|',
                         latexdict={'preamble': r'\begin{center}',
                                    'tablefoot': r'\end{center}',
                                    'tabletype': 'table*'})
