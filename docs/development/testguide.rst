@@ -101,7 +101,7 @@ will run checks using the ``ruff`` tool.
     It is suggested that you automate the code-style checks using the provided
     pre-commit hook, as described in the :ref:`pre-commit` section.
 
-Is is possible to pass options to pytest when running tox - to do this, add a
+It is possible to pass options to pytest when running tox - to do this, add a
 ``--`` after the regular tox command, and anything after this will be passed to
 pytest, e.g.::
 
@@ -479,7 +479,7 @@ Class-level setup/teardown
 --------------------------
 
 Tests can be organized into classes that have their own setup/teardown
-functions. In the following ::
+functions. In the following::
 
     def add_nums(x, y):
         """Add two numbers."""
