@@ -1556,7 +1556,7 @@ def test_cunit():
     assert w1.wcs.cunit != ["a", "b", "c"]
     # Comparison is not implemented TypeError will raise
     with pytest.raises(TypeError):
-        w1.wcs.cunit < w2.wcs.cunit
+        w1.wcs.cunit < w2.wcs.cunit  # noqa: B015
 
 
 class TestWcsWithTime:

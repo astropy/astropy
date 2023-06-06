@@ -209,7 +209,7 @@ class ParameterTestMixin:
                 pass  # never actually initialized
 
         # param should be 1st, all other parameters next
-        Example.__parameters__[0] == "param"
+        assert Example.__parameters__[0] == "param"
         # Check the other parameters are as expected.
         # only run this test if "param" is not already on the cosmology
         if cosmo_cls.__parameters__[0] != "param":

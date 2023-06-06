@@ -506,7 +506,7 @@ class TestCore(FitsTestCase):
         h1.header["EXTVER"] = 3
         assert h1.ver == 3
         del h1.header["EXTVER"]
-        h1.ver == 1
+        assert h1.ver == 1
 
         h1.level = 2
         assert h1.header.get("EXTLEVEL") == 2

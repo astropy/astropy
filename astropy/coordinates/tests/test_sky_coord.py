@@ -439,7 +439,7 @@ def test_equal_exceptions():
             r" \(perhaps compare the frames directly to avoid this exception\)"
         ),
     ):
-        sc1 == sc2
+        sc1 == sc2  # noqa: B015
     # Note that this exception is the only one raised directly in SkyCoord.
     # All others come from lower-level classes and are tested in test_frames.py.
 

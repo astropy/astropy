@@ -944,7 +944,7 @@ class TestLogQuantityComparisons:
     def test_comparison_to_non_quantities_fails(self):
         lq = u.Magnitude(np.arange(1.0, 10.0) * u.Jy)
         with pytest.raises(TypeError):
-            lq > "a"
+            lq > "a"  # noqa: B015
 
         assert not (lq == "a")
         assert lq != "a"
@@ -961,21 +961,21 @@ class TestLogQuantityComparisons:
         assert not (lq1 == lq4)
         assert lq1 != lq4
         with pytest.raises(u.UnitsError):
-            lq1 < lq4
+            lq1 < lq4  # noqa: B015
         q5 = 1.5 * u.Jy
         assert np.all((lq1 > q5) == np.array([True, False, False]))
         assert np.all((q5 < lq1) == np.array([True, False, False]))
         with pytest.raises(u.UnitsError):
-            lq1 >= 2.0 * u.m
+            lq1 >= 2.0 * u.m  # noqa: B015
         with pytest.raises(u.UnitsError):
-            lq1 <= lq1.value * u.mag
+            lq1 <= lq1.value * u.mag  # noqa: B015
         # For physically dimensionless, we can compare with the function unit.
         lq6 = u.Magnitude(np.arange(1.0, 4.0))
         fv6 = lq6.value * u.mag
         assert np.all(lq6 == fv6)
         # but not some arbitrary unit, of course.
         with pytest.raises(u.UnitsError):
-            lq6 < 2.0 * u.m
+            lq6 < 2.0 * u.m  # noqa: B015
 
 
 class TestLogQuantityMethods:

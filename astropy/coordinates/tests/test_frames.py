@@ -926,9 +926,9 @@ def test_represent_as():
     cart1 = icrs.represent_as("cartesian")
     cart2 = icrs.represent_as(r.CartesianRepresentation)
 
-    cart1.x == cart2.x
-    cart1.y == cart2.y
-    cart1.z == cart2.z
+    assert cart1.x == cart2.x
+    assert cart1.y == cart2.y
+    assert cart1.z == cart2.z
 
     # now try with velocities
     icrs = ICRS(
@@ -1021,7 +1021,7 @@ def test_equal_exceptions():
     # Shape mismatch
     sc1 = FK4([1, 2, 3] * u.deg, [3, 4, 5] * u.deg)
     with pytest.raises(ValueError, match="cannot compare: shape mismatch"):
-        sc1 == sc1[:2]
+        sc1 == sc1[:2]  # noqa: B015
 
     # Different representation_type
     sc1 = FK4(1, 2, 3, representation_type="cartesian")
@@ -1033,7 +1033,7 @@ def test_equal_exceptions():
             "class: CartesianRepresentation vs. SphericalRepresentation"
         ),
     ):
-        sc1 == sc2
+        sc1 == sc2  # noqa: B015
 
     # Different differential type
     sc1 = FK4(1 * u.deg, 2 * u.deg, radial_velocity=1 * u.km / u.s)
@@ -1047,7 +1047,7 @@ def test_equal_exceptions():
             "class: RadialDifferential vs. UnitSphericalCosLatDifferential"
         ),
     ):
-        sc1 == sc2
+        sc1 == sc2  # noqa: B015
 
     # Different frame attribute
     sc1 = FK5(1 * u.deg, 2 * u.deg)
@@ -1058,7 +1058,7 @@ def test_equal_exceptions():
         r"frames: <FK5 Frame \(equinox=J2000.000\)> "
         r"vs. <FK5 Frame \(equinox=J1999.000\)>",
     ):
-        sc1 == sc2
+        sc1 == sc2  # noqa: B015
 
     # Different frame
     sc1 = FK4(1 * u.deg, 2 * u.deg)
@@ -1069,18 +1069,18 @@ def test_equal_exceptions():
         r"frames: <FK4 Frame \(equinox=B1950.000, obstime=B1950.000\)> "
         r"vs. <FK5 Frame \(equinox=J2000.000\)>",
     ):
-        sc1 == sc2
+        sc1 == sc2  # noqa: B015
 
     sc1 = FK4(1 * u.deg, 2 * u.deg)
     sc2 = FK4()
     with pytest.raises(
         ValueError, match="cannot compare: one frame has data and the other does not"
     ):
-        sc1 == sc2
+        sc1 == sc2  # noqa: B015
     with pytest.raises(
         ValueError, match="cannot compare: one frame has data and the other does not"
     ):
-        sc2 == sc1
+        sc2 == sc1  # noqa: B015
 
 
 def test_dynamic_attrs():
@@ -1655,15 +1655,15 @@ def test_frame_coord_comparison():
     assert not (frame == other)
     error_msg = "objects must have equivalent frames"
     with pytest.raises(TypeError, match=error_msg):
-        frame == SkyCoord(AltAz("0d", "1d"))
+        frame == SkyCoord(AltAz("0d", "1d"))  # noqa: B015
 
     coord = SkyCoord(ra=12 * u.hourangle, dec=5 * u.deg, frame=FK5(equinox="J1950"))
     frame = FK5(ra=12 * u.hourangle, dec=5 * u.deg, equinox="J2000")
     with pytest.raises(TypeError, match=error_msg):
-        coord == frame
+        coord == frame  # noqa: B015
 
     frame = ICRS()
     coord = SkyCoord(0 * u.deg, 0 * u.deg, frame=frame)
     error_msg = "Can only compare SkyCoord to Frame with data"
     with pytest.raises(ValueError, match=error_msg):
-        frame == coord
+        frame == coord  # noqa: B015

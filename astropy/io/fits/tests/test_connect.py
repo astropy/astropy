@@ -764,7 +764,7 @@ def test_bool_column(tmp_path):
     """
 
     arr = np.ones(5, dtype=bool)
-    arr[::2] == np.False_
+    arr[::2] = False
 
     t = Table([arr])
     t.write(tmp_path / "test.fits", overwrite=True)
