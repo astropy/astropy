@@ -279,7 +279,7 @@ someone reviewing your branch to see what you are doing.
 
 Choose an informative name for the branch to remind yourself and the rest of us
 what the changes in the branch are for. Branch names like ``add-ability-to-fly``
-or ``buxfix-for-issue-42`` clearly describe the purpose of the branch.
+or ``bugfix-for-issue-42`` clearly describe the purpose of the branch.
 
 Always make your branch from ``astropy/main`` so that you are basing your
 changes on the latest version of Astropy::
@@ -348,7 +348,7 @@ Conceptually, you will:
    documentation.
 #. Ideally, also make sure your changes do not break the documentation.
 #. Add tests of the code you contribute.
-#. Commit your changes in `git`_
+#. Commit your changes in `git`_.
 #. Repeat as necessary.
 
 
