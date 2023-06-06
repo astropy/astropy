@@ -118,7 +118,7 @@ linking the flux of the [OIII] λ4959 line to the [OIII] λ5007 line.
 
     # Tie the ratio of the intensity of the two [OIII] lines.
     def tie_o3_ampl(model):
-        return model.amplitude_3 / 3.1
+        return model.amplitude_3 / 2.98
 
     o3_4959.amplitude.tied = tie_o3_ampl
 
