@@ -193,6 +193,7 @@ def test_pickle_rotations(inputs, m):
         assert_allclose(m(inputs[0], *inputs), mp(inputs[0], *inputs))
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_pickle_spline(inputs):
     def func(x, noise):
         return np.exp(-(x**2)) + 0.1 * noise
