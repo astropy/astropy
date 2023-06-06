@@ -144,17 +144,16 @@ class Parameter:
         self._fvalidate_in: FValidateCallable | str
         self._fvalidate: FValidateCallable
         object.__setattr__(self, "__doc__", self.doc)
-        # attribute name on container cosmology class.
-        # really set in __set_name__, but if Parameter is not init'ed as a
-        # descriptor this ensures that the attributes exist.
-        object.__setattr__(self, "name", None)
-        object.__setattr__(self, "_attr_name", None)
+        # Now setting a dummy attribute name. The cosmology class will call
+        # `__set_name__`, passing the real attribute name. However, if Parameter is not
+        # init'ed as a descriptor then this ensures that all declared fields exist.
+        self.__set_name__(None, None)
 
-    def __set_name__(self, cosmo_cls: type, name: str) -> None:
+    def __set_name__(self, cosmo_cls: type, name: str | None) -> None:
         # attribute name on container cosmology class
         self._attr_name: str
         object.__setattr__(self, "name", name)
-        object.__setattr__(self, "_attr_name", "_" + name)
+        object.__setattr__(self, "_attr_name", "_" + (name or ""))
 
     # -------------------------------------------
     # descriptor and property-like methods
@@ -263,8 +262,7 @@ class Parameter:
         cloned = replace(self, **kw)
         # Transfer over the __set_name__ stuff. If `clone` is used to make a
         # new descriptor, __set_name__ will be called again, overwriting this.
-        object.__setattr__(cloned, "name", self.name)
-        object.__setattr__(cloned, "_attr_name", self._attr_name)
+        cloned.__set_name__(None, self.name)
 
         return cloned
 
