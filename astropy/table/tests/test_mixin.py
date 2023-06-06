@@ -813,7 +813,7 @@ def test_ndarray_mixin(as_ndarray_mixin):
     (which provides full support for structured array Column's). This test shows
     that the end behavior is the same in both cases.
     """
-    a = np.array([(1, "a"), (2, "b"), (3, "c"), (4, "d")], dtype="<i4," + "|U1")
+    a = np.array([(1, "a"), (2, "b"), (3, "c"), (4, "d")], dtype="<i4,|U1")
     b = np.array(
         [(10, "aa"), (20, "bb"), (30, "cc"), (40, "dd")],
         dtype=[("x", "i4"), ("y", "U2")],

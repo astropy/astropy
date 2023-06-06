@@ -164,7 +164,7 @@ def warn_unknown_attrs(element, attrs, config, pos, good_attr=[], stacklevel=1):
 
 _warning_pat = re.compile(
     r":?(?P<nline>[0-9?]+):(?P<nchar>[0-9?]+): "
-    + r"((?P<warning>[WE]\d+): )?(?P<rest>.*)$"
+    r"((?P<warning>[WE]\d+): )?(?P<rest>.*)$"
 )
 
 
@@ -637,7 +637,7 @@ class W19(VOTableSpecWarning):
 
     message_template = (
         "The fields defined in the VOTable do not match those in the "
-        + "embedded FITS file"
+        "embedded FITS file"
     )
 
 

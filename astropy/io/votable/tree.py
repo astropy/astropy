@@ -2942,7 +2942,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
             if not href.startswith(("http", "ftp", "file")):
                 vo_raise(
                     "The vo package only supports remote data through http, "
-                    + "ftp or file",
+                    "ftp or file",
                     self._config,
                     self._pos,
                     NotImplementedError,

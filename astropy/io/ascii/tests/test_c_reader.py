@@ -1499,7 +1499,7 @@ def test_fortran_reader(parallel, guess):
     atol = 0.0
     text = (
         "A B C D\n100.01{:s}99       2.0  2.0{:s}-103 3\n"
-        + " 4.2{:s}-1 5.0{:s}-1     0.6{:s}4 .017{:s}+309"
+        " 4.2{:s}-1 5.0{:s}-1     0.6{:s}4 .017{:s}+309"
     )
     expc = Table(
         [[1.0001e101, 0.42], [2, 0.5], [2.0e-103, 6.0e3], [3, 1.7e307]],
@@ -1541,7 +1541,7 @@ def test_fortran_reader(parallel, guess):
     # any character and mixed whitespace separators
     text = (
         "A B\t\t C D\n1.0001+101 2.0+000\t 0.0002-099 3\n "
-        + "0.42-000 \t 0.5 6.+003   0.000000000000000000000017+330"
+        "0.42-000 \t 0.5 6.+003   0.000000000000000000000017+330"
     )
     table = ascii.read(
         text, guess=guess, fast_reader={"parallel": parallel, "exponent_style": "A"}
