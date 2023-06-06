@@ -306,10 +306,10 @@ def test_parameter_quantity_comparison():
         r" argument .*"
     )
     with pytest.raises(UnitsError, match=MESSAGE):
-        g.mean < 2
+        g.mean < 2  # noqa: B015
 
     with pytest.raises(UnitsError, match=MESSAGE):
-        2 > g.mean
+        2 > g.mean  # noqa: B015
 
     g = Gaussian1D([1, 2] * u.J, [1, 2] * u.m, [0.1, 0.2] * u.m)
 
@@ -319,10 +319,10 @@ def test_parameter_quantity_comparison():
     assert np.all([1, 2] != g.mean)
 
     with pytest.raises(UnitsError, match=MESSAGE):
-        g.mean < [3, 4]
+        g.mean < [3, 4]  # noqa: B015
 
     with pytest.raises(UnitsError, match=MESSAGE):
-        [3, 4] > g.mean
+        [3, 4] > g.mean  # noqa: B015
 
 
 def test_parameters_compound_models():
