@@ -96,9 +96,6 @@ ignore = [
     # flake8-import-conventions (ICN)  : use conventional import aliases
     "ICN001",  # import-conventions
 
-    # flake8-implicit-str-concat (ISC)
-    "ISC003",  # explicit-string-concatenation
-
     # pep8-naming (N)
     # NOTE: some of these can/should be fixed, but this changes the API.
     "N801",  # invalid-class-name
