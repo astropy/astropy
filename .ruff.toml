@@ -139,6 +139,7 @@ ignore = [
     "PLR5501",  # collapsible-else-if
     "PLW0120",  # useless-else-on-loop
     "PLW0129",  # assert-on-string-literal
+    "PLW0130",  # duplicate value in set
     "PLW0602",  # global-variable-not-assigned
     "PLW0603",  # global-statement
     "PLW2901",  # redefined-loop-name
@@ -198,6 +199,7 @@ ignore = [
     # Ruff-specific rules (RUF)
     "RUF001",  # ambiguous-unicode-character-string
     "RUF002",  # ambiguous-unicode-character-docstring
+    "RUF010",  # use conversion in f-string
 
     # flake8-bandit (S)
     "S101",  # Use of `assert` detected
@@ -230,6 +232,13 @@ ignore = [
     # flake8-print (T20)
     "T201",  # PrintUsed
 
+    # flake8-todos (TD)
+    "TD001",  # Invalid TODO tag
+    "TD003",  # Missing issue link on the line following this TODO
+    "TD004",  # Missing colon in TODO
+    "TD005",  # Missing issue description after `TODO`
+    "TD007",  # Missing space after colon in TODO
+
     # tryceratops (TRY)
     "TRY002",  # raise-vanilla-class
     "TRY003",  # raise-vanilla-args
@@ -238,6 +247,7 @@ ignore = [
     "TRY201",  # verbose-raise
     "TRY300",  # Consider `else` block
     "TRY301",  # raise-within-try
+    "TRY302",  # Remove exception handler; error is immediately re-raised
     "TRY400",  # error-instead-of-exception
 
     # flake8-quotes (Q)

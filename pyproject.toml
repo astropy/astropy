@@ -166,6 +166,9 @@ ignore = [
     # flake8-self (SLF)
     "SLF001", # private member access
 
+    # flake8-todos (TD)
+    "TD002",  # Missing author in TODO
+
     # Ruff-specific rules (RUF)
     "RUF005",  # unpack-instead-of-concatenating-to-collection-literal -- it's not clearly faster.
 ]
