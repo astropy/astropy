@@ -115,7 +115,7 @@ def write_mrt(cosmology, file, *, overwrite=False, cls=QTable, **kwargs):
         m_nu = table_main["m_nu"]
         table.remove_column("m_nu")
         cols, names = tuple(zip(*((m, f"m_nu[{i}]") for i, m in enumerate(m_nu[0]))))
-        table.add_columns(cols, names=names, indexes=(-2, -2, -2))
+        table.add_columns(cols, names=names, indexes=(-4, -3, -2))
 
     table.write(file, overwrite=overwrite, format="ascii.mrt", **kwargs)
 
