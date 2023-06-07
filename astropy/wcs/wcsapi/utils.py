@@ -76,7 +76,7 @@ def wcs_info_str(wcs):
     world_dim_width = max(9, len(str(wcs.world_n_dim)))
     world_nam_width = max(9, *(len(x) for x in wcs.world_axis_names if x is not None))
     world_typ_width = max(
-        13, *(len(x) for x in wcs.world_axis_physical_types if x is not None)
+        0, 13, *(len(x) for x in wcs.world_axis_physical_types if x is not None)
     )
 
     # fmt: off
