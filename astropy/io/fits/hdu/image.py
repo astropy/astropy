@@ -3,6 +3,7 @@
 import mmap
 import sys
 import warnings
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 
@@ -1056,7 +1057,9 @@ class Section:
                 break
             # This should always break at some point if _getdata is called.
 
-        data = [self[keys[:idx] + (k,) + keys[idx + 1 :]] for k in ks]
+        with ThreadPoolExecutor() as pool:
+            futures = pool.map(lambda k: self[keys[:idx] + (k,) + keys[idx + 1 :]], ks)
+        data = list(futures)
 
         if any(isinstance(key, slice) or isiterable(key) for key in keys[idx + 1 :]):
             # data contains multidimensional arrays; combine them.
