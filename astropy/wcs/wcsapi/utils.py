@@ -49,7 +49,7 @@ def wcs_info_str(wcs):
 
     # Find largest between header size and value length
     pixel_dim_width = max(9, len(str(wcs.pixel_n_dim)))
-    pixel_nam_width = max(9, *(len(x) for x in wcs.pixel_axis_names))
+    pixel_nam_width = max(9, *map(len, wcs.pixel_axis_names))
     pixel_siz_width = max(9, len(str(max(array_shape))))
 
     # fmt: off
@@ -74,11 +74,9 @@ def wcs_info_str(wcs):
 
     # Find largest between header size and value length
     world_dim_width = max(9, len(str(wcs.world_n_dim)))
-    world_nam_width = max(
-        9, *(len(x) if x is not None else 0 for x in wcs.world_axis_names)
-    )
+    world_nam_width = max(9, *(len(x) for x in wcs.world_axis_names if x is not None))
     world_typ_width = max(
-        13, *(len(x) if x is not None else 0 for x in wcs.world_axis_physical_types)
+        13, *(len(x) for x in wcs.world_axis_physical_types if x is not None)
     )
 
     # fmt: off
