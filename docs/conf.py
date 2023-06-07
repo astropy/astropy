@@ -124,7 +124,7 @@ if "templates_path" not in locals():  # in case parent conf.py defines it
     templates_path = []
 templates_path.append("_templates")
 
-extensions += ["sphinx_changelog"]
+extensions += ["sphinx_changelog", "sphinx_design"]
 
 # Grab minversion from setup.cfg
 setup_cfg = configparser.ConfigParser()
@@ -231,7 +231,6 @@ modindex_common_prefix = ["astropy."]
 
 # -- Options for HTML output ---------------------------------------------------
 
-html_logo = "_static/astropy_banner_96.png"
 html_theme_options.update(
     {
         "github_url": "https://github.com/astropy/astropy",
@@ -239,6 +238,10 @@ html_theme_options.update(
             {"name": "Tutorials", "url": "https://learn.astropy.org/"},
         ],
         "use_edit_page_button": True,
+        "logo": {
+            "image_light": "_static/astropy_banner_96.png",
+            "image_dark": "_static/astropy_banner_96_dark.png",
+        },
     }
 )
 
@@ -246,11 +249,15 @@ html_theme_options.update(
 # "<project> v<release> documentation".
 html_title = f"{project} v{release}"
 
+html_css_files = ["astropy.css"]
+html_copy_source = False
+
 # Output file base name for HTML help builder.
 htmlhelp_basename = project + "doc"
 
 # A dictionary of values to pass into the template engine's context for all pages.
 html_context = {
+    "default_mode": "light",
     "to_be_indexed": ["stable", "latest"],
     "is_development": dev,
     "github_user": "astropy",
