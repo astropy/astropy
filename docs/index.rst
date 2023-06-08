@@ -79,23 +79,6 @@ processing, and data analysis.
             To the user guide
 
     .. grid-item-card::
-        :img-top: _static/index-images/api.svg
-
-        Project details
-        ^^^^^^^^^^^^^^^
-
-        More details about the project (changelog and what's new pages).
-
-        +++
-
-        .. button-ref:: reference
-            :expand:
-            :color: primary
-            :click-parent:
-
-            To the project details
-
-    .. grid-item-card::
         :img-top: _static/index-images/contributor.svg
 
         Contributor's Guide
@@ -113,6 +96,23 @@ processing, and data analysis.
             :click-parent:
 
             To the contributor's guide
+
+    .. grid-item-card::
+        :img-top: _static/index-images/api.svg
+
+        Project details
+        ^^^^^^^^^^^^^^^
+
+        More details about the project (changelog and what's new pages).
+
+        +++
+
+        .. button-ref:: index_project_details
+            :expand:
+            :color: primary
+            :click-parent:
+
+            To the project details
 
 .. _feedback@astropy.org: mailto:feedback@astropy.org
 .. _affiliated packages: https://www.astropy.org/affiliated/

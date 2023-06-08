@@ -38,7 +38,7 @@ repos:
       - id: trailing-whitespace
         # Trims trailing whitespace.
         exclude_types: [python]  # Covered by Ruff W291.
-        exclude: ".*(data.*|extern.*|licenses.*)$"
+        exclude: ".*(data.*|extern.*|licenses.*|_static.*)$"
 
   - repo: https://github.com/pre-commit/pygrep-hooks
     rev: v1.10.0
