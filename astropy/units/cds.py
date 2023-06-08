@@ -20,6 +20,18 @@ To include them in `~astropy.units.UnitBase.compose` and the results of
 
     >>> from astropy.units import cds
     >>> cds.enable()  # doctest: +SKIP
+
+Note, however, that this can introduce conflicts between CDS and other
+units in the top-level namespace. A safer way to use CDS units is to enable
+them inside a context manager. For instance, you could do the following if
+you have a string that uses CDS units:
+
+>>> import astropy.units as u
+>>> unit_string = "mmHg"
+>>> with cds.enable():
+...     pressure_unit = u.Unit(unit_string)
+>>> (720*pressure_unit).to(u.bar)
+<Quantity 0.95992119 bar>
 """
 
 _ns = globals()
