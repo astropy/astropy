@@ -300,3 +300,6 @@ unfixable = [
 "astropy/wcs/*" = ["I001", "C408", "F821"]
 "docs/*" = []
 "examples/coordinates/*" = []
+
+# Never try to fix these.
+"docs/_static/*" = []
