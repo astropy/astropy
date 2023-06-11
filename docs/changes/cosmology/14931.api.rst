@@ -1,0 +1,2 @@
+A new property -- ``scale_factor0`` -- has been added to Cosmology objects.
+This is the scale factor at redshift 0, and is defined to be 1.0.

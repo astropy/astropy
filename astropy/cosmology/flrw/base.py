@@ -66,7 +66,39 @@ _FlatFLRWMixinT = TypeVar("_FlatFLRWMixinT", bound="FlatFLRWMixin")
 ##############################################################################
 
 
-class FLRW(Cosmology):
+class _ScaleFactorMixin:
+    @property
+    def scale_factor0(self):
+        r"""Scale factor at redshift 0.
+
+        The scale factor is defined as :math:`a = \frac{a_0}{1 + z}`. The common
+        convention is to set :math:`a_0 = 1`. However, in some cases, e.g. in some old
+        CMB papers, :math:`a_0` is used to normalize `a` to be a convenient number at
+        the redshift of interest for that paper. Explicitly using :math:`a_0` in both
+        calculation and code avoids ambiguity.
+        """
+        return u.Quantity(self.scale_factor(0), unit=u.one)
+
+    def scale_factor(self, z):
+        """Scale factor at redshift ``z``.
+
+        The scale factor is defined as :math:`a = 1 / (1 + z)`.
+
+        Parameters
+        ----------
+        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+            Input redshift.
+
+        Returns
+        -------
+        a : ndarray or float
+            Scale factor at each input redshift.
+            Returns `float` if the input is scalar.
+        """
+        return 1.0 / (aszarr(z) + 1.0)
+
+
+class FLRW(Cosmology, _ScaleFactorMixin):
     """
     A class describing an isotropic and homogeneous
     (Friedmann-Lemaitre-Robertson-Walker) cosmology.
@@ -899,24 +931,6 @@ class FLRW(Cosmology):
             Hubble parameter at each input redshift.
         """
         return self._H0 * self.efunc(z)
-
-    def scale_factor(self, z):
-        """Scale factor at redshift ``z``.
-
-        The scale factor is defined as :math:`a = 1 / (1 + z)`.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
-            Input redshift.
-
-        Returns
-        -------
-        a : ndarray or float
-            Scale factor at each input redshift.
-            Returns `float` if the input is scalar.
-        """
-        return 1.0 / (aszarr(z) + 1.0)
 
     def lookback_time(self, z):
         """Lookback time in Gyr to redshift ``z``.
