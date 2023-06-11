@@ -382,9 +382,7 @@ class TestCosmology(CosmologyTest):
 
         self.cls = SubCosmology
         self._cls_args = dict(
-            H0=70 * (u.km / u.s / u.Mpc),
-            Tcmb0=2.7 * u.K,
-            m_nu=np.array([0, 0, 0.6]) * u.eV,
+            H0=70 * (u.km / u.s / u.Mpc), Tcmb0=2.7 * u.K, m_nu=0.6 * u.eV
         )
         self.cls_kwargs = dict(name=self.__class__.__name__, meta={"a": "b"})
 

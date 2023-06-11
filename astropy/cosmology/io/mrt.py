@@ -1,3 +1,7 @@
+# THIRD PARTY
+import numpy as np
+
+# LOCAL
 import astropy.units as u
 from astropy.cosmology.connect import readwrite_registry
 from astropy.cosmology.core import Cosmology
@@ -110,12 +114,22 @@ def write_mrt(cosmology, file, *, overwrite=False, cls=QTable, **kwargs):
     table_main = to_table(cosmology, cls=cls, cosmology_in_meta=False)
     table = represent_mixins_as_columns(table_main)
 
-    # Replace the m_nu column with three columns with names 'm_nu_[i]'
+    # Replace the m_nu column with individual columns
     if "m_nu" in table.colnames:
         m_nu = table_main["m_nu"]
         table.remove_column("m_nu")
-        cols, names = tuple(zip(*((m, f"m_nu[{i}]") for i, m in enumerate(m_nu[0]))))
-        table.add_columns(cols, names=names, indexes=(-4, -3, -2))
+        m_nu = np.atleast_1d(m_nu)  # Ensure m_nu is an array
+        if m_nu.shape == (1,):
+            # If m_nu is a scalar, add a single column
+            table.add_column(m_nu[0], name="m_nu[0]", index=-2)
+        else:
+            # If m_nu is an array, add multiple columns with names 'm_nu_[i]'
+            cols, names = tuple(
+                zip(*((m, f"m_nu[{i}]") for i, m in enumerate(m_nu[0])))
+            )
+            table.add_columns(
+                cols, names=names, indexes=tuple(range(-1 - len(m_nu[0]), -1))
+            )
 
     table.write(file, overwrite=overwrite, format="ascii.mrt", **kwargs)
 
