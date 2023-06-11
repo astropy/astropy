@@ -711,6 +711,18 @@ class FLRWTest(
             cosmo.Om(z) + cosmo.Ogamma(z) + cosmo.Onu(z) + cosmo.Ode(z) + cosmo.Ok(z),
         )
 
+    def test_scale_factor0(self, cosmo):
+        """Test :meth:`astropy.cosmology.FLRW.scale_factor`."""
+        assert isinstance(cosmo.scale_factor0, u.Quantity)
+        assert cosmo.scale_factor0.unit == u.one
+        assert cosmo.scale_factor0 == 1
+        assert np.allclose(cosmo.scale_factor0, cosmo.scale_factor(0))
+
+    @pytest.mark.parametrize("z", valid_zs)
+    def test_scale_factor(self, cosmo, z):
+        """Test :meth:`astropy.cosmology.FLRW.scale_factor`."""
+        assert np.allclose(cosmo.scale_factor(z), 1 / (1 + np.array(z)))
+
     # ---------------------------------------------------------------
 
     def test_efunc_vs_invefunc(self, cosmo):
