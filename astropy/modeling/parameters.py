@@ -589,6 +589,10 @@ class Parameter:
         set on the parameter is invalid (typically an `InputParameterError`
         should be raised, though this is not currently a requirement).
 
+        Note: Using this method as a decorator will cause problems with
+        pickling the model. An alternative is to assign the actual validator
+        function to ``Parameter._validator`` (see examples in modeling).
+
         """
 
         def validator(func, self=self):

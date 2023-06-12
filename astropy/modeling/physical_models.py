@@ -346,11 +346,12 @@ class Drude1D(Fittable1DModel):
             return None
         return {self.outputs[0]: self.amplitude.unit}
 
-    @x_0.validator
-    def x_0(self, val):
+    def _x_0_validator(self, val):
         """Ensure `x_0` is not 0."""
         if np.any(val == 0):
             raise InputParameterError("0 is not an allowed value for x_0")
+
+    x_0._validator = _x_0_validator
 
     def bounding_box(self, factor=50):
         """Tuple defining the default ``bounding_box`` limits,
