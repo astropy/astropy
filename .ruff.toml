@@ -250,10 +250,8 @@ unfixable = [
 [per-file-ignores]
 "setup.py" = ["INP001"]  # Part of configuration, not a package.
 "__init__.py" = ["E402", "F401", "F403"]
-"astropy/coordinates/angle_formats.py" = ["D415"]  # The docstrings are regexes.
 "astropy/io/registry/compat.py" = ["F822"]
 "astropy/modeling/models.py" = ["F401", "F403", "F405"]
-"astropy/units/format/*.py" = ["D415"]  # The docstrings are regexes.
 "astropy/utils/decorators.py" = [
     "D214", "D215",  # keep Examples section indented.
     "D411",  # sphinx treats spaced example sections as real sections
@@ -272,7 +270,6 @@ unfixable = [
     "INP001",  # implicit-namespace-package. The examples are not a package.
 ]
 "examples/*.py" = [
-    "D415",   # EndsInPeriod. The examples use RST syntax, not a one-line title.
     "E402",   # Imports are done as needed.
     "INP001", # implicit-namespace-package. The examples are not a package.
     "T203"    # pprint found
