@@ -48,10 +48,10 @@ def write_latex(
     TypeError
         If kwarg (optional) 'cls' is not a subclass of `astropy.table.Table`
     """
-    # Check that the format is 'latex' (or not specified)
+    # Check that the format is 'latex', 'ascii.latex' (or not specified)
     format = kwargs.pop("format", "latex")
-    if format != "latex":
-        raise ValueError(f"format must be 'latex', not {format}")
+    if format not in ("latex", "ascii.latex"):
+        raise ValueError(f"format must be 'latex' or 'ascii.latex', not {format}")
 
     # Set cosmology_in_meta as false for now since there is no metadata being kept
     table = to_table(cosmology, cls=cls, cosmology_in_meta=False)
@@ -76,3 +76,4 @@ def write_latex(
 # Register
 
 readwrite_registry.register_writer("latex", Cosmology, write_latex)
+readwrite_registry.register_writer("ascii.latex", Cosmology, write_latex)

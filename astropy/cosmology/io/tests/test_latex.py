@@ -20,40 +20,45 @@ class WriteLATEXTestMixin(ReadWriteTestMixinBase):
     See ``TestCosmology`` for an example.
     """
 
-    def test_to_latex_failed_cls(self, write, tmp_path):
+    @pytest.mark.parametrize("format", ["latex", "ascii.latex"])
+    def test_to_latex_failed_cls(self, write, tmp_path, format):
         """Test failed table type."""
         fp = tmp_path / "test_to_latex_failed_cls.tex"
 
         with pytest.raises(TypeError, match="'cls' must be"):
-            write(fp, format="latex", cls=list)
+            write(fp, format=format, cls=list)
 
+    @pytest.mark.parametrize("format", ["latex", "ascii.latex"])
     @pytest.mark.parametrize("tbl_cls", [QTable, Table])
-    def test_to_latex_cls(self, write, tbl_cls, tmp_path):
+    def test_to_latex_cls(self, write, tbl_cls, tmp_path, format):
         fp = tmp_path / "test_to_latex_cls.tex"
-        write(fp, format="latex", cls=tbl_cls)
+        write(fp, format=format, cls=tbl_cls)
 
-    def test_latex_columns(self, write, tmp_path):
+    @pytest.mark.parametrize("format", ["latex", "ascii.latex"])
+    def test_latex_columns(self, write, tmp_path, format):
         fp = tmp_path / "test_rename_latex_columns.tex"
-        write(fp, format="latex", latex_names=True)
+        write(fp, format=format, latex_names=True)
         tbl = QTable.read(fp)
         # asserts each column name has not been reverted yet
         # For now, Cosmology class and name are stored in first 2 slots
         for column_name in tbl.colnames[2:]:
             assert column_name in _FORMAT_TABLE.values()
 
-    def test_write_latex_invalid_path(self, write):
+    @pytest.mark.parametrize("format", ["latex", "ascii.latex"])
+    def test_write_latex_invalid_path(self, write, format):
         """Test passing an invalid path"""
         invalid_fp = ""
         with pytest.raises(FileNotFoundError, match="No such file or directory"):
-            write(invalid_fp, format="latex")
+            write(invalid_fp, format=format)
 
-    def test_write_latex_false_overwrite(self, write, tmp_path):
+    @pytest.mark.parametrize("format", ["latex", "ascii.latex"])
+    def test_write_latex_false_overwrite(self, write, tmp_path, format):
         """Test to write a LaTeX file without overwriting an existing file"""
         # Test that passing an invalid path to write_latex() raises a IOError
         fp = tmp_path / "test_write_latex_false_overwrite.tex"
         write(fp, format="latex")
         with pytest.raises(OSError, match="overwrite=True"):
-            write(fp, format="latex", overwrite=False)
+            write(fp, format=format, overwrite=False)
 
 
 class TestReadWriteLaTex(ReadWriteDirectTestBase, WriteLATEXTestMixin):
@@ -67,10 +72,11 @@ class TestReadWriteLaTex(ReadWriteDirectTestBase, WriteLATEXTestMixin):
     def setup_class(self):
         self.functions = {"write": write_latex}
 
-    def test_rename_direct_latex_columns(self, write, tmp_path):
+    @pytest.mark.parametrize("format", ["latex", "ascii.latex"])
+    def test_rename_direct_latex_columns(self, write, tmp_path, format):
         """Tests renaming columns"""
         fp = tmp_path / "test_rename_latex_columns.tex"
-        write(fp, format="latex", latex_names=True)
+        write(fp, format=format, latex_names=True)
         tbl = QTable.read(fp)
         # asserts each column name has not been reverted yet
         for column_name in tbl.colnames[2:]:
