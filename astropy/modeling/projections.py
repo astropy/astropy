@@ -158,6 +158,18 @@ class Projection(Model):
             self._prj.pv = None, *pv
             self._prj.set()
 
+    def __getstate__(self):
+        return {
+            "p": self.parameters,
+            "fixed": self.fixed,
+            "tied": self.tied,
+            "bounds": self.bounds,
+        }
+
+    def __setstate__(self, state):
+        params = state.pop("p")
+        return self.__init__(*params, **state)
+
 
 class Pix2SkyProjection(Projection):
     """Base class for all Pix2Sky projections."""
@@ -309,12 +321,13 @@ class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
         description="Look angle γ in degrees (Default = 0°)",
     )
 
-    @mu.validator
-    def mu(self, value):
+    def _mu_validator(self, value):
         if np.any(np.equal(value, -1.0)):
             raise InputParameterError(
                 "Zenithal perspective projection is not defined for mu = -1"
             )
+
+    mu._validator = _mu_validator
 
 
 class Sky2Pix_ZenithalPerspective(Sky2PixProjection, Zenithal):
@@ -354,12 +367,13 @@ class Sky2Pix_ZenithalPerspective(Sky2PixProjection, Zenithal):
         description="Look angle γ in degrees (Default=0°)",
     )
 
-    @mu.validator
-    def mu(self, value):
+    def _mu_validator(self, value):
         if np.any(np.equal(value, -1.0)):
             raise InputParameterError(
                 "Zenithal perspective projection is not defined for mu = -1"
             )
+
+    mu._validator = _mu_validator
 
 
 class Pix2Sky_SlantZenithalPerspective(Pix2SkyProjection, Zenithal):
@@ -400,12 +414,13 @@ class Pix2Sky_SlantZenithalPerspective(Pix2SkyProjection, Zenithal):
         description="The latitude θ₀ of the reference point, in degrees (Default=0°)",
     )
 
-    @mu.validator
-    def mu(self, value):
+    def _mu_validator(self, value):
         if np.any(np.equal(value, -1.0)):
             raise InputParameterError(
                 "Zenithal perspective projection is not defined for mu = -1"
             )
+
+    mu._validator = _mu_validator
 
 
 class Sky2Pix_SlantZenithalPerspective(Sky2PixProjection, Zenithal):
@@ -446,12 +461,13 @@ class Sky2Pix_SlantZenithalPerspective(Sky2PixProjection, Zenithal):
         description="The latitude θ₀ of the reference point, in degrees",
     )
 
-    @mu.validator
-    def mu(self, value):
+    def _mu_validator(self, value):
         if np.any(np.equal(value, -1.0)):
             raise InputParameterError(
                 "Zenithal perspective projection is not defined for mu = -1"
             )
+
+    mu._validator = _mu_validator
 
 
 class Pix2Sky_Gnomonic(Pix2SkyProjection, Zenithal):
@@ -709,15 +725,17 @@ class Pix2Sky_CylindricalPerspective(Pix2SkyProjection, Cylindrical):
     mu = _ParameterDS(default=1.0)
     lam = _ParameterDS(default=1.0)
 
-    @mu.validator
-    def mu(self, value):
+    def _mu_validator(self, value):
         if np.any(value == -self.lam):
             raise InputParameterError("CYP projection is not defined for mu = -lambda")
 
-    @lam.validator
-    def lam(self, value):
+    mu._validator = _mu_validator
+
+    def _lam_validator(self, value):
         if np.any(value == -self.mu):
             raise InputParameterError("CYP projection is not defined for lambda = -mu")
+
+    lam._validator = _lam_validator
 
 
 class Sky2Pix_CylindricalPerspective(Sky2PixProjection, Cylindrical):
@@ -748,15 +766,17 @@ class Sky2Pix_CylindricalPerspective(Sky2PixProjection, Cylindrical):
         default=1.0, description="Radius of the cylinder in spherical radii"
     )
 
-    @mu.validator
-    def mu(self, value):
+    def _mu_validator(self, value):
         if np.any(value == -self.lam):
             raise InputParameterError("CYP projection is not defined for mu = -lambda")
 
-    @lam.validator
-    def lam(self, value):
+    mu._validator = _mu_validator
+
+    def _lam_validator(self, value):
         if np.any(value == -self.mu):
             raise InputParameterError("CYP projection is not defined for lambda = -mu")
+
+    lam._validator = _lam_validator
 
 
 class Pix2Sky_CylindricalEqualArea(Pix2SkyProjection, Cylindrical):
@@ -1527,16 +1547,16 @@ class AffineTransformation2D(Model):
     matrix = Parameter(default=[[1.0, 0.0], [0.0, 1.0]])
     translation = Parameter(default=[0.0, 0.0])
 
-    @matrix.validator
-    def matrix(self, value):
+    def _matrix_validator(self, value):
         """Validates that the input matrix is a 2x2 2D array."""
         if np.shape(value) != (2, 2):
             raise InputParameterError(
                 "Expected transformation matrix to be a 2x2 array"
             )
 
-    @translation.validator
-    def translation(self, value):
+    matrix._validator = _matrix_validator
+
+    def _translation_validator(self, value):
         """
         Validates that the translation vector is a 2D vector.  This allows
         either a "row" vector or a "column" vector where in the latter case the
@@ -1550,6 +1570,8 @@ class AffineTransformation2D(Model):
                 "Expected translation vector to be a 2 element row or column "
                 "vector array"
             )
+
+    translation._validator = _translation_validator
 
     def __init__(self, matrix=matrix, translation=translation, **kwargs):
         super().__init__(matrix=matrix, translation=translation, **kwargs)
