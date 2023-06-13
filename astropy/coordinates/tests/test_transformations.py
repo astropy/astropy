@@ -689,3 +689,13 @@ def test_combine_affine_params(first, second, check):
         assert result[1] is None
     else:
         assert_allclose(result[1].xyz, check[1].xyz)
+
+
+def test_cds_with_coordinates_transformations():
+    """See https://github.com/astropy/astropy/issues/14580."""
+    from astropy.coordinates import SkyCoord
+    from astropy.units import cds
+
+    with cds.enable():
+        c = SkyCoord(ra=10 * u.degree, dec=40 * u.degree, frame="icrs")
+        assert_allclose(c.geocentrictrueecliptic.lon.deg, np.array([26.59]), rtol=1e-3)
