@@ -20,7 +20,7 @@ def _sexagesimal(g):
     # convert matched regex groups to sexigesimal array
     sign, h, m, s, frac = g
     sign = -1 if (sign == "-") else 1
-    s = ".".join((s, frac))
+    s = f"{s}.{frac}"
     return sign * np.array([h, m, s], float)
 
 

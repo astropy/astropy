@@ -508,7 +508,7 @@ class Card(_Verify):
             self._field_specifier = field_specifier
             # The keyword need also be updated
             keyword = self._keyword.split(".", 1)[0]
-            self._keyword = ".".join([keyword, field_specifier])
+            self._keyword = f"{keyword}.{field_specifier}"
             self._modified = True
 
     @field_specifier.deleter
@@ -697,7 +697,7 @@ class Card(_Verify):
         attributes if the card was determined to be a RVKC.
         """
         keyword_upper = keyword.upper()
-        self._keyword = ".".join((keyword_upper, field_specifier))
+        self._keyword = f"{keyword_upper}.{field_specifier}"
         self._rawkeyword = keyword_upper
         self._field_specifier = field_specifier
         self._value = _int_or_float(value)
@@ -897,7 +897,7 @@ class Card(_Verify):
     def _fix_keyword(self):
         if self.field_specifier:
             keyword, field_specifier = self._keyword.split(".", 1)
-            self._keyword = ".".join([keyword.upper(), field_specifier])
+            self._keyword = f"{keyword.upper()}.{field_specifier}"
         else:
             self._keyword = self._keyword.upper()
         self._modified = True
@@ -1010,7 +1010,7 @@ class Card(_Verify):
             delimiter = ""
 
         # put all parts together
-        output = "".join([keyword, delimiter, value, comment])
+        output = f"{keyword}{delimiter}{value}{comment}"
 
         # For HIERARCH cards we can save a bit of space if necessary by
         # removing the space between the keyword and the equals sign; I'm

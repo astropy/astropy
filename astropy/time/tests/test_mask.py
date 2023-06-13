@@ -46,7 +46,7 @@ def test_simple():
     # After masking format output is a masked array
     assert isinstance(t.value, np.ma.MaskedArray)
     assert isinstance(t.unix, np.ma.MaskedArray)
-    # Todo : test all formats
+    # TODO : test all formats
 
 
 def test_scalar_init():

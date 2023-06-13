@@ -3561,7 +3561,7 @@ class CompoundModel(Model):
                     ):
                         right = f"({right})"
 
-                operands.append(" ".join((left, node.op, right)))
+                operands.append(f"{left} {node.op} {right}")
             else:
                 left = f"(({left}),"
                 right = f"({right}))"

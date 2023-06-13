@@ -645,7 +645,7 @@ def fits_ccddata_reader(
     for key, msg in unsupport_open_keywords.items():
         if key in kwd:
             prefix = f"unsupported keyword: {key}."
-            raise TypeError(" ".join([prefix, msg]))
+            raise TypeError(f"{prefix} {msg}")
     with fits.open(filename, **kwd) as hdus:
         hdr = hdus[hdu].header
 

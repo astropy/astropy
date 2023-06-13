@@ -1005,7 +1005,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
     if NUMPY_LT_1_22:
 
         def argmin(self, axis=None, out=None):
-            # Todo: should this return a masked integer array, with masks
+            # TODO: should this return a masked integer array, with masks
             # if all elements were masked?
             at_min = self == self.min(axis=axis, keepdims=True)
             return at_min.filled(False).argmax(axis=axis, out=out)
@@ -1017,7 +1017,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
     else:
 
         def argmin(self, axis=None, out=None, *, keepdims=False):
-            # Todo: should this return a masked integer array, with masks
+            # TODO: should this return a masked integer array, with masks
             # if all elements were masked?
             at_min = self == self.min(axis=axis, keepdims=True)
             return at_min.filled(False).argmax(axis=axis, out=out, keepdims=keepdims)
