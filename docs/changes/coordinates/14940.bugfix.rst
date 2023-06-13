@@ -1,0 +1,1 @@
+The coordinate transformations will now work even if other unit registries (such as CDS) are enabled.
