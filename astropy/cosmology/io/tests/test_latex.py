@@ -5,6 +5,7 @@ import pytest
 
 # LOCAL
 from astropy.cosmology.io.latex import _FORMAT_TABLE, write_latex
+from astropy.io.registry.base import IORegistryError
 from astropy.table import QTable, Table
 
 from .base import ReadWriteDirectTestBase, ReadWriteTestMixinBase
@@ -59,6 +60,15 @@ class WriteLATEXTestMixin(ReadWriteTestMixinBase):
         write(fp, format="latex")
         with pytest.raises(OSError, match="overwrite=True"):
             write(fp, format=format, overwrite=False)
+
+    def test_write_latex_unsupported_format(self, write, tmp_path):
+        """Test for unsupported format"""
+        fp = tmp_path / "test_write_latex_unsupported_format.tex"
+        invalid_format = "unsupported"
+        with pytest.raises((ValueError, IORegistryError)) as exc_info:
+            pytest.raises(ValueError, match="format must be 'latex' or 'ascii.latex'")
+            pytest.raises(IORegistryError, match="No writer defined for format")
+            write(fp, format=invalid_format)
 
 
 class TestReadWriteLaTex(ReadWriteDirectTestBase, WriteLATEXTestMixin):
