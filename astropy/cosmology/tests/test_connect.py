@@ -33,6 +33,7 @@ cosmo_instances = cosmology.realizations.available
 readwrite_formats = {
     ("ascii.ecsv", True, True),
     ("ascii.html", False, HAS_BS4),
+    ("ascii.latex", False, True),
     ("json", True, True),
     ("latex", False, True),
 }
