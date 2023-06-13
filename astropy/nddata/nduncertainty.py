@@ -305,7 +305,7 @@ class NDUncertainty(metaclass=ABCMeta):
         except AttributeError:
             # In case it wasn't possible to use array2string
             body = str(self.array)
-        return "".join([prefix, body, ")"])
+        return f"{prefix}{body})"
 
     def __getstate__(self):
         # Because of the weak reference the class wouldn't be picklable.
