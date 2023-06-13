@@ -8,7 +8,11 @@ from numpy.testing import assert_array_equal
 from astropy import units as u
 from astropy.nddata import NDData, NDSlicingMixin
 from astropy.nddata import _testing as nd_testing
-from astropy.nddata.nduncertainty import NDUncertainty, StdDevUncertainty, UnknownUncertainty
+from astropy.nddata.nduncertainty import (
+    NDUncertainty,
+    StdDevUncertainty,
+    UnknownUncertainty,
+)
 
 
 # Just add the Mixin to NDData
