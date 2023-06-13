@@ -806,8 +806,8 @@ class SkyCoord(ShapedLikeNDArray):
             rv = 0.0
 
         starpm = erfa.pmsafe(
-            icrsrep.lon.radian,
-            icrsrep.lat.radian,
+            icrsrep.lon.to_value(u.rad),
+            icrsrep.lat.to_value(u.rad),
             icrsvel.d_lon.to_value(u.radian / u.yr),
             icrsvel.d_lat.to_value(u.radian / u.yr),
             plx,

@@ -208,7 +208,7 @@ def aticq(srepr, astrom):
     ignore_distance = srepr_distance.unit == u.one
 
     # RA, Dec to cartesian unit vectors
-    pos = erfa.s2c(srepr.lon.radian, srepr.lat.radian)
+    pos = erfa.s2c(srepr.lon.to_value(u.rad), srepr.lat.to_value(u.rad))
 
     # Bias-precession-nutation, giving GCRS proper direction.
     ppr = erfa.trxp(astrom["bpn"], pos)
@@ -293,7 +293,7 @@ def atciqz(srepr, astrom):
     ignore_distance = srepr_distance.unit == u.one
 
     # BCRS coordinate direction (unit vector).
-    pco = erfa.s2c(srepr.lon.radian, srepr.lat.radian)
+    pco = erfa.s2c(srepr.lon.to_value(u.rad), srepr.lat.to_value(u.rad))
 
     # Find BCRS direction of Sun to object
     if ignore_distance:
