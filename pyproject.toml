@@ -138,16 +138,11 @@ ignore = [
     # Missing Docstrings
     "D102",  # Missing docstring in public method. Don't check b/c docstring inheritance.
     "D105",  # Missing docstring in magic method. Don't check b/c class docstring.
-    "D107",  # Missing docstring in __init__. Don't check b/c class docstring.
-    "D213",  # multi-line-summary-second-line
     # Whitespace Issues
     "D200",  # FitsOnOneLine
-    "D203",  # OneBlankLineBeforeClass.
     # Docstring Content Issues
     "D410",  # BlankLineAfterSection. Using D412 instead.
-    "D400",  # EndsInPeriod. Using D415 instead.
-    "D413",  # BlankLineAfterLastSection.
-    "D416",  # SectionNameEndsInColon.
+    "D400",  # EndsInPeriod.
 
     # pycodestyle (E, W)
     "E711",  # NoneComparison  (see unfixable)
