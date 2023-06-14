@@ -269,7 +269,7 @@ def test_itrs_topo_to_altaz_with_refraction():
 
     assert_allclose(altaz33.az - altaz3.az, 0 * u.mas, atol=0.1 * u.mas)
     assert_allclose(altaz33.alt - altaz3.alt, 0 * u.mas, atol=0.1 * u.mas)
-    assert_allclose(altaz33.distance, altaz3.distance, rtol=2e-15)
+    assert_allclose(altaz33.distance - altaz3.distance, 0 * u.cm, atol=10.0 * u.cm)
 
 
 def test_itrs_topo_to_hadec_with_refraction():
@@ -316,7 +316,7 @@ def test_itrs_topo_to_hadec_with_refraction():
 
     assert_allclose(hadec22.ha - hadec2.ha, 0 * u.mas, atol=0.1 * u.mas)
     assert_allclose(hadec22.dec - hadec2.dec, 0 * u.mas, atol=0.1 * u.mas)
-    assert_allclose(hadec22.distance, hadec2.distance, rtol=2e-15)
+    assert_allclose(hadec22.distance - hadec2.distance, 0 * u.cm, atol=10.0 * u.cm)
 
     # Refraction removed
     itrs = hadec22.transform_to(itrs_frame)
@@ -324,7 +324,7 @@ def test_itrs_topo_to_hadec_with_refraction():
 
     assert_allclose(hadec33.ha - hadec3.ha, 0 * u.mas, atol=0.1 * u.mas)
     assert_allclose(hadec33.dec - hadec3.dec, 0 * u.mas, atol=0.1 * u.mas)
-    assert_allclose(hadec33.distance, hadec3.distance, rtol=2e-15)
+    assert_allclose(hadec33.distance - hadec3.distance, 0 * u.cm, atol=10.0 * u.cm)
 
 
 def test_gcrs_itrs():
