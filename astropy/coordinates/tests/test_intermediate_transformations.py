@@ -888,7 +888,7 @@ def test_earth_orientation_table(monkeypatch):
 
     # Check we returned to regular IERS system.
     altaz_auto2 = sc.transform_to(altaz)
-    assert_allclose(altaz_auto2.separation(altaz_auto), 0 * u.deg, atol=5e-15 * u.deg)
+    assert_allclose(altaz_auto2.separation(altaz_auto), 0 * u.deg)
 
 
 @pytest.mark.remote_data
