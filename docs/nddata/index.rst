@@ -463,7 +463,7 @@ for an image class that goes beyond what `~astropy.nddata.CCDData` does.
 
 + The `SunPy project <https://sunpy.org/>`_ uses `~astropy.nddata.NDData` as the
   foundation for its
-  `Map classes <https://docs.sunpy.org/en/stable/code_ref/map.html>`_.
+  `Map classes <https://docs.sunpy.org/en/stable/reference/map.html>`_.
 + The class `~astropy.nddata.NDDataRef` is used in
   `specutils <https://specutils.readthedocs.io/en/latest/>`_ as the basis for
   `Spectrum1D <https://specutils.readthedocs.io/en/latest/api/specutils.Spectrum1D.html>`_, which adds several methods useful for
