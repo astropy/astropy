@@ -1,0 +1,3 @@
+Fix a bug where table indexes were not using a stable sort order. This was causing the
+order of rows within groups to not match the original table order when an indexed table
+was grouped.

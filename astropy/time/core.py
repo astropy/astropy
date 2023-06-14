@@ -1441,13 +1441,28 @@ class TimeBase(ShapedLikeNDArray):
 
         return dt.argmax(axis, out)
 
-    def argsort(self, axis=-1):
+    def argsort(self, axis=-1, kind="stable"):
         """Returns the indices that would sort the time array.
 
-        This is similar to :meth:`~numpy.ndarray.argsort`, but adapted to ensure
-        that the full precision given by the two doubles ``jd1`` and ``jd2``
-        is used, and that corresponding attributes are copied.  Internally,
-        it uses :func:`~numpy.lexsort`, and hence no sort method can be chosen.
+        This is similar to :meth:`~numpy.ndarray.argsort`, but adapted to ensure that
+        the full precision given by the two doubles ``jd1`` and ``jd2`` is used, and
+        that corresponding attributes are copied.  Internally, it uses
+        :func:`~numpy.lexsort`, and hence no sort method can be chosen.
+
+        Parameters
+        ----------
+        axis : int, optional
+            Axis along which to sort. Default is -1, which means sort along the last
+            axis.
+        kind : 'stable', optional
+            Sorting is done with :func:`~numpy.lexsort` so this argument is ignored, but
+            kept for compatibility with :func:`~numpy.argsort`. The sorting is stable,
+            meaning that the order of equal elements is preserved.
+
+        Returns
+        -------
+        indices : ndarray
+            An array of indices that sort the time array.
         """
         # For procedure, see comment on argmin.
         jd1, jd2 = self.jd1, self.jd2
