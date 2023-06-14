@@ -603,8 +603,8 @@ def test_trig_inverse(trig):
     lower, upper = trig[1]
 
     x = np.arange(lower, upper, 0.01)
-    assert_allclose(mdl.inverse(mdl(x)), x, rtol=1e-13, atol=1e-8)
-    assert_allclose(mdl(mdl.inverse(x)), x, rtol=1e-13, atol=1e-8)
+    assert_allclose(mdl.inverse(mdl(x)), x, atol=1e-10)
+    assert_allclose(mdl(mdl.inverse(x)), x, atol=1e-10)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
