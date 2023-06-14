@@ -111,6 +111,13 @@ values and the indices of the group boundaries for those key values. The groups
 here correspond to the row slices ``0:4``, ``4:7``, and ``7:10`` in the
 ``obs_by_name`` table.
 
+The output grouped table has two important properties:
+
+- The groups in the order of the lexically sorted key values (``M101``, ``M31``,
+  ``M82`` in our example).
+- The rows within each group are in the same order as they appear in the
+  original table.
+
 The initial argument (``keys``) for the :func:`~astropy.table.Table.group_by`
 function can take a number of input data types:
 
