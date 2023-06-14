@@ -651,7 +651,7 @@ def test_collapse(mask, unit, propagate_uncertainties, operation_ignores_mask):
     axes_permutations = {tuple(axes[:2]) for axes in permutations(range(mask.ndim))}
 
     # each of the single axis slices:
-    axes_permutations.update({axis for axis in range(mask.ndim)})
+    axes_permutations.update(set(range(mask.ndim)))
     axes_permutations.update({None})
 
     cube = np.arange(np.prod(mask.shape)).reshape(mask.shape)

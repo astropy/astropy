@@ -257,13 +257,13 @@ def test_configitem():
     assert ci() == 34
 
     # Test iterator for one-item namespace
-    result = [x for x in conf]
+    result = list(conf)
     assert result == ["tstnm"]
-    result = [x for x in conf.keys()]
+    result = list(conf.keys())
     assert result == ["tstnm"]
-    result = [x for x in conf.values()]
+    result = list(conf.values())
     assert result == [ci]
-    result = [x for x in conf.items()]
+    result = list(conf.items())
     assert result == [("tstnm", ci)]
 
 
@@ -297,13 +297,13 @@ def test_configitem_types():
         conf.tstnm4 = 546.245
 
     # Test iterator for multi-item namespace. Assume ordered by insertion order.
-    item_names = [x for x in conf]
+    item_names = list(conf)
     assert item_names == ["tstnm1", "tstnm2", "tstnm3", "tstnm4"]
-    result = [x for x in conf.keys()]
+    result = list(conf.keys())
     assert result == item_names
-    result = [x for x in conf.values()]
+    result = list(conf.values())
     assert result == [ci1, ci2, ci3, ci4]
-    result = [x for x in conf.items()]
+    result = list(conf.items())
     assert result == [
         ("tstnm1", ci1),
         ("tstnm2", ci2),

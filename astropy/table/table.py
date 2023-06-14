@@ -4141,7 +4141,7 @@ class Table:
 
                     # When the numpy object array is represented as a list then
                     # numpy initializes to the correct string or unicode type.
-                    data = np.array([x for x in data])
+                    data = np.array(list(data))
 
             # Numpy datetime64
             if data.dtype.kind == "M":

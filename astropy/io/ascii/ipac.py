@@ -184,7 +184,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         """
         # generator returning valid header lines
         header_lines = self.process_lines(lines)
-        header_vals = [vals for vals in self.splitter(header_lines)]
+        header_vals = list(self.splitter(header_lines))
         if len(header_vals) == 0:
             raise ValueError(
                 "At least one header line beginning and ending with delimiter required"

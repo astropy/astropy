@@ -268,7 +268,7 @@ def test_physical_type_as_set(unit, expected_set):
 
 def test_physical_type_iteration():
     """Test iterating through different physical type names."""
-    physical_type_names = [physical_type_name for physical_type_name in pressure]
+    physical_type_names = list(pressure)
     assert physical_type_names == ["energy density", "pressure", "stress"]
 
 

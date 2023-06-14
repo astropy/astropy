@@ -291,7 +291,7 @@ class BST:
         i = 0
         for node in self.traverse():
             num_rows = len(node.data)
-            node.data = [x for x in range(i, i + num_rows)]
+            node.data = list(range(i, i + num_rows))
             i += num_rows
 
     def sorted_data(self):

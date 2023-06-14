@@ -753,12 +753,12 @@ class TestFileFunctions(FitsTestCase):
         """Test updating a GZipped FITS file"""
 
         with fits.open(self._make_gzip_file("update.gz"), mode="update") as fits_handle:
-            hdu = fits.ImageHDU(data=[x for x in range(100)])
+            hdu = fits.ImageHDU(data=list(range(100)))
             fits_handle.append(hdu)
 
         with fits.open(self.temp("update.gz")) as new_handle:
             assert len(new_handle) == 6
-            assert (new_handle[-1].data == [x for x in range(100)]).all()
+            assert (new_handle[-1].data == list(range(100))).all()
 
     def test_fits_append_mode_gzip(self):
         """Make sure that attempting to open an existing GZipped FITS file in

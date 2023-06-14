@@ -823,7 +823,7 @@ class BaseData:
             re_comment = re.compile(self.comment)
             return [x for x in nonblank_lines if not re_comment.match(x)]
         else:
-            return [x for x in nonblank_lines]
+            return list(nonblank_lines)
 
     def get_data_lines(self, lines):
         """
