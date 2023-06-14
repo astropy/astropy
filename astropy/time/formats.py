@@ -1262,9 +1262,7 @@ class TimeYMDHMS(TimeUnique):
             # same shape here.
             names = val1.item().keys()
             values = val1.item().values()
-            val1_as_dict = {
-                name: value for name, value in zip(names, np.broadcast_arrays(*values))
-            }
+            val1_as_dict = dict(zip(names, np.broadcast_arrays(*values)))
 
         else:
             raise ValueError("input must be dict or table-like")

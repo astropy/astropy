@@ -3184,7 +3184,7 @@ def test_iterrows():
     assert np.all(t["a"] == a_s)
     assert np.all(t["c"] == c_s)
 
-    rows = [row for row in t.iterrows()]
+    rows = list(t.iterrows())
     assert rows == dat
 
     with pytest.raises(ValueError, match="d is not a valid column name"):
