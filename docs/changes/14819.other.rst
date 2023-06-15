@@ -1,0 +1,3 @@
+Moved IERS Earth Rotation and Leap Second files out into standalone
+astropy-iers-data package, maintaining full backward-compatibility
+in the astropy.utils.iers API.
