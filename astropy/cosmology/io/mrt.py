@@ -111,8 +111,9 @@ def write_mrt(cosmology, file, *, overwrite=False, cls=QTable, **kwargs):
         raise ValueError(f"format must be 'ascii.mrt', not {format}")
 
     # Set cosmology_in_meta as false for now since there is no metadata being kept
-    table_main = to_table(cosmology, cls=cls, cosmology_in_meta=False)
-    table = represent_mixins_as_columns(table_main)
+    table = represent_mixins_as_columns(
+        to_table(cosmology, cls=cls, cosmology_in_meta=False)
+    )
 
     # CDS can't serialize redshift units, so remove them  # TODO: fix this
     for k, col in table.columns.items():
@@ -121,7 +122,7 @@ def write_mrt(cosmology, file, *, overwrite=False, cls=QTable, **kwargs):
 
     # Replace the m_nu column with individual columns
     if "m_nu" in table.colnames:
-        m_nu = table_main["m_nu"]
+        m_nu = table["m_nu"]
         table.remove_column("m_nu")
         m_nu = np.atleast_1d(m_nu)  # Ensure m_nu is an array
         if m_nu.shape == (1,):
