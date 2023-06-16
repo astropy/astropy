@@ -9,6 +9,7 @@ celestial-to-terrestrial coordinate transformations
 (in `astropy.coordinates`).
 """
 
+import os
 import re
 from datetime import datetime
 from urllib.parse import urlparse
@@ -39,7 +40,7 @@ from astropy.utils.data import (
     get_readable_fileobj,
     is_url_in_cache,
 )
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.state import ScienceState
 
 __all__ = [
@@ -621,7 +622,25 @@ class IERS_A(IERS):
         ``IERS_A`` class instance
         """
         if file is None:
-            file = IERS_A_FILE
+            # In prior versions of astropy, read() would only work without a
+            # file argument if a finals2000A.all file was present in the
+            # current working directory. We can now use the versions from
+            # astropy-iers-data but for backward-compatibility we first check
+            # if there is a file in the current working directory and use that
+            # if so, emitting a deprecation warning
+            if os.path.exists("finals2000A.all"):
+                file = "finals2000A.all"
+                warn(
+                    "The file= argument was not specified but "
+                    "'finals2000A.all' is present in the current working "
+                    "directory, so reading IERS data from that file. To "
+                    "continue reading a local file from the current working "
+                    "directory, specify file= explicitly otherwise a bundled "
+                    "file will be used in future.",
+                    AstropyDeprecationWarning,
+                )
+            else:
+                file = IERS_A_FILE
         if readme is None:
             readme = IERS_A_README
 
