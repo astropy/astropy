@@ -1,7 +1,7 @@
 # THIRD PARTY
 import numpy as np
 
-# LOCAL
+import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology.connect import readwrite_registry
 from astropy.cosmology.core import Cosmology
@@ -113,6 +113,11 @@ def write_mrt(cosmology, file, *, overwrite=False, cls=QTable, **kwargs):
     # Set cosmology_in_meta as false for now since there is no metadata being kept
     table_main = to_table(cosmology, cls=cls, cosmology_in_meta=False)
     table = represent_mixins_as_columns(table_main)
+
+    # CDS can't serialize redshift units, so remove them  # TODO: fix this
+    for k, col in table.columns.items():
+        if col.unit is cu.redshift:
+            table[k] <<= u.dimensionless_unscaled
 
     # Replace the m_nu column with individual columns
     if "m_nu" in table.colnames:
