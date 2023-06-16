@@ -1,10 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# THIRD PARTY
 import pytest
 
-# LOCAL
-from astropy.cosmology.io.latex import _FORMAT_TABLE, write_latex
+from astropy.cosmology._io.latex import _FORMAT_TABLE, write_latex
 from astropy.io.registry.base import IORegistryError
 from astropy.table import QTable, Table
 
@@ -16,7 +14,7 @@ class WriteLATEXTestMixin(ReadWriteTestMixinBase):
     Tests for a Cosmology[Write] with ``format="latex"``.
     This class will not be directly called by :mod:`pytest` since its name does
     not begin with ``Test``. To activate the contained tests this class must
-    be inherited in a subclass. Subclasses must dfine a :func:`pytest.fixture`
+    be inherited in a subclass. Subclasses must define a :func:`pytest.fixture`
     ``cosmo`` that returns/yields an instance of a |Cosmology|.
     See ``TestCosmology`` for an example.
     """

@@ -431,4 +431,4 @@ Reference/API
 
 .. automodapi:: astropy.cosmology.connect
 
-.. automodapi:: astropy.cosmology.io.mapping
+.. automodapi:: astropy.cosmology._io.mapping

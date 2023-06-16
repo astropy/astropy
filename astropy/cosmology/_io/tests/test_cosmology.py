@@ -1,10 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# THIRD PARTY
 import pytest
 
-# LOCAL
-from astropy.cosmology.io.cosmology import from_cosmology, to_cosmology
+from astropy.cosmology._io.cosmology import from_cosmology, to_cosmology
 
 from .base import IODirectTestBase, ToFromTestMixinBase
 
