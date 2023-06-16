@@ -122,11 +122,11 @@ which is regularly updated and installed automatically when astropy is
 installed.
 
 The main benefit of moving the files to this package is to make it easier to
-use astropy without an internet connection, and to faciliate updating the
+use astropy without an internet connection, and to facilitate updating the
 tables if needed. Users that want to ensure they have the latest available
 IERS data can now install the latest version of the
 `astropy-iers-data`_ package using ``pip`` or ``conda``, or alternatively
-donwload the package manually and transfer it to a computer that has no
+download the package manually and transfer it to a computer that has no
 public internet connection.
 
 Full change log
