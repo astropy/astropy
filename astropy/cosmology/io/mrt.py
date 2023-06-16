@@ -123,19 +123,19 @@ def write_mrt(cosmology, file, *, overwrite=False, cls=QTable, **kwargs):
     # Replace the m_nu column with individual columns
     if "m_nu" in table.colnames:
         m_nu = table["m_nu"]
+
+        index = table.colnames.index("m_nu")
         table.remove_column("m_nu")
         m_nu = np.atleast_1d(m_nu)  # Ensure m_nu is an array
         if m_nu.shape == (1,):
             # If m_nu is a scalar, add a single column
-            table.add_column(m_nu[0], name="m_nu[0]", index=-2)
+            table.add_column(m_nu[0], name="m_nu[0]", index=index)
         else:
             # If m_nu is an array, add multiple columns with names 'm_nu_[i]'
             cols, names = tuple(
                 zip(*((m, f"m_nu[{i}]") for i, m in enumerate(m_nu[0])))
             )
-            table.add_columns(
-                cols, names=names, indexes=tuple(range(-1 - len(m_nu[0]), -1))
-            )
+            table.add_columns(cols, names=names, indexes=(index,) * len(m_nu[0]))
 
     table.write(file, overwrite=overwrite, format="ascii.mrt", **kwargs)
 
