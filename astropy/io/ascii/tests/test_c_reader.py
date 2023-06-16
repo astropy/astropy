@@ -437,10 +437,14 @@ def test_doubled_quotes(read_csv):
     field was incorrect.
 
     """
+    tbl = "\n".join(  # noqa: FLY002
+        [
+            "a,b",
+            '"d""","d""q"',
+            '"""q",""""',
+        ]
+    )
     # fmt: off
-    tbl = '\n'.join(['a,b',
-                     '"d""","d""q"',
-                     '"""q",""""'])
     expected = Table([['d"', '"q'],
                       ['d"q', '"']],
                      names=('a', 'b'))

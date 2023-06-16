@@ -109,7 +109,7 @@ class Result:
             fail(reason)
             return
         except http.client.HTTPException as e:
-            fail(f"HTTPException: {str(e)}")
+            fail(f"HTTPException: {e}")
             return
         except (socket.timeout, OSError) as e:
             fail("Timeout")
