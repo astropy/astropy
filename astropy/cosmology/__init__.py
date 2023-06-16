@@ -8,13 +8,7 @@ detailed usage examples and references.
 
 """
 
-from . import core, flrw, funcs, parameter, units, utils
-
-# isort: split
-from . import io  # needed before 'realizations'
-
-# isort: split
-from . import realizations
+from . import core, flrw, funcs, parameter, realizations, units, utils
 from .core import *
 from .flrw import *
 from .funcs import *

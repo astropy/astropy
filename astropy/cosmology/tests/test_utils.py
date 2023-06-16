@@ -3,10 +3,7 @@
 import numpy as np
 import pytest
 
-from astropy.cosmology.utils import (
-    aszarr,
-    vectorize_redshift_method,
-)
+from astropy.cosmology.utils import aszarr, vectorize_redshift_method
 
 from .test_core import _zarr, invalid_zs, valid_zs
 

@@ -1,16 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# STDLIB
 import inspect
 import random
 
-# THIRD PARTY
 import numpy as np
 import pytest
 
-# LOCAL
+from astropy.cosmology._io.model import _CosmologyModel, from_model, to_model
 from astropy.cosmology.core import Cosmology
-from astropy.cosmology.io.model import _CosmologyModel, from_model, to_model
 from astropy.cosmology.tests.helper import get_redshift_methods
 from astropy.modeling.models import Gaussian1D
 from astropy.utils.compat.optional_deps import HAS_SCIPY

@@ -1,15 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# STDLIB
-
-# THIRD PARTY
 import pytest
 
-# LOCAL
 import astropy.units as u
 from astropy.cosmology import Cosmology, FlatLambdaCDM, Planck18
 from astropy.cosmology import units as cu
-from astropy.cosmology.io.yaml import (
+from astropy.cosmology._io.yaml import (
     from_yaml,
     to_yaml,
     yaml_constructor,
@@ -24,7 +20,7 @@ from .base import ToFromDirectTestBase, ToFromTestMixinBase
 
 
 def test_yaml_representer():
-    """Test :func:`~astropy.cosmology.io.yaml.yaml_representer`."""
+    """Test :func:`~astropy.cosmology._io.yaml.yaml_representer`."""
     # test function `representer`
     representer = yaml_representer("!astropy.cosmology.flrw.LambdaCDM")
     assert callable(representer)
@@ -36,7 +32,7 @@ def test_yaml_representer():
 
 
 def test_yaml_constructor():
-    """Test :func:`~astropy.cosmology.io.yaml.yaml_constructor`."""
+    """Test :func:`~astropy.cosmology._io.yaml.yaml_constructor`."""
     # test function `constructor`
     constructor = yaml_constructor(FlatLambdaCDM)
     assert callable(constructor)

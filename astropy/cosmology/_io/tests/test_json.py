@@ -1,13 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# STDLIB
 import json
 import os
 
-# THIRD PARTY
 import pytest
 
-# LOCAL
 import astropy.units as u
 from astropy.cosmology import units as cu
 from astropy.cosmology.connect import readwrite_registry

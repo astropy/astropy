@@ -1,16 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# STDLIB
 import inspect
 from collections import OrderedDict
 
-# THIRD PARTY
 import numpy as np
 import pytest
 
-# LOCAL
 from astropy.cosmology import Cosmology
-from astropy.cosmology.io.mapping import from_mapping, to_mapping
+from astropy.cosmology._io.mapping import from_mapping, to_mapping
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase
 
