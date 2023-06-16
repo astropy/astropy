@@ -681,7 +681,7 @@ def test_default_missing(fast_reader):
     """
     Read a table with empty values and ensure that corresponding entries are masked
     """
-    table = "\n".join(
+    table = "\n".join(  # noqa: FLY002
         [
             "a,b,c,d",
             "1,3,,",
@@ -704,7 +704,7 @@ def test_default_missing(fast_reader):
     assert dat["a"].dtype.kind == "i"
 
     # Same test with a fixed width reader
-    table = "\n".join(
+    table = "\n".join(  # noqa: FLY002
         [
             " a   b   c   d ",
             "--- --- --- ---",
@@ -1352,7 +1352,13 @@ def test_guessing_file_object():
 def test_pformat_roundtrip():
     """Check that the screen output of ``print tab`` can be read. See #3025."""
     """Read a table with empty values and ensure that corresponding entries are masked"""
-    table = "\n".join(["a,b,c,d", "1,3,1.11,1", "2, 2, 4.0 , ss "])
+    table = "\n".join(  # noqa: FLY002
+        [
+            "a,b,c,d",
+            "1,3,1.11,1",
+            "2, 2, 4.0 , ss ",
+        ]
+    )
     dat = ascii.read(table)
     out = ascii.read(dat.pformat())
     assert len(dat) == len(out)

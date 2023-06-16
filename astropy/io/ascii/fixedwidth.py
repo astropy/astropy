@@ -285,7 +285,7 @@ class FixedWidthData(basic.BasicData):
         if hdrs_list:
             for i_col in range(len(self.cols)):
                 widths[i_col] = max(
-                    widths[i_col], max(len(vals[i_col]) for vals in hdrs_list)
+                    widths[i_col], *(len(vals[i_col]) for vals in hdrs_list)
                 )
 
         # Now collect formatted header and data lines into the output lines

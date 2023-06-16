@@ -108,7 +108,7 @@ def valid_urls(tmp_path):
     def _valid_urls(tmp_path):
         for i in itertools.count():
             c = os.urandom(16).hex()
-            fn = tmp_path / f"valid_{str(i)}"
+            fn = tmp_path / f"valid_{i}"
             with open(fn, "w") as f:
                 f.write(c)
             u = url_to(fn)
@@ -121,7 +121,7 @@ def valid_urls(tmp_path):
 def invalid_urls(tmp_path):
     def _invalid_urls(tmp_path):
         for i in itertools.count():
-            fn = tmp_path / f"invalid_{str(i)}"
+            fn = tmp_path / f"invalid_{i}"
             if not os.path.exists(fn):
                 yield url_to(fn)
 
