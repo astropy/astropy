@@ -9,7 +9,8 @@ import pytest
 
 from astropy import units as u
 from astropy.cosmology import core, flrw
-from astropy.cosmology.funcs import _z_at_scalar_value, z_at_value
+from astropy.cosmology.funcs import z_at_value
+from astropy.cosmology.funcs.optimize import _z_at_scalar_value
 from astropy.cosmology.realizations import (
     WMAP1,
     WMAP3,
