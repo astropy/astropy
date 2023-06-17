@@ -13,7 +13,7 @@ import copy
 import numpy as np
 import pytest
 
-import astropy.constants as const
+import astropy.cosmology.constants as cconst
 
 # LOCAL
 import astropy.units as u
@@ -610,7 +610,7 @@ class FLRWTest(
 
         # on the instance
         assert cosmo.hubble_distance is cosmo._hubble_distance
-        assert cosmo.hubble_distance == (const.c / cosmo._H0).to(u.Mpc)
+        assert cosmo.hubble_distance == (cconst.c / cosmo._H0).to(u.Mpc)
 
     def test_critical_density0(self, cosmo_cls, cosmo):
         """Test property ``critical_density0``."""

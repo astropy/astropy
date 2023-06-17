@@ -166,3 +166,6 @@
 
 .. OpenAstronomy
 .. _`OpenAstronomy Packaging Guide`: https://packaging-guide.openastronomy.org/en/latest/
+
+.. Cosmology API
+.. _`Cosmology API`: https://cosmology.readthedocs.io/projects/api

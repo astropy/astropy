@@ -12,6 +12,7 @@ import numpy as np
 from numpy import inf, sin
 
 import astropy.constants as const
+import astropy.cosmology.constants as cconst
 import astropy.units as u
 from astropy.cosmology.core import Cosmology, FlatCosmologyMixin
 from astropy.cosmology.parameter import Parameter
@@ -49,12 +50,12 @@ else:
 _H0units_to_invs = (u.km / (u.s * u.Mpc)).to(1.0 / u.s)
 _sec_to_Gyr = u.s.to(u.Gyr)
 # const in critical density in cgs units (g cm^-3)
-_critdens_const = (3 / (8 * pi * const.G)).cgs.value
+_critdens_const = (3 / (8 * pi * cconst.G)).cgs.value
 # angle conversions
 _radian_in_arcsec = (1 * u.rad).to(u.arcsec)
 _radian_in_arcmin = (1 * u.rad).to(u.arcmin)
 # Radiation parameter over c^2 in cgs (g cm^-3 K^-4)
-_a_B_c2 = (4 * const.sigma_sb / const.c**3).cgs.value
+_a_B_c2 = (4 * const.sigma_sb / cconst.c**3).cgs.value
 # Boltzmann constant in eV / K
 _kB_evK = const.k_B.to(u.eV / u.K)
 
@@ -217,7 +218,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         # 100 km/s/Mpc * h = H0 (so h is dimensionless)
         self._h = self._H0.value / 100.0
         # Hubble distance
-        self._hubble_distance = (const.c / self._H0).to(u.Mpc)
+        self._hubble_distance = (cconst.c / self._H0).to(u.Mpc)
         # H0 in s^-1
         H0_s = self._H0.value * _H0units_to_invs
         # Hubble time
@@ -1009,7 +1010,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         d : `~astropy.units.Quantity` ['length']
             Lookback distance in Mpc
         """
-        return (self.lookback_time(z) * const.c).to(u.Mpc)
+        return (self.lookback_time(z) * cconst.c).to(u.Mpc)
 
     def age(self, z):
         """Age of the universe in Gyr at redshift ``z``.

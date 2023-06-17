@@ -1,0 +1,2 @@
+A new module, ``constants``, has been added to ``astropy.cosmology``.
+This module contains a number of useful cosmological constants.

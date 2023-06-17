@@ -55,6 +55,20 @@ See :ref:`astropy-coordinates-create-geodetic` for more details.
 Updates to `~astropy.cosmology`
 ===============================
 
+Adopting the Cosmology API
+--------------------------
+
+Astropy cosmology is adopting the `Cosmology API
+<https://cosmology.readthedocs.io/projects/api>`_. Compatibility with the API will take
+place over this and subsequent releases, and the following changes have been made in
+v6.0:
+
+* :mod:`astropy.cosmology.constants` is a new module that contains constants used in
+  cosmology calculations.
+* :class:`~astropy.cosmology.FLRW` now has the ``scale_factor0`` attribute, for the
+  scale factor at the present day. This is defined to be 1.
+
+
 Writing to LaTeX
 ----------------
 

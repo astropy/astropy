@@ -8,7 +8,7 @@ detailed usage examples and references.
 
 """
 
-from . import core, flrw, funcs, parameter, realizations, units, utils
+from . import constants, core, flrw, funcs, parameter, realizations, units, utils
 from .core import *
 from .flrw import *
 from .funcs import *
@@ -20,7 +20,7 @@ __all__ = (
     core.__all__
     + flrw.__all__  # cosmology classes
     + realizations.__all__  # instances thereof
-    + ["units"]
+    + ["units", "constants"]
     # utils
     + funcs.__all__
     + parameter.__all__
