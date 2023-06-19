@@ -138,6 +138,10 @@ def test_IERS_B_old_style_excerpt():
 
 
 class TestIERS_AExcerpt:
+    @classmethod
+    def teardown_class(self):
+        iers.IERS_A.close()
+
     def test_simple(self):
         # Test the IERS A reader. It is also a regression tests that ensures
         # values do not get overridden by IERS B; see #4933.
@@ -215,6 +219,10 @@ class TestIERS_AExcerpt:
 
 @pytest.mark.skipif(not HAS_IERS_A, reason="requires IERS_A")
 class TestIERS_A:
+    @classmethod
+    def teardown_class(self):
+        iers.IERS_A.close()
+
     def test_simple(self):
         """Test that open() by default reads a 'finals2000A.all' file."""
         # Ensure we remove any cached table (gh-5131).
