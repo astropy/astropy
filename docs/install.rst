@@ -10,7 +10,7 @@ Installing ``astropy``
 If you are new to Python and/or do not have familiarity with `Python virtual
 environments <https://docs.python.org/3/tutorial/venv.html>`_, then we recommend
 starting by installing the `Anaconda Distribution
-<https://www.anaconda.com/distribution/>`_. This works on all platforms (linux,
+<https://www.anaconda.com/download/>`_. This works on all platforms (linux,
 Mac, Windows) and installs a full-featured scientific Python in a user directory
 without requiring root permissions.
 
@@ -71,7 +71,7 @@ To install ``astropy`` using conda run::
     conda install astropy
 
 ``astropy`` is installed by default with the `Anaconda Distribution
-<https://www.anaconda.com/distribution/>`_. To update to the latest version run::
+<https://www.anaconda.com/download/>`_. To update to the latest version run::
 
     conda update astropy
 
