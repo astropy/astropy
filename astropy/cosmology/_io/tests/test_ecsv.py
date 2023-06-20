@@ -125,6 +125,31 @@ class ReadWriteECSVTestMixin(ReadWriteTestMixinBase):
         got = read(fp)
         assert got == cosmo
 
+    def test_readwrite_ecsv_renamed_columns(
+        self, cosmo_cls, cosmo, read, write, tmp_path, add_cu
+    ):
+        """Test rename argument to read/write."""
+        fp = tmp_path / "test_readwrite_ecsv_rename.ecsv"
+        rename = {"name": "cosmo_name"}
+
+        write(fp, format="ascii.ecsv", rename=rename)
+
+        tbl = QTable.read(fp, format="ascii.ecsv")
+
+        assert "name" not in tbl.colnames
+        assert "cosmo_name" in tbl.colnames
+
+        # Errors if reading
+        with pytest.raises(
+            TypeError, match="there are unused parameters {'cosmo_name':"
+        ):
+            read(fp)
+
+        # Roundtrips
+        inv_rename = {v: k for k, v in rename.items()}
+        got = read(fp, rename=inv_rename)
+        assert got == cosmo
+
     def test_readwrite_ecsv_subclass_partial_info(
         self, cosmo_cls, cosmo, read, write, tmp_path, add_cu
     ):
