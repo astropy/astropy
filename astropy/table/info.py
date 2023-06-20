@@ -6,7 +6,6 @@ import os
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import sys
 from contextlib import contextmanager
-from inspect import isclass
 
 import numpy as np
 
@@ -172,7 +171,7 @@ def serialize_method_as(tbl, serialize_method):
 
         # Otherwise look for subclass matches
         for key in serialize_method:
-            if isclass(key) and isinstance(col, key):
+            if isinstance(key, type) and isinstance(col, key):
                 return serialize_method[key]
 
         return None

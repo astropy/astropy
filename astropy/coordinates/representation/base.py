@@ -3,7 +3,6 @@
 
 import abc
 import functools
-import inspect
 import operator
 import warnings
 
@@ -816,7 +815,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         elif (
             len(self.differentials) == 1
-            and inspect.isclass(differential_class)
+            and isinstance(differential_class, type)
             and issubclass(differential_class, BaseDifferential)
         ):
             # TODO: is there a better way to do this?
