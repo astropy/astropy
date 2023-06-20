@@ -6,6 +6,7 @@ import pytest
 from astropy import coordinates, time
 from astropy import units as u
 from astropy.table import Column, NdarrayMixin, QTable, Table, table_helpers, unique
+from astropy.time import Time
 from astropy.utils.compat import NUMPY_LT_1_22, NUMPY_LT_1_22_1
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -14,22 +15,38 @@ def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
 
 
-def test_column_group_by(T1):
-    for masked in (False, True):
-        t1 = QTable(T1, masked=masked)
-        t1a = t1["a"].copy()
+def test_column_group_by(T1q):
+    """Test grouping a Column by various key types."""
+    # T1q["a"] could be Column or Quantity, so force the object we want to group to be
+    # Column. Then later we are using the "a" column as a grouping key.
+    t1a = Column(T1q["a"])
+    unit = T1q["a"].unit or 1
 
-        # Group by a Column (i.e. numpy array)
-        t1ag = t1a.group_by(t1["a"])
-        assert np.all(t1ag.groups.indices == np.array([0, 1, 4, 8]))
+    # Group by a Column (i.e. numpy array)
+    t1ag = t1a.group_by(T1q["a"])
+    keys = t1ag.groups.keys
+    assert np.all(t1ag.groups.indices == np.array([0, 1, 4, 8]))
+    assert np.all(keys == np.array([0, 1, 2]) * unit)
 
-        # Group by a Table
-        t1ag = t1a.group_by(t1["a", "b"])
+    # Group by a Table and numpy structured array
+    for t1ag, key_unit in (
+        (t1a.group_by(T1q["a", "b"]), unit),
+        (t1a.group_by(T1q["a", "b"].as_array()), 1),
+    ):
         assert np.all(t1ag.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
+        keys = t1ag.groups.keys
+        assert keys.dtype.names == ("a", "b")
+        assert np.all(keys["a"] == np.array([0, 1, 1, 2, 2, 2]) * key_unit)
+        assert np.all(keys["b"] == np.array(["a", "a", "b", "a", "b", "c"]))
 
-        # Group by a numpy structured array
-        t1ag = t1a.group_by(t1["a", "b"].as_array())
-        assert np.all(t1ag.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
+
+def test_column_group_by_no_argsort(T1b):
+    t1a = T1b["a"]
+    with pytest.raises(
+        TypeError, match=r"keys input \(list\) must have an `argsort` method"
+    ):
+        # Pass a Python list with no argsort method
+        t1a.group_by(list(range(len(t1a))))
 
 
 def test_table_group_by(T1):
@@ -112,22 +129,40 @@ def test_table_group_by(T1):
         ]
 
 
-def test_groups_keys(T1):
-    tg = T1.group_by("a")
+def test_groups_keys(T1m: QTable):
+    tg = T1m.group_by("a")
+    unit = T1m["a"].unit or 1
     keys = tg.groups.keys
     assert keys.dtype.names == ("a",)
-    assert np.all(keys["a"] == np.array([0, 1, 2]))
+    assert np.all(keys["a"] == np.array([0, 1, 2]) * unit)
 
-    tg = T1.group_by(["a", "b"])
+    tg = T1m.group_by(["a", "b"])
     keys = tg.groups.keys
     assert keys.dtype.names == ("a", "b")
-    assert np.all(keys["a"] == np.array([0, 1, 1, 2, 2, 2]))
+    assert np.all(keys["a"] == np.array([0, 1, 1, 2, 2, 2]) * unit)
     assert np.all(keys["b"] == np.array(["a", "a", "b", "a", "b", "c"]))
 
     # Grouping by Column ignores column name
-    tg = T1.group_by(T1["b"])
+    tg = T1m.group_by(T1m["b"])
     keys = tg.groups.keys
     assert keys.dtype.names is None
+
+
+def test_groups_keys_time(T1b: QTable):
+    """Group a table with a time column using that column as a key."""
+    T1b = T1b.copy()
+    T1b["a"] = Time(T1b["a"], format="cxcsec")
+
+    tg = T1b.group_by("a")
+    keys = tg.groups.keys
+    assert keys.dtype.names == ("a",)
+    assert np.all(keys["a"] == Time(np.array([0, 1, 2]), format="cxcsec"))
+
+    tg = T1b.group_by(["a", "b"])
+    keys = tg.groups.keys
+    assert keys.dtype.names == ("a", "b")
+    assert np.all(keys["a"] == Time(np.array([0, 1, 1, 2, 2, 2]), format="cxcsec"))
+    assert np.all(keys["b"] == np.array(["a", "a", "b", "a", "b", "c"]))
 
 
 def test_groups_iterator(T1):

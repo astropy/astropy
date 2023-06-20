@@ -74,10 +74,15 @@ def _table_group_by(table, keys):
             )
         )
 
+    # TODO: don't use represent_mixins_as_columns here, but instead ensure that
+    # keys_sort.argsort(kind="stable") works for all columns (including mixins).
+
     # If there is not already an available index and table_keys is a Table then ensure
     # that all cols (including mixins) are in a form that can sorted with the code below.
     if not table_index and isinstance(table_keys, Table):
-        table_keys = represent_mixins_as_columns(table_keys)
+        table_keys_sort = represent_mixins_as_columns(table_keys)
+    else:
+        table_keys_sort = table_keys
 
     # Get the argsort index `idx_sort`, accounting for particulars
     try:
@@ -85,13 +90,15 @@ def _table_group_by(table, keys):
         if table_index is not None:
             idx_sort = table_index.sorted_data()
         else:
-            idx_sort = table_keys.argsort(kind="mergesort")
+            idx_sort = table_keys_sort.argsort(kind="stable")
         stable_sort = True
     except TypeError:
+        # TODO: is this still needed?
+
         # Some versions (likely 1.6 and earlier) of numpy don't support
         # 'mergesort' for all data types.  MacOSX (Darwin) doesn't have a stable
         # sort by default, nor does Windows, while Linux does (or appears to).
-        idx_sort = table_keys.argsort()
+        idx_sort = table_keys_sort.argsort()
         stable_sort = platform.system() not in ("Darwin", "Windows")
 
     # Finally do the actual sort of table_keys values
@@ -136,21 +143,28 @@ def column_group_by(column, keys):
     from .serialize import represent_mixins_as_columns
     from .table import Table
 
+    # TODO: don't use represent_mixins_as_columns here, but instead ensure that
+    # keys_sort.argsort(kind="stable") works for all columns (including mixins).
+
     if isinstance(keys, Table):
-        keys = represent_mixins_as_columns(keys)
-        keys = keys.as_array()
+        keys_sort = represent_mixins_as_columns(keys)
+    else:
+        keys_sort = keys
 
-    if not isinstance(keys, np.ndarray):
-        raise TypeError(f"Keys input must be numpy array, but got {type(keys)}")
-
-    if len(keys) != len(column):
+    if len(keys_sort) != len(column):
         raise ValueError(
             "Input keys array length {} does not match column length {}".format(
                 len(keys), len(column)
             )
         )
 
-    idx_sort = keys.argsort()
+    try:
+        idx_sort = keys_sort.argsort(kind="stable")
+    except AttributeError:
+        raise TypeError(
+            f"keys input ({keys.__class__.__name__}) must have an `argsort` method"
+        )
+
     keys = keys[idx_sort]
 
     # Get all keys

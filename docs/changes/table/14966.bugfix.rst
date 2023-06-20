@@ -1,0 +1,4 @@
+Fixed issue #14964 that when grouping a Table on a mixin column such as ``Quantity`` or
+``Time``, the grouped table keys did not reflect the original column values. For
+``Quantity`` this meant that the key values were pure float values without the unit,
+while for ``Time`` the key values were the pair of ``jd1`` and ``jd2`` float values.
