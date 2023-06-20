@@ -98,7 +98,7 @@ def read_html_table(
 
     # Build the cosmology from table, using the private backend.
     return from_table(
-        table, index=index, move_to_meta=move_to_meta, cosmology=cosmology
+        table, index=index, move_to_meta=move_to_meta, cosmology=cosmology, rename=None
     )
 
 
@@ -160,7 +160,6 @@ def write_html_table(
         # Replace column with unitless version
         table.replace_column(name, (col << param.unit).value, copy=False)
 
-    # TODO! move the `latex_names` into `to_table`
     if latex_names:
         new_names = [_FORMAT_TABLE.get(k, k) for k in cosmology.__parameters__]
         table.rename_columns(cosmology.__parameters__, new_names)
