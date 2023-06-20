@@ -36,7 +36,7 @@ import astropy_iers_data
 import astropy.config.paths
 from astropy import config as _config
 from astropy.utils.compat.optional_deps import HAS_FSSPEC
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.introspection import find_current_module, resolve_name
 
 # Order here determines order in the autosummary
@@ -74,10 +74,13 @@ _dataurls_to_alias = {}
 
 
 _IERS_DATA_REDIRECTS = {
-    "Leap_Second.dat": astropy_iers_data.IERS_LEAP_SECOND_FILE,
-    "ReadMe.finals2000A": astropy_iers_data.IERS_A_README,
-    "ReadMe.eopc04": astropy_iers_data.IERS_B_README,
-    "eopc04.1962-now": astropy_iers_data.IERS_B_FILE,
+    "Leap_Second.dat": (
+        "IERS_LEAP_SECOND_FILE",
+        astropy_iers_data.IERS_LEAP_SECOND_FILE,
+    ),
+    "ReadMe.finals2000A": ("IERS_A_README", astropy_iers_data.IERS_A_README),
+    "ReadMe.eopc04": ("IERS_B_README", astropy_iers_data.IERS_B_README),
+    "eopc04.1962-now": ("IERS_B_FILE", astropy_iers_data.IERS_B_FILE),
 }
 
 
@@ -1031,7 +1034,13 @@ def get_pkg_data_path(*path, package=None):
         if package == "astropy.utils.iers":
             filename = os.path.basename(path[-1])
             if filename in _IERS_DATA_REDIRECTS:
-                return _IERS_DATA_REDIRECTS[filename]
+                warn(
+                    f"Accessing {filename} in this way is deprecated, "
+                    f"use astropy.utils.iers.{_IERS_DATA_REDIRECTS[filename][0]} "
+                    "instead",
+                    AstropyDeprecationWarning,
+                )
+                return _IERS_DATA_REDIRECTS[filename][1]
 
         # package errors if it isn't a str
         # so there is no need for checks in the containing if/else
