@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import inspect
 from collections import OrderedDict
 
 import numpy as np
@@ -61,7 +60,7 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
 
         # Cosmology is the class
         m = to_format("mapping", cosmology_as_str=False)
-        assert inspect.isclass(m["cosmology"])
+        assert isinstance(m["cosmology"], type)
         assert cosmo_cls is m["cosmology"]
 
         assert m == default  # False is the default option

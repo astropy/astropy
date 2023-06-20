@@ -56,7 +56,7 @@ def get_redshift_methods(cosmology, include_private=True, include_z2=True):
     # Sieve out incompatible methods.
     # The index to check for redshift depends on whether cosmology is a class
     # or instance and does/doesn't include 'self'.
-    iz1 = 1 if inspect.isclass(cosmology) else 0
+    iz1 = int(isinstance(cosmology, type))
     for n in tuple(methods):
         try:
             sig = inspect.signature(getattr(cosmology, n))

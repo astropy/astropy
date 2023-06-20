@@ -323,14 +323,14 @@ class Fitter(metaclass=_FitterMeta):
             raise ValueError("Expected an optimizer.")
         if statistic is None:
             raise ValueError("Expected a statistic function.")
-        if inspect.isclass(optimizer):
+        if isinstance(optimizer, type):
             # a callable class
             self._opt_method = optimizer()
         elif inspect.isfunction(optimizer):
             self._opt_method = optimizer
         else:
             raise ValueError("Expected optimizer to be a callable class or a function.")
-        if inspect.isclass(statistic):
+        if isinstance(statistic, type):
             self._stat_method = statistic()
         else:
             self._stat_method = statistic
@@ -2184,7 +2184,7 @@ def populate_entry_points(entry_points):
                 )
             )
         else:
-            if not inspect.isclass(entry_point):
+            if not isinstance(entry_point, type):
                 warnings.warn(
                     AstropyUserWarning(
                         f"Modeling entry point {name} expected to be a Class."

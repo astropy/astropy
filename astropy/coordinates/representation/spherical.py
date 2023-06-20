@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Spherical representations and differentials."""
-import inspect
 import operator
 
 import numpy as np
@@ -120,7 +119,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         # keeps differentials' unit keys, but this can result in a mismatch
         # between the UnitSpherical expected key (e.g. "s") and that expected
         # in the other class (here "s / m"). For more info, see PR #11467
-        if inspect.isclass(other_class) and not differential_class:
+        if isinstance(other_class, type) and not differential_class:
             if issubclass(other_class, PhysicsSphericalRepresentation):
                 return other_class(
                     phi=self.lon, theta=90 * u.deg - self.lat, r=1.0, copy=False
@@ -511,7 +510,7 @@ class SphericalRepresentation(BaseRepresentation):
     def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
 
-        if inspect.isclass(other_class):
+        if isinstance(other_class, type):
             if issubclass(other_class, PhysicsSphericalRepresentation):
                 diffs = self._re_represent_differentials(
                     other_class, differential_class
@@ -718,7 +717,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
 
-        if inspect.isclass(other_class):
+        if isinstance(other_class, type):
             if issubclass(other_class, SphericalRepresentation):
                 diffs = self._re_represent_differentials(
                     other_class, differential_class
