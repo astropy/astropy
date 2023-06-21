@@ -592,9 +592,7 @@ def test_skip_meta(tmp_path):
     )
     with pytest.warns(AstropyUserWarning, match=wtext) as w:
         t1.write(test_file, path="the_table")
-    # TODO: Uncomment when h5py catches up with numpy 1.25, see
-    # https://github.com/astropy/astropy/issues/14881
-    # assert len(w) == 1
+    assert len(w) == 1
 
 
 @pytest.mark.skipif(not HAS_H5PY, reason="requires h5py")
