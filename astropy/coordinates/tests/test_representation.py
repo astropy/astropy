@@ -1650,7 +1650,7 @@ def test_minimal_subclass():
     ld3 = LogDRepresentation.from_cartesian(c)
     assert np.all(ld3.lon == ld2.lon)
     assert np.all(ld3.lat == ld2.lat)
-    assert_allclose_quantity(ld3.logd, ld2.logd)
+    assert np.all(ld3.logd == ld2.logd)
     s = ld1.represent_as(SphericalRepresentation)
     assert_allclose_quantity(s.lon, ld1.lon)
     assert_allclose_quantity(s.distance, 10.0 * u.kpc)
