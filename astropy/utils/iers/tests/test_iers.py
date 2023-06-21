@@ -20,6 +20,7 @@ from astropy.table import QTable
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time, TimeDelta
 from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.iers import iers
 
 CI = os.environ.get("CI", False)
@@ -514,6 +515,12 @@ def test_get_pkg_data_filename_backcompat(data_file):
     # if users use it to access IERS tables and READMEs that used to be in
     # astropy/utils/iers/data.
 
-    filename = get_pkg_data_filename("data/" + data_file, package="astropy.utils.iers")
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=f"Accessing {data_file} in this way is deprecated",
+    ):
+        filename = get_pkg_data_filename(
+            "data/" + data_file, package="astropy.utils.iers"
+        )
 
     assert filename == OLD_DATA_FILES[data_file]
