@@ -17,7 +17,7 @@ from astropy.units.quantity_helper.function_helpers import (
     TBD_FUNCTIONS,
     UNSUPPORTED_FUNCTIONS,
 )
-from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24
+from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24, NUMPY_LT_1_25
 
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
@@ -25,16 +25,26 @@ needs_array_function = pytest.mark.xfail(
 
 
 # To get the functions that could be covered, we look for those that
-# are wrapped.  Of course, this does not give a full list pre-1.17.
+# are in modules we care about and have been overridden.
 def get_wrapped_functions(*modules):
-    wrapped_functions = {}
-    for mod in modules:
-        for name, f in mod.__dict__.items():
-            if f is np.printoptions or name.startswith("_"):
-                continue
-            if callable(f) and hasattr(f, "__wrapped__"):
-                wrapped_functions[name] = f
-    return wrapped_functions
+    if NUMPY_LT_1_25:
+
+        def allows_array_function_override(f):
+            return (
+                hasattr(f, "__wrapped__")
+                and f is not np.printoptions
+                and not f.__name__.startswith("_")
+            )
+
+    else:
+        from numpy.testing.overrides import allows_array_function_override
+
+    return {
+        name: f
+        for mod in modules
+        for name, f in mod.__dict__.items()
+        if callable(f) and allows_array_function_override(f)
+    }
 
 
 all_wrapped_functions = get_wrapped_functions(
