@@ -200,9 +200,6 @@ def to_yaml(cosmology, *args):
 # ===================================================================
 # Register
 
-for cosmo_cls in _COSMOLOGY_CLASSES.values():
-    register_cosmology_yaml(cosmo_cls)
-
 convert_registry.register_reader("yaml", Cosmology, from_yaml)
 convert_registry.register_writer("yaml", Cosmology, to_yaml)
 # convert_registry.register_identifier("yaml", Cosmology, yaml_identify)

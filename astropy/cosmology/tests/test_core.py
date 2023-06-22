@@ -141,6 +141,9 @@ class CosmologyTest(
     def test_init_subclass(self, cosmo_cls):
         """Test creating subclasses registers classes and manages Parameters."""
 
+        # -----------------------------------------------------------
+        # Normal subclass creation
+
         class InitSubclassTest(cosmo_cls):
             pass
 
@@ -150,6 +153,18 @@ class CosmologyTest(
         # test and cleanup registry
         registrant = _COSMOLOGY_CLASSES.pop(InitSubclassTest.__qualname__)
         assert registrant is InitSubclassTest
+
+        # -----------------------------------------------------------
+        # Skip
+
+        class UnRegisteredSubclassTest(cosmo_cls):
+            @classmethod
+            def _register_cls(cls):
+                """Override to not register."""
+                pass
+
+        assert UnRegisteredSubclassTest.__parameters__ == cosmo_cls.__parameters__
+        assert UnRegisteredSubclassTest.__qualname__ not in _COSMOLOGY_CLASSES
 
     def test_init_signature(self, cosmo_cls, cosmo):
         """Test class-property ``_init_signature``."""
