@@ -27,6 +27,7 @@ corresponding to a measured angular separation.
 :mod:`astropy.cosmology.units` extends the :mod:`astropy.units` sub-package,
 adding and collecting cosmological units and equivalencies, like :math:`h` for
 keeping track of (dimensionless) factors of the Hubble constant.
+:mod:`astropy.cosmology.constants` does similarly for cosmology-related constants.
 
 For details on reading and writing cosmologies from files, see
 :ref:`cosmology_io`.
@@ -113,6 +114,7 @@ listed below.
 
    Reading and Writing <io>
    Units and Equivalencies <units>
+   Constants <constants>
 
 
 Most of the functionality is enabled by the |FLRW| object. This represents a
@@ -516,8 +518,10 @@ listed below.
 .. toctree::
    :maxdepth: 1
 
-   Reading and Writing <io>
    For Developers <dev>
+   Reading and Writing <io>
+   Units and Equivalencies <units>
+   Constants <constants>
 
 
 .. automodapi:: astropy.cosmology
