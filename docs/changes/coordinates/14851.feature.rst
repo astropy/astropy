@@ -1,0 +1,2 @@
+Add ``BaseBodycentricRepresentation``, a new spheroidal representation for bodycentric
+latitudes and longitudes.
