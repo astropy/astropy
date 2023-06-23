@@ -43,17 +43,19 @@ Earth ellipsoids used in
 `~astropy.coordinates.GRS80GeodeticRepresentation`), but
 can also be customized; see :ref:`astropy-coordinates-create-geodetic`.
 All these are coordinates on a surface of a spheroid (an ellipsoid with equal
-equatorial radii), represented by a longitude (``lon``) a geodetical latitude (``lat``)
+equatorial radii), represented by a longitude (``lon``) a geodetic latitude (``lat``)
 and a height (``height``) above the surface.
-The geodetical latitude is defined by the angle
+The geodetic latitude is defined by the angle
 between the vertical to the surface at a specific point of the spheroid and its
 projection onto the equatorial plane.
 The latitude is a value ranging from -90 to 90 degrees, the longitude from 0 to 360
-degrees.
+degrees, the height is the elevation above the surface of the spheroid (measured on the
+perpendicular to the surface).
+
 `~astropy.coordinates.BaseBodycentricRepresentation` is the coordinate representation
 recommended by the Cartographic Coordinates & Rotational Elements Working Group
-(see for example its `2019 report <https://rdcu.be/b32WL>`_): the bodicentric latitude
-and longitude are spherical latitude and longitude originated at the barycenter of the
+(see for example its `2019 report <https://rdcu.be/b32WL>`_): the bodycentric latitude
+and longitude are spherical latitude and longitude relative to the barycenter of the
 body, the height is the distance from the spheroid surface on the line of sight.
 The latitude is a value ranging from -90 to 90 degrees, the longitude from 0 to 360
 degrees.
