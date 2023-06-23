@@ -1870,8 +1870,9 @@ class TestCartesianRepresentationWithDifferential:
                 # TODO: Converting a CartesianDifferential to a
                 #       RadialDifferential fails, even on `main`
                 continue
-            elif name.endswith("geodetic"):
-                # TODO: Geodetic representations do not have differentials yet
+            elif "geodetic" in name or "bodycentric" in name:
+                # TODO: spheroidal representations (geodetic or bodycentric)
+                # do not have differentials yet
                 continue
             new_rep = rep1.represent_as(
                 REPRESENTATION_CLASSES[name], DIFFERENTIAL_CLASSES[name]

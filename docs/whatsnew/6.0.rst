@@ -25,15 +25,17 @@ By the numbers:
 
 .. _whatsnew-6.0-geodetic-representation-geometry:
 
-Define Geodetic Representations via their geometric parameters
-==============================================================
+Define Geodetic and Bodycentric Representations via their geometric parameters
+==============================================================================
 
 The user may now define custom spheroidal models for the Earth or other planetary
-bodies by subclassing `~astropy.coordinates.BaseGeodeticRepresentation` and defining
+bodies by subclassing `~astropy.coordinates.BaseGeodeticRepresentation` or
+`~astropy.coordinates.BaseBodycentricRepresentation` and defining
 ``_equatorial_radius`` and ``_flattening`` attributes::
 
 
-    >>> from astropy.coordinates import BaseGeodeticRepresentation, WGS84GeodeticRepresentation
+    >>> from astropy.coordinates import (BaseGeodeticRepresentation,
+    ...     WGS84GeodeticRepresentation, BaseBodycentricRepresentation)
     >>> from astropy import units as u
     >>> class IAU1976EarthGeodeticRepresentation(BaseGeodeticRepresentation):
     ...     _equatorial_radius = 6378140 * u.m
@@ -46,6 +48,12 @@ bodies by subclassing `~astropy.coordinates.BaseGeodeticRepresentation` and defi
     >>> representation.represent_as(WGS84GeodeticRepresentation) # doctest: +FLOAT_CMP
     <WGS84GeodeticRepresentation (lon, lat, height) in (rad, rad, m)
         (0.79999959, 0.98000063, 370.01796023)>
+    >>> class IAU1976EarthBodycentricRepresentation(BaseBodycentricRepresentation):
+    ...     _equatorial_radius = 6378140 * u.m
+    ...     _flattening = 0.3352805 * u.percent
+    >>> representation.represent_as(IAU1976EarthBodycentricRepresentation) # doctest: +FLOAT_CMP
+    <IAU1976EarthBodycentricRepresentation (lon, lat, height) in (rad, rad, m)
+        (0.79999959, 0.9768896, 336.12620429)>
 
 See :ref:`astropy-coordinates-create-geodetic` for more details.
 
