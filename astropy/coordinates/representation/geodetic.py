@@ -110,7 +110,7 @@ class BaseBodycentricRepresentation(BaseRepresentation):
 
     Subclasses need to set attributes ``_equatorial_radius`` and ``_flattening``
     to quantities holding correct values (with units of length and dimensionless,
-    respectively). the bodicentric latitude and longitude are spherical latitude
+    respectively). the bodycentric latitude and longitude are spherical latitude
     and longitude relative to the barycenter of the body.
     """
 
@@ -145,12 +145,8 @@ class BaseBodycentricRepresentation(BaseRepresentation):
         sinlat = np.sin(self.lat)
         coslon = np.cos(self.lon)
         sinlon = np.sin(self.lon)
-        x_spheroid = self._equatorial_radius * coslat * coslon
-        y_spheroid = self._equatorial_radius * coslat * sinlon
-        z_spheroid = self._equatorial_radius * (1 - self._flattening) * sinlat
         r = (
-            self._equatorial_radius
-            * np.sqrt(coslat**2 + ((1 - self._flattening) * sinlat) ** 2)
+            self._equatorial_radius * np.hypot(coslat, (1 - self._flattening) * sinlat)
             + self.height
         )
         x = r * coslon * coslat
@@ -169,7 +165,7 @@ class BaseBodycentricRepresentation(BaseRepresentation):
         d = np.hypot(p, cart.z)
         lat = np.arctan2(cart.z, p)
         p_spheroid = cls._equatorial_radius * np.cos(lat)
-        z_spheroid = (cls._equatorial_radius * (1 - cls._flattening)) * np.sin(lat)
+        z_spheroid = cls._equatorial_radius * (1 - cls._flattening) * np.sin(lat)
         r_spheroid = np.hypot(p_spheroid, z_spheroid)
         height = d - r_spheroid
         lon = np.arctan2(cart.y, cart.x)

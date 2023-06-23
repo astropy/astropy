@@ -169,10 +169,7 @@ def test_geodetic_to_geocentric():
 
 @pytest.mark.parametrize(
     "representation",
-    [
-        WGS84GeodeticRepresentation,
-        IAUMARS2000BodycentricRepresentation,
-    ],
+    [WGS84GeodeticRepresentation, IAUMARS2000BodycentricRepresentation],
 )
 def test_default_height_is_zero(representation):
     gd = representation(10 * u.deg, 20 * u.deg)
@@ -183,10 +180,7 @@ def test_default_height_is_zero(representation):
 
 @pytest.mark.parametrize(
     "representation",
-    [
-        WGS84GeodeticRepresentation,
-        IAUMARS2000BodycentricRepresentation,
-    ],
+    [WGS84GeodeticRepresentation, IAUMARS2000BodycentricRepresentation],
 )
 def test_non_angle_error(representation):
     with pytest.raises(u.UnitTypeError, match="require units equivalent to 'rad'"):
@@ -195,10 +189,7 @@ def test_non_angle_error(representation):
 
 @pytest.mark.parametrize(
     "representation",
-    [
-        WGS84GeodeticRepresentation,
-        IAUMARS2000BodycentricRepresentation,
-    ],
+    [WGS84GeodeticRepresentation, IAUMARS2000BodycentricRepresentation],
 )
 def test_non_length_error(representation):
     with pytest.raises(u.UnitTypeError, match="units of length"):
@@ -220,10 +211,7 @@ def test_subclass_bad_ellipsoid():
 
 @pytest.mark.parametrize(
     "baserepresentation",
-    [
-        BaseGeodeticRepresentation,
-        BaseBodycentricRepresentation,
-    ],
+    [BaseGeodeticRepresentation, BaseBodycentricRepresentation],
 )
 def test_geodetic_subclass_missing_equatorial_radius(baserepresentation):
     msg = "'_equatorial_radius' and '_flattening'."
