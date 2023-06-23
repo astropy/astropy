@@ -45,8 +45,9 @@ class BaseGeodeticRepresentation(BaseRepresentation):
     Subclasses need to set attributes ``_equatorial_radius`` and ``_flattening``
     to quantities holding correct values (with units of length and dimensionless,
     respectively), or alternatively an ``_ellipsoid`` attribute to the relevant ERFA
-    index (as passed in to `erfa.eform`).
-    Longitudes are east positive and span from 0 to 360 degrees by default.
+    index (as passed in to `erfa.eform`). The geodetic latitude is defined by the
+    angle between the vertical to the surface at a specific point of the spheroid and
+    its projection onto the equatorial plane.
     """
 
     attr_classes = {"lon": Longitude, "lat": Latitude, "height": u.Quantity}
@@ -100,12 +101,7 @@ class BaseGeodeticRepresentation(BaseRepresentation):
         lon, lat, height = erfa.gc2gde(
             cls._equatorial_radius, cls._flattening, cart.get_xyz(xyz_axis=-1)
         )
-        return cls(
-            lon,
-            lat,
-            height,
-            copy=False,
-        )
+        return cls(lon, lat, height, copy=False)
 
 
 @format_doc(geodetic_base_doc)
@@ -114,8 +110,8 @@ class BaseBodycentricRepresentation(BaseRepresentation):
 
     Subclasses need to set attributes ``_equatorial_radius`` and ``_flattening``
     to quantities holding correct values (with units of length and dimensionless,
-    respectively).
-    Longitudes are east positive and span from 0 to 360 degrees by default.
+    respectively). the bodicentric latitude and longitude are spherical latitude
+    and longitude relative to the barycenter of the body.
     """
 
     attr_classes = {"lon": Longitude, "lat": Latitude, "height": u.Quantity}
@@ -177,12 +173,7 @@ class BaseBodycentricRepresentation(BaseRepresentation):
         r_spheroid = np.hypot(p_spheroid, z_spheroid)
         height = d - r_spheroid
         lon = np.arctan2(cart.y, cart.x)
-        return cls(
-            lon,
-            lat,
-            height,
-            copy=False,
-        )
+        return cls(lon, lat, height, copy=False)
 
 
 @format_doc(geodetic_base_doc)
