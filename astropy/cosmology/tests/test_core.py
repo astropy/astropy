@@ -15,7 +15,6 @@ from astropy.cosmology import Cosmology, FlatCosmologyMixin
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameter import Parameter
 from astropy.table import Column, QTable, Table
-from astropy.utils.compat import PYTHON_LT_3_11
 from astropy.utils.metadata import MetaData
 
 from .test_connect import ReadWriteTestMixin, ToFromFormatTestMixin
@@ -208,16 +207,11 @@ class CosmologyTest(
 
     def test_name(self, cosmo):
         """Test property ``name``."""
-        assert cosmo.name is cosmo._name  # accesses private attribute
         assert cosmo.name is None or isinstance(cosmo.name, str)  # type
         assert cosmo.name == self.cls_kwargs["name"]  # test has expected value
 
         # immutable
-        match = (
-            "can't set"
-            if PYTHON_LT_3_11
-            else f"property 'name' of {cosmo.__class__.__name__!r} object has no setter"
-        )
+        match = "cannot assign to field 'name'"
         with pytest.raises(AttributeError, match=match):
             cosmo.name = None
 
@@ -238,7 +232,7 @@ class CosmologyTest(
         c = cosmo.clone(name="cloned cosmo")
         assert c.name == "cloned cosmo"  # changed
         # show name is the only thing changed
-        c._name = cosmo.name  # first change name back
+        object.__setattr__(c, "name", cosmo.name)  # first change name back
         assert c == cosmo
         assert c.meta == cosmo.meta
 

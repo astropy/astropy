@@ -84,6 +84,7 @@ class Cosmology(metaclass=abc.ABCMeta):
     override the ``_register_cls`` classmethod in the subclass.
     """
 
+    name: str | None = None
     meta = MetaData()
 
     # Unified I/O object interchange methods
@@ -157,13 +158,8 @@ class Cosmology(metaclass=abc.ABCMeta):
     # ---------------------------------------------------------------
 
     def __init__(self, name=None, meta=None):
-        self._name = str(name) if name is not None else name
+        object.__setattr__(self, "name", str(name) if name is not None else name)
         self.meta.update(meta or {})
-
-    @property
-    def name(self):
-        """The name of the Cosmology instance."""
-        return self._name
 
     @property
     @abc.abstractmethod
@@ -234,7 +230,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         # Check if nothing has changed.
         # TODO! or should return self?
         if (cloned.name == _modname) and not meta and cloned.is_equivalent(self):
-            cloned._name = self.name
+            object.__setattr__(cloned, "name", self.name)
 
         return cloned
 

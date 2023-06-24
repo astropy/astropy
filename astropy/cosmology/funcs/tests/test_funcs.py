@@ -385,7 +385,7 @@ def test_z_at_value_roundtrip(cosmo):
         "de_density_scale",
         "w",
     )
-    if str(cosmo.name).startswith("WMAP"):
+    if str(getattr(cosmo, "name", None)).startswith("WMAP"):
         skip += ("nu_relative_density",)
 
     methods = inspect.getmembers(cosmo, predicate=inspect.ismethod)
@@ -402,7 +402,7 @@ def test_z_at_value_roundtrip(cosmo):
         assert allclose(got, z, rtol=2e-11), f"Round-trip testing {name} failed"
 
     # Test distance functions between two redshifts; only for realizations
-    if isinstance(cosmo.name, str):
+    if isinstance(getattr(cosmo, "name", None), str):
         z2 = 2.0
         func_z1z2 = [
             lambda z1: cosmo._comoving_distance_z1z2(z1, z2),
