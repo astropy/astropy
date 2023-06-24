@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import abc
 import inspect
+from collections import OrderedDict
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
@@ -11,7 +12,6 @@ import numpy as np
 
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.utils.decorators import classproperty
-from astropy.utils.metadata import MetaData
 
 from .connect import (
     CosmologyFromFormat,
@@ -20,6 +20,7 @@ from .connect import (
     CosmologyWrite,
 )
 from .parameter import Parameter
+from .utils import MetaData
 
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Mapping
@@ -85,7 +86,7 @@ class Cosmology(metaclass=abc.ABCMeta):
     """
 
     name: str | None = None
-    meta = MetaData()
+    meta: MetaData = MetaData()  # noqa: RUF009
 
     # Unified I/O object interchange methods
     from_format = UnifiedReadWriteMethod(CosmologyFromFormat)
@@ -159,6 +160,9 @@ class Cosmology(metaclass=abc.ABCMeta):
 
     def __init__(self, name=None, meta=None):
         object.__setattr__(self, "name", str(name) if name is not None else name)
+
+        self._meta: dict
+        object.__setattr__(self, "_meta", OrderedDict())
         self.meta.update(meta or {})
 
     @property

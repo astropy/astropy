@@ -15,7 +15,6 @@ from astropy.cosmology import Cosmology, FlatCosmologyMixin
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameter import Parameter
 from astropy.table import Column, QTable, Table
-from astropy.utils.metadata import MetaData
 
 from .test_connect import ReadWriteTestMixin, ToFromFormatTestMixin
 from .test_parameter import ParameterTestMixin
@@ -84,7 +83,10 @@ class MetaTestMixin:
     """Tests for a :class:`astropy.utils.metadata.MetaData` on a Cosmology."""
 
     def test_meta_on_class(self, cosmo_cls):
-        assert isinstance(cosmo_cls.meta, MetaData)
+        with pytest.raises(
+            AttributeError, match="'meta' is not accessible on the class"
+        ):
+            cosmo_cls.meta
 
     def test_meta_on_instance(self, cosmo):
         assert isinstance(cosmo.meta, dict)  # test type

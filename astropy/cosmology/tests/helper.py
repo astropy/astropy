@@ -48,6 +48,8 @@ def get_redshift_methods(cosmology, include_private=True, include_z2=True):
             m = getattr(cosmology, n)
         except NotImplementedError:
             continue
+        except AttributeError:  # e.g. dataclass descriptors
+            continue
 
         # Add anything callable, optionally excluding private methods.
         if callable(m) and (not n.startswith("_") or include_private):
