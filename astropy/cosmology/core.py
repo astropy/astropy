@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import abc
 import inspect
-from typing import TYPE_CHECKING, Any, TypeVar
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
 import numpy as np
 
@@ -54,6 +55,7 @@ class CosmologyError(Exception):
     pass
 
 
+@dataclass(frozen=True, repr=False, eq=False)
 class Cosmology(metaclass=abc.ABCMeta):
     """Base-class for all Cosmologies.
 
@@ -93,8 +95,8 @@ class Cosmology(metaclass=abc.ABCMeta):
     write = UnifiedReadWriteMethod(CosmologyWrite)
 
     # Parameters
-    __parameters__: tuple[str, ...] = ()
-    __all_parameters__: tuple[str, ...] = ()
+    __parameters__: ClassVar[tuple[str, ...]] = ()
+    __all_parameters__: ClassVar[tuple[str, ...]] = ()
 
     # ---------------------------------------------------------------
 
@@ -429,8 +431,8 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     but ``FlatLambdaCDM`` **will** be flat.
     """
 
-    __all_parameters__: tuple[str, ...]
-    __parameters__: tuple[str, ...]
+    __all_parameters__: ClassVar[tuple[str, ...]]
+    __parameters__: ClassVar[tuple[str, ...]]
 
     def __init_subclass__(cls: type[_FlatCosmoT]) -> None:
         super().__init_subclass__()
