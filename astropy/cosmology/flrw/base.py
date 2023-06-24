@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import warnings
 from abc import abstractmethod
+from dataclasses import dataclass
 from math import exp, floor, log, pi, sqrt
 from numbers import Number
 from typing import TYPE_CHECKING, Any, TypeVar
@@ -98,6 +99,7 @@ class _ScaleFactorMixin:
         return 1.0 / (aszarr(z) + 1.0)
 
 
+@dataclass(frozen=True, repr=False, eq=False)
 class FLRW(Cosmology, _ScaleFactorMixin):
     """
     A class describing an isotropic and homogeneous
