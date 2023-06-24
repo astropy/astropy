@@ -209,7 +209,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         self.Ode0 = Ode0
         self.Tcmb0 = Tcmb0
         self.Neff = Neff
-        self.m_nu = m_nu  # (reset later, this is just for unit validation)
+        self.m_nu = m_nu
         self.Ob0 = Ob0  # (must be after Om0)
 
         # Derived quantities:
