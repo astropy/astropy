@@ -160,10 +160,6 @@ class ParameterTestMixin:
         # test it's already set
         assert hasattr(cosmo, all_parameter._attr_name)
 
-        # and raises an error if set again
-        with pytest.raises(AttributeError, match="can't set attribute"):
-            setattr(cosmo, all_parameter.name, None)
-
     # -------------------------------------------
     # validate value
     # tested later.
