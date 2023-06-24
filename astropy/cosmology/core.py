@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import abc
 import inspect
+import operator
 from collections import OrderedDict
 from dataclasses import dataclass
+from functools import reduce
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
 import numpy as np
@@ -155,6 +157,11 @@ class Cosmology(metaclass=abc.ABCMeta):
         from astropy.cosmology._io.yaml import register_cosmology_yaml
 
         register_cosmology_yaml(cls)
+
+    @classmethod
+    def _all_vars(cls):
+        """Return all variables in the whole class hierarchy."""
+        return reduce(operator.__or__, map(vars, cls.mro()[::-1] + [cls]))
 
     # ---------------------------------------------------------------
 
