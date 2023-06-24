@@ -189,10 +189,11 @@ class ReadWriteHTMLTestMixin(ReadWriteTestMixinBase):
         cosmo_cls = type(cosmo)
         assert cosmo is not None
 
+        all_vars = cosmo_cls._all_vars()
         for n, col in zip(table.colnames, table.itercols()):
             if n == "cosmology":
                 continue
-            param = getattr(cosmo_cls, n, None)
+            param = all_vars.get(n)
             if not isinstance(param, Parameter) or param.unit in (None, u.one):
                 continue
             # Replace column with unitless version

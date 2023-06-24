@@ -40,9 +40,10 @@ class ParameterwzTestMixin(ParameterTestMixin):
     def test_wz(self, cosmo_cls, cosmo):
         """Test Parameter ``wz``."""
         # on the class
-        assert isinstance(cosmo_cls.wz, Parameter)
-        assert "Derivative of the dark energy" in cosmo_cls.wz.__doc__
-        assert cosmo_cls.wz.unit is None
+        wz = cosmo_cls._all_vars()["wz"]
+        assert isinstance(wz, Parameter)
+        assert "Derivative of the dark energy" in wz.__doc__
+        assert wz.unit is None
 
         # on the instance
         assert cosmo.wz is cosmo._wz

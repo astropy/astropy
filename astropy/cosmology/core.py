@@ -113,8 +113,9 @@ class Cosmology(metaclass=abc.ABCMeta):
         # Get parameters that are still Parameters, either in this class or above.
         parameters = []
         derived_parameters = []
+        all_vars = cls._all_vars()
         for n in cls.__parameters__:
-            p = getattr(cls, n)
+            p = all_vars[n]
             if isinstance(p, Parameter):
                 derived_parameters.append(n) if p.derived else parameters.append(n)
 

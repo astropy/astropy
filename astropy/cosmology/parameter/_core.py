@@ -161,16 +161,13 @@ class Parameter:
     def __get__(self, cosmology, cosmo_cls=None):
         # Get from class
         if cosmology is None:
-            return self
+            msg = f"can't get attribute {self.name} from class"
+            raise AttributeError(msg)
         # Get from instance
         return getattr(cosmology, self._attr_name)
 
     def __set__(self, cosmology, value):
         """Allows attribute setting once. Raises AttributeError subsequently."""
-        # Raise error if setting 2nd time.
-        if hasattr(cosmology, self._attr_name):
-            raise AttributeError(f"can't set attribute {self.name} again")
-
         # Validate value, generally setting units if present
         value = self.validate(cosmology, copy.deepcopy(value))
 
@@ -179,7 +176,7 @@ class Parameter:
             value.setflags(write=False)
 
         # Set the value on the cosmology
-        setattr(cosmology, self._attr_name, value)
+        object.__setattr__(cosmology, self._attr_name, value)
 
     # -------------------------------------------
     # validate value

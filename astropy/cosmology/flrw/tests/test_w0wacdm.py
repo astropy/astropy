@@ -35,9 +35,10 @@ class ParameterwaTestMixin(ParameterTestMixin):
     def test_wa(self, cosmo_cls, cosmo):
         """Test Parameter ``wa``."""
         # on the class
-        assert isinstance(cosmo_cls.wa, Parameter)
-        assert "Negative derivative" in cosmo_cls.wa.__doc__
-        assert cosmo_cls.wa.unit is None
+        wa = cosmo_cls._all_vars()["wa"]
+        assert isinstance(wa, Parameter)
+        assert "Negative derivative" in wa.__doc__
+        assert wa.unit is None
 
         # on the instance
         assert cosmo.wa is cosmo._wa

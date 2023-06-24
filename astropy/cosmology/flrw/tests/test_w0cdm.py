@@ -34,9 +34,10 @@ class Parameterw0TestMixin(ParameterTestMixin):
     def test_w0(self, cosmo_cls, cosmo):
         """Test Parameter ``w0``."""
         # on the class
-        assert isinstance(cosmo_cls.w0, Parameter)
-        assert "Dark energy equation of state" in cosmo_cls.w0.__doc__
-        assert cosmo_cls.w0.unit is None
+        w0 = cosmo_cls._all_vars()["w0"]
+        assert isinstance(w0, Parameter)
+        assert "Dark energy equation of state" in w0.__doc__
+        assert w0.unit is None
 
         # on the instance
         assert cosmo.w0 is cosmo._w0

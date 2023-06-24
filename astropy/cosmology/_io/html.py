@@ -312,8 +312,9 @@ def write_html_table(
     table = to_table(cosmology, cls=cls, cosmology_in_meta=False)
 
     cosmo_cls = type(cosmology)
+    all_vars = cosmo_cls._all_vars()
     for name, col in table.columns.items():
-        param = getattr(cosmo_cls, name, None)
+        param = all_vars.get(name)
         if not isinstance(param, Parameter) or param.unit in (None, u.one):
             continue
         # Replace column with unitless version

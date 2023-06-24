@@ -431,7 +431,7 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True, rename=None):
     for k, v in data.items():
         if k in cosmology.__parameters__:
             col = convert_parameter_to_column(
-                getattr(cosmo_cls, k), v, cosmology.meta.get(k)
+                cosmo_cls._all_vars()[k], v, cosmology.meta.get(k)
             )
         else:
             col = Column([v])

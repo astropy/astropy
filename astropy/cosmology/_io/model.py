@@ -244,7 +244,7 @@ def to_model(cosmology, *_, method):
 
         # add as Model Parameter
         params[n] = convert_parameter_to_model_parameter(
-            getattr(cosmo_cls, n), v, cosmology.meta.get(n)
+            cosmo_cls._all_vars()[n], v, cosmology.meta.get(n)
         )
 
     # class name is cosmology name + Cosmology + method name + Model

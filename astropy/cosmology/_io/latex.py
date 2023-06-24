@@ -169,8 +169,9 @@ def write_latex(
     table = to_table(cosmology, cls=cls, cosmology_in_meta=False)
 
     cosmo_cls = type(cosmology)
+    all_vars = cosmo_cls._all_vars()
     for name in table.columns.keys():
-        param = getattr(cosmo_cls, name, None)
+        param = all_vars.get(name)
         if not isinstance(param, Parameter) or param.unit in (None, u.one):
             continue
         # Get column to correct unit

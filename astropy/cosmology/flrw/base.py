@@ -1498,7 +1498,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
     but ``FlatLambdaCDM`` **will** be flat.
     """
 
-    Ode0 = FLRW.Ode0.clone(derived=True)  # same as FLRW, but now a derived param.
+    Ode0 = vars(FLRW)["Ode0"].clone(derived=True)  # now a derived param.
 
     def __init_subclass__(cls):
         super().__init_subclass__()

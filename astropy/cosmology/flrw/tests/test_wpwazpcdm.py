@@ -40,9 +40,10 @@ class ParameterwpTestMixin(ParameterTestMixin):
     def test_wp(self, cosmo_cls, cosmo):
         """Test Parameter ``wp``."""
         # on the class
-        assert isinstance(cosmo_cls.wp, Parameter)
-        assert "at the pivot" in cosmo_cls.wp.__doc__
-        assert cosmo_cls.wp.unit is None
+        wp = cosmo_cls._all_vars()["wp"]
+        assert isinstance(wp, Parameter)
+        assert "at the pivot" in wp.__doc__
+        assert wp.unit is None
 
         # on the instance
         assert cosmo.wp is cosmo._wp
@@ -77,9 +78,10 @@ class ParameterzpTestMixin(ParameterTestMixin):
     def test_zp(self, cosmo_cls, cosmo):
         """Test Parameter ``zp``."""
         # on the class
-        assert isinstance(cosmo_cls.zp, Parameter)
-        assert "pivot redshift" in cosmo_cls.zp.__doc__
-        assert cosmo_cls.zp.unit == cu.redshift
+        zp = cosmo_cls._all_vars()["zp"]
+        assert isinstance(zp, Parameter)
+        assert "pivot redshift" in zp.__doc__
+        assert zp.unit == cu.redshift
 
         # on the instance
         assert cosmo.zp is cosmo._zp
