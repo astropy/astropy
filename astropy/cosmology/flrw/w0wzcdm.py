@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from dataclasses import dataclass
+
 from numpy import exp
 
 import astropy.units as u
@@ -14,6 +16,7 @@ __all__ = ["w0wzCDM", "Flatw0wzCDM"]
 __doctest_requires__ = {"*": ["scipy"]}
 
 
+@dataclass(frozen=True, repr=False, eq=False)
 class w0wzCDM(FLRW):
     """
     FLRW cosmology with a variable dark energy equation of state and curvature.
@@ -115,14 +118,14 @@ class w0wzCDM(FLRW):
             name=name,
             meta=meta,
         )
-        self.w0 = w0
-        self.wz = wz
+        self._all_vars()["w0"].__set__(self, w0)
+        self._all_vars()["wz"].__set__(self, wz)
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
-            self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_norel
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_norel
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ok0,
@@ -130,8 +133,8 @@ class w0wzCDM(FLRW):
                 self._wz,
             )
         elif not self._massivenu:
-            self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_nomnu
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_nomnu
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ok0,
@@ -140,8 +143,8 @@ class w0wzCDM(FLRW):
                 self._wz,
             )
         else:
-            self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ok0,
@@ -152,6 +155,8 @@ class w0wzCDM(FLRW):
                 self._w0,
                 self._wz,
             )
+        object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
+        object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
     def w(self, z):
         r"""Returns dark energy equation of state at redshift ``z``.
