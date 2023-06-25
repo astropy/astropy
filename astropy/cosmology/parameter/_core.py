@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass, field, fields, replace
-from typing import Any, Sequence
+from enum import Enum, auto
+from typing import Any, Literal, Sequence
 
 import astropy.units as u
 from astropy.utils.compat import PYTHON_LT_3_10
@@ -18,6 +19,12 @@ if not PYTHON_LT_3_10:
     from dataclasses import KW_ONLY
 else:
     KW_ONLY = Any
+
+
+class _Sentinel(Enum):
+    """Sentinel for default values."""
+
+    MISSING = auto()
 
 
 @dataclass(frozen=True)
@@ -70,6 +77,10 @@ class Parameter:
 
     Parameters
     ----------
+    default : Any (optional, keyword-only)
+        Default value for the Parameter. If not provided, the Parameter is
+        required.
+
     derived : bool (optional, keyword-only)
         Whether the Parameter is 'derived', default `False`.
         Derived parameters behave similarly to normal parameters, but are not
@@ -99,6 +110,8 @@ class Parameter:
 
     if not PYTHON_LT_3_10:
         _: KW_ONLY
+
+    default: Any | Literal[_Sentinel.MISSING] = _Sentinel.MISSING
 
     derived: bool = False
     """Whether the Parameter can be set, or is derived, on the cosmology."""
@@ -161,8 +174,12 @@ class Parameter:
     def __get__(self, cosmology, cosmo_cls=None):
         # Get from class
         if cosmology is None:
-            msg = f"can't get attribute {self.name} from class"
-            raise AttributeError(msg)
+            # Raise error if no default
+            if self.default is _Sentinel.MISSING:
+                msg = f"can't get attribute {self.name} from class"
+                raise AttributeError(msg)
+            # Return default
+            return self.default
         # Get from instance
         return getattr(cosmology, self._attr_name)
 
