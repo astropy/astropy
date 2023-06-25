@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from dataclasses import dataclass
+
 from numpy import exp
 
 import astropy.units as u
@@ -15,6 +17,7 @@ __all__ = ["wpwaCDM", "FlatwpwaCDM"]
 __doctest_requires__ = {"*": ["scipy"]}
 
 
+@dataclass(frozen=True, repr=False, eq=False)
 class wpwaCDM(FLRW):
     r"""
     FLRW cosmology with a CPL dark energy equation of state, a pivot redshift,
@@ -136,16 +139,16 @@ class wpwaCDM(FLRW):
             name=name,
             meta=meta,
         )
-        self.wp = wp
-        self.wa = wa
-        self.zp = zp
+        self._all_vars()["wp"].__set__(self, wp)
+        self._all_vars()["wa"].__set__(self, wa)
+        self._all_vars()["zp"].__set__(self, zp)
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         apiv = 1.0 / (1.0 + self._zp.value)
         if self._Tcmb0.value == 0:
-            self._inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc_norel
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc_norel
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ok0,
@@ -154,8 +157,8 @@ class wpwaCDM(FLRW):
                 self._wa,
             )
         elif not self._massivenu:
-            self._inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc_nomnu
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc_nomnu
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ok0,
@@ -165,8 +168,8 @@ class wpwaCDM(FLRW):
                 self._wa,
             )
         else:
-            self._inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ok0,
@@ -178,6 +181,8 @@ class wpwaCDM(FLRW):
                 apiv,
                 self._wa,
             )
+        object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
+        object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
     def w(self, z):
         r"""Returns dark energy equation of state at redshift ``z``.
