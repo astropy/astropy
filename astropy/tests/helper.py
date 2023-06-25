@@ -3,7 +3,6 @@
 This module provides the tools used to internally run the astropy test suite
 from the installed astropy.  It makes use of the `pytest`_ testing framework.
 """
-import inspect
 import os
 import pickle
 
@@ -142,7 +141,7 @@ def generic_recursive_equality_test(a, b, class_history):
         # with required argument(s) are passed to this function.
         # For a class with `__slots__` the default state is not a `dict`;
         # with neither `__dict__` nor `__slots__` it is `None`.
-        state = a.__getstate__(a) if inspect.isclass(a) else a.__getstate__()
+        state = a.__getstate__(a) if isinstance(a, type) else a.__getstate__()
         dict_a = state if isinstance(state, dict) else getattr(a, "__dict__", dict())
     dict_b = b.__dict__
     for key in dict_a:
