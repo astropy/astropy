@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import abc
-import inspect
 from dataclasses import KW_ONLY, dataclass, replace
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
@@ -139,14 +138,6 @@ class Cosmology(metaclass=abc.ABCMeta):
         if not inspect.isabstract(cls):  # skip abstract classes
             cls._register_cls()
 
-    @classproperty(lazy=True)
-    def _init_signature(cls):
-        """Initialization signature (without 'self')."""
-        # get signature, dropping "self" by taking arguments [1:]
-        sig = inspect.signature(cls.__init__)
-        sig = sig.replace(parameters=list(sig.parameters.values())[1:])
-        return sig
-
     @classmethod
     def _register_cls(cls):
         # register class
@@ -156,6 +147,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         from astropy.cosmology._io.yaml import register_cosmology_yaml
 
         register_cosmology_yaml(cls)
+
     # ---------------------------------------------------------------
 
     if PYTHON_LT_3_10:

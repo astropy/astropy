@@ -140,6 +140,7 @@ from collections.abc import Mapping
 
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
+from astropy.cosmology.utils import _init_signature
 
 __all__ = []  # nothing is publicly scoped
 
@@ -274,15 +275,16 @@ def from_mapping(mapping, /, *, move_to_meta=False, cosmology=None, rename=None)
     cosmology = _get_cosmology_class(cosmology, params)
 
     # select arguments from mapping that are in the cosmo's signature.
-    ba = cosmology._init_signature.bind_partial()  # blank set of args
+    sig = _init_signature(cosmology)
+    ba = sig.bind_partial()  # blank set of args
     ba.apply_defaults()  # fill in the defaults
-    for k in cosmology._init_signature.parameters.keys():
+    for k in sig.parameters.keys():
         if k in params:  # transfer argument, if in params
             ba.arguments[k] = params.pop(k)
 
     # deal with remaining params. If there is a **kwargs use that, else
     # allow to transfer to metadata. Raise TypeError if can't.
-    lastp = tuple(cosmology._init_signature.parameters.values())[-1]
+    lastp = tuple(sig.parameters.values())[-1]
     if lastp.kind == 4:  # variable keyword-only
         ba.arguments[lastp.name] = params
     elif move_to_meta:  # prefers current meta, which was explicitly set

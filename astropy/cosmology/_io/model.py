@@ -36,7 +36,7 @@ import numpy as np
 
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
-from astropy.cosmology.utils import all_cls_vars
+from astropy.cosmology.utils import _init_signature, all_cls_vars
 from astropy.modeling import FittableModel, Model
 from astropy.utils.decorators import classproperty
 
@@ -77,6 +77,11 @@ class _CosmologyModel(FittableModel):
     def cosmology_class(cls):
         """|Cosmology| class."""
         return cls._cosmology_class
+
+    @classproperty(lazy=True)
+    def _cosmology_class_sig(cls):
+        """Signature of |Cosmology| class."""
+        return _init_signature(cls._cosmology_class)
 
     @property
     def cosmology(self):
@@ -123,9 +128,7 @@ class _CosmologyModel(FittableModel):
         """
         # create BoundArgument with all available inputs beyond the Parameters,
         # which will be filled in next
-        ba = self.cosmology_class._init_signature.bind_partial(
-            *args[self.n_inputs :], **kwargs
-        )
+        ba = self._cosmology_class_sig.bind_partial(*args[self.n_inputs :], **kwargs)
 
         # fill in missing Parameters
         for k in self.param_names:
@@ -187,7 +190,7 @@ def from_model(model):
             if not (n.startswith("_") or callable(getattr(p, n)))
         }
 
-    ba = cosmology._init_signature.bind(name=model.name, **params, meta=meta)
+    ba = _init_signature(cosmology).bind(name=model.name, **params, meta=meta)
     return cosmology(*ba.args, **ba.kwargs)
 
 

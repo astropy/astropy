@@ -116,3 +116,11 @@ def all_cls_vars(cls):
     """Return all variables in the whole class hierarchy."""
     cls = cls if isinstance(cls, type) else cls.__class__
     return functools.reduce(operator.__or__, map(vars, cls.mro()[::-1] + [cls]))
+
+
+def _init_signature(cls):
+    """Initialization signature (without 'self')."""
+    # get signature, dropping "self" by taking arguments [1:]
+    sig = inspect.signature(cls.__init__)
+    sig = sig.replace(parameters=list(sig.parameters.values())[1:])
+    return sig

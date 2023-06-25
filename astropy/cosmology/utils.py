@@ -1,10 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__ = []  # nothing is publicly scoped
+from __future__ import annotations
 
 import sys
 
 from astropy.utils.decorators import deprecated
+
+__all__ = []  # nothing is publicly scoped
 
 
 # TODO: complete the deprecation for v6.2 / v7
