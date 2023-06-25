@@ -310,6 +310,10 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         object.__setattr__(self, "_inv_efunc_scalar", self.inv_efunc)
         object.__setattr__(self, "_inv_efunc_scalar_args", ())
 
+    def __post_init__(self):
+        """Post-initialization, for subclasses to override."""
+        super().__post_init__()
+
     # ---------------------------------------------------------------
     # Parameter details
 
@@ -1534,6 +1538,9 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         object.__setattr__(
             self, "_Ode0", 1.0 - (self._Om0 + self._Ogamma0 + self._Onu0 + self._Ok0)
         )
+
+    def __post_init__(self):
+        super().__post_init__()
 
     @lazyproperty
     def nonflat(self: _FlatFLRWMixinT) -> _FLRWT:

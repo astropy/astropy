@@ -143,6 +143,11 @@ class wpwaCDM(FLRW):
         self._all_vars()["wa"].__set__(self, wa)
         self._all_vars()["zp"].__set__(self, zp)
 
+        self.__post_init__()
+
+    def __post_init__(self):
+        super().__post_init__()
+
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         apiv = 1.0 / (1.0 + self._zp.value)
@@ -354,6 +359,10 @@ class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
             name=name,
             meta=meta,
         )
+        self.__post_init__()
+
+    def __post_init__(self):
+        super().__post_init__()
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.

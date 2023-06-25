@@ -110,6 +110,11 @@ class wCDM(FLRW):
         )
         self.__class__._all_vars()["w0"].__set__(self, w0)
 
+        self.__post_init__()
+
+    def __post_init__(self):
+        super().__post_init__()
+
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
@@ -333,6 +338,10 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
             name=name,
             meta=meta,
         )
+        self.__post_init__()
+
+    def __post_init__(self):
+        super().__post_init__()
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
