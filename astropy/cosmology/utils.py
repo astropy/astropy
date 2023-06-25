@@ -1,72 +1,35 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import functools
-from numbers import Number
-
-import numpy as np
-
-from astropy.units import Quantity
-
-from . import units as cu
-
 __all__ = []  # nothing is publicly scoped
 
+import sys
 
-def vectorize_redshift_method(func=None, nin=1):
-    """Vectorize a method of redshift(s).
+from astropy.utils.decorators import deprecated
 
-    Parameters
-    ----------
-    func : callable or None
-        method to wrap. If `None` returns a :func:`functools.partial`
-        with ``nin`` loaded.
-    nin : int
-        Number of positional redshift arguments.
 
-    Returns
-    -------
-    wrapper : callable
-        :func:`functools.wraps` of ``func`` where the first ``nin``
-        arguments are converted from |Quantity| to :class:`numpy.ndarray`.
+# TODO: complete the deprecation for v6.2 / v7
+def __getattr__(name):
+    """Get realizations using lazy import from
+    `PEP 562 <https://www.python.org/dev/peps/pep-0562/>`_.
+
+    Raises
+    ------
+    AttributeError
+        If "name" is not in :mod:`astropy.cosmology.realizations`
     """
-    # allow for pie-syntax & setting nin
-    if func is None:
-        return functools.partial(vectorize_redshift_method, nin=nin)
+    if name not in ("vectorize_redshift_method", "aszarr"):
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}.")
 
-    @functools.wraps(func)
-    def wrapper(self, *args, **kwargs):
-        """
-        :func:`functools.wraps` of ``func`` where the first ``nin``
-        arguments are converted from |Quantity| to `numpy.ndarray` or scalar.
-        """
-        # process inputs
-        # TODO! quantity-aware vectorization can simplify this.
-        zs = [
-            z if not isinstance(z, Quantity) else z.to_value(cu.redshift)
-            for z in args[:nin]
-        ]
-        # scalar inputs
-        if all(isinstance(z, (Number, np.generic)) for z in zs):
-            return func(self, *zs, *args[nin:], **kwargs)
-        # non-scalar. use vectorized func
-        return wrapper.__vectorized__(self, *zs, *args[nin:], **kwargs)
+    from . import _utils
 
-    wrapper.__vectorized__ = np.vectorize(func)  # attach vectorized function
-    # TODO! use frompyfunc when can solve return type errors
+    func = deprecated(
+        since="v6.0",
+        message=(
+            "this private function has been moved to the private module"
+            " `astropy.cosmology._utils`"
+        ),
+    )(getattr(_utils, name))
 
-    return wrapper
+    sys.modules[__name__].__dict__[name] = func  # cache for next time
 
-
-def aszarr(z):
-    """
-    Redshift as a `~numbers.Number` or `~numpy.ndarray` / |Quantity| / |Column|.
-    Allows for any ndarray ducktype by checking for attribute "shape".
-    """
-    if isinstance(z, (Number, np.generic)):  # scalars
-        return z
-    elif hasattr(z, "shape"):  # ducktypes NumPy array
-        if hasattr(z, "unit"):  # Quantity Column
-            return (z << cu.redshift).value  # for speed only use enabled equivs
-        return z
-    # not one of the preferred types: Number / array ducktype
-    return Quantity(z, cu.redshift).value
+    return func

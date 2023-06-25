@@ -4,8 +4,8 @@ import numpy as np
 from numpy import sqrt
 
 import astropy.units as u
+from astropy.cosmology._utils import aszarr
 from astropy.cosmology.parameter import Parameter
-from astropy.cosmology.utils import aszarr
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin

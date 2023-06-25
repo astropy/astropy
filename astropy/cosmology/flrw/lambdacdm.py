@@ -7,7 +7,7 @@ import numpy as np
 from numpy import log
 
 import astropy.units as u
-from astropy.cosmology.utils import aszarr
+from astropy.cosmology._utils import aszarr
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from . import scalar_inv_efuncs
