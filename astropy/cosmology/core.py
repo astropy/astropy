@@ -6,13 +6,14 @@ import abc
 import inspect
 import operator
 from collections import OrderedDict
-from dataclasses import dataclass
+from dataclasses import KW_ONLY, dataclass
 from functools import reduce
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
 import numpy as np
 
 from astropy.io.registry import UnifiedReadWriteMethod
+from astropy.utils.compat.misc import PYTHON_LT_3_10
 from astropy.utils.decorators import classproperty
 
 from .connect import (
@@ -103,6 +104,8 @@ class Cosmology(metaclass=abc.ABCMeta):
     override the ``_register_cls`` classmethod in the subclass.
     """
 
+    if not PYTHON_LT_3_10:
+        _: KW_ONLY
     name: NameField = NameField()  # noqa: RUF009
     meta: MetaData = MetaData()  # noqa: RUF009
 
