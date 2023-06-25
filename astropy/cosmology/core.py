@@ -58,7 +58,7 @@ class CosmologyError(Exception):
     pass
 
 
-@dataclass(frozen=True, repr=False, eq=False)
+@dataclass(frozen=True, repr=False, eq=False, init=False)
 class Cosmology(metaclass=abc.ABCMeta):
     """Base-class for all Cosmologies.
 
@@ -430,6 +430,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         return self.to_format("astropy.table", cls=cls, **kwargs)
 
 
+@dataclass(frozen=True, repr=False, eq=False, init=False)
 class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     """
     Mixin class for flat cosmologies. Do NOT instantiate directly.

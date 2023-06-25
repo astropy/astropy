@@ -612,6 +612,7 @@ class LambdaCDM(FLRW):
         )
 
 
+@dataclass(frozen=True, repr=False, eq=False)
 class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
     """FLRW cosmology with a cosmological constant and no curvature.
 
@@ -698,22 +699,22 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
-            self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_norel
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0)
+            inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_norel
+            inv_efunc_scalar_args = (self._Om0, self._Ode0)
             # Repeat the optimization reassignments here because the init
             # of the LambaCDM above didn't actually create a flat cosmology.
             # That was done through the explicit tweak setting self._Ok0.
             self._optimize_flat_norad()
         elif not self._massivenu:
-            self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_nomnu
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_nomnu
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ogamma0 + self._Onu0,
             )
         else:
-            self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ogamma0,
@@ -721,6 +722,8 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
                 self._nmasslessnu,
                 self._nu_y_list,
             )
+        object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
+        object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
     def efunc(self, z):
         """Function used to calculate H(z), the Hubble parameter.
