@@ -6,8 +6,8 @@ import numpy as np
 from numpy import sqrt
 
 import astropy.units as u
+from astropy.cosmology._utils import all_cls_vars, aszarr
 from astropy.cosmology.parameter import Parameter
-from astropy.cosmology._utils import aszarr
 from astropy.utils.compat.misc import PYTHON_LT_3_10
 
 from . import scalar_inv_efuncs
@@ -102,7 +102,7 @@ class wCDM(FLRW):
             name=None,
             meta=None
         ):
-            self.__class__._all_vars()["w0"].__set__(self, w0)
+            all_cls_vars(self)["w0"].__set__(self, w0)
             super().__init__(
                 H0=H0,
                 Om0=Om0,

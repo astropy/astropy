@@ -1,7 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import annotations
+
 import functools
+import operator
+from collections import OrderedDict
+from dataclasses import dataclass
 from numbers import Number
+from typing import Any, Mapping
 
 import numpy as np
 
@@ -70,3 +76,43 @@ def aszarr(z):
         return z
     # not one of the preferred types: Number / array ducktype
     return Quantity(z, cu.redshift).value
+
+
+# TODO: "upstream" this to `astropy.utils.metadata`?
+@dataclass(frozen=True)
+class MetaData:
+    """Metadata for a cosmology."""
+
+    default: Mapping[str, Any] | None = None
+    doc: str = ""
+    copy: bool = True
+
+    def __post_init__(self):
+        self.__doc__: str | None
+        object.__setattr__(self, "__doc__", self.doc)
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self.default
+        return instance._meta
+
+    def __set__(self, instance, value: Mapping[str, Any] | None):
+        if not hasattr(instance, "_meta"):
+            object.__setattr__(instance, "_meta", OrderedDict())
+        instance._meta.update(
+            (value.copy() if self.copy else value) if value is not None else {}
+        )
+
+
+def all_fields(cls):
+    """Get all fields of a dataclass, including in ``__init_subclass__``."""
+    return functools.reduce(
+        operator.__or__,
+        (getattr(c, "__dataclass_fields__", {}) for c in cls.mro()[::-1] + [cls]),
+    )
+
+
+def all_cls_vars(cls):
+    """Return all variables in the whole class hierarchy."""
+    cls = cls if isinstance(cls, type) else cls.__class__
+    return functools.reduce(operator.__or__, map(vars, cls.mro()[::-1] + [cls]))

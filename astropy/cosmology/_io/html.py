@@ -91,6 +91,7 @@ import astropy.units as u
 from astropy.cosmology.connect import readwrite_registry
 from astropy.cosmology.core import Cosmology
 from astropy.cosmology.parameter import Parameter
+from astropy.cosmology.utils import all_cls_vars
 from astropy.table import QTable
 
 from .table import from_table, to_table
@@ -312,7 +313,7 @@ def write_html_table(
     table = to_table(cosmology, cls=cls, cosmology_in_meta=False)
 
     cosmo_cls = type(cosmology)
-    all_vars = cosmo_cls._all_vars()
+    all_vars = all_cls_vars(cosmo_cls)
     for name, col in table.columns.items():
         param = all_vars.get(name)
         if not isinstance(param, Parameter) or param.unit in (None, u.one):

@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from numpy import exp
 
 import astropy.units as u
+from astropy.cosmology._utils import all_cls_vars, aszarr
 from astropy.cosmology.parameter import Parameter
-from astropy.cosmology._utils import aszarr
 from astropy.utils.compat.misc import PYTHON_LT_3_10
 
 from . import scalar_inv_efuncs
@@ -119,8 +119,8 @@ class w0waCDM(FLRW):
             name=None,
             meta=None
         ):
-            self._all_vars()["w0"].__set__(self, w0)
-            self._all_vars()["wa"].__set__(self, wa)
+            all_cls_vars(self)["w0"].__set__(self, w0)
+            all_cls_vars(self)["wa"].__set__(self, wa)
 
             super().__init__(
                 H0=H0,

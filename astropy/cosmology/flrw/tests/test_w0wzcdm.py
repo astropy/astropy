@@ -9,6 +9,7 @@ import pytest
 # LOCAL
 import astropy.units as u
 from astropy.cosmology import Flatw0wzCDM, w0wzCDM
+from astropy.cosmology._utils import all_cls_vars
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin, make_valid_zs
 from astropy.utils.compat.optional_deps import HAS_SCIPY
@@ -40,7 +41,7 @@ class ParameterwzTestMixin(ParameterTestMixin):
     def test_wz(self, cosmo_cls, cosmo):
         """Test Parameter ``wz``."""
         # on the class
-        wz = cosmo_cls._all_vars()["wz"]
+        wz = all_cls_vars(cosmo_cls)["wz"]
         assert isinstance(wz, Parameter)
         assert "Derivative of the dark energy" in wz.__doc__
         assert wz.unit is None

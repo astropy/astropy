@@ -22,6 +22,7 @@ from astropy.cosmology.parameter._converter import (
     _validate_to_float,
     _validate_with_unit,
 )
+from astropy.cosmology.utils import all_cls_vars
 
 ##############################################################################
 # TESTS
@@ -51,7 +52,7 @@ class ParameterTestMixin:
         # yield from {getattr(cosmo_cls, n) for n in cosmo_cls.__parameters__}
 
         # just return one parameter at random
-        yield cosmo_cls._all_vars()[set(cosmo_cls.__parameters__).pop()]
+        yield all_cls_vars(cosmo_cls)[set(cosmo_cls.__parameters__).pop()]
 
     @pytest.fixture
     def all_parameter(self, cosmo_cls):
@@ -60,7 +61,7 @@ class ParameterTestMixin:
         # yield from {getattr(cosmo_cls, n) for n in cosmo_cls.__all_parameters__}
 
         # just return one parameter at random
-        yield cosmo_cls._all_vars()[set(cosmo_cls.__all_parameters__).pop()]
+        yield all_cls_vars(cosmo_cls)[set(cosmo_cls.__all_parameters__).pop()]
 
     # ===============================================================
     # Method Tests
@@ -147,7 +148,7 @@ class ParameterTestMixin:
         with pytest.raises(AttributeError, match="can't get attribute"):
             parameter = getattr(cosmo_cls, all_parameter.name)
 
-        parameter = cosmo_cls._all_vars()[all_parameter.name]
+        parameter = all_cls_vars(cosmo_cls)[all_parameter.name]
         assert isinstance(parameter, Parameter)
         assert parameter is all_parameter
 
@@ -284,7 +285,7 @@ class TestParameter(ParameterTestMixin):
     @pytest.fixture(scope="class")
     def param(self, cosmo_cls):
         """Get Parameter 'param' from cosmology class."""
-        return cosmo_cls._all_vars()["param"]
+        return all_cls_vars(cosmo_cls)["param"]
 
     @pytest.fixture(scope="class")
     def param_cls(self, param):

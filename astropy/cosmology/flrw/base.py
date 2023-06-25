@@ -14,14 +14,18 @@ from numpy import inf, sin
 
 import astropy.constants as const
 import astropy.units as u
-from astropy.cosmology._utils import aszarr, vectorize_redshift_method
+from astropy.cosmology._utils import (
+    all_cls_vars,
+    all_fields,
+    aszarr,
+    vectorize_redshift_method,
+)
 from astropy.cosmology.core import Cosmology, FlatCosmologyMixin
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.parameter._converter import (
     _validate_non_negative,
     _validate_with_unit,
 )
-from astropy.cosmology._utils import aszarr, vectorize_redshift_method
 from astropy.utils.compat.misc import PYTHON_LT_3_10
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.decorators import lazyproperty
@@ -212,7 +216,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             name=None,
             meta=None,
         ):
-            all_vars = self._all_vars()
+            all_vars = all_cls_vars(self)
             all_vars["H0"].__set__(self, H0)
             all_vars["Om0"].__set__(self, Om0)
             all_vars["Ode0"].__set__(self, Ode0)
@@ -1537,10 +1541,9 @@ class FlatFLRWMixin(FlatCosmologyMixin):
 
     def __init_subclass__(cls):
         super().__init_subclass__()
-        if "Ode0" in cls._init_signature.parameters:
-            raise TypeError(
-                "subclasses of `FlatFLRWMixin` cannot have `Ode0` in `__init__`"
-            )
+        if all_fields(cls)["Ode0"].init:
+            msg = "subclasses of `FlatFLRWMixin` cannot have `Ode0` in `__init__`"
+            raise TypeError(msg)
 
     def __post_init__(self):
         object.__setattr__(self, "_Ode0", 0)

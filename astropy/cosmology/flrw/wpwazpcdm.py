@@ -6,8 +6,8 @@ from numpy import exp
 
 import astropy.units as u
 from astropy.cosmology import units as cu
+from astropy.cosmology._utils import all_cls_vars, aszarr
 from astropy.cosmology.parameter import Parameter
-from astropy.cosmology._utils import aszarr
 from astropy.utils.compat.misc import PYTHON_LT_3_10
 
 from . import scalar_inv_efuncs
@@ -136,9 +136,9 @@ class wpwaCDM(FLRW):
         name=None,
         meta=None
     ):
-        self._all_vars()["wp"].__set__(self, wp)
-        self._all_vars()["wa"].__set__(self, wa)
-        self._all_vars()["zp"].__set__(self, zp)
+        all_cls_vars(self)["wp"].__set__(self, wp)
+        all_cls_vars(self)["wa"].__set__(self, wa)
+        all_cls_vars(self)["zp"].__set__(self, zp)
 
         super().__init__(
             H0=H0,

@@ -13,6 +13,7 @@ import astropy.units as u
 from astropy.cosmology import FlatwpwaCDM, wpwaCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin
+from astropy.cosmology.utils import all_cls_vars
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .test_base import FlatFLRWMixinTest, FLRWTest
@@ -40,7 +41,7 @@ class ParameterwpTestMixin(ParameterTestMixin):
     def test_wp(self, cosmo_cls, cosmo):
         """Test Parameter ``wp``."""
         # on the class
-        wp = cosmo_cls._all_vars()["wp"]
+        wp = all_cls_vars(cosmo_cls)["wp"]
         assert isinstance(wp, Parameter)
         assert "at the pivot" in wp.__doc__
         assert wp.unit is None
@@ -78,7 +79,7 @@ class ParameterzpTestMixin(ParameterTestMixin):
     def test_zp(self, cosmo_cls, cosmo):
         """Test Parameter ``zp``."""
         # on the class
-        zp = cosmo_cls._all_vars()["zp"]
+        zp = all_cls_vars(cosmo_cls)["zp"]
         assert isinstance(zp, Parameter)
         assert "pivot redshift" in zp.__doc__
         assert zp.unit == cu.redshift

@@ -14,8 +14,6 @@ import numpy as np
 import pytest
 
 import astropy.constants as const
-
-# LOCAL
 import astropy.units as u
 from astropy.cosmology import FLRW, FlatLambdaCDM, LambdaCDM, Planck18
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
@@ -29,6 +27,7 @@ from astropy.cosmology.tests.test_core import (
     invalid_zs,
     valid_zs,
 )
+from astropy.cosmology.utils import all_cls_vars
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 ##############################################################################
@@ -68,7 +67,7 @@ class ParameterH0TestMixin(ParameterTestMixin):
         unit = u.Unit("km/(s Mpc)")
 
         # on the class
-        H0 = cosmo_cls._all_vars()["H0"]
+        H0 = all_cls_vars(cosmo_cls)["H0"]
         assert isinstance(H0, Parameter)
         assert "Hubble constant" in H0.__doc__
         assert H0.unit == unit
@@ -112,7 +111,7 @@ class ParameterOm0TestMixin(ParameterTestMixin):
     def test_Om0(self, cosmo_cls, cosmo):
         """Test Parameter ``Om0``."""
         # on the class
-        Om0 = cosmo_cls._all_vars()["Om0"]
+        Om0 = all_cls_vars(cosmo_cls)["Om0"]
         assert isinstance(Om0, Parameter)
         assert "Omega matter" in Om0.__doc__
 
@@ -155,13 +154,13 @@ class ParameterOde0TestMixin(ParameterTestMixin):
 
     def test_Parameter_Ode0(self, cosmo_cls):
         """Test Parameter ``Ode0`` on the class."""
-        Ode0 = cosmo_cls._all_vars()["Ode0"]
+        Ode0 = all_cls_vars(cosmo_cls)["Ode0"]
         assert isinstance(Ode0, Parameter)
         assert "Omega dark energy" in Ode0.__doc__
 
     def test_Parameter_Ode0_validation(self, cosmo_cls, cosmo):
         """Test Parameter ``Ode0`` validation."""
-        Ode0 = cosmo_cls._all_vars()["Ode0"]
+        Ode0 = all_cls_vars(cosmo_cls)["Ode0"]
         assert Ode0.validate(cosmo, 1.1) == 1.1
         assert Ode0.validate(cosmo, 10 * u.one) == 10.0
         with pytest.raises(TypeError, match="only dimensionless"):
@@ -209,7 +208,7 @@ class ParameterTcmb0TestMixin(ParameterTestMixin):
     def test_Tcmb0(self, cosmo_cls, cosmo):
         """Test Parameter ``Tcmb0``."""
         # on the class
-        Tcmb0 = cosmo_cls._all_vars()["Tcmb0"]
+        Tcmb0 = all_cls_vars(cosmo_cls)["Tcmb0"]
         assert isinstance(Tcmb0, Parameter)
         assert "Temperature of the CMB" in Tcmb0.__doc__
         assert Tcmb0.unit == u.K
@@ -253,7 +252,7 @@ class ParameterNeffTestMixin(ParameterTestMixin):
     def test_Neff(self, cosmo_cls, cosmo):
         """Test Parameter ``Neff``."""
         # on the class
-        Neff = cosmo_cls._all_vars()["Neff"]
+        Neff = all_cls_vars(cosmo_cls)["Neff"]
         assert isinstance(Neff, Parameter)
         assert "Number of effective neutrino species" in Neff.__doc__
 
@@ -296,7 +295,7 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
     def test_m_nu(self, cosmo_cls, cosmo):
         """Test Parameter ``m_nu``."""
         # on the class
-        m_nu = cosmo_cls._all_vars()["m_nu"]
+        m_nu = all_cls_vars(cosmo_cls)["m_nu"]
         assert isinstance(m_nu, Parameter)
         assert "Mass of neutrino species" in m_nu.__doc__
         assert m_nu.unit == u.eV
@@ -405,7 +404,7 @@ class ParameterOb0TestMixin(ParameterTestMixin):
     def test_Ob0(self, cosmo_cls, cosmo):
         """Test Parameter ``Ob0``."""
         # on the class
-        Ob0 = cosmo_cls._all_vars()["Ob0"]
+        Ob0 = all_cls_vars(cosmo_cls)["Ob0"]
         assert isinstance(Ob0, Parameter)
         assert "Omega baryon;" in Ob0.__doc__
 
@@ -944,7 +943,7 @@ class ParameterFlatOde0TestMixin(ParameterOde0TestMixin):
     def test_Parameter_Ode0(self, cosmo_cls):
         """Test Parameter ``Ode0`` on the class."""
         super().test_Parameter_Ode0(cosmo_cls)
-        assert cosmo_cls._all_vars()["Ode0"].derived in (True, np.True_)
+        assert all_cls_vars(cosmo_cls)["Ode0"].derived in (True, np.True_)
 
     def test_Ode0(self, cosmo):
         """Test no-longer-Parameter ``Ode0``."""

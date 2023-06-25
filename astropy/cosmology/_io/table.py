@@ -159,6 +159,7 @@ import numpy as np
 
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
+from astropy.cosmology.utils import all_cls_vars
 from astropy.table import Column, QTable, Table
 
 from .mapping import to_mapping
@@ -431,7 +432,7 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True, rename=None):
     for k, v in data.items():
         if k in cosmology.__parameters__:
             col = convert_parameter_to_column(
-                cosmo_cls._all_vars()[k], v, cosmology.meta.get(k)
+                all_cls_vars(cosmo_cls)[k], v, cosmology.meta.get(k)
             )
         else:
             col = Column([v])

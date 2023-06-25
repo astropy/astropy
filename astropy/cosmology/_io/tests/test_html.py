@@ -5,6 +5,7 @@ import pytest
 import astropy.units as u
 from astropy.cosmology._io.html import _FORMAT_TABLE, read_html_table, write_html_table
 from astropy.cosmology.parameter import Parameter
+from astropy.cosmology.utils import all_cls_vars
 from astropy.table import QTable, Table, vstack
 from astropy.utils.compat.optional_deps import HAS_BS4
 
@@ -189,7 +190,7 @@ class ReadWriteHTMLTestMixin(ReadWriteTestMixinBase):
         cosmo_cls = type(cosmo)
         assert cosmo is not None
 
-        all_vars = cosmo_cls._all_vars()
+        all_vars = all_cls_vars(cosmo_cls)
         for n, col in zip(table.colnames, table.itercols()):
             if n == "cosmology":
                 continue

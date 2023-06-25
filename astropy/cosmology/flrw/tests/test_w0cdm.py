@@ -14,6 +14,7 @@ import astropy.units as u
 from astropy.cosmology import FlatwCDM, wCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin, valid_zs
+from astropy.cosmology.utils import all_cls_vars
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .test_base import FlatFLRWMixinTest, FLRWTest
@@ -34,7 +35,7 @@ class Parameterw0TestMixin(ParameterTestMixin):
     def test_w0(self, cosmo_cls, cosmo):
         """Test Parameter ``w0``."""
         # on the class
-        w0 = cosmo_cls._all_vars()["w0"]
+        w0 = all_cls_vars(cosmo_cls)["w0"]
         assert isinstance(w0, Parameter)
         assert "Dark energy equation of state" in w0.__doc__
         assert w0.unit is None

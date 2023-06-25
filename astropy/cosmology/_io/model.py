@@ -36,6 +36,7 @@ import numpy as np
 
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
+from astropy.cosmology.utils import all_cls_vars
 from astropy.modeling import FittableModel, Model
 from astropy.utils.decorators import classproperty
 
@@ -244,7 +245,7 @@ def to_model(cosmology, *_, method):
 
         # add as Model Parameter
         params[n] = convert_parameter_to_model_parameter(
-            cosmo_cls._all_vars()[n], v, cosmology.meta.get(n)
+            all_cls_vars(cosmo_cls)[n], v, cosmology.meta.get(n)
         )
 
     # class name is cosmology name + Cosmology + method name + Model

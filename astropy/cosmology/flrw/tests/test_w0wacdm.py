@@ -14,6 +14,7 @@ import astropy.units as u
 from astropy.cosmology import Flatw0waCDM, Planck18, w0waCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin
+from astropy.cosmology.utils import all_cls_vars
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .test_base import FlatFLRWMixinTest, FLRWTest
@@ -35,7 +36,7 @@ class ParameterwaTestMixin(ParameterTestMixin):
     def test_wa(self, cosmo_cls, cosmo):
         """Test Parameter ``wa``."""
         # on the class
-        wa = cosmo_cls._all_vars()["wa"]
+        wa = all_cls_vars(cosmo_cls)["wa"]
         assert isinstance(wa, Parameter)
         assert "Negative derivative" in wa.__doc__
         assert wa.unit is None

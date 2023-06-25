@@ -5,6 +5,7 @@ import pytest
 from astropy.cosmology import Cosmology
 from astropy.cosmology._io.table import from_table, to_table
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
+from astropy.cosmology.utils import all_cls_vars
 from astropy.table import QTable, Table, vstack
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase
@@ -74,7 +75,7 @@ class ToFromTableTestMixin(ToFromTestMixinBase):
         assert tbl.indices  # indexed
 
         # Test each Parameter column has expected information.
-        all_vars = cosmo_cls._all_vars()
+        all_vars = all_cls_vars(cosmo_cls)
         for n in cosmo.__parameters__:
             P = all_vars[n]  # Parameter
             col = tbl[n]  # Column

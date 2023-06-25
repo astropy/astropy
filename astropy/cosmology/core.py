@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import abc
 import inspect
-import operator
 from dataclasses import KW_ONLY, dataclass
-from functools import reduce
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
 import numpy as np
@@ -21,8 +19,7 @@ from .connect import (
     CosmologyToFormat,
     CosmologyWrite,
 )
-from .parameter import Parameter
-from .utils import MetaData
+from .utils import MetaData, all_cls_vars, all_fields
 
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Mapping
@@ -128,30 +125,13 @@ class Cosmology(metaclass=abc.ABCMeta):
         # -------------------
         # Parameters
 
-        # Get parameters that are still Parameters, either in this class or above.
-        parameters = []
-        derived_parameters = []
-        all_vars = cls._all_vars()
-        for n in cls.__parameters__:
-            p = all_vars[n]
-            if isinstance(p, Parameter):
-                derived_parameters.append(n) if p.derived else parameters.append(n)
-
-        # Add new parameter definitions
-        for n, v in cls.__dict__.items():
-            if n in parameters or n.startswith("_") or not isinstance(v, Parameter):
-                continue
-            derived_parameters.append(n) if v.derived else parameters.append(n)
-
-        # reorder to match signature
-        ordered = [
-            parameters.pop(parameters.index(n))
-            for n in cls._init_signature.parameters.keys()
-            if n in parameters
-        ]
-        parameters = ordered + parameters  # place "unordered" at the end
-        cls.__parameters__ = tuple(parameters)
-        cls.__all_parameters__ = cls.__parameters__ + tuple(derived_parameters)
+        all_vars = all_cls_vars(cls)
+        cls.__all_parameters__ = tuple(
+            k for k, f in all_fields(cls).items() if f.type == "Parameter"
+        )
+        cls.__parameters__ = tuple(
+            n for n in cls.__all_parameters__ if not all_vars[n].derived
+        )
 
         # -------------------
         # Registration
@@ -176,19 +156,13 @@ class Cosmology(metaclass=abc.ABCMeta):
         from astropy.cosmology._io.yaml import register_cosmology_yaml
 
         register_cosmology_yaml(cls)
-
-    @classmethod
-    def _all_vars(cls):
-        """Return all variables in the whole class hierarchy."""
-        return reduce(operator.__or__, map(vars, cls.mro()[::-1] + [cls]))
-
     # ---------------------------------------------------------------
 
     if PYTHON_LT_3_10:
 
         def __init__(self, name=None, meta=None):
-            self._all_vars()["name"].__set__(self, name)
-            self._all_vars()["meta"].__set__(self, meta)
+            all_cls_vars(self)["name"].__set__(self, name)
+            all_cls_vars(self)["meta"].__set__(self, meta)
 
             self.__post_init__()
 
