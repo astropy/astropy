@@ -16,7 +16,6 @@ transformations that are typically how the algorithms are defined.
 
 
 import heapq
-import inspect
 import subprocess
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
@@ -170,9 +169,9 @@ class TransformGraph:
             not callable.
 
         """
-        if not inspect.isclass(fromsys):
+        if not isinstance(fromsys, type):
             raise TypeError("fromsys must be a class")
-        if not inspect.isclass(tosys):
+        if not isinstance(tosys, type):
             raise TypeError("tosys must be a class")
         if not callable(transform):
             raise TypeError("transform must be callable")
@@ -412,9 +411,9 @@ class TransformGraph:
         consistent with 1-hop transformations.
 
         """
-        if not inspect.isclass(fromsys):
+        if not isinstance(fromsys, type):
             raise TypeError("fromsys is not a class")
-        if not inspect.isclass(tosys):
+        if not isinstance(tosys, type):
             raise TypeError("tosys is not a class")
 
         path, distance = self.find_shortest_path(fromsys, tosys)
@@ -816,9 +815,9 @@ class CoordinateTransform(metaclass=ABCMeta):
     """
 
     def __init__(self, fromsys, tosys, priority=1, register_graph=None):
-        if not inspect.isclass(fromsys):
+        if not isinstance(fromsys, type):
             raise TypeError("fromsys must be a class")
-        if not inspect.isclass(tosys):
+        if not isinstance(tosys, type):
             raise TypeError("tosys must be a class")
 
         self.fromsys = fromsys
@@ -829,7 +828,7 @@ class CoordinateTransform(metaclass=ABCMeta):
             # this will do the type-checking when it adds to the graph
             self.register(register_graph)
         else:
-            if not inspect.isclass(fromsys) or not inspect.isclass(tosys):
+            if not isinstance(fromsys, type) or not isinstance(tosys, type):
                 raise TypeError("fromsys and tosys must be classes")
 
         self.overlapping_frame_attr_names = overlap = []

@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import inspect
 import re
 from collections.abc import Sequence
 
@@ -51,7 +50,7 @@ def _get_frame_class(frame):
             )
         frame_cls = frame_transform_graph.lookup_name(frame)
 
-    elif inspect.isclass(frame) and issubclass(frame, BaseCoordinateFrame):
+    elif isinstance(frame, type) and issubclass(frame, BaseCoordinateFrame):
         frame_cls = frame
 
     else:
