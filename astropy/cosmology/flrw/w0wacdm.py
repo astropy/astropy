@@ -110,6 +110,8 @@ class w0waCDM(FLRW):
         name=None,
         meta=None
     ):
+        self.w0 = w0
+        self.wa = wa
         super().__init__(
             H0=H0,
             Om0=Om0,
@@ -121,9 +123,8 @@ class w0waCDM(FLRW):
             name=name,
             meta=meta,
         )
-        self.w0 = w0
-        self.wa = wa
 
+    def __post_init__(self):
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:

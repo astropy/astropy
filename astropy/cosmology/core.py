@@ -157,6 +157,11 @@ class Cosmology(metaclass=abc.ABCMeta):
         self._name = str(name) if name is not None else name
         self.meta.update(meta or {})
 
+        self.__post_init__()
+
+    def __post_init__(self):  # noqa: B027
+        pass
+
     @property
     def name(self):
         """The name of the Cosmology instance."""

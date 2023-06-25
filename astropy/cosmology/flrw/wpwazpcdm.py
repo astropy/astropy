@@ -125,6 +125,9 @@ class wpwaCDM(FLRW):
         name=None,
         meta=None
     ):
+        self.wp = wp
+        self.wa = wa
+        self.zp = zp
         super().__init__(
             H0=H0,
             Om0=Om0,
@@ -136,10 +139,8 @@ class wpwaCDM(FLRW):
             name=name,
             meta=meta,
         )
-        self.wp = wp
-        self.wa = wa
-        self.zp = zp
 
+    def __post_init__(self):
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         apiv = 1.0 / (1.0 + self._zp.value)

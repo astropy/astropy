@@ -112,6 +112,7 @@ class LambdaCDM(FLRW):
             meta=meta,
         )
 
+    def __post_init__(self):
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:

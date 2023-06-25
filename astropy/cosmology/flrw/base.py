@@ -199,8 +199,6 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         name=None,
         meta=None,
     ):
-        super().__init__(name=name, meta=meta)
-
         # Assign (and validate) Parameters
         self.H0 = H0
         self.Om0 = Om0
@@ -284,6 +282,9 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         # Compute curvature density
         self._Ok0 = 1.0 - self._Om0 - self._Ode0 - self._Ogamma0 - self._Onu0
 
+        super().__init__(name=name, meta=meta)
+
+    def __post_init__(self):
         # Subclasses should override this reference if they provide
         #  more efficient scalar versions of inv_efunc.
         self._inv_efunc_scalar = self.inv_efunc
