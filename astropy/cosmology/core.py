@@ -5,7 +5,6 @@ from __future__ import annotations
 import abc
 import inspect
 import operator
-from collections import OrderedDict
 from dataclasses import KW_ONLY, dataclass
 from functools import reduce
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
@@ -75,7 +74,7 @@ class NameField:
         object.__setattr__(instance, "_name", None if value is None else str(value))
 
 
-@dataclass(frozen=True, repr=False, eq=False, init=False)
+@dataclass(frozen=True, repr=False, eq=False)
 class Cosmology(metaclass=abc.ABCMeta):
     """Base-class for all Cosmologies.
 
@@ -185,12 +184,13 @@ class Cosmology(metaclass=abc.ABCMeta):
 
     # ---------------------------------------------------------------
 
-    def __init__(self, name=None, meta=None):
-        self._all_vars()["name"].__set__(self, name)
+    if PYTHON_LT_3_10:
 
-        self._meta: dict
-        object.__setattr__(self, "_meta", OrderedDict())
-        self.meta.update(meta or {})
+        def __init__(self, name=None, meta=None):
+            self._all_vars()["name"].__set__(self, name)
+            self._all_vars()["meta"].__set__(self, meta)
+
+            self.__post_init__()
 
     def __post_init__(self):  # noqa: B027
         """Post-initialization, for subclasses to override."""
@@ -472,9 +472,6 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
         # Determine the non-flat class.
         # This will raise a TypeError if the MRO is inconsistent.
         cls.__nonflatclass__  # noqa: B018
-
-    def __post_init__(self):
-        super().__post_init__()
 
     # ===============================================================
 

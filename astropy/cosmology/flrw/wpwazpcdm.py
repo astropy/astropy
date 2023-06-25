@@ -6,8 +6,9 @@ from numpy import exp
 
 import astropy.units as u
 from astropy.cosmology import units as cu
-from astropy.cosmology._utils import aszarr
 from astropy.cosmology.parameter import Parameter
+from astropy.cosmology._utils import aszarr
+from astropy.utils.compat.misc import PYTHON_LT_3_10
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin
@@ -103,14 +104,21 @@ class wpwaCDM(FLRW):
            of Merit Science Working Group. arXiv e-prints, arXiv:0901.0721.
     """
 
-    wp = Parameter(
-        doc="Dark energy equation of state at the pivot redshift zp.", fvalidate="float"
+    wp: Parameter = Parameter(  # noqa: RUF009
+        default=-1.0,
+        doc="Dark energy equation of state at the pivot redshift zp.",
+        fvalidate="float",
     )
-    wa = Parameter(
+    wa: Parameter = Parameter(  # noqa: RUF009
+        default=0.0,
         doc="Negative derivative of dark energy equation of state w.r.t. a.",
         fvalidate="float",
     )
-    zp = Parameter(doc="The pivot redshift, where w(z) = wp.", unit=cu.redshift)
+    zp: Parameter = Parameter(  # noqa: RUF009
+        default=0.0 * cu.redshift,
+        doc="The pivot redshift, where w(z) = wp.",
+        unit=cu.redshift,
+    )
 
     def __init__(
         self,
@@ -128,6 +136,10 @@ class wpwaCDM(FLRW):
         name=None,
         meta=None
     ):
+        self._all_vars()["wp"].__set__(self, wp)
+        self._all_vars()["wa"].__set__(self, wa)
+        self._all_vars()["zp"].__set__(self, zp)
+
         super().__init__(
             H0=H0,
             Om0=Om0,
@@ -139,11 +151,6 @@ class wpwaCDM(FLRW):
             name=name,
             meta=meta,
         )
-        self._all_vars()["wp"].__set__(self, wp)
-        self._all_vars()["wa"].__set__(self, wa)
-        self._all_vars()["zp"].__set__(self, zp)
-
-        self.__post_init__()
 
     def __post_init__(self):
         super().__post_init__()
@@ -330,36 +337,37 @@ class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
         of Merit Science Working Group. arXiv e-prints, arXiv:0901.0721.
     """
 
-    def __init__(
-        self,
-        H0,
-        Om0,
-        wp=-1.0,
-        wa=0.0,
-        zp=0.0,
-        Tcmb0=0.0 * u.K,
-        Neff=3.04,
-        m_nu=0.0 * u.eV,
-        Ob0=None,
-        *,
-        name=None,
-        meta=None
-    ):
-        super().__init__(
-            H0=H0,
-            Om0=Om0,
-            Ode0=0.0,
-            wp=wp,
-            wa=wa,
-            zp=zp,
-            Tcmb0=Tcmb0,
-            Neff=Neff,
-            m_nu=m_nu,
-            Ob0=Ob0,
-            name=name,
-            meta=meta,
-        )
-        self.__post_init__()
+    if PYTHON_LT_3_10:
+
+        def __init__(
+            self,
+            H0,
+            Om0,
+            wp=-1.0,
+            wa=0.0,
+            zp=0.0,
+            Tcmb0=0.0 * u.K,
+            Neff=3.04,
+            m_nu=0.0 * u.eV,
+            Ob0=None,
+            *,
+            name=None,
+            meta=None
+        ):
+            super().__init__(
+                H0=H0,
+                Om0=Om0,
+                Ode0=0.0,
+                wp=wp,
+                wa=wa,
+                zp=zp,
+                Tcmb0=Tcmb0,
+                Neff=Neff,
+                m_nu=m_nu,
+                Ob0=Ob0,
+                name=name,
+                meta=meta,
+            )
 
     def __post_init__(self):
         super().__post_init__()

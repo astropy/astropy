@@ -5,8 +5,9 @@ from dataclasses import dataclass
 from numpy import exp
 
 import astropy.units as u
-from astropy.cosmology._utils import aszarr
 from astropy.cosmology.parameter import Parameter
+from astropy.cosmology._utils import aszarr
+from astropy.utils.compat.misc import PYTHON_LT_3_10
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin
@@ -86,42 +87,46 @@ class w0wzCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    w0 = Parameter(doc="Dark energy equation of state at z=0.", fvalidate="float")
-    wz = Parameter(
+    w0: Parameter = Parameter(  # noqa: RUF009
+        default=-1.0, doc="Dark energy equation of state at z=0.", fvalidate="float"
+    )
+    wz: Parameter = Parameter(  # noqa: RUF009
+        default=0.0,
         doc="Derivative of the dark energy equation of state w.r.t. z.",
         fvalidate="float",
     )
 
-    def __init__(
-        self,
-        H0,
-        Om0,
-        Ode0,
-        w0=-1.0,
-        wz=0.0,
-        Tcmb0=0.0 * u.K,
-        Neff=3.04,
-        m_nu=0.0 * u.eV,
-        Ob0=None,
-        *,
-        name=None,
-        meta=None
-    ):
-        super().__init__(
-            H0=H0,
-            Om0=Om0,
-            Ode0=Ode0,
-            Tcmb0=Tcmb0,
-            Neff=Neff,
-            m_nu=m_nu,
-            Ob0=Ob0,
-            name=name,
-            meta=meta,
-        )
-        self._all_vars()["w0"].__set__(self, w0)
-        self._all_vars()["wz"].__set__(self, wz)
+    if PYTHON_LT_3_10:
 
-        self.__post_init__()
+        def __init__(
+            self,
+            H0,
+            Om0,
+            Ode0,
+            w0=-1.0,
+            wz=0.0,
+            Tcmb0=0.0 * u.K,
+            Neff=3.04,
+            m_nu=0.0 * u.eV,
+            Ob0=None,
+            *,
+            name=None,
+            meta=None
+        ):
+            self._all_vars()["w0"].__set__(self, w0)
+            self._all_vars()["wz"].__set__(self, wz)
+
+            super().__init__(
+                H0=H0,
+                Om0=Om0,
+                Ode0=Ode0,
+                Tcmb0=Tcmb0,
+                Neff=Neff,
+                m_nu=m_nu,
+                Ob0=Ob0,
+                name=name,
+                meta=meta,
+            )
 
     def __post_init__(self):
         super().__post_init__()
@@ -200,25 +205,19 @@ class w0wzCDM(FLRW):
             The scaling of the energy density of dark energy with redshift.
             Returns `float` if the input is scalar.
 
-        References
-        ----------
-        .. [1] Linder, E. (2003). Exploring the Expansion History of the Universe.
-               Physics Review Letters, 90(9), 091301.
-
         Notes
         -----
         The scaling factor, I, is defined by :math:`\rho(z) = \rho_0 I`,
-        and in this case is given by ([1]_)
+        and in this case is given by
 
         .. math::
 
            I = \left(1 + z\right)^{3 \left(1 + w_0 - w_z\right)}
-                     \exp \left(3 w_z z\right)
+                     \exp \left(-3 w_z z\right)
         """
         z = aszarr(z)
-        return (z + 1.0) ** (3.0 * (1.0 + self._w0 - self._wz)) * exp(
-            3.0 * self._wz * z
-        )
+        zp1 = z + 1.0  # (converts z [unit] -> z [dimensionless])
+        return zp1 ** (3.0 * (1.0 + self._w0 - self._wz)) * exp(-3.0 * self._wz * z)
 
 
 @dataclass(frozen=True, repr=False, eq=False)
@@ -287,34 +286,35 @@ class Flatw0wzCDM(FlatFLRWMixin, w0wzCDM):
     <Quantity 1982.66012926 Mpc>
     """
 
-    def __init__(
-        self,
-        H0,
-        Om0,
-        w0=-1.0,
-        wz=0.0,
-        Tcmb0=0.0 * u.K,
-        Neff=3.04,
-        m_nu=0.0 * u.eV,
-        Ob0=None,
-        *,
-        name=None,
-        meta=None
-    ):
-        super().__init__(
-            H0=H0,
-            Om0=Om0,
-            Ode0=0.0,
-            w0=w0,
-            wz=wz,
-            Tcmb0=Tcmb0,
-            Neff=Neff,
-            m_nu=m_nu,
-            Ob0=Ob0,
-            name=name,
-            meta=meta,
-        )
-        self.__post_init__()
+    if PYTHON_LT_3_10:
+
+        def __init__(
+            self,
+            H0,
+            Om0,
+            w0=-1.0,
+            wz=0.0,
+            Tcmb0=0.0 * u.K,
+            Neff=3.04,
+            m_nu=0.0 * u.eV,
+            Ob0=None,
+            *,
+            name=None,
+            meta=None
+        ):
+            super().__init__(
+                H0=H0,
+                Om0=Om0,
+                Ode0=0.0,
+                w0=w0,
+                wz=wz,
+                Tcmb0=Tcmb0,
+                Neff=Neff,
+                m_nu=m_nu,
+                Ob0=Ob0,
+                name=name,
+                meta=meta,
+            )
 
     def __post_init__(self):
         super().__post_init__()

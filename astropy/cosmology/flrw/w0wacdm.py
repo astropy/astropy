@@ -5,8 +5,9 @@ from dataclasses import dataclass
 from numpy import exp
 
 import astropy.units as u
-from astropy.cosmology._utils import aszarr
 from astropy.cosmology.parameter import Parameter
+from astropy.cosmology._utils import aszarr
+from astropy.utils.compat.misc import PYTHON_LT_3_10
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin
@@ -92,42 +93,46 @@ class w0waCDM(FLRW):
            Universe. Phys. Rev. Lett., 90, 091301.
     """
 
-    w0 = Parameter(doc="Dark energy equation of state at z=0.", fvalidate="float")
-    wa = Parameter(
+    w0: Parameter = Parameter(  # noqa: RUF009
+        default=-1.0, doc="Dark energy equation of state at z=0.", fvalidate="float"
+    )
+    wa: Parameter = Parameter(  # noqa: RUF009
+        default=0.0,
         doc="Negative derivative of dark energy equation of state w.r.t. a.",
         fvalidate="float",
     )
 
-    def __init__(
-        self,
-        H0,
-        Om0,
-        Ode0,
-        w0=-1.0,
-        wa=0.0,
-        Tcmb0=0.0 * u.K,
-        Neff=3.04,
-        m_nu=0.0 * u.eV,
-        Ob0=None,
-        *,
-        name=None,
-        meta=None
-    ):
-        super().__init__(
-            H0=H0,
-            Om0=Om0,
-            Ode0=Ode0,
-            Tcmb0=Tcmb0,
-            Neff=Neff,
-            m_nu=m_nu,
-            Ob0=Ob0,
-            name=name,
-            meta=meta,
-        )
-        self._all_vars()["w0"].__set__(self, w0)
-        self._all_vars()["wa"].__set__(self, wa)
+    if PYTHON_LT_3_10:
 
-        self.__post_init__()
+        def __init__(
+            self,
+            H0,
+            Om0,
+            Ode0,
+            w0=-1.0,
+            wa=0.0,
+            Tcmb0=0.0 * u.K,
+            Neff=3.04,
+            m_nu=0.0 * u.eV,
+            Ob0=None,
+            *,
+            name=None,
+            meta=None
+        ):
+            self._all_vars()["w0"].__set__(self, w0)
+            self._all_vars()["wa"].__set__(self, wa)
+
+            super().__init__(
+                H0=H0,
+                Om0=Om0,
+                Ode0=Ode0,
+                Tcmb0=Tcmb0,
+                Neff=Neff,
+                m_nu=m_nu,
+                Ob0=Ob0,
+                name=name,
+                meta=meta,
+            )
 
     def __post_init__(self):
         super().__post_init__()
@@ -302,34 +307,35 @@ class Flatw0waCDM(FlatFLRWMixin, w0waCDM):
            Universe. Phys. Rev. Lett., 90, 091301.
     """
 
-    def __init__(
-        self,
-        H0,
-        Om0,
-        w0=-1.0,
-        wa=0.0,
-        Tcmb0=0.0 * u.K,
-        Neff=3.04,
-        m_nu=0.0 * u.eV,
-        Ob0=None,
-        *,
-        name=None,
-        meta=None
-    ):
-        super().__init__(
-            H0=H0,
-            Om0=Om0,
-            Ode0=0.0,
-            w0=w0,
-            wa=wa,
-            Tcmb0=Tcmb0,
-            Neff=Neff,
-            m_nu=m_nu,
-            Ob0=Ob0,
-            name=name,
-            meta=meta,
-        )
-        self.__post_init__()
+    if PYTHON_LT_3_10:
+
+        def __init__(
+            self,
+            H0,
+            Om0,
+            w0=-1.0,
+            wa=0.0,
+            Tcmb0=0.0 * u.K,
+            Neff=3.04,
+            m_nu=0.0 * u.eV,
+            Ob0=None,
+            *,
+            name=None,
+            meta=None
+        ):
+            super().__init__(
+                H0=H0,
+                Om0=Om0,
+                Ode0=0.0,
+                w0=w0,
+                wa=wa,
+                Tcmb0=Tcmb0,
+                Neff=Neff,
+                m_nu=m_nu,
+                Ob0=Ob0,
+                name=name,
+                meta=meta,
+            )
 
     def __post_init__(self):
         super().__post_init__()

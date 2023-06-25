@@ -9,6 +9,7 @@ from numpy import log
 
 import astropy.units as u
 from astropy.cosmology._utils import aszarr
+from astropy.utils.compat.misc import PYTHON_LT_3_10
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from . import scalar_inv_efuncs
@@ -88,32 +89,6 @@ class LambdaCDM(FLRW):
     >>> z = 0.5
     >>> dc = cosmo.comoving_distance(z)
     """
-
-    def __init__(
-        self,
-        H0,
-        Om0,
-        Ode0,
-        Tcmb0=0.0 * u.K,
-        Neff=3.04,
-        m_nu=0.0 * u.eV,
-        Ob0=None,
-        *,
-        name=None,
-        meta=None
-    ):
-        super().__init__(
-            H0=H0,
-            Om0=Om0,
-            Ode0=Ode0,
-            Tcmb0=Tcmb0,
-            Neff=Neff,
-            m_nu=m_nu,
-            Ob0=Ob0,
-            name=name,
-            meta=meta,
-        )
-        self.__post_init__()
 
     def __post_init__(self):
         super().__post_init__()
@@ -676,30 +651,31 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
     LambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, ...
     """
 
-    def __init__(
-        self,
-        H0,
-        Om0,
-        Tcmb0=0.0 * u.K,
-        Neff=3.04,
-        m_nu=0.0 * u.eV,
-        Ob0=None,
-        *,
-        name=None,
-        meta=None
-    ):
-        super().__init__(
-            H0=H0,
-            Om0=Om0,
-            Ode0=0.0,
-            Tcmb0=Tcmb0,
-            Neff=Neff,
-            m_nu=m_nu,
-            Ob0=Ob0,
-            name=name,
-            meta=meta,
-        )
-        self.__post_init__()
+    if PYTHON_LT_3_10:
+
+        def __init__(
+            self,
+            H0,
+            Om0,
+            Tcmb0=0.0 * u.K,
+            Neff=3.04,
+            m_nu=0.0 * u.eV,
+            Ob0=None,
+            *,
+            name=None,
+            meta=None
+        ):
+            super().__init__(
+                H0=H0,
+                Om0=Om0,
+                Ode0=0.0,
+                Tcmb0=Tcmb0,
+                Neff=Neff,
+                m_nu=m_nu,
+                Ob0=Ob0,
+                name=name,
+                meta=meta,
+            )
 
     def __post_init__(self):
         super().__post_init__()
