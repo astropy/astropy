@@ -58,6 +58,22 @@ class CosmologyError(Exception):
     pass
 
 
+@dataclass(frozen=True)
+class NameField:
+    default: str | None = None
+
+    def __set_name__(self, owner, name):
+        object.__setattr__(self, "name", name)
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self.default
+        return instance._name
+
+    def __set__(self, instance, value: str | None):
+        object.__setattr__(instance, "_name", None if value is None else str(value))
+
+
 @dataclass(frozen=True, repr=False, eq=False, init=False)
 class Cosmology(metaclass=abc.ABCMeta):
     """Base-class for all Cosmologies.
@@ -87,7 +103,7 @@ class Cosmology(metaclass=abc.ABCMeta):
     override the ``_register_cls`` classmethod in the subclass.
     """
 
-    name: str | None = None
+    name: NameField = NameField()  # noqa: RUF009
     meta: MetaData = MetaData()  # noqa: RUF009
 
     # Unified I/O object interchange methods
@@ -167,7 +183,7 @@ class Cosmology(metaclass=abc.ABCMeta):
     # ---------------------------------------------------------------
 
     def __init__(self, name=None, meta=None):
-        object.__setattr__(self, "name", str(name) if name is not None else name)
+        self._all_vars()["name"].__set__(self, name)
 
         self._meta: dict
         object.__setattr__(self, "_meta", OrderedDict())
