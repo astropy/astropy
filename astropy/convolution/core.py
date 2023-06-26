@@ -23,10 +23,10 @@ import numpy as np
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .utils import (
+    KernelArithmeticError,
     add_kernel_arrays_1D,
     add_kernel_arrays_2D,
     discretize_model,
-    KernelArithmeticError,
 )
 
 MAX_NORMALIZATION = 100
