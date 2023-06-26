@@ -7,7 +7,11 @@ import numpy as np
 import pytest
 
 from astropy import units as u
-from astropy.coordinates import EarthLocation, SkyCoord, galactocentric_frame_defaults
+from astropy.coordinates import (
+    EarthLocation,
+    SkyCoord,
+    galactocentric_frame_defaults,
+)
 from astropy.coordinates import representation as r
 from astropy.coordinates.attributes import (
     Attribute,
@@ -844,6 +848,11 @@ def test_itrs_earth_location():
     assert_allclose(sat.lon, eloc2.lon)
     assert_allclose(sat.lat, eloc2.lat)
     assert_allclose(sat.height, eloc2.height)
+
+    wgs84 = ITRS(325 * u.deg, 2 * u.deg, representation_type="wgs84geodetic")
+    assert wgs84.lon == 325 * u.deg
+    assert wgs84.lat == 2 * u.deg
+    assert wgs84.height == 0.0 * u.m
 
 
 def test_representation():
