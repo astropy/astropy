@@ -6,12 +6,12 @@ import numpy as np
 from erfa import ufunc as erfa_ufunc
 
 import astropy.units as u
-from astropy.coordinates.angles import Angle, Longitude, Latitude
+from astropy.coordinates.angles import Angle, Latitude, Longitude
 from astropy.coordinates.distances import Distance
 from astropy.coordinates.matrix_utilities import is_O3
 from astropy.utils import classproperty
 
-from .base import BaseRepresentation, BaseDifferential
+from .base import BaseDifferential, BaseRepresentation
 from .cartesian import CartesianRepresentation
 
 

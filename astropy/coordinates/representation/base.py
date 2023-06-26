@@ -9,12 +9,10 @@ import warnings
 import numpy as np
 
 import astropy.units as u
+from astropy.coordinates.angles import Angle
 from astropy.utils import ShapedLikeNDArray, classproperty
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.exceptions import DuplicateRepresentationWarning
-
-from astropy.coordinates.angles import Angle
-
 
 # Module-level dict mapping representation string alias names to classes.
 # This is populated by __init_subclass__ when called by Representation or
@@ -903,7 +901,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             A 3x3 (or stack thereof) matrix, such as a rotation matrix.
 
         """
-        from .cartesian import CartesianRepresentation, CartesianDifferential
+        from .cartesian import CartesianDifferential, CartesianRepresentation
 
         # route transformation through Cartesian
         difs_cls = {k: CartesianDifferential for k in self.differentials.keys()}

@@ -3,38 +3,39 @@ In this module, we define the coordinate representation classes, which are
 used to represent low-level cartesian, spherical, cylindrical, and other
 coordinates.
 """
-from .base import BaseRepresentationOrDifferential, BaseRepresentation, BaseDifferential
-from .cartesian import CartesianRepresentation, CartesianDifferential
-from .cylindrical import CylindricalRepresentation, CylindricalDifferential
+from .base import BaseDifferential, BaseRepresentation, BaseRepresentationOrDifferential
+from .cartesian import CartesianDifferential, CartesianRepresentation
+from .cylindrical import CylindricalDifferential, CylindricalRepresentation
 from .geodetic import (
-    BaseGeodeticRepresentation,
     BaseBodycentricRepresentation,
-    WGS84GeodeticRepresentation,
-    WGS72GeodeticRepresentation,
+    BaseGeodeticRepresentation,
     GRS80GeodeticRepresentation,
+    WGS72GeodeticRepresentation,
+    WGS84GeodeticRepresentation,
 )
 from .spherical import (
-    SphericalRepresentation,
-    UnitSphericalRepresentation,
-    RadialRepresentation,
-    PhysicsSphericalRepresentation,
-    BaseSphericalDifferential,
     BaseSphericalCosLatDifferential,
-    SphericalDifferential,
-    SphericalCosLatDifferential,
-    UnitSphericalDifferential,
-    UnitSphericalCosLatDifferential,
-    RadialDifferential,
+    BaseSphericalDifferential,
     PhysicsSphericalDifferential,
+    PhysicsSphericalRepresentation,
+    RadialDifferential,
+    RadialRepresentation,
+    SphericalCosLatDifferential,
+    SphericalDifferential,
+    SphericalRepresentation,
+    UnitSphericalCosLatDifferential,
+    UnitSphericalDifferential,
+    UnitSphericalRepresentation,
 )
 
 # The following imports are included for backwards compatibility.
 # isort: split
-from .base import DIFFERENTIAL_CLASSES
-from .base import DUPLICATE_REPRESENTATIONS
-from .base import REPRESENTATION_CLASSES
-from .base import get_reprdiff_cls_hash
-
+from .base import (
+    DIFFERENTIAL_CLASSES,
+    DUPLICATE_REPRESENTATIONS,
+    REPRESENTATION_CLASSES,
+    get_reprdiff_cls_hash,
+)
 
 __all__ = [
     "BaseRepresentationOrDifferential",

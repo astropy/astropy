@@ -2,12 +2,12 @@ import numpy as np
 import pytest
 from numpy.testing import assert_equal
 
-from astropy.table import Table, vstack
 from astropy.coordinates.polarization import (
     StokesCoord,
     StokesSymbol,
     custom_stokes_symbol_mapping,
 )
+from astropy.table import Table, vstack
 from astropy.utils import unbroadcast
 
 
