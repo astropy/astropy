@@ -6,7 +6,7 @@ from erfa import ufunc as erfa_ufunc
 
 import astropy.units as u
 
-from .base import BaseRepresentation, BaseDifferential
+from .base import BaseDifferential, BaseRepresentation
 
 
 class CartesianRepresentation(BaseRepresentation):
