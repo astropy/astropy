@@ -708,4 +708,5 @@ user-created frames.
 .. topic:: Examples:
 
     See also :ref:`sphx_glr_generated_examples_coordinates_plot_sgr-coordinate-frame.py`
+    and :ref:`sphx_glr_generated_examples_coordinates_plot_mars-coordinate-frame.py`
     for a more annotated example of defining a new coordinate frame.
