@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import numpy as np
 import erfa
+import numpy as np
 
 from astropy import units as u
 from astropy.coordinates.angles import Latitude, Longitude
@@ -9,7 +9,6 @@ from astropy.utils.decorators import format_doc
 
 from .base import BaseRepresentation
 from .cartesian import CartesianRepresentation
-
 
 ELLIPSOIDS = {}
 """Available ellipsoids (defined in erfam.h, with numbers exposed in erfa)."""

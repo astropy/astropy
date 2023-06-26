@@ -5,17 +5,15 @@ import pytest
 
 from astropy import units as u
 from astropy.coordinates.representation import (
-    CartesianRepresentation,
     REPRESENTATION_CLASSES,
-    BaseGeodeticRepresentation,
     BaseBodycentricRepresentation,
+    BaseGeodeticRepresentation,
+    CartesianRepresentation,
     GRS80GeodeticRepresentation,
     WGS72GeodeticRepresentation,
     WGS84GeodeticRepresentation,
 )
 from astropy.coordinates.representation.geodetic import ELLIPSOIDS
-from astropy.tests.helper import assert_quantity_allclose
-from astropy.units.tests.test_quantity_erfa_ufuncs import vvd
 
 # Preserve the original REPRESENTATION_CLASSES dict so that importing
 #   the test file doesn't add a persistent test subclass
@@ -23,6 +21,8 @@ from astropy.coordinates.tests.test_representation import (  # noqa: F401
     setup_function,
     teardown_function,
 )
+from astropy.tests.helper import assert_quantity_allclose
+from astropy.units.tests.test_quantity_erfa_ufuncs import vvd
 
 
 class CustomGeodetic(BaseGeodeticRepresentation):

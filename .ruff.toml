@@ -292,7 +292,7 @@ unfixable = [
 "astropy/config/*" = []
 "astropy/constants/*" = []
 "astropy/convolution/*" = ["I001"]
-"astropy/coordinates/*" = ["I001", "C408"]
+"astropy/coordinates/*" = ["C408"]
 "astropy/cosmology/*" = ["C408"]
 "astropy/io/*" = [
     "B015",
