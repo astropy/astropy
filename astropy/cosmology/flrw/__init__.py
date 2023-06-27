@@ -1,19 +1,30 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Astropy FLRW classes."""
 
-from . import base, lambdacdm, w0cdm, w0wacdm, w0wzcdm, wpwazpcdm
-from .base import *
-from .lambdacdm import *
-from .w0cdm import *
-from .w0wacdm import *
-from .w0wzcdm import *
-from .wpwazpcdm import *
+__all__ = [
+    # base
+    "FLRW",
+    "FlatFLRWMixin",
+    # lambdacdm
+    "LambdaCDM",
+    "FlatLambdaCDM",
+    # w0cdm
+    "wCDM",
+    "FlatwCDM",
+    # w0wacdm
+    "w0waCDM",
+    "Flatw0waCDM",
+    # w0wzcdm
+    "w0wzCDM",
+    "Flatw0wzCDM",
+    # wpwazpcdm
+    "wpwaCDM",
+    "FlatwpwaCDM",
+]
 
-__all__ = (
-    base.__all__
-    + lambdacdm.__all__
-    + w0cdm.__all__
-    + w0wacdm.__all__
-    + wpwazpcdm.__all__
-    + w0wzcdm.__all__
-)
+from .base import FLRW, FlatFLRWMixin
+from .lambdacdm import FlatLambdaCDM, LambdaCDM
+from .w0cdm import FlatwCDM, wCDM
+from .w0wacdm import Flatw0waCDM, w0waCDM
+from .w0wzcdm import Flatw0wzCDM, w0wzCDM
+from .wpwazpcdm import FlatwpwaCDM, wpwaCDM
