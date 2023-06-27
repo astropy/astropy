@@ -25,23 +25,30 @@ from .test_parameter import ParameterTestMixin
 # SETUP / TEARDOWN
 
 
-scalar_zs = [
-    0,
-    1,
-    1100,  # interesting times
-    # FIXME! np.inf breaks some funcs. 0 * inf is an error
-    np.float64(3300),  # different type
-    2 * cu.redshift,
-    3 * u.one,  # compatible units
-]
-_zarr = np.linspace(0, 1e5, num=20)
-array_zs = [
-    _zarr,  # numpy
-    _zarr.tolist(),  # pure python
-    Column(_zarr),  # table-like
-    _zarr * cu.redshift,  # Quantity
-]
-valid_zs = scalar_zs + array_zs
+def make_valid_zs(max_z: float = 1e5):
+    """Make a list of valid redshifts for testing."""
+    # scalar
+    scalar_zs = [
+        0,
+        1,
+        min(1100, max_z),  # interesting times
+        # FIXME! np.inf breaks some funcs. 0 * inf is an error
+        np.float64(min(3300, max_z)),  # different type
+        2 * cu.redshift,
+        3 * u.one,  # compatible units
+    ]
+    # array
+    _zarr = np.linspace(0, min(1e5, max_z), num=20)
+    array_zs = [
+        _zarr,  # numpy
+        _zarr.tolist(),  # pure python
+        Column(_zarr),  # table-like
+        _zarr * cu.redshift,  # Quantity
+    ]
+    return scalar_zs, _zarr, array_zs, scalar_zs + array_zs
+
+
+scalar_zs, z_arr, array_zs, valid_zs = make_valid_zs()
 
 invalid_zs = [
     (None, TypeError),  # wrong type
