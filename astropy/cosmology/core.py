@@ -131,7 +131,8 @@ class Cosmology(metaclass=abc.ABCMeta):
         # -------------------
         # Registration
 
-        cls._register_cls()
+        if not inspect.isabstract(cls):  # skip abstract classes
+            cls._register_cls()
 
     @classproperty(lazy=True)
     def _init_signature(cls):
