@@ -75,12 +75,14 @@ class ToFromYAMLTestMixin(ToFromTestMixinBase):
 
     # ===============================================================
 
-    def test_to_yaml(self, cosmo, to_format, xfail_if_not_registered_with_yaml):
+    def test_to_yaml(self, cosmo_cls, to_format, xfail_if_not_registered_with_yaml):
         """Test cosmology -> YAML."""
         yml = to_format("yaml")
 
         assert isinstance(yml, str)  # test type
-        assert yml.startswith("!astropy.cosmology.")
+        assert yml.startswith("!" + ".".join(cosmo_cls.__module__.split(".")[:2]))
+        # e.g. "astropy.cosmology" for built-in cosmologies, or "__main__" for the test
+        # SubCosmology class defined in ``astropy.cosmology.tests.test_core``.
 
     def test_from_yaml_default(
         self, cosmo, to_format, from_format, xfail_if_not_registered_with_yaml
