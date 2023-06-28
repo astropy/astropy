@@ -1,5 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+__all__ = [  # noqa: F822 (undefined name)
+    "available",
+    "default_cosmology",
+    # Realizations (dynamic attribute, see __getattr__)
+    "WMAP1",
+    "WMAP3",
+    "WMAP5",
+    "WMAP7",
+    "WMAP9",
+    "Planck13",
+    "Planck15",
+    "Planck18",
+]
+
 # STDLIB
 import pathlib
 import sys
@@ -13,15 +27,21 @@ from astropy.utils.state import ScienceState
 from . import _io  # Ensure IO methods are registered, to read realizations # noqa: F401
 from .core import Cosmology
 
+__doctest_requires__ = {"*": ["scipy"]}
+
 _COSMOLOGY_DATA_DIR = pathlib.Path(
     get_pkg_data_path("cosmology", "data", package="astropy")
 )
-available = tuple(sorted(p.stem for p in _COSMOLOGY_DATA_DIR.glob("*.ecsv")))
-
-
-__all__ = ["available", "default_cosmology"] + list(available)
-
-__doctest_requires__ = {"*": ["scipy"]}
+available = (
+    "WMAP1",
+    "WMAP3",
+    "WMAP5",
+    "WMAP7",
+    "WMAP9",
+    "Planck13",
+    "Planck15",
+    "Planck18",
+)
 
 
 def __getattr__(name):
