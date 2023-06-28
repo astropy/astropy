@@ -5,6 +5,8 @@ build:
   tools:
     python: "mambaforge-4.10"
   jobs:
+    post_checkout:
+      - git fetch --unshallow  || true
     pre_install:
       - git update-index --assume-unchanged docs/conf.py docs/rtd_environment.yaml
 
