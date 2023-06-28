@@ -37,6 +37,7 @@ from astropy.io.fits.fitsrec import FITS_rec, _get_recarray_field, _has_unicode_
 from astropy.io.fits.header import Header, _pad_length
 from astropy.io.fits.util import _is_int, _str_to_num, path_like
 from astropy.utils import lazyproperty
+from astropy.utils.decorators import deprecated
 
 from .base import DELAYED, ExtensionHDU, _ValidHDU
 
@@ -359,7 +360,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
                 self.columns = self.data._coldefs
                 self.columns._add_listener(self.data)
-                self.update()
+                self.update_header()
 
                 with suppress(TypeError, AttributeError):
                     # Make the ndarrays in the Column objects of the ColDefs
@@ -448,7 +449,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
             self.columns = self.data.columns
             self.columns._add_listener(self.data)
-            self.update()
+            self.update_header()
 
             with suppress(TypeError, AttributeError):
                 # Make the ndarrays in the Column objects of the ColDefs
@@ -481,10 +482,11 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         size = self._header["NAXIS1"] * self._header["NAXIS2"]
         return self._header.get("THEAP", size)
 
-    # TODO: Need to either rename this to update_header, for symmetry with the
-    # Image HDUs, or just at some point deprecate it and remove it altogether,
-    # since header updates should occur automatically when necessary...
+    @deprecated("v6.0", alternative="update_header")
     def update(self):
+        self.update_header()
+
+    def update_header(self):
         """
         Update header keywords to reflect recent changes of columns.
         """
