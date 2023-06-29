@@ -609,22 +609,29 @@ class TestCutout2D:
 
 
 def test_cutout_section(tmp_path):
-
     # Make sure that one can pass ImageHDU.section and CompImageHDU.section
     # to Cutout2D
 
     data = np.ones((200, 200))
 
     hdu = fits.ImageHDU(data=data)
-    hdu.writeto(tmp_path / 'uncompressed.fits')
+    hdu.writeto(tmp_path / "uncompressed.fits")
 
-    with fits.open(tmp_path / 'uncompressed.fits') as hdul:
+    with fits.open(tmp_path / "uncompressed.fits") as hdul:
         header = hdul[1].header
-        c = Cutout2D(hdul[1].section, (75, 75), 100 * u.pix,)
+        c = Cutout2D(
+            hdul[1].section,
+            (75, 75),
+            100 * u.pix,
+        )
 
     chdu = fits.CompImageHDU(data=data)
-    chdu.writeto(tmp_path / 'compressed.fits')
+    chdu.writeto(tmp_path / "compressed.fits")
 
-    with fits.open(tmp_path / 'compressed.fits') as hdul:
+    with fits.open(tmp_path / "compressed.fits") as hdul:
         header = hdul[1].header
-        c = Cutout2D(hdul[1].section, (75, 75), 100 * u.pix,)
+        c = Cutout2D(
+            hdul[1].section,
+            (75, 75),
+            100 * u.pix,
+        )
