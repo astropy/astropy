@@ -1142,7 +1142,7 @@ class PrimaryHDU(_ImageBaseHDU):
         # keyword to be True/False, have to check the value
         return (
             card.keyword == "SIMPLE"
-            and ("GROUPS" not in header or header["GROUPS"] != True)  # noqa: E712
+            and ("GROUPS" not in header or header["GROUPS"] is not True)
             and card.value
         )
 

@@ -1,0 +1,2 @@
+Fix crash when a PrimaryHDU has a GROUPS keyword with a non-boolean value (i.e.
+not a random-groups HDU).
