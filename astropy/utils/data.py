@@ -1035,9 +1035,9 @@ def get_pkg_data_path(*path, package=None):
             filename = os.path.basename(path[-1])
             if filename in _IERS_DATA_REDIRECTS:
                 warn(
-                    f"Accessing {filename} in this way is deprecated, "
+                    f"Accessing {filename} in this way is deprecated in v6.0, "
                     f"use astropy.utils.iers.{_IERS_DATA_REDIRECTS[filename][0]} "
-                    "instead",
+                    "instead.",
                     AstropyDeprecationWarning,
                 )
                 return _IERS_DATA_REDIRECTS[filename][1]
