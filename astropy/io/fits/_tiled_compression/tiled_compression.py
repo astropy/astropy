@@ -203,7 +203,7 @@ def _check_compressed_header(header):
             if not np.isreal(header[kw]) or not float(header[kw]).is_integer():
                 raise TypeError(f"{kw} should be an integer")
 
-    for suffix in range(1, 10):
+    for suffix in range(1, header['TFIELDS'] + 1):
         if header.get(f"TTYPE{suffix}", "").endswith("COMPRESSED_DATA"):
             for valid in ["PB", "PI", "PJ", "QB", "QI", "QJ"]:
                 if header[f"TFORM{suffix}"].startswith((valid, f"1{valid}")):
