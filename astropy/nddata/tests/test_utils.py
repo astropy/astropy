@@ -618,7 +618,6 @@ def test_cutout_section(tmp_path):
     hdu.writeto(tmp_path / "uncompressed.fits")
 
     with fits.open(tmp_path / "uncompressed.fits") as hdul:
-        header = hdul[1].header
         c = Cutout2D(
             hdul[1].section,
             (75, 75),
@@ -629,7 +628,6 @@ def test_cutout_section(tmp_path):
     chdu.writeto(tmp_path / "compressed.fits")
 
     with fits.open(tmp_path / "compressed.fits") as hdul:
-        header = hdul[1].header
         c = Cutout2D(
             hdul[1].section,
             (75, 75),
