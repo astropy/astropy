@@ -7,6 +7,7 @@ from packaging.version import Version
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
+from astropy.io import fits
 from astropy.nddata import (
     CCDData,
     Cutout2D,
@@ -605,3 +606,30 @@ class TestCutout2D:
         )
         assert_quantity_allclose(skycoord_original.ra, skycoord_cutout.ra)
         assert_quantity_allclose(skycoord_original.dec, skycoord_cutout.dec)
+
+
+def test_cutout_section(tmp_path):
+    # Make sure that one can pass ImageHDU.section and CompImageHDU.section
+    # to Cutout2D
+
+    data = np.ones((200, 200))
+
+    hdu = fits.ImageHDU(data=data)
+    hdu.writeto(tmp_path / "uncompressed.fits")
+
+    with fits.open(tmp_path / "uncompressed.fits") as hdul:
+        c = Cutout2D(
+            hdul[1].section,
+            (75, 75),
+            100 * u.pix,
+        )
+
+    chdu = fits.CompImageHDU(data=data)
+    chdu.writeto(tmp_path / "compressed.fits")
+
+    with fits.open(tmp_path / "compressed.fits") as hdul:
+        c = Cutout2D(
+            hdul[1].section,
+            (75, 75),
+            100 * u.pix,
+        )
