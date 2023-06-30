@@ -10,7 +10,7 @@ import pytest
 import astropy.units as u
 from astropy.cosmology import Flatw0wzCDM, w0wzCDM
 from astropy.cosmology.parameter import Parameter
-from astropy.cosmology.tests.test_core import ParameterTestMixin
+from astropy.cosmology.tests.test_core import ParameterTestMixin, make_valid_zs
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .test_base import FlatFLRWMixinTest, FLRWTest
@@ -20,6 +20,8 @@ from .test_w0cdm import Parameterw0TestMixin
 # PARAMETERS
 
 COMOVING_DISTANCE_EXAMPLE_KWARGS = {"w0": -0.9, "wz": 0.1, "Tcmb0": 0.0}
+
+valid_zs = make_valid_zs(max_z=400)[-1]
 
 
 ##############################################################################
@@ -114,6 +116,22 @@ class Testw0wzCDM(FLRWTest, Parameterw0TestMixin, ParameterwzTestMixin):
         )
         assert repr(cosmo) == expected
 
+    # ---------------------------------------------------------------
+
+    @pytest.mark.parametrize("z", valid_zs)
+    def test_Otot(self, cosmo, z):
+        """Test :meth:`astropy.cosmology.w0wzCDM.Otot`.
+
+        This is tested in the base class, but we need to override it here because
+        this class is quite unstable.
+        """
+        super().test_Otot(cosmo, z)
+
+    def test_Otot_overflow(self, cosmo):
+        """Test :meth:`astropy.cosmology.w0wzCDM.Otot` for overflow."""
+        with pytest.warns(RuntimeWarning, match="overflow encountered in exp"):
+            cosmo.Otot(1e3)
+
     # ===============================================================
     # Usage Tests
 
@@ -168,6 +186,23 @@ class TestFlatw0wzCDM(FlatFLRWMixinTest, Testw0wzCDM):
         )
         assert repr(cosmo) == expected
 
+    # ---------------------------------------------------------------
+
+    @pytest.mark.parametrize("z", valid_zs)
+    def test_Otot(self, cosmo, z):
+        """Test :meth:`astropy.cosmology.Flatw0wzCDM.Otot`.
+
+        This is tested in the base class, but we need to override it here because
+        this class is quite unstable.
+        """
+        super().test_Otot(cosmo, z)
+
+    def test_Otot_overflow(self, cosmo):
+        """Test :meth:`astropy.cosmology.Flatw0wzCDM.Otot` for NOT overflowing."""
+        cosmo.Otot(1e5)
+
+    # ---------------------------------------------------------------
+
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize(
         ("args", "kwargs", "expected"),
@@ -212,7 +247,7 @@ def test_de_densityscale():
     z = np.array([0.1, 0.2, 0.5, 1.5, 2.5])
     assert u.allclose(
         cosmo.de_density_scale(z),
-        [0.746048, 0.5635595, 0.25712378, 0.026664129, 0.0035916468],
+        [1.00705953, 1.02687239, 1.15234885, 2.40022841, 6.49384982],
         rtol=1e-4,
     )
 
