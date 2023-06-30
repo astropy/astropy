@@ -2016,19 +2016,23 @@ class TestCompressedImage(FitsTestCase):
         data = np.zeros((3, 4, 5))
 
         hdu1 = fits.CompImageHDU(data=data)
-        hdu1.writeto(tmp_path / 'compressed.fits')
+        hdu1.writeto(tmp_path / "compressed.fits")
 
-        with fits.open(tmp_path / 'compressed.fits', disable_image_compression=True, mode='update') as hdul:
-            assert hdul[1].header['TFORM1'] == '1PB(0)'
-            assert hdul[1].header['TFORM2'] == '1PB(24)'
-            hdul[1].header['TFORM1'] = 'PB(0)'
-            hdul[1].header['TFORM2'] = 'PB(24)'
+        with fits.open(
+            tmp_path / "compressed.fits", disable_image_compression=True, mode="update"
+        ) as hdul:
+            assert hdul[1].header["TFORM1"] == "1PB(0)"
+            assert hdul[1].header["TFORM2"] == "1PB(24)"
+            hdul[1].header["TFORM1"] = "PB(0)"
+            hdul[1].header["TFORM2"] = "PB(24)"
 
-        with fits.open(tmp_path / 'compressed.fits', disable_image_compression=True) as hdul:
-            assert hdul[1].header['TFORM1'] == 'PB(0)'
-            assert hdul[1].header['TFORM2'] == 'PB(24)'
+        with fits.open(
+            tmp_path / "compressed.fits", disable_image_compression=True
+        ) as hdul:
+            assert hdul[1].header["TFORM1"] == "PB(0)"
+            assert hdul[1].header["TFORM2"] == "PB(24)"
 
-        with fits.open(tmp_path / 'compressed.fits') as hdul:
+        with fits.open(tmp_path / "compressed.fits") as hdul:
             assert_equal(hdul[1].data, data)
 
 
