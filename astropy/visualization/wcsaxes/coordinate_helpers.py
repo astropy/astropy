@@ -23,9 +23,9 @@ from .frame import EllipticalFrame, RectangularFrame1D
 from .grid_paths import get_gridline_path, get_lon_lat_path
 from .ticklabels import TickLabels
 from .ticks import Ticks
+from .utils import MATPLOTLIB_LT_3_8
 
 __all__ = ["CoordinateHelper"]
-
 
 # Matplotlib's gridlines use Line2D, but ours use PathPatch.
 # Patches take a slightly different format of linestyle argument.
@@ -618,9 +618,13 @@ class CoordinateHelper:
                     p.draw(renderer)
 
             elif self._grid is not None:
-                for line in self._grid.collections:
-                    line.set(**self.grid_lines_kwargs)
-                    line.draw(renderer)
+                if MATPLOTLIB_LT_3_8:
+                    for line in self._grid.collections:
+                        line.set(**self.grid_lines_kwargs)
+                        line.draw(renderer)
+                else:
+                    self._grid.set(**self.grid_lines_kwargs)
+                    self._grid.draw(renderer)
 
         renderer.close_group("grid lines")
 
@@ -1123,8 +1127,11 @@ class CoordinateHelper:
 
     def _clear_grid_contour(self):
         if hasattr(self, "_grid") and self._grid:
-            for line in self._grid.collections:
-                line.remove()
+            if MATPLOTLIB_LT_3_8:
+                for line in self._grid.collections:
+                    line.remove()
+            else:
+                self._grid.remove()
 
     def _update_grid_contour(self):
         if self.coord_index is None:
