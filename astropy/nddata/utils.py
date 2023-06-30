@@ -10,6 +10,7 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io.fits.hdu.image import Section
+from astropy.io.fits.hdu.compressed import CompImageSection
 from astropy.utils import lazyproperty
 from astropy.wcs import Sip
 from astropy.wcs.utils import proj_plane_pixel_scales, skycoord_to_pixel
@@ -591,7 +592,9 @@ class Cutout2D:
                         "shape can contain Quantities with only pixel or angular units"
                     )
 
-        if not isinstance(data, Section):  # Accept lazy-loaded image sections
+        if not isinstance(
+            data, (Section, CompImageSection)
+        ):  # Accept lazy-loaded image sections
             data = np.asanyarray(data)
         # reverse position because extract_array and overlap_slices
         # use (y, x), but keep the input position
