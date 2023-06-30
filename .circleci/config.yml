@@ -33,7 +33,7 @@ jobs:
             chmod +x codecov
             ./codecov -t ${CODECOV_TOKEN} -f coverage.xml
       - store_artifacts:
-          path: results
+          path: .tmp/<< parameters.jobname >>/figure_test_images
       - run:
           name: "Image comparison page is available at: "
           command: echo "${CIRCLE_BUILD_URL}/artifacts/${CIRCLE_NODE_INDEX}/results/fig_comparison.html"
