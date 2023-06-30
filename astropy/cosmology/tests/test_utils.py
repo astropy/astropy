@@ -13,7 +13,7 @@ from astropy.cosmology.utils import (
 )
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
-from .test_core import _zarr, invalid_zs, valid_zs
+from .test_core import invalid_zs, valid_zs, z_arr
 
 
 def test_vectorize_redshift_method():
@@ -93,7 +93,7 @@ class Test_aszarr:
         list(
             zip(
                 valid_zs,
-                [0, 1, 1100, np.float64(3300), 2.0, 3.0, _zarr, _zarr, _zarr, _zarr],
+                [0, 1, 1100, np.float64(3300), 2.0, 3.0, z_arr, z_arr, z_arr, z_arr],
             )
         ),
     )
