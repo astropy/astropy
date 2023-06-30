@@ -3378,16 +3378,21 @@ class w0wzCDM(FLRW):
             The scaling of the energy density of dark energy with redshift.
             Returns `float` if the input is scalar.
 
+        References
+        ----------
+        .. [1] Linder, E. (2003). Exploring the Expansion History of the Universe.
+               Physics Review Letters, 90(9), 091301.
+
         Notes
         -----
         The scaling factor, I, is defined by :math:`\rho(z) = \rho_0 I`,
-        and in this case is given by
+        and in this case is given by ([1]_)
 
         .. math::
 
            I = \left(1 + z\right)^{3 \left(1 + w_0 - w_z\right)}
-                     \exp \left(-3 w_z z\right)
+                     \exp \left(3 w_z z\right)
         """
         z = aszarr(z)
         zp1 = z + 1.0  # (converts z [unit] -> z [dimensionless])
-        return zp1 ** (3.0 * (1.0 + self._w0 - self._wz)) * np.exp(-3.0 * self._wz * z)
+        return zp1 ** (3.0 * (1.0 + self._w0 - self._wz)) * np.exp(3.0 * self._wz * z)
