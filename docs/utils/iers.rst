@@ -33,9 +33,9 @@ There are two IERS data products that we discuss here:
   Earth's orientation in the IERS Reference System including Universal Time,
   coordinates of the terrestrial pole, and celestial pole offsets.
 
-Recent versions of both files are provided by the `astropy-iers-data
+Since ``astropy`` v6.0, both files are provided by the `astropy-iers-data
 <https://github.com/astropy/astropy-iers-data>`_ package, which is automatically
-installed when astropy itself is installed.
+installed when ``astropy`` itself is installed.
 
 Getting started
 ===============
@@ -154,7 +154,7 @@ that require IERS data, there are a couple of options.
 **Ensure astropy-iers-data is up to date**
 
 If you are planning to work without an internet connection, we recommend updating
-the astropy-iers-data package to the latest available version, using e.g. ``pip``
+the astropy-iers-data package to the latest available version, using e.g., ``pip``
 or ``conda``, as this will ensure that you have the most recent IERS and leap
 second data.
 

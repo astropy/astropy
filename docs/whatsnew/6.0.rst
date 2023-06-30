@@ -114,8 +114,8 @@ Updates to how IERS data are handled
 
 Some parts of astropy, such as coordinate and time transformations, rely on
 tables from the International Earth Rotation and Reference Systems (IERS)
-service (these are the IERS A, IERS B, and leap second tables). IERS A used
-to always be automatically downloaded, whereas the IERS B and leap second
+service (these are the IERS-A, IERS-B, and leap second tables). IERS-A used
+to always be automatically downloaded, whereas the IERS-B and leap second
 tables were bundled with astropy. All tables are now bundled in the standalone
 `astropy-iers-data <https://github.com/astropy/astropy-iers-data>`_ package
 which is regularly updated and installed automatically when astropy is
