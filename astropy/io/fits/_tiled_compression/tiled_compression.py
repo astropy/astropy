@@ -203,12 +203,13 @@ def _check_compressed_header(header):
             if not np.isreal(header[kw]) or not float(header[kw]).is_integer():
                 raise TypeError(f"{kw} should be an integer")
 
-    if "TFORM1" in header:
-        for valid in ["1PB", "1PI", "1PJ", "1QB", "1QI", "1QJ"]:
-            if header["TFORM1"].startswith(valid):
-                break
-        else:
-            raise RuntimeError(f"Invalid TFORM1: {header['TFORM1']}")
+    for suffix in range(1, 10):
+        if header.get(f"TTYPE{suffix}", "").endswith('COMPRESSED_DATA'):
+            for valid in ["PB", "PI", "PJ", "QB", "QI", "QJ"]:
+                if header[f"TFORM{suffix}"].startswith((valid, f'1{valid}')):
+                    break
+            else:
+                raise RuntimeError(f"Invalid TFORM{suffix}: {header[f'TFORM{suffix}']}")
 
     # Check values
 
@@ -253,11 +254,13 @@ def _get_compression_setting(header, name, default):
 
 def _column_dtype(compressed_coldefs, column_name):
     tform = compressed_coldefs[column_name].format
-    if tform[2] == "B":
+    if tform.startswith('1'):
+        tform = tform[1:]
+    if tform[1] == "B":
         dtype = np.uint8
-    elif tform[2] == "I":
+    elif tform[1] == "I":
         dtype = ">i2"
-    elif tform[2] == "J":
+    elif tform[1] == "J":
         dtype = ">i4"
     return np.dtype(dtype)
 

@@ -1,0 +1,1 @@
+Fixed a bug that caused compressed images with TFORM missing the optional '1' prefix to not be readable.
