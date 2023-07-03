@@ -226,16 +226,15 @@ class TransformGraph:
             check to ensure the correct object is removed.
         """
         if fromsys is None or tosys is None:
-            if not (tosys is None and fromsys is None):
+            if tosys is not fromsys:
                 raise ValueError("fromsys and tosys must both be None if either are")
             if transform is None:
                 raise ValueError("cannot give all Nones to remove_transform")
 
             # search for the requested transform by brute force and remove it
-            for a in self._graph:
-                agraph = self._graph[a]
-                for b in agraph:
-                    if agraph[b] is transform:
+            for a, agraph in self._graph.items():
+                for b, bgraph in agraph.items():
+                    if bgraph is transform:
                         del agraph[b]
                         fromsys = a
                         break
@@ -246,18 +245,12 @@ class TransformGraph:
             else:
                 raise ValueError(f"Could not find transform {transform} in the graph")
 
+        elif transform is None or self._graph[fromsys].get(tosys, None) is transform:
+            self._graph[fromsys].pop(tosys, None)
         else:
-            if transform is None:
-                self._graph[fromsys].pop(tosys, None)
-            else:
-                curr = self._graph[fromsys].get(tosys, None)
-                if curr is transform:
-                    self._graph[fromsys].pop(tosys)
-                else:
-                    raise ValueError(
-                        f"Current transform from {fromsys} to {tosys} is not"
-                        f" {transform}"
-                    )
+            raise ValueError(
+                f"Current transform from {fromsys} to {tosys} is not {transform}"
+            )
 
         # Remove the subgraph if it is now empty
         if self._graph[fromsys] == {}:
@@ -291,25 +284,20 @@ class TransformGraph:
         inf = float("inf")
 
         # special-case the 0 or 1-path
-        if tosys is fromsys:
-            if tosys not in self._graph[fromsys]:
-                # Means there's no transform necessary to go from it to itself.
-                return [tosys], 0
+        if tosys is fromsys and tosys not in self._graph[fromsys]:
+            # Means there's no transform necessary to go from it to itself.
+            return [tosys], 0
         if tosys in self._graph[fromsys]:
             # this will also catch the case where tosys is fromsys, but has
             # a defined transform.
             t = self._graph[fromsys][tosys]
-            return [fromsys, tosys], float(t.priority if hasattr(t, "priority") else 1)
+            return [fromsys, tosys], float(getattr(t, "priority", 1))
 
         # otherwise, need to construct the path:
 
         if fromsys in self._shortestpaths:
             # already have a cached result
-            fpaths = self._shortestpaths[fromsys]
-            if tosys in fpaths:
-                return fpaths[tosys]
-            else:
-                return None, inf
+            return self._shortestpaths[fromsys].get(tosys, (None, inf))
 
         # use Dijkstra's algorithm to find shortest path in all other cases
 
@@ -330,24 +318,21 @@ class TransformGraph:
         edgeweights = {}
         # construct another graph that is a dict of dicts of priorities
         # (used as edge weights in Dijkstra's algorithm)
-        for a in self._graph:
-            edgeweights[a] = aew = {}
-            agraph = self._graph[a]
-            for b in agraph:
-                aew[b] = float(getattr(agraph[b], "priority", 1))
+        for a, graph in self._graph.items():
+            edgeweights[a] = {b: float(getattr(graph[b], "priority", 1)) for b in graph}
 
         # entries in q are [distance, count, nodeobj, pathlist]
         # count is needed because in py 3.x, tie-breaking fails on the nodes.
         # this way, insertion order is preserved if the weights are the same
-        q = [[inf, i, n, []] for i, n in enumerate(nodes) if n is not fromsys]
-        q.insert(0, [0, -1, fromsys, []])
+        q = [[0, -1, fromsys, []]]
+        q.extend([inf, i, n, []] for i, n in enumerate(nodes) if n is not fromsys)
 
         # this dict will store the distance to node from ``fromsys`` and the path
         result = {}
 
         # definitely starts as a valid heap because of the insert line; from the
         # node to itself is always the shortest distance
-        while len(q) > 0:
+        while q:
             d, orderi, n, path = heapq.heappop(q)
 
             if d == inf:
@@ -357,28 +342,23 @@ class TransformGraph:
                 for d, orderi, n, path in q:
                     result[n] = (None, d)
                 break
-            else:
-                result[n] = (path, d)
-                path.append(n)
-                if n not in edgeweights:
-                    # this is a system that can be transformed to, but not from.
-                    continue
-                for n2 in edgeweights[n]:
-                    if n2 not in result:  # already visited
-                        # find where n2 is in the heap
-                        for i in range(len(q)):
-                            if q[i][2] == n2:
-                                break
-                        else:
-                            raise ValueError(
-                                "n2 not in heap - this should be impossible!"
-                            )
-
-                        newd = d + edgeweights[n][n2]
-                        if newd < q[i][0]:
-                            q[i][0] = newd
-                            q[i][3] = list(path)
-                            heapq.heapify(q)
+            result[n] = (path, d)
+            path.append(n)
+            if n not in edgeweights:
+                # this is a system that can be transformed to, but not from.
+                continue
+            for n2 in edgeweights[n]:
+                if n2 not in result:  # already visited
+                    # find where n2 is in the heap
+                    for q_elem in q:
+                        if q_elem[2] == n2:
+                            if (newd := d + edgeweights[n][n2]) < q_elem[0]:
+                                q_elem[0] = newd
+                                q_elem[3] = list(path)
+                                heapq.heapify(q)
+                            break
+                    else:
+                        raise ValueError("n2 not in heap - this should be impossible!")
 
         # cache for later use
         self._shortestpaths[fromsys] = result
@@ -536,11 +516,9 @@ class TransformGraph:
 
         edgenames = []
         # Now the edges
-        for a in self._graph:
-            agraph = self._graph[a]
-            for b in agraph:
-                transform = agraph[b]
-                pri = transform.priority if hasattr(transform, "priority") else 1
+        for a, agraph in self._graph.items():
+            for b, transform in agraph.items():
+                pri = getattr(transform, "priority", 1)
                 color = trans_to_color[transform.__class__] if color_edges else "black"
                 edgenames.append((a.__name__, b.__name__, pri, color))
 
@@ -550,17 +528,10 @@ class TransformGraph:
         lines.append("; ".join(nodenames) + ";")
         for enm1, enm2, weights, color in edgenames:
             labelstr_fmt = "[ {0} {1} ]"
-
-            if priorities:
-                priority_part = f'label = "{weights}"'
-            else:
-                priority_part = ""
-
+            priority_part = f'label = "{weights}"' if priorities else ""
             color_part = f'color = "{color}"'
-
             labelstr = labelstr_fmt.format(priority_part, color_part)
             lines.append(f"{enm1} -> {enm2}{labelstr};")
-
         lines.append("")
         lines.append("overlap=false")
         lines.append("}")
@@ -1044,99 +1015,90 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
         from .representation import CartesianDifferential, CartesianRepresentation
 
         supcall = self.func
-        if fromcoord.data.differentials:
-            # this is the finite difference case
-
-            if callable(self.finite_difference_dt):
-                dt = self.finite_difference_dt(fromcoord, toframe)
-            else:
-                dt = self.finite_difference_dt
-            halfdt = dt / 2
-
-            from_diffless = fromcoord.realize_frame(
-                fromcoord.data.without_differentials()
-            )
-            reprwithoutdiff = supcall(from_diffless, toframe)
-
-            # first we use the existing differential to compute an offset due to
-            # the already-existing velocity, but in the new frame
-            fromcoord_cart = fromcoord.cartesian
-            if self.symmetric_finite_difference:
-                fwdxyz = (
-                    fromcoord_cart.xyz
-                    + fromcoord_cart.differentials["s"].d_xyz * halfdt
-                )
-                fwd = supcall(
-                    fromcoord.realize_frame(CartesianRepresentation(fwdxyz)), toframe
-                )
-                backxyz = (
-                    fromcoord_cart.xyz
-                    - fromcoord_cart.differentials["s"].d_xyz * halfdt
-                )
-                back = supcall(
-                    fromcoord.realize_frame(CartesianRepresentation(backxyz)), toframe
-                )
-            else:
-                fwdxyz = (
-                    fromcoord_cart.xyz + fromcoord_cart.differentials["s"].d_xyz * dt
-                )
-                fwd = supcall(
-                    fromcoord.realize_frame(CartesianRepresentation(fwdxyz)), toframe
-                )
-                back = reprwithoutdiff
-            diffxyz = (fwd.cartesian - back.cartesian).xyz / dt
-
-            # now we compute the "induced" velocities due to any movement in
-            # the frame itself over time
-            attrname = self.finite_difference_frameattr_name
-            if attrname is not None:
-                if self.symmetric_finite_difference:
-                    if self._diff_attr_in_fromsys:
-                        kws = {attrname: getattr(from_diffless, attrname) + halfdt}
-                        from_diffless_fwd = from_diffless.replicate(**kws)
-                    else:
-                        from_diffless_fwd = from_diffless
-                    if self._diff_attr_in_tosys:
-                        kws = {attrname: getattr(toframe, attrname) + halfdt}
-                        fwd_frame = toframe.replicate_without_data(**kws)
-                    else:
-                        fwd_frame = toframe
-                    fwd = supcall(from_diffless_fwd, fwd_frame)
-
-                    if self._diff_attr_in_fromsys:
-                        kws = {attrname: getattr(from_diffless, attrname) - halfdt}
-                        from_diffless_back = from_diffless.replicate(**kws)
-                    else:
-                        from_diffless_back = from_diffless
-                    if self._diff_attr_in_tosys:
-                        kws = {attrname: getattr(toframe, attrname) - halfdt}
-                        back_frame = toframe.replicate_without_data(**kws)
-                    else:
-                        back_frame = toframe
-                    back = supcall(from_diffless_back, back_frame)
-                else:
-                    if self._diff_attr_in_fromsys:
-                        kws = {attrname: getattr(from_diffless, attrname) + dt}
-                        from_diffless_fwd = from_diffless.replicate(**kws)
-                    else:
-                        from_diffless_fwd = from_diffless
-                    if self._diff_attr_in_tosys:
-                        kws = {attrname: getattr(toframe, attrname) + dt}
-                        fwd_frame = toframe.replicate_without_data(**kws)
-                    else:
-                        fwd_frame = toframe
-                    fwd = supcall(from_diffless_fwd, fwd_frame)
-                    back = reprwithoutdiff
-
-                diffxyz += (fwd.cartesian - back.cartesian).xyz / dt
-
-            newdiff = CartesianDifferential(diffxyz)
-            reprwithdiff = reprwithoutdiff.data.to_cartesian().with_differentials(
-                newdiff
-            )
-            return reprwithoutdiff.realize_frame(reprwithdiff)
-        else:
+        if not fromcoord.data.differentials:
             return supcall(fromcoord, toframe)
+        # this is the finite difference case
+
+        if callable(self.finite_difference_dt):
+            dt = self.finite_difference_dt(fromcoord, toframe)
+        else:
+            dt = self.finite_difference_dt
+        halfdt = dt / 2
+
+        from_diffless = fromcoord.realize_frame(fromcoord.data.without_differentials())
+        reprwithoutdiff = supcall(from_diffless, toframe)
+
+        # first we use the existing differential to compute an offset due to
+        # the already-existing velocity, but in the new frame
+        fromcoord_cart = fromcoord.cartesian
+        if self.symmetric_finite_difference:
+            fwdxyz = (
+                fromcoord_cart.xyz + fromcoord_cart.differentials["s"].d_xyz * halfdt
+            )
+            fwd = supcall(
+                fromcoord.realize_frame(CartesianRepresentation(fwdxyz)), toframe
+            )
+            backxyz = (
+                fromcoord_cart.xyz - fromcoord_cart.differentials["s"].d_xyz * halfdt
+            )
+            back = supcall(
+                fromcoord.realize_frame(CartesianRepresentation(backxyz)), toframe
+            )
+        else:
+            fwdxyz = fromcoord_cart.xyz + fromcoord_cart.differentials["s"].d_xyz * dt
+            fwd = supcall(
+                fromcoord.realize_frame(CartesianRepresentation(fwdxyz)), toframe
+            )
+            back = reprwithoutdiff
+        diffxyz = (fwd.cartesian - back.cartesian).xyz / dt
+
+        # now we compute the "induced" velocities due to any movement in
+        # the frame itself over time
+        attrname = self.finite_difference_frameattr_name
+        if attrname is not None:
+            if self.symmetric_finite_difference:
+                if self._diff_attr_in_fromsys:
+                    kws = {attrname: getattr(from_diffless, attrname) + halfdt}
+                    from_diffless_fwd = from_diffless.replicate(**kws)
+                else:
+                    from_diffless_fwd = from_diffless
+                if self._diff_attr_in_tosys:
+                    kws = {attrname: getattr(toframe, attrname) + halfdt}
+                    fwd_frame = toframe.replicate_without_data(**kws)
+                else:
+                    fwd_frame = toframe
+                fwd = supcall(from_diffless_fwd, fwd_frame)
+
+                if self._diff_attr_in_fromsys:
+                    kws = {attrname: getattr(from_diffless, attrname) - halfdt}
+                    from_diffless_back = from_diffless.replicate(**kws)
+                else:
+                    from_diffless_back = from_diffless
+                if self._diff_attr_in_tosys:
+                    kws = {attrname: getattr(toframe, attrname) - halfdt}
+                    back_frame = toframe.replicate_without_data(**kws)
+                else:
+                    back_frame = toframe
+                back = supcall(from_diffless_back, back_frame)
+            else:
+                if self._diff_attr_in_fromsys:
+                    kws = {attrname: getattr(from_diffless, attrname) + dt}
+                    from_diffless_fwd = from_diffless.replicate(**kws)
+                else:
+                    from_diffless_fwd = from_diffless
+                if self._diff_attr_in_tosys:
+                    kws = {attrname: getattr(toframe, attrname) + dt}
+                    fwd_frame = toframe.replicate_without_data(**kws)
+                else:
+                    fwd_frame = toframe
+                fwd = supcall(from_diffless_fwd, fwd_frame)
+                back = reprwithoutdiff
+
+            diffxyz += (fwd.cartesian - back.cartesian).xyz / dt
+
+        newdiff = CartesianDifferential(diffxyz)
+        reprwithdiff = reprwithoutdiff.data.to_cartesian().with_differentials(newdiff)
+        return reprwithoutdiff.realize_frame(reprwithdiff)
 
 
 class BaseAffineTransform(CoordinateTransform):
@@ -1223,8 +1185,7 @@ class BaseAffineTransform(CoordinateTransform):
         if (
             has_velocity
             and isinstance(data, UnitSphericalRepresentation)
-            and not unit_vel_diff
-            and not rad_vel_diff
+            and not (unit_vel_diff or rad_vel_diff)
         ):
             # retrieve just velocity differential
             unit_diff = data.differentials["s"].represent_as(
@@ -1256,10 +1217,9 @@ class BaseAffineTransform(CoordinateTransform):
 
         # TODO: if we decide to allow arithmetic between representations that
         # contain differentials, this can be tidied up
+        newrep = rep.without_differentials()
         if offset is not None:
-            newrep = rep.without_differentials() + offset.without_differentials()
-        else:
-            newrep = rep.without_differentials()
+            newrep += offset.without_differentials()
 
         # We need a velocity (time derivative) and, for now, are strict: the
         # representation can only contain a velocity differential and no others.
@@ -1267,7 +1227,7 @@ class BaseAffineTransform(CoordinateTransform):
             veldiff = rep.differentials["s"]  # already in Cartesian form
 
             if offset is not None and "s" in offset.differentials:
-                veldiff = veldiff + offset.differentials["s"]
+                veldiff += offset.differentials["s"]
 
             newrep = newrep.with_differentials({"s": veldiff})
 
@@ -1287,9 +1247,7 @@ class BaseAffineTransform(CoordinateTransform):
                 kwargs = {comp: getattr(newdiff, comp) for comp in newdiff.components}
                 kwargs["d_distance"] = fromcoord.data.differentials["s"].d_distance
                 diffs = {
-                    "s": fromcoord.data.differentials["s"].__class__(
-                        copy=False, **kwargs
-                    )
+                    "s": type(fromcoord.data.differentials["s"])(copy=False, **kwargs)
                 }
 
             elif has_velocity and unit_vel_diff:
@@ -1301,8 +1259,7 @@ class BaseAffineTransform(CoordinateTransform):
             else:
                 diffs = newrep.differentials
 
-            newrep = newrep.represent_as(fromcoord.data.__class__)  # drops diffs
-            newrep = newrep.with_differentials(diffs)
+            newrep = newrep.represent_as(type(fromcoord.data)).with_differentials(diffs)
 
         elif has_velocity and unit_vel_diff:
             # Here, we're in the case where the representation is not
@@ -1316,9 +1273,8 @@ class BaseAffineTransform(CoordinateTransform):
 
             diff_cls = fromcoord.data.differentials["s"].__class__
             newrep = newrep.represent_as(
-                fromcoord.data.__class__, diff_cls._dimensional_differential
-            )
-            newrep = newrep.represent_as(fromcoord.data.__class__, diff_cls)
+                type(fromcoord.data), diff_cls._dimensional_differential
+            ).represent_as(type(fromcoord.data), diff_cls)
 
         # We pulled the radial differential off of the representation
         # earlier, so now we need to put it back. But, in order to do that, we
