@@ -194,13 +194,13 @@ def _skycoord_constructor(loader, node):
 # Straight from yaml's Representer
 def _complex_representer(self, data):
     if data.imag == 0.0:
-        data = f"{data.real!r}"
+        data = f"{data.real!s}"
     elif data.real == 0.0:
-        data = f"{data.imag!r}j"
+        data = f"{data.imag!s}j"
     elif data.imag > 0:
-        data = f"{data.real!r}+{data.imag!r}j"
+        data = f"{data.real!s}+{data.imag!s}j"
     else:
-        data = f"{data.real!r}{data.imag!r}j"
+        data = f"{data.real!s}{data.imag!s}j"
     return self.represent_scalar("tag:yaml.org,2002:python/complex", data)
 
 
