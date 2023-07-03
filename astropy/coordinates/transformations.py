@@ -301,14 +301,12 @@ class TransformGraph:
 
         # use Dijkstra's algorithm to find shortest path in all other cases
 
-        nodes = []
-        # first make the list of nodes
-        for a in self._graph:
-            if a not in nodes:
-                nodes.append(a)
-            for b in self._graph[a]:
-                if b not in nodes:
-                    nodes.append(b)
+        # We store nodes as `dict` keys because differently from `list` uniqueness is
+        # guaranteed and differently from `set` insertion order is preserved.
+        nodes = {}
+        for node, node_graph in self._graph.items():
+            nodes[node] = None
+            nodes |= {node: None for node in node_graph}
 
         if fromsys not in nodes or tosys not in nodes:
             # fromsys or tosys are isolated or not registered, so there's
@@ -489,17 +487,13 @@ class TransformGraph:
         dotgraph : str
             A string with the DOT format graph.
         """
-        nodes = []
-        # find the node names
-        for a in self._graph:
-            if a not in nodes:
-                nodes.append(a)
-            for b in self._graph[a]:
-                if b not in nodes:
-                    nodes.append(b)
-        for node in addnodes:
-            if node not in nodes:
-                nodes.append(node)
+        # We store nodes as `dict` keys because differently from `list` uniqueness is
+        # guaranteed and differently from `set` insertion order is preserved.
+        nodes = {}
+        for node, node_graph in self._graph.items():
+            nodes[node] = None
+            nodes |= {node: None for node in node_graph}
+        nodes |= {node: None for node in addnodes}
         nodenames = []
         invclsaliases = {
             f: [k for k, v in self._cached_names.items() if v == f]
