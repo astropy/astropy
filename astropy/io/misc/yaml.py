@@ -243,6 +243,28 @@ class AstropyDumper(yaml.SafeDumper):
     def _represent_tuple(self, data):
         return self.represent_sequence("tag:yaml.org,2002:python/tuple", data)
 
+    def represent_float(self, data):
+        # Override to change repr(data) to str(data) since otherwise all the
+        # numpy scalars fail in not NUMPY_LT_1_20.
+        if data != data or (data == 0.0 and data == 1.0):
+            value = ".nan"
+        elif data == self.inf_value:
+            value = ".inf"
+        elif data == -self.inf_value:
+            value = "-.inf"
+        else:
+            value = str(data).lower()
+            # Note that in some cases `repr(data)` represents a float number
+            # without the decimal parts.  For instance:
+            #   >>> repr(1e17)
+            #   '1e17'
+            # Unfortunately, this is not a valid float representation according
+            # to the definition of the `!!float` tag.  We fix this by adding
+            # '.0' before the 'e' symbol.
+            if "." not in value and "e" in value:
+                value = value.replace("e", ".0e", 1)
+        return self.represent_scalar("tag:yaml.org,2002:float", value)
+
 
 AstropyDumper.add_multi_representer(u.UnitBase, _unit_representer)
 AstropyDumper.add_multi_representer(u.FunctionUnitBase, _unit_representer)
@@ -273,9 +295,7 @@ for np_type in [
         np_type, yaml.representer.SafeRepresenter.represent_int
     )
 for np_type in [np.float16, np.float32, np.float64, np.longdouble]:
-    AstropyDumper.add_representer(
-        np_type, yaml.representer.SafeRepresenter.represent_float
-    )
+    AstropyDumper.add_representer(np_type, AstropyDumper.represent_float)
 for np_type in [complex, np.complex64, np.complex128]:
     AstropyDumper.add_representer(np_type, _complex_representer)
 
