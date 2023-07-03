@@ -112,6 +112,7 @@ jobs:
           - arch: aarch64
           - arch: s390x
           - arch: ppc64le
+          - arch: armv7
 
     steps:
       - uses: actions/checkout@v3
@@ -145,6 +146,8 @@ jobs:
                                   liberfa1
 
           run: |
+            uname -a
+            getconf LONG_BIT
             python3 -m venv --system-site-packages tests
             source tests/bin/activate
             ASTROPY_USE_SYSTEM_ALL=1 pip3 install -e .[test]
