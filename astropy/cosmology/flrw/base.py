@@ -1527,7 +1527,11 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         return inst
 
     def clone(
-        self, *, meta: Mapping | None = None, to_nonflat: bool = None, **kwargs: Any
+        self,
+        *,
+        meta: Mapping | None = None,
+        to_nonflat: bool | None = None,
+        **kwargs: Any,
     ):
         """Returns a copy of this object with updated parameters, as specified.
 

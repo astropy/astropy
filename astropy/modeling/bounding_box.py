@@ -195,7 +195,7 @@ class _BoundingDomain(abc.ABC):
         on the inputs and returns a complete output.
     """
 
-    def __init__(self, model, ignored: list[int] = None, order: str = "C"):
+    def __init__(self, model, ignored: list[int] | None = None, order: str = "C"):
         self._model = model
         self._ignored = self._validate_ignored(ignored)
         self._order = self._get_order(order)
@@ -212,7 +212,7 @@ class _BoundingDomain(abc.ABC):
     def ignored(self) -> list[int]:
         return self._ignored
 
-    def _get_order(self, order: str = None) -> str:
+    def _get_order(self, order: str | None = None) -> str:
         """
         Get if bounding_box is C/python ordered or Fortran/mathematically
         ordered.
@@ -603,7 +603,7 @@ class ModelBoundingBox(_BoundingDomain):
         self,
         intervals: dict[int, _Interval],
         model,
-        ignored: list[int] = None,
+        ignored: list[int] | None = None,
         order: str = "C",
     ):
         super().__init__(model, ignored, order)
@@ -672,7 +672,7 @@ class ModelBoundingBox(_BoundingDomain):
         else:
             return self._intervals[self._get_index(key)]
 
-    def bounding_box(self, order: str = None):
+    def bounding_box(self, order: str | None = None):
         """
         Return the old tuple of tuples representation of the bounding_box
             order='C' corresponds to the old bounding_box ordering
@@ -730,7 +730,7 @@ class ModelBoundingBox(_BoundingDomain):
 
         return [_input for _input in model_input_index if _input not in self._ignored]
 
-    def _validate_sequence(self, bounding_box, order: str = None):
+    def _validate_sequence(self, bounding_box, order: str | None = None):
         """
         Validate passing tuple of tuples representation (or related) and setting them.
         """
@@ -751,7 +751,7 @@ class ModelBoundingBox(_BoundingDomain):
         else:
             return 0
 
-    def _validate_iterable(self, bounding_box, order: str = None):
+    def _validate_iterable(self, bounding_box, order: str | None = None):
         """Validate and set any iterable representation."""
         if len(bounding_box) != self._n_inputs:
             raise ValueError(
@@ -764,7 +764,7 @@ class ModelBoundingBox(_BoundingDomain):
         else:
             self._validate_sequence(bounding_box, order)
 
-    def _validate(self, bounding_box, order: str = None):
+    def _validate(self, bounding_box, order: str | None = None):
         """Validate and set any representation."""
         if self._n_inputs == 1 and not isinstance(bounding_box, dict):
             self[self._available_input_index[0]] = bounding_box
@@ -776,7 +776,7 @@ class ModelBoundingBox(_BoundingDomain):
         cls,
         model,
         bounding_box,
-        ignored: list = None,
+        ignored: list | None = None,
         order: str = "C",
         _preserve_ignore: bool = False,
         **kwargs,
@@ -836,7 +836,7 @@ class ModelBoundingBox(_BoundingDomain):
     def dimension(self):
         return len(self)
 
-    def domain(self, resolution, order: str = None):
+    def domain(self, resolution, order: str | None = None):
         inputs = self._model.inputs
         order = self._get_order(order)
         if order == "C":
@@ -1112,7 +1112,7 @@ class _SelectorArguments(tuple):
 
     _kept_ignore = None
 
-    def __new__(cls, input_: tuple[_SelectorArgument], kept_ignore: list = None):
+    def __new__(cls, input_: tuple[_SelectorArgument], kept_ignore: list | None = None):
         self = super().__new__(cls, input_)
 
         if kept_ignore is None:
@@ -1152,7 +1152,7 @@ class _SelectorArguments(tuple):
         return self._kept_ignore
 
     @classmethod
-    def validate(cls, model, arguments, kept_ignore: list = None):
+    def validate(cls, model, arguments, kept_ignore: list | None = None):
         """
         Construct a valid Selector description for a CompoundBoundingBox.
 
@@ -1341,8 +1341,8 @@ class CompoundBoundingBox(_BoundingDomain):
         bounding_boxes: dict[Any, ModelBoundingBox],
         model,
         selector_args: _SelectorArguments,
-        create_selector: Callable = None,
-        ignored: list[int] = None,
+        create_selector: Callable | None = None,
+        ignored: list[int] | None = None,
         order: str = "C",
     ):
         super().__init__(model, ignored, order)
@@ -1450,7 +1450,7 @@ class CompoundBoundingBox(_BoundingDomain):
         bounding_box: dict,
         selector_args=None,
         create_selector=None,
-        ignored: list = None,
+        ignored: list | None = None,
         order: str = "C",
         _preserve_ignore: bool = False,
         **kwarg,

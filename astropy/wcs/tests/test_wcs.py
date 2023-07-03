@@ -604,7 +604,7 @@ def test_all_world2pix(
         [i.flatten() for i in np.meshgrid(*map(range, naxesi_l, naxesi_u))]
     )[0]
 
-    # Generage random data (in image coordinates):
+    # Generate random data (in image coordinates):
     with NumpyRNGContext(123456789):
         rnd_pix = np.random.rand(random_npts, ncoord)
 
