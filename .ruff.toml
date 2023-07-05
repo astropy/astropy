@@ -28,7 +28,6 @@ ignore = [
     # flake8-comprehensions (C4)
     "C406",  # unnecessary-literal-dict
     "C413",  # unnecessary-call-around-sorted
-    "C414",  # unnecessary-double-cast-or-process
     "C417",  # unnecessary-map (over a comprehension)
 
     # mccabe (C90) : code complexity
