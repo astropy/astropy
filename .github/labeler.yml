@@ -8,7 +8,7 @@ Docs:
   - licenses/*
   - CITATION
   - .mailmap
-  - readthedocs.yml
+  - .readthedocs.yaml
   - '*.md'
   - any: ['*.rst', '!CHANGES.rst']
 
@@ -20,7 +20,6 @@ testing:
   - tox.ini
   - .circleci/*
   - .github/**/*.yml
-  - .pep8speaks.yml
   - .pyinstaller/**/*
 
 external:
