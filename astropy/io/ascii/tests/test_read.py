@@ -1585,7 +1585,7 @@ def test_path_object():
     data = ascii.read(fpath)
 
     assert len(data) == 2
-    assert sorted(list(data.columns)) == ["test 1a", "test2", "test3", "test4"]
+    assert sorted(data.columns) == ["test 1a", "test2", "test3", "test4"]
     assert data["test2"][1] == "hat2"
 
 
