@@ -121,6 +121,11 @@ def _get_doc_header(cls):
     the first period or a fully empty line.
     """
     out = []
+
+    # NOTE: cls.__doc__ is None for -OO flag
+    if not cls.__doc__:
+        return ""
+
     for line in cls.__doc__.splitlines():
         if line:
             parts = line.split(".")
