@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 7.12 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2022, Mark Calabretta
+  WCSLIB 8.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2023, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
+  $Id: wcs.c,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -674,7 +674,9 @@ int wcsinit(
   wcs->lng  = -1;
   wcs->lat  = -1;
   wcs->spec = -1;
+  wcs->time = -1;
   wcs->cubeface = -1;
+  wcs->dummy    =  0;
 
   celini(&(wcs->cel));
   spcini(&(wcs->spc));
@@ -716,6 +718,13 @@ int wcsauxi(
   aux->crln_obs = UNDEFINED;
   aux->hgln_obs = UNDEFINED;
   aux->hglt_obs = UNDEFINED;
+
+  aux->a_radius = UNDEFINED;
+  aux->b_radius = UNDEFINED;
+  aux->c_radius = UNDEFINED;
+  aux->blon_obs = UNDEFINED;
+  aux->blat_obs = UNDEFINED;
+  aux->bdis_obs = UNDEFINED;
 
   return WCSERR_SUCCESS;
 }
@@ -1265,6 +1274,13 @@ int wcssub(
     wcsdst->aux->crln_obs = wcssrc->aux->crln_obs;
     wcsdst->aux->hgln_obs = wcssrc->aux->hgln_obs;
     wcsdst->aux->hglt_obs = wcssrc->aux->hglt_obs;
+
+    wcsdst->aux->a_radius = wcssrc->aux->a_radius;
+    wcsdst->aux->b_radius = wcssrc->aux->b_radius;
+    wcsdst->aux->c_radius = wcssrc->aux->c_radius;
+    wcsdst->aux->blon_obs = wcssrc->aux->blon_obs;
+    wcsdst->aux->blat_obs = wcssrc->aux->blat_obs;
+    wcsdst->aux->bdis_obs = wcssrc->aux->bdis_obs;
   }
 
 
@@ -1609,6 +1625,15 @@ int wcscompare(
           !wcsutil_dblEq(1, tol, &wcs1->aux->crln_obs, &wcs2->aux->crln_obs) ||
           !wcsutil_dblEq(1, tol, &wcs1->aux->hgln_obs, &wcs2->aux->hgln_obs) ||
           !wcsutil_dblEq(1, tol, &wcs1->aux->hglt_obs, &wcs2->aux->hglt_obs)) {
+        return 0;
+      }
+
+      if (!wcsutil_dblEq(1, tol, &wcs1->aux->a_radius, &wcs2->aux->a_radius) ||
+          !wcsutil_dblEq(1, tol, &wcs1->aux->b_radius, &wcs2->aux->b_radius) ||
+          !wcsutil_dblEq(1, tol, &wcs1->aux->c_radius, &wcs2->aux->c_radius) ||
+          !wcsutil_dblEq(1, tol, &wcs1->aux->blon_obs, &wcs2->aux->blon_obs) ||
+          !wcsutil_dblEq(1, tol, &wcs1->aux->blat_obs, &wcs2->aux->blat_obs) ||
+          !wcsutil_dblEq(1, tol, &wcs1->aux->bdis_obs, &wcs2->aux->bdis_obs)) {
         return 0;
       }
     } else if (wcs1->aux || wcs2->aux) {
@@ -2272,6 +2297,13 @@ int wcsprt(const struct wcsprm *wcs)
     wcsprt_auxd("crln_obs", wcs->aux->crln_obs);
     wcsprt_auxd("hgln_obs", wcs->aux->hgln_obs);
     wcsprt_auxd("hglt_obs", wcs->aux->hglt_obs);
+
+    wcsprt_auxd("a_radius", wcs->aux->a_radius);
+    wcsprt_auxd("b_radius", wcs->aux->b_radius);
+    wcsprt_auxd("c_radius", wcs->aux->c_radius);
+    wcsprt_auxd("blon_obs", wcs->aux->blon_obs);
+    wcsprt_auxd("blat_obs", wcs->aux->blat_obs);
+    wcsprt_auxd("bdis_obs", wcs->aux->bdis_obs);
   }
 
   wcsprintf("       ntab: %d\n", wcs->ntab);
@@ -2295,6 +2327,7 @@ int wcsprt(const struct wcsprm *wcs)
   wcsprintf("        lng: %d\n", wcs->lng);
   wcsprintf("        lat: %d\n", wcs->lat);
   wcsprintf("       spec: %d\n", wcs->spec);
+  wcsprintf("       time: %d\n", wcs->time);
   wcsprintf("   cubeface: %d\n", wcs->cubeface);
 
   WCSPRINTF_PTR("        err: ", wcs->err, "\n");
@@ -2869,6 +2902,7 @@ int wcs_types(struct wcsprm *wcs)
   wcs->lng  = -1;
   wcs->lat  = -1;
   wcs->spec = -1;
+  wcs->time = -1;
   wcs->cubeface = -1;
 
   const char *alt = "";
@@ -2977,6 +3011,7 @@ int wcs_types(struct wcsprm *wcs)
 
       } else if (time_type(ctypei)) {
         // Time axis.
+        if (wcs->time < 0) wcs->time = i;
         wcs->types[i] += 4000;
       }
 

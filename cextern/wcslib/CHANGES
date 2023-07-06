@@ -1,3 +1,60 @@
+WCSLIB version 8.1 (2023/07/06)
+-------------------------------
+
+Changes in the contents of the auxprm struct (in 8.0 beta) necessitated
+incrementing the major version number from 7 to 8, i.e. the ABI changed.
+Took the opportunity for minor tweaks to wcsprm and disprm.
+
+* C library
+
+  - In disprm, changed the order of maxdis and totdis to ensure correct
+    alignment of doubles on 32-bit machines.
+
+* Fortran wrappers
+
+  - Match changes to disprm in the C library.
+
+  - In the Fortran test suite, inserted a brief pause between plots in
+    tprj2, tspc, and tpih2, which have long been a blur.
+
+* PGSBOX
+
+  - Quell innocuous compiler warnings from gfortran 12.1.0.  Inserted a
+    brief pause between plots in pgtest and cpgtest.
+
+
+WCSLIB version 8.0 beta (2023/07/01)
+------------------------------------
+
+Beta test version, not publically released.
+
+* C library
+
+  - Support planetary keywords A_RADIUS, B_RADIUS, C_RADIUS, BLON_OBS,
+    BLAT_OBS, and BDIS_OBS in auxprm by analogy with the Solar keywords
+    added at 7.1.  Requested by Chiara Marmo (Observatoire de Paris).
+
+  - Added wcsprm::time to the wcsprm struct to record the TIME axis
+    number (along with lng, lat, and spec).
+
+  - Fixed a bug in wcspih() and wcsbth() where trailing blanks were not
+    stripped from string keyvalues.  Reported by Naveen Dukiya.
+
+    Changed test program tdis3 to test this.
+
+  - Fixed a problem affecting thread safety in disp2x(), disx2p(), and
+    diswarp().  Reported by Mohammad Akhlaghi.
+
+* Fortran wrappers
+
+  - Match changes to the C library supporting planetary keywords in
+    auxprm and the addition of wcsprm::time.
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.9.7 (was 1.9.5).
+
+
 WCSLIB version 7.12 (2022/09/09)
 --------------------------------
 
@@ -17,8 +74,9 @@ WCSLIB version 7.12 (2022/09/09)
   - Fixed a bit of confusion in wcsgrid relating to cfitsio file opening
     syntax, e.g. file.fits+1.  It now matches wcsware in that regard.
 
-  - Portability fix - need to define _POSIX_C_SOURCE as 199506L in order
-    to get the declaration of localtime_r().  Reported by Marc Espie.
+  - Portability fix in sundazel - need to define _POSIX_C_SOURCE as
+    199506L in order to get the declaration of localtime_r().  Reported
+    by Marc Espie.
 
 * User manual
 
@@ -3362,4 +3420,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
+$Id: CHANGES,v 8.1 2023/07/05 17:12:07 mcalabre Exp $

@@ -3,12 +3,12 @@
 #-----------------------------------------------------------------------------
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: configure.ac,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
+# $Id: configure.ac,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB], [7.12], [mark@calabretta.id.au], [wcslib-7.12])
-AC_PREREQ([2.53])
-AC_REVISION([$Revision: 7.12 $])
+AC_INIT([WCSLIB],[8.1],[mark@calabretta.id.au],[wcslib-8.1])
+AC_PREREQ([2.71])
+AC_REVISION([$Revision: 8.1 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 
@@ -57,7 +57,6 @@ fi
 # Look for an ANSI C compiler.
 AC_PROG_CPP
 AC_PROG_CC
-AC_PROG_CC_STDC
 AC_C_CONST
 AC_TYPE_SIZE_T
 if test "x$ac_cv_prog_cc_stdc" = xno -o \
@@ -81,8 +80,6 @@ AC_TYPE_UINT8_T
 AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 
-# Check for ANSI C headers.
-AC_HEADER_STDC
 AC_CHECK_HEADERS([ctype.h errno.h limits.h locale.h math.h setjmp.h stdarg.h \
                   stdio.h stdlib.h string.h])
 if test "x$ac_cv_header_stdc" = xno; then
@@ -111,7 +108,6 @@ AC_CHECK_LIB([m], [floor])
 AC_FUNC_FSEEKO
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_FUNC_SETVBUF_REVERSED
 AC_FUNC_STAT
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([floor memset pow setlocale sqrt strchr strstr])

@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 7.12 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2022, Mark Calabretta
+  WCSLIB 8.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2023, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.h,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
+  $Id: dis.h,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.12 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.1 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -992,7 +992,7 @@
 *     (For internal use only.)
 *   int (**disx2p)(DISX2P_ARGS)
 *     (For internal use only.)
-*   double *tmpmem
+*   double *dummy
 *     (For internal use only.)
 *   int m_flag
 *     (For internal use only.)
@@ -1103,8 +1103,8 @@ struct disprm {
   int    ndp;			// Number of DPja or DQia keywords, and the
   int    ndpmax;		// number for which space was allocated.
   struct dpkey *dp;		// DPja or DQia keyvalues (not both).
-  double *maxdis;		// For each axis, the maximum distortion.
   double totdis;		// The maximum combined distortion.
+  double *maxdis;		// For each axis, the maximum distortion.
 
   // Information derived from the parameters supplied.
   //--------------------------------------------------------------------------
@@ -1130,8 +1130,6 @@ struct disprm {
   //--------------------------------------------------------------------------
   int (**disp2x)(DISP2X_ARGS);	// For each axis, pointers to the
   int (**disx2p)(DISX2P_ARGS);	// distortion function and its inverse.
-
-  double *tmpmem;
 
   int    m_flag, m_naxis;	// The remainder are for memory management.
   char   (*m_dtype)[72];
