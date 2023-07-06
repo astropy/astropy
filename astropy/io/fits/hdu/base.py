@@ -879,16 +879,7 @@ class _NonstandardHDU(_BaseHDU, _Verify):
 
         # The SIMPLE keyword must be in the first card
         card = header.cards[0]
-
-        # The check that 'GROUPS' is missing is a bit redundant, since the
-        # match_header for GroupsHDU will always be called before this one.
-        if card.keyword == "SIMPLE":
-            if "GROUPS" not in header and card.value is False:
-                return True
-            else:
-                raise InvalidHDUException
-        else:
-            return False
+        return card.keyword == "SIMPLE" and card.value is False
 
     @property
     def size(self):
