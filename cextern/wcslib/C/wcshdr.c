@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 7.12 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2022, Mark Calabretta
+  WCSLIB 8.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2023, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.c,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
+  $Id: wcshdr.c,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -1379,6 +1379,48 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
           keyvalue, "[deg] Heliographic latitude of observer", nkeyrec,
           header, &status);
       }
+    }
+
+    if (!undefined(aux->a_radius)) {
+      wcsutil_double2str(keyvalue, format, aux->a_radius);
+      wcshdo_util(ctrl, "A_RADIUS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
+        keyvalue, "[m] Object ellipsoid semi-major axis", nkeyrec,
+        header, &status);
+    }
+
+    if (!undefined(aux->b_radius)) {
+      wcsutil_double2str(keyvalue, format, aux->b_radius);
+      wcshdo_util(ctrl, "B_RADIUS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
+        keyvalue, "[m] Object ellipsoid semi-intermediate axis", nkeyrec,
+        header, &status);
+    }
+
+    if (!undefined(aux->c_radius)) {
+      wcsutil_double2str(keyvalue, format, aux->c_radius);
+      wcshdo_util(ctrl, "C_RADIUS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
+        keyvalue, "[m] Object ellipsoid semi-minor axis", nkeyrec,
+        header, &status);
+    }
+
+    if (!undefined(aux->blon_obs)) {
+      wcsutil_double2str(keyvalue, format, aux->blon_obs);
+      wcshdo_util(ctrl, "BLON_OBS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
+        keyvalue, "[deg] Bodycentric longitude of observer", nkeyrec,
+        header, &status);
+    }
+
+    if (!undefined(aux->blat_obs)) {
+      wcsutil_double2str(keyvalue, format, aux->blat_obs);
+      wcshdo_util(ctrl, "BLAT_OBS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
+        keyvalue, "[deg] Bodycentric latitude of observer", nkeyrec,
+        header, &status);
+    }
+
+    if (!undefined(aux->bdis_obs)) {
+      wcsutil_double2str(keyvalue, format, aux->bdis_obs);
+      wcshdo_util(ctrl, "BDIS_OBS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
+        keyvalue, "[m] Bodycentric distance of observer", nkeyrec,
+        header, &status);
     }
   }
 

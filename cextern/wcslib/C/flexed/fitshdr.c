@@ -10233,8 +10233,8 @@ static const yy_state_type yy_NUL_trans[551] =
 #define YY_RESTORE_YY_MORE_OFFSET
 #line 1 "fitshdr.l"
 /*============================================================================
-  WCSLIB 7.12 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2022, Mark Calabretta
+  WCSLIB 8.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2023, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -10253,7 +10253,7 @@ static const yy_state_type yy_NUL_trans[551] =
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: fitshdr.c,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
+  $Id: fitshdr.c,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
 *=============================================================================
 *
 * fitshdr.l is a Flex description file containing a lexical scanner

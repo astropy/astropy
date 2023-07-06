@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 7.12 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2022, Mark Calabretta
+  WCSLIB 8.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2023, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.h,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
+  $Id: wcs.h,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.12 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.1 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -527,7 +527,7 @@
 *
 * auxsize() - Compute the size of a auxprm struct
 * -----------------------------------------------
-* auxsize() computes the full size of a auxprm struct, including allocated
+* auxsize() computes the full size of an auxprm struct, including allocated
 * memory.
 *
 * Given:
@@ -679,7 +679,9 @@
 *                       imgcrd[][wcs.lat] are the projected x-, and
 *                       y-coordinates in pseudo "degrees".  For spectral
 *                       axes, imgcrd[][wcs.spec] is the intermediate spectral
-*                       coordinate, in SI units.
+*                       coordinate, in SI units.  For time axes,
+*                       imgcrd[][wcs.time] is the intermediate time
+*                       coordinate.
 *
 *   phi,theta double[ncoord]
 *                       Longitude and latitude in the native coordinate system
@@ -688,9 +690,10 @@
 *   world     double[ncoord][nelem]
 *                       Array of world coordinates.  For celestial axes,
 *                       world[][wcs.lng] and world[][wcs.lat] are the
-*                       celestial longitude and latitude [deg].  For
-*                       spectral axes, imgcrd[][wcs.spec] is the intermediate
-*                       spectral coordinate, in SI units.
+*                       celestial longitude and latitude [deg].  For spectral
+*                       axes, world[][wcs.spec] is the spectral coordinate, in
+*                       SI units.  For time axes, world[][wcs.time] is the
+*                       time coordinate.
 *
 *   stat      int[ncoord]
 *                       Status return value for each coordinate:
@@ -738,7 +741,8 @@
 *                       world[][wcs.lng] and world[][wcs.lat] are the
 *                       celestial longitude and latitude [deg]. For spectral
 *                       axes, world[][wcs.spec] is the spectral coordinate, in
-*                       SI units.
+*                       SI units.  For time axes, world[][wcs.time] is the
+*                       time coordinate.
 *
 * Returned:
 *   phi,theta double[ncoord]
@@ -753,7 +757,9 @@
 *                       projections with a CUBEFACE axis the face number is
 *                       also returned in imgcrd[][wcs.cubeface].  For
 *                       spectral axes, imgcrd[][wcs.spec] is the intermediate
-*                       spectral coordinate, in SI units.
+*                       spectral coordinate, in SI units.  For time axes,
+*                       imgcrd[][wcs.time] is the intermediate time
+*                       coordinate.
 *
 *   pixcrd    double[ncoord][nelem]
 *                       Array of pixel coordinates.
@@ -1784,7 +1790,9 @@
 *   int lat
 *     (Returned) ... index for the latitude coordinate, and ...
 *   int spec
-*     (Returned) ... index for the spectral coordinate in the imgcrd[][] and
+*     (Returned) ... index for the spectral coordinate, and ...
+*   int time
+*     (Returned) ... index for the time coordinate in the imgcrd[][] and
 *     world[][] arrays in the API of wcsp2s(), wcss2p() and wcsmix().
 *
 *     These may also serve as indices into the pixcrd[][] array provided that
@@ -1951,6 +1959,28 @@
 *     (Given, auxiliary) Heliographic latitude (Carrington or Stonyhurst) of
 *     the observer (deg).
 *
+*   double a_radius
+*     Length of the semi-major axis of a triaxial ellipsoid approximating the
+*     shape of a body (e.g. planet) in the solar system (m).
+*
+*   double b_radius
+*     Length of the intermediate axis, normal to the semi-major and semi-minor
+*     axes, of a triaxial ellipsoid approximating the shape of a body (m).
+*
+*   double c_radius
+*     Length of the semi-minor axis, normal to the semi-major axis, of a
+*     triaxial ellipsoid approximating the shape of a body (m).
+*
+*   double blon_obs
+*     Bodycentric longitude of the observer in the coordinate system fixed to
+*     the planet or other solar system body (deg, in range 0 to 360).
+*
+*   double blat_obs
+*     Bodycentric latitude of the observer in the coordinate system fixed to
+*     the planet or other solar system body (deg).
+*
+*   double bdis_obs
+*     Bodycentric distance of the observer (m).
 *
 * Global variable: const char *wcs_errmsg[] - Status return messages
 * ------------------------------------------------------------------
@@ -2038,6 +2068,14 @@ struct auxprm {
   double crln_obs;              // Carrington heliographic lng of observer.
   double hgln_obs;              // Stonyhurst heliographic lng of observer.
   double hglt_obs;              // Heliographic latitude of observer.
+
+  double a_radius;              // Semi-major axis of solar system body.
+  double b_radius;              // Semi-intermediate axis of solar system body.
+  double c_radius;              // Semi-minor axis of solar system body.
+  double blon_obs;              // Bodycentric longitude of observer.
+  double blat_obs;              // Bodycentric latitude of observer.
+  double bdis_obs;              // Bodycentric distance of observer.
+  double dummy[2];              // Reserved for future use.
 };
 
 // Size of the auxprm struct in int units, used by the Fortran wrappers.
@@ -2140,9 +2178,10 @@ struct wcsprm {
   // Information derived from the FITS header keyvalues by wcsset().
   //--------------------------------------------------------------------------
   char   lngtyp[8], lattyp[8];	// Celestial axis types, e.g. RA, DEC.
-  int    lng, lat, spec;	// Longitude, latitude and spectral axis
-				// indices (0-relative).
+  int    lng, lat, spec, time;	// Longitude, latitude, spectral, and time
+				// axis indices (0-relative).
   int    cubeface;		// True if there is a CUBEFACE axis.
+  int    dummy;			// Dummy for alignment purposes.
   int    *types;		// Coordinate type codes for each axis.
 
   struct linprm lin;		//    Linear transformation parameters.
