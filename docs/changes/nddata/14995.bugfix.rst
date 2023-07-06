@@ -1,2 +1,0 @@
-Restore bitmask propagation behavior in ``NDData.mask``, plus a fix
-for arithmetic between masked and unmasked ``NDData`` objects.

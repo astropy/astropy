@@ -1,1 +1,0 @@
-The exponent in ``wowzCDM.de_density_scale`` has been corrected to 3, from -3.

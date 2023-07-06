@@ -1,3 +1,47 @@
+Version 5.3.1 (2023-07-06)
+==========================
+
+Bug Fixes
+---------
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+- The exponent in ``wowzCDM.de_density_scale`` has been corrected to 3, from -3. [#14991]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix crash when a PrimaryHDU has a GROUPS keyword with a non-boolean value (i.e.
+  not a random-groups HDU). [#14998]
+
+- Fixed a bug that caused ``Cutout2D`` to not work correctly with ``CompImageHDU.section`` [#14999]
+
+- Fixed a bug that caused compressed images with TFORM missing the optional '1' prefix to not be readable. [#15001]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- All models can be pickled now. [#14902]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- Restore bitmask propagation behavior in ``NDData.mask``, plus a fix
+  for arithmetic between masked and unmasked ``NDData`` objects. [#14995]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fix a bug where table indexes were not using a stable sort order. This was causing the
+  order of rows within groups to not match the original table order when an indexed table
+  was grouped. [#14907]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- In VOunits, "pix", "au", "a", and "ct" are removed from the list of deprecated units. [#14885]
+
 Version 5.3 (2023-05-22)
 ========================
 
