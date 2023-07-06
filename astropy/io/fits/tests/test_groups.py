@@ -235,3 +235,11 @@ class TestGroupsFunctions(FitsTestCase):
             assert len(hdul) == 1
             assert hdul[0].header["GROUPS"]
             assert hdul[0].data is None
+
+    def test_not_groups_file(self):
+        hdu = fits.PrimaryHDU()
+        hdu.header["GROUPS"] = (1, "not a groups HDU")
+        hdu.writeto(self.temp("not_groups.fits"))
+        with fits.open(self.temp("not_groups.fits")) as hdul:
+            assert hdul[0].header["GROUPS"] == 1
+            assert hdul[0].header.comments["GROUPS"] == "not a groups HDU"

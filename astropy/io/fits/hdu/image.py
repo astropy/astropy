@@ -1134,8 +1134,8 @@ class PrimaryHDU(_ImageBaseHDU):
         # keyword to be True/False, have to check the value
         return (
             card.keyword == "SIMPLE"
-            and ("GROUPS" not in header or header["GROUPS"] != True)
-            and card.value  # noqa
+            and ("GROUPS" not in header or header["GROUPS"] is not True)
+            and card.value
         )
 
     def update_header(self):
