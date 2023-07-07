@@ -154,7 +154,6 @@ ignore = [
     "PT017",   # pytest-assert-in-exceptinstead
     "PT018",   # pytest-composite-assertion
     "PT019",   # pytest-fixture-param-without-value
-    "PT021",   # pytest-fixture-finalizer-callback
     "PT022",   # pytest-useless-yield-fixture
     "PT023",   # pytest-incorrect-mark-parentheses-style
 
