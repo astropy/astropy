@@ -207,6 +207,19 @@ class _BaseHDU:
 
         return super().__init_subclass__(**kwargs)
 
+    def __getstate__(self):
+        """
+        When pickling a HDU we must exclude any cached key added by
+        lazyproperty.  This prevents us from serialising cached arrays which
+        might miss data as well as being inefficient.
+        """
+        cls = type(self)
+        state_dict = {}
+        for key, value in self.__dict__.items():
+            if not isinstance(cls.__dict__.get(key, None), lazyproperty):
+                state_dict[key] = value
+        return state_dict
+
     @property
     def header(self):
         return self._header

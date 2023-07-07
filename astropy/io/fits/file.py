@@ -136,6 +136,9 @@ class _File:
         use_fsspec=None,
         fsspec_kwargs=None,
     ):
+        self._input_fileobj = fileobj
+        self._use_fsspec = use_fsspec
+        self._fsspec_kwargs = fsspec_kwargs
         self.strict_memmap = bool(memmap)
         memmap = True if memmap is None else memmap
 
@@ -264,6 +267,23 @@ class _File:
 
     def __exit__(self, type, value, traceback):
         self.close()
+
+    def __getstate__(self):
+        # If this was initialised with a file object we can't pickle it
+        if self.mode not in ("readonly", "copyonwrite", "denywrite"):
+            raise NotImplementedError(
+                "Can only pickle an open FITS file which is readonly"
+            )
+        return {
+            "fileobj": self._input_fileobj,
+            "mode": self.mode,
+            "memmap": self.memmap,
+            "use_fsspec": self._use_fsspec,
+            "fsspec_kwargs": self._fsspec_kwargs,
+        }
+
+    def __setstate__(self, kwargs):
+        return self.__init__(**kwargs)
 
     def readable(self):
         if self.writeonly:
