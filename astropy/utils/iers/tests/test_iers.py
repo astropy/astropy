@@ -7,6 +7,12 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from astropy_iers_data import (
+    IERS_A_README,
+    IERS_B_FILE,
+    IERS_B_README,
+    IERS_LEAP_SECOND_FILE,
+)
 
 from astropy import units as u
 from astropy.config import set_temp_cache
@@ -14,6 +20,7 @@ from astropy.table import QTable
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time, TimeDelta
 from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.iers import iers
 
 CI = os.environ.get("CI", False)
@@ -132,6 +139,10 @@ def test_IERS_B_old_style_excerpt():
 
 
 class TestIERS_AExcerpt:
+    @classmethod
+    def teardown_class(self):
+        iers.IERS_A.close()
+
     def test_simple(self):
         # Test the IERS A reader. It is also a regression tests that ensures
         # values do not get overridden by IERS B; see #4933.
@@ -209,6 +220,10 @@ class TestIERS_AExcerpt:
 
 @pytest.mark.skipif(not HAS_IERS_A, reason="requires IERS_A")
 class TestIERS_A:
+    @classmethod
+    def teardown_class(self):
+        iers.IERS_A.close()
+
     def test_simple(self):
         """Test that open() by default reads a 'finals2000A.all' file."""
         # Ensure we remove any cached table (gh-5131).
@@ -484,3 +499,28 @@ def test_iers_download_error_handling(tmp_path):
                 assert str(record[2].message).startswith(
                     "unable to download valid IERS file, using local IERS-B"
                 )
+
+
+OLD_DATA_FILES = {
+    "Leap_Second.dat": IERS_LEAP_SECOND_FILE,
+    "ReadMe.finals2000A": IERS_A_README,
+    "ReadMe.eopc04": IERS_B_README,
+    "eopc04.1962-now": IERS_B_FILE,
+}
+
+
+@pytest.mark.parametrize("data_file", sorted(OLD_DATA_FILES))
+def test_get_pkg_data_filename_backcompat(data_file):
+    # Check that get_pkg_data_filename continues to work without breakage
+    # if users use it to access IERS tables and READMEs that used to be in
+    # astropy/utils/iers/data.
+
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=f"Accessing {data_file} in this way is deprecated",
+    ):
+        filename = get_pkg_data_filename(
+            "data/" + data_file, package="astropy.utils.iers"
+        )
+
+    assert filename == OLD_DATA_FILES[data_file]
