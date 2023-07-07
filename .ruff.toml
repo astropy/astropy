@@ -117,7 +117,6 @@ ignore = [
     # flake8-pie (PIE)
     "PIE790",  # unnecessary-pass
     "PIE794",  # duplicate-class-field-definition
-    "PIE804",  # no-unnecessary-dict-kwargs
     "PIE810",  # single-starts-ends-with
 
     # pygrep-hooks (PGH)
@@ -154,7 +153,6 @@ ignore = [
     "PT017",   # pytest-assert-in-exceptinstead
     "PT018",   # pytest-composite-assertion
     "PT019",   # pytest-fixture-param-without-value
-    "PT021",   # pytest-fixture-finalizer-callback
     "PT022",   # pytest-useless-yield-fixture
     "PT023",   # pytest-incorrect-mark-parentheses-style
 

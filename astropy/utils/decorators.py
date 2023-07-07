@@ -209,12 +209,10 @@ def deprecated(
 
         message = (
             message.format(
-                **{
-                    "func": name,
-                    "name": name,
-                    "alternative": alternative,
-                    "obj_type": obj_type_name,
-                }
+                func=name,
+                name=name,
+                alternative=alternative,
+                obj_type=obj_type_name,
             )
         ) + altmessage
 
