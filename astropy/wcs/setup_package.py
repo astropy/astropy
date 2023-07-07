@@ -15,7 +15,7 @@ from setuptools.dep_util import newer_group
 from extension_helpers import get_compiler, import_file, pkg_config, write_if_different
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
-WCSVERSION = "7.12"
+WCSVERSION = "8.1"
 
 
 def b(s):

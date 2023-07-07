@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 7.12 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2022, Mark Calabretta
+  WCSLIB 8.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2023, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.l,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
+  $Id: wcspih.l,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -1091,6 +1091,60 @@ static int wcspih_timepixr(double timepixr);
 	  BEGIN(CCCCCCCC);
 	}
 
+^A_RADIUS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.a_radius);
+	
+	  keyname = "A_RADIUS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^B_RADIUS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.b_radius);
+	
+	  keyname = "B_RADIUS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^C_RADIUS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.c_radius);
+	
+	  keyname = "C_RADIUS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^BLON_OBS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.blon_obs);
+	
+	  keyname = "BLON_OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^BLAT_OBS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.blat_obs);
+	
+	  keyname = "BLAT_OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^BDIS_OBS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.bdis_obs);
+	
+	  keyname = "BDIS_OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
 ^CPDIS	{
 	  valtype = STRING;
 	  distype = PRIOR;
@@ -1974,8 +2028,19 @@ static int wcspih_timepixr(double timepixr);
 	    BEGIN(COMMENT);
 	
 	  } else {
-	    // Read the keyvalue.
-	    strcpy(strtmp, yytext+1);
+	    // Copy the keyvalue, skipping the initial quote.
+	    strncpy(strtmp, yytext+1, 80);
+	
+	    // Remove the terminating quote.
+	    strtmp[yyleng-2] = '\0';
+	
+	    // Strip off trailing blanks.
+	    for (int jx = yyleng-3; jx >= 0; jx--) {
+	      if (strtmp[jx] != ' ') {
+	        break;
+	      }
+	      strtmp[jx] = '\0';
+	    }
 	
 	    // Squeeze out repeated quotes.
 	    int ix = 0;
@@ -1985,7 +2050,6 @@ static int wcspih_timepixr(double timepixr);
 	      }
 	
 	      if (strtmp[jx] == '\0') {
-	        if (ix) strtmp[ix-1] = '\0';
 	        break;
 	      } else if (strtmp[jx] == '\'' && strtmp[jx+1] == '\'') {
 	        jx++;
@@ -2020,7 +2084,7 @@ static int wcspih_timepixr(double timepixr);
 	}
 
 <RECFIELD>{FIELD} {
-	  strcpy(strtmp, yytext);
+	  strncpy(strtmp, yytext, 80);
 	  BEGIN(RECCOLON);
 	}
 
@@ -2575,7 +2639,7 @@ int wcspih_init1(
 
         // Record in wcsname whether this is a default description.
         if (defaults) {
-          strcpy(wcsp->wcsname, "DEFAULTS");
+          strncpy(wcsp->wcsname, "DEFAULTS", 72);
         }
 
         // Any additional auxiliary keywords present?
@@ -2627,8 +2691,8 @@ int wcspih_init1(
     // presence of keywords for either (not both together), as flagged by
     // distran, necessarily refers to the primary representation.
     if (distran == SIP) {
-      strcpy((*wcs)->lin.dispre->dtype[0], "SIP");
-      strcpy((*wcs)->lin.dispre->dtype[1], "SIP");
+      strncpy((*wcs)->lin.dispre->dtype[0], "SIP", 72);
+      strncpy((*wcs)->lin.dispre->dtype[1], "SIP", 72);
 
       // SIP doesn't have axis mapping.
       (*wcs)->lin.dispre->ndp = 6;
@@ -2636,8 +2700,8 @@ int wcspih_init1(
       dpfill((*wcs)->lin.dispre->dp+3, "DP2", "NAXES",  0, 0, 2, 0.0);
 
     } else if (distran == DSS) {
-      strcpy((*wcs)->lin.disseq->dtype[0], "DSS");
-      strcpy((*wcs)->lin.disseq->dtype[1], "DSS");
+      strncpy((*wcs)->lin.disseq->dtype[0], "DSS", 72);
+      strncpy((*wcs)->lin.disseq->dtype[1], "DSS", 72);
 
       // The Paper IV translation of DSS doesn't require an axis mapping.
       (*wcs)->lin.disseq->ndp = 2;
@@ -2820,8 +2884,8 @@ int wcspih_final(
     crval[1] =  dsstmp[10] + (dsstmp[11] + dsstmp[12]/60.0)/60.0;
     if (dsstmp[9] == -1.0) crval[1] *= -1.0;
 
-    strcpy(wcsp->ctype[0], "RA---TAN");
-    strcpy(wcsp->ctype[1], "DEC--TAN");
+    strncpy(wcsp->ctype[0], "RA---TAN", 72);
+    strncpy(wcsp->ctype[1], "DEC--TAN", 72);
 
     sprintf(wcsp->wcsname, "DSS PLATEID %.4s", (char *)(dsstmp+13));
 
@@ -2845,9 +2909,9 @@ int wcspih_final(
       sscanf(wat[i], "wtype=%s", wtype);
 
       if (strcmp(wtype, "tnx") == 0) {
-        strcpy(disp->dtype[i], "WAT-TNX");
+        strncpy(disp->dtype[i], "WAT-TNX", 72);
       } else if (strcmp(wtype, "zpx") == 0) {
-        strcpy(disp->dtype[i], "WAT-ZPX");
+        strncpy(disp->dtype[i], "WAT-ZPX", 72);
       } else {
         // Could contain "tan" or something else to be ignored.
         lindist(2, &(wcsp->lin), 0x0, 0);
@@ -2960,16 +3024,16 @@ int wcspih_final(
       dpfill(disp->dp+(idp++), "DQ", "WAT.POLY", i+1, 0, wctrl[0], 0.0);
       if (wctrl[0] == 1) {
         // Chebyshev polynomial.
-        strcpy(wpoly, "CHBY");
+        strncpy(wpoly, "CHBY", 12);
       } else if (wctrl[0] == 2) {
         // Legendre polynomial.
-        strcpy(wpoly, "LEGR");
+        strncpy(wpoly, "LEGR", 12);
       } else if (wctrl[0] == 3) {
         // Polynomial is the sum of monomials.
-        strcpy(wpoly, "MONO");
+        strncpy(wpoly, "MONO", 12);
       } else {
         // Unknown code.
-        strcpy(wpoly, "UNKN");
+        strncpy(wpoly, "UNKN", 12);
       }
 
       // Read the scaling parameters.

@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 7.12
+# GNU makefile for building WCSLIB 8.1
 #
 # Summary of the main targets
 # ---------------------------
@@ -34,7 +34,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
+# $Id: GNUmakefile,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := .
@@ -128,7 +128,7 @@ cleanest distclean realclean :
 	-  $(RM) *.log
 	-  $(RM) -r autom4te.cache autoscan.log
 	-  $(RM) -r api-sanity-check
-	-  $(RM) confdefs.h conftest.*
+	-  $(RM) configure~ confdefs.h conftest.*
 	-  $(RM) config.log config.status configure.lineno
 	-  $(RM) makedefs wcslib.pc
 	-  $(RM) wcsconfig.h wcsconfig_*.h
@@ -217,6 +217,7 @@ configure : configure.ac
 	-@ echo ''
 	-@ $(TIMER)
 	   autoconf
+	-@ $(RM) configure~
 
 # Code development overrides must be included specifically before 'configure'
 # generates makedefs.

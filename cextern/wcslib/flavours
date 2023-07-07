@@ -7,34 +7,34 @@
 # will be seen by 'configure'.  Thus, normal usage is as follows:
 #
 #   make distclean
-#   make FLAVOUR=Linux configure
+#   make FLAVOUR=dev configure
 #   make
 #
 # Reminder: add '-d' to FLFLAGS for debugging.
 #
-# $Id: flavours,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
+# $Id: flavours,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
-# The list of FLAVOURs can be set on the command line.
-F := $(shell echo $(FLAVOURS) | tr a-z A-Z)
-ifeq "$F" ""
-  F :=
-  FLAVOURS := ""
-endif
-
-ifeq "$F" "LINUX"
-  override FLAVOURS := "" Linux Linuxp
-endif
-
-ifeq "$F" "SUN"
-  override FLAVOURS := "" SUN/GNU SUN/GNU3 SUN/GNUp SUN/ANSI
-endif
-
-ifeq "$F" "PURE"
-  override FLAVOURS := SUN/Pure SUN/Quant
-endif
-
 F :=
+
+ifeq "$(FLAVOUR)" ""
+  F   := default
+  override FLAVOUR := default
+endif
+
+ifeq "$(FLAVOUR)" "dev"
+  # Currently gcc 11.3.0.
+  F   := development
+  CC  := gcc
+  F77 := gfortran
+endif
+
+ifeq "$(FLAVOUR)" "dev12"
+  # Currently gcc 12.1.0.
+  F   := development
+  CC  := gcc-12
+  F77 := gfortran-12
+endif
 
 
 # Quench warnings about padding in foreign structs, particularly in fitsio.h.
@@ -42,10 +42,8 @@ ifneq "$(findstring $(SUBDIR),C Fortran pgsbox)" ""
   WPADDED := -Wpadded
 endif
 
-
-# Linux with gcc/gfortran (also works for Darwin).
-ifeq "$(FLAVOUR)" "Linux"
-  F := $(FLAVOUR)
+ifeq "$F" "development"
+  # Options for code development with gcc/gfortran.
   INSTRUMENT      := -fsanitize=address -fsanitize=undefined
   INSTRUMENT      += -fstack-protector-strong
   CWARNINGS       := -Wall -Wextra -Wno-clobbered -Wno-long-long
@@ -54,122 +52,32 @@ ifeq "$(FLAVOUR)" "Linux"
     CWARNINGS     += $(WPADDED)
   endif
   FWARNINGS       := -Wall -Wno-surprising
-  export CC       := gcc -std=c99 -pedantic
-  export CPPFLAGS :=
-  export CFLAGS   := -g -O0 $(INSTRUMENT) $(CWARNINGS)
-  export F77      := gfortran
-  export FFLAGS   := -g -O0 -fimplicit-none -I. $(INSTRUMENT) $(FWARNINGS)
-  export LDFLAGS  := $(INSTRUMENT)
-  ifdef VALGRIND
-    override VALGRIND := valgrind -v --leak-check=full --show-leak-kinds=all
-    override VALGRIND += --track-origins=yes
-  endif
-endif
-
-ifeq "$(FLAVOUR)" "Linux11"
-  F := $(FLAVOUR)
-  INSTRUMENT      := -fsanitize=address -fsanitize=undefined
-  INSTRUMENT      += -fstack-protector-strong
-  CWARNINGS       := -Wall -Wextra -Wno-clobbered -Wno-long-long
-  ifeq "$(INSTRUMENT)" ""
-    # The instrumentation options produce copious "padding" warnings.
-    CWARNINGS     += $(WPADDED)
-  endif
-  FWARNINGS       := -Wall -Wno-surprising
-  export CC       := gcc-11.1.0 -std=c99 -pedantic
+  export CC       := $(CC) -std=c99 -pedantic
   export CPPFLAGS := -D_FORTIFY_SOURCE=2
   export CFLAGS   := -g -O0 $(INSTRUMENT) $(CWARNINGS)
-  export F77      := gfortran-11.1.0
+  export F77      := $(F77)
   export FFLAGS   := -g -O0 -fimplicit-none -I. $(INSTRUMENT) $(FWARNINGS)
   export LDFLAGS  := $(INSTRUMENT)
-  export LD_RUN_PATH := /usr/local/lib64
   ifdef VALGRIND
     override VALGRIND := valgrind -v --leak-check=full --show-leak-kinds=all
     override VALGRIND += --track-origins=yes
   endif
 endif
 
-ifeq "$(FLAVOUR)" "Linuxp"
+ifeq "$(FLAVOUR)" "profile"
+  # gcc with profiling (gprof).
   F := $(FLAVOUR)
   export CC       := gcc -std=c99 -pedantic
   export CPPFLAGS :=
   export CFLAGS   := -pg -g -O -Wall -Wextra -Wno-long-long $(WPADDED)
-  export FFLAGS   := -pg -a -g -O -fimplicit-none -Wall -I.
+  export FFLAGS   := -pg -g -O -fimplicit-none -Wall -I.
   export LDFLAGS  := -pg -g $(filter -L%, $(LDFLAGS))
   override EXTRA_CLEAN := gmon.out bb.out
 endif
 
 
-# Solaris with gcc/gfortran 4.x (lynx).
-ifeq "$(FLAVOUR)" "SUN/GNU"
-  F := $(FLAVOUR)
-  export CC       := gcc -std=c99
-  export CPPFLAGS :=
-  export CFLAGS   := -g -Wall -Wno-long-long $(WPADDED)
-  export F77      := gfortran
-  export FFLAGS   := -g -fimplicit-none -Wall -I.
-  LD      := gcc
-endif
-
-ifeq "$(FLAVOUR)" "SUN/GNU3"
-  F := $(FLAVOUR)
-  export CC       := gcc-3.1.1 -std=c99
-  export CPPFLAGS :=
-  export CFLAGS   := -g -Wall -Wno-long-long $(WPADDED)
-  export F77      := g77-3.1.1
-  export FFLAGS   := -g -Wimplicit -Wunused -Wno-globals -I.
-  LD      := gcc-3.1.1
-endif
-
-ifeq "$(FLAVOUR)" "SUN/GNUp"
-  F := $(FLAVOUR)
-  export CC       := gcc -std=c99 -pedantic
-  export CPPFLAGS :=
-  export CFLAGS   := -pg -a -g -O -Wall -Wno-long-long $(WPADDED)
-  export FFLAGS   := -pg -a -g -O -fimplicit-none -Wall -I.
-  export LDFLAGS  := -pg -a -g $(filter -L%, $(LDFLAGS))
-  override EXTRA_CLEAN := gmon.out bb.out
-endif
-
-
-# Solaris with SUN cc/f77.
-ifeq "$(FLAVOUR)" "SUN/ANSI"
-  F := $(FLAVOUR)
-  WCSTRIG := NATIVE
-  export CC       := cc
-  export CFLAGS   := -g -I/usr/local/include
-  export F77      := f77
-  export FFLAGS   := -g -erroff=WDECL_LOCAL_NOTUSED
-  LD      := f77
-endif
-
-
-# Purify and quantify in Solaris.
-ifeq "$(FLAVOUR)" "SUN/Pure"
-  F := $(FLAVOUR)
-  WCSTRIG := NATIVE
-  export CC       := purify gcc
-  export CFLAGS   := -g
-  export F77      := purify gcc
-  export FFLAGS   := -g -Wimplicit -Wno-globals -I.
-  export LDFLAGS  := $(filter -L%, $(LDFLAGS))
-  override EXTRA_CLEAN := *_pure_p*.[ao] *.pcv .pure ../C/*_pure_p*.[ao]
-endif
-
-ifeq "$(FLAVOUR)" "SUN/Quant"
-  F := $(FLAVOUR)
-  WCSTRIG := NATIVE
-  export CC       := quantify gcc
-  export CFLAGS   := -g
-  export F77      := quantify gcc
-  export FFLAGS   := -g -Wimplicit -Wno-globals -I.
-  export LDFLAGS  := $(filter -L%, $(LDFLAGS))
-  override EXTRA_CLEAN := *_pure_q*.[ao] .pure
-endif
-
-
 # Check FLAVOUR.
-ifneq "$F" "$(FLAVOUR)"
+ifeq "$F" ""
   override FLAVOUR := unrecognised
 endif
 
@@ -204,21 +112,8 @@ ifdef FLAVOUR
   TIMER := $(TIMER) ; echo "    with $(FLAVOUR) FLAVOUR."
 endif
 
-# Experimental (see http://upstream-tracker.org/versions/wcslib.html).
-api-sanity-check :
-	-@ $(RM) -r $@/
-	 @ mkdir $@/
-	 @ cp C/*.h C/$(SHRLIB) $@/
-	 @ echo "<version>$(LIBVER)</version>" > $@/opts.xml
-	 @ echo "<headers>.</headers>" >> $@/opts.xml
-	 @ echo "<libs>.</libs>" >> $@/opts.xml
-	 @ echo "<gcc_options>-Dwtbarr=wtbarr_s</gcc_options>" >> $@/opts.xml
-	   cd $@ && api-sanity-checker -lib WCSLIB -d opts.xml \
-	     -show-retval -gen -build -run
-
 show ::
 	-@ echo 'For code development...'
-	-@ echo '  FLAVOURS    := $(FLAVOURS)'
 	-@ echo '  FLAVOUR     := $(FLAVOUR)'
 	-@ echo '  MODE        := $(MODE)'
 	-@ echo '  VALGRIND    := $(VALGRIND)'

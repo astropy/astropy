@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 7.12 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2022, Mark Calabretta
+  WCSLIB 8.1 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2023, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsbth.l,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
+  $Id: wcsbth.l,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
 *=============================================================================
 *
 * wcsbth.l is a Flex description file containing the definition of a lexical
@@ -1906,6 +1906,60 @@ static int wcsbth_timepixr(double timepixr);
 	  BEGIN(CCCCCCCC);
 	}
 
+^A_RADIUS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.a_radius);
+	
+	  keyname = "A_RADIUS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^B_RADIUS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.b_radius);
+	
+	  keyname = "B_RADIUS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^C_RADIUS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.c_radius);
+	
+	  keyname = "C_RADIUS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^BLON_OBS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.blon_obs);
+	
+	  keyname = "BLON_OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^BLAT_OBS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.blat_obs);
+	
+	  keyname = "BLAT_OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^BDIS_OBS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.bdis_obs);
+	
+	  keyname = "BDIS_OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
 ^END" "{77} {
 	  if (yyextra->nkeyrec) {
 	    yyextra->nkeyrec = 0;
@@ -2805,8 +2859,19 @@ static int wcsbth_timepixr(double timepixr);
 	    BEGIN(COMMENT);
 	
 	  } else {
-	    // Read the keyvalue.
-	    strcpy(strtmp, yytext+1);
+	    // Copy the keyvalue, skipping the initial quote.
+	    strncpy(strtmp, yytext+1, 80);
+	
+	    // Remove the terminating quote.
+	    strtmp[yyleng-2] = '\0';
+	
+	    // Strip off trailing blanks.
+	    for (int jx = yyleng-3; jx >= 0; jx--) {
+	      if (strtmp[jx] != ' ') {
+	        break;
+	      }
+	      strtmp[jx] = '\0';
+	    }
 	
 	    // Squeeze out repeated quotes.
 	    int ix = 0;
@@ -2816,7 +2881,6 @@ static int wcsbth_timepixr(double timepixr);
 	      }
 	
 	      if (strtmp[jx] == '\0') {
-	        if (ix) strtmp[ix-1] = '\0';
 	        break;
 	      } else if (strtmp[jx] == '\'' && strtmp[jx+1] == '\'') {
 	        jx++;
