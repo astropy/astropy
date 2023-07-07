@@ -26,26 +26,30 @@ There are two IERS data products that we discuss here:
 - **Bulletin A** (:class:`~astropy.utils.iers.IERS_A`) is updated weekly and has
   historical data starting from 1973 and predictive data for 1 year into the
   future. It contains Earth orientation parameters x/y pole, UT1-UTC and their
-  errors at daily intervals. This data file needs to be download from an IERS
-  data service or mirror.
+  errors at daily intervals.
 
 - **Bulletin B** (:class:`~astropy.utils.iers.IERS_B`) is updated monthly and
   has data from 1962 up to the time when it is generated.  This file contains
   Earth's orientation in the IERS Reference System including Universal Time,
-  coordinates of the terrestrial pole, and celestial pole offsets. The last
-  available IERS-B file just prior to each ``astropy`` release is included in
-  the ``astropy`` package.
+  coordinates of the terrestrial pole, and celestial pole offsets.
+
+Since ``astropy`` v6.0, both files are provided by the `astropy-iers-data
+<https://github.com/astropy/astropy-iers-data>`_ package, which is automatically
+installed when ``astropy`` itself is installed.
 
 Getting started
 ===============
 
-By default the latest IERS-A values (which include approximately
-one year of predictive values) are automatically downloaded from the IERS
-service when required.  This happens when a time or coordinate transformation
-needs a value which is not already available via the download cache.  In most
+By default, files are used from the `astropy-iers-data`_ package which is
+regularly updated.
+
+In some cases, the latest IERS-A values (which include approximately one year of
+predictive values) may be automatically downloaded from the IERS service as
+required.  This happens when a time or coordinate transformation needs a value
+which is not already available via existing files in `astropy-iers-data`_.  In most
 cases there is no need for invoking the `~astropy.utils.iers` classes oneself,
-but it is useful to understand the situations when a download will occur
-and how this can be controlled.
+but it is useful to understand the situations when a download will occur and how
+this can be controlled.
 
 Basic usage
 -----------
@@ -53,10 +57,9 @@ Basic usage
 By default, the IERS data are managed via instances of the
 :class:`~astropy.utils.iers.IERS_Auto` class.  These instances are created
 internally within the relevant time and coordinate objects during
-transformations.  If the astropy data cache does not have the required IERS
-data file then astropy will request the file from the IERS service.  This will
-occur the first time such a transform is done for a new setup or on a new
-machine.  Here is an example that shows the typical download progress bar::
+transformations.  If the bundled files or the astropy data cache are not recent
+enough then astropy will request the file from the IERS service. Here is an
+example that shows the typical download progress bar::
 
   >>> from astropy.time import Time
   >>> t = Time('2016:001')
@@ -92,10 +95,10 @@ important to consider are the following:
 
   auto_download:
     Enable auto-downloading of the latest IERS data.  If set to ``False`` then
-    the local IERS-B file will be used by default (even if the full IERS file
-    with predictions was already downloaded and cached).  This parameter also
-    controls whether internet resources will be queried to update the leap
-    second table if the installed version is out of date.
+    the local IERS-A and IERS-B files will be used by default (even if the full
+    IERS file with predictions was already downloaded and cached).  This
+    parameter also controls whether internet resources will be queried to update
+    the leap second table if the installed version is out of date.
 
   auto_max_age:
     Maximum age of predictive data before auto-downloading (days).  See
@@ -117,7 +120,8 @@ Auto refresh behavior
 ---------------------
 
 The first time that one attempts a time or coordinate transformation that
-requires IERS data, the latest version of the IERS table (from 1973 through
+requires IERS data, if the bundled versions of the files in `astropy-iers-data`_
+are not recent enough, the latest version of the IERS table (from 1973 through
 one year into the future) will be downloaded and stored in the astropy cache.
 
 Transformations will then use the cached data file if possible.  However, the
@@ -147,6 +151,13 @@ Working offline
 If you are working without an internet connection and doing transformations
 that require IERS data, there are a couple of options.
 
+**Ensure astropy-iers-data is up to date**
+
+If you are planning to work without an internet connection, we recommend updating
+the astropy-iers-data package to the latest available version, using e.g., ``pip``
+or ``conda``, as this will ensure that you have the most recent IERS and leap
+second data.
+
 **Disable auto downloading**
 
 Here you can do::
@@ -154,9 +165,10 @@ Here you can do::
   >>> from astropy.utils import iers
   >>> iers.conf.auto_download = False  # doctest: +SKIP
 
-In this case any transforms will use the bundled IERS-B data which covers
-the time range from 1962 to just before the astropy release date.  Any
-transforms outside of this range will not be allowed.
+In this case any transforms will use the bundled IERS data which are included in
+the `astropy-iers-data`_ package and include data up to the release date of that
+package (which is why it is important to ensure that package is up to date as
+described above). Any transforms outside of this range will not be allowed.
 
 **Set the auto-download max age parameter**
 

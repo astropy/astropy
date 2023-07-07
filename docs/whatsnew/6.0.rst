@@ -14,6 +14,7 @@ In particular, this release includes:
 
 * :ref:`whatsnew-6.0-geodetic-representation-geometry`
 * :ref:`whatsnew-6.0-cosmology-latex-export`
+* :ref:`whatsnew-6.0-iers-data`
 
 In addition to these major changes, Astropy v6.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -106,6 +107,27 @@ format::
     -------- ------------ ------- ------- ------- ----------- -------
     Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 
+.. _whatsnew-6.0-iers-data:
+
+Updates to how IERS data are handled
+====================================
+
+Some parts of astropy, such as coordinate and time transformations, rely on
+tables from the International Earth Rotation and Reference Systems (IERS)
+service (these are the IERS-A, IERS-B, and leap second tables). IERS-A used
+to always be automatically downloaded, whereas the IERS-B and leap second
+tables were bundled with astropy. All tables are now bundled in the standalone
+`astropy-iers-data <https://github.com/astropy/astropy-iers-data>`_ package
+which is regularly updated and installed automatically when astropy is
+installed.
+
+The main benefit of moving the files to this package is to make it easier to
+use astropy without an internet connection, and to facilitate updating the
+tables if needed. Users that want to ensure they have the latest available
+IERS data can now install the latest version of the
+`astropy-iers-data`_ package using ``pip`` or ``conda``, or alternatively
+download the package manually and transfer it to a computer that has no
+public internet connection.
 
 Full change log
 ===============

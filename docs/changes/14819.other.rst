@@ -1,0 +1,4 @@
+Moved International Earth Rotation and Reference Systems (IERS) and Leap Second
+files out into standalone astropy-iers-data package, maintaining full
+backward-compatibility in the astropy.utils.iers API, but deprecation
+warnings may be issued when certain files are accessed directly.
