@@ -19,6 +19,7 @@ ignore = [
     "B007",  # UnusedLoopControlVariable
     "B023",  # FunctionUsesLoopVariable
     "B028",  # No-explicit-stacklevel
+    "B033",  # Sets should not contain duplicate item
     "B904",  # RaiseWithoutFromInsideExcept
     "B905",  # ZipWithoutExplicitStrict   # requires 3.10+
 
@@ -85,6 +86,11 @@ ignore = [
     "FBT002",  # boolean-default-value-in-function-definition
     "FBT003",  # boolean-positional-value-in-function-call
 
+    # flake8-fixme (FIX)
+    "FIX001",  # Line contains FIXME.  this should be fixed or at least FIXME replaced with TODO
+    "FIX003",  # Line contains XXX.  replace XXX with TODO
+    "FIX004",  # Line contains HACK. replace HACK with NOTE.
+
     # flake8-logging-format (G)
     "G001",  # logging-string-format
     "G004",  # logging-f-string
@@ -125,9 +131,11 @@ ignore = [
     "PGH001",  # eval
 
     # Pylint (PLC, PLE, PLR, PLW)
+    "PLC0208",  # Use a sequence type instead of a `set` when iterating over values
     "PLC1901",  # compare-to-empty-string
     "PLE0101",  # return-in-init
     "PLE0605",  # invalid-all-format
+    "PLR0124",  # Name compared with itself
     "PLR0402",  # ConsiderUsingFromImport
     "PLR0911",  # too-many-return-statements
     "PLR0912",  # too-many-branches
@@ -137,7 +145,6 @@ ignore = [
     "PLR5501",  # collapsible-else-if
     "PLW0120",  # useless-else-on-loop
     "PLW0129",  # assert-on-string-literal
-    "PLW0130",  # duplicate value in set
     "PLW0602",  # global-variable-not-assigned
     "PLW0603",  # global-statement
     "PLW2901",  # redefined-loop-name
@@ -198,6 +205,7 @@ ignore = [
     "RUF001",  # ambiguous-unicode-character-string
     "RUF002",  # ambiguous-unicode-character-docstring
     "RUF010",  # use conversion in f-string
+    "RUF012",  # Mutable class attributes should be annotated with `typing.ClassVar`
 
     # flake8-bandit (S)
     "S101",  # Use of `assert` detected
@@ -226,6 +234,10 @@ ignore = [
     "SIM201",  # NegateEqualOp
     "SIM202",  # NegateNotEqualOp
     "SIM300",  # yoda condition
+
+    # flake8-slots (SLOT)
+    "SLOT000",  # Subclasses of `str` should define `__slots__`
+    "SLOT001",  # Subclasses of `tuple` should define `__slots__`
 
     # flake8-print (T20)
     "T201",  # PrintUsed
