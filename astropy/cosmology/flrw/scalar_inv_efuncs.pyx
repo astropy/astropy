@@ -206,14 +206,14 @@ def fwpwacdm_inv_efunc(double z, double Om0, double Ode0,
 def w0wzcdm_inv_efunc_norel(double z, double Om0, double Ode0, double Ok0,
     double w0, double wz):
   cdef double opz = 1.0 + z
-  cdef double Odescl = opz**(3. * (1. + w0 - wz)) * exp(-3. * wz * z)
+  cdef double Odescl = opz**(3. * (1. + w0 - wz)) * exp(3. * wz * z)
   return pow(opz**2 * (opz * Om0 + Ok0) + Ode0 * Odescl, -0.5)
 
 # Massless neutrinos
 def w0wzcdm_inv_efunc_nomnu(double z, double Om0, double Ode0, double Ok0,
     double Or0, double w0, double wz):
   cdef double opz = 1.0 + z
-  cdef double Odescl = opz**(3. * (1. + w0 - wz)) * exp(-3. * wz * z)
+  cdef double Odescl = opz**(3. * (1. + w0 - wz)) * exp(3. * wz * z)
   return pow((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
           Ode0 * Odescl, -0.5)
 
@@ -224,7 +224,7 @@ def w0wzcdm_inv_efunc(double z, double Om0, double Ode0, double Ok0,
 
   cdef double opz = 1.0 + z
   cdef double Or0 = Ogamma0 * (1.0 + nufunc(opz, NeffPerNu, nmasslessnu, nu_y))
-  cdef double Odescl = opz**(3. * (1. + w0 - wz)) * exp(-3. * wz * z)
+  cdef double Odescl = opz**(3. * (1. + w0 - wz)) * exp(3. * wz * z)
   return pow((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 + Ode0 * Odescl, -0.5)
 
 ######## Flatw0wzCDM
@@ -232,14 +232,14 @@ def w0wzcdm_inv_efunc(double z, double Om0, double Ode0, double Ok0,
 def fw0wzcdm_inv_efunc_norel(double z, double Om0, double Ode0,
     double w0, double wz):
   cdef double opz = 1.0 + z
-  cdef double Odescl = opz**(3. * (1. + w0 - wz)) * exp(-3. * wz * z)
+  cdef double Odescl = opz**(3. * (1. + w0 - wz)) * exp(3. * wz * z)
   return pow(opz**3 * Om0 + Ode0 * Odescl, -0.5)
 
 # Massless neutrinos
 def fw0wzcdm_inv_efunc_nomnu(double z, double Om0, double Ode0,
     double Or0, double w0, double wz):
   cdef double opz = 1.0 + z
-  cdef double Odescl = opz**(3. * (1. + w0 - wz)) * exp(-3. * wz * z)
+  cdef double Odescl = opz**(3. * (1. + w0 - wz)) * exp(3. * wz * z)
   return pow((opz * Or0 + Om0) * opz**3 + Ode0 * Odescl, -0.5)
 
 # With massive neutrinos
@@ -249,7 +249,7 @@ def fw0wzcdm_inv_efunc(double z, double Om0, double Ode0,
 
   cdef double opz = 1.0 + z
   cdef double Or0 = Ogamma0 * (1.0 + nufunc(opz, NeffPerNu, nmasslessnu, nu_y))
-  cdef double Odescl = opz**(3. * (1. + w0 - wz)) * exp(-3. * wz * z)
+  cdef double Odescl = opz**(3. * (1. + w0 - wz)) * exp(3. * wz * z)
   return pow((opz * Or0 + Om0) * opz**3 + Ode0 * Odescl, -0.5)
 
 ######## Neutrino relative density function

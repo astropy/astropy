@@ -273,7 +273,7 @@ class Flatw0wzCDM(FlatFLRWMixin, w0wzCDM):
     The comoving distance in Mpc at redshift z:
 
     >>> cosmo.comoving_distance(0.5)
-    <Quantity 1982.66012926 Mpc>
+    <Quantity 1849.74726272 Mpc>
     """
 
     def __init__(
