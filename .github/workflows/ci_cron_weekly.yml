@@ -100,7 +100,7 @@ jobs:
     # of using system libraries and using pytest directly.
 
     runs-on: ubuntu-20.04
-    name: Python 3.10
+    name: Python 3.11
     if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
     env:
       ARCH_ON_CI: ${{ matrix.arch }}
@@ -123,7 +123,7 @@ jobs:
         id: build
         with:
           arch: ${{ matrix.arch }}
-          distro: ubuntu_latest
+          distro: ubuntu_rolling
 
           shell: /bin/bash
           env: |
@@ -151,4 +151,5 @@ jobs:
             python3 -m venv --system-site-packages tests
             source tests/bin/activate
             ASTROPY_USE_SYSTEM_ALL=1 pip3 install -e .[test]
+            pip3 list
             python3 -m pytest
