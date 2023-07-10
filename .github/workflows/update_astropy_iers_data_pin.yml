@@ -1,0 +1,54 @@
+# Regularly update the minimum version of astropy-iers-data in setup.cfg,
+# to ensure that if users update astropy, astropy-iers-data will also get
+# updated to a recent version.
+
+name: Auto-update astropy-iers-data minimum version
+
+on:
+  schedule:
+    - cron: '0 0 2 * *'  # Monthly
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  update-astropy-iers-data-pin:
+    permissions:
+      contents: write  # for peter-evans/create-pull-request to create branch
+      pull-requests: write  # for peter-evans/create-pull-request to create a PR
+    name: Auto-update astropy-iers-data minimum version
+    runs-on: ubuntu-latest
+    if: github.repository == 'astropy/astropy'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.x
+    - name: Install dependencies
+      run: pip install requests
+    - name: Run update script
+      run: python .github/workflows/update_astropy_iers_data_pin.py
+    - name: Commit changes
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add setup.cfg
+        if ! git diff --cached --exit-code; then
+          git commit -m "Update minimum required version of astropy-iers-data"
+        fi
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v5
+      with:
+        branch: update-astropy-iers-data-pin
+        branch-suffix: timestamp
+        delete-branch: true
+        labels: no-changelog-entry-needed, utils.iers
+        title: Update minimum required version of astropy-iers-data
+        body: |
+          This is an automated update of the minimum version of astropy-iers-data
+
+          :warning: Please close and re-open this pull request to trigger the CI :warning:
