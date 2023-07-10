@@ -1230,7 +1230,8 @@ class MetaBaseReader(type):
                 + re.sub(".", "=", header)
                 + "\n"
             )
-            func.__doc__ += inspect.cleandoc(cls.__doc__).strip()
+            # NOTE: cls.__doc__ is None for -OO flag
+            func.__doc__ += inspect.cleandoc(cls.__doc__ or "").strip()
             connect.io_registry.register_reader(io_format, Table, func)
 
             if dct.get("_io_registry_can_write", True):
@@ -1243,7 +1244,7 @@ class MetaBaseReader(type):
                     + re.sub(".", "=", header)
                     + "\n"
                 )
-                func.__doc__ += inspect.cleandoc(cls.__doc__).strip()
+                func.__doc__ += inspect.cleandoc(cls.__doc__ or "").strip()
                 connect.io_registry.register_writer(io_format, Table, func)
 
 
