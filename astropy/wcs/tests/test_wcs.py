@@ -19,8 +19,9 @@ from astropy import units as u
 from astropy import wcs
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
+from astropy.io.fits.verify import VerifyWarning
 from astropy.nddata import Cutout2D
-from astropy.tests.helper import assert_quantity_allclose
+from astropy.tests.helper import assert_quantity_allclose, PYTEST_LT_8_0
 from astropy.utils.data import (
     get_pkg_data_contents,
     get_pkg_data_filename,
@@ -968,7 +969,14 @@ def test_sip_tpv_agreement():
         os.path.join("data", "tpvonly.hdr"), encoding="binary"
     )
 
-    with pytest.warns(wcs.FITSFixedWarning):
+    if PYTEST_LT_8_0:
+        ctx = nullcontext()
+    else:
+        ctx = pytest.warns(
+            AstropyWarning, match="Some non-standard WCS keywords were excluded"
+        )
+
+    with pytest.warns(wcs.FITSFixedWarning), ctx:
         w_sip = wcs.WCS(sip_header)
         w_tpv = wcs.WCS(tpv_header)
 
@@ -1005,11 +1013,21 @@ def test_tpv_ctype_sip():
     sip_header["CTYPE1"] = "RA---TAN-SIP"
     sip_header["CTYPE2"] = "DEC--TAN-SIP"
 
+    if PYTEST_LT_8_0:
+        ctx1 = ctx2 = nullcontext()
+    else:
+        ctx1 = pytest.warns(
+            wcs.FITSFixedWarning, match=".*RADECSYS keyword is deprecated, use RADESYSa"
+        )
+        ctx2 = pytest.warns(
+            wcs.FITSFixedWarning, match=".*Set MJD-OBS to .* from DATE-OBS"
+        )
+
     with pytest.warns(
         wcs.FITSFixedWarning,
         match="Removed redundant SCAMP distortion parameters "
         "because SIP parameters are also present",
-    ):
+    ), ctx1, ctx2:
         w_sip = wcs.WCS(sip_header)
 
     assert w_sip.sip is not None
@@ -1026,11 +1044,21 @@ def test_tpv_ctype_tpv():
     sip_header["CTYPE1"] = "RA---TPV"
     sip_header["CTYPE2"] = "DEC--TPV"
 
+    if PYTEST_LT_8_0:
+        ctx1 = ctx2 = nullcontext()
+    else:
+        ctx1 = pytest.warns(
+            wcs.FITSFixedWarning, match=".*RADECSYS keyword is deprecated, use RADESYSa"
+        )
+        ctx2 = pytest.warns(
+            wcs.FITSFixedWarning, match=".*Set MJD-OBS to .* from DATE-OBS"
+        )
+
     with pytest.warns(
         wcs.FITSFixedWarning,
         match="Removed redundant SIP distortion parameters "
         "because CTYPE explicitly specifies TPV distortions",
-    ):
+    ), ctx1, ctx2:
         w_sip = wcs.WCS(sip_header)
 
     assert w_sip.sip is None
@@ -1047,11 +1075,21 @@ def test_tpv_ctype_tan():
     sip_header["CTYPE1"] = "RA---TAN"
     sip_header["CTYPE2"] = "DEC--TAN"
 
+    if PYTEST_LT_8_0:
+        ctx1 = ctx2 = nullcontext()
+    else:
+        ctx1 = pytest.warns(
+            wcs.FITSFixedWarning, match=".*RADECSYS keyword is deprecated, use RADESYSa"
+        )
+        ctx2 = pytest.warns(
+            wcs.FITSFixedWarning, match=".*Set MJD-OBS to .* from DATE-OBS"
+        )
+
     with pytest.warns(
         wcs.FITSFixedWarning,
         match="Removed redundant SIP distortion parameters "
         "because SCAMP' PV distortions are also present",
-    ):
+    ), ctx1, ctx2:
         w_sip = wcs.WCS(sip_header)
 
     assert w_sip.sip is None
@@ -1421,7 +1459,15 @@ def test_to_fits_1():
     Test to_fits() with LookupTable distortion.
     """
     fits_name = get_pkg_data_filename("data/dist.fits")
-    with pytest.warns(AstropyDeprecationWarning):
+
+    if PYTEST_LT_8_0:
+        ctx = nullcontext()
+    else:
+        ctx = pytest.warns(
+            wcs.FITSFixedWarning, match="The WCS transformation has more axes"
+        )
+
+    with pytest.warns(AstropyDeprecationWarning), ctx:
         w = wcs.WCS(fits_name)
     wfits = w.to_fits()
     assert isinstance(wfits, fits.HDUList)
@@ -1694,8 +1740,13 @@ def test_distortion_header(tmp_path):
     cen = np.array((50, 50))
     siz = np.array((20, 20))
 
+    if PYTEST_LT_8_0:
+        ctx = nullcontext()
+    else:
+        ctx = pytest.raises(VerifyWarning)
+
     with fits.open(path) as hdulist:
-        with pytest.warns(wcs.FITSFixedWarning):
+        with ctx, pytest.warns(wcs.FITSFixedWarning):
             w = wcs.WCS(hdulist[0].header)
         cut = Cutout2D(hdulist[0].data, position=cen, size=siz, wcs=w)
 

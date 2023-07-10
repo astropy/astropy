@@ -181,21 +181,21 @@ def _test_regression(tmp_path, _python_based=False, binary_mode=1):
 @pytest.mark.xfail("legacy_float_repr")
 def test_regression(tmp_path):
     # W39: Bit values can not be masked
-    with pytest.warns(W39):
+    with pytest.warns(W39), np.errstate(over="ignore"):
         _test_regression(tmp_path, False)
 
 
 @pytest.mark.xfail("legacy_float_repr")
 def test_regression_python_based_parser(tmp_path):
     # W39: Bit values can not be masked
-    with pytest.warns(W39):
+    with pytest.warns(W39), np.errstate(over="ignore"):
         _test_regression(tmp_path, True)
 
 
 @pytest.mark.xfail("legacy_float_repr")
 def test_regression_binary2(tmp_path):
     # W39: Bit values can not be masked
-    with pytest.warns(W39):
+    with pytest.warns(W39), np.errstate(over="ignore"):
         _test_regression(tmp_path, False, 2)
 
 

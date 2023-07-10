@@ -1056,13 +1056,16 @@ class TestHDUListFunctions(FitsTestCase):
         match = "Found a SIMPLE card but its format doesn't respect the FITS Standard"
 
         with pytest.warns(VerifyWarning, match=match):
-            fits.open(filename)
+            with fits.open(filename):
+                pass
 
         with pytest.warns(VerifyWarning, match=match):
-            fits.open(filename, mode="append")
+            with fits.open(filename, mode="append"):
+                pass
 
         with pytest.warns(VerifyWarning, match=match):
-            fits.open(filename, mode="update")
+            with fits.open(filename, mode="update"):
+                pass
 
         with fits.open(filename, ignore_missing_simple=True) as hdul:
             assert isinstance(hdul[0], _ValidHDU)
@@ -1076,7 +1079,8 @@ class TestHDUListFunctions(FitsTestCase):
             f.write(buf.read())
 
         with pytest.warns(VerifyWarning, match=match):
-            fits.open(filename)
+            with fits.open(filename):
+                pass
 
     def test_proper_error_raised_on_non_fits_file_with_unicode(self):
         """
@@ -1133,7 +1137,7 @@ class TestHDUListFunctions(FitsTestCase):
             assert not f.closed
 
         with open(filename, mode="rb") as f:
-            with pytest.raises(OSError), pytest.warns(VerifyWarning):
+            with pytest.raises(OSError):
                 fits.open(f, ignore_missing_end=True)
 
             assert not f.closed
@@ -1141,7 +1145,7 @@ class TestHDUListFunctions(FitsTestCase):
         with pytest.raises(OSError):
             fits.open(filename, ignore_missing_end=False)
 
-        with pytest.raises(OSError), pytest.warns(VerifyWarning):
+        with pytest.raises(OSError):
             fits.open(filename, ignore_missing_end=True)
 
     def test_pop_with_lazy_load(self):

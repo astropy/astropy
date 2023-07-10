@@ -3758,8 +3758,10 @@ def validate(source):
 
     if isinstance(source, fits.HDUList):
         hdulist = source
+        close_file = False
     else:
         hdulist = fits.open(source)
+        close_file = True
 
     results = _WcsValidateResults()
 
@@ -3798,5 +3800,8 @@ def validate(source):
                     wcs_results.append(str(e))
 
                 wcs_results.extend([str(x.message) for x in warning_lines])
+
+    if close_file:
+        hdulist.close()
 
     return results

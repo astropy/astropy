@@ -47,7 +47,7 @@ def convert_to_writable_filelike(fd, compressed=False):
     if isinstance(fd, str):
         fd = os.path.expanduser(fd)
         if fd.endswith(".gz") or compressed:
-            with gzip.GzipFile(fd, "wb") as real_fd:
+            with gzip.GzipFile(filename=fd, mode="wb") as real_fd:
                 encoded_fd = io.TextIOWrapper(real_fd, encoding="utf8")
                 yield encoded_fd
                 encoded_fd.flush()
@@ -61,7 +61,7 @@ def convert_to_writable_filelike(fd, compressed=False):
         assert callable(fd.write)
 
         if compressed:
-            fd = gzip.GzipFile(fileobj=fd)
+            fd = gzip.GzipFile(fileobj=fd, mode="wb")
 
         # If we can't write Unicode strings, use a codecs.StreamWriter
         # object

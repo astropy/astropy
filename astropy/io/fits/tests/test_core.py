@@ -10,6 +10,7 @@ import shutil
 import sys
 import urllib.request
 import zipfile
+from contextlib import nullcontext
 from unittest.mock import patch
 
 import numpy as np
@@ -20,10 +21,11 @@ from astropy.io.fits.convenience import _getext
 from astropy.io.fits.diff import FITSDiff
 from astropy.io.fits.file import GZIP_MAGIC, _File
 from astropy.io.tests import safeio
+from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.utils import data
-
-# NOTE: Python can be built without bz2.
-from astropy.utils.compat.optional_deps import HAS_BZ2
+from astropy.utils.compat.optional_deps import (
+    HAS_BZ2,
+)  # NOTE: Python can be built without bz2.
 from astropy.utils.data import conf
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
@@ -277,10 +279,24 @@ class TestCore(FitsTestCase):
         hdu = make_invalid_hdu()
         hdu.verify("silentfix+ignore")
 
+        if PYTEST_LT_8_0:
+            ctx_ver_err = ctx_card_n = ctx_zero_idx = nullcontext()
+        else:
+            ctx_ver_err = pytest.warns(
+                fits.verify.VerifyWarning, match="Verification reported errors"
+            )
+            ctx_card_n = pytest.warns(fits.verify.VerifyWarning, match=r"Card \d")
+            ctx_zero_idx = pytest.warns(
+                fits.verify.VerifyWarning,
+                match=r"Note: astropy\.io\.fits uses zero-based indexing",
+            )
+
         # silentfix+warn should be quiet about the fixed HDU and only warn
         # about the unfixable one
         hdu = make_invalid_hdu()
-        with pytest.warns(AstropyUserWarning, match="Illegal keyword name") as w:
+        with ctx_ver_err, ctx_card_n, ctx_zero_idx, pytest.warns(
+            AstropyUserWarning, match="Illegal keyword name"
+        ) as w:
             hdu.verify("silentfix+warn")
         assert len(w) == 4
 
@@ -294,7 +310,9 @@ class TestCore(FitsTestCase):
         # fix+ignore is not too useful, but it should warn about the fixed
         # problems while saying nothing about the unfixable problems
         hdu = make_invalid_hdu()
-        with pytest.warns(AstropyUserWarning, match="not upper case") as w:
+        with ctx_ver_err, ctx_card_n, ctx_zero_idx, pytest.warns(
+            AstropyUserWarning, match="not upper case"
+        ) as w:
             hdu.verify("fix+ignore")
         assert len(w) == 4
 
@@ -1429,12 +1447,22 @@ class TestStreamingFunctions(FitsTestCase):
         hdul = fits.HDUList([phdu, ihdu])
         filename = self.temp("temp.fits")
 
-        pytest.raises(
-            fits.VerifyError, hdul.writeto, filename, output_verify="exception"
-        )
+        if PYTEST_LT_8_0:
+            ctx1 = ctx2 = ctx3 = nullcontext()
+        else:
+            ctx1 = pytest.warns(fits.verify.VerifyWarning, match="HDU 1")
+            ctx2 = pytest.warns(
+                fits.verify.VerifyWarning,
+                match="The EXTNAME keyword must have a string value",
+            )
+            ctx3 = pytest.warns(
+                fits.verify.VerifyWarning,
+                match=r"Note: astropy\.io\.fits uses zero-based indexing",
+            )
+
         with pytest.warns(
             fits.verify.VerifyWarning, match=r"Verification reported errors"
-        ):
+        ), ctx1, ctx2, ctx3:
             hdul.writeto(filename, output_verify="fix")
         with fits.open(filename):
             assert hdul[1].name == "12345678"
