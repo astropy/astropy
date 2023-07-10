@@ -38,8 +38,9 @@ __all__ = [
     "fit_wcs_from_points",
 ]
 
+WCSLIB_LT8 = Version(_wcs.__version__) < Version("8.0")
 
-solar_system_obj_dict = {
+SOLAR_SYSTEM_OBJ_DICT = {
     "EA": "Earth",
     "SE": "Moon",
     "ME": "Mercury",
@@ -50,9 +51,6 @@ solar_system_obj_dict = {
     "UR": "Uranus",
     "NE": "Neptune",
 }
-
-
-solar_system_body_frames = {}
 
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
@@ -95,6 +93,9 @@ def _wcs_to_celestial_frame_builtin(wcs):
 
     # Import astropy.time here otherwise setup.py fails before extensions are compiled
     from astropy.time import Time
+
+    solar_system_body_frames = {}
+    solar_system_body_representation_type = {}
 
     if wcs.wcs.lng == -1 or wcs.wcs.lat == -1:
         return None
@@ -148,27 +149,68 @@ def _wcs_to_celestial_frame_builtin(wcs):
             and "H" not in xcoord
             and "CR" not in xcoord
         ):
-            if Version(_wcs.__version__) >= Version("8.0"):
+            # Coordinates on a planetary body, as defined in
+            # https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2018EA000388
+
+            object_name = SOLAR_SYSTEM_OBJ_DICT.get(xcoord[:2])
+            if object_name is None:
+                raise KeyError(f"unknown solar system object abbreviation {xcoord[:2]}")
+
+            if WCSLIB_LT8:
+                warnings.warn(
+                    f" {_wcs.__version__} does not support planetary WCS,"
+                    " planetary frame descriptions may be lost with the current versions"
+                    " - please update to 8.1 or use the bundled WCSLIB.",
+                    AstropyWarning,
+                )
+            else:
                 a_radius = wcs.wcs.aux.a_radius
                 b_radius = wcs.wcs.aux.b_radius
                 c_radius = wcs.wcs.aux.c_radius
-
             if "bodycentric" in wcs.wcs.name.lower():
                 baserepresentation = BaseBodycentricRepresentation
+                representation_type_name = "BodycentricRepresentation"
             else:
                 baserepresentation = BaseGeodeticRepresentation
+                representation_type_name = "GeodeticRepresentation"
 
-            if Version(_wcs.__version__) >= Version("8.0"):
-                baserepresentation._equatorial_radius = a_radius * u.m
-                baserepresentation._flattening = (a_radius - c_radius) / a_radius
+            if WCSLIB_LT8:
+                warnings.warn(
+                    f" {_wcs.__version__} does not support planetary WCS,"
+                    " planetary frame descriptions may be lost with the current versions"
+                    " - please update to 8.1 or use the bundled WCSLIB.",
+                    AstropyWarning,
+                )
+            else:
+                if a_radius == b_radius:
+                    equatorial_radius = a_radius * u.m
+                    flattening = (a_radius - c_radius) / a_radius
+                else:
+                    raise NotImplementedError(
+                        "triaxial systems are not supported at this time."
+                    )
 
+            # instance a new representation class
+            representation_type = solar_system_body_representation_type.get(xcoord[:2])
+            if representation_type is None and object_name is not None:
+                representation_type = type(
+                    f"{object_name}{representation_type_name}",
+                    (baserepresentation,),
+                    dict(_equatorial_radius=equatorial_radius, _flattening=flattening),
+                )
+                solar_system_body_representation_type[xcoord[:2]] = representation_type
+
+            # instance a new frame class
             frame = solar_system_body_frames.get(xcoord[:2])
-            object_name = solar_system_obj_dict.get(xcoord[:2])
             if frame is None and object_name is not None:
                 frame = type(
-                    object_name,
+                    f"{object_name}Frame",
                     (BaseCoordinateFrame,),
-                    dict(representation_type=baserepresentation, obstime=None),
+                    dict(
+                        name=object_name,
+                        representation_type=representation_type,
+                        obstime=None,
+                    ),
                 )
                 solar_system_body_frames[xcoord[:2]] = frame
         else:
@@ -216,28 +258,36 @@ def _celestial_frame_to_wcs_builtin(frame, projection="TAN"):
         ycoord = "TLAT"
         wcs.wcs.radesys = "ITRS"
         wcs.wcs.dateobs = frame.obstime.utc.isot
-    elif hasattr(frame, "name") and frame.name in solar_system_obj_dict.values():
+    # TODO: once we have a BaseBodyFrame, replace this with an isinstance check
+    elif hasattr(frame, "name") and frame.name in SOLAR_SYSTEM_OBJ_DICT.values():
         xcoord = frame.name[:2].upper().replace("MO", "SE") + "LN"
         ycoord = frame.name[:2].upper().replace("MO", "SE") + "LT"
         if issubclass(frame.representation_type, BaseGeodeticRepresentation):
             wcs.wcs.name = "Planetographic Body-Fixed"
         elif issubclass(frame.representation_type, BaseBodycentricRepresentation):
             wcs.wcs.name = "Bodycentric Body-Fixed"
-        if Version(_wcs.__version__) >= Version("8.0"):
-            if hasattr(frame.representation_type, "_equatorial_radius"):
-                wcs.wcs.aux.a_radius = (
-                    frame.representation_type._equatorial_radius.value
-                )
-                wcs.wcs.aux.b_radius = (
-                    frame.representation_type._equatorial_radius.value
-                )
-            if hasattr(frame.representation_type, "_flattening"):
-                wcs.wcs.aux.c_radius = wcs.wcs.aux.a_radius * (
-                    1.0
-                    - frame.representation_type._flattening.to(
-                        u.dimensionless_unscaled
-                    ).value
-                )
+        else:
+            raise ValueError(
+                "The representation type should be geodetic or bodycentric,"
+                " not {frame.representation_type} for storing planetary"
+                " coordinates in a WCS."
+            )
+        if WCSLIB_LT8:
+            warnings.warn(
+                f" {_wcs.__version__} does not support planetary WCS,"
+                " planetary frame descriptions may be lost with the current versions"
+                " - please update to 8.1 or use the bundled WCSLIB.",
+                AstropyWarning,
+            )
+        else:
+            wcs.wcs.aux.a_radius = frame.representation_type._equatorial_radius.value
+            wcs.wcs.aux.b_radius = frame.representation_type._equatorial_radius.value
+            wcs.wcs.aux.c_radius = wcs.wcs.aux.a_radius * (
+                1.0
+                - frame.representation_type._flattening.to(
+                    u.dimensionless_unscaled
+                ).value
+            )
     else:
         return None
 
