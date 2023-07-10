@@ -10,6 +10,7 @@ import pytest
 
 from astropy.units import allclose as quantity_allclose  # noqa: F401
 from astropy.utils.compat import PYTHON_LT_3_11
+from astropy.utils.introspection import minversion
 
 # For backward-compatibility with affiliated packages
 from .runner import TestRunner  # noqa: F401
@@ -21,6 +22,8 @@ __all__ = [
     "pickle_protocol",
     "generic_recursive_equality_test",
 ]
+
+PYTEST_LT_8_0 = not minversion(pytest, "8.0.dev")
 
 
 def _save_coverage(cov, result, rootdir, testing_path):

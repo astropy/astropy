@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import io
+from contextlib import nullcontext
 
 import pytest
 
@@ -7,6 +8,7 @@ from astropy.io.votable import tree
 from astropy.io.votable.exceptions import W07, W08, W21, W41
 from astropy.io.votable.table import parse
 from astropy.io.votable.tree import Resource, VOTableFile
+from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -129,9 +131,14 @@ def test_version():
         )
     parse(io.BytesIO(begin + b"1.4" + middle + b"1.3" + end), verify="exception")
 
+    if PYTEST_LT_8_0:
+        ctx = nullcontext()
+    else:
+        ctx = pytest.warns(W41)
+
     # Invalid versions
     for bversion in (b"1.0", b"2.0"):
-        with pytest.warns(W21):
+        with pytest.warns(W21), ctx:
             parse(
                 io.BytesIO(begin + bversion + middle + bversion + end),
                 verify="exception",
