@@ -55,6 +55,13 @@ from astropy.coordinates.tests.test_geodetic_representations import (
     IAUMARS2000BodycentricRepresentation,
 )
 
+# Preserve the original REPRESENTATION_CLASSES dict so that importing
+#   the test file doesn't add a persistent test subclass
+from astropy.coordinates.tests.test_representation import (  # noqa: F401
+    setup_function,
+    teardown_function,
+)
+
 
 def test_wcs_dropping():
     wcs = WCS(naxis=4)
