@@ -133,7 +133,7 @@ class QuantityIterator:
     def __len__(self):
         return len(self._dataiter)
 
-    #### properties and methods to match `numpy.ndarray.flatiter` ####
+    # Properties and methods to match `numpy.ndarray.flatiter`
 
     @property
     def base(self):
