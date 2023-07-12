@@ -119,9 +119,7 @@ exclude=[
     "*_parsetab.py",
     "*_lextab.py"
 ]
-ignore = [
-    # ---------------------------------------------------------------
-    # Permanent
+ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` instead.
 
     # flake8-builtins (A) : shadowing a Python built-in.
     # New ones should be avoided and is up to maintainers to enforce.
@@ -142,18 +140,18 @@ ignore = [
     "D200",  # FitsOnOneLine
     # Docstring Content Issues
     "D410",  # BlankLineAfterSection. Using D412 instead.
-    "D400",  # EndsInPeriod.
+    "D400",  # EndsInPeriod.  NOTE: might want to revisit this.
 
     # pycodestyle (E, W)
     "E711",  # NoneComparison  (see unfixable)
-    "E741",  # AmbiguousVariableName | physics variables are often poor code variables
+    "E741",  # AmbiguousVariableName. Physics variables are often poor code variables
 
     # Pyflakes (F)
     "F403",  # ImportStarUsed
 
     # pep8-naming (N)
-    "N803",  # invalid-argument-name | physics variables are often poor code variables
-    "N806",  # non-lowercase-variable-in-function | physics variables are often poor code variables
+    "N803",  # invalid-argument-name. Physics variables are often poor code variables
+    "N806",  # non-lowercase-variable-in-function. Physics variables are often poor code variables
 
     # pandas-vet (PD)
     "PD",
@@ -166,6 +164,33 @@ ignore = [
 
     # Ruff-specific rules (RUF)
     "RUF005",  # unpack-instead-of-concatenating-to-collection-literal -- it's not clearly faster.
+]
+
+[tool.ruff.extend-per-file-ignores]
+"setup.py" = ["INP001"]  # Part of configuration, not a package.
+"astropy/io/registry/compat.py" = ["F822"]
+"astropy/modeling/models.py" = ["F401", "F403", "F405"]
+"astropy/utils/decorators.py" = [
+    "D214", "D215",  # keep Examples section indented.
+    "D411",  # sphinx treats spaced example sections as real sections
+]
+"test_*.py" = [
+    "B018",  # UselessExpression
+    "B011",  # Do not assert False, raise AssertionError()
+    "D",  # pydocstyle
+    "E402",  # Module level import not at top of file
+    "PGH001",  # No builtin eval() allowed
+    "S101",  # Use of assert detected
+]
+".pyinstaller/*.py" = ["INP001"]  # Not a package.
+"conftest.py" = ["INP001"]  # Part of configuration, not a package.
+"docs/*.py" = [
+    "INP001",  # implicit-namespace-package. The examples are not a package.
+]
+"examples/*.py" = [
+    "E402",   # Imports are done as needed.
+    "INP001", # implicit-namespace-package. The examples are not a package.
+    "T203"    # pprint found
 ]
 
 [tool.ruff.isort]
