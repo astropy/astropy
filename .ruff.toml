@@ -75,7 +75,6 @@ ignore = [
     "EXE002",  # shebang-missing-executable-file
 
     # Pyflakes (F)
-    "F821",  # undefined-name
     "F841",  # unused-variable
 
     # flake8-boolean-trap (FBT)  : boolean flags should be kwargs, not args
@@ -307,7 +306,7 @@ unfixable = [
 "astropy/tests/*" = ["C408"]
 "astropy/time/*" = ["I001", "C408"]
 "astropy/timeseries/*" = ["I001", "C408"]
-"astropy/units/*" = ["I001", "C408"]
+"astropy/units/*" = ["I001", "C408", "F821"]
 "astropy/uncertainty/*" = ["C408"]
 "astropy/utils/*" = ["C408"]
 "astropy/visualization/*" = [
@@ -315,6 +314,6 @@ unfixable = [
     "C408",
     "I001",
 ]
-"astropy/wcs/*" = ["I001", "C408"]
+"astropy/wcs/*" = ["I001", "C408", "F821"]
 "docs/*" = []
 "examples/coordinates/*" = []
