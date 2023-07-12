@@ -777,8 +777,7 @@ def sigma_clip(
     masked : bool, optional
         If `True`, then a `~numpy.ma.MaskedArray` is returned, where
         the mask is `True` for clipped values. If `False`, then a
-        `~numpy.ndarray` and the minimum and maximum clipping thresholds
-        are returned. The default is `True`.
+        `~numpy.ndarray` is returned. The default is `True`.
 
     return_bounds : bool, optional
         If `True`, then the minimum and maximum clipping bounds are also
