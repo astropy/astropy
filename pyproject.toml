@@ -180,7 +180,6 @@ extend-ignore = [
 
     # Pyflakes (F)
     "F403",  # ImportStarUsed
-    "F821",  # UndefinedName                           # TODO: fix
     "F841",  # UnusedVariable                          # TODO: autofix
 
     # flake8-boolean-trap (FBT)  : boolean flags should be kwargs, not args
@@ -319,6 +318,8 @@ unfixable = [
     "D411",  # sphinx treats spaced example sections as real sections
 ]
 "test_*.py" = ["B011", "D", "E402", "PGH001", "S101"]
+"astropy/units/*" = ["F821"]
+"astropy/wcs/*" = ["F821"]
 ".pyinstaller/*.py" = ["INP001"]  # Not a package.
 "conftest.py" = ["INP001"]  # Part of configuration, not a package.
 "docs/*.py" = [

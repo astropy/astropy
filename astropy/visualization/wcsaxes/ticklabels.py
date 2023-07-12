@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
+import warnings
 from collections import defaultdict
 
 import numpy as np
@@ -7,6 +7,8 @@ from matplotlib import rcParams
 from matplotlib.text import Text
 
 from .frame import RectangularFrame
+
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def sort_using(X, Y):
