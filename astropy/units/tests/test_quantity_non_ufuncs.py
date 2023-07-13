@@ -2039,12 +2039,8 @@ class TestFFT(InvariantUnitTestSetup):
 class TestLinAlg(metaclass=CoverageMeta):
     def setup_method(self):
         self.q = (
-            np.array(
-                [[ 1.0, -1.0,  2.0],
-                 [ 0.0,  3.0, -1.0],
-                 [-1.0, -1.0,  1.0]]
-            ) << u.m
-        )  # fmt: skip
+            np.array([[1.0, -1.0, 2.0], [0.0, 3.0, -1.0], [-1.0, -1.0, 1.0]]) << u.m
+        )
 
     def test_cond(self):
         c = np.linalg.cond(self.q)
@@ -2353,18 +2349,17 @@ class TestRecFunctions(metaclass=CoverageMeta):
         assert np.array_equal(arr, self.q_pv)
         assert arr.unit == (u.km, u.km / u.s)
 
-    @pytest.mark.xfail
-    @pytest.mark.parametrize("flatten", [True, False])
-    def test_merge_arrays_nonquantities(self, flatten):
-        # Fails because cannot create quantity from structured array.
-        arr = rfn.merge_arrays((q_pv["p"], q_pv.value), flatten=flatten)
-
     def test_merge_array_nested_structure(self):
         # Merge 2-element tuples without flattening.
         arr = rfn.merge_arrays((self.q_pv, self.q_pv_t))
         assert_array_equal(arr["f0"], self.q_pv)
         assert_array_equal(arr["f1"], self.q_pv_t)
         assert arr.unit == ((u.km, u.km / u.s), ((u.km, u.km / u.s), u.s))
+        # For a structured array, all elements should be treated as dimensionless.
+        arr = rfn.merge_arrays((self.q_pv["p"], self.q_pv.value))
+        expected_value = rfn.merge_arrays((self.q_pv["p"].value, self.q_pv.value))
+        assert_array_equal(arr.value, expected_value)
+        assert arr.unit == u.Unit((self.q_pv["p"].unit, (u.one, u.one)))
 
     def test_merge_arrays_flatten_nested_structure(self):
         # Merge 2-element tuple, flattening it.
@@ -2375,6 +2370,13 @@ class TestRecFunctions(metaclass=CoverageMeta):
         assert_array_equal(arr["vv"], self.q_pv_t["pv"]["vv"])
         assert_array_equal(arr["t"], self.q_pv_t["t"])
         assert arr.unit == (u.km, u.km / u.s, u.km, u.km / u.s, u.s)
+        # For a structured array, all elements should be treated as dimensionless.
+        arr = rfn.merge_arrays((self.q_pv["p"], self.q_pv.value), flatten=True)
+        expected_value = rfn.merge_arrays(
+            (self.q_pv["p"].value, self.q_pv.value), flatten=True
+        )
+        assert_array_equal(arr.value, expected_value)
+        assert arr.unit == u.Unit((self.q_pv["p"].unit, u.one, u.one))
 
     def test_merge_arrays_asrecarray(self):
         with pytest.raises(ValueError, match="asrecarray=True is not supported."):
