@@ -345,12 +345,12 @@ installing with::
 
 which will install into a default directory in your home directory.
 
-If you get an error directing use of option -std=c99 or -std=gnu99, you can try
+If you get an error directing use of option ``-std=c99`` or ``-std=gnu99``, you can try
 installing with::
 
     CFLAGS='-std=c99' pip install -e .
 
-This is necessary for use with Centos7.
+This is necessary for use with CentOS7.
 
 .. _external_c_libraries:
 
