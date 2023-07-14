@@ -66,7 +66,7 @@ jobs:
           linux: py311-test-cov
           coverage: codecov
 
-        - name: Python 3.10 with all optional dependencies
+        - name: Python 3.10 in Parallel with all optional dependencies
           linux: py310-test-alldeps-fitsio
           libraries:
             apt:
@@ -74,7 +74,7 @@ jobs:
               - tzdata
               - libcfitsio-dev
           toxargs: -v --develop
-          posargs: --run-slow
+          posargs: -n=4 --run-slow
 
         - name: Python 3.9 with oldest supported version of all dependencies
           linux: py39-test-oldestdeps-alldeps-cov-clocale
@@ -88,6 +88,9 @@ jobs:
         - name: Python 3.10 with all optional dependencies (MacOS X)
           macos: py310-test-alldeps
           posargs: --durations=50 --run-slow
+
+        - name: Python 3.9 Double test (Run tests twice)
+          linux: py39-test-double
 
   allowed_failures:
     needs: [initial_checks]
@@ -106,36 +109,3 @@ jobs:
         - name: (Allowed Failure) Python 3.11 with remote data and dev version of key dependencies
           linux: py311-test-devdeps
           posargs: --remote-data=any
-
-  parallel_and_32bit:
-    name: 32-bit and parallel
-    runs-on: ubuntu-latest
-    needs: [initial_checks]
-    container:
-      image: quay.io/pypa/manylinux2014_i686:2022-04-03-da6ecb3
-    steps:
-    # TODO: Use newer checkout actions when https://github.com/actions/checkout/issues/334 fixed
-    - name: Checkout code
-      uses: actions/checkout@v1
-      with:
-        fetch-depth: 0
-    - name: Write configuration items to standard location to make sure they are ignored in parallel mode
-      run: |
-        mkdir -p $HOME/.astropy/config/
-        printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
-    # In addition to testing 32-bit, we also use the 3.9 builds to
-    # test the ability to run the test suite in parallel.
-    # Numpy is pinned to avoid building it from source for numpy 1.21.5
-    - name: Install dependencies for Python 3.9
-      run: /opt/python/cp39-cp39/bin/pip install --upgrade tox
-    - name: Run tests for Python 3.9
-      run: /opt/python/cp39-cp39/bin/python -m tox -e py39-numpy121-test -- -n=4 --durations=50
-    # We use the 3.9 build to check that running tests twice in a row in the
-    # same Python session works without issues. This catches cases where
-    # running the tests changes the module state permanently. Note that we
-    # shouldn't also test the parallel build here since that enforces a degree
-    # of isolation of tests which will interfere with what we are trying to do
-    # here.
-    # Numpy is pinned to avoid building it from source for numpy 1.21.5
-    - name: Run tests for Python 3.9
-      run: /opt/python/cp39-cp39/bin/python -m tox -e py39-numpy121-test-double
