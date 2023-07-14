@@ -190,9 +190,9 @@ def _wcs_to_celestial_frame_builtin(wcs):
                         "triaxial systems are not supported at this time."
                     )
 
-            # instance a new representation class
+            # create a new representation class
             representation_type = solar_system_body_representation_type.get(xcoord[:2])
-            if representation_type is None and object_name is not None:
+            if representation_type is None:
                 representation_type = type(
                     f"{object_name}{representation_type_name}",
                     (baserepresentation,),
@@ -200,9 +200,9 @@ def _wcs_to_celestial_frame_builtin(wcs):
                 )
                 solar_system_body_representation_type[xcoord[:2]] = representation_type
 
-            # instance a new frame class
+            # create a new frame class
             frame = solar_system_body_frames.get(xcoord[:2])
-            if frame is None and object_name is not None:
+            if frame is None:
                 frame = type(
                     f"{object_name}Frame",
                     (BaseCoordinateFrame,),
@@ -258,6 +258,10 @@ def _celestial_frame_to_wcs_builtin(frame, projection="TAN"):
         ycoord = "TLAT"
         wcs.wcs.radesys = "ITRS"
         wcs.wcs.dateobs = frame.obstime.utc.isot
+        if issubclass(frame.representation_type, BaseGeodeticRepresentation):
+            wcs.wcs.name = "Geodetic Terrestrial Representation"
+        elif issubclass(frame.representation_type, BaseBodycentricRepresentation):
+            wcs.wcs.name = "Angular Geocentric Representation"
     # TODO: once we have a BaseBodyFrame, replace this with an isinstance check
     elif hasattr(frame, "name") and frame.name in SOLAR_SYSTEM_OBJ_DICT.values():
         xcoord = frame.name[:2].upper().replace("MO", "SE") + "LN"

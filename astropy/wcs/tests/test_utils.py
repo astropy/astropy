@@ -385,14 +385,13 @@ def test_wcs_to_body_frame():
         triaxial_wcs.wcs.aux.a_radius = 2439700.0
         triaxial_wcs.wcs.aux.b_radius = 2439900.0
         triaxial_wcs.wcs.aux.c_radius = 2438800.0
-    with pytest.raises(
-        NotImplementedError, match="triaxial systems are not supported at this time"
-    ):
-        frame = wcs_to_celestial_frame(triaxial_wcs)
+        with pytest.raises(
+            NotImplementedError, match="triaxial systems are not supported at this time"
+        ):
+            frame = wcs_to_celestial_frame(triaxial_wcs)
 
     mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ["MALN-TAN", "MALT-TAN"]
-    mywcs.wcs.radesys = "ICRS"
     mywcs.wcs.dateobs = "2017-08-17T12:41:04.430"
     mywcs.wcs.name = "Mars Bodycentric Body-Fixed"
 
@@ -409,7 +408,6 @@ def test_wcs_to_body_frame():
 
     mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ["EALN-TAN", "EALT-TAN"]
-    mywcs.wcs.radesys = "ICRS"
     mywcs.wcs.name = "Earth Geodetic Body-Fixed"
     if not WCSLIB_LT8:
         mywcs.wcs.aux.a_radius = 6378137.0
@@ -556,7 +554,7 @@ def test_body_to_wcs_frame():
     with pytest.raises(
         ValueError, match="The representation type should be geodetic or bodycentric"
     ):
-        mywcs = celestial_frame_to_wcs(frame, projection="CAR")
+        celestial_frame_to_wcs(frame, projection="CAR")
 
     class IAUMARS2000BodyFrame(BaseCoordinateFrame):
         name = "Mars"
@@ -564,6 +562,7 @@ def test_body_to_wcs_frame():
     frame = IAUMARS2000BodyFrame()
 
     frame.representation_type = IAUMARS2000GeodeticRepresentation
+
     mywcs = celestial_frame_to_wcs(frame, projection="CAR")
     assert mywcs.wcs.ctype[0] == "MALN-CAR"
     assert mywcs.wcs.ctype[1] == "MALT-CAR"
