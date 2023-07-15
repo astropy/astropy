@@ -900,7 +900,7 @@ def test_compose_equivalencies():
             )
             break
     else:
-        assert False, "Didn't find speed in compose results"
+        raise AssertionError("Didn't find speed in compose results")
 
 
 def test_pixel_scale():

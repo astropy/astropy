@@ -240,9 +240,8 @@ def check_builtin_matches_remote(download_url=True):
                     "download:",
                     dl_registry[name],
                 )
-        assert False, (
-            "Builtin and download registry aren't consistent - failures printed to"
-            " stdout"
+        raise AssertionError(
+            "Builtin and download registry aren't consistent - failures printed to stdout"
         )
 
 
