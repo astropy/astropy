@@ -4,7 +4,7 @@ import functools
 
 from .core import UnifiedIORegistry
 
-__all__ = [
+__all__ = [  # noqa: F822
     "register_reader",
     "register_writer",
     "register_identifier",

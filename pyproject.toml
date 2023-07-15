@@ -168,7 +168,6 @@ ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` in
 
 [tool.ruff.extend-per-file-ignores]
 "setup.py" = ["INP001"]  # Part of configuration, not a package.
-"astropy/io/registry/compat.py" = ["F822"]
 "astropy/modeling/models.py" = ["F401", "F403", "F405"]
 "astropy/utils/decorators.py" = [
     "D214", "D215",  # keep Examples section indented.
