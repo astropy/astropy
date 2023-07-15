@@ -168,7 +168,7 @@ ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` in
 
 [tool.ruff.extend-per-file-ignores]
 "setup.py" = ["INP001"]  # Part of configuration, not a package.
-"astropy/modeling/models.py" = ["F401", "F403", "F405"]
+"astropy/modeling/models.py" = ["F405"]
 "astropy/utils/decorators.py" = [
     "D214", "D215",  # keep Examples section indented.
     "D411",  # sphinx treats spaced example sections as real sections

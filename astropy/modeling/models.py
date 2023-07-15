@@ -4,8 +4,8 @@
 Creates a common namespace for all pre-defined models.
 """
 
-from . import math_functions as math
-from .core import custom_model, fix_inputs, hide_inverse
+from . import math_functions as math  # noqa: F401
+from .core import custom_model, fix_inputs, hide_inverse  # noqa: F401
 from .functional_models import *
 from .mappings import *
 from .physical_models import *
