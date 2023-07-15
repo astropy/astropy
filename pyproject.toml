@@ -176,7 +176,6 @@ ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` in
 ]
 "test_*.py" = [
     "B018",  # UselessExpression
-    "B011",  # Do not assert False, raise AssertionError()
     "D",  # pydocstyle
     "E402",  # Module level import not at top of file
     "PGH001",  # No builtin eval() allowed

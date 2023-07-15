@@ -809,37 +809,25 @@ class TestParameters:
         param = Parameter(name="test", default=1)
         assert param.value == 1
         assert np.all(param)
-        if param:
-            assert True
-        else:
-            assert False
+        assert param
 
         # single value is false
         param = Parameter(name="test", default=0)
         assert param.value == 0
         assert not np.all(param)
-        if param:
-            assert False
-        else:
-            assert True
+        assert not param
 
         # vector value all true
         param = Parameter(name="test", default=[1, 2, 3, 4])
         assert np.all(param.value == [1, 2, 3, 4])
         assert np.all(param)
-        if param:
-            assert True
-        else:
-            assert False
+        assert param
 
         # vector value at least one false
         param = Parameter(name="test", default=[1, 2, 0, 3, 4])
         assert np.all(param.value == [1, 2, 0, 3, 4])
         assert not np.all(param)
-        if param:
-            assert False
-        else:
-            assert True
+        assert not param
 
     def test_param_repr_oneline(self):
         # Single value no units

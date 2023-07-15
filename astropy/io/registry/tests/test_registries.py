@@ -282,11 +282,11 @@ class TestUnifiedIORegistryBase:
 
     @pytest.mark.skip("TODO!")
     def test_compat_get_formats(self, registry, fmtcls1):
-        assert False
+        raise AssertionError()
 
     @pytest.mark.skip("TODO!")
     def test_compat_delay_doc_updates(self, registry, fmtcls1):
-        assert False
+        raise AssertionError()
 
 
 class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
@@ -330,7 +330,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
     @pytest.mark.skip("TODO!")
     def test_get_formats(self, registry):
         """Test ``registry.get_formats()``."""
-        assert False
+        raise AssertionError()
 
     def test_delay_doc_updates(self, registry, fmtcls1):
         """Test ``registry.delay_doc_updates()``."""
@@ -730,7 +730,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
     @pytest.mark.skip("TODO!")
     def test_get_formats(self, registry):
         """Test ``registry.get_formats()``."""
-        assert False
+        raise AssertionError()
 
     def test_identify_write_format(self, registry, fmtcls1):
         """Test ``registry.identify_format()``."""
@@ -1003,7 +1003,7 @@ class TestUnifiedIORegistry(TestUnifiedInputRegistry, TestUnifiedOutputRegistry)
     @pytest.mark.skip("TODO!")
     def test_get_formats(self, registry):
         """Test ``registry.get_formats()``."""
-        assert False
+        raise AssertionError()
 
     def test_delay_doc_updates(self, registry, fmtcls1):
         """Test ``registry.delay_doc_updates()``."""
