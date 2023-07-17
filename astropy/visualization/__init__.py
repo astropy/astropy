@@ -2,10 +2,11 @@
 
 from .hist import *
 from .interval import *
+from .stretch import *
+from .log_linear_rgb import *
 from .lupton_rgb import *
 from .mpl_normalize import *
 from .mpl_style import *
-from .stretch import *
 from .time import *
 from .transform import *
 from .units import *
