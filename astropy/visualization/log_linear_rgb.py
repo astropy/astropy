@@ -181,9 +181,6 @@ class RGBImageMapping:
 
         image_rgb *= pixmax
 
-        # Clean up any NaN/non-finite values:
-        image_rgb[~np.isfinite(image_rgb)] = pixmax
-
         return image_rgb.astype(output_image_format)
 
 
