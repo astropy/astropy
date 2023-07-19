@@ -208,17 +208,13 @@ def test_exception_logging_overridden():
 @pytest.mark.xfail("ip is not None")
 def test_exception_logging():
     # Without exception logging
-    try:
+    with pytest.raises(Exception, match="This is an Exception"):
         with log.log_to_list() as log_list:
             raise Exception("This is an Exception")
-    except Exception as exc:
-        sys.excepthook(*sys.exc_info())
-        assert exc.args[0] == "This is an Exception"
-    else:
-        assert False  # exception should have been raised
     assert len(log_list) == 0
 
-    # With exception logging
+    # With exception logging. Note that this test can't use `pytest.raises` because it
+    # cleans the exception chain, so the exception is not logged.
     try:
         log.enable_exception_logging()
         with log.log_to_list() as log_list:
@@ -227,13 +223,14 @@ def test_exception_logging():
         sys.excepthook(*sys.exc_info())
         assert exc.args[0] == "This is an Exception"
     else:
-        assert False  # exception should have been raised
+        raise AssertionError()  # exception should have been raised
     assert len(log_list) == 1
     assert log_list[0].levelname == "ERROR"
     assert log_list[0].message.startswith("Exception: This is an Exception")
     assert log_list[0].origin == "astropy.tests.test_logger"
 
-    # Without exception logging
+    # Without exception logging. Note that this test can't use `pytest.raises` because
+    # it cleans the exception chain, so any exception is not logged, regardless.
     log.disable_exception_logging()
     try:
         with log.log_to_list() as log_list:
@@ -242,7 +239,7 @@ def test_exception_logging():
         sys.excepthook(*sys.exc_info())
         assert exc.args[0] == "This is an Exception"
     else:
-        assert False  # exception should have been raised
+        raise AssertionError()  # exception should have been raised
     assert len(log_list) == 0
 
 
@@ -264,7 +261,7 @@ def test_exception_logging_origin():
             "homogeneous list must contain only objects of type "
         )
     else:
-        assert False
+        raise AssertionError()
     assert len(log_list) == 1
     assert log_list[0].levelname == "ERROR"
     assert log_list[0].message.startswith(
@@ -290,7 +287,7 @@ def test_exception_logging_argless_exception():
     except Exception:
         sys.excepthook(*sys.exc_info())
     else:
-        assert False  # exception should have been raised
+        raise AssertionError()  # exception should have been raised
     assert len(log_list) == 1
     assert log_list[0].levelname == "ERROR"
     assert log_list[0].message == "Exception [astropy.tests.test_logger]"

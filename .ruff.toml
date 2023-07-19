@@ -251,35 +251,8 @@ unfixable = [
     "E711"  # NoneComparison. Hard to fix b/c numpy has it's own None.
 ]
 
-# TODO: move these to pyproject.toml when ruff allows cascading per-file-ignores.
-[per-file-ignores]
-"setup.py" = ["INP001"]  # Part of configuration, not a package.
+[extend-per-file-ignores]
 "__init__.py" = ["E402", "F401", "F403"]
-"astropy/io/registry/compat.py" = ["F822"]
-"astropy/modeling/models.py" = ["F401", "F403", "F405"]
-"astropy/utils/decorators.py" = [
-    "D214", "D215",  # keep Examples section indented.
-    "D411",  # sphinx treats spaced example sections as real sections
-]
-"test_*.py" = [
-    "B018",  # UselessExpression
-    "B011",  # Do not assert False, raise AssertionError()
-    "D",  # pydocstyle
-    "E402",  # Module level import not at top of file
-    "PGH001",  # No builtin eval() allowed
-    "S101",  # Use of assert detected
-]
-".pyinstaller/*.py" = ["INP001"]  # Not a package.
-"conftest.py" = ["INP001"]  # Part of configuration, not a package.
-"docs/*.py" = [
-    "INP001",  # implicit-namespace-package. The examples are not a package.
-]
-"examples/*.py" = [
-    "E402",   # Imports are done as needed.
-    "INP001", # implicit-namespace-package. The examples are not a package.
-    "T203"    # pprint found
-]
-
 # TODO: fix these, on a per-subpackage basis.
 # When a general exclusion is being fixed, but it affects many subpackages, it
 # is better to fix for subpackages individually. The general exclusion should be
