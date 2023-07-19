@@ -99,7 +99,7 @@ source.
         c_tgas = coord.SkyCoord(ra=result_tgas['ra'] * u.deg,
                                 dec=result_tgas['dec'] * u.deg)
         v = Vizier(columns=["**"], catalog="II/246/out")
-        result_2mass = v.query_region(c, radius=1*u.arcmin)['II/246/out']
+        result_2mass = v.query_region(c_tgas, radius=1*u.arcmin)['II/246/out']
 
 The TGAS data from relevant columns for this source (see queries in Note
 above)::
