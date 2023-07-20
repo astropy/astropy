@@ -29,7 +29,7 @@ class DaophotHeader(core.BaseHeader):
     # Regex for extracting the format strings
     re_format = re.compile(r"%-?(\d+)\.?\d?[sdfg]")
     re_header_keyword = re.compile(
-        r"[#]K" r"\s+ (?P<name> \w+)" r"\s* = (?P<stuff> .+) $", re.VERBOSE
+        r"[#]K\s+ (?P<name> \w+)\s* = (?P<stuff> .+) $", re.VERBOSE
     )
     aperture_values = ()
 

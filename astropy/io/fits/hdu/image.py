@@ -272,7 +272,7 @@ class _ImageBaseHDU(_ValidHDU):
                     data = np.array(data)
                 except Exception:  # pragma: no cover
                     raise TypeError(
-                        f"data object {data!r} could not be coerced into an " f"ndarray"
+                        f"data object {data!r} could not be coerced into an ndarray"
                     )
 
             if data.shape == ():

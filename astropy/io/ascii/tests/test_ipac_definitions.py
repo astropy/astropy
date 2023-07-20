@@ -98,7 +98,7 @@ def test_reserved_colname_strict(colname):
 def test_too_long_comment():
     with pytest.warns(
         UserWarning,
-        match=r"Comment string > 78 characters was " r"automatically wrapped\.",
+        match=r"Comment string > 78 characters was automatically wrapped\.",
     ):
         table = Table([[3]])
         table.meta["comments"] = ["a" * 79]
