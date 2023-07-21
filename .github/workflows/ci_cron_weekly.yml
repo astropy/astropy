@@ -131,6 +131,7 @@ jobs:
             IS_CRON: ${{ env.IS_CRON }}
 
           install: |
+            add-apt-repository ppa:astropy/test-support  # for wcslib8
             apt-get update -q -y
             apt-get install -q -y git \
                                   g++ \
