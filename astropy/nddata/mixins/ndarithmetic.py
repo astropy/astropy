@@ -375,8 +375,8 @@ class NDArithmeticMixin:
             Quantity.
         """
         # Do the calculation with or without units
-        if self.unit is None:
-            if operand.unit is None:
+        if self.unit is None and hasattr(operand, "data"):
+            if hasattr(operand, "unit") and operand.unit is None:
                 result = operation(self.data, operand.data)
             else:
                 result = operation(
@@ -520,7 +520,10 @@ class NDArithmeticMixin:
         elif self.mask is None and operand is not None:
             # Make a copy so there is no reference in the result.
             return deepcopy(operand.mask)
-        elif operand.mask is None:
+        elif operand is None or getattr(operand, "mask", None) is None:
+            # first condition lets through masks within collapse operations,
+            # second lets through masks when doing arithmetic on an
+            # operand without a mask:
             return deepcopy(self.mask)
         else:
             # Now let's calculate the resulting mask (operation enforces copy)
