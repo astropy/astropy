@@ -132,9 +132,8 @@ jobs:
 
           install: |
             # Add test-support repository for wcslib8
-            apt-get update -q -y
-            apt-get install software-properties-common  # for add-apt-repository
-            add-apt-repository ppa:astropy/test-support  # for wcslib8
+            # Add test-support repository for wcslib8
+            echo "deb http://ppa.launchpadcontent.net/astropy/test-support/ubuntu lunar main" > /etc/apt/sources.list.d/test-support.list
             apt-get update -q -y
             apt-get install -q -y git \
                                   g++ \
