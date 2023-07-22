@@ -133,7 +133,7 @@ jobs:
           install: |
             # Add test-support repository for wcslib8
             # Add test-support repository for wcslib8
-            echo "deb http://ppa.launchpadcontent.net/astropy/test-support/ubuntu lunar main" > /etc/apt/sources.list.d/test-support.list
+            echo "deb [trusted=yes] http://ppa.launchpadcontent.net/astropy/test-support/ubuntu lunar main" > /etc/apt/sources.list.d/test-support.list
             apt-get update -q -y
             apt-get install -q -y git \
                                   g++ \
