@@ -133,7 +133,8 @@ jobs:
           install: |
             # Add test-support repository for wcslib8
             # Add test-support repository for wcslib8
-            echo "deb [trusted=yes] http://ppa.launchpadcontent.net/astropy/test-support/ubuntu lunar main" > /etc/apt/sources.list.d/test-support.list
+            gpg --ignore-time-conflict --no-options --no-default-keyring --secret-keyring /etc/apt/secring.gpg --trusteddb-name /etc/apt/trusteddb.gpg --keyring /etc/apt/trusted.gpg --keyserver keyserver.ubuntu.com --recv A985963D264907FDE1AE677FCC75F07B3EF41EFC
+            echo "deb http://ppa.launchpadcontent.net/astropy/test-support/ubuntu lunar main" > /etc/apt/sources.list.d/test-support.list
             apt-get update -q -y
             apt-get install -q -y git \
                                   g++ \
