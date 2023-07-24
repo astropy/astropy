@@ -298,6 +298,24 @@ def test_arithmetics_data_masks(mask1, mask2):
         assert nd.wcs is None
 
 
+# Check that masks are preserved+propagated in NDData collapse operations
+@pytest.mark.parametrize(
+    ("collapse_axis", "mask_sum", "unit"),
+    [(0, [3, 0, 3, 0], "Jy"), (1, [2, 0, 2, 0], None), (2, [2, 2, 2], "Jy")],
+)
+def test_collapse_masks(collapse_axis, mask_sum, unit):
+    shape = (2, 3, 4)
+    data = np.arange(np.prod(shape)).reshape(shape)
+    mask = data % 2 == 0
+    nd_masked = NDDataArithmetic(data=data, mask=mask, unit=unit)
+    nd_nomask = NDDataArithmetic(data=data, unit=unit)
+
+    assert_array_equal(nd_masked.sum(axis=collapse_axis).mask.sum(axis=0), mask_sum)
+
+    # if no mask is given, the collapse result should have no mask:
+    assert nd_nomask.sum(axis=collapse_axis).mask is None
+
+
 # One additional case which can not be easily incorporated in the test above
 # what happens if the masks are numpy ndarrays are not broadcastable
 def test_arithmetics_data_masks_invalid():

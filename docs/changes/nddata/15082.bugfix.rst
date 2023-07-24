@@ -1,0 +1,1 @@
+Fix for collapse operations on ``NDData`` without masks or units.
