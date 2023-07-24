@@ -3,13 +3,25 @@
 import numpy as np
 import pytest
 
-from astropy.cosmology.utils import aszarr, vectorize_redshift_method
+from astropy.cosmology import utils
+from astropy.cosmology._utils import aszarr, vectorize_redshift_method
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .test_core import invalid_zs, valid_zs, z_arr
 
 
+def test_deprecated():
+    match = "this private function has been moved to the private module `astropy.cosmology._utils`"
+
+    with pytest.warns(AstropyDeprecationWarning, match=match):
+        utils.vectorize_redshift_method()
+
+    with pytest.warns(AstropyDeprecationWarning, match=match):
+        utils.aszarr(1)
+
+
 def test_vectorize_redshift_method():
-    """Test :func:`astropy.cosmology.utils.vectorize_redshift_method`."""
+    """Test :func:`astropy.cosmology._utils.vectorize_redshift_method`."""
 
     class Class:
         @vectorize_redshift_method
@@ -52,12 +64,12 @@ class Test_aszarr:
         ),
     )
     def test_valid(self, z, expect):
-        """Test :func:`astropy.cosmology.utils.aszarr`."""
+        """Test :func:`astropy.cosmology._utils.aszarr`."""
         got = aszarr(z)
         assert np.array_equal(got, expect)
 
     @pytest.mark.parametrize("z, exc", invalid_zs)
     def test_invalid(self, z, exc):
-        """Test :func:`astropy.cosmology.utils.aszarr`."""
+        """Test :func:`astropy.cosmology._utils.aszarr`."""
         with pytest.raises(exc):
             aszarr(z)
