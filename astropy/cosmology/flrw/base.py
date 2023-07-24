@@ -13,13 +13,13 @@ from numpy import inf, sin
 
 import astropy.constants as const
 import astropy.units as u
+from astropy.cosmology._utils import aszarr, vectorize_redshift_method
 from astropy.cosmology.core import Cosmology, FlatCosmologyMixin
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.parameter._converter import (
     _validate_non_negative,
     _validate_with_unit,
 )
-from astropy.cosmology.utils import aszarr, vectorize_redshift_method
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
