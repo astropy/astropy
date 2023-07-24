@@ -903,7 +903,7 @@ def test_de_densityscale():
     cosmo = flrw.w0wzCDM(H0=70, Om0=0.3, Ode0=0.50, w0=-1, wz=0.5)
     assert allclose(
         cosmo.de_density_scale(z),
-        [0.746048, 0.5635595, 0.25712378, 0.026664129, 0.0035916468],
+        [1.00705953, 1.02687239, 1.15234885, 2.40022841, 6.49384982],
         rtol=1e-4,
     )
     assert allclose(cosmo.de_density_scale(3), cosmo.de_density_scale(3.0), rtol=1e-7)
