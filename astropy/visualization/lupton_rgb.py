@@ -139,7 +139,8 @@ class AsinhZscaleLuptonStretch(AsinhLuptonStretch):
     """
 
     def __init__(self, image, Q=8, pedestal=None):
-        image = np.asarray(image, copy=True)
+        # copy because of in-place operations after
+        image = np.array(image, copy=True, dtype=float)
 
         _raiseerr = False
         if len(image.shape) == 2:
