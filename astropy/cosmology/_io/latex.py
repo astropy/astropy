@@ -48,6 +48,56 @@ def write_latex(
     ------
     TypeError
         If kwarg (optional) 'cls' is not a subclass of `astropy.table.Table`
+
+    Examples
+    --------
+    Writing a cosmology to a LaTeX file will produce a table with the cosmology's type,
+    name, and parameters as columns.
+
+    .. code-block:: python
+
+        from astropy.cosmology import Planck18
+        Planck18.write("file.tex", overwrite=True)
+
+    .. code-block:: latex
+        \begin{table}
+        \begin{tabular}{cccccccc}
+        cosmology & name & $H_0$ & $\Omega_{m,0}$ & $T_{0}$ & $N_{eff}$ & $m_{nu}$ & $\Omega_{b,0}$ \\
+        &  & $\mathrm{km\,Mpc^{-1}\,s^{-1}}$ &  & $\mathrm{K}$ &  & $\mathrm{eV}$ &  \\
+        FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & 0.0 .. 0.06 & 0.04897 \\
+        \end{tabular}
+        \end{table}
+        <BLANKLINE>
+
+    The cosmology's metadata is not included in the table.
+
+    To save the cosmology in an existing file, use ``overwrite=True``; otherwise, an
+    error will be raised.
+
+    .. code-block:: python
+
+        Planck18.write("file.tex", overwrite=True)
+
+    To use a different table class as the underlying writer, use the ``cls`` kwarg. For
+    more information on the available table classes, see the documentation on Astropy's
+    table classes and on ``Cosmology.to_format("astropy.table")``.
+
+    By default the parameter names are converted to LaTeX format. To disable this, set
+    ``latex_names=False``.
+
+    .. code-block:: python
+
+        Planck18.write("file2.tex", latex_names=False)
+
+    .. code-block:: latex
+        \begin{table}
+        \begin{tabular}{cccccccc}
+        cosmology & name & H0 & Om0 & Tcmb0 & Neff & m_nu & Ob0 \\
+        &  & $\mathrm{km\,Mpc^{-1}\,s^{-1}}$ &  & $\mathrm{K}$ &  & $\mathrm{eV}$ &  \\
+        FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & 0.0 .. 0.06 & 0.04897 \\
+        \end{tabular}
+        \end{table}
+        <BLANKLINE>
     """
     # Check that the format is 'latex', 'ascii.latex' (or not specified)
     fmt = kwargs.pop("format", "ascii.latex")
@@ -73,7 +123,18 @@ def write_latex(
     table.write(file, overwrite=overwrite, format="ascii.latex", **kwargs)
 
 
+def latex_identify(origin, filepath, fileobj, *args, **kwargs):
+    """Identify if object uses the Table format.
+
+    Returns
+    -------
+    bool
+    """
+    return filepath is not None and filepath.endswith(".tex")
+
+
 # ===================================================================
 # Register
 
 readwrite_registry.register_writer("ascii.latex", Cosmology, write_latex)
+readwrite_registry.register_identifier("ascii.latex", Cosmology, latex_identify)
