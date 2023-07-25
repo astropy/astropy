@@ -98,33 +98,33 @@ of the galaxies show up. Compare with Fig. 1 of `Lupton et al. (2004)`_ or the
 RGB images using logarithmic or linear stretching
 =================================================
 
-Numerous other methods for generating composite RGB images are possible. 
-Two alternative choices are using a linear or logarithmic stretch, combined 
-with optional data clipping and normalization (e.g., as often used in DS9 or 
-other data viewers). 
+Numerous other methods for generating composite RGB images are possible.
+Two alternative choices are using a linear or logarithmic stretch, combined
+with optional data clipping and normalization (e.g., as often used in DS9 or
+other data viewers).
 
-The image stretching and normalization methods for single images are 
-demonstrated in :ref:`astropy-visualization-stretchnorm`. 
-These scaling are extended to the generation of RGB images in the 
-convenience wrapper functions :func:`~astropy.visualization.make_log_rgb` and 
-:func:`~astropy.visualization.make_linear_rgb`. 
+The image stretching and normalization methods for single images are
+demonstrated in :ref:`astropy-visualization-stretchnorm`.
+These scaling are extended to the generation of RGB images in the
+convenience wrapper functions :func:`~astropy.visualization.make_log_rgb` and
+:func:`~astropy.visualization.make_linear_rgb`.
 
-As with :func:`~astropy.visualization.make_lupton_rgb`, the three images must 
-be aligned, with the same size and pixel scales. For both functions, 
-``minimum`` and ``maximum`` specify the normalization (if any) and the 
-black and white levels, respectively. Both parameters can be either a scalar, 
-applying the same normalization to each filter, or can be a length-3 array 
-separately specifying the per-filter minimum or maximum values. 
-Logarithmic scaling also requires ``scalea``, with the stretch of values 
-calculated as 
+As with :func:`~astropy.visualization.make_lupton_rgb`, the three images must
+be aligned, with the same size and pixel scales. For both functions,
+``minimum`` and ``maximum`` specify the normalization (if any) and the
+black and white levels, respectively. Both parameters can be either a scalar,
+applying the same normalization to each filter, or can be a length-3 array
+separately specifying the per-filter minimum or maximum values.
+Logarithmic scaling also requires ``scalea``, with the stretch of values
+calculated as
 
 .. math::
 
     y = \frac{\log{(a x + 1)}}{\log{(a + 1)}}
 
-Following the above example, we generate a composite RGB image using the 
-``g``, ``r``, ``i`` SDSS frames around the Hickson 88 group, 
-now using a logarithmic scaling. 
+Following the above example, we generate a composite RGB image using the
+``g``, ``r``, ``i`` SDSS frames around the Hickson 88 group,
+now using a logarithmic scaling.
 
 .. plot::
    :context: reset
@@ -145,7 +145,7 @@ now using a logarithmic scaling.
     r = fits.open(r_name)[0].data
     i = fits.open(i_name)[0].data
 
-    # Use the maximum value of the 99.95% percentile over all three filters 
+    # Use the maximum value of the 99.95% percentile over all three filters
     # as the maximum value:
     pctl = 99.95
     maximum = 0.
@@ -153,12 +153,12 @@ now using a logarithmic scaling.
         val = np.percentile(img,pctl)
         if val > maximum:
             maximum = val
-            
-    rgb_log = make_log_rgb(i, r, g, minimum=0., maximum=maximum, scalea=1000, 
+
+    rgb_log = make_log_rgb(i, r, g, minimum=0., maximum=maximum, scalea=1000,
                            filename="ngc6976-log.jpeg")
     plt.imshow(rgb_log, origin='lower')
 
-By specifying per-filter maximum values, it is possible to emphasize 
+By specifying per-filter maximum values, it is possible to emphasize
 certain objects, such as the very reddest sources:
 
 .. plot::
@@ -166,25 +166,25 @@ certain objects, such as the very reddest sources:
    :include-source:
    :align: center
 
-    # Increase the red maximum to emphasize the very reddest sources: 
+    # Increase the red maximum to emphasize the very reddest sources:
     maximum = 3 * [maximum]
     maximum[0] = 30.
-    rgb_log = make_log_rgb(i, r, g, minimum=0, maximum=maximum, scalea=1000, 
+    rgb_log = make_log_rgb(i, r, g, minimum=0, maximum=maximum, scalea=1000,
                            filename="ngc6976-log-alt.jpeg")
     plt.imshow(rgb_log, origin='lower')
 
 
-Finally, we construct an example linear scaling RGB image using the 
+Finally, we construct an example linear scaling RGB image using the
 same normalization bounds as the first logarithmic scaling example.
 
 .. plot::
    :context:
    :include-source:
    :align: center
-   
+
     from astropy.visualization import make_linear_rgb
 
-    # Use the maximum value of the 99.5% percentile over all three filters 
+    # Use the maximum value of the 99.5% percentile over all three filters
     # as the maximum value:
     pctl = 99.5
     maximum = 0.
@@ -192,14 +192,14 @@ same normalization bounds as the first logarithmic scaling example.
         val = np.percentile(img,pctl)
         if val > maximum:
             maximum = val
-    rgb_log = make_linear_rgb(i, r, g, minimum=0, maximum=maximum, 
+    rgb_log = make_linear_rgb(i, r, g, minimum=0, maximum=maximum,
                               filename="ngc6976-linear.jpeg")
     plt.imshow(rgb_log, origin='lower')
 
 
-Here the linear stretch greatly restricts the visible dynamic range, 
-but for data with limited dynamic range this scaling will better 
-emphasize features than logarithmic scaling. 
+Here the linear stretch greatly restricts the visible dynamic range,
+but for data with limited dynamic range this scaling will better
+emphasize features than logarithmic scaling.
 
 
 .. _astropy-visualization-rgb-user-stretch:
@@ -208,10 +208,10 @@ RGB images using user-specified stretch
 =======================================
 
 
-It is also possible to specify a different scaling to be applied to all 
-three RGB images separately using the convenience function 
-:func:`~astropy.visualization.make_rgb`, which takes an instance of 
-a subclass of :class:`~astropy.visualization.BaseStretch` in addition to 
+It is also possible to specify a different scaling to be applied to all
+three RGB images separately using the convenience function
+:func:`~astropy.visualization.make_rgb`, which takes an instance of
+a subclass of :class:`~astropy.visualization.BaseStretch` in addition to
 ``minimum`` and ``maximum`` to specify the normalization.
 
 .. plot::
@@ -233,7 +233,7 @@ a subclass of :class:`~astropy.visualization.BaseStretch` in addition to
     r = fits.open(r_name)[0].data
     i = fits.open(i_name)[0].data
 
-    # Use the maximum value of the 99.8% percentile over all three filters 
+    # Use the maximum value of the 99.8% percentile over all three filters
     # as the maximum value:
     pctl = 99.8
     maximum = 0.
@@ -241,7 +241,7 @@ a subclass of :class:`~astropy.visualization.BaseStretch` in addition to
         val = np.percentile(img,pctl)
         if val > maximum:
             maximum = val
-            
-    rgb_sqrt = make_rgb(i, r, g, minimum=0., maximum=maximum, 
+
+    rgb_sqrt = make_rgb(i, r, g, minimum=0., maximum=maximum,
                         stretch=SqrtStretch(), filename="ngc6976-sqrt.jpeg")
     plt.imshow(rgb_sqrt, origin='lower')

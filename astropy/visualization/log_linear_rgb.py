@@ -64,9 +64,7 @@ class RGBImageMapping:
         self.intervals = intervals
         self.stretch = stretch
 
-    def make_rgb_image(
-        self, image_r, image_g, image_b, output_image_format=np.uint8
-    ):
+    def make_rgb_image(self, image_r, image_g, image_b, output_image_format=np.uint8):
         """
         Convert 3 arrays, image_r, image_g, and image_b into a RGB image,
         either as an 8-bit per-channel or normalized image.
@@ -93,31 +91,22 @@ class RGBImageMapping:
         """
         if output_image_format not in _OUTPUT_IMAGE_FORMATS:
             raise ValueError(
-                "'output_image_format' must be one of "
-                f"{_OUTPUT_IMAGE_FORMATS}!"
+                f"'output_image_format' must be one of {_OUTPUT_IMAGE_FORMATS}!"
             )
 
         image_r = np.asarray(image_r)
         image_g = np.asarray(image_g)
         image_b = np.asarray(image_b)
 
-        if (image_r.shape != image_g.shape) or (
-            image_g.shape != image_b.shape
-        ):
+        if (image_r.shape != image_g.shape) or (image_g.shape != image_b.shape):
             msg = "The image shapes must match. r: {}, g: {} b: {}"
-            raise ValueError(
-                msg.format(image_r.shape, image_g.shape, image_b.shape)
-            )
+            raise ValueError(msg.format(image_r.shape, image_g.shape, image_b.shape))
 
         image_rgb = self.apply_mappings(image_r, image_g, image_b)
         if np.issubdtype(output_image_format, float):
-            conv_images = self._convert_images_to_float(
-                image_rgb, output_image_format
-            )
+            conv_images = self._convert_images_to_float(image_rgb, output_image_format)
         elif np.issubdtype(output_image_format, np.unsignedinteger):
-            conv_images = self._convert_images_to_uint(
-                image_rgb, output_image_format
-            )
+            conv_images = self._convert_images_to_uint(image_rgb, output_image_format)
 
         return np.dstack(conv_images)
 
@@ -145,7 +134,7 @@ class RGBImageMapping:
         image_rgb = [image_r, image_g, image_b]
         for i, img in enumerate(image_rgb):
             # Using syntax from mpl_normalize.ImageNormalize,
-            # but NOT using that class to avoid dependancy on matplotlib.
+            # but NOT using that class to avoid dependency on matplotlib.
 
             # Define vmin and vmax
             vmin, vmax = self.intervals[i].get_limits(img)
@@ -315,7 +304,6 @@ def make_log_rgb(
     http://ds9.si.edu/doc/ref/how.html).
 
     """
-
     return make_rgb(
         image_r,
         image_g,
@@ -380,7 +368,6 @@ def make_linear_rgb(
     http://ds9.si.edu/doc/ref/how.html).
 
     """
-
     return make_rgb(
         image_r,
         image_g,
