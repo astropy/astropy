@@ -139,7 +139,6 @@ ignore = [
     "PLR0915",  # too-many-statements
     "PLR2004",  # MagicValueComparison
     "PLR5501",  # collapsible-else-if
-    "PLW0120",  # useless-else-on-loop
     "PLW0129",  # assert-on-string-literal
     "PLW0602",  # global-variable-not-assigned
     "PLW0603",  # global-statement

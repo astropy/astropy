@@ -609,11 +609,10 @@ class TimeBase(ShapedLikeNDArray):
                     ) from err
                 else:
                     problems[name] = err
-        else:
-            raise ValueError(
-                "Input values did not match any of the formats where the format "
-                f"keyword is optional: {problems}"
-            ) from problems[formats[0][0]]
+        raise ValueError(
+            "Input values did not match any of the formats where the format "
+            f"keyword is optional: {problems}"
+        ) from problems[formats[0][0]]
 
     @property
     def writeable(self):

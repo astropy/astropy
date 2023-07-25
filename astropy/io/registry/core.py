@@ -150,13 +150,12 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
         for reader_format, reader_class in readers:
             if self._is_best_match(data_class, reader_class, readers):
                 return self._readers[(reader_format, reader_class)][0]
-        else:
-            format_table_str = self._get_format_table_str(data_class, "Read")
-            raise IORegistryError(
-                f"No reader defined for format '{data_format}' and class"
-                f" '{data_class.__name__}'.\n\nThe available formats"
-                f" are:\n\n{format_table_str}"
-            )
+        format_table_str = self._get_format_table_str(data_class, "Read")
+        raise IORegistryError(
+            f"No reader defined for format '{data_format}' and class"
+            f" '{data_class.__name__}'.\n\nThe available formats"
+            f" are:\n\n{format_table_str}"
+        )
 
     def read(self, cls, *args, format=None, cache=False, **kwargs):
         """
@@ -329,13 +328,13 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
         for writer_format, writer_class in writers:
             if self._is_best_match(data_class, writer_class, writers):
                 return self._writers[(writer_format, writer_class)][0]
-        else:
-            format_table_str = self._get_format_table_str(data_class, "Write")
-            raise IORegistryError(
-                f"No writer defined for format '{data_format}' and class"
-                f" '{data_class.__name__}'.\n\nThe available formats"
-                f" are:\n\n{format_table_str}"
-            )
+
+        format_table_str = self._get_format_table_str(data_class, "Write")
+        raise IORegistryError(
+            f"No writer defined for format '{data_format}' and class"
+            f" '{data_class.__name__}'.\n\nThe available formats"
+            f" are:\n\n{format_table_str}"
+        )
 
     def write(self, data, *args, format=None, **kwargs):
         """
