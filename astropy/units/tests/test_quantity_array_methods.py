@@ -1,13 +1,11 @@
 # The purpose of these tests are to ensure that calling quantities using
 # array methods returns quantities with the right units, or raises exceptions.
-import sys
 
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
-from astropy.utils.compat import NUMPY_LT_1_21_1, NUMPY_LT_1_22
 
 
 class TestQuantityArrayCopy:
@@ -123,9 +121,6 @@ class TestQuantityReshapeFuncs:
         assert q_swapaxes.unit == q.unit
         assert np.all(q_swapaxes.value == q.value.swapaxes(0, 2))
 
-    @pytest.mark.xfail(
-        sys.byteorder == "big" and NUMPY_LT_1_21_1, reason="Numpy GitHub Issue 19153"
-    )
     def test_flat_attributes(self):
         """While ``flat`` doesn't make a copy, it changes the shape."""
         q = np.arange(6.0).reshape(3, 1, 2) * u.m
@@ -230,7 +225,6 @@ class TestQuantityStatsFuncs:
         q1 = np.array([6.0, 2.0, 4.0, 5.0, 6.0]) * u.m
         assert np.argmin(q1) == 1
 
-    @pytest.mark.skipif(NUMPY_LT_1_22, reason="keepdims only introduced in numpy 1.22")
     def test_argmin_keepdims(self):
         q1 = np.array([[6.0, 2.0], [4.0, 5.0]]) * u.m
         assert_array_equal(q1.argmin(axis=0, keepdims=True), np.array([[1, 0]]))
@@ -253,7 +247,6 @@ class TestQuantityStatsFuncs:
         q1 = np.array([5.0, 2.0, 4.0, 5.0, 6.0]) * u.m
         assert np.argmax(q1) == 4
 
-    @pytest.mark.skipif(NUMPY_LT_1_22, reason="keepdims only introduced in numpy 1.22")
     def test_argmax_keepdims(self):
         q1 = np.array([[6.0, 2.0], [4.0, 5.0]]) * u.m
         assert_array_equal(q1.argmax(axis=0, keepdims=True), np.array([[0, 1]]))
@@ -376,9 +369,6 @@ class TestQuantityStatsFuncs:
         assert qout2 is qi2
         assert qi2 == np.nansum(q1.value) * q1.unit
 
-    @pytest.mark.xfail(
-        NUMPY_LT_1_22, reason="'where' keyword argument not supported for numpy < 1.22"
-    )
     @pytest.mark.filterwarnings("ignore:The nansum method is deprecated")
     def test_nansum_where(self):
         q1 = np.array([1.0, 2.0, np.nan, 4.0]) * u.m
