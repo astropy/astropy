@@ -205,6 +205,60 @@ class TestLuptonRgb:
         if display:
             display_rgb(rgb_image, title=sys._getframe().f_code.co_name)
 
+    def test_AsinhZscale_pedestal_array(self):
+        """
+        Test creating an RGB image using an asinh stretch estimated
+        using zscale
+        """
+        map_ = lupton_rgb.RGBImageMappingLupton(
+            minimum=self.min_,
+            stretch=lupton_rgb.AsinhZscaleLuptonStretch(
+                [self.image_r, self.image_g, self.image_b],
+                self.Q,
+                pedestal=[1.0, 1.0, 2.0],
+            ),
+        )
+        rgb_image = map_.make_rgb_image(
+            self.image_r, self.image_g, self.image_b
+        )
+
+        if display:
+            display_rgb(rgb_image, title=sys._getframe().f_code.co_name)
+
+    def test_AsinhZscale_pedestal_float(self):
+        """
+        Test creating an RGB image using an asinh stretch estimated
+        using zscale
+        """
+        map_ = lupton_rgb.RGBImageMappingLupton(
+            minimum=self.min_,
+            stretch=lupton_rgb.AsinhZscaleLuptonStretch(
+                [self.image_r, self.image_g, self.image_b],
+                self.Q,
+                pedestal=1.0,
+            ),
+        )
+        rgb_image = map_.make_rgb_image(
+            self.image_r, self.image_g, self.image_b
+        )
+
+        if display:
+            display_rgb(rgb_image, title=sys._getframe().f_code.co_name)
+
+    def test_AsinhZscale_pedestal_incorrect_assert(self):
+        """
+        Test creating an RGB image using an asinh stretch estimated
+        using zscale
+        """
+        with pytest.raises(
+            ValueError, match=r"pedestal must be 1 or 3 values"
+        ):
+            _ = lupton_rgb.AsinhZscaleLuptonStretch(
+                [self.image_r, self.image_g, self.image_b],
+                self.Q,
+                pedestal=[1.0, 2.0],
+            )
+
     def test_AsinhZscale_incorrect_input_asserts(self):
         with pytest.raises(
             ValueError, match=r"Input 'image' must be a single"
