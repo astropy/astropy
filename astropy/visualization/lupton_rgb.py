@@ -132,10 +132,14 @@ class AsinhZscaleLuptonStretch(AsinhLuptonStretch):
         The asinh softening parameter. ``Q`` must be greater than 0.
         Default is 8.
 
+    pedestal : or array-like, optional
+        The value, or array of 3 values, to subtract from the images(s)
+        before determining the zscaling. Default is None (nothing subtracted).
+
     """
 
-    def __init__(self, image=None, Q=8):
-        image = np.asarray(image)
+    def __init__(self, image, Q=8, pedestal=None):
+        image = np.asarray(image, copy=True)
 
         _raiseerr = False
         if len(image.shape) == 2:
@@ -152,6 +156,23 @@ class AsinhZscaleLuptonStretch(AsinhLuptonStretch):
                 "or a stack/3xMxN array of 3 images! "
                 f"{image.shape=}"
             )
+
+        image = list(image)  # needs to be mutable
+
+        if pedestal is not None:
+            try:
+                len(pedestal)
+            except TypeError:
+                pedestal = 3 * [pedestal]
+
+            if len(pedestal) != 3:
+                raise ValueError(
+                    "pedestal must be 1 or 3 values, matching the "
+                    "image input."
+                )
+            for i, im in enumerate(image):
+                if pedestal[i] != 0.0:
+                    image[i] = im - pedestal[i]  # n.b. a copy
 
         image = compute_intensity(*image)
         zscale_limits = ZScaleInterval().get_limits(image)
