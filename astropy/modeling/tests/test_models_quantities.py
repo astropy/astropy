@@ -597,6 +597,7 @@ NON_FINITE_DogBox_MODELS = [
     SmoothlyBrokenPowerLaw1D,
     ExponentialCutoffPowerLaw1D,
     LogParabola1D,
+    Gaussian2D,
 ]
 
 
