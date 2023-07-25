@@ -30,6 +30,7 @@ def write_latex(
     Parameters
     ----------
     cosmology : `~astropy.cosmology.Cosmology` subclass instance
+        The cosmology to serialize.
     file : path-like or file-like
         Location to save the serialized cosmology.
 
@@ -49,15 +50,15 @@ def write_latex(
         If kwarg (optional) 'cls' is not a subclass of `astropy.table.Table`
     """
     # Check that the format is 'latex', 'ascii.latex' (or not specified)
-    format = kwargs.pop("format", "latex")
-    if format not in ("latex", "ascii.latex"):
-        raise ValueError(f"format must be 'latex' or 'ascii.latex', not {format}")
+    fmt = kwargs.pop("format", "ascii.latex")
+    if fmt != "ascii.latex":
+        raise ValueError(f"format must be 'ascii.latex', not {fmt}")
 
     # Set cosmology_in_meta as false for now since there is no metadata being kept
     table = to_table(cosmology, cls=cls, cosmology_in_meta=False)
 
     cosmo_cls = type(cosmology)
-    for name, col in table.columns.copy().items():
+    for name in table.columns.keys():
         param = getattr(cosmo_cls, name, None)
         if not isinstance(param, Parameter) or param.unit in (None, u.one):
             continue
@@ -69,11 +70,10 @@ def write_latex(
         new_names = [_FORMAT_TABLE.get(k, k) for k in cosmology.__parameters__]
         table.rename_columns(cosmology.__parameters__, new_names)
 
-    table.write(file, overwrite=overwrite, format="latex", **kwargs)
+    table.write(file, overwrite=overwrite, format="ascii.latex", **kwargs)
 
 
 # ===================================================================
 # Register
 
-readwrite_registry.register_writer("latex", Cosmology, write_latex)
 readwrite_registry.register_writer("ascii.latex", Cosmology, write_latex)
