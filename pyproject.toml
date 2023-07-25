@@ -149,6 +149,9 @@ ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` in
     # Pyflakes (F)
     "F403",  # ImportStarUsed
 
+    # flake8-fixme (FIX)
+    "FIX002",  # Line contains TODO | notes for improvements are OK iff the code works
+
     # pep8-naming (N)
     "N803",  # invalid-argument-name. Physics variables are often poor code variables
     "N806",  # non-lowercase-variable-in-function. Physics variables are often poor code variables
@@ -360,6 +363,8 @@ skip = "*.dat,*.fits,*.hdr,*.xml,*egg*,*extern/*,.git,.tox,_build,fitshdr.htest_
 # The following list of words for codespell to ignore may contain some
 # misspellings that should be revisited and fixed in the future.
 ignore-words-list = """
+    aas,
+    afile,
     ans,
     clen,
     cna,
