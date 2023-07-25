@@ -24,16 +24,16 @@ class WriteLATEXTestMixin(ReadWriteTestMixinBase):
         fp = tmp_path / "test_to_latex_failed_cls.tex"
 
         with pytest.raises(TypeError, match="'cls' must be"):
-            write(fp, format="ascii.latex", cls=list)
+            write(fp, cls=list)
 
     @pytest.mark.parametrize("tbl_cls", [QTable, Table])
     def test_to_latex_cls(self, write, tbl_cls, tmp_path):
         fp = tmp_path / "test_to_latex_cls.tex"
-        write(fp, format="ascii.latex", cls=tbl_cls)
+        write(fp, cls=tbl_cls)
 
     def test_latex_columns(self, write, tmp_path):
         fp = tmp_path / "test_rename_latex_columns.tex"
-        write(fp, format="ascii.latex", latex_names=True)
+        write(fp, latex_names=True)
         tbl = QTable.read(fp)
         # asserts each column name has not been reverted yet
         # For now, Cosmology class and name are stored in first 2 slots
@@ -50,9 +50,9 @@ class WriteLATEXTestMixin(ReadWriteTestMixinBase):
         """Test to write a LaTeX file without overwriting an existing file"""
         # Test that passing an invalid path to write_latex() raises a IOError
         fp = tmp_path / "test_write_latex_false_overwrite.tex"
-        write(fp, format="ascii.latex")
+        write(fp)
         with pytest.raises(OSError, match="overwrite=True"):
-            write(fp, format="ascii.latex", overwrite=False)
+            write(fp, overwrite=False)
 
     def test_write_latex_unsupported_format(self, write, tmp_path):
         """Test for unsupported format"""
