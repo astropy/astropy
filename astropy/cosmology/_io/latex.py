@@ -1,3 +1,59 @@
+r"""|Cosmology| <-> LaTeX I/O, using |Cosmology.read| and |Cosmology.write|.
+
+We assume the following setup:
+
+    >>> from pathlib import Path
+    >>> from tempfile import TemporaryDirectory
+    >>> temp_dir = TemporaryDirectory()
+
+Writing a cosmology to a LaTeX file will produce a table with the cosmology's type,
+name, and parameters as columns.
+
+    >>> from astropy.cosmology import Cosmology, Planck18
+    >>> file = Path(temp_dir.name) / "file.tex"
+
+    >>> Planck18.write(file, format="ascii.latex")
+    >>> with open(file) as f: print(f.read())
+    \begin{table}
+    \begin{tabular}{cccccccc}
+    cosmology & name & $H_0$ & $\Omega_{m,0}$ & $T_{0}$ & $N_{eff}$ & $m_{nu}$ & $\Omega_{b,0}$ \\
+    &  & $\mathrm{km\,Mpc^{-1}\,s^{-1}}$ &  & $\mathrm{K}$ &  & $\mathrm{eV}$ &  \\
+    FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & 0.0 .. 0.06 & 0.04897 \\
+    \end{tabular}
+    \end{table}
+    <BLANKLINE>
+
+The cosmology's metadata is not included in the table.
+
+To save the cosmology in an existing file, use ``overwrite=True``; otherwise, an
+error will be raised.
+
+    >>> Planck18.write(file, format="ascii.latex", overwrite=True)
+
+To use a different table class as the underlying writer, use the ``cls`` kwarg. For
+more information on the available table classes, see the documentation on Astropy's
+table classes and on ``Cosmology.to_format("astropy.table")``.
+
+By default the parameter names are converted to LaTeX format. To disable this, set
+``latex_names=False``.
+
+    >>> file = Path(temp_dir.name) / "file2.tex"
+    >>> Planck18.write(file, format="ascii.latex", latex_names=False)
+    >>> with open(file) as f: print(f.read())
+    \begin{table}
+    \begin{tabular}{cccccccc}
+    cosmology & name & H0 & Om0 & Tcmb0 & Neff & m_nu & Ob0 \\
+    &  & $\mathrm{km\,Mpc^{-1}\,s^{-1}}$ &  & $\mathrm{K}$ &  & $\mathrm{eV}$ &  \\
+    FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & 0.0 .. 0.06 & 0.04897 \\
+    \end{tabular}
+    \end{table}
+    <BLANKLINE>
+
+.. testcleanup::
+
+    >>> temp_dir.cleanup()
+"""
+
 import astropy.units as u
 from astropy.cosmology.connect import readwrite_registry
 from astropy.cosmology.core import Cosmology
@@ -37,8 +93,8 @@ def write_latex(
     overwrite : bool
         Whether to overwrite the file, if it exists.
     cls : type, optional keyword-only
-        Astropy :class:`~astropy.table.Table` (sub)class to use when writing.
-        Default is :class:`~astropy.table.QTable`.
+        Astropy :class:`~astropy.table.Table` (sub)class to use when writing. Default is
+        :class:`~astropy.table.QTable`.
     latex_names : bool, optional keyword-only
         Whether to use LaTeX names for the parameters. Default is `True`.
     **kwargs
@@ -51,15 +107,20 @@ def write_latex(
 
     Examples
     --------
+    We assume the following setup:
+
+        >>> from pathlib import Path
+        >>> from tempfile import TemporaryDirectory
+        >>> temp_dir = TemporaryDirectory()
+
     Writing a cosmology to a LaTeX file will produce a table with the cosmology's type,
     name, and parameters as columns.
 
-    .. code-block:: python
+        >>> from astropy.cosmology import Planck18
+        >>> file = Path(temp_dir.name) / "file.tex"
 
-        from astropy.cosmology import Planck18
-        Planck18.write("file.tex", overwrite=True)
-
-    .. code-block:: latex
+        >>> Planck18.write(file, format="ascii.latex")
+        >>> with open(file) as f: print(f.read())
         \begin{table}
         \begin{tabular}{cccccccc}
         cosmology & name & $H_0$ & $\Omega_{m,0}$ & $T_{0}$ & $N_{eff}$ & $m_{nu}$ & $\Omega_{b,0}$ \\
@@ -74,9 +135,7 @@ def write_latex(
     To save the cosmology in an existing file, use ``overwrite=True``; otherwise, an
     error will be raised.
 
-    .. code-block:: python
-
-        Planck18.write("file.tex", overwrite=True)
+        >>> Planck18.write(file, format="ascii.latex", overwrite=True)
 
     To use a different table class as the underlying writer, use the ``cls`` kwarg. For
     more information on the available table classes, see the documentation on Astropy's
@@ -85,11 +144,9 @@ def write_latex(
     By default the parameter names are converted to LaTeX format. To disable this, set
     ``latex_names=False``.
 
-    .. code-block:: python
-
-        Planck18.write("file2.tex", latex_names=False)
-
-    .. code-block:: latex
+        >>> file = Path(temp_dir.name) / "file2.tex"
+        >>> Planck18.write(file, format="ascii.latex", latex_names=False)
+        >>> with open(file) as f: print(f.read())
         \begin{table}
         \begin{tabular}{cccccccc}
         cosmology & name & H0 & Om0 & Tcmb0 & Neff & m_nu & Ob0 \\
@@ -98,6 +155,10 @@ def write_latex(
         \end{tabular}
         \end{table}
         <BLANKLINE>
+
+    .. testcleanup::
+
+        >>> temp_dir.cleanup()
     """
     # Check that the format is 'latex', 'ascii.latex' (or not specified)
     fmt = kwargs.pop("format", "ascii.latex")

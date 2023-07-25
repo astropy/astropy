@@ -1,12 +1,32 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+"""|Cosmology| <-> Model I/O, using |Cosmology.to_format| and |Cosmology.from_format|.
+
+This module provides functions to transform a |Cosmology| object to and from a
+:class:`~astropy.modeling.Model`. The functions are registered with ``convert_registry``
+under the format name "astropy.model".
+
+Using ``format="astropy.model"`` any redshift(s) method of a cosmology may be turned
+into a :class:`astropy.modeling.Model`. Each |Cosmology|
+:class:`~astropy.cosmology.Parameter` is converted to a :class:`astropy.modeling.Model`
+:class:`~astropy.modeling.Parameter` and the redshift-method to the model's ``__call__ /
+evaluate``. Now you can fit cosmologies with data!
+
+.. code-block::
+
+    >>> from astropy.cosmology import Cosmology, Planck18
+    >>> model = Planck18.to_format("astropy.model", method="lookback_time")
+    >>> model
+    <FlatLambdaCDMCosmologyLookbackTimeModel(H0=67.66 km / (Mpc s), Om0=0.30966,
+        Tcmb0=2.7255 K, Neff=3.046, m_nu=[0.  , 0.  , 0.06] eV, Ob0=0.04897,
+        name='Planck18')>
+
+The |Planck18| cosmology can be recovered with |Cosmology.from_format|.
+
+    >>> Cosmology.from_format(model)
+    FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
+                  Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 """
-The following are private functions, included here **FOR REFERENCE ONLY** since
-the io registry cannot be displayed. These functions are registered into
-:meth:`~astropy.cosmology.Cosmology.to_format` and
-:meth:`~astropy.cosmology.Cosmology.from_format` and should only be accessed
-via these methods.
-"""  # this is shown in the docs.
 
 import abc
 import copy

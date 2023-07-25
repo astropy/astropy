@@ -1,10 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""
-The following are private functions. These functions are registered into
-:meth:`~astropy.cosmology.Cosmology.to_format` and
-:meth:`~astropy.cosmology.Cosmology.from_format` and should only be accessed
-via these methods.
+"""|Cosmology| I/O, using |Cosmology.to_format| and |Cosmology.from_format|.
+
+This module provides functions to transform a |Cosmology| object to and from another
+|Cosmology| object. The functions are registered with ``convert_registry`` under the
+format name "astropy.cosmology". You probably won't need to use these functions as they
+are present mainly for completeness and testing.
+
+    >>> from astropy.cosmology import Cosmology, Planck18
+    >>> Planck18.to_format("astropy.cosmology") is Planck18
+    True
+    >>> Cosmology.from_format(Planck18) is Planck18
+    True
 """
 
 from astropy.cosmology.connect import convert_registry
@@ -36,6 +43,13 @@ def from_cosmology(cosmo, /, **kwargs):
     TypeError
         If the |Cosmology| object is not an instance of ``cosmo`` (and
         ``cosmology`` is not `None`).
+
+    Examples
+    --------
+    >>> from astropy.cosmology import Cosmology, Planck18
+    >>> Cosmology.from_format(Planck18)
+    FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
+                  Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
     """
     # Check argument `cosmology`
     cosmology = kwargs.get("cosmology")
@@ -61,6 +75,12 @@ def to_cosmology(cosmo, *args):
     -------
     `~astropy.cosmology.Cosmology` subclass instance
         Just ``cosmo`` passed through.
+
+    Examples
+    --------
+    >>> from astropy.cosmology import Planck18
+    >>> Planck18.to_format("astropy.cosmology") is Planck18
+    True
     """
     return cosmo
 
