@@ -1252,10 +1252,7 @@ class _SelectorArguments(tuple):
         for index, selector_arg in enumerate(self):
             if selector_arg.is_argument(model, argument):
                 return index
-        else:
-            raise ValueError(
-                f"{argument} does not correspond to any selector argument."
-            )
+        raise ValueError(f"{argument} does not correspond to any selector argument.")
 
     def reduce(self, model, argument):
         """

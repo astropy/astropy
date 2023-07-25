@@ -1505,8 +1505,7 @@ class TimeString(TimeUnique):
                     continue
 
             return vals
-        else:
-            raise ValueError(f"Time {timestr} does not match {self.name} format")
+        raise ValueError(f"Time {timestr} does not match {self.name} format")
 
     def set_jds(self, val1, val2):
         """Parse the time strings contained in val1 and set jd1, jd2."""

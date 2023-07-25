@@ -674,8 +674,7 @@ def get_index_by_names(table, names):
         index_names = [col.info.name for col in index.columns]
         if index_names == names:
             return index
-    else:
-        return None
+    return None
 
 
 class _IndexModeContext:

@@ -164,10 +164,9 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         for col_type_key, col_type in self.col_type_list:
             if col_type_key.startswith(col.raw_type.lower()):
                 return col_type
-        else:
-            raise ValueError(
-                f'Unknown data type ""{col.raw_type}"" for column "{col.name}"'
-            )
+        raise ValueError(
+            f'Unknown data type ""{col.raw_type}"" for column "{col.name}"'
+        )
 
     def get_cols(self, lines):
         """
