@@ -293,9 +293,7 @@ def test_make_log_rgb_file():
         red = IMAGER
         green = IMAGEG
         blue = IMAGEB
-        log_linear_rgb.make_log_rgb(
-            red, green, blue, MIN, MAX, SCALEA, filename=temp
-        )
+        log_linear_rgb.make_log_rgb(red, green, blue, MIN, MAX, SCALEA, filename=temp)
         assert os.path.exists(temp.name)
 
 
@@ -306,9 +304,7 @@ def test_make_linear_rgb_file():
         red = IMAGER
         green = IMAGEG
         blue = IMAGEB
-        log_linear_rgb.make_linear_rgb(
-            red, green, blue, MIN, MAX, filename=temp
-        )
+        log_linear_rgb.make_linear_rgb(red, green, blue, MIN, MAX, filename=temp)
         assert os.path.exists(temp.name)
 
 
@@ -323,17 +319,13 @@ def test_different_shapes_asserts():
 def test_incorrect_min_length():
     """Test incorrect input minimum array length"""
     with pytest.raises(ValueError, match=r"or 3 values for minimum"):
-        log_linear_rgb.make_log_rgb(
-            IMAGER, IMAGEG, IMAGEB, [MINSC, MINSC], MAX, SCALEA
-        )
+        log_linear_rgb.make_log_rgb(IMAGER, IMAGEG, IMAGEB, [MINSC, MINSC], MAX, SCALEA)
 
 
 def test_incorrect_max_length():
     """Test incorrect input maximum array length"""
     with pytest.raises(ValueError, match=r"or 3 values for maximum"):
-        log_linear_rgb.make_log_rgb(
-            IMAGER, IMAGEG, IMAGEB, MAX, [MINSC, MINSC], SCALEA
-        )
+        log_linear_rgb.make_log_rgb(IMAGER, IMAGEG, IMAGEB, MAX, [MINSC, MINSC], SCALEA)
 
 
 @pytest.mark.parametrize(("out_format"), INCORRECT_OUTPUT_TYPES)
