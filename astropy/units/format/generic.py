@@ -187,7 +187,7 @@ class Generic(Base):
                     units += subunit
                 elif isinstance(subunit, StructuredUnit):
                     # Structured unit whose entries should be
-                    # individiually added to the new StructuredUnit.
+                    # individually added to the new StructuredUnit.
                     units += subunit.values()
                 else:
                     # Regular unit to be added to the StructuredUnit.

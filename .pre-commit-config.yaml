@@ -56,7 +56,7 @@ repos:
         # Enforce that all noqa annotations always occur with specific codes.
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.4
+    rev: v2.2.5
     hooks:
       - id: codespell
         args: ["--write-changes"]
@@ -64,7 +64,7 @@ repos:
           - tomli
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: "v0.0.270"
+    rev: "v0.0.275"
     hooks:
       - id: ruff
         args: ["--fix"]
