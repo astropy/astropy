@@ -127,9 +127,7 @@ class TestLuptonRgb:
             minimum=self.min_,
             stretch=lupton_rgb.AsinhLuptonStretch(self.stretch_, self.Q),
         )
-        rgb_image = asinh_map.make_rgb_image(
-            self.image_r, self.image_g, self.image_b
-        )
+        rgb_image = asinh_map.make_rgb_image(self.image_r, self.image_g, self.image_b)
 
         if display:
             display_rgb(rgb_image, title=sys._getframe().f_code.co_name)
@@ -161,9 +159,7 @@ class TestLuptonRgb:
                 [self.image_r, self.image_g, self.image_b], self.Q
             ),
         )
-        rgb_image = map_.make_rgb_image(
-            self.image_r, self.image_g, self.image_b
-        )
+        rgb_image = map_.make_rgb_image(self.image_r, self.image_g, self.image_b)
 
         if display:
             display_rgb(rgb_image, title=sys._getframe().f_code.co_name)
@@ -176,15 +172,11 @@ class TestLuptonRgb:
         map_ = lupton_rgb.RGBImageMappingLupton(
             minimum=self.min_,
             stretch=lupton_rgb.AsinhZscaleLuptonStretch(
-                lupton_rgb.compute_intensity(
-                    self.image_r, self.image_g, self.image_b
-                ),
+                lupton_rgb.compute_intensity(self.image_r, self.image_g, self.image_b),
                 self.Q,
             ),
         )
-        rgb_image = map_.make_rgb_image(
-            self.image_r, self.image_g, self.image_b
-        )
+        rgb_image = map_.make_rgb_image(self.image_r, self.image_g, self.image_b)
 
         if display:
             display_rgb(rgb_image, title=sys._getframe().f_code.co_name)
@@ -199,9 +191,7 @@ class TestLuptonRgb:
                 self.Q,
             ),
         )
-        rgb_image = map_.make_rgb_image(
-            self.image_r, self.image_r, self.image_r
-        )
+        rgb_image = map_.make_rgb_image(self.image_r, self.image_r, self.image_r)
         if display:
             display_rgb(rgb_image, title=sys._getframe().f_code.co_name)
 
@@ -218,9 +208,7 @@ class TestLuptonRgb:
                 pedestal=[1.0, 1.0, 2.0],
             ),
         )
-        rgb_image = map_.make_rgb_image(
-            self.image_r, self.image_g, self.image_b
-        )
+        rgb_image = map_.make_rgb_image(self.image_r, self.image_g, self.image_b)
 
         if display:
             display_rgb(rgb_image, title=sys._getframe().f_code.co_name)
@@ -238,9 +226,7 @@ class TestLuptonRgb:
                 pedestal=1.0,
             ),
         )
-        rgb_image = map_.make_rgb_image(
-            self.image_r, self.image_g, self.image_b
-        )
+        rgb_image = map_.make_rgb_image(self.image_r, self.image_g, self.image_b)
 
         if display:
             display_rgb(rgb_image, title=sys._getframe().f_code.co_name)
@@ -250,9 +236,7 @@ class TestLuptonRgb:
         Test creating an RGB image using an asinh stretch estimated
         using zscale
         """
-        with pytest.raises(
-            ValueError, match=r"pedestal must be 1 or 3 values"
-        ):
+        with pytest.raises(ValueError, match=r"pedestal must be 1 or 3 values"):
             _ = lupton_rgb.AsinhZscaleLuptonStretch(
                 [self.image_r, self.image_g, self.image_b],
                 self.Q,
@@ -260,17 +244,13 @@ class TestLuptonRgb:
             )
 
     def test_AsinhZscale_incorrect_input_asserts(self):
-        with pytest.raises(
-            ValueError, match=r"Input 'image' must be a single"
-        ):
+        with pytest.raises(ValueError, match=r"Input 'image' must be a single"):
             _ = lupton_rgb.AsinhZscaleLuptonStretch(
                 [self.image_r, self.image_g], self.Q
             )
 
     def test_AsinhZscale_incorrect_input_nonimage_asserts(self):
-        with pytest.raises(
-            ValueError, match=r"Input 'image' must be a single"
-        ):
+        with pytest.raises(ValueError, match=r"Input 'image' must be a single"):
             _ = lupton_rgb.AsinhZscaleLuptonStretch([1], self.Q)
 
     @pytest.mark.skipif(not HAS_MATPLOTLIB, reason="requires matplotlib")
@@ -316,9 +296,7 @@ class TestLuptonRgb:
             minimum=self.min_,
             stretch=LinearStretch(-8.45, 13.44),
         )
-        rgb_image = map_.make_rgb_image(
-            self.image_r, self.image_g, self.image_b
-        )
+        rgb_image = map_.make_rgb_image(self.image_r, self.image_g, self.image_b)
         if display:
             display_rgb(rgb_image, title=sys._getframe().f_code.co_name)
 
@@ -345,9 +323,7 @@ class TestLuptonRgb:
         self.imagesR = self.imagesB.getImage()
 
         asinhMap = lupton_rgb.AsinhMapping(self.min_, self.stretch_, self.Q)
-        rgb_image = asinhMap.make_rgb_image(
-            self.image_r, self.image_g, self.image_b
-        )
+        rgb_image = asinhMap.make_rgb_image(self.image_r, self.image_g, self.image_b)
         if display:
             display_rgb(rgb_image, title=sys._getframe().f_code.co_name)
 

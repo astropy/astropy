@@ -168,8 +168,7 @@ class AsinhZscaleLuptonStretch(AsinhLuptonStretch):
 
             if len(pedestal) != 3:
                 raise ValueError(
-                    "pedestal must be 1 or 3 values, matching the "
-                    "image input."
+                    "pedestal must be 1 or 3 values, matching the image input."
                 )
             for i, im in enumerate(image):
                 if pedestal[i] != 0.0:
@@ -204,9 +203,7 @@ class RGBImageMappingLupton(RGBImageMapping):
 
     """
 
-    def __init__(
-        self, minimum=None, stretch=AsinhLuptonStretch(stretch=5, Q=8)
-    ):
+    def __init__(self, minimum=None, stretch=AsinhLuptonStretch(stretch=5, Q=8)):
         super().__init__(minimum=minimum, maximum=None, stretch=stretch)
         self._pixmax = 1.0
 
