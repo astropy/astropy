@@ -17,7 +17,6 @@ import numpy as np
 
 # LOCAL
 from astropy import config as _config
-from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyWarning
@@ -1785,21 +1784,11 @@ class Quantity(np.ndarray):
             np.array(self), self._to_own_unit(v, check_precision=False), *args, **kwargs
         )  # avoid numpy 1.6 problem
 
-    if NUMPY_LT_1_22:
+    def argmax(self, axis=None, out=None, *, keepdims=False):
+        return self.view(np.ndarray).argmax(axis=axis, out=out, keepdims=keepdims)
 
-        def argmax(self, axis=None, out=None):
-            return self.view(np.ndarray).argmax(axis, out=out)
-
-        def argmin(self, axis=None, out=None):
-            return self.view(np.ndarray).argmin(axis, out=out)
-
-    else:
-
-        def argmax(self, axis=None, out=None, *, keepdims=False):
-            return self.view(np.ndarray).argmax(axis=axis, out=out, keepdims=keepdims)
-
-        def argmin(self, axis=None, out=None, *, keepdims=False):
-            return self.view(np.ndarray).argmin(axis=axis, out=out, keepdims=keepdims)
+    def argmin(self, axis=None, out=None, *, keepdims=False):
+        return self.view(np.ndarray).argmin(axis=axis, out=out, keepdims=keepdims)
 
     def __array_function__(self, function, types, args, kwargs):
         """Wrap numpy functions, taking care of units.
@@ -2011,28 +2000,18 @@ class Quantity(np.ndarray):
     def ediff1d(self, to_end=None, to_begin=None):
         return self._wrap_function(np.ediff1d, to_end, to_begin)
 
-    if NUMPY_LT_1_22:
-
-        @deprecated("5.3", alternative="np.nansum", obj_type="method")
-        def nansum(self, axis=None, out=None, keepdims=False):
-            return self._wrap_function(np.nansum, axis, out=out, keepdims=keepdims)
-
-    else:
-
-        @deprecated("5.3", alternative="np.nansum", obj_type="method")
-        def nansum(
-            self, axis=None, out=None, keepdims=False, *, initial=None, where=True
-        ):
-            if initial is not None:
-                initial = self._to_own_unit(initial)
-            return self._wrap_function(
-                np.nansum,
-                axis,
-                out=out,
-                keepdims=keepdims,
-                initial=initial,
-                where=where,
-            )
+    @deprecated("5.3", alternative="np.nansum", obj_type="method")
+    def nansum(self, axis=None, out=None, keepdims=False, *, initial=None, where=True):
+        if initial is not None:
+            initial = self._to_own_unit(initial)
+        return self._wrap_function(
+            np.nansum,
+            axis,
+            out=out,
+            keepdims=keepdims,
+            initial=initial,
+            where=where,
+        )
 
     def insert(self, obj, values, axis=None):
         """

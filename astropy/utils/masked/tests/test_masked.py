@@ -12,7 +12,6 @@ from numpy.testing import assert_array_equal
 from astropy import units as u
 from astropy.coordinates import Longitude
 from astropy.units import Quantity
-from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.masked import Masked, MaskedNDArray
 
 
@@ -1048,11 +1047,9 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         ma = Masked(data=[1, 2], mask=[True, False])
         assert ma.argmin() == 1
 
-    if not NUMPY_LT_1_22:
-
-        def test_argmin_keepdims(self):
-            ma = Masked(data=[[1, 2], [3, 4]], mask=[[True, False], [False, False]])
-            assert_array_equal(ma.argmin(axis=0, keepdims=True), np.array([[1, 0]]))
+    def test_argmin_keepdims(self):
+        ma = Masked(data=[[1, 2], [3, 4]], mask=[[True, False], [False, False]])
+        assert_array_equal(ma.argmin(axis=0, keepdims=True), np.array([[1, 0]]))
 
     @pytest.mark.parametrize("axis", (0, 1, None))
     def test_argmax(self, axis):
@@ -1062,11 +1059,9 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         expected_data = filled.argmax(axis)
         assert_array_equal(ma_argmax, expected_data)
 
-    if not NUMPY_LT_1_22:
-
-        def test_argmax_keepdims(self):
-            ma = Masked(data=[[1, 2], [3, 4]], mask=[[True, False], [False, False]])
-            assert_array_equal(ma.argmax(axis=1, keepdims=True), np.array([[1], [1]]))
+    def test_argmax_keepdims(self):
+        ma = Masked(data=[[1, 2], [3, 4]], mask=[[True, False], [False, False]])
+        assert_array_equal(ma.argmax(axis=1, keepdims=True), np.array([[1], [1]]))
 
     @pytest.mark.parametrize("axis", (0, 1, None))
     def test_argsort(self, axis):
