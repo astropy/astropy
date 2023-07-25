@@ -7,7 +7,7 @@ from astropy import coordinates, time
 from astropy import units as u
 from astropy.table import Column, NdarrayMixin, QTable, Table, table_helpers, unique
 from astropy.time import Time
-from astropy.utils.compat import NUMPY_LT_1_22, NUMPY_LT_1_22_1
+from astropy.utils.compat import NUMPY_LT_1_22_1
 from astropy.utils.exceptions import AstropyUserWarning
 
 
@@ -575,8 +575,7 @@ def test_column_aggregate(T1):
 
 
 @pytest.mark.skipif(
-    not NUMPY_LT_1_22 and NUMPY_LT_1_22_1,
-    reason="https://github.com/numpy/numpy/issues/20699",
+    NUMPY_LT_1_22_1, reason="https://github.com/numpy/numpy/issues/20699"
 )
 def test_column_aggregate_f8():
     """https://github.com/astropy/astropy/issues/12706"""

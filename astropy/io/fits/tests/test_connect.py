@@ -27,7 +27,6 @@ from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 from astropy.units.format.fits import UnitScaleError
 from astropy.units.quantity import QuantityInfo
-from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
@@ -876,11 +875,7 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
             # FITS does not perfectly preserve dtype: byte order can change, and
             # unicode gets stored as bytes.  So, we just check safe casting, to
             # ensure we do not, e.g., accidentally change integer to float, etc.
-            if NUMPY_LT_1_22 and a1.names:
-                # For old numpy, can_cast does not deal well with structured dtype.
-                assert a1.names == a2.names
-            else:
-                assert np.can_cast(a2, a1, casting="safe")
+            assert np.can_cast(a2, a1, casting="safe")
         else:
             assert np.all(a1 == a2)
 

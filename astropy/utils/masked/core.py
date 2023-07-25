@@ -19,7 +19,6 @@ import builtins
 
 import numpy as np
 
-from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.shapes import NDArrayShapeMethods
 
@@ -1002,29 +1001,15 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         # Let __array_function__ take care since choices can be masked too.
         return np.choose(self, choices, out=out, mode=mode)
 
-    if NUMPY_LT_1_22:
+    def argmin(self, axis=None, out=None, *, keepdims=False):
+        # TODO: should this return a masked integer array, with masks
+        # if all elements were masked?
+        at_min = self == self.min(axis=axis, keepdims=True)
+        return at_min.filled(False).argmax(axis=axis, out=out, keepdims=keepdims)
 
-        def argmin(self, axis=None, out=None):
-            # TODO: should this return a masked integer array, with masks
-            # if all elements were masked?
-            at_min = self == self.min(axis=axis, keepdims=True)
-            return at_min.filled(False).argmax(axis=axis, out=out)
-
-        def argmax(self, axis=None, out=None):
-            at_max = self == self.max(axis=axis, keepdims=True)
-            return at_max.filled(False).argmax(axis=axis, out=out)
-
-    else:
-
-        def argmin(self, axis=None, out=None, *, keepdims=False):
-            # TODO: should this return a masked integer array, with masks
-            # if all elements were masked?
-            at_min = self == self.min(axis=axis, keepdims=True)
-            return at_min.filled(False).argmax(axis=axis, out=out, keepdims=keepdims)
-
-        def argmax(self, axis=None, out=None, *, keepdims=False):
-            at_max = self == self.max(axis=axis, keepdims=True)
-            return at_max.filled(False).argmax(axis=axis, out=out, keepdims=keepdims)
+    def argmax(self, axis=None, out=None, *, keepdims=False):
+        at_max = self == self.max(axis=axis, keepdims=True)
+        return at_max.filled(False).argmax(axis=axis, out=out, keepdims=keepdims)
 
     def argsort(self, axis=-1, kind=None, order=None):
         """Returns the indices that would sort an array.

@@ -47,7 +47,7 @@ from astropy.units.core import (
     dimensionless_unscaled,
 )
 from astropy.utils import isiterable
-from astropy.utils.compat import NUMPY_LT_1_22, NUMPY_LT_1_23
+from astropy.utils.compat import NUMPY_LT_1_23
 
 # In 1.17, overrides are enabled by default, but it is still possible to
 # turn them off using an environment variable.  We use getattr since it
@@ -94,8 +94,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.linalg.cond, np.linalg.multi_dot,
 }  # fmt: skip
 
-if not NUMPY_LT_1_22:
-    SUBCLASS_SAFE_FUNCTIONS |= {np.median}
+SUBCLASS_SAFE_FUNCTIONS |= {np.median}
 
 
 # Implemented as methods on Quantity:
@@ -378,23 +377,6 @@ def _iterable_helper(*args, out=None, **kwargs):
 
     arrays, unit = _quantities2arrays(*args)
     return arrays, kwargs, unit, out
-
-
-if NUMPY_LT_1_22:
-
-    @function_helper
-    def median(a, axis=None, out=None, overwrite_input=False, keepdims=False):
-        kwargs = {"overwrite_input": overwrite_input, "keepdims": keepdims}
-        if out is not None:
-            from astropy.units import Quantity
-
-            if not isinstance(out, Quantity):
-                raise NotImplementedError
-            # We may get here just because of out, so ensure input is Quantity.
-            a = _as_quantity(a)
-            kwargs["out"] = out.view(np.ndarray)
-
-        return (a.value, axis), kwargs, a.unit, out
 
 
 @function_helper

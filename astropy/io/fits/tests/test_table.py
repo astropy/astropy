@@ -25,7 +25,7 @@ from astropy.io.fits.util import decode_ascii
 from astropy.io.fits.verify import VerifyError
 from astropy.table import Table
 from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
-from astropy.utils.compat import NUMPY_LT_1_22, NUMPY_LT_1_22_1
+from astropy.utils.compat import NUMPY_LT_1_22_1
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from .conftest import FitsTestCase
@@ -3125,7 +3125,7 @@ class TestVLATables(FitsTestCase):
             test(code)
 
     @pytest.mark.skipif(
-        not NUMPY_LT_1_22 and NUMPY_LT_1_22_1 and sys.platform == "win32",
+        NUMPY_LT_1_22_1 and sys.platform == "win32",
         reason="https://github.com/numpy/numpy/issues/20699",
     )
     def test_copy_vla(self):
