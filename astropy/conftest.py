@@ -19,6 +19,12 @@ except ImportError:
 import pytest
 
 from astropy import __version__
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
+
+if not NUMPY_LT_2_0:
+    import numpy as np
+
+    np.set_printoptions(legacy="1.25")
 
 # This is needed to silence a warning from matplotlib caused by
 # PyInstaller's matplotlib runtime hook.  This can be removed once the
