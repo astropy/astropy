@@ -188,17 +188,6 @@ in combination with ``use_fsspec=True`` and ``.section`` as follows:
     ...                       size=size,
     ...                       wcs=wcs)
 
-As a final step, you can plot the cutout using Matplotlib as follows:
-
-.. doctest-requires:: fsspec
-
-    >>> import matplotlib.pyplot as plt
-    >>> from astropy.visualization import astropy_mpl_style
-    ...
-    >>> plt.style.use(astropy_mpl_style)  # doctest: +REMOTE_DATA
-    >>> plt.figure()  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-    >>> plt.imshow(cutout.data, cmap='gray')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-
 See :ref:`cutout_images` for more details on this feature.
 
 
