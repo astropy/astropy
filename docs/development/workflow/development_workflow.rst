@@ -535,27 +535,31 @@ for further information.
 
 .. _rebase:
 
-Rebase, but only if asked
-*************************
+Rebase if necessary
+*******************
 
-Sometimes the maintainers of Astropy may ask a pull request to be *rebased*
-or *squashed* in the process of reviewing a pull request for merging into
-the main Astropy *main* repository.
-
-The decisions of when to request a *squash* or *rebase* are left to
-individual maintainers.  These may be requested to reduce the number of
-visible commits saved in the repository history, or because of code changes
-in Astropy in the meantime.  A rebase may be necessary to allow the Continuous
-Integration tests to run.  Both involve rewriting the `git`_ history, meaning
-that commit hashes will change, which is why you should do it only if asked.
-
-Conceptually, rebasing means taking your changes and applying them to the latest
+Rebasing means taking your changes and applying them to the latest
 version of the development branch of the official Astropy as though that was the
 version you had originally branched from. Each individual commit remains
-visible, but with new metadata/commit hashes. Squashing commits changes the
-metadata/commit hash, and also removes separate visibility of individual
-commits; a new commit and commit message will only contain a textual
-list of the earlier commits.
+visible, but with new commit hashes.
+
+When to rebase
+==============
+
+Pull requests **must** be rebased (but not necessarily squashed to a single
+commit) if at least one of the following conditions is met:
+
+* There are conflicts with main.
+* There are commits in main (after the PR branch point) needed for continuous
+  integration tests to run correctly.
+* There are merge commits from upstream/main in the PR commit history (merge
+  commits from PRs to the user's fork are fine).
+* There are commit messages that violate the code of conduct.
+
+.. _howto_rebase:
+
+How to rebase
+=============
 
 It is easier to make mistakes rebasing than other areas of `git`_, so before you
 start make a branch to serve as a backup copy of your work::
@@ -572,11 +576,6 @@ is prevented, and a ``--force`` option will be required.
     way that preserves the commit history of both. The purpose of rebasing is
     rewriting the commit history of your branch, not preserving it.
 
-.. _howto_rebase:
-
-How to rebase
-*************
-
 Behind the scenes, `git`_ is deleting the changes and branch you made, making the
 changes others made to the development branch of Astropy, then re-making your
 branch from the development branch and applying your changes to your branch.
@@ -590,27 +589,56 @@ Now, do the rebase::
 
     git rebase astropy/main
 
-You are more likely to run into *conflicts* here — places where the changes you
-made conflict with changes that someone else made — than anywhere else. Ask for
-help if you need it. Instructions are available on how to
-`resolve merge conflicts after a Git rebase <https://help.github.com/en/articles/resolving-merge-conflicts-after-a-git-rebase>`_.
+You are more likely to run into *conflicts* here — places where the changes you made
+conflict with changes that someone else made — than anywhere else. Ask for help if you
+need it. Instructions are available on how to `resolve merge conflicts after a Git
+rebase
+<https://help.github.com/en/articles/resolving-merge-conflicts-after-a-git-rebase>`_.
+
+.. _squash-if-necessary:
+
+Squash if necessary
+*******************
+
+Squashing refers to combining multiple commits into a single commit. This can be done
+using the ```git rebase`` command or via the GitHub
+pull request interface.
+
+As Astropy maintainer will be happy to guide you through this process.
+
+When to squash
+==============
+
+If a pull request contains commits with large (approximately > 10KB) intermediate
+changes which are ultimately removed or modified in the PR, the intermediate diffs
+**must** be squashed. An example is adding a large data file in one commit and then
+removing it in a subsequent commit. The goal is to avoid an unnecessary increase in the
+size of the ``astropy`` repository.
+
+Squashing commits is **encouraged** when there are numerous commits which do not add
+value to the commit history. Most small to medium pull requests can be done with a few
+commits. Some large or intricate pull requests may require more commits to capture the
+logical progression of the changes.
+
+In general, commits which reflect a specific atomic change (e.g. "Fixed bug revealed by
+tests for feature X") may have value for the history.
+
+Commits which are good candidates for squashing include:
+
+- Content that gets removed later, most commonly changes in the implementation or
+  temporary debugging code.
+- Non-specific commits e.g. "Added more code and fixed stuff").
+- Fixes of typos, linting fixes or other inconsequential changes.
 
 .. _howto_squash:
 
 How to squash
-*************
+=============
 
-Typically we ask to *squash* when there was a fair amount of trial
-and error, but the final patch remains quite small, or when files were added
-and removed (especially binary files or files that should not remain in the
-repository) or if the number of commits in the history is disproportionate
-compared to the work being carried out (for example 30 commits gradually
-refining a final 10-line change).  Conceptually this is equivalent to
-exporting the final diff from a feature branch, then starting a new branch and
-applying only that patch.
-
-Many of us find that is it actually easiest to squash using rebase. In particular,
-you can rebase and squash within the existing branch using::
+In many cases squashing can be done using the :ref:`github-squash-and-merge` button on
+the GitHub pull request page. If this is not possible we typically squash using `git
+rebase --interactive <https://git-scm.com/docs/git-rebase#_interactive_mode>`_. In
+particular, you can rebase and squash within the existing branch using::
 
   git fetch astropy
   git rebase -i astropy/main
@@ -618,6 +646,22 @@ you can rebase and squash within the existing branch using::
 The last command will open an editor with all your commits, allowing you to
 squash several commits together, rename them, etc. Helpfully, the file you are
 editing has the instructions on what to do.
+
+
+.. _github-squash-and-merge:
+
+Github 'Squash and merge'
+-------------------------
+
+Use of the `GitHub 'Squash and merge' button
+<https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/about-pull-request-merges#squash-and-merge-your-commits>`_
+is available to all maintainers. This will squash all commits in the pull request into
+a single commit and auto-generate a commit message which can be edited.
+
+Use of the 'Squash and merge' button is **encouraged** when the maintainer and
+contributor agree that squashing to a single commit is desirable. Using the GitHub
+facility instead of direct ``git`` commands can reduce effort for the maintainer
+and contributor.
 
 .. _howto_push_force:
 
