@@ -247,11 +247,15 @@ def validate_power(p):
         try:
             p = float(p)
         except Exception:
-            if not np.isscalar(p):
-                raise ValueError(
-                    "Quantities and Units may only be raised to a scalar power"
-                )
-            else:
+            try:
+                p = np.asanyarray(p)
+                if ((first := p.flat[0]) == p).all():
+                    p = float(first)
+                else:
+                    raise ValueError(
+                        "Quantities and Units may only be raised to a scalar power"
+                    )
+            except Exception:
                 raise
 
         # This returns either a (simple) Fraction or the same float.
