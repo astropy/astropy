@@ -426,6 +426,17 @@ class TestQuantityMathFuncs:
         # regression check on #1696
         assert np.power(4.0 * u.m, 0.0) == 1.0 * u.dimensionless_unscaled
 
+    def test_power_scalar_filledarray(self):
+        result = np.power(4.0 * u.m, np.array([2.0, 2.0]))
+        assert np.all(result == 16.0 * u.m**2)
+
+    def test_power_scalar_strarray(self):
+        with pytest.raises(
+            expected_exception=ValueError,
+            match="could not convert string to float",
+        ):
+            np.power(4.0 * u.m, np.array(["foo"]))
+
     def test_power_array(self):
         assert np.all(
             np.power(np.array([1.0, 2.0, 3.0]) * u.m, 3.0)
