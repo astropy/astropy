@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = []
+__all__ = ["ParametersAttribute"]
 
 from dataclasses import dataclass, field
 from types import MappingProxyType

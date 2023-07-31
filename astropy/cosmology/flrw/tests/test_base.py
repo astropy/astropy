@@ -11,9 +11,9 @@ import pytest
 import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology import FLRW, FlatLambdaCDM, LambdaCDM, Parameter, Planck18
+from astropy.cosmology._parameter.core import MISSING
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.flrw.base import _a_B_c2, _critdens_const, _H0units_to_invs, quad
-from astropy.cosmology.parameter._core import MISSING
 from astropy.cosmology.tests.helper import get_redshift_methods
 from astropy.cosmology.tests.test_core import (
     CosmologyTest,

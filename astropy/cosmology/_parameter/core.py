@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any
 import astropy.units as u
 from astropy.utils.compat import PYTHON_LT_3_10
 
-from ._converter import _REGISTRY_FVALIDATORS, FValidateCallable, _register_validator
+from .converter import _REGISTRY_FVALIDATORS, FValidateCallable, _register_validator
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

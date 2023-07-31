@@ -13,6 +13,7 @@ from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.utils.decorators import classproperty
 from astropy.utils.metadata import MetaData
 
+from ._parameter import Parameter, ParametersAttribute
 from ._utils import all_cls_vars
 from .connect import (
     CosmologyFromFormat,
@@ -20,8 +21,6 @@ from .connect import (
     CosmologyToFormat,
     CosmologyWrite,
 )
-from .parameter import Parameter
-from .parameter._descriptors import ParametersAttribute
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -96,7 +95,7 @@ class Cosmology(metaclass=abc.ABCMeta):
     write = UnifiedReadWriteMethod(CosmologyWrite)
 
     # Parameters
-    parameters = ParametersAttribute(attr_name="_parameters")
+    parameters: ClassVar = ParametersAttribute(attr_name="_parameters")
     """Immutable mapping of the Parameters.
 
     If accessed from the class, this returns a mapping of the Parameter
@@ -104,7 +103,7 @@ class Cosmology(metaclass=abc.ABCMeta):
     mapping of the values of the Parameters.
     """
 
-    _derived_parameters = ParametersAttribute(attr_name="_parameters_derived")
+    _derived_parameters: ClassVar = ParametersAttribute(attr_name="_parameters_derived")
     """Immutable mapping of the derived Parameters.
 
     If accessed from the class, this returns a mapping of the Parameter
