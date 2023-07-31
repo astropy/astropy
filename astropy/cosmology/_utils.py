@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import functools
+import inspect
 import operator
 from collections import OrderedDict
+from copy import deepcopy
 from dataclasses import dataclass
 from numbers import Number
 from typing import Any, Mapping
@@ -84,12 +86,7 @@ class MetaData:
     """Metadata for a cosmology."""
 
     default: Mapping[str, Any] | None = None
-    doc: str = ""
     copy: bool = True
-
-    def __post_init__(self):
-        self.__doc__: str | None
-        object.__setattr__(self, "__doc__", self.doc)
 
     def __get__(self, instance, owner):
         if instance is None:
@@ -100,7 +97,7 @@ class MetaData:
         if not hasattr(instance, "_meta"):
             object.__setattr__(instance, "_meta", OrderedDict())
         instance._meta.update(
-            (value.copy() if self.copy else value) if value is not None else {}
+            (deepcopy(value) if self.copy else value) if value is not None else {}
         )
 
 
