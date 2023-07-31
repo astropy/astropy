@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING, ClassVar
 
 import pytest
 
+from astropy.cosmology import Parameter
+from astropy.cosmology._parameter.descriptors import ParametersAttribute
 from astropy.cosmology._utils import all_cls_vars
-from astropy.cosmology.parameter import Parameter
-from astropy.cosmology.parameter._descriptors import ParametersAttribute
 
 if TYPE_CHECKING:
     from astropy.cosmology.core import Cosmology

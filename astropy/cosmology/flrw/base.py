@@ -20,17 +20,17 @@ from numpy import inf, sin
 
 import astropy.constants as const
 import astropy.units as u
+from astropy.cosmology._parameter import Parameter
+from astropy.cosmology._parameter.converter import (
+    _validate_non_negative,
+    _validate_with_unit,
+)
 from astropy.cosmology._utils import (
     aszarr,
     deprecated_keywords,
     vectorize_redshift_method,
 )
 from astropy.cosmology.core import Cosmology, FlatCosmologyMixin, dataclass_decorator
-from astropy.cosmology.parameter import Parameter
-from astropy.cosmology.parameter._converter import (
-    _validate_non_negative,
-    _validate_with_unit,
-)
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
