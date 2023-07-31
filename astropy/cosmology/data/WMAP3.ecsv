@@ -19,7 +19,6 @@
 # - t0: !astropy.units.Quantity
 #     unit: !astropy.units.Unit {unit: Gyr}
 #     value: 13.78
-# - {flat: true}
 # - {reference: 'Spergel et al. 2007, ApJS, 170, 377, doi:  10.1086/513700. Table 6 (WMAP + SNGold) obtained from: https://lambda.gsfc.nasa.gov/product/map/dr2/params/lcdm_wmap_sngold.cfm\nPending
 #     WMAP team approval and subject to change.'}
 # - {cosmology: FlatLambdaCDM}
