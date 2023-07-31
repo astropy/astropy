@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+"""Preloaded cosmologies. See ``available``."""
+
 __all__ = [  # noqa: F822 (undefined name)
     "available",
     "default_cosmology",
