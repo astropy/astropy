@@ -550,4 +550,7 @@ Built-in Frames and Transformations
 Reference/API
 =============
 
-.. automodapi:: astropy.coordinates
+.. toctree::
+   :maxdepth: 2
+
+   ref_api

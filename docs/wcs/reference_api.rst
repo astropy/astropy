@@ -1,5 +1,5 @@
 Reference/API
-=============
+*************
 
 .. automodapi:: astropy.wcs
    :inherited-members:

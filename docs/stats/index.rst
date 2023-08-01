@@ -203,4 +203,7 @@ See Also
 Reference/API
 =============
 
-.. automodapi:: astropy.stats
+.. toctree::
+   :maxdepth: 2
+
+   ref_api
