@@ -171,6 +171,7 @@ ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` in
 
 [tool.ruff.extend-per-file-ignores]
 "setup.py" = ["INP001"]  # Part of configuration, not a package.
+".github/workflows/*.py" = ["INP001"]
 "astropy/modeling/models.py" = ["F405"]
 "astropy/utils/decorators.py" = [
     "D214", "D215",  # keep Examples section indented.
@@ -201,8 +202,6 @@ ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` in
 
 [tool.ruff.pydocstyle]
 convention = "numpy"
-
-
 
 [tool.towncrier]
     package = "astropy"
