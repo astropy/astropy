@@ -43,7 +43,7 @@ jobs:
         branch: update-iers-5.0.x
         branch-suffix: timestamp
         delete-branch: true
-        labels: no-changelog-entry-needed, utils.iers
+        labels: skip-basebranch-check, no-changelog-entry-needed, utils.iers
         title: Update IERS Earth rotation and leap second tables in v5.0.x
         body: |
           This is an automated update of the IERS Earth rotation and leap second tables to the v5.0.x branch.
@@ -81,7 +81,7 @@ jobs:
         branch: update-iers-v5.3.x
         branch-suffix: timestamp
         delete-branch: true
-        labels: no-changelog-entry-needed, utils.iers
+        labels: skip-basebranch-check, no-changelog-entry-needed, utils.iers
         title: Update IERS Earth rotation and leap second tables in v5.3.x
         body: |
           This is an automated update of the IERS Earth rotation and leap second tables to the v5.3.x branch.
