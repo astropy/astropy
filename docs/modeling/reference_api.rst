@@ -1,8 +1,8 @@
 Reference/API
-=============
+*************
 
 Capabilities
-************
+============
 
 .. automodapi:: astropy.modeling
 .. automodapi:: astropy.modeling.bounding_box
@@ -18,7 +18,7 @@ Capabilities
 .. automodapi:: astropy.modeling.separable
 
 Pre-Defined Models
-******************
+==================
 
 .. automodapi:: astropy.modeling.functional_models
 .. automodapi:: astropy.modeling.physical_models

@@ -5,28 +5,18 @@
 
 :tocdepth: 3
 
-.. the "raw" directive below is used to hide the title in favor of just the logo being visible
-.. raw:: html
+#################################################
+astropy: A Community Python Library for Astronomy
+#################################################
 
-    <style media="screen" type="text/css">
-      h1 { display:none; }
-    </style>
+**Version**: |release|
 
-#####################
-Astropy Documentation
-#####################
-
-.. |logo_svg| image:: _static/astropy_banner.svg
-
-.. |logo_png| image:: _static/astropy_banner_96.png
-
-.. raw:: html
-
-   <img src="_static/astropy_banner.svg" onerror="this.src='_static/astropy_banner_96.png'; this.onerror=null;" width="485"/>
-
-.. only:: latex
-
-    .. image:: _static/astropy_logo.pdf
+**Useful links**:
+:ref:`Installation <installing-astropy>` |
+`Issues & Ideas <https://github.com/astropy/astropy/issues>`__ |
+`Get Help <http://www.astropy.org/help.html>`__ |
+`Contribute <http://www.astropy.org/contribute.html>`__ |
+`About <http://www.astropy.org/about.html>`__
 
 The ``astropy`` package contains key functionality and common tools needed for
 performing astronomy and astrophysics with Python.  It is at the core of the
@@ -41,121 +31,88 @@ processing, and data analysis.
    software or `affiliated packages`_ that depend on the astropy
    core package.
 
-.. _getting-started:
-
-***************
-Getting Started
-***************
-
 .. toctree::
    :maxdepth: 1
+   :hidden:
 
-   install
-   whatsnew/6.0
-   importing_astropy
-   Example Gallery <generated/examples/index>
-   Tutorials <https://learn.astropy.org/>
-   Get Help <http://www.astropy.org/help.html>
-   Contribute and Report Problems <http://www.astropy.org/contribute.html>
-   About the Astropy Project <http://www.astropy.org/about.html>
-
-.. _user-docs:
-
-******************
-User Documentation
-******************
-
-Data structures and transformations
------------------------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   constants/index
-   units/index
-   nddata/index
-   table/index
-   time/index
-   timeseries/index
-   coordinates/index
-   wcs/index
-   modeling/index
-   uncertainty/index
-
-Files, I/O, and Communication
------------------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   io/unified
-   io/fits/index
-   io/ascii/index
-   io/votable/index
-   io/misc
-   samp/index
-
-Computations and utilities
---------------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   cosmology/index
-   convolution/index
-   utils/iers
-   visualization/index
-   stats/index
-
-Nuts and bolts
---------------
-
-.. toctree::
-   :maxdepth: 1
-
-   config/index
-   io/registry
-   logging
-   warnings
-   utils/index
-   glossary
-
-***********
-Development
-***********
-
-.. toctree::
-   :maxdepth: 2
-
+   index_getting_started
+   index_user_docs
    development/index
+   index_project_details
 
-.. toctree::
-   :maxdepth: 1
+.. grid:: 2
 
-   changelog
+    .. grid-item-card::
+        :img-top: _static/index-images/getting_started.svg
 
-.. _project-details:
+        Getting Started
+        ^^^^^^^^^^^^^^^
 
-***************
-Project details
-***************
+        New to Astropy? Check out the getting started guides. They contain an
+        introduction to astropy's main concepts and links to additional tutorials.
 
-.. toctree::
-   :maxdepth: 1
+        +++
 
-   whatsnew/index
-   lts_policy
-   known_issues
-   credits
-   license
+        .. button-ref:: index_getting_started
+            :expand:
+            :color: primary
+            :click-parent:
 
-*****
-Index
-*****
+            To the getting started guides
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+    .. grid-item-card::
+        :img-top: _static/index-images/user_guide.svg
+
+        User Guide
+        ^^^^^^^^^^
+
+        The user guide provides in-depth information on the key concepts
+        of astropy with useful background information and explanation.
+
+        +++
+
+        .. button-ref:: index_user_docs
+            :expand:
+            :color: primary
+            :click-parent:
+
+            To the user guide
+
+    .. grid-item-card::
+        :img-top: _static/index-images/contributor.svg
+
+        Contributor's Guide
+        ^^^^^^^^^^^^^^^^^^^
+
+        Saw a typo in the documentation? Want to improve
+        existing functionalities? The contributing guidelines will guide
+        you through the process of improving astropy.
+
+        +++
+
+        .. button-ref:: development/index
+            :expand:
+            :color: primary
+            :click-parent:
+
+            To the contributor's guide
+
+    .. grid-item-card::
+        :img-top: _static/index-images/api.svg
+
+        Project details
+        ^^^^^^^^^^^^^^^
+
+        More details about the project (changelog and what's new pages).
+
+        +++
+
+        .. button-ref:: index_project_details
+            :expand:
+            :color: primary
+            :click-parent:
+
+            To the project details
 
 .. _feedback@astropy.org: mailto:feedback@astropy.org
 .. _affiliated packages: https://www.astropy.org/affiliated/

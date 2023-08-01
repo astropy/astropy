@@ -373,4 +373,7 @@ Implementation
 Reference/API
 =============
 
-.. automodapi:: astropy.table
+.. toctree::
+   :maxdepth: 2
+
+   ref_api

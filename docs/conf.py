@@ -60,10 +60,11 @@ if missing_requirements:
     print('Please install the "docs" requirements.')
     sys.exit(1)
 
-from sphinx_astropy.conf.v1 import *  # noqa: E402
-from sphinx_astropy.conf.v1 import (  # noqa: E402
+from sphinx_astropy.conf.v2 import *  # noqa: E402
+from sphinx_astropy.conf.v2 import (  # noqa: E402
     exclude_patterns,
     extensions,
+    html_theme_options,
     intersphinx_mapping,
     numpydoc_xref_aliases,
     numpydoc_xref_astropy_aliases,
@@ -123,7 +124,7 @@ if "templates_path" not in locals():  # in case parent conf.py defines it
     templates_path = []
 templates_path.append("_templates")
 
-extensions += ["sphinx_changelog"]
+extensions += ["sphinx_changelog", "sphinx_design"]
 
 # Grab minversion from setup.cfg
 setup_cfg = configparser.ConfigParser()
@@ -230,15 +231,42 @@ modindex_common_prefix = ["astropy."]
 
 # -- Options for HTML output ---------------------------------------------------
 
+html_theme_options.update(
+    {
+        "github_url": "https://github.com/astropy/astropy",
+        "external_links": [
+            {"name": "Tutorials", "url": "https://learn.astropy.org/"},
+        ],
+        "use_edit_page_button": True,
+        "logo": {
+            "image_light": "_static/astropy_banner_96.png",
+            "image_dark": "_static/astropy_banner_96_dark.png",
+        },
+    }
+)
+
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
 html_title = f"{project} v{release}"
+
+html_favicon = "_static/astropy_logo.ico"
+
+html_css_files = ["astropy.css"]
+html_copy_source = False
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = project + "doc"
 
 # A dictionary of values to pass into the template engine's context for all pages.
-html_context = {"to_be_indexed": ["stable", "latest"], "is_development": dev}
+html_context = {
+    "default_mode": "light",
+    "to_be_indexed": ["stable", "latest"],
+    "is_development": dev,
+    "github_user": "astropy",
+    "github_repo": "astropy",
+    "github_version": "main",
+    "doc_path": "docs",
+}
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied

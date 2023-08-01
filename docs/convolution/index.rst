@@ -422,5 +422,7 @@ Using `astropy.convolution`
 Reference/API
 =============
 
-.. automodapi:: astropy.convolution
-    :no-inheritance-diagram:
+.. toctree::
+   :maxdepth: 2
+
+   ref_api

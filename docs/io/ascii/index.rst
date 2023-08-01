@@ -276,4 +276,7 @@ Extension Reader Classes
 Reference/API
 =============
 
-.. automodapi:: astropy.io.ascii
+.. toctree::
+   :maxdepth: 2
+
+   ref_api

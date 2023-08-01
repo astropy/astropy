@@ -1684,8 +1684,10 @@ method::
 Reference/API
 =============
 
-.. automodapi:: astropy.time
-   :inherited-members:
+.. toctree::
+   :maxdepth: 2
+
+   ref_api
 
 
 Acknowledgments and Licenses

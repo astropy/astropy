@@ -1,8 +1,8 @@
 .. _developer-docs:
 
-***********************
-Developer Documentation
-***********************
+***********
+Development
+***********
 
 The developer documentation contains instructions for how to contribute to
 Astropy or affiliated packages, install and test the development version,

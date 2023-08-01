@@ -187,4 +187,7 @@ What is the use of a custom registries?
 Reference/API
 =============
 
-.. automodapi:: astropy.io.registry
+.. toctree::
+   :maxdepth: 2
+
+   registry_ref_api

@@ -497,13 +497,9 @@ Using ``nddata``
 Reference/API
 =============
 
-.. automodapi:: astropy.nddata
-    :no-inheritance-diagram:
+.. toctree::
+   :maxdepth: 2
 
-.. automodapi:: astropy.nddata.bitmask
-    :no-inheritance-diagram:
-
-.. automodapi:: astropy.nddata.utils
-    :no-inheritance-diagram:
+   ref_api
 
 .. _APE 7: https://github.com/astropy/astropy-APEs/blob/main/APE7.rst
