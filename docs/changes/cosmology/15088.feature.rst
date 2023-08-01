@@ -1,0 +1,1 @@
+Cosmology I/O now auto-identifies the '.tex' suffix with the 'ascii.latex' format.
