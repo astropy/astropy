@@ -23,7 +23,7 @@ from .flrw import (
     wCDM,
     wpwaCDM,
 )
-from .funcs import cosmology_equal, z_at_value
+from .funcs import cosmology_equal, z_at_value, z_matter_radiation_equality
 from .parameter import Parameter
 from .realizations import available, default_cosmology
 
@@ -47,6 +47,7 @@ __all__ = [
     "FlatwpwaCDM",
     # Funcs
     "z_at_value",
+    "z_matter_radiation_equality",
     "cosmology_equal",
     # Parameter
     "Parameter",

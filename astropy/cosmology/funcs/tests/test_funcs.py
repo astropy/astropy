@@ -9,10 +9,7 @@ import numpy as np
 import pytest
 
 from astropy import units as u
-from astropy.cosmology import core, flrw
-from astropy.cosmology.funcs import z_at_value
-from astropy.cosmology.funcs.optimize import _z_at_scalar_value
-from astropy.cosmology.realizations import (
+from astropy.cosmology import (
     WMAP1,
     WMAP3,
     WMAP5,
@@ -21,7 +18,12 @@ from astropy.cosmology.realizations import (
     Planck13,
     Planck15,
     Planck18,
+    core,
+    flrw,
+    z_at_value,
+    z_matter_radiation_equality,
 )
+from astropy.cosmology.funcs.optimize import _z_at_scalar_value
 from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
@@ -429,3 +431,21 @@ def test_z_at_value_roundtrip(cosmo):
         for func in func_z1z2:
             fval = func(z)
             assert allclose(z, z_at_value(func, fval, zmax=1.5, ztol=1e-12), rtol=2e-11)
+
+
+@pytest.mark.skipif("not HAS_SCIPY")
+def test_z_matter_radiation_equality():
+    """Calculate redshift of matter-radiation equality."""
+    with core.default_cosmology.set("Planck18_arXiv_v2"):
+        cosmo = core.cosmology.default_cosmology.get()
+
+    zeq = z_matter_radiation_equality(cosmo)
+    assert allclose(zeq, 5731.3052997585855, rtol=2e-8)
+
+    zeq, info = z_matter_radiation_equality(cosmo, full_output=True)
+    assert info.converged is True
+    assert info.root == zeq
+
+    # Test failure
+    with pytest.raises(RuntimeError):
+        z_matter_radiation_equality(cosmo, zmin=6e3, zmax=1e4)
