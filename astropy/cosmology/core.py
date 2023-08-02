@@ -13,13 +13,13 @@ from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.utils.compat.misc import PYTHON_LT_3_10
 from astropy.utils.decorators import classproperty
 
+from ._utils import MetaData, all_cls_vars, all_fields
 from .connect import (
     CosmologyFromFormat,
     CosmologyRead,
     CosmologyToFormat,
     CosmologyWrite,
 )
-from .utils import MetaData, all_cls_vars, all_fields
 
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Mapping
