@@ -15,6 +15,7 @@ import pytest
 # LOCAL
 import astropy.units as u
 from astropy.cosmology import Cosmology
+from astropy.cosmology._utils import all_cls_vars
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.parameter._converter import (
@@ -22,7 +23,6 @@ from astropy.cosmology.parameter._converter import (
     _validate_to_float,
     _validate_with_unit,
 )
-from astropy.cosmology.utils import all_cls_vars
 
 ##############################################################################
 # TESTS

@@ -12,9 +12,9 @@ import pytest
 # LOCAL
 import astropy.units as u
 from astropy.cosmology import FlatwCDM, wCDM
+from astropy.cosmology._utils import all_cls_vars
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin, valid_zs
-from astropy.cosmology.utils import all_cls_vars
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .test_base import FlatFLRWMixinTest, FLRWTest

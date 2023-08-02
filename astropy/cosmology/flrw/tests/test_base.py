@@ -16,6 +16,7 @@ import pytest
 import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology import FLRW, FlatLambdaCDM, LambdaCDM, Planck18
+from astropy.cosmology._utils import all_cls_vars
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.flrw.base import _a_B_c2, _critdens_const, _H0units_to_invs, quad
 from astropy.cosmology.parameter import Parameter
@@ -27,7 +28,6 @@ from astropy.cosmology.tests.test_core import (
     invalid_zs,
     valid_zs,
 )
-from astropy.cosmology.utils import all_cls_vars
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 ##############################################################################

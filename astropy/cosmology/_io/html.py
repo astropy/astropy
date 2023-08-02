@@ -88,10 +88,10 @@ enable this, set ``latex_names=True``.
 
 import astropy.cosmology.units as cu
 import astropy.units as u
+from astropy.cosmology._utils import all_cls_vars
 from astropy.cosmology.connect import readwrite_registry
 from astropy.cosmology.core import Cosmology
 from astropy.cosmology.parameter import Parameter
-from astropy.cosmology.utils import all_cls_vars
 from astropy.table import QTable
 
 from .table import from_table, to_table
