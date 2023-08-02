@@ -108,12 +108,9 @@ Using `astropy.cosmology`
 More detailed information on using the package is provided on separate pages,
 listed below.
 
-.. toctree::
-   :maxdepth: 1
-
-   io/index
-   Units and Equivalencies <units>
-   For Developers <dev>
+* :ref:`cosmology_io`
+* :ref:`Units and Equivalencies <astropy-cosmology-units-and-equivalencies>`
+* :ref:`For Developers <astropy-cosmology-for-developers>`
 
 Most of the functionality is enabled by the |FLRW| object. This represents a
 homogeneous and isotropic cosmology (characterized by the
@@ -513,6 +510,7 @@ Reference/API
 .. toctree::
    :maxdepth: 2
 
-   ref_api
    io/index
+   Units and Equivalencies <units>
    For Developers <dev>
+   ref_api
