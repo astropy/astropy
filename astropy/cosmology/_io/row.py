@@ -1,5 +1,37 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+"""|Cosmology| <-> |Row| I/O, using |Cosmology.to_format| and |Cosmology.from_format|.
+
+A `~astropy.cosmology.Cosmology` as a `~astropy.table.Row` will have
+the cosmology's name and parameters as columns.
+
+    >>> from astropy.cosmology import Planck18
+    >>> cr = Planck18.to_format("astropy.row")
+    >>> cr
+    <Row index=0>
+        cosmology     name        H0        Om0    Tcmb0    Neff      m_nu      Ob0
+                            km / (Mpc s)            K                 eV
+        str13       str8     float64    float64 float64 float64  float64[3] float64
+    ------------- -------- ------------ ------- ------- ------- ----------- -------
+    FlatLambdaCDM Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
+
+The cosmological class and other metadata, e.g. a paper reference, are in
+the Table's metadata.
+
+    >>> cr.meta
+    OrderedDict([('Oc0', 0.2607), ('n', 0.9665), ...])
+
+Now this row can be used to load a new cosmological instance identical
+to the ``Planck18`` cosmology from which it was generated.
+
+    >>> cosmo = Cosmology.from_format(cr, format="astropy.row")
+    >>> cosmo
+    FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
+                    Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+
+For more information on the argument options, see :ref:`cosmology_io_builtin-table`.
+"""
+
 import copy
 from collections import defaultdict
 
@@ -62,6 +94,30 @@ def from_row(row, *, move_to_meta=False, cosmology=None, rename=None):
         FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                       Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 
+    The ``cosmology`` information (column or metadata) may be omitted if the cosmology
+    class (or its string name) is passed as the ``cosmology`` keyword argument to
+    |Cosmology.from_format|.
+
+        >>> del cr.columns["cosmology"]  # remove cosmology from metadata
+        >>> Cosmology.from_format(cr, cosmology="FlatLambdaCDM")
+        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
+                      Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+
+    Alternatively, specific cosmology classes can be used to parse the data.
+
+        >>> from astropy.cosmology import FlatLambdaCDM
+        >>> FlatLambdaCDM.from_format(cr)
+        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
+                      Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+
+    When using a specific cosmology class, the class' default parameter values are used
+    to fill in any missing information.
+
+        >>> del cr.columns["Tcmb0"]  # show FlatLambdaCDM provides default
+        >>> FlatLambdaCDM.from_format(cr)
+        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
+                      Tcmb0=0.0 K, Neff=3.046, m_nu=None, Ob0=0.04897)
+
     If a `~astropy.table.Row` object has columns that do not match the fields of the
     `~astropy.cosmology.Cosmology` class, they can be mapped using the ``rename``
     keyword argument.
@@ -119,23 +175,23 @@ def to_row(cosmology, *args, cosmology_in_meta=False, table_cls=QTable, rename=N
         Not used. Needed for compatibility with
         `~astropy.io.registry.UnifiedReadWriteMethod`
     table_cls : type (optional, keyword-only)
-        Astropy :class:`~astropy.table.Table` class or subclass type to use.
-        Default is :class:`~astropy.table.QTable`.
+        Astropy :class:`~astropy.table.Table` class or subclass type to use. Default is
+        :class:`~astropy.table.QTable`.
     cosmology_in_meta : bool
-        Whether to put the cosmology class in the Table metadata (if `True`) or
-        as the first column (if `False`, default).
+        Whether to put the cosmology class in the Table metadata (if `True`) or as the
+        first column (if `False`, default).
 
     Returns
     -------
     `~astropy.table.Row`
-        With columns for the cosmology parameters, and metadata in the Table's
-        ``meta`` attribute. The cosmology class name will either be a column
-        or in ``meta``, depending on 'cosmology_in_meta'.
+        With columns for the cosmology parameters, and metadata in the Table's ``meta``
+        attribute. The cosmology class name will either be a column or in ``meta``,
+        depending on 'cosmology_in_meta'.
 
     Examples
     --------
-    A `~astropy.cosmology.Cosmology` as a `~astropy.table.Row` will have
-    the cosmology's name and parameters as columns.
+    A `~astropy.cosmology.Cosmology` as a `~astropy.table.Row` will have the cosmology's
+    name and parameters as columns.
 
         >>> from astropy.cosmology import Planck18
         >>> cr = Planck18.to_format("astropy.row")
@@ -147,8 +203,31 @@ def to_row(cosmology, *args, cosmology_in_meta=False, table_cls=QTable, rename=N
         ------------- -------- ------------ ------- ------- ------- ----------- -------
         FlatLambdaCDM Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 
-    The cosmological class and other metadata, e.g. a paper reference, are in
-    the Table's metadata.
+    The cosmological class and other metadata, e.g. a paper reference, are in the
+    Table's metadata.
+
+        >>> cr.meta
+        OrderedDict([('Oc0', 0.2607), ('n', 0.9665), ...])
+
+    To move the cosmology class from a column to the Table's metadata, set the
+    ``cosmology_in_meta`` argument to `True`:
+
+        >>> Planck18.to_format("astropy.table", cosmology_in_meta=True)
+        <QTable length=1>
+        name        H0        Om0    Tcmb0    Neff      m_nu      Ob0
+                km / (Mpc s)            K                 eV
+        str8     float64    float64 float64 float64  float64[3] float64
+        -------- ------------ ------- ------- ------- ----------- -------
+        Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
+
+    In Astropy, Row objects are always part of a Table. :class:`~astropy.table.QTable`
+    is recommended for tables with `~astropy.units.Quantity` columns. However the
+    returned type may be overridden using the ``cls`` argument:
+
+        >>> from astropy.table import Table
+        >>> Planck18.to_format("astropy.table", cls=Table)
+        <Table length=1>
+        ...
 
     The columns can be renamed using the ``rename`` keyword argument.
 
