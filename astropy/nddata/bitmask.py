@@ -19,8 +19,7 @@ __all__ = [
 
 
 _ENABLE_BITFLAG_CACHING = True
-_MAX_UINT_TYPE = np.maximum_sctype(np.uint)
-_SUPPORTED_FLAGS = int(np.bitwise_not(0, dtype=_MAX_UINT_TYPE, casting="unsafe"))
+_SUPPORTED_FLAGS = int(np.bitwise_not(0, dtype="uint64", casting="unsafe"))
 
 
 def _is_bit_flag(n):
