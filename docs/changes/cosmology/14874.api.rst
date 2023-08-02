@@ -1,0 +1,2 @@
+Cosmology ``Parameter`` is now a ``dataclass``, and can work with all of Python's dataclasses
+machinery, like field introspection and type conversion.

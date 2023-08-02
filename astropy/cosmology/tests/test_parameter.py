@@ -7,6 +7,7 @@
 
 # STDLIB
 import inspect
+from typing import Callable
 
 # THIRD PARTY
 import numpy as np
@@ -97,23 +98,25 @@ class ParameterTestMixin:
 
         # Parameter
         assert hasattr(all_parameter, "_unit")
-        assert hasattr(all_parameter, "_equivalencies")
-        assert hasattr(all_parameter, "_derived")
+        assert hasattr(all_parameter, "equivalencies")
+        assert hasattr(all_parameter, "derived")
 
         # __set_name__
+        assert hasattr(all_parameter, "name")
         assert hasattr(all_parameter, "_attr_name")
-        assert hasattr(all_parameter, "_attr_name_private")
 
     def test_Parameter_fvalidate(self, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.fvalidate`."""
         assert hasattr(all_parameter, "fvalidate")
         assert callable(all_parameter.fvalidate)
+        assert hasattr(all_parameter, "_fvalidate_in")
+        assert isinstance(all_parameter._fvalidate_in, (str, Callable))
 
     def test_Parameter_name(self, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.name`."""
         assert hasattr(all_parameter, "name")
         assert isinstance(all_parameter.name, str)
-        assert all_parameter.name is all_parameter._attr_name
+        assert all_parameter._attr_name == f"_{all_parameter.name}"
 
     def test_Parameter_unit(self, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.unit`."""
@@ -125,19 +128,16 @@ class ParameterTestMixin:
         """Test :attr:`astropy.cosmology.Parameter.equivalencies`."""
         assert hasattr(all_parameter, "equivalencies")
         assert isinstance(all_parameter.equivalencies, (list, u.Equivalency))
-        assert all_parameter.equivalencies is all_parameter._equivalencies
 
     def test_Parameter_derived(self, cosmo_cls, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.derived`."""
         assert hasattr(all_parameter, "derived")
         assert isinstance(all_parameter.derived, bool)
-        assert all_parameter.derived is all_parameter._derived
 
         # test value
-        if all_parameter.name in cosmo_cls.__parameters__:
-            assert all_parameter.derived is False
-        else:
-            assert all_parameter.derived is True
+        assert all_parameter.derived is (
+            all_parameter.name not in cosmo_cls.__parameters__
+        )
 
     # -------------------------------------------
     # descriptor methods
@@ -151,16 +151,16 @@ class ParameterTestMixin:
 
         # from instance
         parameter = getattr(cosmo, all_parameter.name)
-        assert np.all(parameter == getattr(cosmo, all_parameter._attr_name_private))
+        assert np.all(parameter == getattr(cosmo, all_parameter._attr_name))
 
     def test_Parameter_descriptor_set(self, cosmo, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.__set__`."""
         # test it's already set
-        assert hasattr(cosmo, all_parameter._attr_name_private)
+        assert hasattr(cosmo, all_parameter._attr_name)
 
         # and raises an error if set again
         with pytest.raises(AttributeError, match="can't set attribute"):
-            setattr(cosmo, all_parameter._attr_name, None)
+            setattr(cosmo, all_parameter.name, None)
 
     # -------------------------------------------
     # validate value
@@ -305,12 +305,12 @@ class TestParameter(ParameterTestMixin):
 
         # custom from init
         assert param._unit == u.m
-        assert param._equivalencies == u.mass_energy()
-        assert param._derived == np.False_
+        assert param.equivalencies == u.mass_energy()
+        assert param.derived == np.False_
 
         # custom from set_name
-        assert param._attr_name == "param"
-        assert param._attr_name_private == "_param"
+        assert param.name == "param"
+        assert param._attr_name == "_param"
 
     def test_Parameter_fvalidate(self, cosmo, param):
         """Test :attr:`astropy.cosmology.Parameter.fvalidate`."""
