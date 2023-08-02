@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import abc
+import inspect
 from dataclasses import KW_ONLY, dataclass, replace
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
