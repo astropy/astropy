@@ -1,11 +1,34 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""
-The following are private functions, included here **FOR REFERENCE ONLY** since
-the io registry cannot be displayed. These functions are registered into
-:meth:`~astropy.cosmology.Cosmology.to_format` and
-:meth:`~astropy.cosmology.Cosmology.from_format` and should only be accessed
-via these methods.
+r"""|Cosmology| <-> YAML I/O, using |Cosmology.to_format| and |Cosmology.from_format|.
+
+This module provides functions to transform a |Cosmology| object to and from a `yaml
+<https://yaml.org>`_ representation. The functions are registered with
+``convert_registry`` under the format name "yaml". This format is primarily intended for
+use by other I/O functions, e.g. |Table|'s metadata serialization, which themselves
+require YAML serialization.
+
+    >>> from astropy.cosmology import Planck18
+    >>> yml = Planck18.to_format("yaml")
+    >>> yml
+    "!astropy.cosmology.flrw.FlatLambdaCDM\nH0: !astropy.units.Quantity\n
+    unit: !astropy.units.Unit {unit: km / (Mpc s)}\n  value: 67.66\nNeff: 3.046\nOb0:
+    0.04897\nOm0: 0.30966\nTcmb0: !astropy.units.Quantity\n  unit: !astropy.units.Unit
+    {unit: K}\n  value: 2.7255\nm_nu: !astropy.units.Quantity\n
+    unit: !astropy.units.Unit {unit: eV}\n  value: !numpy.ndarray\n
+    buffer: !!binary |\n      QUFBQUFBQUFBQUFBQUFBQUFBQUFBTGdlaGV0UnVLNC8=\n
+    dtype: float64\n    order: C\n    shape: !!python/tuple [3]\nmeta:
+    !!python/tuple\n- !!python/tuple [Oc0, 0.2607]\n- !!python/tuple [n, 0.9665]\n-
+    !!python/tuple [sigma8, 0.8102]\n- !!python/tuple [tau, 0.0561]\n- !!python/tuple\n
+    - z_reion\n  - !astropy.units.Quantity\n    unit: !astropy.units.Unit {unit:
+    redshift}\n    value: 7.82\n- !!python/tuple\n  - t0\n  - !astropy.units.Quantity\n
+    unit: !astropy.units.Unit {unit: Gyr}\n    value: 13.787\n- !!python/tuple [flat,
+    true]\n- !!python/tuple [reference, 'Planck Collaboration 2018, 2020, A&A, 641, A6
+    (Paper\n    VI), Table 2 (TT, TE, EE + lowE + lensing + BAO)']\nname: Planck18\n"
+
+    >>> Cosmology.from_format(yml, format="yaml")
+    FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
+                  Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 """  # this is shown in the docs.
 
 import astropy.cosmology.units as cu
@@ -28,7 +51,7 @@ __all__ = []  # nothing is publicly scoped
 
 
 def yaml_representer(tag):
-    """:mod:`yaml` representation of |Cosmology| object.
+    """`yaml <https://yaml.org>`_ representation of |Cosmology| object.
 
     Parameters
     ----------
@@ -147,6 +170,14 @@ def from_yaml(yml, *, cosmology=None):
     TypeError
         If the |Cosmology| object loaded from ``yml`` is not an instance of
         the ``cosmology`` (and ``cosmology`` is not `None`).
+
+    Examples
+    --------
+    >>> from astropy.cosmology import Cosmology, Planck18
+    >>> yml = Planck18.to_format("yaml")
+    >>> Cosmology.from_format(yml, format="yaml")
+    FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
+                  Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
     """
     with u.add_enabled_units(cu):
         cosmo = load(yml)
@@ -162,11 +193,12 @@ def from_yaml(yml, *, cosmology=None):
 
 
 def to_yaml(cosmology, *args):
-    """Return the cosmology class, parameters, and metadata as a :mod:`yaml` object.
+    r"""Return the cosmology class, parameters, and metadata as a :mod:`yaml` object.
 
     Parameters
     ----------
     cosmology : `~astropy.cosmology.Cosmology` subclass instance
+        The cosmology to serialize.
     *args
         Not used. Needed for compatibility with
         `~astropy.io.registry.UnifiedReadWriteMethod`
@@ -175,6 +207,25 @@ def to_yaml(cosmology, *args):
     -------
     str
         :mod:`yaml` representation of |Cosmology| object
+
+    Examples
+    --------
+    >>> from astropy.cosmology import Planck18
+    >>> Planck18.to_format("yaml")
+    "!astropy.cosmology.flrw.FlatLambdaCDM\nH0: !astropy.units.Quantity\n
+    unit: !astropy.units.Unit {unit: km / (Mpc s)}\n  value: 67.66\nNeff: 3.046\nOb0:
+    0.04897\nOm0: 0.30966\nTcmb0: !astropy.units.Quantity\n  unit: !astropy.units.Unit
+    {unit: K}\n  value: 2.7255\nm_nu: !astropy.units.Quantity\n
+    unit: !astropy.units.Unit {unit: eV}\n  value: !numpy.ndarray\n
+    buffer: !!binary |\n      QUFBQUFBQUFBQUFBQUFBQUFBQUFBTGdlaGV0UnVLNC8=\n
+    dtype: float64\n    order: C\n    shape: !!python/tuple [3]\nmeta:
+    !!python/tuple\n- !!python/tuple [Oc0, 0.2607]\n- !!python/tuple [n, 0.9665]\n-
+    !!python/tuple [sigma8, 0.8102]\n- !!python/tuple [tau, 0.0561]\n- !!python/tuple\n
+    - z_reion\n  - !astropy.units.Quantity\n    unit: !astropy.units.Unit {unit:
+    redshift}\n    value: 7.82\n- !!python/tuple\n  - t0\n  - !astropy.units.Quantity\n
+    unit: !astropy.units.Unit {unit: Gyr}\n    value: 13.787\n- !!python/tuple [flat,
+    true]\n- !!python/tuple [reference, 'Planck Collaboration 2018, 2020, A&A, 641, A6
+    (Paper\n    VI), Table 2 (TT, TE, EE + lowE + lensing + BAO)']\nname: Planck18\n"
     """
     return dump(cosmology)
 

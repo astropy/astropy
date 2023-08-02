@@ -111,7 +111,7 @@ listed below.
 .. toctree::
    :maxdepth: 1
 
-   Reading and Writing <io>
+   io/index
    Units and Equivalencies <units>
    For Developers <dev>
 
@@ -514,3 +514,5 @@ Reference/API
    :maxdepth: 2
 
    ref_api
+   io/index
+   For Developers <dev>
