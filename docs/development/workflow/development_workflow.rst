@@ -539,7 +539,7 @@ Rebase if necessary
 *******************
 
 Rebasing means taking your changes and applying them to the latest
-version of the development branch of the official Astropy as though that was the
+version of the ``main`` branch of the official ``astropy`` repository as though that was the
 version you had originally branched from. Each individual commit remains
 visible, but with new commit hashes.
 
@@ -549,10 +549,10 @@ When to rebase
 Pull requests **must** be rebased (but not necessarily squashed to a single
 commit) if at least one of the following conditions is met:
 
-* There are conflicts with main.
-* There are commits in main (after the PR branch point) needed for continuous
+* There are conflicts with ``main``.
+* There are commits in ``main`` (after the PR branch point) needed for continuous
   integration tests to run correctly.
-* There are merge commits from upstream/main in the PR commit history (merge
+* There are merge commits from ``astropy/main`` in the PR commit history (merge
   commits from PRs to the user's fork are fine).
 * There are commit messages that violate the code of conduct.
 
@@ -601,8 +601,7 @@ Squash if necessary
 *******************
 
 Squashing refers to combining multiple commits into a single commit. This can be done
-using the ```git rebase`` command or via the GitHub
-pull request interface.
+using the ``git rebase`` command or via the GitHub pull request interface.
 
 As Astropy maintainer will be happy to guide you through this process.
 
