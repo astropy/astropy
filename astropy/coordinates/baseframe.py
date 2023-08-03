@@ -333,36 +333,15 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 f"keywords: {list(kwargs)}"
             )
 
-        # We do ``is None`` because self._data might evaluate to false for
-        # empty arrays or data == 0
-        if self._data is None:
-            # No data: we still need to check that any non-scalar attributes
-            # have consistent shapes. Collect them for all attributes with
-            # size > 1 (which should be array-like and thus have a shape).
-            shapes = {
-                fnm: value.shape
-                for fnm, value in values.items()
-                if getattr(value, "shape", ())
-            }
-            if shapes:
-                if len(shapes) > 1:
-                    try:
-                        self._no_data_shape = check_broadcast(*shapes.values())
-                    except ValueError as err:
-                        raise ValueError(
-                            f"non-scalar attributes with inconsistent shapes: {shapes}"
-                        ) from err
-
-                    # Above, we checked that it is possible to broadcast all
-                    # shapes.  By getting and thus validating the attributes,
-                    # we verify that the attributes can in fact be broadcast.
-                    for fnm in shapes:
-                        getattr(self, fnm)
-                else:
-                    self._no_data_shape = shapes.popitem()[1]
-
-            else:
-                self._no_data_shape = ()
+        shapes = [getattr(value, "shape", ()) for value in values.values()]
+        if self.has_data:
+            shapes.append(getattr(self._data, "shape", ()))
+        try:
+            self._shape = check_broadcast(*shapes)
+        except ValueError as err:
+            raise ValueError(
+                f"non-scalar data and/or attributes with inconsistent shapes: {shapes}"
+            ) from err
 
         # The logic of this block is not related to the previous one
         if self._data is not None:
@@ -721,7 +700,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     @property
     def shape(self):
-        return self.data.shape if self.has_data else self._no_data_shape
+        return self._shape
 
     # We have to override the ShapedLikeNDArray definitions, since our shape
     # does not have to be that of the data.
@@ -1597,8 +1576,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         def apply_method(value):
             if isinstance(value, ShapedLikeNDArray):
+                value = value._apply(np.broadcast_to, shape=self.shape, subok=True)
                 return value._apply(method, *args, **kwargs)
             else:
+                value = np.broadcast_to(value, shape=self.shape, subok=True)
                 if callable(method):
                     return method(value, *args, **kwargs)
                 else:
@@ -1625,24 +1606,23 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
                 setattr(new, _attr, value)
 
+        shapes = [
+            getattr(new, "_" + attr).shape
+            for attr in new.frame_attributes
+            if (
+                attr not in new._attr_names_with_defaults
+                and getattr(getattr(new, "_" + attr), "shape", ())
+            )
+        ]
+
         if self.has_data:
             new._data = apply_method(self.data)
+            if getattr(new._data, "shape", ()):
+                shapes.append(new._data.shape)
         else:
             new._data = None
-            shapes = [
-                getattr(new, "_" + attr).shape
-                for attr in new.frame_attributes
-                if (
-                    attr not in new._attr_names_with_defaults
-                    and getattr(getattr(new, "_" + attr), "shape", ())
-                )
-            ]
-            if shapes:
-                new._no_data_shape = (
-                    check_broadcast(*shapes) if len(shapes) > 1 else shapes[0]
-                )
-            else:
-                new._no_data_shape = ()
+
+        new._shape = check_broadcast(*shapes)
 
         return new
 
