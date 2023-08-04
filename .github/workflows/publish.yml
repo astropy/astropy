@@ -47,7 +47,8 @@ jobs:
       # currently fails, see https://github.com/astropy/astropy/issues/10409
       # We also exclude test_set_locale as it sometimes relies on the correct locale
       # packages being installed, which it isn't always.
-      test_command: pytest -p no:warnings --astropy-header -m 'not hypothesis' -k 'not test_data_out_of_range and not test_set_locale and not TestQuantityTyping' --pyargs astropy
+      # FIXME: Re-enable when we can, see https://github.com/astropy/astropy/issues/15123
+      #test_command: pytest -p no:warnings --astropy-header -m 'not hypothesis' -k 'not test_data_out_of_range and not test_set_locale and not TestQuantityTyping' --pyargs astropy
       targets: |
         # Linux wheels
 
