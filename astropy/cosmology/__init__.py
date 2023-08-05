@@ -62,6 +62,7 @@ __all__ = [
     # Parameter
     "Parameter",
     # Realizations
+    "realizations",
     "available",
     "default_cosmology",
     "WMAP1",
