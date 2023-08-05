@@ -18,7 +18,7 @@ from astropy.cosmology import (
     Parameter,
     Planck18,
 )
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
+from astropy.cosmology._core import _COSMOLOGY_CLASSES, dataclass_decorator
 from astropy.cosmology.flrw.base import _a_B_c2, _critdens_const, _H0units_to_invs, quad
 from astropy.cosmology.parameter._core import MISSING
 from astropy.cosmology.tests.helper import get_redshift_methods

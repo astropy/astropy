@@ -5,8 +5,8 @@
 import numpy as np
 from numpy import sqrt
 
+from astropy.cosmology._core import dataclass_decorator
 from astropy.cosmology._utils import aszarr
-from astropy.cosmology.core import dataclass_decorator
 from astropy.cosmology.parameter import Parameter
 
 from . import scalar_inv_efuncs

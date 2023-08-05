@@ -6,8 +6,8 @@ from numbers import Number
 import numpy as np
 from numpy import log
 
+from astropy.cosmology._core import dataclass_decorator
 from astropy.cosmology._utils import aszarr
-from astropy.cosmology.core import dataclass_decorator
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from . import scalar_inv_efuncs

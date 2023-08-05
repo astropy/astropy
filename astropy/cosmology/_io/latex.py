@@ -55,8 +55,8 @@ By default the parameter names are converted to LaTeX format. To disable this, s
 """
 
 import astropy.units as u
+from astropy.cosmology._core import Cosmology
 from astropy.cosmology.connect import readwrite_registry
-from astropy.cosmology.core import Cosmology
 from astropy.cosmology.parameter import Parameter
 from astropy.table import QTable
 
