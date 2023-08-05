@@ -125,7 +125,7 @@ def parse(
     --------
     astropy.io.votable.exceptions : The exceptions this function may raise.
     """
-    from . import conf, VERIFY_OPTIONS
+    from . import VERIFY_OPTIONS, conf
 
     invalid = invalid.lower()
     if invalid not in ("exception", "mask"):
