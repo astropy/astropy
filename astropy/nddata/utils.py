@@ -9,8 +9,8 @@ import numpy as np
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from astropy.io.fits.hdu.image import Section
 from astropy.io.fits.hdu.compressed import CompImageSection
+from astropy.io.fits.hdu.image import Section
 from astropy.utils import lazyproperty
 from astropy.wcs import Sip
 from astropy.wcs.utils import proj_plane_pixel_scales, skycoord_to_pixel
