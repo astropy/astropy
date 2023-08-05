@@ -25,18 +25,7 @@ from .flrw import (
 )
 from .funcs import cosmology_equal, z_at_value
 from .parameter import Parameter
-from .realizations import (
-    WMAP1,
-    WMAP3,
-    WMAP5,
-    WMAP7,
-    WMAP9,
-    Planck13,
-    Planck15,
-    Planck18,
-    available,
-    default_cosmology,
-)
+from .realizations import available, default_cosmology
 
 __all__ = [
     # Core
