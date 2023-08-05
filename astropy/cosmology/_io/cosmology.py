@@ -13,8 +13,8 @@ are present mainly for completeness and testing.
     True
 """
 
+from astropy.cosmology._core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology.connect import convert_registry
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 
 __all__ = []  # nothing is publicly scoped
 

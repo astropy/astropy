@@ -6,9 +6,8 @@ import random
 import numpy as np
 import pytest
 
+from astropy.cosmology import Cosmology, w0wzCDM
 from astropy.cosmology._io.model import _CosmologyModel, from_model, to_model
-from astropy.cosmology.core import Cosmology
-from astropy.cosmology.flrw.w0wzcdm import w0wzCDM
 from astropy.cosmology.tests.helper import get_redshift_methods
 from astropy.modeling.models import Gaussian1D
 from astropy.utils.compat.optional_deps import HAS_SCIPY

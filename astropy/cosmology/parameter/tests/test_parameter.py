@@ -15,7 +15,7 @@ import pytest
 # LOCAL
 import astropy.units as u
 from astropy.cosmology import Cosmology, Parameter
-from astropy.cosmology.core import _COSMOLOGY_CLASSES
+from astropy.cosmology._core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameter._converter import (
     _REGISTRY_FVALIDATORS,
     _validate_with_unit,

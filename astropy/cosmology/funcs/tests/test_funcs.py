@@ -9,20 +9,28 @@ import numpy as np
 import pytest
 
 from astropy import units as u
-from astropy.cosmology import core, flrw
-from astropy.cosmology.funcs import z_at_value
-from astropy.cosmology.funcs.optimize import _z_at_scalar_value
-from astropy.cosmology.realizations import (
+from astropy.cosmology import (
     WMAP1,
     WMAP3,
     WMAP5,
     WMAP7,
     WMAP9,
+    CosmologyError,
+    FlatLambdaCDM,
+    Flatw0waCDM,
+    FlatwCDM,
+    LambdaCDM,
     Planck13,
     Planck15,
     Planck18,
+    w0waCDM,
+    w0wzCDM,
+    wCDM,
+    wpwaCDM,
+    z_at_value,
 )
 from astropy.tests.helper import PYTEST_LT_8_0
+from astropy.cosmology.funcs.optimize import _z_at_scalar_value
 from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
@@ -61,12 +69,12 @@ def test_z_at_value_scalar():
 
     # test behavior when the solution is outside z limits (should
     # raise a CosmologyError)
-    with pytest.raises(core.CosmologyError), pytest.warns(
+    with pytest.raises(CosmologyError), pytest.warns(
         AstropyUserWarning, match="fval is not bracketed"
     ):
         z_at_value(cosmo.angular_diameter_distance, 1500 * u.Mpc, zmax=0.5)
 
-    with pytest.raises(core.CosmologyError), pytest.warns(
+    with pytest.raises(CosmologyError), pytest.warns(
         AstropyUserWarning, match="fval is not bracketed"
     ), np.errstate(over="ignore"):
         z_at_value(cosmo.angular_diameter_distance, 1500 * u.Mpc, zmin=4.0)
@@ -315,7 +323,7 @@ def test_z_at_value_bracketed(method):
     else:
         ctx_bracket = nullcontext()
 
-    with pytest.raises(core.CosmologyError), pytest.warns(
+    with pytest.raises(CosmologyError), pytest.warns(
         AstropyUserWarning, match="fval is not bracketed"
     ), ctx_bracket:
         z_at_value(
@@ -370,14 +378,14 @@ def test_z_at_value_unconverged(method):
         WMAP5,
         WMAP7,
         WMAP9,
-        flrw.LambdaCDM,
-        flrw.FlatLambdaCDM,
-        flrw.wpwaCDM,
-        flrw.w0wzCDM,
-        flrw.wCDM,
-        flrw.FlatwCDM,
-        flrw.w0waCDM,
-        flrw.Flatw0waCDM,
+        LambdaCDM,
+        FlatLambdaCDM,
+        wpwaCDM,
+        w0wzCDM,
+        wCDM,
+        FlatwCDM,
+        w0waCDM,
+        Flatw0waCDM,
     ],
 )
 def test_z_at_value_roundtrip(cosmo):
