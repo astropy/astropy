@@ -21,9 +21,8 @@ from astropy.utils.collections import HomogeneousList
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.xml.writer import XMLWriter
 
-from . import converters
+from . import converters, util, xmlutil
 from . import ucd as ucd_mod
-from . import util, xmlutil
 from .exceptions import (
     E06,
     E08,
