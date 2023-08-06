@@ -274,10 +274,7 @@ unfixable = [
 "astropy/io/*" = ["B015"]
 "astropy/logger.py" = ["C408"]
 "astropy/modeling/*" = ["I001", "C408"]
-"astropy/nddata/*" = [
-    "C408",
-    "I001",
-]
+"astropy/nddata/*" = ["C408"]
 "astropy/samp/*" = []
 "astropy/stats/*" = ["I001"]
 "astropy/table/*" = ["I001", "C408"]

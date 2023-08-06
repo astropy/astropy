@@ -10,8 +10,12 @@ from astropy import log
 from astropy.units import Quantity, Unit
 from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.metadata import MetaData
-from astropy.wcs.wcsapi import SlicedLowLevelWCS  # noqa: F401
-from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS, HighLevelWCSWrapper
+from astropy.wcs.wcsapi import (
+    BaseHighLevelWCS,
+    BaseLowLevelWCS,
+    HighLevelWCSWrapper,
+    SlicedLowLevelWCS,  # noqa: F401
+)
 
 from .nddata_base import NDDataBase
 from .nduncertainty import NDUncertainty, UnknownUncertainty
