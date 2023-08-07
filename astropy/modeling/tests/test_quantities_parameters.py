@@ -10,12 +10,12 @@ from astropy import coordinates as coord
 from astropy import units as u
 from astropy.modeling.core import Fittable1DModel, InputParameterError
 from astropy.modeling.models import (
+    BlackBody,
     Const1D,
     Gaussian1D,
     Pix2Sky_TAN,
     RotateNative2Celestial,
     Rotation2D,
-    BlackBody,
 )
 from astropy.modeling.parameters import Parameter, ParameterDefinitionError
 from astropy.tests.helper import assert_quantity_allclose

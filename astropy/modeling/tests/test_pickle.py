@@ -3,24 +3,24 @@
 from pickle import dumps, loads
 
 import numpy as np
-from numpy.testing import assert_allclose
 import pytest
+from numpy.testing import assert_allclose
 
 from astropy import units as u
-from astropy.utils.compat.optional_deps import HAS_SCIPY
-
-from astropy.modeling import functional_models
-from astropy.modeling import mappings
-from astropy.modeling import math_functions
-from astropy.modeling import physical_models
-from astropy.modeling import polynomial
-from astropy.modeling import powerlaws
-from astropy.modeling import projections
-from astropy.modeling import rotations
-from astropy.modeling import spline
-from astropy.modeling import tabular
-
+from astropy.modeling import (
+    functional_models,
+    mappings,
+    math_functions,
+    physical_models,
+    polynomial,
+    powerlaws,
+    projections,
+    rotations,
+    spline,
+    tabular,
+)
 from astropy.modeling.math_functions import ArctanhUfunc
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 MATH_FUNCTIONS = (func for func in math_functions.__all__ if func != "ArctanhUfunc")
 
