@@ -285,6 +285,6 @@ unfixable = [
 "astropy/uncertainty/*" = ["C408"]
 "astropy/utils/*" = ["C408"]
 "astropy/visualization/*" = ["B015", "C408"]
-"astropy/wcs/*" = ["I001", "C408", "F821"]
+"astropy/wcs/*" = ["C408", "F821"]
 "docs/*" = []
 "examples/coordinates/*" = []
