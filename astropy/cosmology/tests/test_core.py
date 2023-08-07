@@ -3,8 +3,8 @@
 """Testing :mod:`astropy.cosmology.core`."""
 
 import abc
-import inspect
 import pickle
+from dataclasses import dataclass
 
 import numpy as np
 import pytest
@@ -57,18 +57,13 @@ invalid_zs = [
 ]
 
 
+@dataclass(frozen=True)
 class SubCosmology(Cosmology):
     """Defined here to be serializable."""
 
-    H0 = Parameter(unit="km/(s Mpc)")
-    Tcmb0 = Parameter(unit=u.K)
-    m_nu = Parameter(unit=u.eV)
-
-    def __init__(self, H0, Tcmb0=0 * u.K, m_nu=0 * u.eV, name=None, meta=None):
-        super().__init__(name=name, meta=meta)
-        self.H0 = H0
-        self.Tcmb0 = Tcmb0
-        self.m_nu = m_nu
+    H0: Parameter = Parameter(unit="km/(s Mpc)")  # noqa: RUF009
+    Tcmb0: Parameter = Parameter(default=0 * u.K, unit=u.K)  # noqa: RUF009
+    m_nu: Parameter = Parameter(default=0 * u.eV, unit=u.eV)  # noqa: RUF009
 
     @property
     def is_flat(self):
@@ -171,25 +166,6 @@ class CosmologyTest(
 
         assert UnRegisteredSubclassTest.__parameters__ == cosmo_cls.__parameters__
         assert UnRegisteredSubclassTest.__qualname__ not in _COSMOLOGY_CLASSES
-
-    def test_init_signature(self, cosmo_cls, cosmo):
-        """Test class-property ``_init_signature``."""
-        # test presence
-        assert hasattr(cosmo_cls, "_init_signature")
-        assert hasattr(cosmo, "_init_signature")
-
-        # test internal consistency, so following tests can use either cls or instance.
-        assert _init_signature(cosmo_cls) == _init_signature(cosmo)
-
-        # test matches __init__, but without 'self'
-        sig = inspect.signature(cosmo.__init__)  # (instances don't have self)
-        assert set(sig.parameters.keys()) == set(
-            _init_signature(cosmo).parameters.keys()
-        )
-        assert all(
-            np.all(sig.parameters[k].default == p.default)
-            for k, p in _init_signature(cosmo).parameters.items()
-        )
 
     # ---------------------------------------------------------------
     # instance-level
@@ -531,6 +507,7 @@ def test__nonflatclass__multiple_nonflat_inheritance():
     """
 
     # Define a non-operable minimal subclass of Cosmology.
+    @dataclass(frozen=True)
     class SubCosmology2(Cosmology):
         def __init__(self, H0, Tcmb0=0 * u.K, m_nu=0 * u.eV, name=None, meta=None):
             super().__init__(name=name, meta=meta)

@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+__all__ = []  # nothing is publicly scoped
+
 import functools
 import inspect
 import operator
 from collections import OrderedDict
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import Field, dataclass
+from itertools import chain
 from numbers import Number
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any, Mapping
 
 import numpy as np
 
@@ -17,7 +20,8 @@ from astropy.units import Quantity
 
 from . import units as cu
 
-__all__ = []  # nothing is publicly scoped
+if TYPE_CHECKING:
+    from astropy.cosmology import Parameter
 
 
 def vectorize_redshift_method(func=None, nin=1):
@@ -101,18 +105,54 @@ class MetaData:
         )
 
 
-def all_fields(cls):
-    """Get all fields of a dataclass, including in ``__init_subclass__``."""
-    return functools.reduce(
-        operator.__or__,
-        (getattr(c, "__dataclass_fields__", {}) for c in cls.mro()[::-1] + [cls]),
+def all_fields(cls: object | type) -> dict[str, Field]:
+    """Get all fields of a dataclass, including partially initialized ones."""
+    # fmt: off
+    return (
+        # 1. get all fields from all superclasses
+        functools.reduce(
+            operator.__or__,
+            (getattr(c, "__dataclass_fields__", {}) for c in cls.mro()[::-1]),
+        )
+        # 2. add any fields that are not yet finalized in the class, if it's still under
+        #    construction, e.g. in __init_subclass__
+        | {k: v for k, v in vars(cls).items() if isinstance(v, Field)}
+    )
+    # fmt: on
+
+
+def all_parameters(cls: object | type) -> dict[str, Field | Parameter]:
+    """Get all fields of a dataclass, including those not-yet finalized.
+
+    Parameters
+    ----------
+    cls : object | type
+        A dataclass.
+
+    Returns
+    -------
+    dict[str, Field | Parameter]
+        All fields of the dataclass, including those not yet finalized in the class, if
+        it's still under construction, e.g. in ``__init_subclass__``.
+    """
+    from astropy.cosmology.parameter import Parameter
+
+    return dict(
+        chain(
+            tuple(
+                (k, v)
+                for k, v in all_fields(cls).items()
+                if isinstance(v, Field) and v.type in (Parameter, "Parameter")
+            ),
+            tuple((k, v) for k, v in vars(cls).items() if isinstance(v, Parameter)),
+        )
     )
 
 
-def all_cls_vars(cls):
+def all_cls_vars(cls: object | type) -> dict[str, Any]:
     """Return all variables in the whole class hierarchy."""
     cls = cls if isinstance(cls, type) else cls.__class__
-    return functools.reduce(operator.__or__, map(vars, cls.mro()[::-1] + [cls]))
+    return functools.reduce(operator.__or__, map(vars, cls.mro()[::-1]))
 
 
 def _init_signature(cls):

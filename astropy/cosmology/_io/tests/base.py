@@ -1,11 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from dataclasses import dataclass
+
 import pytest
 
 import astropy.units as u
 from astropy.cosmology import Cosmology, Parameter, realizations
 from astropy.cosmology import units as cu
-from astropy.cosmology.core import _COSMOLOGY_CLASSES
+from astropy.cosmology.core import _COSMOLOGY_CLASSES, NameField
 from astropy.cosmology.realizations import available
 
 cosmo_instances = [getattr(realizations, name) for name in available]
@@ -98,14 +100,10 @@ class IODirectTestBase(IOTestBase):
     def setup(self):
         """Setup and teardown for tests."""
 
+        @dataclass(frozen=True)
         class CosmologyWithKwargs(Cosmology):
-            Tcmb0 = Parameter(unit=u.K)
-
-            def __init__(
-                self, Tcmb0=0, name="cosmology with kwargs", meta=None, **kwargs
-            ):
-                super().__init__(name=name, meta=meta)
-                self._Tcmb0 = Tcmb0 << u.K
+            Tcmb0: Parameter = Parameter(default=0, unit=u.K)  # noqa: RUF009
+            name: NameField = NameField("cosmology with kwargs")  # noqa: RUF009
 
         yield  # run tests
 

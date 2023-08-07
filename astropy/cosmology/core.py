@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import abc
 import inspect
-from dataclasses import KW_ONLY, dataclass, replace
+from dataclasses import KW_ONLY, Field, dataclass, replace
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
 import numpy as np
@@ -13,7 +13,7 @@ from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.utils.compat.misc import PYTHON_LT_3_10
 from astropy.utils.decorators import classproperty
 
-from ._utils import MetaData, all_cls_vars, all_fields
+from ._utils import MetaData, all_cls_vars, all_parameters
 from .connect import (
     CosmologyFromFormat,
     CosmologyRead,
@@ -125,12 +125,13 @@ class Cosmology(metaclass=abc.ABCMeta):
         # -------------------
         # Parameters
 
-        all_vars = all_cls_vars(cls)
-        cls.__all_parameters__ = tuple(
-            k for k, f in all_fields(cls).items() if f.type == "Parameter"
-        )
+        all_params = all_parameters(cls)
+        print(all_params.keys())
+        cls.__all_parameters__ = tuple(all_params.keys())
         cls.__parameters__ = tuple(
-            n for n in cls.__all_parameters__ if not all_vars[n].derived
+            k
+            for k, f in all_params.items()
+            if (f.init if isinstance(f, Field) else not f.derived)
         )
 
         # -------------------

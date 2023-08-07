@@ -1533,15 +1533,13 @@ class FlatFLRWMixin(FlatCosmologyMixin):
     but ``FlatLambdaCDM`` **will** be flat.
     """
 
-    Ode0: Parameter = field(
-        default=vars(FLRW)["Ode0"].clone(
-            default=0, derived=True
-        ),  # now a derived param.
-        init=False,
+    Ode0: Parameter = field(  # Now a derived param.
+        default=vars(FLRW)["Ode0"].clone(default=0, derived=True), init=False
     )
 
     def __init_subclass__(cls):
         super().__init_subclass__()
+
         if all_fields(cls)["Ode0"].init:
             msg = "subclasses of `FlatFLRWMixin` cannot have `Ode0` in `__init__`"
             raise TypeError(msg)

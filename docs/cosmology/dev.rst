@@ -86,25 +86,23 @@ the definition of |FLRW|.
 
 .. code-block:: python
 
+    @dataclass(frozen=True)
     class FLRW(Cosmology):
 
-        H0 = Parameter(doc="Hubble constant as an `~astropy.units.Quantity` at z=0",
-                       unit="km/(s Mpc)", fvalidate="scalar")
-        Om0 = Parameter(doc="Omega matter; matter density/critical density at z=0",
-                        fvalidate="non-negative")
-        Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.",
-                         fvalidate="float")
-        Tcmb0 = Parameter(doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.",
-                  unit="Kelvin", fmt="0.4g", fvalidate="scalar")
-        Neff = Parameter(doc="Number of effective neutrino species.", fvalidate="non-negative")
-        m_nu = Parameter(doc="Mass of neutrino species.",
-                 unit="eV", equivalencies=u.mass_energy(), fmt="")
-        Ob0 = Parameter(doc="Omega baryon; baryonic matter density/critical density at z=0.")
-
-        def __init__(self, H0, Om0, Ode0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,
-                     Ob0=None, *, name=None, meta=None):
-            self.H0 = H0
-            ...  # for each Parameter in turn
+        H0: Parameter = Parameter(doc="Hubble constant as an `~astropy.units.Quantity` at z=0",
+                                  unit="km/(s Mpc)", fvalidate="scalar")
+        Om0: Parameter = Parameter(doc="Omega matter; matter density/critical density at z=0",
+                                   fvalidate="non-negative")
+        Ode0: Parameter = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.",
+                                    fvalidate="float")
+        Tcmb0: Parameter = Parameter(doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.",
+                                     default=0.0 * u.K, unit="Kelvin", fmt="0.4g", fvalidate="scalar")
+        Neff: Parameter = Parameter(doc="Number of effective neutrino species.",
+                                    default=3.04, fvalidate="non-negative")
+        m_nu: Parameter = Parameter(doc="Mass of neutrino species.",
+                                    default=0.0*u.eV, unit="eV", equivalencies=u.mass_energy(), fmt="")
+        Ob0: Parameter = Parameter(doc="Omega baryon; baryonic matter density/critical density at z=0.",
+                                   default=None)
 
         @Ob0.validator
         def Ob0(self, param, value):

@@ -6,6 +6,7 @@
 # IMPORTS
 
 # STDLIB
+from dataclasses import dataclass, replace
 from typing import Callable
 
 # THIRD PARTY
@@ -181,41 +182,13 @@ class ParameterTestMixin:
         assert hasattr(cosmo_cls, "__parameters__")
         assert hasattr(cosmo_cls, "__all_parameters__")
 
-    def test_Parameter_not_unique(self, cosmo_cls, clean_registry):
-        """Cosmology Parameter not unique to class when subclass defined."""
-
-        # define subclass to show param is same
-        class ExampleBase(cosmo_cls):
-            param = Parameter()
-
-        class Example(ExampleBase):
-            pass
-
-        assert Example.__parameters__ == ExampleBase.__parameters__
-
-    def test_Parameters_reorder_by_signature(self, cosmo_cls, clean_registry):
-        """Test parameters are reordered."""
-
-        class Example(cosmo_cls):
-            param = Parameter()
-
-            def __init__(self, param, *, name=None, meta=None):
-                pass  # never actually initialized
-
-        # param should be last, all other parameters preceding
-        assert Example.__parameters__[-1] == "param"
-        # Check the other parameters are as expected.
-        # only run this test if "param" is not already on the cosmology
-        if cosmo_cls.__parameters__[-1] != "param":
-            assert set(Example.__parameters__[:-1]) == set(cosmo_cls.__parameters__)
-
     def test_make_from_Parameter(self, cosmo_cls, clean_registry):
         """Test the parameter creation process. Uses ``__set__``."""
 
         class Example(cosmo_cls):
-            param = Parameter(unit=u.eV, equivalencies=u.mass_energy())
+            param: Parameter = Parameter(unit=u.eV, equivalencies=u.mass_energy())
 
-            def __init__(self, param, *, name=None, meta=None):
+            def __init__(self, param, *args, **kwargs):
                 self.param = param
 
             @property
@@ -238,15 +211,16 @@ class TestParameter(ParameterTestMixin):
     """
 
     def setup_class(self):
-        class Example1(Cosmology):
-            param = Parameter(
-                doc="Description of example parameter.",
-                unit=u.m,
-                equivalencies=u.mass_energy(),
-            )
+        theparam = Parameter(
+            default=15,
+            doc="Description of example parameter.",
+            unit=u.m,
+            equivalencies=u.mass_energy(),
+        )
 
-            def __init__(self, param=15):
-                self.param = param
+        @dataclass(frozen=True)
+        class Example1(Cosmology):
+            param: Parameter = replace(theparam)  # noqa: RUF009
 
             @property
             def is_flat(self):
@@ -254,10 +228,9 @@ class TestParameter(ParameterTestMixin):
 
         # with validator
         class Example2(Example1):
-            def __init__(self, param=15 * u.m):
-                self.param = param
+            param: Parameter = replace(theparam, default=15 * u.m)
 
-            @vars(Example1)["param"].validator
+            @param.validator
             def param(self, param, value):
                 return value.to(u.km)
 

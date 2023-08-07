@@ -8,6 +8,8 @@
 # STDLIB
 import abc
 import copy
+import re
+from dataclasses import dataclass, field
 
 # THIRD PARTY
 import numpy as np
@@ -16,7 +18,7 @@ import pytest
 import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology import FLRW, FlatLambdaCDM, LambdaCDM, Planck18
-from astropy.cosmology._utils import all_cls_vars
+from astropy.cosmology._utils import _init_signature, all_cls_vars
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.flrw.base import _a_B_c2, _critdens_const, _H0units_to_invs, quad
 from astropy.cosmology.parameter import Parameter
@@ -464,7 +466,7 @@ class ParameterOb0TestMixin(ParameterTestMixin):
             cosmo.Odm(1)
 
         # The default value is None
-        assert cosmo_cls._init_signature.parameters["Ob0"].default is None
+        assert _init_signature(cosmo_cls).parameters["Ob0"].default is None
 
 
 class FLRWTest(
@@ -989,11 +991,14 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
         """Test initializing subclass, mostly that can't have Ode0 in init."""
         super().test_init_subclass(cosmo_cls)
 
-        with pytest.raises(TypeError, match="subclasses of"):
+        msg = "subclasses of `FlatFLRWMixin` cannot have `Ode0` in `__init__`"
+        with pytest.raises(TypeError, match=re.escape(msg)):
 
+            @dataclass(frozen=True)
             class HASOde0SubClass(cosmo_cls):
-                def __init__(self, Ode0):
-                    pass
+                Ode0: Parameter = field(
+                    default=all_cls_vars(cosmo_cls)["Ode0"], init=True
+                )
 
             _COSMOLOGY_CLASSES.pop(HASOde0SubClass.__qualname__, None)
 
@@ -1045,7 +1050,7 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
         super().test_clone_to_nonflat_change_param(cosmo)
 
         # change Ode0, without non-flat
-        with pytest.raises(TypeError):
+        with pytest.raises((TypeError, ValueError)):
             cosmo.clone(Ode0=1)
 
         # change to non-flat

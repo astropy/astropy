@@ -1,10 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import inspect
+
 import numpy as np
 import pytest
 
-from astropy.cosmology import utils
-from astropy.cosmology._utils import aszarr, vectorize_redshift_method
+from astropy.cosmology import FlatLambdaCDM, Planck18, utils
+from astropy.cosmology._utils import _init_signature, aszarr, vectorize_redshift_method
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .test_core import invalid_zs, valid_zs, z_arr
@@ -73,3 +75,25 @@ class Test_aszarr:
         """Test :func:`astropy.cosmology._utils.aszarr`."""
         with pytest.raises(exc):
             aszarr(z)
+
+
+@pytest.mark.parametrize(
+    "cosmo_cls",
+    [FlatLambdaCDM],
+)
+@pytest.mark.parametrize(
+    "cosmo",
+    [Planck18],
+)
+def test_init_signature(self, cosmo_cls, cosmo):
+    """Test class-property ``_init_signature``."""
+    # test internal consistency, so following tests can use either cls or instance.
+    assert _init_signature(cosmo_cls) == _init_signature(cosmo)
+
+    # test matches __init__, but without 'self'
+    sig = inspect.signature(cosmo.__init__)  # (instances don't have self)
+    assert set(sig.parameters.keys()) == set(_init_signature(cosmo).parameters.keys())
+    assert all(
+        np.all(sig.parameters[k].default == p.default)
+        for k, p in _init_signature(cosmo).parameters.items()
+    )
