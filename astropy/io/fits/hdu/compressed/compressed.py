@@ -471,80 +471,13 @@ class CompImageHDU(ImageHDU):
             )
             self._compression_type = DEFAULT_COMPRESSION_TYPE
 
-    def _update_header_data(
-        bintable,
-        image_header,
-        name=None,
-        compression_type=None,
-        tile_shape=None,
-        hcomp_scale=None,
-        hcomp_smooth=None,
-        quantize_level=None,
-        quantize_method=None,
-        dither_seed=None,
-    ):
+    def _get_bintable_without_data(self):
         """
-        Update the table header (`_header`) to the compressed
-        image format and to match the input data (if any).  Create
-        the image header (`_image_header`) from the input image
-        header (if any) and ensure it matches the input
-        data. Create the initially-empty table data array to hold
-        the compressed data.
-
-        This method is mainly called internally, but a user may wish to
-        call this method after assigning new data to the `CompImageHDU`
-        object that is of a different type.
-
-        Parameters
-        ----------
-        image_header : `~astropy.io.fits.Header`
-            header to be associated with the image
-
-        name : str, optional
-            the ``EXTNAME`` value; if this value is `None`, then the name from
-            the input image header will be used; if there is no name in the
-            input image header then the default name 'COMPRESSED_IMAGE' is used
-
-        compression_type : str, optional
-            compression algorithm 'RICE_1', 'PLIO_1', 'GZIP_1', 'GZIP_2',
-            'HCOMPRESS_1', 'NOCOMPRESS'; if this value is `None`, use value
-            already in the header; if no value already in the header, use
-            'RICE_1'
-
-        tile_shape : tuple of int, optional
-            compression tile shape (in C order); if this value is `None`, use
-            value already in the header; if no value already in the header,
-            treat each row of image as a tile
-
-        hcomp_scale : float, optional
-            HCOMPRESS scale parameter; if this value is `None`, use the value
-            already in the header; if no value already in the header, use 1
-
-        hcomp_smooth : float, optional
-            HCOMPRESS smooth parameter; if this value is `None`, use the value
-            already in the header; if no value already in the header, use 0
-
-        quantize_level : float, optional
-            floating point quantization level; if this value is `None`, use the
-            value already in the header; if no value already in header, use 16
-
-        quantize_method : int, optional
-            floating point quantization dithering method; can be either
-            NO_DITHER (-1), SUBTRACTIVE_DITHER_1 (1; default), or
-            SUBTRACTIVE_DITHER_2 (2)
-
-        dither_seed : int, optional
-            random seed to use for dithering; can be either an integer in the
-            range 1 to 1000 (inclusive), DITHER_SEED_CLOCK (0; default), or
-            DITHER_SEED_CHECKSUM (-1)
+        Convert the current ImageHDU (excluding the actual data) to a BinTableHDU
+        with the correct header.
         """
-        # Clean up EXTNAME duplicates
-        bintable._remove_unnecessary_default_extnames(bintable._header)
 
-        image_hdu = ImageHDU(data=bintable.data, header=bintable._header)
-        bintable._image_header = CompImageHeader(bintable._header, image_hdu.header)
-        bintable._axes = image_hdu._axes
-        del image_hdu
+        bintable = _CompBinTableHDU()
 
         # Determine based on the size of the input data whether to use the Q
         # column format to store compressed data or the P format.
@@ -565,24 +498,24 @@ class CompImageHDU(ImageHDU):
         # return the compressed header.
 
         bintable._header, bintable.columns = _image_header_to_bintable_header_and_coldefs(
-            image_header,
-            bintable._image_header,
-            bintable._header,
-            name=name,
+            self.header,
+            self.header,
+            bintable.header,
+            name=self.name,
             huge_hdu=huge_hdu,
-            compression_type=compression_type,
-            tile_shape=tile_shape,
-            hcomp_scale=hcomp_scale,
-            hcomp_smooth=hcomp_smooth,
-            quantize_level=quantize_level,
-            quantize_method=quantize_method,
-            dither_seed=dither_seed,
-            axes=bintable._axes,
-            generate_dither_seed=bintable._generate_dither_seed,
+            compression_type=self.compression_type,
+            tile_shape=self.tile_shape,
+            hcomp_scale=self.hcomp_scale,
+            hcomp_smooth=self.hcomp_smooth,
+            quantize_level=self.quantize_level,
+            quantize_method=self.quantize_method,
+            dither_seed=self.dither_seed,
+            axes=self._axes,
+            generate_dither_seed=self._generate_dither_seed,
         )
 
-        if name:
-            bintable.name = name
+        if self.name:
+            bintable.name = self.name
 
     def _scale_data(self, data):
         if self._orig_bzero != 0 or self._orig_bscale != 1:
