@@ -26,7 +26,7 @@ from astropy.utils import lazyproperty
 from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyUserWarning
 
-from .header import CompImageHeader
+from .header import CompImageHeader, _bintable_header_to_image_header
 from .section import CompImageSection
 from .utils import _validate_tile_shape
 
@@ -1184,124 +1184,10 @@ class CompImageHDU(BinTableHDU):
         # duplicates are removed cleanly.
         self._remove_unnecessary_default_extnames(self._header)
 
-        # Start with a copy of the table header.
-        image_header = self._header.copy()
-
-        # Delete cards that are related to the table.  And move
-        # the values of those cards that relate to the image from
-        # their corresponding table cards.  These include
-        # ZBITPIX -> BITPIX, ZNAXIS -> NAXIS, and ZNAXISn -> NAXISn.
-        # (Note: Used set here instead of list in case there are any duplicate
-        # keywords, which there may be in some pathological cases:
-        # https://github.com/astropy/astropy/issues/2750
-        for keyword in set(image_header):
-            if CompImageHeader._is_reserved_keyword(keyword, warn=False):
-                del image_header[keyword]
-
-        hcomments = self._header.comments
-
-        if "ZSIMPLE" in self._header:
-            image_header.set(
-                "SIMPLE", self._header["ZSIMPLE"], hcomments["ZSIMPLE"], before=0
-            )
-            del image_header["XTENSION"]
-        elif "ZTENSION" in self._header:
-            if self._header["ZTENSION"] != "IMAGE":
-                warnings.warn(
-                    "ZTENSION keyword in compressed extension != 'IMAGE'",
-                    AstropyUserWarning,
-                )
-            image_header.set("XTENSION", "IMAGE", hcomments["ZTENSION"], before=0)
-        else:
-            image_header.set("XTENSION", "IMAGE", before=0)
-
-        image_header.set(
-            "BITPIX", self._header["ZBITPIX"], hcomments["ZBITPIX"], before=1
-        )
-
-        image_header.set("NAXIS", self._header["ZNAXIS"], hcomments["ZNAXIS"], before=2)
-
-        last_naxis = "NAXIS"
-        for idx in range(image_header["NAXIS"]):
-            znaxis = "ZNAXIS" + str(idx + 1)
-            naxis = znaxis[1:]
-            image_header.set(
-                naxis, self._header[znaxis], hcomments[znaxis], after=last_naxis
-            )
-            last_naxis = naxis
-
-        # Delete any other spurious NAXISn keywords:
-        naxis = image_header["NAXIS"]
-        for keyword in list(image_header["NAXIS?*"]):
-            try:
-                n = int(keyword[5:])
-            except Exception:
-                continue
-
-            if n > naxis:
-                del image_header[keyword]
-
-        # Although PCOUNT and GCOUNT are considered mandatory for IMAGE HDUs,
-        # ZPCOUNT and ZGCOUNT are optional, probably because for IMAGE HDUs
-        # their values are always 0 and 1 respectively
-        if "ZPCOUNT" in self._header:
-            image_header.set(
-                "PCOUNT",
-                self._header["ZPCOUNT"],
-                hcomments["ZPCOUNT"],
-                after=last_naxis,
-            )
-        else:
-            image_header.set("PCOUNT", 0, after=last_naxis)
-
-        if "ZGCOUNT" in self._header:
-            image_header.set(
-                "GCOUNT", self._header["ZGCOUNT"], hcomments["ZGCOUNT"], after="PCOUNT"
-            )
-        else:
-            image_header.set("GCOUNT", 1, after="PCOUNT")
-
-        if "ZEXTEND" in self._header:
-            image_header.set("EXTEND", self._header["ZEXTEND"], hcomments["ZEXTEND"])
-
-        if "ZBLOCKED" in self._header:
-            image_header.set("BLOCKED", self._header["ZBLOCKED"], hcomments["ZBLOCKED"])
-
-        # Move the ZHECKSUM and ZDATASUM cards to the image header
-        # as CHECKSUM and DATASUM
-        if "ZHECKSUM" in self._header:
-            image_header.set(
-                "CHECKSUM", self._header["ZHECKSUM"], hcomments["ZHECKSUM"]
-            )
-
-        if "ZDATASUM" in self._header:
-            image_header.set("DATASUM", self._header["ZDATASUM"], hcomments["ZDATASUM"])
-
-        # Remove the EXTNAME card if the value in the table header
-        # is the default value of COMPRESSED_IMAGE.
-        if "EXTNAME" in image_header and image_header["EXTNAME"] == self._default_name:
-            del image_header["EXTNAME"]
-
-        # Remove the PCOUNT GCOUNT cards if the uncompressed header is
-        # from a primary HDU
-        if "SIMPLE" in image_header:
-            del image_header["PCOUNT"]
-            del image_header["GCOUNT"]
-
-        # Look to see if there are any blank cards in the table
-        # header.  If there are, there should be the same number
-        # of blank cards in the image header.  Add blank cards to
-        # the image header to make it so.
-        table_blanks = self._header._countblanks()
-        image_blanks = image_header._countblanks()
-
-        for _ in range(table_blanks - image_blanks):
-            image_header.append()
-
-        # Create the CompImageHeader that syncs with the table header, and save
+        # Convert compressed header to image header and save
         # it off to self._image_header so it can be referenced later
         # unambiguously
-        self._image_header = CompImageHeader(self._header, image_header)
+        self._image_header = _bintable_header_to_image_header(self._header)
 
         return self._image_header
 
