@@ -565,27 +565,19 @@ class CompImageHDU(ImageHDU):
         return self._bintable.data
 
 
-    @lazyproperty
-    def header(self):
-        # The header attribute is the header for the image data.  It
-        # is not actually stored in the object dictionary.  Instead,
-        # the _image_header is stored.  If the _image_header attribute
-        # has already been defined we just return it.  If not, we must
-        # create it from the table header (the _header attribute).
-        if hasattr(self, "_image_header"):
-            return self._image_header
+    def _bintable_to_image_header(self):
+        if self._bintable is None:
+            raise ValueError("bintable is not set")
 
         # Clean up any possible doubled EXTNAME keywords that use
         # the default. Do this on the original header to ensure
         # duplicates are removed cleanly.
-        self._remove_unnecessary_default_extnames(self._header)
+        self._remove_unnecessary_default_extnames(self._bintable.header)
 
         # Convert compressed header to image header and save
         # it off to self._image_header so it can be referenced later
         # unambiguously
-        self._image_header = _bintable_header_to_image_header(self._header)
-
-        return self._image_header
+        return _bintable_header_to_image_header(self._header)
 
     def _summary(self):
         """
