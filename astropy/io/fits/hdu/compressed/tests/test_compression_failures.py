@@ -6,7 +6,7 @@ import pytest
 from astropy.io import fits
 from astropy.io.fits._tiled_compression import compress_image_data
 
-from .conftest import FitsTestCase
+from astropy.io.fits.tests.conftest import FitsTestCase
 
 MAX_INT = np.iinfo(np.intc).max
 MAX_LONG = np.iinfo(int).max
