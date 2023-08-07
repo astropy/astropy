@@ -738,24 +738,3 @@ class CompImageHDU(ImageHDU):
         :attr:`CompImageHDU.data`.
         """
         return CompImageSection(self)
-
-    @property
-    def tile_shape(self):
-        """
-        The tile shape used for the tiled compression.
-
-        This shape is given in Numpy/C order
-        """
-        return tuple(
-            [
-                self._header[f"ZTILE{idx + 1}"]
-                for idx in range(self._header["ZNAXIS"] - 1, -1, -1)
-            ]
-        )
-
-    @property
-    def compression_type(self):
-        """
-        The name of the compression algorithm.
-        """
-        return self._header.get("ZCMPTYPE", DEFAULT_COMPRESSION_TYPE)
