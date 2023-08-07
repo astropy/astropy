@@ -3,23 +3,16 @@
 import ctypes
 import math
 import time
-from contextlib import suppress
 
 import numpy as np
 
-from astropy.io.fits import conf
+from astropy.io.fits.hdu.compressed._quantization import DITHER_METHODS
+from astropy.io.fits.hdu.compressed._tiled_compression import compress_image_data, _get_compression_setting
 from astropy.io.fits.fitsrec import FITS_rec
-from astropy.io.fits.hdu.base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU
-from astropy.io.fits.hdu.compressed._tiled_compression import compress_image_data
+from astropy.io.fits.hdu.base import BITPIX2DTYPE, DELAYED
 from astropy.io.fits.hdu.image import ImageHDU
 from astropy.io.fits.hdu.table import BinTableHDU
-from astropy.io.fits.util import (
-    _get_array_mmap,
-    _is_int,
-    _is_pseudo_integer,
-    _pseudo_zero,
-)
-from astropy.utils import lazyproperty
+from astropy.io.fits.util import _is_int
 from astropy.utils.decorators import deprecated_renamed_argument
 
 from .header import (
