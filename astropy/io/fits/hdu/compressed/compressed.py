@@ -560,38 +560,9 @@ class CompImageHDU(ImageHDU):
                 image_header=self.header,
             )
 
-    @lazyproperty
+    @property
     def compressed_data(self):
-        # First we will get the table data (the compressed
-        # data) from the file, if there is any.
-        compressed_data = super().data
-        if isinstance(compressed_data, np.rec.recarray):
-            # Make sure not to use 'del self.data' so we don't accidentally
-            # go through the self.data.fdel and close the mmap underlying
-            # the compressed_data array
-            del self.__dict__["data"]
-            return compressed_data
-        else:
-            # This will actually set self.compressed_data with the
-            # pre-allocated space for the compression data; this is something I
-            # might do away with in the future
-            self._update_compressed_data()
-
-        return self.compressed_data
-
-    @compressed_data.deleter
-    def compressed_data(self):
-        # Deleting the compressed_data attribute has to be handled
-        # with a little care to prevent a reference leak
-        # First delete the ._coldefs attributes under it to break a possible
-        # reference cycle
-        if "compressed_data" in self.__dict__:
-            del self.__dict__["compressed_data"]._coldefs
-
-            # Now go ahead and delete from self.__dict__; normally
-            # lazyproperty.__delete__ does this for us, but we can prempt it to
-            # do some additional cleanup
-            del self.__dict__["compressed_data"]
+        return self._bintable.data
 
     @property
     def shape(self):
