@@ -1284,7 +1284,6 @@ class HDUList(list, _Verify):
         if self._read_all:
             return False
 
-        saved_compression_enabled = compressed.COMPRESSION_ENABLED
         fileobj, data, kwargs = self._file, self._data, self._open_kwargs
 
         if fileobj is not None and fileobj.closed:
@@ -1292,9 +1291,6 @@ class HDUList(list, _Verify):
 
         try:
             self._in_read_next_hdu = True
-
-            if kwargs.get("disable_image_compression"):
-                compressed.COMPRESSION_ENABLED = False
 
             # read all HDUs
             try:
@@ -1331,6 +1327,14 @@ class HDUList(list, _Verify):
                     hdu = _BaseHDU.fromstring(data, **kwargs)
                     self._data = data[hdu._data_offset + hdu._data_size :]
 
+                if not kwargs.get("disable_image_compression", False):
+                    from astropy.io.fits import BinTableHDU, CompImageHDU
+
+                    if isinstance(hdu, BinTableHDU) and CompImageHDU.match_header(
+                        hdu.header
+                    ):
+                        hdu = CompImageHDU(bintable=hdu)
+
                 super().append(hdu)
                 if len(self) == 1:
                     # Check for an extension HDU and update the EXTEND
@@ -1354,7 +1358,6 @@ class HDUList(list, _Verify):
                 self._read_all = True
                 return False
         finally:
-            compressed.COMPRESSION_ENABLED = saved_compression_enabled
             self._in_read_next_hdu = False
 
         return True
