@@ -518,7 +518,7 @@ class Ipac(basic.Basic):
                 for line in wrap(
                     str(comment), 80, initial_indent="\\ ", subsequent_indent="\\ "
                 ):
-                    lines.append(line)
+                    lines.append(line)  # noqa: PERF402
         if "keywords" in table.meta:
             keydict = table.meta["keywords"]
             for keyword in keydict:
@@ -552,10 +552,7 @@ class Ipac(basic.Basic):
         for i, col in enumerate(table.columns.values()):
             col.headwidth = max(len(vals[i]) for vals in self.header.str_vals())
         # keep data_str_vals because they take some time to make
-        data_str_vals = []
-        col_str_iters = self.data.str_vals()
-        for vals in zip(*col_str_iters):
-            data_str_vals.append(vals)
+        data_str_vals = list(zip(*self.data.str_vals()))
 
         for i, col in enumerate(table.columns.values()):
             # FIXME: In Python 3.4, use max([], default=0).

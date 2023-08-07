@@ -350,10 +350,8 @@ def test_download_with_sources_and_bogus_original(
     # it was loaded by mistake.
     for i, (um, c_bad) in enumerate(islice(valid_urls, FEW)):
         assert not is_url_in_cache(um)
-        sources[um] = []
         # For many of them the sources list starts with invalid URLs
-        for iu in islice(invalid_urls, i):
-            sources[um].append(iu)
+        sources[um] = list(islice(invalid_urls, i))
         u, c = next(valid_urls)
         sources[um].append(u)
         urls.append((um, c, c_bad))
@@ -736,9 +734,7 @@ def test_download_parallel_with_sources_and_bogus_original(
     sources = {}
     for i, (um, c_bad) in enumerate(islice(valid_urls, FEW)):
         assert not is_url_in_cache(um)
-        sources[um] = []
-        for iu in islice(invalid_urls, i):
-            sources[um].append(iu)
+        sources[um] = list(islice(invalid_urls, i))
         u, c = next(valid_urls)
         sources[um].append(u)
         urls.append((um, c, c_bad))
