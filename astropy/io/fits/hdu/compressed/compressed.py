@@ -738,3 +738,53 @@ class CompImageHDU(ImageHDU):
         :attr:`CompImageHDU.data`.
         """
         return CompImageSection(self)
+
+    # FIXME: determine how we can simplify or avoid the following methods. These
+    # seem to be needed for the checksum calculations to work properly.
+
+    def _calculate_datasum(self):
+        return self._bintable._calculate_datasum()
+
+    def _calculate_checksum(self, datasum, checksum_keyword="CHECKSUM"):
+        return self._bintable._calculate_checksum(
+            datasum, checksum_keyword=checksum_keyword
+        )
+
+    def _verify_checksum_datasum(self):
+        return self._bintable._verify_checksum_datasum()
+
+    def verify_checksum(self):
+        return self._bintable.verify_checksum()
+
+    def verify_datasum(self):
+        return self._bintable.verify_datasum()
+
+    @property
+    def _data_offset(self):
+        if self._bintable is not None:
+            return self._bintable._data_offset
+
+    @_data_offset.setter
+    def _data_offset(self, value):
+        if self._bintable is not None:
+            self._bintable._data_offset = value
+
+    @property
+    def _header_offset(self):
+        if self._bintable is not None:
+            return self._bintable._header_offset
+
+    @_header_offset.setter
+    def _header_offset(self, value):
+        if self._bintable is not None:
+            self._bintable._header_offset = value
+
+    @property
+    def _data_size(self):
+        if self._bintable is not None:
+            return self._bintable._data_size
+
+    @_data_size.setter
+    def _data_size(self, value):
+        if self._bintable is not None:
+            self._bintable._data_size = value
