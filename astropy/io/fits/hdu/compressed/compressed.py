@@ -434,26 +434,6 @@ class CompImageHDU(ImageHDU):
                 for index in sorted(extnames_to_remove, reverse=True):
                     del header[index]
 
-    @property
-    def name(self):
-        # Convert the value to a string to be flexible in some pathological
-        # cases (see ticket #96)
-        # Similar to base class but uses .header rather than ._header
-        return str(self.header.get("EXTNAME", self._default_name))
-
-    @name.setter
-    def name(self, value):
-        # This is a copy of the base class but using .header instead
-        # of ._header to ensure that the name stays in sync.
-        if not isinstance(value, str):
-            raise TypeError("'name' attribute must be a string")
-        if not conf.extension_name_case_sensitive:
-            value = value.upper()
-        if "EXTNAME" in self.header:
-            self.header["EXTNAME"] = value
-        else:
-            self.header["EXTNAME"] = (value, "extension name")
-
     @classmethod
     def match_header(cls, header):
         card = header.cards[0]
