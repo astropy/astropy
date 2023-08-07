@@ -642,4 +642,4 @@ def compress_image_data(
 
     heap = table.tobytes() + compressed_bytes
 
-    return len(compressed_bytes), np.frombuffer(heap, dtype=np.uint8)
+    return heap
