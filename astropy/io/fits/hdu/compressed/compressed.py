@@ -630,78 +630,50 @@ class CompImageHDU(ImageHDU):
         bintable.data = data
 
     def _prewriteto(self, checksum=False, inplace=False):
-        if self._scale_back:
-            self.scale(BITPIX2DTYPE[self._orig_bitpix])
+        # Shove the image header and data into a new ImageHDU and use that
+        # to compute the image checksum
 
-        if self._has_data:
-            self._update_compressed_data()
+        image_hdu = ImageHDU(data=self.data, header=self.header.copy())
+        image_hdu._update_checksum(checksum)
+        if "CHECKSUM" in image_hdu.header:
+            # This will also pass through to the ZHECKSUM keyword and
+            # ZDATASUM keyword
+            self.header.set(
+                "CHECKSUM",
+                image_hdu.header["CHECKSUM"],
+                image_hdu.header.comments["CHECKSUM"],
+            )
+        if "DATASUM" in image_hdu.header:
+            self.header.set(
+                "DATASUM",
+                image_hdu.header["DATASUM"],
+                image_hdu.header.comments["DATASUM"],
+            )
 
-            # Use methods in the superclass to update the header with
-            # scale/checksum keywords based on the data type of the image data
-            self._update_pseudo_int_scale_keywords()
+        self._tmp_bintable = self._get_bintable_without_data()
+        self._add_data_to_bintable(self._tmp_bintable)
 
-            # Shove the image header and data into a new ImageHDU and use that
-            # to compute the image checksum
-            image_hdu = ImageHDU(data=self.data, header=self.header)
-            image_hdu._update_checksum(checksum)
-            if "CHECKSUM" in image_hdu.header:
-                # This will also pass through to the ZHECKSUM keyword and
-                # ZDATASUM keyword
-                self._image_header.set(
-                    "CHECKSUM",
-                    image_hdu.header["CHECKSUM"],
-                    image_hdu.header.comments["CHECKSUM"],
-                )
-            if "DATASUM" in image_hdu.header:
-                self._image_header.set(
-                    "DATASUM",
-                    image_hdu.header["DATASUM"],
-                    image_hdu.header.comments["DATASUM"],
-                )
-            # Store a temporary backup of self.data in a different attribute;
-            # see below
-            self._imagedata = self.data
+        # If a bintable already exists internally we should update that instead
+        # of using a whole new BinTableHDU so that mode='update' works.
 
-            # Now we need to perform an ugly hack to set the compressed data as
-            # the .data attribute on the HDU so that the call to _writedata
-            # handles it properly
-            self.__dict__["data"] = self.compressed_data
+        # TODO: if user didn't update .data we should perhaps not recompress data
 
-        return super()._prewriteto(checksum=checksum, inplace=inplace)
+        if self._bintable is not None:
+            self._bintable.header.update(self._tmp_bintable.header)
+            self._bintable.data = self._tmp_bintable.data
+            self._tmp_bintable = self._bintable
 
-    def _writeheader(self, fileobj):
-        """
-        Bypasses `BinTableHDU._writeheader()` which updates the header with
-        metadata about the data that is meaningless here; another reason
-        why this class maybe shouldn't inherit directly from BinTableHDU...
-        """
-        return ExtensionHDU._writeheader(self, fileobj)
+        return self._tmp_bintable._prewriteto(checksum=checksum, inplace=inplace)
 
-    def _writedata(self, fileobj):
-        """
-        Wrap the basic ``_writedata`` method to restore the ``.data``
-        attribute to the uncompressed image data in the case of an exception.
-        """
-        try:
-            return super()._writedata(fileobj)
-        finally:
-            # Restore the .data attribute to its rightful value (if any)
-            if hasattr(self, "_imagedata"):
-                self.__dict__["data"] = self._imagedata
-                del self._imagedata
-            else:
-                del self.data
+    def _writeto(self, fileobj, inplace=False, copy=False):
+        return self._tmp_bintable._writeto(fileobj, inplace=inplace, copy=copy)
+
+    def _postwriteto(self):
+        del self._tmp_bintable
 
     def _close(self, closed=True):
-        super()._close(closed=closed)
-
-        # Also make sure to close access to the compressed data mmaps
-        if (
-            closed
-            and self._data_loaded
-            and _get_array_mmap(self.compressed_data) is not None
-        ):
-            del self.compressed_data
+        # FIXME: need to determine how to keep memmap open if needed
+        return
 
     # TODO: This was copied right out of _ImageBaseHDU; get rid of it once we
     # find a way to rewrite this class as either a subclass or wrapper for an
