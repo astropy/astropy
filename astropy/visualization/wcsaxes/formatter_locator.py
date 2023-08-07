@@ -512,7 +512,6 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         format_unit=None,
     ):
         if unit is not None:
-            unit = unit
             format_unit = format_unit or unit
         elif spacing is not None:
             unit = spacing.unit
