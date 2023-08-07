@@ -472,7 +472,7 @@ class CompImageHDU(ImageHDU):
             self._compression_type = DEFAULT_COMPRESSION_TYPE
 
     def _update_header_data(
-        self,
+        bintable,
         image_header,
         name=None,
         compression_type=None,
@@ -539,11 +539,11 @@ class CompImageHDU(ImageHDU):
             DITHER_SEED_CHECKSUM (-1)
         """
         # Clean up EXTNAME duplicates
-        self._remove_unnecessary_default_extnames(self._header)
+        bintable._remove_unnecessary_default_extnames(bintable._header)
 
-        image_hdu = ImageHDU(data=self.data, header=self._header)
-        self._image_header = CompImageHeader(self._header, image_hdu.header)
-        self._axes = image_hdu._axes
+        image_hdu = ImageHDU(data=bintable.data, header=bintable._header)
+        bintable._image_header = CompImageHeader(bintable._header, image_hdu.header)
+        bintable._axes = image_hdu._axes
         del image_hdu
 
         # Determine based on the size of the input data whether to use the Q
@@ -555,19 +555,19 @@ class CompImageHDU(ImageHDU):
         # heuristic used by CFITSIO, so this should give consistent results.
         # And the cases where this heuristic is insufficient are extreme and
         # almost entirely contrived corner cases, so it will do for now
-        if self._has_data:
-            huge_hdu = self.data.nbytes > 2**32
+        if bintable._has_data:
+            huge_hdu = bintable.data.nbytes > 2**32
         else:
             huge_hdu = False
 
         # NOTE: for now the function below modifies the compressed binary table
-        # self._header in-place, but this could be refactored in future to
+        # bintable._header in-place, but this could be refactored in future to
         # return the compressed header.
 
-        self._header, self.columns = _image_header_to_bintable_header_and_coldefs(
+        bintable._header, bintable.columns = _image_header_to_bintable_header_and_coldefs(
             image_header,
-            self._image_header,
-            self._header,
+            bintable._image_header,
+            bintable._header,
             name=name,
             huge_hdu=huge_hdu,
             compression_type=compression_type,
@@ -577,12 +577,12 @@ class CompImageHDU(ImageHDU):
             quantize_level=quantize_level,
             quantize_method=quantize_method,
             dither_seed=dither_seed,
-            axes=self._axes,
-            generate_dither_seed=self._generate_dither_seed,
+            axes=bintable._axes,
+            generate_dither_seed=bintable._generate_dither_seed,
         )
 
         if name:
-            self.name = name
+            bintable.name = name
 
     def _scale_data(self, data):
         if self._orig_bzero != 0 or self._orig_bscale != 1:
