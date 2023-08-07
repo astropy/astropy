@@ -808,6 +808,10 @@ class _ImageBaseHDU(_ValidHDU):
         raw_data = self._get_raw_data(shape, code, offset)
         raw_data.dtype = raw_data.dtype.newbyteorder(">")
 
+        return self._scale_data(raw_data)
+
+    def _scale_data(self, raw_data):
+
         if self._do_not_scale_image_data or (
             self._orig_bzero == 0 and self._orig_bscale == 1 and self._blank is None
         ):
