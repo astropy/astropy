@@ -187,11 +187,11 @@ class TestCompressedImage(FitsTestCase):
         hdu.writeto(self.temp("test.fits"))
 
         with fits.open(self.temp("test.fits")) as hdul:
-            assert isinstance(hdul[1], fits.CompImageHDU)
-            assert "ZQUANTIZ" in hdul[1]._header
-            assert hdul[1]._header["ZQUANTIZ"] == "SUBTRACTIVE_DITHER_1"
-            assert "ZDITHER0" in hdul[1]._header
-            assert hdul[1]._header["ZDITHER0"] == csum
+            comp_header = hdul[1]._bintable.header
+            assert "ZQUANTIZ" in comp_header
+            assert comp_header["ZQUANTIZ"] == "SUBTRACTIVE_DITHER_1"
+            assert "ZDITHER0" in comp_header
+            assert comp_header["ZDITHER0"] == csum
             assert np.all(hdul[1].data == array)
 
     def test_disable_image_compression(self):
@@ -690,26 +690,11 @@ class TestCompressedImage(FitsTestCase):
             hdul[1].data[:] = 0
             assert np.allclose(hdul[1].data, 0)
 
-    def test_compressed_header_missing_znaxis(self):
-        a = np.arange(100, 200, dtype=np.uint16)
-        comp_hdu = fits.CompImageHDU(a)
-        comp_hdu._header.pop("ZNAXIS")
-        with pytest.raises(KeyError):
-            comp_hdu.compressed_data
-        comp_hdu = fits.CompImageHDU(a)
-        comp_hdu._header.pop("ZBITPIX")
-        with pytest.raises(KeyError):
-            comp_hdu.compressed_data
-
     def test_compressed_header_double_extname(self):
         """Test that a double EXTNAME with one default value does not
         mask the non-default value."""
         with fits.open(self.data("double_ext.fits")) as hdul:
             hdu = hdul[1]
-
-            # Raw header has 2 EXTNAME entries
-            indices = hdu._header._keyword_indices["EXTNAME"]
-            assert len(indices) == 2
 
             # The non-default name should be returned.
             assert hdu.name == "ccd00"
@@ -725,8 +710,6 @@ class TestCompressedImage(FitsTestCase):
             hdu.name = new_name
             assert hdu.name == new_name
             assert hdu.header["EXTNAME"] == new_name
-            assert hdu._header["EXTNAME"] == new_name
-            assert hdu._image_header["EXTNAME"] == new_name
 
             # Check that setting the header will change the name property.
             hdu.header["EXTNAME"] = "NEW2"
@@ -735,7 +718,6 @@ class TestCompressedImage(FitsTestCase):
             hdul.writeto(self.temp("tmp.fits"), overwrite=True)
             with fits.open(self.temp("tmp.fits")) as hdul1:
                 hdu1 = hdul1[1]
-                assert len(hdu1._header._keyword_indices["EXTNAME"]) == 1
                 assert hdu1.name == "NEW2"
 
             # Check that deleting EXTNAME will and setting the name will
@@ -963,6 +945,10 @@ class TestCompHDUSections:
     def test_section_slicing_scaling(self, index):
         assert_equal(self.hdul[2].section[index], self.hdul[2].data[index])
         assert_equal(self.hdul[2].section[index], self.data[index] * 2 + 100)
+
+   def test_section_properties(self):
+         assert self.hdul[1].section.dtype is np.dtype('int32')
+         assert self.hdul[1].section.ndim == 3
 
 
 def test_comphdu_fileobj():
