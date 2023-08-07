@@ -1530,7 +1530,7 @@ class TestHeaderFunctions(FitsTestCase):
         )
 
         header.insert("NAXIS1", ("NAXIS", 2, "Number of axes"))
-        assert list(header.keys())[0] == "NAXIS"
+        assert next(iter(header.keys())) == "NAXIS"
         assert header[0] == 2
         assert header.comments[0] == "Number of axes"
 
@@ -2907,7 +2907,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
 
         del self._test_header["DP1.AXIS.1"]
         assert len(self._test_header) == 7
-        assert list(self._test_header)[0] == "DP1.NAXIS"
+        assert next(iter(self._test_header)) == "DP1.NAXIS"
         assert self._test_header[0] == 2
         assert list(self._test_header)[1] == "DP1.AXIS.2"
 
@@ -2915,7 +2915,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         # updated
         del self._test_header["DP1.AXIS.2"]
         assert len(self._test_header) == 6
-        assert list(self._test_header)[0] == "DP1.NAXIS"
+        assert next(iter(self._test_header)) == "DP1.NAXIS"
         assert self._test_header[0] == 2
         assert list(self._test_header)[1] == "DP1.NAUX"
         assert self._test_header[1] == 2
@@ -2958,7 +2958,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
 
         del self._test_header["DP1.A*..."]
         assert len(self._test_header) == 2
-        assert list(self._test_header)[0] == "DP1.NAXIS"
+        assert next(iter(self._test_header)) == "DP1.NAXIS"
         assert self._test_header[0] == 2
         assert list(self._test_header)[1] == "DP1.NAUX"
         assert self._test_header[1] == 2

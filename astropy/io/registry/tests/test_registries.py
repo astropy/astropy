@@ -344,7 +344,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
             # test that this method is not present.
             if "Format" in EmptyData.read.__doc__:
                 docs = EmptyData.read.__doc__.split("\n")
-                ihd = [i for i, s in enumerate(docs) if ("Format" in s)][0]
+                ihd = next(i for i, s in enumerate(docs) if ("Format" in s))
                 ifmt = docs[ihd].index("Format") + 1
                 iread = docs[ihd].index("Read") + 1
                 # there might not actually be anything here, which is also good
@@ -713,7 +713,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
             # test that this method is not present.
             if "Format" in EmptyData.read.__doc__:
                 docs = EmptyData.write.__doc__.split("\n")
-                ihd = [i for i, s in enumerate(docs) if ("Format" in s)][0]
+                ihd = next(i for i, s in enumerate(docs) if ("Format" in s))
                 ifmt = docs[ihd].index("Format")
                 iwrite = docs[ihd].index("Write") + 1
                 # there might not actually be anything here, which is also good

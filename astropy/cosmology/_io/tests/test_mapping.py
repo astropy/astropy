@@ -69,7 +69,7 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
         m = to_format("mapping", cosmology_as_str=True)
         assert isinstance(m["cosmology"], str)
         assert m["cosmology"] == cosmo_cls.__qualname__  # Correct class
-        assert tuple(m.keys())[0] == "cosmology"  # Stayed at same index
+        assert next(iter(m.keys())) == "cosmology"  # Stayed at same index
 
     def test_tofrom_mapping_cosmology_as_str(self, cosmo, to_format, from_format):
         """Test roundtrip with ``cosmology_as_str=True``.

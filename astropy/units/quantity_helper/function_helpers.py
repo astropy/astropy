@@ -76,9 +76,9 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.split, np.array_split, np.hsplit, np.vsplit, np.dsplit,
     np.stack, np.column_stack, np.hstack, np.vstack, np.dstack,
     np.max, np.min, np.amax, np.amin, np.ptp, np.sum, np.cumsum,
-    np.prod, np.product, np.cumprod, np.cumproduct,
+    np.prod, np.prod, np.cumprod, np.cumprod,
     np.round, np.around,
-    np.round_,  # Alias for np.round in NUMPY_LT_1_25, but deprecated since.
+    np.round,  # Alias for np.round in NUMPY_LT_1_25, but deprecated since.
     np.fix, np.angle, np.i0, np.clip,
     np.isposinf, np.isneginf, np.isreal, np.iscomplex,
     np.average, np.mean, np.std, np.var, np.trace,
@@ -106,7 +106,7 @@ UNSUPPORTED_FUNCTIONS |= {
     np.packbits, np.unpackbits, np.unravel_index,
     np.ravel_multi_index, np.ix_, np.cov, np.corrcoef,
     np.busday_count, np.busday_offset, np.datetime_as_string,
-    np.is_busday, np.all, np.any, np.sometrue, np.alltrue,
+    np.is_busday, np.all, np.any, np.any, np.all,
 }  # fmt: skip
 
 # Could be supported if we had a natural logarithm unit.

@@ -586,7 +586,7 @@ class TestParse:
     def test_repr(self):
         assert "3 tables" in repr(self.votable)
         assert (
-            repr(list(self.votable.iter_fields_and_params())[0])
+            repr(next(iter(self.votable.iter_fields_and_params())))
             == '<PARAM ID="awesome" arraysize="*" datatype="float" '
             'name="INPUT" unit="deg" value="[0.0 0.0]"/>'
         )

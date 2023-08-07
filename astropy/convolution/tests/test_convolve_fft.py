@@ -987,7 +987,7 @@ def test_convolve_fft_boundary_wrap_error(error_kwarg):
         convolve_fft(x, y, boundary="wrap", **error_kwarg)
     assert (
         str(err.value)
-        == f"With boundary='wrap', {list(error_kwarg.keys())[0]} cannot be enabled."
+        == f"With boundary='wrap', {next(iter(error_kwarg.keys()))} cannot be enabled."
     )
 
 

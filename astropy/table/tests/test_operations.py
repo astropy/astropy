@@ -1460,9 +1460,9 @@ class TestVStack:
         else:
             with pytest.raises(NotImplementedError) as err:
                 table.vstack([t, t])
-            assert "vstack unavailable for mixin column type(s): {}".format(
-                cls_name
-            ) in str(err.value)
+            assert f"vstack unavailable for mixin column type(s): {cls_name}" in str(
+                err.value
+            )
 
         # Check for outer stack which requires masking.  Only Time supports
         # this currently.
@@ -1598,7 +1598,7 @@ class TestDStack:
     @staticmethod
     def compare_dstack(tables, out):
         for ii, tbl in enumerate(tables):
-            for name, out_col in out.columns.items():
+            for name in out.columns.keys():
                 if name in tbl.colnames:
                     # Columns always compare equal
                     assert np.all(tbl[name] == out[name][:, ii])

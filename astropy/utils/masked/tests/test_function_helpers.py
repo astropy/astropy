@@ -606,12 +606,12 @@ class TestMethodLikes(MaskedArraySetup):
     # NUMPY_LT_1_25
     @pytest.mark.filterwarnings("ignore:`sometrue` is deprecated as of NumPy 1.25.0")
     def test_sometrue(self):
-        self.check(np.sometrue, method="any")
+        self.check(np.any, method="any")
 
     # NUMPY_LT_1_25
     @pytest.mark.filterwarnings("ignore:`alltrue` is deprecated as of NumPy 1.25.0")
     def test_alltrue(self):
-        self.check(np.alltrue, method="all")
+        self.check(np.all, method="all")
 
     def test_prod(self):
         self.check(np.prod)
@@ -619,7 +619,7 @@ class TestMethodLikes(MaskedArraySetup):
     # NUMPY_LT_1_25
     @pytest.mark.filterwarnings("ignore:`product` is deprecated as of NumPy 1.25.0")
     def test_product(self):
-        self.check(np.product, method="prod")
+        self.check(np.prod, method="prod")
 
     def test_cumprod(self):
         self.check(np.cumprod)
@@ -627,7 +627,7 @@ class TestMethodLikes(MaskedArraySetup):
     # NUMPY_LT_1_25
     @pytest.mark.filterwarnings("ignore:`cumproduct` is deprecated as of NumPy 1.25.0")
     def test_cumproduct(self):
-        self.check(np.cumproduct, method="cumprod")
+        self.check(np.cumprod, method="cumprod")
 
     def test_ptp(self):
         self.check(np.ptp)
@@ -639,7 +639,7 @@ class TestMethodLikes(MaskedArraySetup):
     # NUMPY_LT_1_25
     @pytest.mark.filterwarnings("ignore:`round_` is deprecated as of NumPy 1.25.0")
     def test_round_(self):
-        self.check(np.round_, method="round")
+        self.check(np.round, method="round")
 
     def test_around(self):
         self.check(np.around, method="round")
