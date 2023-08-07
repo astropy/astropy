@@ -233,7 +233,7 @@ def test_download_file_absolute_path(valid_urls, temp_cache):
     assert is_abs(download_file(u, cache=False))  # no cache
     assert is_abs(download_file(u, cache=True))  # not in cache
     assert is_abs(download_file(u, cache=True))  # in cache
-    for k, v in cache_contents().items():
+    for v in cache_contents().values():
         assert is_abs(v)
 
 
