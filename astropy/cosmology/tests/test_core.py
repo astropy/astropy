@@ -94,7 +94,7 @@ class MetaTestMixin:
 
     def test_meta_mutable(self, cosmo):
         """The metadata is NOT immutable on a cosmology"""
-        key = tuple(cosmo.meta.keys())[0]  # select some key
+        key = next(iter(cosmo.meta.keys()))  # select some key
         cosmo.meta[key] = cosmo.meta.pop(key)  # will error if immutable
 
 

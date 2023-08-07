@@ -102,7 +102,7 @@ def test_unit():
     from astropy import constants as const
     from astropy import units as u
 
-    for key, val in vars(const).items():
+    for val in vars(const).values():
         if isinstance(val, Constant):
             # Getting the unit forces the unit parser to run.  Confirm
             # that none of the constants defined in astropy have

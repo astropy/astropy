@@ -648,13 +648,13 @@ class TestUfuncReductions(InvariantUnitTestSetup):
     @pytest.mark.filterwarnings("ignore:`sometrue` is deprecated as of NumPy 1.25.0")
     def test_sometrue(self):
         with pytest.raises(TypeError):
-            np.sometrue(self.q)
+            np.sometrue(self.q)  # noqa: NPY003
 
     # NUMPY_LT_1_25
     @pytest.mark.filterwarnings("ignore:`alltrue` is deprecated as of NumPy 1.25.0")
     def test_alltrue(self):
         with pytest.raises(TypeError):
-            np.alltrue(self.q)
+            np.alltrue(self.q)  # noqa: NPY003
 
     def test_prod(self):
         with pytest.raises(u.UnitsError):
@@ -664,7 +664,7 @@ class TestUfuncReductions(InvariantUnitTestSetup):
     @pytest.mark.filterwarnings("ignore:`product` is deprecated as of NumPy 1.25.0")
     def test_product(self):
         with pytest.raises(u.UnitsError):
-            np.product(self.q)
+            np.product(self.q)  # noqa: NPY003
 
     def test_cumprod(self):
         with pytest.raises(u.UnitsError):
@@ -674,7 +674,7 @@ class TestUfuncReductions(InvariantUnitTestSetup):
     @pytest.mark.filterwarnings("ignore:`cumproduct` is deprecated as of NumPy 1.25.0")
     def test_cumproduct(self):
         with pytest.raises(u.UnitsError):
-            np.cumproduct(self.q)
+            np.cumproduct(self.q)  # noqa: NPY003
 
 
 class TestUfuncLike(InvariantUnitTestSetup):
@@ -688,7 +688,7 @@ class TestUfuncLike(InvariantUnitTestSetup):
     # NUMPY_LT_1_25
     @pytest.mark.filterwarnings("ignore:`round_` is deprecated as of NumPy 1.25.0")
     def test_round_(self):
-        self.check(np.round_)
+        self.check(np.round_)  # noqa: NPY003
 
     def test_around(self):
         self.check(np.around)
