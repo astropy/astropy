@@ -564,13 +564,6 @@ class CompImageHDU(ImageHDU):
     def compressed_data(self):
         return self._bintable.data
 
-    @property
-    def shape(self):
-        """
-        Shape of the image array--should be equivalent to ``self.data.shape``.
-        """
-        # Determine from the values read from the header
-        return tuple(reversed(self._axes))
 
     @lazyproperty
     def header(self):
