@@ -6,9 +6,9 @@ import numpy as np
 from matplotlib import rcParams
 from matplotlib.text import Text
 
-from .frame import RectangularFrame
-
 from astropy.utils.exceptions import AstropyDeprecationWarning
+
+from .frame import RectangularFrame
 
 
 def sort_using(X, Y):
