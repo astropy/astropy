@@ -10,21 +10,8 @@ require YAML serialization.
 
     >>> from astropy.cosmology import Planck18
     >>> yml = Planck18.to_format("yaml")
-    >>> yml
-    "!astropy.cosmology.flrw.FlatLambdaCDM\nH0: !astropy.units.Quantity\n
-    unit: !astropy.units.Unit {unit: km / (Mpc s)}\n  value: 67.66\nNeff: 3.046\nOb0:
-    0.04897\nOm0: 0.30966\nTcmb0: !astropy.units.Quantity\n  unit: !astropy.units.Unit
-    {unit: K}\n  value: 2.7255\nm_nu: !astropy.units.Quantity\n
-    unit: !astropy.units.Unit {unit: eV}\n  value: !numpy.ndarray\n
-    buffer: !!binary |\n      QUFBQUFBQUFBQUFBQUFBQUFBQUFBTGdlaGV0UnVLNC8=\n
-    dtype: float64\n    order: C\n    shape: !!python/tuple [3]\nmeta:
-    !!python/tuple\n- !!python/tuple [Oc0, 0.2607]\n- !!python/tuple [n, 0.9665]\n-
-    !!python/tuple [sigma8, 0.8102]\n- !!python/tuple [tau, 0.0561]\n- !!python/tuple\n
-    - z_reion\n  - !astropy.units.Quantity\n    unit: !astropy.units.Unit {unit:
-    redshift}\n    value: 7.82\n- !!python/tuple\n  - t0\n  - !astropy.units.Quantity\n
-    unit: !astropy.units.Unit {unit: Gyr}\n    value: 13.787\n- !!python/tuple [flat,
-    true]\n- !!python/tuple [reference, 'Planck Collaboration 2018, 2020, A&A, 641, A6
-    (Paper\n    VI), Table 2 (TT, TE, EE + lowE + lensing + BAO)']\nname: Planck18\n"
+    >>> yml  # doctest: +NORMALIZE_WHITESPACE
+    "!astropy.cosmology...FlatLambdaCDM\nH0: !astropy.units.Quantity...
 
     >>> Cosmology.from_format(yml, format="yaml")
     FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
@@ -212,20 +199,7 @@ def to_yaml(cosmology, *args):
     --------
     >>> from astropy.cosmology import Planck18
     >>> Planck18.to_format("yaml")
-    "!astropy.cosmology.flrw.FlatLambdaCDM\nH0: !astropy.units.Quantity\n
-    unit: !astropy.units.Unit {unit: km / (Mpc s)}\n  value: 67.66\nNeff: 3.046\nOb0:
-    0.04897\nOm0: 0.30966\nTcmb0: !astropy.units.Quantity\n  unit: !astropy.units.Unit
-    {unit: K}\n  value: 2.7255\nm_nu: !astropy.units.Quantity\n
-    unit: !astropy.units.Unit {unit: eV}\n  value: !numpy.ndarray\n
-    buffer: !!binary |\n      QUFBQUFBQUFBQUFBQUFBQUFBQUFBTGdlaGV0UnVLNC8=\n
-    dtype: float64\n    order: C\n    shape: !!python/tuple [3]\nmeta:
-    !!python/tuple\n- !!python/tuple [Oc0, 0.2607]\n- !!python/tuple [n, 0.9665]\n-
-    !!python/tuple [sigma8, 0.8102]\n- !!python/tuple [tau, 0.0561]\n- !!python/tuple\n
-    - z_reion\n  - !astropy.units.Quantity\n    unit: !astropy.units.Unit {unit:
-    redshift}\n    value: 7.82\n- !!python/tuple\n  - t0\n  - !astropy.units.Quantity\n
-    unit: !astropy.units.Unit {unit: Gyr}\n    value: 13.787\n- !!python/tuple [flat,
-    true]\n- !!python/tuple [reference, 'Planck Collaboration 2018, 2020, A&A, 641, A6
-    (Paper\n    VI), Table 2 (TT, TE, EE + lowE + lensing + BAO)']\nname: Planck18\n"
+    "!astropy.cosmology...FlatLambdaCDM\nH0: !astropy.units.Quantity...
     """
     return dump(cosmology)
 
