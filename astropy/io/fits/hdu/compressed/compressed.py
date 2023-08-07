@@ -675,55 +675,6 @@ class CompImageHDU(ImageHDU):
         # FIXME: need to determine how to keep memmap open if needed
         return
 
-    # TODO: This was copied right out of _ImageBaseHDU; get rid of it once we
-    # find a way to rewrite this class as either a subclass or wrapper for an
-    # ImageHDU
-    def _dtype_for_bitpix(self):
-        """
-        Determine the dtype that the data should be converted to depending on
-        the BITPIX value in the header, and possibly on the BSCALE value as
-        well.  Returns None if there should not be any change.
-        """
-        bitpix = self._orig_bitpix
-        # Handle possible conversion to uints if enabled
-        if self._uint and self._orig_bscale == 1:
-            for bits, dtype in (
-                (16, np.dtype("uint16")),
-                (32, np.dtype("uint32")),
-                (64, np.dtype("uint64")),
-            ):
-                if bitpix == bits and self._orig_bzero == 1 << (bits - 1):
-                    return dtype
-
-        if bitpix > 16:  # scale integers to Float64
-            return np.dtype("float64")
-        elif bitpix > 0:  # scale integers to Float32
-            return np.dtype("float32")
-
-    def _update_header_scale_info(self, dtype=None):
-        if not self._do_not_scale_image_data and not (
-            self._orig_bzero == 0 and self._orig_bscale == 1
-        ):
-            for keyword in ["BSCALE", "BZERO"]:
-                # Make sure to delete from both the image header and the table
-                # header; later this will be streamlined
-                for header in (self.header, self._header):
-                    with suppress(KeyError):
-                        del header[keyword]
-                        # Since _update_header_scale_info can, currently, be
-                        # called *after* _prewriteto(), replace these with
-                        # blank cards so the header size doesn't change
-                        header.append()
-
-            if dtype is None:
-                dtype = self._dtype_for_bitpix()
-            if dtype is not None:
-                self.header["BITPIX"] = DTYPE2BITPIX[dtype.name]
-
-            self._bzero = 0
-            self._bscale = 1
-            self._bitpix = self.header["BITPIX"]
-
     def _generate_dither_seed(self, seed):
         if not _is_int(seed):
             raise TypeError("Seed must be an integer")
