@@ -609,169 +609,25 @@ class CompImageHDU(ImageHDU):
 
         return (self.name, self.ver, class_name, len(self.header), _shape, _format)
 
-    def _update_compressed_data(self):
+    def _add_data_to_bintable(self, bintable):
         """
         Compress the image data so that it may be written to a file.
         """
-        # Check to see that the image_header matches the image data
-        image_bitpix = DTYPE2BITPIX[self.data.dtype.name]
-
-        if image_bitpix != self._orig_bitpix or self.data.shape != self.shape:
-            self._update_header_data(self.header)
-
-        # TODO: This is copied right out of _ImageBaseHDU._writedata_internal;
-        # it would be cool if we could use an internal ImageHDU and use that to
-        # write to a buffer for compression or something. See ticket #88
-        # deal with unsigned integer 16, 32 and 64 data
-        old_data = self.data
-        if _is_pseudo_integer(self.data.dtype):
-            # Convert the unsigned array to signed
-            self.data = np.array(
-                self.data - _pseudo_zero(self.data.dtype),
-                dtype=f"=i{self.data.dtype.itemsize}",
-            )
-
-        try:
-            nrows = self._header["NAXIS2"]
-            tbsize = self._header["NAXIS1"] * nrows
-
-            self._header["PCOUNT"] = 0
-            if "THEAP" in self._header:
-                del self._header["THEAP"]
-            self._theap = tbsize
-
-            # First delete the original compressed data, if it exists
-            del self.compressed_data
-
-            # Compress the data.
-            # compress_image_data returns the size of the heap for the written
-            # compressed image table
-            heapsize, self.compressed_data = compress_image_data(
-                self.data, self.compression_type, self._header, self.columns
-            )
-        finally:
-            self.data = old_data
-
-        table_len = len(self.compressed_data) - heapsize
-        if table_len != self._theap:
-            raise Exception(
-                f"Unexpected compressed table size (expected {self._theap}, got {table_len})"
-            )
-
-        # CFITSIO will write the compressed data in big-endian order
-        dtype = self.columns.dtype.newbyteorder(">")
-        buf = self.compressed_data
-        compressed_data = buf[: self._theap].view(dtype=dtype, type=np.rec.recarray)
-        self.compressed_data = compressed_data.view(FITS_rec)
-        self.compressed_data._coldefs = self.columns
-        self.compressed_data._heapoffset = self._theap
-        self.compressed_data._heapsize = heapsize
-
-    def scale(self, type=None, option="old", bscale=1, bzero=0):
-        """
-        Scale image data by using ``BSCALE`` and ``BZERO``.
-
-        Calling this method will scale ``self.data`` and update the keywords of
-        ``BSCALE`` and ``BZERO`` in ``self._header`` and ``self._image_header``.
-        This method should only be used right before writing to the output
-        file, as the data will be scaled and is therefore not very usable after
-        the call.
-
-        Parameters
-        ----------
-        type : str, optional
-            destination data type, use a string representing a numpy dtype
-            name, (e.g. ``'uint8'``, ``'int16'``, ``'float32'`` etc.).  If is
-            `None`, use the current data type.
-
-        option : str, optional
-            how to scale the data: if ``"old"``, use the original ``BSCALE``
-            and ``BZERO`` values when the data was read/created. If
-            ``"minmax"``, use the minimum and maximum of the data to scale.
-            The option will be overwritten by any user-specified bscale/bzero
-            values.
-
-        bscale, bzero : int, optional
-            user specified ``BSCALE`` and ``BZERO`` values.
-        """
         if self.data is None:
             return
+        heap = compress_image_data(self.data, self.compression_type, bintable.header, bintable.columns)
 
-        # Determine the destination (numpy) data type
-        if type is None:
-            type = BITPIX2DTYPE[self._bitpix]
-        _type = getattr(np, type)
+        dtype = bintable.columns.dtype.newbyteorder(">")
+        buf = np.frombuffer(heap, dtype=np.uint8)
+        compressed_data = buf[: bintable._theap].view(dtype=dtype, type=np.rec.recarray)
 
-        # Determine how to scale the data
-        # bscale and bzero takes priority
-        if bscale != 1 or bzero != 0:
-            _scale = bscale
-            _zero = bzero
-        else:
-            if option == "old":
-                _scale = self._orig_bscale
-                _zero = self._orig_bzero
-            elif option == "minmax":
-                if isinstance(_type, np.floating):
-                    _scale = 1
-                    _zero = 0
-                else:
-                    _min = np.minimum.reduce(self.data.flat)
-                    _max = np.maximum.reduce(self.data.flat)
+        data = compressed_data.view(FITS_rec)
+        data._load_variable_length_data = False
+        data._coldefs = bintable.columns
+        data._heapoffset = bintable._theap
+        data._heapsize = len(buf) - bintable._theap
 
-                    if _type == np.uint8:  # uint8 case
-                        _zero = _min
-                        _scale = (_max - _min) / (2.0**8 - 1)
-                    else:
-                        _zero = (_max + _min) / 2.0
-
-                        # throw away -2^N
-                        _scale = (_max - _min) / (2.0 ** (8 * _type.bytes) - 2)
-
-        # Do the scaling
-        if _zero != 0:
-            # We have to explicitly cast self._bzero to prevent numpy from
-            # raising an error when doing self.data -= _zero, and we
-            # do this instead of self.data = self.data - _zero to
-            # avoid doubling memory usage.
-            np.subtract(self.data, _zero, out=self.data, casting="unsafe")
-            self.header["BZERO"] = _zero
-        else:
-            # Delete from both headers
-            for header in (self.header, self._header):
-                with suppress(KeyError):
-                    del header["BZERO"]
-
-        if _scale != 1:
-            self.data /= _scale
-            self.header["BSCALE"] = _scale
-        else:
-            for header in (self.header, self._header):
-                with suppress(KeyError):
-                    del header["BSCALE"]
-
-        if self.data.dtype.type != _type:
-            self.data = np.array(np.around(self.data), dtype=_type)  # 0.7.7.1
-
-        # Update the BITPIX Card to match the data
-        self._bitpix = DTYPE2BITPIX[self.data.dtype.name]
-        self._bzero = self.header.get("BZERO", 0)
-        self._bscale = self.header.get("BSCALE", 1)
-        # Update BITPIX for the image header specifically
-        # TODO: Make this more clear by using self._image_header, but only once
-        # this has been fixed so that the _image_header attribute is guaranteed
-        # to be valid
-        self.header["BITPIX"] = self._bitpix
-
-        # Update the table header to match the scaled data
-        self._update_header_data(self.header)
-
-        # Since the image has been manually scaled, the current
-        # bitpix/bzero/bscale now serve as the 'original' scaling of the image,
-        # as though the original image has been completely replaced
-        self._orig_bitpix = self._bitpix
-        self._orig_bzero = self._bzero
-        self._orig_bscale = self._bscale
+        bintable.data = data
 
     def _prewriteto(self, checksum=False, inplace=False):
         if self._scale_back:
