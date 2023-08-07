@@ -452,6 +452,25 @@ class CompImageHDU(ImageHDU):
 
         return COMPRESSION_ENABLED
 
+    @property
+    def compression_type(self):
+        return self._compression_type
+
+    @compression_type.setter
+    def compression_type(self, value):
+        if value in COMPRESSION_TYPES:
+            self._compression_type = value
+        else:
+            warnings.warn(
+                "Unknown compression type provided (supported are {}). "
+                "Default ({}) compression will be used.".format(
+                    ", ".join(map(repr, COMPRESSION_TYPES)),
+                    DEFAULT_COMPRESSION_TYPE,
+                ),
+                AstropyUserWarning,
+            )
+            self._compression_type = DEFAULT_COMPRESSION_TYPE
+
     def _update_header_data(
         self,
         image_header,
