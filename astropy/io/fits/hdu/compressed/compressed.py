@@ -49,8 +49,20 @@ __all__ = ["COMPRESSION_ENABLED", "CompImageHDU"]
 COMPRESSION_ENABLED = True
 
 
-# TODO: Fix this class so that it doesn't actually inherit from BinTableHDU,
-# but instead has an internal BinTableHDU reference
+class _CompBinTableHDU(BinTableHDU):
+    _load_variable_length_data = False
+    """
+    We don't want to always load all the tiles so by setting this option
+    we can then access the tiles as needed.
+    """
+
+    _manages_own_heap = True
+
+    @classmethod
+    def match_header(cls, header):
+        return False
+
+
 class CompImageHDU(BinTableHDU):
     """
     Compressed Image HDU class.
