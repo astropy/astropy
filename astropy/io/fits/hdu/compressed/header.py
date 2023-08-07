@@ -9,7 +9,7 @@ from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from astropy.io.fits.column import TDEF_RE
 from astropy.io.fits.header import Header
 
-__all__ = ['CompImageHeader']
+__all__ = ["CompImageHeader"]
 
 
 class CompImageHeader(Header):

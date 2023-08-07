@@ -19,11 +19,10 @@ from astropy.io.fits.hdu.compressed import (
     DITHER_SEED_CHECKSUM,
     SUBTRACTIVE_DITHER_1,
 )
-from astropy.utils.data import download_file
-from astropy.utils.exceptions import AstropyDeprecationWarning
-
 from astropy.io.fits.tests.conftest import FitsTestCase
 from astropy.io.fits.tests.test_table import comparerecords
+from astropy.utils.data import download_file
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 class TestCompressedImage(FitsTestCase):
