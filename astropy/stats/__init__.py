@@ -12,9 +12,16 @@ astronomers' needs.
 """
 
 from . import bayesian_blocks as _bb
-from . import biweight, circstats, funcs
+from . import (
+    biweight,
+    circstats,
+    funcs,
+    info_theory,
+    jackknife,
+    sigma_clipping,
+    spatial,
+)
 from . import histogram as _hist
-from . import info_theory, jackknife, sigma_clipping, spatial
 from .bayesian_blocks import *
 from .biweight import *
 from .bls import *
