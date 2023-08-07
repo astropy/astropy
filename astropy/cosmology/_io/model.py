@@ -34,9 +34,9 @@ import inspect
 
 import numpy as np
 
+from astropy.cosmology._utils import _init_signature, all_cls_vars
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
-from astropy.cosmology.utils import _init_signature, all_cls_vars
 from astropy.modeling import FittableModel, Model
 from astropy.utils.decorators import classproperty
 

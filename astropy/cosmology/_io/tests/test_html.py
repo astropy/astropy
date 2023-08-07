@@ -4,7 +4,7 @@ import pytest
 
 import astropy.units as u
 from astropy.cosmology._io.html import _FORMAT_TABLE, read_html_table, write_html_table
-from astropy.cosmology._utils import all_cls_vars
+from astropy.cosmology._utils import _init_signature, all_cls_vars
 from astropy.cosmology.parameter import Parameter
 from astropy.table import QTable, Table, vstack
 from astropy.utils.compat.optional_deps import HAS_BS4
@@ -81,7 +81,7 @@ class ReadWriteHTMLTestMixin(ReadWriteTestMixinBase):
         tbl.write(fp, format="ascii.html", overwrite=True)
 
         # tests are different if the last argument is a **kwarg
-        if tuple(cosmo._init_signature.parameters.values())[-1].kind == 4:
+        if tuple(_init_signature(cosmo).parameters.values())[-1].kind == 4:
             got = read(fp, format="ascii.html")
 
             assert got.__class__ is cosmo_cls
@@ -169,7 +169,7 @@ class ReadWriteHTMLTestMixin(ReadWriteTestMixinBase):
 
         # not equal, because Tcmb0 is changed, which also changes m_nu
         assert got != cosmo
-        assert got.Tcmb0 == cosmo_cls._init_signature.parameters["Tcmb0"].default
+        assert got.Tcmb0 == _init_signature(cosmo_cls).parameters["Tcmb0"].default
         assert got.clone(name=cosmo.name, Tcmb0=cosmo.Tcmb0, m_nu=cosmo.m_nu) == cosmo
         # but the metadata is the same
         # assert got.meta == cosmo.meta # metadata read not implemented

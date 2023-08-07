@@ -15,6 +15,7 @@ from numpy import inf, sin
 import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology._utils import (
+    _init_signature,
     all_cls_vars,
     all_fields,
     aszarr,
@@ -1558,7 +1559,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
     def nonflat(self: _FlatFLRWMixinT) -> _FLRWT:
         # Create BoundArgument to handle args versus kwargs.
         # This also handles all errors from mismatched arguments
-        ba = self.__nonflatclass__._init_signature.bind_partial(
+        ba = _init_signature(self.__nonflatclass__).bind_partial(
             **self._init_arguments, Ode0=self.Ode0
         )
         # Make new instance, respecting args vs kwargs

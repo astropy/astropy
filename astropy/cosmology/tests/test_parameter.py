@@ -144,10 +144,6 @@ class ParameterTestMixin:
 
     def test_Parameter_descriptor_get(self, cosmo_cls, cosmo, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.__get__`."""
-        # from class
-        with pytest.raises(AttributeError, match="can't get attribute"):
-            parameter = getattr(cosmo_cls, all_parameter.name)
-
         parameter = all_cls_vars(cosmo_cls)[all_parameter.name]
         assert isinstance(parameter, Parameter)
         assert parameter is all_parameter
@@ -206,12 +202,12 @@ class ParameterTestMixin:
             def __init__(self, param, *, name=None, meta=None):
                 pass  # never actually initialized
 
-        # param should be 1st, all other parameters next
-        assert Example.__parameters__[0] == "param"
+        # param should be last, all other parameters preceding
+        assert Example.__parameters__[-1] == "param"
         # Check the other parameters are as expected.
         # only run this test if "param" is not already on the cosmology
-        if cosmo_cls.__parameters__[0] != "param":
-            assert set(Example.__parameters__[1:]) == set(cosmo_cls.__parameters__)
+        if cosmo_cls.__parameters__[-1] != "param":
+            assert set(Example.__parameters__[:-1]) == set(cosmo_cls.__parameters__)
 
     def test_make_from_Parameter(self, cosmo_cls, clean_registry):
         """Test the parameter creation process. Uses ``__set__``."""

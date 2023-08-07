@@ -12,6 +12,7 @@ import pytest
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import Cosmology, FlatCosmologyMixin
+from astropy.cosmology._utils import _init_signature
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameter import Parameter
 from astropy.table import Column, QTable, Table
@@ -83,10 +84,7 @@ class MetaTestMixin:
     """Tests for a :class:`astropy.utils.metadata.MetaData` on a Cosmology."""
 
     def test_meta_on_class(self, cosmo_cls):
-        with pytest.raises(
-            AttributeError, match="'meta' is not accessible on the class"
-        ):
-            cosmo_cls.meta
+        assert cosmo_cls.meta is None
 
     def test_meta_on_instance(self, cosmo):
         assert isinstance(cosmo.meta, dict)  # test type
@@ -129,14 +127,14 @@ class CosmologyTest(
     @pytest.fixture(scope="function")  # ensure not cached.
     def ba(self):
         """Return filled `inspect.BoundArguments` for cosmology."""
-        ba = self.cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+        ba = _init_signature(self.cls).bind(*self.cls_args, **self.cls_kwargs)
         ba.apply_defaults()
         return ba
 
     @pytest.fixture(scope="class")
     def cosmo(self, cosmo_cls):
         """The cosmology instance with which to test."""
-        ba = self.cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+        ba = _init_signature(self.cls).bind(*self.cls_args, **self.cls_kwargs)
         ba.apply_defaults()
         return cosmo_cls(*ba.args, **ba.kwargs)
 
@@ -181,16 +179,16 @@ class CosmologyTest(
         assert hasattr(cosmo, "_init_signature")
 
         # test internal consistency, so following tests can use either cls or instance.
-        assert cosmo_cls._init_signature == cosmo._init_signature
+        assert _init_signature(cosmo_cls) == _init_signature(cosmo)
 
         # test matches __init__, but without 'self'
         sig = inspect.signature(cosmo.__init__)  # (instances don't have self)
         assert set(sig.parameters.keys()) == set(
-            cosmo._init_signature.parameters.keys()
+            _init_signature(cosmo).parameters.keys()
         )
         assert all(
             np.all(sig.parameters[k].default == p.default)
-            for k, p in cosmo._init_signature.parameters.items()
+            for k, p in _init_signature(cosmo).parameters.items()
         )
 
     # ---------------------------------------------------------------

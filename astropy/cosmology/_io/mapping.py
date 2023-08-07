@@ -138,9 +138,9 @@ Lastly, the keys in the mapping may be renamed with the ``rename`` keyword.
 import copy
 from collections.abc import Mapping
 
+from astropy.cosmology._utils import _init_signature
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
-from astropy.cosmology.utils import _init_signature
 
 __all__ = []  # nothing is publicly scoped
 

@@ -3,6 +3,7 @@
 import pytest
 
 from astropy.cosmology._io.row import from_row, to_row
+from astropy.cosmology._utils import _init_signature
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.table import Row
 
@@ -57,7 +58,7 @@ class ToFromRowTestMixin(ToFromTestMixinBase):
         row.table["mismatching"] = "will error"
 
         # tests are different if the last argument is a **kwarg
-        if tuple(cosmo._init_signature.parameters.values())[-1].kind == 4:
+        if tuple(_init_signature(cosmo).parameters.values())[-1].kind == 4:
             got = from_format(row, format="astropy.row")
 
             assert got.__class__ is cosmo.__class__
