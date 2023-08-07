@@ -262,10 +262,7 @@ class FixedWidthData(basic.BasicData):
         header_rows = getattr(self, "header_rows", default_header_rows)
         # First part is getting the widths of each column.
         # List (rows) of list (column values) for data lines
-        vals_list = []
-        col_str_iters = self.str_vals()
-        for vals in zip(*col_str_iters):
-            vals_list.append(vals)
+        vals_list = list(zip(*self.str_vals()))
 
         # List (rows) of list (columns values) for header lines.
         hdrs_list = []
