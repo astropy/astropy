@@ -63,24 +63,9 @@ class _CompBinTableHDU(BinTableHDU):
         return False
 
 
-class CompImageHDU(BinTableHDU):
+class CompImageHDU(ImageHDU):
     """
     Compressed Image HDU class.
-    """
-
-    _manages_own_heap = True
-    """
-    The calls to CFITSIO lay out the heap data in memory, and we write it out
-    the same way CFITSIO organizes it.  In principle this would break if a user
-    manually changes the underlying compressed data by hand, but there is no
-    reason they would want to do that (and if they do that's their
-    responsibility).
-    """
-
-    _load_variable_length_data = False
-    """
-    We don't want to always load all the tiles so by setting this option
-    we can then access the tiles as needed.
     """
 
     _default_name = "COMPRESSED_IMAGE"
@@ -98,17 +83,18 @@ class CompImageHDU(BinTableHDU):
         data=None,
         header=None,
         name=None,
-        compression_type=DEFAULT_COMPRESSION_TYPE,
+        compression_type=None,
         tile_shape=None,
-        hcomp_scale=DEFAULT_HCOMP_SCALE,
-        hcomp_smooth=DEFAULT_HCOMP_SMOOTH,
-        quantize_level=DEFAULT_QUANTIZE_LEVEL,
-        quantize_method=DEFAULT_QUANTIZE_METHOD,
-        dither_seed=DEFAULT_DITHER_SEED,
+        hcomp_scale=None,
+        hcomp_smooth=None,
+        quantize_level=None,
+        quantize_method=None,
+        dither_seed=None,
         do_not_scale_image_data=False,
-        uint=False,
-        scale_back=False,
+        uint=True,
+        scale_back=None,
         tile_size=None,
+        bintable=None,
     ):
         """
         Parameters
@@ -312,7 +298,11 @@ class CompImageHDU(BinTableHDU):
         This is particularly useful for software testing as it ensures that the
         same image will always use the same seed.
         """
+        self._decompression_active = False
+
         compression_type = CMTYPE_ALIASES.get(compression_type, compression_type)
+
+        self._bintable = None
 
         if tile_shape is None and tile_size is not None:
             tile_shape = tuple(tile_size[::-1])
@@ -323,58 +313,103 @@ class CompImageHDU(BinTableHDU):
                 "alone should be used."
             )
 
-        if data is DELAYED:
-            # Reading the HDU from a file
-            super().__init__(data=data, header=header)
+        if data is DELAYED or bintable is not None:
+            super().__init__(
+                name=name,
+                do_not_scale_image_data=do_not_scale_image_data,
+                uint=uint,
+                scale_back=scale_back,
+            )
+
+            if data is DELAYED:
+                # Reading the HDU from a file
+                self._bintable = _CompBinTableHDU(
+                    data=data, header=CompImageHeader(header.cards)
+                )
+            else:
+                self._bintable = bintable
+                self._bintable._load_variable_length_data = False
+                self._bintable._manages_own_heap = True
+                self._bintable._new = False
+                self._bitpix = self._bintable.header["ZBITPIX"]
+
+            self._header = self._bintable_to_image_header()
+
+            self._orig_bscale = self._header.get("BSCALE", 1)
+            self._orig_bzero = self._header.get("BZERO", 0)
+            self._orig_bitpix = self._header.get("BITPIX")
+
+            self._axes = [
+                self._bintable.header.get("ZNAXIS" + str(axis + 1), 0)
+                for axis in range(self._bintable.header.get("ZNAXIS", 0))
+            ]
+
+            self.compression_type = self._bintable.header.get(
+                "ZCMPTYPE", DEFAULT_COMPRESSION_TYPE
+            )
+            self.tile_shape = tuple(_tile_shape(self._bintable.header))
+            self.hcomp_scale = int(
+                _get_compression_setting(bintable.header, "SCALE", DEFAULT_HCOMP_SCALE)
+            )
+            self.hcomp_smooth = _get_compression_setting(
+                bintable.header, "SMOOTH", DEFAULT_HCOMP_SMOOTH
+            )
+            self.quantize_level = _get_compression_setting(
+                bintable.header, "noisebit", DEFAULT_QUANTIZE_LEVEL
+            )
+            self.quantize_method = DITHER_METHODS[
+                bintable.header.get("ZQUANTIZ", "NO_DITHER")
+            ]
+            self.dither_seed = bintable.header.get("ZDITHER0", DEFAULT_DITHER_SEED)
+
+            self._decompression_active = True
+
         else:
             # Create at least a skeleton HDU that matches the input
             # header and data (if any were input)
-            super().__init__(data=None, header=header)
 
-            # Store the input image data
-            self.data = data
+            if header is not None:
+                bscale = header.get("BSCALE")
+                bzero = header.get("BZERO")
+                simple = header.get("SIMPLE")
 
-            # Update the table header (_header) to the compressed
-            # image format and to match the input data (if any);
-            # Create the image header (_image_header) from the input
-            # image header (if any) and ensure it matches the input
-            # data; Create the initially empty table data array to
-            # hold the compressed data.
-            self._update_header_data(
-                header,
-                name,
-                compression_type=compression_type,
-                tile_shape=tile_shape,
-                hcomp_scale=hcomp_scale,
-                hcomp_smooth=hcomp_smooth,
-                quantize_level=quantize_level,
-                quantize_method=quantize_method,
-                dither_seed=dither_seed,
+            super().__init__(
+                data=data,
+                header=CompImageHeader() if header is None else CompImageHeader(header),
+                name=name,
+                do_not_scale_image_data=do_not_scale_image_data,
+                uint=uint,
+                scale_back=scale_back,
             )
 
-        # TODO: A lot of this should be passed on to an internal image HDU o
-        # something like that, see ticket #88
-        self._do_not_scale_image_data = do_not_scale_image_data
-        self._uint = uint
-        self._scale_back = scale_back
+            if header is not None:
+                if bscale is not None:
+                    self.header["BSCALE"] = bscale
 
-        self._axes = [
-            self._header.get("ZNAXIS" + str(axis + 1), 0)
-            for axis in range(self._header.get("ZNAXIS", 0))
-        ]
+                if bzero is not None:
+                    self.header["BZERO"] = bzero
 
-        # store any scale factors from the table header
-        if do_not_scale_image_data:
-            self._bzero = 0
-            self._bscale = 1
-        else:
-            self._bzero = self._header.get("BZERO", 0)
-            self._bscale = self._header.get("BSCALE", 1)
-        self._bitpix = self._header["ZBITPIX"]
+                if simple is not None:
+                    self.header["SIMPLE"] = simple
 
-        self._orig_bzero = self._bzero
-        self._orig_bscale = self._bscale
-        self._orig_bitpix = self._bitpix
+            self.compression_type = compression_type or DEFAULT_COMPRESSION_TYPE
+            self.tile_shape = _validate_tile_shape(
+                tile_shape=tile_shape,
+                compression_type=self.compression_type,
+                image_header=self.header,
+            )
+            self.hcomp_scale = hcomp_scale or DEFAULT_HCOMP_SCALE
+            self.hcomp_smooth = hcomp_smooth or DEFAULT_HCOMP_SMOOTH
+            self.quantize_level = (
+                quantize_level if quantize_level is not None else DEFAULT_QUANTIZE_LEVEL
+            )
+            self.quantize_method = quantize_method or DEFAULT_QUANTIZE_METHOD
+            self.dither_seed = dither_seed or DEFAULT_DITHER_SEED
+
+            # TODO: just for parameter validation, e.g. tile shape - we shouldn't
+            # ideally need this and should instead validate the values as they are
+            # set above.
+            self._get_bintable_without_data()
 
     def _remove_unnecessary_default_extnames(self, header):
         """Remove default EXTNAME values if they are unnecessary.
