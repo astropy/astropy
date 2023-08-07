@@ -29,8 +29,8 @@ from astropy.utils import indent
 from astropy.utils.compat.optional_deps import HAS_BZ2
 from astropy.utils.exceptions import AstropyUserWarning
 
-from . import compressed
 from .base import ExtensionHDU, _BaseHDU, _NonstandardHDU, _ValidHDU
+from .compressed import compressed
 from .groups import GroupsHDU
 from .image import ImageHDU, PrimaryHDU
 
