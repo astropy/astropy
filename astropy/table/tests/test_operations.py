@@ -12,8 +12,8 @@ from astropy.coordinates import (
     BaseRepresentationOrDifferential,
     CartesianRepresentation,
     SkyCoord,
-    StokesCoord,
     SphericalRepresentation,
+    StokesCoord,
     UnitSphericalRepresentation,
     search_around_3d,
 )
