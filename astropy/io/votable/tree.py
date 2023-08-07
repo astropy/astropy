@@ -2774,7 +2774,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
                     self.array = self._parse_fits(iterator, extnum, config)
 
                 elif tag == "PARQUET":
-                    warn_unknown_attrs("PARQUET", data.keys(), config, pos)
+                    if (data["type"] != "Parquet-local-XML") & (data["type"] != "Parquet-partition-XML"):
+                        warn_unknown_attrs("PARQUET", data.keys(), config, pos)
                     self.array = self._parse_parquet(iterator, config)
 
                 else:
@@ -3113,6 +3114,9 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
                     encoding = data.get("encoding", None)
                 else:
                     break
+
+            else: # in this case, there is no STREAM, hence no file linked.
+                href = ""
 
         if not href.startswith(("http", "ftp", "file")):
             vo_raise(
