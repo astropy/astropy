@@ -517,7 +517,7 @@ class CompImageHDU(ImageHDU):
         if self.name:
             bintable.name = self.name
 
-    @lazyproperty
+    @property
     def data(self):
         """
         The decompressed data array.
@@ -527,27 +527,37 @@ class CompImageHDU(ImageHDU):
         not need to access the whole array, consider instead using the
         :attr:`~astropy.io.fits.CompImageHDU.section` property.
         """
-        if len(self.compressed_data) == 0:
+        # If there is no internal binary table, the HDU was not created from a
+        # file and therefore the data is just the one on the parent ImageHDU
+        # class
+        if not self._decompression_active:
+            return super().data
+        elif len(self._bintable.data) == 0:
             return None
 
-        # Since .section has general code to load any arbitrary part of the
-        # data, we can just use this - and the @lazyproperty on the current
-        # property will ensure that we do this only once.
-        data = self.section[...]
+        if getattr(self, "_decompressed_data", None) is not None:
+            return self._decompressed_data
 
-        # Right out of _ImageBaseHDU.data
-        self._update_header_scale_info(data.dtype)
+        # Since .section has general code to load any arbitrary part of the
+        # data, we can just use this
+        data = self._decompressed_data = self.section[...]
 
         return data
 
     @data.setter
     def data(self, data):
-        if (data is not None) and (
-            not isinstance(data, np.ndarray) or data.dtype.fields is not None
+        self._decompression_active = False
+        self._decompressed_data = None
+        ImageHDU.data.fset(self, data)
+        if (
+            data is not None
+            and hasattr(self, "tile_shape")
+            and len(self.tile_shape) != data.ndim
         ):
-            raise TypeError(
-                f"CompImageHDU data has incorrect type:{type(data)}; "
-                f"dtype.fields = {data.dtype.fields}"
+            self.tile_shape = _validate_tile_shape(
+                tile_shape=[],
+                compression_type=self.compression_type,
+                image_header=self.header,
             )
 
     @lazyproperty
