@@ -3,12 +3,10 @@
 import numpy as np
 
 from astropy.io import fits
-
 from astropy.io.fits.tests.test_checksum import BaseChecksumTests
 
 
 class TestChecksumFunctions(BaseChecksumTests):
-
     # All checksums have been verified against CFITSIO
 
     def test_compressed_image_data(self):

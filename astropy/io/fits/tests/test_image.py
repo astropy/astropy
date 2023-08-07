@@ -2,7 +2,6 @@
 
 import math
 import os
-import re
 import time
 
 import numpy as np

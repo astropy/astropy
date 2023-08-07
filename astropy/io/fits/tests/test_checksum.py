@@ -14,7 +14,6 @@ from .test_table import comparerecords
 
 
 class BaseChecksumTests(FitsTestCase):
-
     def setup_method(self):
         super().setup_method()
         self._oldfilters = warnings.filters[:]
