@@ -28,12 +28,12 @@ from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 # Import TimeFromEpoch to avoid breaking code that followed the old example of
 # making a custom timescale in the documentation.
-from .formats import TimeFromEpoch  # noqa: F401
 from .formats import (
     TIME_DELTA_FORMATS,
     TIME_FORMATS,
     TimeAstropyTime,
     TimeDatetime,
+    TimeFromEpoch,  # noqa: F401
     TimeJD,
     TimeUnique,
 )
