@@ -1,15 +1,39 @@
-# Licensed under a 3-clause BSD style license - see PYFITS.rst
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import itertools
 import re
 import warnings
 from contextlib import suppress
 
 from astropy.io.fits.card import Card
 from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
-from astropy.io.fits.column import TDEF_RE
+from astropy.io.fits.column import TDEF_RE, ColDefs, Column
 from astropy.io.fits.header import Header
+from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ["CompImageHeader", "_bintable_header_to_image_header"]
+from .settings import (
+    CMTYPE_ALIASES,
+    COMPRESSION_TYPES,
+    DEFAULT_BLOCK_SIZE,
+    DEFAULT_BYTE_PIX,
+    DEFAULT_COMPRESSION_TYPE,
+    DEFAULT_DITHER_SEED,
+    DEFAULT_HCOMP_SCALE,
+    DEFAULT_HCOMP_SMOOTH,
+    DEFAULT_QUANTIZE_LEVEL,
+    DEFAULT_QUANTIZE_METHOD,
+    NO_DITHER,
+    QUANTIZE_METHOD_NAMES,
+    SUBTRACTIVE_DITHER_1,
+    SUBTRACTIVE_DITHER_2,
+)
+from .utils import _validate_tile_shape
+
+__all__ = [
+    "CompImageHeader",
+    "_bintable_header_to_image_header",
+    "_image_header_to_bintable_header_and_coldefs",
+]
 
 
 class CompImageHeader(Header):
@@ -341,7 +365,6 @@ class CompImageHeader(Header):
 
 
 def _bintable_header_to_image_header(bintable_header):
-
     # Start with a copy of the table header.
     image_header = bintable_header.copy()
 
@@ -428,9 +451,7 @@ def _bintable_header_to_image_header(bintable_header):
     # Move the ZHECKSUM and ZDATASUM cards to the image header
     # as CHECKSUM and DATASUM
     if "ZHECKSUM" in bintable_header:
-        image_header.set(
-            "CHECKSUM", bintable_header["ZHECKSUM"], hcomments["ZHECKSUM"]
-        )
+        image_header.set("CHECKSUM", bintable_header["ZHECKSUM"], hcomments["ZHECKSUM"])
 
     if "ZDATASUM" in bintable_header:
         image_header.set("DATASUM", bintable_header["ZDATASUM"], hcomments["ZDATASUM"])
@@ -458,3 +479,545 @@ def _bintable_header_to_image_header(bintable_header):
 
     # Create the CompImageHeader that syncs with the table header
     return CompImageHeader(bintable_header, image_header)
+
+
+def _image_header_to_bintable_header_and_coldefs(
+    image_header,
+    generated_image_header,
+    bintable_header,
+    name=None,
+    huge_hdu=False,
+    compression_type=None,
+    tile_shape=None,
+    hcomp_scale=None,
+    hcomp_smooth=None,
+    quantize_level=None,
+    quantize_method=None,
+    dither_seed=None,
+    axes=None,
+    generate_dither_seed=None,
+):
+    # NOTE: image_header is the header that a user would see as the image
+    # header which they might have set things like BSCALE and BZERO on, or
+    # added history or comments to. Whereas generated_image_header is the
+    # image header as converted/generated from the existing binary table HDU.
+
+    # Update the extension name in the table header
+    if not name and "EXTNAME" not in bintable_header:
+        # Do not sync this with the image header since the default
+        # name is specific to the table header.
+        bintable_header.set(
+            "EXTNAME",
+            "COMPRESSED_IMAGE",
+            "name of this binary table extension",
+            after="TFIELDS",
+        )
+
+    # Set the compression type in the table header.
+    if compression_type:
+        if compression_type not in COMPRESSION_TYPES:
+            warnings.warn(
+                "Unknown compression type provided (supported are {}). "
+                "Default ({}) compression will be used.".format(
+                    ", ".join(map(repr, COMPRESSION_TYPES)),
+                    DEFAULT_COMPRESSION_TYPE,
+                ),
+                AstropyUserWarning,
+            )
+            compression_type = DEFAULT_COMPRESSION_TYPE
+
+        bintable_header.set(
+            "ZCMPTYPE", compression_type, "compression algorithm", after="TFIELDS"
+        )
+    else:
+        compression_type = CMTYPE_ALIASES.get(compression_type, compression_type)
+
+    # If the input image header had BSCALE/BZERO cards, then insert
+    # them in the table header.
+
+    if image_header:
+        bzero = image_header.get("BZERO", 0.0)
+        bscale = image_header.get("BSCALE", 1.0)
+        after_keyword = "EXTNAME"
+
+        if bscale != 1.0:
+            bintable_header.set("BSCALE", bscale, after=after_keyword)
+            after_keyword = "BSCALE"
+
+        if bzero != 0.0:
+            bintable_header.set("BZERO", bzero, after=after_keyword)
+
+    try:
+        bitpix_comment = image_header.comments["BITPIX"]
+    except (AttributeError, KeyError):
+        bitpix_comment = "data type of original image"
+
+    try:
+        naxis_comment = image_header.comments["NAXIS"]
+    except (AttributeError, KeyError):
+        naxis_comment = "dimension of original image"
+
+    # Set the label for the first column in the table
+
+    bintable_header.set(
+        "TTYPE1", "COMPRESSED_DATA", "label for field 1", after="TFIELDS"
+    )
+
+    # Set the data format for the first column.  It is dependent
+    # on the requested compression type.
+
+    if compression_type == "PLIO_1":
+        tform1 = "1QI" if huge_hdu else "1PI"
+    else:
+        tform1 = "1QB" if huge_hdu else "1PB"
+
+    bintable_header.set(
+        "TFORM1",
+        tform1,
+        "data format of field: variable length array",
+        after="TTYPE1",
+    )
+
+    # Create the first column for the table.  This column holds the
+    # compressed data.
+    col1 = Column(name=bintable_header["TTYPE1"], format=tform1)
+
+    # Create the additional columns required for floating point
+    # data and calculate the width of the output table.
+
+    zbitpix = generated_image_header["BITPIX"]
+
+    if zbitpix < 0 and quantize_level != 0.0:
+        # floating point image has 'COMPRESSED_DATA',
+        # 'UNCOMPRESSED_DATA', 'ZSCALE', and 'ZZERO' columns (unless using
+        # lossless compression, per CFITSIO)
+        ncols = 4
+
+        # CFITSIO 3.28 and up automatically use the GZIP_COMPRESSED_DATA
+        # store floating point data that couldn't be quantized, instead
+        # of the UNCOMPRESSED_DATA column.  There's no way to control
+        # this behavior so the only way to determine which behavior will
+        # be employed is via the CFITSIO version
+
+        ttype2 = "GZIP_COMPRESSED_DATA"
+        # The required format for the GZIP_COMPRESSED_DATA is actually
+        # missing from the standard docs, but CFITSIO suggests it
+        # should be 1PB, which is logical.
+        tform2 = "1QB" if huge_hdu else "1PB"
+
+        # Set up the second column for the table that will hold any
+        # uncompressable data.
+        bintable_header.set("TTYPE2", ttype2, "label for field 2", after="TFORM1")
+
+        bintable_header.set(
+            "TFORM2",
+            tform2,
+            "data format of field: variable length array",
+            after="TTYPE2",
+        )
+
+        col2 = Column(name=ttype2, format=tform2)
+
+        # Set up the third column for the table that will hold
+        # the scale values for quantized data.
+        bintable_header.set("TTYPE3", "ZSCALE", "label for field 3", after="TFORM2")
+        bintable_header.set(
+            "TFORM3", "1D", "data format of field: 8-byte DOUBLE", after="TTYPE3"
+        )
+        col3 = Column(name=bintable_header["TTYPE3"], format=bintable_header["TFORM3"])
+
+        # Set up the fourth column for the table that will hold
+        # the zero values for the quantized data.
+        bintable_header.set("TTYPE4", "ZZERO", "label for field 4", after="TFORM3")
+        bintable_header.set(
+            "TFORM4", "1D", "data format of field: 8-byte DOUBLE", after="TTYPE4"
+        )
+        after = "TFORM4"
+        col4 = Column(name=bintable_header["TTYPE4"], format=bintable_header["TFORM4"])
+
+        # Create the ColDefs object for the table
+        cols = ColDefs([col1, col2, col3, col4])
+    else:
+        # default table has just one 'COMPRESSED_DATA' column
+        ncols = 1
+        after = "TFORM1"
+
+        # remove any header cards for the additional columns that
+        # may be left over from the previous data
+        to_remove = ["TTYPE2", "TFORM2", "TTYPE3", "TFORM3", "TTYPE4", "TFORM4"]
+
+        for k in to_remove:
+            try:
+                del bintable_header[k]
+            except KeyError:
+                pass
+
+        # Create the ColDefs object for the table
+        cols = ColDefs([col1])
+
+    # Update the table header with the width of the table, the
+    # number of fields in the table, the indicator for a compressed
+    # image HDU, the data type of the image data and the number of
+    # dimensions in the image data array.
+    bintable_header.set("NAXIS1", cols.dtype.itemsize, "width of table in bytes")
+    bintable_header.set(
+        "TFIELDS", ncols, "number of fields in each row", after="GCOUNT"
+    )
+    bintable_header.set(
+        "ZIMAGE", True, "extension contains compressed image", after=after
+    )
+    bintable_header.set("ZBITPIX", zbitpix, bitpix_comment, after="ZIMAGE")
+    bintable_header.set(
+        "ZNAXIS", generated_image_header["NAXIS"], naxis_comment, after="ZBITPIX"
+    )
+
+    # Strip the table header of all the ZNAZISn and ZTILEn keywords
+    # that may be left over from the previous data
+
+    for idx in itertools.count(1):
+        try:
+            del bintable_header["ZNAXIS" + str(idx)]
+            del bintable_header["ZTILE" + str(idx)]
+        except KeyError:
+            break
+
+    # Verify that any input tile size parameter is the appropriate
+    # size to match the HDU's data.
+
+    tile_shape = _validate_tile_shape(
+        tile_shape=tile_shape,
+        compression_type=compression_type,
+        image_header=generated_image_header,
+    )
+
+    # Set up locations for writing the next cards in the header.
+    last_znaxis = "ZNAXIS"
+
+    if generated_image_header["NAXIS"] > 0:
+        after1 = "ZNAXIS1"
+    else:
+        after1 = "ZNAXIS"
+
+    # Calculate the number of rows in the output table and
+    # write the ZNAXISn and ZTILEn cards to the table header.
+    nrows = 0
+
+    for idx, axis in enumerate(axes):
+        naxis = "NAXIS" + str(idx + 1)
+        znaxis = "ZNAXIS" + str(idx + 1)
+        ztile = "ZTILE" + str(idx + 1)
+
+        ts = tile_shape[len(axes) - 1 - idx]
+
+        if not nrows:
+            nrows = (axis - 1) // ts + 1
+        else:
+            nrows *= (axis - 1) // ts + 1
+
+        if image_header and naxis in image_header:
+            bintable_header.set(
+                znaxis, axis, image_header.comments[naxis], after=last_znaxis
+            )
+        else:
+            bintable_header.set(
+                znaxis, axis, "length of original image axis", after=last_znaxis
+            )
+
+        bintable_header.set(ztile, ts, "size of tiles to be compressed", after=after1)
+        last_znaxis = znaxis
+        after1 = ztile
+
+    # Set the NAXIS2 header card in the table hdu to the number of
+    # rows in the table.
+    bintable_header.set("NAXIS2", nrows, "number of rows in table")
+
+    # Set the compression parameters in the table header.
+
+    # First, setup the values to be used for the compression parameters
+    # in case none were passed in.  This will be either the value
+    # already in the table header for that parameter or the default
+    # value.
+    for idx in itertools.count(1):
+        zname = "ZNAME" + str(idx)
+        if zname not in bintable_header:
+            break
+        zval = "ZVAL" + str(idx)
+        if bintable_header[zname] == "NOISEBIT":
+            if quantize_level is None:
+                quantize_level = bintable_header[zval]
+        if bintable_header[zname] == "SCALE   ":
+            if hcomp_scale is None:
+                hcomp_scale = bintable_header[zval]
+        if bintable_header[zname] == "SMOOTH  ":
+            if hcomp_smooth is None:
+                hcomp_smooth = bintable_header[zval]
+
+    if quantize_level is None:
+        quantize_level = DEFAULT_QUANTIZE_LEVEL
+
+    if hcomp_scale is None:
+        hcomp_scale = DEFAULT_HCOMP_SCALE
+
+    if hcomp_smooth is None:
+        hcomp_smooth = DEFAULT_HCOMP_SMOOTH
+
+    # Next, strip the table header of all the ZNAMEn and ZVALn keywords
+    # that may be left over from the previous data
+    for idx in itertools.count(1):
+        zname = "ZNAME" + str(idx)
+        if zname not in bintable_header:
+            break
+        zval = "ZVAL" + str(idx)
+        del bintable_header[zname]
+        del bintable_header[zval]
+
+    # Finally, put the appropriate keywords back based on the
+    # compression type.
+
+    after_keyword = "ZCMPTYPE"
+    idx = 1
+
+    if compression_type == "RICE_1":
+        bintable_header.set(
+            "ZNAME1", "BLOCKSIZE", "compression block size", after=after_keyword
+        )
+        bintable_header.set(
+            "ZVAL1", DEFAULT_BLOCK_SIZE, "pixels per block", after="ZNAME1"
+        )
+
+        bintable_header.set(
+            "ZNAME2", "BYTEPIX", "bytes per pixel (1, 2, 4, or 8)", after="ZVAL1"
+        )
+
+        if bintable_header["ZBITPIX"] == 8:
+            bytepix = 1
+        elif bintable_header["ZBITPIX"] == 16:
+            bytepix = 2
+        else:
+            bytepix = DEFAULT_BYTE_PIX
+
+        bintable_header.set(
+            "ZVAL2", bytepix, "bytes per pixel (1, 2, 4, or 8)", after="ZNAME2"
+        )
+        after_keyword = "ZVAL2"
+        idx = 3
+    elif compression_type == "HCOMPRESS_1":
+        bintable_header.set(
+            "ZNAME1", "SCALE", "HCOMPRESS scale factor", after=after_keyword
+        )
+        bintable_header.set(
+            "ZVAL1", hcomp_scale, "HCOMPRESS scale factor", after="ZNAME1"
+        )
+        bintable_header.set(
+            "ZNAME2", "SMOOTH", "HCOMPRESS smooth option", after="ZVAL1"
+        )
+        bintable_header.set(
+            "ZVAL2", hcomp_smooth, "HCOMPRESS smooth option", after="ZNAME2"
+        )
+        after_keyword = "ZVAL2"
+        idx = 3
+
+    if generated_image_header["BITPIX"] < 0:  # floating point image
+        bintable_header.set(
+            "ZNAME" + str(idx),
+            "NOISEBIT",
+            "floating point quantization level",
+            after=after_keyword,
+        )
+        bintable_header.set(
+            "ZVAL" + str(idx),
+            quantize_level,
+            "floating point quantization level",
+            after="ZNAME" + str(idx),
+        )
+
+        # Add the dither method and seed
+        if quantize_method:
+            if quantize_method not in [
+                NO_DITHER,
+                SUBTRACTIVE_DITHER_1,
+                SUBTRACTIVE_DITHER_2,
+            ]:
+                name = QUANTIZE_METHOD_NAMES[DEFAULT_QUANTIZE_METHOD]
+                warnings.warn(
+                    "Unknown quantization method provided.  "
+                    "Default method ({}) used.".format(name)
+                )
+                quantize_method = DEFAULT_QUANTIZE_METHOD
+
+            if quantize_method == NO_DITHER:
+                zquantiz_comment = "No dithering during quantization"
+            else:
+                zquantiz_comment = "Pixel Quantization Algorithm"
+
+            bintable_header.set(
+                "ZQUANTIZ",
+                QUANTIZE_METHOD_NAMES[quantize_method],
+                zquantiz_comment,
+                after="ZVAL" + str(idx),
+            )
+        else:
+            # If the ZQUANTIZ keyword is missing the default is to assume
+            # no dithering, rather than whatever DEFAULT_QUANTIZE_METHOD
+            # is set to
+            quantize_method = bintable_header.get("ZQUANTIZ", NO_DITHER)
+
+            if isinstance(quantize_method, str):
+                for k, v in QUANTIZE_METHOD_NAMES.items():
+                    if v.upper() == quantize_method:
+                        quantize_method = k
+                        break
+                else:
+                    quantize_method = NO_DITHER
+
+        if quantize_method == NO_DITHER:
+            if "ZDITHER0" in bintable_header:
+                # If dithering isn't being used then there's no reason to
+                # keep the ZDITHER0 keyword
+                del bintable_header["ZDITHER0"]
+        else:
+            if dither_seed:
+                dither_seed = generate_dither_seed(dither_seed)
+            elif "ZDITHER0" in bintable_header:
+                dither_seed = bintable_header["ZDITHER0"]
+            else:
+                dither_seed = generate_dither_seed(DEFAULT_DITHER_SEED)
+
+            bintable_header.set(
+                "ZDITHER0",
+                dither_seed,
+                "dithering offset when quantizing floats",
+                after="ZQUANTIZ",
+            )
+
+    if image_header:
+        # Move SIMPLE card from the image header to the
+        # table header as ZSIMPLE card.
+
+        if "SIMPLE" in image_header:
+            bintable_header.set(
+                "ZSIMPLE",
+                image_header["SIMPLE"],
+                image_header.comments["SIMPLE"],
+                before="ZBITPIX",
+            )
+
+        # Move EXTEND card from the image header to the
+        # table header as ZEXTEND card.
+
+        if "EXTEND" in image_header:
+            bintable_header.set(
+                "ZEXTEND", image_header["EXTEND"], image_header.comments["EXTEND"]
+            )
+
+        # Move BLOCKED card from the image header to the
+        # table header as ZBLOCKED card.
+
+        if "BLOCKED" in image_header:
+            bintable_header.set(
+                "ZBLOCKED",
+                image_header["BLOCKED"],
+                image_header.comments["BLOCKED"],
+            )
+
+        # Move XTENSION card from the image header to the
+        # table header as ZTENSION card.
+
+        # Since we only handle compressed IMAGEs, ZTENSION should
+        # always be IMAGE, even if the caller has passed in a header
+        # for some other type of extension.
+        if "XTENSION" in image_header:
+            bintable_header.set(
+                "ZTENSION",
+                "IMAGE",
+                image_header.comments["XTENSION"],
+                before="ZBITPIX",
+            )
+
+        # Move PCOUNT and GCOUNT cards from image header to the table
+        # header as ZPCOUNT and ZGCOUNT cards.
+
+        if "PCOUNT" in image_header:
+            bintable_header.set(
+                "ZPCOUNT",
+                image_header["PCOUNT"],
+                image_header.comments["PCOUNT"],
+                after=last_znaxis,
+            )
+
+        if "GCOUNT" in image_header:
+            bintable_header.set(
+                "ZGCOUNT",
+                image_header["GCOUNT"],
+                image_header.comments["GCOUNT"],
+                after="ZPCOUNT",
+            )
+
+        # Move CHECKSUM and DATASUM cards from the image header to the
+        # table header as XHECKSUM and XDATASUM cards.
+
+        if "CHECKSUM" in image_header:
+            bintable_header.set(
+                "ZHECKSUM",
+                image_header["CHECKSUM"],
+                image_header.comments["CHECKSUM"],
+            )
+
+        if "DATASUM" in image_header:
+            bintable_header.set(
+                "ZDATASUM",
+                image_header["DATASUM"],
+                image_header.comments["DATASUM"],
+            )
+    else:
+        # Move XTENSION card from the image header to the
+        # table header as ZTENSION card.
+
+        # Since we only handle compressed IMAGEs, ZTENSION should
+        # always be IMAGE, even if the caller has passed in a header
+        # for some other type of extension.
+        if "XTENSION" in generated_image_header:
+            bintable_header.set(
+                "ZTENSION",
+                "IMAGE",
+                generated_image_header.comments["XTENSION"],
+                before="ZBITPIX",
+            )
+
+        # Move PCOUNT and GCOUNT cards from image header to the table
+        # header as ZPCOUNT and ZGCOUNT cards.
+
+        if "PCOUNT" in generated_image_header:
+            bintable_header.set(
+                "ZPCOUNT",
+                generated_image_header["PCOUNT"],
+                generated_image_header.comments["PCOUNT"],
+                after=last_znaxis,
+            )
+
+        if "GCOUNT" in generated_image_header:
+            bintable_header.set(
+                "ZGCOUNT",
+                generated_image_header["GCOUNT"],
+                generated_image_header.comments["GCOUNT"],
+                after="ZPCOUNT",
+            )
+
+    # When we have an image checksum we need to ensure that the same
+    # number of blank cards exist in the table header as there were in
+    # the image header.  This allows those blank cards to be carried
+    # over to the image header when the hdu is uncompressed.
+
+    if "ZHECKSUM" in bintable_header:
+        required_blanks = image_header._countblanks()
+        image_blanks = generated_image_header._countblanks()
+        table_blanks = bintable_header._countblanks()
+
+        for _ in range(required_blanks - image_blanks):
+            generated_image_header.append()
+            table_blanks += 1
+
+        for _ in range(required_blanks - table_blanks):
+            bintable_header.append()
+
+    return bintable_header, cols
