@@ -347,7 +347,7 @@ def _convert_global_time(table, global_info):
         Global time reference frame information.
     """
     # Read in Global Informational keywords as Time
-    for key in global_info.keys():
+    for key in global_info:
         # FITS uses a subset of ISO-8601 for DATE-xxx
         if key not in table.meta:
             try:

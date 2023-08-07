@@ -508,17 +508,17 @@ class Ipac(basic.Basic):
         # Write header and data to lines list
         lines = []
         # Write meta information
-        if "comments" in table.meta:
-            for comment in table.meta["comments"]:
-                if len(str(comment)) > 78:
-                    warn(
-                        "Comment string > 78 characters was automatically wrapped.",
-                        AstropyUserWarning,
-                    )
-                for line in wrap(
-                    str(comment), 80, initial_indent="\\ ", subsequent_indent="\\ "
-                ):
-                    lines.append(line)  # noqa: PERF402
+        raw_comments = table.meta.get("comments", [])
+        for comment in raw_comments:
+            lines.extend(
+                wrap(str(comment), 80, initial_indent="\\ ", subsequent_indent="\\ ")
+            )
+        if len(lines) > len(raw_comments):
+            warn(
+                "Wrapping comment lines > 78 characters produced "
+                f"{len(lines) - len(raw_comments)} extra line(s)",
+                AstropyUserWarning,
+            )
         if "keywords" in table.meta:
             keydict = table.meta["keywords"]
             for keyword in keydict:

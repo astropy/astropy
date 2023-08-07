@@ -816,7 +816,6 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             and isinstance(differential_class, type)
             and issubclass(differential_class, BaseDifferential)
         ):
-            # TODO: is there a better way to do this?
             differential_class = {
                 next(iter(self.differentials.keys())): differential_class
             }
