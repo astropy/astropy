@@ -19,9 +19,9 @@ class TestChecksumFunctions(BaseChecksumTests):
                 assert "DATASUM" in h2[0].header
                 assert h2[0].header["DATASUM"] == "0"
                 assert "CHECKSUM" in h2[1].header
-                assert h2[1].header["CHECKSUM"] == "ZeAbdb8aZbAabb7a"
+                assert h2[1].header["CHECKSUM"] == "D2GXD29VD2EVD29V"
                 assert "DATASUM" in h2[1].header
-                assert h2[1].header["DATASUM"] == "113055149"
+                assert h2[1].header["DATASUM"] == "2189405276"
 
     def test_failing_compressed_datasum(self):
         """
@@ -49,13 +49,13 @@ class TestChecksumFunctions(BaseChecksumTests):
             assert hdul[0].header["DATASUM"] == "0"
 
             assert "CHECKSUM" in hdul[1].header
-            assert hdul[1]._header["CHECKSUM"] == "J5cCJ5c9J5cAJ5c9"
+            assert hdul[1].header["CHECKSUM"] == "ZE94eE91ZE91bE91"
             assert "DATASUM" in hdul[1].header
-            assert hdul[1]._header["DATASUM"] == "2453673070"
+            assert hdul[1].header["DATASUM"] == "160565700"
             assert "CHECKSUM" in hdul[1].header
 
             with fits.open(self.temp("uncomp.fits"), checksum=True) as hdul2:
-                header_comp = hdul[1]._header
+                header_comp = hdul[1]._bintable.header
                 header_uncomp = hdul2[1].header
                 assert "ZHECKSUM" in header_comp
                 assert "CHECKSUM" in header_uncomp
@@ -90,7 +90,7 @@ class TestChecksumFunctions(BaseChecksumTests):
             # assert hdul[1]._header['DATASUM'] == '1277667818'
 
             with fits.open(self.temp("uncomp.fits"), checksum=True) as hdul2:
-                header_comp = hdul[1]._header
+                header_comp = hdul[1]._bintable.header
                 header_uncomp = hdul2[1].header
                 assert "ZHECKSUM" in header_comp
                 assert "CHECKSUM" in header_uncomp
