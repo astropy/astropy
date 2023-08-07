@@ -2,6 +2,8 @@
 
 """Preloaded cosmologies. See ``available``."""
 
+from __future__ import annotations
+
 __all__ = [  # noqa: F822 (undefined name)
     "available",
     "default_cosmology",
@@ -19,7 +21,6 @@ __all__ = [  # noqa: F822 (undefined name)
 # STDLIB
 import pathlib
 import sys
-from typing import Optional, Union
 
 # LOCAL
 from astropy.utils.data import get_pkg_data_path
@@ -118,7 +119,7 @@ class default_cosmology(ScienceState):
         return value
 
     @classmethod
-    def validate(cls, value: Union[Cosmology, str, None]) -> Optional[Cosmology]:
+    def validate(cls, value: Cosmology | str | None) -> Cosmology | None:
         """Return a Cosmology given a value.
 
         Parameters
