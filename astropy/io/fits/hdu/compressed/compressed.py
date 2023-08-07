@@ -517,30 +517,6 @@ class CompImageHDU(ImageHDU):
         if self.name:
             bintable.name = self.name
 
-    def _scale_data(self, data):
-        if self._orig_bzero != 0 or self._orig_bscale != 1:
-            new_dtype = self._dtype_for_bitpix()
-            data = np.array(data, dtype=new_dtype)
-
-            if "BLANK" in self._header:
-                blanks = data == np.array(self._header["BLANK"], dtype="int32")
-            else:
-                blanks = None
-
-            if self._orig_bscale != 1:
-                np.multiply(data, self._orig_bscale, data)
-            if self._orig_bzero != 0:
-                # We have to explicitly cast self._bzero to prevent numpy from
-                # raising an error when doing self.data += self._bzero, and we
-                # do this instead of self.data = self.data + self._bzero to
-                # avoid doubling memory usage.
-                np.add(data, self._orig_bzero, out=data, casting="unsafe")
-
-            if blanks is not None:
-                data = np.where(blanks, np.nan, data)
-
-        return data
-
     @lazyproperty
     def data(self):
         """
