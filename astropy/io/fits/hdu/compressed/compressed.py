@@ -32,9 +32,9 @@ from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.shapes import simplify_basic_index
 
-from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU
-from .image import ImageHDU
-from .table import BinTableHDU
+from astropy.io.fits.hdu.base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU
+from astropy.io.fits.hdu.image import ImageHDU
+from astropy.io.fits.hdu.table import BinTableHDU
 
 # This global variable is used e.g., when calling fits.open with
 # disable_image_compression which temporarily changes the global variable to
