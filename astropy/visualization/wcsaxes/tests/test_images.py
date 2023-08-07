@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import matplotlib.lines
-import matplotlib.text
 import matplotlib.pyplot as plt
+import matplotlib.text
 import numpy as np
 import pytest
 from matplotlib import rc_context
