@@ -7,8 +7,15 @@ import warnings
 
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
-from . import imperial  # for bkwd compat #11975 and #11977  # noqa: F401
-from . import astrophys, cgs, core, misc, quantity, si
+from . import (
+    astrophys,
+    cgs,
+    core,
+    imperial,  # for bkwd compat #11975 and #11977  # noqa: F401
+    misc,
+    quantity,
+    si,
+)
 
 __all__ = ["def_physical_type", "get_physical_type", "PhysicalType"]
 
