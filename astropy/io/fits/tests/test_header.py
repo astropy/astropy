@@ -3211,3 +3211,84 @@ def test_subclass():
     assert copy_.comments["c"] == "no comment"
     my_header.extend((("d", 4.0),))
     assert my_header.comments["d"] == "no comment"
+
+
+class HeaderWithValidation(fits.Header):
+    @classmethod
+    def _validate_card(cls, card):
+        if card.keyword.startswith("B") or card.keyword == "ABC":
+            raise ValueError("Keyword cannot start with a 'B' or be 'ABC'")
+
+        if isinstance(card.value, (int, float)) and card.value < 0:
+            warnings.warn("Value cannot be negative, ignoring", UserWarning)
+            return None
+
+        if card.comment is not None and card.comment.lower() != card.comment:
+            warnings.warn("Comment should be lowercase, fixing", UserWarning)
+            card.comment = card.comment.lower()
+
+        if card.keyword == "Z":
+            card = fits.Card("ZZ", 1, "new comment")
+
+        return card
+
+
+class TestHeaderKeywordValidation:
+    def setup_method(self, method):
+        self.header = HeaderWithValidation()
+        self.header["A"] = 1
+        self.header["C"] = 2
+
+    def test_set_valid(self):
+        self.header["D"] = 3
+
+    def test_insert_valid(self):
+        self.header.insert(0, "F")
+        self.header.insert(0, ("E", 10))
+        self.header.insert(0, ("G", 20, "comment"))
+        self.header.insert(0, ("Z", 30, "comment"))
+        assert "F" in self.header
+        assert self.header["E"] == 10
+        assert self.header["G"] == 20
+        assert self.header["ZZ"] == 1
+
+    def test_append_valid(self):
+        self.header.append("F")
+        self.header.append(("E", 10))
+        self.header.append(("G", 20, "comment"))
+        self.header.append(("Z", 30, "comment"))
+        assert "F" in self.header
+        assert self.header["E"] == 10
+        assert self.header["G"] == 20
+        assert self.header["ZZ"] == 1
+
+    def test_set_invalid(self):
+        with pytest.raises(ValueError, match="Keyword cannot start with"):
+            self.header["BANANA"] = 3
+        assert "BANANA" not in self.header
+
+    def test_insert_invalid(self):
+        with pytest.raises(ValueError, match="Keyword cannot start with"):
+            self.header.insert(0, "BOAT")
+        assert "BOAT" not in self.header
+
+        with pytest.warns(UserWarning, match="Value cannot be negative"):
+            self.header.insert(0, ("E", -10))
+        assert "E" not in self.header
+
+        with pytest.warns(UserWarning, match="Comment should be lowercase"):
+            self.header.insert(0, ("G", 10, "Comment"))
+        assert self.header.comments["G"] == "comment"
+
+    def test_append_invalid(self):
+        with pytest.raises(ValueError, match="Keyword cannot start with"):
+            self.header.append("BOAT")
+        assert "BOAT" not in self.header
+
+        with pytest.warns(UserWarning, match="Value cannot be negative"):
+            self.header.append(("E", -10))
+        assert "E" not in self.header
+
+        with pytest.warns(UserWarning, match="Comment should be lowercase"):
+            self.header.append(("G", 10, "Comment"))
+        assert self.header.comments["G"] == "comment"
