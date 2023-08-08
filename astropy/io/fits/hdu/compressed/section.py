@@ -60,7 +60,12 @@ class CompImageSection:
             first_tile_index = np.zeros(self._n_dim, dtype=int)
             last_tile_index = self._n_tiles - 1
             data = decompress_image_data_section(
-                self.hdu._bintable.data, self.hdu.compression_type, self.hdu._bintable.header, self.hdu._bintable, first_tile_index, last_tile_index,
+                self.hdu._bintable.data,
+                self.hdu.compression_type,
+                self.hdu._bintable.header,
+                self.hdu._bintable,
+                first_tile_index,
+                last_tile_index,
             )
             if self.hdu._do_not_scale_image_data:
                 return data
@@ -110,7 +115,12 @@ class CompImageSection:
                 )
 
         data = decompress_image_data_section(
-            self.hdu._bintable.data, self.hdu.compression_type, self.hdu._bintable.header, self.hdu._bintable, first_tile_index, last_tile_index,
+            self.hdu._bintable.data,
+            self.hdu.compression_type,
+            self.hdu._bintable.header,
+            self.hdu._bintable,
+            first_tile_index,
+            last_tile_index,
         )
 
         data = data[tuple(final_array_index)]

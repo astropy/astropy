@@ -31,7 +31,6 @@ from astropy.utils.compat.optional_deps import HAS_BZ2
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .base import ExtensionHDU, _BaseHDU, _NonstandardHDU, _ValidHDU
-from .compressed import compressed
 from .groups import GroupsHDU
 from .image import ImageHDU, PrimaryHDU
 
@@ -1333,7 +1332,11 @@ class HDUList(list, _Verify):
                     if isinstance(hdu, BinTableHDU) and CompImageHDU.match_header(
                         hdu.header
                     ):
-                        hdu = CompImageHDU(bintable=hdu)
+                        kwargs_comp = {}
+                        for key in ("scale_back", "uint", "do_not_scale_image_data"):
+                            if key in kwargs:
+                                kwargs_comp[key] = kwargs[key]
+                        hdu = CompImageHDU(bintable=hdu, **kwargs_comp)
 
                 super().append(hdu)
                 if len(self) == 1:

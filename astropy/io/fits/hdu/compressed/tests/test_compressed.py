@@ -498,10 +498,10 @@ class TestCompressedImage(FitsTestCase):
             test_set_keyword(hdr, "ZCMPTYPE", "ASDF")
             test_set_keyword(hdr, "ZVAL1", "Foo")
 
-    def test_compression_header_append(self):
+    def test_compression_header_append(self, tmp_path):
         with fits.open(self.data("comp.fits")) as hdul:
             imghdr = hdul[1].header
-            tblhdr = hdul[1]._header
+
             with pytest.warns(UserWarning, match="Keyword 'TFIELDS' is reserved") as w:
                 imghdr.append("TFIELDS")
             assert len(w) == 1
@@ -510,12 +510,21 @@ class TestCompressedImage(FitsTestCase):
             imghdr.append(("FOO", "bar", "qux"), end=True)
             assert "FOO" in imghdr
             assert imghdr[-1] == "bar"
-            assert "FOO" in tblhdr
-            assert tblhdr[-1] == "bar"
 
             imghdr.append(("CHECKSUM", "abcd1234"))
             assert "CHECKSUM" in imghdr
             assert imghdr["CHECKSUM"] == "abcd1234"
+
+            hdul.writeto(tmp_path / "updated.fits")
+
+        with fits.open(
+            tmp_path / "updated.fits", disable_image_compression=True
+        ) as hdulc:
+            tblhdr = hdulc[1].header
+
+            assert "FOO" in tblhdr
+            assert tblhdr["FOO"] == "bar"
+
             assert "CHECKSUM" not in tblhdr
             assert "ZHECKSUM" in tblhdr
             assert tblhdr["ZHECKSUM"] == "abcd1234"
@@ -534,23 +543,20 @@ class TestCompressedImage(FitsTestCase):
             header.append(("Q1_OSSTD", 1, "[adu] quadrant 1 overscan stddev"))
             header.append(("Q1_OSMED", 1, "[adu] quadrant 1 overscan median"))
 
-    def test_compression_header_insert(self):
+    def test_compression_header_insert(self, tmp_path):
         with fits.open(self.data("comp.fits")) as hdul:
             imghdr = hdul[1].header
-            tblhdr = hdul[1]._header
+
             # First try inserting a restricted keyword
             with pytest.warns(UserWarning, match="Keyword 'TFIELDS' is reserved") as w:
                 imghdr.insert(1000, "TFIELDS")
             assert len(w) == 1
             assert "TFIELDS" not in imghdr
-            assert tblhdr.count("TFIELDS") == 1
 
             # First try keyword-relative insert
             imghdr.insert("TELESCOP", ("OBSERVER", "Phil Plait"))
             assert "OBSERVER" in imghdr
             assert imghdr.index("OBSERVER") == imghdr.index("TELESCOP") - 1
-            assert "OBSERVER" in tblhdr
-            assert tblhdr.index("OBSERVER") == tblhdr.index("TELESCOP") - 1
 
             # Next let's see if an index-relative insert winds up being
             # sensible
@@ -558,40 +564,62 @@ class TestCompressedImage(FitsTestCase):
             imghdr.insert("OBSERVER", ("FOO",))
             assert "FOO" in imghdr
             assert imghdr.index("FOO") == idx
+
+            hdul.writeto(tmp_path / "updated.fits")
+
+        with fits.open(
+            tmp_path / "updated.fits", disable_image_compression=True
+        ) as hdulc:
+            tblhdr = hdulc[1].header
+
+            assert tblhdr.count("TFIELDS") == 1
+
+            assert "OBSERVER" in tblhdr
+            assert tblhdr.index("OBSERVER") == tblhdr.index("TELESCOP") - 1
+
             assert "FOO" in tblhdr
             assert tblhdr.index("FOO") == tblhdr.index("OBSERVER") - 1
 
-    def test_compression_header_set_before_after(self):
+    def test_compression_header_set_before_after(self, tmp_path):
         with fits.open(self.data("comp.fits")) as hdul:
             imghdr = hdul[1].header
-            tblhdr = hdul[1]._header
 
             with pytest.warns(UserWarning, match="Keyword 'ZBITPIX' is reserved ") as w:
                 imghdr.set("ZBITPIX", 77, "asdf", after="XTENSION")
             assert len(w) == 1
             assert "ZBITPIX" not in imghdr
+
+            hdul.writeto(tmp_path / "updated1.fits")
+
+        with fits.open(
+            tmp_path / "updated1.fits", disable_image_compression=True
+        ) as hdulc:
+            tblhdr = hdulc[1].header
+
             assert tblhdr.count("ZBITPIX") == 1
             assert tblhdr["ZBITPIX"] != 77
 
-            # Move GCOUNT before PCOUNT (not that there's any reason you'd
-            # *want* to do that, but it's just a test...)
-            imghdr.set("GCOUNT", 99, before="PCOUNT")
-            assert imghdr.index("GCOUNT") == imghdr.index("PCOUNT") - 1
-            assert imghdr["GCOUNT"] == 99
-            assert tblhdr.index("ZGCOUNT") == tblhdr.index("ZPCOUNT") - 1
-            assert tblhdr["ZGCOUNT"] == 99
-            assert tblhdr.index("PCOUNT") == 5
-            assert tblhdr.index("GCOUNT") == 6
-            assert tblhdr["GCOUNT"] == 1
+        with fits.open(self.data("comp.fits")) as hdul:
+            imghdr = hdul[1].header
 
-            imghdr.set("GCOUNT", 2, after="PCOUNT")
-            assert imghdr.index("GCOUNT") == imghdr.index("PCOUNT") + 1
-            assert imghdr["GCOUNT"] == 2
-            assert tblhdr.index("ZGCOUNT") == tblhdr.index("ZPCOUNT") + 1
-            assert tblhdr["ZGCOUNT"] == 2
-            assert tblhdr.index("PCOUNT") == 5
-            assert tblhdr.index("GCOUNT") == 6
-            assert tblhdr["GCOUNT"] == 1
+            imghdr.set("FOO", 2, before="OBJECT")
+            imghdr.set("BAR", 3, after="OBJECT")
+            assert imghdr.index("FOO") == imghdr.index("OBJECT") - 1
+            assert imghdr.index("BAR") == imghdr.index("OBJECT") + 1
+            assert imghdr["FOO"] == 2
+            assert imghdr["BAR"] == 3
+
+            hdul.writeto(tmp_path / "updated2.fits")
+
+        with fits.open(
+            tmp_path / "updated2.fits", disable_image_compression=True
+        ) as hdulc:
+            tblhdr = hdulc[1].header
+
+            assert tblhdr.index("FOO") == tblhdr.index("OBJECT") - 1
+            assert tblhdr.index("BAR") == tblhdr.index("OBJECT") + 1
+            assert tblhdr["FOO"] == 2
+            assert tblhdr["BAR"] == 3
 
     def test_compression_header_append_commentary(self):
         """
@@ -642,17 +670,21 @@ class TestCompressedImage(FitsTestCase):
 
         arr = np.arange(100, dtype=np.int32)
         hdu = fits.CompImageHDU(data=arr)
+        hdu.writeto(self.temp("test1.fits"))
 
-        header = hdu._header
         # append the duplicate keyword
-        hdu._header.append(("ZTENSION", "IMAGE"))
-        hdu.writeto(self.temp("test.fits"))
+        with fits.open(
+            self.temp("test1.fits"), disable_image_compression=True
+        ) as hdulc:
+            hdulc[1].header.append(("ZTENSION", "IMAGE"))
+            header = hdulc[1].header
+            hdulc.writeto(self.temp("test2.fits"))
 
-        with fits.open(self.temp("test.fits")) as hdul:
-            assert header == hdul[1]._header
+        with fits.open(self.temp("test2.fits")) as hdul:
+            assert header == hdul[1]._bintable.header
             # There's no good reason to have a duplicate keyword, but
             # technically it isn't invalid either :/
-            assert hdul[1]._header.count("ZTENSION") == 2
+            assert hdul[1]._bintable.header.count("ZTENSION") == 2
 
     def test_scale_bzero_with_compressed_int_data(self):
         """
@@ -946,9 +978,9 @@ class TestCompHDUSections:
         assert_equal(self.hdul[2].section[index], self.hdul[2].data[index])
         assert_equal(self.hdul[2].section[index], self.data[index] * 2 + 100)
 
-   def test_section_properties(self):
-         assert self.hdul[1].section.dtype is np.dtype('int32')
-         assert self.hdul[1].section.ndim == 3
+    def test_section_properties(self):
+        assert self.hdul[1].section.dtype is np.dtype("int32")
+        assert self.hdul[1].section.ndim == 3
 
 
 def test_comphdu_fileobj():
