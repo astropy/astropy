@@ -3,26 +3,33 @@
 import ctypes
 import math
 import time
+import warnings
 
 import numpy as np
 
-from astropy.io.fits.hdu.compressed._quantization import DITHER_METHODS
-from astropy.io.fits.hdu.compressed._tiled_compression import compress_image_data, _get_compression_setting
 from astropy.io.fits.fitsrec import FITS_rec
 from astropy.io.fits.hdu.base import BITPIX2DTYPE, DELAYED
+from astropy.io.fits.hdu.compressed._quantization import DITHER_METHODS
+from astropy.io.fits.hdu.compressed._tiled_compression import (
+    _get_compression_setting,
+    compress_image_data,
+)
+from astropy.io.fits.hdu.compressed.compbintable import _CompBinTableHDU
+from astropy.io.fits.hdu.compressed.utils import _tile_shape
 from astropy.io.fits.hdu.image import ImageHDU
-from astropy.io.fits.hdu.table import BinTableHDU
 from astropy.io.fits.util import _is_int
 from astropy.utils.decorators import deprecated_renamed_argument
+from astropy.utils.exceptions import AstropyUserWarning
 
 from .header import (
     CompImageHeader,
     _bintable_header_to_image_header,
-    _image_header_to_bintable_header_and_coldefs,
+    _image_header_to_empty_bintable,
 )
 from .section import CompImageSection
 from .settings import (
     CMTYPE_ALIASES,
+    COMPRESSION_TYPES,
     DEFAULT_COMPRESSION_TYPE,
     DEFAULT_DITHER_SEED,
     DEFAULT_HCOMP_SCALE,
@@ -32,6 +39,7 @@ from .settings import (
     DITHER_SEED_CHECKSUM,
     DITHER_SEED_CLOCK,
 )
+from .utils import _validate_tile_shape
 
 __all__ = ["COMPRESSION_ENABLED", "CompImageHDU"]
 
@@ -40,20 +48,6 @@ __all__ = ["COMPRESSION_ENABLED", "CompImageHDU"]
 # False. This should ideally be refactored to avoid relying on global module
 # variables.
 COMPRESSION_ENABLED = True
-
-
-class _CompBinTableHDU(BinTableHDU):
-    _load_variable_length_data = False
-    """
-    We don't want to always load all the tiles so by setting this option
-    we can then access the tiles as needed.
-    """
-
-    _manages_own_heap = True
-
-    @classmethod
-    def match_header(cls, header):
-        return False
 
 
 class CompImageHDU(ImageHDU):
@@ -469,9 +463,6 @@ class CompImageHDU(ImageHDU):
         Convert the current ImageHDU (excluding the actual data) to a BinTableHDU
         with the correct header.
         """
-
-        bintable = _CompBinTableHDU()
-
         # Determine based on the size of the input data whether to use the Q
         # column format to store compressed data or the P format.
         # The Q format is used only if the uncompressed data is larger than
@@ -481,19 +472,18 @@ class CompImageHDU(ImageHDU):
         # heuristic used by CFITSIO, so this should give consistent results.
         # And the cases where this heuristic is insufficient are extreme and
         # almost entirely contrived corner cases, so it will do for now
-        if bintable._has_data:
-            huge_hdu = bintable.data.nbytes > 2**32
+        if self._has_data:
+            huge_hdu = self.data.nbytes > 2**32
         else:
             huge_hdu = False
+        # TODO: test above
 
         # NOTE: for now the function below modifies the compressed binary table
         # bintable._header in-place, but this could be refactored in future to
         # return the compressed header.
 
-        bintable._header, bintable.columns = _image_header_to_bintable_header_and_coldefs(
+        bintable = _image_header_to_empty_bintable(
             self.header,
-            self.header,
-            bintable.header,
             name=self.name,
             huge_hdu=huge_hdu,
             compression_type=self.compression_type,
@@ -507,8 +497,7 @@ class CompImageHDU(ImageHDU):
             generate_dither_seed=self._generate_dither_seed,
         )
 
-        if self.name:
-            bintable.name = self.name
+        return bintable
 
     @property
     def data(self):
@@ -570,7 +559,7 @@ class CompImageHDU(ImageHDU):
         # Convert compressed header to image header and save
         # it off to self._image_header so it can be referenced later
         # unambiguously
-        return _bintable_header_to_image_header(self._header)
+        return _bintable_header_to_image_header(self._bintable.header)
 
     def _summary(self):
         """
@@ -608,7 +597,10 @@ class CompImageHDU(ImageHDU):
         """
         if self.data is None:
             return
-        heap = compress_image_data(self.data, self.compression_type, bintable.header, bintable.columns)
+
+        heap = compress_image_data(
+            self.data, self.compression_type, bintable.header, bintable.columns
+        )
 
         dtype = bintable.columns.dtype.newbyteorder(">")
         buf = np.frombuffer(heap, dtype=np.uint8)
@@ -625,6 +617,11 @@ class CompImageHDU(ImageHDU):
     def _prewriteto(self, checksum=False, inplace=False):
         # Shove the image header and data into a new ImageHDU and use that
         # to compute the image checksum
+
+        if self._scale_back:
+            self._scale_internal(
+                BITPIX2DTYPE[self._orig_bitpix], blank=self._orig_blank
+            )
 
         image_hdu = ImageHDU(data=self.data, header=self.header.copy())
         image_hdu._update_checksum(checksum)
@@ -644,17 +641,20 @@ class CompImageHDU(ImageHDU):
             )
 
         self._tmp_bintable = self._get_bintable_without_data()
+
         self._add_data_to_bintable(self._tmp_bintable)
 
         # If a bintable already exists internally we should update that instead
         # of using a whole new BinTableHDU so that mode='update' works.
 
-        # TODO: if user didn't update .data we should perhaps not recompress data
-
         if self._bintable is not None:
-            self._bintable.header.update(self._tmp_bintable.header)
+            self._bintable.header = self._tmp_bintable.header
             self._bintable.data = self._tmp_bintable.data
             self._tmp_bintable = self._bintable
+
+        # FIXME: at the moment test_open_comp_image_in_update_mode fails because
+        # doing the above will result in the data always being written out again
+        # when in update mode even if no changes were made to the header or data
 
         return self._tmp_bintable._prewriteto(checksum=checksum, inplace=inplace)
 
@@ -666,6 +666,7 @@ class CompImageHDU(ImageHDU):
 
     def _close(self, closed=True):
         # FIXME: need to determine how to keep memmap open if needed
+
         return
 
     def _generate_dither_seed(self, seed):
@@ -751,6 +752,12 @@ class CompImageHDU(ImageHDU):
 
     def verify_datasum(self):
         return self._bintable.verify_datasum()
+
+    def _verify(self, *args, **kwargs):
+        if self._bintable is None:
+            return super()._verify(*args, **kwargs)
+        else:
+            return self._bintable._verify(*args, **kwargs)
 
     @property
     def _data_offset(self):

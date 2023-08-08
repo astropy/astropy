@@ -528,7 +528,7 @@ def compress_image_data(
     for irow, tile_slices in _iter_array_tiles(data_shape, tile_shape):
         tile_data = image_data[tile_slices]
 
-        # FIXME: hack for now
+        # FIXME: determine whether the following needs to be dependent on the uint= option
         if tile_data.dtype.kind == "u":
             if tile_data.dtype.itemsize == 4:
                 tile_data = (tile_data.astype(np.int64) - 2**31).astype(np.int32)
