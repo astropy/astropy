@@ -160,7 +160,7 @@ class TestFlatwCDM(FlatFLRWMixinTest, TestwCDM):
 
         expected = (
             'FlatwCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27, Tcmb0=3.0 K,'
-            " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.03,  w0=-0.5)"
+            " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.03, w0=-0.5)"
         )
         assert repr(cosmo) == expected
 

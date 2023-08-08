@@ -12,7 +12,7 @@ import pytest
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import Cosmology, FlatCosmologyMixin
-from astropy.cosmology._utils import _init_signature
+from astropy.cosmology._utils import MetaData, _init_signature
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameter import Parameter
 from astropy.table import Column, QTable, Table
@@ -57,7 +57,7 @@ invalid_zs = [
 ]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class SubCosmology(Cosmology):
     """Defined here to be serializable."""
 
@@ -283,21 +283,17 @@ class CosmologyTest(
         # class in string rep
         assert cosmo_cls.__qualname__ in r
         assert r.index(cosmo_cls.__qualname__) == 0  # it's the first thing
-        r = r[len(cosmo_cls.__qualname__) + 1 :]  # remove
 
         # name in string rep
         if cosmo.name is not None:
-            assert f'name="{cosmo.name}"' in r
+            assert f"name={cosmo.name!r}" in r
             assert r.index("name=") == 0
-            r = r[6 + len(cosmo.name) + 3 :]  # remove
 
         # parameters in string rep
         ps = {k: getattr(cosmo, k) for k in cosmo.__parameters__}
         for k, v in ps.items():
-            sv = f"{k}={v}"
+            sv = f"{k}={v!r}"
             assert sv in r
-            assert r.index(k) == 0
-            r = r[len(sv) + 2 :]  # remove
 
     # ------------------------------------------------
 
@@ -507,7 +503,7 @@ def test__nonflatclass__multiple_nonflat_inheritance():
     """
 
     # Define a non-operable minimal subclass of Cosmology.
-    @dataclass(frozen=True)
+    @dataclass(frozen=True, eq=False)
     class SubCosmology2(Cosmology):
         def __init__(self, H0, Tcmb0=0 * u.K, m_nu=0 * u.eV, name=None, meta=None):
             super().__init__(name=name, meta=meta)

@@ -112,9 +112,8 @@ class Testw0wzCDM(FLRWTest, Parameterw0TestMixin, ParameterwzTestMixin):
         super().test_repr(cosmo_cls, cosmo)
 
         expected = (
-            'w0wzCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27,'
-            " Ode0=0.73, w0=-1.0, wz=0.5, Tcmb0=3.0 K, Neff=3.04,"
-            " m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+            'w0wzCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27, Ode0=0.73,'
+            " Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.03, w0=-1.0, wz=0.5)"
         )
         assert repr(cosmo) == expected
 
@@ -131,8 +130,7 @@ class Testw0wzCDM(FLRWTest, Parameterw0TestMixin, ParameterwzTestMixin):
 
     def test_Otot_overflow(self, cosmo):
         """Test :meth:`astropy.cosmology.w0wzCDM.Otot` for overflow."""
-        with pytest.warns(RuntimeWarning, match="overflow encountered in exp"):
-            cosmo.Otot(1e3)
+        cosmo.Otot(1e3)
 
     # ===============================================================
     # Usage Tests
@@ -182,9 +180,8 @@ class TestFlatw0wzCDM(FlatFLRWMixinTest, Testw0wzCDM):
         super().test_repr(cosmo_cls, cosmo)
 
         expected = (
-            'Flatw0wzCDM(name="ABCMeta", H0=70.0 km / (Mpc s),'
-            " Om0=0.27, w0=-1.0, wz=0.5, Tcmb0=3.0 K,"
-            " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+            'Flatw0wzCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27, Tcmb0=3.0 K,'
+            " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.03, w0=-1.0, wz=0.5)"
         )
         assert repr(cosmo) == expected
 

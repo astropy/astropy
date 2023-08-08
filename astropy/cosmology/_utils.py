@@ -98,8 +98,7 @@ class MetaData:
         return instance._meta
 
     def __set__(self, instance, value: Mapping[str, Any] | None):
-        if not hasattr(instance, "_meta"):
-            object.__setattr__(instance, "_meta", OrderedDict())
+        object.__setattr__(instance, "_meta", OrderedDict())
         instance._meta.update(
             (deepcopy(value) if self.copy else value) if value is not None else {}
         )
@@ -155,9 +154,10 @@ def all_cls_vars(cls: object | type) -> dict[str, Any]:
     return functools.reduce(operator.__or__, map(vars, cls.mro()[::-1]))
 
 
-def _init_signature(cls):
+def _init_signature(cls: object | type) -> inspect.Signature:
     """Initialization signature (without 'self')."""
     # get signature, dropping "self" by taking arguments [1:]
-    sig = inspect.signature(cls.__init__)
+    kls = cls if isinstance(cls, type) else cls.__class__
+    sig = inspect.signature(kls.__init__)
     sig = sig.replace(parameters=list(sig.parameters.values())[1:])
     return sig

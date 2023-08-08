@@ -2,18 +2,12 @@
 
 """Testing :mod:`astropy.cosmology.parameter`."""
 
-##############################################################################
-# IMPORTS
-
-# STDLIB
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from typing import Callable
 
-# THIRD PARTY
 import numpy as np
 import pytest
 
-# LOCAL
 import astropy.units as u
 from astropy.cosmology import Cosmology
 from astropy.cosmology._utils import all_cls_vars
@@ -189,7 +183,7 @@ class ParameterTestMixin:
             param: Parameter = Parameter(unit=u.eV, equivalencies=u.mass_energy())
 
             def __init__(self, param, *args, **kwargs):
-                self.param = param
+                vars(self.__class__)["param"].__set__(self, param)
 
             @property
             def is_flat(self):
@@ -218,17 +212,18 @@ class TestParameter(ParameterTestMixin):
             equivalencies=u.mass_energy(),
         )
 
-        @dataclass(frozen=True)
+        @dataclass(frozen=True, eq=False)
         class Example1(Cosmology):
-            param: Parameter = replace(theparam)  # noqa: RUF009
+            param: Parameter = theparam.clone()  # noqa: RUF009
 
             @property
             def is_flat(self):
                 return super().is_flat()
 
         # with validator
+        @dataclass(frozen=True, eq=False)
         class Example2(Example1):
-            param: Parameter = replace(theparam, default=15 * u.m)
+            param: Parameter = theparam.clone(default=15 * u.m)
 
             @param.validator
             def param(self, param, value):
@@ -271,7 +266,7 @@ class TestParameter(ParameterTestMixin):
         assert param.__doc__ == "Description of example parameter."
 
         # custom from init
-        assert param._unit == u.m
+        assert param.unit == u.m
         assert param.equivalencies == u.mass_energy()
         assert param.derived == np.False_
 

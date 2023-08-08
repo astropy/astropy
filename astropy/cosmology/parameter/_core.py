@@ -285,6 +285,6 @@ class Parameter:
         fields_repr = (
             f"{f.name}={(getattr(self, f.name if f.name != 'fvalidate' else '_fvalidate_in'))!r}"
             for f in fields(self)
-            if f.repr
+            if (f.repr and f.default != _Sentinel.MISSING)
         )
         return f"{self.__class__.__name__}({', '.join(fields_repr)})"

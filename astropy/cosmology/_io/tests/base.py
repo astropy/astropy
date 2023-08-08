@@ -100,7 +100,7 @@ class IODirectTestBase(IOTestBase):
     def setup(self):
         """Setup and teardown for tests."""
 
-        @dataclass(frozen=True)
+        @dataclass(frozen=True, eq=False)
         class CosmologyWithKwargs(Cosmology):
             Tcmb0: Parameter = Parameter(default=0, unit=u.K)  # noqa: RUF009
             name: NameField = NameField("cosmology with kwargs")  # noqa: RUF009

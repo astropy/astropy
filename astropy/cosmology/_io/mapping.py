@@ -278,6 +278,8 @@ def from_mapping(mapping, /, *, move_to_meta=False, cosmology=None, rename=None)
     sig = _init_signature(cosmology)
     ba = sig.bind_partial()  # blank set of args
     ba.apply_defaults()  # fill in the defaults
+    if str(ba.arguments["meta"]) == "<factory>":
+        ba.arguments["meta"] = {}
     for k in sig.parameters.keys():
         if k in params:  # transfer argument, if in params
             ba.arguments[k] = params.pop(k)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import abc
 import inspect
-from dataclasses import KW_ONLY, Field, dataclass, replace
+from dataclasses import Field, dataclass, replace
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
 import numpy as np
@@ -25,6 +25,9 @@ if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Mapping
 
     from astropy.cosmology.funcs.comparison import _FormatType
+
+if PYTHON_LT_3_10:
+    from dataclasses import KW_ONLY
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
 # and modified by Neil Crighton (neilcrighton@gmail.com), Roban Kramer
@@ -102,7 +105,7 @@ class Cosmology(metaclass=abc.ABCMeta):
 
     if not PYTHON_LT_3_10:
         _: KW_ONLY
-    name: NameField = NameField()  # noqa: RUF009
+    name: NameField = NameField()
     meta: MetaData = MetaData()  # noqa: RUF009
 
     # Unified I/O object interchange methods
@@ -126,7 +129,6 @@ class Cosmology(metaclass=abc.ABCMeta):
         # Parameters
 
         all_params = all_parameters(cls)
-        print(all_params.keys())
         cls.__all_parameters__ = tuple(all_params.keys())
         cls.__parameters__ = tuple(
             k
@@ -384,15 +386,6 @@ class Cosmology(metaclass=abc.ABCMeta):
 
     # ---------------------------------------------------------------
 
-    def __repr__(self):
-        namelead = f"{self.__class__.__qualname__}("
-        if self.name is not None:
-            namelead += f'name="{self.name}", '
-        # nicely formatted parameters
-        fmtps = (f"{k}={getattr(self, k)}" for k in self.__parameters__)
-
-        return namelead + ", ".join(fmtps) + ")"
-
     def __astropy_table__(self, cls, copy, **kwargs):
         """Return a `~astropy.table.Table` of type ``cls``.
 
@@ -412,6 +405,12 @@ class Cosmology(metaclass=abc.ABCMeta):
             Instance of type ``cls``.
         """
         return self.to_format("astropy.table", cls=cls, **kwargs)
+
+
+# Manipulate the dataclass fields
+Cosmology.__dataclass_fields__["meta"].compare = False
+Cosmology.__dataclass_fields__["__all_parameters__"].compare = False
+Cosmology.__dataclass_fields__["__parameters__"].compare = False
 
 
 @dataclass(frozen=True, repr=False, eq=False, init=False)

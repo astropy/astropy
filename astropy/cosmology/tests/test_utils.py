@@ -85,7 +85,7 @@ class Test_aszarr:
     "cosmo",
     [Planck18],
 )
-def test_init_signature(self, cosmo_cls, cosmo):
+def test_init_signature(cosmo_cls, cosmo):
     """Test class-property ``_init_signature``."""
     # test internal consistency, so following tests can use either cls or instance.
     assert _init_signature(cosmo_cls) == _init_signature(cosmo)

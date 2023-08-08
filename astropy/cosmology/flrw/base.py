@@ -15,13 +15,14 @@ from numpy import inf, sin
 import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology._utils import (
+    MetaData,
     _init_signature,
     all_cls_vars,
     all_fields,
     aszarr,
     vectorize_redshift_method,
 )
-from astropy.cosmology.core import Cosmology, FlatCosmologyMixin
+from astropy.cosmology.core import Cosmology, FlatCosmologyMixin, NameField
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.parameter._converter import (
     _validate_non_negative,
@@ -39,6 +40,9 @@ __doctest_requires__ = {"*": ["scipy"]}
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+
+if PYTHON_LT_3_10:
+    from dataclasses import KW_ONLY
 
 # isort: split
 if HAS_SCIPY:
@@ -106,7 +110,7 @@ class _ScaleFactorMixin:
         return 1.0 / (aszarr(z) + 1.0)
 
 
-@dataclass(frozen=True, repr=False, eq=False)
+@dataclass(frozen=True, eq=False)
 class FLRW(Cosmology, _ScaleFactorMixin):
     """
     A class describing an isotropic and homogeneous
@@ -201,6 +205,12 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         default=None,
         doc="Omega baryon; baryonic matter density/critical density at z=0.",
     )
+
+    # for the repr, rearrange the parameters
+    if not PYTHON_LT_3_10:
+        _: KW_ONLY
+    name: NameField = NameField()  # noqa: RUF009
+    meta: MetaData = MetaData()  # noqa: RUF009
 
     if PYTHON_LT_3_10:
 
