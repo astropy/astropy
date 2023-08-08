@@ -41,6 +41,7 @@ jobs:
       upload_to_anaconda: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
       anaconda_user: astropy
       anaconda_package: astropy
+      anaconda_keep_n_latest: 10
 
       test_extras: test
       # FIXME: we exclude the test_data_out_of_range test since it
