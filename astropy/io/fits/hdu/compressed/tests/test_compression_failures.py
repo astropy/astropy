@@ -40,6 +40,7 @@ class TestCompressionFunction(FitsTestCase):
     def test_data_none(self):
         hdu = fits.CompImageHDU(np.ones((10, 10)))
         hdu.data = None
+        hdu.tile_shape = None
         bintable = hdu._get_bintable_without_data()
         with pytest.raises(TypeError) as exc:
             compress_image_data(
