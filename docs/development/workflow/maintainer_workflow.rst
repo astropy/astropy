@@ -53,7 +53,7 @@ Use of the 'Squash and merge' button is **encouraged** when you and the
 contributor agree that squashing to a single commit is desirable. Using the GitHub
 button instead of direct ``git`` commands can reduce overall effort, if done correctly.
 
-You may use 'Squash and merge' in conjuction with :ref:`maintainer-pr-auto-merge`.
+You may use 'Squash and merge' in conjunction with :ref:`maintainer-pr-auto-merge`.
 
 .. _maintainer-pr-auto-merge:
 
