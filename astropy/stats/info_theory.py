@@ -95,7 +95,7 @@ def bayesian_info_criterion(log_likelihood, n_params, n_samples):
     >>> bic_g = bayesian_info_criterion(lnL_g, n_params_g, n_samples)
     >>> bic_t = bayesian_info_criterion(lnL_t, n_params_t, n_samples)
     >>> bic_g - bic_t # doctest: +FLOAT_CMP
-    2.1948298140119391
+    np.float64(2.1948298140119391)
 
     Therefore, there exist a moderate evidence that the increasing in
     likelihood for t-Student model is due to the larger number of parameters.
@@ -385,11 +385,11 @@ def akaike_info_criterion_lsq(ssr, n_params, n_samples):
     >>> ssr_g2 = np.sum((g2_fit(x) - y)**2.0)
     >>> ssr_g1 = np.sum((g1_fit(x) - y)**2.0)
     >>> akaike_info_criterion_lsq(ssr_g3, 9, x.shape[0]) # doctest: +FLOAT_CMP
-    -634.5257517810961
+    np.float64(-634.5257517810961)
     >>> akaike_info_criterion_lsq(ssr_g2, 6, x.shape[0]) # doctest: +FLOAT_CMP
-    -662.83834510232043
+    np.float64(-662.83834510232043)
     >>> akaike_info_criterion_lsq(ssr_g1, 3, x.shape[0]) # doctest: +FLOAT_CMP
-    -647.47312032659499
+    np.float64(-647.47312032659499)
 
     Hence, from the AIC values, we would prefer to choose the model g2_fit.
     However, we can considerably support the model g3_fit, since the
