@@ -195,6 +195,8 @@ filterwarnings = [
     # Ignore a warning we emit about not supporting the parallel",
     # reading option for now, can be removed once the issue is fixed",
     "ignore:parallel reading does not currently work, so falling back to serial",
+    # Ignore numpy 2.0 deprecation warning triggered by pytest
+    "ignore:`maximum_sctype` is deprecated:DeprecationWarning",
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",
