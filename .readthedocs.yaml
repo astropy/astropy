@@ -10,7 +10,8 @@ build:
     pre_install:
       - git update-index --assume-unchanged docs/conf.py docs/rtd_environment.yaml
     post_install:
-      - pip install -U git+https://github.com/ayshih/sphinx@fix_inheritance_diagrams
+      - pip install -U git+https://github.com/sphinx-doc/sphinx
+      - pip install -U git+https://github.com/ayshih/sphinx-automodapi@broken_links
 
 conda:
   environment: docs/rtd_environment.yaml
