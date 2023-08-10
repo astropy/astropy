@@ -56,7 +56,7 @@ class BoxLeastSquares(BasePeriodogram):
     >>> model = BoxLeastSquares(t, y)
     >>> results = model.autopower(0.16)
     >>> results.period[np.argmax(results.power)]  # doctest: +FLOAT_CMP
-    2.000412388152837
+    np.float64(2.000412388152837)
 
     Compute the periodogram on a user-specified period grid:
 

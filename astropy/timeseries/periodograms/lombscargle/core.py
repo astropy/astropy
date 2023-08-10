@@ -68,7 +68,7 @@ class LombScargle(BasePeriodogram):
 
     >>> frequency, power = LombScargle(t, y).autopower()
     >>> frequency[np.argmax(power)]  # doctest: +FLOAT_CMP
-    1.0007641728995051
+    np.float64(1.0007641728995051)
 
     Compute the Lomb-Scargle periodogram at a user-specified frequency grid:
 
