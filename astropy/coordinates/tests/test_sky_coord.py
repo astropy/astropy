@@ -44,6 +44,7 @@ from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 from astropy.utils import isiterable
+from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.wcs import WCS
 
@@ -783,7 +784,12 @@ def test_repr_altaz():
     sc4 = sc2.transform_to(AltAz(location=loc, obstime=time))
     assert repr(sc4).startswith(
         "<SkyCoord (AltAz: obstime=2005-03-21 00:00:00.000, "
-        "location=(-2309223., -3695529., -4641767.) m, pressure=0.0 hPa, "
+        + (
+            "location=(-2309223., -3695529., -4641767.) m, "
+            if NUMPY_LT_2_0
+            else "location=(-2309223.0, -3695529.0, -4641767.0) m, "
+        )
+        + "pressure=0.0 hPa, "
         "temperature=0.0 deg_C, relative_humidity=0.0, obswl=1.0 micron):"
         " (az, alt, distance) in (deg, deg, kpc)\n"
     )
