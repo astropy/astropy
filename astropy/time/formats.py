@@ -885,17 +885,17 @@ class TimeUnixTai(TimeUnix):
       >>> from astropy.time import Time
       >>> t = Time('2020-01-01', scale='utc')
       >>> t.unix_tai - t.unix
-      37.0
+      np.float64(37.0)
 
       >>> # Before 1972, the offset between TAI and UTC was not integer
       >>> t = Time('1970-01-01', scale='utc')
       >>> t.unix_tai - t.unix  # doctest: +FLOAT_CMP
-      8.000082
+      np.float64(8.000082)
 
       >>> # Initial offset of 10 seconds in 1972
       >>> t = Time('1972-01-01', scale='utc')
       >>> t.unix_tai - t.unix
-      10.0
+      np.float64(10.0)
     """
 
     name = "unix_tai"
@@ -1261,7 +1261,7 @@ class TimeYMDHMS(TimeUnique):
       >>> t.iso
       '2015-02-03 12:13:14.567'
       >>> t.ymdhms.year
-      2015
+      np.int32(2015)
     """
 
     name = "ymdhms"
