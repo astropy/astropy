@@ -33,13 +33,13 @@ is possible to access the angle in any of several equivalent angular
 units::
 
     >>> sep.radian  # doctest: +FLOAT_CMP
-    0.36208800460262563
+    np.float64(0.36208800460262563)
     >>> sep.hour  # doctest: +FLOAT_CMP
-    1.3830742984029318
+    np.float64(1.3830742984029318)
     >>> sep.arcminute  # doctest: +FLOAT_CMP
-    1244.7668685626384
+    np.float64(1244.7668685626384)
     >>> sep.arcsecond  # doctest: +FLOAT_CMP
-    74686.0121137583
+    np.float64(74686.0121137583)
 
 Also note that the two input coordinates were not in the same frame —
 one is automatically converted to match the other, ensuring that even
@@ -251,7 +251,7 @@ the catalog:
 
     >>> matches = catalog[idx]
     >>> (matches.separation_3d(c) == d3d).all()
-    True
+    np.True_
     >>> dra, ddec = c.spherical_offsets_to(matches)
 
 This functionality can also be accessed from the
@@ -294,13 +294,13 @@ with an interface very similar to ``match_coordinates_*``:
     >>> import numpy as np
     >>> idxc, idxcatalog, d2d, d3d = catalog.search_around_sky(c, 1*u.deg)
     >>> np.all(d2d < 1*u.deg)
-    True
+    np.True_
 
 .. doctest-requires:: scipy
 
     >>> idxc, idxcatalog, d2d, d3d = catalog.search_around_3d(c, 1*u.kpc)
     >>> np.all(d3d < 1*u.kpc)
-    True
+    np.True_
 
 The key difference for these methods is that there can be multiple (or no)
 matches in ``catalog`` around any locations in ``c``. Hence, indices into both
@@ -311,9 +311,9 @@ matter, any array with the same order:
 ..  doctest-requires:: scipy
 
     >>> np.all(c[idxc].separation(catalog[idxcatalog]) == d2d)
-    True
+    np.True_
     >>> np.all(c[idxc].separation_3d(catalog[idxcatalog]) == d3d)
-    True
+    np.True_
     >>> print(catalog_objectnames[idxcatalog]) #doctest: +SKIP
     ['NGC 1234' 'NGC 4567' ...]
 
