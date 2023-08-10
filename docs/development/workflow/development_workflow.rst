@@ -15,8 +15,8 @@ Pre-requisites
 
 Before following the steps in this document you need:
 
-+ an account on `GitHub`_
-+ a local copy of the astropy source. Instructions for doing that, including the
+* an account on `GitHub`_
+* a local copy of the astropy source. Instructions for doing that, including the
   basics you need for setting up git and GitHub, are at :ref:`get_devel`.
 
 Strongly Recommended, but not required
@@ -554,7 +554,6 @@ commit) if at least one of the following conditions is met:
   integration tests to run correctly.
 * There are merge commits from ``astropy/main`` in the PR commit history (merge
   commits from PRs to the user's fork are fine).
-* There are commit messages that violate the code of conduct.
 
 .. _howto_rebase:
 
@@ -601,9 +600,9 @@ Squash if necessary
 *******************
 
 Squashing refers to combining multiple commits into a single commit. This can be done
-using the ``git rebase`` command or via the GitHub pull request interface.
+using the ``git rebase`` command or via :ref:`github-squash-and-merge`.
 
-As Astropy maintainer will be happy to guide you through this process.
+An Astropy maintainer will be happy to guide you through this process.
 
 When to squash
 ==============
@@ -619,23 +618,24 @@ value to the commit history. Most small to medium pull requests can be done with
 commits. Some large or intricate pull requests may require more commits to capture the
 logical progression of the changes.
 
-In general, commits which reflect a specific atomic change (e.g. "Fixed bug revealed by
+In general, commits that reflect a specific atomic change (e.g., "Fixed bug revealed by
 tests for feature X") may have value for the history.
 
-Commits which are good candidates for squashing include:
+Commits that are good candidates for squashing include but not limited to:
 
-- Content that gets removed later, most commonly changes in the implementation or
-  temporary debugging code.
-- Non-specific commits e.g. "Added more code and fixed stuff").
-- Fixes of typos, linting fixes or other inconsequential changes.
+* Content that gets removed later, most commonly changes in the implementation or
+  temporary debugging code or, especially, data files (see above).
+* Non-specific commits; e.g., "Added more code and fixed stuff."
+* Fixes of typos, linting fixes, or other inconsequential changes.
+* Commit messages that violate the code of conduct.
 
 .. _howto_squash:
 
 How to squash
 =============
 
-In many cases squashing can be done using the :ref:`github-squash-and-merge` button on
-the GitHub pull request page. If this is not possible we typically squash using `git
+In many cases, squashing can be done by a maintainer using the :ref:`github-squash-and-merge` button on
+the GitHub pull request page. If this is not possible, we typically squash using `git
 rebase --interactive <https://git-scm.com/docs/git-rebase#_interactive_mode>`_. In
 particular, you can rebase and squash within the existing branch using::
 
@@ -645,22 +645,6 @@ particular, you can rebase and squash within the existing branch using::
 The last command will open an editor with all your commits, allowing you to
 squash several commits together, rename them, etc. Helpfully, the file you are
 editing has the instructions on what to do.
-
-
-.. _github-squash-and-merge:
-
-Github 'Squash and merge'
--------------------------
-
-Use of the `GitHub 'Squash and merge' button
-<https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/about-pull-request-merges#squash-and-merge-your-commits>`_
-is available to all maintainers. This will squash all commits in the pull request into
-a single commit and auto-generate a commit message which can be edited.
-
-Use of the 'Squash and merge' button is **encouraged** when the maintainer and
-contributor agree that squashing to a single commit is desirable. Using the GitHub
-facility instead of direct ``git`` commands can reduce effort for the maintainer
-and contributor.
 
 .. _howto_push_force:
 

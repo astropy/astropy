@@ -39,3 +39,7 @@ If this pull request is unrelated to any issues, please remove
 the following line. -->
 
 Fixes #<Issue Number>
+
+<!-- Optional opt-out -->
+
+- [ ] By checking this box, the PR author has requested that maintainers do **NOT** use the "Squash and Merge" button. Maintainers should respect this when possible; however, the final decision is at the discretion of the maintainer that merges the PR.
