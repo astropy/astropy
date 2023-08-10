@@ -17,9 +17,43 @@ Integrating changes via the web interface
 Pull requests should always be merged via GitHub.
 
 Make sure that pull requests do not contain a messy history with merges, etc.
-If this is the case, ask the author to squash the commits or
-:ref:`take over the pull request <maintainer-pr-takeover>`.
+If this is the case and a simple :ref:`github-squash-and-merge` would do and
+you are comfortable with it, use it. Otherwise, you can work with the author,
+following instructions at :ref:`squash-if-necessary`. If the author is not
+responsive or gives consent, you can also :ref:`take over the pull request <maintainer-pr-takeover>`.
 If necessary, you may also :ref:`request a rebase <rebase>`.
+
+.. _github-squash-and-merge:
+
+Github 'Squash and merge'
+=========================
+
+.. note::
+
+    Before you use this button, first make sure the PR author has not opted out
+    by checking the opt-out box that comes with the PR template!
+
+Use of the `GitHub 'Squash and merge' button
+<https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/about-pull-request-merges#squash-and-merge-your-commits>`_
+is available to all maintainers. This will squash out all commits in the pull request into
+a single commit and auto-generate a commit message which can be edited.
+
+You must be careful to clean up the final commit message before pushing the button:
+
+* Remove repetitive, irrelevant, or inappropriate commit messages.
+  Merge commits, if any, do not have to be mentioned.
+* Fix typo, as needed.
+* Fill in details about the pull request, as needed.
+* Remove all the directives to skip CI (``[ci skip]`` or ``[skip ci]``).
+* Ensure co-authors are properly credited at the bottom of the final message.
+* Make sure it is the correct button! Your browser remembers a previous selection even from
+  a different GitHub repository, which might or might not be the button you want to push.
+
+Use of the 'Squash and merge' button is **encouraged** when you and the
+contributor agree that squashing to a single commit is desirable. Using the GitHub
+button instead of direct ``git`` commands can reduce overall effort, if done correctly.
+
+You may use 'Squash and merge' in conjunction with :ref:`maintainer-pr-auto-merge`.
 
 .. _maintainer-pr-auto-merge:
 

@@ -19,7 +19,6 @@ as a whole, see :doc:`vision`.
    workflow/development_workflow
    workflow/virtual_pythons
    workflow/get_devel_version
-   when_to_rebase
    codeguide
    docguide
    style-guide
