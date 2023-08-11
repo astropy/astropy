@@ -96,7 +96,7 @@ A second difference is that for reductions, the mask propagates as it would
 have if the operations were done on the individual elements::
 
   >>> np_ma.prod()
-  3.0
+  np.float64(3.0)
   >>> np_ma[0] * np_ma[1] * np_ma[2]
   masked
   >>> Masked(np_ma).prod()
