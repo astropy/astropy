@@ -35,7 +35,7 @@ It is then possible to access the individual properties of the parameter::
     >>> g1.mean.name
     'mean'
     >>> g1.mean.value
-    3.0
+    np.float64(3.0)
     >>> g1.mean.unit
     Unit("m")
 
