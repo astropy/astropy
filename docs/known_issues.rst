@@ -141,6 +141,24 @@ This is analogous to the case of passing a Quantity to `~numpy.array`::
 
 See: https://github.com/astropy/astropy/issues/7832
 
+Chained Quantity comparisons to dimensionless zero can be misleading
+--------------------------------------------------------------------
+
+When chaining comparisons using Quantities and dimensionless zero,
+the result may be misleading::
+
+   >>> 0 * u.Celsius == 0 * u.m  # Correct
+   False
+   >>> 0 * u.Celsius == 0 == 0 * u.m  # Misleading
+   True
+
+What the second comparison is really doing is this::
+
+   >>> (0 * u.Celsius == 0) and (0 == 0 * u.m)
+   True
+
+See: https://github.com/astropy/astropy/issues/15103
+
 mmap Support for ``astropy.io.fits`` on GNU Hurd
 ------------------------------------------------
 
