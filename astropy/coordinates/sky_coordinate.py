@@ -1115,7 +1115,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     def is_equivalent_frame(self, other):
         """
-        Checks if this object's frame as the same as that of the ``other``
+        Checks if this object's frame is the same as that of the ``other``
         object.
 
         To be the same frame, two objects must be the same frame class and have
