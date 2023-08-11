@@ -1,3 +1,25 @@
+Version 5.3.2 (2023-08-11)
+==========================
+
+Bug Fixes
+---------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Fixed import when called with Python ``-OO`` flag. [#15037]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- Fix for collapse operations on ``NDData`` without masks or units. [#15082]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Modified the implementation of ``np.power()`` for instances of ``Quantity`` to
+  allow any array as the second operand if all its elements have the same value. [#15101]
+
 Version 5.3.1 (2023-07-06)
 ==========================
 
