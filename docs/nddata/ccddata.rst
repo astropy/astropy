@@ -201,7 +201,7 @@ operation is between two `~astropy.nddata.CCDData` objects.
     >>> result = ccd.multiply(0.2 * u.adu)
     >>> uncertainty_ratio = result.uncertainty.array[0, 0]/ccd.uncertainty.array[0, 0]
     >>> round(uncertainty_ratio, 5)   # doctest: +FLOAT_CMP
-    0.2
+    np.float64(0.2)
     >>> result.unit
     Unit("adu electron")
 
