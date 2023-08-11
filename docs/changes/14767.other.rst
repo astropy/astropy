@@ -1,1 +1,0 @@
-LTS is not compatible with numpy 1.25 or later.

@@ -1,2 +1,0 @@
-Fixes an issue where FITS_rec was incorrectly raising a ValueError exception when the heapsize was greater than 2**31
-when the Column type was 'Q' instead of 'P'.
