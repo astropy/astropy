@@ -3104,10 +3104,10 @@ reduce these to 2 dimensions using the naxis kwarg.
         the `printwcs()` method.
         """
         description = ["WCS Keywords\n", f"Number of WCS axes: {self.naxis!r}"]
-        sfmt = " : " + "".join([f"{{{i}!r}} " for i in range(self.naxis)])
+        sfmt = " : " + "".join([f"{{{i}}} " for i in range(self.naxis)])
 
         keywords = ["CTYPE", "CRVAL", "CRPIX"]
-        values = [self.wcs.ctype, self.wcs.crval, self.wcs.crpix]
+        values = [[repr(v) for v in self.wcs.ctype], self.wcs.crval, self.wcs.crpix]
         for keyword, value in zip(keywords, values):
             description.append(keyword + sfmt.format(*value))
 
