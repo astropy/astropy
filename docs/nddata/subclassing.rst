@@ -222,11 +222,11 @@ be anything except ``None`` or ``"first_found"``::
     >>> ndd = NDDataWithMetaArithmetics([1,2,3], meta={'exposure': 10})
     >>> ndd2 = ndd.add(10, handle_meta='')
     >>> ndd2.meta
-    {'exposure': 20}
+    {'exposure': np.int64(20)}
 
     >>> ndd3 = ndd.multiply(0.5, handle_meta='')
     >>> ndd3.meta
-    {'exposure': 5.0}
+    {'exposure': np.float64(5.0)}
 
 .. warning::
   To use these internal `_arithmetic_*` methods there are some restrictions on
@@ -280,7 +280,7 @@ To change the default value of an existing parameter for arithmetic methods::
 
     >>> # But giving other values is still possible:
     >>> ndd1.add(ndd2, handle_mask=np.logical_or).mask
-    True
+    np.True_
 
     >>> ndd1.add(ndd2, handle_mask="ff").mask
     False
