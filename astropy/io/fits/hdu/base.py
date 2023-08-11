@@ -306,7 +306,7 @@ class _BaseHDU:
 
         Parameters
         ----------
-        data : str, bytearray, memoryview, ndarray
+        data : str, bytes, memoryview, ndarray
             A byte string containing the HDU's header and data.
 
         checksum : bool, optional
