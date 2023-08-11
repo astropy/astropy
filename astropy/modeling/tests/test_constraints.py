@@ -209,7 +209,9 @@ class TestBounds:
             if isinstance(fitter, fitting.TRFLSQFitter):
                 ctx = np.errstate(invalid="ignore", divide="ignore")
                 if not NUMPY_LT_2_0:
-                    ctx2 = pytest.warns(AstropyUserWarning, match="The fit may be unsuccessful")
+                    ctx2 = pytest.warns(
+                        AstropyUserWarning, match="The fit may be unsuccessful"
+                    )
             else:
                 ctx = nullcontext()
             with ctx, ctx2:
