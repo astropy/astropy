@@ -1,3 +1,65 @@
+Version 5.0.7 (2023-08-11)
+==========================
+
+Bug Fixes
+---------
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+- The exponent in ``wowzCDM.de_density_scale`` has been corrected to 3, from -3. [#14991]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix issues with double quotes in CONTINUE cards. [#14598]
+
+- Fixes an issue where FITS_rec was incorrectly raising a ValueError exception when the heapsize was greater than 2**31
+  when the Column type was 'Q' instead of 'P'. [#14810]
+
+- Fix crash when a PrimaryHDU has a GROUPS keyword with a non-boolean value (i.e.
+  not a random-groups HDU). [#14998]
+
+astropy.time
+^^^^^^^^^^^^
+
+- Using quantities with units of time for ``Time`` format 'decimalyear' will now
+  raise an error instead of converting the quantity to days and then
+  interpreting the value as years. An error is raised instead of attempting to
+  interpret the unit as years, since the interpretation is ambiguous: in
+  'decimaltime' years are equal to 365 or 366 days, while for regular time units
+  the year is defined as 365.25 days. [#14566]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Ensure the unit is kept in ``np.median`` even if the result is a scalar ``nan``
+  (the unit was lost for numpy < 1.22). [#14635]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Ensure masks are propagated correctly for ``outer`` methods of ufuncs also if
+  one of the inputs is not actually masked. [#14624]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- ``WCSAxes.plot_coord`` and ``plot_scatter`` now work correctly for APE 14 compliant WCSes where the units are not always converted to degrees. [#14251]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fix bugs with high-level WCS API on ``wcs.WCS`` object when using ``-TAB``
+  coordinates. [#13571]
+
+
+Other Changes and Additions
+---------------------------
+
+- LTS is not compatible with numpy 1.25 or later. [#14767]
+
+
 Version 5.0.6 (2023-03-28)
 ==========================
 
