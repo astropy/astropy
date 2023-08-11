@@ -165,7 +165,7 @@ syntax::
   5
 
   >>> t['a'][1]    # Row 1 of column 'a'
-  4
+  np.int32(4)
 
   >>> t[1]         # Row 1 of the table
   <Row index=1>
@@ -177,7 +177,7 @@ syntax::
 
 
   >>> t[1]['a']    # Column 'a' of row 1
-  4
+  np.int32(4)
 
 You can retrieve a subset of a table by rows (using a :class:`slice`) or by
 columns (using column names), where the subset is returned as a new table::
