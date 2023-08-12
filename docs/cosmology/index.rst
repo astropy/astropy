@@ -9,10 +9,6 @@ Cosmological Calculations (`astropy.cosmology`)
 .. |w0wzCDM| replace:: :class:`~astropy.cosmology.w0wzCDM`
 .. |w0waCDM| replace:: :class:`~astropy.cosmology.w0waCDM`
 .. |wpwaCDM| replace:: :class:`~astropy.cosmology.wpwaCDM`
-.. |WMAP7| replace:: :ref:`WMAP7 <astropy:WMAP7>`
-.. |WMAP9| replace:: :ref:`WMAP9 <astropy:WMAP9>`
-.. |Planck13| replace:: :ref:`Planck13 <astropy:Planck13>`
-.. |Planck15| replace:: :ref:`Planck15 <astropy:Planck15>`
 .. |z_at_value| replace:: :func:`~astropy.cosmology.z_at_value`
 
 Introduction
@@ -23,6 +19,9 @@ cosmologies and utility functions for calculating commonly used quantities that
 depend on a cosmological model. This includes distances, ages, and lookback
 times corresponding to a measured redshift or the transverse separation
 corresponding to a measured angular separation.
+
+A number of preloaded cosmologies are available from analyses using
+the WMAP and Planck satellite data. See :ref:`astropy-cosmology-realizations`.
 
 :mod:`astropy.cosmology.units` extends the :mod:`astropy.units` sub-package,
 adding and collecting cosmological units and equivalencies, like :math:`h` for
@@ -108,8 +107,9 @@ Using `astropy.cosmology`
 More detailed information on using the package is provided on separate pages,
 listed below.
 
-* :ref:`cosmology_io`
+* :ref:`astropy-cosmology-realizations`
 * :ref:`Units and Equivalencies <astropy-cosmology-units-and-equivalencies>`
+* :ref:`cosmology_io`
 * :ref:`For Developers <astropy-cosmology-for-developers>`
 
 Most of the functionality is enabled by the |FLRW| object. This represents a
@@ -306,39 +306,8 @@ the WMAP and Planck satellite data. For example:
   >>> Planck13.lookback_time(2)  # lookback time in Gyr at z=2  # doctest: +FLOAT_CMP
   <Quantity 10.51184138 Gyr>
 
-A full list of the predefined cosmologies is given by
-``cosmology.realizations.available`` and summarized below:
-
-===========  ============================== ====  ===== =======
-Name         Source                         H0    Om    Flat
-===========  ============================== ====  ===== =======
-_`WMAP1`     Spergel et al. 2003            72.0  0.257 Yes
-_`WMAP3`     Spergel et al. 2007            70.1  0.276 Yes
-_`WMAP5`     Komatsu et al. 2009            70.2  0.277 Yes
-_`WMAP7`     Komatsu et al. 2011            70.4  0.272 Yes
-_`WMAP9`     Hinshaw et al. 2013            69.3  0.287 Yes
-_`Planck13`  Planck Collab 2013, Paper XVI  67.8  0.307 Yes
-_`Planck15`  Planck Collab 2015, Paper XIII 67.7  0.307 Yes
-_`Planck18`  Planck Collab 2018, Paper VI   67.7  0.310 Yes
-===========  ============================== ====  ===== =======
-
-.. note::
-
-  Unlike the Planck 2015 paper, the Planck 2018 paper includes massive
-  neutrinos in ``Om0`` but the Planck18 object includes them in ``m_nu``
-  instead for consistency. Hence, the ``Om0`` value in Planck18 differs
-  slightly from the Planck 2018 paper but represents the same cosmological
-  model.
-
-Currently, all are instances of |FlatLambdaCDM|. More details about exactly
-where each set of parameters comes from are available in the docstring for each
-object::
-
-  >>> from astropy.cosmology import WMAP7
-  >>> print(WMAP7.__doc__)
-  WMAP7 instance of FlatLambdaCDM cosmology
-  (from Komatsu et al. 2011, ApJS, 192, 18, doi: 10.1088/0067-0049/192/2/18.
-   Table 1 (WMAP + BAO + H0 ML).)
+A full list of the predefined cosmologies can be found in
+:ref:`astropy-cosmology-realizations`.
 
 
 Specifying a Dark Energy Model
@@ -510,7 +479,8 @@ Reference/API
 .. toctree::
    :maxdepth: 2
 
-   io/index
+   realizations
    Units and Equivalencies <units>
+   io/index
    For Developers <dev>
    ref_api
