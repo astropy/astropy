@@ -987,9 +987,10 @@ def array2string(a, *args, **kwargs):
         a = a.value
     else:
         # See whether it covers our dtype.
-        from numpy.core.arrayprint import _get_format_function
+        from numpy.core.arrayprint import _get_format_function, _make_options_dict
 
         with np.printoptions(formatter=formatter) as options:
+            options = _make_options_dict(**options)
             try:
                 ff = _get_format_function(a.value, **options)
             except Exception:
@@ -998,7 +999,7 @@ def array2string(a, *args, **kwargs):
                 pass
             else:
                 # If the selected format function is that of numpy, we know
-                # things will fail
+                # things will fail if we pass in the Quantity, so use .value.
                 if "numpy" in ff.__module__:
                     a = a.value
 
