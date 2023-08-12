@@ -94,7 +94,8 @@ def test_blackbody_fit(fitter):
     wav = np.array([0.5, 5, 10]) * u.micron
     fnu = np.array([1, 10, 5]) * u.Jy / u.sr
 
-    b_fit = fitter(b, wav, fnu, maxiter=1000)
+    with np.errstate(divide="ignore", over="ignore"):
+        b_fit = fitter(b, wav, fnu, maxiter=1000)
 
     assert_quantity_allclose(b_fit.temperature, 2840.7438355865065 * u.K, rtol=rtol)
     assert_quantity_allclose(b_fit.scale, 5.803783292762381e-17, atol=atol)
@@ -139,9 +140,10 @@ def test_blackbody_exceptions_and_warnings():
     bb = BlackBody(5000 * u.K)
 
     # Zero wavelength given for conversion to Hz
-    with pytest.warns(AstropyUserWarning, match="invalid") as w:
-        bb(0 * u.AA)
-    assert len(w) == 3  # 2 of these are RuntimeWarning from zero divide
+    with np.errstate(divide="ignore", invalid="ignore"):
+        with pytest.warns(AstropyUserWarning, match="invalid") as w:
+            bb(0 * u.AA)
+    assert len(w) == 1
 
     # Negative wavelength given for conversion to Hz
     with pytest.warns(AstropyUserWarning, match="invalid") as w:

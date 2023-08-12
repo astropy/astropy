@@ -4,6 +4,7 @@
 import platform
 import types
 import warnings
+from contextlib import nullcontext
 
 import numpy as np
 import pytest
@@ -13,6 +14,7 @@ from numpy.testing import assert_allclose
 from astropy.modeling import fitting, models
 from astropy.modeling.core import Fittable1DModel
 from astropy.modeling.parameters import Parameter
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -203,7 +205,17 @@ class TestBounds:
             with pytest.warns(AstropyUserWarning, match="The fit may be unsuccessful"):
                 model = fitter(gauss, X, Y, self.data)
         else:
-            model = fitter(gauss, X, Y, self.data)
+            ctx2 = nullcontext()
+            if isinstance(fitter, fitting.TRFLSQFitter):
+                ctx = np.errstate(invalid="ignore", divide="ignore")
+                if not NUMPY_LT_2_0:
+                    ctx2 = pytest.warns(
+                        AstropyUserWarning, match="The fit may be unsuccessful"
+                    )
+            else:
+                ctx = nullcontext()
+            with ctx, ctx2:
+                model = fitter(gauss, X, Y, self.data)
         x_mean = model.x_mean.value
         y_mean = model.y_mean.value
         x_stddev = model.x_stddev.value
@@ -439,13 +451,20 @@ def test_fit_with_fixed_and_bound_constraints(fitter):
     x = np.linspace(0, 10, 10)
     y = np.exp(-(x**2) / 2)
 
-    fitted_1 = fitter(m, x, y)
-    assert fitted_1.mean >= 4
-    assert fitted_1.mean <= 5
-    assert fitted_1.amplitude == 3.0
+    if isinstance(fitter, fitting.TRFLSQFitter):
+        ctx = np.errstate(invalid="ignore", divide="ignore")
+    else:
+        ctx = nullcontext()
 
-    m.amplitude.fixed = False
-    _ = fitter(m, x, y)
+    with ctx:
+        fitted_1 = fitter(m, x, y)
+        assert fitted_1.mean >= 4
+        assert fitted_1.mean <= 5
+        assert fitted_1.amplitude == 3.0
+
+        m.amplitude.fixed = False
+        # Cannot enter np.errstate twice, so we need to indent everything in between.
+        _ = fitter(m, x, y)
     # It doesn't matter anymore what the amplitude ends up as so long as the
     # bounds constraint was still obeyed
     assert fitted_1.mean >= 4
