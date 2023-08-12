@@ -29,7 +29,14 @@
 .. |LambdaCDM| replace:: :class:`~astropy.cosmology.LambdaCDM`
 .. |FlatLambdaCDM| replace:: :class:`~astropy.cosmology.FlatLambdaCDM`
 
-.. |Planck18| replace:: :ref:`Planck18 <astropy:Planck18>`
+.. |WMAP1| replace:: :ref:`astropy_cosmology_realizations_WMAP1`
+.. |WMAP3| replace:: :ref:`astropy_cosmology_realizations_WMAP3`
+.. |WMAP5| replace:: :ref:`astropy_cosmology_realizations_WMAP5`
+.. |WMAP7| replace:: :ref:`astropy_cosmology_realizations_WMAP7`
+.. |WMAP9| replace:: :ref:`astropy_cosmology_realizations_WMAP9`
+.. |Planck13| replace:: :ref:`astropy_cosmology_realizations_Planck13`
+.. |Planck15| replace:: :ref:`astropy_cosmology_realizations_Planck15`
+.. |Planck18| replace:: :ref:`astropy_cosmology_realizations_Planck18`
 
 .. |FlatCosmologyMixin| replace:: :class:`~astropy.cosmology.FlatCosmologyMixin`
 .. |FlatFLRWMixin| replace:: :class:`~astropy.cosmology.FlatFLRWMixin`
