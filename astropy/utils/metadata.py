@@ -19,6 +19,9 @@ from astropy.utils.dataclasses import hasdocstringfield
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import dtype_bytes_or_chars
 
+if not PYTHON_LT_3_10:
+    from dataclasses import KW_ONLY
+
 __all__ = [
     "MergeConflictError",
     "MergeConflictWarning",
@@ -416,20 +419,20 @@ class MetaDataField:
 
     Parameters
     ----------
-    doc : str, optional
+    doc : str, optional keyword-only
         Documentation for the attribute of the class.
         Default is ``""``.
 
         .. versionadded:: 1.2
 
-    copy : bool, optional
+    copy : bool, optional keyword-only
         If ``True`` the the value is deepcopied before setting, otherwise it
         is saved as reference.
         Default is ``True``.
 
         .. versionadded:: 1.2
 
-    use_obj_setter : bool, optional
+    use_obj_setter : bool, optional keyword-only
         If `True` then the ``meta`` attribute can be set on a frozen object.
         This is required for ``meta`` to be a field on a frozen dataclass.
 
@@ -460,6 +463,8 @@ class MetaDataField:
     {'b': 2}
     """
 
+    if not PYTHON_LT_3_10:
+        _: KW_ONLY
     doc: str = field(default_factory=str)
     copy: bool = True
     use_obj_setter: bool = False
