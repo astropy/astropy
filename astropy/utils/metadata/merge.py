@@ -2,6 +2,7 @@
 """Metadata merging."""
 
 import warnings
+from contextlib import contextmanager
 from copy import deepcopy
 from functools import wraps
 
@@ -148,23 +149,7 @@ class MergeNpConcatenate(MergeStrategy):
 # ============================================================================
 
 
-class _EnableMergeStrategies:
-    def __init__(self, *merge_strategies):
-        self.merge_strategies = merge_strategies
-        self.orig_enabled = {}
-        for left_type, right_type, merge_strategy in MERGE_STRATEGIES:
-            if issubclass(merge_strategy, merge_strategies):
-                self.orig_enabled[merge_strategy] = merge_strategy.enabled
-                merge_strategy.enabled = True
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, type, value, tb):
-        for merge_strategy, enabled in self.orig_enabled.items():
-            merge_strategy.enabled = enabled
-
-
+@contextmanager
 def enable_merge_strategies(*merge_strategies):
     """
     Context manager to temporarily enable one or more custom metadata merge
@@ -216,11 +201,19 @@ def enable_merge_strategies(*merge_strategies):
 
     Parameters
     ----------
-    *merge_strategies : `~astropy.utils.metadata.MergeStrategy`
+    *merge_strategies : :class:`~astropy.utils.metadata.MergeStrategy` class
         Merge strategies that will be enabled.
-
     """
-    return _EnableMergeStrategies(*merge_strategies)
+    orig_enabled = {}
+    for _, _, merge_strategy in MERGE_STRATEGIES:
+        if issubclass(merge_strategy, merge_strategies):
+            orig_enabled[merge_strategy] = merge_strategy.enabled
+            merge_strategy.enabled = True
+
+    yield
+
+    for merge_strategy, enabled in orig_enabled.items():
+        merge_strategy.enabled = enabled
 
 
 # =============================================================================
