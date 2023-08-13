@@ -12,7 +12,6 @@ from .utils import common_dtype
 
 __all__ = [
     "MERGE_STRATEGIES",
-    "MergeStrategyMeta",
     "MergeStrategy",
     "MergePlus",
     "MergeNpConcatenate",
@@ -23,41 +22,7 @@ __all__ = [
 MERGE_STRATEGIES = []
 
 
-class MergeStrategyMeta(type):
-    """
-    Metaclass that registers MergeStrategy subclasses into the
-    MERGE_STRATEGIES registry.
-    """
-
-    def __new__(mcls, name, bases, members):
-        cls = super().__new__(mcls, name, bases, members)
-
-        # Wrap ``merge`` classmethod to catch any exception and re-raise as
-        # MergeConflictError.
-        if "merge" in members and isinstance(members["merge"], classmethod):
-            orig_merge = members["merge"].__func__
-
-            @wraps(orig_merge)
-            def merge(cls, left, right):
-                try:
-                    return orig_merge(cls, left, right)
-                except Exception as err:
-                    raise MergeConflictError(err)
-
-            cls.merge = classmethod(merge)
-
-        # Register merging class (except for base MergeStrategy class)
-        if "types" in members:
-            types = members["types"]
-            if isinstance(types, tuple):
-                types = [types]
-            for left, right in reversed(types):
-                MERGE_STRATEGIES.insert(0, (left, right, cls))
-
-        return cls
-
-
-class MergeStrategy(metaclass=MergeStrategyMeta):
+class MergeStrategy:
     """
     Base class for defining a strategy for merging metadata from two
     sources, left and right, into a single output.
@@ -114,6 +79,33 @@ class MergeStrategy(metaclass=MergeStrategyMeta):
     enabled = False
 
     # types = [(left_types, right_types), ...]
+
+    def __init_subclass__(cls):
+        members = vars(cls)
+
+        # Wrap ``merge`` classmethod to catch any exception and re-raise as
+        # MergeConflictError.
+        if "merge" in members and isinstance(members["merge"], classmethod):
+            orig_merge = members["merge"].__func__
+
+            @wraps(orig_merge)
+            def merge(cls, left, right):
+                try:
+                    return orig_merge(cls, left, right)
+                except Exception as err:
+                    raise MergeConflictError(err)
+
+            cls.merge = classmethod(merge)
+
+        # Register merging class (except for base MergeStrategy class)
+        if "types" in members:
+            types = members["types"]
+            if isinstance(types, tuple):
+                types = [types]
+            for left, right in reversed(types):
+                MERGE_STRATEGIES.insert(0, (left, right, cls))
+
+        return cls
 
 
 class MergePlus(MergeStrategy):
