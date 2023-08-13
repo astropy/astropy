@@ -11,6 +11,7 @@ from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import dataclass, field
 from functools import wraps
+from typing import Callable
 
 import numpy as np
 
@@ -420,21 +421,27 @@ class MetaDataField:
     Parameters
     ----------
     doc : str, optional keyword-only
-        Documentation for the attribute of the class.
-        Default is ``""``.
+        Documentation for the attribute of the class. Default is ``""``.
 
         .. versionadded:: 1.2
 
     copy : bool, optional keyword-only
-        If ``True`` the the value is deepcopied before setting, otherwise it
-        is saved as reference.
-        Default is ``True``.
+        If ``True`` the the value is deepcopied before setting, otherwise it is saved as
+        reference. Default is ``True``.
 
         .. versionadded:: 1.2
 
+    default_factory : callable[[], Mapping], optional keyword-only
+        A callable that returns the default value for the field. Default is
+        :class:`~collections.OrderedDict`. For comparative details on the use of
+        ``default_factory`` see the `dataclass field documentation
+        <https://docs.python.org/3/library/dataclasses.html#dataclasses.field>`_.
+
+        .. versionadded:: 6.0
+
     use_obj_setter : bool, optional keyword-only
-        If `True` then the ``meta`` attribute can be set on a frozen object.
-        This is required for ``meta`` to be a field on a frozen dataclass.
+        If `True` then the ``meta`` attribute can be set on a frozen object. This is
+        required for ``meta`` to be a field on a frozen dataclass.
 
         .. versionadded:: 6.0
 
@@ -467,6 +474,7 @@ class MetaDataField:
         _: KW_ONLY
     doc: str = field(default_factory=str)
     copy: bool = True
+    default_factory: Callable[[], Mapping] = OrderedDict
     use_obj_setter: bool = False
 
     def __get__(self, instance: object | None, owner: type | None) -> Mapping | None:
@@ -479,7 +487,7 @@ class MetaDataField:
         # to an empty `OrderedDict` if it is `None` so that we can always assume it is a
         # `Mapping` and not have to check for `None` everywhere.
         if value is None:
-            self._set_on(instance, OrderedDict())
+            self._set_on(instance, self.default_factory())
         # We don't want to allow setting the meta attribute to a non-dict-like object.
         # NOTE: with mypyc compilation this can be removed.
         elif not isinstance(value, Mapping):
