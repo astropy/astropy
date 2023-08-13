@@ -1,0 +1,5 @@
+A new class ``MetaDataField`` has been added for use as field in dataclasses that have
+a ``meta`` property.
+
+Also there is a new decorator, ``hasdocstringfield``, to add a docstring to a field in a
+slotted dataclass.

@@ -3,14 +3,19 @@
 This module contains helper functions and classes for handling metadata.
 """
 
+from __future__ import annotations
+
 import warnings
 from collections import OrderedDict
 from collections.abc import Mapping
 from copy import deepcopy
+from dataclasses import dataclass, field
 from functools import wraps
 
 import numpy as np
 
+from astropy.utils.compat.misc import PYTHON_LT_3_10
+from astropy.utils.dataclasses import hasdocstringfield
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import dtype_bytes_or_chars
 
@@ -400,6 +405,90 @@ def merge(
                     out[key] = right[key]
 
     return out
+
+
+@dataclass(frozen=True, **({"slots": True} if not PYTHON_LT_3_10 else {}))
+@hasdocstringfield("doc")
+class MetaDataField:
+    """Descriptor field for dataclasses that have a ``meta`` property.
+
+    This can be set to any valid `~collections.abc.Mapping`.
+
+    Parameters
+    ----------
+    doc : str, optional
+        Documentation for the attribute of the class.
+        Default is ``""``.
+
+        .. versionadded:: 1.2
+
+    copy : bool, optional
+        If ``True`` the the value is deepcopied before setting, otherwise it
+        is saved as reference.
+        Default is ``True``.
+
+        .. versionadded:: 1.2
+
+    use_obj_setter : bool, optional
+        If `True` then the ``meta`` attribute can be set on a frozen object.
+        This is required for ``meta`` to be a field on a frozen dataclass.
+
+        .. versionadded:: 6.0
+
+    Examples
+    --------
+    >>> from dataclasses import dataclass
+    >>> from astropy.utils.metadata import MetaDataField
+
+    >>> @dataclass
+    ... class Foo:
+    ...     meta: dict = MetaDataField()
+
+    >>> print(Foo.meta)
+    None
+
+    >>> a = Foo()
+    >>> a.meta
+    OrderedDict()
+
+    >>> a.meta['a'] = 1
+    >>> a.meta
+    OrderedDict([('a', 1)])
+
+    >>> b = Foo(meta={'b': 2})
+    >>> b.meta
+    {'b': 2}
+    """
+
+    doc: str = field(default_factory=str)
+    copy: bool = True
+    use_obj_setter: bool = False
+
+    def __get__(self, instance: object | None, owner: type | None) -> Mapping | None:
+        if instance is None:  # class attribute access
+            return None
+        return instance._meta  # instance attribute access
+
+    def __set__(self, instance: object, value: Mapping | None) -> None:
+        # The 'default' value (as set by the dataclass) is `None`, but we want to set it
+        # to an empty `OrderedDict` if it is `None` so that we can always assume it is a
+        # `Mapping` and not have to check for `None` everywhere.
+        if value is None:
+            self._set_on(instance, OrderedDict())
+        # We don't want to allow setting the meta attribute to a non-dict-like object.
+        # NOTE: with mypyc compilation this can be removed.
+        elif not isinstance(value, Mapping):
+            raise TypeError("meta attribute must be dict-like")
+        # This is called when the dataclass is instantiated with a `meta` argument.
+        else:
+            self._set_on(instance, deepcopy(value) if self.copy else value)
+
+    def _set_on(self, instance: object, value: Mapping, /) -> None:
+        """Helper method to set the meta attribute on an instance."""
+        if self.use_obj_setter:
+            object.__setattr__(instance, "_meta", value)
+        else:
+            instance._meta = value
 
 
 class MetaData:
