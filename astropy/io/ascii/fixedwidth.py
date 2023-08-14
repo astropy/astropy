@@ -71,7 +71,7 @@ class FixedWidthHeader(basic.BasicHeader):
     """ Splitter class for splitting data lines into columns """
     position_line = None  # secondary header line position
     """ row index of line that specifies position (default = 1) """
-    set_of_position_line_characters = set(r'`~!#$%^&*-_+=\|":' "'")
+    set_of_position_line_characters = set(r"""`~!#$%^&*-_+=\|":'""")
 
     def get_line(self, lines, index):
         for i, line in enumerate(self.process_lines(lines)):
