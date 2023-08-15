@@ -23,7 +23,7 @@ jobs:
       upload_to_pypi: false
       upload_to_anaconda: false
       test_extras: test
-      test_command: pytest -p no:warnings --astropy-header -m 'not hypothesis' -k 'not test_data_out_of_range and not test_set_locale and not TestQuantityTyping' --pyargs astropy
+      test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --pyargs astropy
       targets: |
         - cp39-manylinux_x86_64
 
@@ -47,7 +47,7 @@ jobs:
       # currently fails, see https://github.com/astropy/astropy/issues/10409
       # We also exclude test_set_locale as it sometimes relies on the correct locale
       # packages being installed, which it isn't always.
-      test_command: pytest -p no:warnings --astropy-header -m 'not hypothesis' -k 'not test_data_out_of_range and not test_set_locale and not TestQuantityTyping' --pyargs astropy
+      test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --pyargs astropy
       targets: |
         # Linux wheels
 
