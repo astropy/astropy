@@ -50,9 +50,7 @@ class Distribution:
         # Do the view in two stages, since for viewing as a new class, it is good
         # to have with the dtype in place (e.g., for Quantity.__array_finalize__,
         # it is needed to create the correct StructuredUnit).
-        new_dtype = np.dtype(
-            {"names": ["samples"], "formats": [(samples.dtype, (samples.shape[-1],))]}
-        )
+        new_dtype = cls._get_distribution_dtype(samples.dtype, samples.shape[-1])
         self = samples.view(new_dtype)
         # Get rid of trailing dimension of 1.
         self.shape = samples.shape[:-1]
@@ -106,9 +104,29 @@ class Distribution:
 
         return new_cls
 
+    @classmethod
+    def _get_distribution_dtype(cls, sample_dtype, n_samples):
+        dtype = np.dtype(sample_dtype)
+        if dtype.names != ("samples",):
+            dtype = np.dtype([("samples", (dtype, (n_samples,)))])
+        return dtype
+
     @property
     def distribution(self):
         return self["samples"]
+
+    @property
+    def dtype(self):
+        return super().dtype["samples"].base
+
+    @dtype.setter
+    def dtype(self, dtype):
+        dtype = self._get_distribution_dtype(dtype, self.n_samples)
+        super(Distribution, self.__class__).dtype.__set__(self, dtype)
+
+    def astype(self, dtype, *args, **kwargs):
+        dtype = self._get_distribution_dtype(dtype, self.n_samples)
+        return super().astype(dtype, *args, **kwargs)
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         converted = []
@@ -153,12 +171,29 @@ class Distribution:
 
         return finals if len(finals) > 1 else finals[0]
 
+    # Override __eq__ and __ne__ to pass on directly to the ufunc since
+    # otherwise comparisons with non-distributions do not work (but
+    # deferring if other defines __array_ufunc__ = None -- see
+    # numpy/core/src/common/binop_override.h for the logic; we assume we
+    # will never deal with __array_priority__ any more).  Note: there is no
+    # problem for other comparisons, since for those, structured arrays are
+    # not treated differently in numpy/core/src/multiarray/arrayobject.c.
+    def __eq__(self, other):
+        if getattr(other, "__array_ufunc__", False) is None:
+            return NotImplemented
+        return np.equal(self, other)
+
+    def __ne__(self, other):
+        if getattr(other, "__array_ufunc__", False) is None:
+            return NotImplemented
+        return np.not_equal(self, other)
+
     @property
     def n_samples(self):
         """
         The number of samples of this distribution.  A single `int`.
         """
-        return self.dtype["samples"].shape[0]
+        return super().dtype["samples"].shape[0]
 
     def pdf_mean(self, dtype=None, out=None):
         """
@@ -355,23 +390,6 @@ class ArrayDistribution(Distribution, np.ndarray):
             self.distribution[item.distribution] = value
         else:
             super().__setitem__(item, value)
-
-    # Override __eq__ and __ne__ to pass on directly to the ufunc since
-    # otherwise comparisons with non-distributions do not work (but
-    # deferring if other defines __array_ufunc__ = None -- see
-    # numpy/core/src/common/binop_override.h for the logic; we assume we
-    # will never deal with __array_priority__ any more).  Note: there is no
-    # problem for other comparisons, since for those, structured arrays are
-    # not treated differently in numpy/core/src/multiarray/arrayobject.c.
-    def __eq__(self, other):
-        if getattr(other, "__array_ufunc__", False) is None:
-            return NotImplemented
-        return np.equal(self, other)
-
-    def __ne__(self, other):
-        if getattr(other, "__array_ufunc__", False) is None:
-            return NotImplemented
-        return np.not_equal(self, other)
 
 
 class _DistributionRepr:
