@@ -1,1 +1,0 @@
-Fixed import when called with Python ``-OO`` flag.

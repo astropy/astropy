@@ -1,2 +1,0 @@
-Modified the implementation of ``np.power()`` for instances of ``Quantity`` to
-allow any array as the second operand if all its elements have the same value.
