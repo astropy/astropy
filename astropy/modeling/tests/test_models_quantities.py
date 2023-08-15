@@ -556,6 +556,7 @@ SCIPY_MODELS = {Sersic1D, Sersic2D, AiryDisk2D}
 #   will produce non-finite values
 NON_FINITE_LevMar_MODELS = [
     Sersic1D,
+    Sersic2D,
     ArcSine1D,
     ArcCosine1D,
     PowerLaw1D,
