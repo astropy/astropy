@@ -458,15 +458,15 @@ def test_distr_cannot_view_new_dtype():
     # TODO: with a lot of thought, this restriction can likely be relaxed.
     distr = Distribution([2.0, 3.0, 4.0])
     with pytest.raises(ValueError, match="with a new dtype"):
-        distr.view(np.dtype("f8"))
+        distr.view(np.dtype("i8"))
 
     # Check subclass just in case.
     ad = Angle(distr, "deg")
     with pytest.raises(ValueError, match="with a new dtype"):
-        ad.view(np.dtype("f8"))
+        ad.view(np.dtype("i8"))
 
     with pytest.raises(ValueError, match="with a new dtype"):
-        ad.view(np.dtype("f8"), distr.__class__)
+        ad.view(np.dtype("i8"), distr.__class__)
 
 
 def test_scalar_quantity_distribution():
