@@ -26,7 +26,7 @@ from astropy.table import (
     TableAttribute,
     TableReplaceWarning,
 )
-from astropy.tests.helper import assert_follows_unicode_guidelines, PYTEST_LT_8_0
+from astropy.tests.helper import PYTEST_LT_8_0, assert_follows_unicode_guidelines
 from astropy.time import Time, TimeDelta
 from astropy.utils.compat import NUMPY_LT_1_25
 from astropy.utils.compat.optional_deps import HAS_PANDAS
@@ -2158,7 +2158,7 @@ class TestPandas:
                 if PYTEST_LT_8_0:
                     ctx = nullcontext()
                 else:
-                    ctx = pytest.warns(FutureWarning, match=r".*IntCastingNaNError.*")
+                    ctx = pytest.warns(FutureWarning, match=".*IntCastingNaNError.*")
                 with pytest.warns(
                     TableReplaceWarning,
                     match=r"converted column 'a' from int(32|64) to float64",

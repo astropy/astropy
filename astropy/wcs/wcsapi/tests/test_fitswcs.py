@@ -25,7 +25,7 @@ from astropy.coordinates import (
 from astropy.io import fits
 from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
-from astropy.tests.helper import assert_quantity_allclose, PYTEST_LT_8_0
+from astropy.tests.helper import PYTEST_LT_8_0, assert_quantity_allclose
 from astropy.time import Time
 from astropy.units import Quantity
 from astropy.units.core import UnitsWarning

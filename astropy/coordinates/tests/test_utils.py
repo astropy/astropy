@@ -19,7 +19,7 @@ def test_polar_motion_unsupported_dates():
     if PYTEST_LT_8_0:
         ctx = nullcontext()
     else:
-        ctx = pytest.warns(erfa.core.ErfaWarning, match=r".*dubious year.*")
+        ctx = pytest.warns(erfa.core.ErfaWarning, match=".*dubious year.*")
 
     with pytest.warns(AstropyWarning, match=msg.format("before")), ctx:
         get_polar_motion(Time("1900-01-01"))

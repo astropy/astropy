@@ -718,9 +718,9 @@ def test_wcs_keywords_removed_from_header():
     if PYTEST_LT_8_0:
         ctx = nullcontext()
     else:
-        ctx = pytest.warns(FITSFixedWarning, match=r"'datfix' made the change")
+        ctx = pytest.warns(FITSFixedWarning, match="'datfix' made the change")
 
-    with pytest.warns(FITSFixedWarning, match=r"'unitfix' made the change"), ctx:
+    with pytest.warns(FITSFixedWarning, match="'unitfix' made the change"), ctx:
         ccd = CCDData.read(data_file1, unit="count")
 
 

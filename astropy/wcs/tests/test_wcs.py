@@ -21,7 +21,7 @@ from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.io.fits.verify import VerifyWarning
 from astropy.nddata import Cutout2D
-from astropy.tests.helper import assert_quantity_allclose, PYTEST_LT_8_0
+from astropy.tests.helper import PYTEST_LT_8_0, assert_quantity_allclose
 from astropy.utils.data import (
     get_pkg_data_contents,
     get_pkg_data_filename,

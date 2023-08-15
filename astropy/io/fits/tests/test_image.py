@@ -4,7 +4,6 @@ import math
 import os
 import re
 import time
-from contextlib import nullcontext
 from io import BytesIO
 from itertools import product
 
@@ -20,7 +19,6 @@ from astropy.io.fits.hdu.compressed import (
     DITHER_SEED_CHECKSUM,
     SUBTRACTIVE_DITHER_1,
 )
-from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.utils.data import download_file, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
@@ -399,30 +397,15 @@ class TestImageFunctions(FitsTestCase):
         x = fits.ImageHDU()
         hdu = fits.HDUList(x)  # HDUList can take a list or one single HDU
 
-        if PYTEST_LT_8_0:
-            ctx_zero_idx = ctx_ver_err = nullcontext()
-        else:
-            ctx_zero_idx = pytest.warns(
-                fits.verify.VerifyWarning,
-                match=r"Note: astropy\.io\.fits uses zero-based indexing",
-            )
-            ctx_ver_err = pytest.warns(
-                fits.verify.VerifyWarning, match="Verification reported errors"
-            )
-
-        with ctx_zero_idx, ctx_ver_err, pytest.warns(
-            AstropyUserWarning, match=r"HDUList's 0th element is not a primary HDU\."
-        ) as w:
+        with pytest.warns(fits.verify.VerifyWarning) as w:
             hdu.verify()
         assert len(w) == 3
+        assert "HDUList's 0th element is not a primary HDU" in str(w[1].message)
 
-        with ctx_zero_idx, ctx_ver_err, pytest.warns(
-            AstropyUserWarning,
-            match=r"HDUList's 0th element is not a primary HDU\.  "
-            r"Fixed by inserting one as 0th HDU\.",
-        ) as w:
+        with pytest.warns(fits.verify.VerifyWarning) as w:
             hdu.writeto(self.temp("test_new2.fits"), "fix")
         assert len(w) == 3
+        assert "Fixed by inserting one as 0th HDU" in str(w[1].message)
 
     def test_section(self):
         # section testing
@@ -1061,18 +1044,9 @@ class TestImageFunctions(FitsTestCase):
         hdu = fits.PrimaryHDU(data)
         hdu.header["BLANK"] = "nan"
 
-        if PYTEST_LT_8_0:
-            ctx = nullcontext()
-        else:
-            ctx = pytest.warns(
-                fits.verify.VerifyWarning, match=r"Invalid 'BLANK' keyword in header"
-            )
-
-        with pytest.warns(
-            fits.verify.VerifyWarning,
-            match=r"Invalid value for 'BLANK' keyword in header: 'nan'",
-        ), ctx:
+        with pytest.warns(fits.verify.VerifyWarning) as w:
             hdu.writeto(self.temp("test.fits"))
+        assert "Invalid value for 'BLANK' keyword in header: 'nan'" in str(w[0].message)
 
         with pytest.warns(AstropyUserWarning) as w:
             with fits.open(self.temp("test.fits")) as hdul:

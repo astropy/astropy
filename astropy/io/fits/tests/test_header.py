@@ -3,7 +3,6 @@
 import collections
 import copy
 import warnings
-from contextlib import nullcontext
 from io import BytesIO, StringIO
 
 import numpy as np
@@ -14,7 +13,6 @@ from astropy.io.fits.card import _pad
 from astropy.io.fits.header import _pad_length
 from astropy.io.fits.util import encode_ascii
 from astropy.io.fits.verify import VerifyError, VerifyWarning
-from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
@@ -361,24 +359,9 @@ class TestHeaderFunctions(FitsTestCase):
         c = fits.Card.fromstring("abc     = +  2.1   e + 12")
         assert c.value == 2100000000000.0
 
-        if PYTEST_LT_8_0:
-            ctx1 = ctx2 = ctx3 = nullcontext()
-        else:
-            ctx1 = pytest.warns(
-                fits.verify.VerifyWarning, match="Card keyword 'abc' is not upper case"
-            )
-            ctx2 = pytest.warns(
-                fits.verify.VerifyWarning, match="Card 'ABC' is not FITS standard"
-            )
-            ctx3 = pytest.warns(
-                fits.verify.VerifyWarning,
-                match=r"Note: astropy\.io\.fits uses zero-based indexing",
-            )
-
-        with pytest.warns(
-            fits.verify.VerifyWarning, match=r"Verification reported errors"
-        ), ctx1, ctx2, ctx3:
+        with pytest.warns(fits.verify.VerifyWarning) as w:
             assert str(c) == _pad("ABC     =             +2.1E+12")
+        assert "Verification reported errors" in str(w[0].message)
 
     def test_fixable_non_fsc(self):
         # fixable non-FSC: if the card is not parsable, it's value will be
@@ -387,28 +370,13 @@ class TestHeaderFunctions(FitsTestCase):
         c = fits.Card.fromstring(
             "no_quote=  this card's value has no quotes / let's also try the comment"
         )
-        if PYTEST_LT_8_0:
-            ctx1 = ctx2 = ctx3 = nullcontext()
-        else:
-            ctx1 = pytest.warns(
-                fits.verify.VerifyWarning,
-                match="Card keyword 'no_quote' is not upper case",
-            )
-            ctx2 = pytest.warns(
-                fits.verify.VerifyWarning, match="Card 'NO_QUOTE' is not FITS standard"
-            )
-            ctx3 = pytest.warns(
-                fits.verify.VerifyWarning,
-                match=r"Note: astropy\.io\.fits uses zero-based indexing",
-            )
 
-        with pytest.warns(
-            fits.verify.VerifyWarning, match=r"Verification reported errors"
-        ), ctx1, ctx2, ctx3:
+        with pytest.warns(fits.verify.VerifyWarning) as w:
             assert (
                 str(c) == "NO_QUOTE= 'this card''s value has no quotes' "
                 "/ let's also try the comment       "
             )
+        assert "Verification reported errors" in str(w[0].message)
 
     def test_undefined_value_using_string_input(self):
         # undefined value using string input
@@ -428,21 +396,10 @@ class TestHeaderFunctions(FitsTestCase):
         c = fits.Card.fromstring("XYZ= 100")
         assert c.keyword == "XYZ"
         assert c.value == 100
-        if PYTEST_LT_8_0:
-            ctx1 = ctx2 = nullcontext()
-        else:
-            ctx1 = pytest.warns(
-                fits.verify.VerifyWarning, match="Card 'XYZ' is not FITS standard"
-            )
-            ctx2 = pytest.warns(
-                fits.verify.VerifyWarning,
-                match=r"Note: astropy\.io\.fits uses zero-based indexing",
-            )
 
-        with pytest.warns(
-            fits.verify.VerifyWarning, match=r"Verification reported errors"
-        ), ctx1, ctx2:
+        with pytest.warns(fits.verify.VerifyWarning) as w:
             assert str(c) == _pad("XYZ     =                  100")
+        assert "Verification reported errors" in str(w[0].message)
 
     def test_equal_only_up_to_column_10(self, capsys):
         # the test of "=" location is only up to column 10
@@ -476,20 +433,10 @@ class TestHeaderFunctions(FitsTestCase):
         fix_text = "Fixed 'ABC' card to meet the FITS standard."
         c = fits.Card.fromstring("ABC= a6")
 
-        if PYTEST_LT_8_0:
-            ctx1 = ctx2 = nullcontext()
-        else:
-            ctx1 = pytest.warns(
-                fits.verify.VerifyWarning, match="Verification reported errors"
-            )
-            ctx2 = pytest.warns(
-                fits.verify.VerifyWarning,
-                match=r"Note: astropy\.io\.fits uses zero-based indexing",
-            )
-
-        with ctx1, ctx2, pytest.warns(AstropyUserWarning, match=fix_text) as w:
+        with pytest.warns(fits.verify.VerifyWarning) as w:
             c.verify("fix")
         assert len(w) == 4
+        assert fix_text in str(w[2].message)
         assert str(c) == _pad("ABC     = 'a6      '")
 
     def test_long_string_value(self):
@@ -627,26 +574,15 @@ class TestHeaderFunctions(FitsTestCase):
                 "/ comments with ''. "
             )
         )
-        if PYTEST_LT_8_0:
-            ctx1 = ctx2 = nullcontext()
-        else:
-            ctx1 = pytest.warns(
-                fits.verify.VerifyWarning, match="Card keyword 'abc' is not upper case"
-            )
-            ctx2 = pytest.warns(
-                fits.verify.VerifyWarning,
-                match=r"Note: astropy\.io\.fits uses zero-based indexing",
-            )
 
-        with pytest.warns(
-            fits.verify.VerifyWarning, match=r"Verification reported errors"
-        ), ctx1, ctx2:
+        with pytest.warns(fits.verify.VerifyWarning) as w:
             assert (
                 str(c)
                 == "ABC     = 'longstring''s testing  continue with long string but without the &'  "
                 "CONTINUE  'ampersand at the endcontinue must have string value (with quotes)&'  "
                 "CONTINUE  '' / comments in line 1 comments with ''.                             "
             )
+        assert "Verification reported errors" in str(w[0].message)
 
     def test_long_string_value_with_quotes(self):
         testval = "x" * 100 + "''"
@@ -2080,28 +2016,15 @@ class TestHeaderFunctions(FitsTestCase):
         assert h["FOCALLEN"] == 155.0
         assert h["APERTURE"] == 0.0
 
-        if PYTEST_LT_8_0:
-            ctx_zero_idx = ctx_nonstandard = nullcontext()
-        else:
-            ctx_zero_idx = pytest.warns(
-                fits.verify.VerifyWarning,
-                match=r"Note: astropy\.io\.fits uses zero-based indexing",
-            )
-            ctx_nonstandard = pytest.warns(
-                fits.verify.VerifyWarning, match=r"Card '.*' is not FITS standard"
-            )
-
         # Now if this were reserialized, would new values for these cards be
         # written with repaired exponent signs?
-        with pytest.warns(
-            fits.verify.VerifyWarning, match=r"Verification reported errors"
-        ), ctx_nonstandard, ctx_zero_idx:
+        with pytest.warns(fits.verify.VerifyWarning) as w:
             assert str(h.cards["FOCALLEN"]) == _pad("FOCALLEN= +1.550000000000E+002")
+        assert "Verification reported errors" in str(w[0].message)
         assert h.cards["FOCALLEN"]._modified
-        with pytest.warns(
-            fits.verify.VerifyWarning, match=r"Verification reported errors"
-        ), ctx_nonstandard, ctx_zero_idx:
+        with pytest.warns(fits.verify.VerifyWarning) as w:
             assert str(h.cards["APERTURE"]) == _pad("APERTURE= +0.000000000000E+000")
+        assert "Verification reported errors" in str(w[0].message)
         assert h.cards["APERTURE"]._modified
         assert h._modified
 
@@ -2109,15 +2032,13 @@ class TestHeaderFunctions(FitsTestCase):
         # the card strings *before* parsing the values.  Also, the card strings
         # really should be "fixed" before being returned to the user
         h = fits.Header.fromstring(hstr, sep="\n")
-        with pytest.warns(
-            fits.verify.VerifyWarning, match=r"Verification reported errors"
-        ), ctx_nonstandard, ctx_zero_idx:
+        with pytest.warns(fits.verify.VerifyWarning) as w:
             assert str(h.cards["FOCALLEN"]) == _pad("FOCALLEN= +1.550000000000E+002")
+        assert "Verification reported errors" in str(w[0].message)
         assert h.cards["FOCALLEN"]._modified
-        with pytest.warns(
-            fits.verify.VerifyWarning, match=r"Verification reported errors"
-        ), ctx_nonstandard, ctx_zero_idx:
+        with pytest.warns(fits.verify.VerifyWarning) as w:
             assert str(h.cards["APERTURE"]) == _pad("APERTURE= +0.000000000000E+000")
+        assert "Verification reported errors" in str(w[0].message)
         assert h.cards["APERTURE"]._modified
 
         assert h["FOCALLEN"] == 155.0
@@ -2480,22 +2401,9 @@ class TestHeaderFunctions(FitsTestCase):
 
         c = fits.Card.fromstring("HIERARCH ESO DET CHIP PXSPACE = 5e6")
 
-        if PYTEST_LT_8_0:
-            ctx_zero_idx = ctx_nonstandard = nullcontext()
-        else:
-            ctx_zero_idx = pytest.warns(
-                fits.verify.VerifyWarning,
-                match=r"Note: astropy\.io\.fits uses zero-based indexing",
-            )
-            ctx_nonstandard = pytest.warns(
-                fits.verify.VerifyWarning,
-                match="'ESO DET CHIP PXSPACE' is not FITS standard",
-            )
-
-        with pytest.warns(
-            fits.verify.VerifyWarning, match=r"Verification reported errors"
-        ), ctx_zero_idx, ctx_nonstandard:
+        with pytest.warns(fits.verify.VerifyWarning) as w:
             c.verify("fix")
+        assert "Verification reported errors" in str(w[0].message)
         assert str(c) == _pad("HIERARCH ESO DET CHIP PXSPACE = 5E6")
 
     def test_assign_inf_nan(self):
