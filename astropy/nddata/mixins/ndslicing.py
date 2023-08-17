@@ -105,8 +105,9 @@ class NDSlicingMixin:
             return None
         try:
             return self.uncertainty[item]
-        except TypeError:
+        except (TypeError, KeyError):
             # Catching TypeError in case the object has no __getitem__ method.
+            # Catching KeyError for Python 3.12.
             # But let IndexError raise.
             log.info("uncertainty cannot be sliced.")
         return self.uncertainty
@@ -116,7 +117,7 @@ class NDSlicingMixin:
             return None
         try:
             return self.mask[item]
-        except TypeError:
+        except (TypeError, KeyError):
             log.info("mask cannot be sliced.")
         return self.mask
 
