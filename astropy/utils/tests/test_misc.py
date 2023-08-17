@@ -70,7 +70,7 @@ def test_skip_hidden():
         # subdirectories that don't have these files
         break
     with pytest.warns(
-        AstropyDeprecationWarning, match="^The walk_skip_hidden function is deprecated"
+        AstropyDeprecationWarning, match="^The .*_hidden function is deprecated"
     ):
         for root, dirs, files in misc.walk_skip_hidden(path):
             assert ".hidden_file.txt" not in files

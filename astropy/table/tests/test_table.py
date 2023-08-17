@@ -7,6 +7,7 @@ import pathlib
 import pickle
 import sys
 from collections import OrderedDict
+from contextlib import nullcontext
 from io import StringIO
 
 import numpy as np
@@ -25,7 +26,7 @@ from astropy.table import (
     TableAttribute,
     TableReplaceWarning,
 )
-from astropy.tests.helper import assert_follows_unicode_guidelines
+from astropy.tests.helper import PYTEST_LT_8_0, assert_follows_unicode_guidelines
 from astropy.time import Time, TimeDelta
 from astropy.utils.compat import NUMPY_LT_1_25
 from astropy.utils.compat.optional_deps import HAS_PANDAS
@@ -2152,12 +2153,16 @@ class TestPandas:
             import pandas
             from packaging.version import Version
 
-            PANDAS_LT_2_0 = Version(pandas.__version__) < Version("2.0dev")
+            PANDAS_LT_2_0 = Version(pandas.__version__) < Version("2.0")
             if PANDAS_LT_2_0:
+                if PYTEST_LT_8_0:
+                    ctx = nullcontext()
+                else:
+                    ctx = pytest.warns(FutureWarning, match=".*IntCastingNaNError.*")
                 with pytest.warns(
                     TableReplaceWarning,
                     match=r"converted column 'a' from int(32|64) to float64",
-                ):
+                ), ctx:
                     d = t.to_pandas(use_nullable_int=use_nullable_int)
             else:
                 from pandas.core.dtypes.cast import IntCastingNaNError
