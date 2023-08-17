@@ -41,7 +41,7 @@ def test_api_lookup():
     assert strurl == objurl
     assert (
         strurl
-        == "http://devdocs.astropy.org/utils/index.html#module-astropy.utils.misc"
+        == "http://devdocs.astropy.org/utils/ref_api.html#module-astropy.utils.misc"
     )  # noqa
 
     # Try a non-dev version
