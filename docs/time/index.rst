@@ -512,7 +512,7 @@ Example
 
 To infer input format::
 
-  >>> from datetime import datetime
+  >>> from datetime import datetime, timezone
   >>> t = Time(datetime(2010, 1, 2, 1, 2, 3))
   >>> t.format
   'datetime'
@@ -717,7 +717,7 @@ The current time can be determined as a |Time| object using the
 `~astropy.time.Time.now` class method::
 
   >>> nt = Time.now()
-  >>> ut = Time(datetime.utcnow(), scale='utc')
+  >>> ut = Time(datetime.now(tz=timezone.utc), scale='utc')
 
 The two should be very close to each other.
 
