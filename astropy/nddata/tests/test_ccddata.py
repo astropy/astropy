@@ -2,6 +2,7 @@
 
 import os
 import textwrap
+from contextlib import nullcontext
 
 import numpy as np
 import pytest
@@ -18,6 +19,7 @@ from astropy.nddata.nduncertainty import (
     VarianceUncertainty,
 )
 from astropy.table import Table
+from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.utils import NumpyRNGContext
 from astropy.utils.data import (
     get_pkg_data_contents,
@@ -710,8 +712,15 @@ def test_wcs_keywords_removed_from_header():
 
     # Make sure that exceptions are not raised when trying to remove missing
     # keywords. o4sp040b0_raw.fits of io.fits is missing keyword 'PC1_1'.
-    data_file1 = get_pkg_data_filename("../../io/fits/tests/data/o4sp040b0_raw.fits")
-    with pytest.warns(FITSFixedWarning, match=r"'unitfix' made the change"):
+    data_file1 = get_pkg_data_filename(
+        "data/o4sp040b0_raw.fits", package="astropy.io.fits.tests"
+    )
+    if PYTEST_LT_8_0:
+        ctx = nullcontext()
+    else:
+        ctx = pytest.warns(FITSFixedWarning, match="'datfix' made the change")
+
+    with pytest.warns(FITSFixedWarning, match="'unitfix' made the change"), ctx:
         ccd = CCDData.read(data_file1, unit="count")
 
 
@@ -761,6 +770,7 @@ def test_wcs_keyword_removal_for_wcs_test_files():
     )
 
     keepers = set(_KEEP_THESE_KEYWORDS_IN_HEADER)
+    # NOTE: pyinstaller requires relative path here.
     wcs_headers = get_pkg_data_filenames("../../wcs/tests/data", pattern="*.hdr")
 
     for hdr in wcs_headers:

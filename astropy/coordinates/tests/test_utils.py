@@ -1,3 +1,6 @@
+from contextlib import nullcontext
+
+import erfa
 import pytest
 
 from astropy.coordinates.builtin_frames.utils import (
@@ -5,7 +8,7 @@ from astropy.coordinates.builtin_frames.utils import (
     get_polar_motion,
 )
 from astropy.coordinates.solar_system import get_body_barycentric_posvel
-from astropy.tests.helper import assert_quantity_allclose
+from astropy.tests.helper import PYTEST_LT_8_0, assert_quantity_allclose
 from astropy.time import Time
 from astropy.utils.exceptions import AstropyWarning
 
@@ -13,10 +16,15 @@ from astropy.utils.exceptions import AstropyWarning
 def test_polar_motion_unsupported_dates():
     msg = r"Tried to get polar motions for times {} IERS.*"
 
-    with pytest.warns(AstropyWarning, match=msg.format("before")):
+    if PYTEST_LT_8_0:
+        ctx = nullcontext()
+    else:
+        ctx = pytest.warns(erfa.core.ErfaWarning, match=".*dubious year.*")
+
+    with pytest.warns(AstropyWarning, match=msg.format("before")), ctx:
         get_polar_motion(Time("1900-01-01"))
 
-    with pytest.warns(AstropyWarning, match=msg.format("after")):
+    with pytest.warns(AstropyWarning, match=msg.format("after")), ctx:
         get_polar_motion(Time("2100-01-01"))
 
 

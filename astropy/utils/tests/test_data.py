@@ -19,6 +19,7 @@ import urllib.parse
 import urllib.request
 import warnings
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import nullcontext
 from itertools import islice
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 
@@ -28,6 +29,7 @@ import pytest
 import astropy.utils.data
 from astropy import units as _u  # u is taken
 from astropy.config import paths
+from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.utils.data import (
     CacheDamaged,
     CacheMissingWarning,
@@ -2077,9 +2079,14 @@ def test_removal_of_open_files_windows(temp_cache, valid_urls, monkeypatch):
         # This platform is able to remove files while in use.
         monkeypatch.setattr(astropy.utils.data, "_rmtree", no_rmtree)
 
+    if PYTEST_LT_8_0:
+        ctx = nullcontext()
+    else:
+        ctx = pytest.warns(CacheMissingWarning, match=".*PermissionError.*")
+
     u, c = next(valid_urls)
     with open(download_file(u, cache=True)):
-        with pytest.warns(CacheMissingWarning, match=r".*in use.*"):
+        with pytest.warns(CacheMissingWarning, match=".*in use.*"), ctx:
             clear_download_cache(u)
 
 
@@ -2092,10 +2099,15 @@ def test_update_of_open_files_windows(temp_cache, valid_urls, monkeypatch):
         # This platform is able to remove files while in use.
         monkeypatch.setattr(astropy.utils.data, "_rmtree", no_rmtree)
 
+    if PYTEST_LT_8_0:
+        ctx = nullcontext()
+    else:
+        ctx = pytest.warns(CacheMissingWarning, match=".*read-only.*")
+
     u, c = next(valid_urls)
     with open(download_file(u, cache=True)):
         u2, c2 = next(valid_urls)
-        with pytest.warns(CacheMissingWarning, match=r".*in use.*"):
+        with pytest.warns(CacheMissingWarning, match=".*in use.*"), ctx:
             f = download_file(u, cache="update", sources=[u2])
         check_download_cache()
         assert is_url_in_cache(u)

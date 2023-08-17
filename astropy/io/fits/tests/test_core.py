@@ -21,9 +21,9 @@ from astropy.io.fits.diff import FITSDiff
 from astropy.io.fits.file import GZIP_MAGIC, _File
 from astropy.io.tests import safeio
 from astropy.utils import data
-
-# NOTE: Python can be built without bz2.
-from astropy.utils.compat.optional_deps import HAS_BZ2
+from astropy.utils.compat.optional_deps import (
+    HAS_BZ2,  # NOTE: Python can be built without bz2
+)
 from astropy.utils.data import conf
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
@@ -280,9 +280,10 @@ class TestCore(FitsTestCase):
         # silentfix+warn should be quiet about the fixed HDU and only warn
         # about the unfixable one
         hdu = make_invalid_hdu()
-        with pytest.warns(AstropyUserWarning, match="Illegal keyword name") as w:
+        with pytest.warns(fits.verify.VerifyWarning) as w:
             hdu.verify("silentfix+warn")
         assert len(w) == 4
+        assert "Illegal keyword name 'P.I.'" in str(w.list[2].message)
 
         # silentfix+exception should only mention the unfixable error in the
         # exception
@@ -294,9 +295,10 @@ class TestCore(FitsTestCase):
         # fix+ignore is not too useful, but it should warn about the fixed
         # problems while saying nothing about the unfixable problems
         hdu = make_invalid_hdu()
-        with pytest.warns(AstropyUserWarning, match="not upper case") as w:
+        with pytest.warns(fits.verify.VerifyWarning) as w:
             hdu.verify("fix+ignore")
         assert len(w) == 4
+        assert "not upper case" not in str(w.list[0].message)
 
         # fix+warn
         hdu = make_invalid_hdu()
@@ -1429,13 +1431,9 @@ class TestStreamingFunctions(FitsTestCase):
         hdul = fits.HDUList([phdu, ihdu])
         filename = self.temp("temp.fits")
 
-        pytest.raises(
-            fits.VerifyError, hdul.writeto, filename, output_verify="exception"
-        )
-        with pytest.warns(
-            fits.verify.VerifyWarning, match=r"Verification reported errors"
-        ):
+        with pytest.warns(fits.verify.VerifyWarning) as w:
             hdul.writeto(filename, output_verify="fix")
+        assert "Verification reported errors" in str(w[0].message)
         with fits.open(filename):
             assert hdul[1].name == "12345678"
             assert hdul[1].header["EXTNAME"] == "12345678"

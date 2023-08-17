@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import warnings
+from contextlib import nullcontext
 
 import erfa
 import numpy as np
@@ -12,6 +13,7 @@ from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.coordinates.angle_utilities import golden_spiral_grid
 from astropy.coordinates.builtin_frames import ICRS, AltAz
 from astropy.coordinates.builtin_frames.utils import get_jd12
+from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.time import Time
 from astropy.utils import iers
 
@@ -201,9 +203,14 @@ def test_future_altaz():
     # assured of being "fresh".  In this case getting times outside the range of the
     # table does not raise an exception.  Only if using IERS_B (which happens without
     # --remote-data, i.e. for all CI testing) do we expect another warning.
-    with pytest.warns(
+    if PYTEST_LT_8_0:
+        ctx1 = ctx2 = nullcontext()
+    else:
+        ctx1 = pytest.warns(erfa.core.ErfaWarning)
+        ctx2 = pytest.warns(AstropyWarning, match=".*times are outside of range.*")
+    with ctx1, ctx2, pytest.warns(
         AstropyWarning,
-        match=r"Tried to get polar motions for times after IERS data is valid.*",
+        match="Tried to get polar motions for times after IERS data is valid.*",
     ) as found_warnings:
         SkyCoord(1 * u.deg, 2 * u.deg).transform_to(AltAz(location=location, obstime=t))
 

@@ -1,12 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from contextlib import nullcontext
+
 import numpy as np
 import pytest
 
 from astropy import coordinates, time
 from astropy import units as u
 from astropy.table import Column, NdarrayMixin, QTable, Table, table_helpers, unique
+from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.time import Time
+from astropy.time.core import TimeDeltaMissingUnitWarning
 from astropy.utils.compat import NUMPY_LT_1_22_1
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -468,7 +472,13 @@ def test_table_aggregate(T1):
     t1m["c"].mask[4:6] = True
     t1m["d"].mask[4:6] = True
     tg = t1m.group_by("a")
-    with pytest.warns(UserWarning, match="converting a masked element to nan"):
+
+    if PYTEST_LT_8_0:
+        ctx = nullcontext()
+    else:
+        ctx = pytest.warns(AstropyUserWarning, match="Cannot aggregate column")
+
+    with pytest.warns(UserWarning, match="converting a masked element to nan"), ctx:
         tga = tg.groups.aggregate(np.sum)
 
     assert tga.pformat() == [
@@ -722,7 +732,15 @@ def test_group_mixins_unsupported(col):
 
     t = Table([[1, 1], [3, 4], col], names=["a", "b", "mix"])
     tg = t.group_by("a")
-    with pytest.warns(AstropyUserWarning, match="Cannot aggregate column 'mix'"):
+    if not PYTEST_LT_8_0 and isinstance(col, time.TimeDelta):
+        ctx = pytest.warns(
+            TimeDeltaMissingUnitWarning,
+            match="Numerical value without unit or explicit format",
+        )
+    else:
+        ctx = nullcontext()
+
+    with pytest.warns(AstropyUserWarning, match="Cannot aggregate column 'mix'"), ctx:
         tg.groups.aggregate(np.sum)
 
 
