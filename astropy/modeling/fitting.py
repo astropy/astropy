@@ -1218,7 +1218,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
                         output = np.array(
                             [np.ravel(_) for _ in np.atleast_2d(weights).T * fit_deriv]
                         )
-                    return output
+                    
                 except ValueError:
                     return np.array(
                         [
@@ -1226,6 +1226,9 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
                             for _ in np.array(weights) * np.moveaxis(fit_deriv, -1, 0)
                         ]
                     ).transpose()
+                
+                else:
+                    return output
             else:
                 if not model.col_fit_deriv:
                     return [

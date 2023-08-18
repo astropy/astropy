@@ -1342,11 +1342,12 @@ class Table:
             try:
                 col = data[0].__class__(data)
                 col.info.name = name
-                return col
             except Exception:
                 # If that didn't work for some reason, just turn it into np.array of object
                 data = np.array(data, dtype=object)
                 col_cls = self.ColumnClass
+            else:
+                return col
 
         elif isinstance(data, (np.ma.MaskedArray, Masked)):
             # Require that col_cls be a subclass of MaskedColumn, remembering
@@ -2104,9 +2105,10 @@ class Table:
                 ):
                     try:
                         self._replace_column_warnings(item, value)
-                        return
                     except Exception:
                         pass
+                    else:
+                        return
                 self.columns[item][:] = value
 
             elif isinstance(item, (int, np.integer)):
@@ -2252,10 +2254,10 @@ class Table:
     def __ior__(self, other):
         try:
             self.update(other)
-            return self
         except TypeError:
             return NotImplemented
-
+        else:
+            return self
     def index_column(self, name):
         """
         Return the positional index of column ``name``.
