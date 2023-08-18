@@ -280,16 +280,10 @@ def _concatenate_components(reps_difs, names):
     concatenates all of the individual components for an iterable of
     representations or differentials.
     """
-    values = []
-    for name in names:
-        unit0 = getattr(reps_difs[0], name).unit
-        # Go via to_value because np.concatenate doesn't work with Quantity
-        data_vals = [getattr(x, name).to_value(unit0) for x in reps_difs]
-        concat_vals = np.concatenate(np.atleast_1d(*data_vals))
-        concat_vals = concat_vals << unit0
-        values.append(concat_vals)
-
-    return values
+    return [
+        np.concatenate(np.atleast_1d(*[getattr(x, name) for x in reps_difs]))
+        for name in names
+    ]
 
 
 def concatenate_representations(reps):

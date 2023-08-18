@@ -523,7 +523,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
                     )
 
             # Now use the first to determine if they are all UnitSpherical
-            allunitsphrepr = isinstance(scs[0].data, UnitSphericalRepresentation)
+            not_unit_sphere = not isinstance(scs[0].data, UnitSphericalRepresentation)
 
             # get the frame attributes from the first coord in the list, because
             # from the above we know it matches all the others.  First copy over
@@ -535,24 +535,11 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
                 skycoord_kwargs[fattrnm] = getattr(scs[0], fattrnm)
 
             # Now combine the values, to be used below
-            values = []
-            for data_attr_name, repr_attr_name in zip(
-                frame_attr_names, repr_attr_names
-            ):
-                if allunitsphrepr and repr_attr_name == "distance":
-                    # if they are *all* UnitSpherical, don't give a distance
-                    continue
-                data_vals = []
-                for sc in scs:
-                    data_val = getattr(sc, data_attr_name)
-                    data_vals.append(
-                        data_val.reshape((1,)) if sc.isscalar else data_val
-                    )
-                concat_vals = np.concatenate(data_vals)
-                # Hack because np.concatenate doesn't fully work with Quantity
-                if isinstance(concat_vals, u.Quantity):
-                    concat_vals._unit = data_val.unit
-                values.append(concat_vals)
+            values = [
+                np.concatenate([np.atleast_1d(getattr(sc, data_attr)) for sc in scs])
+                for data_attr, repr_attr in zip(frame_attr_names, repr_attr_names)
+                if not_unit_sphere or repr_attr != "distance"
+            ]
         else:
             # none of the elements are "frame-like"
             # turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
