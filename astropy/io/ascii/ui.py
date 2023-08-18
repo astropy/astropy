@@ -600,7 +600,7 @@ def _guess(table, read_kwargs, format, fast_reader):
                 }
             )
             return dat
-        
+
     # Failed all guesses, try the original read_kwargs without column requirements
     try:
         reader = get_reader(**read_kwargs)
@@ -638,7 +638,7 @@ def _guess(table, read_kwargs, format, fast_reader):
         ]
         lines.extend(msg)
         raise core.InconsistentTableError("\n".join(lines)) from None
-    
+
     else:
         _read_trace.append(
             {

@@ -1026,7 +1026,7 @@ class UnitBase:
                     # to dimensionless (according to the equivalency)?
                     try:
                         (other / unit).decompose([a])
-                        
+
                     except Exception:
                         pass
                     else:

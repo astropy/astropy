@@ -2258,6 +2258,7 @@ class Table:
             return NotImplemented
         else:
             return self
+
     def index_column(self, name):
         """
         Return the positional index of column ``name``.

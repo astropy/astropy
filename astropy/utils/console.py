@@ -184,7 +184,7 @@ def terminal_size(file=None):
             width -= 1
         if lines <= 0 or width <= 0:
             raise Exception("unable to get terminal size")
-        
+
     except Exception:
         try:
             # see if POSIX standard variables will work
@@ -201,6 +201,7 @@ def terminal_size(file=None):
             return lines, width
     else:
         return (lines, width)
+
 
 def _color_text(text, color):
     """Returns a string wrapped in ANSI color codes for coloring the text in a terminal.
@@ -280,7 +281,7 @@ def _write_with_fallback(s, write, fileobj):
         pass
     else:
         return write
-    
+
     enc = locale.getpreferredencoding()
     try:
         Writer = codecs.getwriter(enc)
@@ -292,7 +293,7 @@ def _write_with_fallback(s, write, fileobj):
 
     try:
         write(s)
-        
+
     except UnicodeEncodeError:
         Writer = codecs.getwriter("latin-1")
         f = Writer(fileobj)

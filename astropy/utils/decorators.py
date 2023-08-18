@@ -834,14 +834,14 @@ class lazyproperty(property):
                     if val is _NotFound:
                         val = self.fget(obj)
                         obj_dict[self._key] = val
-            
+
         except AttributeError:
             if obj is None:
                 return self
             raise
         else:
             return val
-            
+
     def __set__(self, obj, val):
         obj_dict = obj.__dict__
         if self.fset:
