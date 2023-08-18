@@ -247,7 +247,6 @@ ignore = [
     "TRY004",  # prefer-type-error
     "TRY200",  # reraise-no-cause
     "TRY201",  # verbose-raise
-    "TRY300",  # Consider `else` block
     "TRY301",  # raise-within-try
     "TRY302",  # Remove exception handler; error is immediately re-raised
     "TRY400",  # error-instead-of-exception
