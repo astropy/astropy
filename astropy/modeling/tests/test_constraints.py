@@ -14,9 +14,12 @@ from numpy.testing import assert_allclose
 from astropy.modeling import fitting, models
 from astropy.modeling.core import Fittable1DModel
 from astropy.modeling.parameters import Parameter
+from astropy.utils import minversion
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
+
+SCIPY_LT_1_11_2 = not minversion("scipy", "1.11.2") if HAS_SCIPY else True
 
 fitters = [
     fitting.LevMarLSQFitter,
@@ -208,7 +211,7 @@ class TestBounds:
             ctx2 = nullcontext()
             if isinstance(fitter, fitting.TRFLSQFitter):
                 ctx = np.errstate(invalid="ignore", divide="ignore")
-                if not NUMPY_LT_2_0:
+                if not NUMPY_LT_2_0 or not SCIPY_LT_1_11_2:
                     ctx2 = pytest.warns(
                         AstropyUserWarning, match="The fit may be unsuccessful"
                     )
