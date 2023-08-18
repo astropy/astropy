@@ -1026,9 +1026,11 @@ class UnitBase:
                     # to dimensionless (according to the equivalency)?
                     try:
                         (other / unit).decompose([a])
-                        return True
+                        
                     except Exception:
                         pass
+                    else:
+                        return True
                 elif (a._is_equivalent(unit) and b._is_equivalent(other)) or (
                     b._is_equivalent(unit) and a._is_equivalent(other)
                 ):
