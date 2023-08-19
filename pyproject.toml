@@ -2,6 +2,8 @@
 requires = ["setuptools",
             "setuptools_scm>=6.2",
             "cython==0.29.34",
+            # TODO: update runtime requirements (setup.cfg)
+            # when numpy is bumped to >=2.0 here
             "numpy>=1.25,<2",
             "extension-helpers"]
 build-backend = 'setuptools.build_meta'
