@@ -587,7 +587,7 @@ def _guess(table, read_kwargs, format, fast_reader):
             )
             failed_kwargs.append(guess_kwargs)
 
-        else:   
+        else:
             reader.guessing = True
             dat = reader.read(table)
             _read_trace.append(
