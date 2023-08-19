@@ -651,6 +651,14 @@ def test_scipy_poisson_limit():
         (0, 10.67),
         rtol=1e-3,
     )
+    # Add new test cases for larger values of n
+    assert_allclose(
+        funcs._scipy_kraft_burrows_nousek(100, 50.0, 0.95), (0, 200.09), rtol=1e-3
+    )
+    assert_allclose(
+        funcs._scipy_kraft_burrows_nousek(1000, 500.0, 0.99), (0, 2000.04), rtol=1e-3
+    )
+
     conf = funcs.poisson_conf_interval(
         [5, 6],
         "kraft-burrows-nousek",
@@ -707,6 +715,13 @@ def test_mpmath_poisson_limit():
     )
     assert_allclose(
         funcs._mpmath_kraft_burrows_nousek(5.0, 2.5, 0.99), (0, 10.67), rtol=1e-3
+    )
+    # Add new test cases for larger values of n
+    assert_allclose(
+        funcs._mpmath_kraft_burrows_nousek(100, 50.0, 0.95), (0, 200.09), rtol=1e-3
+    )
+    assert_allclose(
+        funcs._mpmath_kraft_burrows_nousek(1000, 500.0, 0.99), (0, 2000.04), rtol=1e-3
     )
 
     assert_allclose(
