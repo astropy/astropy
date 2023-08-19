@@ -112,7 +112,13 @@ class Angle(u.SpecificTypeQuantity):
                 unit = cls._convert_unit_to_angle_unit(u.Unit(unit))
 
             if isinstance(angle, tuple):
-                angle = cls._tuple_to_float(angle, unit)
+                raise TypeError(
+                    "Creating an Angle with a tuple of degrees (or hours), minutes, and seconds "
+                    "is no longer supported, as it has ambiguous behavior when the degree "
+                    "value is 0. Use another way of creating angles instead (e.g., a less "
+                    "ambiguous string like '-0d1m2.3s'). In a future version of astropy, a tuple "
+                    "will be interpreted simply as a sequence with the given unit."
+                )
 
             elif isinstance(angle, str):
                 angle, angle_unit = form.parse_angle(angle, unit)
@@ -140,20 +146,6 @@ class Angle(u.SpecificTypeQuantity):
                 angle = [Angle(x, unit, copy=False) for x in angle]
 
         return super().__new__(cls, angle, unit, dtype=dtype, copy=copy, **kwargs)
-
-    @staticmethod
-    def _tuple_to_float(angle, unit):
-        """
-        Converts an angle represented as a 3-tuple or 2-tuple into a floating
-        point number in the given unit.
-        """
-        # TODO: Numpy array of tuples?
-        if unit == u.hourangle:
-            return form.hms_to_hours(*angle)
-        elif unit == u.degree:
-            return form.dms_to_degrees(*angle)
-        else:
-            raise u.UnitsError(f"Can not parse '{angle}' as unit '{unit}'")
 
     @staticmethod
     def _convert_unit_to_angle_unit(unit):
