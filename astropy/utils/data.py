@@ -1885,11 +1885,11 @@ def _get_download_cache_loc(pkgname="astropy"):
     datadir : str
         The path to the data cache directory.
     """
-    try:
-        datadir = os.path.join(
+    datadir = os.path.join(
             astropy.config.paths.get_cache_dir(pkgname), "download", "url"
-        )
 
+        )
+    try:
         if not os.path.exists(datadir):
             try:
                 os.makedirs(datadir)
