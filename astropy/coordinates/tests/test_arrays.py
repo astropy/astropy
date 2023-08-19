@@ -18,7 +18,6 @@ from astropy.coordinates import (
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.utils.compat import NUMPY_LT_1_24
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_angle_arrays():
@@ -86,11 +85,6 @@ def test_hms():
     hms = a1.hms
     hours = hms[0] + hms[1] / 60.0 + hms[2] / 3600.0
     npt.assert_almost_equal(a1.hour, hours)
-
-    with pytest.warns(AstropyDeprecationWarning, match="hms_to_hours"):
-        a2 = Angle(hms, unit=u.hour)
-
-    npt.assert_almost_equal(a2.radian, a1.radian)
 
 
 def test_array_coordinates_creation():

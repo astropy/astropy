@@ -17,7 +17,6 @@ from astropy.coordinates.errors import (
     IllegalSecondError,
     IllegalSecondWarning,
 )
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_create_angles():
@@ -46,11 +45,6 @@ def test_create_angles():
 
     a10 = Angle(3.60827466667, unit=u.hour)
     a11 = Angle("3:36:29.7888000120", unit=u.hour)
-    with pytest.warns(AstropyDeprecationWarning, match="hms_to_hour"):
-        a12 = Angle((3, 36, 29.7888000120), unit=u.hour)  # *must* be a tuple
-    with pytest.warns(AstropyDeprecationWarning, match="hms_to_hour"):
-        # Regression test for #5001
-        a13 = Angle((3, 36, 29.7888000120), unit="hour")
 
     Angle(0.944644098745, unit=u.radian)
 
@@ -93,7 +87,7 @@ def test_create_angles():
     assert_allclose(a5.radian, a6.radian)
 
     assert_allclose(a10.degree, a11.degree)
-    assert a11 == a12 == a13 == a14
+    assert a11 == a14
     assert a21 == a22
     assert a23 == -a24
     assert a24 == a25
@@ -450,15 +444,6 @@ def test_radec():
 
     ra = Longitude("12h43m23s")
     assert_allclose(ra.hour, 12.7230555556)
-
-    # TODO: again, fix based on >24 behavior
-    # ra = Longitude((56,14,52.52))
-    with pytest.raises(u.UnitsError):
-        ra = Longitude((56, 14, 52.52))
-    with pytest.raises(u.UnitsError):
-        ra = Longitude((12, 14, 52))  # ambiguous w/o units
-    with pytest.warns(AstropyDeprecationWarning, match="hms_to_hours"):
-        ra = Longitude((12, 14, 52), unit=u.hour)
 
     # Units can be specified
     ra = Longitude("4:08:15.162342", unit=u.hour)
@@ -926,15 +911,12 @@ def test_empty_sep():
     assert a.to_string(sep="", precision=2, pad=True) == "050431.94"
 
 
-def test_create_tuple():
-    """
-    Tests creation of an angle with an (h,m,s) tuple
-
-    (d, m, s) tuples are not tested because of sign ambiguity issues (#13162)
-    """
-    with pytest.warns(AstropyDeprecationWarning, match="hms_to_hours"):
-        a1 = Angle((1, 30, 0), unit=u.hourangle)
-    assert a1.value == 1.5
+@pytest.mark.parametrize("angle_class", [Angle, Longitude])
+@pytest.mark.parametrize("unit", [u.hourangle, u.hour, None])
+def test_create_tuple_fail(angle_class, unit):
+    """Creating an angle from an (h,m,s) tuple should fail."""
+    with pytest.raises(TypeError, match="no longer supported"):
+        angle_class((12, 14, 52), unit=unit)
 
 
 def test_list_of_quantities():

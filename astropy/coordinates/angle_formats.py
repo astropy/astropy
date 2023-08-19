@@ -22,8 +22,7 @@ from warnings import warn
 import numpy as np
 
 from astropy import units as u
-from astropy.utils import format_exception, parsing
-from astropy.utils.decorators import deprecated
+from astropy.utils import parsing
 
 from .errors import (
     IllegalHourError,
@@ -411,113 +410,6 @@ def degrees_to_dms(d):
     s = mf * 60.0
 
     return np.floor(sign * d), sign * np.floor(m), sign * s
-
-
-@deprecated(
-    since="5.1",
-    message=(
-        "dms_to_degrees (or creating an Angle with a tuple) has ambiguous "
-        "behavior when the degree value is 0. Use {alternative}."
-    ),
-    alternative=(
-        "another way of creating angles instead (e.g. a less "
-        "ambiguous string like '-0d1m2.3s')"
-    ),
-)
-def dms_to_degrees(d, m, s=None):
-    """
-    Convert degrees, arcminute, arcsecond to a float degrees value.
-    """
-    _check_minute_range(m)
-    _check_second_range(s)
-
-    # determine sign
-    sign = np.copysign(1.0, d)
-
-    try:
-        d = np.floor(np.abs(d))
-        if s is None:
-            m = np.abs(m)
-            s = 0
-        else:
-            m = np.floor(np.abs(m))
-            s = np.abs(s)
-    except ValueError as err:
-        raise ValueError(
-            format_exception(
-                "{func}: dms values ({1[0]},{2[1]},{3[2]}) could not be "
-                "converted to numbers.",
-                d,
-                m,
-                s,
-            )
-        ) from err
-
-    return sign * (d + m / 60.0 + s / 3600.0)
-
-
-@deprecated(
-    since="5.1",
-    message=(
-        "hms_to_hours (or creating an Angle with a tuple) has ambiguous "
-        "behavior when the hour value is 0. Use {alternative}."
-    ),
-    alternative=(
-        "another way of creating angles instead (e.g. a less "
-        "ambiguous string like '-0h1m2.3s')"
-    ),
-)
-def hms_to_hours(h, m, s=None):
-    """
-    Convert hour, minute, second to a float hour value.
-    """
-    check_hms_ranges(h, m, s)
-
-    # determine sign
-    sign = np.copysign(1.0, h)
-
-    try:
-        h = np.floor(np.abs(h))
-        if s is None:
-            m = np.abs(m)
-            s = 0
-        else:
-            m = np.floor(np.abs(m))
-            s = np.abs(s)
-    except ValueError as err:
-        raise ValueError(
-            format_exception(
-                "{func}: HMS values ({1[0]},{2[1]},{3[2]}) could not be "
-                "converted to numbers.",
-                h,
-                m,
-                s,
-            )
-        ) from err
-
-    return sign * (h + m / 60.0 + s / 3600.0)
-
-
-def hms_to_degrees(h, m, s):
-    """
-    Convert hour, minute, second to a float degrees value.
-    """
-    return hms_to_hours(h, m, s) * 15.0
-
-
-def hms_to_radians(h, m, s):
-    """
-    Convert hour, minute, second to a float radians value.
-    """
-    return u.degree.to(u.radian, hms_to_degrees(h, m, s))
-
-
-def hms_to_dms(h, m, s):
-    """
-    Convert degrees, arcminutes, arcseconds to an ``(hour, minute, second)``
-    tuple.
-    """
-    return degrees_to_dms(hms_to_degrees(h, m, s))
 
 
 def hours_to_decimal(h):
