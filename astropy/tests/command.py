@@ -15,6 +15,7 @@ from contextlib import contextmanager
 from setuptools import Command
 
 from astropy.logger import log
+from astropy.utils.decorators import deprecated
 
 
 @contextmanager
@@ -34,6 +35,7 @@ def _suppress_stdout():
             sys.stdout = old_stdout
 
 
+@deprecated("6.0")
 class FixRemoteDataOption(type):
     """
     This metaclass is used to catch cases where the user is running the tests
@@ -61,6 +63,7 @@ class FixRemoteDataOption(type):
         return super().__init__(name, bases, dct)
 
 
+@deprecated("6.0")
 class AstropyTest(Command, metaclass=FixRemoteDataOption):
     description = "Run the tests for this package"
 
