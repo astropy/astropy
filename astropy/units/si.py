@@ -85,6 +85,13 @@ def_unit(
     doc="degree: angular measurement 1/360 of full rotation",
 )
 def_unit(
+    ['rev', 'revolution'],
+    360 * deg,
+    namespace=_ns,
+    prefixes=False,
+    doc="revolution: angular measurement of 1 full rotation",
+)
+def_unit(
     ["hourangle"],
     15.0 * deg,
     namespace=_ns,
@@ -190,6 +197,18 @@ def_unit(
     365.25 * d,
     namespace=_ns,
     prefixes=True,
+)
+
+
+###########################################################################
+# Angular Velocity
+
+def_unit(
+    ['rpm'],
+    rev / minute,
+    namespace=_ns,
+    prefixes=False,
+    doc="revolutions per minute",
 )
 
 
