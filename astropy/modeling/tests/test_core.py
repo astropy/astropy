@@ -11,7 +11,6 @@ import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 import astropy
-import astropy.modeling.core as core
 import astropy.units as u
 from astropy.convolution import convolve_models
 from astropy.modeling import models
@@ -984,40 +983,19 @@ def test__validate_input_shape():
 def test__validate_input_shapes():
     model = models.Gaussian1D()
     model._n_models = 2
-    inputs = [mk.MagicMock() for _ in range(3)]
-    argnames = mk.MagicMock()
-    model_set_axis = mk.MagicMock()
-    all_shapes = [mk.MagicMock() for _ in inputs]
 
-    # Successful validation
-    with mk.patch.object(
-        Model, "_validate_input_shape", autospec=True, side_effect=all_shapes
-    ) as mkValidate:
-        with mk.patch.object(core, "check_broadcast", autospec=True) as mkCheck:
-            assert mkCheck.return_value == model._validate_input_shapes(
-                inputs, argnames, model_set_axis
-            )
-            assert mkCheck.call_args_list == [mk.call(*all_shapes)]
-            assert mkValidate.call_args_list == [
-                mk.call(model, _input, idx, argnames, model_set_axis, True)
-                for idx, _input in enumerate(inputs)
-            ]
+    # Full success
+    inputs = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]])]
+    assert (2, 2) == model._validate_input_shapes(inputs, model.inputs, 1)
 
     # Fail check_broadcast
     MESSAGE = r"All inputs must have identical shapes or must be scalars"
-    with mk.patch.object(
-        Model, "_validate_input_shape", autospec=True, side_effect=all_shapes
-    ) as mkValidate:
-        with mk.patch.object(
-            core, "check_broadcast", autospec=True, return_value=None
-        ) as mkCheck:
-            with pytest.raises(ValueError, match=MESSAGE):
-                model._validate_input_shapes(inputs, argnames, model_set_axis)
-            assert mkCheck.call_args_list == [mk.call(*all_shapes)]
-            assert mkValidate.call_args_list == [
-                mk.call(model, _input, idx, argnames, model_set_axis, True)
-                for idx, _input in enumerate(inputs)
-            ]
+
+    # Fails because the input shape of the second input has one more axis which
+    # for which the first input can be broadcasted to
+    inputs = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8], [9, 10]])]
+    with pytest.raises(ValueError, match=MESSAGE):
+        model._validate_input_shapes(inputs, model.inputs, 1)
 
 
 def test__remove_axes_from_shape():
