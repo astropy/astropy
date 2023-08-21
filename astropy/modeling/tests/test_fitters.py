@@ -1433,6 +1433,9 @@ def test_non_finite_filter_1D(fitter, weights):
     m_init = models.Gaussian1D()
     fit = fitter()
 
+    if weights is not None:
+        weights[[1, 4]] = np.nan
+
     with pytest.warns(
         AstropyUserWarning,
         match=r"Non-Finite input data has been removed by the fitter",
@@ -1454,6 +1457,10 @@ def test_non_finite_filter_2D(fitter, weights):
     z[0, 0] = np.nan
     z[3, 3] = np.inf
     z[7, 5] = -np.inf
+
+    if weights is not None:
+        weights[1, 1] = np.nan
+        weights[4, 3] = np.inf
 
     m_init = models.Gaussian2D()
     fit = fitter()
