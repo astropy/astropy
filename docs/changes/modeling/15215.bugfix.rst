@@ -1,0 +1,2 @@
+Apply filtering for non-finite values in either/both the data values
+and the weights for the ``LevMarLSQFitter``.

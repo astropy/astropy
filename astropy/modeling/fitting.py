@@ -1279,16 +1279,25 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         MESSAGE = "Non-Finite input data has been removed by the fitter."
 
         if z is None:
-            mask = np.isfinite(y)
+            mask = np.isfinite(y) & (
+                np.isfinite(weights)
+                if weights is not None
+                else np.ones_like(y).astype(bool)
+            )
             if not np.all(mask):
                 warnings.warn(MESSAGE, AstropyUserWarning)
             z_out = None
         else:
-            mask = np.isfinite(z)
+            mask = np.isfinite(z) & (
+                np.isfinite(weights)
+                if weights is not None
+                else np.ones_like(z).astype(bool)
+            )
             if not np.all(mask):
                 warnings.warn(MESSAGE, AstropyUserWarning)
-            z_out = z[mask]
-
+                z_out = z[mask]
+            else:
+                return x, y, z, None if weights is None else weights
         return x[mask], y[mask], z_out, None if weights is None else weights[mask]
 
     @fitter_unit_support
