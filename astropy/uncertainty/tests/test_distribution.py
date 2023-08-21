@@ -11,6 +11,7 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.uncertainty import distributions as ds
 from astropy.uncertainty.core import Distribution
 from astropy.utils import NumpyRNGContext
+from astropy.utils.compat.numpycompat import NUMPY_LT_1_23
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 if HAS_SCIPY:
@@ -451,22 +452,61 @@ def test_distr_angle_view_as_quantity():
     assert np.may_share_memory(qd4, qd3)
 
 
+def test_distr_view_different_dtype1():
+    # Viewing with a new dtype should follow the same rules as for a
+    # regular array with the same dtype.
+    c = Distribution([2.0j, 3.0, 4.0j])
+    r = c.view("2f8")
+    assert r.shape == c.shape + (2,)
+    assert np.may_share_memory(r, c)
+    expected = np.moveaxis(c.distribution.view("2f8"), -2, -1)
+    assert_array_equal(r.distribution, expected)
+    c2 = r.view("c16")
+    assert_array_equal(c2.distribution, c.distribution)
+    assert np.may_share_memory(c2, c)
+
+
+def test_distr_view_different_dtype2():
+    # Viewing with a new dtype should follow the same rules as for a
+    # regular array with the same dtype.
+    uint32 = Distribution(
+        np.array([[0x01020304, 0x05060708], [0x11121314, 0x15161718]], dtype="u4")
+    )
+    uint8 = uint32.view("4u1")
+    assert uint8.shape == uint32.shape + (4,)
+    assert np.may_share_memory(uint8, uint32)
+    expected = np.moveaxis(uint32.distribution.view("4u1"), -2, -1)
+    assert_array_equal(uint8.distribution, expected)
+    uint32_2 = uint8.view("u4")
+    assert np.may_share_memory(uint32_2, uint32)
+    assert_array_equal(uint32_2.distribution, uint32.distribution)
+    uint8_2 = uint8.T
+    if NUMPY_LT_1_23:
+        with pytest.raises(DeprecationWarning, match="Changing the shape of an F-"):
+            uint8_2.view("u4")
+    else:
+        with pytest.raises(ValueError, match="last axis must be contiguous"):
+            uint8_2.view("u4")
+
+
 def test_distr_cannot_view_new_dtype():
     # A Distribution has a very specific structured dtype with just one
     # element that holds the array of samples.  As it is not clear what
     # to do with a view as a new dtype, we just error on it.
     # TODO: with a lot of thought, this restriction can likely be relaxed.
     distr = Distribution([2.0, 3.0, 4.0])
-    with pytest.raises(ValueError, match="with a new dtype"):
-        distr.view(np.dtype("i8"))
+    with pytest.raises(ValueError, match="can only be viewed"):
+        distr.view(np.dtype("2i8"))
+
+    with pytest.raises(ValueError, match="can only be viewed"):
+        distr.view(np.dtype("2i8"), distr.__class__)
 
     # Check subclass just in case.
     ad = Angle(distr, "deg")
-    with pytest.raises(ValueError, match="with a new dtype"):
-        ad.view(np.dtype("i8"))
-
-    with pytest.raises(ValueError, match="with a new dtype"):
-        ad.view(np.dtype("i8"), distr.__class__)
+    with pytest.raises(ValueError, match="can only be viewed"):
+        ad.view(np.dtype("2i8"))
+    with pytest.raises(ValueError, match="can only be viewed"):
+        ad.view("2i8", distr.__class__)
 
 
 def test_scalar_quantity_distribution():
