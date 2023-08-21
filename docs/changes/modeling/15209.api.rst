@@ -1,0 +1,2 @@
+Creating a model instance with parameters that have incompatible shapes will
+now raise a ``ValueError`` rather than an ``IncompatibleShapeError``.
