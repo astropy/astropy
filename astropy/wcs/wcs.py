@@ -729,7 +729,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 self.sip = None
                 warnings.warn(
                     "Removed redundant SIP distortion parameters "
-                    + "because CTYPE explicitly specifies TPV distortions",
+                    "because CTYPE explicitly specifies TPV distortions",
                     FITSFixedWarning,
                 )
             return
@@ -762,7 +762,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             self.wcs.set_pv([])
             warnings.warn(
                 "Removed redundant SCAMP distortion parameters "
-                + "because SIP parameters are also present",
+                "because SIP parameters are also present",
                 FITSFixedWarning,
             )
             return
@@ -1236,7 +1236,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             if tan_to_tpv:
                 warnings.warn(
                     "Removed redundant SIP distortion parameters "
-                    + "because SCAMP' PV distortions are also present",
+                    "because SCAMP' PV distortions are also present",
                     FITSFixedWarning,
                 )
                 self._remove_sip_kw(header, del_order=True)
@@ -1329,7 +1329,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         elif "B_ORDER" in header and header["B_ORDER"] > 1:
             raise ValueError(
                 "B_ORDER provided without corresponding A_ORDER "
-                + "keyword for SIP distortion"
+                "keyword for SIP distortion"
             )
         else:
             a = None
@@ -1554,7 +1554,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             except Exception:
                 raise TypeError(
                     "When providing more than two arguments, they must be "
-                    + "a 1-D array for each axis, followed by an origin."
+                    "a 1-D array for each axis, followed by an origin."
                 )
 
             return _return_list_of_arrays(axes, origin)
@@ -3119,7 +3119,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         the `printwcs()` method.
         """
         description = ["WCS Keywords\n", f"Number of WCS axes: {self.naxis!r}"]
-        sfmt = " : " + "".join(["{" + f"{i}" + "!r}  " for i in range(self.naxis)])
+        sfmt = " : " + "".join([f"{{{i}!r}} " for i in range(self.naxis)])
 
         keywords = ["CTYPE", "CRVAL", "CRPIX"]
         values = [self.wcs.ctype, self.wcs.crval, self.wcs.crpix]

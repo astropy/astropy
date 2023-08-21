@@ -403,8 +403,8 @@ Byte-by-byte Description of file: table.dat
     t.remove_columns(["s", "i"])
     description = (
         "This is a tediously long description."
-        + " But they do sometimes have them."
-        + " Better to put extra details in the notes. "
+        " But they do sometimes have them."
+        " Better to put extra details in the notes. "
     )
     t["names"].description = description * 2
     t["names"].name = "thisIsALongColumnLabel"

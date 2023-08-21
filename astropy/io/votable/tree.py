@@ -2939,10 +2939,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
             string_io.seek(0)
             read = string_io.read
         else:
-            if not href.startswith(("http", "ftp", "file")):
+            vo_prot = ("http", "https", "ftp", "file")
+            if not href.startswith(vo_prot):
                 vo_raise(
-                    "The vo package only supports remote data through http, "
-                    + "ftp or file",
+                    f"The vo package only supports remote data through {vo_prot}",
                     self._config,
                     self._pos,
                     NotImplementedError,
