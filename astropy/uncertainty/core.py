@@ -174,7 +174,9 @@ class Distribution:
 
     @dtype.setter
     def dtype(self, dtype):
-        dtype = self._get_distribution_dtype(dtype, self.n_samples)
+        dtype = self._get_distribution_dtype(
+            dtype, self.n_samples, itemsize=super().dtype["samples"].base.itemsize
+        )
         super(Distribution, self.__class__).dtype.__set__(self, dtype)
 
     def astype(self, dtype, *args, **kwargs):
@@ -420,11 +422,41 @@ class ArrayDistribution(Distribution, np.ndarray):
         else:
             type = self._get_distribution_cls(type)
 
-        if dtype is None or dtype == self.dtype:
-            return super().view(type)
+        type = self._get_distribution_cls(type)
+        if dtype is None:
+            return super().view(type=type)
+
+        dtype = np.dtype(dtype)
+        if dtype == self.dtype:
+            return super().view(type=type)
+
+        if dtype.names == ("samples",):
+            # Assume the user knows what they are doing.
+            return super().view(dtype, type)
+
+        if dtype.shape == () and dtype.itemsize == self.dtype.itemsize:
+            dtype = self._get_distribution_dtype(
+                dtype,
+                self.n_samples,
+                itemsize=super(Distribution, self).dtype["samples"].base.itemsize,
+            )
+            return super().view(dtype, type)
+
+        samples_cls = type._samples_cls
+        if dtype.itemsize == self.dtype.itemsize:
+            distr = self.distribution
+            distr_view = distr.view(dtype, samples_cls)
+            # This does not necessarily leave the sample axis in the right place.
+            return Distribution(np.moveaxis(distr_view, distr.ndim - 1, -1))
+        elif dtype.itemsize == super(Distribution, self).dtype["samples"].base.itemsize:
+            distr = np.moveaxis(self.distribution, -1, -2)
+            distr_view = distr.view(dtype, samples_cls).squeeze(-1)
+            return Distribution(distr_view)
         else:
-            # TODO: relax this constraint.
-            raise ValueError("cannot view as Distribution subclass with a new dtype.")
+            raise ValueError(
+                f"{self.__class__} can only be viewed with a dtype with "
+                "itemsize {self.strides[-1]} or {self.dtype.itemsize}"
+            )
 
     @property
     def distribution(self):
