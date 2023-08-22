@@ -115,7 +115,7 @@ def test_inconsistent_input_shapes():
     y = x.copy()
     # check scalar input broadcasting works
     assert np.abs(g(x, 0) - g(x, 0 * x)).sum() == 0
-    # but not array broadcasting
+    # and that array broadcasting works
     x.shape = (10, 1)
     y.shape = (1, 10)
     result = g(x, y)
