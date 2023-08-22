@@ -576,7 +576,8 @@ def _guess(table, read_kwargs, format, fast_reader):
                 guess_kwargs["strict_names"] = True
 
             reader = get_reader(**guess_kwargs)
-
+            reader.guessing = True
+            dat = reader.read(table)
         except guess_exception_classes as err:
             _read_trace.append(
                 {
@@ -587,9 +588,7 @@ def _guess(table, read_kwargs, format, fast_reader):
             )
             failed_kwargs.append(guess_kwargs)
 
-        else:
-            reader.guessing = True
-            dat = reader.read(table)
+        else:   
             _read_trace.append(
                 {
                     "kwargs": copy.deepcopy(guess_kwargs),
