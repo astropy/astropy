@@ -588,7 +588,7 @@ def _guess(table, read_kwargs, format, fast_reader):
             )
             failed_kwargs.append(guess_kwargs)
 
-        else:   
+        else:
             _read_trace.append(
                 {
                     "kwargs": copy.deepcopy(guess_kwargs),
