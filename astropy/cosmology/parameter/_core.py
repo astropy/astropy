@@ -104,14 +104,14 @@ class Parameter:
     """Whether the Parameter can be set, or is derived, on the cosmology."""
 
     # Units
-    unit: _UnitField = _UnitField()  # noqa: RUF009
+    unit: _UnitField = _UnitField()
     """The unit of the Parameter (can be `None` for unitless)."""
 
     equivalencies: u.Equivalency | Sequence[u.Equivalency] = field(default_factory=list)
     """Unit equivalencies available when setting the parameter."""
 
     # Setting
-    fvalidate: _FValidateField = _FValidateField(default="default")  # noqa: RUF009
+    fvalidate: _FValidateField = _FValidateField(default="default")
     """Function to validate/convert values when setting the Parameter."""
 
     # Info

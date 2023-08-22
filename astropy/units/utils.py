@@ -141,7 +141,7 @@ def generate_prefixonly_unit_summary(namespace):
     from . import PrefixUnit
 
     faux_namespace = {}
-    for nm, unit in namespace.items():
+    for unit in namespace.values():
         if isinstance(unit, PrefixUnit):
             base_unit = unit.represents.bases[0]
             faux_namespace[base_unit.name] = base_unit

@@ -490,7 +490,6 @@ class WCS(FITSWCSAPIMixin, WCSBase):
             # because we will be modifying it
             if isinstance(header_string, str):
                 header_bytes = header_string.encode("ascii")
-                header_string = header_string
             else:
                 header_bytes = header_string
                 header_string = header_string.decode("ascii")
@@ -542,7 +541,6 @@ class WCS(FITSWCSAPIMixin, WCSBase):
 
             if isinstance(header_string, str):
                 header_bytes = header_string.encode("ascii")
-                header_string = header_string
             else:
                 header_bytes = header_string
                 header_string = header_string.decode("ascii")
