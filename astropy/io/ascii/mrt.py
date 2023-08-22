@@ -239,10 +239,7 @@ class MrtHeader(cds.CdsHeader):
         --------------------------------------------------------------------------------
         """
         # Get column widths
-        vals_list = []
-        col_str_iters = self.data.str_vals()
-        for vals in zip(*col_str_iters):
-            vals_list.append(vals)
+        vals_list = list(zip(*self.data.str_vals()))
 
         for i, col in enumerate(self.cols):
             col.width = max(len(vals[i]) for vals in vals_list)

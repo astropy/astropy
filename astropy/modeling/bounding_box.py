@@ -679,7 +679,7 @@ class ModelBoundingBox(_BoundingDomain):
             order='F' corresponds to the gwcs bounding_box ordering.
         """
         if len(self._intervals) == 1:
-            return tuple(list(self._intervals.values())[0])
+            return tuple(next(iter(self._intervals.values())))
         else:
             order = self._get_order(order)
             inputs = self._model.inputs

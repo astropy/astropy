@@ -756,7 +756,7 @@ class Table:
             copy = False
         elif kwargs:
             raise TypeError(
-                f"__init__() got unexpected keyword argument {list(kwargs.keys())[0]!r}"
+                f"__init__() got unexpected keyword argument {next(iter(kwargs.keys()))!r}"
             )
 
         if isinstance(data, np.ndarray) and data.shape == (0,) and not data.dtype.names:
@@ -3517,7 +3517,7 @@ class Table:
         indexes = self.argsort(keys, kind=kind, reverse=reverse)
 
         with self.index_mode("freeze"):
-            for name, col in self.columns.items():
+            for col in self.columns.values():
                 # Make a new sorted column.  This requires that take() also copies
                 # relevant info attributes for mixin columns.
                 new_col = col.take(indexes, axis=0)

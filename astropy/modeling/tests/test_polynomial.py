@@ -151,7 +151,7 @@ class TestFitting:
             # just that the constraint was maintained
             fixed = model_args["constraints"].get("fixed", None)
             if fixed:
-                for param, value in fixed.items():
+                for param in fixed:
                     expected = model_args["parameters"][param]
                     assert getattr(model_lin, param).value == expected
         else:
@@ -183,7 +183,7 @@ class TestFitting:
         if constraints:
             fixed = model_args["constraints"].get("fixed", None)
             if fixed:
-                for param, value in fixed.items():
+                for param in fixed:
                     expected = model_args["parameters"][param]
                     assert getattr(model_nlin, param).value == expected
         else:
@@ -218,7 +218,7 @@ class TestFitting:
         if constraints:
             fixed = model_args["constraints"].get("fixed", None)
             if fixed:
-                for param, value in fixed.items():
+                for param in fixed:
                     expected = model_args["parameters"][param]
                     assert getattr(model_lin, param).value == expected
         else:
@@ -250,7 +250,7 @@ class TestFitting:
         if constraints:
             fixed = model_args["constraints"].get("fixed", None)
             if fixed:
-                for param, value in fixed.items():
+                for param in fixed:
                     expected = model_args["parameters"][param]
                     assert getattr(model_nlin, param).value == expected
         else:
