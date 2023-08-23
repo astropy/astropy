@@ -47,7 +47,7 @@ from astropy.units.core import (
     dimensionless_unscaled,
 )
 from astropy.utils import isiterable
-from astropy.utils.compat import NUMPY_LT_1_22, NUMPY_LT_1_23
+from astropy.utils.compat import NUMPY_LT_1_22, NUMPY_LT_1_23, NUMPY_LT_2_0
 
 # In 1.17, overrides are enabled by default, but it is still possible to
 # turn them off using an environment variable.  We use getattr since it
@@ -86,7 +86,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.nanmedian, np.nansum, np.nancumsum, np.nanstd, np.nanvar,
     np.nanprod, np.nancumprod,
     np.einsum_path, np.trapz, np.linspace,
-    np.sort, np.msort, np.partition, np.meshgrid,
+    np.sort, np.partition, np.meshgrid,
     np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
     np.iscomplexobj, np.isrealobj,
     np.shares_memory, np.may_share_memory,
@@ -97,6 +97,9 @@ SUBCLASS_SAFE_FUNCTIONS |= {
 if not NUMPY_LT_1_22:
     SUBCLASS_SAFE_FUNCTIONS |= {np.median}
 
+if NUMPY_LT_2_0:
+    # functions removed in numpy 2.0
+    SUBCLASS_SAFE_FUNCTIONS |= {np.msort}
 
 # Implemented as methods on Quantity:
 # np.ediff1d is from setops, but we support it anyway; the others
