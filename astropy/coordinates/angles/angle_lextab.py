@@ -5,13 +5,13 @@
 # remove it from this folder, then build astropy and run the tests in-place:
 #
 #   python setup.py build_ext --inplace
-#   pytest astropy/coordinates
+#   pytest astropy/coordinates/angles
 #
 # You can then commit the changes to this file.
 
 # angle_lextab.py. This file automatically created by PLY (version 3.11). Don't edit!
 _tabversion   = '3.10'
-_lextokens    = {'COLON', 'DEGREE', 'EASTWEST', 'HOUR', 'MINUTE', 'NORTHSOUTH', 'SECOND', 'SIGN', 'SIMPLE_UNIT', 'UFLOAT', 'UINT'}
+_lextokens    = set(('COLON', 'DEGREE', 'EASTWEST', 'HOUR', 'MINUTE', 'NORTHSOUTH', 'SECOND', 'SIGN', 'SIMPLE_UNIT', 'UFLOAT', 'UINT'))
 _lexreflags   = 64
 _lexliterals  = ''
 _lexstateinfo = {'INITIAL': 'inclusive'}

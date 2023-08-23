@@ -1021,7 +1021,7 @@ def test_angle_with_cds_units_enabled():
     https://github.com/astropy/astropy/issues/5350#issuecomment-248770151
     """
     # the problem is with the parser, so remove it temporarily
-    from astropy.coordinates.angle_formats import _AngleParser
+    from astropy.coordinates.angles.formats import _AngleParser
     from astropy.units import cds
 
     del _AngleParser._thread_local._parser

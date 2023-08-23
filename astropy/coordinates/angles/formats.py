@@ -155,7 +155,7 @@ class _AngleParser:
         def t_error(t):
             raise ValueError(f"Invalid character at col {t.lexpos}")
 
-        lexer = parsing.lex(lextab="angle_lextab", package="astropy/coordinates")
+        lexer = parsing.lex(lextab="angle_lextab", package="astropy/coordinates/angles")
 
         def p_angle(p):
             """
@@ -297,7 +297,9 @@ class _AngleParser:
         def p_error(p):
             raise ValueError
 
-        parser = parsing.yacc(tabmodule="angle_parsetab", package="astropy/coordinates")
+        parser = parsing.yacc(
+            tabmodule="angle_parsetab", package="astropy/coordinates/angles"
+        )
 
         return parser, lexer
 
@@ -416,9 +418,9 @@ def hours_to_decimal(h):
     """
     Convert any parseable hour value into a float value.
     """
-    from . import angles
+    from . import core
 
-    return angles.Angle(h, unit=u.hourangle).hour
+    return core.Angle(h, unit=u.hourangle).hour
 
 
 def hours_to_radians(h):

@@ -1829,8 +1829,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         .. [1] https://en.wikipedia.org/wiki/Great-circle_distance
 
         """
-        from .angle_utilities import angular_separation
-        from .angles import Angle
+        from .angles import Angle, angular_separation
 
         self_unit_sph = self.represent_as(r.UnitSphericalRepresentation)
         other_transformed = other.transform_to(self)
