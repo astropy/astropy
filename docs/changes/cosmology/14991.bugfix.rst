@@ -1,1 +1,2 @@
-The exponent in ``wowzCDM.de_density_scale`` has been corrected to 3, from -3.
+The exponent in ``w0wzCDM.de_density_scale`` has been corrected to 3, from -3.
+This correction has also been made to the scalar ``inv_efunc`` cpython functions.
