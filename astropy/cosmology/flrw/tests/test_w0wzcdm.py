@@ -135,6 +135,14 @@ class Testw0wzCDM(FLRWTest, Parameterw0TestMixin, ParameterwzTestMixin):
             cosmo.Otot(1e3)
 
     # ===============================================================
+    # I/O Tests
+
+    @pytest.mark.filterwarnings("ignore:overflow encountered")
+    def test_toformat_model(self, cosmo, to_format, method_name):
+        """Test cosmology -> astropy.model."""
+        super().test_toformat_model(cosmo, to_format, method_name)
+
+    # ===============================================================
     # Usage Tests
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
