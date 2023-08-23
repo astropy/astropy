@@ -1421,7 +1421,7 @@ def test_distances():
     cos = flrw.w0wzCDM(75.0, 0.3, 0.6, w0=-0.9, wz=0.1, Tcmb0=0.0)
     assert allclose(
         cos.comoving_distance(z),
-        [3051.68786716, 4756.17714818, 5822.38084257, 6562.70873734] * u.Mpc,
+        [2934.20187523, 4559.94636182, 5590.71080419, 6312.66783729] * u.Mpc,
         rtol=1e-4,
     )
     cos = flrw.w0wzCDM(
@@ -1429,7 +1429,7 @@ def test_distances():
     )
     assert allclose(
         cos.comoving_distance(z),
-        [2997.8115653, 4686.45599916, 5764.54388557, 6524.17408738] * u.Mpc,
+        [2904.47062713, 4528.59073707, 5575.95892989, 6318.98689566] * u.Mpc,
         rtol=1e-4,
     )
     cos = flrw.w0wzCDM(
@@ -1437,7 +1437,7 @@ def test_distances():
     )
     assert allclose(
         cos.comoving_distance(z),
-        [2676.73467639, 3940.57967585, 4686.90810278, 5191.54178243] * u.Mpc,
+        [2613.84726408, 3849.66574595, 4585.51172509, 5085.16795412] * u.Mpc,
         rtol=1e-4,
     )
 
