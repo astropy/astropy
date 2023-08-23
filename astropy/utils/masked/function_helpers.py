@@ -12,7 +12,7 @@ interpreted.
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
-from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24
+from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24, NUMPY_LT_2_0
 
 # This module should not really be imported, but we define __all__
 # such that sphinx can typeset the functions with docstrings.
@@ -425,11 +425,13 @@ def bincount(x, weights=None, minlength=0):
     return result, mask, None
 
 
-@dispatched_function
-def msort(a):
-    result = a.copy()
-    result.sort(axis=0)
-    return result
+if NUMPY_LT_2_0:
+
+    @dispatched_function
+    def msort(a):
+        result = a.copy()
+        result.sort(axis=0)
+        return result
 
 
 @dispatched_function
