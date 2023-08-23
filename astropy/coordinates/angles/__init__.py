@@ -7,6 +7,16 @@ between coordinate systems.
 """
 
 from .core import Angle, Latitude, Longitude
+from .errors import (
+    BoundsError,
+    IllegalHourError,
+    IllegalHourWarning,
+    IllegalMinuteError,
+    IllegalMinuteWarning,
+    IllegalSecondError,
+    IllegalSecondWarning,
+    RangeError,
+)
 from .utils import (
     angular_separation,
     golden_spiral_grid,
@@ -20,11 +30,20 @@ __all__ = [
     "Angle",
     "Latitude",
     "Longitude",
-    # utilise
+    # utilities
     "angular_separation",
     "position_angle",
     "offset_by",
     "golden_spiral_grid",
     "uniform_spherical_random_surface",
     "uniform_spherical_random_volume",
+    # errors
+    "RangeError",
+    "BoundsError",
+    "IllegalHourError",
+    "IllegalMinuteError",
+    "IllegalSecondError",
+    "IllegalHourWarning",
+    "IllegalMinuteWarning",
+    "IllegalSecondWarning",
 ]

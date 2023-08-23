@@ -9,13 +9,15 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 import astropy.units as u
-from astropy.coordinates.angles import Angle, Latitude, Longitude
-from astropy.coordinates.errors import (
+from astropy.coordinates.angles import (
+    Angle,
     IllegalHourError,
     IllegalMinuteError,
     IllegalMinuteWarning,
     IllegalSecondError,
     IllegalSecondWarning,
+    Latitude,
+    Longitude,
 )
 
 

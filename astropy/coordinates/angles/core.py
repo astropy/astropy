@@ -13,6 +13,7 @@ from typing import Any, NamedTuple
 import numpy as np
 
 from astropy import units as u
+from astropy.units.quantity import SpecificTypeQuantity
 from astropy.utils import isiterable
 
 from . import formats
@@ -63,7 +64,7 @@ class signed_dms_tuple(NamedTuple):
     """The second value."""
 
 
-class Angle(u.SpecificTypeQuantity):
+class Angle(SpecificTypeQuantity):
     """
     One or more angular value(s) with units equivalent to radians or degrees.
 
