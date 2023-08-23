@@ -25,6 +25,7 @@ __all__ = [
     "circcorrcoef",
     "circmean",
     "circmoment",
+    "circmedian",
     "circstd",
     "circvar",
     "rayleightest",
@@ -132,6 +133,45 @@ def circmean(
        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     """
     return _angle(data, 1.0, 0.0, axis, weights)
+
+
+def circmedian(data: Quantity | NDArray, axis: int | None = None) -> Quantity | NDArray:
+    """Computes the circular median angle of an array of circular data.
+
+    Parameters
+    ----------
+    data : ndarray or `~astropy.units.Quantity`
+        Array of circular (directional) data, which is assumed to be in
+        radians whenever ``data`` is `~numpy.ndarray`.
+    axis : int, optional
+        Axis along which circular medians are computed. The default is to compute
+        the median of the flattened array.
+
+    Returns
+    -------
+    ndarray or `~astropy.units.Quantity`
+        Circular median.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy.stats import circmedian
+    >>> from astropy import units as u
+    >>> data = np.array([51, 67, 40, 109, 31, 405, 358])*u.deg
+    >>> circmedian(data)
+    <Quantity 45. deg>
+
+    References
+    ----------
+    .. [1] https://insidebigdata.com/2021/02/12/circular-statistics-in-python-an-intuitive-intro/
+    """
+    theta = np.arctan2(
+        np.median(np.sin(data), axis=axis),
+        np.median(np.cos(data), axis=axis),
+    )
+    if isinstance(data, Quantity):
+        theta = theta.to(data.unit)
+    return theta
 
 
 def circvar(

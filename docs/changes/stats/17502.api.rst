@@ -1,0 +1,2 @@
+The function ``circmedian`` has been added to the ``stats`` module. This function
+computes the circular median of a sample of angles.
