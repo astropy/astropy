@@ -1006,8 +1006,15 @@ class TestNanFunctions(InvariantUnitTestSetup):
     def test_nanmean(self):
         self.check(np.nanmean)
 
-    def test_nanmedian(self):
-        self.check(np.nanmedian)
+    @pytest.mark.parametrize("axis", [None, 0, 1, -1])
+    def test_nanmedian(self, axis):
+        self.check(np.nanmedian, axis=axis)
+
+    def test_nanmedian_out(self):
+        out = np.empty_like(self.q)
+        o = np.nanmedian(self.q, out=out)
+        assert o is out
+        assert np.all(o == np.nanmedian(self.q))
 
     def test_nansum(self):
         self.check(np.nansum)
