@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""Read/Write/Interchange methods for `astropy.cosmology`.
 
-"""
-Read/Write/Interchange methods for `astropy.cosmology`. **NOT public API**.
+**NOT public API**.
 """
 
 # Import to register with the I/O machinery

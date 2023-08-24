@@ -85,7 +85,6 @@ repos:
               astropy/constants/ |
               astropy/convolution/ |
               astropy/coordinates/ |
-              astropy/cosmology/ |
               astropy/extern/ |
               astropy/io/ |
               astropy/logger\.py |

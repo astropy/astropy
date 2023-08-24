@@ -166,8 +166,8 @@ class Cosmology(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def is_flat(self):
-        """
-        Return bool; `True` if the cosmology is flat.
+        """Return bool; `True` if the cosmology is flat.
+
         This is abstract and must be defined in subclasses.
         """
         raise NotImplementedError("is_flat is not implemented")
@@ -421,12 +421,13 @@ class Cosmology(metaclass=abc.ABCMeta):
 
 
 class FlatCosmologyMixin(metaclass=abc.ABCMeta):
-    """
-    Mixin class for flat cosmologies. Do NOT instantiate directly.
-    Note that all instances of ``FlatCosmologyMixin`` are flat, but not all
-    flat cosmologies are instances of ``FlatCosmologyMixin``. As example,
-    ``LambdaCDM`` **may** be flat (for the a specific set of parameter values),
-    but ``FlatLambdaCDM`` **will** be flat.
+    """Mixin class for flat cosmologies.
+
+    Do NOT instantiate directly. Note that all instances of
+    ``FlatCosmologyMixin`` are flat, but not all flat cosmologies are
+    instances of ``FlatCosmologyMixin``. As example, ``LambdaCDM`` **may**
+    be flat (for the a specific set of parameter values), but
+    ``FlatLambdaCDM`` **will** be flat.
     """
 
     __all_parameters__: tuple[str, ...]
@@ -562,7 +563,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     # ===============================================================
 
     def __equiv__(self, other):
-        """flat-|Cosmology| equivalence.
+        """Flat-|Cosmology| equivalence.
 
         Use `astropy.cosmology.funcs.cosmology_equal` with
         ``allow_equivalent=True`` for actual checks!

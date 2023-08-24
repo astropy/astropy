@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""This module contains dictionaries with sets of parameters for a
-given cosmology.
+"""This module contains dictionaries with sets of parameters for a given cosmology.
 
 The list of cosmologies available are given by the tuple `available`.
 """
@@ -26,9 +25,7 @@ __all__ += [  # noqa: F822
 
 
 def __getattr__(name):
-    """Get parameters of cosmology representations with lazy import from
-    `PEP 562 <https://www.python.org/dev/peps/pep-0562/>`_.
-    """
+    """Get parameters of cosmology representations with lazy import from ``PEP 562``."""
     from astropy.cosmology import realizations
 
     cosmo = getattr(realizations, name)

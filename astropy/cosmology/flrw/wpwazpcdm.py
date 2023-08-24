@@ -16,11 +16,9 @@ __doctest_requires__ = {"*": ["scipy"]}
 
 
 class wpwaCDM(FLRW):
-    r"""
-    FLRW cosmology with a CPL dark energy equation of state, a pivot redshift,
-    and curvature.
+    r"""FLRW cosmology with a CPL dark energy EoS, a pivot redshift, and curvature.
 
-    The equation for the dark energy equation of state uses the CPL form as
+    The equation for the dark energy equation of state (EoS) uses the CPL form as
     described in Chevallier & Polarski [1]_ and Linder [2]_, but modified to
     have a pivot redshift as in the findings of the Dark Energy Task Force
     [3]_: :math:`w(a) = w_p + w_a (a_p - a) = w_p + w_a( 1/(1+zp) - 1/(1+z) )`.
@@ -239,11 +237,9 @@ class wpwaCDM(FLRW):
 
 
 class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
-    r"""
-    FLRW cosmology with a CPL dark energy equation of state, a pivot redshift,
-    and no curvature.
+    r"""FLRW cosmology with a CPL dark energy EoS, a pivot redshift, and no curvature.
 
-    The equation for the dark energy equation of state uses the CPL form as
+    The equation for the dark energy equation of state (EoS) uses the CPL form as
     described in Chevallier & Polarski [1]_ and Linder [2]_, but modified to
     have a pivot redshift as in the findings of the Dark Energy Task Force
     [3]_: :math:`w(a) = w_p + w_a (a_p - a) = w_p + w_a( 1/(1+zp) - 1/(1+z) )`.

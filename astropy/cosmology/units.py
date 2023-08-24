@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-"""Cosmological units and equivalencies.
-"""  # (newline needed for unit summary)
+"""Cosmological units and equivalencies."""
 
 import astropy.units as u
 from astropy.units.utils import generate_unit_summary as _generate_unit_summary
@@ -59,10 +57,10 @@ littleh = u.def_unit(
 def dimensionless_redshift():
     """Allow redshift to be 1-to-1 equivalent to dimensionless.
 
-    It is special compared to other equivalency pairs in that it
-    allows this independent of the power to which the redshift is raised,
-    and independent of whether it is part of a more complicated unit.
-    It is similar to u.dimensionless_angles() in this respect.
+    It is special compared to other equivalency pairs in that it allows
+    this independent of the power to which the redshift is raised, and
+    independent of whether it is part of a more complicated unit. It is
+    similar to u.dimensionless_angles() in this respect.
     """
     return u.Equivalency([(redshift, None)], "dimensionless_redshift")
 
@@ -359,8 +357,7 @@ def with_redshift(
 
 
 def with_H0(H0=None):
-    """
-    Convert between quantities with little-h and the equivalent physical units.
+    """Convert between quantities with little-h and the equivalent physical units.
 
     Parameters
     ----------
@@ -398,4 +395,4 @@ u.add_enabled_equivalencies(dimensionless_redshift())
 # This generates a docstring for this module that describes all of the
 # standard units defined here.
 if __doc__ is not None:
-    __doc__ += _generate_unit_summary(_ns)
+    __doc__ += "\n" + _generate_unit_summary(_ns)

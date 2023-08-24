@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """|Cosmology| <-> |Row| I/O, using |Cosmology.to_format| and |Cosmology.from_format|.
 
 A `~astropy.cosmology.Cosmology` as a `~astropy.table.Row` will have
