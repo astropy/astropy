@@ -2,7 +2,16 @@
 
 """Custom angle errors and exceptions used in :mod:`astropy.coordinates.angles`."""
 
-__all__ = []
+__all__ = [
+    "RangeError",
+    "BoundsError",
+    "IllegalHourError",
+    "IllegalMinuteError",
+    "IllegalSecondError",
+    "IllegalHourWarning",
+    "IllegalMinuteWarning",
+    "IllegalSecondWarning",
+]
 
 from astropy.utils.exceptions import AstropyWarning
 

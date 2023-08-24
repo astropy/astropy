@@ -1,17 +1,24 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module contains utility functions for working with angles. These are both
-used internally in astropy.coordinates.angles, and of possible.
+used internally in ``astropy.coordinates.angles``, and of possible use externally.
 """
 
-__all__ = []
+__all__ = [
+    "angular_separation",
+    "position_angle",
+    "offset_by",
+    "golden_spiral_grid",
+    "uniform_spherical_random_surface",
+    "uniform_spherical_random_volume",
+]
 
 # Third-party
 import numpy as np
 
 # Astropy
 import astropy.units as u
-from astropy.coordinates.representation import (
+from astropy.coordinates.representation.spherical import (
     SphericalRepresentation,
     UnitSphericalRepresentation,
 )

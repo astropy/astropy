@@ -13,12 +13,12 @@ from typing import Any, NamedTuple
 import numpy as np
 
 from astropy import units as u
-from astropy.units.quantity import SpecificTypeQuantity
+from astropy.units import SpecificTypeQuantity
 from astropy.utils import isiterable
 
 from . import formats
 
-__all__ = []
+__all__ = ["Angle", "Latitude", "Longitude"]
 
 
 # these are used by the `hms` and `dms` attributes

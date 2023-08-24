@@ -6,44 +6,16 @@ of astronomical objects. It also contains a framework for conversions
 between coordinate systems.
 """
 
-from .core import Angle, Latitude, Longitude
-from .errors import (
-    BoundsError,
-    IllegalHourError,
-    IllegalHourWarning,
-    IllegalMinuteError,
-    IllegalMinuteWarning,
-    IllegalSecondError,
-    IllegalSecondWarning,
-    RangeError,
-)
-from .utils import (
-    angular_separation,
-    golden_spiral_grid,
-    offset_by,
-    position_angle,
-    uniform_spherical_random_surface,
-    uniform_spherical_random_volume,
-)
+from .core import *
+from .errors import *
+from .utils import *
 
-__all__ = [
-    "Angle",
-    "Latitude",
-    "Longitude",
-    # utilities
-    "angular_separation",
-    "position_angle",
-    "offset_by",
-    "golden_spiral_grid",
-    "uniform_spherical_random_surface",
-    "uniform_spherical_random_volume",
-    # errors
-    "RangeError",
-    "BoundsError",
-    "IllegalHourError",
-    "IllegalMinuteError",
-    "IllegalSecondError",
-    "IllegalHourWarning",
-    "IllegalMinuteWarning",
-    "IllegalSecondWarning",
-]
+# isort: split
+from . import core as _core
+from . import errors as _errors
+from . import utils as _utils
+
+__all__ = []
+__all__ += _core.__all__
+__all__ += _errors.__all__
+__all__ += _utils.__all__
