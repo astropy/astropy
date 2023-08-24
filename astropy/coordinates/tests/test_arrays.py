@@ -55,7 +55,7 @@ def test_angle_arrays():
         else:
             stack.enter_context(pytest.raises(ValueError))
 
-        a7 = Angle([a1, a2, a3], unit=u.degree)
+        Angle([a1, a2, a3], unit=u.degree)
 
     a8 = Angle(["04:02:02", "03:02:01", "06:02:01"], unit=u.degree)
     npt.assert_almost_equal(a8.value, [4.03388889, 3.03361111, 6.03361111])
@@ -64,7 +64,7 @@ def test_angle_arrays():
     npt.assert_almost_equal(a9.value, a8.value)
 
     with pytest.raises(u.UnitsError):
-        a10 = Angle(["04:02:02", "03:02:01", "06:02:01"])
+        Angle(["04:02:02", "03:02:01", "06:02:01"])
 
 
 def test_dms():
@@ -95,9 +95,9 @@ def test_array_coordinates_creation():
     assert not c.ra.isscalar
 
     with pytest.raises(ValueError):
-        c = ICRS(np.array([1, 2]) * u.deg, np.array([3, 4, 5]) * u.deg)
+        ICRS(np.array([1, 2]) * u.deg, np.array([3, 4, 5]) * u.deg)
     with pytest.raises(ValueError):
-        c = ICRS(np.array([1, 2, 4, 5]) * u.deg, np.array([[3, 4], [5, 6]]) * u.deg)
+        ICRS(np.array([1, 2, 4, 5]) * u.deg, np.array([[3, 4], [5, 6]]) * u.deg)
 
     # make sure cartesian initialization also works
     cart = CartesianRepresentation(
@@ -110,9 +110,9 @@ def test_array_coordinates_creation():
 
     # but invalid strings cannot
     with pytest.raises(ValueError):
-        c = SkyCoord(Angle(["10m0s", "2h02m00.3s"]), Angle(["3d", "4d"]))
+        SkyCoord(Angle(["10m0s", "2h02m00.3s"]), Angle(["3d", "4d"]))
     with pytest.raises(ValueError):
-        c = SkyCoord(Angle(["1d0m0s", "2h02m00.3s"]), Angle(["3x", "4d"]))
+        SkyCoord(Angle(["1d0m0s", "2h02m00.3s"]), Angle(["3x", "4d"]))
 
 
 def test_array_coordinates_distances():
