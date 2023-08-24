@@ -1,0 +1,3 @@
+Fixed ``astropy.units.Quantity``'s implementation of ``numpy.nanmedian()``,
+where for Numpy >= 1.25 an exception was raised for some array shapes and axis
+combinations.
