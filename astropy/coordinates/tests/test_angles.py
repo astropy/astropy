@@ -94,25 +94,25 @@ def test_create_angles():
 
     # check for illegal ranges / values
     with pytest.raises(IllegalSecondError):
-        a = Angle("12 32 99", unit=u.degree)
+        Angle("12 32 99", unit=u.degree)
 
     with pytest.raises(IllegalMinuteError):
-        a = Angle("12 99 23", unit=u.degree)
+        Angle("12 99 23", unit=u.degree)
 
     with pytest.raises(IllegalSecondError):
-        a = Angle("12 32 99", unit=u.hour)
+        Angle("12 32 99", unit=u.hour)
 
     with pytest.raises(IllegalMinuteError):
-        a = Angle("12 99 23", unit=u.hour)
+        Angle("12 99 23", unit=u.hour)
 
     with pytest.raises(IllegalHourError):
-        a = Angle("99 25 51.0", unit=u.hour)
+        Angle("99 25 51.0", unit=u.hour)
 
     with pytest.raises(ValueError):
-        a = Angle("12 25 51.0xxx", unit=u.hour)
+        Angle("12 25 51.0xxx", unit=u.hour)
 
     with pytest.raises(ValueError):
-        a = Angle("12h34321m32.2s")
+        Angle("12h34321m32.2s")
 
     assert a1 is not None
 
@@ -419,9 +419,9 @@ def test_radec():
     """
 
     with pytest.raises(u.UnitsError):
-        ra = Longitude("4:08:15.162342")  # error - hours or degrees?
+        Longitude("4:08:15.162342")  # error - hours or degrees?
     with pytest.raises(u.UnitsError):
-        ra = Longitude("-4:08:15.162342")
+        Longitude("-4:08:15.162342")
 
     # the "smart" initializer allows >24 to automatically do degrees, but the
     # Angle-based one does not
@@ -430,17 +430,17 @@ def test_radec():
     # ra = Longitude("26:34:15.345634")  # unambiguous b/c hours don't go past 24
     # assert_allclose(ra.degree, 26.570929342)
     with pytest.raises(u.UnitsError):
-        ra = Longitude("26:34:15.345634")
+        Longitude("26:34:15.345634")
 
     # ra = Longitude(68)
     with pytest.raises(u.UnitsError):
-        ra = Longitude(68)
+        Longitude(68)
 
     with pytest.raises(u.UnitsError):
-        ra = Longitude(12)
+        Longitude(12)
 
     with pytest.raises(ValueError):
-        ra = Longitude("garbage containing a d and no units")
+        Longitude("garbage containing a d and no units")
 
     ra = Longitude("12h43m23s")
     assert_allclose(ra.hour, 12.7230555556)
@@ -453,7 +453,7 @@ def test_radec():
     # nearly always specified in degrees, so this is the default.
     # dec = Latitude("-41:08:15.162342")
     with pytest.raises(u.UnitsError):
-        dec = Latitude("-41:08:15.162342")
+        Latitude("-41:08:15.162342")
     dec = Latitude("-41:08:15.162342", unit=u.degree)  # same as above
 
 
@@ -673,9 +673,9 @@ def test_wrap_at_inplace():
 
 def test_latitude():
     with pytest.raises(ValueError):
-        lat = Latitude(["91d", "89d"])
+        Latitude(["91d", "89d"])
     with pytest.raises(ValueError):
-        lat = Latitude("-91d")
+        Latitude("-91d")
 
     lat = Latitude(["90d", "89d"])
     # check that one can get items
@@ -720,7 +720,7 @@ def test_latitude():
         TypeError, match="A Latitude angle cannot be created from a Longitude angle"
     ):
         lon = Longitude(10, "deg")
-        lat = Latitude(lon)
+        Latitude(lon)
 
     with pytest.raises(
         TypeError, match="A Longitude angle cannot be assigned to a Latitude angle"
@@ -823,7 +823,7 @@ def test_longitude():
         TypeError, match="A Longitude angle cannot be created from a Latitude angle"
     ):
         lat = Latitude(10, "deg")
-        lon = Longitude(lat)
+        Longitude(lat)
 
     with pytest.raises(
         TypeError, match="A Latitude angle cannot be assigned to a Longitude angle"
