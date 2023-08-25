@@ -179,9 +179,7 @@ class BitFlagNameMeta(type):
         )
 
     def __iadd__(cls, other):
-        raise NotImplementedError(
-            "Unary '+' is not supported. Use binary operator instead."
-        )
+        return NotImplemented
 
     def __delattr__(cls, name):
         raise AttributeError(
