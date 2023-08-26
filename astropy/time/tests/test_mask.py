@@ -9,7 +9,7 @@ from astropy import units as u
 from astropy.table import Table
 from astropy.time import Time
 from astropy.utils import iers
-from astropy.utils.compat import PYTHON_LT_3_11
+from astropy.utils.compat import NUMPY_LT_1_26, PYTHON_LT_3_11
 from astropy.utils.compat.optional_deps import HAS_H5PY
 from astropy.utils.masked import Masked
 
@@ -218,3 +218,29 @@ def test_serialize_ecsv_masked(serialize_method, tmp_path):
     # Serializing formatted_value loses some precision.
     atol = 0.1 * u.us if serialize_method == "formatted_value" else 1 * u.ps
     assert np.all(abs(t2["col0"] - t["col0"]) <= atol)
+
+
+@pytest.mark.parametrize("format_", Time.FORMATS)
+@pytest.mark.parametrize("masked_cls", [np.ma.MaskedArray, Masked])
+def test_all_formats(format_, masked_cls):
+    mjd = np.array([55000.25, 55000.375, 55001.125])
+    mask = np.array([True, False, False])
+    mjdm = masked_cls(mjd, mask=mask)
+    t = Time(mjd, format="mjd")
+    tm = Time(mjdm, format="mjd")
+    assert tm.masked and np.all(tm.mask == mask)
+
+    # Get values in the given format, check that these are always Masked and
+    # that they are correct (ignoring masked ones, which get adjusted on Time
+    # initialization, in core._check_for_masked_and_fill).
+    t_format = getattr(t, format_)
+    tm_format = getattr(tm, format_)
+    assert isinstance(tm_format, Masked)
+    assert np.all(tm_format == t_format)
+
+    # Verify that we can also initialize with the format and that this gives
+    # the right result and mask too.
+    t2 = Time(t_format, format=format_)
+    tm2 = Time(tm_format, format=format_)
+    assert tm2.masked and np.all(tm2.mask == mask)
+    assert np.all(tm2 == t2)

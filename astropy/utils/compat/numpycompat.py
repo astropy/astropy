@@ -13,6 +13,7 @@ __all__ = [
     "NUMPY_LT_1_23",
     "NUMPY_LT_1_24",
     "NUMPY_LT_1_25",
+    "NUMPY_LT_1_26",
     "NUMPY_LT_2_0",
 ]
 
@@ -23,4 +24,5 @@ NUMPY_LT_1_22_1 = not minversion(np, "1.22.1")
 NUMPY_LT_1_23 = not minversion(np, "1.23")
 NUMPY_LT_1_24 = not minversion(np, "1.24")
 NUMPY_LT_1_25 = not minversion(np, "1.25")
+NUMPY_LT_1_26 = not minversion(np, "1.26")
 NUMPY_LT_2_0 = not minversion(np, "2.0.dev")

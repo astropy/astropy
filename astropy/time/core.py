@@ -3301,26 +3301,36 @@ def _check_for_masked_and_fill(val, val2):
 
         Note that nothing happens if there are no masked elements.
         """
-        fill_value = None
+        if isinstance(val, np.ma.MaskedArray):
+            filled = val.data
+            fill_value = val.fill_value
+        else:
+            filled = val.unmasked
+            fill_value = np.zeros_like(filled, shape=())
 
-        filled = np.array(val, copy=True, subok=False)
-        if np.any(val.mask):
+        # For structured dtype, the mask is structured too.  We consider an
+        # array element masked if any field of the structure is masked.
+        if val.dtype.names:
+            val_mask = val.mask != np.zeros_like(val.mask, shape=())
+        else:
+            val_mask = val.mask
+        if np.any(val_mask):
+            # We're going to fill masked values, so make a copy.
+            filled = filled.copy()
+
             # Final mask is the logical-or of inputs
-            mask = mask | val.mask
+            mask = mask | val_mask
 
             # First unmasked element.  If all elements are masked then
-            # use fill_value=None from above which will use val.fill_value.
-            # As long as the user has set this appropriately then all will
-            # be fine.
-            val_unmasked = val[~val.mask]  # 1-d ndarray of unmasked values
-            if len(val_unmasked) > 0:
-                fill_value = val_unmasked[0]
+            # use fill_value from above. For MaskedArray, this uses val.fill_value,
+            # so all will be fine as long as the user has set this appropriately.
+            if filled.size > 1:
+                first_unmasked = val_mask.argmin()
+                # Result indexes first False, or first item if all True.
+                if first_unmasked > 0 or not val_mask.flat[0]:
+                    fill_value = filled.flat[first_unmasked]
 
-            # Fill the input ``val``.  If fill_value is None then this just returns
-            # an ndarray view of val (no copy).
-            filled[mask] = fill_value or getattr(
-                val, "fill_value", np.zeros_like(filled, shape=())
-            )
+            filled[mask] = fill_value
 
         return mask, filled
 
