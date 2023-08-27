@@ -83,7 +83,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.isposinf, np.isneginf, np.isreal, np.iscomplex,
     np.average, np.mean, np.std, np.var, np.trace,
     np.nanmax, np.nanmin, np.nanargmin, np.nanargmax, np.nanmean,
-    np.nanmedian, np.nansum, np.nancumsum, np.nanstd, np.nanvar,
+    np.nansum, np.nancumsum, np.nanstd, np.nanvar,
     np.nanprod, np.nancumprod,
     np.einsum_path, np.trapz, np.linspace,
     np.sort, np.partition, np.meshgrid,
@@ -572,6 +572,11 @@ def percentile(a, q, *args, **kwargs):
     from astropy.units import percent
 
     return quantile(a, q, *args, _q_unit=percent, **kwargs)
+
+
+@function_helper
+def nanmedian(a, axis=None, out=None, **kwargs):
+    return _iterable_helper(a, axis=axis, out=out, **kwargs)
 
 
 @function_helper
