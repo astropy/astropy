@@ -103,7 +103,7 @@ MASKED_SAFE_FUNCTIONS |= {
     np.array_split, np.split, np.hsplit, np.vsplit, np.dsplit,
     np.expand_dims, np.apply_along_axis, np.kron, np.tile,
     np.take_along_axis, np.put_along_axis,
-    # np.lib.type_check (all but asfarray, nan_to_num)
+    # np.lib.type_check (all but nan_to_num)
     np.iscomplexobj, np.isrealobj, np.imag, np.isreal, np.real,
     np.real_if_close, np.common_type,
     # np.lib.ufunclike
@@ -206,7 +206,10 @@ def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
 # should be applied to the data and the mask.  They cannot all share the
 # same helper, because the first arguments have different names.
 @apply_to_both(
-    helps={np.copy, np.asfarray, np.resize, np.moveaxis, np.rollaxis, np.roll}
+    helps=(
+        {np.copy, np.resize, np.moveaxis, np.rollaxis, np.roll}
+        | ({np.asfarray} if NUMPY_LT_2_0 else set())
+    )
 )
 def masked_a_helper(a, *args, **kwargs):
     data, mask = _get_data_and_masks(a)
