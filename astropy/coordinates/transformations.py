@@ -492,7 +492,7 @@ class TransformGraph:
         savefn : None or str
             The file name to save this graph to or `None` to not save
             to a file.
-        savelayout : str
+        savelayout : {"plain", "dot", "neato", "fdp", "sfdp", "circo", "twopi", "nop", "nop2", "osage", "patchwork"}
             The graphviz program to use to layout the graph (see
             graphviz_ for details) or 'plain' to just save the DOT graph
             content. Ignored if ``savefn`` is `None`.
@@ -571,7 +571,19 @@ class TransformGraph:
             if savelayout == "plain":
                 with open(savefn, "w") as f:
                     f.write(dotgraph)
-            else:
+            # Options from https://graphviz.org/docs/layouts/
+            elif savelayout in (
+                "dot",
+                "neato",
+                "fdp",
+                "sfdp",
+                "circo",
+                "twopi",
+                "nop",
+                "nop2",
+                "osage",
+                "patchwork",
+            ):
                 args = [savelayout]
                 if saveformat is not None:
                     args.append("-T" + saveformat)
@@ -587,6 +599,8 @@ class TransformGraph:
 
                 with open(savefn, "w") as f:
                     f.write(stdout)
+            else:
+                raise NotImplementedError(f'savelayout="{savelayout}" is not supported')
 
         return dotgraph
 
