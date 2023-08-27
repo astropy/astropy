@@ -1068,7 +1068,8 @@ def masked_nanfunc(nanfuncname):
     return nanfunc
 
 
-for nanfuncname in np.lib.nanfunctions.__all__:
+_nplibnanfunctions = np.lib.nanfunctions if NUMPY_LT_2_0 else np.lib._nanfunctions_impl
+for nanfuncname in _nplibnanfunctions.__all__:
     globals()[nanfuncname] = dispatched_function(
         masked_nanfunc(nanfuncname), helps=getattr(np, nanfuncname)
     )

@@ -8,7 +8,6 @@ in test_functions.
 TODO: finish full coverage (see also `~astropy.utils.masked.function_helpers`)
 - np.linalg
 - np.fft (is there any point?)
-- np.lib.nanfunctions
 
 """
 import inspect
