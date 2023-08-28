@@ -29,7 +29,6 @@ ignore = [
     # flake8-comprehensions (C4)
     "C406",  # unnecessary-literal-dict
     "C413",  # unnecessary-call-around-sorted
-    "C417",  # unnecessary-map (over a comprehension)
 
     # mccabe (C90) : code complexity
     # TODO: configure maximum allowed complexity.
