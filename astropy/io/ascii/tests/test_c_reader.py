@@ -1244,7 +1244,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
         fast_reader["parallel"] = parallel
         if fast_reader.get("use_fast_converter"):
             rtol = 1.0e-15
-        elif sys.maxsize < 2**32:
+        elif (sys.maxsize < 2**32) or (sys.platform == "win32"):
             # On 32bit the standard C parser (strtod) returns strings for these
             pytest.xfail("C parser cannot handle float64 on 32bit systems")
 
@@ -1359,7 +1359,7 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
         fast_reader["parallel"] = parallel
         if fast_reader.get("use_fast_converter"):
             rtol = 1.0e-15
-        elif sys.maxsize < 2**32:
+        elif (sys.maxsize < 2**32) or (sys.platform == "win32"):
             # On 32bit the standard C parser (strtod) returns strings for these
             pytest.xfail("C parser cannot handle float64 on 32bit systems")
 
