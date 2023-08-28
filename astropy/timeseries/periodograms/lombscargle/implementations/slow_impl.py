@@ -61,7 +61,7 @@ def lombscargle_slow(
     omega = omega.ravel()[np.newaxis, :]
 
     # make following arrays into column vectors
-    t, y, dy, w = map(lambda x: x[:, np.newaxis], (t, y, dy, w))
+    t, y, dy, w = (x[:, np.newaxis] for x in (t, y, dy, w))
 
     sin_omega_t = np.sin(omega * t)
     cos_omega_t = np.cos(omega * t)
