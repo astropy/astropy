@@ -7,6 +7,7 @@ import warnings
 from collections import OrderedDict
 from collections.abc import Mapping
 from copy import deepcopy
+from dataclasses import is_dataclass
 from functools import wraps
 
 import numpy as np
@@ -406,7 +407,7 @@ class MetaData:
     """
     A descriptor for classes that have a ``meta`` property.
 
-    This can be set to any valid `~collections.abc.Mapping`.
+    This can be set to any valid :class:`~collections.abc.Mapping`.
 
     Parameters
     ----------
@@ -422,6 +423,45 @@ class MetaData:
         Default is ``True``.
 
         .. versionadded:: 1.2
+
+    Examples
+    --------
+    ``MetaData`` can be used as a descriptor to define a ``meta`` attribute`.
+
+        >>> class Foo:
+        ...     meta = MetaData()
+        ...     def __init__(self, meta):
+        ...         self.meta = meta
+
+    If ``Foo`` is not a dataclass, then ``Foo.meta`` is returns the descriptor.
+
+        >>> print(Foo.meta)
+        <astropy.utils.metadata.MetaData object at ...>
+
+    ``Foo`` can be instantiated with a ``meta`` argument.
+
+        >>> foo = Foo(meta={'a': 1, 'b': 2})
+        >>> foo.meta
+        {'a': 1, 'b': 2}
+
+    We can also use ``MetaData`` as a field in a dataclass.
+
+        >>> from dataclasses import dataclass
+        >>> from astropy.utils.metadata import MetaData
+        >>> @dataclass
+        ... class Bar:
+        ...     meta: dict = MetaData()
+
+    On a dataclass, ``Bar.meta`` returns `None`.
+
+        >>> print(Bar.meta)
+        None
+
+    ``Bar`` can be instantiated with a ``meta`` argument.
+
+        >>> bar = Bar(meta={'a': 1, 'b': 2})
+        >>> bar.meta
+        {'a': 1, 'b': 2}
     """
 
     def __init__(self, doc="", copy=True):
@@ -429,23 +469,33 @@ class MetaData:
         self.copy = copy
 
     def __get__(self, instance, owner):
+        # class attribute access
         if instance is None:
-            return self
+            return None if is_dataclass(owner) else self
+        # instance attribute access
         if not hasattr(instance, "_meta"):
             instance._meta = OrderedDict()
         return instance._meta
 
     def __set__(self, instance, value):
+        # The 'default' value (as set on a dataclass) is `None`, but we want to set it
+        # to an empty `OrderedDict` if it is `None` so that we can always assume it is a
+        # `Mapping` and not have to check for `None` everywhere.
         if value is None:
             instance._meta = OrderedDict()
+        # The default value on a dataclass is determined before the dataclass is
+        # constructed from the wrapped class, so the default is incorrectly set to
+        # `self` (the descriptor) instead of `None`. This is a workaround for that
+        # issue until `MetaData` never returns `self` in `__get__`.
+        elif value is self:
+            instance._meta = OrderedDict()
+        # We don't want to allow setting the meta attribute to a non-dict-like object.
+        # NOTE: with mypyc compilation this can be removed.
+        elif not isinstance(value, Mapping):
+            raise TypeError("meta attribute must be dict-like")
+        # This is called when the dataclass is instantiated with a `meta` argument.
         else:
-            if isinstance(value, Mapping):
-                if self.copy:
-                    instance._meta = deepcopy(value)
-                else:
-                    instance._meta = value
-            else:
-                raise TypeError("meta attribute must be dict-like")
+            instance._meta = deepcopy(value) if self.copy else value
 
 
 class MetaAttribute:
