@@ -23,12 +23,15 @@ from astropy.coordinates.builtin_frames.galactic_transforms import (
     fk5_to_gal,
 )
 from astropy.coordinates.sites import get_builtin_sites
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
-from astropy.units import allclose as quantity_allclose
 
 
-@pytest.mark.parametrize("dt", [1 * u.second, 1 * u.year])
-@pytest.mark.parametrize("symmetric", [True, False])
+@pytest.mark.parametrize("dt", [1 * u.second, 1 * u.year], ids=str)
+@pytest.mark.parametrize(
+    "symmetric",
+    [pytest.param(True, id="symmetric_dt"), pytest.param(False, id="asymmetric_dt")],
+)
 def test_faux_lsr(dt, symmetric):
     J2000 = Time("J2000")
 
@@ -70,12 +73,12 @@ def test_faux_lsr(dt, symmetric):
     )
     lsrc = ic.transform_to(LSR2())
 
-    assert quantity_allclose(ic.cartesian.xyz, lsrc.cartesian.xyz)
+    assert_quantity_allclose(ic.cartesian.xyz, lsrc.cartesian.xyz)
 
     idiff = ic.cartesian.differentials["s"]
     ldiff = lsrc.cartesian.differentials["s"]
     totchange = np.sum((ldiff.d_xyz - idiff.d_xyz) ** 2) ** 0.5
-    assert quantity_allclose(totchange, np.sum(lsrc.v_bary.d_xyz**2) ** 0.5)
+    assert_quantity_allclose(totchange, np.sum(lsrc.v_bary.d_xyz**2) ** 0.5)
 
     ic2 = ICRS(
         ra=120.3 * u.deg,
@@ -89,7 +92,7 @@ def test_faux_lsr(dt, symmetric):
     tot = np.sum(lsrc2.cartesian.differentials["s"].d_xyz ** 2) ** 0.5
     assert np.abs(tot.to("km/s") - 1000 * u.km / u.s) < 20 * u.km / u.s
 
-    assert quantity_allclose(ic2.cartesian.xyz, ic2_roundtrip.cartesian.xyz)
+    assert_quantity_allclose(ic2.cartesian.xyz, ic2_roundtrip.cartesian.xyz)
 
 
 def test_faux_fk5_galactic():
@@ -132,8 +135,8 @@ def test_faux_fk5_galactic():
     c3 = c1.transform_to(Galactic())
 
     # compare the matrix and finite-difference calculations
-    assert quantity_allclose(c2.pm_l_cosb, c3.pm_l_cosb, rtol=1e-4)
-    assert quantity_allclose(c2.pm_b, c3.pm_b, rtol=1e-4)
+    assert_quantity_allclose(c2.pm_l_cosb, c3.pm_l_cosb, rtol=1e-4)
+    assert_quantity_allclose(c2.pm_b, c3.pm_b, rtol=1e-4)
 
 
 def test_gcrs_diffs():
@@ -207,7 +210,9 @@ def test_altaz_diffs():
     assert np.all(np.sum(cdiff.d_xyz**2, axis=0) ** 0.5 > constants.c)
 
 
-_xfail = pytest.mark.xfail
+too_distant = pytest.mark.xfail(
+    reason="too distant for our finite difference transformation implementation"
+)
 
 
 @pytest.mark.parametrize(
@@ -215,9 +220,10 @@ _xfail = pytest.mark.xfail
     [
         1000 * u.au,
         10 * u.pc,
-        pytest.param(10 * u.kpc, marks=_xfail),
-        pytest.param(100 * u.kpc, marks=_xfail),
+        pytest.param(10 * u.kpc, marks=too_distant),
+        pytest.param(100 * u.kpc, marks=too_distant),
     ],
+    ids=str,
 )
 # TODO:  make these not fail when the
 # finite-difference numerical stability
