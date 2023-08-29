@@ -1300,7 +1300,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
             fast_reader=fast_reader,
         )
     if test_for_warnings:  # Assert precision warnings for cols 4-6
-        if sys.platform == "win32":
+        if sys.platform == "win32" and not fast_reader.get("use_fast_converter"):
             assert len(w) == 2
         else:
             assert len(w) == 3
@@ -1334,8 +1334,9 @@ def test_data_out_of_range(parallel, fast_reader, guess):
             fast_reader=fast_reader,
         )
     if test_for_warnings:
-        # CI Windows identifies as "win32" but has a 64 bit compiler, does not emit some warnings.
-        if sys.platform == "win32":
+        # CI Windows identifies as "win32" but has 64 bit compiler;
+        # its `strtod` not emitting certain warnings.
+        if sys.platform == "win32" and not fast_reader.get("use_fast_converter"):
             assert len(w) == 2
         else:
             assert len(w) == 3
@@ -1361,11 +1362,19 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
     # Python reader and strtod() are expected to return precise results
     rtol = 1.0e-30
 
+    # CI "win32" 64 bit compiler with `strtod` not emitting certain warnings.
+    if sys.platform == "win32":
+        ctx = nullcontext()
+    else:
+        ctx = pytest.warns()
+
     # Update fast_reader dict; adapt relative precision for fast_converter
     if fast_reader:
         fast_reader["parallel"] = parallel
+        # `xstrtod` behaves the same on win32
         if fast_reader.get("use_fast_converter"):
             rtol = 1.0e-15
+            ctx = pytest.warns()
         elif sys.maxsize < 2**32:
             # On 32bit the standard C parser (strtod) returns strings for these
             pytest.xfail("C parser cannot handle float64 on 32bit systems")
@@ -1406,7 +1415,7 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
         pytest.skip("Catching warnings broken in parallel mode")
     elif not fast_reader:
         pytest.skip("Python/numpy reader does not raise on Overflow")
-    with pytest.warns(Warning) as w:
+    with ctx as w:
         t = ascii.read(
             StringIO("0." + 314 * "0" + "1"),
             format="no_header",
@@ -1414,10 +1423,7 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
             fast_reader=fast_reader,
         )
 
-    # CI Windows identifies as "win32" but has a 64 bit compiler, does not emit some warnings.
-    if sys.platform == "win32":
-        assert not w
-    else:
+    if not isinstance(ctx, nullcontext):
         assert len(w) == 1, f"Expected 1 warning, found {len(w)}"
         assert (
             "OverflowError converting to FloatType in column col1, possibly "
