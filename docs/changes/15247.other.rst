@@ -1,0 +1,1 @@
+Switch from using ``setup.cfg`` for project configuration to using ``pyproject.toml``.
