@@ -98,7 +98,7 @@ class LambdaCDM(FLRW):
         Ob0=None,
         *,
         name=None,
-        meta=None
+        meta=None,
     ):
         super().__init__(
             H0=H0,
@@ -668,7 +668,7 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
         Ob0=None,
         *,
         name=None,
-        meta=None
+        meta=None,
     ):
         super().__init__(
             H0=H0,
