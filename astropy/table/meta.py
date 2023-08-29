@@ -193,7 +193,7 @@ def _get_variable_length_array_shape(col):
         """Local conversion error used below."""
 
     # Numpy types supported as variable-length arrays
-    np_classes = (np.floating, np.integer, np.bool_, np.unicode_)
+    np_classes = (np.floating, np.integer, np.bool_, np.str_)
 
     try:
         if len(col) == 0 or not all(isinstance(val, np.ndarray) for val in col):

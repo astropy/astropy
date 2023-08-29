@@ -19,6 +19,7 @@ import builtins
 
 import numpy as np
 
+from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.shapes import NDArrayShapeMethods
 
@@ -759,9 +760,17 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             else:
                 # Parse signature with private numpy function. Note it
                 # cannot handle spaces in tuples, so remove those.
-                in_sig, out_sig = np.lib.function_base._parse_gufunc_signature(
-                    ufunc.signature.replace(" ", "")
-                )
+                if NUMPY_LT_2_0:
+                    in_sig, out_sig = np.lib.function_base._parse_gufunc_signature(
+                        ufunc.signature.replace(" ", "")
+                    )
+                else:
+                    (
+                        in_sig,
+                        out_sig,
+                    ) = np.lib._function_base_impl._parse_gufunc_signature(
+                        ufunc.signature.replace(" ", "")
+                    )
                 axis = kwargs.get("axis", -1)
                 keepdims = kwargs.get("keepdims", False)
                 in_masks = []

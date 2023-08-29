@@ -41,7 +41,6 @@ from astropy.time import Time
         2.0,
         np.float64(),
         3 + 4j,
-        np.complex_(3 + 4j),
         np.complex64(3 + 4j),
         np.complex128(1.0 - 2**-52 + 1j * (1.0 - 2**-52)),
     ],

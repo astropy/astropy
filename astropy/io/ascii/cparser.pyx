@@ -733,7 +733,7 @@ cdef class CParser:
         if nrows != -1:
             num_rows = nrows
 
-        cdef np.ndarray col = np.empty(num_rows, dtype=np.float_)
+        cdef np.ndarray col = np.empty(num_rows, dtype=np.float64)
         cdef double converted
         cdef int row = 0
         cdef double *data = <double *> col.data

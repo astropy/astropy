@@ -4,7 +4,6 @@ This module handles the conversion of various VOTABLE datatypes
 to/from TABLEDATA_ and BINARY_ formats.
 """
 
-
 # STDLIB
 import re
 import sys
@@ -1362,11 +1361,9 @@ numpy_dtype_to_field_mapping = {
     np.int64().dtype.num: "long",
     np.complex64().dtype.num: "floatComplex",
     np.complex128().dtype.num: "doubleComplex",
-    np.unicode_().dtype.num: "unicodeChar",
+    np.str_().dtype.num: "unicodeChar",
+    np.bytes_().dtype.num: "char",
 }
-
-
-numpy_dtype_to_field_mapping[np.bytes_().dtype.num] = "char"
 
 
 def _all_matching_dtype(column):

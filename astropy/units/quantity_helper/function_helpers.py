@@ -182,13 +182,13 @@ dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
 # fmt: off
 @function_helper(
     helps={
-        np.copy, np.asfarray, np.real_if_close, np.sort_complex, np.resize,
+        np.copy, np.real_if_close, np.sort_complex, np.resize,
         np.fft.fft, np.fft.ifft, np.fft.rfft, np.fft.irfft,
         np.fft.fft2, np.fft.ifft2, np.fft.rfft2, np.fft.irfft2,
         np.fft.fftn, np.fft.ifftn, np.fft.rfftn, np.fft.irfftn,
         np.fft.hfft, np.fft.ihfft,
         np.linalg.eigvals, np.linalg.eigvalsh,
-    }
+    } | ({np.asfarray} if NUMPY_LT_2_0 else set())
 )
 # fmt: on
 def invariant_a_helper(a, *args, **kwargs):
@@ -442,7 +442,7 @@ def select(condlist, choicelist, default=0):
 def piecewise(x, condlist, funclist, *args, **kw):
     from astropy.units import Quantity
 
-    # Copied implementation from numpy.lib.function_base.piecewise,
+    # Copied implementation from numpy.lib._function_base_impl.piecewise,
     # taking care of units of function outputs.
     n2 = len(funclist)
     # undocumented: single condition is promoted to a list of one condition
