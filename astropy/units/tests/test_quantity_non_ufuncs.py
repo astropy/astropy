@@ -1341,7 +1341,7 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         value_args=None,
         value_kwargs=None,
         expected_units=None,
-        **kwargs
+        **kwargs,
     ):
         """Check quanties are treated correctly in the histogram function.
         Test is done by applying ``function(*args, **kwargs)``, where

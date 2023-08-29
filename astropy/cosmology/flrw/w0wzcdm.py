@@ -102,7 +102,7 @@ class w0wzCDM(FLRW):
         Ob0=None,
         *,
         name=None,
-        meta=None
+        meta=None,
     ):
         super().__init__(
             H0=H0,
@@ -288,7 +288,7 @@ class Flatw0wzCDM(FlatFLRWMixin, w0wzCDM):
         Ob0=None,
         *,
         name=None,
-        meta=None
+        meta=None,
     ):
         super().__init__(
             H0=H0,
