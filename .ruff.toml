@@ -26,9 +26,6 @@ ignore = [
     # flake8-blind-except (BLE)
     "BLE001",  # blind-except
 
-    # flake8-comprehensions (C4)
-    "C406",  # unnecessary-literal-dict
-
     # mccabe (C90) : code complexity
     # TODO: configure maximum allowed complexity.
     "C901",  # McCabeComplexity
@@ -289,7 +286,7 @@ unfixable = [
 "astropy/timeseries/*" = ["C408"]
 "astropy/units/*" = ["C408", "F821"]
 "astropy/uncertainty/*" = ["C408"]
-"astropy/utils/*" = ["C408"]
+"astropy/utils/*" = ["C408","C406"]
 "astropy/visualization/*" = ["B015", "C408"]
 "astropy/wcs/*" = ["C408", "F821"]
 "docs/*" = []
