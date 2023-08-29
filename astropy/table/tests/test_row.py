@@ -348,16 +348,16 @@ def test_uint_indexing():
     that printing such a row works.
 
     This is non-trivial: adding a signed and unsigned
-    integer in numpy results in a float, which is an
+    64 bit integer in numpy results in a float, which is an
     invalid slice index.
 
     Regression test for gh-7464.
     """
     t = table.Table([[1.0, 2.0, 3.0]], names="a")
     assert t["a"][1] == 2.0
-    assert t["a"][np.int_(1)] == 2.0
-    assert t["a"][np.uint(1)] == 2.0
-    assert t[np.uint(1)]["a"] == 2.0
+    assert t["a"][np.int64(1)] == 2.0
+    assert t["a"][np.uint64(1)] == 2.0
+    assert t[np.uint64(1)]["a"] == 2.0
 
     trepr = [
         "<Row index=1>",
@@ -368,8 +368,8 @@ def test_uint_indexing():
     ]
 
     assert repr(t[1]).splitlines() == trepr
-    assert repr(t[np.int_(1)]).splitlines() == trepr
-    assert repr(t[np.uint(1)]).splitlines() == trepr
+    assert repr(t[np.int64(1)]).splitlines() == trepr
+    assert repr(t[np.uint64(1)]).splitlines() == trepr
 
 
 def test_row_get():

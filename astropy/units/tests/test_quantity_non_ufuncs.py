@@ -17,7 +17,12 @@ from astropy.units.quantity_helper.function_helpers import (
     TBD_FUNCTIONS,
     UNSUPPORTED_FUNCTIONS,
 )
-from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24, NUMPY_LT_1_25
+from astropy.utils.compat import (
+    NUMPY_LT_1_23,
+    NUMPY_LT_1_24,
+    NUMPY_LT_1_25,
+    NUMPY_LT_2_0,
+)
 
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
@@ -296,6 +301,7 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         copy = np.copy(a=self.q)
         assert_array_equal(copy, self.q)
 
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.asfarray is removed in NumPy 2.0")
     @needs_array_function
     def test_asfarray(self):
         self.check(np.asfarray)

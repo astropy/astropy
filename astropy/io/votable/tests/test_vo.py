@@ -11,16 +11,14 @@ import pathlib
 import sys
 from unittest import mock
 
-import numpy as np
-
 # THIRD-PARTY
+import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
+# LOCAL
 from astropy.io.votable import tree
 from astropy.io.votable.exceptions import W39, VOTableSpecError, VOWarning
-
-# LOCAL
 from astropy.io.votable.table import parse, parse_single_table, validate
 from astropy.io.votable.xmlutil import validate_schema
 from astropy.utils.data import get_pkg_data_filename, get_pkg_data_filenames
@@ -298,7 +296,7 @@ class TestParse:
         )
 
     def test_fixed_string_test(self):
-        assert issubclass(self.array["string_test_2"].dtype.type, np.unicode_)
+        assert issubclass(self.array["string_test_2"].dtype.type, np.str_)
         assert_array_equal(
             self.array["string_test_2"], ["Fixed stri", "0123456789", "XXXX", "", ""]
         )
@@ -311,7 +309,7 @@ class TestParse:
         )
 
     def test_fixed_unicode_test(self):
-        assert issubclass(self.array["fixed_unicode_test"].dtype.type, np.unicode_)
+        assert issubclass(self.array["fixed_unicode_test"].dtype.type, np.str_)
         assert_array_equal(
             self.array["fixed_unicode_test"],
             ["Ceçi n'est", "வணக்கம்", "0123456789", "", ""],

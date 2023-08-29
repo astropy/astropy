@@ -93,7 +93,7 @@ MASKED_SAFE_FUNCTIONS |= {
     np.isclose, np.allclose, np.flatnonzero, np.argwhere,
     # np.core.shape_base
     np.atleast_1d, np.atleast_2d, np.atleast_3d, np.stack, np.hstack, np.vstack,
-    # np.lib.function_base
+    # np.lib._function_base_impl
     np.average, np.diff, np.extract, np.meshgrid, np.trapz, np.gradient,
     # np.lib.index_tricks
     np.diag_indices_from, np.triu_indices_from, np.tril_indices_from,
@@ -103,12 +103,12 @@ MASKED_SAFE_FUNCTIONS |= {
     np.array_split, np.split, np.hsplit, np.vsplit, np.dsplit,
     np.expand_dims, np.apply_along_axis, np.kron, np.tile,
     np.take_along_axis, np.put_along_axis,
-    # np.lib.type_check (all but asfarray, nan_to_num)
+    # np.lib.type_check (all but nan_to_num)
     np.iscomplexobj, np.isrealobj, np.imag, np.isreal, np.real,
     np.real_if_close, np.common_type,
     # np.lib.ufunclike
     np.fix, np.isneginf, np.isposinf,
-    # np.lib.function_base
+    # np.lib._function_base_impl
     np.angle, np.i0,
 }  # fmt: skip
 IGNORED_FUNCTIONS = {
@@ -121,7 +121,7 @@ IGNORED_FUNCTIONS = {
 IGNORED_FUNCTIONS |= {
     np.pad, np.searchsorted, np.digitize,
     np.is_busday, np.busday_count, np.busday_offset,
-    # numpy.lib.function_base
+    # numpy.lib._function_base_impl
     np.cov, np.corrcoef, np.trim_zeros,
     # numpy.core.numeric
     np.correlate, np.convolve,
@@ -206,7 +206,10 @@ def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
 # should be applied to the data and the mask.  They cannot all share the
 # same helper, because the first arguments have different names.
 @apply_to_both(
-    helps={np.copy, np.asfarray, np.resize, np.moveaxis, np.rollaxis, np.roll}
+    helps=(
+        {np.copy, np.resize, np.moveaxis, np.rollaxis, np.roll}
+        | ({np.asfarray} if NUMPY_LT_2_0 else set())
+    )
 )
 def masked_a_helper(a, *args, **kwargs):
     data, mask = _get_data_and_masks(a)
@@ -436,7 +439,7 @@ if NUMPY_LT_2_0:
 
 @dispatched_function
 def sort_complex(a):
-    # Just a copy of function_base.sort_complex, to avoid the asarray.
+    # Just a copy of np.lib._function_base_impl.sort_complex, to avoid the asarray.
     b = a.copy()
     b.sort()
     if not issubclass(b.dtype.type, np.complexfloating):  # pragma: no cover
@@ -592,10 +595,14 @@ def median(a, axis=None, out=None, **kwargs):
         )
         return (r.reshape(k) if keepdims else r) if out is None else out
 
-    else:
+    elif NUMPY_LT_2_0:
         return np.lib.function_base._ureduce(
             a, func=_masked_median, axis=axis, out=out, **kwargs
         )
+
+    return np.lib._function_base_impl._ureduce(
+        a, func=_masked_median, axis=axis, out=out, **kwargs
+    )
 
 
 def _masked_quantile_1d(a, q, **kwargs):
@@ -605,7 +612,12 @@ def _masked_quantile_1d(a, q, **kwargs):
     """
     unmasked = a.unmasked[~a.mask]
     if unmasked.size:
-        result = np.lib.function_base._quantile_unchecked(unmasked, q, **kwargs)
+        if NUMPY_LT_2_0:
+            result = np.lib.function_base._quantile_unchecked(unmasked, q, **kwargs)
+        else:
+            result = np.lib._function_base_impl._quantile_unchecked(
+                unmasked, q, **kwargs
+            )
         return a.from_unmasked(result)
     else:
         return a.from_unmasked(np.zeros_like(a.unmasked, shape=q.shape), True)
@@ -638,7 +650,9 @@ def quantile(a, q, axis=None, out=None, **kwargs):
 
     a = Masked(a)
     q = np.asanyarray(q)
-    if not np.lib.function_base._quantile_is_valid(q):
+    if (NUMPY_LT_2_0 and not np.lib.function_base._quantile_is_valid(q)) or (
+        not NUMPY_LT_2_0 and not np.lib._function_base_impl._quantile_is_valid(q)
+    ):
         raise ValueError("Quantiles must be in the range [0, 1]")
 
     if NUMPY_LT_1_24:
@@ -647,10 +661,14 @@ def quantile(a, q, axis=None, out=None, **kwargs):
             a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs
         )
         return (r.reshape(q.shape + k) if keepdims else r) if out is None else out
-    else:
+    elif NUMPY_LT_2_0:
         return np.lib.function_base._ureduce(
             a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs
         )
+
+    return np.lib._function_base_impl._ureduce(
+        a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs
+    )
 
 
 @dispatched_function
@@ -758,7 +776,7 @@ def piecewise(x, condlist, funclist, *args, **kw):
     Any masks in ``condlist`` are ignored.
 
     """
-    # Copied implementation from numpy.lib.function_base.piecewise,
+    # Copied implementation from numpy.lib._function_base_impl.piecewise,
     # just to ensure output is Masked.
     n2 = len(funclist)
     # undocumented: single condition is promoted to a list of one condition
@@ -1065,7 +1083,8 @@ def masked_nanfunc(nanfuncname):
     return nanfunc
 
 
-for nanfuncname in np.lib.nanfunctions.__all__:
+_nplibnanfunctions = np.lib.nanfunctions if NUMPY_LT_2_0 else np.lib._nanfunctions_impl
+for nanfuncname in _nplibnanfunctions.__all__:
     globals()[nanfuncname] = dispatched_function(
         masked_nanfunc(nanfuncname), helps=getattr(np, nanfuncname)
     )

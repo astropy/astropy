@@ -128,7 +128,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         else:
             pixel_arrays = pixel_arrays[::-1]
         array_indices = tuple(
-            np.asarray(np.floor(pixel + 0.5), dtype=np.int_) for pixel in pixel_arrays
+            np.asarray(np.floor(pixel + 0.5), dtype=int) for pixel in pixel_arrays
         )
         return array_indices[0] if self.pixel_n_dim == 1 else array_indices
 

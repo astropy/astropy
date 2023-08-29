@@ -252,7 +252,6 @@ AstropyDumper.add_representer(SerializedColumn, _serialized_column_representer)
 # Numpy dtypes
 AstropyDumper.add_representer(np.bool_, yaml.representer.SafeRepresenter.represent_bool)
 for np_type in [
-    np.int_,
     np.intc,
     np.intp,
     np.int8,
@@ -267,11 +266,11 @@ for np_type in [
     AstropyDumper.add_representer(
         np_type, yaml.representer.SafeRepresenter.represent_int
     )
-for np_type in [np.float_, np.float16, np.float32, np.float64, np.longdouble]:
+for np_type in [np.float16, np.float32, np.float64, np.longdouble]:
     AstropyDumper.add_representer(
         np_type, yaml.representer.SafeRepresenter.represent_float
     )
-for np_type in [np.complex_, complex, np.complex64, np.complex128]:
+for np_type in [complex, np.complex64, np.complex128]:
     AstropyDumper.add_representer(np_type, _complex_representer)
 
 AstropyLoader.add_constructor("tag:yaml.org,2002:python/complex", _complex_constructor)
