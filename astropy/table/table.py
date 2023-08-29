@@ -176,8 +176,6 @@ class TableReplaceWarning(UserWarning):
     stacklevel=3 to show the user where the issue occurred in their code.
     """
 
-    pass
-
 
 def descr(col):
     """Array-interface compliant full description of a column.

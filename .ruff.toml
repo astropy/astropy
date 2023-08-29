@@ -118,7 +118,6 @@ ignore = [
     "PERF401",  # Use a list comprehension to create a transformed list
 
     # flake8-pie (PIE)
-    "PIE790",  # unnecessary-pass
     "PIE794",  # duplicate-class-field-definition
     "PIE810",  # single-starts-ends-with
 

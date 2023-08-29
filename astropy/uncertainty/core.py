@@ -269,8 +269,6 @@ class ScalarDistribution(Distribution, np.void):
     all subclasses.  It is a scalar element, still with n_samples samples.
     """
 
-    pass
-
 
 class ArrayDistribution(Distribution, np.ndarray):
     # This includes the important override of view and __getitem__

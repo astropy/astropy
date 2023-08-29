@@ -391,13 +391,11 @@ class Generic(Base):
             product : STAR
                     | PERIOD
             """
-            pass
 
         def p_division(p):
             """
             division : SOLIDUS
             """
-            pass
 
         def p_power(p):
             """

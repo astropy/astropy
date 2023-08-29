@@ -29,13 +29,9 @@ __all__ = [
 class NoOverlapError(ValueError):
     """Raised when determining the overlap of non-overlapping arrays."""
 
-    pass
-
 
 class PartialOverlapError(ValueError):
     """Raised when arrays only partially overlap."""
-
-    pass
 
 
 def overlap_slices(large_array_shape, small_array_shape, position, mode="partial"):

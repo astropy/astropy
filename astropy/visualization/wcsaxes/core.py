@@ -897,5 +897,3 @@ class WCSAxesSubplot(subplot_class_factory(WCSAxes)):
     """
     A subclass class for WCSAxes.
     """
-
-    pass

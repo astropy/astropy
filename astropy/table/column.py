@@ -34,8 +34,6 @@ class StringTruncateWarning(UserWarning):
     stacklevel=2 to show the user where the issue occurred in their code.
     """
 
-    pass
-
 
 # Always emit this warning, not just the first instance
 warnings.simplefilter("always", StringTruncateWarning)

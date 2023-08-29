@@ -44,8 +44,6 @@ class QueryError(ValueError):
     Indicates that a given index cannot handle the supplied query.
     """
 
-    pass
-
 
 class Index:
     """

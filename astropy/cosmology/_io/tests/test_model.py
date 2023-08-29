@@ -144,7 +144,7 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
         Test writing from an instance and reading from that class.
         This works with missing information.
         """
-        pass  # there's no partial information with a Model
+        # there's no partial information with a Model
 
     @pytest.mark.parametrize("format", [True, False, None, "astropy.model"])
     def test_is_equivalent_to_model(self, cosmo, method_name, to_format, format):

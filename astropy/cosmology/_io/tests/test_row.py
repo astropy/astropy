@@ -114,7 +114,7 @@ class ToFromRowTestMixin(ToFromTestMixinBase):
         Test writing from an instance and reading from that class.
         This works with missing information.
         """
-        pass  # there are no partial info options
+        # there are no partial info options
 
     @pytest.mark.parametrize("format", [True, False, None, "astropy.row"])
     def test_is_equivalent_to_row(self, cosmo, to_format, format):

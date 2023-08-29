@@ -270,8 +270,6 @@ class FITSFixedWarning(AstropyWarning):
     modified to be standards compliant.
     """
 
-    pass
-
 
 class WCS(FITSWCSAPIMixin, WCSBase):
     """WCS objects perform standard WCS transformations, and correct for

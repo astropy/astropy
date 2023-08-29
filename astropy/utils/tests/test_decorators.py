@@ -108,7 +108,6 @@ class TA:
         """
         This is the __init__ docstring
         """
-        pass
 
 
 class TMeta(type):
@@ -125,8 +124,6 @@ class TC:
     """
     This class has the custom warning.
     """
-
-    pass
 
 
 def test_deprecated_class():
@@ -662,7 +659,6 @@ def test_format_doc_stringInput_simple():
     @format_doc(docstring)
     def testfunc_2():
         """not test"""
-        pass
 
     assert inspect.getdoc(testfunc_2) == docstring
 
@@ -693,7 +689,6 @@ def test_format_doc_stringInput_format():
     @format_doc(docstring2, "/")
     def testfunc3():
         """= 2 / 2 * life"""
-        pass
 
     assert inspect.getdoc(testfunc3) == "yes / no = 2 / 2 * life"
 
@@ -713,7 +708,6 @@ def test_format_doc_objectInput_simple():
 
     def docstring0():
         """test"""
-        pass
 
     # A first test that replaces an empty docstring
     @format_doc(docstring0)
@@ -726,7 +720,6 @@ def test_format_doc_objectInput_simple():
     @format_doc(docstring0)
     def testfunc_2():
         """not test"""
-        pass
 
     assert inspect.getdoc(testfunc_2) == inspect.getdoc(docstring0)
 
@@ -736,7 +729,6 @@ def test_format_doc_objectInput_format():
 
     def docstring():
         """test {0} test {opt}"""
-        pass
 
     # Raises an indexerror if not given the formatted args and kwargs
     with pytest.raises(IndexError):
@@ -756,12 +748,10 @@ def test_format_doc_objectInput_format():
 
     def docstring2():
         """test {0} test {__doc__}"""
-        pass
 
     @format_doc(docstring2, "+")
     def testfunc3():
         """= 4 / 2 * test"""
-        pass
 
     assert inspect.getdoc(testfunc3) == "test + test = 4 / 2 * test"
 
@@ -780,7 +770,6 @@ def test_format_doc_selfInput_simple():
     @format_doc(None)
     def testfunc_1():
         """not test"""
-        pass
 
     assert inspect.getdoc(testfunc_1) == "not test"
 
@@ -794,13 +783,11 @@ def test_format_doc_selfInput_format():
         @format_doc(None)
         def testfunc_fail():
             """dum {0} dum {opt}"""
-            pass
 
     # Test that the formatting is done right
     @format_doc(None, "di", opt="da dum")
     def testfunc1():
         """dum {0} dum {opt}"""
-        pass
 
     assert inspect.getdoc(testfunc1) == "dum di dum da dum"
 
@@ -809,7 +796,6 @@ def test_format_doc_selfInput_format():
     @format_doc(None, "di")
     def testfunc2():
         """dum {0} dum {__doc__}"""
-        pass
 
     assert inspect.getdoc(testfunc2) == "dum di dum "
 
@@ -824,7 +810,6 @@ def test_format_doc_onMethod():
         @format_doc(None, "strange.")
         def test_method(self):
             """is {0}"""
-            pass
 
     assert inspect.getdoc(TestClass.test_method) == "what we do is strange."
 
@@ -836,7 +821,5 @@ def test_format_doc_onClass():
     @format_doc(docstring, "strange", opt=".")
     class TestClass:
         """is"""
-
-        pass
 
     assert inspect.getdoc(TestClass) == "what we do is strange."
