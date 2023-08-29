@@ -638,5 +638,4 @@ class QDP(basic.Basic):
 
     def write(self, table):
         self._check_multidim_table(table)
-        lines = _write_table_qdp(table, err_specs=self.err_specs)
-        return lines
+        return _write_table_qdp(table, err_specs=self.err_specs)

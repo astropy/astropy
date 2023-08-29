@@ -56,8 +56,7 @@ class TestNonLinearConstraints:
         fitter = fitter()
 
         def tied(model):
-            mean = 50 * model.stddev
-            return mean
+            return 50 * model.stddev
 
         g1 = models.Gaussian1D(10, mean=14.9, stddev=0.3, tied={"mean": tied})
         model = fitter(g1, self.x, self.ny1)

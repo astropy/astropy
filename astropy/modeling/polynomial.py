@@ -114,8 +114,7 @@ class PolynomialModel(PolynomialBase):
             nmixed = comb(self.degree, ndim)
         else:
             nmixed = 0
-        numc = self.degree * ndim + nmixed + 1
-        return numc
+        return self.degree * ndim + nmixed + 1
 
     def _invlex(self):
         c = []
@@ -1721,8 +1720,7 @@ class _SIP1D(PolynomialBase):
 
         nmixed = comb(self.order, ndim)
         # remove 3 terms because SIP deg >= 2
-        numc = self.order * ndim + nmixed - 2
-        return numc
+        return self.order * ndim + nmixed - 2
 
     def _generate_coeff_names(self, coeff_prefix):
         names = []

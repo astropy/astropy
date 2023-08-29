@@ -846,8 +846,7 @@ class TableHDU(_TableBaseHDU):
 
             d = np.append(bytes_array, padding)
 
-            cs = self._compute_checksum(d)
-            return cs
+            return self._compute_checksum(d)
         else:
             # This is the case where the data has not been read from the file
             # yet.  We can handle that in a generic manner so we do it in the

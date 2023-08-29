@@ -113,9 +113,7 @@ def _decode_mixins(tbl):
 
     # Construct new table with mixins, using tbl.meta['__serialized_columns__']
     # as guidance.
-    tbl = serialize._construct_mixins_from_columns(tbl)
-
-    return tbl
+    return serialize._construct_mixins_from_columns(tbl)
 
 
 def read_table_fits(
@@ -334,9 +332,7 @@ def read_table_fits(
     # TODO: implement masking
 
     # Decode any mixin columns that have been stored as standard Columns.
-    t = _decode_mixins(t)
-
-    return t
+    return _decode_mixins(t)
 
 
 def _encode_mixins(tbl):

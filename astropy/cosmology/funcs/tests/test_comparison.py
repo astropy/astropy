@@ -68,10 +68,9 @@ class ComparisonFunctionTestBase(ToFromTestMixinBase):
         # change one parameter
         p = cosmo.__parameters__[0]
         v = getattr(cosmo, p)
-        cosmo2 = cosmo.clone(
+        return cosmo.clone(
             **{p: v * 1.0001 if v != 0 else 0.001 * getattr(v, "unit", 1)}
         )
-        return cosmo2
 
     @pytest.fixture(scope="class")
     def pert_cosmo_eqvxflat(self, pert_cosmo):

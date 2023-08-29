@@ -109,7 +109,6 @@ def raises(*exceptions):
                 message = f"{name}() did not raise {valid}"
                 raise AssertionError(message)
 
-        newfunc = make_decorator(func)(newfunc)
-        return newfunc
+        return make_decorator(func)(newfunc)
 
     return decorate

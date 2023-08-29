@@ -79,8 +79,7 @@ class RST(FixedWidth):
     def write(self, lines):
         lines = super().write(lines)
         idx = len(self.header.header_rows)
-        lines = [lines[idx]] + lines + [lines[idx]]
-        return lines
+        return [lines[idx]] + lines + [lines[idx]]
 
     def read(self, table):
         self.data.start_line = 2 + len(self.header.header_rows)

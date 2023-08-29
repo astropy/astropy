@@ -12,8 +12,7 @@ from .mbflex_impl import lombscargle_mbflex
 
 
 def available_methods():
-    methods = ["fast", "flexible"]
-    return methods
+    return ["fast", "flexible"]
 
 
 def lombscargle_multiband(

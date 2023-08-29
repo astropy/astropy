@@ -1990,8 +1990,7 @@ class Model(metaclass=_ModelMeta):
             return shape[:axis] + shape[axis + 1 :]
         if axis >= len(shape):
             axis = len(shape) - 1
-        shape = shape[axis + 1 :]
-        return shape
+        return shape[axis + 1 :]
 
     def _prepare_inputs_model_set(self, params, inputs, model_set_axis_input, **kwargs):
         reshaped = []

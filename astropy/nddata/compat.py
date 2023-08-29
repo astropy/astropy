@@ -288,7 +288,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         else:
             new_mask = None
         # Call __class__ in case we are dealing with an inherited type
-        result = self.__class__(
+        return self.__class__(
             data,
             uncertainty=uncertainty,
             mask=new_mask,
@@ -296,5 +296,3 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
             meta=self.meta,
             unit=unit,
         )
-
-        return result

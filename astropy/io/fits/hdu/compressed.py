@@ -517,9 +517,7 @@ class CompImageHeader(Header):
         remapped_insert_keyword = self._remap_keyword(keyword)
 
         with suppress(IndexError, KeyError):
-            idx = self._table_header._cardindex((remapped_insert_keyword, repeat))
-
-        return idx
+            return self._table_header._cardindex((remapped_insert_keyword, repeat))
 
     def clear(self):
         """

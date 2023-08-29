@@ -1074,8 +1074,7 @@ class SAMPHubServer:
         if private_key in self._private_keys:
             if "samp.mtype" not in message:
                 raise SAMPProxyError(3, "samp.mtype keyword is missing")
-            recipient_ids = self._notify_all_(private_key, message)
-            return recipient_ids
+            return self._notify_all_(private_key, message)
         else:
             raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
@@ -1174,8 +1173,7 @@ class SAMPHubServer:
                 )
 
             public_id = self._private_keys[private_key][0]
-            msg_id = self._call_all_(private_key, public_id, msg_tag, message)
-            return msg_id
+            return self._call_all_(private_key, public_id, msg_tag, message)
         else:
             raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 

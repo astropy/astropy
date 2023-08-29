@@ -783,8 +783,7 @@ def _get_ecsv_header_dict(text):
     lines = [line.strip() for line in text.splitlines()]
     lines = [line[2:] for line in lines if line.startswith("#")]
     lines = lines[2:]  # Get rid of the header
-    out = yaml.safe_load("\n".join(lines))
-    return out
+    return yaml.safe_load("\n".join(lines))
 
 
 def _make_expected_values(cols):

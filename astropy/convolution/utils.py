@@ -267,8 +267,7 @@ def discretize_bilinear_2D(model, x_range, y_range):
     # Mean in y direction
     values = 0.5 * (values_intermediate_grid[1:, :] + values_intermediate_grid[:-1, :])
     # Mean in x direction
-    values = 0.5 * (values[:, 1:] + values[:, :-1])
-    return values
+    return 0.5 * (values[:, 1:] + values[:, :-1])
 
 
 def discretize_oversample_1D(model, x_range, factor=10):

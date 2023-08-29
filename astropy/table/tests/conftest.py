@@ -229,8 +229,7 @@ def _get_test_table():
 @pytest.fixture()
 def T1b(request):
     """Basic table"""
-    T = _get_test_table()
-    return T
+    return _get_test_table()
 
 
 @pytest.fixture(params=[False, True])

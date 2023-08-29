@@ -11,14 +11,12 @@ class NdarrayMixinInfo(ParentDtypeInfo):
     def _represent_as_dict(self):
         """Represent Column as a dict that can be serialized."""
         col = self._parent
-        out = {"data": col.view(np.ndarray)}
-        return out
+        return {"data": col.view(np.ndarray)}
 
     def _construct_from_dict(self, map):
         """Construct Column from ``map``."""
         data = map.pop("data")
-        out = self._parent_cls(data, **map)
-        return out
+        return self._parent_cls(data, **map)
 
 
 class NdarrayMixin(np.ndarray):

@@ -180,8 +180,7 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
         else:
             Reader = basic.Basic
 
-    reader = core._get_reader(Reader, Inputter=Inputter, Outputter=Outputter, **kwargs)
-    return reader
+    return core._get_reader(Reader, Inputter=Inputter, Outputter=Outputter, **kwargs)
 
 
 def _get_format_class(format, ReaderWriter, label):
@@ -771,9 +770,7 @@ def _read_in_chunks(table, **kwargs):
 
     # Make final table from numpy arrays, converting dict to list
     out_cols = [out_cols[name] for name in tbl0.colnames]
-    out = tbl0.__class__(out_cols, names=tbl0.colnames, meta=tbl0.meta, copy=False)
-
-    return out
+    return tbl0.__class__(out_cols, names=tbl0.colnames, meta=tbl0.meta, copy=False)
 
 
 def _read_in_chunks_generator(table, chunk_size, **kwargs):

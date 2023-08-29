@@ -82,8 +82,7 @@ class Optimization(metaclass=abc.ABCMeta):
         self._acc = val
 
     def __repr__(self):
-        fmt = f"{self.__class__.__name__}()"
-        return fmt
+        return f"{self.__class__.__name__}()"
 
     @property
     def opt_method(self):

@@ -3037,9 +3037,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
             array.mask[numrows] = tuple(row_mask)
             numrows += 1
 
-        array = _resize(array, numrows)
-
-        return array
+        return _resize(array, numrows)
 
     def _parse_fits(self, iterator, extnum, config):
         for start, tag, data, pos in iterator:

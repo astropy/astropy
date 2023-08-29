@@ -15,9 +15,7 @@ def tab_wcs_2di():
     hdulist = model.hdulist
 
     # create WCS object:
-    w = wcs.WCS(hdulist[0].header, hdulist)
-
-    return w
+    return wcs.WCS(hdulist[0].header, hdulist)
 
 
 @pytest.fixture(scope="module")
@@ -41,9 +39,7 @@ def tab_wcs_2di_f():
     hdulist = model.hdulist
 
     # create WCS object:
-    w = wcs.WCS(hdulist[0].header, hdulist)
-
-    return w
+    return wcs.WCS(hdulist[0].header, hdulist)
 
 
 @pytest.fixture(scope="function")

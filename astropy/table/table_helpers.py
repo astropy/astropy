@@ -137,9 +137,7 @@ def complex_table():
             pedantic=False,
         )
     first_table = votable.get_first_table()
-    table = first_table.to_table()
-
-    return table
+    return first_table.to_table()
 
 
 class ArrayWrapperInfo(ParentDtypeInfo):
@@ -148,14 +146,12 @@ class ArrayWrapperInfo(ParentDtypeInfo):
     def _represent_as_dict(self):
         """Represent Column as a dict that can be serialized."""
         col = self._parent
-        out = {"data": col.data}
-        return out
+        return {"data": col.data}
 
     def _construct_from_dict(self, map):
         """Construct Column from ``map``."""
         data = map.pop("data")
-        out = self._parent_cls(data, **map)
-        return out
+        return self._parent_cls(data, **map)
 
 
 class ArrayWrapper:

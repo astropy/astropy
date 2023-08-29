@@ -334,8 +334,7 @@ class Angle(u.SpecificTypeQuantity):
                 if format == "latex" or format == "latex_inline":
                     s = f"${s}$"
                 return s
-            s = f"{val}"
-            return s
+            return f"{val}"
 
         values = self.to_value(unit)
         format_ufunc = np.vectorize(do_format, otypes=["U"])

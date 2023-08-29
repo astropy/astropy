@@ -726,11 +726,10 @@ class BaseColumnInfo(DataInfo):
         from astropy.table.np_utils import TableMergeError
 
         def warn_str_func(key, left, right):
-            out = (
+            return (
                 f"In merged column '{name}' the '{key}' attribute does not match "
                 f"({left} != {right}).  Using {right} for merged output"
             )
-            return out
 
         def getattrs(col):
             return {

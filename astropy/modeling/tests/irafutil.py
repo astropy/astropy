@@ -28,8 +28,7 @@ def get_records(fname):
     dtb = f.read()
     f.close()
     recs = dtb.split("begin")[1:]
-    records = [Record(r) for r in recs]
-    return records
+    return [Record(r) for r in recs]
 
 
 def get_database_string(fname):
@@ -257,5 +256,4 @@ class ReidentifyRecord(IDB):
 
     def get_ydata(self):
         y = np.ones(self.x.shape)
-        y = y * np.array([r.y for r in self.records])[:, np.newaxis]
-        return y
+        return y * np.array([r.y for r in self.records])[:, np.newaxis]

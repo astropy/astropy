@@ -384,10 +384,9 @@ def get_yaml_from_header(header):
     header["datatype"] = [_get_col_attributes(col) for col in header["cols"]]
     del header["cols"]
 
-    lines = yaml.dump(
+    return yaml.dump(
         header, default_flow_style=None, Dumper=TableDumper, width=130
     ).splitlines()
-    return lines
 
 
 class YamlParseError(Exception):

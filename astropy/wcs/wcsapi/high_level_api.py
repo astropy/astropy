@@ -40,8 +40,7 @@ def _toindex(value):
     >>> _toindex(np.array([1.5, 2.49999]))
     array([2, 2])
     """
-    indx = np.asarray(np.floor(np.asarray(value) + 0.5), dtype=int)
-    return indx
+    return np.asarray(np.floor(np.asarray(value) + 0.5), dtype=int)
 
 
 class BaseHighLevelWCS(metaclass=abc.ABCMeta):
@@ -318,9 +317,7 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         )
 
         # Finally we convert to pixel coordinates
-        pixel_values = self.low_level_wcs.world_to_pixel_values(*world_values)
-
-        return pixel_values
+        return self.low_level_wcs.world_to_pixel_values(*world_values)
 
     def pixel_to_world(self, *pixel_arrays):
         # Compute the world coordinate values

@@ -262,9 +262,7 @@ class galactocentric_frame_defaults(ScienceState):
         # Copy to ensure registry is immutable to modifications of "_value".
         # Raises KeyError if `name` is invalid string input to registry
         # to retrieve solar parameters for Galactocentric frame.
-        state = copy.deepcopy(cls._registry[name])  # ensure mutable
-
-        return state
+        return copy.deepcopy(cls._registry[name])  # ensure mutable
 
     @deprecated("v4.2", alternative="`get_from_registry`")
     @classmethod

@@ -659,9 +659,7 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode="all", cls=None):
 
     # Create a SkyCoord-like object
     data = UnitSphericalRepresentation(lon=lon, lat=lat)
-    coords = cls(frame.realize_frame(data))
-
-    return coords
+    return cls(frame.realize_frame(data))
 
 
 def _unique_with_order_preserved(items):
@@ -745,9 +743,7 @@ def _pixel_to_pixel_correlation_matrix(wcs_in, wcs_out):
             "World coordinate order doesn't match and automatic matching is ambiguous"
         )
 
-    matrix = np.matmul(matrix2.T, matrix1)
-
-    return matrix
+    return np.matmul(matrix2.T, matrix1)
 
 
 def _split_matrix(matrix):
@@ -913,9 +909,7 @@ def _linear_wcs_fit(params, lon, lat, x, y, w_obj):
     # In case the longitude has wrapped around
     lon_resids = np.mod(lon_resids - 180.0, 360.0) - 180.0
 
-    resids = np.concatenate((lon_resids * np.cos(np.radians(lat)), lat_resids))
-
-    return resids
+    return np.concatenate((lon_resids * np.cos(np.radians(lat)), lat_resids))
 
 
 def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
@@ -960,9 +954,7 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
     x, y = w_obj.all_world2pix(lon, lat, 0)
     x, y = np.dot(w_obj.wcs.cd, (x - w_obj.wcs.crpix[0], y - w_obj.wcs.crpix[1]))
 
-    resids = np.concatenate((x - xo, y - yo))
-
-    return resids
+    return np.concatenate((x - xo, y - yo))
 
 
 def fit_wcs_from_points(

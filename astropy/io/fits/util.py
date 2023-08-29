@@ -558,8 +558,7 @@ def _array_from_file(infile, dtype, count):
         array = np.ndarray(buffer=s, dtype=dtype, shape=(count,))
         # copy is needed because np.frombuffer returns a read-only view of the
         # underlying buffer
-        array = array.copy()
-        return array
+        return array.copy()
 
 
 _OSX_WRITE_LIMIT = (2**32) - 1

@@ -12,7 +12,7 @@ def get_extensions():
     sources = ["_np_utils.pyx", "_column_mixins.pyx"]
     include_dirs = [numpy.get_include()]
 
-    exts = [
+    return [
         Extension(
             name="astropy.table." + os.path.splitext(source)[0],
             sources=[os.path.join(ROOT, source)],
@@ -20,5 +20,3 @@ def get_extensions():
         )
         for source in sources
     ]
-
-    return exts

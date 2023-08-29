@@ -327,9 +327,7 @@ class WCSWorld2PixelTransform(CurvedTransform):
         if self.invert_xy:
             pixel = pixel[::-1]
 
-        pixel = np.array(pixel).T
-
-        return pixel
+        return np.array(pixel).T
 
     transform_non_affine = transform
 
@@ -389,9 +387,7 @@ class WCSPixel2WorldTransform(CurvedTransform):
         if self.wcs.world_n_dim == 1:
             world = [world]
 
-        world = np.array(world).T
-
-        return world
+        return np.array(world).T
 
     transform_non_affine = transform
 

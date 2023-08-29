@@ -361,8 +361,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
             )
         ]
 
-        coldefs = ColDefs(cols)
-        return coldefs
+        return ColDefs(cols)
 
     @property
     def _nrows(self):

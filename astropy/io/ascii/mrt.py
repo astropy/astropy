@@ -445,8 +445,7 @@ class MrtHeader(cds.CdsHeader):
         self.linewidth = endb
 
         # Remove the last extra newline character from Byte-By-Byte.
-        buff = buff[:-1]
-        return buff
+        return buff[:-1]
 
     def write(self, lines):
         """

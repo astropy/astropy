@@ -682,8 +682,7 @@ def _check_bins(bins, unit):
 
 def _check_range(range, unit):
     range = _as_quantity(range)
-    range = range.to_value(unit)
-    return range
+    return range.to_value(unit)
 
 
 @function_helper

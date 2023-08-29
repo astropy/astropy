@@ -956,7 +956,7 @@ def _array2string(a, options, separator=" ", prefix=""):
     # skip over array(
     next_line_prefix += " " * len(prefix)
 
-    lst = _formatArray(
+    return _formatArray(
         a,
         format_function,
         options["linewidth"],
@@ -966,7 +966,6 @@ def _array2string(a, options, separator=" ", prefix=""):
         summary_insert,
         options["legacy"],
     )
-    return lst
 
 
 @dispatched_function

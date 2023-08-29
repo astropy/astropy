@@ -320,8 +320,7 @@ def test_transform_api():
         _ = fk5frame.equinox
         # ... build a *cartesian* transform matrix using `eq` that transforms from
         # the `newobj` frame as observed at `ot` to FK5 an equinox `eq`
-        matrix = np.eye(3)
-        return matrix
+        return np.eye(3)
 
     # Other options for transform functions include one that simply returns the new
     # coordinate object, and one that returns a cartesian matrix but does *not*

@@ -33,8 +33,7 @@ def fullstack_fiducial_altaz(fullstack_icrs):
     )
     with warnings.catch_warnings():  # Ignore remote_data warning
         warnings.simplefilter("ignore")
-        result = fullstack_icrs.transform_to(altazframe)
-    return result
+        return fullstack_icrs.transform_to(altazframe)
 
 
 @pytest.fixture(scope="function", params=["J2000.1", "J2010"])
