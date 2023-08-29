@@ -442,7 +442,7 @@ def select(condlist, choicelist, default=0):
 def piecewise(x, condlist, funclist, *args, **kw):
     from astropy.units import Quantity
 
-    # Copied implementation from numpy.lib.function_base.piecewise,
+    # Copied implementation from numpy.lib._function_base_impl.piecewise,
     # taking care of units of function outputs.
     n2 = len(funclist)
     # undocumented: single condition is promoted to a list of one condition
