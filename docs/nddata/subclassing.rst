@@ -156,7 +156,7 @@ on the class or the instance::
     >>> ndd = NDDataPower([1,2,3])
 
     >>> # using it on the instance with one operand
-    >>> ndd.pow(3)  # doctest: +SKIP
+    >>> ndd.pow(3)  # doctest: +ELLIPSIS
     NDDataPower([ 1,  8, 27])
 
     >>> # using it on the instance with two operands
