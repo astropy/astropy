@@ -119,7 +119,6 @@ ignore = [
 
     # flake8-pie (PIE)
     "PIE794",  # duplicate-class-field-definition
-    "PIE810",  # single-starts-ends-with
 
     # pygrep-hooks (PGH)
     "PGH001",  # eval

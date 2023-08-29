@@ -730,9 +730,7 @@ def table_from_scratch():
 @np.errstate(over="ignore")
 def test_open_files():
     for filename in get_pkg_data_filenames("data", pattern="*.xml"):
-        if filename.endswith("custom_datatype.xml") or filename.endswith(
-            "timesys_errors.xml"
-        ):
+        if filename.endswith(("custom_datatype.xml", "timesys_errors.xml")):
             continue
         parse(filename)
 
