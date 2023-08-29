@@ -29,7 +29,7 @@ class MetaBaseTest:
 
     @pytest.mark.parametrize(
         "meta",
-        ([dict([("a", 1)]), OrderedDict([("a", 1)]), OrderedDictSubclass([("a", 1)])]),
+        ([{"a": 1}, OrderedDict([("a", 1)]), OrderedDictSubclass([("a", 1)])]),
     )
     def test_mapping_init(self, meta):
         d = self.test_class(*self.args, meta=meta)
@@ -43,7 +43,7 @@ class MetaBaseTest:
 
     @pytest.mark.parametrize(
         "meta",
-        ([dict([("a", 1)]), OrderedDict([("a", 1)]), OrderedDictSubclass([("a", 1)])]),
+        ([{"a": 1}, OrderedDict([("a", 1)]), OrderedDictSubclass([("a", 1)])]),
     )
     def test_mapping_set(self, meta):
         d = self.test_class(*self.args, meta=meta)
