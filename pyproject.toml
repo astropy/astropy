@@ -97,6 +97,7 @@ docs = [
     "sphinx-changelog>=1.2.0",
     "sphinx_design",
     "Jinja2>=3.0",
+    "tomli; python_version < '3.11'",
 ]
 
 [project.urls]
