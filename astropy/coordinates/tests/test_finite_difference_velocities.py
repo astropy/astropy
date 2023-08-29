@@ -210,6 +210,43 @@ def test_altaz_diffs():
     assert np.all(np.sum(cdiff.d_xyz**2, axis=0) ** 0.5 > constants.c)
 
 
+@pytest.mark.parametrize(
+    "dt,expected_vel",
+    [
+        pytest.param(
+            1 * u.s, [-29.93183, -4.715867, -2.103387] * u.km / u.s, id="small_dt"
+        ),
+        pytest.param(
+            1 * u.yr, [-0.01499709, -0.00309796, -0.00093604] * u.km / u.s, id="huge_dt"
+        ),
+    ],
+)
+def test_dt_function(dt, expected_vel):
+    """We are testing that the mechanism of calling a function works. If the function
+    returns a constant value we can compare the numbers with what we get if we specify
+    a constant dt directly.
+    """
+    gcrs_coord = GCRS(
+        ra=12 * u.deg,
+        dec=47 * u.deg,
+        distance=100 * u.au,
+        pm_ra_cosdec=0 * u.marcsec / u.yr,
+        pm_dec=0 * u.marcsec / u.yr,
+        radial_velocity=0 * u.km / u.s,
+        obstime=Time("J2020"),
+    )
+    with frame_transform_graph.impose_finite_difference_dt(
+        lambda fromcoord, toframe: dt
+    ):
+        icrs_coord = gcrs_coord.transform_to(ICRS())
+    assert_quantity_allclose(
+        icrs_coord.cartesian.xyz, [66.535756, 15.074734, 73.518509] * u.au
+    )
+    assert_quantity_allclose(
+        icrs_coord.cartesian.differentials["s"].d_xyz, expected_vel, rtol=2e-6
+    )
+
+
 too_distant = pytest.mark.xfail(
     reason="too distant for our finite difference transformation implementation"
 )
