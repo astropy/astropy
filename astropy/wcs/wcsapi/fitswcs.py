@@ -223,8 +223,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
     def array_shape(self):
         if self.pixel_shape is None:
             return None
-        else:
-            return self.pixel_shape[::-1]
+        return self.pixel_shape[::-1]
 
     @array_shape.setter
     def array_shape(self, value):
@@ -237,8 +236,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
     def pixel_shape(self):
         if self._naxis == [0, 0]:
             return None
-        else:
-            return tuple(self._naxis)
+        return tuple(self._naxis)
 
     @pixel_shape.setter
     def pixel_shape(self, value):
@@ -391,8 +389,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             cache = self._components_and_classes_cache
             if cache[0] == wcs_hash:
                 return cache[1]
-            else:
-                self._components_and_classes_cache = None
+            self._components_and_classes_cache = None
 
         # Avoid circular imports by importing here
         from astropy.coordinates import EarthLocation, SkyCoord, StokesCoord
@@ -574,14 +571,13 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                             AstropyUserWarning,
                         )
                         return spectralcoord.to_value(u.m) / self.wcs.restwav - 1.0
-                    else:
-                        return (
-                            spectralcoord.with_observer_stationary_relative_to(
-                                observer
-                            ).to_value(u.m)
-                            / self.wcs.restwav
-                            - 1.0
-                        )
+                    return (
+                        spectralcoord.with_observer_stationary_relative_to(
+                            observer
+                        ).to_value(u.m)
+                        / self.wcs.restwav
+                        - 1.0
+                    )
 
                 classes["spectral"] = (u.Quantity, (), {}, spectralcoord_from_redshift)
                 components[self.wcs.spec] = ("spectral", 0, redshift_from_spectralcoord)
@@ -622,13 +618,12 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                             AstropyUserWarning,
                         )
                         return spectralcoord.to_value(u.m / u.s, doppler_equiv) / C_SI
-                    else:
-                        return (
-                            spectralcoord.with_observer_stationary_relative_to(
-                                observer
-                            ).to_value(u.m / u.s, doppler_equiv)
-                            / C_SI
-                        )
+                    return (
+                        spectralcoord.with_observer_stationary_relative_to(
+                            observer
+                        ).to_value(u.m / u.s, doppler_equiv)
+                        / C_SI
+                    )
 
                 classes["spectral"] = (u.Quantity, (), {}, spectralcoord_from_beta)
                 components[self.wcs.spec] = ("spectral", 0, beta_from_spectralcoord)
@@ -675,10 +670,9 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                             AstropyUserWarning,
                         )
                         return spectralcoord.to_value(**kwargs)
-                    else:
-                        return spectralcoord.with_observer_stationary_relative_to(
-                            observer
-                        ).to_value(**kwargs)
+                    return spectralcoord.with_observer_stationary_relative_to(
+                        observer
+                    ).to_value(**kwargs)
 
                 classes["spectral"] = (u.Quantity, (), {}, spectralcoord_from_value)
                 components[self.wcs.spec] = ("spectral", 0, value_from_spectralcoord)

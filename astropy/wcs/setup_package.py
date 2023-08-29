@@ -47,12 +47,11 @@ def determine_64_bit_int():
 
         if ctypes.sizeof(ctypes.c_longlong) == 8:
             return "long long int"
-        elif ctypes.sizeof(ctypes.c_long) == 8:
+        if ctypes.sizeof(ctypes.c_long) == 8:
             return "long int"
-        elif ctypes.sizeof(ctypes.c_int) == 8:
+        if ctypes.sizeof(ctypes.c_int) == 8:
             return "int"
-        else:
-            raise ValueError()
+        raise ValueError()
 
     except ValueError:
         return "long long int"

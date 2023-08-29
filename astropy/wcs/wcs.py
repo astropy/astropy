@@ -888,8 +888,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         if undistort:
             return self.all_pix2world(corners, 1)
-        else:
-            return self.wcs_pix2world(corners, 1)
+        return self.wcs_pix2world(corners, 1)
 
     def _read_det2im_kw(self, header, fobj, err=0.0):
         """
@@ -957,8 +956,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 tables[i] = None
         if not tables:
             return (None, None)
-        else:
-            return (tables.get(1), tables.get(2))
+        return (tables.get(1), tables.get(2))
 
     def _read_d2im_old_format(self, header, fobj, axiscorr):
         warnings.warn(
@@ -991,11 +989,10 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         if axiscorr == 1:
             return (cpdis, None)
-        elif axiscorr == 2:
+        if axiscorr == 2:
             return (None, cpdis)
-        else:
-            warnings.warn("Expected AXISCORR to be 1 or 2", AstropyUserWarning)
-            return (None, None)
+        warnings.warn("Expected AXISCORR to be 1 or 2", AstropyUserWarning)
+        return (None, None)
 
     def _write_det2im(self, hdulist):
         """
@@ -1125,8 +1122,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         if not tables:
             return (None, None)
-        else:
-            return (tables.get(1), tables.get(2))
+        return (tables.get(1), tables.get(2))
 
     def _write_distortion_kw(self, hdulist, dist="CPDIS"):
         """
@@ -1428,14 +1424,13 @@ reduce these to 2 dimensions using the naxis kwarg.
         if self.wcs.naxis == 2:
             if self.wcs.lng == 0 and self.wcs.lat == 1:
                 return sky
-            elif self.wcs.lng == 1 and self.wcs.lat == 0:
+            if self.wcs.lng == 1 and self.wcs.lat == 0:
                 # Reverse the order of the columns
                 return sky[:, ::-1]
-            else:
-                raise ValueError(
-                    "WCS does not have longitude and latitude celestial "
-                    "axes, therefore (ra, dec) data can not be used as input"
-                )
+            raise ValueError(
+                "WCS does not have longitude and latitude celestial "
+                "axes, therefore (ra, dec) data can not be used as input"
+            )
         else:
             if self.wcs.lng < 0 or self.wcs.lat < 0:
                 raise ValueError(
@@ -1462,14 +1457,13 @@ reduce these to 2 dimensions using the naxis kwarg.
         if self.wcs.naxis == 2:
             if self.wcs.lng == 0 and self.wcs.lat == 1:
                 return sky
-            elif self.wcs.lng == 1 and self.wcs.lat == 0:
+            if self.wcs.lng == 1 and self.wcs.lat == 0:
                 # Reverse the order of the columns
                 return sky[:, ::-1]
-            else:
-                raise ValueError(
-                    "WCS does not have longitude and latitude celestial "
-                    "axes, therefore (ra, dec) data can not be returned"
-                )
+            raise ValueError(
+                "WCS does not have longitude and latitude celestial "
+                "axes, therefore (ra, dec) data can not be returned"
+            )
         else:
             if self.wcs.lng < 0 or self.wcs.lat < 0:
                 raise ValueError(
@@ -1540,7 +1534,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 return _return_list_of_arrays([xy], origin)
             return _return_single_array(xy, origin)
 
-        elif len(args) == self.naxis + 1:
+        if len(args) == self.naxis + 1:
             axes = args[:-1]
             origin = args[-1]
             try:
@@ -2609,10 +2603,9 @@ reduce these to 2 dimensions using the naxis kwarg.
         if self.sip is None:
             if len(args) == 2:
                 return args[0]
-            elif len(args) == 3:
+            if len(args) == 3:
                 return args[:2]
-            else:
-                raise TypeError("Wrong number of arguments")
+            raise TypeError("Wrong number of arguments")
         return self._array_converter(self.sip.pix2foc, None, *args)
 
     sip_pix2foc.__doc__ = f"""
@@ -2650,10 +2643,9 @@ reduce these to 2 dimensions using the naxis kwarg.
         if self.sip is None:
             if len(args) == 2:
                 return args[0]
-            elif len(args) == 3:
+            if len(args) == 3:
                 return args[:2]
-            else:
-                raise TypeError("Wrong number of arguments")
+            raise TypeError("Wrong number of arguments")
         return self._array_converter(self.sip.foc2pix, None, *args)
 
     sip_foc2pix.__doc__ = f"""

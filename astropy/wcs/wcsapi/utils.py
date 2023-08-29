@@ -29,8 +29,7 @@ def deserialize_class(tpl, construct=True):
 
     if construct:
         return klass(*args, **kwargs)
-    else:
-        return klass, args, kwargs
+    return klass, args, kwargs
 
 
 def wcs_info_str(wcs):

@@ -74,31 +74,29 @@ def combine_slices(slice1, slice2):
     if isinstance(slice2, numbers.Integral):
         if slice1.start is None:
             return slice2
-        else:
-            return slice2 + slice1.start
+        return slice2 + slice1.start
 
     if slice1.start is None:
         if slice1.stop is None:
             return slice2
-        else:
-            if slice2.stop is None:
-                return slice(slice2.start, slice1.stop)
-            else:
-                return slice(slice2.start, min(slice1.stop, slice2.stop))
-    else:
-        if slice2.start is None:
-            start = slice1.start
-        else:
-            start = slice1.start + slice2.start
+
         if slice2.stop is None:
-            stop = slice1.stop
+            return slice(slice2.start, slice1.stop)
+        return slice(slice2.start, min(slice1.stop, slice2.stop))
+
+    if slice2.start is None:
+        start = slice1.start
+    else:
+        start = slice1.start + slice2.start
+    if slice2.stop is None:
+        stop = slice1.stop
+    else:
+        if slice1.start is None:
+            stop = slice2.stop
         else:
-            if slice1.start is None:
-                stop = slice2.stop
-            else:
-                stop = slice2.stop + slice1.start
-            if slice1.stop is not None:
-                stop = min(slice1.stop, stop)
+            stop = slice2.stop + slice1.start
+        if slice1.stop is not None:
+            stop = min(slice1.stop, stop)
     return slice(start, stop)
 
 

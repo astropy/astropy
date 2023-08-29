@@ -239,8 +239,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         """
         if self.pixel_shape is None:
             return None
-        else:
-            return self.pixel_shape[::-1]
+        return self.pixel_shape[::-1]
 
     @property
     def pixel_shape(self):

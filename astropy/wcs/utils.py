@@ -505,8 +505,7 @@ def non_celestial_pixel_scales(inwcs):
 
     if np.allclose(np.extract(1 - np.eye(*pccd.shape), pccd), 0):
         return np.abs(np.diagonal(pccd)) * u.deg
-    else:
-        raise ValueError("WCS is rotated, cannot determine consistent pixel scales")
+    raise ValueError("WCS is rotated, cannot determine consistent pixel scales")
 
 
 def _has_distortion(wcs):
