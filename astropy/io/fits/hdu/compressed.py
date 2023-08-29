@@ -864,7 +864,7 @@ class CompImageHDU(BinTableHDU):
                     # Keep the first (they are all the same)
                     extnames_to_remove.pop(0)
                 # Remove them all in reverse order to keep the index unchanged.
-                for index in reversed(sorted(extnames_to_remove)):
+                for index in sorted(extnames_to_remove, reverse=True):
                     del header[index]
 
     @property

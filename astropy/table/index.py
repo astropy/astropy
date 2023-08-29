@@ -229,7 +229,7 @@ class Index:
             rows.append(row)
         # second pass - row order is reversed to maintain
         # correct row numbers
-        for row in reversed(sorted(rows)):
+        for row in sorted(rows, reverse=True):
             self.data.shift_left(row)
 
     def remove_row(self, row, reorder=True):
