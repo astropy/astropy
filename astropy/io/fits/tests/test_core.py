@@ -1431,6 +1431,8 @@ class TestStreamingFunctions(FitsTestCase):
         hdul = fits.HDUList([phdu, ihdu])
         filename = self.temp("temp.fits")
 
+        with pytest.raises(fits.VerifyError):
+            hdul.writeto(filename, output_verify="exception")
         with pytest.warns(fits.verify.VerifyWarning) as w:
             hdul.writeto(filename, output_verify="fix")
         assert "Verification reported errors" in str(w[0].message)
