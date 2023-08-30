@@ -83,5 +83,5 @@ def convert_parameter_to_model_parameter(parameter, value, meta=None):
         description=parameter.__doc__,
         default=value,
         unit=getattr(value, "unit", None),
-        **extra
+        **extra,
     )

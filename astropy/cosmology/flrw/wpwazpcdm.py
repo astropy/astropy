@@ -123,7 +123,7 @@ class wpwaCDM(FLRW):
         Ob0=None,
         *,
         name=None,
-        meta=None
+        meta=None,
     ):
         super().__init__(
             H0=H0,
@@ -332,7 +332,7 @@ class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
         Ob0=None,
         *,
         name=None,
-        meta=None
+        meta=None,
     ):
         super().__init__(
             H0=H0,

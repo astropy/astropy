@@ -343,7 +343,7 @@ def write_ecsv(
     cls=QTable,
     cosmology_in_meta=True,
     rename=None,
-    **kwargs
+    **kwargs,
 ):
     """Serialize the cosmology into a ECSV.
 
