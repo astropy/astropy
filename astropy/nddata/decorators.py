@@ -24,7 +24,7 @@ def support_nddata(
     repack=False,
     returns=None,
     keeps=None,
-    **attribute_argument_mapping
+    **attribute_argument_mapping,
 ):
     """Decorator to wrap functions that could accept an NDData instance with
     its properties passed as function arguments.

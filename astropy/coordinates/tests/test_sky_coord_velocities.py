@@ -325,7 +325,7 @@ class TestDifferentialClassPropagation:
             ra=[10, 20] * u.deg,
             dec=[-10, 10] * u.deg,
             distance=1.0 * u.kpc,
-            **diff_info
+            **diff_info,
         )
         assert isinstance(sc.data, SphericalRepresentation)
         assert isinstance(sc.data.differentials["s"], diff_cls)

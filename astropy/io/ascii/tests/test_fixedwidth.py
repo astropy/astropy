@@ -232,7 +232,7 @@ def test_read_detect_col_starts_or_ends():
             table,
             Reader=ascii.FixedWidthNoHeader,
             names=("Name", "Phone", "TCP"),
-            **kwargs
+            **kwargs,
         )
         assert_equal(tuple(dat.dtype.names), ("Name", "Phone", "TCP"))
         assert_equal(dat[0][1], "555- 1234")
