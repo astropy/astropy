@@ -136,8 +136,9 @@ IGNORED_FUNCTIONS |= {
 if NUMPY_LT_2_0:
     NP_LIB_ARRAYSETOP_FUNCS = np.lib.arraysetops.__all__
 else:
-    # np.lib.arraysetops is private in numpy 2.0 and raises AttributeError
-    # substitute a hard-coded copy for now
+    # Public set operations have been moved to the top-level namespace in numpy 2.0
+    # (numpy/numpy#24507), raising an AttributeError when accessed through np.lib.arraysetops.
+    # Listing them explicitly here.
     NP_LIB_ARRAYSETOP_FUNCS = [
         'ediff1d', 'intersect1d', 'setxor1d', 'union1d', 'setdiff1d', 'unique',
         'in1d', 'isin'
