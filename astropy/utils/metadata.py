@@ -7,7 +7,6 @@ import warnings
 from collections import OrderedDict
 from collections.abc import Mapping
 from copy import deepcopy
-from dataclasses import is_dataclass
 from functools import wraps
 
 import numpy as np
@@ -430,13 +429,8 @@ class MetaData:
 
         >>> class Foo:
         ...     meta = MetaData()
-        ...     def __init__(self, meta):
+        ...     def __init__(self, meta=None):
         ...         self.meta = meta
-
-    If ``Foo`` is not a dataclass, then ``Foo.meta`` is returns the descriptor.
-
-        >>> print(Foo.meta)
-        <astropy.utils.metadata.MetaData object at ...>
 
     ``Foo`` can be instantiated with a ``meta`` argument.
 
@@ -444,24 +438,18 @@ class MetaData:
         >>> foo.meta
         {'a': 1, 'b': 2}
 
-    We can also use ``MetaData`` as a field in a dataclass.
+    The default value of ``meta`` is an empty `OrderedDict`. This can be set
+    by passing ``None`` to the ``meta`` argument.
 
-        >>> from dataclasses import dataclass
-        >>> from astropy.utils.metadata import MetaData
-        >>> @dataclass
-        ... class Bar:
-        ...     meta: dict = MetaData()
+        >>> foo = Foo()
+        >>> foo.meta
+        OrderedDict()
 
-    On a dataclass, ``Bar.meta`` returns `None`.
+    When accessed from the class ``.meta`` returns `None` since metadata is
+    on the class' instances, not the class itself.
 
-        >>> print(Bar.meta)
+        >>> print(Foo.meta)
         None
-
-    ``Bar`` can be instantiated with a ``meta`` argument.
-
-        >>> bar = Bar(meta={'a': 1, 'b': 2})
-        >>> bar.meta
-        {'a': 1, 'b': 2}
     """
 
     def __init__(self, doc="", copy=True):
@@ -471,23 +459,17 @@ class MetaData:
     def __get__(self, instance, owner):
         # class attribute access
         if instance is None:
-            return None if is_dataclass(owner) else self
+            return None
         # instance attribute access
         if not hasattr(instance, "_meta"):
             instance._meta = OrderedDict()
         return instance._meta
 
     def __set__(self, instance, value):
-        # The 'default' value (as set on a dataclass) is `None`, but we want to set it
-        # to an empty `OrderedDict` if it is `None` so that we can always assume it is a
-        # `Mapping` and not have to check for `None` everywhere.
+        # The 'default' value is `None`, but we want to set it to an empty `OrderedDict`
+        # if it is `None` so that we can always assume it is a `Mapping` and not have
+        # to check for `None` everywhere.
         if value is None:
-            instance._meta = OrderedDict()
-        # The default value on a dataclass is determined before the dataclass is
-        # constructed from the wrapped class, so the default is incorrectly set to
-        # `self` (the descriptor) instead of `None`. This is a workaround for that
-        # issue until `MetaData` never returns `self` in `__get__`.
-        elif value is self:
             instance._meta = OrderedDict()
         # We don't want to allow setting the meta attribute to a non-dict-like object.
         # NOTE: with mypyc compilation this can be removed.
