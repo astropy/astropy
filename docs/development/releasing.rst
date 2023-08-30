@@ -489,6 +489,10 @@ Post-Release procedures
    "Actual date" column of this version's release with the date you performed
    the release (probably the date of the tag and PyPI upload).
 
+#. In the main branch, update the `SECURITY.md file in the astropy repo
+   <https://github.com/astropy/astropy/blob/main/SECURITY.md>`_ to include the
+   newly released version, and as needed mark older versions as not supported.
+
 .. _release-procedure-bug-fix:
 
 Maintaining Bug Fix Releases
