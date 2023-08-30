@@ -462,7 +462,7 @@ class MetaData:
             return None
         # instance attribute access
         if not hasattr(instance, "_meta"):
-            instance._meta = OrderedDict()
+            self.__set__(instance, None)
         return instance._meta
 
     def __set__(self, instance, value):
