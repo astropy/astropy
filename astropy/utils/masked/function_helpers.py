@@ -134,17 +134,13 @@ IGNORED_FUNCTIONS |= {
 
 # Really should do these...
 if NUMPY_LT_2_0:
-    NP_LIB_ARRAYSETOP_FUNCS = np.lib.arraysetops.__all__
+    from numpy.lib import arraysetops
 else:
     # Public set operations have been moved to the top-level namespace in numpy 2.0
     # (numpy/numpy#24507), raising an AttributeError when accessed through np.lib.arraysetops.
-    # Listing them explicitly here.
-    NP_LIB_ARRAYSETOP_FUNCS = [
-        'ediff1d', 'intersect1d', 'setxor1d', 'union1d', 'setdiff1d', 'unique',
-        'in1d', 'isin'
-    ]  # fmt: skip
-IGNORED_FUNCTIONS |= {getattr(np, setopsname) for setopsname in NP_LIB_ARRAYSETOP_FUNCS}
-del NP_LIB_ARRAYSETOP_FUNCS
+    from numpy.lib import _arraysetops_impl as arraysetops
+
+IGNORED_FUNCTIONS |= {getattr(np, setopsname) for setopsname in arraysetops.__all__}
 
 if NUMPY_LT_1_23:
     IGNORED_FUNCTIONS |= {
