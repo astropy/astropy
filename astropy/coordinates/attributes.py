@@ -19,7 +19,7 @@ __all__ = [
 ]
 
 
-class Attribute:
+class Attribute(property):
     """A non-mutable data descriptor to hold a frame attribute.
 
     This class must be used to define frame attributes (e.g. ``equinox`` or
@@ -62,6 +62,8 @@ class Attribute:
     def __init__(self, default=None, secondary_attribute="", *, doc="A frame attribute"):
         self.default = default
         self.secondary_attribute = secondary_attribute
+
+        # Although Attribute inherits from property, setting `doc` in the constructor does not work
         super().__init__()
 
         # Replace the class docstring with the custom docstring
