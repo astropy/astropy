@@ -731,7 +731,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     @classmethod
     def get_frame_attr_defaults(cls):
         """Return a dict with the defaults for each frame attribute."""
-        return {name: getattr(cls, name) for name in cls.frame_attributes}
+        return {name: getattr(cls, name).default for name in cls.frame_attributes}
 
     @deprecated(
         "5.2",

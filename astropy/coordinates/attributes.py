@@ -100,7 +100,7 @@ class Attribute:
 
     def __get__(self, instance, frame_cls=None):
         if instance is None:
-            out = self.default
+            return self
         else:
             out = getattr(instance, "_" + self.name, self.default)
             if out is None:
