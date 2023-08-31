@@ -133,10 +133,14 @@ IGNORED_FUNCTIONS |= {
 }  # fmt: skip
 
 # Really should do these...
-IGNORED_FUNCTIONS |= {
-    getattr(np, setopsname) for setopsname in np.lib.arraysetops.__all__
-}
+if NUMPY_LT_2_0:
+    from numpy.lib import arraysetops
+else:
+    # Public set operations have been moved to the top-level namespace in numpy 2.0
+    # (numpy/numpy#24507), raising an AttributeError when accessed through np.lib.arraysetops.
+    from numpy.lib import _arraysetops_impl as arraysetops
 
+IGNORED_FUNCTIONS |= {getattr(np, setopsname) for setopsname in arraysetops.__all__}
 
 if NUMPY_LT_1_23:
     IGNORED_FUNCTIONS |= {
