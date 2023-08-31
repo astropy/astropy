@@ -406,7 +406,7 @@ class MetaData:
     """
     A descriptor for classes that have a ``meta`` property.
 
-    This can be set to any valid `~collections.abc.Mapping`.
+    This can be set to any valid :class:`~collections.abc.Mapping`.
 
     Parameters
     ----------
@@ -422,6 +422,34 @@ class MetaData:
         Default is ``True``.
 
         .. versionadded:: 1.2
+
+    Examples
+    --------
+    ``MetaData`` can be used as a descriptor to define a ``meta`` attribute`.
+
+        >>> class Foo:
+        ...     meta = MetaData()
+        ...     def __init__(self, meta=None):
+        ...         self.meta = meta
+
+    ``Foo`` can be instantiated with a ``meta`` argument.
+
+        >>> foo = Foo(meta={'a': 1, 'b': 2})
+        >>> foo.meta
+        {'a': 1, 'b': 2}
+
+    The default value of ``meta`` is an empty `OrderedDict`. This can be set
+    by passing ``None`` to the ``meta`` argument.
+
+        >>> foo = Foo()
+        >>> foo.meta
+        OrderedDict()
+
+    When accessed from the class ``.meta`` returns `None` since metadata is
+    on the class' instances, not the class itself.
+
+        >>> print(Foo.meta)
+        None
     """
 
     def __init__(self, doc="", copy=True):
@@ -429,23 +457,30 @@ class MetaData:
         self.copy = copy
 
     def __get__(self, instance, owner):
+        # class attribute access. Often, descriptors just return `self`, but if the
+        # owning class is a `dataclass`, the expectation is that the default is
+        # returned. In our case, this is None, triggering the creation of a dict-like in
+        # `__set__`.
         if instance is None:
-            return self
+            return None
+        # instance attribute access
         if not hasattr(instance, "_meta"):
-            instance._meta = OrderedDict()
+            self.__set__(instance, None)
         return instance._meta
 
     def __set__(self, instance, value):
+        # The 'default' value is `None`, but we want to set it to an empty `OrderedDict`
+        # if it is `None` so that we can always assume it is a `Mapping` and not have
+        # to check for `None` everywhere.
         if value is None:
             instance._meta = OrderedDict()
+        # We don't want to allow setting the meta attribute to a non-dict-like object.
+        # NOTE: with mypyc compilation this can be removed.
+        elif not isinstance(value, Mapping):
+            raise TypeError("meta attribute must be dict-like")
+        # This is called when the dataclass is instantiated with a `meta` argument.
         else:
-            if isinstance(value, Mapping):
-                if self.copy:
-                    instance._meta = deepcopy(value)
-                else:
-                    instance._meta = value
-            else:
-                raise TypeError("meta attribute must be dict-like")
+            instance._meta = deepcopy(value) if self.copy else value
 
 
 class MetaAttribute:
