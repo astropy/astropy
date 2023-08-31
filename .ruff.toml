@@ -28,7 +28,6 @@ ignore = [
 
     # flake8-comprehensions (C4)
     "C406",  # unnecessary-literal-dict
-    "C413",  # unnecessary-call-around-sorted
 
     # mccabe (C90) : code complexity
     # TODO: configure maximum allowed complexity.
@@ -279,7 +278,7 @@ unfixable = [
 "astropy/convolution/*" = []
 "astropy/coordinates/*" = ["C408"]
 "astropy/cosmology/*" = ["C408"]
-"astropy/io/*" = ["B015"]
+"astropy/io/*" = ["B015", "C413"]
 "astropy/logger.py" = ["C408"]
 "astropy/modeling/*" = ["C408"]
 "astropy/nddata/*" = ["C408"]
