@@ -53,7 +53,8 @@ class Attribute:
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
     doc : str
-        Description of the frame attribute for help and documentation
+        Description of the frame attribute for help and documentation.
+        Information on the default value will be appended to this description.
     """
 
     name = "<unbound>"
@@ -65,6 +66,14 @@ class Attribute:
 
         # Replace the class docstring with the custom docstring
         self.__doc__ = doc
+
+        # Add information on the default value
+        if self.default is not None:
+            self.__doc__ += f"\n\nDefaults to {self.default}"
+        elif self.secondary_attribute != "":
+            self.__doc__ += f"\n\nDefaults to the same value as the `{self.secondary_attribute}` frame attribute"
+        else:
+            self.__doc__ += "\n\nNo default value"
 
     def __set_name__(self, owner, name):
         self.name = name
