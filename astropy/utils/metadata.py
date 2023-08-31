@@ -457,7 +457,10 @@ class MetaData:
         self.copy = copy
 
     def __get__(self, instance, owner):
-        # class attribute access
+        # class attribute access. Often, descriptors just return `self`, but if the
+        # owning class is a `dataclass`, the expectation is that the default is
+        # returned. In our case, this is None, triggering the creation of a dict-like in
+        # `__set__`.
         if instance is None:
             return None
         # instance attribute access
