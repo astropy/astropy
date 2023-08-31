@@ -4,17 +4,17 @@
 Creates a common namespace for all pre-defined models.
 """
 
-from . import math_functions as math  # noqa: F401
-from .core import custom_model, fix_inputs, hide_inverse  # noqa: F401
-from .functional_models import *
-from .mappings import *
-from .physical_models import *
-from .polynomial import *
-from .powerlaws import *
-from .projections import *
-from .rotations import *
-from .spline import *
-from .tabular import *
+from astropy.modeling import math_functions as math
+from astropy.modeling.core import custom_model, fix_inputs, hide_inverse
+from astropy.modeling.functional_models import *
+from astropy.modeling.mappings import *
+from astropy.modeling.physical_models import *
+from astropy.modeling.polynomial import *
+from astropy.modeling.powerlaws import *
+from astropy.modeling.projections import *
+from astropy.modeling.rotations import *
+from astropy.modeling.spline import *
+from astropy.modeling.tabular import *
 
 # Attach a docstring explaining constraints to all models which support them.
 # Note: add new models to this list
