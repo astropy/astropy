@@ -1,10 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
-Comparison functions for `astropy.cosmology.Cosmology`.
+"""Comparison functions for `astropy.cosmology.Cosmology`.
 
 This module is **NOT** public API. To use these functions, import them from
-the top-level namespace -- :mod:`astropy.cosmology`.
-This module will be moved.
+the top-level namespace -- :mod:`astropy.cosmology`. This module will be
+moved.
 """
 
 from __future__ import annotations
@@ -38,8 +37,8 @@ _COSMO_AOK: set[Any] = {None, True_, False_, "astropy.cosmology"}
 
 
 class _CosmologyWrapper:
-    """
-    A private wrapper class to hide things from :mod:`numpy`.
+    """A private wrapper class to hide things from :mod:`numpy`.
+
     This should never be exposed to the user.
     """
 
@@ -47,7 +46,8 @@ class _CosmologyWrapper:
     # Use less memory and speed up initialization.
 
     _cantbroadcast: tuple[type, ...] = (table.Row, table.Table)
-    """
+    """Things that cannot broadcast.
+
     Have to deal with things that do not broadcast well. e.g.
     `~astropy.table.Row` cannot be used in an array, even if ``dtype=object``
     and will raise a segfault when used in a `numpy.ufunc`.

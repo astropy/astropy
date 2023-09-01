@@ -15,10 +15,9 @@ __doctest_requires__ = {"*": ["scipy"]}
 
 
 class w0wzCDM(FLRW):
-    """
-    FLRW cosmology with a variable dark energy equation of state and curvature.
+    """FLRW cosmology with a variable dark energy EoS and curvature.
 
-    The equation for the dark energy equation of state uses the simple form:
+    The equation for the dark energy equation of state (EoS) uses the simple form:
     :math:`w(z) = w_0 + w_z z`.
 
     This form is not recommended for z > 1.
@@ -212,10 +211,9 @@ class w0wzCDM(FLRW):
 
 
 class Flatw0wzCDM(FlatFLRWMixin, w0wzCDM):
-    """
-    FLRW cosmology with a variable dark energy equation of state and no curvature.
+    """FLRW cosmology with a variable dark energy EoS and no curvature.
 
-    The equation for the dark energy equation of state uses the simple form:
+    The equation for the dark energy equation of state (EoS) uses the simple form:
     :math:`w(z) = w_0 + w_z z`.
 
     This form is not recommended for z > 1.
