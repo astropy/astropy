@@ -2361,9 +2361,10 @@ def test_hash_time_delta():
 
 
 def test_get_time_fmt_exception_messages():
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(
+        ValueError, match=r"Input values did not match any of the formats"
+    ) as err:
         Time(10)
-    assert "No time format was given, and the input is" in str(err.value)
 
     with pytest.raises(ValueError) as err:
         Time("2000:001", format="not-a-format")

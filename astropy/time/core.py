@@ -561,12 +561,13 @@ class TimeBase(ShapedLikeNDArray):
         If format is `None` and the input is a string-type or object array then
         guess available formats and stop when one matches.
         """
-        if format is None and (
-            val.dtype.kind in ("S", "U", "O", "M") or val.dtype.names
-        ):
-            # Input is a string, object, datetime, or a table-like ndarray
-            # (structured array, recarray). These input types can be
-            # uniquely identified by the format classes.
+        if format is None:
+            # If val and val2 broadcasted shape is () then we cannot guess format
+            # from the input values.  Instead use the default format.
+            if val.size == 0 and (val2 is None or val2.size == 0):
+                raise ValueError(
+                    "cannot guess format from input values with zero-size array"
+                )
             formats = [
                 (name, cls)
                 for name, cls in self.FORMATS.items()
@@ -575,22 +576,20 @@ class TimeBase(ShapedLikeNDArray):
 
             # AstropyTime is a pseudo-format that isn't in the TIME_FORMATS registry,
             # but try to guess it at the end.
-            formats.append(("astropy_time", TimeAstropyTime))
+            if isinstance(self, Time):
+                formats.append(("astropy_time", TimeAstropyTime))
 
-        elif not (isinstance(format, str) and format.lower() in self.FORMATS):
-            if format is None:
-                raise ValueError(
-                    "No time format was given, and the input is not unique"
-                )
-            else:
-                raise ValueError(
-                    f"Format {format!r} is not one of the allowed formats "
-                    f"{sorted(self.FORMATS)}"
-                )
+        elif not isinstance(format, str):
+            raise TypeError("format must be a string")
+
+        elif format.lower() not in self.FORMATS:
+            raise ValueError(
+                f"Format {format!r} is not one of the allowed formats "
+                f"{sorted(self.FORMATS)}"
+            )
         else:
             formats = [(format, self.FORMATS[format])]
 
-        assert formats
         problems = {}
         for name, cls in formats:
             try:
@@ -609,6 +608,7 @@ class TimeBase(ShapedLikeNDArray):
                     ) from err
                 else:
                     problems[name] = err
+
         raise ValueError(
             "Input values did not match any of the formats where the format "
             f"keyword is optional: {problems}"
@@ -2812,7 +2812,7 @@ class TimeDelta(TimeBase):
                 TimeDeltaMissingUnitWarning,
             )
 
-        return "jd"
+        return None
 
     def replicate(self, *args, **kwargs):
         out = super().replicate(*args, **kwargs)
