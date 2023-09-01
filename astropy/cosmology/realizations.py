@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""Built-in cosmologies.
 
-"""Preloaded cosmologies. See ``available``."""
+See :attr:`~astropy.cosmology.realizations.available` for a full list.
+"""
 
 from __future__ import annotations
 
@@ -48,8 +50,7 @@ available = (
 
 
 def __getattr__(name):
-    """Make specific realizations from data files with lazy import from
-    `PEP 562 <https://www.python.org/dev/peps/pep-0562/>`_.
+    """Make specific realizations from data files with lazy import from ``PEP 562``.
 
     Raises
     ------

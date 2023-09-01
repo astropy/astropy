@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
-Convenience functions for `astropy.cosmology`.
-"""
+"""Convenience functions for `astropy.cosmology`."""
 
 import warnings
 
@@ -28,8 +26,8 @@ def _z_at_scalar_value(
     bracket=None,
     verbose=False,
 ):
-    """
-    Find the redshift ``z`` at which ``func(z) = fval``.
+    """Find the redshift ``z`` at which ``func(z) = fval``.
+
     See :func:`astropy.cosmology.funcs.z_at_value`.
     """
     from scipy.optimize import minimize_scalar

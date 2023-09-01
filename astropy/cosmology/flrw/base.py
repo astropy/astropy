@@ -99,9 +99,7 @@ class _ScaleFactorMixin:
 
 
 class FLRW(Cosmology, _ScaleFactorMixin):
-    """
-    A class describing an isotropic and homogeneous
-    (Friedmann-Lemaitre-Robertson-Walker) cosmology.
+    """An isotropic and homogeneous (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
     This is an abstract base class -- you cannot instantiate examples of this
     class, but must work with one of its subclasses, such as
@@ -309,9 +307,9 @@ class FLRW(Cosmology, _ScaleFactorMixin):
     def m_nu(self, param, value):
         """Validate neutrino masses to right value, units, and shape.
 
-        There are no neutrinos if floor(Neff) or Tcmb0 are 0.
-        The number of neutrinos must match floor(Neff).
-        Neutrino masses cannot be negative.
+        There are no neutrinos if floor(Neff) or Tcmb0 are 0. The number of
+        neutrinos must match floor(Neff). Neutrino masses cannot be
+        negative.
         """
         # Check if there are any neutrinos
         if (nneutrinos := floor(self._Neff)) == 0 or self._Tcmb0.value == 0:
@@ -360,9 +358,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
     @property
     def Tnu0(self):
-        """
-        Temperature of the neutrino background as `~astropy.units.Quantity` at z=0.
-        """
+        """Temperature of the neutrino background as |Quantity| at z=0."""
         return self._Tnu0
 
     @property
@@ -447,9 +443,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return self.Om(z) + self.Ogamma(z) + self.Onu(z) + self.Ode(z) + self.Ok(z)
 
     def Om(self, z):
-        """
-        Return the density parameter for non-relativistic matter
-        at redshift ``z``.
+        """Return the density parameter for non-relativistic matter at redshift ``z``.
 
         Parameters
         ----------
@@ -530,8 +524,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return self._Odm0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
 
     def Ok(self, z):
-        """
-        Return the equivalent density parameter for curvature at redshift ``z``.
+        """Return the equivalent density parameter for curvature at redshift ``z``.
 
         Parameters
         ----------
@@ -993,9 +986,9 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return quad(self._lookback_time_integrand_scalar, 0, z)[0]
 
     def lookback_distance(self, z):
-        """
-        The lookback distance is the light travel time distance to a given
-        redshift. It is simply c * lookback_time. It may be used to calculate
+        """The lookback distance is the light travel time distance to a given redshift.
+
+        It is simply c * lookback_time. It may be used to calculate
         the proper distance between two redshifts, e.g. for the mean free path
         to ionizing radiation.
 
@@ -1104,9 +1097,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return self._comoving_distance_z1z2(0, z)
 
     def _comoving_distance_z1z2(self, z1, z2):
-        """
-        Comoving line-of-sight distance in Mpc between objects at redshifts
-        ``z1`` and ``z2``.
+        """Comoving line-of-sight distance in Mpc between redshifts ``z1`` and ``z2``.
 
         The comoving distance along the line-of-sight between two objects
         remains constant with time for objects in the Hubble flow.
@@ -1125,9 +1116,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
     @vectorize_redshift_method(nin=2)
     def _integral_comoving_distance_z1z2_scalar(self, z1, z2, /):
-        """
-        Comoving line-of-sight distance between objects at redshifts ``z1`` and
-        ``z2``. Value in Mpc.
+        """Comoving line-of-sight distance in Mpc between objects at redshifts ``z1`` and ``z2``.
 
         The comoving distance along the line-of-sight between two objects
         remains constant with time for objects in the Hubble flow.
@@ -1146,11 +1135,10 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return quad(self._inv_efunc_scalar, z1, z2, args=self._inv_efunc_scalar_args)[0]
 
     def _integral_comoving_distance_z1z2(self, z1, z2):
-        """
-        Comoving line-of-sight distance in Mpc between objects at redshifts
-        ``z1`` and ``z2``. The comoving distance along the line-of-sight
-        between two objects remains constant with time for objects in the
-        Hubble flow.
+        """Comoving line-of-sight distance in Mpc between objects at redshifts ``z1`` and ``z2``.
+
+        The comoving distance along the line-of-sight between two objects remains
+        constant with time for objects in the Hubble flow.
 
         Parameters
         ----------
@@ -1413,9 +1401,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return self._hubble_distance * (dm**2.0) / (self.efunc(z) << u.steradian)
 
     def kpc_comoving_per_arcmin(self, z):
-        """
-        Separation in transverse comoving kpc corresponding to an arcminute at
-        redshift ``z``.
+        """Separation in transverse comoving kpc equal to an arcmin at redshift ``z``.
 
         Parameters
         ----------
@@ -1431,9 +1417,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return self.comoving_transverse_distance(z).to(u.kpc) / _radian_in_arcmin
 
     def kpc_proper_per_arcmin(self, z):
-        """
-        Separation in transverse proper kpc corresponding to an arcminute at
-        redshift ``z``.
+        """Separation in transverse proper kpc equal to an arcminute at redshift ``z``.
 
         Parameters
         ----------
@@ -1449,9 +1433,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return self.angular_diameter_distance(z).to(u.kpc) / _radian_in_arcmin
 
     def arcsec_per_kpc_comoving(self, z):
-        """
-        Angular separation in arcsec corresponding to a comoving kpc at
-        redshift ``z``.
+        """Angular separation in arcsec equal to a comoving kpc at redshift ``z``.
 
         Parameters
         ----------
@@ -1467,9 +1449,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return _radian_in_arcsec / self.comoving_transverse_distance(z).to(u.kpc)
 
     def arcsec_per_kpc_proper(self, z):
-        """
-        Angular separation in arcsec corresponding to a proper kpc at redshift
-        ``z``.
+        """Angular separation in arcsec corresponding to a proper kpc at redshift ``z``.
 
         Parameters
         ----------
@@ -1486,14 +1466,14 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
 
 class FlatFLRWMixin(FlatCosmologyMixin):
-    """
-    Mixin class for flat FLRW cosmologies. Do NOT instantiate directly.
-    Must precede the base class in the multiple-inheritance so that this
-    mixin's ``__init__`` proceeds the base class'.
-    Note that all instances of ``FlatFLRWMixin`` are flat, but not all
-    flat cosmologies are instances of ``FlatFLRWMixin``. As example,
-    ``LambdaCDM`` **may** be flat (for the a specific set of parameter values),
-    but ``FlatLambdaCDM`` **will** be flat.
+    """Mixin class for flat FLRW cosmologies.
+
+    Do NOT instantiate directly. Must precede the base class in the
+    multiple-inheritance so that this mixin's ``__init__`` proceeds the
+    base class'. Note that all instances of ``FlatFLRWMixin`` are flat, but
+    not all flat cosmologies are instances of ``FlatFLRWMixin``. As
+    example, ``LambdaCDM`` **may** be flat (for the a specific set of
+    parameter values), but ``FlatLambdaCDM`` **will** be flat.
     """
 
     Ode0 = FLRW.Ode0.clone(derived=True)  # same as FLRW, but now a derived param.

@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """|Cosmology| <-> Model I/O, using |Cosmology.to_format| and |Cosmology.from_format|.
 
 This module provides functions to transform a |Cosmology| object to and from a
@@ -66,11 +65,17 @@ class _CosmologyModel(FittableModel):
 
     @abc.abstractmethod
     def _cosmology_class(self):
-        """Cosmology class as a private attribute. Set in subclasses."""
+        """Cosmology class as a private attribute.
+
+        Set in subclasses.
+        """
 
     @abc.abstractmethod
     def _method_name(self):
-        """Cosmology method name as a private attribute. Set in subclasses."""
+        """Cosmology method name as a private attribute.
+
+        Set in subclasses.
+        """
 
     @classproperty
     def cosmology_class(cls):

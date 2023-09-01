@@ -55,6 +55,16 @@ force-exclude = '''
 '''
 
 
+[tool.docformatter]
+    # The ``summaries`` are not (yet) 75 characters because the summary lines can't be
+    # automatically wrapped and must be re-written, which should be done at some point.
+    recursive = true
+    wrap-summaries = 1000
+    wrap-descriptions = 75
+    black = true
+    syntax = "numpy"
+
+
 [tool.flynt]
 exclude= [
     "astropy/extern",
