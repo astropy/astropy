@@ -2724,7 +2724,7 @@ class TimeDelta(TimeBase):
     The allowed values for ``format`` can be listed with::
 
       >>> list(TimeDelta.FORMATS)
-      ['sec', 'jd', 'datetime']
+      ['sec', 'jd', 'datetime', 'ydhms']
 
     Note that for time differences, the scale can be among three groups:
     geocentric ('tai', 'tt', 'tcg'), barycentric ('tcb', 'tdb'), and rotational

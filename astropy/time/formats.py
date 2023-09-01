@@ -42,6 +42,7 @@ __all__ = [
     "TimeDeltaFormat",
     "TimeDeltaSec",
     "TimeDeltaJD",
+    "TimeDeltaYDHMS",
     "TimeEpochDateString",
     "TimeBesselianEpochString",
     "TimeJulianEpochString",
@@ -2122,7 +2123,7 @@ class TimeDeltaSec(TimeDeltaNumeric):
     unit = 1.0 / erfa.DAYSEC  # for quantity input
 
 
-class TimeDeltaJD(TimeDeltaNumeric):
+class TimeDeltaJD(TimeDeltaNumeric, TimeUnique):
     """Time delta in Julian days (86400 SI seconds)."""
 
     name = "jd"
@@ -2173,6 +2174,129 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
             out[...] = datetime.timedelta(days=jd1_, microseconds=jd2_ * 86400 * 1e6)
 
         return self.mask_if_needed(iterator.operands[-1])
+
+
+class TimeDeltaYDHMS(TimeDeltaFormat, TimeUnique):
+    """
+    Abstract time interval using SI units of time.
+
+    "[-+]? 1yr 2d 3hr 4min 5.6s" is represented as
+
+    The day-of-year (DOY) goes from 001 to 365 (366 in leap years).
+    For example, 2000:001:00:00:00.000 is midnight on January 1, 2000.
+
+    The allowed subformats are:
+
+    - 'date_hms': date + hours, mins, secs (and optional fractional secs)
+    - 'date_hm': date + hours, mins
+    - 'date': date
+    """
+
+    name = "ydhms"
+
+    # Regex to parse "1.02yr 2.2d 3.12hr 4.322min 5.6s" where each element is optional
+    # but the order is fixed. Each element is a float with optional exponent. Each
+    # element is named.
+    re_float = r"[0-9]*\.?[0-9]*([eE][-+]?[0-9]+)?"
+    re_ydhms = re.compile(
+        rf"""
+        (?P<sign>[-+])? \s*
+        ((?P<yr>{re_float}) \s* yr \s*)?
+        ((?P<d>{re_float}) \s* d \s*)?
+        ((?P<hr>{re_float}) \s* hr \s*)?
+        ((?P<min>{re_float}) \s* min \s*)?
+        ((?P<s>{re_float}) \s* s)?
+        """,
+        re.VERBOSE,
+    )
+
+    def _check_val_type(self, val1, val2):
+        if val1.dtype.kind not in ("S", "U") and val1.size:
+            raise TypeError(f"Input values for {self.name} class must be strings")
+        if val2 is not None:
+            raise ValueError(
+                f"{self.name} objects do not accept a val2 but you provided {val2}"
+            )
+        return val1, None
+
+    def parse_string(self, timestr):
+        """Read time from a single string"""
+        # Datetime components required for conversion to JD by ERFA, along
+        # with the default values.
+        components = ("yr", "d", "hr", "min", "s")
+
+        if (match := self.re_ydhms.match(timestr)) is None:
+            raise ValueError(f"Time delta {timestr} does not match {self.name} format")
+
+        tm = match.groupdict()
+        vals = [float(tm[component] or 0.0) for component in components]
+        if tm["sign"] == "-":
+            vals = [-val for val in vals]
+
+        return vals
+
+    def set_jds(self, val1, val2):
+        """Parse the time strings contained in val1 and get jd1, jd2."""
+        # Be liberal in what we accept: convert bytes to ascii.
+        # Here .item() is needed for arrays with entries of unequal length,
+        # to strip trailing 0 bytes.
+        to_string = (
+            str if val1.dtype.kind == "U" else lambda x: str(x.item(), encoding="ascii")
+        )
+        iterator = np.nditer(
+            [val1, None, None, None, None, None],
+            flags=["zerosize_ok"],
+            op_dtypes=[None] + 5 * [np.double],
+        )
+        for val, yr, day, hr, min, sec in iterator:
+            val = to_string(val)
+            (
+                yr[...],
+                day[...],
+                hr[...],
+                min[...],
+                sec[...],
+            ) = self.parse_string(val)
+
+        yrs, days, hrs, mins, secs = iterator.operands[1:]
+
+        # Low-precision implementation for now
+        jd1 = yrs * 365.25 + days + hrs / 24.0 + mins / 1440.0 + secs / 86400.0
+
+        self.jd1, self.jd2 = day_frac(jd1, 0.0)
+
+    @property
+    def value(self):
+        iterator = np.nditer(
+            [self.jd1, self.jd2, None],
+            flags=["refs_ok", "zerosize_ok"],
+            op_dtypes=[None, None, object],
+        )
+
+        for jd1, jd2, out in iterator:
+            jd1_, jd2_ = day_frac(jd1, jd2)  # Why is this required?
+
+            # Naive and low-precision implementation for now
+            jd = jd1_ + jd2_
+            sign = "-" if jd < 0 else "+"
+            jd = np.abs(jd)
+
+            comp_names = ("yr", "d", "hr", "min", "s")
+            comp_scales = (365.25, 1.0, 1.0 / 24.0, 1.0 / 1440.0)
+            comps = []
+            for name, scale in zip(comp_names, comp_scales):
+                comp, jd = divmod(jd, scale)
+                if comp != 0:
+                    comp = int(comp)
+                    comps.append(f"{comp}{name}")
+
+            sec = np.round(jd * 86400.0, self.precision)
+            if sec != 0:
+                comps.append(str(sec) + "s")
+
+            out[...] = sign + " ".join(comps)
+
+        return self.mask_if_needed(np.array(iterator.operands[-1], dtype="U"))
 
 
 def _validate_jd_for_storage(jd):
