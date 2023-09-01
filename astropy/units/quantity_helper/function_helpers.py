@@ -94,14 +94,13 @@ SUBCLASS_SAFE_FUNCTIONS |= {
 }  # fmt: skip
 SUBCLASS_SAFE_FUNCTIONS |= {  # Deprecated
     np.product, np.cumproduct,  # noqa: NPY003
-    np.round_,  # noqa: NPY003  # Alias for np.round in NUMPY_LT_1_25
 }  # fmt: skip
 
 SUBCLASS_SAFE_FUNCTIONS |= {np.median}
 
 if NUMPY_LT_2_0:
-    # functions removed in numpy 2.0
-    SUBCLASS_SAFE_FUNCTIONS |= {np.msort}
+    # functions removed in numpy 2.0; alias for np.round in NUMPY_LT_1_25
+    SUBCLASS_SAFE_FUNCTIONS |= {np.msort, np.round_}  # noqa: NPY003
 
 # Implemented as methods on Quantity:
 # np.ediff1d is from setops, but we support it anyway; the others
