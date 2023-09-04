@@ -880,7 +880,7 @@ class Column(NotifierMixin):
                 "It is strongly recommended that column names contain only "
                 "upper and lower-case ASCII letters, digits, or underscores "
                 "for maximum compatibility with other software "
-                "(got {!r}).".format(name),
+                f"(got {name!r}).",
                 VerifyWarning,
             )
 
@@ -1065,7 +1065,7 @@ class Column(NotifierMixin):
                     msg = (
                         "ASCII table null option (TNULLn) is longer than "
                         "the column's character width and will be truncated "
-                        "(got {!r}).".format(null)
+                        f"(got {null!r})."
                     )
             else:
                 tnull_formats = ("B", "I", "J", "K")
@@ -1075,9 +1075,9 @@ class Column(NotifierMixin):
                     # non-int value is meaningless
                     msg = (
                         "Column null option (TNULLn) must be an integer for "
-                        "binary table columns (got {!r}).  The invalid value "
+                        f"binary table columns (got {null!r}).  The invalid value "
                         "will be ignored for the purpose of formatting "
-                        "the data in this column.".format(null)
+                        "the data in this column."
                     )
 
                 elif not (
@@ -1142,9 +1142,9 @@ class Column(NotifierMixin):
                 # The 'start' option only applies to ASCII columns
                 msg = (
                     "Column start option (TBCOLn) is not allowed for binary "
-                    "table columns (got {!r}).  The invalid keyword will be "
+                    f"table columns (got {start!r}).  The invalid keyword will be "
                     "ignored for the purpose of formatting the data in this "
-                    "column.".format(start)
+                    "column."
                 )
             else:
                 try:
@@ -1155,8 +1155,8 @@ class Column(NotifierMixin):
                 if not _is_int(start) or start < 1:
                     msg = (
                         "Column start option (TBCOLn) must be a positive integer "
-                        "(got {!r}).  The invalid value will be ignored for the "
-                        "purpose of formatting the data in this column.".format(start)
+                        f"(got {start!r}).  The invalid value will be ignored for the "
+                        "purpose of formatting the data in this column."
                     )
 
             if msg is None:
@@ -1177,8 +1177,8 @@ class Column(NotifierMixin):
             if isinstance(format, _AsciiColumnFormat):
                 msg = (
                     "Column dim option (TDIMn) is not allowed for ASCII table "
-                    "columns (got {!r}).  The invalid keyword will be ignored "
-                    "for the purpose of formatting this column.".format(dim)
+                    f"columns (got {dim!r}).  The invalid keyword will be ignored "
+                    "for the purpose of formatting this column."
                 )
 
             elif isinstance(dim, str):
@@ -1225,9 +1225,9 @@ class Column(NotifierMixin):
             elif len(coord_type) > 8:
                 msg = (
                     "Coordinate/axis type option (TCTYPn) must be a string "
-                    "of atmost 8 characters (got {!r}). The invalid keyword "
+                    f"of atmost 8 characters (got {coord_type!r}). The invalid keyword "
                     "will be ignored for the purpose of formatting this "
-                    "column.".format(coord_type)
+                    "column."
                 )
 
             if msg is None:

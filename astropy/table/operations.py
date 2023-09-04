@@ -492,8 +492,8 @@ def setdiff(table1, table2, keys=None):
         diff_keys = np.setdiff1d(keys, tbl.colnames)
         if len(diff_keys) != 0:
             raise ValueError(
-                "The {} columns are missing from {}, cannot take "
-                "a set difference.".format(diff_keys, tbl_str)
+                f"The {diff_keys} columns are missing from {tbl_str}, cannot take "
+                "a set difference."
             )
 
     # Make a light internal copy of both tables
@@ -876,8 +876,8 @@ def unique(input_table, keys=None, silent=False, keep="first"):
             if not silent:
                 raise ValueError(
                     "cannot use columns with masked values as keys; "
-                    "remove column '{}' from keys and rerun "
-                    "unique()".format(key)
+                    f"remove column '{key}' from keys and rerun "
+                    "unique()"
                 )
             del keys[keys.index(key)]
     if len(keys) == 0:
@@ -948,10 +948,8 @@ def get_col_name_map(
     repeated_names = [name for name, count in col_name_count.items() if count > 1]
     if repeated_names:
         raise TableMergeError(
-            "Merging column names resulted in duplicates: {}.  "
-            "Change uniq_col_name or table_names args to fix this.".format(
-                repeated_names
-            )
+            f"Merging column names resulted in duplicates: {repeated_names}.  "
+            "Change uniq_col_name or table_names args to fix this."
         )
 
     # Convert col_name_map to a regular dict with tuple (immutable) values
@@ -1158,7 +1156,7 @@ def _join(
         raise ValueError(
             "The 'join_type' argument should be in 'inner', "
             "'outer', 'left', 'right', or 'cartesian' "
-            "(got '{}' instead)".format(join_type)
+            f"(got '{join_type}' instead)"
         )
 
     if join_type == "cartesian":
@@ -1311,10 +1309,8 @@ def _join(
                 col[array_mask] = col.info.mask_val
             except Exception as err:  # Not clear how different classes will fail here
                 raise NotImplementedError(
-                    "join requires masking column '{}' but column"
-                    " type {} does not support masking".format(
-                        out_name, col.__class__.__name__
-                    )
+                    f"join requires masking column '{out_name}' but column"
+                    f" type {col.__class__.__name__} does not support masking"
                 ) from err
 
         # Set the output table column to the new joined column
@@ -1506,10 +1502,8 @@ def _vstack(arrays, join_type="outer", col_name_map=None, metadata_conflicts="wa
                     col[idx0:idx1] = col.info.mask_val
                 except Exception as err:
                     raise NotImplementedError(
-                        "vstack requires masking column '{}' but column"
-                        " type {} does not support masking".format(
-                            out_name, col.__class__.__name__
-                        )
+                        f"vstack requires masking column '{out_name}' but column"
+                        f" type {col.__class__.__name__} does not support masking"
                     ) from err
             idx0 = idx1
 
@@ -1617,10 +1611,8 @@ def _hstack(
                     col[arr_len:] = col.info.mask_val
                 except Exception as err:
                     raise NotImplementedError(
-                        "hstack requires masking column '{}' but column"
-                        " type {} does not support masking".format(
-                            out_name, col.__class__.__name__
-                        )
+                        f"hstack requires masking column '{out_name}' but column"
+                        f" type {col.__class__.__name__} does not support masking"
                     ) from err
             else:
                 col = array[name][:n_rows]

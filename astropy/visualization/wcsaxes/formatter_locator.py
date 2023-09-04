@@ -99,7 +99,7 @@ class BaseFormatterLocator:
         if not values.unit.is_equivalent(self._unit):
             raise UnitsError(
                 "value should be in units compatible with "
-                "coordinate units ({}) but found {}".format(self._unit, values.unit)
+                f"coordinate units ({self._unit}) but found {values.unit}"
             )
         self._number = None
         self._spacing = None

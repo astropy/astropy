@@ -1844,7 +1844,7 @@ def test_single_line_string(delimiter, fast_reader):
     at least treated consistently.
     """
     expected = Table([[1], [2], [3.00]], names=("col1", "col2", "col3"))
-    text = "1{0:s}2{0:s}3.0".format(delimiter)
+    text = f"1{delimiter:s}2{delimiter:s}3.0"
 
     if delimiter in ("\r", "\n"):
         t1 = ascii.read(

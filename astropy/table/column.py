@@ -781,8 +781,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             # revert to restore previous format if there was one
             self._format = prev_format
             raise ValueError(
-                "Invalid format for column '{}': could not display "
-                "values in this column using this format".format(self.name)
+                f"Invalid format for column '{self.name}': could not display "
+                "values in this column using this format"
             ) from err
 
     @property
@@ -1340,8 +1340,8 @@ class Column(BaseColumn):
 
         if value_str_len > self_str_len:
             warnings.warn(
-                "truncated right side string(s) longer than {} "
-                "character(s) during assignment".format(self_str_len),
+                f"truncated right side string(s) longer than {self_str_len} "
+                "character(s) during assignment",
                 StringTruncateWarning,
                 stacklevel=3,
             )

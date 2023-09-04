@@ -1165,8 +1165,8 @@ def _get_file_mode(filename, default="readonly"):
         mode = FILE_MODES.get(fmode)
         if mode is None:
             raise OSError(
-                "File mode of the input file object ({!r}) cannot be used to "
-                "read/write FITS files.".format(fmode)
+                f"File mode of the input file object ({fmode!r}) cannot be used to "
+                "read/write FITS files."
             )
 
     return mode, closed

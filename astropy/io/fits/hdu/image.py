@@ -610,9 +610,9 @@ class _ImageBaseHDU(_ValidHDU):
         # should be handled by the schema
         if not _is_int(self._blank):
             messages.append(
-                "Invalid value for 'BLANK' keyword in header: {!r} "
+                f"Invalid value for 'BLANK' keyword in header: {self._blank!r} "
                 "The 'BLANK' keyword must be an integer.  It will be "
-                "ignored in the meantime.".format(self._blank)
+                "ignored in the meantime."
             )
             self._blank = None
         if not self._bitpix > 0:
