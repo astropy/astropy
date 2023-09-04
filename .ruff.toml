@@ -182,6 +182,10 @@ ignore = [
     "PTH206",  # Replace `.split(os.sep)` with `Path.parts`
     "PTH207",  # Replace `glob` with `Path.glob` or `Path.rglob`
 
+    # flake8-pyi (PYI)
+    "PYI024",  # Use typing.NamedTuple instead of collections.namedtuple
+    "PYI056",  # use += for extending `__all__`
+
     # flake8-return (RET)
     "RET501",  # unnecessary-return-none
     "RET502",  # implicit-return-value
