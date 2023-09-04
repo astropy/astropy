@@ -9,7 +9,8 @@ from __future__ import annotations
 import abc
 import copy
 import warnings
-from typing import Any, Callable, NamedTuple
+from collections import namedtuple
+from typing import Any, Callable
 
 import numpy as np
 
@@ -19,9 +20,7 @@ from astropy.utils import isiterable
 __all__ = ["ModelBoundingBox", "CompoundBoundingBox"]
 
 
-class _BaseInterval(NamedTuple):
-    lower: float
-    upper: float
+_BaseInterval = namedtuple("_BaseInterval", "lower upper")
 
 
 class _Interval(_BaseInterval):
@@ -946,9 +945,7 @@ class ModelBoundingBox(_BoundingDomain):
         return tuple(valid_inputs), valid_index, all_out
 
 
-class _BaseSelectorArgument(NamedTuple):
-    index: int
-    ignore: bool
+_BaseSelectorArgument = namedtuple("_BaseSelectorArgument", "index ignore")
 
 
 class _SelectorArgument(_BaseSelectorArgument):
