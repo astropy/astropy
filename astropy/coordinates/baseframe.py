@@ -10,7 +10,6 @@ from __future__ import annotations
 import copy
 import warnings
 from collections import defaultdict
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, ClassVar, NamedTuple
 
 # Dependencies
@@ -168,7 +167,6 @@ _components = """
 """
 
 
-@dataclass
 @format_doc(base_doc, components=_components, footer="")
 class BaseCoordinateFrame(ShapedLikeNDArray):
     """
