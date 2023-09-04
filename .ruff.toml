@@ -115,7 +115,6 @@ ignore = [
     "PERF401",  # Use a list comprehension to create a transformed list
 
     # flake8-pie (PIE)
-    "PIE790",  # unnecessary-pass
     "PIE794",  # duplicate-class-field-definition
 
     # pygrep-hooks (PGH)
@@ -274,20 +273,20 @@ unfixable = [
 "astropy/convolution/*" = []
 "astropy/coordinates/*" = ["C408"]
 "astropy/cosmology/*" = ["C408"]
-"astropy/io/*" = ["B015"]
+"astropy/io/*" = ["B015", "PIE790"]
 "astropy/logger.py" = ["C408"]
 "astropy/modeling/*" = ["C408"]
-"astropy/nddata/*" = ["C408"]
+"astropy/nddata/*" = ["C408", "PIE790"]
 "astropy/samp/*" = []
 "astropy/stats/*" = []
-"astropy/table/*" = ["C408"]
+"astropy/table/*" = ["C408", "PIE790"]
 "astropy/tests/*" = ["C408"]
-"astropy/time/*" = ["C408"]
+"astropy/time/*" = ["C408", "PIE790"]
 "astropy/timeseries/*" = ["C408"]
-"astropy/units/*" = ["C408", "F821"]
-"astropy/uncertainty/*" = ["C408"]
-"astropy/utils/*" = ["C408"]
-"astropy/visualization/*" = ["B015", "C408"]
-"astropy/wcs/*" = ["C408", "F821"]
+"astropy/units/*" = ["C408", "F821", "PIE790"]
+"astropy/uncertainty/*" = ["C408", "PIE790"]
+"astropy/utils/*" = ["C408", "PIE790"]
+"astropy/visualization/*" = ["B015", "C408", "PIE790"]
+"astropy/wcs/*" = ["C408", "F821", "PIE790"]
 "docs/*" = []
 "examples/coordinates/*" = []

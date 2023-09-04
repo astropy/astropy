@@ -167,7 +167,6 @@ class CosmologyTest(
             @classmethod
             def _register_cls(cls):
                 """Override to not register."""
-                pass
 
         assert UnRegisteredSubclassTest.__parameters__ == cosmo_cls.__parameters__
         assert UnRegisteredSubclassTest.__qualname__ not in _COSMOLOGY_CLASSES

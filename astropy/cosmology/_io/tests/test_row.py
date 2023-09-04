@@ -109,12 +109,13 @@ class ToFromRowTestMixin(ToFromTestMixinBase):
         got = from_format(row, rename=inv_rename)
         assert got == cosmo
 
-    def test_fromformat_row_subclass_partial_info(self, cosmo):
+    def test_fromformat_row_subclass_partial_info(self, cosmo: Cosmology) -> None:
         """
         Test writing from an instance and reading from that class.
         This works with missing information.
+
+        There are no partial info options
         """
-        pass  # there are no partial info options
 
     @pytest.mark.parametrize("format", [True, False, None, "astropy.row"])
     def test_is_equivalent_to_row(self, cosmo, to_format, format):

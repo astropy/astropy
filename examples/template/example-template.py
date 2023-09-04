@@ -77,9 +77,8 @@ plt.imshow(z, cmap=plt.cm.get_cmap('Spectral'), interpolation='none')
 # Comments in comment blocks remain nested in the text.
 
 
-def dummy():
+def dummy() -> None:
     """Dummy function to make sure docstrings don't get rendered as text"""
-    pass
 
 
 # Code comments not preceded by the hash splitter are left in code blocks.
