@@ -134,7 +134,7 @@ if _wcs is not None:
     for key, val in _wcs.__dict__.items():
         if key.startswith(("WCSSUB_", "WCSHDR_", "WCSHDO_", "WCSCOMPARE_", "PRJ_")):
             locals()[key] = val
-            __all__.append(key)  # noqa: PYI056
+            __all__.append(key)
 
     # Set coordinate extraction callback for WCS -TAB:
     def _load_tab_bintable(hdulist, extnam, extver, extlev, kind, ttype, row, ndim):

@@ -125,9 +125,9 @@ for name in supported_ufuncs:
         klass_name = _make_class_name(name)
         alias_klass_name = _make_class_name(alias_ufuncs[name])
         globals()[klass_name] = globals()[alias_klass_name]
-        __all__.append(klass_name)  # noqa: PYI056
+        __all__.append(klass_name)
     else:
         m = ufunc_model(name)
         klass_name = m.__name__
         globals()[klass_name] = m
-        __all__.append(klass_name)  # noqa: PYI056
+        __all__.append(klass_name)

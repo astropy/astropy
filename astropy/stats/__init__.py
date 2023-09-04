@@ -36,12 +36,12 @@ from .spatial import *
 
 # This is to avoid importing deprecated modules in subpackage star import
 __all__ = []
-__all__ += funcs.__all__
-__all__ += biweight.__all__
-__all__ += sigma_clipping.__all__
-__all__ += jackknife.__all__
-__all__ += circstats.__all__
-__all__ += _bb.__all__
-__all__ += _hist.__all__
-__all__ += info_theory.__all__
-__all__ += spatial.__all__
+__all__.extend(funcs.__all__)
+__all__.extend(biweight.__all__)
+__all__.extend(sigma_clipping.__all__)
+__all__.extend(jackknife.__all__)
+__all__.extend(circstats.__all__)
+__all__.extend(_bb.__all__)
+__all__.extend(_hist.__all__)
+__all__.extend(info_theory.__all__)
+__all__.extend(spatial.__all__)
