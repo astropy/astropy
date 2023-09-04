@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+# ruff: noqa: PYI024
 
 # namedtuple is needed for find_mod_objs so it can have a non-local module
 from collections import namedtuple

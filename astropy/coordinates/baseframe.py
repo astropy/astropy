@@ -4,11 +4,14 @@ Framework and base classes for coordinate frames/"low-level" coordinate
 classes.
 """
 
+from __future__ import annotations
 
 # Standard library
 import copy
 import warnings
-from collections import defaultdict, namedtuple
+from collections import defaultdict
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, ClassVar, NamedTuple
 
 # Dependencies
 import numpy as np
@@ -24,6 +27,9 @@ from . import representation as r
 from .angles import Angle
 from .attributes import Attribute
 from .transformations import TransformGraph
+
+if TYPE_CHECKING:
+    from .representation import BaseRepresentation
 
 __all__ = [
     "BaseCoordinateFrame",
@@ -110,12 +116,7 @@ def _get_repr_classes(base, **differentials):
     return repr_classes
 
 
-_RepresentationMappingBase = namedtuple(
-    "RepresentationMapping", ("reprname", "framename", "defaultunit")
-)
-
-
-class RepresentationMapping(_RepresentationMappingBase):
+class RepresentationMapping(NamedTuple):
     """
     This `~collections.namedtuple` is used with the
     ``frame_specific_representation_info`` attribute to tell frames what
@@ -126,9 +127,9 @@ class RepresentationMapping(_RepresentationMappingBase):
     should be done).
     """
 
-    def __new__(cls, reprname, framename, defaultunit="recommended"):
-        # this trick just provides some defaults
-        return super().__new__(cls, reprname, framename, defaultunit)
+    reprname: str
+    framename: str
+    defaultunit: str | u.Unit = "recommended"
 
 
 base_doc = """{__doc__}
@@ -167,6 +168,7 @@ _components = """
 """
 
 
+@dataclass
 @format_doc(base_doc, components=_components, footer="")
 class BaseCoordinateFrame(ShapedLikeNDArray):
     """
@@ -207,14 +209,14 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     where ``{lon}`` and ``{lat}`` are the frame names of the angular components.
     """
 
-    default_representation = None
-    default_differential = None
+    default_representation: ClassVar[BaseRepresentation | None] = None
+    default_differential: ClassVar[BaseRepresentation | None] = None
 
     # Specifies special names and units for representation and differential
     # attributes.
-    frame_specific_representation_info = {}
+    frame_specific_representation_info: ClassVar[dict] = {}
 
-    frame_attributes = {}
+    frame_attributes: ClassVar[dict] = {}
     # Default empty frame_attributes dict
 
     def __init_subclass__(cls, **kwargs):

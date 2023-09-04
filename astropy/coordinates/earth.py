@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import collections
 import json
 import socket
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import NamedTuple
 from warnings import warn
 
 import numpy as np
@@ -29,7 +29,12 @@ __all__ = [
     "EarthLocation",
 ]
 
-GeodeticLocation = collections.namedtuple("GeodeticLocation", ["lon", "lat", "height"])
+
+class GeodeticLocation(NamedTuple):
+    lon: Longitude
+    lat: Latitude
+    height: u.Quantity
+
 
 OMEGA_EARTH = (1.002_737_811_911_354_48 * u.cycle / u.day).to(
     1 / u.s, u.dimensionless_angles()
