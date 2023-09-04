@@ -139,12 +139,13 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
         assert got == cosmo
         assert set(cosmo.meta.keys()).issubset(got.meta.keys())
 
-    def test_fromformat_model_subclass_partial_info(self):
+    def test_fromformat_model_subclass_partial_info(self) -> None:
         """
         Test writing from an instance and reading from that class.
         This works with missing information.
+
+        There's no partial information with a Model
         """
-        pass  # there's no partial information with a Model
 
     @pytest.mark.parametrize("format", [True, False, None, "astropy.model"])
     def test_is_equivalent_to_model(self, cosmo, method_name, to_format, format):
