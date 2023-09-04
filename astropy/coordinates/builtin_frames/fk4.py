@@ -46,7 +46,11 @@ class FK4(BaseRADecFrame):
     """
 
     equinox = TimeAttribute(default=EQUINOX_B1950, doc="The equinox time")
-    obstime = TimeAttribute(default=None, secondary_attribute="equinox", doc="The reference time (e.g., time of observation)")
+    obstime = TimeAttribute(
+        default=None,
+        secondary_attribute="equinox",
+        doc="The reference time (e.g., time of observation)",
+    )
 
 
 # the "self" transform
@@ -71,7 +75,11 @@ class FK4NoETerms(BaseRADecFrame):
     """
 
     equinox = TimeAttribute(default=EQUINOX_B1950, doc="The equinox time")
-    obstime = TimeAttribute(default=None, secondary_attribute="equinox", doc="The reference time (e.g., time of observation)")
+    obstime = TimeAttribute(
+        default=None,
+        secondary_attribute="equinox",
+        doc="The reference time (e.g., time of observation)",
+    )
 
     @staticmethod
     def _precession_matrix(oldequinox, newequinox):

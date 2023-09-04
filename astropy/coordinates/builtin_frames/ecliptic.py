@@ -93,7 +93,9 @@ class GeocentricMeanEcliptic(BaseEclipticFrame):
     """
 
     equinox = TimeAttribute(default=EQUINOX_J2000, doc="The equinox time")
-    obstime = TimeAttribute(default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)")
+    obstime = TimeAttribute(
+        default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)"
+    )
 
 
 @format_doc(
@@ -114,7 +116,9 @@ class GeocentricTrueEcliptic(BaseEclipticFrame):
     """
 
     equinox = TimeAttribute(default=EQUINOX_J2000, doc="The equinox time")
-    obstime = TimeAttribute(default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)")
+    obstime = TimeAttribute(
+        default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)"
+    )
 
 
 doc_footer_bary = """
@@ -195,7 +199,9 @@ class HeliocentricMeanEcliptic(BaseEclipticFrame):
     """
 
     equinox = TimeAttribute(default=EQUINOX_J2000, doc="The equinox time")
-    obstime = TimeAttribute(default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)")
+    obstime = TimeAttribute(
+        default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)"
+    )
 
 
 @format_doc(
@@ -219,7 +225,9 @@ class HeliocentricTrueEcliptic(BaseEclipticFrame):
     """
 
     equinox = TimeAttribute(default=EQUINOX_J2000, doc="The equinox time")
-    obstime = TimeAttribute(default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)")
+    obstime = TimeAttribute(
+        default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)"
+    )
 
 
 @format_doc(base_doc, components=doc_components_ecl.format("sun's center"), footer="")
@@ -239,7 +247,9 @@ class HeliocentricEclipticIAU76(BaseEclipticFrame):
 
     """
 
-    obstime = TimeAttribute(default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)")
+    obstime = TimeAttribute(
+        default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)"
+    )
 
 
 @format_doc(base_doc, components=doc_components_ecl.format("barycenter"), footer="")
@@ -254,4 +264,6 @@ class CustomBarycentricEcliptic(BaseEclipticFrame):
     The frame attributes are listed under **Other Parameters**.
     """
 
-    obliquity = QuantityAttribute(default=84381.448 * u.arcsec, unit=u.arcsec, doc="The obliquity of the ecliptic")
+    obliquity = QuantityAttribute(
+        default=84381.448 * u.arcsec, unit=u.arcsec, doc="The obliquity of the ecliptic"
+    )

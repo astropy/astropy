@@ -59,7 +59,9 @@ class Attribute(property):
 
     name = "<unbound>"
 
-    def __init__(self, default=None, secondary_attribute="", *, doc="A frame attribute"):
+    def __init__(
+        self, default=None, secondary_attribute="", *, doc="A frame attribute"
+    ):
         self.default = default
         self.secondary_attribute = secondary_attribute
 
@@ -314,7 +316,9 @@ class QuantityAttribute(Attribute):
         Description of the frame attribute for help and documentation
     """
 
-    def __init__(self, default=None, secondary_attribute="", unit=None, shape=None, **kwargs):
+    def __init__(
+        self, default=None, secondary_attribute="", unit=None, shape=None, **kwargs
+    ):
         if default is None and unit is None:
             raise ValueError(
                 "Either a default quantity value must be provided, or a unit must "
@@ -516,7 +520,9 @@ class DifferentialAttribute(Attribute):
         Description of the frame attribute for help and documentation
     """
 
-    def __init__(self, default=None, allowed_classes=None, secondary_attribute="", **kwargs):
+    def __init__(
+        self, default=None, allowed_classes=None, secondary_attribute="", **kwargs
+    ):
         if allowed_classes is not None:
             self.allowed_classes = tuple(allowed_classes)
         else:
