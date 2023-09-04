@@ -52,7 +52,7 @@ class TestTableColumnsInit:
             assert col[0] in tc_tuple
             assert tc_tuple[col[0]] is col[1]
 
-        col_dict = dict([("x1", x1), ("x2", x2), ("x3", x3)])
+        col_dict = {"x1": x1, "x2": x2, "x3": x3}
         tc_dict = TableColumns(col_dict)
         for col in tc_dict.keys():
             assert col in tc_dict
@@ -307,13 +307,11 @@ class TestInitFromNdarrayStruct(BaseInitFromDictLike):
 @pytest.mark.usefixtures("table_type")
 class TestInitFromDict(BaseInitFromDictLike):
     def _setup(self, table_type):
-        self.data = dict(
-            [
-                ("a", Column([1, 3], name="x")),
-                ("b", [2, 4]),
-                ("c", np.array([3, 5], dtype="i8")),
-            ]
-        )
+        self.data = {
+            "a": Column([1, 3], name="x"),
+            "b": [2, 4],
+            "c": np.array([3, 5], dtype="i8"),
+        }
 
 
 @pytest.mark.usefixtures("table_type")
@@ -544,7 +542,7 @@ def test_init_and_ref_from_dict(table_type, copy):
     """
     x1 = np.arange(10.0)
     x2 = np.zeros(10)
-    col_dict = dict([("x1", x1), ("x2", x2)])
+    col_dict = {"x1": x1, "x2": x2}
     t = table_type(col_dict, copy=copy)
     assert set(t.colnames) == {"x1", "x2"}
     assert t["x1"].shape == (10,)
@@ -574,8 +572,8 @@ def test_init_from_row_OrderedDict(table_type):
     row1 = OrderedDict([("b", 1), ("a", 0)])
     row2 = {"a": 10, "b": 20}
     rows12 = [row1, row2]
-    row3 = dict([("b", 1), ("a", 0)])
-    row4 = dict([("b", 11), ("a", 10)])
+    row3 = {"b": 1, "a": 0}
+    row4 = {"b": 11, "a": 10}
     rows34 = [row3, row4]
     t1 = table_type(rows=rows12)
     t2 = table_type(rows=rows34)
