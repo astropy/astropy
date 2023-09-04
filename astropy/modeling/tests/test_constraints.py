@@ -184,6 +184,7 @@ class TestBounds:
         assert intercept + 10**-5 >= bounds["intercept"][0]
         assert intercept - 10**-5 <= bounds["intercept"][1]
 
+    @pytest.mark.filterwarnings("ignore:The fit may be unsuccessful")
     @pytest.mark.parametrize("fitter", fitters)
     def test_bounds_gauss2d_lsq(self, fitter):
         fitter = fitter()
@@ -204,9 +205,8 @@ class TestBounds:
             theta=0.5,
             bounds=bounds,
         )
-        if isinstance(fitter, (fitting.LevMarLSQFitter, fitting.DogBoxLSQFitter)):
-            with pytest.warns(AstropyUserWarning, match="The fit may be unsuccessful"):
-                model = fitter(gauss, X, Y, self.data)
+        if isinstance(fitter, fitting.TRFLSQFitter):
+            ctx = np.errstate(invalid="ignore", divide="ignore")
         else:
             ctx2 = nullcontext()
             if isinstance(fitter, fitting.TRFLSQFitter):

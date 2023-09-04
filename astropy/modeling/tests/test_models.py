@@ -115,11 +115,19 @@ def test_inconsistent_input_shapes():
     y = x.copy()
     # check scalar input broadcasting works
     assert np.abs(g(x, 0) - g(x, 0 * x)).sum() == 0
-    # but not array broadcasting
+    # and that array broadcasting works
     x.shape = (10, 1)
     y.shape = (1, 10)
     result = g(x, y)
     assert result.shape == (10, 10)
+    # incompatible shapes do _not_ work
+    g = Gaussian2D()
+    x = np.arange(-1.0, 1, 0.2)
+    y = np.arange(-1.0, 1, 0.1)
+    with pytest.raises(
+        ValueError, match="All inputs must have identical shapes or must be scalars"
+    ):
+        g(x, y)
 
 
 def test_custom_model_bounding_box():

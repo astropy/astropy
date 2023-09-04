@@ -4,6 +4,7 @@ import functools
 import io
 import os
 import re
+import sys
 from contextlib import nullcontext
 from io import BytesIO
 from textwrap import dedent
@@ -1243,7 +1244,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
         fast_reader["parallel"] = parallel
         if fast_reader.get("use_fast_converter"):
             rtol = 1.0e-15
-        elif np.iinfo(np.int_).dtype == np.dtype(np.int32):
+        elif sys.maxsize < 2**32:
             # On 32bit the standard C parser (strtod) returns strings for these
             pytest.xfail("C parser cannot handle float64 on 32bit systems")
 
@@ -1299,7 +1300,10 @@ def test_data_out_of_range(parallel, fast_reader, guess):
             fast_reader=fast_reader,
         )
     if test_for_warnings:  # Assert precision warnings for cols 4-6
-        assert len(w) == 3
+        if sys.platform == "win32" and not fast_reader.get("use_fast_converter"):
+            assert len(w) == 2
+        else:
+            assert len(w) == 3
         for i in range(len(w)):
             assert f"OverflowError converting to FloatType in column col{i+4}" in str(
                 w[i].message
@@ -1330,7 +1334,12 @@ def test_data_out_of_range(parallel, fast_reader, guess):
             fast_reader=fast_reader,
         )
     if test_for_warnings:
-        assert len(w) == 3
+        # CI Windows identifies as "win32" but has 64 bit compiler;
+        # its `strtod` not emitting certain warnings.
+        if sys.platform == "win32" and not fast_reader.get("use_fast_converter"):
+            assert len(w) == 2
+        else:
+            assert len(w) == 3
     read_values = np.array([col[0] for col in t.itercols()])
     assert_almost_equal(read_values, values, rtol=rtol, atol=1.0e-324)
 
@@ -1353,12 +1362,20 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
     # Python reader and strtod() are expected to return precise results
     rtol = 1.0e-30
 
+    # CI "win32" 64 bit compiler with `strtod` not emitting certain warnings.
+    if sys.platform == "win32":
+        ctx = nullcontext()
+    else:
+        ctx = pytest.warns()
+
     # Update fast_reader dict; adapt relative precision for fast_converter
     if fast_reader:
         fast_reader["parallel"] = parallel
+        # `xstrtod` behaves the same on win32
         if fast_reader.get("use_fast_converter"):
             rtol = 1.0e-15
-        elif np.iinfo(np.int_).dtype == np.dtype(np.int32):
+            ctx = pytest.warns()
+        elif sys.maxsize < 2**32:
             # On 32bit the standard C parser (strtod) returns strings for these
             pytest.xfail("C parser cannot handle float64 on 32bit systems")
 
@@ -1398,7 +1415,7 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
         pytest.skip("Catching warnings broken in parallel mode")
     elif not fast_reader:
         pytest.skip("Python/numpy reader does not raise on Overflow")
-    with pytest.warns() as warning_lines:
+    with ctx as w:
         t = ascii.read(
             StringIO("0." + 314 * "0" + "1"),
             format="no_header",
@@ -1406,12 +1423,11 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
             fast_reader=fast_reader,
         )
 
-    n_warns = len(warning_lines)
-    assert n_warns in (0, 1), f"Expected 0 or 1 warning, found {n_warns}"
-    if n_warns == 1:
+    if not isinstance(ctx, nullcontext):
+        assert len(w) == 1, f"Expected 1 warning, found {len(w)}"
         assert (
             "OverflowError converting to FloatType in column col1, possibly "
-            "resulting in degraded precision" in str(warning_lines[0].message)
+            "resulting in degraded precision" in str(w[0].message)
         )
 
     assert_almost_equal(t["col1"][0], 1.0e-315, rtol=1.0e-10, atol=1.0e-324)
@@ -1499,7 +1515,7 @@ def test_fortran_reader(parallel, guess):
     atol = 0.0
     text = (
         "A B C D\n100.01{:s}99       2.0  2.0{:s}-103 3\n"
-        + " 4.2{:s}-1 5.0{:s}-1     0.6{:s}4 .017{:s}+309"
+        " 4.2{:s}-1 5.0{:s}-1     0.6{:s}4 .017{:s}+309"
     )
     expc = Table(
         [[1.0001e101, 0.42], [2, 0.5], [2.0e-103, 6.0e3], [3, 1.7e307]],
@@ -1541,7 +1557,7 @@ def test_fortran_reader(parallel, guess):
     # any character and mixed whitespace separators
     text = (
         "A B\t\t C D\n1.0001+101 2.0+000\t 0.0002-099 3\n "
-        + "0.42-000 \t 0.5 6.+003   0.000000000000000000000017+330"
+        "0.42-000 \t 0.5 6.+003   0.000000000000000000000017+330"
     )
     table = ascii.read(
         text, guess=guess, fast_reader={"parallel": parallel, "exponent_style": "A"}

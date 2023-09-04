@@ -71,7 +71,7 @@ class FixedWidthHeader(basic.BasicHeader):
     """ Splitter class for splitting data lines into columns """
     position_line = None  # secondary header line position
     """ row index of line that specifies position (default = 1) """
-    set_of_position_line_characters = set(r'`~!#$%^&*-_+=\|":' + "'")
+    set_of_position_line_characters = set(r"""`~!#$%^&*-_+=\|":'""")
 
     def get_line(self, lines, index):
         for i, line in enumerate(self.process_lines(lines)):
@@ -262,10 +262,7 @@ class FixedWidthData(basic.BasicData):
         header_rows = getattr(self, "header_rows", default_header_rows)
         # First part is getting the widths of each column.
         # List (rows) of list (column values) for data lines
-        vals_list = []
-        col_str_iters = self.str_vals()
-        for vals in zip(*col_str_iters):
-            vals_list.append(vals)
+        vals_list = list(zip(*self.str_vals()))
 
         # List (rows) of list (columns values) for header lines.
         hdrs_list = []

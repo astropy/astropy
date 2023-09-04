@@ -16,8 +16,7 @@ __doctest_requires__ = {"*": ["scipy"]}
 
 
 class wCDM(FLRW):
-    """
-    FLRW cosmology with a constant dark energy equation of state and curvature.
+    """FLRW cosmology with a constant dark energy EoS and curvature.
 
     This has one additional attribute beyond those of FLRW.
 
@@ -92,7 +91,7 @@ class wCDM(FLRW):
         Ob0=None,
         *,
         name=None,
-        meta=None
+        meta=None,
     ):
         super().__init__(
             H0=H0,
@@ -236,9 +235,7 @@ class wCDM(FLRW):
 
 
 class FlatwCDM(FlatFLRWMixin, wCDM):
-    """
-    FLRW cosmology with a constant dark energy equation of state and no spatial
-    curvature.
+    """FLRW cosmology with a constant dark energy EoS and no spatial curvature.
 
     This has one additional attribute beyond those of FLRW.
 
@@ -312,7 +309,7 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         Ob0=None,
         *,
         name=None,
-        meta=None
+        meta=None,
     ):
         super().__init__(
             H0=H0,

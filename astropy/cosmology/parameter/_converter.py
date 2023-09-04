@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import annotations
 
 from typing import Any, Callable
 
@@ -59,8 +60,8 @@ def _register_validator(key, fvalidate=None):
 
 @_register_validator("default")
 def _validate_with_unit(cosmology, param, value):
-    """
-    Default Parameter value validator.
+    """Default Parameter value validator.
+
     Adds/converts units if Parameter has a unit.
     """
     if param.unit is not None:

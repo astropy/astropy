@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """|Cosmology| <-> ECSV I/O, using |Cosmology.read| and |Cosmology.write|.
 
 This module provides functions to write/read a |Cosmology| object to/from an ECSV file.
@@ -343,7 +342,7 @@ def write_ecsv(
     cls=QTable,
     cosmology_in_meta=True,
     rename=None,
-    **kwargs
+    **kwargs,
 ):
     """Serialize the cosmology into a ECSV.
 

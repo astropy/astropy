@@ -55,6 +55,16 @@ force-exclude = '''
 '''
 
 
+[tool.docformatter]
+    # The ``summaries`` are not (yet) 75 characters because the summary lines can't be
+    # automatically wrapped and must be re-written, which should be done at some point.
+    recursive = true
+    wrap-summaries = 1000
+    wrap-descriptions = 75
+    black = true
+    syntax = "numpy"
+
+
 [tool.flynt]
 exclude= [
     "astropy/extern",
@@ -172,7 +182,7 @@ ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` in
 [tool.ruff.extend-per-file-ignores]
 "setup.py" = ["INP001"]  # Part of configuration, not a package.
 ".github/workflows/*.py" = ["INP001"]
-"astropy/modeling/models.py" = ["F405"]
+"astropy/modeling/models/__init__.py" = ["F405"]
 "astropy/utils/decorators.py" = [
     "D214", "D215",  # keep Examples section indented.
     "D411",  # sphinx treats spaced example sections as real sections

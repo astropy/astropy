@@ -104,14 +104,14 @@ class Parameter:
     """Whether the Parameter can be set, or is derived, on the cosmology."""
 
     # Units
-    unit: _UnitField = _UnitField()  # noqa: RUF009
+    unit: _UnitField = _UnitField()
     """The unit of the Parameter (can be `None` for unitless)."""
 
     equivalencies: u.Equivalency | Sequence[u.Equivalency] = field(default_factory=list)
     """Unit equivalencies available when setting the parameter."""
 
     # Setting
-    fvalidate: _FValidateField = _FValidateField(default="default")  # noqa: RUF009
+    fvalidate: _FValidateField = _FValidateField(default="default")
     """Function to validate/convert values when setting the Parameter."""
 
     # Info
@@ -119,7 +119,10 @@ class Parameter:
     """Parameter description."""
 
     name: str | None = field(init=False, compare=True, default=None, repr=False)
-    """The name of the Parameter on the Cosmology. Cannot be set directly."""
+    """The name of the Parameter on the Cosmology.
+
+    Cannot be set directly.
+    """
 
     if PYTHON_LT_3_10:
 
@@ -166,7 +169,10 @@ class Parameter:
         return getattr(cosmology, self._attr_name)
 
     def __set__(self, cosmology, value):
-        """Allows attribute setting once. Raises AttributeError subsequently."""
+        """Allows attribute setting once.
+
+        Raises AttributeError subsequently.
+        """
         # Raise error if setting 2nd time.
         if hasattr(cosmology, self._attr_name):
             raise AttributeError(f"can't set attribute {self.name} again")

@@ -1044,8 +1044,8 @@ def fit_wcs_from_points(
     if (type(proj_point) != type(world_coords)) and (proj_point != "center"):
         raise ValueError(
             "proj_point must be set to 'center', or an"
-            + "`~astropy.coordinates.SkyCoord` object with "
-            + "a pair of points."
+            "`~astropy.coordinates.SkyCoord` object with "
+            "a pair of points."
         )
 
     use_center_as_proj_point = str(proj_point) == "center"
@@ -1085,8 +1085,7 @@ def fit_wcs_from_points(
     if type(projection) == str:
         if projection not in proj_codes:
             raise ValueError(
-                "Must specify valid projection code from list of "
-                + "supported types: ",
+                "Must specify valid projection code from list of supported types: ",
                 ", ".join(proj_codes),
             )
         # empty wcs to fill in with fit values

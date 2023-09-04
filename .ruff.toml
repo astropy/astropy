@@ -28,8 +28,6 @@ ignore = [
 
     # flake8-comprehensions (C4)
     "C406",  # unnecessary-literal-dict
-    "C413",  # unnecessary-call-around-sorted
-    "C417",  # unnecessary-map (over a comprehension)
 
     # mccabe (C90) : code complexity
     # TODO: configure maximum allowed complexity.
@@ -96,9 +94,6 @@ ignore = [
     # flake8-import-conventions (ICN)  : use conventional import aliases
     "ICN001",  # import-conventions
 
-    # flake8-implicit-str-concat (ISC)
-    "ISC003",  # explicit-string-concatenation
-
     # pep8-naming (N)
     # NOTE: some of these can/should be fixed, but this changes the API.
     "N801",  # invalid-class-name
@@ -118,10 +113,13 @@ ignore = [
     # NumPy-specific rules (NPY)
     "NPY002", # Replace legacy `np.random.rand` call with `np.random.Generator`  (2023-05-03)
 
+    # Perflint (PERF)
+    "PERF203",  # `try`-`except` within a loop incurs performance overhead
+    "PERF401",  # Use a list comprehension to create a transformed list
+
     # flake8-pie (PIE)
     "PIE790",  # unnecessary-pass
     "PIE794",  # duplicate-class-field-definition
-    "PIE810",  # single-starts-ends-with
 
     # pygrep-hooks (PGH)
     "PGH001",  # eval
@@ -137,6 +135,7 @@ ignore = [
     "PLR0912",  # too-many-branches
     "PLR0913",  # too-many-args
     "PLR0915",  # too-many-statements
+    "PLR1714",  # Consider merging multiple comparisons
     "PLR2004",  # MagicValueComparison
     "PLR5501",  # collapsible-else-if
     "PLW0129",  # assert-on-string-literal
@@ -179,6 +178,9 @@ ignore = [
     "PTH122",  # os-path-splitext
     "PTH123",  # builtin-open
     "PTH124",  # py-path
+    "PTH202",  # `os.path.getsize` should be replaced by `Path.stat().st_size`
+    "PTH206",  # Replace `.split(os.sep)` with `Path.parts`
+    "PTH207",  # Replace `glob` with `Path.glob` or `Path.rglob`
 
     # flake8-return (RET)
     "RET501",  # unnecessary-return-none
@@ -205,6 +207,7 @@ ignore = [
     "S110",  # try-except-pass
     "S112",  # try-except-continue
     "S301",  # suspicious-pickle-usage
+    "S307",  # Use of possibly insecure function; consider using `ast.literal_eval`
     "S311",  # suspecious-non-cryptographic-randomness
     "S324",  # hashlib-insecure-hash-function
     "S506",  # UnsafeYAMLLoad
@@ -260,6 +263,9 @@ unfixable = [
 
 [extend-per-file-ignores]
 "__init__.py" = ["E402", "F401", "F403"]
+"test_*.py" = [
+    "RUF015",  # Prefer next({iterable}) over single element slice
+]
 # TODO: fix these, on a per-subpackage basis.
 # When a general exclusion is being fixed, but it affects many subpackages, it
 # is better to fix for subpackages individually. The general exclusion should be

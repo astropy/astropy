@@ -1061,11 +1061,12 @@ class Model(metaclass=_ModelMeta):
                 )
             )
 
-        input_shape = check_broadcast(*all_shapes)
-        if input_shape is None:
+        try:
+            input_shape = check_broadcast(*all_shapes)
+        except IncompatibleShapeError as e:
             raise ValueError(
                 "All inputs must have identical shapes or must be scalars."
-            )
+            ) from e
 
         return input_shape
 

@@ -511,15 +511,12 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         unit=None,
         format_unit=None,
     ):
-        if unit is not None:
-            unit = unit
-            format_unit = format_unit or unit
-        elif spacing is not None:
-            unit = spacing.unit
-            format_unit = format_unit or spacing.unit
-        elif values is not None:
-            unit = values.unit
-            format_unit = format_unit or values.unit
+        if unit is None:
+            if spacing is not None:
+                unit = spacing.unit
+            elif values is not None:
+                unit = values.unit
+        format_unit = format_unit or unit
 
         super().__init__(
             values=values,
