@@ -9,7 +9,7 @@ import pytest
 
 from astropy import constants
 from astropy import units as u
-from astropy.coordinates.angles import Latitude, Longitude
+from astropy.coordinates import Latitude, Longitude
 from astropy.coordinates.earth import EarthLocation
 from astropy.coordinates.name_resolve import NameResolveError
 from astropy.coordinates.representation.geodetic import ELLIPSOIDS

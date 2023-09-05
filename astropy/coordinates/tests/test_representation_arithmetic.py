@@ -23,8 +23,8 @@ from astropy.coordinates import (
     UnitSphericalCosLatDifferential,
     UnitSphericalDifferential,
     UnitSphericalRepresentation,
+    angular_separation,
 )
-from astropy.coordinates.angles import angular_separation
 from astropy.coordinates.representation import DIFFERENTIAL_CLASSES
 from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 

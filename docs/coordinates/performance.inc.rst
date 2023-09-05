@@ -32,7 +32,7 @@ properties::
 
     >>> from astropy.coordinates import SkyCoord, EarthLocation
     >>> from astropy import coordinates as coord
-    >>> from astropy.coordinates.angles import golden_spiral_grid
+    >>> from astropy.coordinates import golden_spiral_grid
     >>> from astropy.time import Time
     >>> from astropy import units as u
     >>> import numpy as np

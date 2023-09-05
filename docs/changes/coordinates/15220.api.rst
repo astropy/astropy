@@ -1,4 +1,3 @@
 
-Angle-related classes and functions have been consolidated into the module ``angles``.
-In particular, ``angle_utilties`` have been moved to ``angles.util``,
-and select errors have been moved to ``angles.errors``.
+Angle-related classes and functions have been moved within ``astropy.coordinates``.
+If an import fails, try importing from ``astropy.coordinates`` instead.

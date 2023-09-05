@@ -7,7 +7,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
-from astropy.coordinates.angles import Angle, Latitude, Longitude
+from astropy.coordinates import Angle, Latitude, Longitude
 from astropy.coordinates.distances import Distance
 from astropy.coordinates.matrix_utilities import rotation_matrix
 from astropy.coordinates.representation import (

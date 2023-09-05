@@ -18,7 +18,7 @@ import numpy as np
 
 # Astropy
 import astropy.units as u
-from astropy.coordinates.representation.spherical import (
+from astropy.coordinates.representation import (
     SphericalRepresentation,
     UnitSphericalRepresentation,
 )

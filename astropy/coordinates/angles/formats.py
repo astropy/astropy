@@ -418,9 +418,9 @@ def hours_to_decimal(h):
     """
     Convert any parseable hour value into a float value.
     """
-    from . import core
+    from .core import Angle
 
-    return core.Angle(h, unit=u.hourangle).hour
+    return Angle(h, unit=u.hourangle).hour
 
 
 def hours_to_radians(h):
