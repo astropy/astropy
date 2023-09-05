@@ -9,7 +9,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 import astropy.units as u
-from astropy.coordinates.angles import (
+from astropy.coordinates import (
     Angle,
     IllegalHourError,
     IllegalMinuteError,
