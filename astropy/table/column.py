@@ -3,6 +3,7 @@
 import itertools
 import warnings
 import weakref
+from collections import OrderedDict
 from copy import deepcopy
 
 import numpy as np
@@ -500,7 +501,9 @@ class ColumnInfo(BaseColumnInfo):
 
 
 class BaseColumn(_ColumnGetitemShim, np.ndarray):
-    meta = MetaData()
+    meta = MetaData(default_factory=OrderedDict)
+    # It's important that the metadata is an OrderedDict so that the order of
+    # the metadata is preserved when the column is YAML serialized.
 
     def __new__(
         cls,

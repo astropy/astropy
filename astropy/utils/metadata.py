@@ -423,6 +423,13 @@ class MetaData:
 
         .. versionadded:: 1.2
 
+    default_factory : Callable[[], Mapping], optional keyword-only
+        The factory to use to create the default value of the ``meta``
+        attribute.  This must be a callable that returns a `Mapping` object.
+        Default is `OrderedDict`, creating an empty `OrderedDict`.
+
+        .. versionadded:: 6.0
+
     Examples
     --------
     ``MetaData`` can be used as a descriptor to define a ``meta`` attribute`.
@@ -438,12 +445,24 @@ class MetaData:
         >>> foo.meta
         {'a': 1, 'b': 2}
 
-    The default value of ``meta`` is an empty `OrderedDict`. This can be set
-    by passing ``None`` to the ``meta`` argument.
+    The default value of ``meta`` is an empty :class:`~collections.OrderedDict`.
+    This can be set by passing ``None`` to the ``meta`` argument.
 
         >>> foo = Foo()
         >>> foo.meta
         OrderedDict()
+
+    If an :class:`~collections.OrderedDict` is not a good default metadata type then
+    the ``default_factory`` keyword can be used to set the default to a different
+    `Mapping` type, when the class is defined.'
+
+        >>> class Bar:
+        ...     meta = MetaData(default_factory=dict)
+        ...     def __init__(self, meta=None):
+        ...         self.meta = meta
+
+        >>> Bar().meta
+        {}
 
     When accessed from the class ``.meta`` returns `None` since metadata is
     on the class' instances, not the class itself.
@@ -452,9 +471,14 @@ class MetaData:
         None
     """
 
-    def __init__(self, doc="", copy=True):
+    def __init__(self, doc="", copy=True, *, default_factory=OrderedDict):
         self.__doc__ = doc
         self.copy = copy
+        self._default_factory = default_factory
+
+    @property
+    def default_factory(self):
+        return self._default_factory
 
     def __get__(self, instance, owner):
         # class attribute access. Often, descriptors just return `self`, but if the
@@ -473,7 +497,7 @@ class MetaData:
         # if it is `None` so that we can always assume it is a `Mapping` and not have
         # to check for `None` everywhere.
         if value is None:
-            instance._meta = OrderedDict()
+            instance._meta = self.default_factory()
         # We don't want to allow setting the meta attribute to a non-dict-like object.
         # NOTE: with mypyc compilation this can be removed.
         elif not isinstance(value, Mapping):

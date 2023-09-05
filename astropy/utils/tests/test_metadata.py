@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from dataclasses import dataclass
 
 import numpy as np
@@ -94,6 +94,20 @@ class ExampleFrozenDataclass:
 class TestMetaExampleFrozenDataclass(MetaBaseTest):
     test_class = ExampleFrozenDataclass
     args = ()
+
+
+def test_metadata_default_factory():
+    """Test the default_factory argument to MetaData."""
+
+    class ExampleData:
+        meta = MetaData(default_factory=defaultdict)
+
+        def __init__(self, meta=None):
+            self.meta = meta
+
+    data = ExampleData()
+    assert isinstance(data.meta, defaultdict)
+    assert len(data.meta) == 0
 
 
 def test_metadata_merging_conflict_exception():
