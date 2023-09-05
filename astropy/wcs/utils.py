@@ -38,8 +38,6 @@ __all__ = [
     "fit_wcs_from_points",
 ]
 
-WCSLIB_LT8 = Version(_wcs.__version__) < Version("8.0")
-
 SOLAR_SYSTEM_OBJ_DICT = {
     "EA": "Earth",
     "SE": "Moon",
@@ -156,17 +154,9 @@ def _wcs_to_celestial_frame_builtin(wcs):
             if object_name is None:
                 raise KeyError(f"unknown solar system object abbreviation {xcoord[:2]}")
 
-            if WCSLIB_LT8:
-                warnings.warn(
-                    f" {_wcs.__version__} does not support planetary WCS,"
-                    " planetary frame descriptions may be lost with the current versions"
-                    " - please update to 8.1 or use the bundled WCSLIB.",
-                    AstropyWarning,
-                )
-            else:
-                a_radius = wcs.wcs.aux.a_radius
-                b_radius = wcs.wcs.aux.b_radius
-                c_radius = wcs.wcs.aux.c_radius
+            a_radius = wcs.wcs.aux.a_radius
+            b_radius = wcs.wcs.aux.b_radius
+            c_radius = wcs.wcs.aux.c_radius
             if "bodycentric" in wcs.wcs.name.lower():
                 baserepresentation = BaseBodycentricRepresentation
                 representation_type_name = "BodycentricRepresentation"
@@ -174,21 +164,13 @@ def _wcs_to_celestial_frame_builtin(wcs):
                 baserepresentation = BaseGeodeticRepresentation
                 representation_type_name = "GeodeticRepresentation"
 
-            if WCSLIB_LT8:
-                warnings.warn(
-                    f" {_wcs.__version__} does not support planetary WCS,"
-                    " planetary frame descriptions may be lost with the current versions"
-                    " - please update to 8.1 or use the bundled WCSLIB.",
-                    AstropyWarning,
-                )
+            if a_radius == b_radius:
+                equatorial_radius = a_radius * u.m
+                flattening = (a_radius - c_radius) / a_radius
             else:
-                if a_radius == b_radius:
-                    equatorial_radius = a_radius * u.m
-                    flattening = (a_radius - c_radius) / a_radius
-                else:
-                    raise NotImplementedError(
-                        "triaxial systems are not supported at this time."
-                    )
+                raise NotImplementedError(
+                    "triaxial systems are not supported at this time."
+                )
 
             # create a new representation class
             representation_type = solar_system_body_representation_type.get(xcoord[:2])
@@ -276,22 +258,14 @@ def _celestial_frame_to_wcs_builtin(frame, projection="TAN"):
                 " not {frame.representation_type} for storing planetary"
                 " coordinates in a WCS."
             )
-        if WCSLIB_LT8:
-            warnings.warn(
-                f" {_wcs.__version__} does not support planetary WCS,"
-                " planetary frame descriptions may be lost with the current versions"
-                " - please update to 8.1 or use the bundled WCSLIB.",
-                AstropyWarning,
-            )
-        else:
-            wcs.wcs.aux.a_radius = frame.representation_type._equatorial_radius.value
-            wcs.wcs.aux.b_radius = frame.representation_type._equatorial_radius.value
-            wcs.wcs.aux.c_radius = wcs.wcs.aux.a_radius * (
-                1.0
-                - frame.representation_type._flattening.to(
-                    u.dimensionless_unscaled
-                ).value
-            )
+        wcs.wcs.aux.a_radius = frame.representation_type._equatorial_radius.value
+        wcs.wcs.aux.b_radius = frame.representation_type._equatorial_radius.value
+        wcs.wcs.aux.c_radius = wcs.wcs.aux.a_radius * (
+            1.0
+            - frame.representation_type._flattening.to(
+                u.dimensionless_unscaled
+            ).value
+        )
     else:
         return None
 

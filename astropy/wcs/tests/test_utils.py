@@ -22,7 +22,6 @@ from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.wcs import _wcs
 from astropy.wcs.utils import (
-    WCSLIB_LT8,
     _pixel_to_pixel_correlation_matrix,
     _pixel_to_world_correlation_matrix,
     _split_matrix,
@@ -381,44 +380,39 @@ def test_wcs_to_body_frame():
 
     triaxial_wcs = WCS(naxis=2)
     triaxial_wcs.wcs.ctype = ["MELN-TAN", "MELT-TAN"]
-    if not WCSLIB_LT8:
-        triaxial_wcs.wcs.aux.a_radius = 2439700.0
-        triaxial_wcs.wcs.aux.b_radius = 2439900.0
-        triaxial_wcs.wcs.aux.c_radius = 2438800.0
-        with pytest.raises(
-            NotImplementedError, match="triaxial systems are not supported at this time"
-        ):
-            frame = wcs_to_celestial_frame(triaxial_wcs)
+    triaxial_wcs.wcs.aux.a_radius = 2439700.0
+    triaxial_wcs.wcs.aux.b_radius = 2439900.0
+    triaxial_wcs.wcs.aux.c_radius = 2438800.0
+    with pytest.raises(
+        NotImplementedError, match="triaxial systems are not supported at this time"
+    ):
+        frame = wcs_to_celestial_frame(triaxial_wcs)
 
     mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ["MALN-TAN", "MALT-TAN"]
     mywcs.wcs.dateobs = "2017-08-17T12:41:04.430"
     mywcs.wcs.name = "Mars Bodycentric Body-Fixed"
 
-    if not WCSLIB_LT8:
-        mywcs.wcs.aux.a_radius = 3396190.0
-        mywcs.wcs.aux.b_radius = 3396190.0
-        mywcs.wcs.aux.c_radius = 3376190.0
+    mywcs.wcs.aux.a_radius = 3396190.0
+    mywcs.wcs.aux.b_radius = 3396190.0
+    mywcs.wcs.aux.c_radius = 3376190.0
     frame = wcs_to_celestial_frame(mywcs)
     assert issubclass(frame, BaseCoordinateFrame)
     assert issubclass(frame.representation_type, BaseBodycentricRepresentation)
     assert frame.name == "Mars"
-    if not WCSLIB_LT8:
-        assert frame.representation_type._equatorial_radius == 3396190.0 * u.m
+    assert frame.representation_type._equatorial_radius == 3396190.0 * u.m
 
     mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ["EALN-TAN", "EALT-TAN"]
     mywcs.wcs.name = "Earth Geodetic Body-Fixed"
-    if not WCSLIB_LT8:
-        mywcs.wcs.aux.a_radius = 6378137.0
-        mywcs.wcs.aux.b_radius = 6378137.0
-        mywcs.wcs.aux.c_radius = 6356752.3
+    mywcs.wcs.aux.a_radius = 6378137.0
+    mywcs.wcs.aux.b_radius = 6378137.0
+    mywcs.wcs.aux.c_radius = 6356752.3
     mywcs.wcs.set()
     frame = wcs_to_celestial_frame(mywcs)
     assert issubclass(frame, BaseCoordinateFrame)
     assert issubclass(frame.representation_type, BaseGeodeticRepresentation)
-    if not WCSLIB_LT8:
-        assert frame.representation_type._equatorial_radius == 6378137.0 * u.m
+    assert frame.representation_type._equatorial_radius == 6378137.0 * u.m
 
 
 def test_wcs_to_celestial_frame_correlated():
@@ -574,10 +568,9 @@ def test_body_to_wcs_frame():
     assert mywcs.wcs.ctype[1] == "MALT-CAR"
     assert mywcs.wcs.name == "Bodycentric Body-Fixed"
 
-    if not WCSLIB_LT8:
-        assert mywcs.wcs.aux.a_radius == 3396190.0
-        assert mywcs.wcs.aux.b_radius == 3396190.0
-        assert_almost_equal(mywcs.wcs.aux.c_radius, 3376200.0)
+    assert mywcs.wcs.aux.a_radius == 3396190.0
+    assert mywcs.wcs.aux.b_radius == 3396190.0
+    assert_almost_equal(mywcs.wcs.aux.c_radius, 3376200.0)
 
 
 def test_celestial_frame_to_wcs_extend():
