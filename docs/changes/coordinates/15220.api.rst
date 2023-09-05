@@ -1,3 +1,5 @@
 
-Angle-related classes and functions have been moved within ``astropy.coordinates``.
-If an import fails, try importing from ``astropy.coordinates`` instead.
+Angle-related classes and functions have been moved within ``astropy.coordinates``. If
+an import fails, try importing from ``astropy.coordinates`` instead. If you need
+something that has been moved and is not available in ``astropy.coordinates``, please
+open an issue on the Astropy issue tracker.
