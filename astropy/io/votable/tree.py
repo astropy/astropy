@@ -3099,7 +3099,9 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
         '''
         Added by A. Faisst Jul/28/2023
         '''
-        from astropy.table import Table as Table2 # looks like votable already has a "Table" imported.
+        # looks like votable already has a "Table" imported.
+        from astropy.table import Table as Table2
+
         for start, tag, data, pos in iterator:
             if tag == "STREAM":
                 if start:
@@ -3115,7 +3117,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
                 else:
                     break
 
-            else: # in this case, there is no STREAM, hence no file linked.
+            else:  # in this case, there is no STREAM, hence no file linked.
                 href = ""
 
         if not href.startswith(("http", "ftp", "file")):
@@ -3139,10 +3141,11 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
                     self._pos,
                     NotImplementedError,
                 )
-        array = Table2.read(fd , format="parquet")
+
+        array = Table2.read(fd, format="parquet")
 
         if array.dtype != self.array.dtype:
-            warn_or_raise(W56, W56, (), self._config, self._pos) # Changed these in exceptions.py
+            warn_or_raise(W56, W56, (), self._config, self._pos)
 
         return array
 
