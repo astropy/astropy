@@ -184,7 +184,6 @@ io_registry.register_identifier("votable", Table, is_votable)
 
 
 # VOTable with embedded/linked Parquet file #
-# added by ALF - Sept 5 2023
 def write_table_votable_parquet(tab, filename, column_metadata, overwrite):
     '''
 
@@ -202,18 +201,17 @@ def write_table_votable_parquet(tab, filename, column_metadata, overwrite):
 
     Parameters
     -----------
-    tab: astropy table
+    tab : astropy table
         Contains the data
-    filename: str
+    filename : str
         The file name of the VOTable (e.g., "test.vot").
         IMPORTANT: Needs to be a full path (i.e. no "../" or "./")
-    column_metadata: dictionary
+    column_metadata : dictionary
         Contains the metadata for the columns such as "unit" or
         "ucd" or "utype".
-        Example:
-        column_metadata = {"id":{"unit":"","ucd":"meta.id","utype":"none"},
-        "mass":{"unit":"solMass","ucd":"phys.mass","utype":"none"} }
-    overwrite: bool
+        (Example: column_metadata = {"id":{"unit":"","ucd":"meta.id","utype":"none"},
+        "mass":{"unit":"solMass","ucd":"phys.mass","utype":"none"} } )
+    overwrite : bool
         Set to True to enable overwriting.
 
     Returns
