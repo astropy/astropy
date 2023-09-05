@@ -2774,7 +2774,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
                     self.array = self._parse_fits(iterator, extnum, config)
 
                 elif tag == "PARQUET":
-                    if (data["type"] == "VOTable-remote-file") | (data["type"] != "VOTable-remote-partition"):
+                    if (data["type"] == "VOTable-remote-file") | (data["type"] == "VOTable-remote-partition"):
                         warn_unknown_attrs("PARQUET", data.keys(), config, pos)
                     self.array = self._parse_parquet(iterator, config)
 
