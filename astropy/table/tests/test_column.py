@@ -10,7 +10,7 @@ from numpy.testing import assert_array_equal
 from astropy import table, time
 from astropy import units as u
 from astropy.tests.helper import assert_follows_unicode_guidelines
-from astropy.utils.tests.test_metadata import MetaBaseTest
+from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 
 
 class TestColumn:
