@@ -378,10 +378,10 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                         warnings.warn(
                             "The following keywords are now recognized as special "
                             "column-related attributes and should be set via the "
-                            "Column objects: {}. In future, these values will be "
+                            f"Column objects: {keys}. In future, these values will be "
                             "dropped from manually specified headers automatically "
                             "and replaced with values generated based on the "
-                            "Column objects.".format(keys),
+                            "Column objects.",
                             AstropyDeprecationWarning,
                         )
 

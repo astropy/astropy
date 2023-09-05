@@ -926,8 +926,8 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         # it quite likely coerces, so we should just break.
         if any(issubclass(t, np.ndarray) and not issubclass(t, Masked) for t in types):
             raise TypeError(
-                "the MaskedNDArray implementation cannot handle {} "
-                "with the given arguments.".format(function)
+                f"the MaskedNDArray implementation cannot handle {function} "
+                "with the given arguments."
             ) from None
         else:
             return NotImplemented

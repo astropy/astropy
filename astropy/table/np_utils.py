@@ -67,10 +67,8 @@ def get_col_name_map(
     repeated_names = [name for name, count in col_name_count.items() if count > 1]
     if repeated_names:
         raise TableMergeError(
-            "Merging column names resulted in duplicates: {}.  "
-            "Change uniq_col_name or table_names args to fix this.".format(
-                repeated_names
-            )
+            f"Merging column names resulted in duplicates: {repeated_names}.  "
+            "Change uniq_col_name or table_names args to fix this."
         )
 
     # Convert col_name_map to a regular dict with tuple (immutable) values

@@ -503,7 +503,7 @@ class TransformGraph:
             if n in invclsaliases:
                 aliases = "`\\n`".join(invclsaliases[n])
                 nodenames.append(
-                    '{0} [shape=oval label="{0}\\n`{1}`"]'.format(n.__name__, aliases)
+                    f'{n.__name__} [shape=oval label="{n.__name__}\\n`{aliases}`"]'
                 )
             else:
                 nodenames.append(n.__name__ + "[ shape=oval ]")

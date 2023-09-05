@@ -90,7 +90,7 @@ def make_function_with_signature(
         default_var = f"_kwargs{idx}"
         local_vars[default_var] = value
         def_signature.append(f", {key}={default_var}")
-        call_signature.append(", {0}={0}".format(key))
+        call_signature.append(f", {key}={key}")
 
     if varkwargs:
         def_signature.append(f", **{varkwargs}")

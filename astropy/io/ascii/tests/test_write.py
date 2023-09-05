@@ -810,7 +810,7 @@ def test_write_empty_table(fast_writer):
 
 
 @pytest.mark.parametrize(
-    "format", ["ascii", "csv", "html", "latex", "ascii.fixed_width", "html"]
+    "format", ["ascii", "csv", "html", "latex", "ascii.fixed_width"]
 )
 @pytest.mark.parametrize("fast_writer", [True, False])
 @pytest.mark.parametrize("path_format", ["plain", "tilde-str", "tilde-pathlib"])

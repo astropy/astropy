@@ -2577,9 +2577,9 @@ class Table:
                 # as parent.
                 if isinstance(old_col.base, old_col.__class__):
                     msg = (
-                        "replaced column '{}' which looks like an array slice. "
+                        f"replaced column '{name}' which looks like an array slice. "
                         "The new column no longer shares memory with the "
-                        "original array.".format(name)
+                        "original array."
                     )
                     warnings.warn(msg, TableReplaceWarning, stacklevel=3)
             except AttributeError:
@@ -2591,8 +2591,8 @@ class Table:
             new_refcount = sys.getrefcount(self[name])
             if refcount != new_refcount:
                 msg = (
-                    "replaced column '{}' and the number of references "
-                    "to the column changed.".format(name)
+                    f"replaced column '{name}' and the number of references "
+                    "to the column changed."
                 )
                 warnings.warn(msg, TableReplaceWarning, stacklevel=3)
 
@@ -3294,8 +3294,8 @@ class Table:
 
                 if len(newcol) != N + 1:
                     raise ValueError(
-                        "Incorrect length for column {} after inserting {}"
-                        " (expected {}, got {})".format(name, val, len(newcol), N + 1)
+                        f"Incorrect length for column {name} after inserting {val}"
+                        f" (expected {len(newcol)}, got {N + 1})"
                     )
                 newcol.info.parent_table = self
 

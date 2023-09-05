@@ -284,9 +284,9 @@ class NDUncertainty(metaclass=ABCMeta):
                     unit_from_data.to(self.unit)
                 except UnitConversionError:
                     raise UnitConversionError(
-                        "Unit {} of uncertainty "
-                        "incompatible with unit {} of "
-                        "data".format(self.unit, parent_unit)
+                        f"Unit {self.unit} of uncertainty "
+                        f"incompatible with unit {parent_unit} of "
+                        "data"
                     )
 
     @abstractmethod

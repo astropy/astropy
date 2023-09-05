@@ -139,7 +139,7 @@ class CompImageHeader(Header):
         elif not isinstance(card, Card):
             raise ValueError(
                 "The value appended to a Header must be either a keyword or "
-                "(keyword, value, [comment]) tuple; got: {!r}".format(card)
+                f"(keyword, value, [comment]) tuple; got: {card!r}"
             )
 
         if self._is_reserved_keyword(card.keyword):
@@ -185,7 +185,7 @@ class CompImageHeader(Header):
         elif not isinstance(card, Card):
             raise ValueError(
                 "The value inserted into a Header must be either a keyword or "
-                "(keyword, value, [comment]) tuple; got: {!r}".format(card)
+                f"(keyword, value, [comment]) tuple; got: {card!r}"
             )
 
         if self._is_reserved_keyword(card.keyword):
@@ -261,9 +261,9 @@ class CompImageHeader(Header):
     @classmethod
     def _is_reserved_keyword(cls, keyword, warn=True):
         msg = (
-            "Keyword {!r} is reserved for use by the FITS Tiled Image "
+            f"Keyword {keyword!r} is reserved for use by the FITS Tiled Image "
             "Convention and will not be stored in the header for the "
-            "image being compressed.".format(keyword)
+            "image being compressed."
         )
 
         if keyword == "TFIELDS":

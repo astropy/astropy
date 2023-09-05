@@ -117,7 +117,7 @@ def _hdu_class_from_header(cls, header):
             except Exception as exc:
                 warnings.warn(
                     "An exception occurred matching an HDU header to the "
-                    "appropriate HDU type: {}".format(exc),
+                    f"appropriate HDU type: {exc}",
                     AstropyUserWarning,
                 )
                 warnings.warn(
@@ -1058,8 +1058,8 @@ class _ValidHDU(_BaseHDU, _Verify):
                             raise ValueError
                     except ValueError:
                         err_text = (
-                            "NAXISj keyword out of range ('{}' when "
-                            "NAXIS == {})".format(keyword, naxis)
+                            f"NAXISj keyword out of range ('{keyword}' when "
+                            f"NAXIS == {naxis})"
                         )
 
                         def fix(self=self, keyword=keyword):
