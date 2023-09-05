@@ -7,16 +7,15 @@ import numpy as np
 import astropy.units as u
 from astropy.coordinates import (
     ITRS,
-    CartesianRepresentation,
-    SphericalRepresentation,
-    BaseGeodeticRepresentation,
     BaseBodycentricRepresentation,
     BaseCoordinateFrame,
+    BaseGeodeticRepresentation,
+    CartesianRepresentation,
+    SphericalRepresentation,
 )
 from astropy.utils import unbroadcast
 
-from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE, _wcs
-from packaging.version import Version
+from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
 
 __doctest_skip__ = ["wcs_to_celestial_frame", "celestial_frame_to_wcs"]
 
@@ -262,9 +261,7 @@ def _celestial_frame_to_wcs_builtin(frame, projection="TAN"):
         wcs.wcs.aux.b_radius = frame.representation_type._equatorial_radius.value
         wcs.wcs.aux.c_radius = wcs.wcs.aux.a_radius * (
             1.0
-            - frame.representation_type._flattening.to(
-                u.dimensionless_unscaled
-            ).value
+            - frame.representation_type._flattening.to(u.dimensionless_unscaled).value
         )
     else:
         return None

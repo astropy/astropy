@@ -13,6 +13,17 @@ from astropy.coordinates.representation.geodetic import (
     BaseBodycentricRepresentation,
     BaseGeodeticRepresentation,
 )
+from astropy.coordinates.tests.test_geodetic_representations import (
+    IAUMARS2000BodycentricRepresentation,
+    IAUMARS2000GeodeticRepresentation,
+)
+
+# Preserve the original REPRESENTATION_CLASSES dict so that importing
+#   the test file doesn't add a persistent test subclass
+from astropy.coordinates.tests.test_representation import (  # noqa: F401
+    setup_function,
+    teardown_function,
+)
 from astropy.io import fits
 from astropy.time import Time
 from astropy.units import Quantity
@@ -48,18 +59,6 @@ from astropy.wcs.wcs import (
     Sip,
 )
 from astropy.wcs.wcsapi.fitswcs import SlicedFITSWCS
-
-from astropy.coordinates.tests.test_geodetic_representations import (
-    IAUMARS2000GeodeticRepresentation,
-    IAUMARS2000BodycentricRepresentation,
-)
-
-# Preserve the original REPRESENTATION_CLASSES dict so that importing
-#   the test file doesn't add a persistent test subclass
-from astropy.coordinates.tests.test_representation import (  # noqa: F401
-    setup_function,
-    teardown_function,
-)
 
 
 def test_wcs_dropping():
@@ -456,11 +455,11 @@ def test_wcs_to_celestial_frame_extend():
 def test_celestial_frame_to_wcs():
     # Import astropy.coordinates here to avoid circular imports
     from astropy.coordinates import (
-        BaseCoordinateFrame,
         FK4,
         FK5,
         ICRS,
         ITRS,
+        BaseCoordinateFrame,
         FK4NoETerms,
         Galactic,
     )
