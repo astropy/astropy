@@ -891,7 +891,7 @@ class CompImageHDU(BinTableHDU):
                     name = QUANTIZE_METHOD_NAMES[DEFAULT_QUANTIZE_METHOD]
                     warnings.warn(
                         "Unknown quantization method provided.  "
-                        "Default method ({}) used.".format(name)
+                        f"Default method ({name}) used."
                     )
                     quantize_method = DEFAULT_QUANTIZE_METHOD
 
@@ -1631,7 +1631,7 @@ class CompImageHDU(BinTableHDU):
                 "Seed for random dithering must be either between 1 and "
                 "10000 inclusive, 0 for autogeneration from the system "
                 "clock, or -1 for autogeneration from a checksum of the first "
-                "image tile (got {})".format(seed)
+                f"image tile (got {seed})"
             )
 
         if seed == DITHER_SEED_CHECKSUM:

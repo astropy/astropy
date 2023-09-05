@@ -132,7 +132,7 @@ def tableclass(request):
     return table.Table if request.param else SubclassTable
 
 
-@pytest.fixture(params=list(range(0, pickle.HIGHEST_PROTOCOL + 1)))
+@pytest.fixture(params=list(range(pickle.HIGHEST_PROTOCOL + 1)))
 def protocol(request):
     """
     Fixture to run all the tests for all available pickle protocols.

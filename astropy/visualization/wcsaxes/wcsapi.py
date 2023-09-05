@@ -36,7 +36,7 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
         elif len(slices) != wcs.pixel_n_dim:
             raise ValueError(
                 "'slices' should have as many elements as WCS "
-                "has pixel dimensions (should be {})".format(wcs.pixel_n_dim)
+                f"has pixel dimensions (should be {wcs.pixel_n_dim})"
             )
 
     is_fits_wcs = isinstance(wcs, WCS) or (

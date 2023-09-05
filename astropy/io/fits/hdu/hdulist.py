@@ -1323,10 +1323,10 @@ class HDUList(list, _Verify):
             # corrupted HDU
             except (VerifyError, ValueError) as exc:
                 warnings.warn(
-                    "Error validating header for HDU #{} (note: Astropy "
-                    "uses zero-based indexing).\n{}\n"
+                    f"Error validating header for HDU #{len(self)} (note: Astropy "
+                    f"uses zero-based indexing).\n{indent(str(exc))}\n"
                     "There may be extra bytes after the last HDU or the "
-                    "file is corrupted.".format(len(self), indent(str(exc))),
+                    "file is corrupted.",
                     VerifyWarning,
                 )
                 del exc

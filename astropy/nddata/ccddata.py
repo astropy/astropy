@@ -522,7 +522,7 @@ def _generate_wcs_and_update_header(hdr):
         # cases (malformed header) it could fail...
         log.info(
             "An exception happened while extracting WCS information from "
-            "the Header.\n{}: {}".format(type(exc).__name__, str(exc))
+            f"the Header.\n{type(exc).__name__}: {str(exc)}"
         )
         return hdr, None
     # Test for success by checking to see if the wcs ctype has a non-empty
@@ -719,8 +719,8 @@ def fits_ccddata_reader(
                     )
             else:
                 log.info(
-                    "using the unit {} passed to the FITS reader instead "
-                    "of the unit {} in the FITS file.".format(unit, fits_unit_string)
+                    f"using the unit {unit} passed to the FITS reader instead "
+                    f"of the unit {fits_unit_string} in the FITS file."
                 )
 
         use_unit = unit or fits_unit_string

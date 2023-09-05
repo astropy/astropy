@@ -1936,8 +1936,8 @@ def test_setitem_location():
         t[0, 0] = Time(-1, format="cxcsec")
     assert (
         "cannot set to Time with different location: "
-        "expected location={} and "
-        "got location=None".format(loc[0]) in str(err.value)
+        f"expected location={loc[0]} and "
+        "got location=None" in str(err.value)
     )
 
     # Succeeds because the right hand side correctly sets location
@@ -1949,8 +1949,8 @@ def test_setitem_location():
         t[0, 0] = Time(-2, format="cxcsec", location=loc[1])
     assert (
         "cannot set to Time with different location: "
-        "expected location={} and "
-        "got location={}".format(loc[0], loc[1]) in str(err.value)
+        f"expected location={loc[0]} and "
+        f"got location={loc[1]}" in str(err.value)
     )
 
     # Fails because the Time has None location and RHS has defined location
@@ -1960,7 +1960,7 @@ def test_setitem_location():
     assert (
         "cannot set to Time with different location: "
         "expected location=None and "
-        "got location={}".format(loc[1]) in str(err.value)
+        f"got location={loc[1]}" in str(err.value)
     )
 
     # Broadcasting works

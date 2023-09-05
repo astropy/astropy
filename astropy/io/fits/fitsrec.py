@@ -698,8 +698,8 @@ class FITS_rec(np.recarray):
 
         if format.dtype.itemsize == 0:
             warnings.warn(
-                "Field {!r} has a repeat count of 0 in its format code, "
-                "indicating an empty field.".format(key)
+                f"Field {key!r} has a repeat count of 0 in its format code, "
+                "indicating an empty field."
             )
             return np.array([], dtype=format.dtype)
 
@@ -803,8 +803,8 @@ class FITS_rec(np.recarray):
 
         if raw_data is None:
             raise OSError(
-                "Could not find heap data for the {!r} variable-length "
-                "array column.".format(column.name)
+                f"Could not find heap data for the {column.name!r} variable-length "
+                "array column."
             )
 
         for idx in range(len(self)):
@@ -878,8 +878,8 @@ class FITS_rec(np.recarray):
         except ValueError as exc:
             indx = self.names.index(column.name)
             raise ValueError(
-                "{}; the header may be missing the necessary TNULL{} "
-                "keyword or the table contains invalid data".format(exc, indx + 1)
+                f"{exc}; the header may be missing the necessary TNULL{indx + 1} "
+                "keyword or the table contains invalid data"
             )
 
         return dummy
@@ -985,8 +985,8 @@ class FITS_rec(np.recarray):
                         test_overflow += bzero64
                     except OverflowError:
                         warnings.warn(
-                            "Overflow detected while applying TZERO{:d}. "
-                            "Returning unscaled data.".format(indx + 1)
+                            f"Overflow detected while applying TZERO{indx + 1:d}. "
+                            "Returning unscaled data."
                         )
                     else:
                         field = test_overflow

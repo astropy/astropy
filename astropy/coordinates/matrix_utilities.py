@@ -87,7 +87,7 @@ def rotation_matrix(angle, axis="z", unit=None):
             * (1.0 - c)[..., np.newaxis, np.newaxis]
         )
 
-        for i in range(0, 3):
+        for i in range(3):
             R[..., i, i] += c
             a1 = (i + 1) % 3
             a2 = (i + 2) % 3

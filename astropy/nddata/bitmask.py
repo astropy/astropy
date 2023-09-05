@@ -68,8 +68,8 @@ class BitFlag(int):
 
         if not (_is_int(val) and _is_bit_flag(val)):
             raise InvalidBitFlag(
-                "Value '{}' is not a valid bit flag: bit flag value must be "
-                "an integral power of two.".format(val)
+                f"Value '{val}' is not a valid bit flag: bit flag value must be "
+                "an integral power of two."
             )
 
         s = int.__new__(cls, val)

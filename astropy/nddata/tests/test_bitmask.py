@@ -200,7 +200,6 @@ def test_bitfield_must_be_integer_check():
             np.bool_,
             [1, 1, 0, 0, 0, 1, 1],
         ),
-        (EXTREME_TEST_DATA, None, None, True, np.bool_, EXTREME_TEST_DATA.size * [1]),
         (
             EXTREME_TEST_DATA,
             [1, MAX_UINT_FLAG],
