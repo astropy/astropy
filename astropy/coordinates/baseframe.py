@@ -4,11 +4,13 @@ Framework and base classes for coordinate frames/"low-level" coordinate
 classes.
 """
 
+from __future__ import annotations
 
 # Standard library
 import copy
 import warnings
-from collections import defaultdict, namedtuple
+from collections import defaultdict
+from typing import NamedTuple
 
 # Dependencies
 import numpy as np
@@ -110,12 +112,7 @@ def _get_repr_classes(base, **differentials):
     return repr_classes
 
 
-_RepresentationMappingBase = namedtuple(
-    "RepresentationMapping", ("reprname", "framename", "defaultunit")
-)
-
-
-class RepresentationMapping(_RepresentationMappingBase):
+class RepresentationMapping(NamedTuple):
     """
     This `~collections.namedtuple` is used with the
     ``frame_specific_representation_info`` attribute to tell frames what
@@ -126,9 +123,9 @@ class RepresentationMapping(_RepresentationMappingBase):
     should be done).
     """
 
-    def __new__(cls, reprname, framename, defaultunit="recommended"):
-        # this trick just provides some defaults
-        return super().__new__(cls, reprname, framename, defaultunit)
+    reprname: str
+    framename: str
+    defaultunit: str | u.Unit = "recommended"
 
 
 base_doc = """{__doc__}
