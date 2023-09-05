@@ -14,8 +14,6 @@ __all__ = ["IORegistryError"]
 class IORegistryError(Exception):
     """Custom error for registry clashes."""
 
-    pass
-
 
 # -----------------------------------------------------------------------------
 

@@ -249,7 +249,6 @@ unfixable = [
 "astropy/io/*" = [
     "G001",  # logging-string-format
     "G004",  # logging-f-string
-    "PIE790",  # unnecessary-pass
     "PTH116",  # os-stat
     "SLOT000",  # Subclasses of `str` should define `__slots__`
     "TD005",  # Missing issue description after `TODO`
