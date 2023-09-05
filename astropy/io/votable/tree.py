@@ -3097,7 +3097,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
 
     def _parse_parquet(self, iterator, config):
         '''
-        Added by A. Faisst Jul/28/2023
+        Functionality to parse parquet files that are embedded
+        in VOTables.
         '''
         # looks like votable already has a "Table" imported.
         from astropy.table import Table as Table2
