@@ -194,7 +194,7 @@ class VOUnit(generic.Generic):
 
     @classmethod
     def _format_superscript(cls, number):
-        return f"({number})" if "/" in number or "." in number else f"**{number}"
+        return f"**({number})" if "/" in number or "." in number else f"**{number}"
 
     @classmethod
     def format_exponential_notation(cls, val, format_spec=".8g"):
