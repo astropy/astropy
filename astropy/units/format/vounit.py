@@ -201,6 +201,20 @@ class VOUnit(generic.Generic):
         return super().format_exponential_notation(val, format_spec)
 
     @classmethod
+    def _format_fraction(cls, scale, numerator, denominator, *, fraction="inline"):
+        if not (fraction is True or fraction == "inline"):
+            raise ValueError(
+                "format {cls.name!r} only supports inline fractions,"
+                f"not fraction={fraction!r}."
+            )
+
+        if cls._space in denominator:
+            denominator = f"({denominator})"
+        if scale and numerator == "1":
+            return f"{scale}/{denominator}"
+        return f"{scale}{numerator}/{denominator}"
+
+    @classmethod
     def to_string(cls, unit, fraction=False):
         from astropy.units import core
 
