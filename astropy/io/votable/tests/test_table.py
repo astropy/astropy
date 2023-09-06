@@ -52,49 +52,6 @@ def home_is_tmpdir(monkeypatch, tmp_path):
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
 
 
-def test_read_write_votable_parquet(tmp_path):
-    """
-    Test to write VOTable with Parquet serialization
-    """
-
-    # Create some fake data
-    number_of_objects = 10
-    ids = [f"COSMOS_{ii:03g}" for ii in range(number_of_objects)]
-    redshift = np.random.uniform(low=0, high=3, size=number_of_objects)
-    mass = np.random.uniform(low=1e8, high=1e10, size=number_of_objects)
-    sfr = np.random.uniform(low=1, high=100, size=number_of_objects)
-    astropytab = Table([ids, redshift, mass, sfr], names=["id", "z", "mass", "sfr"])
-
-    # Create Column metadata
-    column_metadata = {
-        "id": {"unit": "", "ucd": "meta.id", "utype": "none"},
-        "z": {"unit": "", "ucd": "src.redshift", "utype": "none"},
-        "mass": {"unit": "solMass", "ucd": "phys.mass", "utype": "none"},
-        "sfr": {"unit": "solMass yr-1", "ucd": "phys.SFR", "utype": "none"},
-    }
-
-    # Write VOTable with Parquet serialization
-    filename = os.path.join(tmp_path, "test_votable_parquet.vot")
-    astropytab.write(
-        filename=filename,
-        column_metadata=column_metadata,
-        overwrite=True,
-        format="votable.parquet",
-    )
-
-    # Open created VOTable with Parquet serialization
-    votable = parse(filename)
-
-    # Get table out
-    votable_table = votable.resources[0].tables[0].array
-
-    # compare
-    if (astropytab == votable_table).all():
-        print("Test Success")
-    else:
-        print("Test failed")
-
-
 def test_table(tmp_path):
     # Read the VOTABLE
     with np.errstate(over="ignore"):
@@ -302,6 +259,56 @@ def test_write_with_format():
     assert b'VOTABLE version="1.4"' in obuff
     assert b"BINARY2" in obuff
     assert b"TABLEDATA" not in obuff
+
+
+def test_read_write_votable_parquet(tmp_path):
+    """
+    Test to write and read VOTable with Parquet serialization
+    """
+
+    # Create some fake data
+    number_of_objects = 10
+    ids = [f"COSMOS_{ii:03g}" for ii in range(number_of_objects)]
+    redshift = np.random.uniform(low=0, high=3, size=number_of_objects)
+    mass = np.random.uniform(low=1e8, high=1e10, size=number_of_objects)
+    sfr = np.random.uniform(low=1, high=100, size=number_of_objects)
+    astropytab = Table([ids, redshift, mass, sfr],
+                       names=["id", "z", "mass", "sfr"])
+
+    # Create Column metadata
+    column_metadata = {
+        "id": {"unit": "", "ucd": "meta.id", "utype": "none"},
+        "z": {"unit": "", "ucd": "src.redshift", "utype": "none"},
+        "mass": {"unit": "solMass", "ucd": "phys.mass", "utype": "none"},
+        "sfr": {"unit": "solMass / yr", "ucd": "phys.SFR", "utype": "none"}
+           }
+
+    # Write VOTable with Parquet serialization
+    filename = os.path.join(tmp_path, "test_votable_parquet.vot")
+    astropytab.write(
+        filename=filename,
+        column_metadata=column_metadata,
+        overwrite=True,
+        format="votable.parquet",
+    )
+
+    # Open created VOTable with Parquet serialization
+    votable = parse(filename)
+
+    # Get table out
+    votable_table = votable.resources[0].tables[0].array
+
+    # compare tables
+    assert (astropytab == votable_table).all()
+
+    # Compare metadata
+    # Note: VOTable parses empty units ("") as "---". This is
+    # taken into account below by .replace("---","").
+    saved_bool = []
+    for kk, key in enumerate(column_metadata.keys()):
+        for tag in column_metadata[key].keys():
+            saved_bool.append(column_metadata[key][tag] == str(eval("votable.resources[0].tables[0].fields[{}].{}".format(kk, tag))).replace("---", ""))
+    assert np.asarray(saved_bool).all()
 
 
 def test_write_overwrite(tmp_path):
