@@ -193,7 +193,6 @@ def test_wrap_preserve_signature_docstring():
         """
         An awesome function
         """
-        pass
 
     if wrapped_function_6.__doc__ is not None:
         assert wrapped_function_6.__doc__.strip() == "An awesome function"
