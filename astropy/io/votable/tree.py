@@ -2774,8 +2774,9 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
                     self.array = self._parse_fits(iterator, extnum, config)
 
                 elif tag == "PARQUET":
-                    if (data["type"] == "VOTable-remote-file") | (data["type"] == "VOTable-remote-partition"):
-                        warn_unknown_attrs("PARQUET", data.keys(), config, pos)
+                    if (data["type"] == "VOTable-remote-file") | (
+                        data["type"] == "VOTable-remote-partition"):
+                            warn_unknown_attrs("PARQUET", data.keys(), config, pos)
                     self.array = self._parse_parquet(iterator, config)
 
                 else:
@@ -3096,10 +3097,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
         return array
 
     def _parse_parquet(self, iterator, config):
-        '''
+        """
         Functionality to parse parquet files that are embedded
         in VOTables.
-        '''
+        """
         # looks like votable already has a "Table" imported.
         from astropy.table import Table as Table2
 

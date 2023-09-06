@@ -3,13 +3,13 @@
 
 import os
 
+import numpy as np
+
 from astropy.io import registry as io_registry
 from astropy.table import Table
 from astropy.table.column import BaseColumn
 from astropy.units import Quantity
 from astropy.utils.misc import NOT_OVERWRITING_MSG
-
-import numpy as np
 
 from . import from_table, parse
 from .tree import Table as VOTable
@@ -185,7 +185,7 @@ io_registry.register_identifier("votable", Table, is_votable)
 
 # VOTable with embedded/linked Parquet file #
 def write_table_votable_parquet(tab, filename, column_metadata, overwrite):
-    '''
+    """
 
     This function allows writing a VOTable (XML) with PARQUET
     serialization. This functionality is currently not
@@ -200,7 +200,7 @@ def write_table_votable_parquet(tab, filename, column_metadata, overwrite):
     PARQUET table file.
 
     Parameters
-    -----------
+    ----------
     tab : astropy table
         Contains the data
     filename : str
@@ -219,16 +219,15 @@ def write_table_votable_parquet(tab, filename, column_metadata, overwrite):
     This function creates a VOTable serialized in Parquet.
     Two files are written:
     1. The VOTable (XML file) including the column metadata and a
-        ``STREAM`` tag that embedds the PARQUET table.
+        ``STREAM`` tag that embeds the PARQUET table.
     2. The PARQUET table itself.
 
     Both files are stored at the same location. The name of the
     VOTable is ``filename``, and the name of the embedded PARQUET
     file is "{}.parquet".format(filename).
-    '''
-
+    """
     # First save the PARQUET file.
-    parquet_filename = "{}.parquet".format(filename)
+    parquet_filename = f"{filename}.parquet"
     tab.write(parquet_filename, format="parquet", overwrite=overwrite)
 
     # Second, save table as binary VOT file. We will modify this file
@@ -255,7 +254,7 @@ def write_table_votable_parquet(tab, filename, column_metadata, overwrite):
     # Now reopen the binary file and replace the binary part with
     # the stream relating to the FITS file. This all is a bit flimsy
     # and needs to be made more bullet-proof.
-    with open(filename, "r") as f:
+    with open(filename) as f:
         lines = f.readlines()
 
         # get start and end of <BINARY> tag
@@ -264,9 +263,9 @@ def write_table_votable_parquet(tab, filename, column_metadata, overwrite):
 
         # Add the extension tag
         # We assume here that it is extension #1.
-        lines[line_start] = "<PARQUET type=\"VOTable-remote-file\">\n"
-        lines[line_start+1] = "<STREAM href=\"file://{}\"/>\n".format(parquet_filename)
-        lines[line_start+2] = "</PARQUET>\n"
+        lines[line_start] = '<PARQUET type="VOTable-remote-file">\n'
+        lines[line_start + 1] = f'<STREAM href="file://{parquet_filename}"/>\n'
+        lines[line_start + 2] = "</PARQUET>\n"
 
         # remove last line
         _ = lines.pop(line_stop)
@@ -276,5 +275,4 @@ def write_table_votable_parquet(tab, filename, column_metadata, overwrite):
         f.write("".join(lines))
 
 
-io_registry.register_writer("votable.parquet", Table,
-                            write_table_votable_parquet)
+io_registry.register_writer("votable.parquet", Table, write_table_votable_parquet)
