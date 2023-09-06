@@ -1150,7 +1150,7 @@ class W56(VOTableSpecWarning):
 
     message_template = (
         "The fields defined in the VOTable do not match those in the "
-        + "embedded PARQUET file"
+        "embedded PARQUET file"
     )
 
 
