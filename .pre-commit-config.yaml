@@ -112,7 +112,7 @@ repos:
       - id: black
 
   - repo: https://github.com/asmeurer/removestar
-    rev: 93c9a68de6b8e59d6efcd80defeade573e433f4f
+    rev: 9cebc8bbd8b6093b572b25b3a0c0bd6e5af54768
     hooks:
       - id: removestar
         args: ["-iv"]  # in-place changes + verbose output
