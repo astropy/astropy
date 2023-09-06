@@ -111,6 +111,15 @@ repos:
     hooks:
       - id: black
 
+  - repo: https://github.com/asmeurer/removestar
+    rev: "1.4"
+    hooks:
+      - id: removestar
+        args: ["-iv"]  # in-place changes + verbose output
+        additional_dependencies:
+          - .
+          - sphinx_astropy
+
   - repo: local
     hooks:
       - id: changelogs-rst

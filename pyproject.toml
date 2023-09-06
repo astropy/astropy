@@ -156,9 +156,6 @@ ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` in
     "E711",  # NoneComparison  (see unfixable)
     "E741",  # AmbiguousVariableName. Physics variables are often poor code variables
 
-    # Pyflakes (F)
-    "F403",  # ImportStarUsed
-
     # flake8-fixme (FIX)
     "FIX002",  # Line contains TODO | notes for improvements are OK iff the code works
 
