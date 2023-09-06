@@ -1,0 +1,1 @@
+In VOUnit, the spaces around the slash were removed in the formatting of fractions, and fractional powers now also use the "**" operator.
