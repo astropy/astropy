@@ -54,8 +54,6 @@ def _is_int(n):
 class InvalidBitFlag(ValueError):
     """Indicates that a value is not an integer that is a power of 2."""
 
-    pass
-
 
 class BitFlag(int):
     """Bit flags: integer values that are powers of 2."""
@@ -222,8 +220,6 @@ class BitFlagNameMap(metaclass=BitFlagNameMeta):
         ...     DEAD = 32
 
     """
-
-    pass
 
 
 def extend_bit_flag_map(cls_name, base_cls=BitFlagNameMap, **kwargs):
