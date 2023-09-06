@@ -59,24 +59,29 @@ def test_read_write_votable_parquet(tmp_path):
 
     # Create some fake data
     number_of_objects = 10
-    ids = ["COSMOS_{:03g}".format(ii) for ii in range(number_of_objects)]
+    ids = [f"COSMOS_{ii:03g}" for ii in range(number_of_objects)]
     redshift = np.random.uniform(low=0, high=3, size=number_of_objects)
     mass = np.random.uniform(low=1e8, high=1e10, size=number_of_objects)
     sfr = np.random.uniform(low=1, high=100, size=number_of_objects)
-    astropytab = Table([ids, redshift, mass, sfr], names=["id","z","mass","sfr"])
+    astropytab = Table([ids, redshift, mass, sfr], names=["id", "z", "mass", "sfr"])
 
     # Create Column metadata
-    column_metadata = {"id":{"unit":"","ucd":"meta.id","utype":"none"},
-           "z":{"unit":"","ucd":"src.redshift","utype":"none"},
-           "mass":{"unit":"solMass","ucd":"phys.mass","utype":"none"},
-           "sfr":{"unit":"solMass yr-1","ucd":"phys.SFR","utype":"none"}
-           }
+    column_metadata = {
+        "id": {"unit": "", "ucd": "meta.id", "utype": "none"},
+        "z": {"unit": "", "ucd": "src.redshift", "utype": "none"},
+        "mass": {"unit": "solMass", "ucd": "phys.mass", "utype": "none"},
+        "sfr": {"unit": "solMass yr-1", "ucd": "phys.SFR", "utype": "none"},
+    }
 
     # Write VOTable with Parquet serialization
     filename = os.path.join(tmp_path, "test_votable_parquet.vot")
-    astropytab.write(filename=filename, column_metadata=column_metadata,
-                     overwrite=True, format="votable.parquet")
-    
+    astropytab.write(
+        filename=filename,
+        column_metadata=column_metadata,
+        overwrite=True,
+        format="votable.parquet",
+    )
+
     # Open created VOTable with Parquet serialization
     votable = parse(filename)
 
@@ -88,7 +93,6 @@ def test_read_write_votable_parquet(tmp_path):
         print("Test Success")
     else:
         print("Test failed")
-
 
 
 def test_table(tmp_path):

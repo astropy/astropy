@@ -1140,6 +1140,7 @@ class W55(VOTableSpecWarning):
     )
     default_args = ("", "")
 
+
 class W56(VOTableSpecWarning):
     """
     The column fields as defined using ``FIELD`` elements do not match
@@ -1151,7 +1152,6 @@ class W56(VOTableSpecWarning):
         "The fields defined in the VOTable do not match those in the "
         + "embedded PARQUET file"
     )
-
 
 
 class E01(VOWarning, ValueError):
