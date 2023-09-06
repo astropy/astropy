@@ -60,7 +60,7 @@ if missing_requirements:
     print('Please install the "docs" requirements.')
     sys.exit(1)
 
-from sphinx_astropy.conf.v2 import *  # noqa: E402
+from sphinx_astropy.conf.v2 import *  # noqa: E402, F403
 from sphinx_astropy.conf.v2 import (  # noqa: E402
     exclude_patterns,
     extensions,
