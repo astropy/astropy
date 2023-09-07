@@ -1154,6 +1154,7 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
 
 
 class TestIntDiffFunctions(metaclass=CoverageMeta):
+    @pytest.mark.filterwarnings("ignore:`trapz` is deprecated. Use `scipy.*")
     def test_trapz(self):
         y = np.arange(9.0) * u.m / u.s
         out = np.trapz(y)
@@ -1947,6 +1948,7 @@ class TestSetOpsFcuntions(metaclass=CoverageMeta):
         self.check2(np.setdiff1d)
 
     @needs_array_function
+    @pytest.mark.filterwarnings("ignore:`in1d` is deprecated. Use `np.isin` instead.")
     def test_in1d(self):
         self.check2(np.in1d, unit=None)
         # Check zero is treated as having any unit.

@@ -84,7 +84,8 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.nanmax, np.nanmin, np.nanargmin, np.nanargmax, np.nanmean,
     np.nansum, np.nancumsum, np.nanstd, np.nanvar,
     np.nanprod, np.nancumprod,
-    np.einsum_path, np.trapz, np.linspace,
+    np.einsum_path, np.linspace,
+    np.trapz,  # deprecated in not NUMPY_LT_2_0
     np.sort, np.partition, np.meshgrid,
     np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
     np.iscomplexobj, np.isrealobj,
@@ -919,7 +920,7 @@ def twosetop(ar1, ar2, *args, **kwargs):
     return (ar1, ar2) + args, kwargs, unit, None
 
 
-@function_helper(helps=(np.isin, np.in1d))
+@function_helper(helps=(np.isin, np.in1d))  # np.in1d deprecated in not NUMPY_LT_2_0.
 def setcheckop(ar1, ar2, *args, **kwargs):
     # This tests whether ar1 is in ar2, so we should change the unit of
     # a1 to that of a2.
