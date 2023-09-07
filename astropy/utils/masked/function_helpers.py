@@ -94,12 +94,13 @@ MASKED_SAFE_FUNCTIONS |= {
     # np.core.shape_base
     np.atleast_1d, np.atleast_2d, np.atleast_3d, np.stack, np.hstack, np.vstack,
     # np.lib._function_base_impl
-    np.average, np.diff, np.extract, np.meshgrid, np.trapz, np.gradient,
+    np.average, np.diff, np.extract, np.meshgrid, np.gradient,
+    np.trapz,  # deprecated in not NUMPY_LT_2_0
     # np.lib.index_tricks
     np.diag_indices_from, np.triu_indices_from, np.tril_indices_from,
     np.fill_diagonal,
     # np.lib.shape_base
-    np.column_stack, np.row_stack, np.dstack,
+    np.column_stack, np.dstack,
     np.array_split, np.split, np.hsplit, np.vsplit, np.dsplit,
     np.expand_dims, np.apply_along_axis, np.kron, np.tile,
     np.take_along_axis, np.put_along_axis,
@@ -111,6 +112,13 @@ MASKED_SAFE_FUNCTIONS |= {
     # np.lib._function_base_impl
     np.angle, np.i0,
 }  # fmt: skip
+
+
+if NUMPY_LT_2_0:
+    # Removed in numpy 2.0.  Just an alias to vstack.
+    MASKED_SAFE_FUNCTIONS |= {np.row_stack}
+
+
 IGNORED_FUNCTIONS = {
     # I/O - useless for Masked, since no way to store the mask.
     np.save, np.savez, np.savetxt, np.savez_compressed,
