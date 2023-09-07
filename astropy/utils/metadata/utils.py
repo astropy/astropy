@@ -7,7 +7,7 @@ from astropy.utils.misc import dtype_bytes_or_chars
 
 from .exceptions import MergeConflictError
 
-__all__ = []
+__all__ = ["common_dtype"]
 
 
 def common_dtype(arrs):

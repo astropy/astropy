@@ -10,7 +10,15 @@ import numpy as np
 from .exceptions import MergeConflictError, MergeConflictWarning
 from .utils import common_dtype
 
-__all__ = []
+__all__ = [
+    "MERGE_STRATEGIES",
+    "MergeStrategyMeta",
+    "MergeStrategy",
+    "MergePlus",
+    "MergeNpConcatenate",
+    "enable_merge_strategies",
+    "merge",
+]
 
 MERGE_STRATEGIES = []
 

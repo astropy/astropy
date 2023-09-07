@@ -4,7 +4,7 @@
 
 from astropy.utils.exceptions import AstropyWarning
 
-__all__ = []
+__all__ = ["MergeConflictError", "MergeConflictWarning"]
 
 
 class MergeConflictError(TypeError):

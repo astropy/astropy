@@ -6,7 +6,7 @@ from collections import OrderedDict
 from collections.abc import Mapping
 from copy import deepcopy
 
-__all__ = []
+__all__ = ["MetaData", "MetaAttribute"]
 
 
 class MetaData:
