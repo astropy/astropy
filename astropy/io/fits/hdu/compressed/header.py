@@ -841,7 +841,7 @@ def _image_header_to_bintable_header_and_coldefs(
                 name = QUANTIZE_METHOD_NAMES[DEFAULT_QUANTIZE_METHOD]
                 warnings.warn(
                     "Unknown quantization method provided.  "
-                    "Default method ({}) used.".format(name)
+                    f"Default method ({name}) used."
                 )
                 quantize_method = DEFAULT_QUANTIZE_METHOD
 
