@@ -712,6 +712,37 @@ def test_vounit_scale_factor(unit, vounit, number, scale, voscale):
     assert x.to_string(format="vounit") == voscale + vounit
 
 
+@pytest.mark.parametrize(
+    "unit, vounit",
+    [
+        ("m s^-1", "m/s"),
+        ("s^-1", "1/s"),
+        ("100 s^-2", "100/s**2"),
+        ("kg m-1 s-2", "kg/(m.s**2)"),
+    ],
+)
+@pytest.mark.parametrize("fraction", [True, "inline"])
+def test_vounit_fraction(unit, vounit, fraction):
+    x = u.Unit(unit)
+    assert x.to_string(format="vounit", fraction=fraction) == vounit
+
+
+@pytest.mark.parametrize(
+    "unit, vounit",
+    [
+        ("m^2", "m**2"),
+        ("s^-1", "s**-1"),
+        ("s(0.333)", "s**(0.333)"),
+        ("s(-0.333)", "s**(-0.333)"),
+        ("s(1/3)", "s**(1/3)"),
+        ("s(-1/3)", "s**(-1/3)"),
+    ],
+)
+def test_vounit_power(unit, vounit):
+    x = u.Unit(unit)
+    assert x.to_string(format="vounit") == vounit
+
+
 def test_vounit_custom():
     x = u.Unit("'foo' m", format="vounit")
     x_vounit = x.to_string("vounit")
