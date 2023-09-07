@@ -1,3 +1,19 @@
+Version 5.0.8 (2023-09-07)
+==========================
+
+Bug Fixes
+---------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- ``TransformGraph.to_dot_graph()`` now throws an exception for invalid ``savelayout``.
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+- The exponent of ``w0wzCDM`` functions in ``inv_efunc`` has been corrected to 3, from -3. [#15227]
+
 Version 5.0.7 (2023-08-11)
 ==========================
 

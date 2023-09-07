@@ -1,1 +1,0 @@
-The exponent of ``w0wzCDM`` functions in ``inv_efunc`` has been corrected to 3, from -3.
