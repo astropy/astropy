@@ -1,3 +1,40 @@
+Version v5.3.3 (2023-09-07)
+===========================
+
+Bug Fixes
+---------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- ``TransformGraph.to_dot_graph()`` now throws an exception for invalid ``savelayout``.
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+- The exponent of ``w0wzCDM`` functions in ``inv_efunc`` has been corrected to 3, from -3. [#15224]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Astropy modeling can filter non-finite data values using the ``filter_non_finite``
+  keyword argument in a fitter call. Now when ``filter_non_finite`` is True,
+  non-finite *weights* will also be filtered to prevent crashes in ``LevMarLSQFitter``. [#15215]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Fixed ``astropy.units.Quantity``'s implementation of ``numpy.nanmedian()``,
+  where for Numpy >= 1.25 an exception was raised for some array shapes and axis
+  combinations. [#15228]
+
+
+Other Changes and Additions
+---------------------------
+
+- v5.3.x will not support NumPy 2.0 or later. [#15234]
+
+
 Version 5.3.2 (2023-08-11)
 ==========================
 
