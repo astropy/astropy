@@ -21,8 +21,7 @@ SMAD_SCALE_FACTOR = 1.48260221850560203193936104071326553821563720703125
 
 
 class Distribution:
-    """
-    A scalar value or array values with associated uncertainty distribution.
+    """A scalar value or array values with associated uncertainty distribution.
 
     This object will take its exact type from whatever the ``samples`` argument
     is. In general this is expected to be an `~astropy.units.Quantity` or
@@ -34,9 +33,13 @@ class Distribution:
     Parameters
     ----------
     samples : array-like
-        The distribution, with sampling along the *leading* axis. If 1D, the
-        sole dimension is used as the sampling axis (i.e., it is a scalar
-        distribution).
+
+    The distribution, with sampling along the *trailing* axis. If 1D, the sole
+    dimension is used as the sampling axis (i.e., it is a scalar distribution).
+    If an |ndarray| or subclass, the data will not be copied unless it is not
+    possible to take a view (generally, only when the strides of the last axis
+    are negative).
+
     """
 
     _generated_subclasses = {}
