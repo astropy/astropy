@@ -2758,6 +2758,12 @@ class TimeDelta(TimeBase):
         ('tdb', 'tt', 'ut1', 'tcg', 'tcb', 'tai'). If not given (or
         ``None``), the scale is arbitrary; when added or subtracted from a
         ``Time`` instance, it will be used without conversion.
+    precision : int, optional
+        Digits of precision in string representation of time
+    in_subfmt : str, optional
+        Unix glob to select subformats for parsing input times
+    out_subfmt : str, optional
+        Unix glob to select subformat for outputting times
     copy : bool, optional
         Make a copy of the input values
     """
@@ -2789,13 +2795,33 @@ class TimeDelta(TimeBase):
 
         return self
 
-    def __init__(self, val, val2=None, format=None, scale=None, copy=False):
+    def __init__(
+        self,
+        val,
+        val2=None,
+        format=None,
+        scale=None,
+        *,
+        precision=None,
+        in_subfmt=None,
+        out_subfmt=None,
+        copy=False,
+    ):
         if isinstance(val, TimeDelta):
             if scale is not None:
                 self._set_scale(scale)
         else:
             format = format or self._get_format(val)
-            self._init_from_vals(val, val2, format, scale, copy)
+            self._init_from_vals(
+                val,
+                val2,
+                format,
+                scale,
+                copy,
+                precision=precision,
+                in_subfmt=in_subfmt,
+                out_subfmt=out_subfmt,
+            )
 
             if scale is not None:
                 self.SCALES = TIME_DELTA_TYPES[scale]
