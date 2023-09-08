@@ -2224,13 +2224,14 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
     # element is named.
     re_float = r"[0-9]*\.?[0-9]*([eE][-+]?[0-9]+)?"
     re_ydhms = re.compile(
-        rf"""
+        rf"""^ \s*
         (?P<sign>[-+])? \s*
         ((?P<yr>{re_float}) \s* yr \s*)?
         ((?P<d>{re_float}) \s* d \s*)?
         ((?P<hr>{re_float}) \s* hr \s*)?
         ((?P<min>{re_float}) \s* min \s*)?
         ((?P<s>{re_float}) \s* s)?
+        \s* $
         """,
         re.VERBOSE,
     )
