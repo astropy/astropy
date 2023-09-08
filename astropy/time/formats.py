@@ -42,7 +42,7 @@ __all__ = [
     "TimeDeltaFormat",
     "TimeDeltaSec",
     "TimeDeltaJD",
-    "TimeDeltaYDHMS",
+    "TimeDeltaQuantityString",
     "TimeEpochDateString",
     "TimeBesselianEpochString",
     "TimeJulianEpochString",
@@ -2176,23 +2176,48 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
         return self.mask_if_needed(iterator.operands[-1])
 
 
-class TimeDeltaYDHMS(TimeDeltaFormat, TimeUnique):
+class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
+    """Time delta as a string with one or more Quantity components.
+
+    In this format the time interval can be specified as a string with one or more
+    components, each of which is a Quantity.  The components are separated by a space
+    which is optional for input.  The allowed components are listed below, where the
+    order is fixed but individual components are optional.  The components are:
+
+    - 'yr': years (365.25 days)
+    - 'd': days (24 hours)
+    - 'hr': hours (60 minutes)
+    - 'min': minutes (60 seconds)
+    - 's': seconds (SI seconds)
+
+    The following are valid inputs::
+
+      "-1yr 2d 3hr 4min 5.6s"
+      "+1.2yr"
+      "1.2 yr 3.5 hr"
+      "1.2yr3hr"
+
+    The allowed subformats for ``out_subfmt`` specify the components to be included in
+    the string output.  The default is ``'multi'`` which includes all components::
+
+    - 'multi': multiple components, e.g. '1yr 2d 3hr 4min 5.6s'
+    - 'yr': years
+    - 'd': days
+    - 'hr': hours
+    - 'min': minutes
+    - 's': seconds
     """
-    Abstract time interval using SI units of time.
 
-    "[-+]? 1yr 2d 3hr 4min 5.6s" is represented as
+    name = "quantity_str"
 
-    The day-of-year (DOY) goes from 001 to 365 (366 in leap years).
-    For example, 2000:001:00:00:00.000 is midnight on January 1, 2000.
-
-    The allowed subformats are:
-
-    - 'date_hms': date + hours, mins, secs (and optional fractional secs)
-    - 'date_hm': date + hours, mins
-    - 'date': date
-    """
-
-    name = "ydhms"
+    subfmts = (
+        ("multi", None, None),
+        ("yr", None, None),
+        ("d", None, None),
+        ("hr", None, None),
+        ("min", None, None),
+        ("s", None, None),
+    )
 
     # Regex to parse "1.02yr 2.2d 3.12hr 4.322min 5.6s" where each element is optional
     # but the order is fixed. Each element is a float with optional exponent. Each
@@ -2265,8 +2290,10 @@ class TimeDeltaYDHMS(TimeDeltaFormat, TimeUnique):
 
         self.jd1, self.jd2 = day_frac(jd1, 0.0)
 
-    @property
-    def value(self):
+    def to_value(self, parent=None, out_subfmt=None):
+        out_subfmt = out_subfmt or self.out_subfmt
+        subfmt = self._get_allowed_subfmt(out_subfmt)
+
         iterator = np.nditer(
             [self.jd1, self.jd2, None],
             flags=["refs_ok", "zerosize_ok"],
@@ -2281,22 +2308,35 @@ class TimeDeltaYDHMS(TimeDeltaFormat, TimeUnique):
             sign = "-" if jd < 0 else "+"
             jd = np.abs(jd)
 
-            comp_names = ("yr", "d", "hr", "min", "s")
-            comp_scales = (365.25, 1.0, 1.0 / 24.0, 1.0 / 1440.0)
-            comps = []
-            for name, scale in zip(comp_names, comp_scales):
-                comp, jd = divmod(jd, scale)
-                if comp != 0:
-                    comp = int(comp)
-                    comps.append(f"{comp}{name}")
-
-            sec = np.round(jd * 86400.0, self.precision)
-            if sec != 0:
-                comps.append(str(sec) + "s")
+            if subfmt in ["*", "multi"]:
+                comps = self.get_multi_comps(jd)
+            else:
+                value = (jd * u.day).to_value(subfmt)
+                value = np.round(value, self.precision)
+                comps = [f"{value}{subfmt}"]
 
             out[...] = sign + " ".join(comps)
 
         return self.mask_if_needed(np.array(iterator.operands[-1], dtype="U"))
+
+    def get_multi_comps(self, jd):
+        comp_names = ("yr", "d", "hr", "min", "s")
+        comp_scales = (365.25, 1.0, 1.0 / 24.0, 1.0 / 1440.0)
+        comps = []
+        for name, scale in zip(comp_names, comp_scales):
+            comp, jd = divmod(jd, scale)
+            if comp != 0:
+                comp = int(comp)
+                comps.append(f"{comp}{name}")
+
+        sec = np.round(jd * 86400.0, self.precision)
+        if sec != 0:
+            comps.append(str(sec) + "s")
+        return comps
+
+    @property
+    def value(self):
+        return self.to_value()
 
 
 def _validate_jd_for_storage(jd):

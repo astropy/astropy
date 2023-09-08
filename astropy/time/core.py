@@ -3122,17 +3122,36 @@ class TimeDelta(TimeBase):
         if not (args or kwargs):
             raise TypeError("to_value() missing required format or unit argument")
 
-        # TODO: maybe allow 'subfmt' also for units, keeping full precision
-        # (effectively, by doing the reverse of quantity_day_frac)?
-        # This way, only equivalencies could lead to possible precision loss.
+        # Validate keyword arguments.
+        if kwargs:
+            allowed_kwargs = {"format", "subfmt", "unit", "equivalencies"}
+            if not set(kwargs).issubset(allowed_kwargs):
+                raise TypeError(
+                    f"to_value() got an unexpected keyword argument(s) "
+                    f"{set(kwargs) - allowed_kwargs}"
+                )
+
+        # Handle a valid format as first positional argument or keyword. This will also
+        # accept a subfmt keyword if supplied.
         if "format" in kwargs or (
             args != () and (args[0] is None or args[0] in self.FORMATS)
         ):
             # Super-class will error with duplicate arguments, etc.
             return super().to_value(*args, **kwargs)
 
-        # With positional arguments, we try parsing the first one as a unit,
-        # so that on failure we can give a more informative exception.
+        # Handle subfmt keyword with no format and no args.
+        if "subfmt" in kwargs:
+            if args:
+                raise ValueError(
+                    "cannot specify 'subfmt' and positional argument that is not a "
+                    "valid format"
+                )
+            return super().to_value(self.format, **kwargs)
+
+        # At this point any positional argument must be a unit so try parsing as such.
+        # If it fails then give an informative exception.
+        # TODO: deprecate providing equivalencies as a positional argument. This is
+        # quite non-obvious in this context.
         if args:
             try:
                 unit = u.Unit(args[0])
