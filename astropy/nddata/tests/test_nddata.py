@@ -438,7 +438,7 @@ def test_pickle_nddata_without_uncertainty():
 # Check that the meta descriptor is working as expected. The MetaBaseTest class
 # takes care of defining all the tests, and we simply have to define the class
 # and any minimal set of args to pass.
-from astropy.utils.tests.test_metadata import MetaBaseTest
+from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 
 
 class TestMetaNDData(MetaBaseTest):
