@@ -33,6 +33,7 @@ from .formats import (
     TIME_FORMATS,
     TimeAstropyTime,
     TimeDatetime,
+    TimeDeltaNumeric,
     TimeFromEpoch,  # noqa: F401
     TimeJD,
     TimeUnique,
@@ -2812,7 +2813,6 @@ class TimeDelta(TimeBase):
             if scale is not None:
                 self._set_scale(scale)
         else:
-            format = format or self._get_format(val)
             self._init_from_vals(
                 val,
                 val2,
@@ -2823,23 +2823,21 @@ class TimeDelta(TimeBase):
                 in_subfmt=in_subfmt,
                 out_subfmt=out_subfmt,
             )
+            self._check_numeric_no_unit(val)
 
             if scale is not None:
                 self.SCALES = TIME_DELTA_TYPES[scale]
 
-    @staticmethod
-    def _get_format(val):
-        if isinstance(val, timedelta):
-            return "datetime"
-
-        if getattr(val, "unit", None) is None:
+    def _check_numeric_no_unit(self, val):
+        if (
+            isinstance(self._time, TimeDeltaNumeric)
+            and getattr(val, "unit", None) is None
+        ):
             warn(
                 "Numerical value without unit or explicit format passed to"
                 " TimeDelta, assuming days",
                 TimeDeltaMissingUnitWarning,
             )
-
-        return None
 
     def replicate(self, *args, **kwargs):
         out = super().replicate(*args, **kwargs)
