@@ -2725,7 +2725,7 @@ class TimeDelta(TimeBase):
     The allowed values for ``format`` can be listed with::
 
       >>> list(TimeDelta.FORMATS)
-      ['sec', 'jd', 'datetime', 'ydhms']
+      ['sec', 'jd', 'datetime', 'quantity_str']
 
     Note that for time differences, the scale can be among three groups:
     geocentric ('tai', 'tt', 'tcg'), barycentric ('tcb', 'tdb'), and rotational
@@ -3076,12 +3076,13 @@ class TimeDelta(TimeBase):
         To convert to a unit with optional equivalencies, the options are::
 
           tm.to_value('hr')  # convert to u.hr (hours)
-          tm.to_value('hr', [])  # specify equivalencies as a positional arg
           tm.to_value('hr', equivalencies=[])
           tm.to_value(unit='hr', equivalencies=[])
 
-        The built-in `~astropy.time.TimeDelta` options for ``format`` are:
-        {'jd', 'sec', 'datetime'}.
+        The built-in `~astropy.time.TimeDelta` options for ``format`` are shown below::
+
+          >>> list(TimeDelta.FORMATS)
+          ['sec', 'jd', 'datetime', 'quantity_str']
 
         For the two numerical formats 'jd' and 'sec', the available ``subfmt``
         options are: {'float', 'long', 'decimal', 'str', 'bytes'}. Here, 'long'
