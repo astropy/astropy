@@ -2179,33 +2179,67 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
 class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
     """Time delta as a string with one or more Quantity components.
 
-    In this format the time interval can be specified as a string with one or more
-    components, each of which is a Quantity.  The components are separated by a space
-    which is optional for input.  The allowed components are listed below, where the
-    order is fixed but individual components are optional.  The components are:
+    This format provides a human-readable multi-scale string representation of a time
+    delta. It is convenient for applications like a configuration file or a command line
+    option. It is NOT intended for high-precision applications since the internal
+    calculations are done using 64-bit floating point numbers.
 
-    - 'yr': years (365.25 days)
-    - 'd': days (24 hours)
-    - 'hr': hours (60 minutes)
-    - 'min': minutes (60 seconds)
-    - 's': seconds (SI seconds)
+    The format is specified as follows:
 
-    The following are valid inputs::
+    - The string is a sequence of one or more components.
+    - Each component is a number followed by an astropy unit of time.
+    - For input, whitespace within the string is allowed but optional.
+    - For output, there is a single space between components.
+    - The allowed components are listed below.
+    - The order is fixed but individual components are optional.
 
-      "-1yr 2d 3hr 4min 5.6s"
-      "+1.2yr"
-      "1.2 yr 3.5 hr"
-      "1.2yr3hr"
+    The allowed component units are shown below:
 
-    The allowed subformats for ``out_subfmt`` specify the components to be included in
-    the string output.  The default is ``'multi'`` which includes all components::
+    - "yr": years (365.25 days)
+    - "d": days (24 hours)
+    - "hr": hours (60 minutes)
+    - "min": minutes (60 seconds)
+    - "s": seconds
 
-    - 'multi': multiple components, e.g. '1yr 2d 3hr 4min 5.6s'
-    - 'yr': years
-    - 'd': days
-    - 'hr': hours
-    - 'min': minutes
-    - 's': seconds
+    .. Note:: These definitions correspond to physical units of time and are NOT
+       calendar date intervals. Thus adding "1yr" to "2000-01-01 00:00:00" will give
+       "2000-12-31 06:00:00" instead of "2001-01-01 00:00:00".
+
+    The ``out_subfmt`` attribute specifies the components to be included in the string
+    output.  The default is ``"multi"`` which includes all non-zero components::
+
+    - "multi": multiple components, e.g. "1yr 2d 3hr 5.6s"
+    - "yr": years
+    - "d": days
+    - "hr": hours
+    - "min": minutes
+    - "s": seconds
+
+    Examples
+    --------
+      >>> from astropy.time import Time, TimeDelta
+      >>> import astropy.units as u
+
+      >>> print(TimeDelta("1yr"))
+      1yr
+      >>> print(Time("2000-01-01") + TimeDelta("1yr"))
+      2000-12-31 06:00:00.000
+
+      >>> print(TimeDelta("+1yr 3.6d"))
+      1yr 3d 14hr 24min
+      >>> print(TimeDelta("-1yr 3.6d"))
+      -1yr 3d 14hr 24min
+      >>> print(TimeDelta("1yr 3.6d", out_subfmt="d"))
+      368.85d
+
+      >>> td = TimeDelta(40 * u.hr)
+      >>> print(td.to_value(format="quantity_str"))
+      1d 16hr
+      >>> print(td.to_value(format="quantity_str", subfmt="d"))
+      1.667d
+      >>> td.precision = 9
+      >>> print(td.to_value(format="quantity_str", subfmt="d"))
+      1.666666667d
     """
 
     name = "quantity_str"
@@ -2285,10 +2319,7 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
             ) = self.parse_string(val)
 
         yrs, days, hrs, mins, secs = iterator.operands[1:]
-
-        # Low-precision implementation for now
         jd1 = yrs * 365.25 + days + hrs / 24.0 + mins / 1440.0 + secs / 86400.0
-
         self.jd1, self.jd2 = day_frac(jd1, 0.0)
 
     def to_value(self, parent=None, out_subfmt=None):
