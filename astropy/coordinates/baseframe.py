@@ -6,19 +6,22 @@ classes.
 
 from __future__ import annotations
 
-# Standard library
+__all__ = [
+    "BaseCoordinateFrame",
+    "frame_transform_graph",
+    "GenericFrame",
+    "RepresentationMapping",
+]
+
 import copy
 import warnings
 from collections import defaultdict
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
-# Dependencies
 import numpy as np
 
 from astropy import units as u
 from astropy.utils import ShapedLikeNDArray, check_broadcast
-
-# Project
 from astropy.utils.decorators import deprecated, format_doc, lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
@@ -27,12 +30,8 @@ from .angles import Angle
 from .attributes import Attribute
 from .transformations import TransformGraph
 
-__all__ = [
-    "BaseCoordinateFrame",
-    "frame_transform_graph",
-    "GenericFrame",
-    "RepresentationMapping",
-]
+if TYPE_CHECKING:
+    from astropy.units import Unit
 
 
 # the graph used for all transformations between frames
@@ -114,7 +113,7 @@ def _get_repr_classes(base, **differentials):
 
 class RepresentationMapping(NamedTuple):
     """
-    This `~collections.namedtuple` is used with the
+    This :class:`~typing.NamedTuple` is used with the
     ``frame_specific_representation_info`` attribute to tell frames what
     attribute names (and default units) to use for a particular representation.
     ``reprname`` and ``framename`` should be strings, while ``defaultunit`` can
@@ -125,7 +124,7 @@ class RepresentationMapping(NamedTuple):
 
     reprname: str
     framename: str
-    defaultunit: str | u.Unit = "recommended"
+    defaultunit: str | Unit = "recommended"
 
 
 base_doc = """{__doc__}
