@@ -2306,7 +2306,7 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
 
             # Naive and low-precision implementation for now
             jd = jd1_ + jd2_
-            sign = "-" if jd < 0 else "+"
+            sign = "-" if jd < 0 else ""
             jd = np.abs(jd)
 
             if subfmt in ["*", "multi"]:
