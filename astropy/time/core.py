@@ -2823,15 +2823,16 @@ class TimeDelta(TimeBase):
                 in_subfmt=in_subfmt,
                 out_subfmt=out_subfmt,
             )
-            self._check_numeric_no_unit(val)
+            self._check_numeric_no_unit(val, format)
 
             if scale is not None:
                 self.SCALES = TIME_DELTA_TYPES[scale]
 
-    def _check_numeric_no_unit(self, val):
+    def _check_numeric_no_unit(self, val, format):
         if (
             isinstance(self._time, TimeDeltaNumeric)
             and getattr(val, "unit", None) is None
+            and format is None
         ):
             warn(
                 "Numerical value without unit or explicit format passed to"
