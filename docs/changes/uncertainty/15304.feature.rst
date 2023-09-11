@@ -1,0 +1,2 @@
+Uncertainty ``Distribution`` now support structured data types, and as
+a result it now works also with ``EarthLocation``.

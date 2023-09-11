@@ -1,1 +1,0 @@
-Uncertainty ``Distribution`` now support structured data types.
