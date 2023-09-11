@@ -21,7 +21,7 @@ jobs:
     if: github.repository == 'astropy/astropy'
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         ref: v5.0.x
     - name: Download latest IERS files
@@ -59,7 +59,7 @@ jobs:
     if: github.repository == 'astropy/astropy'
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         ref: v5.3.x
     - name: Download latest IERS files
