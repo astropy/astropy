@@ -132,7 +132,7 @@ def deprecated(
         The type of this object, if the automatically determined one
         needs to be overridden.
 
-    warning_type : Warning
+    warning_type : Warning or None, optional
         Warning to be issued.
         Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
     """
@@ -176,9 +176,7 @@ def deprecated(
         # Note: `typing.deprecated` can't yet deprecate a classmethod, so we need to do
         # that ourselves instead. The specific error is: ``TypeError: @deprecated
         # decorator with non-None category must be applied to a class or callable``
-        if not (
-            category is not None and not inspect.isclass(obj) and not callable(obj)
-        ):
+        if category is None or inspect.isclass(obj) or callable(obj):
             return typing_extensions.deprecated(msg, category=category)(obj)
 
         # Deprecate the function, unwrapping method type decorators
