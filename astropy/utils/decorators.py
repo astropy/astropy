@@ -29,18 +29,11 @@ __all__ = [
 ]
 
 _NotFound = object()
-_method_types = (classmethod, staticmethod, types.MethodType)
 
 
-def _deprecate_doc(old_doc, message, since):
-    """Returns a given docstring with a deprecation message prepended."""
-    old_doc = textwrap.dedent(old_doc).strip("\n") if old_doc else ""
-    new_doc = f"\n.. deprecated:: {since}\n    {message.strip()}\n\n" + old_doc
-    if not old_doc:
-        # This is to prevent a spurious 'unexpected unindent' warning from
-        # docutils when the original docstring was blank.
-        new_doc += r"\ "
-    return new_doc
+def _ismethod(func):
+    """`inspect.ismethod` misses classmethods and staticmethods."""
+    return inspect.ismethod(func) or isinstance(func, (classmethod, staticmethod))
 
 
 def _get_func(func):
@@ -48,7 +41,7 @@ def _get_func(func):
     Given a function or classmethod (or other function wrapper type), get
     the function object.
     """
-    return func.__func__ if isinstance(func, _method_types) else func
+    return func.__func__ if _ismethod(func) else func
 
 
 def _deprecation_message(alternative, pending):
@@ -78,6 +71,17 @@ def _deprecation_message(alternative, pending):
         msg += f"\n        Use {alternative} instead."
 
     return msg
+
+
+def _deprecate_doc(old_doc, message, since):
+    """Returns a given docstring with a deprecation message prepended."""
+    old_doc = textwrap.dedent(old_doc).strip("\n") if old_doc else ""
+    new_doc = f"\n.. deprecated:: {since}\n    {message.strip()}\n\n" + old_doc
+    if not old_doc:
+        # This is to prevent a spurious 'unexpected unindent' warning from
+        # docutils when the original docstring was blank.
+        new_doc += r"\ "
+    return new_doc
 
 
 def deprecated(
@@ -153,7 +157,7 @@ def deprecated(
             obj_type_name = "class"
         elif inspect.isfunction(obj):
             obj_type_name = "function"
-        elif inspect.ismethod(obj) or isinstance(obj, _method_types):
+        elif _ismethod(obj):
             obj_type_name = "method"
         else:
             obj_type_name = "object"
@@ -184,7 +188,7 @@ def deprecated(
         # Add the deprecation message to the docstring
         depr_f.__doc__ = _deprecate_doc(depr_f.__doc__, msg, since)
         # Return the deprecated function, preserving the method type
-        return type(obj)(depr_f) if isinstance(obj, _method_types) else depr_f
+        return type(obj)(depr_f) if _ismethod(obj) else depr_f
 
     return deprecate
 
