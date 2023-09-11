@@ -144,8 +144,7 @@ def deprecated(
         if not message:
             message = _deprecation_message(alternative, pending)
         message = message.format(
-            func=name,
-            name=name if name else _get_func(obj).__name__,
+            func=name if name else _get_func(obj).__name__,
             alternative=alternative,
             obj_type=obj_type_name,
         )
