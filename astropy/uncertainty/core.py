@@ -10,7 +10,17 @@ from numpy.lib.stride_tricks import DummyArray
 
 from astropy import stats
 from astropy import units as u
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_23
+from astropy.utils.compat.numpycompat import NUMPY_LT_1_23, NUMPY_LT_2_0
+
+if NUMPY_LT_2_0:
+    from numpy.core.multiarray import normalize_axis_index
+    from numpy.lib.function_base import _parse_gufunc_signature
+else:
+    from numpy.lib._function_base_impl import _parse_gufunc_signature
+    from numpy.lib.array_utils import normalize_axis_index
+
+
+from .function_helpers import FUNCTION_HELPERS
 
 __all__ = ["Distribution"]
 
@@ -195,9 +205,12 @@ class Distribution:
                 (output.distribution if isinstance(output, Distribution) else output)
                 for output in outputs
             )
+            if ufunc.nout == 1:
+                outputs = outputs[0]
 
+        axis = kwargs.get("axis", None)
+        keepdims = kwargs.get("keepdims", False)
         if method in {"reduce", "accumulate", "reduceat"}:
-            axis = kwargs.get("axis", None)
             if axis is None:
                 assert isinstance(inputs[0], Distribution)
                 kwargs["axis"] = tuple(range(inputs[0].ndim))
@@ -214,24 +227,126 @@ class Distribution:
                 else:
                     converted.append(input_)
 
+        if ufunc.signature:
+            # We're dealing with a gufunc, which may add an extra axis.
+            # Ignore axes keyword for now...  TODO: remove this limitation.
+            if "axes" in kwargs:
+                raise NotImplementedError(
+                    "Distribution does not yet support gufunc calls with 'axes'."
+                )
+            # Parse signature with private numpy function. Note it
+            # cannot handle spaces in tuples, so remove those.
+            in_sig, out_sig = _parse_gufunc_signature(ufunc.signature.replace(" ", ""))
+            ncore_in = [len(sig) for sig in in_sig]
+            ncore_out = [len(sig) + (1 if keepdims else 0) for sig in out_sig]
+            if ufunc.nout == 1:
+                ncore_out = ncore_out[0]
+            if axis is None:
+                axis = -1
+            converted = [
+                np.moveaxis(conv, -1, normalize_axis_index(axis, conv.ndim) - ncore)
+                if ncore and getattr(conv, "shape", ())
+                else conv
+                for conv, ncore in zip(converted, ncore_in)
+            ]
+        else:
+            ncore_out = None
+
         results = getattr(ufunc, method)(*converted, **kwargs)
 
-        if not isinstance(results, tuple):
-            results = (results,)
-        if outputs is None:
-            outputs = (None,) * len(results)
+        return self._result_as_distribution(results, outputs, ncore_out, axis)
 
-        finals = []
-        for result, output in zip(results, outputs):
-            if output is not None:
-                finals.append(output)
+    def __array_function__(self, function, types, args, kwargs):
+        # TODO: go through functions systematically to see which ones
+        # work and/or can be supported.
+        if function in FUNCTION_HELPERS:
+            function_helper = FUNCTION_HELPERS[function]
+            try:
+                args, kwargs, out = function_helper(*args, **kwargs)
+            except NotImplementedError:
+                return self._not_implemented_or_raise(function, types)
+
+            result = super().__array_function__(function, types, args, kwargs)
+            # Fall through to return section
+
+        else:  # pragma: no cover
+            # By default, just pass it through for now.
+            return super().__array_function__(function, types, args, kwargs)
+
+        # We're done if the result was NotImplemented, which can happen
+        # if other inputs/outputs override __array_function__;
+        # hopefully, they can then deal with us.
+        if result is NotImplemented:
+            return NotImplemented
+
+        return self._result_as_distribution(result, out=out)
+
+    def _result_as_distribution(self, result, out, ncore_out=None, axis=None):
+        """Turn result into a distribution.
+
+        If no output is given, it will create a Distribution from the array,
+        If an output is given, it should be fine as is.
+
+        Parameters
+        ----------
+        result : ndarray or tuple thereof
+            Array(s) which need to be turned into Distribution.
+        out : Distribution, tuple of Distribution or None
+            Possible output |Distribution|. Should be `None` or a tuple if result
+            is a tuple.
+        ncore_out: int or tuple thereof
+            The number of core dimensions for the output array for a gufunc.  This
+            is used to determine which axis should be used for the samples.
+        axis: int or None
+            The axis a gufunc operated on.  Used only if ``ncore_out`` is given.
+
+        Returns
+        -------
+        out : Distribution
+        """
+        if isinstance(result, (tuple, list)):
+            if out is None:
+                out = (None,) * len(result)
+            if ncore_out is None:
+                ncore_out = (None,) * len(result)
+            # Some np.linalg functions return namedtuple, which is handy to access
+            # elements by name, but cannot be directly initialized with an iterator.
+            result_cls = getattr(result, "_make", result.__class__)
+            return result_cls(
+                self._result_as_distribution(result_, out_, axis=axis, ncore_out=ncore)
+                for (result_, out_, ncore) in zip(result, out, ncore_out)
+            )
+
+        if out is None:
+            # Turn the result into a Distribution if needed.
+            if not isinstance(result, Distribution) and getattr(result, "shape", ()):
+                if ncore_out is not None:
+                    result = np.moveaxis(
+                        result, normalize_axis_index(axis, result.ndim) - ncore_out, -1
+                    )
+                return Distribution(result)
             else:
-                if getattr(result, "shape", False):
-                    finals.append(Distribution(result))
-                else:
-                    finals.append(result)
+                return result
+        else:
+            # TODO: remove this sanity check once test cases are more complete.
+            assert isinstance(out, Distribution)
+            return out
 
-        return finals if len(finals) > 1 else finals[0]
+    def _not_implemented_or_raise(self, function, types):
+        # Our function helper or dispatcher found that the function does not
+        # work with Distribution.  In principle, there may be another class that
+        # knows what to do with us, for which we should return NotImplemented.
+        # But if there is ndarray (or a non-Distribution subclass of it) around,
+        # it quite likely coerces, so we should just break.
+        if any(
+            issubclass(t, np.ndarray) and not issubclass(t, Distribution) for t in types
+        ):
+            raise TypeError(
+                f"the Distribution implementation cannot handle {function} "
+                "with the given arguments."
+            ) from None
+        else:
+            return NotImplemented
 
     # Override __eq__ and __ne__ to pass on directly to the ufunc since
     # otherwise comparisons with non-distributions do not work (but
