@@ -52,15 +52,32 @@ def _get_func(func):
 
 
 def _deprecation_message(alternative, pending):
+    """Return a deprecation message.
+
+    Parameters
+    ----------
+    alternative : str
+        An alternative function or class name that the user may use in
+        place of the deprecated object.  The deprecation warning will
+        tell the user about this alternative, if provided.
+    pending : bool
+        If `True`, tells the user that the object is pending deprecation
+        and is not currently deprecated.
+
+    Returns
+    -------
+    str
+        The deprecation message.
+    """
     if pending:
-        message = "The {func} {obj_type} will be deprecated in a future version."
+        msg = "The {func} {obj_type} will be deprecated in a future version."
     else:
-        message = "The {func} {obj_type} is deprecated and may be removed in a future version."
+        msg = "The {func} {obj_type} is deprecated and may be removed in a future version."
 
     if alternative:
-        message += f"\n        Use {alternative} instead."
+        msg += f"\n        Use {alternative} instead."
 
-    return message
+    return msg
 
 
 def deprecated(
@@ -143,14 +160,14 @@ def deprecated(
 
         if not message:
             message = _deprecation_message(alternative, pending)
-        message = message.format(
+        msg = message.format(
             func=name if name else _get_func(obj).__name__,
             alternative=alternative,
             obj_type=obj_type_name,
         )
 
         # Add the deprecation message to the docstring
-        obj.__doc__ = _deprecate_doc(obj.__doc__, message, since)
+        obj.__doc__ = _deprecate_doc(obj.__doc__, msg, since)
 
         # The `warning` category to use
         category = AstropyPendingDeprecationWarning if pending else warning_type
@@ -162,14 +179,12 @@ def deprecated(
         if not (
             category is not None and not inspect.isclass(obj) and not callable(obj)
         ):
-            return typing_extensions.deprecated(message, category=category)(obj)
+            return typing_extensions.deprecated(msg, category=category)(obj)
 
         # Deprecate the function, unwrapping method type decorators
-        depr_f = typing_extensions.deprecated(message, category=category)(
-            _get_func(obj)
-        )
+        depr_f = typing_extensions.deprecated(msg, category=category)(_get_func(obj))
         # Add the deprecation message to the docstring
-        depr_f.__doc__ = _deprecate_doc(depr_f.__doc__, message, since)
+        depr_f.__doc__ = _deprecate_doc(depr_f.__doc__, msg, since)
         # Return the deprecated function, preserving the method type
         return type(obj)(depr_f) if isinstance(obj, _method_types) else depr_f
 
