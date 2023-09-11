@@ -184,7 +184,7 @@ def deprecated(
             name = _get_function(obj).__name__
 
         altmessage = ""
-        if not message or type(message) is type(deprecate):
+        if not message:
             if pending:
                 message = (
                     "The {func} {obj_type} will be deprecated in a future version."
@@ -211,9 +211,6 @@ def deprecated(
         if isinstance(obj, type):
             return _deprecate_class(obj, message, category, since)
         return _deprecate_function(obj, message, category, since)
-
-    if type(message) is type(deprecate):
-        return deprecate(message)
 
     return deprecate
 
