@@ -180,7 +180,6 @@ ignore = [
 
     # flake8-pyi (PYI)
     "PYI024",  # Use typing.NamedTuple instead of collections.namedtuple
-    "PYI056",  # use += for extending `__all__`
 
     # flake8-return (RET)
     "RET501",  # unnecessary-return-none
