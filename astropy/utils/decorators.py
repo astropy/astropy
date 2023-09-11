@@ -103,6 +103,18 @@ def _deprecate_class(cls, message, category, since):
     return cls
 
 
+def _deprecation_message(alternative, pending):
+    if pending:
+        message = "The {func} {obj_type} will be deprecated in a future version."
+    else:
+        message = "The {func} {obj_type} is deprecated and may be removed in a future version."
+
+    if alternative:
+        message += f"\n        Use {alternative} instead."
+
+    return message
+
+
 def deprecated(
     since,
     message="",
@@ -168,44 +180,29 @@ def deprecated(
         pending=pending,
         warning_type=warning_type,
     ):
-        if obj_type is None:
-            if isinstance(obj, type):
-                obj_type_name = "class"
-            elif inspect.isfunction(obj):
-                obj_type_name = "function"
-            elif inspect.ismethod(obj) or isinstance(obj, _method_types):
-                obj_type_name = "method"
-            else:
-                obj_type_name = "object"
-        else:
+        # The `warning` message
+        if obj_type is not None:
             obj_type_name = obj_type
+        # obj_type is None:
+        elif isinstance(obj, type):
+            obj_type_name = "class"
+        elif inspect.isfunction(obj):
+            obj_type_name = "function"
+        elif inspect.ismethod(obj) or isinstance(obj, _method_types):
+            obj_type_name = "method"
+        else:
+            obj_type_name = "object"
 
-        if not name:
-            name = _get_function(obj).__name__
-
-        altmessage = ""
         if not message:
-            if pending:
-                message = (
-                    "The {func} {obj_type} will be deprecated in a future version."
-                )
-            else:
-                message = (
-                    "The {func} {obj_type} is deprecated and may "
-                    "be removed in a future version."
-                )
-            if alternative:
-                altmessage = f"\n        Use {alternative} instead."
+            message = _deprecation_message(alternative, pending)
+        message = message.format(
+            func=name,
+            name=name if name else _get_function(obj).__name__,
+            alternative=alternative,
+            obj_type=obj_type_name,
+        )
 
-        message = (
-            message.format(
-                func=name,
-                name=name,
-                alternative=alternative,
-                obj_type=obj_type_name,
-            )
-        ) + altmessage
-
+        # The `warning` category to use
         category = AstropyPendingDeprecationWarning if pending else warning_type
 
         if isinstance(obj, type):
