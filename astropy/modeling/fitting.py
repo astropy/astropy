@@ -2194,7 +2194,7 @@ def populate_entry_points(entry_points):
                 if issubclass(entry_point, Fitter):
                     name = entry_point.__name__
                     globals()[name] = entry_point
-                    __all__.append(name)
+                    __all__.append(name)  # noqa: PYI056
                 else:
                     warnings.warn(
                         AstropyUserWarning(
