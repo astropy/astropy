@@ -49,6 +49,60 @@ def _get_function(func):
     return func.__func__ if isinstance(func, _method_types) else func
 
 
+def _deprecate_function(func, message, category, since):
+    """
+    Returns a wrapped function that displays ``warning_type``
+    when it is called.
+    """
+    func_wrapper = type(func) if isinstance(func, _method_types) else lambda f: f
+    func = _get_function(func)
+
+    def deprecated_func(*args, **kwargs):
+        warnings.warn(message, category, stacklevel=2)
+
+        return func(*args, **kwargs)
+
+    # If this is an extension function, we can't call
+    # functools.wraps on it, but we normally don't care.
+    # This crazy way to get the type of a wrapper descriptor is
+    # straight out of the Python 3.3 inspect module docs.
+    if type(func) is not type(str.__dict__["__add__"]):
+        deprecated_func = functools.wraps(func)(deprecated_func)
+
+    deprecated_func.__doc__ = _deprecate_doc(deprecated_func.__doc__, message, since)
+    deprecated_func.__deprecated__ = message
+
+    return func_wrapper(deprecated_func)
+
+
+def _deprecate_class(cls, message, category, since):
+    """
+    Update the docstring and wrap the ``__init__`` in-place (or ``__new__``
+    if the class or any of the bases overrides ``__new__``) so it will give
+    a deprecation warning when an instance is created.
+
+    This won't work for extension classes because these can't be modified
+    in-place and the alternatives don't work in the general case:
+
+    - Using a new class that looks and behaves like the original doesn't
+        work because the __new__ method of extension types usually makes sure
+        that it's the same class or a subclass.
+    - Subclassing the class and return the subclass can lead to problems
+        with pickle and will look weird in the Sphinx docs.
+    """
+    cls.__doc__ = _deprecate_doc(cls.__doc__, message, since)
+    cls.__deprecated__ = message
+    if cls.__new__ is object.__new__:
+        cls.__init__ = _deprecate_function(
+            _get_function(cls.__init__), message, category, since
+        )
+    else:
+        cls.__new__ = _deprecate_function(
+            _get_function(cls.__new__), message, category, since
+        )
+    return cls
+
+
 def deprecated(
     since,
     message="",
@@ -106,65 +160,6 @@ def deprecated(
         Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
     """
 
-    def deprecate_function(func, message, warning_type=warning_type):
-        """
-        Returns a wrapped function that displays ``warning_type``
-        when it is called.
-        """
-        func_wrapper = type(func) if isinstance(func, _method_types) else lambda f: f
-        func = _get_function(func)
-
-        def deprecated_func(*args, **kwargs):
-            if pending:
-                category = AstropyPendingDeprecationWarning
-            else:
-                category = warning_type
-
-            warnings.warn(message, category, stacklevel=2)
-
-            return func(*args, **kwargs)
-
-        # If this is an extension function, we can't call
-        # functools.wraps on it, but we normally don't care.
-        # This crazy way to get the type of a wrapper descriptor is
-        # straight out of the Python 3.3 inspect module docs.
-        if type(func) is not type(str.__dict__["__add__"]):
-            deprecated_func = functools.wraps(func)(deprecated_func)
-
-        deprecated_func.__doc__ = _deprecate_doc(
-            deprecated_func.__doc__, message, since
-        )
-        deprecated_func.__deprecated__ = message
-
-        return func_wrapper(deprecated_func)
-
-    def deprecate_class(cls, message, warning_type=warning_type):
-        """
-        Update the docstring and wrap the ``__init__`` in-place (or ``__new__``
-        if the class or any of the bases overrides ``__new__``) so it will give
-        a deprecation warning when an instance is created.
-
-        This won't work for extension classes because these can't be modified
-        in-place and the alternatives don't work in the general case:
-
-        - Using a new class that looks and behaves like the original doesn't
-          work because the __new__ method of extension types usually makes sure
-          that it's the same class or a subclass.
-        - Subclassing the class and return the subclass can lead to problems
-          with pickle and will look weird in the Sphinx docs.
-        """
-        cls.__doc__ = _deprecate_doc(cls.__doc__, message, since)
-        cls.__deprecated__ = message
-        if cls.__new__ is object.__new__:
-            cls.__init__ = deprecate_function(
-                _get_function(cls.__init__), message, warning_type
-            )
-        else:
-            cls.__new__ = deprecate_function(
-                _get_function(cls.__new__), message, warning_type
-            )
-        return cls
-
     def deprecate(
         obj,
         message=message,
@@ -211,10 +206,11 @@ def deprecated(
             )
         ) + altmessage
 
+        category = AstropyPendingDeprecationWarning if pending else warning_type
+
         if isinstance(obj, type):
-            return deprecate_class(obj, message, warning_type)
-        else:
-            return deprecate_function(obj, message, warning_type)
+            return _deprecate_class(obj, message, category, since)
+        return _deprecate_function(obj, message, category, since)
 
     if type(message) is type(deprecate):
         return deprecate(message)
