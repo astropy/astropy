@@ -5,8 +5,10 @@ This module contains the fundamental classes used for representing
 coordinates in astropy.
 """
 
+from __future__ import annotations
+
 import functools
-from collections import namedtuple
+from typing import Any, NamedTuple
 
 import numpy as np
 
@@ -19,9 +21,46 @@ __all__ = ["Angle", "Latitude", "Longitude"]
 
 
 # these are used by the `hms` and `dms` attributes
-hms_tuple = namedtuple("hms_tuple", ("h", "m", "s"))
-dms_tuple = namedtuple("dms_tuple", ("d", "m", "s"))
-signed_dms_tuple = namedtuple("signed_dms_tuple", ("sign", "d", "m", "s"))
+class hms_tuple(NamedTuple):
+    """A named tuple of (hour, minute, second) values."""
+
+    h: float | np.floating[Any]
+    """The hour value."""
+
+    m: float | np.floating[Any]
+    """The minute value."""
+
+    s: float | np.floating[Any]
+    """The second value."""
+
+
+class dms_tuple(NamedTuple):
+    """A named tuple of (degree, minute, second) values."""
+
+    d: float | np.floating[Any]
+    """The degree value."""
+
+    m: float | np.floating[Any]
+    """The minute value."""
+
+    s: float | np.floating[Any]
+    """The second value."""
+
+
+class signed_dms_tuple(NamedTuple):
+    """A named tuple of (sign, degree, minute, second) values."""
+
+    sign: float | np.integer[Any]
+    """The sign of the angle, either -1 or +1."""
+
+    d: float | np.floating[Any]
+    """The degree value."""
+
+    m: float | np.floating[Any]
+    """The minute value."""
+
+    s: float | np.floating[Any]
+    """The second value."""
 
 
 class Angle(u.SpecificTypeQuantity):
