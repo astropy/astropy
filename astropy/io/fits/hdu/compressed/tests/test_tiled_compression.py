@@ -5,7 +5,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 from astropy.io import fits
-from astropy.io.fits._tiled_compression.codecs import PLIO1
+from astropy.io.fits.hdu.compressed._codecs import PLIO1
 
 from .conftest import fitsio_param_to_astropy_param
 
