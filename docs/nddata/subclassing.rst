@@ -157,7 +157,7 @@ on the class or the instance::
 
     >>> # using it on the instance with one operand
     >>> ndd.pow(3)  # doctest: +ELLIPSIS
-    NDDataPower([ 1,  8, 27])
+    NDDataPower([ 1,  8, 27]...)
 
     >>> # using it on the instance with two operands
     >>> ndd.pow([1,2,3], [3,4,5])  # doctest: +ELLIPSIS

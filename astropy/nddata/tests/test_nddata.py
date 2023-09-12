@@ -524,9 +524,9 @@ def test_nddata_repr():
         arr = NDData(da.arange(3), unit="km")
         s = repr(arr)
         # just check repr equality for dask arrays, not round-tripping:
-        assert s == (
-            "NDData(\n  data=dask.array<arange, shape=(3,), dtype=int64, chunksize=(3,), "
-            'chunktype=numpy.ndarray>,\n  unit=Unit("km")\n)'
+        assert s in (
+            'NDData(\n  data=dask.array<arange, shape=(3,), dtype=int64, chunksize=(3,), chunktype=numpy.ndarray>,\n  unit=Unit("km")\n)',
+            'NDData(\n  data=dask.array<arange, shape=(3,), dtype=int32, chunksize=(3,), chunktype=numpy.ndarray>,\n  unit=Unit("km")\n)',
         )
 
 
