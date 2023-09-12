@@ -6,6 +6,7 @@ import textwrap
 from collections import OrderedDict
 from itertools import chain, permutations
 
+import dask.array
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
@@ -516,6 +517,15 @@ def test_nddata_repr():
     got = eval(s)
     assert np.all(got.data == arr.data)
     assert got.unit == arr.unit
+
+    # try dask array as data:
+    arr = NDData(dask.array.arange(3), unit="km")
+    s = repr(arr)
+    # just check repr equality for dask arrays, not round-tripping:
+    assert s == (
+        "NDData(\n  data=dask.array<arange, shape=(3,), dtype=int64, chunksize=(3,), "
+        'chunktype=numpy.ndarray>,\n  unit=Unit("km")\n)'
+    )
 
 
 # Not supported features

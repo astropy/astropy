@@ -4,6 +4,7 @@
 
 from copy import deepcopy
 
+import dask.array
 import numpy as np
 
 from astropy import log
@@ -311,7 +312,7 @@ class NDData(NDDataBase):
             isinstance(self.data, (int, float, np.ndarray))
             or np.issubdtype(float, self.data)
             or np.issubdtype(int, self.data)
-        ):
+        ) and not isinstance(self.data, dask.array.Array):
             # if data is an ndarray, get build a repr via Masked:
             ma = Masked(self.data, mask=self.mask)
             data_repr = repr(ma)
@@ -338,7 +339,7 @@ class NDData(NDDataBase):
                         "\n", f'\n{" " * (len(attr_prefix) - 1)}'
                     )
                     contents.append(attr_prefix + attr_repr)
-            return prefix + ",".join(contents) + ")"
+            return prefix + ",".join(contents) + "\n)"
 
     @property
     def data(self):
