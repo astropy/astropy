@@ -1931,7 +1931,7 @@ class Time(TimeBase):
             "Now" is determined using the `~datetime.datetime.now`
             function, so its accuracy and precision is determined by that
             function.  Generally that means it is set by the accuracy of
-            your system clock. Timezone is set to UTC.
+            your system clock. The timezone is set to UTC.
 
         Returns
         -------
