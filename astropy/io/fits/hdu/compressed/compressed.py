@@ -8,9 +8,9 @@ from contextlib import suppress
 import numpy as np
 
 from astropy.io.fits import conf
-from astropy.io.fits.hdu.compressed._tiled_compression import compress_image_data
 from astropy.io.fits.fitsrec import FITS_rec
 from astropy.io.fits.hdu.base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU
+from astropy.io.fits.hdu.compressed._tiled_compression import compress_image_data
 from astropy.io.fits.hdu.image import ImageHDU
 from astropy.io.fits.hdu.table import BinTableHDU
 from astropy.io.fits.util import (
