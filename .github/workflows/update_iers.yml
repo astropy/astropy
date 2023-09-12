@@ -18,7 +18,7 @@ jobs:
     if: github.repository == 'astropy/astropy'
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Download latest IERS files
       run: ./update_builtin_iers.sh
       working-directory: astropy/utils/iers/data
