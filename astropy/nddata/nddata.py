@@ -4,7 +4,6 @@
 
 from copy import deepcopy
 
-import dask.array
 import numpy as np
 
 from astropy import log
@@ -17,6 +16,11 @@ from astropy.wcs.wcsapi import (
     HighLevelWCSWrapper,
     SlicedLowLevelWCS,  # noqa: F401
 )
+
+try:
+    import dask.array as da
+except ImportError:
+    da = None
 
 from .nddata_base import NDDataBase
 from .nduncertainty import NDUncertainty, UnknownUncertainty
@@ -308,11 +312,15 @@ class NDData(NDDataBase):
 
     def __repr__(self):
         prefix = self.__class__.__name__ + "("
+        # to support reprs for other non-ndarray `data` attributes,
+        # add more cases here:
+        is_dask = da is not None and isinstance(self.data, da.Array)
+
         if (
             isinstance(self.data, (int, float, np.ndarray))
             or np.issubdtype(float, self.data)
             or np.issubdtype(int, self.data)
-        ) and not isinstance(self.data, dask.array.Array):
+        ) and not is_dask:
             # if data is an ndarray, get build a repr via Masked:
             ma = Masked(self.data, mask=self.mask)
             data_repr = repr(ma)

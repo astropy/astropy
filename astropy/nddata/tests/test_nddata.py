@@ -6,7 +6,6 @@ import textwrap
 from collections import OrderedDict
 from itertools import chain, permutations
 
-import dask.array
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
@@ -22,6 +21,8 @@ from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseHighLevelWCS, HighLevelWCSWrapper, SlicedLowLevelWCS
 
 from .test_nduncertainty import FakeUncertainty
+
+da = pytest.importorskip("dask.array")
 
 
 class FakeNumpyArray:
@@ -519,13 +520,14 @@ def test_nddata_repr():
     assert got.unit == arr.unit
 
     # try dask array as data:
-    arr = NDData(dask.array.arange(3), unit="km")
-    s = repr(arr)
-    # just check repr equality for dask arrays, not round-tripping:
-    assert s == (
-        "NDData(\n  data=dask.array<arange, shape=(3,), dtype=int64, chunksize=(3,), "
-        'chunktype=numpy.ndarray>,\n  unit=Unit("km")\n)'
-    )
+    if da is not None:
+        arr = NDData(da.arange(3), unit="km")
+        s = repr(arr)
+        # just check repr equality for dask arrays, not round-tripping:
+        assert s == (
+            "NDData(\n  data=dask.array<arange, shape=(3,), dtype=int64, chunksize=(3,), "
+            'chunktype=numpy.ndarray>,\n  unit=Unit("km")\n)'
+        )
 
 
 # Not supported features
