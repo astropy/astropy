@@ -3,7 +3,7 @@ This file contains the code for Quantizing / Dequantizing floats.
 """
 import numpy as np
 
-from astropy.io.fits._tiled_compression._compression import (
+from astropy.io.fits.hdu.compressed._compression import (
     quantize_double_c,
     quantize_float_c,
     unquantize_double_c,
