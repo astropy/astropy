@@ -338,7 +338,7 @@ class NDData(NDDataBase):
             # relying on the builtin repr for objects other than ndarrays
             # allows for compatibility with e.g. dask:
             contents = []
-            for attr in ["data", "mask", "uncertainty", "unit"]:
+            for attr in ("data", "mask", "uncertainty", "unit"):
                 attr_data = getattr(self, attr)
                 if attr_data is not None:
                     attr_prefix = f"\n  {attr}="
