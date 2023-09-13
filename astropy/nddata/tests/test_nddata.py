@@ -16,6 +16,7 @@ from astropy.nddata import _testing as nd_testing
 from astropy.nddata.nddata import NDData
 from astropy.nddata.nduncertainty import StdDevUncertainty
 from astropy.utils import NumpyRNGContext
+from astropy.utils.compat.optional_deps import HAS_DASK
 from astropy.utils.masked import Masked
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseHighLevelWCS, HighLevelWCSWrapper, SlicedLowLevelWCS
@@ -518,8 +519,10 @@ def test_nddata_repr():
     assert got.unit == arr.unit
 
 
+@pytest.mark.skipif(not HAS_DASK, reason="requires dask to be available")
 def test_nddata_repr_dask():
-    da = pytest.importorskip("dask.array")
+    import dask.array as da
+
     arr = NDData(da.arange(3), unit="km")
     s = repr(arr)
     # just check repr equality for dask arrays, not round-tripping:
