@@ -22,8 +22,6 @@ from astropy.wcs.wcsapi import BaseHighLevelWCS, HighLevelWCSWrapper, SlicedLowL
 
 from .test_nduncertainty import FakeUncertainty
 
-da = pytest.importorskip("dask.array")
-
 
 class FakeNumpyArray:
     """
@@ -519,15 +517,16 @@ def test_nddata_repr():
     assert np.all(got.data == arr.data)
     assert got.unit == arr.unit
 
-    # try dask array as data:
-    if da is not None:
-        arr = NDData(da.arange(3), unit="km")
-        s = repr(arr)
-        # just check repr equality for dask arrays, not round-tripping:
-        assert s in (
-            'NDData(\n  data=dask.array<arange, shape=(3,), dtype=int64, chunksize=(3,), chunktype=numpy.ndarray>,\n  unit=Unit("km")\n)',
-            'NDData(\n  data=dask.array<arange, shape=(3,), dtype=int32, chunksize=(3,), chunktype=numpy.ndarray>,\n  unit=Unit("km")\n)',
-        )
+
+def test_nddata_repr_dask():
+    da = pytest.importorskip("dask.array")
+    arr = NDData(da.arange(3), unit="km")
+    s = repr(arr)
+    # just check repr equality for dask arrays, not round-tripping:
+    assert s in (
+        'NDData(\n  data=dask.array<arange, shape=(3,), dtype=int64, chunksize=(3,), chunktype=numpy.ndarray>,\n  unit=Unit("km")\n)',
+        'NDData(\n  data=dask.array<arange, shape=(3,), dtype=int32, chunksize=(3,), chunktype=numpy.ndarray>,\n  unit=Unit("km")\n)',
+    )
 
 
 # Not supported features
