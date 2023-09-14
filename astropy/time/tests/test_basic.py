@@ -1475,17 +1475,16 @@ def test_now():
     Tests creating a Time object with the `now` class method.
     """
 
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    # `Time.datetime` is not timezone aware, meaning `.replace` is necessary for
+    # `now` also not be timezone aware.
+    now = datetime.datetime.now(tz=datetime.timezone.utc).replace(tzinfo=None)
+
     t = Time.now()
 
     assert t.format == "datetime"
     assert t.scale == "utc"
 
-    # Time.datetime returns a naive `datetime` object. It is made aware in order
-    # to properly compute timedelta.
-    dt = (
-        t.datetime.replace(tzinfo=datetime.timezone.utc) - now
-    )  # a datetime.timedelta object
+    dt = t.datetime - now  # a datetime.timedelta object
 
     # this gives a .1 second margin between the `now` call and the `Time`
     # initializer, which is really way more generous than necessary - typical
