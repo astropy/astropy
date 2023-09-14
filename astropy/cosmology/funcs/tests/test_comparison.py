@@ -110,7 +110,7 @@ class Test_parse_format(ComparisonFunctionTestBase):
     def test_shortcut(self, cosmo):
         """Test the already-a-cosmology shortcut."""
         # A Cosmology
-        for fmt in {None, True, False, "astropy.cosmology"}:
+        for fmt in (None, True, False, "astropy.cosmology"):
             assert _parse_format(cosmo, fmt) is cosmo, f"{fmt} failed"
 
         # A Cosmology, but improperly formatted
