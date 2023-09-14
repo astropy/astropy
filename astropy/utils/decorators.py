@@ -1,22 +1,26 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Sundry function and class decorators."""
 
-
 import functools
 import inspect
+import sys
 import textwrap
 import threading
 import types
 import warnings
 from inspect import signature
 
-import typing_extensions
-
 from .exceptions import (
     AstropyDeprecationWarning,
     AstropyPendingDeprecationWarning,
     AstropyUserWarning,
 )
+
+if sys.version_info >= (3, 12):
+    from typing import deprecated as _deprecated
+else:
+    from typing_extensions import deprecated as _deprecated
+
 
 __all__ = [
     "classproperty",
@@ -181,10 +185,10 @@ def deprecated(
         # that ourselves instead. The specific error is: ``TypeError: @deprecated
         # decorator with non-None category must be applied to a class or callable``
         if category is None or inspect.isclass(obj) or callable(obj):
-            return typing_extensions.deprecated(msg, category=category)(obj)
+            return _deprecated(msg, category=category)(obj)
 
         # Deprecate the function, unwrapping method type decorators
-        depr_f = typing_extensions.deprecated(msg, category=category)(_get_func(obj))
+        depr_f = _deprecated(msg, category=category)(_get_func(obj))
         # Add the deprecation message to the docstring
         depr_f.__doc__ = _deprecate_doc(depr_f.__doc__, msg, since)
         # Return the deprecated function, preserving the method type
