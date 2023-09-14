@@ -105,44 +105,61 @@ def deprecated(
     Parameters
     ----------
     since : str
-        The release at which this API became deprecated.  This is
-        required.
+        The release at which this API became deprecated.  This is required.
 
     message : str, optional
-        Override the default deprecation message.  The format
-        specifier ``func`` may be used for the name of the function,
-        and ``alternative`` may be used in the deprecation message
-        to insert the name of an alternative to the deprecated
-        function. ``obj_type`` may be used to insert a friendly name
-        for the type of object being deprecated.
+        Override the default deprecation message.  The format specifier ``func`` may be
+        used for the name of the function, and ``alternative`` may be used in the
+        deprecation message to insert the name of an alternative to the deprecated
+        function. ``obj_type`` may be used to insert a friendly name for the type of
+        object being deprecated.
 
     name : str, optional
-        The name of the deprecated function or class; if not provided
-        the name is automatically determined from the passed in
-        function or class, though this is useful in the case of
-        renamed functions, where the new function is just assigned to
-        the name of the deprecated function.  For example::
+        The name of the deprecated function or class; if not provided the name is
+        automatically determined from the passed in function or class, though this is
+        useful in the case of renamed functions, where the new function is just assigned
+        to the name of the deprecated function.  For example::
 
             def new_function():
                 ...
             oldFunction = new_function
 
     alternative : str, optional
-        An alternative function or class name that the user may use in
-        place of the deprecated object.  The deprecation warning will
-        tell the user about this alternative if provided.
+        An alternative function or class name that the user may use in place of the
+        deprecated object.  The deprecation warning will tell the user about this
+        alternative if provided.
 
     pending : bool, optional
-        If True, uses a AstropyPendingDeprecationWarning instead of a
-        ``warning_type``.
+        If True, uses a AstropyPendingDeprecationWarning instead of a ``warning_type``.
 
     obj_type : str, optional
-        The type of this object, if the automatically determined one
-        needs to be overridden.
+        The type of this object, if the automatically determined one needs to be
+        overridden.
 
     warning_type : Warning or None, optional
-        Warning to be issued.
-        Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
+        Warning to be issued. Default is
+        `~astropy.utils.exceptions.AstropyDeprecationWarning`.
+
+    Returns
+    -------
+    Callable[[T], T]
+        A decorator that can be applied to the function or class to mark it as
+        deprecated.
+
+    Notes
+    -----
+    This decorator is a wrapper around `~typing.deprecated`, which was introduced by
+    `PEP 702 <https://peps.python.org/pep-0702/>`_ in Python 3.12. In lower versions of
+    Python, the `~typing_extenstions.deprecated` backport is used instead. There are a number of differences
+    between this decorator and `~typing.deprecated`, which are described below.
+    1. This decorator is not guaranteed to be understood statically by type checkers,
+        whereas `~typing.deprecated` is.
+    2. This decorator can be used to deprecate `classmethod`s and `staticmethod`s,
+        whereas `~typing.deprecated` can only be used to deprecate functions and classes.
+    3. This decorator has a different signature and default warning type than
+        `~typing.deprecated`.
+    4. This decorator will modify the docstring of the deprecated object to include a
+        deprecation message, whereas `~typing.deprecated` will not.
     """
 
     def deprecate(
