@@ -19,6 +19,7 @@ from astropy import __version__ as astropy_version
 from astropy.io import fits
 from astropy.utils.collections import HomogeneousList
 from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.xml import iterparser
 from astropy.utils.xml.writer import XMLWriter
 
 from . import converters, util, xmlutil
@@ -41,6 +42,7 @@ from .exceptions import (
     E22,
     E23,
     E25,
+    E26,
     W06,
     W07,
     W08,
@@ -106,6 +108,7 @@ __all__ = [
     "Resource",
     "VOTableFile",
     "Element",
+    "MivotBlock",
 ]
 
 
@@ -3373,6 +3376,157 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
         yield from self.infos
 
 
+class MivotBlock(Element):
+    """
+    Mivot Block holder
+    Processing VO model views on data is out of the scope of Astropy.
+    This is why the only VOmodel-related feature implemented here the
+    extraction or the writing of a mapping block from/to a VOtable
+    There is no syntax validation other than the allowed tag names.
+    The mapping block is handled as a correctly indented XML string
+    which is meant to be parsed by the calling API (e.g. PyVO)
+    """
+
+    def __init__(self, content=None):
+        if content is not None:
+            self._content = content.strip()
+            self.check_content_format()
+        else:
+            self._content = ""
+        self._indent_level = 0
+        self._on_error = False
+
+    def __str__(self):
+        return self._content
+
+    def _add_statement(self, start, tag, data, config, pos):
+        """
+        Convert the tag as a string and append it to the mapping
+        block string with the correct indentation level.
+        """
+        if self._on_error is True:
+            return
+        # The first mapping tag (<VODML>) is consumed by the host RESOURCE
+        # To check that the content is a mapping block. This cannot be done here
+        # because that RESOURCE might have another content
+        if self._content == "":
+            self._content = '<VODML xmlns="http://www.ivoa.net/xml/mivot">\n'
+            self._indent_level += 1
+
+        ele_content = ""
+        if start:
+            element = "<" + tag
+            for k, v in data.items():
+                element += f" {k}='{v}'"
+            element += ">\n"
+        else:
+            if data:
+                ele_content = f"{data}\n"
+            element = f"</{tag}>\n"
+
+        if start is False:
+            self._indent_level -= 1
+        indent = "".join(" " for _ in range(2 * self._indent_level))
+        if ele_content:
+            self._content += indent + "  " + ele_content
+        self._content += indent + element
+        if start is True:
+            self._indent_level += 1
+
+    def _unknown_mapping_tag(self, start, tag, data, config, pos):
+        """
+        In case of unexpected tag, the parsing stops and the mapping block
+        is set with a REPORT tag telling what went wrong
+        """
+        self._content = f'<VODML xmlns="http://www.ivoa.net/xml/mivot">\n  <REPORT status="KO">Unknown mivot block statement: {tag}</REPORT>\n</VODML>'
+        self._on_error = True
+        warn_or_raise(W10, W10, tag, config={"verify": "warn"}, pos=pos)
+
+    @property
+    def content(
+        self,
+    ):
+        """
+        The XML mapping block serialized as string.
+        """
+        if self._content == "":
+            self._content = '<VODML xmlns="http://www.ivoa.net/xml/mivot">\n  <REPORT status="KO">No Mivot block</REPORT>\n</VODML>\n'
+        return self._content
+
+    def parse(self, votable, iterator, config):
+        """
+        Regular parser similar to others VOTable components
+        """
+        self._votable = votable
+        model_mapping_mapping = {
+            "VODML": self._add_statement,
+            "GLOBALS": self._add_statement,
+            "REPORT": self._add_statement,
+            "MODEL": self._add_statement,
+            "TEMPLATES": self._add_statement,
+            "COLLECTION": self._add_statement,
+            "INSTANCE": self._add_statement,
+            "ATTRIBUTE": self._add_statement,
+            "REFERENCE": self._add_statement,
+            "JOIN": self._add_statement,
+            "WHERE": self._add_statement,
+            "PRIMARY_KEY": self._add_statement,
+            "FOREIGN_KEY": self._add_statement,
+        }
+        for start, tag, data, pos in iterator:
+            model_mapping_mapping.get(tag, self._unknown_mapping_tag)(
+                start, tag, data, config, pos
+            )
+            if start is False and tag == "VODML":
+                break
+
+        del self._votable
+
+        return self
+
+    def to_xml(self, w):
+        """
+        Tell the writer to insert the mivot block in its output stream
+        """
+        w.string_element(self._content)
+
+    def check_content_format(
+        self,
+    ):
+        """
+        Check if the content is on xml format by building a VOTable,
+        putting a mivot block in the first resource and trying to parse the VOTable.
+        """
+        if self._content.startswith("<") is False:
+            vo_raise(E26)
+
+        in_memory_votable = VOTableFile()
+        mivot_resource = Resource()
+        mivot_resource.type = "meta"
+        mivot_resource.mivot_block = self
+        # pack the meta resource in a top level resource
+        result_resource = Resource()
+        result_resource.type = "results"
+        result_resource.resources.append(mivot_resource)
+        data_table = Table(in_memory_votable)
+        data_table.name = "t1"
+        result_resource.tables.append(data_table)
+        in_memory_votable.resources.append(result_resource)
+
+        # Push the VOTable in an IOSTream (emulates a disk saving)
+        buff = io.BytesIO()
+        in_memory_votable.to_xml(buff)
+
+        # Read the IOStream (emulates a disk readout)
+        buff.seek(0)
+        config = {}
+
+        with iterparser.get_xml_iterator(
+            buff, _debug_python_based_parser=None
+        ) as iterator:
+            return VOTableFile(config=config, pos=(1, 1)).parse(iterator, config)
+
+
 class Resource(
     Element, _IDProperty, _NameProperty, _UtypeProperty, _DescriptionProperty
 ):
@@ -3416,6 +3570,7 @@ class Resource(
         self._tables = HomogeneousList(Table)
         self._resources = HomogeneousList(Resource)
 
+        self._mivot_block = MivotBlock()
         warn_unknown_attrs("RESOURCE", kwargs.keys(), config, pos)
 
     def __repr__(self):
@@ -3443,6 +3598,25 @@ class Resource(
         if type not in ("results", "meta"):
             vo_raise(E18, type, self._config, self._pos)
         self._type = type
+
+    @property
+    def mivot_block(self):
+        """
+        The XML mapping block serialized as string.
+        Take the resource mivot block if type=meta
+        or the mivot block of the first sub-resource (type=meta) having one
+        """
+        if self.type == "results":
+            for resource in self.resources:
+                if str(resource._mivot_block).strip() != "":
+                    return resource._mivot_block
+        return self._mivot_block
+
+    @mivot_block.setter
+    def mivot_block(self, mivot_block):
+        if self.type == "results":
+            vo_raise(E26)
+        self._mivot_block = mivot_block
 
     @property
     def extra_attributes(self):
@@ -3575,7 +3749,11 @@ class Resource(
         }
 
         for start, tag, data, pos in iterator:
-            if start:
+            # If the resource content starts with VODML,
+            # the parsing is delegated to the MIVOT parser
+            if tag == "VODML":
+                self._mivot_block.parse(votable, iterator, config)
+            elif start:
                 tag_mapping.get(tag, self._add_unknown_tag)(
                     iterator, tag, data, config, pos
                 )
@@ -3596,17 +3774,29 @@ class Resource(
         with w.tag("RESOURCE", attrib=attrs):
             if self.description is not None:
                 w.element("DESCRIPTION", self.description, wrap=True)
+            if self.mivot_block is not None and self.type == "meta":
+                self.mivot_block.to_xml(w)
             for element_set in (
                 self.coordinate_systems,
                 self.time_systems,
                 self.params,
                 self.infos,
                 self.links,
-                self.tables,
-                self.resources,
             ):
                 for element in element_set:
                     element.to_xml(w, **kwargs)
+
+            # The mivot_block should be before the table
+            for elm in self.resources:
+                if elm.type == "meta" and elm.mivot_block is not None:
+                    elm.to_xml(w, **kwargs)
+
+            for elm in self.tables:
+                elm.to_xml(w, **kwargs)
+
+            for elm in self.resources:
+                if elm.type != "meta":
+                    elm.to_xml(w, **kwargs)
 
     def iter_tables(self):
         """

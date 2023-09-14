@@ -1,13 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import io
+import os
 from contextlib import nullcontext
 
 import pytest
 
 from astropy.io.votable import tree
-from astropy.io.votable.exceptions import W07, W08, W21, W41
+from astropy.io.votable.exceptions import E26, W07, W08, W21, W41
 from astropy.io.votable.table import parse
-from astropy.io.votable.tree import Resource, VOTableFile
+from astropy.io.votable.tree import MivotBlock, Resource, VOTableFile
 from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -175,3 +176,299 @@ def test_votable_tag():
     assert 'xmlns="http://www.ivoa.net/xml/VOTable/v1.3"' in xml
     assert 'xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 ' in xml
     assert 'http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd"' in xml
+
+
+def squash_xml(data):
+    """
+    Utility squashing XML fragment to easier their comparison
+    """
+    return data.replace(" ", "").replace("\n", "").replace('"', "").replace("'", "")
+
+
+def test_mivot_constructor():
+    """
+    Construct a mivot block with wrong tag to test the expected exception
+    """
+    with pytest.raises(ValueError, match="not well-formed"):
+        MivotBlock(
+            """
+                         <VODML xmlns="http://www.ivoa.net/xml/mivot" >
+                           <REPORT status="OK">Unit test mivot block1</REPORT>
+                           <WRONG TAG>
+                           </GLOBALS>
+                         </VODML>
+                         """
+        )
+
+
+def test_mivot_readout():
+    """
+    Test the mivot block extraction from a file against a reference block stored in data
+    """
+    votable = parse(get_pkg_data_filename("data/mivot_annnotated_table.xml"))
+
+    ref_data = ""
+    for resource in votable.resources:
+        with open(
+            get_pkg_data_filename("data/mivot_block_custom_datatype.xml")
+        ) as reference:
+            ref_data = reference.read()
+            assert squash_xml(ref_data) == squash_xml(resource.mivot_block.content)
+    assert len(resource.tables) == 1
+
+
+def test_mivot_write():
+    """
+    Build a VOTable, put a mivot block in the first resource, checks it can be retrieved
+    as well as the following table
+    """
+    vot = tree
+    mivot_block = MivotBlock(
+        """
+    <VODML xmlns="http://www.ivoa.net/xml/mivot" >
+      <REPORT status="OK">Unit test mivot block1</REPORT>
+      <GLOBALS>
+      </GLOBALS>
+    </VODML>
+    """
+    )
+    vtf = vot.VOTableFile()
+    mivot_resource = Resource()
+    mivot_resource.type = "meta"
+    mivot_resource.mivot_block = mivot_block
+    # pack the meta resource in a top level resource
+    r1 = vot.Resource()
+    r1.type = "results"
+    r1.resources.append(mivot_resource)
+    vtf.resources.append(r1)
+    # Push the VOTable in an IOSTream (emulates a disk saving)
+    buff = io.BytesIO()
+    vtf.to_xml(buff)
+
+    # Read the IOStream (emulates a disk readout)
+    buff.seek(0)
+    vtf2 = parse(buff)
+    assert len(vtf2.resources) == 1
+    for resource in vtf2.resources:
+        assert squash_xml(mivot_block.content) == squash_xml(
+            resource.mivot_block.content
+        )
+        assert len(resource.tables) == 0
+
+
+def test_mivot_write_after_table():
+    """
+    Build a VOTable, put a mivot block and a table in the first resource, checks it can be retrieved
+    as well as the following table
+    """
+    vot = tree
+    mivot_block = MivotBlock(
+        """
+    <VODML xmlns="http://www.ivoa.net/xml/mivot" >
+      <REPORT status="OK">Unit test mivot block1</REPORT>
+      <GLOBALS>
+      </GLOBALS>
+    </VODML>
+    """
+    )
+    vtf = vot.VOTableFile()
+    mivot_resource = Resource()
+    mivot_resource.type = "meta"
+    mivot_resource.mivot_block = mivot_block
+    # pack the meta resource in a top level resource
+    r1 = vot.Resource()
+    r1.type = "results"
+    i1 = vot.Info(name="test_name", value="test_value")
+    r1.infos.append(i1)
+    r1.resources.append(mivot_resource)
+    t1 = vot.Table(vtf)
+    t1.name = "t1"
+    r1.tables.append(t1)
+    vtf.resources.append(r1)
+    # Push the VOTable in an IOSTream (emulates a disk saving)
+    buff = io.BytesIO()
+    vtf.to_xml(buff)
+
+    # Read the IOStream (emulates a disk readout)
+    buff.seek(0)
+    vtf2 = parse(buff)
+    assert len(vtf2.resources) == 1
+    for resource in vtf2.resources:
+        assert squash_xml(mivot_block.content) == squash_xml(
+            resource.mivot_block.content
+        )
+        assert len(resource.tables) == 1
+
+
+def test_write_no_mivot():
+    """
+    Build a VOTable, put an empty mivot block in the first resource, checks it can be retrieved
+    as well as the following table
+    """
+    vot = tree
+    vtf = vot.VOTableFile()
+    mivot_resource = Resource()
+    mivot_resource.type = "meta"
+    # pack the meta resource in a top level resource
+    r1 = vot.Resource()
+    r1.type = "results"
+    r1.resources.append(mivot_resource)
+    t1 = vot.Table(vtf)
+    t1.name = "t1"
+    r1.tables.append(t1)
+    vtf.resources.append(r1)
+    # Push the VOTable in an IOSTream (emulates a disk saving)
+    buff = io.BytesIO()
+    vtf.to_xml(buff)
+
+    # Read the IOStream (emulates a disk readout)
+    buff.seek(0)
+    vtf2 = parse(buff)
+    assert len(vtf2.resources) == 1
+    for resource in vtf2.resources:
+        assert (
+            squash_xml(resource.mivot_block.content)
+            == "<VODMLxmlns=http://www.ivoa.net/xml/mivot><REPORTstatus=KO>NoMivotblock</REPORT></VODML>"
+        )
+        assert len(resource.tables) == 1
+
+
+def test_mivot_write_after_resource():
+    """
+    Build a VOTable, put a mivot block in the first resource after another meta resource,
+    checks it can be retrieved as well as the following table
+    """
+    vot = tree
+    mivot_block = MivotBlock(
+        """
+    <VODML xmlns="http://www.ivoa.net/xml/mivot" >
+      <REPORT status="OK">Unit test mivot block1</REPORT>
+      <GLOBALS>
+      </GLOBALS>
+    </VODML>
+    """
+    )
+    vtf = vot.VOTableFile()
+    mivot_resource = Resource()
+    mivot_resource.type = "meta"
+    mivot_resource.mivot_block = mivot_block
+    # pack the meta resource in a top level resource
+    r1 = vot.Resource()
+    r1.type = "results"
+    i1 = vot.Info(name="test_name", value="test_value")
+    r1.infos.append(i1)
+    meta_resource = Resource()
+    meta_resource.type = "meta"
+    r1.resources.append(meta_resource)
+    r1.resources.append(mivot_resource)
+    t1 = vot.Table(vtf)
+    t1.name = "t1"
+    r1.tables.append(t1)
+    vtf.resources.append(r1)
+    # Push the VOTable in an IOSTream (emulates a disk saving)
+    buff = io.BytesIO()
+    vtf.to_xml(buff)
+
+    # Read the IOStream (emulates a disk readout)
+    buff.seek(0)
+    vtf2 = parse(buff)
+    assert len(vtf2.resources) == 1
+    for resource in vtf2.resources:
+        assert squash_xml(mivot_block.content) == squash_xml(
+            resource.mivot_block.content
+        )
+        assert len(resource.tables) == 1
+
+
+def test_mivot_forbidden_write():
+    """
+    Build a meta resource containing a mivot block,
+    build the dummy mivot block first.
+    """
+    vot = tree
+    vtf = vot.VOTableFile()
+    mivot_block = MivotBlock(
+        """
+    <VODML xmlns="http://www.ivoa.net/xml/mivot" >
+      <REPORT status="KO">Unit test mivot block1</REPORT>
+      <GLOBALS/>
+    </VODML>
+    """
+    )
+    # package the MIVOT block in the resource
+    mivot_resource = Resource()
+    mivot_resource.type = "results"
+    try:
+        # a mivot block must be with "type=meta"
+        mivot_resource.mivot_block = mivot_block
+        raise AssertionError()
+    except E26:
+        assert True
+
+
+def test_mivot_order():
+    """
+    Build a VOTable, put a mivot block and a table in the first resource, checks it can be retrieved
+    as well as the following table
+    """
+    vot = tree
+    mivot_block = MivotBlock(
+        """
+    <VODML xmlns="http://www.ivoa.net/xml/mivot" >
+    </VODML>
+    """
+    )
+    vtf = vot.VOTableFile()
+    mivot_resource = Resource()
+    mivot_resource.type = "meta"
+    mivot_resource.mivot_block = mivot_block
+
+    mivot_resource2 = Resource()
+    mivot_resource2.type = "meta"
+    mivot_resource2.mivot_block = mivot_block
+
+    # R1 : 2 mivot_block and 2 tables
+    r1 = vot.Resource()
+    r1.type = "results"
+
+    t1 = vot.Table(vtf)
+    t1.name = "t1"
+    t2 = vot.Table(vtf)
+    t2.name = "t2"
+
+    r1.tables.append(t1)
+    r1.tables.append(t2)
+
+    r1.resources.append(mivot_resource)
+    r1.resources.append(mivot_resource2)
+
+    vtf.resources.append(r1)
+
+    # R2 : 1 resource "results", 1 mivot_block and 1 table
+    r2 = vot.Resource()
+    r2.type = "results"
+
+    r3 = vot.Resource()
+    r3.type = "results"
+
+    t3 = vot.Table(vtf)
+    t3.name = "t3"
+    r2.tables.append(t3)
+    r2.resources.append(mivot_resource)
+    r2.resources.append(r3)
+
+    vtf.resources.append(r2)
+
+    # Push the VOTable in an IOSTream (emulates a disk saving)
+    buff = io.BytesIO()
+    vtf.to_xml(buff)
+
+    # Read the IOStream (emulates a disk readout)
+    buff.seek(0)
+    vtf2 = parse(buff)
+    data_path = os.path.dirname(os.path.realpath(__file__))
+    vpath = os.path.join(data_path, "data/test.order.xml")
+    vtf2.to_xml(vpath)
+    import filecmp
+
+    assert filecmp.cmp("data/test.order.xml", "data/test.order.out.xml")
