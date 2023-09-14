@@ -121,7 +121,6 @@ ignore = [
     "PGH001",  # eval
 
     # Pylint (PLC, PLE, PLR, PLW)
-    "PLC0208",  # Use a sequence type instead of a `set` when iterating over values
     "PLC1901",  # compare-to-empty-string
     "PLE0101",  # return-in-init
     "PLE0605",  # invalid-all-format
