@@ -468,7 +468,8 @@ def test_mivot_order():
     vtf2 = parse(buff)
     data_path = os.path.dirname(os.path.realpath(__file__))
     vpath = os.path.join(data_path, "data/test.order.xml")
+    vpath2 = os.path.join(data_path, "data/test.order.out.xml")
     vtf2.to_xml(vpath)
     import filecmp
 
-    assert filecmp.cmp("data/test.order.xml", "data/test.order.out.xml")
+    assert filecmp.cmp(vpath, vpath2)
