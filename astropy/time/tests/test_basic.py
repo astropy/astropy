@@ -1475,7 +1475,10 @@ def test_now():
     Tests creating a Time object with the `now` class method.
     """
 
-    now = datetime.datetime.utcnow()
+    # `Time.datetime` is not timezone aware, meaning `.replace` is necessary for
+    # `now` also not be timezone aware.
+    now = datetime.datetime.now(tz=datetime.timezone.utc).replace(tzinfo=None)
+
     t = Time.now()
 
     assert t.format == "datetime"
@@ -1483,7 +1486,7 @@ def test_now():
 
     dt = t.datetime - now  # a datetime.timedelta object
 
-    # this gives a .1 second margin between the `utcnow` call and the `Time`
+    # this gives a .1 second margin between the `now` call and the `Time`
     # initializer, which is really way more generous than necessary - typical
     # times are more like microseconds.  But it seems safer in case some
     # platforms have slow clock calls or something.

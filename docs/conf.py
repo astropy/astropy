@@ -28,7 +28,7 @@ import configparser
 import doctest
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from importlib import metadata
 
 from packaging.requirements import Requirement
@@ -208,7 +208,7 @@ toc_object_entries = False
 
 project = "Astropy"
 author = "The Astropy Developers"
-copyright = f"2011–{datetime.utcnow().year}, " + author
+copyright = f"2011–{datetime.now(tz=timezone.utc).year}, " + author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

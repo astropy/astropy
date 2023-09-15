@@ -49,7 +49,6 @@ ignore = [
 
     # flake8-datetimez (DTZ)
     "DTZ001",  # call-datetime-without-tzinfo
-    "DTZ003",  # call-datetime-utcnow
     "DTZ005",  # call-datetime-now-without-tzinfo
     "DTZ007",  # call-datetime-strptime-without-zone
 
