@@ -3377,12 +3377,14 @@ class TestColumnFunctions(FitsTestCase):
         """
 
         for recformat, fitsformat in NUMPY2FITS.items():
+            if recformat == "a":
+                fitsformat = "0A"
             c = fits.Column("TEST", np.dtype(recformat))
-            c.format == fitsformat
+            assert c.format == fitsformat
             c = fits.Column("TEST", recformat)
-            c.format == fitsformat
+            assert c.format == fitsformat
             c = fits.Column("TEST", fitsformat)
-            c.format == fitsformat
+            assert c.format == fitsformat
 
         # Test a few cases that are ambiguous in that they *are* valid binary
         # table formats though not ones that are likely to be used, but are
