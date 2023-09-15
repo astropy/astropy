@@ -905,7 +905,7 @@ def test_find_by_hash(valid_urls, temp_cache):
 def test_find_invalid():
     # this is of course not a real data file and not on any remote server, but
     # it should *try* to go to the remote server
-    with pytest.raises(urllib.error.URLError):
+    with pytest.raises((urllib.error.URLError, TimeoutError)):
         get_pkg_data_filename(
             "kjfrhgjklahgiulrhgiuraehgiurhgiuhreglhurieghruelighiuerahiulruli"
         )
