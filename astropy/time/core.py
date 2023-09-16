@@ -2516,6 +2516,10 @@ class Time(TimeBase):
     """TDB - TT time scale offset"""
 
     def __sub__(self, other):
+        other_format = None
+        if hasattr(other, "format"):
+            if other.format == "datetime":
+                other_format = "datetime"
         # T      - Tdelta = T
         # T      - T      = Tdelta
         other_is_delta = not isinstance(other, Time)
@@ -2562,7 +2566,6 @@ class Time(TimeBase):
             out = TimeDelta(
                 self_time.jd1, self_time.jd2, format="jd", scale=self_time.scale
             )
-
             if other.scale != out.scale:
                 other = getattr(other, out.scale)
 
@@ -2574,6 +2577,8 @@ class Time(TimeBase):
         if other_is_delta:
             # Go back to left-side scale if needed
             out._set_scale(self.scale)
+        if other_format == "datetime":
+            out = out.replicate(format="datetime")
 
         return out
 
