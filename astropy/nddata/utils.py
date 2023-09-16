@@ -723,7 +723,7 @@ class Cutout2D:
         height, width = self.shape
         hw, hh = width / 2.0, height / 2.0
         pos_xy = self.position_original - np.array([hw, hh])
-        patch = mpatches.Rectangle(pos_xy, width, height, 0.0, **kwargs)
+        patch = mpatches.Rectangle(pos_xy, width, height, angle=0.0, **kwargs)
         ax.add_patch(patch)
         return ax
 
