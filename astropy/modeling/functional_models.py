@@ -2084,7 +2084,7 @@ class Ellipse2D(Fittable2DModel):
         y, x = np.mgrid[0:50, 0:50]
         fig, ax = plt.subplots(1, 1)
         ax.imshow(e(x, y), origin='lower', interpolation='none', cmap='Greys_r')
-        e2 = mpatches.Ellipse((x0, y0), 2*a, 2*b, theta.degree, edgecolor='red',
+        e2 = mpatches.Ellipse((x0, y0), 2*a, 2*b, angle=theta.degree, edgecolor='red',
                               facecolor='none')
         ax.add_patch(e2)
         plt.show()
