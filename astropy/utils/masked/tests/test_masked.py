@@ -296,6 +296,7 @@ class TestMaskedQuantityInitialization(TestMaskedArrayInitialization, QuantitySe
         # Ensure we have used MaskedQuantity before - just in case a single test gets
         # called; see gh-15316.
         Masked(Quantity)
+
     def test_masked_quantity_class_init(self):
         # TODO: class definitions should be more easily accessible.
         mcls = Masked._masked_classes[self.a.__class__]
