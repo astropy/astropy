@@ -19,7 +19,6 @@ ignore = [
     "B007",  # UnusedLoopControlVariable
     "B023",  # FunctionUsesLoopVariable
     "B028",  # No-explicit-stacklevel
-    "B033",  # Sets should not contain duplicate item
     "B904",  # RaiseWithoutFromInsideExcept
     "B905",  # ZipWithoutExplicitStrict   # requires 3.10+
 
