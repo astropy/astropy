@@ -64,7 +64,6 @@ py:obj ScaleBase
 py:obj matplotlib.axis.Axes.get_window_extent
 py:obj matplotlib.spines.get_window_extent
 py:obj N
-py:obj cycler.Cycler
 
 # astropy.wcs
 py:class astropy.wcs.wcsapi.fitswcs.FITSWCSAPIMixin
