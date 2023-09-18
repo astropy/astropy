@@ -1778,7 +1778,8 @@ class Time(TimeBase):
         Value(s) to initialize the time or times.  Only used for numerical
         input, to help preserve precision.
     format : str, optional
-        Format of input value(s)
+        Format of input value(s), specifying how to interpret them (e.g., ISO, JD, or
+        Unix time). By default, the same format will be used for output representation.
     scale : str, optional
         Time scale of input value(s), must be one of the following:
         ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
