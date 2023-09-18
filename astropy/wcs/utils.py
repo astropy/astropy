@@ -49,6 +49,9 @@ SOLAR_SYSTEM_OBJ_DICT = {
     "NE": "Neptune",
 }
 
+solar_system_body_frames = {}
+solar_system_body_representation_type = {}
+
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
     """
@@ -90,9 +93,6 @@ def _wcs_to_celestial_frame_builtin(wcs):
 
     # Import astropy.time here otherwise setup.py fails before extensions are compiled
     from astropy.time import Time
-
-    solar_system_body_frames = {}
-    solar_system_body_representation_type = {}
 
     if wcs.wcs.lng == -1 or wcs.wcs.lat == -1:
         return None
@@ -140,12 +140,7 @@ def _wcs_to_celestial_frame_builtin(wcs):
                 representation_type=SphericalRepresentation,
                 obstime=wcs.wcs.dateobs or None,
             )
-        elif (
-            "LN" in xcoord
-            and "LT" in ycoord
-            and "H" not in xcoord
-            and "CR" not in xcoord
-        ):
+        elif xcoord[2:4] in ("LN", "LT") and "H" not in xcoord and "CR" not in xcoord:
             # Coordinates on a planetary body, as defined in
             # https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2018EA000388
 
@@ -253,9 +248,8 @@ def _celestial_frame_to_wcs_builtin(frame, projection="TAN"):
             wcs.wcs.name = "Bodycentric Body-Fixed"
         else:
             raise ValueError(
-                "The representation type should be geodetic or bodycentric,"
-                " not {frame.representation_type} for storing planetary"
-                " coordinates in a WCS."
+                "Planetary coordinates in WCS require a geodetic or bodycentric "
+                "representation, not {frame.representation_type}."
             )
         wcs.wcs.aux.a_radius = frame.representation_type._equatorial_radius.value
         wcs.wcs.aux.b_radius = frame.representation_type._equatorial_radius.value

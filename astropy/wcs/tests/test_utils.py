@@ -7,7 +7,7 @@ from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 from packaging.version import Version
 
 from astropy import units as u
-from astropy.coordinates import ITRS, EarthLocation, SkyCoord
+from astropy.coordinates import ITRS, BaseCoordinateFrame, EarthLocation, SkyCoord
 from astropy.coordinates.representation import SphericalRepresentation
 from astropy.coordinates.representation.geodetic import (
     BaseBodycentricRepresentation,
@@ -369,9 +369,6 @@ def test_wcs_to_celestial_frame():
 
 
 def test_wcs_to_body_frame():
-    # Import astropy.coordinates here to avoid circular imports
-    from astropy.coordinates import BaseCoordinateFrame
-
     unknown_wcs = WCS(naxis=2)
     unknown_wcs.wcs.ctype = ["UTLN-TAN", "UTLT-TAN"]
     with pytest.raises(KeyError, match="unknown solar system object abbreviation UT"):
@@ -388,6 +385,21 @@ def test_wcs_to_body_frame():
         frame = wcs_to_celestial_frame(triaxial_wcs)
 
     mywcs = WCS(naxis=2)
+    mywcs.wcs.ctype = ["VELN-TAN", "VELT-TAN"]
+    mywcs.wcs.dateobs = "2017-08-17T12:41:04.430"
+    mywcs.wcs.name = "Venus Geodetic Body-Fixed"
+
+    mywcs.wcs.aux.a_radius = 6051800.0
+    mywcs.wcs.aux.b_radius = 6051800.0
+    mywcs.wcs.aux.c_radius = 6051800.0
+    frame = wcs_to_celestial_frame(mywcs)
+    assert issubclass(frame, BaseCoordinateFrame)
+    assert issubclass(frame.representation_type, BaseGeodeticRepresentation)
+    assert frame.name == "Venus"
+    assert frame.representation_type._equatorial_radius == 6051800.0 * u.m
+    assert frame.representation_type._flattening == 0.0
+
+    mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ["MALN-TAN", "MALT-TAN"]
     mywcs.wcs.dateobs = "2017-08-17T12:41:04.430"
     mywcs.wcs.name = "Mars Bodycentric Body-Fixed"
@@ -400,6 +412,7 @@ def test_wcs_to_body_frame():
     assert issubclass(frame.representation_type, BaseBodycentricRepresentation)
     assert frame.name == "Mars"
     assert frame.representation_type._equatorial_radius == 3396190.0 * u.m
+    assert frame.representation_type._flattening == 0.0
 
     mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ["EALN-TAN", "EALT-TAN"]
@@ -535,12 +548,12 @@ def test_celestial_frame_to_wcs():
 
 
 def test_body_to_wcs_frame():
-    # Import astropy.coordinates here to avoid circular imports
-    from astropy.coordinates import BaseCoordinateFrame
-
     class IAUMARSSphereFrame(BaseCoordinateFrame):
         name = "Mars"
         representation_type = SphericalRepresentation
+
+    class IAUMARS2000BodyFrame(BaseCoordinateFrame):
+        name = "Mars"
 
     frame = IAUMARSSphereFrame()
 
@@ -548,9 +561,6 @@ def test_body_to_wcs_frame():
         ValueError, match="The representation type should be geodetic or bodycentric"
     ):
         celestial_frame_to_wcs(frame, projection="CAR")
-
-    class IAUMARS2000BodyFrame(BaseCoordinateFrame):
-        name = "Mars"
 
     frame = IAUMARS2000BodyFrame()
 
@@ -560,6 +570,9 @@ def test_body_to_wcs_frame():
     assert mywcs.wcs.ctype[0] == "MALN-CAR"
     assert mywcs.wcs.ctype[1] == "MALT-CAR"
     assert mywcs.wcs.name == "Planetographic Body-Fixed"
+    assert mywcs.wcs.aux.a_radius == 3396190.0
+    assert mywcs.wcs.aux.b_radius == 3396190.0
+    assert_almost_equal(mywcs.wcs.aux.c_radius, 3376200.0)
 
     frame.representation_type = IAUMARS2000BodycentricRepresentation
     mywcs = celestial_frame_to_wcs(frame, projection="CAR")
