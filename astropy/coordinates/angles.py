@@ -602,6 +602,7 @@ class Latitude(Angle):
         # Ensure ndim>=1 so that comparison is done using the angle dtype.
         # Otherwise, e.g., np.array(np.pi/2, 'f4') > np.pi/2 will yield True.
         # (This feels like a bug -- see https://github.com/numpy/numpy/issues/23247)
+        # TODO: address this again when/if numpy 2.0 exists - see above issue
         # Note that we should avoid using `angles.dtype` directly since for
         # structured arrays like Distribution this will be `void`.
         angles_view = angles.view(np.ndarray)[np.newaxis]
