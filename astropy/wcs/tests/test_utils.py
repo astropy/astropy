@@ -412,7 +412,7 @@ def test_wcs_to_body_frame():
     assert issubclass(frame.representation_type, BaseBodycentricRepresentation)
     assert frame.name == "Mars"
     assert frame.representation_type._equatorial_radius == 3396190.0 * u.m
-    assert frame.representation_type._flattening == 0.0
+    assert_almost_equal(frame.representation_type._flattening, 0.005888952031541227)
 
     mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ["EALN-TAN", "EALT-TAN"]
@@ -558,7 +558,8 @@ def test_body_to_wcs_frame():
     frame = IAUMARSSphereFrame()
 
     with pytest.raises(
-        ValueError, match="The representation type should be geodetic or bodycentric"
+        ValueError,
+        match="Planetary coordinates in WCS require a geodetic or bodycentric representation",
     ):
         celestial_frame_to_wcs(frame, projection="CAR")
 
