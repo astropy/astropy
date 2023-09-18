@@ -6,7 +6,6 @@ Distribution class and associated machinery.
 import builtins
 
 import numpy as np
-from numpy.lib.stride_tricks import DummyArray
 
 from astropy import stats
 from astropy import units as u
@@ -15,8 +14,10 @@ from astropy.utils.compat.numpycompat import NUMPY_LT_1_23, NUMPY_LT_2_0
 if NUMPY_LT_2_0:
     from numpy.core.multiarray import normalize_axis_index
     from numpy.lib.function_base import _parse_gufunc_signature
+    from numpy.lib.stride_tricks import DummyArray
 else:
     from numpy.lib._function_base_impl import _parse_gufunc_signature
+    from numpy.lib._stride_tricks_impl import DummyArray
     from numpy.lib.array_utils import normalize_axis_index
 
 
