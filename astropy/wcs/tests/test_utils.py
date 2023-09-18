@@ -559,7 +559,7 @@ def test_body_to_wcs_frame():
 
     with pytest.raises(
         ValueError,
-        match="Planetary coordinates in WCS require a geodetic or bodycentric representation",
+        match="Planetary coordinates in WCS require a geodetic or bodycentric",
     ):
         celestial_frame_to_wcs(frame, projection="CAR")
 
