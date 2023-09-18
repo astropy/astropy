@@ -107,35 +107,7 @@ jobs:
           linux: py311-test-devdeps
           posargs: --remote-data=any
 
-  parallel_and_32bit:
-    name: 32-bit and parallel
-    runs-on: ubuntu-latest
-    needs: [initial_checks]
-    container:
-      image: quay.io/pypa/manylinux2014_i686:2022-04-03-da6ecb3
-    steps:
-    # TODO: Use newer checkout actions when https://github.com/actions/checkout/issues/334 fixed
-    - name: Checkout code
-      uses: actions/checkout@v1
-      with:
-        fetch-depth: 0
-    - name: Write configuration items to standard location to make sure they are ignored in parallel mode
-      run: |
-        mkdir -p $HOME/.astropy/config/
-        printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
-    # In addition to testing 32-bit, we also use the 3.9 builds to
-    # test the ability to run the test suite in parallel.
-    # Numpy is pinned to avoid building it from source for numpy 1.21.5
-    - name: Install dependencies for Python 3.9
-      run: /opt/python/cp39-cp39/bin/pip install --upgrade tox
-    - name: Run tests for Python 3.9
-      run: /opt/python/cp39-cp39/bin/python -m tox -e py39-numpy121-test -- -n=4 --durations=50
-    # We use the 3.9 build to check that running tests twice in a row in the
-    # same Python session works without issues. This catches cases where
-    # running the tests changes the module state permanently. Note that we
-    # shouldn't also test the parallel build here since that enforces a degree
-    # of isolation of tests which will interfere with what we are trying to do
-    # here.
-    # Numpy is pinned to avoid building it from source for numpy 1.21.5
-    - name: Run tests for Python 3.9
-      run: /opt/python/cp39-cp39/bin/python -m tox -e py39-numpy121-test-double
+# parallel_and_32bit removed because it is incompatible with numpy 1.26.
+# In main (v6.0.x), this job was completely refactored and moved to cron
+# (https://github.com/astropy/astropy/pull/15018).
+# Since v5.3.x is going to be discontinued by the end of 2023, we will just disable it.
