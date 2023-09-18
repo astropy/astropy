@@ -24,12 +24,6 @@ write_to = "astropy/_version.py"
 # - MuslLinux (tests hang non-deterministically)
 test-skip = "*-macosx_arm64 *-manylinux_aarch64 *-musllinux_x86_64"
 
-[[tool.cibuildwheel.overrides]]
-# Python 3.11 and later is not available in manylinux2010 so we only
-# set this for Python<=3.10.
-select = "cp3{8,9,10}-*"
-manylinux-x86_64-image = "manylinux2010"
-
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"]
 
