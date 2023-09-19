@@ -2,7 +2,9 @@
 requires = ["setuptools",
             "setuptools_scm>=6.2",
             "cython==0.29.34",
-            "numpy>=1.25,<2",
+            # A prebuilt numpy 1.25+ version is only currently available on x86_64, aarch64, arm64
+            "numpy>=1.25,<2; platform_machine=='x86_64' or platform_machine=='aarch64' or platform_machine=='arm64'",
+            "numpy>=1.24,<1.25; platform_machine!='x86_64' and platform_machine!='aarch64' and platform_machine!='arm64'",
             "extension-helpers"]
 build-backend = 'setuptools.build_meta'
 
