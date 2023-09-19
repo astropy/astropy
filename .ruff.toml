@@ -170,7 +170,6 @@ ignore = [
     "PTH120",  # os-path-dirname
     "PTH122",  # os-path-splitext
     "PTH123",  # builtin-open
-    "PTH124",  # py-path
     "PTH202",  # `os.path.getsize` should be replaced by `Path.stat().st_size`
     "PTH206",  # Replace `.split(os.sep)` with `Path.parts`
     "PTH207",  # Replace `glob` with `Path.glob` or `Path.rglob`
