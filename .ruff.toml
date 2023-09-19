@@ -4,8 +4,14 @@ ignore = [
     # ruff --select="ALL" --statistics astropy/<subpackage>
 
     # flake8-annotations (ANN) : static typing
-    # TODO: revisit this when Astropy implements typing.
-    "ANN",
+    "ANN001",  # Function argument without type annotation
+    "ANN003",  # `**kwargs` without type annotation
+    "ANN201",  # Public function without return type annotation
+    "ANN202",  # Private function without return type annotation
+    "ANN204",  # Dunder method without return type annotation
+    "ANN205",  # Static method without return type annotation
+    "ANN206",  # Class method without return type annotation
+    "ANN401",  # Use of `Any` type
 
     # flake8-unused-arguments (ARG)
     "ARG001",  # unused-function-argument
