@@ -129,6 +129,10 @@ ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` in
     # New ones should be avoided and is up to maintainers to enforce.
     "A00",
 
+    # flake8-annotations (ANN)
+    "ANN101",  # No annotation for `self`.
+    "ANN102",  # No annotation for `cls`.
+
     # flake8-bugbear (B)
     "B008",  # FunctionCallArgumentDefault
 
