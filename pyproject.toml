@@ -196,6 +196,9 @@ ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` in
     "T203"    # pprint found
 ]
 
+[tool.ruff.flake8-annotations]
+ignore-fully-untyped = true
+
 [tool.ruff.isort]
     known-third-party = ["erfa", "PyYAML", "packaging", "pytest", "scipy", "matplotlib"]
     known-first-party = ["astropy", "extension_helpers"]
