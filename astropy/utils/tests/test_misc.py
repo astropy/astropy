@@ -33,7 +33,7 @@ def test_api_lookup():
     try:
         strurl = misc.find_api_page("astropy.utils.misc", "dev", False, timeout=5)
         objurl = misc.find_api_page(misc, "dev", False, timeout=5)
-    except urllib.error.URLError:
+    except (urllib.error.URLError, TimeoutError):
         if os.environ.get("CI", False):
             pytest.xfail("Timed out in CI")
         else:
