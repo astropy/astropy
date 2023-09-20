@@ -286,9 +286,9 @@ def test_read_write_votable_parquet(tmp_path):
            }
 
     # Write VOTable with Parquet serialization
-    filename = os.path.join(tmp_path, "test_votable_parquet.vot")
+    filename = tmp_path / "test_votable_parquet.vot"
     astropytab.write(
-        filename=filename,
+        filename,
         column_metadata=column_metadata,
         overwrite=True,
         format="votable.parquet",
