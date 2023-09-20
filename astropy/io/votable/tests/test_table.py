@@ -274,16 +274,15 @@ def test_read_write_votable_parquet(tmp_path):
     redshift = np.random.uniform(low=0, high=3, size=number_of_objects)
     mass = np.random.uniform(low=1e8, high=1e10, size=number_of_objects)
     sfr = np.random.uniform(low=1, high=100, size=number_of_objects)
-    astropytab = Table([ids, redshift, mass, sfr],
-                       names=["id", "z", "mass", "sfr"])
+    astropytab = Table([ids, redshift, mass, sfr], names=["id", "z", "mass", "sfr"])
 
     # Create Column metadata
     column_metadata = {
         "id": {"unit": "", "ucd": "meta.id", "utype": "none"},
         "z": {"unit": "", "ucd": "src.redshift", "utype": "none"},
         "mass": {"unit": "solMass", "ucd": "phys.mass", "utype": "none"},
-        "sfr": {"unit": "solMass / yr", "ucd": "phys.SFR", "utype": "none"}
-           }
+        "sfr": {"unit": "solMass / yr", "ucd": "phys.SFR", "utype": "none"},
+    }
 
     # Write VOTable with Parquet serialization
     filename = tmp_path / "test_votable_parquet.vot"
@@ -309,7 +308,12 @@ def test_read_write_votable_parquet(tmp_path):
     saved_bool = []
     for kk, key in enumerate(column_metadata.keys()):
         for tag in column_metadata[key].keys():
-            saved_bool.append(column_metadata[key][tag] == str(eval("votable.resources[0].tables[0].fields[{}].{}".format(kk, tag))).replace("---", ""))
+            saved_bool.append(
+                column_metadata[key][tag]
+                == str(
+                    eval(f"votable.resources[0].tables[0].fields[{kk}].{tag}")
+                ).replace("---", "")
+            )
     assert np.asarray(saved_bool).all()
 
 

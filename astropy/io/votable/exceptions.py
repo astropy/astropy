@@ -890,7 +890,7 @@ class W37(UnimplementedWarning):
     """
     The 3 datatypes defined in the VOTable specification and supported by
     ``astropy.io.votable`` are ``TABLEDATA``, ``BINARY``, and ``FITS``.
-    In addition, ``astropy.io.votable`` also supports ``PARQUET`` serialization, which is 
+    In addition, ``astropy.io.votable`` also supports ``PARQUET`` serialization, which is
     a candidate for addition to the VOTable specification.
 
     **References:** `1.1
