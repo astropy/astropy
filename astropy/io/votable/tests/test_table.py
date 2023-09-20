@@ -15,6 +15,7 @@ from astropy.io.votable.table import parse, writeto
 from astropy.table import Column, Table
 from astropy.table.table_helpers import simple_table
 from astropy.units import Unit
+from astropy.utils.compat.optional_deps import HAS_PYARROW
 from astropy.utils.data import (
     get_pkg_data_filename,
     get_pkg_data_fileobj,
@@ -261,6 +262,7 @@ def test_write_with_format():
     assert b"TABLEDATA" not in obuff
 
 
+@pytest.mark.skipif(not HAS_PYARROW, reason="requires pyarrow")
 def test_read_write_votable_parquet(tmp_path):
     """
     Test to write and read VOTable with Parquet serialization
