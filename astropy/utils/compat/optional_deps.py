@@ -6,7 +6,7 @@ import importlib
 import warnings
 
 # First, the top-level packages:
-# TODO: This list is a duplicate of the dependencies in setup.cfg "all", but
+# TODO: This list is a duplicate of the dependencies in pyproject.toml "all", but
 # some of the package names are different from the pip-install name (e.g.,
 # beautifulsoup4 -> bs4).
 _optional_deps = [

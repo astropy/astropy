@@ -47,8 +47,7 @@ Contents of ``/astropy/somepackage/somemod.py`` ::
 
         do_something(res.stuff,res.op)
 
-Then add the script to the ``setup.cfg`` under this section::
+Then add the script to the ``pyproject.toml`` under this section::
 
-    [options.entry_points]
-    console_scripts =
-        somescript = astropy.somepackage.somemod:main
+    [project.scripts]
+    somescript = "astropy.somepackage.somemod:main"

@@ -74,8 +74,8 @@ the standard Astropy docstring format.
   particular module or class.
 
 * Any external package dependencies must be explicitly mentioned in the
-  documentation. They should also be recorded in the ``setup.cfg`` file in the
-  root of the astropy repository using an entry in ``extras_require``,
+  documentation. They should also be recorded in the ``pyproject.toml`` file in the
+  root of the astropy repository using an entry in ``[project.optional-dependencies]``,
   under ``all``.
 
 * Configuration options using the :mod:`astropy.config` mechanisms must be

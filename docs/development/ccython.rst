@@ -52,14 +52,14 @@ you probably want to install its header files along side the Python module.
     1) Create an ``include`` directory inside of your package for
        all of the header files.
 
-    2) Use the ``[options.package_data]`` section in your ``setup.cfg``
+    2) Use the ``[tool.setuptools.package_data]`` section in your ``pyproject.toml``
        file to include those header files in the package. For example, the
        `astropy.wcs` package has the following entries in the
-       ``[options.package_data]`` section::
+       ``[tool.setuptools.package_data]`` section::
 
-           [options.package_data]
+           [tool.setuptools.package_data]
            ...
-           astropy.wcs = include/*/*.h
+           "astropy.wcs" = ["include/*/*.h"]
            ...
 
 Preventing importing at build time
