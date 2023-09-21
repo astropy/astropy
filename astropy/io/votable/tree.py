@@ -3131,6 +3131,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
             )
 
         fd = urllib.request.urlopen(href)
+
         if encoding is not None:
             if encoding == "gzip":
                 fd = gzip.GzipFile(href, "r", fileobj=fd)

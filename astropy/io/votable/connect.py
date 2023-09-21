@@ -228,6 +228,7 @@ def write_table_votable_parquet(tab, filename, column_metadata, overwrite):
     """
     # First save the PARQUET file.
     parquet_filename = f"{filename}.parquet"
+    path_type = f"file:{'//' if os.path.isabs(parquet_filename) else ''}"
     tab.write(parquet_filename, format="parquet", overwrite=overwrite)
 
     # Second, save table as binary VOT file. We will modify this file
@@ -264,7 +265,7 @@ def write_table_votable_parquet(tab, filename, column_metadata, overwrite):
         # Add the extension tag
         # We assume here that it is extension #1.
         lines[line_start] = '<PARQUET type="VOTable-remote-file">\n'
-        lines[line_start + 1] = f'<STREAM href="file://{parquet_filename}"/>\n'
+        lines[line_start + 1] = f'<STREAM href="{path_type}{parquet_filename}"/>\n'
         lines[line_start + 2] = "</PARQUET>\n"
 
         # remove last line
