@@ -1,0 +1,1 @@
+Fixed a bug in ``convert_to_writable_filelike`` where ``GzipFile`` was not closed properly.
