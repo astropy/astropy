@@ -448,8 +448,6 @@ class TestDefPhysType:
             assert (
                 self.weird_unit.physical_type == weird_name
             ), f"unable to set physical type for {self.weird_unit}"
-        except Exception:
-            raise
         finally:  # cleanup added name
             physical._attrname_physical_mapping.pop(weird_name.replace(" ", "_"), None)
             physical._name_physical_mapping.pop(weird_name, None)
@@ -461,8 +459,6 @@ class TestDefPhysType:
                 weird_name,
                 strange_name,
             }, "did not correctly append a new physical type name."
-        except Exception:
-            raise
         finally:  # cleanup added names
             physical._attrname_physical_mapping.pop(
                 strange_name.replace(" ", "_"), None
