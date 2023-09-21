@@ -155,6 +155,13 @@ def test_deprecated_class():
         assert "function" not in TA.__init__.__doc__
         assert "deprecated" in TA.__init__.__doc__
 
+    # Test that the ``__deprecated__`` attribute is set
+    # See https://peps.python.org/pep-0702/ for more information
+    assert (
+        TA.__deprecated__
+        == "The TA class is deprecated and may be removed in a future version."
+    )
+
     # Make sure the object is picklable
     pickle.dumps(TA)
 
@@ -257,11 +264,25 @@ def test_deprecated_static_and_classmethod():
     if A.__doc__ is not None:
         assert "deprecated" in A.B.__doc__
 
+    # Test that the ``__deprecated__`` attribute is set
+    # See https://peps.python.org/pep-0702/ for more information
+    assert (
+        A.B.__deprecated__
+        == "The B method is deprecated and may be removed in a future version."
+    )
+
     with pytest.warns(AstropyDeprecationWarning) as w:
         A.C()
     assert len(w) == 1
     if A.__doc__ is not None:
         assert "deprecated" in A.C.__doc__
+
+    # Test that the ``__deprecated__`` attribute is set
+    # See https://peps.python.org/pep-0702/ for more information
+    assert (
+        A.C.__deprecated__
+        == "The C method is deprecated and may be removed in a future version."
+    )
 
 
 def test_deprecated_argument():
