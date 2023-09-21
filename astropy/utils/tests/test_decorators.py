@@ -270,6 +270,9 @@ def test_deprecated_static_and_classmethod():
         A.B.__deprecated__
         == "The B method is deprecated and may be removed in a future version."
     )
+    # And that it is not set on the original function which doesn't have
+    # the deprecation warning.
+    assert not hasattr(A.B.__wrapped__, "__deprecated__")
 
     with pytest.warns(AstropyDeprecationWarning) as w:
         A.C()
@@ -283,6 +286,9 @@ def test_deprecated_static_and_classmethod():
         A.C.__deprecated__
         == "The C method is deprecated and may be removed in a future version."
     )
+    # And that it is not set on the original function which doesn't have
+    # the deprecation warning.
+    assert not hasattr(A.C.__wrapped__, "__deprecated__")
 
 
 def test_deprecated_argument():
