@@ -8,7 +8,7 @@ readme = "README.rst"
 authors = [
     { name = "The Astropy Developers", email = "astropy.team@gmail.com" }
 ]
-license = { file = "LICENSE.rst" }
+license = { text = "BSD-3-Clause" }
 requires-python = ">=3.9"
 classifiers = [
     "Intended Audience :: Science/Research",
@@ -126,6 +126,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 include-package-data = true
+license-files = ["LICENSE.rst", "licenses/*.rst"]
 
 [tool.setuptools.packages.find]
 include = ["astropy*"]
