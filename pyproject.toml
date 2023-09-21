@@ -1,14 +1,28 @@
 [project]
 name = "astropy"
-dynamic = [
-    "version"
-]
 description = "Astronomy and astrophysics core library"
 readme = "README.rst"
+keywords = [
+    "ascii",
+    "astronomy",
+    "astrophysics",
+    "coordinate",
+    "cosmology",
+    "fits",
+    "fitting",
+    "modeling",
+    "models",
+    "samp",
+    "science",
+    "space",
+    "table",
+    "units",
+    "wcs",
+]
+license = { text = "BSD-3-Clause" }
 authors = [
     { name = "The Astropy Developers", email = "astropy.team@gmail.com" }
 ]
-license = { text = "BSD-3-Clause" }
 requires-python = ">=3.9"
 classifiers = [
     "Intended Audience :: Science/Research",
@@ -16,95 +30,81 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: C",
     "Programming Language :: Cython",
-    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Scientific/Engineering :: Astronomy",
     "Topic :: Scientific/Engineering :: Physics",
 ]
-keywords = [
-    "astronomy",
-    "astrophysics",
-    "cosmology",
-    "space",
-    "science",
-    "units",
-    "table",
-    "wcs",
-    "samp",
-    "coordinate",
-    "fits",
-    "modeling",
-    "models",
-    "fitting",
-    "ascii",
+dynamic = [
+    "version",
 ]
 dependencies = [
-    "numpy>=1.22",
-    "pyerfa>=2.0",
     "astropy-iers-data>=0.2023.8.28.0.30.15",
+    "numpy>=1.22",
+    "packaging>=19",
+    "pyerfa>=2",
     "PyYAML>=3.13",
-    "packaging>=19.0",
 ]
-
 [project.optional-dependencies]
+all = [
+    "asdf-astropy>=0.3",
+    "astropy[recommended]", # installs the [recommended] dependencies
+    "beautifulsoup4",
+    "bleach",
+    "bottleneck",
+    "certifi",
+    "dask[array]",
+    "fsspec[http]>=2022.8.2",
+    "h5py",
+    "html5lib",
+    "ipython>=4.2",
+    "jplephem",
+    "mpmath",
+    "pandas",
+    "pre-commit",
+    "pyarrow>=5",
+    "pytest>=7",
+    "pytz",
+    "s3fs>=2022.8.2",
+    "sortedcontainers",
+    "typing_extensions>=3.10.0.1",
+]
+docs = [
+    "astropy[recommended]", # installs the [recommended] dependencies
+    "Jinja2>=3",
+    "pytest>=7",
+    "sphinx",
+    "sphinx-astropy[confv2]>=1.9.1",
+    "sphinx-changelog>=1.2",
+    "sphinx_design",
+    'tomli; python_version < "3.11"',
+]
+recommended = [
+    "matplotlib!=3.4.0,!=3.5.2,>=3.3",
+    "scipy>=1.5",
+]
 test = [
-    "pytest>=7.0",
-    "pytest-doctestplus>=0.12",
-    "pytest-astropy-header>=0.2.1",
+    "pytest>=7",
     "pytest-astropy>=0.10",
+    "pytest-astropy-header>=0.2.1",
+    "pytest-doctestplus>=0.12",
     "pytest-xdist",
 ]
 test_all = [
-    "astropy[test]",  # installs the [test] dependencies
-    "objgraph",
-    "ipython>=4.2",
+    "astropy[test]", # installs the [test] dependencies
     "coverage[toml]",
-    "skyfield>=1.20",
-    "sgp4>=2.3",
-]
-recommended = [
-    "scipy>=1.5",
-    "matplotlib>=3.3,!=3.4.0,!=3.5.2",
-]
-all = [
-    "astropy[recommended]",  # installs the [recommended] dependencies
-    "certifi",
-    "dask[array]",
-    "h5py",
-    "pyarrow>=5.0.0",
-    "beautifulsoup4",
-    "html5lib",
-    "bleach",
-    "pandas",
-    "sortedcontainers",
-    "pytz",
-    "jplephem",
-    "mpmath",
-    "asdf-astropy>=0.3",
-    "bottleneck",
     "ipython>=4.2",
-    "pytest>=7.0",
-    "typing_extensions>=3.10.0.1",
-    "fsspec[http]>=2022.8.2",
-    "s3fs>=2022.8.2",
-    "pre-commit",
+    "objgraph",
+    "sgp4>=2.3",
+    "skyfield>=1.20",
 ]
-docs = [
-    "astropy[recommended]",  # installs the [recommended] dependencies
-    "sphinx",
-    "sphinx-astropy[confv2]>=1.9.1",
-    "pytest>=7.0",
-    "sphinx-changelog>=1.2.0",
-    "sphinx_design",
-    "Jinja2>=3.0",
-    "tomli; python_version < '3.11'",
-]
-
 [project.urls]
-homepage = "https://www.astropy.org/"
 documentation = "https://docs.astropy.org"
+homepage = "https://www.astropy.org/"
 repository = "https://github.com/astropy/astropy"
-
 [project.scripts]
 fits2bitmap = "astropy.visualization.scripts.fits2bitmap:main"
 fitscheck = "astropy.io.fits.scripts.fitscheck:main"
@@ -117,12 +117,14 @@ volint = "astropy.io.votable.volint:main"
 wcslint = "astropy.wcs.wcslint:main"
 
 [build-system]
-requires = ["setuptools",
-            "setuptools_scm>=6.2",
-            "cython==0.29.34",
-            "numpy>=1.25,<2",
-            "extension-helpers"]
 build-backend = "setuptools.build_meta"
+requires = [
+    "cython==0.29.34",
+    "extension-helpers",
+    "numpy<2,>=1.25",
+    "setuptools",
+    "setuptools_scm>=6.2",
+]
 
 [tool.setuptools]
 include-package-data = true
@@ -153,86 +155,6 @@ namespaces = false
 [tool.setuptools_scm]
 write_to = "astropy/_version.py"
 
-[tool.pytest.ini_options]
-minversion = 7.0
-testpaths = [
-    "astropy",
-    "docs",
-]
-norecursedirs = [
-    "docs[\\/]_build",
-    "docs[\\/]generated",
-    "astropy[\\/]extern",
-    "astropy[\\/]_dev",
-]
-astropy_header = true
-doctest_plus = "enabled"
-text_file_format = "rst"
-remote_data_strict = true
-addopts = "--color=yes --doctest-rst"
-xfail_strict = true
-qt_no_exception_capture = 1
-filterwarnings = [
-    "error",
-    "ignore:unclosed <socket:ResourceWarning",
-    "ignore:unclosed <ssl.SSLSocket:ResourceWarning",
-    # Can be removed once Python>=3.11 is the minimum dependency,
-    # cf. https://github.com/astropy/astropy/issues/13907
-    "ignore:unclosed transport <asyncio.sslproto",
-    "ignore:numpy\\.ufunc size changed:RuntimeWarning",
-    "ignore:numpy\\.ndarray size changed:RuntimeWarning",
-    "ignore:Importing from numpy:DeprecationWarning:scipy",
-    "ignore:Conversion of the second argument:FutureWarning:scipy",
-    "ignore:Using a non-tuple sequence:FutureWarning:scipy",
-    "ignore:Using or importing the ABCs from 'collections':DeprecationWarning",
-    "ignore:Unknown pytest\\.mark\\.mpl_image_compare:pytest.PytestUnknownMarkWarning",
-    "ignore:Unknown config option:pytest.PytestConfigWarning",
-    "ignore:matplotlibrc text\\.usetex:UserWarning:matplotlib",
-    "ignore:The 'text' argument to find\\(\\)-type methods is deprecated:DeprecationWarning",
-    # Triggered by ProgressBar > ipykernel.iostream
-    "ignore:the imp module is deprecated:DeprecationWarning",
-    # Ignore a warning we emit about not supporting the parallel",
-    # reading option for now, can be removed once the issue is fixed",
-    "ignore:parallel reading does not currently work, so falling back to serial",
-    # Ignore deprecation warning triggered by s3fs (fsspec/s3fs#716)
-    "ignore:'cgi' is deprecated and slated for removal in Python 3.13:DeprecationWarning",
-]
-doctest_norecursedirs = [
-    "*/setup_package.py",
-    "*/tests/command.py",
-]
-doctest_subpackage_requires = [
-    "astropy/cosmology/_io/mapping.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
-    "astropy/cosmology/_io/row.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
-    "astropy/cosmology/_io/table.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
-    "astropy/table/table.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
-    "astropy/table/mixins/dask.py = dask",
-    "docs/io/fits/index.rst = numpy<1.25",  # NUMPY_LT_1_25 (Issue 14545)
-    "docs/io/fits/usage/image.rst = numpy<1.25",  # NUMPY_LT_1_25 (Issue 14545)
-    "docs/io/fits/usage/unfamiliar.rst = numpy<1.25",  # NUMPY_LT_1_25 (Issue 14545)
-]
-
-[tool.astropy-bot]
-    [tool.astropy-bot.autolabel]
-        # Comment this out to re-enable but then labeler Action needs to be disabled.
-        enabled = false
-
-    [tool.astropy-bot.changelog_checker]
-        enabled = false
-
-[tool.cibuildwheel]
-# We disable testing for the following wheels:
-# - MacOS X ARM (no native hardware, tests are skipped anyway, this avoids a warning)
-# - Linux AArch64 (no native hardware, tests take too long)
-# - MuslLinux (tests hang non-deterministically)
-test-skip = "*-macosx_arm64 *-manylinux_aarch64 *-musllinux_x86_64"
-
-[tool.cibuildwheel.macos]
-archs = ["x86_64", "arm64"]
-
-[tool.cibuildwheel.linux]
-archs = ["auto", "aarch64"]
-
 [tool.black]
 line-length = 88
 force-exclude = """
@@ -250,70 +172,6 @@ force-exclude = """
   | astropy/units/format/.*tab.py
 )
 """
-
-
-[tool.docformatter]
-    # The ``summaries`` are not (yet) 75 characters because the summary lines can't be
-    # automatically wrapped and must be re-written, which should be done at some point.
-    recursive = true
-    wrap-summaries = 1000
-    wrap-descriptions = 75
-    black = true
-    syntax = "numpy"
-
-
-[tool.flynt]
-exclude= [
-    "astropy/extern",
-    "astropy/coordinates/angle_lextab.py",
-    "astropy/units/format/cds_lextab.py",
-    "astropy/units/format/general_lextab.py",
-    "astropy/units/format/ogip_lextab.py",
-    "astropy/coordinates/angle_parsetab.py",
-    "astropy/units/format/cds_parsetab.py",
-    "astropy/units/format/general_parsetab.py",
-    "astropy/units/format/ogip_parsetab.py",
-]
-
-
-[tool.coverage]
-
-    [tool.coverage.run]
-        omit = [
-            "astropy/__init__*",
-            "astropy/**/conftest.py",
-            "astropy/**/setup*",
-            "astropy/**/tests/*",
-            "astropy/extern/*",
-            "astropy/utils/compat/*",
-            "astropy/version*",
-            "astropy/wcs/docstrings*",
-            "*/astropy/__init__*",
-            "*/astropy/**/conftest.py",
-            "*/astropy/**/setup*",
-            "*/astropy/**/tests/*",
-            "*/astropy/extern/*",
-            "*/astropy/utils/compat/*",
-            "*/astropy/version*",
-            "*/astropy/wcs/docstrings*",
-        ]
-
-    [tool.coverage.report]
-        exclude_lines = [
-            # Have to re-enable the standard pragma
-            "pragma: no cover",
-            # Don't complain about packages we have installed
-            "except ImportError",
-            # Don't complain if tests don't hit defensive assertion code:
-            "raise AssertionError",
-            "raise NotImplementedError",
-            # Don't complain about script hooks
-            "'def main(.*):'",
-            # Ignore branches that don't pertain to this version of Python
-            "pragma: py{ignore_python_version}",
-            # Don't complain about IPython completion helper
-            "def _ipython_key_completions_",
-        ]
 
 [tool.ruff]
 # Our minimum Python version is 3.9 but we want to minimize backport issues, so
@@ -406,6 +264,147 @@ ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` in
 
 [tool.ruff.pydocstyle]
 convention = "numpy"
+
+[tool.pytest.ini_options]
+minversion = 7.0
+testpaths = [
+    "astropy",
+    "docs",
+]
+norecursedirs = [
+    "docs[\\/]_build",
+    "docs[\\/]generated",
+    "astropy[\\/]extern",
+    "astropy[\\/]_dev",
+]
+astropy_header = true
+doctest_plus = "enabled"
+text_file_format = "rst"
+remote_data_strict = true
+addopts = "--color=yes --doctest-rst"
+xfail_strict = true
+qt_no_exception_capture = 1
+filterwarnings = [
+    "error",
+    "ignore:unclosed <socket:ResourceWarning",
+    "ignore:unclosed <ssl.SSLSocket:ResourceWarning",
+    # Can be removed once Python>=3.11 is the minimum dependency,
+    # cf. https://github.com/astropy/astropy/issues/13907
+    "ignore:unclosed transport <asyncio.sslproto",
+    "ignore:numpy\\.ufunc size changed:RuntimeWarning",
+    "ignore:numpy\\.ndarray size changed:RuntimeWarning",
+    "ignore:Importing from numpy:DeprecationWarning:scipy",
+    "ignore:Conversion of the second argument:FutureWarning:scipy",
+    "ignore:Using a non-tuple sequence:FutureWarning:scipy",
+    "ignore:Using or importing the ABCs from 'collections':DeprecationWarning",
+    "ignore:Unknown pytest\\.mark\\.mpl_image_compare:pytest.PytestUnknownMarkWarning",
+    "ignore:Unknown config option:pytest.PytestConfigWarning",
+    "ignore:matplotlibrc text\\.usetex:UserWarning:matplotlib",
+    "ignore:The 'text' argument to find\\(\\)-type methods is deprecated:DeprecationWarning",
+    # Triggered by ProgressBar > ipykernel.iostream
+    "ignore:the imp module is deprecated:DeprecationWarning",
+    # Ignore a warning we emit about not supporting the parallel",
+    # reading option for now, can be removed once the issue is fixed",
+    "ignore:parallel reading does not currently work, so falling back to serial",
+    # Ignore deprecation warning triggered by s3fs (fsspec/s3fs#716)
+    "ignore:'cgi' is deprecated and slated for removal in Python 3.13:DeprecationWarning",
+]
+doctest_norecursedirs = [
+    "*/setup_package.py",
+    "*/tests/command.py",
+]
+doctest_subpackage_requires = [
+    "astropy/cosmology/_io/mapping.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
+    "astropy/cosmology/_io/row.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
+    "astropy/cosmology/_io/table.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
+    "astropy/table/table.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
+    "astropy/table/mixins/dask.py = dask",
+    "docs/io/fits/index.rst = numpy<1.25",  # NUMPY_LT_1_25 (Issue 14545)
+    "docs/io/fits/usage/image.rst = numpy<1.25",  # NUMPY_LT_1_25 (Issue 14545)
+    "docs/io/fits/usage/unfamiliar.rst = numpy<1.25",  # NUMPY_LT_1_25 (Issue 14545)
+]
+
+[tool.coverage]
+
+    [tool.coverage.run]
+        omit = [
+            "astropy/__init__*",
+            "astropy/**/conftest.py",
+            "astropy/**/setup*",
+            "astropy/**/tests/*",
+            "astropy/extern/*",
+            "astropy/utils/compat/*",
+            "astropy/version*",
+            "astropy/wcs/docstrings*",
+            "*/astropy/__init__*",
+            "*/astropy/**/conftest.py",
+            "*/astropy/**/setup*",
+            "*/astropy/**/tests/*",
+            "*/astropy/extern/*",
+            "*/astropy/utils/compat/*",
+            "*/astropy/version*",
+            "*/astropy/wcs/docstrings*",
+        ]
+
+    [tool.coverage.report]
+        exclude_lines = [
+            # Have to re-enable the standard pragma
+            "pragma: no cover",
+            # Don't complain about packages we have installed
+            "except ImportError",
+            # Don't complain if tests don't hit defensive assertion code:
+            "raise AssertionError",
+            "raise NotImplementedError",
+            # Don't complain about script hooks
+            "'def main(.*):'",
+            # Ignore branches that don't pertain to this version of Python
+            "pragma: py{ignore_python_version}",
+            # Don't complain about IPython completion helper
+            "def _ipython_key_completions_",
+        ]
+
+[tool.astropy-bot]
+    [tool.astropy-bot.autolabel]
+        # Comment this out to re-enable but then labeler Action needs to be disabled.
+        enabled = false
+
+    [tool.astropy-bot.changelog_checker]
+        enabled = false
+
+[tool.cibuildwheel]
+# We disable testing for the following wheels:
+# - MacOS X ARM (no native hardware, tests are skipped anyway, this avoids a warning)
+# - Linux AArch64 (no native hardware, tests take too long)
+# - MuslLinux (tests hang non-deterministically)
+test-skip = "*-macosx_arm64 *-manylinux_aarch64 *-musllinux_x86_64"
+
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "arm64"]
+
+[tool.cibuildwheel.linux]
+archs = ["auto", "aarch64"]
+
+[tool.docformatter]
+    # The ``summaries`` are not (yet) 75 characters because the summary lines can't be
+    # automatically wrapped and must be re-written, which should be done at some point.
+    recursive = true
+    wrap-summaries = 1000
+    wrap-descriptions = 75
+    black = true
+    syntax = "numpy"
+
+[tool.flynt]
+exclude= [
+    "astropy/extern",
+    "astropy/coordinates/angle_lextab.py",
+    "astropy/units/format/cds_lextab.py",
+    "astropy/units/format/general_lextab.py",
+    "astropy/units/format/ogip_lextab.py",
+    "astropy/coordinates/angle_parsetab.py",
+    "astropy/units/format/cds_parsetab.py",
+    "astropy/units/format/general_parsetab.py",
+    "astropy/units/format/ogip_parsetab.py",
+]
 
 [tool.towncrier]
     package = "astropy"

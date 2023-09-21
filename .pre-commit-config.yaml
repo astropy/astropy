@@ -111,6 +111,12 @@ repos:
     hooks:
       - id: black
 
+  - repo: https://github.com/tox-dev/pyproject-fmt
+    rev: "1.0.0"
+    hooks:
+      - id: pyproject-fmt
+        args: ["--indent=4"]
+
   - repo: https://github.com/asmeurer/removestar
     rev: "1.4"
     hooks:
