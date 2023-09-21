@@ -119,7 +119,7 @@ wcslint = "astropy.wcs.wcslint:main"
 [build-system]
 requires = ["setuptools",
             "setuptools_scm>=6.2",
-            "cython==0.29.34",
+            "cython==0.29.36",
             "numpy>=1.25,<2",
             "extension-helpers"]
 build-backend = "setuptools.build_meta"
