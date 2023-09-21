@@ -108,4 +108,9 @@ jobs:
       envs: |
         - name: (Allowed Failure) Python 3.11 with remote data and dev version of key dependencies
           linux: py311-test-devdeps
-          posargs: --remote-data=any
+          posargs: --remote-data=any --verbose
+
+        # https://github.com/matplotlib/matplotlib/issues/26847
+        - name: (Allowed Failure) Python 3.11 with dev version of matplotlib
+          linux: py311-test-mpldev
+          posargs: --verbose
