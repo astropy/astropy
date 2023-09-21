@@ -110,6 +110,8 @@ exclude= [
             "pragma: py{ignore_python_version}",
             # Don't complain about IPython completion helper
             "def _ipython_key_completions_",
+            # typing.TYPE_CHECKING is False at runtime
+            "if TYPE_CHECKING:"
         ]
 
 [tool.ruff]
