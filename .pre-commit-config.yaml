@@ -64,6 +64,12 @@ repos:
       - id: ruff
         args: ["--fix"]
 
+  - repo: https://github.com/scientific-python/cookie
+    rev: 2023.08.23
+    hooks:
+      - id: sp-repo-review
+        additional_dependencies: ["repo-review[cli]"]
+
   - repo: https://github.com/PyCQA/docformatter
     rev: v1.7.5
     hooks:
