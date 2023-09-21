@@ -3130,7 +3130,13 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
                 NotImplementedError,
             )
 
-        fd = urllib.request.urlopen(href)
+
+        # Hack to keep windows working
+        try:
+            fd = urllib.request.urlopen(href)
+        except urllib.error.URLError:
+            if href.startswith("file://"):
+                fd = urllib.request.urlopen(f"file:{href[7:]}")
 
         if encoding is not None:
             if encoding == "gzip":
