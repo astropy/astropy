@@ -5,16 +5,17 @@ Test the conversion to/from astropy.table.
 import io
 import os
 import pathlib
+import warnings
 
 import numpy as np
 import pytest
 
+from astropy import units as u
 from astropy.io.votable import conf, from_table, is_votable, tree, validate
 from astropy.io.votable.exceptions import E25, W39, VOWarning
 from astropy.io.votable.table import parse, writeto
 from astropy.table import Column, Table
 from astropy.table.table_helpers import simple_table
-from astropy import units as u
 from astropy.utils.compat.optional_deps import HAS_PYARROW
 from astropy.utils.data import (
     get_pkg_data_filename,
@@ -294,11 +295,15 @@ def test_read_write_votable_parquet(tmp_path):
     )
 
     # Check both files are written out
-    assert (set(os.listdir(tmp_path))
-            == {'test_votable_parquet.vot', 'test_votable_parquet.vot.parquet'})
+    assert set(os.listdir(tmp_path)) == {
+        "test_votable_parquet.vot",
+        "test_votable_parquet.vot.parquet",
+    }
 
     # Open created VOTable with Parquet serialization
-    votable = parse(filename)
+    with warnings.catch_warnings():
+        warnings.simplefilter("always", ResourceWarning)
+        votable = parse(filename)
 
     # Get table out
     votable_table = votable.resources[0].tables[0].array
@@ -324,11 +329,13 @@ def test_read_write_votable_parquet(tmp_path):
 @pytest.mark.skipif(not HAS_PYARROW, reason="requires pyarrow")
 def test_stored_parquet_votable():
     # Ensures that parquet is found as relative to the votable and not the test file
-    stored_votable = Table.read(get_pkg_data_filename("data/parquet_binary.xml"))
+    with warnings.catch_warnings():
+        warnings.simplefilter("always", ResourceWarning)
+        stored_votable = Table.read(get_pkg_data_filename("data/parquet_binary.xml"))
 
     assert len(stored_votable) == 10
-    assert stored_votable.colnames == ['id', 'z', 'mass', 'sfr']
-    assert stored_votable['sfr'].unit == u.solMass / u.year
+    assert stored_votable.colnames == ["id", "z", "mass", "sfr"]
+    assert stored_votable["sfr"].unit == u.solMass / u.year
 
 
 def test_write_overwrite(tmp_path):

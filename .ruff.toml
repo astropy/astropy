@@ -146,6 +146,7 @@ ignore = [
     "PTH111",  # os-path-expanduser
     "PTH112",  # os-path-isdir
     "PTH113",  # os-path-isfile
+    "PTH117",  # os-path-isabs
     "PTH118",  # os-path-join
     "PTH119",  # os-path-basename
     "PTH120",  # os-path-dirname

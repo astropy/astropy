@@ -3131,7 +3131,6 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
                 NotImplementedError,
             )
 
-
         # Hack to keep windows working
         try:
             fd = urllib.request.urlopen(href)
