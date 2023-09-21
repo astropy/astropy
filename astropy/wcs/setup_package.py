@@ -321,8 +321,8 @@ def get_extensions():
 
     # Copy over header files from WCSLIB into the installed version of Astropy
     # so that other Python packages can write extensions that link to it. We
-    # do the copying here then include the data in [options.package_data] in
-    # the setup.cfg file
+    # do the copying here then include the data in [tools.setuptools.package_data]
+    # in the pyproject.toml file
 
     wcslib_headers = [
         "cel.h",

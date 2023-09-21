@@ -872,7 +872,7 @@ def test_earth_orientation_table(monkeypatch):
         with warnings.catch_warnings():
             # Server occasionally blocks IERS download in CI.
             warnings.filterwarnings("ignore", message=r".*using local IERS-B.*")
-            # This also captures unclosed socket warning that is ignored in setup.cfg
+            # This also captures unclosed socket warning that is ignored in pyproject.toml
             warnings.filterwarnings("ignore", message=r".*unclosed.*")
             altaz_auto = sc.transform_to(altaz)
     else:
