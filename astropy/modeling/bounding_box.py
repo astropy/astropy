@@ -9,12 +9,17 @@ from __future__ import annotations
 import abc
 import copy
 import warnings
-from typing import Any, Callable, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
 
 from astropy.units import Quantity
 from astropy.utils import isiterable
+
+if TYPE_CHECKING:
+    from typing import Any, Callable
+
+    from astropy.units import UnitBase
 
 __all__ = ["ModelBoundingBox", "CompoundBoundingBox"]
 
@@ -428,7 +433,7 @@ class _BoundingDomain(abc.ABC):
         )
 
     @staticmethod
-    def _get_valid_outputs_unit(valid_outputs, with_units: bool):
+    def _get_valid_outputs_unit(valid_outputs, with_units: bool) -> UnitBase | None:
         """
         Get the unit for outputs if one is required.
 
