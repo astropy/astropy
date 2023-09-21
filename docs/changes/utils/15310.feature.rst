@@ -1,0 +1,2 @@
+``astropy.utils.decorators.deprecated`` now adds the ``__deprecated__`` attribute to
+the objects it wraps, following the practice in https://peps.python.org/pep-0702/.
