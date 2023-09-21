@@ -1,6 +1,7 @@
 ci:
   autofix_prs: false
   autoupdate_schedule: 'monthly'
+  autoupdate_commit_msg: "Chore: update pre-commit hooks"
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -62,7 +63,7 @@ repos:
     rev: "v0.1.4"
     hooks:
       - id: ruff
-        args: ["--fix"]
+        args: ["--fix", "--show-fixes"]
 
   - repo: https://github.com/scientific-python/cookie
     rev: 2023.08.23
