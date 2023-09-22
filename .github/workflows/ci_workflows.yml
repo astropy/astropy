@@ -103,8 +103,9 @@ jobs:
           - language-pack-de
           - tzdata
       envs: |
-        - name: (Allowed Failure) Python 3.11 with remote data and dev version of key dependencies
-          linux: py311-test-devdeps
+        - name: (Allowed Failure) Python 3.12 with remote data and dev version of key dependencies
+          linux: py312-test-devdeps
+          python-version: '3.12-dev'
           posargs: --remote-data=any
 
 # parallel_and_32bit removed because it is incompatible with numpy 1.26.
