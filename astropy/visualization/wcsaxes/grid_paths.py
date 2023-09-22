@@ -4,7 +4,7 @@
 import numpy as np
 from matplotlib.lines import Path
 
-from astropy.coordinates.angle_utilities import angular_separation
+from astropy.coordinates import angular_separation
 
 # Tolerance for WCS round-tripping, relative to the scale size
 ROUND_TRIP_RTOL = 1.0

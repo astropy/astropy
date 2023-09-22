@@ -882,7 +882,7 @@ def test_position_angle():
 
 def test_position_angle_directly():
     """Regression check for #3800: position_angle should accept floats."""
-    from astropy.coordinates.angle_utilities import position_angle
+    from astropy.coordinates import position_angle
 
     result = position_angle(10.0, 20.0, 10.0, 20.0)
     assert result.unit is u.radian

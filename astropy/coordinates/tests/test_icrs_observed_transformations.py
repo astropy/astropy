@@ -13,8 +13,8 @@ from astropy.coordinates import (
     HADec,
     SkyCoord,
     frame_transform_graph,
+    golden_spiral_grid,
 )
-from astropy.coordinates.angle_utilities import golden_spiral_grid
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 

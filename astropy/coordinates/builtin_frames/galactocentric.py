@@ -7,8 +7,8 @@ from types import MappingProxyType
 import numpy as np
 
 from astropy import units as u
+from astropy.coordinates import Angle
 from astropy.coordinates import representation as r
-from astropy.coordinates.angles import Angle
 from astropy.coordinates.attributes import (
     CoordinateAttribute,
     DifferentialAttribute,

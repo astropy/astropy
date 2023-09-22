@@ -9,8 +9,7 @@ import pytest
 from numpy import testing as npt
 
 from astropy import units as u
-from astropy.coordinates import EarthLocation, SkyCoord
-from astropy.coordinates.angle_utilities import golden_spiral_grid
+from astropy.coordinates import EarthLocation, SkyCoord, golden_spiral_grid
 from astropy.coordinates.builtin_frames import ICRS, AltAz
 from astropy.coordinates.builtin_frames.utils import get_jd12
 from astropy.tests.helper import PYTEST_LT_8_0
