@@ -6,6 +6,7 @@ import base64
 import codecs
 import gzip
 import io
+import os
 import re
 import urllib.request
 import warnings
@@ -3135,8 +3136,13 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
         try:
             fd = urllib.request.urlopen(href)
         except urllib.error.URLError:
+            # Hack to keep windows working
             if href.startswith("file://"):
                 fd = urllib.request.urlopen(f"file:{href[7:]}")
+            # Relative path to parquet part should be relative from the votable
+            elif href.startswith("file:"):
+                parquet = os.path.join(os.path.dirname(config["filename"]), href[5:])
+                fd = urllib.request.urlopen(f"file:{parquet}")
 
         if encoding is not None:
             if encoding == "gzip":
