@@ -1008,6 +1008,10 @@ As of ``astropy`` 3.0, by specifying ``serialize_meta=True`` one can also store
 to HDF5 tables that contain :ref:`mixin_columns` such as `~astropy.time.Time` or
 `~astropy.coordinates.SkyCoord` columns.
 
+.. note::
+    Certain kind of metadata (e.g., numpy object arrays) cannot be serialized correctly
+    using YAML.
+
 .. _table_io_parquet:
 
 Parquet
