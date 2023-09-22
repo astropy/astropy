@@ -37,7 +37,7 @@ def test_angsep():
     """
     Tests that the angular separation object also behaves correctly.
     """
-    from astropy.coordinates.angle_utilities import angular_separation
+    from astropy.coordinates import angular_separation
 
     # check it both works with floats in radians, Quantities, or Angles
     for conv in (np.deg2rad, lambda x: u.Quantity(x, "deg"), lambda x: Angle(x, "deg")):

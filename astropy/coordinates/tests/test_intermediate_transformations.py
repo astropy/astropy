@@ -30,9 +30,9 @@ from astropy.coordinates import (
     SphericalRepresentation,
     UnitSphericalRepresentation,
     get_sun,
+    golden_spiral_grid,
     solar_system_ephemeris,
 )
-from astropy.coordinates.angle_utilities import golden_spiral_grid
 from astropy.coordinates.builtin_frames.intermediate_rotation_transforms import (
     cirs_to_itrs_mat,
     gcrs_to_cirs_mat,

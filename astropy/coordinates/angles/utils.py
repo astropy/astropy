@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module contains utility functions for working with angles. These are both
-used internally in astropy.coordinates.angles, and of possible.
+used internally in ``astropy.coordinates.angles``, and of possible use externally.
 """
 
 __all__ = [
@@ -83,7 +83,7 @@ def position_angle(lon1, lat1, lon2, lat2):
         following the appropriate `numpy` broadcasting rules.
 
     """
-    from .angles import Angle
+    from .core import Angle
 
     deltalon = lon2 - lon1
     colat = np.cos(lat2)
@@ -113,7 +113,7 @@ def offset_by(lon, lat, posang, distance):
         these will contain arrays following the appropriate `numpy` broadcasting rules.
         0 <= lon < 2pi.
     """
-    from .angles import Angle
+    from .core import Angle
 
     # Calculations are done using the spherical trigonometry sine and cosine rules
     # of the triangle A at North Pole,   B at starting point,   C at final point
