@@ -46,7 +46,7 @@ def test_parse_single_table():
     with np.errstate(over="ignore"):
         # https://github.com/astropy/astropy/issues/13341
         table = parse_single_table(get_pkg_data_filename("data/regression.xml"))
-    assert isinstance(table, tree.Table)
+    assert isinstance(table, tree.TableElement)
     assert len(table.array) == 5
 
 
@@ -56,7 +56,7 @@ def test_parse_single_table2():
         table2 = parse_single_table(
             get_pkg_data_filename("data/regression.xml"), table_number=1
         )
-    assert isinstance(table2, tree.Table)
+    assert isinstance(table2, tree.TableElement)
     assert len(table2.array) == 1
     assert len(table2.array.dtype.names) == 28
 
@@ -689,7 +689,7 @@ class TestThroughBinary2(TestParse):
 
 
 def table_from_scratch():
-    from astropy.io.votable.tree import Field, Resource, Table, VOTableFile
+    from astropy.io.votable.tree import Field, Resource, TableElement, VOTableFile
 
     # Create a new VOTable file...
     votable = VOTableFile()
@@ -699,7 +699,7 @@ def table_from_scratch():
     votable.resources.append(resource)
 
     # ... with one table
-    table = Table(votable)
+    table = TableElement(votable)
     resource.tables.append(table)
 
     # Define some fields
@@ -748,7 +748,7 @@ def test_build_from_scratch(tmp_path):
     votable.resources.append(resource)
 
     # ... with one table
-    table = tree.Table(votable)
+    table = tree.TableElement(votable)
     resource.tables.append(table)
 
     # Define some fields
@@ -860,7 +860,7 @@ def test_from_scratch_example():
 
 
 def _run_test_from_scratch_example():
-    from astropy.io.votable.tree import Field, Resource, Table, VOTableFile
+    from astropy.io.votable.tree import Field, Resource, TableElement, VOTableFile
 
     # Create a new VOTable file...
     votable = VOTableFile()
@@ -870,7 +870,7 @@ def _run_test_from_scratch_example():
     votable.resources.append(resource)
 
     # ... with one table
-    table = Table(votable)
+    table = TableElement(votable)
     resource.tables.append(table)
 
     # Define some fields
@@ -927,27 +927,27 @@ def test_resource_structure():
 
     r1 = vot.Resource()
     vtf.resources.append(r1)
-    t1 = vot.Table(vtf)
+    t1 = vot.TableElement(vtf)
     t1.name = "t1"
-    t2 = vot.Table(vtf)
+    t2 = vot.TableElement(vtf)
     t2.name = "t2"
     r1.tables.append(t1)
     r1.tables.append(t2)
 
     r2 = vot.Resource()
     vtf.resources.append(r2)
-    t3 = vot.Table(vtf)
+    t3 = vot.TableElement(vtf)
     t3.name = "t3"
-    t4 = vot.Table(vtf)
+    t4 = vot.TableElement(vtf)
     t4.name = "t4"
     r2.tables.append(t3)
     r2.tables.append(t4)
 
     r3 = vot.Resource()
     vtf.resources.append(r3)
-    t5 = vot.Table(vtf)
+    t5 = vot.TableElement(vtf)
     t5.name = "t5"
-    t6 = vot.Table(vtf)
+    t6 = vot.TableElement(vtf)
     t6.name = "t6"
     r3.tables.append(t5)
     r3.tables.append(t6)
