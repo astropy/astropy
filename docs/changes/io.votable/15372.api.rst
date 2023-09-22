@@ -1,0 +1,2 @@
+Class ``astropy.io.votable.tree.Table`` has been renamed to ``TableElement``
+to avoid sharing the name with ``astropy.table.Table``.
