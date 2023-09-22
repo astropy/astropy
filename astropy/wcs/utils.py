@@ -259,10 +259,6 @@ def _celestial_frame_to_wcs_builtin(frame, projection="TAN"):
         ycoord = "TLAT"
         wcs.wcs.radesys = "ITRS"
         wcs.wcs.dateobs = frame.obstime.utc.isot
-        if issubclass(frame.representation_type, BaseGeodeticRepresentation):
-            wcs.wcs.name = "Geodetic Terrestrial Representation"
-        elif issubclass(frame.representation_type, BaseBodycentricRepresentation):
-            wcs.wcs.name = "Angular Geocentric Representation"
     # TODO: once we have a BaseBodyFrame, replace this with an isinstance check
     elif hasattr(frame, "name") and frame.name in SOLAR_SYSTEM_OBJ_DICT.values():
         xcoord = frame.name[:2].upper().replace("MO", "SE") + "LN"
