@@ -184,7 +184,7 @@ io_registry.register_identifier("votable", Table, is_votable)
 
 
 # VOTable with embedded/linked Parquet file #
-def write_table_votable_parquet(tab, filename, column_metadata, overwrite):
+def write_table_votable_parquet(input, output, column_metadata, *, overwrite=False):
     """
 
     This function allows writing a VOTable (XML) with PARQUET
@@ -201,18 +201,19 @@ def write_table_votable_parquet(tab, filename, column_metadata, overwrite):
 
     Parameters
     ----------
-    tab : astropy table
-        Contains the data
-    filename : str
-        The file name of the VOTable (e.g., "test.vot").
-        IMPORTANT: Needs to be a full path (i.e. no "../" or "./")
+    input : `~astropy.table.Table`
+        The table to write out.
+
+    output : str
+        The filename to write the table to.
+
     column_metadata : dictionary
         Contains the metadata for the columns such as "unit" or
         "ucd" or "utype".
-        (Example: column_metadata = {"id":{"unit":"","ucd":"meta.id","utype":"none"},
-        "mass":{"unit":"solMass","ucd":"phys.mass","utype":"none"} } )
-    overwrite : bool
-        Set to True to enable overwriting.
+        (Example: {"id": {"unit": "", "ucd": "meta.id", "utype": "none"},
+                   "mass": {"unit": "solMass", "ucd": "phys.mass", "utype": "none"}})
+    overwrite : bool, optional
+        Whether to overwrite any existing file without warning.
 
     Returns
     -------
@@ -223,13 +224,13 @@ def write_table_votable_parquet(tab, filename, column_metadata, overwrite):
     2. The PARQUET table itself.
 
     Both files are stored at the same location. The name of the
-    VOTable is ``filename``, and the name of the embedded PARQUET
-    file is "{}.parquet".format(filename).
+    VOTable is ``output``, and the name of the embedded PARQUET
+    file is f"{output}.parquet".
     """
     # First save the PARQUET file.
-    parquet_filename = f"{filename}.parquet"
+    parquet_filename = f"{output}.parquet"
     path_type = f"file:{'//' if os.path.isabs(parquet_filename) else ''}"
-    tab.write(parquet_filename, format="parquet", overwrite=overwrite)
+    input.write(parquet_filename, format="parquet", overwrite=overwrite)
 
     # Second, save table as binary VOT file. We will modify this file
     # later to incorporate the FITS stream. Note that we use here the full
@@ -238,7 +239,7 @@ def write_table_votable_parquet(tab, filename, column_metadata, overwrite):
     # VOTable file from scratch, especially the FIELDS, which are the
     # most important.
     votablefile = VOTableFile()
-    votable = votablefile.from_table(tab)
+    votable = votablefile.from_table(input)
 
     # Add the fields
     # Maybe there is a smarter way to do this iteratively.
@@ -247,15 +248,15 @@ def write_table_votable_parquet(tab, filename, column_metadata, overwrite):
         field.ucd = column_metadata[field.name]["ucd"]
         field.utype = column_metadata[field.name]["utype"]
 
-    if (os.path.exists(filename)) & (not overwrite):
-        raise OSError(NOT_OVERWRITING_MSG.format(filename))
+    if (os.path.exists(output) or os.path.exists(parquet_filename)) and not overwrite:
+        raise OSError(NOT_OVERWRITING_MSG.format(output))
 
-    votable.to_xml(filename, tabledata_format="binary")
+    votable.to_xml(output, tabledata_format="binary")
 
     # Now reopen the binary file and replace the binary part with
     # the stream relating to the FITS file. This all is a bit flimsy
     # and needs to be made more bullet-proof.
-    with open(filename) as f:
+    with open(output) as f:
         lines = f.readlines()
 
         # get start and end of <BINARY> tag
@@ -272,7 +273,7 @@ def write_table_votable_parquet(tab, filename, column_metadata, overwrite):
         _ = lines.pop(line_stop)
 
     # write new file
-    with open(filename, "w") as f:
+    with open(output, "w") as f:
         f.write("".join(lines))
 
 
