@@ -381,7 +381,7 @@ class TestDiff(FitsTestCase):
         assert "Data dimensions differ" in report
         assert "a: 10 x 10" in report
         assert "b: 100" in report
-        assert "No further data comparison performed."
+        assert "No further data comparison performed." in report
 
     def test_different_pixels(self):
         ia = np.arange(100).reshape(10, 10)
@@ -532,7 +532,7 @@ class TestDiff(FitsTestCase):
         assert "Table rows differ" in report
         assert "a: 2" in report
         assert "b: 3" in report
-        assert "No further data comparison performed."
+        assert "No further data comparison performed." in report
 
     def test_different_table_data(self):
         """
