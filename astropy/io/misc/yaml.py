@@ -110,6 +110,9 @@ def _timedelta_constructor(loader, node):
 
 
 def _ndarray_representer(dumper, obj):
+    if obj.dtype.hasobject:
+        raise TypeError(f"cannot serialize numpy object array: {obj}")
+
     if not (obj.flags["C_CONTIGUOUS"] or obj.flags["F_CONTIGUOUS"]):
         obj = np.ascontiguousarray(obj)
 
@@ -138,6 +141,9 @@ def _ndarray_constructor(loader, node):
     # construct_sequence.
     map = loader.construct_mapping(node, deep=True)
     map["buffer"] = base64.b64decode(map["buffer"])
+
+    if map["dtype"] == "object":
+        raise TypeError("cannot load numpy array with dtype object")
     return np.ndarray(**map)
 
 
