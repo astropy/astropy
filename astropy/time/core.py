@@ -11,7 +11,7 @@ import enum
 import operator
 import os
 import threading
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from time import strftime
 from warnings import warn
 
@@ -1930,10 +1930,10 @@ class Time(TimeBase):
         method is called.
 
         .. note::
-            "Now" is determined using the `~datetime.datetime.utcnow`
+            "Now" is determined using the `~datetime.datetime.now`
             function, so its accuracy and precision is determined by that
             function.  Generally that means it is set by the accuracy of
-            your system clock.
+            your system clock. The timezone is set to UTC.
 
         Returns
         -------
@@ -1941,8 +1941,8 @@ class Time(TimeBase):
             A new `Time` object (or a subclass of `Time` if this is called from
             such a subclass) at the current time.
         """
-        # call `utcnow` immediately to be sure it's ASAP
-        dtnow = datetime.utcnow()
+        # call `now` immediately to be sure it's ASAP
+        dtnow = datetime.now(tz=timezone.utc)
         return cls(val=dtnow, format="datetime", scale="utc")
 
     info = TimeInfo()
