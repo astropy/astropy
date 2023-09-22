@@ -168,10 +168,10 @@ def test_votable_tag():
 
     xml = votable_xml_string("1.3")
     assert 'xmlns="http://www.ivoa.net/xml/VOTable/v1.3"' in xml
-    assert 'xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 '
+    assert 'xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 ' in xml
     assert 'http://www.ivoa.net/xml/VOTable/VOTable-1.3.xsd"' in xml
 
     xml = votable_xml_string("1.4")
     assert 'xmlns="http://www.ivoa.net/xml/VOTable/v1.3"' in xml
-    assert 'xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 '
+    assert 'xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 ' in xml
     assert 'http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd"' in xml
