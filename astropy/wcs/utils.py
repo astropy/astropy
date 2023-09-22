@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import copy
+from functools import lru_cache
 
 import numpy as np
 
@@ -49,8 +50,25 @@ SOLAR_SYSTEM_OBJ_DICT = {
     "NE": "Neptune",
 }
 
-solar_system_body_frames = {}
-solar_system_body_representation_type = {}
+
+@lru_cache(maxsize=100)
+def solar_system_body_frame(object_name, representation_type):
+    return type(
+        f"{object_name}Frame",
+        (BaseCoordinateFrame,),
+        dict(name=object_name, representation_type=representation_type),
+    )
+
+
+@lru_cache(maxsize=100)
+def solar_system_body_representation_type(
+    object_name, baserepresentation, equatorial_radius, flattening
+):
+    return type(
+        f"{object_name}{baserepresentation.__name__[4:]}",
+        (baserepresentation,),
+        dict(_equatorial_radius=equatorial_radius, _flattening=flattening),
+    )
 
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
@@ -167,7 +185,12 @@ def _wcs_to_celestial_frame_builtin(wcs):
                 )
 
             # create a new representation class
-            representation_type = solar_system_body_representation_type.get(xcoord[:2])
+            representation_type = solar_system_body_representation_type(
+                SOLAR_SYSTEM_OBJ_DICT.get(xcoord[:2]),
+                baserepresentation,
+                equatorial_radius,
+                flattening,
+            )
             if representation_type is None:
                 representation_type = type(
                     f"{object_name}{representation_type_name}",
@@ -177,7 +200,9 @@ def _wcs_to_celestial_frame_builtin(wcs):
                 solar_system_body_representation_type[xcoord[:2]] = representation_type
 
             # create a new frame class
-            frame = solar_system_body_frames.get(xcoord[:2])
+            frame = solar_system_body_frame(
+                SOLAR_SYSTEM_OBJ_DICT.get(xcoord[:2]), representation_type
+            )
             if frame is None:
                 frame = type(
                     f"{object_name}Frame",

@@ -425,6 +425,7 @@ def test_wcs_to_body_frame():
     assert issubclass(frame, BaseCoordinateFrame)
     assert issubclass(frame.representation_type, BaseGeodeticRepresentation)
     assert frame.representation_type._equatorial_radius == 6378137.0 * u.m
+    assert_almost_equal(frame.representation_type._flattening, 0.0033528128981864433)
 
 
 def test_wcs_to_celestial_frame_correlated():
