@@ -34,7 +34,7 @@ def test_make_Fields():
     votable.resources.append(resource)
 
     # ... with one table
-    table = tree.Table(votable)
+    table = tree.TableElement(votable)
     resource.tables.append(table)
 
     table.fields.extend(

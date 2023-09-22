@@ -72,7 +72,7 @@ return the first table all in one step::
   from astropy.io.votable import parse_single_table
   table = parse_single_table("votable.xml")
 
-From a `~astropy.io.votable.tree.Table` object, you can get the data itself
+From a `~astropy.io.votable.tree.TableElement` object, you can get the data itself
 in the ``array`` member variable::
 
   data = table.array
@@ -121,7 +121,7 @@ Suppose we had a ``FIELD`` specified as follows:
     that is both unique and required, which would be the most
     convenient mechanism to uniquely identify a column.
 
-    When converting from an `astropy.io.votable.tree.Table` object to
+    When converting from an `astropy.io.votable.tree.TableElement` object to
     an `astropy.table.Table` object, you can specify whether to give
     preference to ``name`` or ``ID`` attributes when naming the
     columns. By default, ``ID`` is given preference. To give
@@ -170,7 +170,7 @@ Example
 
 To build a new table from a VOTable file::
 
-  from astropy.io.votable.tree import VOTableFile, Resource, Table, Field
+  from astropy.io.votable.tree import VOTableFile, Resource, TableElement, Field
 
   # Create a new VOTable file...
   votable = VOTableFile()
@@ -180,7 +180,7 @@ To build a new table from a VOTable file::
   votable.resources.append(resource)
 
   # ... with one table
-  table = Table(votable)
+  table = TableElement(votable)
   resource.tables.append(table)
 
   # Define some fields
@@ -224,7 +224,7 @@ is more compact, and stores numbers in base64-encoded binary. VOTable
 version 1.3 adds the ``BINARY2`` format, which allows for masking of
 any data type, including integers and bit fields which cannot be
 masked in the older ``BINARY`` format. The storage format can be set
-on a per-table basis using the `~astropy.io.votable.tree.Table.format`
+on a per-table basis using the `~astropy.io.votable.tree.TableElement.format`
 attribute, or globally using the
 `~astropy.io.votable.tree.VOTableFile.set_all_tables_format` method::
 
@@ -238,7 +238,7 @@ Using `astropy.io.votable`
 Standard Compliance
 -------------------
 
-`astropy.io.votable.tree.Table` supports the `VOTable Format Definition
+`astropy.io.votable.tree.TableElement` supports the `VOTable Format Definition
 Version 1.1
 <https://www.ivoa.net/documents/REC/VOTable/VOTable-20040811.html>`_,
 `Version 1.2
@@ -301,7 +301,7 @@ Missing Values
 --------------
 
 Any value in the table may be "missing". `astropy.io.votable` stores
-a  ``numpy`` masked array in each `~astropy.io.votable.tree.Table`
+a  ``numpy`` masked array in each `~astropy.io.votable.tree.TableElement`
 instance. This behaves like an ordinary ``numpy`` masked array, except
 for variable-length fields. For those fields, the datatype of the
 column is "object" and another ``numpy`` masked array is stored there.
@@ -359,7 +359,7 @@ Examining Field Types
 ---------------------
 
 To look up more information about a field in a table, you can use the
-`~astropy.io.votable.tree.Table.get_field_by_id` method, which returns
+`~astropy.io.votable.tree.TableElement.get_field_by_id` method, which returns
 the `~astropy.io.votable.tree.Field` object with the given ID.
 
 Example
@@ -425,7 +425,7 @@ VOTable supports a number of different serialization formats.
 The serialization format can be selected in two ways:
 
     1) By setting the ``format`` attribute of a
-    `astropy.io.votable.tree.Table` object::
+    `astropy.io.votable.tree.TableElement` object::
 
         votable.get_first_table().format = "binary"
         votable.to_xml("new_votable.xml")
