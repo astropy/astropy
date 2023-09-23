@@ -2111,7 +2111,7 @@ class SpecificTypeQuantity(Quantity):
         super()._set_unit(unit)
 
 
-def isclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False, **kwargs):
+def isclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False):
     """
     Return a boolean array where two arrays are element-wise equal
     within a tolerance.
@@ -2152,11 +2152,10 @@ def isclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False, **kwargs):
     --------
     allclose
     """
-    unquantified_args = _unquantify_allclose_arguments(a, b, rtol, atol)
-    return np.isclose(*unquantified_args, equal_nan=equal_nan, **kwargs)
+    return np.isclose(*_unquantify_allclose_arguments(a, b, rtol, atol), equal_nan)
 
 
-def allclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False, **kwargs) -> bool:
+def allclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False) -> bool:
     """
     Whether two arrays are element-wise equal within a tolerance.
 
@@ -2196,8 +2195,7 @@ def allclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False, **kwargs) -> bool:
     --------
     isclose
     """
-    unquantified_args = _unquantify_allclose_arguments(a, b, rtol, atol)
-    return np.allclose(*unquantified_args, equal_nan=equal_nan, **kwargs)
+    return np.allclose(*_unquantify_allclose_arguments(a, b, rtol, atol), equal_nan)
 
 
 def _unquantify_allclose_arguments(actual, desired, rtol, atol):
