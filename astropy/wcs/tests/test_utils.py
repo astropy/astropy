@@ -369,6 +369,56 @@ def test_wcs_to_celestial_frame():
 
 
 def test_wcs_to_body_frame():
+    mywcs = WCS(naxis=2)
+    mywcs.wcs.ctype = ["VELN-TAN", "VELT-TAN"]
+    mywcs.wcs.dateobs = "2017-08-17T12:41:04.430"
+    mywcs.wcs.name = "Venus Geodetic Body-Fixed"
+
+    mywcs.wcs.aux.a_radius = 6051800.0
+    mywcs.wcs.aux.b_radius = 6051800.0
+    mywcs.wcs.aux.c_radius = 6051800.0
+    framev = wcs_to_celestial_frame(mywcs)
+    assert issubclass(framev, BaseCoordinateFrame)
+    assert issubclass(framev.representation_type, BaseGeodeticRepresentation)
+    assert framev.name == "Venus"
+    assert framev.representation_type._equatorial_radius == 6051800.0 * u.m
+    assert framev.representation_type._flattening == 0.0
+
+    # Check that frames are cached appropriately
+    framev2 = wcs_to_celestial_frame(mywcs)
+    assert framev2.representation_type is framev.representation_type
+    assert framev2 is framev
+
+    mywcs = WCS(naxis=2)
+    mywcs.wcs.ctype = ["MALN-TAN", "MALT-TAN"]
+    mywcs.wcs.dateobs = "2017-08-17T12:41:04.430"
+    mywcs.wcs.name = "Mars Bodycentric Body-Fixed"
+
+    mywcs.wcs.aux.a_radius = 3396190.0
+    mywcs.wcs.aux.b_radius = 3396190.0
+    mywcs.wcs.aux.c_radius = 3376190.0
+    framem = wcs_to_celestial_frame(mywcs)
+    assert issubclass(framem, BaseCoordinateFrame)
+    assert issubclass(framem.representation_type, BaseBodycentricRepresentation)
+    assert framem.name == "Mars"
+    assert framem.representation_type._equatorial_radius == 3396190.0 * u.m
+    assert_almost_equal(framem.representation_type._flattening, 0.005888952031541227)
+    assert framem.representation_type is not framev.representation_type
+    assert framem is not framev
+
+    mywcs = WCS(naxis=2)
+    mywcs.wcs.ctype = ["EALN-TAN", "EALT-TAN"]
+    mywcs.wcs.name = "Earth Geodetic Body-Fixed"
+    mywcs.wcs.aux.a_radius = 6378137.0
+    mywcs.wcs.aux.b_radius = 6378137.0
+    mywcs.wcs.aux.c_radius = 6356752.3
+    mywcs.wcs.set()
+    frame = wcs_to_celestial_frame(mywcs)
+    assert issubclass(frame, BaseCoordinateFrame)
+    assert issubclass(frame.representation_type, BaseGeodeticRepresentation)
+    assert frame.representation_type._equatorial_radius == 6378137.0 * u.m
+    assert_almost_equal(frame.representation_type._flattening, 0.0033528128981864433)
+
     unknown_wcs = WCS(naxis=2)
     unknown_wcs.wcs.ctype = ["UTLN-TAN", "UTLT-TAN"]
     with pytest.raises(KeyError, match="unknown solar system object abbreviation UT"):
@@ -383,49 +433,6 @@ def test_wcs_to_body_frame():
         NotImplementedError, match="triaxial systems are not supported at this time"
     ):
         frame = wcs_to_celestial_frame(triaxial_wcs)
-
-    mywcs = WCS(naxis=2)
-    mywcs.wcs.ctype = ["VELN-TAN", "VELT-TAN"]
-    mywcs.wcs.dateobs = "2017-08-17T12:41:04.430"
-    mywcs.wcs.name = "Venus Geodetic Body-Fixed"
-
-    mywcs.wcs.aux.a_radius = 6051800.0
-    mywcs.wcs.aux.b_radius = 6051800.0
-    mywcs.wcs.aux.c_radius = 6051800.0
-    frame = wcs_to_celestial_frame(mywcs)
-    assert issubclass(frame, BaseCoordinateFrame)
-    assert issubclass(frame.representation_type, BaseGeodeticRepresentation)
-    assert frame.name == "Venus"
-    assert frame.representation_type._equatorial_radius == 6051800.0 * u.m
-    assert frame.representation_type._flattening == 0.0
-
-    mywcs = WCS(naxis=2)
-    mywcs.wcs.ctype = ["MALN-TAN", "MALT-TAN"]
-    mywcs.wcs.dateobs = "2017-08-17T12:41:04.430"
-    mywcs.wcs.name = "Mars Bodycentric Body-Fixed"
-
-    mywcs.wcs.aux.a_radius = 3396190.0
-    mywcs.wcs.aux.b_radius = 3396190.0
-    mywcs.wcs.aux.c_radius = 3376190.0
-    frame = wcs_to_celestial_frame(mywcs)
-    assert issubclass(frame, BaseCoordinateFrame)
-    assert issubclass(frame.representation_type, BaseBodycentricRepresentation)
-    assert frame.name == "Mars"
-    assert frame.representation_type._equatorial_radius == 3396190.0 * u.m
-    assert_almost_equal(frame.representation_type._flattening, 0.005888952031541227)
-
-    mywcs = WCS(naxis=2)
-    mywcs.wcs.ctype = ["EALN-TAN", "EALT-TAN"]
-    mywcs.wcs.name = "Earth Geodetic Body-Fixed"
-    mywcs.wcs.aux.a_radius = 6378137.0
-    mywcs.wcs.aux.b_radius = 6378137.0
-    mywcs.wcs.aux.c_radius = 6356752.3
-    mywcs.wcs.set()
-    frame = wcs_to_celestial_frame(mywcs)
-    assert issubclass(frame, BaseCoordinateFrame)
-    assert issubclass(frame.representation_type, BaseGeodeticRepresentation)
-    assert frame.representation_type._equatorial_radius == 6378137.0 * u.m
-    assert_almost_equal(frame.representation_type._flattening, 0.0033528128981864433)
 
 
 def test_wcs_to_celestial_frame_correlated():
@@ -549,20 +556,8 @@ def test_celestial_frame_to_wcs():
 
 
 def test_body_to_wcs_frame():
-    class IAUMARSSphereFrame(BaseCoordinateFrame):
-        name = "Mars"
-        representation_type = SphericalRepresentation
-
     class IAUMARS2000BodyFrame(BaseCoordinateFrame):
         name = "Mars"
-
-    frame = IAUMARSSphereFrame()
-
-    with pytest.raises(
-        ValueError,
-        match="Planetary coordinates in WCS require a geodetic or bodycentric",
-    ):
-        celestial_frame_to_wcs(frame, projection="CAR")
 
     frame = IAUMARS2000BodyFrame()
 
@@ -585,6 +580,18 @@ def test_body_to_wcs_frame():
     assert mywcs.wcs.aux.a_radius == 3396190.0
     assert mywcs.wcs.aux.b_radius == 3396190.0
     assert_almost_equal(mywcs.wcs.aux.c_radius, 3376200.0)
+
+    class IAUMARSSphereFrame(BaseCoordinateFrame):
+        name = "Mars"
+        representation_type = SphericalRepresentation
+
+    frame = IAUMARSSphereFrame()
+
+    with pytest.raises(
+        ValueError,
+        match="Planetary coordinates in WCS require a geodetic or bodycentric",
+    ):
+        celestial_frame_to_wcs(frame, projection="CAR")
 
 
 def test_celestial_frame_to_wcs_extend():

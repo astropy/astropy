@@ -191,29 +191,11 @@ def _wcs_to_celestial_frame_builtin(wcs):
                 equatorial_radius,
                 flattening,
             )
-            if representation_type is None:
-                representation_type = type(
-                    f"{object_name}{representation_type_name}",
-                    (baserepresentation,),
-                    dict(_equatorial_radius=equatorial_radius, _flattening=flattening),
-                )
-                solar_system_body_representation_type[xcoord[:2]] = representation_type
 
             # create a new frame class
             frame = solar_system_body_frame(
                 SOLAR_SYSTEM_OBJ_DICT.get(xcoord[:2]), representation_type
             )
-            if frame is None:
-                frame = type(
-                    f"{object_name}Frame",
-                    (BaseCoordinateFrame,),
-                    dict(
-                        name=object_name,
-                        representation_type=representation_type,
-                        obstime=None,
-                    ),
-                )
-                solar_system_body_frames[xcoord[:2]] = frame
         else:
             frame = None
 
