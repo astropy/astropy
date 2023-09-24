@@ -132,6 +132,12 @@ jobs:
 
           install: |
             apt-get update -q -y
+            apt-get install -q -y gnupg2
+            # Add test-support repository for wcslib8
+            echo "deb http://ppa.launchpadcontent.net/astropy/test-support/ubuntu lunar main" > /etc/apt/sources.list.d/test-support.list
+            gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv CC75F07B3EF41EFC
+            gpg --export --armor CC75F07B3EF41EFC | tee /etc/apt/trusted.gpg.d/test-support.asc
+            apt-get update -q -y
             apt-get install -q -y git \
                                   g++ \
                                   pkg-config \
@@ -141,7 +147,6 @@ jobs:
                                   python3-ply \
                                   python3-venv \
                                   cython3 \
-                                  libwcs7 \
                                   wcslib-dev \
                                   liberfa1
 
