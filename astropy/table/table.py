@@ -3990,7 +3990,7 @@ class Table:
             if getattr(column.dtype, "isnative", True):
                 out[name] = column
             else:
-                out[name] = column.data.byteswap().newbyteorder("=")
+                out[name] = column.data.byteswap().view(column.dtype.newbyteorder("="))
 
             if isinstance(column, MaskedColumn) and np.any(column.mask):
                 if column.dtype.kind in ["i", "u"]:
