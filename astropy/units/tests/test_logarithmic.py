@@ -13,6 +13,7 @@ from numpy.testing import assert_allclose
 from astropy import constants as c
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 lu_units = [u.dex, u.mag, u.decibel]
 
@@ -994,7 +995,6 @@ class TestLogQuantityMethods:
             "trace",
             "std",
             "var",
-            "ptp",
             "diff",
             "ediff1d",
         ),
@@ -1003,12 +1003,19 @@ class TestLogQuantityMethods:
         for mag in self.mags:
             res = getattr(mag, method)()
             assert np.all(res.value == getattr(mag._function_view, method)().value)
-            if method in ("std", "ptp", "diff", "ediff1d"):
+            if method in ("std", "diff", "ediff1d"):
                 assert res.unit == u.mag()
             elif method == "var":
                 assert res.unit == u.mag**2
             else:
                 assert res.unit == mag.unit
+
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="ptp method removed in numpy 2.0")
+    def test_always_ok_ptp(self):
+        for mag in self.mags:
+            res = mag.ptp()
+            assert np.all(res.value == mag._function_view.ptp().value)
+            assert res.unit == u.mag()
 
     def test_clip(self):
         for mag in self.mags:
@@ -1034,3 +1041,17 @@ class TestLogQuantityMethods:
             getattr(self.mJy, method)()
         with pytest.raises(TypeError):
             getattr(self.m1, method)()
+
+
+class TestLogQuantityFunctions:
+    # TODO: add tests for all supported functions!
+    def setup_method(self):
+        self.mJy = np.arange(1.0, 5.0).reshape(2, 2) * u.mag(u.Jy)
+        self.m1 = np.arange(1.0, 5.5, 0.5).reshape(3, 3) * u.mag()
+        self.mags = (self.mJy, self.m1)
+
+    def test_ptp(self):
+        for mag in self.mags:
+            res = np.ptp(mag)
+            assert np.all(res.value == np.ptp(mag._function_view).value)
+            assert res.unit == u.mag()
