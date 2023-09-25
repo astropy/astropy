@@ -61,7 +61,7 @@ class TestCompressedImage(FitsTestCase):
     )
     @pytest.mark.parametrize("byte_order", ["<", ">"])
     def test_comp_image(self, data, compression_type, quantize_level, byte_order):
-        data = data.newbyteorder(byte_order)
+        data = data.view(data.dtype.newbyteorder(byte_order))
         primary_hdu = fits.PrimaryHDU()
         ofd = fits.HDUList(primary_hdu)
         chdu = fits.CompImageHDU(

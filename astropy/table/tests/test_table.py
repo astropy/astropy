@@ -1938,7 +1938,7 @@ class TestPandas:
                 for byte in ["2", "4", "8"]:
                     dtype = np.dtype(endian + kind + byte)
                     x = np.array([1, 2, 3], dtype=dtype)
-                    t[endian + kind + byte] = x.newbyteorder(endian)
+                    t[endian + kind + byte] = x.view(x.dtype.newbyteorder(endian))
 
         t["u"] = ["a", "b", "c"]
         t["s"] = ["a", "b", "c"]
@@ -1958,7 +1958,7 @@ class TestPandas:
                 if t[column].dtype.isnative:
                     assert d[column].dtype == t[column].dtype
                 else:
-                    assert d[column].dtype == t[column].byteswap().newbyteorder().dtype
+                    assert d[column].dtype == t[column].dtype.newbyteorder()
 
         # Regression test for astropy/astropy#1156 - the following code gave a
         # ValueError: Big-endian buffer not supported on little-endian
@@ -1979,7 +1979,7 @@ class TestPandas:
             if t[column].dtype.isnative:
                 assert t[column].dtype == t2[column].dtype
             else:
-                assert t[column].byteswap().newbyteorder().dtype == t2[column].dtype
+                assert t[column].dtype.newbyteorder() == t2[column].dtype
 
     @pytest.mark.parametrize("unsigned", ["u", ""])
     @pytest.mark.parametrize("bits", [8, 16, 32, 64])
@@ -2195,7 +2195,7 @@ class TestPandas:
                 if column.dtype.byteorder in ("=", "|"):
                     assert column.dtype == t2[name].dtype
                 else:
-                    assert column.byteswap().newbyteorder().dtype == t2[name].dtype
+                    assert column.dtype.newbyteorder() == t2[name].dtype
 
     def test_units(self):
         import pandas as pd
