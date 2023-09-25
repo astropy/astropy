@@ -13,10 +13,6 @@ from astropy.coordinates.representation.geodetic import (
     BaseBodycentricRepresentation,
     BaseGeodeticRepresentation,
 )
-from astropy.coordinates.tests.test_geodetic_representations import (
-    IAUMARS2000BodycentricRepresentation,
-    IAUMARS2000GeodeticRepresentation,
-)
 
 # Preserve the original REPRESENTATION_CLASSES dict so that importing
 #   the test file doesn't add a persistent test subclass
@@ -556,6 +552,14 @@ def test_celestial_frame_to_wcs():
 
 
 def test_body_to_wcs_frame():
+    class IAUMARS2000GeodeticRepresentation(BaseGeodeticRepresentation):
+        _equatorial_radius = 3396190.0 * u.m
+        _flattening = 0.5886007555512007 * u.percent
+
+    class IAUMARS2000BodycentricRepresentation(BaseBodycentricRepresentation):
+        _equatorial_radius = 3396190.0 * u.m
+        _flattening = 0.5886007555512007 * u.percent
+
     class IAUMARS2000BodyFrame(BaseCoordinateFrame):
         name = "Mars"
 
