@@ -1,10 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """Test geodetic representations"""
+from copy import deepcopy
+
 import pytest
 
 from astropy import units as u
 from astropy.coordinates.representation import (
+    DUPLICATE_REPRESENTATIONS,
     REPRESENTATION_CLASSES,
     BaseBodycentricRepresentation,
     BaseGeodeticRepresentation,
@@ -14,15 +17,20 @@ from astropy.coordinates.representation import (
     WGS84GeodeticRepresentation,
 )
 from astropy.coordinates.representation.geodetic import ELLIPSOIDS
-
-# Preserve the original REPRESENTATION_CLASSES dict so that importing
-#   the test file doesn't add a persistent test subclass
-from astropy.coordinates.tests.test_representation import (  # noqa: F401
-    setup_function,
-    teardown_function,
-)
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units.tests.test_quantity_erfa_ufuncs import vvd
+
+# Preserve the original REPRESENTATION_CLASSES dict so that importing
+# the test file doesn't add a persistent test subclass (CustomGeodetic, etc.)
+REPRESENTATION_CLASSES_ORIG = deepcopy(REPRESENTATION_CLASSES)
+DUPLICATE_REPRESENTATIONS_ORIG = deepcopy(DUPLICATE_REPRESENTATIONS)
+
+
+def teardown_module():
+    REPRESENTATION_CLASSES.clear()
+    REPRESENTATION_CLASSES.update(REPRESENTATION_CLASSES_ORIG)
+    DUPLICATE_REPRESENTATIONS.clear()
+    DUPLICATE_REPRESENTATIONS.update(DUPLICATE_REPRESENTATIONS_ORIG)
 
 
 class CustomGeodetic(BaseGeodeticRepresentation):
