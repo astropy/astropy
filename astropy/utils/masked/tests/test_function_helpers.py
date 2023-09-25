@@ -904,10 +904,11 @@ class TestReductionLikeFunctions(MaskedArraySetup):
         assert o2 is out
         assert_array_equal(o2.unmasked, expected.unmasked)
         assert_array_equal(o2.mask, expected.mask)
-        # Check method does the same thing.
-        o3 = self.ma.ptp(**kwargs)
-        assert_array_equal(o3.unmasked, expected.unmasked)
-        assert_array_equal(o3.mask, expected.mask)
+        if NUMPY_LT_2_0:
+            # Method is removed in numpy 2.0.
+            o3 = self.ma.ptp(**kwargs)
+            assert_array_equal(o3.unmasked, expected.unmasked)
+            assert_array_equal(o3.mask, expected.mask)
 
     def test_trace(self):
         o = np.trace(self.ma)

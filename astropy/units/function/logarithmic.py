@@ -12,6 +12,7 @@ from astropy.units import (
     dimensionless_unscaled,
     photometric,
 )
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 from .core import FunctionQuantity, FunctionUnitBase
 from .units import dB, dex, mag
@@ -390,9 +391,21 @@ class LogQuantity(FunctionQuantity):
         unit = self.unit._copy(dimensionless_unscaled)
         return self._wrap_function(np.std, axis, dtype, out=out, ddof=ddof, unit=unit)
 
-    def ptp(self, axis=None, out=None):
-        unit = self.unit._copy(dimensionless_unscaled)
-        return self._wrap_function(np.ptp, axis, out=out, unit=unit)
+    if NUMPY_LT_2_0:
+
+        def ptp(self, axis=None, out=None):
+            unit = self.unit._copy(dimensionless_unscaled)
+            return self._wrap_function(np.ptp, axis, out=out, unit=unit)
+
+    else:
+
+        def __array_function__(self, function, types, args, kwargs):
+            # TODO: generalize this to all supported functions!
+            if function is np.ptp:
+                unit = self.unit._copy(dimensionless_unscaled)
+                return self._wrap_function(np.ptp, *args[1:], unit=unit, **kwargs)
+            else:
+                return super().__array_function__(function, types, args, kwargs)
 
     def diff(self, n=1, axis=-1):
         unit = self.unit._copy(dimensionless_unscaled)
