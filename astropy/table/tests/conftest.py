@@ -168,7 +168,9 @@ MIXIN_COLS = {
         [0, 1, 2, 3] * u.mas / u.yr, [0, 1, 2, 3] * u.mas / u.yr, 10 * u.km / u.s
     ),
     "arraywrap": ArrayWrapper([0, 1, 2, 3]),
-    "arrayswap": ArrayWrapper(np.arange(4, dtype="i").byteswap().newbyteorder()),
+    "arrayswap": ArrayWrapper(
+        np.arange(4, dtype="i").byteswap().view(np.dtype("i").newbyteorder())
+    ),
     "ndarraylil": np.array(
         [(7, "a"), (8, "b"), (9, "c"), (9, "c")], dtype="<i4,|S1"
     ).view(table.NdarrayMixin),

@@ -79,7 +79,7 @@ been lack of time.  Issues or PRs for support for functions are welcome.
 MASKED_SAFE_FUNCTIONS |= {
     getattr(np, name)
     for name in np.core.fromnumeric.__all__
-    if name not in {"choose", "put", "resize", "searchsorted", "where", "alen"}
+    if name not in {"choose", "put", "resize", "searchsorted", "where", "alen", "ptp"}
 }
 MASKED_SAFE_FUNCTIONS |= {
     # built-in from multiarray
@@ -115,6 +115,8 @@ MASKED_SAFE_FUNCTIONS |= {
 
 
 if NUMPY_LT_2_0:
+    # Safe in < 2.0, because it deferred to the method. Overridden in >= 2.0.
+    MASKED_SAFE_FUNCTIONS |= {np.ptp}
     # Removed in numpy 2.0.  Just an alias to vstack.
     MASKED_SAFE_FUNCTIONS |= {np.row_stack}
 
@@ -446,6 +448,15 @@ if NUMPY_LT_2_0:
     def msort(a):
         result = a.copy()
         result.sort(axis=0)
+        return result
+
+else:
+    # Used to work via ptp method, but now need to override, otherwise
+    # plain reduction is used, which gives different mask.
+    @dispatched_function
+    def ptp(a, axis=None, out=None, keepdims=False):
+        result = a.max(axis=axis, out=out, keepdims=keepdims)
+        result -= a.min(axis=axis, keepdims=keepdims)
         return result
 
 
