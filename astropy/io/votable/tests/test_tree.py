@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import filecmp
 import io
 import os
 from contextlib import nullcontext
@@ -385,8 +386,6 @@ def test_mivot_forbidden_write():
     Build a meta resource containing a mivot block,
     build the dummy mivot block first.
     """
-    vot = tree
-    vtf = vot.VOTableFile()
     mivot_block = MivotBlock(
         """
     <VODML xmlns="http://www.ivoa.net/xml/mivot" >
@@ -406,10 +405,29 @@ def test_mivot_forbidden_write():
         assert True
 
 
+def setup_function(test_mivot_order):
+    """
+    The setup_function() function tests ensure that the xml file does not exist.
+    """
+    files = os.listdir(".")
+    if "test.order.out.xml" in files:
+        os.remove("test.order.out.xml")
+
+
+def teardown_function(test_mivot_order):
+    """
+    The teardown_function() function removes the xml file, if it was created.
+    """
+    files = os.listdir(".")
+    if "test.order.out.xml" in files:
+        os.remove("test.order.out.xml")
+
+
 def test_mivot_order():
     """
-    Build a VOTable, put a mivot block and a table in the first resource, checks it can be retrieved
-    as well as the following table
+    Build a VOTable with 2 resources containing MivotBlock, parse it, and write it in a file.
+    Then compare it with another file to see if the order of the elements in a resource is respected,
+    in particular the MivotBlock which should be before the tables.
     """
     vot = tree
     mivot_block = MivotBlock(
@@ -419,6 +437,7 @@ def test_mivot_order():
     """
     )
     vtf = vot.VOTableFile()
+
     mivot_resource = Resource()
     mivot_resource.type = "meta"
     mivot_resource.mivot_block = mivot_block
@@ -427,7 +446,7 @@ def test_mivot_order():
     mivot_resource2.type = "meta"
     mivot_resource2.mivot_block = mivot_block
 
-    # R1 : 2 mivot_block and 2 tables
+    # R1 : 2 mivot_block, 2 tables, 1 description, 1 info, 1 CooSys
     r1 = vot.Resource()
     r1.type = "results"
 
@@ -441,6 +460,11 @@ def test_mivot_order():
 
     r1.resources.append(mivot_resource)
     r1.resources.append(mivot_resource2)
+
+    cs = vot.CooSys(ID="_XYZ", system="ICRS")
+    r1.coordinate_systems.append(cs)
+    i1 = vot.Info(name="test_name", value="test_value")
+    r1.infos.append(i1)
 
     vtf.resources.append(r1)
 
@@ -466,10 +490,20 @@ def test_mivot_order():
     # Read the IOStream (emulates a disk readout)
     buff.seek(0)
     vtf2 = parse(buff)
+
     data_path = os.path.dirname(os.path.realpath(__file__))
     vpath = os.path.join(data_path, "data/test.order.xml")
-    vpath2 = os.path.join(data_path, "data/test.order.out.xml")
-    vtf2.to_xml(vpath)
-    import filecmp
+    vpath_out = os.path.join(data_path, "test.order.out.xml")
+    vtf2.to_xml(vpath_out)
 
-    assert filecmp.cmp(vpath, vpath2)
+    # We want to remove the xml header from the VOTable
+    with open("test.order.out.xml") as fichier:
+        lines = fichier.readlines()
+    # The xml header is on 2 lines (line 2 and 3)
+    del lines[1]
+    del lines[1]
+
+    with open("test.order.out.xml", "w") as fichier:
+        fichier.writelines(lines)
+
+    assert filecmp.cmp(vpath, vpath_out)

@@ -4,6 +4,7 @@ Created on Feb 26, 2021
 @author: laurentmichel
 """
 import os
+import tempfile
 
 from astropy.io.votable import parse
 from astropy.io.votable.tree import MivotBlock, Resource, VOTableFile
@@ -11,13 +12,13 @@ from astropy.io.votable.tree import MivotBlock, Resource, VOTableFile
 data_path = os.path.dirname(os.path.realpath(__file__))
 
 """
-Read out Test
+Read out Example
 """
 
 # Read a valid VOTable
 # No invalid element detected,
 # The block is returned as an XML String
-vpath = os.path.join(data_path, "test.7.xml")
+vpath = os.path.join(data_path, "test.mivot.xml")
 votable = parse(vpath)
 for resource in votable.resources:
     print(f"Resource type: {resource.type}  Mivot Block: {resource.mivot_block}")
@@ -29,7 +30,7 @@ for resource in votable.resources:
 # Read an invalid VOTable
 # An unexpected element has been found in the mivot block
 # The mivot block pointer returns a block with just REPORT in error
-vpath = os.path.join(data_path, "test.7.ko.xml")
+vpath = os.path.join(data_path, "test.mivot.ko.xml")
 votable = parse(vpath)
 for resource in votable.resources:
     print(f"Resource type: {resource.type}  Mivot Block: {resource.mivot_block}")
@@ -39,9 +40,11 @@ for resource in votable.resources:
         print(resource_meta.mivot_block)
 
 """
-Write Test
+Write Example
 """
-vpath = os.path.join(data_path, "test.7.out.xml")
+
+path = tempfile.gettempdir() + "/test.mivot.out.xml"
+vpath = os.path.join(data_path, path)
 
 # Create am empty VOTable
 votable = VOTableFile()
@@ -54,10 +57,10 @@ meta_resource.type = "meta"
 # A dummy mivot block for the test.
 resource.resources.append(meta_resource)
 mivot_block = MivotBlock("""
-<dm-mapping:VODML xmlns:dm-mapping="http://www.ivoa.net/xml/merged-syntax" >
-  <dm-mapping:REPORT/>
-  <dm-mapping:GLOBALS/>
-</dm-mapping:VODML>
+<VODML xmlns:dm-mapping="http://www.ivoa.net/xml/mivot" >
+  <REPORT/>
+  <GLOBALS/>
+</VODML>
 """
                          )
 # Add the mivot resource
