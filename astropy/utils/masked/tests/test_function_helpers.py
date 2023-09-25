@@ -629,10 +629,6 @@ class TestMethodLikes(MaskedArraySetup):
     def test_cumproduct(self):
         self.check(np.cumproduct, method="cumprod")
 
-    def test_ptp(self):
-        self.check(np.ptp)
-        self.check(np.ptp, axis=0)
-
     def test_round(self):
         self.check(np.round, method="round")
 
@@ -890,6 +886,22 @@ class TestReductionLikeFunctions(MaskedArraySetup):
         expected_mask = (self.mask_a | self.mask_b).any(-1)
         assert_array_equal(o.unmasked, expected)
         assert_array_equal(o.mask, expected_mask)
+
+    @pytest.mark.parametrize("kwargs", [{}, {"axis": 0}])
+    def test_ptp(self, kwargs):
+        o = np.ptp(self.ma, **kwargs)
+        expected = self.ma.max(**kwargs) - self.ma.min(**kwargs)
+        assert_array_equal(o.unmasked, expected.unmasked)
+        assert_array_equal(o.mask, expected.mask)
+        out = np.zeros_like(expected)
+        o2 = np.ptp(self.ma, out=out, **kwargs)
+        assert o2 is out
+        assert_array_equal(o2.unmasked, expected.unmasked)
+        assert_array_equal(o2.mask, expected.mask)
+        # Check method does the same thing.
+        o3 = self.ma.ptp(**kwargs)
+        assert_array_equal(o3.unmasked, expected.unmasked)
+        assert_array_equal(o3.mask, expected.mask)
 
     def test_trace(self):
         o = np.trace(self.ma)
