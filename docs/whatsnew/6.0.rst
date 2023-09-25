@@ -67,24 +67,9 @@ Body-fixed planetary reference frames and their WCS description
 
 Body-fixed planetary reference frames in particular for Solar System planetary
 bodies can be read and written via WCS structures in FITS images, following
-`Definitions, Applications, and Best Practices for Planetary FITS <https://doi.org/10.1029/2018EA000388>`_::
+`Definitions, Applications, and Best Practices for Planetary FITS <https://doi.org/10.1029/2018EA000388>`_.
 
-    >>> from astropy.coordinates.tests.test_geodetic_representations import IAUMARS2000BodycentricRepresentation
-    >>> from astropy.coordinates import BaseCoordinateFrame
-    >>> from astropy.wcs.utils import celestial_frame_to_wcs
-    >>> class IAUMARS2000BodyFrame(BaseCoordinateFrame):
-    ...     name = "Mars"
-    >>> frame = IAUMARS2000BodyFrame()
-    >>> frame.representation_type = IAUMARS2000BodycentricRepresentation
-    >>> mywcs = celestial_frame_to_wcs(frame, projection="CAR")
-    >>> mywcs.wcs.ctype
-    ['MALN-CAR', 'MALT-CAR']
-    >>> mywcs.wcs.name
-    'Bodycentric Body-Fixed'
-    >>> mywcs.wcs.aux.a_radius
-    3396190.0
-    >>> mywcs.wcs.aux.c_radius
-    3376200.0000000456
+See :ref:`creating_planetary_wcs` for an example.
 
 Planetary images or spectral cube WCS description can be manipulated using the
 :mod:`~astropy.wcs` module.
