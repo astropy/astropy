@@ -77,7 +77,11 @@ __all__ = [
     "HEALPix",
     "AffineTransformation2D",
     "projcodes",
-] + list(map("_".join, product(["Pix2Sky", "Sky2Pix"], chain(*_PROJ_NAME_CODE))))
+]
+
+__all__ += list(  # noqa: PLE0605
+    map("_".join, product(["Pix2Sky", "Sky2Pix"], chain(*_PROJ_NAME_CODE)))
+)
 
 
 class _ParameterDS(Parameter):
