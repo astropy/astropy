@@ -1,0 +1,3 @@
+For ``Masked``, ``np.ptp`` and the ``.ptp()`` method now properly account for
+the mask, ensuring the result is identical to subtracting the maximum and
+minimum (with the same arguments).
