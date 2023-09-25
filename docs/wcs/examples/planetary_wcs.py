@@ -1,7 +1,9 @@
 # Create a planetary WCS structure
 
-from astropy.coordinates import BaseCoordinateFrame
+from astropy import units as u
+from astropy.coordinates import BaseBodycentricRepresentation, BaseCoordinateFrame
 from astropy.wcs.utils import celestial_frame_to_wcs
+
 
 class IAUMARS2000BodycentricRepresentation(BaseBodycentricRepresentation):
     _equatorial_radius = 3396190.0 * u.m
