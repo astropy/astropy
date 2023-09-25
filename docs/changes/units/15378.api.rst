@@ -1,0 +1,6 @@
+Like ``np.ndarray``, under numpy 2.0 ``Quantity`` and all its subclasses
+(``Angle``, ``Masked``, etc.) will no longer support the ``.ptp()`` method.
+Use ``np.ptp(...)`` instead.
+
+Similarly, support for the much less frequently used ``.newbyteorder()`` and
+``.itemset()`` methods has been removed.
