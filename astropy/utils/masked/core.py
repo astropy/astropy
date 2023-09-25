@@ -956,6 +956,11 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             axis=axis, out=out, **self._reduce_defaults(kwargs, np.nanmin)
         )
 
+    def ptp(self, axis=None, out=None, **kwargs):
+        result = self.max(axis=axis, out=out, **kwargs)
+        result -= self.min(axis=axis, **kwargs)
+        return result
+
     def nonzero(self):
         unmasked_nonzero = self.unmasked.nonzero()
         if self.ndim >= 1:
