@@ -17,6 +17,7 @@ import numpy as np
 
 # LOCAL
 from astropy import config as _config
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyWarning
@@ -1694,11 +1695,13 @@ class Quantity(np.ndarray):
             _value = _value.astype(self.dtype, copy=False)
         return _value
 
-    def itemset(self, *args):
-        if len(args) == 0:
-            raise ValueError("itemset must have at least one argument")
+    if NUMPY_LT_2_0:
 
-        self.view(np.ndarray).itemset(*(args[:-1] + (self._to_own_unit(args[-1]),)))
+        def itemset(self, *args):
+            if len(args) == 0:
+                raise ValueError("itemset must have at least one argument")
+
+            self.view(np.ndarray).itemset(*(args[:-1] + (self._to_own_unit(args[-1]),)))
 
     def tostring(self, order="C"):
         """Not implemented, use ``.value.tostring()`` instead."""
