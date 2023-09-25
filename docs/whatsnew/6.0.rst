@@ -65,7 +65,7 @@ See :ref:`astropy-coordinates-create-geodetic` for more details.
 Body-fixed planetary reference frames and their WCS description
 ===============================================================
 
-Body-fixed planetary reference frames in particular for Solar System planetary
+Body-fixed planetary reference frames for Solar System planetary
 bodies can be read and written via WCS structures in FITS images, following
 `Definitions, Applications, and Best Practices for Planetary FITS <https://doi.org/10.1029/2018EA000388>`_.
 
