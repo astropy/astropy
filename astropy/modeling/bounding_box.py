@@ -19,6 +19,8 @@ from astropy.utils import isiterable
 if TYPE_CHECKING:
     from typing import Any, Callable
 
+    from typing_extensions import Self
+
     from astropy.units import UnitBase
 
 __all__ = ["ModelBoundingBox", "CompoundBoundingBox"]
@@ -1120,7 +1122,9 @@ class _SelectorArguments(tuple):
 
     _kept_ignore = None
 
-    def __new__(cls, input_: tuple[_SelectorArgument], kept_ignore: list | None = None):
+    def __new__(
+        cls, input_: tuple[_SelectorArgument], kept_ignore: list | None = None
+    ) -> Self:
         self = super().__new__(cls, input_)
 
         if kept_ignore is None:
