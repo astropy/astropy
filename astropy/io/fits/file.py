@@ -369,11 +369,17 @@ class _File:
                         # using the ACCESS_COPY mode in mmap so that users can
                         # modify arrays. However, on some systems, the OS raises
                         # a '[Errno 12] Cannot allocate memory' OSError if the
-                        # address space is smaller than the file. The solution
+                        # address space is smaller than the file. Also on windows
+                        # a '[WinError 1455] The paging file is too small for
+                        # this operation to complete' Windows error is raised or
+                        # equiivalent a '[Errno 22] Invalid argument. The solution
                         # is to open the file in mode='denywrite', which at
                         # least allows the file to be opened even if the
                         # resulting arrays will be truly read-only.
-                        if exc.errno == errno.ENOMEM and self.mode == "readonly":
+
+                        if (
+                            exc.errno == errno.ENOMEM or exc.winerror == 1455
+                        ) and self.mode == "readonly":
                             warnings.warn(
                                 "Could not memory map array with "
                                 "mode='readonly', falling back to "
