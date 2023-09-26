@@ -788,7 +788,7 @@ class ModelBoundingBox(_BoundingDomain):
         order: str = "C",
         _preserve_ignore: bool = False,
         **kwargs,
-    ):
+    ) -> Self:
         """
         Construct a valid bounding box for a model.
 
@@ -989,7 +989,7 @@ class _SelectorArgument(_BaseSelectorArgument):
         return self
 
     @classmethod
-    def validate(cls, model, argument, ignored: bool = True):
+    def validate(cls, model, argument, ignored: bool = True) -> Self:
         """
         Construct a valid selector argument for a CompoundBoundingBox.
 
@@ -1164,7 +1164,7 @@ class _SelectorArguments(tuple):
         return self._kept_ignore
 
     @classmethod
-    def validate(cls, model, arguments, kept_ignore: list | None = None):
+    def validate(cls, model, arguments, kept_ignore: list | None = None) -> Self:
         """
         Construct a valid Selector description for a CompoundBoundingBox.
 
@@ -1463,7 +1463,7 @@ class CompoundBoundingBox(_BoundingDomain):
         order: str = "C",
         _preserve_ignore: bool = False,
         **kwarg,
-    ):
+    ) -> Self:
         """
         Construct a valid compound bounding box for a model.
 
