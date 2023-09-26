@@ -497,13 +497,13 @@ def test_mivot_order():
     vtf2.to_xml(vpath_out)
 
     # We want to remove the xml header from the VOTable
-    with open("test.order.out.xml") as fichier:
-        lines = fichier.readlines()
+    with open(vpath_out) as file:
+        lines = file.readlines()
     # The xml header is on 2 lines (line 2 and 3)
     del lines[1]
     del lines[1]
 
-    with open("test.order.out.xml", "w") as fichier:
-        fichier.writelines(lines)
+    with open(vpath_out, "w") as file:
+        file.writelines(lines)
 
     assert filecmp.cmp(vpath, vpath_out)
