@@ -486,7 +486,7 @@ Astropy implementation
 The purpose of Astropy is not to process VO annotations.
 It is just to allow related packages to get and set Mivot blocks from/into VOTables.
 For this reason, in this implementation Mivot annotations are both imported and exported as strings.
-The current implementation prevents client code from injecting into VOTables strings 
+The current implementation prevents client code from injecting into VOTables strings
 that are not Mivot serializations.
 
 MivotBlock implementation :
