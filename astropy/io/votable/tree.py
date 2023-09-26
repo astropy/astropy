@@ -3390,14 +3390,15 @@ class MivotBlock(Element):
     def __init__(self, content=None):
         """
         Constructor
-        
-        parameters
+
+
+        Parameters
         ----------
           content: String
-            String serialization of the MIVOT block. 
-            If it None, the instance is meant to be set by the Resource 
+            String serialization of the MIVOT block.
+            If it None, the instance is meant to be set by the Resource
             parser.
-            Orherwise, the parameter value is parsed to make sure it matches 
+            Orherwise, the parameter value is parsed to make sure it matches
             the MIVOT XML structure
         """
         if content is not None:
@@ -3439,7 +3440,7 @@ class MivotBlock(Element):
 
         if start is False:
             self._indent_level -= 1
-        # The content is formated on the fly: not mandatory but cool for debugging    
+        # The content is formatted on the fly: not mandatory but cool for debugging
         indent = "".join(" " for _ in range(2 * self._indent_level))
         if ele_content:
             self._content += indent + "  " + ele_content
@@ -3453,8 +3454,10 @@ class MivotBlock(Element):
         is set with a REPORT tag telling what went wrong
         The signature si that same as for all _add_* methods of the parser
         """
-        self._content = f'<VODML xmlns="http://www.ivoa.net/xml/mivot">\n'
-                        f'  <REPORT status="KO">Unknown mivot block statement: {tag}</REPORT>\n</VODML>'
+        self._content = (
+            f'<VODML xmlns="http://www.ivoa.net/xml/mivot">\n '
+            f'<REPORT status="KO">Unknown mivot block statement: {tag}</REPORT>\n</VODML>'
+        )
         self._on_error = True
         warn_or_raise(W10, W10, tag, config={"verify": "warn"}, pos=pos)
 
@@ -3467,8 +3470,10 @@ class MivotBlock(Element):
         If there is not mapping block, an empty block is returned in order to pervent client code to deal with None blocks
         """
         if self._content == "":
-            self._content = '<VODML xmlns="http://www.ivoa.net/xml/mivot">\n'
-                            '  <REPORT status="KO">No Mivot block</REPORT>\n</VODML>\n'
+            self._content = (
+                '<VODML xmlns="http://www.ivoa.net/xml/mivot">\n '
+                '<REPORT status="KO">No Mivot block</REPORT>\n</VODML>\n'
+            )
         return self._content
 
     def parse(self, votable, iterator, config):

@@ -306,7 +306,7 @@ class XMLWriter:
 
     def string_element(self, xml_string):
         """
-        Reformat indentations on the xml in order to insert the mivot block
+        Reformat the indentation in the XML to insert the mivot block.
         """
         self._flush()
         indent = self.get_indentation_spaces()

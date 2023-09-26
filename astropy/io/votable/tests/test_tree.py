@@ -341,7 +341,7 @@ def test_mivot_write_after_resource():
     """
     vot = tree
     mivot_block = MivotBlock(
-    """
+        """
     <VODML xmlns="http://www.ivoa.net/xml/mivot" >
       <REPORT status="OK">Unit test mivot block1</REPORT>
       <GLOBALS>
@@ -431,7 +431,7 @@ def test_mivot_order():
     """
     vot = tree
     mivot_block = MivotBlock(
-    """
+        """
     <VODML xmlns="http://www.ivoa.net/xml/mivot" >
     </VODML>
     """
