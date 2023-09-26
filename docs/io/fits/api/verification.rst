@@ -62,7 +62,7 @@ make the fix in such a way that it will not throw off other FITS readers.
 ===============
 
 Same as fix, but will not print out informative messages. This may be useful in
-a large script where the the user does not want excessive harmless messages. If
+a large script where the user does not want excessive harmless messages. If
 the violation is not fixable, it will still throw an exception.
 
 ``'warn'``

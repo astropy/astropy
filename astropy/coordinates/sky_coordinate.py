@@ -2070,7 +2070,7 @@ class SkyCoord(ShapedLikeNDArray):
         in an astropy Table.
 
         This method matches table columns that start with the case-insensitive
-        names of the the components of the requested frames (including
+        names of the components of the requested frames (including
         differentials), if they are also followed by a non-alphanumeric
         character. It will also match columns that *end* with the component name
         if a non-alphanumeric character is *before* it.
@@ -2080,7 +2080,7 @@ class SkyCoord(ShapedLikeNDArray):
         `~astropy.coordinates.ICRS` frames, but ``'RAJ2000'`` or ``'radius'``
         are *not*. Similarly, the second rule applied to the
         `~astropy.coordinates.Galactic` frame means that a column named
-        ``'gal_l'`` will be used as the the ``l`` component, but ``gall`` or
+        ``'gal_l'`` will be used as the ``l`` component, but ``gall`` or
         ``'fill'`` will not.
 
         The definition of alphanumeric here is based on Unicode's definition

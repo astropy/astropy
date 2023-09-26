@@ -131,7 +131,7 @@ def serialize_method_as(tbl, serialize_method):
     attribute is an optional dict which might look like ``{'fits':
     'jd1_jd2', 'ecsv': 'formatted_value', ..}``.
 
-    ``serialize_method`` is a str or dict.  If str then it the the value
+    ``serialize_method`` is a str or dict.  If str then it the value
     is the ``serialize_method`` that will be used for all formats.
     If dict then the key values can be either:
 

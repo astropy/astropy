@@ -225,7 +225,7 @@ for varname in dir():
             and locals()[varname].__name__.startswith(__name__ + ".")
         )
     ):
-        # The last clause in the the above disjunction deserves explanation:
+        # The last clause in the above disjunction deserves explanation:
         # When using relative imports like ``from .. import config``, the
         # ``config`` variable is automatically created in the namespace of
         # whatever module ``..`` resolves to (in this case astropy).  This

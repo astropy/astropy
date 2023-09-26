@@ -24,7 +24,7 @@ class MetaData:
         .. versionadded:: 1.2
 
     copy : `bool`, optional
-        If ``True`` the the value is deepcopied before setting, otherwise it
+        If ``True`` the value is deepcopied before setting, otherwise it
         is saved as reference.
         Default is ``True``.
 

@@ -245,7 +245,7 @@ class DuplicateError(ConfigObjError):
 
 class ConfigspecError(ConfigObjError):
     """
-    An error occured whilst parsing a configspec.
+    An error occurred whilst parsing a configspec.
     """
 
 
@@ -844,7 +844,7 @@ class Section(dict):
 
         Return a dictionary of the return values
 
-        If the function raises an exception, raise the errror
+        If the function raises an exception, raise the error
         unless ``raise_errors=False``, in which case set the return value to
         ``False``.
 
@@ -1526,7 +1526,7 @@ class ConfigObj(Section):
         into strings.
         """
         if not isinstance(value, str):
-            # intentially 'str' because it's just whatever the "normal"
+            # intentionally 'str' because it's just whatever the "normal"
             # string type is for the python version we're dealing with
             return str(value)
         else:
@@ -1724,7 +1724,7 @@ class ConfigObj(Section):
         Handle an error according to the error settings.
 
         Either raise the error or store it.
-        The error will have occured at ``cur_index``
+        The error will have occurred at ``cur_index``
         """
         line = infile[cur_index]
         cur_index += 1
@@ -1781,7 +1781,7 @@ class ConfigObj(Section):
                 for val in value])
         if not isinstance(value, str):
             if self.stringify:
-                # intentially 'str' because it's just whatever the "normal"
+                # intentionally 'str' because it's just whatever the "normal"
                 # string type is for the python version we're dealing with
                 value = str(value)
             else:

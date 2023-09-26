@@ -890,7 +890,7 @@ class HDUList(list, _Verify):
         if save_backup and self._file.mode in ("append", "update"):
             filename = self._file.name
             if os.path.exists(filename):
-                # The the file doesn't actually exist anymore for some reason
+                # The file doesn't actually exist anymore for some reason
                 # then there's no point in trying to make a backup
                 backup = filename + ".bak"
                 idx = 1

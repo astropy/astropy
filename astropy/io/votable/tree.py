@@ -1993,7 +1993,7 @@ class TimeSys(SimpleElement):
     def timeorigin(self):
         """
         Specifies the time origin of the time coordinate,
-        given as a Julian Date for the the time scale and
+        given as a Julian Date for the time scale and
         reference point defined. It is usually given as a
         floating point literal; for convenience, the magic
         strings "MJD-origin" (standing for 2400000.5) and
