@@ -471,24 +471,22 @@ Reading and writing VO model annotations
 Introduction
 ------------
 Model Instances in VOTables (`MIVOT <https://ivoa.net/documents/MIVOT/20230620/REC-mivot-1.0.pdf>`_)
-defines a syntax to map VOTable data to any model serizalized in VO-DML (Virtual Observatory Data Modeling Language).
-This annotation schema operates as a bridge between the data and the model. It associates the column/param metadata
-from the VOTable to the data model elements (class, attributes, types, etc.) . It also brings up VOTable data or
-metadata that were possibly missing in the table meta-data.
+defines a syntax to map VOTable data to any model serialised in VO-DML (Virtual Observatory Data Modeling Language).
+This annotation schema operates as a bridge between data and the models. It associates both column/param metadata and data
+from the VOTable to the data model elements (class, attributes, types, etc.). It also brings up VOTable data or
+metadata that were possibly missing in the table e.g. coordinate system description, or curation tracin.
 The data model elements are grouped in an independent annotation block complying with the MIVOT XML schema which
-is added as an extra resource element above the TABLE element.
+is added as an extra resource above the TABLE element.
 The MIVOT syntax allows to describe a data structure as a hierarchy of classes.
-It is also able to represent relations and composition between them. It can also build up data model objects by
+It is also able to represent relations and compositions between them. It can moreover build up data model objects by
 aggregating instances from different tables of the VOTable.
-Missing metadata can also be provided using MIVOT, for instance by completing
-coordinate system description, or by providing curation tracing.
 
 Astropy implementation
 ----------------------
-The purpose of Astropy is not to process the VO annotations.
-It is just to allow related packages to get and set Mivot blocks in VOTables.
-For this reason the Mivot annotations are both imported and exported as strings.
-The current implementation prevents client code from injecting strings in VOTable
+The purpose of Astropy is not to process VO annotations.
+It is just to allow related packages to get and set Mivot blocks from/into VOTables.
+For this reason, in this implementation Mivot annotations are both imported and exported as strings.
+The current implementation prevents client code from injecting into VOTables strings 
 that are not Mivot serializations.
 
 MivotBlock implementation :
@@ -496,38 +494,40 @@ MivotBlock implementation :
 - Mivot blocks are handled by the MivotBlock class in tree.py.
 - A MivotBlock instance can only be carried by a resource with “type=meta”.
 - This instance holds the XML mapping block as a string.
-- MivotBlock object are instanced by the Resource parser.
+- MivotBlock objects are instanced by the Resource parser.
 - The MivotBlock class has its own logic that operates both parsing and IO functionalities.
 
 Examples
 ^^^^^^^^
 
 .. code-block:: xml
-   <VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3"
-   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.3">
-     <RESOURCE>
-       <RESOURCE type="meta">
-   <VODML xmlns="http://www.ivoa.net/xml/mivot">
-   ...
-   </VODML>
-   </RESOURCE>
-   <TABLE name="myDataTable">
-   ....
-   </TABLE>
-   </RESOURCE>
-   </VOTABLE>
+
+       <VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.3">
+         <RESOURCE>
+           <RESOURCE type="meta">
+             <VODML xmlns="http://www.ivoa.net/xml/mivot">
+              ...
+             </VODML>
+           </RESOURCE>
+           <TABLE name="myDataTable">
+            ....
+           </TABLE>
+         </RESOURCE>
+    </VOTABLE>
 
 Reading a VOTable containing a Mivot block
-----------------------
+------------------------------------------
 
 To read in a VOTable file containing or not a Mivot Resource, pass a file path to`~astropy.io.votable.parse`::
 
    from astropy.io.votable import parse
    votable = parse("votable.xml")
-The parse function will call the Mivot parser if it detects a Mivot block
+
+The parse function will call the Mivot parser if it detects a Mivot block.
 
 Building a Resource containing a Mivot block
----------------------------------
+--------------------------------------------
 
 Construct the mivot block by passing the XML block as a parameter::
 
@@ -545,6 +545,7 @@ Build a new resource::
    mivot_resource.type = "meta"
    Then add it the mivot block::
    mivot_resource.mivot_block = mivot_block
+
 Now you have a mivot resource that you can add to an object Resource creating a new Resource::
 
    vtf = VOTableFile()
@@ -578,6 +579,9 @@ See Also
 
 - `VOTable Format Definition Version 1.4
   <https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html>`_
+
+- `MIVOT Recommendation Version 1.0
+  <https://ivoa.net/documents/MIVOT/20230620/REC-mivot-1.0.pdf>`_
 
 .. note that if this section gets too long, it should be moved to a separate
    doc page - see the top of performance.inc.rst for the instructions on how to do
