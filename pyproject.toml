@@ -170,7 +170,6 @@ doctest_plus = "enabled"
 text_file_format = "rst"
 remote_data_strict = true
 addopts = [
-    "-ra",
     "--color=yes",
     "--doctest-rst",
     "--strict-config",
@@ -418,9 +417,7 @@ ignore = [
     "PC111", # ignore using `blacken-docs` in pre-commit
     "PC140", # ignore using `mypy` in pre-commit
     "PC180", # ignore using `prettier` in pre-commit
-    "RF101", # ignore direct requiring flake8-bugbear in ruff
-    "RF102", # ignore direct requiring isort in ruff
-    "RF103", # ignore direct requiring pyupgrade in ruff
+    "PP308", # ignore requiring `-ra` flag for pytest, astropy's test suite is too large for this to be useful
 ]
 
 [tool.towncrier]
