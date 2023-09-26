@@ -1,0 +1,1 @@
+Updated ``astropy.io.misc.yaml`` so ``dump()` with a numpy object array or ``load()`` with YAML representing a numpy object array both raise ``TypeError``. This prevents problems like a segmentation fault.
