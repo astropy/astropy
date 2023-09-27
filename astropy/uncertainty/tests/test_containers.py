@@ -13,6 +13,7 @@ from astropy.coordinates import (
     EarthLocation,
     Latitude,
     Longitude,
+    SkyCoord,
     SphericalDifferential,
     SphericalRepresentation,
 )
@@ -204,3 +205,25 @@ class TestRepresentationWithDifferential(TestRepresentation):
         drep = self.dsph.represent_as(repr_cls, diff_cls)
         rep = self.sph.represent_as(repr_cls, diff_cls)
         assert_representation_equal(self.get_distribution(drep), rep)
+
+
+class TestSkyCoord:
+    @classmethod
+    def setup_class(cls):
+        cls.ra = Distribution(np.linspace(0.0, 360 * u.deg, 10, endpoint=False))
+        cls.dec = Angle([-45.0, 0.0, 45.0], u.deg)
+        cls.dsc = SkyCoord(cls.ra, cls.dec)
+        cls.sc = SkyCoord(cls.ra.distribution, cls.dec[:, np.newaxis])
+
+    def test_init(self):
+        assert isinstance(self.dsc.ra, Distribution)
+        assert not isinstance(self.dsc.dec, Distribution)
+
+    @pytest.mark.parametrize("frame", ["fk5", "galactic"])
+    def test_convert(self, frame):
+        dconv = self.dsc.transform_to(frame)
+        conv = self.sc.transform_to(frame)
+        # Coordinate names are different for FK5 and galactic, so
+        # just get them from the representation.
+        assert_array_equal(dconv.data.lon.distribution, conv.data.lon)
+        assert_array_equal(dconv.data.lat.distribution, conv.data.lat)
