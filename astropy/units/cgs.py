@@ -12,7 +12,7 @@ from .core import UnitBase, def_unit
 
 _ns = globals()
 
-def_unit(["cm", "centimeter"], si.cm, namespace=_ns, prefixes=False)
+cm = si.cm
 g = si.g
 s = si.s
 C = si.C
