@@ -110,7 +110,11 @@ def _hdu_class_from_header(cls, header):
                     or c in cls._hdu_registry
                 ):
                     continue
-                if c.match_header(header):
+                # skip _NonstandardExtHDU and _ExtensionHDU since those are deprecated
+                if c.match_header(header) and c not in (
+                    _NonstandardExtHDU,
+                    _ExtensionHDU,
+                ):
                     klass = c
                     break
             except NotImplementedError:
