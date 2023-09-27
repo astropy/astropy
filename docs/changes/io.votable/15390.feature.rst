@@ -1,2 +1,2 @@
-Added ``Mivot feature`` through the ``MivotBlock`` class (tree.py)
+Added ``Mivot feature`` through the ``MivotBlock`` class
 that allows model annotations reading and writing in VOTable.

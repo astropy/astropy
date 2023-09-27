@@ -3378,13 +3378,13 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
 
 class MivotBlock(Element):
     """
-    Mivot Block holder
+    Mivot Block holder:
     Processing VO model views on data is out of the scope of Astropy.
     This is why the only VOmodel-related feature implemented here the
     extraction or the writing of a mapping block from/to a VOtable
     There is no syntax validation other than the allowed tag names.
     The mapping block is handled as a correctly indented XML string
-    which is meant to be parsed by the calling API (e.g. PyVO)
+    which is meant to be parsed by the calling API (e.g., PyVO).
     """
 
     def __init__(self, content=None):
@@ -3513,9 +3513,7 @@ class MivotBlock(Element):
         """
         w.string_element(self._content)
 
-    def check_content_format(
-        self,
-    ):
+    def check_content_format(self):
         """
         Check if the content is on xml format by building a VOTable,
         putting a mivot block in the first resource and trying to parse the VOTable.

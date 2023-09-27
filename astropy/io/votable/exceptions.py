@@ -1535,7 +1535,7 @@ class E26(VOTableSpecError):
     The mapping block can only be set in a type=meta RESOURCE.
     """
 
-    message_template = "Mapping block can not be set in a RESOURCE with type=result "
+    message_template = "Mapping block can not be set in a RESOURCE with type=result"
 
 
 def _get_warning_and_exception_classes(prefix):
