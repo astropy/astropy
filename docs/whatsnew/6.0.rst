@@ -13,6 +13,7 @@ the 5.3 release.
 In particular, this release includes:
 
 * :ref:`whatsnew-6.0-geodetic-representation-geometry`
+* :ref:`whatsnew-6.0-planetary-wcs-bodyfixed`
 * :ref:`whatsnew-6.0-cosmology-latex-export`
 * :ref:`whatsnew-6.0-iers-data`
 
@@ -58,6 +59,20 @@ bodies by subclassing `~astropy.coordinates.BaseGeodeticRepresentation` or
 
 See :ref:`astropy-coordinates-create-geodetic` for more details.
 
+
+.. _whatsnew-6.0-planetary-wcs-bodyfixed:
+
+Body-fixed planetary reference frames and their WCS description
+===============================================================
+
+Body-fixed planetary reference frames for Solar System planetary
+bodies can be read and written via WCS structures in FITS images, following
+`Definitions, Applications, and Best Practices for Planetary FITS <https://doi.org/10.1029/2018EA000388>`_.
+
+See :ref:`creating_planetary_wcs` for an example.
+
+Planetary images or spectral cube WCS description can be manipulated using the
+:mod:`~astropy.wcs` module.
 
 .. _whatsnew-6.0-cosmology-latex-export:
 
