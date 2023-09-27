@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from astropy.cosmology import utils
-from astropy.cosmology._utils import aszarr, vectorize_redshift_method
+from astropy.cosmology._utils import all_cls_vars, aszarr, vectorize_redshift_method
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .test_core import invalid_zs, valid_zs, z_arr
@@ -73,3 +73,27 @@ class Test_aszarr:
         """Test :func:`astropy.cosmology._utils.aszarr`."""
         with pytest.raises(exc):
             aszarr(z)
+
+
+# -------------------------------------------------------------------
+
+
+def test_all_cls_vars():
+    """Test :func:`astropy.cosmology._utils.all_cls_vars`."""
+
+    class ClassA:
+        a = 1
+        b = 2
+
+    all_vars = all_cls_vars(ClassA)
+    public_all_vars = {k: v for k, v in all_vars.items() if not k.startswith("_")}
+    assert public_all_vars == {"a": 1, "b": 2}
+
+    class ClassB(ClassA):
+        c = 3
+
+    all_vars = all_cls_vars(ClassB)
+    public_all_vars = {k: v for k, v in all_vars.items() if not k.startswith("_")}
+    assert public_all_vars == {"a": 1, "b": 2, "c": 3}
+    assert "a" not in vars(ClassB)
+    assert "b" not in vars(ClassB)
