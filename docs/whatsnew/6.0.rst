@@ -140,7 +140,7 @@ This means that the :mod:`dataclasses` machinery can be used to work with
 
     >>> from dataclasses import asdict
     >>> asdict(H0)
-    {'default': NotImplemented, 'derived': False, 'unit': Unit("km / (Mpc s)"), 'equivalencies': [], ...
+    {'default': ..., 'derived': False, 'unit': Unit("km / (Mpc s)"), 'equivalencies': [], ...
 
 
 It's also much easier to create new :class:`~astropy.cosmology.Parameter` subclasses

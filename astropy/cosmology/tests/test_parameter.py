@@ -15,14 +15,14 @@ import pytest
 
 # LOCAL
 import astropy.units as u
-from astropy.cosmology import Cosmology
+from astropy.cosmology import Cosmology, Parameter
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
-from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.parameter._converter import (
     _REGISTRY_FVALIDATORS,
     _validate_to_float,
     _validate_with_unit,
 )
+from astropy.cosmology.parameter._core import HASNODEFAULT, Sentinel
 
 ##############################################################################
 # TESTS
@@ -70,7 +70,7 @@ class ParameterTestMixin:
         """Test :class:`astropy.cosmology.Parameter` instantiation."""
         # defaults
         parameter = Parameter()
-        assert parameter.default is NotImplemented
+        assert parameter.default is HASNODEFAULT
         assert parameter.fvalidate is _validate_with_unit
         assert parameter.unit is None
         assert parameter.equivalencies == []
@@ -146,7 +146,7 @@ class ParameterTestMixin:
         """Test :attr:`astropy.cosmology.Parameter.default`."""
         assert hasattr(all_parameter, "default")
         assert isinstance(
-            all_parameter.default, (type(NotImplemented), type(None), float, u.Quantity)
+            all_parameter.default, (Sentinel, type(None), float, u.Quantity)
         )
 
     # -------------------------------------------

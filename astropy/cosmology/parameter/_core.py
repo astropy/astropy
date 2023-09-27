@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+__all__ = []
+
 import copy
 from dataclasses import dataclass, field, fields, replace
+from enum import Enum, auto
 from typing import Any, Sequence
 
 import astropy.units as u
@@ -11,13 +14,20 @@ from astropy.utils.compat import PYTHON_LT_3_10
 
 from ._converter import _REGISTRY_FVALIDATORS, FValidateCallable, _register_validator
 
-__all__ = []
-
-
 if not PYTHON_LT_3_10:
     from dataclasses import KW_ONLY
 else:
     KW_ONLY = Any
+
+
+class Sentinel(Enum):
+    """Sentinel values for Parameter fields."""
+
+    has_no_default = auto()
+    """Sentinel for values that have no default value."""
+
+
+HASNODEFAULT = Sentinel.has_no_default
 
 
 @dataclass(frozen=True)
@@ -71,7 +81,7 @@ class Parameter:
     Parameters
     ----------
     default : Any (optional, keyword-only)
-        Default value of the Parameter. If ``NotImplemented`` (default), the
+        Default value of the Parameter. If ``HASNODEFAULT`` (default), the
         Parameter must be set when initializing the cosmology.
     derived : bool (optional, keyword-only)
         Whether the Parameter is 'derived', default `False`.
@@ -103,10 +113,10 @@ class Parameter:
     if not PYTHON_LT_3_10:
         _: KW_ONLY
 
-    default: Any = NotImplemented
+    default: Any = HASNODEFAULT
     """Default value of the Parameter.
 
-    If `NotImplemented` (default), the Parameter must be set when initializing the
+    If ``HASNODEFAULT`` (default), the Parameter must be set when initializing the
     cosmology.
     """
 
@@ -139,7 +149,7 @@ class Parameter:
         def __init__(
             self,
             *,
-            default: Any | NotImplemented = NotImplemented,
+            default=HASNODEFAULT,
             derived=False,
             unit=None,
             equivalencies=[],
@@ -293,9 +303,7 @@ class Parameter:
             # Only show fields that should be displayed and are not sentinel values
             if (
                 f.repr
-                and (
-                    self.default is not NotImplemented if f.name == "default" else True
-                )
+                and (self.default is not HASNODEFAULT if f.name == "default" else True)
             )
         )
         return f"{self.__class__.__name__}({', '.join(fields_repr)})"
