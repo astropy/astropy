@@ -1,0 +1,3 @@
+We now ensure that the unit ``u.cgs.cm`` is just an alias of ``u.si.cm``,
+instead of a redefinition.  This ensures that ``u.Unit("cm") / u.cm``
+will reliably cancel to dimensionless (instead of some "cm / cm").

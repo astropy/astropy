@@ -29,11 +29,21 @@ def_unit(
 ###########################################################################
 # LENGTH
 
+# We exclude c as a prefix so we can define cm as a derived unit,
+# not a PrefixUnit. That way it can be used in cgs as a base unit.
 def_unit(
     ["m", "meter"],
     namespace=_ns,
     prefixes=True,
+    exclude_prefixes=["c"],
     doc="meter: base unit of length in SI",
+)
+def_unit(
+    ["cm", "centimeter"],
+    0.01 * m,
+    namespace=_ns,
+    prefixes=False,
+    doc="cm: 0.01 m in SI, base unit of length in cgs",
 )
 def_unit(
     ["micron"],

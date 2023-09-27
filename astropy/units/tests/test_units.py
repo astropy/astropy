@@ -916,3 +916,9 @@ def test_si_prefixes(name, symbol, multiplying_factor):
     value_ratio = base.value / quantity_from_symbol.value
 
     assert u.isclose(value_ratio, multiplying_factor)
+
+
+def test_cm_uniqueness():
+    # Ensure we have defined cm only once; see gh-15200.
+    assert u.si.cm is u.cgs.cm is u.cm
+    assert str(u.si.cm / u.cgs.cm) == ""  # was cm / cm
