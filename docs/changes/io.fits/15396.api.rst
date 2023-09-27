@@ -1,0 +1,7 @@
+Deprecate ``_ExtensionHDU`` and ``_NonstandardExtHDU`` (use ``ExtensionHDU`` or
+``NonstandardExtHDU`` instead).
+
+Remove special handling of TCTYP TCUNI TCRPX TCRVL TCDLT TRPOS (#7157)
+
+Rename and deprecate ``TableHDU.update`` to ``TableHDU.update_header``, for
+consistency with ``ImageHDU``.
