@@ -70,6 +70,9 @@ class Parameter:
 
     Parameters
     ----------
+    default : Any (optional, keyword-only)
+        Default value of the Parameter. If ``NotImplemented`` (default), the
+        Parameter must be set when initializing the cosmology.
     derived : bool (optional, keyword-only)
         Whether the Parameter is 'derived', default `False`.
         Derived parameters behave similarly to normal parameters, but are not
@@ -100,6 +103,13 @@ class Parameter:
     if not PYTHON_LT_3_10:
         _: KW_ONLY
 
+    default: Any = NotImplemented
+    """Default value of the Parameter.
+
+    If `NotImplemented` (default), the Parameter must be set when initializing the
+    cosmology.
+    """
+
     derived: bool = False
     """Whether the Parameter can be set, or is derived, on the cosmology."""
 
@@ -129,12 +139,14 @@ class Parameter:
         def __init__(
             self,
             *,
+            default: Any | NotImplemented = NotImplemented,
             derived=False,
             unit=None,
             equivalencies=[],
             fvalidate="default",
             doc=None,
         ):
+            object.__setattr__(self, "default", default)
             object.__setattr__(self, "derived", derived)
             vars(type(self))["unit"].__set__(self, unit)
             object.__setattr__(self, "equivalencies", equivalencies)
@@ -275,8 +287,15 @@ class Parameter:
     def __repr__(self) -> str:
         """Return repr(self)."""
         fields_repr = (
+            # Get the repr, using the input fvalidate over the processed value
             f"{f.name}={(getattr(self, f.name if f.name != 'fvalidate' else '_fvalidate_in'))!r}"
             for f in fields(self)
-            if f.repr
+            # Only show fields that should be displayed and are not sentinel values
+            if (
+                f.repr
+                and (
+                    self.default is not NotImplemented if f.name == "default" else True
+                )
+            )
         )
         return f"{self.__class__.__name__}({', '.join(fields_repr)})"

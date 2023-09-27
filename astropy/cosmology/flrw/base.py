@@ -170,18 +170,25 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         fvalidate="float",
     )
     Tcmb0 = Parameter(
+        default=0.0 * u.K,
         doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.",
         unit="Kelvin",
         fvalidate="scalar",
     )
     Neff = Parameter(
-        doc="Number of effective neutrino species.", fvalidate="non-negative"
+        default=3.04,
+        doc="Number of effective neutrino species.",
+        fvalidate="non-negative",
     )
     m_nu = Parameter(
-        doc="Mass of neutrino species.", unit="eV", equivalencies=u.mass_energy()
+        default=0.0 * u.eV,
+        doc="Mass of neutrino species.",
+        unit="eV",
+        equivalencies=u.mass_energy(),
     )
     Ob0 = Parameter(
-        doc="Omega baryon; baryonic matter density/critical density at z=0."
+        default=None,
+        doc="Omega baryon; baryonic matter density/critical density at z=0.",
     )
 
     def __init__(

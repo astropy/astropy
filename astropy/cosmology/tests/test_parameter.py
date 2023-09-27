@@ -70,6 +70,7 @@ class ParameterTestMixin:
         """Test :class:`astropy.cosmology.Parameter` instantiation."""
         # defaults
         parameter = Parameter()
+        assert parameter.default is NotImplemented
         assert parameter.fvalidate is _validate_with_unit
         assert parameter.unit is None
         assert parameter.equivalencies == []
@@ -78,12 +79,14 @@ class ParameterTestMixin:
 
         # setting all kwargs
         parameter = Parameter(
+            default=1.0,
             fvalidate="float",
             doc="DOCSTRING",
             unit="km",
             equivalencies=[u.mass_energy()],
             derived=True,
         )
+        assert parameter.default == 1.0
         assert parameter.fvalidate is _validate_to_float
         assert parameter.unit is u.km
         assert parameter.equivalencies == [u.mass_energy()]
@@ -139,6 +142,13 @@ class ParameterTestMixin:
             all_parameter.name not in cosmo_cls.__parameters__
         )
 
+    def test_Parameter_default(self, cosmo_cls, all_parameter):
+        """Test :attr:`astropy.cosmology.Parameter.default`."""
+        assert hasattr(all_parameter, "default")
+        assert isinstance(
+            all_parameter.default, (type(NotImplemented), type(None), float, u.Quantity)
+        )
+
     # -------------------------------------------
     # descriptor methods
 
@@ -146,8 +156,7 @@ class ParameterTestMixin:
         """Test :attr:`astropy.cosmology.Parameter.__get__`."""
         # from class
         parameter = getattr(cosmo_cls, all_parameter.name)
-        assert isinstance(parameter, Parameter)
-        assert parameter is all_parameter
+        assert np.all(parameter.default == all_parameter.default)
 
         # from instance
         parameter = getattr(cosmo, all_parameter.name)
