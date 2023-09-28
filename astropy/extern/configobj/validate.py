@@ -944,7 +944,7 @@ def is_boolean(value):
         except KeyError:
             raise VdtTypeError(value)
     # we do an equality test rather than an identity test
-    # this ensures Python 2.2 compatibility
+    # this ensures Python 2.2 compatibilty
     # and allows 0 and 1 to represent True and False
     if value == False:
         return False
@@ -1231,7 +1231,7 @@ def force_list(value, min=None, max=None):
     trailing comma that turns a single value into a list.
 
     You can optionally specify the minimum and maximum number of members.
-    A minimum of greater than one will fail if the user only supplies a
+    A minumum of greater than one will fail if the user only supplies a
     string.
 
     >>> vtor.check('force_list', ())
