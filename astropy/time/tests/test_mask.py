@@ -47,7 +47,19 @@ def test_simple():
     # After masking format output has a mask.
     assert hasattr(t.value, "mask")
     assert hasattr(t.unix, "mask")
-    # TODO : test all formats
+
+    # Can also unmask.
+    t[2] = np.ma.nomask
+    assert np.all(t.mask == [False, False, False])
+    # Which means one can become unmasked again.
+    assert not t.masked
+    assert not hasattr(t.value, "mask")
+    assert not hasattr(t.unix, "mask")
+    # Combo just for completeness
+    t[1:] = np.ma.masked
+    t[1] = np.ma.nomask
+    assert np.all(t.mask == [False, False, True])
+    assert t.masked
 
 
 def test_scalar_init():
