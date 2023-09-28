@@ -1171,7 +1171,7 @@ class Column(NotifierMixin):
         if dim is not None and dim != "":
             msg = None
             dims_tuple = ()
-            # NOTE: If valid, the dim keyword's value in the the valid dict is
+            # NOTE: If valid, the dim keyword's value in the valid dict is
             # a tuple, not the original string; if invalid just the original
             # string is returned
             if isinstance(format, _AsciiColumnFormat):

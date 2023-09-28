@@ -2219,7 +2219,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             accuracy if either the ``tolerance`` or ``maxiter`` arguments
             are too low. However, it may happen that for some
             geometric distortions the conditions of convergence for
-            the the method of consecutive approximations used by
+            the method of consecutive approximations used by
             :py:meth:`all_world2pix` may not be satisfied, in which
             case consecutive approximations to the solution will
             diverge regardless of the ``tolerance`` or ``maxiter``

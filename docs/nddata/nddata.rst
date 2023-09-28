@@ -377,7 +377,7 @@ of the output. These four operations are implemented on
 `~astropy.nddata.NDData` with appropriate propagation of uncertainties,
 masks, and units.
 
-For example, let's work on the the following ``data`` with a mask, unit, and
+For example, let's work on the following ``data`` with a mask, unit, and
 (uniform) uncertainty::
 
     >>> import numpy as np

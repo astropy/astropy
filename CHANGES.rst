@@ -12695,7 +12695,7 @@ Bug Fixes
 
 - Fixed unnecessary attempt to run ``git`` when importing astropy.  In
   particular, fixed a crash in Python 3 that could result from this when
-  importing Astropy when the the current working directory is an empty git
+  importing Astropy when the current working directory is an empty git
   repository. [#3475]
 
 Other Changes and Additions

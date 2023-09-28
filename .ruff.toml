@@ -198,11 +198,11 @@ ignore = [
     "S112",  # try-except-continue
     "S301",  # suspicious-pickle-usage
     "S307",  # Use of possibly insecure function; consider using `ast.literal_eval`
-    "S311",  # suspecious-non-cryptographic-randomness
+    "S311",  # suspicious-non-cryptographic-randomness
     "S324",  # hashlib-insecure-hash-function
     "S506",  # UnsafeYAMLLoad
     "S310",  # Suspicious-url-open-usage
-    "S321",  # Suspecious-ftp-lib-usage
+    "S321",  # Suspicious-ftp-lib-usage
     "S603",  # `subprocess` call: check for execution of untrusted input
     "S605",  # Starting a process with a shell, possible injection detected  (2023-05-03)
     "S607",  # Starting a process with a partial executable path
