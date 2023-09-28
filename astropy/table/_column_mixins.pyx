@@ -47,7 +47,9 @@ cdef extern from "Python.h":
 
 cdef extern from "numpy/arrayobject.h":
     ctypedef class numpy.ndarray [object PyArrayObject]:
-        cdef int ndim "nd"
+        pass
+        # FIXME: doesn't work with recent Numpy API ?
+        # cdef int ndim "nd"
 
 
 ctypedef object (*item_getter)(object, object)
