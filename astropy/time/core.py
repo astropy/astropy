@@ -29,8 +29,9 @@ from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
 
-# Import TimeFromEpoch to avoid breaking code that followed the old example of
-# making a custom timescale in the documentation.
+# Below, import TimeFromEpoch to avoid breaking code that followed the old
+# example of making a custom timescale in the documentation.
+from . import conf
 from .formats import (
     TIME_DELTA_FORMATS,
     TIME_FORMATS,
@@ -893,8 +894,8 @@ class TimeBase(ShapedLikeNDArray):
     def _shaped_like_input(self, value):
         if self.masked:
             # Create new instance even when Masked already, to guarantee
-            # the mask is copied.
-            return Masked(value, mask=self.mask.copy())
+            # the right masked array type, and that the mask is copied.
+            return conf._masked_cls(value, mask=self.mask.copy())
 
         if self._time.jd1.shape:
             if isinstance(value, np.ndarray):
@@ -981,7 +982,8 @@ class TimeBase(ShapedLikeNDArray):
         cache = self.cache["format"]
         # Try to keep cache behaviour like it was in astropy < 4.0.
         key = format if subfmt is None else (format, subfmt)
-        if key not in cache:
+        value = cache.get(key)
+        if value is None:
             if format == self.format:
                 tm = self
             else:
@@ -1018,7 +1020,12 @@ class TimeBase(ShapedLikeNDArray):
 
             value = tm._shaped_like_input(value)
             cache[key] = value
-        return cache[key]
+        elif self.masked and not isinstance(value, conf._masked_cls):
+            # The requested output masked class can have changed (if the user
+            # changed conf.masked_array_type); if so, change value and cache.
+            value = cache[key] = conf._masked_cls(value)
+
+        return value
 
     @property
     def value(self):
