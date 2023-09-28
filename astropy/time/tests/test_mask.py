@@ -64,9 +64,25 @@ def test_mask_not_writeable():
         t.mask = True
 
     t = Time(["2000:001"])
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match="assignment destination is read-only"):
         t.mask[0] = True
-    assert "assignment destination is read-only" in str(err.value)
+
+    # But we can set it to masked directly.
+    t[0] = np.ma.masked
+    assert np.all(t.mask == [True])
+    # After this, the mask should again not be writeable.
+    with pytest.raises(ValueError, match="assignment destination is read-only"):
+        t.mask[0] = False
+
+    # Should also not be writeable if we initialize with masked elements.
+    t = Time(Masked(["2000:001", "2000:002"], mask=[False, True]))
+    with pytest.raises(ValueError, match="assignment destination is read-only"):
+        t.mask[0] = True
+    # But again we can set it to masked directly.
+    t[0] = np.ma.masked
+    assert np.all(t.mask == [True, True])
+    # Check that the mask remains shared.
+    assert np.may_share_memory(t._time.jd1.mask, t._time.jd2.mask)
 
 
 def test_str():
@@ -104,12 +120,16 @@ def test_transform():
         assert is_masked(t_ut1.value[1])
         assert not is_masked(t_ut1.value[0])
         assert np.all(t_ut1.mask == [False, True])
+        # Check the mask is a copy, so we won't back-propagate changes.
+        assert not np.may_share_memory(t_ut1.mask, t.mask)
 
         # Change format
         t_unix = t.unix
         assert is_masked(t_unix[1])
         assert not is_masked(t_unix[0])
         assert np.all(t_unix.mask == [False, True])
+        # Check the mask is a copy.
+        assert not np.may_share_memory(t_unix.mask, t.mask)
 
 
 def test_masked_input():
@@ -126,8 +146,14 @@ def test_masked_input():
     t = Time(v1, format="cxcsec")
     assert np.ma.allclose(t.value, v1)
     assert np.all(t.mask == v1.mask)
-    assert np.all(t.value.mask == v1.mask)
+    value = t.value
+    assert np.all(value.mask == v1.mask)
     assert t.masked is True
+    # Check that masked are not shared with input or output.
+    assert not np.may_share_memory(t.mask, v1.mask)
+    assert not np.may_share_memory(value.mask, t.mask)
+    # But they should be shared in the private _jd1, _jd2.
+    assert np.may_share_memory(t._time.jd1.mask, t._time.jd2.mask)
 
     t = Time(v1, v2, format="cxcsec")
     assert np.ma.allclose(t.value, v1 + v2)
@@ -226,9 +252,11 @@ def test_all_formats(format_, masked_cls):
     mjd = np.array([55000.25, 55000.375, 55001.125])
     mask = np.array([True, False, False])
     mjdm = masked_cls(mjd, mask=mask)
+    assert np.may_share_memory(mjdm.mask, mask)
     t = Time(mjd, format="mjd")
     tm = Time(mjdm, format="mjd")
     assert tm.masked and np.all(tm.mask == mask)
+    assert not np.may_share_memory(tm.mask, mask)
 
     # Get values in the given format, check that these are always Masked and
     # that they are correct (ignoring masked ones, which get adjusted on Time
@@ -237,6 +265,8 @@ def test_all_formats(format_, masked_cls):
     tm_format = getattr(tm, format_)
     assert isinstance(tm_format, Masked)
     assert np.all(tm_format == t_format)
+    # While we are at it, check that the mask is not shared.
+    assert not np.may_share_memory(tm_format.mask, tm.mask)
 
     # Verify that we can also initialize with the format and that this gives
     # the right result and mask too.
