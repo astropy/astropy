@@ -898,7 +898,10 @@ class TimeBase(ShapedLikeNDArray):
 
         if self._time.jd1.shape:
             if isinstance(value, np.ndarray):
-                return value
+                if isinstance(value, Masked):
+                    return value.unmasked
+                else:
+                    return value
             else:
                 raise TypeError(
                     f"JD is an array ({self._time.jd1!r}) but value is not ({value!r})"
@@ -1147,7 +1150,12 @@ class TimeBase(ShapedLikeNDArray):
                 self._time.jd2 = Masked(
                     self._time.jd2, mask=self._time.jd1.mask, copy=False
                 )
-            self._time.jd2[item] = np.ma.masked
+            self._time.jd2.mask[item] = True
+            return
+
+        elif value is np.ma.nomask:
+            if isinstance(self._time.jd2, Masked):
+                self._time.jd2.mask[item] = False
             return
 
         value = self._make_value_equivalent(item, value)
