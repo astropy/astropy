@@ -451,7 +451,7 @@ class SphericalRepresentation(BaseRepresentation):
                 if e.args[0].startswith("distance must be >= 0"):
                     raise ValueError(
                         "Distance must be >= 0. To allow negative distance values, you"
-                        " must explicitly pass in a `Distance` object with the the "
+                        " must explicitly pass in a `Distance` object with the "
                         "argument 'allow_negative=True'."
                     ) from e
                 else:

@@ -333,7 +333,7 @@ class _UnifiedIORegistryBase:
         """Determine if class2 is the "best" match for class1 in the list of classes.
 
         It is assumed that (class2 in classes) is True.
-        class2 is the the best match if:
+        class2 is the best match if:
 
         - ``class1`` is a subclass of ``class2`` AND
         - ``class2`` is the nearest ancestor of ``class1`` that is in classes

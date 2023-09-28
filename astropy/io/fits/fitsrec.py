@@ -1249,7 +1249,7 @@ class FITS_rec(np.recarray):
         spans = self._coldefs.spans
         format = self._coldefs[col_idx].format
 
-        # The the index of the "end" column of the record, beyond
+        # The index of the "end" column of the record, beyond
         # which we can't write
         end = super().field(-1).itemsize
         starts.append(end + starts[-1])

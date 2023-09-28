@@ -178,7 +178,7 @@ class Card(_Verify):
         # card
         self._hierarch = False
 
-        # If the card could not be parsed according the the FITS standard or
+        # If the card could not be parsed according the FITS standard or
         # any recognized non-standard conventions, this will be True
         self._invalid = False
 

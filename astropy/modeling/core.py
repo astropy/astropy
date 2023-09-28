@@ -1797,7 +1797,7 @@ class Model(metaclass=_ModelMeta):
         Raises
         ------
         ValueError
-            If ``coords`` are not given and the the `Model.bounding_box` of
+            If ``coords`` are not given and the `Model.bounding_box` of
             this model is not set.
 
         Examples
@@ -3904,7 +3904,7 @@ class CompoundModel(Model):
         Raises
         ------
         ValueError
-            If ``coords`` are not given and the the `Model.bounding_box` of
+            If ``coords`` are not given and the `Model.bounding_box` of
             this model is not set.
 
         Examples

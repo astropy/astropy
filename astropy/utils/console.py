@@ -1102,7 +1102,7 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
 
     if col is not None:
         if col >= len(line):
-            raise ValueError("col must be less the the line length.")
+            raise ValueError("col must be less than the line length.")
         ntabs = line[:col].count("\t")
         col += ntabs * (tabwidth - 1)
 
