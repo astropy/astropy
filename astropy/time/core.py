@@ -550,9 +550,11 @@ class TimeBase(ShapedLikeNDArray):
         # routine ``mask`` must be either Python bool False or an bool ndarray
         # with shape broadcastable to jd2.
         if mask is not False:
-            mask = np.broadcast_to(mask, self._time.jd2.shape)
             self._time.jd1 = Masked(self._time.jd1, mask=mask, copy=False)
-            self._time.jd2 = Masked(self._time.jd2, mask=mask, copy=False)
+            # Ensure we share the mask (it may have been broadcast).
+            self._time.jd2 = Masked(
+                self._time.jd2, mask=self._time.jd1.mask, copy=False
+            )
 
     def _get_time_fmt(self, val, val2, format, scale, precision, in_subfmt, out_subfmt):
         """
@@ -1025,14 +1027,21 @@ class TimeBase(ShapedLikeNDArray):
         if "mask" not in self.cache:
             mask = getattr(self._time.jd2, "mask", None)
             if mask is None:
-                mask = np.zeros(self._time.jd2.shape, bool)
-                mask.flags.writeable = False
+                mask = np.broadcast_to(np.False_, self._time.jd2.shape)
+            else:
+                # Take a view of any existing mask, so we can set it to readonly.
+                mask = mask.view()
+            mask.flags.writeable = False
             self.cache["mask"] = mask
         return self.cache["mask"]
 
     @property
     def masked(self):
-        return bool((getattr(self._time.jd2, "mask", np.False_)).any())
+        if "masked" not in self.cache:
+            self.cache["masked"] = bool(
+                (getattr(self._time.jd2, "mask", np.False_)).any()
+            )
+        return self.cache["masked"]
 
     def insert(self, obj, values, axis=0):
         """
