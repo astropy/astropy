@@ -3,16 +3,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://vo.ari.uni-heidelberg.de/docs/schemata/VOTable-1.4.xsd">
   <DESCRIPTION>
-    This schema contains data re-published from the official
-    Gaia mirrors (such as ivo://uni-heidelberg.de/gaia/tap)
-    either to
-    support combining its data with local tables (the various Xlite tables)
-    or to make the data more accessible to VO
-    clients (e.g., epoch fluxes).
-
-    Other Gaia-related data is found in, among others, the gdr3mock,
-    gdr3spec, gedr3auto, gedr3dist,
-    gedr3mock, and gedr3spur schemas.
+    This schema contains data re-published from the official...
   </DESCRIPTION>
   <INFO name="legal"
     value="
@@ -29,32 +20,16 @@ If you use public Gaia DR3 data in a paper, please take note of
 FROM gaia.dr3lite
 "></INFO>
     <INFO name="src_res" value="Contains traces from resource gaia/q3"> This schema contains data re-published from the official Gaia mirrors
-(such as ivo://uni-heidelberg.de/gaia/tap) either to support combining
-its data with local tables (the various Xlite tables) or to make the
-data more accessible to VO clients (e.g., epoch fluxes).
-
-Other Gaia-related data is found in, among others, the gdr3mock,
-gdr3spec, gedr3auto, gedr3dist, gedr3mock, and gedr3spur schemas.</INFO>
+      ...
+    </INFO>
     <INFO name="copyright" value="gaia/q3 copyright or license"> If you use public Gaia DR3 data in a paper, please take note of
 `ESAC's guide`_ on how to acknowledge and cite it.
 
 .. _ESAC's guide:
 https://gea.esac.esa.int/archive/documentation/GDR3/Miscellaneous/sec_credit_and_citation_instructions/</INFO>
     <INFO name="src_table" value="Contains traces from table gaia.dr3lite"> This is gaia_source from the Gaia Data Release 3, stripped to just
-enough columns to enable basic science (but therefore a bit faster and
-simpler to deal with than the full gaia_source table).
-
-Note that on this server, there is also The gedr3dist.main, which
-gives distances computed by Bailer-Jones et al. Use these in
-preference to working with the raw parallaxes.
-
-This server also carries the gedr3mock schema containing a simulation
-of gaia_source based on a state-of-the-art galaxy model, computed by
-Rybizki et al.
-
-The full DR3 is available from numerous places in the VO (in
-particular from the TAP services ivo://uni-heidelberg.de/gaia/tap and
-ivo://esavo/gaia/tap).</INFO>
+      ...
+    </INFO>
     <INFO name="QUERY_STATUS" value="OK">Query successful</INFO>
     <INFO name="citation" ucd="meta.bib" value="http://dc.zah.uni-heidelberg.de/tableinfo/gaia.dr3lite#ti-citing">For advice on how to cite the resource(s) that contributed to this result, see http://dc.zah.uni-heidelberg.de/tableinfo/gaia.dr3lite#ti-citing</INFO>
     <INFO name="referenceURL" ucd="meta.ref.url" value="http://dc.zah.uni-heidelberg.de/tableinfo/gaia.dr3lite">More information on a resource that contributed to this data is found at http://dc.zah.uni-heidelberg.de/tableinfo/gaia.dr3lite</INFO>
@@ -311,74 +286,12 @@ ivo://esavo/gaia/tap).</INFO>
       </VODML>
     </RESOURCE>
     <TABLE name="dr3lite">
-      <DESCRIPTION> This is gaia_source from the Gaia Data Release 3, stripped to just
-        enough columns to enable basic science
-        (but therefore a bit faster and
-        simpler to deal with than the full gaia_source table).
-
-        Note that on this server, there
-        is
-        also The gedr3dist.main, which
-        gives distances computed by Bailer-Jones et al. Use these in
-        preference to working
-        with the
-        raw parallaxes.
-
-        This server also carries the gedr3mock schema containing a simulation
-        of gaia_source based on a
-        state-of-the-art galaxy model, computed by
-        Rybizki et al.
-
-        The full DR3 is available from numerous places in the VO (in
-        particular from the TAP services ivo://uni-heidelberg.de/gaia/tap and
-        ivo://esavo/gaia/tap).
+      <DESCRIPTION>
+        This is gaia_source from the Gaia Data Release 3, stripped to just...
       </DESCRIPTION>
       <GROUP ID="ndtdhdaihgsa" name="note-id">
         <DESCRIPTION>
-          For the contents of Gaia DR3,
-          the source ID consists of a 64-bit integer, least
-          significant bit = 1 and
-          most
-          significant bit = 64, comprising:
-
-          * a HEALPix index number (sky pixel) in bits 36 - 63; by definition the
-          smallest
-          HEALPix index number is zero.
-          * a 3-bit Data Processing Centre code in bits 33 - 35; for example
-          MOD(source_id /
-          4294967296, 8) can be used to distinguish between
-          sources initialised via the Initial Gaia Source
-          List by the Torino DPC
-          (code = 0) and sources otherwise detected and assigned by Gaia
-          observations (code &gt; 0)
-          * a
-          25-bit plus 7 bit sequence
-          number within the HEALPix pixel in bits 1
-          to 32 split into:
-
-          * a 25 bit running number in
-          bits 8 - 32; the running numbers
-          are
-          defined to be positive, i.e. never zero (except in the case of forced
-          empty
-          windows)
-          * a 7-bit component number in
-          bits 1 - 7
-
-          This means that the HEALpix index level 12 of a given source is
-          contained
-          in the most significant bits.
-          HEALpix index of 12 and lower levels can
-          thus be retrieved as follows:
-
-          *
-          HEALpix level 12 = source_id / 34359738368
-          *
-          HEALpix level 11 = source_id / 137438953472
-          * HEALpix level 10 =
-          source_id / 549755813888
-          * HEALpix level n = source_id /
-          2^35 * 4^(12 - level).
+          For the contents of Gaia DR3,...
         </DESCRIPTION>
         <FIELDref ref="source_id" />
       </GROUP>

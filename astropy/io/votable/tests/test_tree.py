@@ -179,32 +179,33 @@ def test_votable_tag():
     assert 'http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd"' in xml
 
 
-def squash_xml(data):
+def _squash_xml(data):
     """
     Utility squashing XML fragment to easier their comparison
+    This function is only used in the test module. It was more convenient for comparing the xml.
     """
     return data.replace(" ", "").replace("\n", "").replace('"', "").replace("'", "")
 
 
 def test_mivot_constructor():
     """
-    Construct a mivot block with wrong tag to test the expected exception
+    Construct a MIVOT block with wrong tag to test the expected exception
     """
     with pytest.raises(ValueError, match="not well-formed"):
         MivotBlock(
             """
-                         <VODML xmlns="http://www.ivoa.net/xml/mivot" >
-                           <REPORT status="OK">Unit test mivot block1</REPORT>
-                           <WRONG TAG>
-                           </GLOBALS>
-                         </VODML>
-                         """
+            <VODML xmlns="http://www.ivoa.net/xml/mivot" >
+               <REPORT status="OK">Unit test mivot block1</REPORT>
+               <WRONG TAG>
+               </GLOBALS>
+            </VODML>
+            """
         )
 
 
 def test_mivot_readout():
     """
-    Test the mivot block extraction from a file against a reference block stored in data
+    Test the MIVOT block extraction from a file against a reference block stored in data
     """
     votable = parse(get_pkg_data_filename("data/mivot_annnotated_table.xml"))
 
@@ -214,22 +215,24 @@ def test_mivot_readout():
             get_pkg_data_filename("data/mivot_block_custom_datatype.xml")
         ) as reference:
             ref_data = reference.read()
-            assert squash_xml(ref_data) == squash_xml(resource.mivot_block.content)
+            assert _squash_xml(ref_data) == _squash_xml(resource.mivot_block.content)
     assert len(resource.tables) == 1
 
 
 def test_mivot_write():
     """
-    Build a VOTable, put a mivot block in the first resource, checks it can be retrieved
+    Build a VOTable, put a MIVOT block in the first resource, checks it can be retrieved
     as well as the following table
     """
     vot = tree
     mivot_block = MivotBlock(
         """
     <VODML xmlns="http://www.ivoa.net/xml/mivot" >
-      <REPORT status="OK">Unit test mivot block1</REPORT>
-      <GLOBALS>
-      </GLOBALS>
+       <REPORT status="OK">
+       Unit test mivot block1
+       </REPORT>
+       <GLOBALS>
+       </GLOBALS>
     </VODML>
     """
     )
@@ -251,7 +254,7 @@ def test_mivot_write():
     vtf2 = parse(buff)
     assert len(vtf2.resources) == 1
     for resource in vtf2.resources:
-        assert squash_xml(mivot_block.content) == squash_xml(
+        assert _squash_xml(mivot_block.content) == _squash_xml(
             resource.mivot_block.content
         )
         assert len(resource.tables) == 0
@@ -259,7 +262,7 @@ def test_mivot_write():
 
 def test_mivot_write_after_table():
     """
-    Build a VOTable, put a mivot block and a table in the first resource, checks it can be retrieved
+    Build a VOTable, put a MIVOT block and a table in the first resource, checks it can be retrieved
     as well as the following table
     """
     vot = tree
@@ -295,7 +298,7 @@ def test_mivot_write_after_table():
     vtf2 = parse(buff)
     assert len(vtf2.resources) == 1
     for resource in vtf2.resources:
-        assert squash_xml(mivot_block.content) == squash_xml(
+        assert _squash_xml(mivot_block.content) == _squash_xml(
             resource.mivot_block.content
         )
         assert len(resource.tables) == 1
@@ -303,7 +306,7 @@ def test_mivot_write_after_table():
 
 def test_write_no_mivot():
     """
-    Build a VOTable, put an empty mivot block in the first resource, checks it can be retrieved
+    Build a VOTable, put an empty MIVOT block in the first resource, checks it can be retrieved
     as well as the following table
     """
     vot = tree
@@ -328,7 +331,7 @@ def test_write_no_mivot():
     assert len(vtf2.resources) == 1
     for resource in vtf2.resources:
         assert (
-            squash_xml(resource.mivot_block.content)
+            _squash_xml(resource.mivot_block.content)
             == "<VODMLxmlns=http://www.ivoa.net/xml/mivot><REPORTstatus=KO>NoMivotblock</REPORT></VODML>"
         )
         assert len(resource.tables) == 1
@@ -336,7 +339,7 @@ def test_write_no_mivot():
 
 def test_mivot_write_after_resource():
     """
-    Build a VOTable, put a mivot block in the first resource after another meta resource,
+    Build a VOTable, put a MIVOT block in the first resource after another meta resource,
     checks it can be retrieved as well as the following table
     """
     vot = tree
@@ -375,7 +378,7 @@ def test_mivot_write_after_resource():
     vtf2 = parse(buff)
     assert len(vtf2.resources) == 1
     for resource in vtf2.resources:
-        assert squash_xml(mivot_block.content) == squash_xml(
+        assert _squash_xml(mivot_block.content) == _squash_xml(
             resource.mivot_block.content
         )
         assert len(resource.tables) == 1
@@ -383,47 +386,27 @@ def test_mivot_write_after_resource():
 
 def test_mivot_forbidden_write():
     """
-    Build a meta resource containing a mivot block,
-    build the dummy mivot block first.
+    Build a meta resource containing a MIVOT block,
+    build the dummy MIVOT block first.
     """
     mivot_block = MivotBlock(
         """
     <VODML xmlns="http://www.ivoa.net/xml/mivot" >
-      <REPORT status="KO">Unit test mivot block1</REPORT>
-      <GLOBALS/>
+       <REPORT status="KO">Unit test mivot block1</REPORT>
+       <GLOBALS/>
     </VODML>
     """
     )
     # package the MIVOT block in the resource
     mivot_resource = Resource()
     mivot_resource.type = "results"
-    try:
-        # a mivot block must be with "type=meta"
+
+    with pytest.raises(E26):
+        # A MIVOT block must be with "type=meta"
         mivot_resource.mivot_block = mivot_block
-        raise AssertionError()
-    except E26:
-        assert True
 
 
-def setup_function(test_mivot_order):
-    """
-    The setup_function() function tests ensure that the xml file does not exist.
-    """
-    files = os.listdir(".")
-    if "test.order.out.xml" in files:
-        os.remove("test.order.out.xml")
-
-
-def teardown_function(test_mivot_order):
-    """
-    The teardown_function() function removes the xml file, if it was created.
-    """
-    files = os.listdir(".")
-    if "test.order.out.xml" in files:
-        os.remove("test.order.out.xml")
-
-
-def test_mivot_order():
+def test_mivot_order(tmp_path):
     """
     Build a VOTable with 2 resources containing MivotBlock, parse it, and write it in a file.
     Then compare it with another file to see if the order of the elements in a resource is respected,
@@ -493,7 +476,7 @@ def test_mivot_order():
 
     data_path = os.path.dirname(os.path.realpath(__file__))
     vpath = os.path.join(data_path, "data/test.order.xml")
-    vpath_out = os.path.join(data_path, "test.order.out.xml")
+    vpath_out = os.path.join(data_path, tmp_path / "test.order.out.xml")
     vtf2.to_xml(vpath_out)
 
     # We want to remove the xml header from the VOTable
