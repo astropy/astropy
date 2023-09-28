@@ -7,7 +7,7 @@ import pytest
 
 from astropy import units as u
 from astropy.table import Table
-from astropy.time import Time
+from astropy.time import Time, conf
 from astropy.utils import iers
 from astropy.utils.compat import NUMPY_LT_1_26, PYTHON_LT_3_11
 from astropy.utils.compat.optional_deps import HAS_H5PY
@@ -260,7 +260,8 @@ def test_serialize_ecsv_masked(serialize_method, tmp_path):
 
 @pytest.mark.parametrize("format_", Time.FORMATS)
 @pytest.mark.parametrize("masked_cls", [np.ma.MaskedArray, Masked])
-def test_all_formats(format_, masked_cls):
+@pytest.mark.parametrize("masked_array_type", ["numpy", "astropy"])
+def test_all_formats(format_, masked_cls, masked_array_type):
     mjd = np.array([55000.25, 55000.375, 55001.125])
     mask = np.array([True, False, False])
     mjdm = masked_cls(mjd, mask=mask)
@@ -270,15 +271,24 @@ def test_all_formats(format_, masked_cls):
     assert tm.masked and np.all(tm.mask == mask)
     assert not np.may_share_memory(tm.mask, mask)
 
-    # Get values in the given format, check that these are always Masked and
-    # that they are correct (ignoring masked ones, which get adjusted on Time
-    # initialization, in core._check_for_masked_and_fill).
-    t_format = getattr(t, format_)
-    tm_format = getattr(tm, format_)
-    assert isinstance(tm_format, Masked)
-    assert np.all(tm_format == t_format)
-    # While we are at it, check that the mask is not shared.
-    assert not np.may_share_memory(tm_format.mask, tm.mask)
+    out_cls = np.ma.MaskedArray if masked_array_type == "numpy" else Masked
+    with conf.set_temp("masked_array_type", masked_array_type):
+        # Get values in the given format, check that these have the appropriate class
+        # and are correct (ignoring masked ones, which get adjusted on Time
+        # initialization, in core._check_for_masked_and_fill).
+        t_format = getattr(t, format_)
+        tm_format = getattr(tm, format_)
+        assert isinstance(tm_format, out_cls)
+        if NUMPY_LT_1_26 and format_ == "ymdhms" and out_cls is np.ma.MaskedArray:
+            # Work around https://github.com/numpy/numpy/issues/24554
+            expected = out_cls(t_format, mask=mask)
+        else:
+            expected = t_format
+        assert np.all(tm_format == expected)
+
+    # Verify that configuration gets reset to "astropy".
+    tm_format2 = getattr(tm, format_)
+    assert isinstance(tm_format2, Masked)
 
     # Verify that we can also initialize with the format and that this gives
     # the right result and mask too.
