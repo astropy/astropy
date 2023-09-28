@@ -3378,29 +3378,23 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
 
 class MivotBlock(Element):
     """
-    Mivot Block holder:
+    MIVOT Block holder:
     Processing VO model views on data is out of the scope of Astropy.
     This is why the only VOmodel-related feature implemented here the
-    extraction or the writing of a mapping block from/to a VOtable
+    extraction or the writing of a mapping block from/to a VOTable
     There is no syntax validation other than the allowed tag names.
     The mapping block is handled as a correctly indented XML string
     which is meant to be parsed by the calling API (e.g., PyVO).
+
+    The constructor takes "content" as a parameter, it is the string
+    serialization of the MIVOT block.
+    If it is None, the instance is meant to be set by the Resource parser.
+    Orherwise, the parameter value is parsed to make sure it matches
+    the MIVOT XML structure.
+
     """
 
     def __init__(self, content=None):
-        """
-        Constructor
-
-
-        Parameters
-        ----------
-          content: String
-            String serialization of the MIVOT block.
-            If it None, the instance is meant to be set by the Resource
-            parser.
-            Orherwise, the parameter value is parsed to make sure it matches
-            the MIVOT XML structure
-        """
         if content is not None:
             self._content = content.strip()
             self.check_content_format()
@@ -3416,7 +3410,7 @@ class MivotBlock(Element):
         """
         Convert the tag as a string and append it to the mapping
         block string with the correct indentation level.
-        The signature si that same as for all _add_* methods of the parser
+        The signature is the same as for all _add_* methods of the parser.
         """
         if self._on_error is True:
             return
@@ -3451,15 +3445,15 @@ class MivotBlock(Element):
     def _unknown_mapping_tag(self, start, tag, data, config, pos):
         """
         In case of unexpected tag, the parsing stops and the mapping block
-        is set with a REPORT tag telling what went wrong
-        The signature si that same as for all _add_* methods of the parser
+        is set with a REPORT tag telling what went wrong.
+        The signature si that same as for all _add_* methods of the parser.
         """
         self._content = (
             f'<VODML xmlns="http://www.ivoa.net/xml/mivot">\n '
             f'<REPORT status="KO">Unknown mivot block statement: {tag}</REPORT>\n</VODML>'
         )
         self._on_error = True
-        warn_or_raise(W10, W10, tag, config={"verify": "warn"}, pos=pos)
+        warn_or_raise(W10, W10, tag, config, pos=pos)
 
     @property
     def content(
@@ -3467,7 +3461,8 @@ class MivotBlock(Element):
     ):
         """
         The XML mapping block serialized as string.
-        If there is not mapping block, an empty block is returned in order to pervent client code to deal with None blocks
+        If there is not mapping block, an empty block is returned in order to
+        prevent client code to deal with None blocks.
         """
         if self._content == "":
             self._content = (
@@ -3480,7 +3475,6 @@ class MivotBlock(Element):
         """
         Regular parser similar to others VOTable components
         """
-        self._votable = votable
         model_mapping_mapping = {
             "VODML": self._add_statement,
             "GLOBALS": self._add_statement,
@@ -3503,20 +3497,18 @@ class MivotBlock(Element):
             if start is False and tag == "VODML":
                 break
 
-        del self._votable
-
         return self
 
     def to_xml(self, w):
         """
-        Tell the writer to insert the mivot block in its output stream
+        Tells the writer to insert the MIVOT block in its output stream.
         """
         w.string_element(self._content)
 
     def check_content_format(self):
         """
         Check if the content is on xml format by building a VOTable,
-        putting a mivot block in the first resource and trying to parse the VOTable.
+        putting a MIVOT block in the first resource and trying to parse the VOTable.
         """
         if self._content.startswith("<") is False:
             vo_raise(E26)
@@ -3623,9 +3615,10 @@ class Resource(
     @property
     def mivot_block(self):
         """
-        The XML mapping block serialized as string.
-        Take the resource mivot block if type=meta
-        or the mivot block of the first sub-resource (type=meta) having one
+        Returns the XML MIVOT block serialized as a string.
+        If the host resource is of type `results`, it is taken from the first
+        child resource with a MIVOT block, if any.
+        Otherwise, it is taken from the host resource
         """
         if self.type == "results":
             for resource in self.resources:
