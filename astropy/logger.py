@@ -35,7 +35,7 @@ logging_levels = [
 ]
 for level in logging_levels:
     globals()[level] = getattr(logging, level)
-__all__ += logging_levels
+__all__ += logging_levels  # noqa: PLE0605
 
 
 # Initialize by calling _init_log()
