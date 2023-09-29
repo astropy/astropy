@@ -90,7 +90,6 @@ class ExampleFrozenDataclass:
     meta: MetaData = MetaData()  # noqa: RUF009
 
 
-@pytest.mark.xfail(reason="Frozen dataclasses aren't yet supported", strict=False)
 class TestMetaExampleFrozenDataclass(MetaBaseTest):
     test_class = ExampleFrozenDataclass
     args = ()
