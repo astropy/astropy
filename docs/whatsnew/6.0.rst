@@ -17,6 +17,7 @@ In particular, this release includes:
 * :ref:`whatsnew-6.0-broadcasting-frame-attributes`
 * :ref:`whatsnew-6.0-cosmology-latex-export`
 * :ref:`whatsnew-6.0-iers-data`
+* :ref:`whatsnew-6.0-masked-time`
 * :ref:`whatsnew-6.0-model-annotation-in-votable`
 * :ref:`whatsnew-6.0-time-delta-quantity-str`
 * :ref:`whatsnew-6.0-votable-parquet-serialization`
@@ -237,6 +238,37 @@ IERS data can now install the latest version of the
 `astropy-iers-data`_ package using ``pip`` or ``conda``, or alternatively
 download the package manually and transfer it to a computer that has no
 public internet connection.
+
+.. _whatsnew-6.0-masked-time:
+
+Masked Time values now use Masked arrays internally
+===================================================
+
+|Time| can now be initialized with both |Masked| and `numpy.ma.MaskedArray`
+input, and will now use |Masked| ``jd1`` and ``jd2`` internally to represent
+the mask. As a result, all output from masked |Time| instances will now be
+masked as well. For instance, converting a |TimeDelta| to a |Quantity| will
+give a masked quantity (instead of a regular quantity with masked entries set
+to ``np.nan``).
+
+Small example::
+
+  >>> from astropy.time import Time
+  >>> from astropy.utils.masked import Masked
+  >>> t = Time(Masked([50000., 50001, 50002], mask=[False, True, False]), format='mjd')
+  >>> t
+  <Time object: scale='utc' format='mjd' value=[50000.    ——— 50002.]>
+  >>> t.isot
+  MaskedNDArray(['1995-10-10T00:00:00.000',                       ———,
+                 '1995-10-12T00:00:00.000'], dtype='<U23')
+  >>> (t-t[0]).to('s')
+  <MaskedQuantity [     0.,     ———, 172800.] s>
+
+.. note:: The type of masked output will now be astropy's |Masked|.  For
+          backward compatibility, a configuration item,
+          `~astropy.time.Conf.masked_array_type`, allows one to choose the
+          type of masked array, with "astropy" (default) to always use
+          |Masked|, and "numpy" to use `~numpy.ma.MaskedArray` when possible.
 
 
 .. _whatsnew-6.0-model-annotation-in-votable:
