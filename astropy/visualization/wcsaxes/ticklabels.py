@@ -7,11 +7,10 @@ from matplotlib import rcParams
 from matplotlib.artist import allow_rasterization
 from matplotlib.text import Text
 
+from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .frame import RectangularFrame
-
-from astropy.utils.decorators import deprecated_renamed_argument
 
 
 def sort_using(X, Y):
