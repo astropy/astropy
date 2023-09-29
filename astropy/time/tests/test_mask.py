@@ -296,3 +296,11 @@ def test_all_formats(format_, masked_cls, masked_array_type):
     tm2 = Time(tm_format, format=format_)
     assert tm2.masked and np.all(tm2.mask == mask)
     assert np.all(tm2 == t2)
+
+
+def test_datetime64_with_nat():
+    dt64 = np.array(["nat", "2001-02-03", "2001-02-04"], dtype="datetime64")
+    mdt64 = Masked(dt64, mask=[False, True, False])
+    t = Time(mdt64)
+    assert t.masked
+    assert np.all(t.mask == [True, True, False])

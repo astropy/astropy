@@ -551,7 +551,9 @@ class TimeBase(ShapedLikeNDArray):
         # routine ``mask`` must be either Python bool False or an bool ndarray
         # with shape broadcastable to jd2.
         if mask is not False:
-            self._time.jd1 = Masked(self._time.jd1, mask=mask, copy=False)
+            # Ensure that if the class is already masked, we do not lose it.
+            self._time.jd1 = Masked(self._time.jd1, copy=False)
+            self._time.jd1.mask |= mask
             # Ensure we share the mask (it may have been broadcast).
             self._time.jd2 = Masked(
                 self._time.jd2, mask=self._time.jd1.mask, copy=False

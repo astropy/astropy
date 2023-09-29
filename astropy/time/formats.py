@@ -1827,6 +1827,7 @@ class TimeDatetime64(TimeISOT):
 
         # Finally apply mask if necessary
         if masked:
+            self.jd1 = Masked(self.jd1, mask=mask)
             self.jd2 = Masked(self.jd2, mask=mask)
 
     @property
