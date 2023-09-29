@@ -199,6 +199,14 @@ class Parameter:
         if hasattr(cosmology, self._attr_name):
             raise AttributeError(f"can't set attribute {self.name} again")
 
+        # Change `self` to the default value if default is HASNODEFAULT.
+        # This is done for backwards compatibility only - so that Parameter can be used
+        # in a dataclass and still return `self` when accessed from a class.
+        # Accessing the Parameter object via `cosmo_cls.param_name` will be removed
+        # in favor of `cosmo_cls.parameters["param_name"]`.
+        if value is self and self.default is HASNODEFAULT:
+            value = self.default
+
         # Validate value, generally setting units if present
         value = self.validate(cosmology, copy.deepcopy(value))
 
