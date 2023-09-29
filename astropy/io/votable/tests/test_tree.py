@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import filecmp
 import io
-import os
 from contextlib import nullcontext
 
 import pytest
@@ -216,7 +215,7 @@ def test_mivot_readout():
         ) as reference:
             ref_data = reference.read()
             assert _squash_xml(ref_data) == _squash_xml(resource.mivot_block.content)
-    assert len(resource.tables) == 1
+        assert len(resource.tables) == 1
 
 
 def test_mivot_write():
@@ -474,9 +473,8 @@ def test_mivot_order(tmp_path):
     buff.seek(0)
     vtf2 = parse(buff)
 
-    data_path = os.path.dirname(os.path.realpath(__file__))
-    vpath = os.path.join(data_path, "data/test.order.xml")
-    vpath_out = os.path.join(data_path, tmp_path / "test.order.out.xml")
+    vpath = get_pkg_data_filename("data/test.order.xml")
+    vpath_out = str(tmp_path / "test.order.out.xml")
     vtf2.to_xml(vpath_out)
 
     # We want to remove the xml header from the VOTable

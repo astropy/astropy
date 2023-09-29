@@ -524,7 +524,13 @@ To read in a VOTable file containing or not a MIVOT Resource, pass a file path t
 .. code-block:: python
 
    >>> from astropy.io.votable import parse
-   >>> votable = parse("votable.xml")
+   >>> from astropy.utils.data import get_pkg_data_filename
+   >>> votable = get_pkg_data_filename("data/test.order.xml", package="astropy.io.votable.tests")
+   <VODML xmlns="http://www.ivoa.net/xml/mivot">
+   </VODML>
+
+   <VODML xmlns="http://www.ivoa.net/xml/mivot">
+   </VODML>
 
 The parse function will call the MIVOT parser if it detects a MIVOT block.
 
@@ -570,7 +576,7 @@ Now you have a MIVOT resource that you can add to an object Resource creating a 
    >>> r1.type = "results"
    >>> r1.resources.append(mivot_resource)
 
-You can add a Table to the resource:
+You can add an `astropy.io.votable.tree.Table` to the resource:
 
 .. code-block:: python
 
