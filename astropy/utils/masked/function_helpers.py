@@ -1116,7 +1116,7 @@ for nanfuncname in _nplibnanfunctions.__all__:
 # Add any dispatched or helper function that has a docstring to
 # __all__, so they will be typeset by sphinx. The logic is that for
 # those presumably the use of the mask is not entirely obvious.
-__all__ += sorted(
+__all__ += sorted(  # noqa: PLE0605
     helper.__name__
     for helper in (
         set(APPLY_TO_BOTH_FUNCTIONS.values()) | set(DISPATCHED_FUNCTIONS.values())

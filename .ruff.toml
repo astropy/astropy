@@ -121,7 +121,6 @@ ignore = [
     # Pylint (PLC, PLE, PLR, PLW)
     "PLC1901",  # compare-to-empty-string
     "PLE0101",  # return-in-init
-    "PLE0605",  # invalid-all-format
     "PLR0124",  # Name compared with itself
     "PLR0402",  # ConsiderUsingFromImport
     "PLR0911",  # too-many-return-statements
