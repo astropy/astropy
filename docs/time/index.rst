@@ -857,68 +857,78 @@ Example
 To set one or more items as missing, assign the special value
 `numpy.ma.masked`::
 
-  >>> t = Time(['2001:020', '2001:040', '2001:060', '2001:080'],
-  ...          out_subfmt='date')
+  >>> t = Time(["2001:020", "2001:040", "2001:060", "2001:080"],
+  ...          out_subfmt="date")
   >>> t[2] = np.ma.masked
   >>> print(t)
   ['2001:020' '2001:040'        ——— '2001:080']
 
-.. note:: The operation of setting an array element to `numpy.ma.masked`
-   (missing) *overwrites* the actual time data and therefore there is no way to
-   recover the original value. In this sense, the `numpy.ma.masked` value
-   behaves just like any other valid |Time| value when setting. This is
-   similar to how `Pandas missing data
-   <https://pandas.pydata.org/pandas-docs/stable/missing_data.html>`_ works,
-   but somewhat different from `NumPy masked arrays
-   <https://numpy.org/doc/stable/reference/maskedarray.html>`_ which
-   maintain a separate mask array and retain the underlying data. In the
-   |Time| object the ``mask`` attribute is read-only and cannot be directly set.
+One can unset the mask by assigning another special value,
+`numpy.ma.nomask`::
+
+  >>> t[2] = np.ma.nomask
+  >>> print(t)
+  ['2001:020' '2001:040' '2001:060' '2001:080']
+
+
+.. note:: When setting the mask, actual time data are kept. However,
+          when *initializing* with a masked array, any masked time
+          input data are overwritten, to ensure that no errors or
+          warnings are raised by invalid data hidden by the mask.
+          Hence, for initialization with masked data, there is no way
+          to recover the original masked values.
 
 .. EXAMPLE END
 
 Once one or more values in the object are masked, any operations will
 propagate those values as masked, and access to format attributes such
-as ``unix`` or ``value`` will return a `~numpy.ma.MaskedArray`
-object::
+as ``unix`` or ``value`` will return a |Masked| object::
 
-  >>> t.unix  # doctest: +SKIP
-  masked_array(data = [979948800.0 981676800.0 -- 985132800.0],
-               mask = [False False  True False],
-         fill_value = 1e+20)
+  >>> t[1:3] = np.ma.masked
+  >>> t.isot
+  MaskedNDArray(['2001-01-20',          ———,          ———, '2001-03-21'],
+                dtype='<U10')
 
-You can view the ``mask``, but note that it is read-only and
-setting the mask is always done by setting the item to `~numpy.ma.masked`.
+You can view the ``mask``, but note that it is read-only.  Setting and
+clearing the mask is always done by setting the item to
+`~numpy.ma.masked` and `~numpy.ma.nomask`, respectively.
 
   >>> t.mask
-  array([False, False,  True, False]...)
-  >>> t[:2] = np.ma.masked
+  array([False, True,  True, False])
 
-.. warning:: The internal implementation of missing value support is provisional
-   and may change in a subsequent release. This would impact information in the
-   next section. However, the documented API for using missing values with
-   |Time| and |TimeDelta| objects is stable.
+Choice of Masked Array Type
+"""""""""""""""""""""""""""
 
-Custom Format Classes and Missing Values
-""""""""""""""""""""""""""""""""""""""""
+|Time| internally uses astropy's |Masked| class to represent the mask.  It is
+possible to initialize with data using numpy's `~numpy.ma.MaskedArray` class,
+but by default all output will use |Masked|. For backward compatibility, it is
+possible to set `~astropy.time.Conf.masked_array_type` to "numpy" to ensure
+that output uses `~numpy.ma.MaskedArray` where possible (for all but |Quantity|).
+
+
+Custom Format Classes and Masked Values
+"""""""""""""""""""""""""""""""""""""""
 
 For advanced users who have written a custom time format via a
-`~astropy.time.TimeFormat` subclass, it may be necessary to modify your
-class *if you wish to support missing values*. For applications that
-do not take advantage of missing values no changes are required.
+`~astropy.time.TimeFormat` subclass, it may be necessary to modify your class
+*if you wish to support masked values*, and especially if you earlier
+supported having *missing values* by setting the ``jd2`` attribute to
+``numpy.nan``. For applications that do not need masked or missing values, no
+changes are required.
 
-Missing values in a `~astropy.time.TimeFormat` subclass object are marked by
-setting the corresponding entries of the ``jd2`` attribute to be ``numpy.nan``
-(but this is never done directly by the user). For most array operations and
-``numpy`` functions the ``numpy.nan`` entries are propagated as expected and
-all is well. However, this is not always the case, and in particular the `ERFA`_
-routines do not generally support ``numpy.nan`` values gracefully.
+Prior to astropy 6.0, missing values in a `~astropy.time.TimeFormat` subclass
+object were marked by setting the corresponding entries of the ``jd2``
+attribute to be ``numpy.nan`` (but this was never done directly by the user).
+Since astropy 6.0, instead |Masked| arrays are used, and these are written to
+propagate properly through (almost) all numpy and `ERFA`_ functions.
 
-In cases where ``numpy.nan`` is not acceptable, format class methods should use
-the ``jd2_filled`` property instead of ``jd2``. This replaces ``numpy.nan`` with
-``0.0``. Since ``jd2`` is always in the range -1 to +1, substituting ``0.0``
-will allow functions to return "reasonable" values which will then be masked in
-any subsequent outputs. See the ``value`` property of the
-`~astropy.time.TimeDecimalYear` format for any example.
+In general, very few modifications should be needed to support |Masked|
+arrays. Generally, on input, no changes are needed since the format will be
+given unmasked values (with any masked input values replaced with the first
+unmasked value to ensure that only valid values are passed in). Some care may
+need to be taken, though, that the mask is propagated properly in calculating
+output values from ``jd1`` to ``jd2`` in the ``value`` property.
+
 
 Get Representation
 ^^^^^^^^^^^^^^^^^^
