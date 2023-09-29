@@ -1,0 +1,2 @@
+The ``bboxes``, ``ticklabels_bbox``, and ``tick_out_size`` arguments to ``astropy.visualization.wcaxes.ticklabels.TickLabels.draw()`` now have no effect and are deprecated.
+This is to allow rasterized ticks to be drawn correctly on WCSAxes.
