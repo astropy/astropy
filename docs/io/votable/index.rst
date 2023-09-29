@@ -525,7 +525,7 @@ To read in a VOTable file containing or not a MIVOT Resource, pass a file path t
 
    >>> from astropy.io.votable import parse
    >>> from astropy.utils.data import get_pkg_data_filename
-   >>> votable = get_pkg_data_filename("data/test.order.xml", package="astropy.io.votable.tests")
+   >>> votable = parse(get_pkg_data_filename("data/test.order.xml", package="astropy.io.votable.tests"))
    <VODML xmlns="http://www.ivoa.net/xml/mivot">
    </VODML>
 
@@ -542,6 +542,7 @@ Construct the MIVOT block by passing the XML block as a parameter:
 .. code-block:: python
 
    >>> from astropy.io.votable import tree
+   >>> from astropy.io.votable.tree import MivotBlock, Resource, VOTableFile
    >>> mivot_block = MivotBlock("""
    <VODML xmlns="http://www.ivoa.net/xml/mivot" >
       <REPORT status="OK">Unit test mapping block</REPORT>
@@ -584,7 +585,7 @@ You can add an `astropy.io.votable.tree.Table` to the resource:
    >>> r1.tables.append(t1)
    >>> votable.resources.append(r1)
    >>> for resource in votable.resources:
-   >>>   print(resource.mivot_block.content)
+   ...     print(resource.mivot_block.content)
    <VODML xmlns="http://www.ivoa.net/xml/mivot" >
       <REPORT status="OK">Unit test mapping block</REPORT>
       <GLOBALS>  </GLOBALS>
