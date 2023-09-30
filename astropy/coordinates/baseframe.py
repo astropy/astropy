@@ -307,10 +307,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         self._representation = self._infer_representation(
             representation_type, differential_type
         )
-        self._data = self._infer_data(args, copy, kwargs)  # possibly None.
+        data = self._infer_data(args, copy, kwargs)  # possibly None.
 
-        # Set frame attributes, if any
-
+        # Set frame attributes, if any, not yet checking shapes.
         values = {}
         for fnm, fdefault in self.get_frame_attr_defaults().items():
             # Read-only frame attributes are defined as FrameAttribute
@@ -320,8 +319,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             if fnm in kwargs:
                 value = kwargs.pop(fnm)
                 setattr(self, "_" + fnm, value)
-                # Validate attribute by getting it. If the instance has data,
-                # this also checks its shape is OK. If not, we do it below.
+                # Validate attribute by getting it.
                 values[fnm] = getattr(self, fnm)
             else:
                 setattr(self, "_" + fnm, fdefault)
@@ -333,9 +331,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 f"keywords: {list(kwargs)}"
             )
 
+        # Determine the overall shape of the frame.
         shapes = [getattr(value, "shape", ()) for value in values.values()]
-        if self.has_data:
-            shapes.append(getattr(self._data, "shape", ()))
+        if data is not None:
+            shapes.append(getattr(data, "shape", ()))
         try:
             self._shape = check_broadcast(*shapes)
         except ValueError as err:
@@ -343,8 +342,26 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 f"non-scalar data and/or attributes with inconsistent shapes: {shapes}"
             ) from err
 
+        # Broadcast the data if necessary and set it
+        if data is not None and getattr(data, "shape", ()) != self._shape:
+            if isinstance(data, ShapedLikeNDArray):
+                data = data._apply(np.broadcast_to, shape=self._shape, subok=True)
+            else:
+                data = np.broadcast_to(data, shape=self._shape, subok=True)
+        self._data = data
+
+        # Broadcast and set the attributes (leave scalars as is)
+        for key, value in values.items():
+            shape = getattr(value, "shape", ())
+            if shape != () and shape != self._shape:
+                if isinstance(value, ShapedLikeNDArray):
+                    value = value._apply(np.broadcast_to, shape=self._shape, subok=True)
+                else:
+                    value = np.broadcast_to(value, shape=self._shape, subok=True)
+            setattr(self, "_" + key, value)
+
         # The logic of this block is not related to the previous one
-        if self._data is not None:
+        if self.has_data:
             # This makes the cache keys backwards-compatible, but also adds
             # support for having differentials attached to the frame data
             # representation object.
@@ -1576,10 +1593,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         def apply_method(value):
             if isinstance(value, ShapedLikeNDArray):
-                value = value._apply(np.broadcast_to, shape=self.shape, subok=True)
                 return value._apply(method, *args, **kwargs)
             else:
-                value = np.broadcast_to(value, shape=self.shape, subok=True)
                 if callable(method):
                     return method(value, *args, **kwargs)
                 else:
