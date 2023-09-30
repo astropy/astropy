@@ -809,7 +809,8 @@ class TableFormatter:
 
             if key.lower() == "q":
                 break
-            elif key == " " or key == "f":
+
+            if key == " " or key == "f":
                 i0 += delta_lines
             elif key == "b":
                 i0 = i0 - delta_lines
