@@ -53,15 +53,16 @@ class SExtractorHeader(core.BaseHeader):
             if not line.startswith("#"):
                 dataline = line  # save for later to infer the actual number of columns
                 break  # End of header lines
-            else:
-                match = re_name_def.search(line)
-                if match:
-                    colnumber = int(match.group("colnumber"))
-                    colname = match.group("colname")
-                    coldescr = match.group("coldescr")
-                    # If no units are given, colunit = None
-                    colunit = match.group("colunit")
-                    columns[colnumber] = (colname, coldescr, colunit)
+
+            match = re_name_def.search(line)
+            if match:
+                colnumber = int(match.group("colnumber"))
+                colname = match.group("colname")
+                coldescr = match.group("coldescr")
+                # If no units are given, colunit = None
+                colunit = match.group("colunit")
+                columns[colnumber] = (colname, coldescr, colunit)
+
         # Handle skipped column numbers
         colnumbers = sorted(columns)
         # Handle the case where the last column is array-like by append a pseudo column
