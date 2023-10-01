@@ -19,7 +19,9 @@ Frame attributes can be arrays too, as long as the coordinate data and all of
 the frame attributes have shapes that are compatible according to
 :doc:`Numpy broadcasting rules <numpy:user/basics.broadcasting>`::
 
-    >>> coord = FK4(1 * u.deg, 2 * u.deg, obstime=["J2000", "J2001"])  # doctest: +SKIP
+    >>> coord = FK4(1 * u.deg, 2 * u.deg, obstime=["J2000", "J2001"])
+    >>> coord.shape
+    (2,)
 
 In addition, looping over a |SkyCoord| object can be slow. If you need to
 transform the coordinates to a different frame, it is much faster to transform a
