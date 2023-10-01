@@ -22,7 +22,7 @@ from astropy.cosmology.parameter._converter import (
     _validate_to_float,
     _validate_with_unit,
 )
-from astropy.cosmology.parameter._core import HASNODEFAULT, Sentinel
+from astropy.cosmology.parameter._core import MISSING, Sentinel
 
 ##############################################################################
 # TESTS
@@ -70,7 +70,7 @@ class ParameterTestMixin:
         """Test :class:`astropy.cosmology.Parameter` instantiation."""
         # defaults
         parameter = Parameter()
-        assert parameter.default is HASNODEFAULT
+        assert parameter.default is MISSING
         assert parameter.fvalidate is _validate_with_unit
         assert parameter.unit is None
         assert parameter.equivalencies == []

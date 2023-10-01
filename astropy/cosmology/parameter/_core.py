@@ -23,11 +23,11 @@ else:
 class Sentinel(Enum):
     """Sentinel values for Parameter fields."""
 
-    has_no_default = auto()
-    """Sentinel for values that have no default value."""
+    missing = auto()
+    """A sentinel value signifying a missing default."""
 
 
-HASNODEFAULT = Sentinel.has_no_default
+MISSING = Sentinel.missing
 
 
 @dataclass(frozen=True)
@@ -81,7 +81,7 @@ class Parameter:
     Parameters
     ----------
     default : Any (optional, keyword-only)
-        Default value of the Parameter. If ``HASNODEFAULT`` (default), the
+        Default value of the Parameter. If ``MISSING`` (default), the
         Parameter must be set when initializing the cosmology.
     derived : bool (optional, keyword-only)
         Whether the Parameter is 'derived', default `False`.
@@ -113,10 +113,10 @@ class Parameter:
     if not PYTHON_LT_3_10:
         _: KW_ONLY
 
-    default: Any = HASNODEFAULT
+    default: Any = MISSING
     """Default value of the Parameter.
 
-    If ``HASNODEFAULT`` (default), the Parameter must be set when initializing the
+    If ``MISSING`` (default), the Parameter must be set when initializing the
     cosmology.
     """
 
@@ -149,7 +149,7 @@ class Parameter:
         def __init__(
             self,
             *,
-            default=HASNODEFAULT,
+            default=MISSING,
             derived=False,
             unit=None,
             equivalencies=[],
@@ -199,12 +199,12 @@ class Parameter:
         if hasattr(cosmology, self._attr_name):
             raise AttributeError(f"can't set attribute {self.name} again")
 
-        # Change `self` to the default value if default is HASNODEFAULT.
+        # Change `self` to the default value if default is MISSING.
         # This is done for backwards compatibility only - so that Parameter can be used
         # in a dataclass and still return `self` when accessed from a class.
         # Accessing the Parameter object via `cosmo_cls.param_name` will be removed
         # in favor of `cosmo_cls.parameters["param_name"]`.
-        if value is self and self.default is HASNODEFAULT:
+        if value is self and self.default is MISSING:
             value = self.default
 
         # Validate value, generally setting units if present
@@ -311,7 +311,7 @@ class Parameter:
             # Only show fields that should be displayed and are not sentinel values
             if (
                 f.repr
-                and (self.default is not HASNODEFAULT if f.name == "default" else True)
+                and (self.default is not MISSING if f.name == "default" else True)
             )
         )
         return f"{self.__class__.__name__}({', '.join(fields_repr)})"

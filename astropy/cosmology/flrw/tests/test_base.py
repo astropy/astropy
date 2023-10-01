@@ -20,7 +20,7 @@ import astropy.units as u
 from astropy.cosmology import FLRW, FlatLambdaCDM, LambdaCDM, Parameter, Planck18
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.flrw.base import _a_B_c2, _critdens_const, _H0units_to_invs, quad
-from astropy.cosmology.parameter._core import HASNODEFAULT
+from astropy.cosmology.parameter._core import MISSING
 from astropy.cosmology.tests.helper import get_redshift_methods
 from astropy.cosmology.tests.test_core import (
     CosmologyTest,
@@ -71,7 +71,7 @@ class ParameterH0TestMixin(ParameterTestMixin):
         assert isinstance(cosmo_cls.H0, Parameter)
         assert "Hubble constant" in cosmo_cls.H0.__doc__
         assert cosmo_cls.H0.unit == unit
-        assert cosmo_cls.H0.default is HASNODEFAULT
+        assert cosmo_cls.H0.default is MISSING
 
         # validation
         assert cosmo_cls.H0.validate(cosmo, 1) == 1 * unit
@@ -114,7 +114,7 @@ class ParameterOm0TestMixin(ParameterTestMixin):
         # on the class
         assert isinstance(cosmo_cls.Om0, Parameter)
         assert "Omega matter" in cosmo_cls.Om0.__doc__
-        assert cosmo_cls.Om0.default is HASNODEFAULT
+        assert cosmo_cls.Om0.default is MISSING
 
         # validation
         assert cosmo_cls.Om0.validate(cosmo, 1) == 1
@@ -157,7 +157,7 @@ class ParameterOde0TestMixin(ParameterTestMixin):
         """Test Parameter ``Ode0`` on the class."""
         assert isinstance(cosmo_cls.Ode0, Parameter)
         assert "Omega dark energy" in cosmo_cls.Ode0.__doc__
-        assert cosmo_cls.Ode0.default is HASNODEFAULT
+        assert cosmo_cls.Ode0.default is MISSING
 
     def test_Parameter_Ode0_validation(self, cosmo_cls, cosmo):
         """Test Parameter ``Ode0`` validation."""
