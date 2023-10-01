@@ -70,8 +70,8 @@ properties::
   EXAMPLE END
 
 
-Broadcasting over frame data and attributes
-===========================================
+Broadcasting Over Frame Data and Attributes
+-------------------------------------------
 
 Frames in `astropy.coordinates` support
 :doc:`Numpy broadcasting rules <numpy:user/basics.broadcasting>` over both
