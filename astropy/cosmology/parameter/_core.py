@@ -23,11 +23,14 @@ else:
 class Sentinel(Enum):
     """Sentinel values for Parameter fields."""
 
-    missing = auto()
+    MISSING = auto()
     """A sentinel value signifying a missing default."""
 
+    def __repr__(self):
+        return f"<{self.name}>"
 
-MISSING = Sentinel.missing
+
+MISSING = Sentinel.MISSING
 
 
 @dataclass(frozen=True)
