@@ -1712,6 +1712,7 @@ def test_transform_altaz_array_obstime():
     coord2 = SkyCoord(alt=coord1.alt, az=coord1.az, frame=frame2)
     assert np.all(coord2.alt == 80 * u.deg)
     assert np.all(coord2.az == 0 * u.deg)
+    assert coord2.shape == (50,)
 
     # test transformation to ICRS works
     assert len(coord2.icrs) == 50
