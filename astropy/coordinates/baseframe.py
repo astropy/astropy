@@ -309,7 +309,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         )
         data = self._infer_data(args, copy, kwargs)  # possibly None.
 
-        # Set frame attributes, if any, not yet checking shapes.
+        shapes = []
+        if data is not None:
+            shapes.append(getattr(data, "shape", ()))
+
+        # Set frame attributes, if any.
+        # Keep track of their shapes, but do not broadcast them yet.
         values = {}
         for fnm, fdefault in self.get_frame_attr_defaults().items():
             # Read-only frame attributes are defined as FrameAttribute
@@ -320,7 +325,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 value = kwargs.pop(fnm)
                 setattr(self, "_" + fnm, value)
                 # Validate attribute by getting it.
-                values[fnm] = getattr(self, fnm)
+                values[fnm] = value = getattr(self, fnm)
+                shapes.append(getattr(value, "shape", ()))
             else:
                 setattr(self, "_" + fnm, fdefault)
                 self._attr_names_with_defaults.append(fnm)
@@ -332,9 +338,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             )
 
         # Determine the overall shape of the frame.
-        shapes = [getattr(value, "shape", ()) for value in values.values()]
-        if data is not None:
-            shapes.append(getattr(data, "shape", ()))
         try:
             self._shape = check_broadcast(*shapes)
         except ValueError as err:
