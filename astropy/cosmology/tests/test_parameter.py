@@ -37,6 +37,42 @@ def test_registry_validators():
     assert all(callable(v) for v in _REGISTRY_FVALIDATORS.values())
 
 
+class test_Parameter:
+    """Test :class:`astropy.cosmology.Parameter` not on a cosmology."""
+
+    def test_Parameter_init(self):
+        """Test :class:`astropy.cosmology.Parameter` instantiation."""
+        # defaults
+        parameter = Parameter()
+        assert parameter.default is MISSING
+        assert parameter.fvalidate is _validate_with_unit
+        assert parameter.unit is None
+        assert parameter.equivalencies == []
+        assert parameter.derived is False
+        assert parameter.name is None
+
+        # setting all kwargs
+        parameter = Parameter(
+            default=1.0,
+            fvalidate="float",
+            doc="DOCSTRING",
+            unit="km",
+            equivalencies=[u.mass_energy()],
+            derived=True,
+        )
+        assert parameter.default == 1.0
+        assert parameter.fvalidate is _validate_to_float
+        assert parameter.unit is u.km
+        assert parameter.equivalencies == [u.mass_energy()]
+        assert parameter.derived is True
+
+    def test_Parameter_default(self):
+        """Test :attr:`astropy.cosmology.Parameter.default`."""
+        parameter = Parameter()
+        assert parameter.default is MISSING
+        assert repr(parameter.default) == "<MISSING>"
+
+
 class ParameterTestMixin:
     """Tests for a :class:`astropy.cosmology.Parameter` on a Cosmology.
 
@@ -65,32 +101,6 @@ class ParameterTestMixin:
 
     # ===============================================================
     # Method Tests
-
-    def test_Parameter_init(self):
-        """Test :class:`astropy.cosmology.Parameter` instantiation."""
-        # defaults
-        parameter = Parameter()
-        assert parameter.default is MISSING
-        assert parameter.fvalidate is _validate_with_unit
-        assert parameter.unit is None
-        assert parameter.equivalencies == []
-        assert parameter.derived is False
-        assert parameter.name is None
-
-        # setting all kwargs
-        parameter = Parameter(
-            default=1.0,
-            fvalidate="float",
-            doc="DOCSTRING",
-            unit="km",
-            equivalencies=[u.mass_energy()],
-            derived=True,
-        )
-        assert parameter.default == 1.0
-        assert parameter.fvalidate is _validate_to_float
-        assert parameter.unit is u.km
-        assert parameter.equivalencies == [u.mass_energy()]
-        assert parameter.derived is True
 
     def test_Parameter_instance_attributes(self, all_parameter):
         """Test :class:`astropy.cosmology.Parameter` attributes from init."""
