@@ -1608,6 +1608,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             new._representation = self._representation.copy()
         new._attr_names_with_defaults = self._attr_names_with_defaults.copy()
 
+        new_shape = ()
         for attr in self.frame_attributes:
             _attr = "_" + attr
             if attr in self._attr_names_with_defaults:
@@ -1616,6 +1617,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 value = getattr(self, _attr)
                 if getattr(value, "shape", ()):
                     value = apply_method(value)
+                    new_shape = new_shape or value.shape
                 elif method == "copy" or method == "flatten":
                     # flatten should copy also for a single element array, but
                     # we cannot use it directly for array scalars, since it
@@ -1624,23 +1626,13 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
                 setattr(new, _attr, value)
 
-        shapes = [
-            getattr(new, "_" + attr).shape
-            for attr in new.frame_attributes
-            if (
-                attr not in new._attr_names_with_defaults
-                and getattr(getattr(new, "_" + attr), "shape", ())
-            )
-        ]
-
         if self.has_data:
             new._data = apply_method(self.data)
-            if getattr(new._data, "shape", ()):
-                shapes.append(new._data.shape)
+            new_shape = new_shape or new._data.shape
         else:
             new._data = None
 
-        new._shape = check_broadcast(*shapes)
+        new._shape = new_shape
 
         return new
 
