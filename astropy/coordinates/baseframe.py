@@ -311,7 +311,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         shapes = []
         if data is not None:
-            shapes.append(getattr(data, "shape", ()))
+            shapes.append(data.shape)
 
         # Set frame attributes, if any.
         # Keep track of their shapes, but do not broadcast them yet.
@@ -346,7 +346,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             ) from err
 
         # Broadcast the data if necessary and set it
-        if data is not None and getattr(data, "shape", ()) != self._shape:
+        if data is not None and data.shape != self._shape:
             if isinstance(data, ShapedLikeNDArray):
                 data = data._apply(np.broadcast_to, shape=self._shape, subok=True)
             else:
