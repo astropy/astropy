@@ -113,7 +113,7 @@ and sky coordinates, for which the target is above an altitude limit::
     M = 100
     N = 50
 
-    # Earth locations of length
+    # Earth locations of length L
     c = uniform_spherical_random_surface(L)
     locations = EarthLocation.from_geodetic(c.lon, c.lat)
 

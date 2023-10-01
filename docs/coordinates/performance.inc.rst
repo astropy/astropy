@@ -70,6 +70,60 @@ properties::
   EXAMPLE END
 
 
+Broadcasting over frame data and attributes
+===========================================
+
+Frames in `astropy.coordinates` support
+:doc:`Numpy broadcasting rules <numpy:user/basics.broadcasting>` over both
+frame data and frame attributes. This makes it easy and fast to do positional
+astronomy calculations and transformations on sweeps of parameters.
+
+For example, the user can now create frame objects with scalar data but vector
+frame attributes, such as::
+
+    from astropy.coordinates import FK4
+    from astropy import units as u
+
+    FK4(1 * u.deg, 2 * u.deg, obstime=["J2000", "J2001"])
+
+But where this really shines is doing fast observability calculations over
+arrays. The following example constructs an `~astropy.coordinates.EarthLocation`
+array of length :samp:`{L}`, a `~astropy.coordinates.SkyCoord` array of length
+:samp:`{M}`, and a `~astropy.time.Time` array of length :samp:`N`. It uses
+Numpy broadcasting rules to evaluate a boolean array of shape
+:samp:`({L}, {M}, {N})` that is `True` for those observing locations, times,
+and sky coordinates, for which the target is above an altitude limit::
+
+    from astropy.coordinates import EarthLocation, AltAz, SkyCoord
+    from astropy.coordinates.angle_utilities import uniform_spherical_random_surface
+    from astropy.time import Time
+    from astropy import units as u
+    import numpy as np
+
+    L = 25
+    M = 100
+    N = 50
+
+    # Earth locations of length L
+    c = uniform_spherical_random_surface(L)
+    locations = EarthLocation.from_geodetic(c.lon, c.lat)
+
+    # Celestial coordinates of length M
+    coords = SkyCoord(uniform_spherical_random_surface(M))
+
+    # Observation times of length N
+    obstimes = Time('2023-08-04') + np.linspace(0, 24, N) * u.hour
+
+    # AltAz coordinates of shape (L, M, N)
+    frame = AltAz(
+        location=locations[:, np.newaxis, np.newaxis],
+        obstime=obstimes[np.newaxis, np.newaxis, :])
+    altaz = coords[np.newaxis, :, np.newaxis].transform_to(frame)
+
+    min_altitude = 30 * u.deg
+    is_above_altitude_limit = (altaz.alt > min_altitude)
+
+
 Improving Performance for Arrays of ``obstime``
 -----------------------------------------------
 
