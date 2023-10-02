@@ -103,35 +103,36 @@ Numpy broadcasting rules to evaluate a boolean array of shape
 :samp:`({L}, {M}, {N})` that is `True` for those observing locations, times,
 and sky coordinates, for which the target is above an altitude limit::
 
-    from astropy.coordinates import EarthLocation, AltAz, SkyCoord
-    from astropy.coordinates.angle_utilities import uniform_spherical_random_surface
-    from astropy.time import Time
-    from astropy import units as u
-    import numpy as np
+    >>> from astropy.coordinates import EarthLocation, AltAz, SkyCoord
+    >>> from astropy.coordinates.angles import uniform_spherical_random_surface
+    >>> from astropy.time import Time
+    >>> from astropy import units as u
+    >>> import numpy as np
 
-    L = 25
-    M = 100
-    N = 50
+    >>> L = 25
+    >>> M = 100
+    >>> N = 50
 
-    # Earth locations of length L
-    c = uniform_spherical_random_surface(L)
-    locations = EarthLocation.from_geodetic(c.lon, c.lat)
+    >>> # Earth locations of length L
+    >>> c = uniform_spherical_random_surface(L)
+    >>> locations = EarthLocation.from_geodetic(c.lon, c.lat)
 
-    # Celestial coordinates of length M
-    coords = SkyCoord(uniform_spherical_random_surface(M))
+    >>> # Celestial coordinates of length M
+    >>> coords = SkyCoord(uniform_spherical_random_surface(M))
 
-    # Observation times of length N
-    obstimes = Time('2023-08-04') + np.linspace(0, 24, N) * u.hour
+    >>> # Observation times of length N
+    >>> obstimes = Time('2023-08-04') + np.linspace(0, 24, N) * u.hour
 
-    # AltAz coordinates of shape (L, M, N)
-    frame = AltAz(
-        location=locations[:, np.newaxis, np.newaxis],
-        obstime=obstimes[np.newaxis, np.newaxis, :])
-    altaz = coords[np.newaxis, :, np.newaxis].transform_to(frame)
+    >>> # AltAz coordinates of shape (L, M, N)
+    >>> frame = AltAz(
+    ...     location=locations[:, np.newaxis, np.newaxis],
+    ...     obstime=obstimes[np.newaxis, np.newaxis, :])
+    >>> altaz = coords[np.newaxis, :, np.newaxis].transform_to(frame)  # doctest: +REMOTE_DATA
 
-    min_altitude = 30 * u.deg
-    is_above_altitude_limit = (altaz.alt > min_altitude)
-
+    >>> min_altitude = 30 * u.deg
+    >>> is_above_altitude_limit = (altaz.alt > min_altitude)  # doctest: +REMOTE_DATA
+    >>> is_above_altitude_limit.shape  # doctest: +REMOTE_DATA
+    (25, 100, 50)
 
 .. _whatsnew-6.0-cosmology-latex-export:
 

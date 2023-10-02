@@ -86,34 +86,43 @@ Numpy broadcasting rules to evaluate a boolean array of shape
 :samp:`({L}, {M}, {N})` that is `True` for those observing locations, times,
 and sky coordinates, for which the target is above an altitude limit::
 
-    from astropy.coordinates import EarthLocation, AltAz, SkyCoord
-    from astropy.coordinates.angle_utilities import uniform_spherical_random_surface
-    from astropy.time import Time
-    from astropy import units as u
-    import numpy as np
+..
+  EXAMPLE START
+  Broadcasting Over Frame Data and Attributes
 
-    L = 25
-    M = 100
-    N = 50
+    >>> from astropy.coordinates import EarthLocation, AltAz, SkyCoord
+    >>> from astropy.coordinates.angles import uniform_spherical_random_surface
+    >>> from astropy.time import Time
+    >>> from astropy import units as u
+    >>> import numpy as np
 
-    # Earth locations of length L
-    c = uniform_spherical_random_surface(L)
-    locations = EarthLocation.from_geodetic(c.lon, c.lat)
+    >>> L = 25
+    >>> M = 100
+    >>> N = 50
 
-    # Celestial coordinates of length M
-    coords = SkyCoord(uniform_spherical_random_surface(M))
+    >>> # Earth locations of length L
+    >>> c = uniform_spherical_random_surface(L)
+    >>> locations = EarthLocation.from_geodetic(c.lon, c.lat)
 
-    # Observation times of length N
-    obstimes = Time('2023-08-04') + np.linspace(0, 24, N) * u.hour
+    >>> # Celestial coordinates of length M
+    >>> coords = SkyCoord(uniform_spherical_random_surface(M))
 
-    # AltAz coordinates of shape (L, M, N)
-    frame = AltAz(
-        location=locations[:, np.newaxis, np.newaxis],
-        obstime=obstimes[np.newaxis, np.newaxis, :])
-    altaz = coords[np.newaxis, :, np.newaxis].transform_to(frame)
+    >>> # Observation times of length N
+    >>> obstimes = Time('2023-08-04') + np.linspace(0, 24, N) * u.hour
 
-    min_altitude = 30 * u.deg
-    is_above_altitude_limit = (altaz.alt > min_altitude)
+    >>> # AltAz coordinates of shape (L, M, N)
+    >>> frame = AltAz(
+    ...     location=locations[:, np.newaxis, np.newaxis],
+    ...     obstime=obstimes[np.newaxis, np.newaxis, :])
+    >>> altaz = coords[np.newaxis, :, np.newaxis].transform_to(frame)  # doctest: +REMOTE_DATA
+
+    >>> min_altitude = 30 * u.deg
+    >>> is_above_altitude_limit = (altaz.alt > min_altitude)  # doctest: +REMOTE_DATA
+    >>> is_above_altitude_limit.shape  # doctest: +REMOTE_DATA
+    (25, 100, 50)
+
+..
+  EXAMPLE END
 
 
 Improving Performance for Arrays of ``obstime``
