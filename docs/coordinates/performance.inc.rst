@@ -78,14 +78,6 @@ Frames in `astropy.coordinates` support
 frame data and frame attributes. This makes it easy and fast to do positional
 astronomy calculations and transformations on sweeps of parameters.
 
-For example, the user can create frame objects with scalar data but vector
-frame attributes, such as::
-
-    from astropy.coordinates import FK4
-    from astropy import units as u
-
-    FK4(1 * u.deg, 2 * u.deg, obstime=["J2000", "J2001"])
-
 Where this really shines is doing fast observability calculations over arrays.
 The following example constructs an `~astropy.coordinates.EarthLocation` array
 of length :samp:`{L}`, a `~astropy.coordinates.SkyCoord` array of length
