@@ -59,7 +59,7 @@ repos:
           - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.0.287"
+    rev: "v0.0.291"
     hooks:
       - id: ruff
         args: ["--fix"]
@@ -102,12 +102,12 @@ repos:
           )
 
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 23.7.0
+    rev: 23.9.1
     hooks:
       - id: black
 
   - repo: https://github.com/asmeurer/removestar
-    rev: "1.4"
+    rev: "1.5"
     hooks:
       - id: removestar
         args: ["-iv"]  # in-place changes + verbose output
