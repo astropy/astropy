@@ -73,6 +73,10 @@ properties::
 Broadcasting Over Frame Data and Attributes
 -------------------------------------------
 
+..
+  EXAMPLE START
+  Broadcasting Over Frame Data and Attributes
+
 Frames in `astropy.coordinates` support
 :doc:`Numpy broadcasting rules <numpy:user/basics.broadcasting>` over both
 frame data and frame attributes. This makes it easy and fast to do positional
@@ -85,10 +89,6 @@ of length :samp:`{L}`, a `~astropy.coordinates.SkyCoord` array of length
 Numpy broadcasting rules to evaluate a boolean array of shape
 :samp:`({L}, {M}, {N})` that is `True` for those observing locations, times,
 and sky coordinates, for which the target is above an altitude limit::
-
-..
-  EXAMPLE START
-  Broadcasting Over Frame Data and Attributes
 
     >>> from astropy.coordinates import EarthLocation, AltAz, SkyCoord
     >>> from astropy.coordinates.angles import uniform_spherical_random_surface
