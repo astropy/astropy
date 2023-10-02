@@ -78,7 +78,7 @@ Frames in `astropy.coordinates` support
 frame data and frame attributes. This makes it easy and fast to do positional
 astronomy calculations and transformations on sweeps of parameters.
 
-For example, the user can now create frame objects with scalar data but vector
+For example, the user can create frame objects with scalar data but vector
 frame attributes, such as::
 
     from astropy.coordinates import FK4
