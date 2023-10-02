@@ -81,7 +81,7 @@ To use interpolation for the astrometric values in coordinate transformation, us
 
    >>> # array with 10000 obstimes
    >>> obstime = Time('2010-01-01T20:00') + np.linspace(0, 6, 10000) * u.hour
-   >>> location = location = EarthLocation(lon=-17.89 * u.deg, lat=28.76 * u.deg, height=2200 * u.m)
+   >>> location = EarthLocation(lon=-17.89 * u.deg, lat=28.76 * u.deg, height=2200 * u.m)
    >>> frame = AltAz(obstime=obstime, location=location)
    >>> crab = SkyCoord(ra='05h34m31.94s', dec='22d00m52.2s')
 
@@ -133,7 +133,7 @@ for ``time_resolution`` compared to the non-interpolating, default approach.
     # 100_000 times randomly distributed over 12 hours
     t = Time('2020-01-01T20:00:00') + rng.uniform(0, 1, 10_000) * u.hour
 
-    location = location = EarthLocation(
+    location = EarthLocation(
         lon=-17.89 * u.deg, lat=28.76 * u.deg, height=2200 * u.m
     )
 
