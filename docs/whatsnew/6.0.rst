@@ -95,9 +95,9 @@ frame attributes, such as::
 
     FK4(1 * u.deg, 2 * u.deg, obstime=["J2000", "J2001"])
 
-But where this really shines is doing fast observability calculations over
-arrays. The following example constructs an `~astropy.coordinates.EarthLocation`
-array of length :samp:`{L}`, a `~astropy.coordinates.SkyCoord` array of length
+Where this really shines is doing fast observability calculations over arrays.
+The following example constructs an `~astropy.coordinates.EarthLocation` array
+of length :samp:`{L}`, a `~astropy.coordinates.SkyCoord` array of length
 :samp:`{M}`, and a `~astropy.time.Time` array of length :samp:`N`. It uses
 Numpy broadcasting rules to evaluate a boolean array of shape
 :samp:`({L}, {M}, {N})` that is `True` for those observing locations, times,
