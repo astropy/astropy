@@ -347,16 +347,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         if data is not None and data.shape != self._shape:
             data = data._apply(np.broadcast_to, shape=self._shape, subok=True)
         self._data = data
-
-        # Broadcast and set the attributes (leave scalars as is)
-        for key, value in values.items():
-            shape = getattr(value, "shape", ())
-            if shape != () and shape != self._shape:
-                if isinstance(value, ShapedLikeNDArray):
-                    value = value._apply(np.broadcast_to, shape=self._shape, subok=True)
-                else:
-                    value = np.broadcast_to(value, shape=self._shape, subok=True)
-            setattr(self, "_" + key, value)
+        # Broadcast the attributes if necessary by getting them again
+        # (we now know the shapes will be OK).
+        for key in values:
+            getattr(self, key)
 
         # The logic of this block is not related to the previous one
         if self.has_data:
