@@ -1,0 +1,4 @@
+Uncertainty ``Distribution`` can now be used inside representations, which
+also allows basic support in ``SkyCoord``. While most calculations work, there
+are remaining issues.  For instance, the ``repr`` does not show that the
+coordinates are distributions.

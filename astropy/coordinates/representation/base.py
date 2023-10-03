@@ -605,8 +605,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     info = RepresentationInfo()
 
     def __init_subclass__(cls, **kwargs):
-        # Register representation name (except for BaseRepresentation)
-        if cls.__name__ == "BaseRepresentation":
+        # Register representation name (except for bases on which other
+        # representations are built, but which cannot themselves be used).
+        if cls.__name__.startswith("Base"):
             return
 
         if not hasattr(cls, "attr_classes"):
