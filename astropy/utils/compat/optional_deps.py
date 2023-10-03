@@ -15,6 +15,7 @@ _optional_deps = [
     "bottleneck",
     "bs4",
     "bz2",
+    "dask",
     "fsspec",
     "h5py",
     "html5lib",
