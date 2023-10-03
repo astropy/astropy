@@ -75,7 +75,7 @@ IERS_B_README = get_pkg_data_filename("data/ReadMe.eopc04")
 # LEAP SECONDS default file name, URL, and alternative format/URL
 IERS_LEAP_SECOND_FILE = get_pkg_data_filename("data/Leap_Second.dat")
 IERS_LEAP_SECOND_URL = "https://hpiers.obspm.fr/iers/bul/bulc/Leap_Second.dat"
-IETF_LEAP_SECOND_URL = "https://www.ietf.org/timezones/data/leap-seconds.list"
+IETF_LEAP_SECOND_URL = "https://data.iana.org/time-zones/data/leap-seconds.list"
 
 # Status/source values returned by IERS.ut1_utc
 FROM_IERS_B = 0
