@@ -2740,39 +2740,38 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
 
         if (not skip_table) and (len(fields) > 0):
             for start, tag, data, pos in iterator:
-                if start:
-                    if tag == "TABLEDATA":
-                        warn_unknown_attrs("TABLEDATA", data.keys(), config, pos)
-                        self.array = self._parse_tabledata(
-                            iterator, colnumbers, fields, config
-                        )
-                        break
-                    elif tag == "BINARY":
-                        warn_unknown_attrs("BINARY", data.keys(), config, pos)
-                        self.array = self._parse_binary(
-                            1, iterator, colnumbers, fields, config, pos
-                        )
-                        break
-                    elif tag == "BINARY2":
-                        if not config["version_1_3_or_later"]:
-                            warn_or_raise(W52, W52, config["version"], config, pos)
-                        self.array = self._parse_binary(
-                            2, iterator, colnumbers, fields, config, pos
-                        )
-                        break
-                    elif tag == "FITS":
-                        warn_unknown_attrs("FITS", data.keys(), config, pos, ["extnum"])
-                        try:
-                            extnum = int(data.get("extnum", 0))
-                            if extnum < 0:
-                                raise ValueError("'extnum' cannot be negative.")
-                        except ValueError:
-                            vo_raise(E17, (), config, pos)
-                        self.array = self._parse_fits(iterator, extnum, config)
-                        break
-                    else:
-                        warn_or_raise(W37, W37, tag, config, pos)
-                        break
+                if not start:
+                    continue
+
+                if tag == "TABLEDATA":
+                    warn_unknown_attrs("TABLEDATA", data.keys(), config, pos)
+                    self.array = self._parse_tabledata(
+                        iterator, colnumbers, fields, config
+                    )
+                elif tag == "BINARY":
+                    warn_unknown_attrs("BINARY", data.keys(), config, pos)
+                    self.array = self._parse_binary(
+                        1, iterator, colnumbers, fields, config, pos
+                    )
+                elif tag == "BINARY2":
+                    if not config["version_1_3_or_later"]:
+                        warn_or_raise(W52, W52, config["version"], config, pos)
+                    self.array = self._parse_binary(
+                        2, iterator, colnumbers, fields, config, pos
+                    )
+                elif tag == "FITS":
+                    warn_unknown_attrs("FITS", data.keys(), config, pos, ["extnum"])
+                    try:
+                        extnum = int(data.get("extnum", 0))
+                        if extnum < 0:
+                            raise ValueError("'extnum' cannot be negative.")
+                    except ValueError:
+                        vo_raise(E17, (), config, pos)
+                    self.array = self._parse_fits(iterator, extnum, config)
+                else:
+                    warn_or_raise(W37, W37, tag, config, pos)
+
+                break
 
         for start, tag, data, pos in iterator:
             if not start and tag == "DATA":
