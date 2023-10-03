@@ -1,2 +1,0 @@
-Replaced the URL of ``IETF_LEAP_SECOND_URL`` because the original is now defunct
-and IETF now defers to IANA for such look-up.
