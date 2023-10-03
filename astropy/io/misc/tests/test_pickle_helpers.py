@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import warnings
-
 import pytest
 
 from astropy.io.misc import fnpickle, fnunpickle
@@ -16,8 +14,9 @@ def test_fnpickling_simple(tmp_path):
     fn = str(tmp_path / "test1.pickle")
 
     obj1 = "astring"
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=AstropyDeprecationWarning)
+    with pytest.warns(
+        AstropyDeprecationWarning, match="Use pickle from standard library"
+    ):
         fnpickle(obj1, fn)
         res = fnunpickle(fn, 0)
         assert obj1 == res
@@ -50,8 +49,9 @@ def test_fnpickling_class(tmp_path):
 
     obj1 = "astring"
     obj2 = ToBePickled(obj1)
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=AstropyDeprecationWarning)
+    with pytest.warns(
+        AstropyDeprecationWarning, match="Use pickle from standard library"
+    ):
         fnpickle(obj2, fn)
         res = fnunpickle(fn)
     assert res == obj2
@@ -67,13 +67,14 @@ def test_fnpickling_protocol(tmp_path):
     obj1 = "astring"
     obj2 = ToBePickled(obj1)
 
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=AstropyDeprecationWarning)
-        for p in range(pickle.HIGHEST_PROTOCOL + 1):
-            fn = str(tmp_path / f"testp{p}.pickle")
+    for p in range(pickle.HIGHEST_PROTOCOL + 1):
+        fn = str(tmp_path / f"testp{p}.pickle")
+        with pytest.warns(
+            AstropyDeprecationWarning, match="Use pickle from standard library"
+        ):
             fnpickle(obj2, fn, protocol=p)
             res = fnunpickle(fn)
-            assert res == obj2
+        assert res == obj2
 
 
 def test_fnpickling_many(tmp_path):
@@ -87,8 +88,9 @@ def test_fnpickling_many(tmp_path):
     # now try multiples
     obj3 = 328.3432
     obj4 = "blahblahfoo"
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=AstropyDeprecationWarning)
+    with pytest.warns(
+        AstropyDeprecationWarning, match="Use pickle from standard library"
+    ):
         fnpickle(obj3, fn)
         fnpickle(obj4, fn, append=True)
 
