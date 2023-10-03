@@ -146,7 +146,7 @@ Or all invalid points::
 
     >>> ndd_sliced = ndd[ndd.mask] # without the ~ now!
     >>> ndd_sliced
-    NDDataRef([2, 4, 5, 6, 9])
+    NDDataRef([—, —, —, —, —])
 
     >>> ndd_sliced.mask
     array([ True,  True,  True,  True,  True]...)
