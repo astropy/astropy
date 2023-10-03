@@ -25,7 +25,7 @@ from astropy.utils.compat.optional_deps import (
     HAS_BZ2,  # NOTE: Python can be built without bz2
 )
 from astropy.utils.data import conf
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 from .conftest import FitsTestCase
@@ -1466,3 +1466,12 @@ class TestStreamingFunctions(FitsTestCase):
         # See https://github.com/astropy/astropy/issues/3766
         with fits.open(pth, memmap=True, do_not_scale_image_data=True) as hdul:
             hdul[0].data  # Just make sure it doesn't crash
+
+
+def test_deprecated_hdu_classes():
+    from astropy.io.fits.hdu.base import _ExtensionHDU, _NonstandardExtHDU
+
+    with pytest.warns(AstropyDeprecationWarning):
+        _ExtensionHDU()
+    with pytest.warns(AstropyDeprecationWarning):
+        _NonstandardExtHDU()
