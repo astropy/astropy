@@ -1,0 +1,2 @@
+Support Numpy broadcasting over frame data and attributes. See
+:ref:`whatsnew-6.0-broadcasting-frame-attributes`.
