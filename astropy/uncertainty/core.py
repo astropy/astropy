@@ -268,7 +268,10 @@ class Distribution:
                 return self._not_implemented_or_raise(function, types)
 
             result = super().__array_function__(function, types, args, kwargs)
-            # Fall through to return section
+            # Fall through to return section, wrapping distributions, unless
+            # indicated otherwise.  TODO: use a less hacky solution?
+            if out is True:
+                return result
 
         else:  # pragma: no cover
             # By default, just pass it through for now.

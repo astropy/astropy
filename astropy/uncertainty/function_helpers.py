@@ -46,7 +46,16 @@ FUNCTION_HELPERS = {}
 
 The `dict` is keyed by the numpy function and the values are functions
 that take the input arguments of the numpy function and organize these
-for passing the distribution data to the numpy function.
+for passing the distribution data to the numpy function, by returning
+``args, kwargs, out``. Here, the former two are passed on, while ``out``
+is used to indicate whether there was an output argument.  If ``out`` is
+set to `True`, then no further processing should be done; otherwise, it
+it is assumed that the function operates on unwrapped distributions and
+that the results need to be rewrapped as |Distribution|.
+
+The function should raise `NotImplementedError` if one of the arguments is a
+distribution when it should not be or vice versa.
+
 """
 
 
@@ -62,6 +71,27 @@ function_helper = FunctionAssigner(FUNCTION_HELPERS)
 dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
 
 
+def is_distribution(x):
+    from astropy.uncertainty import Distribution
+
+    return isinstance(x, Distribution)
+
+
+def get_n_samples(*arrays):
+    """Get n_samples from the first Distribution amount arrays.
+
+    The logic of getting ``n_samples`` from the first |Distribution|
+    is that the code will raise an appropriate exception later if
+    distributions do not have the same ``n_samples``.
+    """
+    # TODO: add verification if another function needs it.
+    for array in arrays:
+        if is_distribution(array):
+            return array.n_samples
+
+    raise RuntimeError("no Distribution found! Please raise an issue.")
+
+
 @function_helper
 def empty_like(prototype, dtype=None, *args, **kwargs):
     dtype = prototype._get_distribution_dtype(
@@ -71,7 +101,7 @@ def empty_like(prototype, dtype=None, *args, **kwargs):
 
 
 @function_helper
-def broadcast_arrays(*args, subok=True):
+def broadcast_arrays(*args, subok=False):
     """Broadcast arrays to a common shape.
 
     Like `numpy.broadcast_arrays`, applied to both distributions and other data.
@@ -84,4 +114,45 @@ def broadcast_arrays(*args, subok=True):
             arg.view(np.ndarray) if isinstance(arg, np.ndarray) else np.array(arg)
             for arg in args
         )
-    return args, {"subok": True}, None
+    return args, {"subok": True}, True
+
+
+@function_helper
+def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
+    """Concatenate arrays.
+
+    Like `numpy.concatenate`, but any array that is not already a |Distribution|
+    is turned into one with identical samples.
+    """
+    n_samples = get_n_samples(*arrays, out)
+    converted = tuple(
+        array.distribution
+        if is_distribution(array)
+        else (
+            np.broadcast_to(
+                array[..., np.newaxis], array.shape + (n_samples,), subok=True
+            )
+            if getattr(array, "shape", False)
+            else array
+        )
+        for array in arrays
+    )
+    if axis < 0:
+        axis = axis - 1  # not in-place, just in case.
+    kwargs = dict(axis=axis, dtype=dtype, casting=casting)
+    if out is not None:
+        if is_distribution(out):
+            kwargs["out"] = out.distribution
+        else:
+            raise NotImplementedError
+    return (converted,), kwargs, out
+
+
+# Add any dispatched or helper function that has a docstring to __all__, so
+# they will be typeset by sphinx. The logic is that for those presumably the
+# way distributions are dealt with is not entirely obvious.
+__all__ += sorted(
+    helper.__name__
+    for helper in (set(FUNCTION_HELPERS.values()) | set(DISPATCHED_FUNCTIONS.values()))
+    if helper.__doc__
+)
