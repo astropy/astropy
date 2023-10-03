@@ -179,7 +179,6 @@ ignore = [
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
     "RET507",  # superfluous-else-continue
-    "RET508",  # superfluous-else-break
 
     # flake8-raise (RSE)
     "RSE102",  # unnecessary-paren-on-raise-exception

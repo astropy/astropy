@@ -1050,7 +1050,8 @@ class Section:
             if isinstance(key, slice):
                 ks = range(*key.indices(axis))
                 break
-            elif isiterable(key):
+
+            if isiterable(key):
                 # Handle both integer and boolean arrays.
                 ks = np.arange(axis, dtype=int)[key]
                 break
