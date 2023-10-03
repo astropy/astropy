@@ -2776,9 +2776,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
 
                 elif tag == "PARQUET":
                     if (data["type"] == "VOTable-remote-file") | (
-                        data["type"] == "VOTable-remote-partition"):
-                            warn_unknown_attrs("PARQUET", data.keys(), config, pos)
-                    self.array = self._parse_parquet(iterator, config)
+                        data["type"] == "VOTable-remote-partition"
+                    ):
+                        warn_unknown_attrs("PARQUET", data.keys(), config, pos)
+                        self.array = self._parse_parquet(iterator, config)
 
                 else:
                     warn_or_raise(W37, W37, tag, config, pos)
