@@ -103,7 +103,7 @@ a tuple to other methods.
 ## Overlaying a Compass Arrow
 *****************************
 
-It is often useful to add compass arrows to your images, denoting which directions correspond to North and East on the sky. 
+It is often useful to add compass arrows to your images, denoting which directions correspond to North and East on the sky.
 The function :meth:`~astropy.wcs.utils.north_pole_angle` calculates the correct angle for this compass, which can easily be displayed using a matplotlib :class:`~matplotlib.mpl_toolkits.axes_grid1.anchored_artistsAnchoredDirectionArrows()` artist.
 
 

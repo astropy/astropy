@@ -73,7 +73,7 @@ def solar_system_body_representation_type(
     )
 
 
-def north_pole_angle(pixel, wcs, ddec=0.1*u.arcsec):
+def north_pole_angle(pixel, wcs, ddec=0.1 * u.arcsec):
     """
     Computes counterclockwise angle between positive x-axis and sky North
 
@@ -95,13 +95,13 @@ def north_pole_angle(pixel, wcs, ddec=0.1*u.arcsec):
     """
     coord = SkyCoord.from_pixel(pixel[0], pixel[1], wcs)
     coord = coord.transform_to("icrs")
-    north_coord = coord.directional_offset_by(0.0*u.deg, ddec)
+    north_coord = coord.directional_offset_by(0.0 * u.deg, ddec)
 
     north_pixel = np.asarray(north_coord.to_pixel(wcs))
     pixel = np.asarray(coord.to_pixel(wcs))
     diff = north_pixel - pixel
 
-    return Angle(np.rad2deg(np.arctan2(diff[1], diff[0]))*u.deg)
+    return Angle(np.rad2deg(np.arctan2(diff[1], diff[0])) * u.deg)
 
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
