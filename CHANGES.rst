@@ -1,3 +1,48 @@
+Version 5.3.4 (2023-10-03)
+==========================
+
+Bug Fixes
+---------
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+- Updated ``astropy.io.misc.yaml`` so ``dump()` with a numpy object array or
+  ``load()`` with YAML representing a Numpy object array both raise
+  ``TypeError``. This prevents problems like a segmentation fault. [#15373]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Fixed a bug in ``convert_to_writable_filelike`` where ``GzipFile`` was not
+  closed properly. [#15359]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- In VOUnit, the spaces around the slash were removed in the formatting of
+  fractions, and fractional powers now also use the "**" operator. [#15282]
+
+- We now ensure that the unit ``u.cgs.cm`` is just an alias of ``u.si.cm``,
+  instead of a redefinition.  This ensures that ``u.Unit("cm") / u.cm``
+  will reliably cancel to dimensionless (instead of some "cm / cm"). [#15368]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- For ``Masked``, ``np.ptp`` and the ``.ptp()`` method now properly account for
+  the mask, ensuring the result is identical to subtracting the maximum and
+  minimum (with the same arguments). [#15380]
+
+Other Changes and Additions
+---------------------------
+
+- Compatibility with Python 3.12. [#14784]
+
+- Replaced the URL of ``IETF_LEAP_SECOND_URL`` because the original is now
+  defunct and IETF now defers to IANA for such look-up. [#15421]
+
+
 Version v5.3.3 (2023-09-07)
 ===========================
 
