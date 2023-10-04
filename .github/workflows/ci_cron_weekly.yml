@@ -63,13 +63,6 @@ jobs:
             python: '3.10'
             toxenv: flynt
 
-          # TODO: Uncomment when 3.12 is more mature. Should we use devdeps?
-          # Test against Python dev in cron job.
-          #- name: Python dev with basic dependencies
-          #  os: ubuntu-latest
-          #  python: 3.12-dev
-          #  toxenv: pydev-test
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
