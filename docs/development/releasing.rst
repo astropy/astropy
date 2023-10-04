@@ -412,14 +412,6 @@ clean-up tasks to finalize the process.
 Post-Release procedures
 -----------------------
 
-#. If this is a release of the current release (i.e., not an LTS supported along
-   side a more recent version), update the "stable" branch to point to the new
-   release::
-
-      $ git checkout stable
-      $ git reset --hard v<version>
-      $ git push upstream stable --force
-
 #. If this is an LTS release (whether or not it is being supported alongside
    a more recent version), update the "LTS" branch to point to the new LTS
    release::
