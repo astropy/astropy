@@ -13,10 +13,12 @@ build:
 conda:
   environment: docs/rtd_environment.yaml
 
+# TODO: Set fail_on_warning back to true when we can, see
+# https://github.com/astropy/astropy/issues/15428
 sphinx:
   builder: html
   configuration: docs/conf.py
-  fail_on_warning: true
+  fail_on_warning: false
 
 # Install regular dependencies.
 # Then, install special pinning for RTD.
