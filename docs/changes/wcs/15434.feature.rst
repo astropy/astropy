@@ -1,0 +1,1 @@
+``astropy.wcs.utils.north_pole_angle`` computes counterclockwise angle between positive x-axis and sky North, useful for making North-East compass

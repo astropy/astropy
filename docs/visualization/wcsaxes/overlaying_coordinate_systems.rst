@@ -100,8 +100,8 @@ a tuple to other methods.
     overlay['dec'].set_axislabel_position('t')
     overlay['dec'].set_axislabel('Declination', color='magenta')
 
-## Overlaying a Compass Arrow
-*****************************
+Overlaying a Compass Arrow
+**************************
 
 It is often useful to add compass arrows to your images, denoting which directions correspond to North and East on the sky.
 The function :meth:`~astropy.wcs.utils.north_pole_angle` calculates the correct angle for this compass, which can easily be displayed using a matplotlib :class:`~matplotlib.mpl_toolkits.axes_grid1.anchored_artistsAnchoredDirectionArrows()` artist.
@@ -110,6 +110,7 @@ The function :meth:`~astropy.wcs.utils.north_pole_angle` calculates the correct 
 .. plot::
    :context:
    :include-source:
+   :align: center
 
    from astropy.wcs import utils
    from mpl_toolkits.axes_grid1.anchored_artists import AnchoredDirectionArrows
@@ -127,15 +128,15 @@ The function :meth:`~astropy.wcs.utils.north_pole_angle` calculates the correct 
    # subtract 90 degrees.
    arrow = AnchoredDirectionArrows(
             ax.transAxes,
-            xlabel='E',
-            ylabel='N',
+            label_x='E',
+            label_y='N',
             loc = 'upper right',
             length = -0.15,
             aspect_ratio = -1,
             sep_y = -0.1,
             sep_x = 0.04,
             color='white',
-            angle=north_angle - 90,
+            angle=north_angle.degree - 90,
             back_length=0
             )
    ax.add_artist(arrow)
