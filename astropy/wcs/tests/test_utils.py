@@ -40,13 +40,13 @@ from astropy.wcs.utils import (
     is_proj_plane_distorted,
     local_partial_pixel_derivatives,
     non_celestial_pixel_scales,
+    north_pole_angle,
     obsgeo_to_frame,
     pixel_to_pixel,
     pixel_to_skycoord,
     proj_plane_pixel_scales,
     skycoord_to_pixel,
     wcs_to_celestial_frame,
-    north_pole_angle,
 )
 from astropy.wcs.wcs import (
     WCS,
@@ -59,19 +59,19 @@ from astropy.wcs.wcsapi.fitswcs import SlicedFITSWCS
 
 
 def test_north_pole_angle():
-    
+
     # create basic wcs with north up
     mywcs = WCS(naxis=2)
     mywcs.wcs.crval = [1, 1]
-    mywcs.wcs.cdelt = [2, 2]
+    mywcs.wcs.cdelt = [0.1, 0.1]
     mywcs.wcs.crpix = [1, 1]
     mywcs._naxis = [1000, 500]
     mywcs.wcs.ctype = ['RA---TAN-SIP', 'DEC--TAN-SIP']
 
     # simplest test - north is 90 degrees from positive x
     pix = (0, 0)
-    assert np.isclose(north_pole_angle(pix, mywcs), 90, rtol=1e-5)
-    
+    assert np.isclose(north_pole_angle(pix, mywcs), 90*u.deg, rtol=1e-5)
+
     # rotate coordinate system by known amount
     rho = np.radians(30)
     scale = 1
@@ -80,8 +80,8 @@ def test_north_pole_angle():
         [scale * np.sin(rho), scale * np.cos(rho)],
     ]
     pix2 = (0, 0)
-    assert np.isclose(north_pole_angle(pix2, mywcs), 60., rtol=1e-5)
-    
+    assert np.isclose(north_pole_angle(pix2, mywcs), 60.*u.deg, rtol=1e-5)
+
     # rotation into another quadrant
     rho = np.radians(120)
     scale = 1
@@ -90,8 +90,8 @@ def test_north_pole_angle():
         [scale * np.sin(rho), scale * np.cos(rho)],
     ]
     pix3 = (0, 0)
-    assert np.isclose(north_pole_angle(pix3, mywcs), -30., rtol=1e-5)
-    
+    assert np.isclose(north_pole_angle(pix3, mywcs), -30.*u.deg, rtol=1e-5)
+
 
 def test_wcs_dropping():
     wcs = WCS(naxis=4)

@@ -8,12 +8,13 @@ import numpy as np
 import astropy.units as u
 from astropy.coordinates import (
     ITRS,
+    Angle,
     BaseBodycentricRepresentation,
     BaseCoordinateFrame,
     BaseGeodeticRepresentation,
     CartesianRepresentation,
+    SkyCoord,
     SphericalRepresentation,
-    SkyCoord
 )
 from astropy.utils import unbroadcast
 
@@ -72,34 +73,35 @@ def solar_system_body_representation_type(
     )
 
 
-def north_pole_angle(pixel, wcs, ddec=0.1*u.deg):
-    '''
-    Computes angle between positive x-axis and sky North
-    
+def north_pole_angle(pixel, wcs, ddec=0.1*u.arcsec):
+    """
+    Computes counterclockwise angle between positive x-axis and sky North
+
     Parameters
     ----------
     pixel : tuple, required.
-        pixel in image to find angle from
+        reference pixel in image from which to find angle
     wcs : `~astropy.wcs.WCS`
-    ddec : `~astropy.coordinates.Angle`, optional, default 0.1.
-        
-        
-        
+    ddec : `~astropy.coordinates.Angle`, optional, default 0.1 arcseconds.
+        small angular offset for computing direction of north
+        no need to change unless very close to north pole
+
     Returns
     -------
-    float
-        angle between sky North and coord in degrees,
-        along tangent line of great circle at pixel
-    '''
+    `~astropy.coordinates.Angle`
+        angle between sky North and coord,
+        along tangent line of great circle running through
+        pixel and sky north.
+    """
     coord = SkyCoord.from_pixel(pixel[0], pixel[1], wcs)
     coord = coord.transform_to("icrs")
     north_coord = coord.directional_offset_by(0.0*u.deg, ddec)
-    
+
     north_pixel = np.asarray(north_coord.to_pixel(wcs))
     pixel = np.asarray(coord.to_pixel(wcs))
     diff = north_pixel - pixel
-    
-    return np.rad2deg(np.arctan2(diff[1], diff[0]))
+
+    return Angle(np.rad2deg(np.arctan2(diff[1], diff[0]))*u.deg)
 
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
