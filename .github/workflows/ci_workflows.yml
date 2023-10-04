@@ -108,7 +108,6 @@ jobs:
       envs: |
         - name: (Allowed Failure) Python 3.12 with remote data and dev version of key dependencies
           linux: py312-test-devdeps
-          python-version: '3.12'
           posargs: --remote-data=any --verbose
 
         # https://github.com/matplotlib/matplotlib/issues/26847
