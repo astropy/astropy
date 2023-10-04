@@ -13,6 +13,7 @@ from astropy.coordinates import (
     BaseGeodeticRepresentation,
     CartesianRepresentation,
     SphericalRepresentation,
+    SkyCoord
 )
 from astropy.utils import unbroadcast
 
@@ -69,6 +70,36 @@ def solar_system_body_representation_type(
         (baserepresentation,),
         dict(_equatorial_radius=equatorial_radius, _flattening=flattening),
     )
+
+
+def north_pole_angle(pixel, wcs, ddec=0.1*u.deg):
+    '''
+    Computes angle between positive x-axis and sky North
+    
+    Parameters
+    ----------
+    pixel : tuple, required.
+        pixel in image to find angle from
+    wcs : `~astropy.wcs.WCS`
+    ddec : `~astropy.coordinates.Angle`, optional, default 0.1.
+        
+        
+        
+    Returns
+    -------
+    float
+        angle between sky North and coord in degrees,
+        along tangent line of great circle at pixel
+    '''
+    coord = SkyCoord.from_pixel(pixel[0], pixel[1], wcs)
+    coord = coord.transform_to("icrs")
+    north_coord = coord.directional_offset_by(0.0*u.deg, ddec)
+    
+    north_pixel = np.asarray(north_coord.to_pixel(wcs))
+    pixel = np.asarray(coord.to_pixel(wcs))
+    diff = north_pixel - pixel
+    
+    return np.rad2deg(np.arctan2(diff[1], diff[0]))
 
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
