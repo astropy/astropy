@@ -258,7 +258,7 @@ See :ref:`votable_mivot` for more details.
 .. _whatsnew-6.0-votable-parquet-serialization:
 
 VOTable now supports PARQUET serialization
-=========================================
+==========================================
 
 The PARQUET file format allows a more efficient handling of large data amounts. However,
 one problem of PARQUET is that it only provides a limited number of column metadata keywords.
@@ -277,41 +277,41 @@ The method works for both absolute and relative parquet file paths.
 
 Example for writing:
 
+.. doctest-skip::
+
     >>> import numpy as np
     >>> from astropy.table import Table
-
+    >>>
     >>> # Create some fake data
     >>> number_of_objects = 10
     >>> ids = [f"COSMOS_{ii:03g}" for ii in range(number_of_objects)]
     >>> redshift = np.random.uniform(low=0, high=3, size=number_of_objects)
     >>> mass = np.random.uniform(low=1e8, high=1e10, size=number_of_objects)
     >>> sfr = np.random.uniform(low=1, high=100, size=number_of_objects)
-    >>> astropytab = Table([ids, redshift, mass, sfr], names=["id", "z", "mass", "sfr"])
-
+    >>> cosmos = Table([ids, redshift, mass, sfr], names=["id", "z", "mass", "sfr"])
+    >>>
     >>> # Create Column metadata
     >>> column_metadata = {
-        "id": {"unit": "", "ucd": "meta.id", "utype": "none"},
-        "z": {"unit": "", "ucd": "src.redshift", "utype": "none"},
-        "mass": {"unit": "solMass", "ucd": "phys.mass", "utype": "none"},
-        "sfr": {"unit": "solMass / yr", "ucd": "phys.SFR", "utype": "none"},
-    }
-
+    ...    "id": {"unit": "", "ucd": "meta.id", "utype": "none"},
+    ...    "z": {"unit": "", "ucd": "src.redshift", "utype": "none"},
+    ...    "mass": {"unit": "solMass", "ucd": "phys.mass", "utype": "none"},
+    ...    "sfr": {"unit": "solMass / yr", "ucd": "phys.SFR", "utype": "none"},
+    ... }
+    >>>
     >>> # Write VOTable with Parquet serialization
-    >>> filename = "test_votable_parquet.vot"
-    >>> astropytab.write(
-        filename,
-        column_metadata=column_metadata,
-        overwrite=True,
-        format="votable.parquet",
-    )
+    >>> filename = "votable_with_parquet.vot"
+    >>> cosmos.write(filename, column_metadata=column_metadata, format="votable.parquet")
+
 
 Example for reading a votable with a separate parquet file. Note the
 metadata is accessible on the column level:
 
+.. doctest-skip::
+
     >>> from astropy.table import Table
     >>>
     >>> # Open VOTable with PARQUET serialization
-    >>> cosmos_table = Table.read("test_votable_parquet.vot", format='votable')
+    >>> cosmos_table = Table.read("votable_with_parquet.vot", format='votable')
     >>>
     >>> cosmos_table
     <Table length=10>
