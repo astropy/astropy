@@ -259,6 +259,7 @@ See :ref:`votable_mivot` for more details.
 
 VOTable now supports PARQUET serialization
 =========================================
+
 The PARQUET file format allows a more efficient handling of large data amounts. However,
 one problem of PARQUET is that it only provides a limited number of column metadata keywords.
 A way to make it consistent with VO standards is to embed it into a VOTable file.
@@ -268,9 +269,11 @@ basically creates two files, on VOTable file and one PARQUET file, which are lin
 The advantage of this method is that any column metadata can be saved along with the PARQUET file,
 following VO standards.
 
-Reading and writing of the VOTable PARQUET serialization is fully supported by the
-`astropy.io.votable` writer and the `parse()` reader. The method works for both absolute
-and relative file paths. This serialization can be used by setting the table format attribute to votable.parquet.
+Reading and writing of the VOTable PARQUET serialization is fully supported by
+`astropy.io.votable` and the unified ``Table`` read/write interface.
+This serialization can be used by setting the ``'format'`` argument to
+``'votable.parquet'``, while ``'votable'`` can be used for reading in such a file.
+The method works for both absolute and relative parquet file paths.
 
 Example for writing:
 
@@ -294,7 +297,7 @@ Example for writing:
     }
 
     >>> # Write VOTable with Parquet serialization
-    >>> filename = "./test_votable_parquet.vot"
+    >>> filename = "test_votable_parquet.vot"
     >>> astropytab.write(
         filename,
         column_metadata=column_metadata,
@@ -302,18 +305,34 @@ Example for writing:
         format="votable.parquet",
     )
 
-Example for reading:
+Example for reading a votable with a separate parquet file. Note the
+metadata is accessible on the column level:
 
-    >>> from astropy.io.votable.table import parse
+    >>> from astropy.table import Table
     >>>
     >>> # Open VOTable with PARQUET serialization
-    >>> votable = parse(filename)
+    >>> cosmos_table = Table.read("test_votable_parquet.vot", format='votable')
     >>>
-    >>> # Get table out
-    >>> votable_table = votable.resources[0].tables[0].array
+    >>> cosmos_table
+    <Table length=10>
+        id             z                 mass               sfr
+       ---            ---              solMass          solMass / yr
+      str10         float64            float64            float64
+    ---------- ------------------ ------------------ ------------------
+    COSMOS_000 0.2399334343209477 3777315779.8348713  31.82322447540133
+    COSMOS_001 0.0647935880275512   9392519748.07293  4.532295061239315
+    COSMOS_002  2.738748364941223 4411572229.2340555  86.54423711854747
+    COSMOS_003  2.013180712201346  2813958500.958293 11.142967938935586
+    COSMOS_004 2.5044578163101794   1533373563.21987    48.320129287388
+    COSMOS_005 2.1113936608027988  7431616021.640879  29.67334486542601
+    COSMOS_006 1.5525290310888193   8700624063.99011  36.19567476784732
+    COSMOS_007 2.5879551130469074  6501853315.057587  54.19908247198407
+    COSMOS_008 0.3978276727610941 1865149084.3401675  76.53909767648796
+    COSMOS_009 1.5021072916190177  4394424029.923725  91.68600618578257
     >>>
     >>> # Check out fields and column metadata
-    >>> votable.resources[0].tables[0].fields
+    >>> cosmos_table['sfr'].meta
+    OrderedDict([('ucd', 'phys.SFR'), ('utype', 'none')])
 
 
 Full change log

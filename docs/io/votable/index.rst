@@ -414,11 +414,12 @@ VOTable supports a number of different serialization formats.
   supported by the `astropy.io.votable` writer, since it requires
   writing multiple files.
 
-- `PARQUET`
+- ``PARQUET``
   stores the data in an external PARQUET file, similar to FITS serialization.
   Reading and writing is fully supported by the `astropy.io.votable` writer and
-  the `parse()` reader. Works for absolute and relative paths. This serialization
-  can be used by setting the table ``format`` attribute to `votable.parquet`.
+  the `astropy.io.votable.table.parse()` reader. The parquet file can be
+  referenced with either absolute and relative paths. This serialization
+  can be used by setting the table ``'format'`` attribute to ``'parquet'``.
 
 The serialization format can be selected in two ways:
 
