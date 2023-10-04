@@ -151,7 +151,7 @@ def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
 # Add any dispatched or helper function that has a docstring to __all__, so
 # they will be typeset by sphinx. The logic is that for those presumably the
 # way distributions are dealt with is not entirely obvious.
-__all__ += sorted(
+__all__ += sorted(  # noqa: PLE0605
     helper.__name__
     for helper in (set(FUNCTION_HELPERS.values()) | set(DISPATCHED_FUNCTIONS.values()))
     if helper.__doc__

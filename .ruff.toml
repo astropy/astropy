@@ -107,7 +107,6 @@ ignore = [
     "PGH001",  # eval
 
     # Pylint (PLC, PLE, PLR, PLW)
-    "PLC1901",  # compare-to-empty-string
     "PLE0101",  # return-in-init
     "PLR0124",  # Name compared with itself
     "PLR0402",  # ConsiderUsingFromImport
