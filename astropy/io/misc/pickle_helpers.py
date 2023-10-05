@@ -11,7 +11,6 @@ from astropy.utils.decorators import deprecated
 __all__ = ["fnpickle", "fnunpickle"]
 
 
-@deprecated(since="6.0", message="Use pickle from standard library, if you must")
 def fnunpickle(fileorname, number=0):
     """Unpickle pickled objects from a specified file and return the contents.
 
@@ -71,7 +70,6 @@ def fnunpickle(fileorname, number=0):
     return res
 
 
-@deprecated(since="6.0", message="Use pickle from standard library, if you must")
 def fnpickle(object, fileorname, protocol=None, append=False):
     """Pickle an object to a specified file.
 
