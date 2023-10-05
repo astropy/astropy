@@ -112,6 +112,14 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
             if isinstance(val, ConfigItem):
                 yield key
 
+    def __str__(self):
+        try:
+            header = f"{self.__doc__.strip()}\n\n"
+        except AttributeError:
+            current_module = str(find_current_module(2)).split("'")[1]
+            header = f"Configuration parameters for `{current_module}`\n\n"
+        return header + "\n\n".join(map(str, self.values()))
+
     keys = __iter__
     """Iterate over configuration item names."""
 
