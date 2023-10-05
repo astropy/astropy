@@ -105,7 +105,6 @@ del intersphinx_mapping["astropy"]
 # add any custom intersphinx for astropy
 intersphinx_mapping.update(
     {
-        "python": ("https://docs.python.org/3.11/", None),  # Temporary pin
         "astropy-dev": ("https://docs.astropy.org/en/latest/", None),
         "pyerfa": ("https://pyerfa.readthedocs.io/en/stable/", None),
         "pytest": ("https://docs.pytest.org/en/stable/", None),
