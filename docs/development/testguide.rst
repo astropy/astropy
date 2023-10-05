@@ -121,13 +121,13 @@ which is generally faster than using tox for iterative development. In
 this case, it is important for developers to be aware that they must manually
 rebuild any extensions by running::
 
-    pip install -e .[test]
+    pip install -e ".[test]"
 
 before running the test with pytest with::
 
     pytest
 
-Instead of calling ``pip install -e .[test]``, you can also build the
+Instead of calling ``pip install -e ".[test]"``, you can also build the
 extensions with::
 
     python setup.py build_ext --inplace

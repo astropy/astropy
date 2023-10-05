@@ -67,7 +67,7 @@ Set up an isolated workspace
 
 + Install our branch in this environment with::
 
-    pip install -e .[test]
+    pip install -e ".[test]"
 
 Do you really have to set up a separate Python environment for each fix? No,
 but you definitely want to have a Python environment for your work on code

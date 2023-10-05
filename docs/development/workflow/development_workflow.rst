@@ -327,7 +327,7 @@ install the version of ``astropy`` you are working on into it. Do that with:
 
 .. code-block:: bash
 
-    pip install -e .[test]
+    pip install -e ".[test]"
 
 This will install ``astropy`` itself, along with a few packages which will be
 useful for testing the changes you will make down the road.
