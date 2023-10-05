@@ -264,7 +264,8 @@ def test_write_with_format():
 
 
 @pytest.mark.skipif(not HAS_PYARROW, reason="requires pyarrow")
-def test_read_write_votable_parquet(tmp_path):
+@pytest.mark.parametrize("overwrite", [True, False])
+def test_read_write_votable_parquet(tmp_path, overwrite):
     """
     Test to write and read VOTable with Parquet serialization
     """
@@ -290,7 +291,7 @@ def test_read_write_votable_parquet(tmp_path):
     astropytab.write(
         filename,
         column_metadata=column_metadata,
-        overwrite=True,
+        overwrite=overwrite,
         format="votable.parquet",
     )
 

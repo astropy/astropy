@@ -83,8 +83,7 @@ def read_table_votable(
         ``astropy.io.votable.verify``, which defaults to ``'ignore'``.
 
     **kwargs
-        Additional keyword arguments are passed on to
-        :func:`astropy.io.votable.table.parse`.
+        Additional keyword arguments are passed on to `astropy.io.votable.parse`.
     """
     if not isinstance(input, (VOTableFile, VOTable)):
         input = parse(input, table_id=table_id, verify=verify, **kwargs)
@@ -230,6 +229,9 @@ def write_table_votable_parquet(input, output, column_metadata, *, overwrite=Fal
     # First save the PARQUET file.
     parquet_filename = f"{output}.parquet"
     path_type = f"file:{'//' if os.path.isabs(parquet_filename) else ''}"
+
+    if os.path.exists(parquet_filename) and not overwrite:
+        raise OSError(NOT_OVERWRITING_MSG.format(parquet_filename))
     input.write(parquet_filename, format="parquet", overwrite=overwrite)
 
     # Second, save table as binary VOT file. We will modify this file
@@ -248,7 +250,7 @@ def write_table_votable_parquet(input, output, column_metadata, *, overwrite=Fal
         field.ucd = column_metadata[field.name]["ucd"]
         field.utype = column_metadata[field.name]["utype"]
 
-    if (os.path.exists(output) or os.path.exists(parquet_filename)) and not overwrite:
+    if os.path.exists(output) and not overwrite:
         raise OSError(NOT_OVERWRITING_MSG.format(output))
 
     votable.to_xml(output, tabledata_format="binary")
