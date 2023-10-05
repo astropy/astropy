@@ -4,6 +4,7 @@ import io
 import os
 import subprocess
 import sys
+from inspect import cleandoc
 
 import pytest
 
@@ -242,6 +243,19 @@ def test_configitem():
     assert ci.description == "this is a Description"
 
     assert conf.tstnm == 34
+
+    assert str(conf) == cleandoc(
+        """
+        Configuration parameters for `astropy.config.tests.test_configs`
+
+        ConfigItem: tstnm
+          cfgtype='integer'
+          defaultvalue=34
+          description='this is a Description'
+          module=astropy.config.tests.test_configs
+          value=34
+        """
+    )
 
     sec = get_config(ci.module)
     assert sec["tstnm"] == 34
