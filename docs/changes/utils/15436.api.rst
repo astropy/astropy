@@ -1,0 +1,1 @@
+``astropy.utils.iers.conf.auto_max_age`` default value is changed from 30 days to 300 days to prevent excessive network hit.

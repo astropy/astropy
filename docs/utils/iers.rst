@@ -102,7 +102,7 @@ important to consider are the following:
 
   auto_max_age:
     Maximum age of predictive data before auto-downloading (days).  See
-    next section for details. (default=30)
+    next section for details. (default=300)
 
   remote_timeout:
     Remote timeout downloading IERS file data (seconds)
@@ -140,7 +140,7 @@ polar motion values:
 
 The IERS Service provides the default online table
 (set by ``astropy.utils.iers.IERS_A_URL``) and updates the content
-once each 7 days.  The default value of ``auto_max_age`` is 30 days to avoid
+once each 7 days.  The default value of ``auto_max_age`` is 300 days to avoid
 unnecessary network access, but one can reduce this to as low as 10 days.
 
 .. _iers-working-offline:

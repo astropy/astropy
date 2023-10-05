@@ -173,7 +173,7 @@ class Conf(_config.ConfigNamespace):
         "out of date. Default is True.",
     )
     auto_max_age = _config.ConfigItem(
-        30.0,
+        300.0,
         "Maximum age (days) of predictive data before auto-downloading. "
         'See "Auto refresh behavior" in astropy.utils.iers documentation for details. '
         "Default is 30.",
