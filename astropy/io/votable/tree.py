@@ -3615,7 +3615,7 @@ class Resource(
     @property
     def mivot_block(self):
         """
-        Returns the XML MIVOT block serialized as a string.
+        Returns the MIVOT block instance.
         If the host resource is of type results, it is taken from the first
         child resource with a MIVOT block, if any.
         Otherwise, it is taken from the host resource
