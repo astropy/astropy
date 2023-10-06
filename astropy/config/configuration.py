@@ -112,6 +112,14 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
             if isinstance(val, ConfigItem):
                 yield key
 
+    def __str__(self):
+        try:
+            header = f"{self.__doc__.strip()}\n\n"
+        except AttributeError:
+            current_module = str(find_current_module(2)).split("'")[1]
+            header = f"Configuration parameters for `{current_module}`\n\n"
+        return header + "\n\n".join(map(str, self.values()))
+
     keys = __iter__
     """Iterate over configuration item names."""
 
@@ -126,6 +134,37 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
         for key, val in self.__class__.__dict__.items():
             if isinstance(val, ConfigItem):
                 yield key, val
+
+    def help(self, name=None):
+        """Print info about configuration items.
+
+        Parameters
+        ----------
+        name : `str`, optional
+            Name of the configuration item to be described. If no name is
+            provided then info about all the configuration items will be
+            printed.
+
+        Examples
+        --------
+        >>> from astropy import conf
+        >>> conf.help("unicode_output")
+        ConfigItem: unicode_output
+          cfgtype='boolean'
+          defaultvalue=False
+          description='When True, use Unicode characters when outputting values, and displaying widgets at the console.'
+          module=astropy
+          value=False
+        """
+        if name is None:
+            print(self)
+        else:
+            try:
+                print(type(self).__dict__[name])
+            except KeyError:
+                raise KeyError(
+                    f"'{name}' is not among configuration items {tuple(self)}"
+                ) from None
 
     def set_temp(self, attr, value):
         """
