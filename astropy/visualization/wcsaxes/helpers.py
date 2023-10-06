@@ -5,12 +5,16 @@ Helpers functions for different kinds of WCSAxes instances.
 """
 
 import numpy as np
-from mpl_toolkits.axes_grid1.anchored_artists import AnchoredEllipse, AnchoredSizeBar
+from mpl_toolkits.axes_grid1.anchored_artists import (
+    AnchoredDirectionArrows,
+    AnchoredEllipse,
+    AnchoredSizeBar,
+)
 
 import astropy.units as u
 from astropy.wcs.utils import proj_plane_pixel_scales
 
-__all__ = ["add_beam", "add_scalebar"]
+__all__ = ["add_compass", "add_beam", "add_scalebar"]
 
 CORNERS = {
     "top right": 1,
@@ -22,6 +26,56 @@ CORNERS = {
     "bottom": 8,
     "top": 9,
 }
+
+
+def add_compass(
+    ax,
+    north_angle,
+    length=0.15,
+    sep_N=-0.1,
+    sep_E=0.04,
+    color="white",
+    **kwargs,
+):
+    """
+    Display North, East arrows.
+
+    Parameters
+    ----------
+    ax : :class:`~astropy.visualization.wcsaxes.WCSAxes`
+        WCSAxes instance in which the beam shape and size is displayed. The WCS
+        must be celestial.
+    north_angle : `~astropy.coordinates.Angle`
+        Angle between sky North and pixel coordinate x-axis,
+        along tangent line of great circle running through
+        pixel and sky North.
+        This can be computed by :meth:`astropy.wcs.`
+    length : float, optional.
+        The arrow length, default 0.15.
+    sep_N : float, optional.
+        Separation between North arrow and "N" label, default -0.1.
+    sep_E : float, optional.
+        Separation between East arrow and "E" label, default 0.04.
+    color : str, optional.
+        The color. Default "white".
+    kwargs
+        Additional arguments are passed to
+        :class:`~matplotlib.mpl_toolkits.axes_grid1.anchored_artists.AnchoredDirectionArrows`.
+    """
+    arrow = AnchoredDirectionArrows(
+        ax.transAxes,
+        label_x="E",
+        label_y="N",
+        length=-length,
+        aspect_ratio=-1,
+        sep_y=sep_N,
+        sep_x=sep_E,
+        angle=north_angle.degree - 90,
+        color=color,
+        back_length=0,
+        **kwargs,
+    )
+    ax.add_artist(arrow)
 
 
 def add_beam(

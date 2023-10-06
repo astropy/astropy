@@ -3,7 +3,12 @@ from contextlib import nullcontext
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
+from numpy.testing import (
+    assert_allclose,
+    assert_almost_equal,
+    assert_equal,
+    assert_quantity_allclose,
+)
 from packaging.version import Version
 
 from astropy import units as u
@@ -69,7 +74,7 @@ def test_north_pole_angle():
 
     # simplest test - north is 90 degrees from positive x
     pix = (0, 0)
-    assert np.isclose(north_pole_angle(pix, mywcs), 90 * u.deg, rtol=1e-5)
+    assert_quantity_allclose(north_pole_angle(pix, mywcs), 90 * u.deg, rtol=1.0e-7)
 
     # rotate coordinate system by known amount
     rho = np.radians(30)
@@ -79,7 +84,7 @@ def test_north_pole_angle():
         [scale * np.sin(rho), scale * np.cos(rho)],
     ]
     pix2 = (0, 0)
-    assert np.isclose(north_pole_angle(pix2, mywcs), 60.0 * u.deg, rtol=1e-5)
+    assert_quantity_allclose(north_pole_angle(pix2, mywcs), 60.0 * u.deg, rtol=1.0e-7)
 
     # rotation into another quadrant
     rho = np.radians(120)
@@ -89,7 +94,7 @@ def test_north_pole_angle():
         [scale * np.sin(rho), scale * np.cos(rho)],
     ]
     pix3 = (0, 0)
-    assert np.isclose(north_pole_angle(pix3, mywcs), -30.0 * u.deg, rtol=1e-5)
+    assert_quantity_allclose(north_pole_angle(pix3, mywcs), -30.0 * u.deg, rtol=1.0e-7)
 
 
 def test_wcs_dropping():
