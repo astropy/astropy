@@ -206,7 +206,7 @@ def test_mivot_readout():
     """
     Test the MIVOT block extraction from a file against a reference block stored in data
     """
-    votable = parse(get_pkg_data_filename("data/mivot_annnotated_table.xml"))
+    votable = parse(get_pkg_data_filename("data/mivot_annotated_table.xml"))
 
     ref_data = ""
     for resource in votable.resources:
