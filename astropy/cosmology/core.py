@@ -548,13 +548,12 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
             'Planck13 (modified)'
 
         The keyword 'to_nonflat' can be used to clone on the non-flat equivalent
-        cosmology.
+        cosmology. For :class:`~astropy.cosmology.FLRW` cosmologies this means
+        ``Ode0`` can be modified:
 
-            >>> Planck13.clone(to_nonflat=True)
-            LambdaCDM(name="Planck13", ...
-
-            >>> Planck13.clone(H0=70, to_nonflat=True)
-            LambdaCDM(name="Planck13 (modified)", H0=70.0 km / (Mpc s), ...
+            >>> Planck13.clone(to_nonflat=True, Ode0=1)
+            LambdaCDM(name="Planck13 (modified)", H0=67.77 km / (Mpc s),
+                      Om0=0.30712, Ode0=1.0, ...
         """
         if to_nonflat:
             return self.nonflat.clone(meta=meta, **kwargs)
