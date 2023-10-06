@@ -358,6 +358,43 @@ def test_configitem_options(tmp_path):
     assert "tstnmo = op2" in lns
 
 
+def test_help(capsys):
+    from astropy import conf
+
+    use_color_msg = cleandoc(
+        """
+        ConfigItem: use_color
+          cfgtype='boolean'
+          defaultvalue={is_not_windows}
+          description='When True, use ANSI color escape sequences when writing to the console.'
+          module=astropy
+          value={is_not_windows}
+        """
+    ).format(is_not_windows=sys.platform != "win32")
+    conf.help("use_color")
+    assert capsys.readouterr().out == use_color_msg + "\n"
+
+    conf.help()
+    help_text = capsys.readouterr().out
+    assert help_text.startswith(
+        "Configuration parameters for `astropy`.\n\nConfigItem: unicode_output"
+    )
+    assert use_color_msg in help_text
+
+
+def test_help_invalid_config_item():
+    from astropy import conf
+
+    with pytest.raises(
+        KeyError,
+        match=(
+            "'bad_name' is not among configuration items "
+            r"\('unicode_output', 'use_color', 'max_lines', 'max_width'\)"
+        ),
+    ):
+        conf.help("bad_name")
+
+
 def test_config_noastropy_fallback(monkeypatch):
     """
     Tests to make sure configuration items fall back to their defaults when
