@@ -10,9 +10,10 @@ import numpy as np
 
 import astropy.units as u
 from astropy.coordinates.angles import Angle
-from astropy.utils import ShapedLikeNDArray, classproperty
+from astropy.utils import classproperty
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.exceptions import DuplicateRepresentationWarning
+from astropy.utils.masked import MaskableShapedLikeNDArray, Masked, combine_masks
 
 # Module-level dict mapping representation string alias names to classes.
 # This is populated by __init_subclass__ when called by Representation or
@@ -126,7 +127,7 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
         return out
 
 
-class BaseRepresentationOrDifferential(ShapedLikeNDArray):
+class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
     """3D coordinate representations and differentials.
 
     Parameters
@@ -232,6 +233,10 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
             else attr
             for attr, bc_attr in zip(attrs, bc_attrs)
         ]
+
+        # If any attribute has a mask, make all attributes Masked instances.
+        if any(hasattr(attr, "mask") for attr in attrs):
+            attrs = [Masked(attr) for attr in attrs]
 
         # Set private attributes for the attributes. (If not defined explicitly
         # on the class, the metaclass will define properties to access these.)
@@ -377,14 +382,36 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         return new
 
     def __setitem__(self, item, value):
-        if value.__class__ is not self.__class__:
+        set_mask = value is np.ma.masked
+        clear_mask = value is np.ma.nomask
+        if not (value.__class__ is self.__class__ or set_mask or clear_mask):
             raise TypeError(
                 "can only set from object of same class: "
                 f"{self.__class__.__name__} vs. {value.__class__.__name__}"
+                " (unless setting or clearing the mask with"
+                " np.ma.masked or np.ma.nomask)."
             )
 
+        if not self.masked:
+            if clear_mask:
+                # Clearing masked elements on an unmasked instance: nothing to do.
+                return
+
+            elif set_mask or value.masked:
+                # To be able to set the mask, ensure the components are masked.
+                for comp in self.components:
+                    c = "_" + comp
+                    setattr(self, c, Masked(getattr(self, c)))
+
+        if set_mask or clear_mask:
+            for comp in self.components:
+                c = "_" + comp
+                getattr(self, c).mask[item] = set_mask
+            return
+
         for component in self.components:
-            getattr(self, "_" + component)[item] = getattr(value, "_" + component)
+            c = "_" + component
+            getattr(self, c)[item] = getattr(value, c)
 
     @property
     def shape(self):
@@ -425,6 +452,37 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                     raise
                 else:
                     reshaped.append(val)
+
+    @property
+    def masked(self):
+        return isinstance(getattr(self, self.components[0]), Masked)
+
+    def get_mask(self, *attrs):
+        """Calculate the mask, by combining masks from the given attributes.
+
+        Parameters
+        ----------
+        *attrs : str
+            Attributes from which to get the masks to combine. If not given,
+            use all components of the class.
+
+        Returns
+        -------
+        mask : ~numpy.ndarray of bool
+            The combined, read-only mask. If the instance is not masked, it
+            is an array of `False` with the correct shape.
+        """
+        if not attrs:
+            attrs = self.components
+
+        values = operator.attrgetter(*attrs)(self)
+        if not isinstance(values, tuple):
+            values = (values,)
+
+        mask = combine_masks([getattr(v, "mask", None) for v in values])
+        return np.broadcast_to(mask, self.shape)  # Makes it readonly too.
+
+    mask = property(get_mask, doc="The combined mask of all components.")
 
     # Required to support multiplication and division, and defined by the base
     # representation and differential classes.
@@ -990,6 +1048,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         return rep
 
     def __setitem__(self, item, value):
+        if value is np.ma.masked or value is np.ma.nomask:
+            return super().__setitem__(item, value)
+
         if not isinstance(value, BaseRepresentation):
             raise TypeError(
                 f"value must be a representation instance, not {type(value)}."
