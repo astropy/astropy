@@ -1054,6 +1054,39 @@ class TimeBase(ShapedLikeNDArray):
     def masked(self):
         return isinstance(self._time.jd1, Masked)
 
+    @property
+    def unmasked(self):
+        """Get an instance without the mask.
+
+        Note that while one gets a new instance, the underlying data will be shared.
+
+        See Also
+        --------
+        astropy.time.Time.filled
+        """
+        return (
+            self._apply(operator.attrgetter("unmasked"))
+            if self.masked
+            else self.replicate()
+        )
+
+    def filled(self, fill_value):
+        """Get a copy of the underlying data, with masked values filled in.
+
+        Parameters
+        ----------
+        fill_value : object
+            Value to replace masked values with.  Note that if this value is masked
+
+        See Also
+        --------
+        astropy.time.Time.unmasked
+        """
+        # TODO: once we support Not-a-Time, that can be the default fill_value.
+        unmasked = self.unmasked.copy()
+        unmasked[self.mask] = fill_value
+        return unmasked
+
     def insert(self, obj, values, axis=0):
         """
         Insert values before the given indices in the column and return

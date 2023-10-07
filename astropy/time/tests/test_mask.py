@@ -63,6 +63,34 @@ def test_simple():
     assert t.masked
 
 
+def test_unmasked():
+    t = Time([1, 2, 3], format="cxcsec")
+    t[2] = np.ma.masked
+    assert t.masked
+    t_unmasked = t.unmasked
+    assert not t_unmasked.masked
+    assert not hasattr(t_unmasked.value, "mask")
+    assert not hasattr(t_unmasked.unix, "mask")
+    assert (t_unmasked.value == t.value.unmasked).all()
+    # Check that data is shared.
+    assert np.may_share_memory(t_unmasked._time.jd1, t._time.jd1)
+
+
+@pytest.mark.parametrize("fill_value", [4, Time(5, format="cxcsec")])
+def test_filled(fill_value):
+    t = Time([1, 2, 3], format="cxcsec")
+    t[2] = np.ma.masked
+    # Fill with something suitable.
+    t_filled = t.filled(fill_value)
+    assert not t_filled.masked
+    assert not hasattr(t_filled.value, "mask")
+    assert not hasattr(t_filled.unix, "mask")
+    expected = t.value.filled(Time(fill_value, format="cxcsec").value)
+    assert (t_filled.value == expected).all()
+    # Check that data is not shared.
+    assert not np.may_share_memory(t_filled._time.jd1, t._time.jd1)
+
+
 def test_scalar_init():
     t = Time("2000:001")
     assert t.masked is False
