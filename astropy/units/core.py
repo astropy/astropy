@@ -1322,10 +1322,10 @@ class UnitBase:
             for len_bases, composed, tunit in results:
                 if len_bases > min_length:
                     break
-                else:
-                    factored = composed * tunit
-                    if is_final_result(factored):
-                        subresults.add(factored)
+
+                factored = composed * tunit
+                if is_final_result(factored):
+                    subresults.add(factored)
 
             if len(subresults):
                 cached_results[key] = subresults

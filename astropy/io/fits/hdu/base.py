@@ -27,6 +27,7 @@ from astropy.io.fits.util import (
 )
 from astropy.io.fits.verify import _ErrList, _Verify
 from astropy.utils import lazyproperty
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = [
@@ -109,7 +110,11 @@ def _hdu_class_from_header(cls, header):
                     or c in cls._hdu_registry
                 ):
                     continue
-                if c.match_header(header):
+                # skip _NonstandardExtHDU and _ExtensionHDU since those are deprecated
+                if c.match_header(header) and c not in (
+                    _NonstandardExtHDU,
+                    _ExtensionHDU,
+                ):
                     klass = c
                     break
             except NotImplementedError:
@@ -1613,9 +1618,9 @@ class ExtensionHDU(_ValidHDU):
         return errs
 
 
-# For backwards compatibility, though this needs to be deprecated
-# TODO: Mark this as deprecated
-_ExtensionHDU = ExtensionHDU
+@deprecated("v6.0")
+class _ExtensionHDU(ExtensionHDU):
+    pass
 
 
 class NonstandardExtHDU(ExtensionHDU):
@@ -1662,5 +1667,6 @@ class NonstandardExtHDU(ExtensionHDU):
         return self._get_raw_data(self.size, "ubyte", self._data_offset)
 
 
-# TODO: Mark this as deprecated
-_NonstandardExtHDU = NonstandardExtHDU
+@deprecated("v6.0")
+class _NonstandardExtHDU(NonstandardExtHDU):
+    pass
