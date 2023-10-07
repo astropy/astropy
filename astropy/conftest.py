@@ -19,6 +19,7 @@ except ImportError:
 import pytest
 
 from astropy import __version__
+import astropy
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 if not NUMPY_LT_2_0:
