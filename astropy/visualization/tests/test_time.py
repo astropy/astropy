@@ -195,7 +195,7 @@ def test_formats(format, expected):
                 Time("2077-03-22T12:30:32.1", scale=DEFAULT_SCALE),
             )
         assert get_ticklabels(ax.xaxis) == expected
-        ax.get_xlabel() == f"Time ({format})"
+        assert ax.get_xlabel() == f"Time ({format})"
 
 
 @pytest.mark.parametrize(("format", "expected"), FORMAT_CASES)
@@ -215,7 +215,7 @@ def test_auto_formats(format, expected):
                 Time("2077-03-22T12:30:32.1", scale=DEFAULT_SCALE),
             )
         assert get_ticklabels(ax.xaxis) == expected
-        ax.get_xlabel() == f"Time ({format})"
+        assert ax.get_xlabel() == f"Time ({format})"
 
 
 FORMAT_CASES_SIMPLIFY = [
