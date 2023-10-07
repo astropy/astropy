@@ -2313,24 +2313,7 @@ def test_datetime64_no_format():
 
 
 def test_hash_time():
-    loc1 = EarthLocation(1 * u.m, 2 * u.m, 3 * u.m)
-    for loc in None, loc1:
-        t = Time([1, 1, 2, 3], format="cxcsec", location=loc)
-        t[3] = np.ma.masked
-        h1 = hash(t[0])
-        h2 = hash(t[1])
-        h3 = hash(t[2])
-        assert h1 == h2
-        assert h1 != h3
-
-        with pytest.raises(TypeError) as exc:
-            hash(t)
-        assert exc.value.args[0] == "unhashable type: 'Time' (must be scalar)"
-
-        with pytest.raises(TypeError) as exc:
-            hash(t[3])
-        assert exc.value.args[0] == "unhashable type: 'Time' (value is masked)"
-
+    loc = EarthLocation(1 * u.m, 2 * u.m, 3 * u.m)
     t = Time(1, format="cxcsec", location=loc)
     t2 = Time(1, format="cxcsec")
 
@@ -2342,22 +2325,53 @@ def test_hash_time():
     assert hash(t) != hash(t2)
 
 
-def test_hash_time_delta():
+@pytest.mark.parametrize("location", [None, EarthLocation(1 * u.m, 2 * u.m, 3 * u.m)])
+@pytest.mark.parametrize("masked_array_type", ["numpy", "astropy"])
+def test_hash_masked_time(location, masked_array_type):
+    t = Time([1, 1, 2, 3], format="cxcsec", location=location)
+    t[3] = np.ma.masked
+    with conf.set_temp("masked_array_type", masked_array_type):
+        if masked_array_type == "numpy":
+            h1 = hash(t[0])
+            h2 = hash(t[1])
+            h3 = hash(t[2])
+            assert h1 == h2
+            assert h1 != h3
+        else:
+            with pytest.raises(TypeError, match="value is masked"):
+                hash(t[0])
+
+        with pytest.raises(
+            TypeError, match=r"unhashable type: 'Time' \(must be scalar\)"
+        ):
+            hash(t)
+
+        with pytest.raises(
+            TypeError, match=r"unhashable type: 'Time' \(value is masked\)"
+        ):
+            hash(t[3])
+
+
+@pytest.mark.parametrize("masked_array_type", ["numpy", "astropy"])
+def test_hash_time_delta_masked(masked_array_type):
     t = TimeDelta([1, 1, 2, 3], format="sec")
     t[3] = np.ma.masked
-    h1 = hash(t[0])
-    h2 = hash(t[1])
-    h3 = hash(t[2])
-    assert h1 == h2
-    assert h1 != h3
+    with conf.set_temp("masked_array_type", masked_array_type):
+        if masked_array_type == "numpy":
+            h1 = hash(t[0])
+            h2 = hash(t[1])
+            h3 = hash(t[2])
+            assert h1 == h2
+            assert h1 != h3
+        else:
+            with pytest.raises(TypeError, match=r"'TimeDelta' \(value is masked\)"):
+                hash(t[0])
 
-    with pytest.raises(TypeError) as exc:
-        hash(t)
-    assert exc.value.args[0] == "unhashable type: 'TimeDelta' (must be scalar)"
+        with pytest.raises(TypeError, match=r"'TimeDelta' \(must be scalar\)"):
+            hash(t)
 
-    with pytest.raises(TypeError) as exc:
-        hash(t[3])
-    assert exc.value.args[0] == "unhashable type: 'TimeDelta' (value is masked)"
+        with pytest.raises(TypeError, match=r"'TimeDelta' \(value is masked\)"):
+            hash(t[3])
 
 
 def test_get_time_fmt_exception_messages():

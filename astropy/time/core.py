@@ -895,26 +895,29 @@ class TimeBase(ShapedLikeNDArray):
 
     def _shaped_like_input(self, value):
         if self.masked:
-            # Create new instance even when Masked already, to guarantee
-            # the right masked array type, and that the mask is copied.
-            return conf._masked_cls(value, mask=self.mask.copy())
+            # Ensure the mask is independent.
+            value = conf._masked_cls(value, mask=self.mask.copy())
+            # For new-style, we do not treat masked scalars differently from arrays.
+            if isinstance(value, Masked):
+                return value
 
         if self._time.jd1.shape:
             if isinstance(value, np.ndarray):
-                if isinstance(value, Masked):
-                    return value.unmasked
-                else:
-                    return value
+                return value
             else:
                 raise TypeError(
                     f"JD is an array ({self._time.jd1!r}) but value is not ({value!r})"
                 )
         else:
-            # zero-dimensional array, is it safe to unbox?
+            # zero-dimensional array, is it safe to unbox?  The tricky comparison
+            # of the mask is for the case that value is structured; otherwise, we
+            # could just use np.ma.is_masked(value).
             if (
                 isinstance(value, np.ndarray)
                 and not value.shape
-                and not np.ma.is_masked(value)
+                and (
+                    (mask := getattr(value, "mask", np.False_)) == np.zeros_like(mask)
+                ).all()
             ):
                 if value.dtype.kind == "M":
                     # existing test doesn't want datetime64 converted
@@ -1049,11 +1052,7 @@ class TimeBase(ShapedLikeNDArray):
 
     @property
     def masked(self):
-        if "masked" not in self.cache:
-            self.cache["masked"] = bool(
-                (getattr(self._time.jd2, "mask", np.False_)).any()
-            )
-        return self.cache["masked"]
+        return isinstance(self._time.jd1, Masked)
 
     def insert(self, obj, values, axis=0):
         """
