@@ -1,0 +1,6 @@
+Representations now interact properly with ``Masked`` underlying data,
+combining their masks in a new ``.mask`` property. One can also check whether
+the data are masked using ``.masked`` and get an unmasked version out via
+``.unmasked``. In general, the procedure is similar to that of ``Time``,
+except that the mask is not shared between all components, to enable holding,
+e.g., a catalogue of objects in which only some have associated distances.
