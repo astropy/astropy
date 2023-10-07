@@ -9,7 +9,7 @@ from astropy import units as u
 from astropy.table import Table
 from astropy.time import Time, conf
 from astropy.utils import iers
-from astropy.utils.compat import NUMPY_LT_1_26, PYTHON_LT_3_11
+from astropy.utils.compat import NUMPY_LT_1_25, NUMPY_LT_1_26, PYTHON_LT_3_11
 from astropy.utils.compat.optional_deps import HAS_H5PY
 from astropy.utils.masked import Masked
 
@@ -51,10 +51,11 @@ def test_simple():
     # Can also unmask.
     t[2] = np.ma.nomask
     assert np.all(t.mask == [False, False, False])
-    # Which means one can become unmasked again.
-    assert not t.masked
-    assert not hasattr(t.value, "mask")
-    assert not hasattr(t.unix, "mask")
+    # But since the internal data are still masked, the instance stays masked too,
+    # as does any output.
+    assert t.masked
+    assert hasattr(t.value, "mask")
+    assert hasattr(t.unix, "mask")
     # Combo just for completeness
     t[1:] = np.ma.masked
     t[1] = np.ma.nomask
@@ -116,10 +117,10 @@ def test_str():
     # the call to replace().
     assert repr(t.iso).replace(">U23", "<U23").splitlines() == expected
 
-    # Assign value to unmask
+    # Assign value to unmask, though the instance stays masked.
     t[1] = "2000:111"
     assert str(t) == "['2000:001:00:00:00.000' '2000:111:00:00:00.000']"
-    assert t.masked is False
+    assert t.masked
 
 
 def test_transform():
@@ -285,6 +286,25 @@ def test_all_formats(format_, masked_cls, masked_array_type):
         else:
             expected = t_format
         assert np.all(tm_format == expected)
+
+        # Check masked scalar.
+        tm0_format = getattr(tm[0], format_)
+        assert isinstance(tm0_format, out_cls)
+        if NUMPY_LT_1_25 and tm0_format.dtype.kind == "M":
+            # Comparison bug in older numpy, just skip it.
+            return
+        comparison = tm0_format == tm_format[0]
+        assert comparison.mask
+        if out_cls is Masked:
+            assert comparison.unmasked
+        elif tm0_format.dtype.names:
+            assert comparison.data
+        else:
+            assert comparison is np.ma.masked
+
+        # Check unmasked scalar.
+        tm1_format = getattr(tm[1], format_)
+        assert tm1_format == tm_format[1]
 
     # Verify that configuration gets reset to "astropy".
     tm_format2 = getattr(tm, format_)
