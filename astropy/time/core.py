@@ -28,12 +28,12 @@ from astropy import constants as const
 from astropy import units as u
 from astropy.extern import _strptime
 from astropy.units import UnitConversionError
-from astropy.utils import ShapedLikeNDArray, lazyproperty
+from astropy.utils import lazyproperty
 from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
-from astropy.utils.masked import Masked
+from astropy.utils.masked import MaskableShapedLikeNDArray, Masked
 
 # Below, import TimeFromEpoch to avoid breaking code that followed the old
 # example of making a custom timescale in the documentation.
@@ -482,7 +482,7 @@ class TimeDeltaInfo(TimeInfoBase):
         return out
 
 
-class TimeBase(ShapedLikeNDArray):
+class TimeBase(MaskableShapedLikeNDArray):
     """Base time class from which Time and TimeDelta inherit."""
 
     # Make sure that reverse arithmetic (e.g., TimeDelta.__rmul__)
@@ -1093,36 +1093,6 @@ class TimeBase(ShapedLikeNDArray):
     @property
     def masked(self):
         return isinstance(self._time.jd1, Masked)
-
-    @property
-    def unmasked(self):
-        """Get an instance without the mask.
-
-        Note that while one gets a new instance, the underlying data will be shared.
-
-        See Also
-        --------
-        astropy.time.Time.filled
-        """
-        # Get a new Time instance that has the unmasked versions of all attributes.
-        return self._apply(lambda x: getattr(x, "unmasked", x))
-
-    def filled(self, fill_value):
-        """Get a copy of the underlying data, with masked values filled in.
-
-        Parameters
-        ----------
-        fill_value : object
-            Value to replace masked values with.  Note that if this value is masked
-
-        See Also
-        --------
-        astropy.time.Time.unmasked
-        """
-        # TODO: once we support Not-a-Time, that can be the default fill_value.
-        unmasked = self.unmasked.copy()
-        unmasked[self.mask] = fill_value
-        return unmasked
 
     def insert(self, obj, values, axis=0):
         """
