@@ -863,13 +863,40 @@ To set one or more items as missing, assign the special value
   >>> print(t)
   ['2001:020' '2001:040'        ——— '2001:080']
 
-One can unset the mask by assigning another special value,
-`numpy.ma.nomask`::
+If one wants to get unmasked data, one can get those either by just
+removing the mask using the `~astropy.time.Time.unmasked` attribute,
+or by filling any masked data with a chosen value::
+
+  >>> print(t.unmasked)
+  ['2001:020' '2001:040' '2001:060' '2001:080']
+  >>> t_filled = t.filled('1999:365')
+  >>> print(t_filled)
+  ['2001:020' '2001:040' '1999:365' '2001:080']
+
+One can also unset the mask on individual elements by assigning
+another special value, `numpy.ma.nomask`::
 
   >>> t[2] = np.ma.nomask
   >>> print(t)
   ['2001:020' '2001:040' '2001:060' '2001:080']
 
+A subtle difference between the two approaches is that when one unsets
+the mask by setting with `numpy.ma.nomask`, a mask is still present
+internally, and hence any output will have a mask as well.  In
+contrast, using `~astropy.time.Time.unmasked` or
+:meth:`~astropy.time.Time.filled` removes all masking, and hence any
+output is not masked. The `~astropy.time.Time.masked` property can be
+used to check whether or not a mask is in use internally::
+
+  >>> t.masked
+  True
+  >>> t.value
+  MaskedNDArray(['2001:020', '2001:040', '2001:060', '2001:080'],
+              dtype='<U8')
+  >>> t_filled.masked
+  False
+  >>> t_filled.value
+  array(['2001:020', '2001:040', '1999:365', '2001:080'], dtype='<U8')
 
 .. note:: When setting the mask, actual time data are kept. However,
           when *initializing* with a masked array, any masked time
