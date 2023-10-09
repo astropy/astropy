@@ -25,6 +25,7 @@ from astropy import units as u
 from astropy.extern import _strptime
 from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray, lazyproperty
+from astropy.utils.compat import PYTHON_LT_3_11
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
@@ -487,6 +488,13 @@ class TimeBase(ShapedLikeNDArray):
 
     def __getnewargs__(self):
         return (self._time,)
+
+    def __getstate__(self):
+        # For pickling, we remove the cache from what's pickled
+        state = (self.__dict__ if PYTHON_LT_3_11 else super().__getstate__()).copy()
+        state.pop("_id_cache", None)
+        state.pop("cache", None)
+        return state
 
     def _init_from_vals(
         self,
