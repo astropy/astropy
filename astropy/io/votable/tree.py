@@ -3456,9 +3456,7 @@ class MivotBlock(Element):
         warn_or_raise(W10, W10, tag, config, pos=pos)
 
     @property
-    def content(
-        self,
-    ):
+    def content(self):
         """
         The XML mapping block serialized as string.
         If there is not mapping block, an empty block is returned in order to
@@ -3473,7 +3471,7 @@ class MivotBlock(Element):
 
     def parse(self, votable, iterator, config):
         """
-        Regular parser similar to others VOTable components
+        Regular parser similar to others VOTable components.
         """
         model_mapping_mapping = {
             "VODML": self._add_statement,
@@ -3510,7 +3508,7 @@ class MivotBlock(Element):
         Check if the content is on xml format by building a VOTable,
         putting a MIVOT block in the first resource and trying to parse the VOTable.
         """
-        if self._content.startswith("<") is False:
+        if not self._content.startswith("<"):
             vo_raise(E26)
 
         in_memory_votable = VOTableFile()
@@ -3618,7 +3616,7 @@ class Resource(
         Returns the MIVOT block instance.
         If the host resource is of type results, it is taken from the first
         child resource with a MIVOT block, if any.
-        Otherwise, it is taken from the host resource
+        Otherwise, it is taken from the host resource.
         """
         if self.type == "results":
             for resource in self.resources:

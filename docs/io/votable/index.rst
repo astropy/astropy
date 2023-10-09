@@ -465,6 +465,8 @@ record array must be resized repeatedly during load.
 
 .. _nrows: http://www.ivoa.net/documents/REC/VOTable/VOTable-20040811.html#ToC10
 
+.. _votable_mivot:
+
 Reading and writing VO model annotations
 ========================================
 
@@ -492,7 +494,7 @@ that are not MIVOT serializations.
 MivotBlock implementation:
 
 - MIVOT blocks are handled by the :class:`astropy.io.votable.tree.MivotBlock` class.
-- A MivotBlock instance can only be carried by a resource with “type=meta”.
+- A MivotBlock instance can only be carried by a resource with "type=meta".
 - This instance holds the XML mapping block as a string.
 - MivotBlock objects are instanced by the Resource parser.
 - The MivotBlock class has its own logic that operates both parsing and IO functionalities.
