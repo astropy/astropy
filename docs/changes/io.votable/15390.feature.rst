@@ -1,0 +1,2 @@
+Added MIVOT feature through the ``MivotBlock`` class
+that allows model annotations reading and writing in VOTable.

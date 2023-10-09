@@ -17,6 +17,7 @@ In particular, this release includes:
 * :ref:`whatsnew-6.0-broadcasting-frame-attributes`
 * :ref:`whatsnew-6.0-cosmology-latex-export`
 * :ref:`whatsnew-6.0-iers-data`
+* :ref:`whatsnew-6.0-model-annotation-in-votable`
 
 In addition to these major changes, Astropy v6.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -233,6 +234,23 @@ IERS data can now install the latest version of the
 `astropy-iers-data`_ package using ``pip`` or ``conda``, or alternatively
 download the package manually and transfer it to a computer that has no
 public internet connection.
+
+
+.. _whatsnew-6.0-model-annotation-in-votable:
+
+Reading and writing VO model annotations
+========================================
+
+Model Instances in VOTables (`MIVOT <https://ivoa.net/documents/MIVOT/20230620/REC-mivot-1.0.pdf>`_)
+defines a syntax to map VOTable data to any model serialised in VO-DML (Virtual Observatory Data Modeling Language).
+The data model elements are grouped in an independent annotation block complying with
+the MIVOT XML schema which is added as an extra resource above the table element.
+In Astropy, the MIVOT block is implemented as a new component of the Resource element (MivotBlock class).
+MivotBlock instances can only be held by resources with "type=meta".
+In this new feature, Astropy is able to read and write MIVOT annotations from and within VOTables.
+There is no function processing data models, they will be delegated to affiliated packages such as PyVO.
+
+See :ref:`votable_mivot` for more details.
 
 
 Full change log
