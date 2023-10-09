@@ -36,7 +36,7 @@ Here is a sample record array::
     >>> bright = np.rec.array([(1,'Sirius', -1.45, 'A1V'),
     ...                        (2,'Canopus', -0.73, 'F0Ib'),
     ...                        (3,'Rigil Kent', -0.1, 'G2V')],
-    ...                       formats='int16,a20,float32,a10',
+    ...                       formats='int16,S20,float32,S10',
     ...                       names='order,name,mag,Sp')
 
 In this example, there are three records (rows) and four fields (columns). The

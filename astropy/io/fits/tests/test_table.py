@@ -410,7 +410,7 @@ class TestTableFunctions(FitsTestCase):
                 (2, "Canopys", -0.73, "F0Ib"),
                 (3, "Rigil Kent", -0.1, "G2V"),
             ],
-            formats="int16,a20,float32,a10",
+            formats="int16,S20,float32,S10",
             names="order,name,mag,Sp",
         )
         hdu = fits.BinTableHDU(bright)
@@ -472,7 +472,7 @@ class TestTableFunctions(FitsTestCase):
                 (2, "Canopys", -0.73, "F0Ib"),
                 (3, "Rigil Kent", -0.1, "G2V"),
             ],
-            formats="int16,a20,float64,a10",
+            formats="int16,S20,float64,S10",
             names="order,name,mag,Sp",
         )
         hdu = fits.TableHDU.from_columns(bright, nrows=2)
@@ -549,7 +549,7 @@ class TestTableFunctions(FitsTestCase):
         hdu = fits.BinTableHDU.from_columns(bright, nrows=2)
         tmp = np.rec.array(
             [(1, "Serius", -1.45, "A1V"), (2, "Canopys", -0.73, "F0Ib")],
-            formats="int16,a20,float64,a10",
+            formats="int16,S20,float64,S10",
             names="order,name,mag,Sp",
         )
         assert comparerecords(hdu.data, tmp)
@@ -640,7 +640,7 @@ class TestTableFunctions(FitsTestCase):
                 ("NGC7", 408, "", z, False),
                 ("NCG8", 417, "", z, False),
             ],
-            formats="a10,u4,a10,5f4,l",
+            formats="S10,u4,S10,5f4,l",
         )
 
         assert comparerecords(hdu.data, array)
@@ -750,7 +750,7 @@ class TestTableFunctions(FitsTestCase):
                 ("NGC3", 308, "", z, True),
                 ("NCG4", 317, "", z, True),
             ],
-            formats="a10,u4,a10,5f4,l",
+            formats="S10,u4,S10,5f4,l",
         )
         assert comparerecords(tbhdu1.data, array)
 
@@ -779,7 +779,7 @@ class TestTableFunctions(FitsTestCase):
                 ("NGC3", 308, "", z, True),
                 ("NCG4", 317, "", z, True),
             ],
-            formats="a10,u4,a10,5f4,l",
+            formats="S10,u4,S10,5f4,l",
         )
         assert comparerecords(tbhdu.data, array)
 
@@ -791,7 +791,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.columns.names == ["target", "V_mag", "a"]
         array = np.rec.array(
             [("NGC1001", 11.1, 1), ("NGC1002", 12.3, 2), ("NGC1003", 15.2, 0)],
-            formats="a20,f4,i8",
+            formats="S20,f4,i8",
         )
         assert comparerecords(tbhdu.data, array)
         hdul.close()
@@ -821,7 +821,7 @@ class TestTableFunctions(FitsTestCase):
                 ("NGC3", 308, "", z),
                 ("NCG4", 317, "", z),
             ],
-            formats="a10,u4,a10,5f4",
+            formats="S10,u4,S10,5f4",
         )
         assert comparerecords(tbhdu.data, array)
 
@@ -830,7 +830,7 @@ class TestTableFunctions(FitsTestCase):
 
         assert tbhdu.columns.names == ["target", "spectrum"]
         array = np.rec.array(
-            [("NGC1", z), ("NGC2", z), ("NGC3", z), ("NCG4", z)], formats="a10,5f4"
+            [("NGC1", z), ("NGC2", z), ("NGC3", z), ("NCG4", z)], formats="S10,5f4"
         )
         assert comparerecords(tbhdu.data, array)
 
@@ -839,7 +839,7 @@ class TestTableFunctions(FitsTestCase):
         tbhdu = hdul[1]
         tbhdu.columns.del_col("V_mag")
         assert tbhdu.columns.names == ["target"]
-        array = np.rec.array([("NGC1001",), ("NGC1002",), ("NGC1003",)], formats="a20")
+        array = np.rec.array([("NGC1001",), ("NGC1002",), ("NGC1003",)], formats="S20")
         assert comparerecords(tbhdu.data, array)
         hdul.close()
 
@@ -883,7 +883,7 @@ class TestTableFunctions(FitsTestCase):
                 ("NGC3", 308, "", z, True, "NGC7", 408, "", z, False),
                 ("NCG4", 317, "", z, True, "NCG8", 417, "", z, False),
             ],
-            formats="a10,u4,a10,5f4,l,a10,u4,a10,5f4,l",
+            formats="S10,u4,S10,5f4,l,S10,u4,S10,5f4,l",
         )
         assert comparerecords(hdu.data, array)
 
@@ -958,7 +958,7 @@ class TestTableFunctions(FitsTestCase):
                 ("NGC3", 308, "", z, True, "NGC7", 408, "", z, False),
                 ("NCG4", 317, "", z, True, "NCG8", 417, "", z, False),
             ],
-            formats="a10,u4,a10,5f4,l,a10,u4,a10,5f4,l",
+            formats="S10,u4,S10,5f4,l,S10,u4,S10,5f4,l",
         )
         assert comparerecords(hdu.data, array)
 
@@ -1994,7 +1994,7 @@ class TestTableFunctions(FitsTestCase):
                 ([6, 7, 8, 9, 0, 1], "row2" * 2),
                 ([2, 3, 4, 5, 6, 7], "row3" * 2),
             ],
-            formats="6i4,a8",
+            formats="6i4,S8",
         )
 
         thdu = fits.BinTableHDU.from_columns(data)
@@ -2357,7 +2357,7 @@ class TestTableFunctions(FitsTestCase):
         """
 
         data = np.rec.array(
-            [("a", [1, 2, 3, 4], 0.1), ("b", [5, 6, 7, 8], 0.2)], formats="a1,4i4,f8"
+            [("a", [1, 2, 3, 4], 0.1), ("b", [5, 6, 7, 8], 0.2)], formats="S1,4i4,f8"
         )
         tbhdu = fits.BinTableHDU.from_columns(data)
         datafile = self.temp("data.txt")
@@ -3376,7 +3376,7 @@ class TestColumnFunctions(FitsTestCase):
         """
 
         for recformat, fitsformat in NUMPY2FITS.items():
-            if recformat == "a":
+            if recformat == "S":
                 fitsformat = "0A"
             c = fits.Column("TEST", np.dtype(recformat))
             assert c.format == fitsformat

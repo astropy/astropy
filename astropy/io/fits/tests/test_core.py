@@ -1335,7 +1335,7 @@ class TestFileFunctions(FitsTestCase):
                 (2, "Canopus", -0.73, "F0Ib"),
                 (3, "Rigil Kent", -0.1, "G2V"),
             ],
-            formats="int16,a20,float32,a10",
+            formats="int16,S20,float32,S10",
             names="order,name,mag,Sp",
         )
 
