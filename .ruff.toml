@@ -146,7 +146,6 @@ ignore = [
     "PTH111",  # os-path-expanduser
     "PTH112",  # os-path-isdir
     "PTH113",  # os-path-isfile
-    "PTH117",  # os-path-isabs
     "PTH118",  # os-path-join
     "PTH119",  # os-path-basename
     "PTH120",  # os-path-dirname
@@ -252,6 +251,7 @@ unfixable = [
     "G004",  # logging-f-string
     "PIE790",  # unnecessary-pass
     "PTH116",  # os-stat
+    "PTH117",  # os-path-isabs
     "SLOT000",  # Subclasses of `str` should define `__slots__`
     "TD005",  # Missing issue description after `TODO`
     "TRY400",  # error-instead-of-exception
