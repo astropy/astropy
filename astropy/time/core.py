@@ -15,6 +15,7 @@ from collections import defaultdict
 from datetime import date, datetime, timezone
 from time import strftime
 from warnings import warn
+from weakref import WeakValueDictionary
 
 import erfa
 import numpy as np
@@ -23,9 +24,8 @@ from astropy import constants as const
 from astropy import units as u
 from astropy.extern import _strptime
 from astropy.units import UnitConversionError
-from astropy.utils import ShapedLikeNDArray
+from astropy.utils import ShapedLikeNDArray, lazyproperty
 from astropy.utils.data_info import MixinInfo, data_info_factory
-from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
 
@@ -1414,6 +1414,11 @@ class TimeBase(ShapedLikeNDArray):
         tm._format = new_format
         tm.SCALES = self.SCALES
 
+        # Finally, if we do not own our data, we link caches, so that
+        # those can be cleared as needed if any instance is written to.
+        if not (tm._time.jd1.base if tm.masked else tm._time.jd1).flags["OWNDATA"]:
+            tm._id_cache = self._id_cache
+
         return tm
 
     def __copy__(self):
@@ -1704,11 +1709,30 @@ class TimeBase(ShapedLikeNDArray):
         return result
 
     @lazyproperty
+    def _id_cache(self):
+        """Cache of all instances that share underlying data.
+
+        Helps to ensure all cached data can be deleted if the
+        underlying data is changed.
+        """
+        return WeakValueDictionary({id(self): self})
+
+    @_id_cache.setter
+    def _id_cache(self, _id_cache):
+        _id_cache[id(self)] = self
+        # lazyproperty will do the actual storing of the result.
+
+    @lazyproperty
     def cache(self):
         """
         Return the cache associated with this instance.
         """
         return defaultdict(dict)
+
+    @cache.deleter
+    def cache(self):
+        for instance in self._id_cache.values():
+            instance.cache.clear()
 
     def __getattr__(self, attr):
         """

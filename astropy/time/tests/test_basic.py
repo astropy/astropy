@@ -3,6 +3,7 @@
 import copy
 import datetime
 import functools
+import gc
 import os
 from copy import deepcopy
 from decimal import Decimal, localcontext
@@ -12,7 +13,7 @@ import erfa
 import numpy as np
 import pytest
 from erfa import ErfaWarning
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
 from astropy.coordinates import EarthLocation
@@ -1842,6 +1843,60 @@ def test_cache():
     # Check accessing the cache creates an empty dictionary
     assert not t.cache
     assert "cache" in t.__dict__
+
+
+@pytest.mark.parametrize("masked", [True, False])
+def test_cache_coherence_with_views(masked):
+    # Create a time instance and a slice.
+    t = Time(["2001:020", "2001:040", "2001:060", "2001:080"], out_subfmt="date")
+    if masked:
+        # Masked arrays do not own their data directly so worth testing.
+        t[1] = np.ma.masked
+    t01 = t[:2]
+    # These should share memory.
+    assert np.may_share_memory(t._time.jd1, t01._time.jd1)
+    # And have the same value, even though those are not shared,
+    # as they are calculated separately.
+    assert_array_equal(t01.value, t.value[:2])
+    assert not np.may_share_memory(t01.value, t.value)
+    # Check that we now have cached values.
+    assert "format" in t.cache
+    assert "format" in t01.cache
+    # This should still be the case if one or the other is set
+    # (regression test for gh-15452).
+    t[0] = "1999:099"
+    # Because the setting deletes all related caches.
+    assert not t.cache
+    assert not t01.cache
+    assert_array_equal(t01.jd1[:2], t.jd1[:2])
+    assert_array_equal(t01.value, t.value[:2])
+    # And also the other way around.
+    t01[1] = "1999:100"
+    assert not t.cache
+    assert not t01.cache
+    assert_array_equal(t01.jd1[:2], t.jd1[:2])
+    assert_array_equal(t01.value, t.value[:2])
+    # This works because they keep track of each other.
+    assert t01._id_cache is t._id_cache
+    assert set(t._id_cache) == {id(t), id(t01)}
+    # Check that our cache implementation does not keep objects alive
+    # unintentionally (i.e., that garbage collection works).
+    del t01
+    gc.collect()
+    assert set(t._id_cache) == {id(t)}
+    # Also check that deleting t01 did not remove the cache of t too.
+    assert "format" in t.cache
+    # If a copy was made, the cache is not shared.
+    tf = t.flatten()
+    assert "format" in t.cache
+    assert not tf.cache
+    assert_array_equal(tf.value, t.value)
+    assert "format" in tf.cache
+    t[0] = "2000:001"
+    assert not t.cache
+    assert "format" in tf.cache
+    assert not np.all(tf.value == t.value)
+    assert tf._id_cache is not t._id_cache
 
 
 def test_epoch_date_jd_is_day_fraction():
