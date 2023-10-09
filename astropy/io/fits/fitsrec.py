@@ -811,7 +811,7 @@ class FITS_rec(np.recarray):
             offset = field[idx, 1] + self._heapoffset
             count = field[idx, 0]
 
-            if recformat.dtype == "a":
+            if recformat.dtype == "S":
                 dt = np.dtype(recformat.dtype + str(1))
                 arr_len = count * dt.itemsize
                 da = raw_data[offset : offset + arr_len].view(dt)
