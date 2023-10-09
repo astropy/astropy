@@ -185,7 +185,6 @@ io_registry.register_identifier("votable", Table, is_votable)
 # VOTable with embedded/linked Parquet file #
 def write_table_votable_parquet(input, output, column_metadata, *, overwrite=False):
     """
-
     This function allows writing a VOTable (XML) with PARQUET
     serialization. This functionality is currently not
     supported by Astropy (with the reason that this method
@@ -206,7 +205,7 @@ def write_table_votable_parquet(input, output, column_metadata, *, overwrite=Fal
     output : str
         The filename to write the table to.
 
-    column_metadata : dictionary
+    column_metadata : dict
         Contains the metadata for the columns such as "unit" or
         "ucd" or "utype".
         (Example: {"id": {"unit": "", "ucd": "meta.id", "utype": "none"},

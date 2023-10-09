@@ -420,7 +420,7 @@ VOTable supports a number of different serialization formats.
   the `astropy.io.votable.parse` reader. The parquet file can be
   referenced with either absolute and relative paths. The parquet
   serialization can be used as part of the unified Table I/O (see next
-  section), by setting the ``'format'`` argument to ``'votable.parquet'``.
+  section), by setting the ``format`` argument to ``'votable.parquet'``.
 
 The serialization format can be selected in two ways:
 

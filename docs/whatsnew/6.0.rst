@@ -271,7 +271,7 @@ following VO standards.
 
 Reading and writing of the VOTable PARQUET serialization is fully supported by
 `astropy.io.votable` and the unified ``Table`` read/write interface.
-This serialization can be used by setting the ``'format'`` argument to
+This serialization can be used by setting the ``format`` argument to
 ``'votable.parquet'``, while ``'votable'`` can be used for reading in such a file.
 The method works for both absolute and relative parquet file paths.
 
@@ -301,7 +301,6 @@ Example for writing:
     >>> # Write VOTable with Parquet serialization
     >>> filename = "votable_with_parquet.vot"
     >>> cosmos.write(filename, column_metadata=column_metadata, format="votable.parquet")
-
 
 Example for reading a votable with a separate parquet file. Note the
 metadata is accessible on the column level:
