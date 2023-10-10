@@ -685,3 +685,100 @@ def test_no_units_warning():
     # table column with units
     table = Table({"t": [1, 2, 3] * u.s})
     assert np.all(TimeDelta(table["t"]).to_value(u.s) == [1, 2, 3])
+
+
+quantity_str_basic_cases = [
+    # Simple seconds (seconds always have a decimal point)
+    ("1s", "1.0s", 1.0),
+    # Simple minutes
+    ("1min", "1min", 60.0),
+    # Float hours
+    ("2.5hr", "2hr 30min", 2.5 * 3600),
+    # Variations on single input component with exponent to multiple output components
+    ("3.000001e7s", "347d 5hr 20min 10.0s", 30000010.0),
+    ("3.e7s", "347d 5hr 20min", 30000000.0),
+    ("3e7s", "347d 5hr 20min", 30000000.0),
+    # High precision seconds
+    ("1.0123456789012345s", "1.012s", 1.0123456789012345),
+    # High precision seconds, random/missing white space and a longer time interval
+    ("  100.0 d1.0123456789012345 s ", "100d 1.012s", 100 * 86400 + 1.0123456789012345),
+    # All possible components
+    (
+        "2yr 3d 4hr 5min 6.789s",
+        "2yr 3d 4hr 5min 6.789s",
+        2 * 365.25 * 86400 + 3 * 86400 + 4 * 3600 + 5 * 60 + 6.789,
+    ),
+    # Float values in components get normalized
+    (
+        "2.5yr 3.5d 4.5hr 5.5min 6.789s",
+        "2yr 186d 7hr 35min 36.789s",
+        2.5 * 365.25 * 86400 + 3.5 * 86400 + 4.5 * 3600 + 5.5 * 60 + 6.789,
+    ),
+]
+
+
+@pytest.mark.parametrize("sign", ["", "+", "-"])
+@pytest.mark.parametrize("in_str, out_val, dt_sec", quantity_str_basic_cases)
+def test_quantity_str_basic(sign, in_str, out_val, dt_sec):
+    dt = TimeDelta(sign + in_str)
+    minus = sign == "-"
+    out_sign = "-" if minus else ""
+    out_mult = -1 if minus else 1
+    assert dt.value == out_sign + out_val
+    assert allclose_sec(dt.sec, out_mult * dt_sec)
+
+
+def test_quantity_str_precision():
+    dt = TimeDelta("100.0d 1.0123456789012345s", precision=9)
+    assert dt.value == "100d 1.012345679s"
+
+
+quantity_str_invalid_cases = [
+    "",
+    " ",
+    "+",
+    " - ",
+    "1.0",
+    "1.0s 2.0s",
+    "1.0s 2.0",
+    "1.0s 2min",
+    "++1.0s",
+    "2min +1s",
+    "2d -1s",
+    "1sec",
+]
+
+
+@pytest.mark.parametrize("in_str", quantity_str_invalid_cases)
+def test_quantity_str_invalid(in_str):
+    match = "Input values did not match the format class quantity_str"
+    with pytest.raises(ValueError, match=match):
+        TimeDelta(in_str, format="quantity_str")
+
+
+quantity_str_subfmt_exps = {
+    "multi": "347d 5hr 20min 10.0s",
+    "yr": "0.951yr",
+    "d": "347.222d",
+    "hr": "8333.336hr",
+    "min": "500000.167min",
+    "s": "30000010.0s",
+}
+
+
+def test_quantity_str_out_subfmt():
+    for subfmt, exp in quantity_str_subfmt_exps.items():
+        dt = TimeDelta("30000010s", out_subfmt=subfmt)
+        assert dt.value == exp
+
+
+def test_quantity_str_out_subfmt_to_value_subfmt():
+    dt = TimeDelta("30000010s")
+    for subfmt, exp in quantity_str_subfmt_exps.items():
+        assert dt.to_value(subfmt=subfmt) == exp
+
+
+def test_quantity_str_out_subfmt_from_non_quantity_str():
+    dt = TimeDelta(30000010.0 * u.s)
+    for subfmt, exp in quantity_str_subfmt_exps.items():
+        assert dt.to_value(format="quantity_str", subfmt=subfmt) == exp
