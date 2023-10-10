@@ -2191,7 +2191,7 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
     - For input, whitespace within the string is allowed but optional.
     - For output, there is a single space between components.
     - The allowed components are listed below.
-    - The order is fixed but individual components are optional.
+    - The order (yr, d, hr, min, s) is fixed but individual components are optional.
 
     The allowed component units are shown below:
 
@@ -2217,29 +2217,29 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
 
     Examples
     --------
-      >>> from astropy.time import Time, TimeDelta
-      >>> import astropy.units as u
+    >>> from astropy.time import Time, TimeDelta
+    >>> import astropy.units as u
 
-      >>> print(TimeDelta("1yr"))
-      1yr
-      >>> print(Time("2000-01-01") + TimeDelta("1yr"))
-      2000-12-31 06:00:00.000
+    >>> print(TimeDelta("1yr"))
+    1yr
 
-      >>> print(TimeDelta("+1yr 3.6d"))
-      1yr 3d 14hr 24min
-      >>> print(TimeDelta("-1yr 3.6d"))
-      -1yr 3d 14hr 24min
-      >>> print(TimeDelta("1yr 3.6d", out_subfmt="d"))
-      368.85d
+    >>> print(Time("2000-01-01") + TimeDelta("1yr"))
+    2000-12-31 06:00:00.000
+    >>> print(TimeDelta("+1yr 3.6d"))
+    1yr 3d 14hr 24min
+    >>> print(TimeDelta("-1yr 3.6d"))
+    -1yr 3d 14hr 24min
+    >>> print(TimeDelta("1yr 3.6d", out_subfmt="d"))
+    368.85d
 
-      >>> td = TimeDelta(40 * u.hr)
-      >>> print(td.to_value(format="quantity_str"))
-      1d 16hr
-      >>> print(td.to_value(format="quantity_str", subfmt="d"))
-      1.667d
-      >>> td.precision = 9
-      >>> print(td.to_value(format="quantity_str", subfmt="d"))
-      1.666666667d
+    >>> td = TimeDelta(40 * u.hr)
+    >>> print(td.to_value(format="quantity_str"))
+    1d 16hr
+    >>> print(td.to_value(format="quantity_str", subfmt="d"))
+    1.667d
+    >>> td.precision = 9
+    >>> print(td.to_value(format="quantity_str", subfmt="d"))
+    1.666666667d
     """
 
     name = "quantity_str"
@@ -2256,10 +2256,11 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
     # Regex to parse "1.02yr 2.2d 3.12hr 4.322min 5.6s" where each element is optional
     # but the order is fixed. Each element is a float with optional exponent. Each
     # element is named.
-    re_float = r"[0-9]*\.?[0-9]*([eE][-+]?[0-9]+)?"
+    re_float = r"(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?"
     re_ydhms = re.compile(
         rf"""^ \s*
-        (?P<sign>[-+])? \s*
+        (?P<sign>[-+])? \s*  # Optional sign
+        (?=[^-+\s])  # At least one character which is not a sign or whitespace
         ((?P<yr>{re_float}) \s* yr \s*)?
         ((?P<d>{re_float}) \s* d \s*)?
         ((?P<hr>{re_float}) \s* hr \s*)?
@@ -2286,7 +2287,9 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
         components = ("yr", "d", "hr", "min", "s")
 
         if (match := self.re_ydhms.match(timestr)) is None:
-            raise ValueError(f"Time delta {timestr} does not match {self.name} format")
+            raise ValueError(
+                f"Time delta '{timestr}' does not match {self.name} format"
+            )
 
         tm = match.groupdict()
         vals = [float(tm[component] or 0.0) for component in components]
