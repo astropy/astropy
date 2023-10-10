@@ -683,7 +683,9 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 np.copyto(out, masks[0])
                 return out
 
-        out = np.logical_or(masks[0], masks[1], out=out)
+        # [...] at the end to ensure we have an array, not a scalar, and
+        # thus can be used for in-place changes in the loop.
+        out = np.logical_or(masks[0], masks[1], out=out)[...]
         for mask in masks[2:]:
             np.logical_or(out, mask, out=out)
         return out
