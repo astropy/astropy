@@ -1,0 +1,2 @@
+The ``astropy.utils.metadata.MetaData`` class, which is used throughout astropy
+to carry metadata on tables, columns, etc., can now also be used on frozen dataclasses.
