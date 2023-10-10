@@ -1053,9 +1053,21 @@ def array2string(
     return _array2string(a, options, separator, prefix)
 
 
+def _array_str_scalar(x):
+    # This wraps np.array_str for use as a format function in
+    # MaskedFormat. We cannot use it directly as format functions
+    # expect numpy scalars, while np.array_str expects an array.
+    return np.array_str(np.array(x))
+
+
 @dispatched_function
 def array_str(a, max_line_width=None, precision=None, suppress_small=None):
-    # Override to avoid special treatment of array scalars.
+    # Override to change special treatment of array scalars, since the numpy
+    # code turns the masked array scalar into a regular array scalar.
+    # By going through MaskedFormat, we can replace the string as needed.
+    if a.shape == () and a.dtype.names is None:
+        return MaskedFormat(_array_str_scalar)(a)
+
     return array2string(a, max_line_width, precision, suppress_small, " ", "")
 
 
