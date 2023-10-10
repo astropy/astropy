@@ -5,6 +5,7 @@ The tests here are fairly detailed but do not aim for complete
 coverage.  Complete coverage of all numpy functions is done
 with less detailed tests in test_function_helpers.
 """
+import erfa.ufunc as erfa_ufunc
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
@@ -150,6 +151,27 @@ class MaskedUfuncTests(MaskedArraySetup):
         expected_mask = self.mask_a
         assert_array_equal(ma_mb.unmasked, expected_data)
         assert_array_equal(ma_mb.mask, expected_mask)
+
+    def test_multi_op_ufunc(self):
+        mask = [True, False, False]
+        iy = Masked([2000, 2001, 2002], mask=mask)
+        im = Masked([1, 2, 3], mask=mask)
+        idy = Masked([10, 20, 25], mask=mask)
+        ihr = Masked([11, 12, 13], mask=[False, False, True])
+        imn = np.array([50, 51, 52])
+        isc = np.array([12.5, 13.6, 14.7])
+        result = erfa_ufunc.dtf2d("utc", iy, im, idy, ihr, imn, isc)
+        # Also test scalar
+        result0 = erfa_ufunc.dtf2d("utc", iy[0], im[0], idy[0], ihr[0], imn[0], isc[0])
+        expected = erfa_ufunc.dtf2d(
+            "utc", iy.unmasked, im.unmasked, idy.unmasked, ihr.unmasked, imn, isc
+        )
+        expected_mask = np.array([True, False, True])
+        for res, res0, exp in zip(result, result0, expected):
+            assert_array_equal(res.unmasked, exp)
+            assert_array_equal(res.mask, expected_mask)
+            assert res0.unmasked == exp[0]
+            assert res0.mask == expected_mask[0]
 
     @pytest.mark.parametrize("axis", (0, 1, None))
     def test_add_reduce(self, axis):
