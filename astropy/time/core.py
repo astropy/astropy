@@ -11,7 +11,7 @@ import enum
 import operator
 import os
 import threading
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 from time import strftime
 from warnings import warn
 
