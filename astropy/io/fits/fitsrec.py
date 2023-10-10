@@ -1110,7 +1110,7 @@ class FITS_rec(np.recarray):
             if isinstance(recformat, _FormatP):
                 # Irritatingly, this can return a different dtype than just
                 # doing np.dtype(recformat.dtype); but this returns the results
-                # that we want.  For example if recformat.dtype is 'a' we want
+                # that we want.  For example if recformat.dtype is 'S' we want
                 # an array of characters.
                 dtype = np.array([], dtype=recformat.dtype).dtype
 

@@ -2558,7 +2558,7 @@ def _convert_ascii_format(format, reverse=False):
             width = ".".join(str(w) for w in ASCII_DEFAULT_WIDTHS[format])
             return format + width
         # TODO: There may be reasonable ways to represent other Numpy types so
-        # let's see what other possibilities there are besides just 'a', 'i',
+        # let's see what other possibilities there are besides just 'S', 'i',
         # and 'f'.  If it doesn't have a reasonable ASCII representation then
         # raise an exception
     else:
