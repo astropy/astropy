@@ -102,6 +102,9 @@ SUBCLASS_SAFE_FUNCTIONS |= {np.median}
 if NUMPY_LT_2_0:
     # functions removed in numpy 2.0; alias for np.round in NUMPY_LT_1_25
     SUBCLASS_SAFE_FUNCTIONS |= {np.msort, np.round_}  # noqa: NPY003
+else:
+    # Array-API compatible versions (matrix axes always at end).
+    SUBCLASS_SAFE_FUNCTIONS |= {np.linalg.diagonal, np.linalg.trace}
 
 # Implemented as methods on Quantity:
 # np.ediff1d is from setops, but we support it anyway; the others
