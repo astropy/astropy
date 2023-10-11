@@ -889,7 +889,9 @@ class W36(VOTableSpecWarning):
 class W37(UnimplementedWarning):
     """
     The 3 datatypes defined in the VOTable specification and supported by
-    ``astropy.io.votable`` are ``TABLEDATA``, ``BINARY`` and ``FITS``.
+    ``astropy.io.votable`` are ``TABLEDATA``, ``BINARY``, and ``FITS``.
+    In addition, ``astropy.io.votable`` also supports ``PARQUET`` serialization, which is
+    a candidate for addition to the VOTable specification.
 
     **References:** `1.1
     <http://www.ivoa.net/documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:data>`__,
@@ -1139,6 +1141,19 @@ class W55(VOTableSpecWarning):
         'FIELD ({}) has datatype="char" but contains non-ASCII value ({})'
     )
     default_args = ("", "")
+
+
+class W56(VOTableSpecWarning):
+    """
+    The column fields as defined using ``FIELD`` elements do not match
+    those in the headers of the embedded PARQUET file.  If ``verify`` is not
+    ``'exception'``, the embedded PARQUET file will take precedence.
+    """
+
+    message_template = (
+        "The fields defined in the VOTable do not match those in the "
+        "embedded PARQUET file"
+    )
 
 
 class E01(VOWarning, ValueError):

@@ -5,16 +5,18 @@ Test the conversion to/from astropy.table.
 import io
 import os
 import pathlib
+import warnings
 
 import numpy as np
 import pytest
 
+from astropy import units as u
 from astropy.io.votable import conf, from_table, is_votable, tree, validate
 from astropy.io.votable.exceptions import E25, W39, VOWarning
 from astropy.io.votable.table import parse, writeto
 from astropy.table import Column, Table
 from astropy.table.table_helpers import simple_table
-from astropy.units import Unit
+from astropy.utils.compat.optional_deps import HAS_PYARROW
 from astropy.utils.data import (
     get_pkg_data_filename,
     get_pkg_data_fileobj,
@@ -155,7 +157,7 @@ def test_pass_kwargs_through_table_interface():
     # Table.read() should pass on keyword arguments meant for parse()
     filename = get_pkg_data_filename("data/nonstandard_units.xml")
     t = Table.read(filename, format="votable", unit_format="generic")
-    assert t["Flux1"].unit == Unit("erg / (Angstrom cm2 s)")
+    assert t["Flux1"].unit == u.Unit("erg / (Angstrom cm2 s)")
 
 
 def test_names_over_ids():
@@ -259,6 +261,82 @@ def test_write_with_format():
     assert b'VOTABLE version="1.4"' in obuff
     assert b"BINARY2" in obuff
     assert b"TABLEDATA" not in obuff
+
+
+@pytest.mark.skipif(not HAS_PYARROW, reason="requires pyarrow")
+@pytest.mark.parametrize("overwrite", [True, False])
+def test_read_write_votable_parquet(tmp_path, overwrite):
+    """
+    Test to write and read VOTable with Parquet serialization
+    """
+
+    # Create some fake data
+    number_of_objects = 10
+    ids = [f"COSMOS_{ii:03g}" for ii in range(number_of_objects)]
+    redshift = np.random.uniform(low=0, high=3, size=number_of_objects)
+    mass = np.random.uniform(low=1e8, high=1e10, size=number_of_objects)
+    sfr = np.random.uniform(low=1, high=100, size=number_of_objects)
+    astropytab = Table([ids, redshift, mass, sfr], names=["id", "z", "mass", "sfr"])
+
+    # Create Column metadata
+    column_metadata = {
+        "id": {"unit": "", "ucd": "meta.id", "utype": "none"},
+        "z": {"unit": "", "ucd": "src.redshift", "utype": "none"},
+        "mass": {"unit": "solMass", "ucd": "phys.mass", "utype": "none"},
+        "sfr": {"unit": "solMass / yr", "ucd": "phys.SFR", "utype": "none"},
+    }
+
+    # Write VOTable with Parquet serialization
+    filename = tmp_path / "test_votable_parquet.vot"
+    astropytab.write(
+        filename,
+        column_metadata=column_metadata,
+        overwrite=overwrite,
+        format="votable.parquet",
+    )
+
+    # Check both files are written out
+    assert set(os.listdir(tmp_path)) == {
+        "test_votable_parquet.vot",
+        "test_votable_parquet.vot.parquet",
+    }
+
+    # Open created VOTable with Parquet serialization
+    with warnings.catch_warnings():
+        warnings.simplefilter("always", ResourceWarning)
+        votable = parse(filename)
+
+    # Get table out
+    votable_table = votable.resources[0].tables[0].array
+
+    # compare tables
+    assert (astropytab == votable_table).all()
+
+    # Compare metadata
+    # Note: VOTable parses empty units ("") as "---". This is
+    # taken into account below by .replace("---","").
+    saved_bool = []
+    for kk, key in enumerate(column_metadata.keys()):
+        for tag in column_metadata[key].keys():
+            saved_bool.append(
+                column_metadata[key][tag]
+                == str(
+                    eval(f"votable.resources[0].tables[0].fields[{kk}].{tag}")
+                ).replace("---", "")
+            )
+    assert np.asarray(saved_bool).all()
+
+
+@pytest.mark.skipif(not HAS_PYARROW, reason="requires pyarrow")
+def test_stored_parquet_votable():
+    # Ensures that parquet is found as relative to the votable and not the test file
+    with warnings.catch_warnings():
+        warnings.simplefilter("always", ResourceWarning)
+        stored_votable = Table.read(get_pkg_data_filename("data/parquet_binary.xml"))
+
+    assert len(stored_votable) == 10
+    assert stored_votable.colnames == ["id", "z", "mass", "sfr"]
+    assert stored_votable["sfr"].unit == u.solMass / u.year
 
 
 def test_write_overwrite(tmp_path):

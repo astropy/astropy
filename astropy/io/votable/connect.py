@@ -3,6 +3,8 @@
 
 import os
 
+import numpy as np
+
 from astropy.io import registry as io_registry
 from astropy.table import Table
 from astropy.table.column import BaseColumn
@@ -81,8 +83,7 @@ def read_table_votable(
         ``astropy.io.votable.verify``, which defaults to ``'ignore'``.
 
     **kwargs
-        Additional keyword arguments are passed on to
-        :func:`astropy.io.votable.table.parse`.
+        Additional keyword arguments are passed on to `astropy.io.votable.parse`.
     """
     if not isinstance(input, (VOTableFile, VOTable)):
         input = parse(input, table_id=table_id, verify=verify, **kwargs)
@@ -99,8 +100,8 @@ def read_table_votable(
         if len(tables) > 1:
             if table_id is None:
                 raise ValueError(
-                    "Multiple tables found: table id should be set via the table_id="
-                    " argument. The available tables are"
+                    "Multiple tables found: table id should be set via"
+                    " the table_id= argument. The available tables are"
                     f" {', '.join(table_id_mapping)}, or integers less than"
                     f" {len(tables)}."
                 )
@@ -179,3 +180,102 @@ def write_table_votable(
 io_registry.register_reader("votable", Table, read_table_votable)
 io_registry.register_writer("votable", Table, write_table_votable)
 io_registry.register_identifier("votable", Table, is_votable)
+
+
+# VOTable with embedded/linked Parquet file #
+def write_table_votable_parquet(input, output, column_metadata, *, overwrite=False):
+    """
+    This function allows writing a VOTable (XML) with PARQUET
+    serialization. This functionality is currently not
+    supported by Astropy (with the reason that this method
+    requires writing multiple files: a VOTable/XML and
+    PARQUET table). This function presents a wrapper, which
+    allows to do this. The concept is simple and probably
+    can be improved substantially. We first save the PARQUET
+    table using Astropy functionality. Then, we create a
+    VOTable with binary serialization. The latter is modified
+    later to include an external reference to the create
+    PARQUET table file.
+
+    Parameters
+    ----------
+    input : `~astropy.table.Table`
+        The table to write out.
+
+    output : str
+        The filename to write the table to.
+
+    column_metadata : dict
+        Contains the metadata for the columns such as "unit" or
+        "ucd" or "utype".
+        (Example: {"id": {"unit": "", "ucd": "meta.id", "utype": "none"},
+                   "mass": {"unit": "solMass", "ucd": "phys.mass", "utype": "none"}})
+    overwrite : bool, optional
+        Whether to overwrite any existing file without warning.
+
+    Returns
+    -------
+    This function creates a VOTable serialized in Parquet.
+    Two files are written:
+    1. The VOTable (XML file) including the column metadata and a
+        ``STREAM`` tag that embeds the PARQUET table.
+    2. The PARQUET table itself.
+
+    Both files are stored at the same location. The name of the
+    VOTable is ``output``, and the name of the embedded PARQUET
+    file is f"{output}.parquet".
+    """
+    # First save the PARQUET file.
+    parquet_filename = f"{output}.parquet"
+    path_type = f"file:{'//' if os.path.isabs(parquet_filename) else ''}"
+
+    if os.path.exists(parquet_filename) and not overwrite:
+        raise OSError(NOT_OVERWRITING_MSG.format(parquet_filename))
+    input.write(parquet_filename, format="parquet", overwrite=overwrite)
+
+    # Second, save table as binary VOT file. We will modify this file
+    # later to incorporate the FITS stream. Note that we use here the full
+    # table data so we get the datatype and arraysize correct. Later
+    # we can maybe make this more efficient and instead write the
+    # VOTable file from scratch, especially the FIELDS, which are the
+    # most important.
+    votablefile = VOTableFile()
+    votable = votablefile.from_table(input)
+
+    # Add the fields
+    # Maybe there is a smarter way to do this iteratively.
+    for field in votable.resources[0].tables[0].fields:
+        field.unit = column_metadata[field.name]["unit"]
+        field.ucd = column_metadata[field.name]["ucd"]
+        field.utype = column_metadata[field.name]["utype"]
+
+    if os.path.exists(output) and not overwrite:
+        raise OSError(NOT_OVERWRITING_MSG.format(output))
+
+    votable.to_xml(output, tabledata_format="binary")
+
+    # Now reopen the binary file and replace the binary part with
+    # the stream relating to the FITS file. This all is a bit flimsy
+    # and needs to be made more bullet-proof.
+    with open(output) as f:
+        lines = f.readlines()
+
+        # get start and end of <BINARY> tag
+        line_start = np.where(["<BINARY>" in line for line in lines])[0][0]
+        line_stop = np.where(["</BINARY>" in line for line in lines])[0][0]
+
+        # Add the extension tag
+        # We assume here that it is extension #1.
+        lines[line_start] = '<PARQUET type="VOTable-remote-file">\n'
+        lines[line_start + 1] = f'<STREAM href="{path_type}{parquet_filename}"/>\n'
+        lines[line_start + 2] = "</PARQUET>\n"
+
+        # remove last line
+        _ = lines.pop(line_stop)
+
+    # write new file
+    with open(output, "w") as f:
+        f.write("".join(lines))
+
+
+io_registry.register_writer("votable.parquet", Table, write_table_votable_parquet)
