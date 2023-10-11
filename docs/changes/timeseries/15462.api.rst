@@ -1,0 +1,1 @@
+Removed deprecated ``midpoint_epoch`` in ``fold`` function; use ``epoch_time`` instead.
