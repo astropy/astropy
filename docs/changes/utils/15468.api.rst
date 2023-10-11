@@ -1,0 +1,1 @@
+Removed deprecated ``version_path`` in ``minversion`` function; it is no longer used.
