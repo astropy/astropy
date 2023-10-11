@@ -6,6 +6,7 @@ import base64
 import codecs
 import gzip
 import io
+import os
 import re
 import urllib.request
 import warnings
@@ -78,6 +79,7 @@ from .exceptions import (
     W52,
     W53,
     W54,
+    W56,
     vo_raise,
     vo_reraise,
     vo_warn,
@@ -2771,6 +2773,14 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
                     except ValueError:
                         vo_raise(E17, (), config, pos)
                     self.array = self._parse_fits(iterator, extnum, config)
+
+                elif tag == "PARQUET":
+                    if (data["type"] == "VOTable-remote-file") | (
+                        data["type"] == "VOTable-remote-partition"
+                    ):
+                        warn_unknown_attrs("PARQUET", data.keys(), config, pos)
+                        self.array = self._parse_parquet(iterator, config)
+
                 else:
                     warn_or_raise(W37, W37, tag, config, pos)
 
@@ -3080,12 +3090,77 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
                     self._pos,
                     NotImplementedError,
                 )
-
         hdulist = fits.open(fd)
 
         array = hdulist[int(extnum)].data
         if array.dtype != self.array.dtype:
             warn_or_raise(W19, W19, (), self._config, self._pos)
+
+        return array
+
+    def _parse_parquet(self, iterator, config):
+        """
+        Functionality to parse parquet files that are embedded
+        in VOTables.
+        """
+        # looks like votable already has a "Table" imported.
+        from astropy.table import Table as Table2
+
+        for start, tag, data, pos in iterator:
+            if tag == "STREAM":
+                if start:
+                    warn_unknown_attrs(
+                        "STREAM",
+                        data.keys(),
+                        config,
+                        pos,
+                        ["type", "href", "actuate", "encoding", "expires", "rights"],
+                    )
+                    href = data["href"]
+                    encoding = data.get("encoding", None)
+                else:
+                    break
+
+            else:  # in this case, there is no STREAM, hence no file linked.
+                href = ""
+
+        if not href.startswith(("http", "ftp", "file")):
+            vo_raise(
+                "The vo package only supports remote data through http, ftp or file",
+                self._config,
+                self._pos,
+                NotImplementedError,
+            )
+
+        # Hack to keep windows working
+        try:
+            fd = urllib.request.urlopen(href)
+        except urllib.error.URLError:
+            # Hack to keep windows working
+            if href.startswith("file://"):
+                fd = urllib.request.urlopen(f"file:{href[7:]}")
+            # Relative path to parquet part should be relative from the votable
+            elif href.startswith("file:"):
+                parquet = os.path.join(os.path.dirname(config["filename"]), href[5:])
+                fd = urllib.request.urlopen(f"file:{parquet}")
+
+        if encoding is not None:
+            if encoding == "gzip":
+                fd = gzip.GzipFile(href, "r", fileobj=fd)
+            elif encoding == "base64":
+                fd = codecs.EncodedFile(fd, "base64")
+            else:
+                vo_raise(
+                    f"Unknown encoding type '{encoding}'",
+                    self._config,
+                    self._pos,
+                    NotImplementedError,
+                )
+
+        array = Table2.read(fd, format="parquet")
+
+        if array.dtype != self.array.dtype:
+            warn_or_raise(W56, W56, (), self._config, self._pos)
 
         return array
 

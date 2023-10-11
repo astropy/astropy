@@ -213,6 +213,11 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
                     "read", cls, path, fileobj, args, kwargs
                 )
 
+                # We need to keep track the original path in case it uses a
+                # relative path to the parquet binary
+                if format == "votable":
+                    kwargs.update({"filename": path})
+
             reader = self.get_reader(format, cls)
             data = reader(*args, **kwargs)
 
