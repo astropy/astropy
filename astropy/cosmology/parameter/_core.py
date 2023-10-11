@@ -312,9 +312,6 @@ class Parameter:
             f"{f.name}={(getattr(self, f.name if f.name != 'fvalidate' else '_fvalidate_in'))!r}"
             for f in fields(self)
             # Only show fields that should be displayed and are not sentinel values
-            if (
-                f.repr
-                and (self.default is not MISSING if f.name == "default" else True)
-            )
+            if (f.repr and (f.name != "default" or self.default is not MISSING))
         )
         return f"{self.__class__.__name__}({', '.join(fields_repr)})"
