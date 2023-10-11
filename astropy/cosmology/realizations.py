@@ -26,7 +26,6 @@ import sys
 
 # LOCAL
 from astropy.utils.data import get_pkg_data_path
-from astropy.utils.decorators import deprecated
 from astropy.utils.state import ScienceState
 
 from . import _io  # Ensure IO methods are registered, to read realizations # noqa: F401
@@ -108,16 +107,6 @@ class default_cosmology(ScienceState):
 
     _default_value = "Planck18"
     _value = "Planck18"
-
-    @deprecated("5.0", alternative="get")
-    @classmethod
-    def get_cosmology_from_string(cls, arg):
-        """Return a cosmology instance from a string."""
-        if arg == "no_default":
-            value = None
-        else:
-            value = cls._get_from_registry(arg)
-        return value
 
     @classmethod
     def validate(cls, value: Cosmology | str | None) -> Cosmology | None:
