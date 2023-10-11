@@ -4,8 +4,6 @@ import os
 
 import numpy as np
 
-from astropy.utils.decorators import deprecated
-
 __all__ = [
     "assert_equal",
     "assert_almost_equal",
@@ -75,41 +73,6 @@ def make_decorator(func):
         except TypeError:
             # can't set func name in 2.3
             newfunc.compat_func_name = name
-        return newfunc
-
-    return decorate
-
-
-@deprecated("5.1", alternative="pytest.raises")
-def raises(*exceptions):
-    """Test must raise one of expected exceptions to pass.
-
-    Example use::
-
-      @raises(TypeError, ValueError)
-      def test_raises_type_error():
-          raise TypeError("This test passes")
-
-      @raises(Exception)
-      def test_that_fails_by_passing():
-          pass
-
-    """
-    valid = " or ".join([e.__name__ for e in exceptions])
-
-    def decorate(func):
-        name = func.__name__
-
-        def newfunc(*arg, **kw):
-            try:
-                func(*arg, **kw)
-            except exceptions:
-                pass
-            else:
-                message = f"{name}() did not raise {valid}"
-                raise AssertionError(message)
-
-        newfunc = make_decorator(func)(newfunc)
         return newfunc
 
     return decorate
