@@ -1,0 +1,2 @@
+Removed deprecated ``ConfigurationMissingWarning`` class and ``update_default_config`` function;
+There are no replacements as they should no be used anymore.
