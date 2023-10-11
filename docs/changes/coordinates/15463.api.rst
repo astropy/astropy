@@ -1,0 +1,2 @@
+Removed deprecated ``get_solar_params_from_string`` class method in ``galactocentric_frame_defaults``;
+use ``get_from_registry`` instead.
