@@ -1,0 +1,1 @@
+Removed deprecated ``accuracy`` from ``all_world2pix`` method in ``WCS``; use ``tolerance`` instead.
