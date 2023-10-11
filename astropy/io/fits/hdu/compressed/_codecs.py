@@ -6,7 +6,7 @@ from gzip import decompress as gzip_decompress
 
 import numpy as np
 
-from astropy.io.fits._tiled_compression._compression import (
+from astropy.io.fits.hdu.compressed._compression import (
     compress_hcompress_1_c,
     compress_plio_1_c,
     compress_rice_1_c,
