@@ -11,8 +11,6 @@ from importlib import metadata
 
 from packaging.version import Version
 
-from astropy.utils.decorators import deprecated_renamed_argument
-
 __all__ = ["resolve_name", "minversion", "find_current_module", "isinstancemethod"]
 
 __doctest_skip__ = ["find_current_module"]
@@ -102,15 +100,10 @@ def resolve_name(name, *additional_parts):
     return ret
 
 
-@deprecated_renamed_argument("version_path", None, "5.0")
-def minversion(module, version, inclusive=True, version_path="__version__"):
+def minversion(module, version, inclusive=True):
     """
     Returns `True` if the specified Python module satisfies a minimum version
     requirement, and `False` if not.
-
-    .. deprecated::
-        ``version_path`` is not used anymore and is deprecated in
-        ``astropy`` 5.0.
 
     Parameters
     ----------
