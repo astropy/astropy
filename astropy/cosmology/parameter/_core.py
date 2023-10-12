@@ -84,7 +84,7 @@ class Parameter:
     Parameters
     ----------
     default : Any (optional, keyword-only)
-        Default value of the Parameter. If ``MISSING`` (default), the
+        Default value of the Parameter. If not given the
         Parameter must be set when initializing the cosmology.
     derived : bool (optional, keyword-only)
         Whether the Parameter is 'derived', default `False`.
@@ -119,8 +119,8 @@ class Parameter:
     default: Any = MISSING
     """Default value of the Parameter.
 
-    If ``MISSING`` (default), the Parameter must be set when initializing the
-    cosmology.
+    By default set to ``MISSING``, which indicates the parameter must be set
+    when initializing the cosmology.
     """
 
     derived: bool = False

@@ -21,7 +21,7 @@ from astropy.cosmology.parameter._converter import (
     _REGISTRY_FVALIDATORS,
     _validate_with_unit,
 )
-from astropy.cosmology.parameter._core import MISSING, Sentinel
+from astropy.cosmology.parameter._core import MISSING
 
 ##############################################################################
 # TESTS
@@ -157,8 +157,8 @@ class ParameterTestMixin:
     def test_Parameter_default(self, cosmo_cls, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.default`."""
         assert hasattr(all_parameter, "default")
-        assert isinstance(
-            all_parameter.default, (Sentinel, type(None), float, u.Quantity)
+        assert all_parameter.default is MISSING or isinstance(
+            all_parameter.default, (type(None), float, u.Quantity)
         )
 
     # -------------------------------------------
