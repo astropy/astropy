@@ -28,7 +28,7 @@ import pytest
 import astropy.utils.data
 from astropy import units as _u  # u is taken
 from astropy.config import paths
-from astropy.tests.helper import PYTEST_LT_8_0
+from astropy.tests.helper import CI, IS_CRON, PYTEST_LT_8_0
 from astropy.utils.data import (
     CacheDamaged,
     CacheMissingWarning,
@@ -60,7 +60,6 @@ from astropy.utils.data import (
 )
 from astropy.utils.exceptions import AstropyWarning
 
-CI = os.environ.get("CI", "false") == "true"
 TESTURL = "http://www.astropy.org"
 TESTURL2 = "http://www.astropy.org/about.html"
 TESTURL_SSL = "https://www.astropy.org"
@@ -2191,7 +2190,7 @@ def test_clear_download_cache_raises_os_error(temp_cache, valid_urls, monkeypatc
 
 
 @pytest.mark.skipif(
-    CI and os.environ.get("IS_CRON", "false") == "false",
+    CI and not IS_CRON,
     reason="Flaky/too much external traffic for regular CI",
 )
 @pytest.mark.remote_data
