@@ -3132,32 +3132,38 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
                 NotImplementedError,
             )
 
-        # Hack to keep windows working
         try:
-            fd = urllib.request.urlopen(href)
-        except urllib.error.URLError:
             # Hack to keep windows working
-            if href.startswith("file://"):
-                fd = urllib.request.urlopen(f"file:{href[7:]}")
-            # Relative path to parquet part should be relative from the votable
-            elif href.startswith("file:"):
-                parquet = os.path.join(os.path.dirname(config["filename"]), href[5:])
-                fd = urllib.request.urlopen(f"file:{parquet}")
+            try:
+                fd = urllib.request.urlopen(href)
+            except urllib.error.URLError:
+                # Hack to keep windows working
+                if href.startswith("file://"):
+                    fd = urllib.request.urlopen(f"file:{href[7:]}")
+                # Relative path to parquet part should be relative from the votable
+                elif href.startswith("file:"):
+                    parquet = os.path.join(
+                        os.path.dirname(config["filename"]), href[5:]
+                    )
+                    fd = urllib.request.urlopen(f"file:{parquet}")
 
-        if encoding is not None:
-            if encoding == "gzip":
-                fd = gzip.GzipFile(href, "r", fileobj=fd)
-            elif encoding == "base64":
-                fd = codecs.EncodedFile(fd, "base64")
-            else:
-                vo_raise(
-                    f"Unknown encoding type '{encoding}'",
-                    self._config,
-                    self._pos,
-                    NotImplementedError,
-                )
+            if encoding is not None:
+                if encoding == "gzip":
+                    fd = gzip.GzipFile(href, "r", fileobj=fd)
+                elif encoding == "base64":
+                    fd = codecs.EncodedFile(fd, "base64")
+                else:
+                    vo_raise(
+                        f"Unknown encoding type '{encoding}'",
+                        self._config,
+                        self._pos,
+                        NotImplementedError,
+                    )
 
-        array = Table2.read(fd, format="parquet")
+            array = Table2.read(fd, format="parquet")
+        finally:
+            if hasattr(fd, "close"):
+                fd.close()
 
         if array.dtype != self.array.dtype:
             warn_or_raise(W56, W56, (), self._config, self._pos)
