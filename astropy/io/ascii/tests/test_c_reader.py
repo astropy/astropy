@@ -28,13 +28,13 @@ from astropy.io.ascii.fastbasic import (
     FastTab,
 )
 from astropy.table import MaskedColumn, Table
+from astropy.tests.helper import CI
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
 
 from .common import assert_almost_equal, assert_equal, assert_true
 
 StringIO = lambda x: BytesIO(x.encode("ascii"))
-CI = os.environ.get("CI", False)
 
 
 def assert_table_equal(t1, t2, check_meta=False, rtol=1.0e-15, atol=1.0e-300):
