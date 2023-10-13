@@ -85,18 +85,17 @@ class ParameterTestMixin:
     @pytest.fixture
     def parameter(self, cosmo_cls):
         """Cosmological Parameters"""
-        # I wish this would work
-        # yield from cosmo_cls.parameters.values()
-
-        # just return one parameter at random
-        yield set(cosmo_cls.parameters.values()).pop()
+        yield from cosmo_cls.parameters.values()
 
     @pytest.fixture
     def all_parameter(self, cosmo_cls):
         """Cosmological All Parameter instances"""
         # just return one parameter at random
-        ps = cosmo_cls.parameters | cosmo_cls.derived_parameters
-        yield ps[set(ps).pop()]
+        n = set(cosmo_cls._parameters_all).pop()
+        try:
+            yield cosmo_cls.parameters[n]
+        except KeyError:
+            yield cosmo_cls.derived_parameters[n]
 
     # ===============================================================
     # Method Tests
