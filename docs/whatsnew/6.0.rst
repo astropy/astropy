@@ -195,15 +195,15 @@ This means that the :mod:`dataclasses` machinery can be used to work with
 
     >>> from dataclasses import replace
     >>> from astropy.cosmology import FlatLambdaCDM
-    >>> H0 = FlatLambdaCDM.H0
-    >>> H0
-    Parameter(derived=False, unit=Unit("km / (Mpc s)"), equivalencies=[], ...)
-    >>> replace(H0, derived=True)
-    Parameter(derived=True, unit=Unit("km / (Mpc s)"), equivalencies=[], ...)
+    >>> m_nu = FlatLambdaCDM.m_nu
+    >>> m_nu
+    Parameter(default=<Quantity 0. eV>, derived=False, unit=Unit("eV"), ...)
+    >>> replace(m_nu, derived=True)
+    Parameter(default=<Quantity 0. eV>, derived=True, unit=Unit("eV"), ...)
 
     >>> from dataclasses import asdict
-    >>> asdict(H0)
-    {'derived': False, 'unit': Unit("km / (Mpc s)"), 'equivalencies': [], ...
+    >>> asdict(m_nu)
+    {'default': <Quantity 0. eV>, 'derived': False, 'unit': Unit("eV"), ...}
 
 
 It's also much easier to create new :class:`~astropy.cosmology.Parameter` subclasses

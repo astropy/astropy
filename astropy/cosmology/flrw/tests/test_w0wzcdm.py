@@ -43,6 +43,7 @@ class ParameterwzTestMixin(ParameterTestMixin):
         assert isinstance(cosmo_cls.wz, Parameter)
         assert "Derivative of the dark energy" in cosmo_cls.wz.__doc__
         assert cosmo_cls.wz.unit is None
+        assert cosmo_cls.wz.default == 0.0
 
         # on the instance
         assert cosmo.wz is cosmo._wz
