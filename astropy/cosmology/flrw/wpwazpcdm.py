@@ -99,13 +99,20 @@ class wpwaCDM(FLRW):
     """
 
     wp = Parameter(
-        doc="Dark energy equation of state at the pivot redshift zp.", fvalidate="float"
+        default=-1.0,
+        doc="Dark energy equation of state at the pivot redshift zp.",
+        fvalidate="float",
     )
     wa = Parameter(
+        default=0.0,
         doc="Negative derivative of dark energy equation of state w.r.t. a.",
         fvalidate="float",
     )
-    zp = Parameter(doc="The pivot redshift, where w(z) = wp.", unit=cu.redshift)
+    zp = Parameter(
+        default=0.0 * cu.redshift,
+        doc="The pivot redshift, where w(z) = wp.",
+        unit=cu.redshift,
+    )
 
     def __init__(
         self,

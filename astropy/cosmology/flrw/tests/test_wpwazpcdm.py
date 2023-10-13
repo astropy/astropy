@@ -43,6 +43,7 @@ class ParameterwpTestMixin(ParameterTestMixin):
         assert isinstance(cosmo_cls.wp, Parameter)
         assert "at the pivot" in cosmo_cls.wp.__doc__
         assert cosmo_cls.wp.unit is None
+        assert cosmo_cls.wp.default == -1.0
 
         # on the instance
         assert cosmo.wp is cosmo._wp
@@ -80,6 +81,7 @@ class ParameterzpTestMixin(ParameterTestMixin):
         assert isinstance(cosmo_cls.zp, Parameter)
         assert "pivot redshift" in cosmo_cls.zp.__doc__
         assert cosmo_cls.zp.unit == cu.redshift
+        assert cosmo_cls.zp.default == 0.0
 
         # on the instance
         assert cosmo.zp is cosmo._zp

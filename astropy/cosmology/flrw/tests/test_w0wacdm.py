@@ -38,6 +38,7 @@ class ParameterwaTestMixin(ParameterTestMixin):
         assert isinstance(cosmo_cls.wa, Parameter)
         assert "Negative derivative" in cosmo_cls.wa.__doc__
         assert cosmo_cls.wa.unit is None
+        assert cosmo_cls.wa.default == 0.0
 
         # on the instance
         assert cosmo.wa is cosmo._wa

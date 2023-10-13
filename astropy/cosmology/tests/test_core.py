@@ -61,8 +61,8 @@ class SubCosmology(Cosmology):
     """Defined here to be serializable."""
 
     H0 = Parameter(unit="km/(s Mpc)")
-    Tcmb0 = Parameter(unit=u.K)
-    m_nu = Parameter(unit=u.eV)
+    Tcmb0 = Parameter(default=0 * u.K, unit=u.K)
+    m_nu = Parameter(default=0 * u.eV, unit=u.eV)
 
     def __init__(self, H0, Tcmb0=0 * u.K, m_nu=0 * u.eV, name=None, meta=None):
         super().__init__(name=name, meta=meta)
