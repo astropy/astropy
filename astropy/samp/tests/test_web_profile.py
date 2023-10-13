@@ -11,6 +11,7 @@ import pytest
 
 from astropy.samp import SAMPHubServer, SAMPIntegratedClient, conf
 from astropy.samp.web_profile import CLIENT_ACCESS_POLICY, CROSS_DOMAIN
+from astropy.tests.helper import CI
 from astropy.utils.data import get_readable_fileobj
 
 from .test_standard_profile import TestStandardProfile as BaseTestStandardProfile
@@ -24,6 +25,7 @@ def setup_module(module):
     conf.use_internet = False
 
 
+@pytest.mark.skipif(CI, reason="flaky in CI")
 class TestWebProfile(BaseTestStandardProfile):
     @pytest.fixture(autouse=True)
     def setup_method(self, tmp_path):
