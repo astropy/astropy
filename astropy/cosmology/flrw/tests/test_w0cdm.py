@@ -14,8 +14,10 @@ import astropy.units as u
 from astropy.cosmology import FlatwCDM, wCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin, valid_zs
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
+from .conftest import filter_keys_from_items
 from .test_base import FlatFLRWMixinTest, FLRWTest
 
 ##############################################################################
@@ -82,14 +84,12 @@ class TestwCDM(FLRWTest, Parameterw0TestMixin):
         # `w` params
         c = cosmo.clone(w0=0.1)
         assert c.w0 == 0.1
-        for n in set(cosmo.parameters) - {"w0"}:
-            v = getattr(c, n)
+        for n, v in filter_keys_from_items(c.parameters, ("w0",)):
+            v_expect = getattr(cosmo, n)
             if v is None:
-                assert v is getattr(cosmo, n)
+                assert v is v_expect
             else:
-                assert u.allclose(
-                    v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1)
-                )
+                assert_quantity_allclose(v, v_expect, atol=1e-4 * getattr(v, "unit", 1))
 
     @pytest.mark.parametrize("z", valid_zs)
     def test_w(self, cosmo, z):
