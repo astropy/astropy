@@ -1,0 +1,1 @@
+LTS is not compatible with pyerfa 2.0.1 or later.
