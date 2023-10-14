@@ -13,6 +13,7 @@ from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin, make_valid_zs
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
+from .conftest import filter_keys_from_items
 from .test_base import FlatFLRWMixinTest, FLRWTest
 from .test_w0cdm import Parameterw0TestMixin
 
@@ -88,8 +89,7 @@ class Testw0wzCDM(FLRWTest, Parameterw0TestMixin, ParameterwzTestMixin):
         c = cosmo.clone(w0=0.1, wz=0.2)
         assert c.w0 == 0.1
         assert c.wz == 0.2
-        for n in set(cosmo.parameters) - {"w0", "wz"}:
-            v = getattr(c, n)
+        for n, v in filter_keys_from_items(c.parameters, ("w0", "wz")):
             if v is None:
                 assert v is getattr(cosmo, n)
             else:

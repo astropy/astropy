@@ -24,7 +24,10 @@ from astropy.cosmology.tests.test_core import (
     invalid_zs,
     valid_zs,
 )
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+
+from .conftest import filter_keys_from_items
 
 ##############################################################################
 # SETUP / TEARDOWN
@@ -773,14 +776,12 @@ class FLRWTest(
         assert c.__class__ == cosmo.__class__
         assert c.name == cosmo.name + " (modified)"
         assert c.H0.value == 100
-        for n in set(cosmo.parameters) - {"H0"}:
-            v = getattr(c, n)
+        for n, v in filter_keys_from_items(c.parameters, ("H0",)):
+            v_expect = getattr(cosmo, n)
             if v is None:
-                assert v is getattr(cosmo, n)
+                assert v is v_expect
             else:
-                assert u.allclose(
-                    v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1)
-                )
+                assert_quantity_allclose(v, v_expect, atol=1e-4 * getattr(v, "unit", 1))
         assert not u.allclose(c.Ogamma0, cosmo.Ogamma0)
         assert not u.allclose(c.Onu0, cosmo.Onu0)
 
@@ -791,14 +792,12 @@ class FLRWTest(
         assert c.H0.value == 100
         assert c.Tcmb0.value == 2.8
         assert c.meta == {**cosmo.meta, **dict(zz="tops")}
-        for n in set(cosmo.parameters) - {"H0", "Tcmb0"}:
-            v = getattr(c, n)
+        for n, v in filter_keys_from_items(c.parameters, ("H0", "Tcmb0")):
+            v_expect = getattr(cosmo, n)
             if v is None:
-                assert v is getattr(cosmo, n)
+                assert v is v_expect
             else:
-                assert u.allclose(
-                    v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1)
-                )
+                assert_quantity_allclose(v, v_expect, atol=1e-4 * getattr(v, "unit", 1))
         assert not u.allclose(c.Ogamma0, cosmo.Ogamma0)
         assert not u.allclose(c.Onu0, cosmo.Onu0)
         assert not u.allclose(c.Tcmb0.value, cosmo.Tcmb0.value)
