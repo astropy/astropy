@@ -17,7 +17,7 @@ from astropy.io.fits import HDUList, PrimaryHDU, BinTableHDU, ImageHDU, table_to
 from astropy.io import fits
 
 from astropy import units as u
-from astropy.table import Table, QTable, NdarrayMixin, Column
+from astropy.table import Table, QTable, NdarrayMixin, Column, MaskedColumn
 from astropy.table.table_helpers import simple_table
 from astropy.units import allclose as quantity_allclose
 from astropy.units.format.fits import UnitScaleError
@@ -1144,3 +1144,15 @@ def test_meta_not_modified(tmpdir):
     t.write(filename)
     assert len(t.meta) == 1
     assert t.meta["comments"] == ["a", "b"]
+
+
+def test_keep_masked_state_integer_columns(tmp_path):
+    """Regression test for https://github.com/astropy/astropy/issues/15417"""
+    filename = tmp_path / "test_masked.fits"
+    t = Table([[1, 2], [1.5, 2.5]], names=["a", "b"])
+    t["c"] = MaskedColumn([1, 2], mask=[True, False])
+    t.write(filename)
+    tr = Table.read(filename)
+    assert not isinstance(tr["a"], MaskedColumn)
+    assert not isinstance(tr["b"], MaskedColumn)
+    assert isinstance(tr["c"], MaskedColumn)
