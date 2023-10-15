@@ -266,7 +266,7 @@ def test_varyde_lumdist_mathematica():
 def test_equality():
     """Test equality and equivalence."""
     # mismatched signatures, both directions.
-    newcosmo = w0waCDM(**Planck18._init_arguments, Ode0=0.6)
+    newcosmo = w0waCDM(**Planck18.parameters, Ode0=0.6)
     assert newcosmo != Planck18
     assert Planck18 != newcosmo
 

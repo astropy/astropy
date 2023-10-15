@@ -238,7 +238,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         meta = meta if meta is not None else {}
         new_meta = {**self.meta, **meta}
         # Mix kwargs into initial arguments, preferring the former.
-        new_init = {**self._init_arguments, "meta": new_meta, **kwargs}
+        new_init = {**self.parameters, "meta": new_meta, **kwargs}
         # Create BoundArgument to handle args versus kwargs.
         # This also handles all errors from mismatched arguments
         ba = self._init_signature.bind_partial(**new_init)
@@ -251,17 +251,6 @@ class Cosmology(metaclass=abc.ABCMeta):
             cloned._name = self.name
 
         return cloned
-
-    @property
-    def _init_arguments(self):
-        # parameters
-        kw = dict(self.parameters)
-
-        # other info
-        kw["name"] = self.name
-        kw["meta"] = self.meta
-
-        return kw
 
     # ---------------------------------------------------------------
     # comparison methods

@@ -1503,7 +1503,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         # Create BoundArgument to handle args versus kwargs.
         # This also handles all errors from mismatched arguments
         ba = self.__nonflatclass__._init_signature.bind_partial(
-            **self._init_arguments, Ode0=self.Ode0
+            **self.parameters, Ode0=self.Ode0, name=self.name
         )
         # Make new instance, respecting args vs kwargs
         inst = self.__nonflatclass__(*ba.args, **ba.kwargs)
