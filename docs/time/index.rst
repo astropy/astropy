@@ -1190,6 +1190,8 @@ To calculate sidereal time::
 
 .. EXAMPLE END
 
+.. _time-delta:
+
 Time Deltas
 -----------
 

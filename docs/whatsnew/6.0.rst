@@ -18,6 +18,7 @@ In particular, this release includes:
 * :ref:`whatsnew-6.0-cosmology-latex-export`
 * :ref:`whatsnew-6.0-iers-data`
 * :ref:`whatsnew-6.0-model-annotation-in-votable`
+* :ref:`whatsnew-6.0-time-delta-quantity-str`
 * :ref:`whatsnew-6.0-votable-parquet-serialization`
 
 In addition to these major changes, Astropy v6.0 includes a large number of
@@ -254,6 +255,43 @@ There is no function processing data models, they will be delegated to affiliate
 
 See :ref:`votable_mivot` for more details.
 
+.. _whatsnew-6.0-time-delta-quantity-str:
+
+TimeDelta string format "quantity_str"
+======================================
+
+A new :ref:`TimeDelta<time-delta>` format ``"quantity_str"`` is now available that
+represents the time delta as a string with one or more Quantity components. This format
+provides a human-readable multi-scale string representation of a time delta. It is
+convenient for applications like a configuration file or a command line option.
+
+.. Warning:: The default output format is not yet finalized and may change in version
+    6.1 of astropy. The input format is stable. Please see
+    `issue 15485 <https://github.com/astropy/astropy/issues/15485>`_ for more details.
+
+The format is a string with one or more time Quantity components separated by optional
+whitespace, for example ``"1yr 2d 3hr 4min 5.6s"``. In more detail:
+
+- The string is a sequence of one or more components.
+- Each component is a number followed by an astropy unit of time.
+- For input, whitespace within the string is allowed but optional.
+- For output, there is a single space between components.
+- The order (yr, d, hr, min, s) is fixed but individual components are optional.
+
+The allowed component units are shown below and correspond to scaling relations
+defined by the astropy units:
+
+- "yr": years (365.25 days)
+- "d": days (24 hours)
+- "hr": hours (60 minutes)
+- "min": minutes (60 seconds)
+- "s": seconds
+
+.. Note:: These definitions correspond to physical units of time and are NOT
+    calendar date intervals. Thus adding "1yr" to "2000-01-01 00:00:00" will give
+    "2000-12-31 06:00:00" instead of "2001-01-01 00:00:00".
+
+See :class:`~astropy.time.formats.TimeDeltaQuantityStr` for more details.
 
 .. _whatsnew-6.0-votable-parquet-serialization:
 
