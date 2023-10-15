@@ -772,6 +772,11 @@ def test_quantity_str_out_subfmt():
         assert dt.value == exp
 
 
+def test_quantity_str_out_subfmt_precision():
+    dt = TimeDelta("100.0d 1.0123456789012345s", precision=9, out_subfmt="d")
+    assert dt.value == "100.000011717d"
+
+
 def test_quantity_str_out_subfmt_to_value_subfmt():
     dt = TimeDelta("30000010s")
     for subfmt, exp in quantity_str_subfmt_exps.items():
