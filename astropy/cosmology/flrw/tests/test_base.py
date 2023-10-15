@@ -763,9 +763,7 @@ class FLRWTest(
         super().test_clone_change_param(cosmo)
 
         # don't change any values
-        kwargs = cosmo._init_arguments.copy()
-        kwargs.pop("name", None)  # make sure not setting name
-        kwargs.pop("meta", None)  # make sure not setting name
+        kwargs = dict(cosmo.parameters)
         c = cosmo.clone(**kwargs)
         assert c.__class__ == cosmo.__class__
         assert c == cosmo
