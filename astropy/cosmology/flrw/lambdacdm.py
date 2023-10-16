@@ -98,7 +98,7 @@ class LambdaCDM(FLRW):
         Ob0=None,
         *,
         name=None,
-        meta=None
+        meta=None,
     ):
         super().__init__(
             H0=H0,
@@ -284,10 +284,11 @@ class LambdaCDM(FLRW):
         return prefactor * g * (ellipkinc(phi_z1, k2) - ellipkinc(phi_z2, k2))
 
     def _dS_comoving_distance_z1z2(self, z1, z2):
-        r"""
-        Comoving line-of-sight distance in Mpc between objects at redshifts
-        ``z1`` and ``z2`` in a flat, :math:`\Omega_{\Lambda}=1` cosmology
-        (de Sitter).
+        r"""De Sitter comoving LoS distance in Mpc between two redshifts.
+
+        The Comoving line-of-sight distance in Mpc between objects at
+        redshifts ``z1`` and ``z2`` in a flat, :math:`\Omega_{\Lambda}=1`
+        cosmology (de Sitter).
 
         The comoving distance along the line-of-sight between two objects
         remains constant with time for objects in the Hubble flow.
@@ -312,16 +313,17 @@ class LambdaCDM(FLRW):
         return self._hubble_distance * (z2 - z1)
 
     def _EdS_comoving_distance_z1z2(self, z1, z2):
-        r"""
-        Comoving line-of-sight distance in Mpc between objects at redshifts
-        ``z1`` and ``z2`` in a flat, :math:`\Omega_M=1` cosmology
-        (Einstein - de Sitter).
+        r"""Einstein-de Sitter comoving LoS distance in Mpc between two redshifts.
+
+        The Comoving line-of-sight distance in Mpc between objects at
+        redshifts ``z1`` and ``z2`` in a flat, :math:`\Omega_M=1`
+        cosmology (Einstein - de Sitter).
 
         The comoving distance along the line-of-sight between two objects
         remains constant with time for objects in the Hubble flow.
 
-        For :math:`\Omega_M=1`, :math:`\Omega_{rad}=0` the comoving distance
-        has an analytic solution.
+        For :math:`\Omega_M=1`, :math:`\Omega_{rad}=0` the comoving
+        distance has an analytic solution.
 
         Parameters
         ----------
@@ -342,9 +344,10 @@ class LambdaCDM(FLRW):
         return prefactor * ((z1 + 1.0) ** (-1.0 / 2) - (z2 + 1.0) ** (-1.0 / 2))
 
     def _hypergeometric_comoving_distance_z1z2(self, z1, z2):
-        r"""
-        Comoving line-of-sight distance in Mpc between objects at redshifts
-        ``z1`` and ``z2``.
+        r"""Hypergeoemtric comoving LoS distance in Mpc between two redshifts.
+
+        The Comoving line-of-sight distance in Mpc at redshifts ``z1`` and
+        ``z2``.
 
         The comoving distance along the line-of-sight between two objects
         remains constant with time for objects in the Hubble flow.
@@ -365,8 +368,8 @@ class LambdaCDM(FLRW):
         References
         ----------
         .. [1] Baes, M., Camps, P., & Van De Putte, D. (2017). Analytical
-               expressions and numerical evaluation of the luminosity distance
-               in a flat cosmology. MNRAS, 468(1), 927-930.
+               expressions and numerical evaluation of the luminosity
+               distance in a flat cosmology. MNRAS, 468(1), 927-930.
         """
         try:
             z1, z2 = np.broadcast_arrays(z1, z2)
@@ -668,7 +671,7 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
         Ob0=None,
         *,
         name=None,
-        meta=None
+        meta=None,
     ):
         super().__init__(
             H0=H0,

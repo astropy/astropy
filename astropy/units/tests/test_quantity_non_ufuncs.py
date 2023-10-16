@@ -17,7 +17,12 @@ from astropy.units.quantity_helper.function_helpers import (
     TBD_FUNCTIONS,
     UNSUPPORTED_FUNCTIONS,
 )
-from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24, NUMPY_LT_1_25
+from astropy.utils.compat import (
+    NUMPY_LT_1_23,
+    NUMPY_LT_1_24,
+    NUMPY_LT_1_25,
+    NUMPY_LT_2_0,
+)
 
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
@@ -39,12 +44,19 @@ def get_wrapped_functions(*modules):
     else:
         from numpy.testing.overrides import allows_array_function_override
 
-    return {
-        name: f
-        for mod in modules
-        for name, f in mod.__dict__.items()
-        if callable(f) and allows_array_function_override(f)
-    }
+    wrapped_functions = {}
+    for mod in modules:
+        for name, f in mod.__dict__.items():
+            if callable(f) and allows_array_function_override(f):
+                # Indexing by just the name is easiest for test writing,
+                # but in numpy 2.0, there are 2 versions of diagonal and
+                # trace, one in the main namespace, and one in np.linalg.
+                # So, we distinguish those by adding the module name.
+                if name in wrapped_functions:
+                    name = mod.__name__.replace("numpy.", "") + "_" + name
+                wrapped_functions[name] = f
+
+    return wrapped_functions
 
 
 all_wrapped_functions = get_wrapped_functions(
@@ -296,6 +308,7 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         copy = np.copy(a=self.q)
         assert_array_equal(copy, self.q)
 
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.asfarray is removed in NumPy 2.0")
     @needs_array_function
     def test_asfarray(self):
         self.check(np.asfarray)
@@ -648,13 +661,13 @@ class TestUfuncReductions(InvariantUnitTestSetup):
     @pytest.mark.filterwarnings("ignore:`sometrue` is deprecated as of NumPy 1.25.0")
     def test_sometrue(self):
         with pytest.raises(TypeError):
-            np.sometrue(self.q)
+            np.sometrue(self.q)  # noqa: NPY003
 
     # NUMPY_LT_1_25
     @pytest.mark.filterwarnings("ignore:`alltrue` is deprecated as of NumPy 1.25.0")
     def test_alltrue(self):
         with pytest.raises(TypeError):
-            np.alltrue(self.q)
+            np.alltrue(self.q)  # noqa: NPY003
 
     def test_prod(self):
         with pytest.raises(u.UnitsError):
@@ -664,7 +677,7 @@ class TestUfuncReductions(InvariantUnitTestSetup):
     @pytest.mark.filterwarnings("ignore:`product` is deprecated as of NumPy 1.25.0")
     def test_product(self):
         with pytest.raises(u.UnitsError):
-            np.product(self.q)
+            np.product(self.q)  # noqa: NPY003
 
     def test_cumprod(self):
         with pytest.raises(u.UnitsError):
@@ -674,7 +687,7 @@ class TestUfuncReductions(InvariantUnitTestSetup):
     @pytest.mark.filterwarnings("ignore:`cumproduct` is deprecated as of NumPy 1.25.0")
     def test_cumproduct(self):
         with pytest.raises(u.UnitsError):
-            np.cumproduct(self.q)
+            np.cumproduct(self.q)  # noqa: NPY003
 
 
 class TestUfuncLike(InvariantUnitTestSetup):
@@ -686,9 +699,10 @@ class TestUfuncLike(InvariantUnitTestSetup):
         self.check(np.round)
 
     # NUMPY_LT_1_25
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.round_ is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`round_` is deprecated as of NumPy 1.25.0")
     def test_round_(self):
-        self.check(np.round_)
+        self.check(np.round_)  # noqa: NPY003
 
     def test_around(self):
         self.check(np.around)
@@ -1006,8 +1020,15 @@ class TestNanFunctions(InvariantUnitTestSetup):
     def test_nanmean(self):
         self.check(np.nanmean)
 
-    def test_nanmedian(self):
-        self.check(np.nanmedian)
+    @pytest.mark.parametrize("axis", [None, 0, 1, -1])
+    def test_nanmedian(self, axis):
+        self.check(np.nanmedian, axis=axis)
+
+    def test_nanmedian_out(self):
+        out = np.empty_like(self.q)
+        o = np.nanmedian(self.q, out=out)
+        assert o is out
+        assert np.all(o == np.nanmedian(self.q))
 
     def test_nansum(self):
         self.check(np.nansum)
@@ -1140,6 +1161,7 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
 
 
 class TestIntDiffFunctions(metaclass=CoverageMeta):
+    @pytest.mark.filterwarnings("ignore:`trapz` is deprecated. Use `scipy.*")
     def test_trapz(self):
         y = np.arange(9.0) * u.m / u.s
         out = np.trapz(y)
@@ -1328,7 +1350,7 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         value_args=None,
         value_kwargs=None,
         expected_units=None,
-        **kwargs
+        **kwargs,
     ):
         """Check quanties are treated correctly in the histogram function.
         Test is done by applying ``function(*args, **kwargs)``, where
@@ -1933,6 +1955,7 @@ class TestSetOpsFcuntions(metaclass=CoverageMeta):
         self.check2(np.setdiff1d)
 
     @needs_array_function
+    @pytest.mark.filterwarnings("ignore:`in1d` is deprecated. Use `np.isin` instead.")
     def test_in1d(self):
         self.check2(np.in1d, unit=None)
         # Check zero is treated as having any unit.
@@ -2036,7 +2059,7 @@ class TestFFT(InvariantUnitTestSetup):
         self.check(np.fft.ifftshift)
 
 
-class TestLinAlg(metaclass=CoverageMeta):
+class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
     def setup_method(self):
         self.q = (
             np.array([[1.0, -1.0, 2.0], [0.0, 3.0, -1.0], [-1.0, -1.0, 1.0]]) << u.m
@@ -2258,6 +2281,17 @@ class TestLinAlg(metaclass=CoverageMeta):
         w = np.linalg.eigvalsh(self.q)
         wx = np.linalg.eigvalsh(self.q.value) << self.q.unit
         assert_array_equal(w, wx)
+
+    if not NUMPY_LT_2_0:
+        # Numpy 2.0 added array-api compatible definitions of
+        # diagonal and trace to np.linalg. Since these have
+        # name conflicts with the main numpy namespace, they
+        # are tracked as linalg_diagonal and linalg_trace.
+        def test_linalg_diagonal(self):
+            self.check(np.linalg.diagonal)
+
+        def test_linalg_trace(self):
+            self.check(np.trace)
 
 
 class TestRecFunctions(metaclass=CoverageMeta):

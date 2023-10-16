@@ -412,14 +412,6 @@ clean-up tasks to finalize the process.
 Post-Release procedures
 -----------------------
 
-#. If this is a release of the current release (i.e., not an LTS supported along
-   side a more recent version), update the "stable" branch to point to the new
-   release::
-
-      $ git checkout stable
-      $ git reset --hard v<version>
-      $ git push upstream stable --force
-
 #. If this is an LTS release (whether or not it is being supported alongside
    a more recent version), update the "LTS" branch to point to the new LTS
    release::
@@ -488,6 +480,10 @@ Post-Release procedures
    https://github.com/astropy/astropy/wiki/Release-Calendar and updating the
    "Actual date" column of this version's release with the date you performed
    the release (probably the date of the tag and PyPI upload).
+
+#. In the main branch, update the `SECURITY.md file in the astropy repo
+   <https://github.com/astropy/astropy/blob/main/SECURITY.md>`_ to include the
+   newly released version, and as needed mark older versions as not supported.
 
 .. _release-procedure-bug-fix:
 

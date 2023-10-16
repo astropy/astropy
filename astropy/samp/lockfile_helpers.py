@@ -63,8 +63,8 @@ def create_lock_file(lockfilename=None, mode=None, hub_id=None, hub_params=None)
 
             if lockfile_parsed[0] != "file":
                 warnings.warn(
-                    "Unable to start a Hub with lockfile {}. "
-                    "Start-up process aborted.".format(lockfilename),
+                    f"Unable to start a Hub with lockfile {lockfilename}. "
+                    "Start-up process aborted.",
                     SAMPWarning,
                 )
                 return False

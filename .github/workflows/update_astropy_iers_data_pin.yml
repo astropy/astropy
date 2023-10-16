@@ -1,4 +1,4 @@
-# Regularly update the minimum version of astropy-iers-data in setup.cfg,
+# Regularly update the minimum version of astropy-iers-data in pyproject.toml,
 # to ensure that if users update astropy, astropy-iers-data will also get
 # updated to a recent version.
 
@@ -23,7 +23,7 @@ jobs:
     if: github.repository == 'astropy/astropy'
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -36,7 +36,7 @@ jobs:
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
-        git add setup.cfg
+        git add pyproject.toml
         if ! git diff --cached --exit-code; then
           git commit -m "Update minimum required version of astropy-iers-data"
         fi

@@ -1475,7 +1475,10 @@ def test_now():
     Tests creating a Time object with the `now` class method.
     """
 
-    now = datetime.datetime.utcnow()
+    # `Time.datetime` is not timezone aware, meaning `.replace` is necessary for
+    # `now` also not be timezone aware.
+    now = datetime.datetime.now(tz=datetime.timezone.utc).replace(tzinfo=None)
+
     t = Time.now()
 
     assert t.format == "datetime"
@@ -1483,7 +1486,7 @@ def test_now():
 
     dt = t.datetime - now  # a datetime.timedelta object
 
-    # this gives a .1 second margin between the `utcnow` call and the `Time`
+    # this gives a .1 second margin between the `now` call and the `Time`
     # initializer, which is really way more generous than necessary - typical
     # times are more like microseconds.  But it seems safer in case some
     # platforms have slow clock calls or something.
@@ -1936,8 +1939,8 @@ def test_setitem_location():
         t[0, 0] = Time(-1, format="cxcsec")
     assert (
         "cannot set to Time with different location: "
-        "expected location={} and "
-        "got location=None".format(loc[0]) in str(err.value)
+        f"expected location={loc[0]} and "
+        "got location=None" in str(err.value)
     )
 
     # Succeeds because the right hand side correctly sets location
@@ -1949,8 +1952,8 @@ def test_setitem_location():
         t[0, 0] = Time(-2, format="cxcsec", location=loc[1])
     assert (
         "cannot set to Time with different location: "
-        "expected location={} and "
-        "got location={}".format(loc[0], loc[1]) in str(err.value)
+        f"expected location={loc[0]} and "
+        f"got location={loc[1]}" in str(err.value)
     )
 
     # Fails because the Time has None location and RHS has defined location
@@ -1960,7 +1963,7 @@ def test_setitem_location():
     assert (
         "cannot set to Time with different location: "
         "expected location=None and "
-        "got location={}".format(loc[1]) in str(err.value)
+        f"got location={loc[1]}" in str(err.value)
     )
 
     # Broadcasting works

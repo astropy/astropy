@@ -9,15 +9,17 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 import astropy.units as u
-from astropy.coordinates.angles import Angle, Latitude, Longitude
-from astropy.coordinates.errors import (
+from astropy.coordinates import (
+    Angle,
     IllegalHourError,
     IllegalMinuteError,
     IllegalMinuteWarning,
     IllegalSecondError,
     IllegalSecondWarning,
+    Latitude,
+    Longitude,
 )
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 
 def test_create_angles():
@@ -46,11 +48,6 @@ def test_create_angles():
 
     a10 = Angle(3.60827466667, unit=u.hour)
     a11 = Angle("3:36:29.7888000120", unit=u.hour)
-    with pytest.warns(AstropyDeprecationWarning, match="hms_to_hour"):
-        a12 = Angle((3, 36, 29.7888000120), unit=u.hour)  # *must* be a tuple
-    with pytest.warns(AstropyDeprecationWarning, match="hms_to_hour"):
-        # Regression test for #5001
-        a13 = Angle((3, 36, 29.7888000120), unit="hour")
 
     Angle(0.944644098745, unit=u.radian)
 
@@ -93,32 +90,32 @@ def test_create_angles():
     assert_allclose(a5.radian, a6.radian)
 
     assert_allclose(a10.degree, a11.degree)
-    assert a11 == a12 == a13 == a14
+    assert a11 == a14
     assert a21 == a22
     assert a23 == -a24
     assert a24 == a25
 
     # check for illegal ranges / values
     with pytest.raises(IllegalSecondError):
-        a = Angle("12 32 99", unit=u.degree)
+        Angle("12 32 99", unit=u.degree)
 
     with pytest.raises(IllegalMinuteError):
-        a = Angle("12 99 23", unit=u.degree)
+        Angle("12 99 23", unit=u.degree)
 
     with pytest.raises(IllegalSecondError):
-        a = Angle("12 32 99", unit=u.hour)
+        Angle("12 32 99", unit=u.hour)
 
     with pytest.raises(IllegalMinuteError):
-        a = Angle("12 99 23", unit=u.hour)
+        Angle("12 99 23", unit=u.hour)
 
     with pytest.raises(IllegalHourError):
-        a = Angle("99 25 51.0", unit=u.hour)
+        Angle("99 25 51.0", unit=u.hour)
 
     with pytest.raises(ValueError):
-        a = Angle("12 25 51.0xxx", unit=u.hour)
+        Angle("12 25 51.0xxx", unit=u.hour)
 
     with pytest.raises(ValueError):
-        a = Angle("12h34321m32.2s")
+        Angle("12h34321m32.2s")
 
     assert a1 is not None
 
@@ -206,9 +203,11 @@ def test_angle_methods():
     a_var = a.var()
     assert type(a_var) is u.Quantity
     assert a_var == 1.0 * u.degree**2
-    a_ptp = a.ptp()
-    assert type(a_ptp) is Angle
-    assert a_ptp == 2.0 * u.degree
+    if NUMPY_LT_2_0:
+        # np.ndarray.ptp() method removed in numpy 2.0.
+        a_ptp = a.ptp()
+        assert type(a_ptp) is Angle
+        assert a_ptp == 2.0 * u.degree
     a_max = a.max()
     assert type(a_max) is Angle
     assert a_max == 2.0 * u.degree
@@ -425,9 +424,9 @@ def test_radec():
     """
 
     with pytest.raises(u.UnitsError):
-        ra = Longitude("4:08:15.162342")  # error - hours or degrees?
+        Longitude("4:08:15.162342")  # error - hours or degrees?
     with pytest.raises(u.UnitsError):
-        ra = Longitude("-4:08:15.162342")
+        Longitude("-4:08:15.162342")
 
     # the "smart" initializer allows >24 to automatically do degrees, but the
     # Angle-based one does not
@@ -436,29 +435,20 @@ def test_radec():
     # ra = Longitude("26:34:15.345634")  # unambiguous b/c hours don't go past 24
     # assert_allclose(ra.degree, 26.570929342)
     with pytest.raises(u.UnitsError):
-        ra = Longitude("26:34:15.345634")
+        Longitude("26:34:15.345634")
 
     # ra = Longitude(68)
     with pytest.raises(u.UnitsError):
-        ra = Longitude(68)
+        Longitude(68)
 
     with pytest.raises(u.UnitsError):
-        ra = Longitude(12)
+        Longitude(12)
 
     with pytest.raises(ValueError):
-        ra = Longitude("garbage containing a d and no units")
+        Longitude("garbage containing a d and no units")
 
     ra = Longitude("12h43m23s")
     assert_allclose(ra.hour, 12.7230555556)
-
-    # TODO: again, fix based on >24 behavior
-    # ra = Longitude((56,14,52.52))
-    with pytest.raises(u.UnitsError):
-        ra = Longitude((56, 14, 52.52))
-    with pytest.raises(u.UnitsError):
-        ra = Longitude((12, 14, 52))  # ambiguous w/o units
-    with pytest.warns(AstropyDeprecationWarning, match="hms_to_hours"):
-        ra = Longitude((12, 14, 52), unit=u.hour)
 
     # Units can be specified
     ra = Longitude("4:08:15.162342", unit=u.hour)
@@ -468,7 +458,7 @@ def test_radec():
     # nearly always specified in degrees, so this is the default.
     # dec = Latitude("-41:08:15.162342")
     with pytest.raises(u.UnitsError):
-        dec = Latitude("-41:08:15.162342")
+        Latitude("-41:08:15.162342")
     dec = Latitude("-41:08:15.162342", unit=u.degree)  # same as above
 
 
@@ -688,9 +678,9 @@ def test_wrap_at_inplace():
 
 def test_latitude():
     with pytest.raises(ValueError):
-        lat = Latitude(["91d", "89d"])
+        Latitude(["91d", "89d"])
     with pytest.raises(ValueError):
-        lat = Latitude("-91d")
+        Latitude("-91d")
 
     lat = Latitude(["90d", "89d"])
     # check that one can get items
@@ -735,7 +725,7 @@ def test_latitude():
         TypeError, match="A Latitude angle cannot be created from a Longitude angle"
     ):
         lon = Longitude(10, "deg")
-        lat = Latitude(lon)
+        Latitude(lon)
 
     with pytest.raises(
         TypeError, match="A Longitude angle cannot be assigned to a Latitude angle"
@@ -838,7 +828,7 @@ def test_longitude():
         TypeError, match="A Longitude angle cannot be created from a Latitude angle"
     ):
         lat = Latitude(10, "deg")
-        lon = Longitude(lat)
+        Longitude(lat)
 
     with pytest.raises(
         TypeError, match="A Latitude angle cannot be assigned to a Longitude angle"
@@ -926,15 +916,12 @@ def test_empty_sep():
     assert a.to_string(sep="", precision=2, pad=True) == "050431.94"
 
 
-def test_create_tuple():
-    """
-    Tests creation of an angle with an (h,m,s) tuple
-
-    (d, m, s) tuples are not tested because of sign ambiguity issues (#13162)
-    """
-    with pytest.warns(AstropyDeprecationWarning, match="hms_to_hours"):
-        a1 = Angle((1, 30, 0), unit=u.hourangle)
-    assert a1.value == 1.5
+@pytest.mark.parametrize("angle_class", [Angle, Longitude])
+@pytest.mark.parametrize("unit", [u.hourangle, u.hour, None])
+def test_create_tuple_fail(angle_class, unit):
+    """Creating an angle from an (h,m,s) tuple should fail."""
+    with pytest.raises(TypeError, match="no longer supported"):
+        angle_class((12, 14, 52), unit=unit)
 
 
 def test_list_of_quantities():
@@ -1039,7 +1026,7 @@ def test_angle_with_cds_units_enabled():
     https://github.com/astropy/astropy/issues/5350#issuecomment-248770151
     """
     # the problem is with the parser, so remove it temporarily
-    from astropy.coordinates.angle_formats import _AngleParser
+    from astropy.coordinates.angles.formats import _AngleParser
     from astropy.units import cds
 
     del _AngleParser._thread_local._parser

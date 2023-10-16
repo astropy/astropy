@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd">
+ <RESOURCE type="results">
+  <COOSYS ID="_XYZ" system="ICRS"/>
+  <INFO ID="test_name" name="test_name" value="test_value"/>
+  <RESOURCE type="meta">
+   <VODML xmlns="http://www.ivoa.net/xml/mivot">
+   </VODML>
+  </RESOURCE>
+  <RESOURCE type="meta">
+   <VODML xmlns="http://www.ivoa.net/xml/mivot">
+   </VODML>
+  </RESOURCE>
+  <TABLE ID="t1" name="t1"/>
+  <TABLE ID="t2" name="t2"/>
+ </RESOURCE>
+ <RESOURCE type="results">
+  <RESOURCE type="meta">
+   <VODML xmlns="http://www.ivoa.net/xml/mivot">
+   </VODML>
+  </RESOURCE>
+  <TABLE ID="t3" name="t3"/>
+  <RESOURCE type="results"/>
+ </RESOURCE>
+</VOTABLE>

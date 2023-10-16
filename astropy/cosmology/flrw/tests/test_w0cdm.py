@@ -37,6 +37,7 @@ class Parameterw0TestMixin(ParameterTestMixin):
         assert isinstance(cosmo_cls.w0, Parameter)
         assert "Dark energy equation of state" in cosmo_cls.w0.__doc__
         assert cosmo_cls.w0.unit is None
+        assert cosmo_cls.w0.default == -1.0
 
         # on the instance
         assert cosmo.w0 is cosmo._w0

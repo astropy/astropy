@@ -12,7 +12,7 @@ interpreted.
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
-from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24
+from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24, NUMPY_LT_2_0
 
 # This module should not really be imported, but we define __all__
 # such that sphinx can typeset the functions with docstrings.
@@ -79,7 +79,7 @@ been lack of time.  Issues or PRs for support for functions are welcome.
 MASKED_SAFE_FUNCTIONS |= {
     getattr(np, name)
     for name in np.core.fromnumeric.__all__
-    if name not in {"choose", "put", "resize", "searchsorted", "where", "alen"}
+    if name not in {"choose", "put", "resize", "searchsorted", "where", "alen", "ptp"}
 }
 MASKED_SAFE_FUNCTIONS |= {
     # built-in from multiarray
@@ -93,24 +93,34 @@ MASKED_SAFE_FUNCTIONS |= {
     np.isclose, np.allclose, np.flatnonzero, np.argwhere,
     # np.core.shape_base
     np.atleast_1d, np.atleast_2d, np.atleast_3d, np.stack, np.hstack, np.vstack,
-    # np.lib.function_base
-    np.average, np.diff, np.extract, np.meshgrid, np.trapz, np.gradient,
+    # np.lib._function_base_impl
+    np.average, np.diff, np.extract, np.meshgrid, np.gradient,
+    np.trapz,  # deprecated in not NUMPY_LT_2_0
     # np.lib.index_tricks
     np.diag_indices_from, np.triu_indices_from, np.tril_indices_from,
     np.fill_diagonal,
     # np.lib.shape_base
-    np.column_stack, np.row_stack, np.dstack,
+    np.column_stack, np.dstack,
     np.array_split, np.split, np.hsplit, np.vsplit, np.dsplit,
     np.expand_dims, np.apply_along_axis, np.kron, np.tile,
     np.take_along_axis, np.put_along_axis,
-    # np.lib.type_check (all but asfarray, nan_to_num)
+    # np.lib.type_check (all but nan_to_num)
     np.iscomplexobj, np.isrealobj, np.imag, np.isreal, np.real,
     np.real_if_close, np.common_type,
     # np.lib.ufunclike
     np.fix, np.isneginf, np.isposinf,
-    # np.lib.function_base
+    # np.lib._function_base_impl
     np.angle, np.i0,
 }  # fmt: skip
+
+
+if NUMPY_LT_2_0:
+    # Safe in < 2.0, because it deferred to the method. Overridden in >= 2.0.
+    MASKED_SAFE_FUNCTIONS |= {np.ptp}
+    # Removed in numpy 2.0.  Just an alias to vstack.
+    MASKED_SAFE_FUNCTIONS |= {np.row_stack}
+
+
 IGNORED_FUNCTIONS = {
     # I/O - useless for Masked, since no way to store the mask.
     np.save, np.savez, np.savetxt, np.savez_compressed,
@@ -121,7 +131,7 @@ IGNORED_FUNCTIONS = {
 IGNORED_FUNCTIONS |= {
     np.pad, np.searchsorted, np.digitize,
     np.is_busday, np.busday_count, np.busday_offset,
-    # numpy.lib.function_base
+    # numpy.lib._function_base_impl
     np.cov, np.corrcoef, np.trim_zeros,
     # numpy.core.numeric
     np.correlate, np.convolve,
@@ -133,10 +143,14 @@ IGNORED_FUNCTIONS |= {
 }  # fmt: skip
 
 # Really should do these...
-IGNORED_FUNCTIONS |= {
-    getattr(np, setopsname) for setopsname in np.lib.arraysetops.__all__
-}
+if NUMPY_LT_2_0:
+    from numpy.lib import arraysetops
+else:
+    # Public set operations have been moved to the top-level namespace in numpy 2.0
+    # (numpy/numpy#24507), raising an AttributeError when accessed through np.lib.arraysetops.
+    from numpy.lib import _arraysetops_impl as arraysetops
 
+IGNORED_FUNCTIONS |= {getattr(np, setopsname) for setopsname in arraysetops.__all__}
 
 if NUMPY_LT_1_23:
     IGNORED_FUNCTIONS |= {
@@ -206,7 +220,10 @@ def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
 # should be applied to the data and the mask.  They cannot all share the
 # same helper, because the first arguments have different names.
 @apply_to_both(
-    helps={np.copy, np.asfarray, np.resize, np.moveaxis, np.rollaxis, np.roll}
+    helps=(
+        {np.copy, np.resize, np.moveaxis, np.rollaxis, np.roll}
+        | ({np.asfarray} if NUMPY_LT_2_0 else set())
+    )
 )
 def masked_a_helper(a, *args, **kwargs):
     data, mask = _get_data_and_masks(a)
@@ -425,16 +442,27 @@ def bincount(x, weights=None, minlength=0):
     return result, mask, None
 
 
-@dispatched_function
-def msort(a):
-    result = a.copy()
-    result.sort(axis=0)
-    return result
+if NUMPY_LT_2_0:
+
+    @dispatched_function
+    def msort(a):
+        result = a.copy()
+        result.sort(axis=0)
+        return result
+
+else:
+    # Used to work via ptp method, but now need to override, otherwise
+    # plain reduction is used, which gives different mask.
+    @dispatched_function
+    def ptp(a, axis=None, out=None, keepdims=False):
+        result = a.max(axis=axis, out=out, keepdims=keepdims)
+        result -= a.min(axis=axis, keepdims=keepdims)
+        return result
 
 
 @dispatched_function
 def sort_complex(a):
-    # Just a copy of function_base.sort_complex, to avoid the asarray.
+    # Just a copy of np.lib._function_base_impl.sort_complex, to avoid the asarray.
     b = a.copy()
     b.sort()
     if not issubclass(b.dtype.type, np.complexfloating):  # pragma: no cover
@@ -590,10 +618,14 @@ def median(a, axis=None, out=None, **kwargs):
         )
         return (r.reshape(k) if keepdims else r) if out is None else out
 
-    else:
+    elif NUMPY_LT_2_0:
         return np.lib.function_base._ureduce(
             a, func=_masked_median, axis=axis, out=out, **kwargs
         )
+
+    return np.lib._function_base_impl._ureduce(
+        a, func=_masked_median, axis=axis, out=out, **kwargs
+    )
 
 
 def _masked_quantile_1d(a, q, **kwargs):
@@ -603,7 +635,12 @@ def _masked_quantile_1d(a, q, **kwargs):
     """
     unmasked = a.unmasked[~a.mask]
     if unmasked.size:
-        result = np.lib.function_base._quantile_unchecked(unmasked, q, **kwargs)
+        if NUMPY_LT_2_0:
+            result = np.lib.function_base._quantile_unchecked(unmasked, q, **kwargs)
+        else:
+            result = np.lib._function_base_impl._quantile_unchecked(
+                unmasked, q, **kwargs
+            )
         return a.from_unmasked(result)
     else:
         return a.from_unmasked(np.zeros_like(a.unmasked, shape=q.shape), True)
@@ -636,7 +673,9 @@ def quantile(a, q, axis=None, out=None, **kwargs):
 
     a = Masked(a)
     q = np.asanyarray(q)
-    if not np.lib.function_base._quantile_is_valid(q):
+    if (NUMPY_LT_2_0 and not np.lib.function_base._quantile_is_valid(q)) or (
+        not NUMPY_LT_2_0 and not np.lib._function_base_impl._quantile_is_valid(q)
+    ):
         raise ValueError("Quantiles must be in the range [0, 1]")
 
     if NUMPY_LT_1_24:
@@ -645,10 +684,14 @@ def quantile(a, q, axis=None, out=None, **kwargs):
             a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs
         )
         return (r.reshape(q.shape + k) if keepdims else r) if out is None else out
-    else:
+    elif NUMPY_LT_2_0:
         return np.lib.function_base._ureduce(
             a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs
         )
+
+    return np.lib._function_base_impl._ureduce(
+        a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs
+    )
 
 
 @dispatched_function
@@ -756,7 +799,7 @@ def piecewise(x, condlist, funclist, *args, **kw):
     Any masks in ``condlist`` are ignored.
 
     """
-    # Copied implementation from numpy.lib.function_base.piecewise,
+    # Copied implementation from numpy.lib._function_base_impl.piecewise,
     # just to ensure output is Masked.
     n2 = len(funclist)
     # undocumented: single condition is promoted to a list of one condition
@@ -1010,9 +1053,21 @@ def array2string(
     return _array2string(a, options, separator, prefix)
 
 
+def _array_str_scalar(x):
+    # This wraps np.array_str for use as a format function in
+    # MaskedFormat. We cannot use it directly as format functions
+    # expect numpy scalars, while np.array_str expects an array.
+    return np.array_str(np.array(x))
+
+
 @dispatched_function
 def array_str(a, max_line_width=None, precision=None, suppress_small=None):
-    # Override to avoid special treatment of array scalars.
+    # Override to change special treatment of array scalars, since the numpy
+    # code turns the masked array scalar into a regular array scalar.
+    # By going through MaskedFormat, we can replace the string as needed.
+    if a.shape == () and a.dtype.names is None:
+        return MaskedFormat(_array_str_scalar)(a)
+
     return array2string(a, max_line_width, precision, suppress_small, " ", "")
 
 
@@ -1063,7 +1118,8 @@ def masked_nanfunc(nanfuncname):
     return nanfunc
 
 
-for nanfuncname in np.lib.nanfunctions.__all__:
+_nplibnanfunctions = np.lib.nanfunctions if NUMPY_LT_2_0 else np.lib._nanfunctions_impl
+for nanfuncname in _nplibnanfunctions.__all__:
     globals()[nanfuncname] = dispatched_function(
         masked_nanfunc(nanfuncname), helps=getattr(np, nanfuncname)
     )
@@ -1072,7 +1128,7 @@ for nanfuncname in np.lib.nanfunctions.__all__:
 # Add any dispatched or helper function that has a docstring to
 # __all__, so they will be typeset by sphinx. The logic is that for
 # those presumably the use of the mask is not entirely obvious.
-__all__ += sorted(
+__all__ += sorted(  # noqa: PLE0605
     helper.__name__
     for helper in (
         set(APPLY_TO_BOTH_FUNCTIONS.values()) | set(DISPATCHED_FUNCTIONS.values())

@@ -6,7 +6,6 @@ import gc
 import pickle
 import re
 import sys
-import warnings
 
 import numpy as np
 import pytest
@@ -26,7 +25,7 @@ from astropy.io.fits.verify import VerifyError
 from astropy.table import Table
 from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
 from astropy.utils.compat import NUMPY_LT_1_22_1
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.exceptions import AstropyUserWarning
 
 from .conftest import FitsTestCase
 
@@ -411,7 +410,7 @@ class TestTableFunctions(FitsTestCase):
                 (2, "Canopys", -0.73, "F0Ib"),
                 (3, "Rigil Kent", -0.1, "G2V"),
             ],
-            formats="int16,a20,float32,a10",
+            formats="int16,S20,float32,S10",
             names="order,name,mag,Sp",
         )
         hdu = fits.BinTableHDU(bright)
@@ -473,7 +472,7 @@ class TestTableFunctions(FitsTestCase):
                 (2, "Canopys", -0.73, "F0Ib"),
                 (3, "Rigil Kent", -0.1, "G2V"),
             ],
-            formats="int16,a20,float64,a10",
+            formats="int16,S20,float64,S10",
             names="order,name,mag,Sp",
         )
         hdu = fits.TableHDU.from_columns(bright, nrows=2)
@@ -550,7 +549,7 @@ class TestTableFunctions(FitsTestCase):
         hdu = fits.BinTableHDU.from_columns(bright, nrows=2)
         tmp = np.rec.array(
             [(1, "Serius", -1.45, "A1V"), (2, "Canopys", -0.73, "F0Ib")],
-            formats="int16,a20,float64,a10",
+            formats="int16,S20,float64,S10",
             names="order,name,mag,Sp",
         )
         assert comparerecords(hdu.data, tmp)
@@ -641,7 +640,7 @@ class TestTableFunctions(FitsTestCase):
                 ("NGC7", 408, "", z, False),
                 ("NCG8", 417, "", z, False),
             ],
-            formats="a10,u4,a10,5f4,l",
+            formats="S10,u4,S10,5f4,l",
         )
 
         assert comparerecords(hdu.data, array)
@@ -751,7 +750,7 @@ class TestTableFunctions(FitsTestCase):
                 ("NGC3", 308, "", z, True),
                 ("NCG4", 317, "", z, True),
             ],
-            formats="a10,u4,a10,5f4,l",
+            formats="S10,u4,S10,5f4,l",
         )
         assert comparerecords(tbhdu1.data, array)
 
@@ -780,7 +779,7 @@ class TestTableFunctions(FitsTestCase):
                 ("NGC3", 308, "", z, True),
                 ("NCG4", 317, "", z, True),
             ],
-            formats="a10,u4,a10,5f4,l",
+            formats="S10,u4,S10,5f4,l",
         )
         assert comparerecords(tbhdu.data, array)
 
@@ -792,7 +791,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.columns.names == ["target", "V_mag", "a"]
         array = np.rec.array(
             [("NGC1001", 11.1, 1), ("NGC1002", 12.3, 2), ("NGC1003", 15.2, 0)],
-            formats="a20,f4,i8",
+            formats="S20,f4,i8",
         )
         assert comparerecords(tbhdu.data, array)
         hdul.close()
@@ -822,7 +821,7 @@ class TestTableFunctions(FitsTestCase):
                 ("NGC3", 308, "", z),
                 ("NCG4", 317, "", z),
             ],
-            formats="a10,u4,a10,5f4",
+            formats="S10,u4,S10,5f4",
         )
         assert comparerecords(tbhdu.data, array)
 
@@ -831,7 +830,7 @@ class TestTableFunctions(FitsTestCase):
 
         assert tbhdu.columns.names == ["target", "spectrum"]
         array = np.rec.array(
-            [("NGC1", z), ("NGC2", z), ("NGC3", z), ("NCG4", z)], formats="a10,5f4"
+            [("NGC1", z), ("NGC2", z), ("NGC3", z), ("NCG4", z)], formats="S10,5f4"
         )
         assert comparerecords(tbhdu.data, array)
 
@@ -840,7 +839,7 @@ class TestTableFunctions(FitsTestCase):
         tbhdu = hdul[1]
         tbhdu.columns.del_col("V_mag")
         assert tbhdu.columns.names == ["target"]
-        array = np.rec.array([("NGC1001",), ("NGC1002",), ("NGC1003",)], formats="a20")
+        array = np.rec.array([("NGC1001",), ("NGC1002",), ("NGC1003",)], formats="S20")
         assert comparerecords(tbhdu.data, array)
         hdul.close()
 
@@ -884,7 +883,7 @@ class TestTableFunctions(FitsTestCase):
                 ("NGC3", 308, "", z, True, "NGC7", 408, "", z, False),
                 ("NCG4", 317, "", z, True, "NCG8", 417, "", z, False),
             ],
-            formats="a10,u4,a10,5f4,l,a10,u4,a10,5f4,l",
+            formats="S10,u4,S10,5f4,l,S10,u4,S10,5f4,l",
         )
         assert comparerecords(hdu.data, array)
 
@@ -959,7 +958,7 @@ class TestTableFunctions(FitsTestCase):
                 ("NGC3", 308, "", z, True, "NGC7", 408, "", z, False),
                 ("NCG4", 317, "", z, True, "NCG8", 417, "", z, False),
             ],
-            formats="a10,u4,a10,5f4,l,a10,u4,a10,5f4,l",
+            formats="S10,u4,S10,5f4,l,S10,u4,S10,5f4,l",
         )
         assert comparerecords(hdu.data, array)
 
@@ -1995,7 +1994,7 @@ class TestTableFunctions(FitsTestCase):
                 ([6, 7, 8, 9, 0, 1], "row2" * 2),
                 ([2, 3, 4, 5, 6, 7], "row3" * 2),
             ],
-            formats="6i4,a8",
+            formats="6i4,S8",
         )
 
         thdu = fits.BinTableHDU.from_columns(data)
@@ -2358,7 +2357,7 @@ class TestTableFunctions(FitsTestCase):
         """
 
         data = np.rec.array(
-            [("a", [1, 2, 3, 4], 0.1), ("b", [5, 6, 7, 8], 0.2)], formats="a1,4i4,f8"
+            [("a", [1, 2, 3, 4], 0.1), ("b", [5, 6, 7, 8], 0.2)], formats="S1,4i4,f8"
         )
         tbhdu = fits.BinTableHDU.from_columns(data)
         datafile = self.temp("data.txt")
@@ -3377,12 +3376,14 @@ class TestColumnFunctions(FitsTestCase):
         """
 
         for recformat, fitsformat in NUMPY2FITS.items():
+            if recformat == "S":
+                fitsformat = "0A"
             c = fits.Column("TEST", np.dtype(recformat))
-            c.format == fitsformat
+            assert c.format == fitsformat
             c = fits.Column("TEST", recformat)
-            c.format == fitsformat
+            assert c.format == fitsformat
             c = fits.Column("TEST", fitsformat)
-            c.format == fitsformat
+            assert c.format == fitsformat
 
         # Test a few cases that are ambiguous in that they *are* valid binary
         # table formats though not ones that are likely to be used, but are
@@ -3782,118 +3783,6 @@ def test_regression_scalar_indexing():
     x1b = x[(1,)]
     # FITS_record does not define __eq__; so test elements.
     assert all(a == b for a, b in zip(x1a, x1b))
-
-
-def test_new_column_attributes_preserved(tmp_path):
-    # Regression test for https://github.com/astropy/astropy/issues/7145
-    # This makes sure that for now we don't clear away keywords that have
-    # newly been recognized (in Astropy 3.0) as special column attributes but
-    # instead just warn that we might do so in future. The new keywords are:
-    # TCTYP, TCUNI, TCRPX, TCRVL, TCDLT, TRPOS
-
-    col = []
-    col.append(fits.Column(name="TIME", format="1E", unit="s"))
-    col.append(fits.Column(name="RAWX", format="1I", unit="pixel"))
-    col.append(fits.Column(name="RAWY", format="1I"))
-    cd = fits.ColDefs(col)
-
-    hdr = fits.Header()
-
-    # Keywords that will get ignored in favor of these in the data
-    hdr["TUNIT1"] = "pixel"
-    hdr["TUNIT2"] = "m"
-    hdr["TUNIT3"] = "m"
-
-    # Keywords that were added in Astropy 3.0 that should eventually be
-    # ignored and set on the data instead
-    hdr["TCTYP2"] = "RA---TAN"
-    hdr["TCTYP3"] = "ANGLE"
-    hdr["TCRVL2"] = -999.0
-    hdr["TCRVL3"] = -999.0
-    hdr["TCRPX2"] = 1.0
-    hdr["TCRPX3"] = 1.0
-    hdr["TALEN2"] = 16384
-    hdr["TALEN3"] = 1024
-    hdr["TCUNI2"] = "angstrom"
-    hdr["TCUNI3"] = "deg"
-
-    # Other non-relevant keywords
-    hdr["RA"] = 1.5
-    hdr["DEC"] = 3.0
-
-    with pytest.warns(AstropyDeprecationWarning) as warning_list:
-        hdu = fits.BinTableHDU.from_columns(cd, hdr)
-    assert str(warning_list[0].message).startswith(
-        "The following keywords are now recognized as special"
-    )
-
-    # First, check that special keywords such as TUNIT are ignored in the header
-    # We may want to change that behavior in future, but this is the way it's
-    # been for a while now.
-
-    assert hdu.columns[0].unit == "s"
-    assert hdu.columns[1].unit == "pixel"
-    assert hdu.columns[2].unit is None
-
-    assert hdu.header["TUNIT1"] == "s"
-    assert hdu.header["TUNIT2"] == "pixel"
-    assert "TUNIT3" not in hdu.header  # TUNIT3 was removed
-
-    # Now, check that the new special keywords are actually still there
-    # but weren't used to set the attributes on the data
-
-    assert hdu.columns[0].coord_type is None
-    assert hdu.columns[1].coord_type is None
-    assert hdu.columns[2].coord_type is None
-
-    assert "TCTYP1" not in hdu.header
-    assert hdu.header["TCTYP2"] == "RA---TAN"
-    assert hdu.header["TCTYP3"] == "ANGLE"
-
-    # Make sure that other keywords are still there
-
-    assert hdu.header["RA"] == 1.5
-    assert hdu.header["DEC"] == 3.0
-
-    # Now we can write this HDU to a file and re-load. Re-loading *should*
-    # cause the special column attributes to be picked up (it's just that when a
-    # header is manually specified, these values are ignored)
-
-    filename = tmp_path / "test.fits"
-
-    hdu.writeto(filename)
-
-    # Make sure we don't emit a warning in this case
-    with warnings.catch_warnings(record=True) as warning_list:
-        with fits.open(filename) as hdul:
-            hdu2 = hdul[1]
-    assert len(warning_list) == 0
-
-    # Check that column attributes are now correctly set
-
-    assert hdu2.columns[0].unit == "s"
-    assert hdu2.columns[1].unit == "pixel"
-    assert hdu2.columns[2].unit is None
-
-    assert hdu2.header["TUNIT1"] == "s"
-    assert hdu2.header["TUNIT2"] == "pixel"
-    assert "TUNIT3" not in hdu2.header  # TUNIT3 was removed
-
-    # Now, check that the new special keywords are actually still there
-    # but weren't used to set the attributes on the data
-
-    assert hdu2.columns[0].coord_type is None
-    assert hdu2.columns[1].coord_type == "RA---TAN"
-    assert hdu2.columns[2].coord_type == "ANGLE"
-
-    assert "TCTYP1" not in hdu2.header
-    assert hdu2.header["TCTYP2"] == "RA---TAN"
-    assert hdu2.header["TCTYP3"] == "ANGLE"
-
-    # Make sure that other keywords are still there
-
-    assert hdu2.header["RA"] == 1.5
-    assert hdu2.header["DEC"] == 3.0
 
 
 def test_empty_table(tmp_path):

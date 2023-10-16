@@ -2177,11 +2177,11 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
 
 def _validate_jd_for_storage(jd):
     if isinstance(jd, (float, int)):
-        return np.array(jd, dtype=np.float_)
+        return np.array(jd, dtype=float)
     if isinstance(jd, np.generic) and (
         jd.dtype.kind == "f" and jd.dtype.itemsize <= 8 or jd.dtype.kind in "iu"
     ):
-        return np.array(jd, dtype=np.float_)
+        return np.array(jd, dtype=float)
     elif isinstance(jd, np.ndarray) and jd.dtype.kind == "f" and jd.dtype.itemsize == 8:
         return jd
     else:

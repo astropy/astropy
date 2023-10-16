@@ -16,7 +16,6 @@ from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameter import Parameter
 from astropy.table import Column, QTable, Table
 from astropy.utils.compat import PYTHON_LT_3_11
-from astropy.utils.metadata import MetaData
 
 from .test_connect import ReadWriteTestMixin, ToFromFormatTestMixin
 from .test_parameter import ParameterTestMixin
@@ -62,8 +61,8 @@ class SubCosmology(Cosmology):
     """Defined here to be serializable."""
 
     H0 = Parameter(unit="km/(s Mpc)")
-    Tcmb0 = Parameter(unit=u.K)
-    m_nu = Parameter(unit=u.eV)
+    Tcmb0 = Parameter(default=0 * u.K, unit=u.K)
+    m_nu = Parameter(default=0 * u.eV, unit=u.eV)
 
     def __init__(self, H0, Tcmb0=0 * u.K, m_nu=0 * u.eV, name=None, meta=None):
         super().__init__(name=name, meta=meta)
@@ -85,7 +84,7 @@ class MetaTestMixin:
     """Tests for a :class:`astropy.utils.metadata.MetaData` on a Cosmology."""
 
     def test_meta_on_class(self, cosmo_cls):
-        assert isinstance(cosmo_cls.meta, MetaData)
+        assert cosmo_cls.meta is None
 
     def test_meta_on_instance(self, cosmo):
         assert isinstance(cosmo.meta, dict)  # test type
@@ -94,7 +93,7 @@ class MetaTestMixin:
 
     def test_meta_mutable(self, cosmo):
         """The metadata is NOT immutable on a cosmology"""
-        key = tuple(cosmo.meta.keys())[0]  # select some key
+        key = next(iter(cosmo.meta.keys()))  # select some key
         cosmo.meta[key] = cosmo.meta.pop(key)  # will error if immutable
 
 
@@ -168,7 +167,6 @@ class CosmologyTest(
             @classmethod
             def _register_cls(cls):
                 """Override to not register."""
-                pass
 
         assert UnRegisteredSubclassTest.__parameters__ == cosmo_cls.__parameters__
         assert UnRegisteredSubclassTest.__qualname__ not in _COSMOLOGY_CLASSES

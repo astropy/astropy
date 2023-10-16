@@ -43,6 +43,7 @@ class ParameterwzTestMixin(ParameterTestMixin):
         assert isinstance(cosmo_cls.wz, Parameter)
         assert "Derivative of the dark energy" in cosmo_cls.wz.__doc__
         assert cosmo_cls.wz.unit is None
+        assert cosmo_cls.wz.default == 0.0
 
         # on the instance
         assert cosmo.wz is cosmo._wz
@@ -135,6 +136,14 @@ class Testw0wzCDM(FLRWTest, Parameterw0TestMixin, ParameterwzTestMixin):
             cosmo.Otot(1e3)
 
     # ===============================================================
+    # I/O Tests
+
+    @pytest.mark.filterwarnings("ignore:overflow encountered")
+    def test_toformat_model(self, cosmo, to_format, method_name):
+        """Test cosmology -> astropy.model."""
+        super().test_toformat_model(cosmo, to_format, method_name)
+
+    # ===============================================================
     # Usage Tests
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
@@ -144,17 +153,17 @@ class Testw0wzCDM(FLRWTest, Parameterw0TestMixin, ParameterwzTestMixin):
             (  # no relativistic species
                 (75.0, 0.3, 0.6),
                 {},
-                [3051.68786716, 4756.17714818, 5822.38084257, 6562.70873734] * u.Mpc,
+                [2934.20187523, 4559.94636182, 5590.71080419, 6312.66783729] * u.Mpc,
             ),
             (  # massless neutrinos
                 (75.0, 0.25, 0.5),
                 {"Tcmb0": 3.0, "Neff": 3, "m_nu": 0 * u.eV},
-                [2997.8115653, 4686.45599916, 5764.54388557, 6524.17408738] * u.Mpc,
+                [2904.47062713, 4528.59073707, 5575.95892989, 6318.98689566] * u.Mpc,
             ),
             (  # massive neutrinos
                 (75.0, 0.25, 0.5),
                 {"Tcmb0": 3.0, "Neff": 4, "m_nu": 5 * u.eV},
-                [2676.73467639, 3940.57967585, 4686.90810278, 5191.54178243] * u.Mpc,
+                [2613.84726408, 3849.66574595, 4585.51172509, 5085.16795412] * u.Mpc,
             ),
         ],
     )
@@ -166,6 +175,23 @@ class Testw0wzCDM(FLRWTest, Parameterw0TestMixin, ParameterwzTestMixin):
         """
         super().test_comoving_distance_example(
             cosmo_cls, args, {**COMOVING_DISTANCE_EXAMPLE_KWARGS, **kwargs}, expected
+        )
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
+    def test_comoving_distance_mathematica(self, cosmo_cls):
+        """Test with Mathematica example.
+
+        This test should be updated as the code changes.
+
+        ::
+            In[1]:= {Om0, w0, wz, H0, c}={0.3,-0.9, 0.2, 70, 299792.458};
+            c/H0 NIntegrate[1/Sqrt[Om0*(1+z)^3+(1-Om0)(1+z)^(3(1+w0-wz)) Exp[3 *wz*z]],{z, 0, 0.5}]
+            Out[1]= 1849.75
+        """
+        assert u.allclose(
+            cosmo_cls(H0=70, Om0=0.3, w0=-0.9, wz=0.2, Ode0=0.7).comoving_distance(0.5),
+            1849.75 * u.Mpc,
+            rtol=1e-4,
         )
 
 
@@ -212,17 +238,17 @@ class TestFlatw0wzCDM(FlatFLRWMixinTest, Testw0wzCDM):
             (  # no relativistic species
                 (75.0, 0.3),
                 {},
-                [3156.41804372, 4951.19475878, 6064.40591021, 6831.18710042] * u.Mpc,
+                [3004.55645039, 4694.15295565, 5760.90038238, 6504.07869144] * u.Mpc,
             ),
             (  # massless neutrinos
                 (75.0, 0.25),
                 {"Tcmb0": 3.0, "Neff": 3, "m_nu": 0 * u.eV},
-                [3268.38450997, 5205.96494068, 6419.75447923, 7257.77819438] * u.Mpc,
+                [3086.14574034, 4885.09170925, 6035.4563298, 6840.89215656] * u.Mpc,
             ),
             (  # massive neutrinos
                 (75.0, 0.25),
                 {"Tcmb0": 3.0, "Neff": 4, "m_nu": 5 * u.eV},
-                [2536.77159626, 3721.76294016, 4432.3526772, 4917.90352107] * u.Mpc,
+                [2510.44035219, 3683.87910326, 4389.97760294, 4873.33577288] * u.Mpc,
             ),
         ],
     )
@@ -234,6 +260,23 @@ class TestFlatw0wzCDM(FlatFLRWMixinTest, Testw0wzCDM):
         """
         super().test_comoving_distance_example(
             cosmo_cls, args, {**COMOVING_DISTANCE_EXAMPLE_KWARGS, **kwargs}, expected
+        )
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
+    def test_comoving_distance_mathematica(self, cosmo_cls):
+        """Test with Mathematica example.
+
+        This test should be updated as the code changes.
+
+        ::
+            In[1]:= {Om0, w0, wz, H0, c}={0.3,-0.9, 0.2, 70, 299792.458};
+            c/H0 NIntegrate[1/Sqrt[Om0*(1+z)^3+(1-Om0)(1+z)^(3(1+w0-wz)) Exp[3 *wz*z]],{z, 0, 0.5}]
+            Out[1]= 1849.75
+        """
+        assert u.allclose(
+            cosmo_cls(H0=70, Om0=0.3, w0=-0.9, wz=0.2).comoving_distance(0.5),
+            1849.75 * u.Mpc,
+            rtol=1e-4,
         )
 
 

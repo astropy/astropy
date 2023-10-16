@@ -290,38 +290,47 @@ class TestMaskedNDArraySubclassCreation:
 
 
 class TestMaskedQuantityInitialization(TestMaskedArrayInitialization, QuantitySetup):
+    @classmethod
+    def setup_class(self):
+        super().setup_class()
+        # Ensure we have used MaskedQuantity before - just in case a single test gets
+        # called; see gh-15316.
+        self.MQ = Masked(Quantity)
+
+    def test_masked_quantity_getting(self):
+        # First check setup_class (or previous use) defined a cache entry.
+        mcls = Masked._masked_classes[type(self.a)]
+        # Next check this is what one gets now.
+        MQ = Masked(Quantity)
+        assert MQ is mcls
+        assert issubclass(MQ, Quantity)
+        assert issubclass(MQ, Masked)
+        # And also what one gets implicitly.
+        mq = Masked([1.0, 2.0] * u.m)
+        assert isinstance(mq, MQ)
+
     def test_masked_quantity_class_init(self):
-        # TODO: class definitions should be more easily accessible.
-        mcls = Masked._masked_classes[self.a.__class__]
         # This is not a very careful test.
-        mq = mcls([1.0, 2.0], mask=[True, False], unit=u.s)
+        mq = self.MQ([1.0, 2.0], mask=[True, False], unit=u.s)
         assert mq.unit == u.s
         assert np.all(mq.value.unmasked == [1.0, 2.0])
         assert np.all(mq.value.mask == [True, False])
         assert np.all(mq.mask == [True, False])
 
-    def test_masked_quantity_getting(self):
-        mcls = Masked._masked_classes[self.a.__class__]
-        MQ = Masked(Quantity)
-        assert MQ is mcls
-
     def test_initialization_without_mask(self):
         # Default for not giving a mask should be False.
-        MQ = Masked(Quantity)
-        mq = MQ([1.0, 2.0], u.s)
+        mq = self.MQ([1.0, 2.0], u.s)
         assert mq.unit == u.s
         assert np.all(mq.value.unmasked == [1.0, 2.0])
         assert np.all(mq.mask == [False, False])
 
     @pytest.mark.parametrize("masked_array", [Masked, np.ma.MaskedArray])
     def test_initialization_with_masked_values(self, masked_array):
-        MQ = Masked(Quantity)
         a = np.array([1.0, 2.0])
         m = np.array([True, False])
         ma = masked_array(a, m)
-        mq = MQ(ma)
-        assert isinstance(mq, Masked)
-        assert isinstance(mq, Quantity)
+        mq = self.MQ(ma)
+        assert isinstance(mq, self.MQ)
         assert_array_equal(mq.value.unmasked, a)
         assert_array_equal(mq.mask, m)
 
@@ -1285,17 +1294,44 @@ class TestMaskedArrayProductMethods(MaskedArraySetup):
         assert_array_equal(ma_sum.mask, expected_mask)
 
 
-def test_masked_str_explicit():
+def test_masked_str_repr_explicit_float():
+    sa = np.array([np.pi, 2 * np.pi])
+    msa = Masked(sa, [False, True])
+    # Test masking  the array works as expected, including truncating digits
+    assert str(msa) == "[3.14159265        ———]"
+    # Test the digits are kept for scalars.
+    assert str(msa[0]) == "3.141592653589793" == str(sa[0])
+    # And that the masked string has the same length.
+    assert str(msa[1]) == "              ———"
+    # Test temporary precision change (which does not affect scalars).
+    with np.printoptions(precision=3, floatmode="fixed"):
+        assert str(msa) == "[3.142   ———]"
+        assert str(msa[0]) == "3.141592653589793" == str(sa[0])
+    assert repr(msa) == "MaskedNDArray([3.14159265,        ———])"
+
+
+def test_masked_str_explicit_string():
+    sa = np.array(["2001-02-03", "2002-03-04"])
+    msa = Masked(sa, [False, True])
+    assert str(msa) == "['2001-02-03'          ———]"
+    assert str(msa[0]) == "2001-02-03" == str(sa[0])
+    assert str(msa[1]) == "       ———"
+    assert repr(msa) == "MaskedNDArray(['2001-02-03',          ———], dtype='<U10')"
+
+
+def test_masked_str_explicit_structured():
     sa = np.array([(1.0, 2.0), (3.0, 4.0)], dtype="f8,f8")
     msa = Masked(sa, [(False, True), (False, False)])
     assert str(msa) == "[(1., ——) (3., 4.)]"
     assert str(msa[0]) == "(1., ——)"
-    assert str(msa[1]) == "(3., 4.)"
+    assert str(msa[1]) == "(3., 4.)" == str(sa[1])
     with np.printoptions(precision=3, floatmode="fixed"):
         assert str(msa) == "[(1.000,   ———) (3.000, 4.000)]"
+        assert str(msa[0]) == "(1.000,   ———)"
+        assert str(msa[1]) == "(3.000, 4.000)" == str(sa[1])
 
 
-def test_masked_repr_explicit():
+def test_masked_repr_explicit_structured():
     # Use explicit endianness to ensure tests pass on all architectures
     sa = np.array([(1.0, 2.0), (3.0, 4.0)], dtype=">f8,>f8")
     msa = Masked(sa, [(False, True), (False, False)])

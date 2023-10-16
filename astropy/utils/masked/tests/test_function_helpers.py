@@ -8,7 +8,6 @@ in test_functions.
 TODO: finish full coverage (see also `~astropy.utils.masked.function_helpers`)
 - np.linalg
 - np.fft (is there any point?)
-- np.lib.nanfunctions
 
 """
 import inspect
@@ -19,7 +18,12 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from astropy.units.tests.test_quantity_non_ufuncs import get_wrapped_functions
-from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24, NUMPY_LT_1_25
+from astropy.utils.compat import (
+    NUMPY_LT_1_23,
+    NUMPY_LT_1_24,
+    NUMPY_LT_1_25,
+    NUMPY_LT_2_0,
+)
 from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.masked.function_helpers import (
     APPLY_TO_BOTH_FUNCTIONS,
@@ -279,6 +283,7 @@ class TestCopyAndCreation(InvariantMaskTestSetup):
         copy = np.copy(a=self.ma)
         assert_array_equal(copy, self.ma)
 
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.asfarray is removed in NumPy 2.0")
     def test_asfarray(self):
         self.check(np.asfarray)
         farray = np.asfarray(a=self.ma)
@@ -606,12 +611,12 @@ class TestMethodLikes(MaskedArraySetup):
     # NUMPY_LT_1_25
     @pytest.mark.filterwarnings("ignore:`sometrue` is deprecated as of NumPy 1.25.0")
     def test_sometrue(self):
-        self.check(np.sometrue, method="any")
+        self.check(np.sometrue, method="any")  # noqa: NPY003
 
     # NUMPY_LT_1_25
     @pytest.mark.filterwarnings("ignore:`alltrue` is deprecated as of NumPy 1.25.0")
     def test_alltrue(self):
-        self.check(np.alltrue, method="all")
+        self.check(np.alltrue, method="all")  # noqa: NPY003
 
     def test_prod(self):
         self.check(np.prod)
@@ -619,7 +624,7 @@ class TestMethodLikes(MaskedArraySetup):
     # NUMPY_LT_1_25
     @pytest.mark.filterwarnings("ignore:`product` is deprecated as of NumPy 1.25.0")
     def test_product(self):
-        self.check(np.product, method="prod")
+        self.check(np.product, method="prod")  # noqa: NPY003
 
     def test_cumprod(self):
         self.check(np.cumprod)
@@ -627,19 +632,16 @@ class TestMethodLikes(MaskedArraySetup):
     # NUMPY_LT_1_25
     @pytest.mark.filterwarnings("ignore:`cumproduct` is deprecated as of NumPy 1.25.0")
     def test_cumproduct(self):
-        self.check(np.cumproduct, method="cumprod")
-
-    def test_ptp(self):
-        self.check(np.ptp)
-        self.check(np.ptp, axis=0)
+        self.check(np.cumproduct, method="cumprod")  # noqa: NPY003
 
     def test_round(self):
         self.check(np.round, method="round")
 
     # NUMPY_LT_1_25
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.round_ is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`round_` is deprecated as of NumPy 1.25.0")
     def test_round_(self):
-        self.check(np.round_, method="round")
+        self.check(np.round_, method="round")  # noqa: NPY003
 
     def test_around(self):
         self.check(np.around, method="round")
@@ -891,6 +893,23 @@ class TestReductionLikeFunctions(MaskedArraySetup):
         assert_array_equal(o.unmasked, expected)
         assert_array_equal(o.mask, expected_mask)
 
+    @pytest.mark.parametrize("kwargs", [{}, {"axis": 0}])
+    def test_ptp(self, kwargs):
+        o = np.ptp(self.ma, **kwargs)
+        expected = self.ma.max(**kwargs) - self.ma.min(**kwargs)
+        assert_array_equal(o.unmasked, expected.unmasked)
+        assert_array_equal(o.mask, expected.mask)
+        out = np.zeros_like(expected)
+        o2 = np.ptp(self.ma, out=out, **kwargs)
+        assert o2 is out
+        assert_array_equal(o2.unmasked, expected.unmasked)
+        assert_array_equal(o2.mask, expected.mask)
+        if NUMPY_LT_2_0:
+            # Method is removed in numpy 2.0.
+            o3 = self.ma.ptp(**kwargs)
+            assert_array_equal(o3.unmasked, expected.unmasked)
+            assert_array_equal(o3.mask, expected.mask)
+
     def test_trace(self):
         o = np.trace(self.ma)
         expected = np.trace(self.a)
@@ -975,6 +994,7 @@ class TestIntDiffFunctions(MaskedArraySetup):
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
 
+    @pytest.mark.filterwarnings("ignore:`trapz` is deprecated. Use `scipy.*")
     def test_trapz(self):
         ma = self.ma.copy()
         ma.mask[1] = False

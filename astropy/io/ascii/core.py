@@ -770,8 +770,8 @@ class BaseHeader:
 
         if names is not None and len(names) != len(self.colnames):
             raise InconsistentTableError(
-                "Length of names argument ({}) does not match number"
-                " of table columns ({})".format(len(names), len(self.colnames))
+                f"Length of names argument ({len(names)}) does not match number "
+                f"of table columns ({len(self.colnames)})"
             )
 
 
@@ -1440,12 +1440,10 @@ class BaseReader(metaclass=MetaBaseReader):
                 # otherwise, we raise an error only if it is still inconsistent
                 if len(str_vals) != n_cols:
                     errmsg = (
-                        "Number of header columns ({}) inconsistent with"
-                        " data columns ({}) at data line {}\n"
-                        "Header values: {}\n"
-                        "Data values: {}".format(
-                            n_cols, len(str_vals), i, [x.name for x in cols], str_vals
-                        )
+                        f"Number of header columns ({n_cols}) inconsistent with "
+                        f"data columns ({len(str_vals)}) at data line {i}\n"
+                        f"Header values: {[x.name for x in cols]}\n"
+                        f"Data values: {str_vals}"
                     )
 
                     raise InconsistentTableError(errmsg)

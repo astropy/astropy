@@ -15,6 +15,22 @@ coordinate::
 
     >>> coord = SkyCoord(ra_array, dec_array, unit='deg')  # doctest: +SKIP
 
+Frame attributes can be arrays too, as long as the coordinate data and all of
+the frame attributes have shapes that are compatible according to
+:doc:`Numpy broadcasting rules <numpy:user/basics.broadcasting>`:
+
+
+.. testsetup::
+
+    >>> from astropy.coordinates import FK4
+    >>> from astropy import units as u
+
+::
+
+    >>> coord = FK4(1 * u.deg, 2 * u.deg, obstime=["J2000", "J2001"])
+    >>> coord.shape
+    (2,)
+
 In addition, looping over a |SkyCoord| object can be slow. If you need to
 transform the coordinates to a different frame, it is much faster to transform a
 single |SkyCoord| with arrays of values as opposed to looping over the
@@ -32,7 +48,7 @@ properties::
 
     >>> from astropy.coordinates import SkyCoord, EarthLocation
     >>> from astropy import coordinates as coord
-    >>> from astropy.coordinates.angle_utilities import golden_spiral_grid
+    >>> from astropy.coordinates import golden_spiral_grid
     >>> from astropy.time import Time
     >>> from astropy import units as u
     >>> import numpy as np
@@ -49,6 +65,61 @@ properties::
 
     >>> # calculate alt-az of each object at each time.
     >>> aa_coos = coos.transform_to(aa_frame)  # doctest: +REMOTE_DATA +IGNORE_WARNINGS
+
+..
+  EXAMPLE END
+
+
+Broadcasting Over Frame Data and Attributes
+-------------------------------------------
+
+..
+  EXAMPLE START
+  Broadcasting Over Frame Data and Attributes
+
+Frames in `astropy.coordinates` support
+:doc:`Numpy broadcasting rules <numpy:user/basics.broadcasting>` over both
+frame data and frame attributes. This makes it easy and fast to do positional
+astronomy calculations and transformations on sweeps of parameters.
+
+Where this really shines is doing fast observability calculations over arrays.
+The following example constructs an `~astropy.coordinates.EarthLocation` array
+of length :samp:`{L}`, a `~astropy.coordinates.SkyCoord` array of length
+:samp:`{M}`, and a `~astropy.time.Time` array of length :samp:`N`. It uses
+Numpy broadcasting rules to evaluate a boolean array of shape
+:samp:`({L}, {M}, {N})` that is `True` for those observing locations, times,
+and sky coordinates, for which the target is above an altitude limit::
+
+    >>> from astropy.coordinates import EarthLocation, AltAz, SkyCoord
+    >>> from astropy.coordinates.angles import uniform_spherical_random_surface
+    >>> from astropy.time import Time
+    >>> from astropy import units as u
+    >>> import numpy as np
+
+    >>> L = 25
+    >>> M = 100
+    >>> N = 50
+
+    >>> # Earth locations of length L
+    >>> c = uniform_spherical_random_surface(L)
+    >>> locations = EarthLocation.from_geodetic(c.lon, c.lat)
+
+    >>> # Celestial coordinates of length M
+    >>> coords = SkyCoord(uniform_spherical_random_surface(M))
+
+    >>> # Observation times of length N
+    >>> obstimes = Time('2023-08-04') + np.linspace(0, 24, N) * u.hour
+
+    >>> # AltAz coordinates of shape (L, M, N)
+    >>> frame = AltAz(
+    ...     location=locations[:, np.newaxis, np.newaxis],
+    ...     obstime=obstimes[np.newaxis, np.newaxis, :])
+    >>> altaz = coords[np.newaxis, :, np.newaxis].transform_to(frame)  # doctest: +REMOTE_DATA
+
+    >>> min_altitude = 30 * u.deg
+    >>> is_above_altitude_limit = (altaz.alt > min_altitude)  # doctest: +REMOTE_DATA
+    >>> is_above_altitude_limit.shape  # doctest: +REMOTE_DATA
+    (25, 100, 50)
 
 ..
   EXAMPLE END
@@ -81,7 +152,7 @@ To use interpolation for the astrometric values in coordinate transformation, us
 
    >>> # array with 10000 obstimes
    >>> obstime = Time('2010-01-01T20:00') + np.linspace(0, 6, 10000) * u.hour
-   >>> location = location = EarthLocation(lon=-17.89 * u.deg, lat=28.76 * u.deg, height=2200 * u.m)
+   >>> location = EarthLocation(lon=-17.89 * u.deg, lat=28.76 * u.deg, height=2200 * u.m)
    >>> frame = AltAz(obstime=obstime, location=location)
    >>> crab = SkyCoord(ra='05h34m31.94s', dec='22d00m52.2s')
 
@@ -133,7 +204,7 @@ for ``time_resolution`` compared to the non-interpolating, default approach.
     # 100_000 times randomly distributed over 12 hours
     t = Time('2020-01-01T20:00:00') + rng.uniform(0, 1, 10_000) * u.hour
 
-    location = location = EarthLocation(
+    location = EarthLocation(
         lon=-17.89 * u.deg, lat=28.76 * u.deg, height=2200 * u.m
     )
 

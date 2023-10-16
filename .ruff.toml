@@ -19,17 +19,11 @@ ignore = [
     "B007",  # UnusedLoopControlVariable
     "B023",  # FunctionUsesLoopVariable
     "B028",  # No-explicit-stacklevel
-    "B033",  # Sets should not contain duplicate item
     "B904",  # RaiseWithoutFromInsideExcept
     "B905",  # ZipWithoutExplicitStrict   # requires 3.10+
 
     # flake8-blind-except (BLE)
     "BLE001",  # blind-except
-
-    # flake8-comprehensions (C4)
-    "C406",  # unnecessary-literal-dict
-    "C413",  # unnecessary-call-around-sorted
-    "C417",  # unnecessary-map (over a comprehension)
 
     # mccabe (C90) : code complexity
     # TODO: configure maximum allowed complexity.
@@ -54,9 +48,7 @@ ignore = [
 
     # flake8-datetimez (DTZ)
     "DTZ001",  # call-datetime-without-tzinfo
-    "DTZ003",  # call-datetime-utcnow
     "DTZ005",  # call-datetime-now-without-tzinfo
-    "DTZ007",  # call-datetime-strptime-without-zone
 
     # pycodestyle (E, W)
     "E501",  # line-too-long
@@ -86,18 +78,10 @@ ignore = [
 
     # flake8-fixme (FIX)
     "FIX001",  # Line contains FIXME.  this should be fixed or at least FIXME replaced with TODO
-    "FIX003",  # Line contains XXX.  replace XXX with TODO
     "FIX004",  # Line contains HACK. replace HACK with NOTE.
-
-    # flake8-logging-format (G)
-    "G001",  # logging-string-format
-    "G004",  # logging-f-string
 
     # flake8-import-conventions (ICN)  : use conventional import aliases
     "ICN001",  # import-conventions
-
-    # flake8-implicit-str-concat (ISC)
-    "ISC003",  # explicit-string-concatenation
 
     # pep8-naming (N)
     # NOTE: some of these can/should be fixed, but this changes the API.
@@ -107,40 +91,32 @@ ignore = [
     "N804",  # invalid-first-argument-name-for-class-method
     "N805",  # invalid-first-argument-name-for-method
     "N807",  # dunder-function-name
-    "N811",  # constant-imported-as-non-constant
-    "N812",  # lowercase-imported-as-non-lowercase
     "N813",  # camelcase-imported-as-lowercase
     "N815",  # mixed-case-variable-in-class-scope
     "N816",  # mixed-case-variable-in-global-scope
-    "N817",  # camelcase-imported-as-acronym
     "N818",  # error-suffix-on-exception-name
 
     # NumPy-specific rules (NPY)
     "NPY002", # Replace legacy `np.random.rand` call with `np.random.Generator`  (2023-05-03)
 
-    # flake8-pie (PIE)
-    "PIE790",  # unnecessary-pass
-    "PIE794",  # duplicate-class-field-definition
-    "PIE810",  # single-starts-ends-with
+    # Perflint (PERF)
+    "PERF203",  # `try`-`except` within a loop incurs performance overhead
+    "PERF401",  # Use a list comprehension to create a transformed list
 
     # pygrep-hooks (PGH)
     "PGH001",  # eval
 
     # Pylint (PLC, PLE, PLR, PLW)
-    "PLC0208",  # Use a sequence type instead of a `set` when iterating over values
-    "PLC1901",  # compare-to-empty-string
     "PLE0101",  # return-in-init
-    "PLE0605",  # invalid-all-format
     "PLR0124",  # Name compared with itself
     "PLR0402",  # ConsiderUsingFromImport
     "PLR0911",  # too-many-return-statements
     "PLR0912",  # too-many-branches
     "PLR0913",  # too-many-args
     "PLR0915",  # too-many-statements
+    "PLR1714",  # Consider merging multiple comparisons
     "PLR2004",  # MagicValueComparison
     "PLR5501",  # collapsible-else-if
-    "PLW0129",  # assert-on-string-literal
-    "PLW0602",  # global-variable-not-assigned
     "PLW0603",  # global-statement
     "PLW2901",  # redefined-loop-name
 
@@ -154,7 +130,6 @@ ignore = [
     "PT012",   # pytest-raises-with-multiple-statements
     "PT017",   # pytest-assert-in-exceptinstead
     "PT018",   # pytest-composite-assertion
-    "PT019",   # pytest-fixture-param-without-value
     "PT022",   # pytest-useless-yield-fixture
     "PT023",   # pytest-incorrect-mark-parentheses-style
 
@@ -171,14 +146,13 @@ ignore = [
     "PTH111",  # os-path-expanduser
     "PTH112",  # os-path-isdir
     "PTH113",  # os-path-isfile
-    "PTH114",  # os-path-islink
-    "PTH116",  # os-stat
     "PTH118",  # os-path-join
     "PTH119",  # os-path-basename
     "PTH120",  # os-path-dirname
     "PTH122",  # os-path-splitext
     "PTH123",  # builtin-open
-    "PTH124",  # py-path
+    "PTH202",  # `os.path.getsize` should be replaced by `Path.stat().st_size`
+    "PTH207",  # Replace `glob` with `Path.glob` or `Path.rglob`
 
     # flake8-return (RET)
     "RET501",  # unnecessary-return-none
@@ -188,7 +162,6 @@ ignore = [
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
     "RET507",  # superfluous-else-continue
-    "RET508",  # superfluous-else-break
 
     # flake8-raise (RSE)
     "RSE102",  # unnecessary-paren-on-raise-exception
@@ -205,15 +178,13 @@ ignore = [
     "S110",  # try-except-pass
     "S112",  # try-except-continue
     "S301",  # suspicious-pickle-usage
-    "S311",  # suspecious-non-cryptographic-randomness
+    "S307",  # Use of possibly insecure function; consider using `ast.literal_eval`
+    "S311",  # suspicious-non-cryptographic-randomness
     "S324",  # hashlib-insecure-hash-function
     "S506",  # UnsafeYAMLLoad
     "S310",  # Suspicious-url-open-usage
-    "S321",  # Suspecious-ftp-lib-usage
     "S603",  # `subprocess` call: check for execution of untrusted input
-    "S605",  # Starting a process with a shell, possible injection detected  (2023-05-03)
     "S607",  # Starting a process with a partial executable path
-    "S608",  # Posslibe SQL injection
 
     # flake8-simplify (SIM)
     "SIM102",  # NestedIfStatements
@@ -224,12 +195,7 @@ ignore = [
     "SIM117",  # MultipleWithStatements
     "SIM118",  # KeyInDict
     "SIM201",  # NegateEqualOp
-    "SIM202",  # NegateNotEqualOp
     "SIM300",  # yoda condition
-
-    # flake8-slots (SLOT)
-    "SLOT000",  # Subclasses of `str` should define `__slots__`
-    "SLOT001",  # Subclasses of `tuple` should define `__slots__`
 
     # flake8-print (T20)
     "T201",  # PrintUsed
@@ -238,7 +204,6 @@ ignore = [
     "TD001",  # Invalid TODO tag
     "TD003",  # Missing issue link on the line following this TODO
     "TD004",  # Missing colon in TODO
-    "TD005",  # Missing issue description after `TODO`
     "TD007",  # Missing space after colon in TODO
 
     # tryceratops (TRY)
@@ -249,8 +214,6 @@ ignore = [
     "TRY201",  # verbose-raise
     "TRY300",  # Consider `else` block
     "TRY301",  # raise-within-try
-    "TRY302",  # Remove exception handler; error is immediately re-raised
-    "TRY400",  # error-instead-of-exception
 
     # flake8-quotes (Q)
     "Q000",  # use double quotes
@@ -261,30 +224,79 @@ unfixable = [
 
 [extend-per-file-ignores]
 "__init__.py" = ["E402", "F401", "F403"]
+"test_*.py" = [
+    "RUF015",  # Prefer next({iterable}) over single element slice
+]
 # TODO: fix these, on a per-subpackage basis.
 # When a general exclusion is being fixed, but it affects many subpackages, it
 # is better to fix for subpackages individually. The general exclusion should be
 # copied to these subpackage sections and fixed there.
 "astropy/__init__.py" = ["C408"]
-"astropy/config/*" = []
-"astropy/constants/*" = []
+"astropy/config/*" = [
+    "PTH114",  # os-path-islink
+    "PTH206",  # Replace `.split(os.sep)` with `Path.parts`
+]
+"astropy/constants/*" = ["N817"]  # camelcase-imported-as-acronym
 "astropy/convolution/*" = []
-"astropy/coordinates/*" = ["C408"]
-"astropy/cosmology/*" = ["C408"]
-"astropy/io/*" = ["B015"]
+"astropy/coordinates/*" = [
+    "C408",  # unnecessary-collection-call
+    "DTZ007",  # call-datetime-strptime-without-zone
+]
+"astropy/cosmology/*" = [
+    "C408",  # unnecessary-collection-call
+    "PT019",   # pytest-fixture-param-without-value
+]
+"astropy/io/*" = [
+    "G001",  # logging-string-format
+    "G004",  # logging-f-string
+    "PIE790",  # unnecessary-pass
+    "PTH116",  # os-stat
+    "PTH117",  # os-path-isabs
+    "SLOT000",  # Subclasses of `str` should define `__slots__`
+    "TD005",  # Missing issue description after `TODO`
+    "TRY400",  # error-instead-of-exception
+]
 "astropy/logger.py" = ["C408"]
-"astropy/modeling/*" = ["C408"]
+"astropy/modeling/*" = [
+    "C408",  # unnecessary-collection-call
+    "SLOT001",  # Subclasses of `tuple` should define `__slots__`
+]
 "astropy/nddata/*" = ["C408"]
 "astropy/samp/*" = []
 "astropy/stats/*" = []
-"astropy/table/*" = ["C408"]
+"astropy/table/*" = [
+    "C408",  # unnecessary-collection-call
+    "PIE790",  # unnecessary-pass
+    "S605",  # Starting a process with a shell, possible injection detected
+]
 "astropy/tests/*" = ["C408"]
-"astropy/time/*" = ["C408"]
+"astropy/time/*" = [
+    "C408",  # unnecessary-collection-call
+    "FIX003",  # Line contains XXX.  replace XXX with TODO
+    "PIE790",  # unnecessary-pass
+    "PIE794",  # duplicate-class-field-definition
+]
 "astropy/timeseries/*" = ["C408"]
-"astropy/units/*" = ["C408", "F821"]
-"astropy/uncertainty/*" = ["C408"]
-"astropy/utils/*" = ["C408"]
-"astropy/visualization/*" = ["B015", "C408"]
-"astropy/wcs/*" = ["C408", "F821"]
+"astropy/units/*" = [
+    "C408",  # unnecessary-collection-call
+    "F821",  # undefined-name
+    "N812",  # lowercase-imported-as-non-lowercase
+    "PIE790",  # unnecessary-pass
+]
+"astropy/uncertainty/*" = ["C408", "PIE790"]
+"astropy/utils/*" = [
+    "C408",  # unnecessary-collection-call
+    "N811",  # constant-imported-as-non-constant
+    "PIE790",  # unnecessary-pass
+    "S321",  # Suspicious-ftp-lib-usage
+]
+"astropy/visualization/*" = ["B015", "C408", "PIE790"]
+"astropy/wcs/*" = [
+    "C408",  # unnecessary-collection-call
+    "F821",  # undefined-name
+    "PIE790",  # unnecessary-pass
+    "S608",  # Posslibe SQL injection
+    "SIM202",  # NegateNotEqualOp
+]
 "docs/*" = []
 "examples/coordinates/*" = []

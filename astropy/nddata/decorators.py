@@ -24,7 +24,7 @@ def support_nddata(
     repack=False,
     returns=None,
     keeps=None,
-    **attribute_argument_mapping
+    **attribute_argument_mapping,
 ):
     """Decorator to wrap functions that could accept an NDData instance with
     its properties passed as function arguments.
@@ -185,9 +185,9 @@ def support_nddata(
             ignored = []
             if not unpack and isinstance(data, NDData):
                 raise TypeError(
-                    "Only NDData sub-classes that inherit from {}"
+                    f"Only NDData sub-classes that inherit from {accepts.__name__}"
                     " can be used by this function"
-                    "".format(accepts.__name__)
+                    ""
                 )
 
             # If data is an NDData instance, we can try and find properties

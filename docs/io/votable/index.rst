@@ -414,6 +414,14 @@ VOTable supports a number of different serialization formats.
   supported by the `astropy.io.votable` writer, since it requires
   writing multiple files.
 
+- ``PARQUET``
+  stores the data in an external PARQUET file, similar to FITS serialization.
+  Reading and writing is fully supported by the `astropy.io.votable` writer and
+  the `astropy.io.votable.parse` reader. The parquet file can be
+  referenced with either absolute and relative paths. The parquet
+  serialization can be used as part of the unified Table I/O (see next
+  section), by setting the ``format`` argument to ``'votable.parquet'``.
+
 The serialization format can be selected in two ways:
 
     1) By setting the ``format`` attribute of a
@@ -465,6 +473,135 @@ record array must be resized repeatedly during load.
 
 .. _nrows: http://www.ivoa.net/documents/REC/VOTable/VOTable-20040811.html#ToC10
 
+.. _votable_mivot:
+
+Reading and writing VO model annotations
+========================================
+
+Introduction
+------------
+Model Instances in VOTables (`MIVOT <https://ivoa.net/documents/MIVOT/20230620/REC-mivot-1.0.pdf>`_)
+defines a syntax to map VOTable data to any model serialised in VO-DML (Virtual Observatory Data Modeling Language).
+This annotation schema operates as a bridge between data and the models. It associates both column/param metadata and data
+from the VOTable to the data model elements (class, attributes, types, etc.). It also brings up VOTable data or
+metadata that were possibly missing in the table, e.g., coordinate system description, or curation tracing.
+The data model elements are grouped in an independent annotation block complying with the MIVOT XML schema which
+is added as an extra resource above the table element.
+The MIVOT syntax allows to describe a data structure as a hierarchy of classes.
+It is also able to represent relations and compositions between them. It can moreover build up data model objects by
+aggregating instances from different tables of the VOTable.
+
+Astropy implementation
+----------------------
+The purpose of Astropy is not to process VO annotations.
+It is just to allow related packages to get and set MIVOT blocks from/into VOTables.
+For this reason, in this implementation MIVOT annotations are both imported and exported as strings.
+The current implementation prevents client code from injecting into VOTables strings
+that are not MIVOT serializations.
+
+MivotBlock implementation:
+
+- MIVOT blocks are handled by the :class:`astropy.io.votable.tree.MivotBlock` class.
+- A MivotBlock instance can only be carried by a resource with "type=meta".
+- This instance holds the XML mapping block as a string.
+- MivotBlock objects are instanced by the Resource parser.
+- The MivotBlock class has its own logic that operates both parsing and IO functionalities.
+
+Example
+^^^^^^^
+
+.. code-block:: xml
+
+       <VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.3">
+         <RESOURCE>
+           <RESOURCE type="meta">
+             <VODML xmlns="http://www.ivoa.net/xml/mivot">
+              ...
+             </VODML>
+           </RESOURCE>
+           <TABLE name="myDataTable">
+            ....
+           </TABLE>
+         </RESOURCE>
+    </VOTABLE>
+
+Reading a VOTable containing a MIVOT block
+------------------------------------------
+
+To read in a VOTable file containing or not a MIVOT Resource, pass a file path to`~astropy.io.votable.parse`:
+
+.. code-block:: python
+
+   >>> from astropy.io.votable import parse
+   >>> from astropy.utils.data import get_pkg_data_filename
+   >>> votable = parse(get_pkg_data_filename("data/test.order.xml", package="astropy.io.votable.tests"))
+   <VODML xmlns="http://www.ivoa.net/xml/mivot">
+   </VODML>
+
+   <VODML xmlns="http://www.ivoa.net/xml/mivot">
+   </VODML>
+
+The parse function will call the MIVOT parser if it detects a MIVOT block.
+
+Building a Resource containing a MIVOT block
+--------------------------------------------
+
+Construct the MIVOT block by passing the XML block as a parameter:
+
+.. code-block:: python
+
+   >>> from astropy.io.votable import tree
+   >>> from astropy.io.votable.tree import MivotBlock, Resource, VOTableFile
+   >>> mivot_block = MivotBlock("""
+   <VODML xmlns="http://www.ivoa.net/xml/mivot" >
+      <REPORT status="OK">Unit test mapping block</REPORT>
+      <GLOBALS>  </GLOBALS>
+   </VODML>
+   """)
+
+Build a new resource:
+
+.. code-block:: python
+
+   >>> mivot_resource = Resource()
+
+Give it the type meta:
+
+.. code-block:: python
+
+   >>> mivot_resource.type = "meta"
+
+Then add it the MIVOT block:
+
+.. code-block:: python
+
+   >>> mivot_resource.mivot_block = mivot_block
+
+Now you have a MIVOT resource that you can add to an object Resource creating a new Resource:
+
+.. code-block:: python
+
+   >>> votable = VOTableFile()
+   >>> r1 = Resource()
+   >>> r1.type = "results"
+   >>> r1.resources.append(mivot_resource)
+
+You can add an `astropy.io.votable.tree.Table` to the resource:
+
+.. code-block:: python
+
+   >>> table = tree.Table(votable)
+   >>> r1.tables.append(t1)
+   >>> votable.resources.append(r1)
+   >>> for resource in votable.resources:
+   ...     print(resource.mivot_block.content)
+   <VODML xmlns="http://www.ivoa.net/xml/mivot" >
+      <REPORT status="OK">Unit test mapping block</REPORT>
+      <GLOBALS>  </GLOBALS>
+   </VODML>
+
+
 See Also
 ========
 
@@ -479,6 +616,9 @@ See Also
 
 - `VOTable Format Definition Version 1.4
   <https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html>`_
+
+- `MIVOT Recommendation Version 1.0
+  <https://ivoa.net/documents/MIVOT/20230620/REC-mivot-1.0.pdf>`_
 
 .. note that if this section gets too long, it should be moved to a separate
    doc page - see the top of performance.inc.rst for the instructions on how to do

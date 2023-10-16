@@ -6,7 +6,7 @@ import warnings
 from abc import abstractmethod
 from math import exp, floor, log, pi, sqrt
 from numbers import Number
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TypeVar
 
 import numpy as np
 from numpy import inf, sin
@@ -28,9 +28,6 @@ __all__ = ["FLRW", "FlatFLRWMixin"]
 
 __doctest_requires__ = {"*": ["scipy"]}
 
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
 
 # isort: split
 if HAS_SCIPY:
@@ -99,9 +96,7 @@ class _ScaleFactorMixin:
 
 
 class FLRW(Cosmology, _ScaleFactorMixin):
-    """
-    A class describing an isotropic and homogeneous
-    (Friedmann-Lemaitre-Robertson-Walker) cosmology.
+    """An isotropic and homogeneous (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
     This is an abstract base class -- you cannot instantiate examples of this
     class, but must work with one of its subclasses, such as
@@ -172,18 +167,25 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         fvalidate="float",
     )
     Tcmb0 = Parameter(
+        default=0.0 * u.K,
         doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.",
         unit="Kelvin",
         fvalidate="scalar",
     )
     Neff = Parameter(
-        doc="Number of effective neutrino species.", fvalidate="non-negative"
+        default=3.04,
+        doc="Number of effective neutrino species.",
+        fvalidate="non-negative",
     )
     m_nu = Parameter(
-        doc="Mass of neutrino species.", unit="eV", equivalencies=u.mass_energy()
+        default=0.0 * u.eV,
+        doc="Mass of neutrino species.",
+        unit="eV",
+        equivalencies=u.mass_energy(),
     )
     Ob0 = Parameter(
-        doc="Omega baryon; baryonic matter density/critical density at z=0."
+        default=None,
+        doc="Omega baryon; baryonic matter density/critical density at z=0.",
     )
 
     def __init__(
@@ -309,9 +311,9 @@ class FLRW(Cosmology, _ScaleFactorMixin):
     def m_nu(self, param, value):
         """Validate neutrino masses to right value, units, and shape.
 
-        There are no neutrinos if floor(Neff) or Tcmb0 are 0.
-        The number of neutrinos must match floor(Neff).
-        Neutrino masses cannot be negative.
+        There are no neutrinos if floor(Neff) or Tcmb0 are 0. The number of
+        neutrinos must match floor(Neff). Neutrino masses cannot be
+        negative.
         """
         # Check if there are any neutrinos
         if (nneutrinos := floor(self._Neff)) == 0 or self._Tcmb0.value == 0:
@@ -360,9 +362,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
     @property
     def Tnu0(self):
-        """
-        Temperature of the neutrino background as `~astropy.units.Quantity` at z=0.
-        """
+        """Temperature of the neutrino background as |Quantity| at z=0."""
         return self._Tnu0
 
     @property
@@ -447,9 +447,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return self.Om(z) + self.Ogamma(z) + self.Onu(z) + self.Ode(z) + self.Ok(z)
 
     def Om(self, z):
-        """
-        Return the density parameter for non-relativistic matter
-        at redshift ``z``.
+        """Return the density parameter for non-relativistic matter at redshift ``z``.
 
         Parameters
         ----------
@@ -530,8 +528,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return self._Odm0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
 
     def Ok(self, z):
-        """
-        Return the equivalent density parameter for curvature at redshift ``z``.
+        """Return the equivalent density parameter for curvature at redshift ``z``.
 
         Parameters
         ----------
@@ -993,9 +990,9 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return quad(self._lookback_time_integrand_scalar, 0, z)[0]
 
     def lookback_distance(self, z):
-        """
-        The lookback distance is the light travel time distance to a given
-        redshift. It is simply c * lookback_time. It may be used to calculate
+        """The lookback distance is the light travel time distance to a given redshift.
+
+        It is simply c * lookback_time. It may be used to calculate
         the proper distance between two redshifts, e.g. for the mean free path
         to ionizing radiation.
 
@@ -1104,9 +1101,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return self._comoving_distance_z1z2(0, z)
 
     def _comoving_distance_z1z2(self, z1, z2):
-        """
-        Comoving line-of-sight distance in Mpc between objects at redshifts
-        ``z1`` and ``z2``.
+        """Comoving line-of-sight distance in Mpc between redshifts ``z1`` and ``z2``.
 
         The comoving distance along the line-of-sight between two objects
         remains constant with time for objects in the Hubble flow.
@@ -1125,9 +1120,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
     @vectorize_redshift_method(nin=2)
     def _integral_comoving_distance_z1z2_scalar(self, z1, z2, /):
-        """
-        Comoving line-of-sight distance between objects at redshifts ``z1`` and
-        ``z2``. Value in Mpc.
+        """Comoving line-of-sight distance in Mpc between objects at redshifts ``z1`` and ``z2``.
 
         The comoving distance along the line-of-sight between two objects
         remains constant with time for objects in the Hubble flow.
@@ -1146,11 +1139,10 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return quad(self._inv_efunc_scalar, z1, z2, args=self._inv_efunc_scalar_args)[0]
 
     def _integral_comoving_distance_z1z2(self, z1, z2):
-        """
-        Comoving line-of-sight distance in Mpc between objects at redshifts
-        ``z1`` and ``z2``. The comoving distance along the line-of-sight
-        between two objects remains constant with time for objects in the
-        Hubble flow.
+        """Comoving line-of-sight distance in Mpc between objects at redshifts ``z1`` and ``z2``.
+
+        The comoving distance along the line-of-sight between two objects remains
+        constant with time for objects in the Hubble flow.
 
         Parameters
         ----------
@@ -1413,9 +1405,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return self._hubble_distance * (dm**2.0) / (self.efunc(z) << u.steradian)
 
     def kpc_comoving_per_arcmin(self, z):
-        """
-        Separation in transverse comoving kpc corresponding to an arcminute at
-        redshift ``z``.
+        """Separation in transverse comoving kpc equal to an arcmin at redshift ``z``.
 
         Parameters
         ----------
@@ -1431,9 +1421,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return self.comoving_transverse_distance(z).to(u.kpc) / _radian_in_arcmin
 
     def kpc_proper_per_arcmin(self, z):
-        """
-        Separation in transverse proper kpc corresponding to an arcminute at
-        redshift ``z``.
+        """Separation in transverse proper kpc equal to an arcminute at redshift ``z``.
 
         Parameters
         ----------
@@ -1449,9 +1437,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return self.angular_diameter_distance(z).to(u.kpc) / _radian_in_arcmin
 
     def arcsec_per_kpc_comoving(self, z):
-        """
-        Angular separation in arcsec corresponding to a comoving kpc at
-        redshift ``z``.
+        """Angular separation in arcsec equal to a comoving kpc at redshift ``z``.
 
         Parameters
         ----------
@@ -1467,9 +1453,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return _radian_in_arcsec / self.comoving_transverse_distance(z).to(u.kpc)
 
     def arcsec_per_kpc_proper(self, z):
-        """
-        Angular separation in arcsec corresponding to a proper kpc at redshift
-        ``z``.
+        """Angular separation in arcsec corresponding to a proper kpc at redshift ``z``.
 
         Parameters
         ----------
@@ -1486,14 +1470,14 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
 
 class FlatFLRWMixin(FlatCosmologyMixin):
-    """
-    Mixin class for flat FLRW cosmologies. Do NOT instantiate directly.
-    Must precede the base class in the multiple-inheritance so that this
-    mixin's ``__init__`` proceeds the base class'.
-    Note that all instances of ``FlatFLRWMixin`` are flat, but not all
-    flat cosmologies are instances of ``FlatFLRWMixin``. As example,
-    ``LambdaCDM`` **may** be flat (for the a specific set of parameter values),
-    but ``FlatLambdaCDM`` **will** be flat.
+    """Mixin class for flat FLRW cosmologies.
+
+    Do NOT instantiate directly. Must precede the base class in the
+    multiple-inheritance so that this mixin's ``__init__`` proceeds the
+    base class'. Note that all instances of ``FlatFLRWMixin`` are flat, but
+    not all flat cosmologies are instances of ``FlatFLRWMixin``. As
+    example, ``LambdaCDM`` **may** be flat (for the a specific set of
+    parameter values), but ``FlatLambdaCDM`` **will** be flat.
     """
 
     Ode0 = FLRW.Ode0.clone(derived=True)  # same as FLRW, but now a derived param.
@@ -1525,68 +1509,6 @@ class FlatFLRWMixin(FlatCosmologyMixin):
             setattr(inst, "_" + n, getattr(self, n))
 
         return inst
-
-    def clone(
-        self,
-        *,
-        meta: Mapping | None = None,
-        to_nonflat: bool | None = None,
-        **kwargs: Any,
-    ):
-        """Returns a copy of this object with updated parameters, as specified.
-
-        This cannot be used to change the type of the cosmology, except for
-        changing to the non-flat version of this cosmology.
-
-        Parameters
-        ----------
-        meta : mapping or None (optional, keyword-only)
-            Metadata that will update the current metadata.
-        to_nonflat : bool or None, optional keyword-only
-            Whether to change to the non-flat version of this cosmology.
-        **kwargs
-            Cosmology parameter (and name) modifications. If any parameter is
-            changed and a new name is not given, the name will be set to "[old
-            name] (modified)".
-
-        Returns
-        -------
-        newcosmo : `~astropy.cosmology.Cosmology` subclass instance
-            A new instance of this class with updated parameters as specified.
-            If no arguments are given, then a reference to this object is
-            returned instead of copy.
-
-        Examples
-        --------
-        To make a copy of the ``Planck13`` cosmology with a different matter
-        density (``Om0``), and a new name:
-
-            >>> from astropy.cosmology import Planck13
-            >>> Planck13.clone(name="Modified Planck 2013", Om0=0.35)
-            FlatLambdaCDM(name="Modified Planck 2013", H0=67.77 km / (Mpc s),
-              Om0=0.35, ...
-
-        If no name is specified, the new name will note the modification.
-
-            >>> Planck13.clone(Om0=0.35).name
-            'Planck13 (modified)'
-
-        The keyword 'to_nonflat' can be used to clone on the non-flat equivalent
-        cosmology.
-
-            >>> Planck13.clone(to_nonflat=True)
-            LambdaCDM(name="Planck13", ...
-
-            >>> Planck13.clone(H0=70, to_nonflat=True)
-            LambdaCDM(name="Planck13 (modified)", H0=70.0 km / (Mpc s), ...
-
-        With 'to_nonflat' `True`, ``Ode0`` can be modified.
-
-            >>> Planck13.clone(to_nonflat=True, Ode0=1)
-            LambdaCDM(name="Planck13 (modified)", H0=67.77 km / (Mpc s),
-                      Om0=0.30712, Ode0=1.0, ...
-        """
-        return super().clone(meta=meta, to_nonflat=to_nonflat, **kwargs)
 
     @property
     def Otot0(self):

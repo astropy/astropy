@@ -29,8 +29,8 @@ from astropy.utils import indent
 from astropy.utils.compat.optional_deps import HAS_BZ2
 from astropy.utils.exceptions import AstropyUserWarning
 
-from . import compressed
 from .base import ExtensionHDU, _BaseHDU, _NonstandardHDU, _ValidHDU
+from .compressed import compressed
 from .groups import GroupsHDU
 from .image import ImageHDU, PrimaryHDU
 
@@ -890,7 +890,7 @@ class HDUList(list, _Verify):
         if save_backup and self._file.mode in ("append", "update"):
             filename = self._file.name
             if os.path.exists(filename):
-                # The the file doesn't actually exist anymore for some reason
+                # The file doesn't actually exist anymore for some reason
                 # then there's no point in trying to make a backup
                 backup = filename + ".bak"
                 idx = 1
@@ -1323,10 +1323,10 @@ class HDUList(list, _Verify):
             # corrupted HDU
             except (VerifyError, ValueError) as exc:
                 warnings.warn(
-                    "Error validating header for HDU #{} (note: Astropy "
-                    "uses zero-based indexing).\n{}\n"
+                    f"Error validating header for HDU #{len(self)} (note: Astropy "
+                    f"uses zero-based indexing).\n{indent(str(exc))}\n"
                     "There may be extra bytes after the last HDU or the "
-                    "file is corrupted.".format(len(self), indent(str(exc))),
+                    "file is corrupted.",
                     VerifyWarning,
                 )
                 del exc

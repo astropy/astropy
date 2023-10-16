@@ -8,8 +8,6 @@ repos:
     hooks:
       - id: check-added-large-files
         # Prevent giant files from being committed.
-      - id: check-ast
-        # Simply check whether files parse as valid python.
       - id: check-case-conflict
         # Check for files with names that would conflict on a case-insensitive
         # filesystem like MacOS HFS+ or Windows FAT.
@@ -26,9 +24,6 @@ repos:
       - id: check-yaml
         # Attempts to load all yaml files to verify syntax.
         exclude: ".*(.github.*)$"
-      - id: debug-statements
-        # Check for debugger imports and py37+ breakpoint() calls in python
-        # source.
       - id: detect-private-key
         # Checks for the existence of private keys.
       - id: end-of-file-fixer
@@ -63,16 +58,62 @@ repos:
         additional_dependencies:
           - tomli
 
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: "v0.0.275"
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: "v0.0.291"
     hooks:
       - id: ruff
         args: ["--fix"]
 
-  - repo: https://github.com/psf/black
-    rev: 23.3.0
+  - repo: https://github.com/PyCQA/docformatter
+    rev: v1.7.5
+    hooks:
+      - id: docformatter
+        additional_dependencies: [tomli]
+        args: [--in-place, --config, ./pyproject.toml]
+        exclude: |
+          (?x)(
+              test.*\.py |
+              astropy/__init__\.py |
+              astropy/_dev/ |
+              astropy/config/ |
+              astropy/conftest\.py |
+              astropy/constants/ |
+              astropy/convolution/ |
+              astropy/coordinates/ |
+              astropy/extern/ |
+              astropy/io/ |
+              astropy/logger\.py |
+              astropy/modeling/ |
+              astropy/nddata/ |
+              astropy/samp/ |
+              astropy/stats/ |
+              astropy/table/ |
+              astropy/tests/ |
+              astropy/time/ |
+              astropy/timeseries/ |
+              astropy/uncertainty/ |
+              astropy/units/ |
+              astropy/utils/ |
+              astropy/version\.py |
+              astropy/visualization/ |
+              astropy/wcs/ |
+              docs/ |
+              examples/
+          )
+
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 23.9.1
     hooks:
       - id: black
+
+  - repo: https://github.com/asmeurer/removestar
+    rev: "1.5"
+    hooks:
+      - id: removestar
+        args: ["-iv"]  # in-place changes + verbose output
+        additional_dependencies:
+          - .
+          - sphinx_astropy
 
   - repo: local
     hooks:

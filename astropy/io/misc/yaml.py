@@ -110,6 +110,9 @@ def _timedelta_constructor(loader, node):
 
 
 def _ndarray_representer(dumper, obj):
+    if obj.dtype.hasobject:
+        raise TypeError(f"cannot serialize numpy object array: {obj}")
+
     if not (obj.flags["C_CONTIGUOUS"] or obj.flags["F_CONTIGUOUS"]):
         obj = np.ascontiguousarray(obj)
 
@@ -138,6 +141,9 @@ def _ndarray_constructor(loader, node):
     # construct_sequence.
     map = loader.construct_mapping(node, deep=True)
     map["buffer"] = base64.b64decode(map["buffer"])
+
+    if map["dtype"] == "object":
+        raise TypeError("cannot load numpy array with dtype object")
     return np.ndarray(**map)
 
 
@@ -252,7 +258,6 @@ AstropyDumper.add_representer(SerializedColumn, _serialized_column_representer)
 # Numpy dtypes
 AstropyDumper.add_representer(np.bool_, yaml.representer.SafeRepresenter.represent_bool)
 for np_type in [
-    np.int_,
     np.intc,
     np.intp,
     np.int8,
@@ -267,11 +272,11 @@ for np_type in [
     AstropyDumper.add_representer(
         np_type, yaml.representer.SafeRepresenter.represent_int
     )
-for np_type in [np.float_, np.float16, np.float32, np.float64, np.longdouble]:
+for np_type in [np.float16, np.float32, np.float64, np.longdouble]:
     AstropyDumper.add_representer(
         np_type, yaml.representer.SafeRepresenter.represent_float
     )
-for np_type in [np.complex_, complex, np.complex64, np.complex128]:
+for np_type in [complex, np.complex64, np.complex128]:
     AstropyDumper.add_representer(np_type, _complex_representer)
 
 AstropyLoader.add_constructor("tag:yaml.org,2002:python/complex", _complex_constructor)

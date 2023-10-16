@@ -756,7 +756,7 @@ class Table:
             copy = False
         elif kwargs:
             raise TypeError(
-                f"__init__() got unexpected keyword argument {list(kwargs.keys())[0]!r}"
+                f"__init__() got unexpected keyword argument {next(iter(kwargs.keys()))!r}"
             )
 
         if isinstance(data, np.ndarray) and data.shape == (0,) and not data.dtype.names:
@@ -2577,9 +2577,9 @@ class Table:
                 # as parent.
                 if isinstance(old_col.base, old_col.__class__):
                     msg = (
-                        "replaced column '{}' which looks like an array slice. "
+                        f"replaced column '{name}' which looks like an array slice. "
                         "The new column no longer shares memory with the "
-                        "original array.".format(name)
+                        "original array."
                     )
                     warnings.warn(msg, TableReplaceWarning, stacklevel=3)
             except AttributeError:
@@ -2591,8 +2591,8 @@ class Table:
             new_refcount = sys.getrefcount(self[name])
             if refcount != new_refcount:
                 msg = (
-                    "replaced column '{}' and the number of references "
-                    "to the column changed.".format(name)
+                    f"replaced column '{name}' and the number of references "
+                    "to the column changed."
                 )
                 warnings.warn(msg, TableReplaceWarning, stacklevel=3)
 
@@ -3294,8 +3294,8 @@ class Table:
 
                 if len(newcol) != N + 1:
                     raise ValueError(
-                        "Incorrect length for column {} after inserting {}"
-                        " (expected {}, got {})".format(name, val, len(newcol), N + 1)
+                        f"Incorrect length for column {name} after inserting {val}"
+                        f" (expected {len(newcol)}, got {N + 1})"
                     )
                 newcol.info.parent_table = self
 
@@ -3517,7 +3517,7 @@ class Table:
         indexes = self.argsort(keys, kind=kind, reverse=reverse)
 
         with self.index_mode("freeze"):
-            for name, col in self.columns.items():
+            for col in self.columns.values():
                 # Make a new sorted column.  This requires that take() also copies
                 # relevant info attributes for mixin columns.
                 new_col = col.take(indexes, axis=0)
@@ -3990,7 +3990,7 @@ class Table:
             if getattr(column.dtype, "isnative", True):
                 out[name] = column
             else:
-                out[name] = column.data.byteswap().newbyteorder("=")
+                out[name] = column.data.byteswap().view(column.dtype.newbyteorder("="))
 
             if isinstance(column, MaskedColumn) and np.any(column.mask):
                 if column.dtype.kind in ["i", "u"]:

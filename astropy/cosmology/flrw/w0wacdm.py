@@ -15,9 +15,9 @@ __doctest_requires__ = {"*": ["scipy"]}
 
 
 class w0waCDM(FLRW):
-    r"""FLRW cosmology with a CPL dark energy equation of state and curvature.
+    r"""FLRW cosmology with a CPL dark energy EoS and curvature.
 
-    The equation for the dark energy equation of state uses the
+    The equation for the dark energy equation of state (EoS) uses the
     CPL form as described in Chevallier & Polarski [1]_ and Linder [2]_:
     :math:`w(z) = w_0 + w_a (1-a) = w_0 + w_a z / (1+z)`.
 
@@ -89,8 +89,11 @@ class w0waCDM(FLRW):
            Universe. Phys. Rev. Lett., 90, 091301.
     """
 
-    w0 = Parameter(doc="Dark energy equation of state at z=0.", fvalidate="float")
+    w0 = Parameter(
+        default=-1.0, doc="Dark energy equation of state at z=0.", fvalidate="float"
+    )
     wa = Parameter(
+        default=0.0,
         doc="Negative derivative of dark energy equation of state w.r.t. a.",
         fvalidate="float",
     )
@@ -108,7 +111,7 @@ class w0waCDM(FLRW):
         Ob0=None,
         *,
         name=None,
-        meta=None
+        meta=None,
     ):
         super().__init__(
             H0=H0,
@@ -214,10 +217,9 @@ class w0waCDM(FLRW):
 
 
 class Flatw0waCDM(FlatFLRWMixin, w0waCDM):
-    """FLRW cosmology with a CPL dark energy equation of state and no
-    curvature.
+    """FLRW cosmology with a CPL dark energy EoS and no curvature.
 
-    The equation for the dark energy equation of state uses the CPL form as
+    The equation for the dark energy equation of state (EoS) uses the CPL form as
     described in Chevallier & Polarski [1]_ and Linder [2]_:
     :math:`w(z) = w_0 + w_a (1-a) = w_0 + w_a z / (1+z)`.
 
@@ -303,7 +305,7 @@ class Flatw0waCDM(FlatFLRWMixin, w0waCDM):
         Ob0=None,
         *,
         name=None,
-        meta=None
+        meta=None,
     ):
         super().__init__(
             H0=H0,

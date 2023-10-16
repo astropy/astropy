@@ -2,7 +2,6 @@
 """Accuracy tests for GCRS coordinate transformations, primarily to/from AltAz.
 
 """
-import os
 import warnings
 from importlib import metadata
 
@@ -30,9 +29,9 @@ from astropy.coordinates import (
     SphericalRepresentation,
     UnitSphericalRepresentation,
     get_sun,
+    golden_spiral_grid,
     solar_system_ephemeris,
 )
-from astropy.coordinates.angle_utilities import golden_spiral_grid
 from astropy.coordinates.builtin_frames.intermediate_rotation_transforms import (
     cirs_to_itrs_mat,
     gcrs_to_cirs_mat,
@@ -41,14 +40,13 @@ from astropy.coordinates.builtin_frames.intermediate_rotation_transforms import 
 )
 from astropy.coordinates.builtin_frames.utils import get_jd12
 from astropy.coordinates.solar_system import get_body
+from astropy.tests.helper import CI
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
 from astropy.utils import iers
 from astropy.utils.compat.optional_deps import HAS_JPLEPHEM
 from astropy.utils.exceptions import AstropyWarning
-
-CI = os.environ.get("CI", False) == "true"
 
 
 def test_icrs_cirs():
@@ -872,7 +870,7 @@ def test_earth_orientation_table(monkeypatch):
         with warnings.catch_warnings():
             # Server occasionally blocks IERS download in CI.
             warnings.filterwarnings("ignore", message=r".*using local IERS-B.*")
-            # This also captures unclosed socket warning that is ignored in setup.cfg
+            # This also captures unclosed socket warning that is ignored in pyproject.toml
             warnings.filterwarnings("ignore", message=r".*unclosed.*")
             altaz_auto = sc.transform_to(altaz)
     else:

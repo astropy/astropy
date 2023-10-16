@@ -17,6 +17,7 @@ import numpy as np
 
 # LOCAL
 from astropy import config as _config
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyWarning
@@ -1694,11 +1695,13 @@ class Quantity(np.ndarray):
             _value = _value.astype(self.dtype, copy=False)
         return _value
 
-    def itemset(self, *args):
-        if len(args) == 0:
-            raise ValueError("itemset must have at least one argument")
+    if NUMPY_LT_2_0:
 
-        self.view(np.ndarray).itemset(*(args[:-1] + (self._to_own_unit(args[-1]),)))
+        def itemset(self, *args):
+            if len(args) == 0:
+                raise ValueError("itemset must have at least one argument")
+
+            self.view(np.ndarray).itemset(*(args[:-1] + (self._to_own_unit(args[-1]),)))
 
     def tostring(self, order="C"):
         """Not implemented, use ``.value.tostring()`` instead."""
@@ -2111,7 +2114,7 @@ class SpecificTypeQuantity(Quantity):
         super()._set_unit(unit)
 
 
-def isclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False, **kwargs):
+def isclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False):
     """
     Return a boolean array where two arrays are element-wise equal
     within a tolerance.
@@ -2152,11 +2155,10 @@ def isclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False, **kwargs):
     --------
     allclose
     """
-    unquantified_args = _unquantify_allclose_arguments(a, b, rtol, atol)
-    return np.isclose(*unquantified_args, equal_nan=equal_nan, **kwargs)
+    return np.isclose(*_unquantify_allclose_arguments(a, b, rtol, atol), equal_nan)
 
 
-def allclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False, **kwargs) -> bool:
+def allclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False) -> bool:
     """
     Whether two arrays are element-wise equal within a tolerance.
 
@@ -2196,8 +2198,7 @@ def allclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False, **kwargs) -> bool:
     --------
     isclose
     """
-    unquantified_args = _unquantify_allclose_arguments(a, b, rtol, atol)
-    return np.allclose(*unquantified_args, equal_nan=equal_nan, **kwargs)
+    return np.allclose(*_unquantify_allclose_arguments(a, b, rtol, atol), equal_nan)
 
 
 def _unquantify_allclose_arguments(actual, desired, rtol, atol):

@@ -99,7 +99,7 @@ class BaseFormatterLocator:
         if not values.unit.is_equivalent(self._unit):
             raise UnitsError(
                 "value should be in units compatible with "
-                "coordinate units ({}) but found {}".format(self._unit, values.unit)
+                f"coordinate units ({self._unit}) but found {values.unit}"
             )
         self._number = None
         self._spacing = None
@@ -511,15 +511,12 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         unit=None,
         format_unit=None,
     ):
-        if unit is not None:
-            unit = unit
-            format_unit = format_unit or unit
-        elif spacing is not None:
-            unit = spacing.unit
-            format_unit = format_unit or spacing.unit
-        elif values is not None:
-            unit = values.unit
-            format_unit = format_unit or values.unit
+        if unit is None:
+            if spacing is not None:
+                unit = spacing.unit
+            elif values is not None:
+                unit = values.unit
+        format_unit = format_unit or unit
 
         super().__init__(
             values=values,

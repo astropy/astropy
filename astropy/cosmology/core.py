@@ -166,8 +166,8 @@ class Cosmology(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def is_flat(self):
-        """
-        Return bool; `True` if the cosmology is flat.
+        """Return bool; `True` if the cosmology is flat.
+
         This is abstract and must be defined in subclasses.
         """
         raise NotImplementedError("is_flat is not implemented")
@@ -421,12 +421,13 @@ class Cosmology(metaclass=abc.ABCMeta):
 
 
 class FlatCosmologyMixin(metaclass=abc.ABCMeta):
-    """
-    Mixin class for flat cosmologies. Do NOT instantiate directly.
-    Note that all instances of ``FlatCosmologyMixin`` are flat, but not all
-    flat cosmologies are instances of ``FlatCosmologyMixin``. As example,
-    ``LambdaCDM`` **may** be flat (for the a specific set of parameter values),
-    but ``FlatLambdaCDM`` **will** be flat.
+    """Mixin class for flat cosmologies.
+
+    Do NOT instantiate directly. Note that all instances of
+    ``FlatCosmologyMixin`` are flat, but not all flat cosmologies are
+    instances of ``FlatCosmologyMixin``. As example, ``LambdaCDM`` **may**
+    be flat (for the a specific set of parameter values), but
+    ``FlatLambdaCDM`` **will** be flat.
     """
 
     __all_parameters__: tuple[str, ...]
@@ -547,13 +548,12 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
             'Planck13 (modified)'
 
         The keyword 'to_nonflat' can be used to clone on the non-flat equivalent
-        cosmology.
+        cosmology. For :class:`~astropy.cosmology.FLRW` cosmologies this means
+        ``Ode0`` can be modified:
 
-            >>> Planck13.clone(to_nonflat=True)
-            LambdaCDM(name="Planck13", ...
-
-            >>> Planck13.clone(H0=70, to_nonflat=True)
-            LambdaCDM(name="Planck13 (modified)", H0=70.0 km / (Mpc s), ...
+            >>> Planck13.clone(to_nonflat=True, Ode0=1)
+            LambdaCDM(name="Planck13 (modified)", H0=67.77 km / (Mpc s),
+                      Om0=0.30712, Ode0=1.0, ...
         """
         if to_nonflat:
             return self.nonflat.clone(meta=meta, **kwargs)
@@ -562,7 +562,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     # ===============================================================
 
     def __equiv__(self, other):
-        """flat-|Cosmology| equivalence.
+        """Flat-|Cosmology| equivalence.
 
         Use `astropy.cosmology.funcs.cosmology_equal` with
         ``allow_equivalent=True`` for actual checks!

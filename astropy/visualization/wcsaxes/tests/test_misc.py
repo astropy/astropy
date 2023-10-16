@@ -93,7 +93,7 @@ def test_no_numpy_warnings(ignore_matplotlibrc, tmp_path, grid_type):
     # (since this is normal).
     # BUT our own catch_warning was ignoring some warnings before, so now we
     # have to catch it. Otherwise, the pytest filterwarnings=error
-    # setting in setup.cfg will fail this test.
+    # setting in pyproject.toml will fail this test.
     # There are actually multiple warnings but they are all similar.
     with warnings.catch_warnings():
         warnings.filterwarnings(

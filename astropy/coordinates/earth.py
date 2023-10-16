@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import collections
 import json
 import socket
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import NamedTuple
 from warnings import warn
 
 import numpy as np
@@ -29,7 +29,22 @@ __all__ = [
     "EarthLocation",
 ]
 
-GeodeticLocation = collections.namedtuple("GeodeticLocation", ["lon", "lat", "height"])
+
+class GeodeticLocation(NamedTuple):
+    """A namedtuple for geodetic coordinates.
+
+    The longitude is increasing to the east, so west longitudes are negative.
+    """
+
+    lon: Longitude
+    """The longitude, increasting to the east."""
+
+    lat: Latitude
+    """The latitude."""
+
+    height: u.Quantity
+    """The height above the reference ellipsoid."""
+
 
 OMEGA_EARTH = (1.002_737_811_911_354_48 * u.cycle / u.day).to(
     1 / u.s, u.dimensionless_angles()
@@ -250,6 +265,10 @@ class EarthLocation(u.Quantity):
         if unit.physical_type != "length":
             raise u.UnitsError("Geocentric coordinates should be in units of length.")
 
+        # TODO: this part could be removed, with the try/except around the
+        # assignment to struc["x"], ..., below.  But this is a small API change
+        # in that it will no longer possible to initialize with a unit-full x,
+        # and unit-less y, z. Arguably, though, that would just solve a bug.
         try:
             x = u.Quantity(x, unit, copy=False)
             y = u.Quantity(y, unit, copy=False)
@@ -257,8 +276,8 @@ class EarthLocation(u.Quantity):
         except u.UnitsError:
             raise u.UnitsError("Geocentric coordinate units should all be consistent.")
 
-        x, y, z = np.broadcast_arrays(x, y, z)
-        struc = np.empty(x.shape, cls._location_dtype)
+        x, y, z = np.broadcast_arrays(x, y, z, subok=True)
+        struc = np.empty_like(x, dtype=cls._location_dtype)
         struc["x"], struc["y"], struc["z"] = x, y, z
         return super().__new__(cls, struc, unit, copy=False)
 

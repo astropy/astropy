@@ -7,8 +7,8 @@ from types import MappingProxyType
 import numpy as np
 
 from astropy import units as u
+from astropy.coordinates import Angle
 from astropy.coordinates import representation as r
-from astropy.coordinates.angles import Angle
 from astropy.coordinates.attributes import (
     CoordinateAttribute,
     DifferentialAttribute,
@@ -22,7 +22,7 @@ from astropy.coordinates.baseframe import (
 from astropy.coordinates.errors import ConvertError
 from astropy.coordinates.matrix_utilities import matrix_transpose, rotation_matrix
 from astropy.coordinates.transformations import AffineTransform
-from astropy.utils.decorators import classproperty, deprecated, format_doc
+from astropy.utils.decorators import classproperty, format_doc
 from astropy.utils.state import ScienceState
 
 from .icrs import ICRS
@@ -265,27 +265,6 @@ class galactocentric_frame_defaults(ScienceState):
         state = copy.deepcopy(cls._registry[name])  # ensure mutable
 
         return state
-
-    @deprecated("v4.2", alternative="`get_from_registry`")
-    @classmethod
-    def get_solar_params_from_string(cls, arg):
-        """
-        Return Galactocentric solar parameters given string names
-        for the parameter sets.
-
-        Returns
-        -------
-        parameters : dict
-            Copy of Galactocentric solar parameters from registry
-
-        Raises
-        ------
-        KeyError
-            If invalid string input to registry
-            to retrieve solar parameters for Galactocentric frame.
-
-        """
-        return cls.get_from_registry(arg)["parameters"]
 
     @classmethod
     def validate(cls, value):

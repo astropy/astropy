@@ -493,7 +493,7 @@ class TestQuantityOperations:
         assert new_quantity.value == -self.q1.value
         assert new_quantity.unit == self.q1.unit
 
-        new_quantity = -(-self.q1)
+        new_quantity = -(-self.q1)  # noqa: B002
         assert new_quantity.value == self.q1.value
         assert new_quantity.unit == self.q1.unit
 

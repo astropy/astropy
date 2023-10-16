@@ -21,7 +21,7 @@ from astropy.io.fits.column import (
     python_to_tdisp,
 )
 from astropy.io.tests.mixin_columns import compare_attrs, mixin_cols, serialized_names
-from astropy.table import Column, QTable, Table
+from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.table.table_helpers import simple_table
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
@@ -1064,3 +1064,15 @@ def test_meta_not_modified(tmp_path):
 def test_is_fits_gh_14305():
     """Regression test for https://github.com/astropy/astropy/issues/14305"""
     assert not connect.is_fits("", "foo.bar", None)
+
+
+def test_keep_masked_state_integer_columns(tmp_path):
+    """Regression test for https://github.com/astropy/astropy/issues/15417"""
+    filename = tmp_path / "test_masked.fits"
+    t = Table([[1, 2], [1.5, 2.5]], names=["a", "b"])
+    t["c"] = MaskedColumn([1, 2], mask=[True, False])
+    t.write(filename)
+    tr = Table.read(filename)
+    assert not isinstance(tr["a"], MaskedColumn)
+    assert not isinstance(tr["b"], MaskedColumn)
+    assert isinstance(tr["c"], MaskedColumn)

@@ -24,15 +24,20 @@
 # be accessible, and the documentation will not build correctly.
 # See sphinx_astropy.conf for which values are set there.
 
-import configparser
 import doctest
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from importlib import metadata
+from pathlib import Path
 
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
+
+if sys.version_info < (3, 11):
+    import tomli as tomllib
+else:
+    import tomllib
 
 # -- Check for missing dependencies -------------------------------------------
 missing_requirements = {}
@@ -60,7 +65,7 @@ if missing_requirements:
     print('Please install the "docs" requirements.')
     sys.exit(1)
 
-from sphinx_astropy.conf.v2 import *  # noqa: E402
+from sphinx_astropy.conf.v2 import *  # noqa: E402, F403
 from sphinx_astropy.conf.v2 import (  # noqa: E402
     exclude_patterns,
     extensions,
@@ -111,6 +116,7 @@ intersphinx_mapping.update(
         ),
         "asdf-astropy": ("https://asdf-astropy.readthedocs.io/en/latest/", None),
         "fsspec": ("https://filesystem-spec.readthedocs.io/en/latest/", None),
+        "cycler": ("https://matplotlib.org/cycler/", None),
     }
 )
 
@@ -126,10 +132,11 @@ templates_path.append("_templates")
 
 extensions += ["sphinx_changelog", "sphinx_design"]
 
-# Grab minversion from setup.cfg
-setup_cfg = configparser.ConfigParser()
-setup_cfg.read(os.path.join(os.path.pardir, "setup.cfg"))
-__minimum_python_version__ = setup_cfg["options"]["python_requires"].replace(">=", "")
+# Grab minversion from pyproject.toml
+with (Path(__file__).parents[1] / "pyproject.toml").open("rb") as f:
+    pyproject = tomllib.load(f)
+
+__minimum_python_version__ = pyproject["project"]["requires-python"].replace(">=", "")
 
 min_versions = {}
 for line in metadata.requires("astropy"):
@@ -208,7 +215,7 @@ toc_object_entries = False
 
 project = "Astropy"
 author = "The Astropy Developers"
-copyright = f"2011–{datetime.utcnow().year}, " + author
+copyright = f"2011–{datetime.now(tz=timezone.utc).year}, " + author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

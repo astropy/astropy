@@ -1,6 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""Built-in cosmologies.
 
-"""Preloaded cosmologies. See ``available``."""
+See :attr:`~astropy.cosmology.realizations.available` for a full list.
+"""
+
+from __future__ import annotations
 
 __all__ = [  # noqa: F822 (undefined name)
     "available",
@@ -19,11 +23,9 @@ __all__ = [  # noqa: F822 (undefined name)
 # STDLIB
 import pathlib
 import sys
-from typing import Optional, Union
 
 # LOCAL
 from astropy.utils.data import get_pkg_data_path
-from astropy.utils.decorators import deprecated
 from astropy.utils.state import ScienceState
 
 from . import _io  # Ensure IO methods are registered, to read realizations # noqa: F401
@@ -47,8 +49,7 @@ available = (
 
 
 def __getattr__(name):
-    """Make specific realizations from data files with lazy import from
-    `PEP 562 <https://www.python.org/dev/peps/pep-0562/>`_.
+    """Make specific realizations from data files with lazy import from ``PEP 562``.
 
     Raises
     ------
@@ -107,18 +108,8 @@ class default_cosmology(ScienceState):
     _default_value = "Planck18"
     _value = "Planck18"
 
-    @deprecated("5.0", alternative="get")
     @classmethod
-    def get_cosmology_from_string(cls, arg):
-        """Return a cosmology instance from a string."""
-        if arg == "no_default":
-            value = None
-        else:
-            value = cls._get_from_registry(arg)
-        return value
-
-    @classmethod
-    def validate(cls, value: Union[Cosmology, str, None]) -> Optional[Cosmology]:
+    def validate(cls, value: Cosmology | str | None) -> Cosmology | None:
         """Return a Cosmology given a value.
 
         Parameters

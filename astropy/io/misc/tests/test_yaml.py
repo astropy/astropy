@@ -41,7 +41,6 @@ from astropy.time import Time
         2.0,
         np.float64(),
         3 + 4j,
-        np.complex_(3 + 4j),
         np.complex64(3 + 4j),
         np.complex128(1.0 - 2**-52 + 1j * (1.0 - 2**-52)),
     ],
@@ -294,3 +293,26 @@ def test_ecsv_astropy_objects_in_meta():
     compare_time(tm, t2.meta["tm"])
     compare_coord(c, t2.meta["c"])
     assert t2.meta["unit"] == unit
+
+
+def test_yaml_dump_of_object_arrays_fail():
+    """Test that dumping and loading object arrays fails."""
+    with pytest.raises(TypeError, match="cannot serialize"):
+        dump(np.array([1, 2, 3], dtype=object))
+
+
+def test_yaml_load_of_object_arrays_fail():
+    """Test that dumping and loading object arrays fails.
+
+    The string to load was obtained by suppressing the exception and dumping
+    ``np.array([1, 2, 3], dtype=object)`` to a yaml file.
+    """
+    with pytest.raises(TypeError, match="cannot load numpy array"):
+        load(
+            """!numpy.ndarray
+            buffer: !!binary |
+              WndBQUFISUFBQUJwQUFBQQ==
+            dtype: object
+            order: C
+            shape: !!python/tuple [3]"""
+        )

@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+__all__ = []
+
 import copy
 from dataclasses import dataclass, field, fields, replace
+from enum import Enum, auto
 from typing import Any, Sequence
 
 import astropy.units as u
@@ -11,13 +14,23 @@ from astropy.utils.compat import PYTHON_LT_3_10
 
 from ._converter import _REGISTRY_FVALIDATORS, FValidateCallable, _register_validator
 
-__all__ = []
-
-
 if not PYTHON_LT_3_10:
     from dataclasses import KW_ONLY
 else:
     KW_ONLY = Any
+
+
+class Sentinel(Enum):
+    """Sentinel values for Parameter fields."""
+
+    MISSING = auto()
+    """A sentinel value signifying a missing default."""
+
+    def __repr__(self):
+        return f"<{self.name}>"
+
+
+MISSING = Sentinel.MISSING
 
 
 @dataclass(frozen=True)
@@ -70,6 +83,9 @@ class Parameter:
 
     Parameters
     ----------
+    default : Any (optional, keyword-only)
+        Default value of the Parameter. If not given the
+        Parameter must be set when initializing the cosmology.
     derived : bool (optional, keyword-only)
         Whether the Parameter is 'derived', default `False`.
         Derived parameters behave similarly to normal parameters, but are not
@@ -100,18 +116,25 @@ class Parameter:
     if not PYTHON_LT_3_10:
         _: KW_ONLY
 
+    default: Any = MISSING
+    """Default value of the Parameter.
+
+    By default set to ``MISSING``, which indicates the parameter must be set
+    when initializing the cosmology.
+    """
+
     derived: bool = False
     """Whether the Parameter can be set, or is derived, on the cosmology."""
 
     # Units
-    unit: _UnitField = _UnitField()  # noqa: RUF009
+    unit: _UnitField = _UnitField()
     """The unit of the Parameter (can be `None` for unitless)."""
 
     equivalencies: u.Equivalency | Sequence[u.Equivalency] = field(default_factory=list)
     """Unit equivalencies available when setting the parameter."""
 
     # Setting
-    fvalidate: _FValidateField = _FValidateField(default="default")  # noqa: RUF009
+    fvalidate: _FValidateField = _FValidateField(default="default")
     """Function to validate/convert values when setting the Parameter."""
 
     # Info
@@ -119,19 +142,24 @@ class Parameter:
     """Parameter description."""
 
     name: str | None = field(init=False, compare=True, default=None, repr=False)
-    """The name of the Parameter on the Cosmology. Cannot be set directly."""
+    """The name of the Parameter on the Cosmology.
+
+    Cannot be set directly.
+    """
 
     if PYTHON_LT_3_10:
 
         def __init__(
             self,
             *,
+            default=MISSING,
             derived=False,
             unit=None,
             equivalencies=[],
             fvalidate="default",
             doc=None,
         ):
+            object.__setattr__(self, "default", default)
             object.__setattr__(self, "derived", derived)
             vars(type(self))["unit"].__set__(self, unit)
             object.__setattr__(self, "equivalencies", equivalencies)
@@ -166,10 +194,21 @@ class Parameter:
         return getattr(cosmology, self._attr_name)
 
     def __set__(self, cosmology, value):
-        """Allows attribute setting once. Raises AttributeError subsequently."""
+        """Allows attribute setting once.
+
+        Raises AttributeError subsequently.
+        """
         # Raise error if setting 2nd time.
         if hasattr(cosmology, self._attr_name):
             raise AttributeError(f"can't set attribute {self.name} again")
+
+        # Change `self` to the default value if default is MISSING.
+        # This is done for backwards compatibility only - so that Parameter can be used
+        # in a dataclass and still return `self` when accessed from a class.
+        # Accessing the Parameter object via `cosmo_cls.param_name` will be removed
+        # in favor of `cosmo_cls.parameters["param_name"]`.
+        if value is self and self.default is MISSING:
+            value = self.default
 
         # Validate value, generally setting units if present
         value = self.validate(cosmology, copy.deepcopy(value))
@@ -269,8 +308,10 @@ class Parameter:
     def __repr__(self) -> str:
         """Return repr(self)."""
         fields_repr = (
+            # Get the repr, using the input fvalidate over the processed value
             f"{f.name}={(getattr(self, f.name if f.name != 'fvalidate' else '_fvalidate_in'))!r}"
             for f in fields(self)
-            if f.repr
+            # Only show fields that should be displayed and are not sentinel values
+            if f.repr and (f.name != "default" or self.default is not MISSING)
         )
         return f"{self.__class__.__name__}({', '.join(fields_repr)})"

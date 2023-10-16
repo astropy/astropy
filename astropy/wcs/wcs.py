@@ -134,7 +134,7 @@ if _wcs is not None:
     for key, val in _wcs.__dict__.items():
         if key.startswith(("WCSSUB_", "WCSHDR_", "WCSHDO_", "WCSCOMPARE_", "PRJ_")):
             locals()[key] = val
-            __all__.append(key)
+            __all__.append(key)  # noqa: PYI056
 
     # Set coordinate extraction callback for WCS -TAB:
     def _load_tab_bintable(hdulist, extnam, extver, extlev, kind, ttype, row, ndim):
@@ -490,7 +490,6 @@ class WCS(FITSWCSAPIMixin, WCSBase):
             # because we will be modifying it
             if isinstance(header_string, str):
                 header_bytes = header_string.encode("ascii")
-                header_string = header_string
             else:
                 header_bytes = header_string
                 header_string = header_string.decode("ascii")
@@ -542,7 +541,6 @@ class WCS(FITSWCSAPIMixin, WCSBase):
 
             if isinstance(header_string, str):
                 header_bytes = header_string.encode("ascii")
-                header_string = header_string
             else:
                 header_bytes = header_string
                 header_string = header_string.decode("ascii")
@@ -729,7 +727,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 self.sip = None
                 warnings.warn(
                     "Removed redundant SIP distortion parameters "
-                    + "because CTYPE explicitly specifies TPV distortions",
+                    "because CTYPE explicitly specifies TPV distortions",
                     FITSFixedWarning,
                 )
             return
@@ -762,7 +760,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             self.wcs.set_pv([])
             warnings.warn(
                 "Removed redundant SCAMP distortion parameters "
-                + "because SIP parameters are also present",
+                "because SIP parameters are also present",
                 FITSFixedWarning,
             )
             return
@@ -1236,7 +1234,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             if tan_to_tpv:
                 warnings.warn(
                     "Removed redundant SIP distortion parameters "
-                    + "because SCAMP' PV distortions are also present",
+                    "because SCAMP' PV distortions are also present",
                     FITSFixedWarning,
                 )
                 self._remove_sip_kw(header, del_order=True)
@@ -1329,7 +1327,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         elif "B_ORDER" in header and header["B_ORDER"] > 1:
             raise ValueError(
                 "B_ORDER provided without corresponding A_ORDER "
-                + "keyword for SIP distortion"
+                "keyword for SIP distortion"
             )
         else:
             a = None
@@ -1554,7 +1552,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             except Exception:
                 raise TypeError(
                     "When providing more than two arguments, they must be "
-                    + "a 1-D array for each axis, followed by an origin."
+                    "a 1-D array for each axis, followed by an origin."
                 )
 
             return _return_list_of_arrays(axes, origin)
@@ -2221,7 +2219,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             accuracy if either the ``tolerance`` or ``maxiter`` arguments
             are too low. However, it may happen that for some
             geometric distortions the conditions of convergence for
-            the the method of consecutive approximations used by
+            the method of consecutive approximations used by
             :py:meth:`all_world2pix` may not be satisfied, in which
             case consecutive approximations to the solution will
             diverge regardless of the ``tolerance`` or ``maxiter``
@@ -3119,7 +3117,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         the `printwcs()` method.
         """
         description = ["WCS Keywords\n", f"Number of WCS axes: {self.naxis!r}"]
-        sfmt = " : " + "".join(["{" + f"{i}" + "!r}  " for i in range(self.naxis)])
+        sfmt = " : " + "".join([f"{{{i}!r}} " for i in range(self.naxis)])
 
         keywords = ["CTYPE", "CRVAL", "CRPIX"]
         values = [self.wcs.ctype, self.wcs.crval, self.wcs.crpix]

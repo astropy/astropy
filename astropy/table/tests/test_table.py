@@ -32,7 +32,7 @@ from astropy.utils.compat import NUMPY_LT_1_25
 from astropy.utils.compat.optional_deps import HAS_PANDAS
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.tests.test_metadata import MetaBaseTest
+from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 
 from .conftest import MIXIN_COLS, MaskedTable
 
@@ -1938,7 +1938,7 @@ class TestPandas:
                 for byte in ["2", "4", "8"]:
                     dtype = np.dtype(endian + kind + byte)
                     x = np.array([1, 2, 3], dtype=dtype)
-                    t[endian + kind + byte] = x.newbyteorder(endian)
+                    t[endian + kind + byte] = x.view(x.dtype.newbyteorder(endian))
 
         t["u"] = ["a", "b", "c"]
         t["s"] = ["a", "b", "c"]
@@ -1958,7 +1958,7 @@ class TestPandas:
                 if t[column].dtype.isnative:
                     assert d[column].dtype == t[column].dtype
                 else:
-                    assert d[column].dtype == t[column].byteswap().newbyteorder().dtype
+                    assert d[column].dtype == t[column].dtype.newbyteorder()
 
         # Regression test for astropy/astropy#1156 - the following code gave a
         # ValueError: Big-endian buffer not supported on little-endian
@@ -1979,7 +1979,7 @@ class TestPandas:
             if t[column].dtype.isnative:
                 assert t[column].dtype == t2[column].dtype
             else:
-                assert t[column].byteswap().newbyteorder().dtype == t2[column].dtype
+                assert t[column].dtype.newbyteorder() == t2[column].dtype
 
     @pytest.mark.parametrize("unsigned", ["u", ""])
     @pytest.mark.parametrize("bits", [8, 16, 32, 64])
@@ -2195,7 +2195,7 @@ class TestPandas:
                 if column.dtype.byteorder in ("=", "|"):
                     assert column.dtype == t2[name].dtype
                 else:
-                    assert column.byteswap().newbyteorder().dtype == t2[name].dtype
+                    assert column.dtype.newbyteorder() == t2[name].dtype
 
     def test_units(self):
         import pandas as pd
@@ -2898,14 +2898,19 @@ def test_table_attribute_ecsv():
 
 
 def test_table_attribute_fail():
-    # Code raises ValueError(f'{attr} not allowed as TableAttribute') but in this
-    # context it gets re-raised as a RuntimeError during class definition.
-    with pytest.raises(RuntimeError, match="Error calling __set_name__"):
+    if sys.version_info[:2] >= (3, 12):
+        ctx = pytest.raises(ValueError, match=".* not allowed as TableAttribute")
+    else:
+        # Code raises ValueError(f'{attr} not allowed as TableAttribute') but in this
+        # context it gets re-raised as a RuntimeError during class definition.
+        ctx = pytest.raises(RuntimeError, match="Error calling __set_name__")
+
+    with ctx:
 
         class MyTable2(Table):
             descriptions = TableAttribute()  # Conflicts with init arg
 
-    with pytest.raises(RuntimeError, match="Error calling __set_name__"):
+    with ctx:
 
         class MyTable3(Table):
             colnames = TableAttribute()  # Conflicts with built-in property

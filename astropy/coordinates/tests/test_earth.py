@@ -9,7 +9,7 @@ import pytest
 
 from astropy import constants
 from astropy import units as u
-from astropy.coordinates.angles import Latitude, Longitude
+from astropy.coordinates import Latitude, Longitude
 from astropy.coordinates.earth import EarthLocation
 from astropy.coordinates.name_resolve import NameResolveError
 from astropy.coordinates.representation.geodetic import ELLIPSOIDS
@@ -175,10 +175,10 @@ class TestInput:
             EarthLocation(self.lon, self.y, self.z)
 
         # wrong units
-        with pytest.raises(u.UnitsError):
+        with pytest.raises(u.UnitsError, match="should be in units of length"):
             EarthLocation.from_geocentric(self.lon, self.lat, self.lat)
         # inconsistent units
-        with pytest.raises(u.UnitsError):
+        with pytest.raises(u.UnitsError, match="should all be consistent"):
             EarthLocation.from_geocentric(self.h, self.lon, self.lat)
         # floats without a unit
         with pytest.raises(TypeError):

@@ -45,7 +45,7 @@ FITS2NUMPY = {
     "D": "f8",
     "C": "c8",
     "M": "c16",
-    "A": "a",
+    "A": "S",
 }
 
 # the inverse dictionary of the above
@@ -75,7 +75,7 @@ FITSUPCONVERTERS = {"E": "D", "C": "M"}
 # F: Float (64-bit; fixed decimal notation)
 # E: Float (64-bit; exponential notation)
 # D: Float (64-bit; exponential notation, always 64-bit by convention)
-ASCII2NUMPY = {"A": "a", "I": "i4", "J": "i8", "F": "f8", "E": "f8", "D": "f8"}
+ASCII2NUMPY = {"A": "S", "I": "i4", "J": "i8", "F": "f8", "E": "f8", "D": "f8"}
 
 # Maps FITS ASCII column format codes to the appropriate Python string
 # formatting codes for that type.
@@ -880,7 +880,7 @@ class Column(NotifierMixin):
                 "It is strongly recommended that column names contain only "
                 "upper and lower-case ASCII letters, digits, or underscores "
                 "for maximum compatibility with other software "
-                "(got {!r}).".format(name),
+                f"(got {name!r}).",
                 VerifyWarning,
             )
 
@@ -1065,7 +1065,7 @@ class Column(NotifierMixin):
                     msg = (
                         "ASCII table null option (TNULLn) is longer than "
                         "the column's character width and will be truncated "
-                        "(got {!r}).".format(null)
+                        f"(got {null!r})."
                     )
             else:
                 tnull_formats = ("B", "I", "J", "K")
@@ -1075,9 +1075,9 @@ class Column(NotifierMixin):
                     # non-int value is meaningless
                     msg = (
                         "Column null option (TNULLn) must be an integer for "
-                        "binary table columns (got {!r}).  The invalid value "
+                        f"binary table columns (got {null!r}).  The invalid value "
                         "will be ignored for the purpose of formatting "
-                        "the data in this column.".format(null)
+                        "the data in this column."
                     )
 
                 elif not (
@@ -1142,9 +1142,9 @@ class Column(NotifierMixin):
                 # The 'start' option only applies to ASCII columns
                 msg = (
                     "Column start option (TBCOLn) is not allowed for binary "
-                    "table columns (got {!r}).  The invalid keyword will be "
+                    f"table columns (got {start!r}).  The invalid keyword will be "
                     "ignored for the purpose of formatting the data in this "
-                    "column.".format(start)
+                    "column."
                 )
             else:
                 try:
@@ -1155,8 +1155,8 @@ class Column(NotifierMixin):
                 if not _is_int(start) or start < 1:
                     msg = (
                         "Column start option (TBCOLn) must be a positive integer "
-                        "(got {!r}).  The invalid value will be ignored for the "
-                        "purpose of formatting the data in this column.".format(start)
+                        f"(got {start!r}).  The invalid value will be ignored for the "
+                        "purpose of formatting the data in this column."
                     )
 
             if msg is None:
@@ -1171,14 +1171,14 @@ class Column(NotifierMixin):
         if dim is not None and dim != "":
             msg = None
             dims_tuple = ()
-            # NOTE: If valid, the dim keyword's value in the the valid dict is
+            # NOTE: If valid, the dim keyword's value in the valid dict is
             # a tuple, not the original string; if invalid just the original
             # string is returned
             if isinstance(format, _AsciiColumnFormat):
                 msg = (
                     "Column dim option (TDIMn) is not allowed for ASCII table "
-                    "columns (got {!r}).  The invalid keyword will be ignored "
-                    "for the purpose of formatting this column.".format(dim)
+                    f"columns (got {dim!r}).  The invalid keyword will be ignored "
+                    "for the purpose of formatting this column."
                 )
 
             elif isinstance(dim, str):
@@ -1225,9 +1225,9 @@ class Column(NotifierMixin):
             elif len(coord_type) > 8:
                 msg = (
                     "Coordinate/axis type option (TCTYPn) must be a string "
-                    "of atmost 8 characters (got {!r}). The invalid keyword "
+                    f"of atmost 8 characters (got {coord_type!r}). The invalid keyword "
                     "will be ignored for the purpose of formatting this "
-                    "column.".format(coord_type)
+                    "column."
                 )
 
             if msg is None:
@@ -2025,7 +2025,7 @@ class _AsciiColDefs(ColDefs):
         # fields; this is so that we can map the fields to string records in a
         # Numpy recarray
         widths.append(self._width - self.starts[-1] + 1)
-        return ["a" + str(w) for w in widths]
+        return ["S" + str(w) for w in widths]
 
     def add_col(self, column):
         super().add_col(column)
@@ -2063,14 +2063,14 @@ class _AsciiColDefs(ColDefs):
 class _VLF(np.ndarray):
     """Variable length field object."""
 
-    def __new__(cls, input, dtype="a"):
+    def __new__(cls, input, dtype="S"):
         """
         Parameters
         ----------
         input
             a sequence of variable-sized elements.
         """
-        if dtype == "a":
+        if dtype == "S":
             try:
                 # this handles ['abc'] and [['a','b','c']]
                 # equally, beautiful!
@@ -2099,7 +2099,7 @@ class _VLF(np.ndarray):
             pass
         elif isinstance(value, chararray.chararray) and value.itemsize == 1:
             pass
-        elif self.element_dtype == "a":
+        elif self.element_dtype == "S":
             value = chararray.array(value, itemsize=1)
         else:
             value = np.array(value, dtype=self.element_dtype)
@@ -2246,7 +2246,7 @@ def _makep(array, descr_output, format, nrows=None):
 
     data_output = _VLF([None] * nrows, dtype=format.dtype)
 
-    if format.dtype == "a":
+    if format.dtype == "S":
         _nbytes = 1
     else:
         _nbytes = np.array([], dtype=format.dtype).itemsize
@@ -2255,11 +2255,11 @@ def _makep(array, descr_output, format, nrows=None):
         if idx < len(array):
             rowval = array[idx]
         else:
-            if format.dtype == "a":
+            if format.dtype == "S":
                 rowval = " " * data_output.max
             else:
                 rowval = [0] * data_output.max
-        if format.dtype == "a":
+        if format.dtype == "S":
             data_output[idx] = chararray.array(encode_ascii(rowval), itemsize=1)
         else:
             data_output[idx] = np.array(rowval, dtype=format.dtype)
@@ -2408,7 +2408,7 @@ def _cmp_recformats(f1, f2):
     """
     Compares two numpy recformats using the ordering given by FORMATORDER.
     """
-    if f1[0] == "a" and f2[0] == "a":
+    if f1[0] == "S" and f2[0] == "S":
         return cmp(int(f1[1:]), int(f2[1:]))
     else:
         f1, f2 = NUMPY2FITS[f1], NUMPY2FITS[f2]
@@ -2426,7 +2426,7 @@ def _convert_fits2record(format):
             output_format = FITS2NUMPY[dtype] + str(repeat)
             # to accommodate both the ASCII table and binary table column
             # format spec, i.e. A7 in ASCII table is the same as 7A in
-            # binary table, so both will produce 'a7'.
+            # binary table, so both will produce 'S7'.
             # Technically the FITS standard does not allow this but it's a very
             # common mistake
             if format.lstrip()[0] == "A" and option != "":
@@ -2476,7 +2476,7 @@ def _convert_record2fits(format):
         if nel > 1:
             repeat = nel
 
-    if kind == "a":
+    if kind == "S":
         # This is a kludge that will place string arrays into a
         # single field, so at least we won't lose data.  Need to
         # use a TDIM keyword to fix this, declaring as (slength,
@@ -2502,10 +2502,6 @@ def _dtype_to_recformat(dtype):
     Utility function for converting a dtype object or string that instantiates
     a dtype (e.g. 'float32') into one of the two character Numpy format codes
     that have been traditionally used by Astropy.
-
-    In particular, use of 'a' to refer to character data is long since
-    deprecated in Numpy, but Astropy remains heavily invested in its use
-    (something to try to get away from sooner rather than later).
     """
     if not isinstance(dtype, np.dtype):
         dtype = np.dtype(dtype)
@@ -2513,7 +2509,7 @@ def _dtype_to_recformat(dtype):
     kind = dtype.base.kind
 
     if kind in ("U", "S"):
-        recformat = kind = "a"
+        recformat = kind = "S"
     else:
         itemsize = dtype.base.itemsize
         recformat = kind + str(itemsize)
@@ -2538,7 +2534,7 @@ def _convert_ascii_format(format, reverse=False):
         recformat, kind, dtype = _dtype_to_recformat(format)
         itemsize = dtype.itemsize
 
-        if kind == "a":
+        if kind == "S":
             return "A" + str(itemsize)
         elif NUMPY2FITS.get(recformat) == "L":
             # Special case for logical/boolean types--for ASCII tables we
@@ -2562,7 +2558,7 @@ def _convert_ascii_format(format, reverse=False):
             width = ".".join(str(w) for w in ASCII_DEFAULT_WIDTHS[format])
             return format + width
         # TODO: There may be reasonable ways to represent other Numpy types so
-        # let's see what other possibilities there are besides just 'a', 'i',
+        # let's see what other possibilities there are besides just 'S', 'i',
         # and 'f'.  If it doesn't have a reasonable ASCII representation then
         # raise an exception
     else:

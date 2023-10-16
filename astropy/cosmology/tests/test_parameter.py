@@ -15,14 +15,13 @@ import pytest
 
 # LOCAL
 import astropy.units as u
-from astropy.cosmology import Cosmology
+from astropy.cosmology import Cosmology, Parameter
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
-from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.parameter._converter import (
     _REGISTRY_FVALIDATORS,
-    _validate_to_float,
     _validate_with_unit,
 )
+from astropy.cosmology.parameter._core import MISSING
 
 ##############################################################################
 # TESTS
@@ -35,6 +34,45 @@ def test_registry_validators():
     assert isinstance(_REGISTRY_FVALIDATORS, dict)
     assert all(isinstance(k, str) for k in _REGISTRY_FVALIDATORS.keys())
     assert all(callable(v) for v in _REGISTRY_FVALIDATORS.values())
+
+
+class Test_Parameter:
+    """Test :class:`astropy.cosmology.Parameter` not on a cosmology."""
+
+    @pytest.mark.parametrize(
+        "kwargs",
+        [
+            {},
+            dict(
+                default=1.0,
+                fvalidate="float",
+                doc="DOCSTRING",
+                unit="km",
+                equivalencies=[u.mass_energy()],
+                derived=True,
+            ),
+        ],
+    )
+    def test_Parameter_init(self, kwargs):
+        """Test :class:`astropy.cosmology.Parameter` instantiation."""
+        unit = kwargs.get("unit")
+
+        param = Parameter(**kwargs)
+        assert param.default == kwargs.get("default", MISSING)
+        assert param.fvalidate is _REGISTRY_FVALIDATORS.get(
+            kwargs.get("fvalidate"), _validate_with_unit
+        )
+        assert param.doc == kwargs.get("doc")
+        assert param.unit is (u.Unit(unit) if unit is not None else None)
+        assert param.equivalencies == kwargs.get("equivalencies", [])
+        assert param.derived is kwargs.get("derived", False)
+        assert param.name is None
+
+    def test_Parameter_default(self):
+        """Test :attr:`astropy.cosmology.Parameter.default`."""
+        parameter = Parameter()
+        assert parameter.default is MISSING
+        assert repr(parameter.default) == "<MISSING>"
 
 
 class ParameterTestMixin:
@@ -65,29 +103,6 @@ class ParameterTestMixin:
 
     # ===============================================================
     # Method Tests
-
-    def test_Parameter_init(self):
-        """Test :class:`astropy.cosmology.Parameter` instantiation."""
-        # defaults
-        parameter = Parameter()
-        assert parameter.fvalidate is _validate_with_unit
-        assert parameter.unit is None
-        assert parameter.equivalencies == []
-        assert parameter.derived is False
-        assert parameter.name is None
-
-        # setting all kwargs
-        parameter = Parameter(
-            fvalidate="float",
-            doc="DOCSTRING",
-            unit="km",
-            equivalencies=[u.mass_energy()],
-            derived=True,
-        )
-        assert parameter.fvalidate is _validate_to_float
-        assert parameter.unit is u.km
-        assert parameter.equivalencies == [u.mass_energy()]
-        assert parameter.derived is True
 
     def test_Parameter_instance_attributes(self, all_parameter):
         """Test :class:`astropy.cosmology.Parameter` attributes from init."""
@@ -139,6 +154,13 @@ class ParameterTestMixin:
             all_parameter.name not in cosmo_cls.__parameters__
         )
 
+    def test_Parameter_default(self, cosmo_cls, all_parameter):
+        """Test :attr:`astropy.cosmology.Parameter.default`."""
+        assert hasattr(all_parameter, "default")
+        assert all_parameter.default is MISSING or isinstance(
+            all_parameter.default, (type(None), float, u.Quantity)
+        )
+
     # -------------------------------------------
     # descriptor methods
 
@@ -146,8 +168,7 @@ class ParameterTestMixin:
         """Test :attr:`astropy.cosmology.Parameter.__get__`."""
         # from class
         parameter = getattr(cosmo_cls, all_parameter.name)
-        assert isinstance(parameter, Parameter)
-        assert parameter is all_parameter
+        np.testing.assert_array_equal(parameter.default, all_parameter.default)
 
         # from instance
         parameter = getattr(cosmo, all_parameter.name)

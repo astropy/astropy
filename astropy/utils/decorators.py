@@ -141,6 +141,7 @@ def deprecated(
             deprecated_func = functools.wraps(func)(deprecated_func)
 
         deprecated_func.__doc__ = deprecate_doc(deprecated_func.__doc__, message)
+        deprecated_func.__deprecated__ = message
 
         return func_wrapper(deprecated_func)
 
@@ -160,6 +161,7 @@ def deprecated(
           with pickle and will look weird in the Sphinx docs.
         """
         cls.__doc__ = deprecate_doc(cls.__doc__, message)
+        cls.__deprecated__ = message
         if cls.__new__ is object.__new__:
             cls.__init__ = deprecate_function(
                 get_function(cls.__init__), message, warning_type

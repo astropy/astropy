@@ -48,9 +48,17 @@ To create a |Time| object:
   <Time object: scale='utc' format='isot' value=2010-01-01T00:00:00.000>
 
 The ``format`` argument specifies how to interpret the input values (e.g., ISO,
-JD, or Unix time). The ``scale`` argument specifies the `time scale`_ for the
-values (e.g., UTC, TT, or UT1). The ``scale`` argument is optional and defaults
-to UTC except for `Time from Epoch Formats`_.
+JD, or Unix time). By default, the same format will be used to represent the
+time for output. One can change this format later as needed, but because this
+is just for representation, that does not affect the internal representation
+(which is always by two 64-bit values, the ``jd1`` and ``jd2`` attributes), nor
+any computations with the object.
+
+The ``scale``  argument specifies the `time scale`_ for the values
+(e.g., UTC, TT, or UT1). The ``scale`` argument is optional and defaults
+to UTC except for `Time from Epoch Formats`_. It is possible to change
+it (e.g., from UTC to TDB), which will cause the internal values to be
+adjusted accordingly.
 
 .. EXAMPLE END
 
@@ -504,7 +512,7 @@ Example
 
 To infer input format::
 
-  >>> from datetime import datetime
+  >>> from datetime import datetime, timezone
   >>> t = Time(datetime(2010, 1, 2, 1, 2, 3))
   >>> t.format
   'datetime'
@@ -709,7 +717,7 @@ The current time can be determined as a |Time| object using the
 `~astropy.time.Time.now` class method::
 
   >>> nt = Time.now()
-  >>> ut = Time(datetime.utcnow(), scale='utc')
+  >>> ut = Time(datetime.now(tz=timezone.utc), scale='utc')
 
 The two should be very close to each other.
 

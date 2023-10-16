@@ -23,8 +23,8 @@ from astropy.coordinates import (
     UnitSphericalCosLatDifferential,
     UnitSphericalDifferential,
     UnitSphericalRepresentation,
+    angular_separation,
 )
-from astropy.coordinates.angle_utilities import angular_separation
 from astropy.coordinates.representation import DIFFERENTIAL_CLASSES
 from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 
@@ -1407,7 +1407,7 @@ class TestArithmeticWithDifferentials:
         # and division there will be sign flips in the spherical distance.
         expected_c = op(
             rep.represent_as(CartesianRepresentation, {"s": CartesianDifferential}),
-            *args
+            *args,
         )
         result_c = result.represent_as(
             CartesianRepresentation, {"s": CartesianDifferential}
@@ -1433,7 +1433,7 @@ class TestArithmeticWithDifferentials:
 
         expected_c = op(
             rep.represent_as(CartesianRepresentation, {"s": CartesianDifferential}),
-            *args
+            *args,
         )
         result_c = result.represent_as(
             CartesianRepresentation, {"s": CartesianDifferential}

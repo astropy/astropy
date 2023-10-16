@@ -541,12 +541,13 @@ def table_to_hdu(table, character_as_bytes=False):
             # Binary FITS tables support TNULL *only* for integer data columns
             # TODO: Determine a schema for handling non-integer masked columns
             # with non-default fill values in FITS (if at all possible).
+            # Be careful that we do not set null for columns that were not masked!
             int_formats = ("B", "I", "J", "K")
-            if not (col.format in int_formats or col.format.p_format in int_formats):
-                continue
-
-            fill_value = tarray[col.name].fill_value
-            col.null = fill_value.astype(int)
+            if (
+                col.format in int_formats or col.format.p_format in int_formats
+            ) and hasattr(table[col.name], "mask"):
+                fill_value = tarray[col.name].fill_value
+                col.null = fill_value.astype(int)
     else:
         table_hdu = BinTableHDU.from_columns(
             tarray, header=hdr, character_as_bytes=character_as_bytes
@@ -1165,8 +1166,8 @@ def _get_file_mode(filename, default="readonly"):
         mode = FILE_MODES.get(fmode)
         if mode is None:
             raise OSError(
-                "File mode of the input file object ({!r}) cannot be used to "
-                "read/write FITS files.".format(fmode)
+                f"File mode of the input file object ({fmode!r}) cannot be used to "
+                "read/write FITS files."
             )
 
     return mode, closed

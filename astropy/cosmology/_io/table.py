@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """|Cosmology| <-> |Table| I/O, using |Cosmology.to_format| and |Cosmology.from_format|.
 
 This module provides functions to transform a |Cosmology| object to and from a |Table|

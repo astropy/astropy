@@ -17,7 +17,7 @@ py:class astropy.modeling.projections.Projection
 # astropy.io.fits
 py:class astropy.io.fits.hdu.base.ExtensionHDU
 py:class astropy.io.fits.util.NotifierMixin
-py:class astropy.io.fits._tiled_compression.codecs.Codec
+py:class astropy.io.fits.hdu.compressed._codecs.Codec
 py:class numcodecs.abc.Codec
 
 # astropy.io.misc.yaml
@@ -63,6 +63,7 @@ py:obj AbstractPathEffect
 py:obj ScaleBase
 py:obj matplotlib.axis.Axes.get_window_extent
 py:obj matplotlib.spines.get_window_extent
+py:obj N
 
 # astropy.wcs
 py:class astropy.wcs.wcsapi.fitswcs.FITSWCSAPIMixin

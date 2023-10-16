@@ -610,9 +610,9 @@ class _ImageBaseHDU(_ValidHDU):
         # should be handled by the schema
         if not _is_int(self._blank):
             messages.append(
-                "Invalid value for 'BLANK' keyword in header: {!r} "
+                f"Invalid value for 'BLANK' keyword in header: {self._blank!r} "
                 "The 'BLANK' keyword must be an integer.  It will be "
-                "ignored in the meantime.".format(self._blank)
+                "ignored in the meantime."
             )
             self._blank = None
         if not self._bitpix > 0:
@@ -1050,7 +1050,8 @@ class Section:
             if isinstance(key, slice):
                 ks = range(*key.indices(axis))
                 break
-            elif isiterable(key):
+
+            if isiterable(key):
                 # Handle both integer and boolean arrays.
                 ks = np.arange(axis, dtype=int)[key]
                 break

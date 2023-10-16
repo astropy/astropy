@@ -605,8 +605,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     info = RepresentationInfo()
 
     def __init_subclass__(cls, **kwargs):
-        # Register representation name (except for BaseRepresentation)
-        if cls.__name__ == "BaseRepresentation":
+        # Register representation name (except for bases on which other
+        # representations are built, but which cannot themselves be used).
+        if cls.__name__.startswith("Base"):
             return
 
         if not hasattr(cls, "attr_classes"):
@@ -816,9 +817,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             and isinstance(differential_class, type)
             and issubclass(differential_class, BaseDifferential)
         ):
-            # TODO: is there a better way to do this?
             differential_class = {
-                list(self.differentials.keys())[0]: differential_class
+                next(iter(self.differentials.keys())): differential_class
             }
 
         elif differential_class.keys() != self.differentials.keys():

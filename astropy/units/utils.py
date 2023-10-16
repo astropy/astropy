@@ -141,7 +141,7 @@ def generate_prefixonly_unit_summary(namespace):
     from . import PrefixUnit
 
     faux_namespace = {}
-    for nm, unit in namespace.items():
+    for unit in namespace.values():
         if isinstance(unit, PrefixUnit):
             base_unit = unit.represents.bases[0]
             faux_namespace[base_unit.name] = base_unit
@@ -247,16 +247,13 @@ def validate_power(p):
         try:
             p = float(p)
         except Exception:
-            try:
-                p = np.asanyarray(p)
-                if ((first := p.flat[0]) == p).all():
-                    p = float(first)
-                else:
-                    raise ValueError(
-                        "Quantities and Units may only be raised to a scalar power"
-                    )
-            except Exception:
-                raise
+            p = np.asanyarray(p)
+            if ((first := p.flat[0]) == p).all():
+                p = float(first)
+            else:
+                raise ValueError(
+                    "Quantities and Units may only be raised to a scalar power"
+                )
 
         # This returns either a (simple) Fraction or the same float.
         p = maybe_simple_fraction(p)

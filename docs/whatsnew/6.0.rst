@@ -13,8 +13,12 @@ the 5.3 release.
 In particular, this release includes:
 
 * :ref:`whatsnew-6.0-geodetic-representation-geometry`
+* :ref:`whatsnew-6.0-planetary-wcs-bodyfixed`
+* :ref:`whatsnew-6.0-broadcasting-frame-attributes`
 * :ref:`whatsnew-6.0-cosmology-latex-export`
 * :ref:`whatsnew-6.0-iers-data`
+* :ref:`whatsnew-6.0-model-annotation-in-votable`
+* :ref:`whatsnew-6.0-votable-parquet-serialization`
 
 In addition to these major changes, Astropy v6.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -23,6 +27,7 @@ By the numbers:
 * X issues have been closed since v5.3
 * X pull requests have been merged since v5.3
 * X distinct people have contributed code
+
 
 .. _whatsnew-6.0-geodetic-representation-geometry:
 
@@ -58,6 +63,79 @@ bodies by subclassing `~astropy.coordinates.BaseGeodeticRepresentation` or
 
 See :ref:`astropy-coordinates-create-geodetic` for more details.
 
+
+.. _whatsnew-6.0-planetary-wcs-bodyfixed:
+
+Body-fixed planetary reference frames and their WCS description
+===============================================================
+
+Body-fixed planetary reference frames for Solar System planetary
+bodies can be read and written via WCS structures in FITS images, following
+`Definitions, Applications, and Best Practices for Planetary FITS <https://doi.org/10.1029/2018EA000388>`_.
+
+See :ref:`creating_planetary_wcs` for an example.
+
+Planetary images or spectral cube WCS description can be manipulated using the
+:mod:`~astropy.wcs` module.
+
+
+.. _whatsnew-6.0-broadcasting-frame-attributes:
+
+Support for Numpy broadcasting over frame data and attributes
+=============================================================
+
+Frames in `astropy.coordinates` now support
+:doc:`Numpy broadcasting rules <numpy:user/basics.broadcasting>` over both
+frame data and frame attributes. Previously, broadcasting was only supported
+over framed data. This makes it much easier and faster to do positional
+astronomy calculations and transformations on sweeps of parameters.
+
+For example, the user can now create frame objects with scalar data but vector
+frame attributes, such as::
+
+    from astropy.coordinates import FK4
+    from astropy import units as u
+
+    FK4(1 * u.deg, 2 * u.deg, obstime=["J2000", "J2001"])
+
+Where this really shines is doing fast observability calculations over arrays.
+The following example constructs an `~astropy.coordinates.EarthLocation` array
+of length :samp:`{L}`, a `~astropy.coordinates.SkyCoord` array of length
+:samp:`{M}`, and a `~astropy.time.Time` array of length :samp:`N`. It uses
+Numpy broadcasting rules to evaluate a boolean array of shape
+:samp:`({L}, {M}, {N})` that is `True` for those observing locations, times,
+and sky coordinates, for which the target is above an altitude limit::
+
+    >>> from astropy.coordinates import EarthLocation, AltAz, SkyCoord
+    >>> from astropy.coordinates.angles import uniform_spherical_random_surface
+    >>> from astropy.time import Time
+    >>> from astropy import units as u
+    >>> import numpy as np
+
+    >>> L = 25
+    >>> M = 100
+    >>> N = 50
+
+    >>> # Earth locations of length L
+    >>> c = uniform_spherical_random_surface(L)
+    >>> locations = EarthLocation.from_geodetic(c.lon, c.lat)
+
+    >>> # Celestial coordinates of length M
+    >>> coords = SkyCoord(uniform_spherical_random_surface(M))
+
+    >>> # Observation times of length N
+    >>> obstimes = Time('2023-08-04') + np.linspace(0, 24, N) * u.hour
+
+    >>> # AltAz coordinates of shape (L, M, N)
+    >>> frame = AltAz(
+    ...     location=locations[:, np.newaxis, np.newaxis],
+    ...     obstime=obstimes[np.newaxis, np.newaxis, :])
+    >>> altaz = coords[np.newaxis, :, np.newaxis].transform_to(frame)  # doctest: +REMOTE_DATA
+
+    >>> min_altitude = 30 * u.deg
+    >>> is_above_altitude_limit = (altaz.alt > min_altitude)  # doctest: +REMOTE_DATA
+    >>> is_above_altitude_limit.shape  # doctest: +REMOTE_DATA
+    (25, 100, 50)
 
 .. _whatsnew-6.0-cosmology-latex-export:
 
@@ -117,15 +195,15 @@ This means that the :mod:`dataclasses` machinery can be used to work with
 
     >>> from dataclasses import replace
     >>> from astropy.cosmology import FlatLambdaCDM
-    >>> H0 = FlatLambdaCDM.H0
-    >>> H0
-    Parameter(derived=False, unit=Unit("km / (Mpc s)"), equivalencies=[], ...)
-    >>> replace(H0, derived=True)
-    Parameter(derived=True, unit=Unit("km / (Mpc s)"), equivalencies=[], ...)
+    >>> m_nu = FlatLambdaCDM.m_nu
+    >>> m_nu
+    Parameter(default=<Quantity 0. eV>, derived=False, unit=Unit("eV"), ...)
+    >>> replace(m_nu, derived=True)
+    Parameter(default=<Quantity 0. eV>, derived=True, unit=Unit("eV"), ...)
 
     >>> from dataclasses import asdict
-    >>> asdict(H0)
-    {'derived': False, 'unit': Unit("km / (Mpc s)"), 'equivalencies': [], ...
+    >>> asdict(m_nu)
+    {'default': <Quantity 0. eV>, 'derived': False, 'unit': Unit("eV"), ...}
 
 
 It's also much easier to create new :class:`~astropy.cosmology.Parameter` subclasses
@@ -158,6 +236,102 @@ IERS data can now install the latest version of the
 `astropy-iers-data`_ package using ``pip`` or ``conda``, or alternatively
 download the package manually and transfer it to a computer that has no
 public internet connection.
+
+
+.. _whatsnew-6.0-model-annotation-in-votable:
+
+Reading and writing VO model annotations
+========================================
+
+Model Instances in VOTables (`MIVOT <https://ivoa.net/documents/MIVOT/20230620/REC-mivot-1.0.pdf>`_)
+defines a syntax to map VOTable data to any model serialised in VO-DML (Virtual Observatory Data Modeling Language).
+The data model elements are grouped in an independent annotation block complying with
+the MIVOT XML schema which is added as an extra resource above the table element.
+In Astropy, the MIVOT block is implemented as a new component of the Resource element (MivotBlock class).
+MivotBlock instances can only be held by resources with "type=meta".
+In this new feature, Astropy is able to read and write MIVOT annotations from and within VOTables.
+There is no function processing data models, they will be delegated to affiliated packages such as PyVO.
+
+See :ref:`votable_mivot` for more details.
+
+
+.. _whatsnew-6.0-votable-parquet-serialization:
+
+VOTable now supports PARQUET serialization
+==========================================
+
+The PARQUET file format allows a more efficient handling of large data amounts. However,
+one problem of PARQUET is that it only provides a limited number of column metadata keywords.
+A way to make it consistent with VO standards is to embed it into a VOTable file.
+
+This serialization works similar to the VOTable FITS serialization that already existed. It
+basically creates two files, on VOTable file and one PARQUET file, which are linked together.
+The advantage of this method is that any column metadata can be saved along with the PARQUET file,
+following VO standards.
+
+Reading and writing of the VOTable PARQUET serialization is fully supported by
+`astropy.io.votable` and the unified ``Table`` read/write interface.
+This serialization can be used by setting the ``format`` argument to
+``'votable.parquet'``, while ``'votable'`` can be used for reading in such a file.
+The method works for both absolute and relative parquet file paths.
+
+Example for writing:
+
+.. doctest-skip::
+
+    >>> import numpy as np
+    >>> from astropy.table import Table
+    >>>
+    >>> # Create some fake data
+    >>> number_of_objects = 10
+    >>> ids = [f"COSMOS_{ii:03g}" for ii in range(number_of_objects)]
+    >>> redshift = np.random.uniform(low=0, high=3, size=number_of_objects)
+    >>> mass = np.random.uniform(low=1e8, high=1e10, size=number_of_objects)
+    >>> sfr = np.random.uniform(low=1, high=100, size=number_of_objects)
+    >>> cosmos = Table([ids, redshift, mass, sfr], names=["id", "z", "mass", "sfr"])
+    >>>
+    >>> # Create Column metadata
+    >>> column_metadata = {
+    ...    "id": {"unit": "", "ucd": "meta.id", "utype": "none"},
+    ...    "z": {"unit": "", "ucd": "src.redshift", "utype": "none"},
+    ...    "mass": {"unit": "solMass", "ucd": "phys.mass", "utype": "none"},
+    ...    "sfr": {"unit": "solMass / yr", "ucd": "phys.SFR", "utype": "none"},
+    ... }
+    >>>
+    >>> # Write VOTable with Parquet serialization
+    >>> filename = "votable_with_parquet.vot"
+    >>> cosmos.write(filename, column_metadata=column_metadata, format="votable.parquet")
+
+Example for reading a votable with a separate parquet file. Note the
+metadata is accessible on the column level:
+
+.. doctest-skip::
+
+    >>> from astropy.table import Table
+    >>>
+    >>> # Open VOTable with PARQUET serialization
+    >>> cosmos_table = Table.read("votable_with_parquet.vot", format='votable')
+    >>>
+    >>> cosmos_table
+    <Table length=10>
+        id             z                 mass               sfr
+       ---            ---              solMass          solMass / yr
+      str10         float64            float64            float64
+    ---------- ------------------ ------------------ ------------------
+    COSMOS_000 0.2399334343209477 3777315779.8348713  31.82322447540133
+    COSMOS_001 0.0647935880275512   9392519748.07293  4.532295061239315
+    COSMOS_002  2.738748364941223 4411572229.2340555  86.54423711854747
+    COSMOS_003  2.013180712201346  2813958500.958293 11.142967938935586
+    COSMOS_004 2.5044578163101794   1533373563.21987    48.320129287388
+    COSMOS_005 2.1113936608027988  7431616021.640879  29.67334486542601
+    COSMOS_006 1.5525290310888193   8700624063.99011  36.19567476784732
+    COSMOS_007 2.5879551130469074  6501853315.057587  54.19908247198407
+    COSMOS_008 0.3978276727610941 1865149084.3401675  76.53909767648796
+    COSMOS_009 1.5021072916190177  4394424029.923725  91.68600618578257
+    >>>
+    >>> # Check out fields and column metadata
+    >>> cosmos_table['sfr'].meta
+    OrderedDict([('ucd', 'phys.SFR'), ('utype', 'none')])
 
 
 Full change log

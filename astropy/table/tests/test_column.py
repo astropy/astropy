@@ -10,7 +10,7 @@ from numpy.testing import assert_array_equal
 from astropy import table, time
 from astropy import units as u
 from astropy.tests.helper import assert_follows_unicode_guidelines
-from astropy.utils.tests.test_metadata import MetaBaseTest
+from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 
 
 class TestColumn:
@@ -268,7 +268,7 @@ class TestColumn:
         Tests for #3095, which forces integer item access to always return a plain
         ndarray or MaskedArray, even in the case of a multi-dim column.
         """
-        integer_types = (int, np.int_)
+        integer_types = (int, np.int32, np.int64)
 
         for int_type in integer_types:
             c = Column([[1, 2], [3, 4]])

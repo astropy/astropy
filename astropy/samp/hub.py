@@ -294,8 +294,8 @@ class SAMPHubServer:
             log.info("Hub set to run with Web Profile support enabled.")
         except OSError:
             log.warning(
-                "Port {} already in use. Impossible to run the "
-                "Hub with Web Profile support.".format(self._web_port),
+                f"Port {self._web_port} already in use. Impossible to run the "
+                "Hub with Web Profile support.",
                 SAMPWarning,
             )
             self._web_profile = False
@@ -958,8 +958,8 @@ class SAMPHubServer:
                     sub_clients[self._private_keys[pkey][0]] = {}
 
             log.debug(
-                "get_subscribed_clients: private_key = {} mtype = {} "
-                "clients = {}".format(private_key, mtype, sub_clients)
+                f"get_subscribed_clients: private_key = {private_key} mtype = {mtype} "
+                f"clients = {sub_clients}"
             )
             return sub_clients
         else:

@@ -1,0 +1,2 @@
+The structure of ``utils.metadata`` has been refactored, but all the available
+functions and classes are still present and should be imported as before.

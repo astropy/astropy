@@ -47,7 +47,7 @@ from astropy.units.core import (
     dimensionless_unscaled,
 )
 from astropy.utils import isiterable
-from astropy.utils.compat import NUMPY_LT_1_23
+from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_2_0
 
 # In 1.17, overrides are enabled by default, but it is still possible to
 # turn them off using an environment variable.  We use getattr since it
@@ -76,26 +76,35 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.split, np.array_split, np.hsplit, np.vsplit, np.dsplit,
     np.stack, np.column_stack, np.hstack, np.vstack, np.dstack,
     np.max, np.min, np.amax, np.amin, np.ptp, np.sum, np.cumsum,
-    np.prod, np.product, np.cumprod, np.cumproduct,
+    np.prod, np.cumprod,
     np.round, np.around,
-    np.round_,  # Alias for np.round in NUMPY_LT_1_25, but deprecated since.
     np.fix, np.angle, np.i0, np.clip,
     np.isposinf, np.isneginf, np.isreal, np.iscomplex,
     np.average, np.mean, np.std, np.var, np.trace,
     np.nanmax, np.nanmin, np.nanargmin, np.nanargmax, np.nanmean,
-    np.nanmedian, np.nansum, np.nancumsum, np.nanstd, np.nanvar,
+    np.nansum, np.nancumsum, np.nanstd, np.nanvar,
     np.nanprod, np.nancumprod,
-    np.einsum_path, np.trapz, np.linspace,
-    np.sort, np.msort, np.partition, np.meshgrid,
+    np.einsum_path, np.linspace,
+    np.trapz,  # deprecated in not NUMPY_LT_2_0
+    np.sort, np.partition, np.meshgrid,
     np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
     np.iscomplexobj, np.isrealobj,
     np.shares_memory, np.may_share_memory,
     np.apply_along_axis, np.take_along_axis, np.put_along_axis,
     np.linalg.cond, np.linalg.multi_dot,
 }  # fmt: skip
+SUBCLASS_SAFE_FUNCTIONS |= {  # Deprecated
+    np.product, np.cumproduct,  # noqa: NPY003
+}  # fmt: skip
 
 SUBCLASS_SAFE_FUNCTIONS |= {np.median}
 
+if NUMPY_LT_2_0:
+    # functions removed in numpy 2.0; alias for np.round in NUMPY_LT_1_25
+    SUBCLASS_SAFE_FUNCTIONS |= {np.msort, np.round_}  # noqa: NPY003
+else:
+    # Array-API compatible versions (matrix axes always at end).
+    SUBCLASS_SAFE_FUNCTIONS |= {np.linalg.diagonal, np.linalg.trace}
 
 # Implemented as methods on Quantity:
 # np.ediff1d is from setops, but we support it anyway; the others
@@ -106,7 +115,10 @@ UNSUPPORTED_FUNCTIONS |= {
     np.packbits, np.unpackbits, np.unravel_index,
     np.ravel_multi_index, np.ix_, np.cov, np.corrcoef,
     np.busday_count, np.busday_offset, np.datetime_as_string,
-    np.is_busday, np.all, np.any, np.sometrue, np.alltrue,
+    np.is_busday, np.all, np.any,
+}  # fmt: skip
+UNSUPPORTED_FUNCTIONS |= {  # Deprecated
+    np.sometrue, np.alltrue,  # noqa: NPY003
 }  # fmt: skip
 
 # Could be supported if we had a natural logarithm unit.
@@ -173,13 +185,13 @@ dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
 # fmt: off
 @function_helper(
     helps={
-        np.copy, np.asfarray, np.real_if_close, np.sort_complex, np.resize,
+        np.copy, np.real_if_close, np.sort_complex, np.resize,
         np.fft.fft, np.fft.ifft, np.fft.rfft, np.fft.irfft,
         np.fft.fft2, np.fft.ifft2, np.fft.rfft2, np.fft.irfft2,
         np.fft.fftn, np.fft.ifftn, np.fft.rfftn, np.fft.irfftn,
         np.fft.hfft, np.fft.ihfft,
         np.linalg.eigvals, np.linalg.eigvalsh,
-    }
+    } | ({np.asfarray} if NUMPY_LT_2_0 else set())
 )
 # fmt: on
 def invariant_a_helper(a, *args, **kwargs):
@@ -433,7 +445,7 @@ def select(condlist, choicelist, default=0):
 def piecewise(x, condlist, funclist, *args, **kw):
     from astropy.units import Quantity
 
-    # Copied implementation from numpy.lib.function_base.piecewise,
+    # Copied implementation from numpy.lib._function_base_impl.piecewise,
     # taking care of units of function outputs.
     n2 = len(funclist)
     # undocumented: single condition is promoted to a list of one condition
@@ -551,6 +563,11 @@ def percentile(a, q, *args, **kwargs):
     from astropy.units import percent
 
     return quantile(a, q, *args, _q_unit=percent, **kwargs)
+
+
+@function_helper
+def nanmedian(a, axis=None, out=None, **kwargs):
+    return _iterable_helper(a, axis=axis, out=out, **kwargs)
 
 
 @function_helper
@@ -906,7 +923,7 @@ def twosetop(ar1, ar2, *args, **kwargs):
     return (ar1, ar2) + args, kwargs, unit, None
 
 
-@function_helper(helps=(np.isin, np.in1d))
+@function_helper(helps=(np.isin, np.in1d))  # np.in1d deprecated in not NUMPY_LT_2_0.
 def setcheckop(ar1, ar2, *args, **kwargs):
     # This tests whether ar1 is in ar2, so we should change the unit of
     # a1 to that of a2.

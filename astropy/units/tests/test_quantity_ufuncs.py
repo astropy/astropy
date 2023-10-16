@@ -1,10 +1,12 @@
 # The purpose of these tests are to ensure that calling ufuncs with quantities
 # returns quantities with the right units, or raises exceptions.
 
+from __future__ import annotations
+
 import concurrent.futures
 import dataclasses
 import warnings
-from collections import namedtuple
+from typing import Callable, NamedTuple
 
 import numpy as np
 import pytest
@@ -18,9 +20,47 @@ from astropy.units.quantity_helper.helpers import helper_sqrt
 from astropy.utils.compat.numpycompat import NUMPY_LT_1_25
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
-testcase = namedtuple("testcase", ["f", "q_in", "q_out"])
-testexc = namedtuple("testexc", ["f", "q_in", "exc", "msg"])
-testwarn = namedtuple("testwarn", ["f", "q_in", "wfilter"])
+
+class testcase(NamedTuple):
+    """A test case for a ufunc."""
+
+    f: Callable
+    """The ufunc to test."""
+
+    q_in: tuple[Quantity]
+    """The input quantities."""
+
+    q_out: tuple[Quantity]
+    """The expected output quantities."""
+
+
+class testexc(NamedTuple):
+    """A test case for a ufunc that should raise an exception."""
+
+    f: Callable
+    """The ufunc to test."""
+
+    q_in: tuple[Quantity]
+    """The input quantities."""
+
+    exc: type
+    """The expected exception type."""
+
+    msg: str | None
+    """The expected exception message."""
+
+
+class testwarn(NamedTuple):
+    """A test case for a ufunc that should raise a warning."""
+
+    f: Callable
+    """The ufunc to test."""
+
+    q_in: tuple[Quantity]
+    """The input quantities."""
+
+    wfilter: str
+    """The expected warning filter."""
 
 
 @pytest.mark.skip

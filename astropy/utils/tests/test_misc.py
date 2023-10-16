@@ -10,6 +10,7 @@ import numpy as np
 import pytest
 
 from astropy.io import fits
+from astropy.tests.helper import CI
 from astropy.utils import data, misc
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -33,8 +34,8 @@ def test_api_lookup():
     try:
         strurl = misc.find_api_page("astropy.utils.misc", "dev", False, timeout=5)
         objurl = misc.find_api_page(misc, "dev", False, timeout=5)
-    except urllib.error.URLError:
-        if os.environ.get("CI", False):
+    except (urllib.error.URLError, TimeoutError):
+        if CI:
             pytest.xfail("Timed out in CI")
         else:
             raise
@@ -83,7 +84,7 @@ def test_JsonCustomEncoder():
 
     assert json.dumps(np.arange(3), cls=misc.JsonCustomEncoder) == "[0, 1, 2]"
     assert json.dumps(1 + 2j, cls=misc.JsonCustomEncoder) == "[1.0, 2.0]"
-    assert json.dumps({1, 2, 1}, cls=misc.JsonCustomEncoder) == "[1, 2]"
+    assert json.dumps({1, 2}, cls=misc.JsonCustomEncoder) == "[1, 2]"
     assert (
         json.dumps(b"hello world \xc3\x85", cls=misc.JsonCustomEncoder)
         == '"hello world \\u00c5"'

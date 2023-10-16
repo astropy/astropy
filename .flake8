@@ -1,0 +1,31 @@
+[flake8]
+max-line-length = 88
+select = E,F,W
+exclude = extern,*parsetab.py,*lextab.py
+extend-ignore = E203,E501,E711,E721,E731,E741,F403,F841,W5
+per-file-ignores =
+    __init__.py:F401,F403,E402
+    test_*.py:E402
+    astropy/io/fits/card.py:E131
+    astropy/io/registry/compat.py:F822
+    astropy/convolution/convolve.py:E241
+    astropy/modeling/functional_models.py:E226,E241
+    astropy/modeling/models.py:F401,F403,F405
+    astropy/modeling/tests/test_constraints.py:E241
+    astropy/stats/tests/test_histogram.py:E241
+    astropy/stats/tests/test_sigma_clipping.py:E126,E131,E241
+    astropy/units/__init__.py:F401,F821
+    astropy/units/astrophys.py:F821
+    astropy/units/cgs.py:F821
+    astropy/units/imperial.py:F821
+    astropy/units/misc.py:F821
+    astropy/units/photometric.py:F821
+    astropy/units/si.py:F821
+    astropy/units/tests/test_quantity_decorator.py:F821
+    astropy/units/tests/test_quantity_typing.py:F821
+    astropy/wcs/wcs.py:F821
+    astropy/wcs/wcsapi/fitswcs.py:F821
+    astropy/wcs/wcsapi/utils.py:E127,E128
+    docs/conf.py:F401
+    examples/*.py:E1,E2,E402
+    */examples/*.py:E1,E2,E402
