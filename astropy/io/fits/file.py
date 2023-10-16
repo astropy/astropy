@@ -135,6 +135,7 @@ class _File:
         *,
         use_fsspec=None,
         fsspec_kwargs=None,
+        decompress_in_memory=False,
     ):
         self.strict_memmap = bool(memmap)
         memmap = True if memmap is None else memmap
@@ -227,6 +228,18 @@ class _File:
             self.compression = "zip"
         elif _is_bz2file(fileobj):
             self.compression = "bzip2"
+
+        if (
+            self.compression is not None
+            and decompress_in_memory
+            and mode in ("readonly", "copyonwrite", "denywrite")
+        ):
+            # By default blocks are decompressed on the fly, when calling
+            # self.read. This is good for memory usage, avoiding decompression
+            # of the whole file, but it can be slow. With
+            # decompress_in_memory=True it is possible to decompress instead
+            # the whole file in memory.
+            self._file = io.BytesIO(self._file.read())
 
         if mode in ("readonly", "copyonwrite", "denywrite") or (
             self.compression and mode == "update"
