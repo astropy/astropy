@@ -54,6 +54,7 @@ def fitsopen(
     *,
     use_fsspec=None,
     fsspec_kwargs=None,
+    decompress_in_memory=False,
     **kwargs,
 ):
     """Factory function to open a FITS file and return an `HDUList` object.
@@ -184,6 +185,14 @@ def fitsopen(
 
         .. versionadded:: 5.2
 
+    decompress_in_memory : bool, optional
+        By default blocks are decompressed on the fly, when reading them.  This
+        is good for memory usage, avoiding decompression of the whole file, but
+        it can be slow. With decompress_in_memory=True it is possible to
+        decompress instead the whole file in memory.
+
+        .. versionadded:: 6.0
+
     Returns
     -------
     hdulist : `HDUList`
@@ -220,6 +229,7 @@ def fitsopen(
         ignore_missing_simple,
         use_fsspec=use_fsspec,
         fsspec_kwargs=fsspec_kwargs,
+        decompress_in_memory=decompress_in_memory,
         **kwargs,
     )
 
@@ -1133,6 +1143,7 @@ class HDUList(list, _Verify):
         *,
         use_fsspec=None,
         fsspec_kwargs=None,
+        decompress_in_memory=False,
         **kwargs,
     ):
         """
@@ -1150,6 +1161,7 @@ class HDUList(list, _Verify):
                     cache=cache,
                     use_fsspec=use_fsspec,
                     fsspec_kwargs=fsspec_kwargs,
+                    decompress_in_memory=decompress_in_memory,
                 )
             # The Astropy mode is determined by the _File initializer if the
             # supplied mode was None
