@@ -2181,8 +2181,7 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
 
     This format provides a human-readable multi-scale string representation of a time
     delta. It is convenient for applications like a configuration file or a command line
-    option. It is NOT intended for high-precision applications since the internal
-    calculations are done using 64-bit floating point numbers.
+    option.
 
     The format is specified as follows:
 
@@ -2322,8 +2321,10 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
             ) = self.parse_string(val)
 
         yrs, days, hrs, mins, secs = iterator.operands[1:]
-        jd1 = yrs * 365.25 + days + hrs / 24.0 + mins / 1440.0 + secs / 86400.0
-        self.jd1, self.jd2 = day_frac(jd1, 0.0)
+
+        jd1 = yrs * 365.25 + days  # Exact in the case that yrs and days are integer
+        jd2 = hrs / 24.0 + mins / 1440.0 + secs / 86400.0  # Inexact
+        self.jd1, self.jd2 = day_frac(jd1, jd2)
 
     def to_value(self, parent=None, out_subfmt=None):
         out_subfmt = out_subfmt or self.out_subfmt
@@ -2336,15 +2337,15 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
         )
 
         for jd1, jd2, out in iterator:
-            jd1_, jd2_ = day_frac(jd1, jd2)  # Why is this required?
-
-            # Naive and low-precision implementation for now
-            jd = jd1_ + jd2_
-            sign = "-" if jd < 0 else ""
-            jd = np.abs(jd)
+            jd = jd1 + jd2
+            if jd < 0:
+                jd1, jd2, jd = -jd1, -jd2, -jd  # Flip all signs
+                sign = "-"
+            else:
+                sign = ""
 
             if subfmt in ["*", "multi"]:
-                comps = self.get_multi_comps(jd)
+                comps = self.get_multi_comps(jd1, jd2)
             else:
                 value = (jd * u.day).to_value(subfmt)
                 value = np.round(value, self.precision)
@@ -2354,12 +2355,19 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
 
         return self.mask_if_needed(np.array(iterator.operands[-1], dtype="U"))
 
-    def get_multi_comps(self, jd):
+    def get_multi_comps(self, jd1, jd2):
+        jd, remainder = two_sum(jd1, jd2)
+
         comp_names = ("yr", "d", "hr", "min", "s")
         comp_scales = (365.25, 1.0, 1.0 / 24.0, 1.0 / 1440.0)
         comps = []
         for name, scale in zip(comp_names, comp_scales):
             comp, jd = divmod(jd, scale)
+
+            # Move the two_sum remainder into days to maximally preserve precision.
+            if name == "d":
+                jd += remainder
+
             if comp != 0:
                 comp = int(comp)
                 comps.append(f"{comp}{name}")

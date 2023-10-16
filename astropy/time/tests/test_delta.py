@@ -787,3 +787,9 @@ def test_quantity_str_out_subfmt_from_non_quantity_str():
     dt = TimeDelta(30000010.0 * u.s)
     for subfmt, exp in quantity_str_subfmt_exps.items():
         assert dt.to_value(format="quantity_str", subfmt=subfmt) == exp
+
+
+def test_quantity_str_internal_precision():
+    dt = TimeDelta("100000000d 1.0123456789012345s")
+    assert dt.jd1 == 100000000
+    assert allclose_sec(dt.jd2 * 86400, 1.0123456789012345)
