@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import abc
 import inspect
-from itertools import chain
 from typing import TYPE_CHECKING, Any, TypeVar
 
 import numpy as np
@@ -408,10 +407,10 @@ class Cosmology(metaclass=abc.ABCMeta):
                 if k != "name"
                 else f'name="{getattr(self, k)!s}"'  # name needs quotes
             )
-            for k in chain(("name",), self.__parameters__)
-            if (getattr(self, k) is not None if k == "name" else True)
+            for k in ("name", *self.__parameters__)
+            if k != "name" or getattr(self, k) is not None
         )
-        return f"{self.__class__.__name__}(" + ", ".join(fs) + ")"
+        return f"{type(self).__name__}({', '.join(fs)})"
 
     def __astropy_table__(self, cls, copy, **kwargs):
         """Return a `~astropy.table.Table` of type ``cls``.
