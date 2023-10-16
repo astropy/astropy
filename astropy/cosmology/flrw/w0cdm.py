@@ -296,8 +296,8 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
     To get an equivalent cosmology, but of type `astropy.cosmology.wCDM`,
     use :attr:`astropy.cosmology.FlatFLRWMixin.nonflat`.
 
-    >>> cosmo.nonflat
-    wCDM(H0=70.0 km / (Mpc s), Om0=0.3, ...
+    >>> print(cosmo.nonflat)
+    wCDM(H0=70.0 km / (Mpc s), Om0=0.3, Ode0=0.7, ...
     """
 
     def __init__(
