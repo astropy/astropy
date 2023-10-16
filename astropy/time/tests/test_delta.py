@@ -732,6 +732,20 @@ def test_quantity_str_precision():
     dt = TimeDelta("100.0d 1.0123456789012345s", precision=9)
     assert dt.value == "100d 1.012345679s"
 
+    dt = TimeDelta("21.123456789012345s")
+    assert dt.value == "21.123s"
+
+    dt.precision = -1
+    assert dt.value == "20.0s"
+
+    dt.precision = 12
+    assert dt.value == "21.123456789012s"
+
+    with pytest.raises(
+        ValueError, match="precision attribute must be an int between -99 and 99"
+    ):
+        dt.precision = 100
+
 
 quantity_str_invalid_cases = [
     "",

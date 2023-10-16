@@ -500,8 +500,6 @@ class TimeBase(ShapedLikeNDArray):
         inputs.  This handles coercion into the correct shapes and
         some basic input validation.
         """
-        if precision is None:
-            precision = 3
         if in_subfmt is None:
             in_subfmt = "*"
         if out_subfmt is None:
@@ -1280,7 +1278,7 @@ class TimeBase(ShapedLikeNDArray):
             jd1,
             jd2,
             self.scale,
-            precision=0,
+            precision=None,
             in_subfmt="*",
             out_subfmt="*",
             from_jd=True,

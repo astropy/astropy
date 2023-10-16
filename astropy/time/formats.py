@@ -140,6 +140,10 @@ class TimeFormat:
     """
 
     _default_scale = "utc"  # As of astropy 0.4
+    _default_precision = 3
+    _min_precision = 0
+    _max_precision = 9
+
     subfmts = ()
     _registry = TIME_FORMATS
 
@@ -147,7 +151,7 @@ class TimeFormat:
         self, val1, val2, scale, precision, in_subfmt, out_subfmt, from_jd=False
     ):
         self.scale = scale  # validation of scale done later with _check_scale
-        self.precision = precision
+        self.precision = precision if precision is not None else self._default_precision
         self.in_subfmt = in_subfmt
         self.out_subfmt = out_subfmt
 
@@ -277,9 +281,16 @@ class TimeFormat:
 
     @precision.setter
     def precision(self, val):
+        if val is None:
+            val = self._default_precision
         # Verify precision is 0-9 (inclusive)
-        if not isinstance(val, int) or val < 0 or val > 9:
-            raise ValueError("precision attribute must be an int between 0 and 9")
+        if not (
+            isinstance(val, int) and self._min_precision <= val <= self._max_precision
+        ):
+            raise ValueError(
+                "precision attribute must be an int between "
+                f"{self._min_precision} and {self._max_precision}"
+            )
         self._precision = val
 
     @lazyproperty
@@ -2087,6 +2098,9 @@ class TimeDeltaFormat(TimeFormat):
     """Base class for time delta representations."""
 
     _registry = TIME_DELTA_FORMATS
+    _default_precision = 3
+    _min_precision = -99
+    _max_precision = 99
 
     def _check_scale(self, scale):
         """
