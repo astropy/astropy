@@ -1,0 +1,1 @@
+Fix segfault with error report in tile decompression.
