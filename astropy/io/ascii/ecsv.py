@@ -171,7 +171,8 @@ class EcsvHeader(basic.BasicHeader):
             self.data.splitter.delimiter = delimiter
 
         # Create the list of io.ascii column objects from `header`
-        header_cols = OrderedDict((x["name"], x) for x in header["datatype"])
+        header_cols = {x["name"]: x for x in header["datatype"]}
+
         self.names = [x["name"] for x in header["datatype"]]
 
         # Read the first non-commented line of table and split to get the CSV
