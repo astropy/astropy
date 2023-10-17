@@ -34,9 +34,9 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
         assert m.pop("cosmology") is cosmo.__class__
         assert keys[1] == "name"
         assert m.pop("name") == cosmo.name
-        for i, k in enumerate(cosmo.__parameters__, start=2):
+        for i, (k, v) in enumerate(cosmo.parameters.items(), start=2):
             assert keys[i] == k
-            assert np.array_equal(m.pop(k), getattr(cosmo, k))
+            np.testing.assert_array_equal(m.pop(k), v)
         assert keys[-1] == "meta"
         assert m.pop("meta") == cosmo.meta
 

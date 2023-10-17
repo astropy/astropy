@@ -40,10 +40,11 @@ class ParameterwpTestMixin(ParameterTestMixin):
     def test_wp(self, cosmo_cls, cosmo):
         """Test Parameter ``wp``."""
         # on the class
-        assert isinstance(cosmo_cls.wp, Parameter)
-        assert "at the pivot" in cosmo_cls.wp.__doc__
-        assert cosmo_cls.wp.unit is None
-        assert cosmo_cls.wp.default == -1.0
+        wp = cosmo_cls.parameters["wp"]
+        assert isinstance(wp, Parameter)
+        assert "at the pivot" in wp.__doc__
+        assert wp.unit is None
+        assert wp.default == -1.0
 
         # on the instance
         assert cosmo.wp is cosmo._wp
@@ -78,10 +79,11 @@ class ParameterzpTestMixin(ParameterTestMixin):
     def test_zp(self, cosmo_cls, cosmo):
         """Test Parameter ``zp``."""
         # on the class
-        assert isinstance(cosmo_cls.zp, Parameter)
-        assert "pivot redshift" in cosmo_cls.zp.__doc__
-        assert cosmo_cls.zp.unit == cu.redshift
-        assert cosmo_cls.zp.default == 0.0
+        zp = cosmo_cls.parameters["zp"]
+        assert isinstance(zp, Parameter)
+        assert "pivot redshift" in zp.__doc__
+        assert zp.unit == cu.redshift
+        assert zp.default == 0.0
 
         # on the instance
         assert cosmo.zp is cosmo._zp
@@ -128,7 +130,7 @@ class TestwpwaCDM(
         assert c.wp == 0.1
         assert c.wa == 0.2
         assert c.zp == 14
-        for n in set(cosmo.__parameters__) - {"wp", "wa", "zp"}:
+        for n in set(cosmo.parameters) - {"wp", "wa", "zp"}:
             v = getattr(c, n)
             if v is None:
                 assert v is getattr(cosmo, n)

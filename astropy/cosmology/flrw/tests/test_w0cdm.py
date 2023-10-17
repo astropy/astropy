@@ -34,10 +34,11 @@ class Parameterw0TestMixin(ParameterTestMixin):
     def test_w0(self, cosmo_cls, cosmo):
         """Test Parameter ``w0``."""
         # on the class
-        assert isinstance(cosmo_cls.w0, Parameter)
-        assert "Dark energy equation of state" in cosmo_cls.w0.__doc__
-        assert cosmo_cls.w0.unit is None
-        assert cosmo_cls.w0.default == -1.0
+        w0 = cosmo_cls.parameters["w0"]
+        assert isinstance(w0, Parameter)
+        assert "Dark energy equation of state" in w0.__doc__
+        assert w0.unit is None
+        assert w0.default == -1.0
 
         # on the instance
         assert cosmo.w0 is cosmo._w0
@@ -81,7 +82,7 @@ class TestwCDM(FLRWTest, Parameterw0TestMixin):
         # `w` params
         c = cosmo.clone(w0=0.1)
         assert c.w0 == 0.1
-        for n in set(cosmo.__parameters__) - {"w0"}:
+        for n in set(cosmo.parameters) - {"w0"}:
             v = getattr(c, n)
             if v is None:
                 assert v is getattr(cosmo, n)

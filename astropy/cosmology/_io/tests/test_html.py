@@ -4,7 +4,6 @@ import pytest
 
 import astropy.units as u
 from astropy.cosmology._io.html import _FORMAT_TABLE, read_html_table, write_html_table
-from astropy.cosmology.parameter import Parameter
 from astropy.table import QTable, Table, vstack
 from astropy.utils.compat.optional_deps import HAS_BS4
 
@@ -190,10 +189,10 @@ class ReadWriteHTMLTestMixin(ReadWriteTestMixinBase):
         assert cosmo is not None
 
         for n, col in zip(table.colnames, table.itercols()):
-            if n == "cosmology":
+            if n not in cosmo_cls.parameters:
                 continue
-            param = getattr(cosmo_cls, n)
-            if not isinstance(param, Parameter) or param.unit in (None, u.one):
+            param = cosmo_cls.parameters[n]
+            if param.unit in (None, u.one):
                 continue
             # Replace column with unitless version
             table.replace_column(n, (col << param.unit).value, copy=False)

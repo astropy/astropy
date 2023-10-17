@@ -116,10 +116,10 @@ the definition of |FLRW|.
                 raise ValueError("baryonic density can not be larger than total matter density.")
             return value
 
-First note that all the parameters are also arguments in ``__init__``. This is
-not strictly necessary, but is good practice. If the parameter has units (and
-related equivalencies) these must be specified on the Parameter, as seen in
-:attr:`~astropy.cosmology.FLRW.H0` and :attr:`~astropy.cosmology.FLRW.m_nu`.
+First note that all the parameters are also arguments in ``__init__()``. This is not
+strictly necessary, but is good practice. If the parameter has units (and related
+equivalencies) these must be specified on the |Parameter|, as seen in
+The "H0" item in :attr:`~astropy.cosmology.FLRW.parameters`.
 
 The next important thing to note is how the parameter value is set, in
 ``__init__``. |Parameter| allows for a value to be set once (before
@@ -147,7 +147,7 @@ parameter and change any constructor argument. For example, see
     class FlatFLRWMixin(FlatCosmologyMixin):
         ...
 
-        Ode0 = FLRW.Ode0.clone(derived=True)  # now a derived param.
+        Ode0 = FLRW.parameters["Ode0"].clone(derived=True)
 
 Mixins
 ------
