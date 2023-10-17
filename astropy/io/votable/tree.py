@@ -3106,8 +3106,7 @@ class TableElement(
         Functionality to parse parquet files that are embedded
         in VOTables.
         """
-        # looks like votable already has a "Table" imported.
-        from astropy.table import Table as Table2
+        from astropy.table import Table
 
         for start, tag, data, pos in iterator:
             if tag == "STREAM":
@@ -3163,7 +3162,7 @@ class TableElement(
                         NotImplementedError,
                     )
 
-            array = Table2.read(fd, format="parquet")
+            array = Table.read(fd, format="parquet")
         finally:
             if hasattr(fd, "close"):
                 fd.close()
@@ -3603,7 +3602,7 @@ class MivotBlock(Element):
         result_resource = Resource()
         result_resource.type = "results"
         result_resource.resources.append(mivot_resource)
-        data_table = Table(in_memory_votable)
+        data_table = TableElement(in_memory_votable)
         data_table.name = "t1"
         result_resource.tables.append(data_table)
         in_memory_votable.resources.append(result_resource)
