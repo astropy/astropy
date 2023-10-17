@@ -705,13 +705,13 @@ quantity_str_basic_cases = [
     # All possible components
     (
         "2yr 3d 4hr 5min 6.789s",
-        "2yr 3d 4hr 5min 6.789s",
+        "733d 16hr 5min 6.789s",
         2 * 365.25 * 86400 + 3 * 86400 + 4 * 3600 + 5 * 60 + 6.789,
     ),
     # Float values in components get normalized
     (
         "2.5yr 3.5d 4.5hr 5.5min 6.789s",
-        "2yr 186d 7hr 35min 36.789s",
+        "916d 19hr 35min 36.789s",
         2.5 * 365.25 * 86400 + 3.5 * 86400 + 4.5 * 3600 + 5.5 * 60 + 6.789,
     ),
 ]

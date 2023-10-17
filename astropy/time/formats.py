@@ -2206,7 +2206,7 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
     - The allowed components are listed below.
     - The order (yr, d, hr, min, s) is fixed but individual components are optional.
 
-    The allowed component units are shown below:
+    The allowed input component units are shown below:
 
     - "yr": years (365.25 days)
     - "d": days (24 hours)
@@ -2219,9 +2219,11 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
        "2000-12-31 06:00:00" instead of "2001-01-01 00:00:00".
 
     The ``out_subfmt`` attribute specifies the components to be included in the string
-    output.  The default is ``"multi"`` which includes all non-zero components::
+    output.  The default is ``"multi"`` which represents the time delta as
+    `"<days>d <hours>hr <minutes>min <seconds>s"`, where only non-zero components are
+    included.
 
-    - "multi": multiple components, e.g. "1yr 2d 3hr 5.6s"
+    - "multi": multiple components, e.g. "2d 3hr 15min 5.6s"
     - "yr": years
     - "d": days
     - "hr": hours
@@ -2234,14 +2236,14 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
     >>> import astropy.units as u
 
     >>> print(TimeDelta("1yr"))
-    1yr
+    365d 6hr
 
     >>> print(Time("2000-01-01") + TimeDelta("1yr"))
     2000-12-31 06:00:00.000
-    >>> print(TimeDelta("+1yr 3.6d"))
-    1yr 3d 14hr 24min
-    >>> print(TimeDelta("-1yr 3.6d"))
-    -1yr 3d 14hr 24min
+    >>> print(TimeDelta("+3.6d"))
+    3d 14hr 24min
+    >>> print(TimeDelta("-3.6d"))
+    -3d 14hr 24min
     >>> print(TimeDelta("1yr 3.6d", out_subfmt="d"))
     368.85d
 
@@ -2360,6 +2362,7 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
 
             if subfmt in ["*", "multi"]:
                 comps = self.get_multi_comps(jd1, jd2)
+
             else:
                 value = (jd * u.day).to_value(subfmt)
                 value = np.round(value, self.precision)
@@ -2371,25 +2374,39 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
 
     def get_multi_comps(self, jd1, jd2):
         jd, remainder = two_sum(jd1, jd2)
+        days = int(np.floor(jd))
+        jd -= days
+        jd += remainder
 
-        comp_names = ("yr", "d", "hr", "min", "s")
-        comp_scales = (365.25, 1.0, 1.0 / 24.0, 1.0 / 1440.0)
-        comps = []
-        for name, scale in zip(comp_names, comp_scales):
-            comp, jd = divmod(jd, scale)
+        hours = int(np.floor(jd * 24.0))
+        jd -= hours / 24.0
+        mins = int(np.floor(jd * 1440.0))
+        jd -= mins / 1440.0
+        secs = np.round(jd * 86400.0, self.precision)
 
-            # Move the two_sum remainder into days to maximally preserve precision.
-            if name == "d":
-                jd += remainder
+        comp_vals = [days, hours, mins, secs]
+        if secs >= 60.0:
+            self.fix_comp_vals_overflow(comp_vals)
 
-            if comp != 0:
-                comp = int(comp)
-                comps.append(f"{comp}{name}")
+        comps = [
+            f"{comp_val}{name}"
+            for comp_val, name in zip(comp_vals, ("d", "hr", "min", "s"))
+            if comp_val != 0
+        ]
+        if not comps:
+            comps = ["0.0s"]
 
-        sec = np.round(jd * 86400.0, self.precision)
-        if sec != 0:
-            comps.append(str(sec) + "s")
         return comps
+
+    @staticmethod
+    def fix_comp_vals_overflow(comp_vals):
+        comp_maxes = (None, 24, 60, 60.0)
+        for ii in [3, 2, 1]:
+            comp_val = comp_vals[ii]
+            comp_max = comp_maxes[ii]
+            if comp_val >= comp_max:
+                comp_vals[ii] -= comp_max
+                comp_vals[ii - 1] += 1
 
     @property
     def value(self):

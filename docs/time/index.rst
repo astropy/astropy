@@ -1267,7 +1267,7 @@ Use of the |TimeDelta| object is illustrated in the few examples below::
   '1d 16hr 6min'
   >>> t4 = TimeDelta("-1yr 2d 23hr 10min 5.6s")
   >>> print(t4)
-  -1yr 2d 23hr 10min 5.6s
+  -368d 5hr 10min 5.6s
   >>> t4.to_value(subfmt="d")
   '-368.215d'
 
