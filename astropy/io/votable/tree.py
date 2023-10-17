@@ -9,7 +9,6 @@ import io
 import os
 import re
 import urllib.request
-import warnings
 
 # THIRD-PARTY
 import numpy as np
@@ -19,7 +18,6 @@ from numpy import ma
 from astropy import __version__ as astropy_version
 from astropy.io import fits
 from astropy.utils.collections import HomogeneousList
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.xml import iterparser
 from astropy.utils.xml.writer import XMLWriter
 
