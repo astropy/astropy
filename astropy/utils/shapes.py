@@ -4,6 +4,7 @@
 import abc
 import numbers
 from itertools import zip_longest
+from warnings import warn
 
 import numpy as np
 
@@ -329,6 +330,8 @@ class IncompatibleShapeError(ValueError):
 
 
 def check_broadcast(*shapes):
+    warn("check_broadcast() method has been deprecated. You should use numpy.broadcast_shapes() method instead.")
+    
     """
     Determines whether two or more Numpy arrays can be broadcast with each
     other based on their shape tuple alone.

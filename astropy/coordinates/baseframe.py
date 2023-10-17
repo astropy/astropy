@@ -337,7 +337,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         # Determine the overall shape of the frame.
         try:
-            self._shape = check_broadcast(*shapes)
+            self._shape = np.broadcast_shapes(*shapes)
         except ValueError as err:
             raise ValueError(
                 f"non-scalar data and/or attributes with inconsistent shapes: {shapes}"

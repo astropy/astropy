@@ -1062,7 +1062,7 @@ class Model(metaclass=_ModelMeta):
             )
 
         try:
-            input_shape = check_broadcast(*all_shapes)
+            input_shape = np.broadcast_shapes(*all_shapes)
         except IncompatibleShapeError as e:
             raise ValueError(
                 "All inputs must have identical shapes or must be scalars."
@@ -1948,7 +1948,7 @@ class Model(metaclass=_ModelMeta):
             for param in params:
                 try:
                     if self.standard_broadcasting:
-                        broadcast = check_broadcast(input_shape, param.shape)
+                        broadcast = np.broadcast_shapes(input_shape, param.shape)
                     else:
                         broadcast = input_shape
                 except IncompatibleShapeError:
@@ -2011,7 +2011,7 @@ class Model(metaclass=_ModelMeta):
 
             for param in params:
                 try:
-                    check_broadcast(
+                    np.broadcast_shapes(
                         input_shape,
                         self._remove_axes_from_shape(param.shape, model_set_axis_param),
                     )
@@ -2228,7 +2228,7 @@ class Model(metaclass=_ModelMeta):
         outputs = list(outputs)
         for idx, output in enumerate(outputs):
             try:
-                broadcast_shape = check_broadcast(*broadcasted_shapes[0])
+                broadcast_shape = np.broadcast_shapes(*broadcasted_shapes[0])
             except (IndexError, TypeError):
                 broadcast_shape = broadcasted_shapes[0][idx]
 
@@ -2741,7 +2741,7 @@ class Model(metaclass=_ModelMeta):
 
         # Now check mutual broadcastability of all shapes
         try:
-            check_broadcast(*all_shapes)
+            np.broadcast_shapes(*all_shapes)
         except IncompatibleShapeError as exc:
             shape_a, shape_a_idx, shape_b, shape_b_idx = exc.args
             param_a = self.param_names[shape_a_idx]
