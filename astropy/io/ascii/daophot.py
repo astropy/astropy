@@ -11,7 +11,7 @@ Classes to read DAOphot table format
 
 import itertools as itt
 import re
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 
 import numpy as np
 
@@ -121,9 +121,10 @@ class DaophotHeader(core.BaseHeader):
 
             # Update the table_meta keywords if necessary
             if "#K" in grouped_lines_dict:
-                keywords = dict(map(self.extract_keyword_line, grouped_lines_dict["#K"]))
+                keywords = dict(
+                    map(self.extract_keyword_line, grouped_lines_dict["#K"])
+                )
                 table_meta["keywords"] = keywords
-
 
             coldef_dict = self.parse_col_defs(grouped_lines_dict)
 

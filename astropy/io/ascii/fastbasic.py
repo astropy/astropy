@@ -2,7 +2,6 @@
 
 import copy
 import re
-from collections import OrderedDict
 
 from astropy.table import Table
 from astropy.utils.misc import _set_locale

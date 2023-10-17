@@ -10,7 +10,7 @@ ipac.py:
 
 
 import re
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 from textwrap import wrap
 from warnings import warn
 
