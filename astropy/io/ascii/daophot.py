@@ -120,9 +120,10 @@ class DaophotHeader(core.BaseHeader):
             grouped_lines_dict = dict(zip(gid, grouped_lines))
 
             # Update the table_meta keywords if necessary
-           if "#K" in grouped_lines_dict:
+            if "#K" in grouped_lines_dict:
                 keywords = dict(map(self.extract_keyword_line, grouped_lines_dict["#K"]))
                 table_meta["keywords"] = keywords
+
 
             coldef_dict = self.parse_col_defs(grouped_lines_dict)
 
