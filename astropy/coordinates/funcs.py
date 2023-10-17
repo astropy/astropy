@@ -131,9 +131,7 @@ def spherical_to_cartesian(r, lat, lon):
 
     return cart.x, cart.y, cart.z
 
-@deprecated("6.0", alternative="get_body('sun')", 
-            warning_type=FutureWarning, 
-            message="The get_sun function is deprecated and will be removed in future versions. Use get_body('sun') instead.")
+@deprecated(since="6.0", alternative="get_body('sun')")
 def get_sun(time):
     """
     Determines the location of the sun at a given time (or times, if the input
