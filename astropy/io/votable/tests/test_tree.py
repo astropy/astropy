@@ -93,18 +93,15 @@ def test_namespace_warning():
 
 def test_version():
     """
-    VOTableFile.__init__ allows versions of '1.0', '1.1', '1.2', '1.3' and '1.4'.
-    The '1.0' is curious since other checks in parse() and the version setter do not allow '1.0'.
-    This test confirms that behavior for now.  A future change may remove the '1.0'.
+    VOTableFile.__init__ allows versions of '1.1', '1.2', '1.3' and '1.4'.
+    VOTableFile.__init__ does not allow version of '1.0' anymore and now raises a ValueError as it does to other versions not supported.
     """
     # Exercise the checks in __init__
-    with pytest.warns(AstropyDeprecationWarning):
-        VOTableFile(version="1.0")
     for version in ("1.1", "1.2", "1.3", "1.4"):
         VOTableFile(version=version)
-    for version in ("0.9", "2.0"):
+    for version in ("0.9", "1.0", "2.0"):
         with pytest.raises(
-            ValueError, match=r"should be in \('1.0', '1.1', '1.2', '1.3', '1.4'\)."
+            ValueError, match=r"should be in \('1.1', '1.2', '1.3', '1.4'\)."
         ):
             VOTableFile(version=version)
 
