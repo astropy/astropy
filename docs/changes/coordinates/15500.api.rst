@@ -1,0 +1,4 @@
+It is no longer possible to pass frame classes to the ``transform_to()`` method
+of a low-level coordinate-frame class. It is still possible to pass frame
+instances. The ``transform_to()`` method of the high-level ``SkyCoord`` class
+is unaffected.
