@@ -2,7 +2,6 @@
 
 import os
 import sys
-from collections import OrderedDict
 
 from .base import IORegistryError, _UnifiedIORegistryBase
 
@@ -66,7 +65,7 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
 
     def __init__(self):
         super().__init__()  # set _identifiers
-        self._readers = OrderedDict()
+        self._readers = {}
         self._registries["read"] = {"attr": "_readers", "column": "Read"}
         self._registries_order = ("read", "identify")
 
@@ -249,7 +248,7 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
 
     def __init__(self):
         super().__init__()
-        self._writers = OrderedDict()
+        self._writers = {}
         self._registries["write"] = {"attr": "_writers", "column": "Write"}
         self._registries_order = ("write", "identify")
 
