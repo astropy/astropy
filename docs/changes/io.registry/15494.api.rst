@@ -1,0 +1,2 @@
+Removed usage of ``OrderedDict`` and its import from io.registry.
+The ``OrderedDicts`` were changed to normal dictionaries.
