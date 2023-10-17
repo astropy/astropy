@@ -1,0 +1,2 @@
+Fully removed support for version = '1.0' on ``VOTableFile__init__()`` and changed its tests to check correctly.
+It was raising a ``DeprecationWarning`` and now is raising a ``ValueError``.
