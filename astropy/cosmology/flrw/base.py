@@ -95,6 +95,12 @@ class _ScaleFactorMixin:
         return 1.0 / (aszarr(z) + 1.0)
 
 
+ParameterOde0 = Parameter(
+    doc="Omega dark energy; dark energy density/critical density at z=0.",
+    fvalidate="float",
+)
+
+
 class FLRW(Cosmology, _ScaleFactorMixin):
     """An isotropic and homogeneous (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
@@ -162,10 +168,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         doc="Omega matter; matter density/critical density at z=0.",
         fvalidate="non-negative",
     )
-    Ode0 = Parameter(
-        doc="Omega dark energy; dark energy density/critical density at z=0.",
-        fvalidate="float",
-    )
+    Ode0 = ParameterOde0
     Tcmb0 = Parameter(
         default=0.0 * u.K,
         doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.",
@@ -1480,7 +1483,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
     parameter values), but ``FlatLambdaCDM`` **will** be flat.
     """
 
-    Ode0 = FLRW.Ode0.clone(derived=True)  # same as FLRW, but now a derived param.
+    Ode0 = ParameterOde0.clone(derived=True)  # same as FLRW, but derived.
 
     def __init_subclass__(cls):
         super().__init_subclass__()
@@ -1505,7 +1508,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         # Make new instance, respecting args vs kwargs
         inst = self.__nonflatclass__(*ba.args, **ba.kwargs)
         # Because of machine precision, make sure parameters exactly match
-        for n in inst.__all_parameters__ + ("Ok0",):
+        for n in (*inst._parameters_all, "Ok0"):
             setattr(inst, "_" + n, getattr(self, n))
 
         return inst

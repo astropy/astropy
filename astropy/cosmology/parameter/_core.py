@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = []
+__all__ = ["Parameter"]
 
 import copy
 from dataclasses import dataclass, field, fields, replace

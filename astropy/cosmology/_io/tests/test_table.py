@@ -74,8 +74,7 @@ class ToFromTableTestMixin(ToFromTestMixinBase):
         assert tbl.indices  # indexed
 
         # Test each Parameter column has expected information.
-        for n in cosmo.__parameters__:
-            P = getattr(cosmo_cls, n)  # Parameter
+        for n, P in cosmo_cls.parameters.items():
             col = tbl[n]  # Column
 
             # Compare the two
