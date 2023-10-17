@@ -25,14 +25,8 @@ write_to = "astropy/_version.py"
 # - MacOS X ARM (no native hardware, tests are skipped anyway, this avoids a warning)
 # - Linux AArch64 (no native hardware, tests take too long)
 # - MuslLinux (tests hang non-deterministically)
-test-skip = "*-macosx_arm64 *-manylinux_aarch64 *-musllinux_x86_64"
-
-[[tool.cibuildwheel.overrides]]
-# Python 3.11 and later is not available in manylinux2010 so we only
-# set this for Python<=3.10.
-select = "cp3{8,9,10}-*"
-manylinux-x86_64-image = "manylinux2010"
-manylinux-i686-image = "manylinux2010"
+# - Python 3.9 32-bit Linux wheel (issue compiling recent Numpy versions)
+test-skip = "*-macosx_arm64 *-manylinux_aarch64 *-musllinux_x86_64 cp39-manylinux_i686"
 
 [[tool.cibuildwheel.overrides]]
 # Numpy 1.22 doesn't have wheels for i386, so we pin Numpy to an older version
