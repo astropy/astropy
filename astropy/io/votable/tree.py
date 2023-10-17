@@ -3970,15 +3970,9 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self._groups = HomogeneousList(Group)
 
         version = str(version)
-        if version == "1.0":
-            warnings.warn(
-                "VOTable 1.0 support is deprecated in astropy 4.3 and will be "
-                "removed in a future release",
-                AstropyDeprecationWarning,
-            )
-        elif (version != "1.0") and (version not in self._version_namespace_map):
+        if version not in self._version_namespace_map:
             allowed_from_map = "', '".join(self._version_namespace_map)
-            raise ValueError(f"'version' should be in ('1.0', '{allowed_from_map}').")
+            raise ValueError(f"'version' should be in ('{allowed_from_map}').")
 
         self._version = version
 
