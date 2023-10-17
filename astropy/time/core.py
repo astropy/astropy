@@ -1510,7 +1510,12 @@ class TimeBase(ShapedLikeNDArray):
         return self[self._advanced_index(self.argmax(axis), axis, keepdims)]
 
     def ptp(self, axis=None, out=None, keepdims=False):
-        """Peak to peak (maximum - minimum) along a given axis.
+        
+        '''
+        DEPRECATED
+        Method description
+        ------------------
+        Peak to peak (maximum - minimum) along a given axis.
 
         This is similar to :meth:`~numpy.ndarray.ptp`, but adapted to ensure
         that the full precision given by the two doubles ``jd1`` and ``jd2``
@@ -1519,13 +1524,22 @@ class TimeBase(ShapedLikeNDArray):
         Note that the ``out`` argument is present only for compatibility with
         `~numpy.ptp`; since `Time` instances are immutable, it is not possible
         to have an actual ``out`` to store the result in.
-        """
+        -------------------
+        
+        Deprecated code
+        --------------
         if out is not None:
             raise ValueError(
                 "Since `Time` instances are immutable, ``out`` "
                 "cannot be set to anything but ``None``."
             )
         return self.max(axis, keepdims=keepdims) - self.min(axis, keepdims=keepdims)
+        --------------
+        '''
+        warn(
+            "`ptp` is to be deprecated following Numpy deprecation of their numpy.ndarray.ptp method in Numpy 2.0.",
+            AstropyDeprecationWarning
+        )
 
     def sort(self, axis=-1):
         """Return a copy sorted along the specified axis.

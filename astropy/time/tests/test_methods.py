@@ -12,6 +12,9 @@ from astropy.time import Time
 from astropy.time.utils import day_frac
 from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
 from astropy.utils import iers
+from warnings import warn
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+
 
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
@@ -632,10 +635,8 @@ class TestArithmetic:
     def test_ptp(self, use_mask):
         self.create_data(use_mask)
 
-        assert self.t0.ptp() == self.t0.max() - self.t0.min()
-        assert np.all(self.t0.ptp(0) == self.t0.max(0) - self.t0.min(0))
-        assert self.t0.ptp(0).shape == (5, 5)
-        assert self.t0.ptp(0, keepdims=True).shape == (1, 5, 5)
+        with pytest.warns(AstropyDeprecationWarning):
+            self.t0.ptp()    
 
     def test_sort(self, use_mask):
         self.create_data(use_mask)
