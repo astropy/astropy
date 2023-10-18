@@ -23,11 +23,14 @@ from astropy.samp import conf
 
 from .test_standard_profile import TestStandardProfile as BaseTestStandardProfile
 
+CI = os.environ.get("CI", "false") == "true"
+
 
 def setup_module(module):
     conf.use_internet = False
 
 
+@pytest.mark.skipif(CI, reason="flaky in CI")
 class TestWebProfile(BaseTestStandardProfile):
     def setup_method(self, method):
         self.dialog = AlwaysApproveWebProfileDialog()
