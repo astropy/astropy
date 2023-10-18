@@ -14,11 +14,17 @@ from astropy.units import (
     UnitTypeError,
     dimensionless_unscaled,
 )
+from astropy.utils.compat import NUMPY_LT_2_0
+
+if NUMPY_LT_2_0:
+    from numpy.core import umath as np_umath
+else:
+    from numpy._core import umath as np_umath
 
 __all__ = ["FunctionUnitBase", "FunctionQuantity"]
 
 SUPPORTED_UFUNCS = {
-    getattr(np.core.umath, ufunc)
+    getattr(np_umath, ufunc)
     for ufunc in (
         "isfinite",
         "isinf",
@@ -33,7 +39,7 @@ SUPPORTED_UFUNCS = {
         "ones_like",
         "positive",
     )
-    if hasattr(np.core.umath, ufunc)
+    if hasattr(np_umath, ufunc)
 }
 
 # TODO: the following could work if helper changed relative to Quantity:

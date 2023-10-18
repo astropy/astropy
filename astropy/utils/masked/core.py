@@ -1064,8 +1064,10 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             # As done inside the argsort implementation in multiarray/methods.c.
             if order is None:
                 order = self.dtype.names
-            else:
+            elif NUMPY_LT_2_0:
                 order = np.core._internal._newnames(self.dtype, order)
+            else:
+                order = np._core._internal._newnames(self.dtype, order)
 
             keys = tuple(data[name] for name in order[::-1])
 

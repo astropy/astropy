@@ -3,18 +3,22 @@
 import warnings
 
 import numpy as np
-from numpy.core.multiarray import normalize_axis_index
 
 from astropy.stats._fast_sigma_clip import _sigma_clip_fast
 from astropy.stats.funcs import mad_std
 from astropy.units import Quantity
 from astropy.utils import isiterable
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_BOTTLENECK
 from astropy.utils.exceptions import AstropyUserWarning
 
 if HAS_BOTTLENECK:
     import bottleneck
 
+if NUMPY_LT_2_0:
+    from numpy.core.multiarray import normalize_axis_index
+else:
+    from numpy.lib.array_utils import normalize_axis_index
 
 __all__ = ["SigmaClip", "sigma_clip", "sigma_clipped_stats"]
 
