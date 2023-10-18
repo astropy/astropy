@@ -186,10 +186,10 @@ def fitsopen(
         .. versionadded:: 5.2
 
     decompress_in_memory : bool, optional
-        By default blocks are decompressed on the fly, when reading them.  This
-        is good for memory usage, avoiding decompression of the whole file, but
-        it can be slow. With decompress_in_memory=True it is possible to
-        decompress instead the whole file in memory.
+        By default files are decompressed progressively depending on what data
+        is needed.  This is good for memory usage, avoiding decompression of
+        the whole file, but it can be slow. With decompress_in_memory=True it
+        is possible to decompress instead the whole file in memory.
 
         .. versionadded:: 6.0
 

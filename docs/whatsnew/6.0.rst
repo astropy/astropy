@@ -334,6 +334,18 @@ metadata is accessible on the column level:
     OrderedDict([('ucd', 'phys.SFR'), ('utype', 'none')])
 
 
+.. _whatsnew-6.0-fits-decompression:
+
+Faster FITS file decompression
+==============================
+
+By default compressed FITS files (with gzip, bzip2 or zip) are decompressed
+progressively depending on what data is needed. This allows to limit the memory
+usage when accessing only some part of a file but it can be much slower than
+decompressing the whole file at once. With the new keyword ``fits.open(...,
+decompress_in_memory=True)`` it is now possible to decompress the whole file in
+memory, which will be faster in some cases.
+
 Full change log
 ===============
 
