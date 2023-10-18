@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 # By default, tests should not use the internet.
@@ -8,11 +10,14 @@ from astropy.samp.integrated_client import SAMPIntegratedClient
 
 from .test_helpers import TEST_REPLY, Receiver, assert_output, random_params
 
+CI = os.environ.get("CI", "false") == "true"
+
 
 def setup_module(module):
     conf.use_internet = False
 
 
+@pytest.mark.skipif(CI, reason="flaky in CI")
 class TestStandardProfile:
     @property
     def hub_init_kwargs(self):

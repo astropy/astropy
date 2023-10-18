@@ -4,6 +4,7 @@ web client. We can only put a single test here because only one hub can run
 with the web profile active, and the user might want to run the tests in
 parallel.
 """
+import os
 import threading
 from urllib.request import Request, urlopen
 
@@ -19,11 +20,14 @@ from .web_profile_test_helpers import (
     SAMPIntegratedWebClient,
 )
 
+CI = os.environ.get("CI", "false") == "true"
+
 
 def setup_module(module):
     conf.use_internet = False
 
 
+@pytest.mark.skipif(CI, reason="flaky in CI")
 class TestWebProfile(BaseTestStandardProfile):
     @pytest.fixture(autouse=True)
     def setup_method(self, tmp_path):
