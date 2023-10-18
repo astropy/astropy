@@ -10,6 +10,8 @@ import threading
 import tempfile
 from urllib.request import Request, urlopen
 
+import pytest
+
 from astropy.utils.data import get_readable_fileobj
 
 from astropy.samp import SAMPIntegratedClient, SAMPHubServer
