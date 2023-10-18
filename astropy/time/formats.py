@@ -151,7 +151,7 @@ class TimeFormat:
         self, val1, val2, scale, precision, in_subfmt, out_subfmt, from_jd=False
     ):
         self.scale = scale  # validation of scale done later with _check_scale
-        self.precision = precision if precision is not None else self._default_precision
+        self.precision = precision
         self.in_subfmt = in_subfmt
         self.out_subfmt = out_subfmt
 
@@ -2220,7 +2220,7 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
 
     The ``out_subfmt`` attribute specifies the components to be included in the string
     output.  The default is ``"multi"`` which represents the time delta as
-    `"<days>d <hours>hr <minutes>min <seconds>s"`, where only non-zero components are
+    ``"<days>d <hours>hr <minutes>min <seconds>s"``, where only non-zero components are
     included.
 
     - "multi": multiple components, e.g. "2d 3hr 15min 5.6s"

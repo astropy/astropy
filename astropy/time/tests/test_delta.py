@@ -825,6 +825,7 @@ def test_quantity_str_val_type_error():
 def test_quantity_str_zero_value():
     dt = TimeDelta("0d")
     assert dt.value == "0.0s"
+    assert dt._time.value == "0.0s"  # get coverage of _time.value property
 
 
 def test_quantity_str_multi_comps_overflow():
