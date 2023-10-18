@@ -657,8 +657,8 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
     To get an equivalent cosmology, but of type `astropy.cosmology.LambdaCDM`,
     use :attr:`astropy.cosmology.FlatFLRWMixin.nonflat`.
 
-    >>> cosmo.nonflat
-    LambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, ...
+    >>> print(cosmo.nonflat)
+    LambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, Ode0=0.7, ...
     """
 
     def __init__(

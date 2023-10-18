@@ -79,7 +79,7 @@ classes::
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3, Tcmb0=2.725)
-  >>> cosmo  # doctest: +FLOAT_CMP
+  >>> print(cosmo)  # doctest: +FLOAT_CMP
   FlatLambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
                 Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=None)
 
@@ -131,7 +131,7 @@ parameter and Omega matter (both at z=0)::
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
-  >>> cosmo
+  >>> print(cosmo)
   FlatLambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, Tcmb0=0.0 K,
                 Neff=3.04, m_nu=None, Ob0=None)
 
@@ -203,7 +203,7 @@ instantiation by passing the keyword argument ``Ob0``::
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3, Ob0=0.05)
-  >>> cosmo
+  >>> print(cosmo)
   FlatLambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, Tcmb0=0.0 K,
                 Neff=3.04, m_nu=None, Ob0=0.05)
 
@@ -226,9 +226,9 @@ describe the cosmology::
 
   >>> from astropy.cosmology import FlatwCDM
   >>> cosmo = FlatwCDM(name='SNLS3+WMAP7', H0=71.58, Om0=0.262, w0=-1.016)
-  >>> cosmo
-  FlatwCDM(name="SNLS3+WMAP7", H0=71.58 km / (Mpc s), Om0=0.262,
-           w0=-1.016, Tcmb0=0.0 K, Neff=3.04, m_nu=None, Ob0=None)
+  >>> print(cosmo)
+  FlatwCDM(name="SNLS3+WMAP7", H0=71.58 km / (Mpc s), Om0=0.262, w0=-1.016,
+           Tcmb0=0.0 K, Neff=3.04, m_nu=None, Ob0=None)
 
 ..
   EXAMPLE END

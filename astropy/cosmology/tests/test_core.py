@@ -315,14 +315,14 @@ class CosmologyTest(
 
         # name in string rep
         if cosmo.name is not None:
-            assert f'name="{cosmo.name}"' in r
+            assert f"name={cosmo.name!r}" in r
             assert r.index("name=") == 0
             r = r[6 + len(cosmo.name) + 3 :]  # remove
 
         # parameters in string rep
         ps = {k: getattr(cosmo, k) for k in cosmo.__parameters__}
         for k, v in ps.items():
-            sv = f"{k}={v}"
+            sv = f"{k}={v!r}"
             assert sv in r
             assert r.index(k) == 0
             r = r[len(sv) + 2 :]  # remove

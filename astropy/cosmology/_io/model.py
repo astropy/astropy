@@ -22,7 +22,7 @@ evaluate``. Now you can fit cosmologies with data!
 
 The |Planck18| cosmology can be recovered with |Cosmology.from_format|.
 
-    >>> Cosmology.from_format(model)
+    >>> print(Cosmology.from_format(model))
     FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                   Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 """
@@ -172,7 +172,7 @@ def from_model(model):
     --------
     >>> from astropy.cosmology import Cosmology, Planck18
     >>> model = Planck18.to_format("astropy.model", method="lookback_time")
-    >>> Cosmology.from_format(model)
+    >>> print(Cosmology.from_format(model))
     FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                   Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
     """

@@ -36,7 +36,7 @@ Now we can read the Cosmology from the ECSV file, constructing a new cosmologica
 instance identical to the ``Planck18`` cosmology from which it was generated.
 
     >>> cosmo = Cosmology.read(file)
-    >>> cosmo
+    >>> print(cosmo)
     FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                 Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
     >>> cosmo == Planck18
@@ -73,7 +73,7 @@ The ``cosmology`` information (column or metadata) may be omitted if the cosmolo
 data.
 
     >>> from astropy.cosmology import FlatLambdaCDM
-    >>> FlatLambdaCDM.read(file)
+    >>> print(FlatLambdaCDM.read(file))
     FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                     Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 
@@ -234,7 +234,7 @@ def read_ecsv(
     instance identical to the ``Planck18`` cosmology from which it was generated.
 
         >>> cosmo = Cosmology.read(file)
-        >>> cosmo
+        >>> print(cosmo)
         FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                     Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
         >>> cosmo == Planck18
@@ -246,7 +246,7 @@ def read_ecsv(
     data.
 
         >>> from astropy.cosmology import FlatLambdaCDM
-        >>> FlatLambdaCDM.read(file)
+        >>> print(FlatLambdaCDM.read(file))
         FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                       Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 

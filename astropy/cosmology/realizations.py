@@ -102,7 +102,8 @@ class default_cosmology(ScienceState):
     To get the default cosmology:
 
         >>> default_cosmology.get()
-        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966, ...
+        FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>,
+                      Om0=0.30966, ...
     """
 
     _default_value = "Planck18"

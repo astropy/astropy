@@ -102,16 +102,13 @@ class Testw0waCDM(FLRWTest, Parameterw0TestMixin, ParameterwaTestMixin):
             [-1, -1.16666667, -1.25, -1.3, -1.34848485],
         )
 
-    def test_repr(self, cosmo_cls, cosmo):
+    def test_repr(self, cosmo):
         """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = (
-            'w0waCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27,'
-            " Ode0=0.73, w0=-1.0, wa=-0.5, Tcmb0=3.0 K, Neff=3.04,"
-            " m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+        assert repr(cosmo) == (
+            "w0waCDM(name='ABCMeta', H0=<Quantity 70. km / (Mpc s)>, Om0=0.27,"
+            " Ode0=0.73, w0=-1.0, wa=-0.5, Tcmb0=<Quantity 3. K>, Neff=3.04,"
+            " m_nu=<Quantity [0., 0., 0.] eV>, Ob0=0.03)"
         )
-        assert repr(cosmo) == expected
 
     # ===============================================================
     # Usage Tests
@@ -170,16 +167,13 @@ class TestFlatw0waCDM(FlatFLRWMixinTest, Testw0waCDM):
         self.cls = Flatw0waCDM
         self.cls_kwargs.update(w0=-1, wa=-0.5)
 
-    def test_repr(self, cosmo_cls, cosmo):
+    def test_repr(self, cosmo):
         """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = (
-            'Flatw0waCDM(name="ABCMeta", H0=70.0 km / (Mpc s),'
-            " Om0=0.27, w0=-1.0, wa=-0.5, Tcmb0=3.0 K, Neff=3.04,"
-            " m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+        assert repr(cosmo) == (
+            "Flatw0waCDM(name='ABCMeta', H0=<Quantity 70. km / (Mpc s)>, Om0=0.27,"
+            " w0=-1.0, wa=-0.5, Tcmb0=<Quantity 3. K>, Neff=3.04,"
+            " m_nu=<Quantity [0., 0., 0.] eV>, Ob0=0.03)"
         )
-        assert repr(cosmo) == expected
 
     # ===============================================================
     # Usage Tests
