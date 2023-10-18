@@ -199,7 +199,7 @@ filterwarnings = [
     # Ignore numpy 2.0 warning, see https://github.com/astropy/astropy/pull/15495
     "ignore:numpy.core._multiarray_umath is deprecated:DeprecationWarning",
     # Ignore numpy 2.0 warning, see https://github.com/scipy/scipy/pull/19275
-    "ignore:.*`numpy.core` has been made officially private.*:DeprecationWarning",
+    "ignore:.*numpy\\.core.*:DeprecationWarning",
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",
