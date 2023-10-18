@@ -401,16 +401,9 @@ class Cosmology(metaclass=abc.ABCMeta):
 
     def __str__(self):
         """Return a string representation of the cosmology."""
-        fs = (  # name + fields
-            (
-                f"{k!s}={getattr(self, k)!s}"
-                if k != "name"
-                else f'name="{getattr(self, k)!s}"'  # name needs quotes
-            )
-            for k in ("name", *self.__parameters__)
-            if k != "name" or getattr(self, k) is not None
-        )
-        return f"{type(self).__name__}({', '.join(fs)})"
+        name_str = "" if self.name is None else f'name="{self.name}", '
+        param_strs = (f"{k!s}={getattr(self, k)!s}" for k in self.__parameters__)
+        return f"{type(self).__name__}({name_str}{', '.join(param_strs)})"
 
     def __astropy_table__(self, cls, copy, **kwargs):
         """Return a `~astropy.table.Table` of type ``cls``.
