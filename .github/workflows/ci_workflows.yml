@@ -114,3 +114,7 @@ jobs:
         - name: (Allowed Failure) Python 3.11 with dev version of matplotlib
           linux: py311-test-mpldev
           posargs: --verbose
+
+        - name: (Allowed Failure) Building Astropy with developer version of build-time dependencies
+          linux: devbuild
+          posargs: --remote-data=any --verbose
