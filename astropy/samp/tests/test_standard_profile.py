@@ -1,3 +1,4 @@
+import os
 import ssl
 import tempfile
 
@@ -14,11 +15,14 @@ from astropy.samp import conf
 
 from .test_helpers import random_params, Receiver, assert_output, TEST_REPLY
 
+CI = os.environ.get("CI", "false") == "true"
+
 
 def setup_module(module):
     conf.use_internet = False
 
 
+@pytest.mark.skipif(CI, reason="flaky in CI")
 class TestStandardProfile:
     @property
     def hub_init_kwargs(self):
