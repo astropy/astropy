@@ -197,8 +197,7 @@ filterwarnings = [
     # Ignore deprecation warning triggered by s3fs (fsspec/s3fs#716)
     "ignore:'cgi' is deprecated and slated for removal in Python 3.13:DeprecationWarning",
     # Ignore numpy 2.0 warning, see https://github.com/astropy/astropy/pull/15495
-    "ignore:numpy.core._multiarray_umath is deprecated:DeprecationWarning",
-    # Ignore numpy 2.0 warning, see https://github.com/scipy/scipy/pull/19275
+    # and https://github.com/scipy/scipy/pull/19275
     "ignore:.*numpy\\.core.*:DeprecationWarning",
 ]
 doctest_norecursedirs = [
