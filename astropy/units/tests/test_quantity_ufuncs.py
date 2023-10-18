@@ -17,8 +17,13 @@ from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
 from astropy.units.quantity_helper.helpers import helper_sqrt
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_25
+from astropy.utils.compat.numpycompat import NUMPY_LT_1_25, NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+
+if NUMPY_LT_2_0:
+    from numpy.core import umath as np_umath
+else:
+    from numpy._core import umath as np_umath
 
 
 class testcase(NamedTuple):
@@ -99,11 +104,8 @@ class TestUfuncHelpers:
     @pytest.mark.skipif(HAS_SCIPY, reason="scipy coverage is known to be incomplete")
     def test_coverage(self):
         """Test that we cover all ufunc's"""
-
         all_np_ufuncs = {
-            ufunc
-            for ufunc in np.core.umath.__dict__.values()
-            if isinstance(ufunc, np.ufunc)
+            ufunc for ufunc in np_umath.__dict__.values() if isinstance(ufunc, np.ufunc)
         }
 
         all_q_ufuncs = qh.UNSUPPORTED_UFUNCS | set(qh.UFUNC_HELPERS.keys())
@@ -1078,9 +1080,7 @@ class TestWhere:
             np.add(a, a, out=a, where=where)
 
 
-@pytest.mark.skipif(
-    not hasattr(np.core.umath, "clip"), reason="no clip ufunc available"
-)
+@pytest.mark.skipif(not hasattr(np_umath, "clip"), reason="no clip ufunc available")
 class TestClip:
     """Test the clip ufunc.
 
@@ -1089,7 +1089,7 @@ class TestClip:
     """
 
     def setup_method(self):
-        self.clip = np.core.umath.clip
+        self.clip = np_umath.clip
 
     def test_clip_simple(self):
         q = np.arange(-1.0, 10.0) * u.m

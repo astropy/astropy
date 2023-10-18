@@ -18,6 +18,12 @@ from astropy.units.core import (
     dimensionless_unscaled,
     unit_scale_converter,
 )
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
+
+if NUMPY_LT_2_0:
+    from numpy.core import umath as np_umath
+else:
+    from numpy._core import umath as np_umath
 
 from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
 
@@ -392,8 +398,8 @@ dimensionless_to_dimensionless_ufuncs = (
 # Default numpy does not ship an "erf" ufunc, but some versions hacked by
 # intel do.  This is bad, since it means code written for that numpy will
 # not run on non-hacked numpy.  But still, we might as well support it.
-if isinstance(getattr(np.core.umath, "erf", None), np.ufunc):
-    dimensionless_to_dimensionless_ufuncs += (np.core.umath.erf,)
+if isinstance(getattr(np_umath, "erf", None), np.ufunc):
+    dimensionless_to_dimensionless_ufuncs += (np_umath.erf,)
 
 for ufunc in dimensionless_to_dimensionless_ufuncs:
     UFUNC_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
@@ -430,7 +436,7 @@ UFUNC_HELPERS[np.sqrt] = helper_sqrt
 UFUNC_HELPERS[np.square] = helper_square
 UFUNC_HELPERS[np.reciprocal] = helper_reciprocal
 UFUNC_HELPERS[np.cbrt] = helper_cbrt
-UFUNC_HELPERS[np.core.umath._ones_like] = helper__ones_like
+UFUNC_HELPERS[np_umath._ones_like] = helper__ones_like
 UFUNC_HELPERS[np.modf] = helper_modf
 UFUNC_HELPERS[np.frexp] = helper_frexp
 
@@ -475,8 +481,8 @@ for ufunc in twoarg_comparison_ufuncs:
 # two argument ufuncs that do inverse trigonometry
 twoarg_invtrig_ufuncs = (np.arctan2,)
 # another private function in numpy; use getattr in case it disappears
-if isinstance(getattr(np.core.umath, "_arg", None), np.ufunc):
-    twoarg_invtrig_ufuncs += (np.core.umath._arg,)
+if isinstance(getattr(np_umath, "_arg", None), np.ufunc):
+    twoarg_invtrig_ufuncs += (np_umath._arg,)
 for ufunc in twoarg_invtrig_ufuncs:
     UFUNC_HELPERS[ufunc] = helper_twoarg_invtrig
 
@@ -494,7 +500,7 @@ UFUNC_HELPERS[np.heaviside] = helper_heaviside
 UFUNC_HELPERS[np.float_power] = helper_power
 UFUNC_HELPERS[np.divmod] = helper_divmod
 # Check for clip ufunc; note that np.clip is a wrapper function, not the ufunc.
-if isinstance(getattr(np.core.umath, "clip", None), np.ufunc):
-    UFUNC_HELPERS[np.core.umath.clip] = helper_clip
+if isinstance(getattr(np_umath, "clip", None), np.ufunc):
+    UFUNC_HELPERS[np_umath.clip] = helper_clip
 
 del ufunc

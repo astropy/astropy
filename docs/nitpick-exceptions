@@ -78,10 +78,12 @@ py:obj ndarray
 py:obj args
 
 # other classes and functions that cannot be linked to
+# NUMPY_LT_2_0: numpy 2.0 changed numpy.core to numpy._core
 py:class numpy.ma.core.MaskedArray
 py:class numpy.ma.mvoid
 py:class numpy.void
 py:class numpy.core.records.recarray
+py:class numpy._core.records.recarray
 py:class xmlrpclib.Fault
 py:class xmlrpclib.Error
 py:class xmlrpc.client.Fault
