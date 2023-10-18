@@ -561,8 +561,9 @@ class TimeBase(ShapedLikeNDArray):
         guess available formats and stop when one matches.
         """
         if format is None:
-            # If val and val2 broadcasted shape is () then we cannot guess format
-            # from the input values.  Instead use the default format.
+            # If val and val2 broadcasted shape is (0,) (i.e. empty array input) then we
+            # cannot guess format from the input values.  Instead use the default
+            # format.
             if val.size == 0 and (val2 is None or val2.size == 0):
                 raise ValueError(
                     "cannot guess format from input values with zero-size array"
@@ -3125,9 +3126,10 @@ class TimeDelta(TimeBase):
         if kwargs:
             allowed_kwargs = {"format", "subfmt", "unit", "equivalencies"}
             if not set(kwargs).issubset(allowed_kwargs):
+                bad = (set(kwargs) - allowed_kwargs).pop()
                 raise TypeError(
-                    f"to_value() got an unexpected keyword argument(s) "
-                    f"{set(kwargs) - allowed_kwargs}"
+                    f"{self.to_value.__qualname__}() got an unexpected keyword argument"
+                    f" '{bad}'"
                 )
 
         # Handle a valid format as first positional argument or keyword. This will also

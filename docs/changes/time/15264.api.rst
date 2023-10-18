@@ -1,0 +1,4 @@
+Changed the ``TimeDelta`` init signature to be consistent with that of ``Time``.
+Previously the argument order was ``val, val2, format, scale, copy``. Now the order is
+``val, val2, format, scale, *, precision, in_subfmt, out_subfmt, copy``, where the
+arguments after the ``*`` must be specified by keyword.

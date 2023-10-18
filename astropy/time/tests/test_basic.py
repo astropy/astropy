@@ -2363,7 +2363,7 @@ def test_hash_time_delta():
 def test_get_time_fmt_exception_messages():
     with pytest.raises(
         ValueError, match=r"Input values did not match any of the formats"
-    ) as err:
+    ):
         Time(10)
 
     with pytest.raises(ValueError) as err:
@@ -2789,3 +2789,8 @@ def test_to_string():
 
     exp_repr = f"<Time object: scale='utc' format='iso' value={exp_str}>"
     assert out_repr == exp_repr
+
+
+def test_format_typeerror():
+    with pytest.raises(TypeError, match="format must be a string"):
+        Time("2020-01-01", format=1)

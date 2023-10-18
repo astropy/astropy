@@ -1288,8 +1288,6 @@ name and optional `subformat`_ or a valid ``astropy`` unit::
 
 .. EXAMPLE END
 
-
-
 Time Scales for Time Deltas
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

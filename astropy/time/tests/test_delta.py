@@ -807,3 +807,38 @@ def test_quantity_str_internal_precision():
     dt = TimeDelta("100000000d 1.0123456789012345s")
     assert dt.jd1 == 100000000
     assert allclose_sec(dt.jd2 * 86400, 1.0123456789012345)
+
+
+def test_time_delta_to_value_validation_error():
+    with pytest.raises(
+        TypeError,
+        match=r"TimeDelta.to_value\(\) got an unexpected keyword argument 'junk'",
+    ):
+        TimeDelta(1, format="sec").to_value(junk=1)
+
+
+def test_quantity_str_val_type_error():
+    with pytest.raises(ValueError, match="quantity_str objects do not accept"):
+        TimeDelta("1s", "2s")
+
+
+def test_quantity_str_zero_value():
+    dt = TimeDelta("0d")
+    assert dt.value == "0.0s"
+
+
+def test_quantity_str_multi_comps_overflow():
+    # Default precision=3 rounds seconds to 60.0s which triggers the overflow
+    dt = TimeDelta("1d 23hr 59min 59.9999s")
+    assert dt.value == "2d"
+    dt.precision = 9
+    assert dt.value == "1d 23hr 59min 59.9999s"
+
+    dt = TimeDelta("1d 23hr 58min 59.9999s")
+    assert dt.value == "1d 23hr 59min"
+
+    # Not actually an overflow case, but good to check
+    dt = TimeDelta("1d 23hr 59min 60.0001s")
+    assert dt.value == "2d"
+    dt.precision = 9
+    assert dt.value == "2d 0.0001s"
