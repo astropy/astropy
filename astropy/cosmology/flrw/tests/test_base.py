@@ -1086,13 +1086,13 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
         assert flat.is_equivalent(cosmo)
         assert cosmo.is_equivalent(flat)
 
-    def test_repr(self, cosmo_cls, cosmo):
+    def test_repr(self, cosmo):
         """
         Test method ``.__repr__()``. Skip non-flat superclass test.
         e.g. `TestFlatLambdaCDDM` -> `FlatFLRWMixinTest`
         vs   `TestFlatLambdaCDDM` -> `TestLambdaCDDM` -> `FlatFLRWMixinTest`
         """
-        FLRWTest.test_repr(self, cosmo_cls, cosmo)
+        FLRWTest.test_repr(self, cosmo)
 
         # test eliminated Ode0 from parameters
         assert "Ode0" not in repr(cosmo)

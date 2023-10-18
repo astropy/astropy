@@ -201,7 +201,7 @@ class Cosmology(metaclass=abc.ABCMeta):
 
             >>> from astropy.cosmology import Planck13
             >>> Planck13.clone(name="Modified Planck 2013", Om0=0.35)
-            FlatLambdaCDM(name="Modified Planck 2013", H0=67.77 km / (Mpc s),
+            FlatLambdaCDM(name='Modified Planck 2013', H0=<Quantity 67.77 km / (Mpc s)>,
                           Om0=0.35, ...
 
         If no name is specified, the new name will note the modification.
@@ -393,11 +393,17 @@ class Cosmology(metaclass=abc.ABCMeta):
     def __repr__(self):
         namelead = f"{self.__class__.__qualname__}("
         if self.name is not None:
-            namelead += f'name="{self.name}", '
+            namelead += f"name={self.name!r}, "
         # nicely formatted parameters
-        fmtps = (f"{k}={getattr(self, k)}" for k in self.__parameters__)
+        fmtps = (f"{k}={getattr(self, k)!r}" for k in self.__parameters__)
 
         return namelead + ", ".join(fmtps) + ")"
+
+    def __str__(self):
+        """Return a string representation of the cosmology."""
+        name_str = "" if self.name is None else f'name="{self.name}", '
+        param_strs = (f"{k!s}={getattr(self, k)!s}" for k in self.__parameters__)
+        return f"{type(self).__name__}({name_str}{', '.join(param_strs)})"
 
     def __astropy_table__(self, cls, copy, **kwargs):
         """Return a `~astropy.table.Table` of type ``cls``.
@@ -539,7 +545,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
 
             >>> from astropy.cosmology import Planck13
             >>> Planck13.clone(name="Modified Planck 2013", Om0=0.35)
-            FlatLambdaCDM(name="Modified Planck 2013", H0=67.77 km / (Mpc s),
+            FlatLambdaCDM(name='Modified Planck 2013', H0=<Quantity 67.77 km / (Mpc s)>,
                           Om0=0.35, ...
 
         If no name is specified, the new name will note the modification.
@@ -552,7 +558,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
         ``Ode0`` can be modified:
 
             >>> Planck13.clone(to_nonflat=True, Ode0=1)
-            LambdaCDM(name="Planck13 (modified)", H0=67.77 km / (Mpc s),
+            LambdaCDM(name='Planck13 (modified)', H0=<Quantity 67.77 km / (Mpc s)>,
                       Om0=0.30712, Ode0=1.0, ...
         """
         if to_nonflat:
