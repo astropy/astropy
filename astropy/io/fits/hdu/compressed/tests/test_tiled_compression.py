@@ -7,6 +7,7 @@ from numpy.testing import assert_allclose, assert_equal
 
 from astropy.io import fits
 from astropy.io.fits.hdu.compressed._codecs import PLIO1
+from astropy.io.fits.hdu.compressed._compression import CfitsioException
 
 from .conftest import fitsio_param_to_astropy_param
 
@@ -165,7 +166,10 @@ def test_invalid_tile(tmp_path):
         f.write(b"\x00\x00\x00\x95")
         f.write(content[8644:])
 
-    hdulist = fits.open(tmp_path / "m13_corrupted.fits")
-
-    # Access the data to make sure we decompress it
-    hdulist[1].data.sum()
+    with fits.open(tmp_path / "m13_corrupted.fits") as hdulist:
+        # Access the data to make sure we decompress it
+        with pytest.raises(
+            CfitsioException,
+            match="decompression error: hit end of compressed byte stream",
+        ):
+            hdulist[1].data.sum()
