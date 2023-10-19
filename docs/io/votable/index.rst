@@ -587,11 +587,11 @@ Now you have a MIVOT resource that you can add to an object Resource creating a 
    >>> r1.type = "results"
    >>> r1.resources.append(mivot_resource)
 
-You can add an `astropy.io.votable.tree.Table` to the resource:
+You can add an `astropy.io.votable.tree.TableElement` to the resource:
 
 .. code-block:: python
 
-   >>> table = tree.Table(votable)
+   >>> table = tree.TableElement(votable)
    >>> r1.tables.append(t1)
    >>> votable.resources.append(r1)
    >>> for resource in votable.resources:
