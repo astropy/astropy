@@ -42,6 +42,7 @@ __all__ = [
     "TimeDeltaFormat",
     "TimeDeltaSec",
     "TimeDeltaJD",
+    "TimeDeltaQuantityString",
     "TimeEpochDateString",
     "TimeBesselianEpochString",
     "TimeJulianEpochString",
@@ -139,6 +140,10 @@ class TimeFormat:
     """
 
     _default_scale = "utc"  # As of astropy 0.4
+    _default_precision = 3
+    _min_precision = 0
+    _max_precision = 9
+
     subfmts = ()
     _registry = TIME_FORMATS
 
@@ -276,9 +281,16 @@ class TimeFormat:
 
     @precision.setter
     def precision(self, val):
+        if val is None:
+            val = self._default_precision
         # Verify precision is 0-9 (inclusive)
-        if not isinstance(val, int) or val < 0 or val > 9:
-            raise ValueError("precision attribute must be an int between 0 and 9")
+        if not (
+            isinstance(val, int) and self._min_precision <= val <= self._max_precision
+        ):
+            raise ValueError(
+                "precision attribute must be an int between "
+                f"{self._min_precision} and {self._max_precision}"
+            )
         self._precision = val
 
     @lazyproperty
@@ -2086,6 +2098,10 @@ class TimeDeltaFormat(TimeFormat):
     """Base class for time delta representations."""
 
     _registry = TIME_DELTA_FORMATS
+    _default_precision = 3
+    # Somewhat arbitrary values that are effectively no limit for precision.
+    _min_precision = -99
+    _max_precision = 99
 
     def _check_scale(self, scale):
         """
@@ -2122,7 +2138,7 @@ class TimeDeltaSec(TimeDeltaNumeric):
     unit = 1.0 / erfa.DAYSEC  # for quantity input
 
 
-class TimeDeltaJD(TimeDeltaNumeric):
+class TimeDeltaJD(TimeDeltaNumeric, TimeUnique):
     """Time delta in Julian days (86400 SI seconds)."""
 
     name = "jd"
@@ -2173,6 +2189,227 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
             out[...] = datetime.timedelta(days=jd1_, microseconds=jd2_ * 86400 * 1e6)
 
         return self.mask_if_needed(iterator.operands[-1])
+
+
+class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
+    """Time delta as a string with one or more Quantity components.
+
+    This format provides a human-readable multi-scale string representation of a time
+    delta. It is convenient for applications like a configuration file or a command line
+    option.
+
+    The format is specified as follows:
+
+    - The string is a sequence of one or more components.
+    - Each component is a number followed by an astropy unit of time.
+    - For input, whitespace within the string is allowed but optional.
+    - For output, there is a single space between components.
+    - The allowed components are listed below.
+    - The order (yr, d, hr, min, s) is fixed but individual components are optional.
+
+    The allowed input component units are shown below:
+
+    - "yr": years (365.25 days)
+    - "d": days (24 hours)
+    - "hr": hours (60 minutes)
+    - "min": minutes (60 seconds)
+    - "s": seconds
+
+    .. Note:: These definitions correspond to physical units of time and are NOT
+       calendar date intervals. Thus adding "1yr" to "2000-01-01 00:00:00" will give
+       "2000-12-31 06:00:00" instead of "2001-01-01 00:00:00".
+
+    The ``out_subfmt`` attribute specifies the components to be included in the string
+    output.  The default is ``"multi"`` which represents the time delta as
+    ``"<days>d <hours>hr <minutes>min <seconds>s"``, where only non-zero components are
+    included.
+
+    - "multi": multiple components, e.g. "2d 3hr 15min 5.6s"
+    - "yr": years
+    - "d": days
+    - "hr": hours
+    - "min": minutes
+    - "s": seconds
+
+    Examples
+    --------
+    >>> from astropy.time import Time, TimeDelta
+    >>> import astropy.units as u
+
+    >>> print(TimeDelta("1yr"))
+    365d 6hr
+
+    >>> print(Time("2000-01-01") + TimeDelta("1yr"))
+    2000-12-31 06:00:00.000
+    >>> print(TimeDelta("+3.6d"))
+    3d 14hr 24min
+    >>> print(TimeDelta("-3.6d"))
+    -3d 14hr 24min
+    >>> print(TimeDelta("1yr 3.6d", out_subfmt="d"))
+    368.85d
+
+    >>> td = TimeDelta(40 * u.hr)
+    >>> print(td.to_value(format="quantity_str"))
+    1d 16hr
+    >>> print(td.to_value(format="quantity_str", subfmt="d"))
+    1.667d
+    >>> td.precision = 9
+    >>> print(td.to_value(format="quantity_str", subfmt="d"))
+    1.666666667d
+    """
+
+    name = "quantity_str"
+
+    subfmts = (
+        ("multi", None, None),
+        ("yr", None, None),
+        ("d", None, None),
+        ("hr", None, None),
+        ("min", None, None),
+        ("s", None, None),
+    )
+
+    # Regex to parse "1.02yr 2.2d 3.12hr 4.322min 5.6s" where each element is optional
+    # but the order is fixed. Each element is a float with optional exponent. Each
+    # element is named.
+    re_float = r"(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?"
+    re_ydhms = re.compile(
+        rf"""^ \s*
+        (?P<sign>[-+])? \s*  # Optional sign
+        (?=[^-+\s])  # At least one character which is not a sign or whitespace
+        ((?P<yr>{re_float}) \s* yr \s*)?
+        ((?P<d>{re_float}) \s* d \s*)?
+        ((?P<hr>{re_float}) \s* hr \s*)?
+        ((?P<min>{re_float}) \s* min \s*)?
+        ((?P<s>{re_float}) \s* s)?
+        \s* $
+        """,
+        re.VERBOSE,
+    )
+
+    def _check_val_type(self, val1, val2):
+        if val1.dtype.kind not in ("S", "U") and val1.size:
+            raise TypeError(f"Input values for {self.name} class must be strings")
+        if val2 is not None:
+            raise ValueError(
+                f"{self.name} objects do not accept a val2 but you provided {val2}"
+            )
+        return val1, None
+
+    def parse_string(self, timestr):
+        """Read time from a single string"""
+        components = ("yr", "d", "hr", "min", "s")
+
+        if (match := self.re_ydhms.match(timestr)) is None:
+            raise ValueError(
+                f"Time delta '{timestr}' does not match {self.name} format"
+            )
+
+        tm = match.groupdict()
+        vals = [float(tm[component] or 0.0) for component in components]
+        if tm["sign"] == "-":
+            vals = [-val for val in vals]
+
+        return vals
+
+    def set_jds(self, val1, val2):
+        """Parse the time strings contained in val1 and get jd1, jd2."""
+        # Be liberal in what we accept: convert bytes to ascii.
+        # Here .item() is needed for arrays with entries of unequal length,
+        # to strip trailing 0 bytes.
+        to_string = (
+            str if val1.dtype.kind == "U" else lambda x: str(x.item(), encoding="ascii")
+        )
+        iterator = np.nditer(
+            [val1, None, None, None, None, None],
+            flags=["zerosize_ok"],
+            op_dtypes=[None] + 5 * [np.double],
+        )
+        for val, yr, day, hr, min, sec in iterator:
+            val = to_string(val)
+            (
+                yr[...],
+                day[...],
+                hr[...],
+                min[...],
+                sec[...],
+            ) = self.parse_string(val)
+
+        yrs, days, hrs, mins, secs = iterator.operands[1:]
+
+        jd1 = yrs * 365.25 + days  # Exact in the case that yrs and days are integer
+        jd2 = hrs / 24.0 + mins / 1440.0 + secs / 86400.0  # Inexact
+        self.jd1, self.jd2 = day_frac(jd1, jd2)
+
+    def to_value(self, parent=None, out_subfmt=None):
+        out_subfmt = out_subfmt or self.out_subfmt
+        subfmt = self._get_allowed_subfmt(out_subfmt)
+
+        iterator = np.nditer(
+            [self.jd1, self.jd2, None],
+            flags=["refs_ok", "zerosize_ok"],
+            op_dtypes=[None, None, object],
+        )
+
+        for jd1, jd2, out in iterator:
+            jd = jd1 + jd2
+            if jd < 0:
+                jd1, jd2, jd = -jd1, -jd2, -jd  # Flip all signs
+                sign = "-"
+            else:
+                sign = ""
+
+            if subfmt in ["*", "multi"]:
+                comps = self.get_multi_comps(jd1, jd2)
+
+            else:
+                value = (jd * u.day).to_value(subfmt)
+                value = np.round(value, self.precision)
+                comps = [f"{value}{subfmt}"]
+
+            out[...] = sign + " ".join(comps)
+
+        return self.mask_if_needed(np.array(iterator.operands[-1], dtype="U"))
+
+    def get_multi_comps(self, jd1, jd2):
+        jd, remainder = two_sum(jd1, jd2)
+        days = int(np.floor(jd))
+        jd -= days
+        jd += remainder
+
+        hours = int(np.floor(jd * 24.0))
+        jd -= hours / 24.0
+        mins = int(np.floor(jd * 1440.0))
+        jd -= mins / 1440.0
+        secs = np.round(jd * 86400.0, self.precision)
+
+        comp_vals = [days, hours, mins, secs]
+        if secs >= 60.0:
+            self.fix_comp_vals_overflow(comp_vals)
+
+        comps = [
+            f"{comp_val}{name}"
+            for comp_val, name in zip(comp_vals, ("d", "hr", "min", "s"))
+            if comp_val != 0
+        ]
+        if not comps:
+            comps = ["0.0s"]
+
+        return comps
+
+    @staticmethod
+    def fix_comp_vals_overflow(comp_vals):
+        comp_maxes = (None, 24, 60, 60.0)
+        for ii in [3, 2, 1]:
+            comp_val = comp_vals[ii]
+            comp_max = comp_maxes[ii]
+            if comp_val >= comp_max:
+                comp_vals[ii] -= comp_max
+                comp_vals[ii - 1] += 1
+
+    @property
+    def value(self):
+        return self.to_value()
 
 
 def _validate_jd_for_storage(jd):

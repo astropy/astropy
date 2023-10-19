@@ -330,6 +330,7 @@ Format           Subformats
 ================ ========================================
 ``jd``           float, long, decimal, str, bytes
 ``sec``          float, long, decimal, str, bytes
+``quantity_str`` multi, yr, d, hr, min, s
 ================ ========================================
 
 Time from Epoch Formats
@@ -1189,6 +1190,8 @@ To calculate sidereal time::
 
 .. EXAMPLE END
 
+.. _time-delta:
+
 Time Deltas
 -----------
 
@@ -1212,13 +1215,14 @@ day is exactly 86400 seconds. Hence, the scale cannot be UTC.
 
 The available time formats are:
 
-=========  ===================================================
-Format     Class
-=========  ===================================================
-sec        :class:`~astropy.time.TimeDeltaSec`
-jd         :class:`~astropy.time.TimeDeltaJD`
-datetime   :class:`~astropy.time.TimeDeltaDatetime`
-=========  ===================================================
+============  ===================================================
+Format        Class
+============  ===================================================
+sec           :class:`~astropy.time.TimeDeltaSec`
+jd            :class:`~astropy.time.TimeDeltaJD`
+datetime      :class:`~astropy.time.TimeDeltaDatetime`
+quantity_str  :class:`~astropy.time.TimeDeltaQuantityString`
+============  ===================================================
 
 Examples
 ^^^^^^^^
@@ -1257,10 +1261,24 @@ Use of the |TimeDelta| object is illustrated in the few examples below::
   >>> t1 + 1 * u.hour
   <Time object: scale='utc' format='iso' value=2010-01-01 01:00:00.000>
 
-  # The now deprecated default assumes days for numeric inputs
+A human-readable multi-scale format for string representation of a time delta is
+available via the ``quantity_str`` format. See the
+:class:`~astropy.time.TimeDeltaQuantityString` class docstring for more details::
+
+  >>> TimeDelta(40.1 * u.hr).quantity_str
+  '1d 16hr 6min'
+  >>> t4 = TimeDelta("-1yr 2d 23hr 10min 5.6s")
+  >>> print(t4)
+  -368d 5hr 10min 5.6s
+  >>> t4.to_value(subfmt="d")
+  '-368.215d'
+
+The now deprecated default assumes days for numeric inputs::
+
   >>> t1 + 5.0  # doctest: +SHOW_WARNINGS +ELLIPSIS
   <Time object: scale='utc' format='iso' value=2010-01-06 00:00:00.000>
   TimeDeltaMissingUnitWarning: Numerical value without unit or explicit format passed to TimeDelta, assuming days
+
 
 The |TimeDelta| has a `~astropy.time.TimeDelta.to_value` method which supports
 controlling the type of the output representation by providing either a format

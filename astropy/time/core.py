@@ -11,7 +11,7 @@ import enum
 import operator
 import os
 import threading
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 from time import strftime
 from warnings import warn
 
@@ -33,6 +33,7 @@ from .formats import (
     TIME_FORMATS,
     TimeAstropyTime,
     TimeDatetime,
+    TimeDeltaNumeric,
     TimeFromEpoch,  # noqa: F401
     TimeJD,
     TimeUnique,
@@ -499,8 +500,6 @@ class TimeBase(ShapedLikeNDArray):
         inputs.  This handles coercion into the correct shapes and
         some basic input validation.
         """
-        if precision is None:
-            precision = 3
         if in_subfmt is None:
             in_subfmt = "*"
         if out_subfmt is None:
@@ -561,12 +560,14 @@ class TimeBase(ShapedLikeNDArray):
         If format is `None` and the input is a string-type or object array then
         guess available formats and stop when one matches.
         """
-        if format is None and (
-            val.dtype.kind in ("S", "U", "O", "M") or val.dtype.names
-        ):
-            # Input is a string, object, datetime, or a table-like ndarray
-            # (structured array, recarray). These input types can be
-            # uniquely identified by the format classes.
+        if format is None:
+            # If val and val2 broadcasted shape is (0,) (i.e. empty array input) then we
+            # cannot guess format from the input values.  Instead use the default
+            # format.
+            if val.size == 0 and (val2 is None or val2.size == 0):
+                raise ValueError(
+                    "cannot guess format from input values with zero-size array"
+                )
             formats = [
                 (name, cls)
                 for name, cls in self.FORMATS.items()
@@ -575,22 +576,20 @@ class TimeBase(ShapedLikeNDArray):
 
             # AstropyTime is a pseudo-format that isn't in the TIME_FORMATS registry,
             # but try to guess it at the end.
-            formats.append(("astropy_time", TimeAstropyTime))
+            if isinstance(self, Time):
+                formats.append(("astropy_time", TimeAstropyTime))
 
-        elif not (isinstance(format, str) and format.lower() in self.FORMATS):
-            if format is None:
-                raise ValueError(
-                    "No time format was given, and the input is not unique"
-                )
-            else:
-                raise ValueError(
-                    f"Format {format!r} is not one of the allowed formats "
-                    f"{sorted(self.FORMATS)}"
-                )
+        elif not isinstance(format, str):
+            raise TypeError("format must be a string")
+
+        elif format.lower() not in self.FORMATS:
+            raise ValueError(
+                f"Format {format!r} is not one of the allowed formats "
+                f"{sorted(self.FORMATS)}"
+            )
         else:
             formats = [(format, self.FORMATS[format])]
 
-        assert formats
         problems = {}
         for name, cls in formats:
             try:
@@ -609,10 +608,12 @@ class TimeBase(ShapedLikeNDArray):
                     ) from err
                 else:
                     problems[name] = err
-        raise ValueError(
+
+        message = (
             "Input values did not match any of the formats where the format "
-            f"keyword is optional: {problems}"
-        ) from problems[formats[0][0]]
+            "keyword is optional:\n"
+        ) + "\n".join(f"- '{name}': {err}" for name, err in problems.items())
+        raise ValueError(message)
 
     @property
     def writeable(self):
@@ -1278,7 +1279,7 @@ class TimeBase(ShapedLikeNDArray):
             jd1,
             jd2,
             self.scale,
-            precision=0,
+            precision=None,
             in_subfmt="*",
             out_subfmt="*",
             from_jd=True,
@@ -2724,7 +2725,7 @@ class TimeDelta(TimeBase):
     The allowed values for ``format`` can be listed with::
 
       >>> list(TimeDelta.FORMATS)
-      ['sec', 'jd', 'datetime']
+      ['sec', 'jd', 'datetime', 'quantity_str']
 
     Note that for time differences, the scale can be among three groups:
     geocentric ('tai', 'tt', 'tcg'), barycentric ('tcb', 'tdb'), and rotational
@@ -2758,6 +2759,12 @@ class TimeDelta(TimeBase):
         ('tdb', 'tt', 'ut1', 'tcg', 'tcb', 'tai'). If not given (or
         ``None``), the scale is arbitrary; when added or subtracted from a
         ``Time`` instance, it will be used without conversion.
+    precision : int, optional
+        Digits of precision in string representation of time
+    in_subfmt : str, optional
+        Unix glob to select subformats for parsing input times
+    out_subfmt : str, optional
+        Unix glob to select subformat for outputting times
     copy : bool, optional
         Make a copy of the input values
     """
@@ -2789,30 +2796,48 @@ class TimeDelta(TimeBase):
 
         return self
 
-    def __init__(self, val, val2=None, format=None, scale=None, copy=False):
+    def __init__(
+        self,
+        val,
+        val2=None,
+        format=None,
+        scale=None,
+        *,
+        precision=None,
+        in_subfmt=None,
+        out_subfmt=None,
+        copy=False,
+    ):
         if isinstance(val, TimeDelta):
             if scale is not None:
                 self._set_scale(scale)
         else:
-            format = format or self._get_format(val)
-            self._init_from_vals(val, val2, format, scale, copy)
+            self._init_from_vals(
+                val,
+                val2,
+                format,
+                scale,
+                copy,
+                precision=precision,
+                in_subfmt=in_subfmt,
+                out_subfmt=out_subfmt,
+            )
+            self._check_numeric_no_unit(val, format)
 
             if scale is not None:
                 self.SCALES = TIME_DELTA_TYPES[scale]
 
-    @staticmethod
-    def _get_format(val):
-        if isinstance(val, timedelta):
-            return "datetime"
-
-        if getattr(val, "unit", None) is None:
+    def _check_numeric_no_unit(self, val, format):
+        if (
+            isinstance(self._time, TimeDeltaNumeric)
+            and getattr(val, "unit", None) is None
+            and format is None
+        ):
             warn(
                 "Numerical value without unit or explicit format passed to"
                 " TimeDelta, assuming days",
                 TimeDeltaMissingUnitWarning,
             )
-
-        return "jd"
 
     def replicate(self, *args, **kwargs):
         out = super().replicate(*args, **kwargs)
@@ -3049,12 +3074,13 @@ class TimeDelta(TimeBase):
         To convert to a unit with optional equivalencies, the options are::
 
           tm.to_value('hr')  # convert to u.hr (hours)
-          tm.to_value('hr', [])  # specify equivalencies as a positional arg
           tm.to_value('hr', equivalencies=[])
           tm.to_value(unit='hr', equivalencies=[])
 
-        The built-in `~astropy.time.TimeDelta` options for ``format`` are:
-        {'jd', 'sec', 'datetime'}.
+        The built-in `~astropy.time.TimeDelta` options for ``format`` are shown below::
+
+          >>> list(TimeDelta.FORMATS)
+          ['sec', 'jd', 'datetime', 'quantity_str']
 
         For the two numerical formats 'jd' and 'sec', the available ``subfmt``
         options are: {'float', 'long', 'decimal', 'str', 'bytes'}. Here, 'long'
@@ -3096,17 +3122,37 @@ class TimeDelta(TimeBase):
         if not (args or kwargs):
             raise TypeError("to_value() missing required format or unit argument")
 
-        # TODO: maybe allow 'subfmt' also for units, keeping full precision
-        # (effectively, by doing the reverse of quantity_day_frac)?
-        # This way, only equivalencies could lead to possible precision loss.
+        # Validate keyword arguments.
+        if kwargs:
+            allowed_kwargs = {"format", "subfmt", "unit", "equivalencies"}
+            if not set(kwargs).issubset(allowed_kwargs):
+                bad = (set(kwargs) - allowed_kwargs).pop()
+                raise TypeError(
+                    f"{self.to_value.__qualname__}() got an unexpected keyword argument"
+                    f" '{bad}'"
+                )
+
+        # Handle a valid format as first positional argument or keyword. This will also
+        # accept a subfmt keyword if supplied.
         if "format" in kwargs or (
             args != () and (args[0] is None or args[0] in self.FORMATS)
         ):
             # Super-class will error with duplicate arguments, etc.
             return super().to_value(*args, **kwargs)
 
-        # With positional arguments, we try parsing the first one as a unit,
-        # so that on failure we can give a more informative exception.
+        # Handle subfmt keyword with no format and no args.
+        if "subfmt" in kwargs:
+            if args:
+                raise ValueError(
+                    "cannot specify 'subfmt' and positional argument that is not a "
+                    "valid format"
+                )
+            return super().to_value(self.format, **kwargs)
+
+        # At this point any positional argument must be a unit so try parsing as such.
+        # If it fails then give an informative exception.
+        # TODO: deprecate providing equivalencies as a positional argument. This is
+        # quite non-obvious in this context.
         if args:
             try:
                 unit = u.Unit(args[0])
