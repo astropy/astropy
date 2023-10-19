@@ -1,0 +1,5 @@
+Added a ``TimeDelta`` format ``quantity_str`` that represents the time delta as a string
+with one or more ``Quantity`` components. This format provides a human-readable
+multi-scale string representation of a time delta. The default output sub-format is not
+considered stable in this release, please see https://github.com/astropy/astropy/issues/15485
+for more information.
