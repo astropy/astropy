@@ -1223,6 +1223,13 @@ class TestCartesianRepresentation:
         assert ds2.d_y.unit == u.km / u.s
         assert ds2.d_z.unit == u.km / u.s
 
+    def test_transform_non_contiguous_matrix(self):
+        # Regression test for gh-15503 (due to pyerfa gh-123)
+        r = CartesianRepresentation([1, 2, 3] * u.kpc)
+        m = np.array([[1, 0, 0, 5], [0, 1, 0, 6], [0, 0, 1, 7]], dtype="f8")[:, :3]
+        assert_array_equal(m, np.eye(3))
+        assert representation_equal(r.transform(m), r)
+
 
 class TestCylindricalRepresentation:
     def test_name(self):
