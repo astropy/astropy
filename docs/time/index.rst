@@ -1261,8 +1261,10 @@ Use of the |TimeDelta| object is illustrated in the few examples below::
   >>> t1 + 1 * u.hour
   <Time object: scale='utc' format='iso' value=2010-01-01 01:00:00.000>
 
-  # Human-readable multi-scale format for string representation of a time delta.
-  # See the quantity_str class docstring for more details
+A human-readable multi-scale format for string representation of a time delta is
+available via the ``quantity_str`` format. See the
+:class:`~astropy.time.TimeDeltaQuantityString` class docstring for more details::
+
   >>> TimeDelta(40.1 * u.hr).quantity_str
   '1d 16hr 6min'
   >>> t4 = TimeDelta("-1yr 2d 23hr 10min 5.6s")
@@ -1271,7 +1273,8 @@ Use of the |TimeDelta| object is illustrated in the few examples below::
   >>> t4.to_value(subfmt="d")
   '-368.215d'
 
-  # The now deprecated default assumes days for numeric inputs
+The now deprecated default assumes days for numeric inputs::
+
   >>> t1 + 5.0  # doctest: +SHOW_WARNINGS +ELLIPSIS
   <Time object: scale='utc' format='iso' value=2010-01-06 00:00:00.000>
   TimeDeltaMissingUnitWarning: Numerical value without unit or explicit format passed to TimeDelta, assuming days

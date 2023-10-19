@@ -2099,6 +2099,7 @@ class TimeDeltaFormat(TimeFormat):
 
     _registry = TIME_DELTA_FORMATS
     _default_precision = 3
+    # Somewhat arbitrary values that are effectively no limit for precision.
     _min_precision = -99
     _max_precision = 99
 
@@ -2297,8 +2298,6 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
 
     def parse_string(self, timestr):
         """Read time from a single string"""
-        # Datetime components required for conversion to JD by ERFA, along
-        # with the default values.
         components = ("yr", "d", "hr", "min", "s")
 
         if (match := self.re_ydhms.match(timestr)) is None:
