@@ -1,3 +1,4 @@
+import hashlib
 from pathlib import Path
 
 import numpy as np
@@ -138,3 +139,33 @@ def test_plio_1_out_of_range():
 
     with pytest.raises(ValueError):
         pc.encode(data)
+
+
+def test_invalid_tile(tmp_path):
+    # Regression test for a bug that caused a segmentation fault if the data
+    # for a tile would have resulted in a warning
+
+    m13_rice_path = Path(__file__).parent / "data" / "m13_rice.fits"
+
+    # For this test, we will change the length of the first chunk so that it is
+    # invalid. To do this, we just change the bytes directly so we first check
+    # a checksum of the file to make sure it is as we expect to start with.
+
+    with open(m13_rice_path, "rb") as f:
+        content = f.read()
+
+    assert hashlib.sha256(content).hexdigest()[:8] == "de6d2f69"
+
+    # We change bytes 8640 to 8643 which are the length of the first tile:
+
+    assert content[8640:8644] == b"\x00\x00\x00\x96"
+
+    with open(tmp_path / "m13_corrupted.fits", "wb") as f:
+        f.write(content[:8640])
+        f.write(b"\x00\x00\x00\x95")
+        f.write(content[8644:])
+
+    hdulist = fits.open(tmp_path / "m13_corrupted.fits")
+
+    # Access the data to make sure we decompress it
+    hdulist[1].data.sum()
