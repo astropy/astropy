@@ -27,13 +27,13 @@ def test_string_fail():
 
 
 def test_make_Fields():
-    votable = tree.VOTableFile()
+    votable = VOTableFile()
     # ...with one resource...
-    resource = tree.Resource()
+    resource = Resource()
     votable.resources.append(resource)
 
     # ... with one table
-    table = tree.Table(votable)
+    table = tree.TableElement(votable)
     resource.tables.append(table)
 
     table.fields.extend(
@@ -219,7 +219,7 @@ def test_mivot_write():
     Build a VOTable, put a MIVOT block in the first resource, checks it can be retrieved
     as well as the following table
     """
-    vot = tree
+
     mivot_block = MivotBlock(
         """
     <VODML xmlns="http://www.ivoa.net/xml/mivot" >
@@ -231,12 +231,12 @@ def test_mivot_write():
     </VODML>
     """
     )
-    vtf = vot.VOTableFile()
+    vtf = VOTableFile()
     mivot_resource = Resource()
     mivot_resource.type = "meta"
     mivot_resource.mivot_block = mivot_block
     # pack the meta resource in a top level resource
-    r1 = vot.Resource()
+    r1 = Resource()
     r1.type = "results"
     r1.resources.append(mivot_resource)
     vtf.resources.append(r1)
@@ -260,7 +260,7 @@ def test_mivot_write_after_table():
     Build a VOTable, put a MIVOT block and a table in the first resource, checks it can be retrieved
     as well as the following table
     """
-    vot = tree
+
     mivot_block = MivotBlock(
         """
     <VODML xmlns="http://www.ivoa.net/xml/mivot" >
@@ -270,17 +270,17 @@ def test_mivot_write_after_table():
     </VODML>
     """
     )
-    vtf = vot.VOTableFile()
+    vtf = VOTableFile()
     mivot_resource = Resource()
     mivot_resource.type = "meta"
     mivot_resource.mivot_block = mivot_block
     # pack the meta resource in a top level resource
-    r1 = vot.Resource()
+    r1 = Resource()
     r1.type = "results"
-    i1 = vot.Info(name="test_name", value="test_value")
+    i1 = tree.Info(name="test_name", value="test_value")
     r1.infos.append(i1)
     r1.resources.append(mivot_resource)
-    t1 = vot.Table(vtf)
+    t1 = tree.TableElement(vtf)
     t1.name = "t1"
     r1.tables.append(t1)
     vtf.resources.append(r1)
@@ -304,15 +304,15 @@ def test_write_no_mivot():
     Build a VOTable, put an empty MIVOT block in the first resource, checks it can be retrieved
     as well as the following table
     """
-    vot = tree
-    vtf = vot.VOTableFile()
+
+    vtf = VOTableFile()
     mivot_resource = Resource()
     mivot_resource.type = "meta"
     # pack the meta resource in a top level resource
-    r1 = vot.Resource()
+    r1 = Resource()
     r1.type = "results"
     r1.resources.append(mivot_resource)
-    t1 = vot.Table(vtf)
+    t1 = tree.TableElement(vtf)
     t1.name = "t1"
     r1.tables.append(t1)
     vtf.resources.append(r1)
@@ -337,7 +337,7 @@ def test_mivot_write_after_resource():
     Build a VOTable, put a MIVOT block in the first resource after another meta resource,
     checks it can be retrieved as well as the following table
     """
-    vot = tree
+
     mivot_block = MivotBlock(
         """
     <VODML xmlns="http://www.ivoa.net/xml/mivot" >
@@ -347,20 +347,20 @@ def test_mivot_write_after_resource():
     </VODML>
     """
     )
-    vtf = vot.VOTableFile()
+    vtf = VOTableFile()
     mivot_resource = Resource()
     mivot_resource.type = "meta"
     mivot_resource.mivot_block = mivot_block
     # pack the meta resource in a top level resource
-    r1 = vot.Resource()
+    r1 = Resource()
     r1.type = "results"
-    i1 = vot.Info(name="test_name", value="test_value")
+    i1 = tree.Info(name="test_name", value="test_value")
     r1.infos.append(i1)
     meta_resource = Resource()
     meta_resource.type = "meta"
     r1.resources.append(meta_resource)
     r1.resources.append(mivot_resource)
-    t1 = vot.Table(vtf)
+    t1 = tree.TableElement(vtf)
     t1.name = "t1"
     r1.tables.append(t1)
     vtf.resources.append(r1)
@@ -407,14 +407,14 @@ def test_mivot_order(tmp_path):
     Then compare it with another file to see if the order of the elements in a resource is respected,
     in particular the MivotBlock which should be before the tables.
     """
-    vot = tree
+
     mivot_block = MivotBlock(
         """
     <VODML xmlns="http://www.ivoa.net/xml/mivot" >
     </VODML>
     """
     )
-    vtf = vot.VOTableFile()
+    vtf = VOTableFile()
 
     mivot_resource = Resource()
     mivot_resource.type = "meta"
@@ -425,12 +425,12 @@ def test_mivot_order(tmp_path):
     mivot_resource2.mivot_block = mivot_block
 
     # R1 : 2 mivot_block, 2 tables, 1 description, 1 info, 1 CooSys
-    r1 = vot.Resource()
+    r1 = Resource()
     r1.type = "results"
 
-    t1 = vot.Table(vtf)
+    t1 = tree.TableElement(vtf)
     t1.name = "t1"
-    t2 = vot.Table(vtf)
+    t2 = tree.TableElement(vtf)
     t2.name = "t2"
 
     r1.tables.append(t1)
@@ -439,21 +439,21 @@ def test_mivot_order(tmp_path):
     r1.resources.append(mivot_resource)
     r1.resources.append(mivot_resource2)
 
-    cs = vot.CooSys(ID="_XYZ", system="ICRS")
+    cs = tree.CooSys(ID="_XYZ", system="ICRS")
     r1.coordinate_systems.append(cs)
-    i1 = vot.Info(name="test_name", value="test_value")
+    i1 = tree.Info(name="test_name", value="test_value")
     r1.infos.append(i1)
 
     vtf.resources.append(r1)
 
     # R2 : 1 resource "results", 1 mivot_block and 1 table
-    r2 = vot.Resource()
+    r2 = Resource()
     r2.type = "results"
 
-    r3 = vot.Resource()
+    r3 = Resource()
     r3.type = "results"
 
-    t3 = vot.Table(vtf)
+    t3 = tree.TableElement(vtf)
     t3.name = "t3"
     r2.tables.append(t3)
     r2.resources.append(mivot_resource)

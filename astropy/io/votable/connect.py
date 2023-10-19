@@ -12,8 +12,7 @@ from astropy.units import Quantity
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 from . import from_table, parse
-from .tree import Table as VOTable
-from .tree import VOTableFile
+from .tree import TableElement, VOTableFile
 
 
 def is_votable(origin, filepath, fileobj, *args, **kwargs):
@@ -41,7 +40,7 @@ def is_votable(origin, filepath, fileobj, *args, **kwargs):
             return result
         elif filepath is not None:
             return is_votable(filepath)
-        return isinstance(args[0], (VOTableFile, VOTable))
+        return isinstance(args[0], (VOTableFile, TableElement))
 
     else:
         return False
@@ -55,10 +54,10 @@ def read_table_votable(
 
     Parameters
     ----------
-    input : str or `~astropy.io.votable.tree.VOTableFile` or `~astropy.io.votable.tree.Table`
+    input : str or `~astropy.io.votable.tree.VOTableFile` or `~astropy.io.votable.tree.TableElement`
         If a string, the filename to read the table from. If a
         :class:`~astropy.io.votable.tree.VOTableFile` or
-        :class:`~astropy.io.votable.tree.Table` object, the object to extract
+        :class:`~astropy.io.votable.tree.TableElement` object, the object to extract
         the table from.
 
     table_id : str or int, optional
@@ -85,7 +84,7 @@ def read_table_votable(
     **kwargs
         Additional keyword arguments are passed on to `astropy.io.votable.parse`.
     """
-    if not isinstance(input, (VOTableFile, VOTable)):
+    if not isinstance(input, (VOTableFile, TableElement)):
         input = parse(input, table_id=table_id, verify=verify, **kwargs)
 
     # Parse all table objects
@@ -122,7 +121,7 @@ def read_table_votable(
             table = tables[0]
         else:
             raise ValueError("No table found")
-    elif isinstance(input, VOTable):
+    elif isinstance(input, TableElement):
         table = input
 
     # Convert to an astropy.table.Table object
