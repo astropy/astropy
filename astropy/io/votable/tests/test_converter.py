@@ -292,7 +292,7 @@ def test_vararray():
     votable = tree.VOTableFile()
     resource = tree.Resource()
     votable.resources.append(resource)
-    table = tree.Table(votable)
+    table = tree.TableElement(votable)
     resource.tables.append(table)
 
     tabarr = []
