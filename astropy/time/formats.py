@@ -243,7 +243,7 @@ class TimeFormat:
 
     @classmethod
     @functools.cache
-    def fill_value(cls):
+    def fill_value(cls, subfmt):
         """
         Return a value corresponding to 2000-01-01 in this format.
 
@@ -251,7 +251,7 @@ class TimeFormat:
         operations on the masked array will not fail due to the masked value.
         """
         tm = Time("2000-01-01", format="iso", scale="utc")
-        return tm.to_value(format=cls.name)
+        return tm.to_value(format=cls.name, subfmt=subfmt)
 
     def __len__(self):
         return len(self.jd1)
@@ -458,7 +458,7 @@ class TimeFormat:
         return subfmts
 
     @classmethod
-    def _fill_masked_values(cls, val, val2, mask):
+    def _fill_masked_values(cls, val, val2, mask, in_subfmt):
         """Fill masked values with the fill value for this format.
 
         This also takes care of broadcasting the outputs to the correct shape.
@@ -471,6 +471,8 @@ class TimeFormat:
             Array of second values (or None)
         mask : ndarray
             Mask array
+        in_subfmt : str
+            Input subformat
 
         Returns
         -------
@@ -484,8 +486,22 @@ class TimeFormat:
             val, val2, mask = np.broadcast_arrays(val, val2, mask)
             val2 = val2.copy()
             val2[mask] = np.zeros_like(val2, shape=())
+
+        val_kind = val.dtype.kind
+        # Fill value needs to comply with the specified input subformat. Usually this
+        # is "*" for any matching input, but for a custom subformat the fill value
+        # needs to be compatible with the specified subformat.
+        fill_value = cls.fill_value(in_subfmt)
+
+        if val_kind in ("U", "S"):
+            # For string types ensure that the numpy string length is long enough to
+            # hold the fill value for the specified subformat.
+            val_width = val.dtype.itemsize // (4 if val.dtype.kind == "U" else 1)
+            if (new_width := len(fill_value)) > val_width:
+                val = val.astype(f"{val_kind}{new_width}")
+
         val = val.copy()
-        val[mask] = cls.fill_value()
+        val[mask] = fill_value
         return val, val2
 
 

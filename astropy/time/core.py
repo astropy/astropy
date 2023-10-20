@@ -608,7 +608,7 @@ class TimeBase(ShapedLikeNDArray):
         for name, cls in formats:
             try:
                 if np.any(mask):
-                    val, val2 = cls._fill_masked_values(val, val2, mask)
+                    val, val2 = cls._fill_masked_values(val, val2, mask, in_subfmt)
                 return cls(val, val2, scale, precision, in_subfmt, out_subfmt)
             except UnitConversionError:
                 raise

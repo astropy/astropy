@@ -233,6 +233,23 @@ def test_all_masked_input(masked_cls, val):
         assert str(t.iso).endswith("———")
 
 
+@pytest.mark.parametrize("mask_cls", [np.ma.MaskedArray, Masked])
+@pytest.mark.parametrize("val", ["", [".."], b"", [b".."]])
+def test_all_masked_input_str(mask_cls, val):
+    dates = mask_cls(val, mask=True)
+    t = Time(dates, format="iso", in_subfmt="date")
+    assert np.all(t.mask)
+    assert np.all(t.unmasked == "2000-01-01")
+
+
+def test_some_masked_input_str_no_subfmt():
+    """Test for cls.fill_value() being longer than other input strings."""
+    dates = Masked(["", "2023:001"], mask=True)
+    t = Time(dates, format="yday")
+    assert np.all(t.mask)
+    assert np.all(t.unmasked == "2000-01-01")
+
+
 def test_serialize_fits_masked(tmp_path):
     tm = Time([1, 2, 3], format="cxcsec")
     tm[1] = np.ma.masked
