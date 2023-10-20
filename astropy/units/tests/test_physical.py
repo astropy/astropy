@@ -10,7 +10,6 @@ import pytest
 from astropy import units as u
 from astropy.constants import hbar
 from astropy.units import physical
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 unit_physical_type_pairs = [
     (u.m, "length"),
@@ -496,20 +495,6 @@ class TestDefPhysType:
                 f"the physical type for {unit}, which was added for"
                 "testing, was not deleted."
             )
-
-
-@pytest.mark.parametrize(
-    "method, expected",
-    [("title", "Length"), ("isalpha", True), ("isnumeric", False), ("upper", "LENGTH")],
-)
-def test_that_str_methods_work_with_physical_types(method, expected):
-    """
-    Test that str methods work for `PhysicalType` instances while issuing
-    a deprecation warning.
-    """
-    with pytest.warns(AstropyDeprecationWarning, match="PhysicalType instances"):
-        result_of_method_call = getattr(length, method)()
-    assert result_of_method_call == expected
 
 
 def test_missing_physical_type_attribute():
