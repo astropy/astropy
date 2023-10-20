@@ -854,18 +854,35 @@ Example
 
 .. EXAMPLE START: Missing Values in Time and TimeDelta Objects
 
-To set one or more items as missing, assign the special value
-`numpy.ma.masked`::
+You can set one or more items as missing when creating the object in one of two ways.
+First with a numpy masked array::
 
-  >>> t = Time(["2001:020", "2001:040", "2001:060", "2001:080"],
-  ...          out_subfmt="date")
+  >>> dates = np.ma.array(['2001:020', '...', '2001:060'], mask=[False, True, False])
+  >>> print(Time(dates, out_subfmt="date"))
+  ['2001:020'        ——— '2001:060']
+
+Second with the `astropy.utils.masked.Masked` class::
+
+  >>> from astropy.utils.masked import Masked
+  >>> dates = Masked(['2001:020', '', '2001:060'], mask=[False, True, False])
+  >>> t = Time(dates, out_subfmt="date")
+  >>> print(t)
+  ['2001:020'        ——— '2001:060']
+
+An important point is that any value which is marked as missing will be replaced
+internally with a time equivalent to ``2000-01-01 00:00:00`` in the scale
+
+You can also use the special `numpy.ma.masked` to set a value as missing in an existing
+|Time| object::
+
+  >>> t = Time(["2001:020", "2001:040", "2001:060", "2001:080"], out_subfmt="date")
   >>> t[2] = np.ma.masked
   >>> print(t)
   ['2001:020' '2001:040'        ——— '2001:080']
 
-If one wants to get unmasked data, one can get those either by just
-removing the mask using the `~astropy.time.Time.unmasked` attribute,
-or by filling any masked data with a chosen value::
+If you want to get unmasked data, you can get those either by removing the mask using
+the `~astropy.time.Time.unmasked` attribute, or by filling any masked data with a chosen
+value::
 
   >>> print(t.unmasked)
   ['2001:020' '2001:040' '2001:060' '2001:080']
@@ -873,14 +890,14 @@ or by filling any masked data with a chosen value::
   >>> print(t_filled)
   ['2001:020' '2001:040' '1999:365' '2001:080']
 
-One can also unset the mask on individual elements by assigning
-another special value, `numpy.ma.nomask`::
+You can also unset the mask on individual elements by assigning another special value,
+`numpy.ma.nomask`::
 
   >>> t[2] = np.ma.nomask
   >>> print(t)
   ['2001:020' '2001:040' '2001:060' '2001:080']
 
-A subtle difference between the two approaches is that when one unsets
+A subtle difference between the two approaches is that when you unset
 the mask by setting with `numpy.ma.nomask`, a mask is still present
 internally, and hence any output will have a mask as well.  In
 contrast, using `~astropy.time.Time.unmasked` or
