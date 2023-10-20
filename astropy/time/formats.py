@@ -2339,7 +2339,7 @@ class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
 
             out[...] = sign + " ".join(comps)
 
-        return self.mask_if_needed(np.array(iterator.operands[-1], dtype="U"))
+        return iterator.operands[-1]
 
     def get_multi_comps(self, jd1, jd2):
         jd, remainder = two_sum(jd1, jd2)
