@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import datetime
 import fnmatch
+import functools
 import re
 import time
 import warnings
@@ -239,6 +240,18 @@ class TimeFormat:
         self._jd2 = _validate_jd_for_storage(jd2)
         if self._jd1 is not None:
             self._jd1, self._jd2 = _broadcast_writeable(self._jd1, self._jd2)
+
+    @classmethod
+    @functools.cache
+    def fill_value(cls):
+        """
+        Return a value corresponding to 2000-01-01 in this format.
+
+        This is used as a fill value for masked arrays to ensure that any ERFA
+        operations on the masked array will not fail due to the masked value.
+        """
+        tm = Time("2000-01-01", format="iso", scale="utc")
+        return tm.to_value(format=cls.name)
 
     def __len__(self):
         return len(self.jd1)
