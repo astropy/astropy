@@ -1,0 +1,4 @@
+The following deprecated functionality has been removed:
+
+  * ``littleh`` unit and ``with_H0`` equivalency. They are still available from
+    ``cosmology.units``.
