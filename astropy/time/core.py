@@ -532,11 +532,13 @@ class TimeBase(ShapedLikeNDArray):
 
         # If either of the input val, val2 are masked arrays then
         # find the masked elements and fill them.
-        mask, val, val2 = _check_for_masked_and_fill(val, val2)
+        mask = False
+        mask, val_data = get_mask_and_data(mask, val)
+        mask, val_data2 = get_mask_and_data(mask, val2)
 
         # Parse / convert input values into internal jd1, jd2 based on format
         self._time = self._get_time_fmt(
-            val, val2, format, scale, precision, in_subfmt, out_subfmt
+            val_data, val_data2, format, scale, precision, in_subfmt, out_subfmt, mask
         )
         self._format = self._time.name
 
@@ -559,7 +561,9 @@ class TimeBase(ShapedLikeNDArray):
                 self._time.jd2, mask=self._time.jd1.mask, copy=False
             )
 
-    def _get_time_fmt(self, val, val2, format, scale, precision, in_subfmt, out_subfmt):
+    def _get_time_fmt(
+        self, val, val2, format, scale, precision, in_subfmt, out_subfmt, mask
+    ):
         """
         Given the supplied val, val2, format and scale try to instantiate
         the corresponding TimeFormat class to convert the input values into
@@ -572,9 +576,11 @@ class TimeBase(ShapedLikeNDArray):
             # If val and val2 broadcasted shape is (0,) (i.e. empty array input) then we
             # cannot guess format from the input values.  Instead use the default
             # format.
-            if val.size == 0 and (val2 is None or val2.size == 0):
+            empty_array = val.size == 0 and (val2 is None or val2.size == 0)
+            if empty_array or np.all(mask):
                 raise ValueError(
                     "cannot guess format from input values with zero-size array"
+                    " or all elements masked"
                 )
             formats = [
                 (name, cls)
@@ -601,6 +607,11 @@ class TimeBase(ShapedLikeNDArray):
         problems = {}
         for name, cls in formats:
             try:
+                if mask is not False:
+                    fill_value = cls.fill_value()
+                    val[mask] = fill_value
+                    if val2 is not None:
+                        val2[mask] = np.zeros_like(val2, shape=())
                 return cls(val, val2, scale, precision, in_subfmt, out_subfmt)
             except UnitConversionError:
                 raise
@@ -3326,79 +3337,44 @@ def _make_array(val, copy=False):
     return val
 
 
-def _check_for_masked_and_fill(val, val2):
+def get_mask_and_data(mask, val):
     """
-    If ``val`` or ``val2`` are masked arrays then fill them and cast
-    to ndarray.
+    Update ``mask`` in place and return unmasked ``val`` data.
 
-    Returns a mask corresponding to the logical-or of masked elements
-    in ``val`` and ``val2``.  If neither is masked then the return ``mask``
-    is ``None``.
-
-    If either ``val`` or ``val2`` are masked then they are replaced
-    with filled versions of themselves.
+    If ``val`` is not masked then ``mask`` and ``val`` are returned
+    unchanged.
 
     Parameters
     ----------
-    val : ndarray or MaskedArray
+    mask : bool, ndarray(bool)
+        Mask to update
+    val: ndarray, np.ma.MaskedArray, Masked
         Input val
-    val2 : ndarray or MaskedArray
-        Input val2
 
     Returns
     -------
-    mask, val, val2: ndarray or None
-        Mask: (None or bool ndarray), val, val2: ndarray
+    mask, val: bool, ndarray
+        Updated mask, unmasked data
     """
+    if not isinstance(val, (np.ma.MaskedArray, Masked)):
+        return mask, val
 
-    def get_as_filled_ndarray(mask, val):
-        """
-        Fill the given MaskedArray ``val`` from the first non-masked
-        element in the array.  This ensures that upstream Time initialization
-        will succeed.
+    if isinstance(val, np.ma.MaskedArray):
+        data = val.data
+    else:
+        data = val.unmasked
 
-        Note that nothing happens if there are no masked elements.
-        """
-        if isinstance(val, np.ma.MaskedArray):
-            filled = val.data
-            fill_value = val.fill_value
-        else:
-            filled = val.unmasked
-            fill_value = np.zeros_like(filled, shape=())
+    # For structured dtype, the mask is structured too.  We consider an
+    # array element masked if any field of the structure is masked.
+    if val.dtype.names:
+        val_mask = val.mask != np.zeros_like(val.mask, shape=())
+    else:
+        val_mask = val.mask
+    if np.any(val_mask):
+        # Final mask is the logical-or of inputs
+        mask = mask | val_mask
 
-        # For structured dtype, the mask is structured too.  We consider an
-        # array element masked if any field of the structure is masked.
-        if val.dtype.names:
-            val_mask = val.mask != np.zeros_like(val.mask, shape=())
-        else:
-            val_mask = val.mask
-        if np.any(val_mask):
-            # We're going to fill masked values, so make a copy.
-            filled = filled.copy()
-
-            # Final mask is the logical-or of inputs
-            mask = mask | val_mask
-
-            # First unmasked element.  If all elements are masked then
-            # use fill_value from above. For MaskedArray, this uses val.fill_value,
-            # so all will be fine as long as the user has set this appropriately.
-            if filled.size > 1:
-                first_unmasked = val_mask.argmin()
-                # Result indexes first False, or first item if all True.
-                if first_unmasked > 0 or not val_mask.flat[0]:
-                    fill_value = filled.flat[first_unmasked]
-
-            filled[mask] = fill_value
-
-        return mask, filled
-
-    mask = False
-    if hasattr(val, "mask"):
-        mask, val = get_as_filled_ndarray(mask, val)
-    if hasattr(val2, "mask"):
-        mask, val2 = get_as_filled_ndarray(mask, val2)
-
-    return mask, val, val2
+    return mask, data
 
 
 class OperandTypeError(TypeError):
