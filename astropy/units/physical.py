@@ -3,9 +3,6 @@
 """Defines the physical types that correspond to different units."""
 
 import numbers
-import warnings
-
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from . import (
     astrophys,
@@ -323,26 +320,6 @@ class PhysicalType:
 
     def __iter__(self):
         yield from self._physical_type_list
-
-    def __getattr__(self, attr):
-        # TODO: remove this whole method when accessing str attributes from
-        # physical types is no longer supported
-
-        # short circuit attribute accessed in __str__ to prevent recursion
-        if attr == "_physical_type_list":
-            super().__getattribute__(attr)
-
-        self_str_attr = getattr(str(self), attr, None)
-        if hasattr(str(self), attr):
-            warning_message = (
-                f"support for accessing str attributes such as {attr!r} "
-                "from PhysicalType instances is deprecated since 4.3 "
-                "and will be removed in a subsequent release."
-            )
-            warnings.warn(warning_message, AstropyDeprecationWarning)
-            return self_str_attr
-        else:
-            super().__getattribute__(attr)  # to get standard error message
 
     def __eq__(self, other):
         """

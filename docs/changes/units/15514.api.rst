@@ -4,3 +4,4 @@ The following deprecated functionality has been removed:
     ``cosmology.units``.
   * ``brightness_temperature`` equivalency no longer automatically swaps the
     order of its arguments if it does not match the expectation.
+  * ``PhysicalType`` no longer supports ``str`` methods and attributes.
