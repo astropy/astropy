@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """A set of standard astronomical equivalencies."""
 
-import warnings
 from collections import UserList
 
 # THIRD-PARTY
@@ -9,7 +8,6 @@ import numpy as np
 
 # LOCAL
 from astropy.constants import si as _si
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import isiterable
 
 from . import astrophys, cgs, dimensionless_unscaled, misc, si
@@ -647,19 +645,6 @@ def brightness_temperature(frequency, beam_area=None):
         >>> surf_brightness.to(u.K, equivalencies=u.brightness_temperature(500*u.GHz)) # doctest: +FLOAT_CMP
         <Quantity 130.1931904778803 K>
     """
-    if frequency.unit.is_equivalent(si.sr):
-        if not beam_area.unit.is_equivalent(si.Hz):
-            raise ValueError(
-                "The inputs to `brightness_temperature` are frequency and angular area."
-            )
-        warnings.warn(
-            "The inputs to `brightness_temperature` have changed. "
-            "Frequency is now the first input, and angular area "
-            "is the second, optional input.",
-            AstropyDeprecationWarning,
-        )
-        frequency, beam_area = beam_area, frequency
-
     nu = frequency.to(si.GHz, spectral())
     factor_Jy = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to(astrophys.Jy).value
     factor_K = (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to(si.K).value
