@@ -457,6 +457,37 @@ class TimeFormat:
 
         return subfmts
 
+    @classmethod
+    def _fill_masked_values(cls, val, val2, mask):
+        """Fill masked values with the fill value for this format.
+
+        This also takes care of broadcasting the outputs to the correct shape.
+
+        Parameters
+        ----------
+        val : ndarray
+            Array of values
+        val2 : ndarray, None
+            Array of second values (or None)
+        mask : ndarray
+            Mask array
+
+        Returns
+        -------
+        val, val2 : ndarray
+            Arrays with masked values filled with the fill value for this format. This
+            is a copy of the original.
+        """
+        if val2 is None:
+            val, mask = np.broadcast_arrays(val, mask)
+        else:
+            val, val2, mask = np.broadcast_arrays(val, val2, mask)
+            val2 = val2.copy()
+            val2[mask] = np.zeros_like(val2, shape=())
+        val = val.copy()
+        val[mask] = cls.fill_value()
+        return val, val2
+
 
 class TimeNumeric(TimeFormat):
     subfmts = (

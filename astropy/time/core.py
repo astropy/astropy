@@ -607,11 +607,8 @@ class TimeBase(ShapedLikeNDArray):
         problems = {}
         for name, cls in formats:
             try:
-                if mask is not False:
-                    fill_value = cls.fill_value()
-                    val[mask] = fill_value
-                    if val2 is not None:
-                        val2[mask] = np.zeros_like(val2, shape=())
+                if np.any(mask):
+                    val, val2 = cls._fill_masked_values(val, val2, mask)
                 return cls(val, val2, scale, precision, in_subfmt, out_subfmt)
             except UnitConversionError:
                 raise
