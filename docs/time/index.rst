@@ -870,7 +870,7 @@ Second with the `astropy.utils.masked.Masked` class::
   ['2001:020'        ——— '2001:060']
 
 An important point is that any value which is marked as missing will be replaced
-internally with a time equivalent to ``2000-01-01 00:00:00`` in the scale
+internally with a time equivalent to ``2000-01-01 12:00:00`` UTC.
 
 You can also use the special `numpy.ma.masked` to set a value as missing in an existing
 |Time| object::
@@ -968,8 +968,8 @@ propagate properly through (almost) all numpy and `ERFA`_ functions.
 
 In general, very few modifications should be needed to support |Masked|
 arrays. Generally, on input, no changes are needed since the format will be
-given unmasked values (with any masked input values replaced with the first
-unmasked value to ensure that only valid values are passed in). Some care may
+given unmasked values (with any masked input values replaced with the default
+value to ensure that only valid values are passed in). Some care may
 need to be taken, though, that the mask is propagated properly in calculating
 output values from ``jd1`` to ``jd2`` in the ``value`` property.
 

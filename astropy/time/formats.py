@@ -245,12 +245,12 @@ class TimeFormat:
     @functools.cache
     def fill_value(cls, subfmt):
         """
-        Return a value corresponding to 2000-01-01 in this format.
+        Return a value corresponding to J2000 (2000-01-01 12:00:00) in this format.
 
         This is used as a fill value for masked arrays to ensure that any ERFA
         operations on the masked array will not fail due to the masked value.
         """
-        tm = Time("2000-01-01", format="iso", scale="utc")
+        tm = Time(2451545.0, format="jd", scale="utc")
         return tm.to_value(format=cls.name, subfmt=subfmt)
 
     def __len__(self):

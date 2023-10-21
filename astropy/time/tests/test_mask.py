@@ -247,7 +247,7 @@ def test_some_masked_input_str_no_subfmt():
     dates = Masked(["", "2023:001"], mask=True)
     t = Time(dates, format="yday")
     assert np.all(t.mask)
-    assert np.all(t.unmasked == "2000-01-01")
+    assert np.all(t.unmasked == "2000:001:12:00:00.000")
 
 
 def test_serialize_fits_masked(tmp_path):
