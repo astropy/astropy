@@ -477,8 +477,8 @@ class TimeFormat:
         Returns
         -------
         val, val2 : ndarray
-            Arrays with masked values filled with the fill value for this format. This
-            is a copy of the original.
+            Arrays with masked values filled with the fill value for this format.
+            These are copies of the originals.
         """
         if val2 is None:
             val, mask = np.broadcast_arrays(val, mask)
@@ -487,20 +487,19 @@ class TimeFormat:
             val2 = val2.copy()
             val2[mask] = np.zeros_like(val2, shape=())
 
-        val_kind = val.dtype.kind
         # Fill value needs to comply with the specified input subformat. Usually this
         # is "*" for any matching input, but for a custom subformat the fill value
         # needs to be compatible with the specified subformat.
         fill_value = cls.fill_value(in_subfmt)
 
-        if val_kind in ("U", "S"):
-            # For string types ensure that the numpy string length is long enough to
-            # hold the fill value for the specified subformat.
-            val_width = val.dtype.itemsize // (4 if val.dtype.kind == "U" else 1)
-            if (new_width := len(fill_value)) > val_width:
-                val = val.astype(f"{val_kind}{new_width}")
-
-        val = val.copy()
+        # For string types ensure that the numpy string length is long enough to
+        # hold the fill value for the specified subformat.
+        if (val_kind := val.dtype.kind) in ("U", "S") and (
+            new_width := len(fill_value)
+        ) > val.dtype.itemsize // (4 if val_kind == "U" else 1):
+            val = val.astype(f"{val_kind}{new_width}")  # Makes copy.
+        else:
+            val = val.copy()
         val[mask] = fill_value
         return val, val2
 

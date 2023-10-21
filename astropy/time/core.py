@@ -604,11 +604,13 @@ class TimeBase(ShapedLikeNDArray):
         else:
             formats = [(format, self.FORMATS[format])]
 
+        masked = np.any(mask)
+        oval, oval2 = val, val2
         problems = {}
         for name, cls in formats:
             try:
-                if np.any(mask):
-                    val, val2 = cls._fill_masked_values(val, val2, mask, in_subfmt)
+                if masked:
+                    val, val2 = cls._fill_masked_values(oval, oval2, mask, in_subfmt)
                 return cls(val, val2, scale, precision, in_subfmt, out_subfmt)
             except UnitConversionError:
                 raise
