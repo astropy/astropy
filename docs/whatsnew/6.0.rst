@@ -255,12 +255,12 @@ Small example::
 
   >>> from astropy.time import Time
   >>> from astropy.utils.masked import Masked
-  >>> t = Time(Masked([50000., 50001, 50002], mask=[False, True, False]), format='mjd')
+  >>> t = Time(Masked([52000., 52001, 52002], mask=[False, True, False]), format='mjd')
   >>> t
-  <Time object: scale='utc' format='mjd' value=[50000.    ——— 50002.]>
+  <Time object: scale='utc' format='mjd' value=[52000.      ——— 52002. ]>
   >>> t.isot
-  MaskedNDArray(['1995-10-10T00:00:00.000',                       ———,
-                 '1995-10-12T00:00:00.000'], dtype='<U23')
+  MaskedNDArray(['2001-04-01T00:00:00.000',                       ———,
+                 '2001-04-03T00:00:00.000'], dtype='<U23')
   >>> (t-t[0]).to('s')
   <MaskedQuantity [     0.,     ———, 172800.] s>
 
