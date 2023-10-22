@@ -1206,6 +1206,16 @@ class TestNumericalSubFormat:
         t_mjd_subfmt = t.to_value("mjd", subfmt=out_subfmt)
         assert np.all(t_mjd_subfmt == expected)
 
+    def test_subformat_output_not_always_preserved(self):
+        t = Time("2000-01-02", format="fits", out_subfmt="longdate")
+        assert t.value == "+02000-01-02"
+        t.format = "iso"
+        assert t.out_subfmt == "*"
+        assert t.value == "2000-01-02 00:00:00.000"
+        t.format = "fits"
+        assert t.out_subfmt == "*"
+        assert t.value == "2000-01-02T00:00:00.000"
+
     @pytest.mark.parametrize(
         "fmt,string,val1,val2",
         [
@@ -1232,7 +1242,7 @@ class TestNumericalSubFormat:
     def test_basic_subformat_cache_does_not_crash(self):
         t = Time("2001", format="jyear", scale="tai")
         t.to_value("mjd", subfmt="str")
-        assert ("mjd", "str") in t.cache["format"]
+        assert ("mjd", "str", "astropy") in t.cache["format"]
         t.to_value("mjd", "str")
 
     @pytest.mark.parametrize("fmt", ["jd", "mjd", "cxcsec", "unix", "gps", "jyear"])
@@ -1817,7 +1827,7 @@ def test_cache():
 
     # Access the iso format and confirm that the cached version is as expected
     t.iso
-    assert t.cache["format"]["iso"] == t2.iso
+    assert t.cache["format"]["iso", "*", "astropy"] == t2.iso
 
     # Access the TAI scale and confirm that the cached version is as expected
     t.tai
@@ -1976,7 +1986,7 @@ def test_setitem_from_python_objects():
     t = Time([[1, 2], [3, 4]], format="cxcsec")
     assert t.cache == {}
     t.iso
-    assert "iso" in t.cache["format"]
+    assert ("iso", "*", "astropy") in t.cache["format"]
     assert np.all(
         t.iso
         == [

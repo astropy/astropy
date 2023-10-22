@@ -666,13 +666,6 @@ class TimeBase(ShapedLikeNDArray):
             raise ValueError(f"format must be one of {list(self.FORMATS)}")
         format_cls = self.FORMATS[format]
 
-        if "format" in self.cache:
-            # Delete any previous possible "default" format, which may have
-            # dependended on a different out_subfmt than we have now.
-            # TODO: in to_value, we probably should never set an entry with
-            # just format, despite that having been the case in astropy < 4.0.
-            self.cache["format"].pop(format, None)
-
         # Get the new TimeFormat object to contain time in new format.  Possibly
         # coerce in/out_subfmt to '*' (default) if existing subfmt values are
         # not valid in the new format.
@@ -994,9 +987,14 @@ class TimeBase(ShapedLikeNDArray):
         if format not in self.FORMATS:
             raise ValueError(f"format must be one of {list(self.FORMATS)}")
 
+        if subfmt is None:
+            if format == self.format:
+                subfmt = self.out_subfmt
+            else:
+                subfmt = self.FORMATS[format]._get_allowed_subfmt(self.out_subfmt)
+
         cache = self.cache["format"]
-        # Try to keep cache behaviour like it was in astropy < 4.0.
-        key = format if subfmt is None else (format, subfmt)
+        key = format, subfmt, conf.masked_array_type
         value = cache.get(key)
         if value is None:
             if format == self.format:
@@ -1035,10 +1033,6 @@ class TimeBase(ShapedLikeNDArray):
 
             value = tm._shaped_like_input(value)
             cache[key] = value
-        elif self.masked and not isinstance(value, conf._masked_cls):
-            # The requested output masked class can have changed (if the user
-            # changed conf.masked_array_type); if so, change value and cache.
-            value = cache[key] = conf._masked_cls(value)
 
         return value
 
