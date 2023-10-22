@@ -244,8 +244,9 @@ public internet connection.
 Masked Time values now use Masked arrays internally
 ===================================================
 
-|Time| can now be initialized with both |Masked| and `numpy.ma.MaskedArray`
-input, and will now use |Masked| ``jd1`` and ``jd2`` internally to represent
+|Time| can now be initialized with masked input that either uses |Masked|, from
+astropy's `astropy.utils.masked` package, or `numpy.ma.MaskedArray`, from numpy,
+and will now use |Masked| ``jd1`` and ``jd2`` internally to represent
 the mask. As a result, all output from masked |Time| instances will now be
 masked as well. For instance, converting a |TimeDelta| to a |Quantity| will
 give a masked quantity (instead of a regular quantity with masked entries set
