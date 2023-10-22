@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from astropy import units as u
+from astropy.coordinates import EarthLocation
 from astropy.table import Table
 from astropy.time import Time, conf
 from astropy.utils import iers
@@ -248,6 +249,15 @@ def test_some_masked_input_str_no_subfmt():
     t = Time(dates, format="yday")
     assert np.all(t.mask)
     assert np.all(t.unmasked == "2000:001:12:00:00.000")
+
+
+def test_masked_input_and_unmasked_array_location():
+    dates = Masked(["", "2023:001"], mask=[True, False])
+    locations = EarthLocation([10, 20] * u.deg, [30, 40] * u.deg)
+    t = Time(dates, format="yday", location=locations)
+    assert t.masked
+    assert not isinstance(t.location, Masked)
+    assert np.all(t.unmasked.location == locations)
 
 
 def test_serialize_fits_masked(tmp_path):

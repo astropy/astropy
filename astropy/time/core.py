@@ -1074,11 +1074,8 @@ class TimeBase(ShapedLikeNDArray):
         --------
         astropy.time.Time.filled
         """
-        return (
-            self._apply(operator.attrgetter("unmasked"))
-            if self.masked
-            else self.replicate()
-        )
+        # Get a new Time instance that has the unmasked versions of all attributes.
+        return self._apply(lambda x: getattr(x, "unmasked", x))
 
     def filled(self, fill_value):
         """Get a copy of the underlying data, with masked values filled in.
