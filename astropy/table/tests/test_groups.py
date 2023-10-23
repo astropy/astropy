@@ -10,7 +10,6 @@ from astropy import units as u
 from astropy.table import Column, NdarrayMixin, QTable, Table, table_helpers, unique
 from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.time import Time
-from astropy.time.core import TimeDeltaMissingUnitWarning
 from astropy.utils.compat import NUMPY_LT_1_22_1
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -732,15 +731,8 @@ def test_group_mixins_unsupported(col):
 
     t = Table([[1, 1], [3, 4], col], names=["a", "b", "mix"])
     tg = t.group_by("a")
-    if not PYTEST_LT_8_0 and isinstance(col, time.TimeDelta):
-        ctx = pytest.warns(
-            TimeDeltaMissingUnitWarning,
-            match="Numerical value without unit or explicit format",
-        )
-    else:
-        ctx = nullcontext()
 
-    with pytest.warns(AstropyUserWarning, match="Cannot aggregate column 'mix'"), ctx:
+    with pytest.warns(AstropyUserWarning, match="Cannot aggregate column 'mix'"):
         tg.groups.aggregate(np.sum)
 
 
