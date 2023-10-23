@@ -385,7 +385,7 @@ def get_yaml_from_header(header):
     del header["cols"]
 
     lines = yaml.dump(
-        header, default_flow_style=None, Dumper=TableDumper, width=130
+        header, default_flow_style=None, Dumper=TableDumper, width=130, sort_keys= False
     ).splitlines()
     return lines
 
