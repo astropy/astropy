@@ -60,9 +60,8 @@ __all__ = [
 __doctest_skip__ = ["TimePlotDate"]
 
 # These both get filled in at end after TimeFormat subclasses defined.
-# Use an OrderedDict to fix the order in which formats are tried.
+# It is important that these get populated by insertion order.
 # This ensures, e.g., that 'isot' gets tried before 'fits'.
-# Changed to dict()
 TIME_FORMATS = dict()
 TIME_DELTA_FORMATS = dict()
 
