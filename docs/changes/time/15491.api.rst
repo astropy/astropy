@@ -1,2 +1,2 @@
-Removed usage of ``OrderedDict`` and its import from time.
-The ``OrderedDicts`` were changed to ordinary dicts.
+``TIME_FORMATS`` and ``TIME_DELTA_FORMATS`` in ``astropy.time.formats``
+are changed from ``OrderedDict`` to Python ``dict``.
