@@ -1,0 +1,2 @@
+Removed usage of ``OrderedDict`` and its import from time.
+The ``OrderedDicts`` were changed to ordinary dicts.
