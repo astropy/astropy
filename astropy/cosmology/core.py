@@ -410,18 +410,13 @@ class Cosmology(metaclass=abc.ABCMeta):
     # ---------------------------------------------------------------
 
     def __repr__(self):
-        namelead = f"{self.__class__.__qualname__}("
-        if self.name is not None:
-            namelead += f"name={self.name!r}, "
-        # nicely formatted parameters
-        fmtps = (f"{k}={getattr(self, k)!r}" for k in self._parameters)
-
-        return namelead + ", ".join(fmtps) + ")"
+        fmtps = (f"{k}={v!r}" for k, v in self.parameters.items())
+        return f"{type(self).__qualname__}(name={self.name!r}, {', '.join(fmtps)})"
 
     def __str__(self):
         """Return a string representation of the cosmology."""
         name_str = "" if self.name is None else f'name="{self.name}", '
-        param_strs = (f"{k!s}={getattr(self, k)!s}" for k in self._parameters)
+        param_strs = (f"{k!s}={v!s}" for k, v in self.parameters.items())
         return f"{type(self).__name__}({name_str}{', '.join(param_strs)})"
 
     def __astropy_table__(self, cls, copy, **kwargs):
