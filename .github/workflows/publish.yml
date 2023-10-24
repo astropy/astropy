@@ -43,6 +43,10 @@ jobs:
       anaconda_package: astropy
       anaconda_keep_n_latest: 10
 
+      env: |
+        CIBW_BEFORE_BUILD: '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'pip install --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple setuptools setuptools_scm cython numpy>=0.0.dev0 extension-helpers') || '' }}'
+        CIBW_BUILD_FRONTEND: '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'pip; args: --no-build-isolation') || 'build' }}'
+
       test_extras: test
       # FIXME: we exclude the test_data_out_of_range test since it
       # currently fails, see https://github.com/astropy/astropy/issues/10409
