@@ -319,9 +319,6 @@ exclude= [
         ]
 
 [tool.ruff]
-# Our minimum Python version is 3.9 but we want to minimize backport issues, so
-# we use 3.8 as the target version.
-target-version = "py38"
 line-length = 88
 select = ["ALL"]
 exclude=[
