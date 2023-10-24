@@ -220,7 +220,7 @@ class ZScaleInterval(BaseInterval):
         scaling factors.  Defaults to 1000.
     contrast : float, optional
         The scaling factor (between 0 and 1) for determining the minimum
-        and maximum value.  Larger values increase the difference
+        and maximum value.  Larger values decrease the difference
         between the minimum and maximum values used for display.
         Defaults to 0.25.
     max_reject : float, optional
