@@ -9,7 +9,6 @@ from astropy.table import QTable, Table, groups
 from astropy.time import Time, TimeDelta
 from astropy.timeseries.core import BaseTimeSeries, autocheck_required_columns
 from astropy.units import Quantity, UnitsError
-from astropy.utils.decorators import deprecated_renamed_argument
 
 __all__ = ["TimeSeries"]
 
@@ -153,7 +152,6 @@ class TimeSeries(BaseTimeSeries):
         """
         return self["time"]
 
-    @deprecated_renamed_argument("midpoint_epoch", "epoch_time", "4.0")
     def fold(
         self,
         period=None,
