@@ -46,7 +46,6 @@ from packaging.version import Version
 from astropy import log
 from astropy import units as u
 from astropy.io import fits
-from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import (
     AstropyDeprecationWarning,
     AstropyUserWarning,
@@ -2106,7 +2105,6 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         return pix
 
-    @deprecated_renamed_argument("accuracy", "tolerance", "4.3")
     def all_world2pix(
         self,
         *args,
