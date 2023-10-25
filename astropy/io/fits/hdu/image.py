@@ -548,7 +548,7 @@ class _ImageBaseHDU(_ValidHDU):
                 # We have to explicitly cast _zero to prevent numpy from raising an
                 # error when doing self.data -= zero, and we do this instead of
                 # self.data = self.data - zero to avoid doubling memory usage.
-                np.add(self.data, -_zero, out=self.data, casting="unsafe")
+                self.data -= np.array(_zero).astype(self.data.dtype, casting="unsafe")
             self._header["BZERO"] = _zero
         else:
             try:

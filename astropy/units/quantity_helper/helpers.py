@@ -360,6 +360,9 @@ UNSUPPORTED_UFUNCS |= {
     np.lcm,
 }
 
+if not NUMPY_LT_2_0:
+    UNSUPPORTED_UFUNCS |= {np.bitwise_count, np._core.umath.isalpha}
+
 # SINGLE ARGUMENT UFUNCS
 
 # ufuncs that do not care about the unit and do not return a Quantity
