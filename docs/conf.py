@@ -249,6 +249,8 @@ html_theme_options.update(
             "image_light": "_static/astropy_banner_96.png",
             "image_dark": "_static/astropy_banner_96_dark.png",
         },
+        # https://github.com/pydata/pydata-sphinx-theme/issues/1492
+        "navigation_with_keys": False,
     }
 )
 
