@@ -15,6 +15,7 @@ import numpy as np
 from astropy import units as u
 from astropy.units import SpecificTypeQuantity
 from astropy.utils import isiterable
+from astropy.utils.compat import NUMPY_LT_2_0
 
 from . import formats
 
@@ -395,8 +396,14 @@ class Angle(SpecificTypeQuantity):
         # than Quantity objects for speed.
         a360 = u.degree.to(self.unit, 360.0)
         wrap_angle = wrap_angle.to_value(self.unit)
-        wrap_angle_floor = wrap_angle - a360
         self_angle = self.view(np.ndarray)
+        if NUMPY_LT_2_0:
+            # Ensure ndim>=1 so that comparison is done using the angle dtype.
+            self_angle = self_angle[np.newaxis]
+        else:
+            # Use explicit float to ensure casting to self_angle.dtype (NEP 50).
+            wrap_angle = float(wrap_angle)
+        wrap_angle_floor = wrap_angle - a360
         # Do the wrapping, but only if any angles need to be wrapped
         #
         # Catch any invalid warnings from the floor division.
@@ -600,13 +607,12 @@ class Latitude(Angle):
         else:
             limit = u.degree.to(angles.unit, 90.0)
 
-        # Ensure ndim>=1 so that comparison is done using the angle dtype.
-        # Otherwise, e.g., np.array(np.pi/2, 'f4') > np.pi/2 will yield True.
-        # (This feels like a bug -- see https://github.com/numpy/numpy/issues/23247)
-        # TODO: address this again when/if numpy 2.0 exists - see above issue
-        # Note that we should avoid using `angles.dtype` directly since for
-        # structured arrays like Distribution this will be `void`.
-        angles_view = angles.view(np.ndarray)[np.newaxis]
+        angles_view = angles.view(np.ndarray)
+        if NUMPY_LT_2_0:
+            # Ensure ndim>=1 so that comparison is done using the angle dtype.
+            # Otherwise, e.g., np.array(np.pi/2, 'f4') > np.pi/2 will yield True.
+            angles_view = angles_view[np.newaxis]
+
         invalid_angles = np.any(angles_view < -limit) or np.any(angles_view > limit)
         if invalid_angles:
             raise ValueError(
