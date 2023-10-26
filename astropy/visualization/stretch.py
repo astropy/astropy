@@ -290,23 +290,25 @@ class PowerDistStretch(BaseStretch):
         1000.
     """
 
+    exp = deprecated_attribute("exp", "6.0", alternative="a")
+
     def __init__(self, a=1000.0):
         if a < 0 or a == 1:  # singularity
             raise ValueError("a must be >= 0, but cannot be set to 1")
         super().__init__()
-        self.exp = a
+        self.a = a
 
     def __call__(self, values, clip=True, out=None):
         values = _prepare(values, clip=clip, out=out)
-        np.power(self.exp, values, out=values)
+        np.power(self.a, values, out=values)
         np.subtract(values, 1, out=values)
-        np.true_divide(values, self.exp - 1.0, out=values)
+        np.true_divide(values, self.a - 1.0, out=values)
         return values
 
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return InvertedPowerDistStretch(a=self.exp)
+        return InvertedPowerDistStretch(a=self.a)
 
 
 class InvertedPowerDistStretch(BaseStretch):
