@@ -244,7 +244,6 @@ class NoConvergence(Exception):
         niter=None,
         divergent=None,
         slow_conv=None,
-        **kwargs,
     ):
         super().__init__(*args)
 
@@ -253,14 +252,6 @@ class NoConvergence(Exception):
         self.niter = niter
         self.divergent = divergent
         self.slow_conv = slow_conv
-
-        if kwargs:
-            warnings.warn(
-                f"Function received unexpected arguments ({list(kwargs)}) these "
-                "are ignored but will raise an Exception in the "
-                "future.",
-                AstropyDeprecationWarning,
-            )
 
 
 class FITSFixedWarning(AstropyWarning):
