@@ -489,17 +489,17 @@ class AsinhStretch(BaseStretch):
     Parameters
     ----------
     a : float, optional
-        The ``a`` parameter used in the above formula.  The value of
-        this parameter is where the asinh curve transitions from linear
-        to logarithmic behavior, expressed as a fraction of the
-        normalized image.  ``a`` must be greater than 0 and less than or
-        equal to 1 (0 < a <= 1).  Default is 0.1.
+        The ``a`` parameter used in the above formula. The value of this
+        parameter is where the asinh curve transitions from linear to
+        logarithmic behavior, expressed as a fraction of the normalized
+        image. The stretch becomes more linear as the ``a`` value is
+        increased. ``a`` must be greater than 0. Default is 0.1.
     """
 
     def __init__(self, a=0.1):
         super().__init__()
-        if a <= 0 or a > 1:
-            raise ValueError("a must be > 0 and <= 1")
+        if a <= 0:
+            raise ValueError("a must be > 0")
         self.a = a
 
     def __call__(self, values, clip=True, out=None):
