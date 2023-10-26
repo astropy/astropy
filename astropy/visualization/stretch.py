@@ -466,24 +466,26 @@ class InvertedLogStretch(BaseStretch):
         greater than 0.  Default is 1000.
     """
 
+    exp = deprecated_attribute("exp", "6.0", alternative="a")
+
     def __init__(self, a):
         super().__init__()
         if a <= 0:  # singularity
             raise ValueError("a must be > 0")
-        self.exp = a
+        self.a = a
 
     def __call__(self, values, clip=True, out=None):
         values = _prepare(values, clip=clip, out=out)
-        np.multiply(values, np.log(self.exp + 1.0), out=values)
+        np.multiply(values, np.log(self.a + 1.0), out=values)
         np.exp(values, out=values)
         np.subtract(values, 1.0, out=values)
-        np.true_divide(values, self.exp, out=values)
+        np.true_divide(values, self.a, out=values)
         return values
 
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return LogStretch(self.exp)
+        return LogStretch(self.a)
 
 
 class AsinhStretch(BaseStretch):
