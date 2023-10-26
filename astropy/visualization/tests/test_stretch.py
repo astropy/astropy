@@ -138,9 +138,9 @@ def test_invalid_power_log_a(a):
         InvertedLogStretch(a=a)
 
 
-@pytest.mark.parametrize("a", [-2.0, -1, 0.0, 1.5])
+@pytest.mark.parametrize("a", [-2.0, -1, 0.0])
 def test_invalid_sinh_a(a):
-    match = "a must be > 0 and <= 1"
+    match = "a must be > 0"
     with pytest.raises(ValueError, match=match):
         AsinhStretch(a=a)
     with pytest.raises(ValueError, match=match):
