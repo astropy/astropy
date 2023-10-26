@@ -23,9 +23,9 @@ import numpy as np
 
 from astropy.table import Table
 from astropy.utils.data import get_readable_fileobj
+from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG
-from astropy.utils.decorators import deprecated_renamed_argument
 
 from . import (
     basic,
@@ -659,19 +659,13 @@ def _guess(table, read_kwargs, format, fast_reader):
             }
         )
         failed_kwargs.append(read_kwargs)
-        lines = [
-            "\nERROR: Unable to guess table format with the guesses listed below:"
-        ]
+        lines = ["\nERROR: Unable to guess table format with the guesses listed below:"]
         for kwargs in failed_kwargs:
             sorted_keys = sorted(
-                x
-                for x in sorted(kwargs)
-                if x not in ("reader_cls", "outputter_cls")
+                x for x in sorted(kwargs) if x not in ("reader_cls", "outputter_cls")
             )
             reader_repr = repr(kwargs.get("reader_cls", basic.Basic))
-            keys_vals = [
-                "reader_cls:" + re.search(r"\.(\w+)'>", reader_repr).group(1)
-            ]
+            keys_vals = ["reader_cls:" + re.search(r"\.(\w+)'>", reader_repr).group(1)]
             kwargs_sorted = ((key, kwargs[key]) for key in sorted_keys)
             keys_vals.extend([f"{key}: {val!r}" for key, val in kwargs_sorted])
             lines.append(" ".join(keys_vals))
