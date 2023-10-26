@@ -385,6 +385,8 @@ class LogStretch(BaseStretch):
         greater than 0.  Default is 1000.
     """
 
+    exp = deprecated_attribute("exp", "6.0", alternative="a")
+
     @property
     def _supports_invalid_kw(self):
         return True
@@ -393,7 +395,7 @@ class LogStretch(BaseStretch):
         super().__init__()
         if a <= 0:  # singularity
             raise ValueError("a must be > 0")
-        self.exp = a
+        self.a = a
 
     def __call__(self, values, clip=True, out=None, invalid=None):
         """
@@ -429,10 +431,10 @@ class LogStretch(BaseStretch):
         with np.errstate(invalid="ignore"):
             if replace_invalid:
                 idx = values < 0
-            np.multiply(values, self.exp, out=values)
+            np.multiply(values, self.a, out=values)
             np.add(values, 1.0, out=values)
             np.log(values, out=values)
-            np.true_divide(values, np.log(self.exp + 1.0), out=values)
+            np.true_divide(values, np.log(self.a + 1.0), out=values)
 
         if replace_invalid:
             # Assign new NaN (i.e., NaN not in the original input
@@ -444,7 +446,7 @@ class LogStretch(BaseStretch):
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return InvertedLogStretch(self.exp)
+        return InvertedLogStretch(self.a)
 
 
 class InvertedLogStretch(BaseStretch):
