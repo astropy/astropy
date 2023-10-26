@@ -1637,9 +1637,6 @@ class WhitespaceSplitter(DefaultSplitter):
 
 
 extra_reader_pars = (
-    "Reader",
-    "Inputter",
-    "Outputter",
     "delimiter",
     "comment",
     "quotechar",
@@ -1648,8 +1645,8 @@ extra_reader_pars = (
     "data_end",
     "converters",
     "encoding",
-    "data_Splitter",
-    "header_Splitter",
+    "data_splitter_cls",
+    "header_splitter_cls",
     "names",
     "include_names",
     "exclude_names",
@@ -1660,17 +1657,17 @@ extra_reader_pars = (
 )
 
 
-def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
+def _get_reader(reader_cls, inputter_cls=None, outputter_cls=None, **kwargs):
     """Initialize a table reader allowing for common customizations.  See ui.get_reader()
     for param docs.  This routine is for internal (package) use only and is useful
     because it depends only on the "core" module.
     """
     from .fastbasic import FastBasic
 
-    if issubclass(Reader, FastBasic):  # Fast readers handle args separately
-        if Inputter is not None:
-            kwargs["Inputter"] = Inputter
-        return Reader(**kwargs)
+    if issubclass(reader_cls, FastBasic):  # Fast readers handle args separately
+        if inputter_cls is not None:
+            kwargs["inputter_cls"] = inputter_cls
+        return reader_cls(**kwargs)
 
     # If user explicitly passed a fast reader with enable='force'
     # (e.g. by passing non-default options), raise an error for slow readers
@@ -1679,20 +1676,20 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
             raise ParameterError(
                 "fast_reader required with "
                 "{}, but this is not a fast C reader: {}".format(
-                    kwargs["fast_reader"], Reader
+                    kwargs["fast_reader"], reader_cls
                 )
             )
         else:
             del kwargs["fast_reader"]  # Otherwise ignore fast_reader parameter
 
     reader_kwargs = {k: v for k, v in kwargs.items() if k not in extra_reader_pars}
-    reader = Reader(**reader_kwargs)
+    reader = reader_cls(**reader_kwargs)
 
-    if Inputter is not None:
-        reader.inputter = Inputter()
+    if inputter_cls is not None:
+        reader.inputter = inputter_cls()
 
-    if Outputter is not None:
-        reader.outputter = Outputter()
+    if outputter_cls is not None:
+        reader.outputter = outputter_cls()
 
     # Issue #855 suggested to set data_start to header_start + default_header_length
     # Thus, we need to retrieve this from the class definition before resetting these numbers.
@@ -1739,10 +1736,10 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
             raise ValueError("header_start cannot be modified for this Reader")
     if "converters" in kwargs:
         reader.outputter.converters = kwargs["converters"]
-    if "data_Splitter" in kwargs:
-        reader.data.splitter = kwargs["data_Splitter"]()
-    if "header_Splitter" in kwargs:
-        reader.header.splitter = kwargs["header_Splitter"]()
+    if "data_splitter_cls" in kwargs:
+        reader.data.splitter = kwargs["data_splitter_cls"]()
+    if "header_splitter_cls" in kwargs:
+        reader.header.splitter = kwargs["header_splitter_cls"]()
     if "names" in kwargs:
         reader.names = kwargs["names"]
         if None in reader.names:
@@ -1787,7 +1784,7 @@ extra_writer_pars = (
 )
 
 
-def _get_writer(Writer, fast_writer, **kwargs):
+def _get_writer(writer_cls, fast_writer, **kwargs):
     """Initialize a table writer allowing for common customizations. This
     routine is for internal (package) use only and is useful because it depends
     only on the "core" module.
@@ -1801,15 +1798,15 @@ def _get_writer(Writer, fast_writer, **kwargs):
     if "fill_values" in kwargs and kwargs["fill_values"] is None:
         del kwargs["fill_values"]
 
-    if issubclass(Writer, FastBasic):  # Fast writers handle args separately
-        return Writer(**kwargs)
-    elif fast_writer and f"fast_{Writer._format_name}" in FAST_CLASSES:
+    if issubclass(writer_cls, FastBasic):  # Fast writers handle args separately
+        return writer_cls(**kwargs)
+    elif fast_writer and f"fast_{writer_cls._format_name}" in FAST_CLASSES:
         # Switch to fast writer
         kwargs["fast_writer"] = fast_writer
-        return FAST_CLASSES[f"fast_{Writer._format_name}"](**kwargs)
+        return FAST_CLASSES[f"fast_{writer_cls._format_name}"](**kwargs)
 
     writer_kwargs = {k: v for k, v in kwargs.items() if k not in extra_writer_pars}
-    writer = Writer(**writer_kwargs)
+    writer = writer_cls(**writer_kwargs)
 
     if "delimiter" in kwargs:
         writer.header.splitter.delimiter = kwargs["delimiter"]

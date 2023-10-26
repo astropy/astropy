@@ -17,9 +17,9 @@ READ_DOCSTRING = """
         Try to guess the table format. Defaults to None.
     format : str, `~astropy.io.ascii.BaseReader`
         Input table format
-    Inputter : `~astropy.io.ascii.BaseInputter`
+    inputter_cls : `~astropy.io.ascii.BaseInputter`
         Inputter class
-    Outputter : `~astropy.io.ascii.BaseOutputter`
+    outputter_cls : `~astropy.io.ascii.BaseOutputter`
         Outputter class
     delimiter : str
         Column delimiter string
@@ -43,9 +43,9 @@ READ_DOCSTRING = """
         ``np.float32``; a list of such types which is tried in order until a
         successful conversion is achieved; or a list of converter tuples (see
         the `~astropy.io.ascii.convert_numpy` function for details).
-    data_Splitter : `~astropy.io.ascii.BaseSplitter`
+    data_splitter_cls : `~astropy.io.ascii.BaseSplitter`
         Splitter class to split data columns
-    header_Splitter : `~astropy.io.ascii.BaseSplitter`
+    header_splitter_cls : `~astropy.io.ascii.BaseSplitter`
         Splitter class to split header columns
     names : list
         List of names corresponding to each data column
@@ -89,7 +89,7 @@ READ_DOCSTRING = """
 
     """
 
-# Specify allowed types for core write() keyword arguments.  Each entry
+# Specify allowed types for core read() keyword arguments.  Each entry
 # corresponds to the name of an argument and either a type (e.g. int) or a
 # list of types.  These get used in io.ascii.ui._validate_read_write_kwargs().
 # -  The commented-out kwargs are too flexible for a useful check
@@ -98,9 +98,9 @@ READ_KWARG_TYPES = {
     # 'table'
     "guess": bool,
     # 'format'
-    # 'Reader'
-    # 'Inputter'
-    # 'Outputter'
+    # 'reader_cls'
+    # 'inputter_cls'
+    # 'outputter_cls'
     "delimiter": str,
     "comment": str,
     "quotechar": str,
@@ -108,8 +108,8 @@ READ_KWARG_TYPES = {
     "data_start": (int, str),  # CDS allows 'guess'
     "data_end": int,
     "converters": dict,
-    # 'data_Splitter'
-    # 'header_Splitter'
+    # 'data_splitter_cls'
+    # 'header_splitter_cls'
     "names": "list-like",
     "include_names": "list-like",
     "exclude_names": "list-like",
