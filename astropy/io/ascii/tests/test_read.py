@@ -2072,7 +2072,7 @@ def test_read_converters_simplified():
 def test_read_deprecations():
     def check_warns(func, *args):
         with pytest.warns(AstropyDeprecationWarning) as warns:
-            func(
+            out = func(
                 *args,
                 Reader=ascii.Basic,
                 Inputter=ascii.BaseInputter,
@@ -2090,15 +2090,25 @@ def test_read_deprecations():
             ):
                 msg = f'"{kwarg}" was deprecated'
                 assert any(warn.message.args[0].startswith(msg) for warn in warns)
+            return out
 
-    check_warns(ascii.read, ["a b", "1 2"])
-    check_warns(ascii.get_reader)
+    tbl = check_warns(ascii.read, ["a b", "1 2"])
+    assert tbl.pformat_all() == [" a   b ", "--- ---", "  1   2"]
+
+    reader = check_warns(ascii.get_reader)
+    tbl = reader.read(["a b", "1 2"])
+    assert tbl.pformat_all() == [" a   b ", "--- ---", "  1   2"]
 
 
 def test_write_deprecations():
     t = simple_table()
+    out = io.StringIO()
     with pytest.warns(AstropyDeprecationWarning, match='"Writer" was deprecated'):
-        ascii.write(t, io.StringIO(), Writer=ascii.Csv)
+        ascii.write(t, out, Writer=ascii.Csv)
+    assert out.getvalue().splitlines() == ["a,b,c", "1,1.0,c", "2,2.0,d", "3,3.0,e"]
 
     with pytest.warns(AstropyDeprecationWarning, match='"Writer" was deprecated'):
-        ascii.get_writer(Writer=ascii.Csv)
+        writer = ascii.get_writer(Writer=ascii.Csv)
+    out = io.StringIO()
+    writer.write(t, out)
+    assert out.getvalue().splitlines() == ["a,b,c", "1,1.0,c", "2,2.0,d", "3,3.0,e"]
