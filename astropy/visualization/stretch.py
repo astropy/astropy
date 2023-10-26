@@ -7,6 +7,8 @@ another set of [0:1] values with a transformation.
 
 import numpy as np
 
+from astropy.utils.decorators import deprecated_attribute
+
 from .transform import BaseTransform, CompositeTransform
 
 __all__ = [
@@ -208,6 +210,8 @@ class PowerStretch(BaseStretch):
         than 0.
     """
 
+    power = deprecated_attribute("power", "6.0", alternative="a")
+
     @property
     def _supports_invalid_kw(self):
         return True
@@ -216,7 +220,7 @@ class PowerStretch(BaseStretch):
         super().__init__()
         if a <= 0:
             raise ValueError("a must be > 0")
-        self.power = a
+        self.a = a
 
     def __call__(self, values, clip=True, out=None, invalid=None):
         """
@@ -249,14 +253,12 @@ class PowerStretch(BaseStretch):
         """
         values = _prepare(values, clip=clip, out=out)
         replace_invalid = (
-            not clip
-            and invalid is not None
-            and ((-1 < self.power < 0) or (0 < self.power < 1))
+            not clip and invalid is not None and ((-1 < self.a < 0) or (0 < self.a < 1))
         )
         with np.errstate(invalid="ignore"):
             if replace_invalid:
                 idx = values < 0
-            np.power(values, self.power, out=values)
+            np.power(values, self.a, out=values)
 
         if replace_invalid:
             # Assign new NaN (i.e., NaN not in the original input
@@ -268,7 +270,7 @@ class PowerStretch(BaseStretch):
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return PowerStretch(1.0 / self.power)
+        return PowerStretch(1.0 / self.a)
 
 
 class PowerDistStretch(BaseStretch):
