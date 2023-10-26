@@ -27,7 +27,8 @@ __all__ = [
 
 def _logn(n, x, out=None):
     """Calculate the log base n of x."""
-    # We define this because numpy.lib.scimath.logn doesn't support out=
+    # We define this because numpy.emath.logn doesn't support the out
+    # keyword.
     if out is None:
         return np.log(x) / np.log(n)
     else:
@@ -53,8 +54,8 @@ def _prepare(values, clip=True, out=None):
 
 class BaseStretch(BaseTransform):
     """
-    Base class for the stretch classes, which, when called with an array
-    of values in the range [0:1], return an transformed array of values,
+    Base class for the stretch classes, which when called with an array
+    of values in the range [0:1], returns an transformed array of values
     also in the range [0:1].
     """
 
@@ -99,7 +100,7 @@ class LinearStretch(BaseStretch):
     The stretch is given by:
 
     .. math::
-        y = slope x + intercept
+        y = slope * x + intercept
 
     Parameters
     ----------
