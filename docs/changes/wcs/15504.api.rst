@@ -1,0 +1,1 @@
+``NoConvergence`` no longer accepts arbitrary keyword arguments.
