@@ -869,9 +869,6 @@ Second with the `astropy.utils.masked.Masked` class::
   >>> print(t)
   ['2001:020'        ——— '2001:060']
 
-An important point is that any value which is marked as missing will be replaced
-internally with a time equivalent to ``2000-01-01 12:00:00`` UTC.
-
 You can also use the special `numpy.ma.masked` to set a value as missing in an existing
 |Time| object::
 
@@ -917,10 +914,21 @@ used to check whether or not a mask is in use internally::
 
 .. note:: When setting the mask, actual time data are kept. However,
           when *initializing* with a masked array, any masked time
-          input data are overwritten, to ensure that no errors or
+          input data are overwritten internally, with a time
+          equivalent to ``2000-01-01 12:00:00`` (in the same scale and
+          format as the other values). This is to ensure no errors or
           warnings are raised by invalid data hidden by the mask.
           Hence, for initialization with masked data, there is no way
-          to recover the original masked values.
+          to recover the original masked values::
+
+            >>> dates = Masked(['2001:020', '2001:040', '2001:060'],
+            ...                mask=[False, True, False])
+            >>> tm = Time(dates, out_subfmt="date")
+            >>> tm[2] = np.ma.masked
+            >>> print(tm)
+            ['2001:020'        ———        ———]
+            >>> print(tm.unmasked)
+            ['2001:020' '2000:001' '2001:060']
 
 .. EXAMPLE END
 
