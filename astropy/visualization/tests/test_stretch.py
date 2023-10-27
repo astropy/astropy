@@ -2,7 +2,7 @@
 
 import numpy as np
 import pytest
-from numpy.testing import assert_equal
+from numpy.testing import assert_allclose, assert_equal
 
 from astropy.visualization.stretch import (
     AsinhStretch,
@@ -145,6 +145,13 @@ def test_invalid_sinh_a(a):
         AsinhStretch(a=a)
     with pytest.raises(ValueError, match=match):
         SinhStretch(a=a)
+
+
+def test_sinh_a():
+    a = 0.9
+    a_inv = 1.0 / np.arcsinh(1.0 / a)
+    z = AsinhStretch(a=a)
+    assert_allclose(z.inverse.a, a_inv)
 
 
 def test_histeqstretch_invalid():
