@@ -3445,6 +3445,58 @@ class GeneralSersic2D(Sersic2D):
     :math:`\gamma(a, x)` is the `lower incomplete gamma function
     <https://en.wikipedia.org/wiki/Incomplete_gamma_function>`_.
 
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        from astropy.modeling.models import GeneralSersic2D
+        import matplotlib.pyplot as plt
+
+        x, y = np.meshgrid(np.arange(100), np.arange(100))
+
+        mod = GeneralSersic2D(amplitude=1, r_eff=25, n=4, x_0=50, y_0=50,
+                              c=-1.0, ellip=0.5, theta=-1)
+        img = mod(x, y)
+        log_img = np.log10(img)
+
+        fig, ax = plt.subplots()
+        im = ax.imshow(log_img, origin='lower', interpolation='nearest',
+                       vmin=-1, vmax=2)
+        cbar = fig.colorbar(im, ax=ax)
+        cbar.set_label('Log Brightness', rotation=270, labelpad=25)
+        cbar.set_ticks([-1, 0, 1, 2])
+        plt.title('Disky isophote with c=-1.0')
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.show()
+
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        from astropy.modeling.models import GeneralSersic2D
+        import matplotlib.pyplot as plt
+
+        x, y = np.meshgrid(np.arange(100), np.arange(100))
+
+        mod = GeneralSersic2D(amplitude=1, r_eff=25, n=4, x_0=50, y_0=50,
+                              c=1.0, ellip=0.5, theta=-1)
+        img = mod(x, y)
+        log_img = np.log10(img)
+
+        fig, ax = plt.subplots()
+        im = ax.imshow(log_img, origin='lower', interpolation='nearest',
+                       vmin=-1, vmax=2)
+        cbar = fig.colorbar(im, ax=ax)
+        cbar.set_label('Log Brightness', rotation=270, labelpad=25)
+        cbar.set_ticks([-1, 0, 1, 2])
+        plt.title('Boxy isophote with c=1.0')
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.show()
+
     References
     ----------
     .. [1] http://ned.ipac.caltech.edu/level5/March05/Graham/Graham2.html
