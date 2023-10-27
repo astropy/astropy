@@ -11,6 +11,7 @@ import enum
 import operator
 import os
 import threading
+from collections import defaultdict
 from datetime import date, datetime, timezone
 from time import strftime
 from warnings import warn
@@ -24,10 +25,13 @@ from astropy.extern import _strptime
 from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.data_info import MixinInfo, data_info_factory
+from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils.masked import Masked
 
-# Import TimeFromEpoch to avoid breaking code that followed the old example of
-# making a custom timescale in the documentation.
+# Below, import TimeFromEpoch to avoid breaking code that followed the old
+# example of making a custom timescale in the documentation.
+from . import conf
 from .formats import (
     TIME_DELTA_FORMATS,
     TIME_FORMATS,
@@ -528,11 +532,13 @@ class TimeBase(ShapedLikeNDArray):
 
         # If either of the input val, val2 are masked arrays then
         # find the masked elements and fill them.
-        mask, val, val2 = _check_for_masked_and_fill(val, val2)
+        mask = False
+        mask, val_data = get_mask_and_data(mask, val)
+        mask, val_data2 = get_mask_and_data(mask, val2)
 
         # Parse / convert input values into internal jd1, jd2 based on format
         self._time = self._get_time_fmt(
-            val, val2, format, scale, precision, in_subfmt, out_subfmt
+            val_data, val_data2, format, scale, precision, in_subfmt, out_subfmt, mask
         )
         self._format = self._time.name
 
@@ -547,11 +553,17 @@ class TimeBase(ShapedLikeNDArray):
         # routine ``mask`` must be either Python bool False or an bool ndarray
         # with shape broadcastable to jd2.
         if mask is not False:
-            mask = np.broadcast_to(mask, self._time.jd2.shape)
-            self._time.jd1[mask] = 2451544.5  # Set to JD for 2000-01-01
-            self._time.jd2[mask] = np.nan
+            # Ensure that if the class is already masked, we do not lose it.
+            self._time.jd1 = Masked(self._time.jd1, copy=False)
+            self._time.jd1.mask |= mask
+            # Ensure we share the mask (it may have been broadcast).
+            self._time.jd2 = Masked(
+                self._time.jd2, mask=self._time.jd1.mask, copy=False
+            )
 
-    def _get_time_fmt(self, val, val2, format, scale, precision, in_subfmt, out_subfmt):
+    def _get_time_fmt(
+        self, val, val2, format, scale, precision, in_subfmt, out_subfmt, mask
+    ):
         """
         Given the supplied val, val2, format and scale try to instantiate
         the corresponding TimeFormat class to convert the input values into
@@ -564,9 +576,11 @@ class TimeBase(ShapedLikeNDArray):
             # If val and val2 broadcasted shape is (0,) (i.e. empty array input) then we
             # cannot guess format from the input values.  Instead use the default
             # format.
-            if val.size == 0 and (val2 is None or val2.size == 0):
+            empty_array = val.size == 0 and (val2 is None or val2.size == 0)
+            if empty_array or np.all(mask):
                 raise ValueError(
                     "cannot guess format from input values with zero-size array"
+                    " or all elements masked"
                 )
             formats = [
                 (name, cls)
@@ -590,9 +604,13 @@ class TimeBase(ShapedLikeNDArray):
         else:
             formats = [(format, self.FORMATS[format])]
 
+        masked = np.any(mask)
+        oval, oval2 = val, val2
         problems = {}
         for name, cls in formats:
             try:
+                if masked:
+                    val, val2 = cls._fill_masked_values(oval, oval2, mask, in_subfmt)
                 return cls(val, val2, scale, precision, in_subfmt, out_subfmt)
             except UnitConversionError:
                 raise
@@ -751,7 +769,7 @@ class TimeBase(ShapedLikeNDArray):
             xforms = tuple(reversed(xforms))
 
         # Transform the jd1,2 pairs through the chain of scale xforms.
-        jd1, jd2 = self._time.jd1, self._time.jd2_filled
+        jd1, jd2 = self._time.jd1, self._time.jd2
         for sys1, sys2 in zip(xforms[:-1], xforms[1:]):
             # Some xforms require an additional delta_ argument that is
             # provided through Time methods.  These values may be supplied by
@@ -773,8 +791,6 @@ class TimeBase(ShapedLikeNDArray):
             jd1, jd2 = conv_func(*args)
 
         jd1, jd2 = day_frac(jd1, jd2)
-        if self.masked:
-            jd2[self.mask] = np.nan
 
         self._time = self.FORMATS[self.format](
             jd1,
@@ -881,6 +897,13 @@ class TimeBase(ShapedLikeNDArray):
                     reshaped.append(val)
 
     def _shaped_like_input(self, value):
+        if self.masked:
+            # Ensure the mask is independent.
+            value = conf._masked_cls(value, mask=self.mask.copy())
+            # For new-style, we do not treat masked scalars differently from arrays.
+            if isinstance(value, Masked):
+                return value
+
         if self._time.jd1.shape:
             if isinstance(value, np.ndarray):
                 return value
@@ -889,11 +912,15 @@ class TimeBase(ShapedLikeNDArray):
                     f"JD is an array ({self._time.jd1!r}) but value is not ({value!r})"
                 )
         else:
-            # zero-dimensional array, is it safe to unbox?
+            # zero-dimensional array, is it safe to unbox?  The tricky comparison
+            # of the mask is for the case that value is structured; otherwise, we
+            # could just use np.ma.is_masked(value).
             if (
                 isinstance(value, np.ndarray)
                 and not value.shape
-                and not np.ma.is_masked(value)
+                and (
+                    (mask := getattr(value, "mask", np.False_)) == np.zeros_like(mask)
+                ).all()
             ):
                 if value.dtype.kind == "M":
                     # existing test doesn't want datetime64 converted
@@ -912,16 +939,14 @@ class TimeBase(ShapedLikeNDArray):
         """
         First of the two doubles that internally store time value(s) in JD.
         """
-        jd1 = self._time.mask_if_needed(self._time.jd1)
-        return self._shaped_like_input(jd1)
+        return self._shaped_like_input(self._time.jd1)
 
     @property
     def jd2(self):
         """
         Second of the two doubles that internally store time value(s) in JD.
         """
-        jd2 = self._time.mask_if_needed(self._time.jd2)
-        return self._shaped_like_input(jd2)
+        return self._shaped_like_input(self._time.jd2)
 
     def to_value(self, format, subfmt="*"):
         """Get time values expressed in specified output format.
@@ -962,10 +987,16 @@ class TimeBase(ShapedLikeNDArray):
         if format not in self.FORMATS:
             raise ValueError(f"format must be one of {list(self.FORMATS)}")
 
+        if subfmt is None:
+            if format == self.format:
+                subfmt = self.out_subfmt
+            else:
+                subfmt = self.FORMATS[format]._get_allowed_subfmt(self.out_subfmt)
+
         cache = self.cache["format"]
-        # Try to keep cache behaviour like it was in astropy < 4.0.
-        key = format if subfmt is None else (format, subfmt)
-        if key not in cache:
+        key = format, subfmt, conf.masked_array_type
+        value = cache.get(key)
+        if value is None:
             if format == self.format:
                 tm = self
             else:
@@ -1002,7 +1033,8 @@ class TimeBase(ShapedLikeNDArray):
 
             value = tm._shaped_like_input(value)
             cache[key] = value
-        return cache[key]
+
+        return value
 
     @property
     def value(self):
@@ -1010,12 +1042,51 @@ class TimeBase(ShapedLikeNDArray):
         return self.to_value(self.format, None)
 
     @property
-    def masked(self):
-        return self._time.masked
+    def mask(self):
+        if "mask" not in self.cache:
+            mask = getattr(self._time.jd2, "mask", None)
+            if mask is None:
+                mask = np.broadcast_to(np.False_, self._time.jd2.shape)
+            else:
+                # Take a view of any existing mask, so we can set it to readonly.
+                mask = mask.view()
+            mask.flags.writeable = False
+            self.cache["mask"] = mask
+        return self.cache["mask"]
 
     @property
-    def mask(self):
-        return self._time.mask
+    def masked(self):
+        return isinstance(self._time.jd1, Masked)
+
+    @property
+    def unmasked(self):
+        """Get an instance without the mask.
+
+        Note that while one gets a new instance, the underlying data will be shared.
+
+        See Also
+        --------
+        astropy.time.Time.filled
+        """
+        # Get a new Time instance that has the unmasked versions of all attributes.
+        return self._apply(lambda x: getattr(x, "unmasked", x))
+
+    def filled(self, fill_value):
+        """Get a copy of the underlying data, with masked values filled in.
+
+        Parameters
+        ----------
+        fill_value : object
+            Value to replace masked values with.  Note that if this value is masked
+
+        See Also
+        --------
+        astropy.time.Time.unmasked
+        """
+        # TODO: once we support Not-a-Time, that can be the default fill_value.
+        unmasked = self.unmasked.copy()
+        unmasked[self.mask] = fill_value
+        return unmasked
 
     def insert(self, obj, values, axis=0):
         """
@@ -1116,7 +1187,17 @@ class TimeBase(ShapedLikeNDArray):
                 delattr(self, attr)
 
         if value is np.ma.masked or value is np.nan:
-            self._time.jd2[item] = np.nan
+            if not isinstance(self._time.jd2, Masked):
+                self._time.jd1 = Masked(self._time.jd1, copy=False)
+                self._time.jd2 = Masked(
+                    self._time.jd2, mask=self._time.jd1.mask, copy=False
+                )
+            self._time.jd2.mask[item] = True
+            return
+
+        elif value is np.ma.nomask:
+            if isinstance(self._time.jd2, Masked):
+                self._time.jd2.mask[item] = False
             return
 
         value = self._make_value_equivalent(item, value)
@@ -1411,7 +1492,7 @@ class TimeBase(ShapedLikeNDArray):
         is used.  See :func:`~numpy.argmin` for detailed documentation.
         """
         # First get the minimum at normal precision.
-        jd1, jd2 = self.jd1, self.jd2
+        jd1, jd2 = self._time.jd1, self._time.jd2
         approx = np.min(jd1 + jd2, axis, keepdims=True)
 
         # Approx is very close to the true minimum, and by subtracting it at
@@ -1434,7 +1515,7 @@ class TimeBase(ShapedLikeNDArray):
         is used.  See :func:`~numpy.argmax` for detailed documentation.
         """
         # For procedure, see comment on argmin.
-        jd1, jd2 = self.jd1, self.jd2
+        jd1, jd2 = self._time.jd1, self._time.jd2
         approx = np.max(jd1 + jd2, axis, keepdims=True)
 
         dt = (jd1 - approx) + jd2
@@ -1465,7 +1546,7 @@ class TimeBase(ShapedLikeNDArray):
             An array of indices that sort the time array.
         """
         # For procedure, see comment on argmin.
-        jd1, jd2 = self.jd1, self.jd2
+        jd1, jd2 = self._time.jd1, self._time.jd2
         approx = jd1 + jd2
         remainder = (jd1 - approx) + jd2
 
@@ -1622,16 +1703,12 @@ class TimeBase(ShapedLikeNDArray):
         result.format = self.format
         return result
 
-    @property
+    @lazyproperty
     def cache(self):
         """
         Return the cache associated with this instance.
         """
-        return self._time.cache
-
-    @cache.deleter
-    def cache(self):
-        del self._time.cache
+        return defaultdict(dict)
 
     def __getattr__(self, attr):
         """
@@ -2352,7 +2429,7 @@ class Time(TimeBase):
         erfa_parameters = [
             getattr(getattr(self, scale)._time, jd_part)
             for scale in scales
-            for jd_part in ("jd1", "jd2_filled")
+            for jd_part in ("jd1", "jd2")
         ]
 
         result = function(*erfa_parameters)
@@ -2429,7 +2506,7 @@ class Time(TimeBase):
             # is access directly; ensure we behave as expected for that case
             if jd1 is None:
                 self_utc = self.utc
-                jd1, jd2 = self_utc._time.jd1, self_utc._time.jd2_filled
+                jd1, jd2 = self_utc._time.jd1, self_utc._time.jd2
                 scale = "utc"
             else:
                 scale = self.scale
@@ -2474,7 +2551,7 @@ class Time(TimeBase):
                     )
                 else:
                     jd1 = self._time.jd1
-                    jd2 = self._time.jd2_filled
+                    jd2 = self._time.jd2
 
             # First go from the current input time (which is either
             # TDB or TT) to an approximate UT1.  Since TT and TDB are
@@ -3250,66 +3327,44 @@ def _make_array(val, copy=False):
     return val
 
 
-def _check_for_masked_and_fill(val, val2):
+def get_mask_and_data(mask, val):
     """
-    If ``val`` or ``val2`` are masked arrays then fill them and cast
-    to ndarray.
+    Update ``mask`` in place and return unmasked ``val`` data.
 
-    Returns a mask corresponding to the logical-or of masked elements
-    in ``val`` and ``val2``.  If neither is masked then the return ``mask``
-    is ``None``.
-
-    If either ``val`` or ``val2`` are masked then they are replaced
-    with filled versions of themselves.
+    If ``val`` is not masked then ``mask`` and ``val`` are returned
+    unchanged.
 
     Parameters
     ----------
-    val : ndarray or MaskedArray
+    mask : bool, ndarray(bool)
+        Mask to update
+    val: ndarray, np.ma.MaskedArray, Masked
         Input val
-    val2 : ndarray or MaskedArray
-        Input val2
 
     Returns
     -------
-    mask, val, val2: ndarray or None
-        Mask: (None or bool ndarray), val, val2: ndarray
+    mask, val: bool, ndarray
+        Updated mask, unmasked data
     """
-
-    def get_as_filled_ndarray(mask, val):
-        """
-        Fill the given MaskedArray ``val`` from the first non-masked
-        element in the array.  This ensures that upstream Time initialization
-        will succeed.
-
-        Note that nothing happens if there are no masked elements.
-        """
-        fill_value = None
-
-        if np.any(val.mask):
-            # Final mask is the logical-or of inputs
-            mask = mask | val.mask
-
-            # First unmasked element.  If all elements are masked then
-            # use fill_value=None from above which will use val.fill_value.
-            # As long as the user has set this appropriately then all will
-            # be fine.
-            val_unmasked = val.compressed()  # 1-d ndarray of unmasked values
-            if len(val_unmasked) > 0:
-                fill_value = val_unmasked[0]
-
-        # Fill the input ``val``.  If fill_value is None then this just returns
-        # an ndarray view of val (no copy).
-        val = val.filled(fill_value)
-
+    if not isinstance(val, (np.ma.MaskedArray, Masked)):
         return mask, val
 
-    mask = False
     if isinstance(val, np.ma.MaskedArray):
-        mask, val = get_as_filled_ndarray(mask, val)
-    if isinstance(val2, np.ma.MaskedArray):
-        mask, val2 = get_as_filled_ndarray(mask, val2)
+        data = val.data
+    else:
+        data = val.unmasked
 
-    return mask, val, val2
+    # For structured dtype, the mask is structured too.  We consider an
+    # array element masked if any field of the structure is masked.
+    if val.dtype.names:
+        val_mask = val.mask != np.zeros_like(val.mask, shape=())
+    else:
+        val_mask = val.mask
+    if np.any(val_mask):
+        # Final mask is the logical-or of inputs
+        mask = mask | val_mask
+
+    return mask, data
 
 
 class OperandTypeError(TypeError):
