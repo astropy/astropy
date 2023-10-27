@@ -600,7 +600,7 @@ def test_timedelta_mask():
     t[1] = np.ma.masked
     assert np.all(t.mask == [False, True])
     assert allclose_jd(t[0].value, 1)
-    assert t.value[1] is np.ma.masked
+    assert t.value[1].mask
 
 
 def test_python_timedelta_scalar():
