@@ -235,12 +235,13 @@ def test_all_masked_input(masked_cls, val):
 
 
 @pytest.mark.parametrize("mask_cls", [np.ma.MaskedArray, Masked])
-@pytest.mark.parametrize("val", ["", [".."], b"", [b".."]])
-def test_all_masked_input_str(mask_cls, val):
-    dates = mask_cls(val, mask=True)
-    t = Time(dates, format="iso", in_subfmt="date")
-    assert np.all(t.mask)
-    assert np.all(t.unmasked == "2000-01-01")
+def test_all_masked_input_str(mask_cls):
+    # pytest 8.0 no longer allows parametrize to loop on empty string
+    for val in ("", [".."], b"", [b".."]):
+        dates = mask_cls(val, mask=True)
+        t = Time(dates, format="iso", in_subfmt="date")
+        assert np.all(t.mask)
+        assert np.all(t.unmasked == "2000-01-01")
 
 
 def test_some_masked_input_str_no_subfmt():
