@@ -240,17 +240,13 @@ def to_model(cosmology, *_, method):
     attrs["n_inputs"] = n_inputs
     attrs["n_outputs"] = 1
 
-    params = {}  # Parameters (also class attributes)
-    for n in cosmology.__parameters__:
-        v = getattr(cosmology, n)  # parameter value
-
-        if v is None:  # skip unspecified parameters
-            continue
-
-        # add as Model Parameter
-        params[n] = convert_parameter_to_model_parameter(
-            getattr(cosmo_cls, n), v, cosmology.meta.get(n)
+    params = {
+        k: convert_parameter_to_model_parameter(
+            cosmo_cls.parameters[k], v, meta=cosmology.meta.get(k)
         )
+        for k, v in cosmology.parameters.items()
+        if v is not None
+    }
 
     # class name is cosmology name + Cosmology + method name + Model
     clsname = (
@@ -269,8 +265,9 @@ def to_model(cosmology, *_, method):
     )
 
     # instantiate class using default values
-    ps = {n: getattr(cosmology, n) for n in params.keys()}
-    model = CosmoModel(**ps, name=cosmology.name, meta=copy.deepcopy(cosmology.meta))
+    model = CosmoModel(
+        **cosmology.parameters, name=cosmology.name, meta=copy.deepcopy(cosmology.meta)
+    )
 
     return model
 

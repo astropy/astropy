@@ -428,9 +428,9 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True, rename=None):
     # - list for anything else
     cosmo_cls = cosmology.__class__
     for k, v in data.items():
-        if k in cosmology.__parameters__:
+        if k in cosmology.parameters:
             col = convert_parameter_to_column(
-                getattr(cosmo_cls, k), v, cosmology.meta.get(k)
+                cosmo_cls.parameters[k], v, cosmology.meta.get(k)
             )
         else:
             col = Column([v])

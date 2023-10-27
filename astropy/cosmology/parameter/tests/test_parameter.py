@@ -6,7 +6,6 @@
 # IMPORTS
 
 # STDLIB
-import inspect
 from typing import Callable
 
 # THIRD PARTY
@@ -86,20 +85,17 @@ class ParameterTestMixin:
     @pytest.fixture
     def parameter(self, cosmo_cls):
         """Cosmological Parameters"""
-        # I wish this would work
-        # yield from {getattr(cosmo_cls, n) for n in cosmo_cls.__parameters__}
-
-        # just return one parameter at random
-        yield getattr(cosmo_cls, set(cosmo_cls.__parameters__).pop())
+        yield from cosmo_cls.parameters.values()
 
     @pytest.fixture
     def all_parameter(self, cosmo_cls):
         """Cosmological All Parameter instances"""
-        # I wish this would work
-        # yield from {getattr(cosmo_cls, n) for n in cosmo_cls.__all_parameters__}
-
         # just return one parameter at random
-        yield getattr(cosmo_cls, set(cosmo_cls.__all_parameters__).pop())
+        n = set(cosmo_cls._parameters_all).pop()
+        try:
+            yield cosmo_cls.parameters[n]
+        except KeyError:
+            yield cosmo_cls.derived_parameters[n]
 
     # ===============================================================
     # Method Tests
@@ -150,9 +146,7 @@ class ParameterTestMixin:
         assert isinstance(all_parameter.derived, bool)
 
         # test value
-        assert all_parameter.derived is (
-            all_parameter.name not in cosmo_cls.__parameters__
-        )
+        assert all_parameter.derived is (all_parameter.name not in cosmo_cls.parameters)
 
     def test_Parameter_default(self, cosmo_cls, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.default`."""
@@ -167,8 +161,9 @@ class ParameterTestMixin:
     def test_Parameter_descriptor_get(self, cosmo_cls, cosmo, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.__get__`."""
         # from class
-        parameter = getattr(cosmo_cls, all_parameter.name)
-        np.testing.assert_array_equal(parameter.default, all_parameter.default)
+        np.testing.assert_array_equal(
+            getattr(cosmo_cls, all_parameter.name).default, all_parameter.default
+        )
 
         # from instance
         parameter = getattr(cosmo, all_parameter.name)
@@ -196,16 +191,10 @@ class ParameterTestMixin:
         assert isinstance(all_parameter, Parameter)
 
         # the reverse: check that if it is a Parameter, it's listed.
-        # note have to check the more inclusive ``__all_parameters__``
-        assert all_parameter.name in cosmo_cls.__all_parameters__
-        if not all_parameter.derived:
-            assert all_parameter.name in cosmo_cls.__parameters__
-
-    def test_parameter_related_attributes_on_Cosmology(self, cosmo_cls):
-        """Test `astropy.cosmology.Parameter`-related on Cosmology."""
-        # establish has expected attribute
-        assert hasattr(cosmo_cls, "__parameters__")
-        assert hasattr(cosmo_cls, "__all_parameters__")
+        if all_parameter.derived:
+            assert all_parameter.name in cosmo_cls.derived_parameters
+        else:
+            assert all_parameter.name in cosmo_cls.parameters
 
     def test_Parameter_not_unique(self, cosmo_cls, clean_registry):
         """Cosmology Parameter not unique to class when subclass defined."""
@@ -217,8 +206,8 @@ class ParameterTestMixin:
         class Example(ExampleBase):
             pass
 
-        assert Example.param is ExampleBase.param
-        assert Example.__parameters__ == ExampleBase.__parameters__
+        assert Example.parameters["param"] is ExampleBase.parameters["param"]
+        assert Example.parameters == ExampleBase.parameters
 
     def test_Parameters_reorder_by_signature(self, cosmo_cls, clean_registry):
         """Test parameters are reordered."""
@@ -230,11 +219,11 @@ class ParameterTestMixin:
                 pass  # never actually initialized
 
         # param should be 1st, all other parameters next
-        assert Example.__parameters__[0] == "param"
+        assert next(iter(Example.parameters)) == "param"
         # Check the other parameters are as expected.
         # only run this test if "param" is not already on the cosmology
-        if cosmo_cls.__parameters__[0] != "param":
-            assert set(Example.__parameters__[1:]) == set(cosmo_cls.__parameters__)
+        if next(iter(cosmo_cls.parameters)) != "param":
+            assert set(tuple(Example.parameters)[1:]) == set(cosmo_cls.parameters)
 
     def test_make_from_Parameter(self, cosmo_cls, clean_registry):
         """Test the parameter creation process. Uses ``__set__``."""
@@ -265,12 +254,14 @@ class TestParameter(ParameterTestMixin):
     """
 
     def setup_class(self):
+        Param = Parameter(
+            doc="Description of example parameter.",
+            unit=u.m,
+            equivalencies=u.mass_energy(),
+        )
+
         class Example1(Cosmology):
-            param = Parameter(
-                doc="Description of example parameter.",
-                unit=u.m,
-                equivalencies=u.mass_energy(),
-            )
+            param = Param
 
             def __init__(self, param=15):
                 self.param = param
@@ -284,7 +275,7 @@ class TestParameter(ParameterTestMixin):
             def __init__(self, param=15 * u.m):
                 self.param = param
 
-            @Example1.param.validator
+            @Param.validator
             def param(self, param, value):
                 return value.to(u.km)
 
@@ -308,12 +299,12 @@ class TestParameter(ParameterTestMixin):
     @pytest.fixture(scope="class")
     def param(self, cosmo_cls):
         """Get Parameter 'param' from cosmology class."""
-        return cosmo_cls.param
+        return cosmo_cls.parameters["param"]
 
     @pytest.fixture(scope="class")
-    def param_cls(self, cosmo_cls):
+    def param_cls(self, param):
         """Get Parameter class from cosmology class."""
-        return cosmo_cls.param.__class__
+        return type(param)
 
     # ==============================================================
 
@@ -453,8 +444,8 @@ class TestParameter(ParameterTestMixin):
     # -------------------------------------------
 
     def test_Parameter_equality(self):
-        """
-        Test Parameter equality.
+        """Test Parameter equality.
+
         Determined from the processed initialization args (including defaults).
         """
         p1 = Parameter(unit="km / (s Mpc)")
@@ -495,35 +486,3 @@ class TestParameter(ParameterTestMixin):
         NP = eval(repr(P))  # Evaluate string representation back into a param.
 
         assert P == NP
-
-    # ==============================================================
-
-    def test_Parameter_doesnt_change_with_generic_class(self):
-        """Descriptors are initialized once and not updated on subclasses."""
-
-        class ExampleBase:
-            def __init__(self, param=15):
-                self._param = param
-
-            sig = inspect.signature(__init__)
-            _init_signature = sig.replace(parameters=list(sig.parameters.values())[1:])
-
-            param = Parameter(doc="example parameter")
-
-        class Example(ExampleBase):
-            pass
-
-        assert Example.param is ExampleBase.param
-
-    def test_Parameter_doesnt_change_with_cosmology(self, cosmo_cls):
-        """Cosmology reinitializes all descriptors when a subclass is defined."""
-
-        # define subclass to show param is same
-        class Example(cosmo_cls):
-            pass
-
-        assert Example.param is cosmo_cls.param
-
-        # unregister
-        _COSMOLOGY_CLASSES.pop(Example.__qualname__)
-        assert Example.__qualname__ not in _COSMOLOGY_CLASSES
