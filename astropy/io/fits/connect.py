@@ -269,6 +269,7 @@ def read_table_fits(
         # floats and strings to the column's fill_value to ensure round trips
         # preserve null values.
         masked = mask = False
+        fill_value = None
         coltype = col.dtype.subdtype[0].type if col.dtype.subdtype else col.dtype.type
         if col.null is not None:
             mask = data[col.name] == col.null
