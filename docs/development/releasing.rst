@@ -8,7 +8,7 @@ coordinated or affiliated package, you can instead check
 
 The core package has adopted the following release plan:
 
-* Major releases every two years. These are releases that can introduce breaking API changes, and should be numbered as x.0.0 (e.g., 6.0.0).
+* Major releases every year (or longer). These are releases that can introduce breaking API changes, and should be numbered as x.0.0 (e.g., 6.0.0).
 * Minor releases every six months in between. These releases should minimize any API changes and focus on adding new features.
 * Bugfix releases as needed between minor releases.
 
