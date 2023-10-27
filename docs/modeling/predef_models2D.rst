@@ -54,6 +54,11 @@ an amplitude.
   a Sersic profile with an effective half-light radius, rotation, and
   Sersic index
 
+- :class:`~astropy.modeling.functional_models.GeneralSersic2D` model
+  computes a generalized Sersic profile with an effective half-light
+  radius, rotation, Sersic index, and a parameter to control the shape of
+  the isophotes (e.g., boxy or disky)
+
 - :class:`~astropy.modeling.functional_models.TrapezoidDisk2D` model
   computes a disk with a radius and slope
 
