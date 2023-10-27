@@ -187,6 +187,32 @@ format::
     Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 
 
+New properties to access |Cosmology| parameters
+-----------------------------------------------
+
+The :class:`~astropy.cosmology.Cosmology` class now has two new properties
+to access the parameters of the cosmology: :attr:`~astropy.cosmology.Cosmology.parameters`
+and :attr:`~astropy.cosmology.Cosmology.derived_parameters`. These properties
+return a :class:`~types.MappingProxyType` object, which is a read-only dictionary
+of all the (derived-)parameter values on the |Cosmology| instance. For example::
+
+    >>> from astropy.cosmology import Planck18
+    >>> Planck18.parameters["H0"]
+    <Quantity 67.66 km / (Mpc s)>
+    >>> Planck18.derived_parameters["Ode0"]
+    0.6888463055445441
+
+When accessed from the cosmology class itself, the returned dictionary is
+not the parameter values but :class:`~astropy.cosmology.Parameter` objects
+with information about the parameter used when setting up the cosmology::
+
+    >>> from astropy.cosmology import FlatLambdaCDM
+    >>> FlatLambdaCDM.parameters["H0"]
+    Parameter(derived=False, unit=Unit("km / (Mpc s)"), equivalencies=[], ...)
+    >>> FlatLambdaCDM.derived_parameters["Ode0"]
+    Parameter(derived=True, unit=None, equivalencies=[], ...)
+
+
 :class:`~astropy.cosmology.Parameter` as a :func:`~dataclasses.dataclass`
 -------------------------------------------------------------------------
 
@@ -196,7 +222,7 @@ This means that the :mod:`dataclasses` machinery can be used to work with
 
     >>> from dataclasses import replace
     >>> from astropy.cosmology import FlatLambdaCDM
-    >>> m_nu = FlatLambdaCDM.m_nu
+    >>> m_nu = FlatLambdaCDM.parameters["m_nu"]
     >>> m_nu
     Parameter(default=<Quantity 0. eV>, derived=False, unit=Unit("eV"), ...)
     >>> replace(m_nu, derived=True)

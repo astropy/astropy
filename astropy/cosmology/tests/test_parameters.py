@@ -36,8 +36,8 @@ def test_getting_parameters(name):
     assert params["name"] == cosmo.name
     assert params["cosmology"] == cosmo.__class__.__qualname__
     # All the cosmology parameters are equal
-    for n in cosmo.__parameters__:
-        assert np.array_equal(params[n], getattr(cosmo, n))
+    for k, v in cosmo.parameters.items():
+        np.testing.assert_array_equal(params[k], v)
     # All the metadata is included. Parameter values take precedence, so only
     # checking the keys.
     assert set(cosmo.meta.keys()).issubset(params.keys())

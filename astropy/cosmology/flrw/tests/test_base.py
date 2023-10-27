@@ -2,14 +2,9 @@
 
 """Testing :mod:`astropy.cosmology.flrw.base`."""
 
-##############################################################################
-# IMPORTS
-
-# STDLIB
 import abc
 import copy
 
-# THIRD PARTY
 import numpy as np
 import pytest
 
@@ -29,7 +24,10 @@ from astropy.cosmology.tests.test_core import (
     invalid_zs,
     valid_zs,
 )
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+
+from .conftest import filter_keys_from_items
 
 ##############################################################################
 # SETUP / TEARDOWN
@@ -68,16 +66,17 @@ class ParameterH0TestMixin(ParameterTestMixin):
         unit = u.Unit("km/(s Mpc)")
 
         # on the class
-        assert isinstance(cosmo_cls.H0, Parameter)
-        assert "Hubble constant" in cosmo_cls.H0.__doc__
-        assert cosmo_cls.H0.unit == unit
-        assert cosmo_cls.H0.default is MISSING
+        H0 = cosmo_cls.parameters["H0"]
+        assert isinstance(H0, Parameter)
+        assert "Hubble constant" in H0.__doc__
+        assert H0.unit == unit
+        assert H0.default is MISSING
 
         # validation
-        assert cosmo_cls.H0.validate(cosmo, 1) == 1 * unit
-        assert cosmo_cls.H0.validate(cosmo, 10 * unit) == 10 * unit
+        assert H0.validate(cosmo, 1) == 1 * unit
+        assert H0.validate(cosmo, 10 * unit) == 10 * unit
         with pytest.raises(ValueError, match="H0 is a non-scalar quantity"):
-            cosmo_cls.H0.validate(cosmo, [1, 2])
+            H0.validate(cosmo, [1, 2])
 
         # on the instance
         assert cosmo.H0 is cosmo._H0
@@ -112,15 +111,16 @@ class ParameterOm0TestMixin(ParameterTestMixin):
     def test_Om0(self, cosmo_cls, cosmo):
         """Test Parameter ``Om0``."""
         # on the class
-        assert isinstance(cosmo_cls.Om0, Parameter)
-        assert "Omega matter" in cosmo_cls.Om0.__doc__
-        assert cosmo_cls.Om0.default is MISSING
+        Om0 = cosmo_cls.parameters["Om0"]
+        assert isinstance(Om0, Parameter)
+        assert "Omega matter" in Om0.__doc__
+        assert Om0.default is MISSING
 
         # validation
-        assert cosmo_cls.Om0.validate(cosmo, 1) == 1
-        assert cosmo_cls.Om0.validate(cosmo, 10 * u.one) == 10
+        assert Om0.validate(cosmo, 1) == 1
+        assert Om0.validate(cosmo, 10 * u.one) == 10
         with pytest.raises(ValueError, match="Om0 cannot be negative"):
-            cosmo_cls.Om0.validate(cosmo, -1)
+            Om0.validate(cosmo, -1)
 
         # on the instance
         assert cosmo.Om0 is cosmo._Om0
@@ -155,16 +155,22 @@ class ParameterOde0TestMixin(ParameterTestMixin):
 
     def test_Parameter_Ode0(self, cosmo_cls):
         """Test Parameter ``Ode0`` on the class."""
-        assert isinstance(cosmo_cls.Ode0, Parameter)
-        assert "Omega dark energy" in cosmo_cls.Ode0.__doc__
-        assert cosmo_cls.Ode0.default is MISSING
+        Ode0 = cosmo_cls.parameters.get(
+            "Ode0", cosmo_cls.derived_parameters.get("Ode0")
+        )
+        assert isinstance(Ode0, Parameter)
+        assert "Omega dark energy" in Ode0.__doc__
+        assert Ode0.default is MISSING
 
     def test_Parameter_Ode0_validation(self, cosmo_cls, cosmo):
         """Test Parameter ``Ode0`` validation."""
-        assert cosmo_cls.Ode0.validate(cosmo, 1.1) == 1.1
-        assert cosmo_cls.Ode0.validate(cosmo, 10 * u.one) == 10.0
+        Ode0 = cosmo_cls.parameters.get(
+            "Ode0", cosmo_cls.derived_parameters.get("Ode0")
+        )
+        assert Ode0.validate(cosmo, 1.1) == 1.1
+        assert Ode0.validate(cosmo, 10 * u.one) == 10.0
         with pytest.raises(TypeError, match="only dimensionless"):
-            cosmo_cls.Ode0.validate(cosmo, 10 * u.km)
+            Ode0.validate(cosmo, 10 * u.km)
 
     def test_Ode0(self, cosmo):
         """Test Parameter ``Ode0`` validation."""
@@ -208,16 +214,17 @@ class ParameterTcmb0TestMixin(ParameterTestMixin):
     def test_Tcmb0(self, cosmo_cls, cosmo):
         """Test Parameter ``Tcmb0``."""
         # on the class
-        assert isinstance(cosmo_cls.Tcmb0, Parameter)
-        assert "Temperature of the CMB" in cosmo_cls.Tcmb0.__doc__
-        assert cosmo_cls.Tcmb0.unit == u.K
-        assert cosmo_cls.Tcmb0.default == 0.0 * u.K
+        Tcmb0 = cosmo_cls.parameters["Tcmb0"]
+        assert isinstance(Tcmb0, Parameter)
+        assert "Temperature of the CMB" in Tcmb0.__doc__
+        assert Tcmb0.unit == u.K
+        assert Tcmb0.default == 0.0 * u.K
 
         # validation
-        assert cosmo_cls.Tcmb0.validate(cosmo, 1) == 1 * u.K
-        assert cosmo_cls.Tcmb0.validate(cosmo, 10 * u.K) == 10 * u.K
+        assert Tcmb0.validate(cosmo, 1) == 1 * u.K
+        assert Tcmb0.validate(cosmo, 10 * u.K) == 10 * u.K
         with pytest.raises(ValueError, match="Tcmb0 is a non-scalar quantity"):
-            cosmo_cls.Tcmb0.validate(cosmo, [1, 2])
+            Tcmb0.validate(cosmo, [1, 2])
 
         # on the instance
         assert cosmo.Tcmb0 is cosmo._Tcmb0
@@ -252,15 +259,16 @@ class ParameterNeffTestMixin(ParameterTestMixin):
     def test_Neff(self, cosmo_cls, cosmo):
         """Test Parameter ``Neff``."""
         # on the class
-        assert isinstance(cosmo_cls.Neff, Parameter)
-        assert "Number of effective neutrino species" in cosmo_cls.Neff.__doc__
-        assert cosmo_cls.Neff.default == 3.04
+        Neff = cosmo_cls.parameters["Neff"]
+        assert isinstance(Neff, Parameter)
+        assert "Number of effective neutrino species" in Neff.__doc__
+        assert Neff.default == 3.04
 
         # validation
-        assert cosmo_cls.Neff.validate(cosmo, 1) == 1
-        assert cosmo_cls.Neff.validate(cosmo, 10 * u.one) == 10
+        assert Neff.validate(cosmo, 1) == 1
+        assert Neff.validate(cosmo, 10 * u.one) == 10
         with pytest.raises(ValueError, match="Neff cannot be negative"):
-            cosmo_cls.Neff.validate(cosmo, -1)
+            Neff.validate(cosmo, -1)
 
         # on the instance
         assert cosmo.Neff is cosmo._Neff
@@ -295,11 +303,12 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
     def test_m_nu(self, cosmo_cls, cosmo):
         """Test Parameter ``m_nu``."""
         # on the class
-        assert isinstance(cosmo_cls.m_nu, Parameter)
-        assert "Mass of neutrino species" in cosmo_cls.m_nu.__doc__
-        assert cosmo_cls.m_nu.unit == u.eV
-        assert cosmo_cls.m_nu.equivalencies == u.mass_energy()
-        assert cosmo_cls.m_nu.default == 0.0 * u.eV
+        m_nu = cosmo_cls.parameters["m_nu"]
+        assert isinstance(m_nu, Parameter)
+        assert "Mass of neutrino species" in m_nu.__doc__
+        assert m_nu.unit == u.eV
+        assert m_nu.equivalencies == u.mass_energy()
+        assert m_nu.default == 0.0 * u.eV
 
         # on the instance
         # assert cosmo.m_nu is cosmo._m_nu
@@ -404,18 +413,19 @@ class ParameterOb0TestMixin(ParameterTestMixin):
     def test_Ob0(self, cosmo_cls, cosmo):
         """Test Parameter ``Ob0``."""
         # on the class
-        assert isinstance(cosmo_cls.Ob0, Parameter)
-        assert "Omega baryon;" in cosmo_cls.Ob0.__doc__
-        assert cosmo_cls.Ob0.default is None
+        Ob0 = cosmo_cls.parameters["Ob0"]
+        assert isinstance(Ob0, Parameter)
+        assert "Omega baryon;" in Ob0.__doc__
+        assert Ob0.default is None
 
         # validation
-        assert cosmo_cls.Ob0.validate(cosmo, None) is None
-        assert cosmo_cls.Ob0.validate(cosmo, 0.1) == 0.1
-        assert cosmo_cls.Ob0.validate(cosmo, 0.1 * u.one) == 0.1
+        assert Ob0.validate(cosmo, None) is None
+        assert Ob0.validate(cosmo, 0.1) == 0.1
+        assert Ob0.validate(cosmo, 0.1 * u.one) == 0.1
         with pytest.raises(ValueError, match="Ob0 cannot be negative"):
-            cosmo_cls.Ob0.validate(cosmo, -1)
+            Ob0.validate(cosmo, -1)
         with pytest.raises(ValueError, match="baryonic density can not be larger"):
-            cosmo_cls.Ob0.validate(cosmo, cosmo.Om0 + 1)
+            Ob0.validate(cosmo, cosmo.Om0 + 1)
 
         # on the instance
         assert cosmo.Ob0 is cosmo._Ob0
@@ -753,9 +763,7 @@ class FLRWTest(
         super().test_clone_change_param(cosmo)
 
         # don't change any values
-        kwargs = cosmo._init_arguments.copy()
-        kwargs.pop("name", None)  # make sure not setting name
-        kwargs.pop("meta", None)  # make sure not setting name
+        kwargs = dict(cosmo.parameters)
         c = cosmo.clone(**kwargs)
         assert c.__class__ == cosmo.__class__
         assert c == cosmo
@@ -766,14 +774,12 @@ class FLRWTest(
         assert c.__class__ == cosmo.__class__
         assert c.name == cosmo.name + " (modified)"
         assert c.H0.value == 100
-        for n in set(cosmo.__parameters__) - {"H0"}:
-            v = getattr(c, n)
+        for n, v in filter_keys_from_items(c.parameters, ("H0",)):
+            v_expect = getattr(cosmo, n)
             if v is None:
-                assert v is getattr(cosmo, n)
+                assert v is v_expect
             else:
-                assert u.allclose(
-                    v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1)
-                )
+                assert_quantity_allclose(v, v_expect, atol=1e-4 * getattr(v, "unit", 1))
         assert not u.allclose(c.Ogamma0, cosmo.Ogamma0)
         assert not u.allclose(c.Onu0, cosmo.Onu0)
 
@@ -784,14 +790,12 @@ class FLRWTest(
         assert c.H0.value == 100
         assert c.Tcmb0.value == 2.8
         assert c.meta == {**cosmo.meta, **dict(zz="tops")}
-        for n in set(cosmo.__parameters__) - {"H0", "Tcmb0"}:
-            v = getattr(c, n)
+        for n, v in filter_keys_from_items(c.parameters, ("H0", "Tcmb0")):
+            v_expect = getattr(cosmo, n)
             if v is None:
-                assert v is getattr(cosmo, n)
+                assert v is v_expect
             else:
-                assert u.allclose(
-                    v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1)
-                )
+                assert_quantity_allclose(v, v_expect, atol=1e-4 * getattr(v, "unit", 1))
         assert not u.allclose(c.Ogamma0, cosmo.Ogamma0)
         assert not u.allclose(c.Onu0, cosmo.Onu0)
         assert not u.allclose(c.Tcmb0.value, cosmo.Tcmb0.value)
@@ -943,7 +947,8 @@ class ParameterFlatOde0TestMixin(ParameterOde0TestMixin):
     def test_Parameter_Ode0(self, cosmo_cls):
         """Test Parameter ``Ode0`` on the class."""
         super().test_Parameter_Ode0(cosmo_cls)
-        assert cosmo_cls.Ode0.derived in (True, np.True_)
+        Ode0 = cosmo_cls.parameters.get("Ode0", cosmo_cls.derived_parameters["Ode0"])
+        assert Ode0.derived in (True, np.True_)
 
     def test_Ode0(self, cosmo):
         """Test no-longer-Parameter ``Ode0``."""

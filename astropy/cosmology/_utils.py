@@ -1,15 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import annotations
+
+__all__ = []  # nothing is publicly scoped
+
 import functools
+import operator
 from numbers import Number
+from typing import Any
 
 import numpy as np
 
 from astropy.units import Quantity
 
 from . import units as cu
-
-__all__ = []  # nothing is publicly scoped
 
 
 def vectorize_redshift_method(func=None, nin=1):
@@ -71,3 +75,9 @@ def aszarr(z):
         return z
     # not one of the preferred types: Number / array ducktype
     return Quantity(z, cu.redshift).value
+
+
+def all_cls_vars(obj: object | type, /) -> dict[str, Any]:
+    """Return all variables in the whole class hierarchy."""
+    cls = obj if isinstance(obj, type) else obj.__class__
+    return functools.reduce(operator.__or__, map(vars, cls.mro()[::-1]))

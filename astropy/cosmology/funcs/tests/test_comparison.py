@@ -66,8 +66,7 @@ class ComparisonFunctionTestBase(ToFromTestMixinBase):
     @pytest.fixture(scope="class")
     def pert_cosmo(self, cosmo):
         # change one parameter
-        p = cosmo.__parameters__[0]
-        v = getattr(cosmo, p)
+        p, v = next(iter(cosmo.parameters.items()))
         cosmo2 = cosmo.clone(
             **{p: v * 1.0001 if v != 0 else 0.001 * getattr(v, "unit", 1)}
         )
