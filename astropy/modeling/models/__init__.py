@@ -22,7 +22,7 @@ from astropy.modeling.tabular import *
 CONSTRAINTS_DOC = """
     Other Parameters
     ----------------
-    fixed : a dict, optional
+    fixed : dict, optional
         A dictionary ``{parameter_name: boolean}`` of parameters to not be
         varied during fitting. True means the parameter is held fixed.
         Alternatively the `~astropy.modeling.Parameter.fixed`
