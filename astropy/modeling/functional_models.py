@@ -784,11 +784,16 @@ class Sersic1D(Fittable1DModel):
     Parameters
     ----------
     amplitude : float
-        Surface brightness at r_eff.
+        Surface brightness at ``r_eff``.
     r_eff : float
-        Effective (half-light) radius
+        Effective (half-light) radius.
     n : float
-        Sersic Index.
+        Sersic index controlling the shape of the profile. Particular
+        values of ``n`` are equivalent to the following profiles:
+
+            * n=4 : `de Vaucouleurs <https://en.wikipedia.org/wiki/De_Vaucouleurs%27s_law>`_ :math:`r^{1/4}` profile
+            * n=1 : Exponential profile
+            * n=0.5 : Gaussian profile
 
     See Also
     --------
@@ -800,14 +805,24 @@ class Sersic1D(Fittable1DModel):
 
     .. math::
 
-        I(r)=I_e\exp\left\{-b_n\left[\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]\right\}
+        I(r) = I_{e} \exp\left\{
+               -b_{n} \left[\left(\frac{r}{r_{e}}\right)^{(1/n)}
+               -1\right]\right\}
 
-    The constant :math:`b_n` is defined such that :math:`r_e` contains half the total
-    luminosity, and can be solved for numerically.
+    where :math:`I_{e}` is the ``amplitude`` and :math:`r_{e}` is ``reff``.
+
+    The constant :math:`b_{n}` is defined such that :math:`r_{e}`
+    contains half the total luminosity. It can be solved for numerically
+    from the following equation:
 
     .. math::
 
-        \Gamma(2n) = 2\gamma (b_n,2n)
+        \Gamma(2n) = 2\gamma (2n, b_{n})
+
+    where :math:`\Gamma(a)` is the `gamma function
+    <https://en.wikipedia.org/wiki/Gamma_function>`_ and
+    :math:`\gamma(a, x)` is the `lower incomplete gamma function
+    <https://en.wikipedia.org/wiki/Incomplete_gamma_function>`_.
 
     Examples
     --------
@@ -821,17 +836,17 @@ class Sersic1D(Fittable1DModel):
         plt.figure()
         plt.subplot(111, xscale='log', yscale='log')
         s1 = Sersic1D(amplitude=1, r_eff=5)
-        r=np.arange(0, 100, .01)
+        r = np.arange(0, 100, 0.01)
 
         for n in range(1, 10):
              s1.n = n
-             plt.plot(r, s1(r), color=str(float(n) / 15))
+             plt.plot(r, s1(r))
 
         plt.axis([1e-1, 30, 1e-2, 1e3])
         plt.xlabel('log Radius')
         plt.ylabel('log Surface Brightness')
-        plt.text(.25, 1.5, 'n=1')
-        plt.text(.25, 300, 'n=10')
+        plt.text(0.25, 1.5, 'n=1')
+        plt.text(0.25, 300, 'n=10')
         plt.xticks([])
         plt.yticks([])
         plt.show()
@@ -843,7 +858,7 @@ class Sersic1D(Fittable1DModel):
 
     amplitude = Parameter(default=1, description="Surface brightness at r_eff")
     r_eff = Parameter(default=1, description="Effective (half-light) radius")
-    n = Parameter(default=4, description="Sersic Index")
+    n = Parameter(default=4, description="Sersic index")
     _gammaincinv = None
 
     @classmethod
@@ -3192,17 +3207,25 @@ class Sersic2D(Fittable2DModel):
     Parameters
     ----------
     amplitude : float
-        Surface brightness at r_eff.
+        Surface brightness at ``r_eff``.
     r_eff : float
-        Effective (half-light) radius
+        Effective (half-light) radius.
     n : float
-        Sersic Index.
+        Sersic index controlling the shape of the profile. Particular
+        values of ``n`` are equivalent to the following profiles:
+
+            * n=4 : `de Vaucouleurs <https://en.wikipedia.org/wiki/De_Vaucouleurs%27s_law>`_ :math:`r^{1/4}` profile
+            * n=1 : Exponential profile
+            * n=0.5 : Gaussian profile
     x_0 : float, optional
         x position of the center.
     y_0 : float, optional
         y position of the center.
     ellip : float, optional
-        Ellipticity.
+        Ellipticity of the isophote, defined as 1.0 minus the ratio of
+        the lengths of the semimajor and semiminor axes:
+
+        .. math:: ellip = 1 - \frac{b}{a}
     theta : float or `~astropy.units.Quantity`, optional
         The rotation angle as an angular quantity
         (`~astropy.units.Quantity` or `~astropy.coordinates.Angle`)
@@ -3219,16 +3242,38 @@ class Sersic2D(Fittable2DModel):
 
     .. math::
 
-        I(x,y) = I(r) = I_e\exp\left\{
-                -b_n\left[\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]
-            \right\}
+        I(x, y) = I_{e} \exp\left\{
+                  -b_{n} \left[\left(\frac{r(x, y)}{r_{e}}\right)^{(1/n)}
+                  -1\right]\right\}
 
-    The constant :math:`b_n` is defined such that :math:`r_e` contains half the total
-    luminosity, and can be solved for numerically.
+
+    where :math:`I_{e}` is the ``amplitude``, :math:`r_{e}` is ``reff``,
+    and :math:`r(x, y)` is a rotated ellipse defined as:
 
     .. math::
 
-        \Gamma(2n) = 2\gamma (2n,b_n)
+        r(x, y)^2 = A^2 + \left(\frac{B}{1 - ellip}\right)^2
+
+    .. math::
+
+        A = (x - x_0) \cos(\theta) + (y - y_0) \sin(\theta)
+
+    .. math::
+
+        B = -(x - x_0) \sin(\theta) + (y - y_0) \cos(\theta)
+
+    The constant :math:`b_{n}` is defined such that :math:`r_{e}`
+    contains half the total luminosity. It can be solved for numerically
+    from the following equation:
+
+    .. math::
+
+        \Gamma(2n) = 2\gamma (2n, b_{n})
+
+    where :math:`\Gamma(a)` is the `gamma function
+    <https://en.wikipedia.org/wiki/Gamma_function>`_ and
+    :math:`\gamma(a, x)` is the `lower incomplete gamma function
+    <https://en.wikipedia.org/wiki/Incomplete_gamma_function>`_.
 
     Examples
     --------
@@ -3239,22 +3284,21 @@ class Sersic2D(Fittable2DModel):
         from astropy.modeling.models import Sersic2D
         import matplotlib.pyplot as plt
 
-        x,y = np.meshgrid(np.arange(100), np.arange(100))
+        x, y = np.meshgrid(np.arange(100), np.arange(100))
 
-        mod = Sersic2D(amplitude = 1, r_eff = 25, n=4, x_0=50, y_0=50,
-                       ellip=.5, theta=-1)
+        mod = Sersic2D(amplitude=1, r_eff=25, n=4, x_0=50, y_0=50,
+                       ellip=0.5, theta=-1)
         img = mod(x, y)
         log_img = np.log10(img)
 
-
-        plt.figure()
-        plt.imshow(log_img, origin='lower', interpolation='nearest',
-                   vmin=-1, vmax=2)
-        plt.xlabel('x')
-        plt.ylabel('y')
-        cbar = plt.colorbar()
+        fig, ax = plt.subplots()
+        im = ax.imshow(log_img, origin='lower', interpolation='nearest',
+                       vmin=-1, vmax=2)
+        cbar = fig.colorbar(im, ax=ax)
         cbar.set_label('Log Brightness', rotation=270, labelpad=25)
         cbar.set_ticks([-1, 0, 1, 2])
+        plt.xlabel('x')
+        plt.ylabel('y')
         plt.show()
 
     References
