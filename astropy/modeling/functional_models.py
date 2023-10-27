@@ -784,11 +784,16 @@ class Sersic1D(Fittable1DModel):
     Parameters
     ----------
     amplitude : float
-        Surface brightness at r_eff.
+        Surface brightness at ``r_eff``.
     r_eff : float
-        Effective (half-light) radius
+        Effective (half-light) radius.
     n : float
-        Sersic Index.
+        Sersic index controlling the shape of the profile. Particular
+        values of ``n`` are equivalent to the following profiles:
+
+            * n=4 : `de Vaucouleurs <https://en.wikipedia.org/wiki/De_Vaucouleurs%27s_law>`_ :math:`r^{1/4}` profile
+            * n=1 : Exponential profile
+            * n=0.5 : Gaussian profile
 
     See Also
     --------
@@ -800,14 +805,24 @@ class Sersic1D(Fittable1DModel):
 
     .. math::
 
-        I(r)=I_e\exp\left\{-b_n\left[\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]\right\}
+        I(r) = I_{e} \exp\left\{
+               -b_{n} \left[\left(\frac{r}{r_{e}}\right)^{(1/n)}
+               -1\right]\right\}
 
-    The constant :math:`b_n` is defined such that :math:`r_e` contains half the total
-    luminosity, and can be solved for numerically.
+    where :math:`I_{e}` is the ``amplitude`` and :math:`r_{e}` is ``reff``.
+
+    The constant :math:`b_{n}` is defined such that :math:`r_{e}`
+    contains half the total luminosity. It can be solved for numerically
+    from the following equation:
 
     .. math::
 
-        \Gamma(2n) = 2\gamma (b_n,2n)
+        \Gamma(2n) = 2\gamma (2n, b_{n})
+
+    where :math:`\Gamma(a)` is the `gamma function
+    <https://en.wikipedia.org/wiki/Gamma_function>`_ and
+    :math:`\gamma(a, x)` is the `lower incomplete gamma function
+    <https://en.wikipedia.org/wiki/Incomplete_gamma_function>`_.
 
     Examples
     --------
@@ -821,17 +836,17 @@ class Sersic1D(Fittable1DModel):
         plt.figure()
         plt.subplot(111, xscale='log', yscale='log')
         s1 = Sersic1D(amplitude=1, r_eff=5)
-        r=np.arange(0, 100, .01)
+        r = np.arange(0, 100, 0.01)
 
         for n in range(1, 10):
              s1.n = n
-             plt.plot(r, s1(r), color=str(float(n) / 15))
+             plt.plot(r, s1(r))
 
         plt.axis([1e-1, 30, 1e-2, 1e3])
         plt.xlabel('log Radius')
         plt.ylabel('log Surface Brightness')
-        plt.text(.25, 1.5, 'n=1')
-        plt.text(.25, 300, 'n=10')
+        plt.text(0.25, 1.5, 'n=1')
+        plt.text(0.25, 300, 'n=10')
         plt.xticks([])
         plt.yticks([])
         plt.show()
@@ -843,7 +858,7 @@ class Sersic1D(Fittable1DModel):
 
     amplitude = Parameter(default=1, description="Surface brightness at r_eff")
     r_eff = Parameter(default=1, description="Effective (half-light) radius")
-    n = Parameter(default=4, description="Sersic Index")
+    n = Parameter(default=4, description="Sersic index")
     _gammaincinv = None
 
     @classmethod
