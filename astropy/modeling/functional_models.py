@@ -27,6 +27,7 @@ __all__ = [
     "Disk2D",
     "Gaussian1D",
     "Gaussian2D",
+    "GeneralSersic2D",
     "Linear1D",
     "Lorentz1D",
     "RickerWavelet1D",
@@ -3234,7 +3235,7 @@ class Sersic2D(Fittable2DModel):
 
     See Also
     --------
-    Gaussian2D, Moffat2D
+    GeneralSersic2D, Gaussian2D, Moffat2D
 
     Notes
     -----
@@ -3245,7 +3246,6 @@ class Sersic2D(Fittable2DModel):
         I(x, y) = I_{e} \exp\left\{
                   -b_{n} \left[\left(\frac{r(x, y)}{r_{e}}\right)^{(1/n)}
                   -1\right]\right\}
-
 
     where :math:`I_{e}` is the ``amplitude``, :math:`r_{e}` is ``reff``,
     and :math:`r(x, y)` is a rotated ellipse defined as:
@@ -3318,24 +3318,23 @@ class Sersic2D(Fittable2DModel):
             "Rotation angle either as a float (in radians) or a |Quantity| angle"
         ),
     )
-    _gammaincinv = None
 
     @classmethod
-    def evaluate(cls, x, y, amplitude, r_eff, n, x_0, y_0, ellip, theta):
+    def evaluate(cls, x, y, amplitude, r_eff, n, x_0, y_0, ellip, theta, c=0):
         """Two dimensional Sersic profile function."""
-        if cls._gammaincinv is None:
-            from scipy.special import gammaincinv
+        from scipy.special import gammaincinv
 
-            cls._gammaincinv = gammaincinv
+        bn = gammaincinv(2.0 * n, 0.5)
+        cos_theta = np.cos(theta)
+        sin_theta = np.sin(theta)
+        x_maj = np.abs((x - x_0) * cos_theta + (y - y_0) * sin_theta)
+        x_min = np.abs(-(x - x_0) * sin_theta + (y - y_0) * cos_theta)
 
-        bn = cls._gammaincinv(2.0 * n, 0.5)
-        a, b = r_eff, (1 - ellip) * r_eff
-        cos_theta, sin_theta = np.cos(theta), np.sin(theta)
-        x_maj = (x - x_0) * cos_theta + (y - y_0) * sin_theta
-        x_min = -(x - x_0) * sin_theta + (y - y_0) * cos_theta
-        z = np.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
-
-        return amplitude * np.exp(-bn * (z ** (1 / n) - 1))
+        b = (1 - ellip) * r_eff
+        expon = 2.0 + c
+        inv_expon = 1.0 / expon
+        z = ((x_maj / r_eff) ** expon + (x_min / b) ** expon) ** inv_expon
+        return amplitude * np.exp(-bn * (z ** (1 / n) - 1.0))
 
     @property
     def input_units(self):
@@ -3359,6 +3358,112 @@ class Sersic2D(Fittable2DModel):
             "theta": u.rad,
             "amplitude": outputs_unit[self.outputs[0]],
         }
+
+
+class GeneralSersic2D(Sersic2D):
+    r"""
+    Generalized two dimensional Sersic surface brightness profile that
+    allows for "boxy" or "disky" (kite-like) isophote shapes.
+
+    Parameters
+    ----------
+    amplitude : float
+        Surface brightness at ``r_eff``.
+    r_eff : float
+        Effective (half-light) radius.
+    n : float
+        Sersic index controlling the shape of the profile. Particular
+        values of ``n`` are equivalent to the following profiles:
+
+            * n=4 : `de Vaucouleurs <https://en.wikipedia.org/wiki/De_Vaucouleurs%27s_law>`_ :math:`r^{1/4}` profile
+            * n=1 : Exponential profile
+            * n=0.5 : Gaussian profile
+    x_0 : float, optional
+        x position of the center.
+    y_0 : float, optional
+        y position of the center.
+    ellip : float, optional
+        Ellipticity of the isophote, defined as 1.0 minus the ratio of
+        the lengths of the semimajor and semiminor axes:
+
+        .. math:: ellip = 1 - \frac{b}{a}
+    theta : float or `~astropy.units.Quantity`, optional
+        The rotation angle as an angular quantity
+        (`~astropy.units.Quantity` or `~astropy.coordinates.Angle`)
+        or a value in radians (as a float). The rotation angle
+        increases counterclockwise from the positive x axis.
+    c : float, optional
+        Parameter controlling the shape of the generalized ellipses.
+        Negative values correspond to disky (kite-like) isophotes and
+        positive values correspond to boxy isophotes. Setting ``c=0``
+        provides perfectly elliptical isophotes (the same model as
+        `Sersic2D`).
+
+    See Also
+    --------
+    Sersic2D, Gaussian2D, Moffat2D
+
+    Notes
+    -----
+    Model formula:
+
+    .. math::
+
+        I(x, y) = I_{e} \exp\left\{
+                  -b_{n} \left[\left(\frac{r(x, y)}{r_{e}}\right)^{(1/n)}
+                  -1\right]\right\}
+
+    where :math:`I_{e}` is the ``amplitude``, :math:`r_{e}`
+    is ``reff``, and :math:`r(x, y)` is a rotated
+    "generalized" ellipse (see `Athanassoula et al. 1990
+    <https://ui.adsabs.harvard.edu/abs/1990MNRAS.245..130A/abstract>`_)
+    defined as:
+
+    .. math::
+
+        r(x, y)^2 = |A|^{c + 2}
+                    + \left(\frac{|B|}{1 - ellip}\right)^{c + 2}
+
+    .. math::
+
+        A = (x - x_0) \cos(\theta) + (y - y_0) \sin(\theta)
+
+    .. math::
+
+        B = -(x - x_0) \sin(\theta) + (y - y_0) \cos(\theta)
+
+    The constant :math:`b_{n}` is defined such that :math:`r_{e}`
+    contains half the total luminosity. It can be solved for numerically
+    from the following equation:
+
+    .. math::
+
+        \Gamma(2n) = 2\gamma (2n, b_{n})
+
+    where :math:`\Gamma(a)` is the `gamma function
+    <https://en.wikipedia.org/wiki/Gamma_function>`_ and
+    :math:`\gamma(a, x)` is the `lower incomplete gamma function
+    <https://en.wikipedia.org/wiki/Incomplete_gamma_function>`_.
+
+    References
+    ----------
+    .. [1] http://ned.ipac.caltech.edu/level5/March05/Graham/Graham2.html
+    .. [2] https://ui.adsabs.harvard.edu/abs/1990MNRAS.245..130A/abstract
+    """
+
+    amplitude = Parameter(default=1, description="Surface brightness at r_eff")
+    r_eff = Parameter(default=1, description="Effective (half-light) radius")
+    n = Parameter(default=4, description="Sersic Index")
+    x_0 = Parameter(default=0, description="X position of the center")
+    y_0 = Parameter(default=0, description="Y position of the center")
+    ellip = Parameter(default=0, description="Ellipticity")
+    theta = Parameter(
+        default=0.0,
+        description=(
+            "Rotation angle either as a float (in radians) or a |Quantity| angle"
+        ),
+    )
+    c = Parameter(default=0, description="Isophote shape parameter")
 
 
 class KingProjectedAnalytic1D(Fittable1DModel):
