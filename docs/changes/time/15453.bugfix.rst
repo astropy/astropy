@@ -1,0 +1,5 @@
+Ensure that the ``Time`` caches of formats and scales do not get out
+of sync with the actual data, even if another instance, holding a view
+of the data is written to.  E.g., if one does ``t01 = t[:2]``, and
+sets ``t[0]`` after, it is now guaranteed that ``t01.value`` will
+correctly reflect that change in value.
