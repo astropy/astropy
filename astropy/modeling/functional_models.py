@@ -3338,12 +3338,11 @@ class Sersic2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is None:
-            return None
-        return {
-            self.inputs[0]: self.x_0.input_unit,
-            self.inputs[1]: self.y_0.input_unit,
-        }
+        if self.x_0.input_unit is not None:
+            return {
+                self.inputs[0]: self.x_0.input_unit,
+                self.inputs[1]: self.y_0.input_unit,
+            }
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
