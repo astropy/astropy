@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_equal
 
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.visualization.stretch import (
     AsinhStretch,
     ContrastBiasStretch,
@@ -152,3 +153,25 @@ def test_histeqstretch_invalid():
     result = np.array([0.0, 0.0, 0.25, 0.5, 0.75, 1.0, 1.0])
     assert_equal(HistEqStretch(data)(data), result)
     assert_equal(InvertedHistEqStretch(data)(data), result)
+
+
+def test_deprecated_attrs():
+    match = "The power attribute is deprecated"
+    with pytest.warns(AstropyDeprecationWarning, match=match):
+        stretch = PowerStretch(a=0.5)
+        assert stretch.power == stretch.a
+
+    match = "The exp attribute is deprecated"
+    with pytest.warns(AstropyDeprecationWarning, match=match):
+        stretch = PowerDistStretch(a=0.5)
+        assert stretch.exp == stretch.a
+    with pytest.warns(AstropyDeprecationWarning, match=match):
+        stretch = InvertedPowerDistStretch(a=0.5)
+        assert stretch.exp == stretch.a
+
+    with pytest.warns(AstropyDeprecationWarning, match=match):
+        stretch = LogStretch(a=0.5)
+        assert stretch.exp == stretch.a
+    with pytest.warns(AstropyDeprecationWarning, match=match):
+        stretch = InvertedLogStretch(a=0.5)
+        assert stretch.exp == stretch.a
