@@ -7,6 +7,8 @@ another set of [0:1] values with a transformation.
 
 import numpy as np
 
+from astropy.utils.decorators import deprecated_attribute
+
 from .transform import BaseTransform, CompositeTransform
 
 __all__ = [
@@ -27,7 +29,8 @@ __all__ = [
 
 def _logn(n, x, out=None):
     """Calculate the log base n of x."""
-    # We define this because numpy.lib.scimath.logn doesn't support out=
+    # We define this because numpy.emath.logn doesn't support the out
+    # keyword.
     if out is None:
         return np.log(x) / np.log(n)
     else:
@@ -53,8 +56,8 @@ def _prepare(values, clip=True, out=None):
 
 class BaseStretch(BaseTransform):
     """
-    Base class for the stretch classes, which, when called with an array
-    of values in the range [0:1], return an transformed array of values,
+    Base class for the stretch classes, which when called with an array
+    of values in the range [0:1], returns an transformed array of values
     also in the range [0:1].
     """
 
@@ -99,7 +102,7 @@ class LinearStretch(BaseStretch):
     The stretch is given by:
 
     .. math::
-        y = slope x + intercept
+        y = slope * x + intercept
 
     Parameters
     ----------
@@ -207,6 +210,8 @@ class PowerStretch(BaseStretch):
         than 0.
     """
 
+    power = deprecated_attribute("power", "6.0", alternative="a")
+
     @property
     def _supports_invalid_kw(self):
         return True
@@ -215,7 +220,7 @@ class PowerStretch(BaseStretch):
         super().__init__()
         if a <= 0:
             raise ValueError("a must be > 0")
-        self.power = a
+        self.a = a
 
     def __call__(self, values, clip=True, out=None, invalid=None):
         """
@@ -248,14 +253,12 @@ class PowerStretch(BaseStretch):
         """
         values = _prepare(values, clip=clip, out=out)
         replace_invalid = (
-            not clip
-            and invalid is not None
-            and ((-1 < self.power < 0) or (0 < self.power < 1))
+            not clip and invalid is not None and ((-1 < self.a < 0) or (0 < self.a < 1))
         )
         with np.errstate(invalid="ignore"):
             if replace_invalid:
                 idx = values < 0
-            np.power(values, self.power, out=values)
+            np.power(values, self.a, out=values)
 
         if replace_invalid:
             # Assign new NaN (i.e., NaN not in the original input
@@ -267,7 +270,7 @@ class PowerStretch(BaseStretch):
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return PowerStretch(1.0 / self.power)
+        return PowerStretch(1.0 / self.a)
 
 
 class PowerDistStretch(BaseStretch):
@@ -287,23 +290,25 @@ class PowerDistStretch(BaseStretch):
         1000.
     """
 
+    exp = deprecated_attribute("exp", "6.0", alternative="a")
+
     def __init__(self, a=1000.0):
         if a < 0 or a == 1:  # singularity
             raise ValueError("a must be >= 0, but cannot be set to 1")
         super().__init__()
-        self.exp = a
+        self.a = a
 
     def __call__(self, values, clip=True, out=None):
         values = _prepare(values, clip=clip, out=out)
-        np.power(self.exp, values, out=values)
+        np.power(self.a, values, out=values)
         np.subtract(values, 1, out=values)
-        np.true_divide(values, self.exp - 1.0, out=values)
+        np.true_divide(values, self.a - 1.0, out=values)
         return values
 
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return InvertedPowerDistStretch(a=self.exp)
+        return InvertedPowerDistStretch(a=self.a)
 
 
 class InvertedPowerDistStretch(BaseStretch):
@@ -324,23 +329,25 @@ class InvertedPowerDistStretch(BaseStretch):
         1000.
     """
 
+    exp = deprecated_attribute("exp", "6.0", alternative="a")
+
     def __init__(self, a=1000.0):
         if a < 0 or a == 1:  # singularity
             raise ValueError("a must be >= 0, but cannot be set to 1")
         super().__init__()
-        self.exp = a
+        self.a = a
 
     def __call__(self, values, clip=True, out=None):
         values = _prepare(values, clip=clip, out=out)
-        np.multiply(values, self.exp - 1.0, out=values)
+        np.multiply(values, self.a - 1.0, out=values)
         np.add(values, 1, out=values)
-        _logn(self.exp, values, out=values)
+        _logn(self.a, values, out=values)
         return values
 
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return PowerDistStretch(a=self.exp)
+        return PowerDistStretch(a=self.a)
 
 
 class SquaredStretch(PowerStretch):
@@ -378,6 +385,8 @@ class LogStretch(BaseStretch):
         greater than 0.  Default is 1000.
     """
 
+    exp = deprecated_attribute("exp", "6.0", alternative="a")
+
     @property
     def _supports_invalid_kw(self):
         return True
@@ -386,7 +395,7 @@ class LogStretch(BaseStretch):
         super().__init__()
         if a <= 0:  # singularity
             raise ValueError("a must be > 0")
-        self.exp = a
+        self.a = a
 
     def __call__(self, values, clip=True, out=None, invalid=None):
         """
@@ -422,10 +431,10 @@ class LogStretch(BaseStretch):
         with np.errstate(invalid="ignore"):
             if replace_invalid:
                 idx = values < 0
-            np.multiply(values, self.exp, out=values)
+            np.multiply(values, self.a, out=values)
             np.add(values, 1.0, out=values)
             np.log(values, out=values)
-            np.true_divide(values, np.log(self.exp + 1.0), out=values)
+            np.true_divide(values, np.log(self.a + 1.0), out=values)
 
         if replace_invalid:
             # Assign new NaN (i.e., NaN not in the original input
@@ -437,7 +446,7 @@ class LogStretch(BaseStretch):
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return InvertedLogStretch(self.exp)
+        return InvertedLogStretch(self.a)
 
 
 class InvertedLogStretch(BaseStretch):
@@ -457,24 +466,26 @@ class InvertedLogStretch(BaseStretch):
         greater than 0.  Default is 1000.
     """
 
+    exp = deprecated_attribute("exp", "6.0", alternative="a")
+
     def __init__(self, a):
         super().__init__()
         if a <= 0:  # singularity
             raise ValueError("a must be > 0")
-        self.exp = a
+        self.a = a
 
     def __call__(self, values, clip=True, out=None):
         values = _prepare(values, clip=clip, out=out)
-        np.multiply(values, np.log(self.exp + 1.0), out=values)
+        np.multiply(values, np.log(self.a + 1.0), out=values)
         np.exp(values, out=values)
         np.subtract(values, 1.0, out=values)
-        np.true_divide(values, self.exp, out=values)
+        np.true_divide(values, self.a, out=values)
         return values
 
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return LogStretch(self.exp)
+        return LogStretch(self.a)
 
 
 class AsinhStretch(BaseStretch):
