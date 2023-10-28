@@ -212,24 +212,6 @@ class ParameterTestMixin:
         if next(iter(cosmo_cls.parameters)) != "param":
             assert set(tuple(Example.parameters)[1:]) == set(cosmo_cls.parameters)
 
-    def test_make_from_Parameter(self, cosmo_cls, clean_registry):
-        """Test the parameter creation process. Uses ``__set__``."""
-
-        class Example(cosmo_cls):
-            param = Parameter(unit=u.eV, equivalencies=u.mass_energy())
-
-            def __init__(self, param, *, name=None, meta=None):
-                self.param = param
-
-            @property
-            def is_flat(self):
-                return super().is_flat()
-
-        assert Example(1).param == 1 * u.eV
-        assert Example(1 * u.eV).param == 1 * u.eV
-        assert Example(1 * u.J).param == (1 * u.J).to(u.eV)
-        assert Example(1 * u.kg).param == (1 * u.kg).to(u.eV, u.mass_energy())
-
 
 # ========================================================================
 
@@ -473,3 +455,23 @@ class TestParameter(ParameterTestMixin):
         NP = eval(repr(P))  # Evaluate string representation back into a param.
 
         assert P == NP
+
+    # ========================================================================
+
+    def test_make_from_Parameter(self, cosmo_cls, clean_registry):
+        """Test the parameter creation process. Uses ``__set__``."""
+
+        class Example(cosmo_cls):
+            param = Parameter(unit=u.eV, equivalencies=u.mass_energy())
+
+            def __init__(self, param, *, name=None, meta=None):
+                self.param = param
+
+            @property
+            def is_flat(self):
+                return super().is_flat()
+
+        assert Example(1).param == 1 * u.eV
+        assert Example(1 * u.eV).param == 1 * u.eV
+        assert Example(1 * u.J).param == (1 * u.J).to(u.eV)
+        assert Example(1 * u.kg).param == (1 * u.kg).to(u.eV, u.mass_energy())
