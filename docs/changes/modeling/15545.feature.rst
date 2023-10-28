@@ -1,0 +1,2 @@
+Added a ``GeneralSersic2D`` model that can have "boxy" or "disky"
+isophotes.
