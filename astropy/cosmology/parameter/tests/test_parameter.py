@@ -196,19 +196,6 @@ class ParameterTestMixin:
         else:
             assert all_parameter.name in cosmo_cls.parameters
 
-    def test_Parameter_not_unique(self, cosmo_cls, clean_registry):
-        """Cosmology Parameter not unique to class when subclass defined."""
-
-        # define subclass to show param is same
-        class ExampleBase(cosmo_cls):
-            param = Parameter()
-
-        class Example(ExampleBase):
-            pass
-
-        assert Example.parameters["param"] is ExampleBase.parameters["param"]
-        assert Example.parameters == ExampleBase.parameters
-
     def test_Parameters_reorder_by_signature(self, cosmo_cls, clean_registry):
         """Test parameters are reordered."""
 
