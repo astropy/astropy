@@ -85,8 +85,8 @@ all = [
     "ipython>=4.2",
     "pytest>=7.0",
     "typing_extensions>=3.10.0.1",
-    "fsspec[http]>=2022.8.2",
-    "s3fs>=2022.8.2",
+    "fsspec[http]>=2023.4.0",
+    "s3fs>=2023.4.0",
     "pre-commit",
 ]
 docs = [
@@ -194,8 +194,6 @@ filterwarnings = [
     # Ignore a warning we emit about not supporting the parallel",
     # reading option for now, can be removed once the issue is fixed",
     "ignore:parallel reading does not currently work, so falling back to serial",
-    # Ignore deprecation warning triggered by s3fs (fsspec/s3fs#716)
-    "ignore:'cgi' is deprecated and slated for removal in Python 3.13:DeprecationWarning",
     # Ignore numpy 2.0 warning, see https://github.com/astropy/astropy/pull/15495
     # and https://github.com/scipy/scipy/pull/19275
     "ignore:.*numpy\\.core.*:DeprecationWarning",
