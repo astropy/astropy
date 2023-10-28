@@ -21,6 +21,8 @@ In particular, this release includes:
 * :ref:`whatsnew-6.0-model-annotation-in-votable`
 * :ref:`whatsnew-6.0-time-delta-quantity-str`
 * :ref:`whatsnew-6.0-votable-parquet-serialization`
+* :ref:`whatsnew-6.0-fits-decompression`
+* :ref:`whatsnew-6.0-general-sersic2d`
 
 In addition to these major changes, Astropy v6.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -442,6 +444,17 @@ usage when accessing only some part of a file but it can be much slower than
 decompressing the whole file at once. With the new keyword ``fits.open(...,
 decompress_in_memory=True)`` it is now possible to decompress the whole file in
 memory, which will be faster in some cases.
+
+.. _whatsnew-6.0-general-sersic2d:
+
+New ``GeneralSersic2D`` model
+=============================
+
+A new :class:`~astropy.modeling.functional_models.GeneralSersic2D` model
+has been added to the modeling package. This model is a generalized two
+dimensional Sersic surface brightness profile that allows for "boxy" or
+"disky" (kite-like) isophote shapes.
+
 
 Full change log
 ===============
