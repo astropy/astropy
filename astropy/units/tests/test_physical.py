@@ -497,18 +497,6 @@ class TestDefPhysType:
             )
 
 
-def test_missing_physical_type_attribute():
-    """
-    Test that a missing attribute raises an `AttributeError`.
-
-    This test should be removed when the deprecated option of calling
-    string methods on PhysicalType instances is removed from
-    `PhysicalType.__getattr__`.
-    """
-    with pytest.raises(AttributeError):
-        length.not_the_name_of_a_str_or_physical_type_attribute
-
-
 @pytest.mark.parametrize("ptype_name", ["length", "speed", "entropy"])
 def test_pickling(ptype_name):
     # Regression test for #11685
