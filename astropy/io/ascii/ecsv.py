@@ -112,14 +112,12 @@ class EcsvHeader(basic.BasicHeader):
         WRITE: Override the default write_comments to do nothing since this is handled
         in the custom write method.
         """
-        pass
 
     def update_meta(self, lines, meta):
         """
         READ: Override the default update_meta to do nothing.  This process is done
         in get_cols() for this reader.
         """
-        pass
 
     def get_cols(self, lines):
         """
