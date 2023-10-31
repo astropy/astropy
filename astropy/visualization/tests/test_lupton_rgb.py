@@ -270,6 +270,17 @@ class TestLuptonRgb:
         )
         assert temp.exists()
 
+    def test_make_rgb_incorrect_min_input(self):
+        with pytest.raises(ValueError, match=r"3 values for minimum."):
+            lupton_rgb.make_lupton_rgb(
+                self.image_r,
+                self.image_g,
+                self.image_b,
+                stretch=self.stretch_,
+                Q=self.Q,
+                minimum=[self.min_, self.min_],
+            )
+
     def test_make_rgb_saturated_fix(self, tmp_path):
         pytest.skip("saturation correction is not implemented")
         satValue = 1000.0
