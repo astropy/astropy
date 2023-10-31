@@ -46,10 +46,10 @@ To generate a color PNG file with the default (arcsinh) scaling:
     plt.imshow(image)
 
 This method requires that the three images be aligned and have the same pixel
-scale and size. Changing the ``interval`` from the default of an instance of 
-:func:`~astropy.visualization.ManualInterval`  with ``vmin=0`` (alternatively, 
-passing the keyword ``minimum``) will change the black level. The parameters 
-``stretch`` and ``Q`` will change how the values between black and white are 
+scale and size. Changing the ``interval`` from the default of an instance of
+:func:`~astropy.visualization.ManualInterval`  with ``vmin=0`` (alternatively,
+passing the keyword ``minimum``) will change the black level. The parameters
+``stretch`` and ``Q`` will change how the values between black and white are
 scaled.
 
 For a more in-depth example, download the ``g``, ``r``, ``i`` SDSS frames
@@ -100,31 +100,31 @@ of the galaxies show up. Compare with Fig. 1 of `Lupton et al. (2004)`_ or the
 RGB images using arbitrary stretching
 =====================================
 
-Numerous other methods for generating composite RGB images are possible. 
-Alternative choices include using e.g., linear or logarithmic stretches, 
-combined with optional data clipping and normalization (e.g., as often used 
+Numerous other methods for generating composite RGB images are possible.
+Alternative choices include using e.g., linear or logarithmic stretches,
+combined with optional data clipping and normalization (e.g., as often used
 in DS9 orother data viewers).
 
 The image stretching and normalization methods for single images are
 demonstrated in :ref:`astropy-visualization-stretchnorm`.
-These scaling are extended to the generation of RGB images using the 
-convenience function :func:`~astropy.visualization.make_rgb`, which takes an 
-instance of a subclass of :class:`~astropy.visualization.BaseStretch` in 
-addition to either an instance of a subclass of 
-:class:`~astropy.visualization.BaseInterval` to specify the normalization, 
-or a length-3 array of such instances (to separately specify the per-filter 
-intervals). 
+These scaling are extended to the generation of RGB images using the
+convenience function :func:`~astropy.visualization.make_rgb`, which takes an
+instance of a subclass of :class:`~astropy.visualization.BaseStretch` in
+addition to either an instance of a subclass of
+:class:`~astropy.visualization.BaseInterval` to specify the normalization,
+or a length-3 array of such instances (to separately specify the per-filter
+intervals).
 
-By default, :func:`~astropy.visualization.make_rgb` uses as linear 
-stretch (:class:`~astropy.visualization.LinearStretch`) and 
-a one-sided manual interval (:class:`~astropy.visualization.ManualInterval`, 
-with ``vmin=0``). As with :func:`~astropy.visualization.make_lupton_rgb`, 
+By default, :func:`~astropy.visualization.make_rgb` uses as linear
+stretch (:class:`~astropy.visualization.LinearStretch`) and
+a one-sided manual interval (:class:`~astropy.visualization.ManualInterval`,
+with ``vmin=0``). As with :func:`~astropy.visualization.make_lupton_rgb`,
 the three images mustbe aligned, with the same size and pixel scales.
 
 
 Following the above example, we generate a composite RGB image using the
 ``g``, ``r``, ``i`` SDSS frames around the Hickson 88 group,
-now using a linear scaling. 
+now using a linear scaling.
 
 .. plot::
    :context: reset
@@ -153,21 +153,21 @@ now using a linear scaling.
         val = np.percentile(img,pctl)
         if val > maximum:
             maximum = val
-    rgb = make_rgb(i, r, g, interval=ManualInterval(vmin=0, vmax=maximum), 
+    rgb = make_rgb(i, r, g, interval=ManualInterval(vmin=0, vmax=maximum),
                    filename="ngc6976-linear.jpeg")
     plt.imshow(rgb, origin='lower')
 
 
 
-For images with high dynamic range, logarithmic stretches with values 
-calculated as 
+For images with high dynamic range, logarithmic stretches with values
+calculated as
 
 .. math::
 
     y = \frac{\log{(a x + 1)}}{\log{(a + 1)}}
 
-can be beneficial. In this case, the a stretch instance of 
-:class:`~astropy.visualization.LogStretch` is directly passed: 
+can be beneficial. In this case, the a stretch instance of
+:class:`~astropy.visualization.LogStretch` is directly passed:
 
 .. plot::
    :context:
@@ -185,7 +185,7 @@ can be beneficial. In this case, the a stretch instance of
         if val > maximum:
             maximum = val
 
-    rgb_log = make_rgb(i, r, g, interval=ManualInterval(vmin=0, vmax=maximum), 
+    rgb_log = make_rgb(i, r, g, interval=ManualInterval(vmin=0, vmax=maximum),
                        stretch=LogStretch(a=1000), filename="ngc6976-log.jpeg")
     plt.imshow(rgb_log, origin='lower')
 
@@ -200,15 +200,15 @@ certain objects, such as the very reddest sources:
     # Increase the red maximum to emphasize the very reddest sources:
     intervals = 3 * [ManualInterval(vmin=0, vmax=maximum)]
     intervals[0] = ManualInterval(vmin=0, vmax=30.)
-    rgb_log = make_rgb(i, r, g, interval=intervals, stretch=LogStretch(a=1000), 
+    rgb_log = make_rgb(i, r, g, interval=intervals, stretch=LogStretch(a=1000),
                        filename="ngc6976-log-alt.jpeg")
     plt.imshow(rgb_log, origin='lower')
 
 
-Other stretches, such as square root, can also be used: 
+Other stretches, such as square root, can also be used:
 
 .. plot::
-   :context: 
+   :context:
    :include-source:
    :align: center
 
@@ -223,6 +223,6 @@ Other stretches, such as square root, can also be used:
         if val > maximum:
             maximum = val
 
-    rgb_sqrt = make_rgb(i, r, g, interval=ManualInterval(vmin=0, vmax=maximum), 
+    rgb_sqrt = make_rgb(i, r, g, interval=ManualInterval(vmin=0, vmax=maximum),
                         stretch=SqrtStretch(), filename="ngc6976-sqrt.jpeg")
     plt.imshow(rgb_sqrt, origin='lower')
