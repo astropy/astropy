@@ -42,8 +42,7 @@ def compute_intensity(image_r, image_g=None, image_b=None):
     if image_g is None or image_b is None:
         if not (image_g is None and image_b is None):
             raise ValueError(
-                "please specify either a single image or red, green, and "
-                "blue images."
+                "please specify either a single image or red, green, and blue images."
             )
         return image_r
 
@@ -61,7 +60,9 @@ class AsinhLuptonStretch(BaseStretch):
     The stretch is given by:
 
     .. math::
-        y = \frac{{\rm asinh}(Q x / stretch)}{frac/{\rm asinh}(frac Q)}.
+        & y = {\rm asinh}\left(\frac{Q * x}{stretch}\right) *
+        \frac{frac}{{\rm asinh}(frac * Q)} \\
+        & frac = 0.1
 
     Parameters
     ----------
@@ -119,8 +120,10 @@ class AsinhZscaleLuptonStretch(AsinhLuptonStretch):
     The stretch is given by:
 
     .. math::
-        y = \frac{{\rm asinh}(Q x / stretch)}{frac/{\rm asinh}(frac Q)}.
-        stretch = z2 - z1
+        & y = {\rm asinh}\left(\frac{Q * x}{stretch}\right) *
+        \frac{frac}{{\rm asinh}(frac * Q)} \\
+        & frac = 0.1 \\
+        & stretch = z2 - z1
 
     Parameters
     ----------
