@@ -247,7 +247,9 @@ class TestLuptonRgb:
 
     def test_AsinhZscale_incorrect_input_asserts(self):
         with pytest.raises(ValueError, match=r"Input 'image' must be a single"):
-            _ = lupton_rgb.LuptonAsinhZscaleStretch([self.image_r, self.image_g], self.Q)
+            _ = lupton_rgb.LuptonAsinhZscaleStretch(
+                [self.image_r, self.image_g], self.Q
+            )
 
     def test_AsinhZscale_incorrect_input_nonimage_asserts(self):
         with pytest.raises(ValueError, match=r"Input 'image' must be a single"):
