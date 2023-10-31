@@ -5,6 +5,7 @@ import abc
 import numbers
 from itertools import zip_longest
 from warnings import warn
+from astropy.utils.decorators import deprecated
 
 import numpy as np
 
@@ -328,7 +329,7 @@ class IncompatibleShapeError(ValueError):
     def __init__(self, shape_a, shape_a_idx, shape_b, shape_b_idx):
         super().__init__(shape_a, shape_a_idx, shape_b, shape_b_idx)
 
-
+@deprecated(since="6.0", alternative="numpy.broadcast_shapes()")
 def check_broadcast(*shapes):
     warn("check_broadcast() method has been deprecated. You should use numpy.broadcast_shapes() method instead.")
     
