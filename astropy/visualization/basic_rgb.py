@@ -46,7 +46,7 @@ class RGBImageMapping:
         self.intervals = interval
         self.stretch = stretch
 
-    def make_rgb_image(self, image_r, image_g, image_b, output_image_format=np.uint8):
+    def make_rgb_image(self, image_r, image_g, image_b, output_dtype=np.uint8):
         """
         Convert 3 arrays, image_r, image_g, and image_b into a RGB image,
         either as an 8-bit per-channel or normalized image.
@@ -62,7 +62,7 @@ class RGBImageMapping:
             Image to map to green.
         image_b : ndarray
             Image to map to blue.
-        output_image_format : numpy scalar type, optional
+        output_dtype : numpy scalar type, optional
             Image output format. Default is np.uint8.
 
         Returns
@@ -71,10 +71,8 @@ class RGBImageMapping:
             RGB color image with the specified format as an NxMx3 numpy array.
 
         """
-        if output_image_format not in _OUTPUT_IMAGE_FORMATS:
-            raise ValueError(
-                f"'output_image_format' must be one of {_OUTPUT_IMAGE_FORMATS}!"
-            )
+        if output_dtype not in _OUTPUT_IMAGE_FORMATS:
+            raise ValueError(f"'output_dtype' must be one of {_OUTPUT_IMAGE_FORMATS}!")
 
         image_r = np.asarray(image_r)
         image_g = np.asarray(image_g)
@@ -85,10 +83,10 @@ class RGBImageMapping:
             raise ValueError(msg.format(image_r.shape, image_g.shape, image_b.shape))
 
         image_rgb = self.apply_mappings(image_r, image_g, image_b)
-        if np.issubdtype(output_image_format, float):
-            conv_images = self._convert_images_to_float(image_rgb, output_image_format)
-        elif np.issubdtype(output_image_format, np.unsignedinteger):
-            conv_images = self._convert_images_to_uint(image_rgb, output_image_format)
+        if np.issubdtype(output_dtype, float):
+            conv_images = self._convert_images_to_float(image_rgb, output_dtype)
+        elif np.issubdtype(output_dtype, np.unsignedinteger):
+            conv_images = self._convert_images_to_uint(image_rgb, output_dtype)
 
         return np.dstack(conv_images)
 
@@ -138,21 +136,21 @@ class RGBImageMapping:
 
         return np.asarray(image_rgb)
 
-    def _convert_images_to_float(self, image_rgb, output_image_format):
+    def _convert_images_to_float(self, image_rgb, output_dtype):
         """
         Convert a triplet of normalized images to float.
         """
-        return image_rgb.astype(output_image_format)
+        return image_rgb.astype(output_dtype)
 
-    def _convert_images_to_uint(self, image_rgb, output_image_format):
+    def _convert_images_to_uint(self, image_rgb, output_dtype):
         """
         Convert a triplet of normalized images to unsigned integer images
         """
-        pixmax = float(np.iinfo(output_image_format).max)
+        pixmax = float(np.iinfo(output_dtype).max)
 
         image_rgb *= pixmax
 
-        return image_rgb.astype(output_image_format)
+        return image_rgb.astype(output_dtype)
 
 
 def make_rgb(
@@ -162,7 +160,7 @@ def make_rgb(
     interval=ManualInterval(vmin=0, vmax=None),
     stretch=LinearStretch(),
     filename=None,
-    output_image_format=np.uint8,
+    output_dtype=np.uint8,
 ):
     """
     Base class to return a Red/Green/Blue color image from 3 images using
@@ -192,8 +190,8 @@ def make_rgb(
     filename : str, optional
         Write the resulting RGB image to a file (file type determined
         from extension).
-    output_image_format : numpy scalar type, optional
-        Image output format. Default is np.uint8.
+    output_dtype : numpy scalar type, optional
+        Image output data type. Default is np.uint8.
 
     Returns
     -------
@@ -209,9 +207,7 @@ def make_rgb(
 
     """
     map_ = RGBImageMapping(interval=interval, stretch=stretch)
-    rgb = map_.make_rgb_image(
-        image_r, image_g, image_b, output_image_format=output_image_format
-    )
+    rgb = map_.make_rgb_image(image_r, image_g, image_b, output_dtype=output_dtype)
 
     if filename:
         import matplotlib.image

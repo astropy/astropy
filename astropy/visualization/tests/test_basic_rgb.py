@@ -80,9 +80,7 @@ def test_image_mapping():
     for i in range(3):
         interval.append(ManualInterval(vmin=MIN[i], vmax=MAX[i]))
     map_ = basic_rgb.RGBImageMapping(stretch=stretch, interval=interval)
-    rgb_image = map_.make_rgb_image(
-        IMAGER, IMAGEG, IMAGEB, output_image_format=np.float64
-    )
+    rgb_image = map_.make_rgb_image(IMAGER, IMAGEG, IMAGEB, output_dtype=np.float64)
     for i, (min_, max_, iref_) in enumerate(
         zip(
             [0.0, 0.0, 0.0],
@@ -108,7 +106,7 @@ def test_linear():
         IMAGEG,
         IMAGEB,
         interval=interval,
-        output_image_format=np.float64,
+        output_dtype=np.float64,
     )
     for i, (min_, max_, iref_) in enumerate(
         zip(
@@ -135,7 +133,7 @@ def test_log():
         IMAGEB,
         interval=interval,
         stretch=LogStretch(a=SCALEA),
-        output_image_format=np.float64,
+        output_dtype=np.float64,
     )
     for i, (min_, max_, iref_) in enumerate(
         zip(
@@ -162,7 +160,7 @@ def test_int8():
         IMAGEB,
         interval=interval,
         stretch=LogStretch(a=SCALEA),
-        output_image_format=np.uint8,
+        output_dtype=np.uint8,
     )
     assert np.issubdtype(rgb_image.dtype, np.uint8)
     if DISPLAY:
@@ -180,7 +178,7 @@ def test_float64():
         IMAGEB,
         interval=interval,
         stretch=LogStretch(a=SCALEA),
-        output_image_format=np.float64,
+        output_dtype=np.float64,
     )
     assert np.issubdtype(rgb_image.dtype, float)
     if DISPLAY:
@@ -194,7 +192,7 @@ def test_linear_min_max():
         IMAGEG,
         IMAGEB,
         interval=ManualInterval(vmin=None, vmax=None),
-        output_image_format=np.float64,
+        output_dtype=np.float64,
     )
     for i, (min_, max_, iref_) in enumerate(
         zip(
@@ -218,7 +216,7 @@ def test_log_min_max():
         IMAGEB,
         interval=ManualInterval(vmin=None, vmax=None),
         stretch=LogStretch(a=SCALEA),
-        output_image_format=np.float64,
+        output_dtype=np.float64,
     )
     for i, (min_, max_, iref_) in enumerate(
         zip(
@@ -242,7 +240,7 @@ def test_log_scalar_interval():
         IMAGEB,
         interval=ManualInterval(vmin=MINSC, vmax=MAXSC),
         stretch=LogStretch(a=SCALEA),
-        output_image_format=np.float64,
+        output_dtype=np.float64,
     )
     for i, (min_, max_, iref_) in enumerate(
         zip(
@@ -265,7 +263,7 @@ def test_linear_bw():
         IMAGER,
         IMAGER,
         interval=ManualInterval(vmin=MINSC, vmax=MAXSC),
-        output_image_format=np.float64,
+        output_dtype=np.float64,
     )
     for i, (min_, max_, iref_) in enumerate(
         zip(
@@ -289,7 +287,7 @@ def test_log_bw():
         IMAGER,
         interval=ManualInterval(vmin=MINSC, vmax=MAXSC),
         stretch=LogStretch(a=SCALEA),
-        output_image_format=np.float64,
+        output_dtype=np.float64,
     )
     for i, (min_, max_, iref_) in enumerate(
         zip(
@@ -362,17 +360,17 @@ def test_incorrect_interval_length():
 
 
 @pytest.mark.parametrize(("out_format"), INCORRECT_OUTPUT_TYPES)
-def test_invalid_output_image_format(out_format):
+def test_invalid_output_dtype(out_format):
     """Test incorrect output image format"""
     interval = []
     for i in range(3):
         interval.append(ManualInterval(vmin=MIN[i], vmax=MAX[i]))
-    with pytest.raises(ValueError, match=r"'output_image_format' must be one"):
+    with pytest.raises(ValueError, match=r"'output_dtype' must be one"):
         basic_rgb.make_rgb(
             IMAGER,
             IMAGEG,
             IMAGEB,
             interval=interval,
             stretch=LogStretch(a=SCALEA),
-            output_image_format=out_format,
+            output_dtype=out_format,
         )
