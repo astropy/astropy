@@ -12,7 +12,9 @@ from numpy.testing import assert_equal, assert_allclose
 
 from astropy.convolution import Gaussian2DKernel, convolve
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
-from astropy.visualization import lupton_rgb, LinearStretch
+from astropy.visualization import lupton_rgb
+from astropy.visualization.stretch import LinearStretch
+from astropy.visualization.interval import ManualInterval
 
 # Set display=True to get matplotlib imshow windows to help with debugging.
 display = False
@@ -124,8 +126,8 @@ class TestLuptonRgb:
         """Test creating an RGB image using an asinh stretch"""
 
         asinh_map = lupton_rgb.RGBImageMappingLupton(
-            minimum=self.min_,
-            stretch=lupton_rgb.AsinhLuptonStretch(self.stretch_, self.Q),
+            interval=ManualInterval(vmin=self.min_, vmax=None),
+            stretch=lupton_rgb.LuptonAsinhStretch(self.stretch_, self.Q),
         )
         rgb_image = asinh_map.make_rgb_image(self.image_r, self.image_g, self.image_b)
 
@@ -134,18 +136,18 @@ class TestLuptonRgb:
 
     def test_Asinh_incorrect_stretch_asserts(self):
         with pytest.raises(ValueError, match=r"Stretch must be non-negative"):
-            _ = lupton_rgb.AsinhLuptonStretch(-1.0, self.Q)
+            _ = lupton_rgb.LuptonAsinhStretch(-1.0, self.Q)
 
     def test_Asinh_incorrect_Q_asserts(self):
         with pytest.raises(ValueError, match=r"Q must be non-negative"):
-            _ = lupton_rgb.AsinhLuptonStretch(self.stretch_, -1.0)
+            _ = lupton_rgb.LuptonAsinhStretch(self.stretch_, -1.0)
 
     def test_Asinh_Q_machine_floor(self):
-        asinh_map = lupton_rgb.AsinhLuptonStretch(self.stretch_, 1.0e-24)
+        asinh_map = lupton_rgb.LuptonAsinhStretch(self.stretch_, 1.0e-24)
         assert_allclose(asinh_map.Q, 0.1)
 
     def test_Asinh_Q_ceil(self):
-        asinh_map = lupton_rgb.AsinhLuptonStretch(self.stretch_, 1e11)
+        asinh_map = lupton_rgb.LuptonAsinhStretch(self.stretch_, 1e11)
         assert_allclose(asinh_map.Q, 1e10)
 
     def test_AsinhZscale(self):
@@ -154,8 +156,8 @@ class TestLuptonRgb:
         using zscale
         """
         map_ = lupton_rgb.RGBImageMappingLupton(
-            minimum=self.min_,
-            stretch=lupton_rgb.AsinhZscaleLuptonStretch(
+            interval=ManualInterval(vmin=self.min_, vmax=None),
+            stretch=lupton_rgb.LuptonAsinhZscaleStretch(
                 [self.image_r, self.image_g, self.image_b], self.Q
             ),
         )
@@ -170,8 +172,8 @@ class TestLuptonRgb:
         using zscale on the intensity
         """
         map_ = lupton_rgb.RGBImageMappingLupton(
-            minimum=self.min_,
-            stretch=lupton_rgb.AsinhZscaleLuptonStretch(
+            interval=ManualInterval(vmin=self.min_, vmax=None),
+            stretch=lupton_rgb.LuptonAsinhZscaleStretch(
                 lupton_rgb.compute_intensity(self.image_r, self.image_g, self.image_b),
                 self.Q,
             ),
@@ -185,8 +187,8 @@ class TestLuptonRgb:
         """Test creating a black-and-white image using an asinh stretch
         estimated using zscale on the intensity"""
         map_ = lupton_rgb.RGBImageMappingLupton(
-            minimum=self.min_,
-            stretch=lupton_rgb.AsinhZscaleLuptonStretch(
+            interval=ManualInterval(vmin=self.min_, vmax=None),
+            stretch=lupton_rgb.LuptonAsinhZscaleStretch(
                 self.image_r,
                 self.Q,
             ),
@@ -201,8 +203,8 @@ class TestLuptonRgb:
         using zscale
         """
         map_ = lupton_rgb.RGBImageMappingLupton(
-            minimum=self.min_,
-            stretch=lupton_rgb.AsinhZscaleLuptonStretch(
+            interval=ManualInterval(vmin=self.min_, vmax=None),
+            stretch=lupton_rgb.LuptonAsinhZscaleStretch(
                 [self.image_r, self.image_g, self.image_b],
                 self.Q,
                 pedestal=[1.0, 1.0, 2.0],
@@ -219,8 +221,8 @@ class TestLuptonRgb:
         using zscale
         """
         map_ = lupton_rgb.RGBImageMappingLupton(
-            minimum=self.min_,
-            stretch=lupton_rgb.AsinhZscaleLuptonStretch(
+            interval=ManualInterval(vmin=self.min_, vmax=None),
+            stretch=lupton_rgb.LuptonAsinhZscaleStretch(
                 [self.image_r, self.image_g, self.image_b],
                 self.Q,
                 pedestal=1.0,
@@ -237,7 +239,7 @@ class TestLuptonRgb:
         using zscale
         """
         with pytest.raises(ValueError, match=r"pedestal must be 1 or 3 values"):
-            _ = lupton_rgb.AsinhZscaleLuptonStretch(
+            _ = lupton_rgb.LuptonAsinhZscaleStretch(
                 [self.image_r, self.image_g, self.image_b],
                 self.Q,
                 pedestal=[1.0, 2.0],
@@ -245,13 +247,11 @@ class TestLuptonRgb:
 
     def test_AsinhZscale_incorrect_input_asserts(self):
         with pytest.raises(ValueError, match=r"Input 'image' must be a single"):
-            _ = lupton_rgb.AsinhZscaleLuptonStretch(
-                [self.image_r, self.image_g], self.Q
-            )
+            _ = lupton_rgb.LuptonAsinhZscaleStretch([self.image_r, self.image_g], self.Q)
 
     def test_AsinhZscale_incorrect_input_nonimage_asserts(self):
         with pytest.raises(ValueError, match=r"Input 'image' must be a single"):
-            _ = lupton_rgb.AsinhZscaleLuptonStretch([1], self.Q)
+            _ = lupton_rgb.LuptonAsinhZscaleStretch([1], self.Q)
 
     @pytest.mark.skipif(not HAS_MATPLOTLIB, reason="requires matplotlib")
     def test_make_rgb(self, tmp_path):
@@ -293,7 +293,7 @@ class TestLuptonRgb:
         """Test using a specified linear stretch"""
 
         map_ = lupton_rgb.RGBImageMappingLupton(
-            minimum=self.min_,
+            interval=ManualInterval(vmin=self.min_, vmax=None),
             stretch=LinearStretch(-8.45, 13.44),
         )
         rgb_image = map_.make_rgb_image(self.image_r, self.image_g, self.image_b)
