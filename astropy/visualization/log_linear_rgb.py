@@ -11,11 +11,8 @@ The three images must be aligned and have the same pixel scale and size.
 
 import numpy as np
 
-from astropy.visualization import (
-    LinearStretch,
-    LogStretch,
-    ManualInterval,
-)
+from astropy.visualization.interval import ManualInterval
+from astropy.visualization.stretch import LinearStretch, LogStretch
 
 _OUTPUT_IMAGE_FORMATS = [float, np.float64, np.uint8]
 
