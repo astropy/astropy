@@ -1,10 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Combine 3 images to produce a properly-scaled RGB images with either
-log or linear scaling.
-
-Complementary to (and code structure inspired by)
-astropy.visualization.make_lupton_rgb.
+Combine 3 images to produce properly-scaled RGB images with arbitrary scaling.
 
 The three images must be aligned and have the same pixel scale and size.
 """

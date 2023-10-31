@@ -15,7 +15,7 @@ from astropy.visualization.interval import ZScaleInterval
 from astropy.visualization.stretch import BaseStretch
 from astropy.visualization.stretch import _prepare as _stretch_prepare
 
-from .log_linear_rgb import RGBImageMapping
+from .basic_rgb import RGBImageMapping
 
 __all__ = ["make_lupton_rgb", "AsinhLuptonStretch", "AsinhZscaleLuptonStretch"]
 
