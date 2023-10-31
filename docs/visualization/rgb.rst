@@ -93,101 +93,35 @@ of the galaxies show up. Compare with Fig. 1 of `Lupton et al. (2004)`_ or the
 .. _SDSS Skyserver image: https://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra=313.12381&dec=-5.74611
 
 
-.. _astropy-visualization-rgb-log-linear:
+.. _astropy-visualization-rgb-arbitrary:
 
-RGB images using logarithmic stretching
-=======================================
+RGB images using arbitrary stretching
+=====================================
 
-Numerous other methods for generating composite RGB images are possible.
-An alternative choice is using a logarithmic stretch, combined
-with optional data clipping and normalization (e.g., as often used in DS9 or
-other data viewers).
+Numerous other methods for generating composite RGB images are possible. 
+Alternative choices include using e.g., linear or logarithmic stretches, 
+combined with optional data clipping and normalization (e.g., as often used 
+in DS9 orother data viewers).
 
 The image stretching and normalization methods for single images are
 demonstrated in :ref:`astropy-visualization-stretchnorm`.
-These scaling are extended to the generation of RGB images in the
-convenience wrapper function :func:`~astropy.visualization.make_log_rgb`. 
+These scaling are extended to the generation of RGB images using the 
+convenience function:func:`~astropy.visualization.make_rgb`, which takes an 
+instance of a subclass of :class:`~astropy.visualization.BaseStretch` in 
+addition to ``minimum`` and ``maximum`` to specify the normalization. 
+By default, :func:`~astropy.visualization.make_rgb` uses as linear 
+stretch (:class:`~astropy.visualization.LinearStretch`)
 
 As with :func:`~astropy.visualization.make_lupton_rgb`, the three images must
 be aligned, with the same size and pixel scales. The keywords 
 ``minimum`` and ``maximum`` specify the normalization (if any) and the
 black and white levels, respectively. Both parameters can be either a scalar,
 applying the same normalization to each filter, or can be a length-3 array
-separately specifying the per-filter minimum or maximum values.
-Logarithmic scaling also requires ``scalea``, with the stretch of values
-calculated as
-
-.. math::
-
-    y = \frac{\log{(a x + 1)}}{\log{(a + 1)}}
+separately specifying the per-filter minimum or maximum values. 
 
 Following the above example, we generate a composite RGB image using the
 ``g``, ``r``, ``i`` SDSS frames around the Hickson 88 group,
-now using a logarithmic scaling.
-
-.. plot::
-   :context: reset
-   :include-source:
-   :align: center
-
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from astropy.visualization import make_log_rgb
-    from astropy.io import fits
-    from astropy.utils.data import get_pkg_data_filename
-
-    # Read in the three images downloaded from here:
-    g_name = get_pkg_data_filename('visualization/reprojected_sdss_g.fits.bz2')
-    r_name = get_pkg_data_filename('visualization/reprojected_sdss_r.fits.bz2')
-    i_name = get_pkg_data_filename('visualization/reprojected_sdss_i.fits.bz2')
-    g = fits.getdata(g_name)
-    r = fits.getdata(r_name)
-    i = fits.getdata(i_name)
-
-    # Use the maximum value of the 99.95% percentile over all three filters
-    # as the maximum value:
-    pctl = 99.95
-    maximum = 0.
-    for img in [i,r,g]:
-        val = np.percentile(img,pctl)
-        if val > maximum:
-            maximum = val
-
-    rgb_log = make_log_rgb(i, r, g, minimum=0., maximum=maximum, scalea=1000,
-                           filename="ngc6976-log.jpeg")
-    plt.imshow(rgb_log, origin='lower')
-
-By specifying per-filter maximum values, it is possible to emphasize
-certain objects, such as the very reddest sources:
-
-.. plot::
-   :context:
-   :include-source:
-   :align: center
-
-    # Increase the red maximum to emphasize the very reddest sources:
-    maximum = 3 * [maximum]
-    maximum[0] = 30.
-    rgb_log = make_log_rgb(i, r, g, minimum=0, maximum=maximum, scalea=1000,
-                           filename="ngc6976-log-alt.jpeg")
-    plt.imshow(rgb_log, origin='lower')
-
-
-
-.. _astropy-visualization-rgb-user-stretch:
-
-RGB images using user-specified stretch
-=======================================
-
-
-It is also possible to specify a different scaling to be applied to all
-three RGB images separately using the convenience function
-:func:`~astropy.visualization.make_rgb`, which takes an instance of
-a subclass of :class:`~astropy.visualization.BaseStretch` in addition to
-``minimum`` and ``maximum`` to specify the normalization.
-
-By default, :func:`~astropy.visualization.make_rgb` uses as linear 
-stretch (:class:`~astropy.visualization.LinearStretch`)
+now using a linear scaling. 
 
 .. plot::
    :context: reset
@@ -221,7 +155,55 @@ stretch (:class:`~astropy.visualization.LinearStretch`)
     plt.imshow(rgb, origin='lower')
 
 
-An alternative example using a square root stretch is as follows:
+
+For images with high dynamic range, logarithmic stretches with values 
+calculated as 
+
+.. math::
+
+    y = \frac{\log{(a x + 1)}}{\log{(a + 1)}}
+
+can be beneficial. In this case, the a stretch instance of 
+:class:`~astropy.visualization.LogStretch` is directly passed: 
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    from astropy.visualization import LogStretch
+
+    # Use the maximum value of the 99.95% percentile over all three filters
+    # as the maximum value:
+    pctl = 99.95
+    maximum = 0.
+    for img in [i,r,g]:
+        val = np.percentile(img,pctl)
+        if val > maximum:
+            maximum = val
+
+    rgb_log = make_rgb(i, r, g, minimum=0., maximum=maximum, 
+                       stretch=LogStretch(a=1000), filename="ngc6976-log.jpeg")
+    plt.imshow(rgb_log, origin='lower')
+
+By specifying per-filter maximum values, it is possible to emphasize
+certain objects, such as the very reddest sources:
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    # Increase the red maximum to emphasize the very reddest sources:
+    maximum = 3 * [maximum]
+    maximum[0] = 30.
+    rgb_log = make_rgb(i, r, g, minimum=0, maximum=maximum, 
+                       stretch=LogStretch(a=1000), 
+                       filename="ngc6976-log-alt.jpeg")
+    plt.imshow(rgb_log, origin='lower')
+
+
+Other stretches, such as square root, can also be used: 
 
 .. plot::
    :context: 
