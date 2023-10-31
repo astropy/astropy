@@ -47,7 +47,7 @@ To generate a color PNG file with the default (arcsinh) scaling:
 
 This method requires that the three images be aligned and have the same pixel
 scale and size. Changing the ``interval`` from the default of an instance of 
-:func:`~astropy.visualization.ManualInterval`  with ``vmin=0``(alternatively, 
+:func:`~astropy.visualization.ManualInterval`  with ``vmin=0`` (alternatively, 
 passing the keyword ``minimum``) will change the black level. The parameters 
 ``stretch`` and ``Q`` will change how the values between black and white are 
 scaled.
