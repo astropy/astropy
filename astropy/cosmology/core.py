@@ -96,7 +96,7 @@ class Cosmology(metaclass=abc.ABCMeta):
     write = UnifiedReadWriteMethod(CosmologyWrite)
 
     # Parameters
-    parameters = ParametersAttribute()
+    parameters = ParametersAttribute(attr_name="_parameters")
     """Immutable mapping of the Parameters.
 
     If accessed from the class, this returns a mapping of the Parameter
@@ -104,7 +104,7 @@ class Cosmology(metaclass=abc.ABCMeta):
     mapping of the values of the Parameters.
     """
 
-    derived_parameters = ParametersAttribute()
+    _derived_parameters = ParametersAttribute(attr_name="_parameters_derived")
     """Immutable mapping of the derived Parameters.
 
     If accessed from the class, this returns a mapping of the Parameter
@@ -113,7 +113,7 @@ class Cosmology(metaclass=abc.ABCMeta):
     """
 
     _parameters: ClassVar = MappingProxyType[str, Parameter]({})
-    _derived_parameters: ClassVar = MappingProxyType[str, Parameter]({})
+    _parameters_derived: ClassVar = MappingProxyType[str, Parameter]({})
     _parameters_all: ClassVar = frozenset[str]()
 
     # ---------------------------------------------------------------
@@ -141,8 +141,8 @@ class Cosmology(metaclass=abc.ABCMeta):
             if n in params
         }
         cls._parameters = MappingProxyType(ordered | params)
-        cls._derived_parameters = MappingProxyType(derived_params)
-        cls._parameters_all = frozenset(cls.parameters).union(cls.derived_parameters)
+        cls._parameters_derived = MappingProxyType(derived_params)
+        cls._parameters_all = frozenset(cls._parameters).union(cls._parameters_derived)
 
         # -------------------
         # Registration
@@ -440,7 +440,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     """
 
     _parameters: ClassVar[MappingProxyType[str, Parameter]]
-    _derived_parameters: ClassVar[MappingProxyType[str, Parameter]]
+    _parameters_derived: ClassVar[MappingProxyType[str, Parameter]]
 
     def __init_subclass__(cls: type[_FlatCosmoT]) -> None:
         super().__init_subclass__()
