@@ -7,7 +7,7 @@ The three images must be aligned and have the same pixel scale and size.
 
 import numpy as np
 
-from astropy.visualization.interval import MinMaxInterval
+from astropy.visualization.interval import ManualInterval
 from astropy.visualization.stretch import LinearStretch
 
 _OUTPUT_IMAGE_FORMATS = [float, np.float64, np.uint8]
@@ -26,14 +26,16 @@ class RGBImageMapping:
     interval : `~astropy.visualization.BaseInterval` subclass instance or array-like, optional
         The interval object to apply to the data (either a single instance or
         an array for R, G, B). Default is
-        `~astropy.visualization.MinMaxInterval`.
+        `~astropy.visualization.ManualInterval`.
     stretch : `~astropy.visualization.BaseStretch` subclass instance, optional
         The stretch object to apply to the data. Default is
         `~astropy.visualization.LinearStretch`.
 
     """
 
-    def __init__(self, interval=MinMaxInterval(), stretch=LinearStretch()):
+    def __init__(
+        self, interval=ManualInterval(vmin=0, vmax=None), stretch=LinearStretch()
+    ):
         try:
             len(interval)
         except TypeError:
@@ -157,7 +159,7 @@ def make_rgb(
     image_r,
     image_g,
     image_b,
-    interval=MinMaxInterval(),
+    interval=ManualInterval(vmin=0, vmax=None),
     stretch=LinearStretch(),
     filename=None,
     output_image_format=np.uint8,
@@ -183,7 +185,7 @@ def make_rgb(
     interval : `~astropy.visualization.BaseInterval` subclass instance or array-like, optional
         The interval object to apply to the data (either a single instance or
         an array for R, G, B). Default is
-        `~astropy.visualization.MinMaxInterval`.
+        `~astropy.visualization.ManualInterval` with vmin=0.
     stretch : `~astropy.visualization.BaseStretch` subclass instance, optional
         The stretch object to apply to the data. Default is
         `~astropy.visualization.LinearStretch`.

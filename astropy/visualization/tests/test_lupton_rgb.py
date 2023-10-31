@@ -261,10 +261,11 @@ class TestLuptonRgb:
             self.image_r,
             self.image_g,
             self.image_b,
-            self.min_,
-            self.stretch_,
-            self.Q,
+            stretch=self.stretch_,
+            Q=self.Q,
+            minimum=self.min_,
             filename=temp,
+        )
         assert temp.exists()
 
     def test_make_rgb_saturated_fix(self, tmp_path):
@@ -280,14 +281,13 @@ class TestLuptonRgb:
             red,
             green,
             blue,
-            self.min_,
-            self.stretch_,
-            self.Q,
+            minimum=self.min_,
+            stretch=self.stretch_,
+            Q=self.Q,
             saturated_border_width=1,
             saturated_pixel_value=2000,
             filename=temp,
         )
-
 
     def test_linear(self):
         """Test using a specified linear stretch"""
