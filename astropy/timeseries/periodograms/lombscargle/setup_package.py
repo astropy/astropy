@@ -5,17 +5,14 @@ import os
 import numpy
 from setuptools import Extension
 
-BLS_ROOT = os.path.relpath(os.path.dirname(__file__))
+ROOT = os.path.relpath(os.path.dirname(__file__))
 
 
 def get_extensions():
     ext = Extension(
-        "astropy.timeseries.periodograms.bls._impl",
+        "astropy.timeseries.periodograms.lombscargle.implementations.cython_impl",
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
-        sources=[
-            os.path.join(BLS_ROOT, "bls.c"),
-            os.path.join(BLS_ROOT, "_impl.pyx"),
-        ],
+        sources=[os.path.join(ROOT, "implementations", "cython_impl.pyx")],
         include_dirs=[numpy.get_include()],
     )
     return [ext]
