@@ -417,6 +417,7 @@ ignore = [
     "PC111", # ignore using `blacken-docs` in pre-commit
     "PC140", # ignore using `mypy` in pre-commit
     "PC180", # ignore using `prettier` in pre-commit
+    "PC901", # ignore using custom update message (we have many of the default ones in our history already)
     "PP308", # ignore requiring `-ra` flag for pytest, astropy's test suite is too large for this to be useful
 ]
 
