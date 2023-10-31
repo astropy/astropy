@@ -10,7 +10,6 @@ For details, see : https://ui.adsabs.harvard.edu/abs/2004PASP..116..133L
 
 import numpy as np
 
-
 from astropy.visualization.interval import ManualInterval, ZScaleInterval
 from astropy.visualization.stretch import BaseStretch
 from astropy.visualization.stretch import _prepare as _stretch_prepare

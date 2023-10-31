@@ -5,13 +5,13 @@ import sys
 import tempfile
 
 import numpy as np
-from numpy.testing import assert_allclose
 import pytest
+from numpy.testing import assert_allclose
 
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB, HAS_PLT
-from astropy.visualization.stretch import LinearStretch, LogStretch
-from astropy.visualization.interval import ManualInterval
 from astropy.visualization import basic_rgb
+from astropy.visualization.interval import ManualInterval
+from astropy.visualization.stretch import LinearStretch, LogStretch
 
 # Set DISPLAY=True to get matplotlib imshow windows to help with debugging.
 DISPLAY = False
