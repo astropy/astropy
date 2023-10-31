@@ -157,8 +157,6 @@ def make_rgb(
     image_r,
     image_g,
     image_b,
-    minimum=None,
-    maximum=None,
     interval=MinMaxInterval(),
     stretch=LinearStretch(),
     filename=None,
