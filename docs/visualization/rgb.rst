@@ -69,9 +69,9 @@ it with Figure 1 of `Lupton et al. (2004)`_:
     g_name = get_pkg_data_filename('visualization/reprojected_sdss_g.fits.bz2')
     r_name = get_pkg_data_filename('visualization/reprojected_sdss_r.fits.bz2')
     i_name = get_pkg_data_filename('visualization/reprojected_sdss_i.fits.bz2')
-    g = fits.open(g_name)[0].data
-    r = fits.open(r_name)[0].data
-    i = fits.open(i_name)[0].data
+    g = fits.getdata(g_name)
+    r = fits.getdata(r_name)
+    i = fits.getdata(i_name)
 
     rgb_default = make_lupton_rgb(i, r, g, filename="ngc6976-default.jpeg")
     plt.imshow(rgb_default, origin='lower')
@@ -141,9 +141,9 @@ now using a logarithmic scaling.
     g_name = get_pkg_data_filename('visualization/reprojected_sdss_g.fits.bz2')
     r_name = get_pkg_data_filename('visualization/reprojected_sdss_r.fits.bz2')
     i_name = get_pkg_data_filename('visualization/reprojected_sdss_i.fits.bz2')
-    g = fits.open(g_name)[0].data
-    r = fits.open(r_name)[0].data
-    i = fits.open(i_name)[0].data
+    g = fits.getdata(g_name)
+    r = fits.getdata(r_name)
+    i = fits.getdata(i_name)
 
     # Use the maximum value of the 99.95% percentile over all three filters
     # as the maximum value:
@@ -229,9 +229,9 @@ a subclass of :class:`~astropy.visualization.BaseStretch` in addition to
     g_name = get_pkg_data_filename('visualization/reprojected_sdss_g.fits.bz2')
     r_name = get_pkg_data_filename('visualization/reprojected_sdss_r.fits.bz2')
     i_name = get_pkg_data_filename('visualization/reprojected_sdss_i.fits.bz2')
-    g = fits.open(g_name)[0].data
-    r = fits.open(r_name)[0].data
-    i = fits.open(i_name)[0].data
+    g = fits.getdata(g_name)
+    r = fits.getdata(r_name)
+    i = fits.getdata(i_name)
 
     # Use the maximum value of the 99.8% percentile over all three filters
     # as the maximum value:
