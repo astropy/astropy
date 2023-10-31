@@ -46,8 +46,10 @@ To generate a color PNG file with the default (arcsinh) scaling:
     plt.imshow(image)
 
 This method requires that the three images be aligned and have the same pixel
-scale and size. Changing ``minimum`` will change the black level, while
-``stretch`` and ``Q`` will change how the values between black and white are
+scale and size. Changing the ``interval`` from the default of an instance of 
+:func:`~astropy.visualization.ManualInterval`  with ``vmin=0``(alternatively, 
+passing the keyword ``minimum``) will change the black level. The parameters 
+``stretch`` and ``Q`` will change how the values between black and white are 
 scaled.
 
 For a more in-depth example, download the ``g``, ``r``, ``i`` SDSS frames
@@ -106,18 +108,19 @@ in DS9 orother data viewers).
 The image stretching and normalization methods for single images are
 demonstrated in :ref:`astropy-visualization-stretchnorm`.
 These scaling are extended to the generation of RGB images using the 
-convenience function:func:`~astropy.visualization.make_rgb`, which takes an 
+convenience function :func:`~astropy.visualization.make_rgb`, which takes an 
 instance of a subclass of :class:`~astropy.visualization.BaseStretch` in 
-addition to ``minimum`` and ``maximum`` to specify the normalization. 
-By default, :func:`~astropy.visualization.make_rgb` uses as linear 
-stretch (:class:`~astropy.visualization.LinearStretch`)
+addition to either an instance of a subclass of 
+:class:`~astropy.visualization.BaseInterval` to specify the normalization, 
+or a length-3 array of such instances (to separately specify the per-filter 
+intervals). 
 
-As with :func:`~astropy.visualization.make_lupton_rgb`, the three images must
-be aligned, with the same size and pixel scales. The keywords 
-``minimum`` and ``maximum`` specify the normalization (if any) and the
-black and white levels, respectively. Both parameters can be either a scalar,
-applying the same normalization to each filter, or can be a length-3 array
-separately specifying the per-filter minimum or maximum values. 
+By default, :func:`~astropy.visualization.make_rgb` uses as linear 
+stretch (:class:`~astropy.visualization.LinearStretch`) and 
+a one-sided manual interval (:class:`~astropy.visualization.ManualInterval`, 
+with ``vmin=0``). As with :func:`~astropy.visualization.make_lupton_rgb`, 
+the three images mustbe aligned, with the same size and pixel scales.
+
 
 Following the above example, we generate a composite RGB image using the
 ``g``, ``r``, ``i`` SDSS frames around the Hickson 88 group,
