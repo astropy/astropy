@@ -335,7 +335,7 @@ def make_lupton_rgb(
     stretch=5,
     Q=8,
     filename=None,
-    output_image_format=np.uint8,
+    output_dtype=np.uint8,
 ):
     r"""
     Return a Red/Green/Blue color image from 3 images using an asinh stretch,
@@ -375,8 +375,8 @@ def make_lupton_rgb(
     filename : str, optional
         Write the resulting RGB image to a file (file type determined
         from extension).
-    output_image_format : numpy scalar type, optional
-        Image output format. Default is np.uint8.
+    output_dtype : numpy scalar type, optional
+        Image output data type. Default is np.uint8.
 
     Returns
     -------
@@ -409,9 +409,7 @@ def make_lupton_rgb(
         interval=interval,
         stretch=stretch_object,
     )
-    rgb = lup_map.make_rgb_image(
-        image_r, image_g, image_b, output_image_format=output_image_format
-    )
+    rgb = lup_map.make_rgb_image(image_r, image_g, image_b, output_dtype=output_dtype)
 
     if filename:
         import matplotlib.image
