@@ -130,7 +130,7 @@ now using a linear scaling.
 
     import numpy as np
     import matplotlib.pyplot as plt
-    from astropy.visualization import make_rgb
+    from astropy.visualization import make_rgb, ManualInterval
     from astropy.io import fits
     from astropy.utils.data import get_pkg_data_filename
 
@@ -150,8 +150,8 @@ now using a linear scaling.
         val = np.percentile(img,pctl)
         if val > maximum:
             maximum = val
-    rgb = make_rgb(i, r, g, minimum=0, maximum=maximum,
-                              filename="ngc6976-linear.jpeg")
+    rgb = make_rgb(i, r, g, interval=ManualInterval(vmin=0, vmax=maximum), 
+                   filename="ngc6976-linear.jpeg")
     plt.imshow(rgb, origin='lower')
 
 
@@ -182,7 +182,7 @@ can be beneficial. In this case, the a stretch instance of
         if val > maximum:
             maximum = val
 
-    rgb_log = make_rgb(i, r, g, minimum=0., maximum=maximum, 
+    rgb_log = make_rgb(i, r, g, interval=ManualInterval(vmin=0, vmax=maximum), 
                        stretch=LogStretch(a=1000), filename="ngc6976-log.jpeg")
     plt.imshow(rgb_log, origin='lower')
 
@@ -195,10 +195,9 @@ certain objects, such as the very reddest sources:
    :align: center
 
     # Increase the red maximum to emphasize the very reddest sources:
-    maximum = 3 * [maximum]
-    maximum[0] = 30.
-    rgb_log = make_rgb(i, r, g, minimum=0, maximum=maximum, 
-                       stretch=LogStretch(a=1000), 
+    intervals = 3 * [ManualInterval(vmin=0, vmax=maximum)]
+    intervals[0] = ManualInterval(vmin=0, vmax=30.)
+    rgb_log = make_rgb(i, r, g, interval=intervals, stretch=LogStretch(a=1000), 
                        filename="ngc6976-log-alt.jpeg")
     plt.imshow(rgb_log, origin='lower')
 
@@ -221,6 +220,6 @@ Other stretches, such as square root, can also be used:
         if val > maximum:
             maximum = val
 
-    rgb_sqrt = make_rgb(i, r, g, minimum=0., maximum=maximum,
+    rgb_sqrt = make_rgb(i, r, g, interval=ManualInterval(vmin=0, vmax=maximum), 
                         stretch=SqrtStretch(), filename="ngc6976-sqrt.jpeg")
     plt.imshow(rgb_sqrt, origin='lower')
