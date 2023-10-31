@@ -28,6 +28,8 @@ from astropy.utils.exceptions import AstropyWarning
 
 from . import core
 
+np.import_array()
+
 
 cdef extern from "src/tokenizer.h":
     ctypedef enum tokenizer_state:

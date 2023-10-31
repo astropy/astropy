@@ -189,7 +189,7 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
     PyObject* all_masked_obj = NULL;
     PyObject* str_val = NULL;
     PyObject* tmp = NULL;
-    CHAR* str_tmp = NULL;
+    const CHAR* str_tmp = NULL;
     Py_ssize_t str_len = 0;
     int* supports_empty_values = NULL;
     PyObject* result = 0;
