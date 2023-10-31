@@ -10,12 +10,14 @@ For details, see : https://ui.adsabs.harvard.edu/abs/2004PASP..116..133L
 
 import numpy as np
 
-from astropy.visualization import BaseStretch, ZScaleInterval
+
+from astropy.visualization.interval import ManualInterval, ZScaleInterval
+from astropy.visualization.stretch import BaseStretch
 from astropy.visualization.stretch import _prepare as _stretch_prepare
 
-from .log_linear_rgb import RGBImageMapping
+from .basic_rgb import RGBImageMapping
 
-__all__ = ["make_lupton_rgb", "AsinhLuptonStretch", "AsinhZscaleLuptonStretch"]
+__all__ = ["make_lupton_rgb", "LuptonAsinhStretch", "LuptonAsinhZscaleStretch"]
 
 
 def compute_intensity(image_r, image_g=None, image_b=None):
@@ -42,8 +44,7 @@ def compute_intensity(image_r, image_g=None, image_b=None):
     if image_g is None or image_b is None:
         if not (image_g is None and image_b is None):
             raise ValueError(
-                "please specify either a single image or red, green, and "
-                "blue images."
+                "please specify either a single image or red, green, and blue images."
             )
         return image_r
 
@@ -53,15 +54,17 @@ def compute_intensity(image_r, image_g=None, image_b=None):
     return np.asarray(intensity, dtype=image_r.dtype)
 
 
-class AsinhLuptonStretch(BaseStretch):
+class LuptonAsinhStretch(BaseStretch):
     r"""
-    A mapping for an asinh stretch, with some changes to the constants
+    A modified asinh stretch, with some changes to the constants
     relative to `~astropy.visualization.AsinhStretch`.
 
     The stretch is given by:
 
     .. math::
-        y = \frac{{\rm asinh}(Q x / stretch)}{frac/{\rm asinh}(frac Q)}.
+        & y = {\rm asinh}\left(\frac{Q * x}{stretch}\right) *
+        \frac{frac}{{\rm asinh}(frac * Q)} \\
+        & frac = 0.1
 
     Parameters
     ----------
@@ -112,15 +115,18 @@ class AsinhLuptonStretch(BaseStretch):
         return values
 
 
-class AsinhZscaleLuptonStretch(AsinhLuptonStretch):
+class LuptonAsinhZscaleStretch(LuptonAsinhStretch):
     r"""
-    A mapping for an asinh stretch, estimating the linear stretch by zscale.
+    A modified asinh stretch, where the linear stretch is calculated using
+    zscale.
 
     The stretch is given by:
 
     .. math::
-        y = \frac{{\rm asinh}(Q x / stretch)}{frac/{\rm asinh}(frac Q)}.
-        stretch = z2 - z1
+        & y = {\rm asinh}\left(\frac{Q * x}{stretch}\right) *
+        \frac{frac}{{\rm asinh}(frac * Q)} \\
+        & frac = 0.1 \\
+        & stretch = z2 - z1
 
     Parameters
     ----------
@@ -194,17 +200,22 @@ class RGBImageMappingLupton(RGBImageMapping):
 
     Parameters
     ----------
-    minimum : float or array-like, shape(3), optional
-        Intensity that should be mapped to black (a scalar or
-        array for R, G, B).
+    interval : `~astropy.visualization.BaseInterval` subclass instance or array-like, optional
+        The interval object to apply to the data (either a single instance or
+        an array for R, G, B). Default is
+        `~astropy.visualization.ManualInterval`.
     stretch : `~astropy.visualization.BaseStretch` subclass instance
         The stretch object to apply to the data. The default is
         `~astropy.visualization.AsinhLuptonStretch`.
 
     """
 
-    def __init__(self, minimum=None, stretch=AsinhLuptonStretch(stretch=5, Q=8)):
-        super().__init__(minimum=minimum, maximum=None, stretch=stretch)
+    def __init__(
+        self,
+        interval=ManualInterval(vmin=0, vmax=None),
+        stretch=LuptonAsinhStretch(stretch=5, Q=8),
+    ):
+        super().__init__(interval=interval, stretch=stretch)
         self._pixmax = 1.0
 
     def intensity(self, image_r, image_g, image_b):
@@ -318,12 +329,13 @@ def make_lupton_rgb(
     image_r,
     image_g,
     image_b,
-    minimum=0,
+    interval=None,
+    stretch_object=None,
+    minimum=None,
     stretch=5,
     Q=8,
     filename=None,
-    stretch_object=None,
-    output_image_format=np.uint8,
+    output_dtype=np.uint8,
 ):
     r"""
     Return a Red/Green/Blue color image from 3 images using an asinh stretch,
@@ -341,10 +353,21 @@ def make_lupton_rgb(
         Image to map to green.
     image_b : ndarray
         Image to map to blue.
+    interval : `~astropy.visualization.BaseInterval` subclass instance or array-like, optional
+        The interval object to apply to the data (either a single instance or
+        an array for R, G, B). Default is
+        `~astropy.visualization.ManualInterval` with vmin=0.
+    stretch_object : `~astropy.visualization.BaseStretch` subclass instance, optional
+        The stretch object to apply to the data. If set, the input values of
+        ``minimum``, ``stretch``, and ``Q`` will be ignored.
+        For the Lupton scheme, this would be an instance of
+        `~astropy.visualization.LuptonAsinhStretch`, but alternatively
+        `~astropy.visualization.LuptonAsinhZscaleStretch` or some other
+        stretch can be used.
     minimum : float or array-like, optional
-        Intensity that should be mapped to black (a scalar or
+        Deprecated. Intensity that should be mapped to black (a scalar or
         array of R, G, B). If `None`, each image's minimum value is used.
-        Default is 0.
+        Default is None.
     stretch : float, optional
         The linear stretch of the image. Default is 5
     Q : float, optional
@@ -352,15 +375,8 @@ def make_lupton_rgb(
     filename : str, optional
         Write the resulting RGB image to a file (file type determined
         from extension).
-    stretch_object : `~astropy.visualization.BaseStretch` subclass instance, optional
-        The stretch object to apply to the data. If set, the input values of
-        ``minimum``, ``stretch``, and ``Q`` will be ignored.
-        For the Lupton scheme, this would be an instance of
-        `~astropy.visualization.AsinhLuptonStretch`, but alternatively
-        `~astropy.visualization.AsinhZscaleLuptonStretch` or some other
-        stretch can be used.
-    output_image_format : numpy scalar type, optional
-        Image output format. Default is np.uint8.
+    output_dtype : numpy scalar type, optional
+        Image output data type. Default is np.uint8.
 
     Returns
     -------
@@ -370,15 +386,30 @@ def make_lupton_rgb(
 
     """
     if stretch_object is None:
-        stretch_object = AsinhLuptonStretch(stretch=stretch, Q=Q)
+        stretch_object = LuptonAsinhStretch(stretch=stretch, Q=Q)
+
+    if interval is None:
+        # Only use minimum if interval is not specified:
+        if minimum is not None:
+            # Backwards compatibility:
+            try:
+                len(minimum)
+            except TypeError:
+                minimum = 3 * [minimum]
+            if len(minimum) != 3:
+                raise ValueError("please provide 1 or 3 values for minimum.")
+            interval = []
+            for i in range(3):
+                interval.append(ManualInterval(vmin=minimum[i], vmax=None))
+        else:
+            # Default option:
+            interval = ManualInterval(vmin=0, vmax=None)
 
     lup_map = RGBImageMappingLupton(
-        minimum=minimum,
+        interval=interval,
         stretch=stretch_object,
     )
-    rgb = lup_map.make_rgb_image(
-        image_r, image_g, image_b, output_image_format=output_image_format
-    )
+    rgb = lup_map.make_rgb_image(image_r, image_g, image_b, output_dtype=output_dtype)
 
     if filename:
         import matplotlib.image
