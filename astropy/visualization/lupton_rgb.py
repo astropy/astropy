@@ -11,7 +11,7 @@ For details, see : https://ui.adsabs.harvard.edu/abs/2004PASP..116..133L
 import numpy as np
 
 
-from astropy.visualization.interval import ZScaleInterval
+from astropy.visualization.interval import ManualInterval, ZScaleInterval
 from astropy.visualization.stretch import BaseStretch
 from astropy.visualization.stretch import _prepare as _stretch_prepare
 
@@ -199,17 +199,22 @@ class RGBImageMappingLupton(RGBImageMapping):
 
     Parameters
     ----------
-    minimum : float or array-like, shape(3), optional
-        Intensity that should be mapped to black (a scalar or
-        array for R, G, B).
+    interval : `~astropy.visualization.BaseInterval` subclass instance or array-like, optional
+        The interval object to apply to the data (either a single instance or
+        an array for R, G, B). Default is
+        `~astropy.visualization.ManualInterval`.
     stretch : `~astropy.visualization.BaseStretch` subclass instance
         The stretch object to apply to the data. The default is
         `~astropy.visualization.AsinhLuptonStretch`.
 
     """
 
-    def __init__(self, minimum=None, stretch=AsinhLuptonStretch(stretch=5, Q=8)):
-        super().__init__(minimum=minimum, maximum=None, stretch=stretch)
+    def __init__(
+        self,
+        interval=ManualInterval(vmin=0, vmax=None),
+        stretch=AsinhLuptonStretch(stretch=5, Q=8),
+    ):
+        super().__init__(interval=interval, stretch=stretch)
         self._pixmax = 1.0
 
     def intensity(self, image_r, image_g, image_b):
@@ -377,8 +382,18 @@ def make_lupton_rgb(
     if stretch_object is None:
         stretch_object = AsinhLuptonStretch(stretch=stretch, Q=Q)
 
+    try:
+        len(minimum)
+    except TypeError:
+        minimum = 3 * [minimum]
+    if len(minimum) != 3:
+        raise ValueError("please provide 1 or 3 values for minimum.")
+    interval = []
+    for i in range(3):
+        interval.append(ManualInterval(vmin=minimum[i], vmax=None))
+
     lup_map = RGBImageMappingLupton(
-        minimum=minimum,
+        interval=interval,
         stretch=stretch_object,
     )
     rgb = lup_map.make_rgb_image(

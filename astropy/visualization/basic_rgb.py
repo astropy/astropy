@@ -7,7 +7,7 @@ The three images must be aligned and have the same pixel scale and size.
 
 import numpy as np
 
-from astropy.visualization.interval import ManualInterval
+from astropy.visualization.interval import MinMaxInterval
 from astropy.visualization.stretch import LinearStretch
 
 _OUTPUT_IMAGE_FORMATS = [float, np.float64, np.uint8]
@@ -23,38 +23,25 @@ class RGBImageMapping:
 
     Parameters
     ----------
-    minimum : float or array-like, optional
-        Intensity that should be mapped to black (a scalar or
-        array of R, G, B).
-    maximum : float or array-like, optional
-        Intensity that should be mapped to white (a scalar
-        or array of R, G, B).
-    stretch : `~astropy.visualization.BaseStretch` subclass instance
+    interval : `~astropy.visualization.BaseInterval` subclass instance or array-like, optional
+        The interval object to apply to the data (either a single instance or
+        an array for R, G, B). Default is
+        `~astropy.visualization.MinMaxInterval`.
+    stretch : `~astropy.visualization.BaseStretch` subclass instance, optional
         The stretch object to apply to the data. Default is
         `~astropy.visualization.LinearStretch`.
 
     """
 
-    def __init__(self, minimum=None, maximum=None, stretch=LinearStretch):
+    def __init__(self, interval=MinMaxInterval(), stretch=LinearStretch()):
         try:
-            len(minimum)
+            len(interval)
         except TypeError:
-            minimum = 3 * [minimum]
-        if len(minimum) != 3:
-            raise ValueError("please provide 1 or 3 values for minimum.")
+            interval = 3 * [interval]
+        if len(interval) != 3:
+            raise ValueError("please provide 1 or 3 instances for interval.")
 
-        try:
-            len(maximum)
-        except TypeError:
-            maximum = 3 * [maximum]
-        if len(maximum) != 3:
-            raise ValueError("please provide 1 or 3 values for maximum.")
-
-        intervals = []
-        for i in range(3):
-            intervals.append(ManualInterval(vmin=minimum[i], vmax=maximum[i]))
-
-        self.intervals = intervals
+        self.intervals = interval
         self.stretch = stretch
 
     def make_rgb_image(self, image_r, image_g, image_b, output_image_format=np.uint8):
@@ -172,14 +159,14 @@ def make_rgb(
     image_b,
     minimum=None,
     maximum=None,
+    interval=MinMaxInterval(),
     stretch=LinearStretch(),
     filename=None,
     output_image_format=np.uint8,
 ):
     """
     Base class to return a Red/Green/Blue color image from 3 images using
-    a specified stretch, for each band *independently*.
-    Includes optional clipping of the input values before scaling.
+    a specified stretch and interval, for each band *independently*.
 
     The input images can be int or float, and in any range or bit-depth,
     but must have the same shape (NxM).
@@ -195,13 +182,11 @@ def make_rgb(
         Image to map to green.
     image_b : ndarray
         Image to map to blue.
-    minimum : float or array-like, optional
-        Intensity that should be mapped to black (a scalar or
-        array of R, G, B). If `None`, each image's minimum value is used.
-    maximum : float or array-like, optional
-        Intensity that should be mapped to white (a scalar or
-        array of R, G, B). If `None`, each image's maximum value is used.
-    stretch : `~astropy.visualization.BaseStretch` subclass instance
+    interval : `~astropy.visualization.BaseInterval` subclass instance or array-like, optional
+        The interval object to apply to the data (either a single instance or
+        an array for R, G, B). Default is
+        `~astropy.visualization.MinMaxInterval`.
+    stretch : `~astropy.visualization.BaseStretch` subclass instance, optional
         The stretch object to apply to the data. Default is
         `~astropy.visualization.LinearStretch`.
     filename : str, optional
@@ -223,7 +208,7 @@ def make_rgb(
     http://ds9.si.edu/doc/ref/how.html).
 
     """
-    map_ = RGBImageMapping(minimum=minimum, maximum=maximum, stretch=stretch)
+    map_ = RGBImageMapping(interval=interval, stretch=stretch)
     rgb = map_.make_rgb_image(
         image_r, image_g, image_b, output_image_format=output_image_format
     )
