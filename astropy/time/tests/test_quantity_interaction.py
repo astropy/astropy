@@ -151,8 +151,10 @@ class TestTimeDeltaQuantity:
             dt.to_value("parrot")
         with pytest.raises(TypeError):
             dt.to_value("sec", unit=u.s)
-        with pytest.raises(TypeError):
-            # TODO: would be nice to make this work!
+        with pytest.raises(
+            ValueError,
+            match=r"cannot specify 'subfmt' and positional arg.*not a valid format",
+        ):
             dt.to_value(u.s, subfmt="str")
 
     def test_valid_quantity_operations1(self):

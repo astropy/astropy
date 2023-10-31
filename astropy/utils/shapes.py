@@ -9,6 +9,15 @@ from astropy.utils.decorators import deprecated
 
 import numpy as np
 
+from astropy.utils.compat import NUMPY_LT_2_0
+
+if NUMPY_LT_2_0:
+    import numpy.core as np_core
+    from numpy.core.multiarray import normalize_axis_index
+else:
+    import numpy._core as np_core
+    from numpy.lib.array_utils import normalize_axis_index
+
 __all__ = [
     "NDArrayShapeMethods",
     "ShapedLikeNDArray",
@@ -277,7 +286,7 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
             "alltrue": "all",
             "sometrue": "any",
         }.get(name, name)
-        for name in np.core.fromnumeric.__all__
+        for name in np_core.fromnumeric.__all__
         if name not in ["alen", "sort", "partition"]
     }
     # Add np.copy, which we may as well let defer to our method.
@@ -459,9 +468,7 @@ def simplify_basic_index(basic_index, *, shape):
                     indices[1] = None
                 new_index[i] = slice(*indices)
             elif isinstance(slc, numbers.Integral):
-                new_index[i] = np.core.multiarray.normalize_axis_index(
-                    int(slc), shape[i]
-                )
+                new_index[i] = normalize_axis_index(int(slc), shape[i])
             else:
                 raise ValueError(f"Unexpected index element in basic index: {slc}")
         else:

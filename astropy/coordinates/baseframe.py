@@ -23,7 +23,7 @@ import numpy as np
 from astropy import units as u
 from astropy.utils import ShapedLikeNDArray, check_broadcast
 from astropy.utils.decorators import deprecated, format_doc, lazyproperty
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils.exceptions import AstropyWarning
 
 from . import representation as r
 from .angles import Angle
@@ -1226,9 +1226,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         Parameters
         ----------
-        new_frame : coordinate-like or `~astropy.coordinates.BaseCoordinateFrame` subclass instance
+        new_frame : coordinate-like
             The frame to transform this coordinate frame into.
-            The frame class option is deprecated.
 
         Returns
         -------
@@ -1258,18 +1257,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 " possible, please comment at"
                 " https://github.com/astropy/astropy/issues/6280"
             )
-
-        if isinstance(new_frame, type):
-            warnings.warn(
-                "Transforming a frame instance to a frame class (as opposed to another "
-                "frame instance) will not be supported in the future.  Either "
-                "explicitly instantiate the target frame, or first convert the source "
-                "frame instance to a `astropy.coordinates.SkyCoord` and use its "
-                "`transform_to()` method.",
-                AstropyDeprecationWarning,
-            )
-            # Use the default frame attributes for this class
-            new_frame = new_frame()
 
         if hasattr(new_frame, "_sky_coord_frame"):
             # Input new_frame is not a frame instance or class and is most

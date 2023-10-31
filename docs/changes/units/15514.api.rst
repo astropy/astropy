@@ -1,0 +1,7 @@
+The following deprecated functionality has been removed:
+
+  * ``littleh`` unit and ``with_H0`` equivalency. They are still available from
+    ``cosmology.units``.
+  * ``brightness_temperature`` equivalency no longer automatically swaps the
+    order of its arguments if it does not match the expectation.
+  * ``PhysicalType`` no longer supports ``str`` methods and attributes.

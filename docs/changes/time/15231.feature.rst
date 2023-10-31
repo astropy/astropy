@@ -1,0 +1,4 @@
+Masked ``Time`` instances now use astropy's own ``Masked`` class internally.
+This means that ``Masked`` input is now properly recognized, and that masks
+get propagated also to ``Quantity`` output (such as from a ``TimeDelta``
+converted to a unit of time), creating ``MaskedQuantity`` instances.

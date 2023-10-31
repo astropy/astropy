@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 
-__all__ = []
+__all__ = ["Parameter"]
 
 import copy
 from dataclasses import dataclass, field, fields, replace
 from enum import Enum, auto
-from typing import Any, Sequence
+from typing import TYPE_CHECKING, Any
 
 import astropy.units as u
 from astropy.utils.compat import PYTHON_LT_3_10
 
 from ._converter import _REGISTRY_FVALIDATORS, FValidateCallable, _register_validator
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 if not PYTHON_LT_3_10:
     from dataclasses import KW_ONLY

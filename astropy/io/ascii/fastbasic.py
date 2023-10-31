@@ -104,15 +104,15 @@ class FastBasic(metaclass=core.MetaBaseReader):
             raise core.ParameterError(
                 "The C reader does not use the encoding parameter"
             )
-        elif "Outputter" in self.kwargs:
+        elif "outputter_cls" in self.kwargs:
             raise core.ParameterError(
-                "The C reader does not use the Outputter parameter"
+                "The C reader does not use the outputter_cls parameter"
             )
-        elif "Inputter" in self.kwargs:
+        elif "inputter_cls" in self.kwargs:
             raise core.ParameterError(
-                "The C reader does not use the Inputter parameter"
+                "The C reader does not use the inputter_cls parameter"
             )
-        elif "data_Splitter" in self.kwargs or "header_Splitter" in self.kwargs:
+        elif "data_splitter_cls" in self.kwargs or "header_splitter_cls" in self.kwargs:
             raise core.ParameterError("The C reader does not use a Splitter class")
 
         self.strict_names = self.kwargs.pop("strict_names", False)

@@ -24,17 +24,14 @@ from . import (
 from . import histogram as _hist
 from .bayesian_blocks import *
 from .biweight import *
-from .bls import *
 from .circstats import *
 from .funcs import *
 from .histogram import *
 from .info_theory import *
 from .jackknife import *
-from .lombscargle import *
 from .sigma_clipping import *
 from .spatial import *
 
-# This is to avoid importing deprecated modules in subpackage star import
 __all__ = []
 __all__ += funcs.__all__
 __all__ += biweight.__all__
