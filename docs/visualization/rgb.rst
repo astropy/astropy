@@ -95,22 +95,21 @@ of the galaxies show up. Compare with Fig. 1 of `Lupton et al. (2004)`_ or the
 
 .. _astropy-visualization-rgb-log-linear:
 
-RGB images using logarithmic or linear stretching
-=================================================
+RGB images using logarithmic stretching
+=======================================
 
 Numerous other methods for generating composite RGB images are possible.
-Two alternative choices are using a linear or logarithmic stretch, combined
+An alternative choice is using a logarithmic stretch, combined
 with optional data clipping and normalization (e.g., as often used in DS9 or
 other data viewers).
 
 The image stretching and normalization methods for single images are
 demonstrated in :ref:`astropy-visualization-stretchnorm`.
 These scaling are extended to the generation of RGB images in the
-convenience wrapper functions :func:`~astropy.visualization.make_log_rgb` and
-:func:`~astropy.visualization.make_linear_rgb`.
+convenience wrapper function :func:`~astropy.visualization.make_log_rgb`. 
 
 As with :func:`~astropy.visualization.make_lupton_rgb`, the three images must
-be aligned, with the same size and pixel scales. For both functions,
+be aligned, with the same size and pixel scales. The keywords 
 ``minimum`` and ``maximum`` specify the normalization (if any) and the
 black and white levels, respectively. Both parameters can be either a scalar,
 applying the same normalization to each filter, or can be a length-3 array
@@ -174,33 +173,6 @@ certain objects, such as the very reddest sources:
     plt.imshow(rgb_log, origin='lower')
 
 
-Finally, we construct an example linear scaling RGB image using the
-same normalization bounds as the first logarithmic scaling example.
-
-.. plot::
-   :context:
-   :include-source:
-   :align: center
-
-    from astropy.visualization import make_linear_rgb
-
-    # Use the maximum value of the 99.5% percentile over all three filters
-    # as the maximum value:
-    pctl = 99.5
-    maximum = 0.
-    for img in [i,r,g]:
-        val = np.percentile(img,pctl)
-        if val > maximum:
-            maximum = val
-    rgb_log = make_linear_rgb(i, r, g, minimum=0, maximum=maximum,
-                              filename="ngc6976-linear.jpeg")
-    plt.imshow(rgb_log, origin='lower')
-
-
-Here the linear stretch greatly restricts the visible dynamic range,
-but for data with limited dynamic range this scaling will better
-emphasize features than logarithmic scaling.
-
 
 .. _astropy-visualization-rgb-user-stretch:
 
@@ -214,6 +186,9 @@ three RGB images separately using the convenience function
 a subclass of :class:`~astropy.visualization.BaseStretch` in addition to
 ``minimum`` and ``maximum`` to specify the normalization.
 
+By default, :func:`~astropy.visualization.make_rgb` uses as linear 
+stretch (:class:`~astropy.visualization.LinearStretch`)
+
 .. plot::
    :context: reset
    :include-source:
@@ -221,7 +196,7 @@ a subclass of :class:`~astropy.visualization.BaseStretch` in addition to
 
     import numpy as np
     import matplotlib.pyplot as plt
-    from astropy.visualization import make_rgb, SqrtStretch
+    from astropy.visualization import make_rgb
     from astropy.io import fits
     from astropy.utils.data import get_pkg_data_filename
 
@@ -232,6 +207,28 @@ a subclass of :class:`~astropy.visualization.BaseStretch` in addition to
     g = fits.getdata(g_name)
     r = fits.getdata(r_name)
     i = fits.getdata(i_name)
+
+    # Use the maximum value of the 99.5% percentile over all three filters
+    # as the maximum value:
+    pctl = 99.5
+    maximum = 0.
+    for img in [i,r,g]:
+        val = np.percentile(img,pctl)
+        if val > maximum:
+            maximum = val
+    rgb = make_rgb(i, r, g, minimum=0, maximum=maximum,
+                              filename="ngc6976-linear.jpeg")
+    plt.imshow(rgb, origin='lower')
+
+
+An alternative example using a square root stretch is as follows:
+
+.. plot::
+   :context: 
+   :include-source:
+   :align: center
+
+    from astropy.visualization import SqrtStretch
 
     # Use the maximum value of the 99.8% percentile over all three filters
     # as the maximum value:
