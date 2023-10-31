@@ -95,7 +95,7 @@ def test_image_mapping():
 def test_linear():
     """Test creating an RGB image using a linear stretch,
     using individual routines"""
-    rgb_image = basic_rgb.make_linear_rgb(
+    rgb_image = basic_rgb.make_rgb(
         IMAGER, IMAGEG, IMAGEB, MIN, MAX, output_image_format=np.float64
     )
     for i, (min_, max_, iref_) in enumerate(
@@ -165,7 +165,7 @@ def test_float64():
 
 def test_linear_min_max():
     """Test using a min/max linear stretch determined from one image"""
-    rgb_image = basic_rgb.make_linear_rgb(
+    rgb_image = basic_rgb.make_rgb(
         IMAGER,
         IMAGEG,
         IMAGEB,
@@ -239,7 +239,7 @@ def test_log_scalar_interval():
 
 def test_linear_bw():
     """Test creating a black+white image using a linear stretch"""
-    rgb_image = basic_rgb.make_linear_rgb(
+    rgb_image = basic_rgb.make_rgb(
         IMAGER,
         IMAGER,
         IMAGER,
@@ -304,7 +304,7 @@ def test_make_linear_rgb_file():
         red = IMAGER
         green = IMAGEG
         blue = IMAGEB
-        basic_rgb.make_linear_rgb(red, green, blue, MIN, MAX, filename=temp)
+        basic_rgb.make_rgb(red, green, blue, MIN, MAX, filename=temp)
         assert os.path.exists(temp.name)
 
 

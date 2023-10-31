@@ -12,7 +12,7 @@ from astropy.visualization.stretch import LinearStretch, LogStretch
 
 _OUTPUT_IMAGE_FORMATS = [float, np.float64, np.uint8]
 
-__all__ = ["make_rgb", "make_log_rgb", "make_linear_rgb"]
+__all__ = ["make_rgb", "make_log_rgb"]
 
 
 class RGBImageMapping:
@@ -304,70 +304,6 @@ def make_log_rgb(
         minimum=minimum,
         maximum=maximum,
         stretch=LogStretch(a=scalea),
-        filename=filename,
-        output_image_format=output_image_format,
-    )
-
-
-def make_linear_rgb(
-    image_r,
-    image_g,
-    image_b,
-    minimum=None,
-    maximum=None,
-    filename=None,
-    output_image_format=np.uint8,
-):
-    """
-    Return a Red/Green/Blue color image from 3 images using a linear stretch.
-    Includes optional clipping of the input values before scaling.
-
-    The input images can be int or float, and in any range or bit-depth,
-    but must have the same shape (NxM).
-
-    For a more detailed look at the use of this method, see the document
-    :ref:`astropy:astropy-visualization-rgb`.
-
-    Parameters
-    ----------
-    image_r : ndarray
-        Image to map to red.
-    image_g : ndarray
-        Image to map to green.
-    image_b : ndarray
-        Image to map to blue.
-    minimum : float or array-like, optional
-        Intensity that should be mapped to black (a scalar or
-        array of R, G, B). If `None`, each image's minimum value is used.
-    maximum : float or array-like, optional
-        Intensity that should be mapped to white (a scalar or
-        array of R, G, B). If `None`, each image's maximum value is used.
-    filename : str, optional
-        Write the resulting RGB image to a file (file type determined
-        from extension).
-    output_image_format : numpy scalar type, optional
-        Image output format. Default is np.uint8.
-
-    Returns
-    -------
-    rgb : ndarray
-        RGB (either float or integer with 8-bits per channel) color image
-        as an NxMx3 numpy array.
-
-    Notes
-    -----
-    This procedure of clipping and then scaling is similar to the DS9
-    image algorithm (see the DS9 reference guide:
-    http://ds9.si.edu/doc/ref/how.html).
-
-    """
-    return make_rgb(
-        image_r,
-        image_g,
-        image_b,
-        minimum=minimum,
-        maximum=maximum,
-        stretch=LinearStretch(),
         filename=filename,
         output_image_format=output_image_format,
     )
