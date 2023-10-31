@@ -9,6 +9,7 @@ from numpy.testing import assert_allclose
 import pytest
 
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB, HAS_PLT
+from astropy.visualization.stretch import LinearStretch, LogStretch
 from astropy.visualization import basic_rgb
 
 # Set DISPLAY=True to get matplotlib imshow windows to help with debugging.
@@ -73,7 +74,7 @@ def _display_rgb(rgb, title=None):
 def test_image_mapping():
     """Test creating an RGB image using a linear stretch,
     using RGBImageMapping()"""
-    stretch = basic_rgb.LinearStretch()
+    stretch = LinearStretch()
     map_ = basic_rgb.RGBImageMapping(MIN, MAX, stretch)
     rgb_image = map_.make_rgb_image(
         IMAGER, IMAGEG, IMAGEB, output_image_format=np.float64
@@ -114,13 +115,13 @@ def test_linear():
 
 def test_log():
     """Test creating an RGB image using an log stretch"""
-    rgb_image = basic_rgb.make_log_rgb(
+    rgb_image = basic_rgb.make_rgb(
         IMAGER,
         IMAGEG,
         IMAGEB,
         MIN,
         MAX,
-        SCALEA,
+        stretch=LogStretch(a=SCALEA),
         output_image_format=np.float64,
     )
     for i, (min_, max_, iref_) in enumerate(
@@ -139,8 +140,14 @@ def test_log():
 
 def test_int8():
     """Test creating an RGB image with 8-bit output format"""
-    rgb_image = basic_rgb.make_log_rgb(
-        IMAGER, IMAGEG, IMAGEB, MIN, MAX, SCALEA, output_image_format=np.uint8
+    rgb_image = basic_rgb.make_rgb(
+        IMAGER,
+        IMAGEG,
+        IMAGEB,
+        MIN,
+        MAX,
+        stretch=LogStretch(a=SCALEA),
+        output_image_format=np.uint8,
     )
     assert np.issubdtype(rgb_image.dtype, np.uint8)
     if DISPLAY:
@@ -149,13 +156,13 @@ def test_int8():
 
 def test_float64():
     """Test creating an RGB image with normalized float output format"""
-    rgb_image = basic_rgb.make_log_rgb(
+    rgb_image = basic_rgb.make_rgb(
         IMAGER,
         IMAGEG,
         IMAGEB,
         MIN,
         MAX,
-        SCALEA,
+        stretch=LogStretch(a=SCALEA),
         output_image_format=np.float64,
     )
     assert np.issubdtype(rgb_image.dtype, float)
@@ -189,13 +196,13 @@ def test_linear_min_max():
 
 def test_log_min_max():
     """Test using a min/max log stretch determined from one image"""
-    rgb_image = basic_rgb.make_log_rgb(
+    rgb_image = basic_rgb.make_rgb(
         IMAGER,
         IMAGEG,
         IMAGEB,
         None,
         None,
-        SCALEA,
+        stretch=LogStretch(a=SCALEA),
         output_image_format=np.float64,
     )
     for i, (min_, max_, iref_) in enumerate(
@@ -214,13 +221,13 @@ def test_log_min_max():
 
 def test_log_scalar_interval():
     """Test creating a black+white image using a linear stretch"""
-    rgb_image = basic_rgb.make_log_rgb(
+    rgb_image = basic_rgb.make_rgb(
         IMAGER,
         IMAGEG,
         IMAGEB,
         MINSC,
         MAXSC,
-        SCALEA,
+        stretch=LogStretch(a=SCALEA),
         output_image_format=np.float64,
     )
     for i, (min_, max_, iref_) in enumerate(
@@ -263,13 +270,13 @@ def test_linear_bw():
 
 def test_log_bw():
     """Test creating a black+white image using a log stretch"""
-    rgb_image = basic_rgb.make_log_rgb(
+    rgb_image = basic_rgb.make_rgb(
         IMAGER,
         IMAGER,
         IMAGER,
         MINSC,
         MAXSC,
-        SCALEA,
+        stretch=LogStretch(a=SCALEA),
         output_image_format=np.float64,
     )
     for i, (min_, max_, iref_) in enumerate(
@@ -293,7 +300,9 @@ def test_make_log_rgb_file():
         red = IMAGER
         green = IMAGEG
         blue = IMAGEB
-        basic_rgb.make_log_rgb(red, green, blue, MIN, MAX, SCALEA, filename=temp)
+        basic_rgb.make_rgb(
+            red, green, blue, MIN, MAX, stretch=LogStretch(a=SCALEA), filename=temp
+        )
         assert os.path.exists(temp.name)
 
 
@@ -313,31 +322,35 @@ def test_different_shapes_asserts():
     with pytest.raises(ValueError, match=r"shapes must match"):
         # just swap the dimensions to get a differently-shaped 'r'
         image_r = IMAGER.reshape(SHAPE[1], SHAPE[0])
-        basic_rgb.make_log_rgb(image_r, IMAGEG, IMAGEB)
+        basic_rgb.make_rgb(image_r, IMAGEG, IMAGEB, stretch=LogStretch(a=SCALEA))
 
 
 def test_incorrect_min_length():
     """Test incorrect input minimum array length"""
     with pytest.raises(ValueError, match=r"or 3 values for minimum"):
-        basic_rgb.make_log_rgb(IMAGER, IMAGEG, IMAGEB, [MINSC, MINSC], MAX, SCALEA)
+        basic_rgb.make_rgb(
+            IMAGER, IMAGEG, IMAGEB, [MINSC, MINSC], MAX, stretch=LogStretch(a=SCALEA)
+        )
 
 
 def test_incorrect_max_length():
     """Test incorrect input maximum array length"""
     with pytest.raises(ValueError, match=r"or 3 values for maximum"):
-        basic_rgb.make_log_rgb(IMAGER, IMAGEG, IMAGEB, MAX, [MINSC, MINSC], SCALEA)
+        basic_rgb.make_rgb(
+            IMAGER, IMAGEG, IMAGEB, MAX, [MINSC, MINSC], stretch=LogStretch(a=SCALEA)
+        )
 
 
 @pytest.mark.parametrize(("out_format"), INCORRECT_OUTPUT_TYPES)
 def test_invalid_output_image_format(out_format):
     """Test incorrect output image format"""
     with pytest.raises(ValueError, match=r"'output_image_format' must be one"):
-        basic_rgb.make_log_rgb(
+        basic_rgb.make_rgb(
             IMAGER,
             IMAGEG,
             IMAGEB,
             MIN,
             MAX,
-            SCALEA,
+            stretch=LogStretch(a=SCALEA),
             output_image_format=out_format,
         )
