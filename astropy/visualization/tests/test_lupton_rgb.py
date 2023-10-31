@@ -8,13 +8,13 @@ import sys
 
 import numpy as np
 import pytest
-from numpy.testing import assert_equal, assert_allclose
+from numpy.testing import assert_allclose, assert_equal
 
 from astropy.convolution import Gaussian2DKernel, convolve
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 from astropy.visualization import lupton_rgb
-from astropy.visualization.stretch import LinearStretch
 from astropy.visualization.interval import ManualInterval
+from astropy.visualization.stretch import LinearStretch
 
 # Set display=True to get matplotlib imshow windows to help with debugging.
 display = False
