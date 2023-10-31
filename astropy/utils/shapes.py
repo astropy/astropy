@@ -4,7 +4,6 @@
 import abc
 import numbers
 from itertools import zip_longest
-from warnings import warn
 from astropy.utils.decorators import deprecated
 
 import numpy as np
