@@ -10,6 +10,7 @@ import pytest
 
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB, HAS_PLT
 from astropy.visualization.stretch import LinearStretch, LogStretch
+from astropy.visualization.interval import ManualInterval
 from astropy.visualization import basic_rgb
 
 # Set DISPLAY=True to get matplotlib imshow windows to help with debugging.
@@ -75,7 +76,10 @@ def test_image_mapping():
     """Test creating an RGB image using a linear stretch,
     using RGBImageMapping()"""
     stretch = LinearStretch()
-    map_ = basic_rgb.RGBImageMapping(MIN, MAX, stretch)
+    interval = []
+    for i in range(3):
+        interval.append(ManualInterval(vmin=MIN[i], vmax=MAX[i]))
+    map_ = basic_rgb.RGBImageMapping(stretch=stretch, interval=interval)
     rgb_image = map_.make_rgb_image(
         IMAGER, IMAGEG, IMAGEB, output_image_format=np.float64
     )
@@ -96,8 +100,15 @@ def test_image_mapping():
 def test_linear():
     """Test creating an RGB image using a linear stretch,
     using individual routines"""
+    interval = []
+    for i in range(3):
+        interval.append(ManualInterval(vmin=MIN[i], vmax=MAX[i]))
     rgb_image = basic_rgb.make_rgb(
-        IMAGER, IMAGEG, IMAGEB, MIN, MAX, output_image_format=np.float64
+        IMAGER,
+        IMAGEG,
+        IMAGEB,
+        interval=interval,
+        output_image_format=np.float64,
     )
     for i, (min_, max_, iref_) in enumerate(
         zip(
@@ -115,12 +126,14 @@ def test_linear():
 
 def test_log():
     """Test creating an RGB image using an log stretch"""
+    interval = []
+    for i in range(3):
+        interval.append(ManualInterval(vmin=MIN[i], vmax=MAX[i]))
     rgb_image = basic_rgb.make_rgb(
         IMAGER,
         IMAGEG,
         IMAGEB,
-        MIN,
-        MAX,
+        interval=interval,
         stretch=LogStretch(a=SCALEA),
         output_image_format=np.float64,
     )
@@ -140,12 +153,14 @@ def test_log():
 
 def test_int8():
     """Test creating an RGB image with 8-bit output format"""
+    interval = []
+    for i in range(3):
+        interval.append(ManualInterval(vmin=MIN[i], vmax=MAX[i]))
     rgb_image = basic_rgb.make_rgb(
         IMAGER,
         IMAGEG,
         IMAGEB,
-        MIN,
-        MAX,
+        interval=interval,
         stretch=LogStretch(a=SCALEA),
         output_image_format=np.uint8,
     )
@@ -156,12 +171,14 @@ def test_int8():
 
 def test_float64():
     """Test creating an RGB image with normalized float output format"""
+    interval = []
+    for i in range(3):
+        interval.append(ManualInterval(vmin=MIN[i], vmax=MAX[i]))
     rgb_image = basic_rgb.make_rgb(
         IMAGER,
         IMAGEG,
         IMAGEB,
-        MIN,
-        MAX,
+        interval=interval,
         stretch=LogStretch(a=SCALEA),
         output_image_format=np.float64,
     )
@@ -176,8 +193,7 @@ def test_linear_min_max():
         IMAGER,
         IMAGEG,
         IMAGEB,
-        None,
-        None,
+        interval=ManualInterval(vmin=None, vmax=None),
         output_image_format=np.float64,
     )
     for i, (min_, max_, iref_) in enumerate(
@@ -200,8 +216,7 @@ def test_log_min_max():
         IMAGER,
         IMAGEG,
         IMAGEB,
-        None,
-        None,
+        interval=ManualInterval(vmin=None, vmax=None),
         stretch=LogStretch(a=SCALEA),
         output_image_format=np.float64,
     )
@@ -225,8 +240,7 @@ def test_log_scalar_interval():
         IMAGER,
         IMAGEG,
         IMAGEB,
-        MINSC,
-        MAXSC,
+        interval=ManualInterval(vmin=MINSC, vmax=MAXSC),
         stretch=LogStretch(a=SCALEA),
         output_image_format=np.float64,
     )
@@ -250,8 +264,7 @@ def test_linear_bw():
         IMAGER,
         IMAGER,
         IMAGER,
-        MINSC,
-        MAXSC,
+        interval=ManualInterval(vmin=MINSC, vmax=MAXSC),
         output_image_format=np.float64,
     )
     for i, (min_, max_, iref_) in enumerate(
@@ -274,8 +287,7 @@ def test_log_bw():
         IMAGER,
         IMAGER,
         IMAGER,
-        MINSC,
-        MAXSC,
+        interval=ManualInterval(vmin=MINSC, vmax=MAXSC),
         stretch=LogStretch(a=SCALEA),
         output_image_format=np.float64,
     )
@@ -296,12 +308,20 @@ def test_log_bw():
 @pytest.mark.skipif(not HAS_MATPLOTLIB, reason="requires matplotlib")
 def test_make_log_rgb_file():
     """Test the function that does it all"""
+    interval = []
+    for i in range(3):
+        interval.append(ManualInterval(vmin=MIN[i], vmax=MAX[i]))
     with tempfile.NamedTemporaryFile(suffix=".png") as temp:
         red = IMAGER
         green = IMAGEG
         blue = IMAGEB
         basic_rgb.make_rgb(
-            red, green, blue, MIN, MAX, stretch=LogStretch(a=SCALEA), filename=temp
+            red,
+            green,
+            blue,
+            interval=interval,
+            stretch=LogStretch(a=SCALEA),
+            filename=temp,
         )
         assert os.path.exists(temp.name)
 
@@ -309,11 +329,14 @@ def test_make_log_rgb_file():
 @pytest.mark.skipif(not HAS_MATPLOTLIB, reason="requires matplotlib")
 def test_make_linear_rgb_file():
     """Test the function that does it all"""
+    interval = []
+    for i in range(3):
+        interval.append(ManualInterval(vmin=MIN[i], vmax=MAX[i]))
     with tempfile.NamedTemporaryFile(suffix=".png") as temp:
         red = IMAGER
         green = IMAGEG
         blue = IMAGEB
-        basic_rgb.make_rgb(red, green, blue, MIN, MAX, filename=temp)
+        basic_rgb.make_rgb(red, green, blue, interval=interval, filename=temp)
         assert os.path.exists(temp.name)
 
 
@@ -325,32 +348,31 @@ def test_different_shapes_asserts():
         basic_rgb.make_rgb(image_r, IMAGEG, IMAGEB, stretch=LogStretch(a=SCALEA))
 
 
-def test_incorrect_min_length():
-    """Test incorrect input minimum array length"""
-    with pytest.raises(ValueError, match=r"or 3 values for minimum"):
+def test_incorrect_interval_length():
+    """Test incorrect input interval array length"""
+    with pytest.raises(ValueError, match=r"3 instances for interval."):
+        interval = ManualInterval(vmin=MINSC, vmax=MAXSC)
         basic_rgb.make_rgb(
-            IMAGER, IMAGEG, IMAGEB, [MINSC, MINSC], MAX, stretch=LogStretch(a=SCALEA)
-        )
-
-
-def test_incorrect_max_length():
-    """Test incorrect input maximum array length"""
-    with pytest.raises(ValueError, match=r"or 3 values for maximum"):
-        basic_rgb.make_rgb(
-            IMAGER, IMAGEG, IMAGEB, MAX, [MINSC, MINSC], stretch=LogStretch(a=SCALEA)
+            IMAGER,
+            IMAGEG,
+            IMAGEB,
+            interval=[interval, interval],
+            stretch=LogStretch(a=SCALEA),
         )
 
 
 @pytest.mark.parametrize(("out_format"), INCORRECT_OUTPUT_TYPES)
 def test_invalid_output_image_format(out_format):
     """Test incorrect output image format"""
+    interval = []
+    for i in range(3):
+        interval.append(ManualInterval(vmin=MIN[i], vmax=MAX[i]))
     with pytest.raises(ValueError, match=r"'output_image_format' must be one"):
         basic_rgb.make_rgb(
             IMAGER,
             IMAGEG,
             IMAGEB,
-            MIN,
-            MAX,
+            interval=interval,
             stretch=LogStretch(a=SCALEA),
             output_image_format=out_format,
         )
