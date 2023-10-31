@@ -17,7 +17,7 @@ from astropy.visualization.stretch import _prepare as _stretch_prepare
 
 from .basic_rgb import RGBImageMapping
 
-__all__ = ["make_lupton_rgb", "AsinhLuptonStretch", "AsinhZscaleLuptonStretch"]
+__all__ = ["make_lupton_rgb", "LuptonAsinhStretch", "LuptonAsinhZscaleStretch"]
 
 
 def compute_intensity(image_r, image_g=None, image_b=None):
@@ -54,9 +54,9 @@ def compute_intensity(image_r, image_g=None, image_b=None):
     return np.asarray(intensity, dtype=image_r.dtype)
 
 
-class AsinhLuptonStretch(BaseStretch):
+class LuptonAsinhStretch(BaseStretch):
     r"""
-    A mapping for an asinh stretch, with some changes to the constants
+    A modified asinh stretch, with some changes to the constants
     relative to `~astropy.visualization.AsinhStretch`.
 
     The stretch is given by:
@@ -115,9 +115,10 @@ class AsinhLuptonStretch(BaseStretch):
         return values
 
 
-class AsinhZscaleLuptonStretch(AsinhLuptonStretch):
+class LuptonAsinhZscaleStretch(LuptonAsinhStretch):
     r"""
-    A mapping for an asinh stretch, estimating the linear stretch by zscale.
+    A modified asinh stretch, where the linear stretch is calculated using
+    zscale.
 
     The stretch is given by:
 
@@ -212,7 +213,7 @@ class RGBImageMappingLupton(RGBImageMapping):
     def __init__(
         self,
         interval=ManualInterval(vmin=0, vmax=None),
-        stretch=AsinhLuptonStretch(stretch=5, Q=8),
+        stretch=LuptonAsinhStretch(stretch=5, Q=8),
     ):
         super().__init__(interval=interval, stretch=stretch)
         self._pixmax = 1.0
@@ -380,7 +381,7 @@ def make_lupton_rgb(
 
     """
     if stretch_object is None:
-        stretch_object = AsinhLuptonStretch(stretch=stretch, Q=Q)
+        stretch_object = LuptonAsinhStretch(stretch=stretch, Q=Q)
 
     try:
         len(minimum)
