@@ -2,7 +2,7 @@
 
 from .hist import *
 from .interval import *
-from .log_linear_rgb import *
+from .basic_rgb import *
 from .lupton_rgb import *
 from .mpl_normalize import *
 from .mpl_style import *
