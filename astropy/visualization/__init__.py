@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from .basic_rgb import *
 from .hist import *
 from .interval import *
-from .basic_rgb import *
 from .lupton_rgb import *
 from .mpl_normalize import *
 from .mpl_style import *
