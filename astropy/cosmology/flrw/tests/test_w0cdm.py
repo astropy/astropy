@@ -14,8 +14,10 @@ import astropy.units as u
 from astropy.cosmology import FlatwCDM, wCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin, valid_zs
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
+from .conftest import filter_keys_from_items
 from .test_base import FlatFLRWMixinTest, FLRWTest
 
 ##############################################################################
@@ -34,10 +36,11 @@ class Parameterw0TestMixin(ParameterTestMixin):
     def test_w0(self, cosmo_cls, cosmo):
         """Test Parameter ``w0``."""
         # on the class
-        assert isinstance(cosmo_cls.w0, Parameter)
-        assert "Dark energy equation of state" in cosmo_cls.w0.__doc__
-        assert cosmo_cls.w0.unit is None
-        assert cosmo_cls.w0.default == -1.0
+        w0 = cosmo_cls.parameters["w0"]
+        assert isinstance(w0, Parameter)
+        assert "Dark energy equation of state" in w0.__doc__
+        assert w0.unit is None
+        assert w0.default == -1.0
 
         # on the instance
         assert cosmo.w0 is cosmo._w0
@@ -81,14 +84,12 @@ class TestwCDM(FLRWTest, Parameterw0TestMixin):
         # `w` params
         c = cosmo.clone(w0=0.1)
         assert c.w0 == 0.1
-        for n in set(cosmo.__parameters__) - {"w0"}:
-            v = getattr(c, n)
+        for n, v in filter_keys_from_items(c.parameters, ("w0",)):
+            v_expect = getattr(cosmo, n)
             if v is None:
-                assert v is getattr(cosmo, n)
+                assert v is v_expect
             else:
-                assert u.allclose(
-                    v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1)
-                )
+                assert_quantity_allclose(v, v_expect, atol=1e-4 * getattr(v, "unit", 1))
 
     @pytest.mark.parametrize("z", valid_zs)
     def test_w(self, cosmo, z):
@@ -98,16 +99,13 @@ class TestwCDM(FLRWTest, Parameterw0TestMixin):
         w = cosmo.w(z)
         assert u.allclose(w, self.cls_kwargs["w0"])
 
-    def test_repr(self, cosmo_cls, cosmo):
+    def test_repr(self, cosmo):
         """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = (
-            'wCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27,'
-            " Ode0=0.73, w0=-0.5, Tcmb0=3.0 K, Neff=3.04,"
-            " m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+        assert repr(cosmo) == (
+            "wCDM(name='ABCMeta', H0=<Quantity 70. km / (Mpc s)>, Om0=0.27, Ode0=0.73,"
+            " w0=-0.5, Tcmb0=<Quantity 3. K>, Neff=3.04,"
+            " m_nu=<Quantity [0., 0., 0.] eV>, Ob0=0.03)"
         )
-        assert repr(cosmo) == expected
 
     # ===============================================================
     # Usage Tests
@@ -154,16 +152,13 @@ class TestFlatwCDM(FlatFLRWMixinTest, TestwCDM):
         self.cls = FlatwCDM
         self.cls_kwargs.update(w0=-0.5)
 
-    def test_repr(self, cosmo_cls, cosmo):
+    def test_repr(self, cosmo):
         """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = (
-            'FlatwCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27,'
-            " w0=-0.5, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
-            " Ob0=0.03)"
+        assert repr(cosmo) == (
+            "FlatwCDM(name='ABCMeta', H0=<Quantity 70. km / (Mpc s)>, Om0=0.27,"
+            " w0=-0.5, Tcmb0=<Quantity 3. K>, Neff=3.04,"
+            " m_nu=<Quantity [0., 0., 0.] eV>, Ob0=0.03)"
         )
-        assert repr(cosmo) == expected
 
     # ===============================================================
     # Usage Tests

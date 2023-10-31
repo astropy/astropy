@@ -6,9 +6,6 @@ from astropy.units import Quantity
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseLowLevelWCS
 
-# NOTE: This module is deprecated and is emitting warning.
-collect_ignore = ["sliced_low_level_wcs.py"]
-
 
 @pytest.fixture
 def spectral_1d_fitswcs():

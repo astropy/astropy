@@ -232,25 +232,3 @@ if __doc__ is not None:
     from .utils import generate_unit_summary as _generate_unit_summary
 
     __doc__ += _generate_unit_summary(globals())
-
-
-# -------------------------------------------------------------------------
-
-
-def __getattr__(attr):
-    if attr == "littleh":
-        import warnings
-
-        from astropy.cosmology.units import littleh
-        from astropy.utils.exceptions import AstropyDeprecationWarning
-
-        warnings.warn(
-            "`littleh` is deprecated from module `astropy.units.astrophys` "
-            "since astropy 5.0 and may be removed in a future version. "
-            "Use `astropy.cosmology.units.littleh` instead.",
-            AstropyDeprecationWarning,
-        )
-
-        return littleh
-
-    raise AttributeError(f"module {__name__!r} has no attribute {attr!r}.")

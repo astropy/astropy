@@ -9,7 +9,6 @@ import io
 import os
 import re
 import urllib.request
-import warnings
 
 # THIRD-PARTY
 import numpy as np
@@ -18,8 +17,8 @@ from numpy import ma
 # LOCAL
 from astropy import __version__ as astropy_version
 from astropy.io import fits
+from astropy.utils import deprecated
 from astropy.utils.collections import HomogeneousList
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.xml import iterparser
 from astropy.utils.xml.writer import XMLWriter
 
@@ -106,7 +105,7 @@ __all__ = [
     "FieldRef",
     "ParamRef",
     "Group",
-    "Table",
+    "TableElement",
     "Resource",
     "VOTableFile",
     "Element",
@@ -2081,7 +2080,7 @@ class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
         self, table, ref, ucd=None, utype=None, config=None, pos=None, **extra
     ):
         """
-        *table* is the :class:`Table` object that this :class:`FieldRef`
+        *table* is the :class:`TableElement` object that this :class:`FieldRef`
         is a member of.
 
         *ref* is the ID to reference a :class:`Field` object defined
@@ -2354,7 +2353,9 @@ class Group(
                 yield from entry.iter_groups()
 
 
-class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionProperty):
+class TableElement(
+    Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionProperty
+):
     """
     TABLE_ element: optionally contains data.
 
@@ -2368,7 +2369,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
         For those fields, the numpy array's column type is "object"
         (``"O"``), and another masked array is stored there.
 
-    If the Table contains no data, (for example, its enclosing
+    If the TableElement contains no data, (for example, its enclosing
     :class:`Resource` has :attr:`~Resource.type` == 'meta') *array*
     will have zero-length.
 
@@ -3103,8 +3104,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
         Functionality to parse parquet files that are embedded
         in VOTables.
         """
-        # looks like votable already has a "Table" imported.
-        from astropy.table import Table as Table2
+        from astropy.table import Table
 
         for start, tag, data, pos in iterator:
             if tag == "STREAM":
@@ -3160,7 +3160,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
                         NotImplementedError,
                     )
 
-            array = Table2.read(fd, format="parquet")
+            array = Table.read(fd, format="parquet")
         finally:
             if hasattr(fd, "close"):
                 fd.close()
@@ -3361,7 +3361,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
     @classmethod
     def from_table(cls, votable, table):
         """
-        Create a `Table` instance from a given `astropy.table.Table`
+        Create a `TableElement` instance from a given `astropy.table.Table`
         instance.
         """
         kwargs = {}
@@ -3600,7 +3600,7 @@ class MivotBlock(Element):
         result_resource = Resource()
         result_resource.type = "results"
         result_resource.resources.append(mivot_resource)
-        data_table = Table(in_memory_votable)
+        data_table = TableElement(in_memory_votable)
         data_table.name = "t1"
         result_resource.tables.append(data_table)
         in_memory_votable.resources.append(result_resource)
@@ -3617,6 +3617,11 @@ class MivotBlock(Element):
             buff, _debug_python_based_parser=None
         ) as iterator:
             return VOTableFile(config=config, pos=(1, 1)).parse(iterator, config)
+
+
+@deprecated("6.0", alternative="TableElement")
+class Table(TableElement):
+    pass
 
 
 class Resource(
@@ -3659,7 +3664,7 @@ class Resource(
         self._params = HomogeneousList(Param)
         self._infos = HomogeneousList(Info)
         self._links = HomogeneousList(Link)
-        self._tables = HomogeneousList(Table)
+        self._tables = HomogeneousList(TableElement)
         self._resources = HomogeneousList(Resource)
 
         self._mivot_block = MivotBlock()
@@ -3774,7 +3779,7 @@ class Resource(
     def tables(self):
         """
         A list of tables in the resource.  Must contain only
-        `Table` objects.
+        `TableElement` objects.
         """
         return self._tables
 
@@ -3787,7 +3792,7 @@ class Resource(
         return self._resources
 
     def _add_table(self, iterator, tag, data, config, pos):
-        table = Table(self._votable, config=config, pos=pos, **data)
+        table = TableElement(self._votable, config=config, pos=pos, **data)
         self.tables.append(table)
         table.parse(iterator, config)
 
@@ -3970,15 +3975,9 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self._groups = HomogeneousList(Group)
 
         version = str(version)
-        if version == "1.0":
-            warnings.warn(
-                "VOTable 1.0 support is deprecated in astropy 4.3 and will be "
-                "removed in a future release",
-                AstropyDeprecationWarning,
-            )
-        elif (version != "1.0") and (version not in self._version_namespace_map):
+        if version not in self._version_namespace_map:
             allowed_from_map = "', '".join(self._version_namespace_map)
-            raise ValueError(f"'version' should be in ('1.0', '{allowed_from_map}').")
+            raise ValueError(f"'version' should be in ('{allowed_from_map}').")
 
         self._version = version
 
@@ -4218,7 +4217,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             Override the format of the table(s) data to write.  Must
             be one of ``tabledata`` (text representation), ``binary`` or
             ``binary2``.  By default, use the format that was specified
-            in each `Table` object as it was created or read in.  See
+            in each `TableElement` object as it was created or read in.  See
             :ref:`astropy:votable-serialization`.
         """
         if tabledata_format is not None:
@@ -4484,11 +4483,11 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         Parameters
         ----------
         table_id : str, optional
-            Set the given ID attribute on the returned Table instance.
+            Set the given ID attribute on the returned TableElement instance.
         """
         votable_file = cls()
         resource = Resource()
-        votable = Table.from_table(votable_file, table)
+        votable = TableElement.from_table(votable_file, table)
         if table_id is not None:
             votable.ID = table_id
         resource.tables.append(votable)

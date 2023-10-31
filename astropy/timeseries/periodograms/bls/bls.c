@@ -89,14 +89,14 @@ int run_bls (
     int max_n_bins = (int)(ceil(max_period / bin_duration)) + oversample;
 
     int nthreads, blocksize = max_n_bins+1;
+#if defined(_OPENMP)
 #pragma omp parallel
 {
-#if defined(_OPENMP)
     nthreads = omp_get_num_threads();
+}
 #else
     nthreads = 1;
 #endif
-}
 
     // Allocate the work arrays
     double* mean_y_0 = (double*)malloc(nthreads*blocksize*sizeof(double));
@@ -113,7 +113,9 @@ int run_bls (
     double min_t = INFINITY;
     double sum_y = 0.0, sum_ivar = 0.0;
     int i;
+#if defined(_OPENMP)
     #pragma omp parallel for reduction(+:sum_y), reduction(+:sum_ivar)
+#endif
     for (i = 0; i < N; ++i) {
         min_t = fmin(min_t, t[i]);
         sum_y += y[i] * ivar[i];
@@ -122,7 +124,9 @@ int run_bls (
 
     // Loop over periods and do the search
     int p;
+#if defined(_OPENMP)
     #pragma omp parallel for
+#endif
     for (p = 0; p < n_periods; ++p) {
 #if defined(_OPENMP)
         int ithread = omp_get_thread_num();

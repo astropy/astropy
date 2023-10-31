@@ -15,6 +15,7 @@ def get_extensions():
     exts = [
         Extension(
             name="astropy.table." + os.path.splitext(source)[0],
+            define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
             sources=[os.path.join(ROOT, source)],
             include_dirs=include_dirs,
         )

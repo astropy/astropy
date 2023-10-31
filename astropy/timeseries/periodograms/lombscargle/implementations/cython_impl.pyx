@@ -5,6 +5,7 @@ import numpy as np
 cimport cython
 cimport numpy as np
 
+np.import_array()
 
 cdef extern from "math.h":
     double sin(double)

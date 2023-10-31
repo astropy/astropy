@@ -170,7 +170,7 @@ def write_latex(
 
     cosmo_cls = type(cosmology)
     for name in table.columns.keys():
-        param = getattr(cosmo_cls, name, None)
+        param = cosmo_cls.parameters.get(name)
         if not isinstance(param, Parameter) or param.unit in (None, u.one):
             continue
         # Get column to correct unit
@@ -178,8 +178,8 @@ def write_latex(
 
     # Convert parameter names to LaTeX format
     if latex_names:
-        new_names = [_FORMAT_TABLE.get(k, k) for k in cosmology.__parameters__]
-        table.rename_columns(cosmology.__parameters__, new_names)
+        new_names = [_FORMAT_TABLE.get(k, k) for k in cosmology.parameters]
+        table.rename_columns(tuple(cosmology.parameters), new_names)
 
     table.write(file, overwrite=overwrite, format="ascii.latex", **kwargs)
 

@@ -5,16 +5,10 @@ This module provides the tools used to internally run the cosmology test suite
 from the installed astropy.  It makes use of the `pytest`_ testing framework.
 """
 
-##############################################################################
-# IMPORTS
-
-# STDLIB
 import inspect
 
-# THIRD PARTY
 import pytest
 
-# LOCAL
 from astropy.cosmology import core
 
 __all__ = ["get_redshift_methods", "clean_registry"]

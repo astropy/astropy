@@ -90,7 +90,10 @@ PyInit__compression(void)
 // cfitsio call.  In our wrapper functions we can then check if the Python error
 // state is set and then return NULL to raise the error.
 void ffpmsg(const char *err_message) {
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
     PyErr_SetString(CfitsioException, err_message);
+    PyGILState_Release(gstate);
 }
 
 /* PLIO/IRAF compression */

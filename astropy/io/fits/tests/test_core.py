@@ -711,9 +711,15 @@ class TestFileFunctions(FitsTestCase):
 
     def test_open_gzipped(self):
         gzip_file = self._make_gzip_file()
+
         with fits.open(gzip_file) as fits_handle:
             assert fits_handle._file.compression == "gzip"
             assert len(fits_handle) == 5
+
+        with fits.open(gzip_file, decompress_in_memory=True) as fits_handle:
+            assert fits_handle._file.compression == "gzip"
+            assert len(fits_handle) == 5
+
         with fits.open(gzip.GzipFile(gzip_file)) as fits_handle:
             assert fits_handle._file.compression == "gzip"
             assert len(fits_handle) == 5
@@ -773,7 +779,12 @@ class TestFileFunctions(FitsTestCase):
     @pytest.mark.skipif(not HAS_BZ2, reason="Python built without bz2 module")
     def test_open_bzipped(self):
         bzip_file = self._make_bzip2_file()
+
         with fits.open(bzip_file) as fits_handle:
+            assert fits_handle._file.compression == "bzip2"
+            assert len(fits_handle) == 5
+
+        with fits.open(bzip_file, decompress_in_memory=True) as fits_handle:
             assert fits_handle._file.compression == "bzip2"
             assert len(fits_handle) == 5
 
@@ -820,9 +831,15 @@ class TestFileFunctions(FitsTestCase):
 
     def test_open_zipped(self):
         zip_file = self._make_zip_file()
+
         with fits.open(zip_file) as fits_handle:
             assert fits_handle._file.compression == "zip"
             assert len(fits_handle) == 5
+
+        with fits.open(zip_file, decompress_in_memory=True) as fits_handle:
+            assert fits_handle._file.compression == "zip"
+            assert len(fits_handle) == 5
+
         with fits.open(zipfile.ZipFile(zip_file)) as fits_handle:
             assert fits_handle._file.compression == "zip"
             assert len(fits_handle) == 5

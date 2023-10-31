@@ -1149,7 +1149,8 @@ class FITS_rec(np.recarray):
                 if _number and (_scale or _zero) and column._physical_values:
                     dummy = field.copy()
                     if _zero:
-                        dummy -= bzero
+                        # Cast before subtracting to avoid overflow problems.
+                        dummy -= np.array(bzero).astype(dummy.dtype, casting="unsafe")
                     if _scale:
                         dummy /= bscale
                     # This will set the raw values in the recarray back to

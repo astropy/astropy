@@ -54,6 +54,11 @@ an amplitude.
   a Sersic profile with an effective half-light radius, rotation, and
   Sersic index
 
+- :class:`~astropy.modeling.functional_models.GeneralSersic2D` model
+  computes a generalized Sersic profile with an effective half-light
+  radius, rotation, Sersic index, and a parameter to control the shape of
+  the isophotes (e.g., boxy or disky)
+
 - :class:`~astropy.modeling.functional_models.TrapezoidDisk2D` model
   computes a disk with a radius and slope
 
@@ -69,7 +74,8 @@ an amplitude.
 
     from astropy.modeling.models import (AiryDisk2D, Box2D, Disk2D, Ellipse2D,
                                          Gaussian2D, Moffat2D, RickerWavelet2D,
-                                         Sersic2D, TrapezoidDisk2D, Ring2D)
+                                         Sersic2D, GeneralSersic2D,
+                                         TrapezoidDisk2D, Ring2D)
 
     x = np.linspace(-4.0, 6.0, num=100)
     r = np.logspace(-1.0, 2.0, num=100)
@@ -95,18 +101,23 @@ an amplitude.
             Moffat2D(amplitude=10.0, x_0=1.0, y_0=2.0, alpha=3, gamma=4),
             RickerWavelet2D(amplitude=10.0, x_0=1.0, y_0=2.0, sigma=1.0),
             Sersic2D(amplitude=10.0, x_0=1.0, y_0=2.0, r_eff=1.0, ellip=0.5, theta=math.pi/4.),
+            GeneralSersic2D(amplitude=10.0, x_0=1.0, y_0=2.0, r_eff=1.0, ellip=0.5, theta=math.pi/4., c=-1),
+            GeneralSersic2D(amplitude=10.0, x_0=1.0, y_0=2.0, r_eff=1.0, ellip=0.5, theta=math.pi/4., c=1),
             TrapezoidDisk2D(amplitude=10.0, x_0=1.0, y_0=2.0, R_0=1.0, slope=5.0),
             Ring2D(amplitude=10.0, x_0=1.0, y_0=2.0, r_in=1.0, r_out=2.0)]
 
     for k, mod in enumerate(mods):
         cname = mod.__class__.__name__
-        ax[k].set_title(cname)
         if cname == "AiryDisk2D":
             normfunc = LogNorm(vmin=0.001, vmax=10.)
-        elif cname in ["Gaussian2D", "Sersic2D"]:
+        elif cname in ["Gaussian2D", "Sersic2D", "GeneralSersic2D"]:
             normfunc = LogNorm(vmin=0.1, vmax=10.)
         else:
             normfunc = None
+        if cname == "GeneralSersic2D":
+            cname = f'{cname}, c={mod.c.value:.1f}'
+        ax[k].set_title(cname)
+
         ax[k].imshow(mod(X, Y), extent=[x0, x1, y0, y1], origin="lower", cmap=plt.cm.gray_r,
                      norm=normfunc)
 

@@ -12,7 +12,7 @@ require YAML serialization.
     >>> yml  # doctest: +NORMALIZE_WHITESPACE
     "!astropy.cosmology...FlatLambdaCDM\nH0: !astropy.units.Quantity...
 
-    >>> Cosmology.from_format(yml, format="yaml")
+    >>> print(Cosmology.from_format(yml, format="yaml"))
     FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                   Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 """  # this is shown in the docs.
@@ -161,7 +161,7 @@ def from_yaml(yml, *, cosmology=None):
     --------
     >>> from astropy.cosmology import Cosmology, Planck18
     >>> yml = Planck18.to_format("yaml")
-    >>> Cosmology.from_format(yml, format="yaml")
+    >>> print(Cosmology.from_format(yml, format="yaml"))
     FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                   Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
     """

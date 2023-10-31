@@ -183,7 +183,8 @@ def _check_compressed_header(header):
 
     for kw in ["ZVAL3"]:
         if kw in header:
-            if header[kw] > np.finfo(np.float32).max:
+            # float() below to avoid a NEP 50 warning about a cast to float32 inf.
+            if header[kw] > float(np.finfo(np.float32).max):
                 raise OverflowError(f"{kw} value {header[kw]} is too large")
 
     # Validate data types
