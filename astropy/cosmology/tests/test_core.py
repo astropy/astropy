@@ -360,7 +360,7 @@ class CosmologyTest(
         Test immutability of cosmologies.
         The metadata is mutable: see ``test_meta_mutable``.
         """
-        for n in (*cosmo.parameters, *cosmo.derived_parameters):
+        for n in (*cosmo.parameters, *cosmo._derived_parameters):
             with pytest.raises(AttributeError):
                 setattr(cosmo, n, getattr(cosmo, n))
 
