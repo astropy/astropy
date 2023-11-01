@@ -95,7 +95,7 @@ class ParameterTestMixin:
         try:
             yield cosmo_cls.parameters[n]
         except KeyError:
-            yield cosmo_cls.derived_parameters[n]
+            yield cosmo_cls._derived_parameters[n]
 
     # ===============================================================
     # Method Tests
@@ -192,7 +192,7 @@ class ParameterTestMixin:
 
         # the reverse: check that if it is a Parameter, it's listed.
         if all_parameter.derived:
-            assert all_parameter.name in cosmo_cls.derived_parameters
+            assert all_parameter.name in cosmo_cls._derived_parameters
         else:
             assert all_parameter.name in cosmo_cls.parameters
 
