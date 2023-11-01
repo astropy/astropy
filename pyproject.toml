@@ -227,7 +227,6 @@ archs = ["x86_64", "arm64"]
 archs = ["auto", "aarch64"]
 
 [tool.black]
-line-length = 88
 force-exclude = """
 ^/(
   (
@@ -309,7 +308,6 @@ exclude= [
         ]
 
 [tool.ruff]
-line-length = 88
 select = ["ALL"]
 exclude=[
     "astropy/extern/*",
@@ -390,9 +388,7 @@ ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` in
 ]
 
 [tool.ruff.isort]
-    known-third-party = ["erfa", "PyYAML", "packaging", "pytest", "scipy", "matplotlib"]
     known-first-party = ["astropy", "extension_helpers"]
-    force-sort-within-sections = false
 
 [tool.ruff.pydocstyle]
 convention = "numpy"
