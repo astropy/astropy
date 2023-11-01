@@ -24,12 +24,21 @@ class ParametersAttribute:
     If accessed from the class, this returns a mapping of the Parameter
     objects themselves.  If accessed from an instance, this returns a
     mapping of the values of the Parameters.
+
+    Parameters
+    ----------
+    attr_name : str
+        The name of the class attribute containing the Parameter objects.
     """
 
-    attr_name: str = field(init=False)
+    attr_name: str | None = None
+    """The name of the class attribute containing the Parameter objects."""
 
-    def __set_name__(self, owner: type[Cosmology], name: str) -> None:
-        object.__setattr__(self, "attr_name", f"_{name}")
+    _name: str = field(init=False)
+    """The name of the descriptor on the containing class."""
+
+    def __set_name__(self, owner: Any, name: str) -> None:
+        object.__setattr__(self, "_name", name)
 
     def __get__(
         self, instance: Cosmology | None, owner: type[Cosmology] | None
@@ -43,5 +52,5 @@ class ParametersAttribute:
         )
 
     def __set__(self, instance: Any, value: Any) -> NoReturn:
-        msg = f"cannot set {self.attr_name.lstrip('_').rstrip('_')!r} of {instance!r}."
+        msg = f"cannot set {self._name!r} of {instance!r}."
         raise AttributeError(msg)
