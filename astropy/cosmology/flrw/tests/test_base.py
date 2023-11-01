@@ -156,7 +156,7 @@ class ParameterOde0TestMixin(ParameterTestMixin):
     def test_Parameter_Ode0(self, cosmo_cls):
         """Test Parameter ``Ode0`` on the class."""
         Ode0 = cosmo_cls.parameters.get(
-            "Ode0", cosmo_cls.derived_parameters.get("Ode0")
+            "Ode0", cosmo_cls._derived_parameters.get("Ode0")
         )
         assert isinstance(Ode0, Parameter)
         assert "Omega dark energy" in Ode0.__doc__
@@ -165,7 +165,7 @@ class ParameterOde0TestMixin(ParameterTestMixin):
     def test_Parameter_Ode0_validation(self, cosmo_cls, cosmo):
         """Test Parameter ``Ode0`` validation."""
         Ode0 = cosmo_cls.parameters.get(
-            "Ode0", cosmo_cls.derived_parameters.get("Ode0")
+            "Ode0", cosmo_cls._derived_parameters.get("Ode0")
         )
         assert Ode0.validate(cosmo, 1.1) == 1.1
         assert Ode0.validate(cosmo, 10 * u.one) == 10.0
@@ -947,7 +947,7 @@ class ParameterFlatOde0TestMixin(ParameterOde0TestMixin):
     def test_Parameter_Ode0(self, cosmo_cls):
         """Test Parameter ``Ode0`` on the class."""
         super().test_Parameter_Ode0(cosmo_cls)
-        Ode0 = cosmo_cls.parameters.get("Ode0", cosmo_cls.derived_parameters["Ode0"])
+        Ode0 = cosmo_cls.parameters.get("Ode0", cosmo_cls._derived_parameters["Ode0"])
         assert Ode0.derived in (True, np.True_)
 
     def test_Ode0(self, cosmo):
