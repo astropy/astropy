@@ -258,3 +258,25 @@ def test_get_lines_from_qdp(tmp_path):
         assert file_output[i] == line
         assert list_output[i] == line
         assert text_output[i] == line
+
+def test_read_qdpfile_with_oneNO_start_new_sector(tmp_path):
+    example_qdp = """
+    READ Terr 1 2
+    9.0150001E+00  1.5000167E-02 -1.5000167E-02 -2.7721735E-03  5.7468953E-02 -5.7468953E-02  8.2039691E-02  7.8058078E-02
+    9.0500002E+00  1.9999990E-02 -1.9999990E-02  1.1883142E-01  7.9723340E-02 -7.9723340E-02  8.3517993E-02  8.5578051E-02
+    NO
+    1.9920001E+01  2.9999205E-02 -2.9999205E-02  2.1270609E-01  8.9663795E-02 -8.9663795E-02  9.9843595E-02  1.4176735E-01
+    1.9975000E+01  2.5000445E-02 -2.5000445E-02  1.1424498E-01  8.8841605E-02 -8.8841605E-02  1.2776274E-01  1.6331280E-01
+    """
+
+    path = tmp_path / "test.qdp"
+
+    with open(path, "w") as fp:
+        print(example_qdp, file=fp)
+
+    table0 = _read_table_qdp(fp.name, names=["x", "y", "mod", "bkg"], table_id=0)
+    assert np.allclose(table0["x"], [9.0150001, 9.0500002])
+    assert np.allclose(table0["y"], [-0.0027721735, 0.11883142])
+    table1 = _read_table_qdp(fp.name, names=["x", "y", "mod", "bkg"], table_id=1)
+    assert np.allclose(table1["x"], [19.920001, 19.975])
+    assert np.allclose(table1["y"], [0.21270609, 0.11424498])
