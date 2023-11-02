@@ -12,6 +12,7 @@ from mpl_toolkits.axes_grid1.anchored_artists import (
 )
 
 import astropy.units as u
+from astropy.coordinates import SkyCoord
 from astropy.wcs.utils import proj_plane_pixel_scales
 
 __all__ = ["add_compass", "add_beam", "add_scalebar"]
@@ -28,51 +29,98 @@ CORNERS = {
 }
 
 
+def _north_polar_angle(pixel, wcs, ddec=0.01 * u.arcsec):
+    """
+    Compute the angle between the North direction and the pixel coordinate x-axis,
+    along tangent line of great circle running through pixel and sky North.
+
+    Parameters
+    ----------
+    pixel : tuple
+        Pixel coordinates (x, y) of the reference pixel.
+    wcs : `~astropy.wcs.WCS`
+        The WCS object.
+    ddec : `~astropy.units.Quantity`
+        The declination offset to use for computing the North direction.
+
+    Returns
+    -------
+    north_angle : float, degrees
+    """
+    coord = SkyCoord.from_pixel(pixel[0], pixel[1], wcs)
+    coord = coord.transform_to("icrs")
+    north_coord = coord.directional_offset_by(0.0 * u.deg, ddec)
+    north_pixel = np.asarray(north_coord.to_pixel(wcs))
+    diff = north_pixel - np.asarray(pixel)
+    north_angle = np.rad2deg(np.arctan2(diff[1], diff[0]))
+    return north_angle
+
+
 def add_compass(
     ax,
-    north_angle,
     length=0.15,
-    sep_N=-0.1,
-    sep_E=0.04,
+    label_offset_north=-0.0,
+    label_offset_east=0.0,
     color="white",
+    corner="bottom left",
+    frame=False,
+    borderpad=0.4,
     **kwargs,
 ):
     """
-    Display North, East arrows.
+    Display a North-East compass.
 
     Parameters
     ----------
     ax : :class:`~astropy.visualization.wcsaxes.WCSAxes`
         WCSAxes instance in which the beam shape and size is displayed. The WCS
         must be celestial.
-    north_angle : `~astropy.coordinates.Angle`
-        Angle between sky North and pixel coordinate x-axis,
-        along tangent line of great circle running through
-        pixel and sky North.
-        This can be computed by :meth:`astropy.wcs.`
     length : float, optional.
         The arrow length, default 0.15.
-    sep_N : float, optional.
-        Separation between North arrow and "N" label, default -0.1.
-    sep_E : float, optional.
-        Separation between East arrow and "E" label, default 0.04.
+    label_offset_north : float, optional.
+        Additional separation between North arrow and "N" label, default 0.0.
+    label_offset_east : float, optional.
+        Additional separation between East arrow and "E" label, default 0.0.
     color : str, optional.
         The color. Default "white".
+    corner : str, optional
+        The arrow location. Acceptable values are ``'left'``, ``'right'``,
+        ``'top'``, 'bottom', ``'top left'``, ``'top right'``, ``'bottom left'``
+        (default), and ``'bottom right'``.
+    frame : bool, optional
+        Whether to display a frame behind the arrows (default is ``False``).
+    borderpad : float, optional
+        Border padding, in fraction of the font size. Default is 0.4.
     kwargs
         Additional arguments are passed to
         :class:`~matplotlib.mpl_toolkits.axes_grid1.anchored_artists.AnchoredDirectionArrows`.
+
+    Notes
+    -----
+    This function may be inaccurate when:
+
+    - The image is large enough or near enough to the north pole that
+      the direction of north changes significantly across the image.
     """
+    pixel = (0, 0)
+    north_angle = _north_polar_angle(pixel, ax.wcs)
+
+    # add the arrow artist
+    corner = CORNERS[corner]
     arrow = AnchoredDirectionArrows(
         ax.transAxes,
         label_x="E",
         label_y="N",
         length=-length,
         aspect_ratio=-1,
-        sep_y=sep_N,
-        sep_x=sep_E,
-        angle=north_angle.degree - 90,
+        sep_y=-0.1 - label_offset_north,
+        sep_x=0.4 + label_offset_east,
+        angle=north_angle - 90,
         color=color,
         back_length=0,
+        borderpad=borderpad,
+        loc=corner,
+        frameon=frame,
         **kwargs,
     )
     ax.add_artist(arrow)

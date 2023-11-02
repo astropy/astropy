@@ -14,7 +14,7 @@ from astropy.io import fits
 from astropy.tests.figures import figure_test
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.visualization.wcsaxes import WCSAxes, add_beam, add_scalebar
+from astropy.visualization.wcsaxes import WCSAxes, add_beam, add_compass, add_scalebar
 from astropy.visualization.wcsaxes.frame import EllipticalFrame
 from astropy.visualization.wcsaxes.patches import Quadrangle, SphericalCircle
 from astropy.wcs import WCS
@@ -901,6 +901,20 @@ class TestBasic(BaseImageTests):
             borderpad=1.0,
             label_top=True,
         )
+
+        return fig
+
+    @figure_test
+    def test_compass(self, tmp_path):
+        # Test for adding a scale bar
+        wcs = WCS(self.msx_header)
+        fig = plt.figure(figsize=(4, 3))
+        ax = fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, aspect="equal")
+        ax.set_xlim(-10, 10)
+        ax.set_ylim(-10, 10)
+
+        add_compass(ax, corner="bottom right")
+        add_compass(ax, corner="top left")
 
         return fig
 

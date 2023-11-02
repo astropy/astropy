@@ -104,8 +104,7 @@ Overlaying a Compass Arrow
 **************************
 
 It is often useful to add compass arrows to your images, denoting which directions correspond to North and East on the sky.
-The function :meth:`~astropy.wcs.utils.north_pole_angle` calculates the correct angle for this compass,
-which can be displayed using :class:`~astropy.visualization.wcsaxes.add_compass`.
+These can be computed and displayed using :class:`~astropy.visualization.wcsaxes.add_compass`.
 
 .. plot::
    :context:
@@ -116,5 +115,4 @@ which can be displayed using :class:`~astropy.visualization.wcsaxes.add_compass`
    from astropy.visualization.wcsaxes import add_compass
 
    # Find the angle to North and add the compass
-   north_angle = utils.north_pole_angle(wcs)
-   add_compass(ax, north_angle, loc='lower right')
+   add_compass(ax, corner='bottom right')
