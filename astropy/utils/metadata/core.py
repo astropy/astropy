@@ -5,6 +5,7 @@ import inspect
 from collections import OrderedDict
 from collections.abc import Mapping
 from copy import deepcopy
+from dataclasses import is_dataclass
 
 __all__ = ["MetaData", "MetaAttribute"]
 
@@ -24,7 +25,7 @@ class MetaData:
         .. versionadded:: 1.2
 
     copy : `bool`, optional
-        If ``True`` the the value is deepcopied before setting, otherwise it
+        If ``True`` the value is deepcopied before setting, otherwise it
         is saved as reference.
         Default is ``True``.
 
@@ -100,18 +101,23 @@ class MetaData:
         return instance._meta
 
     def __set__(self, instance, value):
-        # The 'default' value is `None`, but we want to set it to an empty `OrderedDict`
+        # The 'default' value is `None`, but we want to set it to an empty `Mapping`
         # if it is `None` so that we can always assume it is a `Mapping` and not have
         # to check for `None` everywhere.
         if value is None:
-            instance._meta = self.default_factory()
+            value = self.default_factory()
         # We don't want to allow setting the meta attribute to a non-dict-like object.
         # NOTE: with mypyc compilation this can be removed.
         elif not isinstance(value, Mapping):
             raise TypeError("meta attribute must be dict-like")
         # This is called when the dataclass is instantiated with a `meta` argument.
         else:
-            instance._meta = deepcopy(value) if self.copy else value
+            value = deepcopy(value) if self.copy else value
+
+        if is_dataclass(instance) and instance.__dataclass_params__.frozen:
+            object.__setattr__(instance, "_meta", value)
+        else:
+            instance._meta = value
 
 
 class MetaAttribute:

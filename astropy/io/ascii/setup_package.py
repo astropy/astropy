@@ -15,6 +15,7 @@ def get_extensions():
     ]
     ascii_ext = Extension(
         name="astropy.io.ascii.cparser",
+        define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
         include_dirs=[numpy.get_include()],
         sources=sources,
     )

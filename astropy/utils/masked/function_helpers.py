@@ -14,6 +14,11 @@ import numpy as np
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
 from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24, NUMPY_LT_2_0
 
+if NUMPY_LT_2_0:
+    import numpy.core as np_core
+else:
+    import numpy._core as np_core
+
 # This module should not really be imported, but we define __all__
 # such that sphinx can typeset the functions with docstrings.
 # The latter are added to __all__ at the end.
@@ -78,7 +83,7 @@ been lack of time.  Issues or PRs for support for functions are welcome.
 # Almost all from np.core.fromnumeric defer to methods so are OK.
 MASKED_SAFE_FUNCTIONS |= {
     getattr(np, name)
-    for name in np.core.fromnumeric.__all__
+    for name in np_core.fromnumeric.__all__
     if name not in {"choose", "put", "resize", "searchsorted", "where", "alen", "ptp"}
 }
 MASKED_SAFE_FUNCTIONS |= {
@@ -512,8 +517,8 @@ def block(arrays):
     # shortest and easiest.
     from astropy.utils.masked import Masked
 
-    arrays, list_ndim, result_ndim, final_size = np.core.shape_base._block_setup(arrays)
-    shape, slices, arrays = np.core.shape_base._block_info_recursion(
+    arrays, list_ndim, result_ndim, final_size = np_core.shape_base._block_setup(arrays)
+    shape, slices, arrays = np_core.shape_base._block_info_recursion(
         arrays, list_ndim, result_ndim
     )
     dtype = np.result_type(*[arr.dtype for arr in arrays])
@@ -970,7 +975,10 @@ class MaskedFormat:
 
     @classmethod
     def from_data(cls, data, **options):
-        from numpy.core.arrayprint import _get_format_function
+        if NUMPY_LT_2_0:
+            from numpy.core.arrayprint import _get_format_function
+        else:
+            from numpy._core.arrayprint import _get_format_function
 
         return cls(_get_format_function(data, **options))
 
@@ -979,7 +987,10 @@ def _array2string(a, options, separator=" ", prefix=""):
     # Mostly copied from numpy.core.arrayprint, except:
     # - The format function is wrapped in a mask-aware class;
     # - Arrays scalars are not cast as arrays.
-    from numpy.core.arrayprint import _formatArray, _leading_trailing
+    if NUMPY_LT_2_0:
+        from numpy.core.arrayprint import _formatArray, _leading_trailing
+    else:
+        from numpy._core.arrayprint import _formatArray, _leading_trailing
 
     data = np.asarray(a)
 
@@ -1027,7 +1038,10 @@ def array2string(
     suffix="",
 ):
     # Copied from numpy.core.arrayprint, but using _array2string above.
-    from numpy.core.arrayprint import _format_options, _make_options_dict
+    if NUMPY_LT_2_0:
+        from numpy.core.arrayprint import _format_options, _make_options_dict
+    else:
+        from numpy._core.arrayprint import _format_options, _make_options_dict
 
     overrides = _make_options_dict(
         precision,
@@ -1053,9 +1067,21 @@ def array2string(
     return _array2string(a, options, separator, prefix)
 
 
+def _array_str_scalar(x):
+    # This wraps np.array_str for use as a format function in
+    # MaskedFormat. We cannot use it directly as format functions
+    # expect numpy scalars, while np.array_str expects an array.
+    return np.array_str(np.array(x))
+
+
 @dispatched_function
 def array_str(a, max_line_width=None, precision=None, suppress_small=None):
-    # Override to avoid special treatment of array scalars.
+    # Override to change special treatment of array scalars, since the numpy
+    # code turns the masked array scalar into a regular array scalar.
+    # By going through MaskedFormat, we can replace the string as needed.
+    if a.shape == () and a.dtype.names is None:
+        return MaskedFormat(_array_str_scalar)(a)
+
     return array2string(a, max_line_width, precision, suppress_small, " ", "")
 
 
@@ -1116,7 +1142,7 @@ for nanfuncname in _nplibnanfunctions.__all__:
 # Add any dispatched or helper function that has a docstring to
 # __all__, so they will be typeset by sphinx. The logic is that for
 # those presumably the use of the mask is not entirely obvious.
-__all__ += sorted(
+__all__ += sorted(  # noqa: PLE0605
     helper.__name__
     for helper in (
         set(APPLY_TO_BOTH_FUNCTIONS.values()) | set(DISPATCHED_FUNCTIONS.values())

@@ -144,7 +144,11 @@ class TestPVUfuncs:
         assert px.unit == u.arcsec
         assert_quantity_allclose(px, 1 * u.radian)
         assert rv.unit == u.km / u.s
-        assert_array_equal(rv.value, np.zeros(self.pv.shape))
+        # RV is non-zero because proper motion induces a small redshift
+        # due to second order Doppler shift.
+        assert_quantity_allclose(
+            rv, np.zeros(self.pv.shape) << (u.km / u.s), atol=1 * u.m / u.s
+        )
 
     def test_starpv(self):
         ra, dec, pmr, pmd, px, rv, stat = erfa_ufunc.pvstar(self.pv)

@@ -89,8 +89,11 @@ class w0waCDM(FLRW):
            Universe. Phys. Rev. Lett., 90, 091301.
     """
 
-    w0 = Parameter(doc="Dark energy equation of state at z=0.", fvalidate="float")
+    w0 = Parameter(
+        default=-1.0, doc="Dark energy equation of state at z=0.", fvalidate="float"
+    )
     wa = Parameter(
+        default=0.0,
         doc="Negative derivative of dark energy equation of state w.r.t. a.",
         fvalidate="float",
     )
@@ -278,8 +281,8 @@ class Flatw0waCDM(FlatFLRWMixin, w0waCDM):
     To get an equivalent cosmology, but of type `astropy.cosmology.w0waCDM`,
     use :attr:`astropy.cosmology.FlatFLRWMixin.nonflat`.
 
-    >>> cosmo.nonflat
-    w0waCDM(H0=70.0 km / (Mpc s), Om0=0.3, ...
+    >>> print(cosmo.nonflat)
+    w0waCDM(H0=70.0 km / (Mpc s), Om0=0.3, Ode0=0.7, ...
 
     References
     ----------

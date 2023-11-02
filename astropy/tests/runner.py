@@ -8,7 +8,6 @@ import shlex
 import sys
 import tempfile
 import warnings
-from collections import OrderedDict
 from functools import wraps
 from importlib.util import find_spec
 
@@ -103,7 +102,7 @@ class TestRunnerBase:
         # Sort all keywords based on the priority flag.
         sorted_keywords = sorted(keywords, key=lambda x: x[1]._priority, reverse=True)
 
-        cls.keywords = OrderedDict()
+        cls.keywords = {}
         doc_keywords = ""
         for name, func in sorted_keywords:
             # Here we test if the function has been overloaded to return

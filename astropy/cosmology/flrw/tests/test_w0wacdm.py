@@ -14,8 +14,10 @@ import astropy.units as u
 from astropy.cosmology import Flatw0waCDM, Planck18, w0waCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
+from .conftest import filter_keys_from_items
 from .test_base import FlatFLRWMixinTest, FLRWTest
 from .test_w0cdm import Parameterw0TestMixin
 
@@ -35,9 +37,11 @@ class ParameterwaTestMixin(ParameterTestMixin):
     def test_wa(self, cosmo_cls, cosmo):
         """Test Parameter ``wa``."""
         # on the class
-        assert isinstance(cosmo_cls.wa, Parameter)
-        assert "Negative derivative" in cosmo_cls.wa.__doc__
-        assert cosmo_cls.wa.unit is None
+        wa = cosmo_cls.parameters["wa"]
+        assert isinstance(wa, Parameter)
+        assert "Negative derivative" in wa.__doc__
+        assert wa.unit is None
+        assert wa.default == 0.0
 
         # on the instance
         assert cosmo.wa is cosmo._wa
@@ -81,14 +85,12 @@ class Testw0waCDM(FLRWTest, Parameterw0TestMixin, ParameterwaTestMixin):
         c = cosmo.clone(w0=0.1, wa=0.2)
         assert c.w0 == 0.1
         assert c.wa == 0.2
-        for n in set(cosmo.__parameters__) - {"w0", "wa"}:
-            v = getattr(c, n)
+        for n, v in filter_keys_from_items(c.parameters, ("w0", "wa")):
+            v_expect = getattr(cosmo, n)
             if v is None:
-                assert v is getattr(cosmo, n)
+                assert v is v_expect
             else:
-                assert u.allclose(
-                    v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1)
-                )
+                assert_quantity_allclose(v, v_expect, atol=1e-4 * getattr(v, "unit", 1))
 
     # @pytest.mark.parametrize("z", valid_zs)  # TODO! recompute comparisons below
     def test_w(self, cosmo):
@@ -101,16 +103,13 @@ class Testw0waCDM(FLRWTest, Parameterw0TestMixin, ParameterwaTestMixin):
             [-1, -1.16666667, -1.25, -1.3, -1.34848485],
         )
 
-    def test_repr(self, cosmo_cls, cosmo):
+    def test_repr(self, cosmo):
         """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = (
-            'w0waCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27,'
-            " Ode0=0.73, w0=-1.0, wa=-0.5, Tcmb0=3.0 K, Neff=3.04,"
-            " m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+        assert repr(cosmo) == (
+            "w0waCDM(name='ABCMeta', H0=<Quantity 70. km / (Mpc s)>, Om0=0.27,"
+            " Ode0=0.73, w0=-1.0, wa=-0.5, Tcmb0=<Quantity 3. K>, Neff=3.04,"
+            " m_nu=<Quantity [0., 0., 0.] eV>, Ob0=0.03)"
         )
-        assert repr(cosmo) == expected
 
     # ===============================================================
     # Usage Tests
@@ -169,16 +168,13 @@ class TestFlatw0waCDM(FlatFLRWMixinTest, Testw0waCDM):
         self.cls = Flatw0waCDM
         self.cls_kwargs.update(w0=-1, wa=-0.5)
 
-    def test_repr(self, cosmo_cls, cosmo):
+    def test_repr(self, cosmo):
         """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = (
-            'Flatw0waCDM(name="ABCMeta", H0=70.0 km / (Mpc s),'
-            " Om0=0.27, w0=-1.0, wa=-0.5, Tcmb0=3.0 K, Neff=3.04,"
-            " m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+        assert repr(cosmo) == (
+            "Flatw0waCDM(name='ABCMeta', H0=<Quantity 70. km / (Mpc s)>, Om0=0.27,"
+            " w0=-1.0, wa=-0.5, Tcmb0=<Quantity 3. K>, Neff=3.04,"
+            " m_nu=<Quantity [0., 0., 0.] eV>, Ob0=0.03)"
         )
-        assert repr(cosmo) == expected
 
     # ===============================================================
     # Usage Tests
@@ -270,7 +266,7 @@ def test_varyde_lumdist_mathematica():
 def test_equality():
     """Test equality and equivalence."""
     # mismatched signatures, both directions.
-    newcosmo = w0waCDM(**Planck18._init_arguments, Ode0=0.6)
+    newcosmo = w0waCDM(**Planck18.parameters, Ode0=0.6)
     assert newcosmo != Planck18
     assert Planck18 != newcosmo
 

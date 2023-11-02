@@ -126,7 +126,7 @@ useful for :ref:`table_operations` such as joining and stacking::
 
   >>> t2[0] = np.ma.masked  # Declare that first time is missing or invalid
   >>> print(t2)
-  [-- '2014-12-25T00:00:00.000']
+  [                      ——— '2014-12-25T00:00:00.000']
 
 Finally, some further examples of what is possible. For details, see
 the API documentation below.
@@ -330,6 +330,7 @@ Format           Subformats
 ================ ========================================
 ``jd``           float, long, decimal, str, bytes
 ``sec``          float, long, decimal, str, bytes
+``quantity_str`` multi, yr, d, hr, min, s
 ================ ========================================
 
 Time from Epoch Formats
@@ -853,71 +854,133 @@ Example
 
 .. EXAMPLE START: Missing Values in Time and TimeDelta Objects
 
-To set one or more items as missing, assign the special value
-`numpy.ma.masked`::
+You can set one or more items as missing when creating the object in one of two ways.
+First with a numpy masked array::
 
-  >>> t = Time(['2001:020', '2001:040', '2001:060', '2001:080'],
-  ...          out_subfmt='date')
+  >>> dates = np.ma.array(['2001:020', '...', '2001:060'], mask=[False, True, False])
+  >>> print(Time(dates, out_subfmt="date"))
+  ['2001:020'        ——— '2001:060']
+
+Second with the `astropy.utils.masked.Masked` class::
+
+  >>> from astropy.utils.masked import Masked
+  >>> dates = Masked(['2001:020', '', '2001:060'], mask=[False, True, False])
+  >>> t = Time(dates, out_subfmt="date")
+  >>> print(t)
+  ['2001:020'        ——— '2001:060']
+
+You can also use the special `numpy.ma.masked` to set a value as missing in an existing
+|Time| object::
+
+  >>> t = Time(["2001:020", "2001:040", "2001:060", "2001:080"], out_subfmt="date")
   >>> t[2] = np.ma.masked
   >>> print(t)
-  ['2001:020' '2001:040' -- '2001:080']
+  ['2001:020' '2001:040'        ——— '2001:080']
 
-.. note:: The operation of setting an array element to `numpy.ma.masked`
-   (missing) *overwrites* the actual time data and therefore there is no way to
-   recover the original value. In this sense, the `numpy.ma.masked` value
-   behaves just like any other valid |Time| value when setting. This is
-   similar to how `Pandas missing data
-   <https://pandas.pydata.org/pandas-docs/stable/missing_data.html>`_ works,
-   but somewhat different from `NumPy masked arrays
-   <https://numpy.org/doc/stable/reference/maskedarray.html>`_ which
-   maintain a separate mask array and retain the underlying data. In the
-   |Time| object the ``mask`` attribute is read-only and cannot be directly set.
+If you want to get unmasked data, you can get those either by removing the mask using
+the `~astropy.time.Time.unmasked` attribute, or by filling any masked data with a chosen
+value::
+
+  >>> print(t.unmasked)
+  ['2001:020' '2001:040' '2001:060' '2001:080']
+  >>> t_filled = t.filled('1999:365')
+  >>> print(t_filled)
+  ['2001:020' '2001:040' '1999:365' '2001:080']
+
+You can also unset the mask on individual elements by assigning another special value,
+`numpy.ma.nomask`::
+
+  >>> t[2] = np.ma.nomask
+  >>> print(t)
+  ['2001:020' '2001:040' '2001:060' '2001:080']
+
+A subtle difference between the two approaches is that when you unset
+the mask by setting with `numpy.ma.nomask`, a mask is still present
+internally, and hence any output will have a mask as well.  In
+contrast, using `~astropy.time.Time.unmasked` or
+:meth:`~astropy.time.Time.filled` removes all masking, and hence any
+output is not masked. The `~astropy.time.Time.masked` property can be
+used to check whether or not a mask is in use internally::
+
+  >>> t.masked
+  True
+  >>> t.value
+  MaskedNDArray(['2001:020', '2001:040', '2001:060', '2001:080'],
+              dtype='<U8')
+  >>> t_filled.masked
+  False
+  >>> t_filled.value
+  array(['2001:020', '2001:040', '1999:365', '2001:080'], dtype='<U8')
+
+.. note:: When setting the mask, actual time data are kept. However,
+          when *initializing* with a masked array, any masked time
+          input data are overwritten internally, with a time
+          equivalent to ``2000-01-01 12:00:00`` (in the same scale and
+          format as the other values). This is to ensure no errors or
+          warnings are raised by invalid data hidden by the mask.
+          Hence, for initialization with masked data, there is no way
+          to recover the original masked values::
+
+            >>> dates = Masked(['2001:020', '2001:040', '2001:060'],
+            ...                mask=[False, True, False])
+            >>> tm = Time(dates, out_subfmt="date")
+            >>> tm[2] = np.ma.masked
+            >>> print(tm)
+            ['2001:020'        ———        ———]
+            >>> print(tm.unmasked)
+            ['2001:020' '2000:001' '2001:060']
 
 .. EXAMPLE END
 
 Once one or more values in the object are masked, any operations will
 propagate those values as masked, and access to format attributes such
-as ``unix`` or ``value`` will return a `~numpy.ma.MaskedArray`
-object::
+as ``unix`` or ``value`` will return a |Masked| object::
 
-  >>> t.unix  # doctest: +SKIP
-  masked_array(data = [979948800.0 981676800.0 -- 985132800.0],
-               mask = [False False  True False],
-         fill_value = 1e+20)
+  >>> t[1:3] = np.ma.masked
+  >>> t.isot
+  MaskedNDArray(['2001-01-20',          ———,          ———, '2001-03-21'],
+                dtype='<U10')
 
-You can view the ``mask``, but note that it is read-only and
-setting the mask is always done by setting the item to `~numpy.ma.masked`.
+You can view the ``mask``, but note that it is read-only.  Setting and
+clearing the mask is always done by setting the item to
+`~numpy.ma.masked` and `~numpy.ma.nomask`, respectively.
 
   >>> t.mask
-  array([False, False,  True, False]...)
-  >>> t[:2] = np.ma.masked
+  array([False, True,  True, False])
 
-.. warning:: The internal implementation of missing value support is provisional
-   and may change in a subsequent release. This would impact information in the
-   next section. However, the documented API for using missing values with
-   |Time| and |TimeDelta| objects is stable.
+Choice of Masked Array Type
+"""""""""""""""""""""""""""
 
-Custom Format Classes and Missing Values
-""""""""""""""""""""""""""""""""""""""""
+|Time| internally uses astropy's |Masked| class to represent the mask.  It is
+possible to initialize with data using numpy's `~numpy.ma.MaskedArray` class,
+but by default all output will use |Masked|. For backward compatibility, it is
+possible to set `~astropy.time.Conf.masked_array_type` to "numpy" to ensure
+that output uses `~numpy.ma.MaskedArray` where possible (for all but |Quantity|).
+
+
+Custom Format Classes and Masked Values
+"""""""""""""""""""""""""""""""""""""""
 
 For advanced users who have written a custom time format via a
-`~astropy.time.TimeFormat` subclass, it may be necessary to modify your
-class *if you wish to support missing values*. For applications that
-do not take advantage of missing values no changes are required.
+`~astropy.time.TimeFormat` subclass, it may be necessary to modify your class
+*if you wish to support masked values*, and especially if you earlier
+supported having *missing values* by setting the ``jd2`` attribute to
+``numpy.nan``. For applications that do not need masked or missing values, no
+changes are required.
 
-Missing values in a `~astropy.time.TimeFormat` subclass object are marked by
-setting the corresponding entries of the ``jd2`` attribute to be ``numpy.nan``
-(but this is never done directly by the user). For most array operations and
-``numpy`` functions the ``numpy.nan`` entries are propagated as expected and
-all is well. However, this is not always the case, and in particular the `ERFA`_
-routines do not generally support ``numpy.nan`` values gracefully.
+Prior to astropy 6.0, missing values in a `~astropy.time.TimeFormat` subclass
+object were marked by setting the corresponding entries of the ``jd2``
+attribute to be ``numpy.nan`` (but this was never done directly by the user).
+Since astropy 6.0, instead |Masked| arrays are used, and these are written to
+propagate properly through (almost) all numpy and `ERFA`_ functions.
 
-In cases where ``numpy.nan`` is not acceptable, format class methods should use
-the ``jd2_filled`` property instead of ``jd2``. This replaces ``numpy.nan`` with
-``0.0``. Since ``jd2`` is always in the range -1 to +1, substituting ``0.0``
-will allow functions to return "reasonable" values which will then be masked in
-any subsequent outputs. See the ``value`` property of the
-`~astropy.time.TimeDecimalYear` format for any example.
+In general, very few modifications should be needed to support |Masked|
+arrays. Generally, on input, no changes are needed since the format will be
+given unmasked values (with any masked input values replaced with the default
+value to ensure that only valid values are passed in). Some care may
+need to be taken, though, that the mask is propagated properly in calculating
+output values from ``jd1`` to ``jd2`` in the ``value`` property.
+
 
 Get Representation
 ^^^^^^^^^^^^^^^^^^
@@ -1189,6 +1252,8 @@ To calculate sidereal time::
 
 .. EXAMPLE END
 
+.. _time-delta:
+
 Time Deltas
 -----------
 
@@ -1212,13 +1277,14 @@ day is exactly 86400 seconds. Hence, the scale cannot be UTC.
 
 The available time formats are:
 
-=========  ===================================================
-Format     Class
-=========  ===================================================
-sec        :class:`~astropy.time.TimeDeltaSec`
-jd         :class:`~astropy.time.TimeDeltaJD`
-datetime   :class:`~astropy.time.TimeDeltaDatetime`
-=========  ===================================================
+============  ===================================================
+Format        Class
+============  ===================================================
+sec           :class:`~astropy.time.TimeDeltaSec`
+jd            :class:`~astropy.time.TimeDeltaJD`
+datetime      :class:`~astropy.time.TimeDeltaDatetime`
+quantity_str  :class:`~astropy.time.TimeDeltaQuantityString`
+============  ===================================================
 
 Examples
 ^^^^^^^^
@@ -1257,10 +1323,24 @@ Use of the |TimeDelta| object is illustrated in the few examples below::
   >>> t1 + 1 * u.hour
   <Time object: scale='utc' format='iso' value=2010-01-01 01:00:00.000>
 
-  # The now deprecated default assumes days for numeric inputs
+A human-readable multi-scale format for string representation of a time delta is
+available via the ``quantity_str`` format. See the
+:class:`~astropy.time.TimeDeltaQuantityString` class docstring for more details::
+
+  >>> TimeDelta(40.1 * u.hr).quantity_str
+  '1d 16hr 6min'
+  >>> t4 = TimeDelta("-1yr 2d 23hr 10min 5.6s")
+  >>> print(t4)
+  -368d 5hr 10min 5.6s
+  >>> t4.to_value(subfmt="d")
+  '-368.215d'
+
+The now deprecated default assumes days for numeric inputs::
+
   >>> t1 + 5.0  # doctest: +SHOW_WARNINGS +ELLIPSIS
   <Time object: scale='utc' format='iso' value=2010-01-06 00:00:00.000>
   TimeDeltaMissingUnitWarning: Numerical value without unit or explicit format passed to TimeDelta, assuming days
+
 
 The |TimeDelta| has a `~astropy.time.TimeDelta.to_value` method which supports
 controlling the type of the output representation by providing either a format

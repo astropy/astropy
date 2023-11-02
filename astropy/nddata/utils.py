@@ -406,7 +406,7 @@ class Cutout2D:
         `~astropy.units.Quantity` objects.  Such
         `~astropy.units.Quantity` objects must be in pixel or
         angular units.  For all cases, ``size`` will be converted to
-        an integer number of pixels, rounding the the nearest
+        an integer number of pixels, rounding the nearest
         integer.  See the ``mode`` keyword for additional details on
         the final cutout size.
 

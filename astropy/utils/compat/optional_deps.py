@@ -3,7 +3,6 @@
 `PEP 562 <https://www.python.org/dev/peps/pep-0562/>`_.
 """
 import importlib
-import warnings
 
 # First, the top-level packages:
 # TODO: This list is a duplicate of the dependencies in pyproject.toml "all", but
@@ -15,6 +14,7 @@ _optional_deps = [
     "bottleneck",
     "bs4",
     "bz2",
+    "dask",
     "fsspec",
     "h5py",
     "html5lib",
@@ -34,8 +34,7 @@ _optional_deps = [
     "pyarrow",
     "pytest_mpl",
 ]
-_formerly_optional_deps = ["yaml"]  # for backward compatibility
-_deps = {k.upper(): k for k in _optional_deps + _formerly_optional_deps}
+_deps = {k.upper(): k for k in _optional_deps}
 
 # Any subpackages that have different import behavior:
 _deps["PLT"] = "matplotlib.pyplot"
@@ -45,19 +44,8 @@ __all__ = [f"HAS_{pkg}" for pkg in _deps]
 
 def __getattr__(name):
     if name in __all__:
-        module_name = name[4:]
-
-        if module_name == "YAML":
-            from astropy.utils.exceptions import AstropyDeprecationWarning
-
-            warnings.warn(
-                "PyYaml is now a strict dependency. HAS_YAML is deprecated as "
-                "of v5.0 and will be removed in a subsequent version.",
-                category=AstropyDeprecationWarning,
-            )
-
         try:
-            importlib.import_module(_deps[module_name])
+            importlib.import_module(_deps[name[4:]])
         except (ImportError, ModuleNotFoundError):
             return False
         return True

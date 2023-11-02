@@ -2,7 +2,6 @@
 """Accuracy tests for GCRS coordinate transformations, primarily to/from AltAz.
 
 """
-import os
 import warnings
 from importlib import metadata
 
@@ -41,14 +40,13 @@ from astropy.coordinates.builtin_frames.intermediate_rotation_transforms import 
 )
 from astropy.coordinates.builtin_frames.utils import get_jd12
 from astropy.coordinates.solar_system import get_body
+from astropy.tests.helper import CI
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
 from astropy.utils import iers
 from astropy.utils.compat.optional_deps import HAS_JPLEPHEM
 from astropy.utils.exceptions import AstropyWarning
-
-CI = os.environ.get("CI", False) == "true"
 
 
 def test_icrs_cirs():

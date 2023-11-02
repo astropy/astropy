@@ -697,7 +697,9 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 np.copyto(out, masks[0], where=where)
                 return out
 
-        out = np.logical_or(masks[0], masks[1], out=out, where=where)
+        # [...] at the end to ensure we have an array, not a scalar, and
+        # thus can be used for in-place changes in the loop.
+        out = np.logical_or(masks[0], masks[1], out=out, where=where)[...]
         for mask in masks[2:]:
             np.logical_or(out, mask, out=out, where=where)
         return out
@@ -1062,8 +1064,10 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             # As done inside the argsort implementation in multiarray/methods.c.
             if order is None:
                 order = self.dtype.names
-            else:
+            elif NUMPY_LT_2_0:
                 order = np.core._internal._newnames(self.dtype, order)
+            else:
+                order = np._core._internal._newnames(self.dtype, order)
 
             keys = tuple(data[name] for name in order[::-1])
 

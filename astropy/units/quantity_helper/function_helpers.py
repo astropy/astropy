@@ -49,10 +49,15 @@ from astropy.units.core import (
 from astropy.utils import isiterable
 from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_2_0
 
+if NUMPY_LT_2_0:
+    import numpy.core as np_core
+else:
+    import numpy._core as np_core
+
 # In 1.17, overrides are enabled by default, but it is still possible to
 # turn them off using an environment variable.  We use getattr since it
 # is planned to remove that possibility in later numpy versions.
-ARRAY_FUNCTION_ENABLED = getattr(np.core.overrides, "ENABLE_ARRAY_FUNCTION", True)
+ARRAY_FUNCTION_ENABLED = getattr(np_core.overrides, "ENABLE_ARRAY_FUNCTION", True)
 SUBCLASS_SAFE_FUNCTIONS = set()
 """Functions with implementations supporting subclasses like Quantity."""
 FUNCTION_HELPERS = {}
@@ -102,6 +107,9 @@ SUBCLASS_SAFE_FUNCTIONS |= {np.median}
 if NUMPY_LT_2_0:
     # functions removed in numpy 2.0; alias for np.round in NUMPY_LT_1_25
     SUBCLASS_SAFE_FUNCTIONS |= {np.msort, np.round_}  # noqa: NPY003
+else:
+    # Array-API compatible versions (matrix axes always at end).
+    SUBCLASS_SAFE_FUNCTIONS |= {np.linalg.diagonal, np.linalg.trace}
 
 # Implemented as methods on Quantity:
 # np.ediff1d is from setops, but we support it anyway; the others
@@ -405,10 +413,10 @@ def block(arrays):
     # arrays and then turn them back into a nested list, we just copy here the
     # second implementation, np.core.shape_base._block_slicing, since it is
     # shortest and easiest.
-    (arrays, list_ndim, result_ndim, final_size) = np.core.shape_base._block_setup(
+    (arrays, list_ndim, result_ndim, final_size) = np_core.shape_base._block_setup(
         arrays
     )
-    shape, slices, arrays = np.core.shape_base._block_info_recursion(
+    shape, slices, arrays = np_core.shape_base._block_info_recursion(
         arrays, list_ndim, result_ndim
     )
     # Here, one line of difference!
@@ -1001,7 +1009,10 @@ def array2string(a, *args, **kwargs):
         a = a.value
     else:
         # See whether it covers our dtype.
-        from numpy.core.arrayprint import _get_format_function, _make_options_dict
+        if NUMPY_LT_2_0:
+            from numpy.core.arrayprint import _get_format_function, _make_options_dict
+        else:
+            from numpy._core.arrayprint import _get_format_function, _make_options_dict
 
         with np.printoptions(formatter=formatter) as options:
             options = _make_options_dict(**options)

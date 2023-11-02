@@ -22,7 +22,7 @@ evaluate``. Now you can fit cosmologies with data!
 
 The |Planck18| cosmology can be recovered with |Cosmology.from_format|.
 
-    >>> Cosmology.from_format(model)
+    >>> print(Cosmology.from_format(model))
     FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                   Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 """
@@ -172,7 +172,7 @@ def from_model(model):
     --------
     >>> from astropy.cosmology import Cosmology, Planck18
     >>> model = Planck18.to_format("astropy.model", method="lookback_time")
-    >>> Cosmology.from_format(model)
+    >>> print(Cosmology.from_format(model))
     FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                   Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
     """
@@ -240,17 +240,13 @@ def to_model(cosmology, *_, method):
     attrs["n_inputs"] = n_inputs
     attrs["n_outputs"] = 1
 
-    params = {}  # Parameters (also class attributes)
-    for n in cosmology.__parameters__:
-        v = getattr(cosmology, n)  # parameter value
-
-        if v is None:  # skip unspecified parameters
-            continue
-
-        # add as Model Parameter
-        params[n] = convert_parameter_to_model_parameter(
-            getattr(cosmo_cls, n), v, cosmology.meta.get(n)
+    params = {
+        k: convert_parameter_to_model_parameter(
+            cosmo_cls.parameters[k], v, meta=cosmology.meta.get(k)
         )
+        for k, v in cosmology.parameters.items()
+        if v is not None
+    }
 
     # class name is cosmology name + Cosmology + method name + Model
     clsname = (
@@ -269,8 +265,9 @@ def to_model(cosmology, *_, method):
     )
 
     # instantiate class using default values
-    ps = {n: getattr(cosmology, n) for n in params.keys()}
-    model = CosmoModel(**ps, name=cosmology.name, meta=copy.deepcopy(cosmology.meta))
+    model = CosmoModel(
+        **cosmology.parameters, name=cosmology.name, meta=copy.deepcopy(cosmology.meta)
+    )
 
     return model
 

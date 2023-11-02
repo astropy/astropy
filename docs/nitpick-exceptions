@@ -17,7 +17,7 @@ py:class astropy.modeling.projections.Projection
 # astropy.io.fits
 py:class astropy.io.fits.hdu.base.ExtensionHDU
 py:class astropy.io.fits.util.NotifierMixin
-py:class astropy.io.fits._tiled_compression.codecs.Codec
+py:class astropy.io.fits.hdu.compressed._codecs.Codec
 py:class numcodecs.abc.Codec
 
 # astropy.io.misc.yaml
@@ -78,10 +78,12 @@ py:obj ndarray
 py:obj args
 
 # other classes and functions that cannot be linked to
+# NUMPY_LT_2_0: numpy 2.0 changed numpy.core to numpy._core
 py:class numpy.ma.core.MaskedArray
 py:class numpy.ma.mvoid
 py:class numpy.void
 py:class numpy.core.records.recarray
+py:class numpy._core.records.recarray
 py:class xmlrpclib.Fault
 py:class xmlrpclib.Error
 py:class xmlrpc.client.Fault

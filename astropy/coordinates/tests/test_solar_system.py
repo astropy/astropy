@@ -1,4 +1,3 @@
-import os
 from urllib.error import HTTPError
 
 import numpy as np
@@ -23,7 +22,7 @@ from astropy.coordinates.solar_system import (
     get_moon,
     solar_system_ephemeris,
 )
-from astropy.tests.helper import assert_quantity_allclose
+from astropy.tests.helper import CI, assert_quantity_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_JPLEPHEM, HAS_SKYFIELD
@@ -45,7 +44,7 @@ def skyfield_ephemeris(tmp_path_factory):
         planets = load("de421.bsp")
         ts = load.timescale()
     except OSError as e:
-        if os.environ.get("CI", False) and "timed out" in str(e):
+        if CI and "timed out" in str(e):
             pytest.xfail("Timed out in CI")
         else:
             raise

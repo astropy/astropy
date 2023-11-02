@@ -811,7 +811,7 @@ class FITS_rec(np.recarray):
             offset = field[idx, 1] + self._heapoffset
             count = field[idx, 0]
 
-            if recformat.dtype == "a":
+            if recformat.dtype == "S":
                 dt = np.dtype(recformat.dtype + str(1))
                 arr_len = count * dt.itemsize
                 da = raw_data[offset : offset + arr_len].view(dt)
@@ -1110,7 +1110,7 @@ class FITS_rec(np.recarray):
             if isinstance(recformat, _FormatP):
                 # Irritatingly, this can return a different dtype than just
                 # doing np.dtype(recformat.dtype); but this returns the results
-                # that we want.  For example if recformat.dtype is 'a' we want
+                # that we want.  For example if recformat.dtype is 'S' we want
                 # an array of characters.
                 dtype = np.array([], dtype=recformat.dtype).dtype
 
@@ -1149,7 +1149,8 @@ class FITS_rec(np.recarray):
                 if _number and (_scale or _zero) and column._physical_values:
                     dummy = field.copy()
                     if _zero:
-                        dummy -= bzero
+                        # Cast before subtracting to avoid overflow problems.
+                        dummy -= np.array(bzero).astype(dummy.dtype, casting="unsafe")
                     if _scale:
                         dummy /= bscale
                     # This will set the raw values in the recarray back to
@@ -1249,7 +1250,7 @@ class FITS_rec(np.recarray):
         spans = self._coldefs.spans
         format = self._coldefs[col_idx].format
 
-        # The the index of the "end" column of the record, beyond
+        # The index of the "end" column of the record, beyond
         # which we can't write
         end = super().field(-1).itemsize
         starts.append(end + starts[-1])

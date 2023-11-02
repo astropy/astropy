@@ -1,0 +1,10 @@
+``Time`` has switched to use ``Masked`` arrays internally, instead of
+indicating masked values using NaN in the internal ``jd2`` attribute.  As a
+result, any output from instances, such as one gets with, say, the ``.isot``
+format, will also use ``Masked`` by default.
+
+For backwards compatibility, a new configuration item,
+``astropy.time.conf.masked_array_type`` is introduced which is set to
+"astropy" by default (which indicates one wants to use ``Masked``), but can
+also be set to "numpy", in which case ``numpy.ma.MaskedArray`` will be used
+where possible (essentially, for all but ``Quantity``).

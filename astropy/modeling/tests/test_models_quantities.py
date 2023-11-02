@@ -28,6 +28,7 @@ from astropy.modeling.functional_models import (
     Exponential1D,
     Gaussian1D,
     Gaussian2D,
+    GeneralSersic2D,
     KingProjectedAnalytic1D,
     Linear1D,
     Logarithmic1D,
@@ -406,6 +407,23 @@ FUNC_MODELS_2D = [
         "bounding_box": False,
     },
     {
+        "class": GeneralSersic2D,
+        "parameters": {
+            "amplitude": 3 * u.MJy / u.sr,
+            "x_0": 1 * u.arcsec,
+            "y_0": 2 * u.arcsec,
+            "r_eff": 2 * u.arcsec,
+            "n": 4,
+            "c": 1,
+            "ellip": 0,
+            "theta": 0,
+        },
+        "evaluation": [
+            (3 * u.arcsec, 2.5 * u.arcsec, 2.9704014001846475 * u.MJy / u.sr)
+        ],
+        "bounding_box": False,
+    },
+    {
         "class": Planar2D,
         "parameters": {"slope_x": 2 * u.m, "slope_y": 3 * u.m, "intercept": 4 * u.m},
         "evaluation": [(5 * u.m / u.m, 6 * u.m / u.m, 32 * u.m)],
@@ -550,13 +568,14 @@ MODELS = (
     + POLY_MODELS
 )
 
-SCIPY_MODELS = {Sersic1D, Sersic2D, AiryDisk2D}
+SCIPY_MODELS = {Sersic1D, Sersic2D, GeneralSersic2D, AiryDisk2D}
 
 # These models will fail fitting test, because built in fitting data
 #   will produce non-finite values
 NON_FINITE_LevMar_MODELS = [
     Sersic1D,
     Sersic2D,
+    GeneralSersic2D,
     ArcSine1D,
     ArcCosine1D,
     PowerLaw1D,
@@ -572,6 +591,7 @@ NON_FINITE_TRF_MODELS = [
     ArcCosine1D,
     Sersic1D,
     Sersic2D,
+    GeneralSersic2D,
     PowerLaw1D,
     ExponentialCutoffPowerLaw1D,
     BrokenPowerLaw1D,
@@ -587,12 +607,14 @@ NON_FINITE_LM_MODELS = [
     Schechter1D,
     ExponentialCutoffPowerLaw1D,
     BrokenPowerLaw1D,
+    GeneralSersic2D,
 ]
 
 # These models will fail the DogBoxLSQFitter fitting test due to non-finite
 NON_FINITE_DogBox_MODELS = [
     Sersic1D,
     Sersic2D,
+    GeneralSersic2D,
     ArcSine1D,
     ArcCosine1D,
     SmoothlyBrokenPowerLaw1D,

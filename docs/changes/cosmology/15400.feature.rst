@@ -1,0 +1,2 @@
+The field ``default`` has been added to ``Parameter``. This can be used to introspect
+the default value of a parameter on a cosmology class ``e.g. LambdaCDM.H0.default``.

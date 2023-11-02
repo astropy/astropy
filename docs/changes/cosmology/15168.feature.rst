@@ -1,0 +1,4 @@
+The ``Cosmology`` class now has a new property to access the parameters of the
+cosmology: ``.parameters``. This property return a read-only dictionary of all the
+non-derived parameter values on the cosmology object. When accessed from the class (not
+an instance) the dictionary contains ``Parameter`` instances, not the values.

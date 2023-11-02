@@ -14,11 +14,16 @@ import astropy.units as u
 from astropy.cosmology import Cosmology, FlatCosmologyMixin
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameter import Parameter
+from astropy.cosmology.parameter.tests.test_descriptors import (
+    ParametersAttributeTestMixin,
+)
+from astropy.cosmology.parameter.tests.test_parameter import ParameterTestMixin
+from astropy.cosmology.tests.test_connect import (
+    ReadWriteTestMixin,
+    ToFromFormatTestMixin,
+)
 from astropy.table import Column, QTable, Table
 from astropy.utils.compat import PYTHON_LT_3_11
-
-from .test_connect import ReadWriteTestMixin, ToFromFormatTestMixin
-from .test_parameter import ParameterTestMixin
 
 ##############################################################################
 # SETUP / TEARDOWN
@@ -61,8 +66,8 @@ class SubCosmology(Cosmology):
     """Defined here to be serializable."""
 
     H0 = Parameter(unit="km/(s Mpc)")
-    Tcmb0 = Parameter(unit=u.K)
-    m_nu = Parameter(unit=u.eV)
+    Tcmb0 = Parameter(default=0 * u.K, unit=u.K)
+    m_nu = Parameter(default=0 * u.eV, unit=u.eV)
 
     def __init__(self, H0, Tcmb0=0 * u.K, m_nu=0 * u.eV, name=None, meta=None):
         super().__init__(name=name, meta=meta)
@@ -99,14 +104,13 @@ class MetaTestMixin:
 
 class CosmologyTest(
     ParameterTestMixin,
+    ParametersAttributeTestMixin,
     MetaTestMixin,
     ReadWriteTestMixin,
     ToFromFormatTestMixin,
     metaclass=abc.ABCMeta,
 ):
-    """
-    Test subclasses of :class:`astropy.cosmology.Cosmology`.
-    """
+    """Test subclasses of :class:`astropy.cosmology.Cosmology`."""
 
     @abc.abstractmethod
     def setup_class(self):
@@ -154,7 +158,7 @@ class CosmologyTest(
             pass
 
         # test parameters
-        assert InitSubclassTest.__parameters__ == cosmo_cls.__parameters__
+        assert InitSubclassTest.parameters == cosmo_cls.parameters
 
         # test and cleanup registry
         registrant = _COSMOLOGY_CLASSES.pop(InitSubclassTest.__qualname__)
@@ -168,7 +172,7 @@ class CosmologyTest(
             def _register_cls(cls):
                 """Override to not register."""
 
-        assert UnRegisteredSubclassTest.__parameters__ == cosmo_cls.__parameters__
+        assert UnRegisteredSubclassTest.parameters == cosmo_cls.parameters
         assert UnRegisteredSubclassTest.__qualname__ not in _COSMOLOGY_CLASSES
 
     def test_init_signature(self, cosmo_cls, cosmo):
@@ -182,9 +186,7 @@ class CosmologyTest(
 
         # test matches __init__, but without 'self'
         sig = inspect.signature(cosmo.__init__)  # (instances don't have self)
-        assert set(sig.parameters.keys()) == set(
-            cosmo._init_signature.parameters.keys()
-        )
+        assert set(sig.parameters) == set(cosmo._init_signature.parameters)
         assert all(
             np.all(sig.parameters[k].default == p.default)
             for k, p in cosmo._init_signature.parameters.items()
@@ -315,14 +317,13 @@ class CosmologyTest(
 
         # name in string rep
         if cosmo.name is not None:
-            assert f'name="{cosmo.name}"' in r
+            assert f"name={cosmo.name!r}" in r
             assert r.index("name=") == 0
             r = r[6 + len(cosmo.name) + 3 :]  # remove
 
         # parameters in string rep
-        ps = {k: getattr(cosmo, k) for k in cosmo.__parameters__}
-        for k, v in ps.items():
-            sv = f"{k}={v}"
+        for k, v in cosmo.parameters.items():
+            sv = f"{k}={v!r}"
             assert sv in r
             assert r.index(k) == 0
             r = r[len(sv) + 2 :]  # remove
@@ -337,7 +338,7 @@ class CosmologyTest(
 
         assert isinstance(tbl, table_cls)
         # the name & all parameters are columns
-        for n in ("name", *cosmo.__parameters__):
+        for n in ("name", *cosmo.parameters):
             assert n in tbl.colnames
             assert np.all(tbl[n] == getattr(cosmo, n))
         # check if Cosmology is in metadata or a column
@@ -359,7 +360,7 @@ class CosmologyTest(
         Test immutability of cosmologies.
         The metadata is mutable: see ``test_meta_mutable``.
         """
-        for n in cosmo.__all_parameters__:
+        for n in (*cosmo.parameters, *cosmo._derived_parameters):
             with pytest.raises(AttributeError):
                 setattr(cosmo, n, getattr(cosmo, n))
 

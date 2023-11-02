@@ -4,8 +4,10 @@ from collections import defaultdict
 
 import numpy as np
 from matplotlib import rcParams
+from matplotlib.artist import allow_rasterization
 from matplotlib.text import Text
 
+from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .frame import RectangularFrame
@@ -25,12 +27,14 @@ class TickLabels(Text):
         self.set_pad(rcParams["xtick.major.pad"])
         self._exclude_overlapping = False
 
+        # Mapping from axis > list[bounding boxes]
+        self._axis_bboxes = defaultdict(list)
+
         # Stale if either xy positions haven't been calculated, or if
         # something changes that requires recomputing the positions
         self._stale = True
 
         # Check rcParams
-
         if "color" not in kwargs:
             self.set_color(rcParams["xtick.color"])
 
@@ -170,7 +174,7 @@ class TickLabels(Text):
     def set_exclude_overlapping(self, exclude_overlapping):
         self._exclude_overlapping = exclude_overlapping
 
-    def _set_xy_alignments(self, renderer, tick_out_size):
+    def _set_xy_alignments(self, renderer):
         """
         Compute and set the x, y positions and the horizontal/vertical alignment of
         each label.
@@ -195,7 +199,7 @@ class TickLabels(Text):
                     continue
 
                 x, y = self._frame.parent_axes.transData.transform(self.data[axis][i])
-                pad = renderer.points_to_pixels(self.get_pad() + tick_out_size)
+                pad = renderer.points_to_pixels(self.get_pad() + self._tick_out_size)
 
                 if isinstance(self._frame, RectangularFrame):
                     # This is just to preserve the current results, but can be
@@ -297,11 +301,29 @@ class TickLabels(Text):
         self.set_va(self.va[axis][i])
         return super().get_window_extent(renderer)
 
-    def draw(self, renderer, bboxes, ticklabels_bbox, tick_out_size):
+    @property
+    def _all_bboxes(self):
+        # List of all tick label bounding boxes
+        ret = []
+        for axis in self._axis_bboxes:
+            ret += self._axis_bboxes[axis]
+        return ret
+
+    def _set_existing_bboxes(self, bboxes):
+        self._existing_bboxes = bboxes
+
+    @allow_rasterization
+    @deprecated_renamed_argument(old_name="bboxes", new_name=None, since="6.0")
+    @deprecated_renamed_argument(old_name="ticklabels_bbox", new_name=None, since="6.0")
+    @deprecated_renamed_argument(old_name="tick_out_size", new_name=None, since="6.0")
+    def draw(self, renderer, bboxes=None, ticklabels_bbox=None, tick_out_size=None):
+        # Reset bounding boxes
+        self._axis_bboxes = defaultdict(list)
+
         if not self.get_visible():
             return
 
-        self._set_xy_alignments(renderer, tick_out_size)
+        self._set_xy_alignments(renderer)
 
         for axis in self.get_visible_axes():
             for i in range(len(self.world[axis])):
@@ -313,8 +335,9 @@ class TickLabels(Text):
                 # TODO: the problem here is that we might get rid of a label
                 # that has a key starting bit such as -0:30 where the -0
                 # might be dropped from all other labels.
-
-                if not self._exclude_overlapping or bb.count_overlaps(bboxes) == 0:
+                if (
+                    not self._exclude_overlapping
+                    or bb.count_overlaps(self._all_bboxes + self._existing_bboxes) == 0
+                ):
                     super().draw(renderer)
-                    bboxes.append(bb)
-                    ticklabels_bbox[axis].append(bb)
+                    self._axis_bboxes[axis].append(bb)

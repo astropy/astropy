@@ -3,6 +3,7 @@
 import copy
 import datetime
 import functools
+import gc
 import os
 from copy import deepcopy
 from decimal import Decimal, localcontext
@@ -12,7 +13,7 @@ import erfa
 import numpy as np
 import pytest
 from erfa import ErfaWarning
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
 from astropy.coordinates import EarthLocation
@@ -1206,6 +1207,16 @@ class TestNumericalSubFormat:
         t_mjd_subfmt = t.to_value("mjd", subfmt=out_subfmt)
         assert np.all(t_mjd_subfmt == expected)
 
+    def test_subformat_output_not_always_preserved(self):
+        t = Time("2000-01-02", format="fits", out_subfmt="longdate")
+        assert t.value == "+02000-01-02"
+        t.format = "iso"
+        assert t.out_subfmt == "*"
+        assert t.value == "2000-01-02 00:00:00.000"
+        t.format = "fits"
+        assert t.out_subfmt == "*"
+        assert t.value == "2000-01-02T00:00:00.000"
+
     @pytest.mark.parametrize(
         "fmt,string,val1,val2",
         [
@@ -1232,7 +1243,7 @@ class TestNumericalSubFormat:
     def test_basic_subformat_cache_does_not_crash(self):
         t = Time("2001", format="jyear", scale="tai")
         t.to_value("mjd", subfmt="str")
-        assert ("mjd", "str") in t.cache["format"]
+        assert ("mjd", "str", "astropy") in t.cache["format"]
         t.to_value("mjd", "str")
 
     @pytest.mark.parametrize("fmt", ["jd", "mjd", "cxcsec", "unix", "gps", "jyear"])
@@ -1813,25 +1824,79 @@ def test_cache():
     t2 = Time("2010-09-03 00:00:00")
 
     # Time starts out without a cache
-    assert "cache" not in t._time.__dict__
+    assert "cache" not in t.__dict__
 
     # Access the iso format and confirm that the cached version is as expected
     t.iso
-    assert t.cache["format"]["iso"] == t2.iso
+    assert t.cache["format"]["iso", "*", "astropy"] == t2.iso
 
     # Access the TAI scale and confirm that the cached version is as expected
     t.tai
     assert t.cache["scale"]["tai"] == t2.tai
 
     # New Time object after scale transform does not have a cache yet
-    assert "cache" not in t.tt._time.__dict__
+    assert "cache" not in t.tt.__dict__
 
     # Clear the cache
     del t.cache
-    assert "cache" not in t._time.__dict__
+    assert "cache" not in t.__dict__
     # Check accessing the cache creates an empty dictionary
     assert not t.cache
-    assert "cache" in t._time.__dict__
+    assert "cache" in t.__dict__
+
+
+@pytest.mark.parametrize("masked", [True, False])
+def test_cache_coherence_with_views(masked):
+    # Create a time instance and a slice.
+    t = Time(["2001:020", "2001:040", "2001:060", "2001:080"], out_subfmt="date")
+    if masked:
+        # Masked arrays do not own their data directly so worth testing.
+        t[1] = np.ma.masked
+    t01 = t[:2]
+    # These should share memory.
+    assert np.may_share_memory(t._time.jd1, t01._time.jd1)
+    # And have the same value, even though those are not shared,
+    # as they are calculated separately.
+    assert_array_equal(t01.value, t.value[:2])
+    assert not np.may_share_memory(t01.value, t.value)
+    # Check that we now have cached values.
+    assert "format" in t.cache
+    assert "format" in t01.cache
+    # This should still be the case if one or the other is set
+    # (regression test for gh-15452).
+    t[0] = "1999:099"
+    # Because the setting deletes all related caches.
+    assert not t.cache
+    assert not t01.cache
+    assert_array_equal(t01.jd1[:2], t.jd1[:2])
+    assert_array_equal(t01.value, t.value[:2])
+    # And also the other way around.
+    t01[1] = "1999:100"
+    assert not t.cache
+    assert not t01.cache
+    assert_array_equal(t01.jd1[:2], t.jd1[:2])
+    assert_array_equal(t01.value, t.value[:2])
+    # This works because they keep track of each other.
+    assert t01._id_cache is t._id_cache
+    assert set(t._id_cache) == {id(t), id(t01)}
+    # Check that our cache implementation does not keep objects alive
+    # unintentionally (i.e., that garbage collection works).
+    del t01
+    gc.collect()
+    assert set(t._id_cache) == {id(t)}
+    # Also check that deleting t01 did not remove the cache of t too.
+    assert "format" in t.cache
+    # If a copy was made, the cache is not shared.
+    tf = t.flatten()
+    assert "format" in t.cache
+    assert not tf.cache
+    assert_array_equal(tf.value, t.value)
+    assert "format" in tf.cache
+    t[0] = "2000:001"
+    assert not t.cache
+    assert "format" in tf.cache
+    assert not np.all(tf.value == t.value)
+    assert tf._id_cache is not t._id_cache
 
 
 def test_epoch_date_jd_is_day_fraction():
@@ -1976,7 +2041,7 @@ def test_setitem_from_python_objects():
     t = Time([[1, 2], [3, 4]], format="cxcsec")
     assert t.cache == {}
     t.iso
-    assert "iso" in t.cache["format"]
+    assert ("iso", "*", "astropy") in t.cache["format"]
     assert np.all(
         t.iso
         == [
@@ -2313,24 +2378,7 @@ def test_datetime64_no_format():
 
 
 def test_hash_time():
-    loc1 = EarthLocation(1 * u.m, 2 * u.m, 3 * u.m)
-    for loc in None, loc1:
-        t = Time([1, 1, 2, 3], format="cxcsec", location=loc)
-        t[3] = np.ma.masked
-        h1 = hash(t[0])
-        h2 = hash(t[1])
-        h3 = hash(t[2])
-        assert h1 == h2
-        assert h1 != h3
-
-        with pytest.raises(TypeError) as exc:
-            hash(t)
-        assert exc.value.args[0] == "unhashable type: 'Time' (must be scalar)"
-
-        with pytest.raises(TypeError) as exc:
-            hash(t[3])
-        assert exc.value.args[0] == "unhashable type: 'Time' (value is masked)"
-
+    loc = EarthLocation(1 * u.m, 2 * u.m, 3 * u.m)
     t = Time(1, format="cxcsec", location=loc)
     t2 = Time(1, format="cxcsec")
 
@@ -2342,28 +2390,60 @@ def test_hash_time():
     assert hash(t) != hash(t2)
 
 
-def test_hash_time_delta():
+@pytest.mark.parametrize("location", [None, EarthLocation(1 * u.m, 2 * u.m, 3 * u.m)])
+@pytest.mark.parametrize("masked_array_type", ["numpy", "astropy"])
+def test_hash_masked_time(location, masked_array_type):
+    t = Time([1, 1, 2, 3], format="cxcsec", location=location)
+    t[3] = np.ma.masked
+    with conf.set_temp("masked_array_type", masked_array_type):
+        if masked_array_type == "numpy":
+            h1 = hash(t[0])
+            h2 = hash(t[1])
+            h3 = hash(t[2])
+            assert h1 == h2
+            assert h1 != h3
+        else:
+            with pytest.raises(TypeError, match="value is masked"):
+                hash(t[0])
+
+        with pytest.raises(
+            TypeError, match=r"unhashable type: 'Time' \(must be scalar\)"
+        ):
+            hash(t)
+
+        with pytest.raises(
+            TypeError, match=r"unhashable type: 'Time' \(value is masked\)"
+        ):
+            hash(t[3])
+
+
+@pytest.mark.parametrize("masked_array_type", ["numpy", "astropy"])
+def test_hash_time_delta_masked(masked_array_type):
     t = TimeDelta([1, 1, 2, 3], format="sec")
     t[3] = np.ma.masked
-    h1 = hash(t[0])
-    h2 = hash(t[1])
-    h3 = hash(t[2])
-    assert h1 == h2
-    assert h1 != h3
+    with conf.set_temp("masked_array_type", masked_array_type):
+        if masked_array_type == "numpy":
+            h1 = hash(t[0])
+            h2 = hash(t[1])
+            h3 = hash(t[2])
+            assert h1 == h2
+            assert h1 != h3
+        else:
+            with pytest.raises(TypeError, match=r"'TimeDelta' \(value is masked\)"):
+                hash(t[0])
 
-    with pytest.raises(TypeError) as exc:
-        hash(t)
-    assert exc.value.args[0] == "unhashable type: 'TimeDelta' (must be scalar)"
+        with pytest.raises(TypeError, match=r"'TimeDelta' \(must be scalar\)"):
+            hash(t)
 
-    with pytest.raises(TypeError) as exc:
-        hash(t[3])
-    assert exc.value.args[0] == "unhashable type: 'TimeDelta' (value is masked)"
+        with pytest.raises(TypeError, match=r"'TimeDelta' \(value is masked\)"):
+            hash(t[3])
 
 
 def test_get_time_fmt_exception_messages():
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(
+        ValueError, match=r"Input values did not match any of the formats"
+    ):
         Time(10)
-    assert "No time format was given, and the input is" in str(err.value)
 
     with pytest.raises(ValueError) as err:
         Time("2000:001", format="not-a-format")
@@ -2489,9 +2569,8 @@ def test_ymdhms_exceptions():
 def test_ymdhms_masked():
     tm = Time({"year": [2000, 2001]}, format="ymdhms")
     tm[0] = np.ma.masked
-    assert isinstance(tm.value[0], np.ma.core.mvoid)
     for name in ymdhms_names:
-        assert tm.value[0][name] is np.ma.masked
+        assert tm.value[0][name].mask
 
 
 # Converted from doctest in astropy/test/formats.py for debugging
@@ -2788,3 +2867,8 @@ def test_to_string():
 
     exp_repr = f"<Time object: scale='utc' format='iso' value={exp_str}>"
     assert out_repr == exp_repr
+
+
+def test_format_typeerror():
+    with pytest.raises(TypeError, match="format must be a string"):
+        Time("2020-01-01", format=1)

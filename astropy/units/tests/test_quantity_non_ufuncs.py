@@ -44,12 +44,19 @@ def get_wrapped_functions(*modules):
     else:
         from numpy.testing.overrides import allows_array_function_override
 
-    return {
-        name: f
-        for mod in modules
-        for name, f in mod.__dict__.items()
-        if callable(f) and allows_array_function_override(f)
-    }
+    wrapped_functions = {}
+    for mod in modules:
+        for name, f in mod.__dict__.items():
+            if callable(f) and allows_array_function_override(f):
+                # Indexing by just the name is easiest for test writing,
+                # but in numpy 2.0, there are 2 versions of diagonal and
+                # trace, one in the main namespace, and one in np.linalg.
+                # So, we distinguish those by adding the module name.
+                if name in wrapped_functions:
+                    name = mod.__name__.replace("numpy.", "") + "_" + name
+                wrapped_functions[name] = f
+
+    return wrapped_functions
 
 
 all_wrapped_functions = get_wrapped_functions(
@@ -2052,7 +2059,7 @@ class TestFFT(InvariantUnitTestSetup):
         self.check(np.fft.ifftshift)
 
 
-class TestLinAlg(metaclass=CoverageMeta):
+class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
     def setup_method(self):
         self.q = (
             np.array([[1.0, -1.0, 2.0], [0.0, 3.0, -1.0], [-1.0, -1.0, 1.0]]) << u.m
@@ -2274,6 +2281,17 @@ class TestLinAlg(metaclass=CoverageMeta):
         w = np.linalg.eigvalsh(self.q)
         wx = np.linalg.eigvalsh(self.q.value) << self.q.unit
         assert_array_equal(w, wx)
+
+    if not NUMPY_LT_2_0:
+        # Numpy 2.0 added array-api compatible definitions of
+        # diagonal and trace to np.linalg. Since these have
+        # name conflicts with the main numpy namespace, they
+        # are tracked as linalg_diagonal and linalg_trace.
+        def test_linalg_diagonal(self):
+            self.check(np.linalg.diagonal)
+
+        def test_linalg_trace(self):
+            self.check(np.trace)
 
 
 class TestRecFunctions(metaclass=CoverageMeta):

@@ -1,0 +1,3 @@
+The ``BoxLeastSquares``, ``BoxLeastSquaresResults`` and ``LombScargle`` classes
+are not available from ``astropy.stats`` anymore, they are now available only
+from ``astropy.timeseries``.

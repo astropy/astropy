@@ -6,9 +6,9 @@ import base64
 import codecs
 import gzip
 import io
+import os
 import re
 import urllib.request
-import warnings
 
 # THIRD-PARTY
 import numpy as np
@@ -17,8 +17,9 @@ from numpy import ma
 # LOCAL
 from astropy import __version__ as astropy_version
 from astropy.io import fits
+from astropy.utils import deprecated
 from astropy.utils.collections import HomogeneousList
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.xml import iterparser
 from astropy.utils.xml.writer import XMLWriter
 
 from . import converters, util, xmlutil
@@ -41,6 +42,7 @@ from .exceptions import (
     E22,
     E23,
     E25,
+    E26,
     W06,
     W07,
     W08,
@@ -76,6 +78,7 @@ from .exceptions import (
     W52,
     W53,
     W54,
+    W56,
     vo_raise,
     vo_reraise,
     vo_warn,
@@ -102,10 +105,11 @@ __all__ = [
     "FieldRef",
     "ParamRef",
     "Group",
-    "Table",
+    "TableElement",
     "Resource",
     "VOTableFile",
     "Element",
+    "MivotBlock",
 ]
 
 
@@ -1993,7 +1997,7 @@ class TimeSys(SimpleElement):
     def timeorigin(self):
         """
         Specifies the time origin of the time coordinate,
-        given as a Julian Date for the the time scale and
+        given as a Julian Date for the time scale and
         reference point defined. It is usually given as a
         floating point literal; for convenience, the magic
         strings "MJD-origin" (standing for 2400000.5) and
@@ -2076,7 +2080,7 @@ class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
         self, table, ref, ucd=None, utype=None, config=None, pos=None, **extra
     ):
         """
-        *table* is the :class:`Table` object that this :class:`FieldRef`
+        *table* is the :class:`TableElement` object that this :class:`FieldRef`
         is a member of.
 
         *ref* is the ID to reference a :class:`Field` object defined
@@ -2349,7 +2353,9 @@ class Group(
                 yield from entry.iter_groups()
 
 
-class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionProperty):
+class TableElement(
+    Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionProperty
+):
     """
     TABLE_ element: optionally contains data.
 
@@ -2363,7 +2369,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
         For those fields, the numpy array's column type is "object"
         (``"O"``), and another masked array is stored there.
 
-    If the Table contains no data, (for example, its enclosing
+    If the TableElement contains no data, (for example, its enclosing
     :class:`Resource` has :attr:`~Resource.type` == 'meta') *array*
     will have zero-length.
 
@@ -2740,39 +2746,46 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
 
         if (not skip_table) and (len(fields) > 0):
             for start, tag, data, pos in iterator:
-                if start:
-                    if tag == "TABLEDATA":
-                        warn_unknown_attrs("TABLEDATA", data.keys(), config, pos)
-                        self.array = self._parse_tabledata(
-                            iterator, colnumbers, fields, config
-                        )
-                        break
-                    elif tag == "BINARY":
-                        warn_unknown_attrs("BINARY", data.keys(), config, pos)
-                        self.array = self._parse_binary(
-                            1, iterator, colnumbers, fields, config, pos
-                        )
-                        break
-                    elif tag == "BINARY2":
-                        if not config["version_1_3_or_later"]:
-                            warn_or_raise(W52, W52, config["version"], config, pos)
-                        self.array = self._parse_binary(
-                            2, iterator, colnumbers, fields, config, pos
-                        )
-                        break
-                    elif tag == "FITS":
-                        warn_unknown_attrs("FITS", data.keys(), config, pos, ["extnum"])
-                        try:
-                            extnum = int(data.get("extnum", 0))
-                            if extnum < 0:
-                                raise ValueError("'extnum' cannot be negative.")
-                        except ValueError:
-                            vo_raise(E17, (), config, pos)
-                        self.array = self._parse_fits(iterator, extnum, config)
-                        break
-                    else:
-                        warn_or_raise(W37, W37, tag, config, pos)
-                        break
+                if not start:
+                    continue
+
+                if tag == "TABLEDATA":
+                    warn_unknown_attrs("TABLEDATA", data.keys(), config, pos)
+                    self.array = self._parse_tabledata(
+                        iterator, colnumbers, fields, config
+                    )
+                elif tag == "BINARY":
+                    warn_unknown_attrs("BINARY", data.keys(), config, pos)
+                    self.array = self._parse_binary(
+                        1, iterator, colnumbers, fields, config, pos
+                    )
+                elif tag == "BINARY2":
+                    if not config["version_1_3_or_later"]:
+                        warn_or_raise(W52, W52, config["version"], config, pos)
+                    self.array = self._parse_binary(
+                        2, iterator, colnumbers, fields, config, pos
+                    )
+                elif tag == "FITS":
+                    warn_unknown_attrs("FITS", data.keys(), config, pos, ["extnum"])
+                    try:
+                        extnum = int(data.get("extnum", 0))
+                        if extnum < 0:
+                            raise ValueError("'extnum' cannot be negative.")
+                    except ValueError:
+                        vo_raise(E17, (), config, pos)
+                    self.array = self._parse_fits(iterator, extnum, config)
+
+                elif tag == "PARQUET":
+                    if (data["type"] == "VOTable-remote-file") | (
+                        data["type"] == "VOTable-remote-partition"
+                    ):
+                        warn_unknown_attrs("PARQUET", data.keys(), config, pos)
+                        self.array = self._parse_parquet(iterator, config)
+
+                else:
+                    warn_or_raise(W37, W37, tag, config, pos)
+
+                break
 
         for start, tag, data, pos in iterator:
             if not start and tag == "DATA":
@@ -3078,12 +3091,82 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
                     self._pos,
                     NotImplementedError,
                 )
-
         hdulist = fits.open(fd)
 
         array = hdulist[int(extnum)].data
         if array.dtype != self.array.dtype:
             warn_or_raise(W19, W19, (), self._config, self._pos)
+
+        return array
+
+    def _parse_parquet(self, iterator, config):
+        """
+        Functionality to parse parquet files that are embedded
+        in VOTables.
+        """
+        from astropy.table import Table
+
+        for start, tag, data, pos in iterator:
+            if tag == "STREAM":
+                if start:
+                    warn_unknown_attrs(
+                        "STREAM",
+                        data.keys(),
+                        config,
+                        pos,
+                        ["type", "href", "actuate", "encoding", "expires", "rights"],
+                    )
+                    href = data["href"]
+                    encoding = data.get("encoding", None)
+                else:
+                    break
+
+            else:  # in this case, there is no STREAM, hence no file linked.
+                href = ""
+
+        if not href.startswith(("http", "ftp", "file")):
+            vo_raise(
+                "The vo package only supports remote data through http, ftp or file",
+                self._config,
+                self._pos,
+                NotImplementedError,
+            )
+
+        try:
+            # Hack to keep windows working
+            try:
+                fd = urllib.request.urlopen(href)
+            except urllib.error.URLError:
+                # Hack to keep windows working
+                if href.startswith("file://"):
+                    fd = urllib.request.urlopen(f"file:{href[7:]}")
+                # Relative path to parquet part should be relative from the votable
+                elif href.startswith("file:"):
+                    parquet = os.path.join(
+                        os.path.dirname(config["filename"]), href[5:]
+                    )
+                    fd = urllib.request.urlopen(f"file:{parquet}")
+
+            if encoding is not None:
+                if encoding == "gzip":
+                    fd = gzip.GzipFile(href, "r", fileobj=fd)
+                elif encoding == "base64":
+                    fd = codecs.EncodedFile(fd, "base64")
+                else:
+                    vo_raise(
+                        f"Unknown encoding type '{encoding}'",
+                        self._config,
+                        self._pos,
+                        NotImplementedError,
+                    )
+
+            array = Table.read(fd, format="parquet")
+        finally:
+            if hasattr(fd, "close"):
+                fd.close()
+
+        if array.dtype != self.array.dtype:
+            warn_or_raise(W56, W56, (), self._config, self._pos)
 
         return array
 
@@ -3278,7 +3361,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
     @classmethod
     def from_table(cls, votable, table):
         """
-        Create a `Table` instance from a given `astropy.table.Table`
+        Create a `TableElement` instance from a given `astropy.table.Table`
         instance.
         """
         kwargs = {}
@@ -3374,6 +3457,173 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
         yield from self.infos
 
 
+class MivotBlock(Element):
+    """
+    MIVOT Block holder:
+    Processing VO model views on data is out of the scope of Astropy.
+    This is why the only VOmodel-related feature implemented here the
+    extraction or the writing of a mapping block from/to a VOTable
+    There is no syntax validation other than the allowed tag names.
+    The mapping block is handled as a correctly indented XML string
+    which is meant to be parsed by the calling API (e.g., PyVO).
+
+    The constructor takes "content" as a parameter, it is the string
+    serialization of the MIVOT block.
+    If it is None, the instance is meant to be set by the Resource parser.
+    Orherwise, the parameter value is parsed to make sure it matches
+    the MIVOT XML structure.
+
+    """
+
+    def __init__(self, content=None):
+        if content is not None:
+            self._content = content.strip()
+            self.check_content_format()
+        else:
+            self._content = ""
+        self._indent_level = 0
+        self._on_error = False
+
+    def __str__(self):
+        return self._content
+
+    def _add_statement(self, start, tag, data, config, pos):
+        """
+        Convert the tag as a string and append it to the mapping
+        block string with the correct indentation level.
+        The signature is the same as for all _add_* methods of the parser.
+        """
+        if self._on_error is True:
+            return
+        # The first mapping tag (<VODML>) is consumed by the host RESOURCE
+        # To check that the content is a mapping block. This cannot be done here
+        # because that RESOURCE might have another content
+        if self._content == "":
+            self._content = '<VODML xmlns="http://www.ivoa.net/xml/mivot">\n'
+            self._indent_level += 1
+
+        ele_content = ""
+        if start:
+            element = "<" + tag
+            for k, v in data.items():
+                element += f" {k}='{v}'"
+            element += ">\n"
+        else:
+            if data:
+                ele_content = f"{data}\n"
+            element = f"</{tag}>\n"
+
+        if start is False:
+            self._indent_level -= 1
+        # The content is formatted on the fly: not mandatory but cool for debugging
+        indent = "".join(" " for _ in range(2 * self._indent_level))
+        if ele_content:
+            self._content += indent + "  " + ele_content
+        self._content += indent + element
+        if start is True:
+            self._indent_level += 1
+
+    def _unknown_mapping_tag(self, start, tag, data, config, pos):
+        """
+        In case of unexpected tag, the parsing stops and the mapping block
+        is set with a REPORT tag telling what went wrong.
+        The signature si that same as for all _add_* methods of the parser.
+        """
+        self._content = (
+            f'<VODML xmlns="http://www.ivoa.net/xml/mivot">\n '
+            f'<REPORT status="KO">Unknown mivot block statement: {tag}</REPORT>\n</VODML>'
+        )
+        self._on_error = True
+        warn_or_raise(W10, W10, tag, config, pos=pos)
+
+    @property
+    def content(self):
+        """
+        The XML mapping block serialized as string.
+        If there is not mapping block, an empty block is returned in order to
+        prevent client code to deal with None blocks.
+        """
+        if self._content == "":
+            self._content = (
+                '<VODML xmlns="http://www.ivoa.net/xml/mivot">\n '
+                '<REPORT status="KO">No Mivot block</REPORT>\n</VODML>\n'
+            )
+        return self._content
+
+    def parse(self, votable, iterator, config):
+        """
+        Regular parser similar to others VOTable components.
+        """
+        model_mapping_mapping = {
+            "VODML": self._add_statement,
+            "GLOBALS": self._add_statement,
+            "REPORT": self._add_statement,
+            "MODEL": self._add_statement,
+            "TEMPLATES": self._add_statement,
+            "COLLECTION": self._add_statement,
+            "INSTANCE": self._add_statement,
+            "ATTRIBUTE": self._add_statement,
+            "REFERENCE": self._add_statement,
+            "JOIN": self._add_statement,
+            "WHERE": self._add_statement,
+            "PRIMARY_KEY": self._add_statement,
+            "FOREIGN_KEY": self._add_statement,
+        }
+        for start, tag, data, pos in iterator:
+            model_mapping_mapping.get(tag, self._unknown_mapping_tag)(
+                start, tag, data, config, pos
+            )
+            if start is False and tag == "VODML":
+                break
+
+        return self
+
+    def to_xml(self, w):
+        """
+        Tells the writer to insert the MIVOT block in its output stream.
+        """
+        w.string_element(self._content)
+
+    def check_content_format(self):
+        """
+        Check if the content is on xml format by building a VOTable,
+        putting a MIVOT block in the first resource and trying to parse the VOTable.
+        """
+        if not self._content.startswith("<"):
+            vo_raise(E26)
+
+        in_memory_votable = VOTableFile()
+        mivot_resource = Resource()
+        mivot_resource.type = "meta"
+        mivot_resource.mivot_block = self
+        # pack the meta resource in a top level resource
+        result_resource = Resource()
+        result_resource.type = "results"
+        result_resource.resources.append(mivot_resource)
+        data_table = TableElement(in_memory_votable)
+        data_table.name = "t1"
+        result_resource.tables.append(data_table)
+        in_memory_votable.resources.append(result_resource)
+
+        # Push the VOTable in an IOSTream (emulates a disk saving)
+        buff = io.BytesIO()
+        in_memory_votable.to_xml(buff)
+
+        # Read the IOStream (emulates a disk readout)
+        buff.seek(0)
+        config = {}
+
+        with iterparser.get_xml_iterator(
+            buff, _debug_python_based_parser=None
+        ) as iterator:
+            return VOTableFile(config=config, pos=(1, 1)).parse(iterator, config)
+
+
+@deprecated("6.0", alternative="TableElement")
+class Table(TableElement):
+    pass
+
+
 class Resource(
     Element, _IDProperty, _NameProperty, _UtypeProperty, _DescriptionProperty
 ):
@@ -3414,9 +3664,10 @@ class Resource(
         self._params = HomogeneousList(Param)
         self._infos = HomogeneousList(Info)
         self._links = HomogeneousList(Link)
-        self._tables = HomogeneousList(Table)
+        self._tables = HomogeneousList(TableElement)
         self._resources = HomogeneousList(Resource)
 
+        self._mivot_block = MivotBlock()
         warn_unknown_attrs("RESOURCE", kwargs.keys(), config, pos)
 
     def __repr__(self):
@@ -3444,6 +3695,26 @@ class Resource(
         if type not in ("results", "meta"):
             vo_raise(E18, type, self._config, self._pos)
         self._type = type
+
+    @property
+    def mivot_block(self):
+        """
+        Returns the MIVOT block instance.
+        If the host resource is of type results, it is taken from the first
+        child resource with a MIVOT block, if any.
+        Otherwise, it is taken from the host resource.
+        """
+        if self.type == "results":
+            for resource in self.resources:
+                if str(resource._mivot_block).strip() != "":
+                    return resource._mivot_block
+        return self._mivot_block
+
+    @mivot_block.setter
+    def mivot_block(self, mivot_block):
+        if self.type == "results":
+            vo_raise(E26)
+        self._mivot_block = mivot_block
 
     @property
     def extra_attributes(self):
@@ -3508,7 +3779,7 @@ class Resource(
     def tables(self):
         """
         A list of tables in the resource.  Must contain only
-        `Table` objects.
+        `TableElement` objects.
         """
         return self._tables
 
@@ -3521,7 +3792,7 @@ class Resource(
         return self._resources
 
     def _add_table(self, iterator, tag, data, config, pos):
-        table = Table(self._votable, config=config, pos=pos, **data)
+        table = TableElement(self._votable, config=config, pos=pos, **data)
         self.tables.append(table)
         table.parse(iterator, config)
 
@@ -3576,7 +3847,11 @@ class Resource(
         }
 
         for start, tag, data, pos in iterator:
-            if start:
+            # If the resource content starts with VODML,
+            # the parsing is delegated to the MIVOT parser
+            if tag == "VODML":
+                self._mivot_block.parse(votable, iterator, config)
+            elif start:
                 tag_mapping.get(tag, self._add_unknown_tag)(
                     iterator, tag, data, config, pos
                 )
@@ -3597,17 +3872,29 @@ class Resource(
         with w.tag("RESOURCE", attrib=attrs):
             if self.description is not None:
                 w.element("DESCRIPTION", self.description, wrap=True)
+            if self.mivot_block is not None and self.type == "meta":
+                self.mivot_block.to_xml(w)
             for element_set in (
                 self.coordinate_systems,
                 self.time_systems,
                 self.params,
                 self.infos,
                 self.links,
-                self.tables,
-                self.resources,
             ):
                 for element in element_set:
                     element.to_xml(w, **kwargs)
+
+            # The mivot_block should be before the table
+            for elm in self.resources:
+                if elm.type == "meta" and elm.mivot_block is not None:
+                    elm.to_xml(w, **kwargs)
+
+            for elm in self.tables:
+                elm.to_xml(w, **kwargs)
+
+            for elm in self.resources:
+                if elm.type != "meta":
+                    elm.to_xml(w, **kwargs)
 
     def iter_tables(self):
         """
@@ -3688,15 +3975,9 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self._groups = HomogeneousList(Group)
 
         version = str(version)
-        if version == "1.0":
-            warnings.warn(
-                "VOTable 1.0 support is deprecated in astropy 4.3 and will be "
-                "removed in a future release",
-                AstropyDeprecationWarning,
-            )
-        elif (version != "1.0") and (version not in self._version_namespace_map):
+        if version not in self._version_namespace_map:
             allowed_from_map = "', '".join(self._version_namespace_map)
-            raise ValueError(f"'version' should be in ('1.0', '{allowed_from_map}').")
+            raise ValueError(f"'version' should be in ('{allowed_from_map}').")
 
         self._version = version
 
@@ -3936,7 +4217,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             Override the format of the table(s) data to write.  Must
             be one of ``tabledata`` (text representation), ``binary`` or
             ``binary2``.  By default, use the format that was specified
-            in each `Table` object as it was created or read in.  See
+            in each `TableElement` object as it was created or read in.  See
             :ref:`astropy:votable-serialization`.
         """
         if tabledata_format is not None:
@@ -4202,11 +4483,11 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         Parameters
         ----------
         table_id : str, optional
-            Set the given ID attribute on the returned Table instance.
+            Set the given ID attribute on the returned TableElement instance.
         """
         votable_file = cls()
         resource = Resource()
-        votable = Table.from_table(votable_file, table)
+        votable = TableElement.from_table(votable_file, table)
         if table_id is not None:
             votable.ID = table_id
         resource.tables.append(votable)

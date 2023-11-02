@@ -2,7 +2,6 @@
 
 import os
 import sys
-from collections import OrderedDict
 
 from .base import IORegistryError, _UnifiedIORegistryBase
 
@@ -66,7 +65,7 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
 
     def __init__(self):
         super().__init__()  # set _identifiers
-        self._readers = OrderedDict()
+        self._readers = {}
         self._registries["read"] = {"attr": "_readers", "column": "Read"}
         self._registries_order = ("read", "identify")
 
@@ -213,6 +212,11 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
                     "read", cls, path, fileobj, args, kwargs
                 )
 
+                # We need to keep track the original path in case it uses a
+                # relative path to the parquet binary
+                if format == "votable":
+                    kwargs.update({"filename": path})
+
             reader = self.get_reader(format, cls)
             data = reader(*args, **kwargs)
 
@@ -244,7 +248,7 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
 
     def __init__(self):
         super().__init__()
-        self._writers = OrderedDict()
+        self._writers = {}
         self._registries["write"] = {"attr": "_writers", "column": "Write"}
         self._registries_order = ("write", "identify")
 

@@ -25,6 +25,10 @@ __all__ = [
 
 PYTEST_LT_8_0 = not minversion(pytest, "8.0.dev")
 
+# https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
+CI = os.environ.get("CI", "false") == "true"
+IS_CRON = os.environ.get("IS_CRON", "false") == "true"
+
 
 def _save_coverage(cov, result, rootdir, testing_path):
     """

@@ -313,15 +313,15 @@ def write_html_table(
 
     cosmo_cls = type(cosmology)
     for name, col in table.columns.items():
-        param = getattr(cosmo_cls, name, None)
+        param = cosmo_cls.parameters.get(name)
         if not isinstance(param, Parameter) or param.unit in (None, u.one):
             continue
         # Replace column with unitless version
         table.replace_column(name, (col << param.unit).value, copy=False)
 
     if latex_names:
-        new_names = [_FORMAT_TABLE.get(k, k) for k in cosmology.__parameters__]
-        table.rename_columns(cosmology.__parameters__, new_names)
+        new_names = [_FORMAT_TABLE.get(k, k) for k in cosmology.parameters]
+        table.rename_columns(tuple(cosmology.parameters), new_names)
 
     # Write HTML, using table I/O
     table.write(file, overwrite=overwrite, format="ascii.html", **kwargs)

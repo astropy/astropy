@@ -377,7 +377,7 @@ of the output. These four operations are implemented on
 `~astropy.nddata.NDData` with appropriate propagation of uncertainties,
 masks, and units.
 
-For example, let's work on the the following ``data`` with a mask, unit, and
+For example, let's work on the following ``data`` with a mask, unit, and
 (uniform) uncertainty::
 
     >>> import numpy as np
@@ -455,7 +455,7 @@ the first example in this section, we see that the underlying
 masked ones::
 
     >>> sum_axis_1  # doctest: +FLOAT_CMP
-    NDDataArray([6., 9.], unit='m')
+    NDDataArray([——, 9.], unit='m')
 
 where the first data element is masked. We can instead get the sum
 for only unmasked values with the ``operation_ignores_mask`` option::

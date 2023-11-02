@@ -600,7 +600,7 @@ def test_timedelta_mask():
     t[1] = np.ma.masked
     assert np.all(t.mask == [False, True])
     assert allclose_jd(t[0].value, 1)
-    assert t.value[1] is np.ma.masked
+    assert t.value[1].mask
 
 
 def test_python_timedelta_scalar():
@@ -685,3 +685,161 @@ def test_no_units_warning():
     # table column with units
     table = Table({"t": [1, 2, 3] * u.s})
     assert np.all(TimeDelta(table["t"]).to_value(u.s) == [1, 2, 3])
+
+
+quantity_str_basic_cases = [
+    # Simple seconds (seconds always have a decimal point)
+    ("1s", "1.0s", 1.0),
+    # Simple minutes
+    ("1min", "1min", 60.0),
+    # Float hours
+    ("2.5hr", "2hr 30min", 2.5 * 3600),
+    # Variations on single input component with exponent to multiple output components
+    ("3.000001e7s", "347d 5hr 20min 10.0s", 30000010.0),
+    ("3.e7s", "347d 5hr 20min", 30000000.0),
+    ("3e7s", "347d 5hr 20min", 30000000.0),
+    # High precision seconds
+    ("1.0123456789012345s", "1.012s", 1.0123456789012345),
+    # High precision seconds, random/missing white space and a longer time interval
+    ("  100.0 d1.0123456789012345 s ", "100d 1.012s", 100 * 86400 + 1.0123456789012345),
+    # All possible components
+    (
+        "2yr 3d 4hr 5min 6.789s",
+        "733d 16hr 5min 6.789s",
+        2 * 365.25 * 86400 + 3 * 86400 + 4 * 3600 + 5 * 60 + 6.789,
+    ),
+    # Float values in components get normalized
+    (
+        "2.5yr 3.5d 4.5hr 5.5min 6.789s",
+        "916d 19hr 35min 36.789s",
+        2.5 * 365.25 * 86400 + 3.5 * 86400 + 4.5 * 3600 + 5.5 * 60 + 6.789,
+    ),
+]
+
+
+@pytest.mark.parametrize("sign", ["", "+", "-"])
+@pytest.mark.parametrize("in_str, out_val, dt_sec", quantity_str_basic_cases)
+def test_quantity_str_basic(sign, in_str, out_val, dt_sec):
+    dt = TimeDelta(sign + in_str)
+    minus = sign == "-"
+    out_sign = "-" if minus else ""
+    out_mult = -1 if minus else 1
+    assert dt.value == out_sign + out_val
+    assert allclose_sec(dt.sec, out_mult * dt_sec)
+
+
+def test_quantity_str_precision():
+    dt = TimeDelta("100.0d 1.0123456789012345s", precision=9)
+    assert dt.value == "100d 1.012345679s"
+
+    dt = TimeDelta("21.123456789012345s")
+    assert dt.value == "21.123s"
+
+    dt.precision = -1
+    assert dt.value == "20.0s"
+
+    dt.precision = 12
+    assert dt.value == "21.123456789012s"
+
+    with pytest.raises(
+        ValueError, match="precision attribute must be an int between -99 and 99"
+    ):
+        dt.precision = 100
+
+
+quantity_str_invalid_cases = [
+    "",
+    " ",
+    "+",
+    " - ",
+    "1.0",
+    "1.0s 2.0s",
+    "1.0s 2.0",
+    "1.0s 2min",
+    "++1.0s",
+    "2min +1s",
+    "2d -1s",
+    "1sec",
+]
+
+
+@pytest.mark.parametrize("in_str", quantity_str_invalid_cases)
+def test_quantity_str_invalid(in_str):
+    match = "Input values did not match the format class quantity_str"
+    with pytest.raises(ValueError, match=match):
+        TimeDelta(in_str, format="quantity_str")
+
+
+quantity_str_subfmt_exps = {
+    "multi": "347d 5hr 20min 10.0s",
+    "yr": "0.951yr",
+    "d": "347.222d",
+    "hr": "8333.336hr",
+    "min": "500000.167min",
+    "s": "30000010.0s",
+}
+
+
+def test_quantity_str_out_subfmt():
+    for subfmt, exp in quantity_str_subfmt_exps.items():
+        dt = TimeDelta("30000010s", out_subfmt=subfmt)
+        assert dt.value == exp
+
+
+def test_quantity_str_out_subfmt_precision():
+    dt = TimeDelta("100.0d 1.0123456789012345s", precision=9, out_subfmt="d")
+    assert dt.value == "100.000011717d"
+
+
+def test_quantity_str_out_subfmt_to_value_subfmt():
+    dt = TimeDelta("30000010s")
+    for subfmt, exp in quantity_str_subfmt_exps.items():
+        assert dt.to_value(subfmt=subfmt) == exp
+
+
+def test_quantity_str_out_subfmt_from_non_quantity_str():
+    dt = TimeDelta(30000010.0 * u.s)
+    for subfmt, exp in quantity_str_subfmt_exps.items():
+        assert dt.to_value(format="quantity_str", subfmt=subfmt) == exp
+
+
+def test_quantity_str_internal_precision():
+    dt = TimeDelta("100000000d 1.0123456789012345s")
+    assert dt.jd1 == 100000000
+    assert allclose_sec(dt.jd2 * 86400, 1.0123456789012345)
+
+
+def test_time_delta_to_value_validation_error():
+    with pytest.raises(
+        TypeError,
+        match=r"TimeDelta.to_value\(\) got an unexpected keyword argument 'junk'",
+    ):
+        TimeDelta(1, format="sec").to_value(junk=1)
+
+
+def test_quantity_str_val_type_error():
+    with pytest.raises(ValueError, match="quantity_str objects do not accept"):
+        TimeDelta("1s", "2s")
+
+
+def test_quantity_str_zero_value():
+    dt = TimeDelta("0d")
+    assert dt.value == "0.0s"
+    assert dt._time.value == "0.0s"  # get coverage of _time.value property
+
+
+def test_quantity_str_multi_comps_overflow():
+    # Default precision=3 rounds seconds to 60.0s which triggers the overflow
+    dt = TimeDelta("1d 23hr 59min 59.9999s")
+    assert dt.value == "2d"
+    dt.precision = 9
+    assert dt.value == "1d 23hr 59min 59.9999s"
+
+    dt = TimeDelta("1d 23hr 58min 59.9999s")
+    assert dt.value == "1d 23hr 59min"
+
+    # Not actually an overflow case, but good to check
+    dt = TimeDelta("1d 23hr 59min 60.0001s")
+    assert dt.value == "2d"
+    dt.precision = 9
+    assert dt.value == "2d 0.0001s"

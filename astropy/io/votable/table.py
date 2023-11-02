@@ -167,14 +167,14 @@ def parse(
 def parse_single_table(source, **kwargs):
     """
     Parses a VOTABLE_ xml file (or file-like object), reading and
-    returning only the first `~astropy.io.votable.tree.Table`
+    returning only the first `~astropy.io.votable.tree.TableElement`
     instance.
 
     See `parse` for a description of the keyword arguments.
 
     Returns
     -------
-    votable : `~astropy.io.votable.tree.Table` object
+    votable : `~astropy.io.votable.tree.TableElement` object
     """
     if kwargs.get("table_number") is None:
         kwargs["table_number"] = 0
@@ -363,7 +363,7 @@ def from_table(table, table_id=None):
 
     table_id : str, optional
         If not `None`, set the given id on the returned
-        `~astropy.io.votable.tree.Table` instance.
+        `~astropy.io.votable.tree.TableElement` instance.
 
     Returns
     -------

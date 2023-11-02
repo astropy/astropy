@@ -46,7 +46,7 @@ def from_cosmology(cosmo, /, **kwargs):
     Examples
     --------
     >>> from astropy.cosmology import Cosmology, Planck18
-    >>> Cosmology.from_format(Planck18)
+    >>> print(Cosmology.from_format(Planck18))
     FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                   Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
     """

@@ -8,8 +8,6 @@ repos:
     hooks:
       - id: check-added-large-files
         # Prevent giant files from being committed.
-      - id: check-ast
-        # Simply check whether files parse as valid python.
       - id: check-case-conflict
         # Check for files with names that would conflict on a case-insensitive
         # filesystem like MacOS HFS+ or Windows FAT.
@@ -26,9 +24,6 @@ repos:
       - id: check-yaml
         # Attempts to load all yaml files to verify syntax.
         exclude: ".*(.github.*)$"
-      - id: debug-statements
-        # Check for debugger imports and py37+ breakpoint() calls in python
-        # source.
       - id: detect-private-key
         # Checks for the existence of private keys.
       - id: end-of-file-fixer
@@ -64,7 +59,7 @@ repos:
           - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.0.287"
+    rev: "v0.0.291"
     hooks:
       - id: ruff
         args: ["--fix"]
@@ -107,12 +102,12 @@ repos:
           )
 
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 23.7.0
+    rev: 23.9.1
     hooks:
       - id: black
 
   - repo: https://github.com/asmeurer/removestar
-    rev: "1.4"
+    rev: "1.5"
     hooks:
       - id: removestar
         args: ["-iv"]  # in-place changes + verbose output

@@ -1,0 +1,4 @@
+Add new option ``decompress_in_memory`` to ``fits.open``, to decompress the
+whole file in memory at once, instead of decompressing the file progressively
+as data is needed.  Default behavior is better for memory usage but sometimes
+slow, especially for files with many small HDUs.

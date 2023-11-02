@@ -99,7 +99,7 @@ class IODirectTestBase(IOTestBase):
         """Setup and teardown for tests."""
 
         class CosmologyWithKwargs(Cosmology):
-            Tcmb0 = Parameter(unit=u.K)
+            Tcmb0 = Parameter(default=0, unit=u.K)
 
             def __init__(
                 self, Tcmb0=0, name="cosmology with kwargs", meta=None, **kwargs

@@ -110,7 +110,7 @@ the |Planck18| cosmology from which it was created.
 .. code-block::
 
     >>> cosmo = Cosmology.from_format(ct, format="astropy.table")
-    >>> cosmo
+    >>> print(cosmo)
     FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                   Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 

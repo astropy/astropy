@@ -403,13 +403,7 @@ def to_mapping(
         m.update(meta)
 
     # Add all the immutable inputs
-    m.update(
-        {
-            k: v
-            for k, v in cosmology._init_arguments.items()
-            if k not in ("meta", "name")
-        }
-    )
+    m.update(cosmology.parameters)
     # Lastly, add the metadata, if haven't already (above)
     if not move_from_meta:
         m["meta"] = meta  # TODO? should meta be type(cls)
