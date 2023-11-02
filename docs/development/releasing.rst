@@ -118,6 +118,12 @@ The procedure for the feature freeze is as follows:
       $ git push upstream main:main
       $ git push upstream v<next_version>.dev:v<next_version>.dev
 
+#. Go into the branch protection rules page in the repo settings.
+   Add a rule for the new release branch you have just pushed out that only applies to that branch.
+   Check the "Require status checks to pass before merging" box.
+   Add the name of CI jobs that are required; these should be the same jobs that
+   required on ``main`` before the branching. Click "Save changes" at the bottom when done.
+
 #. Update the "Actual date" column of
    https://github.com/astropy/astropy/wiki/Release-Calendar with the current
    date for this version's feature freeze.
