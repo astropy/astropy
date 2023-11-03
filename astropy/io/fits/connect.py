@@ -279,7 +279,7 @@ def read_table_fits(
             fill_value = col.null
         elif mask_invalid and issubclass(coltype, np.inexact):
             mask = np.isnan(data[col.name])
-            fill_value = np.NaN
+            fill_value = np.nan
         elif mask_invalid and issubclass(coltype, np.character):
             mask = col.array == b""
             fill_value = b""
