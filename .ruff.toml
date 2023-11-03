@@ -207,7 +207,7 @@ lint.ignore = [
     "TRY301",  # raise-within-try
 
     # pyupgrade (UP)
-    "UP038",  # isinstance using union separators. The code is slower.
+    "UP038",  # isinstance using union separators. The code is slower as of Python 3.10-3.12
 
     # flake8-quotes (Q)
     "Q000",  # use double quotes

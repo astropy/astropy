@@ -35,7 +35,7 @@ from .sky_coordinate_parsers import (
 )
 
 if TYPE_CHECKING:
-    from typing import Callable
+    from collections.abc import Callable
 
 __all__ = ["SkyCoord", "SkyCoordInfo"]
 

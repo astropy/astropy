@@ -2,7 +2,6 @@
 
 import gzip
 import io
-import itertools
 import mmap
 import operator
 import os
@@ -236,23 +235,6 @@ def ignore_sigint(func):
                     raise KeyboardInterrupt
 
     return wrapped
-
-
-if sys.version_info[:2] >= (3, 10):
-    from itertools import pairwise
-else:
-
-    def pairwise(iterable):
-        """Return the items of an iterable paired with its next item.
-
-        Ex: s -> (s0,s1), (s1,s2), (s2,s3), ....
-        """
-        a, b = itertools.tee(iterable)
-        for _ in b:
-            # Just a little trick to advance b without having to catch
-            # StopIter if b happens to be empty
-            break
-        return zip(a, b)
 
 
 def encode_ascii(s):

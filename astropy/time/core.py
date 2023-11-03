@@ -14,6 +14,7 @@ import os
 import threading
 from collections import defaultdict
 from datetime import date, datetime, timezone
+from itertools import pairwise
 from time import strftime
 from typing import TYPE_CHECKING
 from warnings import warn
@@ -802,7 +803,7 @@ class TimeBase(ShapedLikeNDArray):
 
         # Transform the jd1,2 pairs through the chain of scale xforms.
         jd1, jd2 = self._time.jd1, self._time.jd2
-        for sys1, sys2 in zip(xforms[:-1], xforms[1:]):
+        for sys1, sys2 in pairwise(xforms):
             # Some xforms require an additional delta_ argument that is
             # provided through Time methods.  These values may be supplied by
             # the user or computed based on available approximations.  The

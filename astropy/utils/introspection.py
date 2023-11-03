@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Functions related to Python runtime introspection."""
 
-import collections
 import importlib
 import inspect
 import os
 import sys
 from importlib import metadata
+from importlib.metadata import packages_distributions
 
 from packaging.version import Version
 
@@ -15,21 +15,6 @@ from .decorators import deprecated
 __all__ = ["resolve_name", "minversion", "find_current_module", "isinstancemethod"]
 
 __doctest_skip__ = ["find_current_module"]
-
-if sys.version_info[:2] >= (3, 10):
-    from importlib.metadata import packages_distributions
-else:
-
-    def packages_distributions():
-        """
-        Return a mapping of top-level packages to their distributions.
-        Note: copied from https://github.com/python/importlib_metadata/pull/287.
-        """
-        pkg_to_dist = collections.defaultdict(list)
-        for dist in metadata.distributions():
-            for pkg in (dist.read_text("top_level.txt") or "").split():
-                pkg_to_dist[pkg].append(dist.metadata["Name"])
-        return dict(pkg_to_dist)
 
 
 def resolve_name(name, *additional_parts):
