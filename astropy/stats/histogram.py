@@ -124,7 +124,7 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
         edges.
 
     **kwargs : dict, optional
-    Extra arguments are described in `numpy.histogram`.
+        Extra arguments are described in `numpy.histogram`.
 
     Returns
     -------
