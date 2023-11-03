@@ -55,10 +55,10 @@ jobs:
             python: '3.11'
             toxenv: py311-test-devdeps-noscipy
 
-          - name: Python 3.11 with dev version of infrastructure dependencies
+          - name: Python 3.12 with dev version of infrastructure dependencies
             os: ubuntu-latest
-            python: '3.11'
-            toxenv: py311-test-devinfra
+            python: '3.12'
+            toxenv: py312-test-devinfra
 
           - name: Documentation link check
             os: ubuntu-latest
@@ -68,7 +68,7 @@ jobs:
           # This is sensitive to Python version.
           - name: Run flynt to check string formatting
             os: ubuntu-latest
-            python: '3.10'
+            python: '3.11'
             toxenv: flynt
 
     steps:
@@ -101,7 +101,7 @@ jobs:
     # of using system libraries and using pytest directly.
 
     runs-on: ubuntu-20.04
-    name: Python 3.11
+    name: Python 3.12
     if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
     env:
       ARCH_ON_CI: ${{ matrix.arch }}

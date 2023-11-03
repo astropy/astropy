@@ -25,7 +25,7 @@ jobs:
       test_extras: test
       test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --pyargs astropy
       targets: |
-        - cp39-manylinux_x86_64
+        - cp310-manylinux_x86_64
 
   build_and_publish:
     # This does the actual wheel building and publishing as part of the cron job
@@ -59,19 +59,16 @@ jobs:
       targets: |
         # Linux wheels
 
-        - cp39-manylinux_x86_64
         - cp310-manylinux_x86_64
         - cp311-manylinux_x86_64
         - cp312-manylinux_x86_64
 
         # Note that following wheels are not currently tested:
 
-        - cp39-manylinux_aarch64
         - cp310-manylinux_aarch64
         - cp311-manylinux_aarch64
         - cp312-manylinux_aarch64
 
-        - cp39-musllinux_x86_64
         - cp310-musllinux_x86_64
         - cp311-musllinux_x86_64
         - cp312-musllinux_x86_64
@@ -79,24 +76,20 @@ jobs:
         # MacOS X wheels - as noted in https://github.com/astropy/astropy/pull/12379 we deliberately
         # do not build universal2 wheels.
 
-        - cp39*macosx_x86_64
         - cp310*macosx_x86_64
         - cp311*macosx_x86_64
         - cp312*macosx_x86_64
 
-        - cp39*macosx_arm64
         - cp310*macosx_arm64
         - cp311*macosx_arm64
         - cp312*macosx_arm64
 
         # Windows wheels
 
-        - cp39*win32
         - cp310*win32
         - cp311*win32
         - cp312*win32
 
-        - cp39*win_amd64
         - cp310*win_amd64
         - cp311*win_amd64
         - cp312*win_amd64

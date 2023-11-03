@@ -62,12 +62,12 @@ jobs:
       envs: |
         # NOTE: this coverage test is needed for tests and code that
         #       run only with minimal dependencies.
-        - name: Python 3.11 with minimal dependencies and full coverage
-          linux: py311-test-cov
+        - name: Python 3.12 with minimal dependencies and full coverage
+          linux: py312-test-cov
           coverage: codecov
 
-        - name: Python 3.10 in Parallel with all optional dependencies
-          linux: py310-test-alldeps-fitsio
+        - name: Python 3.11 in Parallel with all optional dependencies
+          linux: py311-test-alldeps-fitsio
           libraries:
             apt:
               - language-pack-fr
@@ -76,21 +76,21 @@ jobs:
           toxargs: -v --develop
           posargs: -n=4 --run-slow
 
-        - name: Python 3.9 with oldest supported version of all dependencies
-          linux: py39-test-oldestdeps-alldeps-cov-clocale
+        - name: Python 3.10 with oldest supported version of all dependencies
+          linux: py310-test-oldestdeps-alldeps-cov-clocale
           posargs: --remote-data=astropy
           coverage: codecov
 
-        - name: Python 3.10 with all optional dependencies (Windows)
-          windows: py310-test-alldeps
+        - name: Python 3.11 with all optional dependencies (Windows)
+          windows: py311-test-alldeps
           posargs: --durations=50
 
-        - name: Python 3.10 with all optional dependencies (MacOS X)
-          macos: py310-test-alldeps
+        - name: Python 3.11 with all optional dependencies (MacOS X)
+          macos: py311-test-alldeps
           posargs: --durations=50 --run-slow
 
-        - name: Python 3.9 Double test (Run tests twice)
-          linux: py39-test-double
+        - name: Python 3.10 Double test (Run tests twice)
+          linux: py310-test-double
 
   allowed_failures:
     needs: [initial_checks]
@@ -111,6 +111,6 @@ jobs:
           posargs: --remote-data=any --verbose
 
         # https://github.com/matplotlib/matplotlib/issues/26847
-        - name: (Allowed Failure) Python 3.11 with dev version of matplotlib
-          linux: py311-test-mpldev
+        - name: (Allowed Failure) Python 3.12 with dev version of matplotlib
+          linux: py312-test-mpldev
           posargs: --verbose
