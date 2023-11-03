@@ -42,13 +42,13 @@ jobs:
         include:
           - name: Bundling with pyinstaller
             os: ubuntu-latest
-            python: 3.9
+            python: '3.10'
             toxenv: pyinstaller
 
-          - name: Python 3.11 with all optional dependencies and pre-releases
+          - name: Python 3.12 with all optional dependencies and pre-releases
             os: ubuntu-latest
-            python: '3.11'
-            toxenv: py311-test-alldeps-predeps
+            python: '3.12'
+            toxenv: py312-test-alldeps-predeps
             toxargs: -v
             toxposargs: --remote-data=any
 

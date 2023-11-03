@@ -59,7 +59,7 @@ Set up an isolated workspace
   The example below shows the necessary steps in the Miniconda/Anaconda Python
   distribution::
 
-    conda create --name apy-1761 python=3.9 # replace 3.9 with desired version
+    conda create --name apy-1761 python=3.10 # replace 3.10 with desired version
     conda activate apy-1761
 
   If you are using a different distribution, see :ref:`virtual_envs` for

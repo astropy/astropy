@@ -206,6 +206,9 @@ lint.ignore = [
     "TRY201",  # verbose-raise
     "TRY301",  # raise-within-try
 
+    # pyupgrade (UP)
+    "UP038",  # isinstance using union separators. The code is slower.
+
     # flake8-quotes (Q)
     "Q000",  # use double quotes
 ]
