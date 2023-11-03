@@ -95,7 +95,7 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
     This is a histogram function that enables the use of more sophisticated
     algorithms for determining bins.  Aside from the ``bins`` argument allowing
     a string specified how bins are computed, the parameters are the same
-    as ``numpy.histogram()``.
+    as `numpy.histogram`.
 
     Parameters
     ----------
@@ -123,7 +123,8 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
         count of values. This argument does not affect determination of bin
         edges.
 
-    other keyword arguments are described in numpy.histogram().
+    **kwargs : dict, optional
+    Extra arguments are described in `numpy.histogram`.
 
     Returns
     -------
