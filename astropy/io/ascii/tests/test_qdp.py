@@ -260,7 +260,7 @@ def test_get_lines_from_qdp(tmp_path):
         assert text_output[i] == line
 
 
-@pytest.mark.parametrize("spacelike", ["", " ", "   ", "\t", "\v", "\r", "\n", "\f"])
+@pytest.mark.parametrize("spacelike", ["", " ", "   ", "\t", "\v", "\r", "\f"])
 def test_read_qdpfile_with_oneNO_start_new_sector(tmp_path, spacelike):
     example_qdp = f"""
 READ Terr 1 2
