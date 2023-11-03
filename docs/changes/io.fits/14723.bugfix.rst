@@ -1,0 +1,2 @@
+Reading a table from FITS now respects the TNULL property of a column, passing
+it into the column's ``fill_value``.

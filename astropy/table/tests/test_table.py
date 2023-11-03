@@ -3289,3 +3289,62 @@ def test_add_list_order():
     array = np.empty((20, 1))
     t.add_columns(array, names=names)
     assert t.colnames == names
+
+
+def test_table_write_preserves_nulls(tmp_path):
+    """Ensures that upon writing a table, the fill_value attribute of a
+    masked (integer) column is correctly propagated into the TNULL parameter
+    in the FITS header"""
+
+    # Could be anything except for 999999, which is the "default" fill_value
+    # for masked int arrays
+    NULL_VALUE = -1
+
+    # Create table with an integer MaskedColumn with custom fill_value
+    c1 = MaskedColumn(
+        name="a",
+        data=np.asarray([1, 2, 3], dtype=np.int32),
+        mask=[True, False, True],
+        fill_value=NULL_VALUE,
+    )
+    t = Table([c1])
+
+    table_filename = tmp_path / "nultable.fits"
+
+    # Write the table out with Table.write()
+    t.write(table_filename)
+
+    # Open the output file, and check the TNULL parameter is NULL_VALUE
+    with fits.open(table_filename) as hdul:
+        header = hdul[1].header
+
+    assert header["TNULL1"] == NULL_VALUE
+
+
+def test_as_array_preserve_fill_value():
+    """Ensures that Table.as_array propagates a MaskedColumn's fill_value to
+    the output array"""
+
+    INT_FILL = 123
+    FLOAT_FILL = 123.0
+    STR_FILL = "xyz"
+    CMPLX_FILL = complex(3.14, 2.71)
+
+    # set up a table with some columns with different data types
+    c_int = MaskedColumn(name="int", data=[1, 2, 3], fill_value=INT_FILL)
+    c_float = MaskedColumn(name="float", data=[1.0, 2.0, 3.0], fill_value=FLOAT_FILL)
+    c_str = MaskedColumn(name="str", data=["abc", "def", "ghi"], fill_value=STR_FILL)
+    c_cmplx = MaskedColumn(
+        name="cmplx",
+        data=[complex(1, 0), complex(0, 1), complex(1, 1)],
+        fill_value=CMPLX_FILL,
+    )
+
+    t = Table([c_int, c_float, c_str, c_cmplx])
+
+    tn = t.as_array()
+
+    assert tn["int"].fill_value == INT_FILL
+    assert tn["float"].fill_value == FLOAT_FILL
+    assert tn["str"].fill_value == STR_FILL
+    assert tn["cmplx"].fill_value == CMPLX_FILL
