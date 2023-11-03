@@ -259,6 +259,7 @@ def test_get_lines_from_qdp(tmp_path):
         assert list_output[i] == line
         assert text_output[i] == line
 
+
 def test_read_qdpfile_with_oneNO_start_new_sector(tmp_path):
     example_qdp = """
     READ Terr 1 2
