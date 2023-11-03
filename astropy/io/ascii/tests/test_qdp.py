@@ -273,8 +273,7 @@ READ Terr 1 2
 
     path = tmp_path / "test.qdp"
 
-    with open(path, "w") as fp:
-        fp.write(example_qdp)
+    path.write_text(example_qdp)
 
     table0 = Table.read(
         path, format="ascii.qdp", names=["x", "y", "mod", "bkg"], table_id=0
