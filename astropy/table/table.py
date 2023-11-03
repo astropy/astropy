@@ -678,6 +678,12 @@ class Table:
             if masked and has_info_class(col, MixinInfo) and hasattr(col, "mask"):
                 data[col.info.name].mask = col.mask
 
+            # Propagate the fill_value from the table column to the output array.
+            # If this is not done, then the output array will use numpy.ma's default
+            # fill values (999999 for ints, 1E20 for floats, "N/A" for strings)
+            if masked and hasattr(col, "fill_value"):
+                data[col.info.name].fill_value = col.fill_value
+
         return data
 
     def __init__(
