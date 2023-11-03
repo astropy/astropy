@@ -11,6 +11,7 @@ import heapq
 import subprocess
 from collections import defaultdict
 from contextlib import contextmanager
+from itertools import pairwise
 
 from astropy.coordinates.transformations.affine import (
     AffineTransform,
@@ -713,7 +714,7 @@ class TransformGraph:
         full_path = self.get_transform(fromsys, lastsys)
         transforms = [
             self.get_transform(frame_a, frame_b)
-            for frame_a, frame_b in zip(frames[:-1], frames[1:])
+            for frame_a, frame_b in pairwise(frames)
         ]
         if None in transforms:
             raise ValueError("This transformation path is not possible")

@@ -11,7 +11,6 @@ reference for that measurement and input the coordinates manually.
 # Standard library
 import os
 import re
-import socket
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -180,7 +179,7 @@ def get_icrs_coordinates(name, parse=False, cache=False):
         except urllib.error.URLError as e:
             exceptions.append(e)
             continue
-        except socket.timeout as e:
+        except TimeoutError as e:
             # There are some cases where urllib2 does not catch socket.timeout
             # especially while receiving response data on an already previously
             # working request
