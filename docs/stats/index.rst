@@ -57,9 +57,9 @@ and so functions like ``mean`` will ignore the outlier::
     >>> clipped.mean()
     0.375
 
-If you need to access the original data directly, you can use the ``.data``
-property. Combined with the ``.mask`` property, you can get the original
-outliers, or the values that were not clipped::
+If you need to access the original data directly, you can use the
+``data`` property. Combined with the ``mask`` property, you can get the
+original outliers, or the values that were not clipped::
 
     >>> outliers = clipped.data[clipped.mask]
     >>> outliers
@@ -69,7 +69,7 @@ outliers, or the values that were not clipped::
     array([1, 0, 0, 1, 0, 0, 1, 0])
 
 For more information on masked arrays, including see the
-:ref:`numpy:maskedarray.generic`.
+:ref:`numpy.ma module <numpy:maskedarray.generic>`.
 
 Examples
 --------
@@ -81,10 +81,13 @@ Examples
 To estimate the background of an image::
 
     >>> data = [1, 5, 6, 8, 100, 5, 3, 2]
-    >>> stats.sigma_clip(data, sigma=2, maxiters=5)
+    >>> data_clipped = stats.sigma_clip(data, sigma=2, maxiters=5)
+    >>> data_clipped
     masked_array(data=[1, 5, 6, 8, --, 5, 3, 2],
                  mask=[False, False, False, False,  True, False, False, False],
            fill_value=999999)
+    >>> np.mean(data_clipped)  # doctest: +FLOAT_CMP
+    4.285714285714286
 
 ..
   EXAMPLE END
