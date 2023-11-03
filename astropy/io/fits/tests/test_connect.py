@@ -1090,12 +1090,10 @@ def test_null_propagation_in_table_read(tmp_path):
 
     data = np.asarray([1, 2, NULL_VALUE, 4], dtype=np.int32)
 
-    # Create table with BinTableHDU, with integer column containing a custom
-    # null
+    # Create table with BinTableHDU, with integer column containing a custom null
     c = fits.Column(name="a", array=data, null=NULL_VALUE, format="J")
     hdu = BinTableHDU.from_columns([c])
-    hdul = fits.HDUList([PrimaryHDU(), hdu])
-    hdul.writeto(output_filename)
+    hdu.writeto(output_filename)
 
     # Read the table in with Table.read, and ensure the column's fill_value is
     # equal to NULL_VALUE
