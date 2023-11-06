@@ -131,7 +131,7 @@ license-files = ["LICENSE.rst", "licenses/*.rst"]
 [tool.setuptools.packages.find]
 include = ["astropy*"]
 exclude = ["astropy._dev*"]
-namespaces = false
+namespaces = true
 
 [tool.setuptools.package-data]
 "*" = [
