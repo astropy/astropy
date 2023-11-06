@@ -148,6 +148,6 @@ jobs:
             echo "LONG_BIT="$(getconf LONG_BIT)
             python3 -m venv --system-site-packages tests
             source tests/bin/activate
-            ASTROPY_USE_SYSTEM_ALL=1 pip3 install -e .[test]
+            ASTROPY_USE_SYSTEM_ALL=1 pip3 install -v -e .[test]
             pip3 list
             python3 -m pytest
