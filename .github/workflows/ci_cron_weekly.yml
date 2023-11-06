@@ -131,23 +131,29 @@ jobs:
             gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv CC75F07B3EF41EFC
             gpg --export --armor CC75F07B3EF41EFC | tee /etc/apt/trusted.gpg.d/test-support.asc
             apt-get update -q -y
-            apt-get install -q -y git \
+            apt-get install -q -y --no-install-recommends \
+                                  git \
                                   g++ \
                                   pkg-config \
                                   python3 \
-                                  python3-configobj \
+                                  python3-erfa \
+                                  python3-extension-helpers \
+                                  python3-jinja2 \
                                   python3-numpy \
-                                  python3-ply \
+                                  python3-pytest-astropy \
+                                  python3-setuptools-scm \
+                                  python3-yaml \
                                   python3-venv \
-                                  cython3 \
-                                  wcslib-dev \
-                                  liberfa1
+                                  python3-wheel \
+                                  wcslib-dev
 
           run: |
             uname -a
             echo "LONG_BIT="$(getconf LONG_BIT)
             python3 -m venv --system-site-packages tests
             source tests/bin/activate
-            ASTROPY_USE_SYSTEM_ALL=1 pip3 install -v -e .[test]
+            # cython and pyerfa versions in ubuntu repos are too old currently
+            pip install -U cython pyerfa
+            ASTROPY_USE_SYSTEM_ALL=1 pip3 install -v --no-build-isolation -e .[test]
             pip3 list
             python3 -m pytest
