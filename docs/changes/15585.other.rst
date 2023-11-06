@@ -1,0 +1,1 @@
+Update bundled expat to 2.5.0.
