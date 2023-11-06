@@ -6,6 +6,7 @@ import pathlib
 from contextlib import nullcontext
 from io import StringIO
 from itertools import chain
+from string import Template
 
 import numpy as np
 import pytest
@@ -672,28 +673,28 @@ def test_latex_units():
     latexdict = copy.deepcopy(ascii.latexdicts["AA"])
     latexdict["units"] = {"NUV exp.time": "s"}
     out = StringIO()
-    expected = """\
-\\begin{table}{cc}
-\\tablehead{\\colhead{date} & \\colhead{NUV exp.time}\\\\ \\colhead{ } & \\colhead{s}}
-\\startdata
-a & 1 \\\\
-b & 2
-\\enddata
-\\end{table}
-""".replace(
-        "\n", os.linesep
+    tablehead = Template(
+        r"\tablehead{\colhead{date} & \colhead{NUV exp.time}\\ \colhead{$u1} & \colhead{$u2}}"
     )
-
+    expected = [
+        r"\begin{table}{cc}",
+        tablehead.substitute(u1=" ", u2="s"),
+        r"\startdata",
+        r"a & 1 \\",
+        "b & 2",
+        r"\enddata",
+        r"\end{table}",
+        "",
+    ]
     ascii.write(t, out, format="aastex", latexdict=latexdict)
-    assert out.getvalue() == expected
+    assert out.getvalue() == os.linesep.join(expected)
     # use unit attribute instead
     t["NUV exp.time"].unit = u.s
     t["date"].unit = u.yr
     out = StringIO()
     ascii.write(t, out, format="aastex", latexdict=ascii.latexdicts["AA"])
-    assert out.getvalue() == expected.replace(
-        "colhead{s}", r"colhead{$\mathrm{s}$}"
-    ).replace("colhead{ }", r"colhead{$\mathrm{yr}$}")
+    expected[1] = tablehead.substitute(u1=r"$\mathrm{yr}$", u2=r"$\mathrm{s}$")
+    assert out.getvalue() == os.linesep.join(expected)
 
 
 @pytest.mark.parametrize("fast_writer", [True, False])
