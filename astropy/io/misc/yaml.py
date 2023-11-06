@@ -377,5 +377,5 @@ def dump(data, stream=None, **kwargs):
 
     """
     kwargs["Dumper"] = AstropyDumper
-    kwargs.setdefault("default_flow_style", None)
+    kwargs.setdefault("sort_keys", False)
     return yaml.dump(data, stream=stream, **kwargs)
