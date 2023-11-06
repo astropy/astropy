@@ -194,7 +194,7 @@ def test_array_coordinates_transformations(arrshape, distance):
 
 def test_array_precession():
     """
-    Ensures that FK5 coordinates as arrays precess their equinoxes
+    Ensures that FK5 coordinates as arrays process their equinoxes
     """
     j2000 = Time("J2000")
     j1975 = Time("J1975")

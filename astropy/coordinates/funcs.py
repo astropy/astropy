@@ -206,7 +206,7 @@ def get_constellation(coord, short_name=False, constellation_list="iau"):
 
     Notes
     -----
-    To determine which constellation a point on the sky is in, this precesses
+    To determine which constellation a point on the sky is in, this processes
     to B1875, and then uses the Delporte boundaries of the 88 modern
     constellations, as tabulated by
     `Roman 1987 <https://cdsarc.cds.unistra.fr/viz-bin/cat/VI/42>`_.

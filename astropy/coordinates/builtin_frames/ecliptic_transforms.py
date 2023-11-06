@@ -129,7 +129,7 @@ def icrs_to_helioecliptic(from_coo, to_frame):
         include_velocity=bool(from_coo.data.differentials),
     )
 
-    # now compute the matrix to precess to the right orientation
+    # now compute the matrix to process to the right orientation
     rmat = _mean_ecliptic_rotation_matrix(to_frame.equinox)
 
     return rmat, ssb_from_sun.transform(rmat)
@@ -203,7 +203,7 @@ def icrs_to_true_helioecliptic(from_coo, to_frame):
         include_velocity=bool(from_coo.data.differentials),
     )
 
-    # now compute the matrix to precess to the right orientation
+    # now compute the matrix to process to the right orientation
     rmat = _true_ecliptic_rotation_matrix(to_frame.equinox)
 
     return rmat, ssb_from_sun.transform(rmat)
@@ -250,7 +250,7 @@ def icrs_to_iau76_ecliptic(from_coo, to_frame):
         include_velocity=bool(from_coo.data.differentials),
     )
 
-    # now compute the matrix to precess to the right orientation
+    # now compute the matrix to process to the right orientation
     rmat = _obliquity_only_rotation_matrix()
 
     return rmat, ssb_from_sun.transform(rmat)

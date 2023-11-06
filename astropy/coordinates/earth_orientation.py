@@ -119,9 +119,9 @@ def precession_matrix_Capitaine(fromepoch, toepoch):
     Parameters
     ----------
     fromepoch : `~astropy.time.Time`
-        The epoch to precess from.
+        The epoch to process from.
     toepoch : `~astropy.time.Time`
-        The epoch to precess to.
+        The epoch to process to.
 
     Returns
     -------

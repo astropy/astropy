@@ -361,7 +361,7 @@ pos.parallax.trig
 pos.phaseAng
 pos.pm
 pos.posAng
-pos.precess
+pos.process
 pos.supergalactic
 pos.supergalactic.lat
 pos.supergalactic.lon

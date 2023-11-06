@@ -80,7 +80,7 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
 
 def test_precession():
     """
-    Ensures that FK4 and FK5 coordinates precess their equinoxes
+    Ensures that FK4 and FK5 coordinates process their equinoxes
     """
     j2000 = Time("J2000")
     b1950 = Time("B1950")

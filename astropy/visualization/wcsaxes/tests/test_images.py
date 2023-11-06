@@ -916,7 +916,7 @@ class TestBasic(BaseImageTests):
 
     @figure_test
     def test_hms_labels(self):
-        # This tests the apparance of the hms superscripts in tick labels
+        # This tests the appearance of the hms superscripts in tick labels
         fig = plt.figure(figsize=(3, 3))
         ax = fig.add_axes(
             [0.3, 0.2, 0.65, 0.6], projection=WCS(self.twoMASS_k_header), aspect="equal"

@@ -14,7 +14,7 @@ from .utils import EQUINOX_B1950, EQUINOX_J2000
 # can't be static because the equinox is needed
 @frame_transform_graph.transform(DynamicMatrixTransform, FK5, Galactic)
 def fk5_to_gal(fk5coord, galframe):
-    # need precess to J2000 first
+    # need process to J2000 first
     return (
         rotation_matrix(180 - Galactic._lon0_J2000.degree, "z")
         @ rotation_matrix(90 - Galactic._ngp_J2000.dec.degree, "y")

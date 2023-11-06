@@ -67,7 +67,7 @@ doc_footer_prec_geo = """
     Other parameters
     ----------------
     equinox : `~astropy.time.Time`
-        The (mean) equinox to precess the coordinates to.
+        The (mean) equinox to process the coordinates to.
     obstime : `~astropy.time.Time`
         The time at which the observation is taken.  Used for determining the
         position of the Earth.
@@ -89,7 +89,7 @@ doc_footer_prec_geo = """
 @format_doc(base_doc, components=doc_components, footer=doc_footer_prec_geo)
 class PrecessedGeocentric(BaseRADecFrame):
     """
-    A coordinate frame defined in a similar manner as GCRS, but precessed to a
+    A coordinate frame defined in a similar manner as GCRS, but processed to a
     requested (mean) equinox.  Note that this does *not* end up the same as
     regular GCRS even for J2000 equinox, because the GCRS orientation is fixed
     to that of ICRS, which is not quite the same as the dynamical J2000

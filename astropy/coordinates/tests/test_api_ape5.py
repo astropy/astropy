@@ -279,7 +279,7 @@ def test_transform_api():
 
     # These frames are primarily useful for specifying what a coordinate should be
     # transformed *into*, as they are used by the `transform_to` method
-    # E.g., this snippet precesses the point to the new equinox
+    # E.g., this snippet processes the point to the new equinox
     newfk5 = fk5.transform_to(fk5_J2001_frame)
     assert newfk5.equinox == J2001
 

@@ -161,7 +161,7 @@ method, which accepts a frame name, frame class, or frame instance::
         (10.68459154, 41.26917146)>
 
     >>> from astropy.coordinates import FK5
-    >>> c_fk5.transform_to(FK5(equinox='J1975'))  # precess to a different equinox  # doctest: +FLOAT_CMP
+    >>> c_fk5.transform_to(FK5(equinox='J1975'))  # process to a different equinox  # doctest: +FLOAT_CMP
     <SkyCoord (FK5: equinox=J1975.000): (ra, dec) in deg
         (10.34209135, 41.13232112)>
 

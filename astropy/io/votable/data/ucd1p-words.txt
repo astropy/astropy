@@ -424,7 +424,7 @@ Q | pos.parallax.trig                 |  Trigonometric parallax
 Q | pos.phaseAng                      |  Phase angle, e.g. elongation of earth from sun as seen from a third celestial object
 V | pos.pm                            |  Proper motion
 Q | pos.posAng                        |  Position angle of a given vector
-V | pos.precess                       |  Precession (in equatorial coordinates)
+V | pos.process                       |  Precession (in equatorial coordinates)
 Q | pos.resolution                    |  Spatial linear resolution (not angular)
 S | pos.spherical                     |  Related to spherical coordinates
 Q | pos.spherical.azi                 |  Azimuthal angle (spherical coordinates)

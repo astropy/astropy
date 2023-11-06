@@ -42,9 +42,9 @@ class FK5(BaseRADecFrame):
         Parameters
         ----------
         oldequinox : `~astropy.time.Time`
-            The equinox to precess from.
+            The equinox to process from.
         newequinox : `~astropy.time.Time`
-            The equinox to precess to.
+            The equinox to process to.
 
         Returns
         -------

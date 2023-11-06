@@ -249,7 +249,7 @@ def gcrs_to_precessedgeo(from_coo, to_frame):
         )
     )
 
-    # now precess to the requested equinox
+    # now process to the requested equinox
     pmat = gcrs_precession_mat(to_frame.equinox)
     crepr = gcrs_coo.cartesian.transform(pmat)
     return to_frame.realize_frame(crepr)

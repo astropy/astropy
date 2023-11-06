@@ -53,7 +53,7 @@ class FK4(BaseRADecFrame):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, FK4, FK4)
 def fk4_to_fk4(fk4coord1, fk4frame2):
-    # deceptively complicated: need to transform to No E-terms FK4, precess, and
+    # deceptively complicated: need to transform to No E-terms FK4, process, and
     # then come back, because precession is non-trivial with E-terms
     fnoe_w_eqx1 = fk4coord1.transform_to(FK4NoETerms(equinox=fk4coord1.equinox))
     fnoe_w_eqx2 = fnoe_w_eqx1.transform_to(FK4NoETerms(equinox=fk4frame2.equinox))
@@ -81,9 +81,9 @@ class FK4NoETerms(BaseRADecFrame):
         Parameters
         ----------
         oldequinox : `~astropy.time.Time`
-            The equinox to precess from.
+            The equinox to process from.
         newequinox : `~astropy.time.Time`
-            The equinox to precess to.
+            The equinox to process to.
 
         Returns
         -------
@@ -164,7 +164,7 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
     # Renormalize
     rep *= d_orig / d_new
 
-    # now re-cast into an appropriate Representation, and precess if need be
+    # now re-cast into an appropriate Representation, and process if need be
     if isinstance(fk4coord.data, UnitSphericalRepresentation):
         rep = rep.represent_as(UnitSphericalRepresentation)
 
@@ -184,7 +184,7 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
     FunctionTransformWithFiniteDifference, FK4NoETerms, FK4
 )
 def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
-    # first precess, if necessary
+    # first process, if necessary
     if fk4noecoord.equinox != fk4frame.equinox:
         fk4noe_w_fk4equinox = FK4NoETerms(
             equinox=fk4frame.equinox, obstime=fk4noecoord.obstime
@@ -218,7 +218,7 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
     # Renormalize
     rep *= d_orig / d_new
 
-    # now re-cast into an appropriate Representation, and precess if need be
+    # now re-cast into an appropriate Representation, and process if need be
     if isinstance(fk4noecoord.data, UnitSphericalRepresentation):
         rep = rep.represent_as(UnitSphericalRepresentation)
 
