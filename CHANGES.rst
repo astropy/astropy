@@ -1258,7 +1258,7 @@ astropy.units
   Doppler redshift and radial velocity. [#12709]
 
 - Added the ``where`` keyword argument to the ``mean()``,``var()``, ``std()`` and ``nansum()`` methods of
-  ``astropy.units.Quantity``. Also added the ``intial`` keyword argument to ``astropy.units.Quantity.nansum()``. [#12891]
+  ``astropy.units.Quantity``. Also added the ``initial`` keyword argument to ``astropy.units.Quantity.nansum()``. [#12891]
 
 - Added "Maxwell" as a unit for magnetic flux to the CGS module. [#12975]
 
@@ -1543,7 +1543,7 @@ astropy.io.fits
 ^^^^^^^^^^^^^^^
 
 - Fix write and read FITS tables with multidimensional items, using ``from_columns``
-  without previousely defined ``ColDefs`` structure. [#12863]
+  without previously defined ``ColDefs`` structure. [#12863]
 
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
@@ -4757,7 +4757,7 @@ astropy.uncertainty
   [#9429, #9442]
 
 - The ``pdf_*`` properties that were used to calculate statistical properties
-  of ``Distrubution`` instances were changed into methods. This allows one
+  of ``Distribution`` instances were changed into methods. This allows one
   to pass parameters such as ``ddof`` to ``pdf_std`` and ``pdf_var`` (which
   generally should equal 1 instead of the default 0), and reflects that these
   are fairly involved calculations, not just "properties". [#9613]
@@ -5921,7 +5921,7 @@ Other Changes and Additions
 
 - Added instructions for uploading releases to Zenodo. [#8395]
 
-- The bug fixes to the behaviour of ``TimeDelta`` for multiplcation and
+- The bug fixes to the behaviour of ``TimeDelta`` for multiplication and
   division, which ensure that the output is now always a ``TimeDelta`` if the
   result is a time unit (like u.s or u.d) and otherwise a ``Quantity``, imply
   that sometimes the output type will be different than it was before. [#8356]
@@ -8147,7 +8147,7 @@ astropy.table
 
 - Fixed a problem when printing a table when a column is deleted and
   garbage-collected, and the format function caching mechanism happens
-  to re-use the same cache key. [#6714]
+  to reuse the same cache key. [#6714]
 
 - Fixed a problem when comparing a unicode masked column (on left side) to
   a bytes masked column (on right side). [#6899]
@@ -13687,7 +13687,7 @@ Bug Fixes
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
-- ``astropy.constants.Contant`` objects can now be deep
+- ``astropy.constants.Constant`` objects can now be deep
   copied. [#2601]
 
 astropy.cosmology

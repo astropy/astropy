@@ -33,7 +33,7 @@ def_unit(
     namespace=_ns,
     prefixes=False,
     doc=(
-        "Irradiance corresponding to appparent bolometric magnitude zero "
+        "Irradiance corresponding to apparent bolometric magnitude zero "
         "(magnitude ``m_bol``)."
     ),
 )

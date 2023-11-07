@@ -621,7 +621,6 @@ def test_single_band_equivalence(data, with_units, errors, sb_method):
     elif errors == "full":
         if sb_method == "scipy":
             return
-        pass
     else:
         raise ValueError(f"Unrecognized error type: '{errors}'")
 
