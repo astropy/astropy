@@ -2135,9 +2135,7 @@ class Table:
                 else:  # Assume this is an iterable that will work
                     if len(value) != n_cols:
                         raise ValueError(
-                            "Right side value needs {} elements (one for each column)".format(
-                                n_cols
-                            )
+                            f"Right side value needs {n_cols} elements (one for each column)"
                         )
                     vals = value
 
@@ -3319,9 +3317,7 @@ class Table:
 
             except Exception as err:
                 raise ValueError(
-                    "Unable to insert row because of exception in column '{}':\n{}".format(
-                        name, err
-                    )
+                    f"Unable to insert row because of exception in column '{name}':\n{err}"
                 ) from err
 
         for table_index in self.indices:

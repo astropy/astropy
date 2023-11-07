@@ -1769,7 +1769,7 @@ def test_can_make_directories_readonly(tmp_path):
             )
         elif platform.system() == "Windows":
             pytest.skip(
-                "It seems we can't make a driectory un-writable under Windows "
+                "It seems we can't make a directory un-writable under Windows "
                 "with chmod, in spite of the documentation."
             )
         else:
