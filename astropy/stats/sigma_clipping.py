@@ -512,7 +512,7 @@ class SigmaClip:
 
         if self.grow:
             # Construct a growth kernel from the specified radius in
-            # pixels (consider caching this for re-use by subsequent
+            # pixels (consider caching this for reuse by subsequent
             # calls?):
             cenidx = int(self.grow)
             size = 2 * cenidx + 1
