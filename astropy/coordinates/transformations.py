@@ -941,7 +941,7 @@ class FunctionTransform(CoordinateTransform):
 
 
 class FunctionTransformWithFiniteDifference(FunctionTransform):
-    r"""Transormation based on functions using finite difference for velocities.
+    r"""Transformation based on functions using finite difference for velocities.
 
     A coordinate transformation that works like a
     `~astropy.coordinates.FunctionTransform`, but computes velocity shifts
