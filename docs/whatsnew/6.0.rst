@@ -28,10 +28,11 @@ In addition to these major changes, Astropy v6.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
 By the numbers:
 
-* X issues have been closed since v5.3
-* X pull requests have been merged since v5.3
-* X distinct people have contributed code
-
+* 1044 commits have been added since 5.3
+* 157 issues have been closed since 5.3
+* 313 pull requests have been merged since 5.3
+* 57 people have contributed since 5.3
+* 24 of which are new contributors
 
 .. _whatsnew-6.0-geodetic-representation-geometry:
 
@@ -456,3 +457,69 @@ Full change log
 
 To see a detailed list of all changes in version v6.0, including changes in
 API, please see the :ref:`changelog`.
+
+Contributors to the v6.0 release
+================================
+
+The people who have contributed to the code for this release are:
+
+.. hlist::
+  :columns: 4
+
+  -  AMHermansen  *
+  -  Alexandre R. Bomfim Junior  *
+  -  Alpha-Ursae-Minoris  *
+  -  Andreas Faisst  *
+  -  arthurxvtv  *
+  -  Benjamin Alan Weaver
+  -  Bill Cleveland  *
+  -  Brett Morris
+  -  Brigitta Sipőcz
+  -  Caden Gobat
+  -  CaioCoutinhoP  *
+  -  Chiara Marmo
+  -  Clément Robert
+  -  Dany Vohl  *
+  -  David Stansby
+  -  Derek Homeier
+  -  Doron Behar  *
+  -  E.C. Herenz  *
+  -  Eero Vaher
+  -  Erik Tollerud
+  -  Hans Moritz Günther
+  -  Heinz-Alexander Fuetterer  *
+  -  Hélvio Peixoto  *
+  -  JP Maia  *
+  -  James O'Keeffe  *
+  -  Jero Bado
+  -  Larry Bradley
+  -  Laurent MICHEL  *
+  -  Leo Singer
+  -  Manon Marchand
+  -  Marcello Nascif  *
+  -  Marten van Kerkwijk
+  -  MatCat776  *
+  -  Matteo Bachetti
+  -  Matthew Craig
+  -  Michele Peresano  *
+  -  Mihai Cara
+  -  Mubin Manasia
+  -  Nadia Dencheva
+  -  Nathaniel Starkman
+  -  Ole Streicher
+  -  P. L. Lim
+  -  Prajwel Joseph  *
+  -  Raghuram Devarakonda  *
+  -  Roy Smart
+  -  Saransh Chopra  *
+  -  Simon Conseil
+  -  Somia Floret  *
+  -  Stuart Mumford
+  -  Thais Borges  *
+  -  Thomas Robitaille
+  -  Timothy P. Ellsworth Bowers
+  -  Tom Aldcroft
+  -  William Jamieson
+
+Where a * indicates that this release contains their first contribution to astropy.
+
