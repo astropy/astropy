@@ -4,6 +4,7 @@
 Functions, including ufuncs, are tested in test_functions.py
 """
 import operator
+import sys
 
 import numpy as np
 import pytest
@@ -1316,7 +1317,9 @@ def test_masked_str_explicit_string():
     assert str(msa) == "['2001-02-03'          ———]"
     assert str(msa[0]) == "2001-02-03" == str(sa[0])
     assert str(msa[1]) == "       ———"
-    assert repr(msa) == "MaskedNDArray(['2001-02-03',          ———], dtype='<U10')"
+    byteorder = "<" if sys.byteorder == "little" else ">"
+    repr_ = f"MaskedNDArray(['2001-02-03',          ———], dtype='{byteorder}U10')"
+    assert repr(msa) == repr_
 
 
 def test_masked_str_explicit_structured():
