@@ -238,7 +238,8 @@ if not dev:
         "development/s*",
         "development/t*",
         "development/v*",
-        "development/w*"]
+        "development/w*",
+    ]
 
 # -- Options for the module index ---------------------------------------------
 
