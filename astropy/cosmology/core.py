@@ -23,7 +23,7 @@ from .connect import (
 from .parameter import Parameter
 from .parameter._descriptors import ParametersAttribute
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from astropy.cosmology.funcs.comparison import _FormatType
