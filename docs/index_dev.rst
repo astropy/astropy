@@ -11,7 +11,7 @@ as well as coding, documentation, and testing guidelines.
 {% if is_development %}
 
 For the guiding vision of this process and the project
-as a whole, see :doc:`vision`.
+as a whole, see :doc:`development/vision`.
 
 .. toctree::
    :maxdepth: 1
