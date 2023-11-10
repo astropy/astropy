@@ -305,6 +305,8 @@ exclude= [
             "pragma: py{ignore_python_version}",
             # Don't complain about IPython completion helper
             "def _ipython_key_completions_",
+            # typing.TYPE_CHECKING is False at runtime
+            "if TYPE_CHECKING:"
         ]
 
 [tool.ruff]
@@ -319,6 +321,10 @@ ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` in
     # flake8-builtins (A) : shadowing a Python built-in.
     # New ones should be avoided and is up to maintainers to enforce.
     "A00",
+
+    # flake8-annotations (ANN)
+    "ANN101",  # No annotation for `self`.
+    "ANN102",  # No annotation for `cls`.
 
     # flake8-bugbear (B)
     "B008",  # FunctionCallArgumentDefault
@@ -386,6 +392,10 @@ ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` in
     "INP001", # implicit-namespace-package. The examples are not a package.
     "T203"    # pprint found
 ]
+
+[tool.ruff.flake8-annotations]
+ignore-fully-untyped = true
+mypy-init-return = true
 
 [tool.ruff.isort]
     known-first-party = ["astropy", "extension_helpers"]

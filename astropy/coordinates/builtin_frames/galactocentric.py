@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import annotations
+
 import copy
 from collections.abc import MappingView
 from types import MappingProxyType
@@ -228,7 +230,7 @@ class galactocentric_frame_defaults(ScienceState):
         return cls._references
 
     @classmethod
-    def get_from_registry(cls, name: str):
+    def get_from_registry(cls, name: str) -> dict[str, dict]:
         """
         Return Galactocentric solar parameters and metadata given string names
         for the parameter sets. This method ensures the returned state is a
@@ -297,7 +299,9 @@ class galactocentric_frame_defaults(ScienceState):
         return parameters
 
     @classmethod
-    def register(cls, name: str, parameters: dict, references=None, **meta: dict):
+    def register(
+        cls, name: str, parameters: dict, references=None, **meta: dict
+    ) -> None:
         """Register a set of parameters.
 
         Parameters
