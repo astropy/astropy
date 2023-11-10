@@ -229,7 +229,7 @@ version = ".".join(release.split(".")[:2])
 # Only include dev docs in dev version.
 dev = "dev" in release
 if not dev:
-    exclude_patterns += ["development/*", "testhelpers.rst"]
+    exclude_patterns += ["development/*"]
 
 # -- Options for the module index ---------------------------------------------
 
@@ -377,7 +377,7 @@ def rstjinja(app, docname, source):
     # Make sure we're outputting HTML
     if app.builder.format != "html":
         return
-    files_to_render = ["index", "install", "development/index"]
+    files_to_render = ["index_dev", "install"]
     if docname in files_to_render:
         print(f"Jinja rendering {docname}")
         rendered = app.builder.templates.render_string(
