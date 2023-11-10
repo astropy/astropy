@@ -16,20 +16,20 @@ as a whole, see :doc:`vision`.
 .. toctree::
    :maxdepth: 1
 
-   workflow/development_workflow
-   workflow/virtual_pythons
-   workflow/get_devel_version
-   codeguide
-   docguide
-   style-guide
-   testguide
-   testhelpers
-   scripts
-   building
-   ccython
-   releasing
-   workflow/maintainer_workflow
-   astropy-package-template
+   development/workflow/development_workflow
+   development/workflow/virtual_pythons
+   development/workflow/get_devel_version
+   development/codeguide
+   development/docguide
+   development/style-guide
+   development/testguide
+   development/testhelpers
+   development/scripts
+   development/building
+   development/ccython
+   development/releasing
+   development/workflow/maintainer_workflow
+   development/astropy-package-template
 
 There are some additional tools, mostly of use for maintainers, in the
 `astropy/astropy-tools repository

@@ -522,4 +522,3 @@ The people who have contributed to the code for this release are:
   -  William Jamieson
 
 Where a * indicates that this release contains their first contribution to astropy.
-
