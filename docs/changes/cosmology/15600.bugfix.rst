@@ -1,0 +1,2 @@
+``pandas.Series`` are now uniformly converted to their underlying data type when given
+as an argument to a Cosmology method.
