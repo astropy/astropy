@@ -100,7 +100,7 @@ jobs:
     # we include them just in the weekly cron. These also serve as a test
     # of using system libraries and using pytest directly.
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: Python 3.12
     if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
     env:
