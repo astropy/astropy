@@ -2872,3 +2872,16 @@ def test_to_string():
 def test_format_typeerror():
     with pytest.raises(TypeError, match="format must be a string"):
         Time("2020-01-01", format=1)
+
+
+def test_timedelta_empty_quantity():
+    # Regression test for gh-15601.
+    td = TimeDelta([] * u.s)
+    assert td.shape == (0,)
+
+    # This should work, even if it is perhaps not so useful.
+    t = Time.now() + [] * u.s
+    assert t.shape == (0,)
+
+    with pytest.raises(ValueError, match="only quantities with time units"):
+        TimeDelta([] * u.m)
