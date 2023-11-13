@@ -582,10 +582,12 @@ class TimeBase(ShapedLikeNDArray):
         """
         if format is None:
             # If val and val2 broadcasted shape is (0,) (i.e. empty array input) then we
-            # cannot guess format from the input values.  Instead use the default
-            # format.
+            # cannot guess format from the input values. But a quantity is fine (as
+            # long as it has time units, but that will be checked later).
             empty_array = val.size == 0 and (val2 is None or val2.size == 0)
-            if empty_array or np.all(mask):
+            if not (isinstance(self, TimeDelta) and isinstance(val, u.Quantity)) and (
+                empty_array or np.all(mask)
+            ):
                 raise ValueError(
                     "cannot guess format from input values with zero-size array"
                     " or all elements masked"
