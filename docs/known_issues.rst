@@ -201,14 +201,6 @@ issues a ``numpy.ComplexWarning``.  This inconsistency persists between
 complex numbers.  To get the real part of a complex number, it is
 recommended to use ``numpy.real``.
 
-.. _structured_unit_deserialization_segfault:
-
-Structured units deserialization segfaults in big-endian
---------------------------------------------------------
-
-Structured units deserialization with ``pickle`` may cause segmentation
-fault in big-endian machine with ``numpy<1.21.1``.
-
 Build/Installation/Test Issues
 ==============================
 
