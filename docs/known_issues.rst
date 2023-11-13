@@ -189,18 +189,6 @@ means that an upstream fix in NumPy is required in order for
 To convert a dimensionless `~astropy.units.Quantity` to an integer, it is
 therefore recommended to use ``int(...)``.
 
-Inconsistent behavior when converting complex numbers to floats
----------------------------------------------------------------
-
-Attempting to use `float` or NumPy's ``numpy.float`` on a standard
-complex number (e.g., ``5 + 6j``) results in a `TypeError`.  In
-contrast, using `float` or ``numpy.float`` on a complex number from
-NumPy (e.g., ``numpy.complex128``) drops the imaginary component and
-issues a ``numpy.ComplexWarning``.  This inconsistency persists between
-`~astropy.units.Quantity` instances based on standard and NumPy
-complex numbers.  To get the real part of a complex number, it is
-recommended to use ``numpy.real``.
-
 Build/Installation/Test Issues
 ==============================
 
