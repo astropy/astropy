@@ -244,14 +244,3 @@ def test_cds_order():
     assert_equal(r.header.cols[5].description, "Catalogue Identification Number")
     assert_equal(r.header.cols[8].description, "Equivalent width (in mA)")
     assert_equal(r.header.cols[9].description, "Luminosity class codified (11)")
-
-
-if __name__ == "__main__":  # run from main directory; not from test/
-    test_header_from_readme()
-    test_multi_header()
-    test_glob_header()
-    test_description()
-    test_cds_units()
-    test_cds_ignore_nullable()
-    test_cds_no_whitespace()
-    test_cds_order()
