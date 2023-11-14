@@ -309,7 +309,7 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None, get_velocity=True):
                     if get_velocity:
                         body_posvel_bary += posvel.reshape(body_posvel_bary.shape)
                     else:
-                        body_posvel_bary[0] += posvel[:4]
+                        body_posvel_bary[0] += posvel[:3]
                 else:
                     # spk.generate first yields the position and then the
                     # derivative. If no velocities are desired, body_posvel_bary
