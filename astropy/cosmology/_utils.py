@@ -70,6 +70,11 @@ def aszarr(z):
     if isinstance(z, (Number, np.generic)):  # scalars
         return z
     elif hasattr(z, "shape"):  # ducktypes NumPy array
+        if getattr(z, "__module__", "").startswith("pandas"):
+            # See https://github.com/astropy/astropy/issues/15576. Pandas does not play
+            # well with others and will ignore unit-ful calculations so we need to
+            # convert to it's underlying value.
+            z = z.values
         if hasattr(z, "unit"):  # Quantity Column
             return (z << cu.redshift).value  # for speed only use enabled equivs
         return z
