@@ -430,3 +430,15 @@ def test_get_moon_deprecation():
     ):
         moon = get_moon(time_now)
     assert moon == get_body("moon", time_now)
+
+
+@pytest.mark.remote_data
+def test_regression_15612():
+    """Regression test for #15612"""
+    # type 3 SPICE kernel
+    ephemeris_file = get_pkg_data_filename("coordinates/230965_2004XA192_nima_v6.bsp")
+    # KBO 2004 XA192
+    pair = (10, 20230965)
+    t = Time("2023-11-11T03:59:24")
+    # get_body_barycentric should not raise an error
+    get_body_barycentric([pair], t, ephemeris=ephemeris_file)
