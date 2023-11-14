@@ -3,8 +3,10 @@
 import numpy as np
 import pytest
 
+import astropy.units as u
 from astropy.cosmology import utils
 from astropy.cosmology._utils import all_cls_vars, aszarr, vectorize_redshift_method
+from astropy.utils.compat.optional_deps import HAS_PANDAS
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .test_core import invalid_zs, valid_zs, z_arr
@@ -73,6 +75,19 @@ class Test_aszarr:
         """Test :func:`astropy.cosmology._utils.aszarr`."""
         with pytest.raises(exc):
             aszarr(z)
+
+    @pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas")
+    def test_pandas(self):
+        import pandas as pd
+
+        x = pd.Series([1, 2, 3, 4, 5])
+
+        # Demonstrate Pandas doesn't work with units
+        assert not isinstance(x * u.km, u.Quantity)
+
+        # Test aszarr works with Pandas
+        assert isinstance(aszarr(x), np.ndarray)
+        np.testing.assert_array_equal(aszarr(x), x.values)
 
 
 # -------------------------------------------------------------------

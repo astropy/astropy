@@ -9,8 +9,6 @@ import numpy as np
 import pytest
 
 import astropy.constants as const
-
-# LOCAL
 import astropy.units as u
 from astropy.cosmology import FLRW, FlatLambdaCDM, LambdaCDM, Parameter, Planck18
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
@@ -25,7 +23,7 @@ from astropy.cosmology.tests.test_core import (
     valid_zs,
 )
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_SCIPY
 
 from .conftest import filter_keys_from_items
 
@@ -740,6 +738,21 @@ class FLRWTest(
         """Test :meth:`astropy.cosmology.FLRW.scale_factor`."""
         assert np.allclose(cosmo.scale_factor(z), 1 / (1 + np.array(z)))
 
+    @pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas")
+    def test_luminosity_distance_pandas(self, cosmo):
+        """Test :meth:`astropy.cosmology.FLRW.luminosity_distance`.
+
+        Regression test for https://github.com/astropy/astropy/issues/15576.
+        """
+        import pandas as pd
+
+        z = pd.Series([0.1, 0.2, 0.3])
+        d = cosmo.luminosity_distance(z)
+
+        assert isinstance(d, u.Quantity)
+        assert d.unit == u.Mpc
+        np.testing.assert_array_equal(d, cosmo.luminosity_distance(np.array(z)))
+
     # ---------------------------------------------------------------
 
     def test_efunc_vs_invefunc(self, cosmo):
@@ -899,6 +912,10 @@ class TestFLRW(FLRWTest):
 
         with pytest.raises(exception):
             cosmo.inv_efunc(0.5)
+
+    @pytest.mark.skip(reason="w(z) is abstract")
+    def test_luminosity_distance_pandas(self, cosmo):
+        """Test :meth:`astropy.cosmology.FLRW.luminosity_distance`."""
 
     _FLRW_redshift_methods = get_redshift_methods(
         FLRW, include_private=True, include_z2=False
