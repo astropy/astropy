@@ -433,8 +433,9 @@ def test_get_moon_deprecation():
 
 
 @pytest.mark.remote_data
-def test_regression_15612():
-    """Regression test for #15612"""
+@pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
+def test_regression_15611():
+    """Regression test for #15611"""
     # type 3 SPICE kernel
     ephemeris_file = get_pkg_data_filename("coordinates/230965_2004XA192_nima_v6.bsp")
     # KBO 2004 XA192
