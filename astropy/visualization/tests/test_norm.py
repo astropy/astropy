@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 from numpy import ma
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose, assert_array_equal, assert_equal
 
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB, HAS_PLT
 from astropy.visualization.interval import ManualInterval, PercentileInterval
@@ -32,6 +32,11 @@ class TestNormalize:
         with pytest.raises(TypeError):
             ImageNormalize(vmin=2.0, vmax=10.0, interval=ManualInterval, clip=True)
 
+    def test_invalid_vmin_vmax(self):
+        with pytest.raises(ValueError):
+            norm = ImageNormalize(vmin=10.0, vmax=2.0)
+            norm(10)
+
     def test_invalid_stretch(self):
         with pytest.raises(TypeError):
             ImageNormalize(vmin=2.0, vmax=10.0, stretch=SqrtStretch, clip=True)
@@ -47,6 +52,11 @@ class TestNormalize:
         )
         assert_allclose(norm(6), 0.70710678)
         assert_allclose(norm(6), norm2(6))
+
+    def test_vmin_vmax_equal(self):
+        norm = ImageNormalize(vmin=2.0, vmax=2.0)
+        data = np.arange(10) - 5.0
+        assert_array_equal(norm(data), 0)
 
     def test_clip(self):
         norm = ImageNormalize(vmin=2.0, vmax=10.0, stretch=SqrtStretch(), clip=True)
