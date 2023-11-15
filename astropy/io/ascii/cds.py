@@ -15,7 +15,7 @@ import os
 import re
 from contextlib import suppress
 
-from astropy.units import Unit
+from astropy.units import Unit, UnrecognizedUnit
 
 from . import core, fixedwidth
 
@@ -133,8 +133,15 @@ class CdsHeader(core.BaseHeader):
                     col.unit = Unit(unit, format="cds", parse_strict="warn")
                 col.description = (match.group("descr") or "").strip()
                 col.raw_type = match.group("format")
-                col.type = self.get_col_type(col)
-
+                try:
+                    col.type = self.get_col_type(col)
+                except ValueError:
+                    # If parsing the format fails and the unit is unrecognized,
+                    # then this line is likely a continuation of the previous col's
+                    # description that happens to start with a number
+                    if isinstance(col.unit, UnrecognizedUnit):
+                        cols[-1].description += f" {line.strip()}"
+                        continue
                 match = re.match(
                     # Matches limits specifier (eg []) that may or may not be
                     # present
@@ -173,7 +180,7 @@ class CdsHeader(core.BaseHeader):
                 cols.append(col)
             else:  # could be a continuation of the previous col's description
                 if cols:
-                    cols[-1].description += line.strip()
+                    cols[-1].description += f" {line.strip()}"
                 else:
                     raise ValueError(f'Line "{line}" not parsable as CDS header')
 
