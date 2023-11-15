@@ -145,7 +145,11 @@ class CdsHeader(core.BaseHeader):
                     # then this line is likely a continuation of the previous col's
                     # description that happens to start with a number
                     if isinstance(col.unit, UnrecognizedUnit):
-                        cols[-1].description += f" {line.strip()}"
+                        cols[
+                            -1
+                        ].description += (
+                            f"{'' if cols[-1].description == '' else ' '}{line.strip()}"
+                        )
                         continue
                 else:
                     # Because we may have ignored a UnitsWarning turned into an error
@@ -189,7 +193,11 @@ class CdsHeader(core.BaseHeader):
                 cols.append(col)
             else:  # could be a continuation of the previous col's description
                 if cols:
-                    cols[-1].description += f" {line.strip()}"
+                    cols[
+                        -1
+                    ].description += (
+                        f"{'' if cols[-1].description == '' else ' '}{line.strip()}"
+                    )
                 else:
                     raise ValueError(f'Line "{line}" not parsable as CDS header')
 
