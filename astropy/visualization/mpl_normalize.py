@@ -77,6 +77,10 @@ class ImageNormalize(Normalize):
         matplotlib colormap "under" value (i.e., any finite value < 0).
         If `None`, then NaN values are not replaced.  This keyword has
         no effect if ``clip=True``.
+
+    Notes
+    -----
+    If ``vmin == vmax``, the input data will be mapped to 0.
     """
 
     def __init__(
@@ -176,19 +180,24 @@ class ImageNormalize(Normalize):
         # Define vmin and vmax if not None
         self._set_limits(values)
 
-        # Normalize based on vmin and vmax
-        np.subtract(values, self.vmin, out=values)
-        np.true_divide(values, self.vmax - self.vmin, out=values)
-
-        # Clip to the 0 to 1 range
-        if clip:
-            values = np.clip(values, 0.0, 1.0, out=values)
-
-        # Stretch values
-        if self.stretch._supports_invalid_kw:
-            values = self.stretch(values, out=values, clip=False, invalid=invalid)
+        if self.vmin == self.vmax:
+            values *= 0.0
+        elif self.vmin > self.vmax:
+            raise ValueError("vmin must be less than or equal to vmax")
         else:
-            values = self.stretch(values, out=values, clip=False)
+            # Normalize based on vmin and vmax
+            np.subtract(values, self.vmin, out=values)
+            np.true_divide(values, self.vmax - self.vmin, out=values)
+
+            # Clip to the 0 to 1 range
+            if clip:
+                values = np.clip(values, 0.0, 1.0, out=values)
+
+            # Stretch values
+            if self.stretch._supports_invalid_kw:
+                values = self.stretch(values, out=values, clip=False, invalid=invalid)
+            else:
+                values = self.stretch(values, out=values, clip=False)
 
         # Convert to masked array for matplotlib
         return ma.array(values, mask=mask)
