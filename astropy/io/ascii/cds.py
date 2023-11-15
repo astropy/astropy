@@ -15,7 +15,7 @@ import os
 import re
 from contextlib import suppress
 
-from astropy.units import Unit, UnrecognizedUnit
+from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
 
 from . import core, fixedwidth
 
@@ -130,7 +130,12 @@ class CdsHeader(core.BaseHeader):
                 if unit == "---":
                     col.unit = None  # "---" is the marker for no unit in CDS/MRT table
                 else:
-                    col.unit = Unit(unit, format="cds", parse_strict="warn")
+                    try:
+                        col.unit = Unit(unit, format="cds", parse_strict="warn")
+                    except UnitsWarning:
+                        # catch when warnings are turned into errors so we can check
+                        # whether this line is likely a multi-line description (see below)
+                        col.unit = UnrecognizedUnit(unit)
                 col.description = (match.group("descr") or "").strip()
                 col.raw_type = match.group("format")
                 try:
@@ -142,6 +147,10 @@ class CdsHeader(core.BaseHeader):
                     if isinstance(col.unit, UnrecognizedUnit):
                         cols[-1].description += f" {line.strip()}"
                         continue
+                else:
+                    # Because we may have ignored a UnitsWarning turned into an error
+                    # we do this again so it can be raised again if it is a real error
+                    col.unit = Unit(unit, format="cds", parse_strict="warn")
                 match = re.match(
                     # Matches limits specifier (eg []) that may or may not be
                     # present
