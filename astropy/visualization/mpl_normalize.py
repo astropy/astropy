@@ -253,7 +253,7 @@ def simple_norm(
 
     max_cut : float, optional
         The pixel value of the maximum cut level.  Data values greater
-        than ``min_cut`` will set to ``min_cut`` before stretching the
+        than ``max_cut`` will set to ``max_cut`` before stretching the
         image.  The default is the image maximum.  ``max_cut`` overrides
         ``max_percent``.
 
