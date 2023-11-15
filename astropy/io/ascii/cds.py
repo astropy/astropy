@@ -152,9 +152,10 @@ class CdsHeader(core.BaseHeader):
                         )
                         continue
                 else:
-                    # Because we may have ignored a UnitsWarning turned into an error
-                    # we do this again so it can be raised again if it is a real error
-                    col.unit = Unit(unit, format="cds", parse_strict="warn")
+                    if col.unit is not None:
+                        # Because we may have ignored a UnitsWarning turned into an error
+                        # we do this again so it can be raised again if it is a real error
+                        col.unit = Unit(unit, format="cds", parse_strict="warn")
                 match = re.match(
                     # Matches limits specifier (eg []) that may or may not be
                     # present
