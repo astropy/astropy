@@ -59,10 +59,16 @@ repos:
           - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.1.4"
+    rev: "v0.1.5"
     hooks:
       - id: ruff
-        args: ["--fix"]
+        args: ["--fix", "--show-fixes"]
+
+  - repo: https://github.com/scientific-python/cookie
+    rev: 2023.10.27
+    hooks:
+      - id: sp-repo-review
+        additional_dependencies: ["repo-review[cli]"]
 
   - repo: https://github.com/PyCQA/docformatter
     rev: v1.7.5
