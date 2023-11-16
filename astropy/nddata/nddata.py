@@ -69,7 +69,7 @@ class NDData(NDDataBase):
 
     meta : `dict`-like object, optional
         Additional meta information about the dataset. If no meta is provided
-        an empty `collections.OrderedDict` is created.
+        an empty dict is created.
         Default is ``None``.
 
     unit : unit-like, optional

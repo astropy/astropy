@@ -370,7 +370,7 @@ def test_accepting_property_translated():
 
 
 def test_accepting_property_meta_empty():
-    # Meta is always set (OrderedDict) so it has a special case that it's
+    # Meta is always set (dict) so it has a special case that it's
     # ignored if it's empty but not None
     @support_nddata
     def test(data, meta=None):
