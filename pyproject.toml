@@ -187,7 +187,6 @@ filterwarnings = [
     "ignore:numpy\\.ufunc size changed:RuntimeWarning",
     "ignore:numpy\\.ndarray size changed:RuntimeWarning",
     "ignore:Unknown pytest\\.mark\\.mpl_image_compare:pytest.PytestUnknownMarkWarning",
-    "ignore:Unknown config option:pytest.PytestConfigWarning",
     "ignore:matplotlibrc text\\.usetex:UserWarning:matplotlib",
     # Triggered by ProgressBar > ipykernel.iostream (revisit when we bump oldest deps versions)
     "ignore:the imp module is deprecated:DeprecationWarning",
