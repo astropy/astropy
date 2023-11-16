@@ -418,6 +418,9 @@ ignore = [
     "PC180", # ignore using `prettier` in pre-commit
     "PC901", # ignore using custom update message (we have many of the default ones in our history already)
     "PP308", # ignore requiring `-ra` flag for pytest, astropy's test suite is too large for this to be useful
+    "RF101", # See scientific-python/cookie#311 (bugbear must be selected)
+    "RF102", # See scientific-python/cookie#311 (isort must be selected)
+    "RF103", # See scientific-python/cookie#311 (pyupgrade must be selected)
 ]
 
 [tool.towncrier]
