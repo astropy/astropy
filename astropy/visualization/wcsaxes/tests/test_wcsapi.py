@@ -23,6 +23,7 @@ from astropy.visualization.wcsaxes.wcsapi import (
 )
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseLowLevelWCS, SlicedLowLevelWCS
+from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping
 
 
 @pytest.fixture
@@ -231,6 +232,25 @@ def test_coord_type_from_ctype(cube_wcs):
 
     assert coord_meta["type"] == ["longitude", "latitude"]
     assert coord_meta["format_unit"] == [u.hourangle, u.deg]
+    assert coord_meta["wrap"] == [None, None]
+
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ["HHLN-TAN", "HHLT-TAN"]
+    wcs.wcs.crpix = [256.0] * 2
+    wcs.wcs.cdelt = [-0.05] * 2
+    wcs.wcs.crval = [50.0] * 2
+    wcs.wcs.set()
+
+    custom_mapping = {
+        "HHLN": "custom:pos.custom.lon",
+        "HHLT": "custom:pos.custom.lat",
+    }
+    with custom_ctype_to_ucd_mapping(custom_mapping):
+        _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
+
+    # Ensure these custom types get mapped to longitude and latitude
+    assert coord_meta["type"] == ["longitude", "latitude"]
+    assert coord_meta["format_unit"] == [u.deg, u.deg]
     assert coord_meta["wrap"] == [None, None]
 
     wcs = WCS(naxis=2)
