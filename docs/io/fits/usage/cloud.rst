@@ -240,14 +240,14 @@ will attempt to download data in large contiguous blocks using a buffered
 systems load local files into memory.
 
 You can tune the performance of fsspec's buffering strategy by passing custom
-``block_size`` and ``cache_type`` parameters to `fsspec.open`.  You can pass
+``default_block_size`` and ``default_cache_type`` parameters to `fsspec.open`.  You can pass
 these parameters via the ``fsspec_kwargs`` argument of `astropy.io.fits.open`.
 For example, we can configure fsspec to make buffered reads with a minimum
-``block_size`` of 1 MB as follows:
+``default_block_size`` of 1 MB as follows:
 
 .. doctest-requires:: fsspec
 
-    >>> fsspec_kwargs = {"block_size": 1_000_000, "cache_type": "bytes"}
+    >>> fsspec_kwargs = {"default_block_size": 1000000, "default_cache_type": "bytes"}
     >>> with fits.open(url, use_fsspec=True, fsspec_kwargs=fsspec_kwargs) as hdul:  # doctest: +REMOTE_DATA
     ...     cutout = hdul[1].section[10:20, 30:50]
 
