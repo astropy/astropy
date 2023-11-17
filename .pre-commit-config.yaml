@@ -65,10 +65,9 @@ repos:
         args: ["--fix", "--show-fixes"]
 
   - repo: https://github.com/scientific-python/cookie
-    rev: 2023.10.27
+    rev: 2023.11.17
     hooks:
       - id: sp-repo-review
-        additional_dependencies: ["repo-review[cli]"]
 
   - repo: https://github.com/PyCQA/docformatter
     rev: v1.7.5
