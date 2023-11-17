@@ -316,13 +316,13 @@ exclude= [
         ]
 
 [tool.ruff]
-select = ["ALL"]
+lint.select = ["ALL"]
 exclude=[
     "astropy/extern/*",
     "*_parsetab.py",
     "*_lextab.py"
 ]
-ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` instead.
+lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml` instead.
 
     # flake8-builtins (A) : shadowing a Python built-in.
     # New ones should be avoided and is up to maintainers to enforce.
@@ -373,7 +373,7 @@ ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` in
     "RUF005",  # unpack-instead-of-concatenating-to-collection-literal -- it's not clearly faster.
 ]
 
-[tool.ruff.extend-per-file-ignores]
+[tool.ruff.lint.extend-per-file-ignores]
 "setup.py" = ["INP001"]  # Part of configuration, not a package.
 ".github/workflows/*.py" = ["INP001"]
 "astropy/modeling/models/__init__.py" = ["F405"]
@@ -399,14 +399,14 @@ ignore = [  # NOTE: non-permeanent exclusions should be added to `.ruff.toml` in
     "T203"    # pprint found
 ]
 
-[tool.ruff.flake8-annotations]
+[tool.ruff.lint.flake8-annotations]
 ignore-fully-untyped = true
 mypy-init-return = true
 
-[tool.ruff.isort]
-    known-first-party = ["astropy", "extension_helpers"]
+[tool.ruff.lint.isort]
+known-first-party = ["astropy", "extension_helpers"]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
 [tool.repo-review]
@@ -417,9 +417,6 @@ ignore = [
     "PC180", # ignore using `prettier` in pre-commit
     "PC901", # ignore using custom update message (we have many of the default ones in our history already)
     "PP308", # ignore requiring `-ra` flag for pytest, astropy's test suite is too large for this to be useful
-    "RF101", # See scientific-python/cookie#311 (bugbear must be selected)
-    "RF102", # See scientific-python/cookie#311 (isort must be selected)
-    "RF103", # See scientific-python/cookie#311 (pyupgrade must be selected)
 ]
 
 [tool.towncrier]
