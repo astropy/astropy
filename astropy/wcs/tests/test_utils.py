@@ -1623,8 +1623,8 @@ def test_custom_wcs_to_from_frame():
         wcs.wcs.ctype = [f"CSLN-{projection}", f"CSLT-{projection}"]
         return wcs
 
-    FRAME_WCS_MAPPINGS.append([custom_wcs_frame_mapping])
-    WCS_FRAME_MAPPINGS.append([custom_frame_wcs_mapping])
+    WCS_FRAME_MAPPINGS.append([custom_wcs_frame_mapping])
+    FRAME_WCS_MAPPINGS.append([custom_frame_wcs_mapping])
 
     mywcs = WCS(naxis=2)
     mywcs.wcs.ctype = ["CSLN-TAN", "CSLT-TAN"]
