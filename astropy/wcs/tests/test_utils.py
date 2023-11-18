@@ -29,6 +29,8 @@ from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.wcs import _wcs
 from astropy.wcs.utils import (
+    FRAME_WCS_MAPPINGS,
+    WCS_FRAME_MAPPINGS,
     _pixel_to_pixel_correlation_matrix,
     _pixel_to_world_correlation_matrix,
     _split_matrix,
@@ -417,7 +419,10 @@ def test_wcs_to_body_frame():
 
     unknown_wcs = WCS(naxis=2)
     unknown_wcs.wcs.ctype = ["UTLN-TAN", "UTLT-TAN"]
-    with pytest.raises(KeyError, match="unknown solar system object abbreviation UT"):
+    with pytest.raises(
+        ValueError,
+        match="Could not determine celestial frame corresponding to the specified WCS object",
+    ):
         frame = wcs_to_celestial_frame(unknown_wcs)
 
     triaxial_wcs = WCS(naxis=2)
@@ -1593,3 +1598,40 @@ def test_obsgeo_infinite(dkist_location):
 def test_obsgeo_invalid(obsgeo):
     with pytest.raises(ValueError):
         obsgeo_to_frame(obsgeo, None)
+
+
+def test_custom_wcs_to_from_frame():
+    # See https://github.com/astropy/astropy/issues/15625
+    # test from Sam van Kooten
+
+    class CustomFrame(BaseCoordinateFrame):
+        obstime = Time("2017-08-17T12:41:04.43")
+
+    def custom_wcs_frame_mapping(wcs):
+        ctypes = {c[:4] for c in wcs.wcs.ctype}
+        if not ({"CSLN", "CSLT"} <= ctypes):
+            return None
+
+        dateobs = wcs.wcs.dateavg or wcs.wcs.dateobs or None
+        custom_frame = CustomFrame()
+        return custom_frame
+
+    def custom_frame_wcs_mapping(frame, projection="TAN"):
+        if not isinstance(frame, CustomFrame):
+            return None
+        wcs = WCS(naxis=2)
+        wcs.wcs.ctype = [f"CSLN-{projection}", f"CSLT-{projection}"]
+        return wcs
+
+    FRAME_WCS_MAPPINGS.append([custom_wcs_frame_mapping])
+    WCS_FRAME_MAPPINGS.append([custom_frame_wcs_mapping])
+
+    mywcs = WCS(naxis=2)
+    mywcs.wcs.ctype = ["CSLN-TAN", "CSLT-TAN"]
+    custom_frame = custom_wcs_frame_mapping(mywcs)
+    assert isinstance(custom_frame, CustomFrame)
+
+    custom_wcs = custom_frame_wcs_mapping(custom_frame)
+    print(custom_wcs.wcs.ctype)
+    assert custom_wcs.wcs.ctype[0] == "CSLN-TAN"
+    assert custom_wcs.wcs.ctype[1] == "CSLT-TAN"

@@ -158,13 +158,11 @@ def _wcs_to_celestial_frame_builtin(wcs):
                 representation_type=SphericalRepresentation,
                 obstime=wcs.wcs.dateobs or None,
             )
-        elif xcoord[2:4] in ("LN", "LT") and "H" not in xcoord and "CR" not in xcoord:
+        elif xcoord[2:4] in ("LN", "LT") and xcoord[:2] in SOLAR_SYSTEM_OBJ_DICT.keys():
             # Coordinates on a planetary body, as defined in
             # https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2018EA000388
 
             object_name = SOLAR_SYSTEM_OBJ_DICT.get(xcoord[:2])
-            if object_name is None:
-                raise KeyError(f"unknown solar system object abbreviation {xcoord[:2]}")
 
             a_radius = wcs.wcs.aux.a_radius
             b_radius = wcs.wcs.aux.b_radius
