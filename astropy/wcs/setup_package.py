@@ -10,9 +10,15 @@ from os.path import join
 
 import numpy
 from setuptools import Extension
-from setuptools.dep_util import newer_group
 
 from extension_helpers import get_compiler, import_file, pkg_config, write_if_different
+
+try:
+    # requires setuptools 69.0.0 or newer
+    from setuptools.modified import newer_group
+except ModuleNotFoundError:
+    # setuptools<69 compatibility
+    from setuptools.dep_util import newer_group
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
 WCSVERSION = "8.1"
