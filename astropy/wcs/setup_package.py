@@ -324,9 +324,6 @@ def get_extensions():
     # do the copying here then include the data in [tools.setuptools.package_data]
     # in the pyproject.toml file
 
-    def requires_update(source: Path, dest: Path) -> bool:
-        return not dest.is_file() or source.stat().st_mtime > dest.stat().st_mtime
-
     wcslib_headers = [
         "cel.h",
         "lin.h",
@@ -347,7 +344,7 @@ def get_extensions():
         for header in wcslib_headers:
             source = Path("cextern", "wcslib", "C", header)
             dest = Path("astropy", "wcs", "include", "wcslib", header)
-            if requires_update(source, dest):
+            if not dest.is_file() or source.stat().st_mtime > dest.stat().st_mtime:
                 shutil.copy(source, dest)
 
     return [Extension("astropy.wcs._wcs", **cfg)]
