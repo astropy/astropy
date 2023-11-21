@@ -10,6 +10,7 @@ from numpy.testing import assert_array_equal
 from astropy import table, time
 from astropy import units as u
 from astropy.tests.helper import assert_follows_unicode_guidelines
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 
 
@@ -369,7 +370,14 @@ class TestColumn:
             c.insert(0, "string")
 
         c = Column(["a", "b"])
-        with pytest.raises(TypeError, match="string operation on non-string array"):
+        with pytest.raises(
+            TypeError,
+            match=(
+                "string operation on non-string array"
+                if NUMPY_LT_2_0
+                else "ufunc 'str_len' did not contain a loop"
+            ),
+        ):
             c.insert(0, 1)
 
     def test_insert_multidim(self, Column):

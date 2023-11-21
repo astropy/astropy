@@ -145,6 +145,10 @@ def _expand_string_array_for_values(arr, values):
 
     """
     if arr.dtype.kind in ("U", "S") and values is not np.ma.masked:
+        # Starting with numpy 2.0, np.char.str_len() propagates the mask for
+        # masked data. We want masked values to be preserved so unmask
+        # `values` prior to counting string lengths.
+        values = np.asarray(values)
         # Find the length of the longest string in the new values.
         values_str_len = np.char.str_len(values).max()
 
