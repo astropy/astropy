@@ -7,18 +7,12 @@ import shutil
 import sys
 from collections import defaultdict
 from os.path import join
+from pathlib import Path
 
 import numpy
 from setuptools import Extension
 
 from extension_helpers import get_compiler, import_file, pkg_config, write_if_different
-
-try:
-    # requires setuptools 69.0.0 or newer
-    from setuptools.modified import newer_group
-except ModuleNotFoundError:
-    # setuptools<69 compatibility
-    from setuptools.dep_util import newer_group
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
 WCSVERSION = "8.1"
@@ -330,6 +324,9 @@ def get_extensions():
     # do the copying here then include the data in [tools.setuptools.package_data]
     # in the pyproject.toml file
 
+    def requires_update(source: Path, dest: Path) -> bool:
+        return not dest.is_file() or source.stat().st_mtime > dest.stat().st_mtime
+
     wcslib_headers = [
         "cel.h",
         "lin.h",
@@ -348,9 +345,9 @@ def get_extensions():
         or int(os.environ.get("ASTROPY_USE_SYSTEM_ALL", 0))
     ):
         for header in wcslib_headers:
-            source = join("cextern", "wcslib", "C", header)
-            dest = join("astropy", "wcs", "include", "wcslib", header)
-            if newer_group([source], dest, "newer"):
+            source = Path("cextern", "wcslib", "C", header)
+            dest = Path("astropy", "wcs", "include", "wcslib", header)
+            if requires_update(source, dest):
                 shutil.copy(source, dest)
 
     return [Extension("astropy.wcs._wcs", **cfg)]
