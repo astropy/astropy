@@ -7,10 +7,10 @@ import shutil
 import sys
 from collections import defaultdict
 from os.path import join
+from pathlib import Path
 
 import numpy
 from setuptools import Extension
-from setuptools.dep_util import newer_group
 
 from extension_helpers import get_compiler, import_file, pkg_config, write_if_different
 
@@ -342,9 +342,9 @@ def get_extensions():
         or int(os.environ.get("ASTROPY_USE_SYSTEM_ALL", 0))
     ):
         for header in wcslib_headers:
-            source = join("cextern", "wcslib", "C", header)
-            dest = join("astropy", "wcs", "include", "wcslib", header)
-            if newer_group([source], dest, "newer"):
+            source = Path("cextern", "wcslib", "C", header)
+            dest = Path("astropy", "wcs", "include", "wcslib", header)
+            if not dest.is_file() or source.stat().st_mtime > dest.stat().st_mtime:
                 shutil.copy(source, dest)
 
     return [Extension("astropy.wcs._wcs", **cfg)]
