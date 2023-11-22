@@ -2813,6 +2813,9 @@ class Model(metaclass=_ModelMeta):
             return psets
 
         return np.array(values)
+    
+
+
 
     def _format_repr(self, args=[], kwargs={}, defaults={}):
         """
@@ -2876,10 +2879,11 @@ class Model(metaclass=_ModelMeta):
             columns = [getattr(self, name).value for name in self.param_names]
 
         if columns:
-            param_table = Table(columns, names=self.param_names)
+            param_table = Table(columns, names=self.param_names)        
             # Set units on the columns
             for name in self.param_names:
-                param_table[name].unit = getattr(self, name).unit
+                param_table[name].unit = (str(self.name + "_" + name))
+
             parts.append(indent(str(param_table), width=4))
 
         return "\n".join(parts)
