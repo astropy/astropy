@@ -49,14 +49,11 @@ def test_diff_types():
     b = "1.0"
     identical = report_diff_values(a, b, fileobj=f)
     assert not identical
-    out = f.getvalue()
-    # fmt: off
-    assert out == (
-        "  (float) a> 1.0\n"
-        "    (str) b> '1.0'\n"
-        "           ? +   +\n"
-    )
-    # fmt: on
+    assert f.getvalue().splitlines() == [
+        "  (float) a> 1.0",
+        "    (str) b> '1.0'",
+        "           ? +   +",
+    ]
 
 
 def test_diff_numeric_scalar_types():
