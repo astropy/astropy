@@ -1,0 +1,1 @@
+In ``astropy/modeling/core.py``, custom variables were added to names that use the existing table library. Adjustment in the parameter table ``param_table`` to use custom names for parameters through the line ``param_table[name].info.name = (str(self.name + "_" + name))``.
