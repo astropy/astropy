@@ -2813,9 +2813,6 @@ class Model(metaclass=_ModelMeta):
             return psets
 
         return np.array(values)
-    
-
-
 
     def _format_repr(self, args=[], kwargs={}, defaults={}):
         """
@@ -2880,13 +2877,13 @@ class Model(metaclass=_ModelMeta):
 
         if columns:
             param_table = Table(columns, names=self.param_names)
-        
+
             for name in self.param_names:
                 param_table[name].unit = getattr(self, name).unit
                 if self.name is not None:
                     param_table[name].info.name = str(self.name + "_" + name)
                 else:
-                    param_table[name].info.name = name 
+                    param_table[name].info.name = name
             parts.append(indent(str(param_table), width=4))
 
         return "\n".join(parts)
