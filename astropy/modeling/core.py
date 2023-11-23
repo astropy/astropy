@@ -2881,16 +2881,12 @@ class Model(metaclass=_ModelMeta):
         if columns:
             param_table = Table(columns, names=self.param_names)
         
-            # Set units on the columns
             for name in self.param_names:
                 param_table[name].unit = getattr(self, name).unit
-                # Adicionando verificação para self.name
                 if self.name is not None:
                     param_table[name].info.name = str(self.name + "_" + name)
                 else:
-                    # Opção se self.name for None
-                    param_table[name].info.name = name  # ou algum nome padrão
-
+                    param_table[name].info.name = name 
             parts.append(indent(str(param_table), width=4))
 
         return "\n".join(parts)
