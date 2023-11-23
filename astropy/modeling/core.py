@@ -2877,7 +2877,7 @@ class Model(metaclass=_ModelMeta):
 
         if columns:
             param_table = Table(columns, names=self.param_names)
-
+            # Set units on the columns
             for name in self.param_names:
                 param_table[name].unit = getattr(self, name).unit
                 if self.name is not None:
