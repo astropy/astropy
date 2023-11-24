@@ -1057,11 +1057,9 @@ class TestSubFormat:
     def test_plot_date(self):
         """Test the plot_date format.
 
-        Depending on the situation with matplotlib, this can give different
-        results because the plot date epoch time changed in matplotlib 3.3. This
-        test tries to use the matplotlib date2num function to make the test
-        independent of version, but if matplotlib isn't available then the code
-        (and test) use the pre-3.3 epoch.
+        The plot date epoch time changed in matplotlib 3.3. This test
+        tries to use the matplotlib date2num function, but if matplotlib
+        isn't available then the code (and test) use the pre-3.3 epoch.
         """
         try:
             from matplotlib.dates import date2num
