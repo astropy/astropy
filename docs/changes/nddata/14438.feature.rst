@@ -1,3 +1,0 @@
-A more flexible and/or compact string representation is now available for
-``NDData`` objects which visually indicates masked entries, and provides for
-better for dask array support.

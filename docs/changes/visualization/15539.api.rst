@@ -1,2 +1,0 @@
-Removed the maximum value of the ``a`` parameter in the ``AsinhStretch``
-and ``SinhStretch`` stretch classes.

@@ -1,2 +1,0 @@
-All non-abstract Cosmology subclasses are now automatically registered to work with
-Astropy's YAML serialization.
