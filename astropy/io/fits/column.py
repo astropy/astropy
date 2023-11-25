@@ -10,6 +10,7 @@ import weakref
 from collections import OrderedDict
 from contextlib import suppress
 from functools import reduce
+from itertools import pairwise
 
 import numpy as np
 from numpy import char as chararray
@@ -18,7 +19,7 @@ from astropy.utils import indent, isiterable, lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .card import CARD_LENGTH, Card
-from .util import NotifierMixin, _convert_array, _is_int, cmp, encode_ascii, pairwise
+from .util import NotifierMixin, _convert_array, _is_int, cmp, encode_ascii
 from .verify import VerifyError, VerifyWarning
 
 __all__ = ["Column", "ColDefs", "Delayed"]
