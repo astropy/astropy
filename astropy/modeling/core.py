@@ -2880,7 +2880,9 @@ class Model(metaclass=_ModelMeta):
             # Set units on the columns
             for name in self.param_names:
                 param_table[name].unit = getattr(self, name).unit
-                param_table[name].info.name = name if self.name is None else f"{self.name}_{name}"
+                param_table[name].info.name = (
+                    name if self.name is None else f"{self.name}_{name}"
+                )
             parts.append(indent(str(param_table), width=4))
 
         return "\n".join(parts)

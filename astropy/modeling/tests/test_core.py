@@ -1506,7 +1506,10 @@ def test_custom_variable_names_in_string_representation():
         "test_gaussian_stddev",
     ]
     for expected in expected_strings:
-        assert expected in model_str, f"Expected string '{expected}' not found in model string representation"
+        assert (
+            expected in model_str
+        ), f"Expected string '{expected}' not found in model string representation"
+
 
 def test_default_variable_names_in_string_representation():
     """Test default variable names in the string representation of a model without a custom name."""
@@ -1515,4 +1518,6 @@ def test_default_variable_names_in_string_representation():
 
     expected_strings = ["amplitude", "mean", "stddev"]
     for expected in expected_strings:
-        assert expected in model_str, f"Expected string '{expected}' not found in model string representation"
+        assert (
+            expected in model_str
+        ), f"Expected string '{expected}' not found in model string representation"
