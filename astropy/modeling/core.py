@@ -2742,7 +2742,7 @@ class Model(metaclass=_ModelMeta):
         # Now check mutual broadcastability of all shapes
         try:
             np.broadcast_shapes(*all_shapes)
-        except IncompatibleShapeError as exc:
+        except ValueError as exc:
             shape_a, shape_a_idx, shape_b, shape_b_idx = exc.args
             param_a = self.param_names[shape_a_idx]
             param_b = self.param_names[shape_b_idx]
