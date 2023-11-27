@@ -1,2 +1,0 @@
-``astropy.tests.command.FixRemoteDataOption`` and ``astropy.tests.command.AstropyTest`` are deprecated.
-They are no longer necessary after sunsetting ``astropy-helpers``.

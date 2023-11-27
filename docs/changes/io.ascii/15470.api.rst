@@ -1,1 +1,0 @@
-Removed deprecated ``astropy.io.ascii.tests.common.raises`` test helper; use ``pytest.raises`` instead.

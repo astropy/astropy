@@ -1,1 +1,0 @@
-The location of ticklabels on a WCSAxes is now correctly calculated when the figure is rasterized.

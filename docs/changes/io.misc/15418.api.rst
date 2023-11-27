@@ -1,3 +1,0 @@
-``fnunpickle`` and ``fnpickle`` are deprecated because they are not used anywhere within ``astropy``.
-If you must, use the module from Python standard library but be advised that pickle is insecure
-so you should only unpickle data that you trust.

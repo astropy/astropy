@@ -1,2 +1,0 @@
-Fix a regression in custom WCS mapping due to the recent introduction of
-Solar System frames.
