@@ -29,6 +29,7 @@ import astropy.utils.data
 from astropy import units as _u  # u is taken
 from astropy.config import paths
 from astropy.tests.helper import CI, IS_CRON, PYTEST_LT_8_0
+from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA
 from astropy.utils.data import (
     CacheDamaged,
     CacheMissingWarning,
@@ -64,9 +65,6 @@ TESTURL = "http://www.astropy.org"
 TESTURL2 = "http://www.astropy.org/about.html"
 TESTURL_SSL = "https://www.astropy.org"
 TESTLOCAL = get_pkg_data_filename(os.path.join("data", "local.dat"))
-
-# NOTE: Python can be built without bz2 or lzma.
-from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA
 
 # For when we need "some" test URLs
 FEW = 5

@@ -1,16 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
-
-pytest.importorskip("matplotlib")
-
 from contextlib import nullcontext
 
-import matplotlib.pyplot as plt
+import pytest
 from erfa import ErfaWarning
 
 from astropy.time import Time
 from astropy.visualization.time import time_support
+
+plt = pytest.importorskip("matplotlib.pyplot")
 
 # Since some of the examples below use times/dates in the future, we use the
 # TAI time scale to avoid ERFA warnings about dubious years.
