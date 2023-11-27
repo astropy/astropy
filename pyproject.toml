@@ -39,7 +39,7 @@ keywords = [
     "ascii",
 ]
 dependencies = [
-    "numpy>=1.22",
+    "numpy>=1.22,<2",
     "pyerfa>=2.0",
     "astropy-iers-data>=0.2023.10.30.0.29.53",
     "PyYAML>=3.13",
