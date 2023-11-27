@@ -384,7 +384,6 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
 "test_*.py" = [
     "B018",  # UselessExpression
     "D",  # pydocstyle
-    "E402",  # Module level import not at top of file
     "PGH001",  # No builtin eval() allowed
     "S101",  # Use of assert detected
 ]
