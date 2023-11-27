@@ -1,2 +1,0 @@
-Ufuncs with more than 2 operands (such as ``erfa.dtf2d``) now work
-also if all inputs are scalars and more than two inputs have masks.

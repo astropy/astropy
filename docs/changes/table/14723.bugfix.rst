@@ -1,1 +1,0 @@
-``Table.as_array`` now respects the ``fill_value`` property of masked columns.

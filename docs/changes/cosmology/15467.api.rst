@@ -1,1 +1,0 @@
-Removed deprecated ``get_cosmology_from_string`` class method in ``default_cosmology``; use ``get`` instead.

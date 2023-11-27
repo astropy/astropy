@@ -1,3 +1,0 @@
-Ensured that ``str(masked_array)`` looks like ``str(unmasked_array)`` also for
-array scalars. Thus, like regular array scalars, the precision is ignored for
-float, and strings do not include extra quoting.

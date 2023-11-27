@@ -1,1 +1,0 @@
-Fixed minor bug when getting solar system positions of objects from Type 3 SPICE kernel files.
