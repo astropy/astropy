@@ -26,7 +26,7 @@ astropy.coordinates
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
-- Added a ``write_latex()`` method for exporting a Cosmology object to a LaTex table. [#14701]
+- Registered a ``latex`` writer for exporting a Cosmology object to a LaTex table. [#14701]
 
 - Added argument ``rename`` to Cosmology's I/O, allowing for input and output symbols to
   be renamed. [#14780]
@@ -42,7 +42,7 @@ astropy.cosmology
   an instance) the dictionary contains ``Parameter`` instances, not the values. [#15168]
 
 - The field ``default`` has been added to ``Parameter``. This can be used to introspect
-  the default value of a parameter on a cosmology class ``e.g. LambdaCDM.H0.default``. [#15400]
+  the default value of a parameter on a cosmology class e.g. ``LambdaCDM.H0.default``. [#15400]
 
 astropy.io.fits
 ^^^^^^^^^^^^^^^
@@ -505,7 +505,7 @@ Other Changes and Additions
 
 - Moved International Earth Rotation and Reference Systems (IERS) and Leap Second
   files out into standalone astropy-iers-data package, maintaining full
-  backward-compatibility in the ``astropy.utils.iers`` API, but deprecation
+  backward-compatibility in the ``astropy.utils.iers`` API. Deprecation
   warnings may be issued when certain files are accessed directly. [#14819]
 
 - Switch from using ``setup.cfg`` for project configuration to using ``pyproject.toml``. [#15247]
