@@ -1,3 +1,0 @@
-Fixed a bug where a ``ValueError`` would be raised in the
-``AsinhStretch`` and ``SinhStretch`` classes for valid ``a`` parameter
-values.

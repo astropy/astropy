@@ -1,2 +1,0 @@
-The deprecated functionality of initializing ``Angle`` or ``Longitude`` from a
-``tuple`` is no longer supported.

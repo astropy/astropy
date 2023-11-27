@@ -1,6 +1,0 @@
-Angle-related classes and functions have been moved within ``astropy.coordinates``.
-There is no change to public API as everything moved should still be imported from
-``astropy.coordinates``, not a sub-module. If you are using private API, try importing
-from ``astropy.coordinates`` instead. If you need something that has been moved and is
-not available in ``astropy.coordinates``, please open an issue on the Astropy issue
-tracker.

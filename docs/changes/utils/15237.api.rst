@@ -1,5 +1,0 @@
-The ``astropy.utils.metadata.MetaData`` class, which is used throughout astropy
-to carry metadata on tables, columns, etc., can now also be used on dataclasses.
-
-When accessing the meta attribute on a class ``astropy.utils.metadata.MetaData``
-now returns None instead of itself.

@@ -1,3 +1,0 @@
-Ensure that tables written to FITS with both masked and unmasked columns
-roundtrip properly (previously, all integer columns would become masked
-if any column was masked).
