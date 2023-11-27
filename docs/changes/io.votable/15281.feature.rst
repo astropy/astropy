@@ -1,2 +1,0 @@
-Add support for Parquet serialization of VOTables. Writing of this
-serialization is available with using the new ``'votable.parquet'`` format.

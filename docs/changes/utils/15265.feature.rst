@@ -1,2 +1,0 @@
-The ``astropy.utils.metadata.MetaData`` default dictionary can now be
-set with the ``default_factory`` keyword argument.

@@ -1,1 +1,0 @@
-``wcs.validate(filename)`` now properly closes the file handler.
