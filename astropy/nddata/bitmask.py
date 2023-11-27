@@ -5,7 +5,6 @@ A module that provides functions for manipulating bit masks and data quality
 """
 import numbers
 import warnings
-from collections import OrderedDict
 
 import numpy as np
 
@@ -86,7 +85,7 @@ class BitFlagNameMeta(type):
         attrl = list(map(str.lower, attr))
 
         if _ENABLE_BITFLAG_CACHING:
-            cache = OrderedDict()
+            cache = dict()
 
         for b in bases:
             for k, v in b.__dict__.items():
