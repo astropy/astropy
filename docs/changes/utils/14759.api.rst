@@ -1,1 +1,0 @@
-``is_path_hidden()`` and ``walk_skip_hidden()`` are deprecated.

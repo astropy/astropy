@@ -1,1 +1,0 @@
-Removed deprecated ``vectorize_if_needed`` and ``inf_like`` from ``cosmology.utils``.

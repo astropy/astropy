@@ -1,2 +1,0 @@
-The new ``ConfigNamespace.help()`` method provides a convenient way to get
-information about configuration items.

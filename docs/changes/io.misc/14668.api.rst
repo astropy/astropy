@@ -1,1 +1,0 @@
-Removed deprecated ``astropy.io.misc.asdf`` subpackage. Use ``asdf-astropy`` package instead.
