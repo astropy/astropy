@@ -292,7 +292,7 @@ lint.unfixable = [
     "PIE790",  # unnecessary-pass
     "S321",  # Suspicious-ftp-lib-usage
 ]
-"astropy/visualization/*" = ["B015", "C408", "PIE790"]
+"astropy/visualization/*" = ["C408", "PIE790"]
 "astropy/wcs/*" = [
     "C408",  # unnecessary-collection-call
     "F821",  # undefined-name
