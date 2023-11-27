@@ -3,7 +3,6 @@
 
 import pickle
 import textwrap
-from collections import OrderedDict
 from itertools import chain, permutations
 
 import numpy as np
@@ -356,7 +355,7 @@ def test_param_meta():
     nd = NDData([1, 2, 3], meta={})
     assert len(nd.meta) == 0
     nd = NDData([1, 2, 3])
-    assert isinstance(nd.meta, OrderedDict)
+    assert isinstance(nd.meta, dict)
     assert len(nd.meta) == 0
     # Test conflicting meta (other NDData)
     nd2 = NDData(nd, meta={"image": "sun"})
