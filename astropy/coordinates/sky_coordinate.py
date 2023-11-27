@@ -1237,7 +1237,65 @@ class SkyCoord(ShapedLikeNDArray):
         c1 = self.cartesian.without_differentials()
         c2 = other.cartesian.without_differentials()
         return Distance((c1 - c2).norm())
+    
+    def separation_ellipse(self, other, eccentricity=1.0):
+        """
+        Computes projected distance along the major axis and minor axis of an ellipse
+        which vertix is constructed by this coordinate and another.
 
+        Parameters
+        ----------
+        other : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
+            The coordinate to get the separation to.
+        eccentricity: optional input for fraction of the distance along the major axis.
+
+        Returns
+        -------
+        sep_a : `~astropy.coordinates.Distance`
+            The real-space distance between these two coordinates along the major axis.
+        sep_b : `~astropy.coordinates.Distance`
+            The real-space distance between these two coordinates along the minor axis.
+
+        Raises
+        ------
+        ValueError
+            If this or the other coordinate do not have distances.
+            If the range of eccentricity is out of [0.0, 1.0]
+        """
+        if not self.is_equivalent_frame(other):
+            try:
+                kwargs = (
+                    {"merge_attributes": False} if isinstance(other, SkyCoord) else {}
+                )
+                other = other.transform_to(self, **kwargs)
+            except TypeError:
+                raise TypeError(
+                    "Can only get separation to another SkyCoord "
+                    "or a coordinate frame with data"
+                )
+
+        if issubclass(self.data.__class__, UnitSphericalRepresentation):
+            raise ValueError(
+                "This object does not have a distance; cannot compute the projected separation."
+            )
+
+        if not 0.0 <= eccentricity <= 1.0:
+            raise ValueError(
+                "Eccentricity should be within the range of [0.0, 1.0]; cannot compute the projected separation"
+            )
+        
+        lon1 = self.spherical.lon
+        lat1 = self.spherical.lat
+        lon2 = other.spherical.lon
+        lat2 = other.spherical.lat
+        
+        from .angles import angular_separation
+        
+        sep = angular_separation(lon1, lat1, lon2, lat2)
+        sep_a = self.distance * np.sin(sep/2.0)  # a/D = sin(theta/2)
+        sep_b = np.sqrt(sep_a**2 * (1 - eccentricity**2))
+        return Distance(sep_a), Distance(sep_b)
+    
     def spherical_offsets_to(self, tocoord):
         r"""
         Computes angular offsets to go *from* this coordinate *to* another.

@@ -1806,7 +1806,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             self_unit_sph.lon, self_unit_sph.lat, other_unit_sph.lon, other_unit_sph.lat
         )
         return Angle(sep, unit=u.degree)
-
+    
     def separation_3d(self, other):
         """
         Computes three dimensional separation between this coordinate
@@ -1856,6 +1856,57 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             return dist
         else:
             return Distance(dist)
+    
+    def separation_ellipse(self, other, eccentricity=1.0):
+        """
+        Computes projected distance along the major axis and minor axis of an ellipse
+        which vertix is constructed by this coordinate and another.
+
+        Parameters
+        ----------
+        other : `~astropy.coordinates.BaseCoordinateFrame`
+            The coordinate system to get the distance to.
+        eccentricity: optional input for fraction of the distance along the major axis.
+
+        Returns
+        -------
+        sep_a : `~astropy.coordinates.Distance`
+            The real-space distance between these two coordinates along the major axis.
+        sep_b : `~astropy.coordinates.Distance`
+            The real-space distance between these two coordinates along the minor axis.
+
+        Raises
+        ------
+        ValueError
+            If this or the other coordinate do not have distances.
+            If the range of eccentricity is out of [0.0, 1.0]
+        """
+
+        if issubclass(self.data.__class__, r.UnitSphericalRepresentation):
+            raise ValueError(
+                "This object does not have a distance; cannot compute the projected separation."
+            )
+
+        if not 0.0 <= eccentricity <= 1.0:
+            raise ValueError(
+                "Eccentricity should be within the range of [0.0, 1.0]; cannot compute the projected separation"
+            )
+        
+        from .angles import angular_separation
+        from .distances import Distance
+        
+        self_unit_sph = self.represent_as(r.UnitSphericalRepresentation)
+        other_transformed = other.transform_to(self)
+        other_unit_sph = other_transformed.represent_as(r.UnitSphericalRepresentation)
+
+        # Get the separation as a Quantity, convert to Angle in degrees
+        sep = angular_separation(
+            self_unit_sph.lon, self_unit_sph.lat, other_unit_sph.lon, other_unit_sph.lat
+        )
+        
+        sep_a = self.distance * np.sin(sep/2.0)  # a/D = sin(theta/2)
+        sep_b = np.sqrt(sep_a**2 * (1 - eccentricity**2))
+        return Distance(sep_a), Distance(sep_b)
 
     @property
     def cartesian(self):

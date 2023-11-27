@@ -90,6 +90,22 @@ def test_proj_separations():
     assert_allclose(ncp.separation(ngp.transform_to(ICRS())).degree, 62.87174758503201)
 
 
+def test_elliptical_separations():
+    """
+    Test elliptical separation functionality
+    """
+    c1 = ICRS(ra=0 * u.deg, dec=0 * u.deg)
+    c2 = ICRS(ra=0 * u.deg, dec=1 * u.deg, distance=10 * u.kpc)
+    
+    eccentricity = 0.8
+    sep_a, sep_b = c2.separation_ellipse(c1, eccentricity)
+    
+    assert isinstance(sep_a, Distance)
+    assert isinstance(sep_b, Distance)
+
+    assert_allclose(eccentricity, np.sqrt(1-sep_b.value**2/sep_a.value**2))
+    
+
 def test_3d_separations():
     """
     Test 3D separation functionality
