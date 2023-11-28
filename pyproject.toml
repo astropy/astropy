@@ -39,7 +39,7 @@ keywords = [
     "ascii",
 ]
 dependencies = [
-    "numpy>=1.22,<2",
+    "numpy>=1.22",
     "pyerfa>=2.0",
     "astropy-iers-data>=0.2023.10.30.0.29.53",
     "PyYAML>=3.13",
@@ -120,7 +120,7 @@ wcslint = "astropy.wcs.wcslint:main"
 requires = ["setuptools",
             "setuptools_scm>=6.2",
             "cython>=3.0.0,<3.1.0",
-            "numpy>=1.25,<2",
+            "numpy>=1.25",
             "extension-helpers"]
 build-backend = "setuptools.build_meta"
 
