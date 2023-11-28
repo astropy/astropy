@@ -14,12 +14,12 @@ url: 'https://www.astropy.org'
 license: BSD-3-Clause
 
 # Version information
-version: "v5.3"
-date-released: "2023-05-23"
+version: "v6.0.0"
+date-released: "2023-11-27"
 identifiers:
   - type: doi
-    description: DOI for version 5.3
-    value: "10.5281/zenodo.7963327"
+    description: Concept DOI
+    value: "10.5281/zenodo.4670728"
   - type: url
     description: ASCL entry
     value: https://ascl.net/1304.002
