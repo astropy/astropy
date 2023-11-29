@@ -1,0 +1,1564 @@
+# This is a -*- yaml -*- file
+
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+
+# Project information
+title: Astropy
+authors:
+  - name: "Astropy Collaboration"
+repository-code: 'https://github.com/astropy/astropy'
+url: 'https://www.astropy.org'
+license: BSD-3-Clause
+
+identifiers:
+  - type: doi
+    description: Concept DOI
+    value: "10.5281/zenodo.4670728"
+  - type: url
+    description: ASCL entry
+    value: https://ascl.net/1304.002
+
+# Associated papers
+preferred-citation:
+  title: >-
+    The Astropy Project: Sustaining and Growing a Community-oriented
+    Open-source Project and the Latest Major Release (v5.0) of the
+    Core Package
+  authors:
+    - name: "Astropy Collaboration"
+    - family-names: Price-Whelan
+      given-names: Adrian M.
+      orcid: https://orcid.org/0000-0003-0872-7098
+      affiliation: Center for Computational Astrophysics, Flatiron Institute, 162
+        5th Ave, New York, NY 10010, USA
+    - family-names: Lim
+      given-names: Pey Lian
+      orcid: https://orcid.org/0000-0003-0079-4114
+      affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+        MD 21218, USA
+    - family-names: Earl
+      given-names: Nicholas
+      orcid: https://orcid.org/0000-0003-1714-7415
+      affiliation: Department of Astronomy, University of Illinois at Urbana-Champaign,
+        1002 W. Green St., Urbana, IL 61801 USA
+    - family-names: Starkman
+      given-names: Nathaniel
+      orcid: https://orcid.org/0000-0003-3954-3291
+      affiliation: David A. Dunlap Department of Astronomy & Astrophysics, University
+        of Toronto, 50 St. George Street, Toronto ON M5S 3H4, Canada
+    - family-names: Bradley
+      given-names: Larry
+      orcid: https://orcid.org/0000-0002-7908-9284
+      affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+        MD 21218, USA
+    - family-names: Shupe
+      given-names: David L.
+      orcid: https://orcid.org/0000-0003-4401-0430
+      affiliation: IPAC, MC 100-22, Caltech, 1200E. California Blvd. Pasadena, CA
+        91125
+    - family-names: Patil
+      given-names: Aarya A.
+      orcid: https://orcid.org/0000-0002-7626-506X
+      affiliation: David A. Dunlap Department of Astronomy & Astrophysics, University
+        of Toronto, 50 St. George Street, Toronto ON M5S 3H4, Canada
+    - family-names: Corrales
+      given-names: Lia
+      orcid: https://orcid.org/0000-0002-5466-3817
+      affiliation: University of Michigan Astronomy, 1085 S. University, Ann Arbor
+        MI 48109, United States
+    - family-names: Brasseur
+      given-names: C. E.
+      orcid: https://orcid.org/0000-0002-9314-960X
+      affiliation: School of Physics and Astronomy, University of St Andrews, North
+        Haugh, St Andrews KY16 9SS, Scotland
+    - family-names: Nöthe
+      given-names: Maximilian
+      orcid: https://orcid.org/0000-0001-7993-8189
+      affiliation: Astroparticle Physics, TU Dortmund University, Otto-Hahn-Str. 4a,
+        44227 Dortmund, Germany
+    - family-names: Donath
+      given-names: Axel
+      orcid: https://orcid.org/0000-0003-4568-7005
+      affiliation: Center for Astrophysics | Harvard & Smithsonian, 60 Garden Street,
+        Cambridge, MA, 02138, USA
+    - family-names: Tollerud
+      given-names: Erik
+      orcid: https://orcid.org/0000-0002-9599-310X
+      affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+        MD 21218, USA
+    - family-names: Morris
+      given-names: Brett M.
+      orcid: https://orcid.org/0000-0003-2528-3409
+      affiliation: Center for Space and Habitability, University of Bern, Gesellschaftsstrasse
+        6, 3012 Bern, Switzerland
+    - family-names: Ginsburg
+      given-names: Adam
+      orcid: https://orcid.org/0000-0001-6431-9633
+      affiliation: Department of Astronomy, University of Florida, P.O. Box 112055,
+        Gainesville, FL, USA
+    - family-names: Vaher
+      given-names: Eero
+      affiliation: Lund Observatory, Department of Astronomy and Theoretical Physics,
+        Lund University, Box 43, 22100 Lund, Sweden
+    - family-names: Weaver
+      given-names: Benjamin A.
+      affiliation: NSF's National Optical-Infrared Astronomy Research Laboratory,
+        950 North Cherry Avenue, Tucson, AZ 85719, United States
+    - family-names: Tocknell
+      given-names: James
+      orcid: https://orcid.org/0000-0001-6637-6922
+      affiliation: School of Mathematical and Physical Sciences, Macquarie University,
+        Sydney, NSW 2109, Australia
+    - family-names: Jamieson
+      given-names: William
+      orcid: https://orcid.org/0000-0001-5976-4492
+      affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+        MD 21218, USA
+    - family-names: Kerkwijk
+      given-names: Marten H. van
+      orcid: https://orcid.org/0000-0002-5830-8505
+      affiliation: David A. Dunlap Department of Astronomy & Astrophysics, University
+        of Toronto, 50 St. George Street, Toronto ON M5S 3H4, Canada
+    - family-names: Robitaille
+      given-names: Thomas P.
+      orcid: https://orcid.org/0000-0002-8642-1329
+      affiliation: Aperio Software Ltd., Insight House, Riverside Business Park, Stoney
+        Common Road, Stansted, Essex, CM24 8PL, UK
+    - family-names: Merry
+      given-names: Bruce
+      affiliation: South African Radio Astronomy Observatory, 2 Fir Street, Black
+        River Park, Observatory 7925, South Africa
+    - family-names: Bachetti
+      given-names: Matteo
+      affiliation: Istituto Nazionale di Astrofisica/Osservatorio Astronomico di Cagliari,
+        via della Scienza 5, I-09047 Selargius (CA), Italy
+    - family-names: Günther
+      given-names: H. Moritz
+      orcid: https://orcid.org/0000-0003-4243-2840
+      affiliation: MIT Kavli Institute for Astrophysics and Space Research, 77 Massachusetts
+        Avenue, Cambridge, MA 02139, USA
+    - family-names: Aldcroft
+      given-names: Thomas L.
+      affiliation: Center for Astrophysics | Harvard & Smithsonian, 60 Garden Street,
+        Cambridge, MA, 02138, USA
+    - family-names: Alvarado-Montes
+      given-names: Jaime A.
+      orcid: https://orcid.org/0000-0003-0353-9741
+      affiliation: School of Mathematical and Physical Sciences, Macquarie University,
+        Sydney, NSW 2109, Australia
+    - family-names: Archibald
+      given-names: Anne M.
+      orcid: https://orcid.org/0000-0003-0638-3340
+      affiliation: Newcastle University
+    - family-names: Bódi
+      given-names: Attila
+      orcid: https://orcid.org/0000-0002-8585-4544
+      affiliation: Konkoly Observatory, Research Centre for Astronomy and Earth Sciences
+        (ELKH), H-1121 Budapest, Konkoly Thege Miklós út 15-17, Hungary
+    - family-names: Bapat
+      given-names: Shreyas
+      orcid: https://orcid.org/0000-0002-0870-4665
+      affiliation: School of Computing and Electrical Engineering, Indian Institute
+        of Technology Mandi, Kamand, Mandi (H.P.), 175005, India
+    - family-names: Barentsen
+      given-names: Geert
+      orcid: https://orcid.org/0000-0002-3306-3484
+      affiliation: Bay Area Environmental Research Institute, P.O. Box 25, Moffett
+        Field, CA 94035, USA
+    - family-names: Bazán
+      given-names: Juanjo
+      orcid: https://orcid.org/0000-0001-7699-3983
+      affiliation: CIEMAT, Astroparticle physics, Madrid, Spain
+    - family-names: Biswas
+      given-names: Manish
+      affiliation: Savitribai Phule Pune University, Pune, Maharashtra, India
+    - family-names: Boquien
+      given-names: Médéric
+      orcid: https://orcid.org/0000-0003-0946-6176
+      affiliation: Centro de Astronomía (CITEVA), Universidad de Antofagasta, Avenida
+        Angamos 601, Antofagasta, Chile
+    - family-names: Burke
+      given-names: D. J.
+      orcid: https://orcid.org/0000-0003-4428-7835
+      affiliation: Center for Astrophysics | Harvard & Smithsonian, 60 Garden Street,
+        Cambridge, MA, 02138, USA
+    - family-names: Cara
+      given-names: Daria
+      orcid: https://orcid.org/0000-0003-3833-1668
+      affiliation: Wake Forest University, 1834 Wake Forest Rd, Winston-Salem, NC,
+        27109, USA
+    - family-names: Cara
+      given-names: Mihai
+      orcid: https://orcid.org/0000-0002-9294-6551
+      affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+        MD 21218, USA
+    - family-names: Conroy
+      given-names: Kyle E
+      orcid: https://orcid.org/0000-0002-5442-8550
+      affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+        MD 21218, USA
+    - family-names: Conseil
+      given-names: Simon
+      orcid: https://orcid.org/0000-0002-3657-4191
+      affiliation: Aix Marseille Univ, CNRS, CNES, LAM, Marseille, France
+    - family-names: Craig
+      given-names: Matthew W.
+      orcid: https://orcid.org/0000-0001-7988-8919
+      affiliation: Department of Physics and Astronomy, Minnesota State University
+        Moorhead, Moorhead, MN 56563
+    - family-names: Cross
+      given-names: Robert M.
+      orcid: https://orcid.org/0000-0003-0081-8024
+      affiliation: Independent Astropy Contributor
+    - family-names: Cruz
+      given-names: Kelle L.
+      orcid: https://orcid.org/0000-0002-1821-0650
+      affiliation: Hunter College, Physics and Astronomy, 695 Park Avenue, New York,
+        NY 10065
+    - family-names: D'Eugenio
+      given-names: Francesco
+      orcid: https://orcid.org/0000-0003-2388-8172
+      affiliation: Cavendish Laboratory and Kavli Institute for Cosmology, University
+        of Cambridge, Madingley Rise, Cambridge, CB3 0HA, United Kingdom
+    - family-names: Dencheva
+      given-names: Nadia
+      orcid: https://orcid.org/0000-0002-5686-9632
+      affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+        MD 21218, USA
+    - family-names: Devillepoix
+      given-names: Hadrien A. R.
+      orcid: https://orcid.org/0000-0001-9226-1870
+      affiliation: School of Earth and Planetary Sciences, Curtin University, Perth
+        WA 6845, Australia
+    - family-names: Dietrich
+      given-names: Jörg P.
+      orcid: https://orcid.org/0000-0002-8134-9591
+      affiliation: Arndtstr. 10, 55124 Mainz, Germany
+    - family-names: Eigenbrot
+      given-names: Arthur Davis
+      orcid: https://orcid.org/0000-0003-0810-4368
+      affiliation: National Solar Observatory, 3665 Discovery Drive, Boulder CO. 80303
+    - family-names: Erben
+      given-names: Thomas
+      affiliation: Argelander-Institut für Astronomie (University of Bonn), Auf dem
+        Hügel 71, 53121 Bonn, Germany
+    - family-names: Ferreira
+      given-names: Leonardo
+      orcid: https://orcid.org/0000-0002-8919-079X
+      affiliation: Centre for Astronomy and Particle Physics, University of Nottingham,
+        Nottingham, UK
+    - family-names: Foreman-Mackey
+      given-names: Daniel
+      orcid: https://orcid.org/0000-0002-9328-5652
+      affiliation: Center for Computational Astrophysics, Flatiron Institute, 162
+        5th Ave, New York, NY 10010, USA
+    - family-names: Fox
+      given-names: Ryan
+      affiliation: Independent Astropy Contributor
+    - family-names: Freij
+      given-names: Nabil
+      orcid: https://orcid.org/0000-0002-6253-082X
+      affiliation: Bay Area Environmental Research Institute, P.O. Box 25, Moffett
+        Field, CA 94035, USA
+    - family-names: Garg
+      given-names: Suyog
+      orcid: https://orcid.org/0000-0002-2309-9731
+      affiliation: Department of Physics, The University of Tokyo, Bunkyo-ku, Tokyo
+        113-0033, Japan
+    - family-names: Geda
+      given-names: Robel
+      orcid: https://orcid.org/0000-0003-1509-9966
+      affiliation: Department of Astrophysical Sciences, 4 Ivy Lane, Princeton University,
+        Princeton, NJ 08544, USA
+    - family-names: Glattly
+      given-names: Lauren
+      affiliation: ScienceBetter Consulting, LLC, 4 West 101st Street, No.29, New
+        York, NY 10025
+    - family-names: Gondhalekar
+      given-names: Yash
+      orcid: https://orcid.org/0000-0002-6646-4225
+      affiliation: BITS Pilani/Computer Science, Sancoale, Goa 403726, India
+    - family-names: Gordon
+      given-names: Karl D.
+      orcid: https://orcid.org/0000-0001-5340-6774
+      affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+        MD 21218, USA
+    - family-names: Grant
+      given-names: David
+      orcid: https://orcid.org/0000-0001-5878-618X
+      affiliation: University of Oxford, Department of Physics, Keble Road, Oxford,
+        OX1 3RH, UK
+    - family-names: Greenfield
+      given-names: Perry
+      orcid: https://orcid.org/0000-0003-2269-0551
+      affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+        MD 21218, USA
+    - family-names: Groener
+      given-names: Austen M.
+      orcid: https://orcid.org/0000-0002-6508-2938
+      affiliation: Drexel University Department of Physics, 816 Disque Hall 32 S.
+        32nd Street Philadelphia, PA 19104
+    - family-names: Guest
+      given-names: Steve
+      affiliation: RAL Space, STFC Rutherford Appleton Laboratory, Harwell, Didcot
+        OX11 0QX, UK
+    - family-names: Gurovich
+      given-names: Sebastian
+      orcid: https://orcid.org/0000-0001-5848-4077
+      affiliation: Instituto De Astronomía Teórica y Experimental - Observatorio Astronómico
+        Córdoba( IATEOACUNCCONICET), Córdoba, Argentina
+    - family-names: Handberg
+      given-names: Rasmus
+      orcid: https://orcid.org/0000-0001-8725-4502
+      affiliation: Stellar Astrophysics Centre, Department of Physics and Astronomy,
+        Aarhus University, Ny Munkegade 120, DK-8000 Aarhus C, Denmark.
+    - family-names: Hart
+      given-names: Akeem
+      orcid: https://orcid.org/0000-0002-8138-1479
+      affiliation: Independent Astropy Contributor
+    - family-names: Hatfield-Dodds
+      given-names: Zac
+      orcid: https://orcid.org/0000-0002-8646-8362
+      affiliation: Australian National University, Canberra, Australia
+    - family-names: Homeier
+      given-names: Derek
+      orcid: https://orcid.org/0000-0002-8546-9128
+      affiliation: Aperio Software Ltd., Insight House, Riverside Business Park, Stoney
+        Common Road, Stansted, Essex, CM24 8PL, UK
+    - family-names: Hosseinzadeh
+      given-names: Griffin
+      orcid: https://orcid.org/0000-0002-0832-2974
+      affiliation: Steward Observatory, University of Arizona, 933 North Cherry Avenue,
+        Tucson, AZ 85721-0065, USA
+    - family-names: Jenness
+      given-names: Tim
+      orcid: https://orcid.org/0000-0001-5982-167X
+      affiliation: Vera C. Rubin Observatory, 950 N. Cherry Ave, Tucson, AZ 85719
+    - family-names: Jones
+      given-names: Craig K.
+      orcid: https://orcid.org/0000-0002-0629-3006
+      affiliation: The Malone Center for Healthcare in Engineering, Johns Hopkins
+        University
+    - family-names: Joseph
+      given-names: Prajwel
+      orcid: https://orcid.org/0000-0003-1409-1903
+      affiliation: Indian Institute of Astrophysics, Bangalore 560034, India
+    - family-names: Kalmbach
+      given-names: J. Bryce
+      orcid: https://orcid.org/0000-0002-6825-5283
+      affiliation: DIRAC Institute, Department of Astronomy, University of Washington,
+        Box 351580, Seattle, WA 98195
+    - family-names: Karamehmetoglu
+      given-names: Emir
+      orcid: https://orcid.org/0000-0001-6209-838X
+      affiliation: Aarhus University, Department of Physics and Astronomy, Ny Munkegade
+        120, DK-8000 Aarhus C, Denmark
+    - family-names: Kałuszyński
+      given-names: ' Mikołaj'
+      orcid: https://orcid.org/0000-0003-0109-5833
+      affiliation: Nicolaus Copernicus Astronomical Center, Polish Academy of Sciences,
+        Bartycka 18, 00-716 Warsaw, Poland
+    - family-names: Kelley
+      given-names: Michael S. P.
+      orcid: https://orcid.org/0000-0002-6702-7676
+      affiliation: Department of Astronomy, University of Maryland, 4296 Stadium Drive,
+        College Park, MD 20742-0001
+    - family-names: Kern
+      given-names: Nicholas
+      orcid: https://orcid.org/0000-0002-8211-1892
+      affiliation: Massachusetts Institute of Technology / Dept. of Physics, 182 Memorial
+        Dr, Cambridge, USA
+    - family-names: Kerzendorf
+      given-names: Wolfgang E.
+      orcid: https://orcid.org/0000-0002-0479-7235
+      affiliation: Department of Physics & Astronomy/Computational Mathematics, Science,
+        and Engineering, Michigan State University, East Lansing, MI 48824, USA
+    - family-names: Koch
+      given-names: Eric W.
+      orcid: https://orcid.org/0000-0001-9605-780X
+      affiliation: Center for Astrophysics | Harvard & Smithsonian, 60 Garden Street,
+        Cambridge, MA, 02138, USA
+    - family-names: Kulumani
+      given-names: Shankar
+      orcid: https://orcid.org/0000-0002-7822-0471
+      affiliation: Johns Hopkins University Applied Physics Laboratory, Laurel, MD
+        USA
+    - family-names: Lee
+      given-names: Antony
+      orcid: https://orcid.org/0000-0003-2193-5369
+      affiliation: Laboratoire Photonique, Numérique et Nanosciences UMR 5298, Université
+        de Bordeaux, Institut d'Optique, CNRS, 33400 Talence, France
+    - family-names: Ly
+      given-names: Chun
+      orcid: https://orcid.org/0000-0002-4245-2318
+      affiliation: Steward Observatory, University of Arizona, 933 North Cherry Avenue,
+        Tucson, AZ 85721-0065, USA
+    - family-names: Ma
+      given-names: Zhiyuan
+      orcid: https://orcid.org/0000-0003-3270-6844
+      affiliation: Department of Astronomy, University of Massachusetts - Amherst,
+        710 North Pleasant Street, Amherst, MA 01003, USA
+    - family-names: MacBride
+      given-names: Conor
+      orcid: https://orcid.org/0000-0002-9901-8723
+      affiliation: Astrophysics Research Centre, School of Mathematics and Physics,
+        Queen's University Belfast, Belfast, BT7 1NN, UK
+    - family-names: Maljaars
+      given-names: Jakob M.
+      orcid: https://orcid.org/0000-0001-8100-9514
+      affiliation: Science & Technology Corporation, Delft, The Netherlands
+    - family-names: Muna
+      given-names: Demitri
+      orcid: https://orcid.org/0000-0002-1631-4114
+      affiliation: Department of Physics and Astronomy, University of Texas at San
+        Antonio, USA
+    - family-names: Murphy
+      given-names: N. A.
+      orcid: https://orcid.org/0000-0001-6628-8033
+      affiliation: Center for Astrophysics | Harvard & Smithsonian, 60 Garden Street,
+        Cambridge, MA, 02138, USA
+    - family-names: Norman
+      given-names: Henrik
+      orcid: https://orcid.org/0000-0003-4189-3450
+      affiliation: Winter Way, Lerum, Sweden
+    - family-names: O'Steen
+      given-names: Richard
+      orcid: https://orcid.org/0000-0002-2432-8946
+      affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+        MD 21218, USA
+    - family-names: Oman
+      given-names: Kyle A.
+      orcid: https://orcid.org/0000-0001-9857-7788
+      affiliation: Institute for Computational Cosmology, Durham University, South
+        Road, Durham DH1 3LE, United Kingdom
+    - family-names: Pacifici
+      given-names: Camilla
+      affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+        MD 21218, USA
+    - family-names: Pascual
+      given-names: Sergio
+      orcid: https://orcid.org/0000-0002-9351-6051
+      affiliation: Departamento de Física de la Tierra y Astrofísica, Fac. CC. Físicas,
+        Universidad Complutense de Madrid, E28040, Madrid, Spain
+    - family-names: Pascual-Granado
+      given-names: J.
+      orcid: https://orcid.org/0000-0003-0139-6951
+      affiliation: Instituto de Astrofísica de Andalucía (CSIC). Glorieta de la Astronomía
+        s/n. 18008, Granada, Spain
+    - family-names: Patil
+      given-names: Rohit R.
+      orcid: https://orcid.org/0000-0002-5923-4966
+      affiliation: Syracuse University, Syracuse, NY, USA
+    - family-names: Perren
+      given-names: Gabriel I
+      orcid: https://orcid.org/0000-0002-1852-9653
+      affiliation: Instituto de Astrofísica de La Plata, IALP (CONICET-UNLP), 1900
+        La Plata, Argentina
+    - family-names: Pickering
+      given-names: Timothy E.
+      orcid: https://orcid.org/0000-0002-9427-5448
+      affiliation: MMT Observatory, Tucson, AZ, USA
+    - family-names: Rastogi
+      given-names: Tanuj
+      affiliation: Independent Astropy Contributor
+    - family-names: Roulston
+      given-names: Benjamin R.
+      orcid: https://orcid.org/0000-0002-9453-7735
+      affiliation: Center for Astrophysics | Harvard & Smithsonian, 60 Garden Street,
+        Cambridge, MA, 02138, USA
+    - family-names: Ryan
+      given-names: Daniel F
+      orcid: https://orcid.org/0000-0001-8661-3825
+      affiliation: University of Applied Sciences and Arts Northwest Switzerland,
+        Bahnhofstrasse 6, 5210 Windisch, Switzerland
+    - family-names: Rykoff
+      given-names: Eli S.
+      orcid: https://orcid.org/0000-0001-9376-3135
+      affiliation: SLAC National Accelerator Laboratory, Menlo Park, CA 94025, USA
+    - family-names: Sabater
+      given-names: Jose
+      orcid: https://orcid.org/0000-0003-1149-6294
+      affiliation: STFC UK Astronomy Technology Centre, Royal Observatory, Blackford
+        Hill, Edinburgh, EH9 3HJ, UK
+    - family-names: Sakurikar
+      given-names: Parikshit
+      orcid: https://orcid.org/0000-0002-9523-5640
+      affiliation: International Institute of Information Technology, Hyderabad, India
+    - family-names: Salgado
+      given-names: Jesús
+      orcid: https://orcid.org/0000-0002-3680-4364
+      affiliation: SKAO Observatory, Jodrell Bank, Cheshire, UK
+    - family-names: Sanghi
+      given-names: Aniket
+      orcid: https://orcid.org/0000-0002-1838-4757
+      affiliation: Department of Astronomy, The University of Texas at Austin, 2515
+        Speedway, C1400, Austin, TX 78712, USA
+    - family-names: Saunders
+      given-names: Nicholas
+      orcid: https://orcid.org/0000-0003-2657-3889
+      affiliation: Institute for Astronomy, University of Hawaiʻi at Māaanoa, 2680
+        Woodlawn Drive, Honolulu, HI 96822, USA
+    - family-names: Savchenko
+      given-names: Volodymyr
+      orcid: https://orcid.org/0000-0001-6353-0808
+      affiliation: Department of Astronomy, University of Geneva, Chemin d'Écogia,
+        16 CH-1290 Versoix, Switzerland
+    - family-names: Schwardt
+      given-names: Ludwig
+      affiliation: South African Radio Astronomy Observatory, 2 Fir Street, Black
+        River Park, Observatory 7925, South Africa
+    - family-names: Seifert-Eckert
+      given-names: Michael
+      affiliation: Independent Astropy Contributor
+    - family-names: Shih
+      given-names: Albert Y.
+      orcid: https://orcid.org/0000-0001-6874-2594
+      affiliation: NASA Goddard Space Flight Center, 8800 Greenbelt Road, Greenbelt,
+        MD 20771, USA
+    - family-names: Jain
+      given-names: Anany Shrey
+      affiliation: Independent Astropy Contributor
+    - family-names: Shukla
+      given-names: Gyanendra
+      orcid: https://orcid.org/0000-0001-9268-3803
+      affiliation: Maulana Azad National Institute Of Technology, Bhopal, India
+    - family-names: Sick
+      given-names: Jonathan
+      orcid: https://orcid.org/0000-0003-3001-676X
+      affiliation: J.Sick Codes Inc., Penetanguishene ON Canada
+    - family-names: Simpson
+      given-names: Chris
+      orcid: https://orcid.org/0000-0001-8589-4055
+      affiliation: Gemini Observatory/NSF's NOIRLab, 670 N. A`ohoku Place, Hilo HI
+        96720
+    - family-names: Singanamalla
+      given-names: Sudheesh
+      orcid: https://orcid.org/0000-0003-2462-7273
+      affiliation: Paul G. Allen School of Computer Science and Engineering, University
+        of Washington, Seattle, WA, USA
+    - family-names: Singer
+      given-names: Leo P.
+      orcid: https://orcid.org/0000-0001-9898-5597
+      affiliation: Astroparticle Physics Laboratory, NASA Goddard Space Flight Center,
+        Code 661, Greenbelt, MD 20771, USA
+    - family-names: Singhal
+      given-names: Jaladh
+      orcid: https://orcid.org/0000-0002-8310-0829
+      affiliation: TARDIS collaboration
+    - family-names: Sinha
+      given-names: Manodeep
+      orcid: https://orcid.org/0000-0002-4845-1228
+      affiliation: Centre for Astrophysics & Supercomputing, Swinburne University
+        of Technology, Hawthorn, VIC 3122, Australia
+    - family-names: Sipőcz
+      given-names: Brigitta M.
+      orcid: https://orcid.org/0000-0002-3713-6337
+      affiliation: IPAC, MC 100-22, Caltech, 1200E. California Blvd. Pasadena, CA
+        91125
+    - family-names: Spitler
+      given-names: Lee R.
+      orcid: https://orcid.org/0000-0001-5185-9876
+      affiliation: School of Mathematical and Physical Sciences, Macquarie University,
+        Sydney, NSW 2109, Australia
+    - family-names: Stansby
+      given-names: David
+      orcid: https://orcid.org/0000-0002-1365-1908
+      affiliation: Mullard Space Science Laboratory, University College London, Holmbury
+        St. Mary, Surrey, RH5 6NT, UK
+    - family-names: Streicher
+      given-names: Ole
+      orcid: https://orcid.org/0000-0001-7751-1843
+      affiliation: Leibniz Institute for Astrophysics, An der Sternwarte 16, 14482
+        Potsdam, Germany
+    - family-names: Šumak
+      given-names: Jani
+      affiliation: Independent Astropy Contributor
+    - family-names: Swinbank
+      given-names: John D.
+      orcid: https://orcid.org/0000-0001-9445-1846
+      affiliation: ASTRON, Oude Hoogeveensedijk 4, 7991 PD Dwingeloo, The Netherlands
+    - family-names: Taranu
+      given-names: Dan S.
+      orcid: https://orcid.org/0000-0001-6268-1882
+      affiliation: Department of Astrophysical Sciences, 4 Ivy Lane, Princeton University,
+        Princeton, NJ 08544, USA
+    - family-names: Tewary
+      given-names: Nikita
+      affiliation: Bharati Vidyapeeth's College of Engineering/ Electronics and Communication
+        Department, A-4 Block, Baba Ramdev Marg, Shiva Enclave, Paschim Vihar, New
+        Delhi, 110063
+    - family-names: Tremblay
+      given-names: Grant R.
+      orcid: https://orcid.org/0000-0002-5445-5401
+      affiliation: Center for Astrophysics | Harvard & Smithsonian, 60 Garden Street,
+        Cambridge, MA, 02138, USA
+    - family-names: Val-Borro
+      given-names: Miguel de
+      orcid: https://orcid.org/0000-0002-0455-9384
+      affiliation: Planetary Science Institute, 1700 East Fort Lowell, Tucson, AZ
+        85719
+    - family-names: Kooten
+      given-names: Samuel J. Van
+      orcid: https://orcid.org/0000-0002-4472-8517
+      affiliation: Southwest Research Institute, 1050 Walnut St. Ste 300, Boulder
+        CO 80302, USA
+    - family-names: Vasović
+      given-names: Zlatan
+      affiliation: Faculty of Physics, University of Belgrade, Studentski trg 12-16,
+        Belgrade, Serbia
+    - family-names: Verma
+      given-names: Shresth
+      orcid: https://orcid.org/0000-0003-0370-5471
+      affiliation: Atal Bihari Vajpayee Indian institute of Information Technology
+        and Management Gwalior, MP, India
+    - family-names: Cardoso
+      given-names: José Vinícius de Miranda
+      orcid: https://orcid.org/0000-0001-5410-5551
+      affiliation: The Hong Kong University of Science and Technology, Department
+        of Electronic and Computer Engineering, Hong Kong SAR China
+    - family-names: Williams
+      given-names: Peter K. G.
+      orcid: https://orcid.org/0000-0003-3734-3587
+      affiliation: Center for Astrophysics | Harvard & Smithsonian, 60 Garden Street,
+        Cambridge, MA, 02138, USA
+    - family-names: Wilson
+      given-names: Tom J.
+      orcid: https://orcid.org/0000-0001-6352-9735
+      affiliation: School of Physics, University of Exeter, Stocker Road, Exeter,
+        EX4 4QL, UK
+    - family-names: Winkel
+      given-names: Benjamin
+      orcid: https://orcid.org/0000-0001-6999-3635
+      affiliation: Max-Planck-Institut für Radioastronomie, Auf dem Hügel 69, 53121
+        Bonn, Germany
+    - family-names: Wood-Vasey
+      given-names: W. M.
+      orcid: https://orcid.org/0000-0001-7113-1233
+      affiliation: Pittsburgh Particle Physics, Astrophysics, and Cosmology Center
+        (PITT PACC). Physics and Astronomy Department, University of Pittsburgh, Pittsburgh,
+        PA 15260, USA
+    - family-names: Xue
+      given-names: Rui
+      orcid: https://orcid.org/0000-0001-7689-9305
+      affiliation: National Radio Astronomy Observatory, 520 Edgemont Road, Charlottesville,
+        VA 22903, USA
+    - family-names: Yoachim
+      given-names: Peter
+      orcid: https://orcid.org/0000-0003-2874-6464
+      affiliation: Department of Astronomy, University of Washington, Seattle, WA
+        98195, USA
+    - family-names: ZHANG
+      given-names: Chen
+      orcid: https://orcid.org/0000-0002-9583-263X
+      affiliation: Purple Mountain Observatory, CAS, Qixia District, Nanjing 210023,
+        China
+    - family-names: Zonca
+      given-names: Andrea
+      orcid: https://orcid.org/0000-0001-6841-1058
+      affiliation: San Diego Supercomputer Center, University of California San Diego,
+        9500 Gilman Dr, La Jolla, CA 92093, USA
+  abstract: >-
+    The Astropy Project supports and fosters the development of
+    open-source and openly developed Python packages that provide
+    commonly needed functionality to the astronomical community. A key
+    element of the Astropy Project is the core package astropy, which
+    serves as the foundation for more specialized projects and
+    packages. In this article, we summarize key features in the core
+    package as of the recent major release, version 5.0, and provide
+    major updates on the Project. We then discuss supporting a broader
+    ecosystem of interoperable packages, including connections with
+    several astronomical observatories and missions. We also revisit
+    the future outlook of the Astropy Project and the current status
+    of Learn Astropy.  We conclude by raising and discussing the
+    current and future challenges facing the Project.
+  keywords:
+    - Astronomy software
+    - Open source software
+    - Astronomy data analysis
+    - "Astrophysics - Instrumentation and Methods for Astrophysics"
+  type: article
+  journal: "The Astrophysical Journal"
+  volume: 935
+  issue: 2
+  pages: 20
+  year: 2022
+  identifiers:
+    - description: ADS bibcode
+      type: url
+      value: "https://ui.adsabs.harvard.edu/abs/2022ApJ...935..167A"
+    - description: The Astrophysical Journal
+      type: doi
+      value: 10.3847/1538-4357/ac7c74
+    - description: arXiv
+      type: doi
+      value: 10.48550/arXiv.2206.14220
+    - description: Publisher PDF (open access)
+      type: url
+      value: "https://iopscience.iop.org/article/10.3847/1538-4357/ac7c74/pdf"
+    - description: ArXiv eprint (open access)
+      type: url
+      value: "https://arxiv.org/pdf/2206.14220.pdf"
+
+references:
+  - title: >-
+      The Astropy Project: Building an Open-science Project and Status
+      of the v2.0 Core Package
+    authors:
+      - name: "Astropy Collaboration"
+      - family-names: Price-Whelan
+        given-names: A. M.
+        orcid: https://orcid.org/0000-0003-0872-7098
+        affiliation: Department of Astrophysical Sciences, Princeton University, Princeton,
+          NJ 08544, USA
+      - family-names: Sipőcz
+        given-names: B. M.
+        orcid: https://orcid.org/0000-0002-3713-6337
+        affiliation: Institute of Astronomy, University of Cambridge, Madingley Road, Cambridge, CB3 0HA, UK
+      - family-names: Günther
+        given-names: H. M.
+        orcid: https://orcid.org/0000-0003-4243-2840
+        affiliation: Kavli Institute for Astrophysics and Space Research, Massachusetts
+          Institute of Technology, 70 Vassar St., Cambridge, MA 02139, USA
+      - family-names: Lim
+        given-names: P. L.
+        orcid: https://orcid.org/0000-0003-0079-4114
+        affiliation: Space Telescope Science Institute, 3700 San Martin Dr., Baltimore,
+          MD 21218, USA
+      - family-names: Crawford
+        given-names: S. M.
+        orcid: https://orcid.org/0000-0002-8969-5229
+        affiliation: South African Astronomical Observatory, PO Box 9, Observatory
+          7935, Cape Town, South Africa
+      - family-names: Conseil
+        given-names: S.
+        orcid: https://orcid.org/0000-0002-3657-4191
+        affiliation: Univ Lyon, Univ Lyon1, Ens de Lyon, CNRS, Centre de Recherche
+          Astrophysique de Lyon UMR5574, F-69230, Saint-Genis-Laval, France
+      - family-names: Shupe
+        given-names: D. L.
+        orcid: https://orcid.org/0000-0003-4401-0430
+        affiliation: Caltech/IPAC, 1200 E. California Blvd, Pasadena, CA 91125
+      - family-names: Craig
+        given-names: M. W.
+        orcid: https://orcid.org/0000-0001-7988-8919
+        affiliation: Department of Physics and Astronomy, Minnesota State University
+          Moorhead, 1104 7th Ave S, Moorhead, MN 56563
+      - family-names: Dencheva
+        given-names: N.
+        orcid: https://orcid.org/0000-0002-5686-9632
+        affiliation: Space Telescope Science Institute, 3700 San Martin Dr., Baltimore,
+          MD 21218, USA
+      - family-names: Ginsburg
+        given-names: A.
+        orcid: https://orcid.org/0000-0001-6431-9633
+        affiliation: National Radio Astronomy Observatory, 1003 Lopezville Rd, Socorro,
+          NM 87801
+      - family-names: VanderPlas
+        given-names: J. T.
+        orcid: https://orcid.org/0000-0002-9623-3401
+        affiliation: eScience Institute, University of Washington, 3910 15th Ave NE,
+          Seattle, WA 98195, USA
+      - family-names: Bradley
+        given-names: L. D.
+        orcid: https://orcid.org/0000-0002-7908-9284
+        affiliation: Space Telescope Science Institute, 3700 San Martin Dr., Baltimore,
+          MD 21218, USA
+      - family-names: Pérez-Suárez
+        given-names: D.
+        orcid: https://orcid.org/0000-0003-0784-6909
+        affiliation: University College London/Research IT Services, Gower St, Bloomsbury,
+          London WC1E 6BT, United Kingdom
+      - family-names: Val-Borro
+        given-names: M. de
+        orcid: https://orcid.org/0000-0002-0455-9384
+        affiliation: Astrochemistry Laboratory, NASA Goddard Space Flight Center,
+          8800 Greenbelt Road, Greenbelt, MD 20771, USA
+      - family-names: Aldcroft
+        given-names: T. L.
+        affiliation: Harvard-Smithsonian Center for Astrophysics, 60 Garden St., Cambridge,
+          MA, 02138, USA
+      - family-names: Cruz
+        given-names: K. L.
+        orcid: https://orcid.org/0000-0002-1821-0650
+        affiliation: Department of Physics and Astronomy, Hunter College, City University
+          of New York, 695 Park Avenue, New York, NY 10065
+      - family-names: Robitaille
+        given-names: T. P.
+        orcid: https://orcid.org/0000-0002-8642-1329
+        affiliation: Aperio Software Ltd., Headingley Enterprise and Arts Centre,
+          Bennett Road, Leeds, LS6 3HN, United Kingdom
+      - family-names: Tollerud
+        given-names: E. J.
+        orcid: https://orcid.org/0000-0002-9599-310X
+        affiliation: Space Telescope Science Institute, 3700 San Martin Dr., Baltimore,
+          MD 21218, USA
+      - family-names: Ardelean
+        given-names: C.
+        affiliation: Department of Physics & Astronomy, University of Western Ontario,
+          1151 Richmond St, London ON N5X4H1 Canada
+      - family-names: Babej
+        given-names: T.
+        orcid: https://orcid.org/0000-0002-8222-3595
+        affiliation: Department of Theoretical Physics & Astrophysics, Masaryk University,
+          Kotlarska 2, 61137 Brno, Czech Republic
+      - family-names: Bach
+        given-names: Y. P.
+        orcid: https://orcid.org/0000-0002-2618-1124
+        affiliation: Department of Physics and Astronomy, Seoul National University,
+          Gwanak-gu, Seoul 08826, South Korea
+      - family-names: Bachetti
+        given-names: M.
+        orcid: https://orcid.org/0000-0002-4576-9337
+        affiliation: INAF-Osservatorio Astronomico di Cagliari, via della Scienza
+          5, I-09047, Selargius, Italy
+      - family-names: Bakanov
+        given-names: A. V.
+      - family-names: Bamford
+        given-names: S. P.
+        orcid: https://orcid.org/0000-0001-7821-7195
+        affiliation: School of Physics & Astronomy, University of Nottingham, University
+          Park, Nottingham NG7 2RD, UK
+      - family-names: Barentsen
+        given-names: G.
+        orcid: https://orcid.org/0000-0002-3306-3484
+        affiliation: NASA Ames Research Center, Moffett Field, CA 94043, USA
+      - family-names: Barmby
+        given-names: P.
+        orcid: https://orcid.org/0000-0003-2767-0090
+        affiliation: Department of Physics & Astronomy, University of Western Ontario,
+          1151 Richmond St, London ON N5X4H1 Canada
+      - family-names: Baumbach
+        given-names: A.
+        orcid: https://orcid.org/0000-0002-9374-2729
+        affiliation: Heidelberg University, Kirchhoff Institut for Physics, Im Neuenheimer
+          Feld 227, 69116 Heidelberg, Germany
+      - family-names: Berry
+        given-names: K. L.
+      - family-names: Biscani
+        given-names: F.
+        affiliation: Max-Planck-Institut für Astronomie, Königstuhl 17, 69117 Heidelberg,
+          Germany
+      - family-names: Boquien
+        given-names: M.
+        orcid: https://orcid.org/0000-0003-0946-6176
+        affiliation: Unidad de Astronomía, Fac. Cs. Básicas, Universidad de Antofagasta,
+          Avda. U. de Antofagasta 02800, Antofagasta, Chile
+      - family-names: Bostroem
+        given-names: K. A.
+        affiliation: Department of Physics, UC Davis, 1 Shields Ave, Davis, CA, 95616,
+          USA
+      - family-names: Bouma
+        given-names: L. G.
+        affiliation: Department of Astrophysical Sciences, Princeton University, Princeton,
+          NJ 08544, USA
+      - family-names: Brammer
+        given-names: G. B.
+        orcid: https://orcid.org/0000-0003-2680-005X
+        affiliation: Space Telescope Science Institute, 3700 San Martin Dr., Baltimore,
+          MD 21218, USA
+      - family-names: Bray
+        given-names: E. M.
+      - family-names: Breytenbach
+        given-names: H.
+        orcid: https://orcid.org/0000-0001-5391-2386
+        affiliation: South African Astronomical Observatory, PO Box 9, Observatory
+          7935, Cape Town, South Africa
+      - family-names: Buddelmeijer
+        given-names: H.
+        orcid: https://orcid.org/0000-0001-8001-0089
+        affiliation: Leiden Observatory, Leiden University, P.O. Box 9513, 2300 RA,
+          Leiden, The Netherlands
+      - family-names: Burke
+        given-names: D. J.
+        orcid: https://orcid.org/0000-0003-4428-7835
+        affiliation: Harvard-Smithsonian Center for Astrophysics, 60 Garden St., Cambridge,
+          MA, 02138, USA
+      - family-names: Calderone
+        given-names: G.
+        orcid: https://orcid.org/0000-0002-7738-5389
+        affiliation: Istituto Nazionale di Astrofisica, via Tiepolo 11 Trieste, Italy
+      - family-names: Rodríguez
+        given-names: J. L. Cano
+        orcid: https://orcid.org/0000-0002-2187-161X
+      - family-names: Cara
+        given-names: M.
+        affiliation: Space Telescope Science Institute, 3700 San Martin Dr., Baltimore,
+          MD 21218, USA
+      - family-names: Cardoso
+        given-names: J. V. M.
+        affiliation: Universidade Federal de Campina Grande, Campina Grande, PB 58429-900,
+          Brazil
+      - family-names: Cheedella
+        given-names: S.
+        affiliation: Department of Physics, Virginia Tech, Blacksburg, VA 24061, USA
+      - family-names: Copin
+        given-names: Y.
+        orcid: https://orcid.org/0000-0002-5317-7518
+        affiliation: Université de Lyon, F-69622, Lyon, France; Université de Lyon
+          1, Villeurbanne; CNRS/IN2P3, Institut de Physique Nucléaire de Lyon
+      - family-names: Corrales
+        given-names: 'L. '
+        orcid: https://orcid.org/0000-0002-5466-3817
+        affiliation: University of Wisconsin - Madison, 475 North Charter Street,
+          Madison, WI 53706
+      - family-names: Crichton
+        given-names: D.
+        orcid: https://orcid.org/0000-0003-1204-3035
+        affiliation: Department of Physics and Astronomy, Johns Hopkins University,
+          Baltimore, MD 21218, USA
+      - family-names: D'Avella
+        given-names: D.
+        affiliation: Space Telescope Science Institute, 3700 San Martin Dr., Baltimore,
+          MD 21218, USA
+      - family-names: Deil
+        given-names: C.
+        orcid: https://orcid.org/0000-0002-4198-4005
+        affiliation: Max-Planck-Institut für Kernphysik, PO Box 103980, 69029 Heidelberg,
+          Germany
+      - family-names: Depagne
+        given-names: É.
+        orcid: https://orcid.org/0000-0003-0526-3873
+        affiliation: South African Astronomical Observatory, PO Box 9, Observatory
+          7935, Cape Town, South Africa
+      - family-names: Dietrich
+        given-names: J. P.
+        orcid: https://orcid.org/0000-0002-8134-9591
+        affiliation: Faculty of Physics, Ludwig-Maximilians-Universität, Scheinerstr.
+          1, 81679 Munich, Germany
+      - family-names: Donath
+        given-names: A.
+        affiliation: Max-Planck-Institut für Kernphysik, PO Box 103980, 69029 Heidelberg,
+          Germany
+      - family-names: Droettboom
+        given-names: M.
+        affiliation: Space Telescope Science Institute, 3700 San Martin Dr., Baltimore,
+          MD 21218, USA
+      - family-names: Earl
+        given-names: N.
+        orcid: https://orcid.org/0000-0003-1714-7415
+        affiliation: Space Telescope Science Institute, 3700 San Martin Dr., Baltimore,
+          MD 21218, USA
+      - family-names: Erben
+        given-names: T.
+        affiliation: Argelander-Institut für Astronomie, Auf dem Hügel 71, 53121 Bonn,
+          Germany
+      - family-names: Fabbro
+        given-names: S.
+      - family-names: Ferreira
+        given-names: L. A.
+        orcid: https://orcid.org/0000-0002-8919-079X
+        affiliation: Instituto de Matemática Estatística e Física – IMEF, Universidade
+          Federal do Rio Grande – FURG, Rio Grande, RS 96203-900, Brazil
+      - family-names: Finethy
+        given-names: T.
+      - family-names: Fox
+        given-names: R. T.
+        orcid: https://orcid.org/0000-0003-4291-1091
+      - family-names: Garrison
+        given-names: L. H.
+        orcid: https://orcid.org/0000-0002-9853-5673
+        affiliation: Harvard-Smithsonian Center for Astrophysics, 60 Garden St., Cambridge,
+          MA, 02138, USA
+      - family-names: Gibbons
+        given-names: S. L. J.
+        affiliation: Institute of Astronomy, University of Cambridge, Madingley Road,
+          Cambridge, CB3 0HA, UK
+      - family-names: Goldstein
+        given-names: D. A.
+        affiliation: 'Department of Astronomy, UC Berkeley, 501 Campbell Hall #3411,
+          Berkeley, CA 94720, USA'
+      - family-names: Gommers
+        given-names: R.
+        orcid: https://orcid.org/0000-0002-0300-3333
+        affiliation: Scion, Private Bag 3020, Rotorua, New Zealand
+      - family-names: Greco
+        given-names: J. P.
+        orcid: https://orcid.org/0000-0003-4970-2874
+        affiliation: Department of Astrophysical Sciences, Princeton University, Princeton,
+          NJ 08544, USA
+      - family-names: Greenfield
+        given-names: P.
+        affiliation: Space Telescope Science Institute, 3700 San Martin Dr., Baltimore,
+          MD 21218, USA
+      - family-names: Groener
+        given-names: A. M.
+        orcid: https://orcid.org/0000-0002-6508-2938
+        affiliation: Drexel University, Physics Department, Philadelphia, PA 19104,
+          USA
+      - family-names: Grollier
+        given-names: F.
+      - family-names: Hagen
+        given-names: A.
+        orcid: https://orcid.org/0000-0003-2031-7737
+        affiliation: Vizual.ai, 3600 O'Donnell St, Suite 250, Baltimore, MD 21224
+      - family-names: Hirst
+        given-names: P.
+        affiliation: Gemini Observatory, 670 N. Aohoku Pl, Hilo, HI 96720, USA
+      - family-names: Homeier
+        given-names: D.
+        orcid: https://orcid.org/0000-0002-8546-9128
+        affiliation: Zentrum für Astronomie der Universität Heidelberg, Landessternwarte,
+          Königstuhl 12, 69117 Heidelberg, Germany
+      - family-names: Horton
+        given-names: A. J.
+        orcid: https://orcid.org/0000-0002-4600-7852
+        affiliation: Australian Astronomical Observatory, 105 Delhi Road, North Ryde
+          NSW 2113, Australia
+      - family-names: Hosseinzadeh
+        given-names: G.
+        orcid: https://orcid.org/0000-0002-0832-2974
+        affiliation: Las Cumbres Observatory, 6740 Cortona Drive, Suite 102, Goleta,
+          CA 93117-5575, USA
+      - family-names: Hu
+        given-names: L.
+        affiliation: Imperial College London,  Kensington, London SW7 2AZ, United
+          Kingdom
+      - family-names: Hunkeler
+        given-names: J. S.
+        orcid: https://orcid.org/0000-0003-4989-0289
+        affiliation: Space Telescope Science Institute, 3700 San Martin Dr., Baltimore,
+          MD 21218, USA
+      - family-names: Ivezić
+        given-names: Ž.
+        orcid: https://orcid.org/0000-0001-5250-2633
+        affiliation: Department of Astronomy, University of Washington, Seattle, WA
+          98155
+      - family-names: Jain
+        given-names: A.
+        affiliation: BITS PILANI/Computer Science, Pilani Campus, Rajasthan, India
+      - family-names: Jenness
+        given-names: T.
+        orcid: https://orcid.org/0000-0001-5982-167X
+        affiliation: Large Synoptic Survey Telescope, 950 N. Cherry Ave., Tucson,
+          AZ, 85719, USA
+      - family-names: Kanarek
+        given-names: G.
+        affiliation: Space Telescope Science Institute, 3700 San Martin Dr., Baltimore,
+          MD 21218, USA
+      - family-names: Kendrew
+        given-names: S.
+        orcid: https://orcid.org/0000-0002-7612-0469
+        affiliation: European Space Agency, Space Telescope Science Institute, 3700
+          San Martin Dr., Baltimore, MD 21218, USA
+      - family-names: Kern
+        given-names: N. S.
+        orcid: https://orcid.org/0000-0002-8211-1892
+        affiliation: 'Department of Astronomy, UC Berkeley, 501 Campbell Hall #3411,
+          Berkeley, CA 94720, USA'
+      - family-names: Kerzendorf
+        given-names: W. E.
+        orcid: https://orcid.org/0000-0002-0479-7235
+        affiliation: European Southern Observatory, Karl-Schwarzschild-Straße 2, 85748
+          Garching bei München, Germany
+      - family-names: Khvalko
+        given-names: A.
+      - family-names: King
+        given-names: J.
+        affiliation: Max-Planck-Institut für Kernphysik, PO Box 103980, 69029 Heidelberg,
+          Germany
+      - family-names: Kirkby
+        given-names: D.
+        orcid: https://orcid.org/0000-0002-8828-5463
+        affiliation: Department of Physics and Astronomy, University of California,
+          Irvine, CA 92697, USA
+      - family-names: Kulkarni
+        given-names: A. M.
+        affiliation: College of Engineering Pune/Department of Computer Engineering
+          and IT, Shivajinagar, Pune 411005, India
+      - family-names: Kumar
+        given-names: A.
+        affiliation: Delhi Technological University
+      - family-names: Lee
+        given-names: A.
+        orcid: https://orcid.org/0000-0003-2193-5369
+        affiliation: Department of Physics, University of Berkeley, Califonia, CA94709,
+          USA
+      - family-names: Lenz
+        given-names: D.
+        orcid: https://orcid.org/0000-0001-5820-475X
+        affiliation: Jet Propulsion Laboratory, California Institute of Technology,
+          4800 Oak Grove Drive, Pasadena, CA 91109, USA
+      - family-names: Littlefair
+        given-names: S. P.
+        orcid: https://orcid.org/0000-0001-7221-855X
+        affiliation: Department of Physics & Astronomy, University of Sheffield, Sheffield,
+          S3 7RH, UK
+      - family-names: Ma
+        given-names: Z.
+        orcid: https://orcid.org/0000-0003-3270-6844
+        affiliation: Department of Physics and Astronomy, University of Missouri,
+          Columbia, Missouri, 65211, USA
+      - family-names: Macleod
+        given-names: D. M.
+        orcid: https://orcid.org/0000-0002-1395-8694
+        affiliation: Cardiff University, Cardiff CF24 3AA, UK
+      - family-names: Mastropietro
+        given-names: M.
+        orcid: https://orcid.org/0000-0002-6324-5713
+        affiliation: Department of Physics and Astronomy, Ghent University, Krijgslaan
+          281, S9, B-9000 Gent, Belgium
+      - family-names: McCully
+        given-names: C.
+        orcid: https://orcid.org/0000-0001-5807-7893
+        affiliation: Las Cumbres Observatory, 6740 Cortona Drive, Suite 102, Goleta,
+          CA 93117-5575, USA
+      - family-names: Montagnac
+        given-names: S.
+        affiliation: Puy-Sainte-Réparade Observatory
+      - family-names: Morris
+        given-names: B. M.
+        orcid: https://orcid.org/0000-0003-2528-3409
+        affiliation: Department of Astronomy, University of Washington, Seattle, WA
+          98155
+      - family-names: Mueller
+        given-names: M.
+      - family-names: Mumford
+        given-names: S. J.
+        orcid: https://orcid.org/0000-0003-4217-4642
+        affiliation: SP$^{2}$RC, School of Mathematics and Statistics, The University
+          of Sheffield, U.K.
+      - family-names: Muna
+        given-names: D.
+        orcid: https://orcid.org/0000-0002-1631-4114
+        affiliation: Center for Cosmology and Astroparticle Physics, The Ohio State
+          University, 191 West Woodruff Avenue, Columbus, OH 43210
+      - family-names: Murphy
+        given-names: N. A.
+        orcid: https://orcid.org/0000-0001-6628-8033
+        affiliation: Harvard-Smithsonian Center for Astrophysics, 60 Garden St., Cambridge,
+          MA, 02138, USA
+      - family-names: Nelson
+        given-names: S.
+        affiliation: Department of Physics and Astronomy, Minnesota State University
+          Moorhead, 1104 7th Ave S, Moorhead, MN 56563
+      - family-names: Nguyen
+        given-names: G. H.
+        orcid: https://orcid.org/0000-0002-1966-3627
+        affiliation: VNU-HCMC, University of Natural Sciences/Faculty of IT, 227 Nguyen
+          Van Cu St., Ward 4, District 5, Ho Chi Minh City, Vietnam
+      - family-names: Ninan
+        given-names: J. P.
+        orcid: https://orcid.org/0000-0001-8720-5612
+        affiliation: Dept of Astronomy and Astrophysics, Pennsylvania State University,
+          University Park, PA 16802
+      - family-names: Nöthe
+        given-names: M.
+        affiliation: Experimental Physics 5, TU Dortmund, Otto-Hahn-Str. 4, 44227
+          Dortmund, Germany
+      - family-names: Ogaz
+        given-names: S.
+        affiliation: Space Telescope Science Institute, 3700 San Martin Dr., Baltimore,
+          MD 21218, USA
+      - family-names: Oh
+        given-names: S.
+        orcid: https://orcid.org/0000-0001-7790-5308
+        affiliation: Department of Astrophysical Sciences, Princeton University, Princeton,
+          NJ 08544, USA
+      - family-names: Parejko
+        given-names: J. K.
+        affiliation: Department of Astronomy, University of Washington, Seattle, WA
+          98155
+      - family-names: Parley
+        given-names: N.
+        affiliation: University of Reading, Whiteknights Campus, Reading RG6 6BX,
+          UK
+      - family-names: Pascual
+        given-names: S.
+        orcid: https://orcid.org/0000-0002-9351-6051
+        affiliation: Departamento de Astrofisica, Universidad Complutense de Madrid,
+          Madrid, Spain
+      - family-names: Patil
+        given-names: R.
+      - family-names: Patil
+        given-names: A. A.
+        affiliation: Pune Institute of Computer Technology, Pune 411043, India
+      - family-names: Plunkett
+        given-names: A. L.
+        orcid: https://orcid.org/0000-0002-9912-5705
+        affiliation: European Southern Observatory, Av. Alonso de Córdova 3107, Vitacura,
+          Santiago, Chile
+      - family-names: Prochaska
+        given-names: J. X.
+        affiliation: Astronomy & Astrophysics, UC Santa Cruz, 1156 High St., Santa
+          Cruz, CA 95064 USA
+      - family-names: Rastogi
+        given-names: T.
+      - family-names: Janga
+        given-names: V. Reddy
+        affiliation: Indian Institute of Technology, Mechanical Engineering, Kharagpur,
+          India
+      - family-names: Sabater
+        given-names: J.
+        orcid: https://orcid.org/0000-0003-1149-6294
+        affiliation: Institute for Astronomy (IfA), University of Edinburgh, Royal
+          Observatory, Blackford Hill, EH9 3HJ Edinburgh, U.K.
+      - family-names: Sakurikar
+        given-names: P.
+        affiliation: IIIT-Hyderabad, India
+      - family-names: Seifert
+        given-names: M.
+      - family-names: Sherbert
+        given-names: L. E.
+        affiliation: Space Telescope Science Institute, 3700 San Martin Dr., Baltimore,
+          MD 21218, USA
+      - family-names: Sherwood-Taylor
+        given-names: H.
+        orcid: https://orcid.org/0000-0003-0477-6220
+      - family-names: Shih
+        given-names: A. Y.
+        affiliation: NASA Goddard Space Flight Center, 8800 Greenbelt Road, Greenbelt,
+          MD 20771, USA
+      - family-names: Sick
+        given-names: J.
+        orcid: https://orcid.org/0000-0003-3001-676X
+      - family-names: Silbiger
+        given-names: M. T.
+      - family-names: Singanamalla
+        given-names: S.
+        orcid: https://orcid.org/0000-0003-2462-7273
+        affiliation: Microsoft Research
+      - family-names: Singer
+        given-names: L. P.
+        orcid: https://orcid.org/0000-0001-9898-5597
+        affiliation: Astroparticle Physics Laboratory, NASA Goddard Space Flight Center,
+          8800 Greenbelt Road, Greenbelt, MD 20771, USA
+      - family-names: Sladen
+        given-names: P. H.
+        orcid: https://orcid.org/0000-0003-1585-225X
+        affiliation: Zentrum für Astronomie der Universität Heidelberg, Astronomisches
+          Rechen-Institut, Mönchhofstraße 12--14, 69120 Heidelberg, Germany
+      - family-names: Sooley
+        given-names: K. A.
+      - family-names: Sornarajah
+        given-names: S.
+      - family-names: Streicher
+        given-names: O.
+        orcid: https://orcid.org/0000-0001-7751-1843
+        affiliation: Leibniz Institute for Astrophysics Potsdam (AIP), An der Sternwarte
+          16, 14482 Potsdam, Germany
+      - family-names: Teuben
+        given-names: P.
+        orcid: https://orcid.org/0000-0003-1774-3436
+        affiliation: Astronomy Department, University of Maryland, College Park, MD.
+          20742, USA
+      - family-names: Thomas
+        given-names: S. W.
+        affiliation: Institute of Astronomy, University of Cambridge, Madingley Road,
+          Cambridge, CB3 0HA, UK
+      - family-names: Tremblay
+        given-names: G. R.
+        orcid: https://orcid.org/0000-0002-5445-5401
+        affiliation: Harvard-Smithsonian Center for Astrophysics, 60 Garden St., Cambridge,
+          MA, 02138, USA
+      - family-names: Turner
+        given-names: J. E. H.
+        affiliation: Gemini Observatory, Casilla 603, La Serena, Chile
+      - family-names: Terrón
+        given-names: V.
+        affiliation: Institute of Astrophysics of Andalusia (IAA-CSIC), Granada, Spain
+      - family-names: Kerkwijk
+        given-names: M. H. van
+        orcid: https://orcid.org/0000-0002-5830-8505
+        affiliation: Department of Astronomy & Astrophysics, University of Toronto,
+          50 Saint George Street, Toronto, ON M5S 3H4, Canada
+      - family-names: Vega
+        given-names: A. de la
+        orcid: https://orcid.org/0000-0002-6219-5558
+        affiliation: Department of Physics and Astronomy, Johns Hopkins University,
+          Baltimore, MD 21218, USA
+      - family-names: Watkins
+        given-names: L. L.
+        orcid: https://orcid.org/0000-0002-1343-134X
+        affiliation: Space Telescope Science Institute, 3700 San Martin Dr., Baltimore,
+          MD 21218, USA
+      - family-names: Weaver
+        given-names: B. A.
+        affiliation: National Optical Astronomy Observatory, 950 N. Cherry Ave., Tucson,
+          AZ 85719, USA
+      - family-names: Whitmore
+        given-names: J. B.
+        orcid: https://orcid.org/0000-0003-4824-2087
+        affiliation: Centre for Astrophysics and Supercomputing, Swinburne University
+          of Technology, Hawthorn, VIC 3122, Australia
+      - family-names: Woillez
+        given-names: J.
+        orcid: https://orcid.org/0000-0002-2958-4738
+        affiliation: European Southern Observatory, Karl-Schwarzschild-Straße 2, 85748
+          Garching bei München, Germany
+      - family-names: Zabalza
+        given-names: V.
+        orcid: https://orcid.org/0000-0003-2638-7648
+    abstract: >-
+      The Astropy Project supports and fosters the development of
+      open-source and openly developed Python packages that provide
+      commonly needed functionality to the astronomical community. A
+      key element of the Astropy Project is the core package astropy,
+      which serves as the foundation for more specialized projects and
+      packages. In this article, we provide an overview of the
+      organization of the Astropy project and summarize key features
+      in the core package, as of the recent major release, version
+      2.0. We then describe the project infrastructure designed to
+      facilitate and support development for a broader ecosystem of
+      interoperable packages. We conclude with a future outlook of
+      planned new features and directions for the broader Astropy
+      Project.
+    type: article
+    journal: "The Astrophysical Journal"
+    volume: 156
+    issue: 3
+    pages: 19
+    year: 2018
+    identifiers:
+      - description: ADS bibcode
+        type: url
+        value: "https://ui.adsabs.harvard.edu/abs/2018AJ....156..123A"
+      - description: The Astrophysical Journal
+        type: doi
+        value: 10.3847/1538-3881/aabc4f
+      - description: arXiv
+        type: doi
+        value: 10.48550/arXiv.1801.02634
+      - description: Publisher PDF (open access)
+        type: url
+        value: https://iopscience.iop.org/article/10.3847/1538-3881/aabc4f/pdf
+      - description: ArXiv eprint (open access)
+        type: url
+        value: https://arxiv.org/pdf/1801.02634.pdf
+  - title: 'Astropy: A community Python package for astronomy'
+    authors:
+      - name: Astropy Collaboration
+      - family-names: Robitaille
+        given-names: Thomas P.
+        orcid: https://orcid.org/0000-0002-8642-1329
+        affiliation: Max-Planck-Institut für Astronomie, Königstuhl 17, Heidelberg
+          69117, Germany
+      - family-names: Tollerud
+        given-names: Erik J.
+        orcid: https://orcid.org/0000-0002-9599-310X
+        affiliation: Department of Astronomy, Yale University, P.O. Box 208101, New
+          Haven, CT 06510, USA
+      - family-names: Greenfield
+        given-names: Perry
+        orcid: https://orcid.org/0000-0003-2269-0551
+        affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+          MD 21218, USA
+      - family-names: Droettboom
+        given-names: Michael
+        affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+          MD 21218, USA
+      - family-names: Bray
+        given-names: Erik
+        orcid: https://orcid.org/0000-0001-5391-2386
+        affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+          MD 21218, USA
+      - family-names: Aldcroft
+        given-names: Tom
+        affiliation: Harvard-Smithsonian Center for Astrophysics, 60 Garden Street,
+          Cambridge, MA, 02138, USA
+      - family-names: Davis
+        given-names: Matt
+        affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+          MD 21218, USA
+      - family-names: Ginsburg
+        given-names: Adam
+        orcid: https://orcid.org/0000-0001-6431-9633
+        affiliation: Center for Astrophysics and Space Astronomy, University of Colorado,
+          Boulder, CO 80309, USA
+      - family-names: Price-Whelan
+        given-names: Adrian M.
+        orcid: https://orcid.org/0000-0003-0872-7098
+        affiliation: Department of Astronomy, Columbia University, Pupin Hall, 550W
+          120th St., New York, NY 10027, USA
+      - family-names: Kerzendorf
+        given-names: Wolfgang E.
+        orcid: https://orcid.org/0000-0002-0479-7235
+        affiliation: Department of Astronomy and Astrophysics, University of Toronto,
+          50 Saint George Street, Toronto, ON M5S3H4, Canada
+      - family-names: Conley
+        given-names: Alexander
+        orcid: https://orcid.org/0000-0002-3556-0716
+        affiliation: Center for Astrophysics and Space Astronomy, University of Colorado,
+          Boulder, CO 80309, USA
+      - family-names: Crighton
+        given-names: Neil
+        orcid: https://orcid.org/0000-0002-3080-6975
+        affiliation: Max-Planck-Institut für Astronomie, Königstuhl 17, Heidelberg
+          69117, Germany
+      - family-names: Barbary
+        given-names: Kyle
+        orcid: https://orcid.org/0000-0002-2532-3696
+        affiliation: Argonne National Laboratory, High Energy Physics Division, 9700
+          South Cass Avenue, Argonne, IL 60439, USA
+      - family-names: Muna
+        given-names: Demitri
+        orcid: https://orcid.org/0000-0002-1631-4114
+        affiliation: Department of Astronomy, Ohio State University, Columbus, OH
+          43210, USA
+      - family-names: Ferguson
+        given-names: Henry
+        affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+          MD 21218, USA
+      - family-names: Grollier
+        given-names: Frédéric
+      - family-names: Parikh
+        given-names: Madhura M.
+        affiliation: S.V.National Institute of Technology, Surat., India
+      - family-names: Nair
+        given-names: Prasanth H.
+      - family-names: Günther
+        given-names: Hans M.
+        affiliation: Harvard-Smithsonian Center for Astrophysics, 60 Garden Street,
+          Cambridge, MA, 02138, USA
+      - family-names: Deil
+        given-names: Christoph
+        orcid: https://orcid.org/0000-0002-4198-4005
+        affiliation: Max-Planck-Institut für Kernphysik, P.O. Box 103980, 69029 Heidelberg,
+          Germany
+      - family-names: Woillez
+        given-names: Julien
+        orcid: https://orcid.org/0000-0002-2958-4738
+        affiliation: European Southern Observatory, Karl-Schwarzschild-Str. 2, 85748,
+          Garching bei München, Germany
+      - family-names: Conseil
+        given-names: Simon
+        orcid: https://orcid.org/0000-0002-3657-4191
+        affiliation: Laboratoire d'Astrophysique de Marseille, OAMP, Université Aix-Marseille
+          et CNRS, Marseille, France
+      - family-names: Kramer
+        given-names: Roban
+        affiliation: ETH Zürich, Institute for Astronomy, Wolfgang-Pauli-Strasse 27,
+          Building HIT, Floor J, CH-8093 Zurich, Switzerland
+      - family-names: Turner
+        given-names: James E. H.
+        affiliation: Gemini Observatory, Casilla 603, La Serena, Chile
+      - family-names: Singer
+        given-names: Leo
+        orcid: https://orcid.org/0000-0001-9898-5597
+        affiliation: LIGO Laboratory, California Institute of Technology, 1200 E.
+          California Blvd., Pasadena, CA, 91125, USA
+      - family-names: Fox
+        given-names: Ryan
+        orcid: https://orcid.org/0000-0003-4291-1091
+      - family-names: Weaver
+        given-names: Benjamin A.
+        affiliation: Center for Cosmology and Particle Physics, New York University,
+          New York, NY 10003, USA
+      - family-names: Zabalza
+        given-names: Victor
+        orcid: https://orcid.org/0000-0003-2638-7648
+        affiliation: Max-Planck-Institut für Kernphysik, P.O. Box 103980, 69029 Heidelberg,
+          Germany
+      - family-names: Edwards
+        given-names: Zachary I.
+        affiliation: Department of Physics and Astronomy, Louisiana State University,
+          Nicholson Hall, Baton Rouge, LA 70803, USA
+      - family-names: Bostroem
+        given-names: K. Azalee
+        affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+          MD 21218, USA
+      - family-names: Burke
+        given-names: D. J.
+        orcid: https://orcid.org/0000-0003-4428-7835
+        affiliation: Harvard-Smithsonian Center for Astrophysics, 60 Garden Street,
+          Cambridge, MA, 02138, USA
+      - family-names: Casey
+        given-names: Andrew R.
+        affiliation: Research School of Astronomy and Astrophysics, Australian National
+          University, Mount Stromlo Observatory, via Cotter Road, Weston Creek ACT
+          2611, Australia
+      - family-names: Crawford
+        given-names: Steven M.
+        orcid: https://orcid.org/0000-0002-8969-5229
+        affiliation: SAAO, P.O. Box 9, Observatory 7935, Cape Town, South Africa
+      - family-names: Dencheva
+        given-names: Nadia
+        orcid: https://orcid.org/0000-0002-5686-9632
+        affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+          MD 21218, USA
+      - family-names: Ely
+        given-names: Justin
+        affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+          MD 21218, USA
+      - family-names: Jenness
+        given-names: Tim
+        orcid: https://orcid.org/0000-0001-5982-167X
+        affiliation: Joint Astronomy Centre, 660 N. A`ohōkū Place, Hilo, HI 96720,
+          USA
+      - family-names: Labrie
+        given-names: Kathleen
+        affiliation: Gemini Observatory, 670 N. A`ohōkū Place, Hilo, Hawaii 96720,
+          USA
+      - family-names: Lim
+        given-names: Pey Lian
+        orcid: https://orcid.org/0000-0003-0079-4114
+        affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+          MD 21218, USA
+      - family-names: Pierfederici
+        given-names: Francesco
+        affiliation: Space Telescope Science Institute, 3700 San Martin Drive, Baltimore,
+          MD 21218, USA
+      - family-names: Pontzen
+        given-names: Andrew
+        affiliation: Oxford Astrophysics, Denys Wilkinson Building, Keble Road, Oxford
+          OX1 3RH, UK
+      - family-names: Ptak
+        given-names: Andy
+        affiliation: NASA Goddard Space Flight Center, X-ray Astrophysics Lab Code
+          662, Greenbelt, MD 20771, USA
+      - family-names: Refsdal
+        given-names: Brian
+        affiliation: Harvard-Smithsonian Center for Astrophysics, 60 Garden Street,
+          Cambridge, MA, 02138, USA
+      - family-names: Servillat
+        given-names: Mathieu
+        orcid: https://orcid.org/0000-0001-5443-4128
+        affiliation: Laboratoire AIM, CEA Saclay, Bat. 709, 91191 Gif-sur-Yvette,
+          France
+      - family-names: Streicher
+        given-names: Ole
+        orcid: https://orcid.org/0000-0001-7751-1843
+        affiliation: Leibniz-Institut für Astrophysik Potsdam (AIP), An der Sternwarte
+          16, 14482 Potsdam, Germany
+    abstract: >-
+      We present the first public version (v0.2) of the open-source
+      and community-developed Python package, Astropy. This package
+      provides core astronomy-related functionality to the community,
+      including support for domain-specific file formats such as
+      flexible image transport system (FITS) files, Virtual
+      Observatory (VO) tables, and common ASCII table formats, unit
+      and physical quantity conversions, physical constants specific
+      to astronomy, celestial coordinate and time transformations,
+      world coordinate system (WCS) support, generalized containers
+      for representing gridded as well as tabular data, and a
+      framework for cosmological transformations and
+      conversions. Significant functionality is under active
+      development, such as a model fitting framework, VO client and
+      server tools, and aperture and point spread function (PSF)
+      photometry tools. The core development team is actively making
+      additions and enhancements to the current code base, and we
+      encourage anyone interested to participate in the development of
+      future Astropy versions.
+    type: article
+    journal: "Astronomy & Astrophysics"
+    volume: 558
+    pages: 9
+    year: 2013
+    identifiers:
+      - description: ADS bibcode
+        type: url
+        value: "https://ui.adsabs.harvard.edu/abs/2013A&A...558A..33A"
+      - description: "Astronomy & Astrophysics"
+        type: doi
+        value: 10.1051/0004-6361/201322068
+      - description: arXiv
+        type: doi
+        value: 10.48550/arXiv.1307.6212
+      - description: Publisher PDF (open access)
+        type: url
+        value: "https://www.aanda.org/articles/aa/pdf/2013/10/aa22068-13.pdf"
+      - description: ArXiv eprint (open access)
+        type: url
+        value: "https://arxiv.org/pdf/1307.6212.pdf"

@@ -1,0 +1,24 @@
+name: Checking CITATION.cff
+
+on:
+  push:
+    paths:
+      - "CITATION.cff"
+  pull_request:
+    paths:
+      - "CITATION.cff"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cffconvert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: citation-file-format/cffconvert-github-action@2.0.0
+        with:
+          args: --validate
