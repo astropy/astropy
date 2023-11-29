@@ -13,9 +13,6 @@ repository-code: 'https://github.com/astropy/astropy'
 url: 'https://www.astropy.org'
 license: BSD-3-Clause
 
-# Version information
-version: "v6.0.0"
-date-released: "2023-11-27"
 identifiers:
   - type: doi
     description: Concept DOI
