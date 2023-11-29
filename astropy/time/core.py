@@ -2820,8 +2820,6 @@ class Time(TimeBase):
 class TimeDeltaMissingUnitWarning(AstropyDeprecationWarning):
     """Warning for missing unit or format in TimeDelta."""
 
-    pass
-
 
 class TimeDelta(TimeBase):
     """
