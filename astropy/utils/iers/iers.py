@@ -502,7 +502,6 @@ class IERS(QTable):
         time values in ``mdj`` and the time span of the table.  The base behavior
         is not to update the table.  ``IERS_Auto`` overrides this method.
         """
-        pass
 
     def ut1_utc_source(self, i):
         """Source for UT1-UTC.  To be overridden by subclass."""
