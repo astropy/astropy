@@ -573,7 +573,7 @@ ignore = [
         report_on_fail = true
 
 [tool.codespell]
-skip = "*.dat,*.fits,*.hdr,*.xml,*egg*,*extern/*,.git,.tox,_build,fitshdr.htest_groups.py,venv,_*.c,wcs.h,lin.h,tab.h,spc.h,cython*"
+skip = "*.cff,*.dat,*.fits,*.hdr,*.xml,*egg*,*extern/*,.git,.tox,_build,fitshdr.htest_groups.py,venv,_*.c,wcs.h,lin.h,tab.h,spc.h,cython*"
 # The following list of words for codespell to ignore may contain some
 # misspellings that should be revisited and fixed in the future.
 ignore-words-list = """
