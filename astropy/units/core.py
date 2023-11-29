@@ -612,8 +612,6 @@ class UnitScaleError(UnitsError, ValueError):
     which are not recognized by FITS format.
     """
 
-    pass
-
 
 class UnitConversionError(UnitsError, ValueError):
     """
