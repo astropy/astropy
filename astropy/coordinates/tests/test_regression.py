@@ -88,18 +88,18 @@ def test_regression_3920():
 
     aa = AltAz(location=loc, obstime=time)
     sc = SkyCoord(10 * u.deg, 3 * u.deg)
-    assert sc.transform_to(aa).shape == tuple()
+    assert sc.transform_to(aa).shape == ()
     # That part makes sense: the input is a scalar so the output is too
 
     sc2 = SkyCoord(10 * u.deg, 3 * u.deg, 1 * u.AU)
-    assert sc2.transform_to(aa).shape == tuple()
+    assert sc2.transform_to(aa).shape == ()
     # in 3920 that assert fails, because the shape is (1,)
 
     # check that the same behavior occurs even if transform is from low-level classes
     icoo = ICRS(sc.data)
     icoo2 = ICRS(sc2.data)
-    assert icoo.transform_to(aa).shape == tuple()
-    assert icoo2.transform_to(aa).shape == tuple()
+    assert icoo.transform_to(aa).shape == ()
+    assert icoo2.transform_to(aa).shape == ()
 
 
 def test_regression_3938():
@@ -443,7 +443,7 @@ def test_regression_5743():
     sc = SkyCoord(
         [5, 10], [20, 30], unit=u.deg, obstime=["2017-01-01T00:00", "2017-01-01T00:10"]
     )
-    assert sc[0].obstime.shape == tuple()
+    assert sc[0].obstime.shape == ()
 
 
 def test_regression_5889_5890():

@@ -152,7 +152,7 @@ class galactocentric_frame_defaults(ScienceState):
     _latest_value = "v4.0"
     _value = None
     _references = None
-    _state = dict()  # all other data
+    _state = {}  # all other data
 
     # Note: _StateProxy() produces read-only view of enclosed mapping.
     _registry = {
@@ -284,11 +284,11 @@ class galactocentric_frame_defaults(ScienceState):
 
         elif isinstance(value, Galactocentric):
             # turn the frame instance into a dict of frame attributes
-            parameters = dict()
+            parameters = {}
             for k in value.frame_attributes:
                 parameters[k] = getattr(value, k)
             cls._references = value.frame_attribute_references.copy()
-            cls._state = dict(parameters=parameters, references=cls._references)
+            cls._state = {"parameters": parameters, "references": cls._references}
 
         else:
             raise ValueError(
@@ -325,7 +325,7 @@ class galactocentric_frame_defaults(ScienceState):
 
         references = references or {}  # None -> {}
 
-        state = dict(parameters=parameters, references=references)
+        state = {"parameters": parameters, "references": references}
         state.update(meta)  # meta never has keys "parameters" or "references"
 
         cls._registry[name] = state

@@ -120,7 +120,7 @@ class TestRadialRepresentation:
 
         # let's also check with differentials
         dif = RadialDifferential(d_distance=-3 * u.km / u.s)
-        rep = rep.with_differentials(dict(s=dif))
+        rep = rep.with_differentials({"s": dif})
 
         newrep = rep.transform(matrix)
         assert newrep.distance == 30 * u.kpc
