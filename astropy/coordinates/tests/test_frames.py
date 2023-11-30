@@ -1553,7 +1553,7 @@ def test_galactocentric_defaults():
     with galactocentric_frame_defaults.set("latest"):
         params = galactocentric_frame_defaults.validate(galcen_latest)
         references = galcen_latest.frame_attribute_references
-        state = dict(parameters=params, references=references)
+        state = {"parameters": params, "references": references}
 
         assert galactocentric_frame_defaults.parameters == params
         assert galactocentric_frame_defaults.references == references

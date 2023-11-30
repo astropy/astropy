@@ -157,7 +157,7 @@ def sc(request):
     incldist, inclrv = request.param
 
     args = [1 * u.deg, 2 * u.deg]
-    kwargs = dict(pm_dec=1 * u.mas / u.yr, pm_ra_cosdec=2 * u.mas / u.yr)
+    kwargs = {"pm_dec": 1 * u.mas / u.yr, "pm_ra_cosdec": 2 * u.mas / u.yr}
     if incldist:
         kwargs["distance"] = 213.4 * u.pc
     if inclrv:
@@ -291,17 +291,17 @@ def test_cartesian_to_spherical(sph_type):
 @pytest.mark.parametrize(
     "diff_info, diff_cls",
     [
-        (dict(radial_velocity=[20, 30] * u.km / u.s), RadialDifferential),
+        ({"radial_velocity": [20, 30] * u.km / u.s}, RadialDifferential),
         (
-            dict(
-                pm_ra=[2, 3] * u.mas / u.yr,
-                pm_dec=[-3, -4] * u.mas / u.yr,
-                differential_type="unitspherical",
-            ),
+            {
+                "pm_ra": [2, 3] * u.mas / u.yr,
+                "pm_dec": [-3, -4] * u.mas / u.yr,
+                "differential_type": "unitspherical",
+            },
             UnitSphericalDifferential,
         ),
         (
-            dict(pm_ra_cosdec=[2, 3] * u.mas / u.yr, pm_dec=[-3, -4] * u.mas / u.yr),
+            {"pm_ra_cosdec": [2, 3] * u.mas / u.yr, "pm_dec": [-3, -4] * u.mas / u.yr},
             UnitSphericalCosLatDifferential,
         ),
     ],
