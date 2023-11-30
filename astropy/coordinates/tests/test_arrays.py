@@ -267,7 +267,7 @@ def test_array_len():
         c = ICRS(0 * u.deg, 0 * u.deg)
         len(c)
 
-    assert c.shape == tuple()
+    assert c.shape == ()
 
 
 def test_array_eq():
