@@ -686,7 +686,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         # Now handle the actual validation of any specified differential classes
         if differentials is None:
-            differentials = dict()
+            differentials = {}
 
         elif isinstance(differentials, BaseDifferential):
             # We can't handle auto-determining the key for this combo
@@ -807,7 +807,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         attached differentials converted to the new differential classes.
         """
         if differential_class is None:
-            return dict()
+            return {}
 
         if not self.differentials and differential_class:
             raise ValueError("No differentials associated with this representation!")
@@ -829,7 +829,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 f"representation object ({self.differentials})"
             )
 
-        new_diffs = dict()
+        new_diffs = {}
         for k in self.differentials:
             diff = self.differentials[k]
             try:

@@ -905,10 +905,10 @@ gcrs_not_origin = GCRS(CartesianRepresentation([1 * u.km, 0 * u.km, 0 * u.km]))
 @pytest.mark.parametrize(
     "sc_kwargs",
     [
-        dict(radial_velocity=0 * u.km / u.s),
-        dict(observer=gcrs_origin, radial_velocity=0 * u.km / u.s),
-        dict(target=gcrs_origin, radial_velocity=0 * u.km / u.s),
-        dict(observer=gcrs_origin, target=gcrs_not_origin),
+        {"radial_velocity": 0 * u.km / u.s},
+        {"observer": gcrs_origin, "radial_velocity": 0 * u.km / u.s},
+        {"target": gcrs_origin, "radial_velocity": 0 * u.km / u.s},
+        {"observer": gcrs_origin, "target": gcrs_not_origin},
     ],
 )
 def test_los_shift(sc_kwargs):

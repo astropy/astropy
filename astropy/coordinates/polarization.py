@@ -123,7 +123,7 @@ class StokesCoordInfo(MixinInfo):
         shape = (length,) + attrs.pop("shape")
         data = np.zeros(shape=shape, dtype=attrs.pop("dtype"))
         # Get arguments needed to reconstruct class
-        out = self._construct_from_dict(dict(value=data))
+        out = self._construct_from_dict({"value": data})
 
         # Set remaining info attributes
         for attr, value in attrs.items():

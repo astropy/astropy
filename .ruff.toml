@@ -242,7 +242,6 @@ lint.unfixable = [
 "astropy/constants/*" = ["N817"]  # camelcase-imported-as-acronym
 "astropy/convolution/*" = []
 "astropy/coordinates/*" = [
-    "C408",  # unnecessary-collection-call
     "DTZ007",  # call-datetime-strptime-without-zone
 ]
 "astropy/cosmology/*" = [

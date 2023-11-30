@@ -175,7 +175,7 @@ class TestArithmetic:
         with pytest.raises(TypeError):
             in_rep * in_rep
         with pytest.raises(TypeError):
-            dict() * in_rep
+            {} * in_rep
 
     def test_mul_div_unit_spherical(self):
         s1 = self.unit_spherical * self.distance

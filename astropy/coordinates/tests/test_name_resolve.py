@@ -22,7 +22,7 @@ from astropy.coordinates.name_resolve import (
 )
 from astropy.coordinates.sky_coordinate import SkyCoord
 
-_cached_ngc3642 = dict()
+_cached_ngc3642 = {}
 _cached_ngc3642[
     "simbad"
 ] = """# NGC 3642    #Q22523669
@@ -75,7 +75,7 @@ _cached_ngc3642[
 
 #====Done (2013-Feb-12,16:39:48z)===="""
 
-_cached_castor = dict()
+_cached_castor = {}
 _cached_castor[
     "all"
 ] = """# castor    #Q22524249
