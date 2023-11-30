@@ -736,6 +736,21 @@ def test_sep():
         i7.separation_3d(i3)
 
 
+@pytest.mark.parametrize(
+    "method,expectation",
+    [
+        pytest.param("separation", 0.69815121 * u.deg, id="separation"),
+        pytest.param("separation_3d", 0.12184962 * u.pc, id="separation_3d"),
+    ],
+)
+def test_seps_with_skycoord(method, expectation):
+    coords = (1 * u.deg, 2 * u.deg, 10 * u.pc)
+    assert_allclose(
+        getattr(FK5(*coords), method)(SkyCoord(*coords, frame=FK5, equinox="B1950")),
+        expectation,
+    )
+
+
 def test_time_inputs():
     """
     Test validation and conversion of inputs for equinox and obstime attributes.
