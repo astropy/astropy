@@ -963,7 +963,7 @@ def test_add_equivelencies():
     assert isinstance(e1, Equivalency)
     assert e1.name == ["pixel_scale", "temperature_energy"]
     assert isinstance(e1.kwargs, list)
-    assert e1.kwargs == [{"pixscale": 10 * u.arcsec / u.pix}, dict()]
+    assert e1.kwargs == [{"pixscale": 10 * u.arcsec / u.pix}, {}]
 
     e2 = u.pixel_scale(10 * u.arcsec / u.pixel) + [1, 2, 3]
     assert isinstance(e2, list)

@@ -267,7 +267,7 @@ def test_physical_type_as_set(unit, expected_set):
 
 def test_physical_type_iteration():
     """Test iterating through different physical type names."""
-    physical_type_names = list(pressure)
+    physical_type_names = [pressure]
     assert physical_type_names == ["energy density", "pressure", "stress"]
 
 
@@ -377,7 +377,7 @@ def test_physical_type_hash():
     assert dictionary[length] == 42
 
 
-@pytest.mark.parametrize("multiplicand", [list(), 42, 0, -1])
+@pytest.mark.parametrize("multiplicand", [[], 42, 0, -1])
 def test_physical_type_multiplication(multiplicand):
     """
     Test that multiplication of a physical type returns `NotImplemented`

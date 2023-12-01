@@ -680,7 +680,7 @@ class Quantity(np.ndarray):
             return self._result_as_quantity(result, unit, out)
 
         except (TypeError, ValueError, AttributeError) as e:
-            out_normalized = kwargs.get("out", tuple())
+            out_normalized = kwargs.get("out", ())
             inputs_and_outputs = inputs + out_normalized
             ignored_ufunc = (
                 None,

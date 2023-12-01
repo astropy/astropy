@@ -300,7 +300,6 @@ lint.unfixable = [
     "RET506",  # superfluous-else-raise
 ]
 "astropy/units/*" = [
-    "C408",  # unnecessary-collection-call
     "F821",  # undefined-name
     "N812",  # lowercase-imported-as-non-lowercase
     "RET505",  # superfluous-else-return
