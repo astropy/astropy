@@ -419,27 +419,20 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
 
         data = coords.data.represent_as(frame.representation_type)
 
-        values = []  # List of values corresponding to representation attrs
-        repr_attr_name_to_drop = []
-        for repr_attr_name in repr_attr_names:
-            # If coords did not have an explicit distance then don't include in initializers.
-            if (
-                isinstance(coords.data, UnitSphericalRepresentation)
-                and repr_attr_name == "distance"
-            ):
-                repr_attr_name_to_drop.append(repr_attr_name)
-                continue
+        # If coords did not have an explicit distance then don't include in initializers.
+        if isinstance(coords.data, UnitSphericalRepresentation):
+            try:
+                index = repr_attr_names.index("distance")
+            except ValueError:
+                pass
+            else:
+                del repr_attr_names[index]
+                del units[index]
+                del frame_attr_names[index]
+                del repr_attr_classes[index]
 
-            # Get the value from `data` in the eventual representation
-            values.append(getattr(data, repr_attr_name))
-
-        # drop the ones that were skipped because they were distances
-        for nametodrop in repr_attr_name_to_drop:
-            nameidx = repr_attr_names.index(nametodrop)
-            del repr_attr_names[nameidx]
-            del units[nameidx]
-            del frame_attr_names[nameidx]
-            del repr_attr_classes[nameidx]
+        # List of values corresponding to representation attrs
+        values = [getattr(data, name) for name in repr_attr_names]
 
         if coords.data.differentials and "s" in coords.data.differentials:
             orig_vel = coords.data.differentials["s"]
@@ -461,21 +454,18 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
                 repr_attr_names.append(reprname)
                 repr_attr_classes.append(vel.attr_classes[reprname])
 
+        is_skycoord = isinstance(coords, SkyCoord)
         for attr in frame_transform_graph.frame_attributes:
-            value = getattr(coords, attr, None)
-            use_value = (
-                isinstance(coords, SkyCoord) or attr not in coords.frame_attributes
-            )
-            if use_value and value is not None:
+            if (value := getattr(coords, attr, None)) is not None and (
+                is_skycoord or attr not in coords.frame_attributes
+            ):
                 skycoord_kwargs[attr] = value
 
     elif isinstance(coords, BaseRepresentation):
         if coords.differentials and "s" in coords.differentials:
             diffs = frame.get_representation_cls("s")
             data = coords.represent_as(frame.representation_type, diffs)
-            values = [
-                getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names
-            ]
+            values = [getattr(data, name) for name in repr_attr_names]
             for frname, reprname in frame.get_representation_component_names(
                 "s"
             ).items():
@@ -487,9 +477,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
 
         else:
             data = coords.represent_as(frame.representation_type)
-            values = [
-                getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names
-            ]
+            values = [getattr(data, name) for name in repr_attr_names]
 
     elif (
         isinstance(coords, np.ndarray)
@@ -502,12 +490,6 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
 
     elif isinstance(coords, (Sequence, np.ndarray)):
         # Handles list-like input.
-
-        vals = []
-        is_ra_dec_representation = (
-            "ra" in frame.representation_component_names
-            and "dec" in frame.representation_component_names
-        )
         coord_types = (SkyCoord, BaseCoordinateFrame, BaseRepresentation)
         if any(isinstance(coord, coord_types) for coord in coords):
             # this parsing path is used when there are coordinate-like objects
@@ -541,6 +523,11 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
                 if not_unit_sphere or repr_attr != "distance"
             ]
         else:
+            vals = []
+            is_ra_dec_representation = (
+                "ra" in frame.representation_component_names
+                and "dec" in frame.representation_component_names
+            )
             # none of the elements are "frame-like"
             # turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
             for coord in coords:
@@ -557,7 +544,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             # Do some basic validation of the list elements: all have a length and all
             # lengths the same
             try:
-                n_coords = sorted({len(x) for x in vals})
+                n_coords = {len(x) for x in vals}
             except Exception as err:
                 raise ValueError(
                     "One or more elements of input sequence does not have a length."
@@ -566,9 +553,9 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             if len(n_coords) > 1:
                 raise ValueError(
                     "Input coordinate values must have same number of elements, found"
-                    f" {n_coords}"
+                    f" {sorted(n_coords)}"
                 )
-            n_coords = n_coords[0]
+            n_coords = n_coords.pop()
 
             # Must have no more coord inputs than representation attributes
             if n_coords > n_attr_names:
