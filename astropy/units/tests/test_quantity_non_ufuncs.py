@@ -1932,7 +1932,7 @@ class TestSetOpsFunctions:
         "kwargs",
         (
             {"return_index": True, "return_inverse": True},
-            {"return_count": True},
+            {"return_counts": True},
             {"return_index": True, "return_inverse": True, "return_counts": True},
         ),
     )
