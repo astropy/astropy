@@ -1142,7 +1142,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
                 arr = np.char.encode(arr, encoding="utf-8")
                 if isinstance(value, np.ma.MaskedArray):
                     arr = np.ma.array(arr, mask=value.mask, copy=False)
-            value = arr
+                value = arr
 
         return value
 
