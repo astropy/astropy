@@ -596,7 +596,8 @@ Other properties that you could test include:
 - Optimised routines calculate the same result as unoptimised, within tolerances
 
 This is a great way to start contributing to Astropy, and has already found
-bugs in time handling.  See issue #9017 and pull request #9532 for details!
+bugs in time handling. See issue `#9017 <https://github.com/astropy/astropy/issues/9017>`_ 
+and pull request `#9532 <https://github.com/astropy/astropy/pull/9532>`_ for details!
 
 (and if you find Hypothesis useful in your research,
 `please cite it <https://doi.org/10.21105/joss.01891>`_!)
