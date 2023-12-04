@@ -1779,7 +1779,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         Parameters
         ----------
-        other : `~astropy.coordinates.BaseCoordinateFrame`
+        other : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
             The coordinate to get the separation to.
 
         Returns
@@ -1798,8 +1798,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         from .angles import Angle, angular_separation
 
         self_unit_sph = self.represent_as(r.UnitSphericalRepresentation)
-        other_transformed = other.transform_to(self)
-        other_unit_sph = other_transformed.represent_as(r.UnitSphericalRepresentation)
+        other_unit_sph = (
+            getattr(other, "frame", other)
+            .transform_to(self)
+            .represent_as(r.UnitSphericalRepresentation)
+        )
 
         # Get the separation as a Quantity, convert to Angle in degrees
         sep = angular_separation(
@@ -1814,7 +1817,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         Parameters
         ----------
-        other : `~astropy.coordinates.BaseCoordinateFrame`
+        other : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
             The coordinate system to get the distance to.
 
         Returns
@@ -1835,7 +1838,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             )
 
         # do this first just in case the conversion somehow creates a distance
-        other_in_self_system = other.transform_to(self)
+        other_in_self_system = getattr(other, "frame", other).transform_to(self)
 
         if issubclass(other_in_self_system.__class__, r.UnitSphericalRepresentation):
             raise ValueError(
