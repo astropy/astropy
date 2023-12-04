@@ -9,8 +9,9 @@ Object Separation
 -----------------
 
 When calculating the separation between objects, it is important to bear in mind that
-:meth:`astropy.coordinates.SkyCoord.separation` gives a different answer depending
-upon the order in which is used. For example::
+:meth:`~astropy.coordinates.BaseCoordinateFrame.separation` gives a different
+answer depending upon the order in which is used.
+For example::
 
     >>> import numpy as np
     >>> from astropy import units as u
@@ -26,11 +27,12 @@ upon the order in which is used. For example::
 
 Why do these give such different answers?
 
-The reason is that :meth:`astropy.coordinates.SkyCoord.separation` gives the separation as measured
-in the frame of the |SkyCoord| object. So ``star.separation(moon)`` gives the angular separation
-in the ICRS frame. This is the separation as it would appear from the Solar System Barycenter. For a
-geocentric observer, ``moon.separation(star)`` gives the correct answer, since ``moon`` is in a
-geocentric frame.
+The reason is that :meth:`~astropy.coordinates.BaseCoordinateFrame.separation`
+gives the separation as measured in the frame of the |SkyCoord| object.
+So ``star.separation(moon)`` gives the angular separation in the ICRS frame.
+This is the separation as it would appear from the Solar System Barycenter.
+For a geocentric observer, ``moon.separation(star)`` gives the correct answer,
+since ``moon`` is in a geocentric frame.
 
 AltAz calculations for Earth-based objects
 ------------------------------------------
