@@ -77,7 +77,7 @@ The procedure for the feature freeze is as follows:
 
       $ cp docs/whatsnew/<current_version>.rst docs/whatsnew/<next_version>.rst
 
-   Note that for these pages we leave out the tailing .0 from the version number
+   Note that for these pages we leave out the trailing .0 from the version number
    in the filenames (e.g., ``6.1.rst``) since the What's New applies in principle
    to the whole release cycle.
    You'll then need to edit ``docs/whatsnew/<next_version>.rst``, removing all
@@ -94,10 +94,12 @@ The procedure for the feature freeze is as follows:
       :orphan:
 
       `What's New in Astropy <current_version>?
-      <https://docs.astropy.org/en/v<current_version>/whatsnew/<current_version>.html>`__
+      <https://docs.astropy.org/en/v<current_version.0>/whatsnew/<current_version>.html>`__
 
    This is because we want to make sure that links in the previous "What's new?" pages continue
    to work and reference the original link they referenced at the time of writing.
+   Note the trailing .0 in the URL, which is needed because the URL will be
+   determined by the git tag.
 
 #. Commit these changes::
 
