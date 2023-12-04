@@ -1134,7 +1134,7 @@ Matching Within Tolerance
 -------------------------
 
 To test if coordinates are within a certain angular distance of one other, use the
-`~astropy.coordinates.SkyCoord.separation` method::
+:meth:`~astropy.coordinates.BaseCoordinateFrame.separation` method::
 
   >>> sc1.icrs.fk4.separation(sc1).to(u.arcsec)  # doctest: +SKIP
   <Angle 7.98873629e-13 arcsec>
@@ -1251,8 +1251,8 @@ the available docstrings below:
 - `~astropy.coordinates.SkyCoord.match_to_catalog_sky`,
 - `~astropy.coordinates.SkyCoord.match_to_catalog_3d`,
 - `~astropy.coordinates.SkyCoord.position_angle`,
-- `~astropy.coordinates.SkyCoord.separation`,
-- `~astropy.coordinates.SkyCoord.separation_3d`
+- `~astropy.coordinates.BaseCoordinateFrame.separation`,
+- `~astropy.coordinates.BaseCoordinateFrame.separation_3d`
 - `~astropy.coordinates.SkyCoord.apply_space_motion`
 
 Additional information and examples can be found in the section on

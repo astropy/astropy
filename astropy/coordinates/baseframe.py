@@ -1777,6 +1777,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             that ``self.separation(other)`` and ``other.separation(self)`` may
             not give the same answer in this case.
 
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`astropy:/coordinates/matchsep`.
+
         Parameters
         ----------
         other : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
@@ -1814,6 +1817,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         """
         Computes three dimensional separation between this coordinate
         and another.
+
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`astropy:/coordinates/matchsep`.
 
         Parameters
         ----------
