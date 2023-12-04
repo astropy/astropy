@@ -45,7 +45,7 @@ Or a `numpy.ndarray`::
                [0.11111111, 0.2       , 0.27272727, 0.33333333]])
 
 Here, broadcasting takes care of the different dimensions. Several other
-classes are also possible.
+types of operands are also accepted.
 
 Using Arithmetic Classmethods
 =============================
