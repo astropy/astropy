@@ -17,11 +17,15 @@ from astropy.units import Quantity
 from astropy.utils import isiterable
 
 if TYPE_CHECKING:
+    import sys
     from typing import Any, Callable
 
-    from typing_extensions import Self
-
     from astropy.units import UnitBase
+
+    if sys.version_info >= (3, 11):
+        from typing import Self
+    else:
+        from typing_extensions import Self
 
 __all__ = ["ModelBoundingBox", "CompoundBoundingBox"]
 
