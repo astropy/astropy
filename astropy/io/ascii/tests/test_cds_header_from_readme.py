@@ -44,7 +44,8 @@ def test_description():
         )
         assert_equal(
             table["loggf"].description,
-            "Logarithm of the oscillator strength 200 times the critical density",
+            "log10 of the gf value - logarithm base 10 of stat. weight times "
+            "oscillator strength",
         )
         assert_equal(table["EW"].description, "Equivalent width (in mA)")
         assert_equal(
