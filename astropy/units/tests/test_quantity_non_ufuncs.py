@@ -5,7 +5,7 @@ import itertools
 import numpy as np
 import numpy.lib.recfunctions as rfn
 import pytest
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import (
@@ -343,6 +343,12 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         assert np.all(o == expected)
         with pytest.raises(u.UnitsError):
             np.full_like(self.q, 0.5 * u.s)
+
+    if not NUMPY_LT_2_0:
+
+        def test_astype(self):
+            int32q = self.q.astype("int32")
+            assert_array_equal(np.astype(int32q, "int32"), int32q)
 
 
 class TestAccessingParts(InvariantUnitTestSetup):
@@ -1885,7 +1891,7 @@ class TestMemoryFunctions(NoUnitTestSetup):
         self.check(np.may_share_memory, self.q.value)
 
 
-class TestSetOpsFcuntions(metaclass=CoverageMeta):
+class TestSetOpsFunctions(metaclass=CoverageMeta):
     def setup_method(self):
         self.q = np.array([[0.0, 1.0, -1.0], [3.0, 5.0, 3.0], [0.0, 1.0, -1]]) * u.m
         self.q2 = np.array([0.0, 100.0, 150.0, 200.0]) * u.cm
@@ -1933,6 +1939,51 @@ class TestSetOpsFcuntions(metaclass=CoverageMeta):
     )
     def test_unique_more_complex(self, kwargs):
         self.check1(np.unique, **kwargs)
+
+    if not NUMPY_LT_2_0:
+
+        @needs_array_function
+        def test_unique_all(self):
+            values, indices, inverse_indices, counts = np.unique(
+                self.q,
+                return_index=True,
+                return_inverse=True,
+                return_counts=True,
+                equal_nan=False,
+            )
+            res = np.unique_all(self.q)
+            assert len(res) == 4
+
+            assert_array_equal(res.values, values)
+            assert_array_equal(res.indices, indices)
+            assert_array_equal(res.inverse_indices, inverse_indices)
+            assert_array_equal(res.counts, counts)
+
+        @needs_array_function
+        def test_unique_counts(self):
+            values, counts = np.unique(self.q, return_counts=True, equal_nan=False)
+            res = np.unique_counts(self.q)
+            assert len(res) == 2
+
+            assert_array_equal(res.values, values)
+            assert_array_equal(res.counts, counts)
+
+        @needs_array_function
+        def test_unique_inverse(self):
+            values, inverse_indices = np.unique(
+                self.q, return_inverse=True, equal_nan=False
+            )
+            res = np.unique_inverse(self.q)
+            assert len(res) == 2
+
+            assert_array_equal(res.values, values)
+            assert_array_equal(res.inverse_indices, inverse_indices)
+
+        @needs_array_function
+        def test_unique_values(self):
+            values = np.unique(self.q, equal_nan=False)
+            res = np.unique_values(self.q)
+            assert_array_equal(res, values)
 
     @needs_array_function
     @pytest.mark.parametrize("kwargs", (dict(), dict(return_indices=True)))
@@ -2292,6 +2343,41 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
 
         def test_linalg_trace(self):
             self.check(np.trace)
+
+        @needs_array_function
+        def test_linalg_cross(self):
+            q1 = np.array([1, 2, 3]) << u.m
+            q2 = np.array([4, 5, 6]) << u.s
+            assert_array_equal(np.linalg.cross(q1, q2), np.cross(q1, q2))
+            assert_array_equal(np.linalg.cross(q1, q2.value), np.cross(q1, q2.value))
+
+        @needs_array_function
+        def test_linalg_outer(self):
+            q = self.q.flatten()
+            assert_array_equal(np.linalg.outer(q, q), np.outer(q, q))
+            assert_array_equal(np.linalg.outer(q, q.value), np.outer(q, q.value))
+
+        @needs_array_function
+        def test_svdvals(self):
+            # TODO: this function should be named test_linalg_svdvals
+            # but at the moment this breaks the completion test
+            # see https://github.com/astropy/astropy/issues/15692
+            _, ref, _ = np.linalg.svd(self.q)
+            res = np.linalg.svdvals(self.q)
+            assert_allclose(res, ref, rtol=5e-16)
+
+        @needs_array_function
+        def test_linalg_tensordot(self):
+            ref = np.tensordot(self.q, self.q)
+            res = np.linalg.tensordot(self.q, self.q)
+            assert_array_equal(res, ref)
+
+        @needs_array_function
+        def test_matmul(self):
+            # see https://github.com/astropy/astropy/issues/15692
+            ref = np.matmul(self.q, self.q)
+            res = np.linalg.matmul(self.q, self.q)
+            assert_array_equal(res, ref)
 
 
 class TestRecFunctions(metaclass=CoverageMeta):

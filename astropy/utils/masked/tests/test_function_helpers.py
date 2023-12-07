@@ -289,6 +289,12 @@ class TestCopyAndCreation(InvariantMaskTestSetup):
         farray = np.asfarray(a=self.ma)
         assert_array_equal(farray, self.ma)
 
+    if not NUMPY_LT_2_0:
+
+        def test_astype(self):
+            int32ma = self.ma.astype("int32")
+            assert_array_equal(np.astype(int32ma, "int32"), int32ma)
+
 
 class TestArrayCreation(MaskedArraySetup):
     def test_empty_like(self):
