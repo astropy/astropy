@@ -441,7 +441,7 @@ differences between them are:
 More General Gridded Data Classes
 ---------------------------------
 
-There are two additional classes in the ``nddata`` package that are of
+There are two generic classes in the ``nddata`` package that are of
 interest primarily to users who either need a custom image class that goes
 beyond the classes discussed so far, or who are working with gridded data that
 is not an image.
