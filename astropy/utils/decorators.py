@@ -861,7 +861,7 @@ class lazyproperty(property):
 
 class sharedmethod(classmethod):
     """
-    This is a method decorator that allows both an instancemethod and a
+    This is a method decorator that allows both an instance method and a
     `classmethod` to share the same name.
 
     When using `sharedmethod` on a method defined in a class's body, it
@@ -888,7 +888,7 @@ class sharedmethod(classmethod):
         additional args were (3, 4)
 
     This also supports a more advanced usage, where the `classmethod`
-    implementation can be written separately.  If the class's *metaclass*
+    implementation can be written separately.  If the class' *metaclass*
     has a method of the same name as the `sharedmethod`, the version on
     the metaclass is delegated to::
 
