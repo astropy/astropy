@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import copy
 import operator
 import re
 import warnings
+from typing import TYPE_CHECKING
 
 import erfa
 import numpy as np
@@ -30,6 +33,9 @@ from .sky_coordinate_parsers import (
     _get_frame_without_data,
     _parse_coordinate_data,
 )
+
+if TYPE_CHECKING:
+    from typing import Callable
 
 __all__ = ["SkyCoord", "SkyCoordInfo"]
 
@@ -287,6 +293,10 @@ class SkyCoord(ShapedLikeNDArray):
     # Declare that SkyCoord can be used as a Table column by defining the
     # info property.
     info = SkyCoordInfo()
+
+    # Methods implemented by the underlying frame
+    separation: Callable[[BaseCoordinateFrame | SkyCoord], Angle]
+    separation_3d: Callable[[BaseCoordinateFrame | SkyCoord], Distance]
 
     def __init__(self, *args, copy=True, **kwargs):
         # these are frame attributes set on this SkyCoord but *not* a part of
@@ -1133,111 +1143,6 @@ class SkyCoord(ShapedLikeNDArray):
             )
 
     # High-level convenience methods
-    def separation(self, other):
-        """
-        Computes on-sky separation between this coordinate and another.
-
-        .. note::
-
-            If the ``other`` coordinate object is in a different frame, it is
-            first transformed to the frame of this object. This can lead to
-            unintuitive behavior if not accounted for. Particularly of note is
-            that ``self.separation(other)`` and ``other.separation(self)`` may
-            not give the same answer in this case.
-
-        For more on how to use this (and related) functionality, see the
-        examples in :doc:`astropy:/coordinates/matchsep`.
-
-        Parameters
-        ----------
-        other : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
-            The coordinate to get the separation to.
-
-        Returns
-        -------
-        sep : `~astropy.coordinates.Angle`
-            The on-sky separation between this and the ``other`` coordinate.
-
-        Notes
-        -----
-        The separation is calculated using the Vincenty formula, which
-        is stable at all locations, including poles and antipodes [1]_.
-
-        .. [1] https://en.wikipedia.org/wiki/Great-circle_distance
-
-        """
-        from .angles import Angle, angular_separation
-
-        if not self.is_equivalent_frame(other):
-            try:
-                kwargs = (
-                    {"merge_attributes": False} if isinstance(other, SkyCoord) else {}
-                )
-                other = other.transform_to(self, **kwargs)
-            except TypeError:
-                raise TypeError(
-                    "Can only get separation to another SkyCoord "
-                    "or a coordinate frame with data"
-                )
-
-        lon1 = self.spherical.lon
-        lat1 = self.spherical.lat
-        lon2 = other.spherical.lon
-        lat2 = other.spherical.lat
-
-        # Get the separation as a Quantity, convert to Angle in degrees
-        sep = angular_separation(lon1, lat1, lon2, lat2)
-        return Angle(sep, unit=u.degree)
-
-    def separation_3d(self, other):
-        """
-        Computes three dimensional separation between this coordinate
-        and another.
-
-        For more on how to use this (and related) functionality, see the
-        examples in :doc:`astropy:/coordinates/matchsep`.
-
-        Parameters
-        ----------
-        other : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
-            The coordinate to get the separation to.
-
-        Returns
-        -------
-        sep : `~astropy.coordinates.Distance`
-            The real-space distance between these two coordinates.
-
-        Raises
-        ------
-        ValueError
-            If this or the other coordinate do not have distances.
-        """
-        if not self.is_equivalent_frame(other):
-            try:
-                kwargs = (
-                    {"merge_attributes": False} if isinstance(other, SkyCoord) else {}
-                )
-                other = other.transform_to(self, **kwargs)
-            except TypeError:
-                raise TypeError(
-                    "Can only get separation to another SkyCoord "
-                    "or a coordinate frame with data"
-                )
-
-        if issubclass(self.data.__class__, UnitSphericalRepresentation):
-            raise ValueError(
-                "This object does not have a distance; cannot compute 3d separation."
-            )
-        if issubclass(other.data.__class__, UnitSphericalRepresentation):
-            raise ValueError(
-                "The other object does not have a distance; "
-                "cannot compute 3d separation."
-            )
-
-        c1 = self.cartesian.without_differentials()
-        c2 = other.cartesian.without_differentials()
-        return Distance((c1 - c2).norm())
-
     def spherical_offsets_to(self, tocoord):
         r"""
         Computes angular offsets to go *from* this coordinate *to* another.
@@ -1274,7 +1179,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         See Also
         --------
-        separation :
+        :meth:`~astropy.coordinates.BaseCoordinateFrame.separation` :
             for the *total* angular offset (not broken out into components).
         position_angle :
             for the direction of the offset.
@@ -1522,7 +1427,7 @@ class SkyCoord(ShapedLikeNDArray):
         This is intended for use on `~astropy.coordinates.SkyCoord` objects
         with coordinate arrays, rather than a scalar coordinate.  For a scalar
         coordinate, it is better to use
-        `~astropy.coordinates.SkyCoord.separation`.
+        :meth:`~astropy.coordinates.BaseCoordinateFrame.separation`.
 
         For more on how to use this (and related) functionality, see the
         examples in :doc:`astropy:/coordinates/matchsep`.
@@ -1582,7 +1487,7 @@ class SkyCoord(ShapedLikeNDArray):
         This is intended for use on `~astropy.coordinates.SkyCoord` objects
         with coordinate arrays, rather than a scalar coordinate.  For a scalar
         coordinate, it is better to use
-        `~astropy.coordinates.SkyCoord.separation_3d`.
+        :meth:`~astropy.coordinates.BaseCoordinateFrame.separation_3d`.
 
         For more on how to use this (and related) functionality, see the
         examples in :doc:`astropy:/coordinates/matchsep`.
