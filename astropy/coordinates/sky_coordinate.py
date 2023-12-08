@@ -1167,7 +1167,8 @@ class SkyCoord(ShapedLikeNDArray):
         ------
         ValueError
             If the ``tocoord`` is not in the same frame as this one. This is
-            different from the behavior of the `separation`/`separation_3d`
+            different from the behavior of the
+            :meth:`~astropy.coordinates.BaseCoordinateFrame.separation`/:meth:`~astropy.coordinates.BaseCoordinateFrame.separation_3d`
             methods because the offset components depend critically on the
             specific choice of frame.
 
@@ -1254,7 +1255,8 @@ class SkyCoord(ShapedLikeNDArray):
         -------
         newpoints : `~astropy.coordinates.SkyCoord`
             The coordinates for the location that corresponds to offsetting by
-            the given `position_angle` and `separation`.
+            the given `position_angle` and
+            :meth:`~astropy.coordinates.BaseCoordinateFrame.separation`.
 
         Notes
         -----
@@ -1272,7 +1274,7 @@ class SkyCoord(ShapedLikeNDArray):
         See Also
         --------
         position_angle : inverse operation for the ``position_angle`` component
-        separation : inverse operation for the ``separation`` component
+        :meth:`~astropy.coordinates.BaseCoordinateFrame.separation` : inverse operation for the ``separation`` component
 
         """
         from .angles import offset_by
