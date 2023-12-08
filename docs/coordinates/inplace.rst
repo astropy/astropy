@@ -34,13 +34,12 @@ mapping between frame attributes (e.g., ``.ra``) and representation attributes
     {'ra': 'lon', 'dec': 'lat', 'distance': 'distance'}
 
 .. warning::
-
-   You *must* include the step to clear the cache as shown. Failing to do so
-   will cause the object to be inconsistent and likely result in incorrect
-   results. `~astropy.coordinates.SkyCoord`
-   and `~astropy.coordinates.BaseCoordinateFrame` cache various kinds of
-   information for performance reasons, so you need clear the cache so that
-   the new representation values are used when required.
+    You *must* include the step to clear the cache as shown. Failing to do so
+    will cause the object to be inconsistent and likely result in incorrect
+    results. `~astropy.coordinates.SkyCoord`
+    and `~astropy.coordinates.BaseCoordinateFrame` cache various kinds of
+    information for performance reasons, so you need clear the cache so that
+    the new representation values are used when required.
 
 You should note that the only way to modify the data in a frame is by using
 the ``.data`` attribute directly and not the aliases for components on the
