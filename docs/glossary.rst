@@ -12,23 +12,10 @@ Astropy Glossary
       parenthesized ``n``.
       This is from NumPy; see https://numpy.org/doc/stable/glossary.html#term-n.
 
-   number
-      Any numeric type. e.g. `float` or `int` or ``numpy.number``.
-
    <Class>-like
       An instance of the ``Class`` or a valid initializer argument for ``Class`` as
       ``Class(value)``. E.g. :class:`~astropy.units.Quantity`-like includes ``"2 *
       u.km"`` because ``astropy.units.Quantity("2 * u.km")`` works.
-
-   unit-like
-      :class:`~astropy.units.UnitBase` (or subclass) instance or a
-      string or other valid initializer for :class:`~astropy.units.Unit`.
-
-   quantity-like
-      `~astropy.units.Quantity` (or subclass) instance, a number or `array-like
-      <https://numpy.org/doc/stable/glossary.html#term-array_like>`_ object with a
-      :term:`unit-like`` ``unit`` attribute, or a string which is a valid initializer
-      for `~astropy.units.Quantity`.
 
    ['physical type']
        The physical type of a quantity can be annotated in square brackets
@@ -41,19 +28,38 @@ Astropy Glossary
       The ``unit`` must be an angle equivalent to radians. A string input is interpreted
       as an angle as described in the `~astropy.coordinates.Angle` documentation.
 
-   length-like
-      :term:`quantity-like` and a valid initializer for
-      :class:`~astropy.coordinates.Distance`. The ``unit`` must be a length equivalent
-      to meters.
-
-   frame-like
-      :class:`~astropy.coordinates.BaseCoordinateFrame` subclass or subclass instance or
-      a valid Frame name (string).
+   buffer-like
+      Object that implements `Python's buffer protocol
+      <https://docs.python.org/3/c-api/buffer.html#bufferobjects>`_.
 
    coordinate-like
       :class:`~astropy.coordinates.BaseCoordinateFrame` (or subclass) instance, or a
       :class:`~astropy.coordinates.SkyCoord` (or subclass) instance, or a valid
       initializer as described in :ref:`coordinates-initialization-coord`.
+
+   file-like (readable)
+      :term:`python:file-like object` object that supports reading with a method ``read``.
+
+   file-like (writeable)
+      :term:`python:file-like object` object that supports writing with a method ``write``.
+
+   frame-like
+      :class:`~astropy.coordinates.BaseCoordinateFrame` subclass or subclass instance or
+      a valid Frame name (string).
+
+   length-like
+      :term:`quantity-like` and a valid initializer for
+      :class:`~astropy.coordinates.Distance`. The ``unit`` must be a length equivalent
+      to meters.
+
+   number
+      Any numeric type. e.g. `float` or `int` or ``numpy.number``.
+
+   quantity-like
+      `~astropy.units.Quantity` (or subclass) instance, a number or `array-like
+      <https://numpy.org/doc/stable/glossary.html#term-array_like>`_ object with a
+      :term:`unit-like`` ``unit`` attribute, or a string which is a valid initializer
+      for `~astropy.units.Quantity`.
 
    table-like
       :class:`~astropy.table.Table` (or subclass) instance or valid initializer for
@@ -66,15 +72,9 @@ Astropy Glossary
       :class:`~astropy.time.Time`, for instance `str`, array-like[str],
       `~datetime.datetime`, or `~numpy.datetime64`.
 
-   buffer-like
-      Object that implements `Python's buffer protocol
-      <https://docs.python.org/3/c-api/buffer.html#bufferobjects>`_.
-
-   file-like (writeable)
-      :term:`python:file-like object` object that supports writing with a method ``write``.
-
-   file-like (readable)
-      :term:`python:file-like object` object that supports reading with a method ``read``.
+   unit-like
+      :class:`~astropy.units.UnitBase` (or subclass) instance or a
+      string or other valid initializer for :class:`~astropy.units.Unit`.
 
 
 Optional Packages' Glossary
