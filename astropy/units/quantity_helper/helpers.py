@@ -361,7 +361,27 @@ UNSUPPORTED_UFUNCS |= {
 }
 
 if not NUMPY_LT_2_0:
-    UNSUPPORTED_UFUNCS |= {np.bitwise_count, np._core.umath.isalpha}
+    # string utilities - make no sense for Quantity.
+    UNSUPPORTED_UFUNCS |= {
+        np.bitwise_count,
+        np._core.umath.count,
+        np._core.umath.isalpha,
+        np._core.umath.isdigit,
+        np._core.umath.isspace,
+        np._core.umath.isnumeric,
+        np._core.umath.isdecimal,
+        np._core.umath.startswith,
+        np._core.umath.endswith,
+        np._core.umath.find,
+        np._core.umath.rfind,
+        np._core.umath.str_len,
+        np._core.umath._strip_chars,
+        np._core.umath._lstrip_chars,
+        np._core.umath._rstrip_chars,
+        np._core.umath._strip_whitespace,
+        np._core.umath._lstrip_whitespace,
+        np._core.umath._rstrip_whitespace,
+    }
 
 # SINGLE ARGUMENT UFUNCS
 
