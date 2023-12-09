@@ -130,7 +130,8 @@ if "templates_path" not in locals():  # in case parent conf.py defines it
     templates_path = []
 templates_path.append("_templates")
 
-extensions += ["sphinx_changelog", "sphinx_design"]
+#extensions += ["sphinx_changelog", "sphinx_design"]
+extensions += ["sphinx_design"]
 
 # Grab minversion from pyproject.toml
 with (Path(__file__).parents[1] / "pyproject.toml").open("rb") as f:
@@ -320,9 +321,10 @@ for line in open("nitpick-exceptions"):
 try:
     import warnings
 
-    import sphinx_gallery
+    #import sphinx_gallery
 
-    extensions += ["sphinx_gallery.gen_gallery"]
+    #extensions += ["sphinx_gallery.gen_gallery"]
+    sphinx_gallery = None
 
     sphinx_gallery_conf = {
         "backreferences_dir": "generated/modules",  # path to store the module using example template
