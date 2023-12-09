@@ -161,7 +161,8 @@ describe a user input of that element type. Elements in square brackets are
 optional. For nonspherical inputs, see the `Representations`_ section.
 
 
-**LON**, **LAT**
+LON, LAT
+^^^^^^^^
 
 Longitude and latitude value can be specified as separate positional arguments.
 The following options are available for longitude and latitude:
@@ -195,7 +196,8 @@ The following options are available for longitude and latitude:
         >>> ICRS(0, 0, unit=u.deg) # doctest: +SKIP
         UnitTypeError: Longitude instances require units equivalent to 'rad', but no unit was given.
 
-**DISTANCE**
+DISTANCE
+^^^^^^^^
 
 The distance to the object from the frame center can be optionally specified:
 
@@ -208,7 +210,11 @@ The distance to the object from the frame center can be optionally specified:
 - List, or |Quantity|, or `~astropy.coordinates.Distance` array, or NumPy array
   of angle values
 
-**COORD**
+
+.. _coordinates-initialization-coord
+
+COORD
+^^^^^
 
 This input form uses a single object to supply coordinate data. For the case
 of spherical coordinate frames, the coordinate can include one or more
