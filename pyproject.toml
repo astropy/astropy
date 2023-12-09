@@ -96,10 +96,9 @@ docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
     "sphinx",
     "sphinx-astropy[confv2]>=1.9.1",
-    "pytest>=7.0",
-    "sphinx-changelog>=1.2.0",
+    # "sphinx-changelog>=1.2.0",
     "sphinx_design",
-    "Jinja2>=3.0",
+    # "Jinja2>=3.0",
     "tomli; python_version < '3.11'",
 ]
 
