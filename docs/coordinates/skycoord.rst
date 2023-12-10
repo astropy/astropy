@@ -211,7 +211,7 @@ The distance to the object from the frame center can be optionally specified:
   of angle values
 
 
-.. _coordinates-initialization-coord
+.. _coordinates-initialization-coord:
 
 COORD
 ^^^^^

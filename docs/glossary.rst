@@ -12,10 +12,10 @@ Astropy Glossary
       parenthesized ``n``.
       This is from NumPy; see https://numpy.org/doc/stable/glossary.html#term-n.
 
-   <Class>-like
-      An instance of the ``Class`` or a valid initializer argument for ``Class`` as
-      ``Class(value)``. E.g. :class:`~astropy.units.Quantity`-like includes ``"2 *
-      u.km"`` because ``astropy.units.Quantity("2 * u.km")`` works.
+   -like
+      ``<Class>-like`` is an instance of the ``Class`` or a valid initializer argument
+      for ``Class`` as ``Class(value)``. E.g. :class:`~astropy.units.Quantity`-like
+      includes ``"2 * u.km"`` because ``astropy.units.Quantity("2 * u.km")`` works.
 
    ['physical type']
        The physical type of a quantity can be annotated in square brackets
@@ -33,7 +33,7 @@ Astropy Glossary
       <https://docs.python.org/3/c-api/buffer.html#bufferobjects>`_.
 
    coordinate-like
-      :class:`~astropy.coordinates.BaseCoordinateFrame` (or subclass) instance, or a
+      :class:`~astropy.coordinates.BaseCoordinateFrame` subclass instance, or a
       :class:`~astropy.coordinates.SkyCoord` (or subclass) instance, or a valid
       initializer as described in :ref:`coordinates-initialization-coord`.
 
@@ -58,7 +58,7 @@ Astropy Glossary
    quantity-like
       `~astropy.units.Quantity` (or subclass) instance, a number or `array-like
       <https://numpy.org/doc/stable/glossary.html#term-array_like>`_ object with a
-      :term:`unit-like`` ``unit`` attribute, or a string which is a valid initializer
+      :term:`unit-like` ``unit`` attribute, or a string which is a valid initializer
       for `~astropy.units.Quantity`.
 
    table-like
@@ -69,12 +69,12 @@ Astropy Glossary
 
    time-like
       :class:`~astropy.time.Time` (or subclass) instance or a valid initializer for
-      :class:`~astropy.time.Time`, for instance `str`, array-like[str],
-      `~datetime.datetime`, or `~numpy.datetime64`.
+      :class:`~astropy.time.Time`, e.g. `str`, array-like[str], `~datetime.datetime`, or
+      `~numpy.datetime64`.
 
    unit-like
-      :class:`~astropy.units.UnitBase` (or subclass) instance or a
-      string or other valid initializer for :class:`~astropy.units.Unit`.
+      :class:`~astropy.units.UnitBase` subclass instance or a string or other valid
+      initializer for :class:`~astropy.units.Unit`.
 
 
 Optional Packages' Glossary
