@@ -4048,7 +4048,7 @@ class Table:
         index : bool
             Include the index column in the returned table (default=False)
         units: dict
-            A dict mapping column names to to a `~astropy.units.Unit`.
+            A dict mapping column names to a `~astropy.units.Unit`.
             The columns will have the specified unit in the Table.
 
         Returns

@@ -123,7 +123,7 @@ For a list of the bodies for which positions can be calculated, do:
    'neptune')
 
 .. note::
-    While the sun is included in the these ephemerides, it is important to
+    While the sun is included in these ephemerides, it is important to
     recognize that `~astropy.coordinates.get_sun` always uses the built-in,
     polynomial model (as this requires no special download). So it is not safe
     to assume that ``get_body(time, 'sun')`` and ``get_sun(time)`` will give
