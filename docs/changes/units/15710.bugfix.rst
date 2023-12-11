@@ -1,0 +1,17 @@
+Fix rare signature incompatibilities between helper and helped array functions.
+Affected functions:
+- ``numpy.array_str``
+- ``numpy.choose``
+- ``numpy.convolve``
+- ``numpy.correlate``
+- ``numpy.histogram``
+- ``numpy.histogramdd``
+- ``numpy.histogram2d``
+- ``numpy.isin``
+- ``numpy.inner``
+- ``numpy.nanmedian``
+- ``numpy.unique``
+- ``numpy.matrix_rank``
+- ``numpy.unwrap``
+- ``numpy.vdot``
+- ``numpy.lib.recfunctions.unstructured_to_structured``
