@@ -307,7 +307,7 @@ def get_readable_fileobj(
 
     Returns
     -------
-    file : readable file-like
+    file : :term:`file-like (readable)`
     """
     # close_fds is a list of file handles created by this function
     # that need to be closed.  We don't want to always just close the
