@@ -1127,7 +1127,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             be used to validate the value associated with the given keyword.
 
         fix_value : str, int, float, complex, bool, None
-            A valid value for a FITS keyword to to use if the given ``test``
+            A valid value for a FITS keyword to use if the given ``test``
             fails to replace an invalid value.  In other words, this provides
             a default value to use as a replacement if the keyword's current
             value is invalid.  If `None`, there is no replacement value and the
