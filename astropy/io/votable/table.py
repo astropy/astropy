@@ -192,7 +192,7 @@ def writeto(table, file, tabledata_format=None):
     ----------
     table : `~astropy.io.votable.tree.VOTableFile` or `~astropy.table.Table` instance.
 
-    file : str or writable file-like
+    file : str or :term:`file-like (writeable)`
         Path or file object to write to
 
     tabledata_format : str, optional
