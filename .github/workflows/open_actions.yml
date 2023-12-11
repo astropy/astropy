@@ -14,7 +14,7 @@ jobs:
     steps:
     # NOTE: sync-labels due to https://github.com/actions/labeler/issues/112
     - name: Label PR
-      uses: actions/labeler@v4
+      uses: actions/labeler@v5
       if: github.event_name == 'pull_request_target' && github.event.pull_request.user.login != 'meeseeksmachine'
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
