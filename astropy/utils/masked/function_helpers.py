@@ -124,7 +124,9 @@ if NUMPY_LT_2_0:
     MASKED_SAFE_FUNCTIONS |= {np.ptp}
     # Removed in numpy 2.0.  Just an alias to vstack.
     MASKED_SAFE_FUNCTIONS |= {np.row_stack}
-
+else:
+    # new in numpy 2.0
+    MASKED_SAFE_FUNCTIONS |= {np.astype}
 
 IGNORED_FUNCTIONS = {
     # I/O - useless for Masked, since no way to store the mask.
