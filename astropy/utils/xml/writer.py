@@ -61,7 +61,7 @@ class XMLWriter:
         """
         Parameters
         ----------
-        file : writable file-like
+        file : :term:`file-like (writeable)`
         """
         self.write = file.write
         if hasattr(file, "flush"):

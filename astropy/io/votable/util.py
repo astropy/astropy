@@ -42,7 +42,7 @@ def convert_to_writable_filelike(fd, compressed=False):
 
     Returns
     -------
-    fd : writable file-like
+    fd : :term:`file-like (writeable)`
     """
     if isinstance(fd, str):
         fd = os.path.expanduser(fd)
