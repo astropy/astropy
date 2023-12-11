@@ -111,6 +111,14 @@ else:
     # Array-API compatible versions (matrix axes always at end).
     SUBCLASS_SAFE_FUNCTIONS |= {np.linalg.diagonal, np.linalg.trace}
 
+    # these work out of the box (and are tested), because they
+    # delegate to other, already wrapped functions from the np namespace
+    SUBCLASS_SAFE_FUNCTIONS |= {
+        np.linalg.cross, np.linalg.svdvals, np.linalg.tensordot, np.linalg.matmul,
+        np.unique_all, np.unique_counts, np.unique_inverse, np.unique_values,
+        np.astype,
+    }  # fmt: skip
+
 # Implemented as methods on Quantity:
 # np.ediff1d is from setops, but we support it anyway; the others
 # currently return NotImplementedError.
@@ -904,14 +912,24 @@ def interp(x, xp, fp, *args, **kwargs):
 
 @function_helper
 def unique(
-    ar, return_index=False, return_inverse=False, return_counts=False, axis=None
+    ar,
+    return_index=False,
+    return_inverse=False,
+    return_counts=False,
+    axis=None,
+    **kwargs,
 ):
     unit = ar.unit
     n_index = sum(bool(i) for i in (return_index, return_inverse, return_counts))
     if n_index:
         unit = [unit] + n_index * [None]
 
-    return (ar.value, return_index, return_inverse, return_counts, axis), {}, unit, None
+    return (
+        (ar.value, return_index, return_inverse, return_counts, axis),
+        kwargs,
+        unit,
+        None,
+    )
 
 
 @function_helper
@@ -1145,6 +1163,17 @@ def eig(a, *args, **kwargs):
     from astropy.units import dimensionless_unscaled
 
     return (a.value,) + args, kwargs, (a.unit, dimensionless_unscaled), None
+
+
+if not NUMPY_LT_2_0:
+    # these functions were added in numpy 2.0
+
+    @function_helper(module=np.linalg)
+    def outer(a, b, /):
+        # maybe this one can be marked as subclass-safe in the near future ?
+        # see https://github.com/numpy/numpy/pull/25101#discussion_r1419879122
+        a, b = _as_quantities(a, b)
+        return (a.view(np.ndarray), b.view(np.ndarray)), {}, a.unit * b.unit, None
 
 
 # ======================= np.lib.recfunctions =======================
