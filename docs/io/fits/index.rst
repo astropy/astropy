@@ -485,6 +485,40 @@ to a new file, you can use the :meth:`HDUList.writeto` method (see below).
 
     See also :ref:`sphx_glr_generated_examples_io_plot_fits-image.py`.
 
+.. topic:: CCDData for High-Level Abstraction:
+
+   ``CCDData`` is a higher-level interface that represents 2D astronomical CCD data. It includes the data array as well as other attributes like metadata (stored in the header), uncertainty, mask, and WCS (World Coordinate System) information. ``CCDData`` provides a more convenient and intuitive interface when you’re working with CCD data, as it allows you to work with the data and its associated information as a single object.
+
+   Reading FITS Files with CCDData
+
+   .. code-block:: python
+
+      >>> from astropy.nddata import CCDData
+      >>> from astropy.io import fits
+      >>> fits_image_filename = fits.util.get_testdata_filepath('test0.fits')
+      >>> ccd_data = CCDData.read(fits_image_filename, unit='adu')
+      >>> data_array = ccd_data.data
+      >>> header_info = ccd_data.header
+      >>> print(f"Data Shape: {data_array.shape}")
+      Data Shape: (40, 40)
+
+.. topic:: Low-Level Control with fits.io:
+
+   ``fits.io`` is a lower-level interface for reading, writing, and manipulating FITS files. It provides direct access to the components of FITS files, such as the header and data of each HDU (Header Data Unit). This is useful when you need fine-grained control over the details of the FITS file, such as modifying headers or working with individual HDUs.
+
+   Reading FITS Files with fits.io
+
+   .. code-block:: python
+
+      >>> from astropy.io import fits
+      >>> fits_image_filename = fits.util.get_testdata_filepath('test0.fits')
+      >>> hdul = fits.open(fits_image_filename)
+      >>> # hdul[0] has no data
+      >>> primary_header = hdul[1].header 
+      >>> print(primary_header)
+      >>> data = hdul[1].data
+      >>> hdul.close()
+
 Working with Table Data
 ^^^^^^^^^^^^^^^^^^^^^^^
 
