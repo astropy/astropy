@@ -1225,7 +1225,7 @@ def _join(
         raise TypeError("one or more key columns are not sortable")
 
     # Now that we have idxs and idx_sort, revert to the original table args to
-    # carry on with making the output joined table. `keys` is set to to an empty
+    # carry on with making the output joined table. `keys` is set to an empty
     # list so that all original left and right columns are included in the
     # output table.
     if keys_left is not None or keys_right is not None:
