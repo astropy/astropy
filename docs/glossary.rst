@@ -25,8 +25,8 @@ Astropy Glossary
 
    angle-like
       :term:`quantity-like` and a valid initializer for `~astropy.coordinates.Angle`.
-      The ``unit`` must be an angle equivalent to radians. A string input is interpreted
-      as an angle as described in the `~astropy.coordinates.Angle` documentation.
+      The ``unit`` must be an angular. A string input is interpreted as an angle as
+      described in the `~astropy.coordinates.Angle` documentation.
 
    buffer-like
       Object that implements `Python's buffer protocol
@@ -49,11 +49,11 @@ Astropy Glossary
 
    length-like
       :term:`quantity-like` and a valid initializer for
-      :class:`~astropy.coordinates.Distance`. The ``unit`` must be a length equivalent
-      to meters.
+      :class:`~astropy.coordinates.Distance`. The ``unit`` must be a convertible to a
+      unit of length.
 
    number
-      Any numeric type. e.g. `float` or `int` or ``numpy.number``.
+      Any scalar numeric type. e.g. `float` or `int` or ``numpy.number``.
 
    quantity-like
       `~astropy.units.Quantity` (or subclass) instance, a number or `array-like
