@@ -158,7 +158,7 @@ class TestCore(FitsTestCase):
         assert header.comments["BITPIX"] == ""
 
     def test_set_card_value(self):
-        """Similar to test_update_header_card(), but tests the the
+        """Similar to test_update_header_card(), but tests the
         `header['FOO'] = 'bar'` method of updating card values.
         """
 
