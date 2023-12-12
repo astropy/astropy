@@ -17,7 +17,10 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from astropy.units.tests.test_quantity_non_ufuncs import get_wrapped_functions
+from astropy.units.tests.test_quantity_non_ufuncs import (
+    get_wrapped_functions,
+    populate_covered_from_members,
+)
 from astropy.utils.compat import (
     NUMPY_LT_1_23,
     NUMPY_LT_1_24,
@@ -36,7 +39,10 @@ from astropy.utils.masked.function_helpers import (
 from .test_masked import MaskedArraySetup, assert_masked_equal
 
 all_wrapped_functions = get_wrapped_functions(np)
-all_wrapped = set(all_wrapped_functions.values())
+
+all_wrapped = set(
+    itertools.chain.from_iterable(_.values() for _ in all_wrapped_functions.values())
+)
 
 
 class BasicTestSetup(MaskedArraySetup):
@@ -1462,11 +1468,7 @@ untested_functions |= poly_functions
 # Get covered functions
 tested_functions = set()
 for cov_cls in list(filter(inspect.isclass, locals().values())):
-    for k, v in cov_cls.__dict__.items():
-        if inspect.isfunction(v) and k.startswith("test"):
-            f = k.replace("test_", "")
-            if f in all_wrapped_functions:
-                tested_functions.add(all_wrapped_functions[f])
+    populate_covered_from_members(members=cov_cls.__dict__, covered=tested_functions)
 
 
 def test_basic_testing_completeness():
