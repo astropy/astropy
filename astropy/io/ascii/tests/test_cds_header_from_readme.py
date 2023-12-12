@@ -37,14 +37,19 @@ def test_description():
         assert_equal(len(table), 2)
         assert_equal(table["Cluster"].description, "Cluster name")
         assert_equal(table["Star"].description, "")
-        assert_equal(table["Wave"].description, "wave? Wavelength in Angstroms")
+        assert_equal(table["Wave"].description, "wave ? Wavelength in Angstroms")
         assert_equal(table["El"].description, "a")
         assert_equal(
             table["ion"].description, "- Ionization stage (1 for neutral element)"
         )
+        assert_equal(
+            table["loggf"].description,
+            "log10 of the gf value - logarithm base 10 of stat. weight times "
+            "oscillator strength",
+        )
         assert_equal(table["EW"].description, "Equivalent width (in mA)")
         assert_equal(
-            table["Q"].description, "DAOSPEC quality parameter Q(large values are bad)"
+            table["Q"].description, "DAOSPEC quality parameter Q (large values are bad)"
         )
 
 
@@ -229,7 +234,7 @@ def test_cds_no_whitespace():
     assert_equal(r.header.cols[7].null, "-9.9")
     assert_equal(
         r.header.cols[10].description,
-        "DAOSPEC quality parameter Q(large values are bad)",
+        "DAOSPEC quality parameter Q (large values are bad)",
     )
     assert_equal(r.header.cols[10].null, "-9.999")
 
