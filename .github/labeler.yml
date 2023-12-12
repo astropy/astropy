@@ -10,7 +10,9 @@ Docs:
   - .mailmap
   - .readthedocs.yaml
   - '*.md'
-  - any: ['*.rst', '!CHANGES.rst']
+  - any:
+    - changed-files:
+      - any-glob-to-any-file: ['*.rst', '!CHANGES.rst']
 
 testing:
   - astropy/tests/**/*
@@ -111,7 +113,9 @@ units:
 
 utils:
   - cextern/expat/**/*
-  - any: ['**/utils/**/*',
+  - any:
+    - changed-files:
+      - any-glob-to-any-file: ['**/utils/**/*',
           '!astropy/utils/iers/**/*', '!docs/utils/iers.rst',
           '!astropy/utils/masked/**/*', '!docs/utils/masked/**/*']
 
@@ -124,14 +128,18 @@ utils.masked:
   - docs/utils/masked/**/*
 
 visualization:
-  - any: ['**/visualization/**/*', '!**/visualization/wcsaxes/**/*']
+  - any:
+    - changed-files:
+      - any-glob-to-any-file: ['**/visualization/**/*', '!**/visualization/wcsaxes/**/*']
 
 visualization.wcsaxes:
   - '**/visualization/wcsaxes/**/*'
 
 wcs:
   - cextern/wcslib/**/*
-  - any: ['**/wcs/**/*', '!astropy/wcs/wcsapi/**/*', '!docs/wcs/wcsapi.rst']
+  - any:
+    - changed-files:
+      - any-glob-to-any-file: ['**/wcs/**/*', '!astropy/wcs/wcsapi/**/*', '!docs/wcs/wcsapi.rst']
 
 wcs.wcsapi:
   - astropy/wcs/wcsapi/**/*
