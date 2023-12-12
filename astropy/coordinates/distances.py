@@ -50,7 +50,7 @@ class Distance(u.SpecificTypeQuantity):
     distmod : float or `~astropy.units.Quantity`
         The distance modulus for this distance. Note that if ``unit`` is not
         provided, a guess will be made at the unit between AU, pc, kpc, and Mpc.
-    parallax : `~astropy.units.Quantity` or `~astropy.coordinates.Angle`
+    parallax : angle-like
         The parallax in angular units.
     dtype : `~numpy.dtype`, optional
         See `~astropy.units.Quantity`.
@@ -162,6 +162,7 @@ class Distance(u.SpecificTypeQuantity):
                     unit = u.pc
 
         elif parallax is not None:
+            parallax = u.Quantity(parallax, copy=False, subok=True)
             if unit is None:
                 unit = u.pc
             value = parallax.to_value(unit, equivalencies=u.parallax())
