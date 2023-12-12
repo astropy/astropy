@@ -388,8 +388,7 @@ class Quantity(np.ndarray):
 
         Notes
         -----
-        With Python 3.9+ or :mod:`typing_extensions`, |Quantity| types are also
-        static-type compatible.
+        |Quantity| types are also static-type compatible.
         """
         from typing import Annotated
 

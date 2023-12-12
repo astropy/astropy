@@ -1013,11 +1013,9 @@ class TestColumnsShowHide:
             out = t.pformat_all()
         assert out == exp
 
-        # Mixture (not common in practice but possible). Note, the trailing
-        # backslash instead of parens is needed for Python < 3.9. See:
-        # https://bugs.python.org/issue12782.
-        with t.pprint_include_names.set(["b", "c", "d"]), t.pprint_exclude_names.set(
-            ["c"]
+        with (
+            t.pprint_include_names.set(["b", "c", "d"]),
+            t.pprint_exclude_names.set(["c"]),
         ):
             out = t.pformat_all()
         assert out == exp
