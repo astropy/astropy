@@ -46,23 +46,18 @@ def test_api():
     "kwargs",
     [
         POSITION_ON_SKY,
-        # In Python 3.9 we could write `POSITION_ON_SKY | DISTANCE`
-        {**POSITION_ON_SKY, **DISTANCE},
-        {**POSITION_ON_SKY, **PROPER_MOTION},
-        {**POSITION_ON_SKY, **DISTANCE, **PROPER_MOTION},
-        {**POSITION_ON_SKY, **RADIAL_VELOCITY},
-        {**POSITION_ON_SKY, **DISTANCE, **RADIAL_VELOCITY},
-        {**POSITION_ON_SKY, **PROPER_MOTION, **RADIAL_VELOCITY},
-        {**POSITION_ON_SKY, **DISTANCE, **PROPER_MOTION, **RADIAL_VELOCITY},
+        POSITION_ON_SKY | DISTANCE,
+        POSITION_ON_SKY | PROPER_MOTION,
+        POSITION_ON_SKY | DISTANCE | PROPER_MOTION,
+        POSITION_ON_SKY | RADIAL_VELOCITY,
+        POSITION_ON_SKY | DISTANCE | RADIAL_VELOCITY,
+        POSITION_ON_SKY | PROPER_MOTION | RADIAL_VELOCITY,
+        POSITION_ON_SKY | DISTANCE | PROPER_MOTION | RADIAL_VELOCITY,
         # Now test other representation/differential types:
         CARTESIAN_POSITION,
-        {**CARTESIAN_POSITION, **CARTESIAN_REPRESENTATION_KEYWORD_STR},
-        {**CARTESIAN_POSITION, **CARTESIAN_VELOCITY},
-        {
-            **CARTESIAN_POSITION,
-            **CARTESIAN_VELOCITY,
-            **CARTESIAN_DIFFERENTIAL_KEYWORD_STR,
-        },
+        CARTESIAN_POSITION | CARTESIAN_REPRESENTATION_KEYWORD_STR,
+        CARTESIAN_POSITION | CARTESIAN_VELOCITY,
+        CARTESIAN_POSITION | CARTESIAN_VELOCITY | CARTESIAN_DIFFERENTIAL_KEYWORD_STR,
     ],
 )
 def test_all_arg_options(kwargs):
@@ -185,12 +180,12 @@ def test_xhip_galactic(
     "kwargs,expect_success",
     (
         (POSITION_ON_SKY, False),
-        ({**POSITION_ON_SKY, **DISTANCE}, True),
-        ({**POSITION_ON_SKY, **PROPER_MOTION}, False),
-        ({**POSITION_ON_SKY, **RADIAL_VELOCITY}, False),
-        ({**POSITION_ON_SKY, **DISTANCE, **RADIAL_VELOCITY}, False),
-        ({**POSITION_ON_SKY, **PROPER_MOTION, **RADIAL_VELOCITY}, False),
-        ({**POSITION_ON_SKY, **DISTANCE, **PROPER_MOTION, **RADIAL_VELOCITY}, True),
+        (POSITION_ON_SKY | DISTANCE, True),
+        (POSITION_ON_SKY | PROPER_MOTION, False),
+        (POSITION_ON_SKY | RADIAL_VELOCITY, False),
+        (POSITION_ON_SKY | DISTANCE | RADIAL_VELOCITY, False),
+        (POSITION_ON_SKY | PROPER_MOTION | RADIAL_VELOCITY, False),
+        (POSITION_ON_SKY | DISTANCE | PROPER_MOTION | RADIAL_VELOCITY, True),
     ),
 )
 def test_frame_affinetransform(kwargs, expect_success):
@@ -305,7 +300,7 @@ def test_shorthand_attributes():
 
 
 @pytest.mark.parametrize(
-    "icrs_coords", [POSITION_ON_SKY, {**POSITION_ON_SKY, **PROPER_MOTION}]
+    "icrs_coords", [POSITION_ON_SKY, POSITION_ON_SKY | PROPER_MOTION]
 )
 def test_negative_distance(icrs_coords):
     """Regression test: #7408
