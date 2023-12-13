@@ -18,8 +18,8 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from astropy.units.tests.test_quantity_non_ufuncs import (
+    get_covered_from_members,
     get_wrapped_functions,
-    populate_covered_from_members,
 )
 from astropy.utils.compat import (
     NUMPY_LT_1_23,
@@ -1468,7 +1468,7 @@ untested_functions |= poly_functions
 # Get covered functions
 tested_functions = set()
 for cov_cls in list(filter(inspect.isclass, locals().values())):
-    populate_covered_from_members(members=cov_cls.__dict__, covered=tested_functions)
+    tested_functions |= get_covered_from_members(cov_cls.__dict__)
 
 
 def test_basic_testing_completeness():

@@ -66,7 +66,8 @@ all_wrapped = set(
 MOD_REGEXP = re.compile(r"((?P<module_name>[A-Z_]+)_)?(?P<function_name>[\w_]+)")
 
 
-def populate_covered_from_members(members, covered: set[FunctionType]) -> None:
+def get_covered_from_members(members) -> set[FunctionType]:
+    covered = set()
     for k, v in members.items():
         if inspect.isfunction(v) and k.startswith("test_"):
             if (m := MOD_REGEXP.fullmatch(k.removeprefix("test_"))) is None:
@@ -81,6 +82,7 @@ def populate_covered_from_members(members, covered: set[FunctionType]) -> None:
                 func := all_wrapped_functions[module_name].get(function_name)
             ) is not None:
                 covered.add(func)
+    return covered
 
 
 class CoverageMeta(type):
@@ -93,7 +95,7 @@ class CoverageMeta(type):
     covered = set()
 
     def __new__(mcls, name, bases, members):
-        populate_covered_from_members(members, mcls.covered)
+        mcls.covered |= get_covered_from_members(members)
         return super().__new__(mcls, name, bases, members)
 
 
