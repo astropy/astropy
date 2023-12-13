@@ -1572,21 +1572,7 @@ class SkyCoord(ShapedLikeNDArray):
         """
         from .angles import position_angle
 
-        if not self.is_equivalent_frame(other):
-            try:
-                other = other.transform_to(self, merge_attributes=False)
-            except TypeError:
-                raise TypeError(
-                    "Can only get position_angle to another "
-                    "SkyCoord or a coordinate frame with data"
-                )
-
-        slat = self.represent_as(UnitSphericalRepresentation).lat
-        slon = self.represent_as(UnitSphericalRepresentation).lon
-        olat = other.represent_as(UnitSphericalRepresentation).lat
-        olon = other.represent_as(UnitSphericalRepresentation).lon
-
-        return position_angle(slon, slat, olon, olat)
+        return position_angle(*self.frame._prepare_unit_sphere_coords(other))
 
     def skyoffset_frame(self, rotation=None):
         """
