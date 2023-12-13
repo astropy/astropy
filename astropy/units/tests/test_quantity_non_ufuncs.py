@@ -1,8 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import inspect
 import itertools
-import re
-from types import FunctionType
+from types import FunctionType, ModuleType
 
 import numpy as np
 import numpy.lib.recfunctions as rfn
@@ -33,7 +32,7 @@ needs_array_function = pytest.mark.xfail(
 
 # To get the functions that could be covered, we look for those that
 # are in modules we care about and have been overridden.
-def get_wrapped_functions(*modules):
+def get_wrapped_functions(*modules: ModuleType) -> set[FunctionType]:
     if NUMPY_LT_1_25:
 
         def allows_array_function_override(f):
@@ -46,60 +45,38 @@ def get_wrapped_functions(*modules):
     else:
         from numpy.testing.overrides import allows_array_function_override
 
-    wrapped_functions = {mod.__name__: {} for mod in modules}
-    for mod in modules:
-        for name, f in mod.__dict__.items():
-            if callable(f) and allows_array_function_override(f):
-                wrapped_functions[mod.__name__][name] = f
-
-    return wrapped_functions
-
-
-all_wrapped_functions = get_wrapped_functions(
-    np, np.fft, np.linalg, np.lib.recfunctions
-)
-
-all_wrapped = set(
-    itertools.chain.from_iterable(_.values() for _ in all_wrapped_functions.values())
-)
-
-MOD_REGEXP = re.compile(r"((?P<module_name>[A-Z_]+)_)?(?P<function_name>[\w_]+)")
+    return {
+        f
+        for module in modules
+        for f in module.__dict__.values()
+        if callable(f) and allows_array_function_override(f)
+    }
 
 
-def get_covered_from_members(members) -> set[FunctionType]:
+def get_covered_functions(ns: dict) -> set[FunctionType]:
+    """Identify all functions that are covered by tests.
+
+    Looks through the namespace (typically, ``locals()``) for classes that
+    have ``test_<name>`` members, and returns a set of the functions with
+    those names.  By default, the names are looked up on `numpy`, but each
+    class can override this by having a ``tested_module`` attribute (e.g.,
+    ``tested_module = np.linalg``).
+
+    """
     covered = set()
-    for k, v in members.items():
-        if inspect.isfunction(v) and k.startswith("test_"):
-            if (m := MOD_REGEXP.fullmatch(k.removeprefix("test_"))) is None:
-                raise RuntimeError(f"failed to match {k=}")
-            function_name = m.group("function_name")
-            if (module_name := m.group("module_name")) is not None:
-                module_name = "numpy." + module_name.replace("_", ".").lower()
-            else:
-                module_name = "numpy"
-
-            if (
-                func := all_wrapped_functions[module_name].get(function_name)
-            ) is not None:
-                covered.add(func)
+    for test_cls in filter(inspect.isclass, ns.values()):
+        module = getattr(test_cls, "tested_module", np)
+        covered |= {
+            function
+            for k, v in test_cls.__dict__.items()
+            if inspect.isfunction(v)
+            and k.startswith("test_")
+            and (function := getattr(module, k.replace("test_", ""), None)) is not None
+        }
     return covered
 
 
-class CoverageMeta(type):
-    """Meta class that tracks which functions are covered by tests.
-
-    Assumes that a test is called 'test_<MODULE_NAME>_<function_name>',
-    where MODULE_NAME (and its trailing '_') may be missing.
-    """
-
-    covered = set()
-
-    def __new__(mcls, name, bases, members):
-        mcls.covered |= get_covered_from_members(members)
-        return super().__new__(mcls, name, bases, members)
-
-
-class BasicTestSetup(metaclass=CoverageMeta):
+class BasicTestSetup:
     """Test setup for functions that should not change the unit.
 
     Also provides a default Quantity with shape (3, 3) and units of m.
@@ -416,7 +393,7 @@ class TestAccessingParts(InvariantUnitTestSetup):
         self.check(np.take, 1)
 
 
-class TestSettingParts(metaclass=CoverageMeta):
+class TestSettingParts:
     def test_put(self):
         q = np.arange(3.0) * u.m
         np.put(q, [0, 2], [50, 150] * u.cm)
@@ -493,7 +470,7 @@ class TestRepeat(InvariantUnitTestSetup):
         self.check(np.resize, (4, 4))
 
 
-class TestConcatenate(metaclass=CoverageMeta):
+class TestConcatenate:
     def setup_method(self):
         self.q1 = np.arange(6.0).reshape(2, 3) * u.m
         self.q2 = self.q1.to(u.cm)
@@ -624,7 +601,7 @@ class TestConcatenate(metaclass=CoverageMeta):
         assert np.all(out3 == expected3)
 
 
-class TestSplit(metaclass=CoverageMeta):
+class TestSplit:
     def setup_method(self):
         self.q = np.arange(54.0).reshape(3, 3, 6) * u.m
 
@@ -837,7 +814,7 @@ class TestUfuncLike(InvariantUnitTestSetup):
         assert np.all(out == expected)
 
 
-class TestUfuncLikeTests(metaclass=CoverageMeta):
+class TestUfuncLikeTests:
     def setup_method(self):
         self.q = np.array([-np.inf, +np.inf, np.nan, 3.0, 4.0]) * u.m
 
@@ -1089,7 +1066,7 @@ class TestNanFunctions(InvariantUnitTestSetup):
         assert np.all(o == expected)
 
 
-class TestVariousProductFunctions(metaclass=CoverageMeta):
+class TestVariousProductFunctions:
     """
     Test functions that are similar to gufuncs
     """
@@ -1182,7 +1159,7 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
         assert o[0] == ["einsum_path", (0, 1)]
 
 
-class TestIntDiffFunctions(metaclass=CoverageMeta):
+class TestIntDiffFunctions:
     @pytest.mark.filterwarnings("ignore:`trapz` is deprecated. Use `scipy.*")
     def test_trapz(self):
         y = np.arange(9.0) * u.m / u.s
@@ -1252,7 +1229,7 @@ class TestIntDiffFunctions(metaclass=CoverageMeta):
         assert np.all(dfdy2 == exp_dfdy)
 
 
-class TestSpaceFunctions(metaclass=CoverageMeta):
+class TestSpaceFunctions:
     def test_linspace(self):
         # Note: linspace gets unit of end point, not superlogical.
         out = np.linspace(1000.0 * u.m, 10.0 * u.km, 5)
@@ -1288,7 +1265,7 @@ class TestSpaceFunctions(metaclass=CoverageMeta):
         assert np.all(out == expected)
 
 
-class TestInterpolationFunctions(metaclass=CoverageMeta):
+class TestInterpolationFunctions:
     @needs_array_function
     def test_interp(self):
         x = np.array([1250.0, 2750.0]) * u.m
@@ -1338,7 +1315,7 @@ class TestInterpolationFunctions(metaclass=CoverageMeta):
             np.piecewise(x.value, [x], [0.0])
 
 
-class TestBincountDigitize(metaclass=CoverageMeta):
+class TestBincountDigitize:
     @needs_array_function
     def test_bincount(self):
         i = np.array([1, 1, 2, 3, 2, 4])
@@ -1359,7 +1336,7 @@ class TestBincountDigitize(metaclass=CoverageMeta):
         assert_array_equal(out, expected)
 
 
-class TestHistogramFunctions(metaclass=CoverageMeta):
+class TestHistogramFunctions:
     def setup_method(self):
         self.x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
         self.y = np.array([1.2, 2.2, 2.4, 3.0, 4.0]) * u.cm
@@ -1777,7 +1754,7 @@ class TestSortFunctions(InvariantUnitTestSetup):
         self.check(np.partition, 2)
 
 
-class TestStringFunctions(metaclass=CoverageMeta):
+class TestStringFunctions:
     # For these, making behaviour work means deviating only slightly from
     # the docstring, and by default they fail miserably.  So, might as well.
     def setup_method(self):
@@ -1823,7 +1800,7 @@ class TestStringFunctions(metaclass=CoverageMeta):
         assert out == expected
 
 
-class TestBitAndIndexFunctions(metaclass=CoverageMeta):
+class TestBitAndIndexFunctions:
     # Index/bit functions generally fail for floats, so the usual
     # float quantity are safe, but the integer ones are not.
     def setup_method(self):
@@ -1889,7 +1866,7 @@ class TestDtypeFunctions(NoUnitTestSetup):
         self.check(np.isrealobj)
 
 
-class TestMeshGrid(metaclass=CoverageMeta):
+class TestMeshGrid:
     def test_meshgrid(self):
         q1 = np.arange(3.0) * u.m
         q2 = np.arange(5.0) * u.s
@@ -1907,7 +1884,7 @@ class TestMemoryFunctions(NoUnitTestSetup):
         self.check(np.may_share_memory, self.q.value)
 
 
-class TestSetOpsFunctions(metaclass=CoverageMeta):
+class TestSetOpsFunctions:
     def setup_method(self):
         self.q = np.array([[0.0, 1.0, -1.0], [3.0, 5.0, 3.0], [0.0, 1.0, -1]]) * u.m
         self.q2 = np.array([0.0, 100.0, 150.0, 200.0]) * u.cm
@@ -2072,78 +2049,82 @@ def test_fft_frequencies(function):
 
 @needs_array_function
 class TestFFT(InvariantUnitTestSetup):
+    tested_module = np.fft
+
     # These are all trivial, just preserve the unit.
     def setup_method(self):
         # Use real input; gets turned into complex as needed.
         self.q = np.arange(128.0).reshape(8, -1) * u.s
 
-    def test_FFT_fft(self):
+    def test_fft(self):
         self.check(np.fft.fft)
 
-    def test_FFT_ifft(self):
+    def test_ifft(self):
         self.check(np.fft.ifft)
 
-    def test_FFT_rfft(self):
+    def test_rfft(self):
         self.check(np.fft.rfft)
 
-    def test_FFT_irfft(self):
+    def test_irfft(self):
         self.check(np.fft.irfft)
 
-    def test_FFT_fft2(self):
+    def test_fft2(self):
         self.check(np.fft.fft2)
 
-    def test_FFT_ifft2(self):
+    def test_ifft2(self):
         self.check(np.fft.ifft2)
 
-    def test_FFT_rfft2(self):
+    def test_rfft2(self):
         self.check(np.fft.rfft2)
 
-    def test_FFT_irfft2(self):
+    def test_irfft2(self):
         self.check(np.fft.irfft2)
 
-    def test_FFT_fftn(self):
+    def test_fftn(self):
         self.check(np.fft.fftn)
 
-    def test_FFT_ifftn(self):
+    def test_ifftn(self):
         self.check(np.fft.ifftn)
 
-    def test_FFT_rfftn(self):
+    def test_rfftn(self):
         self.check(np.fft.rfftn)
 
-    def test_FFT_irfftn(self):
+    def test_irfftn(self):
         self.check(np.fft.irfftn)
 
-    def test_FFT_hfft(self):
+    def test_hfft(self):
         self.check(np.fft.hfft)
 
-    def test_FFT_ihfft(self):
+    def test_ihfft(self):
         self.check(np.fft.ihfft)
 
-    def test_FFT_fftshift(self):
+    def test_fftshift(self):
         self.check(np.fft.fftshift)
 
-    def test_FFT_ifftshift(self):
+    def test_ifftshift(self):
         self.check(np.fft.ifftshift)
 
 
-class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
+class TestLinAlg(InvariantUnitTestSetup):
+    tested_module = np.linalg
+
     def setup_method(self):
         self.q = (
             np.array([[1.0, -1.0, 2.0], [0.0, 3.0, -1.0], [-1.0, -1.0, 1.0]]) << u.m
         )
 
-    def test_LINALG_cond(self):
+    def test_cond(self):
         c = np.linalg.cond(self.q)
         expected = np.linalg.cond(self.q.value)
         assert c == expected
 
-    def test_LINALG_matrix_rank(self):
+    def test_matrix_rank(self):
         r = np.linalg.matrix_rank(self.q)
         x = np.linalg.matrix_rank(self.q.value)
         assert r == x
 
     @needs_array_function
-    def test_LINALG_matrix_rank_with_tol(self):
+    def test_matrix_rank_with_tol(self):
         # Use a matrix that is not so good, so tol=1 and tol=0.01 differ.
         q = np.arange(9.0).reshape(3, 3) / 4 * u.m
         tol = 1.0 * u.cm
@@ -2151,7 +2132,7 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
         x2 = np.linalg.matrix_rank(q.value, tol.to_value(q.unit))
         assert r2 == x2
 
-    def test_LINALG_matrix_power(self):
+    def test_matrix_power(self):
         q1 = np.linalg.matrix_power(self.q, 1)
         assert_array_equal(q1, self.q)
         q2 = np.linalg.matrix_power(self.q, 2)
@@ -2160,7 +2141,7 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
         assert_array_equal(q2, self.q @ self.q @ self.q @ self.q)
 
     @needs_array_function
-    def test_LINALG_matrix_inv_power(self):
+    def test_matrix_inv_power(self):
         qinv = np.linalg.inv(self.q.value) / self.q.unit
         qm1 = np.linalg.matrix_power(self.q, -1)
         assert_array_equal(qm1, qinv)
@@ -2168,7 +2149,7 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
         assert_array_equal(qm3, qinv @ qinv @ qinv)
 
     @needs_array_function
-    def test_LINALG_multi_dot(self):
+    def test_multi_dot(self):
         q2 = np.linalg.multi_dot([self.q, self.q])
         q2x = self.q @ self.q
         assert_array_equal(q2, q2x)
@@ -2177,7 +2158,7 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
         assert_array_equal(q3, q3x)
 
     @needs_array_function
-    def test_LINALG_svd(self):
+    def test_svd(self):
         m = np.arange(10.0) * np.arange(5.0)[:, np.newaxis] * u.m
         svd_u, svd_s, svd_vt = np.linalg.svd(m, full_matrices=False)
         svd_ux, svd_sx, svd_vtx = np.linalg.svd(m.value, full_matrices=False)
@@ -2192,13 +2173,13 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
         assert_array_equal(s2, svd_s2x)
 
     @needs_array_function
-    def test_LINALG_inv(self):
+    def test_inv(self):
         inv = np.linalg.inv(self.q)
         expected = np.linalg.inv(self.q.value) / self.q.unit
         assert_array_equal(inv, expected)
 
     @needs_array_function
-    def test_LINALG_pinv(self):
+    def test_pinv(self):
         pinv = np.linalg.pinv(self.q)
         expected = np.linalg.pinv(self.q.value) / self.q.unit
         assert_array_equal(pinv, expected)
@@ -2210,13 +2191,13 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
         assert_array_equal(pinv2, expected2)
 
     @needs_array_function
-    def test_LINALG_tensorinv(self):
+    def test_tensorinv(self):
         inv = np.linalg.tensorinv(self.q, ind=1)
         expected = np.linalg.tensorinv(self.q.value, ind=1) / self.q.unit
         assert_array_equal(inv, expected)
 
     @needs_array_function
-    def test_LINALG_det(self):
+    def test_det(self):
         det = np.linalg.det(self.q)
         expected = np.linalg.det(self.q.value)
         expected <<= self.q.unit ** self.q.shape[-1]
@@ -2227,14 +2208,14 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
             np.linalg.det(self.q[:-1])  # Not square.
 
     @needs_array_function
-    def test_LINALG_slogdet(self):
+    def test_slogdet(self):
         # TODO: Could be supported if we had a natural logarithm unit.
         with pytest.raises(TypeError):
             logdet = np.linalg.slogdet(self.q)
             assert hasattr(logdet, "unit")
 
     @needs_array_function
-    def test_LINALG_solve(self):
+    def test_solve(self):
         b = np.array([1.0, 2.0, 4.0]) * u.m / u.s
         x = np.linalg.solve(self.q, b)
         xx = np.linalg.solve(self.q.value, b.value)
@@ -2243,7 +2224,7 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
         assert u.allclose(self.q @ x, b)
 
     @needs_array_function
-    def test_LINALG_tensorsolve(self):
+    def test_tensorsolve(self):
         b = np.array([1.0, 2.0, 4.0]) * u.m / u.s
         x = np.linalg.tensorsolve(self.q, b)
         xx = np.linalg.tensorsolve(self.q.value, b.value)
@@ -2252,7 +2233,7 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
         assert u.allclose(self.q @ x, b)
 
     @needs_array_function
-    def test_LINALG_lstsq(self):
+    def test_lstsq(self):
         b = np.array([1.0, 2.0, 4.0]) * u.m / u.s
         x, residuals, rank, s = np.linalg.lstsq(self.q, b, rcond=None)
         xx, residualsx, rankx, sx = np.linalg.lstsq(self.q.value, b.value, rcond=None)
@@ -2279,7 +2260,7 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
             np.linalg.lstsq(m, b, rcond=1.0 * u.s)
 
     @needs_array_function
-    def test_LINALG_norm(self):
+    def test_norm(self):
         n = np.linalg.norm(self.q)
         expected = np.linalg.norm(self.q.value) << self.q.unit
         assert_array_equal(n, expected)
@@ -2289,7 +2270,7 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
         assert_array_equal(n1, expected1)
 
     @needs_array_function
-    def test_LINALG_cholesky(self):
+    def test_cholesky(self):
         # Numbers from np.linalg.cholesky docstring.
         q = np.array([[1, -2j], [2j, 5]]) * u.m
         cd = np.linalg.cholesky(q)
@@ -2298,7 +2279,7 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
         assert u.allclose(cd @ cd.T.conj(), q)
 
     @needs_array_function
-    def test_LINALG_qr(self):
+    def test_qr(self):
         # This is not exhaustive...
         a = np.array([[1, -2j], [2j, 5]]) * u.m
         q, r = np.linalg.qr(a)
@@ -2310,7 +2291,7 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
         assert u.allclose(q @ r, a)
 
     @needs_array_function
-    def test_LINALG_eig(self):
+    def test_eig(self):
         w, v = np.linalg.eig(self.q)
         wx, vx = np.linalg.eig(self.q.value)
         wx <<= self.q.unit
@@ -2325,7 +2306,7 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
         assert_array_equal(v, np.eye(3))
 
     @needs_array_function
-    def test_LINALG_eigvals(self):
+    def test_eigvals(self):
         w = np.linalg.eigvals(self.q)
         wx = np.linalg.eigvals(self.q.value) << self.q.unit
         assert_array_equal(w, wx)
@@ -2335,7 +2316,7 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
         assert_array_equal(w, np.arange(1, 4) * u.m)
 
     @needs_array_function
-    def test_LINALG_eigh(self):
+    def test_eigh(self):
         w, v = np.linalg.eigh(self.q)
         wx, vx = np.linalg.eigh(self.q.value)
         wx <<= self.q.unit
@@ -2344,7 +2325,7 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
         assert_array_equal(v, vx)
 
     @needs_array_function
-    def test_LINALG_eigvalsh(self):
+    def test_eigvalsh(self):
         w = np.linalg.eigvalsh(self.q)
         wx = np.linalg.eigvalsh(self.q.value) << self.q.unit
         assert_array_equal(w, wx)
@@ -2354,45 +2335,47 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
         # diagonal and trace to np.linalg. Since these have
         # name conflicts with the main numpy namespace, they
         # are tracked as linalg_diagonal and linalg_trace.
-        def test_LINALG_diagonal(self):
+        def test_diagonal(self):
             self.check(np.linalg.diagonal)
 
-        def test_LINALG_trace(self):
+        def test_trace(self):
             self.check(np.trace)
 
         @needs_array_function
-        def test_LINALG_cross(self):
+        def test_cross(self):
             q1 = np.array([1, 2, 3]) << u.m
             q2 = np.array([4, 5, 6]) << u.s
             assert_array_equal(np.linalg.cross(q1, q2), np.cross(q1, q2))
             assert_array_equal(np.linalg.cross(q1, q2.value), np.cross(q1, q2.value))
 
         @needs_array_function
-        def test_LINALG_outer(self):
+        def test_outer(self):
             q = self.q.flatten()
             assert_array_equal(np.linalg.outer(q, q), np.outer(q, q))
             assert_array_equal(np.linalg.outer(q, q.value), np.outer(q, q.value))
 
         @needs_array_function
-        def test_LINALG_svdvals(self):
+        def test_svdvals(self):
             _, ref, _ = np.linalg.svd(self.q)
             res = np.linalg.svdvals(self.q)
             assert_allclose(res, ref, rtol=5e-16)
 
         @needs_array_function
-        def test_LINALG_tensordot(self):
+        def test_tensordot(self):
             ref = np.tensordot(self.q, self.q)
             res = np.linalg.tensordot(self.q, self.q)
             assert_array_equal(res, ref)
 
         @needs_array_function
-        def test_LINALG_matmul(self):
+        def test_matmul(self):
             ref = np.matmul(self.q, self.q)
             res = np.linalg.matmul(self.q, self.q)
             assert_array_equal(res, ref)
 
 
-class TestRecFunctions(metaclass=CoverageMeta):
+class TestRecFunctions:
+    tested_module = np.lib.recfunctions
+
     @classmethod
     def setup_class(self):
         self.pv_dtype = np.dtype([("p", "f8"), ("v", "f8")])
@@ -2411,7 +2394,7 @@ class TestRecFunctions(metaclass=CoverageMeta):
         self.q_pv = self.pv << self.pv_unit
         self.q_pv_t = self.pv_t << self.pv_t_unit
 
-    def test_LIB_RECFUNCTIONS_structured_to_unstructured(self):
+    def test_structured_to_unstructured(self):
         # can't unstructure something with incompatible units
         with pytest.raises(u.UnitConversionError, match="'m'"):
             rfn.structured_to_unstructured(u.Quantity((0, 0.6), u.Unit("(eV, m)")))
@@ -2439,7 +2422,7 @@ class TestRecFunctions(metaclass=CoverageMeta):
         # For the other tests of ``structured_to_unstructured``, see
         # ``test_structured.TestStructuredQuantityFunctions.test_structured_to_unstructured``
 
-    def test_LIB_RECFUNCTIONS_unstructured_to_structured(self):
+    def test_unstructured_to_structured(self):
         unstruct = [1, 2, 3] * u.m
         dtype = np.dtype([("f1", float), ("f2", float), ("f3", float)])
 
@@ -2455,7 +2438,7 @@ class TestRecFunctions(metaclass=CoverageMeta):
         # For the other tests of ``structured_to_unstructured``, see
         # ``test_structured.TestStructuredQuantityFunctions.test_unstructured_to_structured``
 
-    def test_LIB_RECFUNCTIONS_merge_arrays_repeat_dtypes(self):
+    def test_merge_arrays_repeat_dtypes(self):
         # Cannot merge things with repeat dtypes.
         q1 = u.Quantity([(1,)], dtype=[("f1", float)])
         q2 = u.Quantity([(1,)], dtype=[("f1", float)])
@@ -2464,7 +2447,7 @@ class TestRecFunctions(metaclass=CoverageMeta):
             rfn.merge_arrays((q1, q2))
 
     @pytest.mark.parametrize("flatten", [True, False])
-    def test_LIB_RECFUNCTIONS_merge_arrays(self, flatten):
+    def test_merge_arrays(self, flatten):
         """Test `numpy.lib.recfunctions.merge_arrays`."""
         # Merge single normal array.
         arr = rfn.merge_arrays(self.q_pv["p"], flatten=flatten)
@@ -2481,7 +2464,7 @@ class TestRecFunctions(metaclass=CoverageMeta):
         assert np.array_equal(arr, self.q_pv)
         assert arr.unit == (u.km, u.km / u.s)
 
-    def test_LIB_RECFUNCTIONS_merge_array_nested_structure(self):
+    def test_merge_array_nested_structure(self):
         # Merge 2-element tuples without flattening.
         arr = rfn.merge_arrays((self.q_pv, self.q_pv_t))
         assert_array_equal(arr["f0"], self.q_pv)
@@ -2493,7 +2476,7 @@ class TestRecFunctions(metaclass=CoverageMeta):
         assert_array_equal(arr.value, expected_value)
         assert arr.unit == u.Unit((self.q_pv["p"].unit, (u.one, u.one)))
 
-    def test_LIB_RECFUNCTIONS_merge_arrays_flatten_nested_structure(self):
+    def test_merge_arrays_flatten_nested_structure(self):
         # Merge 2-element tuple, flattening it.
         arr = rfn.merge_arrays((self.q_pv, self.q_pv_t), flatten=True)
         assert_array_equal(arr["p"], self.q_pv["p"])
@@ -2510,22 +2493,26 @@ class TestRecFunctions(metaclass=CoverageMeta):
         assert_array_equal(arr.value, expected_value)
         assert arr.unit == u.Unit((self.q_pv["p"].unit, u.one, u.one))
 
-    def test_LIB_RECFUNCTIONS_merge_arrays_asrecarray(self):
+    def test_merge_arrays_asrecarray(self):
         with pytest.raises(ValueError, match="asrecarray=True is not supported."):
             rfn.merge_arrays(self.q_pv, asrecarray=True)
 
-    def test_LIB_RECFUNCTIONS_merge_arrays_usemask(self):
+    def test_merge_arrays_usemask(self):
         with pytest.raises(ValueError, match="usemask=True is not supported."):
             rfn.merge_arrays(self.q_pv, usemask=True)
 
     @pytest.mark.parametrize("flatten", [True, False])
-    def test_LIB_RECFUNCTIONS_merge_arrays_str(self, flatten):
+    def test_merge_arrays_str(self, flatten):
         with pytest.raises(
             TypeError, match="the Quantity implementation cannot handle"
         ):
             rfn.merge_arrays((self.q_pv, np.array(["a", "b", "c"])), flatten=flatten)
 
 
+all_wrapped_functions = get_wrapped_functions(
+    np, np.fft, np.linalg, np.lib.recfunctions
+)
+tested_functions = get_covered_functions(locals())
 untested_functions = set()
 if NUMPY_LT_1_23:
     deprecated_functions = {
@@ -2556,8 +2543,8 @@ untested_functions |= rec_functions
 
 @needs_array_function
 def test_testing_completeness():
-    assert not CoverageMeta.covered.intersection(untested_functions)
-    assert all_wrapped == (CoverageMeta.covered | untested_functions)
+    assert not tested_functions.intersection(untested_functions)
+    assert all_wrapped_functions == (tested_functions | untested_functions)
 
 
 class TestFunctionHelpersCompleteness:
@@ -2584,9 +2571,8 @@ class TestFunctionHelpersCompleteness:
             | set(FUNCTION_HELPERS.keys())
             | set(DISPATCHED_FUNCTIONS.keys())
         )
-        assert all_wrapped == included_in_helpers
+        assert all_wrapped_functions == included_in_helpers
 
-    # untested_function is created using all_wrapped_functions
     @needs_array_function
     def test_ignored_are_untested(self):
         assert IGNORED_FUNCTIONS | TBD_FUNCTIONS == untested_functions

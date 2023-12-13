@@ -10,7 +10,6 @@ TODO: finish full coverage (see also `~astropy.utils.masked.function_helpers`)
 - np.fft (is there any point?)
 
 """
-import inspect
 import itertools
 
 import numpy as np
@@ -18,7 +17,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from astropy.units.tests.test_quantity_non_ufuncs import (
-    get_covered_from_members,
+    get_covered_functions,
     get_wrapped_functions,
 )
 from astropy.utils.compat import (
@@ -37,12 +36,6 @@ from astropy.utils.masked.function_helpers import (
 )
 
 from .test_masked import MaskedArraySetup, assert_masked_equal
-
-all_wrapped_functions = get_wrapped_functions(np)
-
-all_wrapped = set(
-    itertools.chain.from_iterable(_.values() for _ in all_wrapped_functions.values())
-)
 
 
 class BasicTestSetup(MaskedArraySetup):
@@ -1444,6 +1437,10 @@ class TestNaNFunctions:
         self.check(np.nanpercentile, q=50)
 
 
+# Get wrapped and covered functions.
+all_wrapped_functions = get_wrapped_functions(np)
+tested_functions = get_covered_functions(locals())
+# Create set of untested functions.
 untested_functions = set()
 
 if NUMPY_LT_1_23:
@@ -1465,20 +1462,16 @@ poly_functions = {
 untested_functions |= poly_functions
 
 
-# Get covered functions
-tested_functions = set()
-for cov_cls in list(filter(inspect.isclass, locals().values())):
-    tested_functions |= get_covered_from_members(cov_cls.__dict__)
-
-
 def test_basic_testing_completeness():
-    assert all_wrapped == (tested_functions | IGNORED_FUNCTIONS | UNSUPPORTED_FUNCTIONS)
+    assert all_wrapped_functions == (
+        tested_functions | IGNORED_FUNCTIONS | UNSUPPORTED_FUNCTIONS
+    )
 
 
 @pytest.mark.xfail(reason="coverage not completely set up yet")
 def test_testing_completeness():
     assert not tested_functions.intersection(untested_functions)
-    assert all_wrapped == (tested_functions | untested_functions)
+    assert all_wrapped_functions == (tested_functions | untested_functions)
 
 
 class TestFunctionHelpersCompleteness:
@@ -1504,7 +1497,7 @@ class TestFunctionHelpersCompleteness:
             | set(APPLY_TO_BOTH_FUNCTIONS.keys())
             | set(DISPATCHED_FUNCTIONS.keys())
         )
-        assert all_wrapped == included_in_helpers
+        assert all_wrapped_functions == included_in_helpers
 
     @pytest.mark.xfail(reason="coverage not completely set up yet")
     def test_ignored_are_untested(self):
