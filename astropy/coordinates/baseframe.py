@@ -31,6 +31,7 @@ from .attributes import Attribute
 from .transformations import TransformGraph
 
 if TYPE_CHECKING:
+    from astropy.coordinates import Latitude, Longitude, SkyCoord
     from astropy.units import Unit
 
 
@@ -1765,6 +1766,17 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     def __ne__(self, value):
         return np.logical_not(self == value)
 
+    def _prepare_unit_sphere_coords(
+        self, other: BaseCoordinateFrame | SkyCoord
+    ) -> tuple[Longitude, Latitude, Longitude, Latitude]:
+        self_sph = self.represent_as(r.UnitSphericalRepresentation)
+        other_sph = (
+            getattr(other, "frame", other)
+            .transform_to(self)
+            .represent_as(r.UnitSphericalRepresentation)
+        )
+        return self_sph.lon, self_sph.lat, other_sph.lon, other_sph.lat
+
     def separation(self, other):
         """
         Computes on-sky separation between this coordinate and another.
@@ -1800,18 +1812,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         """
         from .angles import Angle, angular_separation
 
-        self_unit_sph = self.represent_as(r.UnitSphericalRepresentation)
-        other_unit_sph = (
-            getattr(other, "frame", other)
-            .transform_to(self)
-            .represent_as(r.UnitSphericalRepresentation)
+        return Angle(
+            angular_separation(*self._prepare_unit_sphere_coords(other)), unit=u.degree
         )
-
-        # Get the separation as a Quantity, convert to Angle in degrees
-        sep = angular_separation(
-            self_unit_sph.lon, self_unit_sph.lat, other_unit_sph.lon, other_unit_sph.lat
-        )
-        return Angle(sep, unit=u.degree)
 
     def separation_3d(self, other):
         """
