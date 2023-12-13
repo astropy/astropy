@@ -367,7 +367,7 @@ class TestShapeFunctions(ShapeSetup):
 
     def test_move_axis(self):
         # Goes via transpose so works without __array_function__ as well.
-        s0_10 = np.moveaxis(self.s0, 0, 1)
+        s0_10 = np.moveaxis(self.s0.data, 1, 0)
         assert s0_10.shape == (self.s0.shape[1], self.s0.shape[0])
         assert np.all(representation_equal(self.s0.T, s0_10))
         assert np.may_share_memory(s0_10.lon, self.s0.lon)
