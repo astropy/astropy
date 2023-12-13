@@ -15,7 +15,7 @@ import os
 import re
 from contextlib import suppress
 
-from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
+from astropy.units import Unit
 
 from . import core, fixedwidth
 
@@ -65,7 +65,6 @@ class CdsHeader(core.BaseHeader):
             lines = []
             comment_lines = 0
             for line in f:
-                line = line.strip()
                 if in_header:
                     lines.append(line)
                     if line.startswith(("------", "=======")):
@@ -104,15 +103,17 @@ class CdsHeader(core.BaseHeader):
                 break
         else:
             raise ValueError('no line with "Byte-by-byte Description" found')
+        # Locate start of comment column in header line; only strip up to that width.
+        start_comment = max(lines[i_col_def + 2].find("Explanation"), 16)
 
         re_col_def = re.compile(
-            r"""\s*
-                (?P<start> \d+ \s* -)? \s*
-                (?P<end>   \d+)        \s+
-                (?P<format> [\w.]+)     \s+
-                (?P<units> \S+)        \s+
-                (?P<name>  \S+)
-                (\s+ (?P<descr> \S.*))?""",
+            rf"""\s{{0,{(start_comment - 1) // 2}}}
+                 (?P<start> \d+ \s* -)? \s{{0,{start_comment // 2}}}
+                 (?P<end>   \d+)        \s+
+                 (?P<format> [\w.]+)     \s+
+                 (?P<units> \S+)        \s+
+                 (?P<name>  \S+)
+                 (\s+ (?P<descr> \S.*))?""",
             re.VERBOSE,
         )
 
@@ -130,30 +131,11 @@ class CdsHeader(core.BaseHeader):
                 if unit == "---":
                     col.unit = None  # "---" is the marker for no unit in CDS/MRT table
                 else:
-                    try:
-                        col.unit = Unit(unit, format="cds", parse_strict="warn")
-                    except UnitsWarning:
-                        # catch when warnings are turned into errors so we can check
-                        # whether this line is likely a multi-line description (see below)
-                        col.unit = UnrecognizedUnit(unit)
+                    col.unit = Unit(unit, format="cds", parse_strict="warn")
                 col.description = (match.group("descr") or "").strip()
                 col.raw_type = match.group("format")
-                try:
-                    col.type = self.get_col_type(col)
-                except ValueError:
-                    # If parsing the format fails and the unit is unrecognized,
-                    # then this line is likely a continuation of the previous col's
-                    # description that happens to start with a number
-                    if isinstance(col.unit, UnrecognizedUnit):
-                        if len(cols[-1].description) > 0:
-                            cols[-1].description += " "
-                        cols[-1].description += line.strip()
-                        continue
-                else:
-                    if col.unit is not None:
-                        # Because we may have ignored a UnitsWarning turned into an error
-                        # we do this again so it can be raised again if it is a real error
-                        col.unit = Unit(unit, format="cds", parse_strict="warn")
+                col.type = self.get_col_type(col)
+
                 match = re.match(
                     # Matches limits specifier (eg []) that may or may not be
                     # present
