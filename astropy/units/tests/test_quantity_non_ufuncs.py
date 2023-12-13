@@ -2588,12 +2588,12 @@ class TestFunctionHelpersCompleteness:
 
 
 @pytest.mark.parametrize(
-    "functions",
+    "target, helper",
     sorted(
         itertools.chain(FUNCTION_HELPERS.items(), DISPATCHED_FUNCTIONS.items()),
         key=lambda items: items[0].__name__,
     ),
-    ids=lambda items: items[0].__name__,
+    ids=lambda func: func.__name__,
 )
 class TestFunctionHelpersSignatureCompatibility:
     """
@@ -2607,16 +2607,14 @@ class TestFunctionHelpersSignatureCompatibility:
     """
 
     @staticmethod
-    def _have_catchall_argument(parameters, kind) -> bool:
+    def have_catchall_argument(parameters, kind) -> bool:
         return any(p.kind is kind for p in parameters.values())
 
     @staticmethod
-    def _get_param_group(parameters, kinds: list) -> list[str]:
+    def get_param_group(parameters, kinds: list) -> list[str]:
         return [name for name, p in parameters.items() if p.kind in kinds]
 
-    def test_all_arguments_reexposed(self, functions):
-        target, helper = functions
-
+    def test_all_arguments_reexposed(self, target, helper):
         try:
             sig_target = inspect.signature(target)
         except ValueError:
@@ -2626,16 +2624,14 @@ class TestFunctionHelpersSignatureCompatibility:
         sig_helper = inspect.signature(helper)
         params_helper = sig_helper.parameters
 
-        have_args_helper = self._have_catchall_argument(params_helper, VAR_POSITIONAL)
-        have_kwargs_helper = self._have_catchall_argument(params_helper, VAR_KEYWORD)
+        have_args_helper = self.have_catchall_argument(params_helper, VAR_POSITIONAL)
+        have_kwargs_helper = self.have_catchall_argument(params_helper, VAR_KEYWORD)
 
         args_target = list(params_target.items())
         args_helper = list(params_helper.items())
 
-        pos_target = 0
         pos_helper = 0
-        while pos_target < len(args_target):
-            nt, pt = args_target[pos_target]
+        for nt, pt in args_target:
             kt = pt.kind
             if kt in (POSITIONAL_ONLY, POSITIONAL_OR_KEYWORD):
                 assert pos_helper < len(args_helper), (
@@ -2650,6 +2646,7 @@ class TestFunctionHelpersSignatureCompatibility:
                         f"expected {kt}, got {kh}"
                     )
                     pos_helper += 1
+                    continue
             if kt in (KEYWORD_ONLY, POSITIONAL_OR_KEYWORD):
                 if nt in params_helper:
                     assert (kh := params_helper[nt].kind) is kt, (
@@ -2664,19 +2661,17 @@ class TestFunctionHelpersSignatureCompatibility:
                     assert (
                         have_args_helper and have_kwargs_helper
                     ), f"argument {nt!r} is not re-exposed as positional-or-keyword"
-            if pt.kind is VAR_POSITIONAL:
+                continue
+            if kt is VAR_POSITIONAL:
                 assert have_args_helper, "helper is missing a catch-all *args argument"
-            if pt.kind is VAR_KEYWORD:
+                continue
+            if kt is VAR_KEYWORD:
                 assert (
                     have_kwargs_helper
                 ), "helper is missing a catch-all **kwargs argument"
 
-            pos_target += 1
-
-    def test_known_arguments(self, functions):
+    def test_known_arguments(self, target, helper):
         # validate that all exposed arguments map to something in the target
-        target, helper = functions
-
         try:
             sig_target = inspect.signature(target)
         except ValueError:
@@ -2686,47 +2681,24 @@ class TestFunctionHelpersSignatureCompatibility:
         sig_helper = inspect.signature(helper)
         params_helper = sig_helper.parameters
 
-        # a : positional-only
-        positionals_only_target = self._get_param_group(
-            params_helper, [POSITIONAL_ONLY]
-        )
-        positionals_only_helper = self._get_param_group(
-            params_helper, [POSITIONAL_ONLY]
-        )
+        for kind in (POSITIONAL_ONLY, POSITIONAL_OR_KEYWORD):
+            args_target = self.get_param_group(params_helper, [POSITIONAL_ONLY])
+            args_helper = self.get_param_group(params_helper, [POSITIONAL_ONLY])
 
-        if (nhelper := len(positionals_only_helper)) > (
-            ntarget := len(positionals_only_target)
-        ):
-            unknown: list[str] = positionals_only_helper[ntarget:]
-            raise AssertionError(
-                "Found unknown positional-only parameter(s) in helper's signature: "
-                f"{unknown}, at position(s) {list(range(ntarget, nhelper))}"
-            )
+            if (nhelper := len(args_helper)) > (ntarget := len(args_target)):
+                unknown: list[str] = args_helper[ntarget:]
+                raise AssertionError(
+                    f"Found unknown {str(kind).lower().replace('_', '-')} parameter(s) "
+                    "in helper's signature: "
+                    f"{unknown}, at position(s) {list(range(ntarget, nhelper))}"
+                )
 
-        # b: positional-or-keyword
-        # TODO: reduce code duplication with pytest.mark.parametrize ?
-        positional_or_keyword_target = self._get_param_group(
-            params_target, [POSITIONAL_OR_KEYWORD]
-        )
-        positional_or_keyword_helper = self._get_param_group(
-            params_helper, [POSITIONAL_OR_KEYWORD]
-        )
-
-        if (nhelper := len(positional_or_keyword_helper)) > (
-            ntarget := len(positional_or_keyword_target)
-        ):
-            unknown: list[str] = positional_or_keyword_helper[ntarget:]
-            raise AssertionError(
-                "Found unknown positional-or-keyword parameter(s) in helper's signature: "
-                f"{unknown}, at position(s) {list(range(ntarget, nhelper))}"
-            )
-
-        # c: keyword-allowed
+        # keyword-allowed
         keyword_allowed_target = set(
-            self._get_param_group(params_target, [KEYWORD_ONLY, POSITIONAL_OR_KEYWORD])
+            self.get_param_group(params_target, [KEYWORD_ONLY, POSITIONAL_OR_KEYWORD])
         )
         keyword_allowed_helper = set(
-            self._get_param_group(params_helper, [KEYWORD_ONLY, POSITIONAL_OR_KEYWORD])
+            self.get_param_group(params_helper, [KEYWORD_ONLY, POSITIONAL_OR_KEYWORD])
         )
 
         # additional private keyword-only argument are allowed because
