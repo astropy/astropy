@@ -1013,10 +1013,10 @@ def twosetop(ar1, ar2, *args, **kwargs):
     return (ar1, ar2) + args, kwargs, unit, None
 
 
-@function_helper  # np.in1d deprecated in not NUMPY_LT_2_0.
+@function_helper
 def isin(element, test_elements, *args, **kwargs):
-    # This tests whether ar1 is in ar2, so we should change the unit of
-    # a1 to that of a2.
+    # This tests whether element is in test_elements, so we should change the unit of
+    # element to that of test_elements.
     (ar1, ar2), unit = _quantities2arrays(element, test_elements)
     return (ar1, ar2) + args, kwargs, None, None
 
@@ -1024,7 +1024,7 @@ def isin(element, test_elements, *args, **kwargs):
 @function_helper  # np.in1d deprecated in not NUMPY_LT_2_0.
 def in1d(ar1, ar2, *args, **kwargs):
     # This tests whether ar1 is in ar2, so we should change the unit of
-    # a1 to that of a2.
+    # ar1 to that of ar2.
     (ar2, ar1), unit = _quantities2arrays(ar2, ar1)
     return (ar1, ar2) + args, kwargs, None, None
 

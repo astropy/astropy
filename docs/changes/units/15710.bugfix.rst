@@ -1,4 +1,8 @@
 Fix rare signature incompatibilities between helper and helped array functions.
+Most involve cases where the corresponding numpy function has had its
+arguments renamed between numpy versions. Since all those generally changed
+the first arguments, which are typically passed as positional arguments,
+this should not affect user code.
 Affected functions:
 - ``numpy.array_str``
 - ``numpy.choose``

@@ -2627,11 +2627,10 @@ class TestFunctionHelpersSignatureCompatibility:
         have_args_helper = self.have_catchall_argument(params_helper, VAR_POSITIONAL)
         have_kwargs_helper = self.have_catchall_argument(params_helper, VAR_KEYWORD)
 
-        args_target = list(params_target.items())
         args_helper = list(params_helper.items())
 
         pos_helper = 0
-        for nt, pt in args_target:
+        for nt, pt in params_target.items():
             kt = pt.kind
             if kt in (POSITIONAL_ONLY, POSITIONAL_OR_KEYWORD):
                 assert pos_helper < len(args_helper), (
@@ -2647,6 +2646,7 @@ class TestFunctionHelpersSignatureCompatibility:
                     )
                     pos_helper += 1
                     continue
+
             if kt in (KEYWORD_ONLY, POSITIONAL_OR_KEYWORD):
                 if nt in params_helper:
                     assert (kh := params_helper[nt].kind) is kt, (
@@ -2661,11 +2661,9 @@ class TestFunctionHelpersSignatureCompatibility:
                     assert (
                         have_args_helper and have_kwargs_helper
                     ), f"argument {nt!r} is not re-exposed as positional-or-keyword"
-                continue
-            if kt is VAR_POSITIONAL:
+            elif kt is VAR_POSITIONAL:
                 assert have_args_helper, "helper is missing a catch-all *args argument"
-                continue
-            if kt is VAR_KEYWORD:
+            elif kt is VAR_KEYWORD:
                 assert (
                     have_kwargs_helper
                 ), "helper is missing a catch-all **kwargs argument"
@@ -2682,13 +2680,13 @@ class TestFunctionHelpersSignatureCompatibility:
         params_helper = sig_helper.parameters
 
         for kind in (POSITIONAL_ONLY, POSITIONAL_OR_KEYWORD):
-            args_target = self.get_param_group(params_helper, [POSITIONAL_ONLY])
-            args_helper = self.get_param_group(params_helper, [POSITIONAL_ONLY])
+            args_target = self.get_param_group(params_helper, [kind])
+            args_helper = self.get_param_group(params_helper, [kind])
 
             if (nhelper := len(args_helper)) > (ntarget := len(args_target)):
                 unknown: list[str] = args_helper[ntarget:]
                 raise AssertionError(
-                    f"Found unknown {str(kind).lower().replace('_', '-')} parameter(s) "
+                    f"Found unknown {kind} parameter(s) "
                     "in helper's signature: "
                     f"{unknown}, at position(s) {list(range(ntarget, nhelper))}"
                 )
