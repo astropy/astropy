@@ -443,7 +443,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                         mask = y.mask[..., j].flatten()
                     xx = np.ma.array(x, mask=mask)
                     eval_y = model(xx, model_set_axis=False)
-                    eval_y = np.moveaxis(eval_y, model.model_set_axis)[j]
+                    eval_y = np.moveaxis(eval_y, model.model_set_axis, 0)[j]
                     RSS.append(
                         (1 / (xx.count() - n_coeff)) * np.sum((y[..., j] - eval_y) ** 2)
                     )
@@ -470,7 +470,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                     if model.model_set_axis == 1:
                         # model_set_axis passed when evaluating only refers to input shapes
                         # so output must be reshaped for model_set_axis=1.
-                        eval_z = np.moveaxis(eval_z, 1)
+                        eval_z = np.moveaxis(eval_z, 1, 0)
                     eval_z = eval_z[j]
                     RSS.append(
                         [(1 / (len(x) - n_coeff)) * np.sum((z[j] - eval_z) ** 2)]
