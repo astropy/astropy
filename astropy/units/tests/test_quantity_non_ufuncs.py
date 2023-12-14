@@ -25,6 +25,13 @@ from astropy.utils.compat import (
     NUMPY_LT_2_0,
 )
 
+VAR_POSITIONAL = inspect.Parameter.VAR_POSITIONAL
+VAR_KEYWORD = inspect.Parameter.VAR_KEYWORD
+POSITIONAL_ONLY = inspect.Parameter.POSITIONAL_ONLY
+KEYWORD_ONLY = inspect.Parameter.KEYWORD_ONLY
+POSITIONAL_OR_KEYWORD = inspect.Parameter.POSITIONAL_OR_KEYWORD
+
+
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
 )
@@ -2576,3 +2583,142 @@ class TestFunctionHelpersCompleteness:
     @needs_array_function
     def test_ignored_are_untested(self):
         assert IGNORED_FUNCTIONS | TBD_FUNCTIONS == untested_functions
+
+
+@pytest.mark.parametrize(
+    "target, helper",
+    sorted(
+        itertools.chain(FUNCTION_HELPERS.items(), DISPATCHED_FUNCTIONS.items()),
+        key=lambda items: items[0].__name__,
+    ),
+    ids=lambda func: func.__name__,
+)
+class TestFunctionHelpersSignatureCompatibility:
+    """
+    Check that a helper function's signature is *at least* as flexible
+    as the helped (target) function's. E.g., any argument that is allowed positionally,
+    or as keyword, by the target must be re-exposed *somehow* by the helper.
+    We explicitly allow helper's signature to be *more* flexible than the target signature
+    by allowing *args and **kwargs catch-all arguments, which we use to limit code
+    duplication, and also help with forward and backward compatibility.
+    See https://github.com/astropy/astropy/issues/15703
+    """
+
+    @staticmethod
+    def have_catchall_argument(parameters, kind) -> bool:
+        return any(p.kind is kind for p in parameters.values())
+
+    @staticmethod
+    def get_param_group(parameters, kinds: list) -> list[str]:
+        return [name for name, p in parameters.items() if p.kind in kinds]
+
+    def test_all_arguments_reexposed(self, target, helper):
+        try:
+            sig_target = inspect.signature(target)
+        except ValueError:
+            pytest.skip("Non Python function cannot be inspected at runtime")
+
+        params_target = sig_target.parameters
+        sig_helper = inspect.signature(helper)
+        params_helper = sig_helper.parameters
+
+        have_args_helper = self.have_catchall_argument(params_helper, VAR_POSITIONAL)
+        have_kwargs_helper = self.have_catchall_argument(params_helper, VAR_KEYWORD)
+
+        args_helper = list(params_helper.items())
+
+        pos_helper = 0
+        for nt, pt in params_target.items():
+            kt = pt.kind
+            if kt in (POSITIONAL_ONLY, POSITIONAL_OR_KEYWORD):
+                assert pos_helper < len(args_helper), (
+                    "helper's signature is too short; "
+                    "some arguments are not properly re-exposed"
+                )
+                nh, ph = args_helper[pos_helper]
+                if (kh := ph.kind) is not VAR_POSITIONAL:
+                    assert nh == nt, f"argument {nt!r} isn't re-exposed as positional"
+                    assert kh is kt, (
+                        f"helper is not re-exposing argument {nt!r} properly:"
+                        f"expected {kt}, got {kh}"
+                    )
+                    pos_helper += 1
+                    continue
+
+            if kt in (KEYWORD_ONLY, POSITIONAL_OR_KEYWORD):
+                if nt in params_helper:
+                    assert (kh := params_helper[nt].kind) is kt, (
+                        f"helper is not re-exposing argument {nt!r} properly: "
+                        f"expected {kt}, got {kh}"
+                    )
+                elif kt is KEYWORD_ONLY:
+                    assert (
+                        have_kwargs_helper
+                    ), f"argument {nt!r} is not re-exposed as keyword"
+                elif kt is POSITIONAL_OR_KEYWORD:
+                    assert (
+                        have_args_helper and have_kwargs_helper
+                    ), f"argument {nt!r} is not re-exposed as positional-or-keyword"
+            elif kt is VAR_POSITIONAL:
+                assert have_args_helper, "helper is missing a catch-all *args argument"
+            elif kt is VAR_KEYWORD:
+                assert (
+                    have_kwargs_helper
+                ), "helper is missing a catch-all **kwargs argument"
+
+    def test_known_arguments(self, target, helper):
+        # validate that all exposed arguments map to something in the target
+        try:
+            sig_target = inspect.signature(target)
+        except ValueError:
+            pytest.skip("Non Python function cannot be inspected at runtime")
+
+        params_target = sig_target.parameters
+        sig_helper = inspect.signature(helper)
+        params_helper = sig_helper.parameters
+
+        for kind in (POSITIONAL_ONLY, POSITIONAL_OR_KEYWORD):
+            args_target = self.get_param_group(params_helper, [kind])
+            args_helper = self.get_param_group(params_helper, [kind])
+
+            if (nhelper := len(args_helper)) > (ntarget := len(args_target)):
+                unknown: list[str] = args_helper[ntarget:]
+                raise AssertionError(
+                    f"Found unknown {kind} parameter(s) "
+                    "in helper's signature: "
+                    f"{unknown}, at position(s) {list(range(ntarget, nhelper))}"
+                )
+
+        # keyword-allowed
+        keyword_allowed_target = set(
+            self.get_param_group(params_target, [KEYWORD_ONLY, POSITIONAL_OR_KEYWORD])
+        )
+        keyword_allowed_helper = set(
+            self.get_param_group(params_helper, [KEYWORD_ONLY, POSITIONAL_OR_KEYWORD])
+        )
+
+        # additional private keyword-only argument are allowed because
+        # they are only intended for testing purposes.
+        # For instance, quantile has such a parameter '_q_unit'
+        keyword_allowed_helper = {
+            name for name in keyword_allowed_helper if not name.startswith("_")
+        }
+
+        assert not (diff := keyword_allowed_helper - keyword_allowed_target), (
+            "Found some keyword-allowed parameters in helper "
+            f"that are unknown to target: {diff}"
+        )
+
+        # finally, check that default values are correctly replicated
+        for name, ph in params_helper.items():
+            if name not in params_target:
+                # In a few cases, the helper defines names that are not in
+                # the target (e.g., a private name like _q_unit in quantile,
+                # or a *args, **kwargs that captures further arguments
+                # that do not matter. We let such cases slip by.
+                continue
+            pt = params_target[name]
+            assert ph.default == pt.default, (
+                f"Default value mismatch for argument {name!r}. "
+                f"Helper has {ph.default!r}, target has {pt.default!r}"
+            )
