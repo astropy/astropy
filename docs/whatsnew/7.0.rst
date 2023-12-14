@@ -15,6 +15,7 @@ In particular, this release includes:
 * :ref:`whatsnew-7.0-table-masked-quantity`
 * :ref:`whatsnew-7.0-table-frames`
 * :ref:`whatsnew-7.0-table-notebook-backends`
+* :ref:`whatsnew-7.0-table-init-columns-order`
 * :ref:`whatsnew_7_0_quantity_to_string_formatter`
 * :ref:`whatsnew_7_0_numpy_constructors_like_quantity`
 * :ref:`whatsnew_7_0_ecsv_meta_default_dict`
@@ -76,6 +77,43 @@ backends for rendering Astropy tables in Jupyter notebooks.
 .. image:: https://raw.githubusercontent.com/jupyter-widgets/ipydatagrid/main/static/ipydatagrid_1.gif
    :width: 450px
    :alt: Animated DataGrid usage example from ipydatagrid
+
+.. _whatsnew-7.0-table-init-columns-order:
+
+Ordering of table columns constructed from rows
+===============================================
+
+The column order in a `~astropy.table.Table` constructed from a `list` or rows (`dict`
+or `~astropy.table.Row`) may change using ``astropy`` version ``7.0`` *if the
+first row has missing values*.
+
+Before ``7.0``, the column ordering was determined from the first row if it contained
+values for all the columns, or by sorting the final column names alphabetically if it
+did not. Starting with ``7.0``, columns are always added in the order they appear
+when iterating over  the `list` of rows.
+
+For example, create a table as shown below:
+
+    >>> from astropy.table import Table
+    >>> data = [{'b': 10, 'c': 7, },
+    ...         {'a': 15, 'c': 35, 'b': 20}]
+    >>> t = Table(data)  # or Table(rows=data), which is equivalent
+
+
+Before ``7.0`` the table would look like this::
+
+     a   b   c
+    --- --- ---
+     --  10   7
+     15  20  35
+
+
+Starting with ``7.0`` the table would instead look like this::
+
+     b   c   a
+    --- --- ---
+     10   7  --
+     20  35  15
 
 .. _whatsnew_7_0_quantity_to_string_formatter:
 
@@ -316,6 +354,7 @@ now supports version 1.5 of the VOTable standard.  The main new feature is that 
 
 At this writing, version 1.5 is a proposed standard, but it is expected to be approved as an
 official recommendation soon.
+
 
 Full change log
 ===============

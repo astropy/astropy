@@ -209,9 +209,9 @@ def _get_names_from_list_of_dict(rows):
     if rows is None:
         return None
 
-    names = set()
+    names = {}
     for row in rows:
-        if not isinstance(row, Mapping):
+        if not isinstance(row, (Mapping, Row)):
             return None
         names.update(row)
     return list(names)
@@ -1189,17 +1189,7 @@ class Table:
         MISSING = object()
 
         # Gather column names that exist in the input `data`.
-        names_from_data = set()
-        for row in data:
-            names_from_data.update(row)
-
-        if set(data[0].keys()) == names_from_data:
-            names_from_data = list(data[0].keys())
-        else:
-            names_from_data = sorted(names_from_data)
-
-        # Note: if set(data[0].keys()) != names_from_data, this will give an
-        # exception later, so NO need to catch here.
+        names_from_data = _get_names_from_list_of_dict(data)
 
         # Convert list of dict into dict of list (cols), keep track of missing
         # indexes and put in MISSING placeholders in the `cols` lists.
