@@ -2,7 +2,7 @@ name: Check PR change log
 
 on:
   # So it cannot be skipped.
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize, labeled, unlabeled]
 
 concurrency:
@@ -14,7 +14,7 @@ jobs:
     name: Check if towncrier change log entry is correct
     runs-on: ubuntu-latest
     steps:
-    - uses: scientific-python/action-towncrier-changelog@535813cbb8a749517a75e5c0ac339d6ae369b558  # 0.1
+    - uses: pllim/action-towncrier-changelog@pkg-resources
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         BOT_USERNAME: gilesbot
