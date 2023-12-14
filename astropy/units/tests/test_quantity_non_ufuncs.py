@@ -2703,6 +2703,7 @@ class TestFunctionHelpersSignatureCompatibility:
 
         # additional private keyword-only argument are allowed because
         # they are only intended for testing purposes.
+        # For instance, quantile has such a parameter '_q_unit'
         keyword_allowed_helper = {
             name for name in keyword_allowed_helper if not name.startswith("_")
         }
