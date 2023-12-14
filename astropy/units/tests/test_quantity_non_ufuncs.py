@@ -2715,9 +2715,10 @@ class TestFunctionHelpersSignatureCompatibility:
         # finally, check that default values are correctly replicated
         for name, ph in params_helper.items():
             if name not in params_target:
-                # in a few select cases, this is okay,
-                # and it's not this check's responsibility
-                # to deal with these exceptions.
+                # In a few cases, the helper defines names that are not in
+                # the target (e.g., a private name like _q_unit in quantile,
+                # or a *args, **kwargs that captures further arguments
+                # that do not matter. We let such cases slip by.
                 continue
             pt = params_target[name]
             assert ph.default == pt.default, (
