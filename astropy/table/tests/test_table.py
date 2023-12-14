@@ -3551,3 +3551,14 @@ def test_table_columns_update_deprecation():
         ),
     ):
         Table().columns.update({"a": [0]})
+
+
+def test_table_from_rows():
+    # see https://github.com/astropy/astropy/issues/5923
+    t1 = Table()
+    t1["a"] = [1, 2, 3]
+    t1["b"] = [2.0, 3.0, 4.0]
+
+    rows = [row for row in t1]  # noqa: C416
+    t2 = Table(rows=rows)
+    assert_array_equal(t2.colnames, t1.colnames)
