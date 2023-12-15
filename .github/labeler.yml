@@ -9,14 +9,14 @@ Docs:
     - examples/**/*
     - licenses/*
     - CITATION
+    - CITATION.cff
     - .mailmap
     - .readthedocs.yaml
     - '*.md'
-- any:
-  - changed-files:
-    - any-glob-to-any-file:
-      - '*.rst'
-      - '!CHANGES.rst'
+  - all-globs-to-any-file:
+    - '**/*.rst'
+    - '!CHANGES.rst'
+    - '!docs/changes/**/*'
 
 testing:
 - changed-files:
@@ -27,8 +27,32 @@ testing:
     - '**/conftest.py'
     - tox.ini
     - .circleci/*
-    - .github/**/*.yml
+    - .github/workflows/CFF-test.yml
+    - .github/workflows/check_changelog.yml
+    - .github/workflows/ci*.yml
+    - .github/workflows/codeql-analysis.yml
     - .pyinstaller/**/*
+    - .flake8
+    - .pycodestyle
+    - .pre-commit-config.yaml
+    - .ruff.toml
+
+dev-automation:
+- changed-files:
+  - any-glob-to-any-file:
+    - .pre-commit-config.yaml
+    - .ruff.toml
+    - .devcontainer/*
+    - .github/ISSUE_TEMPLATE/*
+    - .github/*
+    - .github/workflows/open_actions.yml
+    - .github/workflows/stalebot.yml
+    - .github/workflows/update_astropy_iers_data_pin.*
+
+skip-changelog-checks:
+- changed-files:
+  - any-glob-to-any-file:
+    - .pre-commit-config.yaml
 
 external:
 - changed-files:
@@ -42,12 +66,13 @@ installation:
     - docs/install.rst
     - MANIFEST.in
     - pyproject.toml
-    - setup.*
+    - setup.py
 
 Release:
 - changed-files:
   - any-glob-to-any-file:
     - docs/development/releasing.rst
+    - .github/workflows/publish.yml
 
 config:
 - changed-files:
@@ -92,14 +117,15 @@ io.misc:
     - astropy/io/misc/*
     - astropy/io/misc/pandas/**/*
     - astropy/io/misc/tests/**/*
-    - docs/io/misc.rst
+    - docs/io/misc*.rst
 
 io.registry:
 - changed-files:
   - any-glob-to-any-file:
     - astropy/io/*
+    - astropy/io/registry/**/*
     - astropy/io/tests/*
-    - docs/io/registry.rst
+    - docs/io/registry*.rst
 
 io.votable:
 - changed-files:
@@ -157,6 +183,8 @@ uncertainty:
 unified-io:
 - changed-files:
   - any-glob-to-any-file:
+    - astropy/table/connect.py
+    - astropy/io/**/connect.py
     - docs/io/unified.rst
 
 units:
@@ -169,20 +197,19 @@ utils:
 - changed-files:
   - any-glob-to-any-file:
     - cextern/expat/**/*
-- any:
-  - changed-files:
-    - any-glob-to-any-file:
-      - '**/utils/**/*'
-      - '!astropy/utils/iers/**/*'
-      - '!docs/utils/iers.rst'
-      - '!astropy/utils/masked/**/*'
-      - '!docs/utils/masked/**/*'
+  - all-globs-to-any-file:
+    - '**/utils/**/*'
+    - '!astropy/utils/iers/**/*'
+    - '!docs/utils/iers.rst'
+    - '!astropy/utils/masked/**/*'
+    - '!docs/utils/masked/**/*'
 
 utils.iers:
 - changed-files:
   - any-glob-to-any-file:
     - astropy/utils/iers/**/*
     - docs/utils/iers.rst
+    - .github/workflows/update_astropy_iers_data_pin.*
 
 utils.masked:
 - changed-files:
@@ -191,11 +218,10 @@ utils.masked:
     - docs/utils/masked/**/*
 
 visualization:
-- any:
-  - changed-files:
-    - all-globs-to-any-file:
-      - '**/visualization/**/*'
-      - '!**/visualization/wcsaxes/**/*'
+- changed-files:
+  - all-globs-to-any-file:
+    - '**/visualization/**/*'
+    - '!**/visualization/wcsaxes/**/*'
 
 visualization.wcsaxes:
 - changed-files:
@@ -206,25 +232,13 @@ wcs:
 - changed-files:
   - any-glob-to-any-file:
     - cextern/wcslib/**/*
-- any:
-  - changed-files:
-    - any-glob-to-any-file:
-      - '**/wcs/**/*'
-      - '!astropy/wcs/wcsapi/**/*'
-      - '!docs/wcs/wcsapi.rst'
+  - all-globs-to-any-file:
+    - '**/wcs/**/*'
+    - '!astropy/wcs/wcsapi/**/*'
+    - '!docs/wcs/wcsapi.rst'
 
 wcs.wcsapi:
 - changed-files:
   - any-glob-to-any-file:
     - astropy/wcs/wcsapi/**/*
     - docs/wcs/wcsapi.rst
-
-dev-automation:
-- changed-files:
-  - any-glob-to-any-file:
-    - .pre-commit-config.yaml
-
-skip-changelog-checks:
-- changed-files:
-  - any-glob-to-any-file:
-    - .pre-commit-config.yaml
