@@ -130,14 +130,14 @@ class CosmologyTest(
     @pytest.fixture(scope="function")  # ensure not cached.
     def ba(self):
         """Return filled `inspect.BoundArguments` for cosmology."""
-        ba = self.cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+        ba = inspect.signature(self.cls).bind(*self.cls_args, **self.cls_kwargs)
         ba.apply_defaults()
         return ba
 
     @pytest.fixture(scope="class")
     def cosmo(self, cosmo_cls):
         """The cosmology instance with which to test."""
-        ba = self.cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+        ba = inspect.signature(self.cls).bind(*self.cls_args, **self.cls_kwargs)
         ba.apply_defaults()
         return cosmo_cls(*ba.args, **ba.kwargs)
 
@@ -173,23 +173,6 @@ class CosmologyTest(
 
         assert UnRegisteredSubclassTest.parameters == cosmo_cls.parameters
         assert UnRegisteredSubclassTest.__qualname__ not in _COSMOLOGY_CLASSES
-
-    def test_init_signature(self, cosmo_cls, cosmo):
-        """Test class-property ``_init_signature``."""
-        # test presence
-        assert hasattr(cosmo_cls, "_init_signature")
-        assert hasattr(cosmo, "_init_signature")
-
-        # test internal consistency, so following tests can use either cls or instance.
-        assert cosmo_cls._init_signature == cosmo._init_signature
-
-        # test matches __init__, but without 'self'
-        sig = inspect.signature(cosmo.__init__)  # (instances don't have self)
-        assert set(sig.parameters) == set(cosmo._init_signature.parameters)
-        assert all(
-            np.all(sig.parameters[k].default == p.default)
-            for k, p in cosmo._init_signature.parameters.items()
-        )
 
     # ---------------------------------------------------------------
     # instance-level
