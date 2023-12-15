@@ -16,12 +16,12 @@ __all__ = [
 import copy
 import warnings
 from collections import defaultdict
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 import numpy as np
 
 from astropy import units as u
-from astropy.utils import ShapedLikeNDArray, check_broadcast
+from astropy.utils import ShapedLikeNDArray, check_broadcast, replace
 from astropy.utils.decorators import deprecated, format_doc, lazyproperty
 from astropy.utils.exceptions import AstropyWarning
 
@@ -2029,3 +2029,10 @@ class GenericFrame(BaseCoordinateFrame):
             raise AttributeError(f"can't set frame attribute '{name}'")
         else:
             super().__setattr__(name, value)
+
+
+@replace.register
+def _replace_frame(
+    obj: BaseCoordinateFrame, /, copy: bool = False, **kwargs: Any
+) -> BaseCoordinateFrame:
+    return obj.replicate(copy=copy, **kwargs)

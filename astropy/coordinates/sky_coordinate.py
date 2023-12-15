@@ -4,7 +4,7 @@ import copy
 import operator
 import re
 import warnings
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import erfa
 import numpy as np
@@ -13,7 +13,7 @@ from astropy import units as u
 from astropy.constants import c as speed_of_light
 from astropy.table import QTable
 from astropy.time import Time
-from astropy.utils import ShapedLikeNDArray
+from astropy.utils import ShapedLikeNDArray, replace
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -2070,3 +2070,14 @@ class SkyCoord(ShapedLikeNDArray):
             return icrs_sky_coord
         else:
             return icrs_sky_coord.transform_to(frame)
+
+
+@replace.register
+def _replace_SkyCoord(obj: SkyCoord, /, copy: bool = False, **kwargs: Any) -> SkyCoord:
+    """
+    A helper function for `~astropy.coordinates.BaseFrame.replace` that
+    handles the `~astropy.coordinates.SkyCoord` class.
+    """
+    # Currently ``replicate`` is not implemented for SkyCoord and returns a
+    # ``BaseCoordinateFrame``object.
+    return obj.__class__(obj.replicate(copy=copy, **kwargs))

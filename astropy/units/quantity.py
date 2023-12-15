@@ -11,6 +11,7 @@ import operator
 import re
 import warnings
 from fractions import Fraction
+from typing import Any
 
 # THIRD PARTY
 import numpy as np
@@ -22,6 +23,7 @@ from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import isiterable
+from astropy.utils.replace import replace
 
 from .core import (
     Unit,
@@ -2235,3 +2237,10 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
         raise UnitsError("'rtol' should be dimensionless")
 
     return actual.value, desired.value, rtol.value, atol.value
+
+
+@replace.register
+def _replace_quantity(obj: Quantity, /, **kwargs: Any) -> Quantity:
+    value = kwargs.pop("value", obj.value)
+    unit = kwargs.pop("unit", obj.unit)
+    return type(obj)(value, unit=unit, **kwargs)
