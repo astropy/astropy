@@ -1,0 +1,2 @@
+``BaseCoordinateFrame`` now has a ``position_angle()`` method, which is the
+same as the ``position_angle`` method of ``SkyCoord`` instances.

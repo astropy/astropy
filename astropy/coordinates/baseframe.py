@@ -26,11 +26,12 @@ from astropy.utils.decorators import deprecated, format_doc, lazyproperty
 from astropy.utils.exceptions import AstropyWarning
 
 from . import representation as r
-from .angles import Angle
+from .angles import Angle, position_angle
 from .attributes import Attribute
 from .transformations import TransformGraph
 
 if TYPE_CHECKING:
+    from astropy.coordinates import Latitude, Longitude, SkyCoord
     from astropy.units import Unit
 
 
@@ -1765,6 +1766,50 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     def __ne__(self, value):
         return np.logical_not(self == value)
 
+    def _prepare_unit_sphere_coords(
+        self, other: BaseCoordinateFrame | SkyCoord
+    ) -> tuple[Longitude, Latitude, Longitude, Latitude]:
+        self_sph = self.represent_as(r.UnitSphericalRepresentation)
+        other_sph = (
+            getattr(other, "frame", other)
+            .transform_to(self)
+            .represent_as(r.UnitSphericalRepresentation)
+        )
+        return self_sph.lon, self_sph.lat, other_sph.lon, other_sph.lat
+
+    def position_angle(self, other: BaseCoordinateFrame | SkyCoord) -> Angle:
+        """Compute the on-sky position angle to another coordinate.
+
+        Parameters
+        ----------
+        other : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
+            The other coordinate to compute the position angle to.  It is
+            treated as the "head" of the vector of the position angle.
+
+        Returns
+        -------
+        `~astropy.coordinates.Angle`
+            The (positive) position angle of the vector pointing from ``self``
+            to ``other``, measured East from North.  If either ``self`` or
+            ``other`` contain arrays, this will be an array following the
+            appropriate `numpy` broadcasting rules.
+
+        Examples
+        --------
+        >>> from astropy import units as u
+        >>> from astropy.coordinates import ICRS, SkyCoord
+        >>> c1 = SkyCoord(0*u.deg, 0*u.deg)
+        >>> c2 = ICRS(1*u.deg, 0*u.deg)
+        >>> c1.position_angle(c2).degree
+        90.0
+        >>> c2.position_angle(c1).degree
+        270.0
+        >>> c3 = SkyCoord(1*u.deg, 1*u.deg)
+        >>> c1.position_angle(c3).degree  # doctest: +FLOAT_CMP
+        44.995636455344844
+        """
+        return position_angle(*self._prepare_unit_sphere_coords(other))
+
     def separation(self, other):
         """
         Computes on-sky separation between this coordinate and another.
@@ -1800,18 +1845,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         """
         from .angles import Angle, angular_separation
 
-        self_unit_sph = self.represent_as(r.UnitSphericalRepresentation)
-        other_unit_sph = (
-            getattr(other, "frame", other)
-            .transform_to(self)
-            .represent_as(r.UnitSphericalRepresentation)
+        return Angle(
+            angular_separation(*self._prepare_unit_sphere_coords(other)), unit=u.degree
         )
-
-        # Get the separation as a Quantity, convert to Angle in degrees
-        sep = angular_separation(
-            self_unit_sph.lon, self_unit_sph.lat, other_unit_sph.lon, other_unit_sph.lat
-        )
-        return Angle(sep, unit=u.degree)
 
     def separation_3d(self, other):
         """

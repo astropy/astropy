@@ -295,6 +295,7 @@ class SkyCoord(ShapedLikeNDArray):
     info = SkyCoordInfo()
 
     # Methods implemented by the underlying frame
+    position_angle: Callable[[BaseCoordinateFrame | SkyCoord], Angle]
     separation: Callable[[BaseCoordinateFrame | SkyCoord], Angle]
     separation_3d: Callable[[BaseCoordinateFrame | SkyCoord], Distance]
 
@@ -1182,7 +1183,7 @@ class SkyCoord(ShapedLikeNDArray):
         --------
         :meth:`~astropy.coordinates.BaseCoordinateFrame.separation` :
             for the *total* angular offset (not broken out into components).
-        position_angle :
+        :meth:`~astropy.coordinates.BaseCoordinateFrame.position_angle` :
             for the direction of the offset.
 
         """
@@ -1255,8 +1256,7 @@ class SkyCoord(ShapedLikeNDArray):
         -------
         newpoints : `~astropy.coordinates.SkyCoord`
             The coordinates for the location that corresponds to offsetting by
-            the given `position_angle` and
-            :meth:`~astropy.coordinates.BaseCoordinateFrame.separation`.
+            the given ``position_angle`` and ``separation``.
 
         Notes
         -----
@@ -1273,8 +1273,10 @@ class SkyCoord(ShapedLikeNDArray):
 
         See Also
         --------
-        position_angle : inverse operation for the ``position_angle`` component
-        :meth:`~astropy.coordinates.BaseCoordinateFrame.separation` : inverse operation for the ``separation`` component
+        :meth:`~astropy.coordinates.BaseCoordinateFrame.position_angle` :
+            inverse operation for the ``position_angle`` component
+        :meth:`~astropy.coordinates.BaseCoordinateFrame.separation` :
+            inverse operation for the ``separation`` component
 
         """
         from .angles import offset_by
@@ -1540,53 +1542,6 @@ class SkyCoord(ShapedLikeNDArray):
         return search_around_3d(
             searcharoundcoords, self, distlimit, storekdtree="_kdtree_3d"
         )
-
-    def position_angle(self, other):
-        """
-        Computes the on-sky position angle (East of North) between this
-        SkyCoord and another.
-
-        Parameters
-        ----------
-        other : |SkyCoord|
-            The other coordinate to compute the position angle to.  It is
-            treated as the "head" of the vector of the position angle.
-
-        Returns
-        -------
-        pa : `~astropy.coordinates.Angle`
-            The (positive) position angle of the vector pointing from ``self``
-            to ``other``.  If either ``self`` or ``other`` contain arrays, this
-            will be an array following the appropriate `numpy` broadcasting
-            rules.
-
-        Examples
-        --------
-        >>> c1 = SkyCoord(0*u.deg, 0*u.deg)
-        >>> c2 = SkyCoord(1*u.deg, 0*u.deg)
-        >>> c1.position_angle(c2).degree
-        90.0
-        >>> c3 = SkyCoord(1*u.deg, 1*u.deg)
-        >>> c1.position_angle(c3).degree  # doctest: +FLOAT_CMP
-        44.995636455344844
-        """
-        from .angles import position_angle
-
-        if not self.is_equivalent_frame(other):
-            try:
-                other = other.transform_to(self, merge_attributes=False)
-            except TypeError:
-                raise TypeError(
-                    "Can only get position_angle to another "
-                    "SkyCoord or a coordinate frame with data"
-                )
-
-        slat = self.represent_as(UnitSphericalRepresentation).lat
-        slon = self.represent_as(UnitSphericalRepresentation).lon
-        olat = other.represent_as(UnitSphericalRepresentation).lat
-        olon = other.represent_as(UnitSphericalRepresentation).lon
-
-        return position_angle(slon, slat, olon, olat)
 
     def skyoffset_frame(self, rotation=None):
         """
