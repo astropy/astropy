@@ -55,6 +55,21 @@ can be used to work with :class:`~astropy.cosmology.Cosmology` objects. For exam
 
 .. doctest-skip::
 
+    >>> from dataclasses import asdict, fields, replace
+    >>> from astropy.cosmology import Planck18
+    >>> replace(Planck18, name="modified", Ob0=0.05)
+    FlatLambdaCDM(name='modified', ..., Ob0=0.05)
+    >>> asdict(Planck18)
+    {'name': 'Planck18', 'meta': ..., 'H0': <Quantity 67.66 km / (Mpc s)>, ...
+    >>> [f.name for f in fields(Planck18)]
+    ['name', 'meta', 'H0', 'Om0', 'Ode0', 'Tcmb0', 'Neff', 'm_nu', 'Ob0']
+
+
+Also, it is now possible to create new :class:`~astropy.cosmology.Cosmology` subclasses
+using :func:`~dataclasses.make_dataclass`::
+
+.. doctest-skip::
+
     >>> from dataclasses import make_dataclass, field, fields
     >>> from astropy.cosmology import Cosmology
     >>> NewC = make_dataclass("NewC", [("newfield", float, field(default=None))],

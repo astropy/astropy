@@ -8,6 +8,7 @@ from numpy import log
 
 import astropy.units as u
 from astropy.cosmology._utils import aszarr
+from astropy.cosmology.core import dataclass_decorator
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from . import scalar_inv_efuncs
@@ -30,6 +31,7 @@ __all__ = ["LambdaCDM", "FlatLambdaCDM"]
 __doctest_requires__ = {"*": ["scipy"]}
 
 
+@dataclass_decorator
 class LambdaCDM(FLRW):
     """FLRW cosmology with a cosmological constant and curvature.
 
@@ -600,6 +602,7 @@ class LambdaCDM(FLRW):
         )
 
 
+@dataclass_decorator
 class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
     """FLRW cosmology with a cosmological constant and no curvature.
 

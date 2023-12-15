@@ -11,7 +11,7 @@ import pytest
 import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology import FLRW, FlatLambdaCDM, LambdaCDM, Parameter, Planck18
-from astropy.cosmology.core import _COSMOLOGY_CLASSES
+from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
 from astropy.cosmology.flrw.base import _a_B_c2, _critdens_const, _H0units_to_invs, quad
 from astropy.cosmology.parameter._core import MISSING
 from astropy.cosmology.tests.helper import get_redshift_methods
@@ -31,6 +31,7 @@ from .conftest import filter_keys_from_items
 # SETUP / TEARDOWN
 
 
+@dataclass_decorator
 class SubFLRW(FLRW):
     def w(self, z):
         return super().w(z)
@@ -1015,6 +1016,7 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
 
         with pytest.raises(TypeError, match="subclasses of"):
 
+            @dataclass_decorator
             class HASOde0SubClass(cosmo_cls):
                 def __init__(self, Ode0):
                     pass
