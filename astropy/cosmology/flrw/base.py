@@ -296,6 +296,10 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         self._inv_efunc_scalar = self.inv_efunc
         self._inv_efunc_scalar_args = ()
 
+    def __post_init__(self):
+        """Post-initialization, for subclasses to override."""
+        super().__post_init__()
+
     # ---------------------------------------------------------------
     # Parameter details
 
