@@ -5,7 +5,6 @@
 import numpy as np
 from numpy import sqrt
 
-import astropy.units as u
 from astropy.cosmology._utils import aszarr
 from astropy.cosmology.core import dataclass_decorator
 from astropy.cosmology.parameter import Parameter
@@ -84,35 +83,6 @@ class wCDM(FLRW):
     w0: Parameter = Parameter(
         default=-1.0, doc="Dark energy equation of state.", fvalidate="float"
     )
-
-    def __init__(
-        self,
-        H0,
-        Om0,
-        Ode0,
-        w0=-1.0,
-        Tcmb0=0.0 * u.K,
-        Neff=3.04,
-        m_nu=0.0 * u.eV,
-        Ob0=None,
-        *,
-        name=None,
-        meta=None,
-    ):
-        super().__init__(
-            H0=H0,
-            Om0=Om0,
-            Ode0=Ode0,
-            Tcmb0=Tcmb0,
-            Neff=Neff,
-            m_nu=m_nu,
-            Ob0=Ob0,
-            name=name,
-            meta=meta,
-        )
-        type(self).parameters["w0"].__set__(self, w0)
-
-        self.__post_init__()
 
     def __post_init__(self):
         super().__post_init__()
@@ -312,33 +282,6 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
     >>> print(cosmo.nonflat)
     wCDM(H0=70.0 km / (Mpc s), Om0=0.3, Ode0=0.7, ...
     """
-
-    def __init__(
-        self,
-        H0,
-        Om0,
-        w0=-1.0,
-        Tcmb0=0.0 * u.K,
-        Neff=3.04,
-        m_nu=0.0 * u.eV,
-        Ob0=None,
-        *,
-        name=None,
-        meta=None,
-    ):
-        super().__init__(
-            H0=H0,
-            Om0=Om0,
-            Ode0=0.0,
-            w0=w0,
-            Tcmb0=Tcmb0,
-            Neff=Neff,
-            m_nu=m_nu,
-            Ob0=Ob0,
-            name=name,
-            meta=meta,
-        )
-        self.__post_init__()
 
     def __post_init__(self):
         super().__post_init__()

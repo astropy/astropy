@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import abc
 import inspect
-from collections import OrderedDict
 from dataclasses import KW_ONLY, dataclass
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
@@ -55,7 +54,7 @@ _CosmoT = TypeVar("_CosmoT", bound="Cosmology")
 _FlatCosmoT = TypeVar("_FlatCosmoT", bound="FlatCosmologyMixin")
 
 # dataclass
-dataclass_decorator = dataclass(frozen=True, repr=False, eq=False, init=False)
+dataclass_decorator = dataclass(frozen=True, repr=False, eq=False, init=True)
 
 ##############################################################################
 
@@ -179,7 +178,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         if not inspect.isabstract(cls):  # skip abstract classes
             cls._register_cls()
 
-    @classproperty(lazy=True)
+    @classproperty(lazy=False)
     def _init_signature(cls):
         """Initialization signature (without 'self')."""
         # get signature, dropping "self" by taking arguments [1:]
@@ -198,11 +197,6 @@ class Cosmology(metaclass=abc.ABCMeta):
         register_cosmology_yaml(cls)
 
     # ---------------------------------------------------------------
-
-    def __init__(self, name=None, meta=None):
-        all_vars = all_cls_vars(self)
-        all_vars["name"].__set__(self, name)
-        all_vars["meta"].__set__(self, OrderedDict(meta or {}))
 
     def __post_init__(self):  # noqa: B027
         """Post-initialization, for subclasses to override."""
