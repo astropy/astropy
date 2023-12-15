@@ -3,8 +3,8 @@
 
 from __future__ import annotations
 
-import abc
 import inspect
+from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 from dataclasses import KW_ONLY, dataclass
 from types import MappingProxyType
@@ -83,7 +83,7 @@ class _NameField:
 
 
 @dataclass_decorator
-class Cosmology(metaclass=abc.ABCMeta):
+class Cosmology(metaclass=ABCMeta):
     """Base-class for all Cosmologies.
 
     Parameters
@@ -200,13 +200,11 @@ class Cosmology(metaclass=abc.ABCMeta):
 
     # ---------------------------------------------------------------
 
-    def __init__(self, name=None, meta=None):
-        all_vars = all_cls_vars(self)
-        all_vars["name"].__set__(self, name)
-        all_vars["meta"].__set__(self, OrderedDict(meta or {}))
+    def __post_init__(self):  # noqa: B027
+        """Post-initialization, for subclasses to override if they need."""
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def is_flat(self):
         """Return bool; `True` if the cosmology is flat.
 
@@ -462,7 +460,7 @@ Cosmology.__dataclass_fields__["meta"].repr = False
 
 
 @dataclass_decorator
-class FlatCosmologyMixin(metaclass=abc.ABCMeta):
+class FlatCosmologyMixin(metaclass=ABCMeta):
     """Mixin class for flat cosmologies.
 
     Do NOT instantiate directly. Note that all instances of
@@ -547,7 +545,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
         return True
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def nonflat(self: _FlatCosmoT) -> _CosmoT:
         """Return the equivalent non-flat-class instance of this cosmology."""
 
