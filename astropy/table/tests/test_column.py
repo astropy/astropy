@@ -464,6 +464,18 @@ class TestColumn:
         with pytest.raises(AttributeError):
             t["a"].mask = [True, False]
 
+    @pytest.mark.parametrize("scalar", [1, u.Quantity(0.6, "eV")])
+    def test_access_scalar(self, scalar):
+        # see https://github.com/astropy/astropy/pull/15749#issuecomment-1867561072
+        c = table.Column(scalar)
+        if isinstance(scalar, u.Quantity):
+            assert c.item() == scalar.value
+        else:
+            assert c.item() == scalar
+
+        with pytest.raises(IndexError):
+            c[0]
+
 
 @pytest.mark.parametrize(
     "data",
