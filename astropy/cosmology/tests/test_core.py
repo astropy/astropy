@@ -74,13 +74,6 @@ class SubCosmology(Cosmology):
     Tcmb0: Parameter = Parameter(default=0 * u.K, unit=u.K)
     m_nu: Parameter = Parameter(default=0 * u.eV, unit=u.eV)
 
-    def __init__(self, H0, Tcmb0=0 * u.K, m_nu=0 * u.eV, name=None, meta=None):
-        super().__init__(name=name, meta=meta)
-        params = self.__class__.parameters
-        params["H0"].__set__(self, H0)
-        params["Tcmb0"].__set__(self, Tcmb0)
-        params["m_nu"].__set__(self, m_nu)
-
     @property
     def is_flat(self):
         return super().is_flat()
@@ -544,9 +537,6 @@ def test__nonflatclass__multiple_nonflat_inheritance():
     # Define a non-operable minimal subclass of Cosmology.
     @dataclass_decorator
     class SubCosmology2(Cosmology):
-        def __init__(self, H0, Tcmb0=0 * u.K, m_nu=0 * u.eV, name=None, meta=None):
-            super().__init__(name=name, meta=meta)
-
         @property
         def is_flat(self):
             return False

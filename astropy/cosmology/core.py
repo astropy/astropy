@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import inspect
 from abc import ABCMeta, abstractmethod
-from collections import OrderedDict
 from dataclasses import KW_ONLY, dataclass
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
@@ -55,7 +54,7 @@ _CosmoT = TypeVar("_CosmoT", bound="Cosmology")
 _FlatCosmoT = TypeVar("_FlatCosmoT", bound="FlatCosmologyMixin")
 
 # dataclass
-dataclass_decorator = dataclass(frozen=True, repr=False, eq=False, init=False)
+dataclass_decorator = dataclass(frozen=True, repr=False, eq=False, init=True)
 
 ##############################################################################
 
@@ -180,7 +179,7 @@ class Cosmology(metaclass=ABCMeta):
         if not inspect.isabstract(cls):  # skip abstract classes
             cls._register_cls()
 
-    @classproperty(lazy=True)
+    @classproperty(lazy=False)
     def _init_signature(cls):
         """Initialization signature (without 'self')."""
         # get signature, dropping "self" by taking arguments [1:]

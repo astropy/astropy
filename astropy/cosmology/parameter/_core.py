@@ -191,7 +191,7 @@ class Parameter:
         # in a dataclass and still return `self` when accessed from a class.
         # Accessing the Parameter object via `cosmo_cls.param_name` will be removed
         # in favor of `cosmo_cls.parameters["param_name"]`.
-        if value is self and self.default is MISSING:
+        if value is self:
             value = self.default
 
         # Validate value, generally setting units if present

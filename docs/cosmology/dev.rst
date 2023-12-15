@@ -59,7 +59,7 @@ and tips and tricks to building a performant cosmology class.
 
     from astropy.cosmology import FLRW
 
-    @dataclass(frozen=True, repr=False, eq=False, init=False)
+    @dataclass(frozen=True, repr=False, eq=False)
     class CustomCosmology(FLRW):
         ...  # [details discussed below]
 
@@ -87,7 +87,7 @@ the definition of |FLRW|.
 
 .. code-block:: python
 
-    @dataclass(frozen=True, repr=False, eq=False, init=False)
+    @dataclass(frozen=True, repr=False, eq=False)
     class FLRW(Cosmology):
 
         H0: Parameter = Parameter(doc="Hubble constant as an `~astropy.units.Quantity` at z=0",
@@ -101,14 +101,9 @@ the definition of |FLRW|.
         Neff: Parameter = Parameter(doc="Number of effective neutrino species.",
                                     default=3.04, fvalidate="non-negative")
         m_nu: Parameter = Parameter(doc="Mass of neutrino species.",
-                                    unit="eV", equivalencies=u.mass_energy())
-        Ob0: Parameter = Parameter(doc="Omega baryon; baryonic matter density/critical density at z=0.")
-
-        def __init__(self, H0, Om0, Ode0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,
-                     Ob0=None, *, name=None, meta=None):
-            params = self.__class__.parameters
-            params["H0"].__set__(self, H0)
-            ...  # for each Parameter in turn
+                                    default=0.0*u.eV, unit="eV", equivalencies=u.mass_energy(), fmt="")
+        Ob0: Parameter = Parameter(doc="Omega baryon; baryonic matter density/critical density at z=0.",
+                                   default=None)
 
         @Ob0.validator
         def Ob0(self, param, value):
@@ -148,7 +143,7 @@ parameter and change any constructor argument. For example, see
 
 .. code-block:: python
 
-    @dataclass(frozen=True, repr=False, eq=False, init=False)
+    @dataclass(frozen=True, repr=False, eq=False)
     class FlatFLRWMixin(FlatCosmologyMixin):
         ...
 

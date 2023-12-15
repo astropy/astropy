@@ -10,7 +10,14 @@ import pytest
 
 import astropy.constants as const
 import astropy.units as u
-from astropy.cosmology import FLRW, FlatLambdaCDM, LambdaCDM, Parameter, Planck18
+from astropy.cosmology import (
+    FLRW,
+    FlatFLRWMixin,
+    FlatLambdaCDM,
+    LambdaCDM,
+    Parameter,
+    Planck18,
+)
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
 from astropy.cosmology.flrw.base import _a_B_c2, _critdens_const, _H0units_to_invs, quad
 from astropy.cosmology.parameter._core import MISSING
@@ -159,7 +166,10 @@ class ParameterOde0TestMixin(ParameterTestMixin):
         )
         assert isinstance(Ode0, Parameter)
         assert "Omega dark energy" in Ode0.__doc__
-        assert Ode0.default is MISSING
+        if issubclass(cosmo_cls, FlatFLRWMixin):
+            assert Ode0.default == 0
+        else:
+            assert Ode0.default is MISSING
 
     def test_Parameter_Ode0_validation(self, cosmo_cls, cosmo):
         """Test Parameter ``Ode0`` validation."""
@@ -277,7 +287,9 @@ class ParameterNeffTestMixin(ParameterTestMixin):
     def test_init_Neff(self, cosmo_cls, ba):
         """Test initialization for values of ``Neff``."""
         # test that it works with units
-        ba.arguments["Neff"] = ba.arguments["Neff"] << u.one  # ensure units
+        ba.arguments["Neff"] = (
+            cosmo_cls.parameters["Neff"].default << u.one
+        )  # ensure units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
         assert cosmo.Neff == ba.arguments["Neff"]
 
@@ -331,14 +343,16 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
         """
         # Test that it works when m_nu has units.
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert np.all(cosmo.m_nu == ba.arguments["m_nu"])  # (& checks len, unit)
+        np.testing.assert_array_equal(
+            cosmo.m_nu, cosmo_cls.parameters["m_nu"].default
+        )  # (& checks len, unit)
         assert not cosmo.has_massive_nu
         assert cosmo.m_nu.unit == u.eV  # explicitly check unit once.
 
         # And it works when m_nu doesn't have units.
-        ba.arguments["m_nu"] = ba.arguments["m_nu"].value  # strip units
+        ba.arguments["m_nu"] = cosmo_cls.parameters["m_nu"].default.value  # strip units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert np.all(cosmo.m_nu.value == ba.arguments["m_nu"])
+        np.testing.assert_array_equal(cosmo.m_nu.value, ba.arguments["m_nu"])
         assert not cosmo.has_massive_nu
 
         # A negative m_nu raises an exception.
@@ -473,7 +487,7 @@ class ParameterOb0TestMixin(ParameterTestMixin):
             cosmo.Odm(1)
 
         # The default value is None
-        assert cosmo_cls._init_signature.parameters["Ob0"].default is None
+        assert cosmo_cls.parameters["Ob0"].default is None
 
 
 class FLRWTest(
@@ -1114,13 +1128,13 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
         assert flat.is_equivalent(cosmo)
         assert cosmo.is_equivalent(flat)
 
-    def test_repr(self, cosmo):
+    def test_repr(self, cosmo_cls, cosmo):
         """
         Test method ``.__repr__()``. Skip non-flat superclass test.
         e.g. `TestFlatLambdaCDDM` -> `FlatFLRWMixinTest`
         vs   `TestFlatLambdaCDDM` -> `TestLambdaCDDM` -> `FlatFLRWMixinTest`
         """
-        FLRWTest.test_repr(self, cosmo)
+        FLRWTest.test_repr(self, cosmo_cls, cosmo)
 
         # test eliminated Ode0 from parameters
         assert "Ode0" not in repr(cosmo)

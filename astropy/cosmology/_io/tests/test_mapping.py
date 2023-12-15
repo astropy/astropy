@@ -209,7 +209,7 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
 
         # not equal, because Tcmb0 is changed, which also changes m_nu
         assert got != cosmo
-        assert got.Tcmb0 == cosmo.__class__._init_signature.parameters["Tcmb0"].default
+        assert got.Tcmb0 == cosmo.__class__.parameters["Tcmb0"].default
         assert got.clone(name=cosmo.name, Tcmb0=cosmo.Tcmb0, m_nu=cosmo.m_nu) == cosmo
         # but the metadata is the same
         assert got.meta == cosmo.meta

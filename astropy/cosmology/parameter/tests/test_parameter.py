@@ -9,7 +9,6 @@ import pytest
 
 import astropy.units as u
 from astropy.cosmology import Cosmology, Parameter
-from astropy.cosmology._utils import all_cls_vars
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
 from astropy.cosmology.parameter._converter import (
     _REGISTRY_FVALIDATORS,
@@ -207,10 +206,6 @@ class TestParameter(ParameterTestMixin):
         class Example1(Cosmology):
             param: Parameter = theparam.clone()
 
-            def __init__(self, param=15, *, name=None, meta=None):
-                super().__init__(name=name, meta=meta)
-                self.__class__.parameters["param"].__set__(self, param)
-
             @property
             def is_flat(self):
                 return super().is_flat()
@@ -218,10 +213,9 @@ class TestParameter(ParameterTestMixin):
         # with validator
         @dataclass_decorator
         class Example2(Example1):
-            def __init__(self, param=15 * u.m, *, name=None, meta=None):
-                super().__init__(param=param, name=name, meta=meta)
+            param: Parameter = theparam.clone(default=15 * u.m)
 
-            @theparam.validator
+            @param.validator
             def param(self, param, value):
                 return value.to(u.km)
 
@@ -438,11 +432,9 @@ class TestParameter(ParameterTestMixin):
     def test_make_from_Parameter(self, cosmo_cls, clean_registry):
         """Test the parameter creation process. Uses ``__set__``."""
 
+        @dataclass_decorator
         class Example(cosmo_cls):
-            param = Parameter(unit=u.eV, equivalencies=u.mass_energy())
-
-            def __init__(self, param, *args, **kwargs):
-                all_cls_vars(self)["param"].__set__(self, param)
+            param: Parameter = Parameter(unit=u.eV, equivalencies=u.mass_energy())
 
             @property
             def is_flat(self):

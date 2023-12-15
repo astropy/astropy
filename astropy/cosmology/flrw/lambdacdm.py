@@ -6,7 +6,6 @@ from numbers import Number
 import numpy as np
 from numpy import log
 
-import astropy.units as u
 from astropy.cosmology._utils import aszarr
 from astropy.cosmology.core import dataclass_decorator
 from astropy.utils.compat.optional_deps import HAS_SCIPY
@@ -88,32 +87,6 @@ class LambdaCDM(FLRW):
     >>> z = 0.5
     >>> dc = cosmo.comoving_distance(z)
     """
-
-    def __init__(
-        self,
-        H0,
-        Om0,
-        Ode0,
-        Tcmb0=0.0 * u.K,
-        Neff=3.04,
-        m_nu=0.0 * u.eV,
-        Ob0=None,
-        *,
-        name=None,
-        meta=None,
-    ):
-        super().__init__(
-            H0=H0,
-            Om0=Om0,
-            Ode0=Ode0,
-            Tcmb0=Tcmb0,
-            Neff=Neff,
-            m_nu=m_nu,
-            Ob0=Ob0,
-            name=name,
-            meta=meta,
-        )
-        self.__post_init__()
 
     def __post_init__(self):
         super().__post_init__()
@@ -676,31 +649,6 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
     >>> print(cosmo.nonflat)
     LambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, Ode0=0.7, ...
     """
-
-    def __init__(
-        self,
-        H0,
-        Om0,
-        Tcmb0=0.0 * u.K,
-        Neff=3.04,
-        m_nu=0.0 * u.eV,
-        Ob0=None,
-        *,
-        name=None,
-        meta=None,
-    ):
-        super().__init__(
-            H0=H0,
-            Om0=Om0,
-            Ode0=0.0,
-            Tcmb0=Tcmb0,
-            Neff=Neff,
-            m_nu=m_nu,
-            Ob0=Ob0,
-            name=name,
-            meta=meta,
-        )
-        self.__post_init__()
 
     def __post_init__(self):
         super().__post_init__()
