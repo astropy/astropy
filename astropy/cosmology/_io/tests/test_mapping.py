@@ -108,7 +108,7 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
         m["mismatching"] = "will error"
 
         # (Tests are different if the last argument is a **kwarg)
-        if tuple(cosmo._init_signature.parameters.values())[-1].kind == 4:
+        if cosmo._init_has_kwargs:
             got = from_format(m, format="mapping")
 
             assert got.name == cosmo.name

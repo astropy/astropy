@@ -53,8 +53,37 @@ _COSMOLOGY_CLASSES = dict()
 _CosmoT = TypeVar("_CosmoT", bound="Cosmology")
 _FlatCosmoT = TypeVar("_FlatCosmoT", bound="FlatCosmologyMixin")
 
-# dataclass
-dataclass_decorator = dataclass(frozen=True, repr=False, eq=False, init=True)
+
+# dataclass transformation
+def _with_signature(cls: type[Cosmology]) -> type[Cosmology]:
+    """Decorator to precompute the class' signature.
+
+    This provides around a 20x speedup for future calls of ``inspect.signature(cls)``.
+    `Cosmology` has a lot of I/O methods that use the signature, so this is a
+    significant speedup for those methods.
+
+    Note that CPython does not promise that this precomputation is a stable feature.
+    If it is removed, the worst that will happen is that the signature will be
+    computed on the fly, the speedup will be lost, and this decorator can be
+    deprecated.
+    """
+    cls.__signature__ = None  # clear the signature cache
+    cls.__signature__ = inspect.signature(cls)  # add the new signature to the class
+    return cls
+
+
+def dataclass_decorator(cls):
+    """Decorator for the dataclass transform.
+
+    Returns
+    -------
+    cls : type
+        The `cls` transformed into a frozen `~dataclasses.dataclass`.
+        The ``__eq__`` method is custom (``eq=False``).
+        The signature is precomputed and added to the class.
+    """
+    return _with_signature(dataclass(frozen=True, repr=False, eq=False, init=True)(cls))
+
 
 ##############################################################################
 
@@ -145,6 +174,8 @@ class Cosmology(metaclass=ABCMeta):
     _parameters_derived: ClassVar = MappingProxyType[str, Parameter]({})
     _parameters_all: ClassVar = frozenset[str]()
 
+    __signature__: ClassVar[inspect.Signature | None] = None
+
     # ---------------------------------------------------------------
 
     def __init_subclass__(cls):
@@ -167,14 +198,6 @@ class Cosmology(metaclass=ABCMeta):
 
         if not inspect.isabstract(cls):  # skip abstract classes
             cls._register_cls()
-
-    @classproperty(lazy=False)
-    def _init_signature(cls):
-        """Initialization signature (without 'self')."""
-        # get signature, dropping "self" by taking arguments [1:]
-        sig = inspect.signature(cls.__init__)
-        sig = sig.replace(parameters=list(sig.parameters.values())[1:])
-        return sig
 
     @classmethod
     def _register_cls(cls):
@@ -256,6 +279,13 @@ class Cosmology(metaclass=ABCMeta):
             object.__setattr__(cloned, "name", self.name)
 
         return cloned
+
+    @classproperty
+    def _init_has_kwargs(cls):
+        return (
+            next(reversed(cls.__signature__.parameters.values())).kind
+            == inspect.Parameter.VAR_KEYWORD
+        )
 
     # ---------------------------------------------------------------
     # comparison methods

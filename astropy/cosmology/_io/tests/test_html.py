@@ -79,7 +79,7 @@ class ReadWriteHTMLTestMixin(ReadWriteTestMixinBase):
         tbl.write(fp, format="ascii.html", overwrite=True)
 
         # tests are different if the last argument is a **kwarg
-        if tuple(cosmo._init_signature.parameters.values())[-1].kind == 4:
+        if cosmo._init_has_kwargs:
             got = read(fp, format="ascii.html")
 
             assert got.__class__ is cosmo_cls

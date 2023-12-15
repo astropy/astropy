@@ -91,7 +91,7 @@ class ReadWriteECSVTestMixin(ReadWriteTestMixinBase):
         tbl.write(fp, format="ascii.ecsv", overwrite=True)
 
         # tests are different if the last argument is a **kwarg
-        if tuple(cosmo._init_signature.parameters.values())[-1].kind == 4:
+        if cosmo._init_has_kwargs:
             got = read(fp, format="ascii.ecsv")
 
             assert got.__class__ is cosmo_cls

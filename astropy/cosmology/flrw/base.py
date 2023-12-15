@@ -5,6 +5,7 @@ from __future__ import annotations
 
 __all__ = ["FLRW", "FlatFLRWMixin"]
 
+import inspect
 import warnings
 from abc import abstractmethod
 from dataclasses import field
@@ -1520,7 +1521,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
     def nonflat(self: _FlatFLRWMixinT) -> _FLRWT:
         # Create BoundArgument to handle args versus kwargs.
         # This also handles all errors from mismatched arguments
-        ba = self.__nonflatclass__._init_signature.bind_partial(
+        ba = inspect.signature(self.__nonflatclass__).bind_partial(
             **dict(self.parameters), Ode0=self.Ode0, name=self.name
         )
         # Make new instance, respecting args vs kwargs
