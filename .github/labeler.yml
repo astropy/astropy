@@ -191,10 +191,11 @@ utils.masked:
     - docs/utils/masked/**/*
 
 visualization:
-- changed-files:
-  - any-glob-to-any-file:
-    - '**/visualization/**/*'
-    - '!**/visualization/wcsaxes/**/*'
+- any:
+  - changed-files:
+    - all-glob-to-any-file:
+      - '**/visualization/**/*'
+      - '!**/visualization/wcsaxes/**/*'
 
 visualization.wcsaxes:
 - changed-files:
