@@ -204,6 +204,9 @@ class Cosmology(metaclass=abc.ABCMeta):
         all_vars["name"].__set__(self, name)
         all_vars["meta"].__set__(self, OrderedDict(meta or {}))
 
+    def __post_init__(self):  # noqa: B027
+        """Post-initialization, for subclasses to override."""
+
     @property
     @abc.abstractmethod
     def is_flat(self):

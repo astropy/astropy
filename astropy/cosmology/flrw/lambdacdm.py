@@ -113,6 +113,10 @@ class LambdaCDM(FLRW):
             name=name,
             meta=meta,
         )
+        self.__post_init__()
+
+    def __post_init__(self):
+        super().__post_init__()
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
@@ -685,6 +689,10 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
             name=name,
             meta=meta,
         )
+        self.__post_init__()
+
+    def __post_init__(self):
+        super().__post_init__()
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
