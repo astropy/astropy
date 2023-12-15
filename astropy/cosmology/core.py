@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import abc
 import inspect
+from collections import OrderedDict
 from dataclasses import KW_ONLY, dataclass
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
@@ -114,7 +115,7 @@ class Cosmology(metaclass=abc.ABCMeta):
     name: _NameField = _NameField()
     """The name of the cosmology realization, e.g. 'Planck2018' or `None`."""
 
-    meta = MetaData()
+    meta: MetaData = MetaData()
 
     # Unified I/O object interchange methods
     from_format: ClassVar = UnifiedReadWriteMethod(CosmologyFromFormat)
@@ -200,8 +201,9 @@ class Cosmology(metaclass=abc.ABCMeta):
     # ---------------------------------------------------------------
 
     def __init__(self, name=None, meta=None):
-        all_cls_vars(self)["name"].__set__(self, name)
-        self.meta.update(meta or {})
+        all_vars = all_cls_vars(self)
+        all_vars["name"].__set__(self, name)
+        all_vars["meta"].__set__(self, OrderedDict(meta or {}))
 
     @property
     @abc.abstractmethod
@@ -451,6 +453,12 @@ class Cosmology(metaclass=abc.ABCMeta):
             Instance of type ``cls``.
         """
         return self.to_format("astropy.table", cls=cls, **kwargs)
+
+
+# Manipulate the dataclass fields for fields that are not created by `dataclass.fields`
+# and thus do not have a mechanism for setting "compare", "repr", etc.
+Cosmology.__dataclass_fields__["meta"].compare = False
+Cosmology.__dataclass_fields__["meta"].repr = False
 
 
 @dataclass_decorator
