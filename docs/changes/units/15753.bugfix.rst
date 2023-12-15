@@ -1,0 +1,1 @@
+Fix unicode str reprs of units when printing them in combination with power, the unit should take the shortname and sync up behavior with latex.

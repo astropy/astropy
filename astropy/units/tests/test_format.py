@@ -815,18 +815,53 @@ def test_fits_scale_factor_errors():
     assert x.to_string(format="fits") == "10**2 erg"
 
 
-def test_double_superscript():
+@pytest.mark.parametrize(
+    "format, strings",
+    [
+        (
+            "latex",
+            [
+                r"$\mathrm{{}^{\circ}}$",
+                r"$\mathrm{deg^{2}}$",
+                r"$\mathrm{{}^{\prime}}$",
+                r"$\mathrm{arcmin^{2}}$",
+                r"$\mathrm{{}^{\prime\prime}}$",
+                r"$\mathrm{arcsec^{2}}$",
+                r"$\mathrm{{}^{h}}$",
+                r"$\mathrm{hourangle^{2}}$",
+                r"$\mathrm{e^{-}}$",
+                r"$\mathrm{electron^{2}}$",
+            ],
+        ),
+        (
+            "unicode",
+            [
+                "°",
+                "deg²",
+                "′",
+                "arcmin²",
+                "″",
+                "arcsec²",
+                "ʰ",
+                "hourangle²",
+                "e⁻",
+                "electron²",
+            ],
+        ),
+    ],
+)
+def test_double_superscript(format, strings):
     """Regression test for #5870, #8699, #9218; avoid double superscripts."""
-    assert (u.deg).to_string("latex") == r"$\mathrm{{}^{\circ}}$"
-    assert (u.deg**2).to_string("latex") == r"$\mathrm{deg^{2}}$"
-    assert (u.arcmin).to_string("latex") == r"$\mathrm{{}^{\prime}}$"
-    assert (u.arcmin**2).to_string("latex") == r"$\mathrm{arcmin^{2}}$"
-    assert (u.arcsec).to_string("latex") == r"$\mathrm{{}^{\prime\prime}}$"
-    assert (u.arcsec**2).to_string("latex") == r"$\mathrm{arcsec^{2}}$"
-    assert (u.hourangle).to_string("latex") == r"$\mathrm{{}^{h}}$"
-    assert (u.hourangle**2).to_string("latex") == r"$\mathrm{hourangle^{2}}$"
-    assert (u.electron).to_string("latex") == r"$\mathrm{e^{-}}$"
-    assert (u.electron**2).to_string("latex") == r"$\mathrm{electron^{2}}$"
+    assert (u.deg).to_string(format) == strings[0]
+    assert (u.deg**2).to_string(format) == strings[1]
+    assert (u.arcmin).to_string(format) == strings[2]
+    assert (u.arcmin**2).to_string(format) == strings[3]
+    assert (u.arcsec).to_string(format) == strings[4]
+    assert (u.arcsec**2).to_string(format) == strings[5]
+    assert (u.hourangle).to_string(format) == strings[6]
+    assert (u.hourangle**2).to_string(format) == strings[7]
+    assert (u.electron).to_string(format) == strings[8]
+    assert (u.electron**2).to_string(format) == strings[9]
 
 
 def test_no_prefix_superscript():

@@ -5,7 +5,9 @@ Handles the "Unicode" unit format.
 """
 
 
-from . import console
+import astropy.units as u
+
+from . import console, utils
 
 
 class Unicode(console.Console):
@@ -32,6 +34,23 @@ class Unicode(console.Console):
     @classmethod
     def _format_mantissa(cls, m):
         return m.replace("-", "−")
+
+    @classmethod
+    def _format_unit_power(cls, unit, power=1):
+        superscript_unicode_units = [
+            u.arcsec,
+            u.arcmin,
+            u.degree,
+            u.hourangle,
+            u.electron,
+        ]
+        name = cls._get_unit_name(unit)
+        if power != 1 and unit in superscript_unicode_units:
+            name = unit.short_names[0]
+            name += cls._format_superscript(utils.format_power(power))
+            return name
+        else:
+            return super()._format_unit_power(unit, power)
 
     @classmethod
     def _format_superscript(cls, number):
