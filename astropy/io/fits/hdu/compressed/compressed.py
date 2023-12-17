@@ -374,7 +374,6 @@ class CompImageHDU(BinTableHDU):
                     f"(ZBLANK={zblank}, BLANK={orig_blank})"
                 )
             self._header["BLANK"] = zblank
-        
 
     def _remove_unnecessary_default_extnames(self, header):
         """Remove default EXTNAME values if they are unnecessary.
