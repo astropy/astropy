@@ -1,0 +1,5 @@
+Removed deprecated ``exp`` attribute in the ``LogStretch``,
+``InvertedLogStretch``, ``PowerDistStretch``, and
+``InvertedPowerDistStretch`` stretch classes, and the ``power``
+attribute in the ``PowerStretch``. Instead, use the ``a`` attribute,
+which matches the input keyword.
