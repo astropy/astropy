@@ -1,1 +1,4 @@
-Fix issue with unicode string representations of units (with superscripts) when printing them in combination with power. The unit now behaves consistently with LaTeX representation and uses the literal short name instead of superscript unicode character in combination with power.
+Fix an issue with unicode string representations of units shown as
+superscripts (like degree) when raised to some power. Like for
+LaTeX representations, now the superscript unicode character is
+replaced by the literal short name before adding the power.

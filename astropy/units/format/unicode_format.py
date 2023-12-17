@@ -35,12 +35,11 @@ class Unicode(console.Console):
     def _format_unit_power(cls, unit, power=1):
         name = cls._get_unit_name(unit)
         # Check for superscript units
-        if power != 1 and name in ("°", "e⁻", "″", "′", "ʰ"):
-            name = unit.short_names[0]
+        if power != 1:
+            if name in ("°", "e⁻", "″", "′", "ʰ"):
+                name = unit.short_names[0]
             name += cls._format_superscript(utils.format_power(power))
-            return name
-        else:
-            return super()._format_unit_power(unit, power)
+        return name
 
     @classmethod
     def _format_superscript(cls, number):
