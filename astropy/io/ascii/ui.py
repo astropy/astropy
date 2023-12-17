@@ -118,16 +118,6 @@ def set_guess(guess):
     _GUESS = guess
 
 
-# Make these changes in version 7.0 (hopefully!).
-@deprecated_renamed_argument("Reader", "reader_cls", "6.0")
-@deprecated_renamed_argument("Inputter", "inputter_cls", "6.0")
-@deprecated_renamed_argument("Outputter", "outputter_cls", "6.0")
-@deprecated_renamed_argument(
-    "header_Splitter", "header_splitter_cls", "6.0", arg_in_kwargs=True
-)
-@deprecated_renamed_argument(
-    "data_Splitter", "data_splitter_cls", "6.0", arg_in_kwargs=True
-)
 def get_reader(reader_cls=None, inputter_cls=None, outputter_cls=None, **kwargs):
     """
     Initialize a table reader allowing for common customizations.
@@ -293,18 +283,6 @@ def _expand_user_if_path(argument):
     return argument
 
 
-# Make these changes in version 7.0 (hopefully!).
-@deprecated_renamed_argument(
-    "Reader", None, "6.0", arg_in_kwargs=True, alternative='"format"'
-)
-@deprecated_renamed_argument("Inputter", "inputter_cls", "6.0", arg_in_kwargs=True)
-@deprecated_renamed_argument("Outputter", "outputter_cls", "6.0", arg_in_kwargs=True)
-@deprecated_renamed_argument(
-    "header_Splitter", "header_splitter_cls", "6.0", arg_in_kwargs=True
-)
-@deprecated_renamed_argument(
-    "data_Splitter", "data_splitter_cls", "6.0", arg_in_kwargs=True
-)
 def read(table, guess=None, **kwargs):
     # This the final output from reading. Static analysis indicates the reading
     # logic (which is indeed complex) might not define `dat`, thus do so here.
@@ -312,9 +290,8 @@ def read(table, guess=None, **kwargs):
 
     # Specifically block `reader_cls` kwarg, which will otherwise allow a backdoor from
     # read() to specify the reader class. Mostly for testing.
-    # For 7.0+, do the same check for `Reader`.
-    if "reader_cls" in kwargs:
-        raise TypeError("read() got an unexpected keyword argument 'reader_cls'")
+    if "Reader" in kwargs:
+        raise TypeError("read() got an unexpected keyword argument 'Reader'")
 
     # Docstring defined below
     del _read_trace[:]
@@ -348,9 +325,7 @@ def read(table, guess=None, **kwargs):
     kwargs["fast_reader"] = copy.deepcopy(fast_reader)
 
     # Get the Reader class based on possible format and reader_cls kwarg inputs.
-    reader_cls = _get_format_class(format, new_kwargs.pop("Reader", None), "Reader")
-    # For 7.0+ when `Reader` is removed:
-    # reader_cls = _get_format_class(format, None, "Reader")
+    reader_cls = _get_format_class(format, None, "Reader")
 
     if reader_cls is not None:
         new_kwargs["reader_cls"] = reader_cls
@@ -973,13 +948,8 @@ def write(
 
     # Specifically block `writer_cls` kwarg, which will otherwise allow a backdoor from
     # read() to specify the reader class. Mostly for testing.
-    # For 7.0+, do the same check for `Reader`.
-    if "writer_cls" in kwargs:
-        raise TypeError("write() got an unexpected keyword argument 'writer_cls'")
-
-    # For version 7.0+ (after Writer kwarg is removed):
-    # if "Writer" in kwargs:
-    #     raise TypeError("write() got an unexpected keyword argument 'Writer'")
+    if "Writer" in kwargs:
+        raise TypeError("write() got an unexpected keyword argument 'Writer'")
 
     _validate_read_write_kwargs(
         "write", format=format, fast_writer=fast_writer, overwrite=overwrite, **kwargs
@@ -1024,9 +994,7 @@ def write(
     if table.has_mixin_columns:
         fast_writer = False
 
-    writer_cls = _get_format_class(format, Writer, "Writer")
-    # For version 7.0+:
-    # writer_cls = _get_format_class(format, None, "Writer")
+    writer_cls = _get_format_class(format, None, "Writer")
     writer = get_writer(writer_cls=writer_cls, fast_writer=fast_writer, **kwargs)
     if writer._format_name in core.FAST_CLASSES:
         writer.write(table, output)
