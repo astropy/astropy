@@ -21,7 +21,6 @@ from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyWarning
-from astropy.utils.misc import isiterable
 
 from .core import (
     Unit,
@@ -489,10 +488,9 @@ class Quantity(np.ndarray):
                     if unit is None:
                         unit = value_unit  # signal no conversion needed below.
 
-            elif isiterable(value) and len(value) > 0:
-                # Iterables like lists and tuples.
+            elif isinstance(value, (list, tuple)) and len(value) > 0:
                 if all(isinstance(v, Quantity) for v in value):
-                    # If a list/tuple containing only quantities, convert all
+                    # If a list/tuple contains only quantities, convert all
                     # to the same unit.
                     if unit is None:
                         unit = value[0].unit
