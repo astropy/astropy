@@ -358,7 +358,11 @@ def decompress_image_data_section(
     else:
         zzero_column = None
 
-    zblank_header = compressed_header.get("ZBLANK", None)
+    # Only handle ZBLANK if we're dealing with floats
+    if zbitpix < 0 and "ZBLANK" in compressed_header:
+        zblank_header = compressed_header["ZBLANK"]
+    else:
+        zblank_header = None
 
     gzip_compressed_data_column = None
     gzip_compressed_data_dtype = None
