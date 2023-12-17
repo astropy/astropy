@@ -109,7 +109,11 @@ if NUMPY_LT_2_0:
     SUBCLASS_SAFE_FUNCTIONS |= {np.msort, np.round_}  # noqa: NPY003
 else:
     # Array-API compatible versions (matrix axes always at end).
-    SUBCLASS_SAFE_FUNCTIONS |= {np.linalg.diagonal, np.linalg.trace}
+    SUBCLASS_SAFE_FUNCTIONS |= {
+        np.matrix_transpose, np.linalg.matrix_transpose,
+        np.linalg.diagonal, np.linalg.trace,
+        np.linalg.matrix_norm, np.linalg.vector_norm, np.linalg.vecdot,
+    }  # fmt: skip
 
     # these work out of the box (and are tested), because they
     # delegate to other, already wrapped functions from the np namespace
@@ -664,6 +668,15 @@ def cross_like_a_v(a, v, *args, **kwargs):
     a, v = _as_quantities(a, v)
     unit = a.unit * v.unit
     return (a.view(np.ndarray), v.view(np.ndarray)) + args, kwargs, unit, None
+
+
+if not NUMPY_LT_2_0:
+
+    @function_helper
+    def vecdot(x1, x2, /, *args, **kwargs):
+        # Just change the names; note that this really should be subclass-safe;
+        # see https://github.com/numpy/numpy/pull/25155/files#r1429215558
+        return cross_like_a_v(x1, x2, *args, **kwargs)
 
 
 @function_helper
