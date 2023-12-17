@@ -1,1 +1,1 @@
-Fix unicode str reprs of units when printing them in combination with power, the unit should take the shortname and sync up behavior with latex.
+Fix issue with unicode string representations of units (with superscripts) when printing them in combination with power. The unit now behaves consistently with LaTeX representation and uses the literal short name instead of superscript unicode character in combination with power.

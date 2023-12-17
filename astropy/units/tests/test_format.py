@@ -816,52 +816,24 @@ def test_fits_scale_factor_errors():
 
 
 @pytest.mark.parametrize(
-    "format, strings",
+    "unit, latex, unicode",
     [
-        (
-            "latex",
-            [
-                r"$\mathrm{{}^{\circ}}$",
-                r"$\mathrm{deg^{2}}$",
-                r"$\mathrm{{}^{\prime}}$",
-                r"$\mathrm{arcmin^{2}}$",
-                r"$\mathrm{{}^{\prime\prime}}$",
-                r"$\mathrm{arcsec^{2}}$",
-                r"$\mathrm{{}^{h}}$",
-                r"$\mathrm{hourangle^{2}}$",
-                r"$\mathrm{e^{-}}$",
-                r"$\mathrm{electron^{2}}$",
-            ],
-        ),
-        (
-            "unicode",
-            [
-                "°",
-                "deg²",
-                "′",
-                "arcmin²",
-                "″",
-                "arcsec²",
-                "ʰ",
-                "hourangle²",
-                "e⁻",
-                "electron²",
-            ],
-        ),
+        (u.deg, r"$\mathrm{{}^{\circ}}$", "°"),
+        (u.deg**2, r"$\mathrm{deg^{2}}$", "deg²"),
+        (u.arcmin, r"$\mathrm{{}^{\prime}}$", "′"),
+        (u.arcmin**2, r"$\mathrm{arcmin^{2}}$", "arcmin²"),
+        (u.arcsec, r"$\mathrm{{}^{\prime\prime}}$", "″"),
+        (u.arcsec**2, r"$\mathrm{arcsec^{2}}$", "arcsec²"),
+        (u.hourangle, r"$\mathrm{{}^{h}}$", "ʰ"),
+        (u.hourangle**2, r"$\mathrm{hourangle^{2}}$", "hourangle²"),
+        (u.electron, r"$\mathrm{e^{-}}$", "e⁻"),
+        (u.electron**2, r"$\mathrm{electron^{2}}$", "electron²"),
     ],
 )
-def test_double_superscript(format, strings):
-    """Regression test for #5870, #8699, #9218; avoid double superscripts."""
-    assert (u.deg).to_string(format) == strings[0]
-    assert (u.deg**2).to_string(format) == strings[1]
-    assert (u.arcmin).to_string(format) == strings[2]
-    assert (u.arcmin**2).to_string(format) == strings[3]
-    assert (u.arcsec).to_string(format) == strings[4]
-    assert (u.arcsec**2).to_string(format) == strings[5]
-    assert (u.hourangle).to_string(format) == strings[6]
-    assert (u.hourangle**2).to_string(format) == strings[7]
-    assert (u.electron).to_string(format) == strings[8]
-    assert (u.electron**2).to_string(format) == strings[9]
+def test_double_superscript(unit, latex, unicode):
+    """Regression test for #5870, #8699, #9218, #14403; avoid double superscripts."""
+    assert unit.to_string("latex") == latex
+    assert unit.to_string("unicode") == unicode
 
 
 def test_no_prefix_superscript():

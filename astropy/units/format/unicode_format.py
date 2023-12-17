@@ -3,10 +3,6 @@
 """
 Handles the "Unicode" unit format.
 """
-
-
-import astropy.units as u
-
 from . import console, utils
 
 
@@ -37,15 +33,9 @@ class Unicode(console.Console):
 
     @classmethod
     def _format_unit_power(cls, unit, power=1):
-        superscript_unicode_units = [
-            u.arcsec,
-            u.arcmin,
-            u.degree,
-            u.hourangle,
-            u.electron,
-        ]
         name = cls._get_unit_name(unit)
-        if power != 1 and unit in superscript_unicode_units:
+        # Check for superscript units
+        if power != 1 and name in ("°", "e⁻", "″", "′", "ʰ"):
             name = unit.short_names[0]
             name += cls._format_superscript(utils.format_power(power))
             return name
