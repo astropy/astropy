@@ -47,7 +47,7 @@ from astropy.units.core import (
     dimensionless_unscaled,
 )
 from astropy.utils import isiterable
-from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24, NUMPY_LT_2_0
+from astropy.utils.compat import NUMPY_LT_1_24, NUMPY_LT_2_0
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
@@ -156,12 +156,6 @@ IGNORED_FUNCTIONS = {
     # functions taking record arrays (which are deprecated)
     rfn.rec_append_fields, rfn.rec_drop_fields, rfn.rec_join,
 }  # fmt: skip
-if NUMPY_LT_1_23:
-    IGNORED_FUNCTIONS |= {
-        # Deprecated, removed in numpy 1.23
-        np.asscalar,
-        np.alen,
-    }
 UNSUPPORTED_FUNCTIONS |= IGNORED_FUNCTIONS
 
 

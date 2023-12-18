@@ -9,7 +9,7 @@ import numpy as np
 
 from astropy import stats
 from astropy import units as u
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_23, NUMPY_LT_2_0
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 if NUMPY_LT_2_0:
     from numpy.core.multiarray import normalize_axis_index
@@ -107,8 +107,7 @@ class Distribution:
         # original samples (e.g., to set the unit for QuantityDistribution).
         new_cls = cls._get_distribution_cls(type(samples))
         self = structured.view(new_cls)
-        if not NUMPY_LT_1_23 or callable(self.__array_finalize__):
-            self.__array_finalize__(samples)
+        self.__array_finalize__(samples)
         return self
 
     @classmethod
@@ -586,8 +585,7 @@ class ArrayDistribution(Distribution, np.ndarray):
         # would give problems with units.
         structured = super().view(np.ndarray)
         distribution = structured["samples"]["sample"].view(self._samples_cls)
-        if not NUMPY_LT_1_23 or callable(self.__array_finalize__):
-            distribution.__array_finalize__(self)
+        distribution.__array_finalize__(self)
         return distribution
 
     def __getitem__(self, item):

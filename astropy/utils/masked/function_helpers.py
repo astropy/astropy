@@ -12,7 +12,7 @@ interpreted.
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
-from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24, NUMPY_LT_2_0
+from astropy.utils.compat import NUMPY_LT_1_24, NUMPY_LT_2_0
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
@@ -162,13 +162,6 @@ else:
     from numpy.lib import _arraysetops_impl as arraysetops
 
 IGNORED_FUNCTIONS |= {getattr(np, setopsname) for setopsname in arraysetops.__all__}
-
-if NUMPY_LT_1_23:
-    IGNORED_FUNCTIONS |= {
-        # Deprecated, removed in numpy 1.23
-        np.asscalar,
-        np.alen,
-    }
 
 # Explicitly unsupported functions
 UNSUPPORTED_FUNCTIONS |= {
