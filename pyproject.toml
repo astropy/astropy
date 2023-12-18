@@ -44,6 +44,7 @@ dependencies = [
     "astropy-iers-data>=0.2023.11.27.0.30.38",
     "PyYAML>=3.13",
     "packaging>=19.0",
+    "lazy_loader>=0.3",
 ]
 
 [project.optional-dependencies]
@@ -91,7 +92,6 @@ all = [
     "fsspec[http]>=2023.4.0",
     "s3fs>=2023.4.0",
     "pre-commit",
-    "lazy_loader"
 ]
 docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
@@ -125,7 +125,8 @@ requires = ["setuptools",
             "setuptools_scm>=6.2",
             "cython>=3.0.0,<3.1.0",
             "numpy>=1.25",
-            "extension-helpers==1.*"]
+            "extension-helpers==1.*",
+            "lazy_loader>=0.3"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
