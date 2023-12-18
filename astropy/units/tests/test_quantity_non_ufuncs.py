@@ -209,6 +209,11 @@ class TestShapeManipulation(InvariantUnitTestSetup):
         assert type(a1) is np.ndarray
         assert type(a2) is np.ndarray
 
+    if not NUMPY_LT_2_0:
+
+        def test_matrix_transpose(self):
+            self.check(np.matrix_transpose)
+
 
 class TestArgFunctions(NoUnitTestSetup):
     def test_argmin(self):
@@ -1121,6 +1126,15 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
         q2 = np.array([4j, 5j, 6j]) / u.s
         o = np.vdot(q1, q2)
         assert o == (32.0 + 0j) * u.m / u.s
+
+    if not NUMPY_LT_2_0:
+
+        @needs_array_function
+        def test_vecdot(self):
+            q1 = np.array([1j, 2j, 3j]) * u.m
+            q2 = np.array([4j, 5j, 6j]) / u.s
+            o = np.vecdot(q1, q2)
+            assert o == (32.0 + 0j) * u.m / u.s
 
     @needs_array_function
     def test_tensordot(self):
@@ -2367,6 +2381,12 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
             assert_allclose(res, ref, rtol=5e-16)
 
         @needs_array_function
+        def test_linalg_vecdot(self):
+            ref = (self.q * self.q).sum(-1)
+            res = np.linalg.vecdot(self.q, self.q)
+            assert_array_equal(res, ref)
+
+        @needs_array_function
         def test_linalg_tensordot(self):
             ref = np.tensordot(self.q, self.q)
             res = np.linalg.tensordot(self.q, self.q)
@@ -2378,6 +2398,32 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
             ref = np.matmul(self.q, self.q)
             res = np.linalg.matmul(self.q, self.q)
             assert_array_equal(res, ref)
+
+        def test_linalg_matrix_transpose(self):
+            t = np.linalg.matrix_transpose(self.q)
+            assert_array_equal(t, self.q.swapaxes(-2, -1))
+
+        @needs_array_function
+        def test_matrix_norm(self):
+            n = np.linalg.matrix_norm(self.q)
+            expected = np.linalg.norm(self.q.value) << self.q.unit
+            assert_array_equal(n, expected)
+
+        @needs_array_function
+        def test_vector_norm(self):
+            n = np.linalg.vector_norm(self.q)
+            expected = np.linalg.norm(self.q.value.ravel()) << self.q.unit
+            assert_array_equal(n, expected)
+            # Special case: 1-D, ord=0.
+            n1 = np.linalg.vector_norm(self.q[0], ord=0)
+            expected1 = np.linalg.norm(self.q[0].value.ravel(), ord=0) << u.one
+            assert_array_equal(n1, expected1)
+            # Axis combo, just in case
+            n2 = np.linalg.vector_norm(self.q, axis=(-1, -2))
+            expected2 = (
+                np.linalg.vector_norm(self.q.value, axis=(-1, -2)) << self.q.unit
+            )
+            assert_array_equal(n2, expected2)
 
 
 class TestRecFunctions(metaclass=CoverageMeta):

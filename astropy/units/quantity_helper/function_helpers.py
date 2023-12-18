@@ -109,7 +109,11 @@ if NUMPY_LT_2_0:
     SUBCLASS_SAFE_FUNCTIONS |= {np.msort, np.round_}  # noqa: NPY003
 else:
     # Array-API compatible versions (matrix axes always at end).
-    SUBCLASS_SAFE_FUNCTIONS |= {np.linalg.diagonal, np.linalg.trace}
+    SUBCLASS_SAFE_FUNCTIONS |= {
+        np.matrix_transpose, np.linalg.matrix_transpose,
+        np.linalg.diagonal, np.linalg.trace,
+        np.linalg.matrix_norm, np.linalg.vector_norm, np.linalg.vecdot,
+    }  # fmt: skip
 
     # these work out of the box (and are tested), because they
     # delegate to other, already wrapped functions from the np namespace
@@ -641,6 +645,7 @@ def dot_like(a, b, out=None):
         np.correlate,
         np.convolve,
     }
+    | (set() if NUMPY_LT_2_0 else {np.vecdot})
 )
 def cross_like(a, b, *args, **kwargs):
     a, b = _as_quantities(a, b)
