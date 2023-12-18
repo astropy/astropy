@@ -296,3 +296,4 @@ lint.unfixable = [
 ]
 "docs/*" = []
 "examples/coordinates/*" = []
+"**/__init__.pyi" = ["I001"]
