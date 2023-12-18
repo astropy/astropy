@@ -347,9 +347,9 @@ def find_mod_objs(modname, onlylocals=False):
     mod = resolve_name(modname)
 
     if hasattr(mod, "__all__"):
-        pkgitems = [(k, mod.__dict__[k]) for k in mod.__all__]
+        pkgitems = [(k, getattr(mod, k)) for k in mod.__all__]
     else:
-        pkgitems = [(k, mod.__dict__[k]) for k in dir(mod) if k[0] != "_"]
+        pkgitems = [(k, getattr(mod, k)) for k in dir(mod) if k[0] != "_"]
 
     # filter out modules and pull the names and objs out
     ismodule = inspect.ismodule
