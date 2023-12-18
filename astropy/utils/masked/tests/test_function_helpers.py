@@ -21,7 +21,6 @@ from astropy.units.tests.test_quantity_non_ufuncs import (
     get_wrapped_functions,
 )
 from astropy.utils.compat import (
-    NUMPY_LT_1_23,
     NUMPY_LT_1_24,
     NUMPY_LT_1_25,
     NUMPY_LT_2_0,
@@ -1448,14 +1447,7 @@ tested_functions = get_covered_functions(locals())
 # Create set of untested functions.
 untested_functions = set()
 
-if NUMPY_LT_1_23:
-    deprecated_functions = {
-        # Deprecated, removed in numpy 1.23
-        np.asscalar,
-        np.alen,
-    }
-else:
-    deprecated_functions = set()
+deprecated_functions = set()
 
 untested_functions |= deprecated_functions
 io_functions = {np.save, np.savez, np.savetxt, np.savez_compressed}
