@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from .bayesian_blocks import (
+from ._bayesian_blocks import (
     Events as Events,
     FitnessFunc as FitnessFunc,
     PointMeasures as PointMeasures,
