@@ -37,7 +37,7 @@ _optional_deps = [
 _deps = {k.upper(): k for k in _optional_deps}
 
 # Any subpackages that have different import behavior:
-_deps["PLT"] = "matplotlib.pyplot"
+_deps["PLT"] = "matplotlib"
 
 __all__ = [f"HAS_{pkg}" for pkg in _deps]
 
