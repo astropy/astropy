@@ -91,6 +91,7 @@ all = [
     "fsspec[http]>=2023.4.0",
     "s3fs>=2023.4.0",
     "pre-commit",
+    "lazy_loader"
 ]
 docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
