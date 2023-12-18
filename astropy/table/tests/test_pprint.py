@@ -306,14 +306,13 @@ class TestPprint:
         # +3 accounts for the three header lines in this  table
         assert len(lines) == BIG_WIDE_ARR.shape[0] + 3
 
-    @pytest.fixture
     def test_pprint_all(self, table_type, capsys):
         """Test that all rows are printed by default"""
         self._setup(table_type)
         self.tb.pprint_all()
         (out, err) = capsys.readouterr()
         # +3 accounts for the three header lines in this  table
-        assert len(out) == BIG_WIDE_ARR.shape[0] + 3
+        assert len(out.splitlines()) == BIG_WIDE_ARR.shape[0] + 3
 
 
 @pytest.mark.usefixtures("table_type")
