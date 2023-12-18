@@ -107,6 +107,11 @@ class TestShapeManipulation(BasicTestSetup):
     def test_transpose(self):
         self.check(np.transpose)
 
+    if not NUMPY_LT_2_0:
+
+        def test_matrix_transpose(self):
+            self.check(np.matrix_transpose)
+
     def test_atleast_1d(self):
         self.check(np.atleast_1d)
         o, so = np.atleast_1d(self.mb[0], self.mc[0])
