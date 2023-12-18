@@ -7,7 +7,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_almost_equal
 
 from astropy import units as u
-from astropy.convolution.convolve import convolve, convolve_fft
+from astropy.convolution import convolve, convolve_fft
 from astropy.convolution.kernels import (
     Box2DKernel,
     Gaussian2DKernel,

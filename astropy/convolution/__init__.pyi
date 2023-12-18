@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from .convolve import (
+from .convolution import (
     convolve as convolve,
     convolve_fft as convolve_fft,
     convolve_models as convolve_models,

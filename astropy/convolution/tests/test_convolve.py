@@ -13,7 +13,7 @@ from numpy.testing import (
 )
 
 from astropy import units as u
-from astropy.convolution.convolve import convolve, convolve_fft
+from astropy.convolution import convolve, convolve_fft
 from astropy.convolution.kernels import Gaussian2DKernel
 from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning

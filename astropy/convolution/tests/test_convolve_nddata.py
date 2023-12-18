@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from astropy.convolution.convolve import convolve, convolve_fft
+from astropy.convolution import convolve, convolve_fft
 from astropy.convolution.kernels import Gaussian2DKernel
 from astropy.nddata import NDData
 
