@@ -34,9 +34,14 @@ def matrix_transpose(matrix):
     """Transpose a matrix or stack of matrices by swapping the last two axes.
 
     This function mostly exists for readability; seeing ``.swapaxes(-2, -1)``
-    it is not that obvious that one does a transpose.  Note that one cannot
-    use `~numpy.ndarray.T`, as this transposes all axes and thus does not
-    work for stacks of matrices.
+    it is not that obvious that one does a transpose.
+
+    Note that one cannot use `~numpy.ndarray.T`, as this transposes all axes
+    and thus does not work for stacks of matrices.  We also avoid
+    ``np.matrix_transpose`` (new in numpy 2.0), since it is slower, as it
+    first ensures the input is an array, while we ducktype, assuming the
+    input has a ``.swapaxes`` method.
+
     """
     return matrix.swapaxes(-2, -1)
 
