@@ -8,3 +8,7 @@ distribution, as that directory only contains C extension code.
 See the README.rst in this directory of the Astropy source repository for more
 details.
 """
+
+from lazy_loader import attach_stub
+
+__getattr__, __dir__, __all__ = attach_stub(__name__, __file__)

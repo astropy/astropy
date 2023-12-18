@@ -1,0 +1,7 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""This module contains helper functions and classes for handling metadata."""
+
+from .core import *
+from .exceptions import *
+from ._merge import *
+from .utils import *

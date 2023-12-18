@@ -292,7 +292,10 @@ class ConfigItem:
                 msg2 = "because it is not called from inside a valid module"
                 raise RuntimeError(msg1 + msg2)
             else:
-                module = module.__name__
+                if module.__name__.endswith("._conf"):
+                    module = module.__name__[:-6]
+                else:
+                    module = module.__name__
 
         self.module = module
         self.description = description

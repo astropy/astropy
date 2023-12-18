@@ -13,7 +13,6 @@ packages or code.
 
 """
 
-from .misc import *
+from lazy_loader import attach_stub
 
-# Importing this module will also install monkey-patches defined in it
-from .numpycompat import *
+__getattr__, __dir__, __all__ = attach_stub(__name__, __file__)

@@ -11,34 +11,6 @@ astronomers' needs.
 
 """
 
-from . import bayesian_blocks as _bb
-from . import (
-    biweight,
-    circstats,
-    funcs,
-    info_theory,
-    jackknife,
-    sigma_clipping,
-    spatial,
-)
-from . import histogram as _hist
-from .bayesian_blocks import *
-from .biweight import *
-from .circstats import *
-from .funcs import *
-from .histogram import *
-from .info_theory import *
-from .jackknife import *
-from .sigma_clipping import *
-from .spatial import *
+from lazy_loader import attach_stub
 
-__all__ = []
-__all__ += funcs.__all__
-__all__ += biweight.__all__
-__all__ += sigma_clipping.__all__
-__all__ += jackknife.__all__
-__all__ += circstats.__all__
-__all__ += _bb.__all__
-__all__ += _hist.__all__
-__all__ += info_theory.__all__
-__all__ += spatial.__all__
+__getattr__, __dir__, __all__ = attach_stub(__name__, __file__)
