@@ -41,6 +41,7 @@ _deps["PLT"] = "matplotlib"
 
 __all__ = [f"HAS_{pkg}" for pkg in _deps]
 
+
 def __getattr__(name):
     if name in __all__:
         return find_spec(_deps[name.removeprefix("HAS_")]) is not None
