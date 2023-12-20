@@ -155,8 +155,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         """Initialization signature (without 'self')."""
         # get signature, dropping "self" by taking arguments [1:]
         sig = inspect.signature(cls.__init__)
-        sig = sig.replace(parameters=list(sig.parameters.values())[1:])
-        return sig
+        return sig.replace(parameters=list(sig.parameters.values())[1:])
 
     @classmethod
     def _register_cls(cls):
@@ -379,7 +378,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         if other.__class__ is not self.__class__:
             return NotImplemented  # allows other.__eq__
 
-        eq = (
+        return (
             # non-Parameter checks: name
             self.name == other.name
             # check all parameters in 'other' match those in 'self' and 'other'
@@ -394,7 +393,6 @@ class Cosmology(metaclass=abc.ABCMeta):
             )
         )
 
-        return eq
 
     # ---------------------------------------------------------------
 
@@ -602,7 +600,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
 
         # Check if have equivalent parameters and all parameters in `other`
         # match those in `self`` and `other`` has no extra parameters.
-        params_eq = (
+        return = (
             # no extra parameters
             self._parameters_all == other._parameters_all
             # equal
@@ -612,5 +610,3 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
             # flatness check
             and other.is_flat
         )
-
-        return params_eq
