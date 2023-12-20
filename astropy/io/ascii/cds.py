@@ -372,7 +372,6 @@ class Cds(core.BaseReader):
             for data_start in range(len(lines)):
                 self.data.start_line = data_start
                 with suppress(Exception):
-                    table = super().read(lines)
-                    return table
+                    return super().read(lines)
         else:
             return super().read(table)
