@@ -945,8 +945,7 @@ def convolve_fft(
         rifft[arrayslices][nanmaskarray] = np.nan
 
     if crop:
-        result = rifft[arrayslices].real
-        return result
+        return rifft[arrayslices].real
     else:
         return rifft.real
 
