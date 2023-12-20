@@ -1716,8 +1716,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             rep = self.represent_as(
                 in_frame_units=True, **self.get_representation_cls(None)
             )
-            val = getattr(rep.differentials["s"], diff_names[attr])
-            return val
+            return getattr(rep.differentials["s"], diff_names[attr])
 
         return self.__getattribute__(attr)  # Raise AttributeError.
 
