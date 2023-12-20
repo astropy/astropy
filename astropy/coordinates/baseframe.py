@@ -1703,8 +1703,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 self.data  # noqa: B018
 
             rep = self.represent_as(self.representation_type, in_frame_units=True)
-            val = getattr(rep, repr_names[attr])
-            return val
+            return getattr(rep, repr_names[attr])
 
         diff_names = self.get_representation_component_names("s")
         if attr in diff_names:
