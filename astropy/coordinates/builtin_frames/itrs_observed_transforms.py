@@ -31,8 +31,7 @@ def itrs_to_hadec_mat(lon):
     # HADec frame is left handed
     minus_y = np.eye(3)
     minus_y[1][1] = -1.0
-    mat = minus_y @ rotation_matrix(lon, "z")
-    return mat
+    return minus_y @ rotation_matrix(lon, "z")
 
 
 def altaz_to_hadec_mat(lat):
@@ -40,8 +39,7 @@ def altaz_to_hadec_mat(lat):
     z180 = np.eye(3)
     z180[0][0] = -1.0
     z180[1][1] = -1.0
-    mat = z180 @ rotation_matrix(NORTH_POLE - lat, "y")
-    return mat
+    return z180 @ rotation_matrix(NORTH_POLE - lat, "y")
 
 
 def add_refraction(aa_crepr, observed_frame):
