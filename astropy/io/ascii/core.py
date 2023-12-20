@@ -515,9 +515,8 @@ class DefaultSplitter(BaseSplitter):
             )
         if self.process_val:
             vals = [self.process_val(x) for x in vals]
-        out = self.csv_writer.writerow(vals).rstrip("\r\n")
+        return self.csv_writer.writerow(vals).rstrip("\r\n")
 
-        return out
 
 
 def _replace_tab_with_space(line, escapechar, quotechar):
