@@ -59,11 +59,10 @@ class SkyCoordInfo(MixinInfo):
     @property
     def unit(self):
         repr_data = self._repr_data
-        unit = ",".join(
+        return ",".join(
             str(getattr(repr_data, comp).unit) or "None"
             for comp in repr_data.components
         )
-        return unit
 
     @property
     def _repr_data(self):
@@ -1350,10 +1349,9 @@ class SkyCoord(ShapedLikeNDArray):
                 "coordinate frame with data"
             )
 
-        res = match_coordinates_sky(
+        return match_coordinates_sky(
             self, catalogcoord, nthneighbor=nthneighbor, storekdtree="_kdtree_sky"
         )
-        return res
 
     def match_to_catalog_3d(self, catalogcoord, nthneighbor=1):
         """
@@ -1417,11 +1415,10 @@ class SkyCoord(ShapedLikeNDArray):
                 "coordinate frame with data"
             )
 
-        res = match_coordinates_3d(
+        return match_coordinates_3d(
             self, catalogcoord, nthneighbor=nthneighbor, storekdtree="_kdtree_3d"
         )
 
-        return res
 
     def search_around_sky(self, searcharoundcoords, seplimit):
         """
