@@ -23,8 +23,7 @@ def itrs_to_altaz_mat(lon, lat):
     # AltAz frame is left handed
     minus_x = np.eye(3)
     minus_x[0][0] = -1.0
-    mat = minus_x @ rotation_matrix(NORTH_POLE - lat, "y") @ rotation_matrix(lon, "z")
-    return mat
+    return minus_x @ rotation_matrix(NORTH_POLE - lat, "y") @ rotation_matrix(lon, "z")
 
 
 def itrs_to_hadec_mat(lon):
