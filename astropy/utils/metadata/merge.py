@@ -246,16 +246,14 @@ def _not_equal(left, right):
 
 
 def _warn_str_func(key, left, right):
-    out = (
+    return (
         f"Cannot merge meta key {key!r} types {type(left)!r}"
         f" and {type(right)!r}, choosing {key}={right!r}"
     )
-    return out
 
 
 def _error_str_func(key, left, right):
-    out = f"Cannot merge meta key {key!r} types {type(left)!r} and {type(right)!r}"
-    return out
+    return f"Cannot merge meta key {key!r} types {type(left)!r} and {type(right)!r}"
 
 
 def merge(
