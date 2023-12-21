@@ -339,8 +339,7 @@ class TableColumns(OrderedDict):
         col_list : list of `Column`
             List of Column objects which are instances of given classes.
         """
-        cols = [col for col in self.values() if isinstance(col, cls)]
-        return cols
+        return [col for col in self.values() if isinstance(col, cls)]
 
     def not_isinstance(self, cls):
         """
@@ -356,8 +355,7 @@ class TableColumns(OrderedDict):
         col_list : list of `Column`
             List of Column objects which are not instances of given classes.
         """
-        cols = [col for col in self.values() if not isinstance(col, cls)]
-        return cols
+        return [col for col in self.values() if not isinstance(col, cls)]
 
 
 class TableAttribute(MetaAttribute):
@@ -1397,9 +1395,7 @@ class Table:
             # Broad exception class since we don't know what might go wrong
             raise ValueError("unable to convert data to Column for Table")
 
-        col = self._convert_col_for_table(col)
-
-        return col
+        return self._convert_col_for_table(col)
 
     def _init_from_ndarray(self, data, names, dtype, n_cols, copy):
         """Initialize table from an ndarray structured array."""
@@ -1619,9 +1615,7 @@ class Table:
             tableclass=tableclass,
         )
 
-        out = descr + "\n".join(data_lines)
-
-        return out
+        return descr + "\n".join(data_lines)
 
     def _repr_html_(self):
         out = self._base_repr_(
@@ -1629,8 +1623,7 @@ class Table:
         )
         # Wrap <table> in <div>. This follows the pattern in pandas and allows
         # table to be scrollable horizontally in VS Code notebook display.
-        out = f"<div>{out}</div>"
-        return out
+        return f"<div>{out}</div>"
 
     def __repr__(self):
         return self._base_repr_(html=False, max_width=None)
@@ -2809,8 +2802,7 @@ class Table:
                     raise ValueError(f"{name} is not a valid column name")
 
         cols = (self[name] for name in names)
-        out = zip(*cols)
-        return out
+        return zip(*cols)
 
     def _set_of_names_in_colnames(self, names):
         """Return ``names`` as a set if valid, or raise a `KeyError`.
@@ -3809,9 +3801,7 @@ class Table:
 
             eqs.append(eq)
 
-        out = Table(eqs, names=names)
-
-        return out
+        return Table(eqs, names=names)
 
     @property
     def groups(self):
@@ -3967,8 +3957,7 @@ class Table:
                     tbl[col.info.name] = new_col
 
             # Convert the table to one with no mixins, only Column objects.
-            encode_tbl = serialize.represent_mixins_as_columns(tbl)
-            return encode_tbl
+            return serialize.represent_mixins_as_columns(tbl)
 
         tbl = _encode_mixins(self)
 
