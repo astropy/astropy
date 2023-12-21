@@ -984,9 +984,7 @@ class _SelectorArgument(_BaseSelectorArgument):
     """
 
     def __new__(cls, index, ignore):
-        self = super().__new__(cls, index, ignore)
-
-        return self
+        return super().__new__(cls, index, ignore)
 
     @classmethod
     def validate(cls, model, argument, ignored: bool = True) -> Self:
