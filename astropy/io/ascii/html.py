@@ -106,9 +106,7 @@ class HTMLInputter(core.BaseInputter):
             )
 
         # Get all table rows
-        soup_list = [SoupString(x) for x in table.find_all("tr")]
-
-        return soup_list
+        return [SoupString(x) for x in table.find_all("tr")]
 
 
 class HTMLSplitter(core.BaseSplitter):
