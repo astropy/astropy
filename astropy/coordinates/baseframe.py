@@ -1119,107 +1119,104 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         else:
             cache_key = (representation_cls.__name__, in_frame_units)
 
-        cached_repr = self.cache["representation"].get(cache_key)
-        if not cached_repr:
-            if differential_cls:
-                # Sanity check to ensure we do not just drop radial
-                # velocity.  TODO: should Representation.represent_as
-                # allow this transformation in the first place?
-                if (
-                    isinstance(self.data, r.UnitSphericalRepresentation)
-                    and issubclass(representation_cls, r.CartesianRepresentation)
-                    and not isinstance(
-                        self.data.differentials["s"],
-                        (
-                            r.UnitSphericalDifferential,
-                            r.UnitSphericalCosLatDifferential,
-                            r.RadialDifferential,
-                        ),
-                    )
-                ):
-                    raise u.UnitConversionError(
-                        "need a distance to retrieve a cartesian representation "
-                        "when both radial velocity and proper motion are present, "
-                        "since otherwise the units cannot match."
-                    )
+        if cached_repr := self.cache["representation"].get(cache_key):
+            return cached_repr
 
-                # TODO NOTE: only supports a single differential
-                data = self.data.represent_as(representation_cls, differential_cls)
-                diff = data.differentials["s"]  # TODO: assumes velocity
-            else:
-                data = self.data.represent_as(representation_cls)
+        if differential_cls:
+            # Sanity check to ensure we do not just drop radial
+            # velocity.  TODO: should Representation.represent_as
+            # allow this transformation in the first place?
+            if (
+                isinstance(self.data, r.UnitSphericalRepresentation)
+                and issubclass(representation_cls, r.CartesianRepresentation)
+                and not isinstance(
+                    self.data.differentials["s"],
+                    (
+                        r.UnitSphericalDifferential,
+                        r.UnitSphericalCosLatDifferential,
+                        r.RadialDifferential,
+                    ),
+                )
+            ):
+                raise u.UnitConversionError(
+                    "need a distance to retrieve a cartesian representation "
+                    "when both radial velocity and proper motion are present, "
+                    "since otherwise the units cannot match."
+                )
 
-            # If the new representation is known to this frame and has a defined
-            # set of names and units, then use that.
-            new_attrs = self.representation_info.get(representation_cls)
-            if new_attrs and in_frame_units:
-                datakwargs = {comp: getattr(data, comp) for comp in data.components}
-                for comp, new_attr_unit in zip(data.components, new_attrs["units"]):
-                    if new_attr_unit:
-                        datakwargs[comp] = datakwargs[comp].to(new_attr_unit)
-                data = data.__class__(copy=False, **datakwargs)
+            # TODO NOTE: only supports a single differential
+            data = self.data.represent_as(representation_cls, differential_cls)
+            diff = data.differentials["s"]  # TODO: assumes velocity
+        else:
+            data = self.data.represent_as(representation_cls)
 
-            if differential_cls:
-                # the original differential
-                data_diff = self.data.differentials["s"]
+        # If the new representation is known to this frame and has a defined
+        # set of names and units, then use that.
+        if in_frame_units and (
+            new_attrs := self.representation_info.get(representation_cls)
+        ):
+            datakwargs = {comp: getattr(data, comp) for comp in data.components}
+            for comp, new_attr_unit in zip(data.components, new_attrs["units"]):
+                if new_attr_unit:
+                    datakwargs[comp] = datakwargs[comp].to(new_attr_unit)
+            data = data.__class__(copy=False, **datakwargs)
 
-                # If the new differential is known to this frame and has a
-                # defined set of names and units, then use that.
-                new_attrs = self.representation_info.get(differential_cls)
-                if new_attrs and in_frame_units:
-                    diffkwargs = {comp: getattr(diff, comp) for comp in diff.components}
-                    for comp, new_attr_unit in zip(diff.components, new_attrs["units"]):
-                        # Some special-casing to treat a situation where the
-                        # input data has a UnitSphericalDifferential or a
-                        # RadialDifferential. It is re-represented to the
-                        # frame's differential class (which might be, e.g., a
-                        # dimensional Differential), so we don't want to try to
-                        # convert the empty component units
-                        if (
-                            isinstance(
-                                data_diff,
-                                (
-                                    r.UnitSphericalDifferential,
-                                    r.UnitSphericalCosLatDifferential,
-                                ),
-                            )
-                            and comp not in data_diff.__class__.attr_classes
-                        ):
-                            continue
+        if differential_cls:
+            # the original differential
+            data_diff = self.data.differentials["s"]
 
-                        elif (
-                            isinstance(data_diff, r.RadialDifferential)
-                            and comp not in data_diff.__class__.attr_classes
-                        ):
-                            continue
+            # If the new differential is known to this frame and has a
+            # defined set of names and units, then use that.
+            if in_frame_units and (
+                new_attrs := self.representation_info.get(differential_cls)
+            ):
+                diffkwargs = {comp: getattr(diff, comp) for comp in diff.components}
+                for comp, new_attr_unit in zip(diff.components, new_attrs["units"]):
+                    # Some special-casing to treat a situation where the
+                    # input data has a UnitSphericalDifferential or a
+                    # RadialDifferential. It is re-represented to the
+                    # frame's differential class (which might be, e.g., a
+                    # dimensional Differential), so we don't want to try to
+                    # convert the empty component units
+                    if (
+                        isinstance(
+                            data_diff,
+                            (
+                                r.UnitSphericalDifferential,
+                                r.UnitSphericalCosLatDifferential,
+                                r.RadialDifferential,
+                            ),
+                        )
+                        and comp not in data_diff.__class__.attr_classes
+                    ):
+                        continue
 
-                        # Try to convert to requested units. Since that might
-                        # not be possible (e.g., for a coordinate with proper
-                        # motion but without distance, one cannot convert to a
-                        # cartesian differential in km/s), we allow the unit
-                        # conversion to fail.  See gh-7028 for discussion.
-                        if new_attr_unit and hasattr(diff, comp):
-                            try:
-                                diffkwargs[comp] = diffkwargs[comp].to(new_attr_unit)
-                            except Exception:
-                                pass
+                    # Try to convert to requested units. Since that might
+                    # not be possible (e.g., for a coordinate with proper
+                    # motion but without distance, one cannot convert to a
+                    # cartesian differential in km/s), we allow the unit
+                    # conversion to fail.  See gh-7028 for discussion.
+                    if new_attr_unit and hasattr(diff, comp):
+                        try:
+                            diffkwargs[comp] = diffkwargs[comp].to(new_attr_unit)
+                        except Exception:
+                            pass
 
-                    diff = diff.__class__(copy=False, **diffkwargs)
+                diff = diff.__class__(copy=False, **diffkwargs)
 
-                    # Here we have to bypass using with_differentials() because
-                    # it has a validation check. But because
-                    # .representation_type and .differential_type don't point to
-                    # the original classes, if the input differential is a
-                    # RadialDifferential, it usually gets turned into a
-                    # SphericalCosLatDifferential (or whatever the default is)
-                    # with strange units for the d_lon and d_lat attributes.
-                    # This then causes the dictionary key check to fail (i.e.
-                    # comparison against `diff._get_deriv_key()`)
-                    data._differentials.update({"s": diff})
+                # Here we have to bypass using with_differentials() because
+                # it has a validation check. But because
+                # .representation_type and .differential_type don't point to
+                # the original classes, if the input differential is a
+                # RadialDifferential, it usually gets turned into a
+                # SphericalCosLatDifferential (or whatever the default is)
+                # with strange units for the d_lon and d_lat attributes.
+                # This then causes the dictionary key check to fail (i.e.
+                # comparison against `diff._get_deriv_key()`)
+                data._differentials.update({"s": diff})
 
-            self.cache["representation"][cache_key] = data
-
-        return self.cache["representation"][cache_key]
+        self.cache["representation"][cache_key] = data
+        return data
 
     def transform_to(self, new_frame):
         """
