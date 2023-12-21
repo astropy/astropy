@@ -139,9 +139,7 @@ def time_support(*, scale=None, format=None, simplify=True):
                 values = super().tick_values(vmin, vmax)
 
             # Get rid of values outside of the input interval
-            values = values[(values >= vmin) & (values <= vmax)]
-
-            return values
+            return values[(values >= vmin) & (values <= vmax)]
 
         def __call__(self):
             vmin, vmax = self.axis.get_view_interval()
