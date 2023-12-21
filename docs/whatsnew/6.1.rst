@@ -25,25 +25,27 @@ By the numbers:
 
 .. _whatsnew-6.1-table-column-order-from-rows:
 
-Ordering of table columns constructed from ``rows``
-===================================================
+Ordering of table columns constructed from rows
+===============================================
 
-The order of columns as they appear in a ``Table`` constructed as ``Table(rows=...)``
-may differ between ``astropy`` ``6.0`` and ``6.1``. Specifically, in ``6.0``,
-then column ordering was determined by the first :class:`dict` if it contained values
-for all the columns, or by sorting the column names alphabetically if it did not.
-In ``6.1``, columns are simply inserted as they appear when the :class:`list` of
-:class:`dict` is iterated over.
+The column order in a `~astropy.table.Table` constructed from a `list` or rows (`dict`
+or `~astropy.table.Row`) may change using ``astropy`` version ``6.1`` *if the
+first row has missing values*.
 
-As an example,
+Before ``6.1``, the column ordering was determined from the first row if it contained
+values for all the columns, or by sorting the final column names alphabetically if it
+did not. Starting with ``6.1``, columns are always added in the order they appear
+when iterating over  the `list` of rows.
 
+For example, create a table as shown below:
+
+    >>> from astropy.table import Table
     >>> data = [{'b': 10, 'c': 7, },
     ...         {'a': 15, 'c': 35, 'b': 20}]
-    >>> t = Table(rows=data)
-    >>> print(t)
+    >>> t = Table(data)  # or Table(rows=data), which is equivalent
 
 
-would print, in ``6.0``
+Before ``6.1`` the table would look like this:
 
      a   b   c
     --- --- ---
@@ -51,7 +53,7 @@ would print, in ``6.0``
      15  20  35
 
 
-and in ``6.1``
+Starting with ``6.1`` the table would instead look like this:
 
      b   c   a
     --- --- ---
