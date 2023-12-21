@@ -299,9 +299,7 @@ def read_table_parquet(
 
     # Convert all compound columns to astropy objects
     # (e.g. time.jd1, time.jd2 into a single time column)
-    table = serialize._construct_mixins_from_columns(table)
-
-    return table
+    return serialize._construct_mixins_from_columns(table)
 
 
 def write_table_parquet(table, output, overwrite=False):
