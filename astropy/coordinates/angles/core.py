@@ -373,7 +373,7 @@ class Angle(SpecificTypeQuantity):
                 if alwayssign and not s.startswith("-"):
                     s = "+" + s
                 if format == "latex" or format == "latex_inline":
-                return f"${s}$"
+                    return f"${s}$"
             return f"{val}"
 
         values = self.to_value(unit)
