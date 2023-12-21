@@ -180,8 +180,7 @@ def _compress_array_dims(arr):
     # Use the magic np.ix_ function to effectively treat each index array as a
     # slicing operator.
     idxs_ix = np.ix_(*idxs)
-    out = arr[idxs_ix]
-    return out
+    return arr[idxs_ix]
 
 
 class TimeInfoBase(MixinInfo):
