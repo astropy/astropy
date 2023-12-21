@@ -116,8 +116,7 @@ def _get_stdout(stderr=False):
     else:
         stream = "stdout"
 
-    sys_stream = getattr(sys, stream)
-    return sys_stream
+    return getattr(sys, stream)
 
 
 def isatty(file):
