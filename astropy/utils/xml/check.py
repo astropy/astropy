@@ -28,10 +28,9 @@ def fix_id(ID):
         corrected = ID
         if not len(corrected) or re.match("^[^A-Za-z_]$", corrected[0]):
             corrected = "_" + corrected
-        corrected = re.sub(r"[^A-Za-z_]", "_", corrected[0]) + re.sub(
+        return re.sub(r"[^A-Za-z_]", "_", corrected[0]) + re.sub(
             r"[^A-Za-z0-9_\.\-]", "_", corrected[1:]
         )
-        return corrected
     return ""
 
 
