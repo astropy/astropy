@@ -150,8 +150,7 @@ def votable_xml_string(version):
     votable_file.to_xml(xml_bytes)
     xml_bytes.seek(0)
     bstring = xml_bytes.read()
-    s = bstring.decode("utf-8")
-    return s
+    return bstring.decode("utf-8")
 
 
 def test_votable_tag():
