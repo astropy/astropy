@@ -375,9 +375,7 @@ class BoxLeastSquares(BasePeriodogram):
                     "with absolute times."
                 )
 
-        times = validate_unit_consistency(self._trel, times)
-
-        return times
+        return validate_unit_consistency(self._trel, times)
 
     def _as_absolute_time_if_needed(self, name, times):
         """
