@@ -600,7 +600,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
 
         # Check if have equivalent parameters and all parameters in `other`
         # match those in `self`` and `other`` has no extra parameters.
-        return = (
+        return (
             # no extra parameters
             self._parameters_all == other._parameters_all
             # equal
