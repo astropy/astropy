@@ -72,9 +72,7 @@ def get_col_name_map(
         )
 
     # Convert col_name_map to a regular dict with tuple (immutable) values
-    col_name_map = OrderedDict((name, col_name_map[name]) for name in col_name_list)
-
-    return col_name_map
+    return OrderedDict((name, col_name_map[name]) for name in col_name_list)
 
 
 def get_descrs(arrays, col_name_map):
