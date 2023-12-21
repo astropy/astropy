@@ -205,7 +205,6 @@ def _comparison_decorator(pyfunc: Callable[..., Any]) -> Callable[..., Any]:
         # Evaluate pyfunc, erroring if didn't match specified number.
         return wrapper.__wrapped__(*cosmos, **kwargs)
 
-
     return wrapper
 
 
