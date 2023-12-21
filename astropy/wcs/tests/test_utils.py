@@ -1613,8 +1613,7 @@ def test_custom_wcs_to_from_frame():
             return None
 
         dateobs = wcs.wcs.dateavg or wcs.wcs.dateobs or None
-        custom_frame = CustomFrame()
-        return custom_frame
+        return CustomFrame()
 
     def custom_frame_wcs_mapping(frame, projection="TAN"):
         if not isinstance(frame, CustomFrame):

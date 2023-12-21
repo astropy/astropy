@@ -894,8 +894,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         try:
             axiscorr = header["AXISCORR"]
-            d2imdis = self._read_d2im_old_format(header, fobj, axiscorr)
-            return d2imdis
+            return self._read_d2im_old_format(header, fobj, axiscorr)
         except KeyError:
             pass
 
@@ -3530,9 +3529,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             except AttributeError:
                 pc = 1
 
-        pccd = np.dot(cdelt, pc)
-
-        return pccd
+        return np.dot(cdelt, pc)
 
     def footprint_contains(self, coord, **kwargs):
         """
