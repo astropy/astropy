@@ -18,8 +18,7 @@ except ImportError:
         """
         s = s.replace("&", "&amp;")
         s = s.replace("<", "&lt;")
-        s = s.replace(">", "&gt;")
-        return s
+        return s.replace(">", "&gt;")
 
     def xml_escape(s):
         """
@@ -29,8 +28,7 @@ except ImportError:
         s = s.replace("'", "&apos;")
         s = s.replace('"', "&quot;")
         s = s.replace("<", "&lt;")
-        s = s.replace(">", "&gt;")
-        return s
+        return s.replace(">", "&gt;")
 
 else:
     xml_escape_cdata = _iterparser.escape_xml_cdata
