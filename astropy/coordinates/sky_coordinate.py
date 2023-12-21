@@ -1850,27 +1850,22 @@ class SkyCoord(ShapedLikeNDArray):
         elif self.obstime is not None and self.frame.data.differentials:
             # we do need space motion after all
             coo_at_rv_obstime = self.apply_space_motion(obstime)
-        elif self.obstime is None:
-            # warn the user if the object has differentials set
-            if "s" in self.data.differentials:
-                warnings.warn(
-                    "SkyCoord has space motion, and therefore the specified "
-                    "position of the SkyCoord may not be the same as "
-                    "the `obstime` for the radial velocity measurement. "
-                    "This may affect the rv correction at the order of km/s"
-                    "for very high proper motions sources. If you wish to "
-                    "apply space motion of the SkyCoord to correct for this"
-                    "the `obstime` attribute of the SkyCoord must be set",
-                    AstropyUserWarning,
-                )
+        elif self.obstime is None and "s" in self.data.differentials:
+            warnings.warn(
+                "SkyCoord has space motion, and therefore the specified "
+                "position of the SkyCoord may not be the same as "
+                "the `obstime` for the radial velocity measurement. "
+                "This may affect the rv correction at the order of km/s"
+                "for very high proper motions sources. If you wish to "
+                "apply space motion of the SkyCoord to correct for this"
+                "the `obstime` attribute of the SkyCoord must be set",
+                AstropyUserWarning,
+            )
 
-        pos_earth, v_earth = get_body_barycentric_posvel("earth", obstime)
-        if kind == "barycentric":
-            v_origin_to_earth = v_earth
-        elif kind == "heliocentric":
-            v_sun = get_body_barycentric_posvel("sun", obstime)[1]
-            v_origin_to_earth = v_earth - v_sun
-        else:
+        pos_earth, v_origin_to_earth = get_body_barycentric_posvel("earth", obstime)
+        if kind == "heliocentric":
+            v_origin_to_earth -= get_body_barycentric_posvel("sun", obstime)[1]
+        elif kind != "barycentric":
             raise ValueError(
                 "`kind` argument to radial_velocity_correction must "
                 f"be 'barycentric' or 'heliocentric', but got '{kind}'"
@@ -1880,48 +1875,44 @@ class SkyCoord(ShapedLikeNDArray):
         # transforming to GCRS is not the correct thing to do here, since we don't want to
         # include aberration (or light deflection)? Instead, only apply parallax if necessary
         icrs_cart = coo_at_rv_obstime.icrs.cartesian
-        icrs_cart_novel = icrs_cart.without_differentials()
-        if self.data.__class__ is UnitSphericalRepresentation:
-            targcart = icrs_cart_novel
-        else:
-            # skycoord has distances so apply parallax
-            obs_icrs_cart = pos_earth + gcrs_p
-            targcart = icrs_cart_novel - obs_icrs_cart
+        targcart = icrs_cart.without_differentials()
+        if self.data.__class__ is not UnitSphericalRepresentation:
+            # SkyCoord has distances, so apply parallax by calculating
+            # the direction of the target as seen by the observer.
+            targcart -= pos_earth + gcrs_p
             targcart /= targcart.norm()
 
-        if kind == "barycentric":
-            beta_obs = (v_origin_to_earth + gcrs_v) / speed_of_light
-            gamma_obs = 1 / np.sqrt(1 - beta_obs.norm() ** 2)
-            gr = location.gravitational_redshift(obstime)
-            # barycentric redshift according to eq 28 in Wright & Eastmann (2014),
-            # neglecting Shapiro delay and effects of the star's own motion
-            zb = gamma_obs * (1 + beta_obs.dot(targcart)) / (1 + gr / speed_of_light)
-            # try and get terms corresponding to stellar motion.
-            if icrs_cart.differentials:
-                try:
-                    ro = self.icrs.cartesian
-                    beta_star = ro.differentials["s"].to_cartesian() / speed_of_light
-                    # ICRS unit vector at coordinate epoch
-                    ro = ro.without_differentials()
-                    ro /= ro.norm()
-                    zb *= (1 + beta_star.dot(ro)) / (1 + beta_star.dot(targcart))
-                except u.UnitConversionError:
-                    warnings.warn(
-                        "SkyCoord contains some velocity information, but not enough to"
-                        " calculate the full space motion of the source, and so this"
-                        " has been ignored for the purposes of calculating the radial"
-                        " velocity correction. This can lead to errors on the order of"
-                        " metres/second.",
-                        AstropyUserWarning,
-                    )
-
-            zb = zb - 1
-            return zb * speed_of_light
-        else:
-            # do a simpler correction ignoring time dilation and gravitational redshift
-            # this is adequate since Heliocentric corrections shouldn't be used if
-            # cm/s precision is required.
+        if kind == "heliocentric":
+            # Do a simpler correction than for barycentric ignoring time dilation and
+            # gravitational redshift.  This is adequate since heliocentric corrections
+            # shouldn't be used if cm/s precision is required.
             return targcart.dot(v_origin_to_earth + gcrs_v)
+
+        beta_obs = (v_origin_to_earth + gcrs_v) / speed_of_light
+        gamma_obs = 1 / np.sqrt(1 - beta_obs.norm() ** 2)
+        gr = location.gravitational_redshift(obstime)
+        # barycentric redshift according to eq 28 in Wright & Eastmann (2014),
+        # neglecting Shapiro delay and effects of the star's own motion
+        zb = gamma_obs * (1 + beta_obs.dot(targcart)) / (1 + gr / speed_of_light)
+        # try and get terms corresponding to stellar motion.
+        if icrs_cart.differentials:
+            try:
+                ro = self.icrs.cartesian
+                beta_star = ro.differentials["s"].to_cartesian() / speed_of_light
+                # ICRS unit vector at coordinate epoch
+                ro = ro.without_differentials()
+                ro /= ro.norm()
+                zb *= (1 + beta_star.dot(ro)) / (1 + beta_star.dot(targcart))
+            except u.UnitConversionError:
+                warnings.warn(
+                    "SkyCoord contains some velocity information, but not enough to"
+                    " calculate the full space motion of the source, and so this"
+                    " has been ignored for the purposes of calculating the radial"
+                    " velocity correction. This can lead to errors on the order of"
+                    " metres/second.",
+                    AstropyUserWarning,
+                )
+        return (zb - 1) * speed_of_light
 
     # Table interactions
     @classmethod
