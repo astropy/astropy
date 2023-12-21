@@ -112,5 +112,4 @@ class SimModelTAB:
         for k, v in self.pc.items():
             pu.header[k] = v
 
-        hdulist = fits.HDUList([pu, bt])
-        return hdulist
+        return fits.HDUList([pu, bt])
