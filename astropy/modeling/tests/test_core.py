@@ -474,8 +474,7 @@ def test_render_model_3d():
 
     def ellipsoid(x, y, z, x0=13.0, y0=10.0, z0=8.0, a=4.0, b=3.0, c=2.0, amp=1.0):
         rsq = ((x - x0) / a) ** 2 + ((y - y0) / b) ** 2 + ((z - z0) / c) ** 2
-        val = (rsq < 1) * amp
-        return val
+        return (rsq < 1) * amp
 
     class Ellipsoid3D(custom_model(ellipsoid)):
         @property
