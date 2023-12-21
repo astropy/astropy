@@ -261,14 +261,6 @@ You can specify the column order with the ``names`` argument::
 If ``names`` are not provided then column ordering will be determined by
 order in which they appear as the :class:`list` of :class:`dict` is iterated over.
 
-  >>> data = [{'a': 15, 'b': 20, 'c': 35},
-  ...         {'b': 10, 'c': 7, 'a': 5}]
-  >>> t = Table(rows=data)
-  >>> print(t)
-   a   b   c
-   --- --- ---
-    15  20  35
-     5  10   7
   >>> data = [{'b': 10, 'c': 7, },
   ...         {'a': 15, 'c': 35, 'b': 20}]
   >>> t = Table(rows=data)
