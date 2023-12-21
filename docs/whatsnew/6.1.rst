@@ -43,22 +43,14 @@ For example, create a table as shown below:
     >>> data = [{'b': 10, 'c': 7, },
     ...         {'a': 15, 'c': 35, 'b': 20}]
     >>> t = Table(data)  # or Table(rows=data), which is equivalent
-
-
-Before ``6.1`` the table would look like this:
-
-     a   b   c
-    --- --- ---
-     --  10   7
-     15  20  35
-
-
-Starting with ``6.1`` the table would instead look like this:
-
+    >>> print(t)
      b   c   a
     --- --- ---
      10   7  --
      20  35  15
+
+Before ``6.1`` columns would be sorted alphabetically.
+
 
 Full change log
 ===============
