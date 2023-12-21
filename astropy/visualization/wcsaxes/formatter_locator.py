@@ -148,8 +148,7 @@ class BaseFormatterLocator:
     def _locate_values(value_min, value_max, spacing):
         imin = np.ceil(value_min / spacing)
         imax = np.floor(value_max / spacing)
-        values = np.arange(imin, imax + 1, dtype=int)
-        return values
+        return np.arange(imin, imax + 1, dtype=int)
 
 
 class AngleFormatterLocator(BaseFormatterLocator):
@@ -483,7 +482,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                         fmt = None
 
             angles = Angle(values)
-            string = angles.to_string(
+            return angles.to_string(
                 unit=unit,
                 precision=precision,
                 decimal=decimal,
@@ -491,8 +490,6 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 sep=sep,
                 format=fmt,
             ).tolist()
-
-            return string
         else:
             return []
 
