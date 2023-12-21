@@ -130,8 +130,7 @@ class StandardDeviations:
     def _calc_stds(self, cov_matrix):
         # sometimes scipy lstsq returns a non-sensical negative vals in the
         # diagonals of the cov_x it computes.
-        stds = [np.sqrt(x) if x > 0 else None for x in np.diag(cov_matrix)]
-        return stds
+        return [np.sqrt(x) if x > 0 else None for x in np.diag(cov_matrix)]
 
     def pprint(self, max_lines, round_val):
         longest_name = max(len(x) for x in self.param_names)
@@ -357,8 +356,7 @@ class Fitter(metaclass=_FitterMeta):
         model = args[0]
         meas = args[-1]
         fitter_to_model_params(model, fps)
-        res = self._stat_method(meas, model, *args[1:-1])
-        return res
+        return self._stat_method(meas, model, *args[1:-1])
 
     @staticmethod
     def _add_fitting_uncertainties(*args):
@@ -2134,8 +2132,7 @@ def _validate_model(model, supported_constraints):
         raise ValueError("Non-linear fitters can only fit one data set at a time.")
     _validate_constraints(supported_constraints, model)
 
-    model_copy = model.copy()
-    return model_copy
+    return model.copy()
 
 
 def populate_entry_points(entry_points):
