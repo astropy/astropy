@@ -811,9 +811,7 @@ def _read_in_chunks(table, **kwargs):
 
     # Make final table from numpy arrays, converting dict to list
     out_cols = [out_cols[name] for name in tbl0.colnames]
-    out = tbl0.__class__(out_cols, names=tbl0.colnames, meta=tbl0.meta, copy=False)
-
-    return out
+    return tbl0.__class__(out_cols, names=tbl0.colnames, meta=tbl0.meta, copy=False)
 
 
 def _read_in_chunks_generator(table, chunk_size, **kwargs):
