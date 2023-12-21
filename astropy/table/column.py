@@ -114,8 +114,7 @@ class FalseArray(np.ndarray):
     """
 
     def __new__(cls, shape):
-        obj = np.zeros(shape, dtype=bool).view(cls)
-        return obj
+        return np.zeros(shape, dtype=bool).view(cls)
 
     def __setitem__(self, item, val):
         val = np.asarray(val)
@@ -204,8 +203,7 @@ def _convert_sequence_data_to_array(data, dtype=None):
             for val in data
         )
     ):
-        np_data = np.ma.array(data, dtype=dtype)
-        return np_data
+        return np.ma.array(data, dtype=dtype)
 
     # First convert data to a plain ndarray. If there are instances of np.ma.masked
     # in the data this will issue a warning for int and float.
@@ -836,9 +834,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             raise ValueError("Comparison `col` must be a Column or MaskedColumn object")
 
         attrs = ("name", "unit", "dtype", "format", "description", "meta")
-        equal = all(getattr(self, x) == getattr(col, x) for x in attrs)
-
-        return equal
+        return all(getattr(self, x) == getattr(col, x) for x in attrs)
 
     @property
     def _formatter(self):
@@ -1243,7 +1239,7 @@ class Column(BaseColumn):
                 "Cannot convert a MaskedColumn with masked value to a Column"
             )
 
-        self = super().__new__(
+        return super().__new__(
             cls,
             data=data,
             name=name,
@@ -1257,7 +1253,6 @@ class Column(BaseColumn):
             copy=copy,
             copy_indices=copy_indices,
         )
-        return self
 
     def __setattr__(self, item, value):
         if not isinstance(self, MaskedColumn) and item == "mask":
@@ -1306,9 +1301,7 @@ class Column(BaseColumn):
             self, show_name=False, show_unit=False, show_length=False, html=html
         )
 
-        out = descr + "\n".join(data_lines)
-
-        return out
+        return descr + "\n".join(data_lines)
 
     def _repr_html_(self):
         return self._base_repr_(html=True)
@@ -1725,7 +1718,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             self.parent_table.Column if (self.parent_table is not None) else Column
         )
 
-        out = column_cls(
+        return column_cls(
             name=self.name,
             data=data,
             unit=self.unit,
@@ -1733,7 +1726,6 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             description=self.description,
             meta=deepcopy(self.meta),
         )
-        return out
 
     def insert(self, obj, values, mask=None, axis=0):
         """
