@@ -568,8 +568,7 @@ def dtype_bytes_or_chars(dtype):
         Bits (for numeric types) or characters (for string types)
     """
     match = re.search(r"(\d+)$", dtype.str)
-    out = int(match.group(1)) if match else None
-    return out
+    return int(match.group(1)) if match else None
 
 
 def _hungry_for(option):  # pragma: no cover
