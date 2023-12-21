@@ -194,11 +194,9 @@ def get_reader(reader_cls=None, inputter_cls=None, outputter_cls=None, **kwargs)
         else:
             reader_cls = basic.Basic
 
-    reader = core._get_reader(
+    return core._get_reader(
         reader_cls, inputter_cls=inputter_cls, outputter_cls=outputter_cls, **kwargs
     )
-    return reader
-
 
 def _get_format_class(format, reader_writer_cls, label):
     if format is not None and reader_writer_cls is not None:
