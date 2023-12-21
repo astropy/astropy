@@ -12,7 +12,7 @@ the 6.0 release.
 
 In particular, this release includes:
 
-* :ref:`_whatsnew-6.1-table-column-order-from-rows`
+* :ref:`whatsnew-6.1-table-column-order-from-rows`
 
 In addition to these major changes, Astropy v6.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
