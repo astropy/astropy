@@ -214,6 +214,4 @@ def xml_readlines(source):
 
     with data.get_readable_fileobj(source, encoding=encoding) as input:
         input.seek(0)
-        xml_lines = input.readlines()
-
-    return xml_lines
+        return input.readlines()
