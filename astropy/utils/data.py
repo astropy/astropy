@@ -830,8 +830,7 @@ def get_pkg_data_contents(data_name, package=None, encoding=None, cache=True):
     with get_pkg_data_fileobj(
         data_name, package=package, encoding=encoding, cache=cache
     ) as fd:
-        contents = fd.read()
-    return contents
+        return fd.read()
 
 
 def get_pkg_data_filenames(datadir, package=None, pattern="*"):
