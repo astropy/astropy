@@ -135,8 +135,7 @@ def test_custom_model_bounding_box():
 
     def ellipsoid(x, y, z, x0=13, y0=10, z0=8, a=4, b=3, c=2, amp=1):
         rsq = ((x - x0) / a) ** 2 + ((y - y0) / b) ** 2 + ((z - z0) / c) ** 2
-        val = (rsq < 1) * amp
-        return val
+        return (rsq < 1) * amp
 
     class Ellipsoid3D(models.custom_model(ellipsoid)):
         @property
