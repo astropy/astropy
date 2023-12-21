@@ -177,9 +177,7 @@ class WCSAxes(Axes):
         else:
             system = f"world, overlay {self._display_coords_index}"
 
-        coord_string = f"{coord_string} ({system})"
-
-        return coord_string
+        return f"{coord_string} ({system})"
 
     def _set_cursor_prefs(self, event, **kwargs):
         if event.key == "w":
@@ -763,8 +761,7 @@ class WCSAxes(Axes):
         bb.append(super().get_tightbbox(renderer, *args, **kwargs))
 
         if bb:
-            _bbox = Bbox.union(bb)
-            return _bbox
+            return Bbox.union(bb)
         else:
             return self.get_window_extent(renderer)
 
