@@ -350,9 +350,7 @@ def circcorrcoef(alpha, beta, axis=None, weights_alpha=None, weights_beta=None):
 
     sin_a = np.sin(alpha - mu_a)
     sin_b = np.sin(beta - mu_b)
-    rho = np.sum(sin_a * sin_b) / np.sqrt(np.sum(sin_a * sin_a) * np.sum(sin_b * sin_b))
-
-    return rho
+    return np.sum(sin_a * sin_b) / np.sqrt(np.sum(sin_a * sin_a) * np.sum(sin_b * sin_b))
 
 
 def rayleightest(data, axis=None, weights=None):
@@ -420,8 +418,7 @@ def rayleightest(data, axis=None, weights=None):
             / (288.0 * n * n)
         )
 
-    p_value = np.exp(-z) * tmp
-    return p_value
+    return np.exp(-z) * tmp
 
 
 def vtest(data, mu=0.0, axis=None, weights=None):
@@ -481,7 +478,7 @@ def vtest(data, mu=0.0, axis=None, weights=None):
     pz = norm.cdf(z)
     fz = norm.pdf(z)
     # see reference [3]
-    p_value = (
+    return (
         1
         - pz
         + fz
@@ -490,7 +487,6 @@ def vtest(data, mu=0.0, axis=None, weights=None):
             + (15 * z + 305 * z**3 - 125 * z**5 + 9 * z**7) / (4608.0 * n * n)
         )
     )
-    return p_value
 
 
 def _A1inv(x):
