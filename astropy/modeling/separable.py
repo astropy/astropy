@@ -54,12 +54,10 @@ def is_separable(transform):
 
     """
     if transform.n_inputs == 1 and transform.n_outputs > 1:
-        is_separable = np.array([False] * transform.n_outputs).T
-        return is_separable
+        return np.array([False] * transform.n_outputs).T
     separable_matrix = _separable(transform)
     is_separable = separable_matrix.sum(1)
-    is_separable = np.where(is_separable != 1, False, True)
-    return is_separable
+    return np.where(is_separable != 1, False, True)
 
 
 def separability_matrix(transform):
@@ -96,8 +94,7 @@ def separability_matrix(transform):
     if transform.n_inputs == 1 and transform.n_outputs > 1:
         return np.ones((transform.n_outputs, transform.n_inputs), dtype=np.bool_)
     separable_matrix = _separable(transform)
-    separable_matrix = np.where(separable_matrix != 0, True, False)
-    return separable_matrix
+    return np.where(separable_matrix != 0, True, False)
 
 
 def _compute_n_outputs(left, right):
@@ -121,8 +118,7 @@ def _compute_n_outputs(left, right):
         rnout = right.n_outputs
     else:
         rnout = right.shape[0]
-    noutp = lnout + rnout
-    return noutp
+    return lnout + rnout
 
 
 def _arith_oper(left, right):
@@ -162,8 +158,7 @@ def _arith_oper(left, right):
             " the same n_inputs and the same n_outputs for this operator."
         )
 
-    result = np.ones((left_outputs, left_inputs))
-    return result
+    return np.ones((left_outputs, left_inputs))
 
 
 def _coord_matrix(model, pos, noutp):
