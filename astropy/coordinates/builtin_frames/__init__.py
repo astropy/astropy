@@ -174,11 +174,11 @@ def make_transform_graph_docs(transform_graph):
     defining new transformations between these systems, but the
     pre-defined transformations should be sufficient for typical usage.
 
-    The color of an edge in the graph (i.e. the transformations between two
+    The color of an edge in the graph (i.e., the transformations between two
     frames) is set by the type of transformation; the legend box defines the
     mapping from transform class name to color.
 
-    .. Wrap the graph in a div with a custom class to allow themeing.
+    .. Wrap the graph in a div with a custom class to allow theming.
     .. container:: frametransformgraph
 
         .. graphviz::
