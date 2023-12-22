@@ -28,6 +28,7 @@ docs/api
 docs/generated
 docs/visualization/ngc6976.jpeg
 docs/visualization/ngc6976-default.jpeg
+docs/sg_execution_times.rst
 
 # Packages/installer info
 *.egg
