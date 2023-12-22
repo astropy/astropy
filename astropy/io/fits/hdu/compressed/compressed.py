@@ -362,19 +362,6 @@ class CompImageHDU(BinTableHDU):
         self._orig_bscale = self._bscale
         self._orig_bitpix = self._bitpix
 
-        # Handle case where ZBLANK is set on compressed integer HDUs by copying
-        # it to BLANK.
-        if self._bitpix > 0 and "ZBLANK" in self._header:
-            zblank = self._header["ZBLANK"]
-            orig_blank = self._header.get("BLANK", zblank)
-            if orig_blank != zblank:
-                raise ValueError(
-                    "Both ZBLANK and BLANK found in header for compressed image "
-                    "with different values "
-                    f"(ZBLANK={zblank}, BLANK={orig_blank})"
-                )
-            self._header["BLANK"] = zblank
-
     def _remove_unnecessary_default_extnames(self, header):
         """Remove default EXTNAME values if they are unnecessary.
 
