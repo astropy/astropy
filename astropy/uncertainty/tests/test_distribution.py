@@ -11,7 +11,6 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.uncertainty import distributions as ds
 from astropy.uncertainty.core import Distribution
 from astropy.utils import NumpyRNGContext
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_23
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 if HAS_SCIPY:
@@ -481,12 +480,8 @@ def test_distr_view_different_dtype2():
     assert np.may_share_memory(uint32_2, uint32)
     assert_array_equal(uint32_2.distribution, uint32.distribution)
     uint8_2 = uint8.T
-    if NUMPY_LT_1_23:
-        with pytest.raises(DeprecationWarning, match="Changing the shape of an F-"):
-            uint8_2.view("u4")
-    else:
-        with pytest.raises(ValueError, match="last axis must be contiguous"):
-            uint8_2.view("u4")
+    with pytest.raises(ValueError, match="last axis must be contiguous"):
+        uint8_2.view("u4")
 
 
 def test_distr_cannot_view_new_dtype():

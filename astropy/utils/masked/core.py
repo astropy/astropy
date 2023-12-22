@@ -848,8 +848,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
             elif out is None:
                 # Can only get here if neither input nor output was masked, but
-                # perhaps where was masked (possible in "not NUMPY_LT_1_25" and
-                # in NUMPY_LT_1_21 (latter also allowed axis).
+                # perhaps where was masked (possible in "not NUMPY_LT_1_25").
                 # We don't support this.
                 return NotImplemented
 

@@ -15,7 +15,7 @@ import os
 import re
 from contextlib import suppress
 
-from astropy.units import Unit
+from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
 
 from . import core, fixedwidth
 
@@ -130,11 +130,30 @@ class CdsHeader(core.BaseHeader):
                 if unit == "---":
                     col.unit = None  # "---" is the marker for no unit in CDS/MRT table
                 else:
-                    col.unit = Unit(unit, format="cds", parse_strict="warn")
+                    try:
+                        col.unit = Unit(unit, format="cds", parse_strict="warn")
+                    except UnitsWarning:
+                        # catch when warnings are turned into errors so we can check
+                        # whether this line is likely a multi-line description (see below)
+                        col.unit = UnrecognizedUnit(unit)
                 col.description = (match.group("descr") or "").strip()
                 col.raw_type = match.group("format")
-                col.type = self.get_col_type(col)
-
+                try:
+                    col.type = self.get_col_type(col)
+                except ValueError:
+                    # If parsing the format fails and the unit is unrecognized,
+                    # then this line is likely a continuation of the previous col's
+                    # description that happens to start with a number
+                    if isinstance(col.unit, UnrecognizedUnit):
+                        if len(cols[-1].description) > 0:
+                            cols[-1].description += " "
+                        cols[-1].description += line.strip()
+                        continue
+                else:
+                    if col.unit is not None:
+                        # Because we may have ignored a UnitsWarning turned into an error
+                        # we do this again so it can be raised again if it is a real error
+                        col.unit = Unit(unit, format="cds", parse_strict="warn")
                 match = re.match(
                     # Matches limits specifier (eg []) that may or may not be
                     # present
@@ -173,6 +192,8 @@ class CdsHeader(core.BaseHeader):
                 cols.append(col)
             else:  # could be a continuation of the previous col's description
                 if cols:
+                    if len(cols[-1].description) > 0:
+                        cols[-1].description += " "
                     cols[-1].description += line.strip()
                 else:
                     raise ValueError(f'Line "{line}" not parsable as CDS header')

@@ -491,10 +491,7 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(":",), fields=
     values = [np.abs(value) for value in values]
 
     if pad:
-        if sign == -1:
-            pad = 3
-        else:
-            pad = 2
+        pad = 3 if sign == -1 else 2
     else:
         pad = 0
 
@@ -524,10 +521,7 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(":",), fields=
     # example, if the seconds will round up to 60, we should convert
     # it to 0 and carry upwards.  If the field is hidden (by the
     # fields kwarg) we round up around the middle, 30.0.
-    if precision is None:
-        rounding_thresh = 60.0 - (10.0**-8)
-    else:
-        rounding_thresh = 60.0 - (10.0**-precision)
+    rounding_thresh = 60.0 - (10.0 ** -(8 if precision is None else precision))
 
     if fields == 3 and values[2] >= rounding_thresh:
         values[2] = 0.0
@@ -541,29 +535,18 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(":",), fields=
     elif fields < 2 and values[1] >= 30.0:
         values[0] += 1.0
 
-    literal = []
-    last_value = ""
-    literal.append("{0:0{pad}.0f}{sep[0]}")
+    literal = f"{np.copysign(values[0], sign):0{pad}.0f}{sep[0]}"
     if fields >= 2:
-        literal.append("{1:02d}{sep[1]}")
+        literal += f"{int(values[1]):02d}{sep[1]}"
     if fields == 3:
         if precision is None:
-            last_value = f"{abs(values[2]):.8f}"
-            last_value = last_value.rstrip("0").rstrip(".")
+            last_value = f"{abs(values[2]):.8f}".rstrip("0").rstrip(".")
         else:
-            last_value = "{0:.{precision}f}".format(abs(values[2]), precision=precision)
+            last_value = f"{abs(values[2]):.{precision}f}"
         if len(last_value) == 1 or last_value[1] == ".":
             last_value = "0" + last_value
-        literal.append("{last_value}{sep[2]}")
-    literal = "".join(literal)
-    return literal.format(
-        np.copysign(values[0], sign),
-        int(values[1]),
-        values[2],
-        sep=sep,
-        pad=pad,
-        last_value=last_value,
-    )
+        literal += f"{last_value}{sep[2]}"
+    return literal
 
 
 def hours_to_string(h, precision=5, pad=False, sep=("h", "m", "s"), fields=3):

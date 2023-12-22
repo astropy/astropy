@@ -738,7 +738,9 @@ class FLRWTest(
         """Test :meth:`astropy.cosmology.FLRW.scale_factor`."""
         assert np.allclose(cosmo.scale_factor(z), 1 / (1 + np.array(z)))
 
-    @pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas")
+    @pytest.mark.skipif(
+        not (HAS_PANDAS and HAS_SCIPY), reason="requires pandas and scipy"
+    )
     def test_luminosity_distance_pandas(self, cosmo):
         """Test :meth:`astropy.cosmology.FLRW.luminosity_distance`.
 

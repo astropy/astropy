@@ -1256,7 +1256,7 @@ the available docstrings below:
 
 - `~astropy.coordinates.SkyCoord.match_to_catalog_sky`,
 - `~astropy.coordinates.SkyCoord.match_to_catalog_3d`,
-- `~astropy.coordinates.SkyCoord.position_angle`,
+- `~astropy.coordinates.BaseCoordinateFrame.position_angle`,
 - `~astropy.coordinates.BaseCoordinateFrame.separation`,
 - `~astropy.coordinates.BaseCoordinateFrame.separation_3d`
 - `~astropy.coordinates.SkyCoord.apply_space_motion`

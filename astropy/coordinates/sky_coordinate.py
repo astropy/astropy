@@ -295,6 +295,7 @@ class SkyCoord(ShapedLikeNDArray):
     info = SkyCoordInfo()
 
     # Methods implemented by the underlying frame
+    position_angle: Callable[[BaseCoordinateFrame | SkyCoord], Angle]
     separation: Callable[[BaseCoordinateFrame | SkyCoord], Angle]
     separation_3d: Callable[[BaseCoordinateFrame | SkyCoord], Distance]
 
@@ -1182,7 +1183,7 @@ class SkyCoord(ShapedLikeNDArray):
         --------
         :meth:`~astropy.coordinates.BaseCoordinateFrame.separation` :
             for the *total* angular offset (not broken out into components).
-        position_angle :
+        :meth:`~astropy.coordinates.BaseCoordinateFrame.position_angle` :
             for the direction of the offset.
 
         """
@@ -1255,8 +1256,7 @@ class SkyCoord(ShapedLikeNDArray):
         -------
         newpoints : `~astropy.coordinates.SkyCoord`
             The coordinates for the location that corresponds to offsetting by
-            the given `position_angle` and
-            :meth:`~astropy.coordinates.BaseCoordinateFrame.separation`.
+            the given ``position_angle`` and ``separation``.
 
         Notes
         -----
@@ -1273,8 +1273,10 @@ class SkyCoord(ShapedLikeNDArray):
 
         See Also
         --------
-        position_angle : inverse operation for the ``position_angle`` component
-        :meth:`~astropy.coordinates.BaseCoordinateFrame.separation` : inverse operation for the ``separation`` component
+        :meth:`~astropy.coordinates.BaseCoordinateFrame.position_angle` :
+            inverse operation for the ``position_angle`` component
+        :meth:`~astropy.coordinates.BaseCoordinateFrame.separation` :
+            inverse operation for the ``separation`` component
 
         """
         from .angles import offset_by
@@ -1540,53 +1542,6 @@ class SkyCoord(ShapedLikeNDArray):
         return search_around_3d(
             searcharoundcoords, self, distlimit, storekdtree="_kdtree_3d"
         )
-
-    def position_angle(self, other):
-        """
-        Computes the on-sky position angle (East of North) between this
-        SkyCoord and another.
-
-        Parameters
-        ----------
-        other : |SkyCoord|
-            The other coordinate to compute the position angle to.  It is
-            treated as the "head" of the vector of the position angle.
-
-        Returns
-        -------
-        pa : `~astropy.coordinates.Angle`
-            The (positive) position angle of the vector pointing from ``self``
-            to ``other``.  If either ``self`` or ``other`` contain arrays, this
-            will be an array following the appropriate `numpy` broadcasting
-            rules.
-
-        Examples
-        --------
-        >>> c1 = SkyCoord(0*u.deg, 0*u.deg)
-        >>> c2 = SkyCoord(1*u.deg, 0*u.deg)
-        >>> c1.position_angle(c2).degree
-        90.0
-        >>> c3 = SkyCoord(1*u.deg, 1*u.deg)
-        >>> c1.position_angle(c3).degree  # doctest: +FLOAT_CMP
-        44.995636455344844
-        """
-        from .angles import position_angle
-
-        if not self.is_equivalent_frame(other):
-            try:
-                other = other.transform_to(self, merge_attributes=False)
-            except TypeError:
-                raise TypeError(
-                    "Can only get position_angle to another "
-                    "SkyCoord or a coordinate frame with data"
-                )
-
-        slat = self.represent_as(UnitSphericalRepresentation).lat
-        slon = self.represent_as(UnitSphericalRepresentation).lon
-        olat = other.represent_as(UnitSphericalRepresentation).lat
-        olon = other.represent_as(UnitSphericalRepresentation).lon
-
-        return position_angle(slon, slat, olon, olat)
 
     def skyoffset_frame(self, rotation=None):
         """
@@ -1895,27 +1850,22 @@ class SkyCoord(ShapedLikeNDArray):
         elif self.obstime is not None and self.frame.data.differentials:
             # we do need space motion after all
             coo_at_rv_obstime = self.apply_space_motion(obstime)
-        elif self.obstime is None:
-            # warn the user if the object has differentials set
-            if "s" in self.data.differentials:
-                warnings.warn(
-                    "SkyCoord has space motion, and therefore the specified "
-                    "position of the SkyCoord may not be the same as "
-                    "the `obstime` for the radial velocity measurement. "
-                    "This may affect the rv correction at the order of km/s"
-                    "for very high proper motions sources. If you wish to "
-                    "apply space motion of the SkyCoord to correct for this"
-                    "the `obstime` attribute of the SkyCoord must be set",
-                    AstropyUserWarning,
-                )
+        elif self.obstime is None and "s" in self.data.differentials:
+            warnings.warn(
+                "SkyCoord has space motion, and therefore the specified "
+                "position of the SkyCoord may not be the same as "
+                "the `obstime` for the radial velocity measurement. "
+                "This may affect the rv correction at the order of km/s"
+                "for very high proper motions sources. If you wish to "
+                "apply space motion of the SkyCoord to correct for this"
+                "the `obstime` attribute of the SkyCoord must be set",
+                AstropyUserWarning,
+            )
 
-        pos_earth, v_earth = get_body_barycentric_posvel("earth", obstime)
-        if kind == "barycentric":
-            v_origin_to_earth = v_earth
-        elif kind == "heliocentric":
-            v_sun = get_body_barycentric_posvel("sun", obstime)[1]
-            v_origin_to_earth = v_earth - v_sun
-        else:
+        pos_earth, v_origin_to_earth = get_body_barycentric_posvel("earth", obstime)
+        if kind == "heliocentric":
+            v_origin_to_earth -= get_body_barycentric_posvel("sun", obstime)[1]
+        elif kind != "barycentric":
             raise ValueError(
                 "`kind` argument to radial_velocity_correction must "
                 f"be 'barycentric' or 'heliocentric', but got '{kind}'"
@@ -1925,48 +1875,44 @@ class SkyCoord(ShapedLikeNDArray):
         # transforming to GCRS is not the correct thing to do here, since we don't want to
         # include aberration (or light deflection)? Instead, only apply parallax if necessary
         icrs_cart = coo_at_rv_obstime.icrs.cartesian
-        icrs_cart_novel = icrs_cart.without_differentials()
-        if self.data.__class__ is UnitSphericalRepresentation:
-            targcart = icrs_cart_novel
-        else:
-            # skycoord has distances so apply parallax
-            obs_icrs_cart = pos_earth + gcrs_p
-            targcart = icrs_cart_novel - obs_icrs_cart
+        targcart = icrs_cart.without_differentials()
+        if self.data.__class__ is not UnitSphericalRepresentation:
+            # SkyCoord has distances, so apply parallax by calculating
+            # the direction of the target as seen by the observer.
+            targcart -= pos_earth + gcrs_p
             targcart /= targcart.norm()
 
-        if kind == "barycentric":
-            beta_obs = (v_origin_to_earth + gcrs_v) / speed_of_light
-            gamma_obs = 1 / np.sqrt(1 - beta_obs.norm() ** 2)
-            gr = location.gravitational_redshift(obstime)
-            # barycentric redshift according to eq 28 in Wright & Eastmann (2014),
-            # neglecting Shapiro delay and effects of the star's own motion
-            zb = gamma_obs * (1 + beta_obs.dot(targcart)) / (1 + gr / speed_of_light)
-            # try and get terms corresponding to stellar motion.
-            if icrs_cart.differentials:
-                try:
-                    ro = self.icrs.cartesian
-                    beta_star = ro.differentials["s"].to_cartesian() / speed_of_light
-                    # ICRS unit vector at coordinate epoch
-                    ro = ro.without_differentials()
-                    ro /= ro.norm()
-                    zb *= (1 + beta_star.dot(ro)) / (1 + beta_star.dot(targcart))
-                except u.UnitConversionError:
-                    warnings.warn(
-                        "SkyCoord contains some velocity information, but not enough to"
-                        " calculate the full space motion of the source, and so this"
-                        " has been ignored for the purposes of calculating the radial"
-                        " velocity correction. This can lead to errors on the order of"
-                        " metres/second.",
-                        AstropyUserWarning,
-                    )
-
-            zb = zb - 1
-            return zb * speed_of_light
-        else:
-            # do a simpler correction ignoring time dilation and gravitational redshift
-            # this is adequate since Heliocentric corrections shouldn't be used if
-            # cm/s precision is required.
+        if kind == "heliocentric":
+            # Do a simpler correction than for barycentric ignoring time dilation and
+            # gravitational redshift.  This is adequate since heliocentric corrections
+            # shouldn't be used if cm/s precision is required.
             return targcart.dot(v_origin_to_earth + gcrs_v)
+
+        beta_obs = (v_origin_to_earth + gcrs_v) / speed_of_light
+        gamma_obs = 1 / np.sqrt(1 - beta_obs.norm() ** 2)
+        gr = location.gravitational_redshift(obstime)
+        # barycentric redshift according to eq 28 in Wright & Eastmann (2014),
+        # neglecting Shapiro delay and effects of the star's own motion
+        zb = gamma_obs * (1 + beta_obs.dot(targcart)) / (1 + gr / speed_of_light)
+        # try and get terms corresponding to stellar motion.
+        if icrs_cart.differentials:
+            try:
+                ro = self.icrs.cartesian
+                beta_star = ro.differentials["s"].to_cartesian() / speed_of_light
+                # ICRS unit vector at coordinate epoch
+                ro = ro.without_differentials()
+                ro /= ro.norm()
+                zb *= (1 + beta_star.dot(ro)) / (1 + beta_star.dot(targcart))
+            except u.UnitConversionError:
+                warnings.warn(
+                    "SkyCoord contains some velocity information, but not enough to"
+                    " calculate the full space motion of the source, and so this"
+                    " has been ignored for the purposes of calculating the radial"
+                    " velocity correction. This can lead to errors on the order of"
+                    " metres/second.",
+                    AstropyUserWarning,
+                )
+        return (zb - 1) * speed_of_light
 
     # Table interactions
     @classmethod

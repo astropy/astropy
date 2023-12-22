@@ -40,6 +40,7 @@ to update the original table data or properties. See also the section on
   t['a'][1]    # Row 1 of column 'a'
   t[1]         # Row 1
   t[1]['a']    # Column 'a' of row 1
+  t[1][1:]     # Row 1, columns b and c
   t[2:5]       # Table object with rows 2:5
   t[[1, 3, 4]]  # Table object with rows 1, 3, 4 (copy)
   t[np.array([1, 3, 4])]  # Table object with rows 1, 3, 4 (copy)

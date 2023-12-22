@@ -640,3 +640,15 @@ class TestStructuredArray:
         assert qra[1].value == np.array((-1000.0, -2000.0, -3000.0), qra.dtype)
         # Ensure we do not override dtype names of value.
         assert value.dtype.names == ("x", "y", "z")
+
+
+@pytest.mark.filterwarnings(
+    "ignore: The numpy.array_api submodule is still experimental. See NEP 47."
+)
+def test_array_api_init():
+    import numpy.array_api as np_api
+
+    array = np_api.asarray([1, 2, 3])
+    quantity_array = u.Quantity(array, u.m)
+    assert type(quantity_array) is u.Quantity
+    assert_array_equal(quantity_array, [1, 2, 3] * u.m)

@@ -5,11 +5,6 @@ astropy. Exceptions that are specific to a given subpackage should *not* be
 here, but rather in the particular subpackage.
 """
 
-# TODO: deprecate these.  This cannot be trivially done with
-# astropy.utils.decorators.deprecate, since that module needs the exceptions
-# here, leading to circular import problems.
-from erfa import ErfaError, ErfaWarning  # noqa: F401
-
 __all__ = [
     "AstropyWarning",
     "AstropyUserWarning",
@@ -78,3 +73,22 @@ class _NoValue:
 
 
 NoValue = _NoValue()
+
+
+def __getattr__(name: str):
+    if name in ("ErfaError", "ErfaWarning"):
+        import warnings
+
+        warnings.warn(
+            f"Importing {name} from astropy.utils.exceptions was deprecated "
+            "in version 6.1 and will stop working in a future version. "
+            f"Instead, please use\nfrom erfa import {name}\n\n",
+            category=AstropyDeprecationWarning,
+            stacklevel=1,
+        )
+
+        import erfa
+
+        return getattr(erfa, name)
+
+    raise AttributeError(f"Module {__name__!r} has no attribute {name!r}.")

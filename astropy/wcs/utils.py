@@ -1098,7 +1098,8 @@ def fit_wcs_from_points(
     Parameters
     ----------
     xy : (`numpy.ndarray`, `numpy.ndarray`) tuple
-        x & y pixel coordinates.
+        x & y pixel coordinates.  These should be in FITS convention, starting
+        from (1,1) as the center of the bottom-left pixel.
     world_coords : `~astropy.coordinates.SkyCoord`
         Skycoord object with world coordinates.
     proj_point : 'center' or ~astropy.coordinates.SkyCoord`
