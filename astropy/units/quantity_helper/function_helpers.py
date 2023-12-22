@@ -47,7 +47,7 @@ from astropy.units.core import (
     dimensionless_unscaled,
 )
 from astropy.utils import isiterable
-from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24, NUMPY_LT_2_0
+from astropy.utils.compat import NUMPY_LT_1_24, NUMPY_LT_2_0
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
@@ -109,7 +109,11 @@ if NUMPY_LT_2_0:
     SUBCLASS_SAFE_FUNCTIONS |= {np.msort, np.round_}  # noqa: NPY003
 else:
     # Array-API compatible versions (matrix axes always at end).
-    SUBCLASS_SAFE_FUNCTIONS |= {np.linalg.diagonal, np.linalg.trace}
+    SUBCLASS_SAFE_FUNCTIONS |= {
+        np.matrix_transpose, np.linalg.matrix_transpose,
+        np.linalg.diagonal, np.linalg.trace,
+        np.linalg.matrix_norm, np.linalg.vector_norm, np.linalg.vecdot,
+    }  # fmt: skip
 
     # these work out of the box (and are tested), because they
     # delegate to other, already wrapped functions from the np namespace
@@ -152,12 +156,6 @@ IGNORED_FUNCTIONS = {
     # functions taking record arrays (which are deprecated)
     rfn.rec_append_fields, rfn.rec_drop_fields, rfn.rec_join,
 }  # fmt: skip
-if NUMPY_LT_1_23:
-    IGNORED_FUNCTIONS |= {
-        # Deprecated, removed in numpy 1.23
-        np.asscalar,
-        np.alen,
-    }
 UNSUPPORTED_FUNCTIONS |= IGNORED_FUNCTIONS
 
 
@@ -664,6 +662,15 @@ def cross_like_a_v(a, v, *args, **kwargs):
     a, v = _as_quantities(a, v)
     unit = a.unit * v.unit
     return (a.view(np.ndarray), v.view(np.ndarray)) + args, kwargs, unit, None
+
+
+if not NUMPY_LT_2_0:
+
+    @function_helper
+    def vecdot(x1, x2, /, *args, **kwargs):
+        # Just change the names; note that this really should be subclass-safe;
+        # see https://github.com/numpy/numpy/pull/25155/files#r1429215558
+        return cross_like_a_v(x1, x2, *args, **kwargs)
 
 
 @function_helper

@@ -12,7 +12,7 @@ interpreted.
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
-from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24, NUMPY_LT_2_0
+from astropy.utils.compat import NUMPY_LT_1_24, NUMPY_LT_2_0
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
@@ -149,6 +149,10 @@ IGNORED_FUNCTIONS |= {
     np.einsum, np.einsum_path,
 }  # fmt: skip
 
+if not NUMPY_LT_2_0:
+    # TODO, when also implementing np.dot, etc.; see above.
+    IGNORED_FUNCTIONS |= {np.vecdot}
+
 # Really should do these...
 if NUMPY_LT_2_0:
     from numpy.lib import arraysetops
@@ -158,13 +162,6 @@ else:
     from numpy.lib import _arraysetops_impl as arraysetops
 
 IGNORED_FUNCTIONS |= {getattr(np, setopsname) for setopsname in arraysetops.__all__}
-
-if NUMPY_LT_1_23:
-    IGNORED_FUNCTIONS |= {
-        # Deprecated, removed in numpy 1.23
-        np.asscalar,
-        np.alen,
-    }
 
 # Explicitly unsupported functions
 UNSUPPORTED_FUNCTIONS |= {
