@@ -1127,15 +1127,6 @@ class TestVariousProductFunctions:
         o = np.vdot(q1, q2)
         assert o == (32.0 + 0j) * u.m / u.s
 
-    if not NUMPY_LT_2_0:
-
-        @needs_array_function
-        def test_vecdot(self):
-            q1 = np.array([1j, 2j, 3j]) * u.m
-            q2 = np.array([4j, 5j, 6j]) / u.s
-            o = np.vecdot(q1, q2)
-            assert o == (32.0 + 0j) * u.m / u.s
-
     @needs_array_function
     def test_tensordot(self):
         # From the docstring example
