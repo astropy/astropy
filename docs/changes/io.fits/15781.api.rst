@@ -5,4 +5,4 @@ are now only available at the qualified names
 and ``astropy.io.fits.hdu.compressed._tiled_compression.decompress_image_data_section``.
 The rest of the removed exports are external modules or properly exported
 elsewhere in astropy. May break imports in rare cases that relied
-on these exports. 
+on these exports.
