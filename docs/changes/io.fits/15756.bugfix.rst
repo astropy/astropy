@@ -1,0 +1,6 @@
+Fixes loading of tile-compressed integer data with a `ZBLANK` header.
+The `ZBLANK` header is only supported for floating point data and is
+now ignored for integer data. If the original data is scaled with
+BZERO/BSCALE before compression, the `BLANK` header should be used
+to indicate NaNs. This change fixes the loading of Pan-STARRS images
+restores the behavior of astropy 5.2 and earlier.
