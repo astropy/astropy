@@ -11,6 +11,7 @@ from astropy.utils.shapes import simplify_basic_index
 
 __all__ = ["CompImageSection"]
 
+
 class CompImageSection:
     """
     Class enabling subsets of CompImageHDU data to be loaded lazily via slicing.
