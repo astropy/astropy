@@ -40,6 +40,8 @@ from .settings import (
     DITHER_SEED_CLOCK,
 )
 
+__all__ = ["COMPRESSION_ENABLED", "CompImageHDU"]
+
 # This global variable is used e.g., when calling fits.open with
 # disable_image_compression which temporarily changes the global variable to
 # False. This should ideally be refactored to avoid relying on global module
