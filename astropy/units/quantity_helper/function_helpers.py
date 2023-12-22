@@ -670,15 +670,6 @@ def cross_like_a_v(a, v, *args, **kwargs):
     return (a.view(np.ndarray), v.view(np.ndarray)) + args, kwargs, unit, None
 
 
-if not NUMPY_LT_2_0:
-
-    @function_helper
-    def vecdot(x1, x2, /, *args, **kwargs):
-        # Just change the names; note that this really should be subclass-safe;
-        # see https://github.com/numpy/numpy/pull/25155/files#r1429215558
-        return cross_like_a_v(x1, x2, *args, **kwargs)
-
-
 @function_helper
 def einsum(*operands, out=None, **kwargs):
     from astropy.units import Quantity
