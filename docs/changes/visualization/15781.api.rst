@@ -1,0 +1,2 @@
+Add ``__all__`` list to `~astropy.visualization.units` submodule
+Removes the unintended NumPy export at ``astropy.visualization.np``.

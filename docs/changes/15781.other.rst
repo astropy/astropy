@@ -1,5 +1,0 @@
-Add missing ``__all__`` lists to star-imported modules
-Removes unintended exports from
-- ``astropy.io.fits.hdu.compressed`` (many unintended exports)
-- ``astropy.visualization`` (NumPy exported as ``np``)
-May break imports in rare cases that relied on these unintended exports.
