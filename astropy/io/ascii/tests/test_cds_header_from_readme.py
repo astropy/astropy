@@ -8,7 +8,6 @@ from astropy.io import ascii
 
 from .common import (
     assert_almost_equal,
-    assert_equal,
     setup_function,  # noqa: F401
     teardown_function,  # noqa: F401
 )
@@ -34,22 +33,22 @@ def test_description():
     data = "data/cds/description/table.dat"
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
-        assert_equal(len(table), 2)
-        assert_equal(table["Cluster"].description, "Cluster name")
-        assert_equal(table["Star"].description, "")
-        assert_equal(table["Wave"].description, "wave ? Wavelength in Angstroms")
-        assert_equal(table["El"].description, "a")
-        assert_equal(
-            table["ion"].description, "- Ionization stage (1 for neutral element)"
+        assert(len(table) == 2)
+        assert(table["Cluster"].description == "Cluster name")
+        assert(table["Star"].description == "")
+        assert(table["Wave"].description == "wave ? Wavelength in Angstroms")
+        assert(table["El"].description == "a")
+        assert(
+            table["ion"].description == "- Ionization stage (1 for neutral element)"
         )
-        assert_equal(
-            table["loggf"].description,
+        assert(
+            table["loggf"].description ==
             "log10 of the gf value - logarithm base 10 of stat. weight times "
             "oscillator strength",
         )
-        assert_equal(table["EW"].description, "Equivalent width (in mA)")
-        assert_equal(
-            table["Q"].description, "DAOSPEC quality parameter Q (large values are bad)"
+        assert(table["EW"].description == "Equivalent width (in mA)")
+        assert(
+            table["Q"].description == "DAOSPEC quality parameter Q (large values are bad)"
         )
 
 
@@ -58,15 +57,15 @@ def test_multi_header():
     data = "data/cds/multi/lhs2065.dat"
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
-        assert_equal(len(table), 18)
+        assert(len(table) == 18)
         assert_almost_equal(table["Lambda"][-1], 6479.32)
-        assert_equal(table["Fnu"][-1], "0.285937")
+        assert(table["Fnu"][-1] == "0.285937")
     data = "data/cds/multi/lp944-20.dat"
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
-        assert_equal(len(table), 18)
+        assert(len(table) == 18)
         assert_almost_equal(table["Lambda"][0], 6476.09)
-        assert_equal(table["Fnu"][-1], "0.489005")
+        assert(table["Fnu"][-1] == "0.489005")
 
 
 def test_glob_header():
@@ -74,9 +73,9 @@ def test_glob_header():
     data = "data/cds/glob/lmxbrefs.dat"
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
-        assert_equal(len(table), 291)
-        assert_equal(table["Name"][-1], "J1914+0953")
-        assert_equal(table["BibCode"][-2], "2005A&A...432..235R")
+        assert(len(table) == 291)
+        assert(table["Name"][-1] == "J1914+0953")
+        assert(table["BibCode"][-2] == "2005A&A...432..235R")
 
 
 def test_header_from_readme():
@@ -216,9 +215,9 @@ def test_cds_ignore_nullable():
     data = "data/cds/null/table.dat"
     r = ascii.Cds(readme)
     r.read(data)
-    assert_equal(r.header.cols[6].description, "Temperature class codified (10)")
-    assert_equal(r.header.cols[8].description, "Luminosity class codified (11)")
-    assert_equal(r.header.cols[5].description, "Pericenter position angle (18)")
+    assert(r.header.cols[6].description == "Temperature class codified (10)")
+    assert(r.header.cols[8].description == "Luminosity class codified (11)")
+    assert(r.header.cols[5].description == "Pericenter position angle (18)")
 
 
 def test_cds_no_whitespace():
@@ -228,15 +227,15 @@ def test_cds_no_whitespace():
     data = "data/cds/null/table.dat"
     r = ascii.Cds(readme)
     r.read(data)
-    assert_equal(r.header.cols[6].description, "Temperature class codified (10)")
-    assert_equal(r.header.cols[6].null, "")
-    assert_equal(r.header.cols[7].description, "Equivalent width (in mA)")
-    assert_equal(r.header.cols[7].null, "-9.9")
-    assert_equal(
-        r.header.cols[10].description,
+    assert(r.header.cols[6].description == "Temperature class codified (10)")
+    assert(r.header.cols[6].null == "")
+    assert(r.header.cols[7].description == "Equivalent width (in mA)")
+    assert(r.header.cols[7].null == "-9.9")
+    assert(
+        r.header.cols[10].description ==
         "DAOSPEC quality parameter Q (large values are bad)",
     )
-    assert_equal(r.header.cols[10].null, "-9.999")
+    assert(r.header.cols[10].null == "-9.999")
 
 
 def test_cds_order():
@@ -246,6 +245,6 @@ def test_cds_order():
     data = "data/cds/null/table.dat"
     r = ascii.Cds(readme)
     r.read(data)
-    assert_equal(r.header.cols[5].description, "Catalogue Identification Number")
-    assert_equal(r.header.cols[8].description, "Equivalent width (in mA)")
-    assert_equal(r.header.cols[9].description, "Luminosity class codified (11)")
+    assert(r.header.cols[5].description == "Catalogue Identification Number")
+    assert(r.header.cols[8].description == "Equivalent width (in mA)")
+    assert(r.header.cols[9].description == "Luminosity class codified (11)")

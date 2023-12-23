@@ -9,11 +9,11 @@ import pytest
 from astropy.io import ascii
 from astropy.io.ascii.core import InconsistentTableError
 
-from .common import assert_almost_equal, assert_equal
+from .common import assert_almost_equal
 
 
 def assert_equal_splitlines(arg1, arg2):
-    assert_equal(arg1.splitlines(), arg2.splitlines())
+    assert(arg1.splitlines() == arg2.splitlines())
 
 
 def test_read_normal():
@@ -26,10 +26,10 @@ def test_read_normal():
 """
     reader = ascii.get_reader(reader_cls=ascii.FixedWidth)
     dat = reader.read(table)
-    assert_equal(dat.colnames, ["Col1", "Col2"])
+    assert(dat.colnames == ["Col1", "Col2"])
     assert_almost_equal(dat[1][0], 2.4)
-    assert_equal(dat[0][1], '"hello"')
-    assert_equal(dat[1][1], "'s worlds")
+    assert(dat[0][1] == '"hello"')
+    assert(dat[1][1] == "'s worlds")
 
 
 def test_read_normal_names():
@@ -42,7 +42,7 @@ def test_read_normal_names():
 """
     reader = ascii.get_reader(reader_cls=ascii.FixedWidth, names=("name1", "name2"))
     dat = reader.read(table)
-    assert_equal(dat.colnames, ["name1", "name2"])
+    assert(dat.colnames == ["name1", "name2"])
     assert_almost_equal(dat[1][0], 2.4)
 
 
@@ -60,9 +60,9 @@ def test_read_normal_names_include():
         include_names=("name1", "name3"),
     )
     dat = reader.read(table)
-    assert_equal(dat.colnames, ["name1", "name3"])
+    assert(dat.colnames == ["name1", "name3"])
     assert_almost_equal(dat[1][0], 2.4)
-    assert_equal(dat[0][1], 3)
+    assert(dat[0][1] == 3)
 
 
 def test_read_normal_exclude():
@@ -75,8 +75,8 @@ def test_read_normal_exclude():
 """
     reader = ascii.get_reader(reader_cls=ascii.FixedWidth, exclude_names=("Col1",))
     dat = reader.read(table)
-    assert_equal(dat.colnames, ["Col2"])
-    assert_equal(dat[1][0], "'s worlds")
+    assert(dat.colnames == ["Col2"])
+    assert(dat[1][0] == "'s worlds")
 
 
 def test_read_weird():
@@ -88,10 +88,10 @@ def test_read_weird():
 """
     reader = ascii.get_reader(reader_cls=ascii.FixedWidth)
     dat = reader.read(table)
-    assert_equal(dat.colnames, ["Col1", "Col2"])
+    assert(dat.colnames == ["Col1", "Col2"])
     assert_almost_equal(dat[1][0], 2.4)
-    assert_equal(dat[0][1], '"hel')
-    assert_equal(dat[1][1], "df's wo")
+    assert(dat[0][1] == '"hel')
+    assert(dat[1][1] == "df's wo")
 
 
 def test_read_double():
@@ -103,10 +103,10 @@ def test_read_double():
 |   Bob  | 555-4527 | 192.168.1.9X|
 """
     dat = ascii.read(table, format="fixed_width", guess=False)
-    assert_equal(tuple(dat.dtype.names), ("Name", "Phone", "TCP"))
-    assert_equal(dat[1][0], "Mary")
-    assert_equal(dat[0][1], "555-1234")
-    assert_equal(dat[2][2], "192.168.1.9")
+    assert(tuple(dat.dtype.names) == ("Name", "Phone", "TCP"))
+    assert(dat[1][0] == "Mary")
+    assert(dat[0][1] == "555-1234")
+    assert(dat[2][2] == "192.168.1.9")
 
 
 def test_read_space_delimiter():
@@ -118,10 +118,10 @@ def test_read_space_delimiter():
   Bob  555-4527     192.168.1.9
 """
     dat = ascii.read(table, format="fixed_width", guess=False, delimiter=" ")
-    assert_equal(tuple(dat.dtype.names), ("Name", "--Phone-", "----TCP-----"))
-    assert_equal(dat[1][0], "Mary")
-    assert_equal(dat[0][1], "555-1234")
-    assert_equal(dat[2][2], "192.168.1.9")
+    assert(tuple(dat.dtype.names) == ("Name", "--Phone-", "----TCP-----"))
+    assert(dat[1][0] == "Mary")
+    assert(dat[0][1] == "555-1234")
+    assert(dat[2][2] == "192.168.1.9")
 
 
 def test_read_no_header_autocolumn():
@@ -134,10 +134,10 @@ def test_read_no_header_autocolumn():
     dat = ascii.read(
         table, format="fixed_width", guess=False, header_start=None, data_start=0
     )
-    assert_equal(tuple(dat.dtype.names), ("col1", "col2", "col3"))
-    assert_equal(dat[1][0], "Mary")
-    assert_equal(dat[0][1], "555-1234")
-    assert_equal(dat[2][2], "192.168.1.9")
+    assert(tuple(dat.dtype.names) == ("col1", "col2", "col3"))
+    assert(dat[1][0] == "Mary")
+    assert(dat[0][1] == "555-1234")
+    assert(dat[2][2] == "192.168.1.9")
 
 
 def test_read_no_header_names():
@@ -156,10 +156,10 @@ def test_read_no_header_names():
         data_start=0,
         names=("Name", "Phone", "TCP"),
     )
-    assert_equal(tuple(dat.dtype.names), ("Name", "Phone", "TCP"))
-    assert_equal(dat[1][0], "Mary")
-    assert_equal(dat[0][1], "555-1234")
-    assert_equal(dat[2][2], "192.168.1.9")
+    assert(tuple(dat.dtype.names) == ("Name", "Phone", "TCP"))
+    assert(dat[1][0] == "Mary")
+    assert(dat[0][1] == "555-1234")
+    assert(dat[2][2] == "192.168.1.9")
 
 
 def test_read_no_header_autocolumn_NoHeader():
@@ -170,10 +170,10 @@ def test_read_no_header_autocolumn_NoHeader():
 |   Bob  | 555-4527 | 192.168.1.9|
 """
     dat = ascii.read(table, format="fixed_width_no_header")
-    assert_equal(tuple(dat.dtype.names), ("col1", "col2", "col3"))
-    assert_equal(dat[1][0], "Mary")
-    assert_equal(dat[0][1], "555-1234")
-    assert_equal(dat[2][2], "192.168.1.9")
+    assert(tuple(dat.dtype.names) == ("col1", "col2", "col3"))
+    assert(dat[1][0] == "Mary")
+    assert(dat[0][1] == "555-1234")
+    assert(dat[2][2] == "192.168.1.9")
 
 
 def test_read_no_header_names_NoHeader():
@@ -187,10 +187,10 @@ def test_read_no_header_names_NoHeader():
     dat = ascii.read(
         table, format="fixed_width_no_header", names=("Name", "Phone", "TCP")
     )
-    assert_equal(tuple(dat.dtype.names), ("Name", "Phone", "TCP"))
-    assert_equal(dat[1][0], "Mary")
-    assert_equal(dat[0][1], "555-1234")
-    assert_equal(dat[2][2], "192.168.1.9")
+    assert(tuple(dat.dtype.names) == ("Name", "Phone", "TCP"))
+    assert(dat[1][0] == "Mary")
+    assert(dat[0][1] == "555-1234")
+    assert(dat[2][2] == "192.168.1.9")
 
 
 def test_read_col_starts():
@@ -209,11 +209,11 @@ def test_read_col_starts():
         col_starts=(0, 9, 18),
         col_ends=(5, 17, 28),
     )
-    assert_equal(tuple(dat.dtype.names), ("Name", "Phone", "TCP"))
-    assert_equal(dat[0][1], "555- 1234")
-    assert_equal(dat[1][0], "Mary")
-    assert_equal(dat[1][2], "192.168.1.")
-    assert_equal(dat[2][2], "192.168.1")  # col_end=28 cuts this column off
+    assert(tuple(dat.dtype.names) == ("Name", "Phone", "TCP"))
+    assert(dat[0][1] == "555- 1234")
+    assert(dat[1][0] == "Mary")
+    assert(dat[1][2] == "192.168.1.")
+    assert(dat[2][2] == "192.168.1")  # col_end=28 cuts this column off
 
 
 def test_read_detect_col_starts_or_ends():
@@ -234,11 +234,11 @@ def test_read_detect_col_starts_or_ends():
             names=("Name", "Phone", "TCP"),
             **kwargs,
         )
-        assert_equal(tuple(dat.dtype.names), ("Name", "Phone", "TCP"))
-        assert_equal(dat[0][1], "555- 1234")
-        assert_equal(dat[1][0], "Mary")
-        assert_equal(dat[1][2], "192.168.1.123")
-        assert_equal(dat[3][2], "192.255.255.255")
+        assert(tuple(dat.dtype.names) == ("Name", "Phone", "TCP"))
+        assert(dat[0][1] == "555- 1234")
+        assert(dat[1][0] == "Mary")
+        assert(dat[1][2] == "192.168.1.123")
+        assert(dat[3][2] == "192.255.255.255")
 
 
 table = """\
@@ -400,10 +400,10 @@ def test_read_twoline_normal():
   2.4   's worlds
 """
     dat = ascii.read(table, format="fixed_width_two_line")
-    assert_equal(dat.dtype.names, ("Col1", "Col2"))
+    assert(dat.dtype.names == ("Col1", "Col2"))
     assert_almost_equal(dat[1][0], 2.4)
-    assert_equal(dat[0][1], '"hello"')
-    assert_equal(dat[1][1], "'s worlds")
+    assert(dat[0][1] == '"hello"')
+    assert(dat[1][1] == "'s worlds")
 
 
 def test_read_twoline_ReST():
@@ -423,10 +423,10 @@ def test_read_twoline_ReST():
         position_line=2,
         data_end=-1,
     )
-    assert_equal(dat.dtype.names, ("Col1", "Col2"))
+    assert(dat.dtype.names == ("Col1", "Col2"))
     assert_almost_equal(dat[1][0], 2.4)
-    assert_equal(dat[0][1], '"hello"')
-    assert_equal(dat[1][1], "'s worlds")
+    assert(dat[0][1] == '"hello"')
+    assert(dat[1][1] == "'s worlds")
 
 
 def test_read_twoline_human():
@@ -449,10 +449,10 @@ def test_read_twoline_human():
         data_start=3,
         data_end=-1,
     )
-    assert_equal(dat.dtype.names, ("Col1", "Col2"))
+    assert(dat.dtype.names == ("Col1", "Col2"))
     assert_almost_equal(dat[1][0], 2.4)
-    assert_equal(dat[0][1], '"hello"')
-    assert_equal(dat[1][1], "'s worlds")
+    assert(dat[0][1] == '"hello"')
+    assert(dat[1][1] == "'s worlds")
 
 
 def test_read_twoline_fail():
