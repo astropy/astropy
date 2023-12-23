@@ -645,7 +645,6 @@ def dot_like(a, b, out=None):
         np.correlate,
         np.convolve,
     }
-    | (set() if NUMPY_LT_2_0 else {np.vecdot})
 )
 def cross_like(a, b, *args, **kwargs):
     a, b = _as_quantities(a, b)
@@ -1089,11 +1088,29 @@ def inv(a, *args, **kwargs):
     return (a.view(np.ndarray),) + args, kwargs, 1 / a.unit, None
 
 
-@function_helper(module=np.linalg)
-def pinv(a, rcond=1e-15, *args, **kwargs):
-    rcond = _interpret_tol(rcond, a.unit)
+if NUMPY_LT_2_0:
 
-    return (a.view(np.ndarray), rcond) + args, kwargs, 1 / a.unit, None
+    @function_helper(module=np.linalg)
+    def pinv(a, rcond=1e-15, *args, **kwargs):
+        rcond = _interpret_tol(rcond, a.unit)
+
+        return (a.view(np.ndarray), rcond) + args, kwargs, 1 / a.unit, None
+
+else:
+
+    @function_helper(module=np.linalg)
+    def pinv(a, rcond=None, hermitian=False, *, rtol=np._NoValue):
+        if rcond is not None:
+            rcond = _interpret_tol(rcond, a.unit)
+        if rtol is not np._NoValue and rtol is not None:
+            rtol = _interpret_tol(rtol, a.unit)
+
+        return (
+            (a.view(np.ndarray),),
+            dict(rcond=rcond, hermitian=hermitian, rtol=rtol),
+            1 / a.unit,
+            None,
+        )
 
 
 @function_helper(module=np.linalg)
@@ -1144,9 +1161,17 @@ def matrix_power(a, n):
     return (a.value, n), {}, a.unit**n, None
 
 
-@function_helper(module=np.linalg)
-def cholesky(a):
-    return (a.value,), {}, a.unit**0.5, None
+if NUMPY_LT_2_0:
+
+    @function_helper(module=np.linalg)
+    def cholesky(a):
+        return (a.value,), {}, a.unit**0.5, None
+
+else:
+
+    @function_helper(module=np.linalg)
+    def cholesky(a, /, *, upper=False):
+        return (a.value,), {"upper": upper}, a.unit**0.5, None
 
 
 @function_helper(module=np.linalg)

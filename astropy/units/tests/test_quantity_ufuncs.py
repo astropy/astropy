@@ -337,10 +337,6 @@ class TestQuantityMathFuncs:
             == np.arange(0, 6.0, 2.0) * u.m / u.s
         )
 
-    @pytest.mark.skipif(
-        not isinstance(getattr(np, "matmul", None), np.ufunc),
-        reason="np.matmul is not yet a gufunc",
-    )
     def test_matmul(self):
         q = np.arange(3.0) * u.m
         r = np.matmul(q, q)
@@ -360,6 +356,13 @@ class TestQuantityMathFuncs:
         ) / u.s  # fmt: skip
         r2 = np.matmul(q1, q2)
         assert np.all(r2 == np.matmul(q1.value, q2.value) * q1.unit * q2.unit)
+
+    @pytest.mark.skipif(NUMPY_LT_2_0, reason="vecdot only added in numpy 2.0")
+    def test_vecdot(self):
+        q1 = np.array([1j, 2j, 3j]) * u.m
+        q2 = np.array([4j, 5j, 6j]) / u.s
+        o = np.vecdot(q1, q2)
+        assert o == (32.0 + 0j) * u.m / u.s
 
     @pytest.mark.parametrize("function", (np.divide, np.true_divide))
     def test_divide_scalar(self, function):

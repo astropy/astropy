@@ -149,10 +149,6 @@ IGNORED_FUNCTIONS |= {
     np.einsum, np.einsum_path,
 }  # fmt: skip
 
-if not NUMPY_LT_2_0:
-    # TODO, when also implementing np.dot, etc.; see above.
-    IGNORED_FUNCTIONS |= {np.vecdot}
-
 # Really should do these...
 if NUMPY_LT_2_0:
     from numpy.lib import arraysetops

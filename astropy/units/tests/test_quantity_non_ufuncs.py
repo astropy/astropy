@@ -1127,15 +1127,6 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
         o = np.vdot(q1, q2)
         assert o == (32.0 + 0j) * u.m / u.s
 
-    if not NUMPY_LT_2_0:
-
-        @needs_array_function
-        def test_vecdot(self):
-            q1 = np.array([1j, 2j, 3j]) * u.m
-            q2 = np.array([4j, 5j, 6j]) / u.s
-            o = np.vecdot(q1, q2)
-            assert o == (32.0 + 0j) * u.m / u.s
-
     @needs_array_function
     def test_tensordot(self):
         # From the docstring example
@@ -2206,6 +2197,9 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
             np.linalg.pinv(self.q.value, rcond.to_value(self.q.unit)) / self.q.unit
         )
         assert_array_equal(pinv2, expected2)
+        if not NUMPY_LT_2_0:
+            pinv3 = np.linalg.pinv(self.q, rtol=rcond)
+            assert_array_equal(pinv3, expected2)
 
     @needs_array_function
     def test_tensorinv(self):
@@ -2381,7 +2375,7 @@ class TestLinAlg(InvariantUnitTestSetup, metaclass=CoverageMeta):
             assert_allclose(res, ref, rtol=5e-16)
 
         @needs_array_function
-        def test_linalg_vecdot(self):
+        def test_vecdot(self):
             ref = (self.q * self.q).sum(-1)
             res = np.linalg.vecdot(self.q, self.q)
             assert_array_equal(res, ref)
