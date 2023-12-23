@@ -2201,6 +2201,9 @@ class TestLinAlg(InvariantUnitTestSetup):
             np.linalg.pinv(self.q.value, rcond.to_value(self.q.unit)) / self.q.unit
         )
         assert_array_equal(pinv2, expected2)
+        if not NUMPY_LT_2_0:
+            pinv3 = np.linalg.pinv(self.q, rtol=rcond)
+            assert_array_equal(pinv3, expected2)
 
     @needs_array_function
     def test_tensorinv(self):
