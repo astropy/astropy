@@ -195,6 +195,7 @@ filterwarnings = [
     # Ignore a warning we emit about not supporting the parallel",
     # reading option for now, can be removed once the issue is fixed",
     "ignore:parallel reading does not currently work, so falling back to serial",
+    "ignore:assertions not in test modules or plugins will be ignored"
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",
@@ -388,6 +389,12 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     "B018",  # UselessExpression
     "D",  # pydocstyle
     "PGH001",  # No builtin eval() allowed
+    "S101",  # Use of assert detected
+]
+"astropy/**/tests/*.py" = [
+    "S101",  # Use of assert detected
+]
+"astropy/nddata/_testing.py" = [
     "S101",  # Use of assert detected
 ]
 ".pyinstaller/*.py" = ["INP001"]  # Not a package.

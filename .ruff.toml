@@ -176,7 +176,6 @@ lint.ignore = [
     "RUF012",  # Mutable class attributes should be annotated with `typing.ClassVar`
 
     # flake8-bandit (S)
-    "S101",  # Use of `assert` detected
     "S105",  # hardcoded-password-string
     "S110",  # try-except-pass
     "S112",  # try-except-continue
