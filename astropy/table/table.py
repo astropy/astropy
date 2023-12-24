@@ -3110,12 +3110,13 @@ class Table:
 
     def _set_row(self, idx, colnames, vals):
         try:
-            assert len(vals) == len(colnames)
-        except Exception:
+            if len(vals) != len(colnames):
+                raise ValueError(f"length mismatch {len(vals)=}, {len(colnames)=}")
+        except (TypeError, ValueError) as err:
             raise ValueError(
                 "right hand side must be a sequence of values with "
                 "the same length as the number of selected columns"
-            )
+            ) from err
 
         # Keep track of original values before setting each column so that
         # setting row can be transactional.

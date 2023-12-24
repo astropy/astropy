@@ -952,7 +952,8 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             return Masked(result, mask)
 
         # TODO: remove this sanity check once test cases are more complete.
-        assert isinstance(out, Masked)
+        if not isinstance(out, Masked):
+            raise RuntimeError("Unexpected error occurred (out is not of type Masked)")
         # If we have an output, the result was written in-place, so we should
         # also write the mask in-place (if not done already in the code).
         if out._mask is not mask:

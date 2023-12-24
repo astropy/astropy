@@ -1600,7 +1600,8 @@ class Field(
 
     @values.setter
     def values(self, values):
-        assert values is None or isinstance(values, Values)
+        if not (values is None or isinstance(values, Values)):
+            raise TypeError("values must be None or an instance of Values")
         self._values = values
 
     @values.deleter
@@ -3299,7 +3300,10 @@ class TableElement(
                     for i, converter in fields_basic:
                         try:
                             chunk = converter(array_row[i], array_mask[i])
-                            assert type(chunk) == bytes
+                            if not isinstance(chunk, bytes):
+                                raise TypeError(
+                                    f"Got unexpected type {type(chunk)} from {converter.__name__} (expected bytes)"
+                                )
                         except Exception as e:
                             vo_reraise(
                                 e, additional=f"(in row {row:d}, col '{fields[i].ID}')"

@@ -1139,15 +1139,19 @@ def fit_wcs_from_points(
     # verify input
     if (type(proj_point) != type(world_coords)) and (proj_point != "center"):
         raise ValueError(
-            "proj_point must be set to 'center', or an"
+            "proj_point must be set to 'center', or an "
             "`~astropy.coordinates.SkyCoord` object with "
-            "a pair of points."
+            "a single pair of points."
         )
 
     use_center_as_proj_point = str(proj_point) == "center"
 
-    if not use_center_as_proj_point:
-        assert proj_point.size == 1
+    if not use_center_as_proj_point and proj_point.size != 1:
+        raise ValueError(
+            "proj_point must be set to 'center', or an "
+            "`~astropy.coordinates.SkyCoord` object with "
+            "a single pair of points."
+        )
 
     proj_codes = [
         "AZP",

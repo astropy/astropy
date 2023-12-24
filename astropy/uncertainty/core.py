@@ -212,7 +212,10 @@ class Distribution:
         keepdims = kwargs.get("keepdims", False)
         if method in {"reduce", "accumulate", "reduceat"}:
             if axis is None:
-                assert isinstance(inputs[0], Distribution)
+                if not isinstance(inputs[0], Distribution):
+                    raise TypeError(
+                        "First input must be a Distribution if axis is not specified"
+                    )
                 kwargs["axis"] = tuple(range(inputs[0].ndim))
 
         for input_ in inputs:
@@ -332,7 +335,10 @@ class Distribution:
                 return result
         else:
             # TODO: remove this sanity check once test cases are more complete.
-            assert isinstance(out, Distribution)
+            if not isinstance(out, Distribution):
+                raise RuntimeError(
+                    "Unexpected error occurred (out is not of type Masked)"
+                )
             return out
 
     def _not_implemented_or_raise(self, function, types):
