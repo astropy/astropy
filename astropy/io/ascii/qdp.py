@@ -190,7 +190,7 @@ def _interpret_err_lines(err_specs, ncols, names=None):
         ...
     ValueError: Inconsistent number of input colnames
     """
-    colnames = ["" for i in range(ncols)]
+    colnames = [None] * ncols
     if err_specs is None:
         serr_cols = terr_cols = []
 
@@ -202,6 +202,9 @@ def _interpret_err_lines(err_specs, ncols, names=None):
         terr_cols = err_specs.pop("terr", [])
 
     if names is not None:
+        if any(name == "" for name in names):
+            raise ValueError("Names must not be empty strings")
+
         all_error_cols = len(serr_cols) + len(terr_cols) * 2
         if all_error_cols + len(names) != ncols:
             raise ValueError("Inconsistent number of input colnames")
@@ -209,7 +212,7 @@ def _interpret_err_lines(err_specs, ncols, names=None):
     shift = 0
     for i in range(ncols):
         col_num = i + 1 - shift
-        if colnames[i] != "":
+        if colnames[i] is not None:
             continue
 
         colname_root = f"col{col_num}"
@@ -229,7 +232,8 @@ def _interpret_err_lines(err_specs, ncols, names=None):
             shift += 2
             continue
 
-    assert not np.any([c == "" for c in colnames])
+    if any(c is None for c in colnames):
+        raise ValueError("One or more columns could not be interpreted")
 
     return colnames
 
