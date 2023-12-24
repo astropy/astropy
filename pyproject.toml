@@ -389,9 +389,8 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     "B018",  # UselessExpression
     "D",  # pydocstyle
     "PGH001",  # No builtin eval() allowed
-    "S101",  # Use of assert detected
 ]
-"astropy/**/tests/*.py" = [
+"**/tests/*.py" = [
     "S101",  # Use of assert detected
 ]
 "astropy/nddata/_testing.py" = [
@@ -401,6 +400,7 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
 "conftest.py" = ["INP001"]  # Part of configuration, not a package.
 "docs/*.py" = [
     "INP001",  # implicit-namespace-package. The examples are not a package.
+    "S101",  # Use of assert detected
 ]
 "examples/*.py" = [
     "E402",   # Imports are done as needed.
