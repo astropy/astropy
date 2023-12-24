@@ -19,18 +19,21 @@ __all__ = ["Quadrangle", "SphericalCircle"]
 
 # Monkey-patch the docs to fix CapStyle and JoinStyle subs.
 # TODO! delete when upstream fix matplotlib/matplotlib#19839
-Polygon.__init__.__doc__ = Polygon.__init__.__doc__.replace(
-    "`.CapStyle`", "``matplotlib._enums.CapStyle``"
-)
-Polygon.__init__.__doc__ = Polygon.__init__.__doc__.replace(
-    "`.JoinStyle`", "``matplotlib._enums.JoinStyle``"
-)
-Polygon.set_capstyle.__doc__ = Polygon.set_capstyle.__doc__.replace(
-    "`.CapStyle`", "``matplotlib._enums.CapStyle``"
-)
-Polygon.set_joinstyle.__doc__ = Polygon.set_joinstyle.__doc__.replace(
-    "`.JoinStyle`", "``matplotlib._enums.JoinStyle``"
-)
+if Polygon.__init__.__doc__ is not None:
+    Polygon.__init__.__doc__ = Polygon.__init__.__doc__.replace(
+        "`.CapStyle`", "``matplotlib._enums.CapStyle``"
+    )
+    Polygon.__init__.__doc__ = Polygon.__init__.__doc__.replace(
+        "`.JoinStyle`", "``matplotlib._enums.JoinStyle``"
+    )
+
+if Polygon.set_capstyle.__doc__ is not None:
+    Polygon.set_capstyle.__doc__ = Polygon.set_capstyle.__doc__.replace(
+        "`.CapStyle`", "``matplotlib._enums.CapStyle``"
+    )
+    Polygon.set_joinstyle.__doc__ = Polygon.set_joinstyle.__doc__.replace(
+        "`.JoinStyle`", "``matplotlib._enums.JoinStyle``"
+    )
 
 
 def _rotate_polygon(lon, lat, lon0, lat0):

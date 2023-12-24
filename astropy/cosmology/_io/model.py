@@ -260,9 +260,10 @@ def to_model(cosmology, *_, method):
     CosmoModel = type(clsname, (_CosmologyModel,), {**attrs, **params})
     # override __signature__ and format the doc.
     CosmoModel.evaluate.__signature__ = msig
-    CosmoModel.evaluate.__doc__ = CosmoModel.evaluate.__doc__.format(
-        cosmo_cls=cosmo_cls.__qualname__, method=method
-    )
+    if CosmoModel.evaluate.__doc__ is not None:
+        CosmoModel.evaluate.__doc__ = CosmoModel.evaluate.__doc__.format(
+            cosmo_cls=cosmo_cls.__qualname__, method=method
+        )
 
     # instantiate class using default values
     model = CosmoModel(
