@@ -18,6 +18,7 @@ import numpy as np
 import pytest
 
 import astropy.units as u
+from astropy.conftest import skipif_no_docstrings
 from astropy.io import registry as io_registry
 from astropy.io.registry import (
     IORegistryError,
@@ -332,6 +333,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         """Test ``registry.get_formats()``."""
         raise AssertionError()
 
+    @skipif_no_docstrings
     def test_delay_doc_updates(self, registry, fmtcls1):
         """Test ``registry.delay_doc_updates()``."""
         super().test_delay_doc_updates(registry, fmtcls1)
@@ -700,6 +702,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
 
     # ===========================================
 
+    @skipif_no_docstrings
     def test_delay_doc_updates(self, registry, fmtcls1):
         """Test ``registry.delay_doc_updates()``."""
         super().test_delay_doc_updates(registry, fmtcls1)
@@ -1005,6 +1008,7 @@ class TestUnifiedIORegistry(TestUnifiedInputRegistry, TestUnifiedOutputRegistry)
         """Test ``registry.get_formats()``."""
         raise AssertionError()
 
+    @skipif_no_docstrings
     def test_delay_doc_updates(self, registry, fmtcls1):
         """Test ``registry.delay_doc_updates()``."""
         super().test_delay_doc_updates(registry, fmtcls1)

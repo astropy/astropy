@@ -7,6 +7,7 @@ from contextlib import nullcontext
 
 import pytest
 
+from astropy.conftest import skipif_no_docstrings
 from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.utils.decorators import (
     classproperty,
@@ -661,6 +662,7 @@ def test_lazyproperty_threadsafe(fast_thread_switching):
             assert values == [a.foo] * workers
 
 
+@skipif_no_docstrings
 def test_format_doc_stringInput_simple():
     # Simple tests with string input
 
@@ -690,6 +692,7 @@ def test_format_doc_stringInput_simple():
     assert inspect.getdoc(testfunc_2) == docstring
 
 
+@skipif_no_docstrings
 def test_format_doc_stringInput_format():
     # Tests with string input and formatting
 
@@ -720,6 +723,7 @@ def test_format_doc_stringInput_format():
     assert inspect.getdoc(testfunc3) == "yes / no = 2 / 2 * life"
 
 
+@skipif_no_docstrings
 def test_format_doc_objectInput_simple():
     # Simple tests with object input
 
@@ -751,6 +755,7 @@ def test_format_doc_objectInput_simple():
     assert inspect.getdoc(testfunc_2) == inspect.getdoc(docstring0)
 
 
+@skipif_no_docstrings
 def test_format_doc_objectInput_format():
     # Tests with object input and formatting
 
@@ -783,6 +788,7 @@ def test_format_doc_objectInput_format():
     assert inspect.getdoc(testfunc3) == "test + test = 4 / 2 * test"
 
 
+@skipif_no_docstrings
 def test_format_doc_selfInput_simple():
     # Simple tests with self input
 
@@ -801,6 +807,7 @@ def test_format_doc_selfInput_simple():
     assert inspect.getdoc(testfunc_1) == "not test"
 
 
+@skipif_no_docstrings
 def test_format_doc_selfInput_format():
     # Tests with string input which is '__doc__' (special case) and formatting
 
@@ -827,6 +834,7 @@ def test_format_doc_selfInput_format():
     assert inspect.getdoc(testfunc2) == "dum di dum "
 
 
+@skipif_no_docstrings
 def test_format_doc_onMethod():
     # Check if the decorator works on methods too, to spice it up we try double
     # decorator
@@ -841,6 +849,7 @@ def test_format_doc_onMethod():
     assert inspect.getdoc(TestClass.test_method) == "what we do is strange."
 
 
+@skipif_no_docstrings
 def test_format_doc_onClass():
     # Check if the decorator works on classes too
     docstring = "what we do {__doc__} {0}{opt}"
