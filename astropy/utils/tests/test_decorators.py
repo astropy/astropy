@@ -578,6 +578,7 @@ def test_sharedmethod_reuse_on_subclasses():
     assert B.foo() == 5
 
 
+@skipif_no_docstrings
 def test_classproperty_docstring():
     """
     Tests that the docstring is set correctly on classproperties.
