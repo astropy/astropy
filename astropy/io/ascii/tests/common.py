@@ -2,12 +2,7 @@
 
 import os
 
-import numpy as np
-
 __all__ = [
-    "assert_equal",
-    "assert_almost_equal",
-    "assert_true",
     "setup_function",
     "teardown_function",
 ]
