@@ -414,22 +414,6 @@ def degrees_to_dms(d):
     return np.floor(sign * d), sign * np.floor(m), sign * s
 
 
-def hours_to_decimal(h):
-    """
-    Convert any parseable hour value into a float value.
-    """
-    from .core import Angle
-
-    return Angle(h, unit=u.hourangle).hour
-
-
-def hours_to_radians(h):
-    """
-    Convert an angle in Hours to Radians.
-    """
-    return u.hourangle.to(u.radian, h)
-
-
 def hours_to_hms(h):
     """
     Convert an floating-point hour value into an ``(hour, minute,
@@ -442,37 +426,6 @@ def hours_to_hms(h):
     s = mf * 60.0
 
     return (np.floor(sign * h), sign * np.floor(m), sign * s)
-
-
-def radians_to_degrees(r):
-    """
-    Convert an angle in Radians to Degrees.
-    """
-    return u.radian.to(u.degree, r)
-
-
-def radians_to_hours(r):
-    """
-    Convert an angle in Radians to Hours.
-    """
-    return u.radian.to(u.hourangle, r)
-
-
-def radians_to_hms(r):
-    """
-    Convert an angle in Radians to an ``(hour, minute, second)`` tuple.
-    """
-    hours = radians_to_hours(r)
-    return hours_to_hms(hours)
-
-
-def radians_to_dms(r):
-    """
-    Convert an angle in Radians to an ``(degree, arcminute,
-    arcsecond)`` tuple.
-    """
-    degrees = u.radian.to(u.degree, r)
-    return degrees_to_dms(degrees)
 
 
 def sexagesimal_to_string(values, precision=None, pad=False, sep=(":",), fields=3):
