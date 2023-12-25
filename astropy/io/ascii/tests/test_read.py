@@ -27,7 +27,6 @@ from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 # setup/teardown function to have the tests run in the correct directory
 from .common import (
-    assert_almost_equal,
     setup_function,  # noqa: F401
     teardown_function,  # noqa: F401
 )
@@ -471,11 +470,11 @@ def test_custom_splitters():
     testfile = get_testfiles(f)
     assert(data.dtype.names == testfile["cols"])
     assert(len(data) == testfile["nrows"])
-    assert_almost_equal(data.field("zabs1.nh")[2], 0.0839710433091)
-    assert_almost_equal(data.field("p1.gamma")[2], 1.25997502704)
-    assert_almost_equal(data.field("p1.ampl")[2], 0.000696444029148)
+    np.testing.assert_allclose(data.field("zabs1.nh")[2], 0.0839710433091)
+    np.testing.assert_allclose(data.field("p1.gamma")[2], 1.25997502704)
+    np.testing.assert_allclose(data.field("p1.ampl")[2], 0.000696444029148)
     assert(data.field("statname")[2] == "chi2modvar")
-    assert_almost_equal(data.field("statval")[2], 497.56468441)
+    np.testing.assert_allclose(data.field("statval")[2], 497.56468441)
 
 
 def test_start_end():

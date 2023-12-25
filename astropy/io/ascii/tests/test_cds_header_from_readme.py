@@ -7,7 +7,6 @@ from astropy import units as u
 from astropy.io import ascii
 
 from .common import (
-    assert_almost_equal,
     setup_function,  # noqa: F401
     teardown_function,  # noqa: F401
 )
@@ -58,13 +57,13 @@ def test_multi_header():
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
         assert(len(table) == 18)
-        assert_almost_equal(table["Lambda"][-1], 6479.32)
+        np.testing.assert_allclose(table["Lambda"][-1], 6479.32)
         assert(table["Fnu"][-1] == "0.285937")
     data = "data/cds/multi/lp944-20.dat"
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
         assert(len(table) == 18)
-        assert_almost_equal(table["Lambda"][0], 6476.09)
+        np.testing.assert_allclose(table["Lambda"][0], 6476.09)
         assert(table["Fnu"][-1] == "0.489005")
 
 
@@ -203,7 +202,7 @@ def test_cds_function_units2(reader_cls):
     assert table["vturb"].unit == u.km / u.s
     assert table["[Fe/H]"].unit == u.dex(u.one)
     assert table["e_[Fe/H]"].unit == u.dex(u.one)
-    assert_almost_equal(
+    np.testing.assert_allclose(
         table["[Fe/H]"].to(u.one), 10.0 ** (np.array([-2.07, -1.50, -2.11, -1.64]))
     )
 
