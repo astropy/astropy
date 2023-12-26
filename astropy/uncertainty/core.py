@@ -337,7 +337,7 @@ class Distribution:
             # TODO: remove this sanity check once test cases are more complete.
             if not isinstance(out, Distribution):
                 raise RuntimeError(
-                    "Unexpected error occurred (out is not of type Masked)"
+                    "Unexpected error occurred (out is not of type Distribution)"
                 )
             return out
 
