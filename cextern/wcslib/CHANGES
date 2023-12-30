@@ -1,3 +1,46 @@
+WCSLIB version 8.2.2 (2023/11/29)
+---------------------------------
+
+* C library (installation)
+
+  - In prj.c, a number of variables with global scope that are only used
+    internally were declared static to avoid namespace conflicts arising
+    in Link Time Optimization (LTO) builds of the Rwcs wrappers.  This
+    is a patch release as it does not affect the library itself other
+    than in localising some symbols that were never meant to be global.
+    Reported by Rodrigo Carrizo with patch.
+
+    Likewise for an internally used helper function, prjoff().
+    Likewise for a handful of variables in cel.c, dis.c, lin.c, tab.c,
+    wcs.c, wcsfix.c, and wcshdr.c.
+
+
+WCSLIB version 8.2.1 (2023/11/17)
+---------------------------------
+
+* Installation
+
+  - With searching enabled in the HTML manual, doxygen creates a new
+    subdirectory, html/search, which must be installed explicitly.
+
+
+WCSLIB version 8.2 (2023/11/16)
+-------------------------------
+
+* C library
+
+  - In wcshdo(), fixed character buffer overflows in the comment string
+    for the longitude and latitude axes triggered by some projections,
+    and also the formatting for generic coordinate systems.  Reported by
+    Shu Niu.
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.9.8 (was 1.9.7).
+
+  - Enabled searching in the HTML manual.
+
+
 WCSLIB version 8.1 (2023/07/06)
 -------------------------------
 
@@ -3420,4 +3463,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
+$Id: CHANGES,v 8.2.1.3 2023/11/29 08:04:47 mcalabre Exp mcalabre $
