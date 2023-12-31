@@ -112,8 +112,7 @@ def _get_frame_without_data(args, kwargs):
                             attr, getattr(frame, attr), kwargs[attr], "SkyCoord"
                         )
                     )
-                else:
-                    kwargs[attr] = getattr(frame, attr)
+                kwargs[attr] = getattr(frame, attr)
             frame = frame.frame
 
         if isinstance(frame, BaseCoordinateFrame):
@@ -129,7 +128,7 @@ def _get_frame_without_data(args, kwargs):
                         " Either pass a frame class, or modify the frame attributes of"
                         " the input frame instance."
                     )
-                elif not frame.is_frame_attr_default(attr):
+                if not frame.is_frame_attr_default(attr):
                     kwargs[attr] = getattr(frame, attr)
 
             frame_cls = frame.__class__
@@ -180,7 +179,7 @@ def _get_frame_without_data(args, kwargs):
                         f" {getattr(coord_frame_obj, attr)} =/= {kwargs[attr]}"
                     )
 
-                elif attr not in kwargs and not coord_frame_obj.is_frame_attr_default(
+                if attr not in kwargs and not coord_frame_obj.is_frame_attr_default(
                     attr
                 ):
                     kwargs[attr] = getattr(coord_frame_obj, attr)

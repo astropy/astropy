@@ -161,7 +161,7 @@ class Angle(SpecificTypeQuantity):
                     "will be interpreted simply as a sequence with the given unit."
                 )
 
-            elif isinstance(angle, str):
+            if isinstance(angle, str):
                 angle, angle_unit = formats.parse_angle(angle, unit)
                 if angle_unit is None:
                     angle_unit = unit

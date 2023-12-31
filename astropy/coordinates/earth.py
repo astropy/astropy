@@ -83,8 +83,7 @@ def _get_json_result(url, err_str, use_google):
         #   http://stackoverflow.com/questions/2712524/handling-urllib2s-timeout-python
         if isinstance(e.reason, socket.timeout):
             raise NameResolveError(err_str.format(msg="connection timed out")) from e
-        else:
-            raise NameResolveError(err_str.format(msg=e.reason)) from e
+        raise NameResolveError(err_str.format(msg=e.reason)) from e
 
     except socket.timeout:
         # There are some cases where urllib2 does not catch socket.timeout
@@ -901,8 +900,7 @@ class EarthLocation(u.Quantity):
     def __len__(self):
         if self.shape == ():
             raise IndexError("0-d EarthLocation arrays cannot be indexed")
-        else:
-            return super().__len__()
+        return super().__len__()
 
     def _to_value(self, unit, equivalencies=[]):
         """Helper method for to and to_value."""
