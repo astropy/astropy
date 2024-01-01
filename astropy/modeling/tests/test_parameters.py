@@ -1160,9 +1160,9 @@ class TestParameterInitialization:
         # An example where the model set axis is the *last* axis of the
         # parameter arrays
         coeff = np.array([[[10, 20, 30], [30, 40, 50]], [[50, 60, 70], [70, 80, 90]]])
-        coeff = np.rollaxis(coeff, 0, 3)
+        coeff = np.moveaxis(coeff, 0, 3)
         e = np.array([[1, 2, 3], [3, 4, 5]])
-        e = np.rollaxis(e, 0, 2)
+        e = np.moveaxis(e, 0, 2)
         t = TParModel(coeff, e, n_models=2, model_set_axis=-1)
         assert len(t) == 2
         assert t.model_set_axis == -1

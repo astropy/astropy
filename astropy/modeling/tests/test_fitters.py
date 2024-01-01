@@ -882,7 +882,7 @@ def test_2d_set_axis_2_fitting_with_outlier_removal():
     )
 
     y, x = np.mgrid[0:5, 0:5]
-    z = np.rollaxis(np.array([x + y, 1 - 0.1 * x + 0.2 * y]), 0, 3)
+    z = np.moveaxis(np.array([x + y, 1 - 0.1 * x + 0.2 * y]), 0, 3)
     z[3, 3:5, 0] = 100.0  # outliers
 
     poly_set, filt_z = fitter(poly_set, x, y, z)

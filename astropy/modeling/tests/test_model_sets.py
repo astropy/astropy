@@ -283,7 +283,7 @@ def test_linearlsqfitter(model_class):
 
     # Generate data for fitting 2 models and re-stack them along the last axis:
     y = np.array([2 * x + 1, x + 4])
-    y = np.rollaxis(y, 0, -1).T
+    y = np.moveaxis(y, 0, -1).T
 
     f = LinearLSQFitter()
     # This seems to fit the model_set correctly:
@@ -304,7 +304,7 @@ def test_model_set_axis_outputs():
     model_set = Polynomial2D(1, n_models=2, model_set_axis=2)
     y2, x2 = np.mgrid[:5, :5]
     # z = np.moveaxis([x2 + y2, 1 - 0.1 * x2 + 0.2 * y2]), 0, 2)
-    z = np.rollaxis(np.array([x2 + y2, 1 - 0.1 * x2 + 0.2 * y2]), 0, 3)
+    z = np.moveaxis(np.array([x2 + y2, 1 - 0.1 * x2 + 0.2 * y2]), 0, 3)
     model = fitter(model_set, x2, y2, z)
     res = model(x2, y2, model_set_axis=False)
     assert z.shape == res.shape
@@ -593,7 +593,7 @@ class Test1ModelSet:
             model,
             self.x2,
             self.y2,
-            np.rollaxis(self.z2, 0, 3),
+            np.moveaxis(self.z2, 0, 3),
             weights=self.w2[..., np.newaxis],
         )
         assert_allclose(model.c0_0, 1.0, atol=1e-12)

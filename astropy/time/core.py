@@ -2250,8 +2250,8 @@ class Time(TimeBase):
         )
 
         # Move X,Y,Z to last dimension, to enable possible broadcasting below.
-        cpos = np.rollaxis(cpos, 0, cpos.ndim)
-        spos = np.rollaxis(spos, 0, spos.ndim)
+        cpos = np.moveaxis(cpos, 0, cpos.ndim)
+        spos = np.moveaxis(spos, 0, spos.ndim)
 
         # calculate light travel time correction
         tcor_val = (spos * cpos).sum(axis=-1) / const.c

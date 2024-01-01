@@ -429,7 +429,7 @@ class TestShapeFunctions(ShapeSetup):
         # Goes via transpose so works without __array_function__ as well.
         self.create_data(use_mask)
 
-        t0_10 = np.rollaxis(self.t0, 1)
+        t0_10 = np.moveaxis(self.t0, 1)
         assert t0_10.shape == (self.t0.shape[1], self.t0.shape[0])
         assert_time_all_equal(self.t0.T, t0_10)
         assert np.may_share_memory(t0_10.jd1, self.t0.jd1)

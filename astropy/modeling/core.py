@@ -2053,7 +2053,7 @@ class Model(metaclass=_ModelMeta):
                     new_input = _input.reshape(new_shape)
                 else:
                     pivot = _input.ndim - len(max_param_shape) - 1
-                    new_input = np.rollaxis(_input, model_set_axis_input, pivot + 1)
+                    new_input = np.moveaxis(_input, model_set_axis_input, pivot + 1)
             pivots.append(pivot)
             reshaped.append(new_input)
 
@@ -2246,7 +2246,7 @@ class Model(metaclass=_ModelMeta):
         for idx, output in enumerate(outputs):
             pivot = pivots[idx]
             if pivot < output.ndim and pivot != model_set_axis:
-                outputs[idx] = np.rollaxis(output, pivot, model_set_axis)
+                outputs[idx] = np.moveaxis(output, pivot, model_set_axis)
         return tuple(outputs)
 
     def prepare_outputs(self, broadcasted_shapes, *outputs, **kwargs):

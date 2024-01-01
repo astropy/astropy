@@ -443,7 +443,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                         mask = y.mask[..., j].flatten()
                     xx = np.ma.array(x, mask=mask)
                     eval_y = model(xx, model_set_axis=False)
-                    eval_y = np.rollaxis(eval_y, model.model_set_axis)[j]
+                    eval_y = np.moveaxis(eval_y, model.model_set_axis)[j]
                     RSS.append(
                         (1 / (xx.count() - n_coeff)) * np.sum((y[..., j] - eval_y) ** 2)
                     )
@@ -470,7 +470,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                     if model.model_set_axis == 1:
                         # model_set_axis passed when evaluating only refers to input shapes
                         # so output must be reshaped for model_set_axis=1.
-                        eval_z = np.rollaxis(eval_z, 1)
+                        eval_z = np.moveaxis(eval_z, 1)
                     eval_z = eval_z[j]
                     RSS.append(
                         [(1 / (len(x) - n_coeff)) * np.sum((z[j] - eval_z) ** 2)]
@@ -683,7 +683,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                     # dimension along which models are stacked and transpose so
                     # the model axis is *last* (I think this resolves Erik's
                     # pending generalization from 80a6f25a):
-                    rhs = np.rollaxis(z, model_axis, z.ndim)
+                    rhs = np.moveaxis(z, model_axis, z.ndim)
                     rhs = rhs.reshape(-1, rhs.shape[-1])
                 else:
                     # This "else" seems to handle the corner case where the
@@ -696,7 +696,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                     # Same for weights
                     if weights.ndim > 2:
                         # Separate 2D weights for each model:
-                        weights = np.rollaxis(weights, model_axis, weights.ndim)
+                        weights = np.moveaxis(weights, model_axis, weights.ndim)
                         weights = weights.reshape(-1, weights.shape[-1])
                     elif weights.ndim == z.ndim:
                         # Separate, flattened weights for each model:
@@ -788,7 +788,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             # Arrange the lhs as a stack of 2D matrices that we can iterate
             # over to get the correctly-orientated lhs for each model:
             if lhs.ndim > 2:
-                lhs_stack = np.rollaxis(lhs, -1, 0)
+                lhs_stack = np.moveaxis(lhs, -1, 0)
             else:
                 lhs_stack = np.broadcast_to(lhs, rhs.shape[-1:] + lhs.shape)
 
@@ -1027,11 +1027,11 @@ class FittingWithOutlierRemoval:
                         # Get views transposed appropriately for iteration
                         # over the set (handling data & mask separately due to
                         # NumPy issue #8506):
-                        data_T = np.rollaxis(filtered_data, model_set_axis, 0)
-                        mask_T = np.rollaxis(filtered_data.mask, model_set_axis, 0)
+                        data_T = np.moveaxis(filtered_data, model_set_axis, 0)
+                        mask_T = np.moveaxis(filtered_data.mask, model_set_axis, 0)
 
             if loop:
-                model_vals_T = np.rollaxis(model_vals, model_set_axis, 0)
+                model_vals_T = np.moveaxis(model_vals, model_set_axis, 0)
                 for row_data, row_mask, row_mod_vals in zip(
                     data_T, mask_T, model_vals_T
                 ):
@@ -1958,7 +1958,7 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
             # That is, each model should be represented by a column.  TODO:
             # Obviously this is a detail of np.linalg.lstsq and should be
             # handled specifically by any fitters that use it...
-            y = np.rollaxis(y, model_set_axis, y.ndim)
+            y = np.moveaxis(y, model_set_axis, y.ndim)
             data_shape = y.shape[:-1]
         else:
             # Shape of z excluding model_set_axis
