@@ -381,6 +381,7 @@ if not NUMPY_LT_2_0:
         np._core.umath._strip_whitespace,
         np._core.umath._lstrip_whitespace,
         np._core.umath._rstrip_whitespace,
+        np._core.umath._replace,
     }
 
 # SINGLE ARGUMENT UFUNCS
