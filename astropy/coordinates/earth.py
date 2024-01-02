@@ -81,9 +81,10 @@ def _get_json_result(url, err_str, use_google):
     except urllib.error.URLError as e:
         # This catches a timeout error, see:
         #   http://stackoverflow.com/questions/2712524/handling-urllib2s-timeout-python
-        if isinstance(e.reason, socket.timeout):
-            raise NameResolveError(err_str.format(msg="connection timed out")) from e
-        raise NameResolveError(err_str.format(msg=e.reason)) from e
+        msg = (
+            "connection timed out" if isinstance(e.reason, socket.timeout) else e.reason
+        )
+        raise NameResolveError(err_str.format(msg=msg)) from e
 
     except socket.timeout:
         # There are some cases where urllib2 does not catch socket.timeout

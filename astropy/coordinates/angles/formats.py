@@ -309,9 +309,9 @@ class _AngleParser:
                 angle, lexer=self._thread_local._lexer, debug=debug
             )
         except ValueError as e:
-            if str(e):
-                raise ValueError(f"{e} in angle {angle!r}") from e
-            raise ValueError(f"Syntax error parsing angle {angle!r}") from e
+            raise ValueError(
+                f"{str(e) or 'syntax error'} parsing angle {angle!r}"
+            ) from e
 
         if unit is None and found_unit is None:
             raise u.UnitsError("No unit specified")
