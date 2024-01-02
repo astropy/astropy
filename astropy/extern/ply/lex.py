@@ -757,7 +757,7 @@ class LexerReflect(object):
                     continue
 
                 try:
-                    c = re.compile('(?P<%s>%s)' % (fname, _get_regex(f)), self.reflags)
+                    c = re.compile(f'(?P<{fname}>{_get_regex(f)})', self.reflags)
                     if c.match(''):
                         self.log.error("%s:%d: Regular expression for rule '%s' matches empty string", file, line, f.__name__)
                         self.error = True
@@ -781,7 +781,7 @@ class LexerReflect(object):
                     continue
 
                 try:
-                    c = re.compile('(?P<%s>%s)' % (name, r), self.reflags)
+                    c = re.compile(f'(?P<{name}>{r})', self.reflags)
                     if (c.match('')):
                         self.log.error("Regular expression for rule '%s' matches empty string", name)
                         self.error = True
@@ -948,13 +948,13 @@ def lex(module=None, object=None, debug=False, optimize=False, lextab='lextab',
 
         # Add rules defined by functions first
         for fname, f in linfo.funcsym[state]:
-            regex_list.append('(?P<%s>%s)' % (fname, _get_regex(f)))
+            regex_list.append(f'(?P<{fname}>{_get_regex(f)})')
             if debug:
                 debuglog.info("lex: Adding rule %s -> '%s' (state '%s')", fname, _get_regex(f), state)
 
         # Now add all of the simple rules
         for name, r in linfo.strsym[state]:
-            regex_list.append('(?P<%s>%s)' % (name, r))
+            regex_list.append(f'(?P<{name}>{r})')
             if debug:
                 debuglog.info("lex: Adding rule %s -> '%s' (state '%s')", name, r, state)
 
@@ -1033,7 +1033,7 @@ def lex(module=None, object=None, debug=False, optimize=False, lextab='lextab',
                 else:
                     parts = lextab.split('.')
                     pkgname = '.'.join(parts[:-1])
-                    exec('import %s' % pkgname)
+                    exec(f'import {pkgname}')
                     srcfile = getattr(sys.modules[pkgname], '__file__', '')
             outputdir = os.path.dirname(srcfile)
         try:
@@ -1076,7 +1076,7 @@ def runmain(lexer=None, data=None):
         tok = _token()
         if not tok:
             break
-        sys.stdout.write('(%s,%r,%d,%d)\n' % (tok.type, tok.value, tok.lineno, tok.lexpos))
+        sys.stdout.write(f'({tok.type},{tok.value},{tok.lineno},{tok.lexpos})\n')
 
 # -----------------------------------------------------------------------------
 # @TOKEN(regex)
