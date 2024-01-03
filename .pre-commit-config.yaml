@@ -54,13 +54,13 @@ repos:
           - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.1.6"
+    rev: "v0.1.9"
     hooks:
       - id: ruff
         args: ["--fix", "--show-fixes"]
 
   - repo: https://github.com/scientific-python/cookie
-    rev: 2023.11.17
+    rev: 2023.12.21
     hooks:
       - id: sp-repo-review
 
@@ -102,7 +102,7 @@ repos:
           )
 
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 23.11.0
+    rev: 23.12.1
     hooks:
       - id: black
 
