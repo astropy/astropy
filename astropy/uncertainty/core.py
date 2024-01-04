@@ -213,9 +213,11 @@ class Distribution:
         if method in {"reduce", "accumulate", "reduceat"}:
             if axis is None:
                 if not isinstance(inputs[0], Distribution):
-                    raise TypeError(
-                        "First input must be a Distribution if axis is not specified"
-                    )
+                    # In future, raise descriptive error instead
+                    # raise TypeError(
+                    #     "First input must be a Distribution if axis is not specified"
+                    # )
+                    raise AssertionError
                 kwargs["axis"] = tuple(range(inputs[0].ndim))
 
         for input_ in inputs:
