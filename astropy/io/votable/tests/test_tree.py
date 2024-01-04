@@ -41,6 +41,15 @@ def test_make_Fields():
     )
 
 
+def test_Field_set_values():
+    field = tree.Field(None, name="Test", arraysize="1")
+    field.values = None
+    field.values = tree.Values(None, field=field)
+    # In future, will be TypeError
+    with pytest.raises(AssertionError):
+        field.values = 0  # not None or Values
+
+
 def test_unit_format():
     data = parse(get_pkg_data_filename("data/irsa-nph-error.xml"))
     assert data._config["version"] == "1.0"
@@ -172,6 +181,18 @@ def test_votable_tag():
     assert 'xmlns="http://www.ivoa.net/xml/VOTable/v1.3"' in xml
     assert 'xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 ' in xml
     assert 'http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd"' in xml
+
+
+def test_uncallable_write_fail():
+    votable_file = VOTableFile()
+    votable_file.resources.append(Resource())
+
+    class _InvalidFile:
+        write = None  # Not a callable
+
+    # In future, will be TypeError
+    with pytest.raises(AssertionError):
+        votable_file.to_xml(_InvalidFile)
 
 
 def _squash_xml(data):
