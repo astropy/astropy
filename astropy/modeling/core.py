@@ -1828,9 +1828,11 @@ class Model(metaclass=_ModelMeta):
             coords = np.asanyarray(coords, dtype=float)
             # Check dimensions match out and model
             if len(coords) != ndim:
-                raise ValueError(
-                    f"len(coords) ({len(coords)}) doesn't match self.n_inputs ({ndim})."
-                )
+                # In future, raise descriptive error
+                # raise ValueError(
+                #     f"len(coords) ({len(coords)}) doesn't match self.n_inputs ({ndim})."
+                # )
+                raise AssertionError
             if out is not None:
                 if coords[0].shape != out.shape:
                     raise ValueError("inconsistent shape of the output.")
@@ -3911,9 +3913,11 @@ class CompoundModel(Model):
             coords = np.asanyarray(coords, dtype=float)
             # Check dimensions match out and model
             if len(coords) != ndim:
-                raise ValueError(
-                    f"len(coords) ({len(coords)}) doesn't match self.n_inputs ({ndim})."
-                )
+                # In future, raise descriptive error
+                # raise ValueError(
+                #     f"len(coords) ({len(coords)}) doesn't match self.n_inputs ({ndim})."
+                # )
+                raise AssertionError
             if out is not None:
                 if coords[0].shape != out.shape:
                     raise ValueError("inconsistent shape of the output.")

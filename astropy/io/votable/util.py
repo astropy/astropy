@@ -59,7 +59,9 @@ def convert_to_writable_filelike(fd, compressed=False):
                 return
     elif hasattr(fd, "write"):
         if not callable(fd.write):
-            raise TypeError("file-like object fd must have a callable write() method")
+            # In future, raise descriptive error
+            # raise TypeError("file-like object fd must have a callable write() method")
+            raise AssertionError
 
         if compressed:
             fd = gzip.GzipFile(fileobj=fd, mode="wb")

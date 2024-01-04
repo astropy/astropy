@@ -229,7 +229,9 @@ def _interpret_err_lines(err_specs, ncols, names=None):
             shift += 2
             continue
 
-    assert not np.any([c == "" for c in colnames])
+    if any(c == "" for c in colnames):
+        # In future, raise ValueError earlier in this function if empty strings are in ``names``
+        raise AssertionError
 
     return colnames
 

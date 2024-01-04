@@ -336,9 +336,7 @@ class Distribution:
         else:
             # TODO: remove this sanity check once test cases are more complete.
             if not isinstance(out, Distribution):
-                raise RuntimeError(
-                    "Unexpected error occurred (out is not of type Distribution)"
-                )
+                raise AssertionError
             return out
 
     def _not_implemented_or_raise(self, function, types):

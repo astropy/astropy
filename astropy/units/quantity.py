@@ -1363,12 +1363,18 @@ class Quantity(np.ndarray):
     def __index__(self):
         # for indices, we do not want to mess around with scaling at all,
         # so unlike for float, int, we insist here on unscaled dimensionless
-        if not (self.unit.is_unity() and hasattr(self.value, "__index__")):
+
+        try:
+            # In future, check for is_unity() and hasattr(self.value, "__index__")
+            # only instead of catching any Exception
+            if self.unit.is_unity():
+                raise AssertionError
+            return self.value.__index__()
+        except Exception:
             raise TypeError(
                 "only integer dimensionless scalar quantities "
                 "can be converted to a Python index"
             )
-        return self.value.__index__()
 
     # TODO: we may want to add a hook for dimensionless quantities?
     @property
