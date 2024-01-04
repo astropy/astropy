@@ -1068,7 +1068,11 @@ class BaseOutputter:
         if isinstance(converters, type):
             try:
                 converters = [numpy.dtype(converters)]
-            except TypeError:
+            except TypeError:  # pragma: no cover
+                # should never occur because numpy.dtype will return numpy.dtype("O")
+                # as a fallback for any type object instead of raising TypeError,
+                # but just in case there's some crazy edge case retain the previous
+                # behavior
                 pass
 
         converters_out = []
