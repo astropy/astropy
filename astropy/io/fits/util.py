@@ -711,8 +711,6 @@ def _pseudo_zero(dtype):
         return -128
 
     if dtype.kind != "u":
-        # In future, raise descriptive error instead
-        # raise ValueError("Not an integer dtype")
         raise AssertionError
 
     return 1 << (dtype.itemsize * 8 - 1)

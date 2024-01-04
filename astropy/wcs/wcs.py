@@ -914,11 +914,6 @@ reduce these to 2 dimensions using the naxis kwarg.
                 if dis == "lookup":
                     del header[distortion]
                     if not isinstance(fobj, fits.HDUList):
-                        # In future, raise descriptive error
-                        # raise TypeError(
-                        #     "An astropy.io.fits.HDUList "
-                        #     "is required for Lookup table distortion."
-                        # )
                         raise AssertionError
                     dp = (d_kw + str(i)).strip()
                     dp_extver_key = dp + ".EXTVER"
