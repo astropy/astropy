@@ -1367,7 +1367,7 @@ class Quantity(np.ndarray):
         try:
             # In future, check for is_unity() and hasattr(self.value, "__index__")
             # only instead of catching any Exception
-            if self.unit.is_unity():
+            if not self.unit.is_unity():
                 raise AssertionError
             return self.value.__index__()
         except Exception:
