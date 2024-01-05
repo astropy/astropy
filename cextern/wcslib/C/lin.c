@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.1 - an implementation of the FITS WCS standard.
+  WCSLIB 8.2 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2023, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.c,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
+  $Id: lin.c,v 8.2.1.2 2023/11/29 07:36:19 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <math.h>
@@ -31,8 +31,6 @@
 #include "wcsprintf.h"
 #include "lin.h"
 #include "dis.h"
-
-const int LINSET = 137;
 
 // Map status return value to message.
 const char *lin_errmsg[] = {
@@ -53,6 +51,8 @@ const int lin_diserr[] = {
   LINERR_DISTORT,		//  4: DISERR_DISTORT
   LINERR_DEDISTORT		//  5: DISERR_DEDISTORT
 };
+
+static const int LINSET = 137;
 
 // Convenience macro for invoking wcserr_set().
 #define LIN_ERRMSG(status) WCSERR_SET(status), lin_errmsg[status]

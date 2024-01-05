@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.1 - an implementation of the FITS WCS standard.
+  WCSLIB 8.2 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2023, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.c,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
+  $Id: tab.c,v 8.2.1.2 2023/11/29 07:39:44 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <math.h>
@@ -33,8 +33,6 @@
 #include "wcsutil.h"
 #include "tab.h"
 
-const int TABSET = 137;
-
 // Map status return value to message.
 const char *tab_errmsg[] = {
   "Success",
@@ -43,6 +41,8 @@ const char *tab_errmsg[] = {
   "Invalid tabular parameters",
   "One or more of the x coordinates were invalid",
   "One or more of the world coordinates were invalid"};
+
+static const int TABSET = 137;
 
 // Convenience macro for invoking wcserr_set().
 #define TAB_ERRMSG(status) WCSERR_SET(status), tab_errmsg[status]

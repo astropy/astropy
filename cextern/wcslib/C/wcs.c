@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.1 - an implementation of the FITS WCS standard.
+  WCSLIB 8.2 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2023, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
+  $Id: wcs.c,v 8.2.1.2 2023/11/29 07:41:57 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <math.h>
@@ -43,8 +43,6 @@
 #include "cel.h"
 #include "tab.h"
 #include "wcs.h"
-
-const int WCSSET = 137;
 
 // Maximum number of PVi_ma and PSi_ma keywords.
 int NPVMAX = 64;
@@ -115,18 +113,20 @@ const int wcs_taberr[] = {
   WCSERR_BAD_WORLD		//  5: TABERR_BAD_WORLD
 };
 
-// Convenience macro for invoking wcserr_set().
-#define WCS_ERRMSG(status) WCSERR_SET(status), wcs_errmsg[status]
-
-#ifndef signbit
-#define signbit(X) ((X) < 0.0 ? 1 : 0)
-#endif
+static const int WCSSET = 137;
 
 // Internal helper functions, not for general use.
 static int wcs_types(struct wcsprm *);
 static int time_type(const char *);
 static int time_code(const char *ctype, int nc);
 static int wcs_units(struct wcsprm *);
+
+// Convenience macro for invoking wcserr_set().
+#define WCS_ERRMSG(status) WCSERR_SET(status), wcs_errmsg[status]
+
+#ifndef signbit
+#define signbit(X) ((X) < 0.0 ? 1 : 0)
+#endif
 
 //----------------------------------------------------------------------------
 

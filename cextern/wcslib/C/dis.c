@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.1 - an implementation of the FITS WCS standard.
+  WCSLIB 8.2 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2023, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.c,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
+  $Id: dis.c,v 8.2.1.2 2023/11/29 07:43:49 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <math.h>
@@ -31,12 +31,6 @@
 #include "wcsprintf.h"
 #include "wcsutil.h"
 #include "dis.h"
-
-const int DISSET = 137;
-
-const int DIS_TPD        =    1;
-const int DIS_POLYNOMIAL =    2;
-const int DIS_DOTPD      = 1024;
 
 // Maximum number of DPja or DQia keywords.
 int NDPMAX = 256;
@@ -50,8 +44,11 @@ const char *dis_errmsg[] = {
   "Distort error",
   "De-distort error"};
 
-// Convenience macro for invoking wcserr_set().
-#define DIS_ERRMSG(status) WCSERR_SET(status), dis_errmsg[status]
+static const int DISSET = 137;
+
+static const int DIS_TPD        =    1;
+static const int DIS_POLYNOMIAL =    2;
+static const int DIS_DOTPD      = 1024;
 
 // Internal helper functions, not for general use.
 static int polyset(int j, struct disprm *dis);
@@ -80,6 +77,9 @@ static int tpd9(DISP2X_ARGS);
 #define I_DTYPE   0	// Distortion type code.
 #define I_NIPARM  1	// Full (allocated) length of iparm[].
 #define I_NDPARM  2	// No. of parameters in dparm[], excl. work space.
+
+// Convenience macro for invoking wcserr_set().
+#define DIS_ERRMSG(status) WCSERR_SET(status), dis_errmsg[status]
 
 //----------------------------------------------------------------------------
 

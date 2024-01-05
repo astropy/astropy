@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.1 - an implementation of the FITS WCS standard.
+  WCSLIB 8.2 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2023, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.c,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
+  $Id: wcsfix.c,v 8.2.1.2 2023/11/29 07:40:24 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <math.h>
@@ -38,8 +38,6 @@
 #include "wcsunits.h"
 #include "wcsutil.h"
 #include "wtbarr.h"
-
-extern const int WCSSET;
 
 // Maximum number of coordinate axes that can be handled.
 #define NMAX 16
@@ -83,6 +81,8 @@ const int fix_wcserr[] = {
   FIXERR_NO_REF_PIX_VAL 	// 10: WCSERR_BAD_WORLD_COORD
 				//     ...others not used
 };
+
+static const int WCSSET = 137;		// Matching wcs.c
 
 // Convenience macro for invoking wcserr_set().
 #define WCSFIX_ERRMSG(status) WCSERR_SET(status), wcsfix_errmsg[status]
