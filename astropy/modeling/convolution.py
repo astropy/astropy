@@ -1,7 +1,7 @@
+"""Convolution Model."""
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""Convolution Model."""
-# pylint: disable=line-too-long, too-many-lines, too-many-arguments, invalid-name
+from scipy.interpolate import RegularGridInterpolator
 import numpy as np
 
 from .core import CompoundModel
@@ -13,11 +13,11 @@ class Convolution(CompoundModel):
 
     Parameters
     ----------
-    operator: tuple
+    operator : tuple
         The SPECIAL_OPERATORS entry for the convolution being used.
     model : Model
         The model for the convolution.
-    kernel: Model
+    kernel : Model
         The kernel model for the convolution.
     bounding_box : tuple
         A bounding box to define the limits of the integration
@@ -30,10 +30,10 @@ class Convolution(CompoundModel):
 
     Notes
     -----
-    This is wrapper is necessary to handle the limitations of the
+    This wrapper is necessary to handle the limitations of the
     pseudospectral convolution binary operator implemented in
     astropy.convolution under `~astropy.convolution.convolve_fft`. In this
-    `~astropy.convolution.convolve_fft` it is assumed that the inputs ``array``
+    `~astropy.convolution.convolve_fft`, it is assumed that the inputs ``array``
     and ``kernel`` span a sufficient portion of the support of the functions of
     the convolution. Consequently, the ``Compound`` created by the
     `~astropy.convolution.convolve_models` function makes the assumption that
@@ -51,61 +51,40 @@ class Convolution(CompoundModel):
         super().__init__(operator, model, kernel)
 
         self.bounding_box = bounding_box
-        self._resolution = resolution
+        self.resolution = resolution
 
-        self._cache_convolution = cache
-        self._kwargs = None
-        self._convolution = None
+        self.use_cache = cache
+        self.kwargs = None
+        self.convolution = None
 
     def clear_cache(self):
         """
         Clears the cached convolution.
         """
-        self._kwargs = None
-        self._convolution = None
+        self.kwargs = None
+        self.convolution = None
 
     def _get_convolution(self, **kwargs):
-        if (self._convolution is None) or (self._kwargs != kwargs):
-            domain = self.bounding_box.domain(self._resolution)
+        if (self.convolution is None) or (self.kwargs is not kwargs):
+            domain = self.bounding_box.domain(self.resolution)
             mesh = np.meshgrid(*domain)
             data = super().__call__(*mesh, **kwargs)
 
-            from scipy.interpolate import RegularGridInterpolator
+            self.convolution = RegularGridInterpolator(domain, data)
 
-            convolution = RegularGridInterpolator(domain, data)
+            if self.use_cache:
+                self.kwargs = kwargs
 
-            if self._cache_convolution:
-                self._kwargs = kwargs
-                self._convolution = convolution
-
-        else:
-            convolution = self._convolution
-
-        return convolution
+        return self.convolution
 
     @staticmethod
     def _convolution_inputs(*args):
-        not_scalar = np.where([not np.isscalar(arg) for arg in args])[0]
-
-        if len(not_scalar) == 0:
-            return np.array(args), (1,)
-        else:
-            output_shape = args[not_scalar[0]].shape
-            if not all(args[index].shape == output_shape for index in not_scalar):
-                raise ValueError("Values have differing shapes")
-
-            inputs = []
-            for arg in args:
-                if np.isscalar(arg):
-                    inputs.append(np.full(output_shape, arg))
-                else:
-                    inputs.append(arg)
-
-            return np.reshape(inputs, (len(inputs), -1)).T, output_shape
+        inputs = np.broadcast_arrays(*args)
+        return np.stack(inputs, axis=-1), inputs[0].shape
 
     @staticmethod
     def _convolution_outputs(outputs, output_shape):
-        return outputs.reshape(output_shape)
+        return np.reshape(outputs, output_shape)
 
     def __call__(self, *args, **kw):
         inputs, output_shape = self._convolution_inputs(*args)
