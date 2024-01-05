@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 8.1
+# GNU makefile for building WCSLIB 8.2
 #
 # Summary of the main targets
 # ---------------------------
@@ -34,7 +34,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
+# $Id: GNUmakefile,v 8.2.1.2 2023/11/17 03:32:33 mcalabre Exp mcalabre $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := .
@@ -92,18 +92,12 @@ install :
 	     $(INSTALL) -d -m 775 $(DOCDIR) ; \
 	   fi
 	   $(INSTALL) -m 444 CHANGES COPYING* README $(DOCDIR)
+	   $(INSTALL) -m 444 INSTALL THANKS VALIDATION $(DOCDIR)
 	-  if [ -h $(DOCLINK) ] ; then \
 	     $(RM) $(DOCLINK) ; \
-	     $(LN_S) $(notdir $(DOCDIR)) $(DOCLINK) ; \
 	   fi
-	-  if [ ! -d "$(PDFDIR)" ] ; then \
-	     $(INSTALL) -d -m 775 $(PDFDIR) ; \
-	   fi
-	   $(INSTALL) -m 444 wcslib.pdf $(PDFDIR)
-	-  if [ ! -d "$(HTMLDIR)/html" ] ; then \
-	     $(INSTALL) -d -m 775 $(HTMLDIR)/html ; \
-	   fi
-	   $(INSTALL) -m 444 html/* $(HTMLDIR)/html
+	   $(LN_S) $(notdir $(DOCDIR)) $(DOCLINK)
+	   $(MAKE) -k -C doxygen $@
 
 uninstall :
 	 @ for DIR in $(INSTDIR) ; do \
@@ -113,8 +107,7 @@ uninstall :
 	-  cd $(INCDIR) && $(RM) wcsconfig*.h
 	-  $(RM) $(DOCLINK)
 	-  $(RM) $(DOCDIR)
-	-  $(RM) $(PDFDIR)
-	-  $(RM) $(HTMLDIR)
+	   $(MAKE) -k -C doxygen $@
 
 clean cleaner :
 	   for DIR in $(SUBDIRS) doxygen ; do \
