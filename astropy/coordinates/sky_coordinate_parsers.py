@@ -522,23 +522,16 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
                 if not_unit_sphere or repr_attr != "distance"
             ]
         else:
-            vals = []
-            is_ra_dec_representation = (
+            is_radec = (
                 "ra" in frame.representation_component_names
                 and "dec" in frame.representation_component_names
             )
-            # none of the elements are "frame-like"
-            # turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
-            for coord in coords:
-                if isinstance(coord, str):
-                    coord1 = coord.split()
-                    if len(coord1) == 6:
-                        coord = (" ".join(coord1[:3]), " ".join(coord1[3:]))
-                    elif is_ra_dec_representation:
-                        coord = _parse_ra_dec(coord)
-                    else:
-                        coord = coord1
-                vals.append(coord)  # Assumes coord is a sequence at this point
+            # none of the elements are "frame-like", create a list of sequences like
+            # [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
+            vals = [
+                _parse_one_coord_str(c, is_radec=is_radec) if isinstance(c, str) else c
+                for c in coords
+            ]
 
             # Do some basic validation of the list elements: all have a length and all
             # lengths the same
@@ -642,12 +635,16 @@ def _get_representation_attrs(frame, units, kwargs):
     return valid_kwargs
 
 
-def _parse_ra_dec(coord_str):
-    """Parse RA and Dec values from a coordinate string.
+def _parse_one_coord_str(coord_str: str, *, is_radec: bool = True) -> tuple[str, str]:
+    """Parse longitude-like and latitude-like values from a string.
 
-    Currently the following formats are supported:
+    Currently the following formats are always supported:
 
-     * space separated 6-value format
+     * space separated 2-value or 6-value format
+
+    If the input can be assumed to represent an RA and Dec then the
+    following are additionally supported:
+
      * space separated <6-value format, this requires a plus or minus sign
        separation between RA and Dec
      * sign separated format
@@ -658,41 +655,29 @@ def _parse_ra_dec(coord_str):
     ----------
     coord_str : str
         Coordinate string to parse.
+    is_radec : bool, keyword-only
+        Whether the coordinates represent an RA and Dec.
 
     Returns
     -------
-    coord : str or list of str
-        Parsed coordinate values.
+    longitude-like, latitude-like : str
+        Parsed coordinate values. If ``is_radec`` is `True` then they are
+        RA and Dec.
     """
-    if isinstance(coord_str, str):
-        coord1 = coord_str.split()
-    else:
+    if not isinstance(coord_str, str):
         # This exception should never be raised from SkyCoord
         raise TypeError("coord_str must be a single str")
-
-    if len(coord1) == 6:
-        coord = (" ".join(coord1[:3]), " ".join(coord1[3:]))
-    elif len(coord1) > 2:
-        coord = PLUS_MINUS_RE.split(coord_str)
-        coord = (coord[0], " ".join(coord[1:]))
-    elif len(coord1) == 1:
-        match_j = J_PREFIXED_RA_DEC_RE.match(coord_str)
-        if match_j:
-            coord = match_j.groups()
-            if len(coord[0].split(".")[0]) == 7:
-                coord = (
-                    f"{coord[0][0:3]} {coord[0][3:5]} {coord[0][5:]}",
-                    f"{coord[1][0:3]} {coord[1][3:5]} {coord[1][5:]}",
-                )
-            else:
-                coord = (
-                    f"{coord[0][0:2]} {coord[0][2:4]} {coord[0][4:]}",
-                    f"{coord[1][0:3]} {coord[1][3:5]} {coord[1][5:]}",
-                )
+    split_coord = coord_str.split()
+    if len(split_coord) == 6:
+        return " ".join(split_coord[:3]), " ".join(split_coord[3:])
+    if len(split_coord) == 2 or not is_radec:
+        return tuple(split_coord)
+    if len(split_coord) == 1 and (match_j := J_PREFIXED_RA_DEC_RE.match(coord_str)):
+        ra, dec = match_j.groups()
+        if len(ra.split(".", 1)[0]) == 7:
+            ra = f"{ra[0:3]} {ra[3:5]} {ra[5:]}"
         else:
-            coord = PLUS_MINUS_RE.split(coord_str)
-            coord = (coord[0], " ".join(coord[1:]))
-    else:
-        coord = coord1
-
-    return coord
+            ra = f"{ra[0:2]} {ra[2:4]} {ra[4:]}"
+        return ra, f"{dec[0:3]} {dec[3:5]} {dec[5:]}"
+    ra, *dec = PLUS_MINUS_RE.split(coord_str)
+    return ra, " ".join(dec)
