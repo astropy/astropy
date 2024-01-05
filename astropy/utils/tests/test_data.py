@@ -1100,10 +1100,14 @@ def test_data_noastropy_fallback(monkeypatch):
     assert os.path.isfile(fnout)
 
     # clearing the cache should be a no-up that doesn't affect fnout
-    with pytest.warns(
-        CacheMissingWarning, match=r".*Not clearing data cache - cache inaccessible.*"
-    ):
+    with pytest.warns(CacheMissingWarning) as record:
         clear_download_cache(TESTURL)
+    assert len(record) == 2
+    assert (
+        record[0].message.args[0]
+        == "Remote data cache could not be accessed due to OSError"
+    )
+    assert "Not clearing data cache - cache inaccessible" in record[1].message.args[0]
     assert os.path.isfile(fnout)
 
     # now remove it so tests don't clutter up the temp dir this should get

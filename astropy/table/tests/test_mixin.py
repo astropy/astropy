@@ -167,14 +167,59 @@ def test_io_time_write_fits_standard(tmp_path, table_types):
     filename = tmp_path / "table-tmp"
 
     # Show that FITS format succeeds
-    with pytest.warns(
-        AstropyUserWarning,
-        match=(
-            'Time Column "btai" has no specified location, '
-            "but global Time Position is present"
-        ),
-    ):
+    with pytest.warns(AstropyUserWarning) as record:
         t.write(filename, format="fits", overwrite=True)
+
+    # The exact sequence probably
+    # does not matter too much, so we'll just try to match the *set* of warnings
+    warnings = {wm.message.args[0] for wm in record}
+
+    expected = {
+        (
+            'Time Column "btai" has no specified location, '
+            "but global Time Position is present, "
+            "which will be the default for this column in FITS specification."
+        ),
+        (
+            'Time Column "btdb" has no specified location, '
+            "but global Time Position is present, "
+            "which will be the default for this column in FITS specification."
+        ),
+        (
+            'Time Column "btcg" has no specified location, '
+            "but global Time Position is present, "
+            "which will be the default for this column in FITS specification."
+        ),
+        (
+            'Time Column "btt" has no specified location, '
+            "but global Time Position is present, which will be the default "
+            "for this column in FITS specification."
+        ),
+        (
+            'Time Column "butc" has no specified location, '
+            "but global Time Position is present, "
+            "which will be the default for this column in FITS specification."
+        ),
+        (
+            'Earth Location "TOPOCENTER" for Time Column "atdb"'
+            ' is incompatible with scale "TDB".'
+        ),
+        (
+            'Earth Location "TOPOCENTER" for Time Column "atcb"'
+            ' is incompatible with scale "TCB".'
+        ),
+        (
+            'Time Column "but1" has no specified location, '
+            "but global Time Position is present, "
+            "which will be the default for this column in FITS specification."
+        ),
+        (
+            'Time Column "btcb" has no specified location, '
+            "but global Time Position is present, "
+            "which will be the default for this column in FITS specification."
+        ),
+    }
+    assert warnings == expected, f"Got some unexpected warnings\n{warnings - expected}"
     with pytest.warns(
         AstropyUserWarning,
         match='Time column reference position "TRPOSn" is not specified',
