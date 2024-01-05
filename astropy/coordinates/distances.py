@@ -121,7 +121,7 @@ class Distance(u.SpecificTypeQuantity):
                 "none of `value`, `z`, `distmod`, or `parallax` "
                 "were given to Distance constructor"
             )
-        elif n_not_none > 1:
+        if n_not_none > 1:
             raise ValueError(
                 "more than one of `value`, `z`, `distmod`, or "
                 "`parallax` were given to Distance constructor"
