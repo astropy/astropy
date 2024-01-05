@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.1 - an implementation of the FITS WCS standard.
+  WCSLIB 8.2 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2023, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: cel.c,v 8.1 2023/07/05 17:12:07 mcalabre Exp $
+  $Id: cel.c,v 8.2.1.2 2023/11/29 07:35:56 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <math.h>
@@ -32,8 +32,6 @@
 #include "wcstrig.h"
 #include "sph.h"
 #include "cel.h"
-
-const int CELSET = 137;
 
 // Map status return value to message.
 const char *cel_errmsg[] = {
@@ -53,6 +51,8 @@ const int cel_prjerr[] = {
   CELERR_BAD_PIX,		//  3: PRJERR_BAD_PIX
   CELERR_BAD_WORLD		//  4: PRJERR_BAD_WORLD
 };
+
+static const int CELSET = 137;
 
 // Convenience macro for invoking wcserr_set().
 #define CEL_ERRMSG(status) WCSERR_SET(status), cel_errmsg[status]
