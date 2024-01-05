@@ -2024,5 +2024,4 @@ class GenericFrame(BaseCoordinateFrame):
     def __setattr__(self, name, value):
         if name in self.frame_attributes:
             raise AttributeError(f"can't set frame attribute '{name}'")
-        else:
-            super().__setattr__(name, value)
+        super().__setattr__(name, value)

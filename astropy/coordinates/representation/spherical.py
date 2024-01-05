@@ -454,8 +454,7 @@ class SphericalRepresentation(BaseRepresentation):
                         " must explicitly pass in a `Distance` object with the "
                         "argument 'allow_negative=True'."
                     ) from e
-                else:
-                    raise
+                raise
 
     @classproperty
     def _compatible_differentials(cls):

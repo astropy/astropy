@@ -2013,8 +2013,7 @@ class SkyCoord(ShapedLikeNDArray):
                     f'Found column "{v.name}" in table, but it was already provided as'
                     ' "{k}" keyword to guess_from_table function.'
                 )
-            else:
-                coord_kwargs[k] = v
+            coord_kwargs[k] = v
 
         return cls(**coord_kwargs)
 

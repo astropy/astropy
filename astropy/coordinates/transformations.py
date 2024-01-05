@@ -1161,7 +1161,7 @@ class BaseAffineTransform(CoordinateTransform):
                 "transformation (representation class: {data.__class__})"
             )
 
-        elif (
+        if (
             has_velocity
             and (unit_vel_diff or rad_vel_diff)
             and offset is not None
@@ -1175,7 +1175,7 @@ class BaseAffineTransform(CoordinateTransform):
                 f" {data.differentials['s'].__class__})"
             )
 
-        elif len(data.differentials) > 1:
+        if len(data.differentials) > 1:
             # We should never get here because the frame initializer shouldn't
             # allow more differentials, but this just adds protection for
             # subclasses that somehow skip the checks

@@ -812,7 +812,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         if not self.differentials and differential_class:
             raise ValueError("No differentials associated with this representation!")
 
-        elif (
+        if (
             len(self.differentials) == 1
             and isinstance(differential_class, type)
             and issubclass(differential_class, BaseDifferential)
@@ -841,8 +841,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                         "compatible with the desired "
                         f"representation class {new_rep.__class__}"
                     ) from err
-                else:
-                    raise
+                raise
 
         return new_diffs
 
