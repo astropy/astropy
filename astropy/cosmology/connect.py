@@ -66,7 +66,7 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
         super().__init__(instance, cosmo_cls, "read", registry=readwrite_registry)
 
     def __call__(self, *args, **kwargs):
-        from astropy.cosmology.core import Cosmology
+        from astropy.cosmology._core import Cosmology
 
         # so subclasses can override, also pass the class as a kwarg.
         # allows for `FlatLambdaCDM.read` and
@@ -182,7 +182,7 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
         super().__init__(instance, cosmo_cls, "read", registry=convert_registry)
 
     def __call__(self, obj, *args, format=None, **kwargs):
-        from astropy.cosmology.core import Cosmology
+        from astropy.cosmology._core import Cosmology
 
         # so subclasses can override, also pass the class as a kwarg.
         # allows for `FlatLambdaCDM.read` and

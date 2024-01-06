@@ -11,9 +11,8 @@ import pytest
 
 import astropy.cosmology.units as cu
 import astropy.units as u
-from astropy.cosmology import Cosmology, FlatCosmologyMixin
-from astropy.cosmology.core import _COSMOLOGY_CLASSES
-from astropy.cosmology.parameter import Parameter
+from astropy.cosmology import Cosmology, FlatCosmologyMixin, Parameter
+from astropy.cosmology._core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameter.tests.test_descriptors import (
     ParametersAttributeTestMixin,
 )

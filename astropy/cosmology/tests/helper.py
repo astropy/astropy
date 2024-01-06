@@ -9,7 +9,7 @@ import inspect
 
 import pytest
 
-from astropy.cosmology import core
+from astropy.cosmology import _core
 
 __all__ = ["get_redshift_methods", "clean_registry"]
 
@@ -86,9 +86,9 @@ def get_redshift_methods(cosmology, include_private=True, include_z2=True):
 def clean_registry():
     """`pytest.fixture` for clearing and restoring ``_COSMOLOGY_CLASSES``."""
     # TODO! with monkeypatch instead for thread safety.
-    ORIGINAL_COSMOLOGY_CLASSES = core._COSMOLOGY_CLASSES
-    core._COSMOLOGY_CLASSES = {}  # set as empty dict
+    ORIGINAL_COSMOLOGY_CLASSES = _core._COSMOLOGY_CLASSES
+    _core._COSMOLOGY_CLASSES = {}  # set as empty dict
 
-    yield core._COSMOLOGY_CLASSES
+    yield _core._COSMOLOGY_CLASSES
 
-    core._COSMOLOGY_CLASSES = ORIGINAL_COSMOLOGY_CLASSES
+    _core._COSMOLOGY_CLASSES = ORIGINAL_COSMOLOGY_CLASSES

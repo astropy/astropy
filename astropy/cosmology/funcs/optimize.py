@@ -6,7 +6,7 @@ import warnings
 import numpy as np
 
 from astropy.cosmology import units as cu
-from astropy.cosmology.core import CosmologyError
+from astropy.cosmology._core import CosmologyError
 from astropy.units import Quantity
 from astropy.utils.exceptions import AstropyUserWarning
 
