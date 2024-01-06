@@ -9,49 +9,69 @@ celestial-to-terrestrial coordinate transformations
 (in `astropy.coordinates`).
 """
 
+import os
 import re
-from datetime import datetime
-from warnings import warn
+from datetime import datetime, timezone
 from urllib.parse import urlparse
+from warnings import warn
 
-import numpy as np
 import erfa
+import numpy as np
+from astropy_iers_data import (
+    IERS_A_FILE,
+    IERS_A_README,
+    IERS_A_URL,
+    IERS_A_URL_MIRROR,
+    IERS_B_FILE,
+    IERS_B_README,
+    IERS_B_URL,
+    IERS_LEAP_SECOND_FILE,
+    IERS_LEAP_SECOND_URL,
+)
+from astropy_iers_data import IERS_LEAP_SECOND_URL_MIRROR as IETF_LEAP_SECOND_URL
 
-from astropy.time import Time, TimeDelta
 from astropy import config as _config
 from astropy import units as u
-from astropy.table import QTable, MaskedColumn
-from astropy.utils.data import (get_pkg_data_filename, clear_download_cache,
-                                is_url_in_cache, get_readable_fileobj)
-from astropy.utils.state import ScienceState
 from astropy import utils
-from astropy.utils.exceptions import AstropyWarning
+from astropy.table import MaskedColumn, QTable
+from astropy.time import Time, TimeDelta
+from astropy.utils.data import (
+    clear_download_cache,
+    get_readable_fileobj,
+    is_url_in_cache,
+)
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils.state import ScienceState
 
-__all__ = ['Conf', 'conf', 'earth_orientation_table',
-           'IERS', 'IERS_B', 'IERS_A', 'IERS_Auto',
-           'FROM_IERS_B', 'FROM_IERS_A', 'FROM_IERS_A_PREDICTION',
-           'TIME_BEFORE_IERS_RANGE', 'TIME_BEYOND_IERS_RANGE',
-           'IERS_A_FILE', 'IERS_A_URL', 'IERS_A_URL_MIRROR', 'IERS_A_README',
-           'IERS_B_FILE', 'IERS_B_URL', 'IERS_B_README',
-           'IERSRangeError', 'IERSStaleWarning',
-           'LeapSeconds', 'IERS_LEAP_SECOND_FILE', 'IERS_LEAP_SECOND_URL',
-           'IETF_LEAP_SECOND_URL']
-
-# IERS-A default file name, URL, and ReadMe with content description
-IERS_A_FILE = 'finals2000A.all'
-IERS_A_URL = 'ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.all'  # noqa: E501
-IERS_A_URL_MIRROR = 'https://datacenter.iers.org/data/9/finals2000A.all'
-IERS_A_README = get_pkg_data_filename('data/ReadMe.finals2000A')
-
-# IERS-B default file name, URL, and ReadMe with content description
-IERS_B_FILE = get_pkg_data_filename('data/eopc04_IAU2000.62-now')
-IERS_B_URL = 'http://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now'
-IERS_B_README = get_pkg_data_filename('data/ReadMe.eopc04_IAU2000')
-
-# LEAP SECONDS default file name, URL, and alternative format/URL
-IERS_LEAP_SECOND_FILE = get_pkg_data_filename('data/Leap_Second.dat')
-IERS_LEAP_SECOND_URL = 'https://hpiers.obspm.fr/iers/bul/bulc/Leap_Second.dat'
-IETF_LEAP_SECOND_URL = 'https://www.ietf.org/timezones/data/leap-seconds.list'
+__all__ = [
+    "Conf",
+    "conf",
+    "earth_orientation_table",
+    "IERS",
+    "IERS_B",
+    "IERS_A",
+    "IERS_Auto",
+    "FROM_IERS_B",
+    "FROM_IERS_A",
+    "FROM_IERS_A_PREDICTION",
+    "TIME_BEFORE_IERS_RANGE",
+    "TIME_BEYOND_IERS_RANGE",
+    "IERS_A_FILE",
+    "IERS_A_URL",
+    "IERS_A_URL_MIRROR",
+    "IERS_A_README",
+    "IERS_B_FILE",
+    "IERS_B_URL",
+    "IERS_B_README",
+    "IERSRangeError",
+    "IERSStaleWarning",
+    "IERSWarning",
+    "IERSDegradedAccuracyWarning",
+    "LeapSeconds",
+    "IERS_LEAP_SECOND_FILE",
+    "IERS_LEAP_SECOND_URL",
+    "IETF_LEAP_SECOND_URL",
+]
 
 # Status/source values returned by IERS.ut1_utc
 FROM_IERS_B = 0
@@ -76,8 +96,39 @@ suppressed by setting the auto_max_age configuration variable to
   conf.auto_max_age = None
 """
 
-MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
-              'Sep', 'Oct', 'Nov', 'Dec']
+MONTH_ABBR = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+]
+
+
+class IERSWarning(AstropyWarning):
+    """
+    Generic warning class for IERS.
+    """
+
+
+class IERSDegradedAccuracyWarning(AstropyWarning):
+    """
+    IERS time conversion has degraded accuracy normally due to setting
+    ``conf.auto_download = False`` and ``conf.iers_degraded_accuracy = 'warn'``.
+    """
+
+
+class IERSStaleWarning(IERSWarning):
+    """
+    Downloaded IERS table may be stale.
+    """
 
 
 def download_file(*args, **kwargs):
@@ -87,10 +138,15 @@ def download_file(*args, **kwargs):
     ``**kwargs`` after temporarily setting the download_file remote timeout to
     the local ``iers.conf.remote_timeout`` value.
     """
-    kwargs.setdefault('http_headers', {'User-Agent': 'astropy/iers',
-                                       'Accept': '*/*'})
+    kwargs.setdefault(
+        "http_headers",
+        {
+            "User-Agent": "astropy/iers",
+            "Accept": "*/*",
+        },
+    )
 
-    with utils.data.conf.set_temp('remote_timeout', conf.remote_timeout):
+    with utils.data.conf.set_temp("remote_timeout", conf.remote_timeout):
         return utils.data.download_file(*args, **kwargs)
 
 
@@ -99,44 +155,51 @@ def _none_to_float(value):
     Convert None to a valid floating point value.  Especially
     for auto_max_age = None.
     """
-    return (value if value is not None else np.finfo(float).max)
-
-
-class IERSStaleWarning(AstropyWarning):
-    pass
+    return value if value is not None else np.finfo(float).max
 
 
 class Conf(_config.ConfigNamespace):
     """
     Configuration parameters for `astropy.utils.iers`.
     """
+
     auto_download = _config.ConfigItem(
         True,
-        'Enable auto-downloading of the latest IERS data.  If set to False '
-        'then the local IERS-B and leap-second files will be used by default. '
-        'Default is True.')
+        "Enable auto-downloading of the latest IERS data.  If set to False "
+        "then the local IERS-B file will be used by default (even if the "
+        "full IERS file with predictions was already downloaded and cached). "
+        "This parameter also controls whether internet resources will be "
+        "queried to update the leap second table if the installed version is "
+        "out of date. Default is True.",
+    )
     auto_max_age = _config.ConfigItem(
         30.0,
-        'Maximum age (days) of predictive data before auto-downloading. '
-        'Default is 30.')
+        "Maximum age (days) of predictive data before auto-downloading. "
+        'See "Auto refresh behavior" in astropy.utils.iers documentation for details. '
+        "Default is 30.",
+    )
     iers_auto_url = _config.ConfigItem(
-        IERS_A_URL,
-        'URL for auto-downloading IERS file data.')
+        IERS_A_URL, "URL for auto-downloading IERS file data."
+    )
     iers_auto_url_mirror = _config.ConfigItem(
-        IERS_A_URL_MIRROR,
-        'Mirror URL for auto-downloading IERS file data.')
+        IERS_A_URL_MIRROR, "Mirror URL for auto-downloading IERS file data."
+    )
     remote_timeout = _config.ConfigItem(
-        10.0,
-        'Remote timeout downloading IERS file data (seconds).')
-    system_leap_second_file = _config.ConfigItem(
-        '',
-        'System file with leap seconds.')
+        10.0, "Remote timeout downloading IERS file data (seconds)."
+    )
+    iers_degraded_accuracy = _config.ConfigItem(
+        ["error", "warn", "ignore"],
+        "IERS behavior if the range of available IERS data does not "
+        "cover the times when converting time scales, potentially leading "
+        "to degraded accuracy.",
+    )
+    system_leap_second_file = _config.ConfigItem("", "System file with leap seconds.")
     iers_leap_second_auto_url = _config.ConfigItem(
-        IERS_LEAP_SECOND_URL,
-        'URL for auto-downloading leap seconds.')
+        IERS_LEAP_SECOND_URL, "URL for auto-downloading leap seconds."
+    )
     ietf_leap_second_auto_url = _config.ConfigItem(
-        IETF_LEAP_SECOND_URL,
-        'Alternate URL for auto-downloading leap seconds.')
+        IETF_LEAP_SECOND_URL, "Alternate URL for auto-downloading leap seconds."
+    )
 
 
 conf = Conf()
@@ -144,7 +207,7 @@ conf = Conf()
 
 class IERSRangeError(IndexError):
     """
-    Any error for when dates are outside of the valid range for IERS
+    Any error for when dates are outside of the valid range for IERS.
     """
 
 
@@ -175,7 +238,8 @@ class IERS(QTable):
 
         Returns
         -------
-        An IERS table class instance
+        IERS
+            An IERS table class instance
 
         Notes
         -----
@@ -219,12 +283,12 @@ class IERS(QTable):
         """
         cls.iers_table = None
 
-    def mjd_utc(self, jd1, jd2=0.):
+    def mjd_utc(self, jd1, jd2=0.0):
         """Turn a time to MJD, returning integer and fractional parts.
 
         Parameters
         ----------
-        jd1 : float, array, or Time
+        jd1 : float, array, or `~astropy.time.Time`
             first part of two-part JD, or Time object
         jd2 : float or array, optional
             second part of two-part JD.
@@ -243,15 +307,15 @@ class IERS(QTable):
             pass
 
         mjd = np.floor(jd1 - MJD_ZERO + jd2)
-        utc = jd1 - (MJD_ZERO+mjd) + jd2
+        utc = jd1 - (MJD_ZERO + mjd) + jd2
         return mjd, utc
 
-    def ut1_utc(self, jd1, jd2=0., return_status=False):
+    def ut1_utc(self, jd1, jd2=0.0, return_status=False):
         """Interpolate UT1-UTC corrections in IERS Table for given dates.
 
         Parameters
         ----------
-        jd1 : float, float array, or Time object
+        jd1 : float, array of float, or `~astropy.time.Time` object
             first part of two-part JD, or Time object
         jd2 : float or float array, optional
             second part of two-part JD.
@@ -273,15 +337,16 @@ class IERS(QTable):
             ``iers.TIME_BEFORE_IERS_RANGE``
             ``iers.TIME_BEYOND_IERS_RANGE``
         """
-        return self._interpolate(jd1, jd2, ['UT1_UTC'],
-                                 self.ut1_utc_source if return_status else None)
+        return self._interpolate(
+            jd1, jd2, ["UT1_UTC"], self.ut1_utc_source if return_status else None
+        )
 
-    def dcip_xy(self, jd1, jd2=0., return_status=False):
+    def dcip_xy(self, jd1, jd2=0.0, return_status=False):
         """Interpolate CIP corrections in IERS Table for given dates.
 
         Parameters
         ----------
-        jd1 : float, float array, or Time object
+        jd1 : float, array of float, or `~astropy.time.Time` object
             first part of two-part JD, or Time object
         jd2 : float or float array, optional
             second part of two-part JD (default 0., ignored if jd1 is Time)
@@ -292,9 +357,9 @@ class IERS(QTable):
 
         Returns
         -------
-        D_x : Quantity with angle units
-            x component of CIP correction for the requested times
-        D_y : Quantity with angle units
+        D_x : `~astropy.units.Quantity` ['angle']
+            x component of CIP correction for the requested times.
+        D_y : `~astropy.units.Quantity` ['angle']
             y component of CIP correction for the requested times
         status : int or int array
             Status values (if ``return_status``=``True``)::
@@ -304,15 +369,19 @@ class IERS(QTable):
             ``iers.TIME_BEFORE_IERS_RANGE``
             ``iers.TIME_BEYOND_IERS_RANGE``
         """
-        return self._interpolate(jd1, jd2, ['dX_2000A', 'dY_2000A'],
-                                 self.dcip_source if return_status else None)
+        return self._interpolate(
+            jd1,
+            jd2,
+            ["dX_2000A", "dY_2000A"],
+            self.dcip_source if return_status else None,
+        )
 
-    def pm_xy(self, jd1, jd2=0., return_status=False):
+    def pm_xy(self, jd1, jd2=0.0, return_status=False):
         """Interpolate polar motions from IERS Table for given dates.
 
         Parameters
         ----------
-        jd1 : float, float array, or Time object
+        jd1 : float, array of float, or `~astropy.time.Time` object
             first part of two-part JD, or Time object
         jd2 : float or float array, optional
             second part of two-part JD.
@@ -324,10 +393,10 @@ class IERS(QTable):
 
         Returns
         -------
-        PM_x : Quantity with angle units
-            x component of polar motion for the requested times
-        PM_y : Quantity with angle units
-            y component of polar motion for the requested times
+        PM_x : `~astropy.units.Quantity` ['angle']
+            x component of polar motion for the requested times.
+        PM_y : `~astropy.units.Quantity` ['angle']
+            y component of polar motion for the requested times.
         status : int or int array
             Status values (if ``return_status``=``True``)::
             ``iers.FROM_IERS_B``
@@ -336,8 +405,9 @@ class IERS(QTable):
             ``iers.TIME_BEFORE_IERS_RANGE``
             ``iers.TIME_BEYOND_IERS_RANGE``
         """
-        return self._interpolate(jd1, jd2, ['PM_x', 'PM_y'],
-                                 self.pm_source if return_status else None)
+        return self._interpolate(
+            jd1, jd2, ["PM_x", "PM_y"], self.pm_source if return_status else None
+        )
 
     def _check_interpolate_indices(self, indices_orig, indices_clipped, max_input_mjd):
         """
@@ -346,34 +416,54 @@ class IERS(QTable):
         class because it has different requirements.
         """
         if np.any(indices_orig != indices_clipped):
-            raise IERSRangeError('(some) times are outside of range covered '
-                                 'by IERS table.')
+            if conf.iers_degraded_accuracy == "error":
+                msg = (
+                    "(some) times are outside of range covered by IERS table. Cannot"
+                    " convert with full accuracy. To allow conversion with degraded"
+                    " accuracy set astropy.utils.iers.conf.iers_degraded_accuracy to"
+                    ' "warn" or "silent". For more information about setting this'
+                    " configuration parameter or controlling its value globally, see"
+                    " the Astropy configuration system documentation"
+                    " https://docs.astropy.org/en/stable/config/index.html."
+                )
+                raise IERSRangeError(msg)
+            elif conf.iers_degraded_accuracy == "warn":
+                # No IERS data covering the time(s) and user requested a warning.
+                msg = (
+                    "(some) times are outside of range covered by IERS table, "
+                    "accuracy is degraded."
+                )
+                warn(msg, IERSDegradedAccuracyWarning)
+            # No IERS data covering the time(s) and user is OK with no warning.
 
     def _interpolate(self, jd1, jd2, columns, source=None):
         mjd, utc = self.mjd_utc(jd1, jd2)
         # enforce array
-        is_scalar = not hasattr(mjd, '__array__') or mjd.ndim == 0
+        is_scalar = not hasattr(mjd, "__array__") or mjd.ndim == 0
         if is_scalar:
             mjd = np.array([mjd])
             utc = np.array([utc])
+        elif mjd.size == 0:
+            # Short-cut empty input.
+            return np.array([])
 
         self._refresh_table_as_needed(mjd)
 
         # For typical format, will always find a match (since MJD are integer)
         # hence, important to define which side we will be; this ensures
         # self['MJD'][i-1]<=mjd<self['MJD'][i]
-        i = np.searchsorted(self['MJD'].value, mjd, side='right')
+        i = np.searchsorted(self["MJD"].value, mjd, side="right")
 
         # Get index to MJD at or just below given mjd, clipping to ensure we
         # stay in range of table (status will be set below for those outside)
         i1 = np.clip(i, 1, len(self) - 1)
         i0 = i1 - 1
-        mjd_0, mjd_1 = self['MJD'][i0].value, self['MJD'][i1].value
+        mjd_0, mjd_1 = self["MJD"][i0].value, self["MJD"][i1].value
         results = []
         for column in columns:
             val_0, val_1 = self[column][i0], self[column][i1]
             d_val = val_1 - val_0
-            if column == 'UT1_UTC':
+            if column == "UT1_UTC":
                 # Check & correct for possible leap second (correcting diff.,
                 # not 1st point, since jump can only happen right at 2nd point)
                 d_val -= d_val.round()
@@ -412,7 +502,6 @@ class IERS(QTable):
         time values in ``mdj`` and the time span of the table.  The base behavior
         is not to update the table.  ``IERS_Auto`` overrides this method.
         """
-        pass
 
     def ut1_utc_source(self, i):
         """Source for UT1-UTC.  To be overridden by subclass."""
@@ -442,8 +531,7 @@ class IERS(QTable):
         # when converting to Quantity.
         # TODO: Once we support masked quantities, we can drop this and
         # in the code below replace b_bad with table['UT1_UTC_B'].mask, etc.
-        if (getattr(col, 'unit', None) is not None and
-                isinstance(col, MaskedColumn)):
+        if getattr(col, "unit", None) is not None and isinstance(col, MaskedColumn):
             col = col.filled(np.nan)
 
         return super()._convert_col_for_table(col)
@@ -472,27 +560,26 @@ class IERS_A(IERS):
         # IERS A has some rows at the end that hold nothing but dates & MJD
         # presumably to be filled later.  Exclude those a priori -- there
         # should at least be a predicted UT1-UTC and PM!
-        table = iers_a[np.isfinite(iers_a['UT1_UTC_A']) &
-                       (iers_a['PolPMFlag_A'] != '')]
+        table = iers_a[np.isfinite(iers_a["UT1_UTC_A"]) & (iers_a["PolPMFlag_A"] != "")]
 
         # This does nothing for IERS_A, but allows IERS_Auto to ensure the
         # IERS B values in the table are consistent with the true ones.
         table = cls._substitute_iers_b(table)
 
         # Combine A and B columns, using B where possible.
-        b_bad = np.isnan(table['UT1_UTC_B'])
-        table['UT1_UTC'] = np.where(b_bad, table['UT1_UTC_A'], table['UT1_UTC_B'])
-        table['UT1Flag'] = np.where(b_bad, table['UT1Flag_A'], 'B')
+        b_bad = np.isnan(table["UT1_UTC_B"])
+        table["UT1_UTC"] = np.where(b_bad, table["UT1_UTC_A"], table["UT1_UTC_B"])
+        table["UT1Flag"] = np.where(b_bad, table["UT1Flag_A"], "B")
         # Repeat for polar motions.
-        b_bad = np.isnan(table['PM_X_B']) | np.isnan(table['PM_Y_B'])
-        table['PM_x'] = np.where(b_bad, table['PM_x_A'], table['PM_X_B'])
-        table['PM_y'] = np.where(b_bad, table['PM_y_A'], table['PM_Y_B'])
-        table['PolPMFlag'] = np.where(b_bad, table['PolPMFlag_A'], 'B')
+        b_bad = np.isnan(table["PM_X_B"]) | np.isnan(table["PM_Y_B"])
+        table["PM_x"] = np.where(b_bad, table["PM_x_A"], table["PM_X_B"])
+        table["PM_y"] = np.where(b_bad, table["PM_y_A"], table["PM_Y_B"])
+        table["PolPMFlag"] = np.where(b_bad, table["PolPMFlag_A"], "B")
 
-        b_bad = np.isnan(table['dX_2000A_B']) | np.isnan(table['dY_2000A_B'])
-        table['dX_2000A'] = np.where(b_bad, table['dX_2000A_A'], table['dX_2000A_B'])
-        table['dY_2000A'] = np.where(b_bad, table['dY_2000A_A'], table['dY_2000A_B'])
-        table['NutFlag'] = np.where(b_bad, table['NutFlag_A'], 'B')
+        b_bad = np.isnan(table["dX_2000A_B"]) | np.isnan(table["dY_2000A_B"])
+        table["dX_2000A"] = np.where(b_bad, table["dX_2000A_A"], table["dX_2000A_B"])
+        table["dY_2000A"] = np.where(b_bad, table["dY_2000A_A"], table["dY_2000A_B"])
+        table["NutFlag"] = np.where(b_bad, table["NutFlag_A"], "B")
 
         # Get the table index for the first row that has predictive values
         # PolPMFlag_A  IERS (I) or Prediction (P) flag for
@@ -502,10 +589,12 @@ class IERS_A(IERS):
         # Since only 'P' and 'I' are possible and 'P' is guaranteed to come
         # after 'I', we can use searchsorted for 100 times speed up over
         # finding the first index where the flag equals 'P'.
-        p_index = min(np.searchsorted(table['UT1Flag_A'], 'P'),
-                      np.searchsorted(table['PolPMFlag_A'], 'P'))
-        table.meta['predictive_index'] = p_index
-        table.meta['predictive_mjd'] = table['MJD'][p_index].value
+        p_index = min(
+            np.searchsorted(table["UT1Flag_A"], "P"),
+            np.searchsorted(table["PolPMFlag_A"], "P"),
+        )
+        table.meta["predictive_index"] = p_index
+        table.meta["predictive_mjd"] = table["MJD"][p_index].value
 
         return table
 
@@ -532,41 +621,59 @@ class IERS_A(IERS):
         ``IERS_A`` class instance
         """
         if file is None:
-            file = IERS_A_FILE
+            # In prior versions of astropy, read() would only work without a
+            # file argument if a finals2000A.all file was present in the
+            # current working directory. We can now use the versions from
+            # astropy-iers-data but for backward-compatibility we first check
+            # if there is a file in the current working directory and use that
+            # if so, emitting a deprecation warning
+            if os.path.exists("finals2000A.all"):
+                file = "finals2000A.all"
+                warn(
+                    "The file= argument was not specified but "
+                    "'finals2000A.all' is present in the current working "
+                    "directory, so reading IERS data from that file. To "
+                    "continue reading a local file from the current working "
+                    "directory, specify file= explicitly otherwise a bundled "
+                    "file will be used in future.",
+                    AstropyDeprecationWarning,
+                )
+            else:
+                file = IERS_A_FILE
         if readme is None:
             readme = IERS_A_README
 
-        iers_a = super().read(file, format='cds', readme=readme)
+        iers_a = super().read(file, format="cds", readme=readme)
 
         # Combine the A and B data for UT1-UTC and PM columns
         table = cls._combine_a_b_columns(iers_a)
-        table.meta['data_path'] = file
-        table.meta['readme_path'] = readme
+        table.meta["data_path"] = file
+        table.meta["readme_path"] = readme
 
         return table
 
     def ut1_utc_source(self, i):
-        """Set UT1-UTC source flag for entries in IERS table"""
-        ut1flag = self['UT1Flag'][i]
+        """Set UT1-UTC source flag for entries in IERS table."""
+        ut1flag = self["UT1Flag"][i]
         source = np.ones_like(i) * FROM_IERS_B
-        source[ut1flag == 'I'] = FROM_IERS_A
-        source[ut1flag == 'P'] = FROM_IERS_A_PREDICTION
+        source[ut1flag == "I"] = FROM_IERS_A
+        source[ut1flag == "P"] = FROM_IERS_A_PREDICTION
         return source
 
     def dcip_source(self, i):
-        """Set CIP correction source flag for entries in IERS table"""
-        nutflag = self['NutFlag'][i]
+        """Set CIP correction source flag for entries in IERS table."""
+        nutflag = self["NutFlag"][i]
         source = np.ones_like(i) * FROM_IERS_B
-        source[nutflag == 'I'] = FROM_IERS_A
-        source[nutflag == 'P'] = FROM_IERS_A_PREDICTION
+        source[nutflag == "I"] = FROM_IERS_A
+        source[nutflag == "P"] = FROM_IERS_A_PREDICTION
         return source
 
     def pm_source(self, i):
-        """Set polar motion source flag for entries in IERS table"""
-        pmflag = self['PolPMFlag'][i]
+        """Set polar motion source flag for entries in IERS table."""
+        pmflag = self["PolPMFlag"][i]
         source = np.ones_like(i) * FROM_IERS_B
-        source[pmflag == 'I'] = FROM_IERS_A
-        source[pmflag == 'P'] = FROM_IERS_A_PREDICTION
+        source[pmflag == "I"] = FROM_IERS_A
+        source[pmflag == "P"] = FROM_IERS_A_PREDICTION
         return source
 
 
@@ -579,13 +686,16 @@ class IERS_B(IERS):
     -----
     If the package IERS B file (```iers.IERS_B_FILE``) is out of date, a new
     version can be downloaded from ``iers.IERS_B_URL``.
+
+    See `~astropy.utils.iers.IERS_B.read` for instructions on how to read
+    a pre-2023 style IERS B file (usually named ``eopc04_IAU2000.62-now``).
     """
 
     iers_table = None
 
     @classmethod
-    def read(cls, file=None, readme=None, data_start=14):
-        """Read IERS-B table from a eopc04_iau2000.* file provided by IERS.
+    def read(cls, file=None, readme=None, data_start=6):
+        """Read IERS-B table from a eopc04.* file provided by IERS.
 
         Parameters
         ----------
@@ -596,34 +706,51 @@ class IERS_B(IERS):
             full path to ascii file holding CDS-style readme.
             Defaults to package version, ``iers.IERS_B_README``.
         data_start : int
-            starting row. Default is 14, appropriate for standard IERS files.
+            Starting row. Default is 6, appropriate for standard IERS files.
 
         Returns
         -------
         ``IERS_B`` class instance
+
+        Notes
+        -----
+        To read a pre-2023 style IERS B file (usually named something like
+        ``eopc04_IAU2000.62-now``), do something like this example with an
+        excerpt that is used for testing::
+
+            >>> from astropy.utils.iers import IERS_B
+            >>> from astropy.utils.data import get_pkg_data_filename
+            >>> old_style_file = get_pkg_data_filename(
+            ...     "tests/data/iers_b_old_style_excerpt",
+            ...     package="astropy.utils.iers")
+            >>> iers_b = IERS_B.read(
+            ...     old_style_file,
+            ...     readme=get_pkg_data_filename("data/ReadMe.eopc04_IAU2000",
+            ...                                  package="astropy.utils.iers"),
+            ...     data_start=14)
+
         """
         if file is None:
             file = IERS_B_FILE
         if readme is None:
             readme = IERS_B_README
 
-        table = super().read(file, format='cds', readme=readme,
-                             data_start=data_start)
+        table = super().read(file, format="cds", readme=readme, data_start=data_start)
 
-        table.meta['data_path'] = file
-        table.meta['readme_path'] = readme
+        table.meta["data_path"] = file
+        table.meta["readme_path"] = readme
         return table
 
     def ut1_utc_source(self, i):
-        """Set UT1-UTC source flag for entries in IERS table"""
+        """Set UT1-UTC source flag for entries in IERS table."""
         return np.ones_like(i) * FROM_IERS_B
 
     def dcip_source(self, i):
-        """Set CIP correction source flag for entries in IERS table"""
+        """Set CIP correction source flag for entries in IERS table."""
         return np.ones_like(i) * FROM_IERS_B
 
     def pm_source(self, i):
-        """Set PM source flag for entries in IERS table"""
+        """Set PM source flag for entries in IERS table."""
         return np.ones_like(i) * FROM_IERS_B
 
 
@@ -632,6 +759,7 @@ class IERS_Auto(IERS_A):
     Provide most-recent IERS data and automatically handle downloading
     of updated values as necessary.
     """
+
     iers_table = None
 
     @classmethod
@@ -653,7 +781,8 @@ class IERS_Auto(IERS_A):
 
         Returns
         -------
-        `~astropy.table.QTable` instance with IERS (Earth rotation) data columns
+        `~astropy.table.QTable` instance
+            With IERS (Earth rotation) data columns
 
         """
         if not conf.auto_download:
@@ -663,27 +792,33 @@ class IERS_Auto(IERS_A):
         all_urls = (conf.iers_auto_url, conf.iers_auto_url_mirror)
 
         if cls.iers_table is not None:
-
             # If the URL has changed, we need to redownload the file, so we
             # should ignore the internally cached version.
 
-            if cls.iers_table.meta.get('data_url') in all_urls:
+            if cls.iers_table.meta.get("data_url") in all_urls:
                 return cls.iers_table
 
-        try:
-            filename = download_file(all_urls[0], sources=all_urls, cache=True)
-        except Exception as err:
-            # Issue a warning here, perhaps user is offline.  An exception
-            # will be raised downstream when actually trying to interpolate
-            # predictive values.
-            warn(AstropyWarning(
-                f'failed to download {" and ".join(all_urls)}, '
-                f'using local IERS-B: {err}'))
-            cls.iers_table = IERS_B.open()
-            return cls.iers_table
+        for url in all_urls:
+            try:
+                filename = download_file(url, cache=True)
+            except Exception as err:
+                warn(f"failed to download {url}: {err}", IERSWarning)
+                continue
 
-        cls.iers_table = cls.read(file=filename)
-        cls.iers_table.meta['data_url'] = all_urls[0]
+            try:
+                cls.iers_table = cls.read(file=filename)
+            except Exception as err:
+                warn(f"malformed IERS table from {url}: {err}", IERSWarning)
+                continue
+            cls.iers_table.meta["data_url"] = url
+            break
+
+        else:
+            # Issue a warning here, perhaps user is offline.  An exception
+            # will be raised downstream if actually trying to interpolate
+            # predictive values.
+            warn("unable to download valid IERS file, using local IERS-B", IERSWarning)
+            cls.iers_table = IERS_B.open()
 
         return cls.iers_table
 
@@ -694,12 +829,14 @@ class IERS_Auto(IERS_A):
         always within the confidence bounds of current Earth rotation
         knowledge.
         """
-        predictive_mjd = self.meta['predictive_mjd']
+        predictive_mjd = self.meta["predictive_mjd"]
 
         # See explanation in _refresh_table_as_needed for these conditions
         auto_max_age = _none_to_float(conf.auto_max_age)
-        if (max_input_mjd > predictive_mjd and
-                self.time_now.mjd - predictive_mjd > auto_max_age):
+        if (
+            max_input_mjd > predictive_mjd
+            and self.time_now.mjd - predictive_mjd > auto_max_age
+        ):
             raise ValueError(INTERPOLATE_ERROR.format(auto_max_age))
 
     def _refresh_table_as_needed(self, mjd):
@@ -721,8 +858,8 @@ class IERS_Auto(IERS_A):
 
         # IERS-A table contains predictive data out for a year after
         # the available definitive values.
-        fpi = self.meta['predictive_index']
-        predictive_mjd = self.meta['predictive_mjd']
+        fpi = self.meta["predictive_index"]
+        predictive_mjd = self.meta["predictive_mjd"]
 
         # Update table in place if necessary
         auto_max_age = _none_to_float(conf.auto_max_age)
@@ -730,55 +867,63 @@ class IERS_Auto(IERS_A):
         # If auto_max_age is smaller than IERS update time then repeated downloads may
         # occur without getting updated values (giving a IERSStaleWarning).
         if auto_max_age < 10:
-            raise ValueError('IERS auto_max_age configuration value must be larger than 10 days')
+            raise ValueError(
+                "IERS auto_max_age configuration value must be larger than 10 days"
+            )
 
-        if (max_input_mjd > predictive_mjd and
-                (now_mjd - predictive_mjd) > auto_max_age):
-
+        if max_input_mjd > predictive_mjd and (now_mjd - predictive_mjd) > auto_max_age:
             all_urls = (conf.iers_auto_url, conf.iers_auto_url_mirror)
 
             # Get the latest version
             try:
-                filename = download_file(
-                    all_urls[0], sources=all_urls, cache="update")
+                filename = download_file(all_urls[0], sources=all_urls, cache="update")
             except Exception as err:
                 # Issue a warning here, perhaps user is offline.  An exception
                 # will be raised downstream when actually trying to interpolate
                 # predictive values.
-                warn(AstropyWarning(
-                    f'failed to download {" and ".join(all_urls)}: {err}.\n'
-                    'A coordinate or time-related '
-                    'calculation might be compromised or fail because the dates are '
-                    'not covered by the available IERS file.  See the '
-                    '"IERS data access" section of the astropy documentation '
-                    'for additional information on working offline.'))
+                warn(
+                    AstropyWarning(
+                        f'failed to download {" and ".join(all_urls)}: {err}.\nA'
+                        " coordinate or time-related calculation might be compromised"
+                        " or fail because the dates are not covered by the available"
+                        ' IERS file.  See the "IERS data access" section of the'
+                        " astropy documentation for additional information on working"
+                        " offline."
+                    )
+                )
                 return
 
             new_table = self.__class__.read(file=filename)
-            new_table.meta['data_url'] = str(all_urls[0])
+            new_table.meta["data_url"] = str(all_urls[0])
 
             # New table has new values?
-            if new_table['MJD'][-1] > self['MJD'][-1]:
+            if new_table["MJD"][-1] > self["MJD"][-1]:
                 # Replace *replace* current values from the first predictive index through
                 # the end of the current table.  This replacement is much faster than just
                 # deleting all rows and then using add_row for the whole duration.
-                new_fpi = np.searchsorted(new_table['MJD'].value, predictive_mjd, side='right')
+                new_fpi = np.searchsorted(
+                    new_table["MJD"].value, predictive_mjd, side="right"
+                )
                 n_replace = len(self) - fpi
-                self[fpi:] = new_table[new_fpi:new_fpi + n_replace]
+                self[fpi:] = new_table[new_fpi : new_fpi + n_replace]
 
                 # Sanity check for continuity
-                if new_table['MJD'][new_fpi + n_replace] - self['MJD'][-1] != 1.0 * u.d:
-                    raise ValueError('unexpected gap in MJD when refreshing IERS table')
+                if new_table["MJD"][new_fpi + n_replace] - self["MJD"][-1] != 1.0 * u.d:
+                    raise ValueError("unexpected gap in MJD when refreshing IERS table")
 
                 # Now add new rows in place
-                for row in new_table[new_fpi + n_replace:]:
+                for row in new_table[new_fpi + n_replace :]:
                     self.add_row(row)
 
                 self.meta.update(new_table.meta)
             else:
-                warn(IERSStaleWarning(
-                    'IERS_Auto predictive values are older than {} days but downloading '
-                    'the latest table did not find newer values'.format(conf.auto_max_age)))
+                warn(
+                    IERSStaleWarning(
+                        "IERS_Auto predictive values are older than"
+                        f" {conf.auto_max_age} days but downloading the latest table"
+                        " did not find newer values"
+                    )
+                )
 
     @classmethod
     def _substitute_iers_b(cls, table):
@@ -791,23 +936,24 @@ class IERS_Auto(IERS_A):
         """
         iers_b = IERS_B.open()
         # Substitute IERS-B values for existing B values in IERS-A table
-        mjd_b = table['MJD'][np.isfinite(table['UT1_UTC_B'])]
-        i0 = np.searchsorted(iers_b['MJD'], mjd_b[0], side='left')
-        i1 = np.searchsorted(iers_b['MJD'], mjd_b[-1], side='right')
+        mjd_b = table["MJD"][np.isfinite(table["UT1_UTC_B"])]
+        i0 = np.searchsorted(iers_b["MJD"], mjd_b[0], side="left")
+        i1 = np.searchsorted(iers_b["MJD"], mjd_b[-1], side="right")
         iers_b = iers_b[i0:i1]
         n_iers_b = len(iers_b)
         # If there is overlap then replace IERS-A values from available IERS-B
         if n_iers_b > 0:
             # Sanity check that we are overwriting the correct values
-            if not u.allclose(table['MJD'][:n_iers_b], iers_b['MJD']):
-                raise ValueError('unexpected mismatch when copying '
-                                 'IERS-B values into IERS-A table.')
+            if not u.allclose(table["MJD"][:n_iers_b], iers_b["MJD"]):
+                raise ValueError(
+                    "unexpected mismatch when copying IERS-B values into IERS-A table."
+                )
             # Finally do the overwrite
-            table['UT1_UTC_B'][:n_iers_b] = iers_b['UT1_UTC']
-            table['PM_X_B'][:n_iers_b] = iers_b['PM_x']
-            table['PM_Y_B'][:n_iers_b] = iers_b['PM_y']
-            table['dX_2000A_B'][:n_iers_b] = iers_b['dX_2000A']
-            table['dY_2000A_B'][:n_iers_b] = iers_b['dY_2000A']
+            table["UT1_UTC_B"][:n_iers_b] = iers_b["UT1_UTC"]
+            table["PM_X_B"][:n_iers_b] = iers_b["PM_x"]
+            table["PM_Y_B"][:n_iers_b] = iers_b["PM_y"]
+            table["dX_2000A_B"][:n_iers_b] = iers_b["dX_2000A"]
+            table["dY_2000A_B"][:n_iers_b] = iers_b["dY_2000A"]
 
         return table
 
@@ -845,6 +991,7 @@ class earth_orientation_table(ScienceState):
       >>> iers.earth_orientation_table.set(None)  # doctest: +SKIP
       <ScienceState earth_orientation_table: <IERS_Auto length=17428>...>
     """
+
     _value = None
 
     @classmethod
@@ -872,17 +1019,25 @@ class LeapSeconds(QTable):
     ``iers.LEAP_SECONDS_LIST_URL``.  Many systems also store a version
     of ``leap-seconds.list`` for use with ``ntp`` (e.g., on Debian/Ubuntu
     systems, ``/usr/share/zoneinfo/leap-seconds.list``).
+
+    To prevent querying internet resources if the available local leap second
+    file(s) are out of date, set ``iers.conf.auto_download = False``. This
+    must be done prior to performing any ``Time`` scale transformations related
+    to UTC (e.g. converting from UTC to TAI).
     """
+
     # Note: Time instances in this class should use scale='tai' to avoid
     # needing leap seconds in their creation or interpretation.
 
-    _re_expires = re.compile(r'^#.*File expires on[:\s]+(\d+\s\w+\s\d+)\s*$')
+    _re_expires = re.compile(r"^#.*File expires on[:\s]+(\d+\s\w+\s\d+)\s*$")
     _expires = None
-    _auto_open_files = ['erfa',
-                        IERS_LEAP_SECOND_FILE,
-                        'system_leap_second_file',
-                        'iers_leap_second_auto_url',
-                        'ietf_leap_second_auto_url']
+    _auto_open_files = [
+        "erfa",
+        IERS_LEAP_SECOND_FILE,
+        "system_leap_second_file",
+        "iers_leap_second_auto_url",
+        "ietf_leap_second_auto_url",
+    ]
     """Files or conf attributes to try in auto_open."""
 
     @classmethod
@@ -891,7 +1046,7 @@ class LeapSeconds(QTable):
 
         Parameters
         ----------
-        file : path, or None
+        file : path-like or None
             Full local or network path to the file holding leap-second data,
             for passing on to the various ``from_`` class methods.
             If 'erfa', return the data used by the ERFA library.
@@ -919,7 +1074,7 @@ class LeapSeconds(QTable):
         if file is None:
             return cls.auto_open()
 
-        if file.lower() == 'erfa':
+        if file.lower() == "erfa":
             return cls.from_erfa()
 
         if urlparse(file).netloc:
@@ -935,8 +1090,10 @@ class LeapSeconds(QTable):
     def _today():
         # Get current day in scale='tai' without going through a scale change
         # (so we do not need leap seconds).
-        s = '{0.year:04d}-{0.month:02d}-{0.day:02d}'.format(datetime.utcnow())
-        return Time(s, scale='tai', format='iso', out_subfmt='date')
+        s = "{0.year:04d}-{0.month:02d}-{0.day:02d}".format(
+            datetime.now(tz=timezone.utc)
+        )
+        return Time(s, scale="tai", format="iso", out_subfmt="date")
 
     @classmethod
     def auto_open(cls, files=None):
@@ -952,7 +1109,7 @@ class LeapSeconds(QTable):
 
         Parameters
         ----------
-        files : list of path, optional
+        files : list of path-like, optional
             List of files/URLs to attempt to open.  By default, uses
             ``cls._auto_open_files``.
 
@@ -969,8 +1126,8 @@ class LeapSeconds(QTable):
         that expires more than 180 - `~astropy.utils.iers.Conf.auto_max_age`
         after the present.
         """
-        good_enough = cls._today() + TimeDelta(180-_none_to_float(conf.auto_max_age),
-                                               format='jd')
+        offset = 180 - (30 if conf.auto_max_age is None else conf.auto_max_age)
+        good_enough = cls._today() + TimeDelta(offset, format="jd")
 
         if files is None:
             # Basic files to go over (entries in _auto_open_files can be
@@ -983,8 +1140,9 @@ class LeapSeconds(QTable):
         # Our trials start with normal files and remote ones that are
         # already in cache.  The bools here indicate that the cache
         # should be used.
-        trials = [(f, True) for f in files
-                  if not urlparse(f).netloc or is_url_in_cache(f)]
+        trials = [
+            (f, True) for f in files if not urlparse(f).netloc or is_url_in_cache(f)
+        ]
         # If we are allowed to download, we try downloading new versions
         # if none of the above worked.
         if conf.auto_download:
@@ -1006,16 +1164,18 @@ class LeapSeconds(QTable):
 
             if self is None or trial.expires > self.expires:
                 self = trial
-                self.meta['data_url'] = str(f)
+                self.meta["data_url"] = str(f)
                 if self.expires > good_enough:
                     break
 
         if self is None:
-            raise ValueError('none of the files could be read. The '
-                             'following errors were raised:\n' + str(err_list))
+            raise ValueError(
+                "none of the files could be read. The "
+                f"following errors were raised:\n {err_list}"
+            )
 
-        if self.expires < self._today():
-            warn('leap-second file is expired.', IERSStaleWarning)
+        if self.expires < self._today() and conf.auto_max_age is not None:
+            warn("leap-second file is expired.", IERSStaleWarning)
 
         return self
 
@@ -1026,7 +1186,7 @@ class LeapSeconds(QTable):
 
     @classmethod
     def _read_leap_seconds(cls, file, **kwargs):
-        """Read a file, identifying expiration by matching 'File expires'"""
+        """Read a file, identifying expiration by matching 'File expires'."""
         expires = None
         # Find expiration date.
         with get_readable_fileobj(file) as fh:
@@ -1036,13 +1196,14 @@ class LeapSeconds(QTable):
                 if match:
                     day, month, year = match.groups()[0].split()
                     month_nb = MONTH_ABBR.index(month[:3]) + 1
-                    expires = Time(f'{year}-{month_nb:02d}-{day}',
-                                   scale='tai', out_subfmt='date')
+                    expires = Time(
+                        f"{year}-{month_nb:02d}-{day}", scale="tai", out_subfmt="date"
+                    )
                     break
             else:
-                raise ValueError(f'did not find expiration date in {file}')
+                raise ValueError(f"did not find expiration date in {file}")
 
-        self = cls.read(lines, format='ascii.no_header', **kwargs)
+        self = cls.read(lines, format="ascii.no_header", **kwargs)
         self._expires = expires
         return self
 
@@ -1052,7 +1213,7 @@ class LeapSeconds(QTable):
 
         Parameters
         ----------
-        file : path, optional
+        file : path-like, optional
             Full local or network path to the file holding leap-second data
             in a format consistent with that used by IERS.  By default, uses
             ``iers.IERS_LEAP_SECOND_FILE``.
@@ -1063,7 +1224,8 @@ class LeapSeconds(QTable):
         '#  File expires on 28 June 2020'
         """
         return cls._read_leap_seconds(
-            file, names=['mjd', 'day', 'month', 'year', 'tai_utc'])
+            file, names=["mjd", "day", "month", "year", "tai_utc"]
+        )
 
     @classmethod
     def from_leap_seconds_list(cls, file):
@@ -1071,7 +1233,7 @@ class LeapSeconds(QTable):
 
         Parameters
         ----------
-        file : path, optional
+        file : path-like, optional
             Full local or network path to the file holding leap-second data
             in a format consistent with that used by IETF.  Up to date versions
             can be retrieved from ``iers.IETF_LEAP_SECOND_URL``.
@@ -1083,18 +1245,22 @@ class LeapSeconds(QTable):
         """
         from astropy.io.ascii import convert_numpy  # Here to avoid circular import
 
-        names = ['ntp_seconds', 'tai_utc', 'comment', 'day', 'month', 'year']
+        names = ["ntp_seconds", "tai_utc", "comment", "day", "month", "year"]
         # Note: ntp_seconds does not fit in 32 bit, so causes problems on
         # 32-bit systems without the np.int64 converter.
         self = cls._read_leap_seconds(
-            file, names=names, include_names=names[:2],
-            converters={'ntp_seconds': [convert_numpy(np.int64)]})
-        self['mjd'] = (self['ntp_seconds']/86400 + 15020).round()
+            file,
+            names=names,
+            include_names=names[:2],
+            converters={"ntp_seconds": [convert_numpy(np.int64)]},
+        )
+        self["mjd"] = (self["ntp_seconds"] / 86400 + 15020).round()
         # Note: cannot use Time.ymdhms, since that might require leap seconds.
-        isot = Time(self['mjd'], format='mjd', scale='tai').isot
-        ymd = np.array([[int(part) for part in t.partition('T')[0].split('-')]
-                        for t in isot])
-        self['year'], self['month'], self['day'] = ymd.T
+        isot = Time(self["mjd"], format="mjd", scale="tai").isot
+        ymd = np.array(
+            [[int(part) for part in t.partition("T")[0].split("-")] for t in isot]
+        )
+        self["year"], self["month"], self["day"] = ymd.T
         return self
 
     @classmethod
@@ -1109,9 +1275,10 @@ class LeapSeconds(QTable):
             with erfa.
         """
         current = cls(erfa.leap_seconds.get())
-        current._expires = Time('{0.year:04d}-{0.month:02d}-{0.day:02d}'
-                                .format(erfa.leap_seconds.expires),
-                                scale='tai')
+        current._expires = Time(
+            "{0.year:04d}-{0.month:02d}-{0.day:02d}".format(erfa.leap_seconds.expires),
+            scale="tai",
+        )
         if not built_in:
             return current
 
@@ -1149,19 +1316,19 @@ class LeapSeconds(QTable):
         ValueError
             If the leap seconds in the table are not on 1st of January or July,
             or if the matches are inconsistent.  This would normally suggest
-            a currupted leap second table, but might also indicate that the
+            a corrupted leap second table, but might also indicate that the
             ERFA table was corrupted.  If needed, the ERFA table can be reset
             by calling this method with an appropriate value for
             ``initialize_erfa``.
         """
-        if initialize_erfa == 'empty':
+        if initialize_erfa == "empty":
             # Initialize to empty and update is the same as overwrite.
             erfa.leap_seconds.set(self)
             return len(self)
 
         if initialize_erfa:
             erfa.leap_seconds.set()
-            if initialize_erfa == 'only':
+            if initialize_erfa == "only":
                 return 0
 
         return erfa.leap_seconds.update(self)
