@@ -4,6 +4,7 @@ import gzip
 import os
 import signal
 import sys
+import warnings
 
 import numpy as np
 import pytest
@@ -12,7 +13,6 @@ from numpy.testing import assert_equal
 from astropy.io.fits import util
 from astropy.io.fits.util import _rstrip_inplace, ignore_sigint
 from astropy.utils.compat.optional_deps import HAS_PIL
-from astropy.utils.exceptions import AstropyUserWarning
 
 if HAS_PIL:
     from PIL import Image
@@ -25,15 +25,14 @@ class TestUtils(FitsTestCase):
     def test_ignore_sigint(self):
         @ignore_sigint
         def runme():
-            with pytest.warns(AstropyUserWarning) as w:
-                pid = os.getpid()
+            pid = os.getpid()
+            with warnings.catch_warnings(record=True) as warning_lines:
                 os.kill(pid, signal.SIGINT)
                 # One more time, for good measure
                 os.kill(pid, signal.SIGINT)
-            assert len(w) == 2
-            assert (
-                str(w[0].message) == "KeyboardInterrupt ignored until test is complete!"
-            )
+            assert len(warning_lines) == 2
+            for w in warning_lines:
+                assert str(w.message) == "KeyboardInterrupt ignored until test is complete!"
 
         pytest.raises(KeyboardInterrupt, runme)
 
