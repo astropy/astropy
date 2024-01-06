@@ -32,7 +32,10 @@ class TestUtils(FitsTestCase):
                 os.kill(pid, signal.SIGINT)
             assert len(warning_lines) == 2
             for w in warning_lines:
-                assert str(w.message) == "KeyboardInterrupt ignored until test is complete!"
+                assert (
+                    str(w.message)
+                    == "KeyboardInterrupt ignored until test is complete!"
+                )
 
         pytest.raises(KeyboardInterrupt, runme)
 
