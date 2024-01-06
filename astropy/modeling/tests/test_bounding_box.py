@@ -56,22 +56,21 @@ class Test_Interval:
         assert id(interval.upper) == id(copy.upper)
 
     def test__validate_shape(self):
-        
         """
         Test the _validate_shape method of _Interval.
-    
+
         This test checks the behavior of the _validate_shape method when validating the shape of intervals. It covers scenarios
         involving valid shapes with and without units. It also includes scenarios that should fail due to invalid shapes, both
         with and without units.
-    
+
         Args:
             MESSAGE (str): The error message indicating the expected failure due to an invalid shape.
             lower (MagicMock): A MagicMock object used to represent the lower bound of an interval.
             upper (MagicMock): A MagicMock object used to represent the upper bound of an interval.
         """
-        
+
         # Test implementation...
-        
+
         MESSAGE = r"An interval must be some sort of sequence of length 2"
         lower = mk.MagicMock()
         upper = mk.MagicMock()
@@ -1045,19 +1044,18 @@ class TestModelBoundingBox:
         assert not (bounding_box_1 == bounding_box_2)
 
     def test__setitem__(self):
-        
         """
         Test the _setitem__ method of ModelBoundingBox.
-    
+
         This test checks the behavior of the _setitem__ method when setting intervals in ModelBoundingBox using both _Interval
         instances and tuples. It covers scenarios involving setting intervals using keys (strings or integers) and updating or
         removing intervals. Additionally, it tests support for setting intervals with multiple models.
-    
+
         Args:
             model (Gaussian2D): The model used for testing.
         """
         # Test implementation...
-        
+
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, {}, ignored=[0, 1])
         assert bounding_box._ignored == [0, 1]
@@ -1260,20 +1258,19 @@ class TestModelBoundingBox:
         assert (bounding_box[0].upper == np.array([1, 2])).all()
 
     def test__validate_sequence(self):
-        
         """
         Test the _validate_sequence method of ModelBoundingBox.
-    
+
         This test checks the behavior of the _validate_sequence method when validating and updating ModelBoundingBox intervals
         based on a sequence of intervals with different specified orders, including the default order. It verifies that intervals
         are correctly updated based on the provided order and that invalid orders result in appropriate error handling.
-    
+
         Args:
             model (Gaussian2D): The model used for testing.
         """
-        
+
         # Test implementation...
-        
+
         model = Gaussian2D()
         bounding_box = ModelBoundingBox({}, model)
 
@@ -1339,21 +1336,20 @@ class TestModelBoundingBox:
         assert bounding_box._n_inputs == 0
 
     def test__validate_iterable(self):
-        
         """
         Test the _validate_iterable method of ModelBoundingBox.
-    
+
         This test checks the behavior of the _validate_iterable method when validating and updating ModelBoundingBox intervals
         based on different iterable inputs. Scenarios covered include passing a sequence of intervals with default order,
         passing a sequence of intervals with a specified order, passing a dictionary of intervals, and handling ignored intervals.
         Additionally, invalid iterable inputs are tested to ensure appropriate error handling.
-    
+
         Args:
             model (Gaussian2D): The model used for testing.
         """
-        
+
         # Test implementation...
-        
+
         model = Gaussian2D()
         bounding_box = ModelBoundingBox({}, model)
 
@@ -1493,10 +1489,9 @@ class TestModelBoundingBox:
         assert (bounding_box["x"].upper == np.array([1, 2])).all()
 
     def test_validate(self):
-        
         """
         Test the validation of ModelBoundingBox.
-    
+
         This test checks the functionality of ModelBoundingBox validation with various input types, including:
         1. Passing a sequence of intervals with default order.
         2. Passing a sequence of intervals with a specified order.
@@ -1505,15 +1500,15 @@ class TestModelBoundingBox:
         5. Passing a single ignored interval.
         6. Passing a single interval.
         7. Support for a model set.
-    
+
         It ensures that ModelBoundingBox is correctly validated for different scenarios, and the resulting object contains
         the expected intervals, order, and other attributes.
-    
+
         Args:
             model (Gaussian2D): The model used for testing.
             kwargs (dict): Additional keyword arguments for testing purposes.
         """
-        
+
         model = Gaussian2D()
         kwargs = {"test": mk.MagicMock()}
 
@@ -1712,10 +1707,9 @@ class TestModelBoundingBox:
         assert all_out and isinstance(all_out, bool)
 
     def test__valid_index(self):
-        
         """
         Test the validity index determination for a ModelBoundingBox.
-    
+
         This test checks the functionality of determining the valid index for a ModelBoundingBox. It covers the following
         scenarios:
         1. Normal array input with all points inside the bounding box.
@@ -1723,13 +1717,13 @@ class TestModelBoundingBox:
         3. Normal array input with all points outside the bounding box.
         4. Scalar input inside the bounding box.
         5. Scalar input outside the bounding box.
-    
+
         If the validity index determination for a ModelBoundingBox passes this test, it indicates that the function is
         correctly identifying and providing the valid index for both array and scalar inputs.
         """
-        
+
         # Test implementation...
-        
+
         intervals = {0: _Interval(-1, 1), 1: _Interval(0, 2)}
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
@@ -1781,21 +1775,20 @@ class TestModelBoundingBox:
         assert all_out and isinstance(all_out, bool)
 
     def test_prepare_inputs(self):
-        
         """
         Test the preparation of inputs for a ModelBoundingBox.
-    
+
         This test checks the functionality of preparing inputs for a ModelBoundingBox. It covers the following scenarios:
         1. Normal array input with all points inside the bounding box.
         2. Normal array input with some points inside and some points outside the bounding box.
         3. Normal array input with all points outside the bounding box.
         4. Scalar input inside the bounding box.
         5. Scalar input outside the bounding box.
-    
+
         If the preparation of inputs for a ModelBoundingBox passes this test, it indicates that the function is correctly
         identifying and handling points inside and outside the bounding box for both array and scalar inputs.
         """
-        
+
         intervals = {0: _Interval(-1, 1), 1: _Interval(0, 2)}
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
@@ -1891,13 +1884,12 @@ class Test_SelectorArgument:
         assert argument == (index, ignore)
 
     def test_validate(self):
-        
         """
         Test the validation of _SelectorArgument.
-    
+
         This test checks the validation functionality of the _SelectorArgument class,
         ensuring that the creation of a single selector argument is performed correctly.
-    
+
         Steps:
         1. Validate default integer keys.
         2. Validate default string keys.
@@ -1907,13 +1899,13 @@ class Test_SelectorArgument:
             a. Invalid, with a bad argument (key not in the model inputs).
             b. Invalid, with a key value that is not a string or integer.
             c. Invalid, with a non-negative integer key greater than or equal to the model input size.
-    
+
         If the validation of _SelectorArgument passes this test, it suggests that the
         creation and validation of a single selector argument are functioning as expected.
         """
-        
+
         # Test implementation...
-        
+
         model = Gaussian2D()
 
         # default integer
@@ -2106,13 +2098,12 @@ class Test_SelectorArguments:
         ).ignore == [17, 14]
 
     def test_validate(self):
-        
         """
         Test the validation of _SelectorArguments.
-    
+
         This test checks the validation functionality of the _SelectorArguments class,
         ensuring that the creation of selector arguments is performed correctly.
-    
+
         Steps:
         1. Validate selector arguments with integer keys and passed ignore values.
         2. Validate selector arguments with default ignore values.
@@ -2124,13 +2115,13 @@ class Test_SelectorArguments:
             b. Invalid, with a key value that is not a string or integer.
             c. Invalid, with a repeated argument.
             d. Invalid, with no arguments.
-    
+
         If the validation of _SelectorArguments passes this test, it suggests that the
         creation and validation of selector arguments are functioning as expected.
         """
-        
+
         # Test implementation...
-        
+
         # Integer key and passed ignore
         arguments = _SelectorArguments.validate(Gaussian2D(), ((0, True), (1, False)))
         assert isinstance(arguments, _SelectorArguments)
@@ -2316,13 +2307,12 @@ class Test_SelectorArguments:
             arguments.add_ignore(model, 0)
 
     def test_reduce(self):
-        
         """
         Test the reduction of _SelectorArguments.
-    
+
         This test checks the reduction functionality of the _SelectorArguments class,
         where specific arguments are removed based on the provided model and selector values.
-    
+
         Steps:
         1. Create a Gaussian2D model instance.
         2. Define _SelectorArguments with two arguments: (0, True) and (1, False).
@@ -2330,12 +2320,12 @@ class Test_SelectorArguments:
         4. Use the reduce method with the selector value "x" and verify the result.
         5. Use the reduce method to remove the argument with index 1 and verify the result.
         6. Use the reduce method with the selector value "y" and verify the result.
-    
+
         If the reduction of _SelectorArguments passes this test, it suggests that the
         reduction functionality correctly removes specified arguments based on the model and selector values.
         """
         # Test implementation...
-        
+
         model = Gaussian2D()
 
         arguments = _SelectorArguments.validate(model, ((0, True), (1, False)))
@@ -2372,16 +2362,14 @@ class Test_SelectorArguments:
 
 
 class TestCompoundBoundingBox:
-
     def test_create(self):
-        
         """
         Test the creation of CompoundBoundingBox.
-    
+
         This test checks the proper creation of a CompoundBoundingBox object by
         verifying that the specified model, selector_args, bounding_boxes, create_selector,
         and order are correctly assigned to the corresponding attributes.
-    
+
         Steps:
         1. Create a Gaussian2D model instance.
         2. Define selector_args, bounding_boxes, create_selector, and order.
@@ -2390,13 +2378,13 @@ class TestCompoundBoundingBox:
         5. Assert that selector_args, bounding_boxes, create_selector, and order are correctly assigned.
         6. Verify that each bounding box in _bounding_boxes is an instance of ModelBoundingBox.
         7. Assert the equality between _bounding_boxes and the specified bounding_boxes.
-    
+
         If the creation of CompoundBoundingBox passes this test, it suggests that the object
         is correctly initialized with the provided parameters.
         """
-        
+
         # Test implementation...
-        
+
         model = Gaussian2D()
         selector_args = ((0, True),)
         bounding_boxes = {(1,): (-1, 1), (2,): (-2, 2)}
@@ -2419,15 +2407,14 @@ class TestCompoundBoundingBox:
         assert bounding_box._order == "F"
 
     def test_copy(self):
-        
         """
         Test the copy functionality of CompoundBoundingBox.
-    
+
         This test ensures that the copy method creates a new instance that is equal
         to the original but has distinct IDs for certain attributes to avoid
         infinite recursion. It covers the copying of selector_args and bounding_boxes,
         checking that their values and structures are preserved.
-    
+
         Steps:
         1. Create an original CompoundBoundingBox using the validate method.
         2. Create a copy of the original object using the copy method.
@@ -2438,10 +2425,10 @@ class TestCompoundBoundingBox:
         6. Check the copying of the selector_args attribute, ensuring it is done properly.
         7. Check the copying of the bounding_boxes attribute, ensuring that each bounding
            box is copied correctly, and their intervals are also copied.
-    
+
         If the copy method passes this test, it suggests that the method is working as expected.
         """
-        
+
         bounding_box = CompoundBoundingBox.validate(
             Gaussian2D(),
             {(1,): (-1.5, 1.3), (2,): (-2.7, 2.4)},
@@ -2526,21 +2513,20 @@ class TestCompoundBoundingBox:
         assert bounding_box.bounding_boxes.keys() == copy.bounding_boxes.keys()
 
     def test___repr__(self):
-        
         """
         Test the string representation of a CompoundBoundingBox.
-    
+
         This test ensures that the __repr__ method provides a well-formatted string
         representation of the CompoundBoundingBox, including bounding boxes and selector
         arguments.
-    
+
         Args:
             None
-    
+
         Returns:
             None
         """
-        
+
         model = Gaussian2D()
         selector_args = ((0, True),)
         bounding_boxes = {(1,): (-1, 1), (2,): (-2, 2)}
@@ -2622,20 +2608,19 @@ class TestCompoundBoundingBox:
         assert bounding_box._get_selector_key(np.array([5, 19])) == (5, 19)
 
     def test___setitem__(self):
-        
         """
         Test setting items in a CompoundBoundingBox.
-    
+
         This test covers scenarios with ignored and non-ignored arguments, including
         valid and invalid assignments, ensuring correct handling of keys and bounding boxes.
-    
+
         Args:
             None
-    
+
         Returns:
             None
         """
-        
+
         model = Gaussian2D()
 
         # Ignored argument
@@ -2706,20 +2691,19 @@ class TestCompoundBoundingBox:
         assert bounding_box._bounding_boxes == bounding_boxes
 
     def test___eq__(self):
-        
         """
         Test equality comparison for CompoundBoundingBox instances.
-    
+
         This test covers scenarios where two instances are equal, not equal due to different
         bounding boxes, selector arguments, and create_selector functions.
-    
+
         Args:
             None
-    
+
         Returns:
             None
         """
-        
+
         bounding_box_1 = CompoundBoundingBox(
             {(1,): (-1, 1), (2,): (-2, 2)}, Gaussian2D(), ((0, True),)
         )
@@ -2755,20 +2739,19 @@ class TestCompoundBoundingBox:
         assert not bounding_box_1 == bounding_box_2
 
     def test_validate(self):
-        
         """
         Test validation of a CompoundBoundingBox.
-    
+
         This test covers various scenarios, including failing to provide selector arguments,
         normal validation, re-validation, and validation with the default order.
-    
+
         Args:
             None
-    
+
         Returns:
             None
         """
-        
+
         model = Gaussian2D()
         selector_args = ((0, True),)
         bounding_boxes = {(1,): (-1, 1), (2,): (-2, 2)}
@@ -2818,20 +2801,19 @@ class TestCompoundBoundingBox:
         assert 2 not in bounding_box
 
     def test__create_bounding_box(self):
-        
         """
         Test the creation of a bounding box in a CompoundBoundingBox.
-    
+
         This test ensures that the creation of a bounding box is handled correctly,
         validating both successful and unsuccessful creation scenarios.
-    
+
         Args:
             None
-    
+
         Returns:
             None
         """
-        
+
         model = Gaussian2D()
         create_selector = mk.MagicMock()
         bounding_box = CompoundBoundingBox({}, model, ((1, False),), create_selector)
@@ -2855,20 +2837,19 @@ class TestCompoundBoundingBox:
             bounding_box._create_bounding_box((27,))
 
     def test___getitem__(self):
-        
         """
         Test accessing bounding boxes in a CompoundBoundingBox using various indices.
-    
+
         This test checks that the correct bounding box is retrieved based on different
         index types, including existing indices and the creation of a new bounding box.
-    
+
         Args:
             None
-    
+
         Returns:
             None
         """
-        
+
         model = Gaussian2D()
         selector_args = ((0, True),)
         bounding_boxes = {(1,): (-1, 1), (2,): (-2, 2)}
@@ -2899,20 +2880,19 @@ class TestCompoundBoundingBox:
             assert mkCreate.call_args_list == [mk.call(bounding_box, (3,))]
 
     def test__select_bounding_box(self):
-        
         """
         Test selecting the appropriate bounding box for a CompoundBoundingBox.
-    
+
         This test ensures that the correct bounding box is selected based on the provided
         inputs and the selector arguments.
-    
+
         Args:
             None
-    
+
         Returns:
             None
         """
-        
+
         model = Gaussian2D()
         selector_args = ((0, True),)
         bounding_boxes = {(1,): (-1, 1), (2,): (-2, 2)}
@@ -2934,20 +2914,19 @@ class TestCompoundBoundingBox:
                 ]
 
     def test_prepare_inputs(self):
-        
         """
         Test the preparation of inputs for a CompoundBoundingBox with multiple bounding boxes.
-    
+
         This test ensures that input preparation correctly delegates to the respective bounding
         boxes based on the provided selector indices.
-    
+
         Args:
             None
-    
+
         Returns:
             None
         """
-        
+
         model = Gaussian2D()
         selector_args = ((0, True),)
         bounding_boxes = {(1,): (-1, 1), (2,): (-2, 2)}
@@ -2975,18 +2954,17 @@ class TestCompoundBoundingBox:
             mkPrepare.reset_mock()
 
     def test__matching_bounding_boxes(self):
-        
         """
         Test generation of matching bounding boxes for input values in CompoundBoundingBox.
-    
+
         Ensures correct matching based on input values, handling single and multiple selectors,
         and cases with no available bounding boxes for the specified input value.
-    
+
         Args: None
-    
+
         Returns: None
         """
-        
+
         # Single selector index
         selector_args = ((0, False),)
         bounding_boxes = {
@@ -3299,13 +3277,13 @@ class TestCompoundBoundingBox:
         assert len(bbox._bounding_boxes) == 2
 
     def test_complex_compound_bounding_box(self):
-        '''
+        """
         Test CompoundBoundingBox validation for model with multiple bounding boxes.
 
         Args: None
 
         Returns: None
-        '''
+        """
         model = Identity(4)
         bounding_boxes = {
             (2.5, 1.3): ((-1, 1), (-3, 3)),
