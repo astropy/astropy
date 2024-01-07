@@ -117,7 +117,7 @@ def test_expected_arg_names(cls, lon, lat):
         f"pm_{lon}_cos{lat}": -21.2 * u.mas / u.yr,
         f"pm_{lat}": 17.1 * u.mas / u.yr,
     }
-    frame = cls(**kwargs, **DISTANCE, **RADIAL_VELOCITY)
+    cls(**kwargs, **DISTANCE, **RADIAL_VELOCITY)
 
 
 # these data are extracted from the vizier version of XHIP:
@@ -272,14 +272,12 @@ def test_shorthand_attributes():
         pm_dec=np.random.normal(0, 100, n) * u.mas / u.yr,
         radial_velocity=np.random.normal(0, 100, n) * u.km / u.s,
     )
-    v = icrs1.velocity
     pm = icrs1.proper_motion
     assert quantity_allclose(pm[0], icrs1.pm_ra_cosdec)
     assert quantity_allclose(pm[1], icrs1.pm_dec)
 
     # for scalar data:
     icrs2 = ICRS(**POSITION_ON_SKY, **DISTANCE, **PROPER_MOTION, **RADIAL_VELOCITY)
-    v = icrs2.velocity
     pm = icrs2.proper_motion
     assert quantity_allclose(pm[0], icrs2.pm_ra_cosdec)
     assert quantity_allclose(pm[1], icrs2.pm_dec)

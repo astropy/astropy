@@ -70,9 +70,6 @@ lint.ignore = [
     # flake8-executable (EXE)
     "EXE002",  # shebang-missing-executable-file
 
-    # Pyflakes (F)
-    "F841",  # unused-variable
-
     # flake8-boolean-trap (FBT)  : boolean flags should be kwargs, not args
     # NOTE: a good thing to fix, but changes API.
     "FBT001",  # boolean-positional-arg-in-function-definition
@@ -248,10 +245,12 @@ lint.unfixable = [
 ]
 "astropy/cosmology/*" = [
     "C408",  # unnecessary-collection-call
+    "F841",  # unused-variable
     "PT019",   # pytest-fixture-param-without-value
     "RET506",  # superfluous-else-raise
 ]
 "astropy/io/*" = [
+    "F841",  # unused-variable
     "G001",  # logging-string-format
     "G004",  # logging-f-string
     "PTH116",  # os-stat
@@ -264,11 +263,13 @@ lint.unfixable = [
 "astropy/logger.py" = ["C408"]
 "astropy/modeling/*" = [
     "C408",  # unnecessary-collection-call
+    "F841",  # unused-variable
     "RET506",  # superfluous-else-raise
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
 ]
 "astropy/nddata/*" = [
     "C408",
+    "F841",  # unused-variable
     "RET506",  # superfluous-else-raise
 ]
 "astropy/samp/*" = [
@@ -279,6 +280,7 @@ lint.unfixable = [
 ]
 "astropy/table/*" = [
     "C408",  # unnecessary-collection-call
+    "F841",  # unused-variable
     "RET506",  # superfluous-else-raise
     "S605",  # Starting a process with a shell, possible injection detected
 ]
@@ -296,15 +298,18 @@ lint.unfixable = [
 "astropy/units/*" = [
     "C408",  # unnecessary-collection-call
     "F821",  # undefined-name
+    "F841",  # unused-variable
     "N812",  # lowercase-imported-as-non-lowercase
     "RET506",  # superfluous-else-raise
 ]
 "astropy/uncertainty/*" = [
     "C408",
+    "F841",  # unused-variable
     "RET506",  # superfluous-else-raise
 ]
 "astropy/utils/*" = [
     "C408",  # unnecessary-collection-call
+    "F841",  # unused-variable
     "N811",  # constant-imported-as-non-constant
     "RET506",  # superfluous-else-raise
     "S321",  # Suspicious-ftp-lib-usage
@@ -312,11 +317,13 @@ lint.unfixable = [
 "astropy/visualization/*" = [
     "B015",
     "C408",
+    "F841",  # unused-variable
     "RET506",  # superfluous-else-raise
 ]
 "astropy/wcs/*" = [
     "C408",  # unnecessary-collection-call
     "F821",  # undefined-name
+    "F841",  # unused-variable
     "S608",  # Posslibe SQL injection
     "RET506",  # superfluous-else-raise
     "SIM202",  # NegateNotEqualOp

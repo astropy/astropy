@@ -1398,8 +1398,8 @@ def test_frame_attr_transform_inherit():
 
 def test_deepcopy():
     c1 = SkyCoord(1 * u.deg, 2 * u.deg)
-    c2 = copy.copy(c1)
-    c3 = copy.deepcopy(c1)
+    copy.copy(c1)
+    copy.deepcopy(c1)
 
     c4 = SkyCoord(
         [1, 2] * u.m,
@@ -1483,7 +1483,7 @@ def test_init_with_frame_instance_keyword():
 
     # Check duplicate arguments
     with pytest.raises(ValueError) as err:
-        c = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(equinox="J2010"), equinox="J2001")
+        SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(equinox="J2010"), equinox="J2001")
     assert "Cannot specify frame attribute 'equinox'" in str(err.value)
 
 

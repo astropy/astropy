@@ -459,7 +459,7 @@ def test_radec():
     # dec = Latitude("-41:08:15.162342")
     with pytest.raises(u.UnitsError):
         Latitude("-41:08:15.162342")
-    dec = Latitude("-41:08:15.162342", unit=u.degree)  # same as above
+    Latitude("-41:08:15.162342", unit=u.degree)  # same as above
 
 
 def test_negative_zero_dms():

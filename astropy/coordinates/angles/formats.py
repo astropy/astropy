@@ -82,7 +82,7 @@ class _AngleParser:
     @classmethod
     def _make_parser(cls):
         # List of token names.
-        tokens = (
+        tokens = (  # noqa: F841
             "SIGN",
             "UINT",
             "UFLOAT",
@@ -142,14 +142,14 @@ class _AngleParser:
             f"(?:{x})" for x in cls._get_simple_unit_names()
         )
 
-        t_COLON = ":"
-        t_DEGREE = r"d(eg(ree(s)?)?)?|°"
-        t_HOUR = r"hour(s)?|h(r)?|ʰ"
-        t_MINUTE = r"m(in(ute(s)?)?)?|′|\'|ᵐ"
-        t_SECOND = r"s(ec(ond(s)?)?)?|″|\"|ˢ"
+        t_COLON = ":"  # noqa: F841
+        t_DEGREE = r"d(eg(ree(s)?)?)?|°"  # noqa: F841
+        t_HOUR = r"hour(s)?|h(r)?|ʰ"  # noqa: F841
+        t_MINUTE = r"m(in(ute(s)?)?)?|′|\'|ᵐ"  # noqa: F841
+        t_SECOND = r"s(ec(ond(s)?)?)?|″|\"|ˢ"  # noqa: F841
 
         # A string containing ignored characters (spaces)
-        t_ignore = " "
+        t_ignore = " "  # noqa: F841
 
         # Error handling rule
         def t_error(t):

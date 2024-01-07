@@ -199,7 +199,7 @@ def test_names_parse():
         "CXOU J141312.3-652013",
     ]
     for name in test_names:
-        sc = get_icrs_coordinates(name, parse=True)
+        get_icrs_coordinates(name, parse=True)
 
 
 @pytest.mark.remote_data
@@ -219,6 +219,6 @@ def test_database_specify(name, db_dict):
 
     for db in db_dict.keys():
         with sesame_database.set(db):
-            icrs = SkyCoord.from_name(name)
+            SkyCoord.from_name(name)
 
         time.sleep(1)
