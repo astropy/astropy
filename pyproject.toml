@@ -67,7 +67,7 @@ recommended = [
     "matplotlib>=3.3,!=3.4.0,!=3.5.2",
 ]
 typing = [
-    "typing_extensions>=4.0.0",
+    "typing_extensions>=4.0.0 ; python_version < '3.11'",
 ]
 all = [
     "astropy[recommended]",  # installs the [recommended] dependencies
