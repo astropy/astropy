@@ -1401,7 +1401,7 @@ def test_deepcopy():
     copy.copy(c1)
     copy.deepcopy(c1)
 
-    c4 = SkyCoord(
+    c2 = SkyCoord(
         [1, 2] * u.m,
         [2, 3] * u.m,
         [3, 4] * u.m,
@@ -1410,12 +1410,12 @@ def test_deepcopy():
         obstime="J1999.9",
         equinox="J1988.8",
     )
-    c5 = copy.deepcopy(c4)
-    assert np.all(c5.x == c4.x)  # and y and z
-    assert c5.frame.name == c4.frame.name
-    assert c5.obstime == c4.obstime
-    assert c5.equinox == c4.equinox
-    assert c5.representation_type == c4.representation_type
+    c3 = copy.deepcopy(c2)
+    assert np.all(c3.x == c2.x)  # and y and z
+    assert c3.frame.name == c2.frame.name
+    assert c3.obstime == c2.obstime
+    assert c3.equinox == c2.equinox
+    assert c3.representation_type == c2.representation_type
 
 
 def test_no_copy():

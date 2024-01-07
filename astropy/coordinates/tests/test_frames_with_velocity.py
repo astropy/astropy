@@ -272,12 +272,14 @@ def test_shorthand_attributes():
         pm_dec=np.random.normal(0, 100, n) * u.mas / u.yr,
         radial_velocity=np.random.normal(0, 100, n) * u.km / u.s,
     )
+    _v = icrs1.velocity
     pm = icrs1.proper_motion
     assert quantity_allclose(pm[0], icrs1.pm_ra_cosdec)
     assert quantity_allclose(pm[1], icrs1.pm_dec)
 
     # for scalar data:
     icrs2 = ICRS(**POSITION_ON_SKY, **DISTANCE, **PROPER_MOTION, **RADIAL_VELOCITY)
+    _v = icrs2.velocity
     pm = icrs2.proper_motion
     assert quantity_allclose(pm[0], icrs2.pm_ra_cosdec)
     assert quantity_allclose(pm[1], icrs2.pm_dec)
