@@ -606,7 +606,6 @@ def test_index_slice_exception():
         SlicedIndex(None, None)
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "col_a_constructor, expected_row_repr_lines, expected_table_pformat",
     [
