@@ -7,6 +7,12 @@ repos:
     rev: v4.5.0
     hooks:
       - id: check-added-large-files
+        args: ["--enforce-all", "--maxkb=300"]
+        exclude: "^(\
+            cextern/wcslib/C/flexed/.*|\
+            CHANGES.rst|\
+            astropy/extern/jquery/data/js/jquery.dataTables.js|\
+        )$"
         # Prevent giant files from being committed.
       - id: check-case-conflict
         # Check for files with names that would conflict on a case-insensitive
