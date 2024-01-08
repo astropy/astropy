@@ -625,7 +625,6 @@ def test_nd_columun_as_index(masked):
         t.add_index("arr")
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "col_a_constructor, expected_row_repr_lines, expected_table_pformat",
     [
