@@ -755,7 +755,7 @@ def test_slice_an_indexed_table(index_first):
         "  1   b    2>>",
     ]
 
-@pytest.mark.xfail
+
 @pytest.mark.parametrize(
     "col_a_constructor, expected_row_repr_lines, expected_table_pformat",
     [

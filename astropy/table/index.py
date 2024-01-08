@@ -188,12 +188,18 @@ Column creation: - Column(c) -> deep copy of indices - c[[1, 2]] -> deep copy an
 reordering of indices - c[1:2] -> reference - array.view(Column) -> no indices
 """
 
+from __future__ import annotations
+
 from copy import deepcopy
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from .bst import MaxValue, MinValue
 from .sorted_array import SortedArray
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
 class QueryError(ValueError):
@@ -989,8 +995,6 @@ class TableLoc:
             raise ValueError("Can only use TableLoc for a table with indices")
 
         index = self.indices[key]
-        if len(index.columns) > 1:
-            raise ValueError("Cannot use .loc on multi-column indices")
 
         if isinstance(item, slice):
             # None signifies no upper/lower bound
@@ -1003,7 +1007,7 @@ class TableLoc:
             # item should be a list or ndarray of values
             rows = []
             for index_key in item:
-                p = index.find((index_key,))
+                p = index.find(key if isinstance(index_key, tuple) else (index_key,))
                 if len(p) == 0:
                     raise KeyError(f"No matches found for key {index_key}")
                 else:
@@ -1017,10 +1021,16 @@ class TableLoc:
         """
         # This handles ``tbl.loc[<item>]`` and ``tbl.loc[<key>, <item>]`` (and the same
         # for ``tbl.loc_indices``).
-        if isinstance(item, tuple):
+        if (
+            isinstance(item, tuple)
+            and len(item) == 2
+            and isinstance(item[0], str)
+            and isinstance(item[1], slice)
+        ):
             key, item = item
         else:
             key = self.table.primary_key
+
 
         item_is_sequence = isinstance(item, (list, np.ndarray))
 
