@@ -1,0 +1,1 @@
+Fix a crash when retrieving rows from a multiple-index table.
