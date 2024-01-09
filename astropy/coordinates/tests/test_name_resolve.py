@@ -189,17 +189,18 @@ def test_name_resolve_cache(tmp_path):
 def test_names_parse():
     # a few test cases for parsing embedded coordinates from object name
     test_names = [
-        "CRTS SSS100805 J194428-420209",
-        "MASTER OT J061451.7-272535.5",
-        "2MASS J06495091-0737408",
-        "1RXS J042555.8-194534",
-        "SDSS J132411.57+032050.5",
-        "DENIS-P J203137.5-000511",
-        "2QZ J142438.9-022739",
-        "CXOU J141312.3-652013",
+        ("CRTS SSS100805 J194428-420209", "296.117 -42.0358"),
+        ("MASTER OT J061451.7-272535.5", "93.7154 -27.4265"),
+        ("2MASS J06495091-0737408", "102.462 -7.628"),
+        ("1RXS J042555.8-194534", "66.4825 -19.7594"),
+        ("SDSS J132411.57+032050.5", "201.048 3.34736"),
+        ("DENIS-P J203137.5-000511", "307.906 -0.0863889"),
+        ("2QZ J142438.9-022739", "216.162 -2.46083"),
+        ("CXOU J141312.3-652013", "213.301 -65.3369"),
     ]
-    for name in test_names:
-        get_icrs_coordinates(name, parse=True)
+    for name, expected in test_names:
+        sc = get_icrs_coordinates(name, parse=True)
+        assert sc.to_string() == expected
 
 
 @pytest.mark.remote_data

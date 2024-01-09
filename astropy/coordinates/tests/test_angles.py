@@ -19,6 +19,7 @@ from astropy.coordinates import (
     Latitude,
     Longitude,
 )
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 
@@ -459,7 +460,9 @@ def test_radec():
     # dec = Latitude("-41:08:15.162342")
     with pytest.raises(u.UnitsError):
         Latitude("-41:08:15.162342")
-    Latitude("-41:08:15.162342", unit=u.degree)  # same as above
+    assert_quantity_allclose(
+        Latitude("-41:08:15.162342", unit=u.degree), -41.137545095 * u.deg
+    )  # same as above
 
 
 def test_negative_zero_dms():
