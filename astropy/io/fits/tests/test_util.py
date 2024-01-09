@@ -4,6 +4,7 @@ import gzip
 import os
 import signal
 import sys
+import threading
 
 import numpy as np
 import pytest
@@ -21,7 +22,10 @@ from .conftest import FitsTestCase
 
 
 class TestUtils(FitsTestCase):
-    @pytest.mark.skipif(sys.platform.startswith("win"), reason="Cannot test on Windows")
+    @pytest.mark.skipif(
+        sys.platform.startswith("win") or threading.active_count() > 1,
+        reason="Cannot test on Windows or on multiple threads"
+    )
     def test_ignore_sigint(self):
         @ignore_sigint
         def runme():

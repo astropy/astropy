@@ -50,7 +50,7 @@ jobs:
             python: '3.11'
             toxenv: py311-test-alldeps-predeps
             toxargs: -v
-            toxposargs: --remote-data=any -k 'not test_ignore_sigint'
+            toxposargs: --remote-data=any
 
     steps:
     - name: Checkout code
