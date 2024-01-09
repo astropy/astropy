@@ -72,3 +72,16 @@ html[data-theme=dark] h1 {
 html[data-theme=dark] h3 {
   color: #0a6774;
 }
+
+/* Flip the colours on graphviz graphs on dark mode */
+html[data-theme="dark"] div.graphviz > object.inheritance {
+  filter: invert(0.82) brightness(0.8) contrast(1.2);
+}
+
+/* TODO: Enable this when someone figures out how to also invert
+   legend colors in coordinate/builtin_frames/__init__.py */
+/*
+html[data-theme="dark"] div.graphviz > object.graphviz {
+  filter: invert(0.82) brightness(0.8) contrast(1.2);
+}
+*/
