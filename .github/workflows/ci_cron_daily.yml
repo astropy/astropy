@@ -45,10 +45,10 @@ jobs:
             python: 3.9
             toxenv: pyinstaller
 
-          - name: Python 3.11 with all optional dependencies and pre-releases
+          - name: Python 3.10 with all optional dependencies and pre-releases
             os: windows-latest
-            python: '3.11'
-            toxenv: py311-test-alldeps-predeps
+            python: '3.10'
+            toxenv: py310-test-alldeps-predeps
             toxargs: -v
             toxposargs: --remote-data=any
 
