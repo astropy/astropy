@@ -487,9 +487,9 @@ Some arithmetic methods are supported as well: :meth:`~astropy.time.Time.min`,
 
 To apply arithmetic methods to |Time| instances::
 
-  >> t.max()
+  >>> t.max()
   <Time object: scale='utc' format='mjd' value=50002.5>
-  >> t.ptp(axis=0)  # doctest: +FLOAT_CMP
+  >>> t.ptp(axis=0)  # doctest: +FLOAT_CMP
   <TimeDelta object: scale='tai' format='jd' value=[2. 2.]>
 
 .. EXAMPLE END
@@ -576,7 +576,7 @@ val
 ^^^
 
 The ``val`` argument specifies the input time or times and can be a single
-string or number, or it can be a Python list or ```numpy`` array of strings or
+string or number, or it can be a Python list or ``numpy`` array of strings or
 numbers. To initialize a |Time| object based on a specified time, it *must* be
 present.
 
@@ -614,7 +614,7 @@ the highest precision. For example::
 format
 ^^^^^^
 
-The ```format`` argument sets the time `time format`_, and as mentioned it is
+The ``format`` argument sets the time `time format`_, and as mentioned it is
 required unless the format can be unambiguously determined from the input times.
 
 
