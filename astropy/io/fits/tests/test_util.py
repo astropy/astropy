@@ -4,6 +4,7 @@ import gzip
 import os
 import signal
 import sys
+import threading
 
 import numpy as np
 import pytest
@@ -23,6 +24,9 @@ from .conftest import FitsTestCase
 class TestUtils(FitsTestCase):
     @pytest.mark.skipif(sys.platform.startswith("win"), reason="Cannot test on Windows")
     def test_ignore_sigint(self):
+        if threading.active_count() > 1:  # Only check when test starts.
+            pytest.skip("Cannot test when multiple threads are active")
+
         @ignore_sigint
         def runme():
             with pytest.warns(AstropyUserWarning) as w:
