@@ -46,7 +46,7 @@ jobs:
             toxenv: pyinstaller
 
           - name: Python 3.11 with all optional dependencies and pre-releases
-            os: ubuntu-latest
+            os: windows-latest
             python: '3.11'
             toxenv: py311-test-alldeps-predeps
             toxargs: -v
