@@ -8,8 +8,6 @@ import astropy.units as u
 from astropy.io import ascii
 from astropy.table import QTable
 
-from .common import assert_almost_equal
-
 
 def assert_equal_splitlines(arg1, arg2):
     np.testing.assert_equal(arg1.splitlines(), arg2.splitlines())
@@ -29,7 +27,7 @@ def test_read_normal():
     reader = ascii.get_reader(reader_cls=ascii.RST)
     dat = reader.read(table)
     np.testing.assert_equal(dat.colnames, ["Col1", "Col2"])
-    assert_almost_equal(dat[1][0], 2.4)
+    np.testing.assert_allclose(dat[1][0], 2.4)
     np.testing.assert_equal(dat[0][1], '"hello"')
     np.testing.assert_equal(dat[1][1], "'s worlds")
 
@@ -48,7 +46,7 @@ def test_read_normal_names():
     reader = ascii.get_reader(reader_cls=ascii.RST, names=("name1", "name2"))
     dat = reader.read(table)
     np.testing.assert_equal(dat.colnames, ["name1", "name2"])
-    assert_almost_equal(dat[1][0], 2.4)
+    np.testing.assert_allclose(dat[1][0], 2.4)
 
 
 def test_read_normal_names_include():
@@ -69,7 +67,7 @@ def test_read_normal_names_include():
     )
     dat = reader.read(table)
     np.testing.assert_equal(dat.colnames, ["name1", "name3"])
-    assert_almost_equal(dat[1][0], 2.4)
+    np.testing.assert_allclose(dat[1][0], 2.4)
     np.testing.assert_equal(dat[0][1], 3)
 
 

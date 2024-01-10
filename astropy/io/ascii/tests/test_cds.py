@@ -18,7 +18,6 @@ from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
 
-from .common import assert_almost_equal
 
 test_dat = [
     "names e d s i",
@@ -500,7 +499,7 @@ def test_write_extra_skycoord_cols():
     for a, b in zip(lines[-2:], exp_output[-2:]):
         assert a[:18] == b[:18]
         assert a[30:42] == b[30:42]
-        assert_almost_equal(
+        np.testing.assert_allclose(
             np.fromstring(a[2:], sep=" "), np.fromstring(b[2:], sep=" ")
         )
 

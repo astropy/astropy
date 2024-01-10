@@ -32,7 +32,6 @@ from astropy.tests.helper import CI
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
 
-from .common import assert_almost_equal
 
 StringIO = lambda x: BytesIO(x.encode("ascii"))
 
@@ -59,7 +58,7 @@ def assert_table_equal(t1, t2, check_meta=False, rtol=1.0e-15, atol=1.0e-300):
                     elif isinstance(el, str):
                         np.testing.assert_equal(el, t2[name][i])
                     else:
-                        assert_almost_equal(el, t2[name][i], rtol=rtol, atol=atol)
+                        np.testing.assert_allclose(el, t2[name][i], rtol=rtol, atol=atol)
                 except (TypeError, NotImplementedError):
                     pass  # ignore for now
 
@@ -760,8 +759,8 @@ nan, 5, -9999
     np.testing.assert_equal(table["A"].data.data[0], "0")
     np.testing.assert_equal(table["A"].data.data[2], "999")
     assert table["C"][0] is ma.masked
-    assert_almost_equal(table["C"].data.data[0], 999.0)
-    assert_almost_equal(table["C"][1], -3.4)  # column is still of type float
+    np.testing.assert_allclose(table["C"].data.data[0], 999.0)
+    np.testing.assert_allclose(table["C"][1], -3.4)  # column is still of type float
 
 
 @pytest.mark.parametrize("parallel", [True, False])
@@ -1283,7 +1282,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
                 w[i].message
             )
     read_values = np.array([col[0] for col in t.itercols()])
-    assert_almost_equal(read_values, values, rtol=rtol, atol=1.0e-324)
+    np.testing.assert_allclose(read_values, values, rtol=rtol, atol=1.0e-324)
 
     # Test some additional corner cases
     fields = [
@@ -1315,7 +1314,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
                 w[i].message
             )
     read_values = np.array([col[0] for col in t.itercols()])
-    assert_almost_equal(read_values, values, rtol=rtol, atol=1.0e-324)
+    np.testing.assert_allclose(read_values, values, rtol=rtol, atol=1.0e-324)
 
     # Test corner cases again with non-standard exponent_style (auto-detection)
     if fast_reader and fast_reader.get("use_fast_converter"):
@@ -1347,7 +1346,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
         else:
             assert len(w) == 3
     read_values = np.array([col[0] for col in t.itercols()])
-    assert_almost_equal(read_values, values, rtol=rtol, atol=1.0e-324)
+    np.testing.assert_allclose(read_values, values, rtol=rtol, atol=1.0e-324)
 
 
 @pytest.mark.parametrize("guess", [True, False])
@@ -1399,7 +1398,7 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
             guess=guess,
             fast_reader=fast_reader,
         )
-        assert_almost_equal(t["col1"][0], 10.0 ** -(D + 1), rtol=rtol, atol=1.0e-324)
+        np.testing.assert_allclose(t["col1"][0], 10.0 ** -(D + 1), rtol=rtol, atol=1.0e-324)
     for D in 99, 202, 308:
         t = ascii.read(
             StringIO("1" + D * "0" + ".0"),
@@ -1407,7 +1406,7 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
             guess=guess,
             fast_reader=fast_reader,
         )
-        assert_almost_equal(t["col1"][0], 10.0**D, rtol=rtol, atol=1.0e-324)
+        np.testing.assert_allclose(t["col1"][0], 10.0**D, rtol=rtol, atol=1.0e-324)
 
     # 0.0 is always exact (no Overflow warning)!
     for s in "0.0", "0.0e+0", 399 * "0" + "." + 365 * "0":
@@ -1436,7 +1435,7 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
             "resulting in degraded precision" in str(w[0].message)
         )
 
-    assert_almost_equal(t["col1"][0], 1.0e-315, rtol=1.0e-10, atol=1.0e-324)
+    np.testing.assert_allclose(t["col1"][0], 1.0e-315, rtol=1.0e-10, atol=1.0e-324)
 
 
 @pytest.mark.parametrize("guess", [True, False])
