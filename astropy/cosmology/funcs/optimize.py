@@ -4,15 +4,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    NotRequired,
-    Protocol,
-    TypeAlias,
-    TypedDict,
-)
+from typing import TYPE_CHECKING, Any, Callable, Protocol, TypeAlias, TypedDict
 
 import numpy as np
 import numpy.typing as npt
@@ -24,6 +16,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 if TYPE_CHECKING:
     from scipy.optimize import OptimizeResult
+    from typing_extensions import NotRequired
 
 __all__ = ["z_at_value"]
 
