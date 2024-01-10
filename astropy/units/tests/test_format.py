@@ -681,6 +681,15 @@ def test_vounit_details():
     assert u.Unit("ka", format="vounit") == u.Unit("1000 yr")
     assert u.Unit("pix", format="vounit") == u.Unit("pixel", format="vounit")
 
+    # Regression test for astropy/astroquery#2480
+    assert u.Unit("Sun", format="vounit") is u.Sun
+
+    # Test that adding a prefix to a simple units raises a warning
+    with pytest.warns(
+        UnitsWarning, match="Unit 'kdB' not supported by the VOUnit standard.*"
+    ):
+        u.Unit("kdB", format="vounit")
+
     # The da- prefix is not allowed, and the d- prefix is discouraged
     assert u.dam.to_string("vounit") == "10m"
     assert u.Unit("dam dag").to_string("vounit") == "100g.m"
