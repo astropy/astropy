@@ -96,11 +96,11 @@ class ZAtValueKWArgs(TypedDict):
 
 def _z_at_scalar_value(
     func,
-    fval: float | Quantity,
-    zmin: float = 1e-8,
-    zmax: float = 1000,
-    ztol: float = 1e-8,
-    maxfun: int = 500,
+    fval: float | npt.NDArray[np.floating] | Quantity,
+    zmin: float | npt.NDArray[np.floating] | Quantity = 1e-8,
+    zmax: float | npt.NDArray[np.floating] | Quantity = 1000,
+    ztol: float | npt.NDArray[np.floating] = 1e-8,
+    maxfun: int | npt.NDArray[np.integer] = 500,
     method: str | CustomMethod = "Brent",
     bracket: BracketSingle = None,
     verbose: bool = False,
@@ -471,7 +471,7 @@ def z_at_value(
         for fv, zmn, zmx, zt, mfe, bkt, zs in it:  # ← eltwise unpack & eval ↓
             zs[...] = _z_at_scalar_value(
                 func,
-                fv * unit,
+                fv * unit,  # type: ignore[arg-type]
                 zmin=zmn,
                 zmax=zmx,
                 ztol=zt,
