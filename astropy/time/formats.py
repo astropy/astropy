@@ -149,6 +149,10 @@ class TimeFormat:
     subfmts = ()
     _registry = TIME_FORMATS
 
+    # Check that numeric inputs are finite (not nan or inf). This is overridden in
+    # subclasses in which nan and inf are valid inputs.
+    _check_finite = True
+
     def __init__(
         self, val1, val2, scale, precision, in_subfmt, out_subfmt, from_jd=False
     ):
@@ -284,8 +288,10 @@ class TimeFormat:
             )
         self._precision = val
 
-    def _check_val_type(self, val1, val2):
-        """Input value validation, typically overridden by derived classes."""
+    def _check_finite_vals(self, val1, val2):
+        """A helper function to TimeFormat._check_val_type that's meant to be
+        optionally bypassed in subclasses that have _check_finite=False
+        """
         # val1 cannot contain nan, but val2 can contain nan
         isfinite1 = np.isfinite(val1)
         if val1.size > 1:  # Calling .all() on a scalar is surprisingly slow
@@ -313,6 +319,11 @@ class TimeFormat:
             raise TypeError(
                 f"Input values for {self.name} class must be finite doubles"
             )
+
+    def _check_val_type(self, val1, val2):
+        """Input value validation, typically overridden by derived classes."""
+        if self.__class__._check_finite:
+            self._check_finite_vals(val1, val2)
 
         if getattr(val1, "unit", None) is not None:
             # Convert any quantity-likes to days first, attempting to be
@@ -2144,6 +2155,8 @@ class TimeDeltaFormat(TimeFormat):
 
 
 class TimeDeltaNumeric(TimeDeltaFormat, TimeNumeric):
+    _check_finite = False
+
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
         self.jd1, self.jd2 = day_frac(val1, val2, divisor=1.0 / self.unit)
