@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["QuantityLike"]
 
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 import numpy.typing as npt
 
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 # Note: Quantity is technically covered by npt.ArrayLike, but we want to
 # explicitly include it here so that it is clear that we are also including
 # Quantity objects in the definition of QuantityLike.
-QuantityLike: TypeAlias = Quantity | npt.ArrayLike
+QuantityLike: TypeAlias = Union[Quantity, npt.ArrayLike]
 """Type alias for a quantity-like object.
 
 This is an object that can be converted to a :class:`~astropy.units.Quantity` object
