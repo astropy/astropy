@@ -15,6 +15,7 @@ from astropy import log
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
 from astropy.utils import ShapedLikeNDArray, isiterable
+from astropy.utils.compat import NUMPY_LT_1_25
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
 from astropy.utils.decorators import format_doc
@@ -3712,22 +3713,32 @@ class Table:
         if isinstance(other, Table):
             other = other.as_array()
 
-        if self.has_masked_columns:
-            if isinstance(other, np.ma.MaskedArray):
-                result = self.as_array() == other
-            else:
-                # If mask is True, then by definition the row doesn't match
-                # because the other array is not masked.
-                false_mask = np.zeros(1, dtype=[(n, bool) for n in self.dtype.names])
-                result = (self.as_array().data == other) & (self.mask == false_mask)
+        self_is_masked = self.has_masked_columns
+        other_is_masked = isinstance(other, np.ma.MaskedArray)
+
+        whitelist = (TypeError, ValueError if not NUMPY_LT_1_25 else DeprecationWarning)
+        # One table is masked and the other is not
+        if self_is_masked != other_is_masked:
+            # remap variables to a and b where a is masked and b isn't
+            a, b = (
+                (self.as_array(), other) if self_is_masked else (other, self.as_array())
+            )
+
+            # If mask is True, then by definition the row doesn't match
+            # because the other array is not masked.
+            false_mask = np.zeros(1, dtype=[(n, bool) for n in a.dtype.names])
+            try:
+                result = (a.data == b) & (a.mask == false_mask)
+            except whitelist:
+                # numpy may complain that structured array are not comparable (TypeError)
+                # or that operands are not brodcastable (ValueError)
+                # see https://github.com/astropy/astropy/issues/13421
+                result = np.array([False])
         else:
-            if isinstance(other, np.ma.MaskedArray):
-                # If mask is True, then by definition the row doesn't match
-                # because the other array is not masked.
-                false_mask = np.zeros(1, dtype=[(n, bool) for n in other.dtype.names])
-                result = (self.as_array() == other.data) & (other.mask == false_mask)
-            else:
+            try:
                 result = self.as_array() == other
+            except whitelist:
+                result = np.array([False])
 
         return result
 
