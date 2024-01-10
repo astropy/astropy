@@ -555,6 +555,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
                     format = data.info.format
                 if meta is None:
                     meta = data.info.meta
+                if name is None:
+                    name = data.info.name
 
         else:
             if np.dtype(dtype).char == "S":
