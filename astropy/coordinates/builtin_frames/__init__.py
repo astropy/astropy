@@ -206,7 +206,7 @@ def make_transform_graph_docs(transform_graph):
     graph_legend = f"""
     .. raw:: html
 
-        <ul>
+        <ul class="cooframelegend">
             {nl.join(html_list_items)}
         </ul>
     """
