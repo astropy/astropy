@@ -100,6 +100,35 @@ class TestTimeDelta:
         t2 = dt + self.t
         assert t2.iso == self.t2.iso
 
+    def test_time_delta_comp_num_quantity(self):
+        dt1 = TimeDelta(1, format="sec")
+        dt2 = 2 * u.s
+        assert dt1 < dt2
+        assert dt2 > dt1
+        assert dt1 <= dt2
+        assert dt2 >= dt1
+        assert not dt1 > dt2
+        assert not dt2 < dt1
+        assert not dt1 >= dt2
+        assert not dt2 <= dt1
+        assert dt1 != dt2
+        assert not dt1 == dt2
+
+    def test_time_delta_comp_nan_quantity(self):
+        # see https://github.com/astropy/astropy/issues/15230
+        dt1 = TimeDelta(1, format="sec")
+        dt2 = np.nan * u.s
+        assert not dt1 < dt2
+        assert not dt2 > dt1
+        assert not dt1 <= dt2
+        assert not dt2 >= dt1
+        assert not dt1 > dt2
+        assert not dt2 < dt1
+        assert not dt1 >= dt2
+        assert not dt2 <= dt1
+        assert dt1 != dt2
+        assert not dt1 == dt2
+
     def test_add_vector(self):
         """Check time arithmetic as well as properly keeping track of whether
         a time is a scalar or a vector"""
