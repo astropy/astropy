@@ -439,6 +439,28 @@ class TestConvolve1D:
 
         assert_array_almost_equal_nulp(z, (8 / 3.0, 4, 8, 12, 8), 10)
 
+    @pytest.mark.parametrize(
+        "array, exc_type, match",
+        [
+            (0, Exception, "cannot convolve 0-dimensional arrays"),
+            (
+                [[1]],
+                Exception,
+                r"array and kernel have differing number of dimensions\.",
+            ),
+            ([], Exception, "cannot convolve empty array"),
+            (
+                np.ones((1, 1, 1, 1)),
+                NotImplementedError,
+                "convolve only supports 1, 2, and 3-dimensional arrays at this time",
+            ),
+        ],
+    )
+    def test_exceptions(self, array, exc_type, match):
+        kernel = [1]
+        with pytest.raises(exc_type, match=match):
+            convolve(array, kernel)
+
 
 class TestConvolve2D:
     def test_list(self):
