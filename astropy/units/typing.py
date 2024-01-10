@@ -1,14 +1,18 @@
-# Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """Typing module for supporting type annotations related to :mod:`~astropy.units`."""
+
+from __future__ import annotations
 
 __all__ = ["QuantityLike"]
 
 
+from typing import TYPE_CHECKING
+
 import numpy.typing as npt
-from typing_extensions import TypeAlias
 
 from astropy.units import Quantity
+
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
 
 # Note: Quantity is technically covered by npt.ArrayLike, but we want to
 # explicitly include it here so that it is clear that we are also including
