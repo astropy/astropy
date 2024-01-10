@@ -4,7 +4,15 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, NotRequired, Protocol, TypedDict
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    NotRequired,
+    Protocol,
+    TypeAlias,
+    TypedDict,
+)
 
 import numpy as np
 import numpy.typing as npt
@@ -33,6 +41,9 @@ class CustomMethod(Protocol):
         self, fun: Callable[..., Any], args: tuple[Any], **kwargs: Any
     ) -> OptimizeResult:
         ...
+
+
+BracketSingle: TypeAlias = tuple[float, float] | tuple[float, float, float] | None
 
 
 class ZAtValueKWArgs(TypedDict):
@@ -67,9 +78,7 @@ class ZAtValueKWArgs(TypedDict):
     their use is currently untested.
     """
 
-    bracket: NotRequired[
-        npt.NDArray[np.void] | tuple[float, float] | tuple[float, float, float] | None
-    ]
+    bracket: NotRequired[npt.NDArray[np.void] | BracketSingle]
     """The search bracket, with semantics depending on the solver.
 
     For methods 'Brent' and 'Golden', ``bracket`` defines the bracketing
@@ -93,7 +102,7 @@ def _z_at_scalar_value(
     ztol: float = 1e-8,
     maxfun: int = 500,
     method: str | CustomMethod = "Brent",
-    bracket: tuple[float, float] | tuple[float, float, float] | None = None,
+    bracket: BracketSingle = None,
     verbose: bool = False,
 ) -> float:
     """Find the redshift ``z`` at which ``func(z) = fval``.
@@ -199,10 +208,7 @@ def z_at_value(
     ztol: npt.ArrayLike = 1e-8,
     maxfun: int | npt.NDArray[np.integer] = 500,
     method: str | CustomMethod = "Brent",
-    bracket: npt.NDArray[np.void]
-    | tuple[float, float]
-    | tuple[float, float, float]
-    | None = None,
+    bracket: npt.NDArray[np.void] | BracketSingle = None,
     *,
     verbose: bool = False,
 ) -> Quantity:
