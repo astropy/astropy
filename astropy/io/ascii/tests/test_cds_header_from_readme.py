@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
+import numpy.testing as npt
 import pytest
 
 from astropy import units as u
@@ -32,23 +33,21 @@ def test_description():
     data = "data/cds/description/table.dat"
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
-        np.testing.assert_equal(len(table), 2)
-        np.testing.assert_equal(table["Cluster"].description, "Cluster name")
-        np.testing.assert_equal(table["Star"].description, "")
-        np.testing.assert_equal(
-            table["Wave"].description, "wave ? Wavelength in Angstroms"
-        )
-        np.testing.assert_equal(table["El"].description, "a")
-        np.testing.assert_equal(
+        npt.assert_equal(len(table), 2)
+        npt.assert_equal(table["Cluster"].description, "Cluster name")
+        npt.assert_equal(table["Star"].description, "")
+        npt.assert_equal(table["Wave"].description, "wave ? Wavelength in Angstroms")
+        npt.assert_equal(table["El"].description, "a")
+        npt.assert_equal(
             table["ion"].description, "- Ionization stage (1 for neutral element)"
         )
-        np.testing.assert_equal(
+        npt.assert_equal(
             table["loggf"].description,
             "log10 of the gf value - logarithm base 10 of stat. weight times "
             "oscillator strength",
         )
-        np.testing.assert_equal(table["EW"].description, "Equivalent width (in mA)")
-        np.testing.assert_equal(
+        npt.assert_equal(table["EW"].description, "Equivalent width (in mA)")
+        npt.assert_equal(
             table["Q"].description, "DAOSPEC quality parameter Q (large values are bad)"
         )
 
@@ -58,15 +57,15 @@ def test_multi_header():
     data = "data/cds/multi/lhs2065.dat"
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
-        np.testing.assert_equal(len(table), 18)
-        np.testing.assert_allclose(table["Lambda"][-1], 6479.32)
-        np.testing.assert_equal(table["Fnu"][-1], "0.285937")
+        npt.assert_equal(len(table), 18)
+        npt.assert_allclose(table["Lambda"][-1], 6479.32)
+        npt.assert_equal(table["Fnu"][-1], "0.285937")
     data = "data/cds/multi/lp944-20.dat"
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
-        np.testing.assert_equal(len(table), 18)
-        np.testing.assert_allclose(table["Lambda"][0], 6476.09)
-        np.testing.assert_equal(table["Fnu"][-1], "0.489005")
+        npt.assert_equal(len(table), 18)
+        npt.assert_allclose(table["Lambda"][0], 6476.09)
+        npt.assert_equal(table["Fnu"][-1], "0.489005")
 
 
 def test_glob_header():
@@ -74,9 +73,9 @@ def test_glob_header():
     data = "data/cds/glob/lmxbrefs.dat"
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
-        np.testing.assert_equal(len(table), 291)
-        np.testing.assert_equal(table["Name"][-1], "J1914+0953")
-        np.testing.assert_equal(table["BibCode"][-2], "2005A&A...432..235R")
+        npt.assert_equal(len(table), 291)
+        npt.assert_equal(table["Name"][-1], "J1914+0953")
+        npt.assert_equal(table["BibCode"][-2], "2005A&A...432..235R")
 
 
 def test_header_from_readme():
@@ -204,7 +203,7 @@ def test_cds_function_units2(reader_cls):
     assert table["vturb"].unit == u.km / u.s
     assert table["[Fe/H]"].unit == u.dex(u.one)
     assert table["e_[Fe/H]"].unit == u.dex(u.one)
-    np.testing.assert_allclose(
+    npt.assert_allclose(
         table["[Fe/H]"].to(u.one), 10.0 ** (np.array([-2.07, -1.50, -2.11, -1.64]))
     )
 
@@ -216,15 +215,9 @@ def test_cds_ignore_nullable():
     data = "data/cds/null/table.dat"
     r = ascii.Cds(readme)
     r.read(data)
-    np.testing.assert_equal(
-        r.header.cols[6].description, "Temperature class codified (10)"
-    )
-    np.testing.assert_equal(
-        r.header.cols[8].description, "Luminosity class codified (11)"
-    )
-    np.testing.assert_equal(
-        r.header.cols[5].description, "Pericenter position angle (18)"
-    )
+    npt.assert_equal(r.header.cols[6].description, "Temperature class codified (10)")
+    npt.assert_equal(r.header.cols[8].description, "Luminosity class codified (11)")
+    npt.assert_equal(r.header.cols[5].description, "Pericenter position angle (18)")
 
 
 def test_cds_no_whitespace():
@@ -234,17 +227,15 @@ def test_cds_no_whitespace():
     data = "data/cds/null/table.dat"
     r = ascii.Cds(readme)
     r.read(data)
-    np.testing.assert_equal(
-        r.header.cols[6].description, "Temperature class codified (10)"
-    )
-    np.testing.assert_equal(r.header.cols[6].null, "")
-    np.testing.assert_equal(r.header.cols[7].description, "Equivalent width (in mA)")
-    np.testing.assert_equal(r.header.cols[7].null, "-9.9")
-    np.testing.assert_equal(
+    npt.assert_equal(r.header.cols[6].description, "Temperature class codified (10)")
+    npt.assert_equal(r.header.cols[6].null, "")
+    npt.assert_equal(r.header.cols[7].description, "Equivalent width (in mA)")
+    npt.assert_equal(r.header.cols[7].null, "-9.9")
+    npt.assert_equal(
         r.header.cols[10].description,
         "DAOSPEC quality parameter Q (large values are bad)",
     )
-    np.testing.assert_equal(r.header.cols[10].null, "-9.999")
+    npt.assert_equal(r.header.cols[10].null, "-9.999")
 
 
 def test_cds_order():
@@ -254,10 +245,6 @@ def test_cds_order():
     data = "data/cds/null/table.dat"
     r = ascii.Cds(readme)
     r.read(data)
-    np.testing.assert_equal(
-        r.header.cols[5].description, "Catalogue Identification Number"
-    )
-    np.testing.assert_equal(r.header.cols[8].description, "Equivalent width (in mA)")
-    np.testing.assert_equal(
-        r.header.cols[9].description, "Luminosity class codified (11)"
-    )
+    npt.assert_equal(r.header.cols[5].description, "Catalogue Identification Number")
+    npt.assert_equal(r.header.cols[8].description, "Equivalent width (in mA)")
+    npt.assert_equal(r.header.cols[9].description, "Luminosity class codified (11)")

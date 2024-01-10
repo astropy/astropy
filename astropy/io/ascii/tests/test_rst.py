@@ -3,14 +3,14 @@
 from io import StringIO
 
 import numpy as np
-
+import numpy.testing as npt
 import astropy.units as u
 from astropy.io import ascii
 from astropy.table import QTable
 
 
 def assert_equal_splitlines(arg1, arg2):
-    np.testing.assert_equal(arg1.splitlines(), arg2.splitlines())
+    npt.assert_equal(arg1.splitlines(), arg2.splitlines())
 
 
 def test_read_normal():
@@ -26,10 +26,10 @@ def test_read_normal():
 """
     reader = ascii.get_reader(reader_cls=ascii.RST)
     dat = reader.read(table)
-    np.testing.assert_equal(dat.colnames, ["Col1", "Col2"])
-    np.testing.assert_allclose(dat[1][0], 2.4)
-    np.testing.assert_equal(dat[0][1], '"hello"')
-    np.testing.assert_equal(dat[1][1], "'s worlds")
+    npt.assert_equal(dat.colnames, ["Col1", "Col2"])
+    npt.assert_allclose(dat[1][0], 2.4)
+    npt.assert_equal(dat[0][1], '"hello"')
+    npt.assert_equal(dat[1][1], "'s worlds")
 
 
 def test_read_normal_names():
@@ -45,8 +45,8 @@ def test_read_normal_names():
 """
     reader = ascii.get_reader(reader_cls=ascii.RST, names=("name1", "name2"))
     dat = reader.read(table)
-    np.testing.assert_equal(dat.colnames, ["name1", "name2"])
-    np.testing.assert_allclose(dat[1][0], 2.4)
+    npt.assert_equal(dat.colnames, ["name1", "name2"])
+    npt.assert_allclose(dat[1][0], 2.4)
 
 
 def test_read_normal_names_include():
@@ -66,9 +66,9 @@ def test_read_normal_names_include():
         include_names=("name1", "name3"),
     )
     dat = reader.read(table)
-    np.testing.assert_equal(dat.colnames, ["name1", "name3"])
-    np.testing.assert_allclose(dat[1][0], 2.4)
-    np.testing.assert_equal(dat[0][1], 3)
+    npt.assert_equal(dat.colnames, ["name1", "name3"])
+    npt.assert_allclose(dat[1][0], 2.4)
+    npt.assert_equal(dat[0][1], 3)
 
 
 def test_read_normal_exclude():
@@ -83,8 +83,8 @@ def test_read_normal_exclude():
 """
     reader = ascii.get_reader(reader_cls=ascii.RST, exclude_names=("Col1",))
     dat = reader.read(table)
-    np.testing.assert_equal(dat.colnames, ["Col2"])
-    np.testing.assert_equal(dat[1][0], "'s worlds")
+    npt.assert_equal(dat.colnames, ["Col2"])
+    npt.assert_equal(dat[1][0], "'s worlds")
 
 
 def test_read_unbounded_right_column():
@@ -100,8 +100,8 @@ def test_read_unbounded_right_column():
 """
     reader = ascii.get_reader(reader_cls=ascii.RST)
     dat = reader.read(table)
-    np.testing.assert_equal(dat[0][2], "Hello")
-    np.testing.assert_equal(dat[1][2], "Worlds")
+    npt.assert_equal(dat[0][2], "Hello")
+    npt.assert_equal(dat[1][2], "Worlds")
 
 
 def test_read_unbounded_right_column_header():
@@ -117,7 +117,7 @@ def test_read_unbounded_right_column_header():
 """
     reader = ascii.get_reader(reader_cls=ascii.RST)
     dat = reader.read(table)
-    np.testing.assert_equal(dat.colnames[-1], "Col3Long")
+    npt.assert_equal(dat.colnames[-1], "Col3Long")
 
 
 def test_read_right_indented_table():
@@ -133,9 +133,9 @@ def test_read_right_indented_table():
 """
     reader = ascii.get_reader(reader_cls=ascii.RST)
     dat = reader.read(table)
-    np.testing.assert_equal(dat.colnames, ["Col1", "Col2", "Col3"])
-    np.testing.assert_equal(dat[0][2], "foo")
-    np.testing.assert_equal(dat[1][0], 1)
+    npt.assert_equal(dat.colnames, ["Col1", "Col2", "Col3"])
+    npt.assert_equal(dat[0][2], "foo")
+    npt.assert_equal(dat[1][0], 1)
 
 
 def test_trailing_spaces_in_row_definition():
@@ -156,9 +156,9 @@ def test_trailing_spaces_in_row_definition():
 
     reader = ascii.get_reader(reader_cls=ascii.RST)
     dat = reader.read(table)
-    np.testing.assert_equal(dat.colnames, ["Col1", "Col2", "Col3"])
-    np.testing.assert_equal(dat[0][2], "foo")
-    np.testing.assert_equal(dat[1][0], 1)
+    npt.assert_equal(dat.colnames, ["Col1", "Col2", "Col3"])
+    npt.assert_equal(dat[0][2], "foo")
+    npt.assert_equal(dat[1][0], 1)
 
 
 table = """\
