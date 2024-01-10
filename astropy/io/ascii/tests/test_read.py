@@ -434,7 +434,9 @@ def test_include_names_daophot():
 def test_exclude_names_daophot():
     exclude_names = ("ID", "YCENTER", "MERR", "NITER", "CHI", "PERROR")
     data = ascii.read("data/daophot.dat", exclude_names=exclude_names)
-    np.testing.assert_equal(data.dtype.names, ("XCENTER", "MAG", "MSKY", "SHARPNESS", "PIER"))
+    np.testing.assert_equal(
+        data.dtype.names, ("XCENTER", "MAG", "MSKY", "SHARPNESS", "PIER")
+    )
 
 
 def test_custom_process_lines():
@@ -446,7 +448,9 @@ def test_custom_process_lines():
     reader = ascii.get_reader(delimiter="|")
     reader.inputter.process_lines = process_lines
     data = reader.read("data/bars_at_ends.txt")
-    np.testing.assert_equal(data.dtype.names, ("obsid", "redshift", "X", "Y", "object", "rad"))
+    np.testing.assert_equal(
+        data.dtype.names, ("obsid", "redshift", "X", "Y", "object", "rad")
+    )
     np.testing.assert_equal(len(data), 3)
 
 
@@ -531,7 +535,9 @@ def test_from_lines(fast_reader):
 def test_comment_lines():
     table = ascii.get_reader(reader_cls=ascii.Rdb)
     data = table.read("data/apostrophe.rdb")
-    np.testing.assert_equal(table.comment_lines, ["# first comment", "  # second comment"])
+    np.testing.assert_equal(
+        table.comment_lines, ["# first comment", "  # second comment"]
+    )
     np.testing.assert_equal(data.meta["comments"], ["first comment", "second comment"])
 
 

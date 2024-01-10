@@ -25,6 +25,7 @@ def teardown_function(function):
 
 # Compatibility functions to convert from nose to pytest
 
+
 def assert_almost_equal(a, b, **kwargs):
     assert np.allclose(a, b, **kwargs)
 

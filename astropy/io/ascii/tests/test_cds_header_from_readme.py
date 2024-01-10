@@ -36,7 +36,9 @@ def test_description():
         np.testing.assert_equal(len(table), 2)
         np.testing.assert_equal(table["Cluster"].description, "Cluster name")
         np.testing.assert_equal(table["Star"].description, "")
-        np.testing.assert_equal(table["Wave"].description, "wave ? Wavelength in Angstroms")
+        np.testing.assert_equal(
+            table["Wave"].description, "wave ? Wavelength in Angstroms"
+        )
         np.testing.assert_equal(table["El"].description, "a")
         np.testing.assert_equal(
             table["ion"].description, "- Ionization stage (1 for neutral element)"
@@ -215,9 +217,15 @@ def test_cds_ignore_nullable():
     data = "data/cds/null/table.dat"
     r = ascii.Cds(readme)
     r.read(data)
-    np.testing.assert_equal(r.header.cols[6].description, "Temperature class codified (10)")
-    np.testing.assert_equal(r.header.cols[8].description, "Luminosity class codified (11)")
-    np.testing.assert_equal(r.header.cols[5].description, "Pericenter position angle (18)")
+    np.testing.assert_equal(
+        r.header.cols[6].description, "Temperature class codified (10)"
+    )
+    np.testing.assert_equal(
+        r.header.cols[8].description, "Luminosity class codified (11)"
+    )
+    np.testing.assert_equal(
+        r.header.cols[5].description, "Pericenter position angle (18)"
+    )
 
 
 def test_cds_no_whitespace():
@@ -227,7 +235,9 @@ def test_cds_no_whitespace():
     data = "data/cds/null/table.dat"
     r = ascii.Cds(readme)
     r.read(data)
-    np.testing.assert_equal(r.header.cols[6].description, "Temperature class codified (10)")
+    np.testing.assert_equal(
+        r.header.cols[6].description, "Temperature class codified (10)"
+    )
     np.testing.assert_equal(r.header.cols[6].null, "")
     np.testing.assert_equal(r.header.cols[7].description, "Equivalent width (in mA)")
     np.testing.assert_equal(r.header.cols[7].null, "-9.9")
@@ -245,6 +255,10 @@ def test_cds_order():
     data = "data/cds/null/table.dat"
     r = ascii.Cds(readme)
     r.read(data)
-    np.testing.assert_equal(r.header.cols[5].description, "Catalogue Identification Number")
+    np.testing.assert_equal(
+        r.header.cols[5].description, "Catalogue Identification Number"
+    )
     np.testing.assert_equal(r.header.cols[8].description, "Equivalent width (in mA)")
-    np.testing.assert_equal(r.header.cols[9].description, "Luminosity class codified (11)")
+    np.testing.assert_equal(
+        r.header.cols[9].description, "Luminosity class codified (11)"
+    )

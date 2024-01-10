@@ -877,7 +877,9 @@ def test_read_tab(parallel, read_tab):
     np.testing.assert_equal(table["1"][0], "  a")  # preserve line whitespace
     np.testing.assert_equal(table["2"][0], " b ")  # preserve field whitespace
     assert table["3"][0] is ma.masked  # empty value should be masked
-    np.testing.assert_equal(table["2"][1], " d\n e")  # preserve whitespace in quoted fields
+    np.testing.assert_equal(
+        table["2"][1], " d\n e"
+    )  # preserve whitespace in quoted fields
     np.testing.assert_equal(table["3"][1], "  ")  # preserve end-of-line whitespace
 
 
@@ -1134,7 +1136,9 @@ a b c
 4 5 6
 """
     table = read_basic(text, parallel=parallel, check_meta=True)
-    np.testing.assert_equal(table.meta["comments"], ["header comment", "comment 2", "comment 3"])
+    np.testing.assert_equal(
+        table.meta["comments"], ["header comment", "comment 2", "comment 3"]
+    )
 
 
 @pytest.mark.parametrize("parallel", [True, False])

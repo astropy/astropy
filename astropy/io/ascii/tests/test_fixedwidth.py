@@ -118,7 +118,9 @@ def test_read_space_delimiter():
   Bob  555-4527     192.168.1.9
 """
     dat = ascii.read(table, format="fixed_width", guess=False, delimiter=" ")
-    np.testing.assert_equal(tuple(dat.dtype.names), ("Name", "--Phone-", "----TCP-----"))
+    np.testing.assert_equal(
+        tuple(dat.dtype.names), ("Name", "--Phone-", "----TCP-----")
+    )
     np.testing.assert_equal(dat[1][0], "Mary")
     np.testing.assert_equal(dat[0][1], "555-1234")
     np.testing.assert_equal(dat[2][2], "192.168.1.9")
