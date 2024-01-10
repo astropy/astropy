@@ -58,7 +58,9 @@ def assert_table_equal(t1, t2, check_meta=False, rtol=1.0e-15, atol=1.0e-300):
                     elif isinstance(el, str):
                         np.testing.assert_equal(el, t2[name][i])
                     else:
-                        np.testing.assert_allclose(el, t2[name][i], rtol=rtol, atol=atol)
+                        np.testing.assert_allclose(
+                            el, t2[name][i], rtol=rtol, atol=atol
+                        )
                 except (TypeError, NotImplementedError):
                     pass  # ignore for now
 
@@ -1398,7 +1400,9 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
             guess=guess,
             fast_reader=fast_reader,
         )
-        np.testing.assert_allclose(t["col1"][0], 10.0 ** -(D + 1), rtol=rtol, atol=1.0e-324)
+        np.testing.assert_allclose(
+            t["col1"][0], 10.0 ** -(D + 1), rtol=rtol, atol=1.0e-324
+        )
     for D in 99, 202, 308:
         t = ascii.read(
             StringIO("1" + D * "0" + ".0"),
