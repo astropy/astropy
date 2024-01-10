@@ -160,13 +160,16 @@ class LambdaCDM(FLRW):
             self._age = self._flat_age
             self._lookback_time = self._flat_lookback_time
 
-    def w(self, z):
+    def w(self, z, /):
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'] or array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -184,13 +187,16 @@ class LambdaCDM(FLRW):
         z = aszarr(z)
         return -1.0 * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
 
-    def de_density_scale(self, z):
+    def de_density_scale(self, z, /):
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'] or array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -206,7 +212,7 @@ class LambdaCDM(FLRW):
         z = aszarr(z)
         return np.ones(z.shape) if hasattr(z, "shape") else 1.0
 
-    def _elliptic_comoving_distance_z1z2(self, z1, z2):
+    def _elliptic_comoving_distance_z1z2(self, z1, z2, /):
         r"""Comoving transverse distance in Mpc between two redshifts.
 
         This value is the transverse comoving distance at redshift ``z``
@@ -220,8 +226,11 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'], array-like, or `~numbers.Number`
-            Input redshifts.
+        z1, z2 : Quantity-like ['redshift'] or array-like, positional-only
+            Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -247,7 +256,7 @@ class LambdaCDM(FLRW):
         kappa = b / abs(b)
         if (b < 0) or (2 < b):
 
-            def phi_z(Om0, Ok0, kappa, y1, A, z):
+            def phi_z(Om0, Ok0, kappa, y1, A, z, /):
                 return np.arccos(
                     ((z + 1.0) * Om0 / abs(Ok0) + kappa * y1 - A)
                     / ((z + 1.0) * Om0 / abs(Ok0) + kappa * y1 + A)
@@ -265,7 +274,7 @@ class LambdaCDM(FLRW):
         # Fot the upper-left 0<b<2 solution the Big Bang didn't happen.
         elif (0 < b) and (b < 2) and self._Om0 > self._Ode0:
 
-            def phi_z(Om0, Ok0, y1, y2, z):
+            def phi_z(Om0, Ok0, y1, y2, z, /):
                 return np.arcsin(np.sqrt((y1 - y2) / ((z + 1.0) * Om0 / abs(Ok0) + y1)))
 
             yb = cos(acos(1 - b) / 3)
@@ -283,7 +292,7 @@ class LambdaCDM(FLRW):
         prefactor = self._hubble_distance / sqrt(abs(self._Ok0))
         return prefactor * g * (ellipkinc(phi_z1, k2) - ellipkinc(phi_z2, k2))
 
-    def _dS_comoving_distance_z1z2(self, z1, z2):
+    def _dS_comoving_distance_z1z2(self, z1, z2, /):
         r"""De Sitter comoving LoS distance in Mpc between two redshifts.
 
         The Comoving line-of-sight distance in Mpc between objects at
@@ -297,8 +306,11 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z1, z2 : Quantity-like ['redshift'] or array-like, positional-only
             Input redshifts. Must be 1D or scalar.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -312,7 +324,7 @@ class LambdaCDM(FLRW):
 
         return self._hubble_distance * (z2 - z1)
 
-    def _EdS_comoving_distance_z1z2(self, z1, z2):
+    def _EdS_comoving_distance_z1z2(self, z1, z2, /):
         r"""Einstein-de Sitter comoving LoS distance in Mpc between two redshifts.
 
         The Comoving line-of-sight distance in Mpc between objects at
@@ -327,8 +339,11 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z1, z2 : Quantity-like ['redshift'] or array-like, positional-only
             Input redshifts. Must be 1D or scalar.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -343,7 +358,7 @@ class LambdaCDM(FLRW):
         prefactor = 2 * self._hubble_distance
         return prefactor * ((z1 + 1.0) ** (-1.0 / 2) - (z2 + 1.0) ** (-1.0 / 2))
 
-    def _hypergeometric_comoving_distance_z1z2(self, z1, z2):
+    def _hypergeometric_comoving_distance_z1z2(self, z1, z2, /):
         r"""Hypergeoemtric comoving LoS distance in Mpc between two redshifts.
 
         The Comoving line-of-sight distance in Mpc at redshifts ``z1`` and
@@ -357,8 +372,11 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z1, z2 : Quantity-like ['redshift'] or array-like, positional-only
             Input redshifts.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -384,7 +402,7 @@ class LambdaCDM(FLRW):
             - self._T_hypergeometric(s / (z2 + 1.0))
         )
 
-    def _T_hypergeometric(self, x):
+    def _T_hypergeometric(self, x, /):
         r"""Compute value using Gauss Hypergeometric function 2F1.
 
         .. math::
@@ -406,15 +424,18 @@ class LambdaCDM(FLRW):
         """
         return 2 * np.sqrt(x) * hyp2f1(1.0 / 6, 1.0 / 2, 7.0 / 6, -(x**3))
 
-    def _dS_age(self, z):
+    def _dS_age(self, z, /):
         """Age of the universe in Gyr at redshift ``z``.
 
         The age of a de Sitter Universe is infinite.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -424,7 +445,7 @@ class LambdaCDM(FLRW):
         t = inf if isinstance(z, Number) else np.full_like(z, inf, dtype=float)
         return self._hubble_time * t
 
-    def _EdS_age(self, z):
+    def _EdS_age(self, z, /):
         r"""Age of the universe in Gyr at redshift ``z``.
 
         For :math:`\Omega_{rad} = 0` (:math:`T_{CMB} = 0`; massless neutrinos)
@@ -432,8 +453,11 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -447,7 +471,7 @@ class LambdaCDM(FLRW):
         """
         return (2.0 / 3) * self._hubble_time * (aszarr(z) + 1.0) ** (-1.5)
 
-    def _flat_age(self, z):
+    def _flat_age(self, z, /):
         r"""Age of the universe in Gyr at redshift ``z``.
 
         For :math:`\Omega_{rad} = 0` (:math:`T_{CMB} = 0`; massless neutrinos)
@@ -455,8 +479,11 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -476,7 +503,7 @@ class LambdaCDM(FLRW):
         )
         return (prefactor * arg).real
 
-    def _EdS_lookback_time(self, z):
+    def _EdS_lookback_time(self, z, /):
         r"""Lookback time in Gyr to redshift ``z``.
 
         The lookback time is the difference between the age of the Universe now
@@ -488,8 +515,11 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -498,7 +528,7 @@ class LambdaCDM(FLRW):
         """
         return self._EdS_age(0) - self._EdS_age(z)
 
-    def _dS_lookback_time(self, z):
+    def _dS_lookback_time(self, z, /):
         r"""Lookback time in Gyr to redshift ``z``.
 
         The lookback time is the difference between the age of the Universe now
@@ -515,8 +545,11 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -525,7 +558,7 @@ class LambdaCDM(FLRW):
         """
         return self._hubble_time * log(aszarr(z) + 1.0)
 
-    def _flat_lookback_time(self, z):
+    def _flat_lookback_time(self, z, /):
         r"""Lookback time in Gyr to redshift ``z``.
 
         The lookback time is the difference between the age of the Universe now
@@ -537,8 +570,11 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -547,13 +583,16 @@ class LambdaCDM(FLRW):
         """
         return self._flat_age(0) - self._flat_age(z)
 
-    def efunc(self, z):
+    def efunc(self, z, /):
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -575,13 +614,16 @@ class LambdaCDM(FLRW):
             zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) + self._Ode0
         )
 
-    def inv_efunc(self, z):
+    def inv_efunc(self, z, /):
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -712,13 +754,16 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
                 self._nu_y_list,
             )
 
-    def efunc(self, z):
+    def efunc(self, z, /):
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -738,13 +783,16 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
 
         return np.sqrt(zp1**3 * (Or * zp1 + self._Om0) + self._Ode0)
 
-    def inv_efunc(self, z):
+    def inv_efunc(self, z, /):
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------

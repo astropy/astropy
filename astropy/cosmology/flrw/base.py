@@ -76,15 +76,18 @@ class _ScaleFactorMixin:
         """
         return u.Quantity(self.scale_factor(0), unit=u.one)
 
-    def scale_factor(self, z):
+    def scale_factor(self, z, /):
         """Scale factor at redshift ``z``.
 
         The scale factor is defined as :math:`a = 1 / (1 + z)`.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -408,13 +411,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
     # ---------------------------------------------------------------
 
     @abstractmethod
-    def w(self, z):
+    def w(self, z, /):
         r"""The dark energy equation of state.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -433,13 +439,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         raise NotImplementedError("w(z) is not implemented")
 
-    def Otot(self, z):
+    def Otot(self, z, /):
         """The total density parameter at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshifts.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -449,13 +458,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self.Om(z) + self.Ogamma(z) + self.Onu(z) + self.Ode(z) + self.Ok(z)
 
-    def Om(self, z):
+    def Om(self, z, /):
         """Return the density parameter for non-relativistic matter at redshift ``z``.
 
         Parameters
         ----------
         z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -472,13 +484,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z = aszarr(z)
         return self._Om0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
 
-    def Ob(self, z):
+    def Ob(self, z, /):
         """Return the density parameter for baryonic matter at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -497,13 +512,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z = aszarr(z)
         return self._Ob0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
 
-    def Odm(self, z):
+    def Odm(self, z, /):
         """Return the density parameter for dark matter at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -530,13 +548,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z = aszarr(z)
         return self._Odm0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
 
-    def Ok(self, z):
+    def Ok(self, z, /):
         """Return the equivalent density parameter for curvature at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -549,13 +570,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
         return self._Ok0 * (z + 1.0) ** 2 * self.inv_efunc(z) ** 2
 
-    def Ode(self, z):
+    def Ode(self, z, /):
         """Return the density parameter for dark energy at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -569,13 +593,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
         return self._Ode0 * self.de_density_scale(z) * self.inv_efunc(z) ** 2
 
-    def Ogamma(self, z):
+    def Ogamma(self, z, /):
         """Return the density parameter for photons at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -587,13 +614,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z = aszarr(z)
         return self._Ogamma0 * (z + 1.0) ** 4 * self.inv_efunc(z) ** 2
 
-    def Onu(self, z):
+    def Onu(self, z, /):
         r"""Return the density parameter for neutrinos at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -610,13 +640,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
         return self.Ogamma(z) * self.nu_relative_density(z)
 
-    def Tcmb(self, z):
+    def Tcmb(self, z, /):
         """Return the CMB temperature at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -625,13 +658,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self._Tcmb0 * (aszarr(z) + 1.0)
 
-    def Tnu(self, z):
+    def Tnu(self, z, /):
         """Return the neutrino temperature at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -640,13 +676,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self._Tnu0 * (aszarr(z) + 1.0)
 
-    def nu_relative_density(self, z):
+    def nu_relative_density(self, z, /):
         r"""Neutrino density function relative to the energy density in photons.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -708,14 +747,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         return prefac * self._neff_per_nu * rel_mass
 
-    def _w_integrand(self, ln1pz):
+    def _w_integrand(self, ln1pz, /):
         """Internal convenience function for w(z) integral (eq. 5 of [1]_).
 
         Parameters
         ----------
-        ln1pz : `~numbers.Number` or scalar ndarray
+        ln1pz : `~numbers.Number` or scalar ndarray, positional-only
             Assumes scalar input, since this should only be called inside an
             integral.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         References
         ----------
@@ -724,13 +766,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return 1.0 + self.w(exp(ln1pz) - 1.0)
 
-    def de_density_scale(self, z):
+    def de_density_scale(self, z, /):
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -775,13 +820,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             ival = quad(self._w_integrand, 0, log(z + 1.0))[0]
             return exp(3 * ival)
 
-    def efunc(self, z):
+    def efunc(self, z, /):
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -807,13 +855,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             + self._Ode0 * self.de_density_scale(z)
         )
 
-    def inv_efunc(self, z):
+    def inv_efunc(self, z, /):
         """Inverse of ``efunc``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -834,13 +885,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             + self._Ode0 * self.de_density_scale(z)
         ) ** (-0.5)
 
-    def _lookback_time_integrand_scalar(self, z):
+    def _lookback_time_integrand_scalar(self, z, /):
         """Integrand of the lookback time (equation 30 of [1]_).
 
         Parameters
         ----------
-        z : float
+        z : float, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -854,13 +908,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self._inv_efunc_scalar(z, *self._inv_efunc_scalar_args) / (z + 1.0)
 
-    def lookback_time_integrand(self, z):
+    def lookback_time_integrand(self, z, /):
         """Integrand of the lookback time (equation 30 of [1]_).
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -875,13 +932,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z = aszarr(z)
         return self.inv_efunc(z) / (z + 1.0)
 
-    def _abs_distance_integrand_scalar(self, z):
+    def _abs_distance_integrand_scalar(self, z, /):
         """Integrand of the absorption distance [1]_.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -896,13 +956,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         args = self._inv_efunc_scalar_args
         return (z + 1.0) ** 2 * self._inv_efunc_scalar(z, *args)
 
-    def abs_distance_integrand(self, z):
+    def abs_distance_integrand(self, z, /):
         """Integrand of the absorption distance [1]_.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -917,13 +980,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z = aszarr(z)
         return (z + 1.0) ** 2 * self.inv_efunc(z)
 
-    def H(self, z):
+    def H(self, z, /):
         """Hubble parameter (km/s/Mpc) at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -932,7 +998,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self._H0 * self.efunc(z)
 
-    def lookback_time(self, z):
+    def lookback_time(self, z, /):
         """Lookback time in Gyr to redshift ``z``.
 
         The lookback time is the difference between the age of the Universe now
@@ -940,8 +1006,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -954,7 +1023,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self._lookback_time(z)
 
-    def _lookback_time(self, z):
+    def _lookback_time(self, z, /):
         """Lookback time in Gyr to redshift ``z``.
 
         The lookback time is the difference between the age of the Universe now
@@ -962,8 +1031,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -981,8 +1053,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -992,7 +1067,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return quad(self._lookback_time_integrand_scalar, 0, z)[0]
 
-    def lookback_distance(self, z):
+    def lookback_distance(self, z, /):
         """The lookback distance is the light travel time distance to a given redshift.
 
         It is simply c * lookback_time. It may be used to calculate
@@ -1001,8 +1076,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1011,13 +1089,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return (self.lookback_time(z) * const.c).to(u.Mpc)
 
-    def age(self, z):
+    def age(self, z, /):
         """Age of the universe in Gyr at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1030,15 +1111,18 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self._age(z)
 
-    def _age(self, z):
+    def _age(self, z, /):
         """Age of the universe in Gyr at redshift ``z``.
 
         This internal function exists to be re-defined for optimizations.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1055,8 +1139,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1070,13 +1157,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return quad(self._lookback_time_integrand_scalar, z, inf)[0]
 
-    def critical_density(self, z):
+    def critical_density(self, z, /):
         """Critical density in grams per cubic cm at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1085,7 +1175,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self._critical_density0 * (self.efunc(z)) ** 2
 
-    def comoving_distance(self, z):
+    def comoving_distance(self, z, /):
         """Comoving line-of-sight distance in Mpc at a given redshift.
 
         The comoving distance along the line-of-sight between two objects
@@ -1093,8 +1183,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1103,7 +1196,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self._comoving_distance_z1z2(0, z)
 
-    def _comoving_distance_z1z2(self, z1, z2):
+    def _comoving_distance_z1z2(self, z1, z2, /):
         """Comoving line-of-sight distance in Mpc between redshifts ``z1`` and ``z2``.
 
         The comoving distance along the line-of-sight between two objects
@@ -1111,8 +1204,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'], array-like, or `~numbers.Number`
-            Input redshifts.
+        z1, z2 : Quantity-like ['redshift'], array-like, positional-only
+            Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1130,8 +1226,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'], array-like, or `~numbers.Number`
-            Input redshifts.
+        z1, z2 : Quantity-like ['redshift'], array-like, positional-only
+            Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1141,7 +1240,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return quad(self._inv_efunc_scalar, z1, z2, args=self._inv_efunc_scalar_args)[0]
 
-    def _integral_comoving_distance_z1z2(self, z1, z2):
+    def _integral_comoving_distance_z1z2(self, z1, z2, /):
         """Comoving line-of-sight distance in Mpc between objects at redshifts ``z1`` and ``z2``.
 
         The comoving distance along the line-of-sight between two objects remains
@@ -1149,8 +1248,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'] or array-like
-            Input redshifts.
+        z1, z2 : Quantity-like ['redshift'] or array-like, positional-only
+            Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1159,7 +1261,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self._hubble_distance * self._integral_comoving_distance_z1z2_scalar(z1, z2)  # fmt: skip
 
-    def comoving_transverse_distance(self, z):
+    def comoving_transverse_distance(self, z, /):
         r"""Comoving transverse distance in Mpc at a given redshift.
 
         This value is the transverse comoving distance at redshift ``z``
@@ -1169,8 +1271,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1183,7 +1288,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self._comoving_transverse_distance_z1z2(0, z)
 
-    def _comoving_transverse_distance_z1z2(self, z1, z2):
+    def _comoving_transverse_distance_z1z2(self, z1, z2, /):
         r"""Comoving transverse distance in Mpc between two redshifts.
 
         This value is the transverse comoving distance at redshift ``z2`` as
@@ -1193,8 +1298,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z1, z2 : Quantity-like ['redshift'], array-like, positional-only
             Input redshifts.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1216,7 +1324,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         else:
             return dh / sqrtOk0 * sin(sqrtOk0 * dc.value / dh.value)
 
-    def angular_diameter_distance(self, z):
+    def angular_diameter_distance(self, z, /):
         """Angular diameter distance in Mpc at a given redshift.
 
         This gives the proper (sometimes called 'physical') transverse
@@ -1225,8 +1333,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1242,7 +1353,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z = aszarr(z)
         return self.comoving_transverse_distance(z) / (z + 1.0)
 
-    def luminosity_distance(self, z):
+    def luminosity_distance(self, z, /):
         """Luminosity distance in Mpc at redshift ``z``.
 
         This is the distance to use when converting between the bolometric flux
@@ -1250,8 +1361,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1308,8 +1422,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1325,7 +1442,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return quad(self._abs_distance_integrand_scalar, 0, z)[0]
 
-    def distmod(self, z):
+    def distmod(self, z, /):
         """Distance modulus at redshift ``z``.
 
         The distance modulus is defined as the (apparent magnitude - absolute
@@ -1333,8 +1450,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1352,7 +1472,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         val = 5.0 * np.log10(abs(self.luminosity_distance(z).value)) + 25.0
         return u.Quantity(val, u.mag)
 
-    def comoving_volume(self, z):
+    def comoving_volume(self, z, /):
         r"""Comoving volume in cubic Mpc at redshift ``z``.
 
         This is the volume of the universe encompassed by redshifts less than
@@ -1361,8 +1481,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1384,7 +1507,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         else:
             return term1 * (term2 - 1.0 / sqrt(abs(Ok0)) * np.arcsin(term3))
 
-    def differential_comoving_volume(self, z):
+    def differential_comoving_volume(self, z, /):
         """Differential comoving volume at redshift z.
 
         Useful for calculating the effective comoving volume.
@@ -1395,8 +1518,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1407,13 +1533,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         dm = self.comoving_transverse_distance(z)
         return self._hubble_distance * (dm**2.0) / (self.efunc(z) << u.steradian)
 
-    def kpc_comoving_per_arcmin(self, z):
+    def kpc_comoving_per_arcmin(self, z, /):
         """Separation in transverse comoving kpc equal to an arcmin at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1423,13 +1552,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self.comoving_transverse_distance(z).to(u.kpc) / _radian_in_arcmin
 
-    def kpc_proper_per_arcmin(self, z):
+    def kpc_proper_per_arcmin(self, z, /):
         """Separation in transverse proper kpc equal to an arcminute at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1439,13 +1571,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self.angular_diameter_distance(z).to(u.kpc) / _radian_in_arcmin
 
-    def arcsec_per_kpc_comoving(self, z):
+    def arcsec_per_kpc_comoving(self, z, /):
         """Angular separation in arcsec equal to a comoving kpc at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1455,13 +1590,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return _radian_in_arcsec / self.comoving_transverse_distance(z).to(u.kpc)
 
-    def arcsec_per_kpc_proper(self, z):
+    def arcsec_per_kpc_proper(self, z, /):
         """Angular separation in arcsec corresponding to a proper kpc at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -1518,13 +1656,16 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         """Omega total; the total density/critical density at z=0."""
         return 1.0
 
-    def Otot(self, z):
+    def Otot(self, z, /):
         """The total density parameter at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
-            Input redshifts.
+        z : Quantity-like ['redshift'], array-like, positional-only
+            Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
