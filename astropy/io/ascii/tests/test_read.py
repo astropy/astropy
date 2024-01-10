@@ -28,7 +28,6 @@ from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 # setup/teardown function to have the tests run in the correct directory
 from .common import (
     assert_almost_equal,
-    assert_true,
     setup_function,  # noqa: F401
     teardown_function,  # noqa: F401
 )
@@ -548,10 +547,10 @@ def test_fill_values(fast_reader):
     data = ascii.read(
         f, fill_values=("a", "1"), fast_reader=fast_reader, **testfile["opts"]
     )
-    assert_true((data["a"].mask == [False, True]).all())
-    assert_true((data["a"] == [1, 1]).all())
-    assert_true((data["b"].mask == [False, True]).all())
-    assert_true((data["b"] == [2, 1]).all())
+    np.testing.assert_((data["a"].mask == [False, True]).all())
+    np.testing.assert_((data["a"] == [1, 1]).all())
+    np.testing.assert_((data["b"].mask == [False, True]).all())
+    np.testing.assert_((data["b"] == [2, 1]).all())
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -595,12 +594,12 @@ def test_fill_values_exclude_names(fast_reader):
 def check_fill_values(data):
     """compare array column by column with expectation"""
     assert not hasattr(data["a"], "mask")
-    assert_true((data["a"] == ["1", "a"]).all())
-    assert_true((data["b"].mask == [False, True]).all())
+    np.testing.assert_((data["a"] == ["1", "a"]).all())
+    np.testing.assert_((data["b"].mask == [False, True]).all())
     # Check that masked value is "do not care" in comparison
-    assert_true((data["b"] == [2, -999]).all())
+    np.testing.assert_((data["b"] == [2, -999]).all())
     data["b"].mask = False  # explicitly unmask for comparison
-    assert_true((data["b"] == [2, 1]).all())
+    np.testing.assert_((data["b"] == [2, 1]).all())
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -614,14 +613,14 @@ def test_fill_values_list(fast_reader):
         **testfile["opts"],
     )
     data["a"].mask = False  # explicitly unmask for comparison
-    assert_true((data["a"] == [42, 42]).all())
+    np.testing.assert_((data["a"] == [42, 42]).all())
 
 
 def test_masking_Cds_Mrt():
     f = "data/cds.dat"  # Tested for CDS and MRT
     for testfile in get_testfiles(f):
         data = ascii.read(f, **testfile["opts"])
-        assert_true(data["AK"].mask[0])
+        np.testing.assert_(data["AK"].mask[0])
         assert not hasattr(data["Fit"], "mask")
 
 

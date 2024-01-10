@@ -6,7 +6,6 @@ import numpy as np
 
 __all__ = [
     "assert_almost_equal",
-    "assert_true",
     "setup_function",
     "teardown_function",
 ]
@@ -29,6 +28,3 @@ def teardown_function(function):
 def assert_almost_equal(a, b, **kwargs):
     assert np.allclose(a, b, **kwargs)
 
-
-def assert_true(a):
-    assert a
