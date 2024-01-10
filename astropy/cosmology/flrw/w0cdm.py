@@ -117,13 +117,16 @@ class wCDM(FLRW):
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
-    def w(self, z):
+    def w(self, z, /):
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -141,13 +144,16 @@ class wCDM(FLRW):
         z = aszarr(z)
         return self._w0 * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
 
-    def de_density_scale(self, z):
+    def de_density_scale(self, z, /):
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -163,13 +169,16 @@ class wCDM(FLRW):
         """
         return (aszarr(z) + 1.0) ** (3.0 * (1.0 + self._w0))
 
-    def efunc(self, z):
+    def efunc(self, z, /):
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -190,13 +199,16 @@ class wCDM(FLRW):
             + self._Ode0 * zp1 ** (3.0 * (1.0 + self._w0))
         )
 
-    def inv_efunc(self, z):
+    def inv_efunc(self, z, /):
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -313,13 +325,16 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
-    def efunc(self, z):
+    def efunc(self, z, /):
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------
@@ -339,13 +354,16 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
             zp1**3 * (Or * zp1 + self._Om0) + self._Ode0 * zp1 ** (3.0 * (1 + self._w0))
         )
 
-    def inv_efunc(self, z):
+    def inv_efunc(self, z, /):
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only.
 
         Returns
         -------

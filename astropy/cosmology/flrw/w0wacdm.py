@@ -141,13 +141,16 @@ class w0waCDM(FLRW):
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
-    def w(self, z):
+    def w(self, z, /):
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'] or array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only
 
         Returns
         -------
@@ -166,13 +169,16 @@ class w0waCDM(FLRW):
         z = aszarr(z)
         return self._w0 + self._wa * z / (z + 1.0)
 
-    def de_density_scale(self, z):
+    def de_density_scale(self, z, /):
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'] or array-like, positional-only
             Input redshift.
+
+            .. versionchanged:: 6.1
+                The argument is positional-only
 
         Returns
         -------
