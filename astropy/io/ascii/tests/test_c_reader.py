@@ -32,7 +32,7 @@ from astropy.tests.helper import CI
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
 
-from .common import assert_almost_equal, assert_equal, assert_true
+from .common import assert_almost_equal, assert_true
 
 StringIO = lambda x: BytesIO(x.encode("ascii"))
 
@@ -42,13 +42,13 @@ def assert_table_equal(t1, t2, check_meta=False, rtol=1.0e-15, atol=1.0e-300):
     Test equality of all columns in a table, with stricter tolerances for
     float columns than the np.allclose default.
     """
-    assert_equal(len(t1), len(t2))
-    assert_equal(t1.colnames, t2.colnames)
+    np.testing.assert_equal(len(t1), len(t2))
+    np.testing.assert_equal(t1.colnames, t2.colnames)
     if check_meta:
-        assert_equal(t1.meta, t2.meta)
+        np.testing.assert_equal(t1.meta, t2.meta)
     for name in t1.colnames:
         if len(t1) != 0:
-            assert_equal(t1[name].dtype.kind, t2[name].dtype.kind)
+            np.testing.assert_equal(t1[name].dtype.kind, t2[name].dtype.kind)
         if not isinstance(t1[name], MaskedColumn):
             for i, el in enumerate(t1[name]):
                 try:
@@ -57,7 +57,7 @@ def assert_table_equal(t1, t2, check_meta=False, rtol=1.0e-15, atol=1.0e-300):
                             not isinstance(t2[name][i], str) and np.isnan(t2[name][i])
                         )
                     elif isinstance(el, str):
-                        assert_equal(el, t2[name][i])
+                        np.testing.assert_equal(el, t2[name][i])
                     else:
                         assert_almost_equal(el, t2[name][i], rtol=rtol, atol=atol)
                 except (TypeError, NotImplementedError):
@@ -359,10 +359,10 @@ A B C D E F G H
 4 2 -12 .4 +.e1 - + six
 """
     table = read_basic(text, parallel=parallel)
-    assert_equal(table["A"].dtype.kind, "f")
+    np.testing.assert_equal(table["A"].dtype.kind, "f")
     assert table["B"].dtype.kind in ("S", "U")
-    assert_equal(table["C"].dtype.kind, "i")
-    assert_equal(table["D"].dtype.kind, "f")
+    np.testing.assert_equal(table["C"].dtype.kind, "i")
+    np.testing.assert_equal(table["D"].dtype.kind, "f")
     assert table["E"].dtype.kind in ("S", "U")
     assert table["F"].dtype.kind in ("S", "U")
     assert table["G"].dtype.kind in ("S", "U")
@@ -727,7 +727,7 @@ nan, 5, -9999
     assert isinstance(table["A"], MaskedColumn)
     assert table["A"][0] is ma.masked
     # '0' rather than 0 because there is a string in the column
-    assert_equal(table["A"].data.data[0], "0")
+    np.testing.assert_equal(table["A"].data.data[0], "0")
     assert table["A"][1] is not ma.masked
 
     table = read_basic(
@@ -738,7 +738,7 @@ nan, 5, -9999
     assert table["C"][2] is not ma.masked  # -9999 is not an exact match
     assert table["B"][1] is ma.masked
     # Numeric because the rest of the column contains numeric data
-    assert_equal(table["B"].data.data[1], 0.0)
+    np.testing.assert_equal(table["B"].data.data[1], 0.0)
     assert table["B"][0] is not ma.masked
 
     table = read_basic(text, delimiter=",", fill_values=[], parallel=parallel)
@@ -757,8 +757,8 @@ nan, 5, -9999
     assert table["B"][3] is not ma.masked
     assert table["A"][0] is ma.masked
     assert table["A"][2] is ma.masked
-    assert_equal(table["A"].data.data[0], "0")
-    assert_equal(table["A"].data.data[2], "999")
+    np.testing.assert_equal(table["A"].data.data[0], "0")
+    np.testing.assert_equal(table["A"].data.data[2], "999")
     assert table["C"][0] is ma.masked
     assert_almost_equal(table["C"].data.data[0], 999.0)
     assert_almost_equal(table["C"][1], -3.4)  # column is still of type float
@@ -874,11 +874,11 @@ def test_read_tab(parallel, read_tab):
         pytest.xfail("Multiprocessing can fail with quoted fields")
     text = '1\t2\t3\n  a\t b \t\n c\t" d\n e"\t  '
     table = read_tab(text, parallel=parallel)
-    assert_equal(table["1"][0], "  a")  # preserve line whitespace
-    assert_equal(table["2"][0], " b ")  # preserve field whitespace
+    np.testing.assert_equal(table["1"][0], "  a")  # preserve line whitespace
+    np.testing.assert_equal(table["2"][0], " b ")  # preserve field whitespace
     assert table["3"][0] is ma.masked  # empty value should be masked
-    assert_equal(table["2"][1], " d\n e")  # preserve whitespace in quoted fields
-    assert_equal(table["3"][1], "  ")  # preserve end-of-line whitespace
+    np.testing.assert_equal(table["2"][1], " d\n e")  # preserve whitespace in quoted fields
+    np.testing.assert_equal(table["3"][1], "  ")  # preserve end-of-line whitespace
 
 
 @pytest.mark.parametrize("parallel", [True, False])
@@ -939,9 +939,9 @@ A\tB\tC
     table = read_rdb(text, parallel=parallel)
     expected = Table([[1], [" 9"], [4.3]], names=("A", "B", "C"))
     assert_table_equal(table, expected)
-    assert_equal(table["A"].dtype.kind, "i")
+    np.testing.assert_equal(table["A"].dtype.kind, "i")
     assert table["B"].dtype.kind in ("S", "U")
-    assert_equal(table["C"].dtype.kind, "f")
+    np.testing.assert_equal(table["C"].dtype.kind, "f")
 
     with pytest.raises(ValueError) as e:
         text = "A\tB\tC\nN\tS\tN\n4\tb\ta"  # C column contains non-numeric data
@@ -1134,7 +1134,7 @@ a b c
 4 5 6
 """
     table = read_basic(text, parallel=parallel, check_meta=True)
-    assert_equal(table.meta["comments"], ["header comment", "comment 2", "comment 3"])
+    np.testing.assert_equal(table.meta["comments"], ["header comment", "comment 2", "comment 3"])
 
 
 @pytest.mark.parametrize("parallel", [True, False])
@@ -1789,10 +1789,10 @@ def test_conversion_fast(fast_reader):
     4 2 -12 .4 +.e1 - + six
     """
     table = ascii.read(text, fast_reader=fast_reader)
-    assert_equal(table["A"].dtype.kind, "f")
+    np.testing.assert_equal(table["A"].dtype.kind, "f")
     assert table["B"].dtype.kind in ("S", "U")
-    assert_equal(table["C"].dtype.kind, "i")
-    assert_equal(table["D"].dtype.kind, "f")
+    np.testing.assert_equal(table["C"].dtype.kind, "i")
+    np.testing.assert_equal(table["D"].dtype.kind, "f")
     assert table["E"].dtype.kind in ("S", "U")
     assert table["F"].dtype.kind in ("S", "U")
     assert table["G"].dtype.kind in ("S", "U")
@@ -1834,7 +1834,7 @@ def test_newline_as_delimiter(delimiter, fast_reader):
 
     if not fast_reader:
         pytest.xfail("Quoted fields are not parsed correctly by BaseSplitter")
-    assert_equal(t1["b"].dtype.kind, "i")
+    np.testing.assert_equal(t1["b"].dtype.kind, "i")
 
 
 @pytest.mark.parametrize("delimiter", [" ", "|", "\n", "\r"])
