@@ -296,6 +296,8 @@ def convolve(
         )
     elif array_internal.ndim != kernel_internal.ndim:
         raise Exception("array and kernel have differing number of dimensions.")
+    elif array_internal.size == 0:
+        raise Exception("cannot convolve empty array")
 
     array_shape = np.array(array_internal.shape)
     kernel_shape = np.array(kernel_internal.shape)
