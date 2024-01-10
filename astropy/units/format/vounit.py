@@ -43,7 +43,7 @@ class VOUnit(generic.Generic):
             "solRad", "sr", "T", "u", "V", "voxel", "W", "Wb", "yr",
         ]  # fmt: skip
         binary_bases = ["bit", "byte", "B"]
-        simple_units = ["Angstrom", "angstrom", "AU", "au", "Ba", "dB", "mas"]
+        simple_units = ["Angstrom", "angstrom", "AU", "au", "Ba", "dB", "mas", "Sun"]
         si_prefixes = [
             "y", "z", "a", "f", "p", "n", "u", "m", "c", "d",
             "", "da", "h", "k", "M", "G", "T", "P", "E", "Z", "Y"
