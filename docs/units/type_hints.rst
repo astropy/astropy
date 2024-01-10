@@ -1,3 +1,11 @@
+Type Annotations Module
+***********************
+
+.. automodule:: astropy.units.typing
+   :members:
+   :show-inheritance:
+
+
 Unit-Aware Type Annotations
 ***************************
 

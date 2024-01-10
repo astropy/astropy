@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""Typing module for :mod:`~astropy.units`."""
+"""Typing module for supporting type annotations related to :mod:`~astropy.units`."""
 
 __all__ = ["QuantityLike"]
 
