@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Protocol, TypedDict
+from typing import TYPE_CHECKING, Any, Callable, Protocol, TypedDict, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -36,7 +36,7 @@ class CustomMethod(Protocol):
         ...
 
 
-BracketSingle: TypeAlias = tuple[float, float] | tuple[float, float, float] | None
+BracketSingle: TypeAlias = Union[tuple[float, float], tuple[float, float, float], None]
 
 
 class ZAtValueKWArgs(TypedDict):
