@@ -2424,3 +2424,51 @@ def test_mixin_join_regression():
     t12 = table.join(t1, t2, keys=("index", "flux1", "flux2"), join_type="outer")
 
     assert len(t12) == 6
+
+
+@pytest.mark.parametrize(
+    "t1, t2",
+    [
+        # different names
+        (
+            Table([np.array([1])], names=["a"]),
+            Table([np.array([1])], names=["b"]),
+        ),
+        # different data (broadcastable)
+        (
+            Table([np.array([])], names=["a"]),
+            Table([np.array([1])], names=["a"]),
+        ),
+        # different data (not broadcastable)
+        (
+            Table([np.array([1, 2])], names=["a"]),
+            Table([np.array([1, 2, 3])], names=["a"]),
+        ),
+        # different names and data (broadcastable)
+        (
+            Table([np.array([])], names=["a"]),
+            Table([np.array([1])], names=["b"]),
+        ),
+        # different names and data (not broadcastable)
+        (
+            Table([np.array([1, 2])], names=["a"]),
+            Table([np.array([1, 2, 3])], names=["b"]),
+        ),
+        # different data and array type (broadcastable)
+        (
+            Table([np.array([])], names=["a"]),
+            Table([np.ma.MaskedArray([1])], names=["a"]),
+        ),
+        # different data and array type (not broadcastable)
+        (
+            Table([np.array([1, 2])], names=["a"]),
+            Table([np.ma.MaskedArray([1, 2, 3])], names=["a"]),
+        ),
+    ],
+)
+def test_table_comp(t1, t2):
+    # see https://github.com/astropy/astropy/issues/13421
+    assert not any(t1 == t2)
+    assert not any(t2 == t1)
+    assert all(t1 != t2)
+    assert all(t2 != t1)
