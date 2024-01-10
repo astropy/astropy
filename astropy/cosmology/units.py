@@ -3,12 +3,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, Unpack
+from typing import TYPE_CHECKING, Literal
 
 import astropy.units as u
 from astropy.units.utils import generate_unit_summary as _generate_unit_summary
 
 if TYPE_CHECKING:
+    from typing_extensions import Unpack
+
     from astropy.cosmology.core import Cosmology
     from astropy.cosmology.funcs.optimize import ZAtValueKWArgs
 
