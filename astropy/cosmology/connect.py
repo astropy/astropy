@@ -1,8 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 from astropy.cosmology import units as cu
 from astropy.io import registry as io_registry
 from astropy.units import add_enabled_units
+
+if TYPE_CHECKING:
+    from astropy.cosmology import Cosmology
 
 __all__ = [
     "CosmologyRead",
@@ -62,10 +69,10 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     -----
     """
 
-    def __init__(self, instance, cosmo_cls):
+    def __init__(self, instance: Cosmology, cosmo_cls: type[Cosmology]) -> None:
         super().__init__(instance, cosmo_cls, "read", registry=readwrite_registry)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> Cosmology:
         from astropy.cosmology.core import Cosmology
 
         # so subclasses can override, also pass the class as a kwarg.
@@ -119,10 +126,10 @@ class CosmologyWrite(io_registry.UnifiedReadWrite):
     -----
     """
 
-    def __init__(self, instance, cls):
+    def __init__(self, instance: Cosmology, cls: type[Cosmology]) -> None:
         super().__init__(instance, cls, "write", registry=readwrite_registry)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> None:
         self.registry.write(self._instance, *args, **kwargs)
 
 
@@ -178,10 +185,12 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
         `~astropy.cosmology.Cosmology` corresponding to ``obj`` contents.
     """
 
-    def __init__(self, instance, cosmo_cls):
+    def __init__(self, instance: Cosmology, cosmo_cls: type[Cosmology]) -> None:
         super().__init__(instance, cosmo_cls, "read", registry=convert_registry)
 
-    def __call__(self, obj, *args, format=None, **kwargs):
+    def __call__(
+        self, obj: object, *args: Any, format: str | None = None, **kwargs: Any
+    ) -> Cosmology:
         from astropy.cosmology.core import Cosmology
 
         # so subclasses can override, also pass the class as a kwarg.
@@ -237,8 +246,8 @@ class CosmologyToFormat(io_registry.UnifiedReadWrite):
         Keyword arguments passed through to data writer.
     """
 
-    def __init__(self, instance, cls):
+    def __init__(self, instance: Cosmology, cls: type[Cosmology]):
         super().__init__(instance, cls, "write", registry=convert_registry)
 
-    def __call__(self, format, *args, **kwargs):
+    def __call__(self, format: str, *args: Any, **kwargs: Any) -> object:
         return self.registry.write(self._instance, None, *args, format=format, **kwargs)
