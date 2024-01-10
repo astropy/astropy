@@ -130,3 +130,18 @@ def test_radian_formatter():
         fig.canvas.draw()
         labels = [tl.get_text() for tl in ax.yaxis.get_ticklabels()]
         assert labels == ["π/2", "π", "3π/2", "2π", "5π/2", "3π", "7π/2"]
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
+def test_small_range():
+    # see https://github.com/astropy/astropy/issues/13211
+    y = [10.0, 10.25, 10.5, 10.75, 11.0, 11.25, 11.5, 11.75] * u.degree
+
+    fig, ax = plt.subplots()
+    with quantity_support():
+        ax.plot(y)
+        fig.canvas.draw()
+    labels = [t.get_text() for t in ax.yaxis.get_ticklabels()]
+
+    # check uniqueness of labels
+    assert len(set(labels)) == len(labels)
