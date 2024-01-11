@@ -57,9 +57,10 @@ Astropy Glossary
 
    quantity-like
       `~astropy.units.Quantity` (or subclass) instance, a number or `array-like
-      <https://numpy.org/doc/stable/glossary.html#term-array_like>`_ object with a
-      :term:`unit-like` ``unit`` attribute, or a string which is a valid initializer
-      for `~astropy.units.Quantity`.
+      <https://numpy.org/doc/stable/glossary.html#term-array_like>`_ object, or a string
+      which is a valid initializer for `~astropy.units.Quantity`.
+
+      For a formal definition see :obj:`~astropy.units.typing.QuantityLike`.
 
    table-like
       :class:`~astropy.table.Table` (or subclass) instance or valid initializer for
