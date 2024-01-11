@@ -588,12 +588,12 @@ def test_fill_values_exclude_names(fast_reader):
 def check_fill_values(data):
     """compare array column by column with expectation"""
     assert not hasattr(data["a"], "mask")
-    npt.assert_((data["a"] == ["1", "a"]).all())
-    npt.assert_((data["b"].mask == [False, True]).all())
+    assert (data["a"] == ["1", "a"]).all()
+    assert (data["b"].mask == [False, True]).all()
     # Check that masked value is "do not care" in comparison
-    npt.assert_((data["b"] == [2, -999]).all())
+    assert (data["b"] == [2, -999]).all()
     data["b"].mask = False  # explicitly unmask for comparison
-    npt.assert_((data["b"] == [2, 1]).all())
+    assert (data["b"] == [2, 1]).all()
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -607,14 +607,14 @@ def test_fill_values_list(fast_reader):
         **testfile["opts"],
     )
     data["a"].mask = False  # explicitly unmask for comparison
-    npt.assert_((data["a"] == [42, 42]).all())
+    assert (data["a"] == [42, 42]).all()
 
 
 def test_masking_Cds_Mrt():
     f = "data/cds.dat"  # Tested for CDS and MRT
     for testfile in get_testfiles(f):
         data = ascii.read(f, **testfile["opts"])
-        npt.assert_(data["AK"].mask[0])
+        assert data["AK"].mask[0]
         assert not hasattr(data["Fit"], "mask")
 
 
