@@ -246,7 +246,7 @@ class CosmologyToFormat(io_registry.UnifiedReadWrite):
         Keyword arguments passed through to data writer.
     """
 
-    def __init__(self, instance: Cosmology, cls: type[Cosmology]):
+    def __init__(self, instance: Cosmology, cls: type[Cosmology]) -> None:
         super().__init__(instance, cls, "write", registry=convert_registry)
 
     def __call__(self, format: str, *args: Any, **kwargs: Any) -> object:
