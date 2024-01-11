@@ -20,11 +20,9 @@ __all__ = [  # noqa: F822 (undefined name)
     "Planck18",
 ]
 
-# STDLIB
 import pathlib
 import sys
 
-# LOCAL
 from astropy.utils.data import get_pkg_data_path
 from astropy.utils.state import ScienceState
 

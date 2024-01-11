@@ -1,13 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# STDLIB
 from types import MappingProxyType
 
-# THIRD PARTY
 import numpy as np
 import pytest
 
-# LOCAL
 from astropy.cosmology import parameters, realizations
 
 
