@@ -541,10 +541,10 @@ def test_fill_values(fast_reader):
     data = ascii.read(
         f, fill_values=("a", "1"), fast_reader=fast_reader, **testfile["opts"]
     )
-    npt.assert_((data["a"].mask == [False, True]).all())
-    npt.assert_((data["a"] == [1, 1]).all())
-    npt.assert_((data["b"].mask == [False, True]).all())
-    npt.assert_((data["b"] == [2, 1]).all())
+    assert (data["a"].mask == [False, True]).all()
+    assert (data["a"] == [1, 1]).all()
+    assert (data["b"].mask == [False, True]).all()
+    assert (data["b"] == [2, 1]).all()
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
