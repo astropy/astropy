@@ -39,12 +39,12 @@ Integers and floats:
     >>> u.Quantity(1.0, u.meter)
     <Quantity 1.0 m>
 
-Tuples and lists:
-
-    >>> u.Quantity((1.0, 2.0), u.meter)
-    <Quantity [1., 2.] m>
+Lists and tuples:
 
     >>> u.Quantity([1.0, 2.0], u.meter)
+    <Quantity [1., 2.] m>
+
+    >>> u.Quantity((1.0, 2.0), u.meter)
     <Quantity [1., 2.] m>
 
 Numpy arrays:
