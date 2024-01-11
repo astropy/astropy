@@ -2,17 +2,11 @@
 
 """Testing :mod:`astropy.cosmology.parameter`."""
 
-##############################################################################
-# IMPORTS
-
-# STDLIB
 from typing import Callable
 
-# THIRD PARTY
 import numpy as np
 import pytest
 
-# LOCAL
 import astropy.units as u
 from astropy.cosmology import Cosmology, Parameter
 from astropy.cosmology.core import _COSMOLOGY_CLASSES

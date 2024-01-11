@@ -1,12 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# STDLIB
 import pickle
 
-# THIRD PARTY
 import pytest
 
-# LOCAL
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy import cosmology

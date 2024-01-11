@@ -2,14 +2,9 @@
 
 """Testing :mod:`astropy.cosmology.flrw.w0cdm`."""
 
-##############################################################################
-# IMPORTS
-
-# THIRD PARTY
 import numpy as np
 import pytest
 
-# LOCAL
 import astropy.units as u
 from astropy.cosmology import FlatwCDM, wCDM
 from astropy.cosmology.parameter import Parameter
