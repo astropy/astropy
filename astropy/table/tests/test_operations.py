@@ -2468,7 +2468,19 @@ def test_mixin_join_regression():
 )
 def test_table_comp(t1, t2):
     # see https://github.com/astropy/astropy/issues/13421
-    assert not any(t1 == t2)
-    assert not any(t2 == t1)
-    assert all(t1 != t2)
-    assert all(t2 != t1)
+    try:
+        np.result_type(t1.dtype, t2.dtype)
+        np.broadcast_shapes((len(t1),), (len(t2),))
+    except (TypeError, ValueError):
+        # dtypes are not comparable or arrays can't be broadcasted:
+        # a simple bool should be returned
+        assert not t1 == t2
+        assert not t2 == t1
+        assert t1 != t2
+        assert t2 != t1
+    else:
+        # otherwise, the general case is to return a 1D array with dtype=bool
+        assert not any(t1 == t2)
+        assert not any(t2 == t1)
+        assert all(t1 != t2)
+        assert all(t2 != t1)

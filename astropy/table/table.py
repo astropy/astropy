@@ -3699,7 +3699,11 @@ class Table:
 
         This is actual implementation for __eq__.
 
-        Returns a 1-D boolean numpy array showing result of row-wise comparison.
+        Returns a 1-D boolean numpy array showing result of row-wise comparison,
+        or a bool (False) in cases where comparison isn't possible (uncomparable dtypes
+        or unbroadcastable shapes). Intended to follow legacy numpy's elementwise
+        comparison rules.
+
         This is the same as the ``==`` comparison for tables.
 
         Parameters
@@ -3740,12 +3744,12 @@ class Table:
                 # numpy may complain that structured array are not comparable (TypeError)
                 # or that operands are not brodcastable (ValueError)
                 # see https://github.com/astropy/astropy/issues/13421
-                result = np.array([False])
+                result = False
         else:
             try:
                 result = self.as_array() == other
             except whitelist:
-                result = np.array([False])
+                result = False
 
         return result
 
