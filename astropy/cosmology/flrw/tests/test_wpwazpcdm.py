@@ -3,11 +3,8 @@
 """Testing :mod:`astropy.cosmology.flrw.wpwazpcdm`."""
 
 import numpy as np
-
-# THIRD PARTY
 import pytest
 
-# LOCAL
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import FlatwpwaCDM, wpwaCDM
