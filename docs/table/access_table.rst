@@ -351,12 +351,18 @@ Table Equality
 
 We can check table data equality using two different methods:
 
-- The ``==`` comparison operator. This returns a `True` or `False` for
-  each row if the *entire row* matches. This is the same as the behavior of
-  ``numpy`` structured arrays.
+- The ``==`` comparison operators. In the general case, this returns a 1D array
+  with ``dtype=bool`` mapping each row to ``True`` if and only if the *entire row*
+  matches. For incomparable data (different ``dtype`` or unbroacastable lengths),
+  a boolean ``False`` is returned.
+  This is in contrast to the behavior of ``numpy`` where trying to compare
+  structured arrays might raise exceptions.
 - Table :meth:`~astropy.table.Table.values_equal` to compare table values
   element-wise. This returns a boolean `True` or `False` for each table
   *element*, so you get a `~astropy.table.Table` of values.
+
+.. note:: both methods will report equality *after* broadcasting, which
+  matches ``numpy`` array comparison.
 
 Examples
 ^^^^^^^^
