@@ -12,7 +12,10 @@ import numpy.typing as npt
 from astropy.units import Quantity
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
+    if sys.version_info >= (3, 10):
+        from typing import TypeAlias
+    else:
+        from typing_extensions import TypeAlias
 
 # Note: Quantity is technically covered by npt.ArrayLike, but we want to
 # explicitly include it here so that it is clear that we are also including
