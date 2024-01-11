@@ -55,7 +55,7 @@ _CosmoT = TypeVar("_CosmoT", bound="Cosmology")
 _FlatCosmoT = TypeVar("_FlatCosmoT", bound="FlatCosmologyMixin")
 
 # dataclass
-dataclass_decorator = dataclass(frozen=False, repr=False, eq=False, init=False)
+dataclass_decorator = dataclass(frozen=True, repr=False, eq=False, init=False)
 
 ##############################################################################
 
@@ -272,7 +272,7 @@ class Cosmology(metaclass=ABCMeta):
         # Check if nothing has changed.
         # TODO! or should return self?
         if (cloned.name == _modname) and not meta and cloned.is_equivalent(self):
-            cloned._name = self.name
+            object.__setattr__(cloned, "name", self.name)
 
         return cloned
 

@@ -133,8 +133,8 @@ class w0wzCDM(FLRW):
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
-            self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_norel
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_norel
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ok0,
@@ -142,8 +142,8 @@ class w0wzCDM(FLRW):
                 self._wz,
             )
         elif not self._massivenu:
-            self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_nomnu
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_nomnu
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ok0,
@@ -152,8 +152,8 @@ class w0wzCDM(FLRW):
                 self._wz,
             )
         else:
-            self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ok0,
@@ -164,6 +164,8 @@ class w0wzCDM(FLRW):
                 self._w0,
                 self._wz,
             )
+        object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
+        object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
     def w(self, z):
         r"""Returns dark energy equation of state at redshift ``z``.
@@ -323,11 +325,11 @@ class Flatw0wzCDM(FlatFLRWMixin, w0wzCDM):
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
-            self._inv_efunc_scalar = scalar_inv_efuncs.fw0wzcdm_inv_efunc_norel
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._w0, self._wz)
+            inv_efunc_scalar = scalar_inv_efuncs.fw0wzcdm_inv_efunc_norel
+            inv_efunc_scalar_args = (self._Om0, self._Ode0, self._w0, self._wz)
         elif not self._massivenu:
-            self._inv_efunc_scalar = scalar_inv_efuncs.fw0wzcdm_inv_efunc_nomnu
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.fw0wzcdm_inv_efunc_nomnu
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ogamma0 + self._Onu0,
@@ -335,8 +337,8 @@ class Flatw0wzCDM(FlatFLRWMixin, w0wzCDM):
                 self._wz,
             )
         else:
-            self._inv_efunc_scalar = scalar_inv_efuncs.fw0wzcdm_inv_efunc
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.fw0wzcdm_inv_efunc
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ogamma0,
@@ -346,3 +348,5 @@ class Flatw0wzCDM(FlatFLRWMixin, w0wzCDM):
                 self._w0,
                 self._wz,
             )
+        object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
+        object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)

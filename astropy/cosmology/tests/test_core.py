@@ -7,7 +7,6 @@ from __future__ import annotations
 import abc
 import inspect
 import pickle
-import sys
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -77,9 +76,10 @@ class SubCosmology(Cosmology):
 
     def __init__(self, H0, Tcmb0=0 * u.K, m_nu=0 * u.eV, name=None, meta=None):
         super().__init__(name=name, meta=meta)
-        self.H0 = H0
-        self.Tcmb0 = Tcmb0
-        self.m_nu = m_nu
+        params = self.__class__.parameters
+        params["H0"].__set__(self, H0)
+        params["Tcmb0"].__set__(self, Tcmb0)
+        params["m_nu"].__set__(self, m_nu)
 
     @property
     def is_flat(self):
@@ -217,14 +217,9 @@ class CosmologyTest(
         assert cosmo.name is None or isinstance(cosmo.name, str)  # type
         assert cosmo.name == self.cls_kwargs["name"]  # test has expected value
 
-        # immutable
-        if sys.version_info < (3, 11):
-            match = "can't set"
-        else:
-            match = (
-                f"property 'name' of {cosmo.__class__.__name__!r} object has no setter"
-            )
-
+    def test_name_immutable(self, cosmo):
+        """The name field should be immutable."""
+        match = "cannot assign to field 'name'"
         with pytest.raises(AttributeError, match=match):
             cosmo.name = None
 
@@ -249,7 +244,7 @@ class CosmologyTest(
         c = cosmo.clone(name="cloned cosmo")
         assert c.name == "cloned cosmo"  # changed
         # show name is the only thing changed
-        c._name = cosmo.name  # first change name back
+        object.__setattr__(c, "name", cosmo.name)  # first change name back
         assert c == cosmo
         assert c.meta == cosmo.meta
 
