@@ -51,8 +51,8 @@ def assert_table_equal(t1, t2, check_meta=False, rtol=1.0e-15, atol=1.0e-300):
             for i, el in enumerate(t1[name]):
                 try:
                     if not isinstance(el, str) and np.isnan(el):
-                        assert (
-                            not isinstance(t2[name][i], str) and np.isnan(t2[name][i])
+                        assert not isinstance(t2[name][i], str) and np.isnan(
+                            t2[name][i]
                         )
                     elif isinstance(el, str):
                         npt.assert_equal(el, t2[name][i])
