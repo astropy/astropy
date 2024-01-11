@@ -16,13 +16,12 @@ code under a BSD license.
 # this also makes it easier to understand where most time is spent
 # (e.g., using python -X importtime).
 
-from .core import set_enabled_units
-
-# isort: off
+from . import astrophys, cgs, misc, photometric, si
 from .core import *
+from .core import set_enabled_units
 from .quantity import *
 
-from . import astrophys, cgs, misc, photometric, si
+# isort: off
 from .function import units as function_units
 
 from .si import *
