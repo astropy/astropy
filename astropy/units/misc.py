@@ -16,6 +16,8 @@ set_enabled_units([si])
 
 import numpy as _np  # noqa: E402
 
+__all__: list[str] = []  #  Units are added at the end
+
 _ns = globals()
 
 ###########################################################################
@@ -130,16 +132,11 @@ def_unit(
     prefixes=True,
 )
 
-
 ###########################################################################
-# CLEANUP
+# ALL & DOCSTRING
 
-del UnitBase
-del def_unit
-del si
+__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 
-###########################################################################
-# DOCSTRING
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the

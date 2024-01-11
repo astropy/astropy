@@ -5,9 +5,11 @@ If called, their arguments are used to initialize the corresponding function
 unit (e.g., ``u.mag(u.ct/u.s)``).  Note that the prefixed versions cannot be
 called, as it would be unclear what, e.g., ``u.mmag(u.ct/u.s)`` would mean.
 """
-from astropy.units.core import _add_prefixes
+from astropy.units.core import UnitBase, _add_prefixes
 
 from .mixin import IrreducibleFunctionUnit, RegularFunctionUnit
+
+__all__: list[str] = []  #  Units are added at the end
 
 _ns = globals()
 
@@ -37,14 +39,11 @@ mag = RegularFunctionUnit(
 
 _add_prefixes(mag, namespace=_ns, prefixes=True)
 
-###########################################################################
-# CLEANUP
-
-del RegularFunctionUnit
-del IrreducibleFunctionUnit
 
 ###########################################################################
 # DOCSTRING
+
+__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the
