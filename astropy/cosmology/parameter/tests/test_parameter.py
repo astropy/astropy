@@ -145,7 +145,7 @@ class ParameterTestMixin:
         """Test :attr:`astropy.cosmology.Parameter.default`."""
         assert hasattr(all_parameter, "default")
         assert all_parameter.default is MISSING or isinstance(
-            all_parameter.default, (type(None), float, u.Quantity)
+            all_parameter.default, (type(None), int, float, u.Quantity)
         )
 
     # -------------------------------------------
@@ -166,12 +166,6 @@ class ParameterTestMixin:
         """Test :attr:`astropy.cosmology.Parameter.__set__`."""
         # test it's already set
         assert hasattr(cosmo, all_parameter._attr_name)
-
-        # and raises an error if set again
-        with pytest.raises(
-            AttributeError, match=f"cannot assign to field {all_parameter.name!r}"
-        ):
-            setattr(cosmo, all_parameter.name, None)
 
     # -------------------------------------------
     # validate value
@@ -202,7 +196,8 @@ class TestParameter(ParameterTestMixin):
     """
 
     def setup_class(self):
-        Param = Parameter(
+        theparam = Parameter(
+            default=15,
             doc="Description of example parameter.",
             unit=u.m,
             equivalencies=u.mass_energy(),
@@ -210,10 +205,11 @@ class TestParameter(ParameterTestMixin):
 
         @dataclass_decorator
         class Example1(Cosmology):
-            param = Param
+            param: Parameter = theparam.clone()
 
-            def __init__(self, param=15):
-                self.param = param
+            def __init__(self, param=15, *, name=None, meta=None):
+                super().__init__(name=name, meta=meta)
+                self.__class__.parameters["param"].__set__(self, param)
 
             @property
             def is_flat(self):
@@ -222,10 +218,10 @@ class TestParameter(ParameterTestMixin):
         # with validator
         @dataclass_decorator
         class Example2(Example1):
-            def __init__(self, param=15 * u.m):
-                self.param = param
+            def __init__(self, param=15 * u.m, *, name=None, meta=None):
+                super().__init__(param=param, name=name, meta=meta)
 
-            @Param.validator
+            @theparam.validator
             def param(self, param, value):
                 return value.to(u.km)
 

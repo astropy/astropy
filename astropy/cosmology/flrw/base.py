@@ -209,48 +209,55 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         super().__init__(name=name, meta=meta)
 
         # Assign (and validate) Parameters
-        self.H0 = H0
-        self.Om0 = Om0
-        self.Ode0 = Ode0
-        self.Tcmb0 = Tcmb0
-        self.Neff = Neff
-        self.m_nu = m_nu  # (reset later, this is just for unit validation)
-        self.Ob0 = Ob0  # (must be after Om0)
+        cls = type(self)
+        cls.H0.__set__(self, H0)
+        cls.Om0.__set__(self, Om0)
+        cls.Ode0.__set__(self, Ode0)  # often a derived parameter
+        cls.Tcmb0.__set__(self, Tcmb0)
+        cls.Neff.__set__(self, Neff)
+        cls.m_nu.__set__(self, m_nu)
+        cls.Ob0.__set__(self, Ob0)  # (must be after Om0)
 
         # Derived quantities:
         # Dark matter density; matter - baryons, if latter is not None.
-        self._Odm0 = None if Ob0 is None else (self._Om0 - self._Ob0)
+        object.__setattr__(
+            self, "_Odm0", None if Ob0 is None else (self._Om0 - self._Ob0)
+        )
 
         # 100 km/s/Mpc * h = H0 (so h is dimensionless)
-        self._h = self._H0.value / 100.0
+        object.__setattr__(self, "_h", self._H0.value / 100.0)
         # Hubble distance
-        self._hubble_distance = (const.c / self._H0).to(u.Mpc)
+        object.__setattr__(self, "_hubble_distance", (const.c / self._H0).to(u.Mpc))
         # H0 in s^-1
         H0_s = self._H0.value * _H0units_to_invs
         # Hubble time
-        self._hubble_time = (_sec_to_Gyr / H0_s) << u.Gyr
+        object.__setattr__(self, "_hubble_time", (_sec_to_Gyr / H0_s) << u.Gyr)
 
         # Critical density at z=0 (grams per cubic cm)
         cd0value = _critdens_const * H0_s**2
-        self._critical_density0 = cd0value << u.g / u.cm**3
+        object.__setattr__(self, "_critical_density0", cd0value << u.g / u.cm**3)
 
         # Compute photon density from Tcmb
-        self._Ogamma0 = _a_B_c2 * self._Tcmb0.value**4 / self._critical_density0.value
+        object.__setattr__(
+            self,
+            "_Ogamma0",
+            _a_B_c2 * self._Tcmb0.value**4 / self._critical_density0.value,
+        )
 
         # Compute Neutrino temperature:
         # The constant in front is (4/11)^1/3 -- see any cosmology book for an
         # explanation -- for example, Weinberg 'Cosmology' p 154 eq (3.1.21).
-        self._Tnu0 = 0.7137658555036082 * self._Tcmb0
+        object.__setattr__(self, "_Tnu0", 0.7137658555036082 * self._Tcmb0)
 
         # Compute neutrino parameters:
         if self._m_nu is None:
-            self._nneutrinos = 0
-            self._neff_per_nu = None
-            self._massivenu = False
-            self._massivenu_mass = None
-            self._nmassivenu = self._nmasslessnu = None
+            nneutrinos = 0
+            neff_per_nu = None
+            massivenu = False
+            massivenu_mass = None
+            nmassivenu = nmasslessnu = None
         else:
-            self._nneutrinos = floor(self._Neff)
+            nneutrinos = floor(self._Neff)
 
             # We are going to share Neff between the neutrinos equally. In
             # detail this is not correct, but it is a standard assumption
@@ -258,43 +265,55 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             # the details of the massive neutrinos (e.g., their weak
             # interactions, which could be unusual if one is considering
             # sterile neutrinos).
-            self._neff_per_nu = self._Neff / self._nneutrinos
+            neff_per_nu = self._Neff / nneutrinos
 
             # Now figure out if we have massive neutrinos to deal with, and if
             # so, get the right number of masses. It is worth keeping track of
             # massless ones separately (since they are easy to deal with, and a
             # common use case is to have only one massive neutrino).
             massive = np.nonzero(self._m_nu.value > 0)[0]
-            self._massivenu = massive.size > 0
-            self._nmassivenu = len(massive)
-            self._massivenu_mass = (
-                self._m_nu[massive].value if self._massivenu else None
-            )
-            self._nmasslessnu = self._nneutrinos - self._nmassivenu
+            massivenu = massive.size > 0
+            nmassivenu = len(massive)
+            massivenu_mass = self._m_nu[massive].value if massivenu else None
+            nmasslessnu = nneutrinos - nmassivenu
+
+        object.__setattr__(self, "_nneutrinos", nneutrinos)
+        object.__setattr__(self, "_neff_per_nu", neff_per_nu)
+        object.__setattr__(self, "_massivenu", massivenu)
+        object.__setattr__(self, "_massivenu_mass", massivenu_mass)
+        object.__setattr__(self, "_nmassivenu", nmassivenu)
+        object.__setattr__(self, "_nmasslessnu", nmasslessnu)
 
         # Compute Neutrino Omega and total relativistic component for massive
         # neutrinos. We also store a list version, since that is more efficient
         # to do integrals with (perhaps surprisingly! But small python lists
         # are more efficient than small NumPy arrays).
         if self._massivenu:  # (`_massivenu` set in `m_nu`)
-            nu_y = self._massivenu_mass / (_kB_evK * self._Tnu0)
-            self._nu_y = nu_y.value
-            self._nu_y_list = self._nu_y.tolist()
-            self._Onu0 = self._Ogamma0 * self.nu_relative_density(0)
+            nu_y = (self._massivenu_mass / (_kB_evK * self._Tnu0)).value
+            nu_y_list = nu_y.tolist()
+            object.__setattr__(self, "_nu_y", nu_y)
+            object.__setattr__(self, "_nu_y_list", nu_y_list)
+            Onu0 = self._Ogamma0 * self.nu_relative_density(0)
         else:
             # This case is particularly simple, so do it directly The 0.2271...
             # is 7/8 (4/11)^(4/3) -- the temperature bit ^4 (blackbody energy
             # density) times 7/8 for FD vs. BE statistics.
-            self._Onu0 = 0.22710731766 * self._Neff * self._Ogamma0
-            self._nu_y = self._nu_y_list = None
+            Onu0 = 0.22710731766 * self._Neff * self._Ogamma0
+            nu_y = nu_y_list = None
+            object.__setattr__(self, "_nu_y", nu_y)
+            object.__setattr__(self, "_nu_y_list", nu_y_list)
+
+        object.__setattr__(self, "_Onu0", Onu0)
 
         # Compute curvature density
-        self._Ok0 = 1.0 - self._Om0 - self._Ode0 - self._Ogamma0 - self._Onu0
+        object.__setattr__(
+            self, "_Ok0", 1.0 - self._Om0 - self._Ode0 - self._Ogamma0 - self._Onu0
+        )
 
         # Subclasses should override this reference if they provide
         #  more efficient scalar versions of inv_efunc.
-        self._inv_efunc_scalar = self.inv_efunc
-        self._inv_efunc_scalar_args = ()
+        object.__setattr__(self, "_inv_efunc_scalar", self.inv_efunc)
+        object.__setattr__(self, "_inv_efunc_scalar_args", ())
 
     def __post_init__(self):
         """Post-initialization, for subclasses to override."""
@@ -1502,21 +1521,23 @@ class FlatFLRWMixin(FlatCosmologyMixin):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)  # guaranteed not to have `Ode0`
         # Do some twiddling after the fact to get flatness
-        self._Ok0 = 0.0
-        self._Ode0 = 1.0 - (self._Om0 + self._Ogamma0 + self._Onu0 + self._Ok0)
+        object.__setattr__(self, "_Ok0", 0.0)
+        object.__setattr__(
+            self, "_Ode0", 1.0 - (self._Om0 + self._Ogamma0 + self._Onu0 + self._Ok0)
+        )
 
     @lazyproperty
     def nonflat(self: _FlatFLRWMixinT) -> _FLRWT:
         # Create BoundArgument to handle args versus kwargs.
         # This also handles all errors from mismatched arguments
         ba = self.__nonflatclass__._init_signature.bind_partial(
-            **self.parameters, Ode0=self.Ode0, name=self.name
+            **dict(self.parameters), Ode0=self.Ode0, name=self.name
         )
         # Make new instance, respecting args vs kwargs
         inst = self.__nonflatclass__(*ba.args, **ba.kwargs)
         # Because of machine precision, make sure parameters exactly match
         for n in (*inst._parameters_all, "Ok0"):
-            setattr(inst, "_" + n, getattr(self, n))
+            object.__setattr__(inst, "_" + n, getattr(self, n))
 
         return inst
 

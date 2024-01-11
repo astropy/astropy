@@ -1,1 +1,1 @@
-``Cosmology`` is now a ``dataclass``.
+``Cosmology`` and its subclasses are now frozen ``dataclass`` objects.

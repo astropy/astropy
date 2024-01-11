@@ -193,7 +193,7 @@ class Parameter:
             value.setflags(write=False)
 
         # Set the value on the cosmology
-        setattr(cosmology, self._attr_name, value)
+        object.__setattr__(cosmology, self._attr_name, value)
 
     # -------------------------------------------
     # validate value
