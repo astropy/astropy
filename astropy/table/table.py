@@ -3684,7 +3684,14 @@ class Table:
         return self._rows_equal(other)
 
     def __ne__(self, other):
-        return ~self.__eq__(other)
+        eq = self.__eq__(other)
+        if isinstance(eq, bool):
+            # bitwise operators on bool values not reliable (e.g. `bool(~True) == True`)
+            # and are deprecated in Python 3.12
+            # see https://github.com/python/cpython/pull/103487
+            return not eq
+        else:
+            return ~eq
 
     def _rows_equal(self, other):
         """
