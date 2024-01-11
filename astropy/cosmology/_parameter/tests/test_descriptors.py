@@ -6,8 +6,8 @@ from types import MappingProxyType
 
 import pytest
 
+from astropy.cosmology import Parameter
 from astropy.cosmology._utils import all_cls_vars
-from astropy.cosmology.parameter import Parameter
 
 
 class ParametersAttributeTestMixin:
