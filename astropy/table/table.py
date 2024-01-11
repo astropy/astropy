@@ -3729,7 +3729,7 @@ class Table:
 
         whitelist = (TypeError, ValueError if not NUMPY_LT_1_25 else DeprecationWarning)
         # One table is masked and the other is not
-        if self_is_masked != other_is_masked:
+        if self_is_masked ^ other_is_masked:
             # remap variables to a and b where a is masked and b isn't
             a, b = (
                 (self.as_array(), other) if self_is_masked else (other, self.as_array())
