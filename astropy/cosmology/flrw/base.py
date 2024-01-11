@@ -221,7 +221,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         # Derived quantities:
         # Dark matter density; matter - baryons, if latter is not None.
         object.__setattr__(
-            self, "_Odm0", None if Ob0 is None else (self._Om0 - self._Ob0)
+            self, "_Odm0", (None if Ob0 is None else (self._Om0 - self._Ob0))
         )
 
         # 100 km/s/Mpc * h = H0 (so h is dimensionless)
