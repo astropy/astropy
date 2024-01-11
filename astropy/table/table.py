@@ -15,6 +15,7 @@ from astropy import log
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
 from astropy.utils import ShapedLikeNDArray, isiterable
+from astropy.utils.compat import NUMPY_LT_1_25
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
 from astropy.utils.decorators import format_doc
@@ -3689,7 +3690,14 @@ class Table:
         return self._rows_equal(other)
 
     def __ne__(self, other):
-        return ~self.__eq__(other)
+        eq = self.__eq__(other)
+        if isinstance(eq, bool):
+            # bitwise operators on bool values not reliable (e.g. `bool(~True) == True`)
+            # and are deprecated in Python 3.12
+            # see https://github.com/python/cpython/pull/103487
+            return not eq
+        else:
+            return ~eq
 
     def _rows_equal(self, other):
         """
@@ -3697,7 +3705,11 @@ class Table:
 
         This is actual implementation for __eq__.
 
-        Returns a 1-D boolean numpy array showing result of row-wise comparison.
+        Returns a 1-D boolean numpy array showing result of row-wise comparison,
+        or a bool (False) in cases where comparison isn't possible (uncomparable dtypes
+        or unbroadcastable shapes). Intended to follow legacy numpy's elementwise
+        comparison rules.
+
         This is the same as the ``==`` comparison for tables.
 
         Parameters
@@ -3718,22 +3730,35 @@ class Table:
         if isinstance(other, Table):
             other = other.as_array()
 
-        if self.has_masked_columns:
-            if isinstance(other, np.ma.MaskedArray):
-                result = self.as_array() == other
-            else:
-                # If mask is True, then by definition the row doesn't match
-                # because the other array is not masked.
-                false_mask = np.zeros(1, dtype=[(n, bool) for n in self.dtype.names])
-                result = (self.as_array().data == other) & (self.mask == false_mask)
+        self_is_masked = self.has_masked_columns
+        other_is_masked = isinstance(other, np.ma.MaskedArray)
+
+        allowed_numpy_exceptions = (
+            TypeError,
+            ValueError if not NUMPY_LT_1_25 else DeprecationWarning,
+        )
+        # One table is masked and the other is not
+        if self_is_masked ^ other_is_masked:
+            # remap variables to a and b where a is masked and b isn't
+            a, b = (
+                (self.as_array(), other) if self_is_masked else (other, self.as_array())
+            )
+
+            # If mask is True, then by definition the row doesn't match
+            # because the other array is not masked.
+            false_mask = np.zeros(1, dtype=[(n, bool) for n in a.dtype.names])
+            try:
+                result = (a.data == b) & (a.mask == false_mask)
+            except allowed_numpy_exceptions:
+                # numpy may complain that structured array are not comparable (TypeError)
+                # or that operands are not brodcastable (ValueError)
+                # see https://github.com/astropy/astropy/issues/13421
+                result = False
         else:
-            if isinstance(other, np.ma.MaskedArray):
-                # If mask is True, then by definition the row doesn't match
-                # because the other array is not masked.
-                false_mask = np.zeros(1, dtype=[(n, bool) for n in other.dtype.names])
-                result = (self.as_array() == other.data) & (other.mask == false_mask)
-            else:
+            try:
                 result = self.as_array() == other
+            except allowed_numpy_exceptions:
+                result = False
 
         return result
 
