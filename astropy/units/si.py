@@ -11,6 +11,8 @@ from astropy.constants import si as _si
 
 from .core import Unit, UnitBase, def_unit
 
+__all__: list[str] = []  #  Units are added at the end
+
 _ns = globals()
 
 
@@ -444,15 +446,9 @@ bases = {m, s, kg, A, cd, rad, K, mol}
 
 
 ###########################################################################
-# CLEANUP
+# ALL & DOCSTRING
 
-del UnitBase
-del Unit
-del def_unit
-
-
-###########################################################################
-# DOCSTRING
+__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the

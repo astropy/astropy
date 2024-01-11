@@ -17,6 +17,7 @@ To include them in `~astropy.units.UnitBase.compose` and the results of
     >>> u.imperial.enable()  # doctest: +SKIP
 """
 
+__all__: list[str] = []  #  Units are added at the end
 
 from . import si
 from .core import UnitBase, def_unit
@@ -148,16 +149,10 @@ def_unit(
     doc="Rankine scale: absolute scale of thermodynamic temperature",
 )
 
-
 ###########################################################################
-# CLEANUP
+# ALL & DOCSTRING
 
-del UnitBase
-del def_unit
-
-
-###########################################################################
-# DOCSTRING
+__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the

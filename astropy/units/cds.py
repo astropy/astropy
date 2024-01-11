@@ -34,6 +34,10 @@ you have a string that uses CDS units:
 <Quantity 0.95992119 bar>
 """
 
+__all__ = ["enable"]  #  Units are added at the end
+
+from .core import UnitBase
+
 _ns = globals()
 
 
@@ -179,7 +183,9 @@ _initialize_module()
 
 
 ###########################################################################
-# DOCSTRING
+# ALL & DOCSTRING
+
+__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the
