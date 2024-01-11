@@ -95,7 +95,7 @@ all = [
 docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
     "sphinx",
-    "sphinx-astropy[confv2] @ git+ssh://git@github.com/neutrinoceros/sphinx-astropy@tmp/no_sphinx_gallery",
+    "sphinx-astropy[confv2] @ git+https://github.com/neutrinoceros/sphinx-astropy@tmp/no_sphinx_gallery",
     "pytest>=7.0",
     "sphinx-changelog>=1.2.0",
     "sphinx_design",
