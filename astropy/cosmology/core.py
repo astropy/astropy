@@ -37,8 +37,6 @@ if TYPE_CHECKING:
 
 __all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin"]
 
-__doctest_requires__ = {}  # needed until __getattr__ removed
-
 
 ##############################################################################
 # Parameters
