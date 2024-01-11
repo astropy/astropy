@@ -64,9 +64,11 @@ def __getattr__(name: str) -> Cosmology:
     cosmo = Cosmology.read(
         str(_COSMOLOGY_DATA_DIR / name) + ".ecsv", format="ascii.ecsv"
     )
-    cosmo.__doc__ = (
+    object.__setattr__(
+        cosmo,
+        "__doc__",
         f"{name} instance of {cosmo.__class__.__qualname__} "
-        f"cosmology\n(from {cosmo.meta['reference']})"
+        f"cosmology\n(from {cosmo.meta['reference']})",
     )
 
     # Cache in this module so `__getattr__` is only called once per `name`.

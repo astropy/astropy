@@ -1110,7 +1110,7 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
             Ode0=1.0 - cosmo.Om0 - cosmo.Ogamma0 - cosmo.Onu0,
             **self.cls_kwargs,
         )
-        flat._Ok0 = 0.0
+        object.__setattr__(flat, "_Ok0", 0.0)
         assert flat.is_equivalent(cosmo)
         assert cosmo.is_equivalent(flat)
 

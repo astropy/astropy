@@ -59,7 +59,7 @@ and tips and tricks to building a performant cosmology class.
 
     from astropy.cosmology import FLRW
 
-    @dataclass(repr=False, eq=False, init=False)
+    @dataclass(frozen=True, repr=False, eq=False, init=False)
     class CustomCosmology(FLRW):
         ...  # [details discussed below]
 
@@ -87,7 +87,7 @@ the definition of |FLRW|.
 
 .. code-block:: python
 
-    @dataclass(repr=False, eq=False, init=False)
+    @dataclass(frozen=True, repr=False, eq=False, init=False)
     class FLRW(Cosmology):
 
         H0: Parameter = Parameter(doc="Hubble constant as an `~astropy.units.Quantity` at z=0",
@@ -148,7 +148,7 @@ parameter and change any constructor argument. For example, see
 
 .. code-block:: python
 
-    @dataclass(repr=False, eq=False, init=False)
+    @dataclass(frozen=True, repr=False, eq=False, init=False)
     class FlatFLRWMixin(FlatCosmologyMixin):
         ...
 
