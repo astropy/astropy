@@ -1135,7 +1135,5 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
         e.g. `TestFlatLambdaCDDM` -> `FlatFLRWMixinTest`
         vs   `TestFlatLambdaCDDM` -> `TestLambdaCDDM` -> `FlatFLRWMixinTest`
         """
-        FLRWTest.test_repr(self, cosmo_cls, cosmo)
-
         # test eliminated Ode0 from parameters
         assert "Ode0" not in repr(cosmo)

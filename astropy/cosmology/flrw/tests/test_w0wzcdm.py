@@ -107,8 +107,6 @@ class Testw0wzCDM(FLRWTest, Parameterw0TestMixin, ParameterwzTestMixin):
 
     def test_repr(self, cosmo_cls, cosmo):
         """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
         assert repr(cosmo) == (
             "w0wzCDM(name='ABCMeta', H0=<Quantity 70. km / (Mpc s)>, Om0=0.27, "
             "Ode0=0.73, Tcmb0=<Quantity 3. K>, Neff=3.04, "
