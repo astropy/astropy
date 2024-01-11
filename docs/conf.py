@@ -33,11 +33,14 @@ from pathlib import Path
 
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
+from sphinx.util import logging
 
 if sys.version_info < (3, 11):
     import tomli as tomllib
 else:
     import tomllib
+
+logger = logging.getLogger(__name__)
 
 # -- Check for missing dependencies -------------------------------------------
 missing_requirements = {}
@@ -56,13 +59,14 @@ for line in metadata.requires("astropy"):
             missing_requirements[req_package] = req_specifier
 
 if missing_requirements:
-    print(
+    msg = (
         "The following packages could not be found and are required to "
-        "build the documentation:"
+        "build the documentation:\n"
+        "%s"
+        '\nPlease install the "docs" requirements.',
+        "\n".join([f"    * {key} {val}" for key, val in missing_requirements.items()]),
     )
-    for key, val in missing_requirements.items():
-        print(f"    * {key} {val}")
-    print('Please install the "docs" requirements.')
+    logger.error(msg)
     sys.exit(1)
 
 from sphinx_astropy.conf.v2 import *  # noqa: E402, F403
@@ -379,7 +383,7 @@ def rstjinja(app, docname, source):
         return
     files_to_render = ["index_dev", "install"]
     if docname in files_to_render:
-        print(f"Jinja rendering {docname}")
+        logger.info("Jinja rendering %s", docname)
         rendered = app.builder.templates.render_string(
             source[0], app.config.html_context
         )
@@ -436,20 +440,12 @@ def resolve_astropy_and_dev_reference(app, env, node, contnode):
 
 def setup(app):
     if sphinx_gallery is None:
-        msg = (
+        logger.warning(
             "The sphinx_gallery extension is not installed, so the "
             "gallery will not be built.  You will probably see "
             "additional warnings about undefined references due "
             "to this."
         )
-        try:
-            app.warn(msg)
-        except AttributeError:
-            # Sphinx 1.6+
-            from sphinx.util import logging
-
-            logger = logging.getLogger(__name__)
-            logger.warning(msg)
 
     # Generate the page from Jinja template
     app.connect("source-read", rstjinja)
