@@ -2,18 +2,11 @@
 
 """Testing :mod:`astropy.cosmology.flrw.lambdacdm`."""
 
-##############################################################################
-# IMPORTS
-
-# STDLIB
-
-# THIRD PARTY
 import pathlib
 
 import numpy as np
 import pytest
 
-# LOCAL
 import astropy.constants as const
 import astropy.cosmology.units as cu
 import astropy.units as u

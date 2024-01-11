@@ -2,9 +2,6 @@
 
 """Testing :mod:`astropy.cosmology.flrw.lambdacdm`."""
 
-##############################################################################
-# IMPORTS
-
 import numpy as np
 import pytest
 
