@@ -3727,7 +3727,10 @@ class Table:
         self_is_masked = self.has_masked_columns
         other_is_masked = isinstance(other, np.ma.MaskedArray)
 
-        whitelist = (TypeError, ValueError if not NUMPY_LT_1_25 else DeprecationWarning)
+        allowed_numpy_exceptions = (
+            TypeError,
+            ValueError if not NUMPY_LT_1_25 else DeprecationWarning,
+        )
         # One table is masked and the other is not
         if self_is_masked ^ other_is_masked:
             # remap variables to a and b where a is masked and b isn't
@@ -3740,7 +3743,7 @@ class Table:
             false_mask = np.zeros(1, dtype=[(n, bool) for n in a.dtype.names])
             try:
                 result = (a.data == b) & (a.mask == false_mask)
-            except whitelist:
+            except allowed_numpy_exceptions:
                 # numpy may complain that structured array are not comparable (TypeError)
                 # or that operands are not brodcastable (ValueError)
                 # see https://github.com/astropy/astropy/issues/13421
@@ -3748,7 +3751,7 @@ class Table:
         else:
             try:
                 result = self.as_array() == other
-            except whitelist:
+            except allowed_numpy_exceptions:
                 result = False
 
         return result
