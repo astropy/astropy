@@ -282,34 +282,6 @@ class CosmologyTest(
         assert (cosmo != newcosmo) and (newcosmo != cosmo)
         assert cosmo.__equiv__(newcosmo) and newcosmo.__equiv__(cosmo)
 
-    # ---------------------------------------------------------------
-
-    def test_repr(self, cosmo_cls, cosmo):
-        """Test method ``.__repr__()``.
-
-        This is a very general test and it is probably good to have a
-        hard-coded comparison.
-        """
-        r = repr(cosmo)
-
-        # class in string rep
-        assert cosmo_cls.__qualname__ in r
-        assert r.index(cosmo_cls.__qualname__) == 0  # it's the first thing
-        r = r[len(cosmo_cls.__qualname__) + 1 :]  # remove
-
-        # name in string rep
-        if cosmo.name is not None:
-            assert f"name={cosmo.name!r}" in r
-            assert r.index("name=") == 0
-            r = r[6 + len(cosmo.name) + 3 :]  # remove
-
-        # parameters in string rep
-        for k, v in cosmo.parameters.items():
-            sv = f"{k}={v!r}"
-            assert sv in r
-            assert r.index(k) == 0
-            r = r[len(sv) + 2 :]  # remove
-
     # ------------------------------------------------
 
     @pytest.mark.parametrize("in_meta", [True, False])

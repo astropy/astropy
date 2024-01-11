@@ -1491,6 +1491,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
     Ode0: Parameter = field(  # now a derived param.
         default=ParameterOde0.clone(default=0, derived=True),
         init=False,
+        repr=False,
     )
 
     def __init_subclass__(cls):

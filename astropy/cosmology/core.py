@@ -82,7 +82,7 @@ def dataclass_decorator(cls):
         The ``__eq__`` method is custom (``eq=False``).
         The signature is precomputed and added to the class.
     """
-    return _with_signature(dataclass(frozen=True, repr=False, eq=False, init=True)(cls))
+    return _with_signature(dataclass(frozen=True, repr=True, eq=False, init=True)(cls))
 
 
 ##############################################################################
@@ -432,10 +432,6 @@ class Cosmology(metaclass=ABCMeta):
         return eq
 
     # ---------------------------------------------------------------
-
-    def __repr__(self):
-        fmtps = (f"{k}={v!r}" for k, v in self.parameters.items())
-        return f"{type(self).__qualname__}(name={self.name!r}, {', '.join(fmtps)})"
 
     def __str__(self):
         """Return a string representation of the cosmology."""
