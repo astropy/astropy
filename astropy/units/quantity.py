@@ -47,7 +47,7 @@ from .utils import is_effectively_unity
 
 if TYPE_CHECKING:
     import sys
-    
+
     if sys.version_info >= (3, 11):
         from typing import Self
     else:
