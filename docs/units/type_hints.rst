@@ -1,11 +1,3 @@
-Type Annotations Module
-***********************
-
-.. automodule:: astropy.units.typing
-   :members:
-   :show-inheritance:
-
-
 Unit-Aware Type Annotations
 ***************************
 
@@ -88,3 +80,12 @@ Multiple Quantity and unit-aware |Quantity| annotations are supported using
    >>> T.Union[Quantity[u.m], Quantity["time"]]
    typing.Union[typing.Annotated[astropy.units.quantity.Quantity, Unit("m")],
                 typing.Annotated[astropy.units.quantity.Quantity, PhysicalType('time')]]
+
+
+
+Type Annotations Module
+***********************
+
+.. automodule:: astropy.units.typing
+   :members:
+   :show-inheritance:
