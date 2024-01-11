@@ -104,27 +104,33 @@ class ParametersAttributeTestMixin:
     @pytest.mark.parametrize("name", ["parameters", "_derived_parameters"])
     def test_parameters_from_class(self, cosmo_cls: type[Cosmology], name: str) -> None:
         """Test descriptor ``parameters`` accessed from the class."""
-        descriptor = all_cls_vars(cosmo_cls)[name]
         # test presence
         assert hasattr(cosmo_cls, name)
         # test Parameter is a MappingProxyType
         parameters = getattr(cosmo_cls, name)
         assert isinstance(parameters, MappingProxyType)
         # Test items
-        assert set(parameters.keys()) == set(getattr(cosmo_cls, descriptor.attr_name))
         assert all(isinstance(p, Parameter) for p in parameters.values())
+        assert set(parameters) == {
+            k
+            for k, v in all_cls_vars(cosmo_cls).items()
+            if (isinstance(v, Parameter) and (v.derived == ("derived" in name)))
+        }
 
     @pytest.mark.parametrize("name", ["parameters", "_derived_parameters"])
     def test_parameters_from_instance(self, cosmo: Cosmology, name: str) -> None:
         """Test descriptor ``parameters`` accessed from the instance."""
-        descriptor = all_cls_vars(cosmo)[name]
         # test presence
         assert hasattr(cosmo, name)
         # test Parameter is a MappingProxyType
         parameters = getattr(cosmo, name)
         assert isinstance(parameters, MappingProxyType)
         # Test keys
-        assert set(parameters) == set(getattr(cosmo, descriptor.attr_name))
+        assert set(parameters) == {
+            k
+            for k, v in all_cls_vars(cosmo).items()
+            if (isinstance(v, Parameter) and (v.derived == ("derived" in name)))
+        }
 
     @pytest.mark.parametrize("name", ["parameters", "_derived_parameters"])
     def test_parameters_cannot_set_on_instance(
