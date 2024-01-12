@@ -127,6 +127,7 @@ def read_table_fits(
     character_as_bytes=True,
     unit_parse_strict="warn",
     mask_invalid=True,
+    strip_spaces=True,
 ):
     """
     Read a Table object from an FITS file.
@@ -180,6 +181,8 @@ def read_table_fits(
         string columns. Set this parameter to `False` to avoid the performance
         penalty of doing this masking step. The masking is always deactivated
         when using ``memmap=True`` (see above).
+    strip_spaces : bool, optional
+        Strip trailing spaces in string columns, default is True.
 
     """
     if isinstance(input, HDUList):
@@ -251,6 +254,7 @@ def read_table_fits(
                 astropy_native=astropy_native,
                 unit_parse_strict=unit_parse_strict,
                 mask_invalid=mask_invalid,
+                strip_spaces=strip_spaces,
             )
         finally:
             hdulist.close()
@@ -286,16 +290,16 @@ def read_table_fits(
             mask = col.array == b""
             fill_value = b""
 
+        arr = data[col.name]
+        if strip_spaces and coltype is np.bytes_:
+            arr = np.strings.rstrip(arr)
+
         if masked or np.any(mask):
             column = MaskedColumn(
-                data=data[col.name],
-                name=col.name,
-                mask=mask,
-                copy=False,
-                fill_value=fill_value,
+                data=arr, name=col.name, mask=mask, copy=False, fill_value=fill_value
             )
         else:
-            column = Column(data=data[col.name], name=col.name, copy=False)
+            column = Column(data=arr, name=col.name, copy=False)
 
         # Copy over units
         if col.unit is not None:
