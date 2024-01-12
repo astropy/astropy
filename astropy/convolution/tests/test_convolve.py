@@ -442,13 +442,13 @@ class TestConvolve1D:
     @pytest.mark.parametrize(
         "array, exc_type, match",
         [
-            (0, Exception, "cannot convolve 0-dimensional arrays"),
+            (0, ValueError, "cannot convolve 0-dimensional arrays"),
             (
                 [[1]],
-                Exception,
+                ValueError,
                 r"array and kernel have differing number of dimensions\.",
             ),
-            ([], Exception, "cannot convolve empty array"),
+            ([], ValueError, "cannot convolve empty array"),
             (
                 np.ones((1, 1, 1, 1)),
                 NotImplementedError,

@@ -289,15 +289,15 @@ def convolve(
 
     # Check dimensionality
     if array_internal.ndim == 0:
-        raise Exception("cannot convolve 0-dimensional arrays")
+        raise ValueError("cannot convolve 0-dimensional arrays")
     elif array_internal.ndim > 3:
         raise NotImplementedError(
             "convolve only supports 1, 2, and 3-dimensional arrays at this time"
         )
     elif array_internal.ndim != kernel_internal.ndim:
-        raise Exception("array and kernel have differing number of dimensions.")
+        raise ValueError("array and kernel have differing number of dimensions.")
     elif array_internal.size == 0:
-        raise Exception("cannot convolve empty array")
+        raise ValueError("cannot convolve empty array")
 
     array_shape = np.array(array_internal.shape)
     kernel_shape = np.array(kernel_internal.shape)
