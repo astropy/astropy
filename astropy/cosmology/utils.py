@@ -1,14 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__ = []  # nothing is publicly scoped
+from __future__ import annotations
+
+__all__: list[str] = []  # nothing is publicly scoped
 
 import sys
+from typing import TYPE_CHECKING
 
 from astropy.utils.decorators import deprecated
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from typing import Any
+
 
 # TODO: complete the deprecation for v6.2 / v7
-def __getattr__(name):
+def __getattr__(name: str) -> Callable[..., Any]:
     """Get realizations using lazy import from ``PEP 562``.
 
     Raises
