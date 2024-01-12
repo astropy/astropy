@@ -405,6 +405,9 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
 ignore-fully-untyped = true
 mypy-init-return = true
 
+[tool.ruff.lint.flake8-type-checking]
+exempt-modules = []
+
 [tool.ruff.lint.isort]
 known-first-party = ["astropy", "extension_helpers"]
 
