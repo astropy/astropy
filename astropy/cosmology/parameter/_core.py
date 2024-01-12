@@ -7,7 +7,7 @@ __all__ = ["Parameter"]
 import copy
 from dataclasses import dataclass, field, fields, replace
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable, Generic, Self, TypeVar, overload
 
 import astropy.units as u
 from astropy.utils.compat import PYTHON_LT_3_10
@@ -17,10 +17,15 @@ from ._converter import _REGISTRY_FVALIDATORS, FValidateCallable, _register_vali
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from astropy.cosmology import Cosmology
+
 if not PYTHON_LT_3_10:
     from dataclasses import KW_ONLY
 else:
     KW_ONLY = Any
+
+
+T = TypeVar("T")
 
 
 class Sentinel(Enum):
@@ -29,7 +34,7 @@ class Sentinel(Enum):
     MISSING = auto()
     """A sentinel value signifying a missing default."""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.name}>"
 
 
@@ -79,7 +84,7 @@ class _FValidateField:
 
 
 @dataclass(frozen=True)
-class Parameter:
+class Parameter(Generic[T]):
     r"""Cosmological parameter (descriptor).
 
     Should only be used with a :class:`~astropy.cosmology.Cosmology` subclass.
@@ -189,14 +194,24 @@ class Parameter:
     # -------------------------------------------
     # descriptor and property-like methods
 
-    def __get__(self, cosmology, cosmo_cls=None):
+    @overload
+    def __get__(self, cosmology: None, cosmo_cls: Any) -> Parameter:
+        ...
+
+    @overload
+    def __get__(self, cosmology: Cosmology, cosmo_cls: Any) -> T:
+        ...
+
+    def __get__(
+        self, cosmology: Cosmology | None, cosmo_cls: Any = None
+    ) -> Parameter | T:
         # Get from class
         if cosmology is None:
             return self
         # Get from instance
         return getattr(cosmology, self._attr_name)
 
-    def __set__(self, cosmology, value):
+    def __set__(self, cosmology: Cosmology, value: Any) -> None:
         """Allows attribute setting once.
 
         Raises AttributeError subsequently.
@@ -226,7 +241,7 @@ class Parameter:
     # -------------------------------------------
     # validate value
 
-    def validator(self, fvalidate):
+    def validator(self, fvalidate: Callable[[Cosmology, Parameter, Any], T]) -> Self:
         """Make new Parameter with custom ``fvalidate``.
 
         Note: ``Parameter.fvalidator`` must be the top-most descriptor decorator.
@@ -242,7 +257,7 @@ class Parameter:
         """
         return self.clone(fvalidate=fvalidate)
 
-    def validate(self, cosmology, value):
+    def validate(self, cosmology: Cosmology, value: Any) -> T:
         """Run the validator on this Parameter.
 
         Parameters
@@ -259,8 +274,33 @@ class Parameter:
         """
         return self._fvalidate(cosmology, self, value)
 
+    @overload
     @staticmethod
-    def register_validator(key, fvalidate=None):
+    def register_validator(
+        key: str, fvalidate: Callable[[Cosmology, Parameter, Any], T]
+    ) -> Callable[[Cosmology, Parameter, Any], T]:
+        ...
+
+    @overload
+    @staticmethod
+    def register_validator(
+        key: str, fvalidate: None = None
+    ) -> Callable[
+        [Callable[[Cosmology, Parameter, Any], T]],
+        Callable[[Cosmology, Parameter, Any], T],
+    ]:
+        ...
+
+    @staticmethod
+    def register_validator(
+        key: str, fvalidate: Callable[[Cosmology, Parameter, Any], T] | None = None
+    ) -> (
+        Callable[[Cosmology, Parameter, Any], T]
+        | Callable[
+            [Callable[[Cosmology, Parameter, Any], T]],
+            Callable[[Cosmology, Parameter, Any], T],
+        ]
+    ):
         """Decorator to register a new kind of validator function.
 
         Parameters
@@ -280,12 +320,12 @@ class Parameter:
 
     # -------------------------------------------
 
-    def clone(self, **kw):
+    def clone(self, **kw: Any) -> Self:
         """Clone this `Parameter`, changing any constructor argument.
 
         Parameters
         ----------
-        **kw
+        **kw : Any
             Passed to constructor. The current values, eg. ``fvalidate`` are
             used as the default values, so an empty ``**kw`` is an exact copy.
 
