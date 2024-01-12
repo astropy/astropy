@@ -26,8 +26,7 @@ from astropy.utils.data import get_pkg_data_path
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 # setup/teardown function to have the tests run in the correct directory
-from .common import setup_function  # noqa: F401
-from .common import teardown_function  # noqa: F401
+from .common import setup_function, teardown_function  # noqa: F401
 
 
 def asciiIO(x):
