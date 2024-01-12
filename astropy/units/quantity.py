@@ -46,12 +46,7 @@ from .structured import StructuredUnit, _structured_unit_like_dtype
 from .utils import is_effectively_unity
 
 if TYPE_CHECKING:
-    import sys
-
-    if sys.version_info >= (3, 11):
-        from typing import Self
-    else:
-        from typing_extensions import Self
+    from typing_extensions import Self
 
     from .typing import QuantityLike
 
