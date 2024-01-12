@@ -213,7 +213,7 @@ class Distribution:
         if method in {"reduce", "accumulate", "reduceat"}:
             if axis is None:
                 if not isinstance(inputs[0], Distribution):
-                    # In future, raise descriptive error instead
+                    # TODO: raise descriptive error instead
                     # raise TypeError(
                     #     "First input must be a Distribution if axis is not specified"
                     # )

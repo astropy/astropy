@@ -45,7 +45,7 @@ def test_Field_set_values():
     field = tree.Field(None, name="Test", arraysize="1")
     field.values = None
     field.values = tree.Values(None, field=field)
-    # In future, will be TypeError
+    # TODO: In future, will be TypeError
     with pytest.raises(AssertionError):
         field.values = 0  # not None or Values
 
@@ -190,7 +190,7 @@ def test_uncallable_write_fail():
     class _InvalidFile:
         write = None  # Not a callable
 
-    # In future, will be TypeError
+    # TODO: In future, will be TypeError
     with pytest.raises(AssertionError):
         votable_file.to_xml(_InvalidFile)
 

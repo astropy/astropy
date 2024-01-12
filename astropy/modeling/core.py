@@ -1828,7 +1828,7 @@ class Model(metaclass=_ModelMeta):
             coords = np.asanyarray(coords, dtype=float)
             # Check dimensions match out and model
             if len(coords) != ndim:
-                # In future, raise descriptive error
+                # TODO: raise descriptive error
                 # raise ValueError(
                 #     f"len(coords) ({len(coords)}) doesn't match self.n_inputs ({ndim})."
                 # )
@@ -3913,7 +3913,7 @@ class CompoundModel(Model):
             coords = np.asanyarray(coords, dtype=float)
             # Check dimensions match out and model
             if len(coords) != ndim:
-                # In future, raise descriptive error
+                # TODO: raise descriptive error
                 # raise ValueError(
                 #     f"len(coords) ({len(coords)}) doesn't match self.n_inputs ({ndim})."
                 # )

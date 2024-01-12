@@ -1365,7 +1365,7 @@ class Quantity(np.ndarray):
         # so unlike for float, int, we insist here on unscaled dimensionless
 
         try:
-            # In future, check for is_unity() and hasattr(self.value, "__index__")
+            # TODO: check for is_unity() and hasattr(self.value, "__index__")
             # only instead of catching any Exception
             if not self.unit.is_unity():
                 raise AssertionError

@@ -1147,7 +1147,7 @@ def fit_wcs_from_points(
     use_center_as_proj_point = str(proj_point) == "center"
 
     if not use_center_as_proj_point and proj_point.size != 1:
-        # In future, raise descriptive error (such as the ValueError above)
+        # TODO: raise descriptive error (such as the ValueError above)
         raise AssertionError
 
     proj_codes = [

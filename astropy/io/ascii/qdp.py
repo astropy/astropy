@@ -230,7 +230,7 @@ def _interpret_err_lines(err_specs, ncols, names=None):
             continue
 
     if any(c == "" for c in colnames):
-        # In future, raise ValueError earlier in this function if empty strings are in ``names``
+        # TODO: raise ValueError earlier in this function if empty strings are in ``names``
         raise AssertionError
 
     return colnames

@@ -1601,7 +1601,7 @@ class Field(
     @values.setter
     def values(self, values):
         if not (values is None or isinstance(values, Values)):
-            # For 7.0+, raise descriptive error
+            # TODO: raise descriptive error
             # raise TypeError("values must be None or an instance of Values")
             raise AssertionError
         self._values = values
@@ -3302,7 +3302,7 @@ class TableElement(
                     for i, converter in fields_basic:
                         try:
                             chunk = converter(array_row[i], array_mask[i])
-                            # In future, should accept bytes subclasses (and maybe bytes-like objects as well?)
+                            # TODO: should accept bytes subclasses (and maybe bytes-like objects as well?)
                             # and raise descriptive error
                             # if not isinstance(chunk, bytes):
                             #     raise TypeError(
