@@ -7,13 +7,16 @@ __all__ = []  # nothing is publicly scoped
 import functools
 import operator
 from numbers import Number
-from typing import Any
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from astropy.units import Quantity
 
 from . import units as cu
+
+if TYPE_CHECKING:
+    from typing import Any
 
 
 def vectorize_redshift_method(func=None, nin=1):
