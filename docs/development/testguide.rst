@@ -110,6 +110,18 @@ This can be used in conjunction with the ``-P`` option provided by the
 `pytest-filter-subpackage <https://github.com/astropy/pytest-filter-subpackage>`_
 plugin to run just part of the test suite.
 
+Note that even though ``tox`` caches information, interactive debug and test
+sessions with ``tox`` can be quite slow. For this case, it may be better to
+set up a virtual environment with an editable install. Here, ``tox`` can still
+help by setting up a complete test environment, which one can then activate::
+
+  tox -e test-alldeps --develop --notest
+  source .tox/test-alldeps/bin/activate
+
+Here, we use ``--notest`` to prevent ``tox`` from running the tests, since the
+idea is to do that oneself -- using the ``pytest`` commands described below,
+targeting the relevant sub-package or test file.
+
 .. _running-pytest:
 
 pytest
@@ -147,17 +159,13 @@ Or, to run only the ``wcs`` and ``utils`` tests::
 
     pytest -P wcs,utils
 
-You can also specify a single directory or file to test from the commandline,
-e.g.::
+You can also specify a single directory, a file (``.py`` python or ``.rst``
+doc file), or a specific test to check from the commandline, e.g.::
 
     pytest astropy/modeling
-
-or::
-
     pytest astropy/wcs/tests/test_wcs.py
-
-and this works for ``.rst`` files too::
-
+    pytest astropy/units -k float_dtype_promotion
+    pytest astropy/units/tests/test_quantity.py::TestQuantityCreation::test_float_dtype_promotion
     pytest astropy/wcs/index.rst
 
 .. _astropy.test():
