@@ -5,10 +5,12 @@ This module tests some methods related to ``CDS`` format
 reader/writer.
 Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
+from io import StringIO
+
 import numpy as np
 import numpy.testing as npt
 import pytest
-from io import StringIO
+
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import ascii
@@ -16,7 +18,6 @@ from astropy.table import Column, MaskedColumn, Table
 from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
-
 
 test_dat = [
     "names e d s i",

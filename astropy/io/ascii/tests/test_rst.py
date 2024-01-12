@@ -4,6 +4,7 @@ from io import StringIO
 
 import numpy as np
 import numpy.testing as npt
+
 import astropy.units as u
 from astropy.io import ascii
 from astropy.table import QTable

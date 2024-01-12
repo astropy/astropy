@@ -1,10 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
+from io import StringIO
+
 import numpy as np
 import numpy.testing as npt
 import pytest
-from io import StringIO
+
 from astropy.io import ascii
 from astropy.io.ascii.core import InconsistentTableError
 

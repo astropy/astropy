@@ -3,7 +3,6 @@ import numpy as np
 import pytest
 
 from astropy.io.ascii import read
-
 # NOTE: Python can be built without bz2 or lzma
 from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA
 from astropy.utils.data import get_pkg_data_filename

@@ -5,32 +5,25 @@ import io
 import os
 import re
 import sys
-import numpy as np
-import numpy.testing as npt
-import pytest
 from contextlib import nullcontext
 from io import BytesIO
 from textwrap import dedent
+
+import numpy as np
+import numpy.testing as npt
+import pytest
 from numpy import ma
+
 from astropy.io import ascii
-from astropy.io.ascii.core import (
-    FastOptionsError,
-    InconsistentTableError,
-    ParameterError,
-)
-from astropy.io.ascii.fastbasic import (
-    FastBasic,
-    FastCommentedHeader,
-    FastCsv,
-    FastNoHeader,
-    FastRdb,
-    FastTab,
-)
+from astropy.io.ascii.core import (FastOptionsError, InconsistentTableError,
+                                   ParameterError)
+from astropy.io.ascii.fastbasic import (FastBasic, FastCommentedHeader,
+                                        FastCsv, FastNoHeader, FastRdb,
+                                        FastTab)
 from astropy.table import MaskedColumn, Table
 from astropy.tests.helper import CI
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
-
 
 StringIO = lambda x: BytesIO(x.encode("ascii"))
 
