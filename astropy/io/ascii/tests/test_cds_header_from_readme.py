@@ -7,8 +7,7 @@ import pytest
 from astropy import units as u
 from astropy.io import ascii
 
-from .common import setup_function  # noqa: F401
-from .common import teardown_function  # noqa: F401
+from .common import setup_function, teardown_function  # noqa: F401
 
 
 def read_table1(readme, data):
