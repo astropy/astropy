@@ -944,10 +944,7 @@ def convolve_fft(
     if preserve_nan:
         rifft[arrayslices][nanmaskarray] = np.nan
 
-    if crop:
-        result = rifft[arrayslices].real
-        return result
-    return rifft.real
+    return rifft[arrayslices].real if crop else rifft.real
 
 
 def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
