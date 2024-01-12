@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = []
+__all__: list[str] = []
 
 from dataclasses import dataclass, field
 from types import MappingProxyType
@@ -31,8 +31,12 @@ class ParametersAttribute:
         The name of the class attribute containing the Parameter objects.
     """
 
-    attr_name: str | None = None
-    """The name of the class attribute containing the Parameter objects."""
+    attr_name: str
+    """The name of the class attribute containing the Parameter objects.
+
+    ``attr_name`` is different from the name of the descriptor on the containing class,
+    which is set by :meth:`__set_name__`.
+    """
 
     _name: str = field(init=False)
     """The name of the descriptor on the containing class."""
@@ -43,10 +47,10 @@ class ParametersAttribute:
     def __get__(
         self, instance: Cosmology | None, owner: type[Cosmology] | None
     ) -> MappingProxyType[str, Any]:
-        # called from the class
+        # Called from the class
         if instance is None:
             return getattr(owner, self.attr_name)
-        # called from the instance
+        # Called from the instance
         return MappingProxyType(
             {n: getattr(instance, n) for n in getattr(instance, self.attr_name)}
         )
