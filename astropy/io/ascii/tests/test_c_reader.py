@@ -15,11 +15,19 @@ import pytest
 from numpy import ma
 
 from astropy.io import ascii
-from astropy.io.ascii.core import (FastOptionsError, InconsistentTableError,
-                                   ParameterError)
-from astropy.io.ascii.fastbasic import (FastBasic, FastCommentedHeader,
-                                        FastCsv, FastNoHeader, FastRdb,
-                                        FastTab)
+from astropy.io.ascii.core import (
+    FastOptionsError,
+    InconsistentTableError,
+    ParameterError,
+)
+from astropy.io.ascii.fastbasic import (
+    FastBasic,
+    FastCommentedHeader,
+    FastCsv,
+    FastNoHeader,
+    FastRdb,
+    FastTab,
+)
 from astropy.table import MaskedColumn, Table
 from astropy.tests.helper import CI
 from astropy.utils.data import get_pkg_data_filename
