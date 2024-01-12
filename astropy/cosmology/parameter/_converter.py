@@ -3,23 +3,43 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any, TypeAlias, TypeVar, overload
 
 import astropy.units as u
 
-__all__ = []
+if TYPE_CHECKING:
+    from astropy.cosmology import Cosmology, Parameter
 
-FValidateCallable = Callable[[object, object, Any], Any]
-_REGISTRY_FVALIDATORS: dict[str, FValidateCallable] = {}
+__all__: list[str] = []
+
+# Callable[[Cosmology, Parameter, Any], Any]
+_FValidateCallable: TypeAlias = Callable[["Cosmology", "Parameter", Any], Any]
+T = TypeVar("T")
+
+_REGISTRY_FVALIDATORS: dict[str, _FValidateCallable] = {}
 
 
-def _register_validator(key, fvalidate=None):
+@overload
+def _register_validator(
+    key: str, fvalidate: _FValidateCallable
+) -> _FValidateCallable: ...
+
+
+@overload
+def _register_validator(
+    key: str, fvalidate: None = None
+) -> Callable[[_FValidateCallable], _FValidateCallable]: ...
+
+
+def _register_validator(
+    key: str, fvalidate: _FValidateCallable | None = None
+) -> _FValidateCallable | Callable[[_FValidateCallable], _FValidateCallable]:
     """Decorator to register a new kind of validator function.
 
     Parameters
     ----------
     key : str
-    fvalidate : callable[[object, object, Any], Any] or None, optional
+    fvalidate : callable[[Cosmology, Parameter, Any], Any] or None, optional
         Value validation function.
 
     Returns
@@ -38,12 +58,12 @@ def _register_validator(key, fvalidate=None):
         return fvalidate
 
     # for use as a decorator
-    def register(fvalidate):
+    def register(fvalidate: _FValidateCallable) -> _FValidateCallable:
         """Register validator function.
 
         Parameters
         ----------
-        fvalidate : callable[[object, object, Any], Any]
+        fvalidate : callable[[Cosmology, Parameter, Any], Any]
             Validation function.
 
         Returns
@@ -60,7 +80,7 @@ def _register_validator(key, fvalidate=None):
 
 
 @_register_validator("default")
-def _validate_with_unit(cosmology, param, value):
+def _validate_with_unit(cosmology: Cosmology, param: Parameter, value: Any) -> Any:
     """Default Parameter value validator.
 
     Adds/converts units if Parameter has a unit.
@@ -72,14 +92,14 @@ def _validate_with_unit(cosmology, param, value):
 
 
 @_register_validator("float")
-def _validate_to_float(cosmology, param, value):
+def _validate_to_float(cosmology: Cosmology, param: Parameter, value: Any) -> Any:
     """Parameter value validator with units, and converted to float."""
     value = _validate_with_unit(cosmology, param, value)
     return float(value)
 
 
 @_register_validator("scalar")
-def _validate_to_scalar(cosmology, param, value):
+def _validate_to_scalar(cosmology: Cosmology, param: Parameter, value: Any) -> Any:
     """"""
     value = _validate_with_unit(cosmology, param, value)
     if not value.isscalar:
@@ -88,7 +108,7 @@ def _validate_to_scalar(cosmology, param, value):
 
 
 @_register_validator("non-negative")
-def _validate_non_negative(cosmology, param, value):
+def _validate_non_negative(cosmology: Cosmology, param: Parameter, value: Any) -> Any:
     """Parameter value validator where value is a positive float."""
     value = _validate_to_float(cosmology, param, value)
     if value < 0.0:
