@@ -485,6 +485,12 @@ to a new file, you can use the :meth:`HDUList.writeto` method (see below).
 
     See also :ref:`sphx_glr_generated_examples_io_plot_fits-image.py`.
 
+.. note::
+    `CCDData` provides a higher level interface to :ref:`read and write FITS
+    files <nddata_reading_writing>` with imaging data, with the possibility to
+    load data, uncertainty and mask from a multi-extension FITS (MEF) file.
+
+
 Working with Table Data
 ^^^^^^^^^^^^^^^^^^^^^^^
 
