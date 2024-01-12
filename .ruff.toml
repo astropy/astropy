@@ -162,7 +162,6 @@ lint.ignore = [
     "RET502",  # implicit-return-value
     "RET503",  # implicit-return
     "RET504",  # unnecessary-assign
-    "RET505",  # superfluous-else-return
     "RET507",  # superfluous-else-continue
 
     # flake8-raise (RSE)
@@ -238,18 +237,23 @@ lint.unfixable = [
     "PTH114",  # os-path-islink
     "PTH206",  # Replace `.split(os.sep)` with `Path.parts`
     "RET506",  # superfluous-else-raise
+    "RET505",  # superfluous-else-return
+
 ]
 "astropy/constants/*" = ["N817"]  # camelcase-imported-as-acronym
 "astropy/convolution/*" = [
     "RET506",  # superfluous-else-raise
+    "RET505",  # superfluous-else-return
 ]
 "astropy/coordinates/*" = [
     "DTZ007",  # call-datetime-strptime-without-zone
+    "RET505",  # superfluous-else-return
 ]
 "astropy/cosmology/*" = [
     "C408",  # unnecessary-collection-call
     "PT019",   # pytest-fixture-param-without-value
     "RET506",  # superfluous-else-raise
+    "RET505",  # superfluous-else-return
 ]
 "astropy/io/*" = [
     "G001",  # logging-string-format
@@ -260,59 +264,71 @@ lint.unfixable = [
     "SLOT000",  # Subclasses of `str` should define `__slots__`
     "TD005",  # Missing issue description after `TODO`
     "TRY400",  # error-instead-of-exception
+    "RET505",  # superfluous-else-return
 ]
-"astropy/logger.py" = ["C408"]
+"astropy/logger.py" = ["C408", "RET505"]
 "astropy/modeling/*" = [
     "C408",  # unnecessary-collection-call
     "RET506",  # superfluous-else-raise
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
+    "RET505",  # superfluous-else-return
 ]
 "astropy/nddata/*" = [
     "C408",
     "RET506",  # superfluous-else-raise
+    "RET505",  # superfluous-else-return
 ]
 "astropy/samp/*" = [
     "RET506",  # superfluous-else-raise
+    "RET505",  # superfluous-else-return
 ]
 "astropy/stats/*" = [
     "RET506",  # superfluous-else-raise
+    "RET505",  # superfluous-else-return
 ]
 "astropy/table/*" = [
     "C408",  # unnecessary-collection-call
     "RET506",  # superfluous-else-raise
     "S605",  # Starting a process with a shell, possible injection detected
+    "RET505",  # superfluous-else-return
 ]
-"astropy/tests/*" = ["C408"]
+"astropy/tests/*" = ["C408", "RET505"]
 "astropy/time/*" = [
     "C408",  # unnecessary-collection-call
     "FIX003",  # Line contains XXX.  replace XXX with TODO
     "PIE794",  # duplicate-class-field-definition
     "RET506",  # superfluous-else-raise
+    "RET505",  # superfluous-else-return
 ]
 "astropy/timeseries/*" = [
     "C408",
     "RET506",  # superfluous-else-raise
+    "RET505",  # superfluous-else-return
 ]
 "astropy/units/*" = [
     "C408",  # unnecessary-collection-call
     "F821",  # undefined-name
     "N812",  # lowercase-imported-as-non-lowercase
     "RET506",  # superfluous-else-raise
+    "RET505",  # superfluous-else-return
 ]
 "astropy/uncertainty/*" = [
     "C408",
     "RET506",  # superfluous-else-raise
+    "RET505",  # superfluous-else-return
 ]
 "astropy/utils/*" = [
     "C408",  # unnecessary-collection-call
     "N811",  # constant-imported-as-non-constant
     "RET506",  # superfluous-else-raise
     "S321",  # Suspicious-ftp-lib-usage
+    "RET505",  # superfluous-else-return
 ]
 "astropy/visualization/*" = [
     "B015",
     "C408",
     "RET506",  # superfluous-else-raise
+    "RET505",  # superfluous-else-return
 ]
 "astropy/wcs/*" = [
     "C408",  # unnecessary-collection-call
@@ -320,6 +336,7 @@ lint.unfixable = [
     "S608",  # Posslibe SQL injection
     "RET506",  # superfluous-else-raise
     "SIM202",  # NegateNotEqualOp
+    "RET505",  # superfluous-else-return
 ]
 "docs/*" = []
 "examples/coordinates/*" = []

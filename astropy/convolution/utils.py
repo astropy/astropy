@@ -30,8 +30,7 @@ class KernelArithmeticError(KernelError):
 def has_even_axis(array):
     if isinstance(array, (list, tuple)):
         return not len(array) % 2
-    else:
-        return any(not axes_size % 2 for axes_size in array.shape)
+    return any(not axes_size % 2 for axes_size in array.shape)
 
 
 def add_kernel_arrays_1D(array_1, array_2):
@@ -46,7 +45,7 @@ def add_kernel_arrays_1D(array_1, array_2):
         slice_ = slice(center - array_2.size // 2, center + array_2.size // 2 + 1)
         new_array[slice_] += array_2
         return new_array
-    elif array_2.size > array_1.size:
+    if array_2.size > array_1.size:
         new_array = array_2.copy()
         center = array_2.size // 2
         slice_ = slice(center - array_1.size // 2, center + array_1.size // 2 + 1)
@@ -72,7 +71,7 @@ def add_kernel_arrays_2D(array_1, array_2):
         )
         new_array[slice_y, slice_x] += array_2
         return new_array
-    elif array_2.size > array_1.size:
+    if array_2.size > array_1.size:
         new_array = array_2.copy()
         center = [axes_size // 2 for axes_size in array_2.shape]
         slice_x = slice(
@@ -205,7 +204,7 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
     if mode == "center":
         if ndim == 1:
             return discretize_center_1D(model, x_range)
-        elif ndim == 2:
+        if ndim == 2:
             return discretize_center_2D(model, x_range, y_range)
     elif mode == "linear_interp":
         if ndim == 1:
@@ -265,10 +264,11 @@ def discretize_bilinear_2D(model, x_range, y_range):
     values_intermediate_grid = model(x, y)
 
     # Mean in y direction
-    values = 0.5 * (values_intermediate_grid[1:, :] + values_intermediate_grid[:-1, :])
+    values_y = 0.5 * (
+        values_intermediate_grid[1:, :] + values_intermediate_grid[:-1, :]
+    )
     # Mean in x direction
-    values = 0.5 * (values[:, 1:] + values[:, :-1])
-    return values
+    return 0.5 * (values_y[:, 1:] + values_y[:, :-1])
 
 
 def discretize_oversample_1D(model, x_range, factor=10):

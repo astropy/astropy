@@ -186,8 +186,7 @@ class Kernel:
         """
         if type(context[0]) == np.ufunc:
             return NotImplemented
-        else:
-            return array
+        return array
 
 
 class Kernel1D(Kernel):

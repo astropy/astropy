@@ -33,8 +33,7 @@ def _round_up_to_odd_integer(value):
     i = math.ceil(value)
     if i % 2 == 0:
         return i + 1
-    else:
-        return i
+    return i
 
 
 class Gaussian1DKernel(Kernel1D):
