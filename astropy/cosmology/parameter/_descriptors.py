@@ -52,7 +52,7 @@ class ParametersAttribute:
     ...     attr = ParametersAttribute(attr_name="_attr_map")
 
     >>> Obj.attr
-    ("a", "b", "c")
+    ('a', 'b', 'c')
 
     >>> obj = Obj()
     >>> obj.attr
