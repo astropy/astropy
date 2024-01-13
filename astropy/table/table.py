@@ -608,8 +608,7 @@ class Table:
     meta : dict, optional
         Metadata associated with the table.
     copy : bool, optional
-        Copy the input data. If the input is a Table the ``meta`` is always
-        copied regardless of the ``copy`` parameter.
+        Copy the input column data and make a deep copy of the input meta.
         Default is True.
     rows : numpy ndarray, list of list, optional
         Row-oriented data for table instead of ``data`` argument.
@@ -3777,9 +3776,9 @@ class Table:
         Parameters
         ----------
         copy_data : bool
-            If `True` (the default), copy the underlying data array.
-            Otherwise, use the same data array. The ``meta`` is always
-            deepcopied regardless of the value for ``copy_data``.
+            If `True` (the default), copy the underlying data array and make
+            a deep copy of the ``meta`` attribute. Otherwise, use the same
+            data array and make a shallow (key-only) copy of ``meta``.
         """
         out = self.__class__(self, copy=copy_data)
 
@@ -3791,7 +3790,11 @@ class Table:
         return out
 
     def __deepcopy__(self, memo=None):
-        return self.copy(True)
+        out = self.copy(False)
+        for name in out.colnames:
+            out.columns.__setitem__(name, deepcopy(self[name]), validated=True)
+        out.meta = deepcopy(self.meta)
+        return out
 
     def __copy__(self):
         return self.copy(False)
