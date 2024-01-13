@@ -11,8 +11,7 @@ if TYPE_CHECKING:
 
 __all__: list[str] = []
 
-# Callable[[Cosmology, Parameter, Any], Any]
-FValidateCallable: TypeAlias = Callable[[object, object, Any], Any]
+FValidateCallable: TypeAlias = Callable[["Cosmology", "Parameter", Any], Any]
 _REGISTRY_FVALIDATORS: dict[str, FValidateCallable] = {}
 
 T = TypeVar("T")
@@ -38,7 +37,7 @@ def _register_validator(
     Parameters
     ----------
     key : str
-    fvalidate : callable[[object, object, Any], Any] or None, optional
+    fvalidate : callable[[Cosmology, Parameter, Any], Any] or None, optional
         Value validation function.
 
     Returns
@@ -62,7 +61,7 @@ def _register_validator(
 
         Parameters
         ----------
-        fvalidate : callable[[object, object, Any], Any]
+        fvalidate : callable[[Cosmology, Parameter, Any], Any]
             Validation function.
 
         Returns
