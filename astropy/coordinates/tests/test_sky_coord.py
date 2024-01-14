@@ -1398,10 +1398,10 @@ def test_frame_attr_transform_inherit():
 
 def test_deepcopy():
     c1 = SkyCoord(1 * u.deg, 2 * u.deg)
-    c2 = copy.copy(c1)
-    c3 = copy.deepcopy(c1)
+    copy.copy(c1)
+    copy.deepcopy(c1)
 
-    c4 = SkyCoord(
+    sky_coord = SkyCoord(
         [1, 2] * u.m,
         [2, 3] * u.m,
         [3, 4] * u.m,
@@ -1410,12 +1410,13 @@ def test_deepcopy():
         obstime="J1999.9",
         equinox="J1988.8",
     )
-    c5 = copy.deepcopy(c4)
-    assert np.all(c5.x == c4.x)  # and y and z
-    assert c5.frame.name == c4.frame.name
-    assert c5.obstime == c4.obstime
-    assert c5.equinox == c4.equinox
-    assert c5.representation_type == c4.representation_type
+    sky_coord_deepcopy = copy.deepcopy(sky_coord)
+    assert np.all(sky_coord_deepcopy.x == sky_coord.x)  # and y and z
+    assert sky_coord_deepcopy.frame.name == sky_coord.frame.name
+    assert sky_coord_deepcopy.obstime == sky_coord.obstime
+    assert sky_coord_deepcopy.equinox == sky_coord.equinox
+    assert sky_coord_deepcopy.representation_type == sky_coord.representation_type
+    assert sky_coord_deepcopy.x is not sky_coord.x
 
 
 def test_no_copy():
@@ -1483,7 +1484,7 @@ def test_init_with_frame_instance_keyword():
 
     # Check duplicate arguments
     with pytest.raises(ValueError) as err:
-        c = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(equinox="J2010"), equinox="J2001")
+        SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(equinox="J2010"), equinox="J2001")
     assert "Cannot specify frame attribute 'equinox'" in str(err.value)
 
 

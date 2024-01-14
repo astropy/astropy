@@ -16,6 +16,7 @@ def test_basic():
     lon1 = Longitude(1.23, "radian", wrap_angle="180d")
     s = pickle.dumps(lon1)
     lon2 = pickle.loads(s)
+    assert lon1 == lon2
 
 
 def test_pickle_longitude_wrap_angle():

@@ -2,6 +2,9 @@
 
 import numpy as np
 import pytest
+from hypothesis import given
+from hypothesis.extra.numpy import arrays
+from hypothesis.strategies import floats
 
 from astropy import units as u
 from astropy.coordinates import builtin_frames as bf
@@ -117,7 +120,7 @@ def test_expected_arg_names(cls, lon, lat):
         f"pm_{lon}_cos{lat}": -21.2 * u.mas / u.yr,
         f"pm_{lat}": 17.1 * u.mas / u.yr,
     }
-    frame = cls(**kwargs, **DISTANCE, **RADIAL_VELOCITY)
+    cls(**kwargs, **DISTANCE, **RADIAL_VELOCITY)
 
 
 # these data are extracted from the vizier version of XHIP:
@@ -259,27 +262,45 @@ def test_slicing_preserves_differential():
         assert getattr(icrs, name) == getattr(icrs2, name)[0]
 
 
-def test_shorthand_attributes():
+@given(
+    ra_array=arrays(
+        dtype=np.float64, shape=4, elements=floats(min_value=0, max_value=360)
+    ),
+    dec_array=arrays(
+        dtype=np.float64, shape=4, elements=floats(min_value=-90, max_value=90)
+    ),
+    pm_ra_cosdec_array=arrays(
+        dtype=np.float64, shape=4, elements=floats(min_value=0, max_value=100)
+    ),
+    pm_dec_array=arrays(
+        dtype=np.float64, shape=4, elements=floats(min_value=0, max_value=100)
+    ),
+    radial_velocity_array=arrays(
+        dtype=np.float64, shape=4, elements=floats(min_value=0, max_value=100)
+    ),
+)
+def test_shorthand_attributes(
+    ra_array, dec_array, pm_ra_cosdec_array, pm_dec_array, radial_velocity_array
+):
     # Check that attribute access works
 
     # for array data:
-    n = 4
     icrs1 = ICRS(
-        ra=np.random.uniform(0, 360, n) * u.deg,
-        dec=np.random.uniform(-90, 90, n) * u.deg,
+        ra=ra_array * u.deg,
+        dec=dec_array * u.deg,
         distance=100 * u.pc,
-        pm_ra_cosdec=np.random.normal(0, 100, n) * u.mas / u.yr,
-        pm_dec=np.random.normal(0, 100, n) * u.mas / u.yr,
-        radial_velocity=np.random.normal(0, 100, n) * u.km / u.s,
+        pm_ra_cosdec=pm_ra_cosdec_array * u.mas / u.yr,
+        pm_dec=pm_dec_array * u.mas / u.yr,
+        radial_velocity=radial_velocity_array * u.km / u.s,
     )
-    v = icrs1.velocity
+    assert icrs1.velocity
     pm = icrs1.proper_motion
     assert quantity_allclose(pm[0], icrs1.pm_ra_cosdec)
     assert quantity_allclose(pm[1], icrs1.pm_dec)
 
     # for scalar data:
     icrs2 = ICRS(**POSITION_ON_SKY, **DISTANCE, **PROPER_MOTION, **RADIAL_VELOCITY)
-    v = icrs2.velocity
+    _v = icrs2.velocity
     pm = icrs2.proper_motion
     assert quantity_allclose(pm[0], icrs2.pm_ra_cosdec)
     assert quantity_allclose(pm[1], icrs2.pm_dec)

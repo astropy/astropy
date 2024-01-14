@@ -133,8 +133,8 @@ class TestSphericalRepresentation:
         assert SphericalRepresentation.get_name() in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
-        with pytest.raises(TypeError) as exc:
-            s = SphericalRepresentation()
+        with pytest.raises(TypeError):
+            SphericalRepresentation()
 
     def test_init_quantity(self):
         s3 = SphericalRepresentation(
@@ -257,7 +257,7 @@ class TestSphericalRepresentation:
 
     def test_broadcasting_mismatch(self):
         with pytest.raises(ValueError) as exc:
-            s1 = SphericalRepresentation(
+            SphericalRepresentation(
                 lon=[8, 9, 10] * u.hourangle,
                 lat=[5, 6] * u.deg,
                 distance=[1, 2] * u.kpc,
@@ -313,7 +313,7 @@ class TestSphericalRepresentation:
         s = SphericalRepresentation(lon=1 * u.deg, lat=-2 * u.deg, distance=3 * u.kpc)
 
         with pytest.raises(TypeError):
-            s_slc = s[0]
+            s[0]
         with pytest.raises(TypeError):
             len(s)
         assert not isiterable(s)
@@ -523,8 +523,8 @@ class TestUnitSphericalRepresentation:
         assert UnitSphericalRepresentation.get_name() in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
-        with pytest.raises(TypeError) as exc:
-            s = UnitSphericalRepresentation()
+        with pytest.raises(TypeError):
+            UnitSphericalRepresentation()
 
     def test_init_quantity(self):
         s3 = UnitSphericalRepresentation(lon=8 * u.hourangle, lat=5 * u.deg)
@@ -584,7 +584,7 @@ class TestUnitSphericalRepresentation:
 
     def test_broadcasting_mismatch(self):
         with pytest.raises(ValueError) as exc:
-            s1 = UnitSphericalRepresentation(
+            UnitSphericalRepresentation(
                 lon=[8, 9, 10] * u.hourangle, lat=[5, 6] * u.deg
             )
         assert exc.value.args[0] == "Input parameters lon and lat cannot be broadcast"
@@ -612,7 +612,7 @@ class TestUnitSphericalRepresentation:
         s = UnitSphericalRepresentation(lon=1 * u.deg, lat=-2 * u.deg)
 
         with pytest.raises(TypeError):
-            s_slc = s[0]
+            s[0]
 
     def test_representation_shortcuts(self):
         """Test that shortcuts in ``represent_as`` don't fail."""
@@ -698,8 +698,8 @@ class TestPhysicsSphericalRepresentation:
         assert PhysicsSphericalRepresentation.get_name() in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
-        with pytest.raises(TypeError) as exc:
-            s = PhysicsSphericalRepresentation()
+        with pytest.raises(TypeError):
+            PhysicsSphericalRepresentation()
 
     def test_init_quantity(self):
         s3 = PhysicsSphericalRepresentation(
@@ -782,7 +782,7 @@ class TestPhysicsSphericalRepresentation:
         with pytest.raises(
             ValueError, match="Input parameters phi, theta, and r cannot be broadcast"
         ):
-            s1 = PhysicsSphericalRepresentation(
+            PhysicsSphericalRepresentation(
                 phi=[8, 9, 10] * u.hourangle, theta=[5, 6] * u.deg, r=[1, 2] * u.kpc
             )
 
@@ -815,7 +815,7 @@ class TestPhysicsSphericalRepresentation:
         s = PhysicsSphericalRepresentation(phi=1 * u.deg, theta=2 * u.deg, r=3 * u.kpc)
 
         with pytest.raises(TypeError):
-            s_slc = s[0]
+            s[0]
 
     def test_representation_shortcuts(self):
         """Test that shortcuts in ``represent_as`` don't fail."""
@@ -970,8 +970,8 @@ class TestCartesianRepresentation:
         assert CartesianRepresentation.get_name() in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
-        with pytest.raises(TypeError) as exc:
-            s = CartesianRepresentation()
+        with pytest.raises(TypeError):
+            CartesianRepresentation()
 
     def test_init_quantity(self):
         s1 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
@@ -1120,7 +1120,7 @@ class TestCartesianRepresentation:
 
     def test_broadcasting_mismatch(self):
         with pytest.raises(ValueError) as exc:
-            s1 = CartesianRepresentation(
+            CartesianRepresentation(
                 x=[1, 2] * u.kpc, y=[3, 4] * u.kpc, z=[5, 6, 7] * u.kpc
             )
         assert exc.value.args[0] == "Input parameters x, y, and z cannot be broadcast"
@@ -1150,26 +1150,26 @@ class TestCartesianRepresentation:
         q_nonlen = u.Quantity([1], u.kg)
 
         with pytest.raises(u.UnitsError) as exc:
-            s1 = CartesianRepresentation(x=q_nonlen, y=q_len, z=q_len)
+            CartesianRepresentation(x=q_nonlen, y=q_len, z=q_len)
         assert exc.value.args[0] == "x, y, and z should have matching physical types"
 
         with pytest.raises(u.UnitsError) as exc:
-            s1 = CartesianRepresentation(x=q_len, y=q_nonlen, z=q_len)
+            CartesianRepresentation(x=q_len, y=q_nonlen, z=q_len)
         assert exc.value.args[0] == "x, y, and z should have matching physical types"
 
         with pytest.raises(u.UnitsError) as exc:
-            s1 = CartesianRepresentation(x=q_len, y=q_len, z=q_nonlen)
+            CartesianRepresentation(x=q_len, y=q_len, z=q_nonlen)
         assert exc.value.args[0] == "x, y, and z should have matching physical types"
 
     def test_unit_non_length(self):
-        s1 = CartesianRepresentation(x=1 * u.kg, y=2 * u.kg, z=3 * u.kg)
+        CartesianRepresentation(x=1 * u.kg, y=2 * u.kg, z=3 * u.kg)
 
-        s2 = CartesianRepresentation(
+        CartesianRepresentation(
             x=1 * u.km / u.s, y=2 * u.km / u.s, z=3 * u.km / u.s
         )
 
         banana = u.def_unit("banana")
-        s3 = CartesianRepresentation(x=1 * banana, y=2 * banana, z=3 * banana)
+        CartesianRepresentation(x=1 * banana, y=2 * banana, z=3 * banana)
 
     def test_getitem(self):
         s = CartesianRepresentation(
@@ -1186,7 +1186,7 @@ class TestCartesianRepresentation:
         s = CartesianRepresentation(x=1 * u.m, y=-2 * u.m, z=3 * u.km)
 
         with pytest.raises(TypeError):
-            s_slc = s[0]
+            s[0]
 
     def test_transform(self):
         ds1 = CartesianDifferential(
@@ -1237,8 +1237,8 @@ class TestCylindricalRepresentation:
         assert CylindricalRepresentation.get_name() in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
-        with pytest.raises(TypeError) as exc:
-            s = CylindricalRepresentation()
+        with pytest.raises(TypeError):
+            CylindricalRepresentation()
 
     def test_init_quantity(self):
         s1 = CylindricalRepresentation(rho=1 * u.kpc, phi=2 * u.deg, z=3 * u.kpc)
@@ -1309,7 +1309,7 @@ class TestCylindricalRepresentation:
         with pytest.raises(
             ValueError, match="Input parameters rho, phi, and z cannot be broadcast"
         ):
-            s1 = CylindricalRepresentation(
+            CylindricalRepresentation(
                 rho=[1, 2] * u.kpc, phi=[3, 4] * u.deg, z=[5, 6, 7] * u.kpc
             )
 
@@ -1330,11 +1330,11 @@ class TestCylindricalRepresentation:
         q_nonlen = u.Quantity([1], u.kg)
 
         with pytest.raises(u.UnitsError) as exc:
-            s1 = CylindricalRepresentation(rho=q_nonlen, phi=10 * u.deg, z=q_len)
+            CylindricalRepresentation(rho=q_nonlen, phi=10 * u.deg, z=q_len)
         assert exc.value.args[0] == "rho and z should have matching physical types"
 
         with pytest.raises(u.UnitsError) as exc:
-            s1 = CylindricalRepresentation(rho=q_len, phi=10 * u.deg, z=q_nonlen)
+            CylindricalRepresentation(rho=q_len, phi=10 * u.deg, z=q_nonlen)
         assert exc.value.args[0] == "rho and z should have matching physical types"
 
     def test_getitem(self):
@@ -1352,7 +1352,7 @@ class TestCylindricalRepresentation:
         s = CylindricalRepresentation(rho=1 * u.pc, phi=-2 * u.deg, z=3 * u.kpc)
 
         with pytest.raises(TypeError):
-            s_slc = s[0]
+            s[0]
 
     def test_transform(self):
         s1 = CylindricalRepresentation(
@@ -1783,7 +1783,7 @@ class TestCartesianRepresentationWithDifferential:
             d_distance=3 * u.km / u.s,
         )
 
-        r1 = SphericalRepresentation(
+        SphericalRepresentation(
             lon=15 * u.deg, lat=21 * u.deg, distance=1 * u.pc, differentials=diff
         )
 
@@ -1794,7 +1794,7 @@ class TestCartesianRepresentationWithDifferential:
         # verify that the check against expected_unit validates against passing
         # in two different but equivalent keys
         with pytest.raises(ValueError):
-            r1 = CartesianRepresentation(
+            CartesianRepresentation(
                 x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc, differentials={"s": d1, "yr": d2}
             )
 
