@@ -28,10 +28,8 @@ object is using the :mod:`pickle` module. This is good for e.g. passing a
 
 However this method has all the attendant drawbacks of :mod:`pickle` — security
 vulnerabilities and non-human-readable files. Pickle files just generally don't
-make for good persistent storage.
-
-Solving both these issues, ``astropy`` provides a unified interface for reading
-and writing data in different formats.
+make for good persistent storage. See :ref:`cosmology_io_builtin_readwrite` for
+better options.
 
 
 .. _cosmology_io_renaming_fields:
@@ -81,3 +79,13 @@ file, and sets parameters' default values from the class' signature.
     >>> cosmo = FlatLambdaCDM.read('<file name>')
     >>> cosmo == Planck18
     True
+
+
+.. _cosmology_io_overwrite:
+
+Overwriting files
+=================
+
+By default, the ``write`` methods will raise an error if the file already
+exists. This is to prevent accidentally overwriting files. To overwrite a file,
+use the ``overwrite=True`` keyword argument.

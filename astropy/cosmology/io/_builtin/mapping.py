@@ -137,8 +137,8 @@ Lastly, the keys in the mapping may be renamed with the ``rename`` keyword.
 import copy
 from collections.abc import Mapping
 
-from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
+from astropy.cosmology.io._connect import convert_registry
 
 __all__ = []  # nothing is publicly scoped
 
