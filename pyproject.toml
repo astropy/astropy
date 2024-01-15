@@ -304,13 +304,17 @@ exclude= [
         ]
 
 [tool.ruff]
-lint.select = ["ALL"]
 exclude=[
     "astropy/extern/*",
     "*_parsetab.py",
     "*_lextab.py"
 ]
-lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml` instead.
+
+[tool.ruff.lint]
+preview = true
+explicit-preview-rules = true
+select = ["ALL"]
+ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml` instead.
 
     # flake8-builtins (A) : shadowing a Python built-in.
     # New ones should be avoided and is up to maintainers to enforce.
