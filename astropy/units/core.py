@@ -861,6 +861,8 @@ class UnitBase:
             else:
                 return Quantity(m, self ** (-1))
         except TypeError:
+            if isinstance(m, np.ndarray):
+                raise
             return NotImplemented
 
     def __mul__(self, m):
@@ -899,6 +901,8 @@ class UnitBase:
             else:
                 return Quantity(m, unit=self)
         except TypeError:
+            if isinstance(m, np.ndarray):
+                raise
             return NotImplemented
 
     def __rlshift__(self, m):
@@ -907,6 +911,8 @@ class UnitBase:
 
             return Quantity(m, self, copy=False, subok=True)
         except Exception:
+            if isinstance(m, np.ndarray):
+                raise
             return NotImplemented
 
     def __rrshift__(self, m):
