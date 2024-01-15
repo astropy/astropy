@@ -58,19 +58,3 @@ __all__ += function.__all__
 # Enable the set of default units.  This notably does *not* include
 # Imperial units.
 set_enabled_units([si, cgs, astrophys, function.units, misc, photometric])
-
-
-# -------------------------------------------------------------------------
-
-
-def __getattr__(attr):
-    if attr == "littleh":
-        from astropy.units.astrophys import littleh
-
-        return littleh
-    elif attr == "with_H0":
-        from astropy.units.equivalencies import with_H0
-
-        return with_H0
-
-    raise AttributeError(f"module {__name__!r} has no attribute {attr!r}.")
