@@ -25,46 +25,32 @@ class ParametersAttribute:
     mapping of the :class:`~astropy.cosmology.Parameter` objects themselves.  If
     accessed from an instance, this returns a mapping of the values of the Parameters.
 
-    This class is used to implement the ``parameters`` attribute of
-    :class:`~astropy.cosmology.Cosmology`.
+    This class is used to implement :obj:`astropy.cosmology.Cosmology.parameters`.
 
     Parameters
     ----------
     attr_name : str
-        The name of the class attribute containing the Parameter objects.
+        The name of the class attribute that is a `~types.MappingProxyType[str,
+        astropy.cosmology.Parameter]` of all the cosmology's parameters. When accessed
+        from the class, this attribute is returned. When accessed from an instance, a
+        mapping of the cosmology instance's values for each key is returned.
 
     Examples
     --------
-    This class works as a descriptor on the containing class. When accessed from the
-    class, it returns the attribute specified by ``attr_name``. When accessed from an
-    instance, it returns a proxy mapping of the value for each key in ``attr_name``.
+    The normal usage of this class is the ``parameters`` attribute of
+    :class:`~astropy.cosmology.Cosmology`.
 
-    In the following example ``attr_name`` is set to ``_attr_map``, which is not a
-    dictionary, but a tuple of strings. When accessed from the class, the tuple is
-    returned. When accessed from an instance, a mapping of the values of the attributes
-    named in the tuple is returned.
+        >>> from astropy.cosmology import FlatLambdaCDM, Planck18
 
-    >>> class Obj:
-    ...     a = 1
-    ...     b = 2
-    ...     c = 3
-    ...     _attr_map = ("a", "b", "c")
-    ...     attr = ParametersAttribute(attr_name="_attr_map")
+        >>> FlatLambdaCDM.parameters
+        mappingproxy({'H0': Parameter(...), ...})
 
-    >>> Obj.attr
-    ('a', 'b', 'c')
-
-    >>> obj = Obj()
-    >>> obj.attr
-    mappingproxy({'a': 1, 'b': 2, 'c': 3})
+        >>> Planck18.parameters
+        mappingproxy({'H0': <Quantity 67.66 km / (Mpc s)>, ...})
     """
 
     attr_name: str
-    """The name of the class attribute containing the Parameter objects.
-
-    ``attr_name`` is different from the name of the descriptor on the containing class,
-    which is set by :meth:`__set_name__`.
-    """
+    """Clas attribute name on Cosmology for the mapping of Parameter objects."""
 
     _name: str = field(init=False)
     """The name of the descriptor on the containing class."""
