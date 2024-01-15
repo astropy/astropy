@@ -315,7 +315,9 @@ exclude= [
             # Don't complain about IPython completion helper
             "def _ipython_key_completions_",
             # typing.TYPE_CHECKING is False at runtime
-            "if TYPE_CHECKING:"
+            "if TYPE_CHECKING:",
+            # Ignore type function overload
+            "@overload",
         ]
 
 [tool.ruff]
