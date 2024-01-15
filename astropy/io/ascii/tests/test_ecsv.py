@@ -156,6 +156,15 @@ def test_write_read_roundtrip():
                 assert np.all(t[name] == t2[name])
 
 
+def test_write_read_roundtrip_empty_table(tmp_path):
+    # see https://github.com/astropy/astropy/issues/13191
+    sfile = tmp_path / "x.ecsv"
+    Table().write(sfile)
+    t = Table.read(sfile)
+    assert len(t) == 0
+    assert len(t.colnames) == 0
+
+
 def test_bad_delimiter():
     """
     Passing a delimiter other than space or comma gives an exception
