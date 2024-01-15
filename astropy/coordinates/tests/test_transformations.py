@@ -680,7 +680,7 @@ def test_impose_finite_difference_dt():
     ),
 )
 def test_combine_affine_params(first, second, check):
-    result = t._combine_affine_params(first, second)
+    result = t.composite._combine_affine_params(first, second)
     if check[0] is None:
         assert result[0] is None
     else:
