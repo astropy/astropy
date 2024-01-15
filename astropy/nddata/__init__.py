@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """
 The `astropy.nddata` subpackage provides the `~astropy.nddata.NDData`
 class and related tools to manage n-dimensional array-based data (e.g.
@@ -8,42 +7,6 @@ just `numpy.ndarray` objects, because it provides metadata that cannot
 be easily provided by a single array.
 """
 
-from astropy import config as _config
+from lazy_loader import attach_stub
 
-from .bitmask import *
-from .blocks import *
-from .ccddata import *
-from .compat import *
-from .decorators import *
-from .flag_collection import *
-from .mixins.ndarithmetic import *
-from .mixins.ndio import *
-from .mixins.ndslicing import *
-from .nddata import *
-from .nddata_base import *
-from .nddata_withmixins import *
-from .nduncertainty import *
-from .utils import *
-
-
-class Conf(_config.ConfigNamespace):
-    """
-    Configuration parameters for `astropy.nddata`.
-    """
-
-    warn_unsupported_correlated = _config.ConfigItem(
-        True,
-        "Whether to issue a warning if `~astropy.nddata.NDData` arithmetic "
-        "is performed with uncertainties and the uncertainties do not "
-        "support the propagation of correlated uncertainties.",
-    )
-
-    warn_setting_unit_directly = _config.ConfigItem(
-        True,
-        "Whether to issue a warning when the `~astropy.nddata.NDData` unit "
-        "attribute is changed from a non-``None`` value to another value "
-        "that data values/uncertainties are not scaled with the unit change.",
-    )
-
-
-conf = Conf()
+__getattr__, __dir__, __all__ = attach_stub(__name__, __file__)

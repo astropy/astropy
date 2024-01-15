@@ -4,6 +4,7 @@ import numpy as np
 
 __doctest_skip__ = ["quantity_support"]
 
+__all__ = ["quantity_support"]
 
 def quantity_support(format="latex_inline"):
     """

@@ -14,8 +14,6 @@ without deprecations. Do not use it in external packages or code.
 
 """
 
-from .codegen import *
-from .decorators import *
-from .introspection import *
-from .misc import *
-from .shapes import *
+from lazy_loader import attach_stub
+
+__getattr__, __dir__, __all__ = attach_stub(__name__, __file__)

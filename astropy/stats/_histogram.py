@@ -8,7 +8,7 @@ Ported from the astroML project: https://www.astroml.org/
 
 import numpy as np
 
-from .bayesian_blocks import bayesian_blocks
+from ._bayesian_blocks import bayesian_blocks
 
 __all__ = [
     "histogram",

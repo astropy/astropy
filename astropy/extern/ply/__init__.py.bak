@@ -1,0 +1,6 @@
+# PLY package
+# Author: David Beazley (dave@dabeaz.com)
+
+from .version import version as __version__
+
+__all__ = ['lex','yacc','__version__']

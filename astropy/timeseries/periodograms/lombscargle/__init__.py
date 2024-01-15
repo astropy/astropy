@@ -1,8 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """
 lombscargle
 ===========
 AstroPy-compatible implementation of the Lomb-Scargle periodogram.
 """
-from .core import LombScargle
+
+from lazy_loader import attach_stub
+
+__getattr__, __dir__, __all__ = attach_stub(__name__, __file__)

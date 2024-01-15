@@ -1,4 +1,6 @@
-from astropy.timeseries.periodograms.base import *
-from astropy.timeseries.periodograms.bls import *
-from astropy.timeseries.periodograms.lombscargle import *
-from astropy.timeseries.periodograms.lombscargle_multiband import *
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+
+from lazy_loader import attach_stub
+
+__getattr__, __dir__, __all__ = attach_stub(__name__, __file__)

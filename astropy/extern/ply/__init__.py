@@ -1,5 +1,6 @@
-# PLY package
-# Author: David Beazley (dave@dabeaz.com)
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__version__ = '3.11'
-__all__ = ['lex','yacc']
+
+from lazy_loader import attach_stub
+
+__getattr__, __dir__, __all__ = attach_stub(__name__, __file__)

@@ -44,6 +44,7 @@ dependencies = [
     "astropy-iers-data>=0.2024.1.1.0.33.39",
     "PyYAML>=3.13",
     "packaging>=19.0",
+    "lazy_loader>=0.3",
 ]
 
 [project.optional-dependencies]
@@ -124,7 +125,8 @@ requires = ["setuptools",
             "setuptools_scm>=6.2",
             "cython>=3.0.0,<3.1.0",
             "numpy>=1.25",
-            "extension-helpers==1.*"]
+            "extension-helpers==1.*",
+            "lazy_loader>=0.3"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]

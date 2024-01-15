@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from astropy.stats.histogram import calculate_bin_edges
+from astropy.stats import calculate_bin_edges
 
 __all__ = ["hist"]
 

@@ -12,7 +12,7 @@ from numpy.testing import (
 )
 
 from astropy import units as u
-from astropy.convolution.convolve import convolve, convolve_fft
+from astropy.convolution import convolve, convolve_fft
 from astropy.utils.exceptions import AstropyUserWarning
 
 VALID_DTYPES = (">f4", "<f4", ">f8", "<f8")

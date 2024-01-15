@@ -1,11 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from .hist import *
-from .interval import *
-from .lupton_rgb import *
-from .mpl_normalize import *
-from .mpl_style import *
-from .stretch import *
-from .time import *
-from .transform import *
-from .units import *
+
+from lazy_loader import attach_stub
+
+__getattr__, __dir__, __all__ = attach_stub(__name__, __file__)

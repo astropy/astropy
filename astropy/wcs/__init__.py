@@ -24,15 +24,6 @@ Each of these transformations can be used independently or together in
 a standard pipeline.
 """
 
-from . import utils
-from .wcs import *
-from .wcs import InvalidTabularParametersError  # just for docs
+from lazy_loader import attach_stub
 
-
-def get_include():
-    """
-    Get the path to astropy.wcs's C header files.
-    """
-    import os
-
-    return os.path.join(os.path.dirname(__file__), "include")
+__getattr__, __dir__, __all__ = attach_stub(__name__, __file__)

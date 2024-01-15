@@ -1,5 +1,6 @@
-from .high_level_api import *
-from .high_level_wcs_wrapper import *
-from .low_level_api import *
-from .utils import *
-from .wrappers import *
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+
+from lazy_loader import attach_stub
+
+__getattr__, __dir__, __all__ = attach_stub(__name__, __file__)

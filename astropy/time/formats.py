@@ -16,7 +16,7 @@ from astropy.utils.decorators import classproperty, lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.masked import Masked
 
-from . import _parse_times, conf, utils
+from . import _parse_times, conf, core, utils
 from .utils import day_frac, quantity_day_frac, two_product, two_sum
 
 __all__ = [
@@ -254,7 +254,7 @@ class TimeFormat:
         This is used as a fill value for masked arrays to ensure that any ERFA
         operations on the masked array will not fail due to the masked value.
         """
-        tm = Time(2451545.0, format="jd", scale="utc")
+        tm = core.Time(2451545.0, format="jd", scale="utc")
         return tm.to_value(format=cls.name, subfmt=subfmt)
 
     def __len__(self):
@@ -383,9 +383,9 @@ class TimeFormat:
         if scale is None:
             scale = self._default_scale
 
-        if scale not in TIME_SCALES:
-            raise ScaleValueError(
-                f"Scale value '{scale}' not in allowed values {TIME_SCALES}"
+        if scale not in core.TIME_SCALES:
+            raise core.ScaleValueError(
+                f"Scale value '{scale}' not in allowed values {core.TIME_SCALES}"
             )
 
         return scale
@@ -689,8 +689,8 @@ class TimeDecimalYear(TimeNumeric):
         jd1_start, jd2_start = erfa.dtf2d(scale, iy_start, imon, iday, ihr, imin, isec)
         jd1_end, jd2_end = erfa.dtf2d(scale, iy_start + 1, imon, iday, ihr, imin, isec)
 
-        t_start = Time(jd1_start, jd2_start, scale=self.scale, format="jd")
-        t_end = Time(jd1_end, jd2_end, scale=self.scale, format="jd")
+        t_start = core.Time(jd1_start, jd2_start, scale=self.scale, format="jd")
+        t_end = core.Time(jd1_end, jd2_end, scale=self.scale, format="jd")
         t_frac = t_start + (t_end - t_start) * y_frac
 
         self.jd1, self.jd2 = day_frac(t_frac.jd1, t_frac.jd2)
@@ -733,7 +733,7 @@ class TimeFromEpoch(TimeNumeric):
         # Ideally we would use `def epoch(cls)` here and not have the instance
         # property below. However, this breaks the sphinx API docs generation
         # in a way that was not resolved. See #10406 for details.
-        return Time(
+        return core.Time(
             cls.epoch_val,
             cls.epoch_val2,
             scale=cls.epoch_scale,
@@ -788,10 +788,10 @@ class TimeFromEpoch(TimeNumeric):
         # self.scale cannot involve any metadata like lat or lon.
         try:
             tm = getattr(
-                Time(jd1, jd2, scale=self.epoch_scale, format="jd"), self.scale
+                core.Time(jd1, jd2, scale=self.epoch_scale, format="jd"), self.scale
             )
         except Exception as err:
-            raise ScaleValueError(
+            raise core.ScaleValueError(
                 f"Cannot convert from '{self.name}' epoch scale '{self.epoch_scale}' "
                 f"to specified scale '{self.scale}', got error:\n{err}"
             ) from err
@@ -807,7 +807,7 @@ class TimeFromEpoch(TimeNumeric):
             try:
                 tm = getattr(parent, self.epoch_scale)
             except Exception as err:
-                raise ScaleValueError(
+                raise core.ScaleValueError(
                     f"Cannot convert from '{self.name}' epoch scale "
                     f"'{self.epoch_scale}' to specified scale '{self.scale}', "
                     f"got error:\n{err}"
@@ -985,7 +985,7 @@ class TimePlotDate(TimeFromEpoch):
             with warnings.catch_warnings():
                 # Catch possible dubious year warnings from erfa
                 warnings.filterwarnings("ignore", category=ErfaWarning)
-                _epoch = Time(epoch_utc, scale="utc", format="isot")
+                _epoch = core.Time(epoch_utc, scale="utc", format="isot")
             _epoch.format = "jd"
 
         return _epoch
@@ -1033,7 +1033,7 @@ class TimeAstropyTime(TimeUnique):
         """
         val1_0 = val1.flat[0]
         if not (
-            isinstance(val1_0, Time)
+            isinstance(val1_0, core.Time)
             and all(type(val) is type(val1_0) for val in val1.flat)
         ):
             raise TypeError(
@@ -1176,7 +1176,7 @@ class TimeDatetime(TimeUnique):
 
         if timezone is not None:
             if self._scale != "utc":
-                raise ScaleValueError(
+                raise core.ScaleValueError(
                     f"scale is {self._scale}, must be 'utc' when timezone is supplied."
                 )
 
@@ -1986,10 +1986,10 @@ class TimeFITS(TimeString):
             # timescale identifier to the scale used by Time.
             fits_scale = tm["scale"].upper()
             scale = FITS_DEPRECATED_SCALES.get(fits_scale, fits_scale.lower())
-            if scale not in TIME_SCALES:
+            if scale not in core.TIME_SCALES:
                 raise ValueError(
                     f"Scale {scale!r} is not in the allowed scales "
-                    f"{sorted(TIME_SCALES)}"
+                    f"{sorted(core.TIME_SCALES)}"
                 )
             # If no scale was given in the initialiser, set the scale to
             # that given in the string.  Realization is ignored
@@ -2146,9 +2146,9 @@ class TimeDeltaFormat(TimeFormat):
         """
         Check that the scale is in the allowed list of scales, or is `None`.
         """
-        if scale is not None and scale not in TIME_DELTA_SCALES:
-            raise ScaleValueError(
-                f"Scale value '{scale}' not in allowed values {TIME_DELTA_SCALES}"
+        if scale is not None and scale not in core.TIME_DELTA_SCALES:
+            raise core.ScaleValueError(
+                f"Scale value '{scale}' not in allowed values {core.TIME_DELTA_SCALES}"
             )
 
         return scale
@@ -2486,8 +2486,3 @@ def _broadcast_writeable(jd1, jd2):
     else:
         s_jd2 = np.require(np.broadcast_to(jd2, shape), requirements=["C", "W"])
     return s_jd1, s_jd2
-
-
-# Import symbols from core.py that are used in this module. This succeeds
-# because __init__.py imports format.py just before core.py.
-from .core import TIME_DELTA_SCALES, TIME_SCALES, ScaleValueError, Time  # noqa: E402

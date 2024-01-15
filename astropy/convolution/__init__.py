@@ -1,13 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-from .convolve import (
-    convolve,
-    convolve_fft,
-    convolve_models,
-    convolve_models_fft,
-    interpolate_replace_nans,
-)
-from .core import *
-from .kernels import *
-from .utils import *
+from lazy_loader import attach_stub
+
+__getattr__, __dir__, __all__ = attach_stub(__name__, __file__)
