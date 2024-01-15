@@ -29,12 +29,12 @@ class TestParametersAttribute:
         return "attr"
 
     @pytest.fixture
-    def obj_class(self) -> type[Obj]:
+    def obj_cls(self) -> type[Obj]:
         return Obj
 
     @pytest.fixture
-    def obj(self, obj_class) -> Obj:
-        return obj_class()
+    def obj(self, obj_cls) -> Obj:
+        return obj_cls()
 
     # ===============================================================
 
@@ -43,9 +43,9 @@ class TestParametersAttribute:
         attr = ParametersAttribute("attr_name")
         assert attr.attr_name == "attr_name"
 
-    def test_get_from_class(self, obj_class):
+    def test_get_from_class(self, obj_cls):
         """Test the descriptor ``__get__``."""
-        assert obj_class.attr == ("a", "b", "c")
+        assert obj_cls.attr == ("a", "b", "c")
 
     def test_get_from_instance(self, obj):
         """Test the descriptor ``__get__``."""
