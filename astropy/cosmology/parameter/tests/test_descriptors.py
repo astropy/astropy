@@ -13,11 +13,23 @@ from astropy.cosmology.parameter._descriptors import ParametersAttribute
 
 
 class Obj:
+    """Example class with a ParametersAttribute."""
+
+    # Attributes that will be accessed by ParametersAttribute when called an instance
+    # of this class. On a Cosmology these would be the Parameter objects.
     a: ClassVar = 1
     b: ClassVar = 2
     c: ClassVar = 3
+    # The class attribute that is accessed by ParametersAttribute when called on the
+    # class. On a Cosmology this would be the mapping of Parameter objects.
+    # Here it is just the names of the attributes that will be accessed by the
+    # ParametersAttribute to better distinguish between the class and instance
+    # attributes.
     _attr_map: ClassVar = ("a", "b", "c")
 
+    # The ParametersAttribute descriptor. This will return a mapping of the values of
+    # the attributes listed in ``_attr_map`` when called on an instance of this class.
+    # When called on the class, it will return ``_attr_map`` itself.
     attr = ParametersAttribute(attr_name="_attr_map")
 
 
@@ -25,15 +37,13 @@ class TestParametersAttribute:
     """Test the descriptor ``ParametersAttribute``."""
 
     @pytest.fixture
-    def attr_name(self) -> str:
-        return "attr"
-
-    @pytest.fixture
     def obj_cls(self) -> type[Obj]:
+        """The class with the ParametersAttribute."""
         return Obj
 
     @pytest.fixture
     def obj(self, obj_cls) -> Obj:
+        """An instance of the class with the ParametersAttribute."""
         return obj_cls()
 
     # ===============================================================
