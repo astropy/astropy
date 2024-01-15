@@ -178,8 +178,13 @@ class EcsvHeader(basic.BasicHeader):
 
         # Read the first non-commented line of table and split to get the CSV
         # header column names.  This is essentially what the Basic reader does.
-        header_line = next(super().process_lines(raw_lines))
-        header_names = next(self.splitter([header_line]))
+        try:
+            header_line = next(super().process_lines(raw_lines))
+            header_names = next(self.splitter([header_line]))
+        except StopIteration:
+            # there are no non-commented lines
+            header_line = ""
+            header_names = []
 
         # Check for consistency of the ECSV vs. CSV header column names
         if header_names != self.names:
