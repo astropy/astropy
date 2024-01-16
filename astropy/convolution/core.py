@@ -31,7 +31,7 @@ from .utils import (
 
 MAX_NORMALIZATION = 100
 
-__all__ = ["Kernel", "Kernel1D", "Kernel2D", "kernel_arithmetics"]
+__all__ = ["Kernel", "Kernel1D", "Kernel2D", "Kernel3D", "kernel_arithmetics"]
 
 
 class Kernel:
@@ -259,7 +259,7 @@ class Kernel2D(Kernel):
         Only used if ``array`` is None.
     y_size : int, optional
         Size in y direction of the kernel array. Default = ⌊8*width + 1⌋.
-        Only used if ``array`` is None,
+        Only used if ``array`` is None.
     array : ndarray or None, optional
         Kernel array. Default is None.
     mode : str, optional
@@ -312,6 +312,90 @@ class Kernel2D(Kernel):
                 y_range = (-(int(y_size) - 1) // 2, (int(y_size) - 1) // 2 + 1)
 
             array = discretize_model(self._model, x_range, y_range, **kwargs)
+
+        # Initialize from array
+        elif array is None:
+            raise TypeError("Must specify either array or model.")
+
+        super().__init__(array)
+
+
+class Kernel3D(Kernel):
+    """
+    Base class for 3D filter kernels.
+
+    Parameters
+    ----------
+    model : `~astropy.modeling.FittableModel`
+        Model to be evaluated.
+    x_size : int, optional
+        Size in x direction of the kernel array. Default = ⌊8*width + 1⌋.
+        Only used if ``array`` is None.
+    y_size : int, optional
+        Size in y direction of the kernel array. Default = ⌊8*width + 1⌋.
+        Only used if ``array`` is None.
+    z_size: int, optional
+        Size in z direction of the kernel array. Default = ⌊8*width + 1⌋.
+        Only used if ``array`` is None.
+    array : ndarray or None, optional
+        Kernel array. Default is None.
+    mode : str, optional
+        One of the following discretization modes:
+            * 'center' (default)
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'linear_interp'
+                Discretize model by performing a bilinear interpolation
+                between the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    width : number
+        Width of the filter kernel.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
+    """
+
+    def __init__(
+        self, model=None, x_size=None, y_size=None, z_size=None, array=None, **kwargs
+    ):
+        # Initialize from model
+        if self._model:
+            if array is not None:
+                # Reject "array" keyword for kernel models, to avoid them not being
+                # populated as expected.
+                raise TypeError("Array argument not allowed for kernel models.")
+            if x_size is None:
+                x_size = self._default_size
+            elif x_size != int(x_size):
+                raise TypeError("x_size should be an integer")
+
+            if y_size is None:
+                y_size = x_size
+            elif y_size != int(y_size):
+                raise TypeError("y_size should be an integer")
+
+            # Set ranges where to evaluate the model
+
+            if x_size % 2 == 0:  # even kernel
+                x_range = (-(int(x_size)) // 2 + 0.5, (int(x_size)) // 2 + 0.5)
+            else:  # odd kernel
+                x_range = (-(int(x_size) - 1) // 2, (int(x_size) - 1) // 2 + 1)
+
+            if y_size % 2 == 0:  # even kernel
+                y_range = (-(int(y_size)) // 2 + 0.5, (int(y_size)) // 2 + 0.5)
+            else:  # odd kernel
+                y_range = (-(int(y_size) - 1) // 2, (int(y_size) - 1) // 2 + 1)
+
+            if z_size % 2 == 0:  # even kernel
+                z_range = (-(int(z_size)) // 2 + 0.5, (int(z_size)) // 2 + 0.5)
+            else:  # odd kernel
+                z_range = (-(int(z_size) - 1) // 2, (int(z_size) - 1) // 2 + 1)
+
+            array = discretize_model(self._model, x_range, y_range, z_range, **kwargs)
 
         # Initialize from array
         elif array is None:
