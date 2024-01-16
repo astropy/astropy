@@ -25,7 +25,8 @@ __all__ = [
 __doctest_skip__ = __all__
 
 
-_CosmoT = TypeVar("_CosmoT", bound="Cosmology")  # NOTE: private b/c RTD error
+# NOTE: private b/c RTD error
+_CosmoT = TypeVar("_CosmoT", bound="Cosmology")
 _MT = TypeVar("_MT", bound="Mapping")  # type: ignore[type-arg]
 
 
