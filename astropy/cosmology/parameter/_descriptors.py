@@ -50,7 +50,7 @@ class ParametersAttribute:
     """
 
     attr_name: str
-    """Clas attribute name on Cosmology for the mapping of Parameter objects."""
+    """Class attribute name on Cosmology for the mapping of Parameter objects."""
 
     _name: str = field(init=False)
     """The name of the descriptor on the containing class."""
