@@ -85,7 +85,9 @@ def add_kernel_arrays_2D(array_1, array_2):
     return array_2 + array_1
 
 
-def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
+def discretize_model(
+    model, x_range, y_range=None, z_range=None, *, mode="center", factor=10
+):
     """
     Evaluate an analytical model function on a pixel grid.
 
@@ -107,7 +109,14 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
         ``(0, 3)`` means the model will be evaluated at y pixels of 0,
         1, and 2. The difference between the upper and lower bound must
         be a whole number so that the output array size is well defined.
-        ``y_range`` is necessary only for 2D models.
+        ``y_range`` is necessary only for 2D and 3D models.
+    z_range : 2-tuple or `None`, optional
+        Lower and upper bounds of z pixel values at which the model is
+        evaluated. The upper bound is non-inclusive. A ``z_range`` of
+        ``(0, 3)`` means the model will be evaluated at z pixels of 0,
+        1, and 2. The difference between the upper and lower bound must
+        be a whole number so that the output array size is well defined.
+        ``z_range`` is necessary only for 3D models.
     mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following modes:
             * ``'center'`` (default)
@@ -175,8 +184,8 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
     if not isinstance(model, Model):
         model = custom_model(model)()
     ndim = model.n_inputs
-    if ndim > 2:
-        raise ValueError("discretize_model supports only 1D and 2D models.")
+    if ndim > 3:
+        raise ValueError("discretize_model supports only 1D, 2D and 3D models.")
 
     dxrange = np.diff(x_range)[0]
     if dxrange != int(dxrange):
@@ -193,10 +202,20 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
                 " 'y_range' must be a whole number."
             )
 
+    if z_range:
+        dzrange = np.diff(z_range)[0]
+        if dzrange != int(dzrange):
+            raise ValueError(
+                "The difference between the upper and lower limit of"
+                " 'z_range' must be a whole number."
+            )
+
     if factor != int(factor):
         raise ValueError("factor must have an integer value")
     factor = int(factor)
 
+    if ndim == 3 and z_range is None:
+        raise ValueError("z_range must be specified for a 3D model")
     if ndim == 2 and y_range is None:
         raise ValueError("y_range must be specified for a 2D model")
     if ndim == 1 and y_range is not None:
@@ -206,21 +225,29 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
             return discretize_center_1D(model, x_range)
         if ndim == 2:
             return discretize_center_2D(model, x_range, y_range)
+        if ndim == 3:
+            return discretize_center_3D(model, x_range, y_range, z_range)
     elif mode == "linear_interp":
         if ndim == 1:
             return discretize_linear_1D(model, x_range)
         if ndim == 2:
             return discretize_bilinear_2D(model, x_range, y_range)
+        if ndim == 3:
+            return discretize_bilinear_3D(model, x_range, y_range, z_range)
     elif mode == "oversample":
         if ndim == 1:
             return discretize_oversample_1D(model, x_range, factor)
         if ndim == 2:
             return discretize_oversample_2D(model, x_range, y_range, factor)
+        if ndim == 3:
+            return discretize_oversample_3D(model, x_range, y_range, z_range, factor)
     elif mode == "integrate":
         if ndim == 1:
             return discretize_integrate_1D(model, x_range)
         if ndim == 2:
             return discretize_integrate_2D(model, x_range, y_range)
+        if ndim == 3:
+            return discretize_integrate_3D(model, x_range, y_range, z_range)
     else:
         raise ValueError("Invalid mode for discretize_model.")
 
@@ -241,6 +268,17 @@ def discretize_center_2D(model, x_range, y_range):
     y = np.arange(*y_range)
     x, y = np.meshgrid(x, y)
     return model(x, y)
+
+
+def discretize_center_3D(model, x_range, y_range, z_range):
+    """
+    Discretize model by taking the value at the center of the voxel.
+    """
+    x = np.arange(*x_range)
+    y = np.arange(*y_range)
+    z = np.arange(*z_range)
+    x, y, z = np.meshgrid(x, y, z)
+    return model(x, y, z)
 
 
 def discretize_linear_1D(model, x_range):
@@ -267,6 +305,28 @@ def discretize_bilinear_2D(model, x_range, y_range):
     values = 0.5 * (values_intermediate_grid[1:, :] + values_intermediate_grid[:-1, :])
     # Mean in x direction
     return 0.5 * (values[:, 1:] + values[:, :-1])
+
+
+def discretize_bilinear_3D(model, x_range, y_range, z_range):
+    """
+    Discretize model by performing a bilinear interpolation.
+    """
+    # Evaluate model 0.5 pixel outside the boundaries
+    x = np.arange(x_range[0] - 0.5, x_range[1] + 0.5)
+    y = np.arange(y_range[0] - 0.5, y_range[1] + 0.5)
+    z = np.arange(z_range[0] - 0.5, z_range[1] + 0.5)
+    x, y, z = np.meshgrid(x, y, z)
+    values_intermediate_grid = model(x, y, z)
+
+    # Mean in z direction
+    values = 0.5 * (
+        values_intermediate_grid[1:, :, :] + values_intermediate_grid[:-1, :, :]
+    )
+    # Mean in y direction
+    values = 0.5 * (values[:, 1:, :] + values[:, :-1, :])
+    # Mean in x direction
+    values = 0.5 * (values[:, :, 1:] + values[:, :, :-1])
+    return values
 
 
 def discretize_oversample_1D(model, x_range, factor=10):
@@ -312,6 +372,43 @@ def discretize_oversample_2D(model, x_range, y_range, factor=10):
     return values.mean(axis=3).mean(axis=1)
 
 
+def discretize_oversample_3D(model, x_range, y_range, z_range, factor=10):
+    """
+    Discretize model by taking the average on an oversampled grid.
+    """
+    # Evaluate model on oversampled grid
+    x = np.linspace(
+        x_range[0] - 0.5 * (1 - 1 / factor),
+        x_range[1] - 0.5 * (1 + 1 / factor),
+        num=int((x_range[1] - x_range[0]) * factor),
+    )
+    y = np.linspace(
+        y_range[0] - 0.5 * (1 - 1 / factor),
+        y_range[1] - 0.5 * (1 + 1 / factor),
+        num=int((y_range[1] - y_range[0]) * factor),
+    )
+    z = np.linspace(
+        z_range[0] - 0.5 * (1 - 1 / factor),
+        z_range[1] - 0.5 * (1 + 1 / factor),
+        num=int((z_range[1] - z_range[0]) * factor),
+    )
+
+    x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
+    values = model(x_grid, y_grid, z_grid)
+
+    # Reshape and compute mean
+    shape = (
+        z.size // factor,
+        factor,
+        y.size // factor,
+        factor,
+        x.size // factor,
+        factor,
+    )
+    values = np.reshape(values, shape)
+    return values.mean(axis=5).mean(axis=3).mean(axis=1)
+
+
 def discretize_integrate_1D(model, x_range):
     """
     Discretize model by integrating numerically the model over the bin.
@@ -349,4 +446,32 @@ def discretize_integrate_2D(model, x_range, y_range):
                 gfun=lambda x: y[j],
                 hfun=lambda x: y[j + 1],
             )[0]
+    return values
+
+
+def discretize_integrate_3D(model, x_range, y_range, z_range):
+    """
+    Discretize model by integrating the model over the voxel.
+    """
+    from scipy.integrate import tplquad
+
+    # Set up grid
+    x = np.arange(x_range[0] - 0.5, x_range[1] + 0.5)
+    y = np.arange(y_range[0] - 0.5, y_range[1] + 0.5)
+    z = np.arange(z_range[0] - 0.5, z_range[1] + 0.5)
+    values = np.empty((z.size - 1, y.size - 1, x.size - 1))
+
+    # Integrate over all pixels
+    for i in range(x.size - 1):
+        for j in range(y.size - 1):
+            for k in range(z.size - 1):
+                values[k, j, i] = tplquad(
+                    func=lambda y, x: model(x, y, z),
+                    a=x[i],
+                    b=x[i + 1],
+                    gfun=lambda x: y[j],
+                    hfun=lambda x: y[j + 1],
+                    qfun=lambda x, y: z[k],
+                    rfun=lambda x, y: z[k + 1],
+                )[0]
     return values
