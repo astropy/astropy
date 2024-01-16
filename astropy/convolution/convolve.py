@@ -14,7 +14,7 @@ from astropy.utils.console import human_file_size
 from astropy.utils.exceptions import AstropyUserWarning
 
 from ._convolve import _convolveNd_c
-from .core import MAX_NORMALIZATION, Kernel, Kernel1D, Kernel2D
+from .core import MAX_NORMALIZATION, Kernel, Kernel1D, Kernel2D, Kernel3D
 from .utils import KernelSizeError, has_even_axis
 
 # np.unique([scipy.fft.next_fast_len(i, real=True) for i in range(10000)])
@@ -444,8 +444,10 @@ def convolve(
             new_result = Kernel1D(array=result)
         elif isinstance(passed_array, Kernel2D):
             new_result = Kernel2D(array=result)
+        elif isinstance(passed_array, Kernel3D):
+            new_result = Kernel3D(array=result)
         else:
-            raise TypeError("Only 1D and 2D Kernels are supported.")
+            raise TypeError("Only 1D, 2D and 3D Kernels are supported.")
         new_result._is_bool = False
         new_result._separable = passed_array._separable
         if isinstance(passed_kernel, Kernel):
