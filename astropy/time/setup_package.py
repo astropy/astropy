@@ -4,7 +4,7 @@
 
 import os
 
-import numpy
+import numpy as np
 from setuptools import Extension
 
 C_TIME_PKGDIR = os.path.relpath(os.path.dirname(__file__))
@@ -20,7 +20,7 @@ def get_extensions():
     _time_ext = Extension(
         name="astropy.time._parse_times",
         sources=SRC_FILES,
-        include_dirs=[numpy.get_include()],
+        include_dirs=[np.get_include()],
         language="c",
     )
 

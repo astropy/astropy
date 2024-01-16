@@ -14,7 +14,7 @@ from .core import UnitBase, def_unit, set_enabled_units
 # To ensure si units of the constants can be interpreted.
 set_enabled_units([si])
 
-import numpy as _np  # noqa: E402
+import numpy as np  # noqa: E402
 
 __all__: list[str] = []  #  Units are added at the end
 
@@ -156,7 +156,7 @@ def_unit(
 )
 def_unit(
     ["R", "Rayleigh", "rayleigh"],
-    (1e10 / (4 * _np.pi)) * ph * si.m**-2 * si.s**-1 * si.sr**-1,
+    (1e10 / (4 * np.pi)) * ph * si.m**-2 * si.s**-1 * si.sr**-1,
     namespace=_ns,
     prefixes=True,
     doc="Rayleigh: photon flux",

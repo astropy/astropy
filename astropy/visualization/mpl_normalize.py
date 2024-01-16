@@ -28,7 +28,7 @@ from .stretch import (
 )
 
 try:
-    import matplotlib  # noqa: F401
+    import matplotlib as mpl  # noqa: F401
     from matplotlib import pyplot as plt
     from matplotlib.colors import Normalize
 except ImportError:

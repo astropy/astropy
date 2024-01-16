@@ -2150,10 +2150,10 @@ class TestPandas:
             # No warning with the default use_nullable_int=True
             d = t.to_pandas(use_nullable_int=use_nullable_int)
         else:
-            import pandas
+            import pandas as pd
             from packaging.version import Version
 
-            PANDAS_LT_2_0 = Version(pandas.__version__) < Version("2.0")
+            PANDAS_LT_2_0 = Version(pd.__version__) < Version("2.0")
             if PANDAS_LT_2_0:
                 if PYTEST_LT_8_0:
                     ctx = nullcontext()

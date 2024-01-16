@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import matplotlib
+import matplotlib as mpl
 import numpy as np
 
 from astropy import units as u
@@ -14,7 +14,7 @@ __all__ = [
     "transform_contour_set_inplace",
 ]
 
-MATPLOTLIB_LT_3_8 = not minversion(matplotlib, "3.8.dev")
+MATPLOTLIB_LT_3_8 = not minversion(mpl, "3.8.dev")
 
 
 def select_step_degree(dv):

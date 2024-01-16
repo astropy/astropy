@@ -2,7 +2,7 @@
 
 import os
 
-import numpy
+import numpy as np
 from setuptools import Extension
 
 ROOT = os.path.relpath(os.path.dirname(__file__))
@@ -10,7 +10,7 @@ ROOT = os.path.relpath(os.path.dirname(__file__))
 
 def get_extensions():
     sources = ["_np_utils.pyx", "_column_mixins.pyx"]
-    include_dirs = [numpy.get_include()]
+    include_dirs = [np.get_include()]
 
     exts = [
         Extension(

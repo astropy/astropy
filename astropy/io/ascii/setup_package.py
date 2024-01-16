@@ -2,7 +2,7 @@
 
 import os
 
-import numpy
+import numpy as np
 from setuptools import Extension
 
 ROOT = os.path.relpath(os.path.dirname(__file__))
@@ -16,7 +16,7 @@ def get_extensions():
     ascii_ext = Extension(
         name="astropy.io.ascii.cparser",
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
-        include_dirs=[numpy.get_include()],
+        include_dirs=[np.get_include()],
         sources=sources,
     )
     return [ascii_ext]

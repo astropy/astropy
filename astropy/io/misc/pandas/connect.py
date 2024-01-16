@@ -53,12 +53,12 @@ def import_html_libs():
 def _pandas_read(fmt, filespec, **kwargs):
     """Provide io Table connector to read table using pandas."""
     try:
-        import pandas
+        import pandas as pd
     except ImportError:
         raise ImportError("pandas must be installed to use pandas table reader")
 
     pandas_fmt = fmt[len(PANDAS_PREFIX) :]  # chop the 'pandas.' in front
-    read_func = getattr(pandas, "read_" + pandas_fmt)
+    read_func = getattr(pd, "read_" + pandas_fmt)
 
     # Get defaults and then override with user-supplied values
     read_kwargs = PANDAS_FMTS[pandas_fmt]["read"].copy()

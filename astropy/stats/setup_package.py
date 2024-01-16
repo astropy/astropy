@@ -2,7 +2,7 @@
 
 import os
 
-import numpy
+import numpy as np
 from setuptools import Extension
 
 ROOT = os.path.relpath(os.path.dirname(__file__))
@@ -15,14 +15,14 @@ def get_extensions():
         name="astropy.stats._fast_sigma_clip",
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
         sources=SRCFILES,
-        include_dirs=[numpy.get_include()],
+        include_dirs=[np.get_include()],
         language="c",
     )
     _stats_ext = Extension(
         name="astropy.stats._stats",
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
         sources=[os.path.join(ROOT, "_stats.pyx")],
-        include_dirs=[numpy.get_include()],
+        include_dirs=[np.get_include()],
     )
 
     return [_sigma_clip_ext, _stats_ext]
