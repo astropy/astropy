@@ -26,6 +26,7 @@ from .utils import (
     KernelArithmeticError,
     add_kernel_arrays_1D,
     add_kernel_arrays_2D,
+    add_kernel_arrays_3D,
     discretize_model,
 )
 
@@ -453,8 +454,23 @@ def kernel_arithmetics(kernel, value, operation):
         new_kernel._separable = kernel._separable and value._separable
         new_kernel._is_bool = kernel._is_bool or value._is_bool
 
+    # 3D kernels
+    elif isinstance(kernel, Kernel3D) and isinstance(value, Kernel3D):
+        if operation == "add":
+            new_array = add_kernel_arrays_3D(kernel.array, value.array)
+        elif operation == "sub":
+            new_array = add_kernel_arrays_3D(kernel.array, -value.array)
+        elif operation == "mul":
+            raise KernelArithmeticError(
+                "Kernel operation not supported. Maybe you want "
+                "to use convolve(kernel1, kernel2) instead."
+            )
+        new_kernel = Kernel3D(array=new_array)
+        new_kernel._separable = kernel._separable and value._separable
+        new_kernel._is_bool = kernel._is_bool or value._is_bool
+
     # kernel and number
-    elif isinstance(kernel, (Kernel1D, Kernel2D)) and np.isscalar(value):
+    elif isinstance(kernel, (Kernel1D, Kernel2D, Kernel3D)) and np.isscalar(value):
         if operation != "mul":
             raise KernelArithmeticError("Kernel operation not supported.")
         new_kernel = copy.copy(kernel)

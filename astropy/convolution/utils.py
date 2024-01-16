@@ -85,6 +85,43 @@ def add_kernel_arrays_2D(array_1, array_2):
     return array_2 + array_1
 
 
+def add_kernel_arrays_3D(array_1, array_2):
+    """
+    Add two 3D kernel arrays of different size.
+
+    The arrays are added with the centers lying upon each other.
+    """
+    if array_1.size > array_2.size:
+        new_array = array_1.copy()
+        center = [axes_size // 2 for axes_size in array_1.shape]
+        slice_x = slice(
+            center[2] - array_2.shape[2] // 2, center[2] + array_2.shape[2] // 2 + 1
+        )
+        slice_y = slice(
+            center[1] - array_2.shape[1] // 2, center[1] + array_2.shape[1] // 2 + 1
+        )
+        slice_z = slice(
+            center[0] - array_2.shape[0] // 2, center[0] + array_2.shape[0] // 2 + 1
+        )
+        new_array[slice_z, slice_y, slice_x] += array_2
+        return new_array
+    elif array_2.size > array_1.size:
+        new_array = array_2.copy()
+        center = [axes_size // 2 for axes_size in array_2.shape]
+        slice_x = slice(
+            center[2] - array_1.shape[2] // 2, center[2] + array_1.shape[2] // 2 + 1
+        )
+        slice_y = slice(
+            center[1] - array_1.shape[1] // 2, center[1] + array_1.shape[1] // 2 + 1
+        )
+        slice_z = slice(
+            center[0] - array_1.shape[0] // 2, center[0] + array_1.shape[0] // 2 + 1
+        )
+        new_array[slice_z, slice_y, slice_x] += array_1
+        return new_array
+    return array_2 + array_1
+
+
 def discretize_model(
     model, x_range, y_range=None, z_range=None, *, mode="center", factor=10
 ):
