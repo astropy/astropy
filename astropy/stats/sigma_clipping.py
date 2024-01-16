@@ -429,7 +429,7 @@ class SigmaClip:
 
         # remove masked values and convert to ndarray
         if isinstance(filtered_data, np.ma.MaskedArray):
-            filtered_data = filtered_data.data[~filtered_data.mask]
+            filtered_data = filtered_data._data[~filtered_data.mask]
 
         # remove invalid values
         good_mask = np.isfinite(filtered_data)
