@@ -1,4 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+# ruff: noqa: S101
+
 """Testing utilities. Not part of the public API!"""
 
 from astropy.wcs import WCS

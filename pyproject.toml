@@ -393,9 +393,6 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
 "**/tests/*.py" = [
     "S101",  # Use of assert detected
 ]
-"astropy/nddata/_testing.py" = [
-    "S101",  # Use of assert detected
-]
 ".pyinstaller/*.py" = ["INP001"]  # Not a package.
 "conftest.py" = ["INP001"]  # Part of configuration, not a package.
 "docs/*.py" = [
