@@ -1,0 +1,1 @@
+Fix a bug where ``AngleFormatterLocator`` and ``ScalarFormatterLocator`` wouldn't respect matplotlib.rc's ``axes.unicode_minus`` parameter.
