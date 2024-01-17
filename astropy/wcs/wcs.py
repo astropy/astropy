@@ -470,7 +470,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                     )
 
             if isinstance(header, fits.Header):
-                header_string = header.tostring().rstrip()
+                header_string = header.tostring(padding=False)
             else:
                 header_string = header
 
@@ -491,7 +491,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
             try:
                 tmp_header = fits.Header.fromstring(header_string)
                 self._remove_sip_kw(tmp_header)
-                tmp_header_bytes = tmp_header.tostring().rstrip()
+                tmp_header_bytes = tmp_header.tostring(padding=False)
                 if isinstance(tmp_header_bytes, str):
                     tmp_header_bytes = tmp_header_bytes.encode("ascii")
                 tmp_wcsprm = _wcs.Wcsprm(
@@ -524,8 +524,8 @@ class WCS(FITSWCSAPIMixin, WCSBase):
             sip = self._read_sip_kw(header, wcskey=key)
             self._remove_sip_kw(header)
 
-            header_string = header.tostring()
-            header_string = header_string.replace("END" + " " * 77, "")
+            header_string = header.tostring(padding=False)
+            header_string = header_string.replace("END", "")
 
             if isinstance(header_string, str):
                 header_bytes = header_string.encode("ascii")
@@ -3640,7 +3640,7 @@ def find_all_wcs(
     if isinstance(header, (str, bytes)):
         header_string = header
     elif isinstance(header, fits.Header):
-        header_string = header.tostring()
+        header_string = header.tostring(padding=False)
     else:
         raise TypeError("header must be a string or astropy.io.fits.Header object")
 
