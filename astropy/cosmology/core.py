@@ -14,7 +14,7 @@ from astropy.utils.decorators import classproperty
 from astropy.utils.metadata import MetaData
 
 from ._utils import all_cls_vars
-from .connect import (
+from .io._connect import (
     CosmologyFromFormat,
     CosmologyRead,
     CosmologyToFormat,
@@ -162,7 +162,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         _COSMOLOGY_CLASSES[cls.__qualname__] = cls
 
         # register to YAML
-        from astropy.cosmology._io.yaml import register_cosmology_yaml
+        from astropy.cosmology.io._builtin.yaml import register_cosmology_yaml
 
         register_cosmology_yaml(cls)
 
