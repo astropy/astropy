@@ -225,7 +225,7 @@ def test_cds_no_whitespace():
     # Make sure CDS reader_cls only checks null values when an '=' symbol is present,
     # and read description text even if there is no whitespace after '?'.
     readme = "data/cds/null/ReadMe1"
-    data = "data/cds/null/table.dat"
+    data = "data/cds/null/table1.dat"
     r = ascii.Cds(readme)
     r.read(data)
     assert_equal(r.header.cols[6].description, "Temperature class codified (10)")
@@ -243,9 +243,9 @@ def test_cds_order():
     # Make sure CDS reader_cls does not ignore order specifier that maybe present after
     # the null specifier '?'
     readme = "data/cds/null/ReadMe1"
-    data = "data/cds/null/table.dat"
+    data = "data/cds/null/table1.dat"
     r = ascii.Cds(readme)
     r.read(data)
     assert_equal(r.header.cols[5].description, "Catalogue Identification Number")
-    assert_equal(r.header.cols[8].description, "Equivalent width (in mA)")
+    assert_equal(r.header.cols[8].description, "Another equivalent width (in mA)")
     assert_equal(r.header.cols[9].description, "Luminosity class codified (11)")
