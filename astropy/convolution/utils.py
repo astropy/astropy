@@ -222,7 +222,7 @@ def discretize_model(
         model = custom_model(model)()
     ndim = model.n_inputs
     if ndim > 3:
-        raise ValueError("discretize_model supports only 1D, 2D and 3D models.")
+        raise ValueError("discretize_model supports only 1D, 2D, and 3D models.")
 
     dxrange = np.diff(x_range)[0]
     if dxrange != int(dxrange):
