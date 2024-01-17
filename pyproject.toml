@@ -195,6 +195,7 @@ filterwarnings = [
     # Ignore a warning we emit about not supporting the parallel",
     # reading option for now, can be removed once the issue is fixed",
     "ignore:parallel reading does not currently work, so falling back to serial",
+    # Ignore the warning raised when running pytest with -OO, otherwise tests do not run
     "ignore:assertions not in test modules or plugins will be ignored"
 ]
 doctest_norecursedirs = [
