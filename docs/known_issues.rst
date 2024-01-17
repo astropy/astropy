@@ -75,6 +75,35 @@ Both will throw an exception if units do not cancel, e.g.::
 
 See: https://github.com/astropy/astropy/issues/7582
 
+Quantities Lose Their Units with Operations on pandas.Series
+------------------------------------------------------------
+
+Quantities may work with certain operations on `~pandas.Series` but
+this behaviour is not tested. Quantities are subclassed from ``numpy``'s `~numpy.ndarray`
+and they do not behave same as `~pandas.Series` objects.
+For example one know issue is that multiplying a `~pandas.Series` object
+with a unit will *not* return a ``Quantity`` object. It will return a `~pandas.Series`
+object without any unit::
+
+   >>> import pandas as pd
+   >>> import astropy.units as u
+   >>> a = pd.Series([1., 2., 3.])
+   >>> a * u.m
+   0    1.0
+   1    2.0
+   2    3.0
+   dtype: float64
+
+One way around this is to use the in-place shift operator::
+
+   >>> a << u.m
+   <Quantity [1., 2., 3.] m>
+
+But this is fragile as this may stop working in future versions of
+pandas if they decide to override the dunder methods.
+
+See: https://github.com/astropy/astropy/issues/11247
+
 Numpy array creation functions cannot be used to initialize Quantity
 --------------------------------------------------------------------
 Trying the following example will ignore the unit:
