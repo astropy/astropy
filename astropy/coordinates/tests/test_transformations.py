@@ -1,12 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import numpy as np
 import pytest
 
 from astropy import units as u
+from astropy.coordinates import (
+    AffineTransform,
+    DynamicMatrixTransform,
+    FunctionTransform,
+    FunctionTransformWithFiniteDifference,
+    StaticMatrixTransform,
+    TransformGraph,
+)
 from astropy.coordinates import representation as r
-from astropy.coordinates import transformations as t
 from astropy.coordinates.attributes import Attribute
 from astropy.coordinates.baseframe import BaseCoordinateFrame, frame_transform_graph
 from astropy.coordinates.builtin_frames import (
@@ -19,6 +25,7 @@ from astropy.coordinates.builtin_frames import (
     Galactic,
 )
 from astropy.coordinates.matrix_utilities import rotation_matrix
+from astropy.coordinates.transformations.composite import _combine_affine_params
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
@@ -69,7 +76,7 @@ def test_transform_classes():
     def tfun(c, f):
         return f.__class__(ra=c.ra, dec=c.dec)
 
-    _ = t.FunctionTransform(tfun, TCoo1, TCoo2, register_graph=frame_transform_graph)
+    _ = FunctionTransform(tfun, TCoo1, TCoo2, register_graph=frame_transform_graph)
 
     c1 = TCoo1(ra=1 * u.radian, dec=0.5 * u.radian)
     c2 = c1.transform_to(TCoo2())
@@ -79,7 +86,7 @@ def test_transform_classes():
     def matfunc(coo, fr):
         return [[1, 0, 0], [0, coo.ra.degree, 0], [0, 0, 1]]
 
-    trans2 = t.DynamicMatrixTransform(matfunc, TCoo1, TCoo2)
+    trans2 = DynamicMatrixTransform(matfunc, TCoo1, TCoo2)
     trans2.register(frame_transform_graph)
 
     c3 = TCoo1(ra=1 * u.deg, dec=2 * u.deg)
@@ -99,7 +106,7 @@ def test_transform_decos():
     """
     c1 = TCoo1(ra=1 * u.deg, dec=2 * u.deg)
 
-    @frame_transform_graph.transform(t.FunctionTransform, TCoo1, TCoo2)
+    @frame_transform_graph.transform(FunctionTransform, TCoo1, TCoo2)
     def trans(coo1, f):
         return TCoo2(ra=coo1.ra, dec=coo1.dec * 2)
 
@@ -109,7 +116,7 @@ def test_transform_decos():
 
     c3 = TCoo1(r.CartesianRepresentation(x=1 * u.pc, y=1 * u.pc, z=2 * u.pc))
 
-    @frame_transform_graph.transform(t.StaticMatrixTransform, TCoo1, TCoo2)
+    @frame_transform_graph.transform(StaticMatrixTransform, TCoo1, TCoo2)
     def matrix():
         return [[2, 0, 0], [0, 1, 0], [0, 0, 1]]
 
@@ -125,7 +132,7 @@ def test_shortest_path():
         def __init__(self, pri):
             self.priority = pri
 
-    g = t.TransformGraph()
+    g = TransformGraph()
 
     # cheating by adding graph elements directly that are not classes - the
     # graphing algorithm still works fine with integers - it just isn't a valid
@@ -323,7 +330,7 @@ def test_affine_transform_succeed(transfunc, rep):
             expected_vel += offset.differentials["s"]
 
     # register and do the transformation and check against expected
-    trans = t.AffineTransform(transfunc, TCoo1, TCoo2)
+    trans = AffineTransform(transfunc, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
 
     c2 = c.transform_to(TCoo2())
@@ -352,7 +359,7 @@ def test_affine_transform_fail(transfunc):
     c = TCoo1(CARTESIAN_POS_AND_VEL)
 
     # register and do the transformation and check against expected
-    trans = t.AffineTransform(transfunc, TCoo1, TCoo2)
+    trans = AffineTransform(transfunc, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
 
     with pytest.raises(ValueError):
@@ -369,7 +376,7 @@ def test_too_many_differentials():
         c = TCoo1(rep)
 
     # register and do the transformation and check against expected
-    trans = t.AffineTransform(transfunc.both, TCoo1, TCoo2)
+    trans = AffineTransform(transfunc.both, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
 
     # Check that if frame somehow gets through to transformation, multiple
@@ -399,7 +406,7 @@ def test_unit_spherical_with_differentials(rep):
     c = TCoo1(rep)
 
     # register and do the transformation and check against expected
-    trans = t.AffineTransform(transfunc.just_matrix, TCoo1, TCoo2)
+    trans = AffineTransform(transfunc.just_matrix, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
     c2 = c.transform_to(TCoo2())
 
@@ -412,7 +419,7 @@ def test_unit_spherical_with_differentials(rep):
     trans.unregister(frame_transform_graph)
 
     # should fail if we have to do offsets
-    trans = t.AffineTransform(transfunc.both, TCoo1, TCoo2)
+    trans = AffineTransform(transfunc.both, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
 
     with pytest.raises(TypeError):
@@ -454,7 +461,7 @@ def test_function_transform_with_differentials():
     def tfun(c, f):
         return f.__class__(ra=c.ra, dec=c.dec)
 
-    _ = t.FunctionTransform(tfun, TCoo3, TCoo2, register_graph=frame_transform_graph)
+    _ = FunctionTransform(tfun, TCoo3, TCoo2, register_graph=frame_transform_graph)
 
     t3 = TCoo3(
         ra=1 * u.deg,
@@ -481,7 +488,7 @@ def test_frame_override_component_with_attribute():
     def trans_func(coo1, f):
         pass
 
-    trans = t.FunctionTransform(trans_func, BorkedFrame, ICRS)
+    trans = FunctionTransform(trans_func, BorkedFrame, ICRS)
     with pytest.raises(ValueError) as exc:
         trans.register(frame_transform_graph)
 
@@ -504,18 +511,18 @@ def test_static_matrix_combine_paths():
         default_representation = r.SphericalRepresentation
         default_differential = r.SphericalCosLatDifferential
 
-    t1 = t.StaticMatrixTransform(rotation_matrix(30.0 * u.deg, "z"), ICRS, AFrame)
+    t1 = StaticMatrixTransform(rotation_matrix(30.0 * u.deg, "z"), ICRS, AFrame)
     t1.register(frame_transform_graph)
-    t2 = t.StaticMatrixTransform(rotation_matrix(30.0 * u.deg, "z").T, AFrame, ICRS)
+    t2 = StaticMatrixTransform(rotation_matrix(30.0 * u.deg, "z").T, AFrame, ICRS)
     t2.register(frame_transform_graph)
 
     class BFrame(BaseCoordinateFrame):
         default_representation = r.SphericalRepresentation
         default_differential = r.SphericalCosLatDifferential
 
-    t3 = t.StaticMatrixTransform(rotation_matrix(30.0 * u.deg, "x"), ICRS, BFrame)
+    t3 = StaticMatrixTransform(rotation_matrix(30.0 * u.deg, "x"), ICRS, BFrame)
     t3.register(frame_transform_graph)
-    t4 = t.StaticMatrixTransform(rotation_matrix(30.0 * u.deg, "x").T, BFrame, ICRS)
+    t4 = StaticMatrixTransform(rotation_matrix(30.0 * u.deg, "x").T, BFrame, ICRS)
     t4.register(frame_transform_graph)
 
     c = Galactic(123 * u.deg, 45 * u.deg)
@@ -543,8 +550,8 @@ def test_multiple_aliases():
         return f.__class__(lon=c.lon, lat=c.lat)
 
     # Register a transform
-    graph = t.TransformGraph()
-    _ = t.FunctionTransform(
+    graph = TransformGraph()
+    _ = FunctionTransform(
         tfun, MultipleAliasesFrame, MultipleAliasesFrame, register_graph=graph
     )
 
@@ -562,10 +569,10 @@ def test_remove_transform_and_unregister():
         f.__class__(ra=c.ra, dec=c.dec)
 
     # Register transforms
-    graph = t.TransformGraph()
-    ftrans1 = t.FunctionTransform(tfun, TCoo1, TCoo1, register_graph=graph)
-    ftrans2 = t.FunctionTransform(tfun, TCoo2, TCoo2, register_graph=graph)
-    _ = t.FunctionTransform(tfun, TCoo1, TCoo2, register_graph=graph)
+    graph = TransformGraph()
+    ftrans1 = FunctionTransform(tfun, TCoo1, TCoo1, register_graph=graph)
+    ftrans2 = FunctionTransform(tfun, TCoo2, TCoo2, register_graph=graph)
+    _ = FunctionTransform(tfun, TCoo1, TCoo2, register_graph=graph)
 
     # Confirm that the frames are part of the graph
     assert TCoo1 in graph.frame_set
@@ -593,8 +600,8 @@ def test_remove_transform_errors():
     def tfun(c, f):
         return f.__class__(ra=c.ra, dec=c.dec)
 
-    graph = t.TransformGraph()
-    _ = t.FunctionTransform(tfun, TCoo1, TCoo1, register_graph=graph)
+    graph = TransformGraph()
+    _ = FunctionTransform(tfun, TCoo1, TCoo1, register_graph=graph)
 
     # Test bad calls to remove_transform
 
@@ -624,18 +631,18 @@ def test_impose_finite_difference_dt():
     class H3(HCRS):
         pass
 
-    graph = t.TransformGraph()
+    graph = TransformGraph()
     tfun = lambda c, f: type(f)(ra=c.ra, dec=c.dec)
 
     # Set up a number of transforms with different time steps
     old_dt = 1 * u.min
-    transform1 = t.FunctionTransformWithFiniteDifference(
+    transform1 = FunctionTransformWithFiniteDifference(
         tfun, H1, H1, register_graph=graph, finite_difference_dt=old_dt
     )
-    transform2 = t.FunctionTransformWithFiniteDifference(
+    transform2 = FunctionTransformWithFiniteDifference(
         tfun, H2, H2, register_graph=graph, finite_difference_dt=old_dt * 2
     )
-    transform3 = t.FunctionTransformWithFiniteDifference(
+    transform3 = FunctionTransformWithFiniteDifference(
         tfun, H2, H3, register_graph=graph, finite_difference_dt=old_dt * 3
     )
 
@@ -680,7 +687,7 @@ def test_impose_finite_difference_dt():
     ),
 )
 def test_combine_affine_params(first, second, check):
-    result = t.composite._combine_affine_params(first, second)
+    result = _combine_affine_params(first, second)
     if check[0] is None:
         assert result[0] is None
     else:
