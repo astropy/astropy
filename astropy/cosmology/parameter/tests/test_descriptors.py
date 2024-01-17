@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+import re
+import sys
 from types import MappingProxyType
 from typing import TYPE_CHECKING, ClassVar
 
@@ -80,9 +82,12 @@ class TestParametersAttribute:
 
         obj = Obj2()
 
-        with pytest.raises(
-            TypeError, match="attribute name must be string, not 'NoneType'"
-        ):
+        if sys.version_info < (3, 11):
+            msg = "getattr(): attribute name must be string"
+        else:
+            msg = "attribute name must be string, not 'NoneType'"
+
+        with pytest.raises(TypeError, match=re.escape(msg)):
             _ = obj.attr
 
 
