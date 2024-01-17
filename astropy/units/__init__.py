@@ -54,6 +54,9 @@ __all__ += photometric.__all__
 __all__ += structured.__all__
 __all__ += equivalencies.__all__
 __all__ += function.__all__
+# We sort `__all__` for the docs. We use `globals` to avoid confusing any static
+# analysis tools.
+globals()["__all__"].sort()
 
 # Enable the set of default units.  This notably does *not* include
 # Imperial units.
