@@ -444,3 +444,26 @@ class NDData(NDDataBase):
                 # setter).
                 value.parent_nddata = self
         self._uncertainty = value
+
+    def __eq__(self, other) -> bool:
+        def is_sequence(a) -> bool:
+            try:
+                len(a)
+            except TypeError:
+                return False
+            else:
+                return True
+
+        def seqeq(a, b) -> bool:
+            # return True iff a==b
+            if is_sequence(a) and is_sequence(b):
+                return bool(np.all(np.asanyarray(a) == np.asanyarray(b)))
+            else:
+                return a == b
+
+        # checks are ordered from cheapest to most expensive
+        return other is self or (
+            self.unit == other.unit
+            and seqeq(self.mask, other.mask)
+            and seqeq(self.data, other.data)
+        )
