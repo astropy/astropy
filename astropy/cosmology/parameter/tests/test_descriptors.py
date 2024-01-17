@@ -36,36 +36,49 @@ class Obj:
 class TestParametersAttribute:
     """Test the descriptor ``ParametersAttribute``."""
 
-    @pytest.fixture
-    def obj_cls(self) -> type[Obj]:
-        """The class with the ParametersAttribute."""
-        return Obj
-
-    @pytest.fixture
-    def obj(self, obj_cls) -> Obj:
-        """An instance of the class with the ParametersAttribute."""
-        return obj_cls()
-
-    # ===============================================================
-
     def test_init(self):
         """Test constructing a ParametersAttribute."""
+        # Proper construction
         attr = ParametersAttribute("attr_name")
         assert attr.attr_name == "attr_name"
 
-    def test_get_from_class(self, obj_cls):
-        """Test the descriptor ``__get__``."""
-        assert obj_cls.attr == ("a", "b", "c")
+        # Improper construction
+        # There isn't type checking on the attr_name, so this is allowed, but will fail
+        # later when the descriptor is used.
+        attr = ParametersAttribute(1)
+        assert attr.attr_name == 1
 
-    def test_get_from_instance(self, obj):
+    def test_get_from_class(self):
+        """Test the descriptor ``__get__`` from the class."""
+        assert Obj.attr == ("a", "b", "c")
+
+    def test_get_from_instance(self):
         """Test the descriptor ``__get__``."""
+        obj = Obj()  # Construct an instance for the attribute `attr`.
         assert isinstance(obj.attr, MappingProxyType)
         assert tuple(obj.attr.keys()) == obj._attr_map
 
-    def test_set_from_instance(self, obj):
+    def test_set_from_instance(self):
         """Test the descriptor ``__set__``."""
+        obj = Obj()  # Construct an instance for the attribute `attr`.
         with pytest.raises(AttributeError, match="cannot set 'attr' of"):
             obj.attr = {}
+
+    def test_descriptor_attr_name_not_str(self):
+        """Test when ``attr_name`` is not a string and used as a descriptor.
+
+        This is a regression test for #15882.
+        """
+
+        class Obj2(Obj):
+            attr = ParametersAttribute(attr_name=None)
+
+        obj = Obj2()
+
+        with pytest.raises(
+            TypeError, match="attribute name must be string, not 'NoneType'"
+        ):
+            _ = obj.attr
 
 
 ##############################################################################
