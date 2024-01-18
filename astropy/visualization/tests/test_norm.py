@@ -204,7 +204,7 @@ class TestImageScaling:
     def test_sqrt_invalid_kw(self, invalid):
         stretch = SqrtStretch()
         norm1 = simple_norm(
-            DATA3, stretch="sqrt", min_cut=-1, max_cut=1, clip=False, invalid=invalid
+            DATA3, stretch="sqrt", vmin=-1, vmax=1, clip=False, invalid=invalid
         )
         norm2 = ImageNormalize(
             stretch=stretch, vmin=-1, vmax=1, clip=False, invalid=invalid
@@ -252,7 +252,7 @@ class TestImageScaling:
 
     def test_min(self):
         """Test linear scaling."""
-        norm = simple_norm(DATA2, stretch="linear", min_cut=1.0, clip=True)
+        norm = simple_norm(DATA2, stretch="linear", vmin=1.0, clip=True)
         assert_allclose(norm(DATA2), [0.0, 0.0, 1.0], atol=0, rtol=1.0e-5)
 
     def test_percent(self):
