@@ -85,10 +85,10 @@ For example one know issue is that multiplying a `~pandas.Series` object
 with a unit will *not* return a ``Quantity`` object. It will return a `~pandas.Series`
 object without any unit::
 
-   >>> import pandas as pd
-   >>> import astropy.units as u
-   >>> a = pd.Series([1., 2., 3.])
-   >>> a * u.m
+   >>> import pandas as pd # doctest: +SKIP
+   >>> import astropy.units as u # doctest: +SKIP
+   >>> a = pd.Series([1., 2., 3.]) # doctest: +SKIP
+   >>> a * u.m # doctest: +SKIP
    0    1.0
    1    2.0
    2    3.0
@@ -96,11 +96,15 @@ object without any unit::
 
 One way around this is to use the in-place shift operator::
 
-   >>> a << u.m
+   >>> a << u.m # doctest: +SKIP
    <Quantity [1., 2., 3.] m>
 
 But this is fragile as this may stop working in future versions of
-pandas if they decide to override the dunder methods.
+pandas if they decide to override the dunder methods. What should be
+secure, though, is to initialize the ``Quantity`` directly::
+
+    >>> u.Quantity(a, u.m) # doctest: +SKIP
+    <Quantity [1., 2., 3.] m>
 
 See: https://github.com/astropy/astropy/issues/11247
 
