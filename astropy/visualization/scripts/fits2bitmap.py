@@ -142,6 +142,10 @@ def main(args=None):
     parser = argparse.ArgumentParser(
         description="Create a bitmap file from a FITS image."
     )
+    # the mutually exclusive groups can be removed when the deprecated
+    # min_cut and max_cut are removed
+    vmin_group = parser.add_mutually_exclusive_group()
+    vmax_group = parser.add_mutually_exclusive_group()
     parser.add_argument(
         "-e",
         "--ext",
@@ -185,29 +189,29 @@ def main(args=None):
             "(Default is 0.1)."
         ),
     )
-    parser.add_argument(
+    vmin_group.add_argument(
         "--vmin",
         type=float,
         default=None,
         help="The pixel value of the minimum cut level (Default is the image minimum).",
     )
-    parser.add_argument(
+    vmax_group.add_argument(
         "--vmax",
         type=float,
         default=None,
         help="The pixel value of the maximum cut level (Default is the image maximum).",
     )
-    parser.add_argument(
+    vmin_group.add_argument(
         "--min_cut",
         type=float,
         default=None,
-        help="The pixel value of the minimum cut level (Default is the image minimum).",
+        help="The pixel value of the minimum cut level (Deprecated, use vmin instead; default is the image minimum).",
     )
-    parser.add_argument(
+    vmax_group.add_argument(
         "--max_cut",
         type=float,
         default=None,
-        help="The pixel value of the maximum cut level (Default is the image maximum).",
+        help="The pixel value of the maximum cut level (Deprecated, use vmax instead; default is the image maximum).",
     )
     parser.add_argument(
         "--min_percent",
@@ -251,13 +255,11 @@ def main(args=None):
 
     if args.min_cut is not None:
         warnings.warn('The "--min_cut" argument is deprecated. Use "--vmin" instead.')
-        if args.vmin is None:
-            args.vmin = args.min_cut
+        args.vmin = args.min_cut
 
     if args.max_cut is not None:
         warnings.warn('The "--max_cut" argument is deprecated. Use "--vmax" instead.')
-        if args.vmax is None:
-            args.vmax = args.max_cut
+        args.vmax = args.max_cut
 
     for filename in args.filename:
         fits2bitmap(
