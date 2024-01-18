@@ -16,7 +16,7 @@ from . import (
 
 __all__ = ["def_physical_type", "get_physical_type", "PhysicalType"]
 
-_units_and_physical_types = [
+_units_and_physical_types : list[tuple(u.UnitBase, str | set(str))] = [
     (core.dimensionless_unscaled, "dimensionless"),
     (si.m, "length"),
     (si.m**2, "area"),
@@ -179,7 +179,7 @@ def _replace_temperatures_with_kelvin(unit):
         return unit
 
 
-def _standardize_physical_type_names(physical_type_input):
+def _standardize_physical_type_names(physical_type_input: str | set[str]) -> set[str]:
     """
     Convert a string or `set` of strings into a `set` containing
     string representations of physical types.
@@ -312,7 +312,7 @@ class PhysicalType:
     PhysicalType('length')
     """
 
-    def __init__(self, unit, physical_types):
+    def __init__(self, unit: u.UnitBase, physical_types):
         self._unit = _replace_temperatures_with_kelvin(unit)
         self._physical_type_id = self._unit._get_physical_type_id()
         self._physical_type = _standardize_physical_type_names(physical_types)
@@ -321,7 +321,7 @@ class PhysicalType:
     def __iter__(self):
         yield from self._physical_type_list
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         """
         Return `True` if ``other`` represents a physical type that is
         consistent with the physical type of the `PhysicalType` instance.
@@ -334,14 +334,14 @@ class PhysicalType:
         else:
             return NotImplemented
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         equality = self.__eq__(other)
         return not equality if isinstance(equality, bool) else NotImplemented
 
-    def _name_string_as_ordered_set(self):
+    def _name_string_as_ordered_set(self) -> str:
         return "{" + str(self._physical_type_list)[1:-1] + "}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if len(self._physical_type) == 1:
             names = "'" + self._physical_type_list[0] + "'"
         else:
@@ -352,7 +352,7 @@ class PhysicalType:
         return "/".join(self._physical_type_list)
 
     @staticmethod
-    def _dimensionally_compatible_unit(obj):
+    def _dimensionally_compatible_unit(obj: object) -> u.UnitBase | NotImplemented:  # ???
         """
         Return a unit that corresponds to the provided argument.
 
@@ -373,7 +373,7 @@ class PhysicalType:
         else:
             return NotImplemented
 
-    def _dimensional_analysis(self, other, operation):
+    def _dimensional_analysis(self, other: object, operation) -> Self | NotImplemented:  # ???
         other_unit = self._dimensionally_compatible_unit(other)
         if other_unit is NotImplemented:
             return NotImplemented
@@ -381,28 +381,28 @@ class PhysicalType:
         new_unit = getattr(self._unit, operation)(other_unit)
         return new_unit.physical_type
 
-    def __mul__(self, other):
+    def __mul__(self, other: object) -> Self | NotImplemented:
         return self._dimensional_analysis(other, "__mul__")
 
-    def __rmul__(self, other):
+    def __rmul__(self, other: object) -> Self | NotImplemented:
         return self.__mul__(other)
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: object) -> Self | NotImplemented:
         return self._dimensional_analysis(other, "__truediv__")
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other: object) -> Self | NotImplemented:
         other = self._dimensionally_compatible_unit(other)
         if other is NotImplemented:
             return NotImplemented
         return other.physical_type._dimensional_analysis(self, "__truediv__")
 
-    def __pow__(self, power):
+    def __pow__(self, power: object) -> Self | NotImplemented:
         return (self._unit**power).physical_type
 
     def __hash__(self):
         return hash(self._physical_type_id)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._physical_type)
 
     # We need to prevent operations like where a Unit instance left
@@ -413,7 +413,7 @@ class PhysicalType:
     __array__ = None
 
 
-def def_physical_type(unit, name):
+def def_physical_type(unit: u.UnitBase, name: str) -> None:
     """
     Add a mapping between a unit and the corresponding physical type(s).
 
@@ -476,7 +476,7 @@ def def_physical_type(unit, name):
         _attrname_physical_mapping[attr_name] = physical_type
 
 
-def get_physical_type(obj):
+def get_physical_type(obj: object) -> PhysicalType:
     """
     Return the physical type that corresponds to a unit (or another
     physical type representation).
@@ -556,7 +556,7 @@ for unit, physical_type in _units_and_physical_types:
 
 
 # For getting the physical types.
-def __getattr__(name):
+def __getattr__(name: str) -> PhysicalType:
     """Checks for physical types using lazy import.
 
     This also allows user-defined physical types to be accessible from the
@@ -584,7 +584,7 @@ def __getattr__(name):
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-def __dir__():
+def __dir__() -> list[str]:
     """Return contents directory (__all__ + all physical type names)."""
     return list(set(__all__) | set(_attrname_physical_mapping.keys()))
 
@@ -592,7 +592,7 @@ def __dir__():
 # This generates a docstring addition for this module that describes all of the
 # standard physical types defined here.
 if __doc__ is not None:
-    doclines = [
+    doclines: list[str] = [
         ".. list-table:: Defined Physical Types",
         "    :header-rows: 1",
         "    :widths: 30 10 50",
