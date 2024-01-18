@@ -1,17 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""
-This module contains a general framework for defining graphs of transformations
-between coordinates, suitable for either spatial coordinates or more generalized
-coordinate systems.
+"""Module defining the class for a composited sequence of coordinate transformations.
 
-The fundamental idea is that each class is a node in the transformation graph,
-and transitions from one node to another are defined as functions (or methods)
-wrapped in transformation objects.
-
-This module also includes more specific transformation classes for
-celestial/spatial coordinate frames, generally focused around matrix-style
-transformations that are typically how the algorithms are defined.
+This module contains the class
+:class:`~astropy.coordinates.transformations.CompositeTransform` that combines a
+sequence of transformations into a single transformation. The class has the same API as
+a single-step transformation, so it can be used interchangeably with a single-step
+transformation.
 """
 
 

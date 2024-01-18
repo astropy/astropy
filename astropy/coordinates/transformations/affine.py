@@ -1,18 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""
-This module contains a general framework for defining graphs of transformations
-between coordinates, suitable for either spatial coordinates or more generalized
-coordinate systems.
-
-The fundamental idea is that each class is a node in the transformation graph,
-and transitions from one node to another are defined as functions (or methods)
-wrapped in transformation objects.
-
-This module also includes more specific transformation classes for
-celestial/spatial coordinate frames, generally focused around matrix-style
-transformations that are typically how the algorithms are defined.
-"""
+"""Affine coordinate transformations."""
 
 
 from abc import abstractmethod
@@ -21,7 +9,7 @@ import numpy as np
 
 from astropy.coordinates.transformations.base import CoordinateTransform
 
-__all__ = []
+__all__: list[str] = []
 
 
 class BaseAffineTransform(CoordinateTransform):
