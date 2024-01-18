@@ -760,7 +760,7 @@ We make use of the `pytest-mpl <https://pypi.org/project/pytest-mpl>`_
 plugin to write tests where we can compare the output of plotting commands
 with reference files on a pixel-by-pixel basis (this is used for instance in
 :ref:`astropy.visualization.wcsaxes <wcsaxes>`). We use the `hybrid mode
-<https://github.com/matplotlib/pytest-mpl#hybrid-mode-hashes-and-images>`_ with
+<https://pytest-mpl.readthedocs.io/en/latest/hybrid_mode.html>`_ with
 hashes and images.
 
 To run the Astropy tests with the image comparison, use e.g.::
