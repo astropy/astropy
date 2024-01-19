@@ -17,7 +17,6 @@ from astropy.units import Quantity, QuantityInfo
 from astropy.utils import (
     ShapedLikeNDArray,
     deprecated,
-    deprecated_renamed_argument,
     isiterable,
 )
 from astropy.utils.compat import NUMPY_LT_1_25
@@ -1835,7 +1834,6 @@ class Table:
         html += jsv.ipynb(tableid, css=css, sort_columns=sortable_columns)
         return HTML(html)
 
-    @deprecated_renamed_argument("jsviewer", None, "6.1", pending=True)
     def show_in_browser(
         self,
         max_lines=5000,
