@@ -5,6 +5,7 @@ This package defines the astrophysics-specific units.  They are also
 available in the `astropy.units` namespace.
 """
 
+import numpy as np
 
 from astropy.constants import si as _si
 
@@ -14,7 +15,6 @@ from .core import UnitBase, def_unit, set_enabled_units
 # To ensure si units of the constants can be interpreted.
 set_enabled_units([si])
 
-import numpy as np  # noqa: E402
 
 __all__: list[str] = []  #  Units are added at the end
 
