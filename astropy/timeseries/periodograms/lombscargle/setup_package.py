@@ -2,7 +2,7 @@
 
 import os
 
-import numpy as np
+from numpy import get_include as get_numpy_include
 from setuptools import Extension
 
 ROOT = os.path.relpath(os.path.dirname(__file__))
@@ -13,6 +13,6 @@ def get_extensions():
         "astropy.timeseries.periodograms.lombscargle.implementations.cython_impl",
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
         sources=[os.path.join(ROOT, "implementations", "cython_impl.pyx")],
-        include_dirs=[np.get_include()],
+        include_dirs=[get_numpy_include()],
     )
     return [ext]

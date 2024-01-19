@@ -2,7 +2,7 @@
 
 import os
 
-import numpy as np
+from numpy import get_include as get_numpy_include
 from setuptools import Extension
 
 BLS_ROOT = os.path.relpath(os.path.dirname(__file__))
@@ -16,6 +16,6 @@ def get_extensions():
             os.path.join(BLS_ROOT, "bls.c"),
             os.path.join(BLS_ROOT, "_impl.pyx"),
         ],
-        include_dirs=[np.get_include()],
+        include_dirs=[get_numpy_include()],
     )
     return [ext]
