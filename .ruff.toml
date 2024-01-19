@@ -232,7 +232,6 @@ lint.unfixable = [
 # When a general exclusion is being fixed, but it affects many subpackages, it
 # is better to fix for subpackages individually. The general exclusion should be
 # copied to these subpackage sections and fixed there.
-"astropy/__init__.py" = ["C408"]
 "astropy/config/*" = [
     "PTH114",  # os-path-islink
     "PTH206",  # Replace `.split(os.sep)` with `Path.parts`
@@ -270,7 +269,6 @@ lint.unfixable = [
 ]
 "astropy/logger.py" = ["C408", "RET505"]
 "astropy/modeling/*" = [
-    "C408",  # unnecessary-collection-call
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
@@ -289,21 +287,18 @@ lint.unfixable = [
     "RET506",  # superfluous-else-raise
 ]
 "astropy/table/*" = [
-    "C408",  # unnecessary-collection-call
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
     "S605",  # Starting a process with a shell, possible injection detected
 ]
 "astropy/tests/*" = ["C408", "RET505"]
 "astropy/time/*" = [
-    "C408",  # unnecessary-collection-call
     "FIX003",  # Line contains XXX.  replace XXX with TODO
     "PIE794",  # duplicate-class-field-definition
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
 ]
 "astropy/timeseries/*" = [
-    "C408",
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
 ]
@@ -320,7 +315,6 @@ lint.unfixable = [
     "RET506",  # superfluous-else-raise
 ]
 "astropy/utils/*" = [
-    "C408",  # unnecessary-collection-call
     "N811",  # constant-imported-as-non-constant
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
@@ -328,7 +322,6 @@ lint.unfixable = [
 ]
 "astropy/visualization/*" = [
     "B015",
-    "C408",
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
 ]
