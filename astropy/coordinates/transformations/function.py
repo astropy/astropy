@@ -14,7 +14,7 @@ from astropy import units as u
 from astropy.coordinates.transformations.base import CoordinateTransform
 from astropy.utils.exceptions import AstropyWarning
 
-__all__: list[str] = []
+__all__ = ["FunctionTransform", "FunctionTransformWithFiniteDifference"]
 
 
 class FunctionTransform(CoordinateTransform):

@@ -13,26 +13,16 @@ celestial/spatial coordinate frames, generally focused around matrix-style
 transformations that are typically how the algorithms are defined.
 """
 
-from .affine import (
-    AffineTransform,
-    BaseAffineTransform,
-    DynamicMatrixTransform,
-    StaticMatrixTransform,
-)
-from .base import CoordinateTransform
-from .composite import CompositeTransform
-from .function import FunctionTransform, FunctionTransformWithFiniteDifference
-from .graph import TransformGraph
+from . import affine, base, composite, function, graph
+from .affine import *
+from .base import *
+from .composite import *
+from .function import *
+from .graph import *
 
-__all__ = [
-    "TransformGraph",
-    # transformations
-    "CoordinateTransform",
-    "FunctionTransform",
-    "BaseAffineTransform",
-    "AffineTransform",
-    "StaticMatrixTransform",
-    "DynamicMatrixTransform",
-    "FunctionTransformWithFiniteDifference",
-    "CompositeTransform",
-]
+__all__: list[str] = []
+__all__ += graph.__all__
+__all__ += base.__all__
+__all__ += composite.__all__
+__all__ += affine.__all__
+__all__ += function.__all__

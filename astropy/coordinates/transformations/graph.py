@@ -23,7 +23,7 @@ from astropy.coordinates.transformations.function import (
     FunctionTransformWithFiniteDifference,
 )
 
-__all__: list[str] = []
+__all__ = ["TransformGraph"]
 
 
 # map class names to colorblind-safe colors

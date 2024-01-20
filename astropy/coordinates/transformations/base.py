@@ -12,7 +12,7 @@ concrete implementations, see the submodules
 
 from abc import ABCMeta, abstractmethod
 
-__all__: list[str] = []
+__all__ = ["CoordinateTransform"]
 
 
 class CoordinateTransform(metaclass=ABCMeta):

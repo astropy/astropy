@@ -20,7 +20,7 @@ from astropy.coordinates.transformations.function import (
     FunctionTransformWithFiniteDifference,
 )
 
-__all__: list[str] = []
+__all__ = ["CompositeTransform"]
 
 
 class CompositeTransform(CoordinateTransform):

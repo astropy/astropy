@@ -9,7 +9,12 @@ import numpy as np
 
 from astropy.coordinates.transformations.base import CoordinateTransform
 
-__all__: list[str] = []
+__all__ = [
+    "BaseAffineTransform",
+    "AffineTransform",
+    "StaticMatrixTransform",
+    "DynamicMatrixTransform",
+]
 
 
 class BaseAffineTransform(CoordinateTransform):
