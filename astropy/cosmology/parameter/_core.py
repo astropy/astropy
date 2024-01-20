@@ -7,7 +7,7 @@ __all__ = ["Parameter"]
 import copy
 from dataclasses import dataclass, field, fields, replace
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, Callable, Generic, Self, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar, overload
 
 import astropy.units as u
 from astropy.utils.compat import PYTHON_LT_3_10
@@ -16,6 +16,8 @@ from ._converter import _REGISTRY_FVALIDATORS, FValidateCallable, _register_vali
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+    from typing_extensions import Self
 
     from astropy.cosmology import Cosmology
 
