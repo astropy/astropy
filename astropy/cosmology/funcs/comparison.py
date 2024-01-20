@@ -46,12 +46,14 @@ and will raise a segfault when used in a `numpy.ufunc`.
 """
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class _CosmologyWrapper:
     """A private wrapper class to hide things from :mod:`numpy`.
 
     This should never be exposed to the user.
     """
+
+    __slots__ = ("wrapped",)
 
     wrapped: Any
 
