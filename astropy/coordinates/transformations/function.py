@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """Function-based coordinate transformations.
+
 These are transformations that cannot be represented as an affine transformation.
 """
 

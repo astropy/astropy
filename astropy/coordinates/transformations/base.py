@@ -4,10 +4,9 @@
 
 This module contains the abstract base class for coordinate transformations. For
 concrete implementations, see the submodules
-:mod:`~astropy.coordinates.transformations.affine` and
-:mod:`~astropy.coordinates.transformations.function`. A sequence of transformations can
-be combined into a single transformation using
-:class:`~astropy.coordinates.transformations.CompositeTransform`.
+:mod:`~astropy.coordinates.transformations.affine`,
+:mod:`~astropy.coordinates.transformations.function`, and
+:mod:`~astropy.coordinates.transformations.composite`.
 """
 
 

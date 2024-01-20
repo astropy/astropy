@@ -2,11 +2,10 @@
 
 """Module defining the class for a composited sequence of coordinate transformations.
 
-This module contains the class
-:class:`~astropy.coordinates.transformations.CompositeTransform` that combines a
-sequence of transformations into a single transformation. The class has the same API as
-a single-step transformation, so it can be used interchangeably with a single-step
-transformation.
+This module contains the class :class:`~astropy.coordinates.CompositeTransform` that
+combines a sequence of transformations into a single transformation. The class has the
+same API as a single-step transformation, so it can be used interchangeably with a
+single-step transformation.
 """
 
 
