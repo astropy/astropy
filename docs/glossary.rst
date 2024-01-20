@@ -40,8 +40,12 @@ Astropy Glossary
    file-like (readable)
       :term:`python:file-like object` object that supports reading with a method ``read``.
 
+      For a formal definition see :class:`~astropy.io.typing.ReadableFileLike`.
+
    file-like (writeable)
       :term:`python:file-like object` object that supports writing with a method ``write``.
+
+      For a formal definition see :class:`~astropy.io.typing.WriteableFileLike`.
 
    frame-like
       :class:`~astropy.coordinates.BaseCoordinateFrame` subclass or subclass instance or

@@ -28,6 +28,7 @@ User Guide
    io/ascii/index
    io/votable/index
    io/misc
+   io/typing
    samp/index
 
 .. toctree::
