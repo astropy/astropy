@@ -187,8 +187,8 @@ def make_transform_graph_docs(transform_graph):
 
     docstr = dedent(docstr) + "        " + graphstr.replace("\n", "\n        ")
 
-    # colors are in dictionary at the bottom of transformations.py
-    from astropy.coordinates.transformations import trans_to_color
+    # colors are in dictionary mapping transform class to color
+    from astropy.coordinates.transformations.graph import trans_to_color
 
     html_list_items = []
     for cls, color in trans_to_color.items():
