@@ -3,15 +3,15 @@ Astropy I/O Typing (`astropy.io.typing`)
 ****************************************
 
 
-:mod:`astropy.io` provides type annotations through the :mod:`astropy.io.typing` module.
+``astropy.io`` provides type annotations through the :mod:`astropy.io.typing` module.
 These type annotations allow users to specify the expected types of variables, function
 parameters, and return values when working with I/O. By using type annotations,
 developers can improve code readability, catch potential type-related errors early, and
 enable better code documentation and tooling support.
 
 For example, the following function uses type annotations to specify that the
-``filename`` parameter can be any type of path-like object (e.g. a string, byte-string, or
-pathlib.Path object).
+``filename`` parameter can be any type of path-like object (e.g. a string, byte-string,
+or pathlib.Path object).
 
 .. code-block:: python
 
