@@ -41,7 +41,7 @@ class ReadableFileLike(Protocol[_T_co]):
 
 @runtime_checkable
 class WriteableFileLike(Protocol[_T_contra]):
-    """Protocol for file-like objects that are writeable.
+    """A file-like object that supports writing with a method ``write``.
 
     This is a :class:`~typing.Protocol` that can be used to annotate file-like
     objects. It is also runtime-checkable and can be used with :func:`isinstance`.
