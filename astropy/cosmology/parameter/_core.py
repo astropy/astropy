@@ -7,12 +7,12 @@ __all__ = ["Parameter"]
 import copy
 from dataclasses import dataclass, field, fields, replace
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Callable, Generic, TypeAlias, TypeVar, overload
 
 import astropy.units as u
 from astropy.utils.compat import PYTHON_LT_3_10
 
-from ._converter import _REGISTRY_FVALIDATORS, FValidateCallable, _register_validator
+from ._converter import _REGISTRY_FVALIDATORS, _register_validator
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -28,6 +28,7 @@ else:
 
 
 T = TypeVar("T")
+FValidateCallableT: TypeAlias = Callable[["Cosmology", "Parameter", Any], T]
 
 
 class Sentinel(Enum):
@@ -59,12 +60,12 @@ class _UnitField:
 
 
 @dataclass(frozen=True)
-class _FValidateField:
-    default: FValidateCallable | str = "default"
+class _FValidateField(Generic[T]):
+    default: FValidateCallableT[T] | str = "default"
 
     def __get__(
         self, obj: Parameter | None, objcls: type[Parameter] | None
-    ) -> FValidateCallable | str:
+    ) -> FValidateCallableT[T] | str:
         if obj is None:  # calling `Parameter.fvalidate` from the class
             return self.default
         return obj._fvalidate  # calling `Parameter.fvalidate` from an instance
@@ -144,7 +145,7 @@ class Parameter(Generic[T]):
     """Unit equivalencies available when setting the parameter."""
 
     # Setting
-    fvalidate: _FValidateField = _FValidateField(default="default")
+    fvalidate: _FValidateField[T] = _FValidateField(default="default")
     """Function to validate/convert values when setting the Parameter."""
 
     # Info
@@ -179,8 +180,8 @@ class Parameter(Generic[T]):
             self.__post_init__()
 
     def __post_init__(self) -> None:
-        self._fvalidate_in: FValidateCallable | str
-        self._fvalidate: FValidateCallable
+        self._fvalidate_in: FValidateCallableT[T] | str
+        self._fvalidate: FValidateCallableT[T]
         object.__setattr__(self, "__doc__", self.doc)
         # Now setting a dummy attribute name. The cosmology class will call
         # `__set_name__`, passing the real attribute name. However, if Parameter is not
@@ -243,7 +244,7 @@ class Parameter(Generic[T]):
     # -------------------------------------------
     # validate value
 
-    def validator(self, fvalidate: Callable[[Cosmology, Parameter, Any], T]) -> Self:
+    def validator(self, fvalidate: FValidateCallableT[T]) -> Self:
         """Make new Parameter with custom ``fvalidate``.
 
         Note: ``Parameter.fvalidator`` must be the top-most descriptor decorator.
@@ -279,29 +280,22 @@ class Parameter(Generic[T]):
     @overload
     @staticmethod
     def register_validator(
-        key: str, fvalidate: Callable[[Cosmology, Parameter, Any], T]
-    ) -> Callable[[Cosmology, Parameter, Any], T]:
+        key: str, fvalidate: FValidateCallableT[T]
+    ) -> FValidateCallableT[T]:
         ...
 
     @overload
     @staticmethod
     def register_validator(
         key: str, fvalidate: None = None
-    ) -> Callable[
-        [Callable[[Cosmology, Parameter, Any], T]],
-        Callable[[Cosmology, Parameter, Any], T],
-    ]:
+    ) -> Callable[[FValidateCallableT[T]], FValidateCallableT[T]]:
         ...
 
     @staticmethod
     def register_validator(
-        key: str, fvalidate: Callable[[Cosmology, Parameter, Any], T] | None = None
+        key: str, fvalidate: FValidateCallableT[T] | None = None
     ) -> (
-        Callable[[Cosmology, Parameter, Any], T]
-        | Callable[
-            [Callable[[Cosmology, Parameter, Any], T]],
-            Callable[[Cosmology, Parameter, Any], T],
-        ]
+        FValidateCallableT[T] | Callable[[FValidateCallableT[T]], FValidateCallableT[T]]
     ):
         """Decorator to register a new kind of validator function.
 
