@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Type annotations for :mod:`astropy.io`.
+"""Type annotations for ``astropy.io``.
 
 These are type annotations for I/O-related functions and classes. Some of the type
 objects can also be used as runtime-checkable :class:`~typing.Protocol` objects.
