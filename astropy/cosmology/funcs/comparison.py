@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import functools
 import inspect
+from dataclasses import dataclass
 from typing import Any, Callable, Union
 
 import numpy as np
@@ -18,7 +19,7 @@ from numpy import False_, True_, ndarray
 from astropy import table
 from astropy.cosmology.core import Cosmology
 
-__all__ = []  # Nothing is scoped here
+__all__: list[str] = []  # Nothing is scoped here
 
 
 ##############################################################################
@@ -36,41 +37,26 @@ _COSMO_AOK: set[Any] = {None, True_, False_, "astropy.cosmology"}
 # UTILITIES
 
 
+_CANT_BROADCAST: tuple[type, ...] = (table.Row, table.Table)
+"""Things that cannot broadcast.
+
+Have to deal with things that do not broadcast well. e.g.
+`~astropy.table.Row` cannot be used in an array, even if ``dtype=object``
+and will raise a segfault when used in a `numpy.ufunc`.
+"""
+
+
+@dataclass(frozen=True, slots=True)
 class _CosmologyWrapper:
     """A private wrapper class to hide things from :mod:`numpy`.
 
     This should never be exposed to the user.
     """
 
-    __slots__ = ("wrapped",)
-    # Use less memory and speed up initialization.
-
-    _cantbroadcast: tuple[type, ...] = (table.Row, table.Table)
-    """Things that cannot broadcast.
-
-    Have to deal with things that do not broadcast well. e.g.
-    `~astropy.table.Row` cannot be used in an array, even if ``dtype=object``
-    and will raise a segfault when used in a `numpy.ufunc`.
-    """
-
     wrapped: Any
 
-    def __init__(self, wrapped: Any) -> None:
-        self.wrapped = wrapped
 
-
-# TODO! when py3.9+ use @functools.partial(np.frompyfunc, nin=2, nout=1)
-# TODO! https://github.com/numpy/numpy/issues/9477 segfaults on astropy.row
-# and np.vectorize can't coerce table to dtypes
-def _wrap_to_ufunc(nin: int, nout: int) -> Callable[[_CompFnT], np.ufunc]:
-    def wrapper(pyfunc: _CompFnT) -> np.ufunc:
-        ufunc = np.frompyfunc(pyfunc, 2, 1)
-        return ufunc
-
-    return wrapper
-
-
-@_wrap_to_ufunc(2, 1)
+@functools.partial(np.frompyfunc, nin=2, nout=1)
 def _parse_format(cosmo: Any, format: _FormatType, /) -> Cosmology:
     """Parse Cosmology-like input into Cosmologies, given a format hint.
 
@@ -156,9 +142,9 @@ def _parse_formats(*cosmos: object, format: _FormatsT) -> ndarray:
     # Have to deal with things that do not broadcast well.
     # astropy.row cannot be used in an array, even if dtype=object
     # and will raise a segfault when used in a ufunc.
-    towrap = (isinstance(cosmo, _CosmologyWrapper._cantbroadcast) for cosmo in cosmos)
     wcosmos = [
-        c if not wrap else _CosmologyWrapper(c) for c, wrap in zip(cosmos, towrap)
+        c if not isinstance(c, _CANT_BROADCAST) else _CosmologyWrapper(c)
+        for c in cosmos
     ]
 
     return _parse_format(wcosmos, formats)
