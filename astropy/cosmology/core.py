@@ -45,6 +45,7 @@ __all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin"]
 _COSMOLOGY_CLASSES = dict()
 
 # typing
+# NOTE: private b/c RTD error
 _CosmoT = TypeVar("_CosmoT", bound="Cosmology")
 _FlatCosmoT = TypeVar("_FlatCosmoT", bound="FlatCosmologyMixin")
 
