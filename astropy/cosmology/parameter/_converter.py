@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, TypeAlias, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Callable, TypeVar, overload
 
 import astropy.units as u
 
 if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
     from astropy.cosmology import Cosmology, Parameter
 
 __all__: list[str] = []
