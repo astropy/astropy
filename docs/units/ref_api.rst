@@ -2,6 +2,7 @@ Reference/API
 *************
 
 .. automodapi:: astropy.units.quantity
+   :noindex:
 
 .. automodapi:: astropy.units
 
@@ -26,6 +27,7 @@ Reference/API
 .. automodapi:: astropy.units.physical
 
 .. automodapi:: astropy.units.equivalencies
+   :noindex:
 
 .. automodapi:: astropy.units.function.core
 
