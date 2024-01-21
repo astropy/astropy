@@ -1,8 +1,5 @@
 """Testing :mod:`astropy.cosmology.units`."""
 
-##############################################################################
-# IMPORTS
-
 import pytest
 
 import astropy.cosmology.units as cu

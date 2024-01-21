@@ -37,8 +37,6 @@ if TYPE_CHECKING:
 
 __all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin"]
 
-__doctest_requires__ = {}  # needed until __getattr__ removed
-
 
 ##############################################################################
 # Parameters
@@ -47,6 +45,7 @@ __doctest_requires__ = {}  # needed until __getattr__ removed
 _COSMOLOGY_CLASSES = dict()
 
 # typing
+# NOTE: private b/c RTD error
 _CosmoT = TypeVar("_CosmoT", bound="Cosmology")
 _FlatCosmoT = TypeVar("_FlatCosmoT", bound="FlatCosmologyMixin")
 

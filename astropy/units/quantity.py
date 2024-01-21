@@ -5,12 +5,15 @@ associated units. `Quantity` objects support operations like ordinary numbers,
 but will deal with unit conversions internally.
 """
 
+from __future__ import annotations
+
 # STDLIB
 import numbers
 import operator
 import re
 import warnings
 from fractions import Fraction
+from typing import TYPE_CHECKING
 
 # THIRD PARTY
 import numpy as np
@@ -41,6 +44,11 @@ from .quantity_helper.function_helpers import (
 )
 from .structured import StructuredUnit, _structured_unit_like_dtype
 from .utils import is_effectively_unity
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
+
+    from .typing import QuantityLike
 
 __all__ = [
     "Quantity",
@@ -419,15 +427,15 @@ class Quantity(np.ndarray):
         return Annotated[cls, unit]
 
     def __new__(
-        cls,
-        value,
+        cls: type[Self],
+        value: QuantityLike,
         unit=None,
         dtype=np.inexact,
         copy=True,
         order=None,
         subok=False,
         ndmin=0,
-    ):
+    ) -> Self:
         if unit is not None:
             # convert unit first, to avoid multiple string->unit conversions
             unit = Unit(unit)

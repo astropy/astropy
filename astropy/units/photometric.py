@@ -15,6 +15,8 @@ from astropy.constants import si as _si
 from . import astrophys, cgs, si
 from .core import Unit, UnitBase, def_unit
 
+__all__ = ["zero_point_flux"]  #  Units are added at the end
+
 _ns = globals()
 
 def_unit(
@@ -78,14 +80,10 @@ def zero_point_flux(flux0):
 
 
 ###########################################################################
-# CLEANUP
+# ALL & DOCSTRING
 
-del UnitBase
-del def_unit
-del cgs, si, astrophys
+__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 
-###########################################################################
-# DOCSTRING
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the

@@ -130,6 +130,7 @@ def z_at_value(
     maxfun=500,
     method="Brent",
     bracket=None,
+    *,
     verbose=False,
 ):
     """Find the redshift ``z`` at which ``func(z) = fval``.
@@ -192,10 +193,12 @@ def z_at_value(
 
         .. versionadded:: 4.3
 
-    verbose : bool, optional
+    verbose : bool, optional keyword-only
         Print diagnostic output from solver (default `False`).
 
         .. versionadded:: 4.3
+        .. versionchanged:: 6.1
+            Changed to keyword-only.
 
     Returns
     -------
