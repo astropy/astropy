@@ -195,6 +195,8 @@ filterwarnings = [
     # Ignore a warning we emit about not supporting the parallel",
     # reading option for now, can be removed once the issue is fixed",
     "ignore:parallel reading does not currently work, so falling back to serial",
+    # Ignore the warning raised when running pytest with -OO, otherwise tests do not run
+    "ignore:assertions not in test modules or plugins will be ignored"
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",
@@ -390,12 +392,15 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     "B018",  # UselessExpression
     "D",  # pydocstyle
     "PGH001",  # No builtin eval() allowed
+]
+"**/tests/*.py" = [
     "S101",  # Use of assert detected
 ]
 ".pyinstaller/*.py" = ["INP001"]  # Not a package.
 "conftest.py" = ["INP001"]  # Part of configuration, not a package.
 "docs/*.py" = [
     "INP001",  # implicit-namespace-package. The examples are not a package.
+    "S101",  # Use of assert detected
 ]
 "examples/*.py" = [
     "E402",   # Imports are done as needed.

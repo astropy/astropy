@@ -72,7 +72,8 @@ def yaml_representer(tag):
 
         return dumper.represent_mapping(tag, map)
 
-    representer.__doc__ = representer.__doc__.format(tag)
+    if representer.__doc__ is not None:
+        representer.__doc__ = representer.__doc__.format(tag)
 
     return representer
 

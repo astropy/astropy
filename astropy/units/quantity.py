@@ -1371,8 +1371,12 @@ class Quantity(np.ndarray):
     def __index__(self):
         # for indices, we do not want to mess around with scaling at all,
         # so unlike for float, int, we insist here on unscaled dimensionless
+
         try:
-            assert self.unit.is_unity()
+            # TODO: check for is_unity() and hasattr(self.value, "__index__")
+            # only instead of catching any Exception
+            if not self.unit.is_unity():
+                raise AssertionError
             return self.value.__index__()
         except Exception:
             raise TypeError(

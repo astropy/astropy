@@ -151,3 +151,24 @@ def pytest_terminal_summary(terminalreporter):
         yellow=True,
         bold=True,
     )
+
+
+def _docstring_canary():
+    """Docstring that's here just to check for -OO."""
+
+
+DOCSTRINGS_DISABLED = _docstring_canary.__doc__ is None
+"""Indicates whether docstrings are disabled in the current Python runtime.
+Intended to be used in tests. In library code that uses .__doc__, check
+on the specific object(s) referenced instead."""
+
+_skipif_no_docstrings_marker = pytest.mark.skipif(
+    DOCSTRINGS_DISABLED, reason="Test cannot be run with -OO"
+)
+
+
+def skipif_no_docstrings(test):
+    """Marks the test for skipping if docstrings are disabled in the current
+    Python runtime with -OO or PYTHONOPTIMIZE=2
+    """
+    return _skipif_no_docstrings_marker(test)

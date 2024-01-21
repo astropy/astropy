@@ -1,0 +1,2 @@
+astropy now supports runtimes without doc strings and ``assert`` statements, such as
+when the ``-OO`` flag or ``PYTHONOPTIMIZE=2`` environment variable are passed to Python.

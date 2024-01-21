@@ -247,11 +247,9 @@ def _validate_read_write_kwargs(read_write, **kwargs):
                 # See if ``val`` walks and quacks like a ``cls```.
                 try:
                     new_val = cls(val)
-                    assert new_val == val
+                    ok = new_val == val
                 except Exception:
                     ok = False
-                else:
-                    ok = True
         return ok
 
     kwarg_types = READ_KWARG_TYPES if read_write == "read" else WRITE_KWARG_TYPES

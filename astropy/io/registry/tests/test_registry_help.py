@@ -2,8 +2,14 @@
 
 from io import StringIO
 
+import pytest
+
+from astropy.conftest import DOCSTRINGS_DISABLED
 from astropy.nddata import CCDData
 from astropy.table import Table
+
+if DOCSTRINGS_DISABLED:
+    pytest.skip("Skipping registry help tests with -OO", allow_module_level=True)
 
 
 def test_table_read_help_fits():

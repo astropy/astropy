@@ -4,16 +4,11 @@ import importlib
 import secrets
 from textwrap import dedent
 
-import pytest
-
+from astropy.conftest import skipif_no_docstrings
 from astropy.utils.parsing import _TAB_HEADER
 
 
-def _docstring_canary():
-    """Docstring that's here just to check for -OO."""
-
-
-@pytest.mark.skipif(not _docstring_canary.__doc__, reason="Test cannot be run with -OO")
+@skipif_no_docstrings
 def test_generate_parser(tmp_path, monkeypatch):
     # Write Python code into the temporary directory, so that the
     # generated tables will also go into the temporary directory.

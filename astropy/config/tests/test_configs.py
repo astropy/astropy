@@ -9,6 +9,7 @@ from inspect import cleandoc
 import pytest
 
 from astropy.config import configuration, create_config_file, paths, set_temp_config
+from astropy.conftest import skipif_no_docstrings
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -358,6 +359,7 @@ def test_configitem_options(tmp_path):
     assert "tstnmo = op2" in lns
 
 
+@skipif_no_docstrings
 def test_help(capsys):
     from astropy import conf
 

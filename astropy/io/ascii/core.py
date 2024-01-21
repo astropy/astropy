@@ -1065,12 +1065,15 @@ class BaseOutputter:
         """
         # Allow specifying a single converter instead of a list of converters.
         # The input `converters` must be a ``type`` value that can init np.dtype.
-        try:
-            # Don't allow list-like things that dtype accepts
-            assert type(converters) is type
-            converters = [numpy.dtype(converters)]
-        except (AssertionError, TypeError):
-            pass
+        if isinstance(converters, type):
+            try:
+                converters = [numpy.dtype(converters)]
+            except TypeError:  # pragma: no cover
+                # should never occur because numpy.dtype will return numpy.dtype("O")
+                # as a fallback for any type object instead of raising TypeError,
+                # but just in case there's some crazy edge case retain the previous
+                # behavior
+                pass
 
         converters_out = []
         try:
