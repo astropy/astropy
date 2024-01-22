@@ -721,7 +721,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         if "info" in getattr(obj, "__dict__", {}):
             self.info = obj.info
 
-    def __array_wrap__(self, out_arr, context=None):
+    def __array_wrap__(self, out_arr, context=None, return_scalar=False):
         """
         __array_wrap__ is called at the end of every ufunc.
 
