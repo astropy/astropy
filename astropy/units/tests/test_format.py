@@ -982,3 +982,23 @@ def test_function_format_styles(format_spec, string):
 def test_function_format_styles_non_default_fraction(format_spec, fraction, string):
     dbunit = u.decibel(u.m**-1)
     assert dbunit.to_string(format_spec, fraction=fraction) == string
+
+
+@pytest.mark.parametrize(
+    "format_spec, expected_mantissa",
+    [
+        ("", "1"),
+        (".1g", "1"),
+        (".3g", "1"),
+        (".1e", "1.0"),
+        (".1f", "1.0"),
+        (".3e", "1.000"),
+    ],
+)
+def test_format_latex_one(format_spec, expected_mantissa):
+    # see https://github.com/astropy/astropy/issues/12571
+    from astropy.units.format.utils import split_mantissa_exponent
+
+    m, ex = split_mantissa_exponent(1, format_spec)
+    assert ex == ""
+    assert m == expected_mantissa
