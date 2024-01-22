@@ -67,7 +67,7 @@ __all__ = [
 ]
 
 
-def __getattr__(name):
+def __getattr__(name: str) -> Cosmology:
     """Get realizations using lazy import from ``PEP 562``.
 
     Raises
@@ -81,6 +81,6 @@ def __getattr__(name):
     return getattr(realizations, name)
 
 
-def __dir__():
+def __dir__() -> list[str]:
     """Directory, including lazily-imported objects."""
     return __all__
