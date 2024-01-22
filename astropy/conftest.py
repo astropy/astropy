@@ -40,7 +40,7 @@ if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 
 if HAS_MATPLOTLIB:
-    import matplotlib
+    import matplotlib as mpl
 
 matplotlibrc_cache = {}
 
@@ -78,9 +78,9 @@ def pytest_configure(config):
     if HAS_MATPLOTLIB:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            matplotlibrc_cache.update(matplotlib.rcParams)
-            matplotlib.rcdefaults()
-            matplotlib.use("Agg")
+            matplotlibrc_cache.update(mpl.rcParams)
+            mpl.rcdefaults()
+            mpl.use("Agg")
 
     # Make sure we use temporary directories for the config and cache
     # so that the tests are insensitive to local configuration. Note that this
@@ -115,7 +115,7 @@ def pytest_unconfigure(config):
     if HAS_MATPLOTLIB:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            matplotlib.rcParams.update(matplotlibrc_cache)
+            mpl.rcParams.update(matplotlibrc_cache)
             matplotlibrc_cache.clear()
 
     if builtins._xdg_config_home_orig is None:

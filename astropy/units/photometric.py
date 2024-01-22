@@ -8,7 +8,7 @@ The corresponding magnitudes are given in the description of each unit
 """
 
 
-import numpy as _numpy
+import numpy as np
 
 from astropy.constants import si as _si
 
@@ -31,7 +31,7 @@ def_unit(
 )
 def_unit(
     ["bol", "f_bol"],
-    _si.L_bol0 / (4 * _numpy.pi * (10.0 * astrophys.pc) ** 2),
+    _si.L_bol0 / (4 * np.pi * (10.0 * astrophys.pc) ** 2),
     namespace=_ns,
     prefixes=False,
     doc=(

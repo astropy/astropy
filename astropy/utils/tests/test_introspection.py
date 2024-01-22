@@ -66,15 +66,15 @@ def test_find_mod_objs():
 
 
 def test_minversion():
-    import numpy
+    import numpy as np
 
     good_versions = ["1.16", "1.16.1", "1.16.0.dev", "1.16dev"]
     bad_versions = ["100000", "100000.2rc1"]
     for version in good_versions:
-        assert minversion(numpy, version)
+        assert minversion(np, version)
         assert minversion("numpy", version)
     for version in bad_versions:
-        assert not minversion(numpy, version)
+        assert not minversion(np, version)
         assert not minversion("numpy", version)
 
     assert minversion(yaml, "3.1")

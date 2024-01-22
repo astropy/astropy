@@ -1189,13 +1189,13 @@ def test_astropy_convolution_against_scipy():
 
 @pytest.mark.skipif(not HAS_PANDAS, reason="Requires pandas")
 def test_regression_6099():
-    import pandas
+    import pandas as pd
 
     wave = np.array(np.linspace(5000, 5100, 10))
     boxcar = 3
     nonseries_result = convolve(wave, np.ones((boxcar,)) / boxcar)
 
-    wave_series = pandas.Series(wave)
+    wave_series = pd.Series(wave)
     series_result = convolve(wave_series, np.ones((boxcar,)) / boxcar)
 
     assert_array_almost_equal(nonseries_result, series_result)

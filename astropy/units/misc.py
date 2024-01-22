@@ -5,6 +5,7 @@ This package defines miscellaneous units. They are also
 available in the `astropy.units` namespace.
 """
 
+import numpy as np
 
 from astropy.constants import si as _si
 
@@ -14,7 +15,6 @@ from .core import UnitBase, binary_prefixes, def_unit, set_enabled_units, si_pre
 # To ensure si units of the constants can be interpreted.
 set_enabled_units([si])
 
-import numpy as _np  # noqa: E402
 
 __all__: list[str] = []  #  Units are added at the end
 
@@ -37,14 +37,14 @@ def_unit(
 
 def_unit(
     ["cycle", "cy"],
-    2.0 * _np.pi * si.rad,
+    2.0 * np.pi * si.rad,
     namespace=_ns,
     prefixes=False,
     doc="cycle: angular measurement, a full turn or rotation",
 )
 def_unit(
     ["spat", "sp"],
-    4.0 * _np.pi * si.sr,
+    4.0 * np.pi * si.sr,
     namespace=_ns,
     prefixes=False,
     doc="spat: the solid angle of the sphere, 4pi sr",

@@ -5,7 +5,7 @@ This package defines the SI units.  They are also available in the
 
 """
 
-import numpy as _numpy
+import numpy as np
 
 from astropy.constants import si as _si
 
@@ -91,7 +91,7 @@ def_unit(
 )
 def_unit(
     ["deg", "degree"],
-    _numpy.pi / 180.0 * rad,
+    np.pi / 180.0 * rad,
     namespace=_ns,
     prefixes=True,
     doc="degree: angular measurement 1/360 of full rotation",
