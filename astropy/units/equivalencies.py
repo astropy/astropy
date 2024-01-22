@@ -33,6 +33,7 @@ __all__ = [
     "molar_mass_amu",
     "pixel_scale",
     "plate_scale",
+    "induction_field",
     "Equivalency",
 ]
 
@@ -868,4 +869,13 @@ def plate_scale(platescale):
         [(si.m, si.radian, lambda d: d * platescale_val, lambda a: a / platescale_val)],
         "plate_scale",
         {"platescale": platescale},
+    )
+
+
+def induction_field():
+    """Convert between magnetic induction and magnetic field strength to an equivalent amount."""
+    mu0 = _si.mu0.value
+    return Equivalency(
+        [(si.T, si.A / si.m, lambda x: x / mu0, lambda x: x * mu0)],
+        "induction_field",
     )
