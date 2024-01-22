@@ -180,7 +180,7 @@ class Kernel:
         """
         return self._array
 
-    def __array_wrap__(self, array, context=None):
+    def __array_wrap__(self, array, context=None, return_scalar=False):
         """
         Wrapper for multiplication with numpy arrays.
         """
