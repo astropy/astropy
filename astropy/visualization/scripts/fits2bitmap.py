@@ -80,7 +80,7 @@ def fits2bitmap(
     cmap : str
         The matplotlib color map name. The default is 'Greys_r'.
     """
-    import matplotlib
+    import matplotlib as mpl
     import matplotlib.image as mimg
 
     from astropy.utils.introspection import minversion
@@ -110,8 +110,8 @@ def fits2bitmap(
     out_format = os.path.splitext(out_fn)[1][1:]
 
     try:
-        if minversion(matplotlib, "3.5"):
-            matplotlib.colormaps[cmap]
+        if minversion(mpl, "3.5"):
+            mpl.colormaps[cmap]
         else:
             from matplotlib import cm
 
