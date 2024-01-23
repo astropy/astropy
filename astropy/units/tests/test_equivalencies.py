@@ -947,6 +947,13 @@ def test_plate_scale():
     assert_quantity_allclose(asec.to(u.mm, u.plate_scale(platescale2)), mm)
 
 
+def test_induction_field():
+    induction = 1000 * u.T
+    field = (induction / constants.mu0).to(u.A / u.m)
+    assert_allclose(induction.to_value(u.A / u.m, u.induction_field()), field.value)
+    assert_allclose(field.to_value(u.T, u.induction_field()), induction.value)
+
+
 def test_equivelency():
     ps = u.pixel_scale(10 * u.arcsec / u.pix)
     assert isinstance(ps, Equivalency)
