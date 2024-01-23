@@ -1784,8 +1784,28 @@ class Quantity(np.ndarray):
         )
 
     # ensure we do not return indices as quantities
-    def argsort(self, axis=-1, kind="quicksort", order=None):
-        return self.view(np.ndarray).argsort(axis=axis, kind=kind, order=order)
+    def argsort(self, axis=-1, kind=None, order=None, *, stable=False):
+        kwargs = dict(axis=axis, order=order)
+        default_kind = "quicksort"
+        if not NUMPY_LT_2_0:
+            if kind is not None and stable is not False:
+                raise ValueError(
+                    "`kind` and `stable` parameters can't be provided at the same time. "
+                    "Use only one of them."
+                )
+            elif stable is not False:
+                kwargs["stable"] = stable
+            elif kind is None:
+                kwargs["kind"] = default_kind
+            else:
+                kwargs["kind"] = kind
+        else:
+            if kind is None:
+                kwargs["kind"] = default_kind
+            else:
+                kwargs["kind"] = kind
+
+        return self.view(np.ndarray).argsort(**kwargs)
 
     def searchsorted(self, v, *args, **kwargs):
         return np.searchsorted(
