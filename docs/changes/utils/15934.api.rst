@@ -1,0 +1,2 @@
+``introspection.isinstancemethod()`` and ``introspection.find_mod_objs()`` are
+deprecated.
