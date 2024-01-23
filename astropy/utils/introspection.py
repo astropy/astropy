@@ -312,6 +312,7 @@ def _get_module_from_frame(frm):
     return None
 
 
+@deprecated(since="6.1")
 def find_mod_objs(modname, onlylocals=False):
     """Returns all the public attributes of a module referenced by name.
 
