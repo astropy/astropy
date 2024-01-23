@@ -49,7 +49,12 @@ def test_find_current_mod():
 
 
 def test_find_mod_objs():
-    lnms, fqns, objs = find_mod_objs("astropy")
+    deprecation_message = (
+        "^The find_mod_objs function is deprecated and may be removed in "
+        r"a future version\.$"
+    )
+    with pytest.warns(AstropyDeprecationWarning, match=deprecation_message):
+        lnms, fqns, objs = find_mod_objs("astropy")
 
     # this import  is after the above call intentionally to make sure
     # find_mod_objs properly imports astropy on its own
@@ -60,12 +65,14 @@ def test_find_mod_objs():
     assert "test" in lnms
     assert astropy.test in objs
 
-    lnms, fqns, objs = find_mod_objs(__name__, onlylocals=False)
+    with pytest.warns(AstropyDeprecationWarning, match=deprecation_message):
+        lnms, fqns, objs = find_mod_objs(__name__, onlylocals=False)
     assert "namedtuple" in lnms
     assert "collections.namedtuple" in fqns
     assert namedtuple in objs
 
-    lnms, fqns, objs = find_mod_objs(__name__, onlylocals=True)
+    with pytest.warns(AstropyDeprecationWarning, match=deprecation_message):
+        lnms, fqns, objs = find_mod_objs(__name__, onlylocals=True)
     assert "namedtuple" not in lnms
     assert "collections.namedtuple" not in fqns
     assert namedtuple not in objs
