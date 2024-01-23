@@ -602,7 +602,7 @@ class Quantity(np.ndarray):
             if "info" in obj.__dict__:
                 self.info = obj.info
 
-    def __array_wrap__(self, obj, context=None):
+    def __array_wrap__(self, obj, context=None, return_scalar=False):
         if context is None:
             # Methods like .squeeze() created a new `ndarray` and then call
             # __array_wrap__ to turn the array into self's subclass.
