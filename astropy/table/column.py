@@ -746,6 +746,17 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             out_arr = super().__array_wrap__(out_arr, context)
         else:
             out_arr = super().__array_wrap__(out_arr, context, return_scalar)
+
+            # force return type to pure numpy arrays for certain ufuncs
+            # this is consistent with numpy 1.x behaviour for these functions
+            _function = context[0] if context is not None else None
+            if _function in (np.isfinite, np.isinf, np.isnan, np.sign, np.signbit):
+                if isinstance(out_arr, MaskedColumn):
+                    view_type = np.ma.MaskedArray
+                else:
+                    view_type = np.ndarray
+                out_arr = out_arr.view(view_type)
+
         if (NUMPY_LT_2_0 or return_scalar) and (
             self.shape != out_arr.shape
             or (
