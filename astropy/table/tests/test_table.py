@@ -3178,7 +3178,6 @@ def test_rows_with_mixins():
     t.group_by("obs")
 
 
-@pytest.mark.xfail
 def test_group_by_empty_table():
     # see https://github.com/astropy/astropy/issues/11884
     t = Table(names=["a", "b"])

@@ -2073,7 +2073,7 @@ class Table:
             )
             out.meta = self.meta.copy()  # Shallow copy for meta
             return out
-        elif (isinstance(item, np.ndarray) and item.size == 0) or (
+        elif (isinstance(item, np.ndarray) and (item.size == 0 or len(self) == 0)) or (
             isinstance(item, (tuple, list)) and not item
         ):
             # If item is an empty array/list/tuple then return the table with no rows

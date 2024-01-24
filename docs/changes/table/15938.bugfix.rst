@@ -1,0 +1,1 @@
+Fix calling ``Table.group_by`` on an empty table.
