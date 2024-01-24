@@ -238,7 +238,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         else:
             return np.array(self.data)
 
-    def __array_wrap__(self, array, context=None):
+    def __array_wrap__(self, array, context=None, return_scalar=False):
         """
         This ensures that a masked array is returned if self is masked.
         """
