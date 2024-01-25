@@ -6,7 +6,6 @@ import importlib
 import inspect
 import os
 import sys
-import types
 from importlib import metadata
 
 from packaging.version import Version
@@ -128,7 +127,7 @@ def minversion(module, version, inclusive=True):
     >>> minversion(astropy, '0.4.4')
     True
     """
-    if isinstance(module, types.ModuleType):
+    if inspect.ismodule(module):
         module_name = module.__name__
         module_version = getattr(module, "__version__", None)
     elif isinstance(module, str):
@@ -398,7 +397,7 @@ def isinstancemethod(cls, obj):
         but this function will always return `False` if the given object is not
         a member of the given class).
     """
-    if not isinstance(obj, types.FunctionType):
+    if not inspect.isfunction(obj):
         return False
 
     # Unfortunately it seems the easiest way to get to the original
