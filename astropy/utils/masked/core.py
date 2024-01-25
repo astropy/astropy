@@ -1026,7 +1026,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         at_max = self == self.max(axis=axis, keepdims=True)
         return at_max.filled(False).argmax(axis=axis, out=out, keepdims=keepdims)
 
-    def argsort(self, axis=-1, kind=None, order=None):
+    def argsort(self, axis=-1, kind=None, order=None, *, stable=None):
         """Returns the indices that would sort an array.
 
         Perform an indirect sort along the given axis on both the array
@@ -1044,6 +1044,8 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             second, etc.  A single field can be specified as a string, and not
             all fields need be specified, but unspecified fields will still be
             used, in dtype order, to break ties.
+        stable: bool, keyword-only, ignored
+            Sort stability. Present only to allow subclasses to work.
 
         Returns
         -------
@@ -1078,10 +1080,20 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
         return np.lexsort(keys, axis=axis)
 
-    def sort(self, axis=-1, kind=None, order=None):
-        """Sort an array in-place. Refer to `numpy.sort` for full documentation."""
+    def sort(self, axis=-1, kind=None, order=None, *, stable=False):
+        """Sort an array in-place. Refer to `numpy.sort` for full documentation.
+
+        Notes
+        -----
+        Masked items will be sorted to the end. The implementation
+        is via `numpy.lexsort` and thus ignores the ``kind`` and ``stable`` arguments;
+        they are present only so that subclasses can pass them on.
+        """
         # TODO: probably possible to do this faster than going through argsort!
-        indices = self.argsort(axis, kind=kind, order=order)
+        argsort_kwargs = dict(kind=kind, order=order)
+        if not NUMPY_LT_2_0:
+            argsort_kwargs["stable"] = stable
+        indices = self.argsort(axis, **argsort_kwargs)
         self[:] = np.take_along_axis(self, indices, axis=axis)
 
     def argpartition(self, kth, axis=-1, kind="introselect", order=None):
