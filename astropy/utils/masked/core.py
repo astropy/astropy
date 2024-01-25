@@ -1086,7 +1086,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         Notes
         -----
         Masked items will be sorted to the end. The implementation
-        is via `np.lexsort` and thus ignores the ``kind`` and ``stable`` arguments;
+        is via `numpy.lexsort` and thus ignores the ``kind`` and ``stable`` arguments;
         they are present only so that subclasses can pass them on.
         """
         # TODO: probably possible to do this faster than going through argsort!
