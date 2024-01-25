@@ -163,7 +163,7 @@ class FunctionAssigner:
     def __init__(self, assignments):
         self.assignments = assignments
 
-    def __call__(self, f=None, helps=None, module=np):
+    def __call__(self, f=None, helps=None, module=np, *, direct_results=False):
         """Add a helper to a numpy function.
 
         Normally used as a decorator.
@@ -173,6 +173,10 @@ class FunctionAssigner:
 
         If ``helps`` is not given, it is assumed the function helped is the
         numpy function with the same name as the decorated function.
+
+        ``direct_results=True`` should be passed for functions whose return the
+        complete result directly, as opposed to the general case of returning a tuple
+        with (result, mask, out).
         """
         if f is not None:
             if helps is None:
@@ -181,9 +185,12 @@ class FunctionAssigner:
                 helps = (helps,)
             for h in helps:
                 self.assignments[h] = f
+            f._direct_results = direct_results
             return f
-        elif helps is not None or module is not np:
-            return functools.partial(self.__call__, helps=helps, module=module)
+        elif helps is not None or module is not np or direct_results:
+            return functools.partial(
+                self.__call__, helps=helps, module=module, direct_results=direct_results
+            )
         else:  # pragma: no cover
             raise ValueError("function_helper requires at least one argument.")
 

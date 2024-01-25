@@ -213,7 +213,7 @@ def unwrap(p, *args, **kwargs):
 @dispatched_function
 def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
     data = np.nan_to_num(x.unmasked, copy=copy, nan=nan, posinf=posinf, neginf=neginf)
-    return (data, x.mask.copy(), None) if copy else x
+    return (data, x.mask.copy(), None) if copy else (x, None, None)
 
 
 # Following are simple functions related to shapes, where the same function
@@ -261,7 +261,7 @@ def broadcast_to(array, shape, subok=False):
     return data, mask, dict(shape=shape, subok=subok), None
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def outer(a, b, out=None):
     return np.multiply.outer(np.ravel(a), np.ravel(b), out=out)
 
@@ -312,7 +312,7 @@ def ones_like(a, dtype=None, order="K", subok=True, shape=None):
     return unmasked, False, None
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def full_like(a, fill_value, dtype=None, order="K", subok=True, shape=None):
     """Return a full array with the same shape and type as a given array.
 
@@ -325,7 +325,7 @@ def full_like(a, fill_value, dtype=None, order="K", subok=True, shape=None):
     return result
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def put(a, ind, v, mode="raise"):
     """Replaces specified elements of an array with given values.
 
@@ -344,7 +344,7 @@ def put(a, ind, v, mode="raise"):
     np.put(a.mask, ind, v_mask, mode=mode)
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def putmask(a, mask, values):
     """Changes elements of an array based on conditional and input values.
 
@@ -362,7 +362,7 @@ def putmask(a, mask, values):
     np.putmask(a.mask, mask, values_mask)
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def place(arr, mask, vals):
     """Change elements of an array based on conditional and input values.
 
@@ -380,7 +380,7 @@ def place(arr, mask, vals):
     np.place(arr.mask, mask, vals_mask)
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def copyto(dst, src, casting="same_kind", where=True):
     """Copies values from one array to another, broadcasting as necessary.
 
@@ -444,7 +444,7 @@ def bincount(x, weights=None, minlength=0):
 
 if NUMPY_LT_2_0:
 
-    @dispatched_function
+    @dispatched_function(direct_results=True)
     def msort(a):
         result = a.copy()
         result.sort(axis=0)
@@ -453,14 +453,14 @@ if NUMPY_LT_2_0:
 else:
     # Used to work via ptp method, but now need to override, otherwise
     # plain reduction is used, which gives different mask.
-    @dispatched_function
+    @dispatched_function(direct_results=True)
     def ptp(a, axis=None, out=None, keepdims=False):
         result = a.max(axis=axis, out=out, keepdims=keepdims)
         result -= a.min(axis=axis, keepdims=keepdims)
         return result
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def sort_complex(a):
     # Just a copy of np.lib._function_base_impl.sort_complex, to avoid the asarray.
     b = a.copy()
@@ -492,7 +492,7 @@ def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
             raise NotImplementedError
         np.concatenate(masks, out=out.mask, axis=axis)
         np.concatenate(data, out=out.unmasked, axis=axis, dtype=dtype, casting=casting)
-        return out
+        return (out, None, None)
 
 
 @apply_to_both
@@ -501,7 +501,7 @@ def append(arr, values, axis=None):
     return data, masks, dict(axis=axis), None
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def block(arrays):
     # We need to override block since the numpy implementation can take two
     # different paths, one for concatenation, one for creating a large empty
@@ -526,7 +526,7 @@ def block(arrays):
     return result
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def broadcast_arrays(*args, subok=True):
     """Broadcast arrays to a common shape.
 
@@ -572,7 +572,7 @@ def insert(arr, obj, values, axis=None):
     return ((arr_data, obj, val_data, axis), (arr_mask, obj, val_mask, axis), {}, None)
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def count_nonzero(a, axis=None, *, keepdims=False):
     """Counts the number of non-zero values in the array ``a``.
 
@@ -603,7 +603,7 @@ def _masked_median(a, axis=None, out=None, overwrite_input=False):
     return result
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def median(a, axis=None, out=None, **kwargs):
     from astropy.utils.masked import Masked
 
@@ -665,7 +665,7 @@ def _masked_quantile(a, q, axis=None, out=None, **kwargs):
     return result
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def quantile(a, q, axis=None, out=None, **kwargs):
     from astropy.utils.masked import Masked
 
@@ -695,13 +695,13 @@ def quantile(a, q, axis=None, out=None, **kwargs):
     )
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def percentile(a, q, *args, **kwargs):
     q = np.true_divide(q, 100)
     return quantile(a, q, *args, **kwargs)
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def array_equal(a1, a2, equal_nan=False):
     (a1d, a2d), (a1m, a2m) = _get_data_and_masks(a1, a2)
     if a1d.shape != a2d.shape:
@@ -713,17 +713,17 @@ def array_equal(a1, a2, equal_nan=False):
     return bool((equal | a1m | a2m).all())
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def array_equiv(a1, a2):
     return bool((a1 == a2).all())
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def where(condition, *args):
     from astropy.utils.masked import Masked
 
     if not args:
-        return condition.nonzero(), None, None
+        return condition.nonzero()
 
     condition, c_mask = Masked._get_data_and_mask(condition)
 
@@ -735,7 +735,7 @@ def where(condition, *args):
     return Masked(unmasked, mask=mask)
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def choose(a, choices, out=None, mode="raise"):
     """Construct an array from an index array and a set of arrays to choose from.
 
@@ -792,7 +792,7 @@ def select(condlist, choicelist, default=0):
     )
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def piecewise(x, condlist, funclist, *args, **kw):
     """Evaluate a piecewise-defined function.
 
@@ -842,7 +842,7 @@ def piecewise(x, condlist, funclist, *args, **kw):
     return y
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def interp(x, xp, fp, *args, **kwargs):
     """One-dimensional linear interpolation.
 
@@ -865,7 +865,7 @@ def interp(x, xp, fp, *args, **kwargs):
     return result if xm is None else Masked(result, xm.copy())
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def lexsort(keys, axis=-1):
     """Perform an indirect stable sort using a sequence of keys.
 
@@ -891,7 +891,7 @@ def lexsort(keys, axis=-1):
     return np.lexsort(new_keys, axis=axis)
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def apply_over_axes(func, a, axes):
     # Copied straight from numpy/lib/shape_base, just to omit its
     # val = asarray(a); if only it had been asanyarray, or just not there
@@ -1017,7 +1017,7 @@ def _array2string(a, options, separator=" ", prefix=""):
     return lst
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def array2string(
     a,
     max_line_width=None,
@@ -1070,7 +1070,7 @@ def _array_str_scalar(x):
     return np.array_str(np.array(x))
 
 
-@dispatched_function
+@dispatched_function(direct_results=True)
 def array_str(a, max_line_width=None, precision=None, suppress_small=None):
     # Override to change special treatment of array scalars, since the numpy
     # code turns the masked array scalar into a regular array scalar.
@@ -1131,7 +1131,7 @@ def masked_nanfunc(nanfuncname):
 _nplibnanfunctions = np.lib.nanfunctions if NUMPY_LT_2_0 else np.lib._nanfunctions_impl
 for nanfuncname in _nplibnanfunctions.__all__:
     globals()[nanfuncname] = dispatched_function(
-        masked_nanfunc(nanfuncname), helps=getattr(np, nanfuncname)
+        masked_nanfunc(nanfuncname), helps=getattr(np, nanfuncname), direct_results=True
     )
 
 

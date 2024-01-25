@@ -902,7 +902,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             except NotImplementedError:
                 return self._not_implemented_or_raise(function, types)
 
-            if not isinstance(dispatched_result, tuple):
+            if dispatched_function._direct_results:
                 return dispatched_result
 
             result, mask, out = dispatched_result
