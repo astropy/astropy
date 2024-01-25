@@ -88,7 +88,7 @@ and the limits can be determined by calling the
 takes the array of values::
 
     >>> interval.get_limits([1, 3, 4, 5, 6])
-    (1, 6)
+    (np.int64(1), np.int64(6))
 
 The ``interval`` instance can also be called like a function to
 actually normalize values to the range::
@@ -108,7 +108,7 @@ normalization when values fall outside the limits::
     >>> from astropy.visualization import PercentileInterval
     >>> interval = PercentileInterval(50.)
     >>> interval.get_limits([1, 3, 4, 5, 6])
-    (3.0, 5.0)
+    (np.float64(3.0), np.float64(5.0))
     >>> interval([1, 3, 4, 5, 6])  # default is clip=True  # doctest: +FLOAT_CMP
     array([0. , 0. , 0.5, 1. , 1. ])
     >>> interval([1, 3, 4, 5, 6], clip=False)  # doctest: +FLOAT_CMP

@@ -94,7 +94,9 @@ The other difference is the need to specify the table type when using the
     >>> col3 = fits.Column(name='t1', format='I', array=[91, 92, 93], ascii=True)
     >>> hdu = fits.TableHDU.from_columns([col1, col2, col3])
     >>> hdu.data
-    FITS_rec([('abc', 11.0, 91), ('def', 12.0, 92), ('', 0.0, 93)],
+    FITS_rec([('abc', np.float64(11.0), np.int32(91)),
+              ('def', np.float64(12.0), np.int32(92)),
+              ('', np.float64(0.0), np.int32(93))],
              dtype=(numpy.record, [('abc', 'S3'), ('def', 'S15'), ('t1', 'S10')]))
 
 It should be noted that when the formats of the columns are unambiguously
@@ -301,9 +303,9 @@ Examples
 To show the contents of the third group, including parameters and data::
 
     >>> hdul[0].data[2]  # doctest: +FLOAT_CMP
-    (2.0999999, 42.0, 42.0, array([[[[30., 31., 32., 33., 34.],
+    (np.float32(2.1), np.float32(42.0), np.float32(42.0), array([[[[30., 31., 32., 33., 34.],
              [35., 36., 37., 38., 39.],
-             [40., 41., 42., 43., 44.]]]], dtype=float32))
+             [40., 41., 42., 43., 44.]]]], dtype='>f4'))
 
 The data first lists all of the parameters, then the image array, for the
 specified group(s). As a reminder, the image data in this file has the shape of
@@ -321,9 +323,9 @@ the table :meth:`~FITS_rec.field` method, the argument can be either index or
 name::
 
     >>> hdul[0].data.par(0)[8]  # Access group parameter by name or by index  # doctest: +FLOAT_CMP
-    8.1
+    np.float32(8.1)
     >>> hdul[0].data.par('abc')[8]  # doctest: +FLOAT_CMP
-    8.1
+    np.float32(8.1)
 
 Note that the parameter name 'xyz' appears twice. This is a feature in the
 random access group, and it means to add the values together. Thus::
@@ -331,13 +333,13 @@ random access group, and it means to add the values together. Thus::
     >>> hdul[0].data.parnames  # get the parameter names
     ['abc', 'xyz', 'xyz']
     >>> hdul[0].data.par(1)[8]  # Duplicate parameter name 'xyz'
-    42.0
+    np.float32(42.0)
     >>> hdul[0].data.par(2)[8]
-    42.0
+    np.float32(42.0)
     >>> # When accessed by name, it adds the values together if the name is
     >>> # shared by more than one parameter
     >>> hdul[0].data.par('xyz')[8]
-    84.0
+    np.float64(84.0)
 
 The :meth:`~GroupData.par` is a method for either the entire data object or one
 data item (a group). So there are two possible ways to get a group parameter
@@ -345,9 +347,9 @@ for a certain group, this is similar to the situation in table data (with its
 :meth:`~FITS_rec.field` method)::
 
     >>> hdul[0].data.par(0)[8]  # doctest: +FLOAT_CMP
-    8.1
+    np.float32(8.1)
     >>> hdul[0].data[8].par(0)  # doctest: +FLOAT_CMP
-    8.1
+    np.float32(8.1)
 
 On the other hand, to modify a group parameter, we can either assign the new
 value directly (if accessing the row/group number last) or use the

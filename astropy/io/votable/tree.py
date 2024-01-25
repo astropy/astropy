@@ -1682,7 +1682,7 @@ class Field(
             column.unit = self.unit
         if (
             isinstance(self.converter, converters.FloatingPoint)
-            and self.converter.output_format != "{!r:>}"
+            and self.converter.output_format != "{!s:>}"
         ):
             column.format = self.converter.output_format
         elif isinstance(self.converter, converters.Char):

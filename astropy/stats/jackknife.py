@@ -116,11 +116,11 @@ def jackknife_stats(data, statistic, confidence_level=0.95):
     >>> estimate, bias, stderr, conf_interval = jackknife_stats(
     ...     data, test_statistic, 0.95)
     >>> estimate
-    4.5
+    np.float64(4.5)
     >>> bias
-    0.0
+    np.float64(0.0)
     >>> stderr  # doctest: +FLOAT_CMP
-    0.95742710775633832
+    np.float64(0.95742710775633832)
     >>> conf_interval
     array([2.62347735,  6.37652265])
 

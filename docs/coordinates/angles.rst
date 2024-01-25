@@ -81,41 +81,41 @@ There are many ways to represent the value of an |Angle|::
     >>> a  # doctest: +FLOAT_CMP
     <Angle 1. rad>
     >>> a.radian
-    1.0
+    np.float64(1.0)
     >>> a.degree  # doctest: +FLOAT_CMP
-    57.29577951308232
+    np.float64(57.29577951308232)
     >>> a.hour  # doctest: +FLOAT_CMP
-    3.8197186342054885
+    np.float64(3.8197186342054885)
     >>> a.hms  # doctest: +FLOAT_CMP
-    hms_tuple(h=3.0, m=49.0, s=10.987083139758766)
+    hms_tuple(h=np.float64(3.0), m=np.float64(49.0), s=np.float64(10.987083139758766))
     >>> a.dms  # doctest: +FLOAT_CMP
-    dms_tuple(d=57.0, m=17.0, s=44.806247096362313)
+    dms_tuple(d=np.float64(57.0), m=np.float64(17.0), s=np.float64(44.806247096362313))
     >>> a.signed_dms  # doctest: +FLOAT_CMP
-    signed_dms_tuple(sign=1.0, d=57.0, m=17.0, s=44.806247096362313)
+    signed_dms_tuple(sign=np.float64(1.0), d=np.float64(57.0), m=np.float64(17.0), s=np.float64(44.806247096362313))
     >>> (-a).dms  # doctest: +FLOAT_CMP
-    dms_tuple(d=-57.0, m=-17.0, s=-44.806247096362313)
+    dms_tuple(d=np.float64(-57.0), m=np.float64(-17.0), s=np.float64(-44.806247096362313))
     >>> (-a).signed_dms  # doctest: +FLOAT_CMP
-    signed_dms_tuple(sign=-1.0, d=57.0, m=17.0, s=44.806247096362313)
+    signed_dms_tuple(sign=np.float64(-1.0), d=np.float64(57.0), m=np.float64(17.0), s=np.float64(44.806247096362313))
     >>> a.arcminute  # doctest: +FLOAT_CMP
-    3437.7467707849396
+    np.float64(3437.7467707849396)
     >>> f"{a}"
     '1.0 rad'
     >>> f"{a:latex}"
-    '$1\\;\\mathrm{rad}$'
+    np.str_('$1\\;\\mathrm{rad}$')
     >>> f"{a.to(u.deg):latex}"
-    '$57^\\circ17{}^\\prime44.8062471{}^{\\prime\\prime}$'
+    np.str_('$57^\\circ17{}^\\prime44.8062471{}^{\\prime\\prime}$')
     >>> a.to_string()
-    '1 rad'
+    np.str_('1 rad')
     >>> a.to_string(unit=u.degree)
-    '57d17m44.8062471s'
+    np.str_('57d17m44.8062471s')
     >>> a.to_string(unit=u.degree, sep=':')
-    '57:17:44.8062471'
+    np.str_('57:17:44.8062471')
     >>> a.to_string(unit=u.degree, sep=('deg', 'm', 's'))
-    '57deg17m44.8062471s'
+    np.str_('57deg17m44.8062471s')
     >>> a.to_string(unit=u.hour)
-    '3h49m10.98708314s'
+    np.str_('3h49m10.98708314s')
     >>> a.to_string(unit=u.hour, decimal=True)
-    '3.81972'
+    np.str_('3.81972')
 
 ..
   EXAMPLE END

@@ -26,6 +26,7 @@ from astropy.table.operations import _get_out_class, join_distance, join_skycoor
 from astropy.time import Time, TimeDelta
 from astropy.units.quantity import Quantity
 from astropy.utils import metadata
+from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.metadata import MergeConflictError
 
@@ -944,13 +945,24 @@ class TestJoin:
             names=["structured", "string"],
         )
         t12 = table.join(t1, t2, ["structured"], join_type="outer")
-        assert t12.pformat() == [
-            "structured [f, i] string_1 string_2",
-            "----------------- -------- --------",
-            "          (1., 1)      one       --",
-            "          (2., 2)      two    three",
-            "          (4., 4)       --     four",
-        ]
+        assert (
+            t12.pformat()
+            == [
+                "structured [f, i] string_1 string_2",
+                "----------------- -------- --------",
+                "          (1., 1)      one       --",
+                "          (2., 2)      two    three",
+                "          (4., 4)       --     four",
+            ]
+            if NUMPY_LT_2_0
+            else [
+                "structured [f, i] string_1 string_2",
+                "----------------- -------- --------",
+                "         (1.0, 1)      one       --",
+                "         (2.0, 2)      two    three",
+                "         (4.0, 4)       --     four",
+            ]
+        )
 
 
 class TestSetdiff:
@@ -1519,15 +1531,26 @@ class TestVStack:
             names=["structured", "string"],
         )
         t12 = table.vstack([t1, t2])
-        assert t12.pformat() == [
-            "structured [f, i] string",
-            "----------------- ------",
-            "          (1., 1)    one",
-            "          (2., 2)    two",
-            "          (3., 3)  three",
-            "          (4., 4)   four",
-        ]
-
+        assert (
+            t12.pformat()
+            == [
+                "structured [f, i] string",
+                "----------------- ------",
+            ]
+            + [
+                "          (1., 1)    one",
+                "          (2., 2)    two",
+                "          (3., 3)  three",
+                "          (4., 4)   four",
+            ]
+            if NUMPY_LT_2_0
+            else [
+                "         (1.0, 1)    one",
+                "         (2.0, 2)    two",
+                "         (3.0, 3)  three",
+                "         (4.0, 4)   four",
+            ]
+        )
         # One table without the structured column.
         t3 = t2[("string",)]
         t13 = table.vstack([t1, t3])
@@ -1719,13 +1742,22 @@ class TestDStack:
             names=["structured", "string"],
         )
         t12 = table.dstack([t1, t2])
-        assert t12.pformat() == [
-            "structured [f, i]     string   ",
-            "------------------ ------------",
-            "(1., 1) .. (3., 3) one .. three",
-            "(2., 2) .. (4., 4)  two .. four",
-        ]
-
+        assert (
+            t12.pformat()
+            == [
+                "structured [f, i]     string   ",
+                "------------------ ------------",
+                "(1., 1) .. (3., 3) one .. three",
+                "(2., 2) .. (4., 4)  two .. four",
+            ]
+            if NUMPY_LT_2_0
+            else [
+                " structured [f, i]      string   ",
+                "-------------------- ------------",
+                "(1.0, 1) .. (3.0, 3) one .. three",
+                "(2.0, 2) .. (4.0, 4)  two .. four",
+            ]
+        )
         # One table without the structured column.
         t3 = t2[("string",)]
         t13 = table.dstack([t1, t3])
