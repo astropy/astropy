@@ -3668,18 +3668,6 @@ class Table:
     def __copy__(self):
         return self.copy(False)
 
-    def __lt__(self, other):
-        return super().__lt__(other)
-
-    def __gt__(self, other):
-        return super().__gt__(other)
-
-    def __le__(self, other):
-        return super().__le__(other)
-
-    def __ge__(self, other):
-        return super().__ge__(other)
-
     def __eq__(self, other):
         return self._rows_equal(other)
 
