@@ -902,8 +902,8 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             except NotImplementedError:
                 return self._not_implemented_or_raise(function, types)
 
-            if not isinstance(dispatched_result, tuple):
-                return dispatched_result
+            if dispatched_result is None:
+                return None
 
             result, mask, out = dispatched_result
 
