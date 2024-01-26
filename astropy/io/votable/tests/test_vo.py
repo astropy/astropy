@@ -307,7 +307,6 @@ def test_select_columns_by_name():
     assert "unicode_test" not in mask.dtype.fields
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "column_ids, use_names_over_ids, expected_names",
     [
