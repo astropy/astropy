@@ -43,19 +43,15 @@ def assert_validate_schema(filename, version):
 
 
 def test_parse_single_table():
-    with np.errstate(over="ignore"):
-        # https://github.com/astropy/astropy/issues/13341
-        table = parse_single_table(get_pkg_data_filename("data/regression.xml"))
+    table = parse_single_table(get_pkg_data_filename("data/regression.xml"))
     assert isinstance(table, tree.TableElement)
     assert len(table.array) == 5
 
 
 def test_parse_single_table2():
-    with np.errstate(over="ignore"):
-        # https://github.com/astropy/astropy/issues/13341
-        table2 = parse_single_table(
-            get_pkg_data_filename("data/regression.xml"), table_number=1
-        )
+    table2 = parse_single_table(
+        get_pkg_data_filename("data/regression.xml"), table_number=1
+    )
     assert isinstance(table2, tree.TableElement)
     assert len(table2.array) == 1
     assert len(table2.array.dtype.names) == 28
@@ -199,11 +195,9 @@ def test_regression_binary2(tmp_path):
 
 class TestFixups:
     def setup_class(self):
-        with np.errstate(over="ignore"):
-            # https://github.com/astropy/astropy/issues/13341
-            self.table = parse(
-                get_pkg_data_filename("data/regression.xml")
-            ).get_first_table()
+        self.table = parse(
+            get_pkg_data_filename("data/regression.xml")
+        ).get_first_table()
         self.array = self.table.array
         self.mask = self.table.array.mask
 
@@ -213,9 +207,7 @@ class TestFixups:
 
 class TestReferences:
     def setup_class(self):
-        with np.errstate(over="ignore"):
-            # https://github.com/astropy/astropy/issues/13341
-            self.votable = parse(get_pkg_data_filename("data/regression.xml"))
+        self.votable = parse(get_pkg_data_filename("data/regression.xml"))
         self.table = self.votable.get_first_table()
         self.array = self.table.array
         self.mask = self.table.array.mask
@@ -281,9 +273,7 @@ def test_select_columns_by_name():
 
 class TestParse:
     def setup_class(self):
-        with np.errstate(over="ignore"):
-            # https://github.com/astropy/astropy/issues/13341
-            self.votable = parse(get_pkg_data_filename("data/regression.xml"))
+        self.votable = parse(get_pkg_data_filename("data/regression.xml"))
         self.table = self.votable.get_first_table()
         self.array = self.table.array
         self.mask = self.table.array.mask
@@ -600,9 +590,7 @@ class TestParse:
 
 class TestThroughTableData(TestParse):
     def setup_class(self):
-        with np.errstate(over="ignore"):
-            # https://github.com/astropy/astropy/issues/13341
-            votable = parse(get_pkg_data_filename("data/regression.xml"))
+        votable = parse(get_pkg_data_filename("data/regression.xml"))
 
         self.xmlout = bio = io.BytesIO()
         # W39: Bit values can not be masked
@@ -634,9 +622,7 @@ class TestThroughTableData(TestParse):
 
 class TestThroughBinary(TestParse):
     def setup_class(self):
-        with np.errstate(over="ignore"):
-            # https://github.com/astropy/astropy/issues/13341
-            votable = parse(get_pkg_data_filename("data/regression.xml"))
+        votable = parse(get_pkg_data_filename("data/regression.xml"))
         votable.get_first_table().format = "binary"
 
         self.xmlout = bio = io.BytesIO()
@@ -665,9 +651,7 @@ class TestThroughBinary(TestParse):
 
 class TestThroughBinary2(TestParse):
     def setup_class(self):
-        with np.errstate(over="ignore"):
-            # https://github.com/astropy/astropy/issues/13341
-            votable = parse(get_pkg_data_filename("data/regression.xml"))
+        votable = parse(get_pkg_data_filename("data/regression.xml"))
         votable.version = "1.3"
         votable.get_first_table()._config["version_1_3_or_later"] = True
         votable.get_first_table().format = "binary2"
@@ -724,8 +708,6 @@ def table_from_scratch():
     votable.to_xml(out)
 
 
-# https://github.com/astropy/astropy/issues/13341
-@np.errstate(over="ignore")
 def test_open_files():
     for filename in get_pkg_data_filenames("data", pattern="*.xml"):
         if not filename.endswith(
@@ -842,9 +824,7 @@ def test_validate_path_object():
 
 
 def test_gzip_filehandles(tmp_path):
-    with np.errstate(over="ignore"):
-        # https://github.com/astropy/astropy/issues/13341
-        votable = parse(get_pkg_data_filename("data/regression.xml"))
+    votable = parse(get_pkg_data_filename("data/regression.xml"))
 
     # W39: Bit values can not be masked
     with pytest.warns(W39):

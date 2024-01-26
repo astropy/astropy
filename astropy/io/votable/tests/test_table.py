@@ -56,9 +56,7 @@ def home_is_tmpdir(monkeypatch, tmp_path):
 
 def test_table(tmp_path):
     # Read the VOTABLE
-    with np.errstate(over="ignore"):
-        # https://github.com/astropy/astropy/issues/13341
-        votable = parse(get_pkg_data_filename("data/regression.xml"))
+    votable = parse(get_pkg_data_filename("data/regression.xml"))
     table = votable.get_first_table()
     astropy_table = table.to_table()
 
@@ -115,17 +113,13 @@ def test_table(tmp_path):
 def test_read_from_tilde_path(home_is_data):
     # Just test that these run without error for tilde-paths
     path = os.path.join("~", "regression.xml")
-    with np.errstate(over="ignore"):
-        # https://github.com/astropy/astropy/issues/13341
-        votable = parse(path)
-        Table.read(path, format="votable", table_id="main_table")
+    votable = parse(path)
+    Table.read(path, format="votable", table_id="main_table")
 
 
 def test_read_through_table_interface(tmp_path):
-    with np.errstate(over="ignore"):
-        # https://github.com/astropy/astropy/issues/13341
-        with get_pkg_data_fileobj("data/regression.xml", encoding="binary") as fd:
-            t = Table.read(fd, format="votable", table_id="main_table")
+    with get_pkg_data_fileobj("data/regression.xml", encoding="binary") as fd:
+        t = Table.read(fd, format="votable", table_id="main_table")
 
     assert len(t) == 5
 
@@ -145,10 +139,8 @@ def test_read_through_table_interface(tmp_path):
 
 
 def test_read_through_table_interface2():
-    with np.errstate(over="ignore"):
-        # https://github.com/astropy/astropy/issues/13341
-        with get_pkg_data_fileobj("data/regression.xml", encoding="binary") as fd:
-            t = Table.read(fd, format="votable", table_id="last_table")
+    with get_pkg_data_fileobj("data/regression.xml", encoding="binary") as fd:
+        t = Table.read(fd, format="votable", table_id="last_table")
 
     assert len(t) == 0
 
