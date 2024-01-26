@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # TODO: Test FITS parsing
 
+from __future__ import annotations
+
 # STDLIB
 import base64
 import codecs
@@ -2415,6 +2417,7 @@ class TableElement(
         self.format = "tabledata"
 
         self._fields = HomogeneousList(Field)
+        self._all_fields = HomogeneousList(Field)
         self._params = HomogeneousList(Param)
         self._groups = HomogeneousList(Group)
         self._links = HomogeneousList(Link)
@@ -2459,11 +2462,12 @@ class TableElement(
                 ref = None
             else:
                 self._fields = table.fields
+                self._all_fields = table.all_fields
                 self._params = table.params
                 self._groups = table.groups
                 self._links = table.links
         else:
-            del self._fields[:]
+            del self.all_fields[:]
             del self._params[:]
             del self._groups[:]
             del self._links[:]
@@ -2528,6 +2532,20 @@ class TableElement(
         return self._fields
 
     @property
+    def all_fields(self):
+        """
+        A list of :class:`Field` objects describing the types of each
+        of the data columns. Contrary to ``fields``, this property should
+        list every field that's available on disk, included deselected columns.
+        """
+        # last minute update
+        for field in self._fields:
+            if field not in self._all_fields:
+                self._all_fields.append(field)
+
+        return self._all_fields
+
+    @property
     def params(self):
         """
         A list of parameters (constant-valued columns) for the
@@ -2569,18 +2587,32 @@ class TableElement(
         """
         return self._empty
 
-    def create_arrays(self, nrows=0, config=None):
+    def create_arrays(
+        self,
+        nrows=0,
+        config=None,
+        *,
+        colnumbers: list[int] | None = None,
+    ):
         """
         Create a new array to hold the data based on the current set
         of fields, and store them in the *array* and member variable.
         Any data in the existing array will be lost.
 
         *nrows*, if provided, is the number of rows to allocate.
+        *colnumbers*, if provided, is the list of on-disk columns to select.
+        By default, all columns are selected.
         """
         if nrows is None:
             nrows = 0
+        if colnumbers is None:
+            colnumbers = list(range(len(self.all_fields)))
 
-        fields = self.fields
+        for i, field in enumerate(self.all_fields):
+            if i in colnumbers and field not in self.fields:
+                self.fields.append(field)
+
+        fields = self.all_fields
 
         if len(fields) == 0:
             array = np.recarray((nrows,), dtype="O")
@@ -2590,7 +2622,9 @@ class TableElement(
             Field.uniqify_names(fields)
 
             dtype = []
-            for x in fields:
+            for i, x in enumerate(fields):
+                if i not in colnumbers:
+                    continue
                 if x._unique_name == x.ID:
                     id = x.ID
                 else:
@@ -2621,10 +2655,13 @@ class TableElement(
             return 512
         return int(np.ceil(size * RESIZE_AMOUNT))
 
-    def _add_field(self, iterator, tag, data, config, pos):
-        field = Field(self._votable, config=config, pos=pos, **data)
+    def add_field(self, field: Field) -> None:
         self.fields.append(field)
+
+    def _register_field(self, iterator, tag, data, config, pos) -> None:
+        field = Field(self._votable, config=config, pos=pos, **data)
         field.parse(iterator, config)
+        self._all_fields.append(field)
 
     def _add_param(self, iterator, tag, data, config, pos):
         param = Param(self._votable, config=config, pos=pos, **data)
@@ -2690,7 +2727,7 @@ class TableElement(
                         self.description = data or None
         else:
             tag_mapping = {
-                "FIELD": self._add_field,
+                "FIELD": self._register_field,
                 "PARAM": self._add_param,
                 "GROUP": self._add_group,
                 "LINK": self._add_link,
@@ -2701,7 +2738,7 @@ class TableElement(
             for start, tag, data, pos in iterator:
                 if start:
                     if tag == "DATA":
-                        if len(self.fields) == 0:
+                        if len(self.all_fields) == 0:
                             warn_or_raise(E25, E25, None, config, pos)
                         warn_unknown_attrs("DATA", data.keys(), config, pos)
                         break
@@ -2716,14 +2753,14 @@ class TableElement(
                         self.description = data or None
                     elif tag == "TABLE":
                         # For error checking purposes
-                        Field.uniqify_names(self.fields)
+                        Field.uniqify_names(self.all_fields)
                         # We still need to create arrays, even if the file
                         # contains no DATA section
                         self.create_arrays(nrows=0, config=config)
                         return self
 
-        self.create_arrays(nrows=self._nrows, config=config)
-        fields = self.fields
+        fields = self.all_fields
+        Field.uniqify_names(fields)
         names = [x.ID for x in fields]
         # Deal with a subset of the columns, if requested.
         if not columns:
@@ -2743,6 +2780,8 @@ class TableElement(
                     raise ValueError(f"Columns '{columns}' not found in fields list")
             else:
                 raise TypeError("Invalid columns list")
+
+        self.create_arrays(nrows=self._nrows, config=config, colnumbers=colnumbers)
 
         if (not skip_table) and (len(fields) > 0):
             for start, tag, data, pos in iterator:
@@ -2821,8 +2860,8 @@ class TableElement(
         numrows = 0
         alloc_rows = len(array)
         colnumbers_bits = [i in colnumbers for i in range(len(fields))]
-        row_default = [x.converter.default for x in fields]
-        mask_default = [True] * len(fields)
+        row_default = [field.converter.default for field in self.fields]
+        mask_default = [True] * len(self.fields)
         array_chunk = []
         mask_chunk = []
         chunk_size = config.get("chunk_size", DEFAULT_CHUNK_SIZE)
@@ -2831,7 +2870,8 @@ class TableElement(
                 # Now parse one row
                 row = row_default[:]
                 row_mask = mask_default[:]
-                i = 0
+                i = 0  # index of the column being read from disk
+                j = 0  # index of the column being written in array (not necessarily == i)
                 for start, tag, data, pos in iterator:
                     if start:
                         binary = data.get("encoding", None) == "base64"
@@ -2876,8 +2916,9 @@ class TableElement(
                                     if invalid == "exception":
                                         vo_reraise(e, config, pos)
                                 else:
-                                    row[i] = value
-                                    row_mask[i] = mask_value
+                                    row[j] = value
+                                    row_mask[j] = mask_value
+                                    j += 1
                         elif tag == "TR":
                             break
                         else:
@@ -2984,7 +3025,7 @@ class TableElement(
         return careful_read
 
     def _parse_binary(self, mode, iterator, colnumbers, fields, config, pos):
-        fields = self.fields
+        fields = self.all_fields
 
         careful_read = self._get_binary_data_stream(iterator, config)
 
@@ -3375,7 +3416,7 @@ class TableElement(
 
         for colname in table.colnames:
             column = table[colname]
-            new_table.fields.append(Field.from_table_column(votable, column))
+            new_table.add_field(Field.from_table_column(votable, column))
 
         if table.mask is None:
             new_table.array = ma.array(np.asarray(table))
@@ -3390,7 +3431,7 @@ class TableElement(
         TABLE.
         """
         yield from self.params
-        yield from self.fields
+        yield from self.all_fields
         for group in self.groups:
             yield from group.iter_fields_and_params()
 
