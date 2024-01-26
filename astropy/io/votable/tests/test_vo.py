@@ -301,6 +301,84 @@ def test_select_columns_by_name():
     assert np.all(mask["unicode_test"])
 
 
+@pytest.mark.xfail
+@pytest.mark.parametrize(
+    "column_ids, use_names_over_ids, expected_names",
+    [
+        # just the first column
+        pytest.param(
+            ["string_test"],
+            False,
+            ["string_test"],
+            id="first-col-ids",
+        ),
+        pytest.param(
+            ["string_test"],
+            True,
+            ["string test"],
+            id="first-col-names",
+        ),
+        # a single column, other than the first
+        pytest.param(
+            ["unicode_test"],
+            False,
+            ["unicode_test"],
+            id="single-col-ids",
+        ),
+        pytest.param(
+            ["unicode_test"],
+            True,
+            ["unicode_test"],
+            id="single-col-names",
+        ),
+        # two non-consecutive, differently named columns
+        pytest.param(
+            ["string_test", "unicode_test"],
+            False,
+            ["string_test", "unicode_test"],
+            id="two-cols-ids",
+        ),
+        pytest.param(
+            ["string_test", "unicode_test"],
+            True,
+            ["string test", "unicode_test"],
+            id="two-cols-names",
+        ),
+        # just the first two columns (that have the same ID)
+        pytest.param(
+            ["string_test", "string_test_2"],
+            False,
+            ["string_test", "string_test_2"],
+            id="two-cols-ids-sameID",
+        ),
+        pytest.param(
+            ["string_test", "string_test_2"],
+            True,
+            ["string test", "fixed string test"],
+            id="two-cols-names-sameID",
+        ),
+    ],
+)
+def test_select_columns_by_name_edge_cases(
+    column_ids, use_names_over_ids, expected_names
+):
+    # see https://github.com/astropy/astropy/issues/14943
+    filename = get_pkg_data_filename("data/regression.xml")
+    with np.errstate(over="ignore"):
+        # https://github.com/astropy/astropy/issues/13341
+        vot1 = parse_single_table(filename, columns=column_ids)
+    t1 = vot1.to_table(use_names_over_ids=use_names_over_ids)
+    assert t1.colnames == expected_names
+
+    # columns should be returned in the order they are found, which
+    # in the general case isn't the order they are requested
+    with np.errstate(over="ignore"):
+        # https://github.com/astropy/astropy/issues/13341
+        vot2 = parse_single_table(filename, columns=list(reversed(column_ids)))
+    t2 = vot2.to_table(use_names_over_ids=use_names_over_ids)
+    assert t2.colnames == expected_names
+
+
 class TestParse:
     def setup_class(self):
         with np.errstate(over="ignore"):
