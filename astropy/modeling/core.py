@@ -19,7 +19,6 @@ import functools
 import inspect
 import itertools
 import operator
-import types
 from collections import defaultdict, deque
 from inspect import signature
 from itertools import chain
@@ -1479,7 +1478,7 @@ class Model(metaclass=_ModelMeta):
             # This typically implies a hard-coded bounding box.  This will
             # probably be rare, but it is an option
             return self._bounding_box
-        elif isinstance(self._bounding_box, types.MethodType):
+        elif inspect.ismethod(self._bounding_box):
             return ModelBoundingBox.validate(self, self._bounding_box())
         else:
             # The only other allowed possibility is that it's a ModelBoundingBox

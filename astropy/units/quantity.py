@@ -602,7 +602,7 @@ class Quantity(np.ndarray):
             if "info" in obj.__dict__:
                 self.info = obj.info
 
-    def __array_wrap__(self, obj, context=None):
+    def __array_wrap__(self, obj, context=None, return_scalar=False):
         if context is None:
             # Methods like .squeeze() created a new `ndarray` and then call
             # __array_wrap__ to turn the array into self's subclass.
@@ -1784,8 +1784,17 @@ class Quantity(np.ndarray):
         )
 
     # ensure we do not return indices as quantities
-    def argsort(self, axis=-1, kind="quicksort", order=None):
-        return self.view(np.ndarray).argsort(axis=axis, kind=kind, order=order)
+    if NUMPY_LT_2_0:
+
+        def argsort(self, axis=-1, kind=None, order=None):
+            return self.view(np.ndarray).argsort(axis=axis, kind=kind, order=order)
+
+    else:
+
+        def argsort(self, axis=-1, kind=None, order=None, *, stable=None):
+            return self.view(np.ndarray).argsort(
+                axis=axis, kind=kind, order=order, stable=stable
+            )
 
     def searchsorted(self, v, *args, **kwargs):
         return np.searchsorted(

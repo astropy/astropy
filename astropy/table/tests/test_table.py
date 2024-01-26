@@ -2150,10 +2150,9 @@ class TestPandas:
             # No warning with the default use_nullable_int=True
             d = t.to_pandas(use_nullable_int=use_nullable_int)
         else:
-            import pandas
-            from packaging.version import Version
+            from astropy.utils.introspection import minversion
 
-            PANDAS_LT_2_0 = Version(pandas.__version__) < Version("2.0")
+            PANDAS_LT_2_0 = not minversion("pandas", "2.0")
             if PANDAS_LT_2_0:
                 if PYTEST_LT_8_0:
                     ctx = nullcontext()

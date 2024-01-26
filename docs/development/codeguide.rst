@@ -203,8 +203,9 @@ Coding Style/Conventions
     import numpy as np
     import matplotlib as mpl
     import matplotlib.pyplot as plt
+    import pandas as pd
 
-  should be used wherever relevant. On the other hand::
+  should be used wherever relevant. The complete list of conventional aliases can be found `here <https://docs.astral.sh/ruff/settings/#flake8-import-conventions-aliases>`_ . On the other hand::
 
     from packagename import *
 

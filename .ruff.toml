@@ -83,9 +83,6 @@ lint.ignore = [
     "FIX001",  # Line contains FIXME.  this should be fixed or at least FIXME replaced with TODO
     "FIX004",  # Line contains HACK. replace HACK with NOTE.
 
-    # flake8-import-conventions (ICN)  : use conventional import aliases
-    "ICN001",  # import-conventions
-
     # pep8-naming (N)
     # NOTE: some of these can/should be fixed, but this changes the API.
     "N801",  # invalid-class-name

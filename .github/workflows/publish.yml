@@ -41,7 +41,8 @@ jobs:
       upload_to_anaconda: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
       anaconda_user: astropy
       anaconda_package: astropy
-      anaconda_keep_n_latest: 10
+      # FIXME: Was 10, see https://github.com/astropy/astropy/issues/15935
+      anaconda_keep_n_latest: -1
 
       # For nightly wheels as well as when building with the 'Build all wheels' label, we disable
       # the build isolation and explicitly install the latest developer version of numpy as well as
