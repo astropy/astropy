@@ -1442,7 +1442,7 @@ class TestHistogramFunctions:
             [125, 200] * u.cm,
             weights=weights,
             value_args=(x.value, [1.25, 2.0]),
-            value_kwargs={"weights": weights.value},
+            value_kwargs=dict(weights=weights.value),
             expected_units=(weights.unit, x.unit),
         )
         # With weights and density.
@@ -1453,7 +1453,7 @@ class TestHistogramFunctions:
             weights=weights,
             density=True,
             value_args=(x.value, [1.25, 2.0]),
-            value_kwargs={"weights": weights.value},
+            value_kwargs=dict(weights=weights.value),
             expected_units=(weights.unit / x.unit, x.unit),
         )
 
@@ -1481,7 +1481,7 @@ class TestHistogramFunctions:
             self.x,
             range=range,
             value_args=[self.x.value],
-            value_kwargs={"range": self._range_value(range, self.x.unit)},
+            value_kwargs=dict(range=self._range_value(range, self.x.unit)),
             expected_units=(None, self.x.unit),
         )
 
@@ -1541,7 +1541,7 @@ class TestHistogramFunctions:
             y,
             weights=weights,
             value_args=(x.value, y.value),
-            value_kwargs={"weights": weights.value},
+            value_kwargs=dict(weights=weights.value),
             expected_units=(weights.unit, x.unit, y.unit),
         )
         # Check quantity bin sizes.
@@ -1562,7 +1562,7 @@ class TestHistogramFunctions:
             y.value,
             bins=[5, inb2_y],
             value_args=(x.value, y.value),
-            value_kwargs={"bins": [5, np.array([0, 2.5, 100.0])]},
+            value_kwargs=dict(bins=[5, np.array([0, 2.5, 100.0])]),
             expected_units=(None, u.one, u.one),
         )
 
@@ -1599,12 +1599,12 @@ class TestHistogramFunctions:
             self.y,
             range=range,
             value_args=[self.x.value, self.y.value],
-            value_kwargs={
-                "range": [
+            value_kwargs=dict(
+                range=[
                     self._range_value(r, un)
                     for (r, un) in zip(range, (self.x.unit, self.y.unit))
                 ]
-            },
+            ),
             expected_units=(None, self.x.unit, self.y.unit),
         )
 
@@ -1639,7 +1639,7 @@ class TestHistogramFunctions:
             sample,
             weights=weights,
             value_args=(sample_values,),
-            value_kwargs={"weights": weights.value},
+            value_kwargs=dict(weights=weights.value),
             expected_units=(weights.unit, sample_units),
         )
         # Check quantity bin sizes.
@@ -1658,7 +1658,7 @@ class TestHistogramFunctions:
             sample_values,
             bins=[5, inb2_y],
             value_args=(sample_values,),
-            value_kwargs={"bins": [5, np.array([0, 2.5, 100.0])]},
+            value_kwargs=dict(bins=[5, np.array([0, 2.5, 100.0])]),
             expected_units=(None, (u.one, u.one)),
         )
         # For quantities, it is probably not that likely one would pass
@@ -1713,12 +1713,12 @@ class TestHistogramFunctions:
             (self.x, self.y),
             range=range,
             value_args=[(self.x.value, self.y.value)],
-            value_kwargs={
-                "range": [
+            value_kwargs=dict(
+                range=[
                     self._range_value(r, un)
                     for (r, un) in zip(range, (self.x.unit, self.y.unit))
                 ]
-            },
+            ),
             expected_units=(None, (self.x.unit, self.y.unit)),
         )
 
@@ -1931,9 +1931,9 @@ class TestSetOpsFunctions:
     @pytest.mark.parametrize(
         "kwargs",
         (
-            {"return_index": True, "return_inverse": True},
-            {"return_counts": True},
-            {"return_index": True, "return_inverse": True, "return_counts": True},
+            dict(return_index=True, return_inverse=True),
+            dict(return_counts=True),
+            dict(return_index=True, return_inverse=True, return_counts=True),
         ),
     )
     def test_unique(self, kwargs):
@@ -1943,9 +1943,9 @@ class TestSetOpsFunctions:
     @pytest.mark.parametrize(
         "kwargs",
         (
-            {"axis": 0},
-            {"axis": 1},
-            {"return_counts": True, "return_inverse": False, "axis": 1},
+            dict(axis=0),
+            dict(axis=1),
+            dict(return_counts=True, return_inverse=False, axis=1),
         ),
     )
     def test_unique_more_complex(self, kwargs):
@@ -1997,7 +1997,7 @@ class TestSetOpsFunctions:
             assert_array_equal(res, values)
 
     @needs_array_function
-    @pytest.mark.parametrize("kwargs", ({}, {"return_indices": True}))
+    @pytest.mark.parametrize("kwargs", ({}, dict(return_indices=True)))
     def test_intersect1d(self, kwargs):
         self.check2(np.intersect1d, **kwargs)
 

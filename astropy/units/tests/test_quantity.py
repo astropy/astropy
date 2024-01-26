@@ -1709,8 +1709,8 @@ class TestQuantitySubclassAboveAndBelow:
                     self.my_attr = obj.my_attr
 
         self.MyArray = MyArray
-        self.MyQuantity1 = type("MyQuantity1", (u.Quantity, MyArray), {"my_attr": "1"})
-        self.MyQuantity2 = type("MyQuantity2", (MyArray, u.Quantity), {"my_attr": "2"})
+        self.MyQuantity1 = type("MyQuantity1", (u.Quantity, MyArray), dict(my_attr="1"))
+        self.MyQuantity2 = type("MyQuantity2", (MyArray, u.Quantity), dict(my_attr="2"))
 
     def test_setup(self):
         mq1 = self.MyQuantity1(10, u.m)

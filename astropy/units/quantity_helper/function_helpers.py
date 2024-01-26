@@ -325,7 +325,7 @@ def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
         neginf = x._to_own_unit(neginf)
     return (
         (x.view(np.ndarray),),
-        {"copy": True, "nan": nan, "posinf": posinf, "neginf": neginf},
+        dict(copy=True, nan=nan, posinf=posinf, neginf=neginf),
         x.unit,
         None,
     )
@@ -1392,12 +1392,12 @@ def merge_arrays(
 
     return (
         (arrays,),
-        {
-            "fill_value": fill_value,
-            "flatten": flatten,
-            "usemask": usemask,
-            "asrecarray": asrecarray,
-        },
+        dict(
+            fill_value=fill_value,
+            flatten=flatten,
+            usemask=usemask,
+            asrecarray=asrecarray,
+        ),
         unit,
         None,
     )
