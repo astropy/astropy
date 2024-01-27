@@ -1,0 +1,1 @@
+Set pointers to freed memory to NULL in an attempt to fix a segfault in Celprm and Prjprm on some systems.

@@ -82,12 +82,15 @@ static PyObject* PyPrjprm_new(PyTypeObject* type, PyObject* args, PyObject* kwds
     if ((self->prefcount = (int*) malloc(sizeof(int))) == 0x0) {
         PyErr_SetString(PyExc_MemoryError, "Could not allocate memory.");
         free(self->x);
+        self->x = NULL;
         return NULL;
     }
     if (wcslib_prj_to_python_exc(prjini(self->x)))
     {
         free(self->x);
         free(self->prefcount);
+        self->x = NULL;
+        self->prefcount = NULL;
         return NULL;
     }
     *(self->prefcount) = 1;
@@ -116,6 +119,8 @@ static void PyPrjprm_dealloc(PyPrjprm* self)
         wcslib_prj_to_python_exc(prjfree(self->x));
         free(self->x);
         free(self->prefcount);
+        self->x = NULL;
+        self->prefcount = NULL;
     }
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
