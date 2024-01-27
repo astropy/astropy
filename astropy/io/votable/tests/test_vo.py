@@ -253,7 +253,6 @@ class TestReferences:
         assert len(list(self.votable.iter_coosys())) == 1
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "columns, expected_missing",
     [
