@@ -285,7 +285,10 @@ def test_select_columns_by_index():
     columns = ["string_test", "unsignedByte", "bitarray"]
     for c in columns:
         assert not np.all(mask[c])
-    assert np.all(mask["unicode_test"])
+
+    # deselected columns shouldn't be present in the output
+    assert "unicode_test" not in array.dtype.fields
+    assert "unicode_test" not in mask.dtype.fields
 
 
 def test_select_columns_by_name():
@@ -298,7 +301,10 @@ def test_select_columns_by_name():
     assert array["string_test"][0] == "String & test"
     for c in columns:
         assert not np.all(mask[c])
-    assert np.all(mask["unicode_test"])
+
+    # deselected columns shouldn't be present in the output
+    assert "unicode_test" not in array.dtype.fields
+    assert "unicode_test" not in mask.dtype.fields
 
 
 @pytest.mark.xfail
