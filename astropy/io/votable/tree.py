@@ -2740,7 +2740,10 @@ class TableElement(
                 try:
                     colnumbers = [names.index(x) for x in columns]
                 except ValueError:
-                    raise ValueError(f"Columns '{columns}' not found in fields list")
+                    missing_columns = [name for name in columns if name not in names]
+                    raise ValueError(
+                        f"Columns {missing_columns} were not found in fields list"
+                    ) from None
             else:
                 raise TypeError("Invalid columns list")
 
