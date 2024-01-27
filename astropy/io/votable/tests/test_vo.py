@@ -8,6 +8,7 @@ import difflib
 import gzip
 import io
 import pathlib
+import re
 import sys
 from unittest import mock
 
@@ -250,6 +251,28 @@ class TestReferences:
 
     def test_iter_coosys(self):
         assert len(list(self.votable.iter_coosys())) == 1
+
+
+@pytest.mark.xfail
+@pytest.mark.parametrize(
+    "columns, expected_missing",
+    [
+        # a single non-existent column
+        pytest.param(["c1"], ["c1"], id="basic"),
+        # multiple missing columns (checking that order is preserved)
+        pytest.param(["c1", "c2", "c3"], ["c1", "c2", "c3"], id="check-ordering"),
+        # mixing existing with missing columns
+        pytest.param(["c1", "string_test", "c2"], ["c1", "c2"], id="list-only-missing"),
+    ],
+)
+def test_select_missing_columns_error_message(columns, expected_missing):
+    # see https://github.com/astropy/astropy/pull/15956
+    filename = get_pkg_data_filename("data/regression.xml")
+    with pytest.raises(
+        ValueError,
+        match=re.escape(f"Columns {expected_missing!r} were not found in fields list"),
+    ):
+        parse_single_table(filename, columns=columns)
 
 
 def test_select_columns_by_index():
