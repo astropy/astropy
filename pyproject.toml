@@ -40,7 +40,7 @@ keywords = [
 ]
 dependencies = [
     "numpy>=1.23",
-    "pyerfa>=2.0",
+    "pyerfa>=2.0.1.1",
     "astropy-iers-data>=0.2024.1.1.0.33.39",
     "PyYAML>=3.13",
     "packaging>=19.0",
@@ -67,7 +67,7 @@ recommended = [
     "matplotlib>=3.3,!=3.4.0,!=3.5.2",
 ]
 typing = [
-    "typing_extensions>=4.0.0 ; python_version < '3.11'",
+    "typing_extensions>=4.0.0"
 ]
 all = [
     "astropy[recommended]",  # installs the [recommended] dependencies
@@ -315,7 +315,9 @@ exclude= [
             # Don't complain about IPython completion helper
             "def _ipython_key_completions_",
             # typing.TYPE_CHECKING is False at runtime
-            "if TYPE_CHECKING:"
+            "if TYPE_CHECKING:",
+            # Ignore typing overloads
+            "@overload",
         ]
 
 [tool.ruff]
@@ -404,6 +406,12 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
 [tool.ruff.lint.flake8-annotations]
 ignore-fully-untyped = true
 mypy-init-return = true
+
+[tool.ruff.lint.flake8-comprehensions]
+allow-dict-calls-with-keyword-arguments = true
+
+[tool.ruff.lint.flake8-type-checking]
+exempt-modules = []
 
 [tool.ruff.lint.isort]
 known-first-party = ["astropy", "extension_helpers"]

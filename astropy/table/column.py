@@ -10,6 +10,7 @@ import numpy as np
 from numpy import ma
 
 from astropy.units import Quantity, StructuredUnit, Unit
+from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.metadata import MetaData
@@ -553,6 +554,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
                     format = data.info.format
                 if meta is None:
                     meta = data.info.meta
+                if name is None:
+                    name = data.info.name
 
         else:
             if np.dtype(dtype).char == "S":
@@ -719,7 +722,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         if "info" in getattr(obj, "__dict__", {}):
             self.info = obj.info
 
-    def __array_wrap__(self, out_arr, context=None):
+    def __array_wrap__(self, out_arr, context=None, return_scalar=False):
         """
         __array_wrap__ is called at the end of every ufunc.
 
@@ -739,10 +742,16 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
            we also want to consistently return an array rather than a column
            (see #1446 and #1685)
         """
-        out_arr = super().__array_wrap__(out_arr, context)
-        if self.shape != out_arr.shape or (
-            isinstance(out_arr, BaseColumn)
-            and (context is not None and context[0] in _comparison_functions)
+        if NUMPY_LT_2_0:
+            out_arr = super().__array_wrap__(out_arr, context)
+        else:
+            out_arr = super().__array_wrap__(out_arr, context, return_scalar)
+        if (NUMPY_LT_2_0 or return_scalar) and (
+            self.shape != out_arr.shape
+            or (
+                isinstance(out_arr, BaseColumn)
+                and (context is not None and context[0] in _comparison_functions)
+            )
         ):
             return out_arr.data[()]
         else:

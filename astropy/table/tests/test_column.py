@@ -156,6 +156,19 @@ class TestColumn:
         assert np.all(c.data == np.array([100, 200, 300]))
         assert np.all(c.unit == u.cm)
 
+    def test_quantity_with_info_init(self, Column):
+        q = np.arange(3.0) * u.m
+        q.info.name = "q"
+        q.info.description = "an example"
+        q.info.meta = {"parrot": "dead"}
+        q.info.format = "3.1f"
+        c = Column(q)
+        assert c.name == "q"
+        assert c.description == "an example"
+        assert c.meta == q.info.meta
+        assert c.meta is not q.info.meta
+        assert c.pformat() == " q \n---\n0.0\n1.0\n2.0".splitlines()
+
     def test_quantity_comparison(self, Column):
         # regression test for gh-6532
         c = Column([1, 2100, 3], unit="Hz")

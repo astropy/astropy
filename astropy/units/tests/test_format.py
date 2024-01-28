@@ -681,6 +681,15 @@ def test_vounit_details():
     assert u.Unit("ka", format="vounit") == u.Unit("1000 yr")
     assert u.Unit("pix", format="vounit") == u.Unit("pixel", format="vounit")
 
+    # Regression test for astropy/astroquery#2480
+    assert u.Unit("Sun", format="vounit") is u.Sun
+
+    # Test that adding a prefix to a simple units raises a warning
+    with pytest.warns(
+        UnitsWarning, match="Unit 'kdB' not supported by the VOUnit standard.*"
+    ):
+        u.Unit("kdB", format="vounit")
+
     # The da- prefix is not allowed, and the d- prefix is discouraged
     assert u.dam.to_string("vounit") == "10m"
     assert u.Unit("dam dag").to_string("vounit") == "100g.m"
@@ -973,3 +982,23 @@ def test_function_format_styles(format_spec, string):
 def test_function_format_styles_non_default_fraction(format_spec, fraction, string):
     dbunit = u.decibel(u.m**-1)
     assert dbunit.to_string(format_spec, fraction=fraction) == string
+
+
+@pytest.mark.parametrize(
+    "format_spec, expected_mantissa",
+    [
+        ("", "1"),
+        (".1g", "1"),
+        (".3g", "1"),
+        (".1e", "1.0"),
+        (".1f", "1.0"),
+        (".3e", "1.000"),
+    ],
+)
+def test_format_latex_one(format_spec, expected_mantissa):
+    # see https://github.com/astropy/astropy/issues/12571
+    from astropy.units.format.utils import split_mantissa_exponent
+
+    m, ex = split_mantissa_exponent(1, format_spec)
+    assert ex == ""
+    assert m == expected_mantissa

@@ -6,10 +6,11 @@ import importlib
 import inspect
 import os
 import sys
-import types
 from importlib import metadata
 
 from packaging.version import Version
+
+from .decorators import deprecated
 
 __all__ = ["resolve_name", "minversion", "find_current_module", "isinstancemethod"]
 
@@ -126,7 +127,7 @@ def minversion(module, version, inclusive=True):
     >>> minversion(astropy, '0.4.4')
     True
     """
-    if isinstance(module, types.ModuleType):
+    if inspect.ismodule(module):
         module_name = module.__name__
         module_version = getattr(module, "__version__", None)
     elif isinstance(module, str):
@@ -310,6 +311,7 @@ def _get_module_from_frame(frm):
     return None
 
 
+@deprecated(since="6.1")
 def find_mod_objs(modname, onlylocals=False):
     """Returns all the public attributes of a module referenced by name.
 
@@ -377,6 +379,7 @@ def find_mod_objs(modname, onlylocals=False):
 
 # Note: I would have preferred call this is_instancemethod, but this naming is
 # for consistency with other functions in the `inspect` module
+@deprecated(since="6.1")
 def isinstancemethod(cls, obj):
     """
     Returns `True` if the given object is an instance method of the class
@@ -393,35 +396,8 @@ def isinstancemethod(cls, obj):
         A member of the provided class (the membership is not checked directly,
         but this function will always return `False` if the given object is not
         a member of the given class).
-
-    Examples
-    --------
-    >>> class MetaClass(type):
-    ...     def a_classmethod(cls): pass
-    ...
-    >>> class MyClass(metaclass=MetaClass):
-    ...     def an_instancemethod(self): pass
-    ...
-    ...     @classmethod
-    ...     def another_classmethod(cls): pass
-    ...
-    ...     @staticmethod
-    ...     def a_staticmethod(): pass
-    ...
-    >>> isinstancemethod(MyClass, MyClass.a_classmethod)
-    False
-    >>> isinstancemethod(MyClass, MyClass.another_classmethod)
-    False
-    >>> isinstancemethod(MyClass, MyClass.a_staticmethod)
-    False
-    >>> isinstancemethod(MyClass, MyClass.an_instancemethod)
-    True
     """
-    return _isinstancemethod(cls, obj)
-
-
-def _isinstancemethod(cls, obj):
-    if not isinstance(obj, types.FunctionType):
+    if not inspect.isfunction(obj):
         return False
 
     # Unfortunately it seems the easiest way to get to the original

@@ -289,13 +289,15 @@ def convolve(
 
     # Check dimensionality
     if array_internal.ndim == 0:
-        raise Exception("cannot convolve 0-dimensional arrays")
+        raise ValueError("cannot convolve 0-dimensional arrays")
     elif array_internal.ndim > 3:
         raise NotImplementedError(
             "convolve only supports 1, 2, and 3-dimensional arrays at this time"
         )
     elif array_internal.ndim != kernel_internal.ndim:
-        raise Exception("array and kernel have differing number of dimensions.")
+        raise ValueError("array and kernel have differing number of dimensions.")
+    elif array_internal.size == 0:
+        raise ValueError("cannot convolve empty array")
 
     array_shape = np.array(array_internal.shape)
     kernel_shape = np.array(kernel_internal.shape)
@@ -453,7 +455,7 @@ def convolve(
         if isinstance(passed_kernel, Kernel):
             new_result._separable = new_result._separable and passed_kernel._separable
         return new_result
-    elif array_dtype.kind == "f":
+    if array_dtype.kind == "f":
         # Try to preserve the input type if it's a floating point type
         # Avoid making another copy if possible
         try:
@@ -944,11 +946,7 @@ def convolve_fft(
     if preserve_nan:
         rifft[arrayslices][nanmaskarray] = np.nan
 
-    if crop:
-        result = rifft[arrayslices].real
-        return result
-    else:
-        return rifft.real
+    return rifft[arrayslices].real if crop else rifft.real
 
 
 def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):

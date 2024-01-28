@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Regression tests for the units package."""
+import operator
 import pickle
 from fractions import Fraction
 
@@ -192,6 +193,15 @@ def test_unknown_unit3():
 def test_invalid_scale():
     with pytest.raises(TypeError):
         ["a", "b", "c"] * u.m
+
+
+@pytest.mark.parametrize("op", [operator.truediv, operator.lshift, operator.mul])
+def test_invalid_array_op(op):
+    # see https://github.com/astropy/astropy/issues/12836
+    with pytest.raises(
+        TypeError, match="The value must be a valid Python or Numpy numeric type"
+    ):
+        op(np.array(["cat"]), u.one)
 
 
 def test_cds_power():

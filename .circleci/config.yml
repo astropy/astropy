@@ -102,7 +102,3 @@ workflows:
             branches:
               only:
                 - main
-
-notify:
-  webhooks:
-    - url: https://giles.cadair.dev/circleci

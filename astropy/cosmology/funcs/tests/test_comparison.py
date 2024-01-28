@@ -11,6 +11,7 @@ from astropy.cosmology import Cosmology, FlatCosmologyMixin, Planck18, cosmology
 from astropy.cosmology._io.tests.base import ToFromTestMixinBase
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.funcs.comparison import (
+    _CANT_BROADCAST,
     _cosmology_not_equal,
     _CosmologyWrapper,
     _parse_format,
@@ -99,7 +100,7 @@ class Test_parse_format(ComparisonFunctionTestBase):
         converted = to_format(format)
 
         # Some raise a segfault! TODO: figure out why
-        if isinstance(converted, _CosmologyWrapper._cantbroadcast):
+        if isinstance(converted, _CANT_BROADCAST):
             converted = _CosmologyWrapper(converted)
 
         return converted
