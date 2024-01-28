@@ -4,7 +4,6 @@
 from io import StringIO
 
 import numpy as np
-import numpy.testing as npt
 
 from astropy.io import ascii
 
@@ -28,7 +27,7 @@ def test_rdb_write_types():
     out = StringIO()
     ascii.write(dat, out, format="rdb")
     outs = out.getvalue().splitlines()
-    npt.assert_equal(outs[1], "N\tN\tS\tN")
+    assert outs[1] == "N\tN\tS\tN"
 
 
 def test_ipac_read_types():
@@ -49,7 +48,7 @@ def test_ipac_read_types():
         ascii.StrType,
     ]
     for col, expected_type in zip(reader.cols, types):
-        npt.assert_equal(col.type, expected_type)
+        assert col.type == expected_type
 
 
 def test_col_dtype_in_custom_class():

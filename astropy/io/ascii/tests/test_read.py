@@ -9,8 +9,8 @@ from collections import OrderedDict
 from io import BytesIO, StringIO
 
 import numpy as np
-import numpy.testing as npt
 import pytest
+from numpy.testing import assert_allclose, assert_equal
 
 from astropy import table
 from astropy.io import ascii
@@ -216,9 +216,9 @@ def test_read_all_files(fast_reader, path_format, home_is_data):
                 if "inputter_cls" not in test_opts:  # fast reader doesn't allow this
                     test_opts["fast_reader"] = fast_reader
             table = ascii.read(testfile["name"], **test_opts)
-            npt.assert_equal(table.dtype.names, testfile["cols"])
+            assert_equal(table.dtype.names, testfile["cols"])
             for colname in table.dtype.names:
-                npt.assert_equal(len(table[colname]), testfile["nrows"])
+                assert len(table[colname]) == testfile["nrows"]
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -246,9 +246,9 @@ def test_read_all_files_via_table(fast_reader, path_format, home_is_data):
             if f"fast_{format}" in core.FAST_CLASSES:
                 test_opts["fast_reader"] = fast_reader
             table = Table.read(testfile["name"], format=format, **test_opts)
-            npt.assert_equal(table.dtype.names, testfile["cols"])
+            assert_equal(table.dtype.names, testfile["cols"])
             for colname in table.dtype.names:
-                npt.assert_equal(len(table[colname]), testfile["nrows"])
+                assert len(table[colname]) == testfile["nrows"]
 
 
 def test_guess_all_files():
@@ -265,9 +265,9 @@ def test_guess_all_files():
                 k: v for k, v in testfile["opts"].items() if k not in filter_read_opts
             }
             table = ascii.read(testfile["name"], guess=True, **guess_opts)
-            npt.assert_equal(table.dtype.names, testfile["cols"])
+            assert_equal(table.dtype.names, testfile["cols"])
             for colname in table.dtype.names:
-                npt.assert_equal(len(table[colname]), testfile["nrows"])
+                assert len(table[colname]) == testfile["nrows"]
 
 
 def test_validate_read_kwargs():
@@ -329,9 +329,9 @@ def test_daophot_header_keywords():
     keywords = table.meta["keywords"]  # Ordered dict of keyword structures
     for name, value, units, format_ in expected_keywords:
         keyword = keywords[name]
-        npt.assert_equal(keyword["value"], value)
-        npt.assert_equal(keyword["units"], units)
-        npt.assert_equal(keyword["format"], format_)
+        assert keyword["value"] == value
+        assert keyword["units"] == units
+        assert keyword["format"] == format_
 
 
 def test_daophot_multiple_aperture():
@@ -392,7 +392,7 @@ def test_set_names(fast_reader):
     data = ascii.read(
         "data/simple3.txt", names=names, delimiter="|", fast_reader=fast_reader
     )
-    npt.assert_equal(data.dtype.names, names)
+    assert_equal(data.dtype.names, names)
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -406,7 +406,7 @@ def test_set_include_names(fast_reader):
         delimiter="|",
         fast_reader=fast_reader,
     )
-    npt.assert_equal(data.dtype.names, include_names)
+    assert_equal(data.dtype.names, include_names)
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -418,19 +418,19 @@ def test_set_exclude_names(fast_reader):
         delimiter="|",
         fast_reader=fast_reader,
     )
-    npt.assert_equal(data.dtype.names, ("obsid", "redshift", "X", "rad"))
+    assert_equal(data.dtype.names, ("obsid", "redshift", "X", "rad"))
 
 
 def test_include_names_daophot():
     include_names = ("ID", "MAG", "PIER")
     data = ascii.read("data/daophot.dat", include_names=include_names)
-    npt.assert_equal(data.dtype.names, include_names)
+    assert_equal(data.dtype.names, include_names)
 
 
 def test_exclude_names_daophot():
     exclude_names = ("ID", "YCENTER", "MERR", "NITER", "CHI", "PERROR")
     data = ascii.read("data/daophot.dat", exclude_names=exclude_names)
-    npt.assert_equal(data.dtype.names, ("XCENTER", "MAG", "MSKY", "SHARPNESS", "PIER"))
+    assert_equal(data.dtype.names, ("XCENTER", "MAG", "MSKY", "SHARPNESS", "PIER"))
 
 
 def test_custom_process_lines():
@@ -442,8 +442,8 @@ def test_custom_process_lines():
     reader = ascii.get_reader(delimiter="|")
     reader.inputter.process_lines = process_lines
     data = reader.read("data/bars_at_ends.txt")
-    npt.assert_equal(data.dtype.names, ("obsid", "redshift", "X", "Y", "object", "rad"))
-    npt.assert_equal(len(data), 3)
+    assert_equal(data.dtype.names, ("obsid", "redshift", "X", "Y", "object", "rad"))
+    assert len(data) == 3
 
 
 def test_custom_process_line():
@@ -456,7 +456,7 @@ def test_custom_process_line():
     reader.data.splitter.process_line = process_line
     data = reader.read("data/nls1_stackinfo.dbout")
     cols = get_testfiles("data/nls1_stackinfo.dbout")["cols"]
-    npt.assert_equal(data.dtype.names, cols[1:])
+    assert_equal(data.dtype.names, cols[1:])
 
 
 def test_custom_splitters():
@@ -466,20 +466,20 @@ def test_custom_splitters():
     f = "data/test4.dat"
     data = reader.read(f)
     testfile = get_testfiles(f)
-    npt.assert_equal(data.dtype.names, testfile["cols"])
-    npt.assert_equal(len(data), testfile["nrows"])
-    npt.assert_allclose(data.field("zabs1.nh")[2], 0.0839710433091)
-    npt.assert_allclose(data.field("p1.gamma")[2], 1.25997502704)
-    npt.assert_allclose(data.field("p1.ampl")[2], 0.000696444029148)
-    npt.assert_equal(data.field("statname")[2], "chi2modvar")
-    npt.assert_allclose(data.field("statval")[2], 497.56468441)
+    assert_equal(data.dtype.names, testfile["cols"])
+    assert len(data) == testfile["nrows"]
+    assert_allclose(data.field("zabs1.nh")[2], 0.0839710433091)
+    assert_allclose(data.field("p1.gamma")[2], 1.25997502704)
+    assert_allclose(data.field("p1.ampl")[2], 0.000696444029148)
+    assert data.field("statname")[2] == "chi2modvar"
+    assert_allclose(data.field("statval")[2], 497.56468441)
 
 
 def test_start_end():
     data = ascii.read("data/test5.dat", header_start=1, data_start=3, data_end=-5)
-    npt.assert_equal(len(data), 13)
-    npt.assert_equal(data.field("statname")[0], "chi2xspecvar")
-    npt.assert_equal(data.field("statname")[-1], "chi2gehrels")
+    assert len(data) == 13
+    assert data.field("statname")[0] == "chi2xspecvar"
+    assert data.field("statname")[-1] == "chi2gehrels"
 
 
 def test_set_converters():
@@ -488,8 +488,8 @@ def test_set_converters():
         "p1.gamma": [ascii.convert_numpy("str")],
     }
     data = ascii.read("data/test4.dat", converters=converters)
-    npt.assert_equal(str(data["zabs1.nh"].dtype), "float32")
-    npt.assert_equal(data["p1.gamma"][0], "1.26764500000")
+    assert str(data["zabs1.nh"].dtype) == "float32"
+    assert data["p1.gamma"][0] == "1.26764500000"
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -499,8 +499,8 @@ def test_from_string(fast_reader):
         table = fd.read()
     testfile = get_testfiles(f)[0]
     data = ascii.read(table, fast_reader=fast_reader, **testfile["opts"])
-    npt.assert_equal(data.dtype.names, testfile["cols"])
-    npt.assert_equal(len(data), testfile["nrows"])
+    assert_equal(data.dtype.names, testfile["cols"])
+    assert len(data) == testfile["nrows"]
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -509,8 +509,8 @@ def test_from_filelike(fast_reader):
     testfile = get_testfiles(f)[0]
     with open(f, "rb") as fd:
         data = ascii.read(fd, fast_reader=fast_reader, **testfile["opts"])
-    npt.assert_equal(data.dtype.names, testfile["cols"])
-    npt.assert_equal(len(data), testfile["nrows"])
+    assert_equal(data.dtype.names, testfile["cols"])
+    assert len(data) == testfile["nrows"]
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -520,15 +520,15 @@ def test_from_lines(fast_reader):
         table = fd.readlines()
     testfile = get_testfiles(f)[0]
     data = ascii.read(table, fast_reader=fast_reader, **testfile["opts"])
-    npt.assert_equal(data.dtype.names, testfile["cols"])
-    npt.assert_equal(len(data), testfile["nrows"])
+    assert_equal(data.dtype.names, testfile["cols"])
+    assert len(data) == testfile["nrows"]
 
 
 def test_comment_lines():
     table = ascii.get_reader(reader_cls=ascii.Rdb)
     data = table.read("data/apostrophe.rdb")
-    npt.assert_equal(table.comment_lines, ["# first comment", "  # second comment"])
-    npt.assert_equal(data.meta["comments"], ["first comment", "second comment"])
+    assert_equal(table.comment_lines, ["# first comment", "  # second comment"])
+    assert_equal(data.meta["comments"], ["first comment", "second comment"])
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
