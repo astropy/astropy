@@ -102,7 +102,7 @@ def test_read_double():
 |   Bob  | 555-4527 | 192.168.1.9X|
 """
     dat = ascii.read(table, format="fixed_width", guess=False)
-    assert_equal(tuple(dat.dtype.names), ("Name", "Phone", "TCP"))  # TODO
+    assert_equal(tuple(dat.dtype.names), ("Name", "Phone", "TCP"))
     assert dat[1][0] == "Mary"
     assert dat[0][1] == "555-1234"
     assert dat[2][2] == "192.168.1.9"
@@ -117,7 +117,7 @@ def test_read_space_delimiter():
   Bob  555-4527     192.168.1.9
 """
     dat = ascii.read(table, format="fixed_width", guess=False, delimiter=" ")
-    assert_equal(tuple(dat.dtype.names), ("Name", "--Phone-", "----TCP-----"))  # TODO
+    assert_equal(tuple(dat.dtype.names), ("Name", "--Phone-", "----TCP-----"))
     assert dat[1][0] == "Mary"
     assert dat[0][1] == "555-1234"
     assert dat[2][2] == "192.168.1.9"
@@ -133,7 +133,7 @@ def test_read_no_header_autocolumn():
     dat = ascii.read(
         table, format="fixed_width", guess=False, header_start=None, data_start=0
     )
-    assert_equal(tuple(dat.dtype.names), ("col1", "col2", "col3"))  # TODO
+    assert_equal(tuple(dat.dtype.names), ("col1", "col2", "col3"))
     assert dat[1][0] == "Mary"
     assert dat[0][1] == "555-1234"
     assert dat[2][2] == "192.168.1.9"
@@ -155,7 +155,7 @@ def test_read_no_header_names():
         data_start=0,
         names=("Name", "Phone", "TCP"),
     )
-    assert_equal(tuple(dat.dtype.names), ("Name", "Phone", "TCP"))  # TODO
+    assert_equal(tuple(dat.dtype.names), ("Name", "Phone", "TCP"))
     assert dat[1][0] == "Mary"
     assert dat[0][1] == "555-1234"
     assert dat[2][2] == "192.168.1.9"

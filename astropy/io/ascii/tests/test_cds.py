@@ -8,8 +8,8 @@ Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 from io import StringIO
 
 import numpy as np
-import numpy.testing as npt
 import pytest
+from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
@@ -501,9 +501,7 @@ def test_write_extra_skycoord_cols():
     for a, b in zip(lines[-2:], exp_output[-2:]):
         assert a[:18] == b[:18]
         assert a[30:42] == b[30:42]
-        npt.assert_allclose(
-            np.fromstring(a[2:], sep=" "), np.fromstring(b[2:], sep=" ")
-        )
+        assert_allclose(np.fromstring(a[2:], sep=" "), np.fromstring(b[2:], sep=" "))
 
 
 def test_write_skycoord_with_format():
