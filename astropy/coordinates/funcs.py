@@ -332,7 +332,7 @@ def concatenate_representations(reps):
         dif_type = type(reps[0].differentials["s"])
 
         if any(
-            "s" not in r.differentials or type(r.differentials["s"]) != dif_type
+            "s" not in r.differentials or type(r.differentials["s"]) is not dif_type
             for r in reps
         ):
             raise TypeError(

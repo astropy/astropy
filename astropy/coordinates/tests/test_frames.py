@@ -1282,8 +1282,8 @@ def test_representation_subclass():
     frame = FK5(
         representation_type=r.SphericalRepresentation, ra=32 * u.deg, dec=20 * u.deg
     )
-    assert type(frame._data) == r.UnitSphericalRepresentation
-    assert frame.representation_type == r.SphericalRepresentation
+    assert type(frame._data) is r.UnitSphericalRepresentation
+    assert frame.representation_type is r.SphericalRepresentation
 
     # If using a SphericalRepresentation class this used to not work, so we
     # test here that this is now fixed.
@@ -1293,8 +1293,8 @@ def test_representation_subclass():
     frame = FK5(
         representation_type=NewSphericalRepresentation, lon=32 * u.deg, lat=20 * u.deg
     )
-    assert type(frame._data) == r.UnitSphericalRepresentation
-    assert frame.representation_type == NewSphericalRepresentation
+    assert type(frame._data) is r.UnitSphericalRepresentation
+    assert frame.representation_type is NewSphericalRepresentation
 
     # A similar issue then happened in __repr__ with subclasses of
     # SphericalRepresentation.

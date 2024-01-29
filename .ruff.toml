@@ -54,7 +54,6 @@ lint.ignore = [
 
     # pycodestyle (E, W)
     "E501",  # line-too-long
-    "E721",  # type-comparison
     "E731",  # lambda-assignment
 
     # flake8-errmsg (EM)  : nicer error tracebacks
@@ -251,6 +250,7 @@ lint.unfixable = [
     "RET506",  # superfluous-else-raise
 ]
 "astropy/io/*" = [
+    "E721",   # type-comparison
     "G001",  # logging-string-format
     "G004",  # logging-f-string
     "PLR0911",  # too-many-return-statements
@@ -268,6 +268,7 @@ lint.unfixable = [
     "ANN201",  # Public function without return type annotation
     "PLR0911",  # too-many-return-statements
     "RET505",  # superfluous-else-return
+    "E721",   # type-comparison
     "RET506",  # superfluous-else-raise
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
     "TRY300",  # Consider `else` block
@@ -288,12 +289,14 @@ lint.unfixable = [
 ]
 "astropy/table/*" = [
     "RET505",  # superfluous-else-return
+    "E721",   # type-comparison
     "RET506",  # superfluous-else-raise
     "S605",  # Starting a process with a shell, possible injection detected
     "TRY300",  # Consider `else` block
 ]
 "astropy/tests/*" = ["C408", "RET505"]
 "astropy/time/*" = [
+    "E721",   # type-comparison
     "FIX003",  # Line contains XXX.  replace XXX with TODO
     "PIE794",  # duplicate-class-field-definition
     "RET505",  # superfluous-else-return
@@ -302,6 +305,7 @@ lint.unfixable = [
 "astropy/timeseries/*" = [
     "PLR0911",  # too-many-return-statements
     "RET505",  # superfluous-else-return
+    "E721",   # type-comparison
     "RET506",  # superfluous-else-raise
 ]
 "astropy/units/*" = [
@@ -318,6 +322,7 @@ lint.unfixable = [
     "RET506",  # superfluous-else-raise
 ]
 "astropy/utils/*" = [
+    "E721",   # type-comparison
     "N811",  # constant-imported-as-non-constant
     "PLR0911",  # too-many-return-statements
     "RET505",  # superfluous-else-return
@@ -333,6 +338,7 @@ lint.unfixable = [
 ]
 "astropy/wcs/*" = [
     "C408",  # unnecessary-collection-call
+    "E721",   # type-comparison
     "F821",  # undefined-name
     "S608",  # Posslibe SQL injection
     "RET505",  # superfluous-else-return
