@@ -1068,13 +1068,28 @@ def test_spectralcoord_accuracy(specsys):
 
     rest = 550 * u.nm
 
+    if PYTEST_LT_8_0:
+        ctx = nullcontext()
+    else:
+        ctx = pytest.warns(
+            NoVelocityWarning,
+            match=(
+                r"^No velocity defined on frame, assuming \(0\., 0\., 0\.\) km / s\.$"
+            ),
+        )
     with iers.conf.set_temp("auto_download", False):
         for row in reference_table:
             observer = EarthLocation.from_geodetic(
                 -row["obslon"], row["obslat"]
             ).get_itrs(obstime=row["obstime"])
 
-            with pytest.warns(AstropyUserWarning, match="No velocity defined on frame"):
+            with ctx, pytest.warns(
+                NoDistanceWarning,
+                match=(
+                    "^Distance on coordinate object is dimensionless, an arbitrary "
+                    r"distance value of 1000000\.0 kpc will be set instead\.$"
+                ),
+            ):
                 sc_topo = SpectralCoord(
                     545 * u.nm, observer=observer, target=row["target"]
                 )
