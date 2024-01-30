@@ -377,7 +377,7 @@ def test_physical_type_hash():
     assert dictionary[length] == 42
 
 
-@pytest.mark.parametrize("multiplicand", [list(), 42, 0, -1])
+@pytest.mark.parametrize("multiplicand", [[], 42, 0, -1])
 def test_physical_type_multiplication(multiplicand):
     """
     Test that multiplication of a physical type returns `NotImplemented`

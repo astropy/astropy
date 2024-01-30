@@ -1997,7 +1997,7 @@ class TestSetOpsFunctions:
             assert_array_equal(res, values)
 
     @needs_array_function
-    @pytest.mark.parametrize("kwargs", (dict(), dict(return_indices=True)))
+    @pytest.mark.parametrize("kwargs", ({}, dict(return_indices=True)))
     def test_intersect1d(self, kwargs):
         self.check2(np.intersect1d, **kwargs)
 
