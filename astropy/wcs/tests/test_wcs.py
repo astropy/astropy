@@ -1743,7 +1743,7 @@ def test_distortion_header(tmp_path):
     if PYTEST_LT_8_0:
         ctx = nullcontext()
     else:
-        ctx = pytest.raises(VerifyWarning)
+        ctx = pytest.warns(VerifyWarning)
 
     with fits.open(path) as hdulist:
         with ctx, pytest.warns(wcs.FITSFixedWarning):
