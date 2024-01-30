@@ -52,7 +52,7 @@ class Equivalency(UserList):
     def __init__(self, equiv_list, name="", kwargs=None):
         self.data = equiv_list
         self.name = [name]
-        self.kwargs = [kwargs] if kwargs is not None else [dict()]
+        self.kwargs = [kwargs] if kwargs is not None else [{}]
 
     def __add__(self, other):
         if isinstance(other, Equivalency):
