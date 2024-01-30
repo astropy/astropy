@@ -1,7 +1,7 @@
 .. _project-details:
 
 ***************
-Project details
+Project Details
 ***************
 
 .. toctree::
