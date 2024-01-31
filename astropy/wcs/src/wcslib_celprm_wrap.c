@@ -124,6 +124,7 @@ static void PyCelprm_dealloc(PyCelprm* self)
         self->x = NULL;
         self->prefcount = NULL;
     }
+
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
@@ -174,6 +175,7 @@ static PyObject* PyCelprm_deepcopy(PyCelprm* self)
 
     memcpy(copy->x, self->x, sizeof(struct celprm));
     copy->x->err = NULL;
+    self->x->flag = 0;
     return (PyObject*)copy;
 }
 

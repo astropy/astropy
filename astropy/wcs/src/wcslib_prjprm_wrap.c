@@ -79,6 +79,9 @@ static PyObject* PyPrjprm_new(PyTypeObject* type, PyObject* args, PyObject* kwds
         PyErr_SetString(PyExc_MemoryError, "Could not allocate memory.");
         return NULL;
     }
+    *self->x->name = '\0';
+    strncpy(self->x->code, "   \0", 4);
+
     if ((self->prefcount = (int*) malloc(sizeof(int))) == 0x0) {
         PyErr_SetString(PyExc_MemoryError, "Could not allocate memory.");
         free(self->x);
