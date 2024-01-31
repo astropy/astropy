@@ -1200,7 +1200,7 @@ def solve(a, b, *args, **kwargs):
 
 
 @function_helper(module=np.linalg)
-def lstsq(a, b, rcond="warn"):
+def lstsq(a, b, rcond="warn" if NUMPY_LT_2_0 else None):
     a, b = _as_quantities(a, b)
 
     if rcond not in (None, "warn", -1):
