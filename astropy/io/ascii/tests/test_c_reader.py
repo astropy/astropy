@@ -1274,7 +1274,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
     if test_for_warnings:  # Assert precision warnings for cols 2-5
         assert len(w) == 4
         for i in range(len(w)):
-            assert f"OverflowError converting to FloatType in column col{i + 2}" in str(
+            assert f"OverflowError converting to FloatType in column col{i+2}" in str(
                 w[i].message
             )
     read_values = np.array([col[0] for col in t.itercols()])
