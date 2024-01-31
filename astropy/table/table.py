@@ -3274,6 +3274,19 @@ class Table:
         else:
             raise TypeError("Vals must be an iterable or mapping or None")
 
+        if N == 0:
+            # see https://github.com/astropy/astropy/issues/15964
+            dtype = []
+            for dt, _ in self.dtype.fields.values():
+                # reduce data type to remove shape info
+                # However, special case Unicode strings since dt.base may point to
+                # dtype("U1") (i.e. single-character strings only), so no data is lost
+                # from vals
+                dtype.append(dt.base if dt.char != "U" else dt.char)
+            new_table = self.__class__(rows=[vals], names=self.colnames, dtype=dtype)
+            self._replace_cols(new_table.columns)
+            return
+
         # Insert val at index for each column
         columns = self.TableColumns()
         for name, col, val, mask_ in zip(colnames, self.columns.values(), vals, mask):

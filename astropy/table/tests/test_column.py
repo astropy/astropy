@@ -766,7 +766,6 @@ def test_qtable_column_conversion():
     assert isinstance(qtab["f"], u.Dex)
 
 
-@pytest.mark.xfail
 def test_set_units_from_first_dynamic_row():
     # see https://github.com/astropy/astropy/issues/15964
     qt = table.QTable(names=["a", "b"])
