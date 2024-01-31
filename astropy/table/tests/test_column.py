@@ -766,6 +766,34 @@ def test_qtable_column_conversion():
     assert isinstance(qtab["f"], u.Dex)
 
 
+@pytest.mark.xfail
+def test_set_units_from_first_dynamic_row():
+    # see https://github.com/astropy/astropy/issues/15964
+    qt = table.QTable(names=["a", "b"])
+    assert qt["a"].unit is None
+    assert qt["b"].unit is None
+
+    qt.add_row([1 * u.m, 2 * u.kg])
+    assert type(qt["a"]) is u.Quantity
+    assert qt["a"].unit == u.m
+    assert qt["b"].unit == u.kg
+
+    # this should also work
+    qt.add_row([4 * u.cm, 5 * u.g])
+    assert_array_equal(qt["a"], [100, 4] * u.cm)
+    assert_array_equal(qt["b"], [2000, 5] * u.g)
+
+    # but this shouldn't
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"Unable to insert row because of exception in column 'a':\n"
+            r"'g' \(mass\) and 'm' \(length\) are not convertible"
+        ),
+    ):
+        qt.add_row([4 * u.g, 5 * u.cm])
+
+
 @pytest.mark.parametrize("masked", [True, False])
 def test_string_truncation_warning(masked):
     """

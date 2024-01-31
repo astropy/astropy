@@ -1,0 +1,1 @@
+Fix a bug where inserting a row in an empty ``QTable`` would unexpectedly drop units.
