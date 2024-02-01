@@ -22,32 +22,22 @@ DIFFERENTIAL_CLASSES = {}
 # set for tracking duplicates
 DUPLICATE_REPRESENTATIONS = set()
 
-# a hash for the content of the above two dicts, cached for speed.
-_REPRDIFF_HASH = None
-
 
 def _fqn_class(cls):
     """Get the fully qualified name of a class."""
     return cls.__module__ + "." + cls.__qualname__
 
 
+@functools.cache
 def get_reprdiff_cls_hash():
     """
     Returns a hash value that should be invariable if the
     `REPRESENTATION_CLASSES` and `DIFFERENTIAL_CLASSES` dictionaries have not
     changed.
     """
-    global _REPRDIFF_HASH
-    if _REPRDIFF_HASH is None:
-        _REPRDIFF_HASH = hash(tuple(REPRESENTATION_CLASSES.items())) + hash(
-            tuple(DIFFERENTIAL_CLASSES.items())
-        )
-    return _REPRDIFF_HASH
-
-
-def _invalidate_reprdiff_cls_hash():
-    global _REPRDIFF_HASH
-    _REPRDIFF_HASH = None
+    return hash(tuple(REPRESENTATION_CLASSES.items())) + hash(
+        tuple(DIFFERENTIAL_CLASSES.items())
+    )
 
 
 class BaseRepresentationOrDifferentialInfo(MixinInfo):
@@ -651,7 +641,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 raise ValueError(f'Representation "{repr_name}" already defined')
 
         REPRESENTATION_CLASSES[repr_name] = cls
-        _invalidate_reprdiff_cls_hash()
+        get_reprdiff_cls_hash.cache_clear()
 
         # define getters for any component that does not yet have one.
         for component in cls.attr_classes:
@@ -1302,7 +1292,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
             raise ValueError(f"Differential class {repr_name} already defined")
 
         DIFFERENTIAL_CLASSES[repr_name] = cls
-        _invalidate_reprdiff_cls_hash()
+        get_reprdiff_cls_hash.cache_clear()
 
         # If not defined explicitly, create properties for the components.
         for component in cls.attr_classes:
