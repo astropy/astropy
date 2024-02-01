@@ -2806,6 +2806,8 @@ class TableElement(
                         2, iterator, colnumbers, fields, config, pos
                     )
                 elif tag == "FITS":
+                    if config.get("columns") is not None:
+                        raise NotImplementedError
                     warn_unknown_attrs("FITS", data.keys(), config, pos, ["extnum"])
                     try:
                         extnum = int(data.get("extnum", 0))
