@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+from functools import cache
+
 from astropy import units as u
 from astropy.coordinates.attributes import CoordinateAttribute, QuantityAttribute
 from astropy.coordinates.baseframe import BaseCoordinateFrame, frame_transform_graph
@@ -8,9 +11,8 @@ from astropy.coordinates.transformations import (
     FunctionTransform,
 )
 
-_skyoffset_cache = {}
 
-
+@cache
 def make_skyoffset_cls(framecls):
     """
     Create a new class that is the sky offset frame for a specific class of
@@ -38,9 +40,6 @@ def make_skyoffset_cls(framecls):
     just that class, as well as ensuring that only one example of such a class
     actually gets created in any given python session.
     """
-    if framecls in _skyoffset_cache:
-        return _skyoffset_cache[framecls]
-
     # Create a new SkyOffsetFrame subclass for this frame class.
     name = "SkyOffset" + framecls.__name__
     _SkyOffsetFramecls = type(
@@ -91,7 +90,6 @@ def make_skyoffset_cls(framecls):
         # transpose is the inverse because R is a rotation matrix
         return matrix_transpose(R)
 
-    _skyoffset_cache[framecls] = _SkyOffsetFramecls
     return _SkyOffsetFramecls
 
 
