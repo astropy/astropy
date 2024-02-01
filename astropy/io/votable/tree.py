@@ -2791,19 +2791,17 @@ class TableElement(
 
                 if tag == "TABLEDATA":
                     warn_unknown_attrs("TABLEDATA", data.keys(), config, pos)
-                    self.array = self._parse_tabledata(
-                        iterator, colnumbers, fields, config
-                    )
+                    self.array = self._parse_tabledata(iterator, colnumbers, config)
                 elif tag == "BINARY":
                     warn_unknown_attrs("BINARY", data.keys(), config, pos)
                     self.array = self._parse_binary(
-                        1, iterator, colnumbers, fields, config, pos
+                        1, iterator, colnumbers, config, pos
                     )
                 elif tag == "BINARY2":
                     if not config["version_1_3_or_later"]:
                         warn_or_raise(W52, W52, config["version"], config, pos)
                     self.array = self._parse_binary(
-                        2, iterator, colnumbers, fields, config, pos
+                        2, iterator, colnumbers, config, pos
                     )
                 elif tag == "FITS":
                     if config.get("columns") is not None:
@@ -2845,7 +2843,7 @@ class TableElement(
 
         return self
 
-    def _parse_tabledata(self, iterator, colnumbers, fields, config):
+    def _parse_tabledata(self, iterator, colnumbers, config):
         # Since we don't know the number of rows up front, we'll
         # reallocate the record array to make room as we go.  This
         # prevents the need to scan through the XML twice.  The
@@ -2857,6 +2855,7 @@ class TableElement(
         array = self.array
         del self.array
 
+        fields = self.all_fields
         parsers = [field.converter.parse for field in fields]
         binparsers = [field.converter.binparse for field in fields]
 
@@ -3029,7 +3028,7 @@ class TableElement(
 
         return careful_read
 
-    def _parse_binary(self, mode, iterator, colnumbers, fields, config, pos):
+    def _parse_binary(self, mode, iterator, colnumbers, config, pos):
         careful_read = self._get_binary_data_stream(iterator, config)
 
         # Need to have only one reference so that we can resize the
@@ -3037,6 +3036,7 @@ class TableElement(
         array = self.array
         del self.array
 
+        fields = self.all_fields
         binparsers = [field.converter.binparse for field in fields]
 
         numrows = 0
