@@ -3030,8 +3030,6 @@ class TableElement(
         return careful_read
 
     def _parse_binary(self, mode, iterator, colnumbers, fields, config, pos):
-        fields = self.all_fields
-
         careful_read = self._get_binary_data_stream(iterator, config)
 
         # Need to have only one reference so that we can resize the
@@ -3086,11 +3084,11 @@ class TableElement(
             except EOFError:
                 break
 
-            row = [x.converter.default for x in fields]
-            row_mask = [False] * len(fields)
-            for i in colnumbers:
-                row[i] = row_data[i]
-                row_mask[i] = row_mask_data[i]
+            row = [x.converter.default for x in self.fields]
+            row_mask = [False] * len(self.fields)
+            for j, i in enumerate(colnumbers):
+                row[j] = row_data[i]
+                row_mask[j] = row_mask_data[i]
 
             array[numrows] = tuple(row)
             array.mask[numrows] = tuple(row_mask)

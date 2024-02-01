@@ -793,7 +793,6 @@ class TestThroughBinary2(TestParse):
         pass
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize("format_", ["binary", "binary2"])
 def test_select_columns_binary(format_):
     with np.errstate(over="ignore"):
