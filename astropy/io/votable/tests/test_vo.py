@@ -793,6 +793,27 @@ class TestThroughBinary2(TestParse):
         pass
 
 
+@pytest.mark.xfail
+@pytest.mark.parametrize("format_", ["binary", "binary2"])
+def test_select_columns_binary(format_):
+    with np.errstate(over="ignore"):
+        # https://github.com/astropy/astropy/issues/13341
+        votable = parse(get_pkg_data_filename("data/regression.xml"))
+    if format_ == "binary2":
+        votable.version = "1.3"
+        votable.get_first_table()._config["version_1_3_or_later"] = True
+    votable.get_first_table().format = format_
+
+    bio = io.BytesIO()
+    # W39: Bit values can not be masked
+    with pytest.warns(W39):
+        votable.to_xml(bio)
+    bio.seek(0)
+    votable = parse(bio, columns=[0, 1, 2])
+    table = votable.get_first_table().to_table()
+    assert table.colnames == ["string_test", "string_test_2", "unicode_test"]
+
+
 def table_from_scratch():
     from astropy.io.votable.tree import Field, Resource, TableElement, VOTableFile
 
