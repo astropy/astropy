@@ -348,7 +348,7 @@ def convolve(
                 raise ValueError(
                     "The kernel can't be normalized, because "
                     "its sum is close to zero. The sum of the "
-                    f"given kernel is < {1.0 / MAX_NORMALIZATION}. "
+                    f"given kernel is < {1.0 / MAX_NORMALIZATION:.2f}. "
                     "For a zero-sum kernel, set normalize_kernel=False "
                     "or pass a custom normalization function to "
                     "normalize_kernel."
@@ -759,7 +759,7 @@ def convolve_fft(
             raise Exception(
                 "The kernel can't be normalized, because its sum is close "
                 "to zero. The sum of the given kernel is < "
-                f"{1.0 / MAX_NORMALIZATION}. For a zero-sum kernel, set "
+                f"{1.0 / MAX_NORMALIZATION:.2f}. For a zero-sum kernel, set "
                 "normalize_kernel=False or pass a custom normalization "
                 "function to normalize_kernel."
             )
