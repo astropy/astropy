@@ -713,7 +713,6 @@ class TestJoin:
         with pytest.raises(ValueError, match="cannot supply keys for a cartesian join"):
             t12 = table.join(t1, t2, join_type="cartesian", keys="a")
 
-    @pytest.mark.xfail
     @pytest.mark.parametrize(
         "t2_input, join_type, expected",
         [

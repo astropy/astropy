@@ -7,14 +7,18 @@
 - dstack()
 """
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import annotations
 
 import collections
+import enum
 import itertools
+import warnings
 from collections import Counter, OrderedDict
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
 
 import numpy as np
+from typing_extensions import assert_never
 
 from astropy.units import Quantity
 from astropy.utils import metadata
@@ -35,6 +39,13 @@ __all__ = [
 ]
 
 __doctest_requires__ = {"join_skycoord": ["scipy"], "join_distance": ["scipy"]}
+
+
+class _JoinSortBy(enum.Enum):
+    # TODO: if directly exposed, use an StrEnum in not PYTHON_LT_311
+    LEFT = enum.auto()
+    RIGHT = enum.auto()
+    KEYS = enum.auto()
 
 
 def _merge_table_meta(out, tables, metadata_conflicts="warn"):
@@ -360,6 +371,7 @@ def join(
     *,
     keys_left=None,
     keys_right=None,
+    keep_order=False,
     uniq_col_name="{col_name}_{table_name}",
     table_names=["1", "2"],
     metadata_conflicts="warn",
@@ -385,6 +397,11 @@ def join(
         column-like values with the same lengths as the left table.
     keys_right : str or list of str or list of column-like, optional
         Same as ``keys_left``, but for the right side of the join.
+    keep_order: bool
+        By default (False), rows are sorted by the join keys.
+        If True, preserve the orders of rows from the left table (or right table
+        with join_type='right'). This argument is ignored with 'outer' and 'cartesian'
+        joins.
     uniq_col_name : str or None
         String generate a unique output column name in case of a conflict.
         The default is '{col_name}_{table_name}'.
@@ -411,6 +428,20 @@ def join(
     if not isinstance(right, Table):
         right = Table(right)
 
+    sort_by = _JoinSortBy.KEYS
+    if keep_order is False:
+        pass
+    # TODO: use another enum for join_type internally so
+    # such a conditional tree can be checked for exhaustiveness by a type checker
+    elif join_type in ("inner", "left"):
+        sort_by = _JoinSortBy.LEFT
+    elif join_type == "right":
+        sort_by = _JoinSortBy.RIGHT
+    elif join_type in ("outer", "cartesian"):
+        warnings.warn(
+            f"keep_order argument is ignored with {join_type=}", category=UserWarning
+        )
+
     col_name_map = OrderedDict()
     out = _join(
         left,
@@ -424,6 +455,7 @@ def join(
         join_funcs,
         keys_left=keys_left,
         keys_right=keys_right,
+        sort_by=sort_by,
     )
 
     # Merge the column and table meta data. Table subclasses might override
@@ -1016,7 +1048,7 @@ def common_dtype(cols):
         raise tme from err
 
 
-def _get_join_sort_idxs(keys, left, right):
+def _get_join_sort_idxs(keys, left, right, sort_by: _JoinSortBy):
     # Go through each of the key columns in order and make columns for
     # a new structured array that represents the lexical ordering of those
     # key columns. This structured array is then argsort'ed. The trick here
@@ -1062,13 +1094,54 @@ def _get_join_sort_idxs(keys, left, right):
 
     # Make the empty sortable table and fill it
     len_left = len(left)
-    sortable_table = np.empty(len_left + len(right), dtype=sort_keys_dtypes)
+    len_right = len(right)
+    sortable_table = np.empty(len_left + len_right, dtype=sort_keys_dtypes)
     for key in sort_keys:
         sortable_table[key][:len_left] = sort_left[key]
         sortable_table[key][len_left:] = sort_right[key]
 
-    # Finally do the (lexical) argsort and make a new sorted version
-    idx_sort = sortable_table.argsort(order=sort_keys)
+    if sort_by is _JoinSortBy.KEYS:
+        # Finally do the (lexical) argsort and make a new sorted version
+        idx_sort = sortable_table.argsort(order=sort_keys)
+    elif sort_by is _JoinSortBy.LEFT or sort_by is _JoinSortBy.RIGHT:
+        # using -1 as a fill value to mark "uninitialized" memory (helps debugging)
+        idx_sort = -np.ones(len_left + len_right, dtype="int64")
+        pos = 0
+        iLs = list(range(len_left))
+        iRs = list(range(len_left, len_left + len_right))
+        if len(sort_key) > 1:
+            raise NotImplementedError
+        CL = list(sort_left[sort_key[0]])
+        CR = list(sort_right[sort_key[0]])
+
+        if sort_by is _JoinSortBy.LEFT:
+            C1 = CL
+            C2 = CR
+            is_ = iLs
+            js_ = iRs
+            i_offset = 0
+            j_offset = len_left
+        else:
+            C1 = CR
+            C2 = CL
+            is_ = iRs
+            js_ = iLs
+            i_offset = len_left
+            j_offset = 0
+
+        for i in is_:
+            idx_sort[pos] = i
+            pos += 1
+            if C1[i - i_offset] in C2:
+                j = j_offset + C2.index(C1[i - i_offset])
+                idx_sort[pos] = j
+                js_.remove(j)
+                pos += 1
+        if js_:
+            idx_sort[pos:] = js_[:]
+    else:
+        assert_never(sort_by)
+
     sorted_table = sortable_table[idx_sort]
 
     # Get indexes of unique elements (i.e. the group boundaries)
@@ -1110,6 +1183,8 @@ def _join(
     join_funcs=None,
     keys_left=None,
     keys_right=None,
+    *,
+    sort_by: _JoinSortBy = _JoinSortBy.KEYS,
 ):
     """
     Perform a join of the left and right Tables on specified keys.
@@ -1142,6 +1217,9 @@ def _join(
     join_funcs : dict, None
         Dict of functions to use for matching the corresponding key column(s).
         See `~astropy.table.join_skycoord` for an example and details.
+    keys_left: ...
+    keys_right: ...
+    sort_by: ...
 
     Returns
     -------
@@ -1222,7 +1300,7 @@ def _join(
         raise ValueError("input tables for join must both have at least one row")
 
     try:
-        idxs, idx_sort = _get_join_sort_idxs(keys, left, right)
+        idxs, idx_sort = _get_join_sort_idxs(keys, left, right, sort_by=sort_by)
     except NotImplementedError:
         raise TypeError("one or more key columns are not sortable")
 
