@@ -713,6 +713,131 @@ class TestJoin:
         with pytest.raises(ValueError, match="cannot supply keys for a cartesian join"):
             t12 = table.join(t1, t2, join_type="cartesian", keys="a")
 
+    @pytest.mark.xfail
+    @pytest.mark.parametrize(
+        "t2_input, join_type, expected",
+        [
+            # 'inner' join preserves the row order of the left operands
+            pytest.param(
+                {"c": ["c0", "c2", "c1"], "d": ["d0", "d2", "d1"], "id": [0, 2, 1]},
+                "inner",
+                [
+                    " a   b   id  c   d ",
+                    "--- --- --- --- ---",
+                    " a2  b2   2  c2  d2",
+                    " a1  b1   1  c1  d1",
+                    " a0  b0   0  c0  d0",
+                ],
+                id="inner",
+            ),
+            pytest.param(
+                {"c": ["c3", "c-1", "c0"], "d": ["d3", "d-1", "d0"], "id": [3, -1, 0]},
+                "inner",
+                [
+                    " a   b   id  c   d ",
+                    "--- --- --- --- ---",
+                    " a0  b0   0  c0  d0",
+                ],
+                id="inner-with-unmatched-rows",
+            ),
+            pytest.param(
+                {"c": ["c0", "c2", "c1"], "d": ["d0", "d2", "d1"], "id": [0, 2, 1]},
+                "left",
+                [
+                    " a   b   id  c   d ",
+                    "--- --- --- --- ---",
+                    " a2  b2   2  c2  d2",
+                    " a1  b1   1  c1  d1",
+                    " a0  b0   0  c0  d0",
+                ],
+                id="left",
+            ),
+            pytest.param(
+                {"c": ["c3", "c-1", "c0"], "d": ["d3", "d-1", "d0"], "id": [3, -1, 0]},
+                "left",
+                [
+                    " a   b   id  c   d ",
+                    "--- --- --- --- ---",
+                    " a2  b2   2  --  --",
+                    " a1  b1   1  --  --",
+                    " a0  b0   0  c0  d0",
+                ],
+                id="left-with-unmatched-rows",
+            ),
+            pytest.param(
+                {"c": ["c0", "c2", "c1"], "d": ["d0", "d2", "d1"], "id": [0, 2, 1]},
+                "right",
+                [
+                    " a   b   id  c   d ",
+                    "--- --- --- --- ---",
+                    " a0  b0   0  c0  d0",
+                    " a2  b2   2  c2  d2",
+                    " a1  b1   1  c1  d1",
+                ],
+                id="right",
+            ),
+            pytest.param(
+                {"c": ["c3", "c-1", "c0"], "d": ["d3", "d-1", "d0"], "id": [3, -1, 0]},
+                "right",
+                [
+                    " a   b   id  c   d ",
+                    "--- --- --- --- ---",
+                    " --  --   3  c3  d3",
+                    " --  --  -1 c-1 d-1",
+                    " a0  b0   0  c0  d0",
+                ],
+                id="right-with-unmatched-rows",
+            ),
+            # no unambiguous ordering is possible
+            # so we'll *ignore* keep_order=True
+            # (but a warning should probably be raised)
+            pytest.param(
+                {"c": ["c0", "c2", "c1"], "d": ["d0", "d2", "d1"], "id": [0, 2, 1]},
+                "outer",
+                [
+                    " a   b   id  c   d ",
+                    "--- --- --- --- ---",
+                    " a0  b0   0  c0  d0",
+                    " a1  b1   1  c1  d1",
+                    " a2  b2   2  c2  d2",
+                ],
+                id="outer",
+            ),
+            pytest.param(
+                {"c": ["c3", "c-1", "c0"], "d": ["d3", "d-1", "d0"], "id": [3, -1, 0]},
+                "outer",
+                [
+                    " a   b   id  c   d ",
+                    "--- --- --- --- ---",
+                    " --  --  -1 c-1 d-1",
+                    " a0  b0   0  c0  d0",
+                    " a1  b1   1  --  --",
+                    " a2  b2   2  --  --",
+                    " --  --   3  c3  d3",
+                ],
+                id="outer-with-unmatched-rows",
+            ),
+            # TODO: add cases with join_type='cartesian'
+            # TODO: add cases with multiple join keys
+        ],
+    )
+    def test_join_tables_keep_order(self, t2_input, join_type, expected):
+        # see https://github.com/astropy/astropy/issues/11619
+        t1 = table.Table(
+            {"a": ["a2", "a1", "a0"], "b": ["b2", "b1", "b0"], "id": [2, 1, 0]}
+        )
+        t2 = table.Table(t2_input)
+        if join_type == "outer":
+            ctx = pytest.warns(
+                UserWarning,
+                match=r"keep_order argument is ignored with join_type='outer'",
+            )
+        else:
+            ctx = nullcontext()
+        with ctx:
+            t12 = table.join(t1, t2, keys="id", join_type=join_type, keep_order=True)
+        assert t12.pformat() == expected
+
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
     def test_join_with_join_skycoord_sky(self):
         sc1 = SkyCoord([0, 1, 1.1, 2], [0, 0, 0, 0], unit="deg")
