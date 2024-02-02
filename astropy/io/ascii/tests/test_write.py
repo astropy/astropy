@@ -5,7 +5,6 @@ import os
 import pathlib
 from contextlib import nullcontext
 from io import StringIO
-from itertools import chain
 from string import Template
 
 import numpy as np
@@ -850,9 +849,10 @@ def test_write_overwrite_ascii(
         assert not os.path.exists(filename)
 
 
-fmt_name_classes = list(
-    chain(ascii.core.FAST_CLASSES.items(), ascii.core.FORMAT_CLASSES.items())
-)
+fmt_name_classes = [
+    *ascii.core.FAST_CLASSES.items(),
+    *ascii.core.FORMAT_CLASSES.items(),
+]
 
 
 @pytest.mark.parametrize("fmt_name_class", fmt_name_classes)

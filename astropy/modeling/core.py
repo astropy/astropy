@@ -17,11 +17,9 @@ import abc
 import copy
 import functools
 import inspect
-import itertools
 import operator
 from collections import defaultdict, deque
 from inspect import signature
-from itertools import chain
 
 import numpy as np
 
@@ -971,7 +969,7 @@ class Model(metaclass=_ModelMeta):
         parameters = self._param_sets(raw=True, units=True)
 
         def evaluate(_inputs):
-            return self.evaluate(*chain(_inputs, parameters))
+            return self.evaluate(*_inputs, *parameters)
 
         return evaluate, inputs, broadcasted_shapes, kwargs
 
@@ -3222,7 +3220,7 @@ class CompoundModel(Model):
                 for ind, inp in enumerate(left_inputs)
             ]
 
-        leftval = self.left.evaluate(*itertools.chain(left_inputs, left_params))
+        leftval = self.left.evaluate(*left_inputs, *left_params)
 
         if op == "fix_inputs":
             return leftval
@@ -3232,11 +3230,11 @@ class CompoundModel(Model):
 
         if op == "|":
             if isinstance(leftval, tuple):
-                return self.right.evaluate(*itertools.chain(leftval, right_params))
+                return self.right.evaluate(*leftval, *right_params)
             else:
                 return self.right.evaluate(leftval, *right_params)
         else:
-            rightval = self.right.evaluate(*itertools.chain(right_inputs, right_params))
+            rightval = self.right.evaluate(*right_inputs, *right_params)
 
         return self._apply_operators_to_value_lists(leftval, rightval, **kw)
 

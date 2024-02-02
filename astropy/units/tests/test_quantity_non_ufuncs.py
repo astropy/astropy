@@ -2627,7 +2627,7 @@ class TestFunctionHelpersCompleteness:
 @pytest.mark.parametrize(
     "target, helper",
     sorted(
-        itertools.chain(FUNCTION_HELPERS.items(), DISPATCHED_FUNCTIONS.items()),
+        (*FUNCTION_HELPERS.items(), *DISPATCHED_FUNCTIONS.items()),
         key=lambda items: items[0].__name__,
     ),
     ids=lambda func: func.__name__,
