@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Utility functions for ``constants`` sub-package."""
-import itertools
-
 __all__ = []
 
 
@@ -29,9 +27,7 @@ def _get_c(codata, iaudata, module, not_in_module_only=True):
     """
     from .constant import Constant
 
-    for _nm, _c in itertools.chain(
-        sorted(vars(codata).items()), sorted(vars(iaudata).items())
-    ):
+    for _nm, _c in (*sorted(vars(codata).items()), *sorted(vars(iaudata).items())):
         if not isinstance(_c, Constant):
             continue
         elif (not not_in_module_only) or (_c.abbrev not in module.__dict__):
