@@ -20,17 +20,18 @@ __all__ = [  # noqa: F822 (undefined name)
     "Planck18",
 ]
 
-# STDLIB
 import pathlib
 import sys
+from typing import TYPE_CHECKING
 
-# LOCAL
 from astropy.utils.data import get_pkg_data_path
-from astropy.utils.decorators import deprecated
 from astropy.utils.state import ScienceState
 
 from . import _io  # Ensure IO methods are registered, to read realizations # noqa: F401
 from .core import Cosmology
+
+if TYPE_CHECKING:
+    from typing import ClassVar
 
 __doctest_requires__ = {"*": ["scipy"]}
 
@@ -49,7 +50,7 @@ available = (
 )
 
 
-def __getattr__(name):
+def __getattr__(name: str) -> Cosmology:
     """Make specific realizations from data files with lazy import from ``PEP 562``.
 
     Raises
@@ -74,7 +75,7 @@ def __getattr__(name):
     return cosmo
 
 
-def __dir__():
+def __dir__() -> list[str]:
     """Directory, including lazily-imported objects."""
     return __all__
 
@@ -103,21 +104,12 @@ class default_cosmology(ScienceState):
     To get the default cosmology:
 
         >>> default_cosmology.get()
-        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966, ...
+        FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>,
+                      Om0=0.30966, ...
     """
 
-    _default_value = "Planck18"
-    _value = "Planck18"
-
-    @deprecated("5.0", alternative="get")
-    @classmethod
-    def get_cosmology_from_string(cls, arg):
-        """Return a cosmology instance from a string."""
-        if arg == "no_default":
-            value = None
-        else:
-            value = cls._get_from_registry(arg)
-        return value
+    _default_value: ClassVar[str] = "Planck18"
+    _value: ClassVar[str | Cosmology] = "Planck18"
 
     @classmethod
     def validate(cls, value: Cosmology | str | None) -> Cosmology | None:

@@ -8,6 +8,8 @@ cimport numpy as np
 from libc.math cimport sqrt
 from libc.stdlib cimport free, malloc
 
+np.import_array()
+
 DTYPE = np.float64
 ctypedef np.float64_t DTYPE_t
 

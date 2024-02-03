@@ -3,7 +3,6 @@
 import contextlib
 import re
 import warnings
-from collections import OrderedDict
 from operator import itemgetter
 
 import numpy as np
@@ -13,8 +12,6 @@ __all__ = ["IORegistryError"]
 
 class IORegistryError(Exception):
     """Custom error for registry clashes."""
-
-    pass
 
 
 # -----------------------------------------------------------------------------
@@ -39,7 +36,7 @@ class _UnifiedIORegistryBase:
 
     def __init__(self):
         # registry of identifier functions
-        self._identifiers = OrderedDict()
+        self._identifiers = {}
 
         # what this class can do: e.g. 'read' &/or 'write'
         self._registries = {}
@@ -333,7 +330,7 @@ class _UnifiedIORegistryBase:
         """Determine if class2 is the "best" match for class1 in the list of classes.
 
         It is assumed that (class2 in classes) is True.
-        class2 is the the best match if:
+        class2 is the best match if:
 
         - ``class1`` is a subclass of ``class2`` AND
         - ``class2`` is the nearest ancestor of ``class1`` that is in classes

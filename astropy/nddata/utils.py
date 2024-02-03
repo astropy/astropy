@@ -29,13 +29,9 @@ __all__ = [
 class NoOverlapError(ValueError):
     """Raised when determining the overlap of non-overlapping arrays."""
 
-    pass
-
 
 class PartialOverlapError(ValueError):
     """Raised when arrays only partially overlap."""
-
-    pass
 
 
 def overlap_slices(large_array_shape, small_array_shape, position, mode="partial"):
@@ -410,7 +406,7 @@ class Cutout2D:
         `~astropy.units.Quantity` objects.  Such
         `~astropy.units.Quantity` objects must be in pixel or
         angular units.  For all cases, ``size`` will be converted to
-        an integer number of pixels, rounding the the nearest
+        an integer number of pixels, rounding the nearest
         integer.  See the ``mode`` keyword for additional details on
         the final cutout size.
 
@@ -671,6 +667,10 @@ class Cutout2D:
         original_position : tuple
             The corresponding ``(x, y)`` pixel position in the original
             large array.
+
+        See Also
+        --------
+        to_cutout_position
         """
         return tuple(cutout_position[i] + self.origin_original[i] for i in [0, 1])
 
@@ -689,6 +689,10 @@ class Cutout2D:
         cutout_position : tuple
             The corresponding ``(x, y)`` pixel position in the cutout
             array.
+
+        See Also
+        --------
+        to_original_position
         """
         return tuple(original_position[i] - self.origin_original[i] for i in [0, 1])
 
@@ -727,7 +731,7 @@ class Cutout2D:
         height, width = self.shape
         hw, hh = width / 2.0, height / 2.0
         pos_xy = self.position_original - np.array([hw, hh])
-        patch = mpatches.Rectangle(pos_xy, width, height, 0.0, **kwargs)
+        patch = mpatches.Rectangle(pos_xy, width, height, angle=0.0, **kwargs)
         ax.add_patch(patch)
         return ax
 

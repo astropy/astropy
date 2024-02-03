@@ -141,6 +141,7 @@ def deprecated(
             deprecated_func = functools.wraps(func)(deprecated_func)
 
         deprecated_func.__doc__ = deprecate_doc(deprecated_func.__doc__, message)
+        deprecated_func.__deprecated__ = message
 
         return func_wrapper(deprecated_func)
 
@@ -160,6 +161,7 @@ def deprecated(
           with pickle and will look weird in the Sphinx docs.
         """
         cls.__doc__ = deprecate_doc(cls.__doc__, message)
+        cls.__deprecated__ = message
         if cls.__new__ is object.__new__:
             cls.__init__ = deprecate_function(
                 get_function(cls.__init__), message, warning_type
@@ -860,7 +862,7 @@ class lazyproperty(property):
 
 class sharedmethod(classmethod):
     """
-    This is a method decorator that allows both an instancemethod and a
+    This is a method decorator that allows both an instance method and a
     `classmethod` to share the same name.
 
     When using `sharedmethod` on a method defined in a class's body, it
@@ -887,7 +889,7 @@ class sharedmethod(classmethod):
         additional args were (3, 4)
 
     This also supports a more advanced usage, where the `classmethod`
-    implementation can be written separately.  If the class's *metaclass*
+    implementation can be written separately.  If the class' *metaclass*
     has a method of the same name as the `sharedmethod`, the version on
     the metaclass is delegated to::
 

@@ -1,3 +1,0 @@
-Astropy modeling can filter non-finite data values using the ``filter_non_finite``
-keyword argument in a fitter call. Now when ``filter_non_finite`` is True,
-non-finite *weights* will also be filtered to prevent crashes in ``LevMarLSQFitter``.

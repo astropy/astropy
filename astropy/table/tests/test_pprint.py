@@ -306,14 +306,13 @@ class TestPprint:
         # +3 accounts for the three header lines in this  table
         assert len(lines) == BIG_WIDE_ARR.shape[0] + 3
 
-    @pytest.fixture
     def test_pprint_all(self, table_type, capsys):
         """Test that all rows are printed by default"""
         self._setup(table_type)
         self.tb.pprint_all()
         (out, err) = capsys.readouterr()
         # +3 accounts for the three header lines in this  table
-        assert len(out) == BIG_WIDE_ARR.shape[0] + 3
+        assert len(out.splitlines()) == BIG_WIDE_ARR.shape[0] + 3
 
 
 @pytest.mark.usefixtures("table_type")
@@ -1013,11 +1012,9 @@ class TestColumnsShowHide:
             out = t.pformat_all()
         assert out == exp
 
-        # Mixture (not common in practice but possible). Note, the trailing
-        # backslash instead of parens is needed for Python < 3.9. See:
-        # https://bugs.python.org/issue12782.
-        with t.pprint_include_names.set(["b", "c", "d"]), t.pprint_exclude_names.set(
-            ["c"]
+        with (
+            t.pprint_include_names.set(["b", "c", "d"]),
+            t.pprint_exclude_names.set(["c"]),
         ):
             out = t.pformat_all()
         assert out == exp

@@ -1,1 +1,0 @@
-The minimum supported version of NumPy is now 1.22.

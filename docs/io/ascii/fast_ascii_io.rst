@@ -80,10 +80,10 @@ These parameters are:
  * ``delimiter`` string not of length 1
  * ``quotechar`` string not of length 1
  * ``converters``
- * ``Outputter``
- * ``Inputter``
- * ``data_Splitter``
- * ``header_Splitter``
+ * ``outputter_cls``
+ * ``inputter_cls``
+ * ``data_splitter_cls``
+ * ``header_splitter_cls``
 
 .. _fast_conversion_opts:
 

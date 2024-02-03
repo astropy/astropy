@@ -156,8 +156,8 @@ def _verify_global_info(global_info):
         # First warn the user if geocentric location is partially specified
         if obs_geo:
             warnings.warn(
-                "The geocentric observatory location {} is not completely "
-                "specified (X, Y, Z) and will be ignored.".format(obs_geo),
+                f"The geocentric observatory location {obs_geo} is not completely "
+                "specified (X, Y, Z) and will be ignored.",
                 AstropyUserWarning,
             )
 
@@ -173,8 +173,8 @@ def _verify_global_info(global_info):
             # Warn the user if geodetic location is partially specified
             if obs_geo:
                 warnings.warn(
-                    "The geodetic observatory location {} is not completely "
-                    "specified (lon, lat, alt) and will be ignored.".format(obs_geo),
+                    f"The geodetic observatory location {obs_geo} is not completely "
+                    "specified (lon, lat, alt) and will be ignored.",
                     AstropyUserWarning,
                 )
             global_info["location"] = None
@@ -324,8 +324,8 @@ def _get_info_if_time_column(col, global_info):
             column_info["location"] = global_info["location"]
             if column_info["location"] is None:
                 warnings.warn(
-                    'Time column "{}" reference position will be ignored '
-                    "due to unspecified observatory position.".format(col.info.name),
+                    f'Time column "{col.info.name}" reference position will be ignored '
+                    "due to unspecified observatory position.",
                     AstropyUserWarning,
                 )
 
@@ -457,8 +457,8 @@ def _convert_time_column(col, column_info):
         return ref_time + delta_time
     except Exception as err:
         warnings.warn(
-            'The exception "{}" was encountered while trying to convert the time '
-            'column "{}" to Astropy Time.'.format(err, col.info.name),
+            f'The exception "{err}" was encountered while trying to convert the time '
+            f'column "{col.info.name}" to Astropy Time.',
             AstropyUserWarning,
         )
         return col
@@ -595,9 +595,11 @@ def time_to_fits(table):
 
         # The following is necessary to deal with multi-dimensional ``Time`` objects
         # (i.e. where Time.shape is non-trivial).
-        jd12 = np.stack([col.jd1, col.jd2], axis=-1)
-        # Roll the 0th (innermost) axis backwards, until it lies in the last position
-        # (jd12.ndim)
+        # Note: easier would be np.stack([col.jd1, col.jd2], axis=-1), but that
+        # fails for np.ma.MaskedArray, as it returns just the data, ignoring the mask.
+        jd12 = np.empty_like(col.jd1, shape=col.jd1.shape + (2,))
+        jd12[..., 0] = col.jd1
+        jd12[..., 1] = col.jd2
         newtable.replace_column(col.info.name, col_cls(jd12, unit="d"))
 
         # Time column-specific override keywords
@@ -646,10 +648,8 @@ def time_to_fits(table):
             elif np.any(location != col.location):
                 raise ValueError(
                     "Multiple Time Columns with different geocentric "
-                    "observatory locations ({}, {}) encountered."
-                    "This is not supported by the FITS standard.".format(
-                        location, col.location
-                    )
+                    f"observatory locations ({location}, {col.location}) encountered."
+                    "This is not supported by the FITS standard."
                 )
 
     return newtable, hdr

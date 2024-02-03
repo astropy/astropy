@@ -3,18 +3,17 @@
 """Testing :mod:`astropy.cosmology.flrw.wpwazpcdm`."""
 
 import numpy as np
-
-# THIRD PARTY
 import pytest
 
-# LOCAL
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import FlatwpwaCDM, wpwaCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
+from .conftest import filter_keys_from_items
 from .test_base import FlatFLRWMixinTest, FLRWTest
 from .test_w0wacdm import ParameterwaTestMixin
 
@@ -40,9 +39,11 @@ class ParameterwpTestMixin(ParameterTestMixin):
     def test_wp(self, cosmo_cls, cosmo):
         """Test Parameter ``wp``."""
         # on the class
-        assert isinstance(cosmo_cls.wp, Parameter)
-        assert "at the pivot" in cosmo_cls.wp.__doc__
-        assert cosmo_cls.wp.unit is None
+        wp = cosmo_cls.parameters["wp"]
+        assert isinstance(wp, Parameter)
+        assert "at the pivot" in wp.__doc__
+        assert wp.unit is None
+        assert wp.default == -1.0
 
         # on the instance
         assert cosmo.wp is cosmo._wp
@@ -77,9 +78,11 @@ class ParameterzpTestMixin(ParameterTestMixin):
     def test_zp(self, cosmo_cls, cosmo):
         """Test Parameter ``zp``."""
         # on the class
-        assert isinstance(cosmo_cls.zp, Parameter)
-        assert "pivot redshift" in cosmo_cls.zp.__doc__
-        assert cosmo_cls.zp.unit == cu.redshift
+        zp = cosmo_cls.parameters["zp"]
+        assert isinstance(zp, Parameter)
+        assert "pivot redshift" in zp.__doc__
+        assert zp.unit == cu.redshift
+        assert zp.default == 0.0
 
         # on the instance
         assert cosmo.zp is cosmo._zp
@@ -126,14 +129,12 @@ class TestwpwaCDM(
         assert c.wp == 0.1
         assert c.wa == 0.2
         assert c.zp == 14
-        for n in set(cosmo.__parameters__) - {"wp", "wa", "zp"}:
-            v = getattr(c, n)
+        for n, v in filter_keys_from_items(c.parameters, ("wp", "wa", "zp")):
+            v_expect = getattr(cosmo, n)
             if v is None:
-                assert v is getattr(cosmo, n)
+                assert v is v_expect
             else:
-                assert u.allclose(
-                    v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1)
-                )
+                assert_quantity_allclose(v, v_expect, atol=1e-4 * getattr(v, "unit", 1))
 
     # @pytest.mark.parametrize("z", valid_zs)  # TODO! recompute comparisons below
     def test_w(self, cosmo):
@@ -146,16 +147,14 @@ class TestwpwaCDM(
             [-0.94848485, -0.93333333, -0.9, -0.84666667, -0.82380952, -0.78266667],
         )
 
-    def test_repr(self, cosmo_cls, cosmo):
+    def test_repr(self, cosmo):
         """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = (
-            'wpwaCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27,'
-            " Ode0=0.73, wp=-0.9, wa=0.2, zp=0.5 redshift, Tcmb0=3.0 K,"
-            " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+        assert repr(cosmo) == (
+            "wpwaCDM(name='ABCMeta', H0=<Quantity 70. km / (Mpc s)>, Om0=0.27,"
+            " Ode0=0.73, wp=-0.9, wa=0.2, zp=<Quantity 0.5 redshift>,"
+            " Tcmb0=<Quantity 3. K>, Neff=3.04, m_nu=<Quantity [0., 0., 0.] eV>,"
+            " Ob0=0.03)"
         )
-        assert repr(cosmo) == expected
 
     # ===============================================================
     # Usage Tests
@@ -218,14 +217,11 @@ class TestFlatwpwaCDM(FlatFLRWMixinTest, TestwpwaCDM):
 
     def test_repr(self, cosmo_cls, cosmo):
         """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = (
-            'FlatwpwaCDM(name="ABCMeta", H0=70.0 km / (Mpc s),'
-            " Om0=0.27, wp=-0.9, wa=0.2, zp=0.5 redshift, Tcmb0=3.0 K,"
-            " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+        assert repr(cosmo) == (
+            "FlatwpwaCDM(name='ABCMeta', H0=<Quantity 70. km / (Mpc s)>, Om0=0.27,"
+            " wp=-0.9, wa=0.2, zp=<Quantity 0.5 redshift>, Tcmb0=<Quantity 3. K>,"
+            " Neff=3.04, m_nu=<Quantity [0., 0., 0.] eV>, Ob0=0.03)"
         )
-        assert repr(cosmo) == expected
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy required for this test.")
     @pytest.mark.parametrize(

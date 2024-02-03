@@ -135,6 +135,7 @@ class _File:
         *,
         use_fsspec=None,
         fsspec_kwargs=None,
+        decompress_in_memory=False,
     ):
         self.strict_memmap = bool(memmap)
         memmap = True if memmap is None else memmap
@@ -169,8 +170,8 @@ class _File:
             objmode = _normalize_fits_mode(fileobj_mode(fileobj))
             if mode is not None and mode != objmode:
                 raise ValueError(
-                    "Requested FITS mode '{}' not compatible with open file "
-                    "handle mode '{}'".format(mode, objmode)
+                    f"Requested FITS mode '{mode}' not compatible with open file "
+                    f"handle mode '{objmode}'"
                 )
             mode = objmode
         if mode is None:
@@ -227,6 +228,20 @@ class _File:
             self.compression = "zip"
         elif _is_bz2file(fileobj):
             self.compression = "bzip2"
+
+        if (
+            self.compression is not None
+            and decompress_in_memory
+            and mode in ("readonly", "copyonwrite", "denywrite")
+        ):
+            # By default blocks are decompressed on the fly, when calling
+            # self.read. This is good for memory usage, avoiding decompression
+            # of the whole file, but it can be slow. With
+            # decompress_in_memory=True it is possible to decompress instead
+            # the whole file in memory.
+            fd = self._file
+            self._file = io.BytesIO(self._file.read())
+            fd.close()
 
         if mode in ("readonly", "copyonwrite", "denywrite") or (
             self.compression and mode == "update"
@@ -430,7 +445,7 @@ class _File:
         if self.size and pos > self.size:
             warnings.warn(
                 "File may have been truncated: actual file length "
-                "({}) is smaller than the expected size ({})".format(self.size, pos),
+                f"({self.size}) is smaller than the expected size ({pos})",
                 AstropyUserWarning,
             )
 
@@ -599,14 +614,14 @@ class _File:
         ):
             raise OSError(
                 "File-like object does not have a 'write' "
-                "method, required for mode '{}'.".format(self.mode)
+                f"method, required for mode '{self.mode}'."
             )
 
         # Any mode except for 'ostream' requires readability
         if self.mode != "ostream" and not hasattr(self._file, "read"):
             raise OSError(
                 "File-like object does not have a 'read' "
-                "method, required for mode {!r}.".format(self.mode)
+                f"method, required for mode {self.mode!r}."
             )
 
     def _open_filename(self, filename, mode, overwrite):

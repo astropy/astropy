@@ -174,11 +174,11 @@ def make_transform_graph_docs(transform_graph):
     defining new transformations between these systems, but the
     pre-defined transformations should be sufficient for typical usage.
 
-    The color of an edge in the graph (i.e. the transformations between two
+    The color of an edge in the graph (i.e., the transformations between two
     frames) is set by the type of transformation; the legend box defines the
     mapping from transform class name to color.
 
-    .. Wrap the graph in a div with a custom class to allow themeing.
+    .. Wrap the graph in a div with a custom class to allow theming.
     .. container:: frametransformgraph
 
         .. graphviz::
@@ -187,8 +187,8 @@ def make_transform_graph_docs(transform_graph):
 
     docstr = dedent(docstr) + "        " + graphstr.replace("\n", "\n        ")
 
-    # colors are in dictionary at the bottom of transformations.py
-    from astropy.coordinates.transformations import trans_to_color
+    # colors are in dictionary mapping transform class to color
+    from astropy.coordinates.transformations.graph import trans_to_color
 
     html_list_items = []
     for cls, color in trans_to_color.items():
@@ -206,7 +206,7 @@ def make_transform_graph_docs(transform_graph):
     graph_legend = f"""
     .. raw:: html
 
-        <ul>
+        <ul class="cooframelegend">
             {nl.join(html_list_items)}
         </ul>
     """

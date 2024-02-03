@@ -12,7 +12,6 @@ from astropy import constants
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units.equivalencies import Equivalency
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_dimensionless_angles():
@@ -700,22 +699,6 @@ def test_brightness_temperature():
     )
 
 
-def test_swapped_args_brightness_temperature():
-    """
-    #5173 changes the order of arguments but accepts the old (deprecated) args
-    """
-    omega_B = np.pi * (50 * u.arcsec) ** 2
-    nu = u.GHz * 5
-    tb = 7.052587837212582 * u.K
-
-    with pytest.warns(AstropyDeprecationWarning) as w:
-        result = (1 * u.Jy).to(u.K, equivalencies=u.brightness_temperature(omega_B, nu))
-        roundtrip = result.to(u.Jy, equivalencies=u.brightness_temperature(omega_B, nu))
-    assert len(w) == 2
-    np.testing.assert_almost_equal(tb.value, result.value)
-    np.testing.assert_almost_equal(roundtrip.value, 1)
-
-
 def test_surfacebrightness():
     sb = 50 * u.MJy / u.sr
     k = sb.to(u.K, u.brightness_temperature(50 * u.GHz))
@@ -980,7 +963,7 @@ def test_add_equivelencies():
     assert isinstance(e1, Equivalency)
     assert e1.name == ["pixel_scale", "temperature_energy"]
     assert isinstance(e1.kwargs, list)
-    assert e1.kwargs == [{"pixscale": 10 * u.arcsec / u.pix}, dict()]
+    assert e1.kwargs == [{"pixscale": 10 * u.arcsec / u.pix}, {}]
 
     e2 = u.pixel_scale(10 * u.arcsec / u.pixel) + [1, 2, 3]
     assert isinstance(e2, list)

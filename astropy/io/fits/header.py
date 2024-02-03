@@ -640,8 +640,8 @@ class Header:
                     trailing = repr(trailing).lstrip("ub")
                     # TODO: Pass this warning up to the validation framework
                     warnings.warn(
-                        "Unexpected bytes trailing END keyword: {}; these "
-                        "bytes will be replaced with spaces on write.".format(trailing),
+                        f"Unexpected bytes trailing END keyword: {trailing}; these "
+                        "bytes will be replaced with spaces on write.",
                         AstropyUserWarning,
                     )
                 else:
@@ -1057,50 +1057,6 @@ class Header:
 
             header.update({'NAXIS1': 100, 'NAXIS2': 100})
 
-        .. warning::
-            As this method works similarly to `dict.update` it is very
-            different from the ``Header.update()`` method in Astropy v0.1.
-            Use of the old API was
-            **deprecated** for a long time and is now removed. Most uses of the
-            old API can be replaced as follows:
-
-            * Replace ::
-
-                  header.update(keyword, value)
-
-              with ::
-
-                  header[keyword] = value
-
-            * Replace ::
-
-                  header.update(keyword, value, comment=comment)
-
-              with ::
-
-                  header[keyword] = (value, comment)
-
-            * Replace ::
-
-                  header.update(keyword, value, before=before_keyword)
-
-              with ::
-
-                  header.insert(before_keyword, (keyword, value))
-
-            * Replace ::
-
-                  header.update(keyword, value, after=after_keyword)
-
-              with ::
-
-                  header.insert(after_keyword, (keyword, value),
-                                after=True)
-
-            See also :meth:`Header.set` which is a new method that provides an
-            interface similar to the old ``Header.update()`` and may help make
-            transition a little easier.
-
         """
         if args:
             other = args[0]
@@ -1140,10 +1096,10 @@ class Header:
                     self._update(Card(*card))
                 else:
                     raise ValueError(
-                        "Header update sequence item #{} is invalid; "
+                        f"Header update sequence item #{idx} is invalid; "
                         "the item must either be a 2-tuple containing "
                         "a keyword and value, or a 3-tuple containing "
-                        "a keyword, value, and comment string.".format(idx)
+                        "a keyword, value, and comment string."
                     )
         if kwargs:
             self.update(kwargs)
@@ -1191,7 +1147,7 @@ class Header:
         elif not isinstance(card, Card):
             raise ValueError(
                 "The value appended to a Header must be either a keyword or "
-                "(keyword, value, [comment]) tuple; got: {!r}".format(card)
+                f"(keyword, value, [comment]) tuple; got: {card!r}"
             )
 
         if not end and card.is_blank:
@@ -1457,7 +1413,7 @@ class Header:
         elif not isinstance(card, Card):
             raise ValueError(
                 "The value inserted into a Header must be either a keyword or "
-                "(keyword, value, [comment]) tuple; got: {!r}".format(card)
+                f"(keyword, value, [comment]) tuple; got: {card!r}"
             )
 
         self._cards.insert(idx, card)
@@ -1481,8 +1437,8 @@ class Header:
             # There were already keywords with this same name
             if keyword not in _commentary_keywords:
                 warnings.warn(
-                    "A {!r} keyword already exists in this header.  Inserting "
-                    "duplicate keyword.".format(keyword),
+                    f"A {keyword!r} keyword already exists in this header.  Inserting "
+                    "duplicate keyword.",
                     AstropyUserWarning,
                 )
             self._keyword_indices[keyword].sort()

@@ -28,13 +28,13 @@ from astropy.io.ascii.fastbasic import (
     FastTab,
 )
 from astropy.table import MaskedColumn, Table
+from astropy.tests.helper import CI
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
 
 from .common import assert_almost_equal, assert_equal, assert_true
 
 StringIO = lambda x: BytesIO(x.encode("ascii"))
-CI = os.environ.get("CI", False)
 
 
 def assert_table_equal(t1, t2, check_meta=False, rtol=1.0e-15, atol=1.0e-300):
@@ -72,7 +72,7 @@ _filename_counter = 0
 def _read(
     tmp_path,
     table,
-    Reader=None,
+    reader_cls=None,
     format=None,
     parallel=False,
     check_meta=False,
@@ -82,7 +82,7 @@ def _read(
     global _filename_counter
 
     table += "\n"
-    reader = Reader(**kwargs)
+    reader = reader_cls(**kwargs)
     t1 = reader.read(table)
     t2 = reader.read(StringIO(table))
     t3 = reader.read(table.splitlines())
@@ -126,34 +126,36 @@ def _read(
 
 @pytest.fixture(scope="function")
 def read_basic(tmp_path, request):
-    return functools.partial(_read, tmp_path, Reader=FastBasic, format="basic")
+    return functools.partial(_read, tmp_path, reader_cls=FastBasic, format="basic")
 
 
 @pytest.fixture(scope="function")
 def read_csv(tmp_path, request):
-    return functools.partial(_read, tmp_path, Reader=FastCsv, format="csv")
+    return functools.partial(_read, tmp_path, reader_cls=FastCsv, format="csv")
 
 
 @pytest.fixture(scope="function")
 def read_tab(tmp_path, request):
-    return functools.partial(_read, tmp_path, Reader=FastTab, format="tab")
+    return functools.partial(_read, tmp_path, reader_cls=FastTab, format="tab")
 
 
 @pytest.fixture(scope="function")
 def read_commented_header(tmp_path, request):
     return functools.partial(
-        _read, tmp_path, Reader=FastCommentedHeader, format="commented_header"
+        _read, tmp_path, reader_cls=FastCommentedHeader, format="commented_header"
     )
 
 
 @pytest.fixture(scope="function")
 def read_rdb(tmp_path, request):
-    return functools.partial(_read, tmp_path, Reader=FastRdb, format="rdb")
+    return functools.partial(_read, tmp_path, reader_cls=FastRdb, format="rdb")
 
 
 @pytest.fixture(scope="function")
 def read_no_header(tmp_path, request):
-    return functools.partial(_read, tmp_path, Reader=FastNoHeader, format="no_header")
+    return functools.partial(
+        _read, tmp_path, reader_cls=FastNoHeader, format="no_header"
+    )
 
 
 @pytest.mark.parametrize("delimiter", [",", "\t", " ", "csv"])
@@ -517,9 +519,9 @@ def test_quoted_fields(parallel, read_basic):
             "converters",
             {i + 1: ascii.convert_numpy(np.uint) for i in range(3)},
         ),  # passing converters
-        ("Inputter", ascii.ContinuationLinesInputter),  # passing Inputter
-        ("header_Splitter", ascii.DefaultSplitter),  # passing Splitter
-        ("data_Splitter", ascii.DefaultSplitter),
+        ("inputter_cls", ascii.ContinuationLinesInputter),  # passing inputter_cls
+        ("header_splitter_cls", ascii.DefaultSplitter),  # passing Splitter
+        ("data_splitter_cls", ascii.DefaultSplitter),
     ],
 )
 def test_invalid_parameters(key, val):
@@ -538,8 +540,8 @@ def test_invalid_parameters_other():
     with pytest.raises(FastOptionsError):  # don't fall back on the slow reader
         ascii.read("1 2 3\n4 5 6", format="basic", fast_reader={"foo": 7})
     with pytest.raises(ParameterError):
-        # Outputter cannot be specified in constructor
-        FastBasic(Outputter=ascii.TableOutputter).read("1 2 3\n4 5 6")
+        # outputter_cls cannot be specified in constructor
+        FastBasic(outputter_cls=ascii.TableOutputter).read("1 2 3\n4 5 6")
 
 
 def test_too_many_cols1():
@@ -1844,7 +1846,7 @@ def test_single_line_string(delimiter, fast_reader):
     at least treated consistently.
     """
     expected = Table([[1], [2], [3.00]], names=("col1", "col2", "col3"))
-    text = "1{0:s}2{0:s}3.0".format(delimiter)
+    text = f"1{delimiter:s}2{delimiter:s}3.0"
 
     if delimiter in ("\r", "\n"):
         t1 = ascii.read(

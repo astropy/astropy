@@ -326,7 +326,7 @@ def color_print(*args, end="\n", **kwargs):
         default, darkgrey, lightred, lightgreen, yellow, lightblue,
         lightmagenta, lightcyan, white, or '' (the empty string).
 
-    file : writable file-like, optional
+    file : :term:`file-like (writeable)`, optional
         Where to write to.  Defaults to `sys.stdout`.  If file is not
         a tty (as determined by calling its `isatty` member, if one
         exists), no coloring will be included.
@@ -510,7 +510,7 @@ class ProgressBar:
             If `True`, the progress bar will display as an IPython
             notebook widget.
 
-        file : writable file-like, optional
+        file : :term:`file-like (writeable)`, optional
             The file to write the progress bar to.  Defaults to
             `sys.stdout`.  If ``file`` is not a tty (as determined by
             calling its `isatty` member, if any, or special case hacks
@@ -712,7 +712,7 @@ class ProgressBar:
             If `True`, the progress bar will display as an IPython
             notebook widget.
 
-        file : writable file-like, optional
+        file : :term:`file-like (writeable)`, optional
             The file to write the progress bar to.  Defaults to
             `sys.stdout`.  If ``file`` is not a tty (as determined by
             calling its `isatty` member, if any), the scrollbar will
@@ -794,7 +794,7 @@ class ProgressBar:
             If `True`, the progress bar will display as an IPython
             notebook widget.
 
-        file : writable file-like, optional
+        file : :term:`file-like (writeable)`, optional
             The file to write the progress bar to.  Defaults to
             `sys.stdout`.  If ``file`` is not a tty (as determined by
             calling its `isatty` member, if any), the scrollbar will
@@ -880,7 +880,7 @@ class Spinner:
             darkgrey, lightred, lightgreen, yellow, lightblue,
             lightmagenta, lightcyan, white.
 
-        file : writable file-like, optional
+        file : :term:`file-like (writeable)`, optional
             The file to write the spinner to.  Defaults to
             `sys.stdout`.  If ``file`` is not a tty (as determined by
             calling its `isatty` member, if any, or special case hacks
@@ -1026,7 +1026,7 @@ class ProgressBarOrSpinner:
             lightred, lightgreen, yellow, lightblue, lightmagenta,
             lightcyan, white.
 
-        file : writable file-like, optional
+        file : :term:`file-like (writeable)`, optional
             The file to write the to.  Defaults to `sys.stdout`.  If
             ``file`` is not a tty (as determined by calling its `isatty`
             member, if any), only ``msg`` will be displayed: the
@@ -1081,7 +1081,7 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
         The character in the line to highlight.  ``col`` must be less
         than ``len(line)``.
 
-    file : writable file-like, optional
+    file : :term:`file-like (writeable)`, optional
         Where to write to.  Defaults to `sys.stdout`.
 
     tabwidth : int, optional
@@ -1106,7 +1106,7 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
 
     if col is not None:
         if col >= len(line):
-            raise ValueError("col must be less the the line length.")
+            raise ValueError("col must be less than the line length.")
         ntabs = line[:col].count("\t")
         col += ntabs * (tabwidth - 1)
 

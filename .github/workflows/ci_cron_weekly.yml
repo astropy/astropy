@@ -43,10 +43,16 @@ jobs:
           # that gives too many false positives due to URL timeouts. We also
           # install all dependencies via pip here so we pick up the latest
           # releases.
-          - name: Python 3.11 with dev version of key dependencies
+          - name: Python 3.10 with dev version of key dependencies
+            os: ubuntu-latest
+            python: '3.10'
+            toxenv: py310-test-devdeps
+
+          # https://github.com/astropy/astropy/issues/15701
+          - name: Python 3.11 with dev version of key dependencies without scipy
             os: ubuntu-latest
             python: '3.11'
-            toxenv: py311-test-devdeps
+            toxenv: py311-test-devdeps-noscipy
 
           - name: Python 3.11 with dev version of infrastructure dependencies
             os: ubuntu-latest
@@ -55,28 +61,22 @@ jobs:
 
           - name: Documentation link check
             os: ubuntu-latest
-            python: '3.10'
+            python: '3.x'
             toxenv: linkcheck
 
+          # This is sensitive to Python version.
           - name: Run flynt to check string formatting
             os: ubuntu-latest
             python: '3.10'
             toxenv: flynt
 
-          # TODO: Uncomment when 3.12 is more mature. Should we use devdeps?
-          # Test against Python dev in cron job.
-          #- name: Python dev with basic dependencies
-          #  os: ubuntu-latest
-          #  python: 3.12-dev
-          #  toxenv: pydev-test
-
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python }}
     - name: Install language-pack-de and tzdata
@@ -115,7 +115,7 @@ jobs:
           - arch: armv7
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: uraimo/run-on-arch-action@v2
@@ -132,24 +132,36 @@ jobs:
 
           install: |
             apt-get update -q -y
-            apt-get install -q -y git \
+            apt-get install -q -y gnupg2
+            # Add test-support repository for wcslib8
+            echo "deb http://ppa.launchpadcontent.net/astropy/test-support/ubuntu lunar main" > /etc/apt/sources.list.d/test-support.list
+            gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv CC75F07B3EF41EFC
+            gpg --export --armor CC75F07B3EF41EFC | tee /etc/apt/trusted.gpg.d/test-support.asc
+            apt-get update -q -y
+            apt-get install -q -y --no-install-recommends \
+                                  git \
                                   g++ \
                                   pkg-config \
                                   python3 \
-                                  python3-configobj \
+                                  python3-erfa \
+                                  python3-extension-helpers \
+                                  python3-jinja2 \
                                   python3-numpy \
-                                  python3-ply \
+                                  python3-pytest-astropy \
+                                  python3-setuptools-scm \
+                                  python3-yaml \
                                   python3-venv \
-                                  cython3 \
-                                  libwcs7 \
-                                  wcslib-dev \
-                                  liberfa1
+                                  python3-wheel \
+                                  wcslib-dev
 
           run: |
             uname -a
             echo "LONG_BIT="$(getconf LONG_BIT)
             python3 -m venv --system-site-packages tests
             source tests/bin/activate
-            ASTROPY_USE_SYSTEM_ALL=1 pip3 install -e .[test]
+            # cython and pyerfa versions in ubuntu repos are too old currently
+            pip install -U cython
+            pip install -U --no-build-isolation pyerfa
+            ASTROPY_USE_SYSTEM_ALL=1 pip3 install -v --no-build-isolation -e .[test]
             pip3 list
             python3 -m pytest

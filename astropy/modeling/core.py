@@ -19,7 +19,6 @@ import functools
 import inspect
 import itertools
 import operator
-import types
 from collections import defaultdict, deque
 from inspect import signature
 from itertools import chain
@@ -1479,7 +1478,7 @@ class Model(metaclass=_ModelMeta):
             # This typically implies a hard-coded bounding box.  This will
             # probably be rare, but it is an option
             return self._bounding_box
-        elif isinstance(self._bounding_box, types.MethodType):
+        elif inspect.ismethod(self._bounding_box):
             return ModelBoundingBox.validate(self, self._bounding_box())
         else:
             # The only other allowed possibility is that it's a ModelBoundingBox
@@ -1797,7 +1796,7 @@ class Model(metaclass=_ModelMeta):
         Raises
         ------
         ValueError
-            If ``coords`` are not given and the the `Model.bounding_box` of
+            If ``coords`` are not given and the `Model.bounding_box` of
             this model is not set.
 
         Examples
@@ -3263,27 +3262,6 @@ class CompoundModel(Model):
                 newnames.append(item)
         return tuple(newnames)
 
-    def both_inverses_exist(self):
-        """
-        if both members of this compound model have inverses return True.
-        """
-        import warnings
-
-        from astropy.utils.exceptions import AstropyDeprecationWarning
-
-        warnings.warn(
-            "CompoundModel.both_inverses_exist is deprecated. Use has_inverse instead.",
-            AstropyDeprecationWarning,
-        )
-
-        try:
-            self.left.inverse  # noqa: B018
-            self.right.inverse  # noqa: B018
-        except NotImplementedError:
-            return False
-
-        return True
-
     def _pre_evaluate(self, *args, **kwargs):
         """
         CompoundModel specific input setup that needs to occur prior to
@@ -3904,7 +3882,7 @@ class CompoundModel(Model):
         Raises
         ------
         ValueError
-            If ``coords`` are not given and the the `Model.bounding_box` of
+            If ``coords`` are not given and the `Model.bounding_box` of
             this model is not set.
 
         Examples

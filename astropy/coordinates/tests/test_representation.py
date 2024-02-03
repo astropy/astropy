@@ -7,7 +7,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
-from astropy.coordinates.angles import Angle, Latitude, Longitude
+from astropy.coordinates import Angle, Latitude, Longitude
 from astropy.coordinates.distances import Distance
 from astropy.coordinates.matrix_utilities import rotation_matrix
 from astropy.coordinates.representation import (
@@ -120,7 +120,7 @@ class TestRadialRepresentation:
 
         # let's also check with differentials
         dif = RadialDifferential(d_distance=-3 * u.km / u.s)
-        rep = rep.with_differentials(dict(s=dif))
+        rep = rep.with_differentials({"s": dif})
 
         newrep = rep.transform(matrix)
         assert newrep.distance == 30 * u.kpc
@@ -1222,6 +1222,13 @@ class TestCartesianRepresentation:
         assert ds2.d_x.unit == u.km / u.s
         assert ds2.d_y.unit == u.km / u.s
         assert ds2.d_z.unit == u.km / u.s
+
+    def test_transform_non_contiguous_matrix(self):
+        # Regression test for gh-15503 (due to pyerfa gh-123)
+        r = CartesianRepresentation([1, 2, 3] * u.kpc)
+        m = np.array([[1, 0, 0, 5], [0, 1, 0, 6], [0, 0, 1, 7]], dtype="f8")[:, :3]
+        assert_array_equal(m, np.eye(3))
+        assert representation_equal(r.transform(m), r)
 
 
 class TestCylindricalRepresentation:

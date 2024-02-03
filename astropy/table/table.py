@@ -15,6 +15,7 @@ from astropy import log
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
 from astropy.utils import ShapedLikeNDArray, isiterable
+from astropy.utils.compat import NUMPY_LT_1_25
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
 from astropy.utils.decorators import format_doc
@@ -175,8 +176,6 @@ class TableReplaceWarning(UserWarning):
     This does not inherit from AstropyWarning because we want to use
     stacklevel=3 to show the user where the issue occurred in their code.
     """
-
-    pass
 
 
 def descr(col):
@@ -677,6 +676,12 @@ class Table:
             # For masked out, masked mixin columns need to set output mask attribute.
             if masked and has_info_class(col, MixinInfo) and hasattr(col, "mask"):
                 data[col.info.name].mask = col.mask
+
+            # Propagate the fill_value from the table column to the output array.
+            # If this is not done, then the output array will use numpy.ma's default
+            # fill values (999999 for ints, 1E20 for floats, "N/A" for strings)
+            if masked and hasattr(col, "fill_value"):
+                data[col.info.name].fill_value = col.fill_value
 
         return data
 
@@ -2131,9 +2136,7 @@ class Table:
                 else:  # Assume this is an iterable that will work
                     if len(value) != n_cols:
                         raise ValueError(
-                            "Right side value needs {} elements (one for each column)".format(
-                                n_cols
-                            )
+                            f"Right side value needs {n_cols} elements (one for each column)"
                         )
                     vals = value
 
@@ -2580,9 +2583,9 @@ class Table:
                 # as parent.
                 if isinstance(old_col.base, old_col.__class__):
                     msg = (
-                        "replaced column '{}' which looks like an array slice. "
+                        f"replaced column '{name}' which looks like an array slice. "
                         "The new column no longer shares memory with the "
-                        "original array.".format(name)
+                        "original array."
                     )
                     warnings.warn(msg, TableReplaceWarning, stacklevel=3)
             except AttributeError:
@@ -2594,8 +2597,8 @@ class Table:
             new_refcount = sys.getrefcount(self[name])
             if refcount != new_refcount:
                 msg = (
-                    "replaced column '{}' and the number of references "
-                    "to the column changed.".format(name)
+                    f"replaced column '{name}' and the number of references "
+                    "to the column changed."
                 )
                 warnings.warn(msg, TableReplaceWarning, stacklevel=3)
 
@@ -3297,8 +3300,8 @@ class Table:
 
                 if len(newcol) != N + 1:
                     raise ValueError(
-                        "Incorrect length for column {} after inserting {}"
-                        " (expected {}, got {})".format(name, val, len(newcol), N + 1)
+                        f"Incorrect length for column {name} after inserting {val}"
+                        f" (expected {len(newcol)}, got {N + 1})"
                     )
                 newcol.info.parent_table = self
 
@@ -3316,9 +3319,7 @@ class Table:
 
             except Exception as err:
                 raise ValueError(
-                    "Unable to insert row because of exception in column '{}':\n{}".format(
-                        name, err
-                    )
+                    f"Unable to insert row because of exception in column '{name}':\n{err}"
                 ) from err
 
         for table_index in self.indices:
@@ -3670,23 +3671,18 @@ class Table:
     def __copy__(self):
         return self.copy(False)
 
-    def __lt__(self, other):
-        return super().__lt__(other)
-
-    def __gt__(self, other):
-        return super().__gt__(other)
-
-    def __le__(self, other):
-        return super().__le__(other)
-
-    def __ge__(self, other):
-        return super().__ge__(other)
-
     def __eq__(self, other):
         return self._rows_equal(other)
 
     def __ne__(self, other):
-        return ~self.__eq__(other)
+        eq = self.__eq__(other)
+        if isinstance(eq, bool):
+            # bitwise operators on bool values not reliable (e.g. `bool(~True) == True`)
+            # and are deprecated in Python 3.12
+            # see https://github.com/python/cpython/pull/103487
+            return not eq
+        else:
+            return ~eq
 
     def _rows_equal(self, other):
         """
@@ -3694,7 +3690,11 @@ class Table:
 
         This is actual implementation for __eq__.
 
-        Returns a 1-D boolean numpy array showing result of row-wise comparison.
+        Returns a 1-D boolean numpy array showing result of row-wise comparison,
+        or a bool (False) in cases where comparison isn't possible (uncomparable dtypes
+        or unbroadcastable shapes). Intended to follow legacy numpy's elementwise
+        comparison rules.
+
         This is the same as the ``==`` comparison for tables.
 
         Parameters
@@ -3715,22 +3715,35 @@ class Table:
         if isinstance(other, Table):
             other = other.as_array()
 
-        if self.has_masked_columns:
-            if isinstance(other, np.ma.MaskedArray):
-                result = self.as_array() == other
-            else:
-                # If mask is True, then by definition the row doesn't match
-                # because the other array is not masked.
-                false_mask = np.zeros(1, dtype=[(n, bool) for n in self.dtype.names])
-                result = (self.as_array().data == other) & (self.mask == false_mask)
+        self_is_masked = self.has_masked_columns
+        other_is_masked = isinstance(other, np.ma.MaskedArray)
+
+        allowed_numpy_exceptions = (
+            TypeError,
+            ValueError if not NUMPY_LT_1_25 else DeprecationWarning,
+        )
+        # One table is masked and the other is not
+        if self_is_masked ^ other_is_masked:
+            # remap variables to a and b where a is masked and b isn't
+            a, b = (
+                (self.as_array(), other) if self_is_masked else (other, self.as_array())
+            )
+
+            # If mask is True, then by definition the row doesn't match
+            # because the other array is not masked.
+            false_mask = np.zeros(1, dtype=[(n, bool) for n in a.dtype.names])
+            try:
+                result = (a.data == b) & (a.mask == false_mask)
+            except allowed_numpy_exceptions:
+                # numpy may complain that structured array are not comparable (TypeError)
+                # or that operands are not brodcastable (ValueError)
+                # see https://github.com/astropy/astropy/issues/13421
+                result = False
         else:
-            if isinstance(other, np.ma.MaskedArray):
-                # If mask is True, then by definition the row doesn't match
-                # because the other array is not masked.
-                false_mask = np.zeros(1, dtype=[(n, bool) for n in other.dtype.names])
-                result = (self.as_array() == other.data) & (other.mask == false_mask)
-            else:
+            try:
                 result = self.as_array() == other
+            except allowed_numpy_exceptions:
+                result = False
 
         return result
 
@@ -3993,7 +4006,7 @@ class Table:
             if getattr(column.dtype, "isnative", True):
                 out[name] = column
             else:
-                out[name] = column.data.byteswap().newbyteorder("=")
+                out[name] = column.data.byteswap().view(column.dtype.newbyteorder("="))
 
             if isinstance(column, MaskedColumn) and np.any(column.mask):
                 if column.dtype.kind in ["i", "u"]:
@@ -4051,7 +4064,7 @@ class Table:
         index : bool
             Include the index column in the returned table (default=False)
         units: dict
-            A dict mapping column names to to a `~astropy.units.Unit`.
+            A dict mapping column names to a `~astropy.units.Unit`.
             The columns will have the specified unit in the Table.
 
         Returns

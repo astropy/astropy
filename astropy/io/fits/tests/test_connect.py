@@ -21,7 +21,7 @@ from astropy.io.fits.column import (
     python_to_tdisp,
 )
 from astropy.io.tests.mixin_columns import compare_attrs, mixin_cols, serialized_names
-from astropy.table import Column, QTable, Table
+from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.table.table_helpers import simple_table
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
@@ -1064,3 +1064,38 @@ def test_meta_not_modified(tmp_path):
 def test_is_fits_gh_14305():
     """Regression test for https://github.com/astropy/astropy/issues/14305"""
     assert not connect.is_fits("", "foo.bar", None)
+
+
+def test_keep_masked_state_integer_columns(tmp_path):
+    """Regression test for https://github.com/astropy/astropy/issues/15417"""
+    filename = tmp_path / "test_masked.fits"
+    t = Table([[1, 2], [1.5, 2.5]], names=["a", "b"])
+    t["c"] = MaskedColumn([1, 2], mask=[True, False])
+    t.write(filename)
+    tr = Table.read(filename)
+    assert not isinstance(tr["a"], MaskedColumn)
+    assert not isinstance(tr["b"], MaskedColumn)
+    assert isinstance(tr["c"], MaskedColumn)
+
+
+def test_null_propagation_in_table_read(tmp_path):
+    """Checks that integer columns with a TNULL value set (e.g. masked columns)
+    have their TNULL value propagated when being read in by Table.read"""
+
+    # Could be anything except for 999999, which is the "default" fill_value
+    # for masked int arrays
+    NULL_VALUE = -1
+
+    output_filename = tmp_path / "null_table.fits"
+
+    data = np.asarray([1, 2, NULL_VALUE, 4], dtype=np.int32)
+
+    # Create table with BinTableHDU, with integer column containing a custom null
+    c = fits.Column(name="a", array=data, null=NULL_VALUE, format="J")
+    hdu = BinTableHDU.from_columns([c])
+    hdu.writeto(output_filename)
+
+    # Read the table in with Table.read, and ensure the column's fill_value is
+    # equal to NULL_VALUE
+    t = Table.read(output_filename)
+    assert t["a"].fill_value == NULL_VALUE

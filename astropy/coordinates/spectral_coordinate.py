@@ -359,8 +359,7 @@ class SpectralCoord(SpectralQuantity):
                 raise ValueError(
                     "Cannot specify value as a Quantity and also specify unit"
                 )
-            else:
-                value, unit = value.value, value.unit
+            value, unit = value.value, value.unit
 
         value = value if value is not None else self.value
         unit = unit or self.unit

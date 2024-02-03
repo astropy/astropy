@@ -15,6 +15,7 @@ from astropy.time import Time, TimeDelta
 from astropy.time.core import BARYCENTRIC_SCALES
 from astropy.time.formats import FITS_DEPRECATED_SCALES
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.masked import Masked
 
 from .conftest import FitsTestCase
 
@@ -159,15 +160,16 @@ class TestFitsTime(FitsTestCase):
 
         assert tm["a"].location == t["a"].location
 
+    @pytest.mark.parametrize("masked_cls", (np.ma.MaskedArray, Masked))
     @pytest.mark.parametrize("mask", (False, [True, False]))
     @pytest.mark.parametrize("serialize_method", ("jd1_jd2", "formatted_value"))
-    def test_time_to_fits_serialize_method(self, serialize_method, mask):
+    def test_time_to_fits_serialize_method(self, serialize_method, mask, masked_cls):
         """
         Test the data returned by ``time_to_fits`` for masked values.
         """
-        a = Time(np.ma.MaskedArray(self.time, mask=mask))
+        a = Time(masked_cls(self.time, mask=mask))
         b = Time(
-            np.ma.MaskedArray([[1, 2], [3, 4]], mask=np.broadcast_to(mask, (2, 2))),
+            masked_cls([[1, 2], [3, 4]], mask=np.broadcast_to(mask, (2, 2))),
             format="cxcsec",
         )
         assert b.masked is a.masked is (mask is not False)

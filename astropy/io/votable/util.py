@@ -42,7 +42,7 @@ def convert_to_writable_filelike(fd, compressed=False):
 
     Returns
     -------
-    fd : writable file-like
+    fd : :term:`file-like (writeable)`
     """
     if isinstance(fd, str):
         fd = os.path.expanduser(fd)
@@ -76,10 +76,12 @@ def convert_to_writable_filelike(fd, compressed=False):
 
         if needs_wrapper:
             yield codecs.getwriter("utf-8")(fd)
-            fd.flush()
         else:
             yield fd
-            fd.flush()
+
+        fd.flush()
+        if isinstance(fd, gzip.GzipFile):
+            fd.close()
 
         return
     else:

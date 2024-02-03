@@ -6,6 +6,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 
 class TestQuantityArrayCopy:
@@ -459,6 +460,18 @@ class TestArrayConversion:
     def test_item(self):
         q1 = u.Quantity(np.array([1, 2, 3]), u.m / u.km, dtype=int)
         assert q1.item(1) == 2 * q1.unit
+
+        q1[1] = 1
+        assert q1[1] == 1000 * u.m / u.km
+        q1[1] = 100 * u.cm / u.km
+        assert q1[1] == 1 * u.m / u.km
+        with pytest.raises(TypeError):
+            q1[1] = 1.5 * u.m / u.km
+
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="itemset method removed in numpy 2.0")
+    def test_itemset(self):
+        q1 = u.Quantity(np.array([1, 2, 3]), u.m / u.km, dtype=int)
+        assert q1.item(1) == 2 * q1.unit
         q1.itemset(1, 1)
         assert q1.item(1) == 1000 * u.m / u.km
         q1.itemset(1, 100 * u.cm / u.km)
@@ -467,13 +480,6 @@ class TestArrayConversion:
             q1.itemset(1, 1.5 * u.m / u.km)
         with pytest.raises(ValueError):
             q1.itemset()
-
-        q1[1] = 1
-        assert q1[1] == 1000 * u.m / u.km
-        q1[1] = 100 * u.cm / u.km
-        assert q1[1] == 1 * u.m / u.km
-        with pytest.raises(TypeError):
-            q1[1] = 1.5 * u.m / u.km
 
     def test_take_put(self):
         q1 = np.array([1, 2, 3]) * u.m / u.km
@@ -634,3 +640,15 @@ class TestStructuredArray:
         assert qra[1].value == np.array((-1000.0, -2000.0, -3000.0), qra.dtype)
         # Ensure we do not override dtype names of value.
         assert value.dtype.names == ("x", "y", "z")
+
+
+@pytest.mark.filterwarnings(
+    "ignore: The numpy.array_api submodule is still experimental. See NEP 47."
+)
+def test_array_api_init():
+    import numpy.array_api as np_api
+
+    array = np_api.asarray([1, 2, 3])
+    quantity_array = u.Quantity(array, u.m)
+    assert type(quantity_array) is u.Quantity
+    assert_array_equal(quantity_array, [1, 2, 3] * u.m)

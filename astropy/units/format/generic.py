@@ -391,13 +391,11 @@ class Generic(Base):
             product : STAR
                     | PERIOD
             """
-            pass
 
         def p_division(p):
             """
             division : SOLIDUS
             """
-            pass
 
         def p_power(p):
             """
@@ -573,8 +571,8 @@ class Generic(Base):
         n_slashes = s.count("/")
         if n_slashes > 1 and (n_slashes - len(re.findall(r"\(\d+/\d+\)", s))) > 1:
             warnings.warn(
-                "'{}' contains multiple slashes, which is "
-                "discouraged by the FITS standard".format(s),
+                f"'{s}' contains multiple slashes, which is "
+                "discouraged by the FITS standard",
                 core.UnitsWarning,
             )
         return result

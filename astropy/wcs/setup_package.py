@@ -7,15 +7,15 @@ import shutil
 import sys
 from collections import defaultdict
 from os.path import join
+from pathlib import Path
 
-import numpy
+from numpy import get_include as get_numpy_include
 from setuptools import Extension
-from setuptools.dep_util import newer_group
 
 from extension_helpers import get_compiler, import_file, pkg_config, write_if_different
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
-WCSVERSION = "8.1"
+WCSVERSION = "8.2.2"
 
 
 def b(s):
@@ -184,7 +184,7 @@ MSVC, do not support string literals greater than 256 characters.
 def get_wcslib_cfg(cfg, wcslib_files, include_paths):
     debug = "--debug" in sys.argv
 
-    cfg["include_dirs"].append(numpy.get_include())
+    cfg["include_dirs"].append(get_numpy_include())
     cfg["define_macros"].extend(
         [
             ("ECHO", None),
@@ -321,8 +321,8 @@ def get_extensions():
 
     # Copy over header files from WCSLIB into the installed version of Astropy
     # so that other Python packages can write extensions that link to it. We
-    # do the copying here then include the data in [options.package_data] in
-    # the setup.cfg file
+    # do the copying here then include the data in [tools.setuptools.package_data]
+    # in the pyproject.toml file
 
     wcslib_headers = [
         "cel.h",
@@ -342,9 +342,9 @@ def get_extensions():
         or int(os.environ.get("ASTROPY_USE_SYSTEM_ALL", 0))
     ):
         for header in wcslib_headers:
-            source = join("cextern", "wcslib", "C", header)
-            dest = join("astropy", "wcs", "include", "wcslib", header)
-            if newer_group([source], dest, "newer"):
+            source = Path("cextern", "wcslib", "C", header)
+            dest = Path("astropy", "wcs", "include", "wcslib", header)
+            if not dest.is_file() or source.stat().st_mtime > dest.stat().st_mtime:
                 shutil.copy(source, dest)
 
     return [Extension("astropy.wcs._wcs", **cfg)]

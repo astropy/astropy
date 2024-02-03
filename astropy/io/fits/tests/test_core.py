@@ -25,7 +25,7 @@ from astropy.utils.compat.optional_deps import (
     HAS_BZ2,  # NOTE: Python can be built without bz2
 )
 from astropy.utils.data import conf
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 from .conftest import FitsTestCase
@@ -158,7 +158,7 @@ class TestCore(FitsTestCase):
         assert header.comments["BITPIX"] == ""
 
     def test_set_card_value(self):
-        """Similar to test_update_header_card(), but tests the the
+        """Similar to test_update_header_card(), but tests the
         `header['FOO'] = 'bar'` method of updating card values.
         """
 
@@ -711,9 +711,15 @@ class TestFileFunctions(FitsTestCase):
 
     def test_open_gzipped(self):
         gzip_file = self._make_gzip_file()
+
         with fits.open(gzip_file) as fits_handle:
             assert fits_handle._file.compression == "gzip"
             assert len(fits_handle) == 5
+
+        with fits.open(gzip_file, decompress_in_memory=True) as fits_handle:
+            assert fits_handle._file.compression == "gzip"
+            assert len(fits_handle) == 5
+
         with fits.open(gzip.GzipFile(gzip_file)) as fits_handle:
             assert fits_handle._file.compression == "gzip"
             assert len(fits_handle) == 5
@@ -773,7 +779,12 @@ class TestFileFunctions(FitsTestCase):
     @pytest.mark.skipif(not HAS_BZ2, reason="Python built without bz2 module")
     def test_open_bzipped(self):
         bzip_file = self._make_bzip2_file()
+
         with fits.open(bzip_file) as fits_handle:
+            assert fits_handle._file.compression == "bzip2"
+            assert len(fits_handle) == 5
+
+        with fits.open(bzip_file, decompress_in_memory=True) as fits_handle:
             assert fits_handle._file.compression == "bzip2"
             assert len(fits_handle) == 5
 
@@ -820,9 +831,15 @@ class TestFileFunctions(FitsTestCase):
 
     def test_open_zipped(self):
         zip_file = self._make_zip_file()
+
         with fits.open(zip_file) as fits_handle:
             assert fits_handle._file.compression == "zip"
             assert len(fits_handle) == 5
+
+        with fits.open(zip_file, decompress_in_memory=True) as fits_handle:
+            assert fits_handle._file.compression == "zip"
+            assert len(fits_handle) == 5
+
         with fits.open(zipfile.ZipFile(zip_file)) as fits_handle:
             assert fits_handle._file.compression == "zip"
             assert len(fits_handle) == 5
@@ -1335,7 +1352,7 @@ class TestFileFunctions(FitsTestCase):
                 (2, "Canopus", -0.73, "F0Ib"),
                 (3, "Rigil Kent", -0.1, "G2V"),
             ],
-            formats="int16,a20,float32,a10",
+            formats="int16,S20,float32,S10",
             names="order,name,mag,Sp",
         )
 
@@ -1466,3 +1483,12 @@ class TestStreamingFunctions(FitsTestCase):
         # See https://github.com/astropy/astropy/issues/3766
         with fits.open(pth, memmap=True, do_not_scale_image_data=True) as hdul:
             hdul[0].data  # Just make sure it doesn't crash
+
+
+def test_deprecated_hdu_classes():
+    from astropy.io.fits.hdu.base import _ExtensionHDU, _NonstandardExtHDU
+
+    with pytest.warns(AstropyDeprecationWarning):
+        _ExtensionHDU()
+    with pytest.warns(AstropyDeprecationWarning):
+        _NonstandardExtHDU()

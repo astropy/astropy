@@ -1,4 +1,3 @@
-import os
 from urllib.error import HTTPError
 
 import numpy as np
@@ -23,7 +22,7 @@ from astropy.coordinates.solar_system import (
     get_moon,
     solar_system_ephemeris,
 )
-from astropy.tests.helper import assert_quantity_allclose
+from astropy.tests.helper import CI, assert_quantity_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_JPLEPHEM, HAS_SKYFIELD
@@ -45,7 +44,7 @@ def skyfield_ephemeris(tmp_path_factory):
         planets = load("de421.bsp")
         ts = load.timescale()
     except OSError as e:
-        if os.environ.get("CI", False) and "timed out" in str(e):
+        if CI and "timed out" in str(e):
             pytest.xfail("Timed out in CI")
         else:
             raise
@@ -431,3 +430,16 @@ def test_get_moon_deprecation():
     ):
         moon = get_moon(time_now)
     assert moon == get_body("moon", time_now)
+
+
+@pytest.mark.remote_data
+@pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
+def test_regression_15611():
+    """Regression test for #15611"""
+    # type 3 SPICE kernel
+    ephemeris_file = get_pkg_data_filename("coordinates/230965_2004XA192_nima_v6.bsp")
+    # KBO 2004 XA192
+    pair = (10, 20230965)
+    t = Time("2023-11-11T03:59:24")
+    # get_body_barycentric should not raise an error
+    get_body_barycentric([pair], t, ephemeris=ephemeris_file)

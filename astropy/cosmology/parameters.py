@@ -4,11 +4,9 @@
 The list of cosmologies available are given by the tuple `available`.
 """
 
-# STDLIB
 import sys
 from types import MappingProxyType
 
-# LOCAL
 from .realizations import available
 
 __all__ = ["available"]

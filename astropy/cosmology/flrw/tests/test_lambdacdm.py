@@ -2,18 +2,11 @@
 
 """Testing :mod:`astropy.cosmology.flrw.lambdacdm`."""
 
-##############################################################################
-# IMPORTS
-
-# STDLIB
-
-# THIRD PARTY
 import pathlib
 
 import numpy as np
 import pytest
 
-# LOCAL
 import astropy.constants as const
 import astropy.cosmology.units as cu
 import astropy.units as u
@@ -77,16 +70,20 @@ class TestLambdaCDM(FLRWTest):
         w = cosmo.w(z)
         assert u.allclose(w, -1.0)
 
-    def test_repr(self, cosmo_cls, cosmo):
+    def test_repr(self, cosmo):
         """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = (
-            'LambdaCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27,'
-            " Ode0=0.73, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
-            " Ob0=0.03)"
+        assert repr(cosmo) == (
+            "LambdaCDM(name='ABCMeta', H0=<Quantity 70. km / (Mpc s)>, Om0=0.27,"
+            " Ode0=0.73, Tcmb0=<Quantity 3. K>, Neff=3.04,"
+            " m_nu=<Quantity [0., 0., 0.] eV>, Ob0=0.03)"
         )
-        assert repr(cosmo) == expected
+
+    def test_str(self, cosmo):
+        """Test method ``.__str__()``."""
+        assert str(cosmo) == (
+            'LambdaCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27, Ode0=0.73,'
+            " Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+        )
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize(
@@ -139,16 +136,20 @@ class TestFlatLambdaCDM(FlatFLRWMixinTest, TestLambdaCDM):
     # ===============================================================
     # Method & Attribute Tests
 
-    def test_repr(self, cosmo_cls, cosmo):
+    def test_repr(self, cosmo):
         """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = (
-            'FlatLambdaCDM(name="ABCMeta", H0=70.0 km / (Mpc s),'
-            " Om0=0.27, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
+        assert repr(cosmo) == (
+            "FlatLambdaCDM(name='ABCMeta', H0=<Quantity 70. km / (Mpc s)>, Om0=0.27,"
+            " Tcmb0=<Quantity 3. K>, Neff=3.04, m_nu=<Quantity [0., 0., 0.] eV>,"
             " Ob0=0.03)"
         )
-        assert repr(cosmo) == expected
+
+    def test_str(self, cosmo):
+        """Test method ``.__str__()``."""
+        assert str(cosmo) == (
+            'FlatLambdaCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27, '
+            "Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+        )
 
     # ===============================================================
     # Usage Tests

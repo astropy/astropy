@@ -681,6 +681,15 @@ def test_vounit_details():
     assert u.Unit("ka", format="vounit") == u.Unit("1000 yr")
     assert u.Unit("pix", format="vounit") == u.Unit("pixel", format="vounit")
 
+    # Regression test for astropy/astroquery#2480
+    assert u.Unit("Sun", format="vounit") is u.Sun
+
+    # Test that adding a prefix to a simple units raises a warning
+    with pytest.warns(
+        UnitsWarning, match="Unit 'kdB' not supported by the VOUnit standard.*"
+    ):
+        u.Unit("kdB", format="vounit")
+
     # The da- prefix is not allowed, and the d- prefix is discouraged
     assert u.dam.to_string("vounit") == "10m"
     assert u.Unit("dam dag").to_string("vounit") == "100g.m"
@@ -710,6 +719,37 @@ def test_vounit_scale_factor(unit, vounit, number, scale, voscale):
     x = u.Unit(f"{scale} {unit}")
     assert x == number * u.Unit(unit)
     assert x.to_string(format="vounit") == voscale + vounit
+
+
+@pytest.mark.parametrize(
+    "unit, vounit",
+    [
+        ("m s^-1", "m/s"),
+        ("s^-1", "1/s"),
+        ("100 s^-2", "100/s**2"),
+        ("kg m-1 s-2", "kg/(m.s**2)"),
+    ],
+)
+@pytest.mark.parametrize("fraction", [True, "inline"])
+def test_vounit_fraction(unit, vounit, fraction):
+    x = u.Unit(unit)
+    assert x.to_string(format="vounit", fraction=fraction) == vounit
+
+
+@pytest.mark.parametrize(
+    "unit, vounit",
+    [
+        ("m^2", "m**2"),
+        ("s^-1", "s**-1"),
+        ("s(0.333)", "s**(0.333)"),
+        ("s(-0.333)", "s**(-0.333)"),
+        ("s(1/3)", "s**(1/3)"),
+        ("s(-1/3)", "s**(-1/3)"),
+    ],
+)
+def test_vounit_power(unit, vounit):
+    x = u.Unit(unit)
+    assert x.to_string(format="vounit") == vounit
 
 
 def test_vounit_custom():
@@ -784,18 +824,25 @@ def test_fits_scale_factor_errors():
     assert x.to_string(format="fits") == "10**2 erg"
 
 
-def test_double_superscript():
-    """Regression test for #5870, #8699, #9218; avoid double superscripts."""
-    assert (u.deg).to_string("latex") == r"$\mathrm{{}^{\circ}}$"
-    assert (u.deg**2).to_string("latex") == r"$\mathrm{deg^{2}}$"
-    assert (u.arcmin).to_string("latex") == r"$\mathrm{{}^{\prime}}$"
-    assert (u.arcmin**2).to_string("latex") == r"$\mathrm{arcmin^{2}}$"
-    assert (u.arcsec).to_string("latex") == r"$\mathrm{{}^{\prime\prime}}$"
-    assert (u.arcsec**2).to_string("latex") == r"$\mathrm{arcsec^{2}}$"
-    assert (u.hourangle).to_string("latex") == r"$\mathrm{{}^{h}}$"
-    assert (u.hourangle**2).to_string("latex") == r"$\mathrm{hourangle^{2}}$"
-    assert (u.electron).to_string("latex") == r"$\mathrm{e^{-}}$"
-    assert (u.electron**2).to_string("latex") == r"$\mathrm{electron^{2}}$"
+@pytest.mark.parametrize(
+    "unit, latex, unicode",
+    [
+        (u.deg, r"$\mathrm{{}^{\circ}}$", "°"),
+        (u.deg**2, r"$\mathrm{deg^{2}}$", "deg²"),
+        (u.arcmin, r"$\mathrm{{}^{\prime}}$", "′"),
+        (u.arcmin**2, r"$\mathrm{arcmin^{2}}$", "arcmin²"),
+        (u.arcsec, r"$\mathrm{{}^{\prime\prime}}$", "″"),
+        (u.arcsec**2, r"$\mathrm{arcsec^{2}}$", "arcsec²"),
+        (u.hourangle, r"$\mathrm{{}^{h}}$", "ʰ"),
+        (u.hourangle**2, r"$\mathrm{hourangle^{2}}$", "hourangle²"),
+        (u.electron, r"$\mathrm{e^{-}}$", "e⁻"),
+        (u.electron**2, r"$\mathrm{electron^{2}}$", "electron²"),
+    ],
+)
+def test_double_superscript(unit, latex, unicode):
+    """Regression test for #5870, #8699, #9218, #14403; avoid double superscripts."""
+    assert unit.to_string("latex") == latex
+    assert unit.to_string("unicode") == unicode
 
 
 def test_no_prefix_superscript():
@@ -935,3 +982,23 @@ def test_function_format_styles(format_spec, string):
 def test_function_format_styles_non_default_fraction(format_spec, fraction, string):
     dbunit = u.decibel(u.m**-1)
     assert dbunit.to_string(format_spec, fraction=fraction) == string
+
+
+@pytest.mark.parametrize(
+    "format_spec, expected_mantissa",
+    [
+        ("", "1"),
+        (".1g", "1"),
+        (".3g", "1"),
+        (".1e", "1.0"),
+        (".1f", "1.0"),
+        (".3e", "1.000"),
+    ],
+)
+def test_format_latex_one(format_spec, expected_mantissa):
+    # see https://github.com/astropy/astropy/issues/12571
+    from astropy.units.format.utils import split_mantissa_exponent
+
+    m, ex = split_mantissa_exponent(1, format_spec)
+    assert ex == ""
+    assert m == expected_mantissa

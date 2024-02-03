@@ -10,16 +10,17 @@ TODO: finish full coverage (see also `~astropy.utils.masked.function_helpers`)
 - np.fft (is there any point?)
 
 """
-import inspect
 import itertools
 
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from astropy.units.tests.test_quantity_non_ufuncs import get_wrapped_functions
+from astropy.units.tests.test_quantity_non_ufuncs import (
+    get_covered_functions,
+    get_wrapped_functions,
+)
 from astropy.utils.compat import (
-    NUMPY_LT_1_23,
     NUMPY_LT_1_24,
     NUMPY_LT_1_25,
     NUMPY_LT_2_0,
@@ -34,9 +35,6 @@ from astropy.utils.masked.function_helpers import (
 )
 
 from .test_masked import MaskedArraySetup, assert_masked_equal
-
-all_wrapped_functions = get_wrapped_functions(np)
-all_wrapped = set(all_wrapped_functions.values())
 
 
 class BasicTestSetup(MaskedArraySetup):
@@ -106,6 +104,11 @@ class TestShapeManipulation(BasicTestSetup):
 
     def test_transpose(self):
         self.check(np.transpose)
+
+    if not NUMPY_LT_2_0:
+
+        def test_matrix_transpose(self):
+            self.check(np.matrix_transpose)
 
     def test_atleast_1d(self):
         self.check(np.atleast_1d)
@@ -288,6 +291,12 @@ class TestCopyAndCreation(InvariantMaskTestSetup):
         self.check(np.asfarray)
         farray = np.asfarray(a=self.ma)
         assert_array_equal(farray, self.ma)
+
+    if not NUMPY_LT_2_0:
+
+        def test_astype(self):
+            int32ma = self.ma.astype("int32")
+            assert_array_equal(np.astype(int32ma, "int32"), int32ma)
 
 
 class TestArrayCreation(MaskedArraySetup):
@@ -634,10 +643,6 @@ class TestMethodLikes(MaskedArraySetup):
     def test_cumproduct(self):
         self.check(np.cumproduct, method="cumprod")  # noqa: NPY003
 
-    def test_ptp(self):
-        self.check(np.ptp)
-        self.check(np.ptp, axis=0)
-
     def test_round(self):
         self.check(np.round, method="round")
 
@@ -897,6 +902,23 @@ class TestReductionLikeFunctions(MaskedArraySetup):
         assert_array_equal(o.unmasked, expected)
         assert_array_equal(o.mask, expected_mask)
 
+    @pytest.mark.parametrize("kwargs", [{}, {"axis": 0}])
+    def test_ptp(self, kwargs):
+        o = np.ptp(self.ma, **kwargs)
+        expected = self.ma.max(**kwargs) - self.ma.min(**kwargs)
+        assert_array_equal(o.unmasked, expected.unmasked)
+        assert_array_equal(o.mask, expected.mask)
+        out = np.zeros_like(expected)
+        o2 = np.ptp(self.ma, out=out, **kwargs)
+        assert o2 is out
+        assert_array_equal(o2.unmasked, expected.unmasked)
+        assert_array_equal(o2.mask, expected.mask)
+        if NUMPY_LT_2_0:
+            # Method is removed in numpy 2.0.
+            o3 = self.ma.ptp(**kwargs)
+            assert_array_equal(o3.unmasked, expected.unmasked)
+            assert_array_equal(o3.mask, expected.mask)
+
     def test_trace(self):
         o = np.trace(self.ma)
         expected = np.trace(self.a)
@@ -981,6 +1003,7 @@ class TestIntDiffFunctions(MaskedArraySetup):
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
 
+    @pytest.mark.filterwarnings("ignore:`trapz` is deprecated. Use `scipy.*")
     def test_trapz(self):
         ma = self.ma.copy()
         ma.mask[1] = False
@@ -1029,11 +1052,12 @@ class TestSpaceFunctions:
         expected_mask = np.broadcast_to(
             self.mask_a | self.mask_b, expected.shape
         ).copy()
-        # TODO: make implementation that also ensures start point mask is
-        # determined just by start point? (as for geomspace in numpy 1.20)?
-        expected_mask[-1] = self.mask_b
+        # TODO: make implementations that ensure both start and stop masks
+        # are determined just by their respective point?
         if function is np.geomspace:
             expected_mask[0] = self.mask_a
+        if NUMPY_LT_2_0 or function is not np.geomspace:
+            expected_mask[-1] = self.mask_b
 
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
@@ -1418,16 +1442,13 @@ class TestNaNFunctions:
         self.check(np.nanpercentile, q=50)
 
 
+# Get wrapped and covered functions.
+all_wrapped_functions = get_wrapped_functions(np)
+tested_functions = get_covered_functions(locals())
+# Create set of untested functions.
 untested_functions = set()
 
-if NUMPY_LT_1_23:
-    deprecated_functions = {
-        # Deprecated, removed in numpy 1.23
-        np.asscalar,
-        np.alen,
-    }
-else:
-    deprecated_functions = set()
+deprecated_functions = set()
 
 untested_functions |= deprecated_functions
 io_functions = {np.save, np.savez, np.savetxt, np.savez_compressed}
@@ -1439,24 +1460,16 @@ poly_functions = {
 untested_functions |= poly_functions
 
 
-# Get covered functions
-tested_functions = set()
-for cov_cls in list(filter(inspect.isclass, locals().values())):
-    for k, v in cov_cls.__dict__.items():
-        if inspect.isfunction(v) and k.startswith("test"):
-            f = k.replace("test_", "")
-            if f in all_wrapped_functions:
-                tested_functions.add(all_wrapped_functions[f])
-
-
 def test_basic_testing_completeness():
-    assert all_wrapped == (tested_functions | IGNORED_FUNCTIONS | UNSUPPORTED_FUNCTIONS)
+    assert all_wrapped_functions == (
+        tested_functions | IGNORED_FUNCTIONS | UNSUPPORTED_FUNCTIONS
+    )
 
 
 @pytest.mark.xfail(reason="coverage not completely set up yet")
 def test_testing_completeness():
     assert not tested_functions.intersection(untested_functions)
-    assert all_wrapped == (tested_functions | untested_functions)
+    assert all_wrapped_functions == (tested_functions | untested_functions)
 
 
 class TestFunctionHelpersCompleteness:
@@ -1482,7 +1495,7 @@ class TestFunctionHelpersCompleteness:
             | set(APPLY_TO_BOTH_FUNCTIONS.keys())
             | set(DISPATCHED_FUNCTIONS.keys())
         )
-        assert all_wrapped == included_in_helpers
+        assert all_wrapped_functions == included_in_helpers
 
     @pytest.mark.xfail(reason="coverage not completely set up yet")
     def test_ignored_are_untested(self):

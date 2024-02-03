@@ -10,7 +10,8 @@ from numpy.testing import assert_array_equal
 from astropy import table, time
 from astropy import units as u
 from astropy.tests.helper import assert_follows_unicode_guidelines
-from astropy.utils.tests.test_metadata import MetaBaseTest
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
+from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 
 
 class TestColumn:
@@ -154,6 +155,19 @@ class TestColumn:
         c = Column(data=np.array([1, 2, 3]) * u.m, unit=u.cm)
         assert np.all(c.data == np.array([100, 200, 300]))
         assert np.all(c.unit == u.cm)
+
+    def test_quantity_with_info_init(self, Column):
+        q = np.arange(3.0) * u.m
+        q.info.name = "q"
+        q.info.description = "an example"
+        q.info.meta = {"parrot": "dead"}
+        q.info.format = "3.1f"
+        c = Column(q)
+        assert c.name == "q"
+        assert c.description == "an example"
+        assert c.meta == q.info.meta
+        assert c.meta is not q.info.meta
+        assert c.pformat() == " q \n---\n0.0\n1.0\n2.0".splitlines()
 
     def test_quantity_comparison(self, Column):
         # regression test for gh-6532
@@ -369,7 +383,14 @@ class TestColumn:
             c.insert(0, "string")
 
         c = Column(["a", "b"])
-        with pytest.raises(TypeError, match="string operation on non-string array"):
+        with pytest.raises(
+            TypeError,
+            match=(
+                "string operation on non-string array"
+                if NUMPY_LT_2_0
+                else "ufunc 'str_len' did not contain a loop"
+            ),
+        ):
             c.insert(0, 1)
 
     def test_insert_multidim(self, Column):

@@ -4,26 +4,7 @@ Framework and base classes for coordinate frames/"low-level" coordinate
 classes.
 """
 
-
-# Standard library
-import copy
-import warnings
-from collections import defaultdict, namedtuple
-
-# Dependencies
-import numpy as np
-
-from astropy import units as u
-from astropy.utils import ShapedLikeNDArray, check_broadcast
-
-# Project
-from astropy.utils.decorators import deprecated, format_doc, lazyproperty
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
-
-from . import representation as r
-from .angles import Angle
-from .attributes import Attribute
-from .transformations import TransformGraph
+from __future__ import annotations
 
 __all__ = [
     "BaseCoordinateFrame",
@@ -31,6 +12,27 @@ __all__ = [
     "GenericFrame",
     "RepresentationMapping",
 ]
+
+import copy
+import warnings
+from collections import defaultdict
+from typing import TYPE_CHECKING, NamedTuple
+
+import numpy as np
+
+from astropy import units as u
+from astropy.utils import ShapedLikeNDArray, check_broadcast
+from astropy.utils.decorators import deprecated, format_doc, lazyproperty
+from astropy.utils.exceptions import AstropyWarning
+
+from . import representation as r
+from .angles import Angle, position_angle
+from .attributes import Attribute
+from .transformations import TransformGraph
+
+if TYPE_CHECKING:
+    from astropy.coordinates import Latitude, Longitude, SkyCoord
+    from astropy.units import Unit
 
 
 # the graph used for all transformations between frames
@@ -110,14 +112,9 @@ def _get_repr_classes(base, **differentials):
     return repr_classes
 
 
-_RepresentationMappingBase = namedtuple(
-    "RepresentationMapping", ("reprname", "framename", "defaultunit")
-)
-
-
-class RepresentationMapping(_RepresentationMappingBase):
+class RepresentationMapping(NamedTuple):
     """
-    This `~collections.namedtuple` is used with the
+    This :class:`~typing.NamedTuple` is used with the
     ``frame_specific_representation_info`` attribute to tell frames what
     attribute names (and default units) to use for a particular representation.
     ``reprname`` and ``framename`` should be strings, while ``defaultunit`` can
@@ -126,9 +123,9 @@ class RepresentationMapping(_RepresentationMappingBase):
     should be done).
     """
 
-    def __new__(cls, reprname, framename, defaultunit="recommended"):
-        # this trick just provides some defaults
-        return super().__new__(cls, reprname, framename, defaultunit)
+    reprname: str
+    framename: str
+    defaultunit: str | Unit = "recommended"
 
 
 base_doc = """{__doc__}
@@ -311,10 +308,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         self._representation = self._infer_representation(
             representation_type, differential_type
         )
-        self._data = self._infer_data(args, copy, kwargs)  # possibly None.
+        data = self._infer_data(args, copy, kwargs)  # possibly None.
 
-        # Set frame attributes, if any
+        shapes = [] if data is None else [data.shape]
 
+        # Set frame attributes, if any.
+        # Keep track of their shapes, but do not broadcast them yet.
         values = {}
         for fnm, fdefault in self.get_frame_attr_defaults().items():
             # Read-only frame attributes are defined as FrameAttribute
@@ -324,9 +323,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             if fnm in kwargs:
                 value = kwargs.pop(fnm)
                 setattr(self, "_" + fnm, value)
-                # Validate attribute by getting it. If the instance has data,
-                # this also checks its shape is OK. If not, we do it below.
-                values[fnm] = getattr(self, fnm)
+                # Validate attribute by getting it.
+                values[fnm] = value = getattr(self, fnm)
+                shapes.append(getattr(value, "shape", ()))
             else:
                 setattr(self, "_" + fnm, fdefault)
                 self._attr_names_with_defaults.append(fnm)
@@ -337,39 +336,25 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 f"keywords: {list(kwargs)}"
             )
 
-        # We do ``is None`` because self._data might evaluate to false for
-        # empty arrays or data == 0
-        if self._data is None:
-            # No data: we still need to check that any non-scalar attributes
-            # have consistent shapes. Collect them for all attributes with
-            # size > 1 (which should be array-like and thus have a shape).
-            shapes = {
-                fnm: value.shape
-                for fnm, value in values.items()
-                if getattr(value, "shape", ())
-            }
-            if shapes:
-                if len(shapes) > 1:
-                    try:
-                        self._no_data_shape = check_broadcast(*shapes.values())
-                    except ValueError as err:
-                        raise ValueError(
-                            f"non-scalar attributes with inconsistent shapes: {shapes}"
-                        ) from err
+        # Determine the overall shape of the frame.
+        try:
+            self._shape = check_broadcast(*shapes)
+        except ValueError as err:
+            raise ValueError(
+                f"non-scalar data and/or attributes with inconsistent shapes: {shapes}"
+            ) from err
 
-                    # Above, we checked that it is possible to broadcast all
-                    # shapes.  By getting and thus validating the attributes,
-                    # we verify that the attributes can in fact be broadcast.
-                    for fnm in shapes:
-                        getattr(self, fnm)
-                else:
-                    self._no_data_shape = shapes.popitem()[1]
-
-            else:
-                self._no_data_shape = ()
+        # Broadcast the data if necessary and set it
+        if data is not None and data.shape != self._shape:
+            data = data._apply(np.broadcast_to, shape=self._shape, subok=True)
+        self._data = data
+        # Broadcast the attributes if necessary by getting them again
+        # (we now know the shapes will be OK).
+        for key in values:
+            getattr(self, key)
 
         # The logic of this block is not related to the previous one
-        if self._data is not None:
+        if self.has_data:
             # This makes the cache keys backwards-compatible, but also adds
             # support for having differentials attached to the frame data
             # representation object.
@@ -725,7 +710,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     @property
     def shape(self):
-        return self.data.shape if self.has_data else self._no_data_shape
+        return self._shape
 
     # We have to override the ShapedLikeNDArray definitions, since our shape
     # does not have to be that of the data.
@@ -1134,107 +1119,104 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         else:
             cache_key = (representation_cls.__name__, in_frame_units)
 
-        cached_repr = self.cache["representation"].get(cache_key)
-        if not cached_repr:
-            if differential_cls:
-                # Sanity check to ensure we do not just drop radial
-                # velocity.  TODO: should Representation.represent_as
-                # allow this transformation in the first place?
-                if (
-                    isinstance(self.data, r.UnitSphericalRepresentation)
-                    and issubclass(representation_cls, r.CartesianRepresentation)
-                    and not isinstance(
-                        self.data.differentials["s"],
-                        (
-                            r.UnitSphericalDifferential,
-                            r.UnitSphericalCosLatDifferential,
-                            r.RadialDifferential,
-                        ),
-                    )
-                ):
-                    raise u.UnitConversionError(
-                        "need a distance to retrieve a cartesian representation "
-                        "when both radial velocity and proper motion are present, "
-                        "since otherwise the units cannot match."
-                    )
+        if cached_repr := self.cache["representation"].get(cache_key):
+            return cached_repr
 
-                # TODO NOTE: only supports a single differential
-                data = self.data.represent_as(representation_cls, differential_cls)
-                diff = data.differentials["s"]  # TODO: assumes velocity
-            else:
-                data = self.data.represent_as(representation_cls)
+        if differential_cls:
+            # Sanity check to ensure we do not just drop radial
+            # velocity.  TODO: should Representation.represent_as
+            # allow this transformation in the first place?
+            if (
+                isinstance(self.data, r.UnitSphericalRepresentation)
+                and issubclass(representation_cls, r.CartesianRepresentation)
+                and not isinstance(
+                    self.data.differentials["s"],
+                    (
+                        r.UnitSphericalDifferential,
+                        r.UnitSphericalCosLatDifferential,
+                        r.RadialDifferential,
+                    ),
+                )
+            ):
+                raise u.UnitConversionError(
+                    "need a distance to retrieve a cartesian representation "
+                    "when both radial velocity and proper motion are present, "
+                    "since otherwise the units cannot match."
+                )
 
-            # If the new representation is known to this frame and has a defined
-            # set of names and units, then use that.
-            new_attrs = self.representation_info.get(representation_cls)
-            if new_attrs and in_frame_units:
-                datakwargs = {comp: getattr(data, comp) for comp in data.components}
-                for comp, new_attr_unit in zip(data.components, new_attrs["units"]):
-                    if new_attr_unit:
-                        datakwargs[comp] = datakwargs[comp].to(new_attr_unit)
-                data = data.__class__(copy=False, **datakwargs)
+            # TODO NOTE: only supports a single differential
+            data = self.data.represent_as(representation_cls, differential_cls)
+            diff = data.differentials["s"]  # TODO: assumes velocity
+        else:
+            data = self.data.represent_as(representation_cls)
 
-            if differential_cls:
-                # the original differential
-                data_diff = self.data.differentials["s"]
+        # If the new representation is known to this frame and has a defined
+        # set of names and units, then use that.
+        if in_frame_units and (
+            new_attrs := self.representation_info.get(representation_cls)
+        ):
+            datakwargs = {comp: getattr(data, comp) for comp in data.components}
+            for comp, new_attr_unit in zip(data.components, new_attrs["units"]):
+                if new_attr_unit:
+                    datakwargs[comp] = datakwargs[comp].to(new_attr_unit)
+            data = data.__class__(copy=False, **datakwargs)
 
-                # If the new differential is known to this frame and has a
-                # defined set of names and units, then use that.
-                new_attrs = self.representation_info.get(differential_cls)
-                if new_attrs and in_frame_units:
-                    diffkwargs = {comp: getattr(diff, comp) for comp in diff.components}
-                    for comp, new_attr_unit in zip(diff.components, new_attrs["units"]):
-                        # Some special-casing to treat a situation where the
-                        # input data has a UnitSphericalDifferential or a
-                        # RadialDifferential. It is re-represented to the
-                        # frame's differential class (which might be, e.g., a
-                        # dimensional Differential), so we don't want to try to
-                        # convert the empty component units
-                        if (
-                            isinstance(
-                                data_diff,
-                                (
-                                    r.UnitSphericalDifferential,
-                                    r.UnitSphericalCosLatDifferential,
-                                ),
-                            )
-                            and comp not in data_diff.__class__.attr_classes
-                        ):
-                            continue
+        if differential_cls:
+            # the original differential
+            data_diff = self.data.differentials["s"]
 
-                        elif (
-                            isinstance(data_diff, r.RadialDifferential)
-                            and comp not in data_diff.__class__.attr_classes
-                        ):
-                            continue
+            # If the new differential is known to this frame and has a
+            # defined set of names and units, then use that.
+            if in_frame_units and (
+                new_attrs := self.representation_info.get(differential_cls)
+            ):
+                diffkwargs = {comp: getattr(diff, comp) for comp in diff.components}
+                for comp, new_attr_unit in zip(diff.components, new_attrs["units"]):
+                    # Some special-casing to treat a situation where the
+                    # input data has a UnitSphericalDifferential or a
+                    # RadialDifferential. It is re-represented to the
+                    # frame's differential class (which might be, e.g., a
+                    # dimensional Differential), so we don't want to try to
+                    # convert the empty component units
+                    if (
+                        isinstance(
+                            data_diff,
+                            (
+                                r.UnitSphericalDifferential,
+                                r.UnitSphericalCosLatDifferential,
+                                r.RadialDifferential,
+                            ),
+                        )
+                        and comp not in data_diff.__class__.attr_classes
+                    ):
+                        continue
 
-                        # Try to convert to requested units. Since that might
-                        # not be possible (e.g., for a coordinate with proper
-                        # motion but without distance, one cannot convert to a
-                        # cartesian differential in km/s), we allow the unit
-                        # conversion to fail.  See gh-7028 for discussion.
-                        if new_attr_unit and hasattr(diff, comp):
-                            try:
-                                diffkwargs[comp] = diffkwargs[comp].to(new_attr_unit)
-                            except Exception:
-                                pass
+                    # Try to convert to requested units. Since that might
+                    # not be possible (e.g., for a coordinate with proper
+                    # motion but without distance, one cannot convert to a
+                    # cartesian differential in km/s), we allow the unit
+                    # conversion to fail.  See gh-7028 for discussion.
+                    if new_attr_unit and hasattr(diff, comp):
+                        try:
+                            diffkwargs[comp] = diffkwargs[comp].to(new_attr_unit)
+                        except Exception:
+                            pass
 
-                    diff = diff.__class__(copy=False, **diffkwargs)
+                diff = diff.__class__(copy=False, **diffkwargs)
 
-                    # Here we have to bypass using with_differentials() because
-                    # it has a validation check. But because
-                    # .representation_type and .differential_type don't point to
-                    # the original classes, if the input differential is a
-                    # RadialDifferential, it usually gets turned into a
-                    # SphericalCosLatDifferential (or whatever the default is)
-                    # with strange units for the d_lon and d_lat attributes.
-                    # This then causes the dictionary key check to fail (i.e.
-                    # comparison against `diff._get_deriv_key()`)
-                    data._differentials.update({"s": diff})
+                # Here we have to bypass using with_differentials() because
+                # it has a validation check. But because
+                # .representation_type and .differential_type don't point to
+                # the original classes, if the input differential is a
+                # RadialDifferential, it usually gets turned into a
+                # SphericalCosLatDifferential (or whatever the default is)
+                # with strange units for the d_lon and d_lat attributes.
+                # This then causes the dictionary key check to fail (i.e.
+                # comparison against `diff._get_deriv_key()`)
+                data._differentials.update({"s": diff})
 
-            self.cache["representation"][cache_key] = data
-
-        return self.cache["representation"][cache_key]
+        self.cache["representation"][cache_key] = data
+        return data
 
     def transform_to(self, new_frame):
         """
@@ -1242,9 +1224,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         Parameters
         ----------
-        new_frame : coordinate-like or `~astropy.coordinates.BaseCoordinateFrame` subclass instance
+        new_frame : coordinate-like
             The frame to transform this coordinate frame into.
-            The frame class option is deprecated.
 
         Returns
         -------
@@ -1274,18 +1255,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 " possible, please comment at"
                 " https://github.com/astropy/astropy/issues/6280"
             )
-
-        if isinstance(new_frame, type):
-            warnings.warn(
-                "Transforming a frame instance to a frame class (as opposed to another "
-                "frame instance) will not be supported in the future.  Either "
-                "explicitly instantiate the target frame, or first convert the source "
-                "frame instance to a `astropy.coordinates.SkyCoord` and use its "
-                "`transform_to()` method.",
-                AstropyDeprecationWarning,
-            )
-            # Use the default frame attributes for this class
-            new_frame = new_frame()
 
         if hasattr(new_frame, "_sky_coord_frame"):
             # Input new_frame is not a frame instance or class and is most
@@ -1613,6 +1582,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             new._representation = self._representation.copy()
         new._attr_names_with_defaults = self._attr_names_with_defaults.copy()
 
+        new_shape = ()
         for attr in self.frame_attributes:
             _attr = "_" + attr
             if attr in self._attr_names_with_defaults:
@@ -1621,6 +1591,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 value = getattr(self, _attr)
                 if getattr(value, "shape", ()):
                     value = apply_method(value)
+                    new_shape = new_shape or value.shape
                 elif method == "copy" or method == "flatten":
                     # flatten should copy also for a single element array, but
                     # we cannot use it directly for array scalars, since it
@@ -1631,22 +1602,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         if self.has_data:
             new._data = apply_method(self.data)
+            new_shape = new_shape or new._data.shape
         else:
             new._data = None
-            shapes = [
-                getattr(new, "_" + attr).shape
-                for attr in new.frame_attributes
-                if (
-                    attr not in new._attr_names_with_defaults
-                    and getattr(getattr(new, "_" + attr), "shape", ())
-                )
-            ]
-            if shapes:
-                new._no_data_shape = (
-                    check_broadcast(*shapes) if len(shapes) > 1 else shapes[0]
-                )
-            else:
-                new._no_data_shape = ()
+
+        new._shape = new_shape
 
         return new
 
@@ -1803,6 +1763,50 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     def __ne__(self, value):
         return np.logical_not(self == value)
 
+    def _prepare_unit_sphere_coords(
+        self, other: BaseCoordinateFrame | SkyCoord
+    ) -> tuple[Longitude, Latitude, Longitude, Latitude]:
+        self_sph = self.represent_as(r.UnitSphericalRepresentation)
+        other_sph = (
+            getattr(other, "frame", other)
+            .transform_to(self)
+            .represent_as(r.UnitSphericalRepresentation)
+        )
+        return self_sph.lon, self_sph.lat, other_sph.lon, other_sph.lat
+
+    def position_angle(self, other: BaseCoordinateFrame | SkyCoord) -> Angle:
+        """Compute the on-sky position angle to another coordinate.
+
+        Parameters
+        ----------
+        other : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
+            The other coordinate to compute the position angle to.  It is
+            treated as the "head" of the vector of the position angle.
+
+        Returns
+        -------
+        `~astropy.coordinates.Angle`
+            The (positive) position angle of the vector pointing from ``self``
+            to ``other``, measured East from North.  If either ``self`` or
+            ``other`` contain arrays, this will be an array following the
+            appropriate `numpy` broadcasting rules.
+
+        Examples
+        --------
+        >>> from astropy import units as u
+        >>> from astropy.coordinates import ICRS, SkyCoord
+        >>> c1 = SkyCoord(0*u.deg, 0*u.deg)
+        >>> c2 = ICRS(1*u.deg, 0*u.deg)
+        >>> c1.position_angle(c2).degree
+        90.0
+        >>> c2.position_angle(c1).degree
+        270.0
+        >>> c3 = SkyCoord(1*u.deg, 1*u.deg)
+        >>> c1.position_angle(c3).degree  # doctest: +FLOAT_CMP
+        44.995636455344844
+        """
+        return position_angle(*self._prepare_unit_sphere_coords(other))
+
     def separation(self, other):
         """
         Computes on-sky separation between this coordinate and another.
@@ -1815,9 +1819,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             that ``self.separation(other)`` and ``other.separation(self)`` may
             not give the same answer in this case.
 
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`astropy:/coordinates/matchsep`.
+
         Parameters
         ----------
-        other : `~astropy.coordinates.BaseCoordinateFrame`
+        other : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
             The coordinate to get the separation to.
 
         Returns
@@ -1833,27 +1840,23 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         .. [1] https://en.wikipedia.org/wiki/Great-circle_distance
 
         """
-        from .angle_utilities import angular_separation
-        from .angles import Angle
+        from .angles import Angle, angular_separation
 
-        self_unit_sph = self.represent_as(r.UnitSphericalRepresentation)
-        other_transformed = other.transform_to(self)
-        other_unit_sph = other_transformed.represent_as(r.UnitSphericalRepresentation)
-
-        # Get the separation as a Quantity, convert to Angle in degrees
-        sep = angular_separation(
-            self_unit_sph.lon, self_unit_sph.lat, other_unit_sph.lon, other_unit_sph.lat
+        return Angle(
+            angular_separation(*self._prepare_unit_sphere_coords(other)), unit=u.degree
         )
-        return Angle(sep, unit=u.degree)
 
     def separation_3d(self, other):
         """
         Computes three dimensional separation between this coordinate
         and another.
 
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`astropy:/coordinates/matchsep`.
+
         Parameters
         ----------
-        other : `~astropy.coordinates.BaseCoordinateFrame`
+        other : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
             The coordinate system to get the distance to.
 
         Returns
@@ -1874,7 +1877,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             )
 
         # do this first just in case the conversion somehow creates a distance
-        other_in_self_system = other.transform_to(self)
+        other_in_self_system = getattr(other, "frame", other).transform_to(self)
 
         if issubclass(other_in_self_system.__class__, r.UnitSphericalRepresentation):
             raise ValueError(
@@ -2021,5 +2024,4 @@ class GenericFrame(BaseCoordinateFrame):
     def __setattr__(self, name, value):
         if name in self.frame_attributes:
             raise AttributeError(f"can't set frame attribute '{name}'")
-        else:
-            super().__setattr__(name, value)
+        super().__setattr__(name, value)

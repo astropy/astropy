@@ -8,7 +8,6 @@ import os
 import re
 import sys
 import textwrap
-import warnings
 from contextlib import suppress
 
 import numpy as np
@@ -38,7 +37,7 @@ from astropy.io.fits.fitsrec import FITS_rec, _get_recarray_field, _has_unicode_
 from astropy.io.fits.header import Header, _pad_length
 from astropy.io.fits.util import _is_int, _str_to_num, path_like
 from astropy.utils import lazyproperty
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.decorators import deprecated
 
 from .base import DELAYED, ExtensionHDU, _ValidHDU
 
@@ -351,40 +350,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 else:
                     self.data = self._data_type.from_columns(data)
 
-                # TEMP: Special column keywords are normally overwritten by attributes
-                # from Column objects. In Astropy 3.0, several new keywords are now
-                # recognized as being special column keywords, but we don't
-                # automatically clear them yet, as we need to raise a deprecation
-                # warning for at least one major version.
-                if header is not None:
-                    future_ignore = set()
-                    for keyword in header.keys():
-                        match = TDEF_RE.match(keyword)
-                        try:
-                            base_keyword = match.group("label")
-                        except Exception:
-                            continue  # skip if there is no match
-                        if base_keyword in {
-                            "TCTYP",
-                            "TCUNI",
-                            "TCRPX",
-                            "TCRVL",
-                            "TCDLT",
-                            "TRPOS",
-                        }:
-                            future_ignore.add(base_keyword)
-                    if future_ignore:
-                        keys = ", ".join(x + "n" for x in sorted(future_ignore))
-                        warnings.warn(
-                            "The following keywords are now recognized as special "
-                            "column-related attributes and should be set via the "
-                            "Column objects: {}. In future, these values will be "
-                            "dropped from manually specified headers automatically "
-                            "and replaced with values generated based on the "
-                            "Column objects.".format(keys),
-                            AstropyDeprecationWarning,
-                        )
-
                 # TODO: Too much of the code in this class uses header keywords
                 # in making calculations related to the data size.  This is
                 # unreliable, however, in cases when users mess with the header
@@ -395,7 +360,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
                 self.columns = self.data._coldefs
                 self.columns._add_listener(self.data)
-                self.update()
+                self.update_header()
 
                 with suppress(TypeError, AttributeError):
                     # Make the ndarrays in the Column objects of the ColDefs
@@ -484,7 +449,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
             self.columns = self.data.columns
             self.columns._add_listener(self.data)
-            self.update()
+            self.update_header()
 
             with suppress(TypeError, AttributeError):
                 # Make the ndarrays in the Column objects of the ColDefs
@@ -517,10 +482,11 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         size = self._header["NAXIS1"] * self._header["NAXIS2"]
         return self._header.get("THEAP", size)
 
-    # TODO: Need to either rename this to update_header, for symmetry with the
-    # Image HDUs, or just at some point deprecate it and remove it altogether,
-    # since header updates should occur automatically when necessary...
+    @deprecated("v6.0", alternative="update_header")
     def update(self):
+        self.update_header()
+
+    def update_header(self):
         """
         Update header keywords to reflect recent changes of columns.
         """
@@ -702,20 +668,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 continue  # skip if there is no match
 
             if base_keyword in KEYWORD_TO_ATTRIBUTE:
-                # TEMP: For Astropy 3.0 we don't clear away the following keywords
-                # as we are first raising a deprecation warning that these will be
-                # dropped automatically if they were specified in the header. We
-                # can remove this once we are happy to break backward-compatibility
-                if base_keyword in {
-                    "TCTYP",
-                    "TCUNI",
-                    "TCRPX",
-                    "TCRVL",
-                    "TCDLT",
-                    "TRPOS",
-                }:
-                    continue
-
                 num = int(match.group("num")) - 1  # convert to zero-base
                 table_keywords.append((idx, match.group(0), base_keyword, num))
 

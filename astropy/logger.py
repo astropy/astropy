@@ -35,7 +35,7 @@ logging_levels = [
 ]
 for level in logging_levels:
     globals()[level] = getattr(logging, level)
-__all__ += logging_levels
+__all__ += logging_levels  # noqa: PLE0605
 
 
 # Initialize by calling _init_log()
@@ -285,7 +285,7 @@ class AstropyLogger(Logger):
                 tb = tb.tb_next
             mod = inspect.getmodule(tb)
 
-        # include the the error type in the message.
+        # include the error type in the message.
         if len(value.args) > 0:
             message = f"{etype.__name__}: {str(value)}"
         else:

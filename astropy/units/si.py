@@ -5,11 +5,13 @@ This package defines the SI units.  They are also available in the
 
 """
 
-import numpy as _numpy
+import numpy as np
 
 from astropy.constants import si as _si
 
 from .core import Unit, UnitBase, def_unit
+
+__all__: list[str] = []  #  Units are added at the end
 
 _ns = globals()
 
@@ -29,11 +31,21 @@ def_unit(
 ###########################################################################
 # LENGTH
 
+# We exclude c as a prefix so we can define cm as a derived unit,
+# not a PrefixUnit. That way it can be used in cgs as a base unit.
 def_unit(
     ["m", "meter"],
     namespace=_ns,
     prefixes=True,
+    exclude_prefixes=["c"],
     doc="meter: base unit of length in SI",
+)
+def_unit(
+    ["cm", "centimeter"],
+    0.01 * m,
+    namespace=_ns,
+    prefixes=False,
+    doc="cm: 0.01 m in SI, base unit of length in cgs",
 )
 def_unit(
     ["micron"],
@@ -79,7 +91,7 @@ def_unit(
 )
 def_unit(
     ["deg", "degree"],
-    _numpy.pi / 180.0 * rad,
+    np.pi / 180.0 * rad,
     namespace=_ns,
     prefixes=True,
     doc="degree: angular measurement 1/360 of full rotation",
@@ -434,15 +446,9 @@ bases = {m, s, kg, A, cd, rad, K, mol}
 
 
 ###########################################################################
-# CLEANUP
+# ALL & DOCSTRING
 
-del UnitBase
-del Unit
-del def_unit
-
-
-###########################################################################
-# DOCSTRING
+__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the

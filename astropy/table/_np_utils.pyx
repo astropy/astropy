@@ -13,6 +13,8 @@ from numpy.lib.recfunctions import drop_fields
 cimport cython
 cimport numpy as np
 
+np.import_array()
+
 DTYPE = int
 ctypedef np.intp_t DTYPE_t
 

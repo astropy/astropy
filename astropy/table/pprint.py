@@ -90,8 +90,8 @@ def get_auto_format_func(
                 out = format_func(format_, val)
                 if not isinstance(out, str):
                     raise ValueError(
-                        "Format function for value {} returned {} "
-                        "instead of string type".format(val, type(val))
+                        f"Format function for value {val} returned {type(val)} "
+                        "instead of string type"
                     )
             except Exception as err:
                 # For a masked element, the format function call likely failed
@@ -622,8 +622,8 @@ class TableFormatter:
         elif isinstance(align, (list, tuple)):
             if len(align) != n_cols:
                 raise ValueError(
-                    "got {} alignment values instead of "
-                    "the number of columns ({})".format(len(align), n_cols)
+                    f"got {len(align)} alignment values instead of "
+                    f"the number of columns ({n_cols})"
                 )
         else:
             raise TypeError(
@@ -809,7 +809,8 @@ class TableFormatter:
 
             if key.lower() == "q":
                 break
-            elif key == " " or key == "f":
+
+            if key == " " or key == "f":
                 i0 += delta_lines
             elif key == "b":
                 i0 = i0 - delta_lines

@@ -84,8 +84,6 @@ for further documentation.
 class ExtensionNotFoundException(Exception):
     """Raised if an HDU extension requested by the user does not exist."""
 
-    pass
-
 
 class HeaderFormatter:
     """Class to format the header(s) of a FITS file for display by the

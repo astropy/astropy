@@ -307,7 +307,7 @@ def get_readable_fileobj(
 
     Returns
     -------
-    file : readable file-like
+    file : :term:`file-like (readable)`
     """
     # close_fds is a list of file handles created by this function
     # that need to be closed.  We don't want to always just close the
@@ -1585,7 +1585,6 @@ def download_file(
     if missing_cache:
         warn(CacheMissingWarning(missing_cache, f_name))
     if conf.delete_temporary_downloads_at_exit:
-        global _tempfilestodel
         _tempfilestodel.append(f_name)
     return os.path.abspath(f_name)
 
@@ -1779,8 +1778,6 @@ _tempfilestodel = []
 
 @atexit.register
 def _deltemps():
-    global _tempfilestodel
-
     if _tempfilestodel is not None:
         while len(_tempfilestodel) > 0:
             fn = _tempfilestodel.pop()

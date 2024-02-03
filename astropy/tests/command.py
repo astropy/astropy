@@ -319,7 +319,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             shutil.copytree(self.docs_path, new_docs_path)
             self.docs_path = new_docs_path
 
-        shutil.copy("setup.cfg", self.testing_path)
+        shutil.copy("pyproject.toml", self.testing_path)
 
     def _change_permissions_testing_path(self, writable=False):
         if writable:

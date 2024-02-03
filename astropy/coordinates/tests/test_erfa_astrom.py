@@ -77,7 +77,7 @@ def test_interpolation_nd():
     interp_provider = ErfaAstromInterpolator(300 * u.s)
     provider = ErfaAstrom()
 
-    for shape in [tuple(), (1,), (10,), (3, 2), (2, 10, 5), (4, 5, 3, 2)]:
+    for shape in [(), (1,), (10,), (3, 2), (2, 10, 5), (4, 5, 3, 2)]:
         # create obstimes of the desired shapes
         delta_t = np.linspace(0, 12, np.prod(shape, dtype=int)) * u.hour
         obstime = (Time("2020-01-01T18:00") + delta_t).reshape(shape)
@@ -96,8 +96,7 @@ def test_interpolation_nd():
 
 def test_interpolation_broadcasting():
     import astropy.units as u
-    from astropy.coordinates import AltAz, EarthLocation, SkyCoord
-    from astropy.coordinates.angle_utilities import golden_spiral_grid
+    from astropy.coordinates import AltAz, EarthLocation, SkyCoord, golden_spiral_grid
     from astropy.coordinates.erfa_astrom import ErfaAstromInterpolator, erfa_astrom
     from astropy.time import Time
 

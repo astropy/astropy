@@ -49,7 +49,8 @@ def test_angle_arrays():
             stack.enter_context(pytest.raises(TypeError))
             stack.enter_context(
                 pytest.warns(
-                    DeprecationWarning, match="automatic object dtype is deprecated"
+                    np.VisibleDeprecationWarning,
+                    match="Creating an ndarray from ragged nested sequences",
                 )
             )
         else:
@@ -267,7 +268,7 @@ def test_array_len():
         c = ICRS(0 * u.deg, 0 * u.deg)
         len(c)
 
-    assert c.shape == tuple()
+    assert c.shape == ()
 
 
 def test_array_eq():

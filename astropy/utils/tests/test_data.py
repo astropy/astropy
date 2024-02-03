@@ -23,13 +23,13 @@ from contextlib import nullcontext
 from itertools import islice
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 
-import py.path
 import pytest
 
 import astropy.utils.data
 from astropy import units as _u  # u is taken
 from astropy.config import paths
-from astropy.tests.helper import PYTEST_LT_8_0
+from astropy.tests.helper import CI, IS_CRON, PYTEST_LT_8_0
+from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA
 from astropy.utils.data import (
     CacheDamaged,
     CacheMissingWarning,
@@ -61,14 +61,10 @@ from astropy.utils.data import (
 )
 from astropy.utils.exceptions import AstropyWarning
 
-CI = os.environ.get("CI", "false") == "true"
 TESTURL = "http://www.astropy.org"
 TESTURL2 = "http://www.astropy.org/about.html"
 TESTURL_SSL = "https://www.astropy.org"
 TESTLOCAL = get_pkg_data_filename(os.path.join("data", "local.dat"))
-
-# NOTE: Python can be built without bz2 or lzma.
-from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA
 
 # For when we need "some" test URLs
 FEW = 5
@@ -905,7 +901,7 @@ def test_find_by_hash(valid_urls, temp_cache):
 def test_find_invalid():
     # this is of course not a real data file and not on any remote server, but
     # it should *try* to go to the remote server
-    with pytest.raises(urllib.error.URLError):
+    with pytest.raises((urllib.error.URLError, TimeoutError)):
         get_pkg_data_filename(
             "kjfrhgjklahgiulrhgiuraehgiurhgiuhreglhurieghruelighiuerahiulruli"
         )
@@ -1102,10 +1098,14 @@ def test_data_noastropy_fallback(monkeypatch):
     assert os.path.isfile(fnout)
 
     # clearing the cache should be a no-up that doesn't affect fnout
-    with pytest.warns(
-        CacheMissingWarning, match=r".*Not clearing data cache - cache inaccessible.*"
-    ):
+    with pytest.warns(CacheMissingWarning) as record:
         clear_download_cache(TESTURL)
+    assert len(record) == 2
+    assert (
+        record[0].message.args[0]
+        == "Remote data cache could not be accessed due to OSError"
+    )
+    assert "Not clearing data cache - cache inaccessible" in record[1].message.args[0]
     assert os.path.isfile(fnout)
 
     # now remove it so tests don't clutter up the temp dir this should get
@@ -1146,12 +1146,10 @@ def test_read_unicode(filename):
     contents = get_pkg_data_contents(os.path.join("data", filename), encoding="binary")
     assert isinstance(contents, bytes)
     x = contents.splitlines()[1]
-    # fmt: off
     assert x == (
         b"\xff\xd7\x94\xd7\x90\xd7\xa1\xd7\x98\xd7\xa8\xd7\x95\xd7\xa0\xd7\x95"
         b"\xd7\x9e\xd7\x99 \xd7\xa4\xd7\x99\xd7\x99\xd7\xaa\xd7\x95\xd7\x9f"[1:]
     )
-    # fmt: on
 
 
 def test_compressed_stream():
@@ -1603,12 +1601,6 @@ def test_get_fileobj_str(a_file):
         assert rf.read() == c
 
 
-def test_get_fileobj_localpath(a_file):
-    fn, c = a_file
-    with get_readable_fileobj(py.path.local(fn)) as rf:
-        assert rf.read() == c
-
-
 def test_get_fileobj_pathlib(a_file):
     fn, c = a_file
     with get_readable_fileobj(pathlib.Path(fn)) as rf:
@@ -1777,7 +1769,7 @@ def test_can_make_directories_readonly(tmp_path):
             )
         elif platform.system() == "Windows":
             pytest.skip(
-                "It seems we can't make a driectory un-writable under Windows "
+                "It seems we can't make a directory un-writable under Windows "
                 "with chmod, in spite of the documentation."
             )
         else:
@@ -2198,7 +2190,7 @@ def test_clear_download_cache_raises_os_error(temp_cache, valid_urls, monkeypatc
 
 
 @pytest.mark.skipif(
-    CI and os.environ.get("IS_CRON", "false") == "false",
+    CI and not IS_CRON,
     reason="Flaky/too much external traffic for regular CI",
 )
 @pytest.mark.remote_data

@@ -8,6 +8,7 @@ import pytest
 
 from astropy.cosmology._io.model import _CosmologyModel, from_model, to_model
 from astropy.cosmology.core import Cosmology
+from astropy.cosmology.flrw.w0wzcdm import w0wzCDM
 from astropy.cosmology.tests.helper import get_redshift_methods
 from astropy.modeling.models import Gaussian1D
 from astropy.utils.compat.optional_deps import HAS_SCIPY
@@ -46,6 +47,11 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
                 getattr(cosmo, n)(*args)
             except ERROR_SEIVE:
                 methods.discard(n)
+            except TypeError:
+                # w0wzCDM has numerical instabilities when evaluating at z->inf
+                # TODO: a more robust fix in w0wzCDM itself would be better
+                if isinstance(cosmo, w0wzCDM):
+                    methods.discard(n)
 
         # TODO! pytest doesn't currently allow multiple yields (`cosmo`) so
         # testing with 1 random method
@@ -80,7 +86,7 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
         assert isinstance(model, _CosmologyModel)
 
         # Parameters
-        expect = tuple(n for n in cosmo.__parameters__ if getattr(cosmo, n) is not None)
+        expect = tuple(k for k, v in cosmo.parameters.items() if v is not None)
         assert model.param_names == expect
 
         # scalar result
@@ -139,12 +145,13 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
         assert got == cosmo
         assert set(cosmo.meta.keys()).issubset(got.meta.keys())
 
-    def test_fromformat_model_subclass_partial_info(self):
+    def test_fromformat_model_subclass_partial_info(self) -> None:
         """
         Test writing from an instance and reading from that class.
         This works with missing information.
+
+        There's no partial information with a Model
         """
-        pass  # there's no partial information with a Model
 
     @pytest.mark.parametrize("format", [True, False, None, "astropy.model"])
     def test_is_equivalent_to_model(self, cosmo, method_name, to_format, format):

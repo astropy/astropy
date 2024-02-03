@@ -23,8 +23,8 @@ from astropy.coordinates import (
     UnitSphericalCosLatDifferential,
     UnitSphericalDifferential,
     UnitSphericalRepresentation,
+    angular_separation,
 )
-from astropy.coordinates.angle_utilities import angular_separation
 from astropy.coordinates.representation import DIFFERENTIAL_CLASSES
 from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 
@@ -175,7 +175,7 @@ class TestArithmetic:
         with pytest.raises(TypeError):
             in_rep * in_rep
         with pytest.raises(TypeError):
-            dict() * in_rep
+            {} * in_rep
 
     def test_mul_div_unit_spherical(self):
         s1 = self.unit_spherical * self.distance

@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import annotations
+
 import copy
 from collections.abc import MappingView
 from types import MappingProxyType
@@ -7,8 +9,8 @@ from types import MappingProxyType
 import numpy as np
 
 from astropy import units as u
+from astropy.coordinates import Angle
 from astropy.coordinates import representation as r
-from astropy.coordinates.angles import Angle
 from astropy.coordinates.attributes import (
     CoordinateAttribute,
     DifferentialAttribute,
@@ -22,7 +24,7 @@ from astropy.coordinates.baseframe import (
 from astropy.coordinates.errors import ConvertError
 from astropy.coordinates.matrix_utilities import matrix_transpose, rotation_matrix
 from astropy.coordinates.transformations import AffineTransform
-from astropy.utils.decorators import classproperty, deprecated, format_doc
+from astropy.utils.decorators import classproperty, format_doc
 from astropy.utils.state import ScienceState
 
 from .icrs import ICRS
@@ -150,7 +152,7 @@ class galactocentric_frame_defaults(ScienceState):
     _latest_value = "v4.0"
     _value = None
     _references = None
-    _state = dict()  # all other data
+    _state = {}  # all other data
 
     # Note: _StateProxy() produces read-only view of enclosed mapping.
     _registry = {
@@ -228,7 +230,7 @@ class galactocentric_frame_defaults(ScienceState):
         return cls._references
 
     @classmethod
-    def get_from_registry(cls, name: str):
+    def get_from_registry(cls, name: str) -> dict[str, dict]:
         """
         Return Galactocentric solar parameters and metadata given string names
         for the parameter sets. This method ensures the returned state is a
@@ -266,27 +268,6 @@ class galactocentric_frame_defaults(ScienceState):
 
         return state
 
-    @deprecated("v4.2", alternative="`get_from_registry`")
-    @classmethod
-    def get_solar_params_from_string(cls, arg):
-        """
-        Return Galactocentric solar parameters given string names
-        for the parameter sets.
-
-        Returns
-        -------
-        parameters : dict
-            Copy of Galactocentric solar parameters from registry
-
-        Raises
-        ------
-        KeyError
-            If invalid string input to registry
-            to retrieve solar parameters for Galactocentric frame.
-
-        """
-        return cls.get_from_registry(arg)["parameters"]
-
     @classmethod
     def validate(cls, value):
         if value is None:
@@ -303,11 +284,11 @@ class galactocentric_frame_defaults(ScienceState):
 
         elif isinstance(value, Galactocentric):
             # turn the frame instance into a dict of frame attributes
-            parameters = dict()
+            parameters = {}
             for k in value.frame_attributes:
                 parameters[k] = getattr(value, k)
             cls._references = value.frame_attribute_references.copy()
-            cls._state = dict(parameters=parameters, references=cls._references)
+            cls._state = {"parameters": parameters, "references": cls._references}
 
         else:
             raise ValueError(
@@ -318,7 +299,9 @@ class galactocentric_frame_defaults(ScienceState):
         return parameters
 
     @classmethod
-    def register(cls, name: str, parameters: dict, references=None, **meta: dict):
+    def register(
+        cls, name: str, parameters: dict, references=None, **meta: dict
+    ) -> None:
         """Register a set of parameters.
 
         Parameters
@@ -342,7 +325,7 @@ class galactocentric_frame_defaults(ScienceState):
 
         references = references or {}  # None -> {}
 
-        state = dict(parameters=parameters, references=references)
+        state = {"parameters": parameters, "references": references}
         state.update(meta)  # meta never has keys "parameters" or "references"
 
         cls._registry[name] = state

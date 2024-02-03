@@ -156,16 +156,16 @@ on the class or the instance::
     >>> ndd = NDDataPower([1,2,3])
 
     >>> # using it on the instance with one operand
-    >>> ndd.pow(3)
-    NDDataPower([ 1,  8, 27])
+    >>> ndd.pow(3)  # doctest: +ELLIPSIS
+    NDDataPower([ 1,  8, 27]...)
 
     >>> # using it on the instance with two operands
-    >>> ndd.pow([1,2,3], [3,4,5])
-    NDDataPower([  1,  16, 243])
+    >>> ndd.pow([1,2,3], [3,4,5])  # doctest: +ELLIPSIS
+    NDDataPower([ 1, 16, 243]...)
 
     >>> # or using it as classmethod
-    >>> NDDataPower.pow(6, [1,2,3])
-    NDDataPower([  6,  36, 216])
+    >>> NDDataPower.pow(6, [1,2,3])  # doctest: +ELLIPSIS
+    NDDataPower([ 6, 36, 216]...)
 
 To allow propagation also with ``uncertainty`` see subclassing
 `~astropy.nddata.NDUncertainty`.

@@ -2,17 +2,16 @@
 
 """Testing :mod:`astropy.cosmology.flrw.w0wzcdm`."""
 
-# THIRD PARTY
 import numpy as np
 import pytest
 
-# LOCAL
 import astropy.units as u
 from astropy.cosmology import Flatw0wzCDM, w0wzCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin, make_valid_zs
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
+from .conftest import filter_keys_from_items
 from .test_base import FlatFLRWMixinTest, FLRWTest
 from .test_w0cdm import Parameterw0TestMixin
 
@@ -40,9 +39,11 @@ class ParameterwzTestMixin(ParameterTestMixin):
     def test_wz(self, cosmo_cls, cosmo):
         """Test Parameter ``wz``."""
         # on the class
-        assert isinstance(cosmo_cls.wz, Parameter)
-        assert "Derivative of the dark energy" in cosmo_cls.wz.__doc__
-        assert cosmo_cls.wz.unit is None
+        wz = cosmo_cls.parameters["wz"]
+        assert isinstance(wz, Parameter)
+        assert "Derivative of the dark energy" in wz.__doc__
+        assert wz.unit is None
+        assert wz.default == 0.0
 
         # on the instance
         assert cosmo.wz is cosmo._wz
@@ -86,8 +87,7 @@ class Testw0wzCDM(FLRWTest, Parameterw0TestMixin, ParameterwzTestMixin):
         c = cosmo.clone(w0=0.1, wz=0.2)
         assert c.w0 == 0.1
         assert c.wz == 0.2
-        for n in set(cosmo.__parameters__) - {"w0", "wz"}:
-            v = getattr(c, n)
+        for n, v in filter_keys_from_items(c.parameters, ("w0", "wz")):
             if v is None:
                 assert v is getattr(cosmo, n)
             else:
@@ -105,16 +105,13 @@ class Testw0wzCDM(FLRWTest, Parameterw0TestMixin, ParameterwzTestMixin):
             cosmo.w([0.0, 0.5, 1.0, 1.5, 2.3]), [-1.0, -0.75, -0.5, -0.25, 0.15]
         )
 
-    def test_repr(self, cosmo_cls, cosmo):
+    def test_repr(self, cosmo):
         """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = (
-            'w0wzCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27,'
-            " Ode0=0.73, w0=-1.0, wz=0.5, Tcmb0=3.0 K, Neff=3.04,"
-            " m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+        assert repr(cosmo) == (
+            "w0wzCDM(name='ABCMeta', H0=<Quantity 70. km / (Mpc s)>, Om0=0.27,"
+            " Ode0=0.73, w0=-1.0, wz=0.5, Tcmb0=<Quantity 3. K>, Neff=3.04,"
+            " m_nu=<Quantity [0., 0., 0.] eV>, Ob0=0.03)"
         )
-        assert repr(cosmo) == expected
 
     # ---------------------------------------------------------------
 
@@ -202,16 +199,13 @@ class TestFlatw0wzCDM(FlatFLRWMixinTest, Testw0wzCDM):
         super().setup_class(self)
         self.cls = Flatw0wzCDM
 
-    def test_repr(self, cosmo_cls, cosmo):
+    def test_repr(self, cosmo):
         """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = (
-            'Flatw0wzCDM(name="ABCMeta", H0=70.0 km / (Mpc s),'
-            " Om0=0.27, w0=-1.0, wz=0.5, Tcmb0=3.0 K,"
-            " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+        assert repr(cosmo) == (
+            "Flatw0wzCDM(name='ABCMeta', H0=<Quantity 70. km / (Mpc s)>, Om0=0.27,"
+            " w0=-1.0, wz=0.5, Tcmb0=<Quantity 3. K>, Neff=3.04,"
+            " m_nu=<Quantity [0., 0., 0.] eV>, Ob0=0.03)"
         )
-        assert repr(cosmo) == expected
 
     # ---------------------------------------------------------------
 

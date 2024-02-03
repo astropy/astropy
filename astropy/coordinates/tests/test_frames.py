@@ -736,6 +736,21 @@ def test_sep():
         i7.separation_3d(i3)
 
 
+@pytest.mark.parametrize(
+    "method,expectation",
+    [
+        pytest.param("separation", 0.69815121 * u.deg, id="separation"),
+        pytest.param("separation_3d", 0.12184962 * u.pc, id="separation_3d"),
+    ],
+)
+def test_seps_with_skycoord(method, expectation):
+    coords = (1 * u.deg, 2 * u.deg, 10 * u.pc)
+    assert_allclose(
+        getattr(FK5(*coords), method)(SkyCoord(*coords, frame=FK5, equinox="B1950")),
+        expectation,
+    )
+
+
 def test_time_inputs():
     """
     Test validation and conversion of inputs for equinox and obstime attributes.
@@ -753,12 +768,16 @@ def test_time_inputs():
         c = FK4(1 * u.deg, 2 * u.deg, obstime="hello")
     assert "Invalid time input" in str(err.value)
 
-    # A vector time should work if the shapes match, but we don't automatically
-    # broadcast the basic data (just like time).
-    FK4([1, 2] * u.deg, [2, 3] * u.deg, obstime=["J2000", "J2001"])
-    with pytest.raises(ValueError) as err:
-        FK4(1 * u.deg, 2 * u.deg, obstime=["J2000", "J2001"])
-    assert "shape" in str(err.value)
+    # A vector time should work if the shapes match, and we automatically
+    # broadcast the basic data.
+    c = FK4([1, 2] * u.deg, [2, 3] * u.deg, obstime=["J2000", "J2001"])
+    assert c.shape == (2,)
+    c = FK4(1 * u.deg, 2 * u.deg, obstime=["J2000", "J2001"])
+    assert c.shape == (2,)
+
+    # If the shapes are not broadcastable, then we should raise an exception.
+    with pytest.raises(ValueError, match="inconsistent shapes"):
+        FK4([1, 2, 3] * u.deg, [4, 5, 6] * u.deg, obstime=["J2000", "J2001"])
 
 
 def test_is_frame_attr_default():
@@ -1549,7 +1568,7 @@ def test_galactocentric_defaults():
     with galactocentric_frame_defaults.set("latest"):
         params = galactocentric_frame_defaults.validate(galcen_latest)
         references = galcen_latest.frame_attribute_references
-        state = dict(parameters=params, references=references)
+        state = {"parameters": params, "references": references}
 
         assert galactocentric_frame_defaults.parameters == params
         assert galactocentric_frame_defaults.references == references
@@ -1676,3 +1695,50 @@ def test_frame_coord_comparison():
     error_msg = "Can only compare SkyCoord to Frame with data"
     with pytest.raises(ValueError, match=error_msg):
         frame == coord  # noqa: B015
+
+
+@pytest.mark.parametrize(
+    ["s1", "s2"],
+    (
+        ((1,), (1,)),
+        ((2,), (1,)),
+        ((1,), (2,)),
+        ((2,), (2,)),
+        ((2, 1), (1,)),
+        ((1,), (2, 1)),
+        ((2, 1), (1, 3)),
+    ),
+)
+def test_altaz_broadcast(s1, s2):
+    """Note: Regression test for #5982"""
+    where = EarthLocation.from_geodetic(lat=45 * u.deg, lon=30 * u.deg, height=0 * u.m)
+    time = Time(np.full(s1, 58000.0), format="mjd")
+    angle = np.full(s2, 45.0) * u.deg
+    result = AltAz(alt=angle, az=angle, obstime=time, location=where)
+    assert result.shape == np.broadcast_shapes(s1, s2)
+
+
+def test_transform_altaz_array_obstime():
+    """Note: Regression test for #12965"""
+    obstime = Time("2010-01-01T00:00:00")
+    location = EarthLocation(0 * u.deg, 0 * u.deg, 0 * u.m)
+
+    frame1 = AltAz(location=location, obstime=obstime)
+    coord1 = SkyCoord(alt=80 * u.deg, az=0 * u.deg, frame=frame1)
+
+    obstimes = obstime + np.linspace(0, 15, 50) * u.min
+    frame2 = AltAz(location=location, obstime=obstimes)
+    coord2 = SkyCoord(alt=coord1.alt, az=coord1.az, frame=frame2)
+    assert np.all(coord2.alt == 80 * u.deg)
+    assert np.all(coord2.az == 0 * u.deg)
+    assert coord2.shape == (50,)
+
+    # test transformation to ICRS works
+    assert len(coord2.icrs) == 50
+
+
+def test_spherical_offsets_by_broadcast():
+    """Note: Regression test for #14383"""
+    assert SkyCoord(
+        ra=np.array([123, 134, 145]), dec=np.array([45, 56, 67]), unit=u.deg
+    ).spherical_offsets_by(2 * u.deg, 2 * u.deg).shape == (3,)

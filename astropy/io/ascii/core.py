@@ -23,7 +23,7 @@ from collections import OrderedDict
 from contextlib import suppress
 from io import StringIO
 
-import numpy
+import numpy as np
 
 from astropy.table import Table
 from astropy.utils.data import get_readable_fileobj
@@ -158,7 +158,7 @@ class CsvWriter:
         return row_string
 
 
-class MaskedConstant(numpy.ma.core.MaskedConstant):
+class MaskedConstant(np.ma.core.MaskedConstant):
     """A trivial extension of numpy.ma.masked.
 
     We want to be able to put the generic term ``masked`` into a dictionary.
@@ -770,8 +770,8 @@ class BaseHeader:
 
         if names is not None and len(names) != len(self.colnames):
             raise InconsistentTableError(
-                "Length of names argument ({}) does not match number"
-                " of table columns ({})".format(len(names), len(self.colnames))
+                f"Length of names argument ({len(names)}) does not match number "
+                f"of table columns ({len(self.colnames)})"
             )
 
 
@@ -908,7 +908,7 @@ class BaseData:
         """READ: Replace string values in col.str_vals and set masks."""
         if self.fill_values:
             for col in (col for col in cols if col.fill_values):
-                col.mask = numpy.zeros(len(col.str_vals), dtype=bool)
+                col.mask = np.zeros(len(col.str_vals), dtype=bool)
                 for i, str_val in (
                     (i, x) for i, x in enumerate(col.str_vals) if x in col.fill_values
                 ):
@@ -1002,7 +1002,7 @@ def convert_numpy(numpy_type):
         the required type.
     """
     # Infer converter type from an instance of numpy_type.
-    type_name = numpy.array([], dtype=numpy_type).dtype.name
+    type_name = np.array([], dtype=numpy_type).dtype.name
     if "int" in type_name:
         converter_type = IntType
     elif "float" in type_name:
@@ -1020,26 +1020,26 @@ def convert_numpy(numpy_type):
         for any other string values.
         """
         if len(vals) == 0:
-            return numpy.array([], dtype=bool)
+            return np.array([], dtype=bool)
 
         # Try a smaller subset first for a long array
         if len(vals) > 10000:
-            svals = numpy.asarray(vals[:1000])
-            if not numpy.all(
+            svals = np.asarray(vals[:1000])
+            if not np.all(
                 (svals == "False") | (svals == "True") | (svals == "0") | (svals == "1")
             ):
                 raise ValueError('bool input strings must be False, True, 0, 1, or ""')
-        vals = numpy.asarray(vals)
+        vals = np.asarray(vals)
 
         trues = (vals == "True") | (vals == "1")
         falses = (vals == "False") | (vals == "0")
-        if not numpy.all(trues | falses):
+        if not np.all(trues | falses):
             raise ValueError('bool input strings must be only False, True, 0, 1, or ""')
 
         return trues
 
     def generic_converter(vals):
-        return numpy.array(vals, numpy_type)
+        return np.array(vals, numpy_type)
 
     converter = bool_converter if converter_type is BoolType else generic_converter
 
@@ -1068,7 +1068,7 @@ class BaseOutputter:
         try:
             # Don't allow list-like things that dtype accepts
             assert type(converters) is type
-            converters = [numpy.dtype(converters)]
+            converters = [np.dtype(converters)]
         except (AssertionError, TypeError):
             pass
 
@@ -1183,8 +1183,8 @@ class TableOutputter(BaseOutputter):
         self._convert_vals(cols)
 
         t_cols = [
-            numpy.ma.MaskedArray(x.data, mask=x.mask)
-            if hasattr(x, "mask") and numpy.any(x.mask)
+            np.ma.MaskedArray(x.data, mask=x.mask)
+            if hasattr(x, "mask") and np.any(x.mask)
             else x.data
             for x in cols
         ]
@@ -1440,12 +1440,10 @@ class BaseReader(metaclass=MetaBaseReader):
                 # otherwise, we raise an error only if it is still inconsistent
                 if len(str_vals) != n_cols:
                     errmsg = (
-                        "Number of header columns ({}) inconsistent with"
-                        " data columns ({}) at data line {}\n"
-                        "Header values: {}\n"
-                        "Data values: {}".format(
-                            n_cols, len(str_vals), i, [x.name for x in cols], str_vals
-                        )
+                        f"Number of header columns ({n_cols}) inconsistent with "
+                        f"data columns ({len(str_vals)}) at data line {i}\n"
+                        f"Header values: {[x.name for x in cols]}\n"
+                        f"Data values: {str_vals}"
                     )
 
                     raise InconsistentTableError(errmsg)
@@ -1639,9 +1637,6 @@ class WhitespaceSplitter(DefaultSplitter):
 
 
 extra_reader_pars = (
-    "Reader",
-    "Inputter",
-    "Outputter",
     "delimiter",
     "comment",
     "quotechar",
@@ -1650,8 +1645,8 @@ extra_reader_pars = (
     "data_end",
     "converters",
     "encoding",
-    "data_Splitter",
-    "header_Splitter",
+    "data_splitter_cls",
+    "header_splitter_cls",
     "names",
     "include_names",
     "exclude_names",
@@ -1662,17 +1657,17 @@ extra_reader_pars = (
 )
 
 
-def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
+def _get_reader(reader_cls, inputter_cls=None, outputter_cls=None, **kwargs):
     """Initialize a table reader allowing for common customizations.  See ui.get_reader()
     for param docs.  This routine is for internal (package) use only and is useful
     because it depends only on the "core" module.
     """
     from .fastbasic import FastBasic
 
-    if issubclass(Reader, FastBasic):  # Fast readers handle args separately
-        if Inputter is not None:
-            kwargs["Inputter"] = Inputter
-        return Reader(**kwargs)
+    if issubclass(reader_cls, FastBasic):  # Fast readers handle args separately
+        if inputter_cls is not None:
+            kwargs["inputter_cls"] = inputter_cls
+        return reader_cls(**kwargs)
 
     # If user explicitly passed a fast reader with enable='force'
     # (e.g. by passing non-default options), raise an error for slow readers
@@ -1681,20 +1676,20 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
             raise ParameterError(
                 "fast_reader required with "
                 "{}, but this is not a fast C reader: {}".format(
-                    kwargs["fast_reader"], Reader
+                    kwargs["fast_reader"], reader_cls
                 )
             )
         else:
             del kwargs["fast_reader"]  # Otherwise ignore fast_reader parameter
 
     reader_kwargs = {k: v for k, v in kwargs.items() if k not in extra_reader_pars}
-    reader = Reader(**reader_kwargs)
+    reader = reader_cls(**reader_kwargs)
 
-    if Inputter is not None:
-        reader.inputter = Inputter()
+    if inputter_cls is not None:
+        reader.inputter = inputter_cls()
 
-    if Outputter is not None:
-        reader.outputter = Outputter()
+    if outputter_cls is not None:
+        reader.outputter = outputter_cls()
 
     # Issue #855 suggested to set data_start to header_start + default_header_length
     # Thus, we need to retrieve this from the class definition before resetting these numbers.
@@ -1741,10 +1736,10 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
             raise ValueError("header_start cannot be modified for this Reader")
     if "converters" in kwargs:
         reader.outputter.converters = kwargs["converters"]
-    if "data_Splitter" in kwargs:
-        reader.data.splitter = kwargs["data_Splitter"]()
-    if "header_Splitter" in kwargs:
-        reader.header.splitter = kwargs["header_Splitter"]()
+    if "data_splitter_cls" in kwargs:
+        reader.data.splitter = kwargs["data_splitter_cls"]()
+    if "header_splitter_cls" in kwargs:
+        reader.header.splitter = kwargs["header_splitter_cls"]()
     if "names" in kwargs:
         reader.names = kwargs["names"]
         if None in reader.names:
@@ -1789,7 +1784,7 @@ extra_writer_pars = (
 )
 
 
-def _get_writer(Writer, fast_writer, **kwargs):
+def _get_writer(writer_cls, fast_writer, **kwargs):
     """Initialize a table writer allowing for common customizations. This
     routine is for internal (package) use only and is useful because it depends
     only on the "core" module.
@@ -1803,15 +1798,15 @@ def _get_writer(Writer, fast_writer, **kwargs):
     if "fill_values" in kwargs and kwargs["fill_values"] is None:
         del kwargs["fill_values"]
 
-    if issubclass(Writer, FastBasic):  # Fast writers handle args separately
-        return Writer(**kwargs)
-    elif fast_writer and f"fast_{Writer._format_name}" in FAST_CLASSES:
+    if issubclass(writer_cls, FastBasic):  # Fast writers handle args separately
+        return writer_cls(**kwargs)
+    elif fast_writer and f"fast_{writer_cls._format_name}" in FAST_CLASSES:
         # Switch to fast writer
         kwargs["fast_writer"] = fast_writer
-        return FAST_CLASSES[f"fast_{Writer._format_name}"](**kwargs)
+        return FAST_CLASSES[f"fast_{writer_cls._format_name}"](**kwargs)
 
     writer_kwargs = {k: v for k, v in kwargs.items() if k not in extra_writer_pars}
-    writer = Writer(**writer_kwargs)
+    writer = writer_cls(**writer_kwargs)
 
     if "delimiter" in kwargs:
         writer.header.splitter.delimiter = kwargs["delimiter"]

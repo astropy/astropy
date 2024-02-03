@@ -32,7 +32,7 @@ from astropy.utils.compat import NUMPY_LT_1_25
 from astropy.utils.compat.optional_deps import HAS_PANDAS
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.tests.test_metadata import MetaBaseTest
+from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 
 from .conftest import MIXIN_COLS, MaskedTable
 
@@ -1938,7 +1938,7 @@ class TestPandas:
                 for byte in ["2", "4", "8"]:
                     dtype = np.dtype(endian + kind + byte)
                     x = np.array([1, 2, 3], dtype=dtype)
-                    t[endian + kind + byte] = x.newbyteorder(endian)
+                    t[endian + kind + byte] = x.view(x.dtype.newbyteorder(endian))
 
         t["u"] = ["a", "b", "c"]
         t["s"] = ["a", "b", "c"]
@@ -1958,7 +1958,7 @@ class TestPandas:
                 if t[column].dtype.isnative:
                     assert d[column].dtype == t[column].dtype
                 else:
-                    assert d[column].dtype == t[column].byteswap().newbyteorder().dtype
+                    assert d[column].dtype == t[column].dtype.newbyteorder()
 
         # Regression test for astropy/astropy#1156 - the following code gave a
         # ValueError: Big-endian buffer not supported on little-endian
@@ -1979,7 +1979,7 @@ class TestPandas:
             if t[column].dtype.isnative:
                 assert t[column].dtype == t2[column].dtype
             else:
-                assert t[column].byteswap().newbyteorder().dtype == t2[column].dtype
+                assert t[column].dtype.newbyteorder() == t2[column].dtype
 
     @pytest.mark.parametrize("unsigned", ["u", ""])
     @pytest.mark.parametrize("bits", [8, 16, 32, 64])
@@ -2150,10 +2150,9 @@ class TestPandas:
             # No warning with the default use_nullable_int=True
             d = t.to_pandas(use_nullable_int=use_nullable_int)
         else:
-            import pandas
-            from packaging.version import Version
+            from astropy.utils.introspection import minversion
 
-            PANDAS_LT_2_0 = Version(pandas.__version__) < Version("2.0")
+            PANDAS_LT_2_0 = not minversion("pandas", "2.0")
             if PANDAS_LT_2_0:
                 if PYTEST_LT_8_0:
                     ctx = nullcontext()
@@ -2195,7 +2194,7 @@ class TestPandas:
                 if column.dtype.byteorder in ("=", "|"):
                     assert column.dtype == t2[name].dtype
                 else:
-                    assert column.byteswap().newbyteorder().dtype == t2[name].dtype
+                    assert column.dtype.newbyteorder() == t2[name].dtype
 
     def test_units(self):
         import pandas as pd
@@ -2898,14 +2897,19 @@ def test_table_attribute_ecsv():
 
 
 def test_table_attribute_fail():
-    # Code raises ValueError(f'{attr} not allowed as TableAttribute') but in this
-    # context it gets re-raised as a RuntimeError during class definition.
-    with pytest.raises(RuntimeError, match="Error calling __set_name__"):
+    if sys.version_info[:2] >= (3, 12):
+        ctx = pytest.raises(ValueError, match=".* not allowed as TableAttribute")
+    else:
+        # Code raises ValueError(f'{attr} not allowed as TableAttribute') but in this
+        # context it gets re-raised as a RuntimeError during class definition.
+        ctx = pytest.raises(RuntimeError, match="Error calling __set_name__")
+
+    with ctx:
 
         class MyTable2(Table):
             descriptions = TableAttribute()  # Conflicts with init arg
 
-    with pytest.raises(RuntimeError, match="Error calling __set_name__"):
+    with ctx:
 
         class MyTable3(Table):
             colnames = TableAttribute()  # Conflicts with built-in property
@@ -3284,3 +3288,62 @@ def test_add_list_order():
     array = np.empty((20, 1))
     t.add_columns(array, names=names)
     assert t.colnames == names
+
+
+def test_table_write_preserves_nulls(tmp_path):
+    """Ensures that upon writing a table, the fill_value attribute of a
+    masked (integer) column is correctly propagated into the TNULL parameter
+    in the FITS header"""
+
+    # Could be anything except for 999999, which is the "default" fill_value
+    # for masked int arrays
+    NULL_VALUE = -1
+
+    # Create table with an integer MaskedColumn with custom fill_value
+    c1 = MaskedColumn(
+        name="a",
+        data=np.asarray([1, 2, 3], dtype=np.int32),
+        mask=[True, False, True],
+        fill_value=NULL_VALUE,
+    )
+    t = Table([c1])
+
+    table_filename = tmp_path / "nultable.fits"
+
+    # Write the table out with Table.write()
+    t.write(table_filename)
+
+    # Open the output file, and check the TNULL parameter is NULL_VALUE
+    with fits.open(table_filename) as hdul:
+        header = hdul[1].header
+
+    assert header["TNULL1"] == NULL_VALUE
+
+
+def test_as_array_preserve_fill_value():
+    """Ensures that Table.as_array propagates a MaskedColumn's fill_value to
+    the output array"""
+
+    INT_FILL = 123
+    FLOAT_FILL = 123.0
+    STR_FILL = "xyz"
+    CMPLX_FILL = complex(3.14, 2.71)
+
+    # set up a table with some columns with different data types
+    c_int = MaskedColumn(name="int", data=[1, 2, 3], fill_value=INT_FILL)
+    c_float = MaskedColumn(name="float", data=[1.0, 2.0, 3.0], fill_value=FLOAT_FILL)
+    c_str = MaskedColumn(name="str", data=["abc", "def", "ghi"], fill_value=STR_FILL)
+    c_cmplx = MaskedColumn(
+        name="cmplx",
+        data=[complex(1, 0), complex(0, 1), complex(1, 1)],
+        fill_value=CMPLX_FILL,
+    )
+
+    t = Table([c_int, c_float, c_str, c_cmplx])
+
+    tn = t.as_array()
+
+    assert tn["int"].fill_value == INT_FILL
+    assert tn["float"].fill_value == FLOAT_FILL
+    assert tn["str"].fill_value == STR_FILL
+    assert tn["cmplx"].fill_value == CMPLX_FILL

@@ -1,10 +1,12 @@
 # The purpose of these tests are to ensure that calling ufuncs with quantities
 # returns quantities with the right units, or raises exceptions.
 
+from __future__ import annotations
+
 import concurrent.futures
 import dataclasses
 import warnings
-from collections import namedtuple
+from typing import Callable, NamedTuple
 
 import numpy as np
 import pytest
@@ -15,12 +17,55 @@ from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
 from astropy.units.quantity_helper.helpers import helper_sqrt
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_25
+from astropy.utils.compat.numpycompat import NUMPY_LT_1_25, NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
-testcase = namedtuple("testcase", ["f", "q_in", "q_out"])
-testexc = namedtuple("testexc", ["f", "q_in", "exc", "msg"])
-testwarn = namedtuple("testwarn", ["f", "q_in", "wfilter"])
+if NUMPY_LT_2_0:
+    from numpy.core import umath as np_umath
+else:
+    from numpy._core import umath as np_umath
+
+
+class testcase(NamedTuple):
+    """A test case for a ufunc."""
+
+    f: Callable
+    """The ufunc to test."""
+
+    q_in: tuple[Quantity]
+    """The input quantities."""
+
+    q_out: tuple[Quantity]
+    """The expected output quantities."""
+
+
+class testexc(NamedTuple):
+    """A test case for a ufunc that should raise an exception."""
+
+    f: Callable
+    """The ufunc to test."""
+
+    q_in: tuple[Quantity]
+    """The input quantities."""
+
+    exc: type
+    """The expected exception type."""
+
+    msg: str | None
+    """The expected exception message."""
+
+
+class testwarn(NamedTuple):
+    """A test case for a ufunc that should raise a warning."""
+
+    f: Callable
+    """The ufunc to test."""
+
+    q_in: tuple[Quantity]
+    """The input quantities."""
+
+    wfilter: str
+    """The expected warning filter."""
 
 
 @pytest.mark.skip
@@ -59,11 +104,8 @@ class TestUfuncHelpers:
     @pytest.mark.skipif(HAS_SCIPY, reason="scipy coverage is known to be incomplete")
     def test_coverage(self):
         """Test that we cover all ufunc's"""
-
         all_np_ufuncs = {
-            ufunc
-            for ufunc in np.core.umath.__dict__.values()
-            if isinstance(ufunc, np.ufunc)
+            ufunc for ufunc in np_umath.__dict__.values() if isinstance(ufunc, np.ufunc)
         }
 
         all_q_ufuncs = qh.UNSUPPORTED_UFUNCS | set(qh.UFUNC_HELPERS.keys())
@@ -295,10 +337,6 @@ class TestQuantityMathFuncs:
             == np.arange(0, 6.0, 2.0) * u.m / u.s
         )
 
-    @pytest.mark.skipif(
-        not isinstance(getattr(np, "matmul", None), np.ufunc),
-        reason="np.matmul is not yet a gufunc",
-    )
     def test_matmul(self):
         q = np.arange(3.0) * u.m
         r = np.matmul(q, q)
@@ -318,6 +356,13 @@ class TestQuantityMathFuncs:
         ) / u.s  # fmt: skip
         r2 = np.matmul(q1, q2)
         assert np.all(r2 == np.matmul(q1.value, q2.value) * q1.unit * q2.unit)
+
+    @pytest.mark.skipif(NUMPY_LT_2_0, reason="vecdot only added in numpy 2.0")
+    def test_vecdot(self):
+        q1 = np.array([1j, 2j, 3j]) * u.m
+        q2 = np.array([4j, 5j, 6j]) / u.s
+        o = np.vecdot(q1, q2)
+        assert o == (32.0 + 0j) * u.m / u.s
 
     @pytest.mark.parametrize("function", (np.divide, np.true_divide))
     def test_divide_scalar(self, function):
@@ -1038,9 +1083,7 @@ class TestWhere:
             np.add(a, a, out=a, where=where)
 
 
-@pytest.mark.skipif(
-    not hasattr(np.core.umath, "clip"), reason="no clip ufunc available"
-)
+@pytest.mark.skipif(not hasattr(np_umath, "clip"), reason="no clip ufunc available")
 class TestClip:
     """Test the clip ufunc.
 
@@ -1049,7 +1092,7 @@ class TestClip:
     """
 
     def setup_method(self):
-        self.clip = np.core.umath.clip
+        self.clip = np_umath.clip
 
     def test_clip_simple(self):
         q = np.arange(-1.0, 10.0) * u.m

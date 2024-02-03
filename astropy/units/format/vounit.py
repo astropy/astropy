@@ -43,7 +43,7 @@ class VOUnit(generic.Generic):
             "solRad", "sr", "T", "u", "V", "voxel", "W", "Wb", "yr",
         ]  # fmt: skip
         binary_bases = ["bit", "byte", "B"]
-        simple_units = ["Angstrom", "angstrom", "AU", "au", "Ba", "dB", "mas"]
+        simple_units = ["Angstrom", "angstrom", "AU", "au", "Ba", "dB", "mas", "Sun"]
         si_prefixes = [
             "y", "z", "a", "f", "p", "n", "u", "m", "c", "d",
             "", "da", "h", "k", "M", "G", "T", "P", "E", "Z", "Y"
@@ -194,11 +194,25 @@ class VOUnit(generic.Generic):
 
     @classmethod
     def _format_superscript(cls, number):
-        return f"({number})" if "/" in number or "." in number else f"**{number}"
+        return f"**({number})" if "/" in number or "." in number else f"**{number}"
 
     @classmethod
     def format_exponential_notation(cls, val, format_spec=".8g"):
         return super().format_exponential_notation(val, format_spec)
+
+    @classmethod
+    def _format_fraction(cls, scale, numerator, denominator, *, fraction="inline"):
+        if not (fraction is True or fraction == "inline"):
+            raise ValueError(
+                "format {cls.name!r} only supports inline fractions,"
+                f"not fraction={fraction!r}."
+            )
+
+        if cls._space in denominator:
+            denominator = f"({denominator})"
+        if scale and numerator == "1":
+            return f"{scale}/{denominator}"
+        return f"{scale}{numerator}/{denominator}"
 
     @classmethod
     def to_string(cls, unit, fraction=False):

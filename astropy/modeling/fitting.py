@@ -32,7 +32,6 @@ from importlib.metadata import entry_points
 import numpy as np
 
 from astropy.units import Quantity
-from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .optimizers import DEFAULT_ACC, DEFAULT_EPS, DEFAULT_MAXITER, SLSQP, Simplex
@@ -2060,14 +2059,6 @@ def fitter_to_model_params(model, fps, use_min_max_bounds=True):
                 model._array_to_parameters()
 
 
-@deprecated(
-    since="5.1",
-    message="private method: _fitter_to_model_params has been made public now",
-)
-def _fitter_to_model_params(model, fps):
-    return fitter_to_model_params(model, fps)
-
-
 def model_to_fit_params(model):
     """
     Convert a model instance's parameter array to an array that can be used
@@ -2105,14 +2096,6 @@ def model_to_fit_params(model):
         model_bounds[idx] = (lower, upper)
     model_bounds = tuple(zip(*model_bounds))
     return model_params, fitparam_indices, model_bounds
-
-
-@deprecated(
-    since="5.1",
-    message="private method: _model_to_fit_params has been made public now",
-)
-def _model_to_fit_params(model):
-    return model_to_fit_params(model)
 
 
 def _validate_constraints(supported_constraints, model):
@@ -2197,7 +2180,7 @@ def populate_entry_points(entry_points):
                 if issubclass(entry_point, Fitter):
                     name = entry_point.__name__
                     globals()[name] = entry_point
-                    __all__.append(name)
+                    __all__.append(name)  # noqa: PYI056
                 else:
                     warnings.warn(
                         AstropyUserWarning(

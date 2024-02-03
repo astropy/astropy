@@ -853,36 +853,9 @@ def test_none_transform():
     npt.assert_array_equal(sc_arr5.ra, sc_arr2.transform_to("fk5").ra)
 
 
-def test_position_angle():
-    c1 = SkyCoord(0 * u.deg, 0 * u.deg)
-
-    c2 = SkyCoord(1 * u.deg, 0 * u.deg)
-    assert_allclose(c1.position_angle(c2) - 90.0 * u.deg, 0 * u.deg)
-
-    c3 = SkyCoord(1 * u.deg, 0.1 * u.deg)
-    assert c1.position_angle(c3) < 90 * u.deg
-
-    c4 = SkyCoord(0 * u.deg, 1 * u.deg)
-    assert_allclose(c1.position_angle(c4), 0 * u.deg)
-
-    carr1 = SkyCoord(0 * u.deg, [0, 1, 2] * u.deg)
-    carr2 = SkyCoord([-1, -2, -3] * u.deg, [0.1, 1.1, 2.1] * u.deg)
-
-    res = carr1.position_angle(carr2)
-    assert res.shape == (3,)
-    assert np.all(res < 360 * u.degree)
-    assert np.all(res > 270 * u.degree)
-
-    cicrs = SkyCoord(0 * u.deg, 0 * u.deg, frame="icrs")
-    cfk5 = SkyCoord(1 * u.deg, 0 * u.deg, frame="fk5")
-    # because of the frame transform, it's just a *bit* more than 90 degrees
-    assert cicrs.position_angle(cfk5) > 90.0 * u.deg
-    assert cicrs.position_angle(cfk5) < 91.0 * u.deg
-
-
 def test_position_angle_directly():
     """Regression check for #3800: position_angle should accept floats."""
-    from astropy.coordinates.angle_utilities import position_angle
+    from astropy.coordinates import position_angle
 
     result = position_angle(10.0, 20.0, 10.0, 20.0)
     assert result.unit is u.radian

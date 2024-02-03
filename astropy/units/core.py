@@ -612,8 +612,6 @@ class UnitScaleError(UnitsError, ValueError):
     which are not recognized by FITS format.
     """
 
-    pass
-
 
 class UnitConversionError(UnitsError, ValueError):
     """
@@ -863,6 +861,8 @@ class UnitBase:
             else:
                 return Quantity(m, self ** (-1))
         except TypeError:
+            if isinstance(m, np.ndarray):
+                raise
             return NotImplemented
 
     def __mul__(self, m):
@@ -901,6 +901,8 @@ class UnitBase:
             else:
                 return Quantity(m, unit=self)
         except TypeError:
+            if isinstance(m, np.ndarray):
+                raise
             return NotImplemented
 
     def __rlshift__(self, m):
@@ -909,6 +911,8 @@ class UnitBase:
 
             return Quantity(m, self, copy=False, subok=True)
         except Exception:
+            if isinstance(m, np.ndarray):
+                raise
             return NotImplemented
 
     def __rrshift__(self, m):
@@ -1324,10 +1328,10 @@ class UnitBase:
             for len_bases, composed, tunit in results:
                 if len_bases > min_length:
                     break
-                else:
-                    factored = composed * tunit
-                    if is_final_result(factored):
-                        subresults.add(factored)
+
+                factored = composed * tunit
+                if is_final_result(factored):
+                    subresults.add(factored)
 
             if len(subresults):
                 cached_results[key] = subresults

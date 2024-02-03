@@ -280,7 +280,7 @@ class TestHeaderFunctions(FitsTestCase):
 
         header.update(NAXIS1=100, NAXIS2=100)
         assert set(header.keys()) == {"FOO", "A", "B", "HELLO", "NAXIS1", "NAXIS2"}
-        assert set(header.values()) == {"BAR", 1, 2, 100, 100}
+        assert tuple(header.values()) == ("BAR", 1, 2, 1, 100, 100)
 
     def test_update_comment(self):
         hdul = fits.open(self.data("arange.fits"))

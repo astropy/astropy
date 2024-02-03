@@ -85,6 +85,11 @@ a_order = """
 ``int`` (read-only) Order of the polynomial (``A_ORDER``).
 """
 
+a_radius = """
+``double``  semimajor axis of the ellipsoid that defines the approximate shape
+of a target body used in projection (m). If undefined, this is set to `None`.
+"""
+
 all_pix2world = f"""
 all_pix2world(pixcrd, origin) -> ``double array[ncoord][nelem]``
 
@@ -160,6 +165,32 @@ resized, without creating a new `~astropy.wcs.Sip` object.
 
 ap_order = """
 ``int`` (read-only) Order of the polynomial (``AP_ORDER``).
+"""
+
+b_radius = """
+``double``  intermediate axis of the ellipsoid that defines the approximate shape
+of a target body used in projection (m). If undefined, this is set to `None`.
+"""
+
+bdis_obs = """
+``double``  Distance between the centre of the celestial body and the observer (m).
+If undefined, this is set to `None`.
+"""
+
+blon_obs = """
+``double``  Bodycentric longitude of the observer in the body-fixed reference frame
+of the target body, spanning from 0 to 360 deg (deg).
+If undefined, this is set to `None`.
+"""
+
+blat_obs = """
+``double``  Bodycentric latitude of the observer in the body-fixed reference frame
+of the target body (deg). If undefined, this is set to `None`.
+"""
+
+c_radius = """
+``double``  semiminor axis of the ellipsoid that defines the approximate shape
+of a target body used in projection (m). If undefined, this is set to `None`.
 """
 
 cel = """

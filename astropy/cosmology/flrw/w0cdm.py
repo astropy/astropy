@@ -77,7 +77,9 @@ class wCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    w0 = Parameter(doc="Dark energy equation of state.", fvalidate="float")
+    w0 = Parameter(
+        default=-1.0, doc="Dark energy equation of state.", fvalidate="float"
+    )
 
     def __init__(
         self,
@@ -294,8 +296,8 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
     To get an equivalent cosmology, but of type `astropy.cosmology.wCDM`,
     use :attr:`astropy.cosmology.FlatFLRWMixin.nonflat`.
 
-    >>> cosmo.nonflat
-    wCDM(H0=70.0 km / (Mpc s), Om0=0.3, ...
+    >>> print(cosmo.nonflat)
+    wCDM(H0=70.0 km / (Mpc s), Om0=0.3, Ode0=0.7, ...
     """
 
     def __init__(

@@ -13,8 +13,8 @@ Interface and Dependencies
 ==========================
 
 * All code must be compatible with the versions of Python indicated by the
-  ``python_requires`` key in the `setup.cfg
-  <https://github.com/astropy/astropy/blob/main/setup.cfg>`_ file of the
+  ``requires-python`` key  under ``[project]`` in the `pyproject.toml
+  <https://github.com/astropy/astropy/blob/main/pyproject.toml>`_ file of the
   core package.
 
 * Usage of ``six``, ``__future__``, and ``2to3`` is no longer acceptable.
@@ -36,7 +36,7 @@ Interface and Dependencies
   methods, the optional dependency should use a normal ``import``
   statement, which will raise an ``ImportError`` if the dependency is
   not available. In the astropy core package, such optional dependencies should
-  be recorded in the ``setup.cfg`` file in the ``extras_require``
+  be recorded in the ``pyproject.toml`` file in the ``[project.optional-dependencies]``
   entry, under ``all`` (or ``test_all`` if the dependency is only
   needed for testing).
 
@@ -203,8 +203,9 @@ Coding Style/Conventions
     import numpy as np
     import matplotlib as mpl
     import matplotlib.pyplot as plt
+    import pandas as pd
 
-  should be used wherever relevant. On the other hand::
+  should be used wherever relevant. The complete list of conventional aliases can be found `here <https://docs.astral.sh/ruff/settings/#flake8-import-conventions-aliases>`_ . On the other hand::
 
     from packagename import *
 
@@ -509,7 +510,7 @@ directly.  But as soon as a class is used in a multiple-inheritance
 hierarchy it must use ``super()`` in order to cooperate with other classes in
 the hierarchy.
 
-.. note:: For more information on the the benefits of `super`, see
+.. note:: For more information on the benefits of `super`, see
           https://rhettinger.wordpress.com/2011/05/26/super-considered-super/
 
 .. _import-star-example:

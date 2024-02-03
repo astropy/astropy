@@ -1,7 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import annotations
+
+__all__ = []  # nothing is publicly scoped
+
 import functools
+import operator
 from numbers import Number
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -9,7 +15,8 @@ from astropy.units import Quantity
 
 from . import units as cu
 
-__all__ = []  # nothing is publicly scoped
+if TYPE_CHECKING:
+    from typing import Any
 
 
 def vectorize_redshift_method(func=None, nin=1):
@@ -66,8 +73,19 @@ def aszarr(z):
     if isinstance(z, (Number, np.generic)):  # scalars
         return z
     elif hasattr(z, "shape"):  # ducktypes NumPy array
+        if getattr(z, "__module__", "").startswith("pandas"):
+            # See https://github.com/astropy/astropy/issues/15576. Pandas does not play
+            # well with others and will ignore unit-ful calculations so we need to
+            # convert to it's underlying value.
+            z = z.values
         if hasattr(z, "unit"):  # Quantity Column
             return (z << cu.redshift).value  # for speed only use enabled equivs
         return z
     # not one of the preferred types: Number / array ducktype
     return Quantity(z, cu.redshift).value
+
+
+def all_cls_vars(obj: object | type, /) -> dict[str, Any]:
+    """Return all variables in the whole class hierarchy."""
+    cls = obj if isinstance(obj, type) else obj.__class__
+    return functools.reduce(operator.__or__, map(vars, cls.mro()[::-1]))

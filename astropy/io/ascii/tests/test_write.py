@@ -6,6 +6,7 @@ import pathlib
 from contextlib import nullcontext
 from io import StringIO
 from itertools import chain
+from string import Template
 
 import numpy as np
 import pytest
@@ -50,7 +51,7 @@ XCENTER YCENTER
 """,
     },
     {
-        "kwargs": {"Writer": ascii.Rdb, "exclude_names": ["CHI"]},
+        "kwargs": {"format": "rdb", "exclude_names": ["CHI"]},
         "out": """\
 ID\tXCENTER\tYCENTER\tMAG\tMERR\tMSKY\tNITER\tSHARPNESS\tPIER\tPERROR
 N\tN\tN\tN\tN\tN\tN\tN\tN\tS
@@ -59,7 +60,7 @@ N\tN\tN\tN\tN\tN\tN\tN\tN\tS
 """,
     },
     {
-        "kwargs": {"Writer": ascii.Tab},
+        "kwargs": {"format": "tab"},
         "out": """\
 ID\tXCENTER\tYCENTER\tMAG\tMERR\tMSKY\tNITER\tSHARPNESS\tCHI\tPIER\tPERROR
 14\t138.538\t256.405\t15.461\t0.003\t34.85955\t4\t-0.032\t0.802\t0\tNo_error
@@ -67,7 +68,7 @@ ID\tXCENTER\tYCENTER\tMAG\tMERR\tMSKY\tNITER\tSHARPNESS\tCHI\tPIER\tPERROR
 """,
     },
     {
-        "kwargs": {"Writer": ascii.Csv},
+        "kwargs": {"format": "csv"},
         "out": """\
 ID,XCENTER,YCENTER,MAG,MERR,MSKY,NITER,SHARPNESS,CHI,PIER,PERROR
 14,138.538,256.405,15.461,0.003,34.85955,4,-0.032,0.802,0,No_error
@@ -75,14 +76,14 @@ ID,XCENTER,YCENTER,MAG,MERR,MSKY,NITER,SHARPNESS,CHI,PIER,PERROR
 """,
     },
     {
-        "kwargs": {"Writer": ascii.NoHeader},
+        "kwargs": {"format": "no_header"},
         "out": """\
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
 18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """,
     },
     {
-        "kwargs": {"Writer": ascii.CommentedHeader},
+        "kwargs": {"format": "commented_header"},
         "out": """\
 # ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
@@ -90,7 +91,7 @@ ID,XCENTER,YCENTER,MAG,MERR,MSKY,NITER,SHARPNESS,CHI,PIER,PERROR
 """,
     },
     {
-        "kwargs": {"Writer": ascii.CommentedHeader, "comment": "&"},
+        "kwargs": {"format": "commented_header", "comment": "&"},
         "out": """\
 &ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
@@ -98,7 +99,7 @@ ID,XCENTER,YCENTER,MAG,MERR,MSKY,NITER,SHARPNESS,CHI,PIER,PERROR
 """,
     },
     {
-        "kwargs": {"Writer": ascii.Latex},
+        "kwargs": {"format": "latex"},
         "out": """\
 \\begin{table}
 \\begin{tabular}{ccccccccccc}
@@ -111,7 +112,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 """,
     },
     {
-        "kwargs": {"Writer": ascii.AASTex},
+        "kwargs": {"format": "aastex"},
         "out": """\
 \\begin{deluxetable}{ccccccccccc}
 \\tablehead{\\colhead{ID} & \\colhead{XCENTER} & \\colhead{YCENTER} & \\colhead{MAG} & \\colhead{MERR} & \\colhead{MSKY} & \\colhead{NITER} & \\colhead{SHARPNESS} & \\colhead{CHI} & \\colhead{PIER} & \\colhead{PERROR}\\\\ \\colhead{ } & \\colhead{pixels} & \\colhead{pixels} & \\colhead{magnitudes} & \\colhead{magnitudes} & \\colhead{counts} & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{perrors}}
@@ -124,7 +125,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
     },
     {
         "kwargs": {
-            "Writer": ascii.AASTex,
+            "format": "aastex",
             "caption": "Mag values \\label{tab1}",
             "latexdict": {
                 "units": {"MAG": "[mag]", "XCENTER": "[pixel]"},
@@ -145,7 +146,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
     },
     {
         "kwargs": {
-            "Writer": ascii.Latex,
+            "format": "latex",
             "caption": "Mag values \\label{tab1}",
             "latexdict": {
                 "preamble": "\\begin{center}",
@@ -174,7 +175,10 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 """,
     },
     {
-        "kwargs": {"Writer": ascii.Latex, "latexdict": ascii.latexdicts["template"]},
+        "kwargs": {
+            "format": "latex",
+            "latexdict": ascii.latexdicts["template"],
+        },
         "out": """\
 \\begin{tabletype}[tablealign]
 preamble
@@ -194,7 +198,7 @@ tablefoot
 """,
     },
     {
-        "kwargs": {"Writer": ascii.Latex, "latexdict": {"tabletype": None}},
+        "kwargs": {"format": "latex", "latexdict": {"tabletype": None}},
         "out": """\
 \\begin{tabular}{ccccccccccc}
 ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PERROR \\\\
@@ -206,7 +210,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
     },
     {
         "kwargs": {
-            "Writer": ascii.HTML,
+            "format": "html",
             "htmldict": {"css": "table,th,td{border:1px solid black;"},
         },
         "out": """\
@@ -266,7 +270,7 @@ table,th,td{border:1px solid black;  </style>
 """,
     },
     {
-        "kwargs": {"Writer": ascii.Ipac},
+        "kwargs": {"format": "ipac"},
         "out": """\
 \\MERGERAD='INDEF'
 \\IRAF='NOAO/IRAFV2.10EXPORT'
@@ -312,7 +316,7 @@ table,th,td{border:1px solid black;  </style>
 
 test_defs_no_data = [
     {
-        "kwargs": {"Writer": ascii.Ipac},
+        "kwargs": {"format": "ipac"},
         "out": """\
 \\ This is an example of a valid comment.
 \\ The 2nd data line is used to verify the exact column parsing
@@ -422,7 +426,7 @@ XXX 2 3
 """,
     },
     {
-        "kwargs": {"Writer": ascii.Csv},
+        "kwargs": {"format": "csv"},
         "out": """\
 a,b,c
 ,2,3
@@ -484,9 +488,9 @@ def check_write_table_via_table(test_def, table, fast_writer, out=None):
         out = StringIO()
 
     test_def = copy.deepcopy(test_def)
-    if "Writer" in test_def["kwargs"]:
-        format = f"ascii.{test_def['kwargs']['Writer']._format_name}"
-        del test_def["kwargs"]["Writer"]
+    if "format" in test_def["kwargs"]:
+        format = f"ascii.{test_def['kwargs']['format']}"
+        del test_def["kwargs"]["format"]
     else:
         format = "ascii"
 
@@ -524,7 +528,7 @@ def check_write_table_via_table(test_def, table, fast_writer, out=None):
     "path_format", ["buffer", "plain", "tilde-str", "tilde-pathlib"]
 )
 def test_write_table(fast_writer, tmp_path, home_is_tmpdir, path_format):
-    table = ascii.get_reader(Reader=ascii.Daophot)
+    table = ascii.get_reader(reader_cls=ascii.Daophot)
     data = table.read("data/daophot.dat")
 
     if path_format == "buffer":
@@ -564,7 +568,7 @@ def test_write_fill_masked_different(fast_writer):
 @pytest.mark.parametrize("fast_writer", [True, False])
 def test_write_no_data_ipac(fast_writer):
     """Write an IPAC table that contains no data."""
-    table = ascii.get_reader(Reader=ascii.Ipac)
+    table = ascii.get_reader(reader_cls=ascii.Ipac)
     data = table.read("data/no_data_ipac.dat")
 
     for test_def in test_defs_no_data:
@@ -576,7 +580,7 @@ def test_write_invalid_toplevel_meta_ipac():
     """Write an IPAC table that contains no data but has invalid (incorrectly
     specified) metadata stored in the top-level metadata and therefore should
     raise a warning, and check that the warning has been raised"""
-    table = ascii.get_reader(Reader=ascii.Ipac)
+    table = ascii.get_reader(reader_cls=ascii.Ipac)
     data = table.read("data/no_data_ipac.dat")
     data.meta["blah"] = "extra"
     out = StringIO()
@@ -591,7 +595,7 @@ def test_write_invalid_keyword_meta_ipac():
     specified) metadata stored appropriately in the ``keywords`` section
     of the metadata but with invalid format and therefore should raise a
     warning, and check that the warning has been raised"""
-    table = ascii.get_reader(Reader=ascii.Ipac)
+    table = ascii.get_reader(reader_cls=ascii.Ipac)
     data = table.read("data/no_data_ipac.dat")
     data.meta["keywords"]["blah"] = "invalid"
     out = StringIO()
@@ -604,7 +608,7 @@ def test_write_invalid_keyword_meta_ipac():
 def test_write_valid_meta_ipac():
     """Write an IPAC table that contains no data and has *correctly* specified
     metadata.  No warnings should be issued"""
-    table = ascii.get_reader(Reader=ascii.Ipac)
+    table = ascii.get_reader(reader_cls=ascii.Ipac)
     data = table.read("data/no_data_ipac.dat")
     data.meta["keywords"]["blah"] = {"value": "invalid"}
     out = StringIO()
@@ -669,28 +673,28 @@ def test_latex_units():
     latexdict = copy.deepcopy(ascii.latexdicts["AA"])
     latexdict["units"] = {"NUV exp.time": "s"}
     out = StringIO()
-    expected = """\
-\\begin{table}{cc}
-\\tablehead{\\colhead{date} & \\colhead{NUV exp.time}\\\\ \\colhead{ } & \\colhead{s}}
-\\startdata
-a & 1 \\\\
-b & 2
-\\enddata
-\\end{table}
-""".replace(
-        "\n", os.linesep
+    tablehead = Template(
+        r"\tablehead{\colhead{date} & \colhead{NUV exp.time}\\ \colhead{$u1} & \colhead{$u2}}"
     )
-
+    expected = [
+        r"\begin{table}{cc}",
+        tablehead.substitute(u1=" ", u2="s"),
+        r"\startdata",
+        r"a & 1 \\",
+        "b & 2",
+        r"\enddata",
+        r"\end{table}",
+        "",
+    ]
     ascii.write(t, out, format="aastex", latexdict=latexdict)
-    assert out.getvalue() == expected
+    assert out.getvalue() == os.linesep.join(expected)
     # use unit attribute instead
     t["NUV exp.time"].unit = u.s
     t["date"].unit = u.yr
     out = StringIO()
     ascii.write(t, out, format="aastex", latexdict=ascii.latexdicts["AA"])
-    assert out.getvalue() == expected.replace(
-        "colhead{s}", r"colhead{$\mathrm{s}$}"
-    ).replace("colhead{ }", r"colhead{$\mathrm{yr}$}")
+    expected[1] = tablehead.substitute(u1=r"$\mathrm{yr}$", u2=r"$\mathrm{s}$")
+    assert out.getvalue() == os.linesep.join(expected)
 
 
 @pytest.mark.parametrize("fast_writer", [True, False])
@@ -810,7 +814,7 @@ def test_write_empty_table(fast_writer):
 
 
 @pytest.mark.parametrize(
-    "format", ["ascii", "csv", "html", "latex", "ascii.fixed_width", "html"]
+    "format", ["ascii", "csv", "html", "latex", "ascii.fixed_width"]
 )
 @pytest.mark.parametrize("fast_writer", [True, False])
 @pytest.mark.parametrize("path_format", ["plain", "tilde-str", "tilde-pathlib"])

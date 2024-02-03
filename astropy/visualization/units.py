@@ -65,7 +65,7 @@ def quantity_support(format="latex_inline"):
             elif unit == u.degree:
                 return units.AxisInfo(
                     majloc=ticker.AutoLocator(),
-                    majfmt=ticker.FormatStrFormatter("%i°"),
+                    majfmt=ticker.FormatStrFormatter("%g°"),
                     label=unit.to_string(),
                 )
             elif unit is not None:

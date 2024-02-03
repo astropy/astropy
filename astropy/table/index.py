@@ -44,8 +44,6 @@ class QueryError(ValueError):
     Indicates that a given index cannot handle the supplied query.
     """
 
-    pass
-
 
 class Index:
     """
@@ -716,7 +714,7 @@ class _IndexModeContext:
             raise ValueError(
                 "Expected a mode of either 'freeze', "
                 "'discard_on_copy', or 'copy_on_getitem', got "
-                "'{}'".format(mode)
+                f"'{mode}'"
             )
 
     def __enter__(self):

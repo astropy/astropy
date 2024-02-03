@@ -9,14 +9,17 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 import astropy.units as u
-from astropy.coordinates.angles import Angle, Latitude, Longitude
-from astropy.coordinates.errors import (
+from astropy.coordinates import (
+    Angle,
     IllegalHourError,
     IllegalMinuteError,
     IllegalMinuteWarning,
     IllegalSecondError,
     IllegalSecondWarning,
+    Latitude,
+    Longitude,
 )
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 
 def test_create_angles():
@@ -200,9 +203,11 @@ def test_angle_methods():
     a_var = a.var()
     assert type(a_var) is u.Quantity
     assert a_var == 1.0 * u.degree**2
-    a_ptp = a.ptp()
-    assert type(a_ptp) is Angle
-    assert a_ptp == 2.0 * u.degree
+    if NUMPY_LT_2_0:
+        # np.ndarray.ptp() method removed in numpy 2.0.
+        a_ptp = a.ptp()
+        assert type(a_ptp) is Angle
+        assert a_ptp == 2.0 * u.degree
     a_max = a.max()
     assert type(a_max) is Angle
     assert a_max == 2.0 * u.degree
@@ -1021,7 +1026,7 @@ def test_angle_with_cds_units_enabled():
     https://github.com/astropy/astropy/issues/5350#issuecomment-248770151
     """
     # the problem is with the parser, so remove it temporarily
-    from astropy.coordinates.angle_formats import _AngleParser
+    from astropy.coordinates.angles.formats import _AngleParser
     from astropy.units import cds
 
     del _AngleParser._thread_local._parser
@@ -1092,6 +1097,32 @@ def test_str_repr_angles_nan(cls, input, expstr, exprepr):
     # Deleting whitespaces since repr appears to be adding them for some values
     # making the test fail.
     assert repr(q).replace(" ", "") == f"<{cls.__name__}{exprepr}>".replace(" ", "")
+
+
+@pytest.mark.parametrize("sign", (-1, 1))
+@pytest.mark.parametrize(
+    "value,expected_value,dtype,expected_dtype",
+    [
+        (np.pi * 2, 0.0, None, np.float64),
+        (np.pi * 2, 0.0, np.float64, np.float64),
+        (np.float32(2 * np.pi), np.float32(0.0), None, np.float32),
+        (np.float32(2 * np.pi), np.float32(0.0), np.float32, np.float32),
+    ],
+)
+def test_longitude_wrap(value, expected_value, dtype, expected_dtype, sign):
+    """
+    Test that the wrapping of the Longitude value range in radians works
+    in both float32 and float64.
+    """
+    # This prevents upcasting to float64 as sign * value would do.
+    if sign < 0:
+        value = -value
+        expected_value = -expected_value
+
+    result = Longitude(value, u.rad, dtype=dtype)
+    assert result.value == expected_value
+    assert result.dtype == expected_dtype
+    assert result.unit == u.rad
 
 
 @pytest.mark.parametrize("sign", (-1, 1))

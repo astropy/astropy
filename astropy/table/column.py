@@ -3,12 +3,14 @@
 import itertools
 import warnings
 import weakref
+from collections import OrderedDict
 from copy import deepcopy
 
 import numpy as np
 from numpy import ma
 
 from astropy.units import Quantity, StructuredUnit, Unit
+from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.metadata import MetaData
@@ -33,8 +35,6 @@ class StringTruncateWarning(UserWarning):
     This does not inherit from AstropyWarning because we want to use
     stacklevel=2 to show the user where the issue occurred in their code.
     """
-
-    pass
 
 
 # Always emit this warning, not just the first instance
@@ -144,6 +144,10 @@ def _expand_string_array_for_values(arr, values):
 
     """
     if arr.dtype.kind in ("U", "S") and values is not np.ma.masked:
+        # Starting with numpy 2.0, np.char.str_len() propagates the mask for
+        # masked data. We want masked values to be preserved so unmask
+        # `values` prior to counting string lengths.
+        values = np.asarray(values)
         # Find the length of the longest string in the new values.
         values_str_len = np.char.str_len(values).max()
 
@@ -500,7 +504,9 @@ class ColumnInfo(BaseColumnInfo):
 
 
 class BaseColumn(_ColumnGetitemShim, np.ndarray):
-    meta = MetaData()
+    meta = MetaData(default_factory=OrderedDict)
+    # It's important that the metadata is an OrderedDict so that the order of
+    # the metadata is preserved when the column is YAML serialized.
 
     def __new__(
         cls,
@@ -548,6 +554,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
                     format = data.info.format
                 if meta is None:
                     meta = data.info.meta
+                if name is None:
+                    name = data.info.name
 
         else:
             if np.dtype(dtype).char == "S":
@@ -714,7 +722,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         if "info" in getattr(obj, "__dict__", {}):
             self.info = obj.info
 
-    def __array_wrap__(self, out_arr, context=None):
+    def __array_wrap__(self, out_arr, context=None, return_scalar=False):
         """
         __array_wrap__ is called at the end of every ufunc.
 
@@ -725,21 +733,27 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
            like sum() or mean()), a Column still linking to a parent_table
            makes little sense, so we return the output viewed as the
            column content (ndarray or MaskedArray).
-           For this case, we use "[()]" to select everything, and to ensure we
+           For this case, if numpy tells us to ``return_scalar`` (for numpy
+           >= 2.0, otherwise assume to be true), we use "[()]" to ensure we
            convert a zero rank array to a scalar. (For some reason np.sum()
            returns a zero rank scalar array while np.mean() returns a scalar;
-           So the [()] is needed for this case.
+           So the [()] is needed for this case.)
 
         2) When the output is created by any function that returns a boolean
            we also want to consistently return an array rather than a column
            (see #1446 and #1685)
         """
-        out_arr = super().__array_wrap__(out_arr, context)
+        if NUMPY_LT_2_0:
+            out_arr = super().__array_wrap__(out_arr, context)
+            return_scalar = True
+        else:
+            out_arr = super().__array_wrap__(out_arr, context, return_scalar)
+
         if self.shape != out_arr.shape or (
             isinstance(out_arr, BaseColumn)
             and (context is not None and context[0] in _comparison_functions)
         ):
-            return out_arr.data[()]
+            return out_arr.data[()] if return_scalar else out_arr.data
         else:
             return out_arr
 
@@ -781,8 +795,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             # revert to restore previous format if there was one
             self._format = prev_format
             raise ValueError(
-                "Invalid format for column '{}': could not display "
-                "values in this column using this format".format(self.name)
+                f"Invalid format for column '{self.name}': could not display "
+                "values in this column using this format"
             ) from err
 
     @property
@@ -1137,13 +1151,13 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
                 arr = np.char.encode(arr, encoding="utf-8")
                 if isinstance(value, np.ma.MaskedArray):
                     arr = np.ma.array(arr, mask=value.mask, copy=False)
-            value = arr
+                value = arr
 
         return value
 
     def tolist(self):
         if self.dtype.kind == "S":
-            return np.chararray.decode(self, encoding="utf-8").tolist()
+            return np.char.chararray.decode(self, encoding="utf-8").tolist()
         else:
             return super().tolist()
 
@@ -1340,8 +1354,8 @@ class Column(BaseColumn):
 
         if value_str_len > self_str_len:
             warnings.warn(
-                "truncated right side string(s) longer than {} "
-                "character(s) during assignment".format(self_str_len),
+                f"truncated right side string(s) longer than {self_str_len} "
+                "character(s) during assignment",
                 StringTruncateWarning,
                 stacklevel=3,
             )

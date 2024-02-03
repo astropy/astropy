@@ -140,7 +140,7 @@ m33altazs_July12_to_13 = m33.transform_to(frame_July12_to_13)
 plt.plot(delta_midnight, sunaltazs_July12_to_13.alt, color='r', label='Sun')
 plt.plot(delta_midnight, moonaltazs_July12_to_13.alt, color=[0.75]*3, ls='--', label='Moon')
 plt.scatter(delta_midnight, m33altazs_July12_to_13.alt,
-            c=m33altazs_July12_to_13.az, label='M33', lw=0, s=8,
+            c=m33altazs_July12_to_13.az.value, label='M33', lw=0, s=8,
             cmap='viridis')
 plt.fill_between(delta_midnight, 0*u.deg, 90*u.deg,
                  sunaltazs_July12_to_13.alt < -0*u.deg, color='0.5', zorder=0)

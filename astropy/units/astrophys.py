@@ -5,6 +5,7 @@ This package defines the astrophysics-specific units.  They are also
 available in the `astropy.units` namespace.
 """
 
+import numpy as np
 
 from astropy.constants import si as _si
 
@@ -14,7 +15,8 @@ from .core import UnitBase, def_unit, set_enabled_units
 # To ensure si units of the constants can be interpreted.
 set_enabled_units([si])
 
-import numpy as _np  # noqa: E402
+
+__all__: list[str] = []  #  Units are added at the end
 
 _ns = globals()
 
@@ -154,7 +156,7 @@ def_unit(
 )
 def_unit(
     ["R", "Rayleigh", "rayleigh"],
-    (1e10 / (4 * _np.pi)) * ph * si.m**-2 * si.s**-1 * si.sr**-1,
+    (1e10 / (4 * np.pi)) * ph * si.m**-2 * si.s**-1 * si.sr**-1,
     namespace=_ns,
     prefixes=True,
     doc="Rayleigh: photon flux",
@@ -216,15 +218,9 @@ def_unit(
 )
 
 ###########################################################################
-# CLEANUP
+# ALL & DOCSTRING
 
-del UnitBase
-del def_unit
-del si
-
-
-###########################################################################
-# DOCSTRING
+__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the
@@ -232,25 +228,3 @@ if __doc__ is not None:
     from .utils import generate_unit_summary as _generate_unit_summary
 
     __doc__ += _generate_unit_summary(globals())
-
-
-# -------------------------------------------------------------------------
-
-
-def __getattr__(attr):
-    if attr == "littleh":
-        import warnings
-
-        from astropy.cosmology.units import littleh
-        from astropy.utils.exceptions import AstropyDeprecationWarning
-
-        warnings.warn(
-            "`littleh` is deprecated from module `astropy.units.astrophys` "
-            "since astropy 5.0 and may be removed in a future version. "
-            "Use `astropy.cosmology.units.littleh` instead.",
-            AstropyDeprecationWarning,
-        )
-
-        return littleh
-
-    raise AttributeError(f"module {__name__!r} has no attribute {attr!r}.")

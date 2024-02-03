@@ -10,9 +10,11 @@ from fractions import Fraction
 from . import si
 from .core import UnitBase, def_unit
 
+__all__: list[str] = []  #  Units are added at the end
+
 _ns = globals()
 
-def_unit(["cm", "centimeter"], si.cm, namespace=_ns, prefixes=False)
+cm = si.cm
 g = si.g
 s = si.s
 C = si.C
@@ -169,16 +171,9 @@ bases = {cm, g, s, rad, cd, K, mol}
 
 
 ###########################################################################
-# CLEANUP
+# ALL & DOCSTRING
 
-del UnitBase
-del def_unit
-del si
-del Fraction
-
-
-###########################################################################
-# DOCSTRING
+__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the

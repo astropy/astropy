@@ -5,22 +5,25 @@ associated units. `Quantity` objects support operations like ordinary numbers,
 but will deal with unit conversions internally.
 """
 
+from __future__ import annotations
+
 # STDLIB
 import numbers
 import operator
 import re
 import warnings
 from fractions import Fraction
+from typing import TYPE_CHECKING
 
 # THIRD PARTY
 import numpy as np
 
 # LOCAL
 from astropy import config as _config
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyWarning
-from astropy.utils.misc import isiterable
 
 from .core import (
     Unit,
@@ -41,6 +44,11 @@ from .quantity_helper.function_helpers import (
 )
 from .structured import StructuredUnit, _structured_unit_like_dtype
 from .utils import is_effectively_unity
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
+
+    from .typing import QuantityLike
 
 __all__ = [
     "Quantity",
@@ -387,8 +395,7 @@ class Quantity(np.ndarray):
 
         Notes
         -----
-        With Python 3.9+ or :mod:`typing_extensions`, |Quantity| types are also
-        static-type compatible.
+        |Quantity| types are also static-type compatible.
         """
         from typing import Annotated
 
@@ -420,15 +427,15 @@ class Quantity(np.ndarray):
         return Annotated[cls, unit]
 
     def __new__(
-        cls,
-        value,
+        cls: type[Self],
+        value: QuantityLike,
         unit=None,
         dtype=np.inexact,
         copy=True,
         order=None,
         subok=False,
         ndmin=0,
-    ):
+    ) -> Self:
         if unit is not None:
             # convert unit first, to avoid multiple string->unit conversions
             unit = Unit(unit)
@@ -489,10 +496,9 @@ class Quantity(np.ndarray):
                     if unit is None:
                         unit = value_unit  # signal no conversion needed below.
 
-            elif isiterable(value) and len(value) > 0:
-                # Iterables like lists and tuples.
+            elif isinstance(value, (list, tuple)) and len(value) > 0:
                 if all(isinstance(v, Quantity) for v in value):
-                    # If a list/tuple containing only quantities, convert all
+                    # If a list/tuple contains only quantities, convert all
                     # to the same unit.
                     if unit is None:
                         unit = value[0].unit
@@ -596,7 +602,7 @@ class Quantity(np.ndarray):
             if "info" in obj.__dict__:
                 self.info = obj.info
 
-    def __array_wrap__(self, obj, context=None):
+    def __array_wrap__(self, obj, context=None, return_scalar=False):
         if context is None:
             # Methods like .squeeze() created a new `ndarray` and then call
             # __array_wrap__ to turn the array into self's subclass.
@@ -674,7 +680,7 @@ class Quantity(np.ndarray):
             return self._result_as_quantity(result, unit, out)
 
         except (TypeError, ValueError, AttributeError) as e:
-            out_normalized = kwargs.get("out", tuple())
+            out_normalized = kwargs.get("out", ())
             inputs_and_outputs = inputs + out_normalized
             ignored_ufunc = (
                 None,
@@ -1694,11 +1700,13 @@ class Quantity(np.ndarray):
             _value = _value.astype(self.dtype, copy=False)
         return _value
 
-    def itemset(self, *args):
-        if len(args) == 0:
-            raise ValueError("itemset must have at least one argument")
+    if NUMPY_LT_2_0:
 
-        self.view(np.ndarray).itemset(*(args[:-1] + (self._to_own_unit(args[-1]),)))
+        def itemset(self, *args):
+            if len(args) == 0:
+                raise ValueError("itemset must have at least one argument")
+
+            self.view(np.ndarray).itemset(*(args[:-1] + (self._to_own_unit(args[-1]),)))
 
     def tostring(self, order="C"):
         """Not implemented, use ``.value.tostring()`` instead."""
@@ -1776,8 +1784,17 @@ class Quantity(np.ndarray):
         )
 
     # ensure we do not return indices as quantities
-    def argsort(self, axis=-1, kind="quicksort", order=None):
-        return self.view(np.ndarray).argsort(axis=axis, kind=kind, order=order)
+    if NUMPY_LT_2_0:
+
+        def argsort(self, axis=-1, kind=None, order=None):
+            return self.view(np.ndarray).argsort(axis=axis, kind=kind, order=order)
+
+    else:
+
+        def argsort(self, axis=-1, kind=None, order=None, *, stable=None):
+            return self.view(np.ndarray).argsort(
+                axis=axis, kind=kind, order=order, stable=stable
+            )
 
     def searchsorted(self, v, *args, **kwargs):
         return np.searchsorted(
@@ -2111,7 +2128,7 @@ class SpecificTypeQuantity(Quantity):
         super()._set_unit(unit)
 
 
-def isclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False, **kwargs):
+def isclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False):
     """
     Return a boolean array where two arrays are element-wise equal
     within a tolerance.
@@ -2152,11 +2169,10 @@ def isclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False, **kwargs):
     --------
     allclose
     """
-    unquantified_args = _unquantify_allclose_arguments(a, b, rtol, atol)
-    return np.isclose(*unquantified_args, equal_nan=equal_nan, **kwargs)
+    return np.isclose(*_unquantify_allclose_arguments(a, b, rtol, atol), equal_nan)
 
 
-def allclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False, **kwargs) -> bool:
+def allclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False) -> bool:
     """
     Whether two arrays are element-wise equal within a tolerance.
 
@@ -2196,8 +2212,7 @@ def allclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False, **kwargs) -> bool:
     --------
     isclose
     """
-    unquantified_args = _unquantify_allclose_arguments(a, b, rtol, atol)
-    return np.allclose(*unquantified_args, equal_nan=equal_nan, **kwargs)
+    return np.allclose(*_unquantify_allclose_arguments(a, b, rtol, atol), equal_nan)
 
 
 def _unquantify_allclose_arguments(actual, desired, rtol, atol):

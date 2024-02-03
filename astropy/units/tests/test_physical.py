@@ -10,7 +10,6 @@ import pytest
 from astropy import units as u
 from astropy.constants import hbar
 from astropy.units import physical
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 unit_physical_type_pairs = [
     (u.m, "length"),
@@ -378,7 +377,7 @@ def test_physical_type_hash():
     assert dictionary[length] == 42
 
 
-@pytest.mark.parametrize("multiplicand", [list(), 42, 0, -1])
+@pytest.mark.parametrize("multiplicand", [[], 42, 0, -1])
 def test_physical_type_multiplication(multiplicand):
     """
     Test that multiplication of a physical type returns `NotImplemented`
@@ -448,8 +447,6 @@ class TestDefPhysType:
             assert (
                 self.weird_unit.physical_type == weird_name
             ), f"unable to set physical type for {self.weird_unit}"
-        except Exception:
-            raise
         finally:  # cleanup added name
             physical._attrname_physical_mapping.pop(weird_name.replace(" ", "_"), None)
             physical._name_physical_mapping.pop(weird_name, None)
@@ -461,8 +458,6 @@ class TestDefPhysType:
                 weird_name,
                 strange_name,
             }, "did not correctly append a new physical type name."
-        except Exception:
-            raise
         finally:  # cleanup added names
             physical._attrname_physical_mapping.pop(
                 strange_name.replace(" ", "_"), None
@@ -500,32 +495,6 @@ class TestDefPhysType:
                 f"the physical type for {unit}, which was added for"
                 "testing, was not deleted."
             )
-
-
-@pytest.mark.parametrize(
-    "method, expected",
-    [("title", "Length"), ("isalpha", True), ("isnumeric", False), ("upper", "LENGTH")],
-)
-def test_that_str_methods_work_with_physical_types(method, expected):
-    """
-    Test that str methods work for `PhysicalType` instances while issuing
-    a deprecation warning.
-    """
-    with pytest.warns(AstropyDeprecationWarning, match="PhysicalType instances"):
-        result_of_method_call = getattr(length, method)()
-    assert result_of_method_call == expected
-
-
-def test_missing_physical_type_attribute():
-    """
-    Test that a missing attribute raises an `AttributeError`.
-
-    This test should be removed when the deprecated option of calling
-    string methods on PhysicalType instances is removed from
-    `PhysicalType.__getattr__`.
-    """
-    with pytest.raises(AttributeError):
-        length.not_the_name_of_a_str_or_physical_type_attribute
 
 
 @pytest.mark.parametrize("ptype_name", ["length", "speed", "entropy"])

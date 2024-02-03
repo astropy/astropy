@@ -161,7 +161,8 @@ describe a user input of that element type. Elements in square brackets are
 optional. For nonspherical inputs, see the `Representations`_ section.
 
 
-**LON**, **LAT**
+LON, LAT
+^^^^^^^^
 
 Longitude and latitude value can be specified as separate positional arguments.
 The following options are available for longitude and latitude:
@@ -195,7 +196,8 @@ The following options are available for longitude and latitude:
         >>> ICRS(0, 0, unit=u.deg) # doctest: +SKIP
         UnitTypeError: Longitude instances require units equivalent to 'rad', but no unit was given.
 
-**DISTANCE**
+DISTANCE
+^^^^^^^^
 
 The distance to the object from the frame center can be optionally specified:
 
@@ -208,7 +210,11 @@ The distance to the object from the frame center can be optionally specified:
 - List, or |Quantity|, or `~astropy.coordinates.Distance` array, or NumPy array
   of angle values
 
-**COORD**
+
+.. _coordinates-initialization-coord:
+
+COORD
+^^^^^
 
 This input form uses a single object to supply coordinate data. For the case
 of spherical coordinate frames, the coordinate can include one or more
@@ -1134,7 +1140,7 @@ Matching Within Tolerance
 -------------------------
 
 To test if coordinates are within a certain angular distance of one other, use the
-`~astropy.coordinates.SkyCoord.separation` method::
+:meth:`~astropy.coordinates.BaseCoordinateFrame.separation` method::
 
   >>> sc1.icrs.fk4.separation(sc1).to(u.arcsec)  # doctest: +SKIP
   <Angle 7.98873629e-13 arcsec>
@@ -1250,9 +1256,9 @@ the available docstrings below:
 
 - `~astropy.coordinates.SkyCoord.match_to_catalog_sky`,
 - `~astropy.coordinates.SkyCoord.match_to_catalog_3d`,
-- `~astropy.coordinates.SkyCoord.position_angle`,
-- `~astropy.coordinates.SkyCoord.separation`,
-- `~astropy.coordinates.SkyCoord.separation_3d`
+- `~astropy.coordinates.BaseCoordinateFrame.position_angle`,
+- `~astropy.coordinates.BaseCoordinateFrame.separation`,
+- `~astropy.coordinates.BaseCoordinateFrame.separation_3d`
 - `~astropy.coordinates.SkyCoord.apply_space_motion`
 
 Additional information and examples can be found in the section on

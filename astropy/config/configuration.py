@@ -22,15 +22,12 @@ from warnings import warn
 
 from astropy.extern.configobj import configobj, validate
 from astropy.utils import find_current_module, silence
-from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
-from astropy.utils.introspection import resolve_name
 
 from .paths import get_config_dir
 
 __all__ = (
     "InvalidConfigurationItemWarning",
-    "ConfigurationMissingWarning",
     "get_config",
     "reload_config",
     "ConfigNamespace",
@@ -44,17 +41,6 @@ class InvalidConfigurationItemWarning(AstropyWarning):
     """A Warning that is issued when the configuration value specified in the
     astropy configuration file does not match the type expected for that
     configuration value.
-    """
-
-
-# This was raised with Astropy < 4.3 when the configuration file was not found.
-# It is kept for compatibility and should be removed at some point.
-@deprecated("5.0")
-class ConfigurationMissingWarning(AstropyWarning):
-    """A Warning that is issued when the configuration directory cannot be
-    accessed (usually due to a permissions problem). If this warning appears,
-    configuration items will be set to their defaults rather than read from the
-    configuration file, and no configuration will persist across sessions.
     """
 
 
@@ -112,6 +98,14 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
             if isinstance(val, ConfigItem):
                 yield key
 
+    def __str__(self):
+        try:
+            header = f"{self.__doc__.strip()}\n\n"
+        except AttributeError:
+            current_module = str(find_current_module(2)).split("'")[1]
+            header = f"Configuration parameters for `{current_module}`\n\n"
+        return header + "\n\n".join(map(str, self.values()))
+
     keys = __iter__
     """Iterate over configuration item names."""
 
@@ -126,6 +120,37 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
         for key, val in self.__class__.__dict__.items():
             if isinstance(val, ConfigItem):
                 yield key, val
+
+    def help(self, name=None):
+        """Print info about configuration items.
+
+        Parameters
+        ----------
+        name : `str`, optional
+            Name of the configuration item to be described. If no name is
+            provided then info about all the configuration items will be
+            printed.
+
+        Examples
+        --------
+        >>> from astropy import conf
+        >>> conf.help("unicode_output")
+        ConfigItem: unicode_output
+          cfgtype='boolean'
+          defaultvalue=False
+          description='When True, use Unicode characters when outputting values, and displaying widgets at the console.'
+          module=astropy
+          value=False
+        """
+        if name is None:
+            print(self)
+        else:
+            try:
+                print(type(self).__dict__[name])
+            except KeyError:
+                raise KeyError(
+                    f"'{name}' is not among configuration items {tuple(self)}"
+                ) from None
 
     def set_temp(self, attr, value):
         """
@@ -733,110 +758,6 @@ def is_unedited_config_file(content, template_content=None):
     raw_cfg = configobj.ConfigObj(buffer, interpolation=True)
     # If any of the items is set, return False
     return not any(len(v) > 0 for v in raw_cfg.values())
-
-
-# This function is no more used by astropy but it is kept for the other
-# packages that may use it (e.g. astroquery). It should be removed at some
-# point.
-# this is not in __all__ because it's not intended that a user uses it
-@deprecated("5.0")
-def update_default_config(pkg, default_cfg_dir_or_fn, version=None, rootname="astropy"):
-    """
-    Checks if the configuration file for the specified package exists,
-    and if not, copy over the default configuration.  If the
-    configuration file looks like it has already been edited, we do
-    not write over it, but instead write a file alongside it named
-    ``pkg.version.cfg`` as a "template" for the user.
-
-    Parameters
-    ----------
-    pkg : str
-        The package to be updated.
-    default_cfg_dir_or_fn : str
-        The filename or directory name where the default configuration file is.
-        If a directory name, ``'pkg.cfg'`` will be used in that directory.
-    version : str, optional
-        The current version of the given package.  If not provided, it will
-        be obtained from ``pkg.__version__``.
-    rootname : str
-        Name of the root configuration directory.
-
-    Returns
-    -------
-    updated : bool
-        If the profile was updated, `True`, otherwise `False`.
-
-    Raises
-    ------
-    AttributeError
-        If the version number of the package could not determined.
-
-    """
-    if path.isdir(default_cfg_dir_or_fn):
-        default_cfgfn = path.join(default_cfg_dir_or_fn, pkg + ".cfg")
-    else:
-        default_cfgfn = default_cfg_dir_or_fn
-
-    if not path.isfile(default_cfgfn):
-        # There is no template configuration file, which basically
-        # means the affiliated package is not using the configuration
-        # system, so just return.
-        return False
-
-    cfgfn = get_config(pkg, rootname=rootname).filename
-
-    with open(default_cfgfn, encoding="latin-1") as fr:
-        template_content = fr.read()
-
-    doupdate = False
-    if cfgfn is not None:
-        if path.exists(cfgfn):
-            with open(cfgfn, encoding="latin-1") as fd:
-                content = fd.read()
-
-            identical = content == template_content
-
-            if not identical:
-                doupdate = is_unedited_config_file(content, template_content)
-        elif path.exists(path.dirname(cfgfn)):
-            doupdate = True
-            identical = False
-
-    if version is None:
-        version = resolve_name(pkg, "__version__")
-
-    # Don't install template files for dev versions, or we'll end up
-    # spamming `~/.astropy/config`.
-    if version and "dev" not in version and cfgfn is not None:
-        template_path = path.join(
-            get_config_dir(rootname=rootname), f"{pkg}.{version}.cfg"
-        )
-        needs_template = not path.exists(template_path)
-    else:
-        needs_template = False
-
-    if doupdate or needs_template:
-        if needs_template:
-            with open(template_path, "w", encoding="latin-1") as fw:
-                fw.write(template_content)
-            # If we just installed a new template file and we can't
-            # update the main configuration file because it has user
-            # changes, display a warning.
-            if not identical and not doupdate:
-                warn(
-                    f"The configuration options in {pkg} {version} may have changed, "
-                    "your configuration file was not updated in order to "
-                    "preserve local changes.  A new configuration template "
-                    f"has been saved to '{template_path}'.",
-                    ConfigurationChangedWarning,
-                )
-
-        if doupdate and not identical:
-            with open(cfgfn, "w", encoding="latin-1") as fw:
-                fw.write(template_content)
-            return True
-
-    return False
 
 
 def create_config_file(pkg, rootname="astropy", overwrite=False):

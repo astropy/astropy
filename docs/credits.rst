@@ -29,11 +29,15 @@ Core Package Contributors
 * Alex Rudy
 * Alexander Bakanov
 * Alexandre Beelen
+* Alexandre R. Bomfim Junior
+* Alpha-Ursae-Minoris
 * Amit Kumar
+* AMHermansen
 * Ana Posses
 * Anany Shrey Jain
 * Anchit Jain
 * Andreas Baumbach
+* Andreas Faisst
 * Andrej Rode
 * Andrew Hearin
 * Andrii Oriekhov
@@ -50,6 +54,7 @@ Core Package Contributors
 * Arthur Eigenbrot
 * Asish Panda
 * Asra Nizami
+* arthurxvtv
 * athul
 * Austen Groener
 * Axel Donath
@@ -64,6 +69,7 @@ Core Package Contributors
 * Bhavya Khandelwal
 * Bharath Saiguha
 * Bili Dong
+* Bill Cleveland
 * Bogdan Nicula
 * Bojan Nikolic
 * Brett Graham
@@ -77,6 +83,7 @@ Core Package Contributors
 * Bryce Kalmbach
 * Bryce Nordgren
 * Caden Gobat
+* CaioCoutinhoP
 * Carl Osterwisch
 * Carl Schaffer
 * Chiara Marmo
@@ -106,6 +113,7 @@ Core Package Contributors
 * Daniel Ruschel Dutra
 * Daniel Ryan
 * Danny Goldstein
+* Dany Vohl
 * Daria Cara
 * David Kirkby
 * David M. Palmer
@@ -121,6 +129,7 @@ Core Package Contributors
 * Diego Asterio de Zaballa
 * disha
 * Dominik Klaes
+* Doron Behar
 * Doug Branton
 * Douglas Burke
 * Drew Leonard
@@ -128,6 +137,7 @@ Core Package Contributors
 * Dylan Gregersen
 * E\. Madison Bray
 * E\. Rykoff
+* E.C. Herenz
 * Ed Slavich
 * Edward Betts
 * Edward Slavich
@@ -175,7 +185,9 @@ Core Package Contributors
 * Hannes Breytenbach
 * Hans Moritz Günther
 * Harry Ferguson
+* Heinz-Alexander Fuetterer
 * Helen Sherwood-Taylor
+* Hélvio Peixoto
 * Himanshu Pathak
 * homeboy445
 * Hood Chatham
@@ -192,6 +204,7 @@ Core Package Contributors
 * James Davies
 * James Dearman
 * James Noss
+* James O'Keeffe
 * James Taylor
 * James Tocknell
 * James Turner
@@ -228,6 +241,7 @@ Core Package Contributors
 * Joseph Ryan
 * Joseph Schlitz
 * José Sabater Montes
+* JP Maia
 * Juan Luis Cano Rodríguez
 * Juanjo Bazán
 * Julien Woillez
@@ -255,6 +269,7 @@ Core Package Contributors
 * Laura Hayes
 * Laura Watkins
 * Lauren Glattly
+* Laurent Michel
 * Laurie Stephey
 * Leah Fulmer
 * Lee Spitler
@@ -284,10 +299,11 @@ Core Package Contributors
 * Malynda Chizek Frouard
 * Manas Satish Bedmutha
 * Maneesh Yadav
-* Manon Marchand
 * Mangala Gowri Krishnamoorthy
 * Manish Biswas
 * Manodeep Sinha
+* Manon Marchand
+* Marcello Nascif
 * Mark Fardal
 * Mark Taylor
 * Markus Demleitner
@@ -323,6 +339,7 @@ Core Package Contributors
 * Michael Zhang
 * Michele Costa
 * Michele Mastropietro
+* Michele Peresano
 * Miguel de Val-Borro
 * Mihai Cara
 * Mike Alexandersen
@@ -333,6 +350,7 @@ Core Package Contributors
 * Moataz Hisham
 * Mohan Agrawal
 * Molly Peeples
+* Mubin Manasia
 * mzhengxi
 * Nabil Freij
 * Nadia Dencheva
@@ -371,10 +389,12 @@ Core Package Contributors
 * Peter Teuben
 * Peter Yoachim
 * Pey Lian Lim
+* Prajwel Joseph
 * Prasanth Nair
 * Pratik Patel
 * Pritish Chakraborty
 * Pushkar Kopparla
+* Raghuram Devarakonda
 * Ralf Gommers
 * Rashid Khan
 * Rasmus Handberg
@@ -412,6 +432,7 @@ Core Package Contributors
 * Sarah Graves
 * Sarah Kendrew
 * Sarah Weissman
+* Saransh Chopra
 * Sashank Mishra
 * sashmish
 * Saurav Sachidanand
@@ -435,6 +456,7 @@ Core Package Contributors
 * Simon Gibbons
 * Simon Liedtke
 * Simon Torres
+* Somia Floret
 * Sourabh Cheedella
 * Srikrishna Sekhar
 * srirajshukla
@@ -453,6 +475,7 @@ Core Package Contributors
 * T\. Carl Beery
 * T\. E\. Pickering
 * Tanuj Rastogi
+* Thais Borges
 * Thomas J. Fan
 * Thomas Erben
 * Thomas Robitaille

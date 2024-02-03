@@ -1,11 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+from __future__ import annotations
+
 import inspect
 import itertools
+from typing import TYPE_CHECKING
 
 import numpy as np
 import numpy.lib.recfunctions as rfn
 import pytest
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import (
@@ -18,11 +22,21 @@ from astropy.units.quantity_helper.function_helpers import (
     UNSUPPORTED_FUNCTIONS,
 )
 from astropy.utils.compat import (
-    NUMPY_LT_1_23,
     NUMPY_LT_1_24,
     NUMPY_LT_1_25,
     NUMPY_LT_2_0,
 )
+
+if TYPE_CHECKING:
+    from types import FunctionType, ModuleType
+
+
+VAR_POSITIONAL = inspect.Parameter.VAR_POSITIONAL
+VAR_KEYWORD = inspect.Parameter.VAR_KEYWORD
+POSITIONAL_ONLY = inspect.Parameter.POSITIONAL_ONLY
+KEYWORD_ONLY = inspect.Parameter.KEYWORD_ONLY
+POSITIONAL_OR_KEYWORD = inspect.Parameter.POSITIONAL_OR_KEYWORD
+
 
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
@@ -31,7 +45,7 @@ needs_array_function = pytest.mark.xfail(
 
 # To get the functions that could be covered, we look for those that
 # are in modules we care about and have been overridden.
-def get_wrapped_functions(*modules):
+def get_wrapped_functions(*modules: ModuleType) -> set[FunctionType]:
     if NUMPY_LT_1_25:
 
         def allows_array_function_override(f):
@@ -45,38 +59,37 @@ def get_wrapped_functions(*modules):
         from numpy.testing.overrides import allows_array_function_override
 
     return {
-        name: f
-        for mod in modules
-        for name, f in mod.__dict__.items()
+        f
+        for module in modules
+        for f in module.__dict__.values()
         if callable(f) and allows_array_function_override(f)
     }
 
 
-all_wrapped_functions = get_wrapped_functions(
-    np, np.fft, np.linalg, np.lib.recfunctions
-)
-all_wrapped = set(all_wrapped_functions.values())
+def get_covered_functions(ns: dict) -> set[FunctionType]:
+    """Identify all functions that are covered by tests.
 
+    Looks through the namespace (typically, ``locals()``) for classes that
+    have ``test_<name>`` members, and returns a set of the functions with
+    those names.  By default, the names are looked up on `numpy`, but each
+    class can override this by having a ``tested_module`` attribute (e.g.,
+    ``tested_module = np.linalg``).
 
-class CoverageMeta(type):
-    """Meta class that tracks which functions are covered by tests.
-
-    Assumes that a test is called 'test_<function_name>'.
     """
-
     covered = set()
+    for test_cls in filter(inspect.isclass, ns.values()):
+        module = getattr(test_cls, "tested_module", np)
+        covered |= {
+            function
+            for k, v in test_cls.__dict__.items()
+            if inspect.isfunction(v)
+            and k.startswith("test_")
+            and (function := getattr(module, k.replace("test_", ""), None)) is not None
+        }
+    return covered
 
-    def __new__(mcls, name, bases, members):
-        for k, v in members.items():
-            if inspect.isfunction(v) and k.startswith("test"):
-                f = k.replace("test_", "")
-                if f in all_wrapped_functions:
-                    mcls.covered.add(all_wrapped_functions[f])
 
-        return super().__new__(mcls, name, bases, members)
-
-
-class BasicTestSetup(metaclass=CoverageMeta):
+class BasicTestSetup:
     """Test setup for functions that should not change the unit.
 
     Also provides a default Quantity with shape (3, 3) and units of m.
@@ -201,6 +214,11 @@ class TestShapeManipulation(InvariantUnitTestSetup):
         a1, a2 = np.broadcast_arrays(self.q, q2)
         assert type(a1) is np.ndarray
         assert type(a2) is np.ndarray
+
+    if not NUMPY_LT_2_0:
+
+        def test_matrix_transpose(self):
+            self.check(np.matrix_transpose)
 
 
 class TestArgFunctions(NoUnitTestSetup):
@@ -337,6 +355,12 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         with pytest.raises(u.UnitsError):
             np.full_like(self.q, 0.5 * u.s)
 
+    if not NUMPY_LT_2_0:
+
+        def test_astype(self):
+            int32q = self.q.astype("int32")
+            assert_array_equal(np.astype(int32q, "int32"), int32q)
+
 
 class TestAccessingParts(InvariantUnitTestSetup):
     def test_diag(self):
@@ -387,7 +411,7 @@ class TestAccessingParts(InvariantUnitTestSetup):
         self.check(np.take, 1)
 
 
-class TestSettingParts(metaclass=CoverageMeta):
+class TestSettingParts:
     def test_put(self):
         q = np.arange(3.0) * u.m
         np.put(q, [0, 2], [50, 150] * u.cm)
@@ -464,7 +488,7 @@ class TestRepeat(InvariantUnitTestSetup):
         self.check(np.resize, (4, 4))
 
 
-class TestConcatenate(metaclass=CoverageMeta):
+class TestConcatenate:
     def setup_method(self):
         self.q1 = np.arange(6.0).reshape(2, 3) * u.m
         self.q2 = self.q1.to(u.cm)
@@ -595,7 +619,7 @@ class TestConcatenate(metaclass=CoverageMeta):
         assert np.all(out3 == expected3)
 
 
-class TestSplit(metaclass=CoverageMeta):
+class TestSplit:
     def setup_method(self):
         self.q = np.arange(54.0).reshape(3, 3, 6) * u.m
 
@@ -808,7 +832,7 @@ class TestUfuncLike(InvariantUnitTestSetup):
         assert np.all(out == expected)
 
 
-class TestUfuncLikeTests(metaclass=CoverageMeta):
+class TestUfuncLikeTests:
     def setup_method(self):
         self.q = np.array([-np.inf, +np.inf, np.nan, 3.0, 4.0]) * u.m
 
@@ -1060,7 +1084,7 @@ class TestNanFunctions(InvariantUnitTestSetup):
         assert np.all(o == expected)
 
 
-class TestVariousProductFunctions(metaclass=CoverageMeta):
+class TestVariousProductFunctions:
     """
     Test functions that are similar to gufuncs
     """
@@ -1153,7 +1177,8 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
         assert o[0] == ["einsum_path", (0, 1)]
 
 
-class TestIntDiffFunctions(metaclass=CoverageMeta):
+class TestIntDiffFunctions:
+    @pytest.mark.filterwarnings("ignore:`trapz` is deprecated. Use `scipy.*")
     def test_trapz(self):
         y = np.arange(9.0) * u.m / u.s
         out = np.trapz(y)
@@ -1222,7 +1247,7 @@ class TestIntDiffFunctions(metaclass=CoverageMeta):
         assert np.all(dfdy2 == exp_dfdy)
 
 
-class TestSpaceFunctions(metaclass=CoverageMeta):
+class TestSpaceFunctions:
     def test_linspace(self):
         # Note: linspace gets unit of end point, not superlogical.
         out = np.linspace(1000.0 * u.m, 10.0 * u.km, 5)
@@ -1258,7 +1283,7 @@ class TestSpaceFunctions(metaclass=CoverageMeta):
         assert np.all(out == expected)
 
 
-class TestInterpolationFunctions(metaclass=CoverageMeta):
+class TestInterpolationFunctions:
     @needs_array_function
     def test_interp(self):
         x = np.array([1250.0, 2750.0]) * u.m
@@ -1308,7 +1333,7 @@ class TestInterpolationFunctions(metaclass=CoverageMeta):
             np.piecewise(x.value, [x], [0.0])
 
 
-class TestBincountDigitize(metaclass=CoverageMeta):
+class TestBincountDigitize:
     @needs_array_function
     def test_bincount(self):
         i = np.array([1, 1, 2, 3, 2, 4])
@@ -1329,7 +1354,7 @@ class TestBincountDigitize(metaclass=CoverageMeta):
         assert_array_equal(out, expected)
 
 
-class TestHistogramFunctions(metaclass=CoverageMeta):
+class TestHistogramFunctions:
     def setup_method(self):
         self.x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
         self.y = np.array([1.2, 2.2, 2.4, 3.0, 4.0]) * u.cm
@@ -1747,7 +1772,7 @@ class TestSortFunctions(InvariantUnitTestSetup):
         self.check(np.partition, 2)
 
 
-class TestStringFunctions(metaclass=CoverageMeta):
+class TestStringFunctions:
     # For these, making behaviour work means deviating only slightly from
     # the docstring, and by default they fail miserably.  So, might as well.
     def setup_method(self):
@@ -1793,7 +1818,7 @@ class TestStringFunctions(metaclass=CoverageMeta):
         assert out == expected
 
 
-class TestBitAndIndexFunctions(metaclass=CoverageMeta):
+class TestBitAndIndexFunctions:
     # Index/bit functions generally fail for floats, so the usual
     # float quantity are safe, but the integer ones are not.
     def setup_method(self):
@@ -1859,7 +1884,7 @@ class TestDtypeFunctions(NoUnitTestSetup):
         self.check(np.isrealobj)
 
 
-class TestMeshGrid(metaclass=CoverageMeta):
+class TestMeshGrid:
     def test_meshgrid(self):
         q1 = np.arange(3.0) * u.m
         q2 = np.arange(5.0) * u.s
@@ -1877,7 +1902,7 @@ class TestMemoryFunctions(NoUnitTestSetup):
         self.check(np.may_share_memory, self.q.value)
 
 
-class TestSetOpsFcuntions(metaclass=CoverageMeta):
+class TestSetOpsFunctions:
     def setup_method(self):
         self.q = np.array([[0.0, 1.0, -1.0], [3.0, 5.0, 3.0], [0.0, 1.0, -1]]) * u.m
         self.q2 = np.array([0.0, 100.0, 150.0, 200.0]) * u.cm
@@ -1926,8 +1951,53 @@ class TestSetOpsFcuntions(metaclass=CoverageMeta):
     def test_unique_more_complex(self, kwargs):
         self.check1(np.unique, **kwargs)
 
+    if not NUMPY_LT_2_0:
+
+        @needs_array_function
+        def test_unique_all(self):
+            values, indices, inverse_indices, counts = np.unique(
+                self.q,
+                return_index=True,
+                return_inverse=True,
+                return_counts=True,
+                equal_nan=False,
+            )
+            res = np.unique_all(self.q)
+            assert len(res) == 4
+
+            assert_array_equal(res.values, values)
+            assert_array_equal(res.indices, indices)
+            assert_array_equal(res.inverse_indices, inverse_indices)
+            assert_array_equal(res.counts, counts)
+
+        @needs_array_function
+        def test_unique_counts(self):
+            values, counts = np.unique(self.q, return_counts=True, equal_nan=False)
+            res = np.unique_counts(self.q)
+            assert len(res) == 2
+
+            assert_array_equal(res.values, values)
+            assert_array_equal(res.counts, counts)
+
+        @needs_array_function
+        def test_unique_inverse(self):
+            values, inverse_indices = np.unique(
+                self.q, return_inverse=True, equal_nan=False
+            )
+            res = np.unique_inverse(self.q)
+            assert len(res) == 2
+
+            assert_array_equal(res.values, values)
+            assert_array_equal(res.inverse_indices, inverse_indices)
+
+        @needs_array_function
+        def test_unique_values(self):
+            values = np.unique(self.q, equal_nan=False)
+            res = np.unique_values(self.q)
+            assert_array_equal(res, values)
+
     @needs_array_function
-    @pytest.mark.parametrize("kwargs", (dict(), dict(return_indices=True)))
+    @pytest.mark.parametrize("kwargs", ({}, dict(return_indices=True)))
     def test_intersect1d(self, kwargs):
         self.check2(np.intersect1d, **kwargs)
 
@@ -1947,6 +2017,7 @@ class TestSetOpsFcuntions(metaclass=CoverageMeta):
         self.check2(np.setdiff1d)
 
     @needs_array_function
+    @pytest.mark.filterwarnings("ignore:`in1d` is deprecated. Use `np.isin` instead.")
     def test_in1d(self):
         self.check2(np.in1d, unit=None)
         # Check zero is treated as having any unit.
@@ -1996,6 +2067,8 @@ def test_fft_frequencies(function):
 
 @needs_array_function
 class TestFFT(InvariantUnitTestSetup):
+    tested_module = np.fft
+
     # These are all trivial, just preserve the unit.
     def setup_method(self):
         # Use real input; gets turned into complex as needed.
@@ -2050,7 +2123,9 @@ class TestFFT(InvariantUnitTestSetup):
         self.check(np.fft.ifftshift)
 
 
-class TestLinAlg(metaclass=CoverageMeta):
+class TestLinAlg(InvariantUnitTestSetup):
+    tested_module = np.linalg
+
     def setup_method(self):
         self.q = (
             np.array([[1.0, -1.0, 2.0], [0.0, 3.0, -1.0], [-1.0, -1.0, 1.0]]) << u.m
@@ -2132,6 +2207,9 @@ class TestLinAlg(metaclass=CoverageMeta):
             np.linalg.pinv(self.q.value, rcond.to_value(self.q.unit)) / self.q.unit
         )
         assert_array_equal(pinv2, expected2)
+        if not NUMPY_LT_2_0:
+            pinv3 = np.linalg.pinv(self.q, rtol=rcond)
+            assert_array_equal(pinv3, expected2)
 
     @needs_array_function
     def test_tensorinv(self):
@@ -2273,8 +2351,84 @@ class TestLinAlg(metaclass=CoverageMeta):
         wx = np.linalg.eigvalsh(self.q.value) << self.q.unit
         assert_array_equal(w, wx)
 
+    if not NUMPY_LT_2_0:
+        # Numpy 2.0 added array-api compatible definitions of
+        # diagonal and trace to np.linalg. Since these have
+        # name conflicts with the main numpy namespace, they
+        # are tracked as linalg_diagonal and linalg_trace.
+        def test_diagonal(self):
+            self.check(np.linalg.diagonal)
 
-class TestRecFunctions(metaclass=CoverageMeta):
+        def test_trace(self):
+            self.check(np.trace)
+
+        @needs_array_function
+        def test_cross(self):
+            q1 = np.array([1, 2, 3]) << u.m
+            q2 = np.array([4, 5, 6]) << u.s
+            assert_array_equal(np.linalg.cross(q1, q2), np.cross(q1, q2))
+            assert_array_equal(np.linalg.cross(q1, q2.value), np.cross(q1, q2.value))
+
+        @needs_array_function
+        def test_outer(self):
+            q = self.q.flatten()
+            assert_array_equal(np.linalg.outer(q, q), np.outer(q, q))
+            assert_array_equal(np.linalg.outer(q, q.value), np.outer(q, q.value))
+
+        @needs_array_function
+        def test_svdvals(self):
+            _, ref, _ = np.linalg.svd(self.q)
+            res = np.linalg.svdvals(self.q)
+            assert_allclose(res, ref, rtol=5e-16)
+
+        @needs_array_function
+        def test_vecdot(self):
+            ref = (self.q * self.q).sum(-1)
+            res = np.linalg.vecdot(self.q, self.q)
+            assert_array_equal(res, ref)
+
+        @needs_array_function
+        def test_tensordot(self):
+            ref = np.tensordot(self.q, self.q)
+            res = np.linalg.tensordot(self.q, self.q)
+            assert_array_equal(res, ref)
+
+        @needs_array_function
+        def test_matmul(self):
+            ref = np.matmul(self.q, self.q)
+            res = np.linalg.matmul(self.q, self.q)
+            assert_array_equal(res, ref)
+
+        def test_matrix_transpose(self):
+            t = np.linalg.matrix_transpose(self.q)
+            assert_array_equal(t, self.q.swapaxes(-2, -1))
+
+        @needs_array_function
+        def test_matrix_norm(self):
+            n = np.linalg.matrix_norm(self.q)
+            expected = np.linalg.norm(self.q.value) << self.q.unit
+            assert_array_equal(n, expected)
+
+        @needs_array_function
+        def test_vector_norm(self):
+            n = np.linalg.vector_norm(self.q)
+            expected = np.linalg.norm(self.q.value.ravel()) << self.q.unit
+            assert_array_equal(n, expected)
+            # Special case: 1-D, ord=0.
+            n1 = np.linalg.vector_norm(self.q[0], ord=0)
+            expected1 = np.linalg.norm(self.q[0].value.ravel(), ord=0) << u.one
+            assert_array_equal(n1, expected1)
+            # Axis combo, just in case
+            n2 = np.linalg.vector_norm(self.q, axis=(-1, -2))
+            expected2 = (
+                np.linalg.vector_norm(self.q.value, axis=(-1, -2)) << self.q.unit
+            )
+            assert_array_equal(n2, expected2)
+
+
+class TestRecFunctions:
+    tested_module = np.lib.recfunctions
+
     @classmethod
     def setup_class(self):
         self.pv_dtype = np.dtype([("p", "f8"), ("v", "f8")])
@@ -2408,15 +2562,12 @@ class TestRecFunctions(metaclass=CoverageMeta):
             rfn.merge_arrays((self.q_pv, np.array(["a", "b", "c"])), flatten=flatten)
 
 
+all_wrapped_functions = get_wrapped_functions(
+    np, np.fft, np.linalg, np.lib.recfunctions
+)
+tested_functions = get_covered_functions(locals())
 untested_functions = set()
-if NUMPY_LT_1_23:
-    deprecated_functions = {
-        # Deprecated, removed in numpy 1.23
-        np.asscalar,
-        np.alen,
-    }
-else:
-    deprecated_functions = set()
+deprecated_functions = set()
 
 untested_functions |= deprecated_functions
 io_functions = {np.save, np.savez, np.savetxt, np.savez_compressed}
@@ -2438,8 +2589,8 @@ untested_functions |= rec_functions
 
 @needs_array_function
 def test_testing_completeness():
-    assert not CoverageMeta.covered.intersection(untested_functions)
-    assert all_wrapped == (CoverageMeta.covered | untested_functions)
+    assert not tested_functions.intersection(untested_functions)
+    assert all_wrapped_functions == (tested_functions | untested_functions)
 
 
 class TestFunctionHelpersCompleteness:
@@ -2466,9 +2617,147 @@ class TestFunctionHelpersCompleteness:
             | set(FUNCTION_HELPERS.keys())
             | set(DISPATCHED_FUNCTIONS.keys())
         )
-        assert all_wrapped == included_in_helpers
+        assert all_wrapped_functions == included_in_helpers
 
-    # untested_function is created using all_wrapped_functions
     @needs_array_function
     def test_ignored_are_untested(self):
         assert IGNORED_FUNCTIONS | TBD_FUNCTIONS == untested_functions
+
+
+@pytest.mark.parametrize(
+    "target, helper",
+    sorted(
+        itertools.chain(FUNCTION_HELPERS.items(), DISPATCHED_FUNCTIONS.items()),
+        key=lambda items: items[0].__name__,
+    ),
+    ids=lambda func: func.__name__,
+)
+class TestFunctionHelpersSignatureCompatibility:
+    """
+    Check that a helper function's signature is *at least* as flexible
+    as the helped (target) function's. E.g., any argument that is allowed positionally,
+    or as keyword, by the target must be re-exposed *somehow* by the helper.
+    We explicitly allow helper's signature to be *more* flexible than the target signature
+    by allowing *args and **kwargs catch-all arguments, which we use to limit code
+    duplication, and also help with forward and backward compatibility.
+    See https://github.com/astropy/astropy/issues/15703
+    """
+
+    @staticmethod
+    def have_catchall_argument(parameters, kind) -> bool:
+        return any(p.kind is kind for p in parameters.values())
+
+    @staticmethod
+    def get_param_group(parameters, kinds: list) -> list[str]:
+        return [name for name, p in parameters.items() if p.kind in kinds]
+
+    def test_all_arguments_reexposed(self, target, helper):
+        try:
+            sig_target = inspect.signature(target)
+        except ValueError:
+            pytest.skip("Non Python function cannot be inspected at runtime")
+
+        params_target = sig_target.parameters
+        sig_helper = inspect.signature(helper)
+        params_helper = sig_helper.parameters
+
+        have_args_helper = self.have_catchall_argument(params_helper, VAR_POSITIONAL)
+        have_kwargs_helper = self.have_catchall_argument(params_helper, VAR_KEYWORD)
+
+        args_helper = list(params_helper.items())
+
+        pos_helper = 0
+        for nt, pt in params_target.items():
+            kt = pt.kind
+            if kt in (POSITIONAL_ONLY, POSITIONAL_OR_KEYWORD):
+                assert pos_helper < len(args_helper), (
+                    "helper's signature is too short; "
+                    "some arguments are not properly re-exposed"
+                )
+                nh, ph = args_helper[pos_helper]
+                if (kh := ph.kind) is not VAR_POSITIONAL:
+                    assert nh == nt, f"argument {nt!r} isn't re-exposed as positional"
+                    assert kh is kt, (
+                        f"helper is not re-exposing argument {nt!r} properly:"
+                        f"expected {kt}, got {kh}"
+                    )
+                    pos_helper += 1
+                    continue
+
+            if kt in (KEYWORD_ONLY, POSITIONAL_OR_KEYWORD):
+                if nt in params_helper:
+                    assert (kh := params_helper[nt].kind) is kt, (
+                        f"helper is not re-exposing argument {nt!r} properly: "
+                        f"expected {kt}, got {kh}"
+                    )
+                elif kt is KEYWORD_ONLY:
+                    assert (
+                        have_kwargs_helper
+                    ), f"argument {nt!r} is not re-exposed as keyword"
+                elif kt is POSITIONAL_OR_KEYWORD:
+                    assert (
+                        have_args_helper and have_kwargs_helper
+                    ), f"argument {nt!r} is not re-exposed as positional-or-keyword"
+            elif kt is VAR_POSITIONAL:
+                assert have_args_helper, "helper is missing a catch-all *args argument"
+            elif kt is VAR_KEYWORD:
+                assert (
+                    have_kwargs_helper
+                ), "helper is missing a catch-all **kwargs argument"
+
+    def test_known_arguments(self, target, helper):
+        # validate that all exposed arguments map to something in the target
+        try:
+            sig_target = inspect.signature(target)
+        except ValueError:
+            pytest.skip("Non Python function cannot be inspected at runtime")
+
+        params_target = sig_target.parameters
+        sig_helper = inspect.signature(helper)
+        params_helper = sig_helper.parameters
+
+        for kind in (POSITIONAL_ONLY, POSITIONAL_OR_KEYWORD):
+            args_target = self.get_param_group(params_helper, [kind])
+            args_helper = self.get_param_group(params_helper, [kind])
+
+            if (nhelper := len(args_helper)) > (ntarget := len(args_target)):
+                unknown: list[str] = args_helper[ntarget:]
+                raise AssertionError(
+                    f"Found unknown {kind} parameter(s) "
+                    "in helper's signature: "
+                    f"{unknown}, at position(s) {list(range(ntarget, nhelper))}"
+                )
+
+        # keyword-allowed
+        keyword_allowed_target = set(
+            self.get_param_group(params_target, [KEYWORD_ONLY, POSITIONAL_OR_KEYWORD])
+        )
+        keyword_allowed_helper = set(
+            self.get_param_group(params_helper, [KEYWORD_ONLY, POSITIONAL_OR_KEYWORD])
+        )
+
+        # additional private keyword-only argument are allowed because
+        # they are only intended for testing purposes.
+        # For instance, quantile has such a parameter '_q_unit'
+        keyword_allowed_helper = {
+            name for name in keyword_allowed_helper if not name.startswith("_")
+        }
+
+        assert not (diff := keyword_allowed_helper - keyword_allowed_target), (
+            "Found some keyword-allowed parameters in helper "
+            f"that are unknown to target: {diff}"
+        )
+
+        # finally, check that default values are correctly replicated
+        for name, ph in params_helper.items():
+            if name not in params_target:
+                # In a few cases, the helper defines names that are not in
+                # the target (e.g., a private name like _q_unit in quantile,
+                # or a *args, **kwargs that captures further arguments
+                # that do not matter. We let such cases slip by.
+                continue
+            pt = params_target[name]
+            assert ph.default == pt.default, (
+                f"Default value mismatch for argument {name!r}. "
+                f"Helper has {ph.default!r}, target has {pt.default!r}"
+            )

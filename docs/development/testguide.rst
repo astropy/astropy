@@ -27,17 +27,17 @@ dependency itself, in addition to several ``pytest`` plugins that are used by
 Astropy, and will also be of general use to other packages.
 
 Since the testing dependencies are not actually required to install or use
-Astropy, they are not included in ``install_requires`` in ``setup.cfg``.
-Instead, they are listed in an ``extras_require`` section called ``test`` in
-``setup.cfg``. Developers who want to run the test suite will need to either
-install pytest-astropy directly::
+Astropy, in the ``pyproject.toml`` file they are not included under the
+``[project]`` section in ``dependencies``. Instead, they are listed under the
+``[project.optional-dependences]`` section called ``test``.  Developers who want
+to run the test suite will need to either install pytest-astropy directly::
 
     pip install pytest-astropy
 
 or install the core package in 'editable' mode specifying the ``[test]``
 option::
 
-    pip install -e .[test]
+    pip install -e ".[test]"
 
 A detailed description of the plugins can be found in the :ref:`pytest-plugins`
 section.
@@ -121,13 +121,13 @@ which is generally faster than using tox for iterative development. In
 this case, it is important for developers to be aware that they must manually
 rebuild any extensions by running::
 
-    pip install -e .[test]
+    pip install -e ".[test]"
 
 before running the test with pytest with::
 
     pytest
 
-Instead of calling ``pip install -e .[test]``, you can also build the
+Instead of calling ``pip install -e ".[test]"``, you can also build the
 extensions with::
 
     python setup.py build_ext --inplace
@@ -214,10 +214,11 @@ Test-running options
 Testing for open files
 ----------------------
 
-There is a configuration inside the ``setup.cfg`` file that converts all
-unhandled warnings to errors during a test run. As a result, any open file(s)
-that throw ``ResourceWarning`` (except the specific ones already ignored)
-would fail the affected test(s).
+The ``filterwarnings`` settings under ``[tool.pytest.ini_options]`` in the
+``pyproject.toml`` file has an option which converts all unhandled warnings to
+errors during a test run. As a result, any open file(s) that throw
+``ResourceWarning`` (except the specific ones already ignored) would fail the
+affected test(s).
 
 Test coverage reports
 ---------------------
@@ -595,7 +596,8 @@ Other properties that you could test include:
 - Optimised routines calculate the same result as unoptimised, within tolerances
 
 This is a great way to start contributing to Astropy, and has already found
-bugs in time handling.  See issue #9017 and pull request #9532 for details!
+bugs in time handling. See issue `#9017 <https://github.com/astropy/astropy/issues/9017>`_
+and pull request `#9532 <https://github.com/astropy/astropy/pull/9532>`_ for details!
 
 (and if you find Hypothesis useful in your research,
 `please cite it <https://doi.org/10.21105/joss.01891>`_!)
@@ -652,12 +654,12 @@ These variables should exist for all of Astropy's optional dependencies; a
 complete list of supported flags can be found in
 ``astropy.utils.compat.optional_deps``.
 
-Any new optional dependencies should be added to that file, as well as to
-relevant entries in ``setup.cfg`` under ``options.extras_require``:
-typically, under ``all`` for dependencies used in user-facing code
-(e.g., ``h5py``, which is used to write tables to HDF5 format),
-and in ``test_all`` for dependencies only used in tests (e.g.,
-``skyfield``, which is used to cross-check the accuracy of coordinate
+Any new optional dependencies should be added to that file, as well as to the
+relevant entries in the ``pyproject.toml`` file in the
+``[project.optional-dependencies]`` section; typically, under ``all`` for
+dependencies used in user-facing code (e.g., ``h5py``, which is used to write
+tables to HDF5 format), and in ``test_all`` for dependencies only used in tests
+(e.g., ``skyfield``, which is used to cross-check the accuracy of coordinate
 transforms).
 
 Using pytest helper functions
@@ -758,7 +760,7 @@ We make use of the `pytest-mpl <https://pypi.org/project/pytest-mpl>`_
 plugin to write tests where we can compare the output of plotting commands
 with reference files on a pixel-by-pixel basis (this is used for instance in
 :ref:`astropy.visualization.wcsaxes <wcsaxes>`). We use the `hybrid mode
-<https://github.com/matplotlib/pytest-mpl#hybrid-mode-hashes-and-images>`_ with
+<https://pytest-mpl.readthedocs.io/en/latest/hybrid_mode.html>`_ with
 hashes and images.
 
 To run the Astropy tests with the image comparison, use e.g.::

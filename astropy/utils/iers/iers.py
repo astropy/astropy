@@ -11,7 +11,7 @@ celestial-to-terrestrial coordinate transformations
 
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -502,7 +502,6 @@ class IERS(QTable):
         time values in ``mdj`` and the time span of the table.  The base behavior
         is not to update the table.  ``IERS_Auto`` overrides this method.
         """
-        pass
 
     def ut1_utc_source(self, i):
         """Source for UT1-UTC.  To be overridden by subclass."""
@@ -1091,7 +1090,9 @@ class LeapSeconds(QTable):
     def _today():
         # Get current day in scale='tai' without going through a scale change
         # (so we do not need leap seconds).
-        s = "{0.year:04d}-{0.month:02d}-{0.day:02d}".format(datetime.utcnow())
+        s = "{0.year:04d}-{0.month:02d}-{0.day:02d}".format(
+            datetime.now(tz=timezone.utc)
+        )
         return Time(s, scale="tai", format="iso", out_subfmt="date")
 
     @classmethod

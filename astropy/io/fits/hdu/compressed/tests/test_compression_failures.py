@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from astropy.io import fits
-from astropy.io.fits._tiled_compression import compress_image_data
+from astropy.io.fits.hdu.compressed._tiled_compression import compress_image_data
 from astropy.io.fits.tests.conftest import FitsTestCase
 
 MAX_INT = np.iinfo(np.intc).max

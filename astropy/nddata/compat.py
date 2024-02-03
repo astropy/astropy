@@ -117,8 +117,8 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
                     # Raise an error if uncertainty has unit and data does not
                     raise ValueError(
                         "Cannot assign an uncertainty with unit "
-                        "to {} without "
-                        "a unit".format(class_name)
+                        f"to {class_name} without "
+                        "a unit"
                     )
                 self._uncertainty = value
                 self._uncertainty.parent_nddata = self
@@ -238,7 +238,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         else:
             return np.array(self.data)
 
-    def __array_prepare__(self, array, context=None):
+    def __array_wrap__(self, array, context=None, return_scalar=False):
         """
         This ensures that a masked array is returned if self is masked.
         """

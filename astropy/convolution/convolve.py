@@ -289,13 +289,15 @@ def convolve(
 
     # Check dimensionality
     if array_internal.ndim == 0:
-        raise Exception("cannot convolve 0-dimensional arrays")
+        raise ValueError("cannot convolve 0-dimensional arrays")
     elif array_internal.ndim > 3:
         raise NotImplementedError(
             "convolve only supports 1, 2, and 3-dimensional arrays at this time"
         )
     elif array_internal.ndim != kernel_internal.ndim:
-        raise Exception("array and kernel have differing number of dimensions.")
+        raise ValueError("array and kernel have differing number of dimensions.")
+    elif array_internal.size == 0:
+        raise ValueError("cannot convolve empty array")
 
     array_shape = np.array(array_internal.shape)
     kernel_shape = np.array(kernel_internal.shape)
@@ -346,7 +348,10 @@ def convolve(
                 raise ValueError(
                     "The kernel can't be normalized, because "
                     "its sum is close to zero. The sum of the "
-                    f"given kernel is < {1.0 / MAX_NORMALIZATION}"
+                    f"given kernel is < {1.0 / MAX_NORMALIZATION:.2f}. "
+                    "For a zero-sum kernel, set normalize_kernel=False "
+                    "or pass a custom normalization function to "
+                    "normalize_kernel."
                 )
 
     # Mark the NaN values so we can replace them later if interpolate_nan is
@@ -453,7 +458,7 @@ def convolve(
         if isinstance(passed_kernel, Kernel):
             new_result._separable = new_result._separable and passed_kernel._separable
         return new_result
-    elif array_dtype.kind == "f":
+    if array_dtype.kind == "f":
         # Try to preserve the input type if it's a floating point type
         # Avoid making another copy if possible
         try:
@@ -752,8 +757,11 @@ def convolve_fft(
     if normalize_kernel is True:
         if kernel.sum() < 1.0 / MAX_NORMALIZATION:
             raise Exception(
-                "The kernel can't be normalized, because its sum is close to zero. The"
-                f" sum of the given kernel is < {1.0 / MAX_NORMALIZATION}"
+                "The kernel can't be normalized, because its sum is close "
+                "to zero. The sum of the given kernel is < "
+                f"{1.0 / MAX_NORMALIZATION:.2f}. For a zero-sum kernel, set "
+                "normalize_kernel=False or pass a custom normalization "
+                "function to normalize_kernel."
             )
         kernel_scale = kernel.sum()
         normalized_kernel = kernel / kernel_scale
@@ -944,11 +952,7 @@ def convolve_fft(
     if preserve_nan:
         rifft[arrayslices][nanmaskarray] = np.nan
 
-    if crop:
-        result = rifft[arrayslices].real
-        return result
-    else:
-        return rifft.real
+    return rifft[arrayslices].real if crop else rifft.real
 
 
 def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):

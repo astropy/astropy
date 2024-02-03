@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__ = ["Parameter"]
+from . import _core
+from ._core import *
 
-from ._core import Parameter
+__all__ = _core.__all__
