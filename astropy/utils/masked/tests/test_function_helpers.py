@@ -1005,13 +1005,23 @@ class TestIntDiffFunctions(MaskedArraySetup):
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
 
-    @pytest.mark.filterwarnings("ignore:`trapz` is deprecated. Use `scipy.*")
-    def test_trapz(self):
+    def check_trapezoid(self, func):
         ma = self.ma.copy()
         ma.mask[1] = False
-        out = np.trapz(ma)
-        assert_array_equal(out.unmasked, np.trapz(self.a))
+        out = func(ma)
+        assert_array_equal(out.unmasked, func(self.a))
         assert_array_equal(out.mask, np.array([True, False]))
+
+    if NUMPY_LT_2_0:
+
+        @pytest.mark.filterwarnings("ignore:`trapz` is deprecated.")
+        def test_trapz(self):
+            self.check_trapezoid(np.trapz)
+
+    else:
+
+        def test_trapezoid(self):
+            self.check_trapezoid(np.trapezoid)
 
     def test_gradient(self):
         out = np.gradient(self.ma)

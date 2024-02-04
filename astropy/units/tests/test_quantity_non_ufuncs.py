@@ -1172,22 +1172,32 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
 
 
 class TestIntDiffFunctions(metaclass=CoverageMeta):
-    @pytest.mark.filterwarnings("ignore:`trapz` is deprecated. Use `scipy.*")
-    def test_trapz(self):
+    def check_trapezoid(self, func):
         y = np.arange(9.0) * u.m / u.s
-        out = np.trapz(y)
-        expected = np.trapz(y.value) * y.unit
+        out = func(y)
+        expected = func(y.value) * y.unit
         assert np.all(out == expected)
 
         dx = 10.0 * u.s
-        out = np.trapz(y, dx=dx)
-        expected = np.trapz(y.value, dx=dx.value) * y.unit * dx.unit
+        out = func(y, dx=dx)
+        expected = func(y.value, dx=dx.value) * y.unit * dx.unit
         assert np.all(out == expected)
 
         x = np.arange(9.0) * u.s
-        out = np.trapz(y, x)
-        expected = np.trapz(y.value, x.value) * y.unit * x.unit
+        out = func(y, x)
+        expected = func(y.value, x.value) * y.unit * x.unit
         assert np.all(out == expected)
+
+    if NUMPY_LT_2_0:
+
+        @pytest.mark.filterwarnings("ignore:`trapz` is deprecated.")
+        def test_trapz(self):
+            self.check_trapezoid(np.trapz)
+
+    else:
+
+        def test_trapezoid(self):
+            self.check_trapezoid(np.trapezoid)
 
     def test_diff(self):
         # Simple diff works out of the box.
