@@ -90,7 +90,6 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.nansum, np.nancumsum, np.nanstd, np.nanvar,
     np.nanprod, np.nancumprod,
     np.einsum_path, np.linspace,
-    np.trapz,  # deprecated in not NUMPY_LT_2_0
     np.sort, np.partition, np.meshgrid,
     np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
     np.iscomplexobj, np.isrealobj,
@@ -105,8 +104,8 @@ SUBCLASS_SAFE_FUNCTIONS |= {  # Deprecated
 SUBCLASS_SAFE_FUNCTIONS |= {np.median}
 
 if NUMPY_LT_2_0:
-    # functions removed in numpy 2.0; alias for np.round in NUMPY_LT_1_25
-    SUBCLASS_SAFE_FUNCTIONS |= {np.msort, np.round_}  # noqa: NPY003
+    # functions (re)moved in numpy 2.0; alias for np.round in NUMPY_LT_1_25
+    SUBCLASS_SAFE_FUNCTIONS |= {np.msort, np.round_, np.trapz}  # noqa: NPY003
 else:
     # Array-API compatible versions (matrix axes always at end).
     SUBCLASS_SAFE_FUNCTIONS |= {
@@ -122,6 +121,9 @@ else:
         np.unique_all, np.unique_counts, np.unique_inverse, np.unique_values,
         np.astype,
     }  # fmt: skip
+
+    # trapz was renamed to trapezoid
+    SUBCLASS_SAFE_FUNCTIONS |= {np.trapezoid}
 
 # Implemented as methods on Quantity:
 # np.ediff1d is from setops, but we support it anyway; the others
