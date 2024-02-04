@@ -188,7 +188,7 @@ class CoordinateHelper:
 
         if draw_grid:
             self.grid_lines_kwargs["visible"] = True
-        else:
+        elif draw_grid is False:
             self.grid_lines_kwargs["visible"] = False
 
     def set_coord_type(self, coord_type, coord_wrap=None):
