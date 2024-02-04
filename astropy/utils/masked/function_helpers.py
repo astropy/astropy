@@ -100,7 +100,6 @@ MASKED_SAFE_FUNCTIONS |= {
     np.atleast_1d, np.atleast_2d, np.atleast_3d, np.stack, np.hstack, np.vstack,
     # np.lib._function_base_impl
     np.average, np.diff, np.extract, np.meshgrid, np.gradient,
-    np.trapz,  # deprecated in not NUMPY_LT_2_0
     # np.lib.index_tricks
     np.diag_indices_from, np.triu_indices_from, np.tril_indices_from,
     np.fill_diagonal,
@@ -124,9 +123,11 @@ if NUMPY_LT_2_0:
     MASKED_SAFE_FUNCTIONS |= {np.ptp}
     # Removed in numpy 2.0.  Just an alias to vstack.
     MASKED_SAFE_FUNCTIONS |= {np.row_stack}
+    # renamed in numpy 2.0
+    MASKED_SAFE_FUNCTIONS |= {np.trapz}
 else:
     # new in numpy 2.0
-    MASKED_SAFE_FUNCTIONS |= {np.astype}
+    MASKED_SAFE_FUNCTIONS |= {np.astype, np.trapezoid}
 
 IGNORED_FUNCTIONS = {
     # I/O - useless for Masked, since no way to store the mask.
