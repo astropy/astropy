@@ -14,6 +14,8 @@ from collections import OrderedDict, defaultdict
 from textwrap import wrap
 from warnings import warn
 
+import numpy as np
+
 from astropy.table.pprint import get_auto_format_func
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -214,6 +216,10 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 null = header_vals[3][i].strip()
                 fillval = "" if issubclass(col.type, core.StrType) else "0"
                 self.data.fill_values.append((null, fillval, col.name))
+            if "long".startswith(col.raw_type.lower()):
+                # ensure long columns are 64-bit int, to address (Windows-specific):
+                # https://github.com/astropy/astropy/issues/15989
+                col.dtype = np.int64
             start = col.end + 1
             cols.append(col)
 
