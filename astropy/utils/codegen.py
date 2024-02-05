@@ -3,7 +3,6 @@
 
 
 import inspect
-import itertools
 import keyword
 import os
 import re
@@ -56,7 +55,7 @@ def make_function_with_signature(
         iter_kwargs = iter(kwargs)
 
     # Check that all the argument names are valid
-    for item in itertools.chain(args, iter_kwargs):
+    for item in (*args, *iter_kwargs):
         if isinstance(item, tuple):
             argname = item[0]
             key_args.append(item)
