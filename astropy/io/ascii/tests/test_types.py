@@ -53,6 +53,22 @@ def test_ipac_read_types():
         assert_equal(col.type, expected_type)
 
 
+def test_large_integers():
+    # case https://github.com/astropy/astropy/issues/5744
+    dat = ascii.read(
+        """\
+num,mag
+110000000000000001,18.1
+2,17.0
+""",
+        fast_reader=False,  # pure-Python path, need to test C path too
+    )
+    # assert dat["num"] is at least 64bit int
+    assert dat["num"].dtype.kind == "i"
+    assert dat["num"].dtype.itemsize >= 8
+    assert dat["num"][0] == 110000000000000001
+
+
 def test_col_dtype_in_custom_class():
     """Test code in BaseOutputter._convert_vals to handle Column.dtype
     attribute. See discussion in #11895."""
