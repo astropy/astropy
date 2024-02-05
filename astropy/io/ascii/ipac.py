@@ -217,7 +217,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 fillval = "" if issubclass(col.type, core.StrType) else "0"
                 self.data.fill_values.append((null, fillval, col.name))
             if "long".startswith(col.raw_type.lower()):
-                # ensure long columns are 64-bit int, to address (Windows-specific):
+                # ensure long columns are 64-bit int, to address:
                 # https://github.com/astropy/astropy/issues/15989
                 col.dtype = np.int64
             start = col.end + 1
