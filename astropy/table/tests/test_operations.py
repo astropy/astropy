@@ -829,7 +829,7 @@ class TestJoin:
         if join_type == "outer":
             ctx = pytest.warns(
                 UserWarning,
-                match=r"keep_order argument is ignored with join_type='outer'",
+                match=r"keep_order=True argument is ignored with join_type='outer'",
             )
         else:
             ctx = nullcontext()
