@@ -1183,9 +1183,11 @@ class TableOutputter(BaseOutputter):
         self._convert_vals(cols)
 
         t_cols = [
-            np.ma.MaskedArray(x.data, mask=x.mask)
-            if hasattr(x, "mask") and np.any(x.mask)
-            else x.data
+            (
+                np.ma.MaskedArray(x.data, mask=x.mask)
+                if hasattr(x, "mask") and np.any(x.mask)
+                else x.data
+            )
             for x in cols
         ]
         out = Table(t_cols, names=[x.name for x in cols], meta=meta["table"])

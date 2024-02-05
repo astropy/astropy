@@ -460,9 +460,11 @@ class FunctionUnitBase(metaclass=ABCMeta):
             return '{}("{}"{})'.format(
                 self.__class__.__name__,
                 self.physical_unit,
-                ""
-                if self.function_unit is self._default_function_unit
-                else f', unit="{self.function_unit}"',
+                (
+                    ""
+                    if self.function_unit is self._default_function_unit
+                    else f', unit="{self.function_unit}"'
+                ),
             )
 
     def _repr_latex_(self):

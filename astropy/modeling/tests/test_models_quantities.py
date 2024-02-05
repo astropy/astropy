@@ -1110,9 +1110,7 @@ def test_models_evaluate_magunits(model):
 
 def test_Schechter1D_errors():
     # Non magnitude units are bad
-    model = Schechter1D(
-        phi_star=1.0e-4 * (u.Mpc**-3), m_star=-20.0 * u.km, alpha=-1.9
-    )
+    model = Schechter1D(phi_star=1.0e-4 * (u.Mpc**-3), m_star=-20.0 * u.km, alpha=-1.9)
     MESSAGE = r"The units of magnitude and m_star must be a magnitude"
     with pytest.raises(u.UnitsError, match=MESSAGE):
         model(-23 * u.km)

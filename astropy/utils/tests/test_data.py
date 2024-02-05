@@ -361,7 +361,7 @@ def test_download_with_sources_and_bogus_original(
         )
     else:
         rs = [
-            download_file(u, cache=True, sources=sources.get(u, None))
+            download_file(u, cache=True, sources=sources.get(u))
             for (u, c, c_bad) in urls
         ]
     assert len(rs) == len(urls)

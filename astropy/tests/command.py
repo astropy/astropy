@@ -4,6 +4,7 @@ This is for backward-compatibility for other downstream packages and can be remo
 once astropy-helpers has reached end-of-life.
 
 """
+
 import os
 import shutil
 import stat

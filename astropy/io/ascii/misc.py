@@ -6,7 +6,6 @@ misc.py:
 :Author: Hannes Breytenbach (hannes@saao.ac.za)
 """
 
-
 import collections.abc
 import itertools
 import operator

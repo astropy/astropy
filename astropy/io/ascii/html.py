@@ -128,9 +128,11 @@ class HTMLSplitter(core.BaseSplitter):
             if header_elements:
                 # Return multicolumns as tuples for HTMLHeader handling
                 yield [
-                    (el.text.strip(), el["colspan"])
-                    if el.has_attr("colspan")
-                    else el.text.strip()
+                    (
+                        (el.text.strip(), el["colspan"])
+                        if el.has_attr("colspan")
+                        else el.text.strip()
+                    )
                     for el in header_elements
                 ]
             data_elements = soup.find_all("td")

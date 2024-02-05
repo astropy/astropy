@@ -1,6 +1,7 @@
 """
 This file contains the code for Quantizing / Dequantizing floats.
 """
+
 import numpy as np
 
 from astropy.io.fits.hdu.base import BITPIX2DTYPE

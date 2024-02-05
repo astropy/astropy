@@ -227,9 +227,11 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         # If the shape has not changed for a given component, we can proceed with using the
         #     non-broadcasted array, which avoids writeability issues from np.broadcast_arrays().
         attrs = [
-            (bc_attr.copy() if copy else bc_attr)
-            if bc_attr.shape != attr.shape
-            else attr
+            (
+                (bc_attr.copy() if copy else bc_attr)
+                if bc_attr.shape != attr.shape
+                else attr
+            )
             for attr, bc_attr in zip(attrs, bc_attrs)
         ]
 

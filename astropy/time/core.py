@@ -1487,12 +1487,14 @@ class TimeBase(ShapedLikeNDArray):
             indices = np.expand_dims(indices, axis)
 
         index = [
-            indices
-            if i == axis
-            else np.arange(s).reshape(
-                (1,) * (i if keepdims or i < axis else i - 1)
-                + (s,)
-                + (1,) * (ndim - i - (1 if keepdims or i > axis else 2))
+            (
+                indices
+                if i == axis
+                else np.arange(s).reshape(
+                    (1,) * (i if keepdims or i < axis else i - 1)
+                    + (s,)
+                    + (1,) * (ndim - i - (1 if keepdims or i > axis else 2))
+                )
             )
             for i, s in enumerate(self.shape)
         ]

@@ -35,8 +35,7 @@ class ReadableFileLike(Protocol[_T_co]):
     checking with Protocols works.
     """
 
-    def read(self) -> _T_co:
-        ...
+    def read(self) -> _T_co: ...
 
 
 @runtime_checkable
@@ -49,5 +48,4 @@ class WriteableFileLike(Protocol[_T_contra]):
     checking with Protocols works.
     """
 
-    def write(self, data: _T_contra) -> None:
-        ...
+    def write(self, data: _T_contra) -> None: ...

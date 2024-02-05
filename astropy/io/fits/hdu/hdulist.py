@@ -1281,10 +1281,7 @@ class HDUList(list, _Verify):
         try:
             self._in_read_next_hdu = True
 
-            if (
-                "disable_image_compression" in kwargs
-                and kwargs["disable_image_compression"]
-            ):
+            if kwargs.get("disable_image_compression"):
                 compressed.COMPRESSION_ENABLED = False
 
             # read all HDUs

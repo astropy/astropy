@@ -137,9 +137,10 @@ def test_fixes():
     """
     header = get_pkg_data_contents("data/nonstandard_units.hdr", encoding="binary")
 
-    with pytest.raises(wcs.InvalidTransformError), pytest.warns(
-        wcs.FITSFixedWarning
-    ) as w:
+    with (
+        pytest.raises(wcs.InvalidTransformError),
+        pytest.warns(wcs.FITSFixedWarning) as w,
+    ):
         wcs.WCS(header, translate_units="dhs")
 
     if Version("7.4") <= _WCSLIB_VER < Version("7.6"):
@@ -1023,11 +1024,15 @@ def test_tpv_ctype_sip():
             wcs.FITSFixedWarning, match=".*Set MJD-OBS to .* from DATE-OBS"
         )
 
-    with pytest.warns(
-        wcs.FITSFixedWarning,
-        match="Removed redundant SCAMP distortion parameters "
-        "because SIP parameters are also present",
-    ), ctx1, ctx2:
+    with (
+        pytest.warns(
+            wcs.FITSFixedWarning,
+            match="Removed redundant SCAMP distortion parameters "
+            "because SIP parameters are also present",
+        ),
+        ctx1,
+        ctx2,
+    ):
         w_sip = wcs.WCS(sip_header)
 
     assert w_sip.sip is not None
@@ -1054,11 +1059,15 @@ def test_tpv_ctype_tpv():
             wcs.FITSFixedWarning, match=".*Set MJD-OBS to .* from DATE-OBS"
         )
 
-    with pytest.warns(
-        wcs.FITSFixedWarning,
-        match="Removed redundant SIP distortion parameters "
-        "because CTYPE explicitly specifies TPV distortions",
-    ), ctx1, ctx2:
+    with (
+        pytest.warns(
+            wcs.FITSFixedWarning,
+            match="Removed redundant SIP distortion parameters "
+            "because CTYPE explicitly specifies TPV distortions",
+        ),
+        ctx1,
+        ctx2,
+    ):
         w_sip = wcs.WCS(sip_header)
 
     assert w_sip.sip is None
@@ -1085,11 +1094,15 @@ def test_tpv_ctype_tan():
             wcs.FITSFixedWarning, match=".*Set MJD-OBS to .* from DATE-OBS"
         )
 
-    with pytest.warns(
-        wcs.FITSFixedWarning,
-        match="Removed redundant SIP distortion parameters "
-        "because SCAMP' PV distortions are also present",
-    ), ctx1, ctx2:
+    with (
+        pytest.warns(
+            wcs.FITSFixedWarning,
+            match="Removed redundant SIP distortion parameters "
+            "because SCAMP' PV distortions are also present",
+        ),
+        ctx1,
+        ctx2,
+    ):
         w_sip = wcs.WCS(sip_header)
 
     assert w_sip.sip is None

@@ -758,9 +758,7 @@ def thermodynamic_temperature(frequency, T_cmb=None):
         return x**2 * np.exp(x) / np.expm1(x) ** 2
 
     def convert_Jy_to_K(x_jybm):
-        factor = (f(nu) * 2 * _si.k_B * si.K * nu**2 / _si.c**2).to_value(
-            astrophys.Jy
-        )
+        factor = (f(nu) * 2 * _si.k_B * si.K * nu**2 / _si.c**2).to_value(astrophys.Jy)
         return x_jybm / factor
 
     def convert_K_to_Jy(x_K):

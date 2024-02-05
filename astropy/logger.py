@@ -575,7 +575,7 @@ class StreamHandler(logging.StreamHandler):
 
             if record.levelno < logging.INFO:
                 color_print(record.levelname, "magenta", end="", file=stream)
-            elif record.levelno < logging.WARN:
+            elif record.levelno < logging.WARNING:
                 color_print(record.levelname, "green", end="", file=stream)
             elif record.levelno < logging.ERROR:
                 color_print(record.levelname, "brown", end="", file=stream)

@@ -1,6 +1,5 @@
 """Utilities and extensions for use with `argparse`."""
 
-
 import argparse
 import os
 

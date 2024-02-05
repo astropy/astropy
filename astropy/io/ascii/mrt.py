@@ -390,9 +390,11 @@ class MrtHeader(cds.CdsHeader):
             # Add Byte-By-Byte row to bbb table
             bbb.add_row(
                 [
-                    singlebfmt.format(startb)
-                    if startb == endb
-                    else fmtb.format(startb, endb),
+                    (
+                        singlebfmt.format(startb)
+                        if startb == endb
+                        else fmtb.format(startb, endb)
+                    ),
                     "" if col.fortran_format is None else col.fortran_format,
                     col_unit,
                     "" if col.name is None else col.name,

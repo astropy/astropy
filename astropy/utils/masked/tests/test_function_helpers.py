@@ -650,7 +650,7 @@ class TestMethodLikes(MaskedArraySetup):
     @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.round_ is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`round_` is deprecated as of NumPy 1.25.0")
     def test_round_(self):
-        self.check(np.round_, method="round")  # noqa: NPY003
+        self.check(np.round, method="round")
 
     def test_around(self):
         self.check(np.around, method="round")

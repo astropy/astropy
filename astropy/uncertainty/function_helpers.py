@@ -126,14 +126,16 @@ def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
     """
     n_samples = get_n_samples(*arrays, out)
     converted = tuple(
-        array.distribution
-        if is_distribution(array)
-        else (
-            np.broadcast_to(
-                array[..., np.newaxis], array.shape + (n_samples,), subok=True
+        (
+            array.distribution
+            if is_distribution(array)
+            else (
+                np.broadcast_to(
+                    array[..., np.newaxis], array.shape + (n_samples,), subok=True
+                )
+                if getattr(array, "shape", False)
+                else array
             )
-            if getattr(array, "shape", False)
-            else array
         )
         for array in arrays
     )

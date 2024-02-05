@@ -2,6 +2,7 @@
 Special models useful for complex compound models where control is needed over
 which outputs from a source model are mapped to which inputs of a target model.
 """
+
 # pylint: disable=invalid-name
 
 from astropy.units import Quantity

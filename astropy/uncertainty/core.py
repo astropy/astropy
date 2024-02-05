@@ -244,9 +244,11 @@ class Distribution:
             if axis is None:
                 axis = -1
             converted = [
-                np.moveaxis(conv, -1, normalize_axis_index(axis, conv.ndim) - ncore)
-                if ncore and getattr(conv, "shape", ())
-                else conv
+                (
+                    np.moveaxis(conv, -1, normalize_axis_index(axis, conv.ndim) - ncore)
+                    if ncore and getattr(conv, "shape", ())
+                    else conv
+                )
                 for conv, ncore in zip(converted, ncore_in)
             ]
         else:

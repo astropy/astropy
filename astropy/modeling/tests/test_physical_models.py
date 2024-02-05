@@ -140,8 +140,9 @@ def test_blackbody_exceptions_and_warnings():
     bb = BlackBody(5000 * u.K)
 
     # Zero wavelength given for conversion to Hz
-    with pytest.warns(AstropyUserWarning, match="invalid") as w, np.errstate(
-        divide="ignore", invalid="ignore"
+    with (
+        pytest.warns(AstropyUserWarning, match="invalid") as w,
+        np.errstate(divide="ignore", invalid="ignore"),
     ):
         bb(0 * u.AA)
     assert len(w) == 1
