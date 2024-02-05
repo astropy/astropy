@@ -1014,7 +1014,6 @@ class TestIntDiffFunctions(MaskedArraySetup):
 
     if NUMPY_LT_2_0:
 
-        @pytest.mark.filterwarnings("ignore:`trapz` is deprecated.")
         def test_trapz(self):
             self.check_trapezoid(np.trapz)
 
