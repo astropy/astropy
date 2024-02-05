@@ -376,7 +376,7 @@ def join(
     *,
     keys_left=None,
     keys_right=None,
-    keep_order=False,
+    keep_order: bool | None = None,
     uniq_col_name="{col_name}_{table_name}",
     table_names=["1", "2"],
     metadata_conflicts="warn",
@@ -403,7 +403,7 @@ def join(
     keys_right : str or list of str or list of column-like, optional
         Same as ``keys_left``, but for the right side of the join.
     keep_order: bool
-        By default (False), rows are sorted by the join keys.
+        By default, rows are sorted by the join keys.
         If True, preserve the orders of rows from the left table (or right table
         with join_type='right'). This argument is ignored with 'outer' and 'cartesian'
         joins.
@@ -434,17 +434,20 @@ def join(
         right = Table(right)
 
     sort_by = _JoinSortBy.KEYS
-    if keep_order is False:
-        pass
-    # TODO: use another enum for join_type internally so
-    # such a conditional tree can be checked for exhaustiveness by a type checker
-    elif join_type in ("inner", "left"):
-        sort_by = _JoinSortBy.LEFT
-    elif join_type == "right":
-        sort_by = _JoinSortBy.RIGHT
-    elif join_type in ("outer", "cartesian"):
+    if keep_order is True:
+        if join_type in ("inner", "left"):
+            sort_by = _JoinSortBy.LEFT
+        elif join_type == "right":
+            sort_by = _JoinSortBy.RIGHT
+        elif join_type == "outer":
+            warnings.warn(
+                f"keep_order=True argument is ignored with {join_type=}",
+                category=UserWarning,
+            )
+    elif keep_order is False and join_type == "cartesian":
         warnings.warn(
-            f"keep_order argument is ignored with {join_type=}", category=UserWarning
+            f"keep_order=False argument is ignored with {join_type=}",
+            category=UserWarning,
         )
 
     col_name_map = OrderedDict()
