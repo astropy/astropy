@@ -444,11 +444,12 @@ def join(
                 f"keep_order=True argument is ignored with {join_type=}",
                 category=UserWarning,
             )
-    elif keep_order is False and join_type == "cartesian":
-        warnings.warn(
-            f"keep_order=False argument is ignored with {join_type=}",
-            category=UserWarning,
-        )
+    elif keep_order is False:
+        if join_type == "cartesian":
+            warnings.warn(
+                f"keep_order=False argument is ignored with {join_type=}",
+                category=UserWarning,
+            )
 
     col_name_map = OrderedDict()
     out = _join(
