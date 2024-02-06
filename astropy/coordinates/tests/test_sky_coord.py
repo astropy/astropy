@@ -401,8 +401,10 @@ def test_equal():
     ne = sc1 != sc2
     assert np.all(eq == [True, False])
     assert np.all(ne == [False, True])
-    assert isinstance(v := (sc1[0] == sc2[0]), (bool, np.bool_)) and v
-    assert isinstance(v := (sc1[0] != sc2[0]), (bool, np.bool_)) and not v
+    v = sc1[0] == sc2[0]
+    assert isinstance(v, (bool, np.bool_)) and v
+    v = sc1[0] != sc2[0]
+    assert isinstance(v, (bool, np.bool_)) and not v
 
     # Broadcasting
     eq = sc1[0] == sc2
@@ -418,8 +420,10 @@ def test_equal():
     ne = sc1 != sc2
     assert np.all(eq == [True, False])
     assert np.all(ne == [False, True])
-    assert isinstance(v := (sc1[0] == sc2[0]), (bool, np.bool_)) and v
-    assert isinstance(v := (sc1[0] != sc2[0]), (bool, np.bool_)) and not v
+    v = sc1[0] == sc2[0]
+    assert isinstance(v, (bool, np.bool_)) and v
+    v = sc1[0] != sc2[0]
+    assert isinstance(v, (bool, np.bool_)) and not v
 
 
 def test_equal_different_type():

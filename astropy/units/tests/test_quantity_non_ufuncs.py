@@ -2695,7 +2695,8 @@ class TestFunctionHelpersSignatureCompatibility:
 
             if kt in (KEYWORD_ONLY, POSITIONAL_OR_KEYWORD):
                 if nt in params_helper:
-                    assert (kh := params_helper[nt].kind) is kt, (
+                    kh = params_helper[nt].kind
+                    assert kh is kt, (
                         f"helper is not re-exposing argument {nt!r} properly: "
                         f"expected {kt}, got {kh}"
                     )
@@ -2752,7 +2753,8 @@ class TestFunctionHelpersSignatureCompatibility:
             name for name in keyword_allowed_helper if not name.startswith("_")
         }
 
-        assert not (diff := keyword_allowed_helper - keyword_allowed_target), (
+        diff = keyword_allowed_helper - keyword_allowed_target
+        assert not diff, (
             "Found some keyword-allowed parameters in helper "
             f"that are unknown to target: {diff}"
         )
