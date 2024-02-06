@@ -3348,3 +3348,17 @@ def test_as_array_preserve_fill_value():
     assert tn["float"].fill_value == FLOAT_FILL
     assert tn["str"].fill_value == STR_FILL
     assert tn["cmplx"].fill_value == CMPLX_FILL
+
+
+def test_table_hasattr_iloc():
+    """Regression test for astropy issues #15911 and #5973"""
+    t = Table({"a": [1, 2, 3]})
+
+    assert hasattr(t, "iloc")
+    assert hasattr(t, "loc")
+
+    with pytest.raises(ValueError, match="for a table with indices"):
+        t.iloc[0]
+
+    with pytest.raises(ValueError, match="for a table with indices"):
+        t.loc[0]
