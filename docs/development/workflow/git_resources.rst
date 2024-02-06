@@ -16,7 +16,6 @@ Tutorials and summaries
 * The `git user manual`_
 * The `git tutorial`_
 * The `git community book`_
-* `git ready`_ |emdash| a nice series of tutorials
 * `git casts`_ |emdash| video snippets giving git how-tos.
 * The `git parable`_ is an easy read explaining the concepts behind git.
 * `git foundation`_ expands on the `git parable`_.
