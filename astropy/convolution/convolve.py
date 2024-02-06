@@ -1064,6 +1064,19 @@ def convolve_models_fft(model, kernel, bounding_box, resolution, cache=True, **k
     -------
     default : `~astropy.modeling.core.CompoundModel`
         Convolved model
+
+    Notes
+    -----
+    Special care must be taken when defining the models and choosing the bounding_box
+    and resolution inputs.
+    Under the hood, this function returns an `~astropy.modeling.convolution.Convolution`
+    object that functions as follows:
+      1. Generates the domain array defined by the bounding_box and resolution parameters
+      2. Runs that domain array through the input models (``model`` and ``kernel``)
+      3. Convolves the model outputs from step 2. The convolution result is (optionally)
+         cached.
+      4. When the combined model is called, the result of the convolution from step 3
+         is interpolated to the input domain and returned.
     """
     operator = SPECIAL_OPERATORS.add("convolve_fft", partial(convolve_fft, **kwargs))
 
