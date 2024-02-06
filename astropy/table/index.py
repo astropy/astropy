@@ -826,13 +826,14 @@ class TableLoc:
     def __init__(self, table):
         self.table = table
         self.indices = table.indices
-        if len(self.indices) == 0:
-            raise ValueError("Cannot create TableLoc object with no indices")
 
     def _get_rows(self, item):
         """
         Retrieve Table rows indexes by value slice.
         """
+        if len(self.indices) == 0:
+            raise ValueError("Can only use TableLoc for a table with indices")
+
         if isinstance(item, tuple):
             key, item = item
         else:
@@ -947,6 +948,9 @@ class TableILoc(TableLoc):
         super().__init__(table)
 
     def __getitem__(self, item):
+        if len(self.indices) == 0:
+            raise ValueError("Can only use TableILoc for a table with indices")
+
         if isinstance(item, tuple):
             key, item = item
         else:
