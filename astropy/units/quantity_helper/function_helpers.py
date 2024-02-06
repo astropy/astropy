@@ -105,7 +105,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {np.median}
 
 if NUMPY_LT_2_0:
     # functions (re)moved in numpy 2.0; alias for np.round in NUMPY_LT_1_25
-    SUBCLASS_SAFE_FUNCTIONS |= {np.msort, np.round_, np.trapz}  # noqa: NPY003
+    SUBCLASS_SAFE_FUNCTIONS |= {np.msort, np.round, np.trapz}
 else:
     # Array-API compatible versions (matrix axes always at end).
     SUBCLASS_SAFE_FUNCTIONS |= {

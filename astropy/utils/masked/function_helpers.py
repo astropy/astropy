@@ -1100,7 +1100,7 @@ _nanfunc_fill_values = {"nansum": 0, "nancumsum": 0, "nanprod": 1, "nancumprod":
 
 def masked_nanfunc(nanfuncname):
     np_func = getattr(np, nanfuncname[3:])
-    fill_value = _nanfunc_fill_values.get(nanfuncname, None)
+    fill_value = _nanfunc_fill_values.get(nanfuncname)
 
     def nanfunc(a, *args, **kwargs):
         from astropy.utils.masked import Masked

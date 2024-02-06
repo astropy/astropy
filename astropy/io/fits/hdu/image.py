@@ -133,9 +133,9 @@ class _ImageBaseHDU(_ValidHDU):
         # Set the name attribute if it was provided (if this is an ImageHDU
         # this will result in setting the EXTNAME keyword of the header as
         # well)
-        if "name" in kwargs and kwargs["name"]:
+        if kwargs.get("name"):
             self.name = kwargs["name"]
-        if "ver" in kwargs and kwargs["ver"]:
+        if kwargs.get("ver"):
             self.ver = kwargs["ver"]
 
         # Set to True if the data or header is replaced, indicating that
