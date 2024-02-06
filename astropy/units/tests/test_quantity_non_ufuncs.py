@@ -322,8 +322,8 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
     @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.asfarray is removed in NumPy 2.0")
     @needs_array_function
     def test_asfarray(self):
-        self.check(np.asfarray)
-        farray = np.asfarray(a=self.q)
+        self.check(np.asfarray)  # noqa: NPY201
+        farray = np.asfarray(a=self.q)  # noqa: NPY201
         assert_array_equal(farray, self.q)
 
     def test_empty_like(self):
@@ -719,7 +719,7 @@ class TestUfuncLike(InvariantUnitTestSetup):
     @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.round_ is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`round_` is deprecated as of NumPy 1.25.0")
     def test_round_(self):
-        self.check(np.round)
+        self.check(np.round_)  # noqa: NPY003, NPY201
 
     def test_around(self):
         self.check(np.around)

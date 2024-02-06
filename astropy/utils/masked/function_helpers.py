@@ -226,7 +226,7 @@ def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
 @apply_to_both(
     helps=(
         {np.copy, np.resize, np.moveaxis, np.rollaxis, np.roll}
-        | ({np.asfarray} if NUMPY_LT_2_0 else set())
+        | ({np.asfarray} if NUMPY_LT_2_0 else set())  # noqa: NPY201
     )
 )
 def masked_a_helper(a, *args, **kwargs):
