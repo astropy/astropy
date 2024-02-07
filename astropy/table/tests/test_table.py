@@ -875,6 +875,73 @@ class TestAddRow(SetupData):
                 t.insert_row(index, row)
 
 
+@pytest.mark.parametrize(
+    "qtable_inputs, expected_column_type, expected_pformat, insert_ctx",
+    [
+        (
+            dict(names=["a", "b"]),
+            table.Column,
+            [
+                " a   b ",
+                "--- ---",
+                "1.0 2.0",
+            ],
+            pytest.warns(
+                UserWarning,
+                match=(
+                    r"Inserted row contains Quantity objects on columns 'a', 'b', "
+                    r"with types Column, Column\. "
+                    r"Units from the inserted values will ignored\. "
+                    r"To silence this warning, make sure to initialize the target "
+                    r"QTable object with explicit units\."
+                ),
+            ),
+        ),
+        (
+            dict(names=["a", "b"], units=["m", "kg"]),
+            u.Quantity,
+            [
+                " a   b ",
+                " m   kg",
+                "--- ---",
+                "1.0 2.0",
+            ],
+            nullcontext(),
+        ),
+        (
+            dict(names=["a", "b"], units=["cm", "g"]),
+            u.Quantity,
+            [
+                "  a     b   ",
+                "  cm    g   ",
+                "----- ------",
+                "100.0 2000.0",
+            ],
+            nullcontext(),
+        ),
+    ],
+)
+def test_inserting_quantity_row_in_empty_QTable(
+    qtable_inputs, expected_column_type, expected_pformat, insert_ctx
+):
+    # see https://github.com/astropy/astropy/issues/15964
+    qtable = table.QTable(**qtable_inputs)
+    pre_unit_a = copy.copy(qtable["a"].unit)
+    pre_unit_b = copy.copy(qtable["b"].unit)
+    assert type(qtable["a"]) is expected_column_type
+    assert type(qtable["b"]) is expected_column_type
+
+    with insert_ctx:
+        qtable.add_row([1 * u.m, 2 * u.kg])
+
+    assert qtable["a"].unit == pre_unit_a
+    assert qtable["b"].unit == pre_unit_b
+    assert type(qtable["a"]) is expected_column_type
+    assert type(qtable["b"]) is expected_column_type
+
+    assert qtable.pformat() == expected_pformat
+
+
 @pytest.mark.usefixtures("table_types")
 class TestTableColumn(SetupData):
     def test_column_view(self, table_types):
