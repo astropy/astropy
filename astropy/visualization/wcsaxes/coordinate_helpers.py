@@ -186,13 +186,12 @@ class CoordinateHelper:
 
         self.grid_lines_kwargs.update(kwargs)
 
-        if draw_grid:
-            self.grid_lines_kwargs["visible"] = True
-        elif draw_grid is False:
-            self.grid_lines_kwargs["visible"] = False
+        if isinstance(draw_grid, bool):
+            self.grid_lines_kwargs["visible"] = draw_grid
         elif draw_grid is None:
             draw_grid = True
-            self.grid_lines_kwargs["visible"] = True
+        else:
+            raise TypeError(f"draw_grid expected a boolean or None, got {draw_grid}")
 
     def set_coord_type(self, coord_type, coord_wrap=None):
         """
