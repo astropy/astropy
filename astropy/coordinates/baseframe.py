@@ -1333,7 +1333,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         return attrnm in self._attr_names_with_defaults
 
     @staticmethod
-    def _frameattr_equiv(left_fattr, right_fattr):
+    def _frameattr_equiv(left_fattr, right_fattr):  # noqa: PLR0911
         """
         Determine if two frame attributes are equivalent.  Implemented as a
         staticmethod mainly as a convenient location, although conceivable it
@@ -1353,8 +1353,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             return False
 
         left_is_repr = isinstance(left_fattr, r.BaseRepresentationOrDifferential)
-        right_is_repr = isinstance(right_fattr, r.BaseRepresentationOrDifferential)
-        if left_is_repr and right_is_repr:
+        if left_is_repr ^ isinstance(right_fattr, r.BaseRepresentationOrDifferential):
+            return False
+        if left_is_repr:
             # both are representations.
             if getattr(left_fattr, "differentials", False) or getattr(
                 right_fattr, "differentials", False
@@ -1372,19 +1373,15 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 if type(left_fattr) is type(right_fattr)
                 else left_fattr.to_cartesian() == right_fattr.to_cartesian()
             )
-        elif left_is_repr or right_is_repr:
-            return False
 
         left_is_coord = isinstance(left_fattr, BaseCoordinateFrame)
-        right_is_coord = isinstance(right_fattr, BaseCoordinateFrame)
-        if left_is_coord and right_is_coord:
-            # both are coordinates
-            if left_fattr.is_equivalent_frame(right_fattr):
-                return np.all(left_fattr == right_fattr)
-            else:
-                return False
-        elif left_is_coord or right_is_coord:
+        if left_is_coord ^ isinstance(right_fattr, BaseCoordinateFrame):
             return False
+        if left_is_coord:
+            # both are coordinates
+            return left_fattr.is_equivalent_frame(right_fattr) and np.all(
+                left_fattr == right_fattr
+            )
 
         return np.all(left_fattr == right_fattr)
 
