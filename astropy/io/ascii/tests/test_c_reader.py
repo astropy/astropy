@@ -1442,8 +1442,8 @@ def test_int_out_of_range(parallel, guess):
     Integer numbers outside int range shall be returned as string columns
     consistent with the standard (Python) parser (no 'upcasting' to float).
     """
-    imin = np.iinfo(int).min + 1
-    imax = np.iinfo(int).max - 1
+    imin = np.iinfo(np.int64).min + 1
+    imax = np.iinfo(np.int64).max - 1
     huge = f"{imax+2:d}"
 
     text = f"P M S\n {imax:d} {imin:d} {huge:s}"
@@ -1484,7 +1484,7 @@ def test_int_out_of_order(guess):
     shows up first, it will produce a string column - with both readers.
     Broken with the parallel fast_reader.
     """
-    imax = np.iinfo(int).max - 1
+    imax = np.iinfo(np.int64).max - 1
     text = f"A B\n 12.3 {imax:d}0\n {imax:d}0 45.6e7"
     expected = Table([[12.3, 10.0 * imax], [f"{imax:d}0", "45.6e7"]], names=("A", "B"))
 
