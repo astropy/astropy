@@ -8,6 +8,7 @@ import pytest
 from astropy import units as u
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
+from astropy.visualization.wcsaxes.coordinate_helpers import CoordinateHelper
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
 
@@ -112,3 +113,24 @@ def test_set_separator():
     assert ax.coords[1].format_coord(4) == "4a00b00c"
     ax.coords[1].set_separator(None)
     assert ax.coords[1].format_coord(4) == "4\xb000'00\""
+
+@pytest.mark.parametrize("draw_grid, expected_visibility", [
+    (True, True),
+    (False, False),
+    (None, True)
+])
+def test_grid_variations(ignore_matplotlibrc, draw_grid, expected_visibility):
+    fig = plt.figure()
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
+    fig.add_axes(ax)
+
+    coord_helper = CoordinateHelper(parent_axes=ax)
+    coord_helper.grid(draw_grid=draw_grid)
+    assert coord_helper.grid_lines_kwargs["visible"] == expected_visibility
+
+def test_grid_error_handling():
+    coord_helper = CoordinateHelper()
+
+    # Pass a non-boolean and non-None value to draw_grid
+    with pytest.raises(TypeError):
+        coord_helper.grid(draw_grid='invalid_input')
