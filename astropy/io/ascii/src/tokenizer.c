@@ -590,12 +590,12 @@ static int ascii_strncasecmp(const char *str1, const char *str2, size_t n)
 }
 
 
-long str_to_long(tokenizer_t *self, char *str)
+long long str_to_long_long(tokenizer_t *self, char *str)
 {
     char *tmp;
-    long ret;
+    long long ret;
     errno = 0;
-    ret = strtol(str, &tmp, 10);
+    ret = strtoll(str, &tmp, 10);
 
     if (tmp == str || *tmp != '\0')
         self->code = CONVERSION_ERROR;

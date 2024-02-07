@@ -101,7 +101,7 @@ void resize_col(tokenizer_t *self, int index);
 void resize_comments(tokenizer_t *self);
 int skip_lines(tokenizer_t *self, int offset, int header);
 int tokenize(tokenizer_t *self, int end, int header, int num_cols);
-long str_to_long(tokenizer_t *self, char *str);
+long long str_to_long_long(tokenizer_t *self, char *str);
 double str_to_double(tokenizer_t *self, char *str);
 double xstrtod(const char *str, char **endptr, char decimal,
                char expchar, char tsep, int skip_trailing);

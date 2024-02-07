@@ -4,6 +4,7 @@
 from io import StringIO
 
 import numpy as np
+import pytest
 
 from astropy.io import ascii
 
@@ -53,7 +54,8 @@ def test_ipac_read_types():
         assert_equal(col.type, expected_type)
 
 
-def test_large_integers():
+@pytest.mark.parametrize("fast", [False, "force"])
+def test_large_integers(fast):
     # case https://github.com/astropy/astropy/issues/5744
     dat = ascii.read(
         """\
@@ -61,7 +63,7 @@ num,mag
 110000000000000001,18.1
 2,17.0
 """,
-        fast_reader=False,  # pure-Python path, need to test C path too
+        fast_reader=fast,
     )
     # assert dat["num"] is at least 64bit int
     assert dat["num"].dtype.kind == "i"

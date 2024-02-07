@@ -92,7 +92,7 @@ cdef extern from "src/tokenizer.h":
     void delete_tokenizer(tokenizer_t *tokenizer)
     int skip_lines(tokenizer_t *self, int offset, int header)
     int tokenize(tokenizer_t *self, int end, int header, int num_cols)
-    long str_to_long(tokenizer_t *self, char *str)
+    long long str_to_long_long(tokenizer_t *self, char *str)
     double fast_str_to_double(tokenizer_t *self, char *str)
     double str_to_double(tokenizer_t *self, char *str)
     void start_iteration(tokenizer_t *self, int col)
@@ -673,10 +673,15 @@ cdef class CParser:
         if nrows != -1:
             num_rows = nrows
         # initialize ndarray
-        cdef np.ndarray col = np.empty(num_rows, dtype=np.int_)
-        cdef long converted
+        # use `long long` for integers to ensure large integers are converted correctly
+        # on some platforms, e.g. Windows (where `long` is 32 bits)
+        # https://github.com/astropy/astropy/issues/5744
+        # OPEN: `long long` is not guaranteed to be 64 bits (could be longer, 128)
+        #       maybe to use int64_t from <stdint.h>
+        cdef np.ndarray col = np.empty(num_rows, dtype=np.longlong)
+        cdef long long converted
         cdef int row = 0
-        cdef long *data = <long *> col.data # pointer to raw data
+        cdef long long *data = <long long*> col.data # pointer to raw data
         cdef char *field
         cdef char *empty_field = t.buf # memory address of designated empty buffer
         cdef bytes new_value
@@ -706,12 +711,12 @@ cdef class CParser:
                     mask.add(row)
                     new_value = str(replace_info[0]).encode('ascii')
                     # try converting the new value
-                    converted = str_to_long(t, new_value)
+                    converted = str_to_long_long(t, new_value)
                 else:
-                    converted = str_to_long(t, field)
+                    converted = str_to_long_long(t, field)
             else:
                 # convert the field to long (widest integer type)
-                converted = str_to_long(t, field)
+                converted = str_to_long_long(t, field)
 
             if t.code in (CONVERSION_ERROR, OVERFLOW_ERROR):
                 # no dice
