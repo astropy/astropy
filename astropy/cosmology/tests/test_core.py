@@ -2,9 +2,12 @@
 
 """Testing :mod:`astropy.cosmology.core`."""
 
+from __future__ import annotations
+
 import abc
 import inspect
 import pickle
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pytest
@@ -25,11 +28,14 @@ from astropy.cosmology.tests.test_connect import (
 from astropy.table import Column, QTable, Table
 from astropy.utils.compat import PYTHON_LT_3_11
 
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+
 ##############################################################################
 # SETUP / TEARDOWN
 
 
-def make_valid_zs(max_z: float = 1e5):
+def make_valid_zs(max_z: float = 1e5) -> tuple[list, NDArray[float], list, list]:
     """Make a list of valid redshifts for testing."""
     # scalar
     scalar_zs = [

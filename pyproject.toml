@@ -387,6 +387,7 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     "D411",  # sphinx treats spaced example sections as real sections
 ]
 "test_*.py" = [
+    "ANN201",  # Public function without return type annotation
     "B018",  # UselessExpression
     "D",  # pydocstyle
     "PGH001",  # No builtin eval() allowed
