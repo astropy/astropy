@@ -1339,10 +1339,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         staticmethod mainly as a convenient location, although conceivable it
         might be desirable for subclasses to override this behavior.
 
-        Primary purpose is to check for equality of representations.  This
-        aspect can actually be simplified/removed now that representations have
-        equality defined.
-
+        Primary purpose is to check for equality of representations.
         Secondary purpose is to check for equality of coordinate attributes,
         which first checks whether they themselves are in equivalent frames
         before checking for equality in the normal fashion.  This is because
@@ -1370,19 +1367,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                     AstropyWarning,
                 )
                 return False
-            if isinstance(right_fattr, left_fattr.__class__):
-                # if same representation type, compare components.
-                return np.all(
-                    [
-                        (getattr(left_fattr, comp) == getattr(right_fattr, comp))
-                        for comp in left_fattr.components
-                    ]
-                )
-            else:
-                # convert to cartesian and see if they match
-                return np.all(
-                    left_fattr.to_cartesian().xyz == right_fattr.to_cartesian().xyz
-                )
+            return np.all(
+                left_fattr == right_fattr
+                if type(left_fattr) is type(right_fattr)
+                else left_fattr.to_cartesian() == right_fattr.to_cartesian()
+            )
         elif left_is_repr or right_is_repr:
             return False
 
