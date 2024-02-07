@@ -83,11 +83,10 @@ class MergeStrategy:
 
     def __init_subclass__(cls):
         members = vars(cls)
-
         # Wrap ``merge`` classmethod to catch any exception and re-raise as
         # MergeConflictError.
-        if "merge" in members and isinstance(members["merge"], classmethod):
-            orig_merge = members["merge"].__func__
+        if isinstance((merge_ := members.get("merge")), classmethod):
+            orig_merge = merge_.__func__
 
             @wraps(orig_merge)
             def merge(cls, left, right):
@@ -99,8 +98,7 @@ class MergeStrategy:
             cls.merge = classmethod(merge)
 
         # Register merging class (except for base MergeStrategy class)
-        if "types" in members:
-            types = members["types"]
+        if (types := members.get("types")) is not None:
             if isinstance(types, tuple):
                 types = [types]
             for left, right in reversed(types):
