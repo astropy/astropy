@@ -1,0 +1,2 @@
+Fixed reading large (64 bits) integers on some platforms, e.g.,  Windows.
+Such columns are no longer read as String.
