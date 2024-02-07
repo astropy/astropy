@@ -4252,3 +4252,38 @@ class QTable(Table):
             col = super()._convert_col_for_table(col)
 
         return col
+
+    def _warn_about_ignored_units(self, vals) -> None:
+        # this helper function exists to avoid code duplication
+        # because we need to emit identical warnings for add_row and
+        # insert_row. Note that the stacklevel assumes that this function
+        # is called exactly one level below public API.
+        colnames = []
+        types = []
+        for v, col in zip(vals, self.columns.values()):
+            if isinstance(v, Quantity) and not isinstance(col, Quantity):
+                colnames.append(col.name)
+                types.append(type(col).__name__)
+        if colnames:
+            warnings.warn(
+                "Inserted row contains Quantity objects on columns "
+                f"{', '.join([repr(name) for name in colnames])}, "
+                f"with types {', '.join(types)}. "
+                "Units from the inserted values will ignored. "
+                "To silence this warning, make sure to initialize the target "
+                "QTable object with explicit units.",
+                category=UserWarning,
+                stacklevel=3,
+            )
+
+    def add_row(self, vals=None, mask=None):
+        self._warn_about_ignored_units(vals)
+        return super().add_row(vals, mask)
+
+    add_row.__doc__ = Table.add_row.__doc__
+
+    def insert_row(self, index, vals=None, mask=None):
+        self._warn_about_ignored_units(vals)
+        return super().insert_row(index, vals, mask)
+
+    insert_row.__doc__ = Table.insert_row.__doc__

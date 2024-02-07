@@ -1,0 +1,2 @@
+A warning is now emitted when ``Quantity`` values are inserted into non ``Quantity``
+columns in a ``QTable``.
