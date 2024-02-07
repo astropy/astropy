@@ -1247,7 +1247,8 @@ class TestTableFunctions(FitsTestCase):
             == np.array([0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
         ).all()
         v = tbhdu.columns.columns[4].array[0] == np.True_
-        assert isinstance(v, (bool, np.bool_)) and v
+        assert isinstance(v, (bool, np.bool_))
+        assert v
 
         assert tbhdu.data[3][1] == 33
         assert tbhdu.data._coldefs._arrays[1][3] == 33
@@ -1261,7 +1262,8 @@ class TestTableFunctions(FitsTestCase):
             == np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
         ).all()
         v = tbhdu.columns.columns[4].array[3] == np.True_
-        assert isinstance(v, (bool, np.bool_)) and v
+        assert isinstance(v, (bool, np.bool_))
+        assert v
 
     def test_assign_multiple_rows_to_table(self):
         counts = np.array([312, 334, 308, 317])
@@ -1318,7 +1320,8 @@ class TestTableFunctions(FitsTestCase):
             == np.array([0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
         ).all()
         v = tbhdu2.columns.columns[4].array[0] == np.True_
-        assert isinstance(v, (bool, np.bool_)) and v
+        assert isinstance(v, (bool, np.bool_))
+        assert v
 
         assert tbhdu2.data[4][1] == 112
         assert tbhdu2.data._coldefs._arrays[1][4] == 112
@@ -1332,7 +1335,8 @@ class TestTableFunctions(FitsTestCase):
             == np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
         ).all()
         v = tbhdu2.columns.columns[4].array[4] == np.False_
-        assert isinstance(v, (bool, np.bool_)) and v
+        assert isinstance(v, (bool, np.bool_))
+        assert v
         assert tbhdu2.columns.columns[1].array[8] == 0
         assert tbhdu2.columns.columns[0].array[8] == ""
         assert tbhdu2.columns.columns[2].array[8] == ""
@@ -1341,7 +1345,8 @@ class TestTableFunctions(FitsTestCase):
             == np.array([0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
         ).all()
         v = tbhdu2.columns.columns[4].array[8] == np.False_
-        assert isinstance(v, (bool, np.bool_)) and v
+        assert isinstance(v, (bool, np.bool_))
+        assert v
 
     def test_verify_data_references(self):
         counts = np.array([312, 334, 308, 317])

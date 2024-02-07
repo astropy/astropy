@@ -90,7 +90,7 @@ class DaophotHeader(core.BaseHeader):
         self.col_widths = col_widths
 
         # merge the multi-line header data into single line data
-        return {k: list(itt.chain.from_iterable(v)) for (k, v) in coldef_dict.items()}
+        return {k: list(itt.chain(*v)) for (k, v) in coldef_dict.items()}
 
     def update_meta(self, lines, meta):
         """

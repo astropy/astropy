@@ -114,9 +114,7 @@ def lombscargle_fastchi2(
     # Now create an indexing scheme so we can quickly
     # build-up matrices at each frequency
     order = [("C", 0)] if fit_mean else []
-    order.extend(
-        chain.from_iterable([("S", i), ("C", i)] for i in range(1, nterms + 1))
-    )
+    order.extend(chain(*([("S", i), ("C", i)] for i in range(1, nterms + 1))))
 
     funcs = dict(
         S=lambda m, i: Syw[m][i],
