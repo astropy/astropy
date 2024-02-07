@@ -6,7 +6,6 @@ lint.ignore = [
     # flake8-annotations (ANN) : static typing
     "ANN001",  # Function argument without type annotation
     "ANN003",  # `**kwargs` without type annotation
-    "ANN201",  # Public function without return type annotation
     "ANN202",  # Private function without return type annotation
     "ANN401",  # Use of `Any` type
 
@@ -266,6 +265,7 @@ lint.unfixable = [
 ]
 "astropy/logger.py" = ["C408", "RET505"]
 "astropy/modeling/*" = [
+    "ANN201",  # Public function without return type annotation
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
