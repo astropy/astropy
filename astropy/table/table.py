@@ -4206,11 +4206,17 @@ class QTable(Table):
     meta : dict, optional
         Metadata associated with the table.
     copy : bool, optional
-        Copy the input data. Default is True.
+        Copy the input data. If the input is a (Q)Table the ``meta`` is always
+        copied regardless of the ``copy`` parameter.
+        Default is True.
     rows : numpy ndarray, list of list, optional
         Row-oriented data for table instead of ``data`` argument.
     copy_indices : bool, optional
         Copy any indices in the input data. Default is True.
+    units : list, dict, optional
+        List or dict of units to apply to columns.
+    descriptions : list, dict, optional
+        List or dict of descriptions to apply to columns.
     **kwargs : dict, optional
         Additional keyword args when converting table-like object.
 
