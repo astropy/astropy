@@ -112,7 +112,7 @@ TDISP_RE_DICT["E"] = TDISP_RE_DICT["G"] = TDISP_RE_DICT["D"] = re.compile(
     r"(?:E{0,1}(?P<exponential>[0-9]+)?)|"
 )
 TDISP_RE_DICT["EN"] = TDISP_RE_DICT["ES"] = re.compile(
-    r"(?:(?P<formatc>E[NS])(?:(?P<width>[0-9]+)\.{1}(?P<precision>[0-9])+)+)"
+    r"(?:(?P<formatc>E[NS])(?:(?P<width>[0-9]+)\.{1}(?P<precision>[0-9]+))+)"
 )
 
 # mapping from TDISP format to python format
