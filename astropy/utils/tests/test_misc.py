@@ -47,10 +47,10 @@ def test_api_lookup():
     )
 
     # Try a non-dev version
-    objurl = misc.find_api_page(misc, "v3.2.1", False, timeout=3)
+    objurl = misc.find_api_page(misc, "stable", False, timeout=3)
     assert (
         objurl
-        == "https://docs.astropy.org/en/v3.2.1/utils/index.html#module-astropy.utils.misc"
+        == "https://docs.astropy.org/en/stable/utils/ref_api.html#module-astropy.utils.misc"
     )
 
 
