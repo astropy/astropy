@@ -1,13 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Classes for handling metadata."""
 
+__all__ = ["MetaData", "MetaAttribute"]
+
 import inspect
 from collections import OrderedDict
 from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import is_dataclass
-
-__all__ = ["MetaData", "MetaAttribute"]
 
 
 class MetaData:
@@ -146,8 +146,10 @@ class MetaAttribute:
     - Method or attribute of the "parent class", where the parent class is
       taken to be ``owner.__mro__[1]``.
 
-    :param default: default value
-
+    Parameters
+    ----------
+    default : Any, optional
+        Default value for the attribute, by default `None`.
     """
 
     def __init__(self, default=None):

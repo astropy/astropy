@@ -10,6 +10,10 @@ from .exceptions import MergeConflictError
 __all__ = ["common_dtype"]
 
 
+def dtype(arr):
+    return getattr(arr, "dtype", np.dtype("O"))
+
+
 def common_dtype(arrs):
     """
     Use numpy to find the common dtype for a list of ndarrays.
@@ -27,10 +31,6 @@ def common_dtype(arrs):
     dtype_str : str
         String representation of dytpe (dtype ``str`` attribute)
     """
-
-    def dtype(arr):
-        return getattr(arr, "dtype", np.dtype("O"))
-
     np_types = (np.bool_, np.object_, np.number, np.character, np.void)
     uniq_types = {
         tuple(issubclass(dtype(arr).type, np_type) for np_type in np_types)
