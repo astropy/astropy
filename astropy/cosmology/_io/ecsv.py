@@ -216,7 +216,7 @@ def read_ecsv(
         any non-mandatory arguments missing in 'table'.
 
     rename : dict or None (optional, keyword-only)
-        A dictionary mapping columns in 'table' to fields of the
+        A dictionary mapping column names in 'table' to fields of the
         `~astropy.cosmology.Cosmology` class.
 
     **kwargs
@@ -314,8 +314,8 @@ def read_ecsv(
 
     Fields of the table in the file can be renamed to match the
     `~astropy.cosmology.Cosmology` class' signature using the ``rename`` argument. This
-    is useful when the files's column names do not match the class' parameter names. For
-    this example we need to make a new file with renamed columns:
+    is useful when the files's column names do not match the class' parameter names.
+    For this example we need to make a new file with renamed columns:
 
         >>> file = Path(temp_dir.name) / "file3.ecsv"
         >>> renamed_table = Planck18.to_format("astropy.table", rename={"H0": "Hubble"})

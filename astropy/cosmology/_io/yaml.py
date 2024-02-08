@@ -51,8 +51,10 @@ _representer_doc = """Cosmology yaml representer function for {}.
 
 Parameters
 ----------
-dumper : `~astropy.io.misc.yaml.AstropyDumper`
-obj : `~astropy.cosmology.Cosmology`
+dumper : :class:`~astropy.io.misc.yaml.AstropyDumper`
+    The dumper object with which to serialize the |Cosmology| object.
+obj : :class:`~astropy.cosmology.Cosmology`
+    The |Cosmology| object to serialize.
 
 Returns
 -------
@@ -158,7 +160,7 @@ def from_yaml(yml: str, *, cosmology: type[_CosmoT] | None = None) -> _CosmoT:
     ----------
     yml : str
         :mod:`yaml` representation of |Cosmology| object
-    cosmology : str, `~astropy.cosmology.Cosmology` class or None (optional, keyword-only)
+    cosmology : str, |Cosmology| class, or None (optional, keyword-only)
         The expected cosmology class (or string name thereof). This argument is
         is only checked for correctness if not `None`.
 

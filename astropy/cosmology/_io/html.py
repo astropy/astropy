@@ -351,7 +351,7 @@ def html_identify(
     ----------
     origin : object
         Not used.
-    filepath : str | object
+    filepath : object
         From where to read the Cosmology.
     *args : object
         Not used.
