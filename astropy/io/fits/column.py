@@ -95,7 +95,7 @@ ASCII_DEFAULT_WIDTHS = {
 # TDISPn for both ASCII and Binary tables
 TDISP_RE_DICT = {}
 TDISP_RE_DICT["F"] = re.compile(
-    r"(?:(?P<formatc>[F])(?:(?P<width>[0-9]+)\.{1}(?P<precision>[0-9])+)+)|"
+    r"(?:(?P<formatc>[F])(?:(?P<width>[0-9]+)\.{1}(?P<precision>[0-9]+))+)|"
 )
 TDISP_RE_DICT["A"] = TDISP_RE_DICT["L"] = re.compile(
     r"(?:(?P<formatc>[AL])(?P<width>[0-9]+)+)|"
