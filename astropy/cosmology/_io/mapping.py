@@ -203,7 +203,7 @@ def from_mapping(
         the case of a merge conflict (e.g. for ``Cosmology(meta={'key':10}, key=42)``,
         the ``Cosmology.meta`` will be ``{'key': 10}``).
 
-    cosmology : str, `~astropy.cosmology.Cosmology` class, or None (optional, keyword-only)
+    cosmology : str, |Cosmology| class, or None (optional, keyword-only)
         The cosmology class (or string name thereof) to use when constructing the
         cosmology instance. The class also provides default parameter values, filling in
         any non-mandatory arguments missing in 'map'.
