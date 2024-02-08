@@ -1,2 +1,2 @@
-- Fixed a bug in CoordinateHelper.grid method to properly handle draw_grid=False,
+- Fixed a bug in ``CoordinateHelper.grid`` method to properly handle ``draw_grid=False``,
   ensuring grid lines are controlled correctly even when not explicitly called.
