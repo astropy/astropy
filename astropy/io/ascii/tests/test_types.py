@@ -54,6 +54,30 @@ def test_ipac_read_types():
         assert_equal(col.type, expected_type)
 
 
+def test_ipac_read_long_columns():
+    """Test for https://github.com/astropy/astropy/issues/15989"""
+    test_data = """\
+|              oid|expid|cadence|
+|             long|    l|    int|
+ 90000000000000001   123       1
+"""
+    dat = ascii.read(test_data, format="ipac")
+
+    # assert oid, as a long column, is int64
+    oid = dat["oid"]
+    assert oid[0] == 90000000000000001
+    assert oid.dtype.kind == "i"
+    assert oid.dtype.itemsize == 8
+
+    # expid is declared as a long column,
+    # the type needs to be int64, even though all
+    # the values are within int32 range
+    expid = dat["expid"]
+    assert expid[0] == 123
+    assert expid.dtype.kind == "i"
+    assert expid.dtype.itemsize == 8
+
+
 @pytest.mark.parametrize("fast", [False, "force"])
 def test_large_integers(fast):
     # case https://github.com/astropy/astropy/issues/5744
