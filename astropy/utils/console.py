@@ -72,15 +72,7 @@ class _IPython:
                 try:
                     from IPython.zmq.iostream import OutStream
                 except ImportError:
-                    from IPython import version_info
-
-                    if version_info[0] >= 4:
-                        return None
-
-                    try:
-                        from IPython.kernel.zmq.iostream import OutStream
-                    except ImportError:
-                        return None
+                    return None
 
             cls._OutStream = OutStream
 
@@ -621,17 +613,10 @@ class ProgressBar:
         # if none exists.
         if not hasattr(self, "_widget"):
             # Import only if an IPython widget, i.e., widget in iPython NB
-            from IPython import version_info
+            _IPython.get_ipython()
+            from ipywidgets import widgets
 
-            if version_info[0] < 4:
-                from IPython.html import widgets
-
-                self._widget = widgets.FloatProgressWidget()
-            else:
-                _IPython.get_ipython()
-                from ipywidgets import widgets
-
-                self._widget = widgets.FloatProgress()
+            self._widget = widgets.FloatProgress()
             from IPython.display import display
 
             display(self._widget)
