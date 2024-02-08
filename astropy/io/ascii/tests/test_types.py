@@ -59,16 +59,20 @@ def test_large_integers(fast):
     # case https://github.com/astropy/astropy/issues/5744
     dat = ascii.read(
         """\
-num,mag
-110000000000000001,18.1
-2,17.0
+num,cadence
+110000000000000001,1
+12345,2
 """,
         fast_reader=fast,
     )
-    # assert dat["num"] is at least 64bit int
+    # assert `num`` is exactly 64bit int
     assert dat["num"].dtype.kind == "i"
-    assert dat["num"].dtype.itemsize >= 8
+    assert dat["num"].dtype.itemsize == 8
     assert dat["num"][0] == 110000000000000001
+
+    # assert `cadence` is exactly 64bit int, even though the values are small numbers.
+    assert dat["cadence"].dtype.kind == "i"
+    assert dat["cadence"].dtype.itemsize == 8
 
 
 def test_col_dtype_in_custom_class():
