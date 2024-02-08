@@ -355,7 +355,7 @@ def isfile(f):
     Returns True if the given object represents an OS-level file (that is,
     ``isinstance(f, file)``).
 
-    On Python 3 this also returns True if the given object is higher level
+    This also returns True if the given object is higher level
     wrapper on top of a FileIO object, such as a TextIOWrapper.
     """
     if isinstance(f, io.FileIO):
