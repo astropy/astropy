@@ -97,10 +97,6 @@ class _IPython:
                 cls._ipyio = io
         return cls._ipyio
 
-    @classmethod
-    def get_stream(cls, stream):
-        return getattr(cls.ipyio, stream)
-
 
 def isatty(file):
     """
