@@ -8,7 +8,6 @@ import locale
 import math
 import multiprocessing
 import os
-import re
 import struct
 import sys
 import threading
@@ -327,13 +326,6 @@ def color_print(*args, end="\n", **kwargs):
             msg = args[i]
             write(msg)
         write(end)
-
-
-def strip_ansi_codes(s):
-    """
-    Remove ANSI color codes from the string.
-    """
-    return re.sub("\033\\[([0-9]+)(;[0-9]+)*m", "", s)
 
 
 def human_time(seconds):
