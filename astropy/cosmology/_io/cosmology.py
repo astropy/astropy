@@ -40,9 +40,7 @@ def from_cosmology(
         for correctness.
     **kwargs
         This argument is required for compatibility with the standard set of
-        keyword arguments in format `~astropy.cosmology.Cosmology.from_format`,
-        e.g. "cosmology". If "cosmology" is included and is not `None`,
-        ``cosmo`` is checked for correctness.
+        keyword arguments in format `~astropy.cosmology.Cosmology.from_format`.
 
     Returns
     -------
@@ -104,7 +102,7 @@ def cosmology_identify(
 ) -> bool:
     """Identify if object is a `~astropy.cosmology.Cosmology`.
 
-    This checks is the 2nd argument is a |Cosmology| instance and the format is
+    This checks if the 2nd argument is a |Cosmology| instance and the format is
     "astropy.cosmology" or `None`.
 
     Returns
