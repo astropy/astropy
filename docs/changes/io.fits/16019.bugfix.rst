@@ -1,0 +1,1 @@
+Fix a bug where compression options passed to ``fits.CompImageHDU`` would be lost if no data was inputted at instantiation.
