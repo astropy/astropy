@@ -1,0 +1,3 @@
+``astropy.convolution.convolve.convolve_models`` now returns an instance of
+``astropy.modeling.convolution.Convolution`` making the compound model return
+values independent of the input domain.
