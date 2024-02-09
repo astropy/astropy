@@ -590,7 +590,7 @@ static int ascii_strncasecmp(const char *str1, const char *str2, size_t n)
 }
 
 
-static int64_t strtoi64(const char *nptr, char **endptr, int base)
+static inline int64_t strtoi64(const char *nptr, char **endptr, int base)
 {
     // Adapted from: https://stackoverflow.com/a/66046867
     errno = 0;
