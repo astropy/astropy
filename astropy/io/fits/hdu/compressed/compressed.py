@@ -309,6 +309,16 @@ class CompImageHDU(BinTableHDU):
                 "alone should be used."
             )
 
+        self._header_options = dict(
+            compression_type=compression_type,
+            tile_shape=tile_shape,
+            hcomp_scale=hcomp_scale,
+            hcomp_smooth=hcomp_smooth,
+            quantize_level=quantize_level,
+            quantize_method=quantize_method,
+            dither_seed=dither_seed,
+        )
+
         if data is DELAYED:
             # Reading the HDU from a file
             super().__init__(data=data, header=header)
@@ -326,17 +336,7 @@ class CompImageHDU(BinTableHDU):
             # image header (if any) and ensure it matches the input
             # data; Create the initially empty table data array to
             # hold the compressed data.
-            self._update_header_data(
-                header,
-                name,
-                compression_type=compression_type,
-                tile_shape=tile_shape,
-                hcomp_scale=hcomp_scale,
-                hcomp_smooth=hcomp_smooth,
-                quantize_level=quantize_level,
-                quantize_method=quantize_method,
-                dither_seed=dither_seed,
-            )
+            self._update_header_data(header, name, **self._header_options)
 
         # TODO: A lot of this should be passed on to an internal image HDU o
         # something like that, see ticket #88
@@ -695,7 +695,7 @@ class CompImageHDU(BinTableHDU):
         image_bitpix = DTYPE2BITPIX[self.data.dtype.name]
 
         if image_bitpix != self._orig_bitpix or self.data.shape != self.shape:
-            self._update_header_data(self.header)
+            self._update_header_data(self.header, **self._header_options)
 
         # TODO: This is copied right out of _ImageBaseHDU._writedata_internal;
         # it would be cool if we could use an internal ImageHDU and use that to
@@ -842,7 +842,7 @@ class CompImageHDU(BinTableHDU):
         self.header["BITPIX"] = self._bitpix
 
         # Update the table header to match the scaled data
-        self._update_header_data(self.header)
+        self._update_header_data(self.header, **self._header_options)
 
         # Since the image has been manually scaled, the current
         # bitpix/bzero/bscale now serve as the 'original' scaling of the image,

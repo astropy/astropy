@@ -1047,7 +1047,6 @@ def test_image_write_readonly(tmp_path):
             dict(quantize_level=-32),
             np.float32(0.99950135),
             id="quantize_level_wo_data",
-            marks=pytest.mark.xfail,
         ),
         pytest.param(
             dict(quantize_method=2, dither_seed=1, data=np.array([0.0])),
@@ -1058,7 +1057,6 @@ def test_image_write_readonly(tmp_path):
             dict(quantize_method=2, dither_seed=1),
             np.float32(0.0152435005),
             id="quantize_level_dither_seed_wo_data",
-            marks=pytest.mark.xfail,
         ),
     ],
 )
