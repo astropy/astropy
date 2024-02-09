@@ -324,7 +324,7 @@ def _check_hour_range(hrs):
     Checks that the given value is in the range (-24, 24).
     """
     if np.any(np.abs(hrs) == 24.0):
-        warn(IllegalHourWarning(hrs, "Treating as 24 hr"))
+        warn(IllegalHourWarning(str(hrs), "Treating as 24 hr"))
     elif np.any(hrs < -24.0) or np.any(hrs > 24.0):
         raise IllegalHourError(hrs)
 
@@ -335,7 +335,7 @@ def _check_minute_range(m):
     is equal to 60, then a warning is raised.
     """
     if np.any(m == 60.0):
-        warn(IllegalMinuteWarning(m, "Treating as 0 min, +1 hr/deg"))
+        warn(IllegalMinuteWarning(str(m), "Treating as 0 min, +1 hr/deg"))
     elif np.any(m < -60.0) or np.any(m > 60.0):
         # "Error: minutes not in range [-60,60) ({0}).".format(min))
         raise IllegalMinuteError(m)
@@ -347,7 +347,7 @@ def _check_second_range(sec):
     is equal to 60, then a warning is raised.
     """
     if np.any(sec == 60.0):
-        warn(IllegalSecondWarning(sec, "Treating as 0 sec, +1 min"))
+        warn(IllegalSecondWarning(str(sec), "Treating as 0 sec, +1 min"))
     elif sec is None:
         pass
     elif np.any(sec < -60.0) or np.any(sec > 60.0):
