@@ -928,11 +928,13 @@ def test_print_special_operator_CompoundModel(capsys):
     Test that issue #11310 has been fixed
     """
 
-    model = convolve_models(models.Sersic2D(), models.Gaussian2D())
+    model = convolve_models(
+        models.Sersic2D(), models.Gaussian2D(), ((-1, 1), (-2, 2)), (1, 1)
+    )
     with astropy.conf.set_temp("max_width", 80):
         # fmt: off
         assert str(model) == (
-            "Model: CompoundModel\n"
+            "Model: Convolution\n"
             "Inputs: ('x', 'y')\n"
             "Outputs: ('z',)\n"
             "Model set size: 1\n"

@@ -18,7 +18,7 @@ class TestConvolve1DModels:
     def test_is_consistency_with_astropy_convolution(self, mode):
         kernel = models.Gaussian1D(1, 0, 1)
         model = models.Gaussian1D(1, 0, 1)
-        model_conv = convolve_models(model, kernel, mode=mode.__name__)
+        model_conv = convolve_models(model, kernel, (-5, 5), 1, mode=mode.__name__)
         x = np.arange(-5, 6)
         ans = mode(model(x), kernel(x))
 
@@ -31,7 +31,7 @@ class TestConvolve1DModels:
 
         kernel = models.Gaussian1D(1, 0, 1)
         model = models.Gaussian1D(1, 0, 1)
-        model_conv = convolve_models(model, kernel, mode=mode)
+        model_conv = convolve_models(model, kernel, (-5, 5), 1, mode=mode)
         x = np.arange(-5, 6)
         ans = fftconvolve(kernel(x), model(x), mode="same")
 
@@ -44,7 +44,9 @@ class TestConvolve1DModels:
 
         kernel = models.Gaussian1D(1, 0, 1)
         model = models.Gaussian1D(1, 0, 1)
-        model_conv = convolve_models(model, kernel, mode=mode, normalize_kernel=False)
+        model_conv = convolve_models(
+            model, kernel, (-5, 5), 1, mode=mode, normalize_kernel=False
+        )
         x = np.arange(-5, 6)
         ans = fftconvolve(kernel(x), model(x), mode="same")
 
@@ -56,11 +58,15 @@ class TestConvolve1DModels:
         Test that convolving N(a, b) with N(c, d) gives N(a + c, b + d),
         where N(., .) stands for Gaussian probability density function,
         in which a and c are their means and b and d are their variances.
+        This test also confirms that the compound model is not reliant
+        on the input domain being symmetric about x=0.
         """
 
         kernel = models.Gaussian1D(1 / math.sqrt(2 * np.pi), 1, 1)
         model = models.Gaussian1D(1 / math.sqrt(2 * np.pi), 3, 1)
-        model_conv = convolve_models(model, kernel, mode=mode, normalize_kernel=False)
+        model_conv = convolve_models(
+            model, kernel, (-7, 7), 1, mode=mode, normalize_kernel=False
+        )
         ans = models.Gaussian1D(1 / (2 * math.sqrt(np.pi)), 4, np.sqrt(2))
         x = np.arange(-5, 6)
 
@@ -70,7 +76,9 @@ class TestConvolve1DModels:
     def test_convolve_box_models(self, mode):
         kernel = models.Box1D()
         model = models.Box1D()
-        model_conv = convolve_models(model, kernel, mode=mode)
+        model_conv = convolve_models(
+            model, kernel, (-1, 1), 0.001, mode=mode, normalize_kernel=True
+        )
         x = np.linspace(-1, 1, 99)
         ans = (x + 1) * (x < 0) + (-x + 1) * (x >= 0)
 
@@ -90,7 +98,15 @@ class TestConvolve1DModels:
         with NumpyRNGContext(123):
             fake_data = fake_model(x) + np.random.normal(size=len(x))
 
-        init_model = convolve_models(b1, g1, mode=mode, normalize_kernel=False)
+        init_model = convolve_models(
+            b1,
+            g1,
+            (-6 - 10 / 99, 6),
+            10 / 99,
+            mode=mode,
+            normalize_kernel=False,
+            cache=False,
+        )
         fitter = fitting.LevMarLSQFitter()
         fitted_model = fitter(init_model, x, fake_data)
 

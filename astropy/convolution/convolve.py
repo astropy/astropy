@@ -7,7 +7,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.modeling.convolution import Convolution
-from astropy.modeling.core import SPECIAL_OPERATORS, CompoundModel
+from astropy.modeling.core import SPECIAL_OPERATORS
 from astropy.nddata import support_nddata
 from astropy.utils.console import human_file_size
 from astropy.utils.exceptions import AstropyUserWarning
@@ -1001,7 +1001,9 @@ def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
     return newarray
 
 
-def convolve_models(model, kernel, mode="convolve_fft", **kwargs):
+def convolve_models(
+    model, kernel, bounding_box, resolution, mode="convolve_fft", cache=True, **kwargs
+):
     """
     Convolve two models using `~astropy.convolution.convolve_fft`.
 
@@ -1011,10 +1013,20 @@ def convolve_models(model, kernel, mode="convolve_fft", **kwargs):
         Functional model
     kernel : `~astropy.modeling.core.Model`
         Convolution kernel
+    bounding_box : tuple
+        The bounding box which encompasses enough of the support of both
+        the ``model`` and ``kernel`` so that an accurate convolution can be
+        computed.
+    resolution : float
+        The resolution that one wishes to approximate the convolution
+        integral at.
     mode : str
         Keyword representing which function to use for convolution.
             * 'convolve_fft' : use `~astropy.convolution.convolve_fft` function.
             * 'convolve' : use `~astropy.convolution.convolve`.
+    cache : optional, bool
+        Default value True. Allow for the storage of the convolution
+        computation for later reuse.
     **kwargs : dict
         Keyword arguments to me passed either to `~astropy.convolution.convolve`
         or `~astropy.convolution.convolve_fft` depending on ``mode``.
@@ -1023,6 +1035,22 @@ def convolve_models(model, kernel, mode="convolve_fft", **kwargs):
     -------
     default : `~astropy.modeling.core.CompoundModel`
         Convolved model
+
+    Notes
+    -----
+    Special care must be taken when defining the model, kernel, and choosing the bounding_box
+    and resolution inputs.
+    Under the hood, this function returns an `~astropy.modeling.convolution.Convolution`
+    object that functions as follows:
+      1. Generates the domain array defined by the bounding_box and resolution parameters
+      2. Runs that domain array through the input models (``model`` and ``kernel``)
+      3. Convolves the model outputs from step 2. The convolution result is (optionally)
+         cached.
+      4. When the combined model is called, the result of the convolution from step 3
+         is interpolated to the input domain and returned.
+
+    For further details about special requirements for the model output from ``kernel``,
+    see the documentation for `convolve` or `convolve_fft` depending on the selected ``mode``.
     """
     if mode == "convolve_fft":
         operator = SPECIAL_OPERATORS.add(
@@ -1033,7 +1061,7 @@ def convolve_models(model, kernel, mode="convolve_fft", **kwargs):
     else:
         raise ValueError(f"Mode {mode} is not supported.")
 
-    return CompoundModel(operator, model, kernel)
+    return Convolution(operator, model, kernel, bounding_box, resolution, cache)
 
 
 def convolve_models_fft(model, kernel, bounding_box, resolution, cache=True, **kwargs):
@@ -1067,7 +1095,7 @@ def convolve_models_fft(model, kernel, bounding_box, resolution, cache=True, **k
 
     Notes
     -----
-    Special care must be taken when defining the models and choosing the bounding_box
+    Special care must be taken when defining the model, kernel, and choosing the bounding_box
     and resolution inputs.
     Under the hood, this function returns an `~astropy.modeling.convolution.Convolution`
     object that functions as follows:
@@ -1077,6 +1105,9 @@ def convolve_models_fft(model, kernel, bounding_box, resolution, cache=True, **k
          cached.
       4. When the combined model is called, the result of the convolution from step 3
          is interpolated to the input domain and returned.
+
+    For further details about special requirements for the model output from ``kernel``,
+    see the documentation for `convolve_fft`.
     """
     operator = SPECIAL_OPERATORS.add("convolve_fft", partial(convolve_fft, **kwargs))
 
