@@ -100,7 +100,7 @@ function in which the resulting mean (variance) is the sum of the means
 
     g1 = models.Gaussian1D(1, -1, 1)
     g2 = models.Gaussian1D(1, 1, 1)
-    g3 = convolve_models(g1, g2)
+    g3 = convolve_models(g1, g2, (-4, 4), 0.1)
 
     x = np.linspace(-3, 3, 50)
     plt.plot(x, g1(x), 'k-')

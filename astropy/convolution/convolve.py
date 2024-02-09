@@ -1026,7 +1026,9 @@ def convolve_models(
             * 'convolve' : use `~astropy.convolution.convolve`.
     cache : optional, bool
         Default value True. Allow for the storage of the convolution
-        computation for later reuse.
+        computation for later reuse. Changes to the input model or kernel will not
+        be reflected in the convolved model output if `cache` is True. For this reason,
+        if the convolved model will be used for fitting,``cache`` must be set to False.
     **kwargs : dict
         Keyword arguments to me passed either to `~astropy.convolution.convolve`
         or `~astropy.convolution.convolve_fft` depending on ``mode``.
@@ -1040,12 +1042,13 @@ def convolve_models(
     -----
     Special care must be taken when defining the model, kernel, and choosing the bounding_box
     and resolution inputs.
-    Under the hood, this function returns an `~astropy.modeling.convolution.Convolution`
+    Under the hood, this function returns a `~astropy.modeling.convolution.Convolution`
     object that functions as follows:
       1. Generates the domain array defined by the bounding_box and resolution parameters
       2. Runs that domain array through the input models (``model`` and ``kernel``)
-      3. Convolves the model outputs from step 2. The convolution result is (optionally)
-         cached.
+      3. Convolves the model outputs from step 2 using the convolution function defined
+         by the ``mode`` keyword. The convolution result is (optionally) cached in order
+         to reduce extra computation.
       4. When the combined model is called, the result of the convolution from step 3
          is interpolated to the input domain and returned.
 
@@ -1083,7 +1086,9 @@ def convolve_models_fft(model, kernel, bounding_box, resolution, cache=True, **k
         integral at.
     cache : optional, bool
         Default value True. Allow for the storage of the convolution
-        computation for later reuse.
+        computation for later reuse. Changes to the input model or kernel will not
+        be reflected in the convolved model output if `cache` is True. For this reason,
+        if the convolved model will be used for fitting,``cache`` must be set to False.
     **kwargs : dict
         Keyword arguments to be passed either to `~astropy.convolution.convolve`
         or `~astropy.convolution.convolve_fft` depending on ``mode``.
@@ -1097,12 +1102,13 @@ def convolve_models_fft(model, kernel, bounding_box, resolution, cache=True, **k
     -----
     Special care must be taken when defining the model, kernel, and choosing the bounding_box
     and resolution inputs.
-    Under the hood, this function returns an `~astropy.modeling.convolution.Convolution`
+    Under the hood, this function returns a `~astropy.modeling.convolution.Convolution`
     object that functions as follows:
       1. Generates the domain array defined by the bounding_box and resolution parameters
       2. Runs that domain array through the input models (``model`` and ``kernel``)
-      3. Convolves the model outputs from step 2. The convolution result is (optionally)
-         cached.
+      3. Convolves the model outputs from step 2 using the convolution function defined
+         by the ``mode`` keyword. The convolution result is (optionally) cached in order
+         to reduce extra computation.
       4. When the combined model is called, the result of the convolution from step 3
          is interpolated to the input domain and returned.
 
