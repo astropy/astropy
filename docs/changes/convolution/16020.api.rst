@@ -1,0 +1,2 @@
+Added required parameters ``bounding_box`` and ``resolution``  to
+``astropy.convolution.convolve.convolve_models`` function.
