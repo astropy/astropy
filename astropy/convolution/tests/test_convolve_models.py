@@ -53,6 +53,7 @@ class TestConvolve1DModels:
         assert_allclose(ans, model_conv(x), atol=1e-5)
 
     @pytest.mark.parametrize("mode", ["convolve_fft", "convolve"])
+    @pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
     def test_sum_of_gaussians(self, mode):
         """
         Test that convolving N(a, b) with N(c, d) gives N(a + c, b + d),
@@ -73,6 +74,7 @@ class TestConvolve1DModels:
         assert_allclose(ans(x), model_conv(x), atol=1e-3)
 
     @pytest.mark.parametrize("mode", ["convolve_fft", "convolve"])
+    @pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
     def test_convolve_box_models(self, mode):
         kernel = models.Box1D()
         model = models.Box1D()
