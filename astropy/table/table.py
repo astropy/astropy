@@ -206,7 +206,7 @@ def _get_names_from_list_of_dict(rows):
     if rows is None:
         return None
 
-    names = dict()
+    names = {}
     for row in rows:
         if not isinstance(row, (Mapping, Row)):
             return None
