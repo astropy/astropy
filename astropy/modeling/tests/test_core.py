@@ -1493,3 +1493,31 @@ def test_model_string_indexing():
 
     assert compound["Model1"] == gauss
     assert compound["Model2"] == airy
+
+
+def test_custom_variable_names_in_string_representation():
+    """Test custom variable names in the string representation of a model with a custom name."""
+    g = models.Gaussian1D(amplitude=1.2, mean=0.5, stddev=0.3, name="test_gaussian")
+    model_str = str(g)
+
+    expected_strings = [
+        "test_gaussian_amplitude",
+        "test_gaussian_mean",
+        "test_gaussian_stddev",
+    ]
+    for expected in expected_strings:
+        assert (
+            expected in model_str
+        ), f"Expected string '{expected}' not found in model string representation"
+
+
+def test_default_variable_names_in_string_representation():
+    """Test default variable names in the string representation of a model without a custom name."""
+    g = models.Gaussian1D(amplitude=1.2, mean=0.5, stddev=0.3)
+    model_str = str(g)
+
+    expected_strings = ["amplitude", "mean", "stddev"]
+    for expected in expected_strings:
+        assert (
+            expected in model_str
+        ), f"Expected string '{expected}' not found in model string representation"

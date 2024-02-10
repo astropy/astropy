@@ -13,18 +13,19 @@ Basics
 
 The `astropy.modeling` package defines a number of models that are collected
 under a single namespace as ``astropy.modeling.models``.  Models behave like
-parametrized functions::
+parametrized functions, and can have custom names, as you will see we named ours 'first'::
 
     >>> import numpy as np
     >>> from astropy.modeling import models
-    >>> g = models.Gaussian1D(amplitude=1.2, mean=0.9, stddev=0.5)
+    >>> g = models.Gaussian1D(amplitude=1.2, mean=0.9, stddev=0.5,name = 'first')
     >>> print(g)
     Model: Gaussian1D
+    Name: first
     Inputs: ('x',)
     Outputs: ('y',)
     Model set size: 1
     Parameters:
-        amplitude mean stddev
+        first_amplitude first_mean first_stddev
         --------- ---- ------
               1.2  0.9    0.5
 
