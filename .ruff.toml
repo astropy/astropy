@@ -274,6 +274,7 @@ lint.unfixable = [
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
+    "TRY300",  # Consider `else` block
 ]
 "astropy/nddata/*" = [
     "C408",
@@ -283,7 +284,6 @@ lint.unfixable = [
 "astropy/samp/*" = [
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
-    "TRY300",  # Consider `else` block
 ]
 "astropy/stats/*" = [
     "RET505",  # superfluous-else-return
