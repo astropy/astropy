@@ -8,7 +8,6 @@ import locale
 import math
 import multiprocessing
 import os
-import re
 import struct
 import sys
 import threading
@@ -72,15 +71,7 @@ class _IPython:
                 try:
                     from IPython.zmq.iostream import OutStream
                 except ImportError:
-                    from IPython import version_info
-
-                    if version_info[0] >= 4:
-                        return None
-
-                    try:
-                        from IPython.kernel.zmq.iostream import OutStream
-                    except ImportError:
-                        return None
+                    return None
 
             cls._OutStream = OutStream
 
@@ -96,28 +87,6 @@ class _IPython:
             else:
                 cls._ipyio = io
         return cls._ipyio
-
-    @classmethod
-    def get_stream(cls, stream):
-        return getattr(cls.ipyio, stream)
-
-
-def _get_stdout(stderr=False):
-    """
-    This utility function contains the logic to determine what streams to use
-    by default for standard out/err.
-
-    Typically this will just return `sys.stdout`, but it contains additional
-    logic for use in IPython on Windows to determine the correct stream to use
-    (usually ``IPython.util.io.stdout`` but only if sys.stdout is a TTY).
-    """
-    if stderr:
-        stream = "stderr"
-    else:
-        stream = "stdout"
-
-    sys_stream = getattr(sys, stream)
-    return sys_stream
 
 
 def isatty(file):
@@ -172,7 +141,7 @@ def terminal_size(file=None):
     configuration.
     """
     if file is None:
-        file = _get_stdout()
+        file = sys.stdout
 
     try:
         s = struct.pack("HHHH", 0, 0, 0, 0)
@@ -331,7 +300,7 @@ def color_print(*args, end="\n", **kwargs):
         The ending of the message.  Defaults to ``\\n``.  The end will
         be printed after resetting any color or font state.
     """
-    file = kwargs.get("file", _get_stdout())
+    file = kwargs.get("file", sys.stdout)
 
     write = file.write
     if isatty(file) and conf.use_color:
@@ -357,13 +326,6 @@ def color_print(*args, end="\n", **kwargs):
             msg = args[i]
             write(msg)
         write(end)
-
-
-def strip_ansi_codes(s):
-    """
-    Remove ANSI color codes from the string.
-    """
-    return re.sub("\033\\[([0-9]+)(;[0-9]+)*m", "", s)
 
 
 def human_time(seconds):
@@ -514,7 +476,7 @@ class ProgressBar:
             completely silent.
         """
         if file is None:
-            file = _get_stdout()
+            file = sys.stdout
 
         if not ipython_widget and not isatty(file):
             self.update = self._silent_update
@@ -643,17 +605,10 @@ class ProgressBar:
         # if none exists.
         if not hasattr(self, "_widget"):
             # Import only if an IPython widget, i.e., widget in iPython NB
-            from IPython import version_info
+            _IPython.get_ipython()
+            from ipywidgets import widgets
 
-            if version_info[0] < 4:
-                from IPython.html import widgets
-
-                self._widget = widgets.FloatProgressWidget()
-            else:
-                _IPython.get_ipython()
-                from ipywidgets import widgets
-
-                self._widget = widgets.FloatProgress()
+            self._widget = widgets.FloatProgress()
             from IPython.display import display
 
             display(self._widget)
@@ -817,7 +772,7 @@ class ProgressBar:
         results = []
 
         if file is None:
-            file = _get_stdout()
+            file = sys.stdout
 
         with cls(len(items), ipython_widget=ipython_widget, file=file) as bar:
             if bar._ipython_widget:
@@ -890,7 +845,7 @@ class Spinner:
             The character sequence to use for the spinner
         """
         if file is None:
-            file = _get_stdout()
+            file = sys.stdout
 
         self._msg = msg
         self._color = color
@@ -1029,7 +984,7 @@ class ProgressBarOrSpinner:
             `ProgressBar` or `Spinner` will be silent.
         """
         if file is None:
-            file = _get_stdout()
+            file = sys.stdout
 
         if total is None or not isatty(file):
             self._is_spinner = True
@@ -1091,7 +1046,7 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
         standard library's `textwrap` module).
     """
     if file is None:
-        file = _get_stdout()
+        file = sys.stdout
 
     if conf.unicode_output:
         ellipsis = "…"
