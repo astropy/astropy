@@ -2633,7 +2633,7 @@ class TestFunctionHelpersCompleteness:
         assert IGNORED_FUNCTIONS | TBD_FUNCTIONS == untested_functions
 
 
-class TestSignatureCompatibilityBase:
+class CheckSignatureCompatibilityBase:
     """
     Check that a helper function's signature is *at least* as flexible
     as the helped (target) function's. E.g., any argument that is allowed positionally,
@@ -2645,9 +2645,8 @@ class TestSignatureCompatibilityBase:
     """
 
     # this is an abstract base test class, meant to allow reuse with minimal
-    # code duplication. Concrete implementations should override __test__ = True
-    # and be decorated with @pytest.mark.parametrize("target, helper", ...)
-    __test__ = False  # deselect this from pytest collection
+    # code duplication. Concrete implementations should be decorated with
+    # @pytest.mark.parametrize("target, helper", ...)
 
     @staticmethod
     def have_catchall_argument(parameters, kind) -> bool:
@@ -2777,5 +2776,5 @@ class TestSignatureCompatibilityBase:
     ),
     ids=lambda func: func.__name__,
 )
-class TestFunctionHelpersSignatureCompatibility(TestSignatureCompatibilityBase):
-    __test__ = True
+class TestFunctionHelpersSignatureCompatibility(CheckSignatureCompatibilityBase):
+    pass

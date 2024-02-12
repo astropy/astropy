@@ -17,7 +17,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from astropy.units.tests.test_quantity_non_ufuncs import (
-    TestSignatureCompatibilityBase,
+    CheckSignatureCompatibilityBase,
     get_covered_functions,
     get_wrapped_functions,
 )
@@ -1520,5 +1520,5 @@ class TestFunctionHelpersCompleteness:
     ),
     ids=lambda func: func.__name__,
 )
-class TestFunctionHelpersSignatureCompatibility(TestSignatureCompatibilityBase):
-    __test__ = True
+class TestFunctionHelpersSignatureCompatibility(CheckSignatureCompatibilityBase):
+    pass
