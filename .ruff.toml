@@ -109,7 +109,6 @@ lint.ignore = [
     "PLE0101",  # return-in-init
     "PLR0124",  # Name compared with itself
     "PLR0402",  # ConsiderUsingFromImport
-    "PLR0911",  # too-many-return-statements
     "PLR0912",  # too-many-branches
     "PLR0913",  # too-many-args
     "PLR0915",  # too-many-statements
@@ -239,6 +238,7 @@ lint.unfixable = [
     "RET505",  # superfluous-else-return
 ]
 "astropy/convolution/*" = [
+    "PLR0911",  # too-many-return-statements
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
 ]
@@ -255,6 +255,7 @@ lint.unfixable = [
 "astropy/io/*" = [
     "G001",  # logging-string-format
     "G004",  # logging-f-string
+    "PLR0911",  # too-many-return-statements
     "PTH116",  # os-stat
     "PTH117",  # os-path-isabs
     "RET505",  # superfluous-else-return
@@ -266,6 +267,7 @@ lint.unfixable = [
 "astropy/logger.py" = ["C408", "RET505"]
 "astropy/modeling/*" = [
     "ANN201",  # Public function without return type annotation
+    "PLR0911",  # too-many-return-statements
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
@@ -280,6 +282,7 @@ lint.unfixable = [
     "RET506",  # superfluous-else-raise
 ]
 "astropy/stats/*" = [
+    "PLR0911",  # too-many-return-statements
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
 ]
@@ -296,12 +299,14 @@ lint.unfixable = [
     "RET506",  # superfluous-else-raise
 ]
 "astropy/timeseries/*" = [
+    "PLR0911",  # too-many-return-statements
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
 ]
 "astropy/units/*" = [
     "F821",  # undefined-name
     "N812",  # lowercase-imported-as-non-lowercase
+    "PLR0911",  # too-many-return-statements
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
 ]
@@ -312,12 +317,14 @@ lint.unfixable = [
 ]
 "astropy/utils/*" = [
     "N811",  # constant-imported-as-non-constant
+    "PLR0911",  # too-many-return-statements
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
     "S321",  # Suspicious-ftp-lib-usage
 ]
 "astropy/visualization/*" = [
     "B015",
+    "PLR0911",  # too-many-return-statements
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
 ]
