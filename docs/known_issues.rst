@@ -75,14 +75,14 @@ Both will throw an exception if units do not cancel, e.g.::
 
 See: https://github.com/astropy/astropy/issues/7582
 
-Quantities Lose Their Units with Operations on pandas.Series
-------------------------------------------------------------
+Multiplying a `pandas.Series` with an `~astropy.units.Unit` does not produce a |Quantity|
+-----------------------------------------------------------------------------------------
 
 Quantities may work with certain operations on `~pandas.Series` but
 this behaviour is not tested. Quantities are subclassed from ``numpy``'s `~numpy.ndarray`
 and they do not behave same as `~pandas.Series` objects.
-For example one know issue is that multiplying a `~pandas.Series` object
-with a unit will *not* return a ``Quantity`` object. It will return a `~pandas.Series`
+For example, multiplying a `~pandas.Series` instance
+with a unit will *not* return a |Quantity|. It will return a `~pandas.Series`
 object without any unit::
 
    >>> import pandas as pd # doctest: +SKIP
@@ -101,7 +101,7 @@ One way around this is to use the in-place shift operator::
 
 But this is fragile as this may stop working in future versions of
 pandas if they decide to override the dunder methods. What should be
-secure, though, is to initialize the ``Quantity`` directly::
+secure, though, is to initialize the |Quantity| directly::
 
     >>> u.Quantity(a, u.m) # doctest: +SKIP
     <Quantity [1., 2., 3.] m>
