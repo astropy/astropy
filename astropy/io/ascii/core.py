@@ -1121,7 +1121,10 @@ class BaseOutputter:
 
                 converter_func, converter_type = col.converters[0]
                 if not issubclass(converter_type, col.type):
-                    raise TypeError("converter type does not match column type")
+                    raise TypeError(
+                        f"converter type {converter_type.__name__} does not match"
+                        f" column type {col.type.__name__} for column {col.name}"
+                    )
 
                 try:
                     col.data = converter_func(col.str_vals)
