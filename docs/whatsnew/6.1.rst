@@ -23,6 +23,18 @@ By the numbers:
 * X distinct people have contributed code
 
 
+.. _whatsnew-6.1-ascii-default-int-columns-as-int64:
+
+``io.ascii`` uses 64-integers by default for integer columns
+============================================================
+
+:mod:`~astropy.io.ascii` now uses a 64-bit integer field by
+default when reading a column of integer numeric data. This changes the default behavior
+on Windows and potentially 32-bit architectures. Previously on those platforms, table
+columns with any long integers which overflowed the 32-bit integer would be returned
+as string columns. The new default behavior is consistent with ``numpy`` v2 and ``pandas``.
+
+
 Full change log
 ===============
 
