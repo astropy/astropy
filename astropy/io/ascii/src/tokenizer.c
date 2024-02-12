@@ -590,12 +590,32 @@ static int ascii_strncasecmp(const char *str1, const char *str2, size_t n)
 }
 
 
-long str_to_long(tokenizer_t *self, char *str)
+static inline int64_t strtoi64(const char *nptr, char **endptr, int base)
+{
+    // Adapted from: https://stackoverflow.com/a/66046867
+    errno = 0;
+    long long v = strtoll(nptr, endptr, base);
+
+    #if LLONG_MIN < INT64_MIN || LLONG_MAX > INT64_MAX
+    if (v < INT64_MIN) {
+        v = INT64_MIN;
+        errno = ERANGE;
+    } else if (v > INT64_MAX) {
+        v = INT64_MAX;
+        errno = ERANGE;
+    }
+    #endif
+
+    return (int64_t) v;
+}
+
+
+int64_t str_to_int64_t(tokenizer_t *self, char *str)
 {
     char *tmp;
-    long ret;
+    int64_t ret;
     errno = 0;
-    ret = strtol(str, &tmp, 10);
+    ret = strtoi64(str, &tmp, 10);
 
     if (tmp == str || *tmp != '\0')
         self->code = CONVERSION_ERROR;
