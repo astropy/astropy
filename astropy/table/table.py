@@ -1757,7 +1757,7 @@ class Table:
         else:
             return self
 
-    @deprecated("6.1", pending=True)
+    @deprecated("6.1")
     def show_in_notebook(
         self,
         tableid=None,

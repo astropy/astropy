@@ -8,7 +8,7 @@ from astropy.coordinates import SkyCoord
 from astropy.table.table import Table
 from astropy.time import Time
 from astropy.utils.compat.optional_deps import HAS_BLEACH, HAS_IPYTHON
-from astropy.utils.exceptions import AstropyPendingDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 EXTERN_DIR = abspath(join(dirname(extern.__file__), "jquery", "data"))
@@ -229,7 +229,7 @@ def test_show_in_notebook():
     t["a"] = [1, 2, 3, 4, 5]
     t["b"] = ["b", "c", "a", "d", "e"]
 
-    with pytest.warns(AstropyPendingDeprecationWarning):
+    with pytest.warns(AstropyDeprecationWarning):
         htmlstr_windx = t.show_in_notebook().data  # should default to 'idx'
         htmlstr_windx_named = t.show_in_notebook(show_row_index="realidx").data
         htmlstr_woindx = t.show_in_notebook(show_row_index=False).data
