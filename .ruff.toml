@@ -208,7 +208,6 @@ lint.ignore = [
     "TRY004",  # prefer-type-error
     "TRY200",  # reraise-no-cause
     "TRY201",  # verbose-raise
-    "TRY300",  # Consider `else` block
     "TRY301",  # raise-within-try
 
     # flake8-quotes (Q)
@@ -263,6 +262,7 @@ lint.unfixable = [
     "SLOT000",  # Subclasses of `str` should define `__slots__`
     "TD005",  # Missing issue description after `TODO`
     "TRY400",  # error-instead-of-exception
+    "TRY300",  # Consider `else` block
 ]
 "astropy/logger.py" = ["C408", "RET505"]
 "astropy/modeling/*" = [
@@ -271,6 +271,7 @@ lint.unfixable = [
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
+    "TRY300",  # Consider `else` block
 ]
 "astropy/nddata/*" = [
     "C408",
@@ -290,6 +291,7 @@ lint.unfixable = [
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
     "S605",  # Starting a process with a shell, possible injection detected
+    "TRY300",  # Consider `else` block
 ]
 "astropy/tests/*" = ["C408", "RET505"]
 "astropy/time/*" = [
@@ -309,6 +311,7 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
+    "TRY300",  # Consider `else` block
 ]
 "astropy/uncertainty/*" = [
     "C408",
@@ -321,6 +324,7 @@ lint.unfixable = [
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
     "S321",  # Suspicious-ftp-lib-usage
+    "TRY300",  # Consider `else` block
 ]
 "astropy/visualization/*" = [
     "B015",
@@ -335,6 +339,7 @@ lint.unfixable = [
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
     "SIM202",  # NegateNotEqualOp
+    "TRY300",  # Consider `else` block
 ]
 "docs/*" = []
 "examples/coordinates/*" = []
