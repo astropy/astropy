@@ -79,31 +79,39 @@ Multiplying a `pandas.Series` with an `~astropy.units.Unit` does not produce a |
 -----------------------------------------------------------------------------------------
 
 Quantities may work with certain operations on `~pandas.Series` but
-this behaviour is not tested. Quantities are subclassed from ``numpy``'s `~numpy.ndarray`
-and they do not behave same as `~pandas.Series` objects.
+this behaviour is not tested.
 For example, multiplying a `~pandas.Series` instance
 with a unit will *not* return a |Quantity|. It will return a `~pandas.Series`
 object without any unit::
 
-   >>> import pandas as pd # doctest: +SKIP
-   >>> import astropy.units as u # doctest: +SKIP
-   >>> a = pd.Series([1., 2., 3.]) # doctest: +SKIP
-   >>> a * u.m # doctest: +SKIP
+.. doctest-requires:: pandas>=1.5
+
+   >>> import pandas as pd
+   >>> import astropy.units as u
+   >>> a = pd.Series([1., 2., 3.])
+   >>> a * u.m
    0    1.0
    1    2.0
    2    3.0
    dtype: float64
 
-One way around this is to use the in-place shift operator::
+One way around this is to use the in-place shift or shift operator::
 
-   >>> a << u.m # doctest: +SKIP
+.. doctest-requires:: pandas>=1.5
+
+   >>> a << u.m
+   <Quantity [1., 2., 3.] m>
+   >>> a <<= u.m
+   >>> a
    <Quantity [1., 2., 3.] m>
 
 But this is fragile as this may stop working in future versions of
 pandas if they decide to override the dunder methods. What should be
 secure, though, is to initialize the |Quantity| directly::
 
-    >>> u.Quantity(a, u.m) # doctest: +SKIP
+.. doctest-requires:: pandas>=1.5
+
+    >>> u.Quantity(a, u.m)
     <Quantity [1., 2., 3.] m>
 
 See: https://github.com/astropy/astropy/issues/11247
