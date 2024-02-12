@@ -12,7 +12,7 @@ the 6.0 release.
 
 In particular, this release includes:
 
-* nothing yet
+* :ref:`whatsnew-6.1-table-column-order-from-rows`
 
 In addition to these major changes, Astropy v6.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -21,6 +21,35 @@ By the numbers:
 * X issues have been closed since v6.0
 * X pull requests have been merged since v6.0
 * X distinct people have contributed code
+
+
+.. _whatsnew-6.1-table-column-order-from-rows:
+
+Ordering of table columns constructed from rows
+===============================================
+
+The column order in a `~astropy.table.Table` constructed from a `list` or rows (`dict`
+or `~astropy.table.Row`) may change using ``astropy`` version ``6.1`` *if the
+first row has missing values*.
+
+Before ``6.1``, the column ordering was determined from the first row if it contained
+values for all the columns, or by sorting the final column names alphabetically if it
+did not. Starting with ``6.1``, columns are always added in the order they appear
+when iterating over  the `list` of rows.
+
+For example, create a table as shown below:
+
+    >>> from astropy.table import Table
+    >>> data = [{'b': 10, 'c': 7, },
+    ...         {'a': 15, 'c': 35, 'b': 20}]
+    >>> t = Table(data)  # or Table(rows=data), which is equivalent
+    >>> print(t)
+     b   c   a
+    --- --- ---
+     10   7  --
+     20  35  15
+
+Before ``6.1`` columns would be sorted alphabetically.
 
 
 Full change log
