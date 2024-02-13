@@ -18,7 +18,9 @@ class TestConvolve1DModels:
     def test_is_consistency_with_astropy_convolution(self, mode):
         kernel = models.Gaussian1D(1, 0, 1)
         model = models.Gaussian1D(1, 0, 1)
-        model_conv = convolve_models(model, kernel, (-5, 5), 1, mode=mode.__name__)
+        model_conv = convolve_models(
+            model, kernel, mode=mode.__name__, bounding_box=(-5, 5), resolution=1
+        )
         x = np.arange(-5, 6)
         ans = mode(model(x), kernel(x))
 
@@ -31,7 +33,9 @@ class TestConvolve1DModels:
 
         kernel = models.Gaussian1D(1, 0, 1)
         model = models.Gaussian1D(1, 0, 1)
-        model_conv = convolve_models(model, kernel, (-5, 5), 1, mode=mode)
+        model_conv = convolve_models(
+            model, kernel, mode=mode, bounding_box=(-5, 5), resolution=1
+        )
         x = np.arange(-5, 6)
         ans = fftconvolve(kernel(x), model(x), mode="same")
 
@@ -45,7 +49,12 @@ class TestConvolve1DModels:
         kernel = models.Gaussian1D(1, 0, 1)
         model = models.Gaussian1D(1, 0, 1)
         model_conv = convolve_models(
-            model, kernel, (-5, 5), 1, mode=mode, normalize_kernel=False
+            model,
+            kernel,
+            mode=mode,
+            bounding_box=(-5, 5),
+            resolution=1,
+            normalize_kernel=False,
         )
         x = np.arange(-5, 6)
         ans = fftconvolve(kernel(x), model(x), mode="same")
@@ -66,7 +75,12 @@ class TestConvolve1DModels:
         kernel = models.Gaussian1D(1 / math.sqrt(2 * np.pi), 1, 1)
         model = models.Gaussian1D(1 / math.sqrt(2 * np.pi), 3, 1)
         model_conv = convolve_models(
-            model, kernel, (-7, 7), 1, mode=mode, normalize_kernel=False
+            model,
+            kernel,
+            mode=mode,
+            bounding_box=(-7, 7),
+            resolution=1,
+            normalize_kernel=False,
         )
         ans = models.Gaussian1D(1 / (2 * math.sqrt(np.pi)), 4, np.sqrt(2))
         x = np.arange(-5, 6)
@@ -79,7 +93,12 @@ class TestConvolve1DModels:
         kernel = models.Box1D()
         model = models.Box1D()
         model_conv = convolve_models(
-            model, kernel, (-1, 1), 0.001, mode=mode, normalize_kernel=True
+            model,
+            kernel,
+            mode=mode,
+            bounding_box=(-1, 1),
+            resolution=0.001,
+            normalize_kernel=True,
         )
         x = np.linspace(-1, 1, 99)
         ans = (x + 1) * (x < 0) + (-x + 1) * (x >= 0)
@@ -103,9 +122,9 @@ class TestConvolve1DModels:
         init_model = convolve_models(
             b1,
             g1,
-            (-6 - 10 / 99, 6),
-            10 / 99,
             mode=mode,
+            bounding_box=(-6 - 10 / 99, 6),
+            resolution=10 / 99,
             normalize_kernel=False,
             cache=False,
         )
@@ -114,3 +133,16 @@ class TestConvolve1DModels:
 
         me = np.mean(fitted_model(x) - fake_data)
         assert_almost_equal(me, 0.0, decimal=2)
+
+    @pytest.mark.parametrize("bounding_box, resolution", [(None, 1), ((-1, 1), None)])
+    @pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
+    def test_convolve_models_warnings(self, bounding_box, resolution):
+        """
+        test that convolve models issues warnings when bounding_box or resolution are not specified
+        """
+        model = models.Gaussian1D()
+        kernel = models.Box1D()
+        with pytest.warns(UserWarning):
+            combined_model = convolve_models(
+                model, kernel, bounding_box=bounding_box, resolution=resolution
+            )
