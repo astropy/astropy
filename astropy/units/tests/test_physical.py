@@ -22,6 +22,7 @@ unit_physical_type_pairs = [
     (u.erg / (u.cm**2 * u.s * u.AA), "spectral flux density wav"),
     (u.photon / (u.cm**2 * u.s * u.AA), "photon flux density wav"),
     (u.photon / (u.cm**2 * u.s * u.Hz), "photon flux density"),
+    (u.Jy / u.sr, "surface brightness"),
     (u.byte, "data quantity"),
     (u.bit, "data quantity"),
     (u.imperial.mi / u.week, "speed"),

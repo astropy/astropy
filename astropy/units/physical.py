@@ -81,6 +81,7 @@ _units_and_physical_types = [
     (si.cd / si.m**2, "luminance"),
     (si.m**-3 * si.s**-1, "volumetric rate"),
     (astrophys.Jy, "spectral flux density"),
+    (astrophys.Jy / si.sr, "surface brightness"),
     (si.W * si.m**2 * si.Hz**-1, "surface tension"),
     (si.J * si.m**-3 * si.s**-1, {"spectral flux density wav", "power density"}),
     (astrophys.photon / si.Hz / si.cm**2 / si.s, "photon flux density"),
