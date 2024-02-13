@@ -929,7 +929,10 @@ def test_print_special_operator_CompoundModel(capsys):
     """
 
     model = convolve_models(
-        models.Sersic2D(), models.Gaussian2D(), ((-1, 1), (-2, 2)), (1, 1)
+        models.Sersic2D(),
+        models.Gaussian2D(),
+        bounding_box=((-1, 1), (-2, 2)),
+        resolution=(1, 1),
     )
     with astropy.conf.set_temp("max_width", 80):
         # fmt: off

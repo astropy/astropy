@@ -1031,7 +1031,7 @@ def convolve_models(
         If not specified, a default of (-1, 1) will be used and a warning will
         be issued because the returned compound model is not likely to behave as
         desired.
-    resolution : optional, float
+    resolution : optional, float or tuple
         The resolution that one wishes to approximate the convolution
         integral at. It is recommended to always specify this parameter.
         If not specified, a default value of 1 will be used and a warning will
