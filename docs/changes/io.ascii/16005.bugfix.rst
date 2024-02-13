@@ -1,8 +1,1 @@
-The ``io.ascii`` Python and C table readers were updated to use a 64-bit integer field by
-default when reading a column of integer numeric data. This changes the default behavior
-on Windows and potentially 32-bit architectures. Previously on those platforms, table
-columns with any long integers which overflowed the 32-bit integer would be returned
-as string columns. The new default behavior is consistent with ``numpy`` v2 and ``pandas``.
-
-The new behavior also fixed the error in reading IPAC tables with ``long`` column type
-on some platforms, e.g., Windows.
+Fixed reading IPAC tables for ``long`` column type on some platforms, e.g., Windows.
