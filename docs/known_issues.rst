@@ -95,7 +95,15 @@ object without any unit::
    2    3.0
    dtype: float64
 
-One way around this is to use the in-place shift or shift operator::
+To avoid this, it is best to initialize the |Quantity| directly::
+
+.. doctest-requires:: pandas>=1.5
+
+    >>> u.Quantity(a, u.m)
+    <Quantity [1., 2., 3.] m>
+
+Note that the overrides pandas provides are not complete, and
+as a consequence, using the (in-place) shift operator does work::
 
 .. doctest-requires:: pandas>=1.5
 
@@ -106,13 +114,7 @@ One way around this is to use the in-place shift or shift operator::
    <Quantity [1., 2., 3.] m>
 
 But this is fragile as this may stop working in future versions of
-pandas if they decide to override the dunder methods. What should be
-secure, though, is to initialize the |Quantity| directly::
-
-.. doctest-requires:: pandas>=1.5
-
-    >>> u.Quantity(a, u.m)
-    <Quantity [1., 2., 3.] m>
+pandas if they decide to override the dunder methods. 
 
 See: https://github.com/astropy/astropy/issues/11247
 
