@@ -26,7 +26,7 @@ def do_ut1_prediction_tst(iers_type):
     tnow.delta_ut1_utc, status = iers_tab.ut1_utc(tnow, return_status=True)
     assert status == iers.FROM_IERS_A_PREDICTION
     tnow_ut1_jd = tnow.ut1.jd
-    assert tnow_ut1_jd != tnow.jd
+    assert allclose_jd(tnow_ut1_jd - tnow.jd, tnow.delta_ut1_utc / 86400)
 
     delta_ut1_utc = tnow.delta_ut1_utc
     with iers.earth_orientation_table.set(iers_type.open()):
@@ -36,7 +36,7 @@ def do_ut1_prediction_tst(iers_type):
 
         tnow_ut1 = tnow.ut1
         assert tnow_ut1._delta_ut1_utc == delta_ut1_utc
-        assert tnow_ut1.jd != tnow.jd
+        assert allclose_jd(tnow_ut1.jd - tnow.jd, tnow.delta_ut1_utc / 86400)
 
 
 @pytest.mark.remote_data
