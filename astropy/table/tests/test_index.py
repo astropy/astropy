@@ -754,3 +754,64 @@ def test_slice_an_indexed_table(index_first):
         "  0   g    1",
         "  1   b    2>>",
     ]
+
+@pytest.mark.xfail
+@pytest.mark.parametrize(
+    "col_a_constructor, expected_row_repr_lines, expected_table_pformat",
+    [
+        pytest.param(
+            lambda vals: vals,
+            [
+                "<Row index=0>",
+                "  c     b     a  ",
+                "int64 int64 int64",
+                "----- ----- -----",
+                "    0     1     3",
+            ],
+            [
+                " c   b   a ",
+                "--- --- ---",
+                "  2   2   2",
+                "  3   2   2",
+            ],
+            id="list",
+        ),
+        pytest.param(
+            lambda vals: Time(vals, format="cxcsec"),
+            [
+                "<Row index=0>",
+                "  c     b    a  ",
+                "int64 int64 Time",
+                "----- ----- ----",
+                "    0     1  3.0",
+            ],
+            [
+                " c   b   a ",
+                "--- --- ---",
+                "  2   2 2.0",
+                "  3   2 2.0",
+            ],
+            id="Time",
+        ),
+    ],
+)
+def test_multi_index(
+    col_a_constructor, expected_row_repr_lines, expected_table_pformat
+):
+    # see https://github.com/astropy/astropy/issues/13176
+    # forcing dtype to int64 for portability
+    # (Windows + numpy 1.x uses int32 by default)
+    vals_a = np.array([3, 3, 2, 2, 1], dtype="int64")
+    vals_b = np.array([1, 2, 2, 2, 1], dtype="int64")
+    vals_c = np.array([0, 1, 2, 3, 4], dtype="int64")
+
+    col_a = col_a_constructor(vals_a)
+    t = QTable([vals_c, vals_b, col_a], names=("c", "b", "a"))
+    t.add_index(["a", "b"])
+    res1 = t.loc[t["a"][0], t["b"][0]]
+    assert isinstance(res1, Row)
+    assert repr(res1).splitlines() == expected_row_repr_lines
+
+    res2 = t.loc[t["a"][2], t["b"][2]]
+    assert isinstance(res2, Table)
+    assert res2.pformat() == expected_table_pformat
