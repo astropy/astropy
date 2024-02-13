@@ -1407,16 +1407,29 @@ class Column(BaseColumn):
             A copy of column with ``values`` and ``mask`` inserted.  Note that the
             insertion does not occur in-place: a new column is returned.
         """
-        if (np.isscalar(values) and isinstance(values, Quantity)) or (
-            not np.isscalar(values) and any(isinstance(v, Quantity) for v in values)
-        ):
-            with warnings.catch_warnings():
-                warnings.simplefilter("always")
-                warnings.warn(
-                    "Units from Quantity values will be ignored.",
-                    category=UserWarning,
-                    stacklevel=2,
-                )
+
+        def warn_quantities(values):
+            isquantity = isinstance(values, Quantity)
+            if not isquantity:
+                try:
+                    # we can't simply use isinstance(values, Iterable)
+                    # because 0-d arrays are registered as Iterable but
+                    # don't actually support iteration
+                    iter(values)
+                except TypeError:
+                    return
+                else:
+                    isquantity = any(isinstance(v, Quantity) for v in values)
+            if isquantity:
+                with warnings.catch_warnings():
+                    warnings.simplefilter("always")
+                    warnings.warn(
+                        "Units from Quantity values will be ignored.",
+                        category=UserWarning,
+                        stacklevel=3,
+                    )
+
+        warn_quantities(values)
 
         if self.dtype.kind == "O":
             # Even if values is array-like (e.g. [1,2,3]), insert as a single
