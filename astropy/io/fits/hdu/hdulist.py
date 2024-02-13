@@ -1008,6 +1008,11 @@ class HDUList(list, _Verify):
         # make sure the EXTEND keyword is there if there is extension
         self.update_extend()
 
+        if fileobj is sys.stdout:
+            # special case stdout for debugging convenience
+            # see https://github.com/astropy/astropy/issues/3427
+            fileobj = fileobj.buffer
+
         # make note of whether the input file object is already open, in which
         # case we should not close it after writing (that should be the job
         # of the caller)
