@@ -1,0 +1,1 @@
+Fix a crash when calling FITS ``writeto`` methods with stdout as the output stream.
