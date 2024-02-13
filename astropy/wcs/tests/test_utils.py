@@ -1494,6 +1494,58 @@ def test_issue10991():
     assert (fit_wcs.wcs.crval == [projlon, projlat]).all()
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_fit_wcs_from_points_returned_object_attributes():
+    xy = (
+        np.array(
+            [
+                2810.156,
+                650.236,
+                1820.927,
+                3425.779,
+                2750.369,
+            ]
+        ),
+        np.array(
+            [
+                1670.347,
+                360.325,
+                165.663,
+                900.922,
+                700.148,
+            ]
+        ),
+    )
+    ra, dec = (
+        np.array(
+            [
+                246.75001315,
+                246.72033646,
+                246.72303144,
+                246.74164072,
+                246.73540614,
+            ]
+        ),
+        np.array(
+            [
+                43.48690547,
+                43.46792989,
+                43.48075238,
+                43.49560501,
+                43.48903538,
+            ]
+        ),
+    )
+    radec = SkyCoord(ra, dec, unit=(u.deg, u.deg))
+
+    placeholder_wcs = celestial_frame_to_wcs(frame=radec.frame, projection="TAN")
+    estimated_wcs = fit_wcs_from_points(xy, radec, projection=placeholder_wcs)
+
+    estimated_wcs_attributes = sorted(dir(estimated_wcs))
+    placeholder_wcs_attributes = sorted(dir(placeholder_wcs))
+    assert estimated_wcs_attributes == placeholder_wcs_attributes
+
+
 @pytest.mark.remote_data
 @pytest.mark.parametrize("x_in,y_in", [[0, 0], [np.arange(5), np.arange(5)]])
 def test_pixel_to_world_itrs(x_in, y_in):
