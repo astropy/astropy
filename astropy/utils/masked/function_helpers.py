@@ -18,8 +18,19 @@ from astropy.utils.compat import NUMPY_LT_1_24, NUMPY_LT_2_0
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
+    from numpy.lib.function_base import (
+        _check_interpolation_as_method,
+        _quantile_is_valid,
+        _ureduce,
+    )
 else:
     import numpy._core as np_core
+    from numpy.lib._function_base_impl import (
+        _check_interpolation_as_method,
+        _quantile_is_valid,
+        _ureduce,
+    )
+
 
 # This module should not really be imported, but we define __all__
 # such that sphinx can typeset the functions with docstrings.
@@ -709,7 +720,7 @@ def median(a, axis=None, out=None, overwrite_input=False, keepdims=False):
     a = Masked(a)
 
     if NUMPY_LT_1_24:
-        r, k = np.lib.function_base._ureduce(
+        r, k = _ureduce(
             a,
             func=_masked_median,
             axis=axis,
@@ -718,18 +729,8 @@ def median(a, axis=None, out=None, overwrite_input=False, keepdims=False):
         )
         result = (r.reshape(k) if keepdims else r) if out is None else out
 
-    elif NUMPY_LT_2_0:
-        result = np.lib.function_base._ureduce(
-            a,
-            func=_masked_median,
-            axis=axis,
-            out=out,
-            overwrite_input=overwrite_input,
-            keepdims=keepdims,
-        )
-
     else:
-        result = np.lib._function_base_impl._ureduce(
+        result = _ureduce(
             a,
             func=_masked_median,
             axis=axis,
@@ -778,16 +779,6 @@ def _masked_quantile(a, q, axis=None, out=None, **kwargs):
     return result
 
 
-if not NUMPY_LT_2_0:
-    _quantile_is_valid = np.lib._function_base_impl._quantile_is_valid
-    _check_interpolation_as_method = (
-        np.lib._function_base_impl._check_interpolation_as_method
-    )
-else:
-    _quantile_is_valid = np.lib.function_base._quantile_is_valid
-    _check_interpolation_as_method = np.lib.function_base._check_interpolation_as_method
-
-
 def _preprocess_quantile(a, q, axis=None, out=None, **kwargs):
     from astropy.utils.masked import Masked
 
@@ -834,9 +825,7 @@ if NUMPY_LT_1_24:
             interpolation=interpolation,
         )
         keepdims = kwargs.pop("keepdims", False)
-        r, k = np.lib.function_base._ureduce(
-            a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs
-        )
+        r, k = _ureduce(a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
         result = (r.reshape(q.shape + k) if keepdims else r) if out is None else out
         return result, None, None
 
@@ -864,9 +853,7 @@ elif NUMPY_LT_2_0:
             keepdims=keepdims,
             interpolation=interpolation,
         )
-        result = np.lib.function_base._ureduce(
-            a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs
-        )
+        result = _ureduce(a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
         return result, None, None
 
 else:
@@ -895,9 +882,7 @@ else:
             weights=weights,
             interpolation=interpolation,
         )
-        result = np.lib._function_base_impl._ureduce(
-            a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs
-        )
+        result = _ureduce(a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
         return result, None, None
 
 
