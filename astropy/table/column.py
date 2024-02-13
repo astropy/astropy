@@ -1407,6 +1407,15 @@ class Column(BaseColumn):
             A copy of column with ``values`` and ``mask`` inserted.  Note that the
             insertion does not occur in-place: a new column is returned.
         """
+        if any(isinstance(v, Quantity) for v in values):
+            with warnings.catch_warnings():
+                warnings.simplefilter("always")
+                warnings.warn(
+                    "Units from Quantity values will be ignored.",
+                    category=UserWarning,
+                    stacklevel=2,
+                )
+
         if self.dtype.kind == "O":
             # Even if values is array-like (e.g. [1,2,3]), insert as a single
             # object.  Numpy.insert instead inserts each element in an array-like
