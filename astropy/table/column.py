@@ -1407,7 +1407,9 @@ class Column(BaseColumn):
             A copy of column with ``values`` and ``mask`` inserted.  Note that the
             insertion does not occur in-place: a new column is returned.
         """
-        if any(isinstance(v, Quantity) for v in values):
+        if (np.isscalar(values) and isinstance(values, Quantity)) or (
+            not np.isscalar(values) and any(isinstance(v, Quantity) for v in values)
+        ):
             with warnings.catch_warnings():
                 warnings.simplefilter("always")
                 warnings.warn(

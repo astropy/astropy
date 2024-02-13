@@ -6,6 +6,7 @@ import warnings
 import weakref
 from collections import OrderedDict, defaultdict
 from collections.abc import Mapping
+from contextlib import contextmanager
 from copy import deepcopy
 
 import numpy as np
@@ -3274,10 +3275,21 @@ class Table:
         else:
             raise TypeError("Vals must be an iterable or mapping or None")
 
+        @contextmanager
+        def reraise_true_exceptions_as_ValueError(name: str):
+            with warnings.catch_warnings():
+                warnings.filterwarnings("default")
+                try:
+                    yield
+                except Exception as exc:
+                    raise ValueError(
+                        f"Unable to insert row because of exception in column '{name}':\n{exc}"
+                    ) from exc
+
         # Insert val at index for each column
         columns = self.TableColumns()
         for name, col, val, mask_ in zip(colnames, self.columns.values(), vals, mask):
-            try:
+            with reraise_true_exceptions_as_ValueError(name):
                 # If new val is masked and the existing column does not support masking
                 # then upgrade the column to a mask-enabled type: either the table-level
                 # default ColumnClass or else MaskedColumn.
@@ -3313,11 +3325,6 @@ class Table:
                         )
 
                 columns[name] = newcol
-
-            except Exception as err:
-                raise ValueError(
-                    f"Unable to insert row because of exception in column '{name}':\n{err}"
-                ) from err
 
         for table_index in self.indices:
             table_index.insert_row(index, vals, self.columns.values())
