@@ -1,0 +1,1 @@
+Fixed a bug in ``fit_wcs_from_points`` that does not set the default value of the ``cdelt`` of the returned WCS object.
