@@ -1,2 +1,2 @@
-Added required parameters ``bounding_box`` and ``resolution``  to
+Added keyword parameters ``bounding_box``, ``resolution``, and ``cache``  to
 ``astropy.convolution.convolve.convolve_models`` function.

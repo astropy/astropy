@@ -1002,7 +1002,14 @@ def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
 
 
 def convolve_models(
-    model, kernel, bounding_box, resolution, mode="convolve_fft", cache=True, **kwargs
+    model,
+    kernel,
+    mode="convolve_fft",
+    *,
+    bounding_box=None,
+    resolution=None,
+    cache=True,
+    **kwargs,
 ):
     """
     Convolve two models using `~astropy.convolution.convolve_fft`.
@@ -1013,17 +1020,23 @@ def convolve_models(
         Functional model
     kernel : `~astropy.modeling.core.Model`
         Convolution kernel
-    bounding_box : tuple
-        The bounding box which encompasses enough of the support of both
-        the ``model`` and ``kernel`` so that an accurate convolution can be
-        computed.
-    resolution : float
-        The resolution that one wishes to approximate the convolution
-        integral at.
     mode : str
         Keyword representing which function to use for convolution.
             * 'convolve_fft' : use `~astropy.convolution.convolve_fft` function.
             * 'convolve' : use `~astropy.convolution.convolve`.
+    bounding_box : optional, tuple
+        The bounding box which encompasses enough of the support of both
+        the ``model`` and ``kernel`` so that an accurate convolution can be
+        computed. It is recommended to always specify this parameter.
+        If not specified, a default of (-1, 1) will be used and a warning will
+        be issued because the returned compound model is not likely to behave as
+        desired.
+    resolution : optional, float
+        The resolution that one wishes to approximate the convolution
+        integral at. It is recommended to always specify this parameter.
+        If not specified, a default value of 1 will be used and a warning will
+        be issued because the returned compound model is not likely to behave as
+        desired.
     cache : optional, bool
         Default value True. Allow for the storage of the convolution
         computation for later reuse. Changes to the input model or kernel will not
@@ -1042,7 +1055,7 @@ def convolve_models(
     -----
     Special care must be taken when defining the model, kernel, and choosing the bounding_box
     and resolution inputs.
-    Under the hood, this function returns a `~astropy.modeling.convolution.Convolution`
+    Under the hood, this function returns a ``astropy.modeling.convolution.Convolution``
     object that functions as follows:
 
     1. Generates the domain array defined by the bounding_box and resolution parameters
@@ -1064,6 +1077,19 @@ def convolve_models(
         operator = SPECIAL_OPERATORS.add("convolve", partial(convolve, **kwargs))
     else:
         raise ValueError(f"Mode {mode} is not supported.")
+
+    if bounding_box is None:
+        warnings.warn(
+            "It is recommended to always specify the bounding_box parameter to avoid unexpected "
+            "errors when calling the CombinedModel that is returned from this function."
+        )
+        bounding_box = (-1, 1)
+    if resolution is None:
+        warnings.warn(
+            "It is recommended to always specify the resolution parameter to avoid unexpected "
+            "errors when calling the CombinedModel that is returned from this function."
+        )
+        resolution = 1
 
     return Convolution(operator, model, kernel, bounding_box, resolution, cache)
 
@@ -1103,7 +1129,7 @@ def convolve_models_fft(model, kernel, bounding_box, resolution, cache=True, **k
     -----
     Special care must be taken when defining the model, kernel, and choosing the bounding_box
     and resolution inputs.
-    Under the hood, this function returns a `~astropy.modeling.convolution.Convolution`
+    Under the hood, this function returns a ``astropy.modeling.convolution.Convolution``
     object that functions as follows:
 
     1. Generates the domain array defined by the bounding_box and resolution parameters
