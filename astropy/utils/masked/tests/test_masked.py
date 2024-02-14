@@ -13,7 +13,11 @@ from numpy.testing import assert_array_equal
 from astropy import units as u
 from astropy.coordinates import Longitude
 from astropy.units import Quantity
+from astropy.utils import minversion
+from astropy.utils.compat.optional_deps import HAS_PLT
 from astropy.utils.masked import Masked, MaskedNDArray
+
+MPL_LT_3_8 = not minversion("matplotlib", "3.8")
 
 
 def assert_masked_equal(a, b):
@@ -1458,3 +1462,27 @@ class TestMaskedQuantityInteractionWithNumpyMA(
     TestMaskedArrayInteractionWithNumpyMA, QuantitySetup
 ):
     pass
+
+
+@pytest.mark.skipif(
+    not HAS_PLT or MPL_LT_3_8,
+    reason="requires matplotlib.pyplot, and never worked before matplotlib 3.8",
+)
+def test_plt_scatter_masked():
+    # check that plotting Masked data doesn't raise an exception
+    # see https://github.com/astropy/astropy/issues/12481
+    import matplotlib.pyplot as plt
+
+    _, ax = plt.subplots()
+
+    # no mask
+    x = Masked([1, 2, 3])
+    ax.scatter(x, x, c=x)
+
+    # all masked
+    x = Masked([1, 2, 3], mask=True)
+    ax.scatter(x, x, c=x)
+
+    # *some* masked
+    x = Masked([1, 2, 3], mask=[False, True, False])
+    ax.scatter(x, x, c=x)
