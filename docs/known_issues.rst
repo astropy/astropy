@@ -115,7 +115,7 @@ as a consequence, using the (in-place) shift operator does work::
    <Quantity [1., 2., 3.] m>
 
 But this is fragile as this may stop working in future versions of
-pandas if they decide to override the dunder methods. 
+pandas if they decide to override the dunder methods.
 
 See: https://github.com/astropy/astropy/issues/11247
 
