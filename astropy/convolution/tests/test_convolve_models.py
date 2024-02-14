@@ -136,13 +136,13 @@ class TestConvolve1DModels:
 
     @pytest.mark.parametrize("bounding_box, resolution", [(None, 1), ((-1, 1), None)])
     @pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
-    def test_convolve_models_warnings(self, bounding_box, resolution):
+    def test_convolve_models_exceptions(self, bounding_box, resolution):
         """
-        test that convolve models issues warnings when bounding_box or resolution are not specified
+        test that convolve models raises an exception when bounding_box or resolution are not specified
         """
         model = models.Gaussian1D()
         kernel = models.Box1D()
-        with pytest.warns(UserWarning):
+        with pytest.raises(ValueError):
             combined_model = convolve_models(
                 model, kernel, bounding_box=bounding_box, resolution=resolution
             )

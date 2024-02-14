@@ -1024,14 +1024,14 @@ def convolve_models(
         Keyword representing which function to use for convolution.
             * 'convolve_fft' : use `~astropy.convolution.convolve_fft` function.
             * 'convolve' : use `~astropy.convolution.convolve`.
-    bounding_box : optional, tuple
+    bounding_box : required, tuple
         The bounding box which encompasses enough of the support of both
         the ``model`` and ``kernel`` so that an accurate convolution can be
         computed. It is recommended to always specify this parameter.
         If not specified, a default of (-1, 1) will be used and a warning will
         be issued because the returned compound model is not likely to behave as
         desired.
-    resolution : optional, float or tuple
+    resolution : required, float or tuple
         The resolution that one wishes to approximate the convolution
         integral at. It is recommended to always specify this parameter.
         If not specified, a default value of 1 will be used and a warning will
@@ -1054,9 +1054,8 @@ def convolve_models(
     Notes
     -----
     Special care must be taken when defining the model, kernel, and choosing the bounding_box
-    and resolution inputs.
-    Under the hood, this function returns a ``astropy.modeling.convolution.Convolution``
-    object that functions as follows:
+    and resolution inputs. Under the hood, this function returns a
+    ``astropy.modeling.convolution.Convolution`` object that functions as follows:
 
     1. Generates the domain array defined by the bounding_box and resolution parameters
     2. Runs that domain array through the input models (``model`` and ``kernel``)
@@ -1078,18 +1077,18 @@ def convolve_models(
     else:
         raise ValueError(f"Mode {mode} is not supported.")
 
-    if bounding_box is None:
-        warnings.warn(
-            "It is recommended to always specify the bounding_box parameter to avoid unexpected "
-            "errors when calling the CombinedModel that is returned from this function."
+    if bounding_box is None or resolution is None:
+        none_kws = " and ".join(
+            [
+                k
+                for k, v in {
+                    "bounding_box": bounding_box,
+                    "resolution": resolution,
+                }.items()
+                if v is None
+            ]
         )
-        bounding_box = (-1, 1)
-    if resolution is None:
-        warnings.warn(
-            "It is recommended to always specify the resolution parameter to avoid unexpected "
-            "errors when calling the CombinedModel that is returned from this function."
-        )
-        resolution = 1
+        raise ValueError(f"Required keyword(s) {none_kws} not provided or set to None")
 
     return Convolution(operator, model, kernel, bounding_box, resolution, cache)
 

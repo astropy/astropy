@@ -927,7 +927,6 @@ def test_print_special_operator_CompoundModel(capsys):
     """
     Test that issue #11310 has been fixed
     """
-
     model = convolve_models(
         models.Sersic2D(),
         models.Gaussian2D(),
