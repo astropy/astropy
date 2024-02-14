@@ -872,10 +872,15 @@ class Spinner:
         write = file.write
         flush = file.flush
         try_fallback = True
+        terminal_width = terminal_size(self._file)[1]
+        if len(self._msg) > terminal_width:
+            message = self._msg[: terminal_width - 8] + " ..."
+        else:
+            message = self._msg
 
         while True:
             write("\r")
-            color_print(self._msg, self._color, file=file, end="")
+            color_print(message, self._color, file=file, end="")
             write(" ")
             try:
                 if try_fallback:
