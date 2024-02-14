@@ -1,1 +1,1 @@
-Added surface brightness to recognized physical types.
+Added "surface brightness", "surface brightness wav", "photon surface brightness", and "photon surface brightness wav" to recognized physical types.
