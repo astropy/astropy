@@ -88,7 +88,10 @@ _units_and_physical_types = [
     (astrophys.photon / si.Hz / si.cm**2 / si.s, "photon flux density"),
     (astrophys.photon / si.AA / si.cm**2 / si.s, "photon flux density wav"),
     (astrophys.photon / si.Hz / si.cm**2 / si.s / si.sr, "photon surface brightness"),
-    (astrophys.photon / si.AA / si.cm**2 / si.s / si.sr, "photon surface brightness wav"),
+    (
+        astrophys.photon / si.AA / si.cm**2 / si.s / si.sr,
+        "photon surface brightness wav",
+    ),
     (astrophys.R, "photon flux"),
     (misc.bit, "data quantity"),
     (misc.bit / si.s, "bandwidth"),
