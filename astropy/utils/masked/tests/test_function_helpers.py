@@ -17,6 +17,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from astropy.units.tests.test_quantity_non_ufuncs import (
+    CheckSignatureCompatibilityBase,
     get_covered_functions,
     get_wrapped_functions,
 )
@@ -1509,3 +1510,15 @@ class TestFunctionHelpersCompleteness:
     @pytest.mark.xfail(reason="coverage not completely set up yet")
     def test_ignored_are_untested(self):
         assert IGNORED_FUNCTIONS == untested_functions
+
+
+@pytest.mark.parametrize(
+    "target, helper",
+    sorted(
+        DISPATCHED_FUNCTIONS.items(),
+        key=lambda items: items[0].__name__,
+    ),
+    ids=lambda func: func.__name__,
+)
+class TestFunctionHelpersSignatureCompatibility(CheckSignatureCompatibilityBase):
+    pass
