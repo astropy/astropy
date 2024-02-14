@@ -1086,6 +1086,22 @@ class TestQuantityDisplay:
         qinfnan = [np.inf, -np.inf, np.nan] * u.m
         assert qinfnan._repr_latex_() == r"$[\infty,~-\infty,~{\rm NaN}] \; \mathrm{m}$"
 
+    @pytest.mark.xfail
+    @pytest.mark.parametrize(
+        "q, expected",
+        [
+            pytest.param(10 * u.deg_C, r"$10\mathrm{{}^{\circ}C}$", id="deg_C"),
+            pytest.param(20 * u.deg, r"$20\mathrm{{}^{\circ}}$", id="deg"),
+            pytest.param(30 * u.arcmin, r"$30\mathrm{{}^{\prime}}$", id="arcmin"),
+            pytest.param(40 * u.arcsec, r"$40\mathrm{{}^{\prime\prime}}$", id="arcsec"),
+            pytest.param(50 * u.hourangle, r"$50\mathrm{{}^{h}}$", id="hourangle"),
+        ],
+    )
+    def test_repr_latex_superscript_units(self, q, expected):
+        # see https://github.com/astropy/astropy/issues/14385
+        assert q._repr_latex_() == expected
+        assert q.to_string(format="latex") == expected
+
 
 def test_decompose():
     q1 = 5 * u.N
