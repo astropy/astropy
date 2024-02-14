@@ -105,7 +105,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {np.median}
 
 if NUMPY_LT_2_0:
     # functions (re)moved in numpy 2.0; alias for np.round in NUMPY_LT_1_25
-    SUBCLASS_SAFE_FUNCTIONS |= {np.msort, np.round_, np.trapz}  # noqa: NPY003
+    SUBCLASS_SAFE_FUNCTIONS |= {np.msort, np.round_, np.trapz}  # noqa: NPY003, NPY201
 else:
     # Array-API compatible versions (matrix axes always at end).
     SUBCLASS_SAFE_FUNCTIONS |= {
@@ -204,7 +204,7 @@ dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
         np.fft.fftn, np.fft.ifftn, np.fft.rfftn, np.fft.irfftn,
         np.fft.hfft, np.fft.ihfft,
         np.linalg.eigvals, np.linalg.eigvalsh,
-    } | ({np.asfarray} if NUMPY_LT_2_0 else set())
+    } | ({np.asfarray} if NUMPY_LT_2_0 else set())  # noqa: NPY201
 )
 # fmt: on
 def invariant_a_helper(a, *args, **kwargs):

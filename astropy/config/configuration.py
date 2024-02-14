@@ -601,7 +601,7 @@ def get_config(packageormod=None, reload=False, rootname=None):
         else:
             rootname = "astropy"  # so we don't break affiliated packages
 
-    cobj = _cfgobjs.get(pkgname, None)
+    cobj = _cfgobjs.get(pkgname)
 
     if cobj is None or reload:
         cfgfn = None

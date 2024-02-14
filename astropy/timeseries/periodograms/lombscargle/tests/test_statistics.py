@@ -128,7 +128,7 @@ def test_inverses(method, normalization, use_errs, N, units, T=5):
     t, y, dy, fmax = make_data(N, rseed=543, units=units)
     if not use_errs:
         dy = None
-    method_kwds = METHOD_KWDS.get(method, None)
+    method_kwds = METHOD_KWDS.get(method)
 
     fap = np.logspace(-10, 0, 11)
 
@@ -149,7 +149,7 @@ def test_false_alarm_smoketest(method, normalization, units):
     if not HAS_SCIPY and method in ["baluev", "davies"]:
         pytest.skip("SciPy required")
 
-    kwds = METHOD_KWDS.get(method, None)
+    kwds = METHOD_KWDS.get(method)
     t, y, dy, fmax = make_data(rseed=42, units=units)
 
     ls = LombScargle(t, y, dy, normalization=normalization)
@@ -178,7 +178,7 @@ def test_false_alarm_equivalence(method, normalization, use_errs, units):
     if not HAS_SCIPY and method in ["baluev", "davies"]:
         pytest.skip("SciPy required")
 
-    kwds = METHOD_KWDS.get(method, None)
+    kwds = METHOD_KWDS.get(method)
     t, y, dy, fmax = make_data(units=units)
     if not use_errs:
         dy = None
