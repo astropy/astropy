@@ -107,7 +107,8 @@ as a consequence, using the (in-place) shift operator does work::
 
 .. doctest-requires:: pandas>=1.5
 
-   >>> a << u.m
+   >>> b = a << u.m
+   >>> b
    <Quantity [1., 2., 3.] m>
    >>> a <<= u.m
    >>> a
