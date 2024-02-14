@@ -2633,15 +2633,7 @@ class TestFunctionHelpersCompleteness:
         assert IGNORED_FUNCTIONS | TBD_FUNCTIONS == untested_functions
 
 
-@pytest.mark.parametrize(
-    "target, helper",
-    sorted(
-        (*FUNCTION_HELPERS.items(), *DISPATCHED_FUNCTIONS.items()),
-        key=lambda items: items[0].__name__,
-    ),
-    ids=lambda func: func.__name__,
-)
-class TestFunctionHelpersSignatureCompatibility:
+class CheckSignatureCompatibilityBase:
     """
     Check that a helper function's signature is *at least* as flexible
     as the helped (target) function's. E.g., any argument that is allowed positionally,
@@ -2651,6 +2643,10 @@ class TestFunctionHelpersSignatureCompatibility:
     duplication, and also help with forward and backward compatibility.
     See https://github.com/astropy/astropy/issues/15703
     """
+
+    # this is an abstract base test class, meant to allow reuse with minimal
+    # code duplication. Concrete implementations should be decorated with
+    # @pytest.mark.parametrize("target, helper", ...)
 
     @staticmethod
     def have_catchall_argument(parameters, kind) -> bool:
@@ -2772,3 +2768,15 @@ class TestFunctionHelpersSignatureCompatibility:
                 f"Default value mismatch for argument {name!r}. "
                 f"Helper has {ph.default!r}, target has {pt.default!r}"
             )
+
+
+@pytest.mark.parametrize(
+    "target, helper",
+    sorted(
+        (*FUNCTION_HELPERS.items(), *DISPATCHED_FUNCTIONS.items()),
+        key=lambda items: items[0].__name__,
+    ),
+    ids=lambda func: func.__name__,
+)
+class TestFunctionHelpersSignatureCompatibility(CheckSignatureCompatibilityBase):
+    pass
