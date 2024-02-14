@@ -1086,7 +1086,6 @@ class TestQuantityDisplay:
         qinfnan = [np.inf, -np.inf, np.nan] * u.m
         assert qinfnan._repr_latex_() == r"$[\infty,~-\infty,~{\rm NaN}] \; \mathrm{m}$"
 
-    @pytest.mark.xfail
     @pytest.mark.parametrize(
         "q, expected",
         [
