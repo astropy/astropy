@@ -1024,19 +1024,13 @@ def convolve_models(
         Keyword representing which function to use for convolution.
             * 'convolve_fft' : use `~astropy.convolution.convolve_fft` function.
             * 'convolve' : use `~astropy.convolution.convolve`.
-    bounding_box : required, tuple
+    bounding_box : tuple
         The bounding box which encompasses enough of the support of both
         the ``model`` and ``kernel`` so that an accurate convolution can be
-        computed. It is recommended to always specify this parameter.
-        If not specified, a default of (-1, 1) will be used and a warning will
-        be issued because the returned compound model is not likely to behave as
-        desired.
-    resolution : required, float or tuple
+        computed. If not specified, a ValueError is raised.
+    resolution : float or tuple of float
         The resolution that one wishes to approximate the convolution
-        integral at. It is recommended to always specify this parameter.
-        If not specified, a default value of 1 will be used and a warning will
-        be issued because the returned compound model is not likely to behave as
-        desired.
+        integral at. If not specified, a ValueError is raised.
     cache : optional, bool
         Default value True. Allow for the storage of the convolution
         computation for later reuse. Changes to the input model or kernel will not
@@ -1050,6 +1044,11 @@ def convolve_models(
     -------
     default : `~astropy.modeling.core.CompoundModel`
         Convolved model
+
+    Raises
+    ------
+    ValueError
+        If either ``bounding_box`` or ``resolution`` keywords are not specified.
 
     Notes
     -----
