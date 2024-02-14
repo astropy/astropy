@@ -891,7 +891,6 @@ class TestAddRow(SetupData):
                 UserWarning, match="Units from inserted quantities will be ignored."
             ),
             id="Table-Column",
-            marks=pytest.mark.xfail,
         ),
         pytest.param(
             table.QTable,
@@ -912,7 +911,6 @@ class TestAddRow(SetupData):
                 ),
             ),
             id="QTable-Column",
-            marks=pytest.mark.xfail,
         ),
         pytest.param(
             table.QTable,
