@@ -102,9 +102,6 @@ lint.ignore = [
     "PERF203",  # `try`-`except` within a loop incurs performance overhead
     "PERF401",  # Use a list comprehension to create a transformed list
 
-    # pygrep-hooks (PGH)
-    "PGH001",  # eval
-
     # Pylint (PLC, PLE, PLR, PLW)
     "PLE0101",  # return-in-init
     "PLR0124",  # Name compared with itself
@@ -206,7 +203,6 @@ lint.ignore = [
     "TRY002",  # raise-vanilla-class
     "TRY003",  # raise-vanilla-args
     "TRY004",  # prefer-type-error
-    "TRY200",  # reraise-no-cause
     "TRY201",  # verbose-raise
     "TRY301",  # raise-within-try
 

@@ -322,8 +322,8 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
     @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.asfarray is removed in NumPy 2.0")
     @needs_array_function
     def test_asfarray(self):
-        self.check(np.asfarray)
-        farray = np.asfarray(a=self.q)
+        self.check(np.asfarray)  # noqa: NPY201
+        farray = np.asfarray(a=self.q)  # noqa: NPY201
         assert_array_equal(farray, self.q)
 
     def test_empty_like(self):
@@ -719,7 +719,7 @@ class TestUfuncLike(InvariantUnitTestSetup):
     @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.round_ is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`round_` is deprecated as of NumPy 1.25.0")
     def test_round_(self):
-        self.check(np.round_)  # noqa: NPY003
+        self.check(np.round_)  # noqa: NPY003, NPY201
 
     def test_around(self):
         self.check(np.around)
@@ -2695,7 +2695,8 @@ class TestFunctionHelpersSignatureCompatibility:
 
             if kt in (KEYWORD_ONLY, POSITIONAL_OR_KEYWORD):
                 if nt in params_helper:
-                    assert (kh := params_helper[nt].kind) is kt, (
+                    kh = params_helper[nt].kind
+                    assert kh is kt, (
                         f"helper is not re-exposing argument {nt!r} properly: "
                         f"expected {kt}, got {kh}"
                     )
@@ -2752,7 +2753,8 @@ class TestFunctionHelpersSignatureCompatibility:
             name for name in keyword_allowed_helper if not name.startswith("_")
         }
 
-        assert not (diff := keyword_allowed_helper - keyword_allowed_target), (
+        diff = keyword_allowed_helper - keyword_allowed_target
+        assert not diff, (
             "Found some keyword-allowed parameters in helper "
             f"that are unknown to target: {diff}"
         )

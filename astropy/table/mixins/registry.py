@@ -61,7 +61,7 @@ def get_mixin_handler(obj):
         Then matching handler, if found, or `None`
     """
     if isinstance(obj, str):
-        return _handlers.get(obj, None)
+        return _handlers.get(obj)
     else:
         return _handlers.get(
             obj.__class__.__module__ + "." + obj.__class__.__name__, None

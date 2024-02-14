@@ -226,7 +226,7 @@ def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
 @apply_to_both(
     helps=(
         {np.copy, np.resize, np.moveaxis, np.rollaxis, np.roll}
-        | ({np.asfarray} if NUMPY_LT_2_0 else set())
+        | ({np.asfarray} if NUMPY_LT_2_0 else set())  # noqa: NPY201
     )
 )
 def masked_a_helper(a, *args, **kwargs):
@@ -1100,7 +1100,7 @@ _nanfunc_fill_values = {"nansum": 0, "nancumsum": 0, "nanprod": 1, "nancumprod":
 
 def masked_nanfunc(nanfuncname):
     np_func = getattr(np, nanfuncname[3:])
-    fill_value = _nanfunc_fill_values.get(nanfuncname, None)
+    fill_value = _nanfunc_fill_values.get(nanfuncname)
 
     def nanfunc(a, *args, **kwargs):
         from astropy.utils.masked import Masked

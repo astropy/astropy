@@ -390,7 +390,6 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     "ANN201",  # Public function without return type annotation
     "B018",  # UselessExpression
     "D",  # pydocstyle
-    "PGH001",  # No builtin eval() allowed
     "S101",  # Use of assert detected
 ]
 ".pyinstaller/*.py" = ["INP001"]  # Not a package.
