@@ -1511,7 +1511,11 @@ class Quantity(np.ndarray):
 
         delimiter_left, delimiter_right = formats[format][subfmt]
 
-        return rf"{delimiter_left}{latex_value} \; {latex_unit}{delimiter_right}"
+        # Add a space in front except for super-script units like degrees.
+        if not latex_unit.removeprefix("\\mathrm{").startswith("{}^"):
+            latex_unit = rf" \; {latex_unit}"
+
+        return rf"{delimiter_left}{latex_value}{latex_unit}{delimiter_right}"
 
     def __str__(self):
         return self.to_string()
