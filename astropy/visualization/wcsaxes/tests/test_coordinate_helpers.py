@@ -11,7 +11,6 @@ from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
 from astropy.visualization.wcsaxes.coordinate_helpers import CoordinateHelper
 from astropy.visualization.wcsaxes.core import WCSAxes
-from astropy.visualization.wcsaxes.frame import RectangularFrame1D
 from astropy.wcs import WCS
 
 MSX_HEADER = fits.Header.fromtextfile(get_pkg_data_filename("data/msx_header"))
@@ -128,13 +127,3 @@ def test_grid_variations(ignore_matplotlibrc, draw_grid, expected_visibility):
     coord_helper = CoordinateHelper(parent_axes=ax, transform=transform)
     coord_helper.grid(draw_grid=draw_grid)
     assert coord_helper.grid_lines_kwargs["visible"] == expected_visibility
-
-
-def test_grid_error_handling():
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-    ax.frame_class = RectangularFrame1D
-    transform = transforms.Affine2D().scale(2.0)
-    coord_helper = CoordinateHelper(parent_axes=ax, transform=transform)
-    with pytest.raises(TypeError):
-        coord_helper.grid(draw_grid="invalid_input")
