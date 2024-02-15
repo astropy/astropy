@@ -1,0 +1,2 @@
+Fix a bug where ``astropy.utils.console.Spinner`` would leak newlines for
+messages longer than terminal width.
