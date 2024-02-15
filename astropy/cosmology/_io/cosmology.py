@@ -13,19 +13,31 @@ are present mainly for completeness and testing.
     True
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 
-__all__ = []  # nothing is publicly scoped
+if TYPE_CHECKING:
+    from astropy.cosmology._typing import _CosmoT
+
+__all__: list[str] = []  # nothing is publicly scoped
 
 
-def from_cosmology(cosmo, /, **kwargs):
+def from_cosmology(
+    cosmo: _CosmoT, /, cosmology: type[_CosmoT] | str | None = None, **kwargs: object
+) -> _CosmoT:
     """Return the |Cosmology| unchanged.
 
     Parameters
     ----------
     cosmo : `~astropy.cosmology.Cosmology`
         The cosmology to return.
+    cosmology : `~astropy.cosmology.Cosmology` | str | None, optional
+        The |Cosmology| class to check against. If not `None`, ``cosmo`` is checked
+        for correctness.
     **kwargs
         This argument is required for compatibility with the standard set of
         keyword arguments in format `~astropy.cosmology.Cosmology.from_format`,
@@ -50,24 +62,27 @@ def from_cosmology(cosmo, /, **kwargs):
     FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                   Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
     """
-    # Check argument `cosmology`
-    cosmology = kwargs.get("cosmology")
-    if isinstance(cosmology, str):
-        cosmology = _COSMOLOGY_CLASSES[cosmology]
-    if cosmology is not None and not isinstance(cosmo, cosmology):
-        raise TypeError(f"cosmology {cosmo} is not an {cosmology} instance.")
+    # hot path
+    if cosmology is None:
+        return cosmo
+
+    cosmo_cls = (
+        _COSMOLOGY_CLASSES[cosmology] if isinstance(cosmology, str) else cosmology
+    )
+    if not isinstance(cosmo, cosmo_cls):
+        raise TypeError(f"cosmology {cosmo} is not an {cosmo_cls} instance.")
 
     return cosmo
 
 
-def to_cosmology(cosmo, *args):
+def to_cosmology(cosmo: _CosmoT, *args: object) -> _CosmoT:
     """Return the |Cosmology| unchanged.
 
     Parameters
     ----------
     cosmo : `~astropy.cosmology.Cosmology`
         The cosmology to return.
-    *args
+    *args : object
         Not used.
 
     Returns
@@ -84,8 +99,13 @@ def to_cosmology(cosmo, *args):
     return cosmo
 
 
-def cosmology_identify(origin, format, *args, **kwargs):
+def cosmology_identify(
+    origin: str, format: str | None, *args: object, **kwargs: object
+) -> bool:
     """Identify if object is a `~astropy.cosmology.Cosmology`.
+
+    This checks is the 2nd argument is a |Cosmology| instance and the format is
+    "astropy.cosmology" or `None`.
 
     Returns
     -------

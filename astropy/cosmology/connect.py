@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 
     from astropy.cosmology import Cosmology
     from astropy.cosmology._io.model import _CosmologyModel
+    from astropy.cosmology._typing import _CosmoT
     from astropy.table import Row, Table
 
 __all__ = [
@@ -26,7 +27,6 @@ __doctest_skip__ = __all__
 
 
 # NOTE: private b/c RTD error
-_CosmoT = TypeVar("_CosmoT", bound="Cosmology")
 _MT = TypeVar("_MT", bound="Mapping")  # type: ignore[type-arg]
 
 

@@ -159,6 +159,10 @@ Additional keyword arguments are passed to ``QTable.read`` and ``QTable.write``.
     >>> temp_dir.cleanup()
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, TypeVar
+
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology.connect import readwrite_registry
@@ -167,10 +171,25 @@ from astropy.table import QTable
 
 from .table import from_table, to_table
 
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from astropy.cosmology._typing import _CosmoT
+    from astropy.io.typing import PathLike, ReadableFileLike, WriteableFileLike
+    from astropy.table import Table
+
+    _TableT = TypeVar("_TableT", "Table")
+
 
 def read_ecsv(
-    filename, index=None, *, move_to_meta=False, cosmology=None, rename=None, **kwargs
-):
+    filename: PathLike | ReadableFileLike[Table],
+    index: int | str | None = None,
+    *,
+    move_to_meta: bool = False,
+    cosmology: str | type[_CosmoT] | None = None,
+    rename: Mapping[str, str] | None = None,
+    **kwargs: Any,
+) -> _CosmoT:
     r"""Read a `~astropy.cosmology.Cosmology` from an ECSV file.
 
     Parameters
@@ -191,9 +210,14 @@ def read_ecsv(
         the case of a merge conflict (e.g. for ``Cosmology(meta={'key':10}, key=42)``,
         the ``Cosmology.meta`` will be ``{'key': 10}``).
 
-    rename : dict or None (optional keyword-only)
-        A dictionary mapping column names to fields of the
-        `~astropy.cosmology.Cosmology`.
+    cosmology : str or type or None (optional, keyword-only)
+        The cosmology class (or string name thereof) to use when constructing the
+        cosmology instance. The class also provides default parameter values, filling in
+        any non-mandatory arguments missing in 'table'.
+
+    rename : dict or None (optional, keyword-only)
+        A dictionary mapping columns in 'table' to fields of the
+        `~astropy.cosmology.Cosmology` class.
 
     **kwargs
         Passed to ``QTable.read``
@@ -290,8 +314,8 @@ def read_ecsv(
 
     Fields of the table in the file can be renamed to match the
     `~astropy.cosmology.Cosmology` class' signature using the ``rename`` argument. This
-    is useful when the files's column names do not match the class' parameter names.
-    For this example we need to make a new file with renamed columns:
+    is useful when the files's column names do not match the class' parameter names. For
+    this example we need to make a new file with renamed columns:
 
         >>> file = Path(temp_dir.name) / "file3.ecsv"
         >>> renamed_table = Planck18.to_format("astropy.table", rename={"H0": "Hubble"})
@@ -336,15 +360,15 @@ def read_ecsv(
 
 
 def write_ecsv(
-    cosmology,
-    file,
+    cosmology: Cosmology,
+    file: PathLike | WriteableFileLike[_TableT],
     *,
-    overwrite=False,
-    cls=QTable,
-    cosmology_in_meta=True,
-    rename=None,
-    **kwargs,
-):
+    overwrite: bool = False,
+    cls: type[_TableT] = QTable,
+    cosmology_in_meta: bool = True,
+    rename: Mapping[str, str] | None = None,
+    **kwargs: Any,
+) -> None:
     """Serialize the cosmology into a ECSV.
 
     Parameters
@@ -354,7 +378,7 @@ def write_ecsv(
     file : path-like or file-like
         Location to save the serialized cosmology.
 
-    overwrite : bool
+    overwrite : bool (optional, keyword-only)
         Whether to overwrite the file, if it exists.
     cls : type (optional, keyword-only)
         Astropy :class:`~astropy.table.Table` (sub)class to use when writing. Default is
@@ -362,9 +386,9 @@ def write_ecsv(
     cosmology_in_meta : bool (optional, keyword-only)
         Whether to put the cosmology class in the Table metadata (if `True`, default) or
         as the first column (if `False`).
-    rename : dict or None (optional keyword-only)
-        A dictionary mapping fields of the `~astropy.cosmology.Cosmology` to columns of
-        the table.
+    rename : Mapping[str, str] or None (optional keyword-only)
+        A mapping of field names on the `~astropy.cosmology.Cosmology` to column names
+        of the table.
 
     **kwargs
         Passed to ``cls.write``
@@ -473,7 +497,9 @@ def write_ecsv(
     table.write(file, overwrite=overwrite, **kwargs)
 
 
-def ecsv_identify(origin, filepath, fileobj, *args, **kwargs):
+def ecsv_identify(
+    origin: object, filepath: str | None, *args: object, **kwargs: object
+) -> bool:
     """Identify if object uses the Table format.
 
     Returns

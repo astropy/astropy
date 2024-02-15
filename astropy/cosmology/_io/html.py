@@ -85,6 +85,10 @@ enable this, set ``latex_names=True``.
     >>> temp_dir.cleanup()
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, TypeVar
+
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology.connect import readwrite_registry
@@ -93,6 +97,13 @@ from astropy.cosmology.parameter import Parameter
 from astropy.table import QTable
 
 from .table import from_table, to_table
+
+if TYPE_CHECKING:
+    from astropy.cosmology._typing import _CosmoT
+    from astropy.io.typing import PathLike, ReadableFileLike, WriteableFileLike
+    from astropy.table import Table
+
+    _TableT = TypeVar("_TableT", "Table")
 
 # Format look-up for conversion, {original_name: new_name}
 # TODO! move this information into the Parameters themselves
@@ -113,14 +124,14 @@ _FORMAT_TABLE = {
 
 
 def read_html_table(
-    filename,
-    index=None,
+    filename: PathLike | ReadableFileLike[Table],
+    index: int | str | None = None,
     *,
-    move_to_meta=False,
-    cosmology=None,
-    latex_names=True,
-    **kwargs,
-):
+    move_to_meta: bool = False,
+    cosmology: str | type[_CosmoT] | None = None,
+    latex_names: bool = True,
+    **kwargs: Any,
+) -> _CosmoT:
     r"""Read a |Cosmology| from an HTML file.
 
     Parameters
@@ -188,14 +199,20 @@ def read_html_table(
 
 
 def write_html_table(
-    cosmology, file, *, overwrite=False, cls=QTable, latex_names=False, **kwargs
-):
+    cosmology: Cosmology,
+    file: PathLike | WriteableFileLike[_TableT],
+    *,
+    overwrite: bool = False,
+    cls: type[_TableT] = QTable,
+    latex_names: bool = False,
+    **kwargs: Any,
+) -> None:
     r"""Serialize the |Cosmology| into a HTML table.
 
     Parameters
     ----------
-    cosmology : |Cosmology| subclass instance file : path-like or file-like
-        Location to save the serialized cosmology.
+    cosmology : |Cosmology| subclass instance
+        The cosmology to serialize.
     file : path-like or file-like
         Where to write the html table.
 
@@ -325,20 +342,20 @@ def write_html_table(
     table.write(file, overwrite=overwrite, format="ascii.html", **kwargs)
 
 
-def html_identify(origin, filepath, fileobj, *args, **kwargs):
+def html_identify(
+    origin: object, filepath: object, *args: object, **kwargs: object
+) -> bool:
     """Identify if an object uses the HTML Table format.
 
     Parameters
     ----------
-    origin : Any
+    origin : object
         Not used.
-    filepath : str or Any
+    filepath : str | object
         From where to read the Cosmology.
-    fileobj : Any
+    *args : object
         Not used.
-    *args : Any
-        Not used.
-    **kwargs : Any
+    **kwargs : object
         Not used.
 
     Returns
