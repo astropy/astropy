@@ -12,6 +12,7 @@ import struct
 import sys
 import threading
 import time
+from shutil import get_terminal_size
 
 # concurrent.futures imports moved inside functions using them to avoid
 # import failure when running in pyodide/Emscripten
@@ -27,7 +28,7 @@ except ImportError:
 
 from astropy import conf
 
-from .decorators import classproperty
+from .decorators import classproperty, deprecated
 from .misc import isiterable
 
 __all__ = [
@@ -131,6 +132,7 @@ def isatty(file):
     return False
 
 
+@deprecated("6.1", alternative="shutil.get_terminal_size")
 def terminal_size(file=None):
     """
     Returns a tuple (height, width) containing the height and width of
@@ -511,7 +513,7 @@ class ProgressBar:
         self.update(0)
 
     def _handle_resize(self, signum=None, frame=None):
-        terminal_width = terminal_size(self._file)[1]
+        terminal_width = get_terminal_size().columns
         self._bar_length = terminal_width - 37
 
     def __enter__(self):
@@ -872,7 +874,7 @@ class Spinner:
         write = file.write
         flush = file.flush
         try_fallback = True
-        terminal_width = terminal_size(self._file)[1]
+        terminal_width = get_terminal_size().columns
         if len(self._msg) > terminal_width:
             message = self._msg[: terminal_width - 8] + " ..."
         else:
