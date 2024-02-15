@@ -1464,6 +1464,7 @@ class TestMaskedQuantityInteractionWithNumpyMA(
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
 def test_plt_scatter_masked():
     import matplotlib as mpl
+
     from astropy.utils import minversion
 
     MPL_LT_3_8 = not minversion(mpl, "3.8")
