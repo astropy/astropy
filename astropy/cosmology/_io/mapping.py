@@ -134,17 +134,27 @@ Lastly, the keys in the mapping may be renamed with the ``rename`` keyword.
      'cosmo_name': 'Planck18', ...
 """
 
-__all__ = []  # nothing is publicly scoped
+from __future__ import annotations
+
+__all__: list[str] = []  # nothing is publicly scoped
 
 import copy
 import inspect
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableMapping
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 
+if TYPE_CHECKING:
+    from astropy.cosmology._typing import _CosmoT
 
-def _rename_map(map, /, renames):
+    _MapT = TypeVar("_MapT", MutableMapping[str, Any])
+
+
+def _rename_map(
+    map: Mapping[str, Any], /, renames: Mapping[str, str]
+) -> dict[str, Any]:
     """Apply rename to map."""
     if common_names := set(renames.values()).intersection(map):
         raise ValueError(
@@ -154,7 +164,9 @@ def _rename_map(map, /, renames):
     return {renames.get(k, k): v for k, v in map.items()}  # dict separate from input
 
 
-def _get_cosmology_class(cosmology, params, /):
+def _get_cosmology_class(
+    cosmology: type[_CosmoT] | str | None, params: dict[str, Any], /
+) -> type[_CosmoT]:
     # get cosmology
     # 1st from argument. Allows for override of the cosmology, if on file.
     # 2nd from params. This MUST have the cosmology if 'kwargs' did not.
@@ -166,7 +178,14 @@ def _get_cosmology_class(cosmology, params, /):
     return _COSMOLOGY_CLASSES[cosmology] if isinstance(cosmology, str) else cosmology
 
 
-def from_mapping(mapping, /, *, move_to_meta=False, cosmology=None, rename=None):
+def from_mapping(
+    mapping: Mapping[str, Any],
+    /,
+    *,
+    move_to_meta: bool = False,
+    cosmology: str | type[_CosmoT] | None = None,
+    rename: Mapping[str, str] | None = None,
+) -> _CosmoT:
     """Load `~astropy.cosmology.Cosmology` from mapping object.
 
     Parameters
@@ -184,15 +203,13 @@ def from_mapping(mapping, /, *, move_to_meta=False, cosmology=None, rename=None)
         the case of a merge conflict (e.g. for ``Cosmology(meta={'key':10}, key=42)``,
         the ``Cosmology.meta`` will be ``{'key': 10}``).
 
-    cosmology : str, `~astropy.cosmology.Cosmology` class, or None (optional,
-    keyword-only)
+    cosmology : str, `~astropy.cosmology.Cosmology` class, or None (optional, keyword-only)
         The cosmology class (or string name thereof) to use when constructing the
         cosmology instance. The class also provides default parameter values, filling in
         any non-mandatory arguments missing in 'map'.
 
-    rename : dict or None (optional, keyword-only)
-        A dictionary mapping keys in ``map`` to fields of the
-        `~astropy.cosmology.Cosmology`.
+    rename : Mapping[str, str] or None (optional, keyword-only)
+        A mapping of keys in ``map`` to fields of the `~astropy.cosmology.Cosmology`.
 
     Returns
     -------
@@ -297,20 +314,20 @@ def from_mapping(mapping, /, *, move_to_meta=False, cosmology=None, rename=None)
 
 
 def to_mapping(
-    cosmology,
-    *args,
-    cls=dict,
-    cosmology_as_str=False,
-    move_from_meta=False,
-    rename=None,
-):
+    cosmology: Cosmology,
+    *args: object,
+    cls: type[_MapT] = dict,
+    cosmology_as_str: bool = False,
+    move_from_meta: bool = False,
+    rename: Mapping[str, str] | None = None,
+) -> _MapT:
     """Return the cosmology class, parameters, and metadata as a `dict`.
 
     Parameters
     ----------
     cosmology : :class:`~astropy.cosmology.Cosmology`
         The cosmology instance to convert to a mapping.
-    *args
+    *args : object
         Not used. Needed for compatibility with
         `~astropy.io.registry.UnifiedReadWriteMethod`
     cls : type (optional, keyword-only)
@@ -323,13 +340,13 @@ def to_mapping(
         Whether to add the Cosmology's metadata as an item to the mapping (if
         `False`, default) or to merge with the rest of the mapping, preferring
         the original values (if `True`)
-    rename : dict or None (optional, keyword-only)
-        A `dict` mapping fields of the :class:`~astropy.cosmology.Cosmology` to keys in
+    rename : Mapping[str, str] or None (optional, keyword-only)
+        A mapping of field names of the :class:`~astropy.cosmology.Cosmology` to keys in
         the map.
 
     Returns
     -------
-    Mapping
+    MutableMapping[str, Any]
         A mapping of type ``cls``, by default a `dict`.
         Has key-values for the cosmology parameters and also:
         - 'cosmology' : the class
@@ -413,7 +430,9 @@ def to_mapping(
     return m if rename is None else _rename_map(m, rename)
 
 
-def mapping_identify(origin, format, *args, **kwargs):
+def mapping_identify(
+    origin: str, format: str | None, *args: object, **kwargs: object
+) -> bool:
     """Identify if object uses the mapping format.
 
     Returns
