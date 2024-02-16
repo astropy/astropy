@@ -75,6 +75,50 @@ Both will throw an exception if units do not cancel, e.g.::
 
 See: https://github.com/astropy/astropy/issues/7582
 
+Multiplying a `pandas.Series` with an `~astropy.units.Unit` does not produce a |Quantity|
+-----------------------------------------------------------------------------------------
+
+Quantities may work with certain operations on `~pandas.Series` but
+this behaviour is not tested.
+For example, multiplying a `~pandas.Series` instance
+with a unit will *not* return a |Quantity|. It will return a `~pandas.Series`
+object without any unit:
+
+.. doctest-requires:: pandas>=1.5
+
+   >>> import pandas as pd
+   >>> import astropy.units as u
+   >>> a = pd.Series([1., 2., 3.])
+   >>> a * u.m
+   0    1.0
+   1    2.0
+   2    3.0
+   dtype: float64
+
+To avoid this, it is best to initialize the |Quantity| directly:
+
+.. doctest-requires:: pandas>=1.5
+
+    >>> u.Quantity(a, u.m)
+    <Quantity [1., 2., 3.] m>
+
+Note that the overrides pandas provides are not complete, and
+as a consequence, using the (in-place) shift operator does work:
+
+.. doctest-requires:: pandas>=1.5
+
+   >>> b = a << u.m
+   >>> b
+   <Quantity [1., 2., 3.] m>
+   >>> a <<= u.m
+   >>> a
+   <Quantity [1., 2., 3.] m>
+
+But this is fragile as this may stop working in future versions of
+pandas if they decide to override the dunder methods.
+
+See: https://github.com/astropy/astropy/issues/11247
+
 Numpy array creation functions cannot be used to initialize Quantity
 --------------------------------------------------------------------
 Trying the following example will ignore the unit:
