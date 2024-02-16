@@ -82,7 +82,7 @@ Quantities may work with certain operations on `~pandas.Series` but
 this behaviour is not tested.
 For example, multiplying a `~pandas.Series` instance
 with a unit will *not* return a |Quantity|. It will return a `~pandas.Series`
-object without any unit::
+object without any unit:
 
 .. doctest-requires:: pandas>=1.5
 
@@ -95,7 +95,7 @@ object without any unit::
    2    3.0
    dtype: float64
 
-To avoid this, it is best to initialize the |Quantity| directly::
+To avoid this, it is best to initialize the |Quantity| directly:
 
 .. doctest-requires:: pandas>=1.5
 
@@ -103,7 +103,7 @@ To avoid this, it is best to initialize the |Quantity| directly::
     <Quantity [1., 2., 3.] m>
 
 Note that the overrides pandas provides are not complete, and
-as a consequence, using the (in-place) shift operator does work::
+as a consequence, using the (in-place) shift operator does work:
 
 .. doctest-requires:: pandas>=1.5
 
