@@ -42,8 +42,6 @@ __all__ = [
     "terminal_size",
 ]
 
-_DEFAULT_ENCODING = "utf-8"
-
 
 class _IPython:
     """Singleton class given access to IPython streams, etc."""
@@ -235,7 +233,7 @@ def _write_with_fallback(s, write, fileobj):
     try:
         Writer = codecs.getwriter(enc)
     except LookupError:
-        Writer = codecs.getwriter(_DEFAULT_ENCODING)
+        Writer = codecs.getwriter("utf-8")
 
     f = Writer(fileobj)
     write = f.write
@@ -1073,8 +1071,8 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
         color_print("^", "red", file=file)
 
 
-# The following four Getch* classes implement unbuffered character reading from
-# stdin on Windows, linux, MacOSX.  This is taken directly from ActiveState
+# The following three Getch* classes implement unbuffered character reading from
+# stdin on Windows, and Unix.  This is taken directly from ActiveState
 # Code Recipes:
 # http://code.activestate.com/recipes/134892-getch-like-unbuffered-character-reading-from-stdin/
 #
@@ -1092,10 +1090,7 @@ class Getch:
         try:
             self.impl = _GetchWindows()
         except ImportError:
-            try:
-                self.impl = _GetchMacCarbon()
-            except (ImportError, AttributeError):
-                self.impl = _GetchUnix()
+            self.impl = _GetchUnix()
 
     def __call__(self):
         return self.impl()
@@ -1104,10 +1099,6 @@ class Getch:
 class _GetchUnix:
     def __init__(self):
         import sys  # noqa: F401
-
-        # import termios now or else you'll get the Unix
-        # version on the Mac
-        import termios  # noqa: F401
         import tty  # noqa: F401
 
     def __call__(self):
@@ -1133,35 +1124,3 @@ class _GetchWindows:
         import msvcrt
 
         return msvcrt.getch()
-
-
-class _GetchMacCarbon:
-    """
-    A function which returns the current ASCII key that is down;
-    if no ASCII key is down, the null string is returned.  The
-    page http://www.mactech.com/macintosh-c/chap02-1.html was
-    very helpful in figuring out how to do this.
-    """
-
-    def __init__(self):
-        import Carbon
-
-        Carbon.Evt  # noqa: B018  # see if it has this (in Unix, it doesn't)
-
-    def __call__(self):
-        import Carbon
-
-        if Carbon.Evt.EventAvail(0x0008)[0] == 0:  # 0x0008 is the keyDownMask
-            return ""
-        else:
-            #
-            # The event contains the following info:
-            # (what,msg,when,where,mod)=Carbon.Evt.GetNextEvent(0x0008)[1]
-            #
-            # The message (msg) contains the ASCII char which is
-            # extracted with the 0x000000FF charCodeMask; this
-            # number is converted to an ASCII character with chr() and
-            # returned
-            #
-            (what, msg, when, where, mod) = Carbon.Evt.GetNextEvent(0x0008)[1]
-            return chr(msg & 0x000000FF)
