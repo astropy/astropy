@@ -998,6 +998,13 @@ class HDUList(list, _Verify):
         checksum : bool
             When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
             to the headers of all HDU's written to the file.
+
+        Notes
+        -----
+        gzip, zip and bzip2 compression algorithms are natively supported.
+        Compression mode is determined from the filename extension
+        ('.gz', '.zip' or '.bz2' respectively).  It is also possible to pass a
+        compressed file object, e.g. `gzip.GzipFile`.
         """
         if len(self) == 0:
             warnings.warn("There is nothing to write.", AstropyUserWarning)
