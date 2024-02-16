@@ -218,23 +218,6 @@ def _color_text(text, color):
     return f"\033[{color_code}m{text}\033[0m"
 
 
-def _decode_preferred_encoding(s):
-    """Decode the supplied byte string using the preferred encoding
-    for the locale (`locale.getpreferredencoding`) or, if the default encoding
-    is invalid, fall back first on utf-8, then on latin-1 if the message cannot
-    be decoded with utf-8.
-    """
-    enc = locale.getpreferredencoding()
-    try:
-        try:
-            return s.decode(enc)
-        except LookupError:
-            enc = _DEFAULT_ENCODING
-        return s.decode(enc)
-    except UnicodeDecodeError:
-        return s.decode("latin-1")
-
-
 def _write_with_fallback(s, write, fileobj):
     """Write the supplied string with the given write function like
     ``write(s)``, but use a writer for the locale's preferred encoding in case
