@@ -37,7 +37,6 @@ jobs:
             - [ ] Did the CI pass? If no, are the failures related? If you need to run daily and weekly cron jobs as part of the PR, please apply the "Extra CI" label. Codestyle issues can be fixed by the [bot](https://docs.astropy.org/en/latest/development/workflow/development_workflow.html#pre-commit).
             - [ ] Is a change log needed? If yes, did the change log check pass? If no, add the "no-changelog-entry-needed" label. If this is a manual backport, use the "skip-changelog-checks" label unless special changelog handling is necessary.
             - [ ] Is this a big PR that makes a "What's new?" entry worthwhile and if so, is (1) a "what's new" entry included in this PR and (2) the "whatsnew-needed" label applied?
-            - [ ] Is a milestone set? Milestone must be set but we cannot check for it on Actions; do not let the green checkmark fool you.
             - [ ] At the time of adding the milestone, if the milestone set requires a backport to release branch(es), apply the appropriate "backport-X.Y.x" label(s) *before* merge.`
           })
     - name: Greet new contributors
