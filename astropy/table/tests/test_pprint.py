@@ -2,6 +2,7 @@
 
 
 from io import StringIO
+from shutil import get_terminal_size
 
 import numpy as np
 import pytest
@@ -11,7 +12,6 @@ from astropy import units as u
 from astropy.io import ascii
 from astropy.table import QTable, Table
 from astropy.table.table_helpers import simple_table
-from astropy.utils import console
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float64).reshape(100, 20)
 SMALL_ARR = np.arange(18, dtype=np.int64).reshape(6, 3)
@@ -162,7 +162,7 @@ class TestPprint:
         self._setup(table_type)
         arr = np.arange(4000, dtype=np.float64).reshape(100, 40)
         lines = table_type(arr).pformat()
-        nlines, width = console.terminal_size()
+        width, nlines = get_terminal_size()
         assert len(lines) == nlines
         for line in lines[:-1]:  # skip last "Length = .. rows" line
             assert width - 10 < len(line) <= width
