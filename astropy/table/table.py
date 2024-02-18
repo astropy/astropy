@@ -3274,6 +3274,29 @@ class Table:
         else:
             raise TypeError("Vals must be an iterable or mapping or None")
 
+        if N == 0 and any(
+            isinstance(column, BaseColumn) and isinstance(v, Quantity)
+            for column, v in zip(self.columns.values(), vals)
+        ):
+            msg = "Units from inserted quantities will be ignored."
+
+            if isinstance(self, QTable):
+                suggested_units = []
+                for column, v in zip(self.columns.values(), vals):
+                    u = column.unit or getattr(v, "unit", None)
+                    suggested_units.append(str(u) if u is not None else None)
+                del u
+
+                msg += (
+                    "\nIf you were hoping to fill a QTable row by row, "
+                    "also initialize the units before starting, for instance\n"
+                    f"QTable(names={self.colnames}, units={suggested_units})"
+                )
+                del suggested_units
+
+            warnings.warn(msg, category=UserWarning, stacklevel=2)
+            del msg
+
         # Insert val at index for each column
         columns = self.TableColumns()
         for name, col, val, mask_ in zip(colnames, self.columns.values(), vals, mask):

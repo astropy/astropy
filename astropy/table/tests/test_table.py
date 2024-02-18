@@ -875,6 +875,96 @@ class TestAddRow(SetupData):
                 t.insert_row(index, row)
 
 
+@pytest.mark.parametrize(
+    "table_type, table_inputs, expected_column_type, expected_pformat, insert_ctx",
+    [
+        pytest.param(
+            table.Table,
+            dict(names=["a", "b", "c"]),
+            table.Column,
+            [
+                " a   b   c ",
+                "--- --- ---",
+                "1.0 2.0 3.0",
+            ],
+            pytest.warns(
+                UserWarning, match="Units from inserted quantities will be ignored."
+            ),
+            id="Table-Column",
+        ),
+        pytest.param(
+            table.QTable,
+            dict(names=["a", "b", "c"]),
+            table.Column,
+            [
+                " a   b   c ",
+                "--- --- ---",
+                "1.0 2.0 3.0",
+            ],
+            pytest.warns(
+                UserWarning,
+                match=(
+                    "Units from inserted quantities will be ignored.\n"
+                    "If you were hoping to fill a QTable row by row, "
+                    "also initialize the units before starting, for instance\n"
+                    r"QTable\(names=\['a', 'b', 'c'\], units=\['m', 'kg', None\]\)"
+                ),
+            ),
+            id="QTable-Column",
+        ),
+        pytest.param(
+            table.QTable,
+            dict(names=["a", "b", "c"], units=["m", "kg", None]),
+            u.Quantity,
+            [
+                " a   b   c ",
+                " m   kg    ",
+                "--- --- ---",
+                "1.0 2.0 3.0",
+            ],
+            nullcontext(),
+            id="QTable-Quantity",
+        ),
+        pytest.param(
+            table.QTable,
+            dict(names=["a", "b", "c"], units=["cm", "g", None]),
+            u.Quantity,
+            [
+                "  a     b     c ",
+                "  cm    g       ",
+                "----- ------ ---",
+                "100.0 2000.0 3.0",
+            ],
+            nullcontext(),
+            id="QTable-Quantity-other_units",
+        ),
+    ],
+)
+def test_inserting_quantity_row_in_empty_table(
+    table_type, table_inputs, expected_column_type, expected_pformat, insert_ctx
+):
+    # see https://github.com/astropy/astropy/issues/15964
+    table = table_type(**table_inputs)
+    pre_unit_a = copy.copy(table["a"].unit)
+    pre_unit_b = copy.copy(table["b"].unit)
+    pre_unit_c = copy.copy(table["c"].unit)
+    assert type(table["a"]) is expected_column_type
+    assert type(table["b"]) is expected_column_type
+    assert type(table["c"]) is Column
+
+    with insert_ctx:
+        table.add_row([1 * u.m, 2 * u.kg, 3])
+
+    assert table["a"].unit == pre_unit_a
+    assert table["b"].unit == pre_unit_b
+    assert table["c"].unit == pre_unit_c
+    assert type(table["a"]) is expected_column_type
+    assert type(table["b"]) is expected_column_type
+    assert type(table["c"]) is Column
+
+    assert table.pformat() == expected_pformat
+
+
 @pytest.mark.usefixtures("table_types")
 class TestTableColumn(SetupData):
     def test_column_view(self, table_types):
