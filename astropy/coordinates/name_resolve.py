@@ -49,6 +49,10 @@ class sesame_database(ScienceState):
     using the name resolve mechanism in the coordinates
     subpackage. Default is to search all databases, but this can be
     'all', 'simbad', 'ned', or 'vizier'.
+
+    If 'all' is selected, the answer is first requested from SIMBAD,
+    then NED, and then VizieR. The first positive answer stops the
+    requests.
     """
 
     _value = "all"
@@ -93,10 +97,10 @@ def _parse_response(resp_data):
 
 def get_icrs_coordinates(name, parse=False, cache=False):
     """
-    Retrieve an ICRS object by using an online name resolving service to
-    retrieve coordinates for the specified name. By default, this will
-    search all available databases until a match is found. If you would like
-    to specify the database, use the science state
+    Retrieve an ICRS object by using `Sesame <https://cds.unistra.fr/cgi-bin/Sesame>`_
+    to retrieve coordinates for the specified name. By default, this will
+    search all available databases (SIMBAD, NED and VizieR) until a match is found.
+    If you would like to specify the database, use the science state
     ``astropy.coordinates.name_resolve.sesame_database``. You can also
     specify a list of servers to use for querying Sesame using the science
     state ``astropy.coordinates.name_resolve.sesame_url``. This will try
@@ -146,6 +150,11 @@ def get_icrs_coordinates(name, parse=False, cache=False):
     # The web API just takes the first letter of the database name
     db = database.upper()[0]
 
+    # the A option does not set a preferred order for the database
+    if db == "A":
+        # we look into SIMBAD, NED, and then VizieR. This is the default Sesame behavior.
+        db = "SNV"
+
     # Make sure we don't have duplicates in the url list
     urls = []
     domains = []
@@ -193,7 +202,7 @@ def get_icrs_coordinates(name, parse=False, cache=False):
     ra, dec = _parse_response(resp_data)
 
     if ra is None or dec is None:
-        if db == "A":
+        if db == "SNV":
             err = f"Unable to find coordinates for name '{name}' using {url}"
         else:
             err = (
