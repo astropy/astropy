@@ -20,6 +20,7 @@ from . import format as unit_format
 from .utils import (
     is_effectively_unity,
     resolve_fractions,
+    sanitize_power,
     sanitize_scale,
     validate_power,
 )
@@ -2340,7 +2341,8 @@ class CompositeUnit(UnitBase):
                 scale *= unit.scale**power
                 self._bases = unit.bases
                 self._powers = [
-                    operator.mul(*resolve_fractions(p, power)) for p in unit.powers
+                    sanitize_power(operator.mul(*resolve_fractions(p, power)))
+                    for p in unit.powers
                 ]
 
             self._scale = sanitize_scale(scale)
@@ -2420,7 +2422,7 @@ class CompositeUnit(UnitBase):
         new_parts.sort(key=lambda x: (-x[1], getattr(x[0], "name", "")))
 
         self._bases = [x[0] for x in new_parts]
-        self._powers = [x[1] for x in new_parts]
+        self._powers = [sanitize_power(x[1]) for x in new_parts]
         self._scale = sanitize_scale(scale)
 
     def __copy__(self):
