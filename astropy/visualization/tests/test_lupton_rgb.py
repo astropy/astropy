@@ -5,9 +5,7 @@ Tests for RGB Images
 """
 
 
-import os
 import sys
-import tempfile
 
 import numpy as np
 import pytest
@@ -173,37 +171,37 @@ class TestLuptonRgb:
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
     @pytest.mark.skipif(not HAS_MATPLOTLIB, reason="requires matplotlib")
-    def test_make_rgb(self):
+    def test_make_rgb(self, tmp_path):
         """Test the function that does it all"""
         satValue = 1000.0
-        with tempfile.NamedTemporaryFile(suffix=".png") as temp:
-            red = saturate(self.image_r, satValue)
-            green = saturate(self.image_g, satValue)
-            blue = saturate(self.image_b, satValue)
-            lupton_rgb.make_lupton_rgb(
-                red, green, blue, self.min_, self.stretch_, self.Q, filename=temp
-            )
-            assert os.path.exists(temp.name)
+        temp = tmp_path.with_suffix(".png")
+        red = saturate(self.image_r, satValue)
+        green = saturate(self.image_g, satValue)
+        blue = saturate(self.image_b, satValue)
+        lupton_rgb.make_lupton_rgb(
+            red, green, blue, self.min_, self.stretch_, self.Q, filename=temp
+        )
+        assert temp.exists()
 
-    def test_make_rgb_saturated_fix(self):
+    def test_make_rgb_saturated_fix(self, tmp_path):
         pytest.skip("saturation correction is not implemented")
         satValue = 1000.0
         # TODO: Cannot test with these options yet, as that part of the code is not implemented.
-        with tempfile.NamedTemporaryFile(suffix=".png") as temp:
-            red = saturate(self.image_r, satValue)
-            green = saturate(self.image_g, satValue)
-            blue = saturate(self.image_b, satValue)
-            lupton_rgb.make_lupton_rgb(
-                red,
-                green,
-                blue,
-                self.min_,
-                self.stretch_,
-                self.Q,
-                saturated_border_width=1,
-                saturated_pixel_value=2000,
-                filename=temp,
-            )
+        temp = tmp_path.with_suffix(".png")
+        red = saturate(self.image_r, satValue)
+        green = saturate(self.image_g, satValue)
+        blue = saturate(self.image_b, satValue)
+        lupton_rgb.make_lupton_rgb(
+            red,
+            green,
+            blue,
+            self.min_,
+            self.stretch_,
+            self.Q,
+            saturated_border_width=1,
+            saturated_pixel_value=2000,
+            filename=temp,
+        )
 
     def test_linear(self):
         """Test using a specified linear stretch"""
