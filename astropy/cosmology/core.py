@@ -514,6 +514,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
         """Return `True`, the cosmology is flat."""
         return True
 
+    @property
     @abc.abstractmethod
     def nonflat(self: _FlatCosmoT) -> _CosmoT:
         """Return the equivalent non-flat-class instance of this cosmology."""
