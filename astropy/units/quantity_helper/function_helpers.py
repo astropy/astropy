@@ -141,7 +141,7 @@ UNSUPPORTED_FUNCTIONS |= {
 }  # fmt: skip
 
 if NUMPY_LT_2_0:
-    UNSUPPORTED_FUNCTIONS |= {  # Deprecated
+    UNSUPPORTED_FUNCTIONS |= {  # removed in numpy 2.0
         np.sometrue, np.alltrue,  # noqa: NPY003
     }  # fmt: skip
 
