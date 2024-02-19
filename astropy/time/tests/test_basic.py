@@ -2885,7 +2885,6 @@ def test_timedelta_empty_quantity():
         TimeDelta([] * u.m)
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "kwargs", [{}, dict(location=None), dict(location=EarthLocation(0, 0, 0))]
 )
