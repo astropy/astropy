@@ -14,7 +14,7 @@ from numpy import ma
 from astropy import log
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
-from astropy.utils import ShapedLikeNDArray, isiterable
+from astropy.utils import ShapedLikeNDArray, deprecated, isiterable
 from astropy.utils.compat import NUMPY_LT_1_25
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
@@ -1829,6 +1829,13 @@ class Table:
         html += jsv.ipynb(tableid, css=css, sort_columns=sortable_columns)
         return HTML(html)
 
+    @deprecated(
+        "6.1",
+        pending=True,
+        message="""We are planning on deprecating show_in_browser in the future.
+                If you are actively using this method, please let us know
+                at https://github.com/astropy/astropy/issues/16067""",
+    )
     def show_in_browser(
         self,
         max_lines=5000,
