@@ -4,6 +4,7 @@
 This module contains tests for the name resolve convenience module.
 """
 
+import re
 import time
 import urllib.request
 
@@ -53,52 +54,42 @@ _cached_ngc3642[
 
 _cached_ngc3642[
     "all"
-] = """# ngc3642    #Q22523722
-#=S=Simbad (via url):    1
+] = """# ngc3642       #Q2779348
+#=Si=Simbad, all IDs (via url):    1    41ms
 %@ 503952
 %I.0 NGC 3642
 %C.0 LIN
-%C.N0 15.15.01.00
-%J 170.5750583 +59.0742417 = 11:22:18.01 +59:04:27.2
-%V z 1593 0.005327 [0.000060] D 2002LEDA.........0P
-%D 1.673 1.657 75 (32767) (I) C 2006AJ....131.1163S
-%T 5 =32800000 D 2011A&A...532A..74B
-%#B 140
+%J 170.57458768232000 +59.07452101151000 = 11:22:17.90 +59:04:28.2
+%J.E [0.2819 0.3347 90] A 2020yCat.1350....0G
+%P -1.821 -0.458 [0.343 0.402 90] A 2020yCat.1350....0G
+%X 0.4854 [0.3776] A 2020yCat.1350....0G
+%V v 1583 5.3E-03 [1] D 2016A&A...595A.118V
+%D 5.01 4.27 (O) D 2003A&A...412...45P
+%T SA =2D800900 C 2019MNRAS.488..590B
+%#B 203
 
-
-#=V=VizieR (local):    1
-%J 170.56 +59.08 = 11:22.2     +59:05
-%I.0 {NGC} 3642
-
-
-#!N=NED : *** Could not access the server ***
-
-#====Done (2013-Feb-12,16:39:48z)===="""
+#====Done (2024-Feb-15,11:26:16z)====
+"""
 
 _cached_castor = {}
 _cached_castor[
     "all"
-] = """# castor    #Q22524249
-#=S=Simbad (via url):    1
+] = """# castor        #Q2779274
+#=Si=Simbad, all IDs (via url):    1     0ms (from cache)
 %@ 983633
-%I.0 NAME CASTOR
+%I.0 * alf Gem
 %C.0 **
-%C.N0 12.13.00.00
 %J 113.649471640 +31.888282216 = 07:34:35.87 +31:53:17.8
-%J.E [34.72 25.95 0] A 2007A&A...474..653V
+%J.E [34.72 25.95 90] A 2007A&A...474..653V
 %P -191.45 -145.19 [3.95 2.95 0] A 2007A&A...474..653V
 %X 64.12 [3.75] A 2007A&A...474..653V
-%S A1V+A2Vm =0.0000D200.0030.0110000000100000 C 2001AJ....122.3466M
-%#B 179
-
-#!V=VizieR (local): No table found for: castor
-
-#!N=NED: ****object name not recognized by NED name interpreter
-#!N=NED: ***Not recognized by NED: castor
+%V v 5.40 1.8E-05 [0.5] A 2006AstL...32..759G
+%S A1V+A2Vm =0.0000D200.0030.0110000000100000 E ~
+%#B 260
 
 
 
-#====Done (2013-Feb-12,16:52:02z)===="""
+#====Done (2024-Feb-15,11:25:36z)===="""
 
 _cached_castor[
     "simbad"
@@ -130,7 +121,14 @@ def test_names():
             "SESAME appears to be down, skipping test_name_resolve.py:test_names()..."
         )
 
-    with pytest.raises(NameResolveError):
+    # "all" choice should ask for SIMBAD, then NED, then Vizier: "SNV" in the url
+    with pytest.raises(
+        NameResolveError,
+        match=re.escape(
+            "Unable to find coordinates for name 'm87h34hhh' "
+            "using https://cds.unistra.fr/cgi-bin/nph-sesame/SNV?m87h34hhh"
+        ),
+    ):
         get_icrs_coordinates("m87h34hhh")
 
     try:
