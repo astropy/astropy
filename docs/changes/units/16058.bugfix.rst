@@ -1,0 +1,5 @@
+Ensure powers of units are consistently as simple as possible. So, an
+integer if possible, otherwise a float, or a fraction if the float is
+really close to that. This also ensures the hash of a unit is unique
+for any given unit (previously, the same power could be represented as
+float, int or fraction, which made the hash different).
