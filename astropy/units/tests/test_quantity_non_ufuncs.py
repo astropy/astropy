@@ -675,12 +675,14 @@ class TestUfuncReductions(InvariantUnitTestSetup):
             np.all(self.q)
 
     # NUMPY_LT_1_25
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.sometrue is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`sometrue` is deprecated as of NumPy 1.25.0")
     def test_sometrue(self):
         with pytest.raises(TypeError):
             np.sometrue(self.q)  # noqa: NPY003
 
     # NUMPY_LT_1_25
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.alltrue is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`alltrue` is deprecated as of NumPy 1.25.0")
     def test_alltrue(self):
         with pytest.raises(TypeError):
@@ -691,6 +693,7 @@ class TestUfuncReductions(InvariantUnitTestSetup):
             np.prod(self.q)
 
     # NUMPY_LT_1_25
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.product is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`product` is deprecated as of NumPy 1.25.0")
     def test_product(self):
         with pytest.raises(u.UnitsError):
@@ -701,6 +704,9 @@ class TestUfuncReductions(InvariantUnitTestSetup):
             np.cumprod(self.q)
 
     # NUMPY_LT_1_25
+    @pytest.mark.skipif(
+        not NUMPY_LT_2_0, reason="np.cumproduct is removed in NumPy 2.0"
+    )
     @pytest.mark.filterwarnings("ignore:`cumproduct` is deprecated as of NumPy 1.25.0")
     def test_cumproduct(self):
         with pytest.raises(u.UnitsError):
