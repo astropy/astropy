@@ -1,3 +1,3 @@
-The default for the method ``astropy.coordinates.SkyCoord.from_name``
+The new default for the class method ``SkyCoord.from_name()``
 is to look for coordinates first in SIMBAD, then in NED, and then in VizieR,
 instead of having no specific order.
