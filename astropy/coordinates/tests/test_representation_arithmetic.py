@@ -30,6 +30,7 @@ from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 
 
 def assert_representation_allclose(actual, desired, rtol=1.0e-7, atol=None, **kwargs):
+    __tracebackhide__ = True
     actual_xyz = actual.to_cartesian().get_xyz(xyz_axis=-1)
     desired_xyz = desired.to_cartesian().get_xyz(xyz_axis=-1)
     actual_xyz, desired_xyz = np.broadcast_arrays(actual_xyz, desired_xyz, subok=True)

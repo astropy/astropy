@@ -43,6 +43,7 @@ def main_col(request):
 
 
 def assert_col_equal(col, array):
+    __tracebackhide__ = True
     if isinstance(col, Time):
         assert np.all(col == Time(array, format="jyear"))
     else:

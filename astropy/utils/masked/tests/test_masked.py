@@ -19,6 +19,7 @@ from astropy.utils.masked import Masked, MaskedNDArray
 
 
 def assert_masked_equal(a, b):
+    __tracebackhide__ = True
     assert_array_equal(a.unmasked, b.unmasked)
     assert_array_equal(a.mask, b.mask)
 
