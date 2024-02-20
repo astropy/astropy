@@ -14,7 +14,11 @@ from numpy import ma
 from astropy import log
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
-from astropy.utils import ShapedLikeNDArray, isiterable
+from astropy.utils import (
+    ShapedLikeNDArray,
+    deprecated,
+    isiterable,
+)
 from astropy.utils.compat import NUMPY_LT_1_25
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
@@ -1753,6 +1757,14 @@ class Table:
         else:
             return self
 
+    @deprecated(
+        "6.1",
+        message="""show_in_notebook() is deprecated as of 6.1 and to create
+         interactive tables it is recommended to use dedicated tools like:
+         - https://github.com/bloomberg/ipydatagrid
+         - https://docs.bokeh.org/en/latest/docs/user_guide/interaction/widgets.html#datatable
+         - https://dash.plotly.com/datatable""",
+    )
     def show_in_notebook(
         self,
         tableid=None,
