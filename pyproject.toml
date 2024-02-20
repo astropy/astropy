@@ -177,6 +177,7 @@ addopts = [
     "--doctest-rst",
     "--strict-config",
     "--strict-markers",
+    "-p no:legacypath",
 ]
 log_cli_level = "info"
 xfail_strict = true
