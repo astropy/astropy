@@ -97,15 +97,18 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.apply_along_axis, np.take_along_axis, np.put_along_axis,
     np.linalg.cond, np.linalg.multi_dot,
 }  # fmt: skip
-SUBCLASS_SAFE_FUNCTIONS |= {  # Deprecated
-    np.product, np.cumproduct,  # noqa: NPY003
-}  # fmt: skip
 
 SUBCLASS_SAFE_FUNCTIONS |= {np.median}
 
 if NUMPY_LT_2_0:
     # functions (re)moved in numpy 2.0; alias for np.round in NUMPY_LT_1_25
-    SUBCLASS_SAFE_FUNCTIONS |= {np.msort, np.round_, np.trapz}  # noqa: NPY003, NPY201
+    SUBCLASS_SAFE_FUNCTIONS |= {
+        np.msort,
+        np.round_,  # noqa: NPY003, NPY201
+        np.trapz,
+        np.product,  # noqa: NPY003
+        np.cumproduct,  # noqa: NPY003
+    }
 else:
     # Array-API compatible versions (matrix axes always at end).
     SUBCLASS_SAFE_FUNCTIONS |= {
@@ -136,9 +139,11 @@ UNSUPPORTED_FUNCTIONS |= {
     np.busday_count, np.busday_offset, np.datetime_as_string,
     np.is_busday, np.all, np.any,
 }  # fmt: skip
-UNSUPPORTED_FUNCTIONS |= {  # Deprecated
-    np.sometrue, np.alltrue,  # noqa: NPY003
-}  # fmt: skip
+
+if NUMPY_LT_2_0:
+    UNSUPPORTED_FUNCTIONS |= {  # removed in numpy 2.0
+        np.sometrue, np.alltrue,  # noqa: NPY003
+    }  # fmt: skip
 
 # Could be supported if we had a natural logarithm unit.
 UNSUPPORTED_FUNCTIONS |= {np.linalg.slogdet}
