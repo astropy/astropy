@@ -40,6 +40,8 @@ def assert_table_equal(t1, t2, check_meta=False, rtol=1.0e-15, atol=1.0e-300):
     Test equality of all columns in a table, with stricter tolerances for
     float columns than the np.allclose default.
     """
+    __tracebackhide__ = True
+
     assert len(t1) == len(t2)
     assert t1.colnames == t2.colnames
     if check_meta:
