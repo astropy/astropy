@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backend_bases import KeyEvent
@@ -17,6 +18,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         plt.close("all")
 
     def test_overlay_coords(self, ignore_matplotlibrc, tmp_path):
+        minus_sign = "\N{MINUS SIGN}" if mpl.rcParams["axes.unicode_minus"] else "-"
         wcs = WCS(self.msx_header)
 
         fig = plt.figure(figsize=(4, 4))
@@ -31,7 +33,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # Testing default displayed world coordinates
         string_world = ax._display_world_coords(0.523412, 0.518311)
-        assert string_world == "0\xb029'45\" -0\xb029'20\" (world)"
+        assert string_world == f"0\xb029'45\" {minus_sign}0\xb029'20\" (world)"
 
         # Test pixel coordinates
         event1 = KeyEvent("test_pixel_coords", canvas, "w")
@@ -43,7 +45,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         fig.canvas.callbacks.process("key_press_event", event3)
         # Test that it still displays world coords when there are no overlay coords
         string_world2 = ax._display_world_coords(0.523412, 0.518311)
-        assert string_world2 == "0\xb029'45\" -0\xb029'20\" (world)"
+        assert string_world2 == f"0\xb029'45\" {minus_sign}0\xb029'20\" (world)"
 
         overlay = ax.get_coords_overlay("fk5")
 
@@ -60,7 +62,9 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         # Test that it displays the overlay world coordinates
         string_world3 = ax._display_world_coords(0.523412, 0.518311)
 
-        assert string_world3 == "267.176\xb0 -28\xb045'56\" (world, overlay 1)"
+        assert (
+            string_world3 == f"267.176\xb0 {minus_sign}28\xb045'56\" (world, overlay 1)"
+        )
 
         overlay = ax.get_coords_overlay(FK5())
 
@@ -77,7 +81,9 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         # Test that it displays the overlay world coordinates
         string_world4 = ax._display_world_coords(0.523412, 0.518311)
 
-        assert string_world4 == "267.176\xb0 -28\xb045'56\" (world, overlay 2)"
+        assert (
+            string_world4 == f"267.176\xb0 {minus_sign}28\xb045'56\" (world, overlay 2)"
+        )
 
         overlay = ax.get_coords_overlay(FK5(equinox=Time("J2030")))
 
@@ -94,7 +100,9 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         # Test that it displays the overlay world coordinates
         string_world5 = ax._display_world_coords(0.523412, 0.518311)
 
-        assert string_world5 == "267.652\xb0 -28\xb046'23\" (world, overlay 3)"
+        assert (
+            string_world5 == f"267.652\xb0 {minus_sign}28\xb046'23\" (world, overlay 3)"
+        )
 
     def test_cube_coords(self, ignore_matplotlibrc, tmp_path):
         wcs = WCS(self.cube_header)
