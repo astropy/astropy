@@ -9,11 +9,7 @@ import pytest
 from astropy.io import ascii
 from astropy.io.ascii.core import InconsistentTableError
 
-from .common import assert_almost_equal, assert_equal
-
-
-def assert_equal_splitlines(arg1, arg2):
-    assert_equal(arg1.splitlines(), arg2.splitlines())
+from .common import assert_almost_equal, assert_equal, assert_equal_splitlines
 
 
 def test_read_normal():

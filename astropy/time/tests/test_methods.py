@@ -23,6 +23,7 @@ needs_array_function = pytest.mark.xfail(
 
 def assert_time_all_equal(t1, t2):
     """Checks equality of shape and content."""
+    __tracebackhide__ = True
     assert t1.shape == t2.shape
     assert np.all(t1 == t2)
 
