@@ -199,6 +199,7 @@ def assert_quantity_allclose(actual, desired, rtol=1.0e-7, atol=None, **kwargs):
 
     from astropy.units.quantity import _unquantify_allclose_arguments
 
+    __tracebackhide__ = True
     np.testing.assert_allclose(
         *_unquantify_allclose_arguments(actual, desired, rtol, atol), **kwargs
     )

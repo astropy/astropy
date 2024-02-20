@@ -546,7 +546,6 @@ def test_fail_meta_serialize(tmp_path):
 
 def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
     """Convenient routine to check objects and attributes match."""
-
     if compare_class:
         assert obj1.__class__ is obj2.__class__
 
