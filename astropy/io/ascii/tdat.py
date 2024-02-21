@@ -10,86 +10,115 @@ from collections import OrderedDict
 
 from . import core
 
+class TdatMeta:
 
-class TdatHeader(core.BaseHeader):
-    """Header Reader for TDAT format"""
+    _comment = r'\s*(#|//)(.*)$'
+    _keys = r'(?P<key>\w+)\s*=\s*([\'"`])?(?P<value>.*?)(?(2)\2|\s*$)'
+    _desc_comments = ['Table Parameters', 'Virtual Parameters',
+                      'Relationship Definitions', 'Data Format Specification']
+    _comments = None
+    _keywords = None
+    _col_lines = None
+    _delimiter = '|'
+    
+    
+    def _process_lines(self, lines, ltype):
+        """Process the lines to separate header|data"""
 
-    start_line = 0
-    comment = r"\s*(#|//)(.*)$"
-    write_comment = "# "
-
-    def update_meta(self, lines, meta):
-        """Extract meta information: comments and key/values in the header"""
-        comments = []
-        keywords = OrderedDict()
-        col_lines = []
-
-        key_parser = re.compile(r'(?P<key>\w+)\s*=\s*([\'"`])?(?P<value>.*?)(?(2)\2|\s*$)')
-
-        desc_comments = ['Table Parameters', 'Virtual Parameters',
-                         'Relationship Definitions', 'Data Format Specification']
-        
         is_header = False
-        re_comment = re.compile(self.comment)
+        is_data = False
+
         for line in lines:
             if '<header>' in line.lower():
                 is_header = True
                 # we don't want <header> itself
                 continue
-            if '<data>' in line.lower():
-                # end of header
-                is_header = False
             
-            if is_header:
-                # get comments
-                match = re_comment.match(line)
-                kmatch = key_parser.match(line)
-                if match:
-                    add = True
-                    for cc in desc_comments:
-                        if cc in match.group(2):
-                            add = False
-                    if add and match.group(2) != '':
-                        comments.append(match.group(2))
-                elif kmatch:
-                    keywords[kmatch.group('key')] = kmatch.group('value')
-                else:
-                    if 'field' in line:
-                        col_lines.append(line)
+            if '<data>' in line.lower():
+                is_header = False
+                is_data = True
+                continue
+
+            if '<end>' in line.lower():
+                is_data = False
+                continue
+
+            if ltype == 'header' and is_header:
+                yield line
+            
+            if ltype == 'data' and is_data:
+                yield line
+
+
+    def _parse_header(self, lines):
+        """Parse header into keywords and comments and column descriptors"""
+
+        # if already parsed, do not repeat
+        if (self._comments is not None and 
+            self._keywords is not None and
+            self._col_lines is not None):
+            return
+
+        comments = []
+        keywords = OrderedDict()
+        col_lines = []
+
+        keys_parser = re.compile(self._keys)
+        comment_parser = re.compile(self._comment)
+        desc_comments = self._desc_comments
+
+        for line in self._process_lines(lines, 'header'):
+            # get comments
+            match = comment_parser.match(line)
+            if match:
+                add = True
+                for cc in desc_comments:
+                    if cc in match.group(2):
+                        add = False
+                        break
+                if add and match.group(2) != '':
+                    comments.append(match.group(2))
+            
+            kmatch = keys_parser.match(line)
+            if kmatch:
+                keywords[kmatch.group('key')] = kmatch.group('value')
+            else:
+                if 'field' in line:
+                    col_lines.append(line)
+        self._comments = comments
+        self._keywords = keywords
+        self._col_lines = col_lines
+
+        self._delimiter = keywords.get('field_delimiter', '|')
+            
+    
+
+class TdatHeader(core.BaseHeader, TdatMeta):
+    """Header Reader for TDAT format"""
+
+    start_line = 0
+    write_comment = "# "
+
+    def update_meta(self, lines, meta):
+        """Extract meta information: comments and key/values in the header"""
         
-        meta['table']['comments'] = comments
-        meta['table']['keywords'] = keywords
-        self.col_lines = col_lines
+        self._parse_header(lines)
+        meta['table']['comments'] = self._comments
+        meta['table']['keywords'] = self._keywords
         
 
     def process_lines(self, lines):
         """Select lines between <HEADER> and <DATA>"""
 
         # if already processed, yield the lines
-        if hasattr(self, 'col_lines'):
-            for line in self.col_lines:
-                yield line
-        else:
-            is_header = False
-            re_comment = re.compile(self.comment)
-            for line in lines:
-                # skip comments
-                if re_comment.match(line):
-                    continue
-                if '<header>' in line.lower():
-                    is_header = True
-                    # we don't want <header> itself
-                    continue
-                if '<data>' in line.lower():
-                    # end of header
-                    return
-                if is_header:
-                    yield line
+        self._parse_header(lines)
+        for line in self._col_lines:
+            yield line
+        
 
     def get_cols(self, lines):
         """Identify the columns and table description"""
         # generator returning valid header lines
-        header_lines = self.process_lines(lines)
 
         col_parser = re.compile(r"""
             \s*field
@@ -108,7 +137,7 @@ class TdatHeader(core.BaseHeader):
             """, re.VERBOSE)
         
         cols = []
-        for line in header_lines:
+        for line in self.process_lines(lines):
             
             # look for field[..]= ... column definitions
             cmatch = col_parser.match(line)
@@ -131,16 +160,9 @@ class TdatDataSplitter(core.BaseSplitter):
     """Splitter for tdat data."""
 
     delimiter = '|'
-    def __call__(self, lines):
-        for line in lines:
-            vals = line.strip().split(self.delimiter)[:-1]
-            if self.process_val:
-                yield [self.process_val(x) for x in vals]
-            else:
-                yield vals
 
 
-class TdatData(core.BaseData):
+class TdatData(core.BaseData, TdatMeta):
     """Data Reader for TDAT format
     """
 
@@ -151,8 +173,6 @@ class TdatData(core.BaseData):
 
     def process_lines(self, lines):
         """Select lines between <DATA> and <END>"""
-        ll =  [line.strip() for line in lines if '|' in line]
-        return ll
         is_data = False
         re_comment = re.compile(self.comment)
         data_lines = []
@@ -166,7 +186,7 @@ class TdatData(core.BaseData):
                 continue
             if '<end>' in line.lower():
                 # end of data
-                return
+                break
             if is_data:
                 data_lines.append(line)
         return data_lines
@@ -183,3 +203,9 @@ class Tdat(core.BaseReader):
 
     header_class = TdatHeader
     data_class = TdatData
+
+    def inconsistent_handler(self, str_vals, ncols):
+        """Remove the last field separator if it exists"""
+        if len(str_vals) == ncols + 1 and str_vals[-1] == '':
+            str_vals = str_vals[:-1]
+        return str_vals
