@@ -1393,7 +1393,7 @@ class Quantity(np.ndarray):
 
         return unitstr
 
-    def to_string(self, unit=None, precision=None, format=None, subfmt=None):
+    def to_string(self, unit=None, precision=None, format=None, subfmt=None, format_spec = None):
         """
         Generate a string representation of the quantity and its unit.
 
@@ -1423,6 +1423,14 @@ class Quantity(np.ndarray):
             - 'latex_inline': Return a LaTeX-formatted string that uses
               negative exponents instead of fractions
 
+        format_spec : str, optional
+            A string specifying the format used to represent numbers. Allows
+            customization of the number format, including fixed, scientific,
+            or custom formats as defined in Python's string formatting guidelines.
+            E.g., '0.2f' for fixed-point notation with two decimals, or '.2e'
+            for scientific notation with two decimals. Note that this overrides
+            the precision keyword if both are provided.
+
         subfmt : str, optional
             Subformat of the result. For the moment, only used for
             ``format='latex'`` and ``format='latex_inline'``. Supported
@@ -1451,25 +1459,30 @@ class Quantity(np.ndarray):
             },
         }
         formats["latex_inline"] = formats["latex"]
+        # Set default formatter for numpy array2string from format_spec if provided
+        default_formatter = {'all': lambda x: f"{x:{format_spec}}"} if format_spec else None
+
+        if format is None:
+            # format_spec overwrites precision
+            if default_formatter is None:
+                if precision is None:
+                    # Use default formatting settings
+                    return f"{self.value}{self._unitstr:s}"
+            return (
+                np.array2string(self.value, precision=precision, floatmode="fixed",
+                                formatter=default_formatter)
+                + self._unitstr
+            )
 
         if format not in formats:
             raise ValueError(f"Unknown format '{format}'")
-        elif format is None:
-            if precision is None:
-                # Use default formatting settings
-                return f"{self.value}{self._unitstr:s}"
-            else:
-                # np.array2string properly formats arrays as well as scalars
-                return (
-                    np.array2string(self.value, precision=precision, floatmode="fixed")
-                    + self._unitstr
-                )
 
         # else, for the moment we assume format="latex" or "latex_inline".
 
         # Set the precision if set, otherwise use numpy default
         pops = np.get_printoptions()
-        format_spec = f".{precision if precision is not None else pops['precision']}g"
+        if format_spec is None:
+            format_spec = f".{precision if precision is not None else pops['precision']}g"
 
         def float_formatter(value):
             return Latex.format_exponential_notation(value, format_spec=format_spec)
