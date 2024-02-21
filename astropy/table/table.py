@@ -1841,6 +1841,13 @@ class Table:
         html += jsv.ipynb(tableid, css=css, sort_columns=sortable_columns)
         return HTML(html)
 
+    @deprecated(
+        "6.1",
+        pending=True,
+        message="""We are planning on deprecating show_in_browser in the future.
+                If you are actively using this method, please let us know
+                at https://github.com/astropy/astropy/issues/16067""",
+    )
     def show_in_browser(
         self,
         max_lines=5000,
