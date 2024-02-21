@@ -327,7 +327,7 @@ class Angle(SpecificTypeQuantity):
 
         # Create an iterator so we can format each element of what
         # might be an array.
-        if not decimal and (unit_is_deg := unit == u.degree or unit == u.hourangle):
+        if not decimal and ((unit_is_deg := unit == u.degree) or unit == u.hourangle):
             # Sexagesimal.
             if sep == "fromunit":
                 if format not in separators:

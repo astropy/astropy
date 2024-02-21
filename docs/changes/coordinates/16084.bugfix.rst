@@ -1,0 +1,1 @@
+Fix a logic error in ``Angle.to_string`` with no observable impact.
