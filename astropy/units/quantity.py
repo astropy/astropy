@@ -1393,7 +1393,9 @@ class Quantity(np.ndarray):
 
         return unitstr
 
-    def to_string(self, unit=None, precision=None, format=None, subfmt=None, format_spec = None):
+    def to_string(
+        self, unit=None, precision=None, format=None, subfmt=None, format_spec=None
+    ):
         """
         Generate a string representation of the quantity and its unit.
 
@@ -1460,7 +1462,9 @@ class Quantity(np.ndarray):
         }
         formats["latex_inline"] = formats["latex"]
         # Set default formatter for numpy array2string from format_spec if provided
-        default_formatter = {'all': lambda x: f"{x:{format_spec}}"} if format_spec else None
+        default_formatter = (
+            {"all": lambda x: f"{x:{format_spec}}"} if format_spec else None
+        )
 
         if format is None:
             # format_spec overwrites precision
@@ -1469,8 +1473,12 @@ class Quantity(np.ndarray):
                     # Use default formatting settings
                     return f"{self.value}{self._unitstr:s}"
             return (
-                np.array2string(self.value, precision=precision, floatmode="fixed",
-                                formatter=default_formatter)
+                np.array2string(
+                    self.value,
+                    precision=precision,
+                    floatmode="fixed",
+                    formatter=default_formatter,
+                )
                 + self._unitstr
             )
 
@@ -1482,7 +1490,9 @@ class Quantity(np.ndarray):
         # Set the precision if set, otherwise use numpy default
         pops = np.get_printoptions()
         if format_spec is None:
-            format_spec = f".{precision if precision is not None else pops['precision']}g"
+            format_spec = (
+                f".{precision if precision is not None else pops['precision']}g"
+            )
 
         def float_formatter(value):
             return Latex.format_exponential_notation(value, format_spec=format_spec)
