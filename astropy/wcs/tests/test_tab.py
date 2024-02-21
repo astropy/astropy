@@ -18,8 +18,8 @@ _WCSLIB_VER = Version(_wcs.__version__)
 def test_2d_spatial_tab_roundtrip(tab_wcs_2di):
     nx, ny = tab_wcs_2di.pixel_shape
     # generate "random" test coordinates:
-    np.random.seed(1)
-    xy = 0.51 + [nx + 0.99, ny + 0.99] * np.random.random((100, 2))
+    rng = np.random.default_rng(1)
+    xy = 0.51 + [nx + 0.99, ny + 0.99] * rng.random((100, 2))
     rd = tab_wcs_2di.wcs_pix2world(xy, 1)
     xy_roundtripped = tab_wcs_2di.wcs_world2pix(rd, 1)
     m = np.logical_and(*(np.isfinite(xy_roundtripped).T))
@@ -38,8 +38,8 @@ def test_2d_spatial_tab_vs_model():
     w = wcs.WCS(hdulist[0].header, hdulist)
 
     # generate "random" test coordinates:
-    np.random.seed(1)
-    xy = 0.51 + [nx + 0.99, ny + 0.99] * np.random.random((100, 2))
+    rng = np.random.default_rng(1)
+    xy = 0.51 + [nx + 0.99, ny + 0.99] * rng.random((100, 2))
     rd = w.wcs_pix2world(xy, 1)
     rd_model = model.fwd_eval(xy)
     assert np.allclose(rd, rd_model, rtol=0, atol=1e-7)

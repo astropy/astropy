@@ -74,7 +74,7 @@ class TestNonLinearConstraints:
         x = np.arange(10, 20, 0.1)
         y1 = g1(x)
         y2 = g2(x)
-        n = np.random.randn(100)
+        n = np.random.default_rng().standard_normal(100)
         ny1 = y1 + 2 * n
         ny2 = y2 + 2 * n
         jf(x, ny1, x, ny2)
@@ -112,7 +112,7 @@ class TestNonLinearConstraints:
 
         p0 = [9.9, 14.5, 0.3]
         y = g1(self.x)
-        n = np.random.randn(100)
+        n = np.random.default_rng().standard_normal(100)
         ny = y + n
         fitpar, s = optimize.leastsq(errf, p0, args=(self.x, ny))
         model = fitter(g1, self.x, ny)
@@ -125,7 +125,7 @@ class TestBounds:
         A = -2.0
         B = 0.5
         self.x = np.linspace(-1.0, 1.0, 100)
-        self.y = A * self.x + B + np.random.normal(scale=0.1, size=100)
+        self.y = A * self.x + B + np.random.default_rng().normal(scale=0.1, size=100)
         # fmt: off
         data = np.array(
             [
@@ -580,7 +580,6 @@ def test_gaussian2d_positive_stddev(fitter):
 @pytest.mark.parametrize("fitter", fitters)
 def test_2d_model(fitter):
     """Issue #6403"""
-    from astropy.utils import NumpyRNGContext
 
     fitter = fitter()
 
@@ -593,35 +592,35 @@ def test_2d_model(fitter):
     w = np.ones(x.size)
     w.shape = x.shape
 
-    with NumpyRNGContext(1234567890):
-        n = np.random.randn(x.size)
-        n.shape = x.shape
-        m = fitter(gauss2d, x, y, z + 2 * n, weights=w)
-        assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
-        m = fitter(gauss2d, x, y, z + 2 * n, weights=None)
-        assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+    rng = np.random.default_rng(1234567890)
+    n = rng.standard_normal(x.size)
+    n.shape = x.shape
+    m = fitter(gauss2d, x, y, z + 2 * n, weights=w)
+    assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+    m = fitter(gauss2d, x, y, z + 2 * n, weights=None)
+    assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
 
-        # 2D model with LevMarLSQFitter, fixed constraint
-        gauss2d.x_stddev.fixed = True
-        m = fitter(gauss2d, x, y, z + 2 * n, weights=w)
-        assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
-        m = fitter(gauss2d, x, y, z + 2 * n, weights=None)
-        assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+    # 2D model with LevMarLSQFitter, fixed constraint
+    gauss2d.x_stddev.fixed = True
+    m = fitter(gauss2d, x, y, z + 2 * n, weights=w)
+    assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+    m = fitter(gauss2d, x, y, z + 2 * n, weights=None)
+    assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
 
-        # Polynomial2D, col_fit_deriv=False
-        p2 = models.Polynomial2D(1, c0_0=1, c1_0=1.2, c0_1=3.2)
-        z = p2(x, y)
-        m = fitter(p2, x, y, z + 2 * n, weights=None)
-        assert_allclose(m.parameters, p2.parameters, rtol=0.05)
-        m = fitter(p2, x, y, z + 2 * n, weights=w)
-        assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+    # Polynomial2D, col_fit_deriv=False
+    p2 = models.Polynomial2D(1, c0_0=1, c1_0=1.2, c0_1=3.2)
+    z = p2(x, y)
+    m = fitter(p2, x, y, z + 2 * n, weights=None)
+    assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+    m = fitter(p2, x, y, z + 2 * n, weights=w)
+    assert_allclose(m.parameters, p2.parameters, rtol=0.05)
 
-        # Polynomial2D, col_fit_deriv=False, fixed constraint
-        p2.c1_0.fixed = True
-        m = fitter(p2, x, y, z + 2 * n, weights=w)
-        assert_allclose(m.parameters, p2.parameters, rtol=0.05)
-        m = fitter(p2, x, y, z + 2 * n, weights=None)
-        assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+    # Polynomial2D, col_fit_deriv=False, fixed constraint
+    p2.c1_0.fixed = True
+    m = fitter(p2, x, y, z + 2 * n, weights=w)
+    assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+    m = fitter(p2, x, y, z + 2 * n, weights=None)
+    assert_allclose(m.parameters, p2.parameters, rtol=0.05)
 
 
 def test_set_prior_posterior():

@@ -248,7 +248,8 @@ class TestTableItems(BaseTestItems):
         py 3.3 failure mode
         """
         t = table_data.Table(table_data.COLS)
-        idxs = np.random.randint(len(t), size=2)
+        rng = np.random.default_rng()
+        idxs = rng.integers(len(t), size=2)
         t[idxs[1]]
 
     def test_select_bad_column(self, table_data):

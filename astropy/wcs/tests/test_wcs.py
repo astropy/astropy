@@ -32,7 +32,6 @@ from astropy.utils.exceptions import (
     AstropyUserWarning,
     AstropyWarning,
 )
-from astropy.utils.misc import NumpyRNGContext
 from astropy.wcs import _wcs
 
 _WCSLIB_VER = Version(_wcs.__version__)
@@ -268,10 +267,10 @@ def test_extra_kwarg():
     Issue #444
     """
     w = wcs.WCS()
-    with NumpyRNGContext(123456789):
-        data = np.random.rand(100, 2)
-        with pytest.raises(TypeError):
-            w.wcs_pix2world(data, origin=1)
+    rng = np.random.default_rng(123456789)
+    data = rng.random((100, 2))
+    with pytest.raises(TypeError):
+        w.wcs_pix2world(data, origin=1)
 
 
 def test_3d_shapes():
@@ -279,12 +278,12 @@ def test_3d_shapes():
     Issue #444
     """
     w = wcs.WCS(naxis=3)
-    with NumpyRNGContext(123456789):
-        data = np.random.rand(100, 3)
-        result = w.wcs_pix2world(data, 1)
-        assert result.shape == (100, 3)
-        result = w.wcs_pix2world(data[..., 0], data[..., 1], data[..., 2], 1)
-        assert len(result) == 3
+    rng = np.random.default_rng(123456789)
+    data = rng.random((100, 3))
+    result = w.wcs_pix2world(data, 1)
+    assert result.shape == (100, 3)
+    result = w.wcs_pix2world(data[..., 0], data[..., 1], data[..., 2], 1)
+    assert len(result) == 3
 
 
 def test_preserve_shape():
@@ -318,9 +317,10 @@ def test_broadcasting():
 
 def test_shape_mismatch():
     w = wcs.WCS(naxis=2)
+    rng = np.random.default_rng()
 
-    x = np.random.random((2, 3, 4))
-    y = np.random.random((3, 2, 4))
+    x = rng.random((2, 3, 4))
+    y = rng.random((3, 2, 4))
 
     MESSAGE = r"Coordinate arrays are not broadcastable to each other"
     with pytest.raises(ValueError, match=MESSAGE):
@@ -333,11 +333,11 @@ def test_shape_mismatch():
     # naxis == 1
     w = wcs.WCS(naxis=1)
 
-    x = np.random.random((42, 1))
+    x = rng.random((42, 1))
     xw = w.wcs_pix2world(x, 1)
     assert xw.shape == (42, 1)
 
-    x = np.random.random((42,))
+    x = rng.random((42,))
     (xw,) = w.wcs_pix2world(x, 1)
     assert xw.shape == (42,)
 
@@ -347,12 +347,13 @@ def test_invalid_shape():
     MESSAGE = r"When providing two arguments, the array must be of shape [(]N, 2[)]"
 
     w = wcs.WCS(naxis=2)
+    rng = np.random.default_rng()
 
-    xy = np.random.random((2, 3))
+    xy = rng.random((2, 3))
     with pytest.raises(ValueError, match=MESSAGE):
         w.wcs_pix2world(xy, 1)
 
-    xy = np.random.random((2, 1))
+    xy = rng.random((2, 1))
     with pytest.raises(ValueError, match=MESSAGE):
         w.wcs_pix2world(xy, 1)
 
@@ -606,8 +607,8 @@ def test_all_world2pix(
     )[0]
 
     # Generate random data (in image coordinates):
-    with NumpyRNGContext(123456789):
-        rnd_pix = np.random.rand(random_npts, ncoord)
+    rng = np.random.default_rng(123456789)
+    rnd_pix = rng.random((random_npts, ncoord))
 
     # Scale random data to cover the central part of the image
     mwidth = 2 * (crpix * 1.0 / 8)

@@ -13,15 +13,14 @@ from astropy.stats.biweight import (
     biweight_scale,
 )
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils.misc import NumpyRNGContext
 
 
 def test_biweight_location():
-    with NumpyRNGContext(12345):
-        # test that it runs
-        randvar = np.random.randn(10000)
-        cbl = biweight_location(randvar)
-        assert abs(cbl - 0) < 1e-2
+    rng = np.random.default_rng(12345)
+    # test that it runs
+    randvar = rng.standard_normal(10000)
+    cbl = biweight_location(randvar)
+    assert abs(cbl - 0) < 1e-2
 
 
 def test_biweight_location_constant():
@@ -68,42 +67,42 @@ def test_biweight_location_small():
 
 def test_biweight_location_axis():
     """Test a 2D array with the axis keyword."""
-    with NumpyRNGContext(12345):
-        ny = 100
-        nx = 200
-        data = np.random.normal(5, 2, (ny, nx))
+    rng = np.random.default_rng(12345)
+    ny = 100
+    nx = 200
+    data = rng.normal(5, 2, (ny, nx))
 
-        bw = biweight_location(data, axis=0)
-        bwi = []
-        for i in range(nx):
-            bwi.append(biweight_location(data[:, i]))
-        bwi = np.array(bwi)
-        assert_allclose(bw, bwi)
+    bw = biweight_location(data, axis=0)
+    bwi = []
+    for i in range(nx):
+        bwi.append(biweight_location(data[:, i]))
+    bwi = np.array(bwi)
+    assert_allclose(bw, bwi)
 
-        bw = biweight_location(data, axis=1)
-        bwi = []
-        for i in range(ny):
-            bwi.append(biweight_location(data[i, :]))
-        bwi = np.array(bwi)
-        assert_allclose(bw, bwi)
+    bw = biweight_location(data, axis=1)
+    bwi = []
+    for i in range(ny):
+        bwi.append(biweight_location(data[i, :]))
+    bwi = np.array(bwi)
+    assert_allclose(bw, bwi)
 
 
 def test_biweight_location_axis_3d():
     """Test a 3D array with the axis keyword."""
-    with NumpyRNGContext(12345):
-        nz = 3
-        ny = 4
-        nx = 5
-        data = np.random.normal(5, 2, (nz, ny, nx))
-        bw = biweight_location(data, axis=0)
-        assert bw.shape == (ny, nx)
+    rng = np.random.default_rng(12345)
+    nz = 3
+    ny = 4
+    nx = 5
+    data = rng.normal(5, 2, (nz, ny, nx))
+    bw = biweight_location(data, axis=0)
+    assert bw.shape == (ny, nx)
 
-        y = 0
-        bwi = []
-        for i in range(nx):
-            bwi.append(biweight_location(data[:, y, i]))
-        bwi = np.array(bwi)
-        assert_allclose(bw[y], bwi)
+    y = 0
+    bwi = []
+    for i in range(nx):
+        bwi.append(biweight_location(data[:, y, i]))
+    bwi = np.array(bwi)
+    assert_allclose(bw[y], bwi)
 
 
 def test_biweight_location_axis_tuple():
@@ -228,11 +227,11 @@ def test_biweight_scale():
 
 
 def test_biweight_midvariance():
-    with NumpyRNGContext(12345):
-        # test that it runs
-        randvar = np.random.randn(10000)
-        var = biweight_midvariance(randvar)
-        assert_allclose(var, 1.0, rtol=0.02)
+    # test that it runs
+    rng = np.random.default_rng(12345)
+    randvar = rng.standard_normal(20_000)
+    var = biweight_midvariance(randvar)
+    assert_allclose(var, 1.0, rtol=0.02)
 
 
 def test_biweight_midvariance_small():
@@ -254,42 +253,42 @@ def test_biweight_midvariance_5127():
 
 def test_biweight_midvariance_axis():
     """Test a 2D array with the axis keyword."""
-    with NumpyRNGContext(12345):
-        ny = 100
-        nx = 200
-        data = np.random.normal(5, 2, (ny, nx))
+    rng = np.random.default_rng(12345)
+    ny = 100
+    nx = 200
+    data = rng.normal(5, 2, (ny, nx))
 
-        bw = biweight_midvariance(data, axis=0)
-        bwi = []
-        for i in range(nx):
-            bwi.append(biweight_midvariance(data[:, i]))
-        bwi = np.array(bwi)
-        assert_allclose(bw, bwi)
+    bw = biweight_midvariance(data, axis=0)
+    bwi = []
+    for i in range(nx):
+        bwi.append(biweight_midvariance(data[:, i]))
+    bwi = np.array(bwi)
+    assert_allclose(bw, bwi)
 
-        bw = biweight_midvariance(data, axis=1)
-        bwi = []
-        for i in range(ny):
-            bwi.append(biweight_midvariance(data[i, :]))
-        bwi = np.array(bwi)
-        assert_allclose(bw, bwi)
+    bw = biweight_midvariance(data, axis=1)
+    bwi = []
+    for i in range(ny):
+        bwi.append(biweight_midvariance(data[i, :]))
+    bwi = np.array(bwi)
+    assert_allclose(bw, bwi)
 
 
 def test_biweight_midvariance_axis_3d():
     """Test a 3D array with the axis keyword."""
-    with NumpyRNGContext(12345):
-        nz = 3
-        ny = 4
-        nx = 5
-        data = np.random.normal(5, 2, (nz, ny, nx))
-        bw = biweight_midvariance(data, axis=0)
-        assert bw.shape == (ny, nx)
+    rng = np.random.default_rng(12345)
+    nz = 3
+    ny = 4
+    nx = 5
+    data = rng.normal(5, 2, (nz, ny, nx))
+    bw = biweight_midvariance(data, axis=0)
+    assert bw.shape == (ny, nx)
 
-        y = 0
-        bwi = []
-        for i in range(nx):
-            bwi.append(biweight_midvariance(data[:, y, i]))
-        bwi = np.array(bwi)
-        assert_allclose(bw[y], bwi)
+    y = 0
+    bwi = []
+    for i in range(nx):
+        bwi.append(biweight_midvariance(data[:, y, i]))
+    bwi = np.array(bwi)
+    assert_allclose(bw[y], bwi)
 
 
 @pytest.mark.filterwarnings("ignore:All-NaN slice encountered")
@@ -560,11 +559,11 @@ def test_biweight_midcorrelation_inputs():
 
 def test_biweight_32bit_runtime_warnings():
     """Regression test for #6905."""
-    with NumpyRNGContext(12345):
-        data = np.random.random(100).astype(np.float32)
-        data[50] = 30000.0
-        biweight_scale(data)
-        biweight_midvariance(data)
+    rng = np.random.default_rng(12345)
+    data = rng.random(100).astype(np.float32)
+    data[50] = 30000.0
+    biweight_scale(data)
+    biweight_midvariance(data)
 
 
 def test_biweight_scl_var_constant_units():

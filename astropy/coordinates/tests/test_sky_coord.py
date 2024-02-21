@@ -1453,20 +1453,18 @@ def test_search_around():
     Here we don't actually test the values are right, just that the methods of
     SkyCoord work.  The accuracy tests are in ``test_matching.py``
     """
-    from astropy.utils import NumpyRNGContext
+    rng = np.random.default_rng(987654321)
+    sc1 = SkyCoord(
+        rng.random(20) * 360.0 * u.degree,
+        (rng.random(20) * 180.0 - 90.0) * u.degree,
+    )
+    sc2 = SkyCoord(
+        rng.random(100) * 360.0 * u.degree,
+        (rng.random(100) * 180.0 - 90.0) * u.degree,
+    )
 
-    with NumpyRNGContext(987654321):
-        sc1 = SkyCoord(
-            np.random.rand(20) * 360.0 * u.degree,
-            (np.random.rand(20) * 180.0 - 90.0) * u.degree,
-        )
-        sc2 = SkyCoord(
-            np.random.rand(100) * 360.0 * u.degree,
-            (np.random.rand(100) * 180.0 - 90.0) * u.degree,
-        )
-
-        sc1ds = SkyCoord(ra=sc1.ra, dec=sc1.dec, distance=np.random.rand(20) * u.kpc)
-        sc2ds = SkyCoord(ra=sc2.ra, dec=sc2.dec, distance=np.random.rand(100) * u.kpc)
+    sc1ds = SkyCoord(ra=sc1.ra, dec=sc1.dec, distance=rng.random(20) * u.kpc)
+    sc2ds = SkyCoord(ra=sc2.ra, dec=sc2.dec, distance=rng.random(100) * u.kpc)
 
     idx1_sky, idx2_sky, d2d_sky, d3d_sky = sc1.search_around_sky(sc2, 10 * u.deg)
     idx1_3d, idx2_3d, d2d_3d, d3d_3d = sc1ds.search_around_3d(sc2ds, 250 * u.pc)
@@ -1497,12 +1495,11 @@ def test_init_with_frame_instance_keyword():
 
 def test_guess_from_table():
     from astropy.table import Column, Table
-    from astropy.utils import NumpyRNGContext
 
     tab = Table()
-    with NumpyRNGContext(987654321):
-        tab.add_column(Column(data=np.random.rand(10), unit="deg", name="RA[J2000]"))
-        tab.add_column(Column(data=np.random.rand(10), unit="deg", name="DEC[J2000]"))
+    rng = np.random.default_rng(987654321)
+    tab.add_column(Column(data=rng.random(10), unit="deg", name="RA[J2000]"))
+    tab.add_column(Column(data=rng.random(10), unit="deg", name="DEC[J2000]"))
 
     sc = SkyCoord.guess_from_table(tab)
     npt.assert_array_equal(sc.ra.deg, tab["RA[J2000]"])
@@ -1521,7 +1518,7 @@ def test_guess_from_table():
     npt.assert_array_equal(sc2.dec.deg, tab["DEC[J2000]"])
 
     # should fail if two options are available - ambiguity bad!
-    tab.add_column(Column(data=np.random.rand(10), name="RA_J1900"))
+    tab.add_column(Column(data=rng.random(10), name="RA_J1900"))
     with pytest.raises(ValueError) as excinfo:
         SkyCoord.guess_from_table(tab, unit=u.deg)
     assert "J1900" in excinfo.value.args[0] and "J2000" in excinfo.value.args[0]
@@ -1532,8 +1529,8 @@ def test_guess_from_table():
 
     # but should succeed if the ambiguity can be broken b/c one of the matches
     # is the name of a different component
-    tab.add_column(Column(data=np.random.rand(10) * u.mas / u.yr, name="pm_ra_cosdec"))
-    tab.add_column(Column(data=np.random.rand(10) * u.mas / u.yr, name="pm_dec"))
+    tab.add_column(Column(data=rng.random(10) * u.mas / u.yr, name="pm_ra_cosdec"))
+    tab.add_column(Column(data=rng.random(10) * u.mas / u.yr, name="pm_dec"))
     sc3 = SkyCoord.guess_from_table(tab)
     assert u.allclose(sc3.ra, tab["RA[J2000]"])
     assert u.allclose(sc3.dec, tab["DEC[J2000]"])

@@ -205,9 +205,12 @@ plt.show()
 # transformation of velocity components is therefore natively supported as
 # well:
 
+rng = np.random.default_rng()
+pm_Lambda_cosBeta = rng.uniform(-5, 5, 128)*u.mas/u.yr
+
 sgr = coord.SkyCoord(Lambda=np.linspace(0, 2*np.pi, 128)*u.radian,
                      Beta=np.zeros(128)*u.radian,
-                     pm_Lambda_cosBeta=np.random.uniform(-5, 5, 128)*u.mas/u.yr,
+                     pm_Lambda_cosBeta=pm_Lambda_cosBeta,
                      pm_Beta=np.zeros(128)*u.mas/u.yr,
                      frame='sagittarius')
 icrs = sgr.transform_to(coord.ICRS)

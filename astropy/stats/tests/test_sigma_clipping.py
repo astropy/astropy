@@ -10,50 +10,49 @@ from astropy.stats.sigma_clipping import SigmaClip, sigma_clip, sigma_clipped_st
 from astropy.table import MaskedColumn
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.misc import NumpyRNGContext
 
 
 def test_sigma_clip():
     # need to seed the numpy RNG to make sure we don't get some
     # amazingly flukey random number that breaks one of the tests
 
-    with NumpyRNGContext(12345):
-        # Amazing, I've got the same combination on my luggage!
-        randvar = np.random.randn(10000)
+    rng = np.random.default_rng(12345)
+    # Amazing, I've got the same combination on my luggage!
+    randvar = rng.standard_normal(10000)
 
-        filtered_data = sigma_clip(randvar, sigma=1, maxiters=2)
+    filtered_data = sigma_clip(randvar, sigma=1, maxiters=2)
 
-        assert sum(filtered_data.mask) > 0
-        assert sum(~filtered_data.mask) < randvar.size
+    assert sum(filtered_data.mask) > 0
+    assert sum(~filtered_data.mask) < randvar.size
 
-        # this is actually a silly thing to do, because it uses the
-        # standard deviation as the variance, but it tests to make sure
-        # these arguments are actually doing something
-        filtered_data2 = sigma_clip(randvar, sigma=1, maxiters=2, stdfunc=np.var)
-        assert not np.all(filtered_data.mask == filtered_data2.mask)
+    # this is actually a silly thing to do, because it uses the
+    # standard deviation as the variance, but it tests to make sure
+    # these arguments are actually doing something
+    filtered_data2 = sigma_clip(randvar, sigma=1, maxiters=2, stdfunc=np.var)
+    assert not np.all(filtered_data.mask == filtered_data2.mask)
 
-        filtered_data3 = sigma_clip(randvar, sigma=1, maxiters=2, cenfunc=np.mean)
-        assert not np.all(filtered_data.mask == filtered_data3.mask)
+    filtered_data3 = sigma_clip(randvar, sigma=1, maxiters=2, cenfunc=np.mean)
+    assert not np.all(filtered_data.mask == filtered_data3.mask)
 
-        # make sure the maxiters=None method works at all.
-        filtered_data = sigma_clip(randvar, sigma=3, maxiters=None)
+    # make sure the maxiters=None method works at all.
+    filtered_data = sigma_clip(randvar, sigma=3, maxiters=None)
 
-        # test copying
-        assert filtered_data.data[0] == randvar[0]
-        filtered_data.data[0] += 1.0
-        assert filtered_data.data[0] != randvar[0]
+    # test copying
+    assert filtered_data.data[0] == randvar[0]
+    filtered_data.data[0] += 1.0
+    assert filtered_data.data[0] != randvar[0]
 
-        filtered_data = sigma_clip(randvar, sigma=3, maxiters=None, copy=False)
-        assert filtered_data.data[0] == randvar[0]
-        filtered_data.data[0] += 1.0
-        assert filtered_data.data[0] == randvar[0]
+    filtered_data = sigma_clip(randvar, sigma=3, maxiters=None, copy=False)
+    assert filtered_data.data[0] == randvar[0]
+    filtered_data.data[0] += 1.0
+    assert filtered_data.data[0] == randvar[0]
 
-        # test axis
-        data = np.arange(5) + np.random.normal(0.0, 0.05, (5, 5)) + np.diag(np.ones(5))
-        filtered_data = sigma_clip(data, axis=0, sigma=2.3)
-        assert filtered_data.count() == 20
-        filtered_data = sigma_clip(data, axis=1, sigma=2.3)
-        assert filtered_data.count() == 25
+    # test axis
+    data = np.arange(5) + rng.normal(0.0, 0.05, (5, 5)) + np.diag(np.ones(5))
+    filtered_data = sigma_clip(data, axis=0, sigma=2.3)
+    assert filtered_data.count() == 20
+    filtered_data = sigma_clip(data, axis=1, sigma=2.3)
+    assert filtered_data.count() == 25
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
@@ -74,14 +73,14 @@ def test_compare_to_scipy_sigmaclip():
 
     # need to seed the numpy RNG to make sure we don't get some
     # amazingly flukey random number that breaks one of the tests
-    with NumpyRNGContext(12345):
-        randvar = np.random.randn(10000)
+    rng = np.random.default_rng(12345)
+    randvar = rng.standard_normal(10000)
 
-        astropyres = sigma_clip(randvar, sigma=3, maxiters=None, cenfunc=np.mean)
-        scipyres = stats.sigmaclip(randvar, 3, 3)[0]
+    astropyres = sigma_clip(randvar, sigma=3, maxiters=None, cenfunc=np.mean)
+    scipyres = stats.sigmaclip(randvar, 3, 3)[0]
 
-        assert astropyres.count() == len(scipyres)
-        assert_equal(astropyres[~astropyres.mask].data, scipyres)
+    assert astropyres.count() == len(scipyres)
+    assert_equal(astropyres[~astropyres.mask].data, scipyres)
 
 
 def test_sigma_clip_scalar_mask():
@@ -92,22 +91,22 @@ def test_sigma_clip_scalar_mask():
 
 
 def test_sigma_clip_class():
-    with NumpyRNGContext(12345):
-        data = np.random.randn(100)
-        data[10] = 1.0e5
-        sobj = SigmaClip(sigma=1, maxiters=2)
-        sfunc = sigma_clip(data, sigma=1, maxiters=2)
-        assert_equal(sobj(data), sfunc)
+    rng = np.random.default_rng(12345)
+    data = rng.standard_normal(100)
+    data[10] = 1.0e5
+    sobj = SigmaClip(sigma=1, maxiters=2)
+    sfunc = sigma_clip(data, sigma=1, maxiters=2)
+    assert_equal(sobj(data), sfunc)
 
 
 def test_sigma_clip_mean():
-    with NumpyRNGContext(12345):
-        data = np.random.normal(0.0, 0.05, (10, 10))
-        data[2, 2] = 1.0e5
-        sobj1 = SigmaClip(sigma=1, maxiters=2, cenfunc="mean")
-        sobj2 = SigmaClip(sigma=1, maxiters=2, cenfunc=np.nanmean)
-        assert_equal(sobj1(data), sobj2(data))
-        assert_equal(sobj1(data, axis=0), sobj2(data, axis=0))
+    rng = np.random.default_rng(12345)
+    data = rng.normal(0.0, 0.05, (10, 10))
+    data[2, 2] = 1.0e5
+    sobj1 = SigmaClip(sigma=1, maxiters=2, cenfunc="mean")
+    sobj2 = SigmaClip(sigma=1, maxiters=2, cenfunc=np.nanmean)
+    assert_equal(sobj1(data), sobj2(data))
+    assert_equal(sobj1(data, axis=0), sobj2(data, axis=0))
 
 
 def test_sigma_clip_invalid_cenfunc_stdfunc():
@@ -153,15 +152,15 @@ def test_sigma_clipped_stats():
 
 
 def test_sigma_clipped_stats_ddof():
-    with NumpyRNGContext(12345):
-        data = np.random.randn(10000)
-        data[10] = 1.0e5
-        mean1, median1, stddev1 = sigma_clipped_stats(data)
-        mean2, median2, stddev2 = sigma_clipped_stats(data, std_ddof=1)
-        assert mean1 == mean2
-        assert median1 == median2
-        assert_allclose(stddev1, 0.98156805711673156)
-        assert_allclose(stddev2, 0.98161731654802831)
+    rng = np.random.default_rng(12345)
+    data = rng.standard_normal(10_000)
+    data[10] = 1.0e5
+    mean1, median1, stddev1 = sigma_clipped_stats(data)
+    mean2, median2, stddev2 = sigma_clipped_stats(data, std_ddof=1)
+    assert mean1 == mean2
+    assert median1 == median2
+    assert_allclose(stddev1, 0.989947, rtol=1e-05)
+    assert_allclose(stddev2, 0.989997, rtol=1e-05)
 
 
 def test_sigma_clipped_stats_masked_col():
@@ -486,8 +485,8 @@ def test_sigma_clip_grow():
 def test_sigma_clip_axis_shapes(axis, bounds_shape):
     # Check the shapes of the output for different use cases
 
-    with NumpyRNGContext(12345):
-        array = np.random.random((3, 4, 5, 6, 7))
+    rng = np.random.default_rng(12345)
+    array = rng.random((3, 4, 5, 6, 7))
 
     result1 = sigma_clip(array, axis=axis)
     assert result1.shape == array.shape
@@ -504,8 +503,8 @@ def test_sigma_clip_axis_shapes(axis, bounds_shape):
 def test_sigma_clip_dtypes(dtype):
     # Check the shapes of the output for different use cases
 
-    with NumpyRNGContext(12345):
-        array = np.random.randint(-5, 5, 1000).astype(float)
+    rng = np.random.default_rng(12345)
+    array = rng.integers(-5, 5, 1000).astype(float)
     array[30] = 100
 
     reference = sigma_clip(array, copy=True, masked=False)
@@ -564,8 +563,8 @@ def test_mad_std():
 def test_mad_std_large():
     # And now test with a larger array and compare with Python mad_std function
 
-    with NumpyRNGContext(12345):
-        array = np.random.uniform(-1, 2, (30, 40))
+    rng = np.random.default_rng(123)
+    array = rng.uniform(-1, 2, (30, 40))
 
     def nan_mad_std(data, axis=None):
         return mad_std(data, axis=axis, ignore_nan=True)

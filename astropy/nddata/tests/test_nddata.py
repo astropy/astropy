@@ -152,13 +152,13 @@ def test_nddata_init_data_ndarray():
 
 
 def test_nddata_init_data_maskedarray():
-    with NumpyRNGContext(456):
-        NDData(np.random.random((10, 10)), mask=np.random.random((10, 10)) > 0.5)
+    rng = np.random.default_rng(456)
+    NDData(rng.random((10, 10)), mask=rng.random((10, 10)) > 0.5)
 
     # Another test (just copied here)
-    with NumpyRNGContext(12345):
-        a = np.random.randn(100)
-        marr = np.ma.masked_where(a > 0, a)
+    rng = np.random.default_rng(12345)
+    a = rng.standard_normal(100)
+    marr = np.ma.masked_where(a > 0, a)
     nd = NDData(marr)
     # check that masks and data match
     assert_array_equal(nd.mask, marr.mask)
@@ -602,7 +602,7 @@ def test_overriden_wcs():
 
 
 # set up parameters for test_collapse:
-np.random.seed(42)
+rng = np.random.default_rng(42)
 collapse_units = [None, u.Jy]
 collapse_propagate = [True, False]
 collapse_data_shapes = [
@@ -620,7 +620,7 @@ collapse_masks = list(
         ]
         + [
             # assemble a bunch of random masks:
-            np.random.randint(0, 2, size=collapse_data_shape).astype(bool)
+            rng.integers(0, 2, size=collapse_data_shape).astype(bool)
             for _ in range(10)
         ]
         for collapse_data_shape in collapse_data_shapes

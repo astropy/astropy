@@ -67,8 +67,9 @@ def normal(
         std = np.asanyarray(std)
 
     randshape = np.broadcast(std, center).shape + (n_samples,)
+    rng = np.random.default_rng()
     samples = (
-        center[..., np.newaxis] + np.random.randn(*randshape) * std[..., np.newaxis]
+        center[..., np.newaxis] + rng.standard_normal(randshape) * std[..., np.newaxis]
     )
     return cls(samples, **kwargs)
 
@@ -116,7 +117,8 @@ def poisson(center, n_samples, cls=Distribution, **kwargs):
         poissonarr = np.asanyarray(center)
     randshape = poissonarr.shape + (n_samples,)
 
-    samples = np.random.poisson(poissonarr[..., np.newaxis], randshape)
+    rng = np.random.default_rng()
+    samples = rng.poisson(poissonarr[..., np.newaxis], randshape)
     if has_unit:
         if center.unit == u.adu:
             warn(
@@ -203,6 +205,7 @@ def uniform(
     else:
         width = (upper - lower)[:, np.newaxis]
         lower = lower[:, np.newaxis]
-    samples = lower + width * np.random.uniform(size=newshape)
+    rng = np.random.default_rng()
+    samples = lower + width * rng.uniform(size=newshape)
 
     return cls(samples, **kwargs)

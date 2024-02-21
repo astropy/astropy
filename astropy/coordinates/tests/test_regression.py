@@ -339,10 +339,10 @@ def test_regression_5209():
 
 def test_regression_5133():
     N = 1000
-    np.random.seed(12345)
-    lon = np.random.uniform(-10, 10, N) * u.deg
-    lat = np.random.uniform(50, 52, N) * u.deg
-    alt = np.random.uniform(0, 10.0, N) * u.km
+    rng = np.random.default_rng(12345)
+    lon = rng.uniform(-10, 10, N) * u.deg
+    lat = rng.uniform(50, 52, N) * u.deg
+    alt = rng.uniform(0, 10.0, N) * u.km
 
     time = Time("2010-1-1")
 

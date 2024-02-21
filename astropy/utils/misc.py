@@ -155,13 +155,13 @@ class NumpyRNGContext:
     def __enter__(self):
         from numpy import random
 
-        self.startstate = random.get_state()
-        random.seed(self.seed)
+        self.startstate = random.get_state()  # noqa: NPY002
+        random.seed(self.seed)  # noqa: NPY002
 
     def __exit__(self, exc_type, exc_value, traceback):
         from numpy import random
 
-        random.set_state(self.startstate)
+        random.set_state(self.startstate)  # noqa: NPY002
 
 
 def find_api_page(obj, version=None, openinbrowser=True, timeout=None):

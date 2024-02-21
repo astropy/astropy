@@ -85,7 +85,8 @@ class TestUtilMode(FitsTestCase):
 
     @pytest.mark.skipif(not HAS_PIL, reason="requires pil")
     def test_mode_pil_image(self):
-        img = np.random.randint(0, 255, (5, 5, 3)).astype(np.uint8)
+        rng = np.random.default_rng()
+        img = rng.integers(0, 255, (5, 5, 3)).astype(np.uint8)
         result = Image.fromarray(img)
 
         result.save(self.temp("test_simple.jpg"))

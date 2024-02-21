@@ -33,7 +33,6 @@ from astropy.modeling.fitting import (
 )
 from astropy.modeling.optimizers import Optimization
 from astropy.stats import sigma_clip
-from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
@@ -180,8 +179,8 @@ class TestJointFitter:
         y1 = self.g1(self.x)
         y2 = self.g2(self.x)
 
-        with NumpyRNGContext(_RANDOM_SEED):
-            n = np.random.randn(100)
+        rng = np.random.default_rng(_RANDOM_SEED)
+        n = rng.standard_normal(100)
 
         self.ny1 = y1 + 2 * n
         self.ny2 = y2 + 2 * n
@@ -258,8 +257,8 @@ class TestLinearLSQFitter:
         assert y_expected.shape == (2, 10)
 
         # Add a bit of random noise
-        with NumpyRNGContext(_RANDOM_SEED):
-            y = y_expected + np.random.normal(0, 0.01, size=y_expected.shape)
+        rng = np.random.default_rng(_RANDOM_SEED)
+        y = y_expected + rng.normal(0, 0.01, size=y_expected.shape)
 
         fitter = LinearLSQFitter()
         fitted_model = fitter(init_model, x, y)
@@ -275,8 +274,8 @@ class TestLinearLSQFitter:
         assert z_expected.shape == (2, 10)
 
         # Add a bit of random noise
-        with NumpyRNGContext(_RANDOM_SEED):
-            z = z_expected + np.random.normal(0, 0.01, size=z_expected.shape)
+        rng = np.random.default_rng(_RANDOM_SEED)
+        z = z_expected + rng.normal(0, 0.01, size=z_expected.shape)
 
         fitter = LinearLSQFitter()
         fitted_model = fitter(init_model, x, y, z)
@@ -385,8 +384,8 @@ class TestNonLinearFitters:
         self.xdata = np.arange(0, 10, 0.1)
         sigma = 4.0 * np.ones_like(self.xdata)
 
-        with NumpyRNGContext(_RANDOM_SEED):
-            yerror = np.random.normal(0, sigma)
+        rng = np.random.default_rng(_RANDOM_SEED)
+        yerror = rng.normal(0, sigma)
 
         def func(p, x):
             return p[0] * np.exp(-0.5 / p[2] ** 2 * (x - p[1]) ** 2)
@@ -530,7 +529,7 @@ class TestNonLinearFitters:
         """
         fitter = fitter()
 
-        np.random.seed(42)
+        rng = np.random.default_rng(42)
         norder = 2
 
         fitter2 = LinearLSQFitter()
@@ -538,17 +537,17 @@ class TestNonLinearFitters:
         model = models.Polynomial1D(norder)
         npts = 10000
         c = [2.0, -10.0, 7.0]
-        tw = np.random.uniform(0.0, 10.0, npts)
-        tx = np.random.uniform(0.0, 10.0, npts)
+        tw = rng.uniform(0.0, 10.0, npts)
+        tx = rng.uniform(0.0, 10.0, npts)
         ty = c[0] + c[1] * tx + c[2] * (tx**2)
-        ty += np.random.normal(0.0, 1.5, npts)
+        ty += rng.normal(0.0, 1.5, npts)
 
         with pytest.warns(AstropyUserWarning, match=r"Model is linear in parameters"):
             tf1 = fitter(model, tx, ty, weights=tw)
         tf2 = fitter2(model, tx, ty, weights=tw)
 
         assert_allclose(tf1.parameters, tf2.parameters, atol=10 ** (-16))
-        assert_allclose(tf1.parameters, c, rtol=10 ** (-2), atol=10 ** (-2))
+        assert_allclose(tf1.parameters, c, rtol=10 ** (-1), atol=10 ** (-1))
 
         model = models.Gaussian1D()
         if isinstance(fitter, (TRFLSQFitter, LMLSQFitter)):
@@ -564,9 +563,9 @@ class TestNonLinearFitters:
         nypts = 150
         npts = nxpts * nypts
         c = [1.0, 4.0, 7.0, -8.0, -9.0, -3.0]
-        tw = np.random.uniform(0.0, 10.0, npts).reshape(nxpts, nypts)
-        tx = np.random.uniform(0.0, 10.0, npts).reshape(nxpts, nypts)
-        ty = np.random.uniform(0.0, 10.0, npts).reshape(nxpts, nypts)
+        tw = rng.uniform(0.0, 10.0, npts).reshape(nxpts, nypts)
+        tx = rng.uniform(0.0, 10.0, npts).reshape(nxpts, nypts)
+        ty = rng.uniform(0.0, 10.0, npts).reshape(nxpts, nypts)
         tz = (
             c[0]
             + c[1] * tx
@@ -575,14 +574,14 @@ class TestNonLinearFitters:
             + c[4] * (ty**2)
             + c[5] * tx * ty
         )
-        tz += np.random.normal(0.0, 1.5, npts).reshape(nxpts, nypts)
+        tz += rng.normal(0.0, 1.5, npts).reshape(nxpts, nypts)
 
         with pytest.warns(AstropyUserWarning, match=r"Model is linear in parameters"):
             tf1 = fitter(model, tx, ty, tz, weights=tw)
         tf2 = fitter2(model, tx, ty, tz, weights=tw)
 
         assert_allclose(tf1.parameters, tf2.parameters, atol=10 ** (-16))
-        assert_allclose(tf1.parameters, c, rtol=10 ** (-2), atol=10 ** (-2))
+        assert_allclose(tf1.parameters, c, rtol=10 ** (-1), atol=10 ** (-1))
 
     def test_simplex_lsq_fitter(self):
         """A basic test for the `SimplexLSQ` fitter."""
@@ -596,9 +595,9 @@ class TestNonLinearFitters:
                 return (a - x) ** 2 + b * (y - x**2) ** 2
 
         x = y = np.linspace(-3.0, 3.0, 100)
-        with NumpyRNGContext(_RANDOM_SEED):
-            z = Rosenbrock.evaluate(x, y, 1.0, 100.0)
-            z += np.random.normal(0.0, 0.1, size=z.shape)
+        rng = np.random.default_rng(_RANDOM_SEED)
+        z = Rosenbrock.evaluate(x, y, 1.0, 100.0)
+        z += rng.normal(0.0, 0.1, size=z.shape)
 
         fitter = SimplexLSQFitter()
         r_i = Rosenbrock(1, 100)
@@ -617,11 +616,11 @@ class TestNonLinearFitters:
         a = 2
         b = 100
 
-        with NumpyRNGContext(_RANDOM_SEED):
-            x = np.linspace(0, 1, 100)
-            # y scatter is amplitude ~1 to make sure covariance is
-            # non-negligible
-            y = x * a + b + np.random.randn(len(x))
+        rng = np.random.default_rng(_RANDOM_SEED)
+        x = np.linspace(0, 1, 100)
+        # y scatter is amplitude ~1 to make sure covariance is
+        # non-negligible
+        y = x * a + b + rng.standard_normal(len(x))
 
         # first compute the ordinary least squares covariance matrix
         X = np.vstack([x, np.ones(len(x))]).T
@@ -649,12 +648,12 @@ class TestNonLinearFitters:
         a = 2
         b = 100
 
-        with NumpyRNGContext(_RANDOM_SEED):
-            x = np.linspace(0, 1, 100)
-            # y scatter is amplitude ~1 to make sure covariance is
-            # non-negligible
-            y = x * a + b + np.random.normal(size=len(x))
-            sigma = np.random.normal(loc=1, scale=0.1, size=len(x))
+        rng = np.random.default_rng(_RANDOM_SEED)
+        x = np.linspace(0, 1, 100)
+        # y scatter is amplitude ~1 to make sure covariance is
+        # non-negligible
+        y = x * a + b + rng.normal(size=len(x))
+        sigma = rng.normal(loc=1, scale=0.1, size=len(x))
 
         # compute the ordinary least squares covariance matrix
         # accounting for measurement uncertainties `sigma`
@@ -761,11 +760,10 @@ class Test1DFittingWithOutlierRemoval:
 
         fitter = fitter()
 
-        np.random.seed(0)
+        rng = np.random.default_rng(0)
         c = stats.bernoulli.rvs(0.25, size=self.x.shape)
         y = self.y + (
-            np.random.normal(0.0, 0.2, self.x.shape)
-            + c * np.random.normal(3.0, 5.0, self.x.shape)
+            rng.normal(0.0, 0.2, self.x.shape) + c * rng.normal(3.0, 5.0, self.x.shape)
         )
 
         g_init = models.Gaussian1D(amplitude=1.0, mean=0, stddev=1.0)
@@ -821,11 +819,11 @@ class Test2DFittingWithOutlierRemoval:
 
         fitter = fitter()
 
-        np.random.seed(0)
+        rng = np.random.default_rng(0)
         c = stats.bernoulli.rvs(0.25, size=self.z.shape)
         z = self.z + (
-            np.random.normal(0.0, 0.2, self.z.shape)
-            + c * np.random.normal(self.z, 2.0, self.z.shape)
+            rng.normal(0.0, 0.2, self.z.shape)
+            + c * rng.normal(self.z, 2.0, self.z.shape)
         )
 
         guess = self.initial_guess(self.z, np.array([self.y, self.x]))
@@ -1039,8 +1037,8 @@ def test_fitters_with_weights(fitter):
 
     Xin, Yin = np.mgrid[0:21, 0:21]
 
-    with NumpyRNGContext(_RANDOM_SEED):
-        zsig = np.random.normal(0, 0.01, size=Xin.shape)
+    rng = np.random.default_rng(42)
+    zsig = rng.normal(0, 0.01, size=Xin.shape)
 
     # Non-linear model
     g2 = models.Gaussian2D(10, 10, 9, 2, 3)
@@ -1062,8 +1060,8 @@ def test_linear_fitter_with_weights():
     Xin, Yin = np.mgrid[0:21, 0:21]
     fitter = LinearLSQFitter()
 
-    with NumpyRNGContext(_RANDOM_SEED):
-        zsig = np.random.normal(0, 0.01, size=Xin.shape)
+    rng = np.random.default_rng(_RANDOM_SEED)
+    zsig = rng.normal(0, 0.01, size=Xin.shape)
 
     p2 = models.Polynomial2D(3)
     p2.parameters = np.arange(10) / 1.2
@@ -1111,8 +1109,8 @@ def test_linear_fitter_with_weights_flat():
     Xin, Yin = Xin.flatten(), Yin.flatten()
     fitter = LinearLSQFitter()
 
-    with NumpyRNGContext(_RANDOM_SEED):
-        zsig = np.random.normal(0, 0.01, size=Xin.shape)
+    rng = np.random.default_rng(_RANDOM_SEED)
+    zsig = rng.normal(0, 0.01, size=Xin.shape)
 
     p2 = models.Polynomial2D(3)
     p2.parameters = np.arange(10) / 1.2
@@ -1225,8 +1223,8 @@ def test_fitting_with_outlier_removal_niter():
 
     # 2 rows with some noise around a constant level and 1 deviant point:
     x = np.arange(25)
-    with NumpyRNGContext(_RANDOM_SEED):
-        y = np.random.normal(loc=10.0, scale=1.0, size=(2, 25))
+    rng = np.random.default_rng(_RANDOM_SEED)
+    y = rng.normal(loc=10.0, scale=1.0, size=(2, 25))
     y[0, 14] = 100.0
 
     # Fit 2 models with up to 5 iterations (should only take 2):
@@ -1275,11 +1273,11 @@ class TestFittingUncertanties:
     ]
 
     def setup_class(self):
-        np.random.seed(619)
+        rng = np.random.default_rng(0)
         self.x = np.arange(10)
-        self.x_grid = np.random.randint(0, 100, size=100).reshape(10, 10)
-        self.y_grid = np.random.randint(0, 100, size=100).reshape(10, 10)
-        self.rand_grid = np.random.random(100).reshape(10, 10)
+        self.x_grid = rng.integers(0, 100, size=100).reshape(10, 10)
+        self.y_grid = rng.integers(0, 100, size=100).reshape(10, 10)
+        self.rand_grid = rng.random(100).reshape(10, 10)
         self.rand = self.rand_grid[0]
 
     @pytest.mark.parametrize(
@@ -1377,22 +1375,22 @@ class TestFittingUncertanties:
         print(fit_mod.cov_matrix)
         captured = capsys.readouterr()
         assert "slope    | 0.001" in captured.out
-        assert "intercept| -0.005,  0.03" in captured.out
+        assert "intercept| -0.006,  0.03" in captured.out
 
         print(fit_mod.stds)
         captured = capsys.readouterr()
-        assert "slope    | 0.032" in captured.out
-        assert "intercept| 0.173" in captured.out
+        assert "slope    | 0.036" in captured.out
+        assert "intercept| 0.19" in captured.out
 
         # test 'pprint' for Covariance/stds
         print(fit_mod.cov_matrix.pprint(round_val=5, max_lines=1))
         captured = capsys.readouterr()
-        assert "slope    | 0.00105" in captured.out
+        assert "slope    | 0.00127" in captured.out
         assert "intercept" not in captured.out
 
         print(fit_mod.stds.pprint(max_lines=1, round_val=5))
         captured = capsys.readouterr()
-        assert "slope    | 0.03241" in captured.out
+        assert "slope    | 0.03561" in captured.out
         assert "intercept" not in captured.out
 
         # test indexing for Covariance class.
@@ -1452,8 +1450,8 @@ def test_non_finite_filter_2D(fitter, weights):
     x, y = np.mgrid[0:10, 0:10]
 
     m_true = models.Gaussian2D(amplitude=1, x_mean=5, y_mean=5, x_stddev=2, y_stddev=2)
-    with NumpyRNGContext(_RANDOM_SEED):
-        z = m_true(x, y) + np.random.rand(*x.shape)
+    rng = np.random.default_rng(42)
+    z = m_true(x, y) + rng.random(x.shape)
     z[0, 0] = np.nan
     z[3, 3] = np.inf
     z[7, 5] = -np.inf

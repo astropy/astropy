@@ -57,8 +57,9 @@ delta_pulse_1D[40] = 1
 delta_pulse_2D = np.zeros((81, 81))
 delta_pulse_2D[40, 40] = 1
 
-random_data_1D = np.random.rand(61)
-random_data_2D = np.random.rand(61, 61)
+rng = np.random.default_rng()
+random_data_1D = rng.random(61)
+random_data_2D = rng.random((61, 61))
 
 
 class TestKernels:

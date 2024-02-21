@@ -91,7 +91,8 @@ class Test2DConvolutions:
 
         shape = kernel.array.shape
 
-        x = np.random.randn(*shape)
+        rng = np.random.default_rng()
+        x = rng.standard_normal(shape)
 
         c2 = convolve_fft(x, kernel, boundary="fill")
         c1 = convolve(x, kernel, boundary="fill")

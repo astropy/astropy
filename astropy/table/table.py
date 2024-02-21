@@ -1816,7 +1816,7 @@ class Table:
         from .jsviewer import JSViewer
 
         if tableid is None:
-            tableid = f"table{id(self)}-{np.random.randint(1, 1e6)}"
+            tableid = f"table{id(self)}-{np.random.randint(1, 1e6)}"  # noqa: NPY002
 
         jsv = JSViewer(display_length=display_length)
         if show_row_index:

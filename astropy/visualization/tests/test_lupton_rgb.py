@@ -43,7 +43,8 @@ def saturate(image, satValue):
 
 
 def random_array(dtype, N=100):
-    return np.array(np.random.random(10) * 100, dtype=dtype)
+    rng = np.random.default_rng()
+    return np.array(rng.random(10) * N, dtype=dtype)
 
 
 def test_compute_intensity_1_float():
@@ -82,7 +83,7 @@ class TestLuptonRgb:
     """A test case for Rgb"""
 
     def setup_method(self, method):
-        np.random.seed(1000)  # so we always get the same images.
+        self.rng = np.random.default_rng(1000)  # so we always get the same images.
 
         self.min_, self.stretch_, self.Q = 0, 5, 20  # asinh
 
@@ -112,7 +113,7 @@ class TestLuptonRgb:
             convolvedImage = convolve(
                 image, psf, boundary="extend", normalize_kernel=True
             )
-            randomImage = np.random.normal(0, 2, image.shape)
+            randomImage = self.rng.normal(0, 2, image.shape)
             return randomImage + convolvedImage
 
         psf = Gaussian2DKernel(2.5)

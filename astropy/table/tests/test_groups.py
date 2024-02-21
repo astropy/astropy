@@ -742,7 +742,8 @@ def test_group_stable_sort(add_index):
     This tests explicitly the case where grouping is done via the index sort.
     See: https://github.com/astropy/astropy/issues/14882
     """
-    a = np.random.randint(0, 5, 1000)
+    rng = np.random.default_rng()
+    a = rng.integers(0, 5, 1000)
     b = np.arange(len(a))
     t = Table([a, b], names=["a", "b"])
     if add_index:

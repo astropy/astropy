@@ -51,7 +51,8 @@ class TestManipulation:
         cls.pressure = 1000 * u.hPa
         # As well as an array.
         cls.temperature = (
-            np.random.uniform(0.0, 20.0, size=(lon.size, lat.size)) * u.deg_C
+            np.random.default_rng().uniform(0.0, 20.0, size=(lon.size, lat.size))
+            * u.deg_C
         )
         cls.s1 = AltAz(
             az=lon[:, np.newaxis],

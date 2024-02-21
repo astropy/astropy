@@ -273,9 +273,10 @@ def test_read_write_votable_parquet(tmp_path, overwrite):
     # Create some fake data
     number_of_objects = 10
     ids = [f"COSMOS_{ii:03g}" for ii in range(number_of_objects)]
-    redshift = np.random.uniform(low=0, high=3, size=number_of_objects)
-    mass = np.random.uniform(low=1e8, high=1e10, size=number_of_objects)
-    sfr = np.random.uniform(low=1, high=100, size=number_of_objects)
+    rng = np.random.default_rng()
+    redshift = rng.uniform(low=0, high=3, size=number_of_objects)
+    mass = rng.uniform(low=1e8, high=1e10, size=number_of_objects)
+    sfr = rng.uniform(low=1, high=100, size=number_of_objects)
     astropytab = Table([ids, redshift, mass, sfr], names=["id", "z", "mass", "sfr"])
 
     # Create Column metadata

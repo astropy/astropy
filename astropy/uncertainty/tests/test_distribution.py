@@ -23,8 +23,9 @@ class TestInit:
     @classmethod
     def setup_class(self):
         self.rates = np.array([1, 5, 30, 400])[:, np.newaxis]
-        self.parr = np.random.poisson(self.rates, (4, 1000))
-        self.parr_t = np.random.poisson(self.rates.squeeze(), (1000, 4))
+        rng = np.random.default_rng()
+        self.parr = rng.poisson(self.rates, (4, 1000))
+        self.parr_t = rng.poisson(self.rates.squeeze(), (1000, 4))
 
     def test_numpy_init(self):
         # Test that we can initialize directly from a Numpy array
@@ -58,7 +59,8 @@ class TestInit:
 
 
 def test_init_scalar():
-    parr = np.random.poisson(np.array([1, 5, 30, 400])[:, np.newaxis], (4, 1000))
+    rng = np.random.default_rng()
+    parr = rng.poisson(np.array([1, 5, 30, 400])[:, np.newaxis], (4, 1000))
     with pytest.raises(
         TypeError, match=r"Attempted to initialize a Distribution with a scalar"
     ):
@@ -67,12 +69,12 @@ def test_init_scalar():
 
 class TestDistributionStatistics:
     def setup_class(self):
-        with NumpyRNGContext(12345):
-            self.data = np.random.normal(
-                np.array([1, 2, 3, 4])[:, np.newaxis],
-                np.array([3, 2, 4, 5])[:, np.newaxis],
-                (4, 10000),
-            )
+        rng = np.random.default_rng(12345)
+        self.data = rng.normal(
+            np.array([1, 2, 3, 4])[:, np.newaxis],
+            np.array([3, 2, 4, 5])[:, np.newaxis],
+            (4, 10000),
+        )
 
         self.distr = Distribution(self.data * u.kpc)
 
@@ -214,8 +216,10 @@ class TestDistributionStatistics:
         assert_quantity_allclose(distrplus.pdf_var(), expected)
 
     def test_add_distribution(self):
+        rng = np.random.default_rng()
         another_data = (
-            np.random.randn(4, 10000) * np.array([1000, 0.01, 80, 10])[:, np.newaxis]
+            rng.standard_normal((4, 10000))
+            * np.array([1000, 0.01, 80, 10])[:, np.newaxis]
             + np.array([2000, 0, 0, 500])[:, np.newaxis]
         )
         # another_data is in pc, but main distr is in kpc
@@ -331,7 +335,8 @@ def test_wrong_kw_fails(func, kws):
 
 
 def test_index_assignment_quantity():
-    arr = np.random.randn(2, 1000)
+    rng = np.random.default_rng()
+    arr = rng.standard_normal((2, 1000))
     distr = Distribution(arr * u.kpc)
     d1q, d2q = distr
     assert isinstance(d1q, Distribution)
@@ -344,7 +349,8 @@ def test_index_assignment_quantity():
 
 
 def test_index_assignment_array():
-    arr = np.random.randn(2, 1000)
+    rng = np.random.default_rng()
+    arr = rng.standard_normal((2, 1000))
     distr = Distribution(arr)
     d1a, d2a = distr
     assert isinstance(d1a, Distribution)
@@ -357,7 +363,8 @@ def test_index_assignment_array():
 
 
 def test_histogram():
-    arr = np.random.randn(2, 3, 1000)
+    rng = np.random.default_rng()
+    arr = rng.standard_normal((2, 3, 1000))
     distr = Distribution(arr)
 
     hist, bins = distr.pdf_histogram(bins=10)
@@ -369,8 +376,8 @@ def test_array_repr_latex():
     # as of this writing ndarray does not have a _repr_latex_, and this test
     # ensure distributions account for that. However, if in the future ndarray
     # gets a _repr_latex_, we can skip this.
-
-    arr = np.random.randn(4, 1000)
+    rng = np.random.default_rng()
+    arr = rng.standard_normal((4, 1000))
 
     if hasattr(arr, "_repr_latex_"):
         pytest.skip("in this version of numpy, ndarray has a _repr_latex_")

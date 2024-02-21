@@ -1674,7 +1674,8 @@ class TestHistogramFunctions:
         # For quantities, it is probably not that likely one would pass
         # in the sample as an array, but check that it works anyway.
         # This also gives a 3-D check.
-        xyz = np.random.normal(size=(10, 3)) * u.m
+        rng = np.random.default_rng()
+        xyz = rng.normal(size=(10, 3)) * u.m
         self.check(
             np.histogramdd,
             xyz,

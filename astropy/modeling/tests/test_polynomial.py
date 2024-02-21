@@ -537,6 +537,7 @@ def test_zero_degree_polynomial(cls):
 
     MESSAGE = "Degree of polynomial must be positive or null"
 
+    rng = np.random.default_rng(0)
     if cls.n_inputs == 1:  # Test 1D polynomials
         p1 = cls(degree=0, c0=1)
         assert p1(0) == 1
@@ -544,7 +545,7 @@ def test_zero_degree_polynomial(cls):
 
         x = np.linspace(0, 1, 100)
         # Add a little noise along a straight line
-        y = 1 + np.random.uniform(0, 0.1, len(x))
+        y = 1 + rng.uniform(0, 0.1, len(x))
 
         p1_init = cls(degree=0)
         fitter = fitting.LinearLSQFitter()
@@ -591,7 +592,7 @@ def test_zero_degree_polynomial(cls):
         assert np.all(p2(np.zeros(5), np.zeros(5)) == np.ones(5))
 
         y, x = np.mgrid[0:1:100j, 0:1:100j]
-        z = (1 + np.random.uniform(0, 0.1, x.size)).reshape(100, 100)
+        z = (1 + rng.uniform(0, 0.1, x.size)).reshape(100, 100)
 
         if issubclass(cls, OrthoPolynomialBase):
             p2_init = cls(x_degree=0, y_degree=0)

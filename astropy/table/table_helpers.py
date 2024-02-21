@@ -29,15 +29,15 @@ class TimingTables:
         self.table = Table(masked=self.masked)
 
         # Create column with mixed types
-        np.random.seed(12345)
+        rng = np.random.default_rng(12345)
         self.table["i"] = np.arange(size)
-        self.table["a"] = np.random.random(size)  # float
-        self.table["b"] = np.random.random(size) > 0.5  # bool
-        self.table["c"] = np.random.random((size, 10))  # 2d column
-        self.table["d"] = np.random.choice(np.array(list(string.ascii_letters)), size)
+        self.table["a"] = rng.random(size)  # float
+        self.table["b"] = rng.random(size) > 0.5  # bool
+        self.table["c"] = rng.random((size, 10))  # 2d column
+        self.table["d"] = rng.choice(np.array(list(string.ascii_letters)), size)
 
         self.extra_row = {"a": 1.2, "b": True, "c": np.repeat(1, 10), "d": "Z"}
-        self.extra_column = np.random.randint(0, 100, size)
+        self.extra_column = rng.integers(0, 100, size)
         self.row_indices = np.where(self.table["a"] > 0.9)[0]
         self.table_grouped = self.table.group_by("d")
 

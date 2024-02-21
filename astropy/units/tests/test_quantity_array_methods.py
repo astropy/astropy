@@ -552,8 +552,8 @@ class TestArrayConversion:
         """
         Regression test for https://github.com/astropy/astropy/issues/2003
         """
-
-        a = np.random.uniform(size=(10, 8))
+        rng = np.random.default_rng()
+        a = rng.uniform(size=(10, 8))
         x, y, z = a[:, 1:4].T * u.km / u.s
         total = np.sum(a[:, 1] * u.km / u.s - x)
 

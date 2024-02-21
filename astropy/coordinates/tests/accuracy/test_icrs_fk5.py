@@ -23,7 +23,7 @@ def test_icrs_fk5():
     if N_ACCURACY_TESTS >= len(t):
         idxs = range(len(t))
     else:
-        idxs = np.random.randint(len(t), size=N_ACCURACY_TESTS)
+        idxs = np.random.default_rng().integers(len(t), size=N_ACCURACY_TESTS)
 
     diffarcsec1 = []
     diffarcsec2 = []

@@ -168,7 +168,7 @@ def test_zero_change_points(rseed=0):
     """
     Ensure that edges contains both endpoints when there are no change points
     """
-    np.random.seed(rseed)
+    rng = np.random.default_rng(rseed)
     # Using the failed edge case from
     # https://github.com/astropy/astropy/issues/8558
     values = np.array([1, 1, 1, 1, 1, 1, 1, 1, 2])
