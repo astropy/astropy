@@ -34,7 +34,7 @@ def test_initialisation():
     assert u.Unit() == u.dimensionless_unscaled
 
 
-def test_invalid_power():
+def test_raise_to_power():
     x = u.m ** Fraction(1, 3)
     assert isinstance(x.powers[0], Fraction)
 
@@ -44,6 +44,13 @@ def test_invalid_power():
     # Test the automatic conversion to a fraction
     x = u.m ** (1.0 / 3.0)
     assert isinstance(x.powers[0], Fraction)
+
+    # Test power remains integer if possible
+    x = (u.m**2) ** 0.5
+    assert isinstance(x.powers[0], int)
+
+    x = (u.m**-6) ** (1 / 3)
+    assert isinstance(x.powers[0], int)
 
 
 def test_invalid_compare():
@@ -770,10 +777,34 @@ def test_fractional_powers():
     assert isinstance(x.powers[0], Fraction)
     assert x.powers[0] == Fraction(7, 6)
 
-    # Regression test for #9258.
+    # Regression test for #9258 (avoid fractions with crazy denominators).
     x = (u.TeV ** (-2.2)) ** (1 / -2.2)
+    assert isinstance(x.powers[0], int)
+    assert x.powers[0] == 1
+    x = (u.TeV ** (-2.2)) ** (1 / -6.6)
     assert isinstance(x.powers[0], Fraction)
-    assert x.powers[0] == Fraction(1, 1)
+    assert x.powers[0] == Fraction(1, 3)
+
+
+def test_large_fractional_powers():
+    # Ensure we keep fractions if the user passes them in
+    # and the powers are themselves simple fractions.
+    x1 = u.m ** Fraction(10, 11)
+    assert isinstance(x1.powers[0], Fraction)
+    assert x1.powers[0] == Fraction(10, 11)
+    x2 = x1 ** Fraction(10, 11)
+    assert isinstance(x2.powers[0], Fraction)
+    assert x2.powers[0] == Fraction(100, 121)
+    # Check powers that can be represented as simple fractions.
+    x3 = x2**0.5
+    assert isinstance(x3.powers[0], Fraction)
+    assert x3.powers[0] == Fraction(50, 121)
+    x4 = x3 ** (5 / 11)
+    assert isinstance(x4.powers[0], Fraction)
+    assert x4.powers[0] == Fraction(250, 1331)
+    x5 = x4**1.1
+    assert isinstance(x5.powers[0], Fraction)
+    assert x5.powers[0] == Fraction(25, 121)
 
 
 def test_sqrt_mag():
@@ -800,8 +831,8 @@ def test_compare_with_none():
     assert u.m != None
 
 
-def test_validate_power_detect_fraction():
-    frac = utils.validate_power(1.1666666666666665)
+def test_sanitize_power_detect_fraction():
+    frac = utils.sanitize_power(1.1666666666666665)
     assert isinstance(frac, Fraction)
     assert frac.numerator == 7
     assert frac.denominator == 6
@@ -932,3 +963,12 @@ def test_cm_uniqueness():
     # Ensure we have defined cm only once; see gh-15200.
     assert u.si.cm is u.cgs.cm is u.cm
     assert str(u.si.cm / u.cgs.cm) == ""  # was cm / cm
+
+
+@pytest.mark.parametrize("unit, power", [(u.m, 2), (u.m, 3), (u.m / u.s, 9)])
+def test_hash_represents_unit(unit, power):
+    # Regression test for gh-16055
+    tu = (unit**power) ** (1 / power)
+    assert hash(tu) == hash(unit)
+    tu2 = (unit ** (1 / power)) ** power
+    assert hash(tu2) == hash(unit)

@@ -145,6 +145,17 @@ NEW     2018-05-08   nan    9.0""",
     assert report_diff_values(a, a, fileobj=f)
 
 
+def test_large_table_diff():
+    # see https://github.com/astropy/astropy/issues/14010
+    colnames = [f"column{i}" for i in range(100)]
+    t1 = Table(names=colnames)
+
+    colnames.insert(50, "test")
+    t2 = Table(names=colnames)
+
+    assert not report_diff_values(t1, t2, fileobj=io.StringIO())
+
+
 @pytest.mark.parametrize("kwargs", [{}, {"atol": 0, "rtol": 0}])
 def test_where_not_allclose(kwargs):
     a = np.array([1, np.nan, np.inf, 4.5])

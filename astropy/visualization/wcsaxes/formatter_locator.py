@@ -13,6 +13,7 @@ import warnings
 
 import numpy as np
 from matplotlib import rcParams
+from matplotlib.ticker import Formatter
 
 from astropy import units as u
 from astropy.coordinates import Angle
@@ -55,6 +56,13 @@ CUSTOM_UNITS = {
         },
     ),
 }
+
+
+def _fix_minus(labels: list[str], /) -> list[str]:
+    # correctly support axes.unicode_minus, but do it in a
+    # way that preserves arbitrary separators: only fix the leading character
+    # see https://github.com/astropy/astropy/issues/15898
+    return [Formatter.fix_minus(s[0]) + s[1:] for s in labels]
 
 
 class BaseFormatterLocator:
@@ -492,7 +500,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 format=fmt,
             ).tolist()
 
-            return string
+            return _fix_minus(string)
         else:
             return []
 
@@ -634,10 +642,14 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             else:
                 precision = self._precision
 
-            return [
-                ("{0:." + str(precision) + "f}").format(x.to_value(self._format_unit))
-                for x in values
-            ]
+            return _fix_minus(
+                [
+                    ("{0:." + str(precision) + "f}").format(
+                        x.to_value(self._format_unit)
+                    )
+                    for x in values
+                ]
+            )
 
         else:
             return []

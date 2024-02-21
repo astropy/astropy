@@ -109,12 +109,6 @@ by altering the `astropy.table.conf.default_notebook_table_class
 .. image:: table_repr_html.png
    :width: 450px
 
-Or you can get a fancier notebook interface with in-browser search, and sort
-using :meth:`~astropy.table.Table.show_in_notebook`:
-
-.. image:: table_show_in_nb.png
-   :width: 450px
-
 If you print the table (either from the notebook or in a text console session)
 then a formatted version appears::
 
