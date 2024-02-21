@@ -388,9 +388,9 @@ def test_to_string_vector():
     [
         ("deg", "fromunit", "15d00m00s"),
         ("deg", "dms", "15d00m00s"),
-        pytest.param("deg", "hms", "1h00m00s", marks=pytest.mark.xfail),
+        ("deg", "hms", "1h00m00s"),
         ("hourangle", "fromunit", "15h00m00s"),
-        pytest.param("hourangle", "dms", "225d00m00s", marks=pytest.mark.xfail),
+        ("hourangle", "dms", "225d00m00s"),
         ("hourangle", "hms", "15h00m00s"),
     ],
 )

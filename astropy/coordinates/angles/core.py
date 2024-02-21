@@ -307,7 +307,12 @@ class Angle(SpecificTypeQuantity):
 
         """
         if unit is None:
-            unit = self.unit
+            if sep == "dms":
+                unit = u.degree
+            elif sep == "hms":
+                unit = u.hourangle
+            else:
+                unit = self.unit
         else:
             unit = self._convert_unit_to_angle_unit(u.Unit(unit))
 
