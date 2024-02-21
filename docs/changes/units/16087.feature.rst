@@ -1,4 +1,4 @@
-Add a ``format_spec`` argument to the ``to_string`` method of the ``Quantity`` class. Enables custom number formatting, especially useful for consistent notation. 
+Add a ``format_spec`` argument to the ``to_string`` method of the ``Quantity`` class. Enables custom number formatting, especially useful for consistent notation.
 The argument accepts standard Python format specifiers, allowing detailed control over the output format.
 
 Example usage:
