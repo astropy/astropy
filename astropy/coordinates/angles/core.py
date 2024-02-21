@@ -205,12 +205,12 @@ class Angle(SpecificTypeQuantity):
     @property
     def hms(self):
         """The angle's value in hours, as a named tuple with ``(h, m, s)`` members."""
-        return hms_tuple(*formats.hours_to_hms(self.hourangle))
+        return hms_tuple(*formats._decimal_to_sexagesimal(self.hourangle))
 
     @property
     def dms(self):
         """The angle's value in degrees, as a ``(d, m, s)`` named tuple."""
-        return dms_tuple(*formats.degrees_to_dms(self.degree))
+        return dms_tuple(*formats._decimal_to_sexagesimal(self.degree))
 
     @property
     def signed_dms(self):
@@ -223,7 +223,7 @@ class Angle(SpecificTypeQuantity):
         representations of coordinates that are correct for negative angles.
         """
         return signed_dms_tuple(
-            np.sign(self.degree), *formats.degrees_to_dms(np.abs(self.degree))
+            np.sign(self.degree), *formats._decimal_to_sexagesimal(np.abs(self.degree))
         )
 
     def to_string(
@@ -327,14 +327,14 @@ class Angle(SpecificTypeQuantity):
 
         # Create an iterator so we can format each element of what
         # might be an array.
-        if not decimal and (unit_is_deg := unit == u.degree or unit == u.hourangle):
+        if not decimal and (unit == u.degree or unit == u.hourangle):
             # Sexagesimal.
             if sep == "fromunit":
                 if format not in separators:
                     raise ValueError(f"Unknown format '{format}'")
                 sep = separators[format][unit]
             func = functools.partial(
-                formats.degrees_to_string if unit_is_deg else formats.hours_to_string,
+                formats._decimal_to_sexagesimal_string,
                 precision=precision,
                 sep=sep,
                 pad=pad,
