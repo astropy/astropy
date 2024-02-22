@@ -1,1 +1,1 @@
-Added a new CGS unit Oersted, and also magnetic flux density to magnetic field strength equivalency.
+Added a new CGS unit Oersted.
