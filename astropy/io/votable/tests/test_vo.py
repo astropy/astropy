@@ -786,7 +786,6 @@ class TestThroughBinary2(TestParse):
 
         self.xmlout = bio = io.BytesIO()
         # W39: Bit values can not be masked
-        # with pytest.warns(W39):
         votable.to_xml(bio)
         bio.seek(0)
         self.votable = parse(bio)
