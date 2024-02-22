@@ -399,42 +399,30 @@ def parse_angle(angle, unit=None, debug=False):
     return _AngleParser().parse(angle, unit, debug=debug)
 
 
-def degrees_to_dms(d):
+def _decimal_to_sexagesimal(a, /):
     """
-    Convert a floating-point degree value into a ``(degree, arcminute,
-    arcsecond)`` tuple.
+    Convert a floating-point input to a 3 tuple
+    - if input is in degrees, the result is (degree, arcminute, arcsecond)
+    - if input is in hourangle, the result is (hour, minute, second)
     """
-    sign = np.copysign(1.0, d)
+    sign = np.copysign(1.0, a)
+    # assuming a in degree, these are (degree fraction, degree)
+    (df, d) = np.modf(np.fabs(a))
 
-    (df, d) = np.modf(np.abs(d))  # (degree fraction, degree)
-    (mf, m) = np.modf(df * 60.0)  # (minute fraction, minute)
+    # assuming a in degree, these are (arcminute fraction, arcminute)
+    (mf, m) = np.modf(df * 60.0)
     s = mf * 60.0
 
     return np.floor(sign * d), sign * np.floor(m), sign * s
 
 
-def hours_to_hms(h):
+def _decimal_to_sexagesimal_string(
+    angle, precision=None, pad=False, sep=(":",), fields=3
+):
     """
-    Convert an floating-point hour value into an ``(hour, minute,
-    second)`` tuple.
+    Given a floating point angle, convert it to string
     """
-    sign = np.copysign(1.0, h)
-
-    (hf, h) = np.modf(np.abs(h))  # (degree fraction, degree)
-    (mf, m) = np.modf(hf * 60.0)  # (minute fraction, minute)
-    s = mf * 60.0
-
-    return (np.floor(sign * h), sign * np.floor(m), sign * s)
-
-
-def sexagesimal_to_string(values, precision=None, pad=False, sep=(":",), fields=3):
-    """
-    Given an already separated tuple of sexagesimal values, returns
-    a string.
-
-    See `hours_to_string` and `degrees_to_string` for a higher-level
-    interface to this functionality.
-    """
+    values = _decimal_to_sexagesimal(angle)
     # Check to see if values[0] is negative, using np.copysign to handle -0
     sign = np.copysign(1.0, values[0])
     # If the coordinates are negative, we need to take the absolute values.
@@ -499,29 +487,3 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(":",), fields=
             last_value = "0" + last_value
         literal += f"{last_value}{sep[2]}"
     return literal
-
-
-def hours_to_string(h, precision=5, pad=False, sep=("h", "m", "s"), fields=3):
-    """
-    Takes a decimal hour value and returns a string formatted as hms with
-    separator specified by the 'sep' parameter.
-
-    ``h`` must be a scalar.
-    """
-    h, m, s = hours_to_hms(h)
-    return sexagesimal_to_string(
-        (h, m, s), precision=precision, pad=pad, sep=sep, fields=fields
-    )
-
-
-def degrees_to_string(d, precision=5, pad=False, sep=":", fields=3):
-    """
-    Takes a decimal hour value and returns a string formatted as dms with
-    separator specified by the 'sep' parameter.
-
-    ``d`` must be a scalar.
-    """
-    d, m, s = degrees_to_dms(d)
-    return sexagesimal_to_string(
-        (d, m, s), precision=precision, pad=pad, sep=sep, fields=fields
-    )
