@@ -1472,10 +1472,9 @@ class Quantity(np.ndarray):
 
         if format is None:
             # format_spec overwrites precision
-            if default_formatter is None:
-                if precision is None:
-                    # Use default formatting settings
-                    return f"{self.value}{self._unitstr:s}"
+            if default_formatter is None and precision is None:
+                # Use default formatting settings
+                return f"{self.value}{self._unitstr:s}"
             return (
                 np.array2string(
                     self.value,
