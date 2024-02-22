@@ -118,7 +118,11 @@ def _table_group_by(table, keys):
     # Make a new table and set the _groups to the appropriate TableGroups object.
     # Take the subset of the original keys at the indices values (group boundaries).
     out = table.__class__(table[idx_sort])
-    out_keys = table_keys[indices[:-1]]
+    if len(table) == 0:
+        out_keys = table_keys
+        indices = np.array([], dtype=int)
+    else:
+        out_keys = table_keys[indices[:-1]]
     if isinstance(out_keys, Table):
         out_keys.meta["grouped_by_table_cols"] = grouped_by_table_cols
     out._groups = TableGroups(out, indices=indices, keys=out_keys)
