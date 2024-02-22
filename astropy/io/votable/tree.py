@@ -3354,7 +3354,9 @@ class TableElement(
                             if mode == 1:
                                 chunk = converter(array_row[i], array_mask[i])
                             else:
-                                chunk = converter(array_row[i], None) # mask is already handled
+                                chunk = converter(
+                                    array_row[i], None
+                                )  # mask is already handled
                             assert type(chunk) == bytes
                         except Exception as e:
                             vo_reraise(

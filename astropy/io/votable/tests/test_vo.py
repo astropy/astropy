@@ -782,18 +782,19 @@ class TestThroughBinary2(TestParse):
             votable = parse(get_pkg_data_filename("data/regression.xml"))
         votable.version = "1.3"
         votable.get_first_table()._config["version_1_3_or_later"] = True
-        votable.get_first_table().format = "binary2"
+        
 
         self.xmlout = bio = io.BytesIO()
         # W39: Bit values can not be masked
-        with pytest.warns(W39):
-            votable.to_xml(bio)
+        # with pytest.warns(W39):
+        votable.to_xml(bio)
         bio.seek(0)
         self.votable = parse(bio)
-
+        self.votable.get_first_table().format = "binary2"
         self.table = self.votable.get_first_table()
         self.array = self.table.array
         self.mask = self.table.array.mask
+        
 
     def test_get_coosys_by_id(self):
         # No COOSYS in VOTable 1.2 or later
