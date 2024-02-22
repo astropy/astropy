@@ -239,7 +239,9 @@ class TableColumns(OrderedDict):
         Column objects as data structure that can init dict (see above)
     """
 
-    def __init__(self, cols={}):
+    def __init__(self, cols=None):
+        if cols is None:
+            cols = {}
         if isinstance(cols, (list, tuple)):
             # `cols` should be a list of two-tuples, but it is allowed to have
             # columns (BaseColumn or mixins) in the list.
