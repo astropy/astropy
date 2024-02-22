@@ -1,0 +1,1 @@
+Fix `TableElement._write_binary` method to ensure proper handling of null values during BINARY2 serialization.
