@@ -1004,6 +1004,42 @@ class TestQuantityDisplay:
             f"Quantity as KMS: {qscalar.to_string(precision=3, unit=u.km / u.s)}" == res
         )
 
+        # Scientific notation with 2 decimal places
+        res = "Quantity in scientific: 1.50e+14 m / s"
+        assert f"Quantity in scientific: {qscalar.to_string(format_spec='.2e')}" == res
+
+        # Leading zeros and fixed point notation
+        qscalar = u.Quantity(0.123, "m/s")
+        res = "Quantity with leading zeros: 0.123 m / s"
+        assert (
+            f"Quantity with leading zeros: {qscalar.to_string(format_spec='0.3f')}"
+            == res
+        )
+
+        # Scientific notation for small numbers
+        qscalar = u.Quantity(0.000123, "m/s")
+        res = "Quantity in scientific for small number: 1.23e-04 m / s"
+        assert (
+            f"Quantity in scientific for small number: {qscalar.to_string(format_spec='.2e')}"
+            == res
+        )
+
+        # format_spec overrides precision
+        qscalar = u.Quantity(1.23456789e15, "m/s")
+        res = "Large quantity with format_spec: 1.23e+15 m / s"
+        assert (
+            f"Large quantity with format_spec: {qscalar.to_string(format_spec='.2e', precision=5)}"
+            == res
+        )
+
+        # To km/s and apply scientific notation with 3 decimal places
+        expected_result = r"$1.235 \times 10^{12} \; \mathrm{\frac{km}{s}}$"
+        assert (
+            qscalar.to_string(format="latex", unit=u.km / u.s, format_spec=".3e")
+            == expected_result
+        )
+
+        qscalar = u.Quantity(1.5e14, "m/s")
         res = r"$1.5 \times 10^{14} \; \mathrm{\frac{m}{s}}$"
         assert qscalar.to_string(format="latex") == res
         assert qscalar.to_string(format="latex", subfmt="inline") == res

@@ -1449,7 +1449,8 @@ class Quantity(np.ndarray):
         """
         if unit is not None and unit != self.unit:
             return self.to(unit).to_string(
-                unit=None, precision=precision, format=format, subfmt=subfmt
+                unit=None, precision=precision, format=format, subfmt=subfmt,
+                format_spec=format_spec
             )
 
         formats = {
