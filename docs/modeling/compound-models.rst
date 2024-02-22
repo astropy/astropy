@@ -83,33 +83,6 @@ are some complexities involved in correctly matching up the inputs and outputs
 of all models used to build a compound model.  You can learn more details in
 the :doc:`compound-models` documentation.
 
-Astropy models also support convolution through the function
-`~astropy.convolution.convolve_models`, which returns a compound model.
-
-For instance, the convolution of two Gaussian functions is also a Gaussian
-function in which the resulting mean (variance) is the sum of the means
-(variances) of each Gaussian.
-
-.. plot::
-    :include-source:
-
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from astropy.modeling import models
-    from astropy.convolution import convolve_models
-
-    g1 = models.Gaussian1D(1, -1, 1)
-    g2 = models.Gaussian1D(1, 1, 1)
-    g3 = convolve_models(g1, g2, (-4, 4), 0.1)
-
-    x = np.linspace(-3, 3, 50)
-    plt.plot(x, g1(x), 'k-')
-    plt.plot(x, g2(x), 'k-')
-    plt.plot(x, g3(x), 'k-')
-
-
-.. _compound-models:
-
 A comprehensive description
 ===========================
 
@@ -192,7 +165,8 @@ Creating compound models
 The only way to create compound models is
 to combine existing single models and/or compound models using expressions in
 Python with the binary operators ``+``, ``-``, ``*``, ``/``, ``**``, ``|``,
-and ``&``, each of which is discussed in the following sections.
+and ``&`` or by using the `~astropy.convolution.convolve_models` function,
+each of which is discussed in the following sections.
 
 The result of combining two models is a model instance::
 
@@ -534,6 +508,37 @@ transformation matrix::
     >>> # May be small numerical differences due to different implementations
     >>> allclose(scale_and_rotate(1, 2), affine(1, 2))
     True
+
+Model Convolution
+-----------------
+
+No operator has been assigned to this method of combining models. Astropy
+models support convolution through the function
+`~astropy.convolution.convolve_models`, which returns a compound model.
+
+For instance, the convolution of two Gaussian functions is also a Gaussian
+function in which the resulting mean (variance) is the sum of the means
+(variances) of each Gaussian.
+
+.. plot::
+    :include-source:
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from astropy.modeling import models
+    from astropy.convolution import convolve_models
+
+    g1 = models.Gaussian1D(1, -1, 1)
+    g2 = models.Gaussian1D(1, 1, 1)
+    g3 = convolve_models(g1, g2, bounding_box=(-5, 5), resolution=0.1)
+
+    x = np.linspace(-4, 4, 50)
+    plt.plot(x, g1(x), color='tab:blue', label='g1')
+    plt.plot(x, g2(x), color='tab:orange', label='g2')
+    plt.plot(x, g3(x), color='tab:green', label='g3')
+    plt.legend(loc='upper right')
+
+.. _compound-models:
 
 Other Topics
 ============
