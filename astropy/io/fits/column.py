@@ -1364,74 +1364,59 @@ class Column(NotifierMixin):
 
         return format, recformat
 
-    def _convert_to_valid_data_type(self, array):
+    def _convert_to_valid_data_type(self, array):  # noqa: PLR0911
         # Convert the format to a type we understand
-        if isinstance(array, Delayed):
+        if isinstance(array, Delayed) or array is None:
             return array
-        elif array is None:
+        format = self.format
+        dims = self._dims
+        if dims and format.format not in "PQ":
+            shape = dims[:-1] if "A" in format else dims
+            shape = (len(array),) + shape
+            array = array.reshape(shape)
+
+        if "P" in format or "Q" in format:
             return array
-        else:
-            format = self.format
-            dims = self._dims
-            if dims and format.format not in "PQ":
-                shape = dims[:-1] if "A" in format else dims
-                shape = (len(array),) + shape
-                array = array.reshape(shape)
+        if "A" in format:
+            if array.dtype.char not in "SU":
+                return _convert_array(array, np.dtype(format.recformat))
+            # The 'last' dimension (first in the order given
+            # in the TDIMn keyword itself) is the number of
+            # characters in each string
+            fsize = dims[-1] if dims else np.dtype(format.recformat).itemsize
+            return chararray.array(array, itemsize=fsize, copy=False)
+        if "L" in format:
+            # boolean needs to be scaled back to storage values ('T', 'F')
+            return np.where(array == 0, ord("F"), ord("T"))
+        if "X" in format:
+            return _convert_array(array, np.dtype("uint8"))
+        # Preserve byte order of the original array for now; see #77
+        numpy_format = array.dtype.byteorder + format.recformat
 
-            if "P" in format or "Q" in format:
-                return array
-            elif "A" in format:
-                if array.dtype.char in "SU":
-                    if dims:
-                        # The 'last' dimension (first in the order given
-                        # in the TDIMn keyword itself) is the number of
-                        # characters in each string
-                        fsize = dims[-1]
-                    else:
-                        fsize = np.dtype(format.recformat).itemsize
-                    return chararray.array(array, itemsize=fsize, copy=False)
-                else:
-                    return _convert_array(array, np.dtype(format.recformat))
-            elif "L" in format:
-                # boolean needs to be scaled back to storage values ('T', 'F')
-                if array.dtype == np.dtype("bool"):
-                    return np.where(array == np.False_, ord("F"), ord("T"))
-                else:
-                    return np.where(array == 0, ord("F"), ord("T"))
-            elif "X" in format:
-                return _convert_array(array, np.dtype("uint8"))
-            else:
-                # Preserve byte order of the original array for now; see #77
-                numpy_format = array.dtype.byteorder + format.recformat
+        # Handle arrays passed in as unsigned ints as pseudo-unsigned
+        # int arrays; blatantly tacked in here for now--we need columns
+        # to have explicit knowledge of whether they treated as
+        # pseudo-unsigned
+        bzeros = {2: np.uint16(2**15), 4: np.uint32(2**31), 8: np.uint64(2**63)}
+        if (
+            array.dtype.kind == "u"
+            and array.dtype.itemsize in bzeros
+            and self.bscale in (1, None, "")
+            and self.bzero == bzeros[array.dtype.itemsize]
+        ):
+            # Basically the array is uint, has scale == 1.0, and the
+            # bzero is the appropriate value for a pseudo-unsigned
+            # integer of the input dtype, then go ahead and assume that
+            # uint is assumed
+            numpy_format = numpy_format.replace("i", "u")
+            self._pseudo_unsigned_ints = True
 
-                # Handle arrays passed in as unsigned ints as pseudo-unsigned
-                # int arrays; blatantly tacked in here for now--we need columns
-                # to have explicit knowledge of whether they treated as
-                # pseudo-unsigned
-                bzeros = {
-                    2: np.uint16(2**15),
-                    4: np.uint32(2**31),
-                    8: np.uint64(2**63),
-                }
-                if (
-                    array.dtype.kind == "u"
-                    and array.dtype.itemsize in bzeros
-                    and self.bscale in (1, None, "")
-                    and self.bzero == bzeros[array.dtype.itemsize]
-                ):
-                    # Basically the array is uint, has scale == 1.0, and the
-                    # bzero is the appropriate value for a pseudo-unsigned
-                    # integer of the input dtype, then go ahead and assume that
-                    # uint is assumed
-                    numpy_format = numpy_format.replace("i", "u")
-                    self._pseudo_unsigned_ints = True
+        # The .base here means we're dropping the shape information,
+        # which is only used to format recarray fields, and is not
+        # useful for converting input arrays to the correct data type
+        dtype = np.dtype(numpy_format).base
 
-                # The .base here means we're dropping the shape information,
-                # which is only used to format recarray fields, and is not
-                # useful for converting input arrays to the correct data type
-                dtype = np.dtype(numpy_format).base
-
-                return _convert_array(array, dtype)
+        return _convert_array(array, dtype)
 
 
 class ColDefs(NotifierMixin):

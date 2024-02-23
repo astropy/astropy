@@ -1281,14 +1281,12 @@ class HDUList(list, _Verify):
 
         Returns True if a new HDU was loaded, or False otherwise.
         """
-        if self._read_all:
+        fileobj = self._file
+        if self._read_all or (fileobj is not None and fileobj.closed):
             return False
 
         saved_compression_enabled = compressed.COMPRESSION_ENABLED
-        fileobj, data, kwargs = self._file, self._data, self._open_kwargs
-
-        if fileobj is not None and fileobj.closed:
-            return False
+        data, kwargs = self._data, self._open_kwargs
 
         try:
             self._in_read_next_hdu = True
