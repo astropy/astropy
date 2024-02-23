@@ -17,6 +17,7 @@ def test_SAMPHubServer():
     SAMPHubServer(web_profile=False, mode="multiple", pool_size=1)
 
 
+@pytest.mark.slow
 def test_SAMPHubServer_run():
     """Test that SAMPHub can be run"""
     hub = SAMPHubServer(web_profile=False, mode="multiple", pool_size=1)
