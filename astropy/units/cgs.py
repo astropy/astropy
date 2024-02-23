@@ -7,6 +7,8 @@ top-level `astropy.units` namespace.
 
 from fractions import Fraction
 
+import numpy as np
+
 from . import si
 from .core import UnitBase, def_unit
 
@@ -161,6 +163,13 @@ def_unit(
     1e-8 * si.Wb,
     namespace=_ns,
     doc="Maxwell: CGS unit for magnetic flux",
+)
+def_unit(
+    ["Oe", "Oersted", "oersted"],
+    1e3 / (4 * np.pi) * si.A / si.m,
+    namespace=_ns,
+    prefixes=True,
+    doc="Oersted: CGS unit for magnetic field strength",
 )
 
 
