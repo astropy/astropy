@@ -135,9 +135,7 @@ class TestDistributionStatistics:
         expected = np.var(self.data, axis=-1) * self.distr.unit**2
         pdf_var = self.distr.pdf_var()
         assert_quantity_allclose(pdf_var, expected)
-        assert_quantity_allclose(
-            pdf_var, [9, 4, 16, 25] * self.distr.unit**2, rtol=0.1
-        )
+        assert_quantity_allclose(pdf_var, [9, 4, 16, 25] * self.distr.unit**2, rtol=0.1)
 
         # make sure the right type comes out - should be a Quantity because it's
         # now a summary statistic
@@ -225,9 +223,7 @@ class TestDistributionStatistics:
         expected = np.median(self.data + another_data / 1000, axis=-1) * self.distr.unit
         assert_quantity_allclose(combined_distr.pdf_median(), expected)
 
-        expected = (
-            np.var(self.data + another_data / 1000, axis=-1) * self.distr.unit**2
-        )
+        expected = np.var(self.data + another_data / 1000, axis=-1) * self.distr.unit**2
         assert_quantity_allclose(combined_distr.pdf_var(), expected)
 
 

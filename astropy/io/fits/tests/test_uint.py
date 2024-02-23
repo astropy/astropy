@@ -130,9 +130,7 @@ class TestUintFunctions(FitsTestCase):
                 fits.Column(
                     name="a", format="I", array=np.arange(2**16, dtype=np.int16)
                 ),
-                fits.Column(
-                    name="b", format="I", bscale=1, bzero=2**15, array=dataref
-                ),
+                fits.Column(name="b", format="I", bscale=1, bzero=2**15, array=dataref),
             ]
         )
         tbhdu.writeto(self.temp("test_scaled_slicing.fits"))

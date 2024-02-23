@@ -136,29 +136,28 @@ Coding Style/Conventions
   using only 4 spaces for indentation, and never tabs.
 
   * ``astropy`` itself enforces this style guide using the
-    `black <https://black.readthedocs.io/en/stable/>`_ code formatter, see
-    `The Black Code Style <https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html>`_
-    for details.
+    `ruff <https://docs.astral.sh/ruff/formatter/>`_ code formatter, which closely follows the
+    `The Black Code Style <https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html>`_.
 
-  * We recognize that sometimes ``black`` will autoformat things in undesirable
-    ways, e.g., matrices.  In the cases that ``black`` produces undesirable code
+  * We recognize that sometimes ``ruff`` will autoformat things in undesirable
+    ways, e.g., matrices.  In the cases that ``ruff`` produces undesirable code
     formatting:
 
       * one can wrap code the code in ``# fmt: off`` and ``# fmt: on`` to disable
-        ``black`` formatting over multiple lines.
+        ``ruff`` formatting over multiple lines.
 
       * or one can add a single ``# fmt: skip`` comment to the end of a line to
-        disable ``black`` formatting for that line.
+        disable ``ruff`` formatting for that line.
 
     This should be done sparingly, and only
-    when ``black`` produces undesirable formatting.
+    when ``ruff`` produces undesirable formatting.
 
       .. note::
         When a list or array should be formatted as one item per line then this is best
         achieved by using the
         `magic trailing comma <https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#the-magic-trailing-comma>`_.
         This is frequently sufficient for keeping matrices formatted as one row
-        per line while still allowing ``black`` to check the code::
+        per line while still allowing ``ruff`` to check the code::
 
             arr = [
                 [0, 1],
