@@ -1,6 +1,7 @@
 name: Weekly cron
 
 on:
+  workflow_dispatch:
   schedule:
     # run every Monday at 6am UTC
     - cron: '0 6 * * 1'
