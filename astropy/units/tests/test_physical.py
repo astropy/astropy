@@ -76,6 +76,7 @@ unit_physical_type_pairs = [
     (u.C / u.m**3, "electrical charge density"),
     (u.F / u.m, "permittivity"),
     (u.Wb, "magnetic flux"),
+    (u.Wb**2, "magnetic helicity"),
     (u.T, "magnetic flux density"),
     (u.A / u.m, "magnetic field strength"),
     (u.H / u.m, "electromagnetic field strength"),
