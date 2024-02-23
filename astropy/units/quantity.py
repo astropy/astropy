@@ -1465,16 +1465,21 @@ class Quantity(np.ndarray):
             },
         }
         formats["latex_inline"] = formats["latex"]
-        # Set default formatter for numpy array2string from format_spec if provided
-        default_formatter = (
-            {"all": lambda x: f"{x:{format_spec}}"} if format_spec else None
-        )
+        default_formatter = None
+
+        if format_spec is not None:
+            # Check for format_spec prohibited operators
+            if "%" == format_spec[-1]:
+                raise ValueError("% format_spec is not supported for Quantity.")
+            # Set default formatter
+            default_formatter = {"all": lambda x: f"{x:{format_spec}}"}
 
         if format is None:
             # format_spec overwrites precision
             if default_formatter is None and precision is None:
                 # Use default formatting settings
                 return f"{self.value}{self._unitstr:s}"
+
             return (
                 np.array2string(
                     self.value,
