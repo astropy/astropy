@@ -1039,6 +1039,44 @@ class TestQuantityDisplay:
             == expected_result
         )
 
+        qscalar = u.Quantity(123, "m")
+        q_pos = qscalar
+        q_neg = -qscalar
+        # Binary, octal, hex, char, %, and string format should raise errors for quantities
+        with pytest.raises(ValueError):
+            qscalar.to_string(format_spec="b")
+        with pytest.raises(ValueError):
+            qscalar.to_string(format_spec="o")
+        with pytest.raises(ValueError):
+            qscalar.to_string(format_spec="x")
+        with pytest.raises(ValueError):
+            qscalar.to_string(format_spec="c")
+        with pytest.raises(ValueError):
+            qscalar.to_string(format_spec="%")
+        with pytest.raises(ValueError):
+            qscalar.to_string(format_spec="s")
+
+        # Right alignment with width
+        assert qscalar.to_string(format_spec=">10") == "     123.0 m"
+        assert q_pos.to_string(format_spec="=+10") == "+    123.0 m"
+        assert q_neg.to_string(format_spec="=+10") == "-    123.0 m"
+        # Center alignment with width
+        assert qscalar.to_string(format_spec="^10") == "  123.0    m"
+        # Left alignment with width
+        assert qscalar.to_string(format_spec="<10") == "123.0      m"
+        # Zero padding
+        assert qscalar.to_string(format_spec="010") == "00000123.0 m"
+
+        qscalar = u.Quantity(1234567, "m")
+        # Seperators
+        assert qscalar.to_string(format_spec=",") == "1,234,567.0 m"
+        assert qscalar.to_string(format_spec="_") == "1_234_567.0 m"
+
+        qscalar = u.Quantity(137000000, "lyr")
+        formatted_distance = qscalar.to_string(format_spec=">+30,.2e")
+        expected_output = "                     +1.37e+08 lyr"
+        assert formatted_distance == expected_output
+
         qscalar = u.Quantity(1.5e14, "m/s")
         res = r"$1.5 \times 10^{14} \; \mathrm{\frac{m}{s}}$"
         assert qscalar.to_string(format="latex") == res
