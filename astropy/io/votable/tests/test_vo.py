@@ -362,6 +362,20 @@ def test_select_columns_by_name():
             ["string test", "fixed string test"],
             id="two-cols-names-sameID",
         ),
+        # columns should be returned in the order they are found, which
+        # in the general case isn't the order they are requested
+        pytest.param(
+            ["unicode_test", "string_test"],
+            False,
+            ["string_test", "unicode_test"],
+            id="two-cols-ids-order-mismatch",
+        ),
+        pytest.param(
+            ["unicode_test", "string_test"],
+            True,
+            ["string test", "unicode_test"],
+            id="two-cols-names-order-mismatch",
+        ),
     ],
 )
 def test_select_columns_by_name_edge_cases(
@@ -374,14 +388,6 @@ def test_select_columns_by_name_edge_cases(
         vot1 = parse_single_table(filename, columns=column_ids)
     t1 = vot1.to_table(use_names_over_ids=use_names_over_ids)
     assert t1.colnames == expected_names
-
-    # columns should be returned in the order they are found, which
-    # in the general case isn't the order they are requested
-    with np.errstate(over="ignore"):
-        # https://github.com/astropy/astropy/issues/13341
-        vot2 = parse_single_table(filename, columns=list(reversed(column_ids)))
-    t2 = vot2.to_table(use_names_over_ids=use_names_over_ids)
-    assert t2.colnames == expected_names
 
 
 class TestParse:
