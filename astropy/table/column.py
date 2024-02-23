@@ -1011,7 +1011,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     searchsorted.__doc__ = np.ndarray.searchsorted.__doc__
 
-    def convert_unit_to(self, new_unit, equivalencies=None):
+    def convert_unit_to(self, new_unit, equivalencies=[]):
         """
         Converts the values of the column in-place from the current
         unit to the given unit.
@@ -1034,7 +1034,6 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         astropy.units.UnitsError
             If units are inconsistent
         """
-        equivalencies = [] if equivalencies is None else equivalencies
         if self.unit is None:
             raise ValueError("No unit set on column")
         self.data[:] = self.unit.to(new_unit, self.data, equivalencies=equivalencies)
@@ -1101,7 +1100,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             self, self.unit, copy=False, dtype=self.dtype, order="A", subok=True
         )
 
-    def to(self, unit, equivalencies=None, **kwargs):
+    def to(self, unit, equivalencies=[], **kwargs):
         """
         Converts this table column to a `~astropy.units.Quantity` object with
         the requested units.
@@ -1121,7 +1120,6 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             A quantity object with the contents of this column in the units
             ``unit``.
         """
-        equivalencies = [] if equivalencies is None else equivalencies
         return self.quantity.to(unit, equivalencies)
 
     def _copy_attrs(self, obj):
