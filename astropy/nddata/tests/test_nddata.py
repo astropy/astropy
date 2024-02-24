@@ -707,3 +707,28 @@ def test_collapse(mask, unit, propagate_uncertainties, operation_ignores_mask):
             # as the data array, so we can just check for equality:
             if method in ext_methods and propagate_uncertainties:
                 assert np.ma.all(np.ma.equal(astropy_method, nddata_method))
+
+
+@pytest.mark.parametrize(
+    "nd1, nd2, expected",
+    [
+        (NDData([1]), None, True),
+        (NDData([1], mask=True), None, True),
+        (NDData([1], mask=False), None, True),
+        (NDData([1], unit=u.J), None, True),
+        (NDData([1]), NDData([1]), True),
+        (NDData([1]), NDData([1], mask=True), False),
+        (NDData([1]), NDData([1], unit=u.J), False),
+        (NDData([1], mask=True), NDData([1], mask=True, unit=u.J), False),
+        (NDData([1], mask=False, unit=u.J), NDData([1], mask=True, unit=u.J), False),
+        (NDData([1], mask=True, unit=u.K), NDData([1], mask=True, unit=u.J), False),
+        (NDData([1], mask=True, unit=u.J), NDData([1], mask=True, unit=u.J), True),
+    ],
+)
+def test_nddata_eq(nd1, nd2, expected):
+    if nd2 is None:
+        # special case to check that we don't break default comparison
+        # __eq__(self, other) = lambda self, other: self is other
+        nd2 = nd1
+    assert (nd1 == nd2) is expected
+    assert (nd1 != nd2) ^ expected
