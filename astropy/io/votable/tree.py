@@ -3344,7 +3344,6 @@ class TableElement(
                 for row in range(len(array)):
                     array_row = array.data[row]
                     array_mask = array.mask[row]
-
                     if mode == 2:
                         flattened = np.array([np.all(x) for x in array_mask])
                         data.write(converters.bool_to_bitarray(flattened))
@@ -3354,9 +3353,8 @@ class TableElement(
                             if mode == 1:
                                 chunk = converter(array_row[i], array_mask[i])
                             else:
-                                chunk = converter(
-                                    array_row[i], None
-                                )  # mask is already handled
+                                # Mask is already handled by BINARY2 behaviour
+                                chunk = converter(array_row[i], None)
                             assert type(chunk) == bytes
                         except Exception as e:
                             vo_reraise(
