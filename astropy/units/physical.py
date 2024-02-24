@@ -69,6 +69,7 @@ _units_and_physical_types = [
     (si.C / si.m**3, "electrical charge density"),
     (si.F / si.m, "permittivity"),
     (si.Wb, "magnetic flux"),
+    (si.Wb**2, "magnetic helicity"),
     (si.T, "magnetic flux density"),
     (si.A / si.m, "magnetic field strength"),
     (si.m**2 * si.A, "magnetic moment"),
