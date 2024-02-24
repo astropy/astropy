@@ -1068,7 +1068,7 @@ class TestQuantityDisplay:
         assert qscalar.to_string(format_spec="010") == "00000123.0 m"
 
         qscalar = u.Quantity(1234567, "m")
-        # Seperators
+        # Separators
         assert qscalar.to_string(format_spec=",") == "1,234,567.0 m"
         assert qscalar.to_string(format_spec="_") == "1_234_567.0 m"
 
