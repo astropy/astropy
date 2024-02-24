@@ -229,14 +229,14 @@ class Angle(SpecificTypeQuantity):
     def to_string(
         self,
         unit=None,
-        decimal=False,
-        sep="fromunit",
-        precision=None,
-        alwayssign=False,
-        pad=False,
-        fields=3,
-        format=None,
-    ):
+        decimal: bool = False,
+        sep: str = "fromunit",
+        precision: int | None = None,
+        alwayssign: bool = False,
+        pad: bool = False,
+        fields: int = 3,
+        format: str | None = None,
+    ) -> str:
         """A string representation of the angle.
 
         Parameters
