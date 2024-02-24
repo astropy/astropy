@@ -46,7 +46,7 @@ and scientific notation, directly in the string output.
 
 Previously, the method primarily relied on the `precision` parameter for format control, which dictated
 the number of significant digits and was dependent on internal thresholds.`format_spec` enables explicit
-specification of formats such as fixed-point notation, scientific notation, or any custom format compatible 
+specification of formats such as fixed-point notation, scientific notation, or any custom format compatible
 with the mini-language.
 
 Example:
