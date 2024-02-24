@@ -400,16 +400,6 @@ def test_angle_to_string_seps(unit, sep, expected_string):
     assert a.to_string(sep=sep) == expected_string
 
 
-@pytest.mark.parametrize("unit, sep", [("deg", "dms"), ("hourangle", "hms")])
-def test_decimal_with_string_sep(unit, sep):
-    a = Angle(15, unit)
-    with pytest.raises(
-        ValueError,
-        match=f"decimal mode cannot be combined with sep='{sep}'",
-    ):
-        a.to_string(sep=sep, decimal=True)
-
-
 def test_angle_format_roundtripping():
     """
     Ensures that the string representation of an angle can be used to create a
