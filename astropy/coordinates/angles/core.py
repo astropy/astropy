@@ -351,10 +351,6 @@ class Angle(SpecificTypeQuantity):
                 fields=fields,
             )
         else:
-            if sep != "fromunit":
-                raise ValueError(
-                    f"'{unit}' can not be represented in sexagesimal notation"
-                )
             func = ("{:g}" if precision is None else f"{{0:0.{precision}f}}").format
             # Don't add unit by default for decimal.
             # TODO: could we use Quantity.to_string() here?
