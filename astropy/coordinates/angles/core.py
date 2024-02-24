@@ -306,8 +306,10 @@ class Angle(SpecificTypeQuantity):
             will be an array with a unicode dtype.
 
         """
-        if decimal and sep in ("dms", "hms"):
-            raise ValueError(f"decimal mode cannot be combined with {sep=!r}.")
+        if decimal and sep != "fromunit":
+            raise ValueError(
+                f"With decimal=True, separator cannot be used (got {sep=!r})"
+            )
 
         if unit is None:
             if sep == "dms":
