@@ -5,6 +5,7 @@ dates. Specific emphasis is placed on supporting time scales (e.g. UTC, TAI,
 UT1) and time representations (e.g. JD, MJD, ISO 8601) that are used in
 astronomy.
 """
+from __future__ import annotations
 
 import copy
 import enum
@@ -14,6 +15,7 @@ import threading
 from collections import defaultdict
 from datetime import date, datetime, timezone
 from time import strftime
+from typing import TYPE_CHECKING
 from warnings import warn
 from weakref import WeakValueDictionary
 
@@ -46,6 +48,8 @@ from .formats import (
 from .time_helper.function_helpers import CUSTOM_FUNCTIONS, UNSUPPORTED_FUNCTIONS
 from .utils import day_frac
 
+if TYPE_CHECKING:
+    from astropy.coordinates import EarthLocation
 __all__ = [
     "TimeBase",
     "Time",
@@ -554,7 +558,7 @@ class TimeBase(ShapedLikeNDArray):
         # collected by the TimeAstropyTime format class up to the Time level.
         # TODO: find a nicer way.
         if hasattr(self._time, "_location"):
-            self.location = self._time._location
+            self._location = self._time._location
             del self._time._location
 
         # If any inputs were masked then masked jd2 accordingly.  From above
@@ -743,6 +747,24 @@ class TimeBase(ShapedLikeNDArray):
                 raise
 
             raise TypeError(f"unhashable type: '{self.__class__.__name__}' {reason}")
+
+    @property
+    def location(self) -> EarthLocation | None:
+        return self._location
+
+    @location.setter
+    def location(self, value):
+        if hasattr(self, "_location"):
+            # since astropy 6.1.0
+            warn(
+                "Setting the location attribute post initialization will be "
+                "disallowed in a future version of Astropy. "
+                "Instead you should set the location when creating the Time object. "
+                "In the future, this will raise an AttributeError.",
+                category=FutureWarning,
+                stacklevel=2,
+            )
+        self._location = value
 
     @property
     def scale(self):
@@ -1377,7 +1399,7 @@ class TimeBase(ShapedLikeNDArray):
         )
 
         # Optional ndarray attributes.
-        for attr in ("_delta_ut1_utc", "_delta_tdb_tt", "location"):
+        for attr in ("_delta_ut1_utc", "_delta_tdb_tt", "_location"):
             try:
                 val = getattr(self, attr)
             except AttributeError:
@@ -1953,14 +1975,13 @@ class Time(TimeBase):
             from astropy.coordinates import EarthLocation
 
             if isinstance(location, EarthLocation):
-                self.location = location
+                self._location = location
             else:
-                self.location = EarthLocation(*location)
-            if self.location.size == 1:
-                self.location = self.location.squeeze()
-        else:
-            if not hasattr(self, "location"):
-                self.location = None
+                self._location = EarthLocation(*location)
+            if self._location.size == 1:
+                self._location = self._location.squeeze()
+        elif not hasattr(self, "_location"):
+            self._location = None
 
         if isinstance(val, Time):
             # Update _time formatting parameters if explicitly specified
@@ -1984,7 +2005,7 @@ class Time(TimeBase):
         ):
             try:
                 # check the location can be broadcast to self's shape.
-                self.location = np.broadcast_to(self.location, self.shape, subok=True)
+                self._location = np.broadcast_to(self._location, self.shape, subok=True)
             except Exception as err:
                 raise ValueError(
                     f"The location with shape {self.location.shape} cannot be "
@@ -2777,7 +2798,7 @@ class Time(TimeBase):
 
                 location = self.location[tuple(sl)]
 
-        result.location = location
+        result._location = location
         return result
 
     def __array_function__(self, function, types, args, kwargs):
