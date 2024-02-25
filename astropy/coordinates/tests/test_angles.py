@@ -383,6 +383,23 @@ def test_to_string_vector():
     assert Angle(1.0 / 7.0, unit="deg").to_string() == "0d08m34.28571429s"
 
 
+@pytest.mark.parametrize(
+    "unit, sep, expected_string",
+    [
+        ("deg", "fromunit", "15d00m00s"),
+        ("deg", "dms", "15d00m00s"),
+        ("deg", "hms", "1h00m00s"),
+        ("hourangle", "fromunit", "15h00m00s"),
+        ("hourangle", "dms", "225d00m00s"),
+        ("hourangle", "hms", "15h00m00s"),
+    ],
+)
+def test_angle_to_string_seps(unit, sep, expected_string):
+    # see https://github.com/astropy/astropy/issues/11280
+    a = Angle(15, unit)
+    assert a.to_string(sep=sep) == expected_string
+
+
 def test_angle_format_roundtripping():
     """
     Ensures that the string representation of an angle can be used to create a

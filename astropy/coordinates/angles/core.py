@@ -229,14 +229,14 @@ class Angle(SpecificTypeQuantity):
     def to_string(
         self,
         unit=None,
-        decimal=False,
-        sep="fromunit",
-        precision=None,
-        alwayssign=False,
-        pad=False,
-        fields=3,
-        format=None,
-    ):
+        decimal: bool = False,
+        sep: str = "fromunit",
+        precision: int | None = None,
+        alwayssign: bool = False,
+        pad: bool = False,
+        fields: int = 3,
+        format: str | None = None,
+    ) -> str:
         """A string representation of the angle.
 
         Parameters
@@ -306,8 +306,18 @@ class Angle(SpecificTypeQuantity):
             will be an array with a unicode dtype.
 
         """
+        if decimal and sep != "fromunit":
+            raise ValueError(
+                f"With decimal=True, separator cannot be used (got {sep=!r})"
+            )
+
         if unit is None:
-            unit = self.unit
+            if sep == "dms":
+                unit = u.degree
+            elif sep == "hms":
+                unit = u.hourangle
+            else:
+                unit = self.unit
         else:
             unit = self._convert_unit_to_angle_unit(u.Unit(unit))
 
@@ -341,10 +351,6 @@ class Angle(SpecificTypeQuantity):
                 fields=fields,
             )
         else:
-            if sep != "fromunit":
-                raise ValueError(
-                    f"'{unit}' can not be represented in sexagesimal notation"
-                )
             func = ("{:g}" if precision is None else f"{{0:0.{precision}f}}").format
             # Don't add unit by default for decimal.
             # TODO: could we use Quantity.to_string() here?
