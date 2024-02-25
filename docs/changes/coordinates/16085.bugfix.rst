@@ -1,0 +1,1 @@
+Fix ``Angle.to_string()`` for angles in degrees represented in 'hms' and angles in hours represented in 'dms'.
