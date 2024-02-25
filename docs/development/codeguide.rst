@@ -136,28 +136,28 @@ Coding Style/Conventions
   using only 4 spaces for indentation, and never tabs.
 
   * ``astropy`` itself enforces this style guide using the
-    `ruff <https://docs.astral.sh/ruff/formatter/>`_ code formatter, which closely follows the
+    `ruff format <https://docs.astral.sh/ruff/formatter/>`_ code formatter, which closely follows the
     `The Black Code Style <https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html>`_.
 
-  * We recognize that sometimes ``ruff`` will autoformat things in undesirable
-    ways, e.g., matrices.  In the cases that ``ruff`` produces undesirable code
+  * We recognize that sometimes ruff_ will autoformat things in undesirable
+    ways, e.g., matrices.  In the cases that ruff_ produces undesirable code
     formatting:
 
       * one can wrap code the code in ``# fmt: off`` and ``# fmt: on`` to disable
-        ``ruff`` formatting over multiple lines.
+        ruff_ formatting over multiple lines.
 
       * or one can add a single ``# fmt: skip`` comment to the end of a line to
-        disable ``ruff`` formatting for that line.
+        disable ruff_ formatting for that line.
 
     This should be done sparingly, and only
-    when ``ruff`` produces undesirable formatting.
+    when ruff_ produces undesirable formatting.
 
       .. note::
         When a list or array should be formatted as one item per line then this is best
         achieved by using the
         `magic trailing comma <https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#the-magic-trailing-comma>`_.
         This is frequently sufficient for keeping matrices formatted as one row
-        per line while still allowing ``ruff`` to check the code::
+        per line while still allowing ruff_ to check the code::
 
             arr = [
                 [0, 1],
@@ -572,4 +572,4 @@ Further tips and hints relating to the coding guidelines are included below.
 .. _matplotlib: https://matplotlib.org/
 .. _Cython: https://cython.org/
 .. _PyPI: https://pypi.org/project
-.. _ruff: https://beta.ruff.rs/docs
+.. _ruff: https://docs.astral.sh/ruff/
