@@ -36,16 +36,16 @@ as string columns. The new default behavior is consistent with ``numpy`` v2 and 
 
 .. _whatsnew-5.0-quantity-format-spec:
 
-`Quantity.to_string` supports `format_spec` for formatting
-==========================================================
+``Quantity.to_string`` supports ``format_spec`` for formatting
+==============================================================
 
-The :meth:`~astropy.units.Quantity.to_string` method now supports a `format_spec` parameter,
+The :meth:`~astropy.units.Quantity.to_string` method now supports a ``format_spec`` parameter,
 enabling direct usage of Python's format specification mini-language for precise quantity formatting.
 This allows for explicit and consistent control over numerical representation, including fixed-point
 and scientific notation, directly in the string output.
 
-Previously, the method primarily relied on the `precision` parameter for format control, which dictated
-the number of significant digits and was dependent on internal thresholds.`format_spec` enables explicit
+Previously, the method primarily relied on the ``precision`` parameter for format control, which dictated
+the number of significant digits and was dependent on internal thresholds.``format_spec`` enables explicit
 specification of formats such as fixed-point notation, scientific notation, or any custom format compatible
 with the mini-language.
 
