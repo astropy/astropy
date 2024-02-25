@@ -2883,3 +2883,16 @@ def test_timedelta_empty_quantity():
 
     with pytest.raises(ValueError, match="only quantities with time units"):
         TimeDelta([] * u.m)
+
+
+@pytest.mark.parametrize(
+    "kwargs", [{}, dict(location=None), dict(location=EarthLocation(0, 0, 0))]
+)
+def test_immutable_location(kwargs):
+    # see https://github.com/astropy/astropy/issues/16061
+    loc = EarthLocation(0, 0, 0)
+    t = Time("2024-02-19", **kwargs)
+
+    with pytest.warns(FutureWarning):
+        # in the future, this should be an AttributeError
+        t.location = loc
