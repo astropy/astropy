@@ -3350,7 +3350,13 @@ class TableElement(
 
                     for i, converter in fields_basic:
                         try:
-                            if mode == 1:
+                            # BINARY2 cannot handle individual array element masks
+                            converter_type = converter.__self__.__class__
+                            # Delegate converter to handle the mask
+                            delegate_condition = issubclass(
+                                converter_type, converters.Array
+                            )
+                            if mode == 1 or delegate_condition:
                                 chunk = converter(array_row[i], array_mask[i])
                             else:
                                 # Mask is already handled by BINARY2 behaviour
