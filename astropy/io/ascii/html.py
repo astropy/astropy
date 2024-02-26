@@ -327,10 +327,12 @@ class HTML(core.BaseReader):
 
     max_ndim = 2  # HTML supports writing 2-d columns with shape (n, m)
 
-    def __init__(self, htmldict={}):
+    def __init__(self, htmldict=None):
         """
         Initialize classes for HTML reading and writing.
         """
+        if htmldict is None:
+            htmldict = {}
         super().__init__()
         self.html = deepcopy(htmldict)
         if "multicol" not in htmldict:

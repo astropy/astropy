@@ -336,18 +336,22 @@ class Latex(core.BaseReader):
 
     def __init__(
         self,
-        ignore_latex_commands=[
-            "hline",
-            "vspace",
-            "tableline",
-            "toprule",
-            "midrule",
-            "bottomrule",
-        ],
-        latexdict={},
+        ignore_latex_commands=None,
+        latexdict=None,
         caption="",
         col_align=None,
     ):
+        if latexdict is None:
+            latexdict = {}
+        if ignore_latex_commands is None:
+            ignore_latex_commands = [
+                "hline",
+                "vspace",
+                "tableline",
+                "toprule",
+                "midrule",
+                "bottomrule",
+            ]
         super().__init__()
 
         self.latex = {}

@@ -26,10 +26,12 @@ class FastBasic(metaclass=core.MetaBaseReader):
     guessing = False
     strict_names = False
 
-    def __init__(self, default_kwargs={}, **user_kwargs):
+    def __init__(self, default_kwargs=None, **user_kwargs):
         # Make sure user does not set header_start to None for a reader
         # that expects a non-None value (i.e. a number >= 0).  This mimics
         # what happens in the Basic reader.
+        if default_kwargs is None:
+            default_kwargs = {}
         if (
             default_kwargs.get("header_start", 0) is not None
             and user_kwargs.get("header_start", 0) is None

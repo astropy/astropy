@@ -93,7 +93,7 @@ class Header:
     in a `Header` object is case insensitive.
     """
 
-    def __init__(self, cards=[], copy=False):
+    def __init__(self, cards=None, copy=False):
         """
         Construct a `Header` from an iterable and/or text file.
 
@@ -114,6 +114,8 @@ class Header:
 
             .. versionadded:: 1.3
         """
+        if cards is None:
+            cards = []
         self.clear()
 
         if isinstance(cards, Header):

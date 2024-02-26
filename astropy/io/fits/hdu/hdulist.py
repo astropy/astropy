@@ -240,7 +240,7 @@ class HDUList(list, _Verify):
     file is opened, a `HDUList` object is returned.
     """
 
-    def __init__(self, hdus=[], file=None):
+    def __init__(self, hdus=None, file=None):
         """
         Construct a `HDUList` object.
 
@@ -255,6 +255,8 @@ class HDUList(list, _Verify):
             or a bytes object containing the contents of the FITS
             file.
         """
+        if hdus is None:
+            hdus = []
         if isinstance(file, bytes):
             self._data = file
             self._file = None

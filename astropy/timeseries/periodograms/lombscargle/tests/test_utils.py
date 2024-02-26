@@ -12,8 +12,10 @@ NORMALIZATIONS = ["standard", "model", "log", "psd"]
 
 
 @pytest.fixture
-def data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):
+def data(N=100, period=1, theta=None, dy=1, rseed=0):
     """Generate some data for testing"""
+    if theta is None:
+        theta = [10, 2, 3]
     rng = np.random.default_rng(rseed)
     t = 5 * period * rng.random(N)
     omega = 2 * np.pi / period

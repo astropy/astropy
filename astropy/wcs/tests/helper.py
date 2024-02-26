@@ -9,12 +9,20 @@ class SimModelTAB:
         self,
         nx=150,
         ny=200,
-        crpix=[1, 1],
-        crval=[1, 1],
-        cdelt=[1, 1],
-        pc={"PC1_1": 1, "PC2_2": 1},
+        crpix=None,
+        crval=None,
+        cdelt=None,
+        pc=None,
     ):
         # set essential parameters of the model (coord transformations):
+        if pc is None:
+            pc = {"PC1_1": 1, "PC2_2": 1}
+        if cdelt is None:
+            cdelt = [1, 1]
+        if crval is None:
+            crval = [1, 1]
+        if crpix is None:
+            crpix = [1, 1]
         assert nx > 2 and ny > 1  # a limitation of this particular simulation
         self.nx = nx
         self.ny = ny

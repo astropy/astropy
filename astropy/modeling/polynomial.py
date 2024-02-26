@@ -1810,17 +1810,25 @@ class SIP(Model):
         crpix,
         a_order,
         b_order,
-        a_coeff={},
-        b_coeff={},
+        a_coeff=None,
+        b_coeff=None,
         ap_order=None,
         bp_order=None,
-        ap_coeff={},
-        bp_coeff={},
+        ap_coeff=None,
+        bp_coeff=None,
         n_models=None,
         model_set_axis=None,
         name=None,
         meta=None,
     ):
+        if bp_coeff is None:
+            bp_coeff = {}
+        if ap_coeff is None:
+            ap_coeff = {}
+        if b_coeff is None:
+            b_coeff = {}
+        if a_coeff is None:
+            a_coeff = {}
         self._crpix = crpix
         self._a_order = a_order
         self._b_order = b_order
@@ -1909,13 +1917,17 @@ class InverseSIP(Model):
         self,
         ap_order,
         bp_order,
-        ap_coeff={},
-        bp_coeff={},
+        ap_coeff=None,
+        bp_coeff=None,
         n_models=None,
         model_set_axis=None,
         name=None,
         meta=None,
     ):
+        if bp_coeff is None:
+            bp_coeff = {}
+        if ap_coeff is None:
+            ap_coeff = {}
         self._ap_order = ap_order
         self._bp_order = bp_order
         self._ap_coeff = ap_coeff

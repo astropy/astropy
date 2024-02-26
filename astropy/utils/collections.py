@@ -11,7 +11,7 @@ class HomogeneousList(list):
     the list, a `TypeError` is raised.
     """
 
-    def __init__(self, types, values=[]):
+    def __init__(self, types, values=None):
         """
         Parameters
         ----------
@@ -21,6 +21,8 @@ class HomogeneousList(list):
         values : sequence, optional
             An initial set of values.
         """
+        if values is None:
+            values = []
         self._types = types
         super().__init__()
         self.extend(values)

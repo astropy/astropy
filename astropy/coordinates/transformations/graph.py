@@ -439,7 +439,7 @@ class TransformGraph:
     def to_dot_graph(
         self,
         priorities=True,
-        addnodes=[],
+        addnodes=None,
         savefn=None,
         savelayout="plain",
         saveformat=None,
@@ -483,6 +483,8 @@ class TransformGraph:
         """
         # We store nodes as `dict` keys because differently from `list` uniqueness is
         # guaranteed and differently from `set` insertion order is preserved.
+        if addnodes is None:
+            addnodes = []
         nodes = {}
         for node, node_graph in self._graph.items():
             nodes[node] = None

@@ -271,7 +271,9 @@ FRAME_WCS_MAPPINGS = [[_celestial_frame_to_wcs_builtin]]
 
 
 class custom_wcs_to_frame_mappings:
-    def __init__(self, mappings=[]):
+    def __init__(self, mappings=None):
+        if mappings is None:
+            mappings = []
         if callable(mappings):
             mappings = [mappings]
         WCS_FRAME_MAPPINGS.append(mappings)
@@ -288,7 +290,9 @@ custom_frame_mappings = custom_wcs_to_frame_mappings
 
 
 class custom_frame_to_wcs_mappings:
-    def __init__(self, mappings=[]):
+    def __init__(self, mappings=None):
+        if mappings is None:
+            mappings = []
         if callable(mappings):
             mappings = [mappings]
         FRAME_WCS_MAPPINGS.append(mappings)

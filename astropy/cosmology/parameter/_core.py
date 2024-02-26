@@ -158,10 +158,12 @@ class Parameter:
             default=MISSING,
             derived=False,
             unit=None,
-            equivalencies=[],
+            equivalencies=None,
             fvalidate="default",
             doc=None,
         ):
+            if equivalencies is None:
+                equivalencies = []
             object.__setattr__(self, "default", default)
             object.__setattr__(self, "derived", derived)
             vars(type(self))["unit"].__set__(self, unit)

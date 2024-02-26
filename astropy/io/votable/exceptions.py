@@ -156,7 +156,9 @@ def vo_warn(warning_class, args=(), config=None, pos=None, stacklevel=1):
         _suppressed_warning(warning, config, stacklevel=stacklevel + 1)
 
 
-def warn_unknown_attrs(element, attrs, config, pos, good_attr=[], stacklevel=1):
+def warn_unknown_attrs(element, attrs, config, pos, good_attr=None, stacklevel=1):
+    if good_attr is None:
+        good_attr = []
     for attr in attrs:
         if attr not in good_attr:
             vo_warn(W48, (attr, element), config, pos, stacklevel=stacklevel + 1)

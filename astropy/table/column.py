@@ -1011,7 +1011,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     searchsorted.__doc__ = np.ndarray.searchsorted.__doc__
 
-    def convert_unit_to(self, new_unit, equivalencies=[]):
+    def convert_unit_to(self, new_unit, equivalencies=[]):  # noqa: B006
         """
         Converts the values of the column in-place from the current
         unit to the given unit.
@@ -1100,7 +1100,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             self, self.unit, copy=False, dtype=self.dtype, order="A", subok=True
         )
 
-    def to(self, unit, equivalencies=[], **kwargs):
+    def to(self, unit, equivalencies=[], **kwargs):  # noqa: B006
         """
         Converts this table column to a `~astropy.units.Quantity` object with
         the requested units.

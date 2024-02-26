@@ -887,7 +887,7 @@ class Quantity(np.ndarray):
 
     info = QuantityInfo()
 
-    def _to_value(self, unit, equivalencies=[]):
+    def _to_value(self, unit, equivalencies=[]):  # noqa: B006
         """Helper method for to and to_value."""
         if equivalencies == []:
             equivalencies = self._equivalencies
@@ -907,7 +907,7 @@ class Quantity(np.ndarray):
                 result[name] = self[name]._to_value(unit, equivalencies)
             return result
 
-    def to(self, unit, equivalencies=[], copy=True):
+    def to(self, unit, equivalencies=[], copy=True):  # noqa: B006
         """
         Return a new `~astropy.units.Quantity` object with the specified unit.
 
@@ -946,7 +946,7 @@ class Quantity(np.ndarray):
             value = self.to_value(unit, equivalencies)
         return self._new_view(value, unit)
 
-    def to_value(self, unit=None, equivalencies=[]):
+    def to_value(self, unit=None, equivalencies=[]):  # noqa: B006
         """
         The numerical value, possibly in a different unit.
 
@@ -1556,7 +1556,7 @@ class Quantity(np.ndarray):
                 # Format the whole thing as a single string.
                 return format(f"{self.value}{self._unitstr:s}", format_spec)
 
-    def decompose(self, bases=[]):
+    def decompose(self, bases=None):
         """
         Generates a new `Quantity` with the units
         decomposed. Decomposed units have only irreducible units in
@@ -1576,9 +1576,11 @@ class Quantity(np.ndarray):
         newq : `~astropy.units.Quantity`
             A new object equal to this quantity with units decomposed.
         """
+        if bases is None:
+            bases = []
         return self._decompose(False, bases=bases)
 
-    def _decompose(self, allowscaledunits=False, bases=[]):
+    def _decompose(self, allowscaledunits=False, bases=None):
         """
         Generates a new `Quantity` with the units decomposed. Decomposed
         units have only irreducible units in them (see
@@ -1604,6 +1606,8 @@ class Quantity(np.ndarray):
             A new object equal to this quantity with units decomposed.
 
         """
+        if bases is None:
+            bases = []
         new_unit = self.unit.decompose(bases=bases)
 
         # Be careful here because self.value usually is a view of self;

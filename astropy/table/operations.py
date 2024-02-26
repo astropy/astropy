@@ -359,7 +359,7 @@ def join(
     keys_left=None,
     keys_right=None,
     uniq_col_name="{col_name}_{table_name}",
-    table_names=["1", "2"],
+    table_names=["1", "2"],  # noqa: B006
     metadata_conflicts="warn",
     join_funcs=None,
 ):
@@ -1102,7 +1102,7 @@ def _join(
     keys=None,
     join_type="inner",
     uniq_col_name="{col_name}_{table_name}",
-    table_names=["1", "2"],
+    table_names=["1", "2"],  # noqa: B006
     col_name_map=None,
     metadata_conflicts="warn",
     join_funcs=None,

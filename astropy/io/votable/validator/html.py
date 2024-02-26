@@ -270,7 +270,9 @@ def write_table(basename, name, results, root="results", chunk_size=500):
                 write_page_links(i)
 
 
-def add_subset(w, basename, name, subresults, inside=["p"], total=None):
+def add_subset(w, basename, name, subresults, inside=None, total=None):
+    if inside is None:
+        inside = ["p"]
     with w.tag("tr"):
         subresults = list(subresults)
         if total is None:

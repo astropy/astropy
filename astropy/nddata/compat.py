@@ -247,7 +247,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         else:
             return array
 
-    def convert_unit_to(self, unit, equivalencies=[]):
+    def convert_unit_to(self, unit, equivalencies=None):
         """
         Returns a new `NDData` object whose values have been converted
         to a new unit.
@@ -272,6 +272,8 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
             If units are inconsistent.
 
         """
+        if equivalencies is None:
+            equivalencies = []
         if self.unit is None:
             raise ValueError("No unit specified on source data")
         data = self.unit.to(unit, self.data, equivalencies=equivalencies)

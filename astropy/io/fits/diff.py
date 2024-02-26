@@ -213,10 +213,10 @@ class FITSDiff(_BaseDiff):
         self,
         a,
         b,
-        ignore_hdus=[],
-        ignore_keywords=[],
-        ignore_comments=[],
-        ignore_fields=[],
+        ignore_hdus=None,
+        ignore_keywords=None,
+        ignore_comments=None,
+        ignore_fields=None,
         numdiffs=10,
         rtol=0.0,
         atol=0.0,
@@ -286,6 +286,14 @@ class FITSDiff(_BaseDiff):
             Ignore all cards that are blank, i.e. they only contain
             whitespace (default: True).
         """
+        if ignore_fields is None:
+            ignore_fields = []
+        if ignore_comments is None:
+            ignore_comments = []
+        if ignore_keywords is None:
+            ignore_keywords = []
+        if ignore_hdus is None:
+            ignore_hdus = []
         if isinstance(a, (str, os.PathLike)):
             try:
                 a = fitsopen(a)
@@ -483,9 +491,9 @@ class HDUDiff(_BaseDiff):
         self,
         a,
         b,
-        ignore_keywords=[],
-        ignore_comments=[],
-        ignore_fields=[],
+        ignore_keywords=None,
+        ignore_comments=None,
+        ignore_fields=None,
         numdiffs=10,
         rtol=0.0,
         atol=0.0,
@@ -549,6 +557,12 @@ class HDUDiff(_BaseDiff):
             Ignore all cards that are blank, i.e. they only contain
             whitespace (default: True).
         """
+        if ignore_fields is None:
+            ignore_fields = []
+        if ignore_comments is None:
+            ignore_comments = []
+        if ignore_keywords is None:
+            ignore_keywords = []
         self.ignore_keywords = {k.upper() for k in ignore_keywords}
         self.ignore_comments = {k.upper() for k in ignore_comments}
         self.ignore_fields = {k.upper() for k in ignore_fields}
@@ -699,8 +713,8 @@ class HeaderDiff(_BaseDiff):
         self,
         a,
         b,
-        ignore_keywords=[],
-        ignore_comments=[],
+        ignore_keywords=None,
+        ignore_comments=None,
         rtol=0.0,
         atol=0.0,
         ignore_blanks=True,
@@ -759,6 +773,10 @@ class HeaderDiff(_BaseDiff):
             Ignore all cards that are blank, i.e. they only contain
             whitespace (default: True).
         """
+        if ignore_comments is None:
+            ignore_comments = []
+        if ignore_keywords is None:
+            ignore_keywords = []
         self.ignore_keywords = {k.upper() for k in ignore_keywords}
         self.ignore_comments = {k.upper() for k in ignore_comments}
 
@@ -1272,7 +1290,7 @@ class TableDataDiff(_BaseDiff):
     those columns.
     """
 
-    def __init__(self, a, b, ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0):
+    def __init__(self, a, b, ignore_fields=None, numdiffs=10, rtol=0.0, atol=0.0):
         """
         Parameters
         ----------
@@ -1312,6 +1330,8 @@ class TableDataDiff(_BaseDiff):
 
             .. versionadded:: 2.0
         """
+        if ignore_fields is None:
+            ignore_fields = []
         self.ignore_fields = set(ignore_fields)
         self.numdiffs = numdiffs
         self.rtol = rtol

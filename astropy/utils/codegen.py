@@ -22,7 +22,7 @@ the ASCII range and not beginning with '_' are allowed, currently.
 
 
 def make_function_with_signature(
-    func, args=(), kwargs={}, varargs=None, varkwargs=None, name=None
+    func, args=(), kwargs=None, varargs=None, varkwargs=None, name=None
 ):
     """
     Make a new function from an existing function but with the desired
@@ -46,6 +46,8 @@ def make_function_with_signature(
 
     Note, the names may only be valid Python variable names.
     """
+    if kwargs is None:
+        kwargs = {}
     pos_args = []
     key_args = []
 

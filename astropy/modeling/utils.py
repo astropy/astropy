@@ -286,7 +286,9 @@ class _SpecialOperatorsDict(UserDict):
     consistently.
     """
 
-    def __init__(self, unique_id=0, special_operators={}):
+    def __init__(self, unique_id=0, special_operators=None):
+        if special_operators is None:
+            special_operators = {}
         super().__init__(special_operators)
         self._unique_id = unique_id
 

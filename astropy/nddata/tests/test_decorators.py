@@ -333,7 +333,9 @@ def test_parameter_default_identical_to_explicit_passed_argument():
     # If the default is identical to the explicitly passed argument this
     # should still raise a Warning and use the explicit one.
     @support_nddata
-    def func(data, meta={"a": 1}):
+    def func(data, meta=None):
+        if meta is None:
+            meta = {"a": 1}
         return meta
 
     with pytest.warns(AstropyUserWarning) as w:

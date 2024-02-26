@@ -19,8 +19,10 @@ METHOD_KWDS = dict(bootstrap={"n_bootstraps": 20, "random_seed": 42})
 NORMALIZATIONS = ["standard", "psd", "log", "model"]
 
 
-def make_data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0, units=False):
+def make_data(N=100, period=1, theta=None, dy=1, rseed=0, units=False):
     """Generate some data for testing"""
+    if theta is None:
+        theta = [10, 2, 3]
     rng = np.random.default_rng(rseed)
     t = 5 * period * rng.random(N)
     omega = 2 * np.pi / period

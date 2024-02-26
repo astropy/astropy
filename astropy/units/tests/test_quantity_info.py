@@ -8,7 +8,9 @@ import numpy as np
 from astropy import units as u
 
 
-def assert_info_equal(a, b, ignore=set()):
+def assert_info_equal(a, b, ignore=None):
+    if ignore is None:
+        ignore = set()
     a_info = a.info
     b_info = b.info
     for attr in (a_info.attr_names | b_info.attr_names) - ignore:

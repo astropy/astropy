@@ -16,8 +16,10 @@ NORMALIZATIONS = ["standard", "psd", "log", "model"]
 
 
 @pytest.fixture
-def data(N=100, period=1, theta=[10, 2, 3], nbands=3, dy=1, rseed=0):
+def data(N=100, period=1, theta=None, nbands=3, dy=1, rseed=0):
     """Generate some data for testing"""
+    if theta is None:
+        theta = [10, 2, 3]
     t_arr = []
     y_arr = []
     band_arr = []

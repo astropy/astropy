@@ -17,7 +17,6 @@ lint.ignore = [
     "ARG005",  # unused-lambda-argument
 
     # flake8-bugbear (B)
-    "B006",  # MutableArgumentDefault
     "B007",  # UnusedLoopControlVariable
     "B023",  # FunctionUsesLoopVariable
     "B028",  # No-explicit-stacklevel

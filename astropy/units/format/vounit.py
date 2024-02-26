@@ -55,7 +55,9 @@ class VOUnit(generic.Generic):
             "angstrom", "Angstrom", "Ba", "barn", "erg", "G", "ta",
         }  # fmt: skip
 
-        def do_defines(bases, prefixes, skips=[]):
+        def do_defines(bases, prefixes, skips=None):
+            if skips is None:
+                skips = []
             for base in bases:
                 for prefix in prefixes:
                     key = prefix + base

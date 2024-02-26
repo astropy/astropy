@@ -99,7 +99,7 @@ class XMLWriter:
                 self.write(self.xml_escape_cdata(data))
             self._data = []
 
-    def start(self, tag, attrib={}, **extra):
+    def start(self, tag, attrib=None, **extra):
         """
         Opens a new element.  Attributes can be given as keyword
         arguments, or as a string/string dictionary.  The method
@@ -121,6 +121,8 @@ class XMLWriter:
         id : int
             Returns an element identifier.
         """
+        if attrib is None:
+            attrib = {}
         self._flush()
         # This is just busy work -- we know our tag names are clean
         # tag = xml_escape_cdata(tag)
@@ -208,7 +210,7 @@ class XMLWriter:
         self.xml_escape_cdata = current_xml_escape_cdata
 
     @contextlib.contextmanager
-    def tag(self, tag, attrib={}, **extra):
+    def tag(self, tag, attrib=None, **extra):
         """
         A convenience method for creating wrapper elements using the
         ``with`` statement.
@@ -222,6 +224,8 @@ class XMLWriter:
 
         Parameters are the same as to `start`.
         """
+        if attrib is None:
+            attrib = {}
         self.start(tag, attrib, **extra)
         yield
         self.end(tag)
@@ -293,12 +297,14 @@ class XMLWriter:
         while len(self._tags) > id:
             self.end()
 
-    def element(self, tag, text=None, wrap=False, attrib={}, **extra):
+    def element(self, tag, text=None, wrap=False, attrib=None, **extra):
         """
         Adds an entire element.  This is the same as calling `start`,
         `data`, and `end` in sequence. The ``text`` argument
         can be omitted.
         """
+        if attrib is None:
+            attrib = {}
         self.start(tag, attrib, **extra)
         if text:
             self.data(text)

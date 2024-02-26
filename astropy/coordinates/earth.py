@@ -796,9 +796,7 @@ class EarthLocation(u.Quantity):
             obstime, cirs_to_itrs_mat(obstime), gcrs_to_cirs_mat(obstime)
         )
 
-    def gravitational_redshift(
-        self, obstime, bodies=["sun", "jupiter", "moon"], masses={}
-    ):
+    def gravitational_redshift(self, obstime, bodies=None, masses=None):
         """Return the gravitational redshift at this EarthLocation.
 
         Calculates the gravitational redshift, of order 3 m/s, due to the
@@ -830,6 +828,10 @@ class EarthLocation(u.Quantity):
         # needs to be here to avoid circular imports
         from .solar_system import get_body_barycentric
 
+        if masses is None:
+            masses = {}
+        if bodies is None:
+            bodies = ["sun", "jupiter", "moon"]
         bodies = list(bodies)
         # Ensure earth is included and last in the list.
         if "earth" in bodies:
@@ -903,11 +905,13 @@ class EarthLocation(u.Quantity):
             raise IndexError("0-d EarthLocation arrays cannot be indexed")
         return super().__len__()
 
-    def _to_value(self, unit, equivalencies=[]):
+    def _to_value(self, unit, equivalencies=None):
         """Helper method for to and to_value."""
         # Conversion to another unit in both ``to`` and ``to_value`` goes
         # via this routine. To make the regular quantity routines work, we
         # temporarily turn the structured array into a regular one.
+        if equivalencies is None:
+            equivalencies = []
         array_view = self.view(self._array_dtype, np.ndarray)
         if equivalencies == []:
             equivalencies = self._equivalencies

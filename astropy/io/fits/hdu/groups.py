@@ -98,7 +98,7 @@ class GroupData(FITS_rec):
         input=None,
         bitpix=None,
         pardata=None,
-        parnames=[],
+        parnames=None,
         bscale=None,
         bzero=None,
         parbscales=None,
@@ -135,6 +135,8 @@ class GroupData(FITS_rec):
         parbzeros : sequence of int
             list of bzeros for the parameters
         """
+        if parnames is None:
+            parnames = []
         if not isinstance(input, FITS_rec):
             if pardata is None:
                 npars = 0

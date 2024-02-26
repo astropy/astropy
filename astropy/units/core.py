@@ -129,7 +129,11 @@ class _UnitRegistry:
     Manages a registry of the enabled units.
     """
 
-    def __init__(self, init=[], equivalencies=[], aliases={}):
+    def __init__(self, init=None, equivalencies=[], aliases=None):  # noqa: B006
+        if aliases is None:
+            aliases = {}
+        if init is None:
+            init = []
         if isinstance(init, _UnitRegistry):
             # If passed another registry we don't need to rebuild everything.
             # but because these are mutable types we don't want to create
@@ -347,7 +351,9 @@ class _UnitRegistry:
 
 
 class _UnitContext:
-    def __init__(self, init=[], equivalencies=[]):
+    def __init__(self, init=None, equivalencies=[]):  # noqa: B006
+        if init is None:
+            init = []
         _unit_registries.append(_UnitRegistry(init=init, equivalencies=equivalencies))
 
     def __enter__(self):
@@ -981,7 +987,7 @@ class UnitBase:
     def __neg__(self):
         return self * -1.0
 
-    def is_equivalent(self, other, equivalencies=[]):
+    def is_equivalent(self, other, equivalencies=[]):  # noqa: B006
         """
         Returns `True` if this unit is equivalent to ``other``.
 
@@ -1011,7 +1017,7 @@ class UnitBase:
 
         return self._is_equivalent(other, equivalencies)
 
-    def _is_equivalent(self, other, equivalencies=[]):
+    def _is_equivalent(self, other, equivalencies=[]):  # noqa: B006
         """Returns `True` if this unit is equivalent to `other`.
         See `is_equivalent`, except that a proper Unit object should be
         given (i.e., no string) and that the equivalency list should be
@@ -1089,7 +1095,7 @@ class UnitBase:
 
         raise UnitConversionError(f"{unit_str} and {other_str} are not convertible")
 
-    def _get_converter(self, other, equivalencies=[]):
+    def _get_converter(self, other, equivalencies=[]):  # noqa: B006
         """Get a converter for values in ``self`` to ``other``.
 
         If no conversion is necessary, returns ``unit_scale_converter``
@@ -1163,7 +1169,7 @@ class UnitBase:
 
         raise UnitConversionError(f"'{self!r}' is not a scaled version of '{other!r}'")
 
-    def to(self, other, value=UNITY, equivalencies=[]):
+    def to(self, other, value=UNITY, equivalencies=[]):  # noqa: B006
         """
         Return the converted values in the specified unit.
 
@@ -1199,13 +1205,13 @@ class UnitBase:
         else:
             return self._get_converter(Unit(other), equivalencies)(value)
 
-    def in_units(self, other, value=1.0, equivalencies=[]):
+    def in_units(self, other, value=1.0, equivalencies=[]):  # noqa: B006
         """
         Alias for `to` for backward compatibility with pynbody.
         """
         return self.to(other, value=value, equivalencies=equivalencies)
 
-    def decompose(self, bases=set()):
+    def decompose(self, bases=None):
         """
         Return a unit object composed of only irreducible units.
 
@@ -1223,11 +1229,21 @@ class UnitBase:
         unit : `~astropy.units.CompositeUnit`
             New object containing only irreducible unit objects.
         """
+        if bases is None:
+            bases = set()
         raise NotImplementedError()
 
     def _compose(
-        self, equivalencies=[], namespace=[], max_depth=2, depth=0, cached_results=None
+        self,
+        equivalencies=[],  # noqa: B006
+        namespace=None,
+        max_depth=2,
+        depth=0,
+        cached_results=None,
     ):
+        if namespace is None:
+            namespace = []
+
         def is_final_result(unit):
             # Returns True if this result contains only the expected
             # units
@@ -1347,7 +1363,11 @@ class UnitBase:
         return [self]
 
     def compose(
-        self, equivalencies=[], units=None, max_depth=2, include_prefix_units=None
+        self,
+        equivalencies=[],  # noqa: B006
+        units=None,
+        max_depth=2,
+        include_prefix_units=None,
     ):
         """
         Return the simplest possible composite unit(s) that represent
@@ -1584,7 +1604,7 @@ class UnitBase:
 
         return physical.get_physical_type(self)
 
-    def _get_units_with_same_physical_type(self, equivalencies=[]):
+    def _get_units_with_same_physical_type(self, equivalencies=[]):  # noqa: B006
         """
         Return a list of registered units with the same physical type
         as this unit.
@@ -1682,7 +1702,7 @@ class UnitBase:
             return processed_equiv_units
 
     def find_equivalent_units(
-        self, equivalencies=[], units=None, include_prefix_units=False
+        self, equivalencies=[], units=None, include_prefix_units=False  # noqa: B006
     ):
         """
         Return a list of all the units that are the same type as ``self``.
@@ -1942,7 +1962,9 @@ class IrreducibleUnit(NamedUnit):
         """
         return self
 
-    def decompose(self, bases=set()):
+    def decompose(self, bases=None):
+        if bases is None:
+            bases = set()
         if len(bases) and self not in bases:
             for base in bases:
                 try:
@@ -2244,7 +2266,9 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
         """The unit that this named unit represents."""
         return self._represents
 
-    def decompose(self, bases=set()):
+    def decompose(self, bases=None):
+        if bases is None:
+            bases = set()
         return self._represents.decompose(bases=bases)
 
     def is_unity(self):
@@ -2309,7 +2333,7 @@ class CompositeUnit(UnitBase):
         bases,
         powers,
         decompose=False,
-        decompose_bases=set(),
+        decompose_bases=None,
         _error_check=True,
     ):
         # There are many cases internal to astropy.units where we
@@ -2318,6 +2342,8 @@ class CompositeUnit(UnitBase):
         # error checking for performance reasons.  When the private
         # kwarg `_error_check` is False, the error checking is turned
         # off.
+        if decompose_bases is None:
+            decompose_bases = set()
         if _error_check:
             for base in bases:
                 if not isinstance(base, UnitBase):
@@ -2384,7 +2410,10 @@ class CompositeUnit(UnitBase):
         """
         return self._powers
 
-    def _expand_and_gather(self, decompose=False, bases=set()):
+    def _expand_and_gather(self, decompose=False, bases=None):
+        if bases is None:
+            bases = set()
+
         def add_unit(unit, power, scale):
             if bases and unit not in bases:
                 for base in bases:
@@ -2431,7 +2460,9 @@ class CompositeUnit(UnitBase):
         """
         return CompositeUnit(self._scale, self._bases[:], self._powers[:])
 
-    def decompose(self, bases=set()):
+    def decompose(self, bases=None):
+        if bases is None:
+            bases = set()
         if len(bases) == 0 and self._decomposed_cache is not None:
             return self._decomposed_cache
 
@@ -2495,7 +2526,7 @@ binary_prefixes = [
 ]
 
 
-def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
+def _add_prefixes(u, excludes=None, namespace=None, prefixes=False):
     """
     Set up all of the standard metric prefixes for a unit.  This
     function should not be used directly, but instead use the
@@ -2516,6 +2547,8 @@ def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
 
             (short_names, long_tables, factor)
     """
+    if excludes is None:
+        excludes = []
     if prefixes is True:
         prefixes = si_prefixes
     elif prefixes is False:
@@ -2562,7 +2595,7 @@ def def_unit(
     doc=None,
     format=None,
     prefixes=False,
-    exclude_prefixes=[],
+    exclude_prefixes=None,
     namespace=None,
 ):
     """
@@ -2620,6 +2653,8 @@ def def_unit(
         The newly-defined unit, or a matching unit that was already
         defined.
     """
+    if exclude_prefixes is None:
+        exclude_prefixes = []
     if represents is not None:
         result = Unit(s, represents, namespace=namespace, doc=doc, format=format)
     else:
