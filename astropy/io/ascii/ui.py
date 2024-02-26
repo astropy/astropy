@@ -777,7 +777,6 @@ def _read_in_chunks(table, **kwargs):
     fast_reader = kwargs["fast_reader"]
     chunk_size = fast_reader.pop("chunk_size")
     chunk_generator = fast_reader.pop("chunk_generator", False)
-    fast_reader["parallel"] = False  # No parallel with chunks
 
     tbl_chunks = _read_in_chunks_generator(table, chunk_size, **kwargs)
     if chunk_generator:

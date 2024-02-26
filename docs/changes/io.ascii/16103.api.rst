@@ -1,0 +1,4 @@
+The broken parallel parser for reading ascii files is removed, it has
+been using the serial parser as a fallback since astropy v4.0.4.
+The ``parallel`` key in the ``fast_reader`` argument for reading
+ascii should not be used anymore.

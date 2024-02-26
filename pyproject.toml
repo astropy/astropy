@@ -193,9 +193,6 @@ filterwarnings = [
     "ignore:matplotlibrc text\\.usetex:UserWarning:matplotlib",
     # Triggered by ProgressBar > ipykernel.iostream (revisit when we bump oldest deps versions)
     "ignore:the imp module is deprecated:DeprecationWarning",
-    # Ignore a warning we emit about not supporting the parallel",
-    # reading option for now, can be removed once the issue is fixed",
-    "ignore:parallel reading does not currently work, so falling back to serial",
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",

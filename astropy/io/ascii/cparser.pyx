@@ -186,7 +186,6 @@ cdef class CParser:
         int fill_extra_cols
         bytes source_bytes
         char *source_ptr
-        object parallel
         set use_cols
 
     cdef public:
@@ -216,7 +215,7 @@ cdef class CParser:
 
         # Handle fast_reader parameter
         expchar = fast_reader.pop('exponent_style', 'E').upper()
-        # parallel and use_fast_reader are False by default, but only the latter
+        # use_fast_reader are False by default, and it
         # supports Fortran double precision notation
         if expchar == 'E':
             use_fast_converter = fast_reader.pop('use_fast_converter', False)
@@ -226,20 +225,6 @@ cdef class CParser:
                 raise core.FastOptionsError("fast_reader: exponent_style requires use_fast_converter")
             if expchar.startswith('FORT'):
                 expchar = 'A'
-        parallel = fast_reader.pop('parallel', False)
-
-        # FIXME: for now the parallel mode does not work correctly and is worse
-        # than non-parallel mode so we disable parallel mode if set and emit a
-        # warning. We keep the parallel code below so that it can be fixed in
-        # future, but if it cannot be fixed we should remove the parallel code
-        # and deprecate the option itself. For now the warning is not a
-        # deprecation warning since we may still fix it in future. See
-        # https://github.com/astropy/astropy/issues/8858 for more details.
-        if parallel:
-            warnings.warn('parallel reading does not currently work, '
-                          'so falling back to serial reading (see '
-                          'https://github.com/astropy/astropy/issues/8858 for more details)', AstropyWarning)
-            parallel = False
 
         if fast_reader:
             raise core.FastOptionsError("Invalid parameter in fast_reader dict")
@@ -272,14 +257,6 @@ cdef class CParser:
                 raise TypeError('Cannot have None for column name')
             if len(set(self.names)) != len(self.names):
                 raise ValueError('Duplicate column names')
-
-        # parallel=True indicates that we should use the CPU count
-        if parallel is True:
-            parallel = multiprocessing.cpu_count()
-        # If parallel = 1 or 0, don't use multiprocessing
-        elif parallel is not False and parallel < 2:
-            parallel = False
-        self.parallel = parallel
 
     def __dealloc__(self):
         if self.tokenizer:
@@ -398,9 +375,6 @@ cdef class CParser:
         self.width = <int>len(self.names)
 
     def read(self, try_int, try_float, try_string):
-        if self.parallel:
-            return self._read_parallel(try_int, try_float, try_string)
-
         # Read in a single process
         self.tokenizer.source_pos = 0
         if skip_lines(self.tokenizer, self.data_start, 0) != 0:
@@ -429,185 +403,6 @@ cdef class CParser:
             num_rows += self.data_end
         return self._convert_data(self.tokenizer, try_int, try_float,
                                   try_string, num_rows)
-
-    def _read_parallel(self, try_int, try_float, try_string):
-        cdef size_t source_len = <size_t>len(self.source)
-        self.tokenizer.source_pos = 0
-
-        if skip_lines(self.tokenizer, self.data_start, 0) != 0:
-            self.raise_error("an error occurred while advancing to the first "
-                             "line of data")
-
-        cdef list line_comments = self._get_comments(self.tokenizer)
-        cdef int N = self.parallel
-        try:
-            queue = multiprocessing.Queue()
-        except (ImportError, NotImplementedError, AttributeError, OSError):
-            self.raise_error("shared semaphore implementation required "
-                             "but not available")
-        cdef size_t offset = self.tokenizer.source_pos
-
-        if offset == source_len: # no data
-            return (dict((name, np.array([], dtype=np.int_)) for name in
-                         self.names),
-                    self._get_comments(self.tokenizer))
-
-        cdef long chunksize = math.ceil((source_len - offset) / float(N))
-        cdef list chunkindices = [offset]
-
-        # This queue is used to signal processes to reconvert if necessary
-        reconvert_queue = multiprocessing.Queue()
-
-        cdef int i
-        cdef size_t index
-
-        # Build up chunkindices which has the indices for all N chunks
-        # in an length N+1 array.
-        for i in range(1, N):
-            index = max(offset + chunksize * i, chunkindices[i - 1])
-            while index < source_len and self.source[index] != '\n':
-                index += 1
-            if index < source_len:
-                chunkindices.append(index + 1)
-            else:
-                N = i
-                break
-
-        self._set_fill_values()
-        chunkindices.append(source_len)
-        cdef list processes = []
-
-        # Create and start N parallel processes to read the N chunks
-        for i in range(N):
-            process = multiprocessing.Process(target=_read_chunk, args=(self,
-                chunkindices[i], chunkindices[i + 1],
-                try_int, try_float, try_string, queue, reconvert_queue, i))
-            processes.append(process)
-            process.start()
-
-        # Define outputs in advance
-        cdef list chunks = [None] * N
-        cdef list comments_chunks = [None] * N
-        cdef dict failed_procs = {}
-
-        # Asynchronously get the read results for the N chunks.  These
-        # come back in a non-deterministic order using the ``queue``
-        # to return results and the chunk index as ``proc``.  ``queue.get()``
-        # is blocking and waiting for a result.
-        for i in range(N):
-            queue_ret, err, proc = queue.get()
-            if isinstance(err, Exception):
-                for process in processes:
-                    process.terminate()
-                raise err
-            elif err is not None: # err is (error code, error line)
-                failed_procs[proc] = err
-
-            comments, data = queue_ret
-            comments_chunks[proc] = comments
-            chunks[proc] = data
-
-        # Accumulate all the comments through file into a single list of comments
-        for chunk in comments_chunks:
-            line_comments.extend(chunk)
-
-        if failed_procs:
-            # find the line number of the error
-            line_no = 0
-            for i in range(N):
-                # ignore errors after data_end
-                if i in failed_procs and self.data_end is None or line_no < self.data_end:
-                    for process in processes:
-                        process.terminate()
-                    raise self.get_error(failed_procs[i][0], failed_procs[i][1] + line_no,
-                                         "an error occurred while parsing table data")
-                line_no += len(chunks[i][self.names[0]])
-
-        seen_str = {}
-        seen_numeric = {}
-        for name in self.names:
-            seen_str[name] = False
-            seen_numeric[name] = False
-
-        # Go through each chunk and each column name and see if it was parsed
-        # as both a string in at least one chunk and/or numeric in at least
-        # one chunk.
-        for chunk in chunks:
-            for name in chunk:
-                if chunk[name].dtype.kind in ('S', 'U'):
-                    # string values in column
-                    seen_str[name] = True
-                elif len(chunk[name]) > 0: # ignore empty chunk columns
-                    seen_numeric[name] = True
-
-        # Go through each column name and see if it was parsed as both
-        # string and float in different chunks.  If so reconvert back
-        # to string.
-        reconvert_cols = []
-        for i, name in enumerate(self.names):
-            if seen_str[name] and seen_numeric[name]:
-                # Reconvert to str to avoid conversion issues, e.g.
-                # 5 (int) -> 5.0 (float) -> 5.0 (string)
-                reconvert_cols.append(i)
-
-        # Slightly confusing: put the list of col numbers to reconvert
-        # onto the queue.  All of the reading processes are blocked and
-        # waiting for a value on the reconvert_queue.  One-by-one each
-        # process will manage to be first in line and get the value,
-        # handle, and the put reconvert_cols back on the queue for
-        # another waiting process.
-        # CONSIDER just putting reconvert_cols on the queue N times
-        # in a row here and don't have _read_chunk do that chaining.
-        reconvert_queue.put(reconvert_cols)
-        for process in processes:
-            process.join() # wait for each process to finish
-        try:
-            while True:
-                # Each column that was reconverted gets passed back in the queue
-                # and is then substituted over the original (incorrect) type.
-                reconverted, proc, col = queue.get(False)
-                chunks[proc][self.names[col]] = reconverted
-        except Queue.Empty:
-            pass
-
-        if self.data_end is not None:
-            if self.data_end < 0:
-                # e.g. if data_end = -1, cut the last row
-                num_rows = 0
-                for chunk in chunks:
-                    num_rows += len(chunk[self.names[0]])
-                self.data_end += num_rows
-            else:
-                self.data_end -= self.data_start # ignore header
-
-            if self.data_end < 0: # no data
-                chunks = [dict((name, []) for name in self.names)]
-            else:
-                line_no = 0
-                for i, chunk in enumerate(chunks):
-                    num_rows = len(chunk[self.names[0]])
-                    if line_no + num_rows > self.data_end:
-                        for name in self.names:
-                            # truncate columns
-                            chunk[name] = chunk[name][:self.data_end - line_no]
-                        del chunks[i + 1:]
-                        break
-                    line_no += num_rows
-
-        # Concatenate the chunk data, one column at a time.
-        ret = {}
-        for name in self.get_names():
-            col_chunks = [chunk.pop(name) for chunk in chunks]
-            if any(isinstance(col_chunk, ma.masked_array) for col_chunk in col_chunks):
-                ret[name] = ma.concatenate(col_chunks)
-            else:
-                ret[name] = np.concatenate(col_chunks)
-
-        # Clean up processes
-        for process in processes:
-            process.terminate()
-
-        return ret, line_comments
 
     cdef _set_fill_values(self):
         if self.fill_names is None:
@@ -868,8 +663,7 @@ cdef class CParser:
     def __reduce__(self):
         cdef bytes source = self.source_ptr if self.source_ptr else self.source_bytes
         fast_reader = dict(exponent_style=chr(self.tokenizer.expchar),
-                           use_fast_converter=self.tokenizer.use_fast_converter,
-                           parallel=False)
+                           use_fast_converter=self.tokenizer.use_fast_converter)
         return (_copy_cparser, (source, self.use_cols, self.fill_names,
                                 self.fill_values, self.fill_empty, self.tokenizer.strip_whitespace_lines,
                                 self.tokenizer.strip_whitespace_fields,
