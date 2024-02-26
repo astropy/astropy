@@ -87,11 +87,11 @@ These parameters are:
 
 .. _fast_conversion_opts:
 
-Parallel and Fast Conversion Options
+Fast Conversion Options
 ------------------------------------
 
 In addition to ``True`` and ``False``, the parameter ``fast_reader`` can also
-be a ``dict`` specifying any of three additional parameters, ``parallel``,
+be a ``dict`` specifying any of two additional parameters,
 ``use_fast_converter`` and ``exponent_style``.
 
 Example
@@ -99,24 +99,18 @@ Example
 
 ..
   EXAMPLE START
-  Parallel and Fast Conversion Options for Faster Table Reading
+  Fast Conversion Options for Faster Table Reading
 
 To specify additional parameters using ``fast_reader``::
 
    >>> ascii.read('data.txt', format='basic',
-   ...            fast_reader={'parallel': True, 'use_fast_converter': True}) # doctest: +SKIP
+   ...            fast_reader={'use_fast_converter': True}) # doctest: +SKIP
 
 ..
   EXAMPLE END
 
 These options allow for even faster table reading when enabled, but both are
 disabled by default because they come with some caveats.
-
-The ``parallel`` parameter can be used to enable multiprocessing via
-the ``multiprocessing`` module, and can either be set to a number (the number
-of processes to use) or ``True``, in which case the number of processes will be
-``multiprocessing.cpu_count()``. Note that this can cause issues within the
-IPython Notebook and so enabling multiprocessing in this context is discouraged.
 
 Setting ``use_fast_converter`` to be ``True`` enables a faster but
 slightly imprecise conversion method for floating-point values, as described
@@ -193,15 +187,7 @@ underlying set to avoid copying repeated values.
 Overall, the fast engine tends to be around four or five times faster than
 the ordinary ASCII engine. If the input data is very large (generally
 about 100,000 rows or greater), and particularly if the data does not
-contain primarily integer data or repeated string values, specifying
-``parallel`` as ``True`` can yield further performance gains. Although
-IPython does not work well with ``multiprocessing``, there is a
-`script <https://github.com/mdmueller/ascii-profiling/blob/master/parallel.py>`__
-available for testing the performance of the fast engine in parallel,
-and a sample result may be viewed `here
-<http://mdmueller.github.io/ascii-profiling/>`__. This profile uses the
-fast converter for both the serial and parallel Astropy
-readers.
+contain primarily integer data or repeated string values.
 
 Another point worth noting is that the fast engine uses memory mapping
 if a filename is supplied as input. If you want to avoid this for whatever
