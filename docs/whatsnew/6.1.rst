@@ -34,7 +34,7 @@ on Windows and potentially 32-bit architectures. Previously on those platforms, 
 columns with any long integers which overflowed the 32-bit integer would be returned
 as string columns. The new default behavior is consistent with ``numpy`` v2 and ``pandas``.
 
-.. _whatsnew-5.0-quantity-format-spec:
+.. _whatsnew-6.1-quantity-format-spec:
 
 ``Quantity.to_string`` supports ``format_spec`` for formatting
 ==============================================================
