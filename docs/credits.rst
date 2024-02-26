@@ -325,7 +325,7 @@ Core Package Contributors
 * Max Mahlke
 * Max Silbiger
 * Max Voronkov
-* Maximilian Nöthe
+* Maximilian Linhoff
 * Médéric Boquien
 * Megan Sosey
 * Michael Brewer
