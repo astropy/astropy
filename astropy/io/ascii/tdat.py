@@ -121,8 +121,7 @@ class TdatMeta:
                 key = kmatch.group('key')
                 if key in self._deprecated_keywords:
                     warn(
-                        f'"{key}" keyword is deprecated from the tdat standard. '
-                        f'It will be ignored. {_STD_MSG}',
+                        f'"{key}" keyword is obsolete and will be ignored. {_STD_MSG}'
                         TdatFormatWarning
                     )
                 else:
@@ -131,8 +130,7 @@ class TdatMeta:
                 # match extra keywords
                 if ematch.group(1) == 'relate':
                     warn(
-                        '"relate" keyword is deprecated from the tdat standard. '
-                        f'It will be ignored. {_STD_MSG}',
+                        f'"relate" keyword is obsolete and will be ignored. {_STD_MSG}',
                         TdatFormatWarning
                     )
                     continue
