@@ -85,7 +85,7 @@ Set up for virtual environments
   + First, install `virtualenvwrapper`_, which will also install `virtualenv`_,
     with::
 
-        pip install --user virtualenvwrapper
+        python -m pip install --user virtualenvwrapper
 
   + From the `documentation for virtualenvwrapper`_, you also need to::
 
@@ -96,7 +96,7 @@ Set up for virtual environments
 * `pipenv`_: Install the ``pipenv`` command using your default pip (the
   pip in the default Python environment)::
 
-      pip install --user pipenv
+      python -m pip install --user pipenv
 
 .. _list_env:
 
@@ -150,7 +150,7 @@ environment.
     + Make an environment called ``ENV`` with all of the packages in your ``base``
       Miniconda environment::
 
-        conda create -n ENV
+        conda create --name ENV
 
     + More details, and examples that start with none of the packages from
       your default Python environment, are in the
@@ -202,7 +202,7 @@ environment.
       :ref:`get_devel` if you are unsure how to get the source code.  After
       running ``git clone <your-astropy-fork>`` run ``cd astropy/`` then::
 
-        pipenv install -e .
+        pipenv install --editable .
 
     + This both creates the virtual environment for the project
       automatically, and also installs all of Astropy's dependencies, and
@@ -293,7 +293,7 @@ directory in which the ``ENV`` is located; both also provide commands to
 make that a bit easier.  `pipenv`_ includes a command for deleting the
 virtual environment associated with the current directory:
 
-* `conda`_: ``conda remove --all -n ENV``
+* `conda`_: ``conda remove --all --name ENV``
 
 * `virtualenvwrapper`_: ``rmvirtualenv ENV``
 

@@ -16,8 +16,8 @@ use cases you may have (see the examples below).
 .. note::
    Using JPL ephemerides requires that the `jplephem
    <https://pypi.org/project/jplephem/>`_ package be installed. This is
-   most conveniently achieved via ``pip install jplephem``, although whatever
-   package management system you use might have it as well.
+   most conveniently achieved via ``python -m pip install jplephem``, although
+   whatever package management system you use might have it as well.
 
 Two functions are provided; :func:`~astropy.coordinates.get_body` and
 :func:`~astropy.coordinates.get_body_barycentric`.
