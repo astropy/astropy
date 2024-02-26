@@ -108,8 +108,9 @@ class Covariance:
         if len(params) != 2:
             raise ValueError("Covariance must be indexed by two values.")
         if all(isinstance(item, str) for item in params):
-            i1, i2 = self.param_names.index(params[0]), self.param_names.index(
-                params[1]
+            i1, i2 = (
+                self.param_names.index(params[0]),
+                self.param_names.index(params[1]),
             )
         elif all(isinstance(item, int) for item in params):
             i1, i2 = params

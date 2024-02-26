@@ -453,9 +453,7 @@ def test_nddata_str():
     assert str(arr2d) == textwrap.dedent(
         """
         [[1 2]
-         [3 4]]"""[
-            1:
-        ]
+         [3 4]]"""[1:]
     )
 
     arr3d = NDData(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
@@ -465,9 +463,7 @@ def test_nddata_str():
           [3 4]]
 
          [[5 6]
-          [7 8]]]"""[
-            1:
-        ]
+          [7 8]]]"""[1:]
     )
 
     # let's add units!

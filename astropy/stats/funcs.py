@@ -1342,9 +1342,7 @@ def kuiper_false_positive_probability(D, N):
         # underflow warning if `under="warn"`.
         ms = np.arange(1, 18.82 / z)
         S1 = (2 * (4 * ms**2 * z**2 - 1) * np.exp(-2 * ms**2 * z**2)).sum()
-        S2 = (
-            ms**2 * (4 * ms**2 * z**2 - 3) * np.exp(-2 * ms**2 * z**2)
-        ).sum()
+        S2 = (ms**2 * (4 * ms**2 * z**2 - 3) * np.exp(-2 * ms**2 * z**2)).sum()
         return S1 - 8 * D / 3 * S2
 
 

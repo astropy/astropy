@@ -121,9 +121,7 @@ def make_function_with_signature(
         """{0}\
     def {name}({sig1}):
         return __{name}__func({sig2})
-    """.format(
-            "\n" * lineno, name=name, sig1=def_signature, sig2=call_signature
-        )
+    """.format("\n" * lineno, name=name, sig1=def_signature, sig2=call_signature)
     )
 
     code = compile(template, filename, "single")

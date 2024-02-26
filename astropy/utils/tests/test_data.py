@@ -1146,10 +1146,11 @@ def test_read_unicode(filename):
     contents = get_pkg_data_contents(os.path.join("data", filename), encoding="binary")
     assert isinstance(contents, bytes)
     x = contents.splitlines()[1]
-    assert x == (
+    expected = (
         b"\xff\xd7\x94\xd7\x90\xd7\xa1\xd7\x98\xd7\xa8\xd7\x95\xd7\xa0\xd7\x95"
         b"\xd7\x9e\xd7\x99 \xd7\xa4\xd7\x99\xd7\x99\xd7\xaa\xd7\x95\xd7\x9f"[1:]
     )
+    assert x == expected
 
 
 def test_compressed_stream():

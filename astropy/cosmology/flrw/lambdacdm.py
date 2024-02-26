@@ -571,9 +571,7 @@ class LambdaCDM(FLRW):
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
-        return np.sqrt(
-            zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) + self._Ode0
-        )
+        return np.sqrt(zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) + self._Ode0)
 
     def inv_efunc(self, z):
         r"""Function used to calculate :math:`\frac{1}{H_z}`.

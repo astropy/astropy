@@ -398,9 +398,7 @@ class TestArithmetic:
         in_rep = self.cartesian.represent_as(representation)
         r_cross_r = in_rep.cross(in_rep)
         assert isinstance(r_cross_r, representation)
-        assert_quantity_allclose(
-            r_cross_r.norm(), 0.0 * u.kpc**2, atol=1.0 * u.mpc**2
-        )
+        assert_quantity_allclose(r_cross_r.norm(), 0.0 * u.kpc**2, atol=1.0 * u.mpc**2)
         r_cross_r_rev = in_rep.cross(in_rep[::-1])
         sep = angular_separation(self.lon, self.lat, self.lon[::-1], self.lat[::-1])
         expected = self.distance * self.distance[::-1] * np.sin(sep)

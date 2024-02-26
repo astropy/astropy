@@ -697,9 +697,8 @@ class TimeDecimalYear(TimeNumeric):
 
     def to_value(self, **kwargs):
         scale = self.scale.upper().encode("ascii")
-        iy_start, ims, ids, ihmsfs = erfa.d2dtf(
-            scale, 0, self.jd1, self.jd2  # precision=0
-        )
+        # precision=0
+        iy_start, ims, ids, ihmsfs = erfa.d2dtf(scale, 0, self.jd1, self.jd2)
         imon = np.ones_like(iy_start)
         iday = np.ones_like(iy_start)
         ihr = np.zeros_like(iy_start)
@@ -1183,9 +1182,8 @@ class TimeDatetime(TimeUnique):
         # Rather than define a value property directly, we have a function,
         # since we want to be able to pass in timezone information.
         scale = self.scale.upper().encode("ascii")
-        iys, ims, ids, ihmsfs = erfa.d2dtf(
-            scale, 6, self.jd1, self.jd2  # 6 for microsec
-        )
+        # 6 for microsec
+        iys, ims, ids, ihmsfs = erfa.d2dtf(scale, 6, self.jd1, self.jd2)
         ihrs = ihmsfs["h"]
         imins = ihmsfs["m"]
         isecs = ihmsfs["s"]

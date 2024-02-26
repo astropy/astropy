@@ -233,23 +233,6 @@ archs = ["x86_64", "arm64"]
 [tool.cibuildwheel.linux]
 archs = ["auto", "aarch64"]
 
-[tool.black]
-force-exclude = """
-^/(
-  (
-    # Directories to always exclude (.gitignore is always excluded)
-      examples
-    | docs/wcs/examples
-    | docs/nddata/examples
-    | cextern
-    | astropy/extern
-  )/
-  # Individual files to always exclude
-  | astropy/coordinates/.*tab.py
-  | astropy/units/format/.*tab.py
-)
-"""
-
 
 [tool.docformatter]
     # The ``summaries`` are not (yet) 75 characters because the summary lines can't be
@@ -359,6 +342,10 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     # flake8-fixme (FIX)
     "FIX002",  # Line contains TODO | notes for improvements are OK iff the code works
 
+    # ISC001 shouldn't be used with ruff format
+    # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+    "ISC001",
+
     # pep8-naming (N)
     "N803",  # invalid-argument-name. Physics variables are often poor code variables
     "N806",  # non-lowercase-variable-in-function. Physics variables are often poor code variables
@@ -375,6 +362,9 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     # Ruff-specific rules (RUF)
     "RUF005",  # unpack-instead-of-concatenating-to-collection-literal -- it's not clearly faster.
 ]
+
+[tool.ruff.format]
+exclude = ["docs/*", "examples/*"]
 
 [tool.ruff.lint.extend-per-file-ignores]
 "setup.py" = ["INP001"]  # Part of configuration, not a package.

@@ -809,12 +809,12 @@ def test_models_fitting(model, fitter):
     m = model["class"](**model["parameters"])
     if len(model["evaluation"][0]) == 2:
         x = np.linspace(1, 3, 100) * model["evaluation"][0][0].unit
-        y = np.exp(-x.value**2) * model["evaluation"][0][1].unit
+        y = np.exp(-(x.value**2)) * model["evaluation"][0][1].unit
         args = [x, y]
     else:
         x = np.linspace(1, 3, 100) * model["evaluation"][0][0].unit
         y = np.linspace(1, 3, 100) * model["evaluation"][0][1].unit
-        z = np.exp(-x.value**2 - y.value**2) * model["evaluation"][0][2].unit
+        z = np.exp(-(x.value**2 + y.value**2)) * model["evaluation"][0][2].unit
         args = [x, y, z]
 
     # Test that the model fits even if it has units on parameters
@@ -1110,9 +1110,7 @@ def test_models_evaluate_magunits(model):
 
 def test_Schechter1D_errors():
     # Non magnitude units are bad
-    model = Schechter1D(
-        phi_star=1.0e-4 * (u.Mpc**-3), m_star=-20.0 * u.km, alpha=-1.9
-    )
+    model = Schechter1D(phi_star=1.0e-4 * (u.Mpc**-3), m_star=-20.0 * u.km, alpha=-1.9)
     MESSAGE = r"The units of magnitude and m_star must be a magnitude"
     with pytest.raises(u.UnitsError, match=MESSAGE):
         model(-23 * u.km)

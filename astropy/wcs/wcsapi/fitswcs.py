@@ -153,7 +153,7 @@ CTYPE_TO_UCD1 = {
     "LOCAL": "time",
     # Distance coordinates
     "DIST": "pos.distance",
-    "DSUN": "custom:pos.distance.sunToObserver"
+    "DSUN": "custom:pos.distance.sunToObserver",
     # UT() and TT() are handled separately in world_axis_physical_types
 }
 

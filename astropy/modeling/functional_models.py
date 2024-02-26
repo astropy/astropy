@@ -1632,9 +1632,7 @@ class Lorentz1D(Fittable1DModel):
     def fit_deriv(x, amplitude, x_0, fwhm):
         """One dimensional Lorentzian model derivative with respect to parameters."""
         d_amplitude = fwhm**2 / (fwhm**2 + (x - x_0) ** 2)
-        d_x_0 = (
-            amplitude * d_amplitude * (2 * x - 2 * x_0) / (fwhm**2 + (x - x_0) ** 2)
-        )
+        d_x_0 = amplitude * d_amplitude * (2 * x - 2 * x_0) / (fwhm**2 + (x - x_0) ** 2)
         d_fwhm = 2 * amplitude * d_amplitude / fwhm * (1 - d_amplitude)
         return [d_amplitude, d_x_0, d_fwhm]
 
