@@ -42,20 +42,20 @@ as string columns. The new default behavior is consistent with ``numpy`` v2 and 
 The :meth:`~astropy.units.Quantity.to_string` method now supports a ``format_spec`` parameter,
 enabling direct usage of Python's format specification mini-language for precise quantity formatting.
 This allows for explicit and consistent control over numerical representation, including fixed-point
-and scientific notation, directly in the string output.
+and scientific notation, directly in the string output for different formats.
 
 Previously, the method primarily relied on the ``precision`` parameter for format control, which dictated
-the number of significant digits and was dependent on internal thresholds.``format_spec`` enables explicit
-specification of formats such as fixed-point notation, scientific notation, or any custom format compatible
-with the mini-language.
+the number of significant digits and did not provide much freedom in the latex format.
 
 Example:
 
 .. code-block:: python
-
     from astropy import units as u
-    q = u.Quantity(12345, u.m)
-    print(q.to_string(format_spec='.2e'))  # Outputs: '1.23e+04 m'
+    q = u.Quantity(123.456, u.m)
+    print(q.to_string(format_spec='.3e', format='latex'))
+    # Outputs: '$1.235 \times 10^{2} \; \mathrm{m}$'
+    print(q.to_string(precision=3, format='latex'))
+    # Outputs: '$123 \; \mathrm{m}$'
 
 Full change log
 ===============
