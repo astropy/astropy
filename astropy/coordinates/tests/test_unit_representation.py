@@ -59,9 +59,7 @@ def test_unit_representation_subclass():
             "unitsphericalwrap180"
         ] = frame_specific_representation_info[
             "sphericalwrap180"
-        ] = frame_specific_representation_info[
-            "spherical"
-        ]
+        ] = frame_specific_representation_info["spherical"]
 
     @frame_transform_graph.transform(
         FunctionTransform, MyFrame, astropy.coordinates.ICRS
