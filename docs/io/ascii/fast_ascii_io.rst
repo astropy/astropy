@@ -88,7 +88,7 @@ These parameters are:
 .. _fast_conversion_opts:
 
 Fast Conversion Options
-------------------------------------
+-----------------------
 
 In addition to ``True`` and ``False``, the parameter ``fast_reader`` can also
 be a ``dict`` specifying any of two additional parameters,
