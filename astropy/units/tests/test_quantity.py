@@ -1004,80 +1004,6 @@ class TestQuantityDisplay:
             f"Quantity as KMS: {qscalar.to_string(precision=3, unit=u.km / u.s)}" == res
         )
 
-        # Scientific notation with 2 decimal places
-        res = "Quantity in scientific: 1.50e+14 m / s"
-        assert f"Quantity in scientific: {qscalar.to_string(format_spec='.2e')}" == res
-
-        # Leading zeros and fixed point notation
-        qscalar = u.Quantity(0.123, "m/s")
-        res = "Quantity with leading zeros: 0.123 m / s"
-        assert (
-            f"Quantity with leading zeros: {qscalar.to_string(format_spec='0.3f')}"
-            == res
-        )
-
-        # Scientific notation for small numbers
-        qscalar = u.Quantity(0.000123, "m/s")
-        res = "Quantity in scientific for small number: 1.23e-04 m / s"
-        assert (
-            f"Quantity in scientific for small number: {qscalar.to_string(format_spec='.2e')}"
-            == res
-        )
-
-        # format_spec overrides precision
-        qscalar = u.Quantity(1.23456789e15, "m/s")
-        res = "Large quantity with format_spec: 1.23e+15 m / s"
-        assert (
-            f"Large quantity with format_spec: {qscalar.to_string(format_spec='.2e', precision=5)}"
-            == res
-        )
-
-        # To km/s and apply scientific notation with 3 decimal places
-        expected_result = r"$1.235 \times 10^{12} \; \mathrm{\frac{km}{s}}$"
-        assert (
-            qscalar.to_string(format="latex", unit=u.km / u.s, format_spec=".3e")
-            == expected_result
-        )
-
-        qscalar = u.Quantity(123, "m")
-        q_pos = qscalar
-        q_neg = -qscalar
-        # Binary, octal, hex, char, %, and string format should raise errors for quantities
-        with pytest.raises(ValueError):
-            qscalar.to_string(format_spec="b")
-        with pytest.raises(ValueError):
-            qscalar.to_string(format_spec="o")
-        with pytest.raises(ValueError):
-            qscalar.to_string(format_spec="x")
-        with pytest.raises(ValueError):
-            qscalar.to_string(format_spec="c")
-        with pytest.raises(ValueError):
-            qscalar.to_string(format_spec="%")
-        with pytest.raises(ValueError):
-            qscalar.to_string(format_spec="s")
-
-        # Right alignment with width
-        assert qscalar.to_string(format_spec=">10") == "     123.0 m"
-        assert q_pos.to_string(format_spec="=+10") == "+    123.0 m"
-        assert q_neg.to_string(format_spec="=+10") == "-    123.0 m"
-        # Center alignment with width
-        assert qscalar.to_string(format_spec="^10") == "  123.0    m"
-        # Left alignment with width
-        assert qscalar.to_string(format_spec="<10") == "123.0      m"
-        # Zero padding
-        assert qscalar.to_string(format_spec="010") == "00000123.0 m"
-
-        qscalar = u.Quantity(1234567, "m")
-        # Separators
-        assert qscalar.to_string(format_spec=",") == "1,234,567.0 m"
-        assert qscalar.to_string(format_spec="_") == "1_234_567.0 m"
-
-        qscalar = u.Quantity(137000000, "lyr")
-        formatted_distance = qscalar.to_string(format_spec=">+30,.2e")
-        expected_output = "                     +1.37e+08 lyr"
-        assert formatted_distance == expected_output
-
-        qscalar = u.Quantity(1.5e14, "m/s")
         res = r"$1.5 \times 10^{14} \; \mathrm{\frac{m}{s}}$"
         assert qscalar.to_string(format="latex") == res
         assert qscalar.to_string(format="latex", subfmt="inline") == res
@@ -1092,6 +1018,88 @@ class TestQuantityDisplay:
 
         res = "[0 1 2] (Unit not initialised)"
         assert np.arange(3).view(u.Quantity).to_string() == res
+
+    @pytest.mark.parametrize(
+        "input_value, input_unit, format_spec, expected_result, format, precision",
+        [
+            (1.5e14, "m/s", ".2e", "1.50e+14 m / s", None, None),
+            (0.123, "m/s", "0.3f", "0.123 m / s", None, None),
+            (0.000123, "m/s", ".2e", "1.23e-04 m / s", None, None),
+            (1.23456789e15, "m/s", ".2e", "1.23e+15 m / s", None, 5),
+            (123, "m", ">10", "     123.0 m", None, None),
+            (123, "m", "=+10", "+    123.0 m", None, None),
+            (-123, "m", "=+10", "-    123.0 m", None, None),
+            (123, "m", "^10", "  123.0    m", None, None),
+            (123, "m", "<10", "123.0      m", None, None),
+            (123, "m", "010", "00000123.0 m", None, None),
+            (1234567, "m", ",", "1,234,567.0 m", None, None),
+            (1234567, "m", "_", "1_234_567.0 m", None, None),
+            (
+                137000000,
+                "lyr",
+                ">+30,.2e",
+                "                     +1.37e+08 lyr",
+                None,
+                None,
+            ),
+            (
+                1.23456789e15,
+                "m/s",
+                ".3e",
+                r"$1.235 \times 10^{15} \; \mathrm{\frac{m}{s}}$",
+                "latex",
+                None,
+            ),
+            (
+                123.456,
+                "km/s",
+                ".2f",
+                r"$123.46 \; \mathrm{\frac{km}{s}}$",
+                "latex",
+                None,
+            ),
+            (
+                123.456,
+                "m/s",
+                ".2f",
+                r"$123.46 \; \mathrm{m\,s^{-1}}$",
+                "latex_inline",
+                None,
+            ),
+            (
+                123.456,
+                "m/s",
+                ".3e",
+                r"$1.235 \times 10^{2} \; \mathrm{\frac{m}{s}}$",
+                "latex",
+                None,
+            ),
+            (
+                123.456,
+                "m/s",
+                ".3e",
+                r"$1.235 \times 10^{2} \; \mathrm{m\,s^{-1}}$",
+                "latex_inline",
+                None,
+            ),
+        ],
+    )
+    def test_format_spec(
+        self, input_value, input_unit, format_spec, expected_result, format, precision
+    ):
+        qscalar = u.Quantity(input_value, input_unit)
+        assert (
+            qscalar.to_string(
+                format_spec=format_spec, precision=precision, format=format
+            )
+            == expected_result
+        )
+
+    @pytest.mark.parametrize("format_spec", ["b", "o", "x", "c", "s"])
+    def test_format_spec_prohibition(self, format_spec):
+        qscalar = u.Quantity(123, "m")
+        with pytest.raises(ValueError):
+            qscalar.to_string(format_spec=format_spec)
 
     def test_repr_latex(self):
         from astropy.units.quantity import conf

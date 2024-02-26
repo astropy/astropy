@@ -1394,7 +1394,7 @@ class Quantity(np.ndarray):
         return unitstr
 
     def to_string(
-        self, unit=None, precision=None, format=None, subfmt=None, format_spec=None
+        self, unit=None, precision=None, format=None, subfmt=None, *, format_spec=None
     ):
         """
         Generate a string representation of the quantity and its unit.
@@ -1426,12 +1426,9 @@ class Quantity(np.ndarray):
               negative exponents instead of fractions
 
         format_spec : str, optional
-            A string specifying the format used to represent numbers. Allows
-            customization of the number format, including fixed, scientific,
-            or custom formats as defined in Python's string formatting guidelines.
-            E.g., '0.2f' for fixed-point notation with two decimals, or '.2e'
-            for scientific notation with two decimals. Note that this overrides
-            the precision keyword if both are provided.
+            Format specification for the string using Python's format
+            mini-language:
+            https://docs.python.org/3/library/string.html#format-specification-mini-language
 
         subfmt : str, optional
             Subformat of the result. For the moment, only used for
@@ -1467,18 +1464,15 @@ class Quantity(np.ndarray):
         formats["latex_inline"] = formats["latex"]
         default_formatter = None
 
-        if format_spec is not None:
-            # Check for format_spec prohibited operators
-            if "%" == format_spec[-1]:
-                raise ValueError("% format_spec is not supported for Quantity.")
-            # Set default formatter
-            default_formatter = {"all": lambda x: f"{x:{format_spec}}"}
-
         if format is None:
             # format_spec overwrites precision
-            if default_formatter is None and precision is None:
-                # Use default formatting settings
-                return f"{self.value}{self._unitstr:s}"
+            if format_spec is None:
+                if precision is None:
+                    # Use default formatting settings
+                    return f"{self.value}{self._unitstr:s}"
+            else:
+                # Set default formatter
+                default_formatter = {"all": lambda x: f"{x:{format_spec}}"}
 
             return (
                 np.array2string(

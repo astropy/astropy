@@ -1,10 +1,3 @@
-Add a ``format_spec`` argument to the ``to_string`` method of the ``Quantity`` class. Enables custom number formatting, especially useful for consistent notation.
-The argument accepts standard Python format specifiers, allowing detailed control over the output format.
-
-Example usage:
-
-.. code-block:: python
-
-    (1e5*u.m).to_string(format='latex', format_spec='.2e')
-
-This will format the quantity in scientific notation with two decimal places in LaTeX format.
+Add a ``format_spec`` argument to the ``to_string`` method of the ``Quantity``
+class. Enables custom number formatting, especially useful for consistent
+notation.
