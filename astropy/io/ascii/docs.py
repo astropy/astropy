@@ -65,8 +65,6 @@ READ_DOCSTRING = """
 
         use_fast_converter: bool
             enable faster but slightly imprecise floating point conversion method
-        parallel: bool or int
-            multiprocessing conversion using ``cpu_count()`` or ``'number'`` processes
         exponent_style: str
             One-character string defining the exponent or ``'Fortran'`` to auto-detect
             Fortran-style scientific notation like ``'3.14159D+00'`` (``'E'``, ``'D'``, ``'Q'``),
