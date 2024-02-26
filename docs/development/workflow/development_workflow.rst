@@ -169,7 +169,7 @@ for git, for more information see
 We encourage you to setup and use these hooks to ensure that your code always meets
 our coding style standards. The easiest way to do this is by installing ``pre-commit``::
 
-    pip install pre-commit
+    python -m pip install pre-commit
 
 Or if you prefer `conda`_::
 
@@ -327,7 +327,7 @@ install the version of ``astropy`` you are working on into it. Do that with:
 
 .. code-block:: bash
 
-    pip install -e ".[test]"
+    python -m pip install --editable ".[test]"
 
 This will install ``astropy`` itself, along with a few packages which will be
 useful for testing the changes you will make down the road.
