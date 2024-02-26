@@ -77,8 +77,7 @@ jobs:
         - cp312-musllinux_x86_64
 
         # MacOS X wheels - as noted in https://github.com/astropy/astropy/pull/12379 we deliberately
-        # do not build universal2 wheels. Note that the arm64 wheels are not actually tested so we
-        # rely on local manual testing of these to make sure they are ok.
+        # do not build universal2 wheels.
 
         - cp39*macosx_x86_64
         - cp310*macosx_x86_64
