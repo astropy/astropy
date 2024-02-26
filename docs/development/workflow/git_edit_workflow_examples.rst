@@ -59,7 +59,7 @@ Set up an isolated workspace
   The example below shows the necessary steps in the Miniconda/Anaconda Python
   distribution::
 
-    conda create -n apy-1761 python=3.9 # replace 3.9 with desired version
+    conda create --name apy-1761 python=3.9 # replace 3.9 with desired version
     conda activate apy-1761
 
   If you are using a different distribution, see :ref:`virtual_envs` for
@@ -67,16 +67,17 @@ Set up an isolated workspace
 
 + Install our branch in this environment with::
 
-    pip install -e ".[test]"
+    python -m pip install --editable ".[test]"
 
 Do you really have to set up a separate Python environment for each fix? No,
 but you definitely want to have a Python environment for your work on code
 contributions. Making new environments is fast, does not take much space, and
 provide a way to keep your work organized.
 
-If installation fails, try to upgrade ``pip`` using ``pip install pip -U``
-command. It is also a good practice to keep your ``conda`` up-to-date by
-running ``conda update conda -n base`` when prompted to do so; maybe ``git`` too.
+If installation fails, try to upgrade ``pip`` using
+``python -m pip install pip --upgrade`` command. It is also a good practice to
+keep your ``conda`` up-to-date by running ``conda update conda --name base``
+when prompted to do so; maybe ``git`` too.
 
 Test first, please
 ==================

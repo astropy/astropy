@@ -32,12 +32,12 @@ Astropy, in the ``pyproject.toml`` file they are not included under the
 ``[project.optional-dependences]`` section called ``test``.  Developers who want
 to run the test suite will need to either install pytest-astropy directly::
 
-    pip install pytest-astropy
+    python -m pip install pytest-astropy
 
 or install the core package in 'editable' mode specifying the ``[test]``
 option::
 
-    pip install -e ".[test]"
+    python -m pip install --editable ".[test]"
 
 A detailed description of the plugins can be found in the :ref:`pytest-plugins`
 section.
@@ -75,7 +75,7 @@ used in many cases to reproduce issues seen on those services.
 
 To run the tests with tox, first make sure that tox is installed, e.g.::
 
-    pip install tox
+    python -m pip install tox
 
 then run the basic test suite with::
 
@@ -121,13 +121,13 @@ which is generally faster than using tox for iterative development. In
 this case, it is important for developers to be aware that they must manually
 rebuild any extensions by running::
 
-    pip install -e ".[test]"
+    python -m pip install --editable ".[test]"
 
 before running the test with pytest with::
 
     pytest
 
-Instead of calling ``pip install -e ".[test]"``, you can also build the
+Instead of calling ``python -m pip install --editable ".[test]"``, you can also build the
 extensions with::
 
     python setup.py build_ext --inplace

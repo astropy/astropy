@@ -51,4 +51,4 @@ from source in the ``conda`` environment in an OS-agnostic way. For example:
 * If you have not already, fetch all of the tags from the main repository.
   If you do not have the latest tag, your developer version number will be
   wrong.
-* Run ``pip install -e .`` to build ``astropy``.
+* Run ``python -m pip install --editable .`` to build ``astropy``.
