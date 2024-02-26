@@ -155,7 +155,7 @@ force push the branch; a normal push would give an error. If the branch you
 rebased is called ``cool-feature`` and your GitHub fork is available as the
 remote called ``origin``, you use this command to force-push::
 
-   git push -f origin cool-feature
+   git push --force origin cool-feature
 
 Note that this will overwrite the branch on GitHub, i.e. this is one of the few
 ways you can actually lose commits with git. Also note that it is never allowed

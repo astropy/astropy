@@ -169,7 +169,7 @@ To find the statistics and contributors, use the `generate_releaserst.xsh`_
 script. This requires `xonsh <https://xon.sh/>`_ and `docopt
 <http://docopt.org/>`_ which you can install with::
 
-   pip install xonsh docopt requests
+   python -m pip install xonsh docopt requests
 
 You should then run the script in the root of the astropy repository as follows::
 
@@ -275,8 +275,8 @@ You may also want to locally run the tests (with remote data on to ensure all
 of the tests actually run), using tox to do a thorough test in an isolated
 environment::
 
-   $ pip install tox --upgrade
-   $ tox -e test-alldeps -- --remote-data=any --run-slow --run-hugemem
+   python -m pip install tox --upgrade
+   tox -e test-alldeps -- --remote-data=any --run-slow --run-hugemem
 
 Additional notes
 ----------------

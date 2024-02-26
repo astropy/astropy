@@ -236,7 +236,7 @@ version you are using, try the command ``which pip`` on the terminal.
 
 In the directory where your copy of astropy is type::
 
-    pip install -e ".[test]"
+    python -m pip install --editable ".[test]"
 
 This command installs astropy itself, along with a few packages which will be
 useful for testing the changes you will make down the road. Several pages of
