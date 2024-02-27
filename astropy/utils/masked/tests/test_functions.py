@@ -191,7 +191,7 @@ class MaskedUfuncTests(MaskedArraySetup):
         assert_array_equal(rxp3.unmasked, exp)
         assert_array_equal(rxp3.mask, True)
 
-    def test_erfa_rxr(self):
+    def test_erfa_rxr_axes(self):
         m1 = Masked(np.arange(27.0).reshape(3, 3, 3))
         m2 = Masked(np.arange(-27.0, 0.0).reshape(3, 3, 3))
         rxr1 = erfa_ufunc.rxr(m1, m2)
@@ -202,6 +202,10 @@ class MaskedUfuncTests(MaskedArraySetup):
         rxr2 = erfa_ufunc.rxr(m1, m2)
         assert_array_equal(rxr2.unmasked, exp)
         assert np.all(rxr2.mask == [[[True]], [[False]], [[False]]])
+        rxr3 = erfa_ufunc.rxr(m1, m2, axes=[(0, 2), (-2, -1), (0, 1)])
+        exp3 = erfa_ufunc.rxr(m1.unmasked, m2.unmasked, axes=[(0, 2), (-2, -1), (0, 1)])
+        assert_array_equal(rxr3.unmasked, exp3)
+        assert np.all(rxr3.mask == [False, True, False])
 
     @pytest.mark.parametrize("axis", (0, 1, None))
     def test_add_reduce(self, axis):
