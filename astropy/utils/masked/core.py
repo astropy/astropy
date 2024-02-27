@@ -773,7 +773,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                     ) = np.lib._function_base_impl._parse_gufunc_signature(
                         ufunc.signature.replace(" ", "")
                     )
-                axis = kwargs.get("axis", -1)
+                axis = kwargs.get("axis")
                 keepdims = kwargs.get("keepdims", False)
                 in_masks = []
                 for sig, mask in zip(in_sig, masks):
@@ -783,8 +783,13 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                             # value in those is masked, the output will be
                             # masked too (TODO: for multiple core dimensions
                             # this may be too strong).
+                            in_axis = (
+                                tuple(range(-1, -1 - len(sig), -1))
+                                if axis is None
+                                else axis
+                            )
                             mask = np.logical_or.reduce(
-                                mask, axis=axis, keepdims=keepdims
+                                mask, axis=in_axis, keepdims=keepdims
                             )
                         in_masks.append(mask)
 
@@ -794,7 +799,10 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                     if os:
                         # Output has core dimensions.  Assume all those
                         # get the same mask.
-                        result_mask = np.expand_dims(mask, axis)
+                        out_axis = (
+                            tuple(range(-1, -1 - len(os), -1)) if axis is None else axis
+                        )
+                        result_mask = np.expand_dims(mask, out_axis)
                     else:
                         result_mask = mask
                     result_masks.append(result_mask)

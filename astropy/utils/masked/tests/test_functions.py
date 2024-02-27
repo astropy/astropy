@@ -173,6 +173,36 @@ class MaskedUfuncTests(MaskedArraySetup):
             assert res0.unmasked == exp[0]
             assert res0.mask == expected_mask[0]
 
+    def test_erfa_rxp(self):
+        # Regression tests for gh-16116
+        m = Masked(np.eye(3))
+        v = Masked(np.arange(6).reshape(2, 3))
+        rxp1 = erfa_ufunc.rxp(m, v)
+        exp = erfa_ufunc.rxp(m.unmasked, v.unmasked)
+        assert_array_equal(rxp1.unmasked, exp)
+        assert_array_equal(rxp1.mask, False)
+        v.mask[0, 0] = True
+        rxp2 = erfa_ufunc.rxp(m, v)
+        assert_array_equal(rxp2.unmasked, exp)
+        assert_array_equal(rxp2.mask, [[True] * 3, [False] * 3])
+        m.mask[1, 1] = True
+        v.mask[...] = False
+        rxp3 = erfa_ufunc.rxp(m, v)
+        assert_array_equal(rxp3.unmasked, exp)
+        assert_array_equal(rxp3.mask, True)
+
+    def test_erfa_rxr(self):
+        m1 = Masked(np.arange(27.0).reshape(3, 3, 3))
+        m2 = Masked(np.arange(-27.0, 0.0).reshape(3, 3, 3))
+        rxr1 = erfa_ufunc.rxr(m1, m2)
+        exp = erfa_ufunc.rxr(m1.unmasked, m2.unmasked)
+        assert_array_equal(rxr1.unmasked, exp)
+        assert_array_equal(rxr1.mask, False)
+        m1.mask[0, 1, 2] = True
+        rxr2 = erfa_ufunc.rxr(m1, m2)
+        assert_array_equal(rxr2.unmasked, exp)
+        assert np.all(rxr2.mask == [[[True]], [[False]], [[False]]])
+
     @pytest.mark.parametrize("axis", (0, 1, None))
     def test_add_reduce(self, axis):
         ma_reduce = np.add.reduce(self.ma, axis=axis)
