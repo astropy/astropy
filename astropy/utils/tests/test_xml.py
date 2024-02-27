@@ -5,6 +5,7 @@ import io
 import pytest
 
 from astropy.utils.compat.optional_deps import HAS_BLEACH
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.xml import check, unescaper, writer
 
 
@@ -54,7 +55,8 @@ def test_unescape_all():
     url_out = (
         "http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?DSACAT=IDR&DSATAB=Emitters&"
     )
-    assert unescaper.unescape_all(url_in) == url_out
+    with pytest.warns(AstropyDeprecationWarning):
+        assert unescaper.unescape_all(url_in) == url_out
 
     # bytes
     url_in = (
@@ -64,7 +66,8 @@ def test_unescape_all():
     url_out = (
         b"http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?DSACAT=IDR&DSATAB=Emitters&"
     )
-    assert unescaper.unescape_all(url_in) == url_out
+    with pytest.warns(AstropyDeprecationWarning):
+        assert unescaper.unescape_all(url_in) == url_out
 
 
 def test_escape_xml():

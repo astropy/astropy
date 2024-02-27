@@ -4,6 +4,8 @@
 # STDLIB
 from xml.sax import saxutils
 
+from astropy.utils import deprecated
+
 __all__ = ["unescape_all"]
 
 # This is DIY
@@ -22,6 +24,8 @@ _str_entities = {"&amp;&amp;": "&", "&&": "&", "%2F": "/"}
 _str_keys = ["&amp;&amp;", "&&", "&amp;", "&lt;", "&gt;", "%2F"]
 
 
+# Remove the entire file when the deprecation period ends!
+@deprecated(since="6.1")
 def unescape_all(url):
     """Recursively unescape a given URL.
 
