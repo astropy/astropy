@@ -705,11 +705,16 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         return out
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        # Get inputs and there masks.
+        unmasked, masks = self._get_data_and_masks(*inputs)
+
+        # Deal with possible outputs.
         out = kwargs.pop("out", None)
         out_unmasked = None
         out_mask = None
         if out is not None:
             out_unmasked, out_masks = self._get_data_and_masks(*out)
+            kwargs["out"] = out_unmasked
             for d, m in zip(out_unmasked, out_masks):
                 if m is None:
                     # TODO: allow writing to unmasked output if nothing is masked?
@@ -726,8 +731,10 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             where_mask = None
         else:
             where_unmasked, where_mask = self._get_data_and_mask(where)
+            kwargs["where"] = where_unmasked
 
-        unmasked, masks = self._get_data_and_masks(*inputs)
+        # First calculate the unmasked result. This will also verify kwargs.
+        result = getattr(ufunc, method)(*unmasked, **kwargs)
 
         if ufunc.signature:
             # We're dealing with a gufunc. For now, only deal with
@@ -864,12 +871,6 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             raise NotImplementedError(
                 "masked instances cannot yet deal with 'reduceat' or 'at'."
             )
-
-        if out_unmasked is not None:
-            kwargs["out"] = out_unmasked
-        if where_unmasked is not True:
-            kwargs["where"] = where_unmasked
-        result = getattr(ufunc, method)(*unmasked, **kwargs)
 
         if result is None:  # pragma: no cover
             # This happens for the "at" method.
