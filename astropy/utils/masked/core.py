@@ -735,36 +735,31 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
         # First calculate the unmasked result. This will also verify kwargs.
         result = getattr(ufunc, method)(*unmasked, **kwargs)
+        if result is NotImplemented:
+            return NotImplemented
 
         if ufunc.signature:
             # We're dealing with a gufunc. For now, only deal with
             # np.matmul and gufuncs for which the mask of any output always
             # depends on all core dimension values of all inputs.
-            # Also ignore axes keyword for now...
             # TODO: in principle, it should be possible to generate the mask
             # purely based on the signature.
-            if "axes" in kwargs:
-                raise NotImplementedError(
-                    "Masked does not yet support gufunc calls with 'axes'."
-                )
             if ufunc is np.matmul:
                 # np.matmul is tricky and its signature cannot be parsed by
-                # _parse_gufunc_signature.
-                unmasked = np.atleast_1d(*unmasked)
-                mask0, mask1 = masks
-                masks = []
-                is_mat1 = unmasked[1].ndim >= 2
-                if mask0 is not None:
-                    masks.append(np.logical_or.reduce(mask0, axis=-1, keepdims=is_mat1))
-
-                if mask1 is not None:
-                    masks.append(
-                        np.logical_or.reduce(mask1, axis=-2, keepdims=True)
-                        if is_mat1
-                        else np.logical_or.reduce(mask1)
-                    )
-
-                mask = self._combine_masks(masks, out=out_mask, copy=False)
+                # _parse_gufunc_signature.  But we can calculate the mask
+                # using matmul by using that nan will propagate correctly.
+                # We use float16 to minimize the space requirements.
+                nan_masks = []
+                for a, m in zip(unmasked, masks):
+                    nan_mask = np.zeros(a.shape, dtype=np.float16)
+                    if m is not None:
+                        nan_mask[m] = np.nan
+                    nan_masks.append(nan_mask)
+                m_kwargs = {
+                    k: v for k, v in kwargs.items() if k not in ("out", "where")
+                }
+                t = ufunc(*nan_masks, **m_kwargs)
+                mask = np.isnan(t, out=out_mask)
 
             else:
                 # Parse signature with private numpy function. Note it
@@ -780,36 +775,33 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                     ) = np.lib._function_base_impl._parse_gufunc_signature(
                         ufunc.signature.replace(" ", "")
                     )
-                axis = kwargs.get("axis")
+                axes = kwargs.get("axes")
+                if axes is None:
+                    axes = [kwargs.get("axis")] * ufunc.nargs
                 keepdims = kwargs.get("keepdims", False)
                 in_masks = []
-                for sig, mask in zip(in_sig, masks):
+                for sig, mask, axis in zip(in_sig, masks, axes[: ufunc.nin]):
                     if mask is not None:
                         if sig:
+                            if axis is None:
+                                axis = tuple(range(-1, -1 - len(sig), -1))
                             # Input has core dimensions.  Assume that if any
                             # value in those is masked, the output will be
                             # masked too (TODO: for multiple core dimensions
-                            # this may be too strong).
-                            in_axis = (
-                                tuple(range(-1, -1 - len(sig), -1))
-                                if axis is None
-                                else axis
-                            )
                             mask = np.logical_or.reduce(
-                                mask, axis=in_axis, keepdims=keepdims
+                                mask, axis=axis, keepdims=keepdims
                             )
                         in_masks.append(mask)
 
                 mask = self._combine_masks(in_masks)
                 result_masks = []
-                for os in out_sig:
+                for os, axis in zip(out_sig, axes[ufunc.nin :]):
                     if os:
                         # Output has core dimensions.  Assume all those
                         # get the same mask.
-                        out_axis = (
-                            tuple(range(-1, -1 - len(os), -1)) if axis is None else axis
-                        )
-                        result_mask = np.expand_dims(mask, out_axis)
+                        if axis is None:
+                            axis = tuple(range(-1, -1 - len(os), -1))
+                        result_mask = np.expand_dims(mask, axis)
                     else:
                         result_mask = mask
                     result_masks.append(result_mask)

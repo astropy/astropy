@@ -743,6 +743,28 @@ class MaskedOperatorTests(MaskedArraySetup):
         expected_mask3 = np.logical_or.outer(np.zeros(3, bool), mask1)
         assert_array_equal(result3.mask, expected_mask3)
 
+    def test_matmul_axes(self):
+        m1 = Masked(np.arange(27.0).reshape(3, 3, 3))
+        m2 = Masked(np.arange(-27.0, 0.0).reshape(3, 3, 3))
+        mxm1 = np.matmul(m1, m2)
+        exp = np.matmul(m1.unmasked, m2.unmasked)
+        assert_array_equal(mxm1.unmasked, exp)
+        assert_array_equal(mxm1.mask, False)
+        m1.mask[0, 1, 2] = True
+        m2.mask[0, 2, 0] = True
+        mxm2 = np.matmul(m1, m2, axes=[(0, 2), (-2, -1), (0, 1)])
+        exp2 = np.matmul(m1.unmasked, m2.unmasked, axes=[(0, 2), (-2, -1), (0, 1)])
+        mask2 = (
+            np.matmul(
+                (~m1.mask).astype(int),
+                (~m2.mask).astype(int),
+                axes=[(0, 2), (-2, -1), (0, 1)],
+            )
+            != 3
+        )
+        assert_array_equal(mxm2.unmasked, exp2)
+        assert_array_equal(mxm2.mask, mask2)
+
     def test_matvec(self):
         result = self.ma @ self.mb
         assert np.all(result.mask)
