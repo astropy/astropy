@@ -1,0 +1,2 @@
+``astropy.table.vstack`` will no longer modify the input list when it
+is a list of ``astropy.table.Row`` objects.
