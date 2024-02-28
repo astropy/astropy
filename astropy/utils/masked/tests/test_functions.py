@@ -173,6 +173,40 @@ class MaskedUfuncTests(MaskedArraySetup):
             assert res0.unmasked == exp[0]
             assert res0.mask == expected_mask[0]
 
+    def test_erfa_pdp_with_out(self):
+        p = np.arange(9.0).reshape(3, 3)
+        mp = Masked(p)
+        mp.mask[1, 2] = True
+        out = Masked(np.empty(3), mask=True)
+        result = erfa_ufunc.pdp(mp, mp, out=out)
+        assert result is out
+        assert_array_equal(result.unmasked, erfa_ufunc.pdp(p, p))
+        assert_array_equal(result.mask, [False, True, False])
+        # With axes just for the inputs.
+        axes = [0, 1]
+        result2 = erfa_ufunc.pdp(mp, mp, out=out, axes=axes)
+        assert result2 is out
+        assert_array_equal(result2.unmasked, erfa_ufunc.pdp(p, p, axes=axes))
+        assert_array_equal(result2.mask, [False, True, True])
+
+    @pytest.mark.parametrize("kwargs", [{}, dict(axis=0), dict(axes=[0])])
+    def test_erfa_p2s_with_out(self, kwargs):
+        p = np.arange(9.0).reshape(3, 3)
+        mp = Masked(p)
+        mp.mask[1, 2] = True
+        # Outputs are theta, phi, r.
+        outs = tuple(Masked(np.empty(3), mask=True) for _ in range(3))
+        masks = tuple(out.mask for out in outs)
+        results = erfa_ufunc.p2s(mp, out=outs, **kwargs)
+        assert len(results) == 3
+        expected = erfa_ufunc.p2s(mp.unmasked, **kwargs)
+        expected_mask = mp.mask.any(0 if kwargs else -1)
+        for a, b, m, x in zip(results, outs, masks, expected):
+            assert a is b
+            assert a.mask is m
+            assert_array_equal(a.unmasked, x)
+            assert_array_equal(a.mask, expected_mask)
+
     def test_erfa_rxp(self):
         # Regression tests for gh-16116
         m = Masked(np.eye(3))
@@ -202,8 +236,9 @@ class MaskedUfuncTests(MaskedArraySetup):
         rxr2 = erfa_ufunc.rxr(m1, m2)
         assert_array_equal(rxr2.unmasked, exp)
         assert np.all(rxr2.mask == [[[True]], [[False]], [[False]]])
-        rxr3 = erfa_ufunc.rxr(m1, m2, axes=[(0, 2), (-2, -1), (0, 1)])
-        exp3 = erfa_ufunc.rxr(m1.unmasked, m2.unmasked, axes=[(0, 2), (-2, -1), (0, 1)])
+        axes = [(0, 2), (-2, -1), (0, 1)]
+        rxr3 = erfa_ufunc.rxr(m1, m2, axes=axes)
+        exp3 = erfa_ufunc.rxr(m1.unmasked, m2.unmasked, axes=axes)
         assert_array_equal(rxr3.unmasked, exp3)
         assert np.all(rxr3.mask == [False, True, False])
 
@@ -226,7 +261,14 @@ class MaskedUfuncTests(MaskedArraySetup):
         result = np.add.reduce(self.a, axis=0, out=out)
         assert result is out
         assert_array_equal(out.unmasked, a_reduce)
-        assert_array_equal(out.mask, np.zeros(a_reduce.shape, bool))
+        assert_array_equal(out.mask, False)
+        # Also try with where (which should have different path)
+        where = np.array([[True, False, False], [True, True, False]])
+        a_reduce2 = np.add.reduce(self.a, axis=0, where=where)
+        result2 = np.add.reduce(self.a, axis=0, out=out, where=where)
+        assert result2 is out
+        assert_array_equal(out.unmasked, a_reduce2)
+        assert_array_equal(out.mask, [False, False, True])
 
     @pytest.mark.parametrize("axis", (0, 1, None))
     def test_minimum_reduce(self, axis):
@@ -247,6 +289,8 @@ class MaskedUfuncTests(MaskedArraySetup):
 
 class TestMaskedArrayUfuncs(MaskedUfuncTests):
     # multiply.reduce does not work with units, so test only for plain array.
+    # Similarly, modf only works for dimensionless, but we are using it just
+    # to check multiple outputs get the right mask.
     @pytest.mark.parametrize("axis", (0, 1, None))
     def test_multiply_reduce(self, axis):
         ma_reduce = np.multiply.reduce(self.ma, axis=axis)
@@ -254,6 +298,19 @@ class TestMaskedArrayUfuncs(MaskedUfuncTests):
         expected_mask = np.logical_or.reduce(self.ma.mask, axis=axis)
         assert_array_equal(ma_reduce.unmasked, expected_data)
         assert_array_equal(ma_reduce.mask, expected_mask)
+
+    def test_ufunc_two_out(self):
+        out0 = np.empty_like(self.ma)
+        out0_mask = out0.mask
+        out1 = np.empty_like(self.ma)
+        out1_mask = out1.mask
+        res0, res1 = np.modf(self.ma, out=(out0, out1))
+        assert res0 is out0
+        assert res1 is out1
+        assert out0.mask is out0_mask
+        assert out1.mask is out1_mask
+        assert_array_equal(out0.mask, self.mask_a)
+        assert_array_equal(out1.mask, self.mask_a)
 
     def test_ufunc_not_implemented_for_other(self):
         """

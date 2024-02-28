@@ -752,15 +752,18 @@ class MaskedOperatorTests(MaskedArraySetup):
         assert_array_equal(mxm1.mask, False)
         m1.mask[0, 1, 2] = True
         m2.mask[0, 2, 0] = True
-        mxm2 = np.matmul(m1, m2, axes=[(0, 2), (-2, -1), (0, 1)])
-        exp2 = np.matmul(m1.unmasked, m2.unmasked, axes=[(0, 2), (-2, -1), (0, 1)])
+        axes = [(0, 2), (-2, -1), (0, 1)]
+        mxm2 = np.matmul(m1, m2, axes=axes)
+        exp2 = np.matmul(m1.unmasked, m2.unmasked, axes=axes)
+        # Any unmasked result will have all elements contributing unity,
+        # while masked entries mean the total will be lower.
         mask2 = (
             np.matmul(
                 (~m1.mask).astype(int),
                 (~m2.mask).astype(int),
-                axes=[(0, 2), (-2, -1), (0, 1)],
+                axes=axes,
             )
-            != 3
+            != m1.shape[axes[0][1]]
         )
         assert_array_equal(mxm2.unmasked, exp2)
         assert_array_equal(mxm2.mask, mask2)
