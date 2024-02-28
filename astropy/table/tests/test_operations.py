@@ -1540,6 +1540,20 @@ class TestVStack:
             "               --   four",
         ]
 
+    def test_vstack_inputs_not_modified(self):
+        """Tests that inputs are not modified, see issue #16119"""
+        t1 = Table(data=dict(x=[1,2,3], y=['a', 'b', 'c']))
+
+        rows = [r for r in t1]
+        assert isinstance(rows[0], table.Row)
+        t2 = table.vstack(rows)
+        assert isinstance(rows[0], table.Row)  # still a Row
+
+        tables = [t1,t1]
+        assert isinstance(tables[0], table.Table)
+        t3 = table.vstack(tables)
+        assert isinstance(tables[0], table.Table)  # still a Table
+
 
 class TestDStack:
     def _setup(self, t_cls=Table):
