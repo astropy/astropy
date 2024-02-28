@@ -1544,7 +1544,7 @@ class TestVStack:
         """Tests that inputs are not modified, see issue #16119"""
         t1 = Table(data=dict(x=[1, 2, 3], y=["a", "b", "c"]))
 
-        rows = [r for r in t1]
+        rows = list(t1)  # Table -> list of Rows
         assert isinstance(rows[0], table.Row)
         t2 = table.vstack(rows)
         assert isinstance(rows[0], table.Row)  # still a Row
