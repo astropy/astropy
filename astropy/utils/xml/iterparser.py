@@ -11,6 +11,8 @@ import sys
 # ASTROPY
 from astropy.utils import data
 
+from ._iterparser import IterParser as _fast_iterparse
+
 __all__ = ["get_xml_iterator", "get_xml_encoding", "xml_readlines"]
 
 
@@ -69,7 +71,7 @@ def _convert_to_fd_or_read_function(fd):
                 yield new_fd.read
 
 
-def _fast_iterparse(fd, buffersize=2**10):
+def _slow_iterparse(fd, buffersize=2**10):
     from xml.parsers import expat
 
     if not callable(fd):
@@ -112,17 +114,6 @@ def _fast_iterparse(fd, buffersize=2**10):
 
     Parse("", True)
     yield from queue
-
-
-# Try to import the C version of the iterparser, otherwise fall back
-# to the Python implementation above.
-_slow_iterparse = _fast_iterparse
-try:
-    from . import _iterparser
-
-    _fast_iterparse = _iterparser.IterParser
-except ImportError:
-    pass
 
 
 @contextlib.contextmanager
