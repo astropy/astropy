@@ -689,9 +689,12 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         """
         masks = [m for m in masks if m is not None and m is not False]
         if not masks:
-            if out is not None:
+            if out is None:
+                return False
+            else:
+                # Use copyto to deal with broadcasting with `where`.
                 np.copyto(out, False, where=where)
-            return False
+                return out
 
         if len(masks) == 1:
             if out is None:
@@ -738,9 +741,8 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             kwargs["where"] = where_unmasked
 
         # First calculate the unmasked result. This will also verify kwargs.
+        # It will raise if the arguments do not know how to deal with each other.
         result = getattr(ufunc, method)(*unmasked, **kwargs)
-        if result is NotImplemented:
-            return NotImplemented
 
         if ufunc.signature:
             # We're dealing with a gufunc. For now, only deal with
@@ -751,8 +753,8 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             if ufunc is np.matmul:
                 # np.matmul is tricky and its signature cannot be parsed by
                 # _parse_gufunc_signature.  But we can calculate the mask
-                # using matmul by using that nan will propagate correctly.
-                # We use float16 to minimize the space requirements.
+                # with matmul by using that nan will propagate correctly.
+                # We use float16 to minimize the memory requirements.
                 nan_masks = []
                 for a, m in zip(unmasked, masks):
                     nan_mask = np.zeros(a.shape, dtype=np.float16)
@@ -781,7 +783,12 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                     )
                 axes = kwargs.get("axes")
                 if axes is None:
+                    # Maybe axis was given? (Note: ufunc will not take both.)
                     axes = [kwargs.get("axis")] * ufunc.nargs
+                elif len(axes) < ufunc.nargs:
+                    # All outputs have no core dimensions, which means axes
+                    # is not needed, but add None's for the zip below.
+                    axes = axes + [None] * (ufunc.nargs - len(axes))  # not inplace!
                 keepdims = kwargs.get("keepdims", False)
                 in_masks = []
                 for sig, mask, axis in zip(in_sig, masks, axes[: ufunc.nin]):
@@ -792,6 +799,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                             # Input has core dimensions.  Assume that if any
                             # value in those is masked, the output will be
                             # masked too (TODO: for multiple core dimensions
+                            # this may be too strong).
                             mask = np.logical_or.reduce(
                                 mask, axis=axis, keepdims=keepdims
                             )
@@ -833,17 +841,12 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                         m[...] = mask
 
         elif method == "outer":
-            # Must have two inputs and one output;
-            # adjust masks as will be done for data.
+            # Must have two inputs and one output, so also only one output mask.
+            # Adjust masks as will be done for data.
             m0, m1 = masks
             if m0 is not None and m0.ndim > 0:
                 m0 = m0[(...,) + (np.newaxis,) * np.ndim(unmasked[1])]
             mask = self._combine_masks((m0, m1), out=out_mask)
-            if out_mask is not None:
-                # Check for any additional explicitly given outputs.
-                for m in out_masks[1:]:
-                    if m is not None and m is not out_mask:
-                        m[...] = mask
 
         elif method in {"reduce", "accumulate"}:
             # Reductions like np.add.reduce (sum).
@@ -851,10 +854,11 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             mask = self._combine_masks((masks[0], where_mask), copy=False)
             if mask is False and out_mask is not None:
                 if where_unmasked is True:
-                    np.copyto(out_mask, False)
+                    out_mask[...] = False
                 else:
                     # This is too complicated, just fall through to below.
                     mask = np.broadcast_to(False, inputs[0].shape)
+
             if mask is not False:
                 # By default, we simply propagate masks, since for
                 # things like np.sum, it makes no sense to do otherwise.
