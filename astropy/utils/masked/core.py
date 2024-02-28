@@ -689,7 +689,10 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         """
         masks = [m for m in masks if m is not None and m is not False]
         if not masks:
+            if out is not None:
+                np.copyto(out, False, where=where)
             return False
+
         if len(masks) == 1:
             if out is None:
                 return masks[0].copy() if copy else masks[0]
@@ -708,11 +711,12 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         # Get inputs and there masks.
         unmasked, masks = self._get_data_and_masks(*inputs)
 
-        # Deal with possible outputs.
-        out = kwargs.pop("out", None)
-        out_unmasked = None
+        # Deal with possible outputs and their masks.
+        out = kwargs.get("out")
         out_mask = None
-        if out is not None:
+        if out is None:
+            out_masks = [None] * ufunc.nout
+        else:
             out_unmasked, out_masks = self._get_data_and_masks(*out)
             kwargs["out"] = out_unmasked
             for d, m in zip(out_unmasked, out_masks):
@@ -725,7 +729,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
         # TODO: where is only needed for __call__ and reduce;
         # this is very fast, but still worth separating out?
-        where = kwargs.pop("where", True)
+        where = kwargs.get("where", True)
         if where is True:
             where_unmasked = True
             where_mask = None
@@ -793,20 +797,27 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                             )
                         in_masks.append(mask)
 
-                mask = self._combine_masks(in_masks)
-                result_masks = []
-                for os, axis in zip(out_sig, axes[ufunc.nin :]):
-                    if os:
-                        # Output has core dimensions.  Assume all those
-                        # get the same mask.
-                        if axis is None:
-                            axis = tuple(range(-1, -1 - len(os), -1))
-                        result_mask = np.expand_dims(mask, axis)
-                    else:
-                        result_mask = mask
-                    result_masks.append(result_mask)
+                if ufunc.nout == 1 and out_sig[0] == ():
+                    # Special-case where possible in-place is easy.
+                    mask = self._combine_masks(in_masks, out_mask, copy=False)
+                else:
+                    # Here, some masks may need expansion, so we forego in-place.
+                    mask = self._combine_masks(in_masks, copy=False)
+                    result_masks = []
+                    for os, omask, axis in zip(out_sig, out_masks, axes[ufunc.nin :]):
+                        if os:
+                            # Output has core dimensions.  Assume all those
+                            # get the same mask.
+                            if axis is None:
+                                axis = tuple(range(-1, -1 - len(os), -1))
+                            result_mask = np.expand_dims(mask, axis)
+                        else:
+                            result_mask = mask
+                        if omask is not None:
+                            omask[...] = result_mask
+                        result_masks.append(result_mask)
 
-                mask = result_masks if len(result_masks) > 1 else result_masks[0]
+                    mask = result_masks if ufunc.nout > 1 else result_masks[0]
 
         elif method == "__call__":
             # Regular ufunc call.
@@ -815,18 +826,35 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             # If relevant, also mask output elements for which where was masked.
             if where_mask is not None:
                 mask |= where_mask
+            if out_mask is not None:
+                # Check for any additional explicitly given outputs.
+                for m in out_masks[1:]:
+                    if m is not None and m is not out_mask:
+                        m[...] = mask
 
         elif method == "outer":
-            # Must have two arguments; adjust masks as will be done for data.
+            # Must have two inputs and one output;
+            # adjust masks as will be done for data.
             m0, m1 = masks
             if m0 is not None and m0.ndim > 0:
                 m0 = m0[(...,) + (np.newaxis,) * np.ndim(unmasked[1])]
             mask = self._combine_masks((m0, m1), out=out_mask)
+            if out_mask is not None:
+                # Check for any additional explicitly given outputs.
+                for m in out_masks[1:]:
+                    if m is not None and m is not out_mask:
+                        m[...] = mask
 
         elif method in {"reduce", "accumulate"}:
             # Reductions like np.add.reduce (sum).
             # Treat any masked where as if the input element was masked.
             mask = self._combine_masks((masks[0], where_mask), copy=False)
+            if mask is False and out_mask is not None:
+                if where_unmasked is True:
+                    np.copyto(out_mask, False)
+                else:
+                    # This is too complicated, just fall through to below.
+                    mask = np.broadcast_to(False, inputs[0].shape)
             if mask is not False:
                 # By default, we simply propagate masks, since for
                 # things like np.sum, it makes no sense to do otherwise.
@@ -868,7 +896,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             # This happens for the "at" method.
             return result
 
-        if out is not None and len(out) == 1:
+        if out is not None and ufunc.nout == 1:
             out = out[0]
         return self._masked_result(result, mask, out)
 
@@ -954,10 +982,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
         # TODO: remove this sanity check once test cases are more complete.
         assert isinstance(out, Masked)
-        # If we have an output, the result was written in-place, so we should
-        # also write the mask in-place (if not done already in the code).
-        if out._mask is not mask:
-            out._mask[...] = mask
+        # For inplace, the mask will have been set already.
         return out
 
     # Below are ndarray methods that need to be overridden as masked elements
