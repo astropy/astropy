@@ -8,7 +8,7 @@ with less detailed tests in test_function_helpers.
 import erfa.ufunc as erfa_ufunc
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
 from astropy.units import Quantity
@@ -517,3 +517,75 @@ class TestMaskedArraySorting(MaskedArraySetup):
         assert_array_equal(mbma_lexsort, expected_ba)
         mbma_lexsort2 = np.lexsort(np.stack([mb, self.a], axis=0), axis=axis)
         assert_array_equal(mbma_lexsort2, expected_ba)
+
+
+class TestStructuredUfuncs:
+    """Test with structure dtypes, using erfa ufuncs."""
+
+    def test_erfa_d2tf_tf2d(self):
+        mask = np.array([True, False, False])
+        days = Masked([0.25, 0.875, 0.0625], mask=mask)
+        sign, ihmsf = erfa_ufunc.d2tf(3, days)
+        assert_array_equal(sign.mask["sign"], mask)
+        sign = sign.view("S1")  # Like is done by the erfa wrapper.
+        assert_array_equal(sign.mask, mask)
+        for name in ihmsf.dtype.names:
+            assert_array_equal(ihmsf[name].mask, mask)
+
+        # Check roundtrip.
+        check, stat = erfa_ufunc.tf2d(
+            sign, ihmsf["h"], ihmsf["m"], ihmsf["s"] + ihmsf["f"]
+        )
+        assert_allclose(check.unmasked, days, atol=1e-3 / 24 / 3600)
+        assert_array_equal(check.mask, mask)
+        assert_array_equal(stat.unmasked, 0)
+        assert_array_equal(stat.mask, mask)
+
+    def test_erfa_astrom(self):
+        mask = np.array([True, False, False])
+        jd2 = Masked([0, 0.401182685, 0.5], mask=mask)
+        astrom, eo = erfa_ufunc.apci13(2456165.5, jd2)
+        assert_array_equal(eo.mask, mask)
+        for n in astrom.dtype.names:
+            # .T for multi-element fields.
+            assert np.all(astrom[n].mask.T == mask)
+
+        along = np.array([0.125, 0.25, 0.35])
+        # Not going to worry about different masks for different elements.
+        # In principle aper could propagate just what it needs.
+        astrom["along"] = Masked([0.125, 0.25, 0.35], mask)
+        astrom2 = erfa_ufunc.aper(Masked(np.ones(3), [False, True, False]), astrom)
+        assert_array_equal(astrom2["eral"].unmasked, along + 1.0)
+        mask2 = mask | [False, True, False]
+        for n in astrom2.dtype.names:
+            # .T for multi-element fields.
+            assert np.all(astrom2[n].mask.T == mask2)
+
+    def test_erfa_atioq(self):
+        # Regression test for gh-16123, using test from erfa.
+        astrom, _ = erfa_ufunc.apio13(
+            2456384.5,
+            0.969254051,
+            0.1550675,
+            -0.527800806,
+            -1.2345856,
+            2738.0,
+            2.47230737e-7,
+            1.82640464e-6,
+            731.0,
+            12.8,
+            0.59,
+            0.55,
+        )
+        astrom = Masked(astrom)
+        ri = 2.710121572969038991
+        di = 0.1729371367218230438
+        aob, zob, hob, dob, rob = erfa_ufunc.atioq(ri, di, astrom)
+        assert isinstance(aob, Masked)
+        # Really should not need to check the values, since done
+        # in units/tests/test_quantity_erfa_ufuncs, but why not...
+        assert_allclose(aob, 0.9233952224895122499e-1, atol=1e-12, rtol=0)
+        assert_allclose(zob, 1.407758704513549991, atol=1e-12, rtol=0)
+        assert_allclose(hob, -0.9247619879881698140e-1, atol=1e-12, rtol=0)
+        assert_allclose(dob, 0.1717653435756234676, atol=1e-12, rtol=0)
+        assert_allclose(rob, 2.710085107988480746, atol=1e-12, rtol=0)
