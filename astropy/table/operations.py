@@ -62,7 +62,7 @@ def _get_list_of_tables(tables):
     # Convert inputs (Table, Row, or anything column-like) to Tables.
     # Special case that Quantity converts to a QTable.
     # Do this in a separate list to not modify the original input list
-    tables = [t for t in tables]
+    tables = list(tables)
     for ii, val in enumerate(tables):
         if isinstance(val, Table):
             pass
