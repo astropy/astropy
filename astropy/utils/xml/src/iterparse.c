@@ -1,7 +1,7 @@
 /******************************************************************************
  * C extension code for astropy.utils.xml.iterparse
  *
- * Everything in this file has an alternate Python implementation and
+ * Everything in this file could be implemented in Python and
  * is included for performance reasons only.
  *
  * It has two main parts:

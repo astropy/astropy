@@ -8,33 +8,8 @@ nicely-indented XML.
 import contextlib
 import textwrap
 
-try:
-    from . import _iterparser
-except ImportError:
-
-    def xml_escape_cdata(s):
-        """
-        Escapes &, < and > in an XML CDATA string.
-        """
-        s = s.replace("&", "&amp;")
-        s = s.replace("<", "&lt;")
-        s = s.replace(">", "&gt;")
-        return s
-
-    def xml_escape(s):
-        """
-        Escapes &, ', ", < and > in an XML attribute value.
-        """
-        s = s.replace("&", "&amp;")
-        s = s.replace("'", "&apos;")
-        s = s.replace('"', "&quot;")
-        s = s.replace("<", "&lt;")
-        s = s.replace(">", "&gt;")
-        return s
-
-else:
-    xml_escape_cdata = _iterparser.escape_xml_cdata
-    xml_escape = _iterparser.escape_xml
+from ._iterparser import escape_xml as xml_escape
+from ._iterparser import escape_xml_cdata as xml_escape_cdata
 
 
 class XMLWriter:
