@@ -1,12 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # ruff: noqa: FA100, FA102
 
-# STDLIB
-
-# THIRD PARTY
 import pytest
 
-# LOCAL
 from astropy import units as u
 from astropy.units import Quantity
 

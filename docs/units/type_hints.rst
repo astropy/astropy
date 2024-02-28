@@ -63,12 +63,12 @@ Multiple Annotations
 ====================
 
 Multiple Quantity and unit-aware |Quantity| annotations are supported using
-:class:`~typing.Union` or :class:`~typing.Optional`
+:class:`~typing.Union` or :class:`~typing.Optional` (including ``|`` operations).
 
-   >>> T.Union[Quantity[u.m], None]
+   >>> Quantity[u.m] | None
    typing.Optional[typing.Annotated[astropy.units.quantity.Quantity, Unit("m")]]
    >>>
-   >>> T.Union[Quantity[u.m], Quantity["time"]]
+   >>> Quantity[u.m] | Quantity["time"]
    typing.Union[typing.Annotated[astropy.units.quantity.Quantity, Unit("m")],
                 typing.Annotated[astropy.units.quantity.Quantity, PhysicalType('time')]]
 
