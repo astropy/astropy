@@ -31,7 +31,7 @@ new_hdul.append(fits.ImageHDU())
 ##############################################################################
 # Write out the new file to disk:
 
-new_hdul.writeto('test.fits')
+new_hdul.writeto("test.fits")
 
 ##############################################################################
 # Alternatively, the HDU instances can be created first (or read from an
@@ -44,9 +44,9 @@ new_hdul.writeto('test.fits')
 hdu1 = fits.PrimaryHDU()
 hdu2 = fits.ImageHDU()
 new_hdul = fits.HDUList([hdu1, hdu2])
-new_hdul.writeto('test.fits', overwrite=True)
+new_hdul.writeto("test.fits", overwrite=True)
 
 ##############################################################################
 # Finally, we'll remove the file we created:
 
-os.remove('test.fits')
+os.remove("test.fits")

@@ -362,9 +362,6 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     "RUF005",  # unpack-instead-of-concatenating-to-collection-literal -- it's not clearly faster.
 ]
 
-[tool.ruff.format]
-exclude = ["docs/*", "examples/*"]
-
 [tool.ruff.lint.extend-per-file-ignores]
 "setup.py" = ["INP001"]  # Part of configuration, not a package.
 ".github/workflows/*.py" = ["INP001"]
