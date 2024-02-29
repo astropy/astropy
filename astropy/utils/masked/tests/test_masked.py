@@ -290,6 +290,16 @@ class TestMaskedNDArraySubclassCreation:
         assert_array_equal(ma.unmasked, self.a.view(np.ndarray))
         assert_array_equal(ma.mask, self.m)
 
+    def test_viewing_independent_shape(self):
+        mms = Masked(self.a, mask=self.m)
+        mms2 = mms.view()
+        mms2.shape = mms2.shape[::-1]
+        assert mms2.shape == mms.shape[::-1]
+        assert mms2.mask.shape == mms.shape[::-1]
+        # This should not affect the original array!
+        assert mms.shape == self.a.shape
+        assert mms.mask.shape == self.a.shape
+
 
 class TestMaskedQuantityInitialization(TestMaskedArrayInitialization, QuantitySetup):
     @classmethod
@@ -435,13 +445,22 @@ class TestViewing(MaskedArraySetup):
         assert_array_equal(ma2.unmasked, self.a.view("c8"))
         assert_array_equal(ma2.mask, self.mask_a)
 
-    @pytest.mark.parametrize("new_dtype", ["2f4", "f8,f8,f8"])
+    def test_viewing_as_new_structured_dtype(self):
+        ma2 = self.ma.view("f8,f8,f8")
+        assert_array_equal(ma2.unmasked, self.a.view("f8,f8,f8"))
+        assert_array_equal(ma2.mask, self.mask_a.view("?,?,?"))
+        # Check round-trip
+        ma3 = ma2.view(self.ma.dtype)
+        assert_array_equal(ma3.unmasked, self.ma.unmasked)
+        assert_array_equal(ma3.mask, self.mask_a)
+
+    @pytest.mark.parametrize("new_dtype", ["f4", "2f4"])
     def test_viewing_as_new_dtype_not_implemented(self, new_dtype):
         # But cannot (yet) view in way that would need to create a new mask,
         # even though that view is possible for a regular array.
         check = self.a.view(new_dtype)
         with pytest.raises(NotImplementedError, match="different.*size"):
-            self.ma.view(check.dtype)
+            self.ma.view(new_dtype)
 
     def test_viewing_as_something_impossible(self):
         with pytest.raises(TypeError):

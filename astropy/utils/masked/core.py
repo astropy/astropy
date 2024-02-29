@@ -567,16 +567,24 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             return super().view(self._get_masked_cls(type))
 
         dtype = np.dtype(dtype)
-        if not (
-            dtype.itemsize == self.dtype.itemsize
-            and (dtype.names is None or len(dtype.names) == len(self.dtype.names))
+        result = super().view(dtype, self._get_masked_cls(type))
+        # Mask should be viewed in all but simplest case.
+        if (
+            dtype.itemsize != self.dtype.itemsize
+            or dtype.names
+            or dtype.shape
+            or self.dtype.names
+            or self.dtype.shape
         ):
-            raise NotImplementedError(
-                f"{self.__class__} cannot be viewed with a dtype with a "
-                "with a different number of fields or size."
-            )
+            try:
+                result.mask = self.mask.view(np.ma.make_mask_descr(dtype))
+            except Exception as exc:
+                raise NotImplementedError(
+                    f"{self.__class__} cannot be viewed with a dtype "
+                    "with a different number of fields or size."
+                ) from None
 
-        return super().view(dtype, self._get_masked_cls(type))
+        return result
 
     def __array_finalize__(self, obj):
         # If we're a new object or viewing an ndarray, nothing has to be done.
@@ -671,6 +679,17 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         )
         return result.any(axis=-1)
 
+    def _combine_fields(self, mask):
+        masks = []
+        for name in mask.dtype.names:
+            m = mask[name]
+            if m.dtype.names is not None:
+                m = self._combine_fields(m)
+            if m.ndim > mask.ndim:
+                m = m.any(axis=tuple(range(mask.ndim, m.ndim)))
+            masks.append(m)
+        return self._combine_masks(masks, copy=False)
+
     def _combine_masks(self, masks, out=None, where=True, copy=True):
         """Combine masks, possibly storing it in some output.
 
@@ -678,7 +697,8 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         ----------
         masks : tuple of array of bool or None
             Input masks.  Any that are `None` or `False` are ignored.
-            Should broadcast to each other.
+            Should broadcast to each other.  For structured dtype,
+            an element is considered masked if any of the fields is.
         out : output mask array, optional
             Possible output array to hold the result.
         where : array of bool, optional
@@ -687,7 +707,12 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             Whether to ensure a copy is made. Only relevant if a single
             input mask is not `None`, and ``out`` is not given.
         """
-        masks = [m for m in masks if m is not None and m is not False]
+        # Simplify masks, by removing empty ones and combining possible fields.
+        masks = [
+            m if m.dtype.names is None else self._combine_fields(m)
+            for m in masks
+            if m is not None and m is not False
+        ]
         if not masks:
             if out is None:
                 return False
