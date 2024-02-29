@@ -1545,14 +1545,13 @@ class TestVStack:
         t1 = Table(data=dict(x=[1, 2, 3], y=["a", "b", "c"]))
 
         rows = list(t1)  # Table -> list of Rows
-        assert isinstance(rows[0], table.Row)
+        rows0 = rows[0]
         t2 = table.vstack(rows)
-        assert isinstance(rows[0], table.Row)  # still a Row
+        assert rows[0] is rows0
 
         tables = [t1, t1]
-        assert isinstance(tables[0], table.Table)
         t3 = table.vstack(tables)
-        assert isinstance(tables[0], table.Table)  # still a Table
+        assert tables[0] is t1
 
 
 class TestDStack:
