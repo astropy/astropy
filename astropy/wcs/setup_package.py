@@ -6,7 +6,6 @@ import os.path
 import shutil
 import sys
 from collections import defaultdict
-from os.path import join
 from pathlib import Path
 
 from numpy import get_include as get_numpy_include
@@ -14,7 +13,7 @@ from setuptools import Extension
 
 from extension_helpers import get_compiler, import_file, pkg_config, write_if_different
 
-WCSROOT = os.path.relpath(os.path.dirname(__file__))
+WCSROOT = Path(__file__).parent.resolve().relative_to(Path.cwd())
 WCSVERSION = "8.2.2"
 
 
@@ -113,7 +112,8 @@ def write_wcsconfig_h(paths):
 
 
 def generate_c_docstrings():
-    docstrings = import_file(os.path.join(WCSROOT, "docstrings.py"))
+    # This needs to be a string, not a Path
+    docstrings = import_file(str(WCSROOT / "docstrings.py"))
     docstrings = docstrings.__dict__
     keys = [
         key for key, val in docstrings.items()
@@ -143,8 +143,9 @@ its contents, edit astropy/wcs/docstrings.py
         h_file.write(f"extern char doc_{key}[{len(val)}];\n")
     h_file.write("\n#endif\n\n")
 
+    # This needs to be a string, not a Path
     write_if_different(
-        join(WCSROOT, "include", "astropy_wcs", "docstrings.h"),
+        str(WCSROOT / "include" / "astropy_wcs" / "docstrings.h"),
         h_file.getvalue().encode("utf-8"),
     )
 
@@ -175,9 +176,8 @@ MSVC, do not support string literals greater than 256 characters.
             c_file.write("\n")
 
         c_file.write("    };\n\n")
-
     write_if_different(
-        join(WCSROOT, "src", "docstrings.c"), c_file.getvalue().encode("utf-8")
+        str(WCSROOT / "src" / "docstrings.c"), c_file.getvalue().encode("utf-8")
     )
 
 
@@ -198,17 +198,17 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
         int(os.environ.get("ASTROPY_USE_SYSTEM_WCSLIB", 0))
         or int(os.environ.get("ASTROPY_USE_SYSTEM_ALL", 0))
     ) and not sys.platform == "win32":
-        wcsconfig_h_path = join(WCSROOT, "include", "wcsconfig.h")
-        if os.path.exists(wcsconfig_h_path):
-            os.unlink(wcsconfig_h_path)
+        wcsconfig_h_path = WCSROOT / "include" / "wcsconfig.h"
+        wcsconfig_h_path.unlink(missing_ok=True)
         for k, v in pkg_config(["wcslib"], ["wcs"]).items():
             cfg[k].extend(v)
     else:
         write_wcsconfig_h(include_paths)
 
-        wcslib_path = join("cextern", "wcslib")  # Path to wcslib
-        wcslib_cpath = join(wcslib_path, "C")  # Path to wcslib source files
-        cfg["sources"].extend(join(wcslib_cpath, x) for x in wcslib_files)
+        wcslib_path = Path("cextern") / "wcslib"  # Path to wcslib
+        wcslib_cpath = wcslib_path / "C"  # Path to wcslib source files
+
+        cfg["sources"].extend(wcslib_cpath / x for x in wcslib_files)
         cfg["include_dirs"].append(wcslib_cpath)
 
     if debug:
@@ -285,14 +285,15 @@ def get_extensions():
         "wcsutil.c",
     ]
 
+    # This needs to be a string, not a Path
     wcslib_config_paths = [
-        join(WCSROOT, "include", "astropy_wcs", "wcsconfig.h"),
-        join(WCSROOT, "include", "wcsconfig.h"),
+        str(WCSROOT / "include" / "astropy_wcs" / "wcsconfig.h"),
+        str(WCSROOT / "include" / "wcsconfig.h"),
     ]
 
     get_wcslib_cfg(cfg, wcslib_files, wcslib_config_paths)
 
-    cfg["include_dirs"].append(join(WCSROOT, "include"))
+    cfg["include_dirs"].append(WCSROOT / "include")
 
     astropy_wcs_files = [  # List of astropy.wcs files to compile
         "distortion.c",
@@ -314,7 +315,7 @@ def get_extensions():
         "wcslib_tabprm_wrap.c",
         "wcslib_wtbarr_wrap.c",
     ]
-    cfg["sources"].extend(join(WCSROOT, "src", x) for x in astropy_wcs_files)
+    cfg["sources"].extend(WCSROOT / "src" / x for x in astropy_wcs_files)
 
     cfg["sources"] = [str(x) for x in cfg["sources"]]
     cfg = {str(key): val for key, val in cfg.items()}

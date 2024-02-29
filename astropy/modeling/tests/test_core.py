@@ -5,6 +5,7 @@ import subprocess
 import sys
 import unittest.mock as mk
 from inspect import signature
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -617,12 +618,11 @@ def test_rename_path(tmp_path):
     # __main__.
 
     env = os.environ.copy()
-    paths = [os.path.dirname(astropy.__path__[0])] + sys.path
+    paths = [str(Path(astropy.__path__[0]).parent)] + sys.path
     env["PYTHONPATH"] = os.pathsep.join(paths)
 
     script = tmp_path / "rename.py"
-    with open(script, "w") as f:
-        f.write(MODEL_RENAME_CODE)
+    script.write_text(MODEL_RENAME_CODE)
 
     output = subprocess.check_output([sys.executable, script], env=env)
     assert output.splitlines() == MODEL_RENAME_EXPECTED.splitlines()

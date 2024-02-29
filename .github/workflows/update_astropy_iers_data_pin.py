@@ -1,4 +1,5 @@
 import sys
+from pathlib import Path
 
 import requests
 
@@ -9,8 +10,7 @@ metadata = requests.get(
 last_version = metadata["info"]["version"]
 project_file = "pyproject.toml"
 
-with open(project_file) as f:
-    lines = f.readlines()
+lines = Path(project_file).read_text().splitlines()
 
 changed_lines = 0
 
@@ -26,6 +26,4 @@ elif changed_lines > 1:
     print(f"More than one line found containing astropy-iers-data in {project_file}")
     sys.exit(1)
 
-
-with open(project_file, "w") as f:
-    f.writelines(lines)
+Path(project_file).write_text("\n".join(lines))

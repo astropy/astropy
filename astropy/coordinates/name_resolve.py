@@ -166,8 +166,7 @@ def get_icrs_coordinates(name, parse=False, cache=False):
             domains.append(domain)
 
             # Add the query to the end of the url, add to url list
-            fmt_url = os.path.join(url, "{db}?{name}")
-            fmt_url = fmt_url.format(name=urllib.parse.quote(name), db=db)
+            fmt_url = urllib.parse.urljoin(url, f"{db}?{urllib.parse.quote(name)}")
             urls.append(fmt_url)
 
     exceptions = []

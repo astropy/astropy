@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import io
-import os
 from contextlib import nullcontext
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -75,10 +75,10 @@ class TestMaps:
         for filename in self._file_list:
             # use the base name of the file, so we get more useful messages
             # for failing tests.
-            filename = os.path.basename(filename)
+            filename = Path(filename).name
             # Now find the associated file in the installed wcs test directory.
             header = get_pkg_data_contents(
-                os.path.join("data", "maps", filename), encoding="binary"
+                Path("data") / "maps" / filename, encoding="binary"
             )
             # finally run the test.
             wcsobj = wcs.WCS(header)
@@ -109,10 +109,10 @@ class TestSpectra:
         for filename in self._file_list:
             # use the base name of the file, so we get more useful messages
             # for failing tests.
-            filename = os.path.basename(filename)
+            filename = Path(filename).name
             # Now find the associated file in the installed wcs test directory.
             header = get_pkg_data_contents(
-                os.path.join("data", "spectra", filename), encoding="binary"
+                Path("data/spectra") / filename, encoding="binary"
             )
             # finally run the test.
             if _WCSLIB_VER >= Version("7.4"):
@@ -468,8 +468,7 @@ def test_find_all_wcs_crash():
     """
     Causes a double free without a recent fix in wcslib_wrap.C
     """
-    with open(get_pkg_data_filename("data/too_many_pv.hdr")) as fd:
-        header = fd.read()
+    header = Path(get_pkg_data_filename("data/too_many_pv.hdr")).read_text()
     # We have to set fix=False here, because one of the fixing tasks is to
     # remove redundant SCAMP distortion parameters when SIP distortion
     # parameters are also present.
@@ -495,7 +494,7 @@ def test_validate():
         filename = "data/validate.5.0.txt"
     else:
         filename = "data/validate.txt"
-    with open(get_pkg_data_filename(filename)) as fd:
+    with open(get_pkg_data_filename(filename)) as fd:  # noqa: PTH123
         lines = fd.readlines()
     assert sorted({x.strip() for x in lines}) == results_txt
 
@@ -584,7 +583,7 @@ def test_all_world2pix(
     if fname is None:
         fname = get_pkg_data_filename("data/j94f05bgq_flt.fits")
         ext = ("SCI", 1)
-    if not os.path.isfile(fname):
+    if not Path(fname).is_file():
         raise OSError(f"Input file '{fname:s}' to 'test_all_world2pix' not found.")
     h = fits.open(fname)
     w = wcs.WCS(h[ext].header, h)
@@ -739,8 +738,7 @@ def test_footprint_to_file(tmp_path):
     testfile = tmp_path / "test.txt"
     w.footprint_to_file(testfile)
 
-    with open(testfile) as f:
-        lines = f.readlines()
+    lines = testfile.read_text().splitlines(keepends=True)
 
     assert len(lines) == 4
     assert lines[2] == "ICRS\n"
@@ -748,8 +746,7 @@ def test_footprint_to_file(tmp_path):
 
     w.footprint_to_file(testfile, coordsys="FK5", color="red")
 
-    with open(testfile) as f:
-        lines = f.readlines()
+    lines = testfile.read_text().splitlines(keepends=True)
 
     assert len(lines) == 4
     assert lines[2] == "FK5\n"
@@ -962,12 +959,8 @@ def test_no_iteration():
     _wcs.__version__[0] < "5", reason="TPV only works with wcslib 5.x or later"
 )
 def test_sip_tpv_agreement():
-    sip_header = get_pkg_data_contents(
-        os.path.join("data", "siponly.hdr"), encoding="binary"
-    )
-    tpv_header = get_pkg_data_contents(
-        os.path.join("data", "tpvonly.hdr"), encoding="binary"
-    )
+    sip_header = get_pkg_data_contents(Path("data") / "siponly.hdr", encoding="binary")
+    tpv_header = get_pkg_data_contents(Path("data") / "tpvonly.hdr", encoding="binary")
 
     if PYTEST_LT_8_0:
         ctx = nullcontext()
@@ -1004,10 +997,10 @@ def test_sip_tpv_agreement():
 
 def test_tpv_ctype_sip():
     sip_header = fits.Header.fromstring(
-        get_pkg_data_contents(os.path.join("data", "siponly.hdr"), encoding="binary")
+        get_pkg_data_contents(Path("data") / "siponly.hdr", encoding="binary")
     )
     tpv_header = fits.Header.fromstring(
-        get_pkg_data_contents(os.path.join("data", "tpvonly.hdr"), encoding="binary")
+        get_pkg_data_contents(Path("data") / "tpvonly.hdr", encoding="binary")
     )
     sip_header.update(tpv_header)
     sip_header["CTYPE1"] = "RA---TAN-SIP"
@@ -1035,10 +1028,10 @@ def test_tpv_ctype_sip():
 
 def test_tpv_ctype_tpv():
     sip_header = fits.Header.fromstring(
-        get_pkg_data_contents(os.path.join("data", "siponly.hdr"), encoding="binary")
+        get_pkg_data_contents(Path("data") / "siponly.hdr", encoding="binary")
     )
     tpv_header = fits.Header.fromstring(
-        get_pkg_data_contents(os.path.join("data", "tpvonly.hdr"), encoding="binary")
+        get_pkg_data_contents(Path("data") / "tpvonly.hdr", encoding="binary")
     )
     sip_header.update(tpv_header)
     sip_header["CTYPE1"] = "RA---TPV"
@@ -1066,10 +1059,10 @@ def test_tpv_ctype_tpv():
 
 def test_tpv_ctype_tan():
     sip_header = fits.Header.fromstring(
-        get_pkg_data_contents(os.path.join("data", "siponly.hdr"), encoding="binary")
+        get_pkg_data_contents(Path("data") / "siponly.hdr", encoding="binary")
     )
     tpv_header = fits.Header.fromstring(
-        get_pkg_data_contents(os.path.join("data", "tpvonly.hdr"), encoding="binary")
+        get_pkg_data_contents(Path("data") / "tpvonly.hdr", encoding="binary")
     )
     sip_header.update(tpv_header)
     sip_header["CTYPE1"] = "RA---TAN"
@@ -1138,9 +1131,7 @@ def test_car_sip_with_pv():
 def test_tpv_copy():
     # See #3904
 
-    tpv_header = get_pkg_data_contents(
-        os.path.join("data", "tpvonly.hdr"), encoding="binary"
-    )
+    tpv_header = get_pkg_data_contents(Path("data") / "tpvonly.hdr", encoding="binary")
 
     with pytest.warns(wcs.FITSFixedWarning):
         w_tpv = wcs.WCS(tpv_header)

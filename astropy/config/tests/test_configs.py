@@ -470,7 +470,9 @@ def test_empty_config_file():
 
 class TestAliasRead:
     def setup_class(self):
-        configuration._override_config_file = get_pkg_data_filename("data/alias.cfg")
+        configuration._override_config_file = str(
+            get_pkg_data_filename("data/alias.cfg")
+        )
 
     def test_alias_read(self):
         from astropy.utils.data import conf
@@ -512,7 +514,9 @@ def test_warning_move_to_top_level():
     # file works.  See #2514
     from astropy import conf
 
-    configuration._override_config_file = get_pkg_data_filename("data/deprecated.cfg")
+    configuration._override_config_file = str(
+        get_pkg_data_filename("data/deprecated.cfg")
+    )
 
     try:
         with pytest.warns(AstropyDeprecationWarning) as w:

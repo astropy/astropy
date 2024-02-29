@@ -11,6 +11,7 @@ import heapq
 import subprocess
 from collections import defaultdict
 from contextlib import contextmanager
+from pathlib import Path
 
 from astropy.coordinates.transformations.affine import (
     AffineTransform,
@@ -460,7 +461,7 @@ class TransformGraph:
         addnodes : sequence of str
             Additional coordinate systems to add (this can include systems
             already in the transform graph, but they will only appear once).
-        savefn : None or str
+        savefn : None or str | Path
             The file name to save this graph to or `None` to not save
             to a file.
         savelayout : {"plain", "dot", "neato", "fdp", "sfdp", "circo", "twopi", "nop", "nop2", "osage", "patchwork"}
@@ -525,10 +526,11 @@ class TransformGraph:
         lines.append("}")
         dotgraph = "\n".join(lines)
 
+        if isinstance(savefn, str):
+            savefn = Path(savefn)
         if savefn is not None:
             if savelayout == "plain":
-                with open(savefn, "w") as f:
-                    f.write(dotgraph)
+                savefn.write_text(dotgraph)
             # Options from https://graphviz.org/docs/layouts/
             elif savelayout in (
                 "dot",
@@ -555,8 +557,7 @@ class TransformGraph:
                 if proc.returncode != 0:
                     raise OSError("problem running graphviz: \n" + stderr)
 
-                with open(savefn, "w") as f:
-                    f.write(stdout)
+                savefn.write_text(stdout)
             else:
                 raise NotImplementedError(f'savelayout="{savelayout}" is not supported')
 

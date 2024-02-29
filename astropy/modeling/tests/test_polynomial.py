@@ -2,10 +2,10 @@
 
 """Tests for polynomial models."""
 # pylint: disable=invalid-name
-import os
 import unittest.mock as mk
 import warnings
 from itertools import product
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -351,8 +351,8 @@ def test_polynomial_init_with_constraints(model_class):
 
 def test_sip_hst():
     """Test SIP against astropy.wcs"""
-
-    test_file = get_pkg_data_filename(os.path.join("data", "hst_sip.hdr"))
+    test_file_path = Path("data") / "hst_sip.hdr"
+    test_file = get_pkg_data_filename(test_file_path)
     hdr = fits.Header.fromtextfile(test_file)
     crpix1 = hdr["CRPIX1"]
     crpix2 = hdr["CRPIX2"]
@@ -442,8 +442,8 @@ def test_sip_hst():
 
 def test_sip_irac():
     """Test forward and inverse SIP against astropy.wcs"""
-
-    test_file = get_pkg_data_filename(os.path.join("data", "irac_sip.hdr"))
+    test_file_path = Path("data") / "irac_sip.hdr"
+    test_file = get_pkg_data_filename(test_file_path)
     hdr = fits.Header.fromtextfile(test_file)
     crpix1 = hdr["CRPIX1"]
     crpix2 = hdr["CRPIX2"]

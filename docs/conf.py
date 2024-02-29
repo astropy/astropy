@@ -150,10 +150,11 @@ for line in metadata.requires("astropy"):
 
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
-with open("common_links.txt") as cl:
-    rst_epilog += cl.read().format(
-        minimum_python=__minimum_python_version__, **min_versions
-    )
+# with Path("common_links.txt").open() as cl:
+#     rst_epilog += cl.read().format(
+#         minimum_python=__minimum_python_version__, **min_versions
+#     )
+rst_epilog += Path("common_links.txt").read_text().format(minimum_python=__minimum_python_version__, **min_versions)
 
 # Manually register doctest options since matplotlib 3.5 messed up allowing them
 # from pytest-doctestplus
@@ -313,7 +314,7 @@ edit_on_github_branch = "main"
 nitpicky = True
 # See docs/nitpick-exceptions file for the actual listing.
 nitpick_ignore = []
-for line in open("nitpick-exceptions"):
+for line in open("nitpick-exceptions"): #noqa: PTH123
     if line.strip() == "" or line.startswith("#"):
         continue
     dtype, target = line.split(None, 1)

@@ -128,27 +128,6 @@ lint.ignore = [
     "PT022",   # pytest-useless-yield-fixture
     "PT023",   # pytest-incorrect-mark-parentheses-style
 
-    # flake8-use-pathlib (PTH)
-    "PTH100",  # os-path-abspath
-    "PTH101",  # os-chmod
-    "PTH102",  # os-mkdir
-    "PTH103",  # os-makedirs
-    "PTH104",  # os-rename
-    "PTH107",  # os-remove
-    "PTH108",  # os-unlink
-    "PTH109",  # os-getcwd
-    "PTH110",  # os-path-exists
-    "PTH111",  # os-path-expanduser
-    "PTH112",  # os-path-isdir
-    "PTH113",  # os-path-isfile
-    "PTH118",  # os-path-join
-    "PTH119",  # os-path-basename
-    "PTH120",  # os-path-dirname
-    "PTH122",  # os-path-splitext
-    "PTH123",  # builtin-open
-    "PTH202",  # `os.path.getsize` should be replaced by `Path.stat().st_size`
-    "PTH207",  # Replace `glob` with `Path.glob` or `Path.rglob`
-
     # flake8-return (RET)
     "RET501",  # unnecessary-return-none
     "RET502",  # implicit-return-value
@@ -223,6 +202,7 @@ lint.unfixable = [
 # is better to fix for subpackages individually. The general exclusion should be
 # copied to these subpackage sections and fixed there.
 "astropy/config/*" = [
+    "PTH",     # all flake8-use-pathlib
     "PTH114",  # os-path-islink
     "PTH206",  # Replace `.split(os.sep)` with `Path.parts`
     "RET505",  # superfluous-else-return
@@ -248,6 +228,7 @@ lint.unfixable = [
     "RET506",  # superfluous-else-raise
 ]
 "astropy/io/*" = [
+    "PTH",     # all flake8-use-pathlib
     "G001",  # logging-string-format
     "G004",  # logging-f-string
     "PLR0911",  # too-many-return-statements
@@ -275,6 +256,7 @@ lint.unfixable = [
     "RET506",  # superfluous-else-raise
 ]
 "astropy/samp/*" = [
+    "PTH",     # all flake8-use-pathlib
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
 ]
@@ -284,12 +266,13 @@ lint.unfixable = [
     "RET506",  # superfluous-else-raise
 ]
 "astropy/table/*" = [
+    "PTH",     # all flake8-use-pathlib
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
     "S605",  # Starting a process with a shell, possible injection detected
     "TRY300",  # Consider `else` block
 ]
-"astropy/tests/*" = ["C408", "RET505"]
+"astropy/tests/*" = ["C408", "RET505", "PTH"]
 "astropy/time/*" = [
     "FIX003",  # Line contains XXX.  replace XXX with TODO
     "PIE794",  # duplicate-class-field-definition
@@ -315,6 +298,7 @@ lint.unfixable = [
     "RET506",  # superfluous-else-raise
 ]
 "astropy/utils/*" = [
+    "PTH",     # all flake8-use-pathlib
     "N811",  # constant-imported-as-non-constant
     "PLR0911",  # too-many-return-statements
     "RET505",  # superfluous-else-return
@@ -339,3 +323,6 @@ lint.unfixable = [
 ]
 "docs/*" = []
 "examples/coordinates/*" = []
+
+".pyinstaller/*.py" = ["PTH"]
+"examples/io/*" = ["PTH"]

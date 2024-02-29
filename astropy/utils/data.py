@@ -21,6 +21,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import zipfile
+from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory, gettempdir, mkdtemp
 from warnings import warn
 
@@ -188,16 +189,6 @@ def _requires_fsspec(url):
     return isinstance(url, str) and url.startswith(("s3://", "gs://"))
 
 
-def _is_inside(path, parent_path):
-    # We have to try realpath too to avoid issues with symlinks, but we leave
-    # abspath because some systems like debian have the absolute path (with no
-    # symlinks followed) match, but the real directories in different
-    # locations, so need to try both cases.
-    return os.path.abspath(path).startswith(
-        os.path.abspath(parent_path)
-    ) or os.path.realpath(path).startswith(os.path.realpath(parent_path))
-
-
 @contextlib.contextmanager
 def get_readable_fileobj(
     name_or_obj,
@@ -339,6 +330,10 @@ def get_readable_fileobj(
     # name_or_obj could be an os.PathLike object
     if isinstance(name_or_obj, os.PathLike):
         name_or_obj = os.fspath(name_or_obj)
+
+    # FIXME: this should be fixed
+    if isinstance(name_or_obj, Path):
+        name_or_obj = str(name_or_obj)
 
     # Get a file object to the content
     if isinstance(name_or_obj, str):
@@ -654,7 +649,7 @@ def get_pkg_data_filename(
 
     Parameters
     ----------
-    data_name : str
+    data_name : str | Path
         Name/location of the desired data file.  One of the following:
 
             * The name of a data file included in the source
@@ -727,6 +722,9 @@ def get_pkg_data_filename(
         # use configfile default
         remote_timeout = conf.remote_timeout
 
+    # FIXME: this should be natively supported.
+    if isinstance(data_name, Path):
+        data_name = str(data_name)
     if data_name.startswith("hash/"):
         # first try looking for a local version if a hash is specified
         hashfn = _find_hash_fn(data_name[5:])
@@ -970,7 +968,7 @@ def compute_hash(localfn):
 
     Parameters
     ----------
-    localfn : str
+    localfn : str | Path
         The path to the file for which the hash should be generated.
 
     Returns
@@ -979,7 +977,11 @@ def compute_hash(localfn):
         The hex digest of the cryptographic hash for the contents of the
         ``localfn`` file.
     """
-    with open(localfn, "rb") as f:
+    if isinstance(localfn, str):
+        localfn = Path(localfn)
+
+    # with open(localfn, "rb") as f:
+    with localfn.open("rb") as f:
         h = hashlib.md5()
         block = f.read(conf.compute_hash_block_size)
         while block:
@@ -1020,7 +1022,7 @@ def get_pkg_data_path(*path, package=None):
         if module is None:
             # not called from inside an astropy package.  So just pass name
             # through
-            return os.path.join(*path)
+            return Path(*path)
 
         if not hasattr(module, "__package__") or not module.__package__:
             # The __package__ attribute may be missing or set to None; see
@@ -1049,18 +1051,19 @@ def get_pkg_data_path(*path, package=None):
         module = resolve_name(package)
 
     # module path within package
-    module_path = os.path.dirname(module.__file__)
-    full_path = os.path.join(module_path, *path)
+    # module_path = os.path.dirname(module.__file__)
+    # full_path = os.path.join(module_path, *path)
+    module_path = Path(module.__file__).parent
+    full_path = module_path.joinpath(*path).resolve()
 
     # Check that file is inside tree.
     rootpkgname = package.partition(".")[0]
     rootpkg = resolve_name(rootpkgname)
-    root_dir = os.path.dirname(rootpkg.__file__)
-    if not _is_inside(full_path, root_dir):
+    root_dir = Path(rootpkg.__file__).parent
+    if not full_path.is_relative_to(root_dir):
         raise RuntimeError(
             f"attempted to get a local data file outside of the {rootpkgname} tree."
         )
-
     return full_path
 
 
@@ -1082,7 +1085,7 @@ def get_free_space_in_dir(path, unit=False):
 
     Parameters
     ----------
-    path : str
+    path : str | Path
         The path to a directory.
 
     unit : bool or `~astropy.units.Unit`
@@ -1096,12 +1099,8 @@ def get_free_space_in_dir(path, unit=False):
         If ``unit=False``, it is returned as plain integer (in bytes).
 
     """
-    if not os.path.isdir(path):
-        raise OSError(
-            "Can only determine free space associated with directories, not files."
-        )
-        # Actually you can on Linux but I want to avoid code that fails
-        # on Windows only.
+    if isinstance(path, str):
+        path = Path(path)
     free_space = shutil.disk_usage(path).free
     if unit:
         from astropy import units as u
@@ -1120,7 +1119,7 @@ def check_free_space_in_dir(path, size):
 
     Parameters
     ----------
-    path : str
+    path : str | Path
         The path to a directory.
 
     size : int or `~astropy.units.Quantity`
@@ -1375,7 +1374,7 @@ def _download_file_from_source(
                         except OSError:
                             pass
                     raise
-    return f.name
+    return Path(f.name).resolve()
 
 
 def download_file(
@@ -1521,9 +1520,9 @@ def download_file(
                     "otherwise use a boolean"
                 )
             else:
-                filename = os.path.join(dldir, _url_to_dirname(url_key), "contents")
-                if os.path.exists(filename):
-                    return os.path.abspath(filename)
+                filename = dldir / _url_to_dirname(url_key) / "contents"
+                if filename.exists():
+                    return filename.resolve()
 
     errors = {}
     for source_url in sources:
@@ -1588,7 +1587,7 @@ def download_file(
         warn(CacheMissingWarning(missing_cache, f_name))
     if conf.delete_temporary_downloads_at_exit:
         _tempfilestodel.append(f_name)
-    return os.path.abspath(f_name)
+    return f_name
 
 
 def is_url_in_cache(url_key, pkgname="astropy"):
@@ -1622,8 +1621,9 @@ def is_url_in_cache(url_key, pkgname="astropy"):
         dldir = _get_download_cache_loc(pkgname)
     except OSError:
         return False
-    filename = os.path.join(dldir, _url_to_dirname(url_key), "contents")
-    return os.path.exists(filename)
+    # filename = os.path.join(dldir, _url_to_dirname(url_key), "contents")
+    filename = dldir / _url_to_dirname(url_key) / "contents"
+    return filename.exists()
 
 
 def cache_total_size(pkgname="astropy"):
@@ -1836,7 +1836,7 @@ def clear_download_cache(hashorurl=None, pkgname="astropy"):
         if hashorurl is None:
             # Optional: delete old incompatible caches too
             _rmtree(dldir)
-        elif _is_url(hashorurl):
+        elif isinstance(hashorurl, str) and _is_url(hashorurl):
             filepath = os.path.join(dldir, _url_to_dirname(hashorurl))
             _rmtree(filepath)
         else:
@@ -1846,7 +1846,7 @@ def clear_download_cache(hashorurl=None, pkgname="astropy"):
             if rp.startswith(".."):
                 raise RuntimeError(
                     "attempted to use clear_download_cache on the path "
-                    f"{filepath} outside the data cache directory {dldir}"
+                    f"{filepath} outside the data cache directory {dldir} and hash {hashorurl}"
                 )
             d, f = os.path.split(rp)
             if d and f in ["contents", "url"]:
@@ -1856,8 +1856,10 @@ def clear_download_cache(hashorurl=None, pkgname="astropy"):
                 filepath = os.path.join(dldir, d)
             if os.path.exists(filepath):
                 _rmtree(filepath)
-            elif len(hashorurl) == 2 * hashlib.md5().digest_size and re.match(
-                r"[0-9a-f]+", hashorurl
+            elif (
+                isinstance(hashorurl, str)
+                and len(hashorurl) == 2 * hashlib.md5().digest_size
+                and re.match(r"[0-9a-f]+", hashorurl)
             ):
                 # It's the hash of some file contents, we have to find the right file
                 filename = _find_hash_fn(hashorurl)
@@ -1881,24 +1883,22 @@ def _get_download_cache_loc(pkgname="astropy"):
 
     Returns
     -------
-    datadir : str
+    datadir : Path
         The path to the data cache directory.
     """
     try:
-        datadir = os.path.join(
-            astropy.config.paths.get_cache_dir(pkgname), "download", "url"
-        )
-
-        if not os.path.exists(datadir):
+        # FIXME should get_cache_dir return a Path?
+        datadir = Path(astropy.config.paths.get_cache_dir(pkgname)) / "download" / "url"
+        if not datadir.exists():
             try:
-                os.makedirs(datadir)
+                datadir.mkdir(parents=True)
             except OSError:
-                if not os.path.exists(datadir):
+                if not datadir.exists():
                     raise
-        elif not os.path.isdir(datadir):
+        elif not datadir.is_dir():
             raise OSError(f"Data cache directory {datadir} is not a directory")
 
-        return datadir
+        return datadir.resolve()
     except OSError as e:
         msg = "Remote data cache could not be accessed due to "
         estr = "" if len(e.args) < 1 else (": " + str(e))
@@ -1983,49 +1983,48 @@ def check_download_cache(pkgname="astropy"):
     bad_files = set()
     messages = set()
     dldir = _get_download_cache_loc(pkgname=pkgname)
-    with os.scandir(dldir) as it:
-        for entry in it:
-            f = os.path.abspath(os.path.join(dldir, entry.name))
-            if entry.name.startswith("rmtree-"):
-                if f not in _tempfilestodel:
-                    bad_files.add(f)
-                    messages.add(f"Cache entry {entry.name} not scheduled for deletion")
-            elif entry.is_dir():
-                for sf in os.listdir(f):
-                    if sf in ["url", "contents"]:
-                        continue
-                    sf = os.path.join(f, sf)
-                    bad_files.add(sf)
-                    messages.add(f"Unexpected file f{sf}")
-                urlf = os.path.join(f, "url")
-                url = None
-                if not os.path.isfile(urlf):
-                    bad_files.add(urlf)
-                    messages.add(f"Problem with URL file f{urlf}")
-                else:
-                    url = get_file_contents(urlf, encoding="utf-8")
-                    if not _is_url(url):
-                        bad_files.add(f)
-                        messages.add(f"Malformed URL: {url}")
-                    else:
-                        hashname = _url_to_dirname(url)
-                        if entry.name != hashname:
-                            bad_files.add(f)
-                            messages.add(
-                                f"URL hashes to {hashname} but is stored in"
-                                f" {entry.name}"
-                            )
-                if not os.path.isfile(os.path.join(f, "contents")):
-                    bad_files.add(f)
-                    if url is None:
-                        messages.add(f"Hash {entry.name} is missing contents")
-                    else:
-                        messages.add(
-                            f"URL {url} with hash {entry.name} is missing contents"
-                        )
-            else:
+    for entry in dldir.iterdir():
+        f = (dldir / entry.name).resolve()
+        if entry.name.startswith("rmtree-"):
+            if f not in _tempfilestodel:
                 bad_files.add(f)
-                messages.add(f"Left-over non-directory {f} in cache")
+                messages.add(f"Cache entry {entry.name} not scheduled for deletion")
+        elif entry.is_dir():
+            for sf in f.iterdir():
+                if sf.name in ["url", "contents"]:
+                    continue
+                sf = f / sf
+                bad_files.add(sf)
+                messages.add(f"Unexpected file f{sf}")
+            urlf = f / "url"
+            url = None
+            if not urlf.is_file():
+                bad_files.add(urlf)
+                messages.add(f"Problem with URL file f{urlf}")
+            else:
+                url = urlf.read_text(encoding="utf-8")
+                if not _is_url(url):
+                    bad_files.add(f)
+                    messages.add(f"Malformed URL: {url}")
+                else:
+                    hashname = _url_to_dirname(url)
+                    if entry.name != hashname:
+                        bad_files.add(f)
+                        messages.add(
+                            f"URL hashes to {hashname} but is stored in"
+                            f" {entry.name}"
+                        )
+            if not (f / "contents").is_file():
+                bad_files.add(f)
+                if url is None:
+                    messages.add(f"Hash {entry.name} is missing contents")
+                else:
+                    messages.add(
+                        f"URL {url} with hash {entry.name} is missing contents"
+                    )
+        else:
+            bad_files.add(f)
+            messages.add(f"Left-over non-directory {f} in cache")
     if bad_files:
         raise CacheDamaged("\n".join(messages), bad_files=bad_files)
 
@@ -2120,7 +2119,7 @@ def import_file_to_cache(
         the URL where the file was located, though if you obtained
         it from a mirror you should use the URL of the primary
         location.
-    filename : str
+    filename : Path
         The file whose contents you want to import.
     remove_original : bool
         Whether to remove the original file (``filename``) once import is
@@ -2135,20 +2134,20 @@ def import_file_to_cache(
     """
     cache_dir = _get_download_cache_loc(pkgname=pkgname)
     cache_dirname = _url_to_dirname(url_key)
-    local_dirname = os.path.join(cache_dir, cache_dirname)
-    local_filename = os.path.join(local_dirname, "contents")
+    local_dirname = cache_dir / cache_dirname
+    local_filename = local_dirname / "contents"
     with _SafeTemporaryDirectory(prefix="temp_dir", dir=cache_dir) as temp_dir:
-        temp_filename = os.path.join(temp_dir, "contents")
+        temp_dir = Path(temp_dir)
+        temp_filename = temp_dir / "contents"
         # Make sure we're on the same filesystem
         # This will raise an exception if the url_key doesn't turn into a valid filename
         shutil.copy(filename, temp_filename)
-        with open(os.path.join(temp_dir, "url"), "w", encoding="utf-8") as f:
-            f.write(url_key)
+        (temp_dir / "url").write_text(url_key, encoding="utf-8")
         if replace:
             _rmtree(local_dirname, replace=temp_dir)
         else:
             try:
-                os.rename(temp_dir, local_dirname)
+                temp_dir.rename(local_dirname)
             except FileExistsError:
                 # already there, fine
                 pass
@@ -2159,8 +2158,8 @@ def import_file_to_cache(
                 else:
                     raise
     if remove_original:
-        os.remove(filename)
-    return os.path.abspath(local_filename)
+        filename.unlink()
+    return local_filename.resolve()
 
 
 def get_cached_urls(pkgname="astropy"):
@@ -2206,13 +2205,20 @@ def cache_contents(pkgname="astropy"):
         dldir = _get_download_cache_loc(pkgname=pkgname)
     except OSError:
         return _NOTHING
-    with os.scandir(dldir) as it:
-        for entry in it:
-            if entry.is_dir:
-                url = get_file_contents(
-                    os.path.join(dldir, entry.name, "url"), encoding="utf-8"
-                )
-                r[url] = os.path.abspath(os.path.join(dldir, entry.name, "contents"))
+    # with os.scandir(dldir) as it:
+    #     for entry in it:
+    #         if entry.is_dir:
+    #             url = get_file_contents(
+    #                 os.path.join(dldir, entry.name, "url"), encoding="utf-8"
+    #             )
+    #             r[url] = os.path.abspath(os.path.join(dldir, entry.name, "contents"))
+
+    for entry in dldir.iterdir():
+        if entry.is_dir():
+            # url = get_file_contents(entry / "url", encoding="utf-8")
+            url = (entry / "url").read_text(encoding="utf-8")
+            r[url] = (entry / "contents").resolve()
+
     return ReadOnlyDict(r)
 
 
@@ -2298,8 +2304,8 @@ def import_download_cache(
                 continue
             if not update_cache and is_url_in_cache(url, pkgname=pkgname):
                 continue
-            f_temp_name = os.path.join(d, str(i))
-            with z.open(zf) as f_zip, open(f_temp_name, "wb") as f_temp:
+            f_temp_name = Path(d) / str(i)
+            with z.open(zf) as f_zip, f_temp_name.open("wb") as f_temp:
                 block = f_zip.read(conf.download_block_size)
                 while block:
                     f_temp.write(block)

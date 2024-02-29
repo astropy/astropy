@@ -7,6 +7,7 @@ Tests models.parameters
 import functools
 import itertools
 import unittest.mock as mk
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -244,11 +245,9 @@ class TestParameters:
 
         Create also a gaussian model.
         """
-        test_file = get_pkg_data_filename("data/idcompspec.fits")
-        f = open(test_file)
-        lines = f.read()
+        test_file = Path(get_pkg_data_filename("data/idcompspec.fits"))
+        lines = test_file.read_text()
         reclist = lines.split("begin")
-        f.close()
         record = irafutil.IdentifyRecord(reclist[1])
         self.icoeff = record.coeff
         order = int(record.fields["order"])

@@ -5,6 +5,7 @@
 
 import os
 import tempfile
+from pathlib import Path
 
 import hypothesis
 
@@ -65,8 +66,8 @@ hypothesis.settings.load_profile(os.environ.get("HYPOTHESIS_PROFILE", default))
 os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp("astropy_config")
 os.environ["XDG_CACHE_HOME"] = tempfile.mkdtemp("astropy_cache")
 
-os.mkdir(os.path.join(os.environ["XDG_CONFIG_HOME"], "astropy"))
-os.mkdir(os.path.join(os.environ["XDG_CACHE_HOME"], "astropy"))
+(Path(os.environ["XDG_CONFIG_HOME"]) / "astropy").mkdir()
+(Path(os.environ["XDG_CACHE_HOME"]) / "astropy").mkdir()
 
 # Note that we don't need to change the environment variables back or remove
 # them after testing, because they are only changed for the duration of the

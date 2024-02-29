@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
 import sys
+from pathlib import Path
 
 from numpy import get_include as get_numpy_include
 from setuptools import Extension
 
-C_CONVOLVE_PKGDIR = os.path.relpath(os.path.dirname(__file__))
+C_CONVOLVE_PKGDIR = Path(__file__).parent.resolve().relative_to(Path.cwd())
 
 extra_compile_args = ["-UNDEBUG"]
 if not sys.platform.startswith("win"):
@@ -17,8 +17,8 @@ def get_extensions():
     # Add '-Rpass-missed=.*' to ``extra_compile_args`` when compiling with clang
     # to report missed optimizations
     sources = [
-        os.path.join(C_CONVOLVE_PKGDIR, "_convolve.pyx"),
-        os.path.join(C_CONVOLVE_PKGDIR, "src", "convolve.c"),
+        str(C_CONVOLVE_PKGDIR / "_convolve.pyx"),
+        str(C_CONVOLVE_PKGDIR / "src" / "convolve.c"),
     ]
     _convolve_ext = Extension(
         name="astropy.convolution._convolve",
