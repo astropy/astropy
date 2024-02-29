@@ -44,7 +44,7 @@ class TdatMeta:
     _delimiter = '|'
 
     _deprecated_keywords = ('record_delimiter', 'field_delimiter')
-    _required_keywords = ('table_name')
+    _required_keywords = ('table_name',)
     
     
     def _process_lines(self, lines, ltype):
@@ -121,7 +121,7 @@ class TdatMeta:
                 key = kmatch.group('key')
                 if key in self._deprecated_keywords:
                     warn(
-                        f'"{key}" keyword is obsolete and will be ignored. {_STD_MSG}'
+                        f'"{key}" keyword is obsolete and will be ignored. {_STD_MSG}',
                         TdatFormatWarning
                     )
                 else:
@@ -143,7 +143,6 @@ class TdatMeta:
         # check we have the required keywords
 
         self._comments = [c for c in self._process_lines(lines, 'comment')]
-        self._keywords = keywords
         self._col_lines = col_lines
 
         # raise an error if no 'line[...] is found in the header'
@@ -152,6 +151,14 @@ class TdatMeta:
                 '"line[..]" keyword is required but not found in the header.\n'
             )
         self._line_fields = line_fields
+
+        # raise and erro if a required keyword is not present
+        for key in self._required_keywords:
+            if key not in keywords:
+                raise TdatFormatError(
+                    f'"{key}" keyword is required but not found in the header.\n'
+                )
+        self._keywords = keywords
 
 
 class TdatHeader(core.BaseHeader, TdatMeta):
@@ -226,6 +233,28 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                 f'line[..] values: {lsummary}'
             )
 
+    def write(self, lines):
+        """Write the keywords and column descriptors"""
+        keywords = self.table_meta.get('keywords', None)
+        if keywords is not None:
+            if not 'table_name' in keywords:
+                raise TdatFormatError(
+                    '"table_name" keyword is required but not found in the header.\n'
+                )
+            lines.append(f'table_name = {keywords["table_name"]}')
+            
+            # loop through option table keywords
+            for key in ['table_description', 'table_document_url', 'table_security']:
+                if key in keywords:
+                    lines.append(f'{key} = {keywords[key]}')
+        
+        # add table columns as fields
+        lines.append('#')
+        lines.append('# Table Parameters')
+        lines.append('#')
+        # for col in self.cols:
+        #     line = f'field[{col.name}] = '#{col.ctype}:{col.fmt}_{col.unit} [{col.ucd}] ({col.idx})'
+        #     lines.append(line)
                 
 class TdatDataSplitter(core.BaseSplitter):
     """Splitter for tdat data."""
