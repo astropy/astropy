@@ -29,7 +29,7 @@ hdu = fits.PrimaryHDU(data=data)
 # Then use the `astropy.io.fits.writeto()` method to write out the new
 # file to disk
 
-hdu.writeto('large.fits')
+hdu.writeto("large.fits")
 
 ##############################################################################
 # However, a 40000 x 40000 array of doubles is nearly twelve gigabytes! Most
@@ -67,9 +67,9 @@ while len(header) < (36 * 4 - 1):
 # files are written. Instead, we can write just the header to a file using the
 # `astropy.io.fits.Header.tofile` method:
 
-header['NAXIS1'] = 40000
-header['NAXIS2'] = 40000
-header.tofile('large.fits')
+header["NAXIS1"] = 40000
+header["NAXIS2"] = 40000
+header.tofile("large.fits")
 
 ##############################################################################
 # Finally, grow out the end of the file to match the length of the
@@ -77,7 +77,7 @@ header.tofile('large.fits')
 # most systems by seeking past the end of the file and writing a single byte,
 # like so:
 
-with open('large.fits', 'rb+') as fobj:
+with open("large.fits", "rb+") as fobj:
     # Seek past the length of the header, plus the length of the
     # Data we want to write.
     # 8 is the number of bytes per value, i.e. abs(header['BITPIX'])/8
@@ -85,15 +85,17 @@ with open('large.fits', 'rb+') as fobj:
     # The -1 is to account for the final byte that we are about to
     # write:
     fobj.seek(len(header.tostring()) + (40000 * 40000 * 8) - 1)
-    fobj.write(b'\0')
+    fobj.write(b"\0")
 
 ##############################################################################
 # More generally, this can be written:
 
-shape = tuple(header[f'NAXIS{ii}'] for ii in range(1, header['NAXIS']+1))
-with open('large.fits', 'rb+') as fobj:
-    fobj.seek(len(header.tostring()) + (np.prod(shape) * np.abs(header['BITPIX']//8)) - 1)
-    fobj.write(b'\0')
+shape = tuple(header[f"NAXIS{ii}"] for ii in range(1, header["NAXIS"] + 1))
+with open("large.fits", "rb+") as fobj:
+    fobj.seek(
+        len(header.tostring()) + (np.prod(shape) * np.abs(header["BITPIX"] // 8)) - 1
+    )
+    fobj.write(b"\0")
 
 ##############################################################################
 # On modern operating systems this will cause the file (past the header) to be
@@ -109,4 +111,4 @@ with open('large.fits', 'rb+') as fobj:
 ##############################################################################
 # Finally, we'll remove the file we created:
 
-os.remove('large.fits')
+os.remove("large.fits")
