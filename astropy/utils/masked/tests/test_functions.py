@@ -5,6 +5,10 @@ The tests here are fairly detailed but do not aim for complete
 coverage.  Complete coverage of all numpy functions is done
 with less detailed tests in test_function_helpers.
 """
+# We generally call the ufunc in the tests, since those can take
+# all ufunc arguments (like axes), but also test whether we can
+# mask the exceptions and warnings from the wrappers in erfa itself.
+import erfa
 import erfa.ufunc as erfa_ufunc
 import numpy as np
 import pytest
@@ -589,3 +593,30 @@ class TestStructuredUfuncs:
         assert_allclose(hob, -0.9247619879881698140e-1, atol=1e-12, rtol=0)
         assert_allclose(dob, 0.1717653435756234676, atol=1e-12, rtol=0)
         assert_allclose(rob, 2.710085107988480746, atol=1e-12, rtol=0)
+
+
+def test_erfa_no_warnings_on_masked_entries():
+    # Erfa warns for invalid inputs for some routines.
+    ihour1 = [25, 10]
+    with pytest.warns(erfa.ErfaWarning, match="ihour outside range"):
+        res1 = erfa.tf2d("+", ihour1, 0, 0.0)
+    # But will not if they are masked.
+    mask = [True, False]
+    ihour2 = Masked(ihour1, mask)
+    res2 = erfa.tf2d("+", ihour2, 0, 0.0)
+    assert_array_equal(res2.unmasked, res1)
+    assert_array_equal(res2.mask, mask)
+
+
+def test_erfa_no_exceptions_on_masked_entries():
+    # Erfa raises exceptions for invalid inputs in some routines.
+    iday1 = [25, 30]
+    with pytest.raises(erfa.ErfaError, match="bad day"):
+        erfa.dat(2000, 2, iday1, 0.0)
+    # But will not if they are masked.
+    mask = [False, True]
+    iday2 = Masked(iday1, mask)
+    res = erfa.dat(2000, 2, iday2, 0.0)
+    exp1 = erfa.dat(2000, 2, iday1[0], 0.0)
+    assert_array_equal(res.unmasked[0], exp1)
+    assert_array_equal(res.mask, mask)
