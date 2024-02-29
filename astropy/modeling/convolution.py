@@ -30,7 +30,7 @@ class Convolution(CompoundModel):
 
     Notes
     -----
-    This is wrapper is necessary to handle the limitations of the
+    This wrapper is necessary to handle the limitations of the
     pseudospectral convolution binary operator implemented in
     astropy.convolution under `~astropy.convolution.convolve_fft`. In this
     `~astropy.convolution.convolve_fft` it is assumed that the inputs ``array``
