@@ -1803,6 +1803,12 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         return out
 
+    def convert_unit_to(self, new_unit, equivalencies=[]):
+        # This is a workaround to fix gh-9521
+        super().convert_unit_to(new_unit, equivalencies)
+        self._basedict["_unit"] = new_unit
+        self._optinfo["_unit"] = new_unit
+
     def _copy_attrs_slice(self, out):
         # Fixes issue #3023: when calling getitem with a MaskedArray subclass
         # the original object attributes are not copied.
@@ -1845,4 +1851,3 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
     more = BaseColumn.more
     pprint = BaseColumn.pprint
     pformat = BaseColumn.pformat
-    convert_unit_to = BaseColumn.convert_unit_to
