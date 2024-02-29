@@ -241,6 +241,28 @@ def test_read_detect_col_starts_or_ends():
         assert_equal(dat[3][2], "192.255.255.255")
 
 
+def test_read_fill_values_and_reassign_colname():
+    """Nice, typical fixed format table"""
+    table = """
+| day  | precip | temp |
+| Mon  | 1.5    | rain |
+| Tues | -999.0 | N/A  |
+| Wed  | N/A    | snow |
+"""
+    dat = ascii.read(
+        table,
+        format="fixed_width",
+        data_start=1,
+        fill_values=[("-999.0", "0", "b"), ("N/A", "0", "c"), ("N/A", "0", "b")],
+        names=["a", "b", "c"],
+    )
+    assert_equal(dat.colnames, ["a", "b", "c"])
+    assert dat[1][1] is np.ma.masked
+    assert dat[1][2] is np.ma.masked
+    assert dat[2][1] is np.ma.masked
+    assert_almost_equal(dat[0][1], 1.5)
+
+
 table = """\
 | Col1 |  Col2     |  Col3     |  Col4     |
 | 1.2  | "hello"   |  1        |  a        |
