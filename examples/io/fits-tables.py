@@ -31,7 +31,7 @@ from astropy.utils.data import get_pkg_data_filename
 ##############################################################################
 # Download a FITS file
 
-event_filename = get_pkg_data_filename('tutorials/FITS-tables/chandra_events.fits')
+event_filename = get_pkg_data_filename("tutorials/FITS-tables/chandra_events.fits")
 
 ##############################################################################
 # Display information about the contents of the FITS file.
@@ -55,9 +55,9 @@ print(events.columns)
 # If a column contains unit information, it will have an associated
 # `astropy.units` object.
 
-print(events['energy'].unit)
+print(events["energy"].unit)
 
 ##############################################################################
 # Print the data stored in the Energy column.
 
-print(events['energy'])
+print(events["energy"])
