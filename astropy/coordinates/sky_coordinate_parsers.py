@@ -91,55 +91,49 @@ def _get_frame_without_data(args, kwargs):
     # The first place to check: the frame could be specified explicitly
     frame = kwargs.pop("frame", None)
 
-    if frame is not None:
-        # Here the frame was explicitly passed in as a keyword argument.
+    if isinstance(frame, SkyCoord):
+        # If the frame was passed as a SkyCoord, we also want to preserve
+        # any extra attributes (e.g., obstime) if they are not already
+        # specified in the kwargs. We preserve these extra attributes by
+        # adding them to the kwargs dict:
+        for attr in frame._extra_frameattr_names:
+            value = getattr(frame, attr)
+            if attr not in kwargs:
+                kwargs[attr] = value
+            elif np.any(value != kwargs[attr]):
+                # This SkyCoord attribute passed in with the frame= object
+                # conflicts with an attribute passed in directly to the
+                # SkyCoord initializer as a kwarg:
+                raise ValueError(
+                    _conflict_err_msg.format(attr, value, kwargs[attr], "SkyCoord")
+                )
+        frame = frame.frame
 
-        # If the frame is an instance or SkyCoord, we extract the attributes
-        # and split the instance into the frame class and an attributes dict
-
-        if isinstance(frame, SkyCoord):
-            # If the frame was passed as a SkyCoord, we also want to preserve
-            # any extra attributes (e.g., obstime) if they are not already
-            # specified in the kwargs. We preserve these extra attributes by
-            # adding them to the kwargs dict:
-            for attr in frame._extra_frameattr_names:
-                if attr in kwargs and np.any(getattr(frame, attr) != kwargs[attr]):
-                    # This SkyCoord attribute passed in with the frame= object
-                    # conflicts with an attribute passed in directly to the
-                    # SkyCoord initializer as a kwarg:
-                    raise ValueError(
-                        _conflict_err_msg.format(
-                            attr, getattr(frame, attr), kwargs[attr], "SkyCoord"
-                        )
-                    )
+    if isinstance(frame, BaseCoordinateFrame):
+        # Extract any frame attributes
+        for attr in frame.frame_attributes:
+            # If the frame was specified as an instance, we have to make
+            # sure that no frame attributes were specified as kwargs - this
+            # would require a potential three-way merge:
+            if attr in kwargs:
+                raise ValueError(
+                    f"Cannot specify frame attribute '{attr}' directly as an"
+                    " argument to SkyCoord because a frame instance was passed in."
+                    " Either pass a frame class, or modify the frame attributes of"
+                    " the input frame instance."
+                )
+            if not frame.is_frame_attr_default(attr):
                 kwargs[attr] = getattr(frame, attr)
-            frame = frame.frame
 
-        if isinstance(frame, BaseCoordinateFrame):
-            # Extract any frame attributes
-            for attr in frame.frame_attributes:
-                # If the frame was specified as an instance, we have to make
-                # sure that no frame attributes were specified as kwargs - this
-                # would require a potential three-way merge:
-                if attr in kwargs:
-                    raise ValueError(
-                        f"Cannot specify frame attribute '{attr}' directly as an"
-                        " argument to SkyCoord because a frame instance was passed in."
-                        " Either pass a frame class, or modify the frame attributes of"
-                        " the input frame instance."
-                    )
-                if not frame.is_frame_attr_default(attr):
-                    kwargs[attr] = getattr(frame, attr)
+        frame_cls = frame.__class__
 
-            frame_cls = frame.__class__
+        # Make sure we propagate representation/differential _type choices,
+        # unless these are specified directly in the kwargs:
+        kwargs.setdefault("representation_type", frame.representation_type)
+        kwargs.setdefault("differential_type", frame.differential_type)
 
-            # Make sure we propagate representation/differential _type choices,
-            # unless these are specified directly in the kwargs:
-            kwargs.setdefault("representation_type", frame.representation_type)
-            kwargs.setdefault("differential_type", frame.differential_type)
-
-        if frame_cls is None:  # frame probably a string
-            frame_cls = _get_frame_class(frame)
+    elif frame_cls is None and frame is not None:  # frame probably a string
+        frame_cls = _get_frame_class(frame)
 
     # Check that the new frame doesn't conflict with existing coordinate frame
     # if a coordinate is supplied in the args list.  If the frame still had not
@@ -152,47 +146,34 @@ def _get_frame_without_data(args, kwargs):
         if isinstance(arg, (Sequence, np.ndarray)) and len(args) == 1 and len(arg) > 0:
             arg = arg[0]
 
-        coord_frame_obj = coord_frame_cls = None
         if isinstance(arg, BaseCoordinateFrame):
             coord_frame_obj = arg
         elif isinstance(arg, SkyCoord):
             coord_frame_obj = arg.frame
-        if coord_frame_obj is not None:
-            coord_frame_cls = coord_frame_obj.__class__
-            frame_diff = coord_frame_obj.get_representation_cls("s")
-            if frame_diff is not None:
-                # we do this check because otherwise if there's no default
-                # differential (i.e. it is None), the code below chokes. but
-                # None still gets through if the user *requests* it
-                kwargs.setdefault("differential_type", frame_diff)
+        else:
+            continue
 
-            for attr in coord_frame_obj.frame_attributes:
-                if (
-                    attr in kwargs
-                    and not coord_frame_obj.is_frame_attr_default(attr)
-                    and np.any(kwargs[attr] != getattr(coord_frame_obj, attr))
-                ):
+        coord_frame_cls = type(coord_frame_obj)
+        if frame_cls is None:
+            frame_cls = coord_frame_cls
+        elif frame_cls is not coord_frame_cls:
+            raise ValueError(
+                f"Cannot override frame='{coord_frame_cls.__name__}' of input "
+                f"coordinate with new frame='{frame_cls.__name__}'. Instead, "
+                "transform the coordinate."
+            )
+
+        for attr in coord_frame_obj.frame_attributes:
+            if not coord_frame_obj.is_frame_attr_default(attr):
+                value = getattr(coord_frame_obj, attr)
+                if attr not in kwargs:
+                    kwargs[attr] = value
+                elif np.any(value != kwargs[attr]):
                     raise ValueError(
                         f"Frame attribute '{attr}' has conflicting values between the"
                         " input coordinate data and either keyword arguments or the "
-                        "frame specification (frame=...):"
-                        f" {getattr(coord_frame_obj, attr)} =/= {kwargs[attr]}"
+                        f"frame specification (frame=...): {value} =/= {kwargs[attr]}"
                     )
-
-                if attr not in kwargs and not coord_frame_obj.is_frame_attr_default(
-                    attr
-                ):
-                    kwargs[attr] = getattr(coord_frame_obj, attr)
-
-        if coord_frame_cls is not None:
-            if frame_cls is None:
-                frame_cls = coord_frame_cls
-            elif frame_cls is not coord_frame_cls:
-                raise ValueError(
-                    f"Cannot override frame='{coord_frame_cls.__name__}' of input "
-                    f"coordinate with new frame='{frame_cls.__name__}'. Instead, "
-                    "transform the coordinate."
-                )
 
     if frame_cls is None:
         from .builtin_frames import ICRS
@@ -208,13 +189,10 @@ def _get_frame_without_data(args, kwargs):
         if attr in kwargs:
             frame_cls_kwargs[attr] = kwargs.pop(attr)
 
-    if "representation_type" in kwargs:
-        frame_cls_kwargs["representation_type"] = _get_repr_cls(
-            kwargs.pop("representation_type")
-        )
+    if (representation_type := kwargs.pop("representation_type", None)) is not None:
+        frame_cls_kwargs["representation_type"] = _get_repr_cls(representation_type)
 
-    differential_type = kwargs.pop("differential_type", None)
-    if differential_type is not None:
+    if (differential_type := kwargs.pop("differential_type", None)) is not None:
         frame_cls_kwargs["differential_type"] = _get_diff_cls(differential_type)
 
     return frame_cls, frame_cls_kwargs
