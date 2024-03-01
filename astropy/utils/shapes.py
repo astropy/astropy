@@ -4,6 +4,7 @@
 import abc
 import numbers
 from itertools import zip_longest
+from astropy.utils.decorators import deprecated
 
 import numpy as np
 
@@ -336,7 +337,7 @@ class IncompatibleShapeError(ValueError):
     def __init__(self, shape_a, shape_a_idx, shape_b, shape_b_idx):
         super().__init__(shape_a, shape_a_idx, shape_b, shape_b_idx)
 
-
+@deprecated(since="6.0", alternative="numpy.broadcast_shapes()")
 def check_broadcast(*shapes):
     """
     Determines whether two or more Numpy arrays can be broadcast with each
