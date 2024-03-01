@@ -309,7 +309,7 @@ class CompImageHDU(ImageHDU):
             if data is DELAYED:
                 # Reading the HDU from a file
                 self._bintable = _CompBinTableHDU(
-                    data=data, header=CompImageHeader(header.cards)
+                    data=data, header=CompImageHeader(header)
                 )
             else:
                 self._bintable = bintable
@@ -360,7 +360,7 @@ class CompImageHDU(ImageHDU):
 
             super().__init__(
                 data=data,
-                header=CompImageHeader() if header is None else CompImageHeader(header),
+                header=CompImageHeader(header or []),
                 name=name,
                 do_not_scale_image_data=do_not_scale_image_data,
                 uint=uint,
@@ -602,9 +602,7 @@ class CompImageHDU(ImageHDU):
 
         dtype = bintable.columns.dtype.newbyteorder(">")
         buf = np.frombuffer(heap, dtype=np.uint8)
-        compressed_data = buf[: bintable._theap].view(dtype=dtype, type=np.rec.recarray)
-
-        data = compressed_data.view(FITS_rec)
+        data = buf[: bintable._theap].view(dtype=dtype, type=np.rec.recarray).view(FITS_rec)
         data._load_variable_length_data = False
         data._coldefs = bintable.columns
         data._heapoffset = bintable._theap
