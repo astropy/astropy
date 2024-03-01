@@ -130,14 +130,12 @@ def test_deprecated_class():
     orig_A = TA.__bases__[0]
 
     # The only thing that should be different about the new class
-    # is __doc__, __init__, __bases__ and __subclasshook__.
-    # and __init_subclass__ for Python 3.6+.
+    # is __doc__, __new__, __init__, __subclasshook__, and __init_subclass__.
     for x in dir(orig_A):
         if x not in (
             "__doc__",
+            "__new__",
             "__init__",
-            "__bases__",
-            "__dict__",
             "__subclasshook__",
             "__init_subclass__",
         ):
@@ -149,8 +147,6 @@ def test_deprecated_class():
     if TA.__doc__ is not None:
         assert "function" not in TA.__doc__
         assert "deprecated" in TA.__doc__
-        assert "function" not in TA.__init__.__doc__
-        assert "deprecated" in TA.__init__.__doc__
 
     # Test that the ``__deprecated__`` attribute is set
     # See https://peps.python.org/pep-0702/ for more information
@@ -217,8 +213,6 @@ def test_deprecated_class_with_super():
     if TB.__doc__ is not None:
         assert "function" not in TB.__doc__
         assert "deprecated" in TB.__doc__
-        assert "function" not in TB.__init__.__doc__
-        assert "deprecated" in TB.__init__.__doc__
 
 
 def test_deprecated_class_with_custom_metaclass():
