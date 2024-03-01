@@ -241,6 +241,10 @@ def like_helper(a, *args, **kwargs):
     unit = a.unit if subok else None
     return (a.view(np.ndarray),) + args, kwargs, unit, None
 
+@dispatched_function
+def full(shape, fill_value, dtype=None, order='C'):
+    return np.full(shape, fill_value, dtype, order), fill_value.unit, None
+
 
 @function_helper
 def sinc(x):

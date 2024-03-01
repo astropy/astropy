@@ -31,3 +31,10 @@ def test_allclose_isclose():
     c = [90, 200] * u.cm
     assert not u.allclose(a, c)
     assert not np.all(u.isclose(a, c))
+
+
+def test_full():
+    a = u.Quantity(1, u.m)
+    b = np.full(3, a, like=a)
+    assert b.unit == a.unit
+    assert len(b) == 3
