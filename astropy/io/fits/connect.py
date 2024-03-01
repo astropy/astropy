@@ -111,8 +111,7 @@ def _decode_mixins(tbl):
             if attr in col:
                 setattr(tbl[col["name"]].info, attr, col[attr])
 
-    # Construct new table with mixins, using tbl.meta['__serialized_columns__']
-    # as guidance.
+    # Construct new table with mixins, using tbl.meta['__serialized_columns__'] as rules.
     tbl = serialize._construct_mixins_from_columns(tbl)
 
     return tbl

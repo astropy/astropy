@@ -4271,6 +4271,13 @@ class QTable(Table):
 
     """
 
+    def __init__(self, data=None, masked=False, names=None, dtype=None, **kwargs):
+        if dtype is None:
+            self._use_dtypes = False
+        else:
+            self._use_dtypes = True
+        super().__init__(data=data, masked=masked, names=names, dtype=dtype, **kwargs)
+
     def _is_mixin_for_table(self, col):
         """
         Determine if ``col`` should be added to the table directly as
@@ -4283,8 +4290,12 @@ class QTable(Table):
             # We need to turn the column into a quantity; use subok=True to allow
             # Quantity subclasses identified in the unit (such as u.mag()).
             q_cls = Masked(Quantity) if isinstance(col, MaskedColumn) else Quantity
+            if self._use_dtypes:
+                dtype = col.dtype
+            else:
+                dtype = None
             try:
-                qcol = q_cls(col.data, col.unit, copy=False, subok=True)
+                qcol = q_cls(col.data, col.unit, copy=False, subok=True, dtype=dtype)
             except Exception as exc:
                 warnings.warn(
                     f"column {col.info.name} has a unit but is kept as "
