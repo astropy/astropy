@@ -99,3 +99,20 @@ a tuple to other methods.
     overlay['dec'].set_ticklabel(color='magenta', size=6)
     overlay['dec'].set_axislabel_position('t')
     overlay['dec'].set_axislabel('Declination', color='magenta')
+
+Overlaying a Compass Arrow
+**************************
+
+It is often useful to add compass arrows to your images, denoting which directions correspond to North and East on the sky.
+These can be computed and displayed using :class:`~astropy.visualization.wcsaxes.add_compass`.
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+   from astropy.wcs import utils
+   from astropy.visualization.wcsaxes import add_compass
+
+   # Find the angle to North and add the compass
+   add_compass(ax, corner='bottom right')
