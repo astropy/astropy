@@ -2,6 +2,6 @@
 """Functions for `astropy.cosmology`."""
 
 from .comparison import cosmology_equal
-from .optimize import z_at_value
+from .optimize import z_at_value, z_matter_radiation_equality
 
-__all__ = ["z_at_value", "cosmology_equal"]
+__all__ = ["z_at_value", "cosmology_equal", "z_matter_radiation_equality"]
