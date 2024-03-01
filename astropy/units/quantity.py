@@ -7,6 +7,8 @@ but will deal with unit conversions internally.
 
 from __future__ import annotations
 
+import builtins
+
 # STDLIB
 import numbers
 import operator
@@ -1468,7 +1470,7 @@ class Quantity(np.ndarray):
         format_spec = None
         if formatter is not None and not callable(formatter):
             format_spec = formatter
-            formatter = {"all": lambda x: f"{x:{format_spec}}"}
+            formatter = {"all": lambda x: builtins.format(x, format_spec)}
 
         if format is None:
             # format_spec overwrites precision
