@@ -1394,7 +1394,7 @@ class Quantity(np.ndarray):
         return unitstr
 
     def to_string(
-        self, unit=None, precision=None, format=None, subfmt=None, *, format_spec=None
+        self, unit=None, precision=None, format=None, subfmt=None, *, formatter=None
     ):
         """
         Generate a string representation of the quantity and its unit.
@@ -1425,10 +1425,12 @@ class Quantity(np.ndarray):
             - 'latex_inline': Return a LaTeX-formatted string that uses
               negative exponents instead of fractions
 
-        format_spec : str, optional
-            Format specification for the string using Python's format
-            mini-language:
-            https://docs.python.org/3/library/string.html#format-specification-mini-language
+        formatter : str, callable, optional
+            The formatter to use for the value. If a string, it should be a
+            valid format specifier using Python's mini-language. If a callable,
+            it will be treated as the default formatter for all values and will
+            overwrite default Latex formatting for exponential notation and complex
+            numbers. If not provided, the default formatter will be used.
 
         subfmt : str, optional
             Subformat of the result. For the moment, only used for
@@ -1450,7 +1452,7 @@ class Quantity(np.ndarray):
                 precision=precision,
                 format=format,
                 subfmt=subfmt,
-                format_spec=format_spec,
+                formatter=formatter,
             )
 
         formats = {
@@ -1462,24 +1464,27 @@ class Quantity(np.ndarray):
             },
         }
         formats["latex_inline"] = formats["latex"]
-        default_formatter = None
+
+        format_spec = None
+        if formatter is not None and not callable(formatter):
+            format_spec = formatter
+            formatter = {"all": lambda x: f"{x:{format_spec}}"}
 
         if format is None:
             # format_spec overwrites precision
-            if format_spec is None:
-                if precision is None:
-                    # Use default formatting settings
-                    return f"{self.value}{self._unitstr:s}"
-            else:
-                # Set default formatter
-                default_formatter = {"all": lambda x: f"{x:{format_spec}}"}
+            if formatter is None and precision is None:
+                # Use default formatting settings
+                return f"{self.value}{self._unitstr:s}"
+
+            if callable(formatter):
+                formatter = {"all": formatter}
 
             return (
                 np.array2string(
                     self.value,
                     precision=precision,
                     floatmode="fixed",
-                    formatter=default_formatter,
+                    formatter=formatter,
                 )
                 + self._unitstr
             )
@@ -1497,9 +1502,13 @@ class Quantity(np.ndarray):
             )
 
         def float_formatter(value):
+            if callable(formatter):
+                return formatter(value)
             return Latex.format_exponential_notation(value, format_spec=format_spec)
 
         def complex_formatter(value):
+            if callable(formatter):
+                return formatter(value)
             return "({}{}i)".format(
                 Latex.format_exponential_notation(value.real, format_spec=format_spec),
                 Latex.format_exponential_notation(
