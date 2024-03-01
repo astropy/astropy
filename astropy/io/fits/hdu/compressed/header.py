@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import itertools
 import re
 import warnings
 
@@ -18,9 +17,6 @@ from .settings import (
     DEFAULT_BYTE_PIX,
     DEFAULT_COMPRESSION_TYPE,
     DEFAULT_DITHER_SEED,
-    DEFAULT_HCOMP_SCALE,
-    DEFAULT_HCOMP_SMOOTH,
-    DEFAULT_QUANTIZE_LEVEL,
     DEFAULT_QUANTIZE_METHOD,
     NO_DITHER,
     QUANTIZE_METHOD_NAMES,
@@ -322,11 +318,12 @@ def _image_header_to_empty_bintable(
 
     # NOTE: image_header is the header that a user would see as the image
     # header which they might have set things like BSCALE and BZERO on, or
-    # added history or comments to. Whereas image_header is the
-    # image header as converted/generated from the existing binary table HDU.
+    # added history or comments to.
 
     # Update the extension name in the table header
-    if not name and "EXTNAME" not in bintable.header:
+    if name:
+        bintable.header["EXTNAME"] = name
+    else:
         # Do not sync this with the image header since the default
         # name is specific to the table header.
         bintable.header.set(
@@ -335,9 +332,6 @@ def _image_header_to_empty_bintable(
             "name of this binary table extension",
             after="TFIELDS",
         )
-    elif name:
-        # Force the name into table and image headers.
-        bintable.header["EXTNAME"] = name
 
     # Set the compression type in the table header.
     if compression_type:
@@ -467,16 +461,6 @@ def _image_header_to_empty_bintable(
         ncols = 1
         after = "TFORM1"
 
-        # remove any header cards for the additional columns that
-        # may be left over from the previous data
-        to_remove = ["TTYPE2", "TFORM2", "TTYPE3", "TFORM3", "TTYPE4", "TFORM4"]
-
-        for k in to_remove:
-            try:
-                del bintable.header[k]
-            except KeyError:
-                pass
-
         # Create the ColDefs object for the table
         cols = ColDefs([col1])
 
@@ -493,16 +477,6 @@ def _image_header_to_empty_bintable(
     )
     bintable.header.set("ZBITPIX", zbitpix, bitpix_comment, after="ZIMAGE")
     bintable.header.set("ZNAXIS", image_header["NAXIS"], naxis_comment, after="ZBITPIX")
-
-    # Strip the table header of all the ZNAZISn and ZTILEn keywords
-    # that may be left over from the previous data
-
-    for idx in itertools.count(1):
-        try:
-            del bintable.header["ZNAXIS" + str(idx)]
-            del bintable.header["ZTILE" + str(idx)]
-        except KeyError:
-            break
 
     # Verify that any input tile size parameter is the appropriate
     # size to match the HDU's data.
@@ -537,7 +511,7 @@ def _image_header_to_empty_bintable(
         else:
             nrows *= (axis - 1) // ts + 1
 
-        if image_header and naxis in image_header:
+        if naxis in image_header:
             bintable.header.set(
                 znaxis, axis, image_header.comments[naxis], after=last_znaxis
             )
@@ -554,48 +528,7 @@ def _image_header_to_empty_bintable(
     # rows in the table.
     bintable.header.set("NAXIS2", nrows, "number of rows in table")
 
-    # Set the compression parameters in the table header.
-
-    # First, setup the values to be used for the compression parameters
-    # in case none were passed in.  This will be either the value
-    # already in the table header for that parameter or the default
-    # value.
-    for idx in itertools.count(1):
-        zname = "ZNAME" + str(idx)
-        if zname not in bintable.header:
-            break
-        zval = "ZVAL" + str(idx)
-        if bintable.header[zname] == "NOISEBIT":
-            if quantize_level is None:
-                quantize_level = bintable.header[zval]
-        if bintable.header[zname] == "SCALE   ":
-            if hcomp_scale is None:
-                hcomp_scale = bintable.header[zval]
-        if bintable.header[zname] == "SMOOTH  ":
-            if hcomp_smooth is None:
-                hcomp_smooth = bintable.header[zval]
-
-    if quantize_level is None:
-        quantize_level = DEFAULT_QUANTIZE_LEVEL
-
-    if hcomp_scale is None:
-        hcomp_scale = DEFAULT_HCOMP_SCALE
-
-    if hcomp_smooth is None:
-        hcomp_smooth = DEFAULT_HCOMP_SMOOTH
-
-    # Next, strip the table header of all the ZNAMEn and ZVALn keywords
-    # that may be left over from the previous data
-    for idx in itertools.count(1):
-        zname = "ZNAME" + str(idx)
-        if zname not in bintable.header:
-            break
-        zval = "ZVAL" + str(idx)
-        del bintable.header[zname]
-        del bintable.header[zval]
-
-    # Finally, put the appropriate keywords back based on the
-    # compression type.
+    # Set the compression parameters in the table header based on the compression type
 
     after_keyword = "ZCMPTYPE"
     idx = 1
