@@ -1332,10 +1332,14 @@ class HDUList(list, _Verify):
                     if isinstance(hdu, BinTableHDU) and CompImageHDU.match_header(
                         hdu.header
                     ):
-                        kwargs_comp = {}
-                        for key in ("scale_back", "uint", "do_not_scale_image_data"):
-                            if key in kwargs:
-                                kwargs_comp[key] = kwargs[key]
+                        kwargs_comp = {
+                            key: kwargs[key]
+                            for key in {
+                                "scale_back",
+                                "uint",
+                                "do_not_scale_image_data",
+                            }.intersection(kwargs)
+                        }
                         hdu = CompImageHDU(bintable=hdu, **kwargs_comp)
 
                 super().append(hdu)
