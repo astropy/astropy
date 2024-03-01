@@ -1,3 +1,3 @@
-Add a ``format_spec`` argument to the ``to_string`` method of the ``Quantity``
-class. Enables custom number formatting, especially useful for consistent
-notation.
+Add a ``formatter`` argument to the ``to_string`` method of the ``Quantity``
+class. Enables custom number formatting with a callable formatter or
+format_spec, especially useful for consistent notation.

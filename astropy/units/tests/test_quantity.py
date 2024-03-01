@@ -1089,17 +1089,47 @@ class TestQuantityDisplay:
     ):
         qscalar = u.Quantity(input_value, input_unit)
         assert (
-            qscalar.to_string(
-                format_spec=format_spec, precision=precision, format=format
-            )
+            qscalar.to_string(formatter=format_spec, precision=precision, format=format)
             == expected_result
         )
+
+    @pytest.mark.parametrize(
+        "input_quantity, formatter, format, expected_result",
+        [
+            # More explicit formatting
+            (1.2345 * u.kg, lambda x: f"{float(x):.2f}", None, r"1.23 kg"),
+            # Numerical Formatting within LaTeX
+            (
+                1.2345 * u.kg,
+                lambda x: f"{float(x):.2f}",
+                "latex",
+                r"$1.23 \; \mathrm{kg}$",
+            ),
+            # More complex formatting inside LaTeX
+            (
+                35 * u.km / u.s,
+                lambda x: f"\\approx {float(x):.1f}",
+                "latex",
+                r"$\approx 35.0 \; \mathrm{\frac{km}{s}}$",
+            ),
+            # Custom explicit complex number formatter
+            (
+                u.Quantity(2.5 - 1.2j),
+                lambda x: f"({x.real:.2f}{x.imag:+.1f}j)",
+                "latex",
+                r"$(2.50-1.2j) \; \mathrm{}$",
+            ),
+        ],
+    )
+    def test_formatter(self, input_quantity, formatter, format, expected_result):
+        result = input_quantity.to_string(formatter=formatter, format=format)
+        assert result == expected_result
 
     @pytest.mark.parametrize("format_spec", ["b", "o", "x", "c", "s"])
     def test_format_spec_prohibition(self, format_spec):
         qscalar = u.Quantity(123, "m")
         with pytest.raises(ValueError):
-            qscalar.to_string(format_spec=format_spec)
+            qscalar.to_string(formatter=format_spec)
 
     def test_repr_latex(self):
         from astropy.units.quantity import conf
