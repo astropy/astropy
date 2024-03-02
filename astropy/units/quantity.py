@@ -1467,16 +1467,18 @@ class Quantity(np.ndarray):
         }
         formats["latex_inline"] = formats["latex"]
 
-        format_spec = None
-        if formatter is not None and not callable(formatter):
-            format_spec = formatter
-            formatter = {"all": lambda x: builtins.format(x, format_spec)}
+        format_spec = formatter if isinstance(formatter, str) else None
 
         if format is None:
             # format_spec overwrites precision
             if formatter is None and precision is None:
                 # Use default formatting settings
                 return f"{self.value}{self._unitstr:s}"
+
+            if format_spec is not None:
+
+                def formatter(value):
+                    return builtins.format(value, format_spec)
 
             if callable(formatter):
                 formatter = {"all": formatter}
@@ -1503,20 +1505,26 @@ class Quantity(np.ndarray):
                 f".{precision if precision is not None else pops['precision']}g"
             )
 
-        def float_formatter(value):
-            if callable(formatter):
-                return formatter(value)
-            return Latex.format_exponential_notation(value, format_spec=format_spec)
+        # Use default formatters
+        if formatter is None or isinstance(formatter, str):
+            if self.dtype.kind == "c":  # Complex default latex formatter
 
-        def complex_formatter(value):
-            if callable(formatter):
-                return formatter(value)
-            return "({}{}i)".format(
-                Latex.format_exponential_notation(value.real, format_spec=format_spec),
-                Latex.format_exponential_notation(
-                    value.imag, format_spec="+" + format_spec
-                ),
-            )
+                def formatter(value):
+                    return "({}{}i)".format(
+                        Latex.format_exponential_notation(
+                            value.real, format_spec=format_spec
+                        ),
+                        Latex.format_exponential_notation(
+                            value.imag, format_spec="+" + format_spec
+                        ),
+                    )
+
+            else:  # Float default latex formatter
+
+                def formatter(value):
+                    return Latex.format_exponential_notation(
+                        value, format_spec=format_spec
+                    )
 
         # The view is needed for the scalar case - self.value might be float.
         latex_value = np.array2string(
@@ -1526,10 +1534,7 @@ class Quantity(np.ndarray):
                 if conf.latex_array_threshold > -1
                 else pops["threshold"]
             ),
-            formatter={
-                "float_kind": float_formatter,
-                "complex_kind": complex_formatter,
-            },
+            formatter={"all": formatter},
             max_line_width=np.inf,
             separator=",~",
         )
