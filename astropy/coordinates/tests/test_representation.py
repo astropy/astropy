@@ -827,6 +827,7 @@ class TestPhysicsSphericalRepresentation:
             1 * u.deg, 2 * u.deg, 3 * u.kpc, differentials={"s": difs}
         )
 
+        # Spherical Representation
         got = sph.represent_as(SphericalRepresentation, SphericalDifferential)
         assert np.may_share_memory(sph.phi, got.lon)
         assert np.may_share_memory(sph.r, got.distance)
@@ -835,12 +836,23 @@ class TestPhysicsSphericalRepresentation:
         )
         assert representation_equal_up_to_angular_type(got, expected)
 
+        # Unit-Spherical Representation
         got = sph.represent_as(UnitSphericalRepresentation, UnitSphericalDifferential)
         assert np.may_share_memory(sph.phi, got.lon)
         expected = BaseRepresentation.represent_as(
             sph, UnitSphericalRepresentation, UnitSphericalDifferential
         )
         assert representation_equal_up_to_angular_type(got, expected)
+
+        # Cylindrical Representation
+        got = sph.represent_as(CylindricalRepresentation, CylindricalDifferential)
+        assert np.may_share_memory(sph.phi, got.phi)
+        expected = BaseRepresentation.represent_as(
+            sph, CylindricalRepresentation, CylindricalDifferential
+        )
+        assert_array_equal(got.rho, expected.rho)
+        assert_allclose_quantity(got.phi, expected.phi, atol=3e-16 * u.deg)
+        assert_array_equal(got.z, expected.z)
 
     def test_initialize_with_nan(self):
         # Regression test for gh-11558: initialization used to fail.
@@ -1379,6 +1391,27 @@ class TestCylindricalRepresentation:
         assert_allclose_quantity(s3.phi, expected.phi)
         assert_allclose_quantity(s3.z, expected.z)
         assert_allclose_quantity(s3.rho, expected.rho)
+
+    def test_representation_shortcuts(self):
+        """Test that shortcuts in ``represent_as`` don't fail."""
+        difs = CylindricalDifferential(
+            d_rho=4 * u.km / u.s, d_phi=5 * u.mas / u.yr, d_z=6 * u.km / u.s
+        )
+        cyl = CylindricalRepresentation(
+            rho=1 * u.kpc, phi=2 * u.deg, z=3 * u.kpc, differentials={"s": difs}
+        )
+
+        # PhysicsSpherical Representation
+        got = cyl.represent_as(
+            PhysicsSphericalRepresentation, PhysicsSphericalDifferential
+        )
+        expected = BaseRepresentation.represent_as(
+            cyl, PhysicsSphericalRepresentation, PhysicsSphericalDifferential
+        )
+        assert_allclose_quantity(got.r, expected.r)
+        assert_allclose_quantity(got.phi, expected.phi)
+        assert_allclose_quantity(got.theta, expected.theta)
+        assert representation_equal_up_to_angular_type(got, expected)
 
 
 class TestUnitSphericalCosLatDifferential:
