@@ -142,10 +142,12 @@ class CylindricalRepresentation(BaseRepresentation):
                 diffs = self._re_represent_differentials(
                         other_class, differential_class
                     )
+                r = np.sqrt(self.rho**2 + self.z**2)
                 return other_class(
-                    r = np.sqrt(self.rho**2 + self.z**2),
-                    theta = np.acos(self.z / r),
-                    phi = self.phi,
+                    r=r,
+                    theta=np.arccos(self.z / r),
+                    phi=self.phi,
+                    differentials=diffs,
                 )
 
         return super().represent_as(other_class, differential_class)
