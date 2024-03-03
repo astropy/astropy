@@ -1034,6 +1034,8 @@ class TestQuantityDisplay:
             (123, "m", "010", "00000123.0 m", None, None),
             (1234567, "m", ",", "1,234,567.0 m", None, None),
             (1234567, "m", "_", "1_234_567.0 m", None, None),
+            (u.Quantity(2.5 - 1.2j), None, ".2f", "2.50-1.20j", None, None),
+            (u.Quantity(2.5 - 1.2j), None, ".2e", "2.50e+00-1.20e+00j", None, None),
             (
                 137000000,
                 "lyr",
@@ -1098,6 +1100,22 @@ class TestQuantityDisplay:
         [
             # More explicit formatting
             (1.2345 * u.kg, lambda x: f"{float(x):.2f}", None, r"1.23 kg"),
+            # Dictionary foramtters
+            (
+                35.0 * u.lyr,
+                {
+                    "float": lambda x: f"{float(x):.1f}",
+                    "int": lambda x: f"{float(x):.3f}",
+                },  # Int is naturally ignored
+                None,
+                r"35.0 lyr",
+            ),
+            (
+                35.0 * u.lyr,
+                {"all": lambda x: f"{float(x):.3f}"},
+                "latex",
+                r"$35.000 \; \mathrm{lyr}$",
+            ),
             # Numerical Formatting within LaTeX
             (
                 1.2345 * u.kg,
