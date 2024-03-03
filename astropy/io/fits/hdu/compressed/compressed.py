@@ -604,7 +604,11 @@ class CompImageHDU(ImageHDU):
 
         dtype = bintable.columns.dtype.newbyteorder(">")
         buf = np.frombuffer(heap, dtype=np.uint8)
-        data = buf[: bintable._theap].view(dtype=dtype, type=np.rec.recarray).view(FITS_rec)
+        data = (
+            buf[: bintable._theap]
+            .view(dtype=dtype, type=np.rec.recarray)
+            .view(FITS_rec)
+        )
         data._load_variable_length_data = False
         data._coldefs = bintable.columns
         data._heapoffset = bintable._theap
