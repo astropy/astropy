@@ -581,7 +581,7 @@ class FITS_rec(np.recarray):
     def _ipython_key_completions_(self):
         return self.names
 
-    def copy(self, order="C"):
+    def copy(self):
         """
         As stated in the Numpy documentation of `numpy.copy` to ensure all elements
         within an object array are copied we need to make a deep
