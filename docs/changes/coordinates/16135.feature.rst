@@ -1,2 +1,0 @@
-Added a fast path for converting ``PhysicsSphericalRepresentation`` to
-``CylindricalRepresentation``.
