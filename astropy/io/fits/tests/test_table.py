@@ -2858,6 +2858,17 @@ class TestTableFunctions(FitsTestCase):
             t3.teardown_class()
         del t3
 
+    @pytest.mark.skipif(not HAVE_OBJGRAPH, reason="requires objgraph")
+    def test_reference_leak_copyhdu(self):
+        """Regression test for https://github.com/astropy/astropy/issues/15649"""
+
+        def readfile(filename):
+            with fits.open(filename) as hdul:
+                hdu = hdul[1].copy()
+
+        with _refcounting("FITS_rec"):
+            readfile(self.data("memtest.fits"))
+
     def test_dump_overwrite(self):
         with fits.open(self.data("table.fits")) as hdul:
             tbhdu = hdul[1]
