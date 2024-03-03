@@ -1427,12 +1427,14 @@ class Quantity(np.ndarray):
             - 'latex_inline': Return a LaTeX-formatted string that uses
               negative exponents instead of fractions
 
-        formatter : str, callable, optional
+        formatter : str, callable, dict, optional
             The formatter to use for the value. If a string, it should be a
             valid format specifier using Python's mini-language. If a callable,
             it will be treated as the default formatter for all values and will
             overwrite default Latex formatting for exponential notation and complex
-            numbers. If not provided, the default formatter will be used.
+            numbers. If a dict, it should map a specific type to a callable to be
+            directly passed into `numpy.array2string`. If not provided, the default
+            formatter will be used.
 
         subfmt : str, optional
             Subformat of the result. For the moment, only used for
@@ -1457,6 +1459,10 @@ class Quantity(np.ndarray):
                 formatter=formatter,
             )
 
+        if format is None and formatter is None and precision is None:
+            # Use default formatting settings
+            return f"{self.value}{self._unitstr:s}"
+
         formats = {
             None: None,
             "latex": {
@@ -1467,14 +1473,12 @@ class Quantity(np.ndarray):
         }
         formats["latex_inline"] = formats["latex"]
 
+        if format not in formats:
+            raise ValueError(f"Unknown format '{format}'")
+
         format_spec = formatter if isinstance(formatter, str) else None
 
         if format is None:
-            # format_spec overwrites precision
-            if formatter is None and precision is None:
-                # Use default formatting settings
-                return f"{self.value}{self._unitstr:s}"
-
             if format_spec is not None:
 
                 def formatter(value):
@@ -1492,9 +1496,6 @@ class Quantity(np.ndarray):
                 )
                 + self._unitstr
             )
-
-        if format not in formats:
-            raise ValueError(f"Unknown format '{format}'")
 
         # else, for the moment we assume format="latex" or "latex_inline".
 
@@ -1526,6 +1527,9 @@ class Quantity(np.ndarray):
                         value, format_spec=format_spec
                     )
 
+        if callable(formatter):
+            formatter = {"all": formatter}
+
         # The view is needed for the scalar case - self.value might be float.
         latex_value = np.array2string(
             self.view(np.ndarray),
@@ -1534,7 +1538,7 @@ class Quantity(np.ndarray):
                 if conf.latex_array_threshold > -1
                 else pops["threshold"]
             ),
-            formatter={"all": formatter},
+            formatter=formatter,
             max_line_width=np.inf,
             separator=",~",
         )
