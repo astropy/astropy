@@ -1100,7 +1100,7 @@ class TestQuantityDisplay:
         [
             # More explicit formatting
             (1.2345 * u.kg, lambda x: f"{float(x):.2f}", None, r"1.23 kg"),
-            # Dictionary foramtters
+            # Dictionary formatters
             (
                 35.0 * u.lyr,
                 {
