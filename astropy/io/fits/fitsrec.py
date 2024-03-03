@@ -583,17 +583,13 @@ class FITS_rec(np.recarray):
 
     def copy(self, order="C"):
         """
-        The Numpy documentation lies; `numpy.ndarray.copy` is not equivalent to
-        `numpy.copy`.  Differences include that it re-views the copied array as
-        self's ndarray subclass, as though it were taking a slice; this means
-        ``__array_finalize__`` is called and the copy shares all the array
-        attributes (including ``._converted``!).  So we need to make a deep
+        As stated in the Numpy documentation of `numpy.copy` to ensure all elements
+        within an object array are copied we need to make a deep
         copy of all those attributes so that the two arrays truly do not share
         any data.
         """
-        new = super().copy(order=order)
+        new = copy.deepcopy(self)
 
-        new.__dict__ = copy.deepcopy(self.__dict__)
         return new
 
     @property
