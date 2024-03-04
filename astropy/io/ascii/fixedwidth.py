@@ -8,7 +8,6 @@ fixedwidth.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-
 from . import basic, core
 from .core import DefaultSplitter, InconsistentTableError
 

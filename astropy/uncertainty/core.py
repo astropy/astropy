@@ -3,6 +3,7 @@
 """
 Distribution class and associated machinery.
 """
+
 import builtins
 
 import numpy as np

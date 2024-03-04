@@ -15,6 +15,7 @@ The `Masked` class itself provides a base ``mask`` property,
 which can also be overridden if needed.
 
 """
+
 import builtins
 
 import numpy as np

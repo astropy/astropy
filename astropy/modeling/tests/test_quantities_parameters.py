@@ -3,6 +3,7 @@
 """
 Tests that relate to using quantities/units on parameters of models.
 """
+
 import numpy as np
 import pytest
 

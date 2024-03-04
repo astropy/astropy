@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Tests for physical functions."""
+
 # pylint: disable=no-member, invalid-name
 import numpy as np
 import pytest
@@ -140,8 +141,9 @@ def test_blackbody_exceptions_and_warnings():
     bb = BlackBody(5000 * u.K)
 
     # Zero wavelength given for conversion to Hz
-    with pytest.warns(AstropyUserWarning, match="invalid") as w, np.errstate(
-        divide="ignore", invalid="ignore"
+    with (
+        pytest.warns(AstropyUserWarning, match="invalid") as w,
+        np.errstate(divide="ignore", invalid="ignore"),
     ):
         bb(0 * u.AA)
     assert len(w) == 1

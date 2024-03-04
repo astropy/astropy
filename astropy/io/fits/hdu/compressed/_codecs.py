@@ -1,6 +1,7 @@
 """
 This module contains the FITS compression algorithms in numcodecs style Codecs.
 """
+
 from gzip import compress as gzip_compress
 from gzip import decompress as gzip_decompress
 

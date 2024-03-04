@@ -8,7 +8,6 @@ same API as a single-step transformation, so it can be used interchangeably with
 single-step transformation.
 """
 
-
 from astropy.coordinates.transformations.affine import (
     AffineTransform,
     BaseAffineTransform,

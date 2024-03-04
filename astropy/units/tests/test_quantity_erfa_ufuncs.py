@@ -2,6 +2,7 @@
 """
 Test Structured units and quantities specifically with the ERFA ufuncs.
 """
+
 import erfa
 import numpy as np
 import pytest

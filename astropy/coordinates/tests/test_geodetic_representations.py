@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """Test geodetic representations"""
+
 from copy import deepcopy
 
 import pytest

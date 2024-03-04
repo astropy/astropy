@@ -3,6 +3,7 @@ This module contains low level helper functions for compressing and
 decompressing buffer for the Tiled Table Compression algorithms as specified in
 the FITS 4 standard.
 """
+
 import sys
 from math import prod
 

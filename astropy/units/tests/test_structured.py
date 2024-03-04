@@ -2,6 +2,7 @@
 """
 Test Structured units and quantities.
 """
+
 import copy
 
 import numpy as np

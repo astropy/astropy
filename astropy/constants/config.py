@@ -2,6 +2,7 @@
 """
 Configures the codata and iaudata used, possibly using user configuration.
 """
+
 # Note: doing this in __init__ causes import problems with units,
 # as si.py and cgs.py have to import the result.
 import importlib

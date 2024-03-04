@@ -8,7 +8,6 @@ core.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-
 import copy
 import csv
 import fnmatch
