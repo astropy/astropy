@@ -177,7 +177,7 @@ class Kernel:
         """
         return kernel_arithmetics(self, value, "mul")
 
-    def __array__(self):
+    def __array__(self, dtype=None, copy=None):
         """
         Array representation of the kernel.
         """

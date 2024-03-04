@@ -175,7 +175,7 @@ class NDUncertainty(metaclass=ABCMeta):
     @array.setter
     def array(self, value):
         if isinstance(value, (list, np.ndarray)):
-            value = np.array(value, subok=False, copy=False)
+            value = np.asarray(value)
         self._array = value
 
     @property

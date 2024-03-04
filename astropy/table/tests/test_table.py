@@ -1508,7 +1508,7 @@ class TestConvertNumpyArray:
         assert np_data is not d.as_array()
         assert d.colnames == list(np_data.dtype.names)
 
-        np_data = np.array(d, copy=False)
+        np_data = np.asarray(d)
         if table_types.Table is not MaskedTable:
             assert np.all(np_data == d.as_array())
         assert d.colnames == list(np_data.dtype.names)
