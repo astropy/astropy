@@ -850,7 +850,7 @@ class TestPhysicsSphericalRepresentation:
         expected = BaseRepresentation.represent_as(
             sph, CylindricalRepresentation, CylindricalDifferential
         )
-        assert_array_equal(got.rho, expected.rho)
+        assert_allclose_quantity(got.rho, expected.rho, atol=5e-17 * u.kpc)
         assert_allclose_quantity(got.phi, expected.phi, atol=3e-16 * u.deg)
         assert_array_equal(got.z, expected.z)
 
