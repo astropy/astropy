@@ -642,6 +642,7 @@ class TestStructuredArray:
         assert value.dtype.names == ("x", "y", "z")
 
 
+@pytest.mark.skipif(not NUMPY_LT_2_0, reason="removed from numpy 2.0")
 @pytest.mark.filterwarnings(
     "ignore: The numpy.array_api submodule is still experimental. See NEP 47."
 )
