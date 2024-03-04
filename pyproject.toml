@@ -48,7 +48,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
-    "pytest>=7.0",
+    "pytest>=7.0, <8.1",  # https://github.com/astropy/astropy/issues/16146
     "pytest-doctestplus>=0.12",
     "pytest-astropy-header>=0.2.1",
     "pytest-astropy>=0.10",
@@ -87,7 +87,7 @@ all = [
     "asdf-astropy>=0.3",
     "bottleneck",
     "ipython>=4.2",
-    "pytest>=7.0",
+    "pytest>=7.0, <8.1",  # https://github.com/astropy/astropy/issues/16146
     "fsspec[http]>=2023.4.0",
     "s3fs>=2023.4.0",
     "pre-commit",
@@ -96,7 +96,7 @@ docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
     "sphinx",
     "sphinx-astropy[confv2]>=1.9.1",
-    "pytest>=7.0",
+    "pytest>=7.0, <8.1",  # https://github.com/astropy/astropy/issues/16146
     "sphinx-changelog>=1.2.0",
     "sphinx_design",
     "Jinja2>=3.1.3",
