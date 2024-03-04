@@ -735,26 +735,6 @@ class CompImageHDU(ImageHDU):
         """
         return CompImageSection(self)
 
-    # FIXME: determine how we can simplify or avoid the following methods. These
-    # seem to be needed for the checksum calculations to work properly.
-
-    def _calculate_datasum(self):
-        return self._bintable._calculate_datasum()
-
-    def _calculate_checksum(self, datasum, checksum_keyword="CHECKSUM"):
-        return self._bintable._calculate_checksum(
-            datasum, checksum_keyword=checksum_keyword
-        )
-
-    def _verify_checksum_datasum(self):
-        return self._bintable._verify_checksum_datasum()
-
-    def verify_checksum(self):
-        return self._bintable.verify_checksum()
-
-    def verify_datasum(self):
-        return self._bintable.verify_datasum()
-
     def _verify(self, *args, **kwargs):
         if self._bintable is None:
             return super()._verify(*args, **kwargs)
