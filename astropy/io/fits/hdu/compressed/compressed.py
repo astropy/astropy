@@ -746,8 +746,11 @@ class CompImageHDU(ImageHDU):
 
     @_data_offset.setter
     def _data_offset(self, value):
-        if self._bintable is not None:
-            self._bintable._data_offset = value
+        # We should never set _data_offset to a non-None value. We need to
+        # implement this setter as one of the parent classes sets _data_offset
+        # to None in __init__.
+        if value is not None:
+            raise RuntimeError('Cannot set CompImageHDU._data_offset')
 
     @property
     def _header_offset(self):
@@ -756,8 +759,11 @@ class CompImageHDU(ImageHDU):
 
     @_header_offset.setter
     def _header_offset(self, value):
-        if self._bintable is not None:
-            self._bintable._header_offset = value
+        # We should never set _data_offset to a non-None value. We need to
+        # implement this setter as one of the parent classes sets _data_offset
+        # to None in __init__.
+        if value is not None:
+            raise RuntimeError('Cannot set CompImageHDU._header_offset')
 
     @property
     def _data_size(self):
@@ -766,5 +772,8 @@ class CompImageHDU(ImageHDU):
 
     @_data_size.setter
     def _data_size(self, value):
-        if self._bintable is not None:
-            self._bintable._data_size = value
+        # We should never set _data_offset to a non-None value. We need to
+        # implement this setter as one of the parent classes sets _data_offset
+        # to None in __init__.
+        if value is not None:
+            raise RuntimeError('Cannot set CompImageHDU._data_size')
