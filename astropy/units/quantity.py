@@ -1509,6 +1509,9 @@ class Quantity(np.ndarray):
         # Use default formatters
         if formatter is None or isinstance(formatter, str):
             if self.dtype.kind == "c":  # Complex default latex formatter
+                # Disallowed sign operations for complex numbers
+                t_table = str.maketrans({"-": None, "+": None, " ": None})
+                format_spec = format_spec.translate(t_table)
 
                 def formatter(value):
                     return "({}{}i)".format(
