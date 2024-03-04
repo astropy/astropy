@@ -455,7 +455,7 @@ class Quantity(np.ndarray):
             if unit is not None and unit is not value.unit:
                 value = value.to(unit)
                 # the above already makes a copy (with float dtype)
-                copy = False
+                copy = COPY_IF_NEEDED
 
             if type(value) is not cls and not (subok and isinstance(value, cls)):
                 value = value.view(cls)
@@ -544,12 +544,7 @@ class Quantity(np.ndarray):
                 if unit is None:
                     unit = value_unit
                 elif unit is not value_unit:
-                    copy = False  # copy will be made in conversion at end
-
-        if not NUMPY_LT_2_0 and copy is False:
-            # strict backward compatibility
-            # see https://github.com/astropy/astropy/pull/16142
-            copy = None
+                    copy = COPY_IF_NEEDED  # copy will be made in conversion at end
 
         value = np.array(
             value, dtype=dtype, copy=copy, order=order, subok=True, ndmin=ndmin
