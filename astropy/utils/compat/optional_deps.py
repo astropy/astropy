@@ -33,6 +33,7 @@ _optional_deps = [
     "lzma",
     "pyarrow",
     "pytest_mpl",
+    "array_api_strict",
 ]
 _deps = {k.upper(): k for k in _optional_deps}
 
