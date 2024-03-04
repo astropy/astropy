@@ -522,6 +522,11 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         copy=False,
         copy_indices=True,
     ):
+        if not NUMPY_LT_2_0 and copy is False:
+            # strict backward compatibility
+            # see https://github.com/astropy/astropy/pull/16142
+            copy = None
+
         if data is None:
             self_data = np.zeros((length,) + shape, dtype=dtype)
         elif isinstance(data, BaseColumn) and hasattr(data, "_name"):

@@ -20,7 +20,7 @@ import numpy as np
 
 # LOCAL
 from astropy import config as _config
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
+from astropy.utils.compat.numpycompat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyWarning
@@ -445,7 +445,12 @@ class Quantity(np.ndarray):
         if float_default:
             dtype = None
 
-        # optimize speed for Quantity with no dtype given, copy=False
+        if not NUMPY_LT_2_0 and copy is False:
+            # strict backward compatibility
+            # see https://github.com/astropy/astropy/pull/16142
+            copy = None
+
+        # optimize speed for Quantity with no dtype given, copy=COPY_IF_NEEDED
         if isinstance(value, Quantity):
             if unit is not None and unit is not value.unit:
                 value = value.to(unit)
@@ -540,6 +545,11 @@ class Quantity(np.ndarray):
                     unit = value_unit
                 elif unit is not value_unit:
                     copy = False  # copy will be made in conversion at end
+
+        if not NUMPY_LT_2_0 and copy is False:
+            # strict backward compatibility
+            # see https://github.com/astropy/astropy/pull/16142
+            copy = None
 
         value = np.array(
             value, dtype=dtype, copy=copy, order=order, subok=True, ndmin=ndmin
@@ -826,7 +836,7 @@ class Quantity(np.ndarray):
         if obj is None:
             obj = self.view(np.ndarray)
         else:
-            obj = np.array(obj, copy=False, subok=True)
+            obj = np.array(obj, copy=COPY_IF_NEEDED, subok=True)
 
         # Take the view, set the unit, and update possible other properties
         # such as ``info``, ``wrap_angle`` in `Longitude`, etc.
@@ -1689,7 +1699,7 @@ class Quantity(np.ndarray):
         if self.dtype.kind == "i" and check_precision:
             # If, e.g., we are casting float to int, we want to fail if
             # precision is lost, but let things pass if it works.
-            _value = np.array(_value, copy=False, subok=True)
+            _value = np.array(_value, copy=COPY_IF_NEEDED, subok=True)
             if not np.can_cast(_value.dtype, self.dtype):
                 self_dtype_array = np.array(_value, self.dtype, subok=True)
                 if not np.all((self_dtype_array == _value) | np.isnan(_value)):

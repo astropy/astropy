@@ -513,6 +513,12 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
     def from_unmasked(cls, data, mask=None, copy=False):
         # Note: have to override since __new__ would use ndarray.__new__
         # which expects the shape as its first argument, not an array.
+
+        if not NUMPY_LT_2_0 and copy is False:
+            # strict backward compatibility
+            # see https://github.com/astropy/astropy/pull/16142
+            copy = None
+
         data = np.array(data, subok=True, copy=copy)
         self = data.view(cls)
         self._set_mask(mask, copy=copy)
