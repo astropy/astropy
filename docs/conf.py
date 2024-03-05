@@ -507,48 +507,29 @@ global_substitutions: dict[str, str] = {
 # the form of a reStructuredText external link.
 
 links: dict[str, str] = {
-    # minimum versions
-    "minimum_python_version": "{minimum_python}",
-    "minimum_numpy_version": "{numpy}",
-    "minimum_pyerfa_version": "{pyerfa}",
-    "minimum_matplotlib_version": "{matplotlib}",
-    "minimum_scipy_version": "{scipy}",
-    "minimum_asdf_astropy_version": "{asdf-astropy}",
-    "minimum_packaging_version": "{packaging}",
-    "minimum_pyyaml_version": "{pyyaml}",
-    "minimum_ipython_version": "{ipython}",
-    "minimum_pyarrow_version": "{pyarrow}",
-    "minimum_fsspec_version": "{fsspec}",
-    "minimum_s3fs_version": "{s3fs}",
     # Python
     "Python": "https://www.python.org",
     "PEP8": "https://www.python.org/dev/peps/pep-0008",
     # Astropy
-    "`Astropy mailing list`": "https://mail.python.org/mailman/listinfo/astropy",
-    "`astropy-dev mailing list`": "http://groups.google.com/group/astropy-dev",
+    "Astropy mailing list": "https://mail.python.org/mailman/listinfo/astropy",
+    "astropy-dev mailing list": "http://groups.google.com/group/astropy-dev",
     # NumPy
     "NumPy": "https://numpy.org",
-    "`numpy github`": "https://github.com/numpy/numpy",
-    "`numpy mailing list`": "http://mail.python.org/mailman/listinfo/numpy-discussion",
+    "numpy mailing list": "http://mail.python.org/mailman/listinfo/numpy-discussion",
     "numpydoc": "https://pypi.org/project/numpydoc",
     # erfa
     "ERFA": "https://github.com/liberfa/erfa",
-    "PyErfa": "http://pyerfa.readthedocs.org",
-    "`pyerfa github`": "https://github.com/liberfa/pyerfa",
+    "PyERFA": "http://pyerfa.readthedocs.org",
     # matplotlib
     "Matplotlib": "https://matplotlib.org",
     # sofa
     "SOFA": "http://www.iausofa.org/index.html",
     # scipy
-    "scipy": "https://www.scipy.org",
-    "`scipy github`": "https://github.com/scipy/scipy",
-    "`scipy mailing list`": "http://mail.python.org/mailman/listinfo/scipy-dev",
+    "SciPy": "https://www.scipy.org",
     # packaging
     "packaging": "https://packaging.pypa.io",
     # IPython
     "IPython": "https://ipython.org",
-    "`ipython github`": "https://github.com/ipython/ipython",
-    "`ipython mailing list`": "http://mail.python.org/mailman/listinfo/IPython-dev",
     # pip
     "pip": "https://pip.pypa.io",
     # pipenv
@@ -556,12 +537,9 @@ links: dict[str, str] = {
     # virtualenv
     "virtualenv": "https://pypi.org/project/virtualenv",
     "virtualenvwrapper": "https://pypi.org/project/virtualenvwrapper",
-    "virtualenvwrapper-win": "https://github.com/davidmarble/virtualenvwrapper-win",
-    "venv": "https://docs.python.org/dev/library/venv.html",
     # conda
     "conda": "https://conda.io/docs",
     "miniconda": "https://docs.conda.io/en/latest/miniconda.html",
-    "miniconda-install": "https://conda.io/projects/conda/en/latest/user-guide/install/index.html#regular-installation",
     # pytest
     "pytest": "https://pytest.org/en/latest/index.html",
     "pytest-astropy": "https://github.com/astropy/pytest-astropy",
@@ -572,14 +550,14 @@ links: dict[str, str] = {
     # s3fs
     "s3fs": "https://s3fs.readthedocs.io",
     # TOPCAT
-    "`STIL`": "http://www.starlink.ac.uk/stil",
-    "`STILTS`": "http://www.starlink.ac.uk/stilts",
-    "`TOPCAT`": "http://www.starlink.ac.uk/topcat",
+    "STIL": "http://www.starlink.ac.uk/stil",
+    "STILTS": "http://www.starlink.ac.uk/stilts",
+    "TOPCAT": "http://www.starlink.ac.uk/topcat",
     # OpenAstronomy
-    "`OpenAstronomy Packaging Guide`": "https://packaging-guide.openastronomy.org/en/latest",
+    "OpenAstronomy Packaging Guide": "https://packaging-guide.openastronomy.org/en/latest",
 }
 
-processed_links = {key: f"`{key}.lower() <{value}>`_" for key, value in links.items()}
+processed_links = {key: f"`{key} <{value}>`_" for key, value in links.items()}
 global_substitutions |= processed_links
 
 def setup(app):
