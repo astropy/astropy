@@ -40,7 +40,7 @@ class FakeNumpyArray:
     def __getitem__(self, key):
         pass
 
-    def __array__(self):
+    def __array__(self, dtype=None, copy=None):
         pass
 
     @property

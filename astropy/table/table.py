@@ -19,7 +19,7 @@ from astropy.utils import (
     deprecated,
     isiterable,
 )
-from astropy.utils.compat import NUMPY_LT_1_25
+from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_1_25
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
 from astropy.utils.decorators import format_doc
@@ -1129,7 +1129,7 @@ class Table:
         """
         return _IndexModeContext(self, mode)
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
         """Support converting Table to np.array via np.array(table).
 
         Coercion to a different dtype via np.array(table, dtype) is not
@@ -1139,7 +1139,7 @@ class Table:
             if np.dtype(dtype) != object:
                 raise ValueError("Datatype coercion is not allowed")
 
-            out = np.array(None, dtype=object)
+            out = np.array(None, dtype=object, copy=copy)
             out[()] = self
             return out
 
@@ -1459,7 +1459,7 @@ class Table:
         if isinstance(col, Column) and not isinstance(col, self.ColumnClass):
             col_cls = self._get_col_cls_for_table(col)
             if col_cls is not col.__class__:
-                col = col_cls(col, copy=False)
+                col = col_cls(col, copy=COPY_IF_NEEDED)
 
         return col
 
