@@ -97,7 +97,7 @@ class TestColumn:
 
         np_data = np.array(d)
         assert np.all(np_data == d)
-        np_data = np.array(d, copy=False)
+        np_data = np.asarray(d)
         assert np.all(np_data == d)
         np_data = np.array(d, dtype="i4")
         assert np.all(np_data == d)

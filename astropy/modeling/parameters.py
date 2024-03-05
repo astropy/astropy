@@ -17,6 +17,7 @@ import numpy as np
 
 from astropy.units import MagUnit, Quantity
 from astropy.utils import isiterable
+from astropy.utils.compat import COPY_IF_NEEDED
 
 from .utils import array_repr_oneline, get_inputs_and_params
 
@@ -732,12 +733,12 @@ class Parameter:
 
         return wrapper
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
         # Make np.asarray(self) work a little more straightforwardly
         arr = np.asarray(self.value, dtype=dtype)
 
         if self.unit is not None:
-            arr = Quantity(arr, self.unit, copy=False, subok=True)
+            arr = Quantity(arr, self.unit, copy=copy, subok=True)
 
         return arr
 

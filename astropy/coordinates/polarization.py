@@ -6,6 +6,7 @@ from typing import NamedTuple
 import numpy as np
 
 from astropy.utils import unbroadcast
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.shapes import ShapedLikeNDArray
 
@@ -186,8 +187,8 @@ class StokesCoord(ShapedLikeNDArray):
     def dtype(self):
         return self._data.dtype
 
-    def __array__(self, dtype=None):
-        return self._data.astype(dtype, copy=False)
+    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
+        return self._data.astype(dtype, copy=copy)
 
     def _apply(self, method, *args, **kwargs):
         cls = type(self)

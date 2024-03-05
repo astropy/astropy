@@ -2220,7 +2220,8 @@ class TestInfo:
 )
 def test_differential_norm_noncartesian(cls):
     # The norm of a non-Cartesian differential without specifying `base` should error
-    rep = cls(0, 0, 0)
+    args = (0,) * len(cls.attr_classes)
+    rep = cls(*args)
     with pytest.raises(ValueError, match=r"`base` must be provided .* " + cls.__name__):
         rep.norm()
 
