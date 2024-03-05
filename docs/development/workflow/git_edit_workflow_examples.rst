@@ -115,7 +115,7 @@ A subpackage organizes its tests into multiple test modules; e.g.::
 
 `Issue 1761`_ affects arrays of coordinates, so it seems sensible to put the
 new test in ``test_arrays.py``. As with all of the steps, when in doubt,
-please ask on the `astropy-dev mailing list`_.
+please ask on the |astropy-dev mailing list|.
 
 The goal at this point may be a little counter-intuitive: write a test that we
 know will fail with the current code. This test allows ``astropy`` to check,
@@ -163,7 +163,7 @@ we just wrote is one logical change, so we will commit it. You could, if you
 prefer, wait and commit this test along with your fix.
 
 For this tutorial, we will commit the test separately. If you are not sure what to
-do, ask on `astropy-dev mailing list`_.
+do, ask on |astropy-dev mailing list|.
 
 Check what was changed
 ----------------------
@@ -316,7 +316,7 @@ There are a few levels at which you want to test:
 
 .. note::
     Tests that are skipped or xfailed are fine. A fail or an error is not
-    fine. If you get stuck, ask on `astropy-dev mailing list`_ for help!
+    fine. If you get stuck, ask on |astropy-dev mailing list| for help!
 
 Stage and commit your change
 ----------------------------
@@ -370,7 +370,7 @@ The message after committing should look like this when you inspect with
 
 If the commit message does not look right, run ``git commit --amend``.
 If you still run into problems, please ask about fixing it at
-`astropy-dev mailing list`_.
+|astropy-dev mailing list|.
 
 At this point, none of the Astropy maintainers know anything about
 your changes.
@@ -393,7 +393,7 @@ be included, such as:
 
 Both of these are mentioned in `pull request 1917`_, so it does not hurt to check
 them. In this case, they also provide an opportunity to illustrate a feature
-of the `pytest`_ framework.
+of the |pytest| framework.
 
 The second case is easier, so it will be handled first following the
 development cycle we used above:
@@ -423,7 +423,7 @@ In this case, we opted for raising a `TypeError`, because
 the user needs to know that the coordinate they created is not going to
 behave like an array of one coordinate if they try to index it later on.
 
-The `pytest`_ framework makes testing for an exception relatively
+The |pytest| framework makes testing for an exception relatively
 easy; you put the code you expect to fail in a ``with`` block::
 
     c = ICRS(0, 0, unit=(u.degree, u.degree))

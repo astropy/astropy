@@ -11,7 +11,7 @@ Using an Existing Hub
 =====================
 
 You can start up another application that includes a hub, such as
-`TOPCAT`_, `SAO DS9 <http://ds9.si.edu/>`_, or
+|TOPCAT|, `SAO DS9 <http://ds9.si.edu/>`_, or
 `Aladin Desktop <https://aladin.unistra.fr>`_.
 
 Using the Command-Line Hub Utility

@@ -37,7 +37,7 @@ Astropy source code. Issues labeled as `"effort-low" <https://github.com/astropy
 are expected to take a few hours (at most) to address, while the
 `"effort-medium" <https://github.com/astropy/astropy/issues?q=is%3Aissue+is%3Aopen+label%3Aeffort-medium>`_
 ones may take a few days. The developers are friendly and want you to help, so
-don't be shy about asking questions on the `astropy-dev mailing list`_.
+don't be shy about asking questions on the |astropy-dev mailing list|.
 
 New to `git`_?
 **************
@@ -139,7 +139,7 @@ Astropy Guidelines for `git`_
   ``bugfix-for-issue-14`` or ``refactor-database-code``.
 * Make frequent commits, and always include a commit message. Each commit
   should represent one logical set of changes.
-* Ask on the `astropy-dev mailing list`_ if you get stuck.
+* Ask on the |astropy-dev mailing list| if you get stuck.
 * Never merge changes from ``astropy/main`` into your feature branch. If
   changes in the development version require changes to our code you can
   :ref:`rebase`.
@@ -171,7 +171,7 @@ our coding style standards. The easiest way to do this is by installing ``pre-co
 
     python -m pip install pre-commit
 
-Or if you prefer `conda`_::
+Or if you prefer |conda|::
 
     conda install pre-commit
 
@@ -404,7 +404,7 @@ In more detail
 #. Add tests of your new code, if appropriate. Some changes (e.g. to
    documentation) do not need tests. Detailed instructions are at
    :ref:`writing-tests`, but if you have no experience writing tests or
-   with the `pytest`_ testing framework submit your changes without adding
+   with the |pytest| testing framework submit your changes without adding
    tests, but mention in the pull request that you have not written tests.
    An example of writing a test is in
    :ref:`astropy-fix-add-tests`.
