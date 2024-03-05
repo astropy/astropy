@@ -61,6 +61,7 @@ test_all = [
     "coverage[toml]",
     "skyfield>=1.20",
     "sgp4>=2.3",
+    "array-api-strict",
 ]
 recommended = [
     "scipy>=1.8",
