@@ -35,6 +35,9 @@ from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
 from sphinx.util import logging
 
+#from docs import global_substitutions
+
+
 if sys.version_info < (3, 11):
     import tomli as tomllib
 else:
@@ -134,7 +137,7 @@ if "templates_path" not in locals():  # in case parent conf.py defines it
     templates_path = []
 templates_path.append("_templates")
 
-extensions += ["sphinx_changelog", "sphinx_design"]
+extensions += ["sphinx_changelog", "sphinx_design", "sphinxcontrib.globalsubs"]
 
 # Grab minversion from pyproject.toml
 with (Path(__file__).parents[1] / "pyproject.toml").open("rb") as f:
@@ -438,6 +441,146 @@ def resolve_astropy_and_dev_reference(app, env, node, contnode):
 
         # Otherwise return None which should delegate to intersphinx
 
+global_substitutions: dict[str, str] = {
+# NumPy
+    "ndarray": ":class:`numpy.ndarray`",
+# Coordinates
+    "EarthLocation": ":class:`~astropy.coordinates.EarthLocation`",
+    "Angle": "`~astropy.coordinates.Angle`",
+    "Latitude": "`~astropy.coordinates.Latitude`",
+    "Longitude": ":class:`~astropy.coordinates.Longitude`",
+    "BaseFrame": "`~astropy.coordinates.BaseCoordinateFrame`",
+    "SkyCoord": ":class:`~astropy.coordinates.SkyCoord`",
+    "SpectralCoord": "`~astropy.coordinates.SpectralCoord`",
+# Cosmology
+    "Cosmology": ":class:`~astropy.cosmology.Cosmology`",
+    "Cosmology.read": ":meth:`~astropy.cosmology.Cosmology.read`",
+    "Cosmology.write": ":meth:`~astropy.cosmology.Cosmology.write`",
+    "Cosmology.from_format": ":meth:`~astropy.cosmology.Cosmology.from_format`",
+    "Cosmology.to_format": ":meth:`~astropy.cosmology.Cosmology.to_format`",
+    "FLRW": ":class:`~astropy.cosmology.FLRW`",
+    "LambdaCDM": ":class:`~astropy.cosmology.LambdaCDM`",
+    "FlatLambdaCDM": ":class:`~astropy.cosmology.FlatLambdaCDM`",
+    "WMAP1": ":ref:`astropy_cosmology_realizations_WMAP1`",
+    "WMAP3": ":ref:`astropy_cosmology_realizations_WMAP3`",
+    "WMAP5": ":ref:`astropy_cosmology_realizations_WMAP5`",
+    "WMAP7": ":ref:`astropy_cosmology_realizations_WMAP7`",
+    "WMAP9": ":ref:`astropy_cosmology_realizations_WMAP9`",
+    "Planck13": ":ref:`astropy_cosmology_realizations_Planck13`",
+    "Planck15": ":ref:`astropy_cosmology_realizations_Planck15`",
+    "Planck18": ":ref:`astropy_cosmology_realizations_Planck18`",
+    "FlatCosmologyMixin": ":class:`~astropy.cosmology.FlatCosmologyMixin`",
+    "FlatFLRWMixin": ":class:`~astropy.cosmology.FlatFLRWMixin`",
+    "default_cosmology": ":class:`~astropy.cosmology.default_cosmology`",
+# SAMP
+    "SAMPClient": ":class:`~astropy.samp.SAMPClient`",
+    "SAMPIntegratedClient": ":class:`~astropy.samp.SAMPIntegratedClient`",
+    "SAMPHubServer": ":class:`~astropy.samp.SAMPHubServer`",
+    "SAMPHubProxy": ":class:`~astropy.samp.SAMPHubProxy`",
+    "SAMPMsgReplierWrapper": ":class:`~astropy.samp.SAMPMsgReplierWrapper`",
+# Table
+    "Column": ":class:`~astropy.table.Column`",
+    "MaskedColumn": ":class:`~astropy.table.MaskedColumn`",
+    "TableColumns": ":class:`~astropy.table.TableColumns`",
+    "Row": ":class:`~astropy.table.Row`",
+    "Table": ":class:`~astropy.table.Table`",
+    "QTable": ":class:`~astropy.table.QTable`",
+# Time
+    "Time": ":class:`~astropy.time.Time`",
+    "TimeDelta": ":class:`~astropy.time.TimeDelta`",
+# Timeseries
+    "TimeSeries": ":class:`~astropy.timeseries.TimeSeries`",
+    "BinnedTimeSeries": ":class:`~astropy.timeseries.BinnedTimeSeries`",
+# Distribution
+    "Distribution": ":class:`~astropy.uncertainty.Distribution`",
+# Units
+    "PhysicalType": ":class:`~astropy.units.PhysicalType`",
+    "Quantity": ":class:`~astropy.units.Quantity`",
+    "Unit": ":class:`~astropy.units.UnitBase`",
+    "StructuredUnit": ":class:`~astropy.units.StructuredUnit`",
+# Utils
+    "Masked": ":class:`~astropy.utils.masked.Masked`",
+}
+
+# Because sphinxcontrib-globalsubs does not work for regular reStructuredText
+# links, we first define the links and then process them afterwards into
+# the form of a reStructuredText external link.
+
+links: dict[str, str] = {
+    # minimum versions
+    "minimum_python_version": "{minimum_python}",
+    "minimum_numpy_version": "{numpy}",
+    "minimum_pyerfa_version": "{pyerfa}",
+    "minimum_matplotlib_version": "{matplotlib}",
+    "minimum_scipy_version": "{scipy}",
+    "minimum_asdf_astropy_version": "{asdf-astropy}",
+    "minimum_packaging_version": "{packaging}",
+    "minimum_pyyaml_version": "{pyyaml}",
+    "minimum_ipython_version": "{ipython}",
+    "minimum_pyarrow_version": "{pyarrow}",
+    "minimum_fsspec_version": "{fsspec}",
+    "minimum_s3fs_version": "{s3fs}",
+    # Python
+    "Python": "https://www.python.org",
+    "PEP8": "https://www.python.org/dev/peps/pep-0008",
+    # Astropy
+    "`Astropy mailing list`": "https://mail.python.org/mailman/listinfo/astropy",
+    "`astropy-dev mailing list`": "http://groups.google.com/group/astropy-dev",
+    # NumPy
+    "NumPy": "https://numpy.org",
+    "`numpy github`": "https://github.com/numpy/numpy",
+    "`numpy mailing list`": "http://mail.python.org/mailman/listinfo/numpy-discussion",
+    "numpydoc": "https://pypi.org/project/numpydoc",
+    # erfa
+    "ERFA": "https://github.com/liberfa/erfa",
+    "PyErfa": "http://pyerfa.readthedocs.org",
+    "`pyerfa github`": "https://github.com/liberfa/pyerfa",
+    # matplotlib
+    "Matplotlib": "https://matplotlib.org",
+    # sofa
+    "SOFA": "http://www.iausofa.org/index.html",
+    # scipy
+    "scipy": "https://www.scipy.org",
+    "`scipy github`": "https://github.com/scipy/scipy",
+    "`scipy mailing list`": "http://mail.python.org/mailman/listinfo/scipy-dev",
+    # packaging
+    "packaging": "https://packaging.pypa.io",
+    # IPython
+    "IPython": "https://ipython.org",
+    "`ipython github`": "https://github.com/ipython/ipython",
+    "`ipython mailing list`": "http://mail.python.org/mailman/listinfo/IPython-dev",
+    # pip
+    "pip": "https://pip.pypa.io",
+    # pipenv
+    "pipenv": "https://pipenv.pypa.io/en/latest",
+    # virtualenv
+    "virtualenv": "https://pypi.org/project/virtualenv",
+    "virtualenvwrapper": "https://pypi.org/project/virtualenvwrapper",
+    "virtualenvwrapper-win": "https://github.com/davidmarble/virtualenvwrapper-win",
+    "venv": "https://docs.python.org/dev/library/venv.html",
+    # conda
+    "conda": "https://conda.io/docs",
+    "miniconda": "https://docs.conda.io/en/latest/miniconda.html",
+    "miniconda-install": "https://conda.io/projects/conda/en/latest/user-guide/install/index.html#regular-installation",
+    # pytest
+    "pytest": "https://pytest.org/en/latest/index.html",
+    "pytest-astropy": "https://github.com/astropy/pytest-astropy",
+    "pytest-doctestplus": "https://github.com/astropy/pytest-doctestplus",
+    "pytest-remotedata": "https://github.com/astropy/pytest-remotedata",
+    # fsspec
+    "fsspec": "https://filesystem-spec.readthedocs.io",
+    # s3fs
+    "s3fs": "https://s3fs.readthedocs.io",
+    # TOPCAT
+    "`STIL`": "http://www.starlink.ac.uk/stil",
+    "`STILTS`": "http://www.starlink.ac.uk/stilts",
+    "`TOPCAT`": "http://www.starlink.ac.uk/topcat",
+    # OpenAstronomy
+    "`OpenAstronomy Packaging Guide`": "https://packaging-guide.openastronomy.org/en/latest",
+}
+
+processed_links = {key: f"`{key}.lower() <{value}>`_" for key, value in links.items()}
+global_substitutions |= processed_links
 
 def setup(app):
     if sphinx_gallery is None:
