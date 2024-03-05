@@ -25,7 +25,7 @@ from astropy import units as u
 from astropy.extern import _strptime
 from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray, lazyproperty
-from astropy.utils.compat import PYTHON_LT_3_11
+from astropy.utils.compat import NUMPY_LT_2_0, PYTHON_LT_3_11
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
@@ -1949,6 +1949,11 @@ class Time(TimeBase):
         location=None,
         copy=False,
     ):
+        if not NUMPY_LT_2_0 and copy is False:
+            # strict backward compatibility
+            # see https://github.com/astropy/astropy/pull/16142
+            copy = None
+
         if location is not None:
             from astropy.coordinates import EarthLocation
 
@@ -3345,6 +3350,11 @@ def _make_array(val, copy=False):
         dtype = object
     else:
         dtype = None
+
+    if not NUMPY_LT_2_0 and copy is False:
+        # strict backward compatibility
+        # see https://github.com/astropy/astropy/pull/16142
+        copy = None
 
     val = np.array(val, copy=copy, subok=True, dtype=dtype)
 

@@ -96,12 +96,10 @@ def _copy_input_if_needed(
                 # is no way to specify the return type or order etc. In addition
                 # ``np.nan`` is a ``float`` and there is no conversion to an
                 # ``int`` type. Therefore, a pre-fill copy is needed for non
-                # ``float`` masked arrays. ``subok=True`` is needed to retain
-                # ``np.ma.maskedarray.filled()``. ``copy=False`` allows the fill
-                # to act as the copy if type and order are already correct.
-                output = np.array(
-                    input, dtype=dtype, copy=False, order=order, subok=True
-                )
+                # ``float`` masked arrays. ``asanyarray`` is needed to retain
+                # ``np.ma.maskedarray.filled()``.
+                # A copy is made if and only if order isn't already correct.
+                output = np.asanyarray(input, dtype=dtype, order=order)
                 output = output.filled(fill_value)
             else:
                 # Since we're making a copy, we might as well use `subok=False` to save,
@@ -114,11 +112,7 @@ def _copy_input_if_needed(
                 # mask != 0 yields a bool mask for all ints/floats/bool
                 output[mask != 0] = fill_value
         else:
-            # The call below is synonymous with np.asanyarray(array, ftype=float, order='C')
-            # The advantage of `subok=True` is that it won't copy when array is an ndarray subclass.
-            # If it is and `subok=False` (default), then it will copy even if `copy=False`. This
-            # uses less memory when ndarray subclasses are passed in.
-            output = np.array(input, dtype=dtype, copy=False, order=order, subok=True)
+            output = np.asanyarray(input, dtype=dtype, order=order)
     except (TypeError, ValueError) as e:
         raise TypeError(
             "input should be a Numpy array or something convertible into a float array",
