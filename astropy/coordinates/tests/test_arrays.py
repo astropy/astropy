@@ -264,8 +264,8 @@ def test_array_len():
 
         assert c.shape == (length,)
 
+    c = ICRS(0 * u.deg, 0 * u.deg)
     with pytest.raises(TypeError):
-        c = ICRS(0 * u.deg, 0 * u.deg)
         len(c)
 
     assert c.shape == ()

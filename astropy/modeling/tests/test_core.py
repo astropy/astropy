@@ -527,8 +527,8 @@ def test_render_model_out_dtype():
             assert imout is im
             assert imout.sum() != 0
 
+        im = np.zeros((40, 40), dtype=np.int32)
         with pytest.raises(TypeError, match=MESSAGE):
-            im = np.zeros((40, 40), dtype=np.int32)
             imout = model.render(out=im)
 
 

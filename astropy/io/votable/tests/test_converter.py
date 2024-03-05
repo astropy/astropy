@@ -16,7 +16,6 @@ from astropy.utils.data import get_pkg_data_filename
 def test_invalid_arraysize():
     with pytest.raises(exceptions.E13):
         field = tree.Field(None, name="broken", datatype="char", arraysize="foo")
-        converters.get_converter(field)
 
 
 def test_oversize_char():
@@ -253,7 +252,6 @@ def test_invalid_type():
     config = {"verify": "exception"}
     with pytest.raises(exceptions.E06):
         field = tree.Field(None, name="c", datatype="foobar", config=config)
-        converters.get_converter(field, config=config)
 
 
 def test_precision():

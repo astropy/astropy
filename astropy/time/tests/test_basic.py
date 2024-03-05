@@ -303,8 +303,8 @@ class TestBasic:
         with pytest.raises(ValueError, match=err_message):
             t = Time("2010-01-01 00:00:00", format="iso", scale="utc", precision=10)
 
+        t = Time("2010-01-01 00:00:00", format="iso", scale="utc")
         with pytest.raises(ValueError, match=err_message):
-            t = Time("2010-01-01 00:00:00", format="iso", scale="utc")
             t.precision = -1
 
     def test_transforms(self):

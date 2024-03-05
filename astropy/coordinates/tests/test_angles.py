@@ -737,18 +737,18 @@ def test_latitude():
     assert type(angle) is Angle
     assert angle == -80 * u.deg
 
+    lon = Longitude(10, "deg")
     # Test errors when trying to interoperate with longitudes.
     with pytest.raises(
         TypeError, match="A Latitude angle cannot be created from a Longitude angle"
     ):
-        lon = Longitude(10, "deg")
         Latitude(lon)
 
+    lon = Longitude(10, "deg")
+    lat = Latitude([20], "deg")
     with pytest.raises(
         TypeError, match="A Longitude angle cannot be assigned to a Latitude angle"
     ):
-        lon = Longitude(10, "deg")
-        lat = Latitude([20], "deg")
         lat[0] = lon
 
     # Check we can work around the Lat vs Long checks by casting explicitly to Angle.
@@ -840,18 +840,18 @@ def test_longitude():
     assert Longitude(0, u.deg, dtype=float).dtype == np.dtype(float)
     assert Longitude(0, u.deg, dtype=int).dtype == np.dtype(int)
 
+    lat = Latitude(10, "deg")
     # Test errors when trying to interoperate with latitudes.
     with pytest.raises(
         TypeError, match="A Longitude angle cannot be created from a Latitude angle"
     ):
-        lat = Latitude(10, "deg")
         Longitude(lat)
 
+    lat = Latitude(10, "deg")
+    lon = Longitude([20], "deg")
     with pytest.raises(
         TypeError, match="A Latitude angle cannot be assigned to a Longitude angle"
     ):
-        lat = Latitude(10, "deg")
-        lon = Longitude([20], "deg")
         lon[0] = lat
 
     # Check we can work around the Lat vs Long checks by casting explicitly to Angle.

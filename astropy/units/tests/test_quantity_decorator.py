@@ -333,12 +333,11 @@ def test_default_value_check():
     x_target = u.deg
     x_unit = u.arcsec
 
+    @u.quantity_input(x=x_target)
+    def myfunc_args(x=1.0):
+        return x
+
     with pytest.raises(TypeError):
-
-        @u.quantity_input(x=x_target)
-        def myfunc_args(x=1.0):
-            return x
-
         x = myfunc_args()
 
     x = myfunc_args(1 * x_unit)

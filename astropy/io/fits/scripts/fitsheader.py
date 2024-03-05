@@ -69,6 +69,8 @@ import numpy as np
 from astropy import __version__, log
 from astropy.io import fits
 
+PROG = "fitsheader"
+
 DESCRIPTION = """
 Print the header(s) of a FITS file. Optional arguments allow the desired
 extension(s), keyword(s), and output format to be specified.
@@ -401,7 +403,9 @@ def print_headers_as_comparison(args):
 def main(args=None):
     """This is the main function called by the `fitsheader` script."""
     parser = argparse.ArgumentParser(
-        description=DESCRIPTION, formatter_class=argparse.RawDescriptionHelpFormatter
+        prog=PROG,
+        description=DESCRIPTION,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
     parser.add_argument(

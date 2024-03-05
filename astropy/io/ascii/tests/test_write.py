@@ -703,8 +703,8 @@ def test_commented_header_comments(fast_writer):
     for the commented_header writer.
     """
     t = table.Table([[1, 2]])
+    out = StringIO()
     with pytest.raises(ValueError) as err:
-        out = StringIO()
         ascii.write(
             t, out, format="commented_header", comment=False, fast_writer=fast_writer
         )

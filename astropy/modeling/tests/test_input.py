@@ -157,11 +157,11 @@ class TestFitting:
         MESSAGE = (
             r"Number of data sets .* is expected to equal the number of parameter sets"
         )
+        p1 = models.Polynomial1D(5)
+        y1 = p1(self.x1)
+        p1 = models.Polynomial1D(5, n_models=2)
+        pfit = fitting.LinearLSQFitter()
         with pytest.raises(ValueError, match=MESSAGE):
-            p1 = models.Polynomial1D(5)
-            y1 = p1(self.x1)
-            p1 = models.Polynomial1D(5, n_models=2)
-            pfit = fitting.LinearLSQFitter()
             pfit(p1, self.x1, y1)
 
     def test_wrong_pset(self):
@@ -205,11 +205,11 @@ class TestFitting:
         fitter = fitter()
 
         MESSAGE = r"Non-linear fitters can only fit one data set at a time"
+        g1 = models.Gaussian1D(
+            [10.2, 10], mean=[3, 3.2], stddev=[0.23, 0.2], n_models=2
+        )
+        y1 = g1(self.x1, model_set_axis=False)
         with pytest.raises(ValueError, match=MESSAGE):
-            g1 = models.Gaussian1D(
-                [10.2, 10], mean=[3, 3.2], stddev=[0.23, 0.2], n_models=2
-            )
-            y1 = g1(self.x1, model_set_axis=False)
             _ = fitter(g1, self.x1, y1)
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
@@ -235,17 +235,17 @@ class TestFitting:
             r"Input argument .* does not have the correct dimensions in .* for a model"
             r" set with .*"
         )
+        g2 = models.Gaussian2D(
+            [10, 10],
+            [3, 3],
+            [4, 4],
+            x_stddev=[0.3, 0.3],
+            y_stddev=[0.2, 0.2],
+            theta=[0, 0],
+            n_models=2,
+        )
+        z = g2(self.x.flatten(), self.y.flatten())
         with pytest.raises(ValueError, match=MESSAGE):
-            g2 = models.Gaussian2D(
-                [10, 10],
-                [3, 3],
-                [4, 4],
-                x_stddev=[0.3, 0.3],
-                y_stddev=[0.2, 0.2],
-                theta=[0, 0],
-                n_models=2,
-            )
-            z = g2(self.x.flatten(), self.y.flatten())
             _ = fitter(g2, self.x, self.y, z)
 
 

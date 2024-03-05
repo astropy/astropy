@@ -1736,14 +1736,14 @@ def test_download_file_wrong_size(monkeypatch):
 
     monkeypatch.setattr(astropy.utils.data, "_build_urlopener", mockurl_builder)
 
+    report_length = 1024
+    real_length = 1023
     with pytest.raises(urllib.error.ContentTooShortError):
-        report_length = 1024
-        real_length = 1023
         download_file(TESTURL, cache=False)
 
+    report_length = 1023
+    real_length = 1024
     with pytest.raises(urllib.error.URLError):
-        report_length = 1023
-        real_length = 1024
         download_file(TESTURL, cache=False)
 
     report_length = 1023

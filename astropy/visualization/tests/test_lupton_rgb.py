@@ -247,7 +247,7 @@ class TestLuptonRgb:
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
     def test_different_shapes_asserts(self):
+        # just swap the dimensions to get a differently-shaped 'r'
+        image_r = self.image_r.reshape(self.height, self.width)
         with pytest.raises(ValueError, match=r"shapes must match"):
-            # just swap the dimensions to get a differently-shaped 'r'
-            image_r = self.image_r.reshape(self.height, self.width)
             lupton_rgb.make_lupton_rgb(image_r, self.image_g, self.image_b)

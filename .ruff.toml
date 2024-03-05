@@ -122,7 +122,6 @@ lint.ignore = [
     "PT006",   # pytest-parametrize-names-wrong-type
     "PT007",   # pytest-parametrize-values-wrong-type
     "PT011",   # pytest-raises-too-broad
-    "PT012",   # pytest-raises-with-multiple-statements
     "PT017",   # pytest-assert-in-exceptinstead
     "PT018",   # pytest-composite-assertion
     "PT022",   # pytest-useless-yield-fixture

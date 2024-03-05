@@ -578,8 +578,8 @@ class TestKernels:
         """
         Test that an error is raised if mode is invalid.
         """
+        kernel = CustomKernel(np.ones(3))
         with pytest.raises(ValueError):
-            kernel = CustomKernel(np.ones(3))
             kernel.normalize(mode="invalid")
 
     def test_kernel1d_int_size(self):
@@ -629,15 +629,27 @@ class TestKernels:
         x = np.ones([10, 10])
         with pytest.raises(TypeError, match=r".* allowed .*"):
             AiryDisk2DKernel(2, array=x)
+        with pytest.raises(TypeError, match=r".* allowed .*"):
             Box1DKernel(2, array=x)
+        with pytest.raises(TypeError, match=r".* allowed .*"):
             Box2DKernel(2, array=x)
+        with pytest.raises(TypeError, match=r".* allowed .*"):
             Gaussian1DKernel(2, array=x)
+        with pytest.raises(TypeError, match=r".* allowed .*"):
             Gaussian2DKernel(2, array=x)
+        with pytest.raises(TypeError, match=r".* allowed .*"):
             RickerWavelet1DKernel(2, array=x)
+        with pytest.raises(TypeError, match=r".* allowed .*"):
             RickerWavelet2DKernel(2, array=x)
+        with pytest.raises(TypeError, match=r".* allowed .*"):
             Model1DKernel(Gaussian1D(1, 0, 2), array=x)
+        with pytest.raises(TypeError, match=r".* allowed .*"):
             Model2DKernel(Gaussian2D(1, 0, 0, 2, 2), array=x)
+        with pytest.raises(TypeError, match=r".* allowed .*"):
             Ring2DKernel(9, 8, array=x)
+        with pytest.raises(TypeError, match=r".* allowed .*"):
             Tophat2DKernel(2, array=x)
+        with pytest.raises(TypeError, match=r".* allowed .*"):
             Trapezoid1DKernel(2, array=x)
+        with pytest.raises(TypeError, match=r".* allowed .*"):
             Trapezoid1DKernel(2, array=x)

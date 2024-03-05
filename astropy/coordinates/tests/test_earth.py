@@ -393,13 +393,13 @@ def test_gravitational_redshift():
     with pytest.raises(KeyError):
         someloc.gravitational_redshift(sometime, bodies=("saturn",))
 
+    masses = {
+        "sun": constants.G * constants.M_sun,
+        "jupiter": constants.G * constants.M_jup,
+        "moon": 1 * u.km,  # wrong units!
+        "earth": constants.G * constants.M_earth,
+    }
     with pytest.raises(u.UnitsError):
-        masses = {
-            "sun": constants.G * constants.M_sun,
-            "jupiter": constants.G * constants.M_jup,
-            "moon": 1 * u.km,  # wrong units!
-            "earth": constants.G * constants.M_earth,
-        }
         someloc.gravitational_redshift(sometime, masses=masses)
 
 

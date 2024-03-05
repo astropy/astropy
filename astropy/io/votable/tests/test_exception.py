@@ -9,10 +9,10 @@ def test_reraise():
     def fail():
         raise RuntimeError("This failed")
 
-    with pytest.raises(RuntimeError, match="From here"):
-        try:
-            fail()
-        except RuntimeError as e:
+    try:
+        fail()
+    except RuntimeError as e:
+        with pytest.raises(RuntimeError, match="From here"):
             exceptions.vo_reraise(e, additional="From here")
 
 

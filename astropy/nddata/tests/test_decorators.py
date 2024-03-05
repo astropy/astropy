@@ -264,12 +264,11 @@ def test_setup_failures6():
 
 def test_setup_failures7():
     # accepts CCDData but was given just an NDData
+    @support_nddata(accepts=CCDData)
+    def test(data):
+        pass
+
     with pytest.raises(TypeError):
-
-        @support_nddata(accepts=CCDData)
-        def test(data):
-            pass
-
         test(NDData(np.ones((3, 3))))
 
 
@@ -277,12 +276,11 @@ def test_setup_failures8():
     # function returns a different amount of arguments than specified. Using
     # NDData here so we don't get into troubles when creating a CCDData without
     # unit!
+    @support_nddata(repack=True, returns=["data", "mask"])
+    def test(data):
+        return 10
+
     with pytest.raises(ValueError):
-
-        @support_nddata(repack=True, returns=["data", "mask"])
-        def test(data):
-            return 10
-
         test(NDData(np.ones((3, 3))))  # do NOT use CCDData here.
 
 

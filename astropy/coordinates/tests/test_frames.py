@@ -224,8 +224,8 @@ def test_create_orderered_data():
     with pytest.raises(TypeError):
         ICRS(1 * u.deg, 2 * u.deg, 1 * u.deg, 2 * u.deg)
 
+    sph = r.SphericalRepresentation(1 * u.deg, 2 * u.deg, 3 * u.kpc)
     with pytest.raises(TypeError):
-        sph = r.SphericalRepresentation(1 * u.deg, 2 * u.deg, 3 * u.kpc)
         ICRS(sph, 1 * u.deg, 2 * u.deg)
 
 

@@ -16,8 +16,8 @@ def test_celprm_init():
     # test PyCelprm_new
     assert wcs.Celprm()
 
+    cel = wcs.Celprm()
     with pytest.raises(wcs.InvalidPrjParametersError):
-        cel = wcs.Celprm()
         cel.set()
 
     # test deletion does not crash

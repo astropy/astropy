@@ -1019,8 +1019,6 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
                 def __init__(self, Ode0):
                     pass
 
-            _COSMOLOGY_CLASSES.pop(HASOde0SubClass.__qualname__, None)
-
     # ---------------------------------------------------------------
     # instance-level
 

@@ -17,8 +17,8 @@ class TestFitsinfo(FitsTestCase):
     def test_version(self, capsys):
         with pytest.raises(SystemExit) as e:
             fitsinfo.main(["--version"])
-            out = capsys.readouterr()[0]
-            assert out == f"fitsinfo {version}"
+        out, err = capsys.readouterr()
+        assert out == f"fitsinfo {version}\n"
         assert e.value.code == 0
 
     def test_onefile(self, capsys):

@@ -131,10 +131,10 @@ def test_blackbody_exceptions_and_warnings():
     """Test exceptions."""
 
     # Negative temperature
+    bb = BlackBody(-100 * u.K)
     with pytest.raises(
         ValueError, match="Temperature should be positive: \\[-100.\\] K"
     ):
-        bb = BlackBody(-100 * u.K)
         bb(1.0 * u.micron)
 
     bb = BlackBody(5000 * u.K)

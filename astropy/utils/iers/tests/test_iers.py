@@ -269,20 +269,24 @@ class TestIERS_Auto:
         """Regression test: make sure the error message in
         IERS_Auto._check_interpolate_indices() is formatted correctly.
         """
+
+        def catch_warnings(iers_table):
+            with warnings.catch_warnings():
+                # Ignoring this if it comes up -- IERS_Auto predictive
+                # values are older than 30.0 days but downloading the
+                # latest table did not find newer values
+                warnings.simplefilter("ignore", iers.IERSStaleWarning)
+                iers_table.ut1_utc(self.t.jd1, self.t.jd2)
+
         with iers.conf.set_temp("iers_auto_url", self.iers_a_url_1):
             with iers.conf.set_temp("iers_auto_url_mirror", self.iers_a_url_1):
                 with iers.conf.set_temp("auto_max_age", self.ame):
+                    iers_table = iers.IERS_Auto.open()
                     with pytest.raises(
                         ValueError,
                         match=re.escape(iers.INTERPOLATE_ERROR.format(self.ame)),
                     ):
-                        iers_table = iers.IERS_Auto.open()
-                        with warnings.catch_warnings():
-                            # Ignoring this if it comes up -- IERS_Auto predictive
-                            # values are older than 30.0 days but downloading the
-                            # latest table did not find newer values
-                            warnings.simplefilter("ignore", iers.IERSStaleWarning)
-                            iers_table.ut1_utc(self.t.jd1, self.t.jd2)
+                        catch_warnings(iers_table)
 
     def test_auto_max_age_none(self):
         """Make sure that iers.INTERPOLATE_ERROR's advice about setting
@@ -300,6 +304,7 @@ class TestIERS_Auto:
         """Check that the minimum auto_max_age is enforced."""
         with iers.conf.set_temp("iers_auto_url", self.iers_a_url_1):
             with iers.conf.set_temp("auto_max_age", 5.0):
+                iers_table = iers.IERS_Auto.open()
                 with pytest.raises(
                     ValueError,
                     match=(
@@ -307,7 +312,6 @@ class TestIERS_Auto:
                         r" days"
                     ),
                 ):
-                    iers_table = iers.IERS_Auto.open()
                     _ = iers_table.ut1_utc(self.t.jd1, self.t.jd2)
 
     def test_no_auto_download(self):

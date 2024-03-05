@@ -14,8 +14,8 @@ def test_prjprm_init():
     # test PyPrjprm_new
     assert wcs.Prjprm()
 
+    prj = wcs.Prjprm()
     with pytest.raises(wcs.InvalidPrjParametersError):
-        prj = wcs.Prjprm()
         prj.set()
 
     # test deletion does not crash

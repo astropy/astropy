@@ -336,12 +336,11 @@ def test_map_redefine_flag(monkeypatch, caching):
             __version__ = "1.0"
             CR = 16
 
+    class DetectorMap2(ObservatoryDQMap):
+        SHADE = 8
+        _FROZEN = 16
+
     with pytest.raises(AttributeError):
-
-        class DetectorMap2(ObservatoryDQMap):
-            SHADE = 8
-            _FROZEN = 16
-
         DetectorMap2.novel = 32
 
     with pytest.raises(AttributeError):

@@ -17,8 +17,8 @@ class TestFITSheader_script(FitsTestCase):
     def test_version(self, capsys):
         with pytest.raises(SystemExit) as e:
             fitsheader.main(["--version"])
-            out = capsys.readouterr()[0]
-            assert out == f"fitsheader {version}"
+        out = capsys.readouterr()[0]
+        assert out == f"fitsheader {version}\n"
         assert e.value.code == 0
 
     def test_file_exists(self, capsys):

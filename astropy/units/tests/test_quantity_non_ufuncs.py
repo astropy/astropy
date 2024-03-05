@@ -2243,7 +2243,6 @@ class TestLinAlg(InvariantUnitTestSetup):
         # TODO: Could be supported if we had a natural logarithm unit.
         with pytest.raises(TypeError):
             logdet = np.linalg.slogdet(self.q)
-            assert hasattr(logdet, "unit")
 
     @needs_array_function
     def test_solve(self):

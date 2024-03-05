@@ -287,11 +287,11 @@ def test_helper_poisson_exact():
     centerq = [1, 5, 30, 400] * u.one
     ds.poisson(centerq, n_samples=1000)
 
+    centerq = [1, 5, 30, 400] * u.kpc
     with pytest.raises(
         u.UnitsError,
         match=r"Poisson distribution can only be computed for dimensionless quantities",
     ):
-        centerq = [1, 5, 30, 400] * u.kpc
         ds.poisson(centerq, n_samples=1000)
 
 
@@ -317,9 +317,9 @@ def test_reprs():
     ],
 )
 def test_wrong_kw_fails(func, kws):
+    kw_temp = kws.copy()
+    kw_temp["n_sample"] = 100  # note the missing "s"
     with pytest.raises(TypeError, match="missing 1 required"):
-        kw_temp = kws.copy()
-        kw_temp["n_sample"] = 100  # note the missing "s"
         assert func(**kw_temp).n_samples == 100
     kw_temp = kws.copy()
     kw_temp["n_samples"] = 100

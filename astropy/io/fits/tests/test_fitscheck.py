@@ -21,8 +21,8 @@ class TestFitscheck(FitsTestCase):
     def test_version(self, capsys):
         with pytest.raises(SystemExit) as e:
             fitscheck.main(["--version"])
-            out = capsys.readouterr()[0]
-            assert out == f"fitscheck {version}"
+        out = capsys.readouterr()[0]
+        assert out == f"fitscheck {version}\n"
         assert e.value.code == 0
 
     def test_missing_file(self, capsys):

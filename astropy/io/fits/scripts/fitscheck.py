@@ -50,6 +50,8 @@ from astropy.io import fits
 
 log = logging.getLogger("fitscheck")
 
+PROG = "fitscheck"
+
 DESCRIPTION = """
 e.g. fitscheck example.fits
 
@@ -68,7 +70,9 @@ def handle_options(args):
         args = ["-h"]
 
     parser = argparse.ArgumentParser(
-        description=DESCRIPTION, formatter_class=argparse.RawDescriptionHelpFormatter
+        prog=PROG,
+        description=DESCRIPTION,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
     parser.add_argument(
