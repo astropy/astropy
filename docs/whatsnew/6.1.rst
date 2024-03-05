@@ -50,6 +50,7 @@ the number of significant digits and did not provide much freedom in the latex f
 Example:
 
 .. code-block:: python
+
     from astropy import units as u
     q = u.Quantity(123.456, u.m)
     custom_format = lambda x: f"\\approx {float(x):.1f}",
