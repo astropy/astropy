@@ -478,7 +478,6 @@ global_substitutions: dict[str, str] = {
     "SAMPIntegratedClient": ":class:`~astropy.samp.SAMPIntegratedClient`",
     "SAMPHubServer": ":class:`~astropy.samp.SAMPHubServer`",
     "SAMPHubProxy": ":class:`~astropy.samp.SAMPHubProxy`",
-    "SAMPMsgReplierWrapper": ":class:`~astropy.samp.SAMPMsgReplierWrapper`",
     # Table
     "Column": ":class:`~astropy.table.Column`",
     "MaskedColumn": ":class:`~astropy.table.MaskedColumn`",
@@ -516,7 +515,6 @@ links: dict[str, str] = {
     "astropy-dev mailing list": "http://groups.google.com/group/astropy-dev",
     # NumPy
     "NumPy": "https://numpy.org",
-    "numpy mailing list": "http://mail.python.org/mailman/listinfo/numpy-discussion",
     "numpydoc": "https://pypi.org/project/numpydoc",
     # erfa
     "ERFA": "https://github.com/liberfa/erfa",
