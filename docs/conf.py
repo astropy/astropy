@@ -35,7 +35,7 @@ from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
 from sphinx.util import logging
 
-#from docs import global_substitutions
+# from docs import global_substitutions
 
 
 if sys.version_info < (3, 11):
@@ -441,10 +441,11 @@ def resolve_astropy_and_dev_reference(app, env, node, contnode):
 
         # Otherwise return None which should delegate to intersphinx
 
+
 global_substitutions: dict[str, str] = {
-# NumPy
+    # NumPy
     "ndarray": ":class:`numpy.ndarray`",
-# Coordinates
+    # Coordinates
     "EarthLocation": ":class:`~astropy.coordinates.EarthLocation`",
     "Angle": "`~astropy.coordinates.Angle`",
     "Latitude": "`~astropy.coordinates.Latitude`",
@@ -452,7 +453,7 @@ global_substitutions: dict[str, str] = {
     "BaseFrame": "`~astropy.coordinates.BaseCoordinateFrame`",
     "SkyCoord": ":class:`~astropy.coordinates.SkyCoord`",
     "SpectralCoord": "`~astropy.coordinates.SpectralCoord`",
-# Cosmology
+    # Cosmology
     "Cosmology": ":class:`~astropy.cosmology.Cosmology`",
     "Cosmology.read": ":meth:`~astropy.cosmology.Cosmology.read`",
     "Cosmology.write": ":meth:`~astropy.cosmology.Cosmology.write`",
@@ -472,33 +473,33 @@ global_substitutions: dict[str, str] = {
     "FlatCosmologyMixin": ":class:`~astropy.cosmology.FlatCosmologyMixin`",
     "FlatFLRWMixin": ":class:`~astropy.cosmology.FlatFLRWMixin`",
     "default_cosmology": ":class:`~astropy.cosmology.default_cosmology`",
-# SAMP
+    # SAMP
     "SAMPClient": ":class:`~astropy.samp.SAMPClient`",
     "SAMPIntegratedClient": ":class:`~astropy.samp.SAMPIntegratedClient`",
     "SAMPHubServer": ":class:`~astropy.samp.SAMPHubServer`",
     "SAMPHubProxy": ":class:`~astropy.samp.SAMPHubProxy`",
     "SAMPMsgReplierWrapper": ":class:`~astropy.samp.SAMPMsgReplierWrapper`",
-# Table
+    # Table
     "Column": ":class:`~astropy.table.Column`",
     "MaskedColumn": ":class:`~astropy.table.MaskedColumn`",
     "TableColumns": ":class:`~astropy.table.TableColumns`",
     "Row": ":class:`~astropy.table.Row`",
     "Table": ":class:`~astropy.table.Table`",
     "QTable": ":class:`~astropy.table.QTable`",
-# Time
+    # Time
     "Time": ":class:`~astropy.time.Time`",
     "TimeDelta": ":class:`~astropy.time.TimeDelta`",
-# Timeseries
+    # Timeseries
     "TimeSeries": ":class:`~astropy.timeseries.TimeSeries`",
     "BinnedTimeSeries": ":class:`~astropy.timeseries.BinnedTimeSeries`",
-# Distribution
+    # Distribution
     "Distribution": ":class:`~astropy.uncertainty.Distribution`",
-# Units
+    # Units
     "PhysicalType": ":class:`~astropy.units.PhysicalType`",
     "Quantity": ":class:`~astropy.units.Quantity`",
     "Unit": ":class:`~astropy.units.UnitBase`",
     "StructuredUnit": ":class:`~astropy.units.StructuredUnit`",
-# Utils
+    # Utils
     "Masked": ":class:`~astropy.utils.masked.Masked`",
 }
 
@@ -559,6 +560,7 @@ links: dict[str, str] = {
 
 processed_links = {key: f"`{key} <{value}>`_" for key, value in links.items()}
 global_substitutions |= processed_links
+
 
 def setup(app):
     if sphinx_gallery is None:
