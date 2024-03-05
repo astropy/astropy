@@ -79,11 +79,11 @@ image_coord_to_distortion_coord(
   assert(lookup != NULL);
   assert(axis < NAXES);
 
-  /* The "- 1./stepsize" is here because the input coordinates are 1-based,
+  /* The "- 1" is here because the input coordinates are 1-based,
      but this is a C-array underneath */
   result = (
       ((img - lookup->crval[axis]) / lookup->cdelt[axis]) +
-      lookup->crpix[axis]) - 1.0/lookup->cdelt[axis];
+      lookup->crpix[axis]) - 1.0;
 
   return CLAMP(result, 0.0, (double)(lookup->naxis[axis] - 1));
 }
