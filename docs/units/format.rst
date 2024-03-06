@@ -52,8 +52,10 @@ attributes within format strings::
     '10.500 in km'
 
 This might not work well with LaTeX strings, in which case it would be better
-to use the `Quantity.to_string() <astropy.units.Quantity.to_string()>`
-method::
+to use the `Quantity.to_string() <astropy.units.Quantity.to_string()>` method.
+This method can be enhanced with the formatter parameter, providing added
+format flexibility. It allows you to specify a dict, callable, or format_spec
+string, further refining the LaTeX format representation::
 
     >>> q = 1.2478e12 * u.pc/u.Myr
     >>> f"{q:latex}"  # Might not have the number of digits we would like
@@ -62,6 +64,10 @@ method::
     '1.248e+12 $\\mathrm{\\frac{pc}{Myr}}$'
     >>> q.to_string(format="latex", precision=4)  # Right number of LaTeX digits
     '$1.248 \\times 10^{12} \\; \\mathrm{\\frac{pc}{Myr}}$'
+    >>> q.to_string(format="latex", formatter=".2e")  # Specifying format_spec
+    '$1.25 \\times 10^{12} \\; \\mathrm{\\frac{pc}{Myr}}$'
+    >>> q.to_string(format="latex", formatter=lambda x: f"{\\approx float(x):.2e}")  # Custom formatting
+    '$\approx 1.25 \\times 10^{12} \\; \\mathrm{\\frac{pc}{Myr}}$'
 
 Because |ndarray| does not accept most format specifiers, using specifiers like
 ``.3f`` will not work when applied to a |ndarray| or non-scalar |Quantity|. Use
