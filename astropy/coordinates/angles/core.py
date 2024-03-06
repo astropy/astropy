@@ -15,7 +15,7 @@ import numpy as np
 from astropy import units as u
 from astropy.units import SpecificTypeQuantity
 from astropy.utils import isiterable
-from astropy.utils.compat import NUMPY_LT_2_0
+from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
 
 from . import formats
 
@@ -179,12 +179,12 @@ class Angle(SpecificTypeQuantity):
 
                 if angle_unit is not unit:
                     # Possible conversion to `unit` will be done below.
-                    angle = u.Quantity(angle, angle_unit, copy=False)
+                    angle = u.Quantity(angle, angle_unit, copy=COPY_IF_NEEDED)
 
             elif isiterable(angle) and not (
                 isinstance(angle, np.ndarray) and angle.dtype.kind not in "SUVO"
             ):
-                angle = [Angle(x, unit, copy=False) for x in angle]
+                angle = [Angle(x, unit, copy=COPY_IF_NEEDED) for x in angle]
 
         return super().__new__(cls, angle, unit, dtype=dtype, copy=copy, **kwargs)
 
