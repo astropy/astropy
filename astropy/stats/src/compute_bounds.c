@@ -43,7 +43,7 @@ void compute_sigma_clipped_bounds(double data_buffer[], int count, int use_media
 
       std = 0;
       for (i = 0; i < count; i++) {
-        std += pow(mean - data_buffer[i], 2);
+        std += (data_buffer[i] - mean) * (data_buffer[i] - mean);
       }
       std = sqrt(std / count);
 
