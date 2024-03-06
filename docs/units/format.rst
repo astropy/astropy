@@ -66,8 +66,8 @@ string, further refining the LaTeX format representation::
     '$1.248 \\times 10^{12} \\; \\mathrm{\\frac{pc}{Myr}}$'
     >>> q.to_string(format="latex", formatter=".2e")  # Specifying format_spec
     '$1.25 \\times 10^{12} \\; \\mathrm{\\frac{pc}{Myr}}$'
-    >>> q.to_string(format="latex", formatter=lambda x: f"{\\approx float(x):.2e}")  # Custom formatting
-    '$\approx 1.25 \\times 10^{12} \\; \\mathrm{\\frac{pc}{Myr}}$'
+    >>> q.to_string(format="latex", formatter=lambda x: f"\\approx {float(x):.2e}")  # Custom formatting (overwrites)
+    '$\\approx 1.25e+12 \\; \\mathrm{\\frac{pc}{Myr}}$'
 
 Because |ndarray| does not accept most format specifiers, using specifiers like
 ``.3f`` will not work when applied to a |ndarray| or non-scalar |Quantity|. Use
