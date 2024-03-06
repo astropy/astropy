@@ -1991,7 +1991,7 @@ class Time(TimeBase):
         in_subfmt=None,
         out_subfmt=None,
         location=None,
-        copy=False,
+        copy=COPY_IF_NEEDED,
     ):
         copy = sanitize_copy_arg(copy)
 
@@ -2960,7 +2960,7 @@ class TimeDelta(TimeBase):
         precision=None,
         in_subfmt=None,
         out_subfmt=None,
-        copy=False,
+        copy=COPY_IF_NEEDED,
     ):
         if isinstance(val, TimeDelta):
             if scale is not None:
