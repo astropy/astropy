@@ -8,8 +8,6 @@ but will deal with unit conversions internally.
 from __future__ import annotations
 
 import builtins
-
-# STDLIB
 import numbers
 import operator
 import re
@@ -17,10 +15,8 @@ import warnings
 from fractions import Fraction
 from typing import TYPE_CHECKING
 
-# THIRD PARTY
 import numpy as np
 
-# LOCAL
 from astropy import config as _config
 from astropy.utils.compat.numpycompat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
