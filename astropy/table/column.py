@@ -10,7 +10,7 @@ import numpy as np
 from numpy import ma
 
 from astropy.units import Quantity, StructuredUnit, Unit
-from astropy.utils.compat import NUMPY_LT_2_0
+from astropy.utils.compat import NUMPY_LT_2_0, sanitize_copy_arg
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.metadata import MetaData
@@ -522,10 +522,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         copy=False,
         copy_indices=True,
     ):
-        if not NUMPY_LT_2_0 and copy is False:
-            # strict backward compatibility
-            # see https://github.com/astropy/astropy/pull/16142
-            copy = None
+        copy = sanitize_copy_arg(copy)
 
         if data is None:
             self_data = np.zeros((length,) + shape, dtype=dtype)
