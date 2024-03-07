@@ -1,3 +1,6 @@
+# Common links should now be defined in the `global_substitutions`
+# dictionary in `docs/conf.py`, which is used by sphinx-globalsubs.
+
 .. |minimum_python_version| replace:: {minimum_python}
 .. |minimum_numpy_version| replace:: {numpy}
 .. |minimum_pyerfa_version| replace:: {pyerfa}
