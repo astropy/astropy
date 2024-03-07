@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     for row in tab:
         # Produce input file for rv command
-        with open("rv.input", "w") as f:
+        with open("rv.input", "w") as f:  # noqa: PTH123
             f.write(
                 f"{row['obslon'].to_string('deg', sep=' ')}"
                 f" {row['obslat'].to_string('deg', sep=' ')}\n"
@@ -57,7 +57,7 @@ if __name__ == "__main__":
         # Parse values from output file
         lis_lines = []
         started = False
-        for lis_line in open("rv.lis"):
+        for lis_line in open("rv.lis"):  # noqa: PTH123
             if started and lis_line.strip() != "":
                 lis_lines.append(lis_line.strip())
             elif "LOCAL GROUP" in lis_line:

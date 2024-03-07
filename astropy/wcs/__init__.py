@@ -33,6 +33,6 @@ def get_include():
     """
     Get the path to astropy.wcs's C header files.
     """
-    import os
+    from pathlib import Path
 
-    return os.path.join(os.path.dirname(__file__), "include")
+    return Path(__file__).parent / "include"

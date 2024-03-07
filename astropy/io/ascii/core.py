@@ -22,6 +22,7 @@ import warnings
 from collections import OrderedDict
 from contextlib import suppress
 from io import StringIO
+from pathlib import Path
 
 import numpy as np
 
@@ -329,8 +330,10 @@ class BaseInputter:
             List of lines
         """
         try:
-            if hasattr(table, "read") or (
-                "\n" not in table + "" and "\r" not in table + ""
+            if (
+                isinstance(table, Path)
+                or hasattr(table, "read")
+                or ("\n" not in table + "" and "\r" not in table + "")
             ):
                 with get_readable_fileobj(table, encoding=self.encoding) as fileobj:
                     table = fileobj.read()

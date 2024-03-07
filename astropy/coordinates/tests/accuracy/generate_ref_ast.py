@@ -4,7 +4,7 @@ used by the accuracy tests.  Running this as a command-line script will
 generate them all.
 """
 
-import os
+from pathlib import Path
 
 import numpy as np
 
@@ -60,12 +60,12 @@ def ref_fk4_no_e_fk4(fnout="fk4_no_e_fk4.csv"):
     t.add_column(Column(name="dec_fk4ne", data=dec_fk4ne))
     t.add_column(Column(name="ra_fk4", data=ra_fk4))
     t.add_column(Column(name="dec_fk4", data=dec_fk4))
-    f = open(os.path.join("data", fnout), "wb")
-    f.write(
-        f"# This file was generated with the {os.path.basename(__file__)} script, and"
-        " the reference values were computed using AST\n"
-    )
-    t.write(f, format="ascii", delimiter=",")
+    with Path("data" / fnout).open("wb") as f:
+        f.write_text(
+            f"# This file was generated with the {Path(__file__).name} script, and"
+            " the reference values were computed using AST\n"
+        )
+        t.write(f, format="ascii", delimiter=",")
 
 
 def ref_fk4_no_e_fk5(fnout="fk4_no_e_fk5.csv"):
@@ -125,12 +125,12 @@ def ref_fk4_no_e_fk5(fnout="fk4_no_e_fk5.csv"):
     t.add_column(Column(name="dec_fk5", data=dec_fk5))
     t.add_column(Column(name="ra_fk4", data=ra_fk4))
     t.add_column(Column(name="dec_fk4", data=dec_fk4))
-    f = open(os.path.join("data", fnout), "wb")
-    f.write(
-        f"# This file was generated with the {os.path.basename(__file__)} script, and"
-        " the reference values were computed using AST\n"
-    )
-    t.write(f, format="ascii", delimiter=",")
+    with Path("data" / fnout).open("wb") as f:
+        f.write_text(
+            f"# This file was generated with the {Path(__file__).name} script, and"
+            " the reference values were computed using AST\n"
+        )
+        t.write(f, format="ascii", delimiter=",")
 
 
 def ref_galactic_fk4(fnout="galactic_fk4.csv"):
@@ -186,12 +186,12 @@ def ref_galactic_fk4(fnout="galactic_fk4.csv"):
     t.add_column(Column(name="dec_fk4", data=dec_fk4))
     t.add_column(Column(name="lon_gal", data=lon_gal))
     t.add_column(Column(name="lat_gal", data=lat_gal))
-    f = open(os.path.join("data", fnout), "wb")
-    f.write(
-        f"# This file was generated with the {os.path.basename(__file__)} script, and"
-        " the reference values were computed using AST\n"
-    )
-    t.write(f, format="ascii", delimiter=",")
+    with Path("data" / fnout).open("wb") as f:
+        f.write_text(
+            f"# This file was generated with the {Path(__file__).name} script, and"
+            " the reference values were computed using AST\n"
+        )
+        t.write(f, format="ascii", delimiter=",")
 
 
 def ref_icrs_fk5(fnout="icrs_fk5.csv"):
@@ -247,12 +247,12 @@ def ref_icrs_fk5(fnout="icrs_fk5.csv"):
     t.add_column(Column(name="dec_fk5", data=dec_fk5))
     t.add_column(Column(name="ra_icrs", data=ra_icrs))
     t.add_column(Column(name="dec_icrs", data=dec_icrs))
-    f = open(os.path.join("data", fnout), "wb")
-    f.write(
-        f"# This file was generated with the {os.path.basename(__file__)} script, and"
-        " the reference values were computed using AST\n"
-    )
-    t.write(f, format="ascii", delimiter=",")
+    with Path("data" / fnout).open("wb") as f:
+        f.write_text(
+            f"# This file was generated with the {Path(__file__).name} script, and"
+            " the reference values were computed using AST\n"
+        )
+        t.write(f, format="ascii", delimiter=",")
 
 
 if __name__ == "__main__":

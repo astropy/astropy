@@ -33,7 +33,7 @@ def home_is_data(monkeypatch):
     In the tilde-path case, environment variables are temporarily
     modified so that '~' resolves to the data directory.
     """
-    path = get_pkg_data_path("data")
+    path = str(get_pkg_data_path("data"))
     # For Unix
     monkeypatch.setenv("HOME", path)
     # For Windows

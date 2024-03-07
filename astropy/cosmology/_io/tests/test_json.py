@@ -2,6 +2,7 @@
 
 import json
 import os
+from pathlib import Path
 
 import pytest
 
@@ -20,7 +21,7 @@ def read_json(filename, **kwargs):
 
     Parameters
     ----------
-    filename : str
+    filename : str | bytes | os.PathLike
     **kwargs
         Keyword arguments into :meth:`~astropy.cosmology.Cosmology.from_format`
 
@@ -30,8 +31,7 @@ def read_json(filename, **kwargs):
     """
     # read
     if isinstance(filename, (str, bytes, os.PathLike)):
-        with open(filename) as file:
-            data = file.read()
+        data = Path(filename).read_text()
     else:  # file-like : this also handles errors in dumping
         data = filename.read()
 
@@ -70,9 +70,10 @@ def write_json(cosmology, file, *, overwrite=False):
             data["meta"][k] = {"value": v.value.tolist(), "unit": str(v.unit)}
 
     # check that file exists and whether to overwrite.
-    if os.path.exists(file) and not overwrite:
+    file = Path(file)
+    if file.exists() and not overwrite:
         raise OSError(f"{file} exists. Set 'overwrite' to write over.")
-    with open(file, "w") as write_file:
+    with file.open("w") as write_file:
         json.dump(data, write_file)
 
 
@@ -125,7 +126,7 @@ class ReadWriteJSONTestMixin(ReadWriteTestMixinBase):
         cosmo.write(fp, format="json")
 
         # partial information
-        with open(fp) as file:
+        with fp.open() as file:
             L = file.readlines()[0]
         L = (
             L[: L.index('"cosmology":')] + L[L.index(", ") + 2 :]
@@ -136,9 +137,7 @@ class ReadWriteJSONTestMixin(ReadWriteTestMixinBase):
         )  # second occurrence  : #203
 
         tempfname = tmp_path / f"{cosmo.name}_temp.json"
-        with open(tempfname, "w") as file:
-            file.writelines([L])
-
+        tempfname.write_text("".join(L))
         # read with the same class that wrote fills in the missing info with
         # the default value
         got = cosmo_cls.read(tempfname, format="json")

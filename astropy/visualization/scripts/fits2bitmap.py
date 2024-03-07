@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
 import warnings
+from pathlib import Path
 
 from astropy import log
 from astropy.io.fits import getdata
@@ -33,12 +33,12 @@ def fits2bitmap(
 
     Parameters
     ----------
-    filename : str
+    filename : str | PathLike
         The filename of the FITS file.
     ext : int
         FITS extension name or number of the image to convert. The
         default is 0.
-    out_fn : str
+    out_fn : str | PathLike
         The filename of the output bitmap image. The type of bitmap is
         determined by the filename extension (e.g. '.jpg', '.png'). The
         default is a PNG file with the same name as the FITS file.
@@ -100,14 +100,17 @@ def fits2bitmap(
     if image.ndim != 2:
         log.critical(f"data in FITS extension {ext} is not a 2D array")
 
-    if out_fn is None:
-        out_fn = os.path.splitext(filename)[0]
-        if out_fn.endswith(".fits"):
-            out_fn = os.path.splitext(out_fn)[0]
-        out_fn += ".png"
+    filename = Path(filename)
 
-    # explicitly define the output format
-    out_format = os.path.splitext(out_fn)[1][1:]
+    if out_fn is None:
+        out_fn = filename.with_suffix("")
+        # If the filename ends with .fits.*, remove the * extension.
+        if out_fn.suffix == ".fits":
+            out_fn = out_fn.with_suffix("")
+        out_fn = out_fn.with_suffix(out_fn.suffix + ".png")
+    else:
+        out_fn = Path(out_fn)
+    out_format = out_fn.suffix[1:]
 
     try:
         if minversion(mpl, "3.5"):

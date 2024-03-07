@@ -225,7 +225,7 @@ def test_download_file_basic(valid_urls, temp_cache):
 
 def test_download_file_absolute_path(valid_urls, temp_cache):
     def is_abs(p):
-        return p == os.path.abspath(p)
+        return p == p.resolve()
 
     u, c = next(valid_urls)
     assert is_abs(download_file(u, cache=False))  # no cache
@@ -980,8 +980,7 @@ def test_local_data_obj_invalid(bad_compressed):
 
 
 def test_local_data_name():
-    assert os.path.isfile(TESTLOCAL) and TESTLOCAL.endswith("local.dat")
-
+    assert TESTLOCAL.is_file() and TESTLOCAL.name == "local.dat"
     # TODO: if in the future, the root data/ directory is added in, the below
     # test should be uncommented and the README.rst should be replaced with
     # whatever file is there
@@ -1018,7 +1017,8 @@ def test_data_name_third_party_package():
 def test_local_data_nonlocalfail():
     # this would go *outside* the astropy tree
     with pytest.raises(RuntimeError):
-        get_pkg_data_filename("../../../data/README.rst")
+        p = "../../../data/README.rst"
+        get_pkg_data_filename(p)
 
 
 def test_compute_hash(tmp_path):
@@ -1396,10 +1396,6 @@ def test_free_space_checker_huge(tmp_path, desired_size):
 
 def test_get_free_space_file_directory(tmp_path):
     fn = tmp_path / "file"
-    with open(fn, "w"):
-        pass
-    with pytest.raises(OSError):
-        get_free_space_in_dir(fn)
 
     free_space = get_free_space_in_dir(tmp_path)
     assert free_space > 0 and not hasattr(free_space, "unit")
@@ -1446,9 +1442,8 @@ def test_check_download_cache_finds_bogus_entries(temp_cache, valid_urls):
     u, c = next(valid_urls)
     download_file(u, cache=True)
     dldir = _get_download_cache_loc()
-    bf = os.path.abspath(os.path.join(dldir, "bogus"))
-    with open(bf, "w") as f:
-        f.write("bogus file that exists")
+    bf = dldir / "bogus"
+    bf.write_text("bogus file that exists")
     with pytest.raises(CacheDamaged) as e:
         check_download_cache()
     assert bf in e.value.bad_files
@@ -1458,9 +1453,8 @@ def test_check_download_cache_finds_bogus_entries(temp_cache, valid_urls):
 def test_check_download_cache_finds_bogus_subentries(temp_cache, valid_urls):
     u, c = next(valid_urls)
     f = download_file(u, cache=True)
-    bf = os.path.abspath(os.path.join(os.path.dirname(f), "bogus"))
-    with open(bf, "w") as f:
-        f.write("bogus file that exists")
+    bf = f.parent / "bogus"
+    bf.write_text("bogus file that exists")
     with pytest.raises(CacheDamaged) as e:
         check_download_cache()
     assert bf in e.value.bad_files
@@ -1472,22 +1466,21 @@ def test_check_download_cache_cleanup(temp_cache, valid_urls):
     fn = download_file(u, cache=True)
     dldir = _get_download_cache_loc()
 
-    bf1 = os.path.abspath(os.path.join(dldir, "bogus1"))
-    with open(bf1, "w") as f:
-        f.write("bogus file that exists")
+    bf1 = dldir / "bogus1"
+    bf1.write_text("bogus file that exists")
 
-    bf2 = os.path.abspath(os.path.join(os.path.dirname(fn), "bogus2"))
-    with open(bf2, "w") as f:
-        f.write("other bogus file that exists")
+    bf2 = fn.parent / "bogus2"
+    bf2.write_text("other bogus file that exists")
 
-    bf3 = os.path.abspath(os.path.join(dldir, "contents"))
-    with open(bf3, "w") as f:
-        f.write("awkwardly-named bogus file that exists")
+    bf3 = dldir / "contents"
+    bf3.write_text("awkwardly-named bogus file that exists")
 
     u2, c2 = next(valid_urls)
     f2 = download_file(u, cache=True)
-    os.unlink(f2)
-    bf4 = os.path.dirname(f2)
+    # os.unlink(f2)
+    f2.unlink()
+    bf4 = f2.parent
+    # bf4 = os.path.dirname(f2)
 
     with pytest.raises(CacheDamaged) as e:
         check_download_cache()

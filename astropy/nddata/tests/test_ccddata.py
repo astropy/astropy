@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
 import textwrap
 from contextlib import nullcontext
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -1103,7 +1103,7 @@ def test_sliced_ccdata_to_hdu():
 def test_read_write_tilde_paths(home_is_tmpdir):
     # Test for reading and writing to tilde-prefixed paths without errors
     ccd_data = create_ccd_data()
-    filename = os.path.join("~", "test.fits")
+    filename = Path("~") / "test.fits"
     ccd_data.write(filename)
 
     ccd_disk = CCDData.read(filename, unit=ccd_data.unit)
@@ -1111,7 +1111,7 @@ def test_read_write_tilde_paths(home_is_tmpdir):
 
     # Ensure the unexpanded path doesn't exist (e.g. no directory whose name is
     # a literal ~ was created)
-    assert not os.path.exists(filename)
+    assert not filename.exists()
 
 
 def test_ccddata_with_psf():
