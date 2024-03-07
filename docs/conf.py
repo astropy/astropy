@@ -143,21 +143,6 @@ extensions += ["sphinx_changelog", "sphinx_design", "sphinxcontrib.globalsubs"]
 with (Path(__file__).parents[1] / "pyproject.toml").open("rb") as f:
     pyproject = tomllib.load(f)
 
-__minimum_python_version__ = pyproject["project"]["requires-python"].replace(">=", "")
-
-min_versions = {}
-for line in metadata.requires("astropy"):
-    req = Requirement(line.split(";")[0])
-    min_versions[req.name.lower()] = str(req.specifier)
-
-
-# `rst_epilog` is added to the end of RST files, but should be used
-# sparingly since it can slow down the documentation build.
-with open("common_links.txt") as cl:
-    rst_epilog += cl.read().format(
-        minimum_python=__minimum_python_version__, **min_versions
-    )
-
 # Manually register doctest options since matplotlib 3.5 messed up allowing them
 # from pytest-doctestplus
 IGNORE_OUTPUT = doctest.register_optionflag("IGNORE_OUTPUT")
@@ -441,6 +426,13 @@ def resolve_astropy_and_dev_reference(app, env, node, contnode):
 
         # Otherwise return None which should delegate to intersphinx
 
+__minimum_python_version__ = pyproject["project"]["requires-python"].replace(">=", "")
+
+min_versions = {}
+for line in metadata.requires("astropy"):
+    req = Requirement(line.split(";")[0])
+    min_versions[req.name.lower()] = str(req.specifier)
+
 # The following global_substitutions can be used throughout the
 # documentation via sphinxcontrib-globalsubs. The key to the dictionary
 # is the name of the case-sensitive substitution. For example, if the
@@ -505,8 +497,20 @@ global_substitutions: dict[str, str] = {
     "StructuredUnit": ":class:`~astropy.units.StructuredUnit`",
     # Utils
     "Masked": ":class:`~astropy.utils.masked.Masked`",
+    # Minimum versions
+    "minimum_python_version": f"{__minimum_python_version__}",
+    "minimum_numpy_version": f"{min_versions['numpy']}",
+    "minimum_pyerfa_version": f"{min_versions['pyerfa']}",
+    "minimum_matplotlib_version": f"{min_versions['matplotlib']}",
+    "minimum_scipy_version": f"{min_versions['scipy']}",
+    "minimum_asdf_astropy_version": f"{min_versions['asdf-astropy']}",
+    "minimum_packaging_version": f"{min_versions['packaging']}",
+    "minimum_pyyaml_version": f"{min_versions['pyyaml']}",
+    "minimum_ipython_version": f"{min_versions['ipython']}",
+    "minimum_pyarrow_version": f"{min_versions['pyarrow']}",
+    "minimum_fsspec_version": f"{min_versions['fsspec']}",
+    "minimum_s3fs_version": f"{min_versions['s3fs']}",
 }
-
 # Because sphinxcontrib-globalsubs does not work for regular reStructuredText
 # links, we first define the links and then process them into the form
 # of a reStructuredText external link.
