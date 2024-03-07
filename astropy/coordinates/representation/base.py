@@ -517,25 +517,6 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         )
 
 
-def _make_getter(component):
-    """Make an attribute getter for use in a property.
-
-    Parameters
-    ----------
-    component : str
-        The name of the component that should be accessed.  This assumes the
-        actual value is stored in an attribute of that name prefixed by '_'.
-    """
-    # This has to be done in a function to ensure the reference to component
-    # is not lost/redirected.
-    component = "_" + component
-
-    def get_component(self):
-        return getattr(self, component)
-
-    return get_component
-
-
 class RepresentationInfo(BaseRepresentationOrDifferentialInfo):
     @property
     def _represent_as_dict_attrs(self):
@@ -650,7 +631,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                     cls,
                     component,
                     property(
-                        _make_getter(component),
+                        lambda self, comp=f"_{component}": getattr(self, comp),
                         doc=f"The '{component}' component of the points(s).",
                     ),
                 )
@@ -1301,7 +1282,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
                     cls,
                     component,
                     property(
-                        _make_getter(component),
+                        lambda self, comp=f"_{component}": getattr(self, comp),
                         doc=f"Component '{component}' of the Differential.",
                     ),
                 )
