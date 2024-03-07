@@ -305,3 +305,16 @@ This is due to mutually incompatible behaviors in IPython and pytest, and is
 not due to a problem with the test itself or the feature being tested.
 
 See: https://github.com/astropy/astropy/issues/717
+
+Test runner fails when asdf-astropy is installed
+------------------------------------------------
+
+When you have ``asdf-astropy`` installed and then run ``astropy.test()``,
+you will see a traceback that complains about the following::
+
+    PytestAssertRewriteWarning: Module already imported so cannot be rewritten: asdf
+
+To run ``astropy.test()`` anyway, please first uninstall ``asdf-astropy``.
+If you do not want to do that, use ``pytest`` or ``tox`` instead of the test runner.
+
+See: https://github.com/astropy/astropy/issues/16165
