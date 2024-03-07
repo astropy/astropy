@@ -151,8 +151,8 @@ for line in metadata.requires("astropy"):
     min_versions[req.name.lower()] = str(req.specifier)
 
 
-# This is added to the end of RST files - a good place to put substitutions to
-# be used globally.
+# `rst_epilog` is added to the end of RST files, but should be used
+# sparingly since it can slow down the documentation build.
 with open("common_links.txt") as cl:
     rst_epilog += cl.read().format(
         minimum_python=__minimum_python_version__, **min_versions
@@ -441,6 +441,11 @@ def resolve_astropy_and_dev_reference(app, env, node, contnode):
 
         # Otherwise return None which should delegate to intersphinx
 
+# The following global_substitutions can be used throughout the
+# documentation via sphinxcontrib-globalsubs. The key to the dictionary
+# is the name of the case-sensitive substitution. For example, if the
+# key is `"SkyCoord"`, then it can be used as `|SkyCoord|` throughout
+# the documentation.
 
 global_substitutions: dict[str, str] = {
     # NumPy
@@ -503,10 +508,10 @@ global_substitutions: dict[str, str] = {
 }
 
 # Because sphinxcontrib-globalsubs does not work for regular reStructuredText
-# links, we first define the links and then process them afterwards into
-# the form of a reStructuredText external link.
+# links, we first define the links and then process them into the form
+# of a reStructuredText external link.
 
-links: dict[str, str] = {
+links_to_become_substitutions: dict[str, str] = {
     # Python
     "Python": "https://www.python.org",
     "PEP8": "https://www.python.org/dev/peps/pep-0008",
@@ -556,7 +561,12 @@ links: dict[str, str] = {
     "OpenAstronomy Packaging Guide": "https://packaging-guide.openastronomy.org/en/latest",
 }
 
-processed_links = {key: f"`{key} <{value}>`_" for key, value in links.items()}
+processed_links = {
+    key: f"`{key} <{value}>`_"
+    for key, value
+    in links_to_become_substitutions.items()
+}
+
 global_substitutions |= processed_links
 
 
