@@ -81,7 +81,6 @@ from sphinx_astropy.conf.v2 import (  # noqa: E402
     numpydoc_xref_aliases,
     numpydoc_xref_astropy_aliases,
     numpydoc_xref_ignore,
-    rst_epilog,
 )
 
 # -- Plot configuration -------------------------------------------------------
@@ -426,6 +425,7 @@ def resolve_astropy_and_dev_reference(app, env, node, contnode):
 
         # Otherwise return None which should delegate to intersphinx
 
+
 __minimum_python_version__ = pyproject["project"]["requires-python"].replace(">=", "")
 
 min_versions = {}
@@ -566,9 +566,7 @@ links_to_become_substitutions: dict[str, str] = {
 }
 
 processed_links = {
-    key: f"`{key} <{value}>`_"
-    for key, value
-    in links_to_become_substitutions.items()
+    key: f"`{key} <{value}>`_" for key, value in links_to_become_substitutions.items()
 }
 
 global_substitutions |= processed_links
