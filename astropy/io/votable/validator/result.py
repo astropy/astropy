@@ -10,7 +10,6 @@ import http.client
 import os
 import pickle
 import shutil
-import socket
 import subprocess
 import urllib.error
 import urllib.request
@@ -111,7 +110,7 @@ class Result:
         except http.client.HTTPException as e:
             fail(f"HTTPException: {e}")
             return
-        except (socket.timeout, OSError) as e:
+        except (TimeoutError, OSError) as e:
             fail("Timeout")
             return
 
@@ -121,7 +120,7 @@ class Result:
 
         try:
             content = r.read()
-        except socket.timeout as e:
+        except TimeoutError as e:
             fail("Timeout")
             return
         else:

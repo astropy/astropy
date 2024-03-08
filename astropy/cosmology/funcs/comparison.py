@@ -11,7 +11,7 @@ from __future__ import annotations
 import functools
 import inspect
 from dataclasses import dataclass
-from typing import Any, Callable, Union
+from typing import TYPE_CHECKING
 
 import numpy as np
 from numpy import False_, True_, ndarray
@@ -19,15 +19,18 @@ from numpy import False_, True_, ndarray
 from astropy import table
 from astropy.cosmology.core import Cosmology
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from typing import Any, TypeAlias
+
 __all__: list[str] = []  # Nothing is scoped here
 
 
 ##############################################################################
 # PARAMETERS
 
-_FormatType = Union[bool, None, str]
-_FormatsT = Union[_FormatType, tuple[_FormatType, ...]]
-_CompFnT = Callable[[Any, _FormatType], Cosmology]
+_FormatType: TypeAlias = bool | None | str
+_FormatsType: TypeAlias = _FormatType | tuple[_FormatType, ...]
 
 _COSMO_AOK: set[Any] = {None, True_, False_, "astropy.cosmology"}
 # The numpy bool also catches real bool for ops "==" and "in"
@@ -110,7 +113,7 @@ def _parse_format(cosmo: Any, format: _FormatType, /) -> Cosmology:
     return out
 
 
-def _parse_formats(*cosmos: object, format: _FormatsT) -> ndarray:
+def _parse_formats(*cosmos: object, format: _FormatsType) -> ndarray:
     """Parse Cosmology-like to |Cosmology|, using provided formats.
 
     ``format`` is broadcast to match the shape of the cosmology arguments. Note
@@ -183,7 +186,7 @@ def _comparison_decorator(pyfunc: Callable[..., Any]) -> Callable[..., Any]:
 
     # Make wrapper function that parses cosmology-like inputs
     @functools.wraps(pyfunc)
-    def wrapper(*cosmos: Any, format: _FormatsT = False, **kwargs: Any) -> bool:
+    def wrapper(*cosmos: Any, format: _FormatsType = False, **kwargs: Any) -> bool:
         if len(cosmos) > nin:
             raise TypeError(
                 f"{wrapper.__wrapped__.__name__} takes {nin} positional"

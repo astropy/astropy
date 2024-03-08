@@ -86,7 +86,7 @@ def _get_json_result(url, err_str, use_google):
         )
         raise NameResolveError(err_str.format(msg=msg)) from e
 
-    except socket.timeout:
+    except TimeoutError:
         # There are some cases where urllib2 does not catch socket.timeout
         # especially while receiving response data on an already previously
         # working request

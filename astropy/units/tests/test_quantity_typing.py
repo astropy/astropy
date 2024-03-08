@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Test the Quantity class and related."""
 
-from typing import Annotated, Any, Optional, Union, get_args, get_origin, get_type_hints
+from typing import Annotated, Any, get_args, get_origin, get_type_hints
 
 import numpy as np
 
@@ -38,7 +38,7 @@ class TestQuantityTyping:
 
     def test_optional_and_annotated(self):
         """Test Quantity annotation in an Optional."""
-        opt_annot = Optional[u.Quantity[u.m]]
+        opt_annot = u.Quantity[u.m] | None
 
         def opt_func(x: opt_annot, y: str):
             return x, y
@@ -49,11 +49,11 @@ class TestQuantityTyping:
     def test_union_and_annotated(self):
         """Test Quantity annotation in a Union."""
         # double Quantity[]
-        union_annot1 = Union[u.Quantity[u.m], u.Quantity[u.s]]
+        union_annot1 = u.Quantity[u.m] | u.Quantity[u.s]
         # one Quantity, one physical-type
-        union_annot2 = Union[u.Quantity[u.m], u.Quantity["time"]]
+        union_annot2 = u.Quantity[u.m] | u.Quantity["time"]
         # one Quantity, one general type
-        union_annot3 = Union[u.Quantity[u.m / u.s], float]
+        union_annot3 = u.Quantity[u.m / u.s] | float
 
         def union_func(x: union_annot1, y: union_annot2) -> union_annot3:
             if isinstance(y, str):  # value = time

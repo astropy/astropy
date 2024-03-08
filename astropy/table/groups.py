@@ -2,6 +2,7 @@
 
 import platform
 import warnings
+from itertools import pairwise
 
 import numpy as np
 
@@ -111,7 +112,7 @@ def _table_group_by(table, keys):
     # If the sort is not stable (preserves original table order) then sort idx_sort in
     # place within each group.
     if not stable_sort:
-        for i0, i1 in zip(indices[:-1], indices[1:]):
+        for i0, i1 in pairwise(indices):
             idx_sort[i0:i1].sort()
 
     # Make a new table and set the _groups to the appropriate TableGroups object.

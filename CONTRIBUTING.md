@@ -121,9 +121,8 @@ requirements for inclusion in the package:
 
 **Code Quality**
   * Are the [coding guidelines](https://docs.astropy.org/en/latest/development/codeguide.html) followed?
-  * Is the code compatible with Python >=3.8?
-  * Are there dependencies other than the `astropy` core, the Python Standard
-    Library, and NumPy 1.18.0 or later?
+  * Is the code compatible with the supported versions of Python (see [pyproject.toml](https://github.com/astropy/astropy/blob/main/pyproject.toml))?
+  * Are there dependencies other than the run-time dependencies listed in pyproject.toml?
     * Is the package importable even if the C-extensions are not built?
     * Are additional dependencies handled appropriately?
     * Do functions that require additional dependencies raise an `ImportError`

@@ -8,16 +8,11 @@ from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, NoReturn
 
-from astropy.utils.compat.misc import PYTHON_LT_3_10
-
 if TYPE_CHECKING:
     from astropy.cosmology.core import Cosmology
 
 
-_dataclass_kwargs = {} if PYTHON_LT_3_10 else {"slots": True}
-
-
-@dataclass(frozen=True, **_dataclass_kwargs)
+@dataclass(frozen=True, slots=True)
 class ParametersAttribute:
     """Immutable mapping of the :class:`~astropy.cosmology.Parameter` objects or values.
 
