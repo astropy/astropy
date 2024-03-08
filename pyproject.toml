@@ -9,7 +9,7 @@ authors = [
     { name = "The Astropy Developers", email = "astropy.team@gmail.com" }
 ]
 license = { text = "BSD-3-Clause" }
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: BSD License",
@@ -559,14 +559,14 @@ ignore = [
         type_incorrect_long = "The changelog file you added is not one of the allowed types. Please use one of the types described in the changelog [README](https://github.com/astropy/astropy/blob/main/docs/changes/README.rst)"
         number_incorrect_long = "The number in the changelog file you added does not match the number of this pull request. Please rename the file."
 
-    [tool.gilesbot.circleci_artifacts.py39-test-image-mpl334]
-        url = ".tmp/py39-test-image-mpl334/results/fig_comparison.html"
-        message = "Click details to see the figure test comparisons, for py39-test-image-mpl334."
+    [tool.gilesbot.circleci_artifacts.py310-test-image-mpl334]
+        url = ".tmp/py310-test-image-mpl334/results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons, for py310-test-image-mpl334."
         report_on_fail = true
 
-    [tool.gilesbot.circleci_artifacts.py39-test-image-mpldev]
-        url = ".tmp/py39-test-image-mpldev/results/fig_comparison.html"
-        message = "Click details to see the figure test comparisons for py39-test-image-mpldev."
+    [tool.gilesbot.circleci_artifacts.py310-test-image-mpldev]
+        url = ".tmp/py310-test-image-mpldev/results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons for py310-test-image-mpldev."
         report_on_fail = true
 
 [tool.codespell]

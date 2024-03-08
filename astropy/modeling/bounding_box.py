@@ -17,7 +17,8 @@ from astropy.units import Quantity
 from astropy.utils import isiterable
 
 if TYPE_CHECKING:
-    from typing import Any, Callable
+    from collections.abc import Callable
+    from typing import Any
 
     from typing_extensions import Self
 

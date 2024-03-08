@@ -1,13 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # ruff: noqa: FA100, FA102
 
-# STDLIB
-import typing as T
-
-# THIRD PARTY
 import pytest
 
-# LOCAL
 from astropy import units as u
 from astropy.units import Quantity
 
@@ -63,7 +58,7 @@ class TestQuantityUnitAnnotations:
 
     def test_optional_and_annotated(self):
         @u.quantity_input
-        def opt_func(x: T.Optional[Quantity[u.m]] = None) -> Quantity[u.km]:
+        def opt_func(x: Quantity[u.m] | None = None) -> Quantity[u.km]:
             if x is None:
                 return 1 * u.km
             return x
@@ -80,7 +75,7 @@ class TestQuantityUnitAnnotations:
     def test_union_and_annotated(self):
         #  Union and Annotated
         @u.quantity_input
-        def union_func(x: T.Union[Quantity[u.m], Quantity[u.s], None]):
+        def union_func(x: Quantity[u.m] | (Quantity[u.s] | None)):
             if x is None:
                 return None
             else:
