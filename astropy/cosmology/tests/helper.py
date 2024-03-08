@@ -2,7 +2,7 @@
 
 """
 This module provides the tools used to internally run the cosmology test suite
-from the installed astropy.  It makes use of the `pytest`_ testing framework.
+from the installed astropy.  It makes use of the |pytest| testing framework.
 """
 
 import inspect

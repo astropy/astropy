@@ -27,9 +27,9 @@ Interface and Dependencies
 * The core package should be importable with no
   dependencies other than components already in the Astropy core, the
   `Python Standard Library <https://docs.python.org/3/library/index.html>`_,
-  and NumPy_ |minimum_numpy_version| or later.
+  and |NumPy| |minimum_numpy_version| or later.
 
-* Additional dependencies - such as SciPy_, Matplotlib_, or other
+* Additional dependencies - such as |SciPy|, |Matplotlib|, or other
   third-party packages - are allowed for sub-modules or in function
   calls, but they must be noted in the package documentation and
   should only affect the relevant component.  In functions and
@@ -165,13 +165,13 @@ Coding Style/Conventions
             ]
 
 
-* Our testing infrastructure currently enforces a subset of the PEP8_ style guide. In
+* Our testing infrastructure currently enforces a subset of the |PEP8| style guide. In
   addition, these checks also enforce `isort <https://pycqa.github.io/isort/>`_ to sort
   the module imports and a large set of style-checks supported by ruff_.
 
   * We provide a ``pre-commit`` hook which automatically enforces and fixes (whenever
     possible) the coding style, see :ref:`pre-commit` for details on how to set up and
-    use this. We note that the particular set of PEP8_ and style-related checks that are
+    use this. We note that the particular set of |PEP8| and style-related checks that are
     used in Astropy do not need to be used in affiliated packages. In particular, the
     set of ruff_ checks is not required for affiliated packages.
 

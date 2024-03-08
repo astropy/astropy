@@ -140,7 +140,7 @@ Working with remote and cloud-hosted files
 """"""""""""""""""""""""""""""""""""""""""
 
 The :func:`open` function supports a ``use_fsspec`` argument which allows file
-paths to be opened using `fsspec`_.
+paths to be opened using |fsspec|.
 The ``fsspec`` package supports a range of remote and distributed storage
 backends such as Amazon and Google Cloud Storage. For example, you can access a
 Hubble Space Telescope image located in the Hubble's public

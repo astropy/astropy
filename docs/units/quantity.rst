@@ -145,7 +145,7 @@ supported::
 Plotting Quantities
 ===================
 
-|Quantity| objects can be conveniently plotted using `Matplotlib`_ — see
+|Quantity| objects can be conveniently plotted using |Matplotlib| — see
 :ref:`plotting-quantities` for more details.
 
 .. _quantity_arithmetic:
@@ -272,7 +272,7 @@ Or `Dimensionless Quantities`_::
     >>> np.exp(-h * nu / (k_B * T))  # doctest: +FLOAT_CMP
     <Quantity 0.99521225>
 
-.. note:: Support for functions from other packages, such as `scipy`_, is more
+.. note:: Support for functions from other packages, such as |SciPy|, is more
           incomplete (contributions to improve this are welcomed!).
 
 Dimensionless Quantities

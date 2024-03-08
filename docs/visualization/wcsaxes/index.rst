@@ -4,7 +4,7 @@
 Making plots with world coordinates (WCSAxes)
 *********************************************
 
-WCSAxes is a framework for making plots of Astronomical data in `Matplotlib`_.
+WCSAxes is a framework for making plots of Astronomical data in |Matplotlib|.
 It was previously distributed as a standalone package (``wcsaxes``), but is now included in
 :ref:`astropy.visualization <astropy-visualization>`.
 

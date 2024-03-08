@@ -22,7 +22,7 @@ Using pip
     Users of the Anaconda Python distribution should follow the instructions
     for :ref:`anaconda_install`.
 
-To install ``astropy`` with `pip`_, run::
+To install ``astropy`` with |pip|, run::
 
     python -m pip install astropy
 
@@ -135,23 +135,23 @@ Requirements
 
 ``astropy`` has the following strict requirements:
 
-- `Python`_ |minimum_python_version| or later
+- |Python| |minimum_python_version| or later
 
-- `Numpy`_ |minimum_numpy_version| or later
+- |NumPy| |minimum_numpy_version| or later
 
-- `PyERFA`_ |minimum_pyerfa_version| or later
+- |PyERFA| |minimum_pyerfa_version| or later
 
 - `PyYAML <https://pyyaml.org>`_ |minimum_pyyaml_version| or later
 
-- `packaging`_ |minimum_packaging_version| or later
+- |packaging| |minimum_packaging_version| or later
 
 ``astropy`` also depends on a number of other packages for optional features.
 The following are particularly recommended:
 
-- `scipy`_ |minimum_scipy_version| or later: To power a variety of features
+- |SciPy| |minimum_scipy_version| or later: To power a variety of features
   in several modules.
 
-- `matplotlib <https://matplotlib.org/>`_ |minimum_matplotlib_version| or later: To provide plotting
+- |Matplotlib| |minimum_matplotlib_version| or later: To provide plotting
   functionality that `astropy.visualization` enhances.
 
 The further dependencies provide more specific features:
@@ -210,10 +210,10 @@ The further dependencies provide more specific features:
 - `pyarrow <https://arrow.apache.org/docs/python/>`_ |minimum_pyarrow_version| or later:
   To read/write :class:`~astropy.table.Table` objects from/to Parquet files.
 
-- `fsspec`_ |minimum_fsspec_version| or later: Enables access to :ref:`subsets
+- |fsspec| |minimum_fsspec_version| or later: Enables access to :ref:`subsets
   of remote FITS files <fits_io_cloud>` without having to download the entire file.
 
-- `s3fs`_ |minimum_s3fs_version| or later: Enables access to files hosted in
+- |s3fs| |minimum_s3fs_version| or later: Enables access to files hosted in
   AWS S3 cloud storage.
 
 However, note that these packages require installation only if those particular
@@ -222,7 +222,7 @@ installed.
 
 The following packages can optionally be used when testing:
 
-- `pytest-astropy`_: See :ref:`sourcebuildtest`
+- |pytest-astropy|: See :ref:`sourcebuildtest`
 
 - `pytest-xdist <https://pypi.org/project/pytest-xdist/>`_: Used for
   distributed testing.
@@ -232,7 +232,7 @@ The following packages can optionally be used when testing:
 
 - `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
 
-- `IPython`_ |minimum_ipython_version| or later:
+- |IPython| |minimum_ipython_version| or later:
   Used for testing the notebook interface of `~astropy.table.Table`.
 
 - `coverage <https://coverage.readthedocs.io/>`_: Used for code coverage
@@ -452,7 +452,7 @@ dependencies, including:
   that makes it easy to automatically generate API documentation
 * `sphinx-gallery <https://sphinx-gallery.readthedocs.io/en/latest/>`_ - an
   extension to generate example galleries
-* `numpydoc`_ - an extension to parse
+* |numpydoc| - an extension to parse
   docstrings in NumPyDoc format
 * `pillow <https://pillow.readthedocs.io>`_ - used in one of the examples
 * `Graphviz <http://www.graphviz.org>`_ - generate inheritance graphs (available

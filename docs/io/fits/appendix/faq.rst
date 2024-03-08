@@ -11,11 +11,11 @@ General Questions
 What is PyFITS and how does it relate to ``astropy``?
 -----------------------------------------------------
 
-PyFITS_ is a library written in, and for use with the Python_ programming
+PyFITS_ is a library written in, and for use with the |Python| programming
 language for reading, writing, and manipulating FITS_ formatted files. It
 includes a high-level interface to FITS headers with the ability for high- and
 low-level manipulation of headers, and it supports reading image and table
-data as Numpy_ arrays. It also supports more obscure and nonstandard formats
+data as |NumPy| arrays. It also supports more obscure and nonstandard formats
 found in some FITS files.
 
 The `astropy.io.fits` module is identical to PyFITS but with the names changed.

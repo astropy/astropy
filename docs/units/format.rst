@@ -170,7 +170,7 @@ following formats:
     `IAU Style Manual
     <https://www.iau.org/static/publications/stylemanual1989.pdf>`_
     recommendations for unit presentation. This format is
-    automatically used when printing a unit in the `IPython`_ notebook::
+    automatically used when printing a unit in the |IPython| notebook::
 
         >>> f"{fluxunit:latex}"
         '$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'

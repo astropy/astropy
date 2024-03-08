@@ -33,12 +33,12 @@ Astropy and other Python packages.
 There are a few options for using virtual environments; the choice of method
 is dictated by the Python distribution you use:
 
-* If you wish to use the `miniconda`_ Python distribution, you must use the
-  `conda`_ command to make and manage your virtual environments.
+* If you wish to use the |miniconda| Python distribution, you must use the
+  |conda| command to make and manage your virtual environments.
 
 .. note::
 
-    `miniconda`_ is a minimal flavor of the popular Anaconda Python
+    |miniconda| is a minimal flavor of the popular Anaconda Python
     distribution, containing only ``conda``, Python, other useful packages
     (such as ``pip``, ``requests``, etc.) and their dependencies in the
     ``base`` environment.
@@ -46,17 +46,17 @@ is dictated by the Python distribution you use:
     existing ``base`` environment, allowing developers to install *just the
     packages* needed, and nothing more.
 
-* If you do not wish to use Miniconda you can use `virtualenv`_ and the conda-like
-  helper commands provided by `virtualenvwrapper`_; you *can not* use this
-  with `conda`_. As the name suggests, `virtualenvwrapper`_ is a wrapper
-  around `virtualenv`_.
+* If you do not wish to use Miniconda you can use |virtualenv| and the conda-like
+  helper commands provided by |virtualenvwrapper|; you *can not* use this
+  with |conda|. As the name suggests, |virtualenvwrapper| is a wrapper
+  around |virtualenv|.
 
-* A third, more recent option which is growing in popularity is `pipenv`_
-  which builds on top of `virtualenv`_ to provide project-specific Python
+* A third, more recent option which is growing in popularity is |pipenv|
+  which builds on top of |virtualenv| to provide project-specific Python
   environments and dependency management.
 
 In both cases you will go through the same basic steps; the commands to
-accomplish each step are given for both `conda`_ and `virtualenvwrapper`_:
+accomplish each step are given for both |conda| and |virtualenvwrapper|:
 
 * :ref:`setup_for_env`
 * :ref:`list_env`
@@ -65,8 +65,8 @@ accomplish each step are given for both `conda`_ and `virtualenvwrapper`_:
 * :ref:`deactivate_env`
 * :ref:`delete_env`
 
-Another well-maintained guide to Python virtualenvs (specifically `pipenv`_
-and `virtualenv`_, though it does not discuss `conda`_) which has been
+Another well-maintained guide to Python virtualenvs (specifically |pipenv|
+and |virtualenv|, though it does not discuss |conda|) which has been
 translated into multiple languages is the `Hitchhiker's Guide to Python
 <https://docs.python-guide.org/dev/virtualenvs/>`_ chapter on the subject.
 
@@ -77,12 +77,12 @@ translated into multiple languages is the `Hitchhiker's Guide to Python
 Set up for virtual environments
 ===============================
 
-* `conda`_: No setup is necessary beyond installing the Miniconda Python
+* |conda|: No setup is necessary beyond installing the Miniconda Python
   distribution . You can find the `conda installation instructions here`_.
 
-* `virtualenvwrapper`_:
+* |virtualenvwrapper|:
 
-  + First, install `virtualenvwrapper`_, which will also install `virtualenv`_,
+  + First, install |virtualenvwrapper|, which will also install |virtualenv|,
     with::
 
         python -m pip install --user virtualenvwrapper
@@ -93,7 +93,7 @@ Set up for virtual environments
       export PROJECT_HOME=$HOME/
       source /usr/local/bin/virtualenvwrapper.sh
 
-* `pipenv`_: Install the ``pipenv`` command using your default pip (the
+* |pipenv|: Install the ``pipenv`` command using your default pip (the
   pip in the default Python environment)::
 
       python -m pip install --user pipenv
@@ -107,18 +107,18 @@ You do not need to list the virtual environments you have created before using
 them...but sooner or later you will forget what environments you have defined
 and this is the easy way to find out.
 
-* `conda`_: ``conda info -e``
+* |conda|: ``conda info -e``
     + you will always have at least one environment, called ``base``.
     + your active environment is indicated by a ``*``
 
-* `virtualenvwrapper`_: ``workon``
+* |virtualenvwrapper|: ``workon``
     + If this displays nothing you have no virtual environments
     + If this displays ``workon: command not found`` then you haven't done
       the :ref:`setup_for_env`; do that.
     + For more detailed information about installed environments use
       ``lsvirtualenv``.
 
-* `pipenv`_ does not have a concept of listing virtualenvs; it instead
+* |pipenv| does not have a concept of listing virtualenvs; it instead
   automatically generates the virtualenv associated with a project directory
   (e.g. the Astropy source repository on your computer).
 
@@ -146,7 +146,7 @@ environment.
 
 **The name you choose cannot have spaces in it.**
 
-* `conda`_:
+* |conda|:
     + Make an environment called ``ENV`` with all of the packages in your ``base``
       Miniconda environment::
 
@@ -183,7 +183,7 @@ environment.
       Astropy <astropy-main-req>` respectively to get started according to your
       use case.
 
-* `virtualenvwrapper`_:
+* |virtualenvwrapper|:
     + Make an environment called ``ENV`` with all of the packages in your
       default Python environment::
 
@@ -191,13 +191,13 @@ environment.
 
     + Omit the option ``--system-site-packages`` to create an environment
       without the Python packages installed in your default Python environment.
-    + Environments created with `virtualenvwrapper`_ always include `pip`_
+    + Environments created with |virtualenvwrapper| always include |pip|
       and `setuptools <https://setuptools.readthedocs.io>`_ so that you
       can install packages within the virtual environment.
     + More details and examples are in the
       `virtualenvwrapper command documentation`_.
 
-* `pipenv`_:
+* |pipenv|:
     + Make sure you are in the Astropy source directory.  See
       :ref:`get_devel` if you are unsure how to get the source code.  After
       running ``git clone <your-astropy-fork>`` run ``cd astropy/`` then::
@@ -227,7 +227,7 @@ Activate a virtual environment
 ==============================
 
 To use a new virtual environment you may need to activate it;
-`virtualenvwrapper`_ will try to automatically activate your new environment
+|virtualenvwrapper| will try to automatically activate your new environment
 when you create it. Activation does two things (either of which you could do
 manually, though it would be inconvenient):
 
@@ -241,15 +241,15 @@ manually, though it would be inconvenient):
 The commands below allow you to switch between virtual environments in
 addition to activating new ones.
 
-* `conda`_: Activate the environment ``ENV`` with::
+* |conda|: Activate the environment ``ENV`` with::
 
       conda activate ENV
 
-* `virtualenvwrapper`_: Activate the environment ``ENV`` with::
+* |virtualenvwrapper|: Activate the environment ``ENV`` with::
 
       workon ENV
 
-* `pipenv`_: Activate the environment by changing into the project
+* |pipenv|: Activate the environment by changing into the project
   directory (i.e. the copy of the Astropy repository on your computer) and
   running::
 
@@ -264,14 +264,14 @@ Deactivate a virtual environment
 At some point you may want to go back to your default Python environment. Do
 that with:
 
-* `conda`_: ``conda deactivate``
+* |conda|: ``conda deactivate``
 
-* `virtualenvwrapper`_: ``deactivate``
+* |virtualenvwrapper|: ``deactivate``
     + Note that in ``virtualenvwrapper 4.1.1`` the output of
       ``mkvirtualenv`` says you should use ``source deactivate``; that does
       not seem to actually work.
 
-* `pipenv`_: ``exit``
+* |pipenv|: ``exit``
 
   .. note::
 
@@ -288,16 +288,16 @@ that with:
 Delete a virtual environment
 ============================
 
-In both `virtualenvwrapper`_ and `conda`_ you can simply delete the
+In both |virtualenvwrapper| and |conda| you can simply delete the
 directory in which the ``ENV`` is located; both also provide commands to
-make that a bit easier.  `pipenv`_ includes a command for deleting the
+make that a bit easier.  |pipenv| includes a command for deleting the
 virtual environment associated with the current directory:
 
-* `conda`_: ``conda remove --all --name ENV``
+* |conda|: ``conda remove --all --name ENV``
 
-* `virtualenvwrapper`_: ``rmvirtualenv ENV``
+* |virtualenvwrapper|: ``rmvirtualenv ENV``
 
-* `pipenv`_: ``pipenv --rm``: As with other ``pipenv`` commands this is
+* |pipenv|: ``pipenv --rm``: As with other ``pipenv`` commands this is
   run from within the project directory.
 
 .. _documentation for virtualenvwrapper: https://virtualenvwrapper.readthedocs.io/en/latest/install.html
