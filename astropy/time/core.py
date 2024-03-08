@@ -30,7 +30,7 @@ from astropy import units as u
 from astropy.extern import _strptime
 from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray, lazyproperty
-from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0, sanitize_copy_arg
+from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
@@ -1993,8 +1993,6 @@ class Time(TimeBase):
         location=None,
         copy=COPY_IF_NEEDED,
     ):
-        copy = sanitize_copy_arg(copy)
-
         if location is not None:
             from astropy.coordinates import EarthLocation
 
@@ -3388,8 +3386,6 @@ def _make_array(val, copy=COPY_IF_NEEDED):
         dtype = object
     else:
         dtype = None
-
-    copy = sanitize_copy_arg(copy)
 
     val = np.array(val, copy=copy, subok=True, dtype=dtype)
 
