@@ -8,7 +8,7 @@ Obtaining subsets from cloud-hosted FITS files
 Astropy offers support for extracting data from FITS files stored in the cloud.
 Specifically, the `astropy.io.fits.open` function accepts the ``use_fsspec``
 and ``fsspec_kwargs`` parameters, which allow remote files to be accessed in an
-efficient way using the `fsspec`_ package.
+efficient way using the |fsspec| package.
 
 ``fsspec`` is an optional dependency of Astropy which supports reading
 files from a range of remote and distributed storage backends, such as Amazon
@@ -115,7 +115,7 @@ your code is running on a server in the same Amazon cloud region as the data.
 .. note::
 
     To open paths with prefix ``s3://``, fsspec requires an optional dependency
-    called `s3fs`_.  A ``ModuleNotFoundError`` will be raised if this dependency
+    called |s3fs|.  A ``ModuleNotFoundError`` will be raised if this dependency
     is missing. See :ref:`installing-astropy` for details on installing optional
     dependencies.
 
@@ -146,7 +146,7 @@ access keys, to the `fsspec.open` function as follows:
     Including secret access keys inside Python code is dangerous because you
     may accidentally end up revealing your keys when you share your code with
     others. A better practice is to store your access keys via a configuration
-    file or environment variables. See the `s3fs`_ documentation for guidance.
+    file or environment variables. See the |s3fs| documentation for guidance.
 
 
 Using :class:`~astropy.nddata.Cutout2D` with cloud-hosted FITS files
@@ -254,4 +254,4 @@ For example, we can configure fsspec to make buffered reads with a minimum
 The ideal configuration will depend on the latency and throughput of the
 network, as well as the exact shape and volume of the data you seek to obtain.
 
-See the `fsspec documentation <fsspec_>`_ for more information on its options.
+See the |fsspec| documentation for more information on its options.

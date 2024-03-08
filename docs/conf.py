@@ -35,6 +35,9 @@ from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
 from sphinx.util import logging
 
+# from docs import global_substitutions
+
+
 if sys.version_info < (3, 11):
     import tomli as tomllib
 else:
@@ -78,7 +81,6 @@ from sphinx_astropy.conf.v2 import (  # noqa: E402
     numpydoc_xref_aliases,
     numpydoc_xref_astropy_aliases,
     numpydoc_xref_ignore,
-    rst_epilog,
 )
 
 # -- Plot configuration -------------------------------------------------------
@@ -134,26 +136,11 @@ if "templates_path" not in locals():  # in case parent conf.py defines it
     templates_path = []
 templates_path.append("_templates")
 
-extensions += ["sphinx_changelog", "sphinx_design"]
+extensions += ["sphinx_changelog", "sphinx_design", "sphinxcontrib.globalsubs"]
 
 # Grab minversion from pyproject.toml
 with (Path(__file__).parents[1] / "pyproject.toml").open("rb") as f:
     pyproject = tomllib.load(f)
-
-__minimum_python_version__ = pyproject["project"]["requires-python"].replace(">=", "")
-
-min_versions = {}
-for line in metadata.requires("astropy"):
-    req = Requirement(line.split(";")[0])
-    min_versions[req.name.lower()] = str(req.specifier)
-
-
-# This is added to the end of RST files - a good place to put substitutions to
-# be used globally.
-with open("common_links.txt") as cl:
-    rst_epilog += cl.read().format(
-        minimum_python=__minimum_python_version__, **min_versions
-    )
 
 # Manually register doctest options since matplotlib 3.5 messed up allowing them
 # from pytest-doctestplus
@@ -437,6 +424,152 @@ def resolve_astropy_and_dev_reference(app, env, node, contnode):
             pass
 
         # Otherwise return None which should delegate to intersphinx
+
+
+__minimum_python_version__ = pyproject["project"]["requires-python"].replace(">=", "")
+
+min_versions = {}
+for line in metadata.requires("astropy"):
+    req = Requirement(line.split(";")[0])
+    min_versions[req.name.lower()] = str(req.specifier)
+
+# The following global_substitutions can be used throughout the
+# documentation via sphinxcontrib-globalsubs. The key to the dictionary
+# is the name of the case-sensitive substitution. For example, if the
+# key is `"SkyCoord"`, then it can be used as `|SkyCoord|` throughout
+# the documentation.
+
+global_substitutions: dict[str, str] = {
+    # NumPy
+    "ndarray": ":class:`numpy.ndarray`",
+    # Coordinates
+    "EarthLocation": ":class:`~astropy.coordinates.EarthLocation`",
+    "Angle": "`~astropy.coordinates.Angle`",
+    "Latitude": "`~astropy.coordinates.Latitude`",
+    "Longitude": ":class:`~astropy.coordinates.Longitude`",
+    "BaseFrame": "`~astropy.coordinates.BaseCoordinateFrame`",
+    "SkyCoord": ":class:`~astropy.coordinates.SkyCoord`",
+    "SpectralCoord": "`~astropy.coordinates.SpectralCoord`",
+    # Cosmology
+    "Cosmology": ":class:`~astropy.cosmology.Cosmology`",
+    "Cosmology.read": ":meth:`~astropy.cosmology.Cosmology.read`",
+    "Cosmology.write": ":meth:`~astropy.cosmology.Cosmology.write`",
+    "Cosmology.from_format": ":meth:`~astropy.cosmology.Cosmology.from_format`",
+    "Cosmology.to_format": ":meth:`~astropy.cosmology.Cosmology.to_format`",
+    "FLRW": ":class:`~astropy.cosmology.FLRW`",
+    "LambdaCDM": ":class:`~astropy.cosmology.LambdaCDM`",
+    "FlatLambdaCDM": ":class:`~astropy.cosmology.FlatLambdaCDM`",
+    "WMAP1": ":ref:`astropy_cosmology_realizations_WMAP1`",
+    "WMAP3": ":ref:`astropy_cosmology_realizations_WMAP3`",
+    "WMAP5": ":ref:`astropy_cosmology_realizations_WMAP5`",
+    "WMAP7": ":ref:`astropy_cosmology_realizations_WMAP7`",
+    "WMAP9": ":ref:`astropy_cosmology_realizations_WMAP9`",
+    "Planck13": ":ref:`astropy_cosmology_realizations_Planck13`",
+    "Planck15": ":ref:`astropy_cosmology_realizations_Planck15`",
+    "Planck18": ":ref:`astropy_cosmology_realizations_Planck18`",
+    "FlatCosmologyMixin": ":class:`~astropy.cosmology.FlatCosmologyMixin`",
+    "FlatFLRWMixin": ":class:`~astropy.cosmology.FlatFLRWMixin`",
+    "default_cosmology": ":class:`~astropy.cosmology.default_cosmology`",
+    # SAMP
+    "SAMPClient": ":class:`~astropy.samp.SAMPClient`",
+    "SAMPIntegratedClient": ":class:`~astropy.samp.SAMPIntegratedClient`",
+    "SAMPHubServer": ":class:`~astropy.samp.SAMPHubServer`",
+    "SAMPHubProxy": ":class:`~astropy.samp.SAMPHubProxy`",
+    # Table
+    "Column": ":class:`~astropy.table.Column`",
+    "MaskedColumn": ":class:`~astropy.table.MaskedColumn`",
+    "TableColumns": ":class:`~astropy.table.TableColumns`",
+    "Row": ":class:`~astropy.table.Row`",
+    "Table": ":class:`~astropy.table.Table`",
+    "QTable": ":class:`~astropy.table.QTable`",
+    # Time
+    "Time": ":class:`~astropy.time.Time`",
+    "TimeDelta": ":class:`~astropy.time.TimeDelta`",
+    # Timeseries
+    "TimeSeries": ":class:`~astropy.timeseries.TimeSeries`",
+    "BinnedTimeSeries": ":class:`~astropy.timeseries.BinnedTimeSeries`",
+    # Distribution
+    "Distribution": ":class:`~astropy.uncertainty.Distribution`",
+    # Units
+    "PhysicalType": ":class:`~astropy.units.PhysicalType`",
+    "Quantity": ":class:`~astropy.units.Quantity`",
+    "Unit": ":class:`~astropy.units.UnitBase`",
+    "StructuredUnit": ":class:`~astropy.units.StructuredUnit`",
+    # Utils
+    "Masked": ":class:`~astropy.utils.masked.Masked`",
+    # Minimum versions
+    "minimum_python_version": f"{__minimum_python_version__}",
+    "minimum_numpy_version": f"{min_versions['numpy']}",
+    "minimum_pyerfa_version": f"{min_versions['pyerfa']}",
+    "minimum_matplotlib_version": f"{min_versions['matplotlib']}",
+    "minimum_scipy_version": f"{min_versions['scipy']}",
+    "minimum_asdf_astropy_version": f"{min_versions['asdf-astropy']}",
+    "minimum_packaging_version": f"{min_versions['packaging']}",
+    "minimum_pyyaml_version": f"{min_versions['pyyaml']}",
+    "minimum_ipython_version": f"{min_versions['ipython']}",
+    "minimum_pyarrow_version": f"{min_versions['pyarrow']}",
+    "minimum_fsspec_version": f"{min_versions['fsspec']}",
+    "minimum_s3fs_version": f"{min_versions['s3fs']}",
+}
+# Because sphinxcontrib-globalsubs does not work for regular reStructuredText
+# links, we first define the links and then process them into the form
+# of a reStructuredText external link.
+
+links_to_become_substitutions: dict[str, str] = {
+    # Python
+    "Python": "https://www.python.org",
+    "PEP8": "https://www.python.org/dev/peps/pep-0008",
+    # Astropy
+    "Astropy mailing list": "https://mail.python.org/mailman/listinfo/astropy",
+    "astropy-dev mailing list": "http://groups.google.com/group/astropy-dev",
+    # NumPy
+    "NumPy": "https://numpy.org",
+    "numpydoc": "https://pypi.org/project/numpydoc",
+    # erfa
+    "ERFA": "https://github.com/liberfa/erfa",
+    "PyERFA": "http://pyerfa.readthedocs.org",
+    # matplotlib
+    "Matplotlib": "https://matplotlib.org",
+    # sofa
+    "SOFA": "http://www.iausofa.org/index.html",
+    # scipy
+    "SciPy": "https://www.scipy.org",
+    # packaging
+    "packaging": "https://packaging.pypa.io",
+    # IPython
+    "IPython": "https://ipython.org",
+    # pip
+    "pip": "https://pip.pypa.io",
+    # pipenv
+    "pipenv": "https://pipenv.pypa.io/en/latest",
+    # virtualenv
+    "virtualenv": "https://pypi.org/project/virtualenv",
+    "virtualenvwrapper": "https://pypi.org/project/virtualenvwrapper",
+    # conda
+    "conda": "https://conda.io/docs",
+    "miniconda": "https://docs.conda.io/en/latest/miniconda.html",
+    # pytest
+    "pytest": "https://pytest.org/en/latest/index.html",
+    "pytest-astropy": "https://github.com/astropy/pytest-astropy",
+    "pytest-doctestplus": "https://github.com/astropy/pytest-doctestplus",
+    "pytest-remotedata": "https://github.com/astropy/pytest-remotedata",
+    # fsspec
+    "fsspec": "https://filesystem-spec.readthedocs.io",
+    # s3fs
+    "s3fs": "https://s3fs.readthedocs.io",
+    # TOPCAT
+    "STIL": "http://www.starlink.ac.uk/stil",
+    "STILTS": "http://www.starlink.ac.uk/stilts",
+    "TOPCAT": "http://www.starlink.ac.uk/topcat",
+    # OpenAstronomy
+    "OpenAstronomy Packaging Guide": "https://packaging-guide.openastronomy.org/en/latest",
+}
+
+processed_links = {
+    key: f"`{key} <{value}>`_" for key, value in links_to_become_substitutions.items()
+}
+
+global_substitutions |= processed_links
 
 
 def setup(app):

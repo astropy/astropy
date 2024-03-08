@@ -19,7 +19,7 @@ functions to test for near-equality of `~astropy.units.Quantity` objects.
 
 The functionality here is not exhaustive, because
 much of the useful tools are either in the standard
-library, `pytest`_, or `numpy.testing
+library, |pytest|, or `numpy.testing
 <https://numpy.org/doc/stable/reference/routines.testing.html>`_.  This module
 contains primarily functionality specific to the astropy core package or
 packages that follow the Astropy package template.

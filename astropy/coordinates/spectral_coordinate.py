@@ -149,7 +149,7 @@ class SpectralCoord(SpectralQuantity):
               in those cases. It is possible that there will be API changes in
               future versions of Astropy based on user feedback. If you have
               specific ideas for how it might be improved, please  let us know
-              on the `astropy-dev mailing list`_ or at
+              on the |astropy-dev mailing list| or at
               http://feedback.astropy.org.
 
     Parameters

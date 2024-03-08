@@ -5,7 +5,7 @@ Solar System Ephemerides
 
 `astropy.coordinates` can calculate the |SkyCoord| of some of the major solar
 system objects. By default, it uses approximate orbital elements calculated
-using PyERFA_ routines, but it can
+using |PyERFA| routines, but it can
 also use more precise ones using the JPL ephemerides (which are derived from
 dynamical models). The default JPL ephemerides (DE430) provide predictions
 valid roughly for the years between 1550 and 2650. The file is 115 MB and will
@@ -143,10 +143,10 @@ Precision of the Built-In Ephemeris
 ===================================
 
 The algorithm for calculating positions and velocities for planets other than
-Earth used by ERFA_ is due to J.L. Simon, P. Bretagnon, J. Chapront,
+Earth used by |ERFA| is due to J.L. Simon, P. Bretagnon, J. Chapront,
 M. Chapront-Touze, G. Francou and J. Laskar (Bureau des Longitudes, Paris,
 France).  From comparisons with JPL ephemeris DE102, they quote the maximum
-errors over the interval 1800-2050 below. For more details, see the PyERFA_ routine, `erfa.plan94`.
+errors over the interval 1800-2050 below. For more details, see the |PyERFA| routine, `erfa.plan94`.
 For the Earth, the rms errors in position and velocity are about 4.6 km and
 1.4 mm/s, respectively (see `erfa.epv00`).
 
