@@ -109,8 +109,3 @@ jobs:
         - name: (Allowed Failure) Python 3.12 with remote data and dev version of key dependencies
           linux: py312-test-devdeps
           posargs: --remote-data=any --verbose
-
-        # https://github.com/matplotlib/matplotlib/issues/26847
-        - name: (Allowed Failure) Python 3.12 with dev version of matplotlib
-          linux: py312-test-mpldev
-          posargs: --verbose
