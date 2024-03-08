@@ -10,7 +10,7 @@ import numpy as np
 from numpy import ma
 
 from astropy.units import Quantity, StructuredUnit, Unit
-from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0, sanitize_copy_arg
+from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.metadata import MetaData
@@ -522,8 +522,6 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         copy=COPY_IF_NEEDED,
         copy_indices=True,
     ):
-        copy = sanitize_copy_arg(copy)
-
         if data is None:
             self_data = np.zeros((length,) + shape, dtype=dtype)
         elif isinstance(data, BaseColumn) and hasattr(data, "_name"):
