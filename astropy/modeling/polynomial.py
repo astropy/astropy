@@ -542,7 +542,7 @@ class Chebyshev1D(_PolyDomainWindow1D):
             v[1] = x
             for i in range(2, self.degree + 1):
                 v[i] = v[i - 1] * x2 - v[i - 2]
-        return np.rollaxis(v, 0, v.ndim)
+        return np.moveaxis(v, 0, -1)
 
     def prepare_inputs(self, x, **kwargs):
         inputs, broadcasted_shapes = super().prepare_inputs(x, **kwargs)
@@ -663,7 +663,7 @@ class Hermite1D(_PolyDomainWindow1D):
             v[1] = 2 * x
             for i in range(2, self.degree + 1):
                 v[i] = x2 * v[i - 1] - 2 * (i - 1) * v[i - 2]
-        return np.rollaxis(v, 0, v.ndim)
+        return np.moveaxis(v, 0, -1)
 
     def prepare_inputs(self, x, **kwargs):
         inputs, broadcasted_shapes = super().prepare_inputs(x, **kwargs)
@@ -842,7 +842,7 @@ class Hermite2D(OrthoPolynomialBase):
             d[1] = x2
             for i in range(2, deg + 1):
                 d[i] = x2 * d[i - 1] - 2 * (i - 1) * d[i - 2]
-        return np.rollaxis(d, 0, d.ndim)
+        return np.moveaxis(d, 0, -1)
 
 
 class Legendre1D(_PolyDomainWindow1D):
@@ -944,7 +944,7 @@ class Legendre1D(_PolyDomainWindow1D):
             v[1] = x
             for i in range(2, self.degree + 1):
                 v[i] = (v[i - 1] * x * (2 * i - 1) - v[i - 2] * (i - 1)) / i
-        return np.rollaxis(v, 0, v.ndim)
+        return np.moveaxis(v, 0, -1)
 
     @staticmethod
     def clenshaw(x, coeffs):
@@ -1062,7 +1062,7 @@ class Polynomial1D(_PolyDomainWindow1D):
             v[1] = x
             for i in range(2, self.degree + 1):
                 v[i] = v[i - 1] * x
-        return np.rollaxis(v, 0, v.ndim)
+        return np.moveaxis(v, 0, -1)
 
     @staticmethod
     def horner(x, coeffs):
@@ -1498,7 +1498,7 @@ class Chebyshev2D(OrthoPolynomialBase):
             d[1] = x
             for i in range(2, deg + 1):
                 d[i] = d[i - 1] * x2 - d[i - 2]
-        return np.rollaxis(d, 0, d.ndim)
+        return np.moveaxis(d, 0, -1)
 
 
 class Legendre2D(OrthoPolynomialBase):
@@ -1651,7 +1651,7 @@ class Legendre2D(OrthoPolynomialBase):
             d[1] = x
             for i in range(2, deg + 1):
                 d[i] = (d[i - 1] * x * (2 * i - 1) - d[i - 2] * (i - 1)) / i
-        return np.rollaxis(d, 0, d.ndim)
+        return np.moveaxis(d, 0, -1)
 
 
 class _SIP1D(PolynomialBase):
