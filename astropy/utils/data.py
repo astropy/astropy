@@ -1884,11 +1884,10 @@ def _get_download_cache_loc(pkgname="astropy"):
     datadir : str
         The path to the data cache directory.
     """
+    datadir = os.path.join(
+        astropy.config.paths.get_cache_dir(pkgname), "download", "url"
+    )
     try:
-        datadir = os.path.join(
-            astropy.config.paths.get_cache_dir(pkgname), "download", "url"
-        )
-
         if not os.path.exists(datadir):
             try:
                 os.makedirs(datadir)
@@ -1898,12 +1897,13 @@ def _get_download_cache_loc(pkgname="astropy"):
         elif not os.path.isdir(datadir):
             raise OSError(f"Data cache directory {datadir} is not a directory")
 
-        return datadir
     except OSError as e:
         msg = "Remote data cache could not be accessed due to "
         estr = "" if len(e.args) < 1 else (": " + str(e))
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         raise
+    else:
+        return datadir
 
 
 def _url_to_dirname(url):

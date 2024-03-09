@@ -894,10 +894,12 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         try:
             axiscorr = header["AXISCORR"]
-            d2imdis = self._read_d2im_old_format(header, fobj, axiscorr)
-            return d2imdis
         except KeyError:
             pass
+
+        else:
+            d2imdis = self._read_d2im_old_format(header, fobj, axiscorr)
+            return d2imdis
 
         dist = "D2IMDIS"
         d_kw = "D2IM"

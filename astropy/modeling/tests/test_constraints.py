@@ -15,6 +15,7 @@ from astropy.modeling import fitting, models
 from astropy.modeling.core import Fittable1DModel
 from astropy.modeling.parameters import Parameter
 from astropy.utils import minversion
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -207,9 +208,17 @@ class TestBounds:
         if isinstance(fitter, fitting.TRFLSQFitter):
             ctx = np.errstate(invalid="ignore", divide="ignore")
         else:
-            ctx = nullcontext()
-        with ctx:
-            model = fitter(gauss, X, Y, self.data)
+            ctx2 = nullcontext()
+            if isinstance(fitter, fitting.TRFLSQFitter):
+                ctx = np.errstate(invalid="ignore", divide="ignore")
+                if not NUMPY_LT_2_0 or not SCIPY_LT_1_11_2:
+                    ctx2 = pytest.warns(
+                        AstropyUserWarning, match="The fit may be unsuccessful"
+                    )
+            else:
+                ctx = nullcontext()
+            with ctx, ctx2:
+                model = fitter(gauss, X, Y, self.data)
         x_mean = model.x_mean.value
         y_mean = model.y_mean.value
         x_stddev = model.x_stddev.value

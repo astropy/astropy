@@ -49,9 +49,10 @@ def isiterable(obj):
     """Returns `True` if the given object is iterable."""
     try:
         iter(obj)
-        return True
     except TypeError:
         return False
+    else:
+        return True
 
 
 def indent(s, shift=1, width=4):

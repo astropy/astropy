@@ -613,9 +613,9 @@ def _guess(table, read_kwargs, format, fast_reader):
                 guess_kwargs["strict_names"] = True
 
             reader = get_reader(**guess_kwargs)
-
             reader.guessing = True
             dat = reader.read(table)
+        except guess_exception_classes as err:
             _read_trace.append(
                 {
                     "kwargs": copy.deepcopy(guess_kwargs),
@@ -624,13 +624,14 @@ def _guess(table, read_kwargs, format, fast_reader):
                     "dt": f"{(time.time() - t0) * 1000:.3f} ms",
                 }
             )
-            return dat
+            failed_kwargs.append(guess_kwargs)
 
-        except guess_exception_classes as err:
+        else:
             _read_trace.append(
                 {
                     "kwargs": copy.deepcopy(guess_kwargs),
-                    "status": f"{err.__class__.__name__}: {str(err)}",
+                    "Reader": reader.__class__,
+                    "status": "Success (guessing)",
                     "dt": f"{(time.time() - t0) * 1000:.3f} ms",
                 }
             )
@@ -683,6 +684,18 @@ def _guess(table, read_kwargs, format, fast_reader):
     ]
     lines.extend(msg)
     raise core.InconsistentTableError("\n".join(lines)) from None
+
+    else:
+        _read_trace.append(
+            {
+                "kwargs": copy.deepcopy(read_kwargs),
+                "Reader": reader.__class__,
+                "status": (
+                    "Success with original kwargs without strict_names (guessing)"
+                ),
+            }
+        )
+        return dat
 
 
 def _get_guess_kwargs_list(read_kwargs):

@@ -829,6 +829,11 @@ class lazyproperty(property):
         try:
             obj_dict = obj.__dict__
             val = obj_dict.get(self._key, _NotFound)
+        except AttributeError:
+            if obj is None:
+                return self
+            raise
+        else:
             if val is _NotFound:
                 with self._lock:
                     # Check if another thread beat us to it.
@@ -837,10 +842,6 @@ class lazyproperty(property):
                         val = self.fget(obj)
                         obj_dict[self._key] = val
             return val
-        except AttributeError:
-            if obj is None:
-                return self
-            raise
 
     def __set__(self, obj, val):
         obj_dict = obj.__dict__
