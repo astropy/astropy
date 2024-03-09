@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import copy
 import operator
 import warnings
 import weakref
@@ -581,14 +580,12 @@ class FITS_rec(np.recarray):
     def _ipython_key_completions_(self):
         return self.names
 
-    def copy(self):
-        """
-        As stated in the Numpy documentation of `numpy.copy` to ensure all elements
-        within an object array are copied we need to make a deep
-        copy of all those attributes so that the two arrays truly do not share
-        any data.
-        """
-        new = copy.deepcopy(self)
+    def copy(self, order="C"):
+        # Go through recarray to ensure we do not share items with self
+        # that we do not want to share (see __getitem__).
+        new = self.view(np.recarray).copy(order=order).view(type(self))
+        new._uint = self._uint
+        new._coldefs = ColDefs(self._coldefs)
 
         return new
 
