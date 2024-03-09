@@ -1026,13 +1026,12 @@ class TestQuantityDisplay:
         assert np.arange(3).view(u.Quantity).to_string() == res
 
     @pytest.mark.parametrize(
-        "input_value, input_unit, format_spec, format, expected_result",
+        "input_value, input_unit, format_spec, expected_result",
         [
             pytest.param(
                 1.5e14,
                 "m/s",
                 ".2e",
-                None,
                 "1.50e+14 m / s",
                 id="scientific_notation",
             ),
@@ -1040,7 +1039,6 @@ class TestQuantityDisplay:
                 0.123,
                 "m/s",
                 "0.3f",
-                None,
                 "0.123 m / s",
                 id="float_format",
             ),
@@ -1048,7 +1046,6 @@ class TestQuantityDisplay:
                 0.000123,
                 "m/s",
                 ".2e",
-                None,
                 "1.23e-04 m / s",
                 id="scientific_notation_with_zero",
             ),
@@ -1056,7 +1053,6 @@ class TestQuantityDisplay:
                 1.23456789e15,
                 "m/s",
                 ".2e",
-                None,
                 "1.23e+15 m / s",
                 id="scientific_notation_large_number",
             ),
@@ -1064,7 +1060,6 @@ class TestQuantityDisplay:
                 123,
                 "m",
                 ">10",
-                None,
                 "     123.0 m",
                 id="right_aligned",
             ),
@@ -1072,7 +1067,6 @@ class TestQuantityDisplay:
                 123,
                 "m",
                 "=+10",
-                None,
                 "+    123.0 m",
                 id="sign_alignment_positive",
             ),
@@ -1080,7 +1074,6 @@ class TestQuantityDisplay:
                 -123,
                 "m",
                 "=+10",
-                None,
                 "-    123.0 m",
                 id="sign_alignment_negative",
             ),
@@ -1088,7 +1081,6 @@ class TestQuantityDisplay:
                 123,
                 "m",
                 "^10",
-                None,
                 "  123.0    m",
                 id="center_alignment",
             ),
@@ -1096,7 +1088,6 @@ class TestQuantityDisplay:
                 123,
                 "m",
                 "<10",
-                None,
                 "123.0      m",
                 id="left_aligned",
             ),
@@ -1104,7 +1095,6 @@ class TestQuantityDisplay:
                 123,
                 "m",
                 "010",
-                None,
                 "00000123.0 m",
                 id="zero_padding",
             ),
@@ -1112,7 +1102,6 @@ class TestQuantityDisplay:
                 1234567,
                 "m",
                 ",",
-                None,
                 "1,234,567.0 m",
                 id="thousands_separator",
             ),
@@ -1120,7 +1109,6 @@ class TestQuantityDisplay:
                 1234567,
                 "m",
                 "_",
-                None,
                 "1_234_567.0 m",
                 id="custom_separator",
             ),
@@ -1128,7 +1116,6 @@ class TestQuantityDisplay:
                 u.Quantity(2.5 - 1.2j),
                 None,
                 ".2f",
-                None,
                 "2.50-1.20j",
                 id="complex_number_float_format",
             ),
@@ -1136,19 +1123,14 @@ class TestQuantityDisplay:
                 u.Quantity(2.5 - 1.2j),
                 None,
                 ".2e",
-                None,
                 "2.50e+00-1.20e+00j",
                 id="complex_number_scientific_notation",
             ),
         ],
     )
-    def test_format_spec(
-        self, input_value, input_unit, format_spec, format, expected_result
-    ):
+    def test_format_spec(self, input_value, input_unit, format_spec, expected_result):
         qscalar = u.Quantity(input_value, input_unit)
-        assert (
-            qscalar.to_string(formatter=format_spec, format=format) == expected_result
-        )
+        assert qscalar.to_string(formatter=format_spec) == expected_result
 
     @pytest.mark.parametrize(
         "input_value, input_unit, format_spec, format, expected_result",
@@ -1236,12 +1218,11 @@ class TestQuantityDisplay:
         )
 
     @pytest.mark.parametrize(
-        "input_quantity, formatter, format, expected_result",
+        "input_quantity, formatter, expected_result",
         [
             pytest.param(
                 1.2345 * u.kg,
                 lambda x: f"{float(x):.2f}",
-                None,
                 r"1.23 kg",
                 id="explicit_formatting",
             ),
@@ -1251,14 +1232,13 @@ class TestQuantityDisplay:
                     "float": lambda x: f"{float(x):.1f}",
                     "int": lambda x: f"{float(x):.3f}",
                 },
-                None,
                 r"35.0 lyr",
                 id="dictionary_formatters",
             ),
         ],
     )
-    def test_formatter(self, input_quantity, formatter, format, expected_result):
-        result = input_quantity.to_string(formatter=formatter, format=format)
+    def test_formatter(self, input_quantity, formatter, expected_result):
+        result = input_quantity.to_string(formatter=formatter)
         assert result == expected_result
 
     @pytest.mark.parametrize(
