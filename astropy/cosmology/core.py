@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import abc
 import inspect
-from dataclasses import dataclass
+from dataclasses import KW_ONLY, dataclass
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
@@ -63,6 +63,24 @@ class CosmologyError(Exception):
     pass
 
 
+# TODO: replace with `field(converter=lambda x: None if x is None else str(x))` when
+#       the `converter` argument is available in `field` (py3.13, maybe?).
+#       See https://peps.python.org/pep-0712/
+@dataclass(frozen=True, slots=True)
+class _NameField:
+    default: str | None = None
+
+    def __get__(self, instance: Cosmology | None, owner: type) -> str:
+        # Called from the class. `dataclass` uses this to create ``__init__``.
+        if instance is None:
+            return self.default
+        # Called from the instance
+        return instance._name
+
+    def __set__(self, instance: Cosmology, value: str | None) -> None:
+        object.__setattr__(instance, "_name", (None if value is None else str(value)))
+
+
 @dataclass_decorator
 class Cosmology(metaclass=abc.ABCMeta):
     """Base-class for all Cosmologies.
@@ -91,6 +109,10 @@ class Cosmology(metaclass=abc.ABCMeta):
     and with various I/O methods. To turn off or change this registration,
     override the ``_register_cls`` classmethod in the subclass.
     """
+
+    _: KW_ONLY
+    name: _NameField = _NameField()
+    """The name of the cosmology realization, e.g. 'Planck2018' or `None`."""
 
     meta = MetaData()
 
@@ -178,13 +200,8 @@ class Cosmology(metaclass=abc.ABCMeta):
     # ---------------------------------------------------------------
 
     def __init__(self, name=None, meta=None):
-        self._name = str(name) if name is not None else name
+        all_cls_vars(self)["name"].__set__(self, name)
         self.meta.update(meta or {})
-
-    @property
-    def name(self):
-        """The name of the Cosmology instance."""
-        return self._name
 
     @property
     @abc.abstractmethod
