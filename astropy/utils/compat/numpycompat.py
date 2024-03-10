@@ -30,6 +30,7 @@ COPY_IF_NEEDED = False if NUMPY_LT_2_0 else None
 
 
 def sanitize_copy_arg(copy, /):
+    return copy
     if not NUMPY_LT_2_0 and copy is False:
         return None
 
