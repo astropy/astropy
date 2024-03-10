@@ -1087,7 +1087,8 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
         super().test_clone_to_nonflat_change_param(cosmo)
 
         # change Ode0, without non-flat
-        with pytest.raises(TypeError):
+        msg = "Cannot set 'Ode0' in clone unless 'to_nonflat=True'. "
+        with pytest.raises(ValueError, match=msg):
             cosmo.clone(Ode0=1)
 
         # change to non-flat
