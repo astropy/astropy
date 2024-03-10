@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import inspect
 from abc import ABCMeta, abstractmethod
-from dataclasses import KW_ONLY, dataclass
+from dataclasses import KW_ONLY, dataclass, replace
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
@@ -248,14 +248,7 @@ class Cosmology(metaclass=ABCMeta):
 
         # mix new meta into existing, preferring the former.
         meta = meta if meta is not None else {}
-        new_meta = {**self.meta, **meta}
-        # Mix kwargs into initial arguments, preferring the former.
-        new_init = {**self.parameters, "meta": new_meta, **kwargs}
-        # Create BoundArgument to handle args versus kwargs.
-        # This also handles all errors from mismatched arguments
-        ba = self._init_signature.bind_partial(**new_init)
-        # Instantiate, respecting args vs kwargs
-        cloned = type(self)(*ba.args, **ba.kwargs)
+        cloned = replace(self, meta=self.meta | meta, **kwargs)
 
         # Check if nothing has changed.
         # TODO! or should return self?
