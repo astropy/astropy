@@ -12,6 +12,7 @@ import warnings
 
 import numpy as np
 
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import isiterable
@@ -910,7 +911,7 @@ class UnitBase:
         try:
             from .quantity import Quantity
 
-            return Quantity(m, self, copy=False, subok=True)
+            return Quantity(m, self, copy=COPY_IF_NEEDED, subok=True)
         except Exception:
             if isinstance(m, np.ndarray):
                 raise

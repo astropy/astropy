@@ -19,7 +19,7 @@ import builtins
 
 import numpy as np
 
-from astropy.utils.compat import NUMPY_LT_2_0, sanitize_copy_arg
+from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0, sanitize_copy_arg
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.shapes import NDArrayShapeMethods
 
@@ -287,7 +287,7 @@ class Masked(NDArrayShapeMethods):
             data = getattr(self.unmasked, method)(*args, **kwargs)
             mask = getattr(self.mask, method)(*args, **kwargs)
 
-        result = self.from_unmasked(data, mask, copy=False)
+        result = self.from_unmasked(data, mask, copy=COPY_IF_NEEDED)
         if "info" in self.__dict__:
             result.info = self.info
 

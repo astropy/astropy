@@ -32,6 +32,7 @@ from astropy.coordinates.representation import (
 )
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose_quantity
 from astropy.utils import isiterable
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import DuplicateRepresentationWarning
 
 # create matrices for use in testing ``.transform()`` methods
@@ -1737,7 +1738,7 @@ class TestCartesianRepresentationWithDifferential:
 
         # make sure other kwargs are handled properly
         s1 = CartesianRepresentation(
-            x=1, y=2, z=3, differentials=diff, copy=False, unit=u.kpc
+            x=1, y=2, z=3, differentials=diff, copy=COPY_IF_NEEDED, unit=u.kpc
         )
         assert len(s1.differentials) == 1
         assert s1.differentials["s"] is diff

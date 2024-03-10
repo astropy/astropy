@@ -6,6 +6,7 @@ import numpy as np
 # Project
 from astropy import units as u
 from astropy.utils import ShapedLikeNDArray
+from astropy.utils.compat import COPY_IF_NEEDED
 
 __all__ = [
     "Attribute",
@@ -341,7 +342,7 @@ class QuantityAttribute(Attribute):
             )
 
         oldvalue = value
-        value = u.Quantity(oldvalue, self.unit, copy=False)
+        value = u.Quantity(oldvalue, self.unit, copy=COPY_IF_NEEDED)
         if self.shape is not None and value.shape != self.shape:
             if value.shape == () and oldvalue == 0:
                 # Allow a single 0 to fill whatever shape is needed.

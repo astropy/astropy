@@ -15,6 +15,7 @@ import numpy as np
 
 from astropy.units import Quantity
 from astropy.utils import isiterable
+from astropy.utils.compat import COPY_IF_NEEDED
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -551,7 +552,9 @@ class _BoundingDomain(abc.ABC):
         List containing filled in output values and units
         """
         if valid_outputs_unit is not None:
-            return Quantity(outputs, valid_outputs_unit, copy=False, subok=True)
+            return Quantity(
+                outputs, valid_outputs_unit, copy=COPY_IF_NEEDED, subok=True
+            )
 
         return outputs
 

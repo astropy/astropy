@@ -14,6 +14,7 @@ from astropy.coordinates.transformations import (
     DynamicMatrixTransform,
     FunctionTransformWithFiniteDifference,
 )
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import format_doc
 
 from .baseradec import BaseRADecFrame, doc_components
@@ -153,7 +154,11 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
     # the observing time/epoch) of the coordinates. See issue #1496 for a
     # discussion of this.
     eterms_a = CartesianRepresentation(
-        u.Quantity(fk4_e_terms(fk4coord.equinox), u.dimensionless_unscaled, copy=False),
+        u.Quantity(
+            fk4_e_terms(fk4coord.equinox),
+            u.dimensionless_unscaled,
+            copy=COPY_IF_NEEDED,
+        ),
         copy=False,
     )
     rep = rep - eterms_a + eterms_a.dot(rep) * rep
@@ -203,7 +208,9 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
     # discussion of this.
     eterms_a = CartesianRepresentation(
         u.Quantity(
-            fk4_e_terms(fk4noecoord.equinox), u.dimensionless_unscaled, copy=False
+            fk4_e_terms(fk4noecoord.equinox),
+            u.dimensionless_unscaled,
+            copy=COPY_IF_NEEDED,
         ),
         copy=False,
     )
