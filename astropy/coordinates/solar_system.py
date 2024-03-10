@@ -14,6 +14,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.constants import c as speed_of_light
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.data import download_file
 from astropy.utils.decorators import classproperty, deprecated
 from astropy.utils.state import ScienceState
@@ -266,11 +267,14 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None, get_velocity=True):
                     body_pv_bary = erfa.pvppv(body_pv_helio, sun_pv_bary)
 
             body_pos_bary = CartesianRepresentation(
-                body_pv_bary["p"], unit=u.au, xyz_axis=-1, copy=False
+                body_pv_bary["p"], unit=u.au, xyz_axis=-1, copy=COPY_IF_NEEDED
             )
             if get_velocity:
                 body_vel_bary = CartesianRepresentation(
-                    body_pv_bary["v"], unit=u.au / u.day, xyz_axis=-1, copy=False
+                    body_pv_bary["v"],
+                    unit=u.au / u.day,
+                    xyz_axis=-1,
+                    copy=COPY_IF_NEEDED,
                 )
 
         else:

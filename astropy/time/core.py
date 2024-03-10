@@ -28,7 +28,7 @@ from astropy import units as u
 from astropy.extern import _strptime
 from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray, lazyproperty
-from astropy.utils.compat import PYTHON_LT_3_11, sanitize_copy_arg
+from astropy.utils.compat import COPY_IF_NEEDED, PYTHON_LT_3_11, sanitize_copy_arg
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
@@ -1736,7 +1736,7 @@ class TimeBase(ShapedLikeNDArray):
             val2=jd2,
             format="jd",
             scale=self.scale,
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
         result.format = self.format
         return result
@@ -2458,7 +2458,7 @@ class Time(TimeBase):
             longitude = longitude.lon
         else:
             # Sanity check on input; default unit is degree.
-            longitude = Longitude(longitude, u.degree, copy=False)
+            longitude = Longitude(longitude, u.degree, copy=COPY_IF_NEEDED)
 
         theta = self._call_erfa(function, scales)
 
@@ -3102,7 +3102,7 @@ class TimeDelta(TimeBase):
         # If other is something consistent with a dimensionless quantity
         # (could just be a float or an array), then we can just multiple in.
         try:
-            other = u.Quantity(other, u.dimensionless_unscaled, copy=False)
+            other = u.Quantity(other, u.dimensionless_unscaled, copy=COPY_IF_NEEDED)
         except Exception:
             # If not consistent with a dimensionless quantity, try downgrading
             # self to a quantity and see if things work.
@@ -3135,7 +3135,7 @@ class TimeDelta(TimeBase):
         # If other is something consistent with a dimensionless quantity
         # (could just be a float or an array), then we can just divide in.
         try:
-            other = u.Quantity(other, u.dimensionless_unscaled, copy=False)
+            other = u.Quantity(other, u.dimensionless_unscaled, copy=COPY_IF_NEEDED)
         except Exception:
             # If not consistent with a dimensionless quantity, try downgrading
             # self to a quantity and see if things work.
@@ -3353,7 +3353,7 @@ class ScaleValueError(Exception):
     pass
 
 
-def _make_array(val, copy=False):
+def _make_array(val, copy=COPY_IF_NEEDED):
     """
     Take ``val`` and convert/reshape to an array.  If ``copy`` is `True`
     then copy input values.

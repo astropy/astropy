@@ -4,6 +4,8 @@
 
 import numbers
 
+from astropy.utils.compat import COPY_IF_NEEDED
+
 from . import (
     astrophys,
     cgs,
@@ -541,7 +543,7 @@ def get_physical_type(obj):
         unit = obj
     else:
         try:
-            unit = quantity.Quantity(obj, copy=False).unit
+            unit = quantity.Quantity(obj, copy=COPY_IF_NEEDED).unit
         except TypeError as exc:
             raise TypeError(f"{obj} does not correspond to a physical type.") from exc
 

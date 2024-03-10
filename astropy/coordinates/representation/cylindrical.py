@@ -7,6 +7,7 @@ import numpy as np
 
 import astropy.units as u
 from astropy.coordinates.angles import Angle
+from astropy.utils.compat import COPY_IF_NEEDED
 
 from .base import BaseDifferential, BaseRepresentation
 from .cartesian import CartesianRepresentation
@@ -78,9 +79,9 @@ class CylindricalRepresentation(BaseRepresentation):
         sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
         l = np.broadcast_to(1.0, self.shape)
         return {
-            "rho": CartesianRepresentation(cosphi, sinphi, 0, copy=False),
-            "phi": CartesianRepresentation(-sinphi, cosphi, 0, copy=False),
-            "z": CartesianRepresentation(0, 0, l, unit=u.one, copy=False),
+            "rho": CartesianRepresentation(cosphi, sinphi, 0, copy=COPY_IF_NEEDED),
+            "phi": CartesianRepresentation(-sinphi, cosphi, 0, copy=COPY_IF_NEEDED),
+            "z": CartesianRepresentation(0, 0, l, unit=u.one, copy=COPY_IF_NEEDED),
         }
 
     def scale_factors(self):
@@ -122,7 +123,7 @@ class CylindricalRepresentation(BaseRepresentation):
         z_op = lambda x: op(x, *args)
 
         result = self.__class__(
-            rho_op(self.rho), phi_op(self.phi), z_op(self.z), copy=False
+            rho_op(self.rho), phi_op(self.phi), z_op(self.z), copy=COPY_IF_NEEDED
         )
         for key, differential in self.differentials.items():
             new_comps = (

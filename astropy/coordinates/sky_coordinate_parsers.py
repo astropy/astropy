@@ -7,6 +7,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.units import IrreducibleUnit, Unit
+from astropy.utils.compat import COPY_IF_NEEDED
 
 from .baseframe import (
     BaseCoordinateFrame,
@@ -553,7 +554,9 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
         for frame_attr_name, repr_attr_class, value, unit in zip(
             frame_attr_names, repr_attr_classes, values, units
         ):
-            components[frame_attr_name] = repr_attr_class(value, unit=unit, copy=False)
+            components[frame_attr_name] = repr_attr_class(
+                value, unit=unit, copy=COPY_IF_NEEDED
+            )
     except Exception as err:
         raise ValueError(
             f'Cannot parse first argument data "{value}" for attribute'

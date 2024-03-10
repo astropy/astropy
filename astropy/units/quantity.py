@@ -241,7 +241,7 @@ class QuantityInfo(QuantityInfoBase):
             key: (data if key == "value" else getattr(cols[-1], key))
             for key in self._represent_as_dict_attrs
         }
-        map["copy"] = False
+        map["copy"] = COPY_IF_NEEDED
         out = self._construct_from_dict(map)
 
         # Set remaining info attributes
@@ -2223,9 +2223,9 @@ def allclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False) -> bool:
 
 
 def _unquantify_allclose_arguments(actual, desired, rtol, atol):
-    actual = Quantity(actual, subok=True, copy=False)
+    actual = Quantity(actual, subok=True, copy=COPY_IF_NEEDED)
 
-    desired = Quantity(desired, subok=True, copy=False)
+    desired = Quantity(desired, subok=True, copy=COPY_IF_NEEDED)
     try:
         desired = desired.to(actual.unit)
     except UnitsError:
@@ -2241,7 +2241,7 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
         # units for a and b.
         atol = Quantity(0)
     else:
-        atol = Quantity(atol, subok=True, copy=False)
+        atol = Quantity(atol, subok=True, copy=COPY_IF_NEEDED)
         try:
             atol = atol.to(actual.unit)
         except UnitsError:
@@ -2250,7 +2250,7 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
                 f"({actual.unit}) are not convertible"
             )
 
-    rtol = Quantity(rtol, subok=True, copy=False)
+    rtol = Quantity(rtol, subok=True, copy=COPY_IF_NEEDED)
     try:
         rtol = rtol.to(dimensionless_unscaled)
     except Exception:
