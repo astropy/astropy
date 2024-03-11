@@ -454,11 +454,7 @@ def convolve(
         return new_result
     if array_dtype.kind == "f":
         # Try to preserve the input type if it's a floating point type
-        # Avoid making another copy if possible
-        try:
-            return result.astype(array_dtype, copy=False)
-        except TypeError:
-            return result.astype(array_dtype)
+        return result.astype(array_dtype, copy=False)
     else:
         return result
 
