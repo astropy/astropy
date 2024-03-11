@@ -3,8 +3,6 @@
 This module defines structured units and quantities.
 """
 
-from __future__ import annotations  # For python < 3.10
-
 # Standard library
 import operator
 
