@@ -212,7 +212,9 @@ class TestSphericalRepresentation:
         lat = Latitude([5, 6] * u.deg)
         distance = Distance([1, 2] * u.kpc)
 
-        s1 = SphericalRepresentation(lon=lon, lat=lat, distance=distance, copy=False)
+        s1 = SphericalRepresentation(
+            lon=lon, lat=lat, distance=distance, copy=COPY_IF_NEEDED
+        )
 
         lon[:] = [1, 2] * u.rad
         lat[:] = [3, 4] * u.arcmin
@@ -226,7 +228,7 @@ class TestSphericalRepresentation:
         """Regression test against #2983"""
         lon = Longitude(np.float32([1.0, 2.0]), u.degree)
         lat = Latitude(np.float32([3.0, 4.0]), u.degree)
-        s1 = UnitSphericalRepresentation(lon=lon, lat=lat, copy=False)
+        s1 = UnitSphericalRepresentation(lon=lon, lat=lat, copy=COPY_IF_NEEDED)
         assert s1.lon.dtype == np.float32
         assert s1.lat.dtype == np.float32
         assert s1._values["lon"].dtype == np.float32
@@ -270,13 +272,16 @@ class TestSphericalRepresentation:
 
     def test_broadcasting_and_nocopy(self):
         s1 = SphericalRepresentation(
-            lon=[200] * u.deg, lat=[0] * u.deg, distance=[0] * u.kpc, copy=False
+            lon=[200] * u.deg,
+            lat=[0] * u.deg,
+            distance=[0] * u.kpc,
+            copy=COPY_IF_NEEDED,
         )
         # With no copying, we should be able to modify the wrap angle of the longitude component
         s1.lon.wrap_angle = 180 * u.deg
 
         s2 = SphericalRepresentation(
-            lon=[200] * u.deg, lat=0 * u.deg, distance=0 * u.kpc, copy=False
+            lon=[200] * u.deg, lat=0 * u.deg, distance=0 * u.kpc, copy=COPY_IF_NEEDED
         )
         # We should be able to modify the wrap angle of the longitude component even if other
         # components need to be broadcasted
@@ -557,7 +562,7 @@ class TestUnitSphericalRepresentation:
         lon = Longitude([8, 9] * u.hourangle)
         lat = Latitude([5, 6] * u.deg)
 
-        s1 = UnitSphericalRepresentation(lon=lon, lat=lat, copy=False)
+        s1 = UnitSphericalRepresentation(lon=lon, lat=lat, copy=COPY_IF_NEEDED)
 
         lon[:] = [1, 2] * u.rad
         lat[:] = [3, 4] * u.arcmin
@@ -745,7 +750,9 @@ class TestPhysicsSphericalRepresentation:
         theta = Angle([5, 6] * u.deg)
         r = Distance([1, 2] * u.kpc)
 
-        s1 = PhysicsSphericalRepresentation(phi=phi, theta=theta, r=r, copy=False)
+        s1 = PhysicsSphericalRepresentation(
+            phi=phi, theta=theta, r=r, copy=COPY_IF_NEEDED
+        )
 
         phi[:] = [1, 2] * u.rad
         theta[:] = [3, 4] * u.arcmin
@@ -1068,7 +1075,7 @@ class TestCartesianRepresentation:
         y = [5, 6, 7] * u.Mpc
         z = [2, 3, 4] * u.kpc
 
-        s1 = CartesianRepresentation(x=x, y=y, z=z, copy=False)
+        s1 = CartesianRepresentation(x=x, y=y, z=z, copy=COPY_IF_NEEDED)
 
         x[:] = [1, 2, 3] * u.kpc
         y[:] = [9, 9, 8] * u.kpc
@@ -1080,7 +1087,7 @@ class TestCartesianRepresentation:
 
     def test_xyz_is_view_if_possible(self):
         xyz = np.arange(1.0, 10.0).reshape(3, 3)
-        s1 = CartesianRepresentation(xyz, unit=u.kpc, copy=False)
+        s1 = CartesianRepresentation(xyz, unit=u.kpc, copy=COPY_IF_NEEDED)
         s1_xyz = s1.xyz
         assert s1_xyz.value[0, 0] == 1.0
         xyz[0, 0] = 0.0
@@ -1088,7 +1095,7 @@ class TestCartesianRepresentation:
         assert s1_xyz.value[0, 0] == 0.0
         # Not possible: we don't check that tuples are from the same array
         xyz = np.arange(1.0, 10.0).reshape(3, 3)
-        s2 = CartesianRepresentation(*xyz, unit=u.kpc, copy=False)
+        s2 = CartesianRepresentation(*xyz, unit=u.kpc, copy=COPY_IF_NEEDED)
         s2_xyz = s2.xyz
         assert s2_xyz.value[0, 0] == 1.0
         xyz[0, 0] = 0.0
@@ -1270,7 +1277,7 @@ class TestCylindricalRepresentation:
         phi = [5, 6, 7] * u.deg
         z = [2, 3, 4] * u.kpc
 
-        s1 = CylindricalRepresentation(rho=rho, phi=phi, z=z, copy=False)
+        s1 = CylindricalRepresentation(rho=rho, phi=phi, z=z, copy=COPY_IF_NEEDED)
 
         rho[:] = [9, 2, 3] * u.kpc
         phi[:] = [1, 2, 3] * u.arcmin
@@ -1638,7 +1645,7 @@ def test_minimal_subclass():
             x = d * np.cos(self.lat) * np.cos(self.lon)
             y = d * np.cos(self.lat) * np.sin(self.lon)
             z = d * np.sin(self.lat)
-            return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+            return CartesianRepresentation(x=x, y=y, z=z, copy=COPY_IF_NEEDED)
 
         @classmethod
         def from_cartesian(cls, cart):
@@ -1646,7 +1653,7 @@ def test_minimal_subclass():
             r = np.hypot(s, cart.z)
             lon = np.arctan2(cart.y, cart.x)
             lat = np.arctan2(cart.z, s)
-            return cls(lon=lon, lat=lat, logd=u.Dex(r), copy=False)
+            return cls(lon=lon, lat=lat, logd=u.Dex(r), copy=COPY_IF_NEEDED)
 
     ld1 = LogDRepresentation(90.0 * u.deg, 0.0 * u.deg, 1.0 * u.dex(u.kpc))
     ld2 = LogDRepresentation(lon=90.0 * u.deg, lat=0.0 * u.deg, logd=1.0 * u.dex(u.kpc))
@@ -2096,9 +2103,11 @@ def unitphysics():
             sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
             sintheta, costheta = np.sin(self.theta), np.cos(self.theta)
             return {
-                "phi": CartesianRepresentation(-sinphi, cosphi, 0.0, copy=False),
+                "phi": CartesianRepresentation(
+                    -sinphi, cosphi, 0.0, copy=COPY_IF_NEEDED
+                ),
                 "theta": CartesianRepresentation(
-                    costheta * cosphi, costheta * sinphi, -sintheta, copy=False
+                    costheta * cosphi, costheta * sinphi, -sintheta, copy=COPY_IF_NEEDED
                 ),
             }
 
@@ -2112,7 +2121,7 @@ def unitphysics():
             y = np.sin(self.theta) * np.sin(self.phi)
             z = np.cos(self.theta)
 
-            return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+            return CartesianRepresentation(x=x, y=y, z=z, copy=COPY_IF_NEEDED)
 
         @classmethod
         def from_cartesian(cls, cart):
@@ -2125,10 +2134,12 @@ def unitphysics():
             phi = np.arctan2(cart.y, cart.x)
             theta = np.arctan2(s, cart.z)
 
-            return cls(phi=phi, theta=theta, copy=False)
+            return cls(phi=phi, theta=theta, copy=COPY_IF_NEEDED)
 
         def norm(self):
-            return u.Quantity(np.ones(self.shape), u.dimensionless_unscaled, copy=False)
+            return u.Quantity(
+                np.ones(self.shape), u.dimensionless_unscaled, copy=COPY_IF_NEEDED
+            )
 
     PhysicsSphericalRepresentation._unit_representation = (
         UnitPhysicsSphericalRepresentation

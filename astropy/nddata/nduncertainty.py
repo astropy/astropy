@@ -9,6 +9,7 @@ import numpy as np
 # from astropy.utils.compat import ignored
 from astropy import log
 from astropy.units import Quantity, Unit, UnitConversionError
+from astropy.utils.compat import COPY_IF_NEEDED
 
 __all__ = [
     "MissingDataAssociationException",
@@ -213,7 +214,9 @@ class NDUncertainty(metaclass=ABCMeta):
         """
         This uncertainty as an `~astropy.units.Quantity` object.
         """
-        return Quantity(self.array, self.unit, copy=False, dtype=self.array.dtype)
+        return Quantity(
+            self.array, self.unit, copy=COPY_IF_NEEDED, dtype=self.array.dtype
+        )
 
     @property
     def parent_nddata(self):

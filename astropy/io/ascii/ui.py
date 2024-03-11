@@ -22,6 +22,7 @@ from io import StringIO
 import numpy as np
 
 from astropy.table import Table
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.data import get_readable_fileobj
 from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyWarning
@@ -812,7 +813,9 @@ def _read_in_chunks(table, **kwargs):
 
     # Make final table from numpy arrays, converting dict to list
     out_cols = [out_cols[name] for name in tbl0.colnames]
-    out = tbl0.__class__(out_cols, names=tbl0.colnames, meta=tbl0.meta, copy=False)
+    out = tbl0.__class__(
+        out_cols, names=tbl0.colnames, meta=tbl0.meta, copy=COPY_IF_NEEDED
+    )
 
     return out
 
@@ -1000,10 +1003,10 @@ def write(
     if isinstance(table, Table):
         # While we are only going to read data from columns, we may need to
         # to adjust info attributes such as format, so we make a shallow copy.
-        table = table.__class__(table, names=names, copy=False)
+        table = table.__class__(table, names=names, copy=COPY_IF_NEEDED)
     else:
         # Otherwise, create a table from the input.
-        table = Table(table, names=names, copy=False)
+        table = Table(table, names=names, copy=COPY_IF_NEEDED)
 
     table0 = table[:0].copy()
     core._apply_include_exclude_names(

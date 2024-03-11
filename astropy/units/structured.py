@@ -10,7 +10,7 @@ import operator
 
 import numpy as np
 
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_24
+from astropy.utils.compat.numpycompat import COPY_IF_NEEDED, NUMPY_LT_1_24
 
 from .core import UNITY, Unit, UnitBase
 
@@ -486,7 +486,7 @@ class StructuredUnit:
         try:
             from .quantity import Quantity
 
-            return Quantity(m, self, copy=False, subok=True)
+            return Quantity(m, self, copy=COPY_IF_NEEDED, subok=True)
         except Exception:
             return NotImplemented
 

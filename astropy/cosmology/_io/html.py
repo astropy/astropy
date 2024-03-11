@@ -85,13 +85,13 @@ enable this, set ``latex_names=True``.
 
     >>> temp_dir.cleanup()
 """
-
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology.connect import readwrite_registry
 from astropy.cosmology.core import Cosmology
 from astropy.cosmology.parameter import Parameter
 from astropy.table import QTable
+from astropy.utils.compat import COPY_IF_NEEDED
 
 from .table import from_table, to_table
 
@@ -317,7 +317,7 @@ def write_html_table(
         if not isinstance(param, Parameter) or param.unit in (None, u.one):
             continue
         # Replace column with unitless version
-        table.replace_column(name, (col << param.unit).value, copy=False)
+        table.replace_column(name, (col << param.unit).value, copy=COPY_IF_NEEDED)
 
     if latex_names:
         new_names = [_FORMAT_TABLE.get(k, k) for k in cosmology.parameters]

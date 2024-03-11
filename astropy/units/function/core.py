@@ -755,7 +755,7 @@ class FunctionQuantity(Quantity):
         except UnitTypeError:
             return NotImplemented
 
-        return self.__class__(self, other, copy=False, subok=True)
+        return self.__class__(self, other, copy=COPY_IF_NEEDED, subok=True)
 
     # Ensure Quantity methods are used only if they make sense.
     def _wrap_function(self, function, *args, **kwargs):

@@ -55,7 +55,7 @@ class Row:
         except (KeyError, TypeError):
             if self._table._is_list_or_tuple_of_str(item):
                 cols = [self._table[name] for name in item]
-                out = self._table.__class__(cols, copy=False)[self._index]
+                out = self._table.__class__(cols, copy=COPY_IF_NEEDED)[self._index]
             elif isinstance(item, slice):
                 # https://github.com/astropy/astropy/issues/14007
                 out = tuple(self.values())[item]

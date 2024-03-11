@@ -8,6 +8,7 @@ from astropy import units as u
 from astropy.time import Time, TimeDelta
 from astropy.timeseries.binned import BinnedTimeSeries
 from astropy.timeseries.sampled import TimeSeries
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ["aggregate_downsample"]
@@ -256,7 +257,9 @@ def aggregate_downsample(
         if isinstance(values, u.Quantity):
             data = u.Quantity(np.repeat(np.nan, n_bins), unit=values.unit)
             data[unique_indices] = u.Quantity(
-                reduceat(values.value, groups, aggregate_func), values.unit, copy=False
+                reduceat(values.value, groups, aggregate_func),
+                values.unit,
+                copy=COPY_IF_NEEDED,
             )
         else:
             data = np.ma.zeros(n_bins, dtype=values.dtype)

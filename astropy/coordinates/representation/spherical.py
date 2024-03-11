@@ -101,7 +101,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         """
         # erfa s2c: Convert [unit]spherical coordinates to Cartesian.
         p = erfa_ufunc.s2c(self.lon, self.lat)
-        return CartesianRepresentation(p, xyz_axis=-1, copy=False)
+        return CartesianRepresentation(p, xyz_axis=-1, copy=COPY_IF_NEEDED)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -111,7 +111,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         """
         p = cart.get_xyz(xyz_axis=-1)
         # erfa c2s: P-vector to [unit]spherical coordinates.
-        return cls(*erfa_ufunc.c2s(p), copy=False)
+        return cls(*erfa_ufunc.c2s(p), copy=COPY_IF_NEEDED)
 
     def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
@@ -192,7 +192,9 @@ class UnitSphericalRepresentation(BaseRepresentation):
         ):
             return super().__neg__()
 
-        result = self.__class__(self.lon + 180.0 * u.deg, -self.lat, copy=False)
+        result = self.__class__(
+            self.lon + 180.0 * u.deg, -self.lat, copy=COPY_IF_NEEDED
+        )
         for key, differential in self.differentials.items():
             new_comps = (
                 op(getattr(differential, comp))
@@ -200,7 +202,9 @@ class UnitSphericalRepresentation(BaseRepresentation):
                     (operator.pos, operator.neg), differential.components
                 )
             )
-            result.differentials[key] = differential.__class__(*new_comps, copy=False)
+            result.differentials[key] = differential.__class__(
+                *new_comps, copy=COPY_IF_NEEDED
+            )
         return result
 
     def norm(self):
@@ -215,7 +219,9 @@ class UnitSphericalRepresentation(BaseRepresentation):
         norm : `~astropy.units.Quantity` ['dimensionless']
             Dimensionless ones, with the same shape as the representation.
         """
-        return u.Quantity(np.ones(self.shape), u.dimensionless_unscaled, copy=False)
+        return u.Quantity(
+            np.ones(self.shape), u.dimensionless_unscaled, copy=COPY_IF_NEEDED
+        )
 
     def _combine_operation(self, op, other, reverse=False):
         self._raise_if_has_differentials(op.__name__)
@@ -341,7 +347,7 @@ class RadialRepresentation(BaseRepresentation):
         """
         Converts 3D rectangular cartesian coordinates to radial coordinate.
         """
-        return cls(distance=cart.norm(), copy=False)
+        return cls(distance=cart.norm(), copy=COPY_IF_NEEDED)
 
     def __mul__(self, other):
         if isinstance(other, BaseRepresentation):
@@ -455,7 +461,7 @@ class SphericalRepresentation(BaseRepresentation):
             and self._distance.unit.physical_type == "length"
         ):
             try:
-                self._distance = Distance(self._distance, copy=False)
+                self._distance = Distance(self._distance, copy=COPY_IF_NEEDED)
             except ValueError as e:
                 if e.args[0].startswith("distance must be >= 0"):
                     raise ValueError(
@@ -528,7 +534,7 @@ class SphericalRepresentation(BaseRepresentation):
                     theta=90 * u.deg - self.lat,
                     r=self.distance,
                     differentials=diffs,
-                    copy=False,
+                    copy=COPY_IF_NEEDED,
                 )
 
             elif issubclass(other_class, UnitSphericalRepresentation):
@@ -536,7 +542,7 @@ class SphericalRepresentation(BaseRepresentation):
                     other_class, differential_class
                 )
                 return other_class(
-                    lon=self.lon, lat=self.lat, differentials=diffs, copy=False
+                    lon=self.lon, lat=self.lat, differentials=diffs, copy=COPY_IF_NEEDED
                 )
 
         return super().represent_as(other_class, differential_class)
@@ -555,7 +561,7 @@ class SphericalRepresentation(BaseRepresentation):
         # erfa s2p: Convert spherical polar coordinates to p-vector.
         p = erfa_ufunc.s2p(self.lon, self.lat, d)
 
-        return CartesianRepresentation(p, xyz_axis=-1, copy=False)
+        return CartesianRepresentation(p, xyz_axis=-1, copy=COPY_IF_NEEDED)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -565,7 +571,7 @@ class SphericalRepresentation(BaseRepresentation):
         """
         p = cart.get_xyz(xyz_axis=-1)
         # erfa p2s: P-vector to spherical polar coordinates.
-        return cls(*erfa_ufunc.p2s(p), copy=False)
+        return cls(*erfa_ufunc.p2s(p), copy=COPY_IF_NEEDED)
 
     def transform(self, matrix):
         """Transform the spherical coordinates using a 3x3 matrix.
@@ -628,7 +634,9 @@ class SphericalRepresentation(BaseRepresentation):
                     (operator.pos, lat_op, distance_op), differential.components
                 )
             )
-            result.differentials[key] = differential.__class__(*new_comps, copy=False)
+            result.differentials[key] = differential.__class__(
+                *new_comps, copy=COPY_IF_NEEDED
+            )
         return result
 
 
@@ -738,7 +746,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
                     lat=90 * u.deg - self.theta,
                     distance=self.r,
                     differentials=diffs,
-                    copy=False,
+                    copy=COPY_IF_NEEDED,
                 )
             elif issubclass(other_class, UnitSphericalRepresentation):
                 diffs = self._re_represent_differentials(
@@ -748,7 +756,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
                     lon=self.phi,
                     lat=90 * u.deg - self.theta,
                     differentials=diffs,
-                    copy=False,
+                    copy=COPY_IF_NEEDED,
                 )
 
         return super().represent_as(other_class, differential_class)
@@ -768,7 +776,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         y = d * np.sin(self.theta) * np.sin(self.phi)
         z = d * np.cos(self.theta)
 
-        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+        return CartesianRepresentation(x=x, y=y, z=z, copy=COPY_IF_NEEDED)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -782,7 +790,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         phi = np.arctan2(cart.y, cart.x)
         theta = np.arctan2(s, cart.z)
 
-        return cls(phi=phi, theta=theta, r=r, copy=False)
+        return cls(phi=phi, theta=theta, r=r, copy=COPY_IF_NEEDED)
 
     def transform(self, matrix):
         """Transform the spherical coordinates using a 3x3 matrix.
@@ -847,7 +855,9 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
                     (operator.pos, adjust_theta_sign, r_op), differential.components
                 )
             )
-            result.differentials[key] = differential.__class__(*new_comps, copy=False)
+            result.differentials[key] = differential.__class__(
+                *new_comps, copy=COPY_IF_NEEDED
+            )
         return result
 
 
@@ -1371,7 +1381,8 @@ class RadialDifferential(BaseDifferential):
     @classmethod
     def from_cartesian(cls, other, base):
         return cls(
-            other.dot(base.represent_as(UnitSphericalRepresentation)), copy=False
+            other.dot(base.represent_as(UnitSphericalRepresentation)),
+            copy=COPY_IF_NEEDED,
         )
 
     @classmethod
@@ -1391,7 +1402,7 @@ class RadialDifferential(BaseDifferential):
                 first, second = other.distance, self.d_distance
             else:
                 first, second = self.d_distance, other.distance
-            return other.__class__(op(first, second), copy=False)
+            return other.__class__(op(first, second), copy=COPY_IF_NEEDED)
         elif isinstance(
             other, (BaseSphericalDifferential, BaseSphericalCosLatDifferential)
         ):

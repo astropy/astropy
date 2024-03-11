@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from astropy.io import registry
+from astropy.utils.compat import COPY_IF_NEEDED
 
 from .info import serialize_method_as
 
@@ -68,7 +69,7 @@ class TableRead(registry.UnifiedReadWrite):
         # Table <=> QTable.
         if cls is not out.__class__:
             try:
-                out = cls(out, copy=False)
+                out = cls(out, copy=COPY_IF_NEEDED)
             except Exception:
                 raise TypeError(
                     f"could not convert reader output to {cls.__name__} class."

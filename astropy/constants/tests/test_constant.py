@@ -6,6 +6,7 @@ import pytest
 
 from astropy.constants import Constant
 from astropy.units import Quantity as Q
+from astropy.utils.compat import COPY_IF_NEEDED
 
 
 def test_c():
@@ -154,5 +155,5 @@ def test_view():
     assert c3.reference == c.reference
     assert c3.unit == c.unit
 
-    c4 = Q(c, subok=True, copy=False)
+    c4 = Q(c, subok=True, copy=COPY_IF_NEEDED)
     assert c4 is c

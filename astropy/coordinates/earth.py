@@ -165,7 +165,9 @@ class EarthLocationInfo(QuantityInfoBase):
         # geodetic coordinates.
         shape = (length,) + attrs.pop("shape")
         data = u.Quantity(
-            np.zeros(shape=shape, dtype=cols[0].dtype), unit=cols[0].unit, copy=False
+            np.zeros(shape=shape, dtype=cols[0].dtype),
+            unit=cols[0].unit,
+            copy=COPY_IF_NEEDED,
         )
         # Get arguments needed to reconstruct class
         map = {
@@ -280,7 +282,7 @@ class EarthLocation(u.Quantity):
         x, y, z = np.broadcast_arrays(x, y, z, subok=True)
         struc = np.empty_like(x, dtype=cls._location_dtype)
         struc["x"], struc["y"], struc["z"] = x, y, z
-        return super().__new__(cls, struc, unit, copy=False)
+        return super().__new__(cls, struc, unit, copy=COPY_IF_NEEDED)
 
     @classmethod
     def from_geodetic(cls, lon, lat, height=0.0, ellipsoid=None):
@@ -323,7 +325,7 @@ class EarthLocation(u.Quantity):
         if not isinstance(height, u.Quantity):
             height = u.Quantity(height, u.m, copy=COPY_IF_NEEDED)
         # get geocentric coordinates.
-        geodetic = ELLIPSOIDS[ellipsoid](lon, lat, height, copy=False)
+        geodetic = ELLIPSOIDS[ellipsoid](lon, lat, height, copy=COPY_IF_NEEDED)
         xyz = geodetic.to_cartesian().get_xyz(xyz_axis=-1) << height.unit
         self = xyz.view(cls._location_dtype, cls).reshape(geodetic.shape)
         self._ellipsoid = ellipsoid
@@ -631,11 +633,11 @@ class EarthLocation(u.Quantity):
         """
         ellipsoid = _check_ellipsoid(ellipsoid, default=self.ellipsoid)
         xyz = self.view(self._array_dtype, u.Quantity)
-        llh = CartesianRepresentation(xyz, xyz_axis=-1, copy=False).represent_as(
-            ELLIPSOIDS[ellipsoid]
-        )
+        llh = CartesianRepresentation(
+            xyz, xyz_axis=-1, copy=COPY_IF_NEEDED
+        ).represent_as(ELLIPSOIDS[ellipsoid])
         return GeodeticLocation(
-            Longitude(llh.lon, u.deg, wrap_angle=180 * u.deg, copy=False),
+            Longitude(llh.lon, u.deg, wrap_angle=180 * u.deg, copy=COPY_IF_NEEDED),
             llh.lat << u.deg,
             llh.height << self.unit,
         )
@@ -702,7 +704,7 @@ class EarthLocation(u.Quantity):
                 self.x - location.x,
                 self.y - location.y,
                 self.z - location.z,
-                copy=False,
+                copy=COPY_IF_NEEDED,
                 obstime=obstime,
                 location=location,
             )
@@ -760,11 +762,11 @@ class EarthLocation(u.Quantity):
         # Earth's rotation vector in the ref frame is rot_vec_ref = (0,0,OMEGA_EARTH),
         # so in GCRS it is rot_vec_gcrs[..., 2] @ OMEGA_EARTH.
         rot_vec_gcrs = CartesianRepresentation(
-            ref_to_gcrs[..., 2] * OMEGA_EARTH, xyz_axis=-1, copy=False
+            ref_to_gcrs[..., 2] * OMEGA_EARTH, xyz_axis=-1, copy=COPY_IF_NEEDED
         )
         # Get the position in the GCRS frame.
         # Since we just need the cartesian representation of ITRS, avoid get_itrs().
-        itrs_cart = CartesianRepresentation(self.x, self.y, self.z, copy=False)
+        itrs_cart = CartesianRepresentation(self.x, self.y, self.z, copy=COPY_IF_NEEDED)
         pos = itrs_cart.transform(itrs_to_gcrs)
         vel = rot_vec_gcrs.cross(pos)
         return pos, vel

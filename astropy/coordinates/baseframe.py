@@ -22,6 +22,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.utils import ShapedLikeNDArray, check_broadcast
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import deprecated, format_doc, lazyproperty
 from astropy.utils.exceptions import AstropyWarning
 
@@ -1159,7 +1160,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             for comp, new_attr_unit in zip(data.components, new_attrs["units"]):
                 if new_attr_unit:
                     datakwargs[comp] = datakwargs[comp].to(new_attr_unit)
-            data = data.__class__(copy=False, **datakwargs)
+            data = data.__class__(copy=COPY_IF_NEEDED, **datakwargs)
 
         if differential_cls:
             # the original differential
@@ -1202,7 +1203,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                         except Exception:
                             pass
 
-                diff = diff.__class__(copy=False, **diffkwargs)
+                diff = diff.__class__(copy=COPY_IF_NEEDED, **diffkwargs)
 
                 # Here we have to bypass using with_differentials() because
                 # it has a validation check. But because

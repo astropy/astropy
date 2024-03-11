@@ -11,6 +11,7 @@ from astropy.coordinates import EarthLocation, Latitude, Longitude, SkyCoord
 from astropy.coordinates.builtin_frames import GCRS, ICRS, AltAz
 from astropy.time import Time
 from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
+from astropy.utils.compat import COPY_IF_NEEDED
 
 
 @pytest.fixture(params=[True, False] if ARRAY_FUNCTION_ENABLED else [True])
@@ -32,7 +33,7 @@ class TestManipulation:
     """
 
     def setup_class(cls):
-        # For these tests, we set up frames and coordinates using copy=False,
+        # For these tests, we set up frames and coordinates using copy=COPY_IF_NEEDED,
         # so we can check that broadcasting is handled correctly.
         lon = Longitude(np.arange(0, 24, 4), u.hourangle)
         lat = Latitude(np.arange(-90, 91, 30), u.deg)
@@ -40,7 +41,7 @@ class TestManipulation:
         cls.s0 = ICRS(
             lon[:, np.newaxis] * np.ones(lat.shape),
             lat * np.ones(lon.shape)[:, np.newaxis],
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
         # Make an AltAz frame since that has many types of attributes.
         # Match one axis with times.
@@ -60,7 +61,7 @@ class TestManipulation:
             location=cls.location,
             pressure=cls.pressure,
             temperature=cls.temperature,
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
         # For some tests, also try a GCRS, since that has representation
         # attributes.  We match the second dimension (via the location)
@@ -71,17 +72,19 @@ class TestManipulation:
             obstime=cls.obstime,
             obsgeoloc=cls.obsgeoloc,
             obsgeovel=cls.obsgeovel,
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
         # For completeness, also some tests on an empty frame.
         cls.s3 = GCRS(
             obstime=cls.obstime,
             obsgeoloc=cls.obsgeoloc,
             obsgeovel=cls.obsgeovel,
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
         # And make a SkyCoord
-        cls.sc = SkyCoord(ra=lon[:, np.newaxis], dec=lat, frame=cls.s3, copy=False)
+        cls.sc = SkyCoord(
+            ra=lon[:, np.newaxis], dec=lat, frame=cls.s3, copy=COPY_IF_NEEDED
+        )
 
     def test_getitem0101(self):
         # We on purpose take a slice with only one element, as for the

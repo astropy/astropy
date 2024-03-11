@@ -159,7 +159,7 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
             u.dimensionless_unscaled,
             copy=COPY_IF_NEEDED,
         ),
-        copy=False,
+        copy=COPY_IF_NEEDED,
     )
     rep = rep - eterms_a + eterms_a.dot(rep) * rep
 
@@ -212,7 +212,7 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
             u.dimensionless_unscaled,
             copy=COPY_IF_NEEDED,
         ),
-        copy=False,
+        copy=COPY_IF_NEEDED,
     )
 
     rep0 = rep.copy()

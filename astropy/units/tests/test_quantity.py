@@ -162,29 +162,29 @@ class TestQuantityCreation:
             assert q4.dtype == np.float128
 
     def test_copy(self):
-        # By default, a new quantity is constructed, but not if copy=False
+        # By default, a new quantity is constructed, but not if copy=COPY_IF_NEEDED
 
         a = np.arange(10.0)
 
         q0 = u.Quantity(a, unit=u.m / u.s)
         assert q0.base is not a
 
-        q1 = u.Quantity(a, unit=u.m / u.s, copy=False)
+        q1 = u.Quantity(a, unit=u.m / u.s, copy=COPY_IF_NEEDED)
         assert q1.base is a
 
         q2 = u.Quantity(q0)
         assert q2 is not q0
         assert q2.base is not q0.base
 
-        q2 = u.Quantity(q0, copy=False)
+        q2 = u.Quantity(q0, copy=COPY_IF_NEEDED)
         assert q2 is q0
         assert q2.base is q0.base
 
-        q3 = u.Quantity(q0, q0.unit, copy=False)
+        q3 = u.Quantity(q0, q0.unit, copy=COPY_IF_NEEDED)
         assert q3 is q0
         assert q3.base is q0.base
 
-        q4 = u.Quantity(q0, u.cm / u.s, copy=False)
+        q4 = u.Quantity(q0, u.cm / u.s, copy=COPY_IF_NEEDED)
         assert q4 is not q0
         assert q4.base is not q0.base
 
@@ -259,7 +259,7 @@ class TestQuantityCreation:
         assert q2.unit is u.mm
         assert np.all(q2.value == 1000.0 * a)
 
-        q3 = u.Quantity(mylookalike, copy=False)
+        q3 = u.Quantity(mylookalike, copy=COPY_IF_NEEDED)
         assert np.all(q3.value == mylookalike)
         q3[2] = 0
         assert q3[2] == 0.0
@@ -267,7 +267,7 @@ class TestQuantityCreation:
 
         mylookalike = a.copy().view(MyQuantityLookalike)
         mylookalike.unit = u.m
-        q4 = u.Quantity(mylookalike, u.mm, copy=False)
+        q4 = u.Quantity(mylookalike, u.mm, copy=COPY_IF_NEEDED)
         q4[2] = 0
         assert q4[2] == 0.0
         assert mylookalike[2] == 2.0

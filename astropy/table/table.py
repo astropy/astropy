@@ -956,7 +956,7 @@ class Table:
                     for col in self.itercols()
                 ],
                 names=self.colnames,
-                copy=False,
+                copy=COPY_IF_NEEDED,
             )
 
             # Set hidden attribute to force inplace setitem so that code like
@@ -1000,12 +1000,12 @@ class Table:
         """
         if self.masked or self.has_masked_columns or self.has_masked_values:
             # Get new columns with masked values filled, then create Table with those
-            # new cols (copy=False) but deepcopy the meta.
+            # new cols (copy=COPY_IF_NEEDED) but deepcopy the meta.
             data = [
                 col.filled(fill_value) if hasattr(col, "filled") else col
                 for col in self.itercols()
             ]
-            return self.__class__(data, meta=deepcopy(self.meta), copy=False)
+            return self.__class__(data, meta=deepcopy(self.meta), copy=COPY_IF_NEEDED)
         else:
             # Return copy of the original object.
             return self.copy()
@@ -1223,7 +1223,7 @@ class Table:
                 # setting masked values. As of astropy 4.0 the test condition below is
                 # always True since _init_from_dict cannot result in mixin columns.
                 if isinstance(col, Column) and not isinstance(col, MaskedColumn):
-                    self[name] = self.MaskedColumn(col, copy=False)
+                    self[name] = self.MaskedColumn(col, copy=COPY_IF_NEEDED)
 
                 # Finally do the masking in a mixin-safe way.
                 self[name][indexes] = np.ma.masked
@@ -1753,7 +1753,9 @@ class Table:
     def _make_index_row_display_table(self, index_row_name):
         if index_row_name not in self.columns:
             idx_col = self.ColumnClass(name=index_row_name, data=np.arange(len(self)))
-            return self.__class__([idx_col] + list(self.columns.values()), copy=False)
+            return self.__class__(
+                [idx_col] + list(self.columns.values()), copy=COPY_IF_NEEDED
+            )
         else:
             return self
 
@@ -3333,7 +3335,7 @@ class Table:
                         if issubclass(self.ColumnClass, self.MaskedColumn)
                         else self.MaskedColumn
                     )
-                    col = col_cls(col, copy=False)
+                    col = col_cls(col, copy=COPY_IF_NEEDED)
 
                 newcol = col.insert(index, val, axis=0)
 
@@ -3708,7 +3710,7 @@ class Table:
         return self.copy(True)
 
     def __copy__(self):
-        return self.copy(False)
+        return self.copy(COPY_IF_NEEDED)
 
     def __eq__(self, other):
         return self._rows_equal(other)

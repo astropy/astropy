@@ -11,6 +11,7 @@ import numpy as np
 import astropy.units as u
 from astropy.coordinates.angles import Angle
 from astropy.utils import ShapedLikeNDArray, classproperty
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.exceptions import DuplicateRepresentationWarning
 
@@ -911,7 +912,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         # We shallow copy the differentials dictionary so we don't update the
         # current object's dictionary when adding new keys
         new_rep = self.__class__(
-            *args, differentials=self.differentials.copy(), copy=False
+            *args, differentials=self.differentials.copy(), copy=COPY_IF_NEEDED
         )
         new_rep._differentials.update(new_rep._validate_differentials(differentials))
 
@@ -930,7 +931,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             return self
 
         args = [getattr(self, component) for component in self.components]
-        return self.__class__(*args, copy=False)
+        return self.__class__(*args, copy=COPY_IF_NEEDED)
 
     @classmethod
     def from_representation(cls, representation):
@@ -1397,7 +1398,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         base_e, base_sf = cls._get_base_vectors(base)
         return cls(
             *(other.dot(e / base_sf[component]) for component, e in base_e.items()),
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
 
     def represent_as(self, other_class, base):
@@ -1490,7 +1491,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
             in radius.
         """
         scaled_attrs = [op(getattr(self, c), *args) for c in self.components]
-        return self.__class__(*scaled_attrs, copy=False)
+        return self.__class__(*scaled_attrs, copy=COPY_IF_NEEDED)
 
     def _combine_operation(self, op, other, reverse=False):
         """Combine two differentials, or a differential with a representation.

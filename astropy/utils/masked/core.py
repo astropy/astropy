@@ -447,7 +447,7 @@ class MaskedIterator:
             out = out[...]
             mask = mask[...]
 
-        return self._masked.from_unmasked(out, mask, copy=False)
+        return self._masked.from_unmasked(out, mask, copy=COPY_IF_NEEDED)
 
     def __setitem__(self, index, value):
         data, mask = self._masked._get_data_and_mask(value, allow_ma_masked=True)
@@ -461,7 +461,7 @@ class MaskedIterator:
         """
         out = next(self._dataiter)[...]
         mask = next(self._maskiter)[...]
-        return self._masked.from_unmasked(out, mask, copy=False)
+        return self._masked.from_unmasked(out, mask, copy=COPY_IF_NEEDED)
 
     next = __next__
 

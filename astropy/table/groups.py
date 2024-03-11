@@ -6,6 +6,7 @@ from itertools import pairwise
 
 import numpy as np
 
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .index import get_index_by_names
@@ -51,7 +52,7 @@ def _table_group_by(table, keys):
                 )
 
         # Make a column slice of the table without copying
-        table_keys = table.__class__([table[key] for key in keys], copy=False)
+        table_keys = table.__class__([table[key] for key in keys], copy=COPY_IF_NEEDED)
 
         # If available get a pre-existing index for these columns
         table_index = get_index_by_names(table, keys)

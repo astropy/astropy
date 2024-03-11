@@ -28,7 +28,7 @@ from astropy.table import (
 )
 from astropy.tests.helper import PYTEST_LT_8_0, assert_follows_unicode_guidelines
 from astropy.time import Time, TimeDelta
-from astropy.utils.compat import NUMPY_LT_1_25
+from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_1_25
 from astropy.utils.compat.optional_deps import HAS_PANDAS
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
@@ -337,7 +337,7 @@ class TestReverse:
         assert np.all(t["col0"] == np.array([3, 2, 1]))
         assert np.all(t["col1"] == np.array(["cc", "b", "a"]))
 
-        t2 = table_types.Table(t, copy=False)
+        t2 = table_types.Table(t, copy=COPY_IF_NEEDED)
         assert np.all(t2["col0"] == np.array([3, 2, 1]))
         assert np.all(t2["col1"] == np.array(["cc", "b", "a"]))
 
@@ -2383,7 +2383,7 @@ class TestReplaceColumn(SetupData):
     def test_replace_column_no_copy(self):
         t = Table([[1, 2], [3, 4]], names=["a", "b"])
         a = np.array([1.5, 2.5])
-        t.replace_column("a", a, copy=False)
+        t.replace_column("a", a, copy=COPY_IF_NEEDED)
         assert t["a"][0] == a[0]
         t["a"][0] = 10
         assert t["a"][0] == a[0]
@@ -2423,10 +2423,10 @@ class Test__Astropy_Table__:
             return cls(cols, names=names, copy=copy, meta=kwargs or self.meta)
 
     def test_simple_1(self):
-        """Make a SimpleTable and convert to Table, QTable with copy=False, True"""
+        """Make a SimpleTable and convert to Table, QTable with copy=COPY_IF_NEEDED, True"""
         for table_cls in (table.Table, table.QTable):
             col_c_class = u.Quantity if table_cls is table.QTable else table.Column
-            for cpy in (False, True):
+            for cpy in (COPY_IF_NEEDED, True):
                 st = self.SimpleTable()
                 # Test putting in a non-native kwarg `extra_meta` to Table initializer
                 t = table_cls(st, copy=cpy, extra_meta="extra!")
@@ -2548,7 +2548,7 @@ class TestUpdate:
         self._setup()
         t1 = Table([self.a, self.b])
         t2 = Table([self.b, self.c])
-        t1.update(t2, copy=False)
+        t1.update(t2, copy=COPY_IF_NEEDED)
         t2["b"] -= 1
         assert t1.colnames == ["a", "b", "c"]
         assert np.all(t1["a"] == self.a)
@@ -2556,7 +2556,7 @@ class TestUpdate:
         assert np.all(t1["c"] == self.c)
 
         d = {"b": np.array(self.b), "d": np.array(self.d)}
-        t2.update(d, copy=False)
+        t2.update(d, copy=COPY_IF_NEEDED)
         d["b"] *= 2
         assert t2.colnames == ["b", "c", "d"]
         assert np.all(t2["b"] == 2 * self.b)
@@ -2618,8 +2618,8 @@ def test_table_meta_copy():
     assert t2.meta == t.meta
     assert t2.meta[1] is t.meta[1]  # Value IS the list same object
 
-    # Table init with copy=False implies key copy
-    t2 = table.Table(t, copy=False)
+    # Table init with copy=COPY_IF_NEEDED implies key copy
+    t2 = table.Table(t, copy=COPY_IF_NEEDED)
     assert t2.meta is not t.meta  # NOT the same OrderedDict object but equal
     assert t2.meta == t.meta
     assert t2.meta[1] is t.meta[1]  # Value IS the same list object
@@ -2638,15 +2638,15 @@ def test_table_meta_copy_with_meta_arg():
     """
     meta = {1: [1, 2]}
     meta2 = {2: [3, 4]}
-    t = table.Table([[1]], meta=meta, copy=False)
+    t = table.Table([[1]], meta=meta, copy=COPY_IF_NEEDED)
     assert t.meta is meta
 
     t = table.Table([[1]], meta=meta)  # default copy=True
     assert t.meta is not meta
     assert t.meta == meta
 
-    # Test initializing from existing table with meta with copy=False
-    t2 = table.Table(t, meta=meta2, copy=False)
+    # Test initializing from existing table with meta with copy=COPY_IF_NEEDED
+    t2 = table.Table(t, meta=meta2, copy=COPY_IF_NEEDED)
     assert t2.meta is meta2
     assert t2.meta != t.meta  # Change behavior in #8404
 
@@ -2666,8 +2666,8 @@ def test_table_meta_copy_with_meta_arg():
     t2 = table.Table(t, copy=True, meta=None)
     assert t2.meta == t.meta
 
-    # Test initializing empty table with meta with copy=False
-    t = table.Table(meta=meta, copy=False)
+    # Test initializing empty table with meta with copy=COPY_IF_NEEDED
+    t = table.Table(meta=meta, copy=COPY_IF_NEEDED)
     assert t.meta is meta
     assert t.meta[1] is meta[1]
 

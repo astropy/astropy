@@ -131,7 +131,7 @@ class Distance(u.SpecificTypeQuantity):
         if value is None:
             # If something else but `value` was provided then a new array will
             # be created anyways and there is no need to copy that.
-            copy = False
+            copy = COPY_IF_NEEDED
 
         if z is not None:
             if cosmology is None:

@@ -264,7 +264,7 @@ class CartesianRepresentationAttribute(Attribute):
             value = value.to(self.unit)
 
             # now try and make a CartesianRepresentation.
-            cartrep = CartesianRepresentation(value, copy=False)
+            cartrep = CartesianRepresentation(value, copy=COPY_IF_NEEDED)
             return cartrep, converted
 
 

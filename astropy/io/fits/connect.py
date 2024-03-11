@@ -13,6 +13,7 @@ from astropy import units as u
 from astropy.io import registry as io_registry
 from astropy.table import Column, MaskedColumn, Table, meta, serialize
 from astropy.time import Time
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.data_info import serialize_context_as
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG
@@ -290,11 +291,11 @@ def read_table_fits(
                 data=data[col.name],
                 name=col.name,
                 mask=mask,
-                copy=False,
+                copy=COPY_IF_NEEDED,
                 fill_value=fill_value,
             )
         else:
-            column = Column(data=data[col.name], name=col.name, copy=False)
+            column = Column(data=data[col.name], name=col.name, copy=COPY_IF_NEEDED)
 
         # Copy over units
         if col.unit is not None:
@@ -309,7 +310,7 @@ def read_table_fits(
         columns.append(column)
 
     # Create Table object
-    t = Table(columns, copy=False)
+    t = Table(columns, copy=COPY_IF_NEEDED)
 
     # TODO: deal properly with unsigned integers
 
@@ -386,7 +387,7 @@ def _encode_mixins(tbl):
     # comments in the input table.
     if encode_tbl is tbl:
         meta_copy = deepcopy(tbl.meta)
-        encode_tbl = Table(tbl.columns, meta=meta_copy, copy=False)
+        encode_tbl = Table(tbl.columns, meta=meta_copy, copy=COPY_IF_NEEDED)
 
     # Get the YAML serialization of information describing the table columns.
     # This is re-using ECSV code that combined existing table.meta with with
