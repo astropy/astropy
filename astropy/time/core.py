@@ -11,6 +11,7 @@ import copy
 import enum
 import operator
 import os
+import sys
 import threading
 from collections import defaultdict
 from datetime import date, datetime, timezone
@@ -28,7 +29,7 @@ from astropy import units as u
 from astropy.extern import _strptime
 from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray, lazyproperty
-from astropy.utils.compat import COPY_IF_NEEDED, PYTHON_LT_3_11, sanitize_copy_arg
+from astropy.utils.compat import COPY_IF_NEEDED, sanitize_copy_arg
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
@@ -496,7 +497,10 @@ class TimeBase(ShapedLikeNDArray):
 
     def __getstate__(self):
         # For pickling, we remove the cache from what's pickled
-        state = (self.__dict__ if PYTHON_LT_3_11 else super().__getstate__()).copy()
+        if sys.version_info < (3, 11):
+            state = self.__dict__.copy()
+        else:
+            state = super().__getstate__().copy()
         state.pop("_id_cache", None)
         state.pop("cache", None)
         return state
