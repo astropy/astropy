@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import functools
+import sys
 
 import numpy as np
 import pytest
@@ -10,7 +11,7 @@ from astropy.coordinates import EarthLocation
 from astropy.table import Table
 from astropy.time import Time, conf
 from astropy.utils import iers
-from astropy.utils.compat import NUMPY_LT_1_25, NUMPY_LT_1_26, PYTHON_LT_3_11
+from astropy.utils.compat import NUMPY_LT_1_25, NUMPY_LT_1_26
 from astropy.utils.compat.optional_deps import HAS_H5PY
 from astropy.utils.masked import Masked
 
@@ -21,11 +22,10 @@ is_masked = np.ma.is_masked
 
 # The first form is expanded to r"can't set attribute '{0}'" in Python 3.10, and replaced
 # with the more informative second form as of 3.11 (python/cpython#31311).
-no_setter_err = (
-    r"can't set attribute"
-    if PYTHON_LT_3_11
-    else r"property '{0}' of '{1}' object has no setter"
-)
+if sys.version_info < (3, 11):
+    no_setter_err = r"can't set attribute"
+else:
+    no_setter_err = r"property '{0}' of '{1}' object has no setter"
 
 
 def test_simple():

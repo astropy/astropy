@@ -7,6 +7,7 @@ from __future__ import annotations
 import abc
 import inspect
 import pickle
+import sys
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -26,7 +27,6 @@ from astropy.cosmology.tests.test_connect import (
     ToFromFormatTestMixin,
 )
 from astropy.table import Column, QTable, Table
-from astropy.utils.compat import PYTHON_LT_3_11
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -219,11 +219,13 @@ class CosmologyTest(
         assert cosmo.name == self.cls_kwargs["name"]  # test has expected value
 
         # immutable
-        match = (
-            "can't set"
-            if PYTHON_LT_3_11
-            else f"property 'name' of {cosmo.__class__.__name__!r} object has no setter"
-        )
+        if sys.version_info < (3, 11):
+            match = "can't set"
+        else:
+            match = (
+                f"property 'name' of {cosmo.__class__.__name__!r} object has no setter"
+            )
+
         with pytest.raises(AttributeError, match=match):
             cosmo.name = None
 
