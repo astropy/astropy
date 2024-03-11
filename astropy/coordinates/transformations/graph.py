@@ -124,10 +124,7 @@ class TransformGraph:
         A `set` of all component names every defined within any frame class in
         this TransformGraph.
         """
-        if self._cached_component_names is None:
-            self._cached_component_names = frame_comps_from_set(self.frame_set)
-
-        return self._cached_component_names
+        return frame_comps_from_set(self.frame_set)
 
     def invalidate_cache(self):
         """
@@ -139,7 +136,6 @@ class TransformGraph:
         self._cached_names_dct = None
         self._cached_frame_set = None
         self._cached_frame_attributes = None
-        self._cached_component_names = None
         self._shortestpaths = {}
         self._composite_cache = {}
 
