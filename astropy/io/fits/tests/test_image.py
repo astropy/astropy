@@ -926,7 +926,7 @@ class TestImageFunctions(FitsTestCase):
             assert (orig_data == hdul[1].data).all()
 
     # The test below raised a `ResourceWarning: unclosed transport` exception
-    # due to a bug in Python <=3.10 (cf. cpython#90476)
+    # due to a bug in PYTHON_LT_3_11 (cf. cpython#90476)
     @pytest.mark.filterwarnings("ignore:unclosed transport <asyncio.sslproto")
     def test_open_scaled_in_update_mode(self):
         """
