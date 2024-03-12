@@ -52,7 +52,6 @@ class CompImageSection:
         return np.dtype(BITPIX2DTYPE[self.hdu._bintable.header["ZBITPIX"]])
 
     def __getitem__(self, index):
-
         if self.hdu._bintable is None:
             return self.hdu.data[index]
 
