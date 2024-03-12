@@ -407,18 +407,14 @@ def _image_header_to_empty_bintable(
     zbitpix = image_header["BITPIX"]
 
     if zbitpix < 0 and quantize_level != 0.0:
+
         # floating point image has 'COMPRESSED_DATA',
-        # 'UNCOMPRESSED_DATA', 'ZSCALE', and 'ZZERO' columns (unless using
+        # 'GZIP_COMPRESSED_DATA', 'ZSCALE', and 'ZZERO' columns (unless using
         # lossless compression, per CFITSIO)
         ncols = 4
 
-        # CFITSIO 3.28 and up automatically use the GZIP_COMPRESSED_DATA
-        # store floating point data that couldn't be quantized, instead
-        # of the UNCOMPRESSED_DATA column.  There's no way to control
-        # this behavior so the only way to determine which behavior will
-        # be employed is via the CFITSIO version
-
         ttype2 = "GZIP_COMPRESSED_DATA"
+
         # The required format for the GZIP_COMPRESSED_DATA is actually
         # missing from the standard docs, but CFITSIO suggests it
         # should be 1PB, which is logical.
