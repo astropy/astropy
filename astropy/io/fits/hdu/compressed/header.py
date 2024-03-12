@@ -187,6 +187,9 @@ def _bintable_header_to_image_header(bintable_header):
     # Start with a copy of the table header.
     image_header = bintable_header.copy()
 
+    bscale = image_header.get("BSCALE")
+    bzero = image_header.get("BZERO")
+
     # Strip out special keywords
     image_header.strip()
 
@@ -200,6 +203,11 @@ def _bintable_header_to_image_header(bintable_header):
     for keyword in set(image_header):
         if CompImageHeader._is_reserved_keyword(keyword, warn=False):
             del image_header[keyword]
+
+    if bscale:
+        image_header['BSCALE'] = bscale
+    if bzero:
+        image_header['BZERO'] = bzero
 
     hcomments = bintable_header.comments
 
