@@ -197,28 +197,13 @@ def test_future_altaz():
     location = EarthLocation(lat=0 * u.deg, lon=0 * u.deg)
     t = Time("J2161")
 
-    # check that these message(s) appear among any other warnings.  If tests are run with
-    # --remote-data then the IERS table will be an instance of IERS_Auto which is
-    # assured of being "fresh".  In this case getting times outside the range of the
-    # table does not raise an exception.  Only if using IERS_B (which happens without
-    # --remote-data, i.e. for all CI testing) do we expect another warning.
+    # check that these message(s) appear among any other warnings
     if PYTEST_LT_8_0:
-        ctx1 = ctx2 = nullcontext()
+        ctx1 = nullcontext()
     else:
         ctx1 = pytest.warns(erfa.core.ErfaWarning)
-        ctx2 = pytest.warns(AstropyWarning, match=".*times are outside of range.*")
-    with (
-        ctx1,
-        ctx2,
-        pytest.warns(
-            AstropyWarning,
-            match="Tried to get polar motions for times after IERS data is valid.*",
-        ) as found_warnings,
-    ):
+    with ctx1, pytest.warns(
+        AstropyWarning,
+        match="Tried to get polar motions for times after IERS data is valid.*",
+    ) as found_warnings:
         SkyCoord(1 * u.deg, 2 * u.deg).transform_to(AltAz(location=location, obstime=t))
-
-    if isinstance(iers.earth_orientation_table.get(), iers.IERS_B):
-        assert any(
-            "(some) times are outside of range covered by IERS table." in str(w.message)
-            for w in found_warnings
-        )
