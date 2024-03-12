@@ -321,6 +321,9 @@ class CompImageHDU(ImageHDU):
                 self._bitpix = self._bintable.header["ZBITPIX"]
 
             self._header = self._bintable_to_image_header()
+            self._header._modified = False
+            for card in self._header._cards:
+                card._modified = False
 
             self._orig_bscale = self._header.get("BSCALE", 1)
             self._orig_bzero = self._header.get("BZERO", 0)
@@ -397,6 +400,9 @@ class CompImageHDU(ImageHDU):
             # ideally need this and should instead validate the values as they are
             # set above.
             self._get_bintable_without_data()
+
+        # Keep track of whether the data has been modified
+        self._data_modified = False
 
     def _remove_unnecessary_default_extnames(self, header):
         """Remove default EXTNAME values if they are unnecessary.
@@ -500,6 +506,17 @@ class CompImageHDU(ImageHDU):
         return bintable
 
     @property
+    def _has_data(self):
+        if self._bintable is None:
+            return self.data is not None
+        else:
+            return self._bintable.data is not None
+
+    @property
+    def _data_loaded(self):
+        return self._bintable is None or self._bintable.data is not DELAYED
+
+    @property
     def data(self):
         """
         The decompressed data array.
@@ -512,6 +529,7 @@ class CompImageHDU(ImageHDU):
         # If there is no internal binary table, the HDU was not created from a
         # file and therefore the data is just the one on the parent ImageHDU
         # class
+
         if not self._decompression_active:
             return super().data
         elif len(self._bintable.data) == 0:
@@ -528,6 +546,7 @@ class CompImageHDU(ImageHDU):
 
     @data.setter
     def data(self, data):
+        self._data_modified = True
         self._decompression_active = False
         self._decompressed_data = None
         ImageHDU.data.fset(self, data)
@@ -616,9 +635,17 @@ class CompImageHDU(ImageHDU):
 
         bintable.data = data
 
+    @property
+    def _hdu_modified_from_disk(self):
+        return self._bintable is None or self.header._modified or self._data_modified
+
     def _prewriteto(self, checksum=False, inplace=False):
         # Shove the image header and data into a new ImageHDU and use that
         # to compute the image checksum
+
+        if inplace and not self.header._modified and not self._data_modified:
+            self._tmp_bintable = None
+            return
 
         if self._scale_back:
             self._scale_internal(
@@ -661,7 +688,8 @@ class CompImageHDU(ImageHDU):
         return self._tmp_bintable._prewriteto(checksum=checksum, inplace=inplace)
 
     def _writeto(self, fileobj, inplace=False, copy=False):
-        return self._tmp_bintable._writeto(fileobj, inplace=inplace, copy=copy)
+        if self._tmp_bintable is not None:
+            return self._tmp_bintable._writeto(fileobj, inplace=inplace, copy=copy)
 
     def _postwriteto(self):
         del self._tmp_bintable
