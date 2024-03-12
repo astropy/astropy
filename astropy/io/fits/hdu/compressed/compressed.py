@@ -748,7 +748,7 @@ class CompImageHDU(ImageHDU):
         # implement this setter as one of the parent classes sets _data_offset
         # to None in __init__.
         if value is not None:
-            raise RuntimeError('Cannot set CompImageHDU._data_offset')
+            raise RuntimeError("Cannot set CompImageHDU._data_offset")
 
     @property
     def _header_offset(self):
@@ -761,7 +761,7 @@ class CompImageHDU(ImageHDU):
         # implement this setter as one of the parent classes sets _data_offset
         # to None in __init__.
         if value is not None:
-            raise RuntimeError('Cannot set CompImageHDU._header_offset')
+            raise RuntimeError("Cannot set CompImageHDU._header_offset")
 
     @property
     def _data_size(self):
@@ -774,4 +774,4 @@ class CompImageHDU(ImageHDU):
         # implement this setter as one of the parent classes sets _data_offset
         # to None in __init__.
         if value is not None:
-            raise RuntimeError('Cannot set CompImageHDU._data_size')
+            raise RuntimeError("Cannot set CompImageHDU._data_size")
