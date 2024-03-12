@@ -407,7 +407,6 @@ def _image_header_to_empty_bintable(
     zbitpix = image_header["BITPIX"]
 
     if zbitpix < 0 and quantize_level != 0.0:
-
         # floating point image has 'COMPRESSED_DATA',
         # 'GZIP_COMPRESSED_DATA', 'ZSCALE', and 'ZZERO' columns (unless using
         # lossless compression, per CFITSIO)
