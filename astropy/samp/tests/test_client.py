@@ -19,6 +19,7 @@ def test_SAMPHubProxy():
     SAMPHubProxy()
 
 
+@pytest.mark.slow
 def test_SAMPClient():
     """Test that SAMPClient can be instantiated"""
     proxy = SAMPHubProxy()
