@@ -1219,3 +1219,35 @@ def test_section_unwritten():
     hdu = fits.CompImageHDU(data, header, compression_type="RICE_1", tile_shape=(5, 6))
     assert_equal(hdu.section[...], data)
     assert hdu.section[3, 4] == data[3, 4]
+
+
+EXPECTED_HEADER = """
+XTENSION= 'IMAGE   '           / Image extension
+BITPIX  =                   16 / data type of original image
+NAXIS   =                    2 / dimension of original image
+NAXIS1  =                   10 / length of original image axis
+NAXIS2  =                   10 / length of original image axis
+PCOUNT  =                    0 / number of parameters
+GCOUNT  =                    1 / number of groups
+END
+""".lstrip()
+
+
+def test_header():
+    """
+    Check that the header is correct when reading in compressed images and
+    correctly shows the image dimensions.
+    """
+
+    filename = os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "..",
+        "..",
+        "tests",
+        "data",
+        "compressed_image.fits",
+    )
+
+    with fits.open(filename) as hdulist:
+        assert hdulist[1].header == fits.Header.fromstring(EXPECTED_HEADER, sep="\n")
