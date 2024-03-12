@@ -5,11 +5,11 @@ from the installed astropy.  It makes use of the |pytest| testing framework.
 """
 import os
 import pickle
+import sys
 
 import pytest
 
 from astropy.units import allclose as quantity_allclose  # noqa: F401
-from astropy.utils.compat import PYTHON_LT_3_11
 from astropy.utils.introspection import minversion
 
 # For backward-compatibility with affiliated packages
@@ -141,7 +141,7 @@ def generic_recursive_equality_test(a, b, class_history):
     Check if the attributes of a and b are equal. Then,
     check if the attributes of the attributes are equal.
     """
-    if PYTHON_LT_3_11:
+    if sys.version_info < (3, 11):
         dict_a = a.__getstate__() if hasattr(a, "__getstate__") else a.__dict__
     else:
         # NOTE: The call may need to be adapted if other objects implementing a __getstate__
