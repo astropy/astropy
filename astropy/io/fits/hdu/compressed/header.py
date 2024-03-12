@@ -187,6 +187,9 @@ def _bintable_header_to_image_header(bintable_header):
     # Start with a copy of the table header.
     image_header = bintable_header.copy()
 
+    # Strip out special keywords
+    image_header.strip()
+
     # Delete cards that are related to the table.  And move
     # the values of those cards that relate to the image from
     # their corresponding table cards.  These include
@@ -204,7 +207,6 @@ def _bintable_header_to_image_header(bintable_header):
         image_header.set(
             "SIMPLE", bintable_header["ZSIMPLE"], hcomments["ZSIMPLE"], before=0
         )
-        del image_header["XTENSION"]
     elif "ZTENSION" in bintable_header:
         if bintable_header["ZTENSION"] != "IMAGE":
             warnings.warn(
