@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # Dependencies
+from dataclasses import is_dataclass
+
 import numpy as np
 
 # Project
@@ -116,7 +118,7 @@ class Attribute:
 
     def __get__(self, instance, frame_cls=None):
         if instance is None:
-            return self
+            return self.default if is_dataclass(frame_cls) else self
         else:
             out = getattr(instance, "_" + self.name, self.default)
             if out is None:
@@ -148,12 +150,19 @@ class Attribute:
                 converted = True
 
             if converted:
-                setattr(instance, "_" + self.name, out)
+                # Use object.__setattr__() to be able to modify frozen dataclasses
+                object.__setattr__(instance, "_" + self.name, out)
 
         return out
 
     def __set__(self, instance, val):
-        raise AttributeError("Cannot set frame attribute")
+        if is_dataclass(instance):
+            # Use object.__setattr__() to be able to modify frozen dataclasses
+            object.__setattr__(
+                instance, "_" + self.name, self.default if val is self else val
+            )
+        else:
+            raise AttributeError("Cannot set frame attribute")
 
 
 class TimeAttribute(Attribute):
