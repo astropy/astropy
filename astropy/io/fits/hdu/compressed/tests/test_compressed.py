@@ -3,6 +3,7 @@
 import io
 import math
 import os
+import pickle
 import re
 import time
 from io import BytesIO
@@ -24,6 +25,7 @@ from astropy.io.fits.tests.conftest import FitsTestCase
 from astropy.io.fits.tests.test_table import comparerecords
 from astropy.utils.data import download_file
 from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.misc import NumpyRNGContext
 
 
 class TestCompressedImage(FitsTestCase):
@@ -89,7 +91,6 @@ class TestCompressedImage(FitsTestCase):
         Test that quantize_level is used.
 
         """
-        import pickle
 
         np.random.seed(42)
 
@@ -1104,3 +1105,117 @@ def test_uint_option(tmp_path):
     with fits.open(filename, uint=False) as hdulist:
         assert hdulist[1].data.dtype == np.dtype("float32")
         assert_allclose(hdulist[1].data, data)
+
+
+def test_incorrect_bzero(tmp_path):
+    """
+    Regression test for https://github.com/astropy/astropy/issues/5999 which is
+    a bug that caused BZERO to be incorrectly set to a value in a compressed
+    FITS HDU if a header was passed in with a value even though the data was
+    specified as a floating-point value.
+    """
+
+    data = np.arange(0, 100, dtype=np.uint16)
+    hdu = fits.ImageHDU(data=data)
+    data = hdu.data.astype(np.float64)
+    header = hdu.header
+
+    hdulist = fits.HDUList(
+        [
+            fits.PrimaryHDU(),
+            fits.ImageHDU(data=data, header=header),
+            fits.CompImageHDU(data=data, header=header),
+        ]
+    )
+
+    hdulist.writeto(tmp_path / "test_bzero.fits")
+
+    for hdu in hdulist:
+        assert hdu.header.get("BZERO") is None
+        assert hdu.header.get("BSCALE") is None
+
+    with fits.open(tmp_path / "test_bzero.fits") as hdulist_read:
+        for hdu in hdulist_read:
+            assert hdu.header.get("BZERO") is None
+            assert hdu.header.get("BSCALE") is None
+
+
+def test_custom_extname():
+    """
+    Regression test for a bug that caused specifying a custom name for a
+    CompImageHDU to not work if an existing image header was used.
+    """
+    data = np.arange(0, 100, dtype=np.uint16)
+    hdu = fits.ImageHDU(data=data)
+    header = hdu.header
+    fits.CompImageHDU(header=header, name="compressed")
+
+
+def test_pickle():
+    """
+    Regression test for https://github.com/astropy/astropy/issues/10512 which
+    was a bug that caused CompImageHDU to not be picklable.
+    """
+    data = np.array([1, 2, 3])
+    hdu = fits.CompImageHDU(data)
+    a = pickle.loads(pickle.dumps(hdu))
+    assert_equal(hdu.data, data)
+
+
+def test_compression_settings_delayed_data(tmp_path):
+    """
+    Regression test for https://github.com/astropy/astropy/issues/12216 which
+    was a bug that caused compression settings to be ignored if the data was
+    only set later.
+    """
+
+    hdu1 = fits.CompImageHDU(quantize_level=-32)
+    hdu2 = fits.CompImageHDU(quantize_level=-32, data=np.array([0.0]))
+
+    with NumpyRNGContext(42):
+        data = np.random.random((16, 16))
+
+    hdu1.data = data
+    hdu2.data = data
+
+    hdu1.writeto(tmp_path / "data1.fits")
+    hdu2.writeto(tmp_path / "data2.fits")
+
+    hdu1_read = fits.open(tmp_path / "data1.fits")[1]
+    hdu2_read = fits.open(tmp_path / "data2.fits")[1]
+
+    assert_equal(hdu1_read.data, hdu2_read.data)
+
+
+def test_header_assignment_issue(tmp_path):
+    """
+    Regression test for https://github.com/astropy/astropy/issues/14081 which
+    was a bug that caused entries in header to not be preserved under certain
+    conditions if copied from another header.
+    """
+
+    ih = fits.ImageHDU()
+    ih.header["test"] = "right"
+
+    ch = fits.CompImageHDU()
+    ch.header["test"] = "wrong"
+    ch.header = ih.header
+    assert ch.header["test"] == "right"
+
+    ch.writeto(tmp_path / "test_header.fits")
+    chdl = fits.open(tmp_path / "test_header.fits")
+    assert chdl[1].header["test"] == "right"
+
+
+def test_section_unwritten():
+    """
+    Regression test for https://github.com/astropy/astropy/issues/14611 which
+    was a bug that caused CompImageHDU.section to not work correctly if the
+    file was not written out to disk first.
+    """
+
+    data = np.arange(21 * 33).reshape((21, 33)).astype(np.int32)
+    header = fits.Header()
+    hdu = fits.CompImageHDU(data, header, compression_type="RICE_1", tile_shape=(5, 6))
+    assert_equal(hdu.section[...] == data)
+    assert hdu.section[3, 4] == data[3, 4]
