@@ -205,9 +205,9 @@ def _bintable_header_to_image_header(bintable_header):
             del image_header[keyword]
 
     if bscale:
-        image_header['BSCALE'] = bscale
+        image_header["BSCALE"] = bscale
     if bzero:
-        image_header['BZERO'] = bzero
+        image_header["BZERO"] = bzero
 
     hcomments = bintable_header.comments
 
