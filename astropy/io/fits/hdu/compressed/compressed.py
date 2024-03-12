@@ -580,36 +580,6 @@ class CompImageHDU(ImageHDU):
         # unambiguously
         return _bintable_header_to_image_header(self._bintable.header)
 
-    def _summary(self):
-        """
-        Summarize the HDU: name, dimensions, and formats.
-        """
-        class_name = self.__class__.__name__
-
-        # if data is touched, use data info.
-        if self._data_loaded:
-            if self.data is None:
-                _shape, _format = (), ""
-            else:
-                # the shape will be in the order of NAXIS's which is the
-                # reverse of the numarray shape
-                _shape = list(self.data.shape)
-                _format = self.data.dtype.name
-                _shape.reverse()
-                _shape = tuple(_shape)
-                _format = _format[_format.rfind(".") + 1 :]
-
-        # if data is not touched yet, use header info.
-        else:
-            _shape = ()
-
-            for idx in range(self.header["NAXIS"]):
-                _shape += (self.header["NAXIS" + str(idx + 1)],)
-
-            _format = BITPIX2DTYPE[self.header["BITPIX"]]
-
-        return (self.name, self.ver, class_name, len(self.header), _shape, _format)
-
     def _add_data_to_bintable(self, bintable):
         """
         Compress the image data so that it may be written to a file.
