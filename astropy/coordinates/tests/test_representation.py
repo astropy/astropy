@@ -827,7 +827,6 @@ class TestPhysicsSphericalRepresentation:
             1 * u.deg, 2 * u.deg, 3 * u.kpc, differentials={"s": difs}
         )
 
-        # Spherical Representation
         got = sph.represent_as(SphericalRepresentation, SphericalDifferential)
         assert np.may_share_memory(sph.phi, got.lon)
         assert np.may_share_memory(sph.r, got.distance)
@@ -836,7 +835,6 @@ class TestPhysicsSphericalRepresentation:
         )
         assert representation_equal_up_to_angular_type(got, expected)
 
-        # Unit-Spherical Representation
         got = sph.represent_as(UnitSphericalRepresentation, UnitSphericalDifferential)
         assert np.may_share_memory(sph.phi, got.lon)
         expected = BaseRepresentation.represent_as(
@@ -844,7 +842,6 @@ class TestPhysicsSphericalRepresentation:
         )
         assert representation_equal_up_to_angular_type(got, expected)
 
-        # Cylindrical Representation
         got = sph.represent_as(CylindricalRepresentation, CylindricalDifferential)
         assert np.may_share_memory(sph.phi, got.phi)
         expected = BaseRepresentation.represent_as(
