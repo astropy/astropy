@@ -567,7 +567,6 @@ class CompImageHDU(ImageHDU):
     def compressed_data(self):
         return self._bintable.data
 
-
     def _bintable_to_image_header(self):
         if self._bintable is None:
             raise ValueError("bintable is not set")
