@@ -165,9 +165,9 @@ class Conf(_config.ConfigNamespace):
 
     auto_download = _config.ConfigItem(
         True,
-        "Enable auto-downloading of the latest IERS data.  If set to False "
-        "then the local IERS-B file will be used by default (even if the "
-        "full IERS file with predictions was already downloaded and cached). "
+        "Enable auto-downloading of the latest IERS-A data.  If set to False "
+        "then the bundled IERS-A file will be used by default (even if a "
+        "newer version of the IERS-A file was already downloaded and cached). "
         "This parameter also controls whether internet resources will be "
         "queried to update the leap second table if the installed version is "
         "out of date. Default is True.",
@@ -545,9 +545,9 @@ class IERS_A(IERS):
 
     Notes
     -----
-    The IERS A file is not part of astropy.  It can be downloaded from
-    ``iers.IERS_A_URL`` or ``iers.IERS_A_URL_MIRROR``. See ``iers.__doc__``
-    for instructions on use in ``Time``, etc.
+    If the package IERS A file (```iers.IERS_A_FILE``) is out of date, a new
+    version can be downloaded from ``iers.IERS_A_URL`` or ``iers.IERS_A_URL_MIRROR``.
+    See ``iers.__doc__`` for instructions on use in ``Time``, etc.
     """
 
     iers_table = None
@@ -758,6 +758,10 @@ class IERS_Auto(IERS_A):
     """
     Provide most-recent IERS data and automatically handle downloading
     of updated values as necessary.
+
+    The returned table combines the IERS-A and IERS-B files, with the data
+    in the IERS-B file considered to be official values and thus superseding
+    values from th IERS-A file at the same times.
     """
 
     iers_table = None
@@ -772,8 +776,8 @@ class IERS_Auto(IERS_A):
         (or non-existent) then it will be downloaded over the network and cached.
 
         If the configuration setting ``astropy.utils.iers.conf.auto_download``
-        is set to False then ``astropy.utils.iers.IERS()`` is returned.  This
-        is normally the IERS-B table that is supplied with astropy.
+        is set to False then the bundled IERS-A table will be used rather than
+        any downloaded version of the IERS-A table.
 
         On the first call in a session, the table will be memoized (in the
         ``iers_table`` class attribute), and further calls to ``open`` will
@@ -786,7 +790,7 @@ class IERS_Auto(IERS_A):
 
         """
         if not conf.auto_download:
-            cls.iers_table = IERS_B.open()
+            cls.iers_table = cls.read()
             return cls.iers_table
 
         all_urls = (conf.iers_auto_url, conf.iers_auto_url_mirror)
@@ -817,8 +821,8 @@ class IERS_Auto(IERS_A):
             # Issue a warning here, perhaps user is offline.  An exception
             # will be raised downstream if actually trying to interpolate
             # predictive values.
-            warn("unable to download valid IERS file, using local IERS-B", IERSWarning)
-            cls.iers_table = IERS_B.open()
+            warn("unable to download valid IERS file, using local IERS-A", IERSWarning)
+            cls.iers_table = cls.read()
 
         return cls.iers_table
 
@@ -932,7 +936,7 @@ class IERS_Auto(IERS_A):
         IERS-A has IERS-B values included, but for reasons unknown these
         do not match the latest IERS-B values (see comments in #4436).
         Here, we use the bundled astropy IERS-B table to overwrite the values
-        in the downloaded IERS-A table.
+        in the IERS-A table.
         """
         iers_b = IERS_B.open()
         # Substitute IERS-B values for existing B values in IERS-A table
