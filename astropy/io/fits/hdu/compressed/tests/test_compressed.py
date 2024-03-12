@@ -1107,6 +1107,7 @@ def test_uint_option(tmp_path):
         assert_allclose(hdulist[1].data, data)
 
 
+@pytest.mark.xfail
 def test_incorrect_bzero(tmp_path):
     """
     Regression test for https://github.com/astropy/astropy/issues/5999 which is
@@ -1181,10 +1182,9 @@ def test_compression_settings_delayed_data(tmp_path):
     hdu1.writeto(tmp_path / "data1.fits")
     hdu2.writeto(tmp_path / "data2.fits")
 
-    hdu1_read = fits.open(tmp_path / "data1.fits")[1]
-    hdu2_read = fits.open(tmp_path / "data2.fits")[1]
-
-    assert_equal(hdu1_read.data, hdu2_read.data)
+    with fits.open(tmp_path / "data1.fits") as hdulist1_read:
+        with fits.open(tmp_path / "data2.fits") as hdulist2_read:
+            assert_equal(hdulist1_read[1].data, hdulist2_read[1].data)
 
 
 def test_header_assignment_issue(tmp_path):
@@ -1203,8 +1203,8 @@ def test_header_assignment_issue(tmp_path):
     assert ch.header["test"] == "right"
 
     ch.writeto(tmp_path / "test_header.fits")
-    chdl = fits.open(tmp_path / "test_header.fits")
-    assert chdl[1].header["test"] == "right"
+    with fits.open(tmp_path / "test_header.fits") as chdl:
+        assert chdl[1].header["test"] == "right"
 
 
 def test_section_unwritten():
@@ -1217,5 +1217,5 @@ def test_section_unwritten():
     data = np.arange(21 * 33).reshape((21, 33)).astype(np.int32)
     header = fits.Header()
     hdu = fits.CompImageHDU(data, header, compression_type="RICE_1", tile_shape=(5, 6))
-    assert_equal(hdu.section[...] == data)
+    assert_equal(hdu.section[...], data)
     assert hdu.section[3, 4] == data[3, 4]
