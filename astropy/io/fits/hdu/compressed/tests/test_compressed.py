@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import io
 import math
 import os
 import re
@@ -940,6 +941,27 @@ class TestCompressedImage(FitsTestCase):
 
         with fits.open(tmp_path / "compressed.fits") as hdul:
             assert_equal(hdul[1].data, data)
+
+    def test_info(self):
+        """
+        Make sure .info() works correctly when CompImageHDUs are present
+        """
+        output = io.StringIO()
+        with fits.open(self.data("comp.fits")) as hdul:
+            hdul.info(output=output)
+        output.seek(0)
+
+        # Note: ignore the first line which just gives the filename
+        actual = output.read().splitlines()[1:]
+
+        expected = [
+            "No.    Name      Ver    Type      Cards   Dimensions   Format",
+            "0  PRIMARY       1 PrimaryHDU       4   ()",
+            "1  COMPRESSED_IMAGE    1 CompImageHDU    105   (440, 300)   int16",
+        ]
+
+        for line_actual, line_expected in zip(actual, expected, strict=True):
+            assert line_actual.strip() == line_expected.strip()
 
 
 class TestCompHDUSections:
