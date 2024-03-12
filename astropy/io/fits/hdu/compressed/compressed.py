@@ -334,6 +334,8 @@ class CompImageHDU(ImageHDU):
                 for axis in range(self._bintable.header.get("ZNAXIS", 0))
             ]
 
+            self._original_data_shape = tuple(self._axes[::-1])
+
             self.compression_type = self._bintable.header.get(
                 "ZCMPTYPE", DEFAULT_COMPRESSION_TYPE
             )
@@ -610,10 +612,15 @@ class CompImageHDU(ImageHDU):
         return self._bintable is None or self.header._modified or self._data_modified
 
     def _prewriteto(self, checksum=False, inplace=False):
-        # Shove the image header and data into a new ImageHDU and use that
-        # to compute the image checksum
 
-        if inplace and not self.header._modified and not self._data_modified:
+        # In some cases the user might do hdu.data.shape = (...) to change the
+        # shape of the data. In this case, we reset the data on the image HDU
+        # to force the header to be updated and to set _data_modified since
+        # the data will need to be recompressed from scratch.
+        if self._decompressed_data is not None and self._decompressed_data.shape != self._original_data_shape:
+            ImageHDU.data.fset(self, self.data)
+
+        if inplace and not self._hdu_modified_from_disk:
             self._tmp_bintable = None
             return
 
@@ -622,6 +629,8 @@ class CompImageHDU(ImageHDU):
                 BITPIX2DTYPE[self._orig_bitpix], blank=self._orig_blank
             )
 
+        # Shove the image header and data into a new ImageHDU and use that
+        # to compute the image checksum
         image_hdu = ImageHDU(data=self.data, header=self.header.copy())
         image_hdu._update_checksum(checksum)
         if "CHECKSUM" in image_hdu.header:
