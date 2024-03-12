@@ -2600,6 +2600,45 @@ class TestUpdate:
         assert np.all(t1["c"] == t1_copy["c"])
 
 
+@pytest.mark.parametrize(
+    "name,expected",
+    [
+        pytest.param("a", [1, 2], id="existing_column"),
+        pytest.param("d", [9, 6], id="new_column"),
+    ],
+)
+def test_table_setdefault(name, expected):
+    t = table.table_helpers.simple_table(2)
+    np.testing.assert_array_equal(t.setdefault(name, [9, 6]), expected)
+    np.testing.assert_array_equal(t[name], expected)
+    assert name in t.columns
+    assert type(t[name]) is Column
+
+
+def test_table_setdefault_wrong_shape():
+    t = table.table_helpers.simple_table(2)
+    with pytest.raises(ValueError, match="^Inconsistent data column lengths$"):
+        t.setdefault("f", [1, 2, 3])
+    assert "f" not in t.columns
+
+
+@pytest.mark.parametrize("value", ([9], [9, 6]), ids=lambda x: f"len_{len(x)}_default")
+def test_empty_table_setdefault(value):
+    t = Table()
+    np.testing.assert_array_equal(t.setdefault("a", value), value)
+    np.testing.assert_array_equal(t["a"], value)
+    assert t.colnames == ["a"]
+    assert type(t["a"]) is Column
+
+
+def test_empty_table_setdefault_scalar():
+    t = Table()
+    with pytest.raises(
+        TypeError, match="^Empty table cannot have column set to scalar value$"
+    ):
+        t.setdefault("a", 9)
+
+
 def test_table_meta_copy():
     """
     Test no copy vs light (key) copy vs deep copy of table meta for different
