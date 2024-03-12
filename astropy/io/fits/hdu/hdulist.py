@@ -1587,15 +1587,12 @@ class HDUList(list, _Verify):
 
         Side effect of setting the objects _resize attribute.
         """
-
         # Avoid circular import
         from astropy.io.fits import CompImageHDU
 
         if not self._resize:
-
             # determine if any of the HDU is resized
             for hdu in self:
-
                 # for CompImageHDU, we need to handle things a little differently
                 # because the HDU matching the header/data on disk is hdu._bintable
                 if isinstance(hdu, CompImageHDU):
