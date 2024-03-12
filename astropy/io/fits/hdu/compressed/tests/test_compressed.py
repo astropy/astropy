@@ -963,6 +963,17 @@ class TestCompressedImage(FitsTestCase):
         for line_actual, line_expected in zip(actual, expected, strict=True):
             assert line_actual.strip() == line_expected.strip()
 
+    def test_shape(self):
+
+        with fits.open(self.data("comp.fits")) as hdul:
+            assert hdul[1].header['NAXIS1'] == 440
+            assert hdul[1].header['NAXIS2'] == 300
+            assert hdul[1].shape == (300, 440)
+            hdul[1].data = np.ones((120, 150))
+            assert hdul[1].header['NAXIS1'] == 150
+            assert hdul[1].header['NAXIS2'] == 120
+            assert hdul[1].shape == (120, 150)
+
 
 class TestCompHDUSections:
     @pytest.fixture(autouse=True)
