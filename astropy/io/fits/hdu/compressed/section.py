@@ -54,6 +54,10 @@ class CompImageSection:
         return np.dtype(BITPIX2DTYPE[self.hdu._bintable.header["ZBITPIX"]])
 
     def __getitem__(self, index):
+
+        if self.hdu._bintable is None:
+            return self.hdu.data[index]
+
         # Shortcut if the whole data is requested (this is used by the
         # data property, so we optimize it as it is frequently used)
         if index is Ellipsis:
