@@ -12,7 +12,7 @@ import numpy as np
 import pytest
 from hypothesis import given
 from hypothesis.extra.numpy import basic_indices
-from numpy.testing import assert_equal
+from numpy.testing import assert_allclose, assert_equal
 
 from astropy.io import fits
 from astropy.io.fits.hdu.compressed import (
@@ -1083,3 +1083,24 @@ def test_image_write_readonly(tmp_path):
 
     with fits.open(filename) as hdulist:
         assert_equal(hdulist[1].data, [1.0, 2.0, 3.0])
+
+
+def test_uint_option(tmp_path):
+    """
+    Check that the uint= option works correctly
+    """
+
+    filename = tmp_path / "uint_test.fits"
+
+    data = (2 ** (1 + np.arange(16).reshape((4, 4))) - 1).astype(np.uint16)
+
+    hdu = fits.CompImageHDU(data)
+    hdu.writeto(filename)
+
+    with fits.open(filename) as hdulist:
+        assert hdulist[1].data.dtype == np.dtype("uint16")
+        assert_equal(hdulist[1].data, data)
+
+    with fits.open(filename, uint=False) as hdulist:
+        assert hdulist[1].data.dtype == np.dtype("float32")
+        assert_allclose(hdulist[1].data, data)
