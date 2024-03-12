@@ -612,12 +612,15 @@ class CompImageHDU(ImageHDU):
         return self._bintable is None or self.header._modified or self._data_modified
 
     def _prewriteto(self, checksum=False, inplace=False):
-
         # In some cases the user might do hdu.data.shape = (...) to change the
         # shape of the data. In this case, we reset the data on the image HDU
         # to force the header to be updated and to set _data_modified since
         # the data will need to be recompressed from scratch.
-        if not self._data_modified and self._decompressed_data is not None and self._decompressed_data.shape != self._original_data_shape:
+        if (
+            not self._data_modified
+            and self._decompressed_data is not None
+            and self._decompressed_data.shape != self._original_data_shape
+        ):
             ImageHDU.data.fset(self, self.data)
 
         if inplace and not self._hdu_modified_from_disk:
