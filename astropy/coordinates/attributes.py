@@ -73,9 +73,9 @@ class Attribute:
 
         # Add information on the default value
         if self.default is not None:
-            self.__doc__ += f"\n\nDefaults to {self.default}"
+            self.__doc__ += f"\n\nDefault: {self.default}"
         elif self.secondary_attribute != "":
-            self.__doc__ += f"\n\nDefaults to the same value as the `{self.secondary_attribute}` frame attribute"
+            self.__doc__ += f"\n\nDefault: taken from `{self.secondary_attribute}` frame attribute"
         else:
             self.__doc__ += "\n\nNo default value"
 
