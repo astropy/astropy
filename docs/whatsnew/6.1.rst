@@ -43,6 +43,24 @@ columns with any long integers which overflowed the 32-bit integer would be retu
 as string columns. The new default behavior is consistent with ``numpy`` v2 and ``pandas``.
 
 
+Updates to `~astropy.cosmology`
+===============================
+
+|Cosmology| as a :func:`~dataclasses.dataclass`
+-----------------------------------------------
+
+The :class:`~astropy.cosmology.Cosmology` class is
+now a :func:`~dataclasses.dataclass`. This means that the :mod:`dataclasses` machinery
+can be used to work with :class:`~astropy.cosmology.Cosmology` objects. For example::
+
+    >>> from dataclasses import make_dataclass, field, fields
+    >>> from astropy.cosmology import Cosmology
+    >>> NewC = make_dataclass("NewC", [("newfield", float, field(default=None))],
+    ...                       bases=(Cosmology,), frozen=True, eq=False)
+    >>> [f.name for f in fields(NewC)]
+    ['name', 'meta', 'newfield']
+
+
 Full change log
 ===============
 

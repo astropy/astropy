@@ -124,8 +124,9 @@ class w0waCDM(FLRW):
             name=name,
             meta=meta,
         )
-        self.w0 = w0
-        self.wa = wa
+        params = type(self).parameters
+        params["w0"].__set__(self, w0)
+        params["wa"].__set__(self, wa)
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.

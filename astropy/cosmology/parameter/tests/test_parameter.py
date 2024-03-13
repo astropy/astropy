@@ -10,7 +10,7 @@ import pytest
 import astropy.units as u
 from astropy.cosmology import Cosmology, Parameter
 from astropy.cosmology._utils import all_cls_vars
-from astropy.cosmology.core import _COSMOLOGY_CLASSES
+from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
 from astropy.cosmology.parameter._converter import (
     _REGISTRY_FVALIDATORS,
     _validate_with_unit,
@@ -189,22 +189,6 @@ class ParameterTestMixin:
         else:
             assert all_parameter.name in cosmo_cls.parameters
 
-    def test_Parameters_reorder_by_signature(self, cosmo_cls, clean_registry):
-        """Test parameters are reordered."""
-
-        class Example(cosmo_cls):
-            param = Parameter()
-
-            def __init__(self, param, *, name=None, meta=None):
-                pass  # never actually initialized
-
-        # param should be 1st, all other parameters next
-        assert next(iter(Example.parameters)) == "param"
-        # Check the other parameters are as expected.
-        # only run this test if "param" is not already on the cosmology
-        if next(iter(cosmo_cls.parameters)) != "param":
-            assert set(tuple(Example.parameters)[1:]) == set(cosmo_cls.parameters)
-
 
 # ========================================================================
 
@@ -222,6 +206,7 @@ class TestParameter(ParameterTestMixin):
             equivalencies=u.mass_energy(),
         )
 
+        @dataclass_decorator
         class Example1(Cosmology):
             param = Param
 
@@ -233,6 +218,7 @@ class TestParameter(ParameterTestMixin):
                 return super().is_flat()
 
         # with validator
+        @dataclass_decorator
         class Example2(Example1):
             def __init__(self, param=15 * u.m):
                 self.param = param
