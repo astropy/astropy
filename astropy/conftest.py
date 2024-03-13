@@ -103,6 +103,21 @@ def pytest_configure(config):
     PYTEST_HEADER_MODULES["asdf-astropy"] = "asdf_astropy"
     TESTED_VERSIONS["Astropy"] = __version__
 
+    # Limit the number of threads used by each worker when pytest-xdist is in
+    # use.  Lifted from https://github.com/scipy/scipy/pull/14441
+    # and https://github.com/scikit-learn/scikit-learn/pull/25918
+    try:
+        from threadpoolctl import threadpool_limits
+
+        xdist_worker_count = os.environ.get("PYTEST_XDIST_WORKER_COUNT")
+        if xdist_worker_count is not None:
+            # use number of physical cores, assume hyperthreading
+            max_threads = os.cpu_count() // 2
+            threads_per_worker = max(max_threads // int(xdist_worker_count), 1)
+            threadpool_limits(threads_per_worker)
+    except ImportError:
+        pass
+
 
 def pytest_unconfigure(config):
     from astropy.utils.iers import conf as iers_conf
@@ -151,38 +166,3 @@ def pytest_terminal_summary(terminalreporter):
         yellow=True,
         bold=True,
     )
-
-
-def pytest_runtest_setup(item):
-
-    # Limit the number of threads used by each worker when pytest-xdist is in use.
-    # Lifted from https://github.com/scipy/scipy/pull/14441
-    try:
-        from threadpoolctl import threadpool_limits
-
-        HAS_THREADPOOLCTL = True
-    except ImportError:
-        HAS_THREADPOOLCTL = False
-
-    if HAS_THREADPOOLCTL:
-        # Set the number of openblas threads based on the number of workers
-        # xdist is using to prevent oversubscription. Simplified version of what
-        # sklearn and scipy do.
-        try:
-            xdist_worker_count = int(os.environ['PYTEST_XDIST_WORKER_COUNT'])
-        except KeyError:
-            # when pytest-xdist is not installed, for robustness
-            return
-
-        # Only set the number of threads if the user has not already set it
-        if (not os.getenv('OMP_NUM_THREADS') and not os.getenv('OPENBLAS_NUM_THREADS') and
-            not os.getenv('MKL_NUM_THREADS') and not os.getenv('VECLIB_MAXIMUM_THREADS') and
-            not os.getenv('NUMEXPR_NUM_THREADS')):
-            # use nr of physical cores, assume hyperthreading
-            max_threads = os.cpu_count() // 2
-            threads_per_worker = max(max_threads // xdist_worker_count, 1)
-            try:
-                threadpool_limits(limits=threads_per_worker)
-            except Exception:
-                # Catch any error for robustness.
-                return
