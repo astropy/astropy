@@ -5,7 +5,6 @@ Helper functions for table development, mostly creating useful
 tables for testing.
 """
 
-
 import string
 from itertools import cycle
 

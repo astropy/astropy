@@ -5,6 +5,7 @@ FITS files, individual HDUs, FITS headers, or just FITS data.
 
 Used to implement the fitsdiff program.
 """
+
 import fnmatch
 import glob
 import io

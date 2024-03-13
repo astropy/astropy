@@ -343,11 +343,14 @@ class TestIERS_Auto:
             assert np.allclose(
                 dat.ut1_utc(Time(50000, format="mjd").jd).value, 0.1292934
             )
-            with pytest.warns(
-                iers.IERSStaleWarning, match="IERS_Auto predictive values are older"
-            ) as warns, pytest.raises(
-                ValueError,
-                match="interpolating from IERS_Auto using predictive values",
+            with (
+                pytest.warns(
+                    iers.IERSStaleWarning, match="IERS_Auto predictive values are older"
+                ) as warns,
+                pytest.raises(
+                    ValueError,
+                    match="interpolating from IERS_Auto using predictive values",
+                ),
             ):
                 dat.ut1_utc(Time(60000, format="mjd").jd)
             assert len(warns) == 1

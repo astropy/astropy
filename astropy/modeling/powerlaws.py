@@ -2,6 +2,7 @@
 """
 Power law model variants.
 """
+
 # pylint: disable=invalid-name
 import numpy as np
 

@@ -4,7 +4,6 @@
 This module implements a class based on NDData with all Mixins.
 """
 
-
 from .mixins.ndarithmetic import NDArithmeticMixin
 from .mixins.ndio import NDIOMixin
 from .mixins.ndslicing import NDSlicingMixin

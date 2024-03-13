@@ -4,6 +4,7 @@
 This module tests some of the methods related to the ``ECSV``
 reader/writer.
 """
+
 import copy
 import os
 import sys

@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Spherical representations and differentials."""
+
 import operator
 
 import numpy as np

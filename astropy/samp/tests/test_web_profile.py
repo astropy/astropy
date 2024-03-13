@@ -4,6 +4,7 @@ web client. We can only put a single test here because only one hub can run
 with the web profile active, and the user might want to run the tests in
 parallel.
 """
+
 import threading
 from urllib.request import Request, urlopen
 

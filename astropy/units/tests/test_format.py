@@ -2,6 +2,7 @@
 """
 Regression tests for the units.format package
 """
+
 import warnings
 from contextlib import nullcontext
 from fractions import Fraction

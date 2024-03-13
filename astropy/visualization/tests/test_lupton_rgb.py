@@ -4,7 +4,6 @@
 Tests for RGB Images
 """
 
-
 import sys
 
 import numpy as np

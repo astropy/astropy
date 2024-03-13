@@ -2,6 +2,7 @@
 """
 Some might be indirectly tested already in ``astropy.io.fits.tests``.
 """
+
 import io
 
 import numpy as np

@@ -1,6 +1,7 @@
 """
 Table property for providing information about table.
 """
+
 import os
 
 # Licensed under a 3-clause BSD style license - see LICENSE.rst

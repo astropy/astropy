@@ -3,7 +3,6 @@
 :Author: Simon Gibbons (simongibbons@gmail.com).
 """
 
-
 from .core import DefaultSplitter
 from .fixedwidth import (
     FixedWidth,

@@ -2,6 +2,7 @@
 """
 Tests that relate to fitting models with quantity parameters
 """
+
 import numpy as np
 import pytest
 

@@ -2,6 +2,7 @@
 Tests the Angle string formatting capabilities.  SkyCoord formatting is in
 test_sky_coord
 """
+
 import numpy as np
 import pytest
 

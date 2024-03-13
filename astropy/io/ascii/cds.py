@@ -8,7 +8,6 @@ cds.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-
 import fnmatch
 import itertools
 import os

@@ -3,7 +3,6 @@
 Various utilities and cookbook-like things.
 """
 
-
 # STDLIB
 import codecs
 import contextlib

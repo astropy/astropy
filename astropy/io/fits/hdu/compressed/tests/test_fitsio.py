@@ -8,6 +8,7 @@ cfitsio.
  else in the code this shouldn't cause us any issues. Please bear this in mind
  when editing this file.
 """
+
 import os
 
 import numpy as np

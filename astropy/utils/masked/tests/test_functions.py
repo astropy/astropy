@@ -5,6 +5,7 @@ The tests here are fairly detailed but do not aim for complete
 coverage.  Complete coverage of all numpy functions is done
 with less detailed tests in test_function_helpers.
 """
+
 # We generally call the ufunc in the tests, since those can take
 # all ufunc arguments (like axes), but also test whether we can
 # mask the exceptions and warnings from the wrappers in erfa itself.

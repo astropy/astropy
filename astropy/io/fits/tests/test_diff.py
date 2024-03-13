@@ -360,9 +360,10 @@ class TestDiff(FitsTestCase):
         hdu = fits.CompImageHDU(data=data)
         hdu.writeto(self.temp("test.fits"))
 
-        with fits.open(self.temp("test.fits")) as hdula, fits.open(
-            self.temp("test.fits")
-        ) as hdulb:
+        with (
+            fits.open(self.temp("test.fits")) as hdula,
+            fits.open(self.temp("test.fits")) as hdulb,
+        ):
             diff = FITSDiff(hdula, hdulb)
             assert diff.identical
 
