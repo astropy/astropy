@@ -150,19 +150,24 @@ class Attribute:
                 converted = True
 
             if converted:
-                # Use object.__setattr__() to be able to modify frozen dataclasses
-                object.__setattr__(instance, "_" + self.name, out)
+                self._force_set(instance, out)
 
         return out
 
     def __set__(self, instance, val):
-        if is_dataclass(instance):
-            # Use object.__setattr__() to be able to modify frozen dataclasses
-            object.__setattr__(
-                instance, "_" + self.name, self.default if val is self else val
-            )
-        else:
+        # Unless the attribute is in a dataclass, do not allow setting
+        if not is_dataclass(instance):
             raise AttributeError("Cannot set frame attribute")
+
+        # When instantiating a dataclass with defaults, val is self rather than a "normal" value
+        self._force_set(instance, self.default if val is self else val)
+
+    def _force_set(self, instance, val):
+        if is_dataclass(instance) and instance.__dataclass_params__.frozen:
+            # Use object.__setattr__() to be able to modify frozen dataclasses
+            object.__setattr__(instance, "_" + self.name, val)
+        else:
+            setattr(instance, "_" + self.name, val)
 
 
 class TimeAttribute(Attribute):
