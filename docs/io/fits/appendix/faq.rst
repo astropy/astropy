@@ -244,11 +244,116 @@ sections <data-sections>` for more details on using this interface.
 
 .. _mmap: https://en.wikipedia.org/wiki/Mmap
 
+.. _sphx_glr_generated_examples_io_skip_create-large-fits.py:
 
 How can I create a very large FITS file from scratch?
 -----------------------------------------------------
 
-See :ref:`sphx_glr_generated_examples_io_skip_create-large-fits.py`.
+This example demonstrates how to create a large file (larger than will fit in
+memory) from scratch using `astropy.io.fits`.
+
+Normally to create a single image FITS file one would do something like:
+
+.. code:: python
+
+    import os
+    import numpy as np
+    from astropy.io import fits
+
+    data = np.zeros((40000, 40000), dtype=np.float64)
+    hdu = fits.PrimaryHDU(data=data)
+
+Then use the `astropy.io.fits.writeto()` method to write out the new file to disk:
+
+.. code:: python
+
+    hdu.writeto("large.fits")
+
+However, a 40000 x 40000 array of doubles is nearly twelve gigabytes! Most
+systems won't be able to create that in memory just to write out to disk. In
+order to create such a large file efficiently requires a little extra work,
+and a few assumptions.
+
+First, it is helpful to anticipate about how large (as in, how many keywords)
+the header will have in it. FITS headers must be written in 2880 byte
+blocks, large enough for 36 keywords per block (including the END keyword in
+the final block). Typical headers have somewhere between 1 and 4 blocks,
+though sometimes more.
+
+Since the first thing we write to a FITS file is the header, we want to write
+enough header blocks so that there is plenty of padding in which to add new
+keywords without having to resize the whole file. Say you want the header to
+use 4 blocks by default. Then, excluding the END card which Astropy will add
+automatically, create the header and pad it out to 36 * 4 cards.
+
+Create a stub array to initialize the HDU; its
+exact size is irrelevant, as long as it has the desired number of
+dimensions:
+
+.. code:: python
+
+    data = np.zeros((100, 100), dtype=np.float64)
+    hdu = fits.PrimaryHDU(data=data)
+    header = hdu.header
+    while len(header) < (36 * 4 - 1):
+        header.append()  # Adds a blank card to the end
+
+Now adjust the NAXISn keywords to the desired size of the array, and write
+only the header out to a file. Using the ``hdu.writeto()`` method will cause
+astropy to "helpfully" reset the NAXISn keywords to match the size of the
+dummy array. That is because it works hard to ensure that only valid FITS
+files are written. Instead, we can write just the header to a file using the
+`astropy.io.fits.Header.tofile` method:
+
+.. code:: python
+
+    header["NAXIS1"] = 40000
+    header["NAXIS2"] = 40000
+    header.tofile("large.fits")
+
+Finally, grow out the end of the file to match the length of the
+data (plus the length of the header). This can be done very efficiently on
+most systems by seeking past the end of the file and writing a single byte,
+like so:
+
+.. code:: python
+
+    with open("large.fits", "rb+") as fobj:
+        # Seek past the length of the header, plus the length of the
+        # Data we want to write.
+        # 8 is the number of bytes per value, i.e. abs(header['BITPIX'])/8
+        # (this example is assuming a 64-bit float)
+        # The -1 is to account for the final byte that we are about to
+        # write:
+        fobj.seek(len(header.tostring()) + (40000 * 40000 * 8) - 1)
+        fobj.write(b"\0")
+
+More generally, this can be written:
+
+.. code:: python
+
+    shape = tuple(header[f"NAXIS{ii}"] for ii in range(1, header["NAXIS"] + 1))
+    with open("large.fits", "rb+") as fobj:
+        fobj.seek(
+            len(header.tostring()) + (np.prod(shape) * np.abs(header["BITPIX"] // 8)) - 1
+        )
+        fobj.write(b"\0")
+
+On modern operating systems this will cause the file (past the header) to be
+filled with zeros out to the ~12GB needed to hold a 40000 x 40000 image. On
+filesystems that support sparse file creation (most Linux filesystems, but not
+the HFS+ filesystem used by most Macs) this is a very fast, efficient
+operation. On other systems your mileage may vary.
+
+This isn't the only way to build up a large file, but probably one of the
+safest. This method can also be used to create large multi-extension FITS
+files, with a little care.
+
+Finally, we'll remove the file we created:
+
+.. code:: python
+
+    os.remove("large.fits")
 
 For creating very large tables, this method may also be used, though it can be
 difficult to determine ahead of time how many rows a table will need. In
@@ -269,11 +374,144 @@ this FAQ might provide an example of how to do this.
 .. _PyTables: http://www.pytables.org/
 
 
+.. _sphx_glr_generated_examples_io_create-mef.py:
+
 How do I create a multi-extension FITS file from scratch?
 ---------------------------------------------------------
 
-See :ref:`sphx_glr_generated_examples_io_create-mef.py`.
+This example demonstrates how to create a multi-extension FITS (MEF)
+file from scratch using `astropy.io.fits`.
 
+HDUList objects are used to hold all the HDUs in a FITS file. This
+``HDUList`` class is a subclass of Python's builtin `list` and can be
+created from scratch. For example, to create a FITS file with
+three extensions:
+
+.. code:: python
+
+    import os
+    from astropy.io import fits
+
+    new_hdul = fits.HDUList()
+    new_hdul.append(fits.ImageHDU())
+    new_hdul.append(fits.ImageHDU())
+
+Write out the new file to disk:
+
+.. code:: python
+
+    new_hdul.writeto("test.fits")
+
+Alternatively, the HDU instances can be created first (or read from an
+existing FITS file).
+
+Create a multi-extension FITS file with two empty IMAGE extensions (a
+default PRIMARY HDU is prepended automatically if one is not specified;
+we use ``overwrite=True`` to overwrite the file if it already exists):
+
+.. code:: python
+
+    hdu1 = fits.PrimaryHDU()
+    hdu2 = fits.ImageHDU()
+    new_hdul = fits.HDUList([hdu1, hdu2])
+    new_hdul.writeto("test.fits", overwrite=True)
+
+Finally, we'll remove the file we created:
+
+.. code:: python
+
+    os.remove("test.fits")
+
+.. _sphx_glr_generated_examples_io_fits-tables.py:
+
+How do I access data stored as a table in a multi-extension FITS file?
+----------------------------------------------------------------------
+
+FITS files can often contain large amount of multi-dimensional data and
+tables. This example opens a FITS file with information
+from Chandra's HETG-S instrument.
+
+The example uses `astropy.utils.data` to download multi-extension FITS (MEF)
+file, `astropy.io.fits` to investigate the header, and
+`astropy.table.QTable` to explore the data.
+
+.. code:: python
+
+    from astropy.io import fits
+    from astropy.table import QTable
+    from astropy.utils.data import get_pkg_data_filename
+
+    # Download a FITS file
+    event_filename = get_pkg_data_filename("tutorials/FITS-tables/chandra_events.fits")
+
+    # Display information about the contents of the FITS file.
+    fits.info(event_filename)
+
+Extension 1, EVENTS, is a Table that contains information about each X-ray
+photon that hit Chandra's HETG-S detector. To read the table:
+
+.. code:: python
+
+    events = QTable.read(event_filename, hdu=1)
+
+    # Print the column names of the Events table.
+    print(events.columns)
+
+If a column contains unit information, it will have an associated `astropy.units` object:
+
+.. code:: python
+
+    print(events["energy"].unit)
+
+Print the data stored in the Energy column:
+
+.. code:: python
+
+    print(events["energy"])
+
+.. _sphx_glr_generated_examples_io_plot_fits-image.py:
+
+How do I read and plot an image from a FITS file?
+-------------------------------------------------
+
+This example opens an image stored in a FITS file and displays it to the screen.
+This uses `astropy.utils.data` to download the file, `astropy.io.fits` to open
+the file, and `matplotlib.pyplot` to display the image.
+
+.. code:: python
+
+    import matplotlib.pyplot as plt
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
+
+    # Download a FITS file
+    image_file = get_pkg_data_filename("tutorials/FITS-images/HorseHead.fits")
+
+    # Display information about the contents of the FITS file.
+    fits.info(image_file)
+
+Generally the image information is located in the Primary HDU, also known
+as extension 0. Here, we use :func:`astropy.io.fits.getdata` to read the image
+data from this first extension using the keyword argument ``ext=0``:
+
+.. code:: python
+
+    image_data = fits.getdata(image_file, ext=0)
+
+The data is now stored as a 2D numpy array. Print the dimensions using the
+shape attribute:
+
+.. code:: python
+
+    print(image_data.shape)
+
+Display the image data:
+
+.. code:: python
+
+    plt.figure()
+    plt.imshow(image_data, cmap="gray")
+    plt.colorbar()
 
 .. _fits-scaled-data-faq:
 
@@ -471,6 +709,81 @@ by calling :func:`gc.collect` at the end of the loop.
 
 In a future release it will be more convenient to automatically perform this
 sort of cleanup when closing FITS files, where needed.
+
+.. _sphx_glr_generated_examples_io_modify-fits-header.py:
+
+How do I edit a FITS header?
+----------------------------
+
+This example describes how to edit a value in a FITS header using `astropy.io.fits`.
+
+.. code:: python
+
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
+
+    # Download a FITS file:
+    fits_file = get_pkg_data_filename("tutorials/FITS-Header/input_file.fits")
+
+    # Look at contents of the FITS file
+    fits.info(fits_file)
+
+Look at the headers of the two extensions:
+
+.. code:: python
+
+    print("Before modifications:")
+    print()
+    print("Extension 0:")
+    print(repr(fits.getheader(fits_file, 0)))
+    print()
+    print("Extension 1:")
+    print(repr(fits.getheader(fits_file, 1)))
+
+`astropy.io.fits` provides an object-oriented interface for reading and
+interacting with FITS files, but for small operations (like this example) it
+is often easier to use the :ref:`io-fits-intro-convenience-functions`.
+
+To edit a single header value in the header for extension 0, use the
+:func:`~astropy.io.fits.setval` function. For example, set the OBJECT keyword
+to 'M31':
+
+.. code:: python
+
+    fits.setval(fits_file, "OBJECT", value="M31")
+
+With no extra arguments, this will modify the header for extension 0, but
+this can be changed using the ``ext`` keyword argument. For example, we can
+specify extension 1 instead:
+
+.. code:: python
+
+    fits.setval(fits_file, "OBJECT", value="M31", ext=1)
+
+This can also be used to create a new keyword-value pair ("card" in FITS lingo):
+
+.. code:: python
+
+    fits.setval(fits_file, "ANEWKEY", value="some value")
+
+Again, this is useful for one-off modifications, but can be inefficient
+for operations like editing multiple headers in the same file
+because `~astropy.io.fits.setval()` loads the whole file each time it
+is called. To make several modifications, it's better to load the file once:
+
+.. code:: python
+
+    with fits.open(fits_file, "update") as f:
+        for hdu in f:
+            hdu.header["OBJECT"] = "CAT"
+
+    print("After modifications:")
+    print()
+    print("Extension 0:")
+    print(repr(fits.getheader(fits_file, 0)))
+    print()
+    print("Extension 1:")
+    print(repr(fits.getheader(fits_file, 1)))
 
 Using header['NAXIS2'] += 1 does not add another row to my Table
 ----------------------------------------------------------------

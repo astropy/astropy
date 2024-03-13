@@ -836,6 +836,8 @@ We then create an HDUList containing both the primary HDU and any other HDUs wan
 
     See also :ref:`sphx_glr_generated_examples_io_create-mef.py`.
 
+.. _io-fits-intro-convenience-functions:
+
 Convenience Functions
 ---------------------
 
