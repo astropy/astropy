@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import pytest
 
 import astropy.units as u
 from astropy.cosmology import Cosmology, Parameter, realizations
 from astropy.cosmology import units as cu
-from astropy.cosmology.core import _COSMOLOGY_CLASSES
+from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
 from astropy.cosmology.realizations import available
 
 cosmo_instances = [getattr(realizations, name) for name in available]
@@ -98,8 +99,9 @@ class IODirectTestBase(IOTestBase):
     def setup(self):
         """Setup and teardown for tests."""
 
+        @dataclass_decorator
         class CosmologyWithKwargs(Cosmology):
-            Tcmb0 = Parameter(default=0, unit=u.K)
+            Tcmb0: Parameter = Parameter(default=0, unit=u.K)
 
             def __init__(
                 self, Tcmb0=0, name="cosmology with kwargs", meta=None, **kwargs

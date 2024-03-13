@@ -16,7 +16,7 @@ import pytest
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import Cosmology, FlatCosmologyMixin
-from astropy.cosmology.core import _COSMOLOGY_CLASSES
+from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.parameter.tests.test_descriptors import (
     ParametersAttributeTestMixin,
@@ -68,12 +68,13 @@ invalid_zs = [
 ]
 
 
+@dataclass_decorator
 class SubCosmology(Cosmology):
     """Defined here to be serializable."""
 
-    H0 = Parameter(unit="km/(s Mpc)")
-    Tcmb0 = Parameter(default=0 * u.K, unit=u.K)
-    m_nu = Parameter(default=0 * u.eV, unit=u.eV)
+    H0: Parameter = Parameter(unit="km/(s Mpc)")
+    Tcmb0: Parameter = Parameter(default=0 * u.K, unit=u.K)
+    m_nu: Parameter = Parameter(default=0 * u.eV, unit=u.eV)
 
     def __init__(self, H0, Tcmb0=0 * u.K, m_nu=0 * u.eV, name=None, meta=None):
         super().__init__(name=name, meta=meta)
@@ -544,6 +545,7 @@ def test__nonflatclass__multiple_nonflat_inheritance():
     """
 
     # Define a non-operable minimal subclass of Cosmology.
+    @dataclass_decorator
     class SubCosmology2(Cosmology):
         def __init__(self, H0, Tcmb0=0 * u.K, m_nu=0 * u.eV, name=None, meta=None):
             super().__init__(name=name, meta=meta)

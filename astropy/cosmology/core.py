@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+# ruff: noqa: RUF009
 
 from __future__ import annotations
 
 import abc
 import inspect
+from dataclasses import dataclass
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
@@ -51,6 +53,9 @@ _COSMOLOGY_CLASSES = dict()
 _CosmoT = TypeVar("_CosmoT", bound="Cosmology")
 _FlatCosmoT = TypeVar("_FlatCosmoT", bound="FlatCosmologyMixin")
 
+# dataclass
+dataclass_decorator = dataclass(frozen=False, repr=False, eq=False, init=False)
+
 ##############################################################################
 
 
@@ -58,6 +63,7 @@ class CosmologyError(Exception):
     pass
 
 
+@dataclass_decorator
 class Cosmology(metaclass=abc.ABCMeta):
     """Base-class for all Cosmologies.
 
@@ -89,12 +95,12 @@ class Cosmology(metaclass=abc.ABCMeta):
     meta = MetaData()
 
     # Unified I/O object interchange methods
-    from_format = UnifiedReadWriteMethod(CosmologyFromFormat)
-    to_format = UnifiedReadWriteMethod(CosmologyToFormat)
+    from_format: ClassVar = UnifiedReadWriteMethod(CosmologyFromFormat)
+    to_format: ClassVar = UnifiedReadWriteMethod(CosmologyToFormat)
 
     # Unified I/O read and write methods
-    read = UnifiedReadWriteMethod(CosmologyRead)
-    write = UnifiedReadWriteMethod(CosmologyWrite)
+    read: ClassVar = UnifiedReadWriteMethod(CosmologyRead)
+    write: ClassVar = UnifiedReadWriteMethod(CosmologyWrite)
 
     # Parameters
     parameters = ParametersAttribute(attr_name="_parameters")
@@ -430,6 +436,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         return self.to_format("astropy.table", cls=cls, **kwargs)
 
 
+@dataclass_decorator
 class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     """Mixin class for flat cosmologies.
 

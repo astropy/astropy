@@ -1,0 +1,3 @@
+``Cosmology`` is now a ``dataclass``.
+See the Python documentation for more information on ``dataclass`` objects: how they
+work, how to use them, and how to define your own.
