@@ -697,7 +697,7 @@ class FLRWTest(
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize("z, exc", invalid_zs)
-    @pytest.mark.parametrize("method", _FLRW_redshift_methods)
+    @pytest.mark.parametrize("method", sorted(_FLRW_redshift_methods))
     def test_redshift_method_bad_input(self, cosmo, method, z, exc):
         """Test all the redshift methods for bad input."""
         with pytest.raises(exc):
@@ -925,7 +925,7 @@ class TestFLRW(FLRWTest):
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize("z, exc", invalid_zs)
-    @pytest.mark.parametrize("method", _FLRW_redshift_methods)
+    @pytest.mark.parametrize("method", sorted(_FLRW_redshift_methods))
     def test_redshift_method_bad_input(self, cosmo, method, z, exc):
         """Test all the redshift methods for bad input."""
         with pytest.raises(exc):
@@ -1057,7 +1057,9 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize("z, exc", invalid_zs)
-    @pytest.mark.parametrize("method", FLRWTest._FLRW_redshift_methods - {"Otot"})
+    @pytest.mark.parametrize(
+        "method", sorted(FLRWTest._FLRW_redshift_methods - {"Otot"})
+    )
     def test_redshift_method_bad_input(self, cosmo, method, z, exc):
         """Test all the redshift methods for bad input."""
         super().test_redshift_method_bad_input(cosmo, method, z, exc)
