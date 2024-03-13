@@ -131,5 +131,5 @@ class ParametersAttributeTestMixin:
         self, cosmo: Cosmology, name: str
     ) -> None:
         """Test descriptor ``parameters`` cannot be set on the instance."""
-        with pytest.raises(AttributeError, match=f"cannot set {name!r} of"):
+        with pytest.raises(AttributeError, match=f"cannot assign to field {name!r}"):
             setattr(cosmo, name, {})
