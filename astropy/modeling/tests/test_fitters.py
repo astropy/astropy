@@ -2,6 +2,7 @@
 """
 Module to test fitting routines
 """
+
 # pylint: disable=invalid-name
 import os.path
 import unittest.mock as mk
@@ -160,7 +161,6 @@ class TestICheb2D:
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 class TestJointFitter:
-
     """
     Tests the joint fitting routine using 2 gaussian models
     """

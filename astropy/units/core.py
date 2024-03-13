@@ -4,7 +4,6 @@
 Core units classes and functions.
 """
 
-
 import inspect
 import operator
 import textwrap

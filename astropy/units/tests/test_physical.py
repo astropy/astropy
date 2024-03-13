@@ -3,6 +3,7 @@
 """
 Unit tests for the handling of physical types in `astropy.units`.
 """
+
 import pickle
 
 import pytest

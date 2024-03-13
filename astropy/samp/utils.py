@@ -3,7 +3,6 @@
 Utility functions and classes.
 """
 
-
 import inspect
 import queue
 import traceback

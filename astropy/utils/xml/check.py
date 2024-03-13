@@ -4,7 +4,6 @@ A collection of functions for checking various XML-related strings for
 standards compliance.
 """
 
-
 import re
 import urllib.parse
 

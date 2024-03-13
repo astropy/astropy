@@ -8,7 +8,6 @@ ui.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-
 import collections
 import contextlib
 import copy

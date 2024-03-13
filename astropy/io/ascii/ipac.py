@@ -8,7 +8,6 @@ ipac.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-
 import re
 from collections import OrderedDict, defaultdict
 from textwrap import wrap

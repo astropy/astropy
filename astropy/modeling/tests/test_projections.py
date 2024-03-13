@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """Test sky projections defined in WCS Paper II"""
+
 # pylint: disable=invalid-name, no-member
 import os
 import unittest.mock as mk

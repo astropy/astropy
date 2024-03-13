@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """Convolution Model."""
+
 # pylint: disable=line-too-long, too-many-lines, too-many-arguments, invalid-name
 import numpy as np
 

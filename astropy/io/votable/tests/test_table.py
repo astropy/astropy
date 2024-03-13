@@ -2,6 +2,7 @@
 """
 Test the conversion to/from astropy.table.
 """
+
 import io
 import os
 import pathlib

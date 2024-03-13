@@ -4,7 +4,6 @@
 Tests for miscellaneous functionality in the `funcs` module
 """
 
-
 import numpy as np
 import pytest
 from numpy import testing as npt

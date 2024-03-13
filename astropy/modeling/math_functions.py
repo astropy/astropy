@@ -2,6 +2,7 @@
 """
 Define Numpy Ufuncs as Models.
 """
+
 import numpy as np
 
 from astropy.modeling.core import Model

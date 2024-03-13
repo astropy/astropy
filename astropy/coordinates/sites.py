@@ -10,7 +10,6 @@ Request to the [astropy-data GitHub repository](https://github.com/astropy/astro
 updating the ``location.json`` file.
 """
 
-
 import json
 from collections.abc import Mapping
 from difflib import get_close_matches

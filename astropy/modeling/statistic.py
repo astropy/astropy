@@ -3,6 +3,7 @@
 """
 Statistic functions used in `~astropy.modeling.fitting`.
 """
+
 # pylint: disable=invalid-name
 import numpy as np
 

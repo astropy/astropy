@@ -5,6 +5,7 @@ This module tests some methods related to ``CDS`` format
 reader/writer.
 Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
+
 from io import StringIO
 
 import numpy as np

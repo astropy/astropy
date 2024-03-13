@@ -207,10 +207,14 @@ def test_future_altaz():
     else:
         ctx1 = pytest.warns(erfa.core.ErfaWarning)
         ctx2 = pytest.warns(AstropyWarning, match=".*times are outside of range.*")
-    with ctx1, ctx2, pytest.warns(
-        AstropyWarning,
-        match="Tried to get polar motions for times after IERS data is valid.*",
-    ) as found_warnings:
+    with (
+        ctx1,
+        ctx2,
+        pytest.warns(
+            AstropyWarning,
+            match="Tried to get polar motions for times after IERS data is valid.*",
+        ) as found_warnings,
+    ):
         SkyCoord(1 * u.deg, 2 * u.deg).transform_to(AltAz(location=location, obstime=t))
 
     if isinstance(iers.earth_orientation_table.get(), iers.IERS_B):

@@ -2,6 +2,7 @@
 """
 This module tests model set evaluation and fitting for some common use cases.
 """
+
 import numpy as np
 
 # pylint: disable=invalid-name

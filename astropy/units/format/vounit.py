@@ -3,7 +3,6 @@
 Handles the "VOUnit" unit format.
 """
 
-
 import copy
 import keyword
 import re

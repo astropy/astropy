@@ -233,12 +233,12 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
     else:
         for index in range(len(coord_meta["type"])):
             if index in world_map:
-                coord_meta["default_axislabel_position"][
-                    index
-                ] = frame_class.spine_names
-                coord_meta["default_ticklabel_position"][
-                    index
-                ] = frame_class.spine_names
+                coord_meta["default_axislabel_position"][index] = (
+                    frame_class.spine_names
+                )
+                coord_meta["default_ticklabel_position"][index] = (
+                    frame_class.spine_names
+                )
                 coord_meta["default_ticks_position"][index] = frame_class.spine_names
 
     return transform, coord_meta

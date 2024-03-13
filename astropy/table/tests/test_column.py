@@ -982,9 +982,7 @@ def test_unicode_sandwich_set(Column):
     c[0] = b"aa"
     assert np.all(c == ["aa", "def"])
 
-    c[
-        0
-    ] = uba  # a-umlaut is a 2-byte character in utf-8, test fails with ascii encoding
+    c[0] = uba  # ä is a 2-byte character in utf-8, test fails with ascii encoding
     assert np.all(c == [uba, "def"])
     assert c.pformat() == ["None", "----", "  " + uba, " def"]
 
