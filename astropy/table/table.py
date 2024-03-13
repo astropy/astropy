@@ -3379,6 +3379,79 @@ class Table:
 
         self.columns = columns
 
+    def setdefault(self, name, default):
+        """Ensure a column named ``name`` exists.
+
+        If ``name`` is already present then ``default`` is ignored.
+        Otherwise ``default`` can be any data object which is acceptable as
+        a `~astropy.table.Table` column object or can be converted.  This
+        includes mixin columns and scalar or length=1 objects which get
+        broadcast to match the table length.
+
+        Parameters
+        ----------
+        name : str
+            Name of the column.
+        default : object
+            Data object for the new column.
+
+        Returns
+        -------
+        `~astropy.table.Column`, `~astropy.table.MaskedColumn` or mixin-column type
+            The column named ``name`` if it is present already, or the
+            validated ``default`` converted to a column otherwise.
+
+        Raises
+        ------
+        TypeError
+            If the table is empty and ``default`` is a scalar object.
+
+        Examples
+        --------
+        Start with a simple table::
+
+          >>> t0 = Table({"a": ["Ham", "Spam"]})
+          >>> t0
+          <Table length=2>
+           a
+          str4
+          ----
+           Ham
+          Spam
+
+        Trying to add a column that already exists does not modify it::
+
+          >>> t0.setdefault("a", ["Breakfast"])
+          <Column name='a' dtype='str4' length=2>
+           Ham
+          Spam
+          >>> t0
+          <Table length=2>
+           a
+          str4
+          ----
+           Ham
+          Spam
+
+        But if the column does not exist it will be created with the
+        default value::
+
+          >>> t0.setdefault("approved", False)
+          <Column name='approved' dtype='bool' length=2>
+          False
+          False
+          >>> t0
+          <Table length=2>
+           a   approved
+          str4   bool
+          ---- --------
+           Ham    False
+          Spam    False
+        """
+        if name not in self.columns:
+            self[name] = default
+        return self[name]
+
     def update(self, other, copy=True):
         """
         Perform a dictionary-style update and merge metadata.
