@@ -9,8 +9,7 @@ Introduction
 
 A number of Astropy's tools work with data sets that are either awkwardly
 large (e.g., `~astropy.coordinates.solar_system_ephemeris`) or
-regularly updated (e.g., `~astropy.utils.iers.IERS_B`) or both
-(e.g., `~astropy.utils.iers.IERS_A`). This kind of
+regularly updated (e.g., `~astropy.utils.iers.IERS_A`). This kind of
 data - authoritative data made available on the Web, and possibly updated
 from time to time - is reasonably common in astronomy. The Astropy Project therefore
 provides some tools for working with such data.
@@ -235,9 +234,8 @@ adding files to an existing cache directory.
 If your application needs IERS data specifically, you can download the
 appropriate IERS table, covering the appropriate time span, by any means you
 find convenient. You can then load this file into your application and use the
-resulting table rather than `~astropy.utils.iers.IERS_Auto`. In fact, the IERS
-B table is small enough that a version (not necessarily recent) is bundled with
-``astropy`` as ``astropy.utils.iers.IERS_B_FILE``. Using a specific non-automatic
+resulting table rather than `~astropy.utils.iers.IERS_Auto`.
+Using a specific non-automatic
 table also has the advantage of giving you control over exactly which version
 of the IERS data your application is using. See also :ref:`iers-working-offline`.
 
@@ -265,25 +263,19 @@ systems. The parallel access to the home directory can also trigger concurrency
 problems in the Astropy data cache, though we have tried to minimize these. We
 therefore recommend the following guidelines:
 
- * Do one of the following:
+ * Set ``astropy.utils.iers.conf.auto_download = False`` in your Astropy config
+   file (see :ref:`astropy_config`) or in your code so that Astropy will not
+   automatically attempt to download a newer version of the IERS-A table than
+   the one already bundled in the ``astropy-iers-data`` package.  To update the
+   IERS-A table, do one of the following:
 
+   * Upgrade the ``astropy-iers-data`` package.
    * Write a simple script that sets ``astropy.utils.iers.conf.auto_download =
      True`` and then accesses all cached resources your code will need,
      including source name lookups and IERS tables. Run it on the head node from
      time to time (frequently enough to beat the timeout
      ``astropy.utils.iers.conf.auto_max_age``, which defaults to 30 days) to
      ensure all data is up to date.
-   * Set ``astropy.utils.iers.conf.auto_download = False`` in your code and set
-     ``astropy.utils.iers.conf.iers_degraded_accuracy`` to either ``'warn'``
-     or ``'ignore'``. These prevent the normal exception that occurs if a
-     time conversion falls outside the bounds of available (local) IERS data.
-     **WARNING**: only use this option if your application does not need full
-     accuracy time conversions.
-
- * Make an Astropy config file (see :ref:`astropy_config`) that sets
-   ``astropy.utils.iers.conf.auto_download = False`` so that the worker jobs will
-   not suddenly notice an out-of-date table all at once and frantically attempt
-   to download it.
 
  * Optionally, in this file, set ``astropy.utils.data.conf.allow_internet = False`` to
    prevent any attempt to download any file from the worker nodes; if you do this,

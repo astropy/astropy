@@ -191,7 +191,7 @@ class Conf(_config.ConfigNamespace):
         ["error", "warn", "ignore"],
         "IERS behavior if the range of available IERS data does not "
         "cover the times when converting time scales, potentially leading "
-        "to degraded accuracy.",
+        "to degraded accuracy.  Applies only to when using only IERS-B data.",
     )
     system_leap_second_file = _config.ConfigItem("", "System file with leap seconds.")
     iers_leap_second_auto_url = _config.ConfigItem(
@@ -761,7 +761,7 @@ class IERS_Auto(IERS_A):
 
     The returned table combines the IERS-A and IERS-B files, with the data
     in the IERS-B file considered to be official values and thus superseding
-    values from th IERS-A file at the same times.
+    values from the IERS-A file at the same times.
     """
 
     iers_table = None
