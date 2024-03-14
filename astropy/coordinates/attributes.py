@@ -118,11 +118,14 @@ class Attribute:
 
     def __get__(self, instance, frame_cls=None):
         if instance is None:
+            # If this attribute is on a dataclass, follow the dataclass-field pattern of returning
+            # the default value.  Otherwise, follow the property pattern of returning itself (the
+            # actual descriptor object), which is important for stuff like accessing the docstring.
             return self.default if is_dataclass(frame_cls) else self
-        else:
-            out = getattr(instance, "_" + self.name, self.default)
-            if out is None:
-                out = getattr(instance, self.secondary_attribute, self.default)
+
+        out = getattr(instance, "_" + self.name, self.default)
+        if out is None:
+            out = getattr(instance, self.secondary_attribute, self.default)
 
         out, converted = self.convert_input(out)
         if instance is not None:
