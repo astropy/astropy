@@ -154,7 +154,7 @@ class CylindricalDifferential(BaseDifferential):
 
     base_representation = CylindricalRepresentation
 
-    def __init__(self, d_rho, d_phi=None, d_z=None, copy=False):
+    def __init__(self, d_rho, d_phi=None, d_z=None, copy=True):
         super().__init__(d_rho, d_phi, d_z, copy=copy)
         if not self._d_rho.unit.is_equivalent(self._d_z.unit):
             raise u.UnitsError("d_rho and d_z should have equivalent units.")

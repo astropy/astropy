@@ -1,0 +1,4 @@
+Changed the default value of the ``copy`` argument in
+``astropy.coordinates.representation.CylindricalDifferential.__init__`` from
+``False`` to ``True``, which is the intended behaviour for all subclasses of
+``astropy.coordinates.representation.BaseDifferential``.
