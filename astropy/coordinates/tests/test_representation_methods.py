@@ -12,6 +12,7 @@ from astropy.coordinates import (
     SphericalRepresentation,
 )
 from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
+from astropy.utils.compat import COPY_IF_NEEDED
 
 from .test_representation import representation_equal
 
@@ -35,7 +36,7 @@ class ShapeSetup:
     """
 
     def setup_class(cls):
-        # We set up some representations with, on purpose, copy=False,
+        # We set up some representations with, on purpose, copy=COPY_IF_NEEDED,
         # so we can check that broadcasting is handled correctly.
         lon = Longitude(np.arange(0, 24, 4), u.hourangle)
         lat = Latitude(np.arange(-90, 91, 30), u.deg)
@@ -45,20 +46,24 @@ class ShapeSetup:
             lon[:, np.newaxis] * np.ones(lat.shape),
             lat * np.ones(lon.shape)[:, np.newaxis],
             np.ones(lon.shape + lat.shape) * u.kpc,
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
 
         cls.diff = SphericalDifferential(
             d_lon=np.ones(cls.s0.shape) * u.mas / u.yr,
             d_lat=np.ones(cls.s0.shape) * u.mas / u.yr,
             d_distance=np.ones(cls.s0.shape) * u.km / u.s,
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
         cls.s0 = cls.s0.with_differentials(cls.diff)
 
         # With unequal arrays -> these will be broadcasted.
         cls.s1 = SphericalRepresentation(
-            lon[:, np.newaxis], lat, 1.0 * u.kpc, differentials=cls.diff, copy=False
+            lon[:, np.newaxis],
+            lat,
+            1.0 * u.kpc,
+            differentials=cls.diff,
+            copy=COPY_IF_NEEDED,
         )
 
         # For completeness on some tests, also a cartesian one
@@ -286,7 +291,7 @@ class TestSetShape(ShapeSetup):
         # Finally, a more complicated one that checks that things get reset
         # properly if it is not the first component that fails.
         s2 = SphericalRepresentation(
-            self.s1.lon.copy(), self.s1.lat, self.s1.distance, copy=False
+            self.s1.lon.copy(), self.s1.lat, self.s1.distance, copy=COPY_IF_NEEDED
         )
         assert 0 not in s2.lon.strides
         assert 0 in s2.lat.strides

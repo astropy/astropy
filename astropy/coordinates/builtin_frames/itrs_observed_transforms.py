@@ -6,6 +6,7 @@ from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.matrix_utilities import matrix_transpose, rotation_matrix
 from astropy.coordinates.representation import CartesianRepresentation
 from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference
+from astropy.utils.compat import COPY_IF_NEEDED
 
 from .altaz import AltAz
 from .hadec import HADec
@@ -71,7 +72,9 @@ def add_refraction(aa_crepr, observed_frame):
     # Need to renormalize to get agreement with CIRS->Observed on distance
     norm2, uv = erfa.pn(uv)
     uv = erfa.sxp(norm, uv)
-    return CartesianRepresentation(uv, xyz_axis=-1, unit=aa_crepr.x.unit, copy=False)
+    return CartesianRepresentation(
+        uv, xyz_axis=-1, unit=aa_crepr.x.unit, copy=COPY_IF_NEEDED
+    )
 
 
 def remove_refraction(aa_crepr, observed_frame):
@@ -95,7 +98,9 @@ def remove_refraction(aa_crepr, observed_frame):
     el -= delta_el
     uv = erfa.s2c(az, el)
     uv = erfa.sxp(norm, uv)
-    return CartesianRepresentation(uv, xyz_axis=-1, unit=aa_crepr.x.unit, copy=False)
+    return CartesianRepresentation(
+        uv, xyz_axis=-1, unit=aa_crepr.x.unit, copy=COPY_IF_NEEDED
+    )
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ITRS, AltAz)

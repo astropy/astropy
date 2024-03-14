@@ -30,6 +30,7 @@ from astropy.time import (
     conf,
 )
 from astropy.utils import iers, isiterable
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_PYTZ
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -143,7 +144,7 @@ class TestBasic:
         """
         t = Time(value, format="jd", scale="utc")
 
-        t2 = Time(t, copy=False)
+        t2 = Time(t, copy=COPY_IF_NEEDED)
         assert np.all(t.jd - t2.jd == 0)
         assert np.all((t - t2).jd == 0)
         assert t._time.jd1 is t2._time.jd1

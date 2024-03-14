@@ -571,11 +571,11 @@ class TimeBase(ShapedLikeNDArray):
         # with shape broadcastable to jd2.
         if mask is not False:
             # Ensure that if the class is already masked, we do not lose it.
-            self._time.jd1 = Masked(self._time.jd1, copy=False)
+            self._time.jd1 = Masked(self._time.jd1, copy=COPY_IF_NEEDED)
             self._time.jd1.mask |= mask
             # Ensure we share the mask (it may have been broadcast).
             self._time.jd2 = Masked(
-                self._time.jd2, mask=self._time.jd1.mask, copy=False
+                self._time.jd2, mask=self._time.jd1.mask, copy=COPY_IF_NEEDED
             )
 
     def _get_time_fmt(
@@ -1225,9 +1225,9 @@ class TimeBase(ShapedLikeNDArray):
 
         if value is np.ma.masked or value is np.nan:
             if not isinstance(self._time.jd2, Masked):
-                self._time.jd1 = Masked(self._time.jd1, copy=False)
+                self._time.jd1 = Masked(self._time.jd1, copy=COPY_IF_NEEDED)
                 self._time.jd2 = Masked(
-                    self._time.jd2, mask=self._time.jd1.mask, copy=False
+                    self._time.jd2, mask=self._time.jd1.mask, copy=COPY_IF_NEEDED
                 )
             self._time.jd2.mask[item] = True
             return
@@ -1974,7 +1974,7 @@ class Time(TimeBase):
         in_subfmt=None,
         out_subfmt=None,
         location=None,
-        copy=False,
+        copy=COPY_IF_NEEDED,
     ):
         copy = sanitize_copy_arg(copy)
 
@@ -2943,7 +2943,7 @@ class TimeDelta(TimeBase):
         precision=None,
         in_subfmt=None,
         out_subfmt=None,
-        copy=False,
+        copy=COPY_IF_NEEDED,
     ):
         if isinstance(val, TimeDelta):
             if scale is not None:

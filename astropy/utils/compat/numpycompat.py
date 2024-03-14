@@ -4,6 +4,8 @@ This is a collection of monkey patches and workarounds for bugs in
 earlier versions of Numpy.
 """
 
+import warnings
+
 import numpy as np
 
 from astropy.utils import minversion
@@ -31,6 +33,15 @@ COPY_IF_NEEDED = False if NUMPY_LT_2_0 else None
 
 def sanitize_copy_arg(copy, /):
     if not NUMPY_LT_2_0 and copy is False:
+        warnings.warn(
+            "With copy=False, copies are still made where they cannot be avoided. "
+            "In the future, an error will be raised in that scenario. "
+            "This is done following a change in numpy 2.0.\n"
+            "To silence this warning, pass copy=None, "
+            "or downgrade numpy<2.0 (not recommended).",
+            category=FutureWarning,
+            stacklevel=3,
+        )
         return None
 
     return copy

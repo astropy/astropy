@@ -99,7 +99,7 @@ class CylindricalRepresentation(BaseRepresentation):
         phi = np.arctan2(cart.y, cart.x)
         z = cart.z
 
-        return cls(rho=rho, phi=phi, z=z, copy=False)
+        return cls(rho=rho, phi=phi, z=z, copy=COPY_IF_NEEDED)
 
     def to_cartesian(self):
         """
@@ -110,7 +110,7 @@ class CylindricalRepresentation(BaseRepresentation):
         y = self.rho * np.sin(self.phi)
         z = self.z
 
-        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+        return CartesianRepresentation(x=x, y=y, z=z, copy=COPY_IF_NEEDED)
 
     def _scale_operation(self, op, *args):
         if any(
@@ -132,7 +132,9 @@ class CylindricalRepresentation(BaseRepresentation):
                     (rho_op, operator.pos, z_op), differential.components
                 )
             )
-            result.differentials[key] = differential.__class__(*new_comps, copy=False)
+            result.differentials[key] = differential.__class__(
+                *new_comps, copy=COPY_IF_NEEDED
+            )
         return result
 
 
@@ -154,7 +156,7 @@ class CylindricalDifferential(BaseDifferential):
 
     base_representation = CylindricalRepresentation
 
-    def __init__(self, d_rho, d_phi=None, d_z=None, copy=False):
+    def __init__(self, d_rho, d_phi=None, d_z=None, copy=COPY_IF_NEEDED):
         super().__init__(d_rho, d_phi, d_z, copy=copy)
         if not self._d_rho.unit.is_equivalent(self._d_z.unit):
             raise u.UnitsError("d_rho and d_z should have equivalent units.")

@@ -8,6 +8,7 @@ import pytest
 
 import astropy.units as u
 from astropy.table import Column, MaskedColumn, QTable, Table, TableColumns
+from astropy.utils.compat import COPY_IF_NEEDED
 
 
 class DictLike(Mapping):
@@ -112,7 +113,7 @@ class BaseInitFromListLike(BaseInitFrom):
     def test_names_copy_false(self, table_type):
         self._setup(table_type)
         with pytest.raises(ValueError):
-            table_type(self.data, names=["a"], dtype=[int], copy=False)
+            table_type(self.data, names=["a"], dtype=[int], copy=COPY_IF_NEEDED)
 
 
 @pytest.mark.usefixtures("table_type")
@@ -131,10 +132,10 @@ class TestInitFromNdarrayHomo(BaseInitFromListLike):
         assert t.colnames == ["col0", "col1", "col2"]
 
     def test_ndarray_ref(self, table_type):
-        """Init with ndarray and copy=False and show that this is a reference
+        """Init with ndarray and copy=COPY_IF_NEEDED and show that this is a reference
         to input ndarray"""
         self._setup(table_type)
-        t = table_type(self.data, copy=False)
+        t = table_type(self.data, copy=COPY_IF_NEEDED)
         t["col1"][1] = 0
         assert t.as_array()["col1"][1] == 0
         assert t["col1"][1] == 0
@@ -260,7 +261,7 @@ class TestInitFromColsList(BaseInitFromListLike):
     def test_ref(self, table_type):
         """Test that initializing from a list of columns can be done by reference"""
         self._setup(table_type)
-        t = table_type(self.data, copy=False)
+        t = table_type(self.data, copy=COPY_IF_NEEDED)
         t["x"][0] = 100
         assert self.data[0][0] == 100
 
@@ -273,10 +274,10 @@ class TestInitFromNdarrayStruct(BaseInitFromDictLike):
         )
 
     def test_ndarray_ref(self, table_type):
-        """Init with ndarray and copy=False and show that table uses reference
+        """Init with ndarray and copy=COPY_IF_NEEDED and show that table uses reference
         to input ndarray"""
         self._setup(table_type)
-        t = table_type(self.data, copy=False)
+        t = table_type(self.data, copy=COPY_IF_NEEDED)
 
         t["x"][1] = 0  # Column-wise assignment
         t[0]["y"] = 0  # Row-wise assignment
@@ -296,7 +297,7 @@ class TestInitFromNdarrayStruct(BaseInitFromDictLike):
 
     def test_partial_names_ref(self, table_type):
         self._setup(table_type)
-        t = table_type(self.data, names=["e", None, "d"], copy=False)
+        t = table_type(self.data, names=["e", None, "d"], copy=COPY_IF_NEEDED)
         assert t.colnames == ["e", "y", "d"]
         assert t["e"].dtype.type == np.int64
         assert t["y"].dtype.type == np.int32
@@ -393,7 +394,7 @@ class TestInitFromTable(BaseInitFromDictLike):
 
     def test_table_ref(self, table_type):
         self._setup(table_type)
-        t = table_type(self.data, copy=False)
+        t = table_type(self.data, copy=COPY_IF_NEEDED)
         t["x"][1] = 0
         assert t["x"][1] == 0
         assert self.data["x"][1] == 0
@@ -411,7 +412,7 @@ class TestInitFromTable(BaseInitFromDictLike):
 
     def test_partial_names_ref(self, table_type):
         self._setup(table_type)
-        t = table_type(self.data, names=["e", None, "d"], copy=False)
+        t = table_type(self.data, names=["e", None, "d"], copy=COPY_IF_NEEDED)
         assert t.colnames == ["e", "y", "d"]
         assert t["e"].dtype.type == np.int64
         assert t["y"].dtype.type == np.int64
@@ -512,10 +513,10 @@ def test_init_table_with_names_and_structured_dtype(has_data):
 def test_init_and_ref_from_multidim_ndarray(table_type):
     """
     Test that initializing from an ndarray structured array with
-    a multi-dim column works for both copy=False and True and that
+    a multi-dim column works for both copy=COPY_IF_NEEDED and True and that
     the referencing is as expected.
     """
-    for copy in (False, True):
+    for copy in (COPY_IF_NEEDED, True):
         nd = np.array(
             [(1, [10, 20]), (3, [30, 40])], dtype=[("a", "i8"), ("b", "i8", (2,))]
         )
@@ -534,11 +535,11 @@ def test_init_and_ref_from_multidim_ndarray(table_type):
 
 
 @pytest.mark.usefixtures("table_type")
-@pytest.mark.parametrize("copy", [False, True])
+@pytest.mark.parametrize("copy", [COPY_IF_NEEDED, True])
 def test_init_and_ref_from_dict(table_type, copy):
     """
-    Test that initializing from a dict works for both copy=False and True and that
-    the referencing is as expected.
+    Test that initializing from a dict works for both copy=COPY_IF_NEEDED
+    and True and that the referencing is as expected.
     """
     x1 = np.arange(10.0)
     x2 = np.zeros(10)

@@ -111,12 +111,12 @@ class Masked(NDArrayShapeMethods):
     # Subclasses can override this in case the class does not work
     # with this signature, or to provide a faster implementation.
     @classmethod
-    def from_unmasked(cls, data, mask=None, copy=False):
+    def from_unmasked(cls, data, mask=None, copy=COPY_IF_NEEDED):
         """Create an instance from unmasked data and a mask."""
         return cls(data, mask=mask, copy=copy)
 
     @classmethod
-    def _get_masked_instance(cls, data, mask=None, copy=False):
+    def _get_masked_instance(cls, data, mask=None, copy=COPY_IF_NEEDED):
         data, data_mask = cls._get_data_and_mask(data)
         if mask is None:
             mask = False if data_mask is None else data_mask
@@ -447,7 +447,7 @@ class MaskedIterator:
             out = out[...]
             mask = mask[...]
 
-        return self._masked.from_unmasked(out, mask, copy=False)
+        return self._masked.from_unmasked(out, mask, copy=COPY_IF_NEEDED)
 
     def __setitem__(self, index, value):
         data, mask = self._masked._get_data_and_mask(value, allow_ma_masked=True)
@@ -461,7 +461,7 @@ class MaskedIterator:
         """
         out = next(self._dataiter)[...]
         mask = next(self._maskiter)[...]
-        return self._masked.from_unmasked(out, mask, copy=False)
+        return self._masked.from_unmasked(out, mask, copy=COPY_IF_NEEDED)
 
     next = __next__
 
@@ -510,7 +510,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
     # The two pieces typically overridden.
     @classmethod
-    def from_unmasked(cls, data, mask=None, copy=False):
+    def from_unmasked(cls, data, mask=None, copy=COPY_IF_NEEDED):
         # Note: have to override since __new__ would use ndarray.__new__
         # which expects the shape as its first argument, not an array.
         copy = sanitize_copy_arg(copy)

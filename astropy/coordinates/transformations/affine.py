@@ -8,6 +8,7 @@ from abc import abstractmethod
 import numpy as np
 
 from astropy.coordinates.transformations.base import CoordinateTransform
+from astropy.utils.compat import COPY_IF_NEEDED
 
 __all__ = [
     "BaseAffineTransform",
@@ -163,7 +164,9 @@ class BaseAffineTransform(CoordinateTransform):
                 kwargs = {comp: getattr(newdiff, comp) for comp in newdiff.components}
                 kwargs["d_distance"] = fromcoord.data.differentials["s"].d_distance
                 diffs = {
-                    "s": type(fromcoord.data.differentials["s"])(copy=False, **kwargs)
+                    "s": type(fromcoord.data.differentials["s"])(
+                        copy=COPY_IF_NEEDED, **kwargs
+                    )
                 }
 
             elif has_velocity and unit_vel_diff:

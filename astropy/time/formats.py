@@ -12,6 +12,7 @@ import erfa
 import numpy as np
 
 import astropy.units as u
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import classproperty, lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.masked import Masked
@@ -330,9 +331,9 @@ class TimeFormat:
             # careful with the conversion, so that, e.g., large numbers of
             # seconds get converted without losing precision because
             # 1/86400 is not exactly representable as a float.
-            val1 = u.Quantity(val1, copy=False)
+            val1 = u.Quantity(val1, copy=COPY_IF_NEEDED)
             if val2 is not None:
-                val2 = u.Quantity(val2, copy=False)
+                val2 = u.Quantity(val2, copy=COPY_IF_NEEDED)
 
             try:
                 val1, val2 = quantity_day_frac(val1, val2)

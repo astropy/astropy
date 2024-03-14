@@ -6,6 +6,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_ARRAY_API_STRICT
 
@@ -17,7 +18,7 @@ class TestQuantityArrayCopy:
 
     def test_copy_on_creation(self):
         v = np.arange(1000.0)
-        q_nocopy = u.Quantity(v, "km/s", copy=False)
+        q_nocopy = u.Quantity(v, "km/s", copy=COPY_IF_NEEDED)
         q_copy = u.Quantity(v, "km/s", copy=True)
         v[0] = -1.0
         assert q_nocopy[0].value == v[0]

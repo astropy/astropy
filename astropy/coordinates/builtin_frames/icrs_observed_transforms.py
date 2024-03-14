@@ -56,11 +56,11 @@ def icrs_to_observed(icrs_coo, observed_frame):
 
     if is_unitspherical:
         obs_srepr = UnitSphericalRepresentation(
-            lon << u.radian, lat << u.radian, copy=False
+            lon << u.radian, lat << u.radian, copy=COPY_IF_NEEDED
         )
     else:
         obs_srepr = SphericalRepresentation(
-            lon << u.radian, lat << u.radian, srepr.distance, copy=False
+            lon << u.radian, lat << u.radian, srepr.distance, copy=COPY_IF_NEEDED
         )
     return observed_frame.realize_frame(obs_srepr)
 

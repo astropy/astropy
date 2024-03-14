@@ -20,6 +20,7 @@ from astropy import time
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.units import allclose
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
@@ -56,7 +57,7 @@ def test_representations_api():
 
     # Default is to copy arrays, but optionally, it can be a reference
     UnitSphericalRepresentation(
-        lon=[8, 9] * u.hourangle, lat=[5, 6] * u.deg, copy=False
+        lon=[8, 9] * u.hourangle, lat=[5, 6] * u.deg, copy=COPY_IF_NEEDED
     )
 
     # strings are parsed by `Latitude` and `Longitude` constructors, so no need to

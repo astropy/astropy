@@ -1162,7 +1162,7 @@ class Quantity(np.ndarray):
         except UnitTypeError:
             return NotImplemented
 
-        return self.__class__(self, other, copy=False, subok=True)
+        return self.__class__(self, other, copy=COPY_IF_NEEDED, subok=True)
 
     def __ilshift__(self, other):
         try:

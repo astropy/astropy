@@ -6,6 +6,7 @@ Power law model variants.
 import numpy as np
 
 from astropy.units import Magnitude, Quantity, UnitsError, dimensionless_unscaled, mag
+from astropy.utils.compat import COPY_IF_NEEDED
 
 from .core import Fittable1DModel
 from .parameters import InputParameterError, Parameter
@@ -317,7 +318,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
             f[i] = amplitude * xx[i] ** (-alpha_1) * r ** ((alpha_1 - alpha_2) * delta)
 
         if return_unit:
-            return Quantity(f, unit=return_unit, copy=False, subok=True)
+            return Quantity(f, unit=return_unit, copy=COPY_IF_NEEDED, subok=True)
         return f
 
     @staticmethod

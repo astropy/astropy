@@ -56,7 +56,7 @@ def cirs_to_observed(cirs_coo, observed_frame):
         rep = UnitSphericalRepresentation(
             lat=u.Quantity(lat, u.radian, copy=COPY_IF_NEEDED),
             lon=u.Quantity(lon, u.radian, copy=COPY_IF_NEEDED),
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
     else:
         # since we've transformed to CIRS at the observatory location, just use CIRS distance
@@ -64,7 +64,7 @@ def cirs_to_observed(cirs_coo, observed_frame):
             lat=u.Quantity(lat, u.radian, copy=COPY_IF_NEEDED),
             lon=u.Quantity(lon, u.radian, copy=COPY_IF_NEEDED),
             distance=cirs_coo.distance,
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
     return observed_frame.realize_frame(rep)
 

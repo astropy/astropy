@@ -463,7 +463,7 @@ class Angle(SpecificTypeQuantity):
             `~astropy.coordinates.Angle` object with angles wrapped accordingly.
             Otherwise wrap in place and return `None`.
         """
-        wrap_angle = Angle(wrap_angle, copy=False)  # Convert to an Angle
+        wrap_angle = Angle(wrap_angle, copy=COPY_IF_NEEDED)  # Convert to an Angle
         if not inplace:
             self = self.copy()
         self._wrap_at(wrap_angle)
@@ -728,7 +728,7 @@ class Longitude(Angle):
 
     @wrap_angle.setter
     def wrap_angle(self, value):
-        self._wrap_angle = Angle(value, copy=False)
+        self._wrap_angle = Angle(value, copy=COPY_IF_NEEDED)
         self._wrap_at(self.wrap_angle)
 
     def __array_finalize__(self, obj):

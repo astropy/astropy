@@ -44,7 +44,7 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
         newrep = UnitSphericalRepresentation(
             lat=u.Quantity(cirs_dec, u.radian, copy=COPY_IF_NEEDED),
             lon=u.Quantity(cirs_ra, u.radian, copy=COPY_IF_NEEDED),
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
     else:
         # When there is a distance,  we first offset for parallax to get the
@@ -62,7 +62,7 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
             lat=u.Quantity(cirs_dec, u.radian, copy=COPY_IF_NEEDED),
             lon=u.Quantity(cirs_ra, u.radian, copy=COPY_IF_NEEDED),
             distance=srepr.distance,
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
 
     return cirs_frame.realize_frame(newrep)
@@ -85,7 +85,7 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
         newrep = UnitSphericalRepresentation(
             lat=u.Quantity(i_dec, u.radian, copy=COPY_IF_NEEDED),
             lon=u.Quantity(i_ra, u.radian, copy=COPY_IF_NEEDED),
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
     else:
         # When there is a distance, apply the parallax/offset to the SSB as the
@@ -97,7 +97,7 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
             lat=u.Quantity(i_dec, u.radian, copy=COPY_IF_NEEDED),
             lon=u.Quantity(i_ra, u.radian, copy=COPY_IF_NEEDED),
             distance=srepr.distance,
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
 
         astrom_eb = CartesianRepresentation(
@@ -127,7 +127,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
         newrep = UnitSphericalRepresentation(
             lat=u.Quantity(gcrs_dec, u.radian, copy=COPY_IF_NEEDED),
             lon=u.Quantity(gcrs_ra, u.radian, copy=COPY_IF_NEEDED),
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
     else:
         # When there is a distance,  we first offset for parallax to get the
@@ -146,7 +146,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
             lat=u.Quantity(gcrs_dec, u.radian, copy=COPY_IF_NEEDED),
             lon=u.Quantity(gcrs_ra, u.radian, copy=COPY_IF_NEEDED),
             distance=srepr.distance,
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
 
     return gcrs_frame.realize_frame(newrep)
@@ -170,7 +170,7 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
         newrep = UnitSphericalRepresentation(
             lat=u.Quantity(i_dec, u.radian, copy=COPY_IF_NEEDED),
             lon=u.Quantity(i_ra, u.radian, copy=COPY_IF_NEEDED),
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
     else:
         # When there is a distance, apply the parallax/offset to the SSB as the
@@ -182,7 +182,7 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
             lat=u.Quantity(i_dec, u.radian, copy=COPY_IF_NEEDED),
             lon=u.Quantity(i_ra, u.radian, copy=COPY_IF_NEEDED),
             distance=srepr.distance,
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
 
         astrom_eb = CartesianRepresentation(
@@ -217,7 +217,7 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
     ):
         # if no distance, just use the coordinate direction to yield the
         # infinite-distance/no parallax answer
-        newrep = UnitSphericalRepresentation(lat=i_dec, lon=i_ra, copy=False)
+        newrep = UnitSphericalRepresentation(lat=i_dec, lon=i_ra, copy=COPY_IF_NEEDED)
     else:
         # When there is a distance, apply the parallax/offset to the
         # Heliocentre as the last step to ensure round-tripping with the
@@ -226,7 +226,7 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
         # Note that the distance in intermedrep is *not* a real distance as it
         # does not include the offset back to the Heliocentre
         intermedrep = SphericalRepresentation(
-            lat=i_dec, lon=i_ra, distance=srepr.distance, copy=False
+            lat=i_dec, lon=i_ra, distance=srepr.distance, copy=COPY_IF_NEEDED
         )
 
         # astrom['eh'] and astrom['em'] contain Sun to observer unit vector,

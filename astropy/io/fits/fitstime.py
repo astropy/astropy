@@ -13,6 +13,7 @@ from astropy.table.column import col_copy
 from astropy.time import Time, TimeDelta
 from astropy.time.core import BARYCENTRIC_SCALES
 from astropy.time.formats import FITS_DEPRECATED_SCALES
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyUserWarning
 
 from . import Card, Header
@@ -564,7 +565,7 @@ def time_to_fits(table):
         else:
             new_col = col_copy(col, copy_indices=False) if col.info.indices else col
         new_cols.append(new_col)
-    newtable = table.__class__(new_cols, copy=False)
+    newtable = table.__class__(new_cols, copy=COPY_IF_NEEDED)
     newtable.meta = table.meta
 
     # Global time coordinate frame keywords

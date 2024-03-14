@@ -8,6 +8,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.units import Quantity, UnitsError
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -1967,7 +1968,7 @@ class Const1D(Fittable1DModel):
             x = amplitude * np.ones_like(x, subok=False)
 
         if isinstance(amplitude, Quantity):
-            return Quantity(x, unit=amplitude.unit, copy=False, subok=True)
+            return Quantity(x, unit=amplitude.unit, copy=COPY_IF_NEEDED, subok=True)
         return x
 
     @staticmethod
@@ -2022,7 +2023,7 @@ class Const2D(Fittable2DModel):
             x = amplitude * np.ones_like(x, subok=False)
 
         if isinstance(amplitude, Quantity):
-            return Quantity(x, unit=amplitude.unit, copy=False, subok=True)
+            return Quantity(x, unit=amplitude.unit, copy=COPY_IF_NEEDED, subok=True)
         return x
 
     @property
@@ -2129,7 +2130,9 @@ class Ellipse2D(Fittable2DModel):
         result = np.select([in_ellipse], [amplitude])
 
         if isinstance(amplitude, Quantity):
-            return Quantity(result, unit=amplitude.unit, copy=False, subok=True)
+            return Quantity(
+                result, unit=amplitude.unit, copy=COPY_IF_NEEDED, subok=True
+            )
         return result
 
     @property
@@ -2216,7 +2219,9 @@ class Disk2D(Fittable2DModel):
         result = np.select([rr <= R_0**2], [amplitude])
 
         if isinstance(amplitude, Quantity):
-            return Quantity(result, unit=amplitude.unit, copy=False, subok=True)
+            return Quantity(
+                result, unit=amplitude.unit, copy=COPY_IF_NEEDED, subok=True
+            )
         return result
 
     @property
@@ -2342,7 +2347,9 @@ class Ring2D(Fittable2DModel):
         result = np.select([r_range], [amplitude])
 
         if isinstance(amplitude, Quantity):
-            return Quantity(result, unit=amplitude.unit, copy=False, subok=True)
+            return Quantity(
+                result, unit=amplitude.unit, copy=COPY_IF_NEEDED, subok=True
+            )
         return result
 
     @property
@@ -2530,7 +2537,9 @@ class Box2D(Fittable2DModel):
         result = np.select([np.logical_and(x_range, y_range)], [amplitude], 0)
 
         if isinstance(amplitude, Quantity):
-            return Quantity(result, unit=amplitude.unit, copy=False, subok=True)
+            return Quantity(
+                result, unit=amplitude.unit, copy=COPY_IF_NEEDED, subok=True
+            )
         return result
 
     @property
@@ -2631,7 +2640,9 @@ class Trapezoid1D(Fittable1DModel):
         result = np.select([range_a, range_b, range_c], [val_a, val_b, val_c])
 
         if isinstance(amplitude, Quantity):
-            return Quantity(result, unit=amplitude.unit, copy=False, subok=True)
+            return Quantity(
+                result, unit=amplitude.unit, copy=COPY_IF_NEEDED, subok=True
+            )
         return result
 
     @property
@@ -2701,7 +2712,9 @@ class TrapezoidDisk2D(Fittable2DModel):
         result = np.select([range_1, range_2], [val_1, val_2])
 
         if isinstance(amplitude, Quantity):
-            return Quantity(result, unit=amplitude.unit, copy=False, subok=True)
+            return Quantity(
+                result, unit=amplitude.unit, copy=COPY_IF_NEEDED, subok=True
+            )
         return result
 
     @property
@@ -2985,7 +2998,7 @@ class AiryDisk2D(Fittable2DModel):
 
         if isinstance(amplitude, Quantity):
             # make z quantity too, otherwise in-place multiplication fails.
-            z = Quantity(z, u.dimensionless_unscaled, copy=False, subok=True)
+            z = Quantity(z, u.dimensionless_unscaled, copy=COPY_IF_NEEDED, subok=True)
 
         z *= amplitude
         return z

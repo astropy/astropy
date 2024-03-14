@@ -6,6 +6,7 @@ from importlib import import_module
 import numpy as np
 
 from astropy.units.quantity import QuantityInfo
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.data_info import MixinInfo
 
 from .column import Column, MaskedColumn
@@ -300,7 +301,7 @@ def represent_mixins_as_columns(tbl, exclude_classes=()):
     if mixin_cols:
         meta = deepcopy(tbl.meta)
         meta["__serialized_columns__"] = mixin_cols
-        out = Table(new_cols, meta=meta, copy=False)
+        out = Table(new_cols, meta=meta, copy=COPY_IF_NEEDED)
     else:
         out = tbl
 
@@ -449,4 +450,6 @@ def _construct_mixins_from_columns(tbl):
     has_quantities = any(isinstance(col.info, QuantityInfo) for col in out.itercols())
     out_cls = QTable if has_quantities else Table
 
-    return out_cls(list(out.values()), names=out.colnames, copy=False, meta=meta)
+    return out_cls(
+        list(out.values()), names=out.colnames, copy=COPY_IF_NEEDED, meta=meta
+    )

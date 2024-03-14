@@ -27,6 +27,7 @@ from astropy.table import (
 from astropy.table.column import BaseColumn
 from astropy.table.serialize import represent_mixins_as_columns
 from astropy.table.table_helpers import ArrayWrapper
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.metadata import MergeConflictWarning
@@ -1018,7 +1019,7 @@ def test_skycoord_with_velocity():
     assert skycoord_equal(t2["col0"], sc)
 
 
-@pytest.mark.parametrize("copy", [True, False])
+@pytest.mark.parametrize("copy", [True, COPY_IF_NEEDED])
 @pytest.mark.parametrize("table_cls", [Table, QTable])
 def test_ensure_input_info_is_unchanged(table_cls, copy):
     """If a mixin input to a table has no info, it should stay that way.

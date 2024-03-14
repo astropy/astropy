@@ -5,6 +5,7 @@ import numpy as np
 from erfa import ufunc as erfa_ufunc
 
 import astropy.units as u
+from astropy.utils.compat import COPY_IF_NEEDED
 
 from .base import BaseDifferential, BaseRepresentation
 
@@ -94,7 +95,7 @@ class CartesianRepresentation(BaseRepresentation):
             x = u.Quantity(x, unit, copy=copy, subok=True)
             y = u.Quantity(y, unit, copy=copy, subok=True)
             z = u.Quantity(z, unit, copy=copy, subok=True)
-            copy = False
+            copy = COPY_IF_NEEDED
 
         super().__init__(x, y, z, copy=copy, differentials=differentials)
         if not (
@@ -107,9 +108,9 @@ class CartesianRepresentation(BaseRepresentation):
         l = np.broadcast_to(1.0 * u.one, self.shape, subok=True)
         o = np.broadcast_to(0.0 * u.one, self.shape, subok=True)
         return {
-            "x": CartesianRepresentation(l, o, o, copy=False),
-            "y": CartesianRepresentation(o, l, o, copy=False),
-            "z": CartesianRepresentation(o, o, l, copy=False),
+            "x": CartesianRepresentation(l, o, o, copy=COPY_IF_NEEDED),
+            "y": CartesianRepresentation(o, l, o, copy=COPY_IF_NEEDED),
+            "z": CartesianRepresentation(o, o, l, copy=COPY_IF_NEEDED),
         }
 
     def scale_factors(self):
@@ -190,7 +191,7 @@ class CartesianRepresentation(BaseRepresentation):
         # erfa rxp: Multiply a p-vector by an r-matrix.
         p = erfa_ufunc.rxp(matrix, self.get_xyz(xyz_axis=-1))
         # transformed representation
-        rep = self.__class__(p, xyz_axis=-1, copy=False)
+        rep = self.__class__(p, xyz_axis=-1, copy=COPY_IF_NEEDED)
         # Handle differentials attached to this representation
         new_diffs = {
             k: d.transform(matrix, self, rep) for k, d in self.differentials.items()
@@ -370,7 +371,7 @@ class CartesianDifferential(BaseDifferential):
             d_x = u.Quantity(d_x, unit, copy=copy, subok=True)
             d_y = u.Quantity(d_y, unit, copy=copy, subok=True)
             d_z = u.Quantity(d_z, unit, copy=copy, subok=True)
-            copy = False
+            copy = COPY_IF_NEEDED
 
         super().__init__(d_x, d_y, d_z, copy=copy)
         if not (
@@ -401,7 +402,7 @@ class CartesianDifferential(BaseDifferential):
         # erfa rxp: Multiply a p-vector by an r-matrix.
         p = erfa_ufunc.rxp(matrix, self.get_d_xyz(xyz_axis=-1))
 
-        return self.__class__(p, xyz_axis=-1, copy=False)
+        return self.__class__(p, xyz_axis=-1, copy=COPY_IF_NEEDED)
 
     def get_d_xyz(self, xyz_axis=0):
         """Return a vector array of the x, y, and z coordinates.

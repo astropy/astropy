@@ -5,6 +5,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.coordinates.angles import Latitude, Longitude
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import format_doc
 
 from .base import BaseRepresentation
@@ -88,7 +89,7 @@ class BaseGeodeticRepresentation(BaseRepresentation):
             self.lat,
             self.height,
         )
-        return CartesianRepresentation(xyz, xyz_axis=-1, copy=False)
+        return CartesianRepresentation(xyz, xyz_axis=-1, copy=COPY_IF_NEEDED)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -100,7 +101,7 @@ class BaseGeodeticRepresentation(BaseRepresentation):
         lon, lat, height = erfa.gc2gde(
             cls._equatorial_radius, cls._flattening, cart.get_xyz(xyz_axis=-1)
         )
-        return cls(lon, lat, height, copy=False)
+        return cls(lon, lat, height, copy=COPY_IF_NEEDED)
 
 
 @format_doc(geodetic_base_doc)
@@ -151,7 +152,7 @@ class BaseBodycentricRepresentation(BaseRepresentation):
         x = r * coslon * coslat
         y = r * sinlon * coslat
         z = r * sinlat
-        return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+        return CartesianRepresentation(x=x, y=y, z=z, copy=COPY_IF_NEEDED)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -168,7 +169,7 @@ class BaseBodycentricRepresentation(BaseRepresentation):
         r_spheroid = np.hypot(p_spheroid, z_spheroid)
         height = d - r_spheroid
         lon = np.arctan2(cart.y, cart.x)
-        return cls(lon, lat, height, copy=False)
+        return cls(lon, lat, height, copy=COPY_IF_NEEDED)
 
 
 @format_doc(geodetic_base_doc)

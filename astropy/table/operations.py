@@ -18,6 +18,7 @@ import numpy as np
 
 from astropy.units import Quantity
 from astropy.utils import metadata
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.masked import Masked
 
 from . import _np_utils
@@ -499,13 +500,13 @@ def setdiff(table1, table2, keys=None):
             )
 
     # Make a light internal copy of both tables
-    t1 = table1.copy(copy_data=False)
+    t1 = table1.copy(copy_data=COPY_IF_NEEDED)
     t1.meta = {}
     t1.keep_columns(keys)
     t1["__index1__"] = np.arange(len(table1))  # Keep track of rows indices
 
     # Make a light internal copy to avoid touching table2
-    t2 = table2.copy(copy_data=False)
+    t2 = table2.copy(copy_data=COPY_IF_NEEDED)
     t2.meta = {}
     t2.keep_columns(keys)
     # Dummy column to recover rows after join
@@ -1170,8 +1171,8 @@ def _join(
 
         # Make light copies of left and right, then add temporary index columns
         # with all the same value so later an outer join turns into a cartesian join.
-        left = left.copy(copy_data=False)
-        right = right.copy(copy_data=False)
+        left = left.copy(copy_data=COPY_IF_NEEDED)
+        right = right.copy(copy_data=COPY_IF_NEEDED)
         left[cartesian_index_name] = np.uint8(0)
         right[cartesian_index_name] = np.uint8(0)
         keys = (cartesian_index_name,)
@@ -1294,10 +1295,10 @@ def _join(
             # If col is a Column but not MaskedColumn then upgrade at this point
             # because masking is required.
             if isinstance(col, Column) and not isinstance(col, MaskedColumn):
-                col = out.MaskedColumn(col, copy=False)
+                col = out.MaskedColumn(col, copy=COPY_IF_NEEDED)
 
             if isinstance(col, Quantity) and not isinstance(col, Masked):
-                col = Masked(col, copy=False)
+                col = Masked(col, copy=COPY_IF_NEEDED)
 
             # array_mask is 1-d corresponding to length of output column.  We need
             # make it have the correct shape for broadcasting, i.e. (length, 1, 1, ..).
@@ -1376,8 +1377,8 @@ def _join_keys_left_right(left, right, keys, keys_left, keys_right, join_funcs):
     # key columns in common.
     keys = [f"{ii}" for ii in range(len(cols_left))]
 
-    left = left.__class__(cols_left, names=keys, copy=False)
-    right = right.__class__(cols_right, names=keys, copy=False)
+    left = left.__class__(cols_left, names=keys, copy=COPY_IF_NEEDED)
+    right = right.__class__(cols_right, names=keys, copy=COPY_IF_NEEDED)
 
     return left, right, keys
 
@@ -1495,10 +1496,10 @@ def _vstack(arrays, join_type="outer", col_name_map=None, metadata_conflicts="wa
                 # If col is a Column but not MaskedColumn then upgrade at this point
                 # because masking is required.
                 if isinstance(col, Column) and not isinstance(col, MaskedColumn):
-                    col = out.MaskedColumn(col, copy=False)
+                    col = out.MaskedColumn(col, copy=COPY_IF_NEEDED)
 
                 if isinstance(col, Quantity) and not isinstance(col, Masked):
-                    col = Masked(col, copy=False)
+                    col = Masked(col, copy=COPY_IF_NEEDED)
 
                 try:
                     col[idx0:idx1] = col.info.mask_val
@@ -1604,10 +1605,10 @@ def _hstack(
                 # If col is a Column but not MaskedColumn then upgrade at this point
                 # because masking is required.
                 if isinstance(col, Column) and not isinstance(col, MaskedColumn):
-                    col = out.MaskedColumn(col, copy=False)
+                    col = out.MaskedColumn(col, copy=COPY_IF_NEEDED)
 
                 if isinstance(col, Quantity) and not isinstance(col, Masked):
-                    col = Masked(col, copy=False)
+                    col = Masked(col, copy=COPY_IF_NEEDED)
 
                 try:
                     col[arr_len:] = col.info.mask_val
