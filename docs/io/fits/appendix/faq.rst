@@ -349,12 +349,6 @@ This isn't the only way to build up a large file, but probably one of the
 safest. This method can also be used to create large multi-extension FITS
 files, with a little care.
 
-Finally, we'll remove the file we created:
-
-.. code:: python
-
-    os.remove("large.fits")
-
 For creating very large tables, this method may also be used, though it can be
 difficult to determine ahead of time how many rows a table will need. In
 general, use of the `astropy.io.fits` module is currently discouraged for the
@@ -415,12 +409,6 @@ we use ``overwrite=True`` to overwrite the file if it already exists):
     hdu2 = fits.ImageHDU()
     new_hdul = fits.HDUList([hdu1, hdu2])
     new_hdul.writeto("test.fits", overwrite=True)
-
-Finally, we'll remove the file we created:
-
-.. code:: python
-
-    os.remove("test.fits")
 
 .. _sphx_glr_generated_examples_io_fits-tables.py:
 
