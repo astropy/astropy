@@ -109,12 +109,10 @@ important to consider are the following:
 
   iers_degraded_accuracy:
     Some time conversions like UTC -> UT1 require IERS-A Earth rotation data
-    for full accuracy. In cases where full accuracy is not required and
-    downloading the IERS-A is not possible or desired (for instance running on
-    a cluster) then this option can be set to either ``'warn'`` or ``'ignore'``.
-    The default is ``'error'`` which will raise an exception if full accuracy
-    is not possible for a time conversion, ``'warn'`` will issue a warning, and
-    ``'ignore'`` will ignore the problem and use available IERS-B data.
+    for full accuracy.  This parameter controls the behavior when computations
+    use only the IERS-B data and full accuracy is not possible.  ``'error'``
+    (the default) will raise an exception, ``'warn'`` will issue a warning, and
+    ``'ignore'`` will ignore the problem (i.e., the inaccuracy is acceptable).
 
 Auto refresh behavior
 ---------------------
