@@ -1,0 +1,1 @@
+SAMP web profile CORS HTTP server implements `Private Network Access proposal <https://wicg.github.io/private-network-access>`_.
