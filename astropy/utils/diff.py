@@ -2,21 +2,15 @@ import difflib
 import functools
 import numbers
 import sys
+from textwrap import indent
 
 import numpy as np
 
-from .misc import indent
-
 __all__ = [
-    "fixed_width_indent",
     "diff_values",
     "report_diff_values",
     "where_not_allclose",
 ]
-
-
-# Smaller default shift-width for indent
-fixed_width_indent = functools.partial(indent, width=2)
 
 
 def diff_values(a, b, rtol=0.0, atol=0.0):
@@ -86,11 +80,10 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=
         `True` if no diff, else `False`.
 
     """
+    indent_prefix = indent_width * "  "
     if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
         if a.shape != b.shape:
-            fileobj.write(
-                fixed_width_indent("  Different array shapes:\n", indent_width)
-            )
+            fileobj.write(indent("  Different array shapes:\n", indent_prefix))
             report_diff_values(
                 str(a.shape),
                 str(b.shape),
@@ -108,7 +101,7 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=
 
         for idx in diff_indices[:3]:
             lidx = idx.tolist()
-            fileobj.write(fixed_width_indent(f"  at {lidx!r}:\n", indent_width))
+            fileobj.write(indent(f"  at {lidx!r}:\n", indent_prefix))
             report_diff_values(
                 a[tuple(idx)],
                 b[tuple(idx)],
@@ -120,9 +113,7 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=
 
         if num_diffs > 3:
             fileobj.write(
-                fixed_width_indent(
-                    f"  ...and at {num_diffs - 3:d} more indices.\n", indent_width
-                )
+                indent(f"  ...and at {num_diffs - 3:d} more indices.\n", indent_prefix)
             )
             return False
 
@@ -177,9 +168,7 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=
             line = sign_b + line[1:]
         else:
             line = lnpad + line
-        fileobj.write(
-            fixed_width_indent("  {}\n".format(line.rstrip("\n")), indent_width)
-        )
+        fileobj.write(indent("  {}\n".format(line.rstrip("\n")), indent_prefix))
 
     return identical
 
