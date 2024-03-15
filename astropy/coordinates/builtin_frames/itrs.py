@@ -67,8 +67,12 @@ class ITRS(BaseCoordinateFrame):
     default_representation = CartesianRepresentation
     default_differential = CartesianDifferential
 
-    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
-    location = EarthLocationAttribute(default=EARTH_CENTER)
+    obstime = TimeAttribute(
+        default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)"
+    )
+    location = EarthLocationAttribute(
+        default=EARTH_CENTER, doc="The location on Earth of the observer"
+    )
 
     @property
     def earth_location(self):
