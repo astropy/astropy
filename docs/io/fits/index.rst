@@ -488,10 +488,12 @@ to a new file, you can use the :meth:`HDUList.writeto` method (see below).
 Working with Table Data
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-This section describes reading and writing table data in the FITS format using
-the `~astropy.io.fits` package directly. For some cases, however, the
-high-level :ref:`table_io` will often suffice and is somewhat more convenient
-to use. See the :ref:`Unified I/O FITS <table_io_fits>` section for details.
+.. note::
+    This section describes reading and writing table data in the FITS format
+    using the `~astropy.io.fits` package directly. For some cases, however, the
+    high-level :ref:`table_io` (using ``Table.read`` or ``QTable.read``) will
+    often suffice and is somewhat more convenient to use. See the :ref:`Unified
+    I/O FITS <table_io_fits>` section for details.
 
 Like images, the data portion of a FITS table extension is in the ``.data``
 attribute::
@@ -612,10 +614,6 @@ take the mean of a column::
     5.19999989271164
 
 and so on.
-
-.. topic:: Examples:
-
-    See also :ref:`sphx_glr_generated_examples_io_fits-tables.py`.
 
 Save File Changes
 ^^^^^^^^^^^^^^^^^

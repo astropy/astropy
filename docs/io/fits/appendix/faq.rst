@@ -367,53 +367,6 @@ this FAQ might provide an example of how to do this.
 .. _HDF5: https://www.hdfgroup.org/HDF5/
 .. _PyTables: http://www.pytables.org/
 
-.. _sphx_glr_generated_examples_io_fits-tables.py:
-
-How do I access data stored as a table in a multi-extension FITS file?
-----------------------------------------------------------------------
-
-FITS files can often contain large amount of multi-dimensional data and
-tables. This example opens a FITS file with information
-from Chandra's HETG-S instrument.
-
-The example uses `astropy.utils.data` to download multi-extension FITS (MEF)
-file, `astropy.io.fits` to investigate the header, and
-`astropy.table.QTable` to explore the data.
-
-.. code:: python
-
-    from astropy.io import fits
-    from astropy.table import QTable
-    from astropy.utils.data import get_pkg_data_filename
-
-    # Download a FITS file
-    event_filename = get_pkg_data_filename("tutorials/FITS-tables/chandra_events.fits")
-
-    # Display information about the contents of the FITS file.
-    fits.info(event_filename)
-
-Extension 1, EVENTS, is a Table that contains information about each X-ray
-photon that hit Chandra's HETG-S detector. To read the table:
-
-.. code:: python
-
-    events = QTable.read(event_filename, hdu=1)
-
-    # Print the column names of the Events table.
-    print(events.columns)
-
-If a column contains unit information, it will have an associated `astropy.units` object:
-
-.. code:: python
-
-    print(events["energy"].unit)
-
-Print the data stored in the Energy column:
-
-.. code:: python
-
-    print(events["energy"])
-
 .. _sphx_glr_generated_examples_io_plot_fits-image.py:
 
 How do I read and plot an image from a FITS file?
