@@ -160,13 +160,21 @@ Or, to run only the ``wcs`` and ``utils`` tests::
     pytest -P wcs,utils
 
 You can also specify a single directory, a file (``.py`` python or ``.rst``
-doc file), or a specific test to check from the commandline, e.g.::
+doc file), or a specific test to check, or rerun only tests that failed in
+the previous run::
 
     pytest astropy/modeling
     pytest astropy/wcs/tests/test_wcs.py
     pytest astropy/units -k float_dtype_promotion
     pytest astropy/units/tests/test_quantity.py::TestQuantityCreation::test_float_dtype_promotion
     pytest astropy/wcs/index.rst
+    pytest --last-failed
+
+For more details, see the `pytest invocation guide
+<https://docs.pytest.org/en/stable/how-to/usage.html>`_ and the
+description of `caching
+<https://docs.pytest.org/en/stable/how-to/cache.html>`_.
+
 
 .. _astropy.test():
 
