@@ -73,7 +73,9 @@ class Attribute:
         if self.default is not None:
             self.__doc__ += f"\n\nDefault: {self.default}"
         elif self.secondary_attribute != "":
-            self.__doc__ += f"\n\nDefault: taken from `{self.secondary_attribute}` frame attribute"
+            self.__doc__ += (
+                f"\n\nDefault: taken from `{self.secondary_attribute}` frame attribute"
+            )
         else:
             self.__doc__ += "\n\nNo default value"
 
@@ -116,11 +118,12 @@ class Attribute:
 
     def __get__(self, instance, frame_cls=None):
         if instance is None:
+            # Return the descriptor instance to enable the retrieval of the docstring
             return self
-        else:
-            out = getattr(instance, "_" + self.name, self.default)
-            if out is None:
-                out = getattr(instance, self.secondary_attribute, self.default)
+
+        out = getattr(instance, "_" + self.name, self.default)
+        if out is None:
+            out = getattr(instance, self.secondary_attribute, self.default)
 
         out, converted = self.convert_input(out)
         if instance is not None:
