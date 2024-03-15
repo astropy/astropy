@@ -1,0 +1,5 @@
+``TableColumns.setdefault()``  and ``TableColumns.update()`` methods (which
+would typically be called as ``Table.columns.setdefault()`` and
+``Table.columns.update()``) have been deprecated because they can easily
+corrupt the ``Table`` instance the ``TableColumns`` instance is attached to.
+The ``Table.setdefault()`` and ``Table.update()`` methods are safe.
