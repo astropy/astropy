@@ -464,13 +464,24 @@ class Galactocentric(BaseCoordinateFrame):
     default_differential = r.CartesianDifferential
 
     # frame attributes
-    galcen_coord = CoordinateAttribute(frame=ICRS)
-    galcen_distance = QuantityAttribute(unit=u.kpc)
+    galcen_coord = CoordinateAttribute(
+        frame=ICRS, doc="The coordinates of the Galactic center"
+    )
+    galcen_distance = QuantityAttribute(
+        unit=u.kpc, doc="The distance from the Sun to the Galactic center"
+    )
 
-    galcen_v_sun = DifferentialAttribute(allowed_classes=[r.CartesianDifferential])
+    galcen_v_sun = DifferentialAttribute(
+        allowed_classes=[r.CartesianDifferential],
+        doc="The velocity of the Sun in the Galactocentric frame",
+    )
 
-    z_sun = QuantityAttribute(unit=u.pc)
-    roll = QuantityAttribute(unit=u.deg)
+    z_sun = QuantityAttribute(
+        unit=u.pc, doc="The distance from the Sun to the Galactic midplane"
+    )
+    roll = QuantityAttribute(
+        unit=u.deg, doc="The rotation angle relative to the orientation for Galactic"
+    )
 
     def __init__(self, *args, **kwargs):
         # Set default frame attribute values based on the ScienceState instance
