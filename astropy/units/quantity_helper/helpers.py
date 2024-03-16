@@ -390,6 +390,10 @@ if not NUMPY_LT_2_0:
         np._core.umath._replace,
         np._core.umath._expandtabs,
         np._core.umath._expandtabs_length,
+        np._core.umath._ljust,
+        np._core.umath._rjust,
+        np._core.umath._center,
+        np._core.umath._zfill,
     }
 
 # SINGLE ARGUMENT UFUNCS
