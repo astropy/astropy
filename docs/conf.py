@@ -355,7 +355,6 @@ linkcheck_ignore = [
     "https://ui.adsabs.harvard.edu",  # CI blocked by service provider
     "https://www.tandfonline.com/",  # 403 Client Error: Forbidden
     "https://stackoverflow.com/",  # 403 Client Error: Forbidden
-    "https://astroutils.astronomy.ohio-state.edu/exofast/barycorr.html",  # SSL: CERTIFICATE_VERIFY_FAILED
     "https://ieeexplore.ieee.org/",  # 418 Client Error: I'm a teapot
     "https://pyfits.readthedocs.io/en/v3.2.1/",  # defunct page in CHANGES.rst
     r"https://github\.com/astropy/astropy/(?:issues|pull)/\d+",
