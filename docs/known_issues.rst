@@ -84,7 +84,7 @@ For example, multiplying a `~pandas.Series` instance
 with a unit will *not* return a |Quantity|. It will return a `~pandas.Series`
 object without any unit:
 
-.. doctest-requires:: pandas>=1.5
+.. doctest-requires:: pandas>=2.0
 
    >>> import pandas as pd
    >>> import astropy.units as u
@@ -97,7 +97,7 @@ object without any unit:
 
 To avoid this, it is best to initialize the |Quantity| directly:
 
-.. doctest-requires:: pandas>=1.5
+.. doctest-requires:: pandas>=2.0
 
     >>> u.Quantity(a, u.m)
     <Quantity [1., 2., 3.] m>
@@ -105,7 +105,7 @@ To avoid this, it is best to initialize the |Quantity| directly:
 Note that the overrides pandas provides are not complete, and
 as a consequence, using the (in-place) shift operator does work:
 
-.. doctest-requires:: pandas>=1.5
+.. doctest-requires:: pandas>=2.0
 
    >>> b = a << u.m
    >>> b
