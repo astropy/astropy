@@ -31,6 +31,8 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
                 self.send_header("Access-Control-Allow-Methods", method)
                 self.send_header("Access-Control-Allow-Headers", "Content-Type")
                 self.send_header("Access-Control-Allow-Credentials", "true")
+                if self.headers.get("Access-Control-Request-Private-Network") == "true":
+                    self.send_header("Access-Control-Allow-Private-Network", "true")
             else:
                 # Simple method
                 self.send_header(

@@ -84,7 +84,7 @@ For example, multiplying a `~pandas.Series` instance
 with a unit will *not* return a |Quantity|. It will return a `~pandas.Series`
 object without any unit:
 
-.. doctest-requires:: pandas>=1.5
+.. doctest-requires:: pandas>=2.0
 
    >>> import pandas as pd
    >>> import astropy.units as u
@@ -97,7 +97,7 @@ object without any unit:
 
 To avoid this, it is best to initialize the |Quantity| directly:
 
-.. doctest-requires:: pandas>=1.5
+.. doctest-requires:: pandas>=2.0
 
     >>> u.Quantity(a, u.m)
     <Quantity [1., 2., 3.] m>
@@ -105,7 +105,7 @@ To avoid this, it is best to initialize the |Quantity| directly:
 Note that the overrides pandas provides are not complete, and
 as a consequence, using the (in-place) shift operator does work:
 
-.. doctest-requires:: pandas>=1.5
+.. doctest-requires:: pandas>=2.0
 
    >>> b = a << u.m
    >>> b
@@ -305,3 +305,16 @@ This is due to mutually incompatible behaviors in IPython and pytest, and is
 not due to a problem with the test itself or the feature being tested.
 
 See: https://github.com/astropy/astropy/issues/717
+
+Test runner fails when asdf-astropy is installed
+------------------------------------------------
+
+When you have ``asdf-astropy`` installed and then run ``astropy.test()``,
+you will see a traceback that complains about the following::
+
+    PytestAssertRewriteWarning: Module already imported so cannot be rewritten: asdf
+
+To run ``astropy.test()`` anyway, please first uninstall ``asdf-astropy``.
+If you do not want to do that, use ``pytest`` or ``tox`` instead of the test runner.
+
+See: https://github.com/astropy/astropy/issues/16165

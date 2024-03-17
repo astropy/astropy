@@ -20,7 +20,7 @@ from astropy.utils.data import get_pkg_data_filename
 ##############################################################################
 # Download a FITS file:
 
-fits_file = get_pkg_data_filename('tutorials/FITS-Header/input_file.fits')
+fits_file = get_pkg_data_filename("tutorials/FITS-Header/input_file.fits")
 
 ##############################################################################
 # Look at contents of the FITS file
@@ -48,20 +48,20 @@ print(repr(fits.getheader(fits_file, 1)))
 # `~astropy.io.fits.setval()` function. For example, set the OBJECT keyword
 # to 'M31':
 
-fits.setval(fits_file, 'OBJECT', value='M31')
+fits.setval(fits_file, "OBJECT", value="M31")
 
 ##############################################################################
 # With no extra arguments, this will modify the header for extension 0, but
 # this can be changed using the ``ext`` keyword argument. For example, we can
 # specify extension 1 instead:
 
-fits.setval(fits_file, 'OBJECT', value='M31', ext=1)
+fits.setval(fits_file, "OBJECT", value="M31", ext=1)
 
 ##############################################################################
 # This can also be used to create a new keyword-value pair ("card" in FITS
 # lingo):
 
-fits.setval(fits_file, 'ANEWKEY', value='some value')
+fits.setval(fits_file, "ANEWKEY", value="some value")
 
 ##############################################################################
 # Again, this is useful for one-off modifications, but can be inefficient
@@ -69,9 +69,9 @@ fits.setval(fits_file, 'ANEWKEY', value='some value')
 # because `~astropy.io.fits.setval()` loads the whole file each time it
 # is called. To make several modifications, it's better to load the file once:
 
-with fits.open(fits_file, 'update') as f:
+with fits.open(fits_file, "update") as f:
     for hdu in f:
-        hdu.header['OBJECT'] = 'CAT'
+        hdu.header["OBJECT"] = "CAT"
 
 print("After modifications:")
 print()

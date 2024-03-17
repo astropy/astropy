@@ -4,6 +4,8 @@
 
 import numbers
 
+from astropy.utils.compat import COPY_IF_NEEDED
+
 from . import (
     astrophys,
     cgs,
@@ -69,6 +71,7 @@ _units_and_physical_types = [
     (si.C / si.m**3, "electrical charge density"),
     (si.F / si.m, "permittivity"),
     (si.Wb, "magnetic flux"),
+    (si.Wb**2, "magnetic helicity"),
     (si.T, "magnetic flux density"),
     (si.A / si.m, "magnetic field strength"),
     (si.m**2 * si.A, "magnetic moment"),
@@ -540,7 +543,7 @@ def get_physical_type(obj):
         unit = obj
     else:
         try:
-            unit = quantity.Quantity(obj, copy=False).unit
+            unit = quantity.Quantity(obj, copy=COPY_IF_NEEDED).unit
         except TypeError as exc:
             raise TypeError(f"{obj} does not correspond to a physical type.") from exc
 

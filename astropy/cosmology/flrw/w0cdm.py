@@ -374,8 +374,7 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return sqrt(
-            zp1**3 * (Or * zp1 + self._Om0)
-            + self._Ode0 * zp1 ** (3.0 * (1 + self._w0))
+            zp1**3 * (Or * zp1 + self._Om0) + self._Ode0 * zp1 ** (3.0 * (1 + self._w0))
         )
 
     def inv_efunc(self, z):

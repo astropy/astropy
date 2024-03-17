@@ -46,8 +46,7 @@ assert np.max(np.abs(pixcrd - pixcrd2)) < 1e-6
 x = 0
 y = 0
 origin = 0
-assert (w.wcs_pix2world(x, y, origin) ==
-        w.wcs_pix2world(x + 1, y + 1, origin + 1))
+assert w.wcs_pix2world(x, y, origin) == w.wcs_pix2world(x + 1, y + 1, origin + 1)
 
 # Now, write out the WCS object as a FITS header
 header = w.to_header()

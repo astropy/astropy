@@ -59,7 +59,7 @@ def _true_ecliptic_rotation_matrix(equinox):
 
 
 def _obliquity_only_rotation_matrix(
-    obl=erfa.obl80(EQUINOX_J2000.jd1, EQUINOX_J2000.jd2) * u.radian
+    obl=erfa.obl80(EQUINOX_J2000.jd1, EQUINOX_J2000.jd2) * u.radian,
 ):
     # This code only accounts for the obliquity,
     # which can be passed explicitly.

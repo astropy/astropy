@@ -52,7 +52,7 @@ the standard Astropy docstring format.
   consistency across the documentation and docstrings. These should be used over
   custom redefinitions; and new substitutions should probably be placed there.
 
-* The `OpenAstronomy Packaging Guide`_ provides
+* The |OpenAstronomy Packaging Guide| provides
   a recommended general structure for documentation.
 
 * Docstrings must be provided for all public classes, methods, and functions.
@@ -118,7 +118,7 @@ The main extensions used are:
 
 * sphinx-gallery_ - an extension to generate example galleries
 
-* `numpydoc`_ - an extension to parse docstrings in NumpyDoc format
+* |numpydoc| - an extension to parse docstrings in NumpyDoc format
 
 In addition, the sphinx-astropy_ includes a few small extensions:
 

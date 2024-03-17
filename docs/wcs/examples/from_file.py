@@ -51,9 +51,8 @@ def load_wcs_from_file(filename):
     x = 0
     y = 0
     origin = 0
-    assert (w.wcs_pix2world(x, y, origin) ==
-            w.wcs_pix2world(x + 1, y + 1, origin + 1))
+    assert w.wcs_pix2world(x, y, origin) == w.wcs_pix2world(x + 1, y + 1, origin + 1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     load_wcs_from_file(sys.argv[-1])

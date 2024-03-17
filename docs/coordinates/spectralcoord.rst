@@ -11,7 +11,7 @@ Using the SpectralCoord Class
     other, so care should be taken in those cases. It is possible that there
     will be API changes in future versions of Astropy based on user feedback. If
     you have specific ideas for how it might be improved, please  let us know on
-    the `astropy-dev mailing list`_ or at http://feedback.astropy.org.
+    the |astropy-dev mailing list| or at http://feedback.astropy.org.
 
 The |SpectralCoord| class provides an interface for representing and
 transforming spectral coordinates such as frequencies, wavelengths, and photon

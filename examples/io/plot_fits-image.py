@@ -31,7 +31,7 @@ plt.style.use(astropy_mpl_style)
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
 
-image_file = get_pkg_data_filename('tutorials/FITS-images/HorseHead.fits')
+image_file = get_pkg_data_filename("tutorials/FITS-images/HorseHead.fits")
 
 ##############################################################################
 # Use `astropy.io.fits.info()` to display the structure of the file:
@@ -55,5 +55,5 @@ print(image_data.shape)
 # Display the image data:
 
 plt.figure()
-plt.imshow(image_data, cmap='gray')
+plt.imshow(image_data, cmap="gray")
 plt.colorbar()

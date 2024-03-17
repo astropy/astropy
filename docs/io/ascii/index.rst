@@ -147,8 +147,8 @@ example::
    column types and units) to a comment section at the beginning while
    maintaining compatibility with most plain CSV readers. It also allows storing
    richer data like `~astropy.coordinates.SkyCoord` or multidimensional or
-   variable-length columns. ECSV is also supported in Java by `STIL`_ and
-   `TOPCAT`_ (see :ref:`ecsv_format`).
+   variable-length columns. ECSV is also supported in Java by |STIL| and
+   |TOPCAT| (see :ref:`ecsv_format`).
 
 To write our simple example table to ECSV we use::
 

@@ -10,7 +10,7 @@ import numpy as np
 from numpy import ma
 
 from astropy.units import Quantity, StructuredUnit, Unit
-from astropy.utils.compat import NUMPY_LT_2_0
+from astropy.utils.compat import NUMPY_LT_2_0, sanitize_copy_arg
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.metadata import MetaData
@@ -522,6 +522,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         copy=False,
         copy_indices=True,
     ):
+        copy = sanitize_copy_arg(copy)
+
         if data is None:
             self_data = np.zeros((length,) + shape, dtype=dtype)
         elif isinstance(data, BaseColumn) and hasattr(data, "_name"):
@@ -1803,6 +1805,12 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         return out
 
+    def convert_unit_to(self, new_unit, equivalencies=[]):
+        # This is a workaround to fix gh-9521
+        super().convert_unit_to(new_unit, equivalencies)
+        self._basedict["_unit"] = new_unit
+        self._optinfo["_unit"] = new_unit
+
     def _copy_attrs_slice(self, out):
         # Fixes issue #3023: when calling getitem with a MaskedArray subclass
         # the original object attributes are not copied.
@@ -1845,4 +1853,3 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
     more = BaseColumn.more
     pprint = BaseColumn.pprint
     pformat = BaseColumn.pformat
-    convert_unit_to = BaseColumn.convert_unit_to

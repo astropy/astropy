@@ -14,7 +14,7 @@ Testing Framework
 *****************
 
 The testing framework used by astropy (and packages using the
-`OpenAstronomy Packaging Guide`_) is the `pytest`_ framework.
+|OpenAstronomy Packaging Guide|) is the |pytest| framework.
 
 .. _testing-dependencies:
 
@@ -22,7 +22,7 @@ Testing Dependencies
 ********************
 
 The dependencies used by the Astropy test runner are provided by a separate
-package called `pytest-astropy`_. This package provides the ``pytest``
+package called |pytest-astropy|. This package provides the ``pytest``
 dependency itself, in addition to several ``pytest`` plugins that are used by
 Astropy, and will also be of general use to other packages.
 
@@ -32,12 +32,12 @@ Astropy, in the ``pyproject.toml`` file they are not included under the
 ``[project.optional-dependences]`` section called ``test``.  Developers who want
 to run the test suite will need to either install pytest-astropy directly::
 
-    pip install pytest-astropy
+    python -m pip install pytest-astropy
 
 or install the core package in 'editable' mode specifying the ``[test]``
 option::
 
-    pip install -e ".[test]"
+    python -m pip install --editable ".[test]"
 
 A detailed description of the plugins can be found in the :ref:`pytest-plugins`
 section.
@@ -48,13 +48,12 @@ Running Tests
 *************
 
 There are currently three different ways to invoke Astropy tests. Each
-method invokes `pytest`_ to run the tests but offers different options when
-calling. To run the tests, you will need to make sure you have the `pytest`_
+method invokes |pytest| to run the tests but offers different options when
+calling. To run the tests, you will need to make sure you have the |pytest|
 package installed.
 
 In addition to running the Astropy tests, these methods can also be called
-so that they check Python source code for `PEP8 compliance
-<https://www.python.org/dev/peps/pep-0008/>`_. All of the PEP8 testing
+so that they check Python source code for |PEP8|. All of the PEP8 testing
 options require the `pytest-pep8 plugin
 <https://pypi.org/project/pytest-pep8>`_, which must be installed
 separately.
@@ -75,7 +74,7 @@ used in many cases to reproduce issues seen on those services.
 
 To run the tests with tox, first make sure that tox is installed, e.g.::
 
-    pip install tox
+    python -m pip install tox
 
 then run the basic test suite with::
 
@@ -121,13 +120,13 @@ which is generally faster than using tox for iterative development. In
 this case, it is important for developers to be aware that they must manually
 rebuild any extensions by running::
 
-    pip install -e ".[test]"
+    python -m pip install --editable ".[test]"
 
 before running the test with pytest with::
 
     pytest
 
-Instead of calling ``pip install -e ".[test]"``, you can also build the
+Instead of calling ``python -m pip install --editable ".[test]"``, you can also build the
 extensions with::
 
     python setup.py build_ext --inplace
@@ -264,7 +263,7 @@ Writing tests
 
 Consult the :ref:`test discovery rules <pytest:python test discovery>`
 for detailed information on how to name files and tests so that they are
-automatically discovered by `pytest`_.
+automatically discovered by |pytest|.
 
 Simple example
 ==============
@@ -676,7 +675,7 @@ Testing warnings
 
 In order to test that warnings are triggered as expected in certain
 situations,
-`pytest`_ provides its own context manager
+|pytest| provides its own context manager
 :ref:`pytest.warns <pytest:warns>` that, completely
 analogously to ``pytest.raises`` (see below) allows to probe explicitly
 for specific warning classes and, through the optional ``match`` argument,
@@ -687,7 +686,7 @@ inspect them.
 
 .. note::
 
-   With `pytest`_ there is also the option of using the
+   With |pytest| there is also the option of using the
    :ref:`recwarn <pytest:recwarn>` function argument to test that
    warnings are triggered within the entire embedding function.
    This method has been found to be problematic in at least one case
@@ -765,7 +764,7 @@ hashes and images.
 
 To run the Astropy tests with the image comparison, use e.g.::
 
-    tox -e py39-test-image-mpl334-cov
+    tox -e py310-test-image-mpl334-cov
 
 However, note that the output can be sensitive to the operating system and
 specific version of libraries such as freetype. In general, using tox will
@@ -830,7 +829,7 @@ generate it, you should run the tests the first time with::
 
 for example::
 
-    tox -e py39-test-image-mpl334-cov -- --mpl-generate-hash-library=astropy/tests/figures/py39-test-image-mpl334-cov.json
+    tox -e py310-test-image-mpl334-cov -- --mpl-generate-hash-library=astropy/tests/figures/py310-test-image-mpl334-cov.json
 
 Then add and commit the new JSON file and try running the tests again. The tests
 may fail in the continuous integration if e.g. the freetype version does not
@@ -1078,7 +1077,7 @@ Astropy) can be found `here <https://github.com/astropy/pytest-astropy>`__.
 pytest-remotedata
 =================
 
-The `pytest-remotedata`_ plugin allows developers to control whether to run
+The |pytest-remotedata| plugin allows developers to control whether to run
 tests that access data from the internet. The plugin provides two decorators
 that can be used to mark individual test functions or entire test classes:
 
@@ -1113,7 +1112,7 @@ Also see :ref:`data-files`.
 pytest-doctestplus
 ==================
 
-The `pytest-doctestplus`_ plugin provides advanced doctest features, including:
+The |pytest-doctestplus| plugin provides advanced doctest features, including:
 
 * handling doctests that use remote data in conjunction with the
   ``pytest-remotedata`` plugin above (see :ref:`data-files`)

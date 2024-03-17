@@ -5,15 +5,19 @@ dates. Specific emphasis is placed on supporting time scales (e.g. UTC, TAI,
 UT1) and time representations (e.g. JD, MJD, ISO 8601) that are used in
 astronomy.
 """
+from __future__ import annotations
 
 import copy
 import enum
 import operator
 import os
+import sys
 import threading
 from collections import defaultdict
 from datetime import date, datetime, timezone
+from itertools import pairwise
 from time import strftime
+from typing import TYPE_CHECKING
 from warnings import warn
 from weakref import WeakValueDictionary
 
@@ -25,7 +29,7 @@ from astropy import units as u
 from astropy.extern import _strptime
 from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray, lazyproperty
-from astropy.utils.compat import PYTHON_LT_3_11
+from astropy.utils.compat import COPY_IF_NEEDED, sanitize_copy_arg
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
@@ -46,6 +50,8 @@ from .formats import (
 from .time_helper.function_helpers import CUSTOM_FUNCTIONS, UNSUPPORTED_FUNCTIONS
 from .utils import day_frac
 
+if TYPE_CHECKING:
+    from astropy.coordinates import EarthLocation
 __all__ = [
     "TimeBase",
     "Time",
@@ -491,7 +497,10 @@ class TimeBase(ShapedLikeNDArray):
 
     def __getstate__(self):
         # For pickling, we remove the cache from what's pickled
-        state = (self.__dict__ if PYTHON_LT_3_11 else super().__getstate__()).copy()
+        if sys.version_info < (3, 11):
+            state = self.__dict__.copy()
+        else:
+            state = super().__getstate__().copy()
         state.pop("_id_cache", None)
         state.pop("cache", None)
         return state
@@ -554,7 +563,7 @@ class TimeBase(ShapedLikeNDArray):
         # collected by the TimeAstropyTime format class up to the Time level.
         # TODO: find a nicer way.
         if hasattr(self._time, "_location"):
-            self.location = self._time._location
+            self._location = self._time._location
             del self._time._location
 
         # If any inputs were masked then masked jd2 accordingly.  From above
@@ -745,6 +754,24 @@ class TimeBase(ShapedLikeNDArray):
             raise TypeError(f"unhashable type: '{self.__class__.__name__}' {reason}")
 
     @property
+    def location(self) -> EarthLocation | None:
+        return self._location
+
+    @location.setter
+    def location(self, value):
+        if hasattr(self, "_location"):
+            # since astropy 6.1.0
+            warn(
+                "Setting the location attribute post initialization will be "
+                "disallowed in a future version of Astropy. "
+                "Instead you should set the location when creating the Time object. "
+                "In the future, this will raise an AttributeError.",
+                category=FutureWarning,
+                stacklevel=2,
+            )
+        self._location = value
+
+    @property
     def scale(self):
         """Time scale."""
         return self._time.scale
@@ -780,7 +807,7 @@ class TimeBase(ShapedLikeNDArray):
 
         # Transform the jd1,2 pairs through the chain of scale xforms.
         jd1, jd2 = self._time.jd1, self._time.jd2
-        for sys1, sys2 in zip(xforms[:-1], xforms[1:]):
+        for sys1, sys2 in pairwise(xforms):
             # Some xforms require an additional delta_ argument that is
             # provided through Time methods.  These values may be supplied by
             # the user or computed based on available approximations.  The
@@ -1377,7 +1404,7 @@ class TimeBase(ShapedLikeNDArray):
         )
 
         # Optional ndarray attributes.
-        for attr in ("_delta_ut1_utc", "_delta_tdb_tt", "location"):
+        for attr in ("_delta_ut1_utc", "_delta_tdb_tt", "_location"):
             try:
                 val = getattr(self, attr)
             except AttributeError:
@@ -1713,7 +1740,7 @@ class TimeBase(ShapedLikeNDArray):
             val2=jd2,
             format="jd",
             scale=self.scale,
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
         result.format = self.format
         return result
@@ -1949,18 +1976,19 @@ class Time(TimeBase):
         location=None,
         copy=False,
     ):
+        copy = sanitize_copy_arg(copy)
+
         if location is not None:
             from astropy.coordinates import EarthLocation
 
             if isinstance(location, EarthLocation):
-                self.location = location
+                self._location = location
             else:
-                self.location = EarthLocation(*location)
-            if self.location.size == 1:
-                self.location = self.location.squeeze()
-        else:
-            if not hasattr(self, "location"):
-                self.location = None
+                self._location = EarthLocation(*location)
+            if self._location.size == 1:
+                self._location = self._location.squeeze()
+        elif not hasattr(self, "_location"):
+            self._location = None
 
         if isinstance(val, Time):
             # Update _time formatting parameters if explicitly specified
@@ -1984,7 +2012,7 @@ class Time(TimeBase):
         ):
             try:
                 # check the location can be broadcast to self's shape.
-                self.location = np.broadcast_to(self.location, self.shape, subok=True)
+                self._location = np.broadcast_to(self._location, self.shape, subok=True)
             except Exception as err:
                 raise ValueError(
                     f"The location with shape {self.location.shape} cannot be "
@@ -2434,7 +2462,7 @@ class Time(TimeBase):
             longitude = longitude.lon
         else:
             # Sanity check on input; default unit is degree.
-            longitude = Longitude(longitude, u.degree, copy=False)
+            longitude = Longitude(longitude, u.degree, copy=COPY_IF_NEEDED)
 
         theta = self._call_erfa(function, scales)
 
@@ -2777,7 +2805,7 @@ class Time(TimeBase):
 
                 location = self.location[tuple(sl)]
 
-        result.location = location
+        result._location = location
         return result
 
     def __array_function__(self, function, types, args, kwargs):
@@ -3078,7 +3106,7 @@ class TimeDelta(TimeBase):
         # If other is something consistent with a dimensionless quantity
         # (could just be a float or an array), then we can just multiple in.
         try:
-            other = u.Quantity(other, u.dimensionless_unscaled, copy=False)
+            other = u.Quantity(other, u.dimensionless_unscaled, copy=COPY_IF_NEEDED)
         except Exception:
             # If not consistent with a dimensionless quantity, try downgrading
             # self to a quantity and see if things work.
@@ -3111,7 +3139,7 @@ class TimeDelta(TimeBase):
         # If other is something consistent with a dimensionless quantity
         # (could just be a float or an array), then we can just divide in.
         try:
-            other = u.Quantity(other, u.dimensionless_unscaled, copy=False)
+            other = u.Quantity(other, u.dimensionless_unscaled, copy=COPY_IF_NEEDED)
         except Exception:
             # If not consistent with a dimensionless quantity, try downgrading
             # self to a quantity and see if things work.
@@ -3329,7 +3357,7 @@ class ScaleValueError(Exception):
     pass
 
 
-def _make_array(val, copy=False):
+def _make_array(val, copy=COPY_IF_NEEDED):
     """
     Take ``val`` and convert/reshape to an array.  If ``copy`` is `True`
     then copy input values.
@@ -3343,6 +3371,8 @@ def _make_array(val, copy=False):
         dtype = object
     else:
         dtype = None
+
+    copy = sanitize_copy_arg(copy)
 
     val = np.array(val, copy=copy, subok=True, dtype=dtype)
 

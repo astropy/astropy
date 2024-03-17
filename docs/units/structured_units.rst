@@ -8,7 +8,7 @@ each element consists of multiple fields. These can be used with |Quantity|
 using a |StructuredUnit|, which provides a |Unit| for each field. For example,
 this allows constructing a single |Quantity| object with position and velocity
 fields that have different units, but are contained within the same object
-(as is needed to support units in the PyERFA_ wrappers around the ERFA_
+(as is needed to support units in the |PyERFA| wrappers around the |ERFA|
 routines that use position-velocity arrays).
 
 Creating Structured Quantities
@@ -52,7 +52,7 @@ respectively. In addition, you can index any given field using its name::
   <Quantity [[ 0.   ,  0.125,  0.   ],
              [-0.125,  0.   ,  0.   ]] km / s>
 
-Structures can be nested, as in this example taken from an PyERFA_ test case
+Structures can be nested, as in this example taken from an |PyERFA| test case
 for :func:`erfa.ldn`::
 
   >>> ldbody = [
@@ -96,10 +96,10 @@ To convert a structured quantity to a different unit::
 Use with ERFA
 =============
 
-The ERFA_ C routines make use of structured types, and these are exposed in
-the PyERFA_ interface.
+The |ERFA| C routines make use of structured types, and these are exposed in
+the |PyERFA| interface.
 
-.. warning:: Not all PyERFA_ routines are wrapped yet. Help with adding
+.. warning:: Not all |PyERFA| routines are wrapped yet. Help with adding
              wrappers will be appreciated.
 
 Example
@@ -107,7 +107,7 @@ Example
 
 .. EXAMPLE START: Using Structured Quantities with ERFA
 
-To use a position-velocity structured array with PyERFA_::
+To use a position-velocity structured array with |PyERFA|::
 
   >>> import erfa
   >>> pv_values = np.array([([1., 0., 0.], [0., 0.125, 0.]),

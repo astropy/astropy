@@ -131,10 +131,12 @@ class Conf(_config.ConfigNamespace):
         True, "If False, prevents any attempt to download from Internet."
     )
     compute_hash_block_size = _config.ConfigItem(
-        2**16, "Block size for computing file hashes."  # 64K
+        2**16,  # 64K
+        "Block size for computing file hashes.",
     )
     download_block_size = _config.ConfigItem(
-        2**16, "Number of bytes of remote data to download per step."  # 64K
+        2**16,  # 64K
+        "Number of bytes of remote data to download per step.",
     )
     delete_temporary_downloads_at_exit = _config.ConfigItem(
         True,

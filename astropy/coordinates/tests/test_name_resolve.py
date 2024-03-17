@@ -24,9 +24,7 @@ from astropy.coordinates.name_resolve import (
 from astropy.coordinates.sky_coordinate import SkyCoord
 
 _cached_ngc3642 = {}
-_cached_ngc3642[
-    "simbad"
-] = """# NGC 3642    #Q22523669
+_cached_ngc3642["simbad"] = """# NGC 3642    #Q22523669
 #=S=Simbad (via url):    1
 %@ 503952
 %I.0 NGC 3642
@@ -41,9 +39,7 @@ _cached_ngc3642[
 
 #====Done (2013-Feb-12,16:37:11z)===="""
 
-_cached_ngc3642[
-    "vizier"
-] = """# NGC 3642    #Q22523677
+_cached_ngc3642["vizier"] = """# NGC 3642    #Q22523677
 #=V=VizieR (local):    1
 %J 170.56 +59.08 = 11:22.2     +59:05
 %I.0 {NGC} 3642
@@ -52,9 +48,7 @@ _cached_ngc3642[
 
 #====Done (2013-Feb-12,16:37:42z)===="""
 
-_cached_ngc3642[
-    "all"
-] = """# ngc3642       #Q2779348
+_cached_ngc3642["all"] = """# ngc3642    #Q2779348
 #=Si=Simbad, all IDs (via url):    1    41ms
 %@ 503952
 %I.0 NGC 3642
@@ -72,9 +66,7 @@ _cached_ngc3642[
 """
 
 _cached_castor = {}
-_cached_castor[
-    "all"
-] = """# castor        #Q2779274
+_cached_castor["all"] = """# castor    #Q2779274
 #=Si=Simbad, all IDs (via url):    1     0ms (from cache)
 %@ 983633
 %I.0 * alf Gem
@@ -91,9 +83,7 @@ _cached_castor[
 
 #====Done (2024-Feb-15,11:25:36z)===="""
 
-_cached_castor[
-    "simbad"
-] = """# castor    #Q22524495
+_cached_castor["simbad"] = """# castor    #Q22524495
 #=S=Simbad (via url):    1
 %@ 983633
 %I.0 NAME CASTOR

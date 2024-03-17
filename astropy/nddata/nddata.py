@@ -268,7 +268,7 @@ class NDData(NDDataBase):
         ):
             # Data doesn't look like a numpy array, try converting it to
             # one.
-            data = np.array(data, subok=True, copy=False)
+            data = np.asanyarray(data)
         # Another quick check to see if what we got looks like an array
         # rather than an object (since numpy will convert a
         # non-numerical/non-string inputs to an array of objects).

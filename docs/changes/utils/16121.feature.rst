@@ -1,0 +1,1 @@
+For gufuncs on ``Masked`` instances, add support for the ``axes`` argument.

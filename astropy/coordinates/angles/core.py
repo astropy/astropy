@@ -15,7 +15,7 @@ import numpy as np
 from astropy import units as u
 from astropy.units import SpecificTypeQuantity
 from astropy.utils import isiterable
-from astropy.utils.compat import NUMPY_LT_2_0
+from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
 
 from . import formats
 
@@ -179,12 +179,12 @@ class Angle(SpecificTypeQuantity):
 
                 if angle_unit is not unit:
                     # Possible conversion to `unit` will be done below.
-                    angle = u.Quantity(angle, angle_unit, copy=False)
+                    angle = u.Quantity(angle, angle_unit, copy=COPY_IF_NEEDED)
 
             elif isiterable(angle) and not (
                 isinstance(angle, np.ndarray) and angle.dtype.kind not in "SUVO"
             ):
-                angle = [Angle(x, unit, copy=False) for x in angle]
+                angle = [Angle(x, unit, copy=COPY_IF_NEEDED) for x in angle]
 
         return super().__new__(cls, angle, unit, dtype=dtype, copy=copy, **kwargs)
 
@@ -205,12 +205,12 @@ class Angle(SpecificTypeQuantity):
     @property
     def hms(self):
         """The angle's value in hours, as a named tuple with ``(h, m, s)`` members."""
-        return hms_tuple(*formats.hours_to_hms(self.hourangle))
+        return hms_tuple(*formats._decimal_to_sexagesimal(self.hourangle))
 
     @property
     def dms(self):
         """The angle's value in degrees, as a ``(d, m, s)`` named tuple."""
-        return dms_tuple(*formats.degrees_to_dms(self.degree))
+        return dms_tuple(*formats._decimal_to_sexagesimal(self.degree))
 
     @property
     def signed_dms(self):
@@ -223,20 +223,20 @@ class Angle(SpecificTypeQuantity):
         representations of coordinates that are correct for negative angles.
         """
         return signed_dms_tuple(
-            np.sign(self.degree), *formats.degrees_to_dms(np.abs(self.degree))
+            np.sign(self.degree), *formats._decimal_to_sexagesimal(np.abs(self.degree))
         )
 
     def to_string(
         self,
         unit=None,
-        decimal=False,
-        sep="fromunit",
-        precision=None,
-        alwayssign=False,
-        pad=False,
-        fields=3,
-        format=None,
-    ):
+        decimal: bool = False,
+        sep: str = "fromunit",
+        precision: int | None = None,
+        alwayssign: bool = False,
+        pad: bool = False,
+        fields: int = 3,
+        format: str | None = None,
+    ) -> str:
         """A string representation of the angle.
 
         Parameters
@@ -306,8 +306,18 @@ class Angle(SpecificTypeQuantity):
             will be an array with a unicode dtype.
 
         """
+        if decimal and sep != "fromunit":
+            raise ValueError(
+                f"With decimal=True, separator cannot be used (got {sep=!r})"
+            )
+
         if unit is None:
-            unit = self.unit
+            if sep == "dms":
+                unit = u.degree
+            elif sep == "hms":
+                unit = u.hourangle
+            else:
+                unit = self.unit
         else:
             unit = self._convert_unit_to_angle_unit(u.Unit(unit))
 
@@ -327,24 +337,20 @@ class Angle(SpecificTypeQuantity):
 
         # Create an iterator so we can format each element of what
         # might be an array.
-        if not decimal and (unit_is_deg := unit == u.degree or unit == u.hourangle):
+        if not decimal and (unit == u.degree or unit == u.hourangle):
             # Sexagesimal.
             if sep == "fromunit":
                 if format not in separators:
                     raise ValueError(f"Unknown format '{format}'")
                 sep = separators[format][unit]
             func = functools.partial(
-                formats.degrees_to_string if unit_is_deg else formats.hours_to_string,
+                formats._decimal_to_sexagesimal_string,
                 precision=precision,
                 sep=sep,
                 pad=pad,
                 fields=fields,
             )
         else:
-            if sep != "fromunit":
-                raise ValueError(
-                    f"'{unit}' can not be represented in sexagesimal notation"
-                )
             func = ("{:g}" if precision is None else f"{{0:0.{precision}f}}").format
             # Don't add unit by default for decimal.
             # TODO: could we use Quantity.to_string() here?

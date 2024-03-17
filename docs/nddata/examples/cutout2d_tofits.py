@@ -24,12 +24,12 @@ def download_image_save_cutout(url, position, size):
     hdu.header.update(cutout.wcs.to_header())
 
     # Write the cutout to a new FITS file
-    cutout_filename = 'example_cutout.fits'
+    cutout_filename = "example_cutout.fits"
     hdu.writeto(cutout_filename, overwrite=True)
 
 
-if __name__ == '__main__':
-    url = 'https://astropy.stsci.edu/data/photometry/spitzer_example_image.fits'
+if __name__ == "__main__":
+    url = "https://astropy.stsci.edu/data/photometry/spitzer_example_image.fits"
 
     position = (500, 300)
     size = (400, 400)

@@ -628,7 +628,7 @@ class ArrayDistribution(Distribution, np.ndarray):
             # If value is not already a Distribution, first make it an array
             # to help interpret possible structured dtype, and then turn it
             # into a Distribution with n_samples=1 (which will broadcast).
-            value = np.array(value, dtype=self.dtype, copy=False, subok=True)
+            value = np.asanyarray(value, dtype=self.dtype)
             value = Distribution(value[..., np.newaxis])
 
         super().__setitem__(item, value)

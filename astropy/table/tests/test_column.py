@@ -97,7 +97,7 @@ class TestColumn:
 
         np_data = np.array(d)
         assert np.all(np_data == d)
-        np_data = np.array(d, copy=False)
+        np_data = np.asarray(d)
         assert np.all(np_data == d)
         np_data = np.array(d, dtype="i4")
         assert np.all(np_data == d)
@@ -1121,3 +1121,10 @@ def test_searchsorted(Column, dtype):
         assert np.all(res == exp)
         res = np.searchsorted(c, v, side="right")
         assert np.all(res == exp)
+
+
+def test_masked_unit_conversion():
+    # regression test for gh-9521
+    c = table.MaskedColumn([3.5, 2.4, 1.7], name="test", unit=u.km)
+    c.convert_unit_to(u.m)
+    assert c.unit == (c * 2.0).unit

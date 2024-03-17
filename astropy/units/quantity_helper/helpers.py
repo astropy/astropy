@@ -370,6 +370,12 @@ if not NUMPY_LT_2_0:
         np._core.umath.isspace,
         np._core.umath.isnumeric,
         np._core.umath.isdecimal,
+        np._core.umath.isalnum,
+        np._core.umath.istitle,
+        np._core.umath.islower,
+        np._core.umath.isupper,
+        np._core.umath.index,
+        np._core.umath.rindex,
         np._core.umath.startswith,
         np._core.umath.endswith,
         np._core.umath.find,
@@ -382,6 +388,12 @@ if not NUMPY_LT_2_0:
         np._core.umath._lstrip_whitespace,
         np._core.umath._rstrip_whitespace,
         np._core.umath._replace,
+        np._core.umath._expandtabs,
+        np._core.umath._expandtabs_length,
+        np._core.umath._ljust,
+        np._core.umath._rjust,
+        np._core.umath._center,
+        np._core.umath._zfill,
     }
 
 # SINGLE ARGUMENT UFUNCS

@@ -22,24 +22,24 @@ Using pip
     Users of the Anaconda Python distribution should follow the instructions
     for :ref:`anaconda_install`.
 
-To install ``astropy`` with `pip`_, run::
+To install ``astropy`` with |pip|, run::
 
-    pip install astropy
+    python -m pip install astropy
 
 If you want to make sure none of your existing dependencies get upgraded, you
 can also do::
 
-    pip install astropy --no-deps
+    python -m pip install astropy --no-deps
 
 On the other hand, if you want to install ``astropy`` along with recommended
 or even all of the available optional :ref:`dependencies <astropy-main-req>`,
 you can do::
 
-    pip install astropy[recommended]
+    python -m pip install "astropy[recommended]"
 
 or::
 
-    pip install astropy[all]
+    python -m pip install "astropy[all]"
 
 In most cases, this will install a pre-compiled version (called a *wheel*) of
 astropy, but if you are using a very recent version of Python, if a new version
@@ -82,11 +82,11 @@ for the list of available versions with ``conda search astropy``.
 If you want to install ``astropy`` along with recommended or all of the
 available optional :ref:`dependencies <astropy-main-req>`, you can do::
 
-    conda install -c conda-forge -c defaults scipy matplotlib
+    conda install --channel conda-forge --channel defaults scipy matplotlib
 
 or::
 
-    conda install -c conda-forge -c defaults scipy matplotlib \
+    conda install --channel conda-forge --channel defaults scipy matplotlib \
       h5py beautifulsoup4 html5lib bleach pandas sortedcontainers \
       pytz setuptools mpmath bottleneck jplephem asdf-astropy pyarrow
 
@@ -94,7 +94,7 @@ To also be able to run tests (see below) and support :ref:`builddocs` use the
 following. We use ``pip`` for these packages to ensure getting the latest
 releases which are compatible with the latest ``pytest`` and ``sphinx`` releases::
 
-    pip install pytest-astropy sphinx-astropy
+    python -m pip install pytest-astropy sphinx-astropy
 
 .. warning::
 
@@ -135,23 +135,23 @@ Requirements
 
 ``astropy`` has the following strict requirements:
 
-- `Python`_ |minimum_python_version| or later
+- |Python| |minimum_python_version| or later
 
-- `Numpy`_ |minimum_numpy_version| or later
+- |NumPy| |minimum_numpy_version| or later
 
-- `PyERFA`_ |minimum_pyerfa_version| or later
+- |PyERFA| |minimum_pyerfa_version| or later
 
 - `PyYAML <https://pyyaml.org>`_ |minimum_pyyaml_version| or later
 
-- `packaging`_ |minimum_packaging_version| or later
+- |packaging| |minimum_packaging_version| or later
 
 ``astropy`` also depends on a number of other packages for optional features.
 The following are particularly recommended:
 
-- `scipy`_ |minimum_scipy_version| or later: To power a variety of features
+- |SciPy| |minimum_scipy_version| or later: To power a variety of features
   in several modules.
 
-- `matplotlib <https://matplotlib.org/>`_ |minimum_matplotlib_version| or later: To provide plotting
+- |Matplotlib| |minimum_matplotlib_version| or later: To provide plotting
   functionality that `astropy.visualization` enhances.
 
 The further dependencies provide more specific features:
@@ -210,10 +210,10 @@ The further dependencies provide more specific features:
 - `pyarrow <https://arrow.apache.org/docs/python/>`_ |minimum_pyarrow_version| or later:
   To read/write :class:`~astropy.table.Table` objects from/to Parquet files.
 
-- `fsspec`_ |minimum_fsspec_version| or later: Enables access to :ref:`subsets
+- |fsspec| |minimum_fsspec_version| or later: Enables access to :ref:`subsets
   of remote FITS files <fits_io_cloud>` without having to download the entire file.
 
-- `s3fs`_ |minimum_s3fs_version| or later: Enables access to files hosted in
+- |s3fs| |minimum_s3fs_version| or later: Enables access to files hosted in
   AWS S3 cloud storage.
 
 However, note that these packages require installation only if those particular
@@ -222,7 +222,7 @@ installed.
 
 The following packages can optionally be used when testing:
 
-- `pytest-astropy`_: See :ref:`sourcebuildtest`
+- |pytest-astropy|: See :ref:`sourcebuildtest`
 
 - `pytest-xdist <https://pypi.org/project/pytest-xdist/>`_: Used for
   distributed testing.
@@ -232,7 +232,7 @@ The following packages can optionally be used when testing:
 
 - `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
 
-- `IPython`_ |minimum_ipython_version| or later:
+- |IPython| |minimum_ipython_version| or later:
   Used for testing the notebook interface of `~astropy.table.Table`.
 
 - `coverage <https://coverage.readthedocs.io/>`_: Used for code coverage
@@ -323,13 +323,13 @@ Building and Installing
 
 To build and install ``astropy`` (from the root of the source tree)::
 
-    pip install .
+    python -m pip install .
 
 If you install in this way and you make changes to the code, you will need to
 re-run the install command for changes to be reflected. Alternatively, you can
 use::
 
-    pip install -e .
+    python -m pip install --editable .
 
 which installs ``astropy`` in develop/editable mode -- this then means that
 changes in the code are immediately reflected in the installed version.
@@ -341,14 +341,14 @@ If you get an error mentioning that you do not have the correct permissions to
 install ``astropy`` into the default ``site-packages`` directory, you can try
 installing with::
 
-    pip install . --user
+    python -m pip install --user .
 
 which will install into a default directory in your home directory.
 
 If you get an error directing use of option ``-std=c99`` or ``-std=gnu99``, you can try
 installing with::
 
-    CFLAGS='-std=c99' pip install -e .
+    CFLAGS='-std=c99' python -m pip install --editable .
 
 This is necessary for use with CentOS7.
 
@@ -367,11 +367,11 @@ the package.
 For example, to build ``astropy`` using the system's expat parser
 library, use::
 
-    ASTROPY_USE_SYSTEM_EXPAT=1 pip install -e .
+    ASTROPY_USE_SYSTEM_EXPAT=1 python -m pip install --editable .
 
 To build using all of the system libraries, use::
 
-    ASTROPY_USE_SYSTEM_ALL=1 pip install -e .
+    ASTROPY_USE_SYSTEM_ALL=1 python -m pip install --editable .
 
 The C libraries currently bundled with ``astropy`` include:
 
@@ -395,7 +395,7 @@ to find out what is currently being offered.
 
 Installing these "nightlies" of ``astropy`` can be achieved by using ``pip``::
 
-  $ pip install -U -i https://pypi.anaconda.org/astropy/simple astropy --pre
+  python -m pip install --upgrade --index-url https://pypi.anaconda.org/astropy/simple astropy --pre
 
 The extra index URL tells ``pip`` to check the ``pip`` index on
 pypi.anaconda.org, where the nightlies are stored, and the ``--pre`` command
@@ -427,17 +427,17 @@ documentation, you will need to make sure that a number of dependencies are
 installed. If you use conda, the easiest way to install the dependencies is
 with::
 
-    conda install -c conda-forge sphinx-astropy
+    conda install --channel conda-forge sphinx-astropy
 
 Without conda, you install the dependencies by specifying ``[docs]`` when
 installing ``astropy`` with pip::
 
-    pip install -e '.[docs]'
+    python -m pip install --editable ".[docs]"
 
 You can alternatively install the `sphinx-astropy
 <https://github.com/astropy/sphinx-astropy>`_ package with pip::
 
-    pip install sphinx-astropy
+    python -m pip install sphinx-astropy
 
 In addition to providing configuration common to packages in the Astropy
 ecosystem, this package also serves as a way to automatically get the main
@@ -452,7 +452,7 @@ dependencies, including:
   that makes it easy to automatically generate API documentation
 * `sphinx-gallery <https://sphinx-gallery.readthedocs.io/en/latest/>`_ - an
   extension to generate example galleries
-* `numpydoc`_ - an extension to parse
+* |numpydoc| - an extension to parse
   docstrings in NumPyDoc format
 * `pillow <https://pillow.readthedocs.io>`_ - used in one of the examples
 * `Graphviz <http://www.graphviz.org>`_ - generate inheritance graphs (available
@@ -501,7 +501,7 @@ this uses the installed version of astropy, so if you want to make sure
 the current repository version is used, you will need to install it with
 e.g.::
 
-    pip install -e .[docs]
+    python -m pip install --editable ".[docs]"
 
 before changing to the ``docs`` directory.
 

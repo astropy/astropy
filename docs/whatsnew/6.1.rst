@@ -12,7 +12,7 @@ the 6.0 release.
 
 In particular, this release includes:
 
-* nothing yet
+* Upgraded the minimum required version of Python to 3.10
 
 In addition to these major changes, Astropy v6.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -21,6 +21,14 @@ By the numbers:
 * X issues have been closed since v6.0
 * X pull requests have been merged since v6.0
 * X distinct people have contributed code
+
+
+Minimum Python Version
+======================
+
+The minimum required version of Python has been upgraded to 3.10. This is in line with
+the `NumPy deprecation policy
+<https://numpy.org/neps/nep-0029-deprecation_policy.html>`_.
 
 
 .. _whatsnew-6.1-ascii-default-int-columns-as-int64:

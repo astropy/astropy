@@ -5,6 +5,7 @@ import os
 import re
 import warnings
 from copy import deepcopy
+from itertools import pairwise
 
 import numpy as np
 
@@ -416,7 +417,7 @@ def _encode_mixins(tbl):
         else:
             # Split line into 70 character chunks for COMMENT cards
             idxs = list(range(0, len(line) + 70, 70))
-            lines = [line[i0:i1] + "\\" for i0, i1 in zip(idxs[:-1], idxs[1:])]
+            lines = [line[i0:i1] + "\\" for i0, i1 in pairwise(idxs)]
             lines[-1] = lines[-1][:-1]
         encode_tbl.meta["comments"].extend(lines)
 
