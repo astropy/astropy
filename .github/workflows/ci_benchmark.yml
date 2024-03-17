@@ -88,7 +88,7 @@ jobs:
               | tee benchmarks.log
 
           # Error out the action
-          if grep "Traceback \|failed\|PERFORMANCE DECREASED" benchmarks.log > /dev/null ; then
+          if grep -q "Traceback \|failed\|PERFORMANCE DECREASED" benchmarks.log ; then
               exit 1
           fi
 
