@@ -87,6 +87,11 @@ jobs:
               | sed "/Traceback \|failed$\|PERFORMANCE DECREASED/ s/^/::error::/" \
               | tee benchmarks.log
 
+          # Error out the action
+          if grep "Traceback \|failed\|PERFORMANCE DECREASED" benchmarks.log > /dev/null ; then
+              exit 1
+          fi
+
       - name: "Check ccache performance"
         shell: bash -l {0}
         run: ccache -s
