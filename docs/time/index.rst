@@ -489,8 +489,8 @@ To apply arithmetic methods to |Time| instances::
 
   >>> t.max()
   <Time object: scale='utc' format='mjd' value=50002.5>
-  >>> t.ptp(axis=0)  # doctest: +FLOAT_CMP
-  <TimeDelta object: scale='tai' format='jd' value=[2. 2.]>
+  >>> t.min()
+  <Time object: scale='utc' format='mjd' value=50000.0>
 
 .. EXAMPLE END
 

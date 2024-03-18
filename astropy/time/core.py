@@ -29,8 +29,9 @@ from astropy import units as u
 from astropy.extern import _strptime
 from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray, lazyproperty
-from astropy.utils.compat import COPY_IF_NEEDED, sanitize_copy_arg
+from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0, sanitize_copy_arg
 from astropy.utils.data_info import MixinInfo, data_info_factory
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
 
@@ -1633,6 +1634,26 @@ class TimeBase(ShapedLikeNDArray):
             )
         return self[self._advanced_index(self.argmax(axis), axis, keepdims)]
 
+    def _ptp_impl(self, axis=None, out=None, keepdims=False):
+        if out is not None:
+            raise ValueError(
+                "Since `Time` instances are immutable, ``out`` "
+                "cannot be set to anything but ``None``."
+            )
+        return self.max(axis, keepdims=keepdims) - self.min(axis, keepdims=keepdims)
+
+    if NUMPY_LT_2_0:
+        _ptp_decorator = lambda f: f
+    else:
+        _ptp_decorator = deprecated("6.1", alternative="np.ptp")
+
+        def __array_function__(self, function, types, args, kwargs):
+            if function is np.ptp:
+                return self._ptp_impl(*args[1:], **kwargs)
+            else:
+                return super().__array_function__(function, types, args, kwargs)
+
+    @_ptp_decorator
     def ptp(self, axis=None, out=None, keepdims=False):
         """Peak to peak (maximum - minimum) along a given axis.
 
@@ -1644,12 +1665,7 @@ class TimeBase(ShapedLikeNDArray):
         `~numpy.ptp`; since `Time` instances are immutable, it is not possible
         to have an actual ``out`` to store the result in.
         """
-        if out is not None:
-            raise ValueError(
-                "Since `Time` instances are immutable, ``out`` "
-                "cannot be set to anything but ``None``."
-            )
-        return self.max(axis, keepdims=keepdims) - self.min(axis, keepdims=keepdims)
+        return self._ptp_impl(axis, out, keepdims)
 
     def sort(self, axis=-1):
         """Return a copy sorted along the specified axis.
