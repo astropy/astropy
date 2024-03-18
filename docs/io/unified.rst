@@ -329,7 +329,7 @@ with::
 If more than one table is present in the file, you can select the HDU
 by index or by name::
 
-    >>> t = Table.read('data.fits', hdu="EVENTS")
+    >>> t = Table.read(chandra_events, hdu="EVENTS")
 
 In this case if the ``hdu`` argument is omitted, then the first table found
 will be read in and a warning will be emitted.
@@ -340,7 +340,7 @@ header information to reconstruct them::
 
     >>> from astropy.io import fits
     >>> with fits.open(chandra_events) as hdul:
-    ...     t = Table.read(hdul[1])
+    ...     t = Table.read(hdul["EVENTS"])
 
 If a column contains unit information, it will have an associated
 `astropy.units` object::
@@ -351,6 +351,7 @@ If a column contains unit information, it will have an associated
 It is also possible to get directly a table with columns as
 `~astropy.units.Quantity` objects by using the `~astropy.table.QTable` class::
 
+    >>> from astropy.table import QTable
     >>> t2 = QTable.read(chandra_events, hdu=1)
     >>> t2['energy']
     <Quantity [7782.7305, 5926.725 ] eV>
