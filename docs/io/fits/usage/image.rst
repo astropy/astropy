@@ -76,6 +76,41 @@ These examples show the concise nature of ``numpy`` array operations.
 ..
   EXAMPLE END
 
+Plotting an image
+-----------------
+
+This example opens an image stored in a FITS file and displays it to the
+screen.  This uses `astropy.utils.data` to download and cache the file,
+`astropy.io.fits` to open the file, and `matplotlib.pyplot` to display the
+image::
+
+    >>> from astropy.io import fits
+    >>> from astropy.utils.data import get_pkg_data_filename
+    >>> image_file = get_pkg_data_filename("tutorials/FITS-images/HorseHead.fits")  # doctest: +REMOTE_DATA
+    >>> fits.info(image_file)  # doctest: +ELLIPSIS
+    Filename: ...
+    No.    Name      Ver    Type      Cards   Dimensions   Format
+    0  PRIMARY       1 PrimaryHDU     161   (891, 893)   int16
+    1  er.mask       1 TableHDU        25   1600R x 4C   [F6.2, F6.2, F6.2, F6.2]
+
+Generally the image information is located in the Primary HDU, also known
+as extension 0. Here, we use :func:`astropy.io.fits.getdata` to read the image
+data from this first extension using the keyword argument ``ext=0`` and obtain
+a 2D nupy array that we can visualize with matplotlib:
+
+.. plot::
+    :include-source:
+    :align: center
+
+    import matplotlib.pyplot as plt
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
+
+    image_file = get_pkg_data_filename("tutorials/FITS-images/HorseHead.fits")
+    image_data = fits.getdata(image_file, ext=0)
+    plt.imshow(image_data, cmap="gray", origin="lower")
+    plt.colorbar()
+
 
 Scaled Data
 ===========

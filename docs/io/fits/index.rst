@@ -481,9 +481,9 @@ to a new file, you can use the :meth:`HDUList.writeto` method (see below).
 
 .. _Numpy documentation: https://numpy.org/doc/stable/reference/arrays.indexing.html
 
-.. topic:: Examples:
+.. note::
 
-    See also :ref:`sphx_glr_generated_examples_io_plot_fits-image.py`.
+    See more information in :doc:`/io/fits/usage/image`.
 
 Working with Table Data
 ^^^^^^^^^^^^^^^^^^^^^^^
