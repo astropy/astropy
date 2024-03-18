@@ -33,7 +33,7 @@ class TestFITSDiff_script(FitsTestCase):
         stdout, stderr = p.communicate()
 
         assert p.returncode == 0
-        assert stdout.decode("utf-8") == f"fitsdiff {version}\n"
+        assert stdout.decode("utf-8").strip() == f"fitsdiff {version}"
 
     def test_noargs(self):
         with pytest.raises(SystemExit) as e:

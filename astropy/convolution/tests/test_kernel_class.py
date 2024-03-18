@@ -641,11 +641,5 @@ class TestKernels:
         Regression test for issue #10439
         """
         x = np.ones([10, 10])
-        if len(opt) == 1:
-            a = opt[0]
-            with pytest.raises(TypeError, match=r".* allowed .*"):
-                kernel(a, array=x)
-        else:
-            a, b = opt
-            with pytest.raises(TypeError, match=r".* allowed .*"):
-                kernel(a, b, array=x)
+        with pytest.raises(TypeError, match=r".* allowed .*"):
+            kernel(*opt, array=x)

@@ -26,7 +26,7 @@ class TestFITSheader_script(FitsTestCase):
         stdout, stderr = p.communicate()
 
         assert p.returncode == 0
-        assert stdout.decode("utf-8") == f"fitsheader {version}\n"
+        assert stdout.decode("utf-8").strip() == f"fitsheader {version}"
 
     def test_file_exists(self, capsys):
         fitsheader.main([self.data("arange.fits")])

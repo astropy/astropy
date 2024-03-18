@@ -26,7 +26,7 @@ class TestFitsinfo(FitsTestCase):
         stdout, stderr = p.communicate()
 
         assert p.returncode == 0
-        assert stdout.decode("utf-8") == f"fitsinfo {version}\n"
+        assert stdout.decode("utf-8").strip() == f"fitsinfo {version}"
 
     def test_onefile(self, capsys):
         fitsinfo.main([self.data("arange.fits")])
