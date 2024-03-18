@@ -11,7 +11,6 @@ from astropy.io.fits.util import fill
 
 log = logging.getLogger("fitsdiff")
 
-PROG = "fitsdiff"
 
 DESCRIPTION = """
 Compare two FITS image files and report the differences in header keywords and
@@ -96,7 +95,6 @@ class StoreListAction(argparse.Action):
 
 def handle_options(argv=None):
     parser = argparse.ArgumentParser(
-        prog=PROG,
         description=DESCRIPTION,
         epilog=EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter,

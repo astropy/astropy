@@ -210,7 +210,7 @@ class TestFitting:
         )
         y1 = g1(self.x1, model_set_axis=False)
         with pytest.raises(ValueError, match=MESSAGE):
-            _ = fitter(g1, self.x1, y1)
+            fitter(g1, self.x1, y1)
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
     @pytest.mark.parametrize("fitter", fitters)
@@ -231,10 +231,7 @@ class TestFitting:
         """1 set 2d x, 1set 2D y, 2 param_sets, NonLinearFitter"""
         fitter = fitter()
 
-        MESSAGE = (
-            r"Input argument .* does not have the correct dimensions in .* for a model"
-            r" set with .*"
-        )
+        MESSAGE = r"Non-linear fitters can only fit one data set at a time"
         g2 = models.Gaussian2D(
             [10, 10],
             [3, 3],
@@ -244,9 +241,11 @@ class TestFitting:
             theta=[0, 0],
             n_models=2,
         )
-        z = g2(self.x.flatten(), self.y.flatten())
+        x = (self.x.flatten(), self.x.flatten())
+        y = (self.y.flatten(), self.y.flatten())
+        z = g2(x, y)
         with pytest.raises(ValueError, match=MESSAGE):
-            _ = fitter(g2, self.x, self.y, z)
+            fitter(g2, self.x, self.y, z)
 
 
 class TestEvaluation:

@@ -1019,6 +1019,11 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
                 def __init__(self, Ode0):
                     pass
 
+        try:
+            _COSMOLOGY_CLASSES.pop(HASOde0SubClass.__qualname__, None)
+        except UnboundLocalError:
+            pass
+
     # ---------------------------------------------------------------
     # instance-level
 

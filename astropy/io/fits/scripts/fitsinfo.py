@@ -28,8 +28,6 @@ import argparse
 import astropy.io.fits as fits
 from astropy import __version__, log
 
-PROG = "fitsinfo"
-
 DESCRIPTION = """
 Print a summary of the HDUs in a FITS file(s).
 
@@ -57,7 +55,6 @@ def fitsinfo(filename):
 def main(args=None):
     """The main function called by the `fitsinfo` script."""
     parser = argparse.ArgumentParser(
-        prog=PROG,
         description=DESCRIPTION,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )

@@ -45,7 +45,20 @@ KERNEL_TYPES = [
     AiryDisk2DKernel,
     Ring2DKernel,
 ]
-
+KERNEL_TYPES_WITH_ARGS = [
+    (AiryDisk2DKernel, (2,)),
+    (Box2DKernel, (2,)),
+    (Gaussian1DKernel, (2,)),
+    (Gaussian2DKernel, (2,)),
+    (RickerWavelet1DKernel, (2,)),
+    (RickerWavelet2DKernel, (2,)),
+    (Model1DKernel, (Gaussian1D(1, 0, 2),)),
+    (Model2DKernel, (Gaussian2D(1, 0, 0, 2, 2),)),
+    (Ring2DKernel, (9, 8)),
+    (Tophat2DKernel, (2,)),
+    (Trapezoid1DKernel, (2,)),
+    (Trapezoid1DKernel, (2,)),
+]
 
 NUMS = [1, 1.0, np.float32(1.0), np.float64(1.0)]
 
@@ -622,34 +635,17 @@ class TestKernels:
         with pytest.raises(TypeError):
             Kernel2D()
 
-    def test_array_keyword_not_allowed(self):
+    @pytest.mark.parametrize(["kernel", "opt"], KERNEL_TYPES_WITH_ARGS)
+    def test_array_keyword_not_allowed(self, kernel, opt):
         """
         Regression test for issue #10439
         """
         x = np.ones([10, 10])
-        with pytest.raises(TypeError, match=r".* allowed .*"):
-            AiryDisk2DKernel(2, array=x)
-        with pytest.raises(TypeError, match=r".* allowed .*"):
-            Box1DKernel(2, array=x)
-        with pytest.raises(TypeError, match=r".* allowed .*"):
-            Box2DKernel(2, array=x)
-        with pytest.raises(TypeError, match=r".* allowed .*"):
-            Gaussian1DKernel(2, array=x)
-        with pytest.raises(TypeError, match=r".* allowed .*"):
-            Gaussian2DKernel(2, array=x)
-        with pytest.raises(TypeError, match=r".* allowed .*"):
-            RickerWavelet1DKernel(2, array=x)
-        with pytest.raises(TypeError, match=r".* allowed .*"):
-            RickerWavelet2DKernel(2, array=x)
-        with pytest.raises(TypeError, match=r".* allowed .*"):
-            Model1DKernel(Gaussian1D(1, 0, 2), array=x)
-        with pytest.raises(TypeError, match=r".* allowed .*"):
-            Model2DKernel(Gaussian2D(1, 0, 0, 2, 2), array=x)
-        with pytest.raises(TypeError, match=r".* allowed .*"):
-            Ring2DKernel(9, 8, array=x)
-        with pytest.raises(TypeError, match=r".* allowed .*"):
-            Tophat2DKernel(2, array=x)
-        with pytest.raises(TypeError, match=r".* allowed .*"):
-            Trapezoid1DKernel(2, array=x)
-        with pytest.raises(TypeError, match=r".* allowed .*"):
-            Trapezoid1DKernel(2, array=x)
+        if len(opt) == 1:
+            a = opt[0]
+            with pytest.raises(TypeError, match=r".* allowed .*"):
+                kernel(a, array=x)
+        else:
+            a, b = opt
+            with pytest.raises(TypeError, match=r".* allowed .*"):
+                kernel(a, b, array=x)
