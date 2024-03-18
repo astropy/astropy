@@ -189,7 +189,9 @@ class Angle(SpecificTypeQuantity):
         return super().__new__(cls, angle, unit, dtype=dtype, copy=copy, **kwargs)
 
     @staticmethod
+    @functools.cache
     def _convert_unit_to_angle_unit(unit):
+        # using caching to return early when possible (unit comparison is expensive)
         return u.hourangle if unit == u.hour else unit
 
     def _set_unit(self, unit):
