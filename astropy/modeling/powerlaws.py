@@ -593,7 +593,7 @@ class Schechter1D(Fittable1DModel):
         ax.set_xlim(-22.6, -17)
         ax.set_ylim(1.e-7, 1.e-2)
         ax.set_xlabel('$M_{UV}$')
-        ax.set_ylabel('$\phi$ [mag$^{-1}$ Mpc$^{-3}]$')
+        ax.set_ylabel(r'$\phi$ [mag$^{-1}$ Mpc$^{-3}]$')
 
     References
     ----------
