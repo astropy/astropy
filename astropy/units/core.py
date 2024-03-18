@@ -1718,7 +1718,9 @@ class UnitBase:
             max_depth=1,
             include_prefix_units=include_prefix_units,
         )
-        results = {x.bases[0] for x in results if len(x.bases) == 1}
+        results = {
+            x.bases[0] for x in results if len(x.bases) == 1 and x.powers[0] == 1
+        }
         return self.EquivalentUnitsList(results)
 
     def is_unity(self):

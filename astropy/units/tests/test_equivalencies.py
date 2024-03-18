@@ -14,6 +14,16 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.units.equivalencies import Equivalency
 
 
+def test_find_equivalent_units():
+    # Only finds units in the namespace
+    e1 = (u.m**3).find_equivalent_units()
+    assert len(e1) == 1
+    assert e1[0] == u.l
+    # Regression test for gh-16124
+    e2 = (u.m**-3).find_equivalent_units()
+    assert len(e2) == 0
+
+
 def test_dimensionless_angles():
     # test that the angles_dimensionless option allows one to change
     # by any order in radian in the unit (#1161)
