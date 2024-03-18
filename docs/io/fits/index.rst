@@ -358,9 +358,9 @@ would with a dict::
     >>> list(hdr.keys())  # doctest: +ELLIPSIS
     ['SIMPLE', 'BITPIX', 'NAXIS', ...]
 
-.. topic:: Examples:
+.. note::
 
-    See also :ref:`sphx_glr_generated_examples_io_modify-fits-header.py`.
+    See also :ref:`io-fits-intro-convenience-functions`.
 
 .. _structural_keywords:
 
@@ -849,14 +849,11 @@ specify which HDU the user wants to access::
 
     >>> from astropy.io.fits import getheader
     >>> hdr = getheader(fits_image_filename)  # get default HDU (=0), i.e. primary HDU's header
-    >>> hdr = getheader(fits_image_filename, 0)  # get primary HDU's header
-    >>> hdr = getheader(fits_image_filename, 2)  # the second extension
-    >>> hdr = getheader(fits_image_filename, 'sci')  # the first HDU with EXTNAME='SCI'
-    >>> hdr = getheader(fits_image_filename, 'sci', 2)  # HDU with EXTNAME='SCI' and EXTVER=2
-    >>> hdr = getheader(fits_image_filename, ('sci', 2))  # use a tuple to do the same
+    >>> hdr = getheader(fits_image_filename, ext=0)  # get primary HDU's header
     >>> hdr = getheader(fits_image_filename, ext=2)  # the second extension
-    >>> hdr = getheader(fits_image_filename, extname='sci')  # first HDU with EXTNAME='SCI'
-    >>> hdr = getheader(fits_image_filename, extname='sci', extver=2)
+    >>> hdr = getheader(fits_image_filename, extname='sci')  # the first HDU with EXTNAME='SCI'
+    >>> hdr = getheader(fits_image_filename, extname='sci', extver=2)  # HDU with EXTNAME='SCI' and EXTVER=2
+    >>> hdr = getheader(fits_image_filename, ext=('sci', 2))  # use a tuple to do the same
 
 Ambiguous specifications will raise an exception::
 
@@ -869,10 +866,10 @@ After you get the header, you can access the information in it, such as getting
 and modifying a keyword value::
 
     >>> fits_image_2_filename = fits.util.get_testdata_filepath('o4sp040b0_raw.fits')
-    >>> hdr = getheader(fits_image_2_filename, 0)    # get primary hdu's header
-    >>> filter = hdr['filter']                       # get the value of the keyword "filter'
-    >>> val = hdr[10]                                # get the 11th keyword's value
-    >>> hdr['filter'] = 'FW555'                      # change the keyword value
+    >>> hdr = getheader(fits_image_2_filename, ext=0)  # get primary hdu's header
+    >>> filter = hdr['filter']                         # get the value of the keyword "filter'
+    >>> val = hdr[10]                                  # get the 11th keyword's value
+    >>> hdr['filter'] = 'FW555'                        # change the keyword value
 
 For the header keywords, the header is like a dictionary, as well as a list.
 The user can access the keywords either by name or by numeric index, as
@@ -884,14 +881,23 @@ examples::
 
     >>> from astropy.io.fits import getval
     >>> # get 0th extension's keyword FILTER's value
-    >>> flt = getval(fits_image_2_filename, 'filter', 0)
-    >>> flt
+    >>> getval(fits_image_2_filename, 'filter', ext=0)
     'Clear'
 
     >>> # get the 2nd sci extension's 11th keyword's value
-    >>> val = getval(fits_image_2_filename, 10, 'sci', 2)
-    >>> val
+    >>> getval(fits_image_2_filename, 10, extname='sci', extver=2)
     False
+
+To edit a single header value in the header for extension 0, use the
+:func:`setval` function. For example, to change the value of the "filter"
+keyword::
+
+    >>> fits.setval(fits_image_2_filename, "filter", value="FW555")  # doctest: +SKIP
+
+This can also be used to create a new keyword-value pair ("card" in FITS
+lingo)::
+
+    >>> fits.setval(fits_image_2_filename, "ANEWKEY", value="some value")  # doctest: +SKIP
 
 The function :func:`getdata` gets the data of an HDU. Similar to
 :func:`getheader`, it only requires the input FITS file name while the
@@ -901,9 +907,9 @@ both data and header, otherwise only data is returned::
 
     >>> from astropy.io.fits import getdata
     >>> # get 3rd sci extension's data:
-    >>> data = getdata(fits_image_filename, 'sci', 3)
+    >>> data = getdata(fits_image_filename, extname='sci', extver=3)
     >>> # get 1st extension's data AND header:
-    >>> data, hdr = getdata(fits_image_filename, 1, header=True)
+    >>> data, hdr = getdata(fits_image_filename, ext=1, header=True)
 
 The functions introduced above are for reading. The next few functions
 demonstrate convenience functions for writing::

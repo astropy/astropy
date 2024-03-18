@@ -87,7 +87,7 @@ image::
     >>> from astropy.io import fits
     >>> from astropy.utils.data import get_pkg_data_filename
     >>> image_file = get_pkg_data_filename("tutorials/FITS-images/HorseHead.fits")  # doctest: +REMOTE_DATA
-    >>> fits.info(image_file)  # doctest: +ELLIPSIS
+    >>> fits.info(image_file)  # doctest: +ELLIPSIS +REMOTE_DATA
     Filename: ...
     No.    Name      Ver    Type      Cards   Dimensions   Format
     0  PRIMARY       1 PrimaryHDU     161   (891, 893)   int16
