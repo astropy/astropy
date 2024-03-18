@@ -3,6 +3,7 @@
 import copy
 import itertools
 import warnings
+from contextlib import nullcontext
 
 import numpy as np
 import pytest
@@ -12,6 +13,8 @@ from astropy.time import Time
 from astropy.time.utils import day_frac
 from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
 from astropy.utils import iers
+from astropy.utils.compat import NUMPY_LT_2_0
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
@@ -632,10 +635,17 @@ class TestArithmetic:
     def test_ptp(self, use_mask):
         self.create_data(use_mask)
 
-        assert self.t0.ptp() == self.t0.max() - self.t0.min()
-        assert np.all(self.t0.ptp(0) == self.t0.max(0) - self.t0.min(0))
-        assert self.t0.ptp(0).shape == (5, 5)
-        assert self.t0.ptp(0, keepdims=True).shape == (1, 5, 5)
+        assert np.ptp(self.t0) == self.t0.max() - self.t0.min()
+        assert np.all(np.ptp(self.t0, axis=0) == self.t0.max(0) - self.t0.min(0))
+        assert np.ptp(self.t0, axis=0).shape == (5, 5)
+        assert np.ptp(self.t0, 0, keepdims=True).shape == (1, 5, 5)
+
+        if NUMPY_LT_2_0:
+            ctx = nullcontext()
+        else:
+            ctx = pytest.warns(AstropyDeprecationWarning)
+        with ctx:
+            assert self.t0.ptp() == self.t0.max() - self.t0.min()
 
     def test_sort(self, use_mask):
         self.create_data(use_mask)
