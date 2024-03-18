@@ -454,7 +454,6 @@ dependencies, including:
   extension to generate example galleries
 * |numpydoc| - an extension to parse
   docstrings in NumPyDoc format
-* `pillow <https://pillow.readthedocs.io>`_ - used in one of the examples
 * `Graphviz <http://www.graphviz.org>`_ - generate inheritance graphs (available
   as a conda package or a system install but not in pip)
 
