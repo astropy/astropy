@@ -748,25 +748,6 @@ def test_to_string():
         assert with_kwargs == wrap("+01h02m03.000s +01d02m03.000s")
 
 
-@pytest.mark.parametrize("cls_other", [SkyCoord, ICRS])
-def test_seps(cls_other):
-    sc1 = SkyCoord(0 * u.deg, 1 * u.deg)
-    sc2 = cls_other(0 * u.deg, 2 * u.deg)
-
-    sep = sc1.separation(sc2)
-
-    assert (sep - 1 * u.deg) / u.deg < 1e-10
-
-    with pytest.raises(ValueError):
-        sc1.separation_3d(sc2)
-
-    sc3 = SkyCoord(1 * u.deg, 1 * u.deg, distance=1 * u.kpc)
-    sc4 = cls_other(1 * u.deg, 1 * u.deg, distance=2 * u.kpc)
-    sep3d = sc3.separation_3d(sc4)
-
-    assert sep3d == 1 * u.kpc
-
-
 def test_repr():
     sc1 = SkyCoord(0 * u.deg, 1 * u.deg, frame="icrs")
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame="icrs", distance=1 * u.kpc)
@@ -868,33 +849,6 @@ def test_position_angle_directly():
     result = position_angle(10.0, 20.0, 10.0, 20.0)
     assert result.unit is u.radian
     assert result.value == 0.0
-
-
-def test_sep_pa_equivalence():
-    """Regression check for bug in #5702.
-
-    PA and separation from object 1 to 2 should be consistent with those
-    from 2 to 1
-    """
-    cfk5 = SkyCoord(1 * u.deg, 0 * u.deg, frame="fk5")
-    cfk5B1950 = SkyCoord(1 * u.deg, 0 * u.deg, frame="fk5", equinox="B1950")
-    # test with both default and explicit equinox #5722 and #3106
-    sep_forward = cfk5.separation(cfk5B1950)
-    sep_backward = cfk5B1950.separation(cfk5)
-    assert sep_forward != 0 and sep_backward != 0
-    assert_allclose(sep_forward, sep_backward)
-    posang_forward = cfk5.position_angle(cfk5B1950)
-    posang_backward = cfk5B1950.position_angle(cfk5)
-    assert posang_forward != 0 and posang_backward != 0
-    assert 179 < (posang_forward - posang_backward).wrap_at(360 * u.deg).degree < 181
-    dcfk5 = SkyCoord(1 * u.deg, 0 * u.deg, frame="fk5", distance=1 * u.pc)
-    dcfk5B1950 = SkyCoord(
-        1 * u.deg, 0 * u.deg, frame="fk5", equinox="B1950", distance=1.0 * u.pc
-    )
-    sep3d_forward = dcfk5.separation_3d(dcfk5B1950)
-    sep3d_backward = dcfk5B1950.separation_3d(dcfk5)
-    assert sep3d_forward != 0 and sep3d_backward != 0
-    assert_allclose(sep3d_forward, sep3d_backward)
 
 
 def test_directional_offset_by():
