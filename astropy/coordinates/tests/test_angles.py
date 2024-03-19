@@ -693,6 +693,17 @@ def test_wrap_at_inplace():
     assert np.all(a.degree == np.array([-20.0, 150.0, -10.0, 0.0]))
 
 
+@pytest.mark.parametrize("cls", [Angle, Longitude, Latitude])
+def test_dtype_int(cls):
+    # for why this is forbidden
+    # see https://github.com/astropy/astropy/issues/16217
+    with pytest.raises(
+        TypeError,
+        match=f"{cls.__name__} doesn't support integral data types. Received 'int'",
+    ):
+        cls(0, u.deg, dtype="int")
+
+
 def test_latitude():
     with pytest.raises(ValueError):
         Latitude(["91d", "89d"])
@@ -838,7 +849,7 @@ def test_longitude():
 
     # also make sure dtype is correctly conserved
     assert Longitude(0, u.deg, dtype=float).dtype == np.dtype(float)
-    assert Longitude(0, u.deg, dtype=int).dtype == np.dtype(int)
+    assert Longitude(0, u.deg, dtype="float32").dtype == np.dtype("float32")
 
     # Test errors when trying to interoperate with latitudes.
     with pytest.raises(

@@ -1,0 +1,1 @@
+Forbid integral data types for ``Angle`` and subclasses.

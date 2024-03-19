@@ -148,6 +148,11 @@ class Angle(SpecificTypeQuantity):
     _include_easy_conversion_members = True
 
     def __new__(cls, angle, unit=None, dtype=np.inexact, copy=True, **kwargs):
+        if dtype is not np.inexact and np.dtype(dtype).kind == "i":
+            raise TypeError(
+                f"{cls.__name__} doesn't support integral data types. Received {dtype!r}"
+            )
+
         if not isinstance(angle, u.Quantity):
             if unit is not None:
                 unit = cls._convert_unit_to_angle_unit(u.Unit(unit))
