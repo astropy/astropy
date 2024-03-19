@@ -1,0 +1,3 @@
+Unmasked ``Masked`` scalar instances are now considered hashable, to match the
+implicit behaviour of regular arrays, where if an operation leads to a scalar,
+a hashable array scalar is returned.

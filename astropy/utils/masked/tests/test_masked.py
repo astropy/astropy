@@ -662,6 +662,15 @@ class MaskedItemTests(MaskedArraySetup):
         assert_array_equal(base.unmasked, self.a)
         assert_array_equal(base.mask, expected_mask)
 
+    @pytest.mark.parametrize("item", VARIOUS_ITEMS)
+    def test_hash(self, item):
+        ma_part = self.ma[item]
+        if ma_part.ndim > 0 or ma_part.mask.any():
+            with pytest.raises(TypeError, match="unhashable"):
+                hash(ma_part)
+        else:
+            assert hash(ma_part) == hash(ma_part.unmasked)
+
 
 class TestMaskedArrayItems(MaskedItemTests):
     @classmethod
@@ -883,6 +892,16 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         assert_array_equal(ma_sum.unmasked, expected_data)
         assert_array_equal(ma_sum.mask, expected_mask)
 
+    def test_sum_hash(self):
+        ma_sum = self.ma.sum()
+        assert ma_sum.mask
+        # Masked scalars cannot be hashed.
+        with pytest.raises(TypeError, match="unhashable"):
+            hash(ma_sum)
+        ma_sum2 = Masked(self.a).sum()
+        # But an unmasked scalar can.
+        assert hash(ma_sum2) == hash(self.a.sum())
+
     @pytest.mark.parametrize("axis", (0, 1, None))
     def test_cumsum(self, axis):
         ma_sum = self.ma.cumsum(axis)
@@ -952,6 +971,10 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         ) | (~where_final).all(axis)
         assert_array_equal(ma_mean.unmasked, expected_data)
         assert_array_equal(ma_mean.mask, expected_mask)
+
+    def test_mean_hash(self):
+        ma_mean = self.ma.mean()
+        assert hash(ma_mean) == hash(ma_mean.unmasked[()])
 
     @pytest.mark.filterwarnings("ignore:.*encountered in.*divide")
     @pytest.mark.parametrize("axis", (0, 1, None))

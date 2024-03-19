@@ -1303,6 +1303,14 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         else:
             return string
 
+    def __hash__(self):
+        # Try to be somewhat like a numpy array scalar if possible.
+        if self.ndim == 0 and not self.mask:
+            return hash(self.unmasked[()])
+
+        # Will raise regular ndarray error.
+        return hash((self.unmasked, self.mask))
+
 
 class MaskedRecarray(np.recarray, MaskedNDArray, data_cls=np.recarray):
     # Explicit definition since we need to override some methods.
