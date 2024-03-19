@@ -30,13 +30,13 @@ cosmo_instances = cosmology.realizations.available
 
 # Collect the registered read/write formats.
 #   (format, supports_metadata, has_all_required_dependencies)
-readwrite_formats = {
+readwrite_formats = [
     ("ascii.ecsv", True, True),
     ("ascii.html", False, HAS_BS4),
     ("ascii.latex", False, True),
     ("json", True, True),
     ("latex", False, True),
-}
+]
 
 
 # Collect all the registered to/from formats. Unfortunately this is NOT

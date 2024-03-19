@@ -12,6 +12,7 @@ import warnings
 
 import numpy as np
 
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import isiterable
@@ -20,6 +21,7 @@ from . import format as unit_format
 from .utils import (
     is_effectively_unity,
     resolve_fractions,
+    sanitize_power,
     sanitize_scale,
     validate_power,
 )
@@ -909,7 +911,7 @@ class UnitBase:
         try:
             from .quantity import Quantity
 
-            return Quantity(m, self, copy=False, subok=True)
+            return Quantity(m, self, copy=COPY_IF_NEEDED, subok=True)
         except Exception:
             if isinstance(m, np.ndarray):
                 raise
@@ -1716,7 +1718,9 @@ class UnitBase:
             max_depth=1,
             include_prefix_units=include_prefix_units,
         )
-        results = {x.bases[0] for x in results if len(x.bases) == 1}
+        results = {
+            x.bases[0] for x in results if len(x.bases) == 1 and x.powers[0] == 1
+        }
         return self.EquivalentUnitsList(results)
 
     def is_unity(self):
@@ -2340,7 +2344,8 @@ class CompositeUnit(UnitBase):
                 scale *= unit.scale**power
                 self._bases = unit.bases
                 self._powers = [
-                    operator.mul(*resolve_fractions(p, power)) for p in unit.powers
+                    sanitize_power(operator.mul(*resolve_fractions(p, power)))
+                    for p in unit.powers
                 ]
 
             self._scale = sanitize_scale(scale)
@@ -2420,7 +2425,7 @@ class CompositeUnit(UnitBase):
         new_parts.sort(key=lambda x: (-x[1], getattr(x[0], "name", "")))
 
         self._bases = [x[0] for x in new_parts]
-        self._powers = [x[1] for x in new_parts]
+        self._powers = [sanitize_power(x[1]) for x in new_parts]
         self._scale = sanitize_scale(scale)
 
     def __copy__(self):

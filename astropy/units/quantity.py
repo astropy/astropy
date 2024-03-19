@@ -20,7 +20,8 @@ import numpy as np
 
 # LOCAL
 from astropy import config as _config
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
+from astropy.utils.compat import sanitize_copy_arg
+from astropy.utils.compat.numpycompat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyWarning
@@ -240,7 +241,7 @@ class QuantityInfo(QuantityInfoBase):
             key: (data if key == "value" else getattr(cols[-1], key))
             for key in self._represent_as_dict_attrs
         }
-        map["copy"] = False
+        map["copy"] = COPY_IF_NEEDED
         out = self._construct_from_dict(map)
 
         # Set remaining info attributes
@@ -445,12 +446,14 @@ class Quantity(np.ndarray):
         if float_default:
             dtype = None
 
-        # optimize speed for Quantity with no dtype given, copy=False
+        copy = sanitize_copy_arg(copy)
+
+        # optimize speed for Quantity with no dtype given, copy=COPY_IF_NEEDED
         if isinstance(value, Quantity):
             if unit is not None and unit is not value.unit:
                 value = value.to(unit)
                 # the above already makes a copy (with float dtype)
-                copy = False
+                copy = COPY_IF_NEEDED
 
             if type(value) is not cls and not (subok and isinstance(value, cls)):
                 value = value.view(cls)
@@ -539,7 +542,7 @@ class Quantity(np.ndarray):
                 if unit is None:
                     unit = value_unit
                 elif unit is not value_unit:
-                    copy = False  # copy will be made in conversion at end
+                    copy = COPY_IF_NEEDED  # copy will be made in conversion at end
 
         value = np.array(
             value, dtype=dtype, copy=copy, order=order, subok=True, ndmin=ndmin
@@ -826,7 +829,7 @@ class Quantity(np.ndarray):
         if obj is None:
             obj = self.view(np.ndarray)
         else:
-            obj = np.array(obj, copy=False, subok=True)
+            obj = np.array(obj, copy=COPY_IF_NEEDED, subok=True)
 
         # Take the view, set the unit, and update possible other properties
         # such as ``info``, ``wrap_angle`` in `Longitude`, etc.
@@ -1511,7 +1514,11 @@ class Quantity(np.ndarray):
 
         delimiter_left, delimiter_right = formats[format][subfmt]
 
-        return rf"{delimiter_left}{latex_value} \; {latex_unit}{delimiter_right}"
+        # Add a space in front except for super-script units like degrees.
+        if not latex_unit.removeprefix("\\mathrm{").startswith("{}^"):
+            latex_unit = rf" \; {latex_unit}"
+
+        return rf"{delimiter_left}{latex_value}{latex_unit}{delimiter_right}"
 
     def __str__(self):
         return self.to_string()
@@ -1685,7 +1692,7 @@ class Quantity(np.ndarray):
         if self.dtype.kind == "i" and check_precision:
             # If, e.g., we are casting float to int, we want to fail if
             # precision is lost, but let things pass if it works.
-            _value = np.array(_value, copy=False, subok=True)
+            _value = np.array(_value, copy=COPY_IF_NEEDED, subok=True)
             if not np.can_cast(_value.dtype, self.dtype):
                 self_dtype_array = np.array(_value, self.dtype, subok=True)
                 if not np.all((self_dtype_array == _value) | np.isnan(_value)):
@@ -2216,9 +2223,9 @@ def allclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False) -> bool:
 
 
 def _unquantify_allclose_arguments(actual, desired, rtol, atol):
-    actual = Quantity(actual, subok=True, copy=False)
+    actual = Quantity(actual, subok=True, copy=COPY_IF_NEEDED)
 
-    desired = Quantity(desired, subok=True, copy=False)
+    desired = Quantity(desired, subok=True, copy=COPY_IF_NEEDED)
     try:
         desired = desired.to(actual.unit)
     except UnitsError:
@@ -2234,7 +2241,7 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
         # units for a and b.
         atol = Quantity(0)
     else:
-        atol = Quantity(atol, subok=True, copy=False)
+        atol = Quantity(atol, subok=True, copy=COPY_IF_NEEDED)
         try:
             atol = atol.to(actual.unit)
         except UnitsError:
@@ -2243,7 +2250,7 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
                 f"({actual.unit}) are not convertible"
             )
 
-    rtol = Quantity(rtol, subok=True, copy=False)
+    rtol = Quantity(rtol, subok=True, copy=COPY_IF_NEEDED)
     try:
         rtol = rtol.to(dimensionless_unscaled)
     except Exception:

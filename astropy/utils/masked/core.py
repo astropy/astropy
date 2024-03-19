@@ -19,7 +19,7 @@ import builtins
 
 import numpy as np
 
-from astropy.utils.compat import NUMPY_LT_2_0
+from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0, sanitize_copy_arg
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.shapes import NDArrayShapeMethods
 
@@ -287,7 +287,7 @@ class Masked(NDArrayShapeMethods):
             data = getattr(self.unmasked, method)(*args, **kwargs)
             mask = getattr(self.mask, method)(*args, **kwargs)
 
-        result = self.from_unmasked(data, mask, copy=False)
+        result = self.from_unmasked(data, mask, copy=COPY_IF_NEEDED)
         if "info" in self.__dict__:
             result.info = self.info
 
@@ -513,6 +513,8 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
     def from_unmasked(cls, data, mask=None, copy=False):
         # Note: have to override since __new__ would use ndarray.__new__
         # which expects the shape as its first argument, not an array.
+        copy = sanitize_copy_arg(copy)
+
         data = np.array(data, subok=True, copy=copy)
         self = data.view(cls)
         self._set_mask(mask, copy=copy)
@@ -567,16 +569,24 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             return super().view(self._get_masked_cls(type))
 
         dtype = np.dtype(dtype)
-        if not (
-            dtype.itemsize == self.dtype.itemsize
-            and (dtype.names is None or len(dtype.names) == len(self.dtype.names))
+        result = super().view(dtype, self._get_masked_cls(type))
+        # Mask should be viewed in all but simplest case.
+        if (
+            dtype.itemsize != self.dtype.itemsize
+            or dtype.names
+            or dtype.shape
+            or self.dtype.names
+            or self.dtype.shape
         ):
-            raise NotImplementedError(
-                f"{self.__class__} cannot be viewed with a dtype with a "
-                "with a different number of fields or size."
-            )
+            try:
+                result.mask = self.mask.view(np.ma.make_mask_descr(dtype))
+            except Exception as exc:
+                raise NotImplementedError(
+                    f"{self.__class__} cannot be viewed with a dtype "
+                    "with a different number of fields or size."
+                ) from None
 
-        return super().view(dtype, self._get_masked_cls(type))
+        return result
 
     def __array_finalize__(self, obj):
         # If we're a new object or viewing an ndarray, nothing has to be done.
@@ -671,6 +681,17 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         )
         return result.any(axis=-1)
 
+    def _combine_fields(self, mask):
+        masks = []
+        for name in mask.dtype.names:
+            m = mask[name]
+            if m.dtype.names is not None:
+                m = self._combine_fields(m)
+            if m.ndim > mask.ndim:
+                m = m.any(axis=tuple(range(mask.ndim, m.ndim)))
+            masks.append(m)
+        return self._combine_masks(masks, copy=False)
+
     def _combine_masks(self, masks, out=None, where=True, copy=True):
         """Combine masks, possibly storing it in some output.
 
@@ -678,7 +699,8 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         ----------
         masks : tuple of array of bool or None
             Input masks.  Any that are `None` or `False` are ignored.
-            Should broadcast to each other.
+            Should broadcast to each other.  For structured dtype,
+            an element is considered masked if any of the fields is.
         out : output mask array, optional
             Possible output array to hold the result.
         where : array of bool, optional
@@ -687,9 +709,20 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             Whether to ensure a copy is made. Only relevant if a single
             input mask is not `None`, and ``out`` is not given.
         """
-        masks = [m for m in masks if m is not None and m is not False]
+        # Simplify masks, by removing empty ones and combining possible fields.
+        masks = [
+            m if m.dtype.names is None else self._combine_fields(m)
+            for m in masks
+            if m is not None and m is not False
+        ]
         if not masks:
-            return False
+            if out is None:
+                return False
+            else:
+                # Use copyto to deal with broadcasting with `where`.
+                np.copyto(out, False, where=where)
+                return out
+
         if len(masks) == 1:
             if out is None:
                 return masks[0].copy() if copy else masks[0]
@@ -705,11 +738,17 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         return out
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        out = kwargs.pop("out", None)
-        out_unmasked = None
+        # Get inputs and there masks.
+        unmasked, masks = self._get_data_and_masks(*inputs)
+
+        # Deal with possible outputs and their masks.
+        out = kwargs.get("out")
         out_mask = None
-        if out is not None:
+        if out is None:
+            out_masks = [None] * ufunc.nout
+        else:
             out_unmasked, out_masks = self._get_data_and_masks(*out)
+            kwargs["out"] = out_unmasked
             for d, m in zip(out_unmasked, out_masks):
                 if m is None:
                     # TODO: allow writing to unmasked output if nothing is masked?
@@ -720,44 +759,40 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
         # TODO: where is only needed for __call__ and reduce;
         # this is very fast, but still worth separating out?
-        where = kwargs.pop("where", True)
+        where = kwargs.get("where", True)
         if where is True:
             where_unmasked = True
             where_mask = None
         else:
             where_unmasked, where_mask = self._get_data_and_mask(where)
+            kwargs["where"] = where_unmasked
 
-        unmasked, masks = self._get_data_and_masks(*inputs)
+        # First calculate the unmasked result. This will also verify kwargs.
+        # It will raise if the arguments do not know how to deal with each other.
+        result = getattr(ufunc, method)(*unmasked, **kwargs)
 
         if ufunc.signature:
             # We're dealing with a gufunc. For now, only deal with
             # np.matmul and gufuncs for which the mask of any output always
             # depends on all core dimension values of all inputs.
-            # Also ignore axes keyword for now...
             # TODO: in principle, it should be possible to generate the mask
             # purely based on the signature.
-            if "axes" in kwargs:
-                raise NotImplementedError(
-                    "Masked does not yet support gufunc calls with 'axes'."
-                )
             if ufunc is np.matmul:
                 # np.matmul is tricky and its signature cannot be parsed by
-                # _parse_gufunc_signature.
-                unmasked = np.atleast_1d(*unmasked)
-                mask0, mask1 = masks
-                masks = []
-                is_mat1 = unmasked[1].ndim >= 2
-                if mask0 is not None:
-                    masks.append(np.logical_or.reduce(mask0, axis=-1, keepdims=is_mat1))
-
-                if mask1 is not None:
-                    masks.append(
-                        np.logical_or.reduce(mask1, axis=-2, keepdims=True)
-                        if is_mat1
-                        else np.logical_or.reduce(mask1)
-                    )
-
-                mask = self._combine_masks(masks, out=out_mask, copy=False)
+                # _parse_gufunc_signature.  But we can calculate the mask
+                # with matmul by using that nan will propagate correctly.
+                # We use float16 to minimize the memory requirements.
+                nan_masks = []
+                for a, m in zip(unmasked, masks):
+                    nan_mask = np.zeros(a.shape, dtype=np.float16)
+                    if m is not None:
+                        nan_mask[m] = np.nan
+                    nan_masks.append(nan_mask)
+                m_kwargs = {
+                    k: v for k, v in kwargs.items() if k not in ("out", "where")
+                }
+                t = ufunc(*nan_masks, **m_kwargs)
+                mask = np.isnan(t, out=out_mask)
 
             else:
                 # Parse signature with private numpy function. Note it
@@ -773,12 +808,21 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                     ) = np.lib._function_base_impl._parse_gufunc_signature(
                         ufunc.signature.replace(" ", "")
                     )
-                axis = kwargs.get("axis", -1)
+                axes = kwargs.get("axes")
+                if axes is None:
+                    # Maybe axis was given? (Note: ufunc will not take both.)
+                    axes = [kwargs.get("axis")] * ufunc.nargs
+                elif len(axes) < ufunc.nargs:
+                    # All outputs have no core dimensions, which means axes
+                    # is not needed, but add None's for the zip below.
+                    axes = axes + [None] * (ufunc.nargs - len(axes))  # not inplace!
                 keepdims = kwargs.get("keepdims", False)
                 in_masks = []
-                for sig, mask in zip(in_sig, masks):
+                for sig, mask, axis in zip(in_sig, masks, axes[: ufunc.nin]):
                     if mask is not None:
                         if sig:
+                            if axis is None:
+                                axis = tuple(range(-1, -1 - len(sig), -1))
                             # Input has core dimensions.  Assume that if any
                             # value in those is masked, the output will be
                             # masked too (TODO: for multiple core dimensions
@@ -788,18 +832,27 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                             )
                         in_masks.append(mask)
 
-                mask = self._combine_masks(in_masks)
-                result_masks = []
-                for os in out_sig:
-                    if os:
-                        # Output has core dimensions.  Assume all those
-                        # get the same mask.
-                        result_mask = np.expand_dims(mask, axis)
-                    else:
-                        result_mask = mask
-                    result_masks.append(result_mask)
+                if ufunc.nout == 1 and out_sig[0] == ():
+                    # Special-case where possible in-place is easy.
+                    mask = self._combine_masks(in_masks, out_mask, copy=False)
+                else:
+                    # Here, some masks may need expansion, so we forego in-place.
+                    mask = self._combine_masks(in_masks, copy=False)
+                    result_masks = []
+                    for os, omask, axis in zip(out_sig, out_masks, axes[ufunc.nin :]):
+                        if os:
+                            # Output has core dimensions.  Assume all those
+                            # get the same mask.
+                            if axis is None:
+                                axis = tuple(range(-1, -1 - len(os), -1))
+                            result_mask = np.expand_dims(mask, axis)
+                        else:
+                            result_mask = mask
+                        if omask is not None:
+                            omask[...] = result_mask
+                        result_masks.append(result_mask)
 
-                mask = result_masks if len(result_masks) > 1 else result_masks[0]
+                    mask = result_masks if ufunc.nout > 1 else result_masks[0]
 
         elif method == "__call__":
             # Regular ufunc call.
@@ -808,9 +861,15 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             # If relevant, also mask output elements for which where was masked.
             if where_mask is not None:
                 mask |= where_mask
+            if out_mask is not None:
+                # Check for any additional explicitly given outputs.
+                for m in out_masks[1:]:
+                    if m is not None and m is not out_mask:
+                        m[...] = mask
 
         elif method == "outer":
-            # Must have two arguments; adjust masks as will be done for data.
+            # Must have two inputs and one output, so also only one output mask.
+            # Adjust masks as will be done for data.
             m0, m1 = masks
             if m0 is not None and m0.ndim > 0:
                 m0 = m0[(...,) + (np.newaxis,) * np.ndim(unmasked[1])]
@@ -820,6 +879,13 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             # Reductions like np.add.reduce (sum).
             # Treat any masked where as if the input element was masked.
             mask = self._combine_masks((masks[0], where_mask), copy=False)
+            if mask is False and out_mask is not None:
+                if where_unmasked is True:
+                    out_mask[...] = False
+                else:
+                    # This is too complicated, just fall through to below.
+                    mask = np.broadcast_to(False, inputs[0].shape)
+
             if mask is not False:
                 # By default, we simply propagate masks, since for
                 # things like np.sum, it makes no sense to do otherwise.
@@ -857,17 +923,11 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 "masked instances cannot yet deal with 'reduceat' or 'at'."
             )
 
-        if out_unmasked is not None:
-            kwargs["out"] = out_unmasked
-        if where_unmasked is not True:
-            kwargs["where"] = where_unmasked
-        result = getattr(ufunc, method)(*unmasked, **kwargs)
-
         if result is None:  # pragma: no cover
             # This happens for the "at" method.
             return result
 
-        if out is not None and len(out) == 1:
+        if out is not None and ufunc.nout == 1:
             out = out[0]
         return self._masked_result(result, mask, out)
 
@@ -953,10 +1013,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
         # TODO: remove this sanity check once test cases are more complete.
         assert isinstance(out, Masked)
-        # If we have an output, the result was written in-place, so we should
-        # also write the mask in-place (if not done already in the code).
-        if out._mask is not mask:
-            out._mask[...] = mask
+        # For inplace, the mask will have been set already.
         return out
 
     # Below are ndarray methods that need to be overridden as masked elements

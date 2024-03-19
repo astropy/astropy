@@ -11,6 +11,7 @@ import heapq
 import subprocess
 from collections import defaultdict
 from contextlib import contextmanager
+from itertools import pairwise
 
 from astropy.coordinates.transformations.affine import (
     AffineTransform,
@@ -22,6 +23,7 @@ from astropy.coordinates.transformations.function import (
     FunctionTransform,
     FunctionTransformWithFiniteDifference,
 )
+from astropy.utils import lazyproperty
 
 __all__ = ["TransformGraph"]
 
@@ -79,19 +81,13 @@ class TransformGraph:
         self._graph = defaultdict(dict)
         self.invalidate_cache()  # generates cache entries
 
-    @property
+    @lazyproperty
     def _cached_names(self):
-        if self._cached_names_dct is None:
-            self._cached_names_dct = dct = {}
-            for c in self.frame_set:
-                nm = getattr(c, "name", None)
-                if nm is not None:
-                    if not isinstance(nm, list):
-                        nm = [nm]
-                    for name in nm:
-                        dct[name] = c
-
-        return self._cached_names_dct
+        dct = {}
+        for c in self.frame_set:
+            if (nm := getattr(c, "name", None)) is not None:
+                dct |= dict.fromkeys(nm if isinstance(nm, list) else [nm], c)
+        return dct
 
     @property
     def frame_set(self):
@@ -107,15 +103,12 @@ class TransformGraph:
 
         return self._cached_frame_set.copy()
 
-    @property
+    @lazyproperty
     def frame_attributes(self):
         """
         A `dict` of all the attributes of all frame classes in this TransformGraph.
         """
-        if self._cached_frame_attributes is None:
-            self._cached_frame_attributes = frame_attrs_from_set(self.frame_set)
-
-        return self._cached_frame_attributes
+        return frame_attrs_from_set(self.frame_set)
 
     @property
     def frame_component_names(self):
@@ -123,10 +116,7 @@ class TransformGraph:
         A `set` of all component names every defined within any frame class in
         this TransformGraph.
         """
-        if self._cached_component_names is None:
-            self._cached_component_names = frame_comps_from_set(self.frame_set)
-
-        return self._cached_component_names
+        return frame_comps_from_set(self.frame_set)
 
     def invalidate_cache(self):
         """
@@ -135,10 +125,9 @@ class TransformGraph:
         are added or removed, but will need to be called manually if
         weights on transforms are modified inplace.
         """
-        self._cached_names_dct = None
+        del self._cached_names
         self._cached_frame_set = None
-        self._cached_frame_attributes = None
-        self._cached_component_names = None
+        del self.frame_attributes
         self._shortestpaths = {}
         self._composite_cache = {}
 
@@ -713,7 +702,7 @@ class TransformGraph:
         full_path = self.get_transform(fromsys, lastsys)
         transforms = [
             self.get_transform(frame_a, frame_b)
-            for frame_a, frame_b in zip(frames[:-1], frames[1:])
+            for frame_a, frame_b in pairwise(frames)
         ]
         if None in transforms:
             raise ValueError("This transformation path is not possible")

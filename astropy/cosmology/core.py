@@ -26,6 +26,8 @@ from .parameter._descriptors import ParametersAttribute
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+    from typing_extensions import Self
+
     from astropy.cosmology.funcs.comparison import _FormatType
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
@@ -512,11 +514,14 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
         """Return `True`, the cosmology is flat."""
         return True
 
+    @property
     @abc.abstractmethod
     def nonflat(self: _FlatCosmoT) -> _CosmoT:
         """Return the equivalent non-flat-class instance of this cosmology."""
 
-    def clone(self, *, meta: Mapping | None = None, to_nonflat: bool = False, **kwargs):
+    def clone(
+        self, *, meta: Mapping | None = None, to_nonflat: bool = False, **kwargs
+    ) -> Self:
         """Returns a copy of this object with updated parameters, as specified.
 
         This cannot be used to change the type of the cosmology, except for

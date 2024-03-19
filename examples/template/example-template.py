@@ -56,17 +56,17 @@ z = np.cos(xx) + np.cos(yy)
 plt.figure()
 plt.imshow(z)
 plt.colorbar()
-plt.xlabel('$x$')
-plt.ylabel('$y$')
+plt.xlabel("$x$")
+plt.ylabel("$y$")
 
 ###########################################################################
 # Again it is possible to continue the discussion with a new Python string. This
 # time to introduce the next code block generates 2 separate figures.
 
 plt.figure()
-plt.imshow(z, cmap=plt.cm.get_cmap('hot'))
+plt.imshow(z, cmap=plt.cm.get_cmap("hot"))
 plt.figure()
-plt.imshow(z, cmap=plt.cm.get_cmap('Spectral'), interpolation='none')
+plt.imshow(z, cmap=plt.cm.get_cmap("Spectral"), interpolation="none")
 
 ##########################################################################
 # There's some subtle differences between rendered html rendered comment
@@ -90,7 +90,7 @@ Triple-quoted string which tries to break parser but doesn't.
 ############################################################################
 # Output of the script is captured:
 
-print('Some output from Python')
+print("Some output from Python")
 
 ############################################################################
 # Finally, I'll call ``show`` at the end just so someone running the Python

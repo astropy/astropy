@@ -19,12 +19,7 @@ from itertools import islice
 import numpy as np
 
 from astropy import __version__
-from astropy.utils.diff import (
-    diff_values,
-    fixed_width_indent,
-    report_diff_values,
-    where_not_allclose,
-)
+from astropy.utils.diff import diff_values, report_diff_values, where_not_allclose
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 from .card import BLANK_CARD, Card
@@ -186,7 +181,7 @@ class _BaseDiff:
             return fileobj.getvalue()
 
     def _writeln(self, text):
-        self._fileobj.write(fixed_width_indent(text, self._indent) + "\n")
+        self._fileobj.write(textwrap.indent(text, self._indent * "  ") + "\n")
 
     def _diff(self):
         raise NotImplementedError
@@ -1569,9 +1564,8 @@ def report_diff_keyword_attr(fileobj, attr, diffs, keyword, ind=0):
             else:
                 dup = f"[{idx + 1}]"
             fileobj.write(
-                fixed_width_indent(
-                    f" Keyword {keyword:8}{dup} has different {attr}:\n",
-                    ind,
+                textwrap.indent(
+                    f" Keyword {keyword:8}{dup} has different {attr}:\n", ind * "  "
                 )
             )
             report_diff_values(val[0], val[1], fileobj=fileobj, indent_width=ind + 1)

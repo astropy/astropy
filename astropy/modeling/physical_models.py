@@ -318,10 +318,7 @@ class Drude1D(Fittable1DModel):
                 (1 / x_0)
                 + d_amplitude
                 * (x_0**2 / fwhm**2)
-                * (
-                    (-x / x_0 - 1 / x) * (x / x_0 - x_0 / x)
-                    - (2 * fwhm**2 / x_0**3)
-                )
+                * ((-x / x_0 - 1 / x) * (x / x_0 - x_0 / x) - (2 * fwhm**2 / x_0**3))
             )
         )
         d_fwhm = (2 * amplitude * d_amplitude / fwhm) * (1 - d_amplitude)

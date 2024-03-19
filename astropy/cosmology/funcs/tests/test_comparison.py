@@ -47,7 +47,9 @@ class ComparisonFunctionTestBase(ToFromTestMixinBase):
 
     @pytest.fixture(
         scope="class",
-        params={k for k, _ in convert_registry._readers.keys()} - {"astropy.cosmology"},
+        params=sorted(
+            {k for k, _ in convert_registry._readers.keys()} - {"astropy.cosmology"}
+        ),
     )
     def format(self, request):
         return request.param

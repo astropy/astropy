@@ -6,6 +6,7 @@ import numpy as np
 
 from astropy import log
 from astropy.units import Unit, UnitConversionError, UnitsError  # noqa: F401
+from astropy.utils.compat import COPY_IF_NEEDED
 
 from .flag_collection import FlagCollection
 from .mixins.ndarithmetic import NDArithmeticMixin
@@ -168,7 +169,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
     def mask(self, value):
         # Check that value is not either type of null mask.
         if (value is not None) and (value is not np.ma.nomask):
-            mask = np.array(value, dtype=np.bool_, copy=False)
+            mask = np.asarray(value, dtype=np.bool_)
             if mask.shape != self.data.shape:
                 raise ValueError(
                     f"dimensions of mask {mask.shape} and data {self.data.shape} do not match"
@@ -220,7 +221,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
                 else:
                     self._flags = value
             else:
-                flags = np.array(value, copy=False)
+                flags = np.asarray(value)
                 if flags.shape != self.shape:
                     raise ValueError("dimensions of flags do not match data")
                 else:
@@ -228,15 +229,20 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         else:
             self._flags = value
 
-    def __array__(self):
+    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
         """
         This allows code that requests a Numpy array to use an NDData
         object as a Numpy array.
         """
         if self.mask is not None:
-            return np.ma.masked_array(self.data, self.mask)
+            return np.ma.masked_array(
+                self.data,
+                self.mask,
+                dtype=dtype,
+                copy=copy,
+            )
         else:
-            return np.array(self.data)
+            return np.array(self.data, dtype=dtype, copy=copy)
 
     def __array_wrap__(self, array, context=None, return_scalar=False):
         """

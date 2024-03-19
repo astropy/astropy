@@ -13,6 +13,8 @@ __all__ = [
     "NUMPY_LT_1_25",
     "NUMPY_LT_1_26",
     "NUMPY_LT_2_0",
+    "COPY_IF_NEEDED",
+    "sanitize_copy_arg",
 ]
 
 # TODO: It might also be nice to have aliases to these named for specific
@@ -22,3 +24,13 @@ NUMPY_LT_1_24 = not minversion(np, "1.24")
 NUMPY_LT_1_25 = not minversion(np, "1.25")
 NUMPY_LT_1_26 = not minversion(np, "1.26")
 NUMPY_LT_2_0 = not minversion(np, "2.0.dev")
+
+
+COPY_IF_NEEDED = False if NUMPY_LT_2_0 else None
+
+
+def sanitize_copy_arg(copy, /):
+    if not NUMPY_LT_2_0 and copy is False:
+        return None
+
+    return copy

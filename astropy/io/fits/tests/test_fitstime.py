@@ -42,11 +42,14 @@ class TestFitsTime(FitsTestCase):
         columns in a ``Table``.
         """
         t = table_types()
-        t["a"] = Time(self.time, format="isot", scale="utc")
-        t["b"] = Time(self.time, format="isot", scale="tt")
-
         # Check that vectorized location is stored using Green Bank convention
-        t["a"].location = EarthLocation([1.0, 2.0], [2.0, 3.0], [3.0, 4.0], unit="Mm")
+        t["a"] = Time(
+            self.time,
+            format="isot",
+            scale="utc",
+            location=EarthLocation([1.0, 2.0], [2.0, 3.0], [3.0, 4.0], unit="Mm"),
+        )
+        t["b"] = Time(self.time, format="isot", scale="tt")
 
         with pytest.warns(
             AstropyUserWarning,
@@ -83,15 +86,19 @@ class TestFitsTime(FitsTestCase):
         assert tm["b"].location == t["b"].location
 
         # Check that multiple Time columns with different locations raise an exception
-        t["a"].location = EarthLocation(1, 2, 3)
-        t["b"].location = EarthLocation(2, 3, 4)
+        t["a"] = Time(
+            self.time, format="isot", scale="utc", location=EarthLocation(1, 2, 3)
+        )
+        t["b"] = Time(
+            self.time, format="isot", scale="tt", location=EarthLocation(2, 3, 4)
+        )
 
         with pytest.raises(ValueError) as err:
             table, hdr = time_to_fits(t)
             assert "Multiple Time Columns with different geocentric" in str(err.value)
 
         # Check that Time column with no location specified will assume global location
-        t["b"].location = None
+        t["b"] = Time(self.time, format="isot", scale="tt", location=None)
 
         with pytest.warns(
             AstropyUserWarning,
@@ -104,7 +111,9 @@ class TestFitsTime(FitsTestCase):
         assert len(w) == 1
 
         # Check that multiple Time columns with same location can be written
-        t["b"].location = EarthLocation(1, 2, 3)
+        t["b"] = Time(
+            self.time, format="isot", scale="tt", location=EarthLocation(1, 2, 3)
+        )
 
         table, hdr = time_to_fits(t)
 

@@ -46,7 +46,9 @@ def make_skyoffset_cls(framecls):
         name,
         (SkyOffsetFrame, framecls),
         {
-            "origin": CoordinateAttribute(frame=framecls, default=None),
+            "origin": CoordinateAttribute(
+                frame=framecls, default=None, doc="The origin of the offset frame"
+            ),
             # The following two have to be done because otherwise we use the
             # defaults of SkyOffsetFrame set by BaseCoordinateFrame.
             "_default_representation": framecls._default_representation,
@@ -133,8 +135,12 @@ class SkyOffsetFrame(BaseCoordinateFrame):
     of ``origin``.
     """
 
-    rotation = QuantityAttribute(default=0, unit=u.deg)
-    origin = CoordinateAttribute(default=None, frame=None)
+    rotation = QuantityAttribute(
+        default=0, unit=u.deg, doc="The rotation angle for the frame orientation"
+    )
+    origin = CoordinateAttribute(
+        default=None, frame=None, doc="The origin of the offset frame"
+    )
 
     def __new__(cls, *args, **kwargs):
         # We don't want to call this method if we've already set up

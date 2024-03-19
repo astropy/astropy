@@ -47,7 +47,7 @@ from astropy.units.core import (
     dimensionless_unscaled,
 )
 from astropy.utils import isiterable
-from astropy.utils.compat import NUMPY_LT_1_24, NUMPY_LT_2_0
+from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_1_24, NUMPY_LT_2_0
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
@@ -90,7 +90,6 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.nansum, np.nancumsum, np.nanstd, np.nanvar,
     np.nanprod, np.nancumprod,
     np.einsum_path, np.linspace,
-    np.trapz,  # deprecated in not NUMPY_LT_2_0
     np.sort, np.partition, np.meshgrid,
     np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
     np.iscomplexobj, np.isrealobj,
@@ -98,15 +97,18 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.apply_along_axis, np.take_along_axis, np.put_along_axis,
     np.linalg.cond, np.linalg.multi_dot,
 }  # fmt: skip
-SUBCLASS_SAFE_FUNCTIONS |= {  # Deprecated
-    np.product, np.cumproduct,  # noqa: NPY003
-}  # fmt: skip
 
 SUBCLASS_SAFE_FUNCTIONS |= {np.median}
 
 if NUMPY_LT_2_0:
-    # functions removed in numpy 2.0; alias for np.round in NUMPY_LT_1_25
-    SUBCLASS_SAFE_FUNCTIONS |= {np.msort, np.round_}  # noqa: NPY003
+    # functions (re)moved in numpy 2.0; alias for np.round in NUMPY_LT_1_25
+    SUBCLASS_SAFE_FUNCTIONS |= {
+        np.msort,
+        np.round_,  # noqa: NPY003, NPY201
+        np.trapz,
+        np.product,  # noqa: NPY003
+        np.cumproduct,  # noqa: NPY003
+    }
 else:
     # Array-API compatible versions (matrix axes always at end).
     SUBCLASS_SAFE_FUNCTIONS |= {
@@ -123,6 +125,9 @@ else:
         np.astype,
     }  # fmt: skip
 
+    # trapz was renamed to trapezoid
+    SUBCLASS_SAFE_FUNCTIONS |= {np.trapezoid}
+
 # Implemented as methods on Quantity:
 # np.ediff1d is from setops, but we support it anyway; the others
 # currently return NotImplementedError.
@@ -134,9 +139,11 @@ UNSUPPORTED_FUNCTIONS |= {
     np.busday_count, np.busday_offset, np.datetime_as_string,
     np.is_busday, np.all, np.any,
 }  # fmt: skip
-UNSUPPORTED_FUNCTIONS |= {  # Deprecated
-    np.sometrue, np.alltrue,  # noqa: NPY003
-}  # fmt: skip
+
+if NUMPY_LT_2_0:
+    UNSUPPORTED_FUNCTIONS |= {  # removed in numpy 2.0
+        np.sometrue, np.alltrue,  # noqa: NPY003
+    }  # fmt: skip
 
 # Could be supported if we had a natural logarithm unit.
 UNSUPPORTED_FUNCTIONS |= {np.linalg.slogdet}
@@ -202,7 +209,7 @@ dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
         np.fft.fftn, np.fft.ifftn, np.fft.rfftn, np.fft.irfftn,
         np.fft.hfft, np.fft.ihfft,
         np.linalg.eigvals, np.linalg.eigvalsh,
-    } | ({np.asfarray} if NUMPY_LT_2_0 else set())
+    } | ({np.asfarray} if NUMPY_LT_2_0 else set())  # noqa: NPY201
 )
 # fmt: on
 def invariant_a_helper(a, *args, **kwargs):
@@ -336,7 +343,7 @@ def _as_quantity(a):
     from astropy.units import Quantity
 
     try:
-        return Quantity(a, copy=False, subok=True)
+        return Quantity(a, copy=COPY_IF_NEEDED, subok=True)
     except Exception:
         # If we cannot convert to Quantity, we should just bail.
         raise NotImplementedError
@@ -348,7 +355,7 @@ def _as_quantities(*args):
 
     try:
         # Note: this should keep the dtype the same
-        return tuple(Quantity(a, copy=False, subok=True, dtype=None) for a in args)
+        return tuple(Quantity(a, copy=COPY_IF_NEEDED, subok=True, dtype=None) for a in args)
     except Exception:
         # If we cannot convert to Quantity, we should just bail.
         raise NotImplementedError

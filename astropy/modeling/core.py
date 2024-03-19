@@ -17,11 +17,9 @@ import abc
 import copy
 import functools
 import inspect
-import itertools
 import operator
 from collections import defaultdict, deque
 from inspect import signature
-from itertools import chain
 
 import numpy as np
 
@@ -39,6 +37,7 @@ from astropy.utils import (
     sharedmethod,
 )
 from astropy.utils.codegen import make_function_with_signature
+from astropy.utils.compat import COPY_IF_NEEDED
 
 from .bounding_box import CompoundBoundingBox, ModelBoundingBox
 from .parameters import InputParameterError, Parameter, _tofloat, param_repr_oneline
@@ -444,7 +443,9 @@ class _ModelMeta(abc.ABCMeta):
                     # default is not a Quantity, attach the unit to the
                     # default.
                     if unit is not None:
-                        default = Quantity(default, unit, copy=False, subok=True)
+                        default = Quantity(
+                            default, unit, copy=COPY_IF_NEEDED, subok=True
+                        )
                     kwargs.append((param_name, default))
             else:
                 args = ("self",) + tuple(pdict.keys())
@@ -971,7 +972,7 @@ class Model(metaclass=_ModelMeta):
         parameters = self._param_sets(raw=True, units=True)
 
         def evaluate(_inputs):
-            return self.evaluate(*chain(_inputs, parameters))
+            return self.evaluate(*_inputs, *parameters)
 
         return evaluate, inputs, broadcasted_shapes, kwargs
 
@@ -3222,7 +3223,7 @@ class CompoundModel(Model):
                 for ind, inp in enumerate(left_inputs)
             ]
 
-        leftval = self.left.evaluate(*itertools.chain(left_inputs, left_params))
+        leftval = self.left.evaluate(*left_inputs, *left_params)
 
         if op == "fix_inputs":
             return leftval
@@ -3232,11 +3233,11 @@ class CompoundModel(Model):
 
         if op == "|":
             if isinstance(leftval, tuple):
-                return self.right.evaluate(*itertools.chain(leftval, right_params))
+                return self.right.evaluate(*leftval, *right_params)
             else:
                 return self.right.evaluate(leftval, *right_params)
         else:
-            rightval = self.right.evaluate(*itertools.chain(right_inputs, right_params))
+            rightval = self.right.evaluate(*right_inputs, *right_params)
 
         return self._apply_operators_to_value_lists(leftval, rightval, **kw)
 

@@ -1121,7 +1121,10 @@ class BaseOutputter:
 
                 converter_func, converter_type = col.converters[0]
                 if not issubclass(converter_type, col.type):
-                    raise TypeError("converter type does not match column type")
+                    raise TypeError(
+                        f"converter type {converter_type.__name__} does not match"
+                        f" column type {col.type.__name__} for column {col.name}"
+                    )
 
                 try:
                     col.data = converter_func(col.str_vals)
@@ -1175,7 +1178,14 @@ class TableOutputter(BaseOutputter):
     Output the table as an astropy.table.Table object.
     """
 
-    default_converters = [convert_numpy(int), convert_numpy(float), convert_numpy(str)]
+    default_converters = [
+        # Use `np.int64` to ensure large integers can be read as ints
+        # on platforms such as Windows
+        # https://github.com/astropy/astropy/issues/5744
+        convert_numpy(np.int64),
+        convert_numpy(float),
+        convert_numpy(str),
+    ]
 
     def __call__(self, cols, meta):
         # Sets col.data to numpy array and col.type to io.ascii Type class (e.g.

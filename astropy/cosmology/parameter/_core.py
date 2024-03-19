@@ -5,22 +5,16 @@ from __future__ import annotations
 __all__ = ["Parameter"]
 
 import copy
-from dataclasses import dataclass, field, fields, replace
+from dataclasses import KW_ONLY, dataclass, field, fields, replace
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Any
 
 import astropy.units as u
-from astropy.utils.compat import PYTHON_LT_3_10
 
 from ._converter import _REGISTRY_FVALIDATORS, FValidateCallable, _register_validator
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-
-if not PYTHON_LT_3_10:
-    from dataclasses import KW_ONLY
-else:
-    KW_ONLY = Any
 
 
 class Sentinel(Enum):
@@ -116,8 +110,7 @@ class Parameter:
     For worked examples see :class:`~astropy.cosmology.FLRW`.
     """
 
-    if not PYTHON_LT_3_10:
-        _: KW_ONLY
+    _: KW_ONLY
 
     default: Any = MISSING
     """Default value of the Parameter.
@@ -149,27 +142,6 @@ class Parameter:
 
     Cannot be set directly.
     """
-
-    if PYTHON_LT_3_10:
-
-        def __init__(
-            self,
-            *,
-            default=MISSING,
-            derived=False,
-            unit=None,
-            equivalencies=[],
-            fvalidate="default",
-            doc=None,
-        ):
-            object.__setattr__(self, "default", default)
-            object.__setattr__(self, "derived", derived)
-            vars(type(self))["unit"].__set__(self, unit)
-            object.__setattr__(self, "equivalencies", equivalencies)
-            vars(type(self))["fvalidate"].__set__(self, fvalidate)
-            object.__setattr__(self, "doc", doc)
-
-            self.__post_init__()
 
     def __post_init__(self) -> None:
         self._fvalidate_in: FValidateCallable | str

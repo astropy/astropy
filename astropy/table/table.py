@@ -14,8 +14,12 @@ from numpy import ma
 from astropy import log
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
-from astropy.utils import ShapedLikeNDArray, isiterable
-from astropy.utils.compat import NUMPY_LT_1_25
+from astropy.utils import (
+    ShapedLikeNDArray,
+    deprecated,
+    isiterable,
+)
+from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_1_25
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
 from astropy.utils.decorators import format_doc
@@ -758,7 +762,7 @@ class Table:
             # self.__class__ and respects the `copy` arg.  The returned
             # Table object should NOT then be copied.
             data = data.__astropy_table__(self.__class__, copy, **kwargs)
-            copy = False
+            copy = COPY_IF_NEEDED
         elif kwargs:
             raise TypeError(
                 f"__init__() got unexpected keyword argument {next(iter(kwargs.keys()))!r}"
@@ -1125,7 +1129,7 @@ class Table:
         """
         return _IndexModeContext(self, mode)
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
         """Support converting Table to np.array via np.array(table).
 
         Coercion to a different dtype via np.array(table, dtype) is not
@@ -1135,7 +1139,7 @@ class Table:
             if np.dtype(dtype) != object:
                 raise ValueError("Datatype coercion is not allowed")
 
-            out = np.array(None, dtype=object)
+            out = np.array(None, dtype=object, copy=copy)
             out[()] = self
             return out
 
@@ -1376,7 +1380,7 @@ class Table:
             # scalar then it gets returned unchanged so the original object gets
             # passed to `Column` later.
             data = _convert_sequence_data_to_array(data, dtype)
-            copy = False  # Already made a copy above
+            copy = COPY_IF_NEEDED  # Already made a copy above
             col_cls = (
                 masked_col_cls
                 if isinstance(data, np.ma.MaskedArray)
@@ -1455,7 +1459,7 @@ class Table:
         if isinstance(col, Column) and not isinstance(col, self.ColumnClass):
             col_cls = self._get_col_cls_for_table(col)
             if col_cls is not col.__class__:
-                col = col_cls(col, copy=False)
+                col = col_cls(col, copy=COPY_IF_NEEDED)
 
         return col
 
@@ -1753,6 +1757,14 @@ class Table:
         else:
             return self
 
+    @deprecated(
+        "6.1",
+        message="""show_in_notebook() is deprecated as of 6.1 and to create
+         interactive tables it is recommended to use dedicated tools like:
+         - https://github.com/bloomberg/ipydatagrid
+         - https://docs.bokeh.org/en/latest/docs/user_guide/interaction/widgets.html#datatable
+         - https://dash.plotly.com/datatable""",
+    )
     def show_in_notebook(
         self,
         tableid=None,
@@ -1829,6 +1841,13 @@ class Table:
         html += jsv.ipynb(tableid, css=css, sort_columns=sortable_columns)
         return HTML(html)
 
+    @deprecated(
+        "6.1",
+        pending=True,
+        message="""We are planning on deprecating show_in_browser in the future.
+                If you are actively using this method, please let us know
+                at https://github.com/astropy/astropy/issues/16067""",
+    )
     def show_in_browser(
         self,
         max_lines=5000,
@@ -3274,6 +3293,29 @@ class Table:
         else:
             raise TypeError("Vals must be an iterable or mapping or None")
 
+        if N == 0 and any(
+            isinstance(column, BaseColumn) and isinstance(v, Quantity)
+            for column, v in zip(self.columns.values(), vals)
+        ):
+            msg = "Units from inserted quantities will be ignored."
+
+            if isinstance(self, QTable):
+                suggested_units = []
+                for column, v in zip(self.columns.values(), vals):
+                    u = column.unit or getattr(v, "unit", None)
+                    suggested_units.append(str(u) if u is not None else None)
+                del u
+
+                msg += (
+                    "\nIf you were hoping to fill a QTable row by row, "
+                    "also initialize the units before starting, for instance\n"
+                    f"QTable(names={self.colnames}, units={suggested_units})"
+                )
+                del suggested_units
+
+            warnings.warn(msg, category=UserWarning, stacklevel=2)
+            del msg
+
         # Insert val at index for each column
         columns = self.TableColumns()
         for name, col, val, mask_ in zip(colnames, self.columns.values(), vals, mask):
@@ -3336,6 +3378,79 @@ class Table:
                 new_col.info.indices.append(index)
 
         self.columns = columns
+
+    def setdefault(self, name, default):
+        """Ensure a column named ``name`` exists.
+
+        If ``name`` is already present then ``default`` is ignored.
+        Otherwise ``default`` can be any data object which is acceptable as
+        a `~astropy.table.Table` column object or can be converted.  This
+        includes mixin columns and scalar or length=1 objects which get
+        broadcast to match the table length.
+
+        Parameters
+        ----------
+        name : str
+            Name of the column.
+        default : object
+            Data object for the new column.
+
+        Returns
+        -------
+        `~astropy.table.Column`, `~astropy.table.MaskedColumn` or mixin-column type
+            The column named ``name`` if it is present already, or the
+            validated ``default`` converted to a column otherwise.
+
+        Raises
+        ------
+        TypeError
+            If the table is empty and ``default`` is a scalar object.
+
+        Examples
+        --------
+        Start with a simple table::
+
+          >>> t0 = Table({"a": ["Ham", "Spam"]})
+          >>> t0
+          <Table length=2>
+           a
+          str4
+          ----
+           Ham
+          Spam
+
+        Trying to add a column that already exists does not modify it::
+
+          >>> t0.setdefault("a", ["Breakfast"])
+          <Column name='a' dtype='str4' length=2>
+           Ham
+          Spam
+          >>> t0
+          <Table length=2>
+           a
+          str4
+          ----
+           Ham
+          Spam
+
+        But if the column does not exist it will be created with the
+        default value::
+
+          >>> t0.setdefault("approved", False)
+          <Column name='approved' dtype='bool' length=2>
+          False
+          False
+          >>> t0
+          <Table length=2>
+           a   approved
+          str4   bool
+          ---- --------
+           Ham    False
+          Spam    False
+        """
+        if name not in self.columns:
+            self[name] = default
+        return self[name]
 
     def update(self, other, copy=True):
         """
@@ -4213,11 +4328,17 @@ class QTable(Table):
     meta : dict, optional
         Metadata associated with the table.
     copy : bool, optional
-        Copy the input data. Default is True.
+        Copy the input data. If the input is a (Q)Table the ``meta`` is always
+        copied regardless of the ``copy`` parameter.
+        Default is True.
     rows : numpy ndarray, list of list, optional
         Row-oriented data for table instead of ``data`` argument.
     copy_indices : bool, optional
         Copy any indices in the input data. Default is True.
+    units : list, dict, optional
+        List or dict of units to apply to columns.
+    descriptions : list, dict, optional
+        List or dict of descriptions to apply to columns.
     **kwargs : dict, optional
         Additional keyword args when converting table-like object.
 
@@ -4236,7 +4357,7 @@ class QTable(Table):
             # Quantity subclasses identified in the unit (such as u.mag()).
             q_cls = Masked(Quantity) if isinstance(col, MaskedColumn) else Quantity
             try:
-                qcol = q_cls(col.data, col.unit, copy=False, subok=True)
+                qcol = q_cls(col.data, col.unit, copy=COPY_IF_NEEDED, subok=True)
             except Exception as exc:
                 warnings.warn(
                     f"column {col.info.name} has a unit but is kept as "

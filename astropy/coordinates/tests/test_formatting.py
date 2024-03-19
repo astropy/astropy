@@ -2,6 +2,7 @@
 Tests the Angle string formatting capabilities.  SkyCoord formatting is in
 test_sky_coord
 """
+import numpy as np
 import pytest
 
 from astropy import units as u
@@ -55,8 +56,23 @@ def test_to_string_decimal():
     assert angle3.to_string(decimal=True, precision=1) == "4.0"
     assert angle3.to_string(decimal=True, precision=0) == "4"
 
-    with pytest.raises(ValueError, match="sexagesimal notation"):
-        angle3.to_string(decimal=True, sep="abc")
+
+@pytest.mark.parametrize("sep", [":", ":.", "dms", "hms"])
+@pytest.mark.parametrize(
+    "angle",
+    [
+        Angle(np.pi / 12, "rad"),
+        Angle(15, "deg"),
+        Angle(15, "hourangle"),
+    ],
+)
+def test_angle_to_string_decimal_with_sep_error(angle, sep):
+    # see https://github.com/astropy/astropy/pull/16085#discussion_r1501177163
+    with pytest.raises(
+        ValueError,
+        match=rf"With decimal=True, separator cannot be used \(got sep='{sep}'\)",
+    ):
+        angle.to_string(sep=sep, decimal=True)
 
 
 def test_to_string_formats():

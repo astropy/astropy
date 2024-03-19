@@ -85,18 +85,22 @@ def lex(lextab, package, reflags=int(re.VERBOSE)):
     from astropy.extern.ply import lex
 
     caller_file = lex.get_caller_module_dict(2)["__file__"]
-    lextab_filename = os.path.join(os.path.dirname(caller_file), lextab + ".py")
+    caller_dir = os.path.dirname(caller_file)
+    lextab_filename_py = os.path.join(caller_dir, lextab + ".py")
+    lextab_filename_pyc = os.path.join(caller_dir, lextab + ".pyc")
     with _LOCK:
-        lextab_exists = os.path.exists(lextab_filename)
+        lextab_exists = os.path.exists(lextab_filename_py) or os.path.exists(
+            lextab_filename_pyc
+        )
         with _patch_get_caller_module_dict(lex):
             lexer = lex.lex(
                 optimize=True,
                 lextab=lextab,
-                outputdir=os.path.dirname(caller_file),
+                outputdir=caller_dir,
                 reflags=reflags,
             )
         if not lextab_exists:
-            _add_tab_header(lextab_filename, package)
+            _add_tab_header(lextab_filename_py, package)
         return lexer
 
 
@@ -141,18 +145,20 @@ def yacc(tabmodule, package):
     from astropy.extern.ply import yacc
 
     caller_file = yacc.get_caller_module_dict(2)["__file__"]
-    tab_filename = os.path.join(os.path.dirname(caller_file), tabmodule + ".py")
+    caller_dir = os.path.dirname(caller_file)
+    tab_filename_py = os.path.join(caller_dir, tabmodule + ".py")
+    tab_filename_pyc = os.path.join(caller_dir, tabmodule + ".pyc")
     with _LOCK:
-        tab_exists = os.path.exists(tab_filename)
+        tab_exists = os.path.exists(tab_filename_py) or os.path.exists(tab_filename_pyc)
         with _patch_get_caller_module_dict(yacc):
             parser = yacc.yacc(
                 tabmodule=tabmodule,
-                outputdir=os.path.dirname(caller_file),
+                outputdir=caller_dir,
                 debug=False,
                 optimize=True,
                 write_tables=True,
             )
         if not tab_exists:
-            _add_tab_header(tab_filename, package)
+            _add_tab_header(tab_filename_py, package)
 
     return ThreadSafeParser(parser)

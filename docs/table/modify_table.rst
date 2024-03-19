@@ -204,6 +204,40 @@ you need them to be references you can use the
 :meth:`~astropy.table.Table.update` method with ``copy=False``, see :ref:`copy_versus_reference`
 for details.
 
+**Ensure the existence of a column**
+
+|Table| has a :meth:`~astropy.table.Table.setdefault` method, which is
+analogous to :meth:`dict.setdefault`.
+It adds a column with a given name to the table if such a column is not in the
+table already.
+The default value passed to the method will be validated and, if necessary,
+converted.
+Either way the (possibly just inserted) column in the table is returned::
+
+  >>> t0 = Table({"a": ["Ham", "Spam"]})
+  >>> t0
+  <Table length=2>
+   a
+  str4
+  ----
+   Ham
+  Spam
+  >>> t0.setdefault("a", ["Breakfast"])  # Existing column
+  <Column name='a' dtype='str4' length=2>
+   Ham
+  Spam
+  >>> t0.setdefault("approved", False)  # New column
+  <Column name='approved' dtype='bool' length=2>
+  False
+  False
+  >>> t0
+  <Table length=2>
+   a   approved
+  str4   bool
+  ---- --------
+   Ham    False
+  Spam    False
+
 **Rename columns**
 
 .. EXAMPLE START: Renaming Columns in Tables

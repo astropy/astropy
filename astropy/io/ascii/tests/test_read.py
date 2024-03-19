@@ -320,7 +320,7 @@ def test_daophot_types():
     assert (
         table["PIER"].dtype.char in "US"
     )  # string (data values are consistent with int)
-    assert table["ID"].dtype.char in "il"  # int or long
+    assert table["ID"].dtype.kind == "i"  # int types: int, long, int64
 
 
 def test_daophot_header_keywords():
@@ -1924,8 +1924,8 @@ def test_include_names_rdb_fast():
     lines[0] = "a\ta_2\ta_1\ta_3\ta_4"
     dat = ascii.read(lines, fast_reader="force", include_names=["a", "a_2", "a_3"])
     assert len(dat) == 2
-    assert dat["a"].dtype == int
-    assert dat["a_2"].dtype == int
+    assert dat["a"].dtype.kind == "i"
+    assert dat["a_2"].dtype.kind == "i"
 
 
 @pytest.mark.parametrize("fast_reader", [False, "force"])

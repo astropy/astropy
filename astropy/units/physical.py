@@ -4,6 +4,8 @@
 
 import numbers
 
+from astropy.utils.compat import COPY_IF_NEEDED
+
 from . import (
     astrophys,
     cgs,
@@ -69,6 +71,7 @@ _units_and_physical_types = [
     (si.C / si.m**3, "electrical charge density"),
     (si.F / si.m, "permittivity"),
     (si.Wb, "magnetic flux"),
+    (si.Wb**2, "magnetic helicity"),
     (si.T, "magnetic flux density"),
     (si.A / si.m, "magnetic field strength"),
     (si.m**2 * si.A, "magnetic moment"),
@@ -81,10 +84,17 @@ _units_and_physical_types = [
     (si.cd / si.m**2, "luminance"),
     (si.m**-3 * si.s**-1, "volumetric rate"),
     (astrophys.Jy, "spectral flux density"),
+    (astrophys.Jy / si.sr, "surface brightness"),
     (si.W * si.m**2 * si.Hz**-1, "surface tension"),
     (si.J * si.m**-3 * si.s**-1, {"spectral flux density wav", "power density"}),
+    (si.J * si.m**-3 * si.s**-1 * si.sr**-1, "surface brightness wav"),
     (astrophys.photon / si.Hz / si.cm**2 / si.s, "photon flux density"),
     (astrophys.photon / si.AA / si.cm**2 / si.s, "photon flux density wav"),
+    (astrophys.photon / si.Hz / si.cm**2 / si.s / si.sr, "photon surface brightness"),
+    (
+        astrophys.photon / si.AA / si.cm**2 / si.s / si.sr,
+        "photon surface brightness wav",
+    ),
     (astrophys.R, "photon flux"),
     (misc.bit, "data quantity"),
     (misc.bit / si.s, "bandwidth"),
@@ -533,7 +543,7 @@ def get_physical_type(obj):
         unit = obj
     else:
         try:
-            unit = quantity.Quantity(obj, copy=False).unit
+            unit = quantity.Quantity(obj, copy=COPY_IF_NEEDED).unit
         except TypeError as exc:
             raise TypeError(f"{obj} does not correspond to a physical type.") from exc
 

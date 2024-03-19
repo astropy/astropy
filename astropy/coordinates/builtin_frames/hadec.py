@@ -99,12 +99,24 @@ class HADec(BaseCoordinateFrame):
     default_representation = r.SphericalRepresentation
     default_differential = r.SphericalCosLatDifferential
 
-    obstime = TimeAttribute(default=None)
-    location = EarthLocationAttribute(default=None)
-    pressure = QuantityAttribute(default=0, unit=u.hPa)
-    temperature = QuantityAttribute(default=0, unit=u.deg_C)
-    relative_humidity = QuantityAttribute(default=0, unit=u.dimensionless_unscaled)
-    obswl = QuantityAttribute(default=1 * u.micron, unit=u.micron)
+    obstime = TimeAttribute(
+        default=None, doc="The reference time (e.g., time of observation)"
+    )
+    location = EarthLocationAttribute(
+        default=None, doc="The location on Earth of the observer"
+    )
+    pressure = QuantityAttribute(default=0, unit=u.hPa, doc="The atmospheric pressure")
+    temperature = QuantityAttribute(
+        default=0, unit=u.deg_C, doc="The ground-level temperature"
+    )
+    relative_humidity = QuantityAttribute(
+        default=0, unit=u.dimensionless_unscaled, doc="The relative humidity"
+    )
+    obswl = QuantityAttribute(
+        default=1 * u.micron,
+        unit=u.micron,
+        doc="The average wavelength of observations",
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

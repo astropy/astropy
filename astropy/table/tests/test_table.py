@@ -875,6 +875,96 @@ class TestAddRow(SetupData):
                 t.insert_row(index, row)
 
 
+@pytest.mark.parametrize(
+    "table_type, table_inputs, expected_column_type, expected_pformat, insert_ctx",
+    [
+        pytest.param(
+            table.Table,
+            dict(names=["a", "b", "c"]),
+            table.Column,
+            [
+                " a   b   c ",
+                "--- --- ---",
+                "1.0 2.0 3.0",
+            ],
+            pytest.warns(
+                UserWarning, match="Units from inserted quantities will be ignored."
+            ),
+            id="Table-Column",
+        ),
+        pytest.param(
+            table.QTable,
+            dict(names=["a", "b", "c"]),
+            table.Column,
+            [
+                " a   b   c ",
+                "--- --- ---",
+                "1.0 2.0 3.0",
+            ],
+            pytest.warns(
+                UserWarning,
+                match=(
+                    "Units from inserted quantities will be ignored.\n"
+                    "If you were hoping to fill a QTable row by row, "
+                    "also initialize the units before starting, for instance\n"
+                    r"QTable\(names=\['a', 'b', 'c'\], units=\['m', 'kg', None\]\)"
+                ),
+            ),
+            id="QTable-Column",
+        ),
+        pytest.param(
+            table.QTable,
+            dict(names=["a", "b", "c"], units=["m", "kg", None]),
+            u.Quantity,
+            [
+                " a   b   c ",
+                " m   kg    ",
+                "--- --- ---",
+                "1.0 2.0 3.0",
+            ],
+            nullcontext(),
+            id="QTable-Quantity",
+        ),
+        pytest.param(
+            table.QTable,
+            dict(names=["a", "b", "c"], units=["cm", "g", None]),
+            u.Quantity,
+            [
+                "  a     b     c ",
+                "  cm    g       ",
+                "----- ------ ---",
+                "100.0 2000.0 3.0",
+            ],
+            nullcontext(),
+            id="QTable-Quantity-other_units",
+        ),
+    ],
+)
+def test_inserting_quantity_row_in_empty_table(
+    table_type, table_inputs, expected_column_type, expected_pformat, insert_ctx
+):
+    # see https://github.com/astropy/astropy/issues/15964
+    table = table_type(**table_inputs)
+    pre_unit_a = copy.copy(table["a"].unit)
+    pre_unit_b = copy.copy(table["b"].unit)
+    pre_unit_c = copy.copy(table["c"].unit)
+    assert type(table["a"]) is expected_column_type
+    assert type(table["b"]) is expected_column_type
+    assert type(table["c"]) is Column
+
+    with insert_ctx:
+        table.add_row([1 * u.m, 2 * u.kg, 3])
+
+    assert table["a"].unit == pre_unit_a
+    assert table["b"].unit == pre_unit_b
+    assert table["c"].unit == pre_unit_c
+    assert type(table["a"]) is expected_column_type
+    assert type(table["b"]) is expected_column_type
+    assert type(table["c"]) is Column
+
+    assert table.pformat() == expected_pformat
+
+
 @pytest.mark.usefixtures("table_types")
 class TestTableColumn(SetupData):
     def test_column_view(self, table_types):
@@ -1418,7 +1508,7 @@ class TestConvertNumpyArray:
         assert np_data is not d.as_array()
         assert d.colnames == list(np_data.dtype.names)
 
-        np_data = np.array(d, copy=False)
+        np_data = np.asarray(d)
         if table_types.Table is not MaskedTable:
             assert np.all(np_data == d.as_array())
         assert d.colnames == list(np_data.dtype.names)
@@ -2510,6 +2600,45 @@ class TestUpdate:
         assert np.all(t1["c"] == t1_copy["c"])
 
 
+@pytest.mark.parametrize(
+    "name,expected",
+    [
+        pytest.param("a", [1, 2], id="existing_column"),
+        pytest.param("d", [9, 6], id="new_column"),
+    ],
+)
+def test_table_setdefault(name, expected):
+    t = table.table_helpers.simple_table(2)
+    np.testing.assert_array_equal(t.setdefault(name, [9, 6]), expected)
+    np.testing.assert_array_equal(t[name], expected)
+    assert name in t.columns
+    assert type(t[name]) is Column
+
+
+def test_table_setdefault_wrong_shape():
+    t = table.table_helpers.simple_table(2)
+    with pytest.raises(ValueError, match="^Inconsistent data column lengths$"):
+        t.setdefault("f", [1, 2, 3])
+    assert "f" not in t.columns
+
+
+@pytest.mark.parametrize("value", ([9], [9, 6]), ids=lambda x: f"len_{len(x)}_default")
+def test_empty_table_setdefault(value):
+    t = Table()
+    np.testing.assert_array_equal(t.setdefault("a", value), value)
+    np.testing.assert_array_equal(t["a"], value)
+    assert t.colnames == ["a"]
+    assert type(t["a"]) is Column
+
+
+def test_empty_table_setdefault_scalar():
+    t = Table()
+    with pytest.raises(
+        TypeError, match="^Empty table cannot have column set to scalar value$"
+    ):
+        t.setdefault("a", 9)
+
+
 def test_table_meta_copy():
     """
     Test no copy vs light (key) copy vs deep copy of table meta for different
@@ -3347,3 +3476,17 @@ def test_as_array_preserve_fill_value():
     assert tn["float"].fill_value == FLOAT_FILL
     assert tn["str"].fill_value == STR_FILL
     assert tn["cmplx"].fill_value == CMPLX_FILL
+
+
+def test_table_hasattr_iloc():
+    """Regression test for astropy issues #15911 and #5973"""
+    t = Table({"a": [1, 2, 3]})
+
+    assert hasattr(t, "iloc")
+    assert hasattr(t, "loc")
+
+    with pytest.raises(ValueError, match="for a table with indices"):
+        t.iloc[0]
+
+    with pytest.raises(ValueError, match="for a table with indices"):
+        t.loc[0]

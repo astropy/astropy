@@ -10,7 +10,7 @@ from __future__ import annotations
 __all__ = ["PathLike", "ReadableFileLike", "WriteableFileLike"]
 
 import os
-from typing import TYPE_CHECKING, Protocol, TypeVar, Union, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, TypeVar, runtime_checkable
 
 if TYPE_CHECKING:
     from typing import TypeAlias
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 _T_co = TypeVar("_T_co", covariant=True)
 _T_contra = TypeVar("_T_contra", contravariant=True)
 
-PathLike: TypeAlias = Union[str, bytes, os.PathLike]
+PathLike: TypeAlias = str | bytes | os.PathLike
 """Type alias for a path-like object.
 
 This is a union of :class:`str`, :class:`bytes`, and :class:`~os.PathLike`.
