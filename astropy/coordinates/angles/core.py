@@ -404,7 +404,7 @@ class Angle(SpecificTypeQuantity):
         # than Quantity objects for speed.
         a360 = u.degree.to(self.unit, 360.0)
         wrap_angle = wrap_angle.to_value(self.unit)
-        self_angle = self.view(np.ndarray)
+        self_angle = self.view(np.ndarray).astype(f"f{self.dtype.itemsize}", copy=False)
         if NUMPY_LT_2_0:
             # Ensure ndim>=1 so that comparison is done using the angle dtype.
             self_angle = self_angle[np.newaxis]

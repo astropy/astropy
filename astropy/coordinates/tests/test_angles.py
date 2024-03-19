@@ -840,6 +840,9 @@ def test_longitude():
     assert Longitude(0, u.deg, dtype=float).dtype == np.dtype(float)
     assert Longitude(0, u.deg, dtype=int).dtype == np.dtype(int)
 
+    # regression test for https://github.com/astropy/astropy/issues/16217
+    assert Longitude(1234, u.deg, dtype=int).dtype == np.dtype(int)
+
     # Test errors when trying to interoperate with latitudes.
     with pytest.raises(
         TypeError, match="A Longitude angle cannot be created from a Latitude angle"
