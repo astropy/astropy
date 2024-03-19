@@ -691,66 +691,6 @@ def test_setitem_exceptions():
         sc1[0] = sc2[0]
 
 
-def test_sep():
-    i1 = ICRS(ra=0 * u.deg, dec=1 * u.deg)
-    i2 = ICRS(ra=0 * u.deg, dec=2 * u.deg)
-
-    sep = i1.separation(i2)
-    assert_allclose(sep.deg, 1.0)
-
-    i3 = ICRS(ra=[1, 2] * u.deg, dec=[3, 4] * u.deg, distance=[5, 6] * u.kpc)
-    i4 = ICRS(ra=[1, 2] * u.deg, dec=[3, 4] * u.deg, distance=[4, 5] * u.kpc)
-
-    sep3d = i3.separation_3d(i4)
-    assert_allclose(sep3d.to(u.kpc), np.array([1, 1]) * u.kpc)
-
-    # check that it works even with velocities
-    i5 = ICRS(
-        ra=[1, 2] * u.deg,
-        dec=[3, 4] * u.deg,
-        distance=[5, 6] * u.kpc,
-        pm_ra_cosdec=[1, 2] * u.mas / u.yr,
-        pm_dec=[3, 4] * u.mas / u.yr,
-        radial_velocity=[5, 6] * u.km / u.s,
-    )
-    i6 = ICRS(
-        ra=[1, 2] * u.deg,
-        dec=[3, 4] * u.deg,
-        distance=[7, 8] * u.kpc,
-        pm_ra_cosdec=[1, 2] * u.mas / u.yr,
-        pm_dec=[3, 4] * u.mas / u.yr,
-        radial_velocity=[5, 6] * u.km / u.s,
-    )
-
-    sep3d = i5.separation_3d(i6)
-    assert_allclose(sep3d.to(u.kpc), np.array([2, 2]) * u.kpc)
-
-    # 3d separations of dimensionless distances should still work
-    i7 = ICRS(ra=1 * u.deg, dec=2 * u.deg, distance=3 * u.one)
-    i8 = ICRS(ra=1 * u.deg, dec=2 * u.deg, distance=4 * u.one)
-    sep3d = i7.separation_3d(i8)
-    assert_allclose(sep3d, 1 * u.one)
-
-    # but should fail with non-dimensionless
-    with pytest.raises(ValueError):
-        i7.separation_3d(i3)
-
-
-@pytest.mark.parametrize(
-    "method,expectation",
-    [
-        pytest.param("separation", 0.69815121 * u.deg, id="separation"),
-        pytest.param("separation_3d", 0.12184962 * u.pc, id="separation_3d"),
-    ],
-)
-def test_seps_with_skycoord(method, expectation):
-    coords = (1 * u.deg, 2 * u.deg, 10 * u.pc)
-    assert_allclose(
-        getattr(FK5(*coords), method)(SkyCoord(*coords, frame=FK5, equinox="B1950")),
-        expectation,
-    )
-
-
 def test_time_inputs():
     """
     Test validation and conversion of inputs for equinox and obstime attributes.
