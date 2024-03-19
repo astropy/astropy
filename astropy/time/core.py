@@ -29,7 +29,7 @@ from astropy import units as u
 from astropy.extern import _strptime
 from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray, lazyproperty
-from astropy.utils.compat import COPY_IF_NEEDED, sanitize_copy_arg
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
@@ -1974,10 +1974,8 @@ class Time(TimeBase):
         in_subfmt=None,
         out_subfmt=None,
         location=None,
-        copy=False,
+        copy=COPY_IF_NEEDED,
     ):
-        copy = sanitize_copy_arg(copy)
-
         if location is not None:
             from astropy.coordinates import EarthLocation
 
@@ -2943,7 +2941,7 @@ class TimeDelta(TimeBase):
         precision=None,
         in_subfmt=None,
         out_subfmt=None,
-        copy=False,
+        copy=COPY_IF_NEEDED,
     ):
         if isinstance(val, TimeDelta):
             if scale is not None:
@@ -3371,8 +3369,6 @@ def _make_array(val, copy=COPY_IF_NEEDED):
         dtype = object
     else:
         dtype = None
-
-    copy = sanitize_copy_arg(copy)
 
     val = np.array(val, copy=copy, subok=True, dtype=dtype)
 

@@ -20,7 +20,6 @@ import numpy as np
 
 # LOCAL
 from astropy import config as _config
-from astropy.utils.compat import sanitize_copy_arg
 from astropy.utils.compat.numpycompat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.decorators import deprecated
@@ -445,8 +444,6 @@ class Quantity(np.ndarray):
         float_default = dtype is np.inexact
         if float_default:
             dtype = None
-
-        copy = sanitize_copy_arg(copy)
 
         # optimize speed for Quantity with no dtype given, copy=COPY_IF_NEEDED
         if isinstance(value, Quantity):
