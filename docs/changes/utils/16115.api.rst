@@ -1,0 +1,1 @@
+``astropy.utils.xml.unescaper.unescape_all()`` is deprecated.
