@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import erfa
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
@@ -80,6 +81,30 @@ class TestSkyCoord:
         assert_array_equal(mgcrs.data.lon.mask, self.msc.data.lon.mask)
         assert_array_equal(mgcrs.data.lon.unmasked, gcrs.data.lon)
         assert_array_equal(mgcrs.data.lat.unmasked, gcrs.data.lat)
+
+    @pytest.mark.filterwarnings("ignore:.*ERFA.*distance overridden.*")
+    def test_apply_space_motion(self):
+        # Regression test for gh-13041. It is important that the
+        # distance is missing here, so that a warning is raised.
+        # Before gh-16224, the ERFA warning machinery let to an error.
+        kwargs = dict(
+            ra=[1, 2] * u.deg,
+            dec=[3, 4] * u.deg,
+            pm_ra_cosdec=[5, 6] * u.mas / u.yr,
+            pm_dec=[1, 2] * u.mas / u.yr,
+            obstime=Time(["2000-10-22T12:23:45", "2000-10-22T12:23:45"]),
+        )
+        sc = SkyCoord(**kwargs)
+        mask = np.array([False, True])
+        kwargs["pm_ra_cosdec"] = Masked(kwargs["pm_ra_cosdec"], mask=mask)
+        kwargs["pm_dec"] = Masked(kwargs["pm_dec"], mask=mask)
+        msc = SkyCoord(**kwargs)
+        new_time = Time("2020-10-22T12:23:45")
+        sc2 = sc.apply_space_motion(new_obstime=new_time)
+        msc2 = msc.apply_space_motion(new_obstime=new_time)
+        assert_array_equal(msc2.data.lon.mask, [False, True])
+        assert_array_equal(msc2.data.lon.unmasked, sc2.data.lon)
+        assert_array_equal(msc2.data.lat.unmasked, sc2.data.lat)
 
 
 class TestTime:
