@@ -13,6 +13,7 @@ from importlib.util import find_spec
 
 from astropy.config.paths import set_temp_cache, set_temp_config
 from astropy.utils import find_current_module
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 __all__ = ["TestRunner", "TestRunnerBase", "keyword"]
@@ -48,6 +49,11 @@ class keyword:
         return keyword
 
 
+@deprecated(
+    "6.1",
+    message="""Use pytest directly instead. You can read more about the motivation
+    for the deprecation at https://github.com/astropy/astropy/issues/16177""",
+)
 class TestRunnerBase:
     """
     The base class for the TestRunner.
@@ -287,6 +293,11 @@ class TestRunnerBase:
         return test
 
 
+@deprecated(
+    "6.1",
+    message="""Use pytest directly instead. You can read more about the motivation
+    for the deprecation at https://github.com/astropy/astropy/issues/16177""",
+)
 class TestRunner(TestRunnerBase):
     """
     A test runner for astropy tests.

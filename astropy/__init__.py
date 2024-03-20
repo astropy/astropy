@@ -131,7 +131,7 @@ class astronomical_constants(base_constants_version):
     )
 
 
-# Create the test() function
+# # Create the test() function
 from .tests.runner import TestRunner
 
 test = TestRunner.make_test_runner_in(__path__[0])
