@@ -11,11 +11,12 @@ from collections import OrderedDict
 from contextlib import suppress
 from functools import reduce
 from itertools import pairwise
+from textwrap import indent
 
 import numpy as np
 from numpy import char as chararray
 
-from astropy.utils import indent, isiterable, lazyproperty
+from astropy.utils import isiterable, lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .card import CARD_LENGTH, Card
@@ -669,7 +670,7 @@ class Column(NotifierMixin):
             msg = ["The following keyword arguments to Column were invalid:"]
 
             for val in invalid_kwargs.values():
-                msg.append(indent(val[1]))
+                msg.append(indent(val[1], 4 * " "))
 
             raise VerifyError("\n".join(msg))
 
