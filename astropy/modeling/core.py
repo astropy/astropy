@@ -20,6 +20,7 @@ import inspect
 import operator
 from collections import defaultdict, deque
 from inspect import signature
+from textwrap import indent
 
 import numpy as np
 
@@ -31,7 +32,6 @@ from astropy.utils import (
     IncompatibleShapeError,
     check_broadcast,
     find_current_module,
-    indent,
     isiterable,
     metadata,
     sharedmethod,
@@ -2880,7 +2880,7 @@ class Model(metaclass=_ModelMeta):
             # Set units on the columns
             for name in self.param_names:
                 param_table[name].unit = getattr(self, name).unit
-            parts.append(indent(str(param_table), width=4))
+            parts.append(indent(str(param_table), 4 * " "))
 
         return "\n".join(parts)
 
@@ -3559,7 +3559,7 @@ class CompoundModel(Model):
         components = self._format_components()
         keywords = [
             ("Expression", expression),
-            ("Components", "\n" + indent(components)),
+            ("Components", "\n" + indent(components, 4 * " ")),
         ]
         return super()._format_str(keywords=keywords)
 
