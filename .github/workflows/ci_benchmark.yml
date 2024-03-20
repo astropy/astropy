@@ -95,8 +95,10 @@ jobs:
       - name: "Check ccache performance"
         shell: bash -l {0}
         run: ccache -s
+        if: always()
 
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: asv-benchmark-results
           path: benchmarks.log
