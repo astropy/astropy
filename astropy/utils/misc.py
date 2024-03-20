@@ -54,6 +54,7 @@ def isiterable(obj):
         return False
 
 
+@deprecated(since="6.1", alternative="textwrap.indent()")
 def indent(s, shift=1, width=4):
     """Indent a block of text.  The indentation is applied to each line."""
     indented = "\n".join(" " * (width * shift) + l if l else "" for l in s.splitlines())

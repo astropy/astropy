@@ -5,10 +5,11 @@ This module contains models representing polynomials and polynomial series.
 """
 # pylint: disable=invalid-name
 from math import comb
+from textwrap import indent
 
 import numpy as np
 
-from astropy.utils import check_broadcast, indent
+from astropy.utils import check_broadcast
 from astropy.utils.compat import COPY_IF_NEEDED
 
 from .core import FittableModel, Model
@@ -1862,7 +1863,7 @@ class SIP(Model):
     def __str__(self):
         parts = [f"Model: {self.__class__.__name__}"]
         for model in [self.shift_a, self.shift_b, self.sip1d_a, self.sip1d_b]:
-            parts.append(indent(str(model), width=4))
+            parts.append(indent(str(model), 4 * " "))
             parts.append("")
 
         return "\n".join(parts)
@@ -1945,7 +1946,7 @@ class InverseSIP(Model):
     def __str__(self):
         parts = [f"Model: {self.__class__.__name__}"]
         for model in [self.sip1d_ap, self.sip1d_bp]:
-            parts.append(indent(str(model), width=4))
+            parts.append(indent(str(model), 4 * " "))
             parts.append("")
 
         return "\n".join(parts)
