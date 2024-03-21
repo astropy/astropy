@@ -851,6 +851,16 @@ class TestPhysicsSphericalRepresentation:
         assert_allclose_quantity(got.phi, expected.phi, atol=3e-16 * u.deg)
         assert_array_equal(got.z, expected.z)
 
+    def test_to_cylindrical_at_the_origin(self):
+        """Test that the transformation to cylindrical at the origin preserves phi."""
+        sph = PhysicsSphericalRepresentation(
+            phi=270 * u.deg, theta=45 * u.deg, r=0 * u.kpc
+        )
+        cyl = sph.represent_as(CylindricalRepresentation)
+        assert_allclose(cyl.rho, 0 * u.kpc)
+        assert_allclose(cyl.z, 0 * u.kpc)
+        assert_allclose(cyl.phi, 270 * u.deg)  # phi is preserved
+
     def test_initialize_with_nan(self):
         # Regression test for gh-11558: initialization used to fail.
         psr = PhysicsSphericalRepresentation(
@@ -1409,6 +1419,18 @@ class TestCylindricalRepresentation:
         assert_allclose_quantity(got.phi, expected.phi)
         assert_allclose_quantity(got.theta, expected.theta)
         assert representation_equal_up_to_angular_type(got, expected)
+
+    def test_to_physicsspherical_at_the_origin(self):
+        """Test that the transformation to physicsspherical at the origin preserves phi."""
+        cyl = CylindricalRepresentation(
+            rho=0 * u.kpc,
+            phi=23.5 * u.deg,
+            z=3 * u.kpc,
+        )
+        sph = cyl.represent_as(PhysicsSphericalRepresentation)
+        assert_allclose(sph.r, 3 * u.kpc)
+        assert_allclose(sph.theta, 0 * u.deg)
+        assert_allclose(cyl.phi, 23.5 * u.deg)  # phi is preserved
 
 
 class TestUnitSphericalCosLatDifferential:
