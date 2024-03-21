@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import erfa
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
