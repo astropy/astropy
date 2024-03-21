@@ -263,8 +263,8 @@ systems. The parallel access to the home directory can also trigger concurrency
 problems in the Astropy data cache, though we have tried to minimize these. We
 therefore recommend the following guidelines:
 
- * Set ``astropy.utils.iers.conf.auto_download = False`` in your Astropy config
-   file (see :ref:`astropy_config`) or in your code so that Astropy will not
+ * Set ``astropy.utils.iers.conf.auto_download = False`` in your ``astropy`` config
+   file (see :ref:`astropy_config`) or in your code so that ``astropy`` will not
    automatically attempt to download a newer version of the IERS-A table than
    the one already bundled in the ``astropy-iers-data`` package.  To update the
    IERS-A table, do one of the following:
