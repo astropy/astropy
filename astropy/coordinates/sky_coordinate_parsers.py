@@ -209,13 +209,11 @@ def _parse_coordinate_data(frame, args, kwargs):
     any of the valid ways.
     """
     valid_skycoord_kwargs = {}
-    valid_components = {}
     info = None
 
     # Look through the remaining kwargs to see if any are valid attribute names
     # by asking the frame transform graph:
-    attr_names = list(kwargs.keys())
-    for attr in attr_names:
+    for attr in tuple(kwargs):
         if attr in frame_transform_graph.frame_attributes:
             valid_skycoord_kwargs[attr] = kwargs.pop(attr)
 
@@ -228,7 +226,7 @@ def _parse_coordinate_data(frame, args, kwargs):
 
     # Grab any frame-specific attr names like `ra` or `l` or `distance` from
     # kwargs and move them to valid_components.
-    valid_components.update(_get_representation_attrs(frame, units, kwargs))
+    valid_components = _get_representation_attrs(frame, units, kwargs)
 
     # Error if anything is still left in kwargs
     if kwargs:
@@ -239,11 +237,8 @@ def _parse_coordinate_data(frame, args, kwargs):
         # is spherical, and when the component 'pm_<lon>' is passed.
         pm_message = ""
         if frame.representation_type == SphericalRepresentation:
-            frame_names = list(frame.get_representation_component_names().keys())
-            lon_name = frame_names[0]
-            lat_name = frame_names[1]
-
-            if f"pm_{lon_name}" in list(kwargs.keys()):
+            lon_name, lat_name, _ = frame.get_representation_component_names()
+            if f"pm_{lon_name}" in kwargs:
                 pm_message = (
                     "\n\n By default, most frame classes expect the longitudinal proper"
                     " motion to include the cos(latitude) term, named"
@@ -257,69 +252,64 @@ def _parse_coordinate_data(frame, args, kwargs):
             )
         )
 
+    if len(args) > 3:
+        raise ValueError(
+            f"Must supply no more than three positional arguments, got {len(args)}"
+        )
+
     # Finally deal with the unnamed args.  This figures out what the arg[0]
     # is and returns a dict with appropriate key/values for initializing
     # frame class. Note that differentials are *never* valid args, only
     # kwargs.  So they are not accounted for here (unless they're in a frame
     # or SkyCoord object)
-    if args:
-        if len(args) == 1:
-            # One arg which must be a coordinate.  In this case coord_kwargs
-            # will contain keys like 'ra', 'dec', 'distance' along with any
-            # frame attributes like equinox or obstime which were explicitly
-            # specified in the coordinate object (i.e. non-default).
-            _skycoord_kwargs, _components = _parse_coordinate_arg(
-                args[0], frame, units, kwargs
-            )
+    _skycoord_kwargs = {}
+    _components = {}
+    if len(args) > 1:
+        for arg, (frame_attr_name, repr_attr_name), unit in zip(
+            args, frame.representation_component_names.items(), units
+        ):
+            attr_class = frame.representation_type.attr_classes[repr_attr_name]
+            _components[frame_attr_name] = attr_class(arg, unit=unit)
 
-            # Copy other 'info' attr only if it has actually been defined.
-            if "info" in getattr(args[0], "__dict__", ()):
-                info = args[0].info
+    elif len(args) == 1:
+        # One arg which must be a coordinate.  In this case coord_kwargs
+        # will contain keys like 'ra', 'dec', 'distance' along with any
+        # frame attributes like equinox or obstime which were explicitly
+        # specified in the coordinate object (i.e. non-default).
+        _skycoord_kwargs, _components = _parse_coordinate_arg(
+            args[0], frame, units, kwargs
+        )
 
-        elif len(args) <= 3:
-            _skycoord_kwargs = {}
-            _components = {}
+        # Copy other 'info' attr only if it has actually been defined.
+        if "info" in getattr(args[0], "__dict__", ()):
+            info = args[0].info
 
-            frame_attr_names = frame.representation_component_names.keys()
-            repr_attr_names = frame.representation_component_names.values()
+    # The next two loops copy the component and skycoord attribute data into
+    # their final, respective "valid_" dictionaries. For each, we check that
+    # there are no relevant conflicts with values specified by the user
+    # through other means:
 
-            for arg, frame_attr_name, repr_attr_name, unit in zip(
-                args, frame_attr_names, repr_attr_names, units
-            ):
-                attr_class = frame.representation_type.attr_classes[repr_attr_name]
-                _components[frame_attr_name] = attr_class(arg, unit=unit)
-
-        else:
+    # First validate the component data
+    for attr, coord_value in _components.items():
+        if attr in valid_components:
             raise ValueError(
-                f"Must supply no more than three positional arguments, got {len(args)}"
+                _conflict_err_msg.format(
+                    attr, coord_value, valid_components[attr], "SkyCoord"
+                )
             )
+        valid_components[attr] = coord_value
 
-        # The next two loops copy the component and skycoord attribute data into
-        # their final, respective "valid_" dictionaries. For each, we check that
-        # there are no relevant conflicts with values specified by the user
-        # through other means:
-
-        # First validate the component data
-        for attr, coord_value in _components.items():
-            if attr in valid_components:
-                raise ValueError(
-                    _conflict_err_msg.format(
-                        attr, coord_value, valid_components[attr], "SkyCoord"
-                    )
+    # Now validate the custom SkyCoord attributes
+    for attr, value in _skycoord_kwargs.items():
+        if attr in valid_skycoord_kwargs and np.any(
+            valid_skycoord_kwargs[attr] != value
+        ):
+            raise ValueError(
+                _conflict_err_msg.format(
+                    attr, value, valid_skycoord_kwargs[attr], "SkyCoord"
                 )
-            valid_components[attr] = coord_value
-
-        # Now validate the custom SkyCoord attributes
-        for attr, value in _skycoord_kwargs.items():
-            if attr in valid_skycoord_kwargs and np.any(
-                valid_skycoord_kwargs[attr] != value
-            ):
-                raise ValueError(
-                    _conflict_err_msg.format(
-                        attr, value, valid_skycoord_kwargs[attr], "SkyCoord"
-                    )
-                )
-            valid_skycoord_kwargs[attr] = value
+            )
+        valid_skycoord_kwargs[attr] = value
 
     return valid_skycoord_kwargs, valid_components, info
 
