@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-    Test utilities for `astropy.units`.
+Test utilities for `astropy.units`.
 """
+
 import numpy as np
 from numpy import finfo
 

@@ -4,6 +4,7 @@ Astronomical and physics constants for Astropy v4.0.
 See :mod:`astropy.constants` for a complete listing of constants defined
 in Astropy.
 """
+
 import warnings
 
 from astropy.utils import find_current_module

@@ -7,7 +7,6 @@ The corresponding magnitudes are given in the description of each unit
 (the actual definitions are in `~astropy.units.function.logarithmic`).
 """
 
-
 import numpy as np
 
 from astropy.constants import si as _si

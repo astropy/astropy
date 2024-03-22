@@ -2,6 +2,7 @@
 """
 A set of tests for the util.py module.
 """
+
 import pytest
 
 from astropy.io.votable import util

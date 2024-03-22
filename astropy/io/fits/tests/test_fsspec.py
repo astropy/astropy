@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Can `astropy.io.fits.open` access (remote) data using the fsspec package?
-"""
+"""Can `astropy.io.fits.open` access (remote) data using the fsspec package?"""
+
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_array_equal

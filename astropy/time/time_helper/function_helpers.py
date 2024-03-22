@@ -2,6 +2,7 @@
 Helpers for overriding numpy functions in
 `~astropy.time.Time.__array_function__`.
 """
+
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner

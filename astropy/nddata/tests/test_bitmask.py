@@ -4,6 +4,7 @@ A module containing unit tests for the `bitmask` module.
 Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
+
 import warnings
 
 import numpy as np

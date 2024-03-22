@@ -8,7 +8,6 @@ This module is (currently) not intended to be part of the public API, but
 is instead primarily for internal use in `coordinates`
 """
 
-
 import erfa
 import numpy as np
 

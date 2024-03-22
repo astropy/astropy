@@ -8,7 +8,6 @@ Classes to read DAOphot table format
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-
 import itertools as itt
 import re
 from collections import OrderedDict, defaultdict

@@ -4,7 +4,6 @@
 Utilities shared by the different formats.
 """
 
-
 import warnings
 
 from astropy.units.utils import maybe_simple_fraction

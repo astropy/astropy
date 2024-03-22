@@ -5,4 +5,5 @@ lombscargle
 ===========
 AstroPy-compatible implementation of the Lomb-Scargle periodogram.
 """
+
 from .core import LombScargle

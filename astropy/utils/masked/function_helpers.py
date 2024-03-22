@@ -9,6 +9,7 @@ the documentation so that there is a place to find out how the mask is
 interpreted.
 
 """
+
 import warnings
 
 import numpy as np

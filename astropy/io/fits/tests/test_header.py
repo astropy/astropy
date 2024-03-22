@@ -2069,9 +2069,10 @@ class TestHeaderFunctions(FitsTestCase):
             f.seek(346)  # Location of the exponent 'E' symbol
             f.write(encode_ascii("e"))
 
-        with fits.open(self.temp("test.fits")) as hdul, pytest.warns(
-            AstropyUserWarning
-        ) as w:
+        with (
+            fits.open(self.temp("test.fits")) as hdul,
+            pytest.warns(AstropyUserWarning) as w,
+        ):
             hdul.writeto(self.temp("temp.fits"), output_verify="warn")
         assert len(w) == 5
         # The first two warnings are just the headers to the actual warning

@@ -2248,10 +2248,13 @@ class TestPandas:
                     ctx = nullcontext()
                 else:
                     ctx = pytest.warns(FutureWarning, match=".*IntCastingNaNError.*")
-                with pytest.warns(
-                    TableReplaceWarning,
-                    match=r"converted column 'a' from int(32|64) to float64",
-                ), ctx:
+                with (
+                    pytest.warns(
+                        TableReplaceWarning,
+                        match=r"converted column 'a' from int(32|64) to float64",
+                    ),
+                    ctx,
+                ):
                     d = t.to_pandas(use_nullable_int=use_nullable_int)
             else:
                 from pandas.core.dtypes.cast import IntCastingNaNError

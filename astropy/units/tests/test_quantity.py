@@ -324,25 +324,29 @@ class TestQuantityCreation:
         assert np.all(q6.to_value(u.cm) == 30.0 * a6)
 
     def test_rshift_warns(self):
-        with pytest.raises(TypeError), pytest.warns(
-            AstropyWarning, match="is not implemented"
-        ) as warning_lines:
+        with (
+            pytest.raises(TypeError),
+            pytest.warns(AstropyWarning, match="is not implemented") as warning_lines,
+        ):
             1 >> u.m
         assert len(warning_lines) == 1
         q = 1.0 * u.km
-        with pytest.raises(TypeError), pytest.warns(
-            AstropyWarning, match="is not implemented"
-        ) as warning_lines:
+        with (
+            pytest.raises(TypeError),
+            pytest.warns(AstropyWarning, match="is not implemented") as warning_lines,
+        ):
             q >> u.m
         assert len(warning_lines) == 1
-        with pytest.raises(TypeError), pytest.warns(
-            AstropyWarning, match="is not implemented"
-        ) as warning_lines:
+        with (
+            pytest.raises(TypeError),
+            pytest.warns(AstropyWarning, match="is not implemented") as warning_lines,
+        ):
             q >>= u.m
         assert len(warning_lines) == 1
-        with pytest.raises(TypeError), pytest.warns(
-            AstropyWarning, match="is not implemented"
-        ) as warning_lines:
+        with (
+            pytest.raises(TypeError),
+            pytest.warns(AstropyWarning, match="is not implemented") as warning_lines,
+        ):
             1.0 >> q
         assert len(warning_lines) == 1
 

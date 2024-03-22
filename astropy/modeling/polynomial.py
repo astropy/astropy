@@ -3,6 +3,7 @@
 This module contains models representing polynomials and polynomial series.
 
 """
+
 # pylint: disable=invalid-name
 from math import comb
 from textwrap import indent

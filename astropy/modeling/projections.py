@@ -12,7 +12,6 @@ References
 .. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
 """
 
-
 import abc
 from itertools import chain, product
 

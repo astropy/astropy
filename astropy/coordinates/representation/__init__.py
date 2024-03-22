@@ -3,6 +3,7 @@ In this module, we define the coordinate representation classes, which are
 used to represent low-level cartesian, spherical, cylindrical, and other
 coordinates.
 """
+
 from .base import BaseDifferential, BaseRepresentation, BaseRepresentationOrDifferential
 from .cartesian import CartesianDifferential, CartesianRepresentation
 from .cylindrical import CylindricalDifferential, CylindricalRepresentation

@@ -3,7 +3,6 @@
 This module provides functions to help with testing against iraf tasks.
 """
 
-
 import numpy as np
 
 from astropy.logger import log

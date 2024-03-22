@@ -7,7 +7,6 @@ Built on daophot.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-
 import re
 
 from . import core

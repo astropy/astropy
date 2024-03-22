@@ -4,6 +4,7 @@
 Available ufuncs in this module are at
 https://docs.scipy.org/doc/scipy/reference/special.html
 """
+
 import numpy as np
 
 from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled

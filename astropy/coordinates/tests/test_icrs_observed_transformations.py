@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Accuracy tests for ICRS transformations, primarily to/from AltAz.
+"""Accuracy tests for ICRS transformations, primarily to/from AltAz."""
 
-"""
 import numpy as np
 
 from astropy import units as u

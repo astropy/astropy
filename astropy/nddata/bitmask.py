@@ -3,6 +3,7 @@ A module that provides functions for manipulating bit masks and data quality
 (DQ) arrays.
 
 """
+
 import numbers
 import warnings
 

@@ -12,6 +12,7 @@ represent either a single model, or a "model set" representing multiple copies
 of the same type of model, but with potentially different values of the
 parameters in each model making up the set.
 """
+
 # pylint: disable=invalid-name, protected-access, redefined-outer-name
 import abc
 import copy
