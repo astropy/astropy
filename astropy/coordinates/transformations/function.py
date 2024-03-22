@@ -5,7 +5,6 @@
 These are transformations that cannot be represented as an affine transformation.
 """
 
-
 from contextlib import suppress
 from inspect import signature
 from warnings import warn

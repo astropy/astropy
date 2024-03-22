@@ -13,6 +13,7 @@ A typical use case might be::
     <Quantity 0.510998927603161 MeV>
 
 """
+
 import warnings
 
 from astropy.utils import find_current_module

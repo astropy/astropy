@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Accuracy tests for GCRS coordinate transformations, primarily to/from AltAz.
+"""Accuracy tests for GCRS coordinate transformations, primarily to/from AltAz."""
 
-"""
 import warnings
 from importlib import metadata
 

@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-    Test the Logarithmic Units and Quantities
+Test the Logarithmic Units and Quantities
 """
 
 import itertools

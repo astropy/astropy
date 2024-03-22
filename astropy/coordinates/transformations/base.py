@@ -9,7 +9,6 @@ concrete implementations, see the submodules
 :mod:`~astropy.coordinates.transformations.composite`.
 """
 
-
 from abc import ABCMeta, abstractmethod
 
 __all__ = ["CoordinateTransform"]

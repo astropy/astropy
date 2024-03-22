@@ -3,7 +3,6 @@
 Defines constants used in `astropy.samp`.
 """
 
-
 from astropy.utils.data import get_pkg_data_filename
 
 __all__ = [

@@ -3,6 +3,7 @@
 
 Functions, including ufuncs, are tested in test_functions.py
 """
+
 import operator
 import sys
 

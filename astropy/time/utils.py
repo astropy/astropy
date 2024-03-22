@@ -8,6 +8,7 @@ Geometry 18(3):305-363 -- http://www.cs.berkeley.edu/~jrs/papers/robustr.pdf
 Furthermore, some helper routines to turn strings and other types of
 objects into two values, and vice versa.
 """
+
 import decimal
 
 import numpy as np

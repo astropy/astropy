@@ -39,7 +39,6 @@ Example uses of fitscheck:
 
 """
 
-
 import argparse
 import logging
 import sys

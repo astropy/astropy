@@ -4,7 +4,6 @@
 Handles the "Console" unit format.
 """
 
-
 from . import base, utils
 
 

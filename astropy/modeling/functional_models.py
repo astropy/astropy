@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """Mathematical models."""
+
 # pylint: disable=line-too-long, too-many-lines, too-many-arguments, invalid-name
 import warnings
 

@@ -4,7 +4,6 @@ This package reads and writes data formats used by the Virtual
 Observatory (VO) initiative, particularly the VOTable XML format.
 """
 
-
 from astropy import config as _config
 
 from .exceptions import (

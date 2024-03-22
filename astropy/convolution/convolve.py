@@ -375,9 +375,9 @@ def convolve(
             #            [pad_width[0]:-pad_width[0]]
             # to account for when the kernel has size of 1 making pad_width = 0.
             if array_internal.ndim == 1:
-                array_to_convolve[
-                    pad_width[0] : array_shape[0] + pad_width[0]
-                ] = array_internal
+                array_to_convolve[pad_width[0] : array_shape[0] + pad_width[0]] = (
+                    array_internal
+                )
             elif array_internal.ndim == 2:
                 array_to_convolve[
                     pad_width[0] : array_shape[0] + pad_width[0],

@@ -3,7 +3,6 @@ A simple class to manage a piece of global science state.  See
 :ref:`astropy:config-developer` for more details.
 """
 
-
 __all__ = ["ScienceState"]
 
 

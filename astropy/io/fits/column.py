@@ -102,11 +102,11 @@ TDISP_RE_DICT["F"] = re.compile(
 TDISP_RE_DICT["A"] = TDISP_RE_DICT["L"] = re.compile(
     r"(?:(?P<formatc>[AL])(?P<width>[0-9]+)+)|"
 )
-TDISP_RE_DICT["I"] = TDISP_RE_DICT["B"] = TDISP_RE_DICT["O"] = TDISP_RE_DICT[
-    "Z"
-] = re.compile(
-    r"(?:(?P<formatc>[IBOZ])(?:(?P<width>[0-9]+)"
-    r"(?:\.{0,1}(?P<precision>[0-9]+))?))|"
+TDISP_RE_DICT["I"] = TDISP_RE_DICT["B"] = TDISP_RE_DICT["O"] = TDISP_RE_DICT["Z"] = (
+    re.compile(
+        r"(?:(?P<formatc>[IBOZ])(?:(?P<width>[0-9]+)"
+        r"(?:\.{0,1}(?P<precision>[0-9]+))?))|"
+    )
 )
 TDISP_RE_DICT["E"] = TDISP_RE_DICT["G"] = TDISP_RE_DICT["D"] = re.compile(
     r"(?:(?P<formatc>[EGD])(?:(?P<width>[0-9]+)\."
