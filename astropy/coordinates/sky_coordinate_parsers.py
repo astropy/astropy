@@ -276,9 +276,7 @@ def _parse_coordinate_data(frame, args, kwargs):
         # will contain keys like 'ra', 'dec', 'distance' along with any
         # frame attributes like equinox or obstime which were explicitly
         # specified in the coordinate object (i.e. non-default).
-        _skycoord_kwargs, _components = _parse_coordinate_arg(
-            args[0], frame, units, kwargs
-        )
+        _skycoord_kwargs, _components = _parse_coordinate_arg(args[0], frame, units)
 
         # Copy other 'info' attr only if it has actually been defined.
         if "info" in getattr(args[0], "__dict__", ()):
@@ -347,7 +345,7 @@ def _get_representation_component_units(args, kwargs):
     return units
 
 
-def _parse_coordinate_arg(coords, frame, units, init_kwargs):
+def _parse_coordinate_arg(coords, frame, units):
     from .sky_coordinate import SkyCoord
 
     is_scalar = False  # Differentiate between scalar and list input
@@ -450,7 +448,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             # this parsing path is used when there are coordinate-like objects
             # in the list - instead of creating lists of values, we create
             # SkyCoords from the list elements and then combine them.
-            scs = [SkyCoord(coord, **init_kwargs) for coord in coords]
+            scs = list(map(SkyCoord, coords))
 
             # Check that all frames are equivalent
             for sc in scs[1:]:
