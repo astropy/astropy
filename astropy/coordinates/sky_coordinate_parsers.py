@@ -348,19 +348,6 @@ def _get_representation_component_units(args, kwargs):
 
 
 def _parse_coordinate_arg(coords, frame, units, init_kwargs):
-    """
-    Single unnamed arg supplied.  This must be:
-    - Coordinate frame with data
-    - Representation
-    - SkyCoord
-    - List or tuple of:
-      - String which splits into two values
-      - Iterable with two values
-      - SkyCoord, frame, or representation objects.
-
-    Returns a dict mapping coordinate attribute names to values (or lists of
-    values)
-    """
     from .sky_coordinate import SkyCoord
 
     is_scalar = False  # Differentiate between scalar and list input
