@@ -1080,10 +1080,10 @@ or because the failure happens with only 32-bit Python.
 Astropy also has the option to run a comparative benchmark using Github Actions
 to test a new pull request against the current main branch. It uses the benchmarks
 from `Astropy Benchmarks <https://github.com/astropy/astropy-benchmarks/>`_. This
-action only runs if a maintainer adds the label `benchmark` to the pull request.
-It is important to note that these benchmarks can be flakey as they running on
-shared VMs but they should give a general idea of the performance impact of a
-pull request.
+action only runs if a maintainer adds the label ``benchmark`` to the pull request.
+It is important to note that these benchmarks can be flakey as they run on
+virtual machines (and thus shared hardware) but they should give a general
+idea of the performance impact of a pull request.
 
 .. _pytest-plugins:
 
