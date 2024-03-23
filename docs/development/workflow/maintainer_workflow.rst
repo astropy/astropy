@@ -179,14 +179,15 @@ Benchmarks
 If a pull request explicitly deals with a performance improvement, maintainers should
 use the ``benchmark`` label to run a comparative benchmark on the pull request. This
 will run a benchmark comparing the ``HEAD`` commit of the pull request branch with
-the main branch. The logs are uploaded as a action artefact and can be viewed
-in the Actions tab.
+the main branch. The logs are uploaded as a action artifact and can be viewed
+in the Actions tab. This workflow uses the benchmarks
+from `Astropy Benchmarks <https://github.com/astropy/astropy-benchmarks/>`_.
 
 Maintainers should also run the benchmark if they suspect the code change might have
-performance implications. The benchmark action takes approximately 25 minutes to
+performance implications. The benchmark action takes significantly longer than regular CI to
 complete.
 
-It is important to note that the benchmarking on Github Actions will be flakey and
+It is important to note that the benchmarking on Github Actions will be flaky and
 should only be used as a general guide.
 
 
