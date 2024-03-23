@@ -1,0 +1,5 @@
+Units now exposes ``get_converter`` which returns a function that
+will convert a scalar or array from one unit to another. This can be
+useful to speed up code that converts many quantities with the same
+unit to another one, especially if the quantity has not many elements,
+so that the overhead of creating a conversion function is relatively large.
