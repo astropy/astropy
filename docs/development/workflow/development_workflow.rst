@@ -362,17 +362,7 @@ In more detail
    bug as a different set of changes.
 
 #. Test that your changes do not lead to *regressions*, i.e. that your
-   changes do not break existing code, by running the Astropy tests. You can
-   run all of the Astropy tests from ipython with::
-
-     import astropy
-     astropy.test()
-
-   If your change involves only a small part of Astropy, e.g. Time, you can
-   run just those tests::
-
-     import astropy
-     astropy.test(package='time')
+   changes do not break existing code, by running the Astropy tests.
 
    Tests can also be run from the command line while in the package
    root directory, e.g.::
