@@ -1,0 +1,2 @@
+Added a mypy configuration file that ignores existing typing errors on
+a per-file and per-error basis.
