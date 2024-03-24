@@ -51,15 +51,15 @@ Example:
 
 .. code-block:: python
 
-    from astropy import units as u
-    q = u.Quantity(123.456, u.m)
-    custom_format = lambda x: f"\\approx {float(x):.1f}",
-    print(q.to_string(formatter=custom_format, format='latex'))
-    # Outputs: "$\approx 123.5 \; \mathrm{m}$",
-    print(q.to_string(formatter='.3e', format='latex'))
-    # Outputs: '$1.235 \times 10^{2} \; \mathrm{m}$'
-    print(q.to_string(precision=3, format='latex'))
-    # Outputs: '$123 \; \mathrm{m}$'
+    >>> from astropy import units as u
+    >>> q = u.Quantity(123.456, u.m)
+    >>> custom_format = lambda x: f"\\approx {float(x):.1f}"
+    >>> q.to_string(formatter=custom_format, format='latex')
+    '$\\approx 123.5 \\; \\mathrm{m}$'
+    >>> q.to_string(formatter='.3e', format='latex')
+    '$1.235 \\times 10^{2} \\; \\mathrm{m}$'
+    >>> q.to_string(precision=3, format='latex')
+    '$123 \\; \\mathrm{m}$'
 
 Full change log
 ===============
