@@ -1118,7 +1118,7 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
         out = eqn9_left(s_min, s, N, B)
         return out[0] - CL
 
-    S_max = brentq(func, N - B, 100)
+    S_max = brentq(func, N - B, 200)
     S_min = find_s_min(S_max, N, B)
     return S_min, S_max
 
@@ -1247,12 +1247,20 @@ def _kraft_burrows_nousek(N, B, CL):
     """
     from astropy.utils.compat.optional_deps import HAS_MPMATH, HAS_SCIPY
 
-    if HAS_SCIPY and N <= 100:
-        try:
-            return _scipy_kraft_burrows_nousek(N, B, CL)
-        except OverflowError:
-            if not HAS_MPMATH:
-                raise ValueError("Need mpmath package for input numbers this large.")
+    if HAS_SCIPY:
+        if N <= 100:
+            try:
+                return _scipy_kraft_burrows_nousek(N, B, CL)
+            except OverflowError:
+                if not HAS_MPMATH:
+                    raise ValueError("Need mpmath package for input numbers this large.")
+        else:
+            try:
+                return _mpmath_kraft_burrows_nousek(N, B, CL)
+            except OverflowError:
+                if not HAS_MPMATH:
+                    raise ValueError("Need mpmath package for input numbers this large.")
+        
     if HAS_MPMATH:
         return _mpmath_kraft_burrows_nousek(N, B, CL)
 
