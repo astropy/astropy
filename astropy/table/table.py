@@ -15,7 +15,7 @@ from astropy import log
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
 from astropy.utils import ShapedLikeNDArray, isiterable
-from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_1_25
+from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_1_23, NUMPY_LT_1_25
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
 from astropy.utils.decorators import format_doc
@@ -3733,10 +3733,14 @@ class Table:
         self_is_masked = self.has_masked_columns
         other_is_masked = isinstance(other, np.ma.MaskedArray)
 
-        allowed_numpy_exceptions = (
+        allowed_numpy_exceptions_list = [
             TypeError,
             ValueError if not NUMPY_LT_1_25 else DeprecationWarning,
-        )
+        ]
+        if NUMPY_LT_1_23:
+            allowed_numpy_exceptions_list.append(FutureWarning)
+        allowed_numpy_exceptions = tuple(allowed_numpy_exceptions_list)
+
         # One table is masked and the other is not
         if self_is_masked ^ other_is_masked:
             # remap variables to a and b where a is masked and b isn't
