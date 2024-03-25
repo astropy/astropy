@@ -61,6 +61,8 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
 
         if axis_type is not None:
             axis_type_split = axis_type.split(".")
+            if len(axis_type_split):
+                axis_type_split[0] = axis_type_split[0].replace("custom:", "")
 
             if "pos.helioprojective.lon" in axis_type:
                 coord_wrap = 180.0 * u.deg
