@@ -65,6 +65,40 @@ def test_zblank_support(canonical_data_base_path, tmp_path):
         assert_equal(np.round(hdul[1].data), reference)
 
 
+def test_ignore_extra_zblank(tmp_path):
+    # Regression test for a bug where decompressing _to_ integer arrays
+    # would try to set integers to NaN and fail if ZBLANK was present.
+    # Null values after BSCALE/BZERO scaling should be indicated by the
+    # BLANK header so we ignore ZBLANK.
+
+    reference = np.arange(-144, 144, 2).reshape((12, 12)).astype(float)
+    reference[1, 1] = np.nan
+
+    # Make a copy because scaling will mangle the original array
+    reference_copy = reference.copy()
+
+    # Only ImageHDU._scale_internal currently supports NaNs with integer output
+    # TODO: just test CompImageHDU when it becomes a subclass of ImageHDU
+    # or the public scale method handles NaNs
+    image_hdu = fits.ImageHDU(data=reference_copy)
+    image_hdu._scale_internal("int16", bscale=2, bzero=32768, blank=32767)
+
+    comp_image_hdu = fits.CompImageHDU(
+        data=image_hdu.data,
+        header=image_hdu.header,
+        compression_type="RICE_1",
+        tile_shape=(6, 6),
+    )
+
+    # Add the extraneous ZBLANK header
+    comp_image_hdu.header["ZBLANK"] = image_hdu.header["BLANK"]
+
+    comp_image_hdu.writeto(tmp_path / "test_extra_zblank.fits")
+
+    with fits.open(tmp_path / "test_extra_zblank.fits") as hdul:
+        assert_equal(np.round(hdul[1].data), reference)
+
+
 @pytest.mark.parametrize(
     ("shape", "tile_shape"),
     (
