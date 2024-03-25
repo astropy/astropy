@@ -127,6 +127,12 @@ astropy.wcs
 
 - Fixed a bug in ``fit_wcs_from_points`` that does not set the default value of the ``cdelt`` of the returned WCS object. [#16027]
 
+Other Changes and Additions
+---------------------------
+
+- Given the potential breaking changes with the upcoming Numpy 2.0 release,
+  this release pins Numpy<2.0 and support for Numpy 2.0 will be added in the
+  v6.1.0 release.
 
 Version 6.0.0 (2023-11-25)
 ==========================
