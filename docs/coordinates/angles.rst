@@ -176,8 +176,8 @@ angles and wrapping to be within a single 360 degree slice. The
 boolean indicating whether an angle or angles is within the specified bounds.
 
 .. Note::
-    While creating |Angle| objects from arrays with integral data types
-    (for instance with ``dtype=int``) is technically possible, it is very
+    While creating |Angle| instances from arrays with integral data types
+    is technically possible (for example with ``dtype=int``), it is very
     limited in functionality and in particular wrapping is not supported for
     such objects.
 
