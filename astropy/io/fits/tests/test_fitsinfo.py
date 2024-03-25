@@ -18,15 +18,12 @@ class TestFitsinfo(FitsTestCase):
 
     def test_version(self, capsys):
         script = "fitsinfo"
-        p = subprocess.Popen(
-            [script, "--version"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+        script_result = subprocess.run(
+            [script, "--version"], capture_output=True, text=True, check=False
         )
-        stdout, stderr = p.communicate()
 
-        assert p.returncode == 0
-        assert stdout.decode("utf-8").strip() == f"fitsinfo {version}"
+        assert script_result.returncode == 0
+        assert script_result.stdout.strip() == f"{script} {version}"
 
     def test_onefile(self, capsys):
         fitsinfo.main([self.data("arange.fits")])

@@ -68,8 +68,7 @@ def handle_options(args):
         args = ["-h"]
 
     parser = argparse.ArgumentParser(
-        description=DESCRIPTION,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=DESCRIPTION, formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
     parser.add_argument(

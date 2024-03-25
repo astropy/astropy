@@ -317,8 +317,7 @@ def test_reprs():
     ],
 )
 def test_wrong_kw_fails(func, kws):
-    kw_temp = kws.copy()
-    kw_temp["n_sample"] = 100  # note the missing "s"
+    kw_temp = kws | {"n_sample": 100}  # note the missing "s"
     with pytest.raises(TypeError, match="missing 1 required"):
         assert func(**kw_temp).n_samples == 100
     kw_temp = kws.copy()

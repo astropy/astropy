@@ -787,12 +787,12 @@ class TestConvolve2D:
         Test that convolve_fft raises an exception if a too-large array is passed in.
         """
 
-        # note 512**3 * 16 bytes = 2.0 GB
+        # while a good idea, this approach did not work; it actually writes to disk
+        # arr = np.memmap('file.np', mode='w+', shape=(512, 512, 512), dtype=complex)
+        # this just allocates the memory but never touches it; it's better:
         arr = np.empty([512, 512, 512], dtype=complex)
+        # note 512**3 * 16 bytes = 2.0 GB
         with pytest.raises((ValueError, MemoryError)):
-            # while a good idea, this approach did not work; it actually writes to disk
-            # arr = np.memmap('file.np', mode='w+', shape=(512, 512, 512), dtype=complex)
-            # this just allocates the memory but never touches it; it's better:
             convolve_fft(arr, arr)
 
     def test_padding(self):

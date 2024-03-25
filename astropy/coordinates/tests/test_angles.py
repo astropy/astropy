@@ -744,7 +744,6 @@ def test_latitude():
     ):
         Latitude(lon)
 
-    lon = Longitude(10, "deg")
     lat = Latitude([20], "deg")
     with pytest.raises(
         TypeError, match="A Longitude angle cannot be assigned to a Latitude angle"

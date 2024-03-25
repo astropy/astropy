@@ -643,30 +643,24 @@ class TestFileFunctions(FitsTestCase):
                 pass
 
         # Opening without explicitly specifying binary mode should fail
-        with (
-            pytest.raises(ValueError),
-            open(self.data("test0.fits")) as handle,
-            fits.open(handle) as _,
-        ):
-            pass
+        with open(self.data("test0.fits")) as handle:
+            with pytest.raises(ValueError):
+                with fits.open(handle) as _:
+                    pass
 
         # All of these read modes should fail
         for mode in ["r", "rt"]:
-            with (
-                pytest.raises(ValueError),
-                open(self.data("test0.fits"), mode=mode) as handle,
-                fits.open(handle) as _,
-            ):
-                pass
+            with open(self.data("test0.fits"), mode=mode) as handle:
+                with pytest.raises(ValueError):
+                    with fits.open(handle) as _:
+                        pass
 
         # These update or write modes should fail as well
         for mode in ["w", "wt", "w+", "wt+", "r+", "rt+", "a", "at", "a+", "at+"]:
-            with (
-                pytest.raises(ValueError),
-                open(self.temp("temp.fits"), mode=mode) as handle,
-                fits.open(handle) as _,
-            ):
-                pass
+            with open(self.temp("temp.fits"), mode=mode) as handle:
+                with pytest.raises(ValueError):
+                    with fits.open(handle) as _:
+                        pass
 
     def test_fits_file_handle_mode_combo(self):
         # This should work fine since no mode is given
@@ -680,12 +674,10 @@ class TestFileFunctions(FitsTestCase):
                 pass
 
         # This should not work since the modes conflict
-        with (
-            pytest.raises(ValueError),
-            open(self.data("test0.fits"), "rb") as handle,
-            fits.open(handle, mode="ostream") as _,
-        ):
-            pass
+        with open(self.data("test0.fits"), "rb") as handle:
+            with pytest.raises(ValueError):
+                with fits.open(handle, mode="ostream") as _:
+                    pass
 
     def test_open_from_url(self):
         file_url = "file:///" + self.data("test0.fits").lstrip("/")
@@ -695,20 +687,13 @@ class TestFileFunctions(FitsTestCase):
 
         # It will not be possible to write to a file that is from a URL object
         for mode in ("ostream", "append", "update"):
-            with (
-                pytest.raises(ValueError),
-                urllib.request.urlopen(file_url) as urlobj,
-                fits.open(urlobj, mode=mode) as _,
-            ):
-                pass
+            with urllib.request.urlopen(file_url) as urlobj:
+                with pytest.raises(ValueError):
+                    with fits.open(urlobj, mode=mode) as _:
+                        pass
 
     @pytest.mark.remote_data(source="astropy")
     def test_open_from_remote_url(self):
-        def open_from_remote_url(remote_url, mode):
-            with urllib.request.urlopen(remote_url) as urlobj:
-                with fits.open(urlobj, mode=mode) as fits_handle:
-                    assert len(fits_handle) == 1
-
         for dataurl in (conf.dataurl, conf.dataurl_mirror):
             remote_url = f"{dataurl}/allsky/allsky_rosat.fits"
             try:
@@ -717,8 +702,10 @@ class TestFileFunctions(FitsTestCase):
                         assert len(fits_handle) == 1
 
                 for mode in ("ostream", "append", "update"):
-                    with pytest.raises(ValueError):
-                        open_from_remote_url(remote_url, mode)
+                    with urllib.request.urlopen(remote_url) as urlobj:
+                        with pytest.raises(ValueError):
+                            with fits.open(urlobj, mode=mode) as fits_handle:
+                                assert len(fits_handle) == 1
 
             except (urllib.error.HTTPError, urllib.error.URLError):
                 continue

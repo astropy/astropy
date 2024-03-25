@@ -794,13 +794,10 @@ def test_error_message():
     hdr["PV2_1"] = -110
     hdr["PV2_2"] = -110
 
-    def init_wcs_and_alter(hdr):
+    with pytest.warns(wcs.FITSFixedWarning):
         w = wcs.WCS(hdr, _do_set=False)
-        w.all_pix2world([[536.0, 894.0]], 0)
-
-    with pytest.raises(wcs.InvalidTransformError):
-        with pytest.warns(wcs.FITSFixedWarning):
-            init_wcs_and_alter(hdr)
+        with pytest.raises(wcs.InvalidTransformError):
+            w.all_pix2world([[536.0, 894.0]], 0)
 
 
 def test_out_of_bounds():

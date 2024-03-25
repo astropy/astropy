@@ -48,7 +48,6 @@ def test_unit_grammar(strings, unit):
     "string", ["sin( /pixel /s)", "mag(mag)", "dB(dB(mW))", "dex()"]
 )
 def test_unit_grammar_fail(string):
-    string.__repr__()
     with pytest.raises(ValueError):
         u_format.Generic.parse(string)
 
@@ -131,7 +130,6 @@ def test_cds_grammar(strings, unit):
     ],
 )
 def test_cds_grammar_fail(string):
-    string.__repr__()
     with pytest.raises(ValueError):
         u_format.CDS.parse(string)
 
@@ -236,7 +234,6 @@ def test_ogip_grammar(strings, unit):
     ],
 )
 def test_ogip_grammar_fail(string):
-    string.__repr__()
     with pytest.raises(ValueError):
         u_format.OGIP.parse(string)
 
@@ -647,7 +644,6 @@ def test_deprecated_did_you_mean_units():
 @pytest.mark.parametrize("string", ["mag(ct/s)", "dB(mW)", "dex(cm s**-2)"])
 def test_fits_function(string):
     # Function units cannot be written, so ensure they're not parsed either.
-    string.__repr__()
     with pytest.raises(ValueError):
         u_format.Fits().parse(string)
 
@@ -655,10 +651,11 @@ def test_fits_function(string):
 @pytest.mark.parametrize("string", ["mag(ct/s)", "dB(mW)", "dex(cm s**-2)"])
 def test_vounit_function(string):
     # Function units cannot be written, so ensure they're not parsed either.
-    with pytest.raises(ValueError), warnings.catch_warnings():  # noqa: PT012
+    with warnings.catch_warnings():
         # ct, dex also raise warnings - irrelevant here.
         warnings.simplefilter("ignore")
-        u_format.VOUnit().parse(string)
+        with pytest.raises(ValueError):
+            u_format.VOUnit().parse(string)
 
 
 def test_vounit_binary_prefix():

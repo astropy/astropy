@@ -93,9 +93,10 @@ class TestFitsTime(FitsTestCase):
             self.time, format="isot", scale="tt", location=EarthLocation(2, 3, 4)
         )
 
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(
+            ValueError, match="Multiple Time Columns with different geocentric"
+        ):
             table, hdr = time_to_fits(t)
-        assert "Multiple Time Columns with different geocentric" in str(err.value)
 
         # Check that Time column with no location specified will assume global location
         t["b"] = Time(self.time, format="isot", scale="tt", location=None)

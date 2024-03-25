@@ -1009,6 +1009,7 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
     # ---------------------------------------------------------------
     # class-level
 
+    @pytest.mark.usefixtures("clean_cosmology_classes")
     def test_init_subclass(self, cosmo_cls):
         """Test initializing subclass, mostly that can't have Ode0 in init."""
         super().test_init_subclass(cosmo_cls)
@@ -1018,11 +1019,6 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
             class HASOde0SubClass(cosmo_cls):
                 def __init__(self, Ode0):
                     pass
-
-        try:
-            _COSMOLOGY_CLASSES.pop(HASOde0SubClass.__qualname__, None)
-        except UnboundLocalError:
-            pass
 
     # ---------------------------------------------------------------
     # instance-level

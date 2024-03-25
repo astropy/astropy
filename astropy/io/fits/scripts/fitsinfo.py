@@ -55,8 +55,7 @@ def fitsinfo(filename):
 def main(args=None):
     """The main function called by the `fitsinfo` script."""
     parser = argparse.ArgumentParser(
-        description=DESCRIPTION,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=DESCRIPTION, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {__version__}"
