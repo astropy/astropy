@@ -5,7 +5,6 @@ import functools
 import re
 import time
 import warnings
-from collections import OrderedDict
 from decimal import Decimal
 
 import erfa
@@ -61,10 +60,10 @@ __all__ = [
 __doctest_skip__ = ["TimePlotDate"]
 
 # These both get filled in at end after TimeFormat subclasses defined.
-# Use an OrderedDict to fix the order in which formats are tried.
+# It is important that these get populated by insertion order.
 # This ensures, e.g., that 'isot' gets tried before 'fits'.
-TIME_FORMATS = OrderedDict()
-TIME_DELTA_FORMATS = OrderedDict()
+TIME_FORMATS = {}
+TIME_DELTA_FORMATS = {}
 
 # Translations between deprecated FITS timescales defined by
 # Rots et al. 2015, A&A 574:A36, and timescales used here.
