@@ -1,1 +1,0 @@
-Fix a missing ``Sun`` unit in the list of VOUnits simple_units.
