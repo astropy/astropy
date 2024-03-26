@@ -13,6 +13,7 @@ __all__ = [
     "NUMPY_LT_1_25",
     "NUMPY_LT_1_26",
     "NUMPY_LT_2_0",
+    "NUMPY_LT_2_1",
     "COPY_IF_NEEDED",
     "sanitize_copy_arg",
 ]
@@ -24,6 +25,7 @@ NUMPY_LT_1_24 = not minversion(np, "1.24")
 NUMPY_LT_1_25 = not minversion(np, "1.25")
 NUMPY_LT_1_26 = not minversion(np, "1.26")
 NUMPY_LT_2_0 = not minversion(np, "2.0.dev")
+NUMPY_LT_2_1 = not minversion(np, "2.1.dev")
 
 
 COPY_IF_NEEDED = False if NUMPY_LT_2_0 else None
