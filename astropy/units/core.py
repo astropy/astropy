@@ -1043,7 +1043,7 @@ class UnitBase:
 
     def _apply_equivalencies(self, unit, other, equivalencies):
         """
-        Internal function (used from `_get_converter`) to apply
+        Internal function (used from `get_converter`) to apply
         equivalence pairs.
         """
 
@@ -1089,12 +1089,37 @@ class UnitBase:
 
         raise UnitConversionError(f"{unit_str} and {other_str} are not convertible")
 
-    def _get_converter(self, other, equivalencies=[]):
-        """Get a converter for values in ``self`` to ``other``.
+    def get_converter(self, other, equivalencies=[]):
+        """
+        Create a function that converts values from this unit to another.
 
-        If no conversion is necessary, returns ``unit_scale_converter``
-        (which is used as a check in quantity helpers).
+        Parameters
+        ----------
+        other : unit-like
+            The unit to convert to.
+        equivalencies : list of tuple
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`astropy:unit_equivalencies`.
+            This list is in addition to possible global defaults set by, e.g.,
+            `set_enabled_equivalencies`.
+            Use `None` to turn off all equivalencies.
 
+        Returns
+        -------
+        func : callable
+            A callable that takes an array-like argument and returns
+            it converted from units of self to units of other.
+
+        Raises
+        ------
+        UnitsError
+            If the units cannot be converted to each other.
+
+        Notes
+        -----
+        This method is used internally in `Quantity` to convert to
+        different units. Note that the function returned takes
+        and returns values, not quantities.
         """
         # First see if it is just a scaling.
         try:
@@ -1103,6 +1128,8 @@ class UnitBase:
             pass
         else:
             if scale == 1.0:
+                # If no conversion is necessary, returns ``unit_scale_converter``
+                # (which is used as a check in quantity helpers).
                 return unit_scale_converter
             else:
                 return lambda val: scale * _condition_arg(val)
@@ -1120,7 +1147,7 @@ class UnitBase:
                 for funit, tunit, a, b in other.equivalencies:
                     if other is funit:
                         try:
-                            converter = self._get_converter(tunit, equivalencies)
+                            converter = self.get_converter(tunit, equivalencies)
                         except Exception:
                             pass
                         else:
@@ -1197,7 +1224,7 @@ class UnitBase:
         if other is self and value is UNITY:
             return UNITY
         else:
-            return self._get_converter(Unit(other), equivalencies)(value)
+            return self.get_converter(Unit(other), equivalencies)(value)
 
     def in_units(self, other, value=1.0, equivalencies=[]):
         """
@@ -2017,7 +2044,7 @@ class UnrecognizedUnit(IrreducibleUnit):
         self._normalize_equivalencies(equivalencies)
         return self == other
 
-    def _get_converter(self, other, equivalencies=None):
+    def get_converter(self, other, equivalencies=None):
         self._normalize_equivalencies(equivalencies)
         raise ValueError(
             f"The unit {self.name!r} is unrecognized.  It can not be converted "

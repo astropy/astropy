@@ -36,10 +36,10 @@ def _d(unit):
 
 
 def get_converter(from_unit, to_unit):
-    """Like Unit._get_converter, except returns None if no scaling is needed,
+    """Like Unit.get_converter, except returns None if no scaling is needed,
     i.e., if the inferred scale is unity.
     """
-    converter = from_unit._get_converter(to_unit)
+    converter = from_unit.get_converter(to_unit)
     return None if converter is unit_scale_converter else converter
 
 
