@@ -31,7 +31,7 @@ from astropy.time import Time, TimeDelta
 from astropy.utils.compat import NUMPY_LT_1_25
 from astropy.utils.compat.optional_deps import HAS_PANDAS
 from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 
 from .conftest import MIXIN_COLS, MaskedTable
@@ -3493,3 +3493,27 @@ def test_table_hasattr_iloc():
 
     with pytest.raises(ValueError, match="for a table with indices"):
         t.loc[0]
+
+
+def test_table_columns_setdefault_deprecation():
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            r"^The t\.columns\.setdefault\(\) function is deprecated and may be "
+            "removed in a future version.\n"
+            r"        Use t\.setdefault\(\) instead\.$"
+        ),
+    ):
+        Table().columns.setdefault("a", [0])
+
+
+def test_table_columns_update_deprecation():
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            r"^The t\.columns\.update\(\) function is deprecated and may be "
+            "removed in a future version.\n"
+            r"        Use t\.update\(\) instead\.$"
+        ),
+    ):
+        Table().columns.update({"a": [0]})
