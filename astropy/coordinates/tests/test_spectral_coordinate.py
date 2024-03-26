@@ -56,6 +56,7 @@ def assert_frame_allclose(
     #   the other one can have zero velocities
     # - if velocities are present, they are equal to some tolerance
     # Ideally this should accept both frames and SkyCoords
+    __tracebackhide__ = True
     if hasattr(frame1, "frame"):  # SkyCoord-like
         frame1 = frame1.frame
     if hasattr(frame2, "frame"):  # SkyCoord-like

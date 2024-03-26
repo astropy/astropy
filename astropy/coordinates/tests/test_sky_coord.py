@@ -952,6 +952,7 @@ def assert_quantities_allclose(coord, q1s, attrs):
     two quantities are the *same*, in order to check that the representation
     output has the expected units.
     """
+    __tracebackhide__ = True
     q2s = [getattr(coord, attr) for attr in attrs]
     assert len(q1s) == len(q2s)
     for q1, q2 in zip(q1s, q2s):
