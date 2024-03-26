@@ -3310,6 +3310,19 @@ def test_rows_with_mixins():
     t.group_by("obs")
 
 
+def test_group_by_empty_table():
+    # see https://github.com/astropy/astropy/issues/11884
+    t = Table(names=["a", "b"])
+    tg = t.group_by("a")
+
+    assert len(tg.groups.indices) == 0
+
+    keys = tg.groups.keys
+    assert isinstance(keys, Table)
+    assert keys.colnames == ["a"]
+    assert len(keys) == 0
+
+
 def test_iterrows():
     dat = [
         (1, 2, 3),
