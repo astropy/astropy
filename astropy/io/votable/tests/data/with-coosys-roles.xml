@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.5">
+  <RESOURCE type="results">
+     <INFO name="query" value="SELECT TOP 3 source_id, ra, dec, parallax, pmra, pmdec, radial_velocity, phot_g_mean_mag FROM gaia.dr3lite WHERE radial_velocity IS NOT NULL"/>
+     <INFO name="copyright" value="gaia/q3 copyright or license"> If you use public Gaia DR3 data in a paper, please take note of
+`ESAC's guide`_ on how to acknowledge and cite it.
+
+.. _ESAC's guide:
+https://gea.esac.esa.int/archive/documentation/GDR3/Miscellaneous/sec_credit_and_citation_instructions/</INFO>
+     <COOSYS ID="system" epoch="J2016.0" refposition="BARYCENTER" system="ICRS">
+      <FIELDref ref="parallax" utype="votable:LonLatPoint-dist"/>
+      <FIELDref ref="dec" utype="votable:LonLatPoint-lat"/>
+      <FIELDref ref="ra" utype="votable:LonLatPoint-lon"/>
+      <FIELDref ref="pmdec" utype="votable:ProperMotion-lat"/>
+      <FIELDref ref="pmra" utype="votable:ProperMotion-lon"/>
+      <FIELDref ref="radial_velocity" utype="votable:ProperMotion-rv"/>
+    </COOSYS>
+    <TABLE name="dr3lite">
+      <FIELD ID="source_id" datatype="long" name="source_id" ucd="meta.id;meta.main">
+        <DESCRIPTION>Gaia DR3 unique source identifier. Note that this *cannot* be matched against the DR1 or DR2 source_ids.</DESCRIPTION>
+        <VALUES null="-1">
+          <MIN value="2062590011625375744"/>
+          <MAX value="2062599980256396800"/>
+        </VALUES>
+      </FIELD>
+      <FIELD ID="ra" datatype="double" name="ra" ref="system" ucd="pos.eq.ra;meta.main" unit="deg">
+        <DESCRIPTION>Barycentric Right Ascension in ICRS at epoch J2016.0</DESCRIPTION>
+        <VALUES>
+          <MIN value="303.1374460272634"/>
+          <MAX value="303.73570202109175"/>
+        </VALUES>
+      </FIELD>
+      <FIELD ID="dec" datatype="double" name="dec" ref="system" ucd="pos.eq.dec;meta.main" unit="deg">
+        <DESCRIPTION>Barycentric Declination in ICRS at epoch J2016.0</DESCRIPTION>
+        <VALUES>
+          <MIN value="40.81940008942692"/>
+          <MAX value="41.206298497500555"/>
+        </VALUES>
+      </FIELD>
+      <FIELD ID="parallax" datatype="float" name="parallax" ref="system" ucd="pos.parallax" unit="mas">
+        <DESCRIPTION>Absolute barycentric stellar parallax of the source at the reference epoch J2016.0. If looking for a distance, consider joining with gedr3dist.main and using the distances from there.</DESCRIPTION>
+        <VALUES>
+          <MIN value="-9.340969"/>
+          <MAX value="7.784515"/>
+        </VALUES>
+      </FIELD>
+      <FIELD ID="pmra" datatype="float" name="pmra" ref="system" ucd="pos.pm;pos.eq.ra" unit="mas/yr">
+        <DESCRIPTION>Proper motion in right ascension of the source in ICRS at J2016.0. This is the tangent plane projection of the proper motion vector in the direction of increasing right ascension.</DESCRIPTION>
+        <VALUES>
+          <MIN value="-25.680504"/>
+          <MAX value="32.817715"/>
+        </VALUES>
+      </FIELD>
+      <FIELD ID="pmdec" datatype="float" name="pmdec" ref="system" ucd="pos.pm;pos.eq.dec" unit="mas/yr">
+        <DESCRIPTION>Proper motion in declination at J2016.0.</DESCRIPTION>
+        <VALUES>
+          <MIN value="-37.125694"/>
+          <MAX value="49.34992"/>
+        </VALUES>
+      </FIELD>
+      <FIELD ID="radial_velocity" datatype="float" name="radial_velocity" ref="system" ucd="spect.dopplerVeloc.opt;em.opt.I" unit="km/s">
+        <DESCRIPTION>Spectroscopic radial velocity in the solar barycentric reference frame. For stars brighter than about 12 mag, this is the median of all single-epoch measurements. For fainter stars, RV estimation is from a co-added spectrum.</DESCRIPTION>
+        <VALUES>
+          <MIN value="-123.8354"/>
+          <MAX value="81.86645"/>
+        </VALUES>
+      </FIELD>
+      <FIELD ID="phot_g_mean_mag" datatype="float" name="phot_g_mean_mag" ucd="phot.mag;em.opt;stat.mean" unit="mag">
+        <DESCRIPTION>Mean magnitude in the G band. This is computed from the G-band mean flux applying the magnitude zero-point in the Vega scale. To obtain error estimates, see phot_g_mean_flux_over_error.</DESCRIPTION>
+        <VALUES>
+          <MIN value="9.946217"/>
+          <MAX value="21.579626"/>
+        </VALUES>
+      </FIELD>
+      <DATA>
+        <TABLEDATA>
+          <TR>
+            <TD>2062595852781230848</TD>
+            <TD>303.2227395326406</TD>
+            <TD>40.825118819629516</TD>
+            <TD>1.3890767</TD>
+            <TD>5.029415</TD>
+            <TD>0.014122866</TD>
+            <TD>-22.528074</TD>
+            <TD>13.987203</TD>
+          </TR>
+          <TR>
+            <TD>2062595852792655104</TD>
+            <TD>303.22419275288934</TD>
+            <TD>40.82563680244394</TD>
+            <TD>0.18353778</TD>
+            <TD>-1.5185244</TD>
+            <TD>-3.3214483</TD>
+            <TD>-45.987526</TD>
+            <TD>12.753302</TD>
+          </TR>
+          <TR>
+            <TD>2062595925806829184</TD>
+            <TD>303.20868736229414</TD>
+            <TD>40.84894935834844</TD>
+            <TD>0.2540376</TD>
+            <TD>-2.5769997</TD>
+            <TD>-5.839597</TD>
+            <TD>-60.714565</TD>
+            <TD>13.2095175</TD>
+          </TR>
+        </TABLEDATA>
+      </DATA>
+    </TABLE>
+   </RESOURCE>
+</VOTABLE>

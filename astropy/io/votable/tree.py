@@ -16,8 +16,11 @@ from numpy import ma
 
 # LOCAL
 from astropy import __version__ as astropy_version
+from astropy import units as u
+from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.utils import deprecated
+from astropy.time import Time
 from astropy.utils.collections import HomogeneousList
 from astropy.utils.xml import iterparser
 from astropy.utils.xml.writer import XMLWriter
@@ -1804,7 +1807,7 @@ class Param(Field):
         self._value = tmp_value
 
 
-class CooSys(SimpleElement):
+class CooSys(Element):
     """
     COOSYS_ element: defines a coordinate system.
 
@@ -1817,6 +1820,7 @@ class CooSys(SimpleElement):
 
     def __init__(
         self,
+        votable,
         ID=None,
         equinox=None,
         epoch=None,
@@ -1837,14 +1841,115 @@ class CooSys(SimpleElement):
         ):
             warn_or_raise(W27, W27, (), config, pos)
 
-        SimpleElement.__init__(self)
+        Element.__init__(self)
 
+        self._votable = votable
         self.ID = resolve_id(ID, id, config, pos)
         self.equinox = equinox
         self.epoch = epoch
         self.system = system
+        self.entries = []
 
         warn_unknown_attrs("COOSYS", extra.keys(), config, pos)
+
+    def _add_fieldref(self, iterator, tag, data, config, pos):
+        fieldref = FieldRef(None, config=config, pos=pos, **data)
+        self.entries.append(fieldref)
+
+    def _add_paramref(self, iterator, tag, data, config, pos):
+        paramref = ParamRef(None, config=config, pos=pos, **data)
+        self.entries.append(paramref)
+
+    def parse(self, iterator, config):
+        tag_mapping = {
+            "FIELDref": self._add_fieldref,
+            "PARAMref": self._add_paramref,
+        }
+
+        for start, tag, data, pos in iterator:
+            if start:
+                tag_mapping.get(tag, self._add_unknown_tag)(
+                    iterator, tag, data, config, pos
+                )
+            else:
+                if tag == "COOSYS":
+                    break
+        return self
+
+    # a mapping of COOSYS utypes to equatorial SkyCoord keywords
+    _COOSYS_to_SkyCoord_Equ = {
+        "votable:LonLatPoint-lon": "ra",
+        "votable:LonLatPoint-lat": "dec",
+        "votable:LonLatPoint-dist": "distance",
+        "votable:ProperMotion-lon": "pm_ra_cosdec",
+        "votable:ProperMotion-lat": "pm_dec",
+        "votable:ProperMotion-rv": "radial_velocity",
+    }
+
+    # a mapping of COOSYS utypes to galactic SkyCoord keywords
+    _COOSYS_to_SkyCoord_Gal = {
+        "votable:LonLatPoint-lon": "l",
+        "votable:LonLatPoint-lat": "b",
+        "votable:LonLatPoint-dist": "distance",
+        "votable:ProperMotion-lon": "pm_l_cosb",
+        "votable:ProperMotion-lat": "pm_b",
+        "votable:ProperMotion-rv": "radial_velocity",
+    }
+
+    _VOTable_system_to_astropy = {
+        "eq_FK4": ("fk4", _COOSYS_to_SkyCoord_Equ),
+        "eq_FK5": ("fk5", _COOSYS_to_SkyCoord_Equ),
+        "ICRS": ("icrs", _COOSYS_to_SkyCoord_Equ),
+        "galactic": ("galactic", _COOSYS_to_SkyCoord_Gal),
+        "barycentric": ("icrs", _COOSYS_to_SkyCoord_Equ),
+    }
+    # TODO: We can to supergalactic and probably some of the ecliptic, too.
+
+    def _get_sky_coord_factory(self):
+        """
+        returns a factory function turning a table row into a SkyCoord
+        based on the roles in our PARAM/FIELDrefs.
+        """
+        # TODO: use the refframe vocabulary once we use it
+        # here.
+        if self.system not in self._VOTable_system_to_astropy:
+            # TODO: choose an appropriate exception
+            raise Exception(f"Cannot build SkyCoords from {self.system} coordinates")
+
+        frame, utypekey = self._VOTable_system_to_astropy[self.system]
+
+        constant_keys = {}
+        if self.equinox:
+            constant_keys["equinox"] = Time(self.equinox)
+        if self.epoch:
+            constant_keys["obstime"] = Time(self.epoch)
+        if self.system:
+            constant_keys["frame"] = frame
+
+        kw_map = {}
+        for ref in self.entries:
+            if ref.utype in utypekey:
+                if isinstance(ref, FieldRef):
+                    name = self._votable.get_field_by_id(ref.ref).name
+                else:
+                    # I suppose we'll stick these into constant_keys,
+                    # but we'll probably have to write an ID->param
+                    # function
+                    raise NotImplementedError("Teach me params!")
+
+                kw_map[utypekey[ref.utype]] = name
+
+        def factory(row):
+            sk_args = {key: row[fieldname] for key, fieldname in kw_map.items()}
+            if "distance" in sk_args:
+                sk_args["distance"] = sk_args["distance"].to(
+                    u.pc, equivalencies=u.parallax()
+                )
+            sk_args.update(constant_keys)
+
+            return SkyCoord(**sk_args)
+
+        return factory
 
     @property
     def ID(self):
@@ -3812,7 +3917,7 @@ class Resource(
         param.parse(iterator, config)
 
     def _add_coosys(self, iterator, tag, data, config, pos):
-        coosys = CooSys(config=config, pos=pos, **data)
+        coosys = CooSys(self._votable, config=config, pos=pos, **data)
         self.coordinate_systems.append(coosys)
         coosys.parse(iterator, config)
 
@@ -4063,7 +4168,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         resource.parse(self, iterator, config)
 
     def _add_coosys(self, iterator, tag, data, config, pos):
-        coosys = CooSys(config=config, pos=pos, **data)
+        coosys = CooSys(self._votable, config=config, pos=pos, **data)
         self.coordinate_systems.append(coosys)
         coosys.parse(iterator, config)
 
