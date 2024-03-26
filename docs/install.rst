@@ -90,12 +90,6 @@ or::
       h5py beautifulsoup4 html5lib bleach pandas sortedcontainers \
       pytz setuptools mpmath bottleneck jplephem asdf-astropy pyarrow
 
-To also be able to run tests (see below) and support :ref:`builddocs` use the
-following. We use ``pip`` for these packages to ensure getting the latest
-releases which are compatible with the latest ``pytest`` and ``sphinx`` releases::
-
-    python -m pip install pytest-astropy sphinx-astropy
-
 .. warning::
 
     Attempting to use `pip <https://pip.pypa.io>`__ to upgrade your installation
@@ -108,11 +102,16 @@ Testing an Installed ``astropy``
 
 {% if is_development %}
 
-The easiest way to test if your installed version of ``astropy`` is running
-correctly is to use the :ref:`astropy.test()` function::
+To run tests after installing ``astropy`` we need to install ``pytest`` and
+all other required dependencies. They are available as a meta package ``pytest-astropy``
+on PyPI::
 
-    import astropy
-    astropy.test()
+    python -m pip install pytest-astropy
+
+Once you have installed ``pytest-astropy`` you can run ``pytest`` to test the
+installation::
+
+    pytest --pyargs astropy
 
 The tests should run and print out any failures, which you can report at
 the `Astropy issue tracker <https://github.com/astropy/astropy/issues>`_.

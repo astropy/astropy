@@ -176,51 +176,6 @@ description of `caching
 <https://docs.pytest.org/en/stable/how-to/cache.html>`_.
 
 
-.. _astropy.test():
-
-astropy.test()
-==============
-
-Tests can be run from an installed version of Astropy with::
-
-    import astropy
-    astropy.test()
-
-This will run all the default tests for Astropy (but will not run the
-documentation tests in the ``.rst`` documentation since those files are
-not installed).
-
-Tests for a specific package can be run by specifying the package in the call
-to the ``test()`` function::
-
-    astropy.test(package='io.fits')
-
-This method works only with package names that can be mapped to Astropy
-directories. As an alternative you can test a specific directory or file
-with the ``test_path`` option::
-
-  astropy.test(test_path='wcs/tests/test_wcs.py')
-
-The ``test_path`` must be specified either relative to the working directory
-or absolutely.
-
-By default `astropy.test()`_ will skip tests which retrieve data from the
-internet. To turn these tests on use the ``remote_data`` flag::
-
-    astropy.test(package='io.fits', remote_data=True)
-
-In addition, the ``test`` function supports any of the options that can be
-passed to :ref:`pytest.main() <pytest:pytest.main-usage>`
-and convenience options ``verbose=`` and ``pastebin=``.
-
-Enable PEP8 compliance testing with ``pep8=True`` in the call to
-``astropy.test``. This will enable PEP8 checking and disable regular tests.
-
-Astropy Test Function
----------------------
-
-.. autofunction:: astropy.test
-
 Test-running options
 ====================
 
@@ -260,11 +215,6 @@ commandline option. For example, to use 4 processes::
 
 Pass ``-n auto`` to create the same number of processes as cores
 on your machine.
-
-Similarly, this feature can be invoked from ``astropy.test``::
-
-    >>> import astropy
-    >>> astropy.test(parallel=4)
 
 .. _writing-tests:
 
@@ -369,8 +319,8 @@ local copy of the file.
 Tests that may retrieve remote data should be marked with the
 ``@pytest.mark.remote_data`` decorator, or, if a doctest, flagged with the
 ``REMOTE_DATA`` flag.  Tests marked in this way will be skipped by default by
-``astropy.test()`` to prevent test runs from taking too long. These tests can
-be run by ``astropy.test()`` by adding the ``remote_data='any'`` flag.  Turn on
+``pytest`` to prevent test runs from taking too long. These tests can
+be run by ``pytest`` by adding the ``remote_data='any'`` flag.  Turn on
 the remote data tests at the command line with ``pytest --remote-data=any``.
 
 It is possible to mark tests using
@@ -890,11 +840,6 @@ astropy source code or documentation, or in packages using the Astropy test
 running framework. For example doctests and detailed documentation on how to
 write them, see the full :mod:`doctest` documentation.
 
-.. note::
-
-   Since the narrative Sphinx documentation is not installed alongside the
-   astropy source code, it can only be tested by running ``pytest`` directly (or
-   via tox), not by ``import astropy; astropy.test()``.
 
 For more information on the ``pytest-doctestplus`` plugin used by Astropy, see
 :ref:`doctestplus-plugin`.
