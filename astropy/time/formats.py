@@ -62,8 +62,8 @@ __doctest_skip__ = ["TimePlotDate"]
 # These both get filled in at end after TimeFormat subclasses defined.
 # It is important that these get populated by insertion order.
 # This ensures, e.g., that 'isot' gets tried before 'fits'.
-TIME_FORMATS = dict()
-TIME_DELTA_FORMATS = dict()
+TIME_FORMATS = {}
+TIME_DELTA_FORMATS = {}
 
 # Translations between deprecated FITS timescales defined by
 # Rots et al. 2015, A&A 574:A36, and timescales used here.
