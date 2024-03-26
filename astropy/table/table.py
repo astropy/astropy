@@ -318,7 +318,7 @@ class TableColumns(OrderedDict):
         new_names = [mapper.get(name, name) for name in self]
         cols = list(self.values())
         self.clear()
-        self.update(list(zip(new_names, cols)))
+        super().update(zip(new_names, cols))
 
     def __delitem__(self, name):
         # Remove column names from pprint include/exclude attributes as needed.
@@ -363,6 +363,19 @@ class TableColumns(OrderedDict):
         """
         cols = [col for col in self.values() if not isinstance(col, cls)]
         return cols
+
+    # When the deprecation period of setdefault() and update() is over then they
+    # need to be rewritten to raise an error, not removed.
+
+    @deprecated(
+        since="6.1", alternative="t.setdefault()", name="t.columns.setdefault()"
+    )
+    def setdefault(self, key, default):
+        return super().setdefault(key, default)
+
+    @deprecated(since="6.1", alternative="t.update()", name="t.columns.update()")
+    def update(self, *args, **kwargs):
+        return super().update(*args, **kwargs)
 
 
 class TableAttribute(MetaAttribute):
