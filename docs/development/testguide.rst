@@ -1077,11 +1077,10 @@ In some cases, you may see failures on continuous integration services that
 you do not see locally, for example because the operating system is different,
 or because the failure happens with only 32-bit Python.
 
-Astropy also has the option to run a :ref:`comparative benchmark <benchmarks>` using Github Actions
-to test a new pull request against the current main branch. It uses the benchmarks
-from `Astropy Benchmarks <https://github.com/astropy/astropy-benchmarks/>`_. This
-action only runs if a maintainer adds the label ``benchmark`` to the pull request.
-It is important to note that these benchmarks can be flakey as they run on
+Maintainers have the option to run :ref:`comparative benchmark <benchmarks>` using GitHub Actions
+to test a new pull request against the current ``main`` branch. It uses the benchmarks
+from `astropy-benchmarks <https://github.com/astropy/astropy-benchmarks/>`_.
+It is important to note that these benchmarks can be flaky as they run on
 virtual machines (and thus shared hardware) but they should give a general
 idea of the performance impact of a pull request.
 
