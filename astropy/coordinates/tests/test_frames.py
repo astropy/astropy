@@ -1690,3 +1690,14 @@ def test_spherical_offsets_by_broadcast():
     assert SkyCoord(
         ra=np.array([123, 134, 145]), dec=np.array([45, 56, 67]), unit=u.deg
     ).spherical_offsets_by(2 * u.deg, 2 * u.deg).shape == (3,)
+
+
+@pytest.mark.xfail
+def test_spherical_offsets_with_wrap():
+    # see https://github.com/astropy/astropy/issues/16219
+    sc = SkyCoord(ra=np.array([123]), dec=np.array([90]), unit=u.deg)
+    scop = sc.spherical_offsets_by(+2 * u.deg, 0 * u.deg)
+    assert scop.shape == sc.shape
+
+    scom = sc.spherical_offsets_by(-2 * u.deg, 0 * u.deg)
+    assert scom.shape == sc.shape
