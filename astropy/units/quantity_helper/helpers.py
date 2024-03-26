@@ -18,7 +18,7 @@ from astropy.units.core import (
     dimensionless_unscaled,
     unit_scale_converter,
 )
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0, NUMPY_LT_2_1
 
 if NUMPY_LT_2_0:
     from numpy.core import umath as np_umath
@@ -390,6 +390,9 @@ if not NUMPY_LT_2_0:
         np._core.umath._replace,
         np._core.umath._expandtabs,
         np._core.umath._expandtabs_length,
+    }
+if not NUMPY_LT_2_1:
+    UNSUPPORTED_UFUNCS |= {
         np._core.umath._ljust,
         np._core.umath._rjust,
         np._core.umath._center,
