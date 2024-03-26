@@ -173,7 +173,7 @@ def read_table_parquet(
         names = [n for n, col in full_table_columns.items() if name == col]
         names_to_read.extend(names)
 
-    if not names_to_read:
+    if full_table_columns and not names_to_read:
         raise ValueError("No include_names specified were found in the table.")
 
     # We need to pop any unread serialized columns out of the meta_dict.
