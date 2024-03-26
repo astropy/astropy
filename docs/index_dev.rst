@@ -13,27 +13,40 @@ as well as coding, documentation, and testing guidelines.
 For the guiding vision of this process and the project
 as a whole, see :doc:`development/vision`.
 
+Contributing to astropy
+------------------------
+
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    development/workflow/development_workflow
+   development/workflow/git_edit_workflow_examples
    development/workflow/virtual_pythons
    development/workflow/get_devel_version
    development/codeguide
    development/docguide
    development/style-guide
    development/testguide
-   development/testhelpers
    development/scripts
    development/building
    development/ccython
-   development/releasing
-   development/workflow/maintainer_workflow
-   development/astropy-package-template
 
-There are some additional tools, mostly of use for maintainers, in the
-`astropy/astropy-tools repository
-<https://github.com/astropy/astropy-tools>`__.
+Git resources
+-------------
+.. toctree::
+   :maxdepth: 2
+
+   development/workflow/git_resources
+   development/workflow/additional_git_topics
+
+
+Maintaining astropy and affiliated packages
+-------------------------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   development/maintainers/maintainers-index
 
 {%else%}
 
