@@ -175,6 +175,12 @@ angles and wrapping to be within a single 360 degree slice. The
 :meth:`~astropy.coordinates.Angle.is_within_bounds` method returns a
 boolean indicating whether an angle or angles is within the specified bounds.
 
+.. Note::
+    While creating |Angle| instances from arrays with integral data types
+    is technically possible (for example with ``dtype=int``), it is very
+    limited in functionality and in particular wrapping is not supported for
+    such objects.
+
 
 Longitude and Latitude Objects
 ==============================
