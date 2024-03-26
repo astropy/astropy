@@ -29,24 +29,24 @@ Examples
     >>> td = yaml.dump(t)
     >>> print(td)
     !astropy.time.Time
-    format: mjd
-    in_subfmt: '*'
     jd1: 4857390.0
     jd2: -0.5
-    location: !astropy.coordinates.earth.EarthLocation
-    ellipsoid: WGS84
-    x: !astropy.units.Quantity
-        unit: &id001 !astropy.units.Unit {unit: km}
-        value: 1000.0
-    y: !astropy.units.Quantity
-        unit: *id001
-        value: 2000.0
-    z: !astropy.units.Quantity
-        unit: *id001
-        value: 3000.0
-    out_subfmt: '*'
-    precision: 3
+    format: mjd
     scale: utc
+    precision: 3
+    in_subfmt: '*'
+    out_subfmt: '*'
+    location: !astropy.coordinates.earth.EarthLocation
+    x: !astropy.units.Quantity
+        value: 1000.0
+        unit: &id001 !astropy.units.Unit {unit: km}
+    y: !astropy.units.Quantity
+        value: 2000.0
+        unit: *id001
+    z: !astropy.units.Quantity
+        value: 3000.0
+        unit: *id001
+    ellipsoid: WGS84
     >>> ty = yaml.load(td)
     >>> ty
     <Time object: scale='utc' format='mjd' value=2457389.0>
