@@ -15,8 +15,10 @@ define new equivalencies.
 
 Equivalencies are used by passing a list of equivalency pairs to the
 ``equivalencies`` keyword argument of `Quantity.to()
-<astropy.units.quantity.Quantity.to>` or `Unit.to()
-<astropy.units.core.UnitBase.to>` methods. The list can be supplied directly,
+<astropy.units.quantity.Quantity.to>` `Unit.to()
+<astropy.units.core.UnitBase.to>` or `Unit.get_converter()
+<astropy.units.core.UnitBase.get_converter>` methods.
+The list can be supplied directly,
 but ``astropy`` contains several functions that return appropriate lists so
 constructing them is often not necessary. Alternatively, if a larger piece of
 code needs the same equivalencies, you can set them for a :ref:`given context

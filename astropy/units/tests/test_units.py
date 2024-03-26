@@ -59,7 +59,17 @@ def test_invalid_compare():
 
 
 def test_convert():
-    assert u.h._get_converter(u.s)(1) == 3600
+    assert u.h.get_converter(u.s)(1) == 3600
+
+
+def test_convert_roundtrip():
+    c1 = u.cm.get_converter(u.m)
+    c2 = u.m.get_converter(u.cm)
+    np.isclose(c1(c2(10.0)), c2(c1(10.0)), atol=0, rtol=1e-15)
+
+    c1 = u.arcsec.get_converter(u.pc, u.parallax())
+    c2 = u.pc.get_converter(u.arcsec, u.parallax())
+    np.isclose(c1(c2(10.0)), c2(c1(10.0)), atol=0, rtol=1e-15)
 
 
 def test_convert_fail():
@@ -70,7 +80,7 @@ def test_convert_fail():
 
 
 def test_composite():
-    assert (u.cm / u.s * u.h)._get_converter(u.m)(1) == 36
+    assert (u.cm / u.s * u.h).get_converter(u.m)(1) == 36
     assert u.cm * u.cm == u.cm**2
 
     assert u.cm * u.cm * u.cm == u.cm**3
@@ -186,7 +196,7 @@ def test_unknown_unit3():
     assert unit not in (None, u.m)
 
     with pytest.raises(ValueError):
-        unit._get_converter(unit3)
+        unit.get_converter(unit3)
 
     _ = unit.to_string("latex")
     _ = unit2.to_string("cgs")
