@@ -1,0 +1,1 @@
+Calling ``Table.group_by`` on an empty table no longer raises an exception.
