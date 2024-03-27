@@ -1,0 +1,1 @@
+Replaced ``OrderedDict`` instances within ``io.ascii`` with standard dictionaries, which preserve insertion order as of Python 3.7. Changed calls to ``yaml.dump`` to default to ``sort_keys=False`` to ensure this order is preserved on serialization as well.
