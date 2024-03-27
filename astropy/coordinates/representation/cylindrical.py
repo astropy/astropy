@@ -11,7 +11,7 @@ from astropy.utils.compat import COPY_IF_NEEDED
 
 from .base import BaseDifferential, BaseRepresentation
 from .cartesian import CartesianRepresentation
-from .spherical import _spherical_op_funcs
+from .spherical import PhysicsSphericalRepresentation, _spherical_op_funcs
 
 
 class CylindricalRepresentation(BaseRepresentation):
@@ -134,6 +134,22 @@ class CylindricalRepresentation(BaseRepresentation):
             )
             result.differentials[key] = differential.__class__(*new_comps, copy=False)
         return result
+
+    def represent_as(self, other_class, differential_class=None):
+        if isinstance(other_class, type):
+            if issubclass(other_class, PhysicsSphericalRepresentation):
+                diffs = self._re_represent_differentials(
+                    other_class, differential_class
+                )
+                r = np.hypot(self.rho, self.z)
+                return other_class(
+                    r=r,
+                    theta=np.arccos(self.z / r),
+                    phi=self.phi,
+                    differentials=diffs,
+                )
+
+        return super().represent_as(other_class, differential_class)
 
 
 class CylindricalDifferential(BaseDifferential):

@@ -751,6 +751,19 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
                     differentials=diffs,
                     copy=False,
                 )
+            from .cylindrical import CylindricalRepresentation
+
+            if issubclass(other_class, CylindricalRepresentation):
+                diffs = self._re_represent_differentials(
+                    other_class, differential_class
+                )
+                return other_class(
+                    rho=self.r * np.sin(self.theta),
+                    phi=self.phi,
+                    z=self.r * np.cos(self.theta),
+                    differentials=diffs,
+                    copy=False,
+                )
 
         return super().represent_as(other_class, differential_class)
 
