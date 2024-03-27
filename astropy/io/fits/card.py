@@ -1272,29 +1272,21 @@ def _format_value(value):
     if isinstance(value, str):
         if value == "":
             return "''"
-        else:
-            exp_val_str = value.replace("'", "''")
-            val_str = f"'{exp_val_str:8}'"
-            return f"{val_str:20}"
+        exp_val_str = value.replace("'", "''")
+        val_str = f"'{exp_val_str:8}'"
+        return f"{val_str:20}"
 
+    val_str = None
     # must be before int checking since bool is also int
-    elif isinstance(value, (bool, np.bool_)):
-        return f"{repr(value)[0]:>20}"  # T or F
-
+    if isinstance(value, (bool, np.bool_)):
+        val_str = repr(value)[0]  # T or F
     elif _is_int(value):
-        return f"{value:>20d}"
-
+        val_str = str(value)
     elif isinstance(value, (float, np.floating)):
-        return f"{_format_float(value):>20}"
-
+        val_str = _format_float(value)
     elif isinstance(value, (complex, np.complexfloating)):
         val_str = f"({_format_float(value.real)}, {_format_float(value.imag)})"
-        return f"{val_str:>20}"
-
-    elif isinstance(value, Undefined):
-        return ""
-    else:
-        return ""
+    return "" if val_str is None else f"{val_str:>20}"
 
 
 def _format_float(value):
