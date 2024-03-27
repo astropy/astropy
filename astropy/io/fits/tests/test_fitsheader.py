@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import subprocess
+
 import pytest
 
 from astropy import __version__ as version
@@ -15,11 +17,13 @@ class TestFITSheader_script(FitsTestCase):
         assert e.value.code == 0
 
     def test_version(self, capsys):
-        with pytest.raises(SystemExit) as e:
-            fitsheader.main(["--version"])
-            out = capsys.readouterr()[0]
-            assert out == f"fitsheader {version}"
-        assert e.value.code == 0
+        script = "fitsheader"
+        script_result = subprocess.run(
+            [script, "--version"], capture_output=True, text=True, check=False
+        )
+
+        assert script_result.returncode == 0
+        assert script_result.stdout.strip() == f"{script} {version}"
 
     def test_file_exists(self, capsys):
         fitsheader.main([self.data("arange.fits")])

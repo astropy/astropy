@@ -33,8 +33,8 @@ class TestNormalize:
             ImageNormalize(vmin=2.0, vmax=10.0, interval=ManualInterval, clip=True)
 
     def test_invalid_vmin_vmax(self):
+        norm = ImageNormalize(vmin=10.0, vmax=2.0)
         with pytest.raises(ValueError):
-            norm = ImageNormalize(vmin=10.0, vmax=2.0)
             norm(10)
 
     def test_invalid_stretch(self):

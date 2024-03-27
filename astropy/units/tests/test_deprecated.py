@@ -45,7 +45,9 @@ def test_required_by_vounit():
     with pytest.raises(AttributeError):
         # nano-solar mass/rad/lum shouldn't be in the base unit namespace
         u.nsolMass
+    with pytest.raises(AttributeError):
         u.nsolRad
+    with pytest.raises(AttributeError):
         u.nsolLum
 
     # but they should be enabled by default via required_by_vounit, to allow

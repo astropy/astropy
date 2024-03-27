@@ -643,22 +643,22 @@ class TestFileFunctions(FitsTestCase):
                 pass
 
         # Opening without explicitly specifying binary mode should fail
-        with pytest.raises(ValueError):
-            with open(self.data("test0.fits")) as handle:
+        with open(self.data("test0.fits")) as handle:
+            with pytest.raises(ValueError):
                 with fits.open(handle) as _:
                     pass
 
         # All of these read modes should fail
         for mode in ["r", "rt"]:
-            with pytest.raises(ValueError):
-                with open(self.data("test0.fits"), mode=mode) as handle:
+            with open(self.data("test0.fits"), mode=mode) as handle:
+                with pytest.raises(ValueError):
                     with fits.open(handle) as _:
                         pass
 
         # These update or write modes should fail as well
         for mode in ["w", "wt", "w+", "wt+", "r+", "rt+", "a", "at", "a+", "at+"]:
-            with pytest.raises(ValueError):
-                with open(self.temp("temp.fits"), mode=mode) as handle:
+            with open(self.temp("temp.fits"), mode=mode) as handle:
+                with pytest.raises(ValueError):
                     with fits.open(handle) as _:
                         pass
 
@@ -674,8 +674,8 @@ class TestFileFunctions(FitsTestCase):
                 pass
 
         # This should not work since the modes conflict
-        with pytest.raises(ValueError):
-            with open(self.data("test0.fits"), "rb") as handle:
+        with open(self.data("test0.fits"), "rb") as handle:
+            with pytest.raises(ValueError):
                 with fits.open(handle, mode="ostream") as _:
                     pass
 
@@ -687,8 +687,8 @@ class TestFileFunctions(FitsTestCase):
 
         # It will not be possible to write to a file that is from a URL object
         for mode in ("ostream", "append", "update"):
-            with pytest.raises(ValueError):
-                with urllib.request.urlopen(file_url) as urlobj:
+            with urllib.request.urlopen(file_url) as urlobj:
+                with pytest.raises(ValueError):
                     with fits.open(urlobj, mode=mode) as _:
                         pass
 
@@ -702,10 +702,11 @@ class TestFileFunctions(FitsTestCase):
                         assert len(fits_handle) == 1
 
                 for mode in ("ostream", "append", "update"):
-                    with pytest.raises(ValueError):
-                        with urllib.request.urlopen(remote_url) as urlobj:
+                    with urllib.request.urlopen(remote_url) as urlobj:
+                        with pytest.raises(ValueError):
                             with fits.open(urlobj, mode=mode) as fits_handle:
                                 assert len(fits_handle) == 1
+
             except (urllib.error.HTTPError, urllib.error.URLError):
                 continue
             else:
@@ -1254,16 +1255,17 @@ class TestFileFunctions(FitsTestCase):
             "Not enough space on disk: requested 8000, available 0. "
             "Fake error raised when writing file."
         )
-        with pytest.raises(OSError, match=msg) as exc:
-            monkeypatch.setattr(fits.hdu.base._BaseHDU, "_writeto", _writeto)
-            monkeypatch.setattr(data, "get_free_space_in_dir", get_free_space_in_dir)
 
-            n = np.arange(0, 1000, dtype="int64")
-            hdu = fits.PrimaryHDU(n)
-            hdulist = fits.HDUList(hdu)
-            filename = self.temp("test.fits")
+        monkeypatch.setattr(fits.hdu.base._BaseHDU, "_writeto", _writeto)
+        monkeypatch.setattr(data, "get_free_space_in_dir", get_free_space_in_dir)
 
-            with open(filename, mode="wb") as fileobj:
+        n = np.arange(0, 1000, dtype="int64")
+        hdu = fits.PrimaryHDU(n)
+        hdulist = fits.HDUList(hdu)
+        filename = self.temp("test.fits")
+
+        with open(filename, mode="wb") as fileobj:
+            with pytest.raises(OSError, match=msg) as exc:
                 hdulist.writeto(fileobj)
 
     def test_flush_full_disk(self, monkeypatch):
@@ -1290,11 +1292,14 @@ class TestFileFunctions(FitsTestCase):
             "Not enough space on disk: requested 8000, available 0. "
             "Fake error raised when writing file."
         )
-        with pytest.raises(OSError, match=msg) as exc:
-            with fits.open(filename, mode="update") as hdul:
-                hdul[0].data = np.arange(0, 1000, dtype="int64")
-                hdul.insert(1, fits.ImageHDU())
+
+        with fits.open(filename, mode="update") as hdul:
+            hdul[0].data = np.arange(0, 1000, dtype="int64")
+            hdul.insert(1, fits.ImageHDU())
+            with pytest.raises(OSError, match=msg):
                 hdul.flush()
+            del hdul[0].data
+            del hdul[1]
 
     def _test_write_string_bytes_io(self, fileobj):
         """
@@ -1406,9 +1411,9 @@ class TestStreamingFunctions(FitsTestCase):
         Test that streaming an HDU to a file opened in the wrong mode fails as
         expected.
         """
-        with pytest.raises(ValueError):
-            with open(self.temp("new.fits"), "wb") as f:
-                header = fits.Header()
+        with open(self.temp("new.fits"), "wb") as f:
+            header = fits.Header()
+            with pytest.raises(ValueError):
                 fits.StreamingHDU(f, header)
 
     def test_streaming_hdu_write_file(self):
