@@ -378,7 +378,11 @@ class _File:
                         # resulting arrays will be truly read-only.
 
                         if (
-                            exc.errno == errno.ENOMEM or exc.winerror == 1455
+                            exc.errno == errno.ENOMEM
+                            or (
+                                exc.errno == errno.EINVAL
+                                and getattr(exc, "winerror", 0) == 1455
+                            )
                         ) and self.mode == "readonly":
                             warnings.warn(
                                 "Could not memory map array with "
