@@ -123,3 +123,8 @@ py:class a shallow copy of D
 
 # This extends the numpydoc list above to fix lincheck warning
 py:class reference target not found: (k, v)
+
+# Types used in annotations included here because of a Sphinx bug.
+# See https://github.com/sphinx-doc/sphinx/issues/9813
+# and https://github.com/sphinx-doc/sphinx/issues/11225
+py:class ModuleType
