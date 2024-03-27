@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import copy
 import operator
 import warnings
 
@@ -462,6 +463,24 @@ class TestColumn:
 
         with pytest.raises(AttributeError):
             t["a"].mask = [True, False]
+
+
+@pytest.mark.parametrize(
+    "data",
+    [np.array([object()]), [object()]],
+)
+def test_deepcopy_object_column(data):
+    # see https://github.com/astropy/astropy/issues/13435
+    c1 = table.Column(data, meta={"test": object()})
+    c2 = copy.deepcopy(c1)
+    assert c2 is not c1
+    assert c2[0] is not c1[0]
+    assert c2.meta["test"] is not c1.meta["test"]
+
+    c3 = table.Column(c1, copy=True)
+    assert c3 is not c1
+    assert c3[0] is c1[0]
+    assert c3.meta["test"] is not c1.meta["test"]
 
 
 class TestAttrEqual:

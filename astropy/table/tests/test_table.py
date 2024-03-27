@@ -2720,6 +2720,27 @@ def test_table_meta_copy_with_meta_arg():
     assert t.meta[1] is not meta[1]
 
 
+@pytest.mark.parametrize(
+    "data",
+    [np.array([object()]), [object()]],
+)
+def test_deepcopy_object_column(data):
+    # see https://github.com/astropy/astropy/issues/13435
+    t1 = Table({"a": data}, meta={"test": object()})
+    t2 = copy.deepcopy(t1)
+    c1 = t1["a"]
+    c2 = t2["a"]
+    assert c2 is not c1
+    assert c2[0] is not c1[0]
+    assert t2.meta["test"] is not t1.meta["test"]
+
+    t3 = Table(t1, copy=True)
+    c3 = t3["a"]
+    assert c3 is not c1
+    assert c3[0] is c1[0]
+    assert t3.meta["test"] is not t1.meta["test"]
+
+
 def test_replace_column_qtable():
     """Replace existing Quantity column with a new column in a QTable"""
     a = [1, 2, 3] * u.m
