@@ -857,9 +857,9 @@ class TestPhysicsSphericalRepresentation:
             phi=270 * u.deg, theta=45 * u.deg, r=0 * u.kpc
         )
         cyl = sph.represent_as(CylindricalRepresentation)
-        assert_allclose(cyl.rho, 0 * u.kpc)
-        assert_allclose(cyl.z, 0 * u.kpc)
-        assert_allclose(cyl.phi, 270 * u.deg)  # phi is preserved
+        assert cyl.rho == 0.0 * u.kpc
+        assert cyl.z == 0.0 * u.kpc
+        assert cyl.phi == 270 * u.deg  # phi is preserved exactly
 
     def test_initialize_with_nan(self):
         # Regression test for gh-11558: initialization used to fail.
@@ -1430,7 +1430,7 @@ class TestCylindricalRepresentation:
         sph = cyl.represent_as(PhysicsSphericalRepresentation)
         assert_allclose(sph.r, 3 * u.kpc)
         assert_allclose(sph.theta, 0 * u.deg)
-        assert_allclose(cyl.phi, 23.5 * u.deg)  # phi is preserved
+        assert cyl.phi == 23.5 * u.deg  # phi is preserved exactly
 
 
 class TestUnitSphericalCosLatDifferential:
