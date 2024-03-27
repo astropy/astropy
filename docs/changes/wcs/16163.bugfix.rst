@@ -1,0 +1,1 @@
+``DistortionLookupTable`` s (which implement ``cpdis`` and ``det2im`` projection corrections to a WCS) are now correctly aligned to the image plane, and they are handled when a WCS is sliced.
