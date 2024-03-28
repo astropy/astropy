@@ -2394,16 +2394,13 @@ def test_hash_masked_time(location, masked_array_type):
     t = Time([1, 1, 2, 3], format="cxcsec", location=location)
     t[3] = np.ma.masked
     with conf.set_temp("masked_array_type", masked_array_type):
-        if masked_array_type == "numpy":
-            h1 = hash(t[0])
-            h2 = hash(t[1])
-            h3 = hash(t[2])
-            assert h1 == h2
-            assert h1 != h3
-        else:
-            with pytest.raises(TypeError, match="value is masked"):
-                hash(t[0])
-
+        # Unmasked scalars should always be fine.
+        h1 = hash(t[0])
+        h2 = hash(t[1])
+        assert h2 == h1
+        h3 = hash(t[2])
+        assert h3 != h1
+        # But arrays and masked elements cannot be hashed
         with pytest.raises(
             TypeError, match=r"unhashable type: 'Time' \(must be scalar\)"
         ):
@@ -2420,16 +2417,13 @@ def test_hash_time_delta_masked(masked_array_type):
     t = TimeDelta([1, 1, 2, 3], format="sec")
     t[3] = np.ma.masked
     with conf.set_temp("masked_array_type", masked_array_type):
-        if masked_array_type == "numpy":
-            h1 = hash(t[0])
-            h2 = hash(t[1])
-            h3 = hash(t[2])
-            assert h1 == h2
-            assert h1 != h3
-        else:
-            with pytest.raises(TypeError, match=r"'TimeDelta' \(value is masked\)"):
-                hash(t[0])
-
+        # Unmasked scalars should always be fine.
+        h1 = hash(t[0])
+        h2 = hash(t[1])
+        h3 = hash(t[2])
+        assert h2 == h1
+        assert h3 != h1
+        # But arrays and masked elements cannot be hashed
         with pytest.raises(TypeError, match=r"'TimeDelta' \(must be scalar\)"):
             hash(t)
 

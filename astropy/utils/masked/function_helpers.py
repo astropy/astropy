@@ -2,7 +2,7 @@
 """Helpers for letting numpy functions interact with Masked arrays.
 
 The module supplies helper routines for numpy functions that propagate
-masks appropriately., for use in the ``__array_function__``
+masks appropriately, for use in the ``__array_function__``
 implementation of `~astropy.utils.masked.MaskedNDArray`.  They are not
 very useful on their own, but the ones with docstrings are included in
 the documentation so that there is a place to find out how the mask is
@@ -129,6 +129,8 @@ MASKED_SAFE_FUNCTIONS |= {
     np.fix, np.isneginf, np.isposinf,
     # np.lib._function_base_impl
     np.angle, np.i0,
+    # np.lib._arraysetops_impl
+    np.intersect1d, np.setxor1d, np.union1d, np.unique,
 }  # fmt: skip
 
 
@@ -141,7 +143,10 @@ if NUMPY_LT_2_0:
     MASKED_SAFE_FUNCTIONS |= {np.trapz}
 else:
     # new in numpy 2.0
-    MASKED_SAFE_FUNCTIONS |= {np.astype, np.trapezoid}
+    MASKED_SAFE_FUNCTIONS |= {
+        np.astype, np.trapezoid,
+        np.unique_all, np.unique_counts, np.unique_inverse, np.unique_values,
+    }  # fmt: skip
 
 IGNORED_FUNCTIONS = {
     # I/O - useless for Masked, since no way to store the mask.
@@ -163,16 +168,6 @@ IGNORED_FUNCTIONS |= {
     np.dot, np.vdot, np.inner, np.tensordot, np.cross,
     np.einsum, np.einsum_path,
 }  # fmt: skip
-
-# Really should do these...
-if NUMPY_LT_2_0:
-    from numpy.lib import arraysetops
-else:
-    # Public set operations have been moved to the top-level namespace in numpy 2.0
-    # (numpy/numpy#24507), raising an AttributeError when accessed through np.lib.arraysetops.
-    from numpy.lib import _arraysetops_impl as arraysetops
-
-IGNORED_FUNCTIONS |= {getattr(np, setopsname) for setopsname in arraysetops.__all__}
 
 # Explicitly unsupported functions
 UNSUPPORTED_FUNCTIONS |= {
@@ -1332,6 +1327,93 @@ for nanfuncname in _nplibnanfunctions.__all__:
     globals()[nanfuncname] = dispatched_function(
         masked_nanfunc(nanfuncname), helps=getattr(np, nanfuncname)
     )
+
+
+@dispatched_function
+def ediff1d(ary, to_end=None, to_begin=None):
+    from astropy.utils.masked import Masked
+
+    # ediff1d works fine if ary is Masked, but not if it is not (and
+    # we got here because to_end and/or to_begin are Masked).
+    if not isinstance(ary, Masked):
+        ary = Masked(ary)
+
+    return np.ediff1d.__wrapped__(ary, to_end, to_begin), None, None
+
+
+def _in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
+    # Copy sorting implementation from _arraysetops_impl._in1d;
+    # the others cannot work in the presence of a mask.
+    if kind == "table":
+        raise ValueError(
+            "The 'table' method is not supported for Masked arrays."
+            "Please select 'sort' or None for kind."
+        )
+
+    # Straight copy from here on.
+    if not assume_unique:
+        ar1, rev_idx = np.unique(ar1, return_inverse=True)
+        ar2 = np.unique(ar2)
+
+    ar = np.concatenate((ar1, ar2))
+    # We need this to be a stable sort, so always use 'mergesort'
+    # here. The values from the first array should always come before
+    # the values from the second array.
+    order = ar.argsort(kind="mergesort")
+    sar = ar[order]
+    if invert:
+        bool_ar = sar[1:] != sar[:-1]
+    else:
+        bool_ar = sar[1:] == sar[:-1]
+    flag = np.concatenate((bool_ar, [invert]))
+    ret = np.empty(ar.shape, dtype=bool)
+    ret[order] = flag
+    return ret[: len(ar1)] if assume_unique else ret[rev_idx]
+
+
+def _copy_of_mask(a):
+    mask = getattr(a, "mask", None)
+    return mask.copy() if mask is not None else False
+
+
+if NUMPY_LT_1_24:  # "kind" argument introduced in 1.24.
+
+    @dispatched_function
+    def in1d(ar1, ar2, assume_unique=False, invert=False):
+        mask = _copy_of_mask(ar1).ravel()
+        return _in1d(ar1, ar2, assume_unique, invert), mask, None
+
+    @dispatched_function
+    def isin(element, test_elements, assume_unique=False, invert=False):
+        element = np.asanyarray(element)
+        result = _in1d(element, test_elements, assume_unique, invert)
+        result.shape = element.shape
+        return result, _copy_of_mask(element), None
+
+else:
+
+    @dispatched_function
+    def in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
+        mask = _copy_of_mask(ar1).ravel()
+        return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
+
+    @dispatched_function
+    def isin(element, test_elements, assume_unique=False, invert=False, *, kind=None):
+        element = np.asanyarray(element)
+        result = _in1d(element, test_elements, assume_unique, invert, kind=kind)
+        result.shape = element.shape
+        return result, _copy_of_mask(element), None
+
+
+@dispatched_function
+def setdiff1d(ar1, ar2, assume_unique=False):
+    # Again, mostly just to avoid an asarray call.
+    if assume_unique:
+        ar1 = np.asanyarray(ar1).ravel()
+    else:
+        ar1 = np.unique(ar1)
+        ar2 = np.unique(ar2)
+    return ar1[np.isin(ar1, ar2, assume_unique=True, invert=True)], None, None
 
 
 # Add any dispatched or helper function that has a docstring to
