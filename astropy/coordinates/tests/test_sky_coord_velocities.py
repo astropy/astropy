@@ -168,12 +168,13 @@ def sc(request):
 
 @pytest.fixture(scope="module")
 def scmany():
+    rng = np.random.default_rng()
     return SkyCoord(
         ICRS(
             ra=[1] * 100 * u.deg,
             dec=[2] * 100 * u.deg,
-            pm_ra_cosdec=np.random.randn(100) * u.mas / u.yr,
-            pm_dec=np.random.randn(100) * u.mas / u.yr,
+            pm_ra_cosdec=rng.standard_normal(100) * u.mas / u.yr,
+            pm_dec=rng.standard_normal(100) * u.mas / u.yr,
         )
     )
 

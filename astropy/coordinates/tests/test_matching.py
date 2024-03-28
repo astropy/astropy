@@ -137,17 +137,16 @@ def test_python_kdtree(monkeypatch):
 def test_matching_method():
     from astropy.coordinates import ICRS, SkyCoord
     from astropy.coordinates.matching import match_coordinates_3d, match_coordinates_sky
-    from astropy.utils import NumpyRNGContext
 
-    with NumpyRNGContext(987654321):
-        cmatch = ICRS(
-            np.random.rand(20) * 360.0 * u.degree,
-            (np.random.rand(20) * 180.0 - 90.0) * u.degree,
-        )
-        ccatalog = ICRS(
-            np.random.rand(100) * 360.0 * u.degree,
-            (np.random.rand(100) * 180.0 - 90.0) * u.degree,
-        )
+    rng = np.random.default_rng(987654321)
+    cmatch = ICRS(
+        rng.random(20) * 360.0 * u.degree,
+        (rng.random(20) * 180.0 - 90.0) * u.degree,
+    )
+    ccatalog = ICRS(
+        rng.random(100) * 360.0 * u.degree,
+        (rng.random(100) * 180.0 - 90.0) * u.degree,
+    )
 
     idx1, d2d1, d3d1 = SkyCoord(cmatch).match_to_catalog_3d(ccatalog)
     idx2, d2d2, d3d2 = match_coordinates_3d(cmatch, ccatalog)

@@ -9,7 +9,6 @@ from numpy.testing import assert_allclose, assert_almost_equal
 from astropy.convolution.convolve import convolve, convolve_fft, convolve_models
 from astropy.modeling import fitting, models
 from astropy.utils.compat.optional_deps import HAS_SCIPY
-from astropy.utils.misc import NumpyRNGContext
 
 
 class TestConvolve1DModels:
@@ -87,8 +86,8 @@ class TestConvolve1DModels:
 
         x = np.linspace(-5, 5, 99)
         fake_model = models.Gaussian1D(amplitude=10)
-        with NumpyRNGContext(123):
-            fake_data = fake_model(x) + np.random.normal(size=len(x))
+        rng = np.random.default_rng(0)
+        fake_data = fake_model(x) + rng.normal(size=len(x))
 
         init_model = convolve_models(b1, g1, mode=mode, normalize_kernel=False)
         fitter = fitting.LevMarLSQFitter()

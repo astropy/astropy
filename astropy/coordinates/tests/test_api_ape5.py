@@ -124,8 +124,9 @@ def test_representations_api():
     # physics convention, as it is one of the most common cases.
     _ = PhysicsSphericalRepresentation(phi=120 * u.deg, theta=85 * u.deg, r=3 * u.kpc)
 
+    rng = np.random.default_rng()
     # first dimension must be length-3 if a lone `Quantity` is passed in.
-    c1 = CartesianRepresentation(np.random.randn(3, 100) * u.kpc)
+    c1 = CartesianRepresentation(rng.standard_normal((3, 100)) * u.kpc)
     assert c1.xyz.shape[0] == 3
     assert c1.xyz.unit == u.kpc
     assert c1.x.shape[0] == 100
@@ -133,13 +134,13 @@ def test_representations_api():
     assert c1.z.shape[0] == 100
     # can also give each as separate keywords
     CartesianRepresentation(
-        x=np.random.randn(100) * u.kpc,
-        y=np.random.randn(100) * u.kpc,
-        z=np.random.randn(100) * u.kpc,
+        x=rng.standard_normal(100) * u.kpc,
+        y=rng.standard_normal(100) * u.kpc,
+        z=rng.standard_normal(100) * u.kpc,
     )
     # if the units don't match but are all distances, they will automatically be
     # converted to match `x`
-    xarr, yarr, zarr = np.random.randn(3, 100)
+    xarr, yarr, zarr = rng.standard_normal((3, 100))
     c1 = CartesianRepresentation(x=xarr * u.kpc, y=yarr * u.kpc, z=zarr * u.kpc)
     c2 = CartesianRepresentation(x=xarr * u.kpc, y=yarr * u.kpc, z=zarr * u.pc)
     assert c1.xyz.unit == c2.xyz.unit == u.kpc

@@ -285,7 +285,9 @@ class TestImageScaling:
 def test_imshow_norm():
     import matplotlib.pyplot as plt
 
-    image = np.random.randn(10, 10)
+    rng = np.random.default_rng()
+
+    image = rng.random((10, 10))
 
     plt.clf()
     ax = plt.subplot(label="test_imshow_norm")

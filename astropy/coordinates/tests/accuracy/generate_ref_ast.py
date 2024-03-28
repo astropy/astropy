@@ -18,18 +18,18 @@ def ref_fk4_no_e_fk4(fnout="fk4_no_e_fk4.csv"):
     """
     import starlink.Ast as Ast
 
-    np.random.seed(12345)
+    rng = np.random.default_rng(12345)
 
     N = 200
 
     # Sample uniformly on the unit sphere. These will be either the FK4
     # coordinates for the transformation to FK5, or the FK5 coordinates for the
     # transformation to FK4.
-    ra = np.random.uniform(0.0, 360.0, N)
-    dec = np.degrees(np.arcsin(np.random.uniform(-1.0, 1.0, N)))
+    ra = rng.uniform(0.0, 360.0, N)
+    dec = np.degrees(np.arcsin(rng.uniform(-1.0, 1.0, N)))
 
     # Generate random observation epoch and equinoxes
-    obstime = [f"B{x:7.2f}" for x in np.random.uniform(1950.0, 2000.0, N)]
+    obstime = [f"B{x:7.2f}" for x in rng.uniform(1950.0, 2000.0, N)]
 
     ra_fk4ne, dec_fk4ne = [], []
     ra_fk4, dec_fk4 = [], []
@@ -75,20 +75,20 @@ def ref_fk4_no_e_fk5(fnout="fk4_no_e_fk5.csv"):
     """
     import starlink.Ast as Ast
 
-    np.random.seed(12345)
+    rng = np.random.default_rng(12345)
 
     N = 200
 
     # Sample uniformly on the unit sphere. These will be either the FK4
     # coordinates for the transformation to FK5, or the FK5 coordinates for the
     # transformation to FK4.
-    ra = np.random.uniform(0.0, 360.0, N)
-    dec = np.degrees(np.arcsin(np.random.uniform(-1.0, 1.0, N)))
+    ra = rng.uniform(0.0, 360.0, N)
+    dec = np.degrees(np.arcsin(rng.uniform(-1.0, 1.0, N)))
 
     # Generate random observation epoch and equinoxes
-    obstime = [f"B{x:7.2f}" for x in np.random.uniform(1950.0, 2000.0, N)]
-    equinox_fk4 = [f"B{x:7.2f}" for x in np.random.uniform(1925.0, 1975.0, N)]
-    equinox_fk5 = [f"J{x:7.2f}" for x in np.random.uniform(1975.0, 2025.0, N)]
+    obstime = [f"B{x:7.2f}" for x in rng.uniform(1950.0, 2000.0, N)]
+    equinox_fk4 = [f"B{x:7.2f}" for x in rng.uniform(1925.0, 1975.0, N)]
+    equinox_fk5 = [f"J{x:7.2f}" for x in rng.uniform(1975.0, 2025.0, N)]
 
     ra_fk4, dec_fk4 = [], []
     ra_fk5, dec_fk5 = [], []
@@ -140,19 +140,19 @@ def ref_galactic_fk4(fnout="galactic_fk4.csv"):
     """
     import starlink.Ast as Ast
 
-    np.random.seed(12345)
+    rng = np.random.default_rng(12345)
 
     N = 200
 
     # Sample uniformly on the unit sphere. These will be either the ICRS
     # coordinates for the transformation to FK5, or the FK5 coordinates for the
     # transformation to ICRS.
-    lon = np.random.uniform(0.0, 360.0, N)
-    lat = np.degrees(np.arcsin(np.random.uniform(-1.0, 1.0, N)))
+    lon = rng.uniform(0.0, 360.0, N)
+    lat = np.degrees(np.arcsin(rng.uniform(-1.0, 1.0, N)))
 
     # Generate random observation epoch and equinoxes
-    obstime = [f"B{x:7.2f}" for x in np.random.uniform(1950.0, 2000.0, N)]
-    equinox_fk4 = [f"J{x:7.2f}" for x in np.random.uniform(1975.0, 2025.0, N)]
+    obstime = [f"B{x:7.2f}" for x in rng.uniform(1950.0, 2000.0, N)]
+    equinox_fk4 = [f"J{x:7.2f}" for x in rng.uniform(1975.0, 2025.0, N)]
 
     lon_gal, lat_gal = [], []
     ra_fk4, dec_fk4 = [], []
@@ -201,19 +201,18 @@ def ref_icrs_fk5(fnout="icrs_fk5.csv"):
     """
     import starlink.Ast as Ast
 
-    np.random.seed(12345)
-
+    rng = np.random.default_rng(12345)
     N = 200
 
     # Sample uniformly on the unit sphere. These will be either the ICRS
     # coordinates for the transformation to FK5, or the FK5 coordinates for the
     # transformation to ICRS.
-    ra = np.random.uniform(0.0, 360.0, N)
-    dec = np.degrees(np.arcsin(np.random.uniform(-1.0, 1.0, N)))
+    ra = rng.uniform(0.0, 360.0, N)
+    dec = np.degrees(np.arcsin(rng.uniform(-1.0, 1.0, N)))
 
     # Generate random observation epoch and equinoxes
-    obstime = [f"B{x:7.2f}" for x in np.random.uniform(1950.0, 2000.0, N)]
-    equinox_fk5 = [f"J{x:7.2f}" for x in np.random.uniform(1975.0, 2025.0, N)]
+    obstime = [f"B{x:7.2f}" for x in rng.uniform(1950.0, 2000.0, N)]
+    equinox_fk5 = [f"J{x:7.2f}" for x in rng.uniform(1975.0, 2025.0, N)]
 
     ra_icrs, dec_icrs = [], []
     ra_fk5, dec_fk5 = [], []

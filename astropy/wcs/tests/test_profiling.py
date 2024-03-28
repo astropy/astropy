@@ -7,7 +7,6 @@ import pytest
 
 from astropy import wcs
 from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filenames
-from astropy.utils.misc import NumpyRNGContext
 from astropy.wcs.wcs import FITSFixedWarning
 
 # use the base name of the file, because everything we yield
@@ -41,10 +40,10 @@ def test_map(filename):
     header = get_pkg_data_contents(os.path.join("data/maps", filename))
     wcsobj = wcs.WCS(header)
 
-    with NumpyRNGContext(123456789):
-        x = np.random.rand(2**12, wcsobj.wcs.naxis)
-        wcsobj.wcs_pix2world(x, 1)
-        wcsobj.wcs_world2pix(x, 1)
+    rng = np.random.default_rng(123456789)
+    x = rng.random((2**12, wcsobj.wcs.naxis))
+    wcsobj.wcs_pix2world(x, 1)
+    wcsobj.wcs_world2pix(x, 1)
 
 
 hdr_spec_file_list = [
@@ -73,7 +72,7 @@ def test_spectrum(filename):
         wcsobj = wcs.WCS(header)
     for w in warning_lines:
         assert issubclass(w.category, FITSFixedWarning)
-    with NumpyRNGContext(123456789):
-        x = np.random.rand(2**16, wcsobj.wcs.naxis)
-        wcsobj.wcs_pix2world(x, 1)
-        wcsobj.wcs_world2pix(x, 1)
+    rng = np.random.default_rng(123456789)
+    x = rng.random((2**16, wcsobj.wcs.naxis))
+    wcsobj.wcs_pix2world(x, 1)
+    wcsobj.wcs_world2pix(x, 1)

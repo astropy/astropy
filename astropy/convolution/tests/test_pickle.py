@@ -6,11 +6,13 @@ import pytest
 from astropy import convolution as conv
 from astropy.tests.helper import check_pickling_recovery, pickle_protocol  # noqa: F401
 
+rng = np.random.default_rng()
+
 
 @pytest.mark.parametrize(
     ("name", "args", "kwargs", "xfail"),
     [
-        (conv.CustomKernel, [], {"array": np.random.rand(15)}, False),
+        (conv.CustomKernel, [], {"array": rng.random(15)}, False),
         (conv.Gaussian1DKernel, [1.0], {"x_size": 5}, True),
         (conv.Gaussian2DKernel, [1.0], {"x_size": 5, "y_size": 5}, True),
     ],

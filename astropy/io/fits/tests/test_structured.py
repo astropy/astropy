@@ -63,10 +63,10 @@ def compare_arrays(arr1in, arr2in, verbose=False):
 def get_test_data(verbose=False):
     st = np.zeros(3, [("f1", "i4"), ("f2", "S6"), ("f3", ">2f8")])
 
-    np.random.seed(35)
+    rng = np.random.default_rng(35)
     st["f1"] = [1, 3, 5]
     st["f2"] = ["hello", "world", "byebye"]
-    st["f3"] = np.random.random(st["f3"].shape)
+    st["f3"] = rng.random(st["f3"].shape)
 
     return st
 
