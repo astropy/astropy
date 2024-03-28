@@ -1138,6 +1138,13 @@ class Quantity(np.ndarray):
     # DeprecationWarnings on any error, which is distracting, and does not
     # deal well with structured arrays (nor does the ufunc).
     def __eq__(self, other):
+        if (
+            hasattr(other, "unit")
+            and hasattr(other.unit, "physical_type")
+            and (other.unit.physical_type) != self.unit.physical_type
+        ):
+            # hot path for flagrant inequality cases
+            return False
         try:
             other_value = self._to_own_unit(other)
         except UnitsError:
@@ -1147,6 +1154,13 @@ class Quantity(np.ndarray):
         return self.value.__eq__(other_value)
 
     def __ne__(self, other):
+        if (
+            hasattr(other, "unit")
+            and hasattr(other.unit, "physical_type")
+            and (other.unit.physical_type) != self.unit.physical_type
+        ):
+            # hot path for flagrant inequality cases
+            return True
         try:
             other_value = self._to_own_unit(other)
         except UnitsError:
