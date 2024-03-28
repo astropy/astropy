@@ -4,7 +4,6 @@
 __all__ = ["MetaData", "MetaAttribute"]
 
 import inspect
-from collections import OrderedDict
 from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import is_dataclass
@@ -58,18 +57,6 @@ class MetaData:
 
         >>> foo = Foo()
         >>> foo.meta
-        OrderedDict()
-
-    If an :class:`~collections.OrderedDict` is not a good default metadata type then
-    the ``default_factory`` keyword can be used to set the default to a different
-    `Mapping` type, when the class is defined.'
-
-        >>> class Bar:
-        ...     meta = MetaData(default_factory=dict)
-        ...     def __init__(self, meta=None):
-        ...         self.meta = meta
-
-        >>> Bar().meta
         {}
 
     When accessed from the class ``.meta`` returns `None` since metadata is
@@ -79,7 +66,7 @@ class MetaData:
         None
     """
 
-    def __init__(self, doc="", copy=True, *, default_factory=OrderedDict):
+    def __init__(self, doc="", copy=True, *, default_factory=dict):
         self.__doc__ = doc
         self.copy = copy
         self._default_factory = default_factory
