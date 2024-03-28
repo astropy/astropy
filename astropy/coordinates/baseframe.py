@@ -28,12 +28,18 @@ from astropy.utils.exceptions import AstropyWarning
 from . import representation as r
 from .angles import Angle, position_angle
 from .attributes import Attribute
-from .transformations import TransformGraph
+from .errors import NonRotationTransformationError, NonRotationTransformationWarning
+from .transformations import (
+    DynamicMatrixTransform,
+    StaticMatrixTransform,
+    TransformGraph,
+)
 
 if TYPE_CHECKING:
+    from typing import Literal
+
     from astropy.coordinates import Latitude, Longitude, SkyCoord
     from astropy.units import Unit
-
 
 # the graph used for all transformations between frames
 frame_transform_graph = TransformGraph()
@@ -1750,13 +1756,33 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         return np.logical_not(self == value)
 
     def _prepare_unit_sphere_coords(
-        self, other: BaseCoordinateFrame | SkyCoord
+        self,
+        other: BaseCoordinateFrame | SkyCoord,
+        origin_mismatch: Literal["ignore", "warn", "error"],
     ) -> tuple[Longitude, Latitude, Longitude, Latitude]:
+        other_frame = getattr(other, "frame", other)
+        if not (
+            origin_mismatch == "ignore"
+            or self.is_equivalent_frame(other_frame)
+            or all(
+                isinstance(comp, (StaticMatrixTransform, DynamicMatrixTransform))
+                for comp in frame_transform_graph.get_transform(
+                    type(self), type(other_frame)
+                ).transforms
+            )
+        ):
+            if origin_mismatch == "warn":
+                warnings.warn(NonRotationTransformationWarning(self, other_frame))
+            elif origin_mismatch == "error":
+                raise NonRotationTransformationError(self, other_frame)
+            else:
+                raise ValueError(
+                    f"{origin_mismatch=} is invalid. Allowed values are 'ignore', "
+                    "'warn' or 'error'."
+                )
         self_sph = self.represent_as(r.UnitSphericalRepresentation)
-        other_sph = (
-            getattr(other, "frame", other)
-            .transform_to(self)
-            .represent_as(r.UnitSphericalRepresentation)
+        other_sph = other_frame.transform_to(self).represent_as(
+            r.UnitSphericalRepresentation
         )
         return self_sph.lon, self_sph.lat, other_sph.lon, other_sph.lat
 
@@ -1791,19 +1817,16 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         >>> c1.position_angle(c3).degree  # doctest: +FLOAT_CMP
         44.995636455344844
         """
-        return position_angle(*self._prepare_unit_sphere_coords(other))
+        return position_angle(*self._prepare_unit_sphere_coords(other, "ignore"))
 
-    def separation(self, other):
+    def separation(
+        self,
+        other: BaseCoordinateFrame | SkyCoord,
+        *,
+        origin_mismatch: Literal["ignore", "warn", "error"] = "warn",
+    ) -> Angle:
         """
         Computes on-sky separation between this coordinate and another.
-
-        .. note::
-
-            If the ``other`` coordinate object is in a different frame, it is
-            first transformed to the frame of this object. This can lead to
-            unintuitive behavior if not accounted for. Particularly of note is
-            that ``self.separation(other)`` and ``other.separation(self)`` may
-            not give the same answer in this case.
 
         For more on how to use this (and related) functionality, see the
         examples in :doc:`astropy:/coordinates/matchsep`.
@@ -1812,6 +1835,17 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         ----------
         other : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
             The coordinate to get the separation to.
+        origin_mismatch : {"warn", "ignore", "error"}, keyword-only
+            If the ``other`` coordinates are in a different frame then they
+            will have to be transformed, and if the transformation is not a
+            pure rotation then ``self.separation(other)`` can be
+            different from ``other.separation(self)``. With
+            ``origin_mismatch="warn"`` (default) the transformation is
+            always performed, but a warning is emitted if it is not a
+            pure rotation. If ``origin_mismatch="ignore"`` then the
+            required transformation is always performed without warnings.
+            If ``origin_mismatch="error"`` then only transformations
+            that are pure rotations are allowed.
 
         Returns
         -------
@@ -1829,7 +1863,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         from .angles import Angle, angular_separation
 
         return Angle(
-            angular_separation(*self._prepare_unit_sphere_coords(other)), unit=u.degree
+            angular_separation(
+                *self._prepare_unit_sphere_coords(other, origin_mismatch)
+            ),
+            unit=u.degree,
         )
 
     def separation_3d(self, other):

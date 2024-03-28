@@ -6,6 +6,7 @@ are implemented in `BaseCoordinateFrame`, but are also exposed by `SkyCoord`
 instances, so they should be tested on both.
 """
 
+from contextlib import nullcontext
 from typing import NamedTuple
 
 import pytest
@@ -13,11 +14,14 @@ import pytest
 from astropy import units as u
 from astropy.coordinates import (
     FK5,
+    GCRS,
     ICRS,
     Angle,
     BaseCoordinateFrame,
     Distance,
     Galactic,
+    NonRotationTransformationError,
+    NonRotationTransformationWarning,
     SkyCoord,
 )
 from astropy.tests.helper import assert_quantity_allclose
@@ -351,3 +355,54 @@ def test_return_types(coord_class, method, output_type):
     """
     coord = coord_class(0 * u.deg, 0 * u.deg, 1 * u.pc)
     assert type(getattr(coord, method)(coord)) is output_type
+
+
+@pytest.mark.parametrize("coord_class", [SkyCoord, ICRS])
+@pytest.mark.parametrize(
+    "origin_mismatch_kwarg,expectation",
+    [
+        pytest.param({"origin_mismatch": "ignore"}, nullcontext(), id="ignore"),
+        pytest.param(
+            {"origin_mismatch": "warn"},
+            pytest.warns(
+                NonRotationTransformationWarning,
+                match="^transforming other coordinates from <GCRS Frame ",
+            ),
+            id="warn",
+        ),
+        pytest.param(
+            {"origin_mismatch": "error"},
+            pytest.raises(
+                NonRotationTransformationError,
+                match="^refusing to transform other coordinates from <GCRS Frame ",
+            ),
+            id="error",
+        ),
+        pytest.param(
+            {},
+            pytest.warns(
+                NonRotationTransformationWarning,
+                match="^transforming other coordinates from <GCRS Frame ",
+            ),
+            id="default",
+        ),
+        pytest.param(
+            {"origin_mismatch": "bad"},
+            pytest.raises(
+                ValueError,
+                match=(
+                    r"^origin_mismatch='bad' is invalid\. Allowed values are 'ignore', "
+                    r"'warn' or 'error'\.$"
+                ),
+            ),
+            id="invalid",
+        ),
+    ],
+)
+def test_separation_origin_mismatch_action(
+    coord_class, origin_mismatch_kwarg, expectation
+):
+    with expectation:
+        coord_class(0 * u.deg, 0 * u.deg).separation(
+            SkyCoord(0 * u.deg, 0 * u.deg, frame=GCRS), **origin_mismatch_kwarg
+        )
