@@ -6,8 +6,8 @@ from numbers import Number
 import numpy as np
 from numpy import log
 
-import astropy.units as u
 from astropy.cosmology._utils import aszarr
+from astropy.cosmology.core import dataclass_decorator
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from . import scalar_inv_efuncs
@@ -30,6 +30,7 @@ __all__ = ["LambdaCDM", "FlatLambdaCDM"]
 __doctest_requires__ = {"*": ["scipy"]}
 
 
+@dataclass_decorator
 class LambdaCDM(FLRW):
     """FLRW cosmology with a cosmological constant and curvature.
 
@@ -87,51 +88,31 @@ class LambdaCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(
-        self,
-        H0,
-        Om0,
-        Ode0,
-        Tcmb0=0.0 * u.K,
-        Neff=3.04,
-        m_nu=0.0 * u.eV,
-        Ob0=None,
-        *,
-        name=None,
-        meta=None,
-    ):
-        super().__init__(
-            H0=H0,
-            Om0=Om0,
-            Ode0=Ode0,
-            Tcmb0=Tcmb0,
-            Neff=Neff,
-            m_nu=m_nu,
-            Ob0=Ob0,
-            name=name,
-            meta=meta,
-        )
+    def __post_init__(self):
+        super().__post_init__()
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
-            self._inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc_norel
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0)
-            if self._Ok0 == 0:
-                self._optimize_flat_norad()
-            else:
-                self._comoving_distance_z1z2 = self._elliptic_comoving_distance_z1z2
+            inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc_norel
+            inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0)
+            if self._Ok0 != 0:
+                object.__setattr__(
+                    self,
+                    "_comoving_distance_z1z2",
+                    self._elliptic_comoving_distance_z1z2,
+                )
         elif not self._massivenu:
-            self._inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc_nomnu
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc_nomnu
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ok0,
                 self._Ogamma0 + self._Onu0,
             )
         else:
-            self._inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ok0,
@@ -140,6 +121,11 @@ class LambdaCDM(FLRW):
                 self._nmasslessnu,
                 self._nu_y_list,
             )
+        object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
+        object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
+
+        if self._Tcmb0.value == 0 and self._Ok0 == 0:
+            self._optimize_flat_norad()
 
     def _optimize_flat_norad(self):
         """Set optimizations for flat LCDM cosmologies with no radiation."""
@@ -148,17 +134,21 @@ class LambdaCDM(FLRW):
         #    for Omega_M=0 would lead to an infinity in its argument.
         # The EdS case is three times faster than the hypergeometric.
         if self._Om0 == 0:
-            self._comoving_distance_z1z2 = self._dS_comoving_distance_z1z2
-            self._age = self._dS_age
-            self._lookback_time = self._dS_lookback_time
+            comoving_distance_z1z2 = self._dS_comoving_distance_z1z2
+            age = self._dS_age
+            lookback_time = self._dS_lookback_time
         elif self._Om0 == 1:
-            self._comoving_distance_z1z2 = self._EdS_comoving_distance_z1z2
-            self._age = self._EdS_age
-            self._lookback_time = self._EdS_lookback_time
+            comoving_distance_z1z2 = self._EdS_comoving_distance_z1z2
+            age = self._EdS_age
+            lookback_time = self._EdS_lookback_time
         else:
-            self._comoving_distance_z1z2 = self._hypergeometric_comoving_distance_z1z2
-            self._age = self._flat_age
-            self._lookback_time = self._flat_lookback_time
+            comoving_distance_z1z2 = self._hypergeometric_comoving_distance_z1z2
+            age = self._flat_age
+            lookback_time = self._flat_lookback_time
+
+        object.__setattr__(self, "_comoving_distance_z1z2", comoving_distance_z1z2)
+        object.__setattr__(self, "_age", age)
+        object.__setattr__(self, "_lookback_time", lookback_time)
 
     def w(self, z):
         r"""Returns dark energy equation of state at redshift ``z``.
@@ -600,6 +590,7 @@ class LambdaCDM(FLRW):
         )
 
 
+@dataclass_decorator
 class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
     """FLRW cosmology with a cosmological constant and no curvature.
 
@@ -659,49 +650,28 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
     LambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, Ode0=0.7, ...
     """
 
-    def __init__(
-        self,
-        H0,
-        Om0,
-        Tcmb0=0.0 * u.K,
-        Neff=3.04,
-        m_nu=0.0 * u.eV,
-        Ob0=None,
-        *,
-        name=None,
-        meta=None,
-    ):
-        super().__init__(
-            H0=H0,
-            Om0=Om0,
-            Ode0=0.0,
-            Tcmb0=Tcmb0,
-            Neff=Neff,
-            m_nu=m_nu,
-            Ob0=Ob0,
-            name=name,
-            meta=meta,
-        )
+    def __post_init__(self):
+        super().__post_init__()
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
-            self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_norel
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0)
+            inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_norel
+            inv_efunc_scalar_args = (self._Om0, self._Ode0)
             # Repeat the optimization reassignments here because the init
             # of the LambaCDM above didn't actually create a flat cosmology.
             # That was done through the explicit tweak setting self._Ok0.
             self._optimize_flat_norad()
         elif not self._massivenu:
-            self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_nomnu
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_nomnu
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ogamma0 + self._Onu0,
             )
         else:
-            self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ogamma0,
@@ -709,6 +679,8 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
                 self._nmasslessnu,
                 self._nu_y_list,
             )
+        object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
+        object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
     def efunc(self, z):
         """Function used to calculate H(z), the Hubble parameter.
