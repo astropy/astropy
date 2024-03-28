@@ -52,8 +52,16 @@ attributes within format strings::
     '10.500 in km'
 
 This might not work well with LaTeX strings, in which case it would be better
-to use the `Quantity.to_string() <astropy.units.Quantity.to_string()>`
-method::
+to use the `Quantity.to_string() <astropy.units.Quantity.to_string()>` method.
+Just like how `table.Column() <astropy.table.Column()>` takes a format specifier
+or callable for formatting, you can also optionally specify a format via the
+``formatter`` parameter with either type or additionally with a dictionary, the
+added benefit being a more flexible or tighter LaTeX output. It relies on
+:func:`numpy.array2string()` for directly handling the ``formatter``, which will
+effectively override the default LaTeX formatting for the scientific and complex
+notations provided by `Quantity.to_string() <astropy.units.Quantity.to_string()>`
+unless the ``formatter`` is simply just a format specifier string or `None`
+(by default)::
 
     >>> q = 1.2478e12 * u.pc/u.Myr
     >>> f"{q:latex}"  # Might not have the number of digits we would like
@@ -62,6 +70,10 @@ method::
     '1.248e+12 $\\mathrm{\\frac{pc}{Myr}}$'
     >>> q.to_string(format="latex", precision=4)  # Right number of LaTeX digits
     '$1.248 \\times 10^{12} \\; \\mathrm{\\frac{pc}{Myr}}$'
+    >>> q.to_string(format="latex", formatter=".2e")  # Specifying format_spec
+    '$1.25 \\times 10^{12} \\; \\mathrm{\\frac{pc}{Myr}}$'
+    >>> q.to_string(format="latex", formatter=lambda x: f"\\approx {float(x):.2e}")  # Custom formatting (overwrites)
+    '$\\approx 1.25e+12 \\; \\mathrm{\\frac{pc}{Myr}}$'
 
 Because |ndarray| does not accept most format specifiers, using specifiers like
 ``.3f`` will not work when applied to a |ndarray| or non-scalar |Quantity|. Use
