@@ -1,0 +1,2 @@
+``Masked`` instances now support the various numpy array set operations, such
+as ``np.unique`` and ``np.isin``.
