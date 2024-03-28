@@ -53,6 +53,7 @@ from astropy.wcs.wcs import (
     WCS,
     WCSSUB_LATITUDE,
     WCSSUB_LONGITUDE,
+    DistortionLookupTable,
     FITSFixedWarning,
     Sip,
 )
@@ -209,6 +210,37 @@ def test_slice_with_sip():
         rtol=0.0,
         atol=1e-6 * pscale,
     )
+
+
+def test_slice_with_cpdis_tables():
+    # A basic WCS
+    mywcs = WCS(naxis=2)
+    mywcs.wcs.crval = [1, 1]
+    mywcs.wcs.cdelt = [0.1, 0.1]
+    mywcs.wcs.crpix = [1, 1]
+    mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+
+    # Arbitrary distortion maps for X and Y
+    distortion_array = np.arange(25 * 25, dtype=np.float32).reshape((25, 25))
+    mywcs.cpdis1 = DistortionLookupTable(distortion_array, (1, 1), (1, 1), (10, 10))
+    mywcs.cpdis2 = DistortionLookupTable(distortion_array, (1, 1), (1, 1), (10, 10))
+
+    # Test that equivalent pixels produce the same coordinates, whether or not
+    # they've been sliced out.
+    coord_from_slice = mywcs[40:, 50:].pixel_to_world(30, 60)
+    coord_from_full = mywcs.pixel_to_world(50 + 30, 40 + 60)
+
+    assert coord_from_full == coord_from_slice
+
+    # Test the same with a step size. (Note, per discussion in gh-10897,
+    # slicing a WCS means "binning", rather than "resampling", so there's a
+    # quarter-pixel offset to get the "equivalent" spot. The centers of the
+    # post-slice pixels are at the dividing line between the two "input" pixels
+    # that form this binned, post-slice pixel.)
+    coord_from_slice = mywcs[50::2, 50::2].pixel_to_world(24.75, 24.75)
+    coord_from_full = mywcs.pixel_to_world(100, 100)
+
+    assert coord_from_full == coord_from_slice
 
 
 def test_slice_getitem():
