@@ -168,7 +168,9 @@ class ParameterTestMixin:
         assert hasattr(cosmo, all_parameter._attr_name)
 
         # and raises an error if set again
-        with pytest.raises(AttributeError, match="can't set attribute"):
+        with pytest.raises(
+            AttributeError, match=f"cannot assign to field {all_parameter.name!r}"
+        ):
             setattr(cosmo, all_parameter.name, None)
 
     # -------------------------------------------

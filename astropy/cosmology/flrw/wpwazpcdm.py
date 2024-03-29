@@ -1,10 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+# ruff: noqa: RUF009
+
 
 from numpy import exp
 
 import astropy.units as u
 from astropy.cosmology import units as cu
 from astropy.cosmology._utils import aszarr
+from astropy.cosmology.core import dataclass_decorator
 from astropy.cosmology.parameter import Parameter
 
 from . import scalar_inv_efuncs
@@ -15,6 +18,7 @@ __all__ = ["wpwaCDM", "FlatwpwaCDM"]
 __doctest_requires__ = {"*": ["scipy"]}
 
 
+@dataclass_decorator
 class wpwaCDM(FLRW):
     r"""FLRW cosmology with a CPL dark energy EoS, a pivot redshift, and curvature.
 
@@ -98,17 +102,17 @@ class wpwaCDM(FLRW):
            of Merit Science Working Group. arXiv e-prints, arXiv:0901.0721.
     """
 
-    wp = Parameter(
+    wp: Parameter = Parameter(
         default=-1.0,
         doc="Dark energy equation of state at the pivot redshift zp.",
         fvalidate="float",
     )
-    wa = Parameter(
+    wa: Parameter = Parameter(
         default=0.0,
         doc="Negative derivative of dark energy equation of state w.r.t. a.",
         fvalidate="float",
     )
-    zp = Parameter(
+    zp: Parameter = Parameter(
         default=0.0 * cu.redshift,
         doc="The pivot redshift, where w(z) = wp.",
         unit=cu.redshift,
@@ -141,9 +145,10 @@ class wpwaCDM(FLRW):
             name=name,
             meta=meta,
         )
-        self.wp = wp
-        self.wa = wa
-        self.zp = zp
+        params = self.__class__.parameters
+        params["wp"].__set__(self, wp)
+        params["wa"].__set__(self, wa)
+        params["zp"].__set__(self, zp)
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
@@ -243,6 +248,7 @@ class wpwaCDM(FLRW):
         )
 
 
+@dataclass_decorator
 class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
     r"""FLRW cosmology with a CPL dark energy EoS, a pivot redshift, and no curvature.
 
