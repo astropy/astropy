@@ -1140,8 +1140,7 @@ class Quantity(np.ndarray):
     def __eq__(self, other):
         if (
             hasattr(other, "unit")
-            and hasattr(other.unit, "physical_type")
-            and (other.unit.physical_type) != self.unit.physical_type
+            and getattr(other.unit, "physical_type", True) != getattr(self.unit, "physical_type", False)
         ):
             # hot path for flagrant inequality cases
             return False
