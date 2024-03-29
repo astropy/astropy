@@ -1,10 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+# ruff: noqa: RUF009
+
 
 import numpy as np
 from numpy import sqrt
 
 import astropy.units as u
 from astropy.cosmology._utils import aszarr
+from astropy.cosmology.core import dataclass_decorator
 from astropy.cosmology.parameter import Parameter
 
 from . import scalar_inv_efuncs
@@ -15,6 +18,7 @@ __all__ = ["wCDM", "FlatwCDM"]
 __doctest_requires__ = {"*": ["scipy"]}
 
 
+@dataclass_decorator
 class wCDM(FLRW):
     """FLRW cosmology with a constant dark energy EoS and curvature.
 
@@ -77,7 +81,7 @@ class wCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    w0 = Parameter(
+    w0: Parameter = Parameter(
         default=-1.0, doc="Dark energy equation of state.", fvalidate="float"
     )
 
@@ -236,6 +240,7 @@ class wCDM(FLRW):
         ) ** (-0.5)
 
 
+@dataclass_decorator
 class FlatwCDM(FlatFLRWMixin, wCDM):
     """FLRW cosmology with a constant dark energy EoS and no spatial curvature.
 

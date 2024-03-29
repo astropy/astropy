@@ -1,6 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+# ruff: noqa: RUF009
 
 from __future__ import annotations
+
+__all__ = ["FLRW", "FlatFLRWMixin"]
 
 import warnings
 from abc import abstractmethod
@@ -14,7 +17,7 @@ from numpy import inf, sin
 import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology._utils import aszarr, vectorize_redshift_method
-from astropy.cosmology.core import Cosmology, FlatCosmologyMixin
+from astropy.cosmology.core import Cosmology, FlatCosmologyMixin, dataclass_decorator
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.parameter._converter import (
     _validate_non_negative,
@@ -24,11 +27,6 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ["FLRW", "FlatFLRWMixin"]
-
-__doctest_requires__ = {"*": ["scipy"]}
-
-
 # isort: split
 if HAS_SCIPY:
     from scipy.integrate import quad
@@ -36,6 +34,9 @@ else:
 
     def quad(*args, **kwargs):
         raise ModuleNotFoundError("No module named 'scipy.integrate'")
+
+
+__doctest_requires__ = {"*": ["scipy"]}
 
 
 ##############################################################################
@@ -101,6 +102,7 @@ ParameterOde0 = Parameter(
 )
 
 
+@dataclass_decorator
 class FLRW(Cosmology, _ScaleFactorMixin):
     """An isotropic and homogeneous (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
@@ -159,34 +161,34 @@ class FLRW(Cosmology, _ScaleFactorMixin):
     documentation on :ref:`astropy-cosmology-fast-integrals`.
     """
 
-    H0 = Parameter(
+    H0: Parameter = Parameter(
         doc="Hubble constant as an `~astropy.units.Quantity` at z=0.",
         unit="km/(s Mpc)",
         fvalidate="scalar",
     )
-    Om0 = Parameter(
+    Om0: Parameter = Parameter(
         doc="Omega matter; matter density/critical density at z=0.",
         fvalidate="non-negative",
     )
-    Ode0 = ParameterOde0
-    Tcmb0 = Parameter(
+    Ode0: Parameter = ParameterOde0.clone()
+    Tcmb0: Parameter = Parameter(
         default=0.0 * u.K,
         doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.",
         unit="Kelvin",
         fvalidate="scalar",
     )
-    Neff = Parameter(
+    Neff: Parameter = Parameter(
         default=3.04,
         doc="Number of effective neutrino species.",
         fvalidate="non-negative",
     )
-    m_nu = Parameter(
+    m_nu: Parameter = Parameter(
         default=0.0 * u.eV,
         doc="Mass of neutrino species.",
         unit="eV",
         equivalencies=u.mass_energy(),
     )
-    Ob0 = Parameter(
+    Ob0: Parameter = Parameter(
         default=None,
         doc="Omega baryon; baryonic matter density/critical density at z=0.",
     )
@@ -1472,6 +1474,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return _radian_in_arcsec / self.angular_diameter_distance(z).to(u.kpc)
 
 
+@dataclass_decorator
 class FlatFLRWMixin(FlatCosmologyMixin):
     """Mixin class for flat FLRW cosmologies.
 
@@ -1483,7 +1486,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
     parameter values), but ``FlatLambdaCDM`` **will** be flat.
     """
 
-    Ode0 = ParameterOde0.clone(derived=True)  # same as FLRW, but derived.
+    Ode0: Parameter = ParameterOde0.clone(derived=True)  # same as FLRW, but derived.
 
     def __init_subclass__(cls):
         super().__init_subclass__()

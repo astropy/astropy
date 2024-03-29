@@ -175,7 +175,7 @@ class Parameter:
         """
         # Raise error if setting 2nd time.
         if hasattr(cosmology, self._attr_name):
-            raise AttributeError(f"can't set attribute {self.name} again")
+            raise AttributeError(f"cannot assign to field {self.name!r}")
 
         # Change `self` to the default value if default is MISSING.
         # This is done for backwards compatibility only - so that Parameter can be used
