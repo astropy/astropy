@@ -1134,13 +1134,19 @@ class Quantity(np.ndarray):
         else:
             return value
 
+    def _has_same_physical_type(self, other):
+        if not hasattr(other, "unit") or (
+            not hasattr(other.unit, "_get_physical_type_id")
+        ):
+            return False
+
+        return other.unit._get_physical_type_id() == self.unit._get_physical_type_id()
+
     # Equality needs to be handled explicitly as ndarray.__eq__ gives
     # DeprecationWarnings on any error, which is distracting, and does not
     # deal well with structured arrays (nor does the ufunc).
     def __eq__(self, other):
-        if hasattr(other, "unit") and getattr(
-            other.unit, "physical_type", True
-        ) != getattr(self.unit, "physical_type", False):
+        if not self._has_same_physical_type(other):
             # hot path for flagrant inequality cases
             return False
         try:
@@ -1152,10 +1158,7 @@ class Quantity(np.ndarray):
         return self.value.__eq__(other_value)
 
     def __ne__(self, other):
-        if (
-            hasattr(other, "unit")
-            and getattr(other.unit, "physical_type", True) != self.unit.physical_type
-        ):
+        if not self._has_same_physical_type(other):
             # hot path for flagrant inequality cases
             return True
         try:
