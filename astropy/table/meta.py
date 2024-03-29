@@ -76,7 +76,7 @@ def _construct_odict(load, node):
       >>> yaml.load('''!!omap [ foo: bar, mumble: quux, baz : gorp ]''')  # doctest: +SKIP
       OrderedDict([('foo', 'bar'), ('mumble', 'quux'), ('baz', 'gorp')])
     """
-    omap = OrderedDict()
+    omap = {}
     yield omap
     if not isinstance(node, yaml.SequenceNode):
         raise yaml.constructor.ConstructorError(
@@ -269,7 +269,7 @@ def _get_col_attributes(col):
         ("unit", lambda x: x is not None, str),
         ("format", lambda x: x is not None, None),
         ("description", lambda x: x is not None, None),
-        ("meta", lambda x: x, None),
+        ("meta", lambda x: OrderedDict(x), None),
     ):
         col_attr = getattr(col.info, attr)
         if nontrivial(col_attr):
@@ -302,7 +302,7 @@ def get_yaml_from_table(table):
     """
     header = {"cols": list(table.columns.values())}
     if table.meta:
-        header["meta"] = table.meta
+        header["meta"] = OrderedDict(table.meta)
 
     return get_yaml_from_header(header)
 
