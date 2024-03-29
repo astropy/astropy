@@ -109,3 +109,7 @@ jobs:
         - name: (Allowed Failure) Python 3.12 with remote data and dev version of key dependencies
           linux: py312-test-devdeps
           posargs: --remote-data=any --verbose
+
+        - name: (Allowed Failure) Python 3.12 with numpy 2.0.0 release candidates
+          linux: py312-test-numpy200rc
+          posargs: --remote-data=any --verbose
