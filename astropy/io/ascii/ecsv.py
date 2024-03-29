@@ -7,6 +7,7 @@ writing all the meta data associated with an astropy Table object.
 import json
 import re
 import warnings
+from collections import OrderedDict
 
 import numpy as np
 
@@ -92,7 +93,7 @@ class EcsvHeader(basic.BasicHeader):
         header = {"cols": self.cols, "schema": "astropy-2.0"}
 
         if self.table_meta:
-            header["meta"] = self.table_meta
+            header["meta"] = OrderedDict(self.table_meta)
 
         # Set the delimiter only for the non-default option(s)
         if self.splitter.delimiter != " ":

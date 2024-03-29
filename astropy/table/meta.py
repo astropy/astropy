@@ -269,7 +269,7 @@ def _get_col_attributes(col):
         ("unit", lambda x: x is not None, str),
         ("format", lambda x: x is not None, None),
         ("description", lambda x: x is not None, None),
-        ("meta", lambda x: OrderedDict(x), None),
+        ("meta", lambda x: x, OrderedDict),
     ):
         col_attr = getattr(col.info, attr)
         if nontrivial(col_attr):
