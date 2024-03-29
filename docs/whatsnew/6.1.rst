@@ -31,6 +31,69 @@ the `NumPy deprecation policy
 <https://numpy.org/neps/nep-0029-deprecation_policy.html>`_.
 
 
+Order-dependent angular separations now come with warnings
+==========================================================
+
+Angular separation between two points depends on the point of view.
+For example, during a lunar eclipse and for an observer on the Earth the Sun
+and the Moon will be in (more-or-less) opposite directions, but at the same
+time for an observer at the Earth-Sun L2 point (where Gaia and James Webb Space
+Telescope are) the Sun and the Moon will be (more-or-less) in the same
+direction.
+The :meth:`~astropy.coordinates.BaseCoordinateFrame.separation` method
+automatically converts a coordinate given to it to the frame of the coordinate
+it belongs to, so the separation can be different if the coordinates are
+swapped.
+Such transformations are now accompanied by an appropriate warning::
+
+    >>> from astropy import units as u
+    >>> from astropy.coordinates import SkyCoord
+    >>> icrs = SkyCoord(0 * u.deg, 0 * u.deg, 10 * u.pc)
+    >>> gcrs = SkyCoord(0 * u.deg, 0 * u.deg, 380_000 * u.km, frame="gcrs")
+    >>> icrs.separation(gcrs)  # doctest: +FLOAT_CMP +SHOW_WARNINGS
+    <Angle 100.67116925 deg>
+    NonRotationTransformationWarning: transforming other coordinates from
+    <GCRS Frame (obstime=J2000.000, obsgeoloc=(0., 0., 0.) m,
+    obsgeovel=(0., 0., 0.) m / s)> to <ICRS Frame>. Angular separation can
+    depend on the direction of the transformation.
+    >>> gcrs.separation(icrs)  # doctest: +FLOAT_CMP +SHOW_WARNINGS
+    <Angle 0.0010732 deg>
+    NonRotationTransformationWarning: transforming other coordinates from
+    <ICRS Frame> to <GCRS Frame (obstime=J2000.000, obsgeoloc=(0., 0., 0.) m,
+    obsgeovel=(0., 0., 0.) m / s)>. Angular separation can depend on the
+    direction of the transformation.
+
+The warning is not emitted if the coordinate transformation is a pure rotation
+because such transformations do not change the origin of the coordinate frames,
+so the angular separation does not depend on the order of the coordinates::
+
+    >>> galactic = SkyCoord(0 * u.deg, 0 * u.deg, 10 * u.pc, frame="galactic")
+    >>> icrs.separation(galactic)  # doctest: +FLOAT_CMP
+    <Angle 93.14572374 deg>
+    >>> galactic.separation(icrs)  # doctest: +FLOAT_CMP
+    <Angle 93.14572374 deg>
+
+It is possible to suppress the warning::
+
+    >>> icrs.separation(gcrs, origin_mismatch="ignore")  # doctest: +FLOAT_CMP +SHOW_WARNINGS
+    <Angle 100.67116925 deg>
+
+It is also possible to forbid non-rotation transformations::
+
+    >>> icrs.separation(gcrs, origin_mismatch="error")  # doctest: +FLOAT_CMP
+    Traceback (most recent call last):
+        ...
+    astropy.coordinates.errors.NonRotationTransformationError: refusing to
+    transform other coordinates from <GCRS Frame (obstime=J2000.000,
+    obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s)> to <ICRS Frame>
+    because angular separation can depend on the direction of the transformation
+
+Pure rotations will still succeed::
+
+    >>> galactic.separation(icrs, origin_mismatch="error")  # doctest: +FLOAT_CMP
+    <Angle 93.14572374 deg>
+
+
 .. _whatsnew-6.1-ascii-default-int-columns-as-int64:
 
 ``io.ascii`` uses 64-integers by default for integer columns
