@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+# ruff: noqa: RUF009
+
 
 from numpy import exp
 
-import astropy.units as u
 from astropy.cosmology._utils import aszarr
+from astropy.cosmology.core import dataclass_decorator
 from astropy.cosmology.parameter import Parameter
 
 from . import scalar_inv_efuncs
@@ -14,6 +16,7 @@ __all__ = ["w0wzCDM", "Flatw0wzCDM"]
 __doctest_requires__ = {"*": ["scipy"]}
 
 
+@dataclass_decorator
 class w0wzCDM(FLRW):
     """FLRW cosmology with a variable dark energy EoS and curvature.
 
@@ -82,49 +85,23 @@ class w0wzCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    w0 = Parameter(
+    w0: Parameter = Parameter(
         default=-1.0, doc="Dark energy equation of state at z=0.", fvalidate="float"
     )
-    wz = Parameter(
+    wz: Parameter = Parameter(
         default=0.0,
         doc="Derivative of the dark energy equation of state w.r.t. z.",
         fvalidate="float",
     )
 
-    def __init__(
-        self,
-        H0,
-        Om0,
-        Ode0,
-        w0=-1.0,
-        wz=0.0,
-        Tcmb0=0.0 * u.K,
-        Neff=3.04,
-        m_nu=0.0 * u.eV,
-        Ob0=None,
-        *,
-        name=None,
-        meta=None,
-    ):
-        super().__init__(
-            H0=H0,
-            Om0=Om0,
-            Ode0=Ode0,
-            Tcmb0=Tcmb0,
-            Neff=Neff,
-            m_nu=m_nu,
-            Ob0=Ob0,
-            name=name,
-            meta=meta,
-        )
-        self.w0 = w0
-        self.wz = wz
+    def __post_init__(self):
+        super().__post_init__()
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
-            self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_norel
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_norel
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ok0,
@@ -132,8 +109,8 @@ class w0wzCDM(FLRW):
                 self._wz,
             )
         elif not self._massivenu:
-            self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_nomnu
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_nomnu
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ok0,
@@ -142,8 +119,8 @@ class w0wzCDM(FLRW):
                 self._wz,
             )
         else:
-            self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ok0,
@@ -154,6 +131,8 @@ class w0wzCDM(FLRW):
                 self._w0,
                 self._wz,
             )
+        object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
+        object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
     def w(self, z):
         r"""Returns dark energy equation of state at redshift ``z``.
@@ -213,6 +192,7 @@ class w0wzCDM(FLRW):
         )
 
 
+@dataclass_decorator
 class Flatw0wzCDM(FlatFLRWMixin, w0wzCDM):
     """FLRW cosmology with a variable dark energy EoS and no curvature.
 
@@ -277,42 +257,17 @@ class Flatw0wzCDM(FlatFLRWMixin, w0wzCDM):
     <Quantity 1849.74726272 Mpc>
     """
 
-    def __init__(
-        self,
-        H0,
-        Om0,
-        w0=-1.0,
-        wz=0.0,
-        Tcmb0=0.0 * u.K,
-        Neff=3.04,
-        m_nu=0.0 * u.eV,
-        Ob0=None,
-        *,
-        name=None,
-        meta=None,
-    ):
-        super().__init__(
-            H0=H0,
-            Om0=Om0,
-            Ode0=0.0,
-            w0=w0,
-            wz=wz,
-            Tcmb0=Tcmb0,
-            Neff=Neff,
-            m_nu=m_nu,
-            Ob0=Ob0,
-            name=name,
-            meta=meta,
-        )
+    def __post_init__(self):
+        super().__post_init__()
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
-            self._inv_efunc_scalar = scalar_inv_efuncs.fw0wzcdm_inv_efunc_norel
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._w0, self._wz)
+            inv_efunc_scalar = scalar_inv_efuncs.fw0wzcdm_inv_efunc_norel
+            inv_efunc_scalar_args = (self._Om0, self._Ode0, self._w0, self._wz)
         elif not self._massivenu:
-            self._inv_efunc_scalar = scalar_inv_efuncs.fw0wzcdm_inv_efunc_nomnu
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.fw0wzcdm_inv_efunc_nomnu
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ogamma0 + self._Onu0,
@@ -320,8 +275,8 @@ class Flatw0wzCDM(FlatFLRWMixin, w0wzCDM):
                 self._wz,
             )
         else:
-            self._inv_efunc_scalar = scalar_inv_efuncs.fw0wzcdm_inv_efunc
-            self._inv_efunc_scalar_args = (
+            inv_efunc_scalar = scalar_inv_efuncs.fw0wzcdm_inv_efunc
+            inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
                 self._Ogamma0,
@@ -331,3 +286,5 @@ class Flatw0wzCDM(FlatFLRWMixin, w0wzCDM):
                 self._w0,
                 self._wz,
             )
+        object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
+        object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)

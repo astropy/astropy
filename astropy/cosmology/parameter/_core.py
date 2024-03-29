@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["Parameter"]
 
 import copy
-from dataclasses import KW_ONLY, dataclass, field, fields, replace
+from dataclasses import KW_ONLY, dataclass, field, fields, is_dataclass, replace
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Any
 
@@ -164,6 +164,15 @@ class Parameter:
     def __get__(self, cosmology, cosmo_cls=None):
         # Get from class
         if cosmology is None:
+            # If the Parameter is being set as part of a dataclass constructor, then we
+            # raise an AttributeError if the default is MISSING. This is to prevent the
+            # Parameter from being set as the default value of the dataclass field and
+            # erroneously included in the class' __init__ signature.
+            if self.default is MISSING and (
+                not is_dataclass(cosmo_cls)
+                or self.name not in cosmo_cls.__dataclass_fields__
+            ):
+                raise AttributeError
             return self
         # Get from instance
         return getattr(cosmology, self._attr_name)
@@ -175,14 +184,14 @@ class Parameter:
         """
         # Raise error if setting 2nd time.
         if hasattr(cosmology, self._attr_name):
-            raise AttributeError(f"can't set attribute {self.name} again")
+            raise AttributeError(f"cannot assign to field {self.name!r}")
 
         # Change `self` to the default value if default is MISSING.
         # This is done for backwards compatibility only - so that Parameter can be used
         # in a dataclass and still return `self` when accessed from a class.
         # Accessing the Parameter object via `cosmo_cls.param_name` will be removed
         # in favor of `cosmo_cls.parameters["param_name"]`.
-        if value is self and self.default is MISSING:
+        if value is self:
             value = self.default
 
         # Validate value, generally setting units if present
@@ -193,7 +202,7 @@ class Parameter:
             value.setflags(write=False)
 
         # Set the value on the cosmology
-        setattr(cosmology, self._attr_name, value)
+        object.__setattr__(cosmology, self._attr_name, value)
 
     # -------------------------------------------
     # validate value
