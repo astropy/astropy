@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+# ruff: noqa: RUF009
 
 from __future__ import annotations
 
-import abc
 import inspect
+from abc import ABCMeta, abstractmethod
+from dataclasses import KW_ONLY, dataclass, replace
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
@@ -13,7 +15,7 @@ from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.utils.decorators import classproperty
 from astropy.utils.metadata import MetaData
 
-from ._utils import all_cls_vars
+from ._utils import all_parameters
 from .connect import (
     CosmologyFromFormat,
     CosmologyRead,
@@ -51,6 +53,38 @@ _COSMOLOGY_CLASSES = dict()
 _CosmoT = TypeVar("_CosmoT", bound="Cosmology")
 _FlatCosmoT = TypeVar("_FlatCosmoT", bound="FlatCosmologyMixin")
 
+
+# dataclass transformation
+def _with_signature(cls: type[Cosmology]) -> type[Cosmology]:
+    """Decorator to precompute the class' signature.
+
+    This provides around a 20x speedup for future calls of ``inspect.signature(cls)``.
+    `Cosmology` has a lot of I/O methods that use the signature, so this is a
+    significant speedup for those methods.
+
+    Note that CPython does not promise that this precomputation is a stable feature.
+    If it is removed, the worst that will happen is that the signature will be
+    computed on the fly, the speedup will be lost, and this decorator can be
+    deprecated.
+    """
+    cls.__signature__ = None  # clear the signature cache
+    cls.__signature__ = inspect.signature(cls)  # add the new signature to the class
+    return cls
+
+
+def dataclass_decorator(cls):
+    """Decorator for the dataclass transform.
+
+    Returns
+    -------
+    cls : type
+        The `cls` transformed into a frozen `~dataclasses.dataclass`.
+        The ``__eq__`` method is custom (``eq=False``).
+        The signature is precomputed and added to the class.
+    """
+    return _with_signature(dataclass(frozen=True, repr=True, eq=False, init=True)(cls))
+
+
 ##############################################################################
 
 
@@ -58,7 +92,26 @@ class CosmologyError(Exception):
     pass
 
 
-class Cosmology(metaclass=abc.ABCMeta):
+# TODO: replace with `field(converter=lambda x: None if x is None else str(x))` when
+#       the `converter` argument is available in `field` (py3.13, maybe?).
+#       See https://peps.python.org/pep-0712/
+@dataclass(frozen=True, slots=True)
+class _NameField:
+    default: str | None = None
+
+    def __get__(self, instance: Cosmology | None, owner: type) -> str:
+        # Called from the class. `dataclass` uses this to create ``__init__``.
+        if instance is None:
+            return self.default
+        # Called from the instance
+        return instance._name
+
+    def __set__(self, instance: Cosmology, value: str | None) -> None:
+        object.__setattr__(instance, "_name", (None if value is None else str(value)))
+
+
+@dataclass_decorator
+class Cosmology(metaclass=ABCMeta):
     """Base-class for all Cosmologies.
 
     Parameters
@@ -86,15 +139,19 @@ class Cosmology(metaclass=abc.ABCMeta):
     override the ``_register_cls`` classmethod in the subclass.
     """
 
-    meta = MetaData()
+    _: KW_ONLY
+    name: _NameField = _NameField()
+    """The name of the cosmology realization, e.g. 'Planck2018' or `None`."""
+
+    meta: MetaData = MetaData()
 
     # Unified I/O object interchange methods
-    from_format = UnifiedReadWriteMethod(CosmologyFromFormat)
-    to_format = UnifiedReadWriteMethod(CosmologyToFormat)
+    from_format: ClassVar = UnifiedReadWriteMethod(CosmologyFromFormat)
+    to_format: ClassVar = UnifiedReadWriteMethod(CosmologyToFormat)
 
     # Unified I/O read and write methods
-    read = UnifiedReadWriteMethod(CosmologyRead)
-    write = UnifiedReadWriteMethod(CosmologyWrite)
+    read: ClassVar = UnifiedReadWriteMethod(CosmologyRead)
+    write: ClassVar = UnifiedReadWriteMethod(CosmologyWrite)
 
     # Parameters
     parameters = ParametersAttribute(attr_name="_parameters")
@@ -117,6 +174,8 @@ class Cosmology(metaclass=abc.ABCMeta):
     _parameters_derived: ClassVar = MappingProxyType[str, Parameter]({})
     _parameters_all: ClassVar = frozenset[str]()
 
+    __signature__: ClassVar[inspect.Signature | None] = None
+
     # ---------------------------------------------------------------
 
     def __init_subclass__(cls):
@@ -125,39 +184,20 @@ class Cosmology(metaclass=abc.ABCMeta):
         # -------------------
         # Parameters
 
-        params = {}
-        derived_params = {}
-        for n, v in all_cls_vars(cls).items():
-            if not isinstance(v, Parameter):
-                continue
-            if v.derived:
-                derived_params[n] = v
-            else:
-                params[n] = v
-
-        # reorder to match signature, placing "unordered" at the end
-        ordered = {
-            n: params.pop(n)
-            for n in cls._init_signature.parameters.keys()
-            if n in params
-        }
-        cls._parameters = MappingProxyType(ordered | params)
-        cls._parameters_derived = MappingProxyType(derived_params)
-        cls._parameters_all = frozenset(cls._parameters).union(cls._parameters_derived)
+        all_params = all_parameters(cls)
+        cls._parameters = MappingProxyType(
+            {k: v for k, v in all_params.items() if not v.derived}
+        )
+        cls._derived_parameters = MappingProxyType(
+            {k: v for k, v in all_params.items() if v.derived}
+        )
+        cls._parameters_all = frozenset(all_params)
 
         # -------------------
         # Registration
 
         if not inspect.isabstract(cls):  # skip abstract classes
             cls._register_cls()
-
-    @classproperty(lazy=True)
-    def _init_signature(cls):
-        """Initialization signature (without 'self')."""
-        # get signature, dropping "self" by taking arguments [1:]
-        sig = inspect.signature(cls.__init__)
-        sig = sig.replace(parameters=list(sig.parameters.values())[1:])
-        return sig
 
     @classmethod
     def _register_cls(cls):
@@ -171,17 +211,11 @@ class Cosmology(metaclass=abc.ABCMeta):
 
     # ---------------------------------------------------------------
 
-    def __init__(self, name=None, meta=None):
-        self._name = str(name) if name is not None else name
-        self.meta.update(meta or {})
+    def __post_init__(self):  # noqa: B027
+        """Post-initialization, for subclasses to override if they need."""
 
     @property
-    def name(self):
-        """The name of the Cosmology instance."""
-        return self._name
-
-    @property
-    @abc.abstractmethod
+    @abstractmethod
     def is_flat(self):
         """Return bool; `True` if the cosmology is flat.
 
@@ -237,21 +271,21 @@ class Cosmology(metaclass=abc.ABCMeta):
 
         # mix new meta into existing, preferring the former.
         meta = meta if meta is not None else {}
-        new_meta = {**self.meta, **meta}
-        # Mix kwargs into initial arguments, preferring the former.
-        new_init = {**self.parameters, "meta": new_meta, **kwargs}
-        # Create BoundArgument to handle args versus kwargs.
-        # This also handles all errors from mismatched arguments
-        ba = self._init_signature.bind_partial(**new_init)
-        # Instantiate, respecting args vs kwargs
-        cloned = type(self)(*ba.args, **ba.kwargs)
+        cloned = replace(self, meta=self.meta | meta, **kwargs)
 
         # Check if nothing has changed.
         # TODO! or should return self?
         if (cloned.name == _modname) and not meta and cloned.is_equivalent(self):
-            cloned._name = self.name
+            object.__setattr__(cloned, "name", self.name)
 
         return cloned
+
+    @classproperty
+    def _init_has_kwargs(cls):
+        return (
+            next(reversed(cls.__signature__.parameters.values())).kind
+            == inspect.Parameter.VAR_KEYWORD
+        )
 
     # ---------------------------------------------------------------
     # comparison methods
@@ -399,10 +433,6 @@ class Cosmology(metaclass=abc.ABCMeta):
 
     # ---------------------------------------------------------------
 
-    def __repr__(self):
-        fmtps = (f"{k}={v!r}" for k, v in self.parameters.items())
-        return f"{type(self).__qualname__}(name={self.name!r}, {', '.join(fmtps)})"
-
     def __str__(self):
         """Return a string representation of the cosmology."""
         name_str = "" if self.name is None else f'name="{self.name}", '
@@ -430,7 +460,14 @@ class Cosmology(metaclass=abc.ABCMeta):
         return self.to_format("astropy.table", cls=cls, **kwargs)
 
 
-class FlatCosmologyMixin(metaclass=abc.ABCMeta):
+# Manipulate the dataclass fields for fields that are not created by `dataclass.fields`
+# and thus do not have a mechanism for setting "compare", "repr", etc.
+Cosmology.__dataclass_fields__["meta"].compare = False
+Cosmology.__dataclass_fields__["meta"].repr = False
+
+
+@dataclass_decorator
+class FlatCosmologyMixin(metaclass=ABCMeta):
     """Mixin class for flat cosmologies.
 
     Do NOT instantiate directly. Note that all instances of
@@ -515,7 +552,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
         return True
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def nonflat(self: _FlatCosmoT) -> _CosmoT:
         """Return the equivalent non-flat-class instance of this cosmology."""
 
