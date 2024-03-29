@@ -889,11 +889,14 @@ def test_directional_offset_by():
         ]:
             # Find the displacement from sc1 to sc2,
             posang = sc1.position_angle(sc2)
-            sep = sc1.separation(sc2)
+            sep = sc1.separation(sc2, origin_mismatch="ignore")
 
             # then do the offset from sc1 and verify that you are at sc2
             sc2a = sc1.directional_offset_by(position_angle=posang, separation=sep)
-            assert np.max(np.abs(sc2.separation(sc2a).arcsec)) < 1e-3
+            assert (
+                np.max(np.abs(sc2.separation(sc2a, origin_mismatch="ignore").arcsec))
+                < 1e-3
+            )
 
     # Specific test cases
     # Go over the North pole a little way, and
