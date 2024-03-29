@@ -7,7 +7,6 @@ writing all the meta data associated with an astropy Table object.
 import json
 import re
 import warnings
-from collections import OrderedDict
 
 import numpy as np
 
