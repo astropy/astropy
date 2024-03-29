@@ -4,7 +4,6 @@
 __all__ = ["MetaData", "MetaAttribute"]
 
 import inspect
-from collections import OrderedDict
 from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import is_dataclass
@@ -79,7 +78,7 @@ class MetaData:
         None
     """
 
-    def __init__(self, doc="", copy=True, *, default_factory=OrderedDict):
+    def __init__(self, doc="", copy=True, *, default_factory=dict):
         self.__doc__ = doc
         self.copy = copy
         self._default_factory = default_factory
