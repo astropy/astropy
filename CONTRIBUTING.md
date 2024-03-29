@@ -86,6 +86,9 @@ include the following:
   [astropy-benchmarks](https://github.com/astropy/astropy-benchmarks)
   repository. You can find out more about how to do this
   [in the README for that repository](https://github.com/astropy/astropy-benchmarks#contributing-benchmarks).
+  A maintainer will also be able to run comparative benchmarks using
+  GitHub Actions on your changes to catch performance changes. The PR
+  needs to have the `benchmark` label to run the workflow.
 
 - **Changelog entry**: whether you are fixing a bug or adding new
   functionality, you should add a changelog fragment in the ``docs/changes/``
