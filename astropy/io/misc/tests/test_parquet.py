@@ -207,6 +207,16 @@ def test_write_wrong_type():
         t1.write(1212, format="parquet")
 
 
+def test_empty_roundtrip(tmp_path):
+    """Test writing and reading an empty Table."""
+    test_file = tmp_path / "test.parquet"
+    t1 = Table()
+    t1.write(test_file)
+    t2 = Table.read(test_file)
+    assert len(t2) == 0
+    assert t1.colnames == t2.colnames
+
+
 @pytest.mark.parametrize("dtype", ALL_DTYPES)
 def test_preserve_single_dtypes(tmp_path, dtype):
     """Test that round-tripping a single column preserves datatypes."""

@@ -1,0 +1,2 @@
+Reading an empty table stored in parquet format now creates an empty
+table instead of raising an unexpected error.
