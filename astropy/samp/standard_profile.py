@@ -154,8 +154,6 @@ class ThreadingXMLRPCServer(socketserver.ThreadingMixIn, SimpleXMLRPCServer):
             socketserver.BaseServer.handle_error(self, request, client_address)
         else:
             warnings.warn(
-                "Exception happened during processing of request from {}: {}".format(
-                    client_address, sys.exc_info()[1]
-                ),
+                f"Exception happened during processing of request from {client_address}: {sys.exc_info()[1]}",
                 SAMPWarning,
             )

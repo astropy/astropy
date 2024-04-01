@@ -827,9 +827,7 @@ class SAMPHubServer:
         self._update_last_activity_time(private_key)
         if private_key in self._private_keys:
             log.debug(
-                "declare_metadata: private-key = {} metadata = {}".format(
-                    private_key, str(metadata)
-                )
+                f"declare_metadata: private-key = {private_key} metadata = {str(metadata)}"
             )
             self._metadata[private_key] = metadata
             self._notify_metadata(private_key)
@@ -860,9 +858,7 @@ class SAMPHubServer:
 
         if private_key in self._private_keys:
             log.debug(
-                "declare_subscriptions: private-key = {} mtypes = {}".format(
-                    private_key, str(mtypes)
-                )
+                f"declare_subscriptions: private-key = {private_key} mtypes = {str(mtypes)}"
             )
 
             # remove subscription to previous mtypes
@@ -888,9 +884,7 @@ class SAMPHubServer:
                                 del mtypes[mtype2]
 
             log.debug(
-                "declare_subscriptions: subscriptions accepted from {} => {}".format(
-                    private_key, str(mtypes)
-                )
+                f"declare_subscriptions: subscriptions accepted from {private_key} => {str(mtypes)}"
             )
 
             for mtype in mtypes:
@@ -915,9 +909,7 @@ class SAMPHubServer:
             if client_private_key is not None:
                 if client_private_key in self._id2mtypes:
                     log.debug(
-                        "get_subscriptions: client-id = {} mtypes = {}".format(
-                            client_id, str(self._id2mtypes[client_private_key])
-                        )
+                        f"get_subscriptions: client-id = {client_id} mtypes = {str(self._id2mtypes[client_private_key])}"
                     )
                     return self._id2mtypes[client_private_key]
                 else:
@@ -939,9 +931,7 @@ class SAMPHubServer:
                 if pkey != private_key:
                     reg_clients.append(self._private_keys[pkey][0])
             log.debug(
-                "get_registered_clients: private_key = {} clients = {}".format(
-                    private_key, reg_clients
-                )
+                f"get_registered_clients: private_key = {private_key} clients = {reg_clients}"
             )
             return reg_clients
         else:
@@ -1278,9 +1268,7 @@ class SAMPHubServer:
 
         except Exception as exc:
             warnings.warn(
-                "{} reply from client {} to client {} failed [{}]".format(
-                    recipient_msg_tag, responder_public_id, recipient_public_id, exc
-                ),
+                f"{recipient_msg_tag} reply from client {responder_public_id} to client {recipient_public_id} failed [{exc}]",
                 SAMPWarning,
             )
 
@@ -1332,9 +1320,7 @@ class SAMPHubServer:
 
             except xmlrpc.Fault as exc:
                 log.debug(
-                    "{} XML-RPC endpoint error (attempt {}): {}".format(
-                        recipient_public_id, attempt + 1, exc.faultString
-                    )
+                    f"{recipient_public_id} XML-RPC endpoint error (attempt {attempt + 1}): {exc.faultString}"
                 )
                 time.sleep(0.01)
             else:
@@ -1355,12 +1341,7 @@ class SAMPHubServer:
     def _get_new_hub_msg_id(self, sender_public_id, sender_msg_id):
         with self._thread_lock:
             self._hub_msg_id_counter += 1
-        return "msg#{};;{};;{};;{}".format(
-            self._hub_msg_id_counter,
-            self._hub_public_id,
-            sender_public_id,
-            sender_msg_id,
-        )
+        return f"msg#{self._hub_msg_id_counter};;{self._hub_public_id};;{sender_public_id};;{sender_msg_id}"
 
     def _update_last_activity_time(self, private_key=None):
         with self._thread_lock:

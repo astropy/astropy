@@ -199,9 +199,7 @@ class NDUncertainty(metaclass=ABCMeta):
                     self._data_unit_to_uncertainty_unit(parent_unit).to(value)
                 except UnitConversionError:
                     raise UnitConversionError(
-                        "Unit {} is incompatible with unit {} of parent nddata".format(
-                            value, parent_unit
-                        )
+                        f"Unit {value} is incompatible with unit {parent_unit} of parent nddata"
                     )
 
             self._unit = Unit(value)
@@ -381,9 +379,9 @@ class NDUncertainty(metaclass=ABCMeta):
         if not self.supports_correlated:
             if isinstance(correlation, np.ndarray) or correlation != 0:
                 raise ValueError(
-                    "{} does not support uncertainty propagation"
+                    f"{self.__class__.__name__} does not support uncertainty propagation"
                     " with correlation."
-                    "".format(self.__class__.__name__)
+                    ""
                 )
 
         if other_nddata is not None:

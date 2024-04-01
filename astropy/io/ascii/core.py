@@ -762,9 +762,7 @@ class BaseHeader:
             and self.__class__.__name__ != "EcsvHeader"
         ):
             raise ValueError(
-                "Table format guessing requires at least two columns, got {}".format(
-                    list(self.colnames)
-                )
+                f"Table format guessing requires at least two columns, got {list(self.colnames)}"
             )
 
         if names is not None and len(names) != len(self.colnames):

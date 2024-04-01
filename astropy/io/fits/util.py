@@ -800,11 +800,7 @@ def _free_space_check(hdulist, dirname=None):
             free_space = data.get_free_space_in_dir(dirname)
             hdulist_size = sum(hdu.size for hdu in hdulist)
             if free_space < hdulist_size:
-                error_message = (
-                    "Not enough space on disk: requested {}, available {}. ".format(
-                        hdulist_size, free_space
-                    )
-                )
+                error_message = f"Not enough space on disk: requested {hdulist_size}, available {free_space}. "
 
         for hdu in hdulist:
             hdu._close()

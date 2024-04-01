@@ -730,9 +730,7 @@ class TimeBase(ShapedLikeNDArray):
         return out
 
     def __repr__(self):
-        return "<{} object: scale='{}' format='{}' value={}>".format(
-            self.__class__.__name__, self.scale, self.format, self.to_string()
-        )
+        return f"<{self.__class__.__name__} object: scale='{self.scale}' format='{self.format}' value={self.to_string()}>"
 
     def __str__(self):
         return self.to_string()
@@ -3052,9 +3050,7 @@ class TimeDelta(TimeBase):
             and other.scale not in self.SCALES
         ):
             raise TypeError(
-                "Cannot add TimeDelta instances with scales '{}' and '{}'".format(
-                    self.scale, other.scale
-                )
+                f"Cannot add TimeDelta instances with scales '{self.scale}' and '{other.scale}'"
             )
 
         # adjust the scale of other if the scale of self is set (or no scales)
@@ -3450,9 +3446,7 @@ class OperandTypeError(TypeError):
     def __init__(self, left, right, op=None):
         op_string = "" if op is None else f" for {op}"
         super().__init__(
-            "Unsupported operand type(s){}: '{}' and '{}'".format(
-                op_string, left.__class__.__name__, right.__class__.__name__
-            )
+            f"Unsupported operand type(s){op_string}: '{left.__class__.__name__}' and '{right.__class__.__name__}'"
         )
 
 

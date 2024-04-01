@@ -816,9 +816,9 @@ class HDUList(list, _Verify):
 
         if not isinstance(_key, str):
             raise KeyError(
-                "{} indices must be integers, extension names as strings, "
-                "or (extname, version) tuples; got {}"
-                "".format(self.__class__.__name__, _key)
+                f"{self.__class__.__name__} indices must be integers, extension names as strings, "
+                f"or (extname, version) tuples; got {_key}"
+                ""
             )
 
         _key = (_key.strip()).upper()

@@ -589,9 +589,7 @@ class CompImageHDU(BinTableHDU):
             not isinstance(data, np.ndarray) or data.dtype.fields is not None
         ):
             raise TypeError(
-                "CompImageHDU data has incorrect type:{}; dtype.fields = {}".format(
-                    type(data), data.dtype.fields
-                )
+                f"CompImageHDU data has incorrect type:{type(data)}; dtype.fields = {data.dtype.fields}"
             )
 
     @lazyproperty

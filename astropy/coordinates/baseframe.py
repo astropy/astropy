@@ -519,9 +519,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         if len(args) > 0:
             raise TypeError(
-                "{}.__init__ had {} remaining unhandled arguments".format(
-                    self.__class__.__name__, len(args)
-                )
+                f"{self.__class__.__name__}.__init__ had {len(args)} remaining unhandled arguments"
             )
 
         if representation_data is None and differential_data is not None:

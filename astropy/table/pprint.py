@@ -536,8 +536,8 @@ class TableFormatter:
                     yield format_col_str(idx)
                 except ValueError:
                     raise ValueError(
-                        'Unable to parse format string "{}" for entry "{}" '
-                        'in column "{}"'.format(col_format, col[idx], col.info.name)
+                        f'Unable to parse format string "{col_format}" for entry "{col[idx]}" '
+                        f'in column "{col.info.name}"'
                     )
 
         outs["show_length"] = show_length

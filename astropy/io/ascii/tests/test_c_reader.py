@@ -1689,7 +1689,9 @@ def test_newline_as_delimiter(delimiter, fast_reader):
         eol = "\r"
 
     inp0 = ["a  | b | c ", " 1 | '2' | 3.00000 "]
-    inp1 = "a {0:s} b {0:s}c{1:s} 1 {0:s}'2'{0:s} 3.0".format(delimiter, eol)
+    inp1 = (
+        f"a {delimiter:s} b {delimiter:s}c{eol:s} 1 {delimiter:s}'2'{delimiter:s} 3.0"
+    )
     inp2 = [f"a {delimiter} b{delimiter} c", f"1{delimiter} '2' {delimiter} 3.0"]
 
     t0 = ascii.read(inp0, delimiter="|", fast_reader=fast_reader)
@@ -1704,7 +1706,9 @@ def test_newline_as_delimiter(delimiter, fast_reader):
     assert_table_equal(t2, t0)
 
     inp0 = 'a {0:s} b {0:s} c{1:s} 1 {0:s}"2"{0:s} 3.0'.format("|", eol)
-    inp1 = 'a {0:s} b {0:s} c{1:s} 1 {0:s}"2"{0:s} 3.0'.format(delimiter, eol)
+    inp1 = (
+        f'a {delimiter:s} b {delimiter:s} c{eol:s} 1 {delimiter:s}"2"{delimiter:s} 3.0'
+    )
 
     t0 = ascii.read(inp0, delimiter="|", fast_reader=fast_reader)
     t1 = ascii.read(inp1, delimiter=delimiter, fast_reader=fast_reader)

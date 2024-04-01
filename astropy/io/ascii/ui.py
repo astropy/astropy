@@ -208,9 +208,7 @@ def _get_format_class(format, reader_writer_cls, label):
             reader_writer_cls = core.FORMAT_CLASSES[format]
         else:
             raise ValueError(
-                "ASCII format {!r} not in allowed list {}".format(
-                    format, sorted(core.FORMAT_CLASSES)
-                )
+                f"ASCII format {format!r} not in allowed list {sorted(core.FORMAT_CLASSES)}"
             )
     return reader_writer_cls
 
@@ -1015,8 +1013,8 @@ def write(
 
     if diff_format_with_names:
         warnings.warn(
-            "The key(s) {} specified in the formats argument do not match a column"
-            " name.".format(diff_format_with_names),
+            f"The key(s) {diff_format_with_names} specified in the formats argument do not match a column"
+            " name.",
             AstropyWarning,
         )
 
