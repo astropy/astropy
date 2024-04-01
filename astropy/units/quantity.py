@@ -20,8 +20,6 @@ import numpy as np
 
 # LOCAL
 from astropy import config as _config
-from astropy.utils.compat import sanitize_copy_arg
-from astropy.utils.compat.numpycompat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyWarning
@@ -241,7 +239,7 @@ class QuantityInfo(QuantityInfoBase):
             key: (data if key == "value" else getattr(cols[-1], key))
             for key in self._represent_as_dict_attrs
         }
-        map["copy"] = COPY_IF_NEEDED
+        map["copy"] = None
         out = self._construct_from_dict(map)
 
         # Set remaining info attributes
@@ -446,14 +444,12 @@ class Quantity(np.ndarray):
         if float_default:
             dtype = None
 
-        copy = sanitize_copy_arg(copy)
-
-        # optimize speed for Quantity with no dtype given, copy=COPY_IF_NEEDED
+        # optimize speed for Quantity with no dtype given, copy=None
         if isinstance(value, Quantity):
             if unit is not None and unit is not value.unit:
                 value = value.to(unit)
                 # the above already makes a copy (with float dtype)
-                copy = COPY_IF_NEEDED
+                copy = None
 
             if type(value) is not cls and not (subok and isinstance(value, cls)):
                 value = value.view(cls)
@@ -542,7 +538,7 @@ class Quantity(np.ndarray):
                 if unit is None:
                     unit = value_unit
                 elif unit is not value_unit:
-                    copy = COPY_IF_NEEDED  # copy will be made in conversion at end
+                    copy = None  # copy will be made in conversion at end
 
         value = np.array(
             value, dtype=dtype, copy=copy, order=order, subok=True, ndmin=ndmin
@@ -829,7 +825,7 @@ class Quantity(np.ndarray):
         if obj is None:
             obj = self.view(np.ndarray)
         else:
-            obj = np.array(obj, copy=COPY_IF_NEEDED, subok=True)
+            obj = np.array(obj, copy=None, subok=True)
 
         # Take the view, set the unit, and update possible other properties
         # such as ``info``, ``wrap_angle`` in `Longitude`, etc.
@@ -1692,7 +1688,7 @@ class Quantity(np.ndarray):
         if self.dtype.kind == "i" and check_precision:
             # If, e.g., we are casting float to int, we want to fail if
             # precision is lost, but let things pass if it works.
-            _value = np.array(_value, copy=COPY_IF_NEEDED, subok=True)
+            _value = np.array(_value, copy=None, subok=True)
             if not np.can_cast(_value.dtype, self.dtype):
                 self_dtype_array = np.array(_value, self.dtype, subok=True)
                 if not np.all((self_dtype_array == _value) | np.isnan(_value)):
@@ -1706,14 +1702,6 @@ class Quantity(np.ndarray):
         if _value.dtype.names is not None:
             _value = _value.astype(self.dtype, copy=False)
         return _value
-
-    if NUMPY_LT_2_0:
-
-        def itemset(self, *args):
-            if len(args) == 0:
-                raise ValueError("itemset must have at least one argument")
-
-            self.view(np.ndarray).itemset(*(args[:-1] + (self._to_own_unit(args[-1]),)))
 
     def tostring(self, order="C"):
         """Not implemented, use ``.value.tostring()`` instead."""
@@ -1791,17 +1779,10 @@ class Quantity(np.ndarray):
         )
 
     # ensure we do not return indices as quantities
-    if NUMPY_LT_2_0:
-
-        def argsort(self, axis=-1, kind=None, order=None):
-            return self.view(np.ndarray).argsort(axis=axis, kind=kind, order=order)
-
-    else:
-
-        def argsort(self, axis=-1, kind=None, order=None, *, stable=None):
-            return self.view(np.ndarray).argsort(
-                axis=axis, kind=kind, order=order, stable=stable
-            )
+    def argsort(self, axis=-1, kind=None, order=None, *, stable=None):
+        return self.view(np.ndarray).argsort(
+            axis=axis, kind=kind, order=order, stable=stable
+        )
 
     def searchsorted(self, v, *args, **kwargs):
         return np.searchsorted(
@@ -2223,9 +2204,9 @@ def allclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False) -> bool:
 
 
 def _unquantify_allclose_arguments(actual, desired, rtol, atol):
-    actual = Quantity(actual, subok=True, copy=COPY_IF_NEEDED)
+    actual = Quantity(actual, subok=True, copy=None)
 
-    desired = Quantity(desired, subok=True, copy=COPY_IF_NEEDED)
+    desired = Quantity(desired, subok=True, copy=None)
     try:
         desired = desired.to(actual.unit)
     except UnitsError:
@@ -2241,7 +2222,7 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
         # units for a and b.
         atol = Quantity(0)
     else:
-        atol = Quantity(atol, subok=True, copy=COPY_IF_NEEDED)
+        atol = Quantity(atol, subok=True, copy=None)
         try:
             atol = atol.to(actual.unit)
         except UnitsError:
@@ -2250,7 +2231,7 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
                 f"({actual.unit}) are not convertible"
             )
 
-    rtol = Quantity(rtol, subok=True, copy=COPY_IF_NEEDED)
+    rtol = Quantity(rtol, subok=True, copy=None)
     try:
         rtol = rtol.to(dimensionless_unscaled)
     except Exception:

@@ -20,7 +20,6 @@ import builtins
 
 import numpy as np
 
-from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0, sanitize_copy_arg
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.shapes import NDArrayShapeMethods
 
@@ -288,7 +287,7 @@ class Masked(NDArrayShapeMethods):
             data = getattr(self.unmasked, method)(*args, **kwargs)
             mask = getattr(self.mask, method)(*args, **kwargs)
 
-        result = self.from_unmasked(data, mask, copy=COPY_IF_NEEDED)
+        result = self.from_unmasked(data, mask, copy=None)
         if "info" in self.__dict__:
             result.info = self.info
 
@@ -514,7 +513,6 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
     def from_unmasked(cls, data, mask=None, copy=False):
         # Note: have to override since __new__ would use ndarray.__new__
         # which expects the shape as its first argument, not an array.
-        copy = sanitize_copy_arg(copy)
 
         data = np.array(data, subok=True, copy=copy)
         self = data.view(cls)
@@ -798,17 +796,10 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             else:
                 # Parse signature with private numpy function. Note it
                 # cannot handle spaces in tuples, so remove those.
-                if NUMPY_LT_2_0:
-                    in_sig, out_sig = np.lib.function_base._parse_gufunc_signature(
-                        ufunc.signature.replace(" ", "")
-                    )
-                else:
-                    (
-                        in_sig,
-                        out_sig,
-                    ) = np.lib._function_base_impl._parse_gufunc_signature(
-                        ufunc.signature.replace(" ", "")
-                    )
+
+                (in_sig, out_sig) = np.lib._function_base_impl._parse_gufunc_signature(
+                    ufunc.signature.replace(" ", "")
+                )
                 axes = kwargs.get("axes")
                 if axes is None:
                     # Maybe axis was given? (Note: ufunc will not take both.)
@@ -1135,8 +1126,6 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             # As done inside the argsort implementation in multiarray/methods.c.
             if order is None:
                 order = self.dtype.names
-            elif NUMPY_LT_2_0:
-                order = np.core._internal._newnames(self.dtype, order)
             else:
                 order = np._core._internal._newnames(self.dtype, order)
 
@@ -1160,9 +1149,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         they are present only so that subclasses can pass them on.
         """
         # TODO: probably possible to do this faster than going through argsort!
-        argsort_kwargs = dict(kind=kind, order=order)
-        if not NUMPY_LT_2_0:
-            argsort_kwargs["stable"] = stable
+        argsort_kwargs = dict(kind=kind, order=order, stable=stable)
         indices = self.argsort(axis, **argsort_kwargs)
         self[:] = np.take_along_axis(self, indices, axis=axis)
 

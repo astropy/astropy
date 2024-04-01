@@ -8,8 +8,6 @@ import operator
 
 import numpy as np
 
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_24
-
 from .core import UNITY, Unit, UnitBase
 
 __all__ = ["StructuredUnit"]
@@ -239,10 +237,7 @@ class StructuredUnit:
             will return a new `~astropy.units.StructuredUnit` instance.
         """
         applied = tuple(func(part) for part in self.values())
-        if NUMPY_LT_1_24:
-            results = np.array(applied, self._units.dtype)[()]
-        else:
-            results = np.void(applied, self._units.dtype)
+        results = np.void(applied, self._units.dtype)
         if cls is not None:
             return results.view((cls, results.dtype))
 

@@ -14,7 +14,6 @@ from astropy.coordinates.transformations import (
     DynamicMatrixTransform,
     FunctionTransformWithFiniteDifference,
 )
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import format_doc
 
 from .baseradec import BaseRADecFrame, doc_components
@@ -165,7 +164,7 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
         u.Quantity(
             fk4_e_terms(fk4coord.equinox),
             u.dimensionless_unscaled,
-            copy=COPY_IF_NEEDED,
+            copy=None,
         ),
         copy=False,
     )
@@ -218,7 +217,7 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
         u.Quantity(
             fk4_e_terms(fk4noecoord.equinox),
             u.dimensionless_unscaled,
-            copy=COPY_IF_NEEDED,
+            copy=None,
         ),
         copy=False,
     )

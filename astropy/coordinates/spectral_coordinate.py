@@ -13,7 +13,6 @@ from astropy.coordinates import (
 )
 from astropy.coordinates.baseframe import BaseCoordinateFrame, frame_transform_graph
 from astropy.coordinates.spectral_quantity import SpectralQuantity
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ["SpectralCoord"]
@@ -393,7 +392,7 @@ class SpectralCoord(SpectralQuantity):
                 redshift=redshift,
                 doppler_convention=doppler_convention,
                 doppler_rest=doppler_rest,
-                copy=COPY_IF_NEEDED,
+                copy=None,
             )
 
     @property

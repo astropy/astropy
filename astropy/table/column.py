@@ -10,7 +10,6 @@ import numpy as np
 from numpy import ma
 
 from astropy.units import Quantity, StructuredUnit, Unit
-from astropy.utils.compat import NUMPY_LT_2_0, sanitize_copy_arg
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.metadata import MetaData
@@ -522,8 +521,6 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         copy=False,
         copy_indices=True,
     ):
-        copy = sanitize_copy_arg(copy)
-
         if data is None:
             self_data = np.zeros((length,) + shape, dtype=dtype)
         elif isinstance(data, BaseColumn) and hasattr(data, "_name"):
@@ -745,11 +742,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
            we also want to consistently return an array rather than a column
            (see #1446 and #1685)
         """
-        if NUMPY_LT_2_0:
-            out_arr = super().__array_wrap__(out_arr, context)
-            return_scalar = True
-        else:
-            out_arr = super().__array_wrap__(out_arr, context, return_scalar)
+        out_arr = super().__array_wrap__(out_arr, context, return_scalar)
 
         if self.shape != out_arr.shape or (
             isinstance(out_arr, BaseColumn)

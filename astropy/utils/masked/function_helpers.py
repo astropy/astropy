@@ -15,7 +15,7 @@ import warnings
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
-from astropy.utils.compat import NUMPY_LT_1_24, NUMPY_LT_2_0
+from astropy.utils.compat import NUMPY_LT_2_0
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
@@ -134,16 +134,7 @@ MASKED_SAFE_FUNCTIONS |= {
 }  # fmt: skip
 
 
-if NUMPY_LT_2_0:
-    # Safe in < 2.0, because it deferred to the method. Overridden in >= 2.0.
-    MASKED_SAFE_FUNCTIONS |= {np.ptp}
-    # Removed in numpy 2.0.  Just an alias to vstack.
-    MASKED_SAFE_FUNCTIONS |= {np.row_stack}
-    # renamed in numpy 2.0
-    MASKED_SAFE_FUNCTIONS |= {np.trapz}
-else:
-    # new in numpy 2.0
-    MASKED_SAFE_FUNCTIONS |= {
+MASKED_SAFE_FUNCTIONS |= {
         np.astype, np.trapezoid,
         np.unique_all, np.unique_counts, np.unique_inverse, np.unique_values,
     }  # fmt: skip
@@ -232,12 +223,7 @@ def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
 # Following are simple functions related to shapes, where the same function
 # should be applied to the data and the mask.  They cannot all share the
 # same helper, because the first arguments have different names.
-@apply_to_both(
-    helps=(
-        {np.copy, np.resize, np.moveaxis, np.rollaxis, np.roll}
-        | ({np.asfarray} if NUMPY_LT_2_0 else set())  # noqa: NPY201
-    )
-)
+@apply_to_both(helps=({np.copy, np.resize, np.moveaxis, np.rollaxis, np.roll} | set()))
 def masked_a_helper(a, *args, **kwargs):
     data, mask = _get_data_and_masks(a)
     return data + args, mask + args, kwargs, None
@@ -279,145 +265,89 @@ def outer(a, b, out=None):
     return np.multiply.outer(np.ravel(a), np.ravel(b), out=out), None, None
 
 
-if not NUMPY_LT_2_0:
+@dispatched_function
+def empty_like(
+    prototype, dtype=None, order="K", subok=True, shape=None, *, device=None
+):
+    """Return a new array with the same shape and type as a given array.
 
-    @dispatched_function
-    def empty_like(
-        prototype, dtype=None, order="K", subok=True, shape=None, *, device=None
-    ):
-        """Return a new array with the same shape and type as a given array.
-
-        Like `numpy.empty_like`, but will add an empty mask.
-        """
-        unmasked = np.empty_like(
-            prototype.unmasked,
-            dtype=dtype,
-            order=order,
-            subok=subok,
-            shape=shape,
-            device=device,
+    Like `numpy.empty_like`, but will add an empty mask.
+    """
+    unmasked = np.empty_like(
+        prototype.unmasked,
+        dtype=dtype,
+        order=order,
+        subok=subok,
+        shape=shape,
+        device=device,
+    )
+    if dtype is not None:
+        dtype = (
+            np.ma.make_mask_descr(unmasked.dtype)
+            if unmasked.dtype.names
+            else np.dtype("?")
         )
-        if dtype is not None:
-            dtype = (
-                np.ma.make_mask_descr(unmasked.dtype)
-                if unmasked.dtype.names
-                else np.dtype("?")
-            )
-        mask = np.empty_like(
-            prototype.mask,
-            dtype=dtype,
-            order=order,
-            subok=subok,
-            shape=shape,
-            device=device,
-        )
+    mask = np.empty_like(
+        prototype.mask,
+        dtype=dtype,
+        order=order,
+        subok=subok,
+        shape=shape,
+        device=device,
+    )
 
-        return unmasked, mask, None
+    return unmasked, mask, None
 
-    @dispatched_function
-    def zeros_like(a, dtype=None, order="K", subok=True, shape=None, *, device=None):
-        """Return an array of zeros with the same shape and type as a given array.
 
-        Like `numpy.zeros_like`, but will add an all-false mask.
-        """
-        unmasked = np.zeros_like(
-            a.unmasked,
-            dtype=dtype,
-            order=order,
-            subok=subok,
-            shape=shape,
-            device=device,
-        )
-        return unmasked, False, None
+@dispatched_function
+def zeros_like(a, dtype=None, order="K", subok=True, shape=None, *, device=None):
+    """Return an array of zeros with the same shape and type as a given array.
 
-    @dispatched_function
-    def ones_like(a, dtype=None, order="K", subok=True, shape=None, *, device=None):
-        """Return an array of ones with the same shape and type as a given array.
+    Like `numpy.zeros_like`, but will add an all-false mask.
+    """
+    unmasked = np.zeros_like(
+        a.unmasked,
+        dtype=dtype,
+        order=order,
+        subok=subok,
+        shape=shape,
+        device=device,
+    )
+    return unmasked, False, None
 
-        Like `numpy.ones_like`, but will add an all-false mask.
-        """
-        unmasked = np.ones_like(
-            a.unmasked,
-            dtype=dtype,
-            order=order,
-            subok=subok,
-            shape=shape,
-            device=device,
-        )
-        return unmasked, False, None
 
-    @dispatched_function
-    def full_like(
-        a, fill_value, dtype=None, order="K", subok=True, shape=None, *, device=None
-    ):
-        """Return a full array with the same shape and type as a given array.
+@dispatched_function
+def ones_like(a, dtype=None, order="K", subok=True, shape=None, *, device=None):
+    """Return an array of ones with the same shape and type as a given array.
 
-        Like `numpy.full_like`, but with a mask that is also set.
-        If ``fill_value`` is `numpy.ma.masked`, the data will be left unset
-        (i.e., as created by `numpy.empty_like`).
-        """
-        result = np.empty_like(
-            a, dtype=dtype, order=order, subok=subok, shape=shape, device=device
-        )
-        result[...] = fill_value
-        return result, None, None
+    Like `numpy.ones_like`, but will add an all-false mask.
+    """
+    unmasked = np.ones_like(
+        a.unmasked,
+        dtype=dtype,
+        order=order,
+        subok=subok,
+        shape=shape,
+        device=device,
+    )
+    return unmasked, False, None
 
-else:
 
-    @dispatched_function
-    def empty_like(prototype, dtype=None, order="K", subok=True, shape=None):
-        """Return a new array with the same shape and type as a given array.
+@dispatched_function
+def full_like(
+    a, fill_value, dtype=None, order="K", subok=True, shape=None, *, device=None
+):
+    """Return a full array with the same shape and type as a given array.
 
-        Like `numpy.empty_like`, but will add an empty mask.
-        """
-        unmasked = np.empty_like(
-            prototype.unmasked, dtype=dtype, order=order, subok=subok, shape=shape
-        )
-        if dtype is not None:
-            dtype = (
-                np.ma.make_mask_descr(unmasked.dtype)
-                if unmasked.dtype.names
-                else np.dtype("?")
-            )
-        mask = np.empty_like(
-            prototype.mask, dtype=dtype, order=order, subok=subok, shape=shape
-        )
-
-        return unmasked, mask, None
-
-    @dispatched_function
-    def zeros_like(a, dtype=None, order="K", subok=True, shape=None):
-        """Return an array of zeros with the same shape and type as a given array.
-
-        Like `numpy.zeros_like`, but will add an all-false mask.
-        """
-        unmasked = np.zeros_like(
-            a.unmasked, dtype=dtype, order=order, subok=subok, shape=shape
-        )
-        return unmasked, False, None
-
-    @dispatched_function
-    def ones_like(a, dtype=None, order="K", subok=True, shape=None):
-        """Return an array of ones with the same shape and type as a given array.
-
-        Like `numpy.ones_like`, but will add an all-false mask.
-        """
-        unmasked = np.ones_like(
-            a.unmasked, dtype=dtype, order=order, subok=subok, shape=shape
-        )
-        return unmasked, False, None
-
-    @dispatched_function
-    def full_like(a, fill_value, dtype=None, order="K", subok=True, shape=None):
-        """Return a full array with the same shape and type as a given array.
-
-        Like `numpy.full_like`, but with a mask that is also set.
-        If ``fill_value`` is `numpy.ma.masked`, the data will be left unset
-        (i.e., as created by `numpy.empty_like`).
-        """
-        result = np.empty_like(a, dtype=dtype, order=order, subok=subok, shape=shape)
-        result[...] = fill_value
-        return result, None, None
+    Like `numpy.full_like`, but with a mask that is also set.
+    If ``fill_value`` is `numpy.ma.masked`, the data will be left unset
+    (i.e., as created by `numpy.empty_like`).
+    """
+    result = np.empty_like(
+        a, dtype=dtype, order=order, subok=subok, shape=shape, device=device
+    )
+    result[...] = fill_value
+    return result, None, None
 
 
 @dispatched_function
@@ -537,24 +467,15 @@ def bincount(x, weights=None, minlength=0):
     return result, mask, None
 
 
-if NUMPY_LT_2_0:
-
-    @dispatched_function
-    def msort(a):
-        result = a.copy()
-        result.sort(axis=0)
-        return result, None, None
-
-else:
-    # Used to work via ptp method, but now need to override, otherwise
-    # plain reduction is used, which gives different mask.
-    @dispatched_function
-    def ptp(a, axis=None, out=None, keepdims=np._NoValue):
-        if keepdims is np._NoValue:
-            keepdims = False
-        result = a.max(axis=axis, out=out, keepdims=keepdims)
-        result -= a.min(axis=axis, keepdims=keepdims)
-        return result, None, None
+# Used to work via ptp method, but now need to override, otherwise
+# plain reduction is used, which gives different mask.
+@dispatched_function
+def ptp(a, axis=None, out=None, keepdims=np._NoValue):
+    if keepdims is np._NoValue:
+        keepdims = False
+    result = a.max(axis=axis, out=out, keepdims=keepdims)
+    result -= a.min(axis=axis, keepdims=keepdims)
+    return result, None, None
 
 
 @dispatched_function
@@ -642,7 +563,7 @@ def broadcast_arrays(*args, subok=False):
     ]
     results = np.broadcast_arrays(*data, subok=subok)
 
-    return_type = list if NUMPY_LT_2_0 else tuple
+    return_type = tuple
     shape = results[0].shape if isinstance(results, return_type) else results.shape
     masks = [
         (np.broadcast_to(arg.mask, shape, subok=subok) if is_masked else None)
@@ -714,26 +635,14 @@ def median(a, axis=None, out=None, overwrite_input=False, keepdims=False):
         raise NotImplementedError
 
     a = Masked(a)
-
-    if NUMPY_LT_1_24:
-        r, k = _ureduce(
-            a,
-            func=_masked_median,
-            axis=axis,
-            out=out,
-            overwrite_input=overwrite_input,
-        )
-        result = (r.reshape(k) if keepdims else r) if out is None else out
-
-    else:
-        result = _ureduce(
-            a,
-            func=_masked_median,
-            axis=axis,
-            out=out,
-            overwrite_input=overwrite_input,
-            keepdims=keepdims,
-        )
+    result = _ureduce(
+        a,
+        func=_masked_median,
+        axis=axis,
+        out=out,
+        overwrite_input=overwrite_input,
+        keepdims=keepdims,
+    )
     return result, None, None
 
 
@@ -744,14 +653,7 @@ def _masked_quantile_1d(a, q, **kwargs):
     """
     unmasked = a.unmasked[~a.mask]
     if unmasked.size:
-        if NUMPY_LT_2_0:
-            if "weights" in kwargs:
-                kwargs.pop("weights")
-            result = np.lib.function_base._quantile_unchecked(unmasked, q, **kwargs)
-        else:
-            result = np.lib._function_base_impl._quantile_unchecked(
-                unmasked, q, **kwargs
-            )
+        result = np.lib._function_base_impl._quantile_unchecked(unmasked, q, **kwargs)
         return a.from_unmasked(result)
     else:
         return a.from_unmasked(np.zeros_like(a.unmasked, shape=q.shape), True)
@@ -796,90 +698,32 @@ def _preprocess_quantile(a, q, axis=None, out=None, **kwargs):
     return a, q, axis, out, kwargs
 
 
-if NUMPY_LT_1_24:
-
-    @dispatched_function
-    def quantile(
+@dispatched_function
+def quantile(
+    a,
+    q,
+    axis=None,
+    out=None,
+    overwrite_input=False,
+    method="linear",
+    keepdims=False,
+    *,
+    weights=None,
+    interpolation=None,
+):
+    a, q, axis, out, kwargs = _preprocess_quantile(
         a,
         q,
-        axis=None,
-        out=None,
-        overwrite_input=False,
-        method="linear",
-        keepdims=False,
-        *,
-        interpolation=None,
-    ):
-        a, q, axis, out, kwargs = _preprocess_quantile(
-            a,
-            q,
-            axis,
-            out,
-            overwrite_input=overwrite_input,
-            method=method,
-            keepdims=keepdims,
-            interpolation=interpolation,
-        )
-        keepdims = kwargs.pop("keepdims", False)
-        r, k = _ureduce(a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
-        result = (r.reshape(q.shape + k) if keepdims else r) if out is None else out
-        return result, None, None
-
-elif NUMPY_LT_2_0:
-
-    @dispatched_function
-    def quantile(
-        a,
-        q,
-        axis=None,
-        out=None,
-        overwrite_input=False,
-        method="linear",
-        keepdims=False,
-        *,
-        interpolation=None,
-    ):
-        a, q, axis, out, kwargs = _preprocess_quantile(
-            a,
-            q,
-            axis,
-            out,
-            overwrite_input=overwrite_input,
-            method=method,
-            keepdims=keepdims,
-            interpolation=interpolation,
-        )
-        result = _ureduce(a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
-        return result, None, None
-
-else:
-
-    @dispatched_function
-    def quantile(
-        a,
-        q,
-        axis=None,
-        out=None,
-        overwrite_input=False,
-        method="linear",
-        keepdims=False,
-        *,
-        weights=None,
-        interpolation=None,
-    ):
-        a, q, axis, out, kwargs = _preprocess_quantile(
-            a,
-            q,
-            axis,
-            out,
-            overwrite_input=overwrite_input,
-            method=method,
-            keepdims=keepdims,
-            weights=weights,
-            interpolation=interpolation,
-        )
-        result = _ureduce(a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
-        return result, None, None
+        axis,
+        out,
+        overwrite_input=overwrite_input,
+        method=method,
+        keepdims=keepdims,
+        weights=weights,
+        interpolation=interpolation,
+    )
+    result = _ureduce(a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
+    return result, None, None
 
 
 @dispatched_function
@@ -1158,10 +1002,7 @@ class MaskedFormat:
 
     @classmethod
     def from_data(cls, data, **options):
-        if NUMPY_LT_2_0:
-            from numpy.core.arrayprint import _get_format_function
-        else:
-            from numpy._core.arrayprint import _get_format_function
+        from numpy._core.arrayprint import _get_format_function
 
         return cls(_get_format_function(data, **options))
 
@@ -1170,10 +1011,7 @@ def _array2string(a, options, separator=" ", prefix=""):
     # Mostly copied from numpy.core.arrayprint, except:
     # - The format function is wrapped in a mask-aware class;
     # - Arrays scalars are not cast as arrays.
-    if NUMPY_LT_2_0:
-        from numpy.core.arrayprint import _formatArray, _leading_trailing
-    else:
-        from numpy._core.arrayprint import _formatArray, _leading_trailing
+    from numpy._core.arrayprint import _formatArray, _leading_trailing
 
     data = np.asarray(a)
 
@@ -1222,11 +1060,8 @@ def array2string(
     *,
     legacy=None,
 ):
-    # Copied from numpy.core.arrayprint, but using _array2string above.
-    if NUMPY_LT_2_0:
-        from numpy.core.arrayprint import _format_options, _make_options_dict
-    else:
-        from numpy._core.arrayprint import _format_options, _make_options_dict
+    # Copied from numpy._core.arrayprint, but using _array2string above.
+    from numpy._core.arrayprint import _format_options, _make_options_dict
 
     overrides = _make_options_dict(
         precision,
@@ -1322,8 +1157,7 @@ def masked_nanfunc(nanfuncname):
     return nanfunc
 
 
-_nplibnanfunctions = np.lib.nanfunctions if NUMPY_LT_2_0 else np.lib._nanfunctions_impl
-for nanfuncname in _nplibnanfunctions.__all__:
+for nanfuncname in np.lib._nanfunctions_impl.__all__:
     globals()[nanfuncname] = dispatched_function(
         masked_nanfunc(nanfuncname), helps=getattr(np, nanfuncname)
     )
@@ -1376,33 +1210,18 @@ def _copy_of_mask(a):
     return mask.copy() if mask is not None else False
 
 
-if NUMPY_LT_1_24:  # "kind" argument introduced in 1.24.
+@dispatched_function
+def in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
+    mask = _copy_of_mask(ar1).ravel()
+    return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
 
-    @dispatched_function
-    def in1d(ar1, ar2, assume_unique=False, invert=False):
-        mask = _copy_of_mask(ar1).ravel()
-        return _in1d(ar1, ar2, assume_unique, invert), mask, None
 
-    @dispatched_function
-    def isin(element, test_elements, assume_unique=False, invert=False):
-        element = np.asanyarray(element)
-        result = _in1d(element, test_elements, assume_unique, invert)
-        result.shape = element.shape
-        return result, _copy_of_mask(element), None
-
-else:
-
-    @dispatched_function
-    def in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
-        mask = _copy_of_mask(ar1).ravel()
-        return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
-
-    @dispatched_function
-    def isin(element, test_elements, assume_unique=False, invert=False, *, kind=None):
-        element = np.asanyarray(element)
-        result = _in1d(element, test_elements, assume_unique, invert, kind=kind)
-        result.shape = element.shape
-        return result, _copy_of_mask(element), None
+@dispatched_function
+def isin(element, test_elements, assume_unique=False, invert=False, *, kind=None):
+    element = np.asanyarray(element)
+    result = _in1d(element, test_elements, assume_unique, invert, kind=kind)
+    result.shape = element.shape
+    return result, _copy_of_mask(element), None
 
 
 @dispatched_function

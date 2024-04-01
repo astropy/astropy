@@ -28,7 +28,6 @@ from astropy.table import (
 )
 from astropy.tests.helper import PYTEST_LT_8_0, assert_follows_unicode_guidelines
 from astropy.time import Time, TimeDelta
-from astropy.utils.compat import NUMPY_LT_1_25
 from astropy.utils.compat.optional_deps import HAS_PANDAS
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
@@ -1660,21 +1659,13 @@ def test_values_equal_part1():
         # Shape mismatch
         t3.values_equal(t1)
 
-    if NUMPY_LT_1_25:
-        with pytest.raises(ValueError, match="unable to compare column c"):
-            # Type mismatch in column c causes FutureWarning
-            t1.values_equal(2)
+    eq = t2.values_equal(2)
+    for col in eq.colnames:
+        assert np.all(eq[col] == [False, True])
 
-        with pytest.raises(ValueError, match="unable to compare column c"):
-            t1.values_equal([1, 2])
-    else:
-        eq = t2.values_equal(2)
-        for col in eq.colnames:
-            assert np.all(eq[col] == [False, True])
-
-        eq = t2.values_equal([1, 2])
-        for col in eq.colnames:
-            assert np.all(eq[col] == [True, True])
+    eq = t2.values_equal([1, 2])
+    for col in eq.colnames:
+        assert np.all(eq[col] == [True, True])
 
     eq = t2.values_equal(t2)
     for col in eq.colnames:

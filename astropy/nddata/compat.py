@@ -6,7 +6,6 @@ import numpy as np
 
 from astropy import log
 from astropy.units import Unit, UnitConversionError, UnitsError  # noqa: F401
-from astropy.utils.compat import COPY_IF_NEEDED
 
 from .flag_collection import FlagCollection
 from .mixins.ndarithmetic import NDArithmeticMixin
@@ -229,7 +228,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         else:
             self._flags = value
 
-    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
+    def __array__(self, dtype=None, copy=None):
         """
         This allows code that requests a Numpy array to use an NDData
         object as a Numpy array.

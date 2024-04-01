@@ -22,7 +22,6 @@ from astropy.coordinates.representation import (
     SphericalRepresentation,
     UnitSphericalRepresentation,
 )
-from astropy.utils.compat import COPY_IF_NEEDED
 
 _TWOPI = 2 * np.pi
 
@@ -229,5 +228,5 @@ def uniform_spherical_random_volume(size=1, max_radius=1):
 
     usph = uniform_spherical_random_surface(size=size)
 
-    r = np.cbrt(rng.uniform(size=size)) * u.Quantity(max_radius, copy=COPY_IF_NEEDED)
+    r = np.cbrt(rng.uniform(size=size)) * u.Quantity(max_radius, copy=None)
     return SphericalRepresentation(usph.lon, usph.lat, r)

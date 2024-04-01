@@ -22,11 +22,6 @@ from astropy.units.tests.test_quantity_non_ufuncs import (
     get_covered_functions,
     get_wrapped_functions,
 )
-from astropy.utils.compat import (
-    NUMPY_LT_1_24,
-    NUMPY_LT_1_25,
-    NUMPY_LT_2_0,
-)
 from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.masked.function_helpers import (
     APPLY_TO_BOTH_FUNCTIONS,
@@ -107,10 +102,8 @@ class TestShapeManipulation(BasicTestSetup):
     def test_transpose(self):
         self.check(np.transpose)
 
-    if not NUMPY_LT_2_0:
-
-        def test_matrix_transpose(self):
-            self.check(np.matrix_transpose)
+    def test_matrix_transpose(self):
+        self.check(np.matrix_transpose)
 
     def test_atleast_1d(self):
         self.check(np.atleast_1d)
@@ -288,17 +281,9 @@ class TestCopyAndCreation(InvariantMaskTestSetup):
         copy = np.copy(a=self.ma)
         assert_array_equal(copy, self.ma)
 
-    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.asfarray is removed in NumPy 2.0")
-    def test_asfarray(self):
-        self.check(np.asfarray)  # noqa: NPY201
-        farray = np.asfarray(a=self.ma)  # noqa: NPY201
-        assert_array_equal(farray, self.ma)
-
-    if not NUMPY_LT_2_0:
-
-        def test_astype(self):
-            int32ma = self.ma.astype("int32")
-            assert_array_equal(np.astype(int32ma, "int32"), int32ma)
+    def test_astype(self):
+        int32ma = self.ma.astype("int32")
+        assert_array_equal(np.astype(int32ma, "int32"), int32ma)
 
 
 class TestArrayCreation(MaskedArraySetup):
@@ -619,41 +604,14 @@ class TestMethodLikes(MaskedArraySetup):
     def test_all(self):
         self.check(np.all)
 
-    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.sometrue is removed in NumPy 2.0")
-    @pytest.mark.filterwarnings("ignore:`sometrue` is deprecated as of NumPy 1.25.0")
-    def test_sometrue(self):
-        self.check(np.sometrue, method="any")  # noqa: NPY003
-
-    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.alltrue is removed in NumPy 2.0")
-    @pytest.mark.filterwarnings("ignore:`alltrue` is deprecated as of NumPy 1.25.0")
-    def test_alltrue(self):
-        self.check(np.alltrue, method="all")  # noqa: NPY003
-
     def test_prod(self):
         self.check(np.prod)
-
-    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.product is removed in NumPy 2.0")
-    @pytest.mark.filterwarnings("ignore:`product` is deprecated as of NumPy 1.25.0")
-    def test_product(self):
-        self.check(np.product, method="prod")  # noqa: NPY003
 
     def test_cumprod(self):
         self.check(np.cumprod)
 
-    @pytest.mark.skipif(
-        not NUMPY_LT_2_0, reason="np.cumproduct is removed in NumPy 2.0"
-    )
-    @pytest.mark.filterwarnings("ignore:`cumproduct` is deprecated as of NumPy 1.25.0")
-    def test_cumproduct(self):
-        self.check(np.cumproduct, method="cumprod")  # noqa: NPY003
-
     def test_round(self):
         self.check(np.round, method="round")
-
-    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.round_ is removed in NumPy 2.0")
-    @pytest.mark.filterwarnings("ignore:`round_` is deprecated as of NumPy 1.25.0")
-    def test_round_(self):
-        self.check(np.round_, method="round")  # noqa: NPY003, NPY201
 
     def test_around(self):
         self.check(np.around, method="round")
@@ -916,11 +874,6 @@ class TestReductionLikeFunctions(MaskedArraySetup):
         assert o2 is out
         assert_array_equal(o2.unmasked, expected.unmasked)
         assert_array_equal(o2.mask, expected.mask)
-        if NUMPY_LT_2_0:
-            # Method is removed in numpy 2.0.
-            o3 = self.ma.ptp(**kwargs)
-            assert_array_equal(o3.unmasked, expected.unmasked)
-            assert_array_equal(o3.mask, expected.mask)
 
     def test_trace(self):
         o = np.trace(self.ma)
@@ -956,10 +909,6 @@ class TestPartitionLikeFunctions:
         assert_array_equal(o.filled(np.nan), expected)
         assert_array_equal(o.mask, np.isnan(expected))
         # Also check that we can give an output MaskedArray.
-        if NUMPY_LT_1_25 and kwargs.get("keepdims", False):
-            # numpy bug gh-22714 prevents using out with keepdims=True.
-            # This is fixed in numpy 1.25.
-            return
 
         out = np.zeros_like(o)
         o2 = function(self.ma, *args, out=out, **kwargs)
@@ -1013,15 +962,8 @@ class TestIntDiffFunctions(MaskedArraySetup):
         assert_array_equal(out.unmasked, func(self.a))
         assert_array_equal(out.mask, np.array([True, False]))
 
-    if NUMPY_LT_2_0:
-
-        def test_trapz(self):
-            self.check_trapezoid(np.trapz)
-
-    else:
-
-        def test_trapezoid(self):
-            self.check_trapezoid(np.trapezoid)
+    def test_trapezoid(self):
+        self.check_trapezoid(np.trapezoid)
 
     def test_gradient(self):
         out = np.gradient(self.ma)
@@ -1068,7 +1010,7 @@ class TestSpaceFunctions:
         # are determined just by their respective point?
         if function is np.geomspace:
             expected_mask[0] = self.mask_a
-        if NUMPY_LT_2_0 or function is not np.geomspace:
+        else:
             expected_mask[-1] = self.mask_b
 
         assert_array_equal(out.unmasked, expected)
@@ -1177,12 +1119,6 @@ class TestSortFunctions(MaskedArraySetup):
         o = np.sort_complex(ma)
         indx = np.lexsort((ma.unmasked.imag, ma.unmasked.real, ma.mask))
         expected = ma[indx]
-        assert_masked_equal(o, expected)
-
-    @pytest.mark.skipif(not NUMPY_LT_1_24, reason="np.msort is deprecated")
-    def test_msort(self):
-        o = np.msort(self.ma)
-        expected = np.sort(self.ma, axis=0)
         assert_masked_equal(o, expected)
 
     def test_partition(self):
@@ -1491,30 +1427,25 @@ class TestArraySetOps:
         assert_array_equal(indices2, [1, 0, 2])
         assert_array_equal(inverse_indices2, [1, 0, 2])
 
-    @pytest.mark.skipif(NUMPY_LT_2_0, reason="new in numpy 2.0")
     def check_unique(self, test):
         for name in test._fields:
             assert_array_equal(getattr(test, name), getattr(self, name))
 
-    @pytest.mark.skipif(NUMPY_LT_2_0, reason="new in numpy 2.0")
     def test_unique_all(self):
         test = np.unique_all(self.data)
         assert len(test) == 4
         self.check_unique(test)
 
-    @pytest.mark.skipif(NUMPY_LT_2_0, reason="new in numpy 2.0")
     def test_unique_counts(self):
         test = np.unique_counts(self.data)
         assert len(test) == 2
         self.check_unique(test)
 
-    @pytest.mark.skipif(NUMPY_LT_2_0, reason="new in numpy 2.0")
     def test_unique_inverse(self):
         test = np.unique_inverse(self.data)
         assert len(test) == 2
         self.check_unique(test)
 
-    @pytest.mark.skipif(NUMPY_LT_2_0, reason="new in numpy 2.0")
     def test_unique_values(self):
         test = np.unique_values(self.data)
         assert isinstance(test, Masked)
@@ -1596,9 +1527,6 @@ class TestArraySetOps:
         c = np.isin(a.astype(dtype), b.astype(dtype))
         assert_masked_equal(c, ec)
 
-    @pytest.mark.filterwarnings("ignore:in1d.*deprecated")  # not NUMPY_LT_2_0
-    def test_in1d(self):
-        # Once we require numpy>=2.0, these tests should be joined with np.isin.
         a = Masked([1, 2, 5, -2, -1], mask=[0, 0, 0, 1, 1])
         b = Masked([1, 2, 3, 4, 5, -2], mask=[0, 0, 0, 0, 0, 1])
         test = np.in1d(a, b)
@@ -1613,7 +1541,6 @@ class TestArraySetOps:
         assert_masked_equal(np.in1d(Masked([]), []), Masked([]))
         assert_masked_equal(np.in1d(Masked([]), [], invert=True), Masked([]))
 
-    @pytest.mark.skipif(NUMPY_LT_1_24, reason="kind introduced in numpy 1.24")
     def test_in1d_kind_table_error(self):
         with pytest.raises(ValueError, match="'table' method is not supported"):
             np.in1d(Masked([1, 2, 3]), [4, 5], kind="table")

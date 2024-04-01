@@ -17,16 +17,12 @@ from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
 from astropy.units.quantity_helper.helpers import helper_sqrt
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_25, NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-if NUMPY_LT_2_0:
-    from numpy.core import umath as np_umath
-else:
-    from numpy._core import umath as np_umath
+from numpy._core import umath as np_umath
 
 
 class testcase(NamedTuple):
@@ -360,7 +356,6 @@ class TestQuantityMathFuncs:
         r2 = np.matmul(q1, q2)
         assert np.all(r2 == np.matmul(q1.value, q2.value) * q1.unit * q2.unit)
 
-    @pytest.mark.skipif(NUMPY_LT_2_0, reason="vecdot only added in numpy 2.0")
     def test_vecdot(self):
         q1 = np.array([1j, 2j, 3j]) * u.m
         q2 = np.array([4j, 5j, 6j]) / u.s
@@ -1075,15 +1070,6 @@ class TestWhere:
         result = np.add(q, 1 * u.km, out=out, where=[True, True, True, False])
         assert result is out
         assert_array_equal(result, [1000.0, 1001.0, 1002.0, 0.0] << u.m)
-
-    @pytest.mark.xfail(
-        NUMPY_LT_1_25, reason="where array_ufunc support introduced in numpy 1.25"
-    )
-    def test_exception_with_where_quantity(self):
-        a = np.ones(2)
-        where = np.ones(2, bool) << u.m
-        with pytest.raises(TypeError, match="all returned NotImplemented"):
-            np.add(a, a, out=a, where=where)
 
 
 @pytest.mark.skipif(not hasattr(np_umath, "clip"), reason="no clip ufunc available")

@@ -11,7 +11,6 @@ from astropy.coordinates import EarthLocation
 from astropy.table import Table
 from astropy.time import Time, conf
 from astropy.utils import iers
-from astropy.utils.compat import NUMPY_LT_1_25, NUMPY_LT_1_26
 from astropy.utils.compat.optional_deps import HAS_H5PY
 from astropy.utils.masked import Masked
 
@@ -335,19 +334,14 @@ def test_all_formats(format_, masked_cls, masked_array_type):
         t_format = getattr(t, format_)
         tm_format = getattr(tm, format_)
         assert isinstance(tm_format, out_cls)
-        if NUMPY_LT_1_26 and format_ == "ymdhms" and out_cls is np.ma.MaskedArray:
-            # Work around https://github.com/numpy/numpy/issues/24554
-            expected = out_cls(t_format, mask=mask)
-        else:
-            expected = t_format
+
+        expected = t_format
         assert np.all(tm_format == expected)
 
         # Check masked scalar.
         tm0_format = getattr(tm[0], format_)
         assert isinstance(tm0_format, out_cls)
-        if NUMPY_LT_1_25 and tm0_format.dtype.kind == "M":
-            # Comparison bug in older numpy, just skip it.
-            return
+
         comparison = tm0_format == tm_format[0]
         assert comparison.mask
         if out_cls is Masked:

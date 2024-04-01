@@ -14,7 +14,6 @@ from astropy import constants as consts
 from astropy import units as u
 from astropy.units.quantity import QuantityInfoBase
 from astropy.utils import data
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .angles import Angle, Latitude, Longitude
@@ -271,9 +270,9 @@ class EarthLocation(u.Quantity):
         # in that it will no longer possible to initialize with a unit-full x,
         # and unit-less y, z. Arguably, though, that would just solve a bug.
         try:
-            x = u.Quantity(x, unit, copy=COPY_IF_NEEDED)
-            y = u.Quantity(y, unit, copy=COPY_IF_NEEDED)
-            z = u.Quantity(z, unit, copy=COPY_IF_NEEDED)
+            x = u.Quantity(x, unit, copy=None)
+            y = u.Quantity(y, unit, copy=None)
+            z = u.Quantity(z, unit, copy=None)
         except u.UnitsError:
             raise u.UnitsError("Geocentric coordinate units should all be consistent.")
 
@@ -317,11 +316,11 @@ class EarthLocation(u.Quantity):
         """
         ellipsoid = _check_ellipsoid(ellipsoid, default=cls._ellipsoid)
         # As wrapping fails on readonly input, we do so manually
-        lon = Angle(lon, u.degree, copy=COPY_IF_NEEDED).wrap_at(180 * u.degree)
-        lat = Latitude(lat, u.degree, copy=COPY_IF_NEEDED)
+        lon = Angle(lon, u.degree, copy=None).wrap_at(180 * u.degree)
+        lat = Latitude(lat, u.degree, copy=None)
         # don't convert to m by default, so we can use the height unit below.
         if not isinstance(height, u.Quantity):
-            height = u.Quantity(height, u.m, copy=COPY_IF_NEEDED)
+            height = u.Quantity(height, u.m, copy=None)
         # get geocentric coordinates.
         geodetic = ELLIPSOIDS[ellipsoid](lon, lat, height, copy=False)
         xyz = geodetic.to_cartesian().get_xyz(xyz_axis=-1) << height.unit

@@ -6,15 +6,8 @@ import numbers
 from itertools import zip_longest
 
 import numpy as np
-
-from astropy.utils.compat import NUMPY_LT_2_0
-
-if NUMPY_LT_2_0:
-    import numpy.core as np_core
-    from numpy.core.multiarray import normalize_axis_index
-else:
-    import numpy._core as np_core
-    from numpy.lib.array_utils import normalize_axis_index
+import numpy._core as np_core
+from numpy.lib.array_utils import normalize_axis_index
 
 __all__ = [
     "NDArrayShapeMethods",

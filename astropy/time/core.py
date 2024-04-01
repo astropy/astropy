@@ -30,7 +30,6 @@ from astropy import units as u
 from astropy.extern import _strptime
 from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray, lazyproperty
-from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0, sanitize_copy_arg
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
@@ -1643,18 +1642,13 @@ class TimeBase(ShapedLikeNDArray):
             )
         return self.max(axis, keepdims=keepdims) - self.min(axis, keepdims=keepdims)
 
-    if NUMPY_LT_2_0:
-        _ptp_decorator = lambda f: f
-    else:
-        _ptp_decorator = deprecated("6.1", alternative="np.ptp")
+    def __array_function__(self, function, types, args, kwargs):
+        if function is np.ptp:
+            return self._ptp_impl(*args[1:], **kwargs)
+        else:
+            return super().__array_function__(function, types, args, kwargs)
 
-        def __array_function__(self, function, types, args, kwargs):
-            if function is np.ptp:
-                return self._ptp_impl(*args[1:], **kwargs)
-            else:
-                return super().__array_function__(function, types, args, kwargs)
-
-    @_ptp_decorator
+    @deprecated("6.1", alternative="np.ptp")
     def ptp(self, axis=None, out=None, keepdims=False):
         """Peak to peak (maximum - minimum) along a given axis.
 
@@ -1757,7 +1751,7 @@ class TimeBase(ShapedLikeNDArray):
             val2=jd2,
             format="jd",
             scale=self.scale,
-            copy=COPY_IF_NEEDED,
+            copy=None,
         )
         result.format = self.format
         return result
@@ -1993,8 +1987,6 @@ class Time(TimeBase):
         location=None,
         copy=False,
     ):
-        copy = sanitize_copy_arg(copy)
-
         if location is not None:
             from astropy.coordinates import EarthLocation
 
@@ -2479,7 +2471,7 @@ class Time(TimeBase):
             longitude = longitude.lon
         else:
             # Sanity check on input; default unit is degree.
-            longitude = Longitude(longitude, u.degree, copy=COPY_IF_NEEDED)
+            longitude = Longitude(longitude, u.degree, copy=None)
 
         theta = self._call_erfa(function, scales)
 
@@ -3123,7 +3115,7 @@ class TimeDelta(TimeBase):
         # If other is something consistent with a dimensionless quantity
         # (could just be a float or an array), then we can just multiple in.
         try:
-            other = u.Quantity(other, u.dimensionless_unscaled, copy=COPY_IF_NEEDED)
+            other = u.Quantity(other, u.dimensionless_unscaled, copy=None)
         except Exception:
             # If not consistent with a dimensionless quantity, try downgrading
             # self to a quantity and see if things work.
@@ -3156,7 +3148,7 @@ class TimeDelta(TimeBase):
         # If other is something consistent with a dimensionless quantity
         # (could just be a float or an array), then we can just divide in.
         try:
-            other = u.Quantity(other, u.dimensionless_unscaled, copy=COPY_IF_NEEDED)
+            other = u.Quantity(other, u.dimensionless_unscaled, copy=None)
         except Exception:
             # If not consistent with a dimensionless quantity, try downgrading
             # self to a quantity and see if things work.
@@ -3374,7 +3366,7 @@ class ScaleValueError(Exception):
     pass
 
 
-def _make_array(val, copy=COPY_IF_NEEDED):
+def _make_array(val, copy=None):
     """
     Take ``val`` and convert/reshape to an array.  If ``copy`` is `True`
     then copy input values.
@@ -3388,8 +3380,6 @@ def _make_array(val, copy=COPY_IF_NEEDED):
         dtype = object
     else:
         dtype = None
-
-    copy = sanitize_copy_arg(copy)
 
     val = np.array(val, copy=copy, subok=True, dtype=dtype)
 
