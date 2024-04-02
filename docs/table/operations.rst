@@ -1186,8 +1186,8 @@ a generic distance between column values using the
 :func:`~astropy.table.join_distance` join function. This can apply to 1D or 2D
 (vector) columns. This will look very similar to the coordinates example, but
 here there is a bit more flexibility. The matching is done using
-:class:`scipy.spatial.cKDTree` and
-:meth:`scipy.spatial.cKDTree.query_ball_tree`, and the behavior of these can be
+:class:`scipy.spatial.KDTree` and
+:meth:`scipy.spatial.KDTree.query_ball_tree`, and the behavior of these can be
 controlled via the ``kdtree_args`` and ``query_args`` arguments, respectively.
 
 .. _unique-rows:

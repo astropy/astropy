@@ -455,23 +455,11 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt="kdtree", forceunit=None):
 
     Returns
     -------
-    kdt : `~scipy.spatial.cKDTree` or `~scipy.spatial.KDTree`
+    kdt : `~scipy.spatial.KDTree`
         The KD-Tree representing the 3D cartesian representation of the input
         coordinates.
     """
-    from warnings import warn
-
-    # without scipy this will immediately fail
-    from scipy import spatial
-
-    try:
-        KDTree = spatial.cKDTree
-    except Exception:
-        warn(
-            "C-based KD tree not found, falling back on (much slower) "
-            "python implementation"
-        )
-        KDTree = spatial.KDTree
+    from scipy.spatial import KDTree
 
     if attrname_or_kdt is True:  # backwards compatibility for pre v0.4
         attrname_or_kdt = "kdtree"
@@ -503,15 +491,9 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt="kdtree", forceunit=None):
         # There should be no NaNs in the kdtree data.
         if np.isnan(flatxyz.value).any():
             raise ValueError("Catalog coordinates cannot contain NaN entries.")
-        try:
-            # Set compact_nodes=False, balanced_tree=False to use
-            # "sliding midpoint" rule, which is much faster than standard for
-            # many common use cases
-            kdt = KDTree(flatxyz.value.T, compact_nodes=False, balanced_tree=False)
-        except TypeError:
-            # Python implementation does not take compact_nodes and balanced_tree
-            # as arguments.  However, it uses sliding midpoint rule by default
-            kdt = KDTree(flatxyz.value.T)
+        # Not obvious if compact_nodes=False, balanced_tree=False is still needed but
+        # we stay backwards-compatible with previous versions of `astropy` for now.
+        kdt = KDTree(flatxyz.value.T, compact_nodes=False, balanced_tree=False)
 
     if attrname_or_kdt:
         # cache the kdtree in `coord`

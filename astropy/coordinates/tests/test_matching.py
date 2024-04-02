@@ -120,20 +120,6 @@ def test_kdtree_storage(functocheck, args, defaultkdtname, bothsaved):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")
-def test_python_kdtree(monkeypatch):
-    from astropy.coordinates import ICRS
-
-    cmatch = ICRS([4, 2.1] * u.degree, [0, 0] * u.degree, distance=[1, 2] * u.kpc)
-    ccatalog = ICRS(
-        [1, 2, 3, 4] * u.degree, [0, 0, 0, 0] * u.degree, distance=[1, 2, 3, 4] * u.kpc
-    )
-
-    monkeypatch.delattr("scipy.spatial.cKDTree")
-    with pytest.warns(UserWarning, match=r"C-based KD tree not found"):
-        matching.match_coordinates_sky(cmatch, ccatalog)
-
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")
 def test_matching_method():
     from astropy.coordinates import ICRS, SkyCoord
     from astropy.coordinates.matching import match_coordinates_3d, match_coordinates_sky
