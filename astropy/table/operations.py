@@ -234,7 +234,7 @@ def join_distance(distance, kdtree_args=None, query_args=None):
     "fuzzy" match can apply to 1-D or 2-D columns, where in the latter case
     the distance is a vector distance.
 
-    The distance cross-matching is done using `scipy.spatial.cKDTree`. If
+    The distance cross-matching is done using `scipy.spatial.KDTree`. If
     necessary you can tweak the default behavior by providing ``dict`` values
     for the ``kdtree_args`` or ``query_args``.
 
@@ -243,9 +243,9 @@ def join_distance(distance, kdtree_args=None, query_args=None):
     distance : float or `~astropy.units.Quantity` ['length']
         Maximum distance between points to be considered a join match
     kdtree_args : dict, None
-        Optional extra args for `~scipy.spatial.cKDTree`
+        Optional extra args for `~scipy.spatial.KDTree`
     query_args : dict, None
-        Optional extra args for `~scipy.spatial.cKDTree.query_ball_tree`
+        Optional extra args for `~scipy.spatial.KDTree.query_ball_tree`
 
     Returns
     -------
@@ -275,7 +275,7 @@ def join_distance(distance, kdtree_args=None, query_args=None):
 
     """
     try:
-        from scipy.spatial import cKDTree
+        from scipy.spatial import KDTree
     except ImportError as exc:
         raise ImportError("scipy is required to use join_distance()") from exc
 
@@ -306,8 +306,8 @@ def join_distance(distance, kdtree_args=None, query_args=None):
             col2.shape = col2.shape + (1,)
 
         # Cross-match col1 and col2 within dist using KDTree
-        kd1 = cKDTree(col1, **kdtree_args)
-        kd2 = cKDTree(col2, **kdtree_args)
+        kd1 = KDTree(col1, **kdtree_args)
+        kd2 = KDTree(col2, **kdtree_args)
         nears = kd1.query_ball_tree(kd2, r=dist, **query_args)
 
         # Output of above is nears which is a list of lists, where the outer
