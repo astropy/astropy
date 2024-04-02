@@ -6,6 +6,7 @@
 - vstack()
 - dstack()
 """
+
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import annotations
 
@@ -376,7 +377,7 @@ def join(
     *,
     keys_left=None,
     keys_right=None,
-    keep_order: bool | None = None,
+    keep_order=None,
     uniq_col_name="{col_name}_{table_name}",
     table_names=["1", "2"],
     metadata_conflicts="warn",
