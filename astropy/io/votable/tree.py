@@ -2590,7 +2590,7 @@ class TableElement(
         nrows=0,
         config=None,
         *,
-        colnumbers: list[int] | None = None,
+        colnumbers=None,
     ):
         """
         Create a new array to hold the data based on the current set
