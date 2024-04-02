@@ -507,3 +507,169 @@ def get_pyarrow():
     from pyarrow import parquet
 
     return pa, parquet
+
+
+def write_parquet_vot(tab , metadata, filename):
+    '''
+    Writes a Parquet file with a VOT (XML) metadata table included.
+
+    Parameters:
+    ===========
+    tab : astropy table
+        An Astropy table containing the data
+
+    metadata : dict
+        Nested dictionary (keys = column names; sub-keys = meta keys) for each of the columns
+        containing a dictionary with metadata.
+
+    filename : str
+        File name where to save the table.
+
+    Return:
+    =======
+    None. Saves the table.
+
+    Example:
+    ========
+
+    > # create data
+    > number_of_objects = 10
+    > ids = ["COSMOS_{:03g}".format(ii) for ii in range(number_of_objects)]
+    > redshift = np.random.uniform(low=0 , high=3 , size=number_of_objects)
+    > mass = np.random.uniform(low=1e8 , high=1e10 , size=number_of_objects)
+    > sfr = np.random.uniform(low=1 , high=100 , size=number_of_objects)
+    > astropytab = Table([ids , redshift , mass , sfr] , names=["id","z","mass","sfr"],
+    >                    descriptions=["The ID of the Galaxy", "The redshift of the Galaxy", "The stellar mass of the Galaxy","The star formation of the galaxy"]
+    >                   )
+
+    > # Column Metadata
+    > column_metadata = {"id":{"unit":"","ucd":"meta.id","utype":"none","description":"The ID of the galaxy."},
+    >            "z":{"unit":"","ucd":"src.redshift","utype":"none","description":"The redshift of the galaxy."},
+    >            "mass":{"unit":"solMass","ucd":"phys.mass","utype":"none","description":"The stellar mass of the galaxy."},
+    >            "sfr":{"unit":"solMass / yr","ucd":"phys.SFR","utype":"none","description":"The star formation rate of the galaxy."}
+    >            }
+
+    > # Write Parquet file with XML metadata
+    > write_parquet_vot(astropytab , column_metadata , "test_parquet.parquet")
+
+    '''
+
+    import xml.etree.ElementTree
+    from astropy.io.votable.tree import VOTableFile
+    import io
+    import pyarrow.parquet
+
+
+    ## Prepare the VOTable (XML)
+    ## We only use the first row of the astropy table to get the general
+    ## information such as arraysize, ID, or datatype.
+    votablefile = VOTableFile()
+    votable_write = votablefile.from_table(tab[0:1])
+
+    ## Then add the other metadata keys to the FIELDS parameters of the VOTable
+    metadatakeys = list(metadata[list(metadata.keys())[0]].keys())
+    for field in votable_write.resources[0].tables[0].fields:
+        for mkey in metadatakeys:
+            if mkey in field._attr_list:
+                pass
+                exec("field.{} = metadata[field.name][\"{}\"]".format(mkey,mkey))
+            else:
+                if (mkey == "description") & (field.description != None):
+                    field.description = metadata[field.name]["description"]
+                else:
+                    print("Warning: '{}' is not a valid VOT metadata key".format(mkey))
+
+    ## Convert the VOTable object into a Byte string to create an
+    ## XML that we can add to the Parquet metadata
+    xml_bstr = io.BytesIO()
+    votable_write.to_xml(xml_bstr)
+    xml_bstr = xml_bstr.getvalue()
+
+    ## Now remove the data from this XML string and just
+    ## recover DESCRIPTION and FIELD elements
+
+    # get the table
+    nsurl = "{http://www.ivoa.net/xml/VOTable/v1.3}"
+    root = xml.etree.ElementTree.fromstring(xml_bstr)
+    tab_tmp = root.find(f"{nsurl}RESOURCE").find(f"{nsurl}TABLE")
+
+    # remove the DATA element and replace it with a reference to the parquet
+    data_tmp = tab_tmp.find(f"{nsurl}DATA")
+    tab_tmp.remove(data_tmp)
+    data_tmp = xml.etree.ElementTree.SubElement(tab_tmp, f"{nsurl}DATA")
+    _ = xml.etree.ElementTree.SubElement(data_tmp, f"{nsurl}PARQUET", type="Parquet-local-XML")
+
+    # convert back to a string, encode, and return
+    xml_str = xml.etree.ElementTree.tostring(root, encoding="unicode", method="xml", xml_declaration=True)
+
+    ## Write the Parquet file
+    pyarrow_table = pyarrow.Table.from_pydict({c: tab[c] for c in tab.colnames})
+
+    ## add the required Type 1 file-level metadata
+    original_metadata = pyarrow_table.schema.metadata or dict()
+    updated_metadata = {
+        **original_metadata,
+        b"IVOA.VOTable-Parquet.version": b"1.0",
+        b"IVOA.VOTable-Parquet.type": b"Parquet-local-XML",
+        b"IVOA.VOTable-Parquet.encoding": b"utf-8",
+        b"IVOA.VOTable-Parquet.content": xml_str,
+    }
+    pyarrow_table = pyarrow_table.replace_schema_metadata(updated_metadata)
+
+    ## write the parquet file with required Type 1 metadata
+    pyarrow.parquet.write_table(pyarrow_table, filename)
+    print(f"parquet file written to {filename}")
+
+    return(True)
+
+
+
+def read_parquet_vot(filename):
+    '''
+    Reads a Parquet file with a VOT (XML) metadata table included.
+
+    Parameters:
+    ===========
+    filename : str
+        File name.
+
+    Return:
+    =======
+    An astropy table.
+
+    Example:
+    ========
+
+    > # load table
+    > loaded_table = read_parquet_vot("test_parquet.parquet")
+
+    > # Access the metadata
+    > print(loaded_table["mass"].unit)
+    > print(loaded_table["mass"].description)
+    > print(loaded_table["mass"].meta)
+    > print(loaded_table["mass"].meta["ucd"])
+
+    '''
+
+    import io
+    import pyarrow.parquet
+    from astropy.io import votable
+    from astropy.table import Table, vstack
+
+
+    ## First load the column metadata that is stored
+    ## in the parquet content
+    parquet_custom_metadata = pyarrow.parquet.ParquetFile(filename).metadata.metadata
+
+    ## Create an empty Astropy table inheriting all the column metadata
+    ## information.
+    vot_blob = io.BytesIO(parquet_custom_metadata[b"IVOA.VOTable-Parquet.content"])
+    empty_table_with_columns_and_metadata = Table.read(votable.parse(vot_blob))
+
+    ## Load the data from the parquet table using the Table.read() functionality
+    data_table_with_no_metadata = Table.read(filename)
+
+    ## Stitch the two tables together to create final table
+    complete_table = vstack([empty_table_with_columns_and_metadata, data_table_with_no_metadata])
+
+    return(complete_table)
