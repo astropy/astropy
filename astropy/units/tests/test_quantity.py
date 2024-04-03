@@ -16,6 +16,7 @@ from astropy.units.quantity import _UNIT_NOT_INITIALISED
 from astropy.utils import isiterable, minversion
 from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.masked import Masked
 
 """ The Quantity class will represent a number + unit + uncertainty """
 
@@ -467,6 +468,24 @@ class TestQuantityOperations:
         new_quantity = self.q1**3
         assert_array_almost_equal(new_quantity.value, 1489.355288, decimal=7)
         assert new_quantity.unit == u.Unit("m^3")
+
+    @pytest.mark.parametrize(
+        "exponent_type",
+        [
+            int,
+            float,
+            np.uint64,
+            np.int32,
+            np.float32,
+            pytest.param(u.Quantity, marks=pytest.mark.xfail),
+            pytest.param(Masked, marks=pytest.mark.xfail),
+        ],
+    )
+    def test_quantity_as_power(self, exponent_type):
+        # raise unit to a dimensionless Quantity power
+        # regression test for https://github.com/astropy/astropy/issues/16260
+        q = u.m ** exponent_type(2)
+        assert q == u.m**2
 
     def test_matrix_multiplication(self):
         a = np.eye(3)
