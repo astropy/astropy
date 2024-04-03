@@ -509,11 +509,12 @@ def get_pyarrow():
     return pa, parquet
 
 
-def write_parquet_vot(tab , metadata, filename):
-    '''
+def write_parquet_vot(tab, metadata, filename):
+    """
     Writes a Parquet file with a VOT (XML) metadata table included.
 
-    Parameters:
+    Parameters
+    ----------
     ===========
     tab : astropy table
         An Astropy table containing the data
@@ -552,13 +553,13 @@ def write_parquet_vot(tab , metadata, filename):
     > # Write Parquet file with XML metadata
     > write_parquet_vot(astropytab , column_metadata , "test_parquet.parquet")
 
-    '''
-
-    import xml.etree.ElementTree
-    from astropy.io.votable.tree import VOTableFile
+    """
     import io
+    import xml.etree.ElementTree
+
     import pyarrow.parquet
 
+    from astropy.io.votable.tree import VOTableFile
 
     ## Prepare the VOTable (XML)
     ## We only use the first row of the astropy table to get the general
@@ -571,13 +572,12 @@ def write_parquet_vot(tab , metadata, filename):
     for field in votable_write.resources[0].tables[0].fields:
         for mkey in metadatakeys:
             if mkey in field._attr_list:
-                pass
-                exec("field.{} = metadata[field.name][\"{}\"]".format(mkey,mkey))
+                exec(f'field.{mkey} = metadata[field.name]["{mkey}"]')
             else:
                 if (mkey == "description") & (field.description != None):
                     field.description = metadata[field.name]["description"]
                 else:
-                    print("Warning: '{}' is not a valid VOT metadata key".format(mkey))
+                    print(f"Warning: '{mkey}' is not a valid VOT metadata key")
 
     ## Convert the VOTable object into a Byte string to create an
     ## XML that we can add to the Parquet metadata
@@ -597,10 +597,14 @@ def write_parquet_vot(tab , metadata, filename):
     data_tmp = tab_tmp.find(f"{nsurl}DATA")
     tab_tmp.remove(data_tmp)
     data_tmp = xml.etree.ElementTree.SubElement(tab_tmp, f"{nsurl}DATA")
-    _ = xml.etree.ElementTree.SubElement(data_tmp, f"{nsurl}PARQUET", type="Parquet-local-XML")
+    _ = xml.etree.ElementTree.SubElement(
+        data_tmp, f"{nsurl}PARQUET", type="Parquet-local-XML"
+    )
 
     # convert back to a string, encode, and return
-    xml_str = xml.etree.ElementTree.tostring(root, encoding="unicode", method="xml", xml_declaration=True)
+    xml_str = xml.etree.ElementTree.tostring(
+        root, encoding="unicode", method="xml", xml_declaration=True
+    )
 
     ## Write the Parquet file
     pyarrow_table = pyarrow.Table.from_pydict({c: tab[c] for c in tab.colnames})
@@ -620,15 +624,13 @@ def write_parquet_vot(tab , metadata, filename):
     pyarrow.parquet.write_table(pyarrow_table, filename)
     print(f"parquet file written to {filename}")
 
-    return(True)
-
-
 
 def read_parquet_vot(filename):
-    '''
+    """
     Reads a Parquet file with a VOT (XML) metadata table included.
 
-    Parameters:
+    Parameters
+    ----------
     ===========
     filename : str
         File name.
@@ -649,13 +651,13 @@ def read_parquet_vot(filename):
     > print(loaded_table["mass"].meta)
     > print(loaded_table["mass"].meta["ucd"])
 
-    '''
-
+    """
     import io
+
     import pyarrow.parquet
+
     from astropy.io import votable
     from astropy.table import Table, vstack
-
 
     ## First load the column metadata that is stored
     ## in the parquet content
@@ -670,6 +672,9 @@ def read_parquet_vot(filename):
     data_table_with_no_metadata = Table.read(filename)
 
     ## Stitch the two tables together to create final table
-    complete_table = vstack([empty_table_with_columns_and_metadata, data_table_with_no_metadata])
+    complete_table = vstack(
+        [empty_table_with_columns_and_metadata, data_table_with_no_metadata]
+    )
 
-    return(complete_table)
+    return complete_table
+
