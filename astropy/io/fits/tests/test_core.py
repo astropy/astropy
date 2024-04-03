@@ -1095,7 +1095,11 @@ class TestFileFunctions(FitsTestCase):
         def mmap_patched(*args, **kwargs):
             if kwargs.get("access") == mmap.ACCESS_COPY:
                 exc = OSError()
-                exc.errno = errno.ENOMEM
+                if sys.platform.startswith("win32"):
+                    exc.errno = errno.EINVAL
+                    exc.winerror = 1455
+                else:
+                    exc.errno = errno.ENOMEM
                 raise exc
             else:
                 return mmap_original(*args, **kwargs)
