@@ -471,15 +471,7 @@ class TestQuantityOperations:
 
     @pytest.mark.parametrize(
         "exponent_type",
-        [
-            int,
-            float,
-            np.uint64,
-            np.int32,
-            np.float32,
-            pytest.param(u.Quantity, marks=pytest.mark.xfail),
-            pytest.param(Masked, marks=pytest.mark.xfail),
-        ],
+        [int, float, np.uint64, np.int32, np.float32, u.Quantity, Masked],
     )
     def test_quantity_as_power(self, exponent_type):
         # raise unit to a dimensionless Quantity power

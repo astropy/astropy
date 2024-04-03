@@ -1,0 +1,2 @@
+Using a dimensionless ``Quantity`` as an exponent works anew.
+In astropy 6.0.1 an exception was erroneously raised.
