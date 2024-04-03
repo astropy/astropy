@@ -711,11 +711,11 @@ def fits_ccddata_reader(
                     fits_unit_string = u.Unit(fits_unit_string)
                 except ValueError:
                     raise ValueError(
-                        "The Header value for the key BUNIT ({}) cannot be "
-                        "interpreted as valid unit. To successfully read the "
+                        f"The Header value for the key BUNIT ({fits_unit_string}) "
+                        "cannot be interpreted as valid unit. To successfully read the "
                         "file as CCDData you can pass in a valid `unit` "
                         "argument explicitly or change the header of the FITS "
-                        "file before reading it.".format(fits_unit_string)
+                        "file before reading it."
                     )
             else:
                 log.info(

@@ -39,9 +39,8 @@ class FlagCollection(dict):
                 super().__setitem__(item, value)
             else:
                 raise ValueError(
-                    "flags array shape {} does not match data shape {}".format(
-                        value.shape, self.shape
-                    )
+                    f"flags array shape {value.shape} does not match data shape "
+                    f"{self.shape}"
                 )
         else:
             raise TypeError("flags should be given as a Numpy array")
