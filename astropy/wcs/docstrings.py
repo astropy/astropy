@@ -1024,7 +1024,7 @@ The dimensions of the tabular array
 """
 
 DistortionLookupTable = """
-DistortionLookupTable(*table*, *crpix*, *crval*, *cdelt*)
+DistortionLookupTable(table, crpix, crval, cdelt)
 
 Represents a single lookup table for a `distortion paper`_
 transformation.
@@ -1035,10 +1035,12 @@ table : 2-dimensional array
     The distortion lookup table.
 
 crpix : 2-tuple
-    The distortion array reference pixel
+    The distortion array reference pixel, in FITS Header format: 1-based
+    indexing, (x,y) order.
 
 crval : 2-tuple
-    The image array pixel coordinate
+    The image array pixel coordinate, in FITS Header format: 1-based indexing,
+    (x,y) order.
 
 cdelt : 2-tuple
     The grid step size

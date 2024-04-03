@@ -1,0 +1,1 @@
+Added support for slicing WCS objects containing ``cpdis`` or ``det2im`` distortions, which previously were ignored.

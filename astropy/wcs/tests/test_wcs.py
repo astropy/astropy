@@ -1870,3 +1870,84 @@ def test_swapaxes_same_val_roundtrip():
 
     # check round-tripping:
     assert np.allclose(w.wcs_world2pix([val_ref], 0)[0], imcoord, rtol=0, atol=1e-8)
+
+
+def test_DistortionLookupTable():
+    img_world_wcs = wcs.WCS(naxis=2)
+    # A simple "pixel coordinates are world coordinates" WCS, to which we'll
+    # add distortion lookup tables
+    img_world_wcs.wcs.crpix = 1, 1
+    img_world_wcs.wcs.crval = 0, 0
+    img_world_wcs.wcs.cdelt = 1, 1
+
+    # Create maps with zero distortion except at one particular pixel
+    x_dist_array = np.zeros((25, 25))
+    x_dist_array[10, 20] = 0.5
+    map_x = wcs.DistortionLookupTable(
+        x_dist_array.astype(np.float32), (5, 10), (10, 20), (2, 2)
+    )
+
+    y_dist_array = np.zeros((25, 25))
+    y_dist_array[10, 5] = 0.7
+    map_y = wcs.DistortionLookupTable(
+        y_dist_array.astype(np.float32), (5, 10), (10, 20), (3, 3)
+    )
+
+    img_world_wcs.cpdis1 = map_x
+    img_world_wcs.cpdis2 = map_y
+
+    # The x distortion of 0.5 pixels should appear at a specific spot in the
+    # image, and we need to work out what that is so we can check it. The
+    # distortion is at array index (10, 20), which is a 1-based pixel
+    # coordinate of (21, 11) and therefore at an offset of (16, 1) from the
+    # lookup table's CRPIX of (5, 10). CDELT is 2 image pixels / distortion
+    # pixel, so the distortion applies to the image pixel which is at an offset
+    # of (32, 2) from the CRVAL of (10, 20), meaning we should see the
+    # distortion at the 1-based image pixel coordinate of (42, 22).
+    assert_allclose(map_x.get_offset(42, 22), 0.5)
+    # And we should see it applied at the 0-based coordinate (41, 21) with our
+    # simple img<->world wcs.
+    assert_allclose(img_world_wcs.pixel_to_world_values(41, 21), [41.5, 21])
+    # Similarly for the y distortion, the distortion is at array index (10, 5),
+    # which is a 1-based pixel coordinate of (6, 11) and therefore at an offset
+    # of (1, 1) from the lookup table's CRPIX of (5, 10). CDELT is 3 image
+    # pixels / distortion pixel, so the distortion applies to the image pixel
+    # which is at an offset of (3, 3) from the CRVAL of (10, 20), meaning we
+    # should see the distortion at the 1-based image pixel coordinate of (13,
+    # 23).
+    assert_allclose(map_y.get_offset(13, 23), 0.7)
+    # And we should see it applied at the 0-based coordinate (12, 22) with our
+    # simple img<->world wcs.
+    assert_allclose(img_world_wcs.pixel_to_world_values(12, 22), [12, 22.7])
+
+    # Now check that when we move the image location by the equivalent of 1/2
+    # distortion-array pixel, we see only half the distortion.
+    for dx, dy in [(0.5, 0), (-0.5, 0), (0, 0.5), (0, -0.5)]:
+        # Scale dx, dy by 2 for the CDELT in the x distortion table (since
+        # we're looking for the x distortion).
+        assert_allclose(
+            img_world_wcs.pixel_to_world_values(41 + dx * 2, 21 + dy * 2),
+            [41 + dx * 2 + 0.25, 21 + dy * 2],
+        )
+        # Scale dx, dy by 3 for the CDELT in the y distortion table (since
+        # we're looking for the y distortion).
+        assert_allclose(
+            img_world_wcs.pixel_to_world_values(12 + dx * 3, 22 + dy * 3),
+            [12 + dx * 3, 22 + dy * 3 + 0.35],
+        )
+
+    # Now check that when we move the image location by the equivalent of 1
+    # distortion-array pixel, we see no distortion.
+    for dx, dy in [(2, 0), (-2, 0), (0, 2), (0, -2)]:
+        # Scale dx, dy by 2 for the CDELT in the x distortion table (since
+        # we're looking for the x distortion).
+        assert_allclose(
+            img_world_wcs.pixel_to_world_values(41 + dx * 2, 21 + dy * 2),
+            [41 + dx * 2, 21 + dy * 2],
+        )
+        # Scale dx, dy by 3 for the CDELT in the y distortion table (since
+        # we're looking for the y distortion).
+        assert_allclose(
+            img_world_wcs.pixel_to_world_values(12 + dx * 3, 22 + dy * 3),
+            [12 + dx * 3, 22 + dy * 3],
+        )
