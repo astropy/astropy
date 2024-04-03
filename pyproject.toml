@@ -126,7 +126,7 @@ wcslint = "astropy.wcs.wcslint:main"
 requires = ["setuptools",
             "setuptools_scm>=6.2",
             "cython>=3.0.0,<3.1.0",
-            "numpy>=1.25",
+            "numpy>=2.0.0rc1", # see https://github.com/astropy/astropy/issues/16257
             "extension-helpers==1.*"]
 build-backend = "setuptools.build_meta"
 
