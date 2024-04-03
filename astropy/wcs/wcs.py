@@ -3348,6 +3348,11 @@ reduce these to 2 dimensions using the naxis kwarg.
         if wcs_new.sip is not None:
             sip_crpix = wcs_new.sip.crpix.tolist()
 
+        # Group the distortion tables by which axis (x or y) they correspond to
+        x_tables = [t for t in (wcs_new.cpdis1, wcs_new.det2im1) if t is not None]
+        y_tables = [t for t in (wcs_new.cpdis2, wcs_new.det2im2) if t is not None]
+        distortion_tables = [*x_tables, *y_tables]
+
         for i, iview in enumerate(view):
             if iview.step is not None and iview.step < 0:
                 raise NotImplementedError("Reversing an axis is not implemented.")
@@ -3356,6 +3361,11 @@ reduce these to 2 dimensions using the naxis kwarg.
                 wcs_index = self.wcs.naxis - 1 - i
             else:
                 wcs_index = i
+
+            if wcs_index < 2:
+                itables = [x_tables, y_tables][wcs_index]
+            else:
+                itables = []
 
             if iview.step is not None and iview.start is None:
                 # Slice from "None" is equivalent to slice from 0 (but one
@@ -3370,19 +3380,34 @@ reduce these to 2 dimensions using the naxis kwarg.
                     # equivalently (keep this comment so you can compare eqns):
                     # wcs_new.wcs.crpix[wcs_index] =
                     # (crpix - iview.start)*iview.step + 0.5 - iview.step/2.
-                    crp = (
-                        (crpix - iview.start - 1.0) / iview.step
+                    scale_pixel = lambda px: (
+                        (px - iview.start - 1.0) / iview.step
                         + 0.5
                         + 1.0 / iview.step / 2.0
                     )
+                    crp = scale_pixel(crpix)
                     wcs_new.wcs.crpix[wcs_index] = crp
                     if wcs_new.sip is not None:
                         sip_crpix[wcs_index] = crp
+                    for table in distortion_tables:
+                        # The table's crval (which is an image pixel location)
+                        # should be adjusted to the corresponding location in
+                        # the sliced array
+                        table.crval[wcs_index] = scale_pixel(table.crval[wcs_index])
+                        # And its cdelt (with units image pixels / distortion
+                        # table pixel) should reflect the stride
+                        table.cdelt[wcs_index] /= iview.step
+                    for table in itables:
+                        # If we stride an x axis, for example, x distortions
+                        # should be adjusted in magnitude
+                        table.data /= iview.step
                     wcs_new.wcs.cdelt[wcs_index] = cdelt * iview.step
                 else:
                     wcs_new.wcs.crpix[wcs_index] -= iview.start
                     if wcs_new.sip is not None:
                         sip_crpix[wcs_index] -= iview.start
+                    for table in distortion_tables:
+                        table.crval[wcs_index] -= iview.start
 
             try:
                 # range requires integers but the other attributes can also
