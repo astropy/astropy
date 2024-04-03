@@ -352,7 +352,14 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         # Broadcast the data if necessary and set it
         if data is not None and data.shape != self._shape:
-            data = data._apply(np.broadcast_to, shape=self._shape, subok=True)
+            try:
+                # if broadcasting isn't strictly needed, avoid it
+                # see https://github.com/astropy/astropy/issues/16219
+                data = data.reshape(self._shape)
+            except Exception:
+                data = data._apply(np.broadcast_to, shape=self._shape, subok=True)
+                if copy:
+                    data = data.copy()
         self._data = data
         # Broadcast the attributes if necessary by getting them again
         # (we now know the shapes will be OK).
