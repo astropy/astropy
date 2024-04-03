@@ -1092,9 +1092,9 @@ class Column(NotifierMixin):
                     # is in the range allowed by the column's format
                     msg = (
                         "Column null option (TNULLn) is invalid for binary "
-                        "table columns of type {!r} (got {!r}).  The invalid "
-                        "value will be ignored for the purpose of formatting "
-                        "the data in this column.".format(format, null)
+                        f"table columns of type {format!r} (got {null!r}).  "
+                        "The invalid value will be ignored for the purpose of "
+                        "formatting the data in this column."
                     )
 
             if msg is None:
@@ -1203,12 +1203,10 @@ class Column(NotifierMixin):
                     msg = None
                 elif reduce(operator.mul, dims_tuple) > format.repeat:
                     msg = (
-                        "The repeat count of the column format {!r} for column {!r} "
-                        "is fewer than the number of elements per the TDIM "
-                        "argument {!r}.  The invalid TDIMn value will be ignored "
-                        "for the purpose of formatting this column.".format(
-                            name, format, dim
-                        )
+                        f"The repeat count of the column format {name!r} for column "
+                        f"{format!r} is fewer than the number of elements per the TDIM "
+                        f"argument {dim!r}.  The invalid TDIMn value will be ignored "
+                        "for the purpose of formatting this column."
                     )
 
             if msg is None:
@@ -1221,8 +1219,8 @@ class Column(NotifierMixin):
             if not isinstance(coord_type, str):
                 msg = (
                     "Coordinate/axis type option (TCTYPn) must be a string "
-                    "(got {!r}). The invalid keyword will be ignored for the "
-                    "purpose of formatting this column.".format(coord_type)
+                    f"(got {coord_type!r}). The invalid keyword will be ignored "
+                    "for the purpose of formatting this column."
                 )
             elif len(coord_type) > 8:
                 msg = (
@@ -1242,8 +1240,8 @@ class Column(NotifierMixin):
             if not isinstance(coord_unit, str):
                 msg = (
                     "Coordinate/axis unit option (TCUNIn) must be a string "
-                    "(got {!r}). The invalid keyword will be ignored for the "
-                    "purpose of formatting this column.".format(coord_unit)
+                    f"(got {coord_unit!r}). The invalid keyword will be ignored "
+                    "for the purpose of formatting this column."
                 )
 
             if msg is None:
@@ -1260,11 +1258,9 @@ class Column(NotifierMixin):
                 msg = None
                 if not isinstance(v, numbers.Real):
                     msg = (
-                        "Column {} option ({}n) must be a real floating type (got"
-                        " {!r}). The invalid value will be ignored for the purpose of"
-                        " formatting the data in this column.".format(
-                            k, ATTRIBUTE_TO_KEYWORD[k], v
-                        )
+                        f"Column {k} option ({ATTRIBUTE_TO_KEYWORD[k]}n) must be a "
+                        f"real floating type (got {v!r}). The invalid value will be "
+                        "ignored for the purpose of formatting the data in this column."
                     )
 
                 if msg is None:
@@ -1277,8 +1273,8 @@ class Column(NotifierMixin):
             if not isinstance(time_ref_pos, str):
                 msg = (
                     "Time coordinate reference position option (TRPOSn) must be "
-                    "a string (got {!r}). The invalid keyword will be ignored for "
-                    "the purpose of formatting this column.".format(time_ref_pos)
+                    f"a string (got {time_ref_pos!r}). The invalid keyword will be "
+                    "ignored for the purpose of formatting this column."
                 )
 
             if msg is None:

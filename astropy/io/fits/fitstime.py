@@ -228,10 +228,12 @@ def _verify_column_info(column_info, global_info):
 
         elif scale == "GPS":
             warnings.warn(
-                'Table column "{}" has a FITS recognized time scale value "GPS". '
-                'In Astropy, "GPS" is a time from epoch format which runs '
-                "synchronously with TAI; GPS runs ahead of TAI approximately "
-                "by 19 s. Hence, this format will be used.".format(column_info),
+                (
+                    f'Table column "{column_info}" has a FITS recognized time scale '
+                    'value "GPS". In Astropy, "GPS" is a time from epoch format which '
+                    "runs synchronously with TAI; GPS runs ahead of TAI approximately "
+                    "by 19 s. Hence, this format will be used."
+                ),
                 AstropyUserWarning,
             )
             column_info["scale"] = "tai"
@@ -239,11 +241,13 @@ def _verify_column_info(column_info, global_info):
 
         elif scale == "LOCAL":
             warnings.warn(
-                'Table column "{}" has a FITS recognized time scale value "LOCAL". '
-                'However, the standard states that "LOCAL" should be tied to one '
-                "of the existing scales because it is intrinsically unreliable "
-                "and/or ill-defined. Astropy will thus use the global time scale "
-                "(TIMESYS) as the default.".format(column_info),
+                (
+                    f'Table column "{column_info}" has a FITS recognized time scale '
+                    'value "LOCAL". However, the standard states that "LOCAL" should '
+                    "be tied to one of the existing scales because it is intrinsically "
+                    "unreliable and/or ill-defined. Astropy will thus use the global "
+                    "time scale (TIMESYS) as the default."
+                ),
                 AstropyUserWarning,
             )
             column_info["scale"] = global_info["scale"]
@@ -611,9 +615,11 @@ def time_to_fits(table):
             coord_meta[col.info.name]["time_ref_pos"] = None
             if location is not None:
                 warnings.warn(
-                    'Time Column "{}" has no specified location, but global Time '
-                    "Position is present, which will be the default for this column "
-                    "in FITS specification.".format(col.info.name),
+                    (
+                        f'Time Column "{col.info.name}" has no specified location, '
+                        "but global Time Position is present, which will be the "
+                        "default for this column in FITS specification."
+                    ),
                     AstropyUserWarning,
                 )
         else:
@@ -621,8 +627,10 @@ def time_to_fits(table):
             # Compatibility of Time Scales and Reference Positions
             if col.scale in BARYCENTRIC_SCALES:
                 warnings.warn(
-                    'Earth Location "TOPOCENTER" for Time Column "{}" is incompatible '
-                    'with scale "{}".'.format(col.info.name, col.scale.upper()),
+                    (
+                        f'Earth Location "TOPOCENTER" for Time Column "{col.info.name}" '
+                        f'is incompatible with scale "{col.scale.upper()}".'
+                    ),
                     AstropyUserWarning,
                 )
 

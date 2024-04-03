@@ -204,9 +204,8 @@ class Index:
             col_len = len(self.columns[0])
             return range(*row_specifier.indices(col_len))
         raise ValueError(
-            "Expected int, array of ints, or slice but got {} in remove_rows".format(
-                row_specifier
-            )
+            f"Expected int, array of ints, or slice but got {row_specifier} "
+            "in remove_rows"
         )
 
     def remove_rows(self, row_specifier):

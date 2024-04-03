@@ -36,11 +36,12 @@ def deserialize_class(tpl, construct=True):
 def wcs_info_str(wcs):
     # Overall header
 
-    s = f"{wcs.__class__.__name__} Transformation\n\n"
-    s += "This transformation has {} pixel and {} world dimensions\n\n".format(
-        wcs.pixel_n_dim, wcs.world_n_dim
+    s = (
+        f"{type(wcs).__name__} Transformation\n\n"
+        f"This transformation has {wcs.pixel_n_dim} pixel and {wcs.world_n_dim} "
+        "world dimensions\n\n"
+        f"Array shape (Numpy order): {wcs.array_shape}\n\n"
     )
-    s += f"Array shape (Numpy order): {wcs.array_shape}\n\n"
 
     # Pixel dimensions table
 

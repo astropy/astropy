@@ -354,8 +354,8 @@ def human_time(seconds):
         unit1, limit1 = units[i]
         unit2, limit2 = units[i + 1]
         if seconds >= limit1:
-            return "{:2d}{}{:2d}{}".format(
-                seconds // limit1, unit1, (seconds % limit1) // limit2, unit2
+            return (
+                f"{seconds // limit1:2d}{unit1}{(seconds % limit1) // limit2:2d}{unit2}"
             )
     return "  ~inf"
 

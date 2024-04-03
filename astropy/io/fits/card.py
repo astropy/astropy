@@ -129,8 +129,8 @@ class Card(_Verify):
     _rvkc_identifier = r"[a-zA-Z_]\w*"
     _rvkc_field = _rvkc_identifier + r"(\.\d+)?"
     _rvkc_field_specifier_s = rf"{_rvkc_field}(\.{_rvkc_field})*"
-    _rvkc_field_specifier_val = r"(?P<keyword>{}): +(?P<val>{})".format(
-        _rvkc_field_specifier_s, _numr_FSC
+    _rvkc_field_specifier_val = (
+        rf"(?P<keyword>{_rvkc_field_specifier_s}): +(?P<val>{_numr_FSC})"
     )
     _rvkc_keyword_val = rf"\'(?P<rawval>{_rvkc_field_specifier_val})\'"
     _rvkc_keyword_val_comm = rf" *{_rvkc_keyword_val} *(/ *(?P<comm>[ -~]*))?$"
@@ -141,9 +141,7 @@ class Card(_Verify):
     # string that is being used to index into a card list that contains
     # record value keyword cards (ex. 'DP1.AXIS.1')
     _rvkc_keyword_name_RE = re.compile(
-        r"(?P<keyword>{})\.(?P<field_specifier>{})$".format(
-            _rvkc_identifier, _rvkc_field_specifier_s
-        )
+        rf"(?P<keyword>{_rvkc_identifier})\.(?P<field_specifier>{_rvkc_field_specifier_s})$"
     )
 
     # regular expression to extract the field specifier and value and comment
