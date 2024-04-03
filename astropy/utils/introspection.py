@@ -1,23 +1,30 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Functions related to Python runtime introspection."""
 
+from __future__ import annotations
+
 import importlib
 import inspect
 import os
 import sys
 from importlib import metadata
 from importlib.metadata import packages_distributions
+from typing import TYPE_CHECKING
 
 from packaging.version import Version
 
 from .decorators import deprecated
+
+if TYPE_CHECKING:
+    from types import FrameType, ModuleType
+    from typing import Literal
 
 __all__ = ["resolve_name", "minversion", "find_current_module", "isinstancemethod"]
 
 __doctest_skip__ = ["find_current_module"]
 
 
-def resolve_name(name, *additional_parts):
+def resolve_name(name: str, *additional_parts: str) -> object:
     """Resolve a name like ``module.object`` to an object and return it.
 
     This ends up working like ``from module import object`` but is easier
@@ -86,7 +93,7 @@ def resolve_name(name, *additional_parts):
     return ret
 
 
-def minversion(module, version, inclusive=True):
+def minversion(module: ModuleType | str, version: str, inclusive: bool = True) -> bool:
     """
     Returns `True` if the specified Python module satisfies a minimum version
     requirement, and `False` if not.
@@ -146,7 +153,9 @@ def minversion(module, version, inclusive=True):
         return Version(module_version) > Version(version)
 
 
-def find_current_module(depth=1, finddiff=False):
+def find_current_module(
+    depth: int = 1, finddiff: bool | list[Literal[True] | str | ModuleType] = False
+) -> ModuleType | None:
     """
     Determines the module/package from which this function is called.
 
@@ -255,7 +264,7 @@ def find_current_module(depth=1, finddiff=False):
         return _get_module_from_frame(frm)
 
 
-def _get_module_from_frame(frm):
+def _get_module_from_frame(frm: FrameType) -> ModuleType | None:
     """Uses inspect.getmodule() to get the module that the current frame's
     code is running in.
 
