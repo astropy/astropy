@@ -12,24 +12,32 @@ the 6.0 release.
 
 In particular, this release includes:
 
-* Upgraded the minimum required version of Python to 3.10
+* :ref:`whatsnew-6.1-minimum-python`
+* :ref:`whatsnew-6.1-angular-separations`
+* :ref:`whatsnew-6.1-ascii-default-int-columns-as-int64`
+* :ref:`whatsnew-6.1-copy-semantics`
+* :ref:`whatsnew-6.1-cosmology-dataclass`
 
-In addition to these major changes, Astropy v6.1 includes a large number of
+In addition to these major changes, Astropy 6.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
 By the numbers:
 
-* X issues have been closed since v6.0
-* X pull requests have been merged since v6.0
-* X distinct people have contributed code
+* 723 commits have been added since 6.0
+* 172 issues have been closed since 6.0
+* 276 pull requests have been merged since 6.0
+* 51 people have contributed since 6.0
+* 14 of which are new contributors
 
+.. _whatsnew-6.1-minimum-python:
 
-Minimum Python Version
-======================
+Updated minimum Python version to 3.10
+======================================
 
 The minimum required version of Python has been upgraded to 3.10. This is in line with
 the `NumPy deprecation policy
 <https://numpy.org/neps/nep-0029-deprecation_policy.html>`_.
 
+.. _whatsnew-6.1-angular-separations:
 
 Order-dependent angular separations now come with warnings
 ==========================================================
@@ -107,8 +115,8 @@ as string columns. The new default behavior is consistent with ``numpy`` v2 and 
 
 .. _whatsnew-6.1-copy-semantics:
 
-Copy semantics
-==============
+Changes to semantics of ``copy=`` keyword arguments
+===================================================
 
 Public APIs that expose a ``copy`` argument and that previously set ``False``
 as a default value now use ``None`` instead if ``numpy`` v2 or newer is installed.
@@ -133,12 +141,10 @@ as follow
 
     COPY_IF_NEEDED = False if np.__version__.startswith("1.") else None
 
+.. _whatsnew-6.1-cosmology-dataclass:
 
-Updates to `~astropy.cosmology`
-===============================
-
-|Cosmology| as a :func:`~dataclasses.dataclass`
------------------------------------------------
+|Cosmology| is now a :func:`~dataclasses.dataclass`
+===================================================
 
 The :class:`~astropy.cosmology.Cosmology` class is
 now a :func:`~dataclasses.dataclass`. This means that the :mod:`dataclasses` machinery
@@ -163,9 +169,67 @@ using :func:`~dataclasses.make_dataclass`::
     >>> [f.name for f in fields(NewC)]
     ['name', 'meta', 'newfield']
 
-
 Full change log
 ===============
 
-To see a detailed list of all changes in version v6.0, including changes in
+To see a detailed list of all changes in version 6.1, including changes in
 API, please see the :ref:`changelog`.
+
+Contributors to the 6.1 release
+===============================
+
+The people who have contributed to the code for this release are:
+
+.. hlist::
+  :columns: 4
+
+  -  Adam Ginsburg
+  -  Albert Y. Shih
+  -  Chiara Marmo
+  -  Clément Robert
+  -  Derek Homeier
+  -  Eduardo Olinto  *
+  -  Eero Vaher
+  -  Felipe Gameleira  *
+  -  Gordon Gibb  *
+  -  Hans Moritz Günther
+  -  Henry Schreiner  *
+  -  Hélvio Peixoto
+  -  James Davies
+  -  Jero Bado
+  -  Jo Bovy
+  -  Kyle Conroy
+  -  Larry Bradley
+  -  Leo Singer
+  -  Manodeep Sinha
+  -  Manon Marchand
+  -  Marcello Nascif
+  -  Mark Taylor
+  -  Marten van Kerkwijk
+  -  Matteo Bachetti
+  -  Maximilian Linhoff
+  -  Michiel De Wilde  *
+  -  Mihai Cara
+  -  Mridul Seth  *
+  -  Nathaniel Starkman
+  -  Nick Murphy
+  -  Ole Streicher
+  -  Pey Lian Lim
+  -  Piyush Sharma  *
+  -  Porter Averett  *
+  -  Prajwel Joseph
+  -  Robert Queenin  *
+  -  Sam Holt  *
+  -  Sam Lee
+  -  Sam Van Kooten
+  -  Shaheer Ahmad  *
+  -  Simon Conseil
+  -  Stephen Bailey  *
+  -  Stuart Littlefair
+  -  Tanvi Pooranmal Meena  *
+  -  Thomas Robitaille
+  -  Tom Aldcroft
+  -  William Jamieson
+  -  omahs  *
+
+Where a * indicates that this release contains their first contribution to astropy.
