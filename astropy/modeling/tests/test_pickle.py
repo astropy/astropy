@@ -198,7 +198,7 @@ def test_pickle_spline(inputs):
     def func(x, noise):
         return np.exp(-(x**2)) + 0.1 * noise
 
-    noise = np.random.randn(50)
+    noise = np.random.default_rng().standard_normal(50)
     x = np.linspace(-3, 3, 50)
     y = func(x, noise)
 

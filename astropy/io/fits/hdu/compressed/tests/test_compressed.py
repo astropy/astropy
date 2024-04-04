@@ -90,7 +90,7 @@ class TestCompressedImage(FitsTestCase):
         """
         import pickle
 
-        np.random.seed(42)
+        rng = np.random.default_rng(42)
 
         # Basically what scipy.datasets.ascent() does.
         fname = download_file(
@@ -99,7 +99,7 @@ class TestCompressedImage(FitsTestCase):
         with open(fname, "rb") as f:
             scipy_data = np.array(pickle.load(f))
 
-        data = scipy_data + np.random.randn(512, 512) * 10
+        data = scipy_data + rng.standard_normal((512, 512)) * 10
 
         fits.ImageHDU(data).writeto(self.temp("im1.fits"))
         fits.CompImageHDU(
@@ -405,8 +405,8 @@ class TestCompressedImage(FitsTestCase):
         data2 = (np.arange(1, 8, dtype=np.float32) * 10)[:, np.newaxis] + np.arange(
             1, 7
         )
-        np.random.seed(1337)
-        data1 = np.random.uniform(size=(6 * 4, 7 * 4))
+        rng = np.random.default_rng(1337)
+        data1 = rng.uniform(size=(6 * 4, 7 * 4))
         data1[: data2.shape[0], : data2.shape[1]] = data2
         chdu = fits.CompImageHDU(data1, compression_type="RICE_1", tile_shape=(6, 7))
         chdu.writeto(self.temp("test.fits"))
@@ -617,7 +617,8 @@ class TestCompressedImage(FitsTestCase):
         # wide range of values that will be difficult to quantize, and should
         # result in use of a GZIP_COMPRESSED_DATA column
         arr[0] = np.linspace(0, 1, 7000)
-        arr[1] = np.random.normal(size=7000)
+        rng = np.random.default_rng()
+        arr[1] = rng.normal(size=7000)
 
         hdu = fits.CompImageHDU(data=arr)
         hdu.writeto(self.temp("test.fits"))
@@ -996,7 +997,8 @@ def test_comphdu_bscale(tmp_path):
     filename1 = tmp_path / "3hdus.fits"
     filename2 = tmp_path / "3hdus_comp.fits"
 
-    x = np.random.random((100, 100)) * 100
+    rng = np.random.default_rng()
+    x = rng.random((100, 100)) * 100
 
     x0 = fits.PrimaryHDU()
     x1 = fits.ImageHDU(np.array(x - 50, dtype=int), uint=True)

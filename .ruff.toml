@@ -95,9 +95,6 @@ lint.ignore = [
     "N816",  # mixed-case-variable-in-global-scope
     "N818",  # error-suffix-on-exception-name
 
-    # NumPy-specific rules (NPY)
-    "NPY002", # Replace legacy `np.random.rand` call with `np.random.Generator`  (2023-05-03)
-
     # Perflint (PERF)
     "PERF203",  # `try`-`except` within a loop incurs performance overhead
     "PERF401",  # Use a list comprehension to create a transformed list

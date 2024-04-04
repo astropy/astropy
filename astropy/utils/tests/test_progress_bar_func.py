@@ -15,5 +15,5 @@ def func(i):
     function into a separate module. (It worked fine in a standalone pytest
     script.)"""
     with NumpyRNGContext(i):
-        time.sleep(np.random.uniform(0, 0.01))
+        time.sleep(np.random.uniform(0, 0.01))  # noqa: NPY002
     return i

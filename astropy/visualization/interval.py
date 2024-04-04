@@ -168,7 +168,7 @@ class AsymmetricPercentileInterval(BaseInterval):
         # If needed, limit the number of samples. We sample with replacement
         # since this is much faster.
         if self.n_samples is not None and values.size > self.n_samples:
-            values = np.random.choice(values, self.n_samples)
+            values = np.random.choice(values, self.n_samples)  # noqa: NPY002
 
         # Filter out invalid values (inf, nan)
         values = values[np.isfinite(values)]

@@ -24,7 +24,6 @@ from astropy.modeling.models import (
     Polynomial2D,
 )
 from astropy.modeling.parameters import Parameter
-from astropy.utils import NumpyRNGContext
 
 x = np.arange(4)
 xx = np.array([x, x + 10])
@@ -377,8 +376,8 @@ def test_linear_fit_model_set_common_weight():
     assert y_expected.shape == (2, 10)
 
     # Add a bit of random noise
-    with NumpyRNGContext(_RANDOM_SEED):
-        y = y_expected + np.random.normal(0, 0.01, size=y_expected.shape)
+    rng = np.random.default_rng(_RANDOM_SEED)
+    y = y_expected + rng.normal(0, 0.01, size=y_expected.shape)
 
     fitter = LinearLSQFitter()
     weights = np.ones(10)
@@ -404,8 +403,8 @@ def test_linear_fit_model_set_weights():
     assert y_expected.shape == (2, 10)
 
     # Add a bit of random noise
-    with NumpyRNGContext(_RANDOM_SEED):
-        y = y_expected + np.random.normal(0, 0.01, size=y_expected.shape)
+    rng = np.random.default_rng(_RANDOM_SEED)
+    y = y_expected + rng.normal(0, 0.01, size=y_expected.shape)
 
     weights = np.ones_like(y)
     # Put a null weight for the min and max values

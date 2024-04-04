@@ -1252,7 +1252,7 @@ def test_non_broadcasting_parameters():
 
 
 def test_setter():
-    pars = np.random.rand(20).reshape((10, 2))
+    pars = np.random.default_rng().random((10, 2))
 
     model = SetterModel(xc=-1, yc=3, p=np.pi)
 

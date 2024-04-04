@@ -20,7 +20,6 @@ from astropy.nddata.nduncertainty import (
 )
 from astropy.table import Table
 from astropy.tests.helper import PYTEST_LT_8_0
-from astropy.utils import NumpyRNGContext
 from astropy.utils.data import (
     get_pkg_data_contents,
     get_pkg_data_filename,
@@ -31,9 +30,9 @@ from astropy.wcs import WCS, FITSFixedWarning
 
 DEFAULT_DATA_SIZE = 100
 
-with NumpyRNGContext(123):
-    _random_array = np.random.normal(size=[DEFAULT_DATA_SIZE, DEFAULT_DATA_SIZE])
-    _random_psf = np.random.normal(size=(20, 20))
+rng = np.random.default_rng(123)
+_random_array = rng.normal(size=[DEFAULT_DATA_SIZE, DEFAULT_DATA_SIZE])
+_random_psf = rng.normal(size=(20, 20))
 
 
 @pytest.fixture
