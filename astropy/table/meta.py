@@ -52,7 +52,9 @@ class ColumnDict(dict):
 
 def _construct_odict(load, node):
     """
-    Construct OrderedDict from !!omap in yaml safe load.
+    Construct dict from !!omap in yaml safe load.
+
+    See ``get_header_from_yaml()`` for usage.
 
     Source: https://gist.github.com/weaver/317164
     License: Unspecified
@@ -60,21 +62,6 @@ def _construct_odict(load, node):
     This is the same as SafeConstructor.construct_yaml_omap(),
     except the data type is changed to OrderedDict() and setitem is
     used instead of append in the loop
-
-    Examples
-    --------
-    ::
-
-      >>> yaml.load('''  # doctest: +SKIP
-      ... !!omap
-      ... - foo: bar
-      ... - mumble: quux
-      ... - baz: gorp
-      ... ''')
-      OrderedDict([('foo', 'bar'), ('mumble', 'quux'), ('baz', 'gorp')])
-
-      >>> yaml.load('''!!omap [ foo: bar, mumble: quux, baz : gorp ]''')  # doctest: +SKIP
-      OrderedDict([('foo', 'bar'), ('mumble', 'quux'), ('baz', 'gorp')])
     """
     omap = {}
     yield omap
