@@ -139,6 +139,7 @@ Core Package Contributors
 * E\. Rykoff
 * E.C. Herenz
 * Ed Slavich
+* Eduardo Olinto
 * Edward Betts
 * Edward Slavich
 * Eero Vaher
@@ -157,6 +158,7 @@ Core Package Contributors
 * Even Rouault
 * Evert Rol
 * Felipe Cybis Pereira
+* Felipe Gameleira
 * Felix Yan
 * fockez
 * Francesc Vilardell
@@ -175,6 +177,7 @@ Core Package Contributors
 * Gerrit Schellenberger
 * Giang Nguyen
 * Giorgio Calderone
+* Gordon Gibb
 * Graham Kanarek
 * Grant Jenks
 * Gregory Dubois-Felsmann
@@ -186,6 +189,7 @@ Core Package Contributors
 * Hans Moritz Günther
 * Harry Ferguson
 * Heinz-Alexander Fuetterer
+* Henry Schreiner
 * Helen Sherwood-Taylor
 * Hélvio Peixoto
 * Himanshu Pathak
@@ -340,6 +344,7 @@ Core Package Contributors
 * Michele Costa
 * Michele Mastropietro
 * Michele Peresano
+* Michiel De Wilde
 * Miguel de Val-Borro
 * Mihai Cara
 * Mike Alexandersen
@@ -350,6 +355,7 @@ Core Package Contributors
 * Moataz Hisham
 * Mohan Agrawal
 * Molly Peeples
+* Mridul Seth
 * Mubin Manasia
 * mzhengxi
 * Nabil Freij
@@ -373,6 +379,7 @@ Core Package Contributors
 * odidev
 * Ole Streicher
 * Orion Poplawski
+* omahs
 * orionlee
 * Param Patidar
 * Parikshit Sakurikar
@@ -389,6 +396,8 @@ Core Package Contributors
 * Peter Teuben
 * Peter Yoachim
 * Pey Lian Lim
+* Piyush Sharma
+* Porter Averett
 * Prajwel Joseph
 * Prasanth Nair
 * Pratik Patel
@@ -410,6 +419,7 @@ Core Package Contributors
 * Roban Hultman Kramer
 * Robel Geda
 * Robert Cross
+* Robert Queenin
 * Rocio Kiman
 * Rohan Rajpal
 * Rohit Kapoor
@@ -422,6 +432,7 @@ Core Package Contributors
 * Ryan Cooke
 * Ryan Fox
 * Sadie Bartholomew
+* Sam Holt
 * Sam Van Kooten
 * Sam Verstocken
 * Samruddhi Khandale
@@ -442,6 +453,7 @@ Core Package Contributors
 * Semyeong Oh
 * Serge Montagnac
 * Sergio Pascual
+* Shaheer Ahmad
 * Shailesh Ahuja
 * Shankar Kulumani
 * Shantanu Srivastava
@@ -462,6 +474,7 @@ Core Package Contributors
 * srirajshukla
 * Stefan Becker
 * Stefan Nelson
+* Stephen Bailey
 * Stephen Portillo
 * Steve Crawford
 * Steve Guest
@@ -475,6 +488,7 @@ Core Package Contributors
 * T\. Carl Beery
 * T\. E\. Pickering
 * Tanuj Rastogi
+* Tanvi Pooranmal Meena
 * Thais Borges
 * Thomas J. Fan
 * Thomas Erben
