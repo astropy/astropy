@@ -214,7 +214,7 @@ def maybe_simple_fraction(p, max_denominator=100):
     """
     if p == 0 or p.__class__ is int or p.__class__ is Fraction:
         return p
-    n, d = p.as_integer_ratio()
+    n, d = float(p).as_integer_ratio()
     a = n // d
     # Normally, start with 0,1 and 1,0; here we have applied first iteration.
     n0, d0 = 1, 0
