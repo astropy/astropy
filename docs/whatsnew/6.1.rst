@@ -105,6 +105,34 @@ on Windows and potentially 32-bit architectures. Previously on those platforms, 
 columns with any long integers which overflowed the 32-bit integer would be returned
 as string columns. The new default behavior is consistent with ``numpy`` v2 and ``pandas``.
 
+.. _whatsnew-6.1-copy-semantics:
+
+Copy semantics
+==============
+
+Public APIs that expose a ``copy`` argument and that previously set ``False``
+as a default value now use ``None`` instead if ``numpy`` v2 or newer is installed.
+This is because in ``numpy`` v2, the meaning of the ``copy`` argument was changed,
+with ``copy=False`` now indicating that a copy should never be made, while
+``copy=None`` is used for the previous meaning of "avoid a copy if possible".
+
+This includes:
+- ``astropy.units.Quantity``
+- ``astropy.utils.Masked``
+- ``astropy.table.Column``
+- ``astropy.time.Time``
+- ``astropy.coordinates.SkyCoord``
+
+While this change ensures the default behaviour of astropy has not changed,
+code that explicitly passes ``copy=False`` to many of astropy's classes
+may need adjustments where the intention was to forbid unnecessary copies
+but allow the ones that couldn't be avoided.
+For portability across different versions of Numpy, we recommend that these
+instances of ``False`` be replaced with a ``COPY_IF_NEEDED`` constant defined
+as follow
+
+    COPY_IF_NEEDED = False if np.__version__.startswith("1.") else None
+
 
 Updates to `~astropy.cosmology`
 ===============================
