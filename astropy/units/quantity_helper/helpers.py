@@ -397,6 +397,10 @@ if not NUMPY_LT_2_1:
         np._core.umath._rjust,
         np._core.umath._center,
         np._core.umath._zfill,
+        np._core.umath._partition_index,
+        np._core.umath._rpartition,
+        np._core.umath._rpartition_index,
+        np._core.umath._partition,
     }
 
 # SINGLE ARGUMENT UFUNCS
