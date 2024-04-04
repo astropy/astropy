@@ -11,8 +11,9 @@ functionality highlighted in these pages.
 .. toctree::
    :maxdepth: 1
 
-   6.1
+   7.0
 
+* `What's New in Astropy 6.1? <https://docs.astropy.org/en/v6.1.x/whatsnew/6.1.html>`__
 * `What's New in Astropy 6.0? <https://docs.astropy.org/en/v6.0.0/whatsnew/6.0.html>`__
 * `What's New in Astropy 5.3? <https://docs.astropy.org/en/v5.3/whatsnew/5.3.html>`__
 * `What's New in Astropy 5.2? <https://docs.astropy.org/en/v5.2/whatsnew/5.2.html>`__
