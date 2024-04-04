@@ -95,6 +95,12 @@ class TestMetaExampleFrozenDataclass(MetaBaseTest):
     args = ()
 
 
+def test_metadata_default():
+    data = ExampleDataclass()
+    data.meta["a"] = 1
+    assert isinstance(data.meta, OrderedDict)
+
+
 def test_metadata_default_factory():
     """Test the default_factory argument to MetaData."""
 
