@@ -61,18 +61,16 @@ def _table_group_by(table, keys):
         table_keys = keys
         if len(table_keys) != len(table):
             raise ValueError(
-                "Input keys array length {} does not match table length {}".format(
-                    len(table_keys), len(table)
-                )
+                f"Input keys array length {len(table_keys)} does not match "
+                f"table length {len(table)}"
             )
         table_index = None
         grouped_by_table_cols = False
 
     else:
         raise TypeError(
-            "Keys input must be string, list, tuple, Table or numpy array, but got {}".format(
-                type(keys)
-            )
+            f"Keys input must be string, list, tuple, Table or numpy array, "
+            f"but got {type(keys)}"
         )
 
     # TODO: don't use represent_mixins_as_columns here, but instead ensure that
@@ -158,9 +156,8 @@ def column_group_by(column, keys):
 
     if len(keys_sort) != len(column):
         raise ValueError(
-            "Input keys array length {} does not match column length {}".format(
-                len(keys), len(column)
-            )
+            f"Input keys array length {len(keys)} does not match "
+            f"column length {len(column)}"
         )
 
     try:
@@ -295,9 +292,8 @@ class ColumnGroups(BaseGroups):
             out = par_col.__class__(vals)
         except Exception as err:
             raise TypeError(
-                "Cannot aggregate column '{}' with type '{}': {}".format(
-                    par_col.info.name, par_col.info.dtype, err
-                )
+                f"Cannot aggregate column '{par_col.info.name}' "
+                f"with type '{par_col.info.dtype}': {err}"
             ) from err
 
         out_info = out.info

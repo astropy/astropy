@@ -105,9 +105,8 @@ def sortmore(*args, **kw):
         k = lambda x: (globalkey(*x),) + tuple(f(z) for (f, z) in zip(key, x))
     else:
         raise KeyError(
-            "kw arg 'key' should be None, callable, or a sequence of callables, not {}".format(
-                type(key)
-            )
+            "kw arg 'key' should be None, callable, or a sequence of callables, "
+            f"not {type(key)}"
         )
 
     res = sorted(zip(*args), key=k)

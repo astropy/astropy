@@ -1126,9 +1126,8 @@ class ImageDataDiff(_BaseDiff):
         if self.diff_total > self.numdiffs:
             self._writeln(" ...")
         self._writeln(
-            " {} different pixels found ({:.2%} different).".format(
-                self.diff_total, self.diff_ratio
-            )
+            f" {self.diff_total} different pixels found "
+            f"({self.diff_ratio:.2%} different)."
         )
 
 
@@ -1214,9 +1213,8 @@ class RawDataDiff(ImageDataDiff):
 
         self._writeln(" ...")
         self._writeln(
-            " {} different bytes found ({:.2%} different).".format(
-                self.diff_total, self.diff_ratio
-            )
+            f" {self.diff_total} different bytes found "
+            f"({self.diff_ratio:.2%} different)."
         )
 
 
@@ -1544,9 +1542,8 @@ class TableDataDiff(_BaseDiff):
             self._writeln(" ...")
 
         self._writeln(
-            " {} different table data element(s) found ({:.2%} different).".format(
-                self.diff_total, self.diff_ratio
-            )
+            f" {self.diff_total} different table data element(s) found "
+            f"({self.diff_ratio:.2%} different)."
         )
 
 
