@@ -936,10 +936,9 @@ class FITS_rec(np.recarray):
                     actual_nitems = field.shape[1]
                 if nitems > actual_nitems and not isinstance(recformat, _FormatP):
                     warnings.warn(
-                        "TDIM{} value {:d} does not fit with the size of "
-                        "the array items ({:d}).  TDIM{:d} will be ignored.".format(
-                            indx + 1, self._coldefs[indx].dims, actual_nitems, indx + 1
-                        )
+                        f"TDIM{indx + 1} value {self._coldefs[indx].dims:d} does not "
+                        f"fit with the size of the array items ({actual_nitems:d}).  "
+                        f"TDIM{indx + 1:d} will be ignored."
                     )
                     dim = None
 
@@ -1218,14 +1217,11 @@ class FITS_rec(np.recarray):
                 _ascii_encode(input_field, out=output_field)
             except _UnicodeArrayEncodeError as exc:
                 raise ValueError(
-                    "Could not save column '{}': Contains characters that "
-                    "cannot be encoded as ASCII as required by FITS, starting "
-                    "at the index {!r} of the column, and the index {} of "
-                    "the string at that location.".format(
-                        self._coldefs[col_idx].name,
-                        exc.index[0] if len(exc.index) == 1 else exc.index,
-                        exc.start,
-                    )
+                    f"Could not save column '{self._coldefs[col_idx].name}': "
+                    "Contains characters that cannot be encoded as ASCII as required "
+                    "by FITS, starting at the index "
+                    f"{exc.index[0] if len(exc.index) == 1 else exc.index!r} of the "
+                    f"column, and the index {exc.start} of the string at that location."
                 )
         else:
             # Otherwise go ahead and do a direct copy into--if both are type
@@ -1293,9 +1289,8 @@ class FITS_rec(np.recarray):
             value = fmt.format(value)
             if len(value) > starts[col_idx + 1] - starts[col_idx]:
                 raise ValueError(
-                    "Value {!r} does not fit into the output's itemsize of {}.".format(
-                        value, spans[col_idx]
-                    )
+                    f"Value {value!r} does not fit into the output's itemsize of "
+                    f"{spans[col_idx]}."
                 )
 
             if trailing_decimal and value[0] == " ":

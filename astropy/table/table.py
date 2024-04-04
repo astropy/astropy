@@ -1085,9 +1085,8 @@ class Table:
         for col in columns:
             if not getattr(col.info, "_supports_indexing", False):
                 raise ValueError(
-                    'Cannot create an index on column "{}", of type "{}"'.format(
-                        col.info.name, type(col)
-                    )
+                    f'Cannot create an index on column "{col.info.name}", '
+                    f'of type "{type(col)}"'
                 )
 
         is_primary = not self.indices
@@ -2640,8 +2639,9 @@ class Table:
                     changed_attrs.append(attr)
 
             if changed_attrs:
-                msg = "replaced column '{}' and column attributes {} changed.".format(
-                    name, changed_attrs
+                msg = (
+                    f"replaced column '{name}' and column attributes "
+                    f"{changed_attrs} changed."
                 )
                 warnings.warn(msg, TableReplaceWarning, stacklevel=3)
 
@@ -3362,8 +3362,8 @@ class Table:
                         newcol[index] = np.ma.masked
                     else:
                         raise TypeError(
-                            "mask was supplied for column '{}' but it does not "
-                            "support masked values".format(col.info.name)
+                            f"mask was supplied for column '{col.info.name}' "
+                            "but it does not support masked values"
                         )
 
                 columns[name] = newcol

@@ -2119,8 +2119,9 @@ class SpecificTypeQuantity(Quantity):
     def _set_unit(self, unit):
         if unit is None or not unit.is_equivalent(self._equivalent_unit):
             raise UnitTypeError(
-                "{} instances require units equivalent to '{}'".format(
-                    type(self).__name__, self._equivalent_unit
+                (
+                    f"{type(self).__name__} instances require units equivalent to "
+                    f"'{self._equivalent_unit}'"
                 )
                 + (
                     ", but no unit was given."
