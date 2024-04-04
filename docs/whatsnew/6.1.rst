@@ -125,6 +125,7 @@ with ``copy=False`` now indicating that a copy should never be made, while
 ``copy=None`` is used for the previous meaning of "avoid a copy if possible".
 
 This includes:
+
 - ``astropy.units.Quantity``
 - ``astropy.utils.Masked``
 - ``astropy.table.Column``
