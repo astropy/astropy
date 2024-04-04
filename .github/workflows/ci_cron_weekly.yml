@@ -64,6 +64,7 @@ jobs:
             os: ubuntu-latest
             python: '3.x'
             toxenv: linkcheck
+            toxposargs: --color
 
           # This is sensitive to Python version.
           - name: Run flynt to check string formatting
