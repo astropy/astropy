@@ -5,22 +5,30 @@ import pytest
 from numpy import testing as npt
 
 from astropy import units as u
-from astropy.coordinates import matching
+from astropy.coordinates import (
+    ICRS,
+    Angle,
+    CartesianRepresentation,
+    Galactic,
+    SkyCoord,
+    match_coordinates_3d,
+    match_coordinates_sky,
+    search_around_3d,
+    search_around_sky,
+)
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 """
 These are the tests for coordinate matching.
-
-Note that this requires scipy.
 """
 
+if not HAS_SCIPY:
+    pytest.skip("Coordinate matching requires scipy", allow_module_level=True)
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")
+
 def test_matching_function():
-    from astropy.coordinates import ICRS
-    from astropy.coordinates.matching import match_coordinates_3d
-
     # this only uses match_coordinates_3d because that's the actual implementation
 
     cmatch = ICRS([4, 2.1] * u.degree, [0, 0] * u.degree)
@@ -37,11 +45,7 @@ def test_matching_function():
     npt.assert_array_less(d3d.value, 0.02)
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")
 def test_matching_function_3d_and_sky():
-    from astropy.coordinates import ICRS
-    from astropy.coordinates.matching import match_coordinates_3d, match_coordinates_sky
-
     cmatch = ICRS([4, 2.1] * u.degree, [0, 0] * u.degree, distance=[1, 5] * u.kpc)
     ccatalog = ICRS(
         [1, 2, 3, 4] * u.degree, [0, 0, 0, 0] * u.degree, distance=[1, 1, 1, 5] * u.kpc
@@ -64,16 +68,13 @@ def test_matching_function_3d_and_sky():
 @pytest.mark.parametrize(
     "functocheck, args, defaultkdtname, bothsaved",
     [
-        (matching.match_coordinates_3d, [], "kdtree_3d", False),
-        (matching.match_coordinates_sky, [], "kdtree_sky", False),
-        (matching.search_around_3d, [1 * u.kpc], "kdtree_3d", True),
-        (matching.search_around_sky, [1 * u.deg], "kdtree_sky", False),
+        (match_coordinates_3d, [], "kdtree_3d", False),
+        (match_coordinates_sky, [], "kdtree_sky", False),
+        (search_around_3d, [1 * u.kpc], "kdtree_3d", True),
+        (search_around_sky, [1 * u.deg], "kdtree_sky", False),
     ],
 )
-@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")
 def test_kdtree_storage(functocheck, args, defaultkdtname, bothsaved):
-    from astropy.coordinates import ICRS
-
     def make_scs():
         cmatch = ICRS([4, 2.1] * u.degree, [0, 0] * u.degree, distance=[1, 2] * u.kpc)
         ccatalog = ICRS(
@@ -119,12 +120,7 @@ def test_kdtree_storage(functocheck, args, defaultkdtname, bothsaved):
     assert "KD" in e.value.args[0]
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")
 def test_matching_method():
-    from astropy.coordinates import ICRS, SkyCoord
-    from astropy.coordinates.matching import match_coordinates_3d, match_coordinates_sky
-    from astropy.utils import NumpyRNGContext
-
     with NumpyRNGContext(987654321):
         cmatch = ICRS(
             np.random.rand(20) * 360.0 * u.degree,
@@ -153,11 +149,7 @@ def test_matching_method():
     assert len(idx1) == len(d2d1) == len(d3d1) == 20
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 def test_search_around():
-    from astropy.coordinates import ICRS, SkyCoord
-    from astropy.coordinates.matching import search_around_3d, search_around_sky
-
     coo1 = ICRS([4, 2.1] * u.degree, [0, 0] * u.degree, distance=[1, 5] * u.kpc)
     coo2 = ICRS(
         [1, 2, 3, 4] * u.degree, [0, 0, 0, 0] * u.degree, distance=[1, 1, 1, 5] * u.kpc
@@ -241,10 +233,7 @@ def test_search_around():
     assert d3d.unit == u.dimensionless_unscaled
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 def test_search_around_scalar():
-    from astropy.coordinates import Angle, SkyCoord
-
     cat = SkyCoord([1, 2, 3], [-30, 45, 8], unit="deg")
     target = SkyCoord("1.1 -30.1", unit="deg")
 
@@ -260,10 +249,7 @@ def test_search_around_scalar():
     assert "search_around_3d" in str(excinfo.value)
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 def test_match_catalog_empty():
-    from astropy.coordinates import SkyCoord
-
     sc1 = SkyCoord(1, 2, unit="deg")
     cat0 = SkyCoord([], [], unit="deg")
     cat1 = SkyCoord([1.1], [2.1], unit="deg")
@@ -290,11 +276,8 @@ def test_match_catalog_empty():
     assert "catalog" in str(excinfo.value)
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 @pytest.mark.filterwarnings(r"ignore:invalid value encountered in.*:RuntimeWarning")
 def test_match_catalog_nan():
-    from astropy.coordinates import Galactic, SkyCoord
-
     sc1 = SkyCoord(1, 2, unit="deg")
     sc_with_nans = SkyCoord(1, np.nan, unit="deg")
 
@@ -324,11 +307,7 @@ def test_match_catalog_nan():
     assert "Matching coordinates cannot contain" in str(excinfo.value)
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 def test_match_catalog_nounit():
-    from astropy.coordinates import ICRS, CartesianRepresentation
-    from astropy.coordinates.matching import match_coordinates_sky
-
     i1 = ICRS([[1], [2], [3]], representation_type=CartesianRepresentation)
     i2 = ICRS([[1], [2], [4, 5]], representation_type=CartesianRepresentation)
     i, sep, sep3d = match_coordinates_sky(i1, i2)
