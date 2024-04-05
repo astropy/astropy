@@ -22,6 +22,33 @@ By the numbers:
 * X pull requests have been merged since v6.0
 * X distinct people have contributed code
 
+
+``Quantity.to_string`` supports ``formatter`` for formatting
+==============================================================
+
+The :meth:`~astropy.units.Quantity.to_string` method now supports a ``formatter`` parameter.
+This feature supports both Python's format specification mini-language via format strings and
+custom formatting through callables. This enables users to have explicit and consistent control
+over the numerical representation of quantities, accommodating a wide range of formatting needs.
+
+Previously, the method primarily relied on the ``precision`` parameter for format control, which dictated
+the number of significant digits and did not provide much freedom in the latex format.
+
+Example:
+
+.. code-block:: python
+
+    >>> from astropy import units as u
+    >>> q = u.Quantity(123.456, u.m)
+    >>> custom_format = lambda x: f"\\approx {float(x):.1f}"
+    >>> q.to_string(formatter=custom_format, format='latex')
+    '$\\approx 123.5 \\; \\mathrm{m}$'
+    >>> q.to_string(formatter='.3e', format='latex')
+    '$1.235 \\times 10^{2} \\; \\mathrm{m}$'
+    >>> q.to_string(precision=3, format='latex')
+    '$123 \\; \\mathrm{m}$'
+
+
 Full change log
 ===============
 
