@@ -49,7 +49,6 @@ Explanation of keywords of the dictionaries:
     values for the fit (optional)
 """
 
-
 import numpy as np
 
 from astropy.modeling.functional_models import (

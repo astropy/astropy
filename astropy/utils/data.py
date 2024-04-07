@@ -131,10 +131,12 @@ class Conf(_config.ConfigNamespace):
         True, "If False, prevents any attempt to download from Internet."
     )
     compute_hash_block_size = _config.ConfigItem(
-        2**16, "Block size for computing file hashes."  # 64K
+        2**16,  # 64K
+        "Block size for computing file hashes.",
     )
     download_block_size = _config.ConfigItem(
-        2**16, "Number of bytes of remote data to download per step."  # 64K
+        2**16,  # 64K
+        "Number of bytes of remote data to download per step.",
     )
     delete_temporary_downloads_at_exit = _config.ConfigItem(
         True,
@@ -307,7 +309,7 @@ def get_readable_fileobj(
 
     Returns
     -------
-    file : readable file-like
+    file : :term:`file-like (readable)`
     """
     # close_fds is a list of file handles created by this function
     # that need to be closed.  We don't want to always just close the

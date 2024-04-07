@@ -7,14 +7,10 @@ be accessed from there.
 """
 
 import functools
-import sys
 
 from astropy.utils.decorators import deprecated
 
-__all__ = ["override__dir__", "PYTHON_LT_3_10", "PYTHON_LT_3_11"]
-
-PYTHON_LT_3_11 = sys.version_info < (3, 11)
-PYTHON_LT_3_10 = sys.version_info < (3, 10)
+__all__ = ["override__dir__"]
 
 
 @deprecated(

@@ -667,6 +667,10 @@ class Cutout2D:
         original_position : tuple
             The corresponding ``(x, y)`` pixel position in the original
             large array.
+
+        See Also
+        --------
+        to_cutout_position
         """
         return tuple(cutout_position[i] + self.origin_original[i] for i in [0, 1])
 
@@ -685,6 +689,10 @@ class Cutout2D:
         cutout_position : tuple
             The corresponding ``(x, y)`` pixel position in the cutout
             array.
+
+        See Also
+        --------
+        to_original_position
         """
         return tuple(original_position[i] - self.origin_original[i] for i in [0, 1])
 

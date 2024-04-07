@@ -1,0 +1,2 @@
+Clearer error message in reading ASCII tables when there is
+a mismatch between converter type and column type.

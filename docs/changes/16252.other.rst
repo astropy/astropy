@@ -1,0 +1,3 @@
+astropy is now compiled against NumPy 2.0, enabling runtime compatibility
+with this new major release. Compatibility with NumPy 1.23 and newer
+versions of NumPy 1.x is preserved through this change.

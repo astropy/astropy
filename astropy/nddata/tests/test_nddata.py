@@ -3,7 +3,6 @@
 
 import pickle
 import textwrap
-from collections import OrderedDict
 from itertools import chain, permutations
 
 import numpy as np
@@ -18,6 +17,7 @@ from astropy.nddata.nduncertainty import StdDevUncertainty
 from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_DASK
 from astropy.utils.masked import Masked
+from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseHighLevelWCS, HighLevelWCSWrapper, SlicedLowLevelWCS
 
@@ -40,7 +40,7 @@ class FakeNumpyArray:
     def __getitem__(self, key):
         pass
 
-    def __array__(self):
+    def __array__(self, dtype=None, copy=None):
         pass
 
     @property
@@ -356,7 +356,7 @@ def test_param_meta():
     nd = NDData([1, 2, 3], meta={})
     assert len(nd.meta) == 0
     nd = NDData([1, 2, 3])
-    assert isinstance(nd.meta, OrderedDict)
+    assert isinstance(nd.meta, dict)
     assert len(nd.meta) == 0
     # Test conflicting meta (other NDData)
     nd2 = NDData(nd, meta={"image": "sun"})
@@ -439,9 +439,6 @@ def test_pickle_nddata_without_uncertainty():
 # Check that the meta descriptor is working as expected. The MetaBaseTest class
 # takes care of defining all the tests, and we simply have to define the class
 # and any minimal set of args to pass.
-from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
-
-
 class TestMetaNDData(MetaBaseTest):
     test_class = NDData
     args = np.array([[1.0]])
@@ -456,9 +453,7 @@ def test_nddata_str():
     assert str(arr2d) == textwrap.dedent(
         """
         [[1 2]
-         [3 4]]"""[
-            1:
-        ]
+         [3 4]]"""[1:]
     )
 
     arr3d = NDData(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
@@ -468,9 +463,7 @@ def test_nddata_str():
           [3 4]]
 
          [[5 6]
-          [7 8]]]"""[
-            1:
-        ]
+          [7 8]]]"""[1:]
     )
 
     # let's add units!

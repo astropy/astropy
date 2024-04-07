@@ -22,7 +22,6 @@
 .. _git user manual: http://schacon.github.io/git/user-manual.html
 .. _git tutorial: http://schacon.github.io/git/gittutorial.html
 .. _git community book: https://book.git-scm.com/
-.. _git ready: https://gitready.com/
 .. _git casts: https://services.github.com/
 .. _git concepts: https://www.sbf5.com/~cduan/technical/git/
 .. _git clone: http://schacon.github.io/git/git-clone.html
@@ -38,8 +37,6 @@
 .. _git remote: http://schacon.github.io/git/git-remote.html
 .. _git rebase: http://schacon.github.io/git/git-rebase.html
 .. _git config: http://schacon.github.io/git/git-config.html
-.. _why the -a flag?: https://gitready.com/beginner/2009/01/18/the-staging-area.html
-.. _git staging area: https://gitready.com/beginner/2009/01/18/the-staging-area.html
 .. _tangled working copy problem: http://tomayko.com/writings/the-thing-about-git
 .. _git management: https://web.archive.org/web/20120511084711/http://kerneltrap.org/Linux/Git_Management
 .. _linux git workflow: http://www.mail-archive.com/dri-devel@lists.sourceforge.net/msg39091.html

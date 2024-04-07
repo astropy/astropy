@@ -423,7 +423,7 @@ example:
         plt.imshow(g(x, y), origin='lower')
         plt.xticks([])
         plt.yticks([])
-        plt.title(f'Rotated $ {theta}^\circ $')
+        plt.title(rf'Rotated $ {theta}^\circ $')
 
 .. note::
 

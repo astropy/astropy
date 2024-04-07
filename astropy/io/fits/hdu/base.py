@@ -398,6 +398,13 @@ class _BaseHDU:
         checksum : bool
             When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
             to the header of the HDU when written to the file.
+
+        Notes
+        -----
+        gzip, zip and bzip2 compression algorithms are natively supported.
+        Compression mode is determined from the filename extension
+        ('.gz', '.zip' or '.bz2' respectively).  It is also possible to pass a
+        compressed file object, e.g. `gzip.GzipFile`.
         """
         from .hdulist import HDUList
 
@@ -1127,7 +1134,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             be used to validate the value associated with the given keyword.
 
         fix_value : str, int, float, complex, bool, None
-            A valid value for a FITS keyword to to use if the given ``test``
+            A valid value for a FITS keyword to use if the given ``test``
             fails to replace an invalid value.  In other words, this provides
             a default value to use as a replacement if the keyword's current
             value is invalid.  If `None`, there is no replacement value and the

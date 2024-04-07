@@ -191,9 +191,8 @@ def _lookup_by_attr_factory(attr, unique, iterator, element_name, doc):
         for element in lookup_by_attr(self, ref, before=before):
             return element
         raise KeyError(
-            "No {} with {} '{}' found before the referencing {}".format(
-                element_name, attr, ref, element_name
-            )
+            f"No {element_name} with {attr} '{ref}' found before the referencing "
+            f"{element_name}"
         )
 
     if unique:
@@ -231,9 +230,8 @@ def _lookup_by_id_or_name_factory(iterator, element_name, doc):
             if ref in (element.ID, element.name):
                 return element
         raise KeyError(
-            "No {} with ID or name '{}' found before the referencing {}".format(
-                element_name, ref, element_name
-            )
+            f"No {element_name} with ID or name '{ref}' found before the referencing "
+            f"{element_name}"
         )
 
     lookup_by_id_or_name.__doc__ = doc
@@ -2740,7 +2738,10 @@ class TableElement(
                 try:
                     colnumbers = [names.index(x) for x in columns]
                 except ValueError:
-                    raise ValueError(f"Columns '{columns}' not found in fields list")
+                    missing_columns = [name for name in columns if name not in names]
+                    raise ValueError(
+                        f"Columns {missing_columns} were not found in fields list"
+                    ) from None
             else:
                 raise TypeError("Invalid columns list")
 
@@ -2854,8 +2855,9 @@ class TableElement(
                                                 e,
                                                 config,
                                                 pos,
-                                                "(in row {:d}, col '{}')".format(
-                                                    len(array_chunk), fields[i].ID
+                                                (
+                                                    f"(in row {len(array_chunk):d}, "
+                                                    f"col '{fields[i].ID}')"
                                                 ),
                                             )
                                     else:
@@ -2868,8 +2870,9 @@ class TableElement(
                                                 e,
                                                 config,
                                                 pos,
-                                                "(in row {:d}, col '{}')".format(
-                                                    len(array_chunk), fields[i].ID
+                                                (
+                                                    f"(in row {len(array_chunk):d}, "
+                                                    f"col '{fields[i].ID}')"
                                                 ),
                                             )
                                 except Exception as e:
@@ -3263,8 +3266,8 @@ class TableElement(
                             except Exception as e:
                                 vo_reraise(
                                     e,
-                                    additional="(in row {:d}, col '{}')".format(
-                                        row, self.fields[i].ID
+                                    additional=(
+                                        f"(in row {row:d}, col '{self.fields[i].ID}')"
                                     ),
                                 )
                             if len(val):

@@ -61,6 +61,8 @@ def _get_list_of_tables(tables):
 
     # Convert inputs (Table, Row, or anything column-like) to Tables.
     # Special case that Quantity converts to a QTable.
+    # Do this in a separate list to not modify the original input list
+    tables = list(tables)
     for ii, val in enumerate(tables):
         if isinstance(val, Table):
             pass
@@ -232,7 +234,7 @@ def join_distance(distance, kdtree_args=None, query_args=None):
     "fuzzy" match can apply to 1-D or 2-D columns, where in the latter case
     the distance is a vector distance.
 
-    The distance cross-matching is done using `scipy.spatial.cKDTree`. If
+    The distance cross-matching is done using `scipy.spatial.KDTree`. If
     necessary you can tweak the default behavior by providing ``dict`` values
     for the ``kdtree_args`` or ``query_args``.
 
@@ -241,9 +243,9 @@ def join_distance(distance, kdtree_args=None, query_args=None):
     distance : float or `~astropy.units.Quantity` ['length']
         Maximum distance between points to be considered a join match
     kdtree_args : dict, None
-        Optional extra args for `~scipy.spatial.cKDTree`
+        Optional extra args for `~scipy.spatial.KDTree`
     query_args : dict, None
-        Optional extra args for `~scipy.spatial.cKDTree.query_ball_tree`
+        Optional extra args for `~scipy.spatial.KDTree.query_ball_tree`
 
     Returns
     -------
@@ -273,7 +275,7 @@ def join_distance(distance, kdtree_args=None, query_args=None):
 
     """
     try:
-        from scipy.spatial import cKDTree
+        from scipy.spatial import KDTree
     except ImportError as exc:
         raise ImportError("scipy is required to use join_distance()") from exc
 
@@ -304,8 +306,8 @@ def join_distance(distance, kdtree_args=None, query_args=None):
             col2.shape = col2.shape + (1,)
 
         # Cross-match col1 and col2 within dist using KDTree
-        kd1 = cKDTree(col1, **kdtree_args)
-        kd2 = cKDTree(col2, **kdtree_args)
+        kd1 = KDTree(col1, **kdtree_args)
+        kd2 = KDTree(col2, **kdtree_args)
         nears = kd1.query_ball_tree(kd2, r=dist, **query_args)
 
         # Output of above is nears which is a list of lists, where the outer
@@ -981,9 +983,8 @@ def get_descrs(arrays, col_name_map):
             # Beautify the error message when we are trying to merge columns with incompatible
             # types by including the name of the columns that originated the error.
             raise TableMergeError(
-                "The '{}' columns have incompatible types: {}".format(
-                    names[0], tme._incompat_types
-                )
+                f"The '{names[0]}' columns have incompatible types: "
+                f"{tme._incompat_types}"
             ) from tme
 
         # Make sure all input shapes are the same
@@ -1225,7 +1226,7 @@ def _join(
         raise TypeError("one or more key columns are not sortable")
 
     # Now that we have idxs and idx_sort, revert to the original table args to
-    # carry on with making the output joined table. `keys` is set to to an empty
+    # carry on with making the output joined table. `keys` is set to an empty
     # list so that all original left and right columns are included in the
     # output table.
     if keys_left is not None or keys_right is not None:
@@ -1479,9 +1480,8 @@ def _vstack(arrays, join_type="outer", col_name_map=None, metadata_conflicts="wa
             # Beautify the error message when we are trying to merge columns with incompatible
             # types by including the name of the columns that originated the error.
             raise TableMergeError(
-                "The '{}' columns have incompatible types: {}".format(
-                    out_name, err._incompat_types
-                )
+                f"The '{out_name}' columns have incompatible types: "
+                f"{err._incompat_types}"
             ) from err
 
         idx0 = 0

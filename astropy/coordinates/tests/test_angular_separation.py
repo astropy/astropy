@@ -9,9 +9,8 @@ import numpy as np
 import pytest
 
 from astropy import units as u
-from astropy.coordinates import Angle, Distance
-from astropy.coordinates.builtin_frames import FK5, ICRS, Galactic
-from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+from astropy.coordinates import Angle
+from astropy.coordinates.builtin_frames import ICRS
 
 # lon1, lat1, lon2, lat2 in degrees
 coords = [
@@ -46,17 +45,6 @@ def test_angsep():
             assert np.fabs(angsep - conv(corrsep)) < conv(correctness_margin)
 
 
-def test_fk5_seps():
-    """
-    This tests if `separation` works for FK5 objects.
-
-    This is a regression test for github issue #891
-    """
-    a = FK5(1.0 * u.deg, 1.0 * u.deg)
-    b = FK5(2.0 * u.deg, 2.0 * u.deg)
-    a.separation(b)
-
-
 def test_proj_separations():
     """
     Test angular separation functionality
@@ -64,40 +52,8 @@ def test_proj_separations():
     c1 = ICRS(ra=0 * u.deg, dec=0 * u.deg)
     c2 = ICRS(ra=0 * u.deg, dec=1 * u.deg)
 
-    sep = c2.separation(c1)
-    # returns an Angle object
-    assert isinstance(sep, Angle)
-
-    assert_allclose(sep.degree, 1.0)
-    assert_allclose(sep.arcminute, 60.0)
-
     # these operations have ambiguous interpretations for points on a sphere
     with pytest.raises(TypeError):
         c1 + c2
     with pytest.raises(TypeError):
         c1 - c2
-
-    ngp = Galactic(l=0 * u.degree, b=90 * u.degree)
-    ncp = ICRS(ra=0 * u.degree, dec=90 * u.degree)
-
-    # if there is a defined conversion between the relevant coordinate systems,
-    # it will be automatically performed to get the right angular separation
-    assert_allclose(
-        ncp.separation(ngp.transform_to(ICRS())).degree, ncp.separation(ngp).degree
-    )
-
-    # distance from the north galactic pole to celestial pole
-    assert_allclose(ncp.separation(ngp.transform_to(ICRS())).degree, 62.87174758503201)
-
-
-def test_3d_separations():
-    """
-    Test 3D separation functionality
-    """
-    c1 = ICRS(ra=1 * u.deg, dec=1 * u.deg, distance=9 * u.kpc)
-    c2 = ICRS(ra=1 * u.deg, dec=1 * u.deg, distance=10 * u.kpc)
-
-    sep3d = c2.separation_3d(c1)
-
-    assert isinstance(sep3d, Distance)
-    assert_allclose(sep3d - 1 * u.kpc, 0 * u.kpc, atol=1e-12 * u.kpc)

@@ -108,8 +108,9 @@ class Covariance:
         if len(params) != 2:
             raise ValueError("Covariance must be indexed by two values.")
         if all(isinstance(item, str) for item in params):
-            i1, i2 = self.param_names.index(params[0]), self.param_names.index(
-                params[1]
+            i1, i2 = (
+                self.param_names.index(params[0]),
+                self.param_names.index(params[1]),
             )
         elif all(isinstance(item, int) for item in params):
             i1, i2 = params
@@ -2187,13 +2188,4 @@ def populate_entry_points(entry_points):
                     )
 
 
-def _populate_ep():
-    # TODO: Exclusively use select when Python minversion is 3.10
-    ep = entry_points()
-    if hasattr(ep, "select"):
-        populate_entry_points(ep.select(group="astropy.modeling"))
-    else:
-        populate_entry_points(ep.get("astropy.modeling", []))
-
-
-_populate_ep()
+populate_entry_points(entry_points().select(group="astropy.modeling"))

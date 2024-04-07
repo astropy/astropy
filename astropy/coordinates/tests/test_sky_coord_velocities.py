@@ -157,7 +157,7 @@ def sc(request):
     incldist, inclrv = request.param
 
     args = [1 * u.deg, 2 * u.deg]
-    kwargs = dict(pm_dec=1 * u.mas / u.yr, pm_ra_cosdec=2 * u.mas / u.yr)
+    kwargs = {"pm_dec": 1 * u.mas / u.yr, "pm_ra_cosdec": 2 * u.mas / u.yr}
     if incldist:
         kwargs["distance"] = 213.4 * u.pc
     if inclrv:
@@ -176,17 +176,6 @@ def scmany():
             pm_dec=np.random.randn(100) * u.mas / u.yr,
         )
     )
-
-
-@pytest.fixture(scope="module")
-def sc_for_sep():
-    return SkyCoord(
-        1 * u.deg, 2 * u.deg, pm_dec=1 * u.mas / u.yr, pm_ra_cosdec=2 * u.mas / u.yr
-    )
-
-
-def test_separation(sc, sc_for_sep):
-    sc.separation(sc_for_sep)
 
 
 def test_accessors(sc, scmany):
@@ -233,35 +222,9 @@ def test_matching(sc, scmany):
     idx, d2d, d3d = sc.match_to_catalog_sky(scmany)
 
 
-def test_position_angle(sc, sc_for_sep):
-    sc.position_angle(sc_for_sep)
-
-
 def test_constellations(sc):
     const = sc.get_constellation()
     assert const == "Pisces"
-
-
-def test_separation_3d_with_differentials():
-    c1 = SkyCoord(
-        ra=138 * u.deg,
-        dec=-17 * u.deg,
-        distance=100 * u.pc,
-        pm_ra_cosdec=5 * u.mas / u.yr,
-        pm_dec=-7 * u.mas / u.yr,
-        radial_velocity=160 * u.km / u.s,
-    )
-    c2 = SkyCoord(
-        ra=138 * u.deg,
-        dec=-17 * u.deg,
-        distance=105 * u.pc,
-        pm_ra_cosdec=15 * u.mas / u.yr,
-        pm_dec=-74 * u.mas / u.yr,
-        radial_velocity=-60 * u.km / u.s,
-    )
-
-    sep = c1.separation_3d(c2)
-    assert_quantity_allclose(sep, 5 * u.pc)
 
 
 @pytest.mark.parametrize("sph_type", ["spherical", "unitspherical"])
@@ -291,17 +254,17 @@ def test_cartesian_to_spherical(sph_type):
 @pytest.mark.parametrize(
     "diff_info, diff_cls",
     [
-        (dict(radial_velocity=[20, 30] * u.km / u.s), RadialDifferential),
+        ({"radial_velocity": [20, 30] * u.km / u.s}, RadialDifferential),
         (
-            dict(
-                pm_ra=[2, 3] * u.mas / u.yr,
-                pm_dec=[-3, -4] * u.mas / u.yr,
-                differential_type="unitspherical",
-            ),
+            {
+                "pm_ra": [2, 3] * u.mas / u.yr,
+                "pm_dec": [-3, -4] * u.mas / u.yr,
+                "differential_type": "unitspherical",
+            },
             UnitSphericalDifferential,
         ),
         (
-            dict(pm_ra_cosdec=[2, 3] * u.mas / u.yr, pm_dec=[-3, -4] * u.mas / u.yr),
+            {"pm_ra_cosdec": [2, 3] * u.mas / u.yr, "pm_dec": [-3, -4] * u.mas / u.yr},
             UnitSphericalCosLatDifferential,
         ),
     ],

@@ -25,7 +25,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: 3.x
     - name: Install dependencies
@@ -41,7 +41,7 @@ jobs:
           git commit -m "Update minimum required version of astropy-iers-data"
         fi
     - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v5
+      uses: peter-evans/create-pull-request@v6
       with:
         branch: update-astropy-iers-data-pin
         branch-suffix: timestamp
@@ -49,6 +49,8 @@ jobs:
         labels: no-changelog-entry-needed, utils.iers
         title: Update minimum required version of astropy-iers-data
         body: |
-          This is an automated update of the minimum version of astropy-iers-data
+          This is an automated update of the minimum version of astropy-iers-data package.
 
-          :warning: Please close and re-open this pull request to trigger the CI :warning:
+          :pray: Please apply backport labels to any active backport branches for v6.0.x or later. :pray:
+
+          :warning: Please close and re-open this pull request to trigger the CI. :warning:

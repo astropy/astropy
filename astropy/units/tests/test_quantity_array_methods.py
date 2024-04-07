@@ -7,6 +7,7 @@ from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
+from astropy.utils.compat.optional_deps import HAS_ARRAY_API_STRICT
 
 
 class TestQuantityArrayCopy:
@@ -640,3 +641,13 @@ class TestStructuredArray:
         assert qra[1].value == np.array((-1000.0, -2000.0, -3000.0), qra.dtype)
         # Ensure we do not override dtype names of value.
         assert value.dtype.names == ("x", "y", "z")
+
+
+@pytest.mark.skipif(not HAS_ARRAY_API_STRICT, reason="requires array_api_strict")
+def test_array_api_init():
+    import array_api_strict as xp
+
+    array = xp.asarray([1, 2, 3])
+    quantity_array = u.Quantity(array, u.m)
+    assert type(quantity_array) is u.Quantity
+    assert_array_equal(quantity_array, [1, 2, 3] * u.m)

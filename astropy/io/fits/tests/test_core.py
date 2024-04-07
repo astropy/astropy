@@ -158,7 +158,7 @@ class TestCore(FitsTestCase):
         assert header.comments["BITPIX"] == ""
 
     def test_set_card_value(self):
-        """Similar to test_update_header_card(), but tests the the
+        """Similar to test_update_header_card(), but tests the
         `header['FOO'] = 'bar'` method of updating card values.
         """
 
@@ -603,6 +603,10 @@ class TestConvenienceFunctions(FitsTestCase):
         with fits.open(filename) as hdul:
             assert len(hdul) == 1
             assert (data == hdul[0].data).all()
+
+    def test_writeto_stdout(self):
+        # see https://github.com/astropy/astropy/issues/3427
+        fits.writeto(sys.stdout, data=np.array([1, 2]))
 
 
 class TestFileFunctions(FitsTestCase):
@@ -1091,7 +1095,11 @@ class TestFileFunctions(FitsTestCase):
         def mmap_patched(*args, **kwargs):
             if kwargs.get("access") == mmap.ACCESS_COPY:
                 exc = OSError()
-                exc.errno = errno.ENOMEM
+                if sys.platform.startswith("win32"):
+                    exc.errno = errno.EINVAL
+                    exc.winerror = 1455
+                else:
+                    exc.errno = errno.ENOMEM
                 raise exc
             else:
                 return mmap_original(*args, **kwargs)
@@ -1373,6 +1381,11 @@ class TestFileFunctions(FitsTestCase):
         fh = safeio.CatchZeroByteWriter(open(self.temp("image.fits"), mode="wb"))
         hdu_img_2880.writeto(fh)
         fh.close()
+
+    def test_HDUList_writeto_stdout(self):
+        # see https://github.com/astropy/astropy/issues/3427
+        hdul = fits.HDUList([fits.PrimaryHDU()])
+        hdul.writeto(sys.stdout)
 
 
 class TestStreamingFunctions(FitsTestCase):

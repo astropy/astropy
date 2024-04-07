@@ -691,51 +691,6 @@ def test_setitem_exceptions():
         sc1[0] = sc2[0]
 
 
-def test_sep():
-    i1 = ICRS(ra=0 * u.deg, dec=1 * u.deg)
-    i2 = ICRS(ra=0 * u.deg, dec=2 * u.deg)
-
-    sep = i1.separation(i2)
-    assert_allclose(sep.deg, 1.0)
-
-    i3 = ICRS(ra=[1, 2] * u.deg, dec=[3, 4] * u.deg, distance=[5, 6] * u.kpc)
-    i4 = ICRS(ra=[1, 2] * u.deg, dec=[3, 4] * u.deg, distance=[4, 5] * u.kpc)
-
-    sep3d = i3.separation_3d(i4)
-    assert_allclose(sep3d.to(u.kpc), np.array([1, 1]) * u.kpc)
-
-    # check that it works even with velocities
-    i5 = ICRS(
-        ra=[1, 2] * u.deg,
-        dec=[3, 4] * u.deg,
-        distance=[5, 6] * u.kpc,
-        pm_ra_cosdec=[1, 2] * u.mas / u.yr,
-        pm_dec=[3, 4] * u.mas / u.yr,
-        radial_velocity=[5, 6] * u.km / u.s,
-    )
-    i6 = ICRS(
-        ra=[1, 2] * u.deg,
-        dec=[3, 4] * u.deg,
-        distance=[7, 8] * u.kpc,
-        pm_ra_cosdec=[1, 2] * u.mas / u.yr,
-        pm_dec=[3, 4] * u.mas / u.yr,
-        radial_velocity=[5, 6] * u.km / u.s,
-    )
-
-    sep3d = i5.separation_3d(i6)
-    assert_allclose(sep3d.to(u.kpc), np.array([2, 2]) * u.kpc)
-
-    # 3d separations of dimensionless distances should still work
-    i7 = ICRS(ra=1 * u.deg, dec=2 * u.deg, distance=3 * u.one)
-    i8 = ICRS(ra=1 * u.deg, dec=2 * u.deg, distance=4 * u.one)
-    sep3d = i7.separation_3d(i8)
-    assert_allclose(sep3d, 1 * u.one)
-
-    # but should fail with non-dimensionless
-    with pytest.raises(ValueError):
-        i7.separation_3d(i3)
-
-
 def test_time_inputs():
     """
     Test validation and conversion of inputs for equinox and obstime attributes.
@@ -1006,8 +961,12 @@ def test_equal():
     ne = sc1 != sc2
     assert np.all(eq == [True, False])
     assert np.all(ne == [False, True])
-    assert isinstance(v := (sc1[0] == sc2[0]), (bool, np.bool_)) and v
-    assert isinstance(v := (sc1[0] != sc2[0]), (bool, np.bool_)) and not v
+    v = sc1[0] == sc2[0]
+    assert isinstance(v, (bool, np.bool_))
+    assert v
+    v = sc1[0] != sc2[0]
+    assert isinstance(v, (bool, np.bool_))
+    assert not v
 
     # Broadcasting
     eq = sc1[0] == sc2
@@ -1023,8 +982,12 @@ def test_equal():
     ne = sc1 != sc2
     assert np.all(eq == [True, False])
     assert np.all(ne == [False, True])
-    assert isinstance(v := (sc1[0] == sc2[0]), (bool, np.bool_)) and v
-    assert isinstance(v := (sc1[0] != sc2[0]), (bool, np.bool_)) and not v
+    v = sc1[0] == sc2[0]
+    assert isinstance(v, (bool, np.bool_))
+    assert v
+    v = sc1[0] != sc2[0]
+    assert isinstance(v, (bool, np.bool_))
+    assert not v
 
     assert (FK4() == ICRS()) is False
     assert (FK4() == FK4(obstime="J1999")) is False
@@ -1553,7 +1516,7 @@ def test_galactocentric_defaults():
     with galactocentric_frame_defaults.set("latest"):
         params = galactocentric_frame_defaults.validate(galcen_latest)
         references = galcen_latest.frame_attribute_references
-        state = dict(parameters=params, references=references)
+        state = {"parameters": params, "references": references}
 
         assert galactocentric_frame_defaults.parameters == params
         assert galactocentric_frame_defaults.references == references
@@ -1727,3 +1690,14 @@ def test_spherical_offsets_by_broadcast():
     assert SkyCoord(
         ra=np.array([123, 134, 145]), dec=np.array([45, 56, 67]), unit=u.deg
     ).spherical_offsets_by(2 * u.deg, 2 * u.deg).shape == (3,)
+
+
+@pytest.mark.parametrize("shape", [(1,), (2,)])
+def test_spherical_offsets_with_wrap(shape):
+    # see https://github.com/astropy/astropy/issues/16219
+    sc = SkyCoord(ra=np.broadcast_to(123.0, shape), dec=90.0, unit=u.deg)
+    scop = sc.spherical_offsets_by(+2 * u.deg, 0 * u.deg)
+    assert scop.shape == shape
+
+    scom = sc.spherical_offsets_by(-2 * u.deg, 0 * u.deg)
+    assert scom.shape == shape

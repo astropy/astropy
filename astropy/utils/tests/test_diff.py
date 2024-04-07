@@ -2,6 +2,7 @@
 """
 Some might be indirectly tested already in ``astropy.io.fits.tests``.
 """
+
 import io
 
 import numpy as np
@@ -49,14 +50,11 @@ def test_diff_types():
     b = "1.0"
     identical = report_diff_values(a, b, fileobj=f)
     assert not identical
-    out = f.getvalue()
-    # fmt: off
-    assert out == (
-        "  (float) a> 1.0\n"
-        "    (str) b> '1.0'\n"
-        "           ? +   +\n"
-    )
-    # fmt: on
+    assert f.getvalue().splitlines() == [
+        "  (float) a> 1.0",
+        "    (str) b> '1.0'",
+        "           ? +   +",
+    ]
 
 
 def test_diff_numeric_scalar_types():
@@ -146,6 +144,17 @@ NEW     2018-05-08   nan    9.0""",
 
     # Identical
     assert report_diff_values(a, a, fileobj=f)
+
+
+def test_large_table_diff():
+    # see https://github.com/astropy/astropy/issues/14010
+    colnames = [f"column{i}" for i in range(100)]
+    t1 = Table(names=colnames)
+
+    colnames.insert(50, "test")
+    t2 = Table(names=colnames)
+
+    assert not report_diff_values(t1, t2, fileobj=io.StringIO())
 
 
 @pytest.mark.parametrize("kwargs", [{}, {"atol": 0, "rtol": 0}])

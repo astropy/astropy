@@ -18,7 +18,7 @@ from astropy.units.core import (
     dimensionless_unscaled,
     unit_scale_converter,
 )
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0, NUMPY_LT_2_1
 
 if NUMPY_LT_2_0:
     from numpy.core import umath as np_umath
@@ -36,10 +36,10 @@ def _d(unit):
 
 
 def get_converter(from_unit, to_unit):
-    """Like Unit._get_converter, except returns None if no scaling is needed,
+    """Like Unit.get_converter, except returns None if no scaling is needed,
     i.e., if the inferred scale is unity.
     """
-    converter = from_unit._get_converter(to_unit)
+    converter = from_unit.get_converter(to_unit)
     return None if converter is unit_scale_converter else converter
 
 
@@ -361,7 +361,47 @@ UNSUPPORTED_UFUNCS |= {
 }
 
 if not NUMPY_LT_2_0:
-    UNSUPPORTED_UFUNCS |= {np.bitwise_count, np._core.umath.isalpha}
+    # string utilities - make no sense for Quantity.
+    UNSUPPORTED_UFUNCS |= {
+        np.bitwise_count,
+        np._core.umath.count,
+        np._core.umath.isalpha,
+        np._core.umath.isdigit,
+        np._core.umath.isspace,
+        np._core.umath.isnumeric,
+        np._core.umath.isdecimal,
+        np._core.umath.isalnum,
+        np._core.umath.istitle,
+        np._core.umath.islower,
+        np._core.umath.isupper,
+        np._core.umath.index,
+        np._core.umath.rindex,
+        np._core.umath.startswith,
+        np._core.umath.endswith,
+        np._core.umath.find,
+        np._core.umath.rfind,
+        np._core.umath.str_len,
+        np._core.umath._strip_chars,
+        np._core.umath._lstrip_chars,
+        np._core.umath._rstrip_chars,
+        np._core.umath._strip_whitespace,
+        np._core.umath._lstrip_whitespace,
+        np._core.umath._rstrip_whitespace,
+        np._core.umath._replace,
+        np._core.umath._expandtabs,
+        np._core.umath._expandtabs_length,
+    }
+if not NUMPY_LT_2_1:
+    UNSUPPORTED_UFUNCS |= {
+        np._core.umath._ljust,
+        np._core.umath._rjust,
+        np._core.umath._center,
+        np._core.umath._zfill,
+        np._core.umath._partition_index,
+        np._core.umath._rpartition,
+        np._core.umath._rpartition_index,
+        np._core.umath._partition,
+    }
 
 # SINGLE ARGUMENT UFUNCS
 
@@ -491,8 +531,9 @@ for ufunc in twoarg_invtrig_ufuncs:
 
 # ufuncs handled as special cases
 UFUNC_HELPERS[np.multiply] = helper_multiplication
-if isinstance(getattr(np, "matmul", None), np.ufunc):
-    UFUNC_HELPERS[np.matmul] = helper_multiplication
+UFUNC_HELPERS[np.matmul] = helper_multiplication
+if isinstance(getattr(np, "vecdot", None), np.ufunc):
+    UFUNC_HELPERS[np.vecdot] = helper_multiplication
 UFUNC_HELPERS[np.divide] = helper_division
 UFUNC_HELPERS[np.true_divide] = helper_division
 UFUNC_HELPERS[np.power] = helper_power

@@ -4,11 +4,12 @@ import fnmatch
 import os
 import re
 import sys
+from shutil import get_terminal_size
 
 import numpy as np
 
 from astropy import log
-from astropy.utils.console import Getch, color_print, conf, terminal_size
+from astropy.utils.console import Getch, color_print, conf
 from astropy.utils.data_info import dtype_info_name
 
 __all__ = []
@@ -206,7 +207,7 @@ class TableFormatter:
             max_width = conf.max_width
 
         if max_lines is None or max_width is None:
-            lines, width = terminal_size()
+            width, lines = get_terminal_size()
 
         if max_lines is None:
             max_lines = lines
@@ -535,8 +536,8 @@ class TableFormatter:
                     yield format_col_str(idx)
                 except ValueError:
                     raise ValueError(
-                        'Unable to parse format string "{}" for entry "{}" '
-                        'in column "{}"'.format(col_format, col[idx], col.info.name)
+                        f'Unable to parse format string "{col_format}" for '
+                        f'entry "{col[idx]}" in column "{col.info.name}"'
                     )
 
         outs["show_length"] = show_length

@@ -651,3 +651,10 @@ def test_mask_slicing_count_array_finalize():
     # repr should need none (used to be 2!!)
     repr(c0)
     assert MyBaseColumn.counter == 2
+
+
+def test_set_masked_bytes_column():
+    mask = [True, False, True]
+    mc = MaskedColumn([b"a", b"b", b"c"], mask=mask)
+    mc[:] = mc
+    assert (mc.mask == mask).all()

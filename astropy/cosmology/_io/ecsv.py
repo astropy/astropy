@@ -23,9 +23,10 @@ file:
     # ---
     # datatype:
     # - {name: name, datatype: string}
+    # - {name: H0, unit: km / (Mpc s), datatype: float64, description: Hubble ...}
     ...
-    # meta: !!omap
-    # - {Oc0: 0.2607}
+    # meta:
+    #   Oc0: 0.2607
     ...
     # schema: astropy-2.0
     name H0 Om0 Tcmb0 Neff m_nu Ob0
@@ -59,8 +60,8 @@ a column of the table using the ``cosmology_in_meta`` keyword argument.
     # - {name: cosmology, datatype: string}
     # - {name: name, datatype: string}
     ...
-    # meta: !!omap
-    # - {Oc0: 0.2607}
+    # meta:
+    #   Oc0: 0.2607
     ...
     # schema: astropy-2.0
     cosmology name H0 Om0 Tcmb0 Neff m_nu Ob0
@@ -121,17 +122,17 @@ useful when the files's column names do not match the class' parameter names.
     >>> file = Path(temp_dir.name) / "file4.ecsv"
     >>> Planck18.write(file, rename={"H0": "Hubble"})
     >>> with open(file) as f: print(f.read())
-     # %ECSV 1.0
+    # %ECSV 1.0
     # ---
     # datatype:
     # - {name: name, datatype: string}
     ...
-    # meta: !!omap
-    # - {Oc0: 0.2607}
+    # meta:
+    #   Oc0: 0.2607
     ...
     # schema: astropy-2.0
     name Hubble Om0 Tcmb0 Neff m_nu Ob0
-    ...
+    Planck18 67.66 0.30966 2.7255 3.046 [0.0,0.0,0.06] 0.04897
 
     >>> cosmo = Cosmology.read(file, rename={"Hubble": "H0"})
     >>> cosmo == Planck18
@@ -222,8 +223,8 @@ def read_ecsv(
         # datatype:
         # - {name: name, datatype: string}
         ...
-        # meta: !!omap
-        # - {Oc0: 0.2607}
+        # meta:
+        #   Oc0: 0.2607
         ...
         # schema: astropy-2.0
         name H0 Om0 Tcmb0 Neff m_nu Ob0
@@ -301,12 +302,12 @@ def read_ecsv(
         # datatype:
         # - {name: name, datatype: string}
         ...
-        # meta: !!omap
-        # - {Oc0: 0.2607}
+        # meta:
+        #   Oc0: 0.2607
         ...
         # schema: astropy-2.0
         name Hubble Om0 Tcmb0 Neff m_nu Ob0
-        ...
+        Planck18 67.66 0.30966 2.7255 3.046 [0.0,0.0,0.06] 0.04897
 
     Now we can read the Cosmology from the ECSV file, with the required renaming:
 
@@ -393,8 +394,8 @@ def write_ecsv(
         # datatype:
         # - {name: name, datatype: string}
         ...
-        # meta: !!omap
-        # - {Oc0: 0.2607}
+        # meta:
+        #   Oc0: 0.2607
         ...
         # schema: astropy-2.0
         name H0 Om0 Tcmb0 Neff m_nu Ob0
@@ -432,8 +433,8 @@ def write_ecsv(
         # - {name: cosmology, datatype: string}
         # - {name: name, datatype: string}
         ...
-        # meta: !!omap
-        # - {Oc0: 0.2607}
+        # meta:
+        #   Oc0: 0.2607
         ...
         # schema: astropy-2.0
         cosmology name H0 Om0 Tcmb0 Neff m_nu Ob0
@@ -451,12 +452,12 @@ def write_ecsv(
         # datatype:
         # - {name: name, datatype: string}
         ...
-        # meta: !!omap
-        # - {Oc0: 0.2607}
+        # meta:
         ...
         # schema: astropy-2.0
         name Hubble Om0 Tcmb0 Neff m_nu Ob0
-        ...
+        Planck18 67.66 0.30966 2.7255 3.046 [0.0,0.0,0.06] 0.04897
+        <BLANKLINE>
 
     Additional keyword arguments are passed to :attr:`astropy.table.QTable.write`.
 

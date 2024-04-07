@@ -1,0 +1,2 @@
+Fixed a bug where the attribute ``ParametersAttribute.attr_name`` could be None
+instead of a string.

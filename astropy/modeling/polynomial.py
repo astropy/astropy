@@ -3,12 +3,15 @@
 This module contains models representing polynomials and polynomial series.
 
 """
+
 # pylint: disable=invalid-name
 from math import comb
+from textwrap import indent
 
 import numpy as np
 
-from astropy.utils import check_broadcast, indent
+from astropy.utils import check_broadcast
+from astropy.utils.compat import COPY_IF_NEEDED
 
 from .core import FittableModel, Model
 from .functional_models import Shift
@@ -533,7 +536,7 @@ class Chebyshev1D(_PolyDomainWindow1D):
         result : ndarray
             The Vandermonde matrix
         """
-        x = np.array(x, dtype=float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=COPY_IF_NEEDED, ndmin=1)
         v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
         v[0] = 1
         if self.degree > 0:
@@ -654,7 +657,7 @@ class Hermite1D(_PolyDomainWindow1D):
         result : ndarray
             The Vandermonde matrix
         """
-        x = np.array(x, dtype=float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=COPY_IF_NEEDED, ndmin=1)
         v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
         v[0] = 1
         if self.degree > 0:
@@ -833,7 +836,7 @@ class Hermite2D(OrthoPolynomialBase):
         """
         Derivative of 1D Hermite series.
         """
-        x = np.array(x, dtype=float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=COPY_IF_NEEDED, ndmin=1)
         d = np.empty((deg + 1, len(x)), dtype=x.dtype)
         d[0] = x * 0 + 1
         if deg > 0:
@@ -936,7 +939,7 @@ class Legendre1D(_PolyDomainWindow1D):
         result : ndarray
             The Vandermonde matrix
         """
-        x = np.array(x, dtype=float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=COPY_IF_NEEDED, ndmin=1)
         v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
         v[0] = 1
         if self.degree > 0:
@@ -1489,7 +1492,7 @@ class Chebyshev2D(OrthoPolynomialBase):
         """
         Derivative of 1D Chebyshev series.
         """
-        x = np.array(x, dtype=float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=COPY_IF_NEEDED, ndmin=1)
         d = np.empty((deg + 1, len(x)), dtype=x.dtype)
         d[0] = x * 0 + 1
         if deg > 0:
@@ -1643,7 +1646,7 @@ class Legendre2D(OrthoPolynomialBase):
 
     def _legendderiv1d(self, x, deg):
         """Derivative of 1D Legendre polynomial."""
-        x = np.array(x, dtype=float, copy=False, ndmin=1)
+        x = np.array(x, dtype=float, copy=COPY_IF_NEEDED, ndmin=1)
         d = np.empty((deg + 1,) + x.shape, dtype=x.dtype)
         d[0] = x * 0 + 1
         if deg > 0:
@@ -1861,7 +1864,7 @@ class SIP(Model):
     def __str__(self):
         parts = [f"Model: {self.__class__.__name__}"]
         for model in [self.shift_a, self.shift_b, self.sip1d_a, self.sip1d_b]:
-            parts.append(indent(str(model), width=4))
+            parts.append(indent(str(model), 4 * " "))
             parts.append("")
 
         return "\n".join(parts)
@@ -1944,7 +1947,7 @@ class InverseSIP(Model):
     def __str__(self):
         parts = [f"Model: {self.__class__.__name__}"]
         for model in [self.sip1d_ap, self.sip1d_bp]:
-            parts.append(indent(str(model), width=4))
+            parts.append(indent(str(model), 4 * " "))
             parts.append("")
 
         return "\n".join(parts)

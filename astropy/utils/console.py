@@ -8,11 +8,11 @@ import locale
 import math
 import multiprocessing
 import os
-import re
 import struct
 import sys
 import threading
 import time
+from shutil import get_terminal_size
 
 # concurrent.futures imports moved inside functions using them to avoid
 # import failure when running in pyodide/Emscripten
@@ -28,7 +28,7 @@ except ImportError:
 
 from astropy import conf
 
-from .decorators import classproperty
+from .decorators import classproperty, deprecated
 from .misc import isiterable
 
 __all__ = [
@@ -42,8 +42,6 @@ __all__ = [
     "ProgressBarOrSpinner",
     "terminal_size",
 ]
-
-_DEFAULT_ENCODING = "utf-8"
 
 
 class _IPython:
@@ -72,15 +70,7 @@ class _IPython:
                 try:
                     from IPython.zmq.iostream import OutStream
                 except ImportError:
-                    from IPython import version_info
-
-                    if version_info[0] >= 4:
-                        return None
-
-                    try:
-                        from IPython.kernel.zmq.iostream import OutStream
-                    except ImportError:
-                        return None
+                    return None
 
             cls._OutStream = OutStream
 
@@ -96,28 +86,6 @@ class _IPython:
             else:
                 cls._ipyio = io
         return cls._ipyio
-
-    @classmethod
-    def get_stream(cls, stream):
-        return getattr(cls.ipyio, stream)
-
-
-def _get_stdout(stderr=False):
-    """
-    This utility function contains the logic to determine what streams to use
-    by default for standard out/err.
-
-    Typically this will just return `sys.stdout`, but it contains additional
-    logic for use in IPython on Windows to determine the correct stream to use
-    (usually ``IPython.util.io.stdout`` but only if sys.stdout is a TTY).
-    """
-    if stderr:
-        stream = "stderr"
-    else:
-        stream = "stdout"
-
-    sys_stream = getattr(sys, stream)
-    return sys_stream
 
 
 def isatty(file):
@@ -162,6 +130,7 @@ def isatty(file):
     return False
 
 
+@deprecated("6.1", alternative="shutil.get_terminal_size")
 def terminal_size(file=None):
     """
     Returns a tuple (height, width) containing the height and width of
@@ -172,7 +141,7 @@ def terminal_size(file=None):
     configuration.
     """
     if file is None:
-        file = _get_stdout()
+        file = sys.stdout
 
     try:
         s = struct.pack("HHHH", 0, 0, 0, 0)
@@ -249,23 +218,6 @@ def _color_text(text, color):
     return f"\033[{color_code}m{text}\033[0m"
 
 
-def _decode_preferred_encoding(s):
-    """Decode the supplied byte string using the preferred encoding
-    for the locale (`locale.getpreferredencoding`) or, if the default encoding
-    is invalid, fall back first on utf-8, then on latin-1 if the message cannot
-    be decoded with utf-8.
-    """
-    enc = locale.getpreferredencoding()
-    try:
-        try:
-            return s.decode(enc)
-        except LookupError:
-            enc = _DEFAULT_ENCODING
-        return s.decode(enc)
-    except UnicodeDecodeError:
-        return s.decode("latin-1")
-
-
 def _write_with_fallback(s, write, fileobj):
     """Write the supplied string with the given write function like
     ``write(s)``, but use a writer for the locale's preferred encoding in case
@@ -283,7 +235,7 @@ def _write_with_fallback(s, write, fileobj):
     try:
         Writer = codecs.getwriter(enc)
     except LookupError:
-        Writer = codecs.getwriter(_DEFAULT_ENCODING)
+        Writer = codecs.getwriter("utf-8")
 
     f = Writer(fileobj)
     write = f.write
@@ -322,7 +274,7 @@ def color_print(*args, end="\n", **kwargs):
         default, darkgrey, lightred, lightgreen, yellow, lightblue,
         lightmagenta, lightcyan, white, or '' (the empty string).
 
-    file : writable file-like, optional
+    file : :term:`file-like (writeable)`, optional
         Where to write to.  Defaults to `sys.stdout`.  If file is not
         a tty (as determined by calling its `isatty` member, if one
         exists), no coloring will be included.
@@ -331,7 +283,7 @@ def color_print(*args, end="\n", **kwargs):
         The ending of the message.  Defaults to ``\\n``.  The end will
         be printed after resetting any color or font state.
     """
-    file = kwargs.get("file", _get_stdout())
+    file = kwargs.get("file", sys.stdout)
 
     write = file.write
     if isatty(file) and conf.use_color:
@@ -357,13 +309,6 @@ def color_print(*args, end="\n", **kwargs):
             msg = args[i]
             write(msg)
         write(end)
-
-
-def strip_ansi_codes(s):
-    """
-    Remove ANSI color codes from the string.
-    """
-    return re.sub("\033\\[([0-9]+)(;[0-9]+)*m", "", s)
 
 
 def human_time(seconds):
@@ -409,8 +354,8 @@ def human_time(seconds):
         unit1, limit1 = units[i]
         unit2, limit2 = units[i + 1]
         if seconds >= limit1:
-            return "{:2d}{}{:2d}{}".format(
-                seconds // limit1, unit1, (seconds % limit1) // limit2, unit2
+            return (
+                f"{seconds // limit1:2d}{unit1}{(seconds % limit1) // limit2:2d}{unit2}"
             )
     return "  ~inf"
 
@@ -506,7 +451,7 @@ class ProgressBar:
             If `True`, the progress bar will display as an IPython
             notebook widget.
 
-        file : writable file-like, optional
+        file : :term:`file-like (writeable)`, optional
             The file to write the progress bar to.  Defaults to
             `sys.stdout`.  If ``file`` is not a tty (as determined by
             calling its `isatty` member, if any, or special case hacks
@@ -514,7 +459,7 @@ class ProgressBar:
             completely silent.
         """
         if file is None:
-            file = _get_stdout()
+            file = sys.stdout
 
         if not ipython_widget and not isatty(file):
             self.update = self._silent_update
@@ -549,7 +494,7 @@ class ProgressBar:
         self.update(0)
 
     def _handle_resize(self, signum=None, frame=None):
-        terminal_width = terminal_size(self._file)[1]
+        terminal_width = get_terminal_size().columns
         self._bar_length = terminal_width - 37
 
     def __enter__(self):
@@ -643,17 +588,10 @@ class ProgressBar:
         # if none exists.
         if not hasattr(self, "_widget"):
             # Import only if an IPython widget, i.e., widget in iPython NB
-            from IPython import version_info
+            _IPython.get_ipython()
+            from ipywidgets import widgets
 
-            if version_info[0] < 4:
-                from IPython.html import widgets
-
-                self._widget = widgets.FloatProgressWidget()
-            else:
-                _IPython.get_ipython()
-                from ipywidgets import widgets
-
-                self._widget = widgets.FloatProgress()
+            self._widget = widgets.FloatProgress()
             from IPython.display import display
 
             display(self._widget)
@@ -708,7 +646,7 @@ class ProgressBar:
             If `True`, the progress bar will display as an IPython
             notebook widget.
 
-        file : writable file-like, optional
+        file : :term:`file-like (writeable)`, optional
             The file to write the progress bar to.  Defaults to
             `sys.stdout`.  If ``file`` is not a tty (as determined by
             calling its `isatty` member, if any), the scrollbar will
@@ -790,7 +728,7 @@ class ProgressBar:
             If `True`, the progress bar will display as an IPython
             notebook widget.
 
-        file : writable file-like, optional
+        file : :term:`file-like (writeable)`, optional
             The file to write the progress bar to.  Defaults to
             `sys.stdout`.  If ``file`` is not a tty (as determined by
             calling its `isatty` member, if any), the scrollbar will
@@ -817,7 +755,7 @@ class ProgressBar:
         results = []
 
         if file is None:
-            file = _get_stdout()
+            file = sys.stdout
 
         with cls(len(items), ipython_widget=ipython_widget, file=file) as bar:
             if bar._ipython_widget:
@@ -876,7 +814,7 @@ class Spinner:
             darkgrey, lightred, lightgreen, yellow, lightblue,
             lightmagenta, lightcyan, white.
 
-        file : writable file-like, optional
+        file : :term:`file-like (writeable)`, optional
             The file to write the spinner to.  Defaults to
             `sys.stdout`.  If ``file`` is not a tty (as determined by
             calling its `isatty` member, if any, or special case hacks
@@ -890,7 +828,7 @@ class Spinner:
             The character sequence to use for the spinner
         """
         if file is None:
-            file = _get_stdout()
+            file = sys.stdout
 
         self._msg = msg
         self._color = color
@@ -917,10 +855,15 @@ class Spinner:
         write = file.write
         flush = file.flush
         try_fallback = True
+        terminal_width = get_terminal_size().columns
+        if len(self._msg) > terminal_width:
+            message = self._msg[: terminal_width - 8] + " ..."
+        else:
+            message = self._msg
 
         while True:
             write("\r")
-            color_print(self._msg, self._color, file=file, end="")
+            color_print(message, self._color, file=file, end="")
             write(" ")
             try:
                 if try_fallback:
@@ -1022,14 +965,14 @@ class ProgressBarOrSpinner:
             lightred, lightgreen, yellow, lightblue, lightmagenta,
             lightcyan, white.
 
-        file : writable file-like, optional
+        file : :term:`file-like (writeable)`, optional
             The file to write the to.  Defaults to `sys.stdout`.  If
             ``file`` is not a tty (as determined by calling its `isatty`
             member, if any), only ``msg`` will be displayed: the
             `ProgressBar` or `Spinner` will be silent.
         """
         if file is None:
-            file = _get_stdout()
+            file = sys.stdout
 
         if total is None or not isatty(file):
             self._is_spinner = True
@@ -1077,7 +1020,7 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
         The character in the line to highlight.  ``col`` must be less
         than ``len(line)``.
 
-    file : writable file-like, optional
+    file : :term:`file-like (writeable)`, optional
         Where to write to.  Defaults to `sys.stdout`.
 
     tabwidth : int, optional
@@ -1091,7 +1034,7 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
         standard library's `textwrap` module).
     """
     if file is None:
-        file = _get_stdout()
+        file = sys.stdout
 
     if conf.unicode_output:
         ellipsis = "…"
@@ -1130,8 +1073,8 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
         color_print("^", "red", file=file)
 
 
-# The following four Getch* classes implement unbuffered character reading from
-# stdin on Windows, linux, MacOSX.  This is taken directly from ActiveState
+# The following three Getch* classes implement unbuffered character reading from
+# stdin on Windows, and Unix.  This is taken directly from ActiveState
 # Code Recipes:
 # http://code.activestate.com/recipes/134892-getch-like-unbuffered-character-reading-from-stdin/
 #
@@ -1149,10 +1092,7 @@ class Getch:
         try:
             self.impl = _GetchWindows()
         except ImportError:
-            try:
-                self.impl = _GetchMacCarbon()
-            except (ImportError, AttributeError):
-                self.impl = _GetchUnix()
+            self.impl = _GetchUnix()
 
     def __call__(self):
         return self.impl()
@@ -1161,10 +1101,6 @@ class Getch:
 class _GetchUnix:
     def __init__(self):
         import sys  # noqa: F401
-
-        # import termios now or else you'll get the Unix
-        # version on the Mac
-        import termios  # noqa: F401
         import tty  # noqa: F401
 
     def __call__(self):
@@ -1190,35 +1126,3 @@ class _GetchWindows:
         import msvcrt
 
         return msvcrt.getch()
-
-
-class _GetchMacCarbon:
-    """
-    A function which returns the current ASCII key that is down;
-    if no ASCII key is down, the null string is returned.  The
-    page http://www.mactech.com/macintosh-c/chap02-1.html was
-    very helpful in figuring out how to do this.
-    """
-
-    def __init__(self):
-        import Carbon
-
-        Carbon.Evt  # noqa: B018  # see if it has this (in Unix, it doesn't)
-
-    def __call__(self):
-        import Carbon
-
-        if Carbon.Evt.EventAvail(0x0008)[0] == 0:  # 0x0008 is the keyDownMask
-            return ""
-        else:
-            #
-            # The event contains the following info:
-            # (what,msg,when,where,mod)=Carbon.Evt.GetNextEvent(0x0008)[1]
-            #
-            # The message (msg) contains the ASCII char which is
-            # extracted with the 0x000000FF charCodeMask; this
-            # number is converted to an ASCII character with chr() and
-            # returned
-            #
-            (what, msg, when, where, mod) = Carbon.Evt.GetNextEvent(0x0008)[1]
-            return chr(msg & 0x000000FF)

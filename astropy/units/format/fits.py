@@ -4,7 +4,6 @@
 Handles the "FITS" unit format.
 """
 
-
 import copy
 import keyword
 

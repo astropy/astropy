@@ -3,12 +3,12 @@
 This module defines structured units and quantities.
 """
 
-from __future__ import annotations  # For python < 3.10
-
 # Standard library
 import operator
 
 import numpy as np
+
+from astropy.utils.compat.numpycompat import NUMPY_LT_1_24
 
 from .core import UNITY, Unit, UnitBase
 
@@ -239,8 +239,10 @@ class StructuredUnit:
             will return a new `~astropy.units.StructuredUnit` instance.
         """
         applied = tuple(func(part) for part in self.values())
-        # Once not NUMPY_LT_1_23: results = np.void(applied, self._units.dtype).
-        results = np.array(applied, self._units.dtype)[()]
+        if NUMPY_LT_1_24:
+            results = np.array(applied, self._units.dtype)[()]
+        else:
+            results = np.void(applied, self._units.dtype)
         if cls is not None:
             return results.view((cls, results.dtype))
 
@@ -255,7 +257,7 @@ class StructuredUnit:
         This is useful since ``np.array(value)`` would treat tuples as lower
         levels of the array, rather than as elements of a structured array.
         The routine does presume that the type of the first tuple is
-        representative of the rest.  Used in ``_get_converter``.
+        representative of the rest.  Used in ``get_converter``.
 
         For the special value of ``UNITY``, all fields are assumed to be 1.0,
         and hence this will return an all-float dtype.
@@ -356,12 +358,12 @@ class StructuredUnit:
 
         return True
 
-    def _get_converter(self, other, equivalencies=[]):
+    def get_converter(self, other, equivalencies=[]):
         if not isinstance(other, type(self)):
             other = self.__class__(other, names=self)
 
         converters = [
-            self_part._get_converter(other_part, equivalencies=equivalencies)
+            self_part.get_converter(other_part, equivalencies=equivalencies)
             for (self_part, other_part) in zip(self.values(), other.values())
         ]
 
@@ -375,6 +377,8 @@ class StructuredUnit:
             return result if result.shape else result[()]
 
         return converter
+
+    get_converter.__doc__ = UnitBase.get_converter.__doc__
 
     def to(self, other, value=np._NoValue, equivalencies=[]):
         """Return values converted to the specified unit.
@@ -411,7 +415,7 @@ class StructuredUnit:
             # We do not have UNITY as a default, since then the docstring
             # would list 1.0 as default, yet one could not pass that in.
             value = UNITY
-        return self._get_converter(other, equivalencies=equivalencies)(value)
+        return self.get_converter(other, equivalencies=equivalencies)(value)
 
     def to_string(self, format="generic"):
         """Output the unit in the given format as a string.

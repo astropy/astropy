@@ -2,7 +2,6 @@
 
 import gzip
 import io
-import itertools
 import mmap
 import operator
 import os
@@ -238,23 +237,6 @@ def ignore_sigint(func):
     return wrapped
 
 
-if sys.version_info[:2] >= (3, 10):
-    from itertools import pairwise
-else:
-
-    def pairwise(iterable):
-        """Return the items of an iterable paired with its next item.
-
-        Ex: s -> (s0,s1), (s1,s2), (s2,s3), ....
-        """
-        a, b = itertools.tee(iterable)
-        for _ in b:
-            # Just a little trick to advance b without having to catch
-            # StopIter if b happens to be empty
-            break
-        return zip(a, b)
-
-
 def encode_ascii(s):
     if isinstance(s, str):
         return s.encode("ascii")
@@ -355,7 +337,7 @@ def isfile(f):
     Returns True if the given object represents an OS-level file (that is,
     ``isinstance(f, file)``).
 
-    On Python 3 this also returns True if the given object is higher level
+    This also returns True if the given object is higher level
     wrapper on top of a FileIO object, such as a TextIOWrapper.
     """
     if isinstance(f, io.FileIO):
@@ -819,9 +801,8 @@ def _free_space_check(hdulist, dirname=None):
             hdulist_size = sum(hdu.size for hdu in hdulist)
             if free_space < hdulist_size:
                 error_message = (
-                    "Not enough space on disk: requested {}, available {}. ".format(
-                        hdulist_size, free_space
-                    )
+                    f"Not enough space on disk: requested {hdulist_size}, "
+                    f"available {free_space}. "
                 )
 
         for hdu in hdulist:

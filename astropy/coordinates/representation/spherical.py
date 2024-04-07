@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Spherical representations and differentials."""
+
 import operator
 
 import numpy as np
@@ -10,6 +11,7 @@ from astropy.coordinates.angles import Angle, Latitude, Longitude
 from astropy.coordinates.distances import Distance
 from astropy.coordinates.matrix_utilities import is_O3
 from astropy.utils import classproperty
+from astropy.utils.compat import COPY_IF_NEEDED
 
 from .base import BaseDifferential, BaseRepresentation
 from .cartesian import CartesianRepresentation
@@ -82,9 +84,9 @@ class UnitSphericalRepresentation(BaseRepresentation):
         sinlon, coslon = np.sin(self.lon), np.cos(self.lon)
         sinlat, coslat = np.sin(self.lat), np.cos(self.lat)
         return {
-            "lon": CartesianRepresentation(-sinlon, coslon, 0.0, copy=False),
+            "lon": CartesianRepresentation(-sinlon, coslon, 0.0, copy=COPY_IF_NEEDED),
             "lat": CartesianRepresentation(
-                -sinlat * coslon, -sinlat * sinlon, coslat, copy=False
+                -sinlat * coslon, -sinlat * sinlon, coslat, copy=COPY_IF_NEEDED
             ),
         }
 
@@ -122,10 +124,18 @@ class UnitSphericalRepresentation(BaseRepresentation):
         if isinstance(other_class, type) and not differential_class:
             if issubclass(other_class, PhysicsSphericalRepresentation):
                 return other_class(
-                    phi=self.lon, theta=90 * u.deg - self.lat, r=1.0, copy=False
+                    phi=self.lon,
+                    theta=90 * u.deg - self.lat,
+                    r=1.0,
+                    copy=COPY_IF_NEEDED,
                 )
             elif issubclass(other_class, SphericalRepresentation):
-                return other_class(lon=self.lon, lat=self.lat, distance=1.0, copy=False)
+                return other_class(
+                    lon=self.lon,
+                    lat=self.lat,
+                    distance=1.0,
+                    copy=COPY_IF_NEEDED,
+                )
 
         return super().represent_as(other_class, differential_class)
 
@@ -454,8 +464,7 @@ class SphericalRepresentation(BaseRepresentation):
                         " must explicitly pass in a `Distance` object with the "
                         "argument 'allow_negative=True'."
                     ) from e
-                else:
-                    raise
+                raise
 
     @classproperty
     def _compatible_differentials(cls):
@@ -492,12 +501,12 @@ class SphericalRepresentation(BaseRepresentation):
         sinlon, coslon = np.sin(self.lon), np.cos(self.lon)
         sinlat, coslat = np.sin(self.lat), np.cos(self.lat)
         return {
-            "lon": CartesianRepresentation(-sinlon, coslon, 0.0, copy=False),
+            "lon": CartesianRepresentation(-sinlon, coslon, 0.0, copy=COPY_IF_NEEDED),
             "lat": CartesianRepresentation(
-                -sinlat * coslon, -sinlat * sinlon, coslat, copy=False
+                -sinlat * coslon, -sinlat * sinlon, coslat, copy=COPY_IF_NEEDED
             ),
             "distance": CartesianRepresentation(
-                coslat * coslon, coslat * sinlon, sinlat, copy=False
+                coslat * coslon, coslat * sinlon, sinlat, copy=COPY_IF_NEEDED
             ),
         }
 
@@ -608,7 +617,10 @@ class SphericalRepresentation(BaseRepresentation):
         lon_op, lat_op, distance_op = _spherical_op_funcs(op, *args)
 
         result = self.__class__(
-            lon_op(self.lon), lat_op(self.lat), distance_op(self.distance), copy=False
+            lon_op(self.lon),
+            lat_op(self.lat),
+            distance_op(self.distance),
+            copy=COPY_IF_NEEDED,
         )
         for key, differential in self.differentials.items():
             new_comps = (
@@ -699,12 +711,12 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
         sintheta, costheta = np.sin(self.theta), np.cos(self.theta)
         return {
-            "phi": CartesianRepresentation(-sinphi, cosphi, 0.0, copy=False),
+            "phi": CartesianRepresentation(-sinphi, cosphi, 0.0, copy=COPY_IF_NEEDED),
             "theta": CartesianRepresentation(
-                costheta * cosphi, costheta * sinphi, -sintheta, copy=False
+                costheta * cosphi, costheta * sinphi, -sintheta, copy=COPY_IF_NEEDED
             ),
             "r": CartesianRepresentation(
-                sintheta * cosphi, sintheta * sinphi, costheta, copy=False
+                sintheta * cosphi, sintheta * sinphi, costheta, copy=COPY_IF_NEEDED
             ),
         }
 
@@ -736,6 +748,19 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
                 return other_class(
                     lon=self.phi,
                     lat=90 * u.deg - self.theta,
+                    differentials=diffs,
+                    copy=False,
+                )
+            from .cylindrical import CylindricalRepresentation
+
+            if issubclass(other_class, CylindricalRepresentation):
+                diffs = self._re_represent_differentials(
+                    other_class, differential_class
+                )
+                return other_class(
+                    rho=self.r * np.sin(self.theta),
+                    phi=self.phi,
+                    z=self.r * np.cos(self.theta),
                     differentials=diffs,
                     copy=False,
                 )
@@ -827,7 +852,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
             phi_op(self.phi),
             phi_op(adjust_theta_sign(self.theta)),
             r_op(self.r),
-            copy=False,
+            copy=COPY_IF_NEEDED,
         )
         for key, differential in self.differentials.items():
             new_comps = (

@@ -4,9 +4,15 @@ ci:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
       - id: check-added-large-files
+        args: ["--enforce-all", "--maxkb=300"]
+        exclude: "^(\
+            cextern/wcslib/C/flexed/.*|\
+            CHANGES.rst|\
+            astropy/extern/jquery/data/js/jquery.dataTables.js|\
+        )$"
         # Prevent giant files from being committed.
       - id: check-case-conflict
         # Check for files with names that would conflict on a case-insensitive
@@ -38,20 +44,15 @@ repos:
   - repo: https://github.com/pre-commit/pygrep-hooks
     rev: v1.10.0
     hooks:
-      - id: python-check-mock-methods
-        # Prevent common mistakes of assert mck.not_called(), assert
-        # mck.called_once_with(...) and mck.assert_called.
       - id: rst-directive-colons
         # Detect mistake of rst directive not ending with double colon.
       - id: rst-inline-touching-normal
         # Detect mistake of inline code touching normal text in rst.
       - id: text-unicode-replacement-char
         # Forbid files which have a UTF-8 Unicode replacement character.
-      - id: python-check-blanket-noqa
-        # Enforce that all noqa annotations always occur with specific codes.
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.5
+    rev: v2.2.6
     hooks:
       - id: codespell
         args: ["--write-changes"]
@@ -59,10 +60,16 @@ repos:
           - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.0.291"
+    rev: "v0.3.4"
     hooks:
       - id: ruff
-        args: ["--fix"]
+        args: ["--fix", "--show-fixes"]
+      - id: ruff-format
+
+  - repo: https://github.com/scientific-python/cookie
+    rev: 2024.01.24
+    hooks:
+      - id: sp-repo-review
 
   - repo: https://github.com/PyCQA/docformatter
     rev: v1.7.5
@@ -100,20 +107,6 @@ repos:
               docs/ |
               examples/
           )
-
-  - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 23.9.1
-    hooks:
-      - id: black
-
-  - repo: https://github.com/asmeurer/removestar
-    rev: "1.5"
-    hooks:
-      - id: removestar
-        args: ["-iv"]  # in-place changes + verbose output
-        additional_dependencies:
-          - .
-          - sphinx_astropy
 
   - repo: local
     hooks:

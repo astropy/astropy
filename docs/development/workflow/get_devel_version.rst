@@ -236,7 +236,7 @@ version you are using, try the command ``which pip`` on the terminal.
 
 In the directory where your copy of astropy is type::
 
-    pip install -e ".[test]"
+    python -m pip install --editable ".[test]"
 
 This command installs astropy itself, along with a few packages which will be
 useful for testing the changes you will make down the road. Several pages of
@@ -260,7 +260,7 @@ should have ``'dev'`` in the name.
     back to the stable version unless you are developing astropy. If you want
     to develop astropy, there is a better way of separating the development
     version from the version you do science with. That method, using a
-    `virtualenv`_ or a `conda`_ environment, is discussed at :ref:`virtual_envs`.
+    |virtualenv| or a |conda| environment, is discussed at :ref:`virtual_envs`.
 
     For now **remember to change back to your usual version** when you are
     done with this.

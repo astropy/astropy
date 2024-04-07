@@ -5,6 +5,7 @@ import os
 import re
 import warnings
 from copy import deepcopy
+from itertools import pairwise
 
 import numpy as np
 
@@ -265,21 +266,32 @@ def read_table_fits(
         # string, empty strings.
         # Since Multi-element columns with dtypes such as '2f8' have a subdtype,
         # we should look up the type of column on that.
+        # Also propagate TNULL (for ints) or the FITS default null value for
+        # floats and strings to the column's fill_value to ensure round trips
+        # preserve null values.
         masked = mask = False
+        fill_value = None
         coltype = col.dtype.subdtype[0].type if col.dtype.subdtype else col.dtype.type
         if col.null is not None:
             mask = data[col.name] == col.null
             # Return a MaskedColumn even if no elements are masked so
             # we roundtrip better.
             masked = True
+            fill_value = col.null
         elif mask_invalid and issubclass(coltype, np.inexact):
             mask = np.isnan(data[col.name])
+            fill_value = np.nan
         elif mask_invalid and issubclass(coltype, np.character):
             mask = col.array == b""
+            fill_value = b""
 
         if masked or np.any(mask):
             column = MaskedColumn(
-                data=data[col.name], name=col.name, mask=mask, copy=False
+                data=data[col.name],
+                name=col.name,
+                mask=mask,
+                copy=False,
+                fill_value=fill_value,
             )
         else:
             column = Column(data=data[col.name], name=col.name, copy=False)
@@ -405,7 +417,7 @@ def _encode_mixins(tbl):
         else:
             # Split line into 70 character chunks for COMMENT cards
             idxs = list(range(0, len(line) + 70, 70))
-            lines = [line[i0:i1] + "\\" for i0, i1 in zip(idxs[:-1], idxs[1:])]
+            lines = [line[i0:i1] + "\\" for i0, i1 in pairwise(idxs)]
             lines[-1] = lines[-1][:-1]
         encode_tbl.meta["comments"].extend(lines)
 

@@ -5,6 +5,7 @@ FITS files, individual HDUs, FITS headers, or just FITS data.
 
 Used to implement the fitsdiff program.
 """
+
 import fnmatch
 import glob
 import io
@@ -19,12 +20,7 @@ from itertools import islice
 import numpy as np
 
 from astropy import __version__
-from astropy.utils.diff import (
-    diff_values,
-    fixed_width_indent,
-    report_diff_values,
-    where_not_allclose,
-)
+from astropy.utils.diff import diff_values, report_diff_values, where_not_allclose
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 from .card import BLANK_CARD, Card
@@ -186,7 +182,7 @@ class _BaseDiff:
             return fileobj.getvalue()
 
     def _writeln(self, text):
-        self._fileobj.write(fixed_width_indent(text, self._indent) + "\n")
+        self._fileobj.write(textwrap.indent(text, self._indent * "  ") + "\n")
 
     def _diff(self):
         raise NotImplementedError
@@ -1130,9 +1126,8 @@ class ImageDataDiff(_BaseDiff):
         if self.diff_total > self.numdiffs:
             self._writeln(" ...")
         self._writeln(
-            " {} different pixels found ({:.2%} different).".format(
-                self.diff_total, self.diff_ratio
-            )
+            f" {self.diff_total} different pixels found "
+            f"({self.diff_ratio:.2%} different)."
         )
 
 
@@ -1218,9 +1213,8 @@ class RawDataDiff(ImageDataDiff):
 
         self._writeln(" ...")
         self._writeln(
-            " {} different bytes found ({:.2%} different).".format(
-                self.diff_total, self.diff_ratio
-            )
+            f" {self.diff_total} different bytes found "
+            f"({self.diff_ratio:.2%} different)."
         )
 
 
@@ -1548,9 +1542,8 @@ class TableDataDiff(_BaseDiff):
             self._writeln(" ...")
 
         self._writeln(
-            " {} different table data element(s) found ({:.2%} different).".format(
-                self.diff_total, self.diff_ratio
-            )
+            f" {self.diff_total} different table data element(s) found "
+            f"({self.diff_ratio:.2%} different)."
         )
 
 
@@ -1569,9 +1562,8 @@ def report_diff_keyword_attr(fileobj, attr, diffs, keyword, ind=0):
             else:
                 dup = f"[{idx + 1}]"
             fileobj.write(
-                fixed_width_indent(
-                    f" Keyword {keyword:8}{dup} has different {attr}:\n",
-                    ind,
+                textwrap.indent(
+                    f" Keyword {keyword:8}{dup} has different {attr}:\n", ind * "  "
                 )
             )
             report_diff_values(val[0], val[1], fileobj=fileobj, indent_width=ind + 1)

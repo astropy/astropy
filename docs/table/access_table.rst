@@ -40,6 +40,7 @@ to update the original table data or properties. See also the section on
   t['a'][1]    # Row 1 of column 'a'
   t[1]         # Row 1
   t[1]['a']    # Column 'a' of row 1
+  t[1][1:]     # Row 1, columns b and c
   t[2:5]       # Table object with rows 2:5
   t[[1, 3, 4]]  # Table object with rows 1, 3, 4 (copy)
   t[np.array([1, 3, 4])]  # Table object with rows 1, 3, 4 (copy)
@@ -350,12 +351,18 @@ Table Equality
 
 We can check table data equality using two different methods:
 
-- The ``==`` comparison operator. This returns a `True` or `False` for
-  each row if the *entire row* matches. This is the same as the behavior of
-  ``numpy`` structured arrays.
+- The ``==`` comparison operators. In the general case, this returns a 1D array
+  with ``dtype=bool`` mapping each row to ``True`` if and only if the *entire row*
+  matches. For incomparable data (different ``dtype`` or unbroacastable lengths),
+  a boolean ``False`` is returned.
+  This is in contrast to the behavior of ``numpy`` where trying to compare
+  structured arrays might raise exceptions.
 - Table :meth:`~astropy.table.Table.values_equal` to compare table values
   element-wise. This returns a boolean `True` or `False` for each table
   *element*, so you get a `~astropy.table.Table` of values.
+
+.. note:: both methods will report equality *after* broadcasting, which
+  matches ``numpy`` array comparison.
 
 Examples
 ^^^^^^^^
@@ -452,7 +459,6 @@ To print a formatted table::
    240  241  242  243  244  245  246 ...   263   264   265   266   267   268   269
    270  271  272  273  274  275  276 ...   293   294   295   296   297   298   299
    ...  ...  ...  ...  ...  ...  ... ...   ...   ...   ...   ...   ...   ...   ...
-  2670 2671 2672 2673 2674 2675 2676 ...  2693  2694  2695  2696  2697  2698  2699
   2700 2701 2702 2703 2704 2705 2706 ...  2723  2724  2725  2726  2727  2728  2729
   2730 2731 2732 2733 2734 2735 2736 ...  2753  2754  2755  2756  2757  2758  2759
   2760 2761 2762 2763 2764 2765 2766 ...  2783  2784  2785  2786  2787  2788  2789

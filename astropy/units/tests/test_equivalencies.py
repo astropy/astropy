@@ -14,6 +14,16 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.units.equivalencies import Equivalency
 
 
+def test_find_equivalent_units():
+    # Only finds units in the namespace
+    e1 = (u.m**3).find_equivalent_units()
+    assert len(e1) == 1
+    assert e1[0] == u.l
+    # Regression test for gh-16124
+    e2 = (u.m**-3).find_equivalent_units()
+    assert len(e2) == 0
+
+
 def test_dimensionless_angles():
     # test that the angles_dimensionless option allows one to change
     # by any order in radian in the unit (#1161)
@@ -963,7 +973,7 @@ def test_add_equivelencies():
     assert isinstance(e1, Equivalency)
     assert e1.name == ["pixel_scale", "temperature_energy"]
     assert isinstance(e1.kwargs, list)
-    assert e1.kwargs == [{"pixscale": 10 * u.arcsec / u.pix}, dict()]
+    assert e1.kwargs == [{"pixscale": 10 * u.arcsec / u.pix}, {}]
 
     e2 = u.pixel_scale(10 * u.arcsec / u.pixel) + [1, 2, 3]
     assert isinstance(e2, list)

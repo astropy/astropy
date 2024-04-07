@@ -47,10 +47,10 @@ def test_api_lookup():
     )
 
     # Try a non-dev version
-    objurl = misc.find_api_page(misc, "v3.2.1", False, timeout=3)
+    objurl = misc.find_api_page(misc, "stable", False, timeout=3)
     assert (
         objurl
-        == "https://docs.astropy.org/en/v3.2.1/utils/index.html#module-astropy.utils.misc"
+        == "https://docs.astropy.org/en/stable/utils/ref_api.html#module-astropy.utils.misc"
     )
 
 
@@ -165,3 +165,8 @@ def test_dtype_bytes_or_chars():
     assert misc.dtype_bytes_or_chars(np.dtype(np.int32)) == 4
     assert misc.dtype_bytes_or_chars(np.array(b"12345").dtype) == 5
     assert misc.dtype_bytes_or_chars(np.array("12345").dtype) == 5
+
+
+def test_indent_deprecation():
+    with pytest.warns(AstropyDeprecationWarning, match=r"Use textwrap\.indent"):
+        misc.indent("Obsolete since Python 3.3")

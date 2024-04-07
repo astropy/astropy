@@ -35,20 +35,20 @@ permissions:
 jobs:
   tests:
     runs-on: ${{ matrix.os }}
-    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
+    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: Bundling with pyinstaller
             os: ubuntu-latest
-            python: 3.9
+            python: '3.10'
             toxenv: pyinstaller
 
-          - name: Python 3.11 with all optional dependencies and pre-releases
+          - name: Python 3.12 with all optional dependencies and pre-releases
             os: ubuntu-latest
-            python: '3.11'
-            toxenv: py311-test-alldeps-predeps
+            python: '3.12'
+            toxenv: py312-test-alldeps-predeps
             toxargs: -v
             toxposargs: --remote-data=any
 
@@ -59,7 +59,7 @@ jobs:
         fetch-depth: 0
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python }}
 

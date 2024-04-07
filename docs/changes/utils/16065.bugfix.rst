@@ -1,0 +1,2 @@
+Update ``report_diff_values`` so the diff no longer depends on the
+console terminal size.

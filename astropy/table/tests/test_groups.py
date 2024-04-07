@@ -10,7 +10,6 @@ from astropy import units as u
 from astropy.table import Column, NdarrayMixin, QTable, Table, table_helpers, unique
 from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.time import Time
-from astropy.utils.compat import NUMPY_LT_1_22_1
 from astropy.utils.exceptions import AstropyUserWarning
 
 
@@ -583,9 +582,6 @@ def test_column_aggregate(T1):
         assert tga.pformat() == [" c  ", "----", " 0.0", " 6.0", "22.0"]
 
 
-@pytest.mark.skipif(
-    NUMPY_LT_1_22_1, reason="https://github.com/numpy/numpy/issues/20699"
-)
 def test_column_aggregate_f8():
     """https://github.com/astropy/astropy/issues/12706"""
     # Just want to make sure it does not crash again.

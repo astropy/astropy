@@ -14,7 +14,9 @@ from numpy.testing import assert_allclose, assert_array_almost_equal, assert_arr
 from astropy import units as u
 from astropy.units.quantity import _UNIT_NOT_INITIALISED
 from astropy.utils import isiterable, minversion
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.masked import Masked
 
 """ The Quantity class will represent a number + unit + uncertainty """
 
@@ -323,25 +325,29 @@ class TestQuantityCreation:
         assert np.all(q6.to_value(u.cm) == 30.0 * a6)
 
     def test_rshift_warns(self):
-        with pytest.raises(TypeError), pytest.warns(
-            AstropyWarning, match="is not implemented"
-        ) as warning_lines:
+        with (
+            pytest.raises(TypeError),
+            pytest.warns(AstropyWarning, match="is not implemented") as warning_lines,
+        ):
             1 >> u.m
         assert len(warning_lines) == 1
         q = 1.0 * u.km
-        with pytest.raises(TypeError), pytest.warns(
-            AstropyWarning, match="is not implemented"
-        ) as warning_lines:
+        with (
+            pytest.raises(TypeError),
+            pytest.warns(AstropyWarning, match="is not implemented") as warning_lines,
+        ):
             q >> u.m
         assert len(warning_lines) == 1
-        with pytest.raises(TypeError), pytest.warns(
-            AstropyWarning, match="is not implemented"
-        ) as warning_lines:
+        with (
+            pytest.raises(TypeError),
+            pytest.warns(AstropyWarning, match="is not implemented") as warning_lines,
+        ):
             q >>= u.m
         assert len(warning_lines) == 1
-        with pytest.raises(TypeError), pytest.warns(
-            AstropyWarning, match="is not implemented"
-        ) as warning_lines:
+        with (
+            pytest.raises(TypeError),
+            pytest.warns(AstropyWarning, match="is not implemented") as warning_lines,
+        ):
             1.0 >> q
         assert len(warning_lines) == 1
 
@@ -462,6 +468,16 @@ class TestQuantityOperations:
         new_quantity = self.q1**3
         assert_array_almost_equal(new_quantity.value, 1489.355288, decimal=7)
         assert new_quantity.unit == u.Unit("m^3")
+
+    @pytest.mark.parametrize(
+        "exponent_type",
+        [int, float, np.uint64, np.int32, np.float32, u.Quantity, Masked],
+    )
+    def test_quantity_as_power(self, exponent_type):
+        # raise unit to a dimensionless Quantity power
+        # regression test for https://github.com/astropy/astropy/issues/16260
+        q = u.m ** exponent_type(2)
+        assert q == u.m**2
 
     def test_matrix_multiplication(self):
         a = np.eye(3)
@@ -1086,6 +1102,21 @@ class TestQuantityDisplay:
         qinfnan = [np.inf, -np.inf, np.nan] * u.m
         assert qinfnan._repr_latex_() == r"$[\infty,~-\infty,~{\rm NaN}] \; \mathrm{m}$"
 
+    @pytest.mark.parametrize(
+        "q, expected",
+        [
+            pytest.param(10 * u.deg_C, r"$10\mathrm{{}^{\circ}C}$", id="deg_C"),
+            pytest.param(20 * u.deg, r"$20\mathrm{{}^{\circ}}$", id="deg"),
+            pytest.param(30 * u.arcmin, r"$30\mathrm{{}^{\prime}}$", id="arcmin"),
+            pytest.param(40 * u.arcsec, r"$40\mathrm{{}^{\prime\prime}}$", id="arcsec"),
+            pytest.param(50 * u.hourangle, r"$50\mathrm{{}^{h}}$", id="hourangle"),
+        ],
+    )
+    def test_repr_latex_superscript_units(self, q, expected):
+        # see https://github.com/astropy/astropy/issues/14385
+        assert q._repr_latex_() == expected
+        assert q.to_string(format="latex") == expected
+
 
 def test_decompose():
     q1 = 5 * u.N
@@ -1640,8 +1671,8 @@ class QuantityMimic:
         self.value = value
         self.unit = unit
 
-    def __array__(self):
-        return np.array(self.value)
+    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
+        return np.array(self.value, dtype=dtype, copy=copy)
 
 
 class QuantityMimic2(QuantityMimic):

@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Regression tests for the units package."""
+
+import operator
 import pickle
 from fractions import Fraction
 
@@ -33,7 +35,7 @@ def test_initialisation():
     assert u.Unit() == u.dimensionless_unscaled
 
 
-def test_invalid_power():
+def test_raise_to_power():
     x = u.m ** Fraction(1, 3)
     assert isinstance(x.powers[0], Fraction)
 
@@ -44,13 +46,30 @@ def test_invalid_power():
     x = u.m ** (1.0 / 3.0)
     assert isinstance(x.powers[0], Fraction)
 
+    # Test power remains integer if possible
+    x = (u.m**2) ** 0.5
+    assert isinstance(x.powers[0], int)
+
+    x = (u.m**-6) ** (1 / 3)
+    assert isinstance(x.powers[0], int)
+
 
 def test_invalid_compare():
     assert not (u.m == u.s)
 
 
 def test_convert():
-    assert u.h._get_converter(u.s)(1) == 3600
+    assert u.h.get_converter(u.s)(1) == 3600
+
+
+def test_convert_roundtrip():
+    c1 = u.cm.get_converter(u.m)
+    c2 = u.m.get_converter(u.cm)
+    np.isclose(c1(c2(10.0)), c2(c1(10.0)), atol=0, rtol=1e-15)
+
+    c1 = u.arcsec.get_converter(u.pc, u.parallax())
+    c2 = u.pc.get_converter(u.arcsec, u.parallax())
+    np.isclose(c1(c2(10.0)), c2(c1(10.0)), atol=0, rtol=1e-15)
 
 
 def test_convert_fail():
@@ -61,7 +80,7 @@ def test_convert_fail():
 
 
 def test_composite():
-    assert (u.cm / u.s * u.h)._get_converter(u.m)(1) == 36
+    assert (u.cm / u.s * u.h).get_converter(u.m)(1) == 36
     assert u.cm * u.cm == u.cm**2
 
     assert u.cm * u.cm * u.cm == u.cm**3
@@ -177,7 +196,7 @@ def test_unknown_unit3():
     assert unit not in (None, u.m)
 
     with pytest.raises(ValueError):
-        unit._get_converter(unit3)
+        unit.get_converter(unit3)
 
     _ = unit.to_string("latex")
     _ = unit2.to_string("cgs")
@@ -192,6 +211,15 @@ def test_unknown_unit3():
 def test_invalid_scale():
     with pytest.raises(TypeError):
         ["a", "b", "c"] * u.m
+
+
+@pytest.mark.parametrize("op", [operator.truediv, operator.lshift, operator.mul])
+def test_invalid_array_op(op):
+    # see https://github.com/astropy/astropy/issues/12836
+    with pytest.raises(
+        TypeError, match="The value must be a valid Python or Numpy numeric type"
+    ):
+        op(np.array(["cat"]), u.one)
 
 
 def test_cds_power():
@@ -760,10 +788,34 @@ def test_fractional_powers():
     assert isinstance(x.powers[0], Fraction)
     assert x.powers[0] == Fraction(7, 6)
 
-    # Regression test for #9258.
+    # Regression test for #9258 (avoid fractions with crazy denominators).
     x = (u.TeV ** (-2.2)) ** (1 / -2.2)
+    assert isinstance(x.powers[0], int)
+    assert x.powers[0] == 1
+    x = (u.TeV ** (-2.2)) ** (1 / -6.6)
     assert isinstance(x.powers[0], Fraction)
-    assert x.powers[0] == Fraction(1, 1)
+    assert x.powers[0] == Fraction(1, 3)
+
+
+def test_large_fractional_powers():
+    # Ensure we keep fractions if the user passes them in
+    # and the powers are themselves simple fractions.
+    x1 = u.m ** Fraction(10, 11)
+    assert isinstance(x1.powers[0], Fraction)
+    assert x1.powers[0] == Fraction(10, 11)
+    x2 = x1 ** Fraction(10, 11)
+    assert isinstance(x2.powers[0], Fraction)
+    assert x2.powers[0] == Fraction(100, 121)
+    # Check powers that can be represented as simple fractions.
+    x3 = x2**0.5
+    assert isinstance(x3.powers[0], Fraction)
+    assert x3.powers[0] == Fraction(50, 121)
+    x4 = x3 ** (5 / 11)
+    assert isinstance(x4.powers[0], Fraction)
+    assert x4.powers[0] == Fraction(250, 1331)
+    x5 = x4**1.1
+    assert isinstance(x5.powers[0], Fraction)
+    assert x5.powers[0] == Fraction(25, 121)
 
 
 def test_sqrt_mag():
@@ -790,8 +842,8 @@ def test_compare_with_none():
     assert u.m != None
 
 
-def test_validate_power_detect_fraction():
-    frac = utils.validate_power(1.1666666666666665)
+def test_sanitize_power_detect_fraction():
+    frac = utils.sanitize_power(1.1666666666666665)
     assert isinstance(frac, Fraction)
     assert frac.numerator == 7
     assert frac.denominator == 6
@@ -922,3 +974,12 @@ def test_cm_uniqueness():
     # Ensure we have defined cm only once; see gh-15200.
     assert u.si.cm is u.cgs.cm is u.cm
     assert str(u.si.cm / u.cgs.cm) == ""  # was cm / cm
+
+
+@pytest.mark.parametrize("unit, power", [(u.m, 2), (u.m, 3), (u.m / u.s, 9)])
+def test_hash_represents_unit(unit, power):
+    # Regression test for gh-16055
+    tu = (unit**power) ** (1 / power)
+    assert hash(tu) == hash(unit)
+    tu2 = (unit ** (1 / power)) ** power
+    assert hash(tu2) == hash(unit)

@@ -37,7 +37,7 @@ processing, and data analysis.
 
    index_getting_started
    index_user_docs
-   development/index
+   index_dev
    index_project_details
 
 .. grid:: 2
@@ -90,7 +90,7 @@ processing, and data analysis.
 
         +++
 
-        .. button-ref:: development/index
+        .. button-ref:: index_dev
             :expand:
             :color: primary
             :click-parent:
@@ -100,7 +100,7 @@ processing, and data analysis.
     .. grid-item-card::
         :img-top: _static/index-images/api.svg
 
-        Project details
+        Project Details
         ^^^^^^^^^^^^^^^
 
         More details about the project (changelog and what's new pages).

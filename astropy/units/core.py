@@ -4,7 +4,6 @@
 Core units classes and functions.
 """
 
-
 import inspect
 import operator
 import textwrap
@@ -12,6 +11,7 @@ import warnings
 
 import numpy as np
 
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import isiterable
@@ -20,6 +20,7 @@ from . import format as unit_format
 from .utils import (
     is_effectively_unity,
     resolve_fractions,
+    sanitize_power,
     sanitize_scale,
     validate_power,
 )
@@ -612,8 +613,6 @@ class UnitScaleError(UnitsError, ValueError):
     which are not recognized by FITS format.
     """
 
-    pass
-
 
 class UnitConversionError(UnitsError, ValueError):
     """
@@ -863,6 +862,8 @@ class UnitBase:
             else:
                 return Quantity(m, self ** (-1))
         except TypeError:
+            if isinstance(m, np.ndarray):
+                raise
             return NotImplemented
 
     def __mul__(self, m):
@@ -901,14 +902,18 @@ class UnitBase:
             else:
                 return Quantity(m, unit=self)
         except TypeError:
+            if isinstance(m, np.ndarray):
+                raise
             return NotImplemented
 
     def __rlshift__(self, m):
         try:
             from .quantity import Quantity
 
-            return Quantity(m, self, copy=False, subok=True)
+            return Quantity(m, self, copy=COPY_IF_NEEDED, subok=True)
         except Exception:
+            if isinstance(m, np.ndarray):
+                raise
             return NotImplemented
 
     def __rrshift__(self, m):
@@ -1038,7 +1043,7 @@ class UnitBase:
 
     def _apply_equivalencies(self, unit, other, equivalencies):
         """
-        Internal function (used from `_get_converter`) to apply
+        Internal function (used from `get_converter`) to apply
         equivalence pairs.
         """
 
@@ -1084,12 +1089,37 @@ class UnitBase:
 
         raise UnitConversionError(f"{unit_str} and {other_str} are not convertible")
 
-    def _get_converter(self, other, equivalencies=[]):
-        """Get a converter for values in ``self`` to ``other``.
+    def get_converter(self, other, equivalencies=[]):
+        """
+        Create a function that converts values from this unit to another.
 
-        If no conversion is necessary, returns ``unit_scale_converter``
-        (which is used as a check in quantity helpers).
+        Parameters
+        ----------
+        other : unit-like
+            The unit to convert to.
+        equivalencies : list of tuple
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`astropy:unit_equivalencies`.
+            This list is in addition to possible global defaults set by, e.g.,
+            `set_enabled_equivalencies`.
+            Use `None` to turn off all equivalencies.
 
+        Returns
+        -------
+        func : callable
+            A callable that takes an array-like argument and returns
+            it converted from units of self to units of other.
+
+        Raises
+        ------
+        UnitsError
+            If the units cannot be converted to each other.
+
+        Notes
+        -----
+        This method is used internally in `Quantity` to convert to
+        different units. Note that the function returned takes
+        and returns values, not quantities.
         """
         # First see if it is just a scaling.
         try:
@@ -1098,6 +1128,8 @@ class UnitBase:
             pass
         else:
             if scale == 1.0:
+                # If no conversion is necessary, returns ``unit_scale_converter``
+                # (which is used as a check in quantity helpers).
                 return unit_scale_converter
             else:
                 return lambda val: scale * _condition_arg(val)
@@ -1115,7 +1147,7 @@ class UnitBase:
                 for funit, tunit, a, b in other.equivalencies:
                     if other is funit:
                         try:
-                            converter = self._get_converter(tunit, equivalencies)
+                            converter = self.get_converter(tunit, equivalencies)
                         except Exception:
                             pass
                         else:
@@ -1192,7 +1224,7 @@ class UnitBase:
         if other is self and value is UNITY:
             return UNITY
         else:
-            return self._get_converter(Unit(other), equivalencies)(value)
+            return self.get_converter(Unit(other), equivalencies)(value)
 
     def in_units(self, other, value=1.0, equivalencies=[]):
         """
@@ -1712,7 +1744,9 @@ class UnitBase:
             max_depth=1,
             include_prefix_units=include_prefix_units,
         )
-        results = {x.bases[0] for x in results if len(x.bases) == 1}
+        results = {
+            x.bases[0] for x in results if len(x.bases) == 1 and x.powers[0] == 1
+        }
         return self.EquivalentUnitsList(results)
 
     def is_unity(self):
@@ -2010,7 +2044,7 @@ class UnrecognizedUnit(IrreducibleUnit):
         self._normalize_equivalencies(equivalencies)
         return self == other
 
-    def _get_converter(self, other, equivalencies=None):
+    def get_converter(self, other, equivalencies=None):
         self._normalize_equivalencies(equivalencies)
         raise ValueError(
             f"The unit {self.name!r} is unrecognized.  It can not be converted "
@@ -2336,7 +2370,8 @@ class CompositeUnit(UnitBase):
                 scale *= unit.scale**power
                 self._bases = unit.bases
                 self._powers = [
-                    operator.mul(*resolve_fractions(p, power)) for p in unit.powers
+                    sanitize_power(operator.mul(*resolve_fractions(p, power)))
+                    for p in unit.powers
                 ]
 
             self._scale = sanitize_scale(scale)
@@ -2416,7 +2451,7 @@ class CompositeUnit(UnitBase):
         new_parts.sort(key=lambda x: (-x[1], getattr(x[0], "name", "")))
 
         self._bases = [x[0] for x in new_parts]
-        self._powers = [x[1] for x in new_parts]
+        self._powers = [sanitize_power(x[1]) for x in new_parts]
         self._scale = sanitize_scale(scale)
 
     def __copy__(self):

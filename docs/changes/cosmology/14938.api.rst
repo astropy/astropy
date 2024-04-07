@@ -1,1 +1,0 @@
-Added registration label ``ascii.latex`` to Cosmology IO.

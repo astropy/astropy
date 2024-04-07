@@ -125,6 +125,8 @@ class TickLabels(Text):
         Figure out which parts of labels can be dropped to avoid repetition.
         """
         self.sort()
+        skippable_chars = "0123456789."
+        skippable_chars += "\N{MINUS SIGN}" if rcParams["axes.unicode_minus"] else "-"
         for axis in self.world:
             t1 = self.text[axis][0]
             for i in range(1, len(self.world[axis])):
@@ -140,7 +142,7 @@ class TickLabels(Text):
                 for j in range(len(t1) - 1):
                     if t1[j] != t2[j]:
                         break
-                    if t1[j] not in "-0123456789.":
+                    if t1[j] not in skippable_chars:
                         start = j + 1
                 t1 = self.text[axis][i]
                 if start != 0:

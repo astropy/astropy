@@ -1,0 +1,2 @@
+Avoid ``WinError 1455`` in opening some large files with memory
+mapping on windows.

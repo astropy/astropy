@@ -3,7 +3,6 @@
 Utility functions and classes.
 """
 
-
 import inspect
 import queue
 import traceback
@@ -23,9 +22,10 @@ def internet_on():
     else:
         try:
             urlopen("http://google.com", timeout=1.0)
-            return True
         except Exception:
             return False
+        else:
+            return True
 
 
 __all__ = ["SAMPMsgReplierWrapper"]

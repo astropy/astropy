@@ -751,9 +751,8 @@ class Header:
             actual_block_size = _block_size(sep)
             if padding and len(blocks) % actual_block_size != 0:
                 raise OSError(
-                    "Header size ({}) is not a multiple of block size ({}).".format(
-                        len(blocks) - actual_block_size + BLOCK_SIZE, BLOCK_SIZE
-                    )
+                    f"Header size ({len(blocks) - actual_block_size + BLOCK_SIZE}) "
+                    f"is not a multiple of block size ({BLOCK_SIZE})."
                 )
 
             fileobj.flush()

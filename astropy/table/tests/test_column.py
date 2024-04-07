@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import copy
 import operator
 import warnings
 
@@ -10,6 +11,7 @@ from numpy.testing import assert_array_equal
 from astropy import table, time
 from astropy import units as u
 from astropy.tests.helper import assert_follows_unicode_guidelines
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 
 
@@ -96,7 +98,7 @@ class TestColumn:
 
         np_data = np.array(d)
         assert np.all(np_data == d)
-        np_data = np.array(d, copy=False)
+        np_data = np.asarray(d)
         assert np.all(np_data == d)
         np_data = np.array(d, dtype="i4")
         assert np.all(np_data == d)
@@ -154,6 +156,19 @@ class TestColumn:
         c = Column(data=np.array([1, 2, 3]) * u.m, unit=u.cm)
         assert np.all(c.data == np.array([100, 200, 300]))
         assert np.all(c.unit == u.cm)
+
+    def test_quantity_with_info_init(self, Column):
+        q = np.arange(3.0) * u.m
+        q.info.name = "q"
+        q.info.description = "an example"
+        q.info.meta = {"parrot": "dead"}
+        q.info.format = "3.1f"
+        c = Column(q)
+        assert c.name == "q"
+        assert c.description == "an example"
+        assert c.meta == q.info.meta
+        assert c.meta is not q.info.meta
+        assert c.pformat() == " q \n---\n0.0\n1.0\n2.0".splitlines()
 
     def test_quantity_comparison(self, Column):
         # regression test for gh-6532
@@ -369,7 +384,14 @@ class TestColumn:
             c.insert(0, "string")
 
         c = Column(["a", "b"])
-        with pytest.raises(TypeError, match="string operation on non-string array"):
+        with pytest.raises(
+            TypeError,
+            match=(
+                "string operation on non-string array"
+                if NUMPY_LT_2_0
+                else "ufunc 'str_len' did not contain a loop"
+            ),
+        ):
             c.insert(0, 1)
 
     def test_insert_multidim(self, Column):
@@ -441,6 +463,24 @@ class TestColumn:
 
         with pytest.raises(AttributeError):
             t["a"].mask = [True, False]
+
+
+@pytest.mark.parametrize(
+    "data",
+    [np.array([object()]), [object()]],
+)
+def test_deepcopy_object_column(data):
+    # see https://github.com/astropy/astropy/issues/13435
+    c1 = table.Column(data, meta={"test": object()})
+    c2 = copy.deepcopy(c1)
+    assert c2 is not c1
+    assert c2[0] is not c1[0]
+    assert c2.meta["test"] is not c1.meta["test"]
+
+    c3 = table.Column(c1, copy=True)
+    assert c3 is not c1
+    assert c3[0] is c1[0]
+    assert c3.meta["test"] is not c1.meta["test"]
 
 
 class TestAttrEqual:
@@ -961,9 +1001,7 @@ def test_unicode_sandwich_set(Column):
     c[0] = b"aa"
     assert np.all(c == ["aa", "def"])
 
-    c[
-        0
-    ] = uba  # a-umlaut is a 2-byte character in utf-8, test fails with ascii encoding
+    c[0] = uba  # ä is a 2-byte character in utf-8, test fails with ascii encoding
     assert np.all(c == [uba, "def"])
     assert c.pformat() == ["None", "----", "  " + uba, " def"]
 
@@ -1100,3 +1138,10 @@ def test_searchsorted(Column, dtype):
         assert np.all(res == exp)
         res = np.searchsorted(c, v, side="right")
         assert np.all(res == exp)
+
+
+def test_masked_unit_conversion():
+    # regression test for gh-9521
+    c = table.MaskedColumn([3.5, 2.4, 1.7], name="test", unit=u.km)
+    c.convert_unit_to(u.m)
+    assert c.unit == (c * 2.0).unit

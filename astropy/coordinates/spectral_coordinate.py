@@ -13,6 +13,7 @@ from astropy.coordinates import (
 )
 from astropy.coordinates.baseframe import BaseCoordinateFrame, frame_transform_graph
 from astropy.coordinates.spectral_quantity import SpectralQuantity
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ["SpectralCoord"]
@@ -149,7 +150,7 @@ class SpectralCoord(SpectralQuantity):
               in those cases. It is possible that there will be API changes in
               future versions of Astropy based on user feedback. If you have
               specific ideas for how it might be improved, please  let us know
-              on the `astropy-dev mailing list`_ or at
+              on the |astropy-dev mailing list| or at
               http://feedback.astropy.org.
 
     Parameters
@@ -359,8 +360,7 @@ class SpectralCoord(SpectralQuantity):
                 raise ValueError(
                     "Cannot specify value as a Quantity and also specify unit"
                 )
-            else:
-                value, unit = value.value, value.unit
+            value, unit = value.value, value.unit
 
         value = value if value is not None else self.value
         unit = unit or self.unit
@@ -393,7 +393,7 @@ class SpectralCoord(SpectralQuantity):
                 redshift=redshift,
                 doppler_convention=doppler_convention,
                 doppler_rest=doppler_rest,
-                copy=False,
+                copy=COPY_IF_NEEDED,
             )
 
     @property

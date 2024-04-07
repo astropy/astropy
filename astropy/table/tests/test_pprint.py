@@ -2,6 +2,7 @@
 
 
 from io import StringIO
+from shutil import get_terminal_size
 
 import numpy as np
 import pytest
@@ -11,7 +12,6 @@ from astropy import units as u
 from astropy.io import ascii
 from astropy.table import QTable, Table
 from astropy.table.table_helpers import simple_table
-from astropy.utils import console
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float64).reshape(100, 20)
 SMALL_ARR = np.arange(18, dtype=np.int64).reshape(6, 3)
@@ -162,7 +162,7 @@ class TestPprint:
         self._setup(table_type)
         arr = np.arange(4000, dtype=np.float64).reshape(100, 40)
         lines = table_type(arr).pformat()
-        nlines, width = console.terminal_size()
+        width, nlines = get_terminal_size()
         assert len(lines) == nlines
         for line in lines[:-1]:  # skip last "Length = .. rows" line
             assert width - 10 < len(line) <= width
@@ -306,14 +306,13 @@ class TestPprint:
         # +3 accounts for the three header lines in this  table
         assert len(lines) == BIG_WIDE_ARR.shape[0] + 3
 
-    @pytest.fixture
     def test_pprint_all(self, table_type, capsys):
         """Test that all rows are printed by default"""
         self._setup(table_type)
         self.tb.pprint_all()
         (out, err) = capsys.readouterr()
         # +3 accounts for the three header lines in this  table
-        assert len(out) == BIG_WIDE_ARR.shape[0] + 3
+        assert len(out.splitlines()) == BIG_WIDE_ARR.shape[0] + 3
 
 
 @pytest.mark.usefixtures("table_type")
@@ -1013,11 +1012,9 @@ class TestColumnsShowHide:
             out = t.pformat_all()
         assert out == exp
 
-        # Mixture (not common in practice but possible). Note, the trailing
-        # backslash instead of parens is needed for Python < 3.9. See:
-        # https://bugs.python.org/issue12782.
-        with t.pprint_include_names.set(["b", "c", "d"]), t.pprint_exclude_names.set(
-            ["c"]
+        with (
+            t.pprint_include_names.set(["b", "c", "d"]),
+            t.pprint_exclude_names.set(["c"]),
         ):
             out = t.pformat_all()
         assert out == exp

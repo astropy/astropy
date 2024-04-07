@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """Tests for polynomial models."""
+
 # pylint: disable=invalid-name
 import os
 import unittest.mock as mk

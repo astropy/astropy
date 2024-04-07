@@ -4,6 +4,7 @@
 This module tests some of the methods related to the ``ECSV``
 reader/writer.
 """
+
 import copy
 import os
 import sys
@@ -154,6 +155,15 @@ def test_write_read_roundtrip():
             for name in t.colnames:
                 assert t[name].attrs_equal(t2[name])
                 assert np.all(t[name] == t2[name])
+
+
+def test_write_read_roundtrip_empty_table(tmp_path):
+    # see https://github.com/astropy/astropy/issues/13191
+    sfile = tmp_path / "x.ecsv"
+    Table().write(sfile)
+    t = Table.read(sfile)
+    assert len(t) == 0
+    assert len(t.colnames) == 0
 
 
 def test_bad_delimiter():

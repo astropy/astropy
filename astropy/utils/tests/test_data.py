@@ -29,6 +29,7 @@ import astropy.utils.data
 from astropy import units as _u  # u is taken
 from astropy.config import paths
 from astropy.tests.helper import CI, IS_CRON, PYTEST_LT_8_0
+from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA
 from astropy.utils.data import (
     CacheDamaged,
     CacheMissingWarning,
@@ -64,9 +65,6 @@ TESTURL = "http://www.astropy.org"
 TESTURL2 = "http://www.astropy.org/about.html"
 TESTURL_SSL = "https://www.astropy.org"
 TESTLOCAL = get_pkg_data_filename(os.path.join("data", "local.dat"))
-
-# NOTE: Python can be built without bz2 or lzma.
-from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA
 
 # For when we need "some" test URLs
 FEW = 5
@@ -363,7 +361,7 @@ def test_download_with_sources_and_bogus_original(
         )
     else:
         rs = [
-            download_file(u, cache=True, sources=sources.get(u, None))
+            download_file(u, cache=True, sources=sources.get(u))
             for (u, c, c_bad) in urls
         ]
     assert len(rs) == len(urls)
@@ -1100,10 +1098,14 @@ def test_data_noastropy_fallback(monkeypatch):
     assert os.path.isfile(fnout)
 
     # clearing the cache should be a no-up that doesn't affect fnout
-    with pytest.warns(
-        CacheMissingWarning, match=r".*Not clearing data cache - cache inaccessible.*"
-    ):
+    with pytest.warns(CacheMissingWarning) as record:
         clear_download_cache(TESTURL)
+    assert len(record) == 2
+    assert (
+        record[0].message.args[0]
+        == "Remote data cache could not be accessed due to OSError"
+    )
+    assert "Not clearing data cache - cache inaccessible" in record[1].message.args[0]
     assert os.path.isfile(fnout)
 
     # now remove it so tests don't clutter up the temp dir this should get
@@ -1144,12 +1146,11 @@ def test_read_unicode(filename):
     contents = get_pkg_data_contents(os.path.join("data", filename), encoding="binary")
     assert isinstance(contents, bytes)
     x = contents.splitlines()[1]
-    # fmt: off
-    assert x == (
+    expected = (
         b"\xff\xd7\x94\xd7\x90\xd7\xa1\xd7\x98\xd7\xa8\xd7\x95\xd7\xa0\xd7\x95"
         b"\xd7\x9e\xd7\x99 \xd7\xa4\xd7\x99\xd7\x99\xd7\xaa\xd7\x95\xd7\x9f"[1:]
     )
-    # fmt: on
+    assert x == expected
 
 
 def test_compressed_stream():
@@ -1769,7 +1770,7 @@ def test_can_make_directories_readonly(tmp_path):
             )
         elif platform.system() == "Windows":
             pytest.skip(
-                "It seems we can't make a driectory un-writable under Windows "
+                "It seems we can't make a directory un-writable under Windows "
                 "with chmod, in spite of the documentation."
             )
         else:

@@ -12,7 +12,6 @@ References
 .. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
 """
 
-
 import abc
 from itertools import chain, product
 
@@ -79,9 +78,7 @@ __all__ = [
     "projcodes",
 ]
 
-__all__ += list(  # noqa: PLE0605
-    map("_".join, product(["Pix2Sky", "Sky2Pix"], chain(*_PROJ_NAME_CODE)))
-)
+__all__ += list(map("_".join, product(["Pix2Sky", "Sky2Pix"], chain(*_PROJ_NAME_CODE))))
 
 
 class _ParameterDS(Parameter):

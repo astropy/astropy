@@ -230,7 +230,7 @@ def converters_and_unit(function, method, *args):
                     # Changing the unit does not work for, e.g., array-shaped
                     # power, but this is OK if we're (scaled) dimensionless.
                     try:
-                        converters[0] = units[0]._get_converter(dimensionless_unscaled)
+                        converters[0] = units[0].get_converter(dimensionless_unscaled)
                     except UnitConversionError:
                         raise exc
                     else:

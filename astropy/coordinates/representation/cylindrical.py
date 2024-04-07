@@ -7,10 +7,11 @@ import numpy as np
 
 import astropy.units as u
 from astropy.coordinates.angles import Angle
+from astropy.utils.compat import COPY_IF_NEEDED
 
 from .base import BaseDifferential, BaseRepresentation
 from .cartesian import CartesianRepresentation
-from .spherical import _spherical_op_funcs
+from .spherical import PhysicsSphericalRepresentation, _spherical_op_funcs
 
 
 class CylindricalRepresentation(BaseRepresentation):
@@ -78,9 +79,9 @@ class CylindricalRepresentation(BaseRepresentation):
         sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
         l = np.broadcast_to(1.0, self.shape)
         return {
-            "rho": CartesianRepresentation(cosphi, sinphi, 0, copy=False),
-            "phi": CartesianRepresentation(-sinphi, cosphi, 0, copy=False),
-            "z": CartesianRepresentation(0, 0, l, unit=u.one, copy=False),
+            "rho": CartesianRepresentation(cosphi, sinphi, 0, copy=COPY_IF_NEEDED),
+            "phi": CartesianRepresentation(-sinphi, cosphi, 0, copy=COPY_IF_NEEDED),
+            "z": CartesianRepresentation(0, 0, l, unit=u.one, copy=COPY_IF_NEEDED),
         }
 
     def scale_factors(self):
@@ -122,7 +123,7 @@ class CylindricalRepresentation(BaseRepresentation):
         z_op = lambda x: op(x, *args)
 
         result = self.__class__(
-            rho_op(self.rho), phi_op(self.phi), z_op(self.z), copy=False
+            rho_op(self.rho), phi_op(self.phi), z_op(self.z), copy=COPY_IF_NEEDED
         )
         for key, differential in self.differentials.items():
             new_comps = (
@@ -133,6 +134,22 @@ class CylindricalRepresentation(BaseRepresentation):
             )
             result.differentials[key] = differential.__class__(*new_comps, copy=False)
         return result
+
+    def represent_as(self, other_class, differential_class=None):
+        if isinstance(other_class, type):
+            if issubclass(other_class, PhysicsSphericalRepresentation):
+                diffs = self._re_represent_differentials(
+                    other_class, differential_class
+                )
+                r = np.hypot(self.rho, self.z)
+                return other_class(
+                    r=r,
+                    theta=np.arccos(self.z / r),
+                    phi=self.phi,
+                    differentials=diffs,
+                )
+
+        return super().represent_as(other_class, differential_class)
 
 
 class CylindricalDifferential(BaseDifferential):
@@ -153,7 +170,7 @@ class CylindricalDifferential(BaseDifferential):
 
     base_representation = CylindricalRepresentation
 
-    def __init__(self, d_rho, d_phi=None, d_z=None, copy=False):
+    def __init__(self, d_rho, d_phi=None, d_z=None, copy=True):
         super().__init__(d_rho, d_phi, d_z, copy=copy)
         if not self._d_rho.unit.is_equivalent(self._d_z.unit):
             raise u.UnitsError("d_rho and d_z should have equivalent units.")

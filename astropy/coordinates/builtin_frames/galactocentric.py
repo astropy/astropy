@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import annotations
+
 import copy
 from collections.abc import MappingView
 from types import MappingProxyType
@@ -150,7 +152,7 @@ class galactocentric_frame_defaults(ScienceState):
     _latest_value = "v4.0"
     _value = None
     _references = None
-    _state = dict()  # all other data
+    _state = {}  # all other data
 
     # Note: _StateProxy() produces read-only view of enclosed mapping.
     _registry = {
@@ -228,7 +230,7 @@ class galactocentric_frame_defaults(ScienceState):
         return cls._references
 
     @classmethod
-    def get_from_registry(cls, name: str):
+    def get_from_registry(cls, name: str) -> dict[str, dict]:
         """
         Return Galactocentric solar parameters and metadata given string names
         for the parameter sets. This method ensures the returned state is a
@@ -282,11 +284,11 @@ class galactocentric_frame_defaults(ScienceState):
 
         elif isinstance(value, Galactocentric):
             # turn the frame instance into a dict of frame attributes
-            parameters = dict()
+            parameters = {}
             for k in value.frame_attributes:
                 parameters[k] = getattr(value, k)
             cls._references = value.frame_attribute_references.copy()
-            cls._state = dict(parameters=parameters, references=cls._references)
+            cls._state = {"parameters": parameters, "references": cls._references}
 
         else:
             raise ValueError(
@@ -297,7 +299,9 @@ class galactocentric_frame_defaults(ScienceState):
         return parameters
 
     @classmethod
-    def register(cls, name: str, parameters: dict, references=None, **meta: dict):
+    def register(
+        cls, name: str, parameters: dict, references=None, **meta: dict
+    ) -> None:
         """Register a set of parameters.
 
         Parameters
@@ -321,7 +325,7 @@ class galactocentric_frame_defaults(ScienceState):
 
         references = references or {}  # None -> {}
 
-        state = dict(parameters=parameters, references=references)
+        state = {"parameters": parameters, "references": references}
         state.update(meta)  # meta never has keys "parameters" or "references"
 
         cls._registry[name] = state
@@ -460,13 +464,24 @@ class Galactocentric(BaseCoordinateFrame):
     default_differential = r.CartesianDifferential
 
     # frame attributes
-    galcen_coord = CoordinateAttribute(frame=ICRS)
-    galcen_distance = QuantityAttribute(unit=u.kpc)
+    galcen_coord = CoordinateAttribute(
+        frame=ICRS, doc="The coordinates of the Galactic center"
+    )
+    galcen_distance = QuantityAttribute(
+        unit=u.kpc, doc="The distance from the Sun to the Galactic center"
+    )
 
-    galcen_v_sun = DifferentialAttribute(allowed_classes=[r.CartesianDifferential])
+    galcen_v_sun = DifferentialAttribute(
+        allowed_classes=[r.CartesianDifferential],
+        doc="The velocity of the Sun in the Galactocentric frame",
+    )
 
-    z_sun = QuantityAttribute(unit=u.pc)
-    roll = QuantityAttribute(unit=u.deg)
+    z_sun = QuantityAttribute(
+        unit=u.pc, doc="The distance from the Sun to the Galactic midplane"
+    )
+    roll = QuantityAttribute(
+        unit=u.deg, doc="The rotation angle relative to the orientation for Galactic"
+    )
 
     def __init__(self, *args, **kwargs):
         # Set default frame attribute values based on the ScienceState instance

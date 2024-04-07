@@ -8,7 +8,6 @@ ui.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-
 import collections
 import contextlib
 import copy
@@ -209,9 +208,8 @@ def _get_format_class(format, reader_writer_cls, label):
             reader_writer_cls = core.FORMAT_CLASSES[format]
         else:
             raise ValueError(
-                "ASCII format {!r} not in allowed list {}".format(
-                    format, sorted(core.FORMAT_CLASSES)
-                )
+                f"ASCII format {format!r} not in allowed list "
+                f"{sorted(core.FORMAT_CLASSES)}"
             )
     return reader_writer_cls
 
@@ -777,7 +775,6 @@ def _read_in_chunks(table, **kwargs):
     fast_reader = kwargs["fast_reader"]
     chunk_size = fast_reader.pop("chunk_size")
     chunk_generator = fast_reader.pop("chunk_generator", False)
-    fast_reader["parallel"] = False  # No parallel with chunks
 
     tbl_chunks = _read_in_chunks_generator(table, chunk_size, **kwargs)
     if chunk_generator:
@@ -1017,8 +1014,10 @@ def write(
 
     if diff_format_with_names:
         warnings.warn(
-            "The key(s) {} specified in the formats argument do not match a column"
-            " name.".format(diff_format_with_names),
+            (
+                f"The key(s) {diff_format_with_names} specified in the formats "
+                "argument do not match a column name."
+            ),
             AstropyWarning,
         )
 

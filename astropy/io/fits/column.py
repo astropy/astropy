@@ -10,15 +10,17 @@ import weakref
 from collections import OrderedDict
 from contextlib import suppress
 from functools import reduce
+from itertools import pairwise
+from textwrap import indent
 
 import numpy as np
 from numpy import char as chararray
 
-from astropy.utils import indent, isiterable, lazyproperty
+from astropy.utils import isiterable, lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .card import CARD_LENGTH, Card
-from .util import NotifierMixin, _convert_array, _is_int, cmp, encode_ascii, pairwise
+from .util import NotifierMixin, _convert_array, _is_int, cmp, encode_ascii
 from .verify import VerifyError, VerifyWarning
 
 __all__ = ["Column", "ColDefs", "Delayed"]
@@ -95,16 +97,16 @@ ASCII_DEFAULT_WIDTHS = {
 # TDISPn for both ASCII and Binary tables
 TDISP_RE_DICT = {}
 TDISP_RE_DICT["F"] = re.compile(
-    r"(?:(?P<formatc>[F])(?:(?P<width>[0-9]+)\.{1}(?P<precision>[0-9])+)+)|"
+    r"(?:(?P<formatc>[F])(?:(?P<width>[0-9]+)\.{1}(?P<precision>[0-9]+))+)|"
 )
 TDISP_RE_DICT["A"] = TDISP_RE_DICT["L"] = re.compile(
     r"(?:(?P<formatc>[AL])(?P<width>[0-9]+)+)|"
 )
-TDISP_RE_DICT["I"] = TDISP_RE_DICT["B"] = TDISP_RE_DICT["O"] = TDISP_RE_DICT[
-    "Z"
-] = re.compile(
-    r"(?:(?P<formatc>[IBOZ])(?:(?P<width>[0-9]+)"
-    r"(?:\.{0,1}(?P<precision>[0-9]+))?))|"
+TDISP_RE_DICT["I"] = TDISP_RE_DICT["B"] = TDISP_RE_DICT["O"] = TDISP_RE_DICT["Z"] = (
+    re.compile(
+        r"(?:(?P<formatc>[IBOZ])(?:(?P<width>[0-9]+)"
+        r"(?:\.{0,1}(?P<precision>[0-9]+))?))|"
+    )
 )
 TDISP_RE_DICT["E"] = TDISP_RE_DICT["G"] = TDISP_RE_DICT["D"] = re.compile(
     r"(?:(?P<formatc>[EGD])(?:(?P<width>[0-9]+)\."
@@ -112,7 +114,7 @@ TDISP_RE_DICT["E"] = TDISP_RE_DICT["G"] = TDISP_RE_DICT["D"] = re.compile(
     r"(?:E{0,1}(?P<exponential>[0-9]+)?)|"
 )
 TDISP_RE_DICT["EN"] = TDISP_RE_DICT["ES"] = re.compile(
-    r"(?:(?P<formatc>E[NS])(?:(?P<width>[0-9]+)\.{1}(?P<precision>[0-9])+)+)"
+    r"(?:(?P<formatc>E[NS])(?:(?P<width>[0-9]+)\.{1}(?P<precision>[0-9]+))+)"
 )
 
 # mapping from TDISP format to python format
@@ -668,7 +670,7 @@ class Column(NotifierMixin):
             msg = ["The following keyword arguments to Column were invalid:"]
 
             for val in invalid_kwargs.values():
-                msg.append(indent(val[1]))
+                msg.append(indent(val[1], 4 * " "))
 
             raise VerifyError("\n".join(msg))
 
@@ -1090,9 +1092,9 @@ class Column(NotifierMixin):
                     # is in the range allowed by the column's format
                     msg = (
                         "Column null option (TNULLn) is invalid for binary "
-                        "table columns of type {!r} (got {!r}).  The invalid "
-                        "value will be ignored for the purpose of formatting "
-                        "the data in this column.".format(format, null)
+                        f"table columns of type {format!r} (got {null!r}).  "
+                        "The invalid value will be ignored for the purpose of "
+                        "formatting the data in this column."
                     )
 
             if msg is None:
@@ -1201,12 +1203,10 @@ class Column(NotifierMixin):
                     msg = None
                 elif reduce(operator.mul, dims_tuple) > format.repeat:
                     msg = (
-                        "The repeat count of the column format {!r} for column {!r} "
-                        "is fewer than the number of elements per the TDIM "
-                        "argument {!r}.  The invalid TDIMn value will be ignored "
-                        "for the purpose of formatting this column.".format(
-                            name, format, dim
-                        )
+                        f"The repeat count of the column format {name!r} for column "
+                        f"{format!r} is fewer than the number of elements per the TDIM "
+                        f"argument {dim!r}.  The invalid TDIMn value will be ignored "
+                        "for the purpose of formatting this column."
                     )
 
             if msg is None:
@@ -1219,8 +1219,8 @@ class Column(NotifierMixin):
             if not isinstance(coord_type, str):
                 msg = (
                     "Coordinate/axis type option (TCTYPn) must be a string "
-                    "(got {!r}). The invalid keyword will be ignored for the "
-                    "purpose of formatting this column.".format(coord_type)
+                    f"(got {coord_type!r}). The invalid keyword will be ignored "
+                    "for the purpose of formatting this column."
                 )
             elif len(coord_type) > 8:
                 msg = (
@@ -1240,8 +1240,8 @@ class Column(NotifierMixin):
             if not isinstance(coord_unit, str):
                 msg = (
                     "Coordinate/axis unit option (TCUNIn) must be a string "
-                    "(got {!r}). The invalid keyword will be ignored for the "
-                    "purpose of formatting this column.".format(coord_unit)
+                    f"(got {coord_unit!r}). The invalid keyword will be ignored "
+                    "for the purpose of formatting this column."
                 )
 
             if msg is None:
@@ -1258,11 +1258,9 @@ class Column(NotifierMixin):
                 msg = None
                 if not isinstance(v, numbers.Real):
                     msg = (
-                        "Column {} option ({}n) must be a real floating type (got"
-                        " {!r}). The invalid value will be ignored for the purpose of"
-                        " formatting the data in this column.".format(
-                            k, ATTRIBUTE_TO_KEYWORD[k], v
-                        )
+                        f"Column {k} option ({ATTRIBUTE_TO_KEYWORD[k]}n) must be a "
+                        f"real floating type (got {v!r}). The invalid value will be "
+                        "ignored for the purpose of formatting the data in this column."
                     )
 
                 if msg is None:
@@ -1275,8 +1273,8 @@ class Column(NotifierMixin):
             if not isinstance(time_ref_pos, str):
                 msg = (
                     "Time coordinate reference position option (TRPOSn) must be "
-                    "a string (got {!r}). The invalid keyword will be ignored for "
-                    "the purpose of formatting this column.".format(time_ref_pos)
+                    f"a string (got {time_ref_pos!r}). The invalid keyword will be "
+                    "ignored for the purpose of formatting this column."
                 )
 
             if msg is None:

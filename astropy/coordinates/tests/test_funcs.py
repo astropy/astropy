@@ -4,7 +4,6 @@
 Tests for miscellaneous functionality in the `funcs` module
 """
 
-
 import numpy as np
 import pytest
 from numpy import testing as npt
@@ -70,7 +69,7 @@ def test_constellations(recwarn):
 
     assert res == "Ursa Major"
     assert res_short == "UMa"
-    assert isinstance(res, str) or getattr(res, "shape", None) == tuple()
+    assert isinstance(res, str) or getattr(res, "shape", None) == ()
 
     # these are taken from the ReadMe for Roman 1987
     ras = [9, 23.5, 5.12, 9.4555, 12.8888, 15.6687, 19, 6.2222]
@@ -84,7 +83,7 @@ def test_constellations(recwarn):
     # non-ASCII character
     boores = get_constellation(SkyCoord(15 * u.hour, 30 * u.deg, frame="icrs"))
     assert boores == "Boötes"
-    assert isinstance(boores, str) or getattr(boores, "shape", None) == tuple()
+    assert isinstance(boores, str) or getattr(boores, "shape", None) == ()
 
 
 @pytest.mark.xfail

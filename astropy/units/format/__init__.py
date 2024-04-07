@@ -4,7 +4,6 @@
 A collection of different unit formats.
 """
 
-
 # This is pretty atrocious, but it will prevent a circular import for those
 # formatters that need access to the units.core module An entry for it should
 # exist in sys.modules since astropy.units.core imports this module

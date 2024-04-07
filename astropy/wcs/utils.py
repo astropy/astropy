@@ -158,13 +158,11 @@ def _wcs_to_celestial_frame_builtin(wcs):
                 representation_type=SphericalRepresentation,
                 obstime=wcs.wcs.dateobs or None,
             )
-        elif xcoord[2:4] in ("LN", "LT") and "H" not in xcoord and "CR" not in xcoord:
+        elif xcoord[2:4] in ("LN", "LT") and xcoord[:2] in SOLAR_SYSTEM_OBJ_DICT.keys():
             # Coordinates on a planetary body, as defined in
             # https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2018EA000388
 
             object_name = SOLAR_SYSTEM_OBJ_DICT.get(xcoord[:2])
-            if object_name is None:
-                raise KeyError(f"unknown solar system object abbreviation {xcoord[:2]}")
 
             a_radius = wcs.wcs.aux.a_radius
             b_radius = wcs.wcs.aux.b_radius
@@ -1100,7 +1098,8 @@ def fit_wcs_from_points(
     Parameters
     ----------
     xy : (`numpy.ndarray`, `numpy.ndarray`) tuple
-        x & y pixel coordinates.
+        x & y pixel coordinates.  These should be in FITS convention, starting
+        from (1,1) as the center of the bottom-left pixel.
     world_coords : `~astropy.coordinates.SkyCoord`
         Skycoord object with world coordinates.
     proj_point : 'center' or ~astropy.coordinates.SkyCoord`
@@ -1189,7 +1188,7 @@ def fit_wcs_from_points(
         wcs = celestial_frame_to_wcs(frame=world_coords.frame, projection=projection)
     else:  # if projection is not string, should be wcs object. use as template.
         wcs = copy.deepcopy(projection)
-        wcs.cdelt = (1.0, 1.0)  # make sure cdelt is 1
+        wcs.wcs.cdelt = (1.0, 1.0)  # make sure cdelt is 1
         wcs.sip = None
 
     # Change PC to CD, since cdelt will be set to 1

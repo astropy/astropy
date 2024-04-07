@@ -121,7 +121,7 @@ class TestRow:
         assert np_data is not d.as_void()
         assert d.colnames == list(np_data.dtype.names)
 
-        np_data = np.array(d, copy=False)
+        np_data = np.asarray(d)
         if table_types.Table is not MaskedTable:
             assert np.all(np_data == d.as_void())
         assert np_data is not d.as_void()
@@ -378,3 +378,12 @@ def test_row_get():
     assert row.get("x") is None
     assert row.get("b", -1) == 3
     assert row.get("y", -1) == -1
+
+
+def test_table_row_slicing():
+    # see https://github.com/astropy/astropy/issues/14007
+    from numpy.testing import assert_array_equal
+
+    t = table.Table({"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9]})
+    first_row = t[0]
+    assert_array_equal(first_row[1:], [4, 7])

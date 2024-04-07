@@ -3,6 +3,7 @@
 """
 This module provides utility functions for the models package.
 """
+
 import warnings
 
 # pylint: disable=invalid-name

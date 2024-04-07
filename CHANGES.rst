@@ -1,3 +1,517 @@
+Version 6.0.0 (2023-11-25)
+==========================
+
+New Features
+------------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+- The new ``ConfigNamespace.help()`` method provides a convenient way to get
+  information about configuration items. [#13499]
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Support has been added to create geodetic representations not just for existing ellipsoids
+  from ERFA, but also with explicitly provided values, by defining a subclass of
+  ``BaseGeodeticRepresentation`` with the equatorial radius and flattening assigned to
+  ``_equatorial_radius`` and ``_flattening`` attributes. [#14763]
+
+- Add ``BaseBodycentricRepresentation``, a new spheroidal representation for bodycentric
+  latitudes and longitudes. [#14851]
+
+- Support Numpy broadcasting over frame data and attributes. [#15121]
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+- Registered a ``latex`` writer for exporting a Cosmology object to a LaTex table. [#14701]
+
+- Added argument ``rename`` to Cosmology's I/O, allowing for input and output symbols to
+  be renamed. [#14780]
+
+- All non-abstract Cosmology subclasses are now automatically registered to work with
+  Astropy's YAML serialization. [#14979]
+
+- Cosmology I/O now auto-identifies the '.tex' suffix with the 'ascii.latex' format. [#15088]
+
+- The ``Cosmology`` class now has a new property to access the parameters of the
+  cosmology: ``.parameters``. This property return a read-only dictionary of all the
+  non-derived parameter values on the cosmology object. When accessed from the class (not
+  an instance) the dictionary contains ``Parameter`` instances, not the values. [#15168]
+
+- The field ``default`` has been added to ``Parameter``. This can be used to introspect
+  the default value of a parameter on a cosmology class e.g. ``LambdaCDM.H0.default``. [#15400]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Add new option ``decompress_in_memory`` to ``fits.open``, to decompress the
+  whole file in memory at once, instead of decompressing the file progressively
+  as data is needed.  Default behavior is better for memory usage but sometimes
+  slow, especially for files with many small HDUs. [#15501]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Add support for Parquet serialization of VOTables. Writing of this
+  serialization is available with using the new ``'votable.parquet'`` format. [#15281]
+
+- Added MIVOT feature through the ``MivotBlock`` class
+  that allows model annotations reading and writing in VOTable. [#15390]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Added a ``GeneralSersic2D`` model that can have "boxy" or "disky"
+  isophotes. [#15545]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- A more flexible and/or compact string representation is now available for
+  ``NDData`` objects which visually indicates masked entries, and provides for
+  better for dask array support. [#14438]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- The new ``Row.get()`` method, analogous to ``dict.get()``, returns the value of
+  the specified column from the row if the column present, otherwise it returns a
+  fallback value, which by default is ``None``. [#14878]
+
+astropy.time
+^^^^^^^^^^^^
+
+- Masked ``Time`` instances now use astropy's own ``Masked`` class internally.
+  This means that ``Masked`` input is now properly recognized, and that masks
+  get propagated also to ``Quantity`` output (such as from a ``TimeDelta``
+  converted to a unit of time), creating ``MaskedQuantity`` instances. [#15231]
+
+- Added a ``TimeDelta`` format ``quantity_str`` that represents the time delta as a string
+  with one or more ``Quantity`` components. This format provides a human-readable
+  multi-scale string representation of a time delta. The default output sub-format is not
+  considered stable in this release, please see https://github.com/astropy/astropy/issues/15485
+  for more information. [#15264]
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+- Uncertainty ``Distribution`` now support structured data types, and as
+  a result it now works also with ``EarthLocation``. [#15304]
+
+- Uncertainty ``Distribution`` can now be used inside representations, which
+  also allows basic support in ``SkyCoord``. While most calculations work, there
+  are remaining issues.  For instance, the ``repr`` does not show that the
+  coordinates are distributions. [#15395]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Add support for gc2gde and gd2gce erfa functions to allow geodetic representations
+  using equatorial radius and flattening. [#14729]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- The ``astropy.utils.metadata.MetaData`` default dictionary can now be
+  set with the ``default_factory`` keyword argument. [#15265]
+
+- ``astropy.utils.decorators.deprecated`` now adds the ``__deprecated__`` attribute to
+  the objects it wraps, following the practice in https://peps.python.org/pep-0702/. [#15310]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Add ``WCSAxes.text_coord`` method to print text using ``SkyCoord`` objects
+  parallel to plotting data points with ``WCSAxes.plot_coord``. [#14661]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Support WCS descriptions of basic planetary coordinate frames. [#14820]
+
+- Updated bundled WCSLIB version to 8.1. This update adds support planetary keywords ``A_RADIUS``, ``B_RADIUS``, ``C_RADIUS``, ``BLON_OBS``, ``BLAT_OBS``, and ``BDIS_OBS`` in ``auxprm`` and adds ``wcsprm::time`` to the ``wcsprm`` struct to record the ``TIME`` axis. This update also includes several bug fixes. For a full list of changes - see http://www.atnf.csiro.au/people/mcalabre/WCS/CHANGES [#15035]
+
+
+API Changes
+-----------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+- Removed deprecated ``ConfigurationMissingWarning`` class and ``update_default_config`` function;
+  There are no replacements as they should no be used anymore. [#15466]
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+- Invalid kernel arithmetic operations now raise a ``KernelArithmeticError`` instead of a
+  bare ``Exception``. [#14728]
+
+- Added base ``KernelError`` error class and removed ``DiscretizationError`` error class (a ``ValueError`` will be raised instead). [#14732]
+
+- ``discretize_model`` will now raise a ``ValueError`` if
+  ``mode='oversample'`` and ``factor`` does not have an integer value. [#14794]
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Removed deprecated angle parsing and formatting utilities from ``angle_utilities``.
+  Use the functions from ``angle_formats`` instead. [#14675]
+
+- The deprecated functionality of initializing ``Angle`` or ``Longitude`` from a
+  ``tuple`` is no longer supported. [#15205]
+
+- Angle-related classes and functions have been moved within ``astropy.coordinates``.
+  There is no change to public API as everything moved should still be imported from
+  ``astropy.coordinates``, not a sub-module. If you are using private API, try importing
+  from ``astropy.coordinates`` instead. If you need something that has been moved and is
+  not available in ``astropy.coordinates``, please open an issue on the Astropy issue
+  tracker. [#15220]
+
+- It is no longer possible to pass frame classes to the ``transform_to()`` method
+  of a low-level coordinate-frame class. It is still possible to pass frame
+  instances. The ``transform_to()`` method of the high-level ``SkyCoord`` class
+  is unaffected. [#15500]
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+- Removed support of importing private constants and functions from ``astropy.cosmology.flrw``. [#14672]
+
+- Removed deprecated Cosmology Parameter argument ``fmt``. [#14673]
+
+- Removed deprecated ``vectorize_if_needed`` and ``inf_like`` from ``cosmology.utils``. [#14677]
+
+- Removed deprecated import paths from ``astropy.cosmology.core``. [#14782]
+
+- Cosmology ``Parameter`` is now a ``dataclass``, and can work with all of Python's dataclasses
+  machinery, like field introspection and type conversion. [#14874]
+
+- A new property -- ``scale_factor0`` -- has been added to Cosmology objects.
+  This is the scale factor at redshift 0, and is defined to be 1.0. [#14931]
+
+- Added registration label ``ascii.latex`` to Cosmology IO. [#14938]
+
+- The private module ``astropy.cosmology.utils`` has been deprecated. [#14980]
+
+- Removed deprecated ``get_cosmology_from_string`` class method in ``default_cosmology``; use ``get`` instead. [#15467]
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- Several arguments in functions within ``astropy.io.ascii`` have been deprecated and
+  are either renamed or scheduled to be removed.
+
+  ``read()``:
+  - ``Reader`` will be removed. Instead supply the equivalent ``format`` argument.
+  - ``Inputter`` has been renamed to ``inputter_cls``.
+  - ``Outputter`` has been renamed to ``outputter_cls``.
+
+  ``get_reader()``:
+  - ``Reader`` has been renamed to ``reader_cls``.
+  - ``Inputter`` has been renamed to ``inputter_cls``.
+  - ``Outputter`` has been renamed to ``outputter_cls``.
+
+  ``write()``:
+  - ``Writer`` will be removed. Instead supply the equivalent ``format`` argument.
+
+  ``get_writer()``:
+  - ``Writer`` has been renamed to ``writer_cls``. [#14914]
+
+- Removed deprecated ``astropy.io.ascii.tests.common.raises`` test helper; use ``pytest.raises`` instead. [#15470]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Deprecate ``_ExtensionHDU`` and ``_NonstandardExtHDU`` (use ``ExtensionHDU`` or
+  ``NonstandardExtHDU`` instead). [#15396]
+
+- Remove special handling of TCTYP TCUNI TCRPX TCRVL TCDLT TRPOS (#7157). [#15396]
+
+- Rename and deprecate ``TableHDU.update`` to ``TableHDU.update_header``, for
+  consistency with ``ImageHDU``. [#15396]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+- Removed deprecated ``astropy.io.misc.asdf`` subpackage. Use ``asdf-astropy`` package instead. [#14668]
+
+- ``fnunpickle`` and ``fnpickle`` are deprecated because they are not used anywhere within ``astropy``.
+  If you must, use the module from Python standard library but be advised that pickle is insecure
+  so you should only unpickle data that you trust. [#15418]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Removed deprecated ``pedantic`` option from the
+  ``astropy.io.votable.table.parse()`` function and the corresponding configuration
+  setting. Use the ``verify`` option instead. [#14669]
+
+- Class ``astropy.io.votable.tree.Table`` has been renamed to ``TableElement``
+  to avoid sharing the name with ``astropy.table.Table``. [#15372]
+
+- Fully removed support for version = '1.0' on ``VOTableFile__init__()`` and changed its tests to check correctly.
+  It was raising a ``DeprecationWarning`` and now is raising a ``ValueError``. [#15490]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Removed the ``AliasDict`` class from ``modeling.utils``. [#12943]
+
+- Creating a model instance with parameters that have incompatible shapes will
+  now raise a ``ValueError`` rather than an ``IncompatibleShapeError``. [#15209]
+
+- Removal of deprecated code ``_model_to_fit_params`` and ``_fitter_to_model_params`` from ``fitting.py``. [#15461]
+
+astropy.stats
+^^^^^^^^^^^^^
+
+- The ``BoxLeastSquares``, ``BoxLeastSquaresResults`` and ``LombScargle`` classes
+  are not available from ``astropy.stats`` anymore, they are now available only
+  from ``astropy.timeseries``. [#15530]
+
+astropy.tests
+^^^^^^^^^^^^^
+
+- Removed deprecated deprecation, warning, and exception handling functionality provided by ``astropy.tests.helper``. [#14670]
+
+- ``astropy.tests.command.FixRemoteDataOption`` and ``astropy.tests.command.AstropyTest`` are deprecated.
+  They are no longer necessary after sunsetting ``astropy-helpers``. [#15204]
+
+astropy.time
+^^^^^^^^^^^^
+
+- ``Time`` has switched to use ``Masked`` arrays internally, instead of
+  indicating masked values using NaN in the internal ``jd2`` attribute.  As a
+  result, any output from instances, such as one gets with, say, the ``.isot``
+  format, will also use ``Masked`` by default.
+
+  For backwards compatibility, a new configuration item,
+  ``astropy.time.conf.masked_array_type`` is introduced which is set to
+  "astropy" by default (which indicates one wants to use ``Masked``), but can
+  also be set to "numpy", in which case ``numpy.ma.MaskedArray`` will be used
+  where possible (essentially, for all but ``Quantity``). [#15231]
+
+- Changed the ``TimeDelta`` init signature to be consistent with that of ``Time``.
+  Previously the argument order was ``val, val2, format, scale, copy``. Now the order is
+  ``val, val2, format, scale, *, precision, in_subfmt, out_subfmt, copy``, where the
+  arguments after the ``*`` must be specified by keyword. [#15264]
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+- Removed deprecated ``midpoint_epoch`` in ``fold`` function; use ``epoch_time`` instead. [#15462]
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+- The ``.dtype`` attribute exposed by ``Distribution`` is now that of
+  the samples, rather than one that has a "samples" entry.  This makes
+  quantities with structured data types and units easier to support, and
+  generally makes the ``Distribution`` appear more similar to regular
+  arrays.  It should have little effect on code.  For instance,
+  ``distribution["samples"]`` still will return the actual distribution.
+
+  As a consequence of this refactoring, most arrays that are not
+  C-contiguous can now be viewed and will thus not be copied on input
+  any more.  The only exceptions are arrays for which the strides are
+  negative.
+
+  Note that the true data type is considered an implementation detail.
+  But for reference, it now is a structured data type with a single
+  field, "samples", which itself is an array of "sample" fields, which
+  contain the actual data. [#15304]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Like ``np.ndarray``, under numpy 2.0 ``Quantity`` and all its subclasses
+  (``Angle``, ``Masked``, etc.) will no longer support the ``.ptp()`` method.
+  Use ``np.ptp(...)`` instead.
+
+  Similarly, support for the much less frequently used ``.newbyteorder()`` and
+  ``.itemset()`` methods has been removed. [#15378]
+
+- The following deprecated functionality has been removed:
+
+    * ``littleh`` unit and ``with_H0`` equivalency. They are still available from
+      ``cosmology.units``.
+    * ``brightness_temperature`` equivalency no longer automatically swaps the
+      order of its arguments if it does not match the expectation.
+    * ``PhysicalType`` no longer supports ``str`` methods and attributes. [#15514]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Removed deprecated ``OrderedDescriptor``, ``OrderedDescriptorContainer``, and ``set_locale`` in ``astropy.utils.misc``. [#14679]
+
+- ``is_path_hidden()`` and ``walk_skip_hidden()`` are deprecated. [#14759]
+
+- The structure of ``utils.metadata`` has been refactored, but all the available
+  functions and classes are still present and should be imported as before. [#15166]
+
+- The ``astropy.utils.metadata.MetaData`` class, which is used throughout astropy
+  to carry metadata on tables, columns, etc., can now also be used on dataclasses.
+
+  When accessing the meta attribute on a class ``astropy.utils.metadata.MetaData``
+  now returns None instead of itself. [#15237]
+
+- The ``astropy.utils.metadata.MetaData`` class, which is used throughout astropy
+  to carry metadata on tables, columns, etc., can now also be used on frozen dataclasses. [#15404]
+
+- Removed deprecated ``version_path`` in ``minversion`` function; it is no longer used. [#15468]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- The ``bboxes``, ``ticklabels_bbox``, and ``tick_out_size`` arguments to ``astropy.visualization.wcaxes.ticklabels.TickLabels.draw()`` now have no effect and are deprecated.
+  This is to allow rasterized ticks to be drawn correctly on WCSAxes. [#14760]
+
+- It is now not possible to pass any keyword arguments to ``astropy.visualization.wcsaxes.WCSAxes.draw()``.
+  Previously passing any keyword arguments would have errored anyway, as ``matplotlib.axes.Axes.draw()`` does not accept keyword arguments. [#14772]
+
+- Deprecated the ``exp`` attribute in the ``LogStretch``,
+  ``InvertedLogStretch``, ``PowerDistStretch``, and
+  ``InvertedPowerDistStretch`` stretch classes, and the ``power``
+  attribute in the ``PowerStretch``. Instead, use the ``a`` attribute,
+  which matches the input keyword. [#15538]
+
+- Removed the maximum value of the ``a`` parameter in the ``AsinhStretch``
+  and ``SinhStretch`` stretch classes. [#15539]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Removed deprecated ``accuracy`` from ``all_world2pix`` method in ``WCS``; use ``tolerance`` instead. [#15464]
+
+- ``NoConvergence`` no longer accepts arbitrary keyword arguments. [#15504]
+
+
+Bug Fixes
+---------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Fixed minor bug when getting solar system positions of objects from Type 3 SPICE kernel files. [#15612]
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+- The exponent in ``w0wzCDM.de_density_scale`` has been corrected to 3, from -3.
+  This correction has also been made to the scalar ``inv_efunc`` cpython functions. [#14991]
+
+- ``pandas.Series`` are now uniformly converted to their underlying data type when given
+  as an argument to a Cosmology method. [#15600]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Reading a table from FITS now respects the TNULL property of a column, passing
+  it into the column's ``fill_value``. [#14723]
+
+- Fix crash when a PrimaryHDU has a GROUPS keyword with a non-boolean value (i.e.
+  not a random-groups HDU). [#14998]
+
+- Fixed a bug that caused ``Cutout2D`` to not work correctly with ``CompImageHDU.section`` [#14999]
+
+- Fixed a bug that caused compressed images with TFORM missing the optional '1' prefix to not be readable. [#15001]
+
+- Ensure that tables written to FITS with both masked and unmasked columns
+  roundtrip properly (previously, all integer columns would become masked
+  if any column was masked). [#15473]
+
+- Fix segfault with error report in tile decompression. [#15489]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Output of ``repr`` for VOTable instance now clearly shows it is a VOTable and not generic astropy Table. [#14702]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- All models can be pickled now. [#14902]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- Restore bitmask propagation behavior in ``NDData.mask``, plus a fix
+  for arithmetic between masked and unmasked ``NDData`` objects. [#14995]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- ``Table.as_array`` now respects the ``fill_value`` property of masked columns. [#14723]
+
+- Fix a bug where table indexes were not using a stable sort order. This was causing the
+  order of rows within groups to not match the original table order when an indexed table
+  was grouped. [#14907]
+
+- Fixed issue #14964 that when grouping a Table on a mixin column such as ``Quantity`` or
+  ``Time``, the grouped table keys did not reflect the original column values. For
+  ``Quantity`` this meant that the key values were pure float values without the unit,
+  while for ``Time`` the key values were the pair of ``jd1`` and ``jd2`` float values. [#14966]
+
+astropy.time
+^^^^^^^^^^^^
+
+- Ensure that the ``Time`` caches of formats and scales do not get out
+  of sync with the actual data, even if another instance, holding a view
+  of the data is written to.  E.g., if one does ``t01 = t[:2]``, and
+  sets ``t[0]`` after, it is now guaranteed that ``t01.value`` will
+  correctly reflect that change in value. [#15453]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- In VOunits, "pix", "au", "a", and "ct" are removed from the list of deprecated units. [#14885]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Ufuncs with more than 2 operands (such as ``erfa.dtf2d``) now work
+  also if all inputs are scalars and more than two inputs have masks. [#15450]
+
+- Ensured that ``str(masked_array)`` looks like ``str(unmasked_array)`` also for
+  array scalars. Thus, like regular array scalars, the precision is ignored for
+  float, and strings do not include extra quoting. [#15451]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- The location of ticklabels on a WCSAxes is now correctly calculated when the figure is rasterized. [#14760]
+
+- Fixed a bug where a ``ValueError`` would be raised in the
+  ``AsinhStretch`` and ``SinhStretch`` classes for valid ``a`` parameter
+  values. [#15539]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- ``wcs.validate(filename)`` now properly closes the file handler. [#15054]
+
+- Fix a regression in custom WCS mapping due to the recent introduction of
+  Solar System frames. [#15630]
+
+
+Other Changes and Additions
+---------------------------
+
+- The minimum supported version of NumPy is now 1.22. [#15006]
+
+- Moved International Earth Rotation and Reference Systems (IERS) and Leap Second
+  files out into standalone astropy-iers-data package, maintaining full
+  backward-compatibility in the ``astropy.utils.iers`` API. Deprecation
+  warnings may be issued when certain files are accessed directly. [#14819]
+
+- Switch from using ``setup.cfg`` for project configuration to using ``pyproject.toml``. [#15247]
+
+- Update bundled expat to 2.5.0. [#15585]
+
 Version 5.3.4 (2023-10-03)
 ==========================
 
@@ -1258,7 +1772,7 @@ astropy.units
   Doppler redshift and radial velocity. [#12709]
 
 - Added the ``where`` keyword argument to the ``mean()``,``var()``, ``std()`` and ``nansum()`` methods of
-  ``astropy.units.Quantity``. Also added the ``intial`` keyword argument to ``astropy.units.Quantity.nansum()``. [#12891]
+  ``astropy.units.Quantity``. Also added the ``initial`` keyword argument to ``astropy.units.Quantity.nansum()``. [#12891]
 
 - Added "Maxwell" as a unit for magnetic flux to the CGS module. [#12975]
 
@@ -1543,7 +2057,7 @@ astropy.io.fits
 ^^^^^^^^^^^^^^^
 
 - Fix write and read FITS tables with multidimensional items, using ``from_columns``
-  without previousely defined ``ColDefs`` structure. [#12863]
+  without previously defined ``ColDefs`` structure. [#12863]
 
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
@@ -4757,7 +5271,7 @@ astropy.uncertainty
   [#9429, #9442]
 
 - The ``pdf_*`` properties that were used to calculate statistical properties
-  of ``Distrubution`` instances were changed into methods. This allows one
+  of ``Distribution`` instances were changed into methods. This allows one
   to pass parameters such as ``ddof`` to ``pdf_std`` and ``pdf_var`` (which
   generally should equal 1 instead of the default 0), and reflects that these
   are fairly involved calculations, not just "properties". [#9613]
@@ -5921,7 +6435,7 @@ Other Changes and Additions
 
 - Added instructions for uploading releases to Zenodo. [#8395]
 
-- The bug fixes to the behaviour of ``TimeDelta`` for multiplcation and
+- The bug fixes to the behaviour of ``TimeDelta`` for multiplication and
   division, which ensure that the output is now always a ``TimeDelta`` if the
   result is a time unit (like u.s or u.d) and otherwise a ``Quantity``, imply
   that sometimes the output type will be different than it was before. [#8356]
@@ -8147,7 +8661,7 @@ astropy.table
 
 - Fixed a problem when printing a table when a column is deleted and
   garbage-collected, and the format function caching mechanism happens
-  to re-use the same cache key. [#6714]
+  to reuse the same cache key. [#6714]
 
 - Fixed a problem when comparing a unicode masked column (on left side) to
   a bytes masked column (on right side). [#6899]
@@ -13687,7 +14201,7 @@ Bug Fixes
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
-- ``astropy.constants.Contant`` objects can now be deep
+- ``astropy.constants.Constant`` objects can now be deep
   copied. [#2601]
 
 astropy.cosmology

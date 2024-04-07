@@ -8,6 +8,7 @@ from astropy.utils.compat.optional_deps import HAS_PLT
 
 if HAS_PLT:
     import matplotlib.pyplot as plt
+    from matplotlib.units import ConversionError
 
 import numpy as np
 
@@ -58,20 +59,11 @@ def test_units_errbarr():
 
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
 def test_incompatible_units():
-    # NOTE: minversion check does not work properly for matplotlib dev.
-    try:
-        # https://github.com/matplotlib/matplotlib/pull/13005
-        from matplotlib.units import ConversionError
-    except ImportError:
-        err_type = u.UnitConversionError
-    else:
-        err_type = ConversionError
-
     plt.figure()
 
     with quantity_support():
         plt.plot([1, 2, 3] * u.m)
-        with pytest.raises(err_type):
+        with pytest.raises(ConversionError):
             plt.plot([105, 210, 315] * u.kg)
 
 
@@ -130,3 +122,18 @@ def test_radian_formatter():
         fig.canvas.draw()
         labels = [tl.get_text() for tl in ax.yaxis.get_ticklabels()]
         assert labels == ["π/2", "π", "3π/2", "2π", "5π/2", "3π", "7π/2"]
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
+def test_small_range():
+    # see https://github.com/astropy/astropy/issues/13211
+    y = [10.0, 10.25, 10.5, 10.75, 11.0, 11.25, 11.5, 11.75] * u.degree
+
+    fig, ax = plt.subplots()
+    with quantity_support():
+        ax.plot(y)
+        fig.canvas.draw()
+    labels = [t.get_text() for t in ax.yaxis.get_ticklabels()]
+
+    # check uniqueness of labels
+    assert len(set(labels)) == len(labels)

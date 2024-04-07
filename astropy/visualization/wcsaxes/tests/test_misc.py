@@ -2,7 +2,7 @@
 import warnings
 from contextlib import nullcontext
 
-import matplotlib
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -24,14 +24,14 @@ from astropy.visualization.wcsaxes.utils import get_coord_meta
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import HighLevelWCSWrapper, SlicedLowLevelWCS
 
-ft_version = Version(matplotlib.ft2font.__freetype_version__)
+ft_version = Version(mpl.ft2font.__freetype_version__)
 FREETYPE_261 = ft_version == Version("2.6.1")
 
 # We cannot use matplotlib.checkdep_usetex() anymore, see
 # https://github.com/matplotlib/matplotlib/issues/23244
 TEX_UNAVAILABLE = True
 
-MATPLOTLIB_LT_3_7 = Version(matplotlib.__version__) < Version("3.7")
+MATPLOTLIB_LT_3_7 = Version(mpl.__version__) < Version("3.7")
 
 
 def teardown_function(function):

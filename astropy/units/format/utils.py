@@ -4,7 +4,6 @@
 Utilities shared by the different formats.
 """
 
-
 import warnings
 
 from astropy.units.utils import maybe_simple_fraction
@@ -60,10 +59,6 @@ def split_mantissa_exponent(v, format_spec=".8g"):
     mantissa, exponent : tuple of strings
     """
     x = format(v, format_spec).split("e")
-    if x[0] != "1." + "0" * (len(x[0]) - 2):
-        m = x[0]
-    else:
-        m = ""
 
     if len(x) == 2:
         ex = x[1].lstrip("0+")
@@ -71,6 +66,11 @@ def split_mantissa_exponent(v, format_spec=".8g"):
             ex = "-" + ex[1:].lstrip("0")
     else:
         ex = ""
+
+    if ex == "" or (x[0] != "1." + "0" * (len(x[0]) - 2)):
+        m = x[0]
+    else:
+        m = ""
 
     return m, ex
 

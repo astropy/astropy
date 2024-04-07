@@ -2,6 +2,7 @@
 """
 Test Structured units and quantities specifically with the ERFA ufuncs.
 """
+
 import erfa
 import numpy as np
 import pytest
@@ -541,7 +542,7 @@ class TestGeodetic:
     def test_unit_errors(self):
         """Test unit errors when dimensionless parameters are used"""
 
-        msg = "'NoneType' object has no attribute '_get_converter'"
+        msg = "'NoneType' object has no attribute 'get_converter'"
         with pytest.raises(AttributeError, match=msg):
             erfa_ufunc.gc2gde(self.equatorial_radius_value, self.flattening, self.xyz)
         with pytest.raises(AttributeError, match=msg):

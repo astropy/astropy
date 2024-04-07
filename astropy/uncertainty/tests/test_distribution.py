@@ -11,7 +11,6 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.uncertainty import distributions as ds
 from astropy.uncertainty.core import Distribution
 from astropy.utils import NumpyRNGContext
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_23
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 if HAS_SCIPY:
@@ -136,9 +135,7 @@ class TestDistributionStatistics:
         expected = np.var(self.data, axis=-1) * self.distr.unit**2
         pdf_var = self.distr.pdf_var()
         assert_quantity_allclose(pdf_var, expected)
-        assert_quantity_allclose(
-            pdf_var, [9, 4, 16, 25] * self.distr.unit**2, rtol=0.1
-        )
+        assert_quantity_allclose(pdf_var, [9, 4, 16, 25] * self.distr.unit**2, rtol=0.1)
 
         # make sure the right type comes out - should be a Quantity because it's
         # now a summary statistic
@@ -226,9 +223,7 @@ class TestDistributionStatistics:
         expected = np.median(self.data + another_data / 1000, axis=-1) * self.distr.unit
         assert_quantity_allclose(combined_distr.pdf_median(), expected)
 
-        expected = (
-            np.var(self.data + another_data / 1000, axis=-1) * self.distr.unit**2
-        )
+        expected = np.var(self.data + another_data / 1000, axis=-1) * self.distr.unit**2
         assert_quantity_allclose(combined_distr.pdf_var(), expected)
 
 
@@ -481,12 +476,8 @@ def test_distr_view_different_dtype2():
     assert np.may_share_memory(uint32_2, uint32)
     assert_array_equal(uint32_2.distribution, uint32.distribution)
     uint8_2 = uint8.T
-    if NUMPY_LT_1_23:
-        with pytest.raises(DeprecationWarning, match="Changing the shape of an F-"):
-            uint8_2.view("u4")
-    else:
-        with pytest.raises(ValueError, match="last axis must be contiguous"):
-            uint8_2.view("u4")
+    with pytest.raises(ValueError, match="last axis must be contiguous"):
+        uint8_2.view("u4")
 
 
 def test_distr_cannot_view_new_dtype():

@@ -75,6 +75,50 @@ Both will throw an exception if units do not cancel, e.g.::
 
 See: https://github.com/astropy/astropy/issues/7582
 
+Multiplying a `pandas.Series` with an `~astropy.units.Unit` does not produce a |Quantity|
+-----------------------------------------------------------------------------------------
+
+Quantities may work with certain operations on `~pandas.Series` but
+this behaviour is not tested.
+For example, multiplying a `~pandas.Series` instance
+with a unit will *not* return a |Quantity|. It will return a `~pandas.Series`
+object without any unit:
+
+.. doctest-requires:: pandas>=2.0
+
+   >>> import pandas as pd
+   >>> import astropy.units as u
+   >>> a = pd.Series([1., 2., 3.])
+   >>> a * u.m
+   0    1.0
+   1    2.0
+   2    3.0
+   dtype: float64
+
+To avoid this, it is best to initialize the |Quantity| directly:
+
+.. doctest-requires:: pandas>=2.0
+
+    >>> u.Quantity(a, u.m)
+    <Quantity [1., 2., 3.] m>
+
+Note that the overrides pandas provides are not complete, and
+as a consequence, using the (in-place) shift operator does work:
+
+.. doctest-requires:: pandas>=2.0
+
+   >>> b = a << u.m
+   >>> b
+   <Quantity [1., 2., 3.] m>
+   >>> a <<= u.m
+   >>> a
+   <Quantity [1., 2., 3.] m>
+
+But this is fragile as this may stop working in future versions of
+pandas if they decide to override the dunder methods.
+
+See: https://github.com/astropy/astropy/issues/11247
+
 Numpy array creation functions cannot be used to initialize Quantity
 --------------------------------------------------------------------
 Trying the following example will ignore the unit:
@@ -189,26 +233,6 @@ means that an upstream fix in NumPy is required in order for
 To convert a dimensionless `~astropy.units.Quantity` to an integer, it is
 therefore recommended to use ``int(...)``.
 
-Inconsistent behavior when converting complex numbers to floats
----------------------------------------------------------------
-
-Attempting to use `float` or NumPy's ``numpy.float`` on a standard
-complex number (e.g., ``5 + 6j``) results in a `TypeError`.  In
-contrast, using `float` or ``numpy.float`` on a complex number from
-NumPy (e.g., ``numpy.complex128``) drops the imaginary component and
-issues a ``numpy.ComplexWarning``.  This inconsistency persists between
-`~astropy.units.Quantity` instances based on standard and NumPy
-complex numbers.  To get the real part of a complex number, it is
-recommended to use ``numpy.real``.
-
-.. _structured_unit_deserialization_segfault:
-
-Structured units deserialization segfaults in big-endian
---------------------------------------------------------
-
-Structured units deserialization with ``pickle`` may cause segmentation
-fault in big-endian machine with ``numpy<1.21.1``.
-
 Build/Installation/Test Issues
 ==============================
 
@@ -281,3 +305,16 @@ This is due to mutually incompatible behaviors in IPython and pytest, and is
 not due to a problem with the test itself or the feature being tested.
 
 See: https://github.com/astropy/astropy/issues/717
+
+Test runner fails when asdf-astropy is installed
+------------------------------------------------
+
+When you have ``asdf-astropy`` installed and then run ``astropy.test()``,
+you will see a traceback that complains about the following::
+
+    PytestAssertRewriteWarning: Module already imported so cannot be rewritten: asdf
+
+To run ``astropy.test()`` anyway, please first uninstall ``asdf-astropy``.
+If you do not want to do that, use ``pytest`` or ``tox`` instead of the test runner.
+
+See: https://github.com/astropy/astropy/issues/16165

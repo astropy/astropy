@@ -1540,6 +1540,19 @@ class TestVStack:
             "               --   four",
         ]
 
+    def test_vstack_inputs_not_modified(self):
+        """Tests that inputs are not modified, see issue #16119"""
+        t1 = Table(data=dict(x=[1, 2, 3], y=["a", "b", "c"]))
+
+        rows = list(t1)  # Table -> list of Rows
+        rows0 = rows[0]
+        t2 = table.vstack(rows)
+        assert rows[0] is rows0
+
+        tables = [t1, t1]
+        t3 = table.vstack(tables)
+        assert tables[0] is t1
+
 
 class TestDStack:
     def _setup(self, t_cls=Table):
@@ -2424,3 +2437,63 @@ def test_mixin_join_regression():
     t12 = table.join(t1, t2, keys=("index", "flux1", "flux2"), join_type="outer")
 
     assert len(t12) == 6
+
+
+@pytest.mark.parametrize(
+    "t1, t2",
+    [
+        # different names
+        (
+            Table([np.array([1])], names=["a"]),
+            Table([np.array([1])], names=["b"]),
+        ),
+        # different data (broadcastable)
+        (
+            Table([np.array([])], names=["a"]),
+            Table([np.array([1])], names=["a"]),
+        ),
+        # different data (not broadcastable)
+        (
+            Table([np.array([1, 2])], names=["a"]),
+            Table([np.array([1, 2, 3])], names=["a"]),
+        ),
+        # different names and data (broadcastable)
+        (
+            Table([np.array([])], names=["a"]),
+            Table([np.array([1])], names=["b"]),
+        ),
+        # different names and data (not broadcastable)
+        (
+            Table([np.array([1, 2])], names=["a"]),
+            Table([np.array([1, 2, 3])], names=["b"]),
+        ),
+        # different data and array type (broadcastable)
+        (
+            Table([np.array([])], names=["a"]),
+            Table([np.ma.MaskedArray([1])], names=["a"]),
+        ),
+        # different data and array type (not broadcastable)
+        (
+            Table([np.array([1, 2])], names=["a"]),
+            Table([np.ma.MaskedArray([1, 2, 3])], names=["a"]),
+        ),
+    ],
+)
+def test_table_comp(t1, t2):
+    # see https://github.com/astropy/astropy/issues/13421
+    try:
+        np.result_type(t1.dtype, t2.dtype)
+        np.broadcast_shapes((len(t1),), (len(t2),))
+    except (TypeError, ValueError):
+        # dtypes are not comparable or arrays can't be broadcasted:
+        # a simple bool should be returned
+        assert not t1 == t2
+        assert not t2 == t1
+        assert t1 != t2
+        assert t2 != t1
+    else:
+        # otherwise, the general case is to return a 1D array with dtype=bool
+        assert not any(t1 == t2)
+        assert not any(t2 == t1)
+        assert all(t1 != t2)
+        assert all(t2 != t1)

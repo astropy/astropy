@@ -9,12 +9,21 @@ from __future__ import annotations
 import abc
 import copy
 import warnings
-from typing import Any, Callable, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
 
 from astropy.units import Quantity
 from astropy.utils import isiterable
+from astropy.utils.compat import COPY_IF_NEEDED
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from typing import Any
+
+    from typing_extensions import Self
+
+    from astropy.units import UnitBase
 
 __all__ = ["ModelBoundingBox", "CompoundBoundingBox"]
 
@@ -428,7 +437,7 @@ class _BoundingDomain(abc.ABC):
         )
 
     @staticmethod
-    def _get_valid_outputs_unit(valid_outputs, with_units: bool):
+    def _get_valid_outputs_unit(valid_outputs, with_units: bool) -> UnitBase | None:
         """
         Get the unit for outputs if one is required.
 
@@ -543,7 +552,9 @@ class _BoundingDomain(abc.ABC):
         List containing filled in output values and units
         """
         if valid_outputs_unit is not None:
-            return Quantity(outputs, valid_outputs_unit, copy=False, subok=True)
+            return Quantity(
+                outputs, valid_outputs_unit, copy=COPY_IF_NEEDED, subok=True
+            )
 
         return outputs
 
@@ -781,7 +792,7 @@ class ModelBoundingBox(_BoundingDomain):
         order: str = "C",
         _preserve_ignore: bool = False,
         **kwargs,
-    ):
+    ) -> Self:
         """
         Construct a valid bounding box for a model.
 
@@ -982,7 +993,7 @@ class _SelectorArgument(_BaseSelectorArgument):
         return self
 
     @classmethod
-    def validate(cls, model, argument, ignored: bool = True):
+    def validate(cls, model, argument, ignored: bool = True) -> Self:
         """
         Construct a valid selector argument for a CompoundBoundingBox.
 
@@ -1115,7 +1126,9 @@ class _SelectorArguments(tuple):
 
     _kept_ignore = None
 
-    def __new__(cls, input_: tuple[_SelectorArgument], kept_ignore: list | None = None):
+    def __new__(
+        cls, input_: tuple[_SelectorArgument], kept_ignore: list | None = None
+    ) -> Self:
         self = super().__new__(cls, input_)
 
         if kept_ignore is None:
@@ -1155,7 +1168,7 @@ class _SelectorArguments(tuple):
         return self._kept_ignore
 
     @classmethod
-    def validate(cls, model, arguments, kept_ignore: list | None = None):
+    def validate(cls, model, arguments, kept_ignore: list | None = None) -> Self:
         """
         Construct a valid Selector description for a CompoundBoundingBox.
 
@@ -1454,7 +1467,7 @@ class CompoundBoundingBox(_BoundingDomain):
         order: str = "C",
         _preserve_ignore: bool = False,
         **kwarg,
-    ):
+    ) -> Self:
         """
         Construct a valid compound bounding box for a model.
 

@@ -8,7 +8,6 @@ Classes to read DAOphot table format
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-
 import itertools as itt
 import re
 from collections import OrderedDict, defaultdict
@@ -90,9 +89,7 @@ class DaophotHeader(core.BaseHeader):
         self.col_widths = col_widths
 
         # merge the multi-line header data into single line data
-        coldef_dict = {k: sum(v, []) for (k, v) in coldef_dict.items()}
-
-        return coldef_dict
+        return {k: list(itt.chain(*v)) for (k, v) in coldef_dict.items()}
 
     def update_meta(self, lines, meta):
         """
@@ -181,7 +178,7 @@ class DaophotHeader(core.BaseHeader):
                 col.format = fmt
 
         # Set column start and end positions.
-        col_width = sum(self.col_widths, [])
+        col_width = list(itt.chain.from_iterable(self.col_widths))
         ends = np.cumsum(col_width)
         starts = ends - col_width
         for i, col in enumerate(self.cols):

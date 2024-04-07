@@ -280,9 +280,8 @@ class CDS(Base):
         if unit not in cls._units:
             if detailed_exception:
                 raise ValueError(
-                    "Unit '{}' not supported by the CDS SAC standard. {}".format(
-                        unit, did_you_mean(unit, cls._units)
-                    )
+                    f"Unit '{unit}' not supported by the CDS SAC standard. "
+                    f"{did_you_mean(unit, cls._units)}"
                 )
             else:
                 raise ValueError()

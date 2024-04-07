@@ -77,7 +77,7 @@ The procedure for the feature freeze is as follows:
 
       $ cp docs/whatsnew/<current_version>.rst docs/whatsnew/<next_version>.rst
 
-   Note that for these pages we leave out the tailing .0 from the version number
+   Note that for these pages we leave out the trailing .0 from the version number
    in the filenames (e.g., ``6.1.rst``) since the What's New applies in principle
    to the whole release cycle.
    You'll then need to edit ``docs/whatsnew/<next_version>.rst``, removing all
@@ -94,10 +94,12 @@ The procedure for the feature freeze is as follows:
       :orphan:
 
       `What's New in Astropy <current_version>?
-      <https://docs.astropy.org/en/v<current_version>/whatsnew/<current_version>.html>`__
+      <https://docs.astropy.org/en/v<current_version.0>/whatsnew/<current_version>.html>`__
 
    This is because we want to make sure that links in the previous "What's new?" pages continue
    to work and reference the original link they referenced at the time of writing.
+   Note the trailing .0 in the URL, which is needed because the URL will be
+   determined by the git tag.
 
 #. Commit these changes::
 
@@ -117,6 +119,12 @@ The procedure for the feature freeze is as follows:
       $ git push upstream v<version>.x:v<version>.x
       $ git push upstream main:main
       $ git push upstream v<next_version>.dev:v<next_version>.dev
+
+#. Go into the branch protection rules page in the repo settings.
+   Add a rule for the new release branch you have just pushed out that only applies to that branch.
+   Check the "Require status checks to pass before merging" box.
+   Add the name of CI jobs that are required; these should be the same jobs that
+   required on ``main`` before the branching. Click "Save changes" at the bottom when done.
 
 #. Update the "Actual date" column of
    https://github.com/astropy/astropy/wiki/Release-Calendar with the current
@@ -161,7 +169,7 @@ To find the statistics and contributors, use the `generate_releaserst.xsh`_
 script. This requires `xonsh <https://xon.sh/>`_ and `docopt
 <http://docopt.org/>`_ which you can install with::
 
-   pip install xonsh docopt requests
+   python -m pip install xonsh docopt requests
 
 You should then run the script in the root of the astropy repository as follows::
 
@@ -267,8 +275,8 @@ You may also want to locally run the tests (with remote data on to ensure all
 of the tests actually run), using tox to do a thorough test in an isolated
 environment::
 
-   $ pip install tox --upgrade
-   $ tox -e test-alldeps -- --remote-data=any --run-slow --run-hugemem
+   python -m pip install tox --upgrade
+   tox -e test-alldeps -- --remote-data=any --run-slow --run-hugemem
 
 Additional notes
 ----------------

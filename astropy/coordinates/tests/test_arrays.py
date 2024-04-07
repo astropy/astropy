@@ -49,7 +49,8 @@ def test_angle_arrays():
             stack.enter_context(pytest.raises(TypeError))
             stack.enter_context(
                 pytest.warns(
-                    DeprecationWarning, match="automatic object dtype is deprecated"
+                    np.VisibleDeprecationWarning,
+                    match="Creating an ndarray from ragged nested sequences",
                 )
             )
         else:
@@ -208,23 +209,6 @@ def test_array_precession():
     npt.assert_array_less(0.05, np.abs(fk5.dec.degree - fk5_2.dec.degree))
 
 
-def test_array_separation():
-    c1 = ICRS([0, 0] * u.deg, [0, 0] * u.deg)
-    c2 = ICRS([1, 2] * u.deg, [0, 0] * u.deg)
-
-    npt.assert_array_almost_equal(c1.separation(c2).degree, [1, 2])
-
-    c3 = ICRS([0, 3.0] * u.deg, [0.0, 0] * u.deg, distance=[1, 1.0] * u.kpc)
-    c4 = ICRS([1, 1.0] * u.deg, [0.0, 0] * u.deg, distance=[1, 1.0] * u.kpc)
-
-    # the 3-1 separation should be twice the 0-1 separation, but not *exactly* the same
-    sep = c3.separation_3d(c4)
-    sepdiff = sep[1] - (2 * sep[0])
-
-    assert abs(sepdiff.value) < 1e-5
-    assert sepdiff != 0
-
-
 def test_array_indexing():
     ra = np.linspace(0, 360, 10)
     dec = np.linspace(-90, 90, 10)
@@ -267,7 +251,7 @@ def test_array_len():
         c = ICRS(0 * u.deg, 0 * u.deg)
         len(c)
 
-    assert c.shape == tuple()
+    assert c.shape == ()
 
 
 def test_array_eq():

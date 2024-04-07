@@ -142,7 +142,7 @@ class TestST:
         assert allclose_hours(gst.value, gst_compare)
 
     def test_era(self):
-        """Comare ERA relative to erfa.era00 test case."""
+        """Compare ERA relative to erfa.era00 test case."""
         t = Time(2400000.5, 54388.0, format="jd", location=(0, 0), scale="ut1")
         era = t.earth_rotation_angle()
         expected = 0.4022837240028158102 * u.radian

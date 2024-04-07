@@ -22,32 +22,22 @@ DIFFERENTIAL_CLASSES = {}
 # set for tracking duplicates
 DUPLICATE_REPRESENTATIONS = set()
 
-# a hash for the content of the above two dicts, cached for speed.
-_REPRDIFF_HASH = None
-
 
 def _fqn_class(cls):
     """Get the fully qualified name of a class."""
     return cls.__module__ + "." + cls.__qualname__
 
 
+@functools.cache
 def get_reprdiff_cls_hash():
     """
     Returns a hash value that should be invariable if the
     `REPRESENTATION_CLASSES` and `DIFFERENTIAL_CLASSES` dictionaries have not
     changed.
     """
-    global _REPRDIFF_HASH
-    if _REPRDIFF_HASH is None:
-        _REPRDIFF_HASH = hash(tuple(REPRESENTATION_CLASSES.items())) + hash(
-            tuple(DIFFERENTIAL_CLASSES.items())
-        )
-    return _REPRDIFF_HASH
-
-
-def _invalidate_reprdiff_cls_hash():
-    global _REPRDIFF_HASH
-    _REPRDIFF_HASH = None
+    return hash(tuple(REPRESENTATION_CLASSES.items())) + hash(
+        tuple(DIFFERENTIAL_CLASSES.items())
+    )
 
 
 class BaseRepresentationOrDifferentialInfo(MixinInfo):
@@ -527,25 +517,6 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         )
 
 
-def _make_getter(component):
-    """Make an attribute getter for use in a property.
-
-    Parameters
-    ----------
-    component : str
-        The name of the component that should be accessed.  This assumes the
-        actual value is stored in an attribute of that name prefixed by '_'.
-    """
-    # This has to be done in a function to ensure the reference to component
-    # is not lost/redirected.
-    component = "_" + component
-
-    def get_component(self):
-        return getattr(self, component)
-
-    return get_component
-
-
 class RepresentationInfo(BaseRepresentationOrDifferentialInfo):
     @property
     def _represent_as_dict_attrs(self):
@@ -651,7 +622,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 raise ValueError(f'Representation "{repr_name}" already defined')
 
         REPRESENTATION_CLASSES[repr_name] = cls
-        _invalidate_reprdiff_cls_hash()
+        get_reprdiff_cls_hash.cache_clear()
 
         # define getters for any component that does not yet have one.
         for component in cls.attr_classes:
@@ -660,7 +631,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                     cls,
                     component,
                     property(
-                        _make_getter(component),
+                        lambda self, comp=f"_{component}": getattr(self, comp),
                         doc=f"The '{component}' component of the points(s).",
                     ),
                 )
@@ -686,7 +657,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         # Now handle the actual validation of any specified differential classes
         if differentials is None:
-            differentials = dict()
+            differentials = {}
 
         elif isinstance(differentials, BaseDifferential):
             # We can't handle auto-determining the key for this combo
@@ -807,12 +778,12 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         attached differentials converted to the new differential classes.
         """
         if differential_class is None:
-            return dict()
+            return {}
 
         if not self.differentials and differential_class:
             raise ValueError("No differentials associated with this representation!")
 
-        elif (
+        if (
             len(self.differentials) == 1
             and isinstance(differential_class, type)
             and issubclass(differential_class, BaseDifferential)
@@ -829,7 +800,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 f"representation object ({self.differentials})"
             )
 
-        new_diffs = dict()
+        new_diffs = {}
         for k in self.differentials:
             diff = self.differentials[k]
             try:
@@ -841,8 +812,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                         "compatible with the desired "
                         f"representation class {new_rep.__class__}"
                     ) from err
-                else:
-                    raise
+                raise
 
         return new_diffs
 
@@ -1303,7 +1273,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
             raise ValueError(f"Differential class {repr_name} already defined")
 
         DIFFERENTIAL_CLASSES[repr_name] = cls
-        _invalidate_reprdiff_cls_hash()
+        get_reprdiff_cls_hash.cache_clear()
 
         # If not defined explicitly, create properties for the components.
         for component in cls.attr_classes:
@@ -1312,7 +1282,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
                     cls,
                     component,
                     property(
-                        _make_getter(component),
+                        lambda self, comp=f"_{component}": getattr(self, comp),
                         doc=f"Component '{component}' of the Differential.",
                     ),
                 )

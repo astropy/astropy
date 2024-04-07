@@ -30,6 +30,7 @@ The |Planck18| cosmology can be recovered with |Cosmology.from_format|.
 import abc
 import copy
 import inspect
+from dataclasses import replace
 
 import numpy as np
 
@@ -82,6 +83,11 @@ class _CosmologyModel(FittableModel):
         """|Cosmology| class."""
         return cls._cosmology_class
 
+    @classproperty(lazy=True)
+    def _cosmology_class_sig(cls):
+        """Signature of |Cosmology| class."""
+        return inspect.signature(cls._cosmology_class)
+
     @property
     def cosmology(self):
         """Return |Cosmology| using `~astropy.modeling.Parameter` values."""
@@ -125,11 +131,11 @@ class _CosmologyModel(FittableModel):
         Any
             Results of evaluating the Cosmology method.
         """
+        # TODO: speed up using ``replace``
+
         # create BoundArgument with all available inputs beyond the Parameters,
         # which will be filled in next
-        ba = self.cosmology_class._init_signature.bind_partial(
-            *args[self.n_inputs :], **kwargs
-        )
+        ba = self._cosmology_class_sig.bind_partial(*args[self.n_inputs :], **kwargs)
 
         # fill in missing Parameters
         for k in self.param_names:
@@ -176,23 +182,18 @@ def from_model(model):
     FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                   Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
     """
-    cosmology = model.cosmology_class
-    meta = copy.deepcopy(model.meta)
+    cosmo = model.cosmology
 
-    # assemble the Parameters
-    params = {}
+    # assemble the metadata
+    meta = copy.deepcopy(model.meta)
     for n in model.param_names:
         p = getattr(model, n)
-        params[p.name] = p.quantity if p.unit else p.value
-        # put all attributes in a dict
         meta[p.name] = {
             n: getattr(p, n)
             for n in dir(p)
             if not (n.startswith("_") or callable(getattr(p, n)))
         }
-
-    ba = cosmology._init_signature.bind(name=model.name, **params, meta=meta)
-    return cosmology(*ba.args, **ba.kwargs)
+    return replace(cosmo, meta=meta)
 
 
 def to_model(cosmology, *_, method):

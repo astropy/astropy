@@ -77,7 +77,7 @@ def test_interpolation_nd():
     interp_provider = ErfaAstromInterpolator(300 * u.s)
     provider = ErfaAstrom()
 
-    for shape in [tuple(), (1,), (10,), (3, 2), (2, 10, 5), (4, 5, 3, 2)]:
+    for shape in [(), (1,), (10,), (3, 2), (2, 10, 5), (4, 5, 3, 2)]:
         # create obstimes of the desired shapes
         delta_t = np.linspace(0, 12, np.prod(shape, dtype=int)) * u.hour
         obstime = (Time("2020-01-01T18:00") + delta_t).reshape(shape)

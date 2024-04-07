@@ -61,14 +61,17 @@ def test_z_at_value_scalar():
 
     # test behavior when the solution is outside z limits (should
     # raise a CosmologyError)
-    with pytest.raises(core.CosmologyError), pytest.warns(
-        AstropyUserWarning, match="fval is not bracketed"
+    with (
+        pytest.raises(core.CosmologyError),
+        pytest.warns(AstropyUserWarning, match="fval is not bracketed"),
     ):
         z_at_value(cosmo.angular_diameter_distance, 1500 * u.Mpc, zmax=0.5)
 
-    with pytest.raises(core.CosmologyError), pytest.warns(
-        AstropyUserWarning, match="fval is not bracketed"
-    ), np.errstate(over="ignore"):
+    with (
+        pytest.raises(core.CosmologyError),
+        pytest.warns(AstropyUserWarning, match="fval is not bracketed"),
+        np.errstate(over="ignore"),
+    ):
         z_at_value(cosmo.angular_diameter_distance, 1500 * u.Mpc, zmin=4.0)
 
 
@@ -315,9 +318,11 @@ def test_z_at_value_bracketed(method):
     else:
         ctx_bracket = nullcontext()
 
-    with pytest.raises(core.CosmologyError), pytest.warns(
-        AstropyUserWarning, match="fval is not bracketed"
-    ), ctx_bracket:
+    with (
+        pytest.raises(core.CosmologyError),
+        pytest.warns(AstropyUserWarning, match="fval is not bracketed"),
+        ctx_bracket,
+    ):
         z_at_value(
             cosmo.angular_diameter_distance,
             1500 * u.Mpc,
@@ -419,7 +424,7 @@ def test_z_at_value_roundtrip(cosmo):
         assert allclose(got, z, rtol=2e-11), f"Round-trip testing {name} failed"
 
     # Test distance functions between two redshifts; only for realizations
-    if isinstance(cosmo.name, str):
+    if isinstance(getattr(cosmo, "name", None), str):
         z2 = 2.0
         func_z1z2 = [
             lambda z1: cosmo._comoving_distance_z1z2(z1, z2),

@@ -18,9 +18,8 @@ been executed::
 Separations
 ===========
 
-The on-sky separation can be computed with the
-:meth:`astropy.coordinates.BaseCoordinateFrame.separation` or
-:meth:`astropy.coordinates.SkyCoord.separation` methods,
+The on-sky separation can be computed with
+:meth:`~astropy.coordinates.BaseCoordinateFrame.separation`,
 which computes the great-circle distance (*not* the small-angle approximation)::
 
     >>> c1 = SkyCoord('5h23m34.5s', '-69d45m22s', frame='icrs')
@@ -48,8 +47,7 @@ though they are in different frames, the separation is determined
 consistently.
 
 In addition to the on-sky separation described above,
-:meth:`astropy.coordinates.BaseCoordinateFrame.separation_3d` or
-:meth:`astropy.coordinates.SkyCoord.separation_3d` methods will
+:meth:`~astropy.coordinates.BaseCoordinateFrame.separation_3d` will
 determine the 3D distance between two coordinates that have ``distance``
 defined::
 
@@ -70,8 +68,8 @@ rather than the single scalar angular offset of a separation.
 offsets encountered in astronomy.
 
 The first piece of such functionality is the
-:meth:`~astropy.coordinates.SkyCoord.position_angle` method. This method
-computes the position angle between one
+:meth:`~astropy.coordinates.BaseCoordinateFrame.position_angle` method.
+This method computes the position angle between one
 |SkyCoord| instance and another (passed as the argument) following the
 astronomy convention (positive angles East of North)::
 
@@ -80,9 +78,10 @@ astronomy convention (positive angles East of North)::
     >>> c1.position_angle(c2).to(u.deg)  # doctest: +FLOAT_CMP
     <Angle 44.97818294 deg>
 
-The combination of :meth:`~astropy.coordinates.SkyCoord.separation` and
-:meth:`~astropy.coordinates.SkyCoord.position_angle` thus give a set of
-directional offsets. To do the inverse operation — determining the new
+The combination of :meth:`~astropy.coordinates.BaseCoordinateFrame.separation`
+and :meth:`~astropy.coordinates.BaseCoordinateFrame.position_angle` thus give a
+set of directional offsets.
+To do the inverse operation — determining the new
 "destination" coordinate given a separation and position angle — the
 :meth:`~astropy.coordinates.SkyCoord.directional_offset_by` method is provided::
 

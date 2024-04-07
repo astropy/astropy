@@ -3,13 +3,14 @@
 """
 Distribution class and associated machinery.
 """
+
 import builtins
 
 import numpy as np
 
 from astropy import stats
 from astropy import units as u
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_23, NUMPY_LT_2_0
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 if NUMPY_LT_2_0:
     from numpy.core.multiarray import normalize_axis_index
@@ -107,8 +108,7 @@ class Distribution:
         # original samples (e.g., to set the unit for QuantityDistribution).
         new_cls = cls._get_distribution_cls(type(samples))
         self = structured.view(new_cls)
-        if not NUMPY_LT_1_23 or callable(self.__array_finalize__):
-            self.__array_finalize__(samples)
+        self.__array_finalize__(samples)
         return self
 
     @classmethod
@@ -517,8 +517,6 @@ class ScalarDistribution(Distribution, np.void):
     all subclasses.  It is a scalar element, still with n_samples samples.
     """
 
-    pass
-
 
 class ArrayDistribution(Distribution, np.ndarray):
     # This includes the important override of view and __getitem__
@@ -588,8 +586,7 @@ class ArrayDistribution(Distribution, np.ndarray):
         # would give problems with units.
         structured = super().view(np.ndarray)
         distribution = structured["samples"]["sample"].view(self._samples_cls)
-        if not NUMPY_LT_1_23 or callable(self.__array_finalize__):
-            distribution.__array_finalize__(self)
+        distribution.__array_finalize__(self)
         return distribution
 
     def __getitem__(self, item):
@@ -632,7 +629,7 @@ class ArrayDistribution(Distribution, np.ndarray):
             # If value is not already a Distribution, first make it an array
             # to help interpret possible structured dtype, and then turn it
             # into a Distribution with n_samples=1 (which will broadcast).
-            value = np.array(value, dtype=self.dtype, copy=False, subok=True)
+            value = np.asanyarray(value, dtype=self.dtype)
             value = Distribution(value[..., np.newaxis])
 
         super().__setitem__(item, value)
