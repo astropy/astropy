@@ -745,10 +745,7 @@ class CompImageHDU(ImageHDU):
         return CompImageSection(self)
 
     def _verify(self, *args, **kwargs):
-        if self._bintable is None:
-            return super()._verify(*args, **kwargs)
-        else:
-            return self._bintable._verify(*args, **kwargs)
+        return super()._verify(*args, **kwargs)
 
     @property
     def _data_offset(self):
