@@ -124,7 +124,8 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
 
     This function uses the information in ``wcs.world_axis_object_classes`` and
     ``wcs.world_axis_object_components`` to convert the high level objects
-    (such as `~.SkyCoord`) to low level "values" `~.Quantity` objects.
+    (such as `~.SkyCoord`) to low level "values" which should be scalars or
+    Numpy arrays.
 
     This is used in `.HighLevelWCSMixin.world_to_pixel`, but provided as a
     separate function for use in other places where needed.
@@ -239,6 +240,9 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
             world.append(attr(objects[key]))
         else:
             world.append(rec_getattr(objects[key], attr))
+
+    # Strip of quantity-ness to return low-level objects
+    world = [world.value if isinstance(world, u.Quantity) else world]
 
     return world
 
