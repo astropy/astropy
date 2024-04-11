@@ -11,6 +11,8 @@ on:
     types:
       - synchronize
       - labeled
+    paths:
+      - .github/workflows/ci_cron_weekly.yml
   push:
     # We want this workflow to always run on release branches as well as
     # all tags since we want to be really sure we don't introduce

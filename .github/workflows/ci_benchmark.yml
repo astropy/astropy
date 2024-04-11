@@ -5,7 +5,8 @@ name: Benchmark
 on:
   pull_request:
     types: [labeled, synchronize]
-
+    paths:
+      - .github/workflows/ci_benchmark.yml
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
