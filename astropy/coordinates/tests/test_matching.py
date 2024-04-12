@@ -281,17 +281,45 @@ def test_search_around_empty_input(sources, catalog, function, search_limit):
 
 
 @pytest.mark.parametrize(
-    "function,search_limit",
+    "sources,catalog",
     [
-        pytest.param(func, limit, id=func.__name__)
-        for func, limit in ([search_around_3d, 1 * u.m], [search_around_sky, 1 * u.deg])
+        pytest.param(
+            ICRS([1] * u.deg, [0] * u.deg),
+            ICRS([1] * u.deg, [0] * u.deg),
+            id="both_with_data",
+        ),
+        pytest.param(
+            ICRS(ra=[] * u.deg, dec=[] * u.deg),
+            ICRS([1] * u.deg, [0] * u.deg),
+            id="empty_sources",
+        ),
+        pytest.param(
+            ICRS([1] * u.deg, [0] * u.deg),
+            ICRS(ra=[] * u.deg, dec=[] * u.deg),
+            id="empty_catalog",
+        ),
+        pytest.param(
+            ICRS(ra=[] * u.deg, dec=[] * u.deg),
+            ICRS(ra=[] * u.deg, dec=[] * u.deg),
+            id="both_empty",
+        ),
     ],
 )
-def test_search_around_no_dist_input_output_units(function, search_limit):
+def test_search_around_3d_no_dist_input(sources, catalog):
+    # Regression test for #16280: UnitConversionError was not raised if at
+    # least one of the coords was empty.
+    with pytest.raises(
+        u.UnitConversionError,
+        match=r"^'pc' \(length\) and '' \(dimensionless\) are not convertible$",
+    ):
+        search_around_3d(sources, catalog, 1 * u.pc)
+
+
+def test_search_around_sky_no_dist_input():
     # Test that input without distance units results in a
     # 'dimensionless_unscaled' unit
     empty_sc = SkyCoord([], [], unit=u.deg)
-    idx1, idx2, d2d, d3d = function(empty_sc, empty_sc[:], search_limit)
+    idx1, idx2, d2d, d3d = search_around_sky(empty_sc, empty_sc[:], 1 * u.deg)
     assert d2d.unit == u.deg
     assert d3d.unit == u.dimensionless_unscaled
 
