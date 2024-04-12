@@ -8,7 +8,7 @@ Getting Started
    :maxdepth: 1
 
    install
-   whatsnew/7.0
+   whatsnew/6.1
    importing_astropy
    Example Gallery <generated/examples/index>
    Tutorials <https://learn.astropy.org/>
