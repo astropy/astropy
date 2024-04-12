@@ -5,7 +5,13 @@ import pytest
 from numpy import testing as npt
 
 from astropy import units as u
-from astropy.coordinates import matching
+from astropy.coordinates import (
+    ICRS,
+    SkyCoord,
+    matching,
+    search_around_3d,
+    search_around_sky,
+)
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -14,6 +20,9 @@ These are the tests for coordinate matching.
 
 Note that this requires scipy.
 """
+
+if not HAS_SCIPY:
+    pytest.skip("Coordinate matching requires scipy", allow_module_level=True)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")
@@ -155,7 +164,6 @@ def test_matching_method():
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 def test_search_around():
-    from astropy.coordinates import ICRS, SkyCoord
     from astropy.coordinates.matching import search_around_3d, search_around_sky
 
     coo1 = ICRS([4, 2.1] * u.degree, [0, 0] * u.degree, distance=[1, 5] * u.kpc)
@@ -230,13 +238,47 @@ def test_search_around():
     assert d2d.unit == u.deg
     assert d3d.unit == u.kpc
 
+
+@pytest.mark.parametrize(
+    "sources,catalog",
+    [
+        pytest.param(
+            ICRS([1] * u.deg, [0] * u.deg),
+            ICRS([1] * u.deg, [0] * u.deg),
+            id="both_with_data",
+        ),
+        pytest.param(
+            ICRS(ra=[] * u.deg, dec=[] * u.deg),
+            ICRS([1] * u.deg, [0] * u.deg),
+            id="empty_sources",
+        ),
+        pytest.param(
+            ICRS([1] * u.deg, [0] * u.deg),
+            ICRS(ra=[] * u.deg, dec=[] * u.deg),
+            id="empty_catalog",
+        ),
+        pytest.param(
+            ICRS(ra=[] * u.deg, dec=[] * u.deg),
+            ICRS(ra=[] * u.deg, dec=[] * u.deg),
+            id="both_empty",
+        ),
+    ],
+)
+def test_search_around_3d_no_dist_input(sources, catalog):
+    # Regression test for #16280: UnitConversionError was not raised if at
+    # least one of the coords was empty.
+    with pytest.raises(
+        u.UnitConversionError,
+        match=r"^'pc' \(length\) and '' \(dimensionless\) are not convertible$",
+    ):
+        search_around_3d(sources, catalog, 1 * u.pc)
+
+
+def test_search_around_sky_no_dist_input():
     # Test that input without distance units results in a
     # 'dimensionless_unscaled' unit
-    cempty = SkyCoord(ra=[], dec=[], unit=u.deg)
-    idx1, idx2, d2d, d3d = search_around_3d(cempty, cempty[:], 1 * u.m)
-    assert d2d.unit == u.deg
-    assert d3d.unit == u.dimensionless_unscaled
-    idx1, idx2, d2d, d3d = search_around_sky(cempty, cempty[:], 1 * u.m)
+    empty_sc = SkyCoord([], [], unit=u.deg)
+    idx1, idx2, d2d, d3d = search_around_sky(empty_sc, empty_sc[:], 1 * u.deg)
     assert d2d.unit == u.deg
     assert d3d.unit == u.dimensionless_unscaled
 
