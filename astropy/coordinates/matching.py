@@ -263,15 +263,6 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree="kdtree_3d"):
             " a scalar coordinate."
         )
 
-    if len(coords1) == 0 or len(coords2) == 0:
-        # Empty array input: return empty match
-        return (
-            np.array([], dtype=int),
-            np.array([], dtype=int),
-            Angle([], u.deg),
-            u.Quantity([], coords1.distance.unit),
-        )
-
     kdt2 = _get_cartesian_kdtree(coords2, storekdtree)
     cunit = coords2.cartesian.x.unit
 
