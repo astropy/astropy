@@ -7,7 +7,7 @@ but will deal with unit conversions internally.
 
 from __future__ import annotations
 
-# STDLIB
+import builtins
 import numbers
 import operator
 import re
@@ -15,10 +15,8 @@ import warnings
 from fractions import Fraction
 from typing import TYPE_CHECKING
 
-# THIRD PARTY
 import numpy as np
 
-# LOCAL
 from astropy import config as _config
 from astropy.utils.compat.numpycompat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
@@ -1393,7 +1391,9 @@ class Quantity(np.ndarray):
 
         return unitstr
 
-    def to_string(self, unit=None, precision=None, format=None, subfmt=None):
+    def to_string(
+        self, unit=None, precision=None, format=None, subfmt=None, *, formatter=None
+    ):
         """
         Generate a string representation of the quantity and its unit.
 
@@ -1423,6 +1423,15 @@ class Quantity(np.ndarray):
             - 'latex_inline': Return a LaTeX-formatted string that uses
               negative exponents instead of fractions
 
+        formatter : str, callable, dict, optional
+            The formatter to use for the value. If a string, it should be a
+            valid format specifier using Python's mini-language. If a callable,
+            it will be treated as the default formatter for all values and will
+            overwrite default Latex formatting for exponential notation and complex
+            numbers. If a dict, it should map a specific type to a callable to be
+            directly passed into `numpy.array2string`. If not provided, the default
+            formatter will be used.
+
         subfmt : str, optional
             Subformat of the result. For the moment, only used for
             ``format='latex'`` and ``format='latex_inline'``. Supported
@@ -1439,8 +1448,16 @@ class Quantity(np.ndarray):
         """
         if unit is not None and unit != self.unit:
             return self.to(unit).to_string(
-                unit=None, precision=precision, format=format, subfmt=subfmt
+                unit=None,
+                precision=precision,
+                format=format,
+                subfmt=subfmt,
+                formatter=formatter,
             )
+
+        if format is None and formatter is None and precision is None:
+            # Use default formatting settings
+            return f"{self.value}{self._unitstr:s}"
 
         formats = {
             None: None,
@@ -1454,33 +1471,70 @@ class Quantity(np.ndarray):
 
         if format not in formats:
             raise ValueError(f"Unknown format '{format}'")
-        elif format is None:
-            if precision is None:
-                # Use default formatting settings
-                return f"{self.value}{self._unitstr:s}"
-            else:
-                # np.array2string properly formats arrays as well as scalars
-                return (
-                    np.array2string(self.value, precision=precision, floatmode="fixed")
-                    + self._unitstr
+
+        format_spec = formatter if isinstance(formatter, str) else None
+
+        if format is None:
+            if format_spec is not None:
+
+                def formatter(value):
+                    return builtins.format(value, format_spec)
+
+            if callable(formatter):
+                formatter = {"all": formatter}
+
+            return (
+                np.array2string(
+                    self.value,
+                    precision=precision,
+                    floatmode="fixed",
+                    formatter=formatter,
                 )
+                + self._unitstr
+            )
 
         # else, for the moment we assume format="latex" or "latex_inline".
 
         # Set the precision if set, otherwise use numpy default
         pops = np.get_printoptions()
-        format_spec = f".{precision if precision is not None else pops['precision']}g"
-
-        def float_formatter(value):
-            return Latex.format_exponential_notation(value, format_spec=format_spec)
-
-        def complex_formatter(value):
-            return "({}{}i)".format(
-                Latex.format_exponential_notation(value.real, format_spec=format_spec),
-                Latex.format_exponential_notation(
-                    value.imag, format_spec="+" + format_spec
-                ),
+        if format_spec is None:
+            format_spec = (
+                f".{precision if precision is not None else pops['precision']}g"
             )
+
+        # Use default formatters
+        if formatter is None or isinstance(formatter, str):
+            # Filter width and alignment operations for latex
+            # [[fill]align][sign]["z"]["#"]["0"][width][grouping_option]["." precision][type]
+            format_spec = re.sub(
+                r"(.*?)([+\- ]?)(\d+)?(,)?(\.\d+)?([a-zA-Z%]+)?$",
+                r"\2\5\6",
+                format_spec,
+            )
+
+            if self.dtype.kind == "c":  # Complex default latex formatter
+                # Disallow sign operations for the imaginary part
+                imag_format_spec = re.sub(r"[+\- ]", "", format_spec)
+
+                def formatter(value):
+                    return "({}{}i)".format(
+                        Latex.format_exponential_notation(
+                            value.real, format_spec=format_spec
+                        ),
+                        Latex.format_exponential_notation(
+                            value.imag, format_spec="+" + imag_format_spec
+                        ),
+                    )
+
+            else:  # Float default latex formatter
+
+                def formatter(value):
+                    return Latex.format_exponential_notation(
+                        value, format_spec=format_spec
+                    )
+
+        if callable(formatter):
+            formatter = {"all": formatter}
 
         # The view is needed for the scalar case - self.value might be float.
         latex_value = np.array2string(
@@ -1490,10 +1544,7 @@ class Quantity(np.ndarray):
                 if conf.latex_array_threshold > -1
                 else pops["threshold"]
             ),
-            formatter={
-                "float_kind": float_formatter,
-                "complex_kind": complex_formatter,
-            },
+            formatter=formatter,
             max_line_width=np.inf,
             separator=",~",
         )

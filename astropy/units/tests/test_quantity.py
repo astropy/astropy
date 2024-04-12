@@ -1004,6 +1004,16 @@ class TestQuantityDisplay:
             f"Quantity as KMS: {qscalar.to_string(precision=3, unit=u.km / u.s)}" == res
         )
 
+        # Precision set + formatter (precision should be overwritten)
+        res = "2e+11 km / s"
+        assert (
+            f"{qscalar.to_string(precision=3, formatter='.0e', unit=u.km / u.s)}" == res
+        )
+
+        # Invalid format
+        with pytest.raises(ValueError):
+            qscalar.to_string(format="test")
+
         res = r"$1.5 \times 10^{14} \; \mathrm{\frac{m}{s}}$"
         assert qscalar.to_string(format="latex") == res
         assert qscalar.to_string(format="latex", subfmt="inline") == res
@@ -1018,6 +1028,312 @@ class TestQuantityDisplay:
 
         res = "[0 1 2] (Unit not initialised)"
         assert np.arange(3).view(u.Quantity).to_string() == res
+
+    @pytest.mark.parametrize(
+        "quant, input_unit, format_spec, expected_result",
+        [
+            pytest.param(
+                u.Quantity(1.5e14, "m/s"),
+                None,
+                ".2e",
+                "1.50e+14 m / s",
+                id="scientific_notation",
+            ),
+            pytest.param(
+                u.Quantity(0.123, "m/s"),
+                None,
+                "0.3f",
+                "0.123 m / s",
+                id="float_format",
+            ),
+            pytest.param(
+                u.Quantity(0.000123, "km/s"),
+                "m/s",
+                ".2e",
+                "1.23e-01 m / s",
+                id="scientific_notation_with_zero",
+            ),
+            pytest.param(
+                u.Quantity(1.23456789e15, "m/s"),
+                None,
+                ".2e",
+                "1.23e+15 m / s",
+                id="scientific_notation_large_number",
+            ),
+            pytest.param(
+                u.Quantity(123, "m"),
+                None,
+                ">10",
+                "     123.0 m",
+                id="right_aligned",
+            ),
+            pytest.param(
+                u.Quantity(123, "m"),
+                "km",
+                "=+10",
+                "+    0.123 km",
+                id="sign_alignment_positive",
+            ),
+            pytest.param(
+                u.Quantity(-123, "m"),
+                "cm",
+                "=+10",
+                "-  12300.0 cm",
+                id="sign_alignment_negative",
+            ),
+            pytest.param(
+                u.Quantity(123, "m"),
+                None,
+                "^10",
+                "  123.0    m",
+                id="center_alignment",
+            ),
+            pytest.param(
+                u.Quantity(123, "m"),
+                None,
+                "<10",
+                "123.0      m",
+                id="left_aligned",
+            ),
+            pytest.param(
+                u.Quantity(123, "m"),
+                None,
+                "010",
+                "00000123.0 m",
+                id="zero_padding",
+            ),
+            pytest.param(
+                u.Quantity(1234567, "m"),
+                None,
+                ",",
+                "1,234,567.0 m",
+                id="thousands_separator",
+            ),
+            pytest.param(
+                u.Quantity(137000000, "lyr"),
+                None,
+                ">+30,.2e",
+                "                     +1.37e+08 lyr",
+                id="large_number_complex_format",
+            ),
+            pytest.param(
+                u.Quantity(1234567, "m"),
+                None,
+                "_",
+                "1_234_567.0 m",
+                id="custom_separator",
+            ),
+            pytest.param(
+                u.Quantity(2.5 - 1.2j),
+                None,
+                ".2f",
+                "2.50-1.20j",
+                id="complex_number_float_format",
+            ),
+            pytest.param(
+                u.Quantity(2.5 - 1.2j),
+                None,
+                ".2e",
+                "2.50e+00-1.20e+00j",
+                id="complex_number_scientific_notation",
+            ),
+            pytest.param(
+                u.Quantity(2012, "m/s"),
+                None,
+                None,
+                "2012.0 m / s",
+                id="default_format",
+            ),
+        ],
+    )
+    def test_format_spec(self, quant, input_unit, format_spec, expected_result):
+        assert (
+            quant.to_string(formatter=format_spec, unit=input_unit) == expected_result
+        )
+
+    @pytest.mark.parametrize(
+        "quant, input_unit, format_spec, format, expected_result",
+        [
+            pytest.param(
+                u.Quantity(2.5 - 1.2j),
+                None,
+                None,
+                "latex",
+                r"$(2.5-1.2i) \; \mathrm{}$",
+                id="complex_number_latex_default",
+            ),
+            pytest.param(
+                u.Quantity(1.2e3, "m"),
+                None,
+                None,
+                "latex",
+                r"$1200 \; \mathrm{m}$",
+                id="complex_number_latex_default",
+            ),
+            pytest.param(
+                u.Quantity(2.5 - 1.2j),
+                None,
+                "+.2f",
+                "latex",
+                r"$(+2.50-1.20i) \; \mathrm{}$",
+                id="complex_number_latex_positive_format",
+            ),
+            pytest.param(
+                u.Quantity(2.5 - 1.2j),
+                None,
+                "-.2f",
+                "latex",
+                r"$(2.50-1.20i) \; \mathrm{}$",
+                id="complex_number_latex_negative_format",
+            ),
+            pytest.param(
+                u.Quantity(2.5 - 1.2j),
+                None,
+                ">+20.5f",
+                "latex",
+                r"$(+2.50000-1.20000i) \; \mathrm{}$",
+                id="complex_number_latex_positive_alignment",
+            ),
+            pytest.param(
+                u.Quantity(137000000, "lyr"),
+                None,
+                ">+30,.2e",
+                "latex",
+                r"$+1.37 \times 10^{8} \; \mathrm{lyr}$",
+                id="large_number_latex_complex_format",
+            ),
+            pytest.param(
+                u.Quantity(2.5 - 1.2j),
+                None,
+                " .2f",
+                "latex",
+                r"$( 2.50-1.20i) \; \mathrm{}$",
+                id="complex_number_latex_space_format",
+            ),
+            pytest.param(
+                u.Quantity(1.23456789e15, "m/s"),
+                None,
+                ".3e",
+                "latex",
+                r"$1.235 \times 10^{15} \; \mathrm{\frac{m}{s}}$",
+                id="scientific_notation_latex_format",
+            ),
+            pytest.param(
+                u.Quantity(123.456, "km/s"),
+                None,
+                ".2f",
+                "latex",
+                r"$123.46 \; \mathrm{\frac{km}{s}}$",
+                id="float_latex_format",
+            ),
+            pytest.param(
+                u.Quantity(123.456, "m/s"),
+                None,
+                ".2f",
+                "latex_inline",
+                r"$123.46 \; \mathrm{m\,s^{-1}}$",
+                id="inline_latex_format",
+            ),
+            pytest.param(
+                u.Quantity(123.456, "m/s"),
+                None,
+                ".3e",
+                "latex_inline",
+                r"$1.235 \times 10^{2} \; \mathrm{m\,s^{-1}}$",
+                id="scientific_notation_inline_latex_format",
+            ),
+            pytest.param(
+                u.Quantity(1239999123, "m/s"),
+                None,
+                None,
+                "latex",
+                r"$1.2399991 \times 10^{9} \; \mathrm{\frac{m}{s}}$",
+                id="default_exponential_latex_format",
+            ),
+            pytest.param(
+                u.Quantity(2.5 - 1.2j),
+                None,
+                None,
+                "latex",
+                r"$(2.5-1.2i) \; \mathrm{}$",
+                id="default_complex_latex_format",
+            ),
+        ],
+    )
+    def test_format_spec_latex(
+        self, quant, input_unit, format_spec, format, expected_result
+    ):
+        assert (
+            quant.to_string(formatter=format_spec, format=format, unit=input_unit)
+            == expected_result
+        )
+
+    @pytest.mark.parametrize(
+        "quant, formatter, expected_result",
+        [
+            pytest.param(
+                1.2345 * u.kg,
+                lambda x: f"{float(x):.2f}",
+                r"1.23 kg",
+                id="explicit_formatting",
+            ),
+            pytest.param(
+                35.0 * u.lyr,
+                {
+                    "float": lambda x: f"{float(x):.1f}",
+                    "int": lambda x: f"{float(x):.3f}",
+                },
+                r"35.0 lyr",
+                id="dictionary_formatters",
+            ),
+        ],
+    )
+    def test_formatter(self, quant, formatter, expected_result):
+        result = quant.to_string(formatter=formatter)
+        assert result == expected_result
+
+    @pytest.mark.parametrize(
+        "quant, formatter, format, expected_result",
+        [
+            pytest.param(
+                35.0 * u.lyr,
+                {"all": lambda x: f"{float(x):.3f}"},
+                "latex",
+                r"$35.000 \; \mathrm{lyr}$",
+                id="dictionary_formatters_latex",
+            ),
+            pytest.param(
+                1.2345 * u.kg,
+                lambda x: f"{float(x):.2f}",
+                "latex",
+                r"$1.23 \; \mathrm{kg}$",
+                id="numerical_formatting_latex",
+            ),
+            pytest.param(
+                35 * u.km / u.s,
+                lambda x: f"\\approx {float(x):.1f}",
+                "latex",
+                r"$\approx 35.0 \; \mathrm{\frac{km}{s}}$",
+                id="complex_formatting_latex",
+            ),
+            pytest.param(
+                u.Quantity(2.5 - 1.2j),
+                lambda x: f"({x.real:.2f}{x.imag:+.1f}j)",
+                "latex",
+                r"$(2.50-1.2j) \; \mathrm{}$",
+                id="complex_custom_formatting_latex",
+            ),
+        ],
+    )
+    def test_formatter_latex(self, quant, formatter, format, expected_result):
+        result = quant.to_string(formatter=formatter, format=format)
+        assert result == expected_result
+
+    @pytest.mark.parametrize("format_spec", ["b", "o", "x", "c", "s"])
+    def test_format_spec_prohibition(self, format_spec):
+        qscalar = u.Quantity(123, "m")
+        with pytest.raises(ValueError):
+            qscalar.to_string(formatter=format_spec)
 
     def test_repr_latex(self):
         from astropy.units.quantity import conf
