@@ -5,7 +5,6 @@ import locale
 import pathlib
 import platform
 import re
-from collections import OrderedDict
 from io import BytesIO, StringIO
 
 import numpy as np
@@ -638,14 +637,13 @@ def test_null_Ipac():
 
 
 def test_Ipac_meta():
-    keywords = OrderedDict(
-        (
-            ("intval", 1),
-            ("floatval", 2.3e3),
-            ("date", "Wed Sp 20 09:48:36 1995"),
-            ("key_continue", "IPAC keywords can continue across lines"),
-        )
-    )
+    keywords = {
+        "intval": 1,
+        "floatval": 2.3e3,
+        "date": "Wed Sp 20 09:48:36 1995",
+        "key_continue": "IPAC keywords can continue across lines",
+    }
+
     comments = ["This is an example of a valid comment"]
     f = "data/ipac.dat"
     testfile = get_testfiles(f)[0]
