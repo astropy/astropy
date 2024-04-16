@@ -6,8 +6,6 @@ This module contains functions for matching coordinate catalogs.
 
 import numpy as np
 
-from astropy import units as u
-
 from . import Angle
 from .representation import UnitSphericalRepresentation
 from .sky_coordinate import SkyCoord
@@ -272,27 +270,17 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree="kdtree_3d"):
     coords1 = coords1.transform_to(coords2)
 
     kdt1 = _get_cartesian_kdtree(coords1, storekdtree, forceunit=cunit)
-
-    # this is the *cartesian* 3D distance that corresponds to the given angle
-    d = distlimit.to_value(cunit)
-
     idxs1 = []
     idxs2 = []
-    for i, matches in enumerate(kdt1.query_ball_tree(kdt2, d)):
-        for match in matches:
-            idxs1.append(i)
-            idxs2.append(match)
-    idxs1 = np.array(idxs1, dtype=int)
-    idxs2 = np.array(idxs2, dtype=int)
-
-    if idxs1.size == 0:
-        d2ds = Angle([], u.deg)
-        d3ds = u.Quantity([], coords1.distance.unit)
-    else:
-        d2ds = coords1[idxs1].separation(coords2[idxs2])
-        d3ds = coords1[idxs1].separation_3d(coords2[idxs2])
-
-    return idxs1, idxs2, d2ds, d3ds
+    for i, matches in enumerate(kdt1.query_ball_tree(kdt2, distlimit.to_value(cunit))):
+        idxs1.extend(len(matches) * [i])
+        idxs2.extend(matches)
+    return (
+        np.array(idxs1, dtype=int),
+        np.array(idxs2, dtype=int),
+        coords1[idxs1].separation(coords2[idxs2]),
+        coords1[idxs1].separation_3d(coords2[idxs2]),
+    )
 
 
 def search_around_sky(coords1, coords2, seplimit, storekdtree="kdtree_sky"):
@@ -358,19 +346,6 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree="kdtree_sky"):
             " scalar coordinate."
         )
 
-    if len(coords1) == 0 or len(coords2) == 0:
-        # Empty array input: return empty match
-        if coords2.distance.unit == u.dimensionless_unscaled:
-            distunit = u.dimensionless_unscaled
-        else:
-            distunit = coords1.distance.unit
-        return (
-            np.array([], dtype=int),
-            np.array([], dtype=int),
-            Angle([], u.deg),
-            u.Quantity([], distunit),
-        )
-
     # we convert coord1 to match coord2's frame.  We do it this way
     # so that if the conversion does happen, the KD tree of coord2 at least gets
     # saved. (by convention, coord2 is the "catalog" if that makes sense)
@@ -378,52 +353,35 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree="kdtree_sky"):
 
     # strip out distance info
     urepr1 = coords1.data.represent_as(UnitSphericalRepresentation)
-    ucoords1 = coords1.realize_frame(urepr1)
 
-    kdt1 = _get_cartesian_kdtree(ucoords1, storekdtree)
-
+    kdt1 = _get_cartesian_kdtree(coords1.realize_frame(urepr1), storekdtree)
     if storekdtree and coords2.cache.get(storekdtree):
         # just use the stored KD-Tree
         kdt2 = coords2.cache[storekdtree]
     else:
         # strip out distance info
         urepr2 = coords2.data.represent_as(UnitSphericalRepresentation)
-        ucoords2 = coords2.realize_frame(urepr2)
 
-        kdt2 = _get_cartesian_kdtree(ucoords2, storekdtree)
+        kdt2 = _get_cartesian_kdtree(coords2.realize_frame(urepr2), storekdtree)
         if storekdtree:
-            # save the KD-Tree in coords2, *not* ucoords2
             coords2.cache["kdtree" if storekdtree is True else storekdtree] = kdt2
 
     # this is the *cartesian* 3D distance that corresponds to the given angle
-    r = (2 * np.sin(Angle(seplimit) / 2.0)).value
+    r = (2 * np.sin(Angle(0.5 * seplimit))).value
 
     idxs1 = []
     idxs2 = []
     for i, matches in enumerate(kdt1.query_ball_tree(kdt2, r)):
-        for match in matches:
-            idxs1.append(i)
-            idxs2.append(match)
-    idxs1 = np.array(idxs1, dtype=int)
-    idxs2 = np.array(idxs2, dtype=int)
-
-    if idxs1.size == 0:
-        if coords2.distance.unit == u.dimensionless_unscaled:
-            distunit = u.dimensionless_unscaled
-        else:
-            distunit = coords1.distance.unit
-        d2ds = Angle([], u.deg)
-        d3ds = u.Quantity([], distunit)
-    else:
-        d2ds = coords1[idxs1].separation(coords2[idxs2])
-        try:
-            d3ds = coords1[idxs1].separation_3d(coords2[idxs2])
-        except ValueError:
-            # they don't have distances, so we just fall back on the cartesian
-            # distance, computed from d2ds
-            d3ds = 2 * np.sin(d2ds / 2.0)
-
-    return idxs1, idxs2, d2ds, d3ds
+        idxs1.extend(len(matches) * [i])
+        idxs2.extend(matches)
+    d2ds = coords1[idxs1].separation(coords2[idxs2])
+    try:
+        d3ds = coords1[idxs1].separation_3d(coords2[idxs2])
+    except ValueError:
+        # they don't have distances, so we just fall back on the cartesian
+        # distance, computed from d2ds
+        d3ds = 2 * np.sin(0.5 * d2ds)
+    return np.array(idxs1, dtype=int), np.array(idxs2, dtype=int), d2ds, d3ds
 
 
 def _get_cartesian_kdtree(coord, attrname_or_kdt="kdtree", forceunit=None):
