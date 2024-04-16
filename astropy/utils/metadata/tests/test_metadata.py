@@ -22,7 +22,7 @@ class OrderedDictSubclass(OrderedDict):
 class MetaBaseTest:
     def test_none(self):
         d = self.test_class(*self.args)
-        assert isinstance(d.meta, OrderedDict)
+        assert isinstance(d.meta, dict)
         assert len(d.meta) == 0
 
     @pytest.mark.parametrize(
@@ -93,6 +93,12 @@ class ExampleFrozenDataclass:
 class TestMetaExampleFrozenDataclass(MetaBaseTest):
     test_class = ExampleFrozenDataclass
     args = ()
+
+
+def test_metadata_default():
+    data = ExampleDataclass()
+    data.meta["a"] = 1
+    assert isinstance(data.meta, OrderedDict)
 
 
 def test_metadata_default_factory():

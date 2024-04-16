@@ -9,7 +9,7 @@ ipac.py:
 """
 
 import re
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 from textwrap import wrap
 from warnings import warn
 
@@ -121,7 +121,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
 
         table_meta = meta["table"]
         table_meta["comments"] = []
-        table_meta["keywords"] = OrderedDict()
+        table_meta["keywords"] = {}
         keywords = table_meta["keywords"]
 
         # fmt: off

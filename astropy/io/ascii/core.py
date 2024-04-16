@@ -18,7 +18,6 @@ import operator
 import os
 import re
 import warnings
-from collections import OrderedDict
 from contextlib import suppress
 from io import StringIO
 
@@ -1356,7 +1355,7 @@ class BaseReader(metaclass=MetaBaseReader):
         # Metadata, consisting of table-level meta and column-level meta.  The latter
         # could include information about column type, description, formatting, etc,
         # depending on the table meta format.
-        self.meta = OrderedDict(table=OrderedDict(), cols=OrderedDict())
+        self.meta = {"table": {}, "cols": {}}
 
     def _check_multidim_table(self, table):
         """Check that the dimensions of columns in ``table`` are acceptable.

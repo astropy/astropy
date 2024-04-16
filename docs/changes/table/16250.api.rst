@@ -1,0 +1,9 @@
+Change the default type for the ``meta`` attribute in ``Table`` and ``Column`` (and
+subclasses) from ``OrderedDict`` to ``dict``. Since Python 3.8 the ``dict`` class is
+ordered by default, so there is no need to use ``OrderedDict``.
+
+In addition the ECSV table writer in ``astropy.io.ascii`` was updated to consistently
+write the ``meta`` attribute as an ordered map using the  ``!!omap`` tag. This
+convention conforms to the ECSV specification and is supported by existing ECSV readers.
+Previously the ``meta`` attribute could be written as an ordinary YAML map, which is not
+guaranteed to preserve the order of the keys.

@@ -25,8 +25,8 @@ file:
     # - {name: name, datatype: string}
     # - {name: H0, unit: km / (Mpc s), datatype: float64, description: Hubble ...}
     ...
-    # meta:
-    #   Oc0: 0.2607
+    # meta: !!omap
+    # - {Oc0: 0.2607}
     ...
     # schema: astropy-2.0
     name H0 Om0 Tcmb0 Neff m_nu Ob0
@@ -60,8 +60,8 @@ a column of the table using the ``cosmology_in_meta`` keyword argument.
     # - {name: cosmology, datatype: string}
     # - {name: name, datatype: string}
     ...
-    # meta:
-    #   Oc0: 0.2607
+    # meta: !!omap
+    # - {Oc0: 0.2607}
     ...
     # schema: astropy-2.0
     cosmology name H0 Om0 Tcmb0 Neff m_nu Ob0
@@ -127,8 +127,8 @@ useful when the files's column names do not match the class' parameter names.
     # datatype:
     # - {name: name, datatype: string}
     ...
-    # meta:
-    #   Oc0: 0.2607
+    # meta: !!omap
+    # - {Oc0: 0.2607}
     ...
     # schema: astropy-2.0
     name Hubble Om0 Tcmb0 Neff m_nu Ob0
@@ -223,8 +223,8 @@ def read_ecsv(
         # datatype:
         # - {name: name, datatype: string}
         ...
-        # meta:
-        #   Oc0: 0.2607
+        # meta: !!omap
+        # - {Oc0: 0.2607}
         ...
         # schema: astropy-2.0
         name H0 Om0 Tcmb0 Neff m_nu Ob0
@@ -302,8 +302,8 @@ def read_ecsv(
         # datatype:
         # - {name: name, datatype: string}
         ...
-        # meta:
-        #   Oc0: 0.2607
+        # meta: !!omap
+        # - {Oc0: 0.2607}
         ...
         # schema: astropy-2.0
         name Hubble Om0 Tcmb0 Neff m_nu Ob0
@@ -394,8 +394,8 @@ def write_ecsv(
         # datatype:
         # - {name: name, datatype: string}
         ...
-        # meta:
-        #   Oc0: 0.2607
+        # meta: !!omap
+        # - {Oc0: 0.2607}
         ...
         # schema: astropy-2.0
         name H0 Om0 Tcmb0 Neff m_nu Ob0
@@ -433,8 +433,8 @@ def write_ecsv(
         # - {name: cosmology, datatype: string}
         # - {name: name, datatype: string}
         ...
-        # meta:
-        #   Oc0: 0.2607
+        # meta: !!omap
+        # - {Oc0: 0.2607}
         ...
         # schema: astropy-2.0
         cosmology name H0 Om0 Tcmb0 Neff m_nu Ob0

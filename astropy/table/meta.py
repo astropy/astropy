@@ -52,7 +52,9 @@ class ColumnDict(dict):
 
 def _construct_odict(load, node):
     """
-    Construct OrderedDict from !!omap in yaml safe load.
+    Construct dict from !!omap in yaml safe load.
+
+    See ``get_header_from_yaml()`` for usage.
 
     Source: https://gist.github.com/weaver/317164
     License: Unspecified
@@ -60,23 +62,8 @@ def _construct_odict(load, node):
     This is the same as SafeConstructor.construct_yaml_omap(),
     except the data type is changed to OrderedDict() and setitem is
     used instead of append in the loop
-
-    Examples
-    --------
-    ::
-
-      >>> yaml.load('''  # doctest: +SKIP
-      ... !!omap
-      ... - foo: bar
-      ... - mumble: quux
-      ... - baz: gorp
-      ... ''')
-      OrderedDict([('foo', 'bar'), ('mumble', 'quux'), ('baz', 'gorp')])
-
-      >>> yaml.load('''!!omap [ foo: bar, mumble: quux, baz : gorp ]''')  # doctest: +SKIP
-      OrderedDict([('foo', 'bar'), ('mumble', 'quux'), ('baz', 'gorp')])
     """
-    omap = OrderedDict()
+    omap = {}
     yield omap
     if not isinstance(node, yaml.SequenceNode):
         raise yaml.constructor.ConstructorError(
@@ -269,7 +256,7 @@ def _get_col_attributes(col):
         ("unit", lambda x: x is not None, str),
         ("format", lambda x: x is not None, None),
         ("description", lambda x: x is not None, None),
-        ("meta", lambda x: x, None),
+        ("meta", lambda x: x, OrderedDict),
     ):
         col_attr = getattr(col.info, attr)
         if nontrivial(col_attr):
@@ -302,7 +289,7 @@ def get_yaml_from_table(table):
     """
     header = {"cols": list(table.columns.values())}
     if table.meta:
-        header["meta"] = table.meta
+        header["meta"] = OrderedDict(table.meta)
 
     return get_yaml_from_header(header)
 

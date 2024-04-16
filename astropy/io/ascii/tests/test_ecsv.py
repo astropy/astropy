@@ -55,12 +55,15 @@ for dtype in DTYPES:
         data = np.array(["ab 0", "ab, 1", "ab2"])
     else:
         data = np.arange(3, dtype=dtype)
-    c = Column(
-        data, unit="m / s", description="descr_" + dtype, meta={"meta " + dtype: 1}
-    )
+    c = Column(data, unit="m / s", description="descr_" + dtype)
+    # Add meta in way that uses the default_factory type and not in alphabetical order
+    c.meta["meta " + dtype] = 1
+    c.meta["a"] = 2
     T_DTYPES[dtype] = c
 
+# Add meta in way that uses the default_factory type and not in alphabetical order
 T_DTYPES.meta["comments"] = ["comment1", "comment2"]
+T_DTYPES.meta["a"] = 3
 
 # Corresponds to simple_table()
 SIMPLE_LINES = [
@@ -103,24 +106,33 @@ def test_write_full():
         "#   unit: m / s",
         "#   datatype: bool",
         "#   description: descr_bool",
-        "#   meta: {meta bool: 1}",
+        "#   meta: !!omap",
+        "#   - {meta bool: 1}",
+        "#   - {a: 2}",
         "# - name: int64",
         "#   unit: m / s",
         "#   datatype: int64",
         "#   description: descr_int64",
-        "#   meta: {meta int64: 1}",
+        "#   meta: !!omap",
+        "#   - {meta int64: 1}",
+        "#   - {a: 2}",
         "# - name: float64",
         "#   unit: m / s",
         "#   datatype: float64",
         "#   description: descr_float64",
-        "#   meta: {meta float64: 1}",
+        "#   meta: !!omap",
+        "#   - {meta float64: 1}",
+        "#   - {a: 2}",
         "# - name: str",
         "#   unit: m / s",
         "#   datatype: string",
         "#   description: descr_str",
-        "#   meta: {meta str: 1}",
+        "#   meta: !!omap",
+        "#   - {meta str: 1}",
+        "#   - {a: 2}",
         "# meta: !!omap",
         "# - comments: [comment1, comment2]",
+        "# - {a: 3}",
         "# schema: astropy-2.0",
         "bool int64 float64 str",
         'False 0 0.0 "ab 0"',
@@ -321,6 +333,12 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
         else:
             assert np.all(a1 == a2)
 
+    # Check meta values and key order but allow None to be equivalent to {}
+    meta1 = obj1.info.meta or {}
+    meta2 = obj2.info.meta or {}
+    assert meta1 == meta2
+    assert meta1.keys() == meta2.keys()
+
     # For no attrs that means we just compare directly.
     if not attrs:
         if isinstance(obj1, np.ndarray) and obj1.dtype.kind == "f":
@@ -445,6 +463,7 @@ def test_ecsv_mixins_per_column(table_cls, name_col, ndim):
     col = make_multidim(col, ndim)
     t = table_cls([c, col, c], names=["c1", name, "c2"])
     t[name].info.description = "description"
+    t[name].info.meta = {"b": 2, "a": 1}
 
     out = StringIO()
     t.write(out, format="ascii.ecsv")

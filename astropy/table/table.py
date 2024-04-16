@@ -622,7 +622,7 @@ class Table:
         Additional keyword args when converting table-like object.
     """
 
-    meta = MetaData(copy=False)
+    meta = MetaData(copy=False, default_factory=dict)
 
     # Define class attributes for core container objects to allow for subclass
     # customization.
