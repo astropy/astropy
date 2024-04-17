@@ -298,6 +298,7 @@ edit_on_github_branch = "main"
 # resolve.
 
 nitpicky = True
+show_warning_types = True
 # See docs/nitpick-exceptions file for the actual listing.
 nitpick_ignore = []
 for line in open("nitpick-exceptions"):
@@ -305,6 +306,10 @@ for line in open("nitpick-exceptions"):
         continue
     dtype, target = line.split(None, 1)
     nitpick_ignore.append((dtype, target.strip()))
+
+suppress_warnings = [
+    "config.cache",  # our rebuild is okay
+]
 
 # -- Options for the Sphinx gallery -------------------------------------------
 
