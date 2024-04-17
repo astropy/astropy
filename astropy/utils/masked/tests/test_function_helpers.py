@@ -26,6 +26,7 @@ from astropy.utils.compat import (
     NUMPY_LT_1_24,
     NUMPY_LT_1_25,
     NUMPY_LT_2_0,
+    NUMPY_LT_2_1,
 )
 from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.masked.function_helpers import (
@@ -179,14 +180,24 @@ class TestArgFunctions(MaskedArraySetup):
     def test_nonzero(self):
         self.check(np.nonzero, fill_value=0.0)
 
+    @pytest.mark.skipif(
+        not NUMPY_LT_2_1, reason="support for 0d arrays was removed in numpy 2.1"
+    )
     @pytest.mark.filterwarnings("ignore:Calling nonzero on 0d arrays is deprecated")
-    def test_nonzero_0d(self):
+    def test_nonzero_0d_np_lt_2_1(self):
         res1 = Masked(1, mask=False).nonzero()
         assert len(res1) == 1
-        assert_array_equal(res1[0], np.ones(()).nonzero()[0])
+        assert_array_equal(res1[0], 0)
         res2 = Masked(1, mask=True).nonzero()
         assert len(res2) == 1
-        assert_array_equal(res2[0], np.zeros(()).nonzero()[0])
+        assert_array_equal(res2[0], 0)
+
+    @pytest.mark.skipif(
+        NUMPY_LT_2_1, reason="support for 0d arrays was removed in numpy 2.1"
+    )
+    def test_nonzero_0d_np_ge_2_1(self):
+        with pytest.raises(ValueError):
+            Masked(1, mask=False).nonzero()
 
     def test_argwhere(self):
         self.check(np.argwhere, fill_value=0.0)
