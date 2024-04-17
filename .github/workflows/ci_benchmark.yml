@@ -101,4 +101,6 @@ jobs:
         if: always()
         with:
           name: asv-benchmark-results
-          path: benchmarks.log
+          path: |
+            results/
+            benchmarks.log
