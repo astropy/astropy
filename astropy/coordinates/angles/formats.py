@@ -355,16 +355,6 @@ def _check_second_range(sec):
         raise IllegalSecondError(sec)
 
 
-def check_hms_ranges(h, m, s):
-    """
-    Checks that the given hour, minute and second are all within
-    reasonable range.
-    """
-    _check_hour_range(h)
-    _check_minute_range(m)
-    _check_second_range(s)
-
-
 def parse_angle(angle, unit=None, debug=False):
     """
     Parses an input string value into an angle value.
