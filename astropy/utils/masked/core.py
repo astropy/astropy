@@ -1070,7 +1070,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             not_masked = ~self.mask[unmasked_nonzero]
             return tuple(u[not_masked] for u in unmasked_nonzero)
         else:
-            return unmasked_nonzero if not self.mask else np.nonzero(0)
+            return unmasked_nonzero if not self.mask else np.nonzero([0])
 
     def compress(self, condition, axis=None, out=None):
         if out is not None:
