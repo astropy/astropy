@@ -2653,6 +2653,7 @@ class TableElement(
 
     def add_field(self, field: Field) -> None:
         self.fields.append(field)
+        self.all_fields.append(field)
 
     def _register_field(self, iterator, tag, data, config, pos) -> None:
         field = Field(self._votable, config=config, pos=pos, **data)
