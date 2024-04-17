@@ -2532,7 +2532,7 @@ class TableElement(
         """
         A list of :class:`Field` objects describing the types of each
         of the data columns. Contrary to ``fields``, this property should
-        list every field that's available on disk, included deselected columns.
+        list every field that's available on disk, including deselected columns.
         """
         # last minute update
         for field in self._fields:
