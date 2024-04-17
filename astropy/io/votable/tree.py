@@ -2463,6 +2463,7 @@ class TableElement(
                 self._groups = table.groups
                 self._links = table.links
         else:
+            del self._fields[:]
             del self._all_fields[:]
             del self._params[:]
             del self._groups[:]
