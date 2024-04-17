@@ -321,7 +321,8 @@ class _AngleParser:
 
 def _check_hour_range(hrs):
     """
-    Checks that the given value is in the range (-24, 24).
+    Checks that the given value is in the range [-24,24].  If the value
+    is equal to -24 or 24, then a warning is raised.
     """
     if np.any(np.abs(hrs) == 24.0):
         warn(IllegalHourWarning(hrs, "Treating as 24 hr"))
@@ -336,8 +337,7 @@ def _check_minute_range(m):
     """
     if np.any(m == 60.0):
         warn(IllegalMinuteWarning(m, "Treating as 0 min, +1 hr/deg"))
-    elif np.any(m < -60.0) or np.any(m > 60.0):
-        # "Error: minutes not in range [-60,60) ({0}).".format(min))
+    elif np.any(m < 0.0) or np.any(m > 60.0):
         raise IllegalMinuteError(m)
 
 
@@ -350,8 +350,7 @@ def _check_second_range(sec):
         warn(IllegalSecondWarning(sec, "Treating as 0 sec, +1 min"))
     elif sec is None:
         pass
-    elif np.any(sec < -60.0) or np.any(sec > 60.0):
-        # "Error: seconds not in range [-60,60) ({0}).".format(sec))
+    elif np.any(sec < 0.0) or np.any(sec > 60.0):
         raise IllegalSecondError(sec)
 
 
