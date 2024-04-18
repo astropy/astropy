@@ -103,7 +103,7 @@ processing, and data analysis.
         Project Details
         ^^^^^^^^^^^^^^^
 
-        More details about the project (changelog and what's new pages).
+        What's new in the latest release, changelog, and other project details.
 
         +++
 
