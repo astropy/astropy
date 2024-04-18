@@ -755,7 +755,7 @@ class CompImageHDU(ImageHDU):
         if "SIMPLE" in self.header:
             errs_filtered = []
             for err in errs:
-                if err and err[1] in (
+                if len(err) >= 2 and err[1] in (
                     "'XTENSION' card does not exist.",
                     "'PCOUNT' card does not exist.",
                     "'GCOUNT' card does not exist.",
