@@ -103,7 +103,7 @@ processing, and data analysis.
         Project Details
         ^^^^^^^^^^^^^^^
 
-        :ref:`astropy_whats_new_index` in the latest release, :ref:`changelog`, and other project details.
+        What's new in the latest release, changelog, and other project details.
 
         +++
 
