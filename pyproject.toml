@@ -266,6 +266,8 @@ exclude= [
  plugins = ["numpy.typing.mypy_plugin"]
  ignore_missing_imports = true
  follow_imports = "skip"
+show_error_codes = true
+pretty = true
 
     [[tool.mypy.overrides]]
      module = [
