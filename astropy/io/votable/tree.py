@@ -2607,9 +2607,12 @@ class TableElement(
         if colnumbers is None:
             colnumbers = list(range(len(self.all_fields)))
 
-        for i, field in enumerate(self.all_fields):
-            if i in colnumbers and field not in self.fields:
-                self.fields.append(field)
+        new_fields = HomogeneousList(
+            Field,
+            values=[f for i, f in enumerate(self.all_fields) if i in colnumbers],
+        )
+        if new_fields != self._fields:
+            self._fields = new_fields
 
         fields = self.all_fields
 
