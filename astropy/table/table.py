@@ -92,8 +92,6 @@ __doctest_skip__ = [
     "Table.convert_unicode_to_bytestring",
 ]
 
-__doctest_requires__ = {"*pandas": ["pandas>=1.1"]}
-
 _pprint_docs = """
     {__doc__}
 
