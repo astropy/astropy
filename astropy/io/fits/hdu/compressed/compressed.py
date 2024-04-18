@@ -746,19 +746,20 @@ class CompImageHDU(ImageHDU):
         return CompImageSection(self)
 
     def _verify(self, *args, **kwargs):
-
         # The following is the default _verify for ImageHDU
         errs = super()._verify(*args, **kwargs)
 
         # However in some cases the decompressed header is actually like a
         # PrimaryHDU header rather than an ImageHDU header, in which case
         # there are certain errors we can ignore
-        if 'SIMPLE' in self.header:
+        if "SIMPLE" in self.header:
             errs_filtered = []
             for err in errs:
-                if err and err[1] in ("'XTENSION' card does not exist.",
-                                      "'PCOUNT' card does not exist.",
-                                      "'GCOUNT' card does not exist."):
+                if err and err[1] in (
+                    "'XTENSION' card does not exist.",
+                    "'PCOUNT' card does not exist.",
+                    "'GCOUNT' card does not exist.",
+                ):
                     continue
                 errs_filtered.append(err)
             return _ErrList(errs_filtered)
