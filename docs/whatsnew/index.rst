@@ -1,6 +1,8 @@
-*********************
-Major Release History
-*********************
+.. _astropy_whats_new_index:
+
+**********
+What's New
+**********
 
 Examples in these documents are frozen in time to respect the status of the
 API at the time of the release they are describing. Please refer to the
