@@ -265,7 +265,6 @@ lint.unfixable = [
 ]
 "astropy/logger.py" = ["C408", "RET505"]
 "astropy/modeling/*" = [
-    "ANN201",  # Public function without return type annotation
     "PLR0911",  # too-many-return-statements
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise

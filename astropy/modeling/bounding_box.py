@@ -684,7 +684,9 @@ class ModelBoundingBox(_BoundingDomain):
         else:
             return self._intervals[self._get_index(key)]
 
-    def bounding_box(self, order: str | None = None):
+    def bounding_box(
+        self, order: str | None = None
+    ) -> tuple[float, float] | tuple[tuple[float, float], ...]:
         """
         Return the old tuple of tuples representation of the bounding_box
             order='C' corresponds to the old bounding_box ordering
@@ -817,7 +819,7 @@ class ModelBoundingBox(_BoundingDomain):
 
         return new
 
-    def fix_inputs(self, model, fixed_inputs: dict, _keep_ignored=False):
+    def fix_inputs(self, model, fixed_inputs: dict, _keep_ignored=False) -> Self:
         """
         Fix the bounding_box for a `fix_inputs` compound model.
 
@@ -848,7 +850,7 @@ class ModelBoundingBox(_BoundingDomain):
     def dimension(self):
         return len(self)
 
-    def domain(self, resolution, order: str | None = None):
+    def domain(self, resolution, order: str | None = None) -> list[np.ndarray]:
         inputs = self._model.inputs
         order = self._get_order(order)
         if order == "C":
@@ -1606,7 +1608,7 @@ class CompoundBoundingBox(_BoundingDomain):
             self.selector_args.add_ignore(self._model, argument),
         )
 
-    def fix_inputs(self, model, fixed_inputs: dict):
+    def fix_inputs(self, model, fixed_inputs: dict) -> Self:
         """
         Fix the bounding_box for a `fix_inputs` compound model.
 
