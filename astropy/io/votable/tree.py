@@ -2535,7 +2535,9 @@ class TableElement(
         of the data columns. Contrary to ``fields``, this property should
         list every field that's available on disk, including deselected columns.
         """
-        # last minute update
+        # since we support extending self.fields directly via list.extend
+        # and list.append, self._all_fields may go out of sync.
+        # To remedy this issue, we sync back the public property upon access.
         for field in self._fields:
             if field not in self._all_fields:
                 self._all_fields.append(field)
