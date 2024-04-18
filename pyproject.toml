@@ -261,11 +261,11 @@ exclude= [
 
 
 [tool.mypy]
- python_version = "3.10"
- files = ["astropy/**/*.py"]
- plugins = ["numpy.typing.mypy_plugin"]
- ignore_missing_imports = true
- follow_imports = "skip"
+python_version = "3.10"
+files = ["astropy/**/*.py"]
+plugins = ["numpy.typing.mypy_plugin"]
+ignore_missing_imports = true
+follow_imports = "skip"
 show_error_codes = true
 pretty = true
 
