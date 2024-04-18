@@ -244,7 +244,14 @@ class TestCompressedImage(FitsTestCase):
 
         time.sleep(1)
 
-        fits.open(self.temp("scale.fits"), mode="update").close()
+        # Now open the file in update mode and close immediately. Note that we
+        # need to set do_not_scale_image_data otherwise the data is scaled upon
+        # being opened.
+        fits.open(
+            self.temp("scale.fits"),
+            mode="update",
+            do_not_scale_image_data=True,
+        ).close()
 
         # Ensure that no changes were made to the file merely by immediately
         # opening and closing it.
