@@ -73,7 +73,7 @@ jobs:
           set -x
           python -m pip install asv virtualenv packaging
 
-          git clone -b fix/asv_conf https://github.com/zacharyburnett/astropy-benchmarks.git --single-branch
+          git clone -b main https://github.com/astropy/astropy-benchmarks.git --single-branch
 
           # ID this runner
           python -m asv machine --yes --conf asv.ci.conf.json
