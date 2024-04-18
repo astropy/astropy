@@ -285,7 +285,10 @@ def test_select_columns_by_index():
     columns = ["string_test", "unsignedByte", "bitarray"]
     for c in columns:
         assert not np.all(mask[c])
-    assert np.all(mask["unicode_test"])
+
+    # deselected columns shouldn't be present in the output
+    assert "unicode_test" not in array.dtype.fields
+    assert "unicode_test" not in mask.dtype.fields
 
 
 def test_select_columns_by_name():
@@ -298,7 +301,93 @@ def test_select_columns_by_name():
     assert array["string_test"][0] == "String & test"
     for c in columns:
         assert not np.all(mask[c])
-    assert np.all(mask["unicode_test"])
+
+    # deselected columns shouldn't be present in the output
+    assert "unicode_test" not in array.dtype.fields
+    assert "unicode_test" not in mask.dtype.fields
+
+
+@pytest.mark.parametrize(
+    "column_ids, use_names_over_ids, expected_names",
+    [
+        # just the first column
+        pytest.param(
+            ["string_test"],
+            False,
+            ["string_test"],
+            id="first-col-ids",
+        ),
+        pytest.param(
+            ["string_test"],
+            True,
+            ["string test"],
+            id="first-col-names",
+        ),
+        # a single column, other than the first
+        pytest.param(
+            ["unicode_test"],
+            False,
+            ["unicode_test"],
+            id="single-col-ids",
+        ),
+        pytest.param(
+            ["unicode_test"],
+            True,
+            ["unicode_test"],
+            id="single-col-names",
+        ),
+        # two non-consecutive, differently named columns
+        pytest.param(
+            ["string_test", "unicode_test"],
+            False,
+            ["string_test", "unicode_test"],
+            id="two-cols-ids",
+        ),
+        pytest.param(
+            ["string_test", "unicode_test"],
+            True,
+            ["string test", "unicode_test"],
+            id="two-cols-names",
+        ),
+        # just the first two columns (that have the same ID)
+        pytest.param(
+            ["string_test", "string_test_2"],
+            False,
+            ["string_test", "string_test_2"],
+            id="two-cols-ids-sameID",
+        ),
+        pytest.param(
+            ["string_test", "string_test_2"],
+            True,
+            ["string test", "fixed string test"],
+            id="two-cols-names-sameID",
+        ),
+        # columns should be returned in the order they are found, which
+        # in the general case isn't the order they are requested
+        pytest.param(
+            ["unicode_test", "string_test"],
+            False,
+            ["string_test", "unicode_test"],
+            id="two-cols-ids-order-mismatch",
+        ),
+        pytest.param(
+            ["unicode_test", "string_test"],
+            True,
+            ["string test", "unicode_test"],
+            id="two-cols-names-order-mismatch",
+        ),
+    ],
+)
+def test_select_columns_by_name_edge_cases(
+    column_ids, use_names_over_ids, expected_names
+):
+    # see https://github.com/astropy/astropy/issues/14943
+    filename = get_pkg_data_filename("data/regression.xml")
+    with np.errstate(over="ignore"):
+        # https://github.com/astropy/astropy/issues/13341
+        vot1 = parse_single_table(filename, columns=column_ids)
+    t1 = vot1.to_table(use_names_over_ids=use_names_over_ids)
+    assert t1.colnames == expected_names
 
 
 class TestParse:
@@ -708,6 +797,26 @@ class TestThroughBinary2(TestParse):
     def test_get_coosys_by_id(self):
         # No COOSYS in VOTable 1.2 or later
         pass
+
+
+@pytest.mark.parametrize("format_", ["binary", "binary2"])
+def test_select_columns_binary(format_):
+    with np.errstate(over="ignore"):
+        # https://github.com/astropy/astropy/issues/13341
+        votable = parse(get_pkg_data_filename("data/regression.xml"))
+    if format_ == "binary2":
+        votable.version = "1.3"
+        votable.get_first_table()._config["version_1_3_or_later"] = True
+    votable.get_first_table().format = format_
+
+    bio = io.BytesIO()
+    # W39: Bit values can not be masked
+    with pytest.warns(W39):
+        votable.to_xml(bio)
+    bio.seek(0)
+    votable = parse(bio, columns=[0, 1, 2])
+    table = votable.get_first_table().to_table()
+    assert table.colnames == ["string_test", "string_test_2", "unicode_test"]
 
 
 def table_from_scratch():
