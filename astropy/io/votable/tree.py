@@ -2599,7 +2599,7 @@ class TableElement(
         Any data in the existing array will be lost.
 
         *nrows*, if provided, is the number of rows to allocate.
-        *colnumbers*, if provided, is the list of on-disk columns to select.
+        *colnumbers*, if provided, is the list of column indices to select.
         By default, all columns are selected.
         """
         if nrows is None:
