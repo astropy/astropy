@@ -73,3 +73,55 @@ def test_homogeneous_list_works_with_generators():
     hl = collections.HomogeneousList(int)
     hl += (i for i in range(3))
     assert hl == [0, 1, 2]
+
+
+class ListOwner:
+    def __init__(self, data: list):
+        self._data = collections._OwnedList(
+            data,
+            owner_class=self.__class__,
+            public_attr_name="data",
+            replacements={
+                "append": "add_item",
+                "extend": "add_item",
+            },
+        )
+
+    @property
+    def data(self):
+        return self._data
+
+    def add_item(self, item):
+        self._data.append(item, _owned=True)
+
+
+def test_ListOwner_add_item():
+    lo = ListOwner([1, 2])
+    lo.add_item(1)
+
+
+@pytest.mark.parametrize(
+    "method, args",
+    [
+        ("append", (1,)),
+        ("clear", ()),
+        ("extend", ([3, 4],)),
+        ("insert", (1, 999)),
+        ("pop", ()),
+        ("remove", (1,)),
+        ("reverse", ()),
+        ("sort", ()),
+        ("__iadd__", ([3, 4],)),
+        ("__imul__", (2,)),
+        ("__setitem__", (0, 999)),
+        ("__delitem__", (1,)),
+    ],
+)
+def test_direct_mutation_owned_list(method, args):
+    lo = ListOwner([1, 2])
+    fun = getattr(lo.data, method)
+    with pytest.warns(
+        DeprecationWarning,
+        match="Direct mutations of ListOwner.data",
+    ):
+        fun(*args)
