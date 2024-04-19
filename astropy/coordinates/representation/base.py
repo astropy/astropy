@@ -486,16 +486,10 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
 
     @property
     def _unitstr(self):
-        units_set = set(self._units.values())
-        if len(units_set) == 1:
-            unitstr = units_set.pop().to_string()
-        else:
-            unitstr = "({})".format(
-                ", ".join(
-                    self._units[component].to_string() for component in self.components
-                )
-            )
-        return unitstr
+        units = self._units.values()
+        if len(units_set := set(units)) == 1:
+            return str(units_set.pop())
+        return f"({', '.join(map(str, units))})"
 
     def __str__(self):
         return f"{np.array2string(self._values, separator=', ')} {self._unitstr:s}"
@@ -505,10 +499,8 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         arrstr = np.array2string(self._values, prefix=prefixstr, separator=", ")
 
         diffstr = ""
-        if getattr(self, "differentials", None):
-            diffstr = "\n (has differentials w.r.t.: {})".format(
-                ", ".join([repr(key) for key in self.differentials.keys()])
-            )
+        if diffs := getattr(self, "differentials", None):
+            diffstr = f"\n (has differentials w.r.t.: {', '.join(map(repr, diffs))})"
 
         unitstr = ("in " + self._unitstr) if self._unitstr else "[dimensionless]"
         return (
