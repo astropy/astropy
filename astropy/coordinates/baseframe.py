@@ -600,71 +600,49 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             if isinstance(cls_or_name, str):
                 # TODO: this provides a layer of backwards compatibility in
                 # case the key is a string, but now we want explicit classes.
-                _cls = _get_repr_cls(cls_or_name)
-                repr_info[_cls] = repr_info.pop(cls_or_name)
+                repr_info[_get_repr_cls(cls_or_name)] = repr_info.pop(cls_or_name)
 
         # The default spherical names are 'lon' and 'lat'
-        repr_info.setdefault(
+        sph_repr = repr_info.setdefault(
             r.SphericalRepresentation,
             [RepresentationMapping("lon", "lon"), RepresentationMapping("lat", "lat")],
         )
 
-        sph_component_map = {
-            m.reprname: m.framename for m in repr_info[r.SphericalRepresentation]
-        }
+        sph_component_map = {m.reprname: m.framename for m in sph_repr}
+        lon = sph_component_map["lon"]
+        lat = sph_component_map["lat"]
 
-        repr_info.setdefault(
+        ang_v_unit = u.mas / u.yr
+        lin_v_unit = u.km / u.s
+
+        sph_coslat_diff = repr_info.setdefault(
             r.SphericalCosLatDifferential,
             [
-                RepresentationMapping(
-                    "d_lon_coslat",
-                    "pm_{lon}_cos{lat}".format(**sph_component_map),
-                    u.mas / u.yr,
-                ),
-                RepresentationMapping(
-                    "d_lat", "pm_{lat}".format(**sph_component_map), u.mas / u.yr
-                ),
-                RepresentationMapping("d_distance", "radial_velocity", u.km / u.s),
+                RepresentationMapping("d_lon_coslat", f"pm_{lon}_cos{lat}", ang_v_unit),
+                RepresentationMapping("d_lat", f"pm_{lat}", ang_v_unit),
+                RepresentationMapping("d_distance", "radial_velocity", lin_v_unit),
             ],
         )
-
-        repr_info.setdefault(
+        sph_diff = repr_info.setdefault(
             r.SphericalDifferential,
             [
-                RepresentationMapping(
-                    "d_lon", "pm_{lon}".format(**sph_component_map), u.mas / u.yr
-                ),
-                RepresentationMapping(
-                    "d_lat", "pm_{lat}".format(**sph_component_map), u.mas / u.yr
-                ),
-                RepresentationMapping("d_distance", "radial_velocity", u.km / u.s),
+                RepresentationMapping("d_lon", f"pm_{lon}", ang_v_unit),
+                RepresentationMapping("d_lat", f"pm_{lat}", ang_v_unit),
+                RepresentationMapping("d_distance", "radial_velocity", lin_v_unit),
             ],
         )
-
         repr_info.setdefault(
             r.CartesianDifferential,
-            [
-                RepresentationMapping("d_x", "v_x", u.km / u.s),
-                RepresentationMapping("d_y", "v_y", u.km / u.s),
-                RepresentationMapping("d_z", "v_z", u.km / u.s),
-            ],
+            [RepresentationMapping(f"d_{c}", f"v_{c}", lin_v_unit) for c in "xyz"],
         )
 
         # Unit* classes should follow the same naming conventions
         # TODO: this adds some unnecessary mappings for the Unit classes, so
         # this could be cleaned up, but in practice doesn't seem to have any
         # negative side effects
-        repr_info.setdefault(
-            r.UnitSphericalRepresentation, repr_info[r.SphericalRepresentation]
-        )
-
-        repr_info.setdefault(
-            r.UnitSphericalCosLatDifferential, repr_info[r.SphericalCosLatDifferential]
-        )
-
-        repr_info.setdefault(
-            r.UnitSphericalDifferential, repr_info[r.SphericalDifferential]
-        )
+        repr_info.setdefault(r.UnitSphericalRepresentation, sph_repr)
+        repr_info.setdefault(r.UnitSphericalCosLatDifferential, sph_coslat_diff)
+        repr_info.setdefault(r.UnitSphericalDifferential, sph_diff)
 
         return repr_info
 
