@@ -23,8 +23,7 @@ for unit conversions and equivalencies, use
 About the Units
 ===============
 
-.. doctest::
-   :hide:
+.. testsetup::
 
    >>> import astropy.units as u
 

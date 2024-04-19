@@ -134,14 +134,14 @@ Lastly, the keys in the mapping may be renamed with the ``rename`` keyword.
      'cosmo_name': 'Planck18', ...
 """
 
-__all__ = []  # nothing is publicly scoped
+__all__: list[str] = []  # nothing is publicly scoped
 
 import copy
 import inspect
 from collections.abc import Mapping
 
-from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
+from astropy.cosmology.io._connect import convert_registry
 
 
 def _rename_map(map, /, renames):
