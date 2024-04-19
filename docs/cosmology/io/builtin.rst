@@ -1,4 +1,4 @@
-.. _cosmology_io_builtin:
+.. _cosmology_io-builtin:
 
 **********************************
 Built-in Cosmology To/From Formats
@@ -20,55 +20,56 @@ To see the a list of the available conversion formats:
                  yaml  Yes   Yes            No
 
 
-.. _cosmology_io_builtin-cosmology:
+.. _cosmology_io-builtin-cosmology:
 
 Cosmology
 *********
 
-.. automodule:: astropy.cosmology._io.cosmology
+.. automodule:: astropy.cosmology.io._builtin.cosmology
 
 
-.. _cosmology_io_builtin-mapping:
+.. _cosmology_io-builtin-mapping:
 
 Mapping
 *******
 
-.. automodule:: astropy.cosmology._io.mapping
+.. automodule:: astropy.cosmology.io._builtin.mapping
 
 
-.. _cosmology_io_builtin-table:
+.. _cosmology_io-builtin-table:
 
 Table
 *****
 
-.. automodule:: astropy.cosmology._io.table
+.. automodule:: astropy.cosmology.io._builtin.table
 
-.. _cosmology_io_builtin-model:
+.. _cosmology_io-builtin-model:
 
 
 Model
 *****
 
-.. automodule:: astropy.cosmology._io.model
+.. automodule:: astropy.cosmology.io._builtin.model
 
 
 
-.. _cosmology_io_builtin-yaml:
+.. _cosmology_io-builtin-yaml:
 
 YAML
 ****
 
-.. automodule:: astropy.cosmology._io.yaml
+.. automodule:: astropy.cosmology.io._builtin.yaml
 
 
-.. _cosmology_io_builtin-row:
+.. _cosmology_io-builtin-row:
 
 Row
 ***
 
-.. automodule:: astropy.cosmology._io.row
+.. automodule:: astropy.cosmology.io._builtin.row
 
 
+.. _cosmology_io_builtin_readwrite:
 
 *************************************
 Built-in Cosmology Read/Write Formats
@@ -85,25 +86,25 @@ To see a list of the available read/write file formats:
     ascii.latex   No   Yes           Yes
 
 
-.. _cosmology_io_builtin-ecsv:
+.. _cosmology_io-builtin-ecsv:
 
 ECSV
 ****
 
-.. automodule:: astropy.cosmology._io.ecsv
+.. automodule:: astropy.cosmology.io._builtin.ecsv
 
 
-.. _cosmology_io_builtin-latex:
+.. _cosmology_io-builtin-latex:
 
 LaTeX
 *****
 
-.. automodule:: astropy.cosmology._io.latex
+.. automodule:: astropy.cosmology.io._builtin.latex
 
 
-.. _cosmology_io_builtin-html:
+.. _cosmology_io-builtin-html:
 
 HTML
 ****
 
-.. automodule:: astropy.cosmology._io.html
+.. automodule:: astropy.cosmology.io._builtin.html

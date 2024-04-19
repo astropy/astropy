@@ -9,9 +9,9 @@ Cosmology I/O & Convert
 Introduction
 ============
 
-The ``astropy.cosmology.io`` package provides a unified interface for reading, writing,
-and converting |Cosmology| objects. Most of the features of this package are accessible
-through the |Cosmology| class, which provides the methods |Cosmology.read|,
+The :mod:`astropy.cosmology.io` package provides a unified interface for reading,
+writing, and converting |Cosmology| objects. Most of the features of this package are
+accessible through the |Cosmology| class, which provides the methods |Cosmology.read|,
 |Cosmology.write|, |Cosmology.to_format|, and |Cosmology.from_format| for reading,
 writing, and converting |Cosmology| objects, respectively.
 
@@ -25,7 +25,7 @@ make it possible to read from and write to files.
 The registered ``read`` / ``write`` formats include "ascii.ecsv" and "ascii.html", like
 for Table. Also, custom ``read`` / ``write`` formats may be registered into the Astropy
 Cosmology I/O framework. For more information on the built-in formats, see
-:ref:`cosmology_io_builtin`, or :ref:`cosmology_io_custom` for information on
+:ref:`cosmology_io-builtin`, or :ref:`cosmology_io_custom` for information on
 registering custom formats.
 
 Writing a cosmology instance requires only the file location and optionally, or if the
@@ -89,8 +89,8 @@ instances between packages!
 
 .. EXAMPLE START: Planck18 to QTable and back
 
-Another pre-registered format is "table", for converting a |Cosmology| to and
-from a |QTable|.
+One of the pre-registered conversion formats is "astropy.table", for converting a
+|Cosmology| to and from a |QTable|.
 
 .. code-block::
 
@@ -153,4 +153,6 @@ More details are provided in the following pages:
 Reference/API
 =============
 
-.. automodapi:: astropy.cosmology.connect
+.. automodapi:: astropy.cosmology.io
+   :no-heading:
+   :include-all-objects:

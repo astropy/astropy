@@ -288,6 +288,31 @@ New ``Lorentz2D`` model
 A new 2D Lorentzian model has been added to the ``astropy.modeling``
 package.
 
+
+Changes to Cosmology
+====================
+
+I/O Module
+----------
+
+The new :mod:`~astropy.cosmology.io` module contains the classes and functions that are
+used to read and write, cosmology instances to different file formats, and to convert
+cosmologies between different object representations. In particular, the
+:mod:`~astropy.cosmology.io` module provides the classes
+:class:`~astropy.cosmology.io.CosmologyRead`,
+:class:`~astropy.cosmology.io.CosmologyWrite`,
+:class:`~astropy.cosmology.io.CosmologyFromFormat`,
+:class:`~astropy.cosmology.io.CosmologyToFormat` and registries
+:obj:`~astropy.cosmology.io.readwrite_registry`,
+:obj:`~astropy.cosmology.io.convert_registry`, which enable
+:class:`~astropy.cosmology.Cosmology` class for |Cosmology.read|, |Cosmology.write|,
+|Cosmology.from_format|, and |Cosmology.to_format|.
+
+The public :mod:`~astropy.cosmology.io` module replaces the old semi-private
+``astropy.cosmology.connect`` module. It is intended that more public I/O
+functionality will be added to the :mod:`~astropy.cosmology.io` module in the future.
+
+
 Full change log
 ===============
 
