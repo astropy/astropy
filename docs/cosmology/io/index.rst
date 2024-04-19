@@ -10,7 +10,7 @@ Introduction
 ============
 
 The :mod:`astropy.cosmology.io` package provides a unified interface for reading,
-writing, and converting |Cosmology| objects. Most of the features of this package are
+writing, and converting |Cosmology| instances. Most of the features of this package are
 accessible through the |Cosmology| class, which provides the methods |Cosmology.read|,
 |Cosmology.write|, |Cosmology.to_format|, and |Cosmology.from_format| for reading,
 writing, and converting |Cosmology| objects, respectively.

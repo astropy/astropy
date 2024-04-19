@@ -289,14 +289,14 @@ A new 2D Lorentzian model has been added to the ``astropy.modeling``
 package.
 
 
-Changes to Cosmology
-====================
+Changes to :mod:`~astropy.cosmology`
+====================================
 
 I/O Module
 ----------
 
 The new :mod:`~astropy.cosmology.io` module contains the classes and functions that are
-used to read and write, cosmology instances to different file formats, and to convert
+used to read and write |Cosmology| instances to different file formats, and to convert
 cosmologies between different object representations. In particular, the
 :mod:`~astropy.cosmology.io` module provides the classes
 :class:`~astropy.cosmology.io.CosmologyRead`,
