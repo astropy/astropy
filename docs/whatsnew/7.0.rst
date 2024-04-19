@@ -65,8 +65,8 @@ existing ECSV readers. Previously the ``meta`` attribute could be written as an 
 YAML map, which is not guaranteed to preserve the order of the keys.
 
 
-Changes to Cosmology
-====================
+Changes to :mod:`~astropy.cosmology`
+====================================
 
 I/O Module
 ----------

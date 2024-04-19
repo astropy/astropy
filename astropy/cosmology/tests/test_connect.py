@@ -22,7 +22,7 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 )
 def test_deprecated_imports(name):
     """Test that deprecated imports raise a warning."""
-    match = f"{name} is deprecated (since v6.0)"
+    match = f"{name} is deprecated (since v7.0)"
     with (
         warnings.catch_warnings(),
         pytest.warns(AstropyDeprecationWarning, match=re.escape(match)),

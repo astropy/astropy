@@ -33,7 +33,7 @@ def __getattr__(name):
 
     # Raise deprecation warning
     warnings.warn(
-        f"astropy.cosmology.connect.{name} is deprecated (since v6.0)"
+        f"astropy.cosmology.connect.{name} is deprecated (since v7.0)"
         " and will be removed in a future version. "
         f"Use astropy.cosmology.io.{name} instead.",
         AstropyDeprecationWarning,

@@ -18,5 +18,4 @@ from __future__ import annotations
 from . import _connect
 from ._connect import *
 
-__all__: list[str] = []
-__all__ += _connect.__all__
+__all__ = _connect.__all__

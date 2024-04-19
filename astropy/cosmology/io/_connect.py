@@ -25,9 +25,8 @@ if TYPE_CHECKING:
     from astropy.cosmology.io._builtin.model import _CosmologyModel
     from astropy.table import Row, Table
 
-# NOTE: private b/c RTD error
-_CosmoT = TypeVar("_CosmoT", bound="Cosmology")
-_MT = TypeVar("_MT", bound="Mapping")  # type: ignore[type-arg]
+CosmoT = TypeVar("CosmoT", bound="Cosmology")
+MapT = TypeVar("MapT", bound="Mapping")  # type: ignore[type-arg]
 
 
 # ==============================================================================
@@ -216,11 +215,11 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
     @overload
     def __call__(
         self,
-        obj: _CosmoT,
+        obj: CosmoT,
         *args: Any,
         format: Literal["astropy.cosmology"] | None,
         **kwargs: Any,
-    ) -> _CosmoT: ...
+    ) -> CosmoT: ...
 
     @overload
     def __call__(
@@ -350,8 +349,8 @@ class CosmologyToFormat(io_registry.UnifiedReadWrite):
 
     @overload  # specific mapping option, where the mapping class is specified.
     def __call__(
-        self, format: Literal["mapping"], *args: Any, cls: _MT, **kwargs: Any
-    ) -> _MT: ...
+        self, format: Literal["mapping"], *args: Any, cls: MapT, **kwargs: Any
+    ) -> MapT: ...
 
     @overload
     def __call__(
