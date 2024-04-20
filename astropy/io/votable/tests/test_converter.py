@@ -295,17 +295,15 @@ def test_vararray():
     table = tree.TableElement(votable)
     resource.tables.append(table)
 
-    tabarr = []
     heads = ["headA", "headB", "headC"]
     types = ["char", "double", "int"]
 
     vals = [["A", 1.0, 2], ["B", 2.0, 3], ["C", 3.0, 4]]
     for i in range(len(heads)):
-        tabarr.append(
+        table.add_field(
             tree.Field(votable, name=heads[i], datatype=types[i], arraysize="*")
         )
 
-    table.fields.extend(tabarr)
     table.create_arrays(len(vals))
     for i in range(len(vals)):
         values = tuple(vals[i])
