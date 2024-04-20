@@ -2869,6 +2869,16 @@ class TestTableFunctions(FitsTestCase):
         with _refcounting("FITS_rec"):
             readfile(self.data("memtest.fits"))
 
+    def test_converted_copy(self):
+        """
+        Test that the bintable converted arrays are copied when the fitsrec is.
+        Related to https://github.com/astropy/astropy/issues/15649
+        """
+
+        with fits.open(self.data("memtest.fits")) as hdul:
+            data = hdul[1].data.copy()
+            assert data._converted is not hdul[1].data._converted
+
     def test_dump_overwrite(self):
         with fits.open(self.data("table.fits")) as hdul:
             tbhdu = hdul[1]
