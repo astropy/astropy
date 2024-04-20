@@ -1,7 +1,5 @@
 .. _contributing_documentation:
 
-{{ header }}
-
 =================================
 Contributing to the documentation
 =================================

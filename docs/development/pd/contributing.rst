@@ -1,7 +1,5 @@
 .. _contributing:
 
-{{ header }}
-
 **********************
 Contributing to pandas
 **********************

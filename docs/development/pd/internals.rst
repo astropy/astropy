@@ -1,7 +1,5 @@
 .. _internals:
 
-{{ header }}
-
 *********
 Internals
 *********

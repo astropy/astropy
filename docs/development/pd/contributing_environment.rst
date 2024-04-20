@@ -1,7 +1,5 @@
 .. _contributing_environment:
 
-{{ header }}
-
 ==================================
 Creating a development environment
 ==================================

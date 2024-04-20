@@ -1,5 +1,3 @@
-{{ header }}
-
 .. _development:
 
 ===========

@@ -1,7 +1,5 @@
 .. _debugging_c_extensions:
 
-{{ header }}
-
 ======================
 Debugging C extensions
 ======================

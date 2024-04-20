@@ -1,7 +1,5 @@
 .. _developer:
 
-{{ header }}
-
 .. currentmodule:: pandas
 
 *********

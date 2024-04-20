@@ -1,7 +1,5 @@
 .. _copy_on_write_dev:
 
-{{ header }}
-
 *************
 Copy on write
 *************

@@ -1,7 +1,5 @@
 .. _docstring:
 
-{{ header }}
-
 ======================
 pandas docstring guide
 ======================

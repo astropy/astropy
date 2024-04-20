@@ -1,7 +1,5 @@
 .. _contributing_codebase:
 
-{{ header }}
-
 =============================
 Contributing to the code base
 =============================
