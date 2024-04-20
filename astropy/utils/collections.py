@@ -35,7 +35,8 @@ class HomogeneousList(list):
         """
         self._types = types
         super().__init__()
-        self.extend(values)
+        for v in values:
+            self.append(v)
 
     def _assert(self, x):
         if not isinstance(x, self._types):

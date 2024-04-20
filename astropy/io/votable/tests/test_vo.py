@@ -881,7 +881,6 @@ def table_from_scratch():
     votable.to_xml(out)
 
 
-@pytest.mark.xfail
 def test_direct_fields_mutation():
     from astropy.io.votable.tree import Field, Resource, TableElement, VOTableFile
 
