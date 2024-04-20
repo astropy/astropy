@@ -19,6 +19,20 @@ Contributing to astropy
 .. toctree::
    :maxdepth: 2
 
+New documentation
+-----------------
+
+.. toctree::
+   :maxdepth: 2
+
+   development/pd/index
+
+Legacy documentation
+--------------------
+
+.. toctree::
+    :maxdepth: 2
+
    development/workflow/development_workflow
    development/workflow/git_edit_workflow_examples
    development/workflow/virtual_pythons
