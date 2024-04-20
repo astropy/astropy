@@ -881,6 +881,44 @@ def table_from_scratch():
     votable.to_xml(out)
 
 
+@pytest.mark.xfail
+def test_direct_fields_mutation():
+    from astropy.io.votable.tree import Field, Resource, TableElement, VOTableFile
+
+    votable = VOTableFile()
+    resource = Resource()
+    votable.resources.append(resource)
+    table = TableElement(votable)
+    resource.tables.append(table)
+    with pytest.deprecated_call(
+        match="Direct mutations of TableElement.fields via append"
+    ):
+        table.fields.append(
+            Field(
+                votable,
+                ID="filename",
+                datatype="char",
+                name="test_append",
+                arraysize="1",
+            )
+        )
+
+    with pytest.deprecated_call(
+        match="Direct mutations of TableElement.fields via extend"
+    ):
+        table.fields.extend(
+            [
+                Field(
+                    votable,
+                    ID="filename",
+                    datatype="char",
+                    name="test_extend",
+                    arraysize="1",
+                )
+            ]
+        )
+
+
 # https://github.com/astropy/astropy/issues/13341
 @np.errstate(over="ignore")
 def test_open_files():
