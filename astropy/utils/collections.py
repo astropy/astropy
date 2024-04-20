@@ -113,6 +113,15 @@ class _OwnedList(list):
     As of astropy 7.0, direct mutations are considered deprecated so a warning
     is emitted. In a future major release of astropy, an actual exception will be
     raised instead.
+
+    This class may be combined with other list subclasses via multiple inheritance,
+    in which case it is assumed to appear first on the inheritance chain, e.g.
+
+    >>> class _OwnedHomogeneousList(_OwnedList, HomogeneousList):
+    ...     pass
+
+    otherwise, deprecation messages' might not point to the correct line.
+
     """
 
     def __init__(
