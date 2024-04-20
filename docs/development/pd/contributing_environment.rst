@@ -217,7 +217,7 @@ rebuilding automatically whenever pandas is imported (with an editable install).
 
 For these reasons, you should compile pandas with meson.
 Because the meson build system is newer, you may find bugs/minor issues as it matures. You can report these bugs
-`here <https://github.com/pandas-dev/pandas/issues/49683>`_.
+`here <https://github.com/astropy/astropy/issues/49683>`_.
 
 To compile pandas with meson, run::
 
@@ -232,7 +232,7 @@ To compile pandas with meson, run::
    before building::
 
       # set the upstream repository, if not done already, and fetch the latest tags
-      git remote add upstream https://github.com/pandas-dev/pandas.git
+      git remote add upstream https://github.com/astropy/astropy.git
       git fetch upstream --tags
 
 **Build options**

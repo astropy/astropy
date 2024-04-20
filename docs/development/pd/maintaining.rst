@@ -289,10 +289,10 @@ The required steps for adding a maintainer are:
 If adding to ``pandas-core``, there are two additional steps:
 
 3. Add the contributor to the pandas Google group.
-4. Create a pull request to add the contributor's GitHub handle to ``pandas-dev/pandas/web/pandas/config.yml``.
+4. Create a pull request to add the contributor's GitHub handle to ``astropy/astropy/web/pandas/config.yml``.
 
 The current list of core-team members is at
-https://github.com/pandas-dev/pandas/blob/main/web/pandas/config.yml
+https://github.com/astropy/astropy/blob/main/web/pandas/config.yml
 
 
 .. _maintaining.merging:
@@ -335,8 +335,8 @@ The release process makes a snapshot of pandas (a git commit) available to users
 a particular version number. After the release the new pandas version will be available
 in the next places:
 
-- Git repo with a `new tag <https://github.com/pandas-dev/pandas/tags>`_
-- Source distribution in a `GitHub release <https://github.com/pandas-dev/pandas/releases>`_
+- Git repo with a `new tag <https://github.com/astropy/astropy/tags>`_
+- Source distribution in a `GitHub release <https://github.com/astropy/astropy/releases>`_
 - Pip packages in the `PyPI <https://pypi.org/project/pandas/>`_
 - Conda/Mamba packages in `conda-forge <https://anaconda.org/conda-forge/pandas>`_
 
@@ -354,7 +354,7 @@ Prerequisites
 
 In order to be able to release a new pandas version, the next permissions are needed:
 
-- Merge rights to the `pandas <https://github.com/pandas-dev/pandas/>`_ and
+- Merge rights to the `pandas <https://github.com/astropy/astropy/>`_ and
   `pandas-feedstock <https://github.com/conda-forge/pandas-feedstock/>`_ repositories.
   For the latter, open a PR adding your GitHub username to the conda-forge recipe.
 - Permissions to push to ``main`` in the pandas repository, to push the new tags.
@@ -429,7 +429,7 @@ which will be triggered when the tag is pushed.
 
     scripts/download_wheels.sh <VERSION>
 
-4. Create a `new GitHub release <https://github.com/pandas-dev/pandas/releases/new>`_:
+4. Create a `new GitHub release <https://github.com/astropy/astropy/releases/new>`_:
 
    - Tag: ``<version>``
    - Title: ``pandas <version>``
@@ -475,7 +475,7 @@ Post-Release
 4. Create a new issue for the next release, with the estimated date of release.
 
 5. Open a PR with the placeholder for the release notes of the next version. See
-   for example `the PR for 1.5.3 <https://github.com/pandas-dev/pandas/pull/49843/files>`_.
+   for example `the PR for 1.5.3 <https://github.com/astropy/astropy/pull/49843/files>`_.
    Note that the template to use depends on whether it is a major, minor or patch release.
 
 6. Announce the new release in the official channels (use previous announcements
@@ -487,5 +487,5 @@ Post-Release
 7. Update this release instructions to fix anything incorrect and to update about any
    change since the last release.
 
-.. _governance documents: https://github.com/pandas-dev/pandas/blob/main/web/pandas/about/governance.md
+.. _governance documents: https://github.com/astropy/astropy/blob/main/web/pandas/about/governance.md
 .. _list of permissions: https://docs.github.com/en/organizations/managing-access-to-your-organizations-repositories/repository-roles-for-an-organization

@@ -54,6 +54,6 @@ pandas mirrors the `NumPy guidelines for Python support <https://numpy.org/neps/
 Security policy
 ~~~~~~~~~~~~~~~
 
-To report a security vulnerability to pandas, please go to https://github.com/pandas-dev/pandas/security/policy and see the instructions there.
+To report a security vulnerability to pandas, please go to https://github.com/astropy/astropy/security/policy and see the instructions there.
 
 .. _SemVer: https://semver.org

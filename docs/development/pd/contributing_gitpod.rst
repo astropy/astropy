@@ -268,7 +268,7 @@ Acknowledgments
 This page is lightly adapted from the `NumPy`_ project .
 
 .. _Gitpod: https://www.gitpod.io/
-.. _pandas repository on GitHub: https://github.com/pandas-dev/pandas
+.. _pandas repository on GitHub: https://github.com/astropy/astropy
 .. _create your own fork: https://help.github.com/en/articles/fork-a-repo
 .. _VSCode docs: https://code.visualstudio.com/docs/getstarted/tips-and-tricks
 .. _NumPy: https://www.numpy.org/

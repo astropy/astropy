@@ -212,7 +212,7 @@ With custom types and inference this is not always possible so exceptions are ma
 pandas-specific types
 ~~~~~~~~~~~~~~~~~~~~~
 
-Commonly used types specific to pandas will appear in `pandas._typing <https://github.com/pandas-dev/pandas/blob/main/pandas/_typing.py>`_ and you should use these where applicable. This module is private for now but ultimately this should be exposed to third party libraries who want to implement type checking against pandas.
+Commonly used types specific to pandas will appear in `pandas._typing <https://github.com/astropy/astropy/blob/main/pandas/_typing.py>`_ and you should use these where applicable. This module is private for now but ultimately this should be exposed to third party libraries who want to implement type checking against pandas.
 
 For example, quite a few functions in pandas accept a ``dtype`` argument. This can be expressed as a string like ``"object"``, a ``numpy.dtype`` like ``np.int64`` or even a pandas ``ExtensionDtype`` like ``pd.CategoricalDtype``. Rather than burden the user with having to constantly annotate all of those options, this can simply be imported and reused from the pandas._typing module
 
@@ -242,7 +242,7 @@ in your python environment.
 
 .. warning::
 
-    * Please be aware that the above commands will use the current python environment. If your python packages are older/newer than those installed by the pandas CI, the above commands might fail. This is often the case when the ``mypy`` or ``numpy`` versions do not match. Please see :ref:`how to setup the python environment <contributing.mamba>` or select a `recently succeeded workflow <https://github.com/pandas-dev/pandas/actions/workflows/code-checks.yml?query=branch%3Amain+is%3Asuccess>`_, select the "Docstring validation, typing, and other manual pre-commit hooks" job, then click on "Set up Conda" and "Environment info" to see which versions the pandas CI installs.
+    * Please be aware that the above commands will use the current python environment. If your python packages are older/newer than those installed by the pandas CI, the above commands might fail. This is often the case when the ``mypy`` or ``numpy`` versions do not match. Please see :ref:`how to setup the python environment <contributing.mamba>` or select a `recently succeeded workflow <https://github.com/astropy/astropy/actions/workflows/code-checks.yml?query=branch%3Amain+is%3Asuccess>`_, select the "Docstring validation, typing, and other manual pre-commit hooks" job, then click on "Set up Conda" and "Environment info" to see which versions the pandas CI installs.
 
 .. _contributing.ci:
 
@@ -805,7 +805,7 @@ You might want to enable the following option if it's relevant for you:
 
 - arm_slow: any test taking long on arm64 architecture
 
-These markers are defined `in this toml file <https://github.com/pandas-dev/pandas/blob/main/pyproject.toml>`_
+These markers are defined `in this toml file <https://github.com/astropy/astropy/blob/main/pyproject.toml>`_
 , under ``[tool.pytest.ini_options]`` in a list called ``markers``, in case
 you want to check if new ones have been created which are of interest to you.
 
@@ -952,5 +952,5 @@ directive is used. The sphinx syntax for that is:
 
 This will put the text *New in version 2.1.0* wherever you put the sphinx
 directive. This should also be put in the docstring when adding a new function
-or method (`example <https://github.com/pandas-dev/pandas/blob/v0.20.2/pandas/core/frame.py#L1495>`__)
-or a new keyword argument (`example <https://github.com/pandas-dev/pandas/blob/v0.20.2/pandas/core/generic.py#L568>`__).
+or method (`example <https://github.com/astropy/astropy/blob/v0.20.2/pandas/core/frame.py#L1495>`__)
+or a new keyword argument (`example <https://github.com/astropy/astropy/blob/v0.20.2/pandas/core/generic.py#L568>`__).

@@ -18,7 +18,7 @@ Bug reports and enhancement requests
 
 Bug reports and enhancement requests are an important part of making pandas more stable and
 are curated though Github issues. When reporting an issue or request, please select the `appropriate
-category and fill out the issue form fully <https://github.com/pandas-dev/pandas/issues/new/choose>`_
+category and fill out the issue form fully <https://github.com/astropy/astropy/issues/new/choose>`_
 to ensure others and the core development team can fully understand the scope of the issue.
 
 The issue will then show up to the pandas community and be open to comments/ideas from others.
@@ -27,11 +27,11 @@ Finding an issue to contribute to
 =================================
 
 If you are brand new to pandas or open-source development, we recommend searching
-the `GitHub "issues" tab <https://github.com/pandas-dev/pandas/issues>`_
+the `GitHub "issues" tab <https://github.com/astropy/astropy/issues>`_
 to find issues that interest you. Unassigned issues labeled `Docs
-<https://github.com/pandas-dev/pandas/issues?q=is%3Aopen+sort%3Aupdated-desc+label%3ADocs+no%3Aassignee>`_
+<https://github.com/astropy/astropy/issues?q=is%3Aopen+sort%3Aupdated-desc+label%3ADocs+no%3Aassignee>`_
 and `good first issue
-<https://github.com/pandas-dev/pandas/issues?q=is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+issue%22+no%3Aassignee>`_
+<https://github.com/astropy/astropy/issues?q=is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+issue%22+no%3Aassignee>`_
 are typically good for newer contributors.
 
 Once you've found an interesting issue, it's a good idea to assign the issue to yourself,
@@ -63,7 +63,7 @@ Submitting a pull request
 Version control, Git, and GitHub
 --------------------------------
 
-pandas is hosted on `GitHub <https://www.github.com/pandas-dev/pandas>`_, and to
+pandas is hosted on `GitHub <https://www.github.com/astropy/astropy>`_, and to
 contribute, you will need to sign up for a `free GitHub account
 <https://github.com/signup/free>`_. We use `Git <https://git-scm.com/>`_ for
 version control to allow many people to work together on the project.
@@ -103,14 +103,14 @@ Create a fork of pandas
 -----------------------
 
 You will need your own copy of pandas (aka fork) to work on the code. Go to the `pandas project
-page <https://github.com/pandas-dev/pandas>`_ and hit the ``Fork`` button. Please uncheck the box to copy only the main branch before selecting ``Create Fork``.
+page <https://github.com/astropy/astropy>`_ and hit the ``Fork`` button. Please uncheck the box to copy only the main branch before selecting ``Create Fork``.
 You will want to clone your fork to your machine
 
 .. code-block:: shell
 
     git clone https://github.com/your-user-name/pandas.git pandas-yourname
     cd pandas-yourname
-    git remote add upstream https://github.com/pandas-dev/pandas.git
+    git remote add upstream https://github.com/astropy/astropy.git
     git fetch upstream
 
 This creates the directory ``pandas-yourname`` and connects your repository to
@@ -210,8 +210,8 @@ like
 
     origin  git@github.com:yourname/pandas.git (fetch)
     origin  git@github.com:yourname/pandas.git (push)
-    upstream        git://github.com/pandas-dev/pandas.git (fetch)
-    upstream        git://github.com/pandas-dev/pandas.git (push)
+    upstream        git://github.com/astropy/astropy.git (fetch)
+    upstream        git://github.com/astropy/astropy.git (push)
 
 Now your code is on GitHub, but it is not yet a part of the pandas project. For that to
 happen, a pull request needs to be submitted on GitHub.

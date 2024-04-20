@@ -5,7 +5,7 @@ Contributor community
 =====================
 
 pandas is a community-driven open source project developed by a large group
-of `contributors <https://github.com/pandas-dev/pandas/graphs/contributors>`_
+of `contributors <https://github.com/astropy/astropy/graphs/contributors>`_
 and a smaller group of `maintainers <https://pandas.pydata.org/about/team.html>`_.
 The pandas leadership has made a strong commitment to creating an open,
 inclusive, and positive community. Please read the pandas `Code of Conduct
@@ -64,7 +64,7 @@ You can subscribe to this calendar with the following links:
 Additionally, we'll sometimes have one-off meetings on specific topics.
 These will be published on the same calendar.
 
-`GitHub issue tracker <https://github.com/pandas-dev/pandas/issues>`_
+`GitHub issue tracker <https://github.com/astropy/astropy/issues>`_
 ----------------------------------------------------------------------
 
 The pandas contributor community conducts conversations mainly via this channel.
