@@ -188,8 +188,6 @@ Coding Style/Conventions
 
   .. note:: There are multiple options for testing PEP8 compliance of code,
             see :doc:`testguide` for more information.
-            See :doc:`codeguide_emacs` for some configuration options for Emacs
-            that helps in ensuring conformance to PEP8.
 
 * ``astropy`` source code should contain a comment at the beginning of the file
   pointing to the license for the ``astropy`` source code.  This line should say::
