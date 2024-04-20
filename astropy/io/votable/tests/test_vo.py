@@ -922,15 +922,15 @@ def test_build_from_scratch(tmp_path):
     resource.tables.append(table)
 
     # Define some fields
-    table.fields.extend(
-        [
-            tree.Field(
-                votable, ID="filename", name="filename", datatype="char", arraysize="1"
-            ),
-            tree.Field(
-                votable, ID="matrix", name="matrix", datatype="double", arraysize="2x2"
-            ),
-        ]
+    table.add_field(
+        tree.Field(
+            votable, ID="filename", name="filename", datatype="char", arraysize="1"
+        )
+    )
+    table.add_field(
+        tree.Field(
+            votable, ID="matrix", name="matrix", datatype="double", arraysize="2x2"
+        )
     )
 
     # Now, use those field definitions to create the numpy record arrays, with
@@ -1044,12 +1044,8 @@ def _run_test_from_scratch_example():
     resource.tables.append(table)
 
     # Define some fields
-    table.fields.extend(
-        [
-            Field(votable, name="filename", datatype="char", arraysize="*"),
-            Field(votable, name="matrix", datatype="double", arraysize="2x2"),
-        ]
-    )
+    table.add_field(Field(votable, name="filename", datatype="char", arraysize="*"))
+    table.add_field(Field(votable, name="matrix", datatype="double", arraysize="2x2"))
 
     # Now, use those field definitions to create the numpy record arrays, with
     # the given number of rows
