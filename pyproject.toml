@@ -630,6 +630,7 @@ ignore-words-list = """
     pres,
     rade,
     rotat,
+    ser,
     siz,
     som,
     splitted,
