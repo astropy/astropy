@@ -1,7 +1,7 @@
 /*
  * Table styles
  */
-table.dataTable {
+ table.dataTable {
   width: 100%;
   margin: 0 auto;
   clear: both;
@@ -34,15 +34,11 @@ table.dataTable tfoot td {
 }
 table.dataTable thead .sorting,
 table.dataTable thead .sorting_asc,
-table.dataTable thead .sorting_desc {
-  cursor: pointer;
-  *cursor: hand;
-}
-table.dataTable thead .sorting,
-table.dataTable thead .sorting_asc,
 table.dataTable thead .sorting_desc,
 table.dataTable thead .sorting_asc_disabled,
 table.dataTable thead .sorting_desc_disabled {
+  cursor: pointer;
+  *cursor: hand;
   background-repeat: no-repeat;
   background-position: center right;
 }
@@ -50,10 +46,10 @@ table.dataTable thead .sorting {
   background-image: url("../images/sort_both.png");
 }
 table.dataTable thead .sorting_asc {
-  background-image: url("../images/sort_asc.png");
+  background-image: url("../images/sort_asc.png") !important;
 }
 table.dataTable thead .sorting_desc {
-  background-image: url("../images/sort_desc.png");
+  background-image: url("../images/sort_desc.png") !important;
 }
 table.dataTable thead .sorting_asc_disabled {
   background-image: url("../images/sort_asc_disabled.png");
@@ -179,7 +175,7 @@ table.dataTable.nowrap th, table.dataTable.nowrap td {
 }
 table.dataTable.compact thead th,
 table.dataTable.compact thead td {
-  padding: 4px 17px 4px 4px;
+  padding: 4px 17px;
 }
 table.dataTable.compact tfoot th,
 table.dataTable.compact tfoot td {
@@ -264,7 +260,6 @@ table.dataTable tbody td.dt-body-nowrap {
 table.dataTable,
 table.dataTable th,
 table.dataTable td {
-  -webkit-box-sizing: content-box;
   box-sizing: content-box;
 }
 
@@ -280,12 +275,23 @@ table.dataTable td {
 .dataTables_wrapper .dataTables_length {
   float: left;
 }
+.dataTables_wrapper .dataTables_length select {
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  padding: 5px;
+  background-color: transparent;
+  padding: 4px;
+}
 .dataTables_wrapper .dataTables_filter {
   float: right;
   text-align: right;
 }
 .dataTables_wrapper .dataTables_filter input {
-  margin-left: 0.5em;
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  padding: 5px;
+  background-color: transparent;
+  margin-left: 3px;
 }
 .dataTables_wrapper .dataTables_info {
   clear: both;
@@ -405,11 +411,12 @@ table.dataTable td {
   *margin-top: -1px;
   -webkit-overflow-scrolling: touch;
 }
-.dataTables_wrapper .dataTables_scroll div.dataTables_scrollBody th, .dataTables_wrapper .dataTables_scroll div.dataTables_scrollBody td {
+.dataTables_wrapper .dataTables_scroll div.dataTables_scrollBody > table > thead > tr > th, .dataTables_wrapper .dataTables_scroll div.dataTables_scrollBody > table > thead > tr > td, .dataTables_wrapper .dataTables_scroll div.dataTables_scrollBody > table > tbody > tr > th, .dataTables_wrapper .dataTables_scroll div.dataTables_scrollBody > table > tbody > tr > td {
   vertical-align: middle;
 }
-.dataTables_wrapper .dataTables_scroll div.dataTables_scrollBody th > div.dataTables_sizing,
-.dataTables_wrapper .dataTables_scroll div.dataTables_scrollBody td > div.dataTables_sizing {
+.dataTables_wrapper .dataTables_scroll div.dataTables_scrollBody > table > thead > tr > th > div.dataTables_sizing,
+.dataTables_wrapper .dataTables_scroll div.dataTables_scrollBody > table > thead > tr > td > div.dataTables_sizing, .dataTables_wrapper .dataTables_scroll div.dataTables_scrollBody > table > tbody > tr > th > div.dataTables_sizing,
+.dataTables_wrapper .dataTables_scroll div.dataTables_scrollBody > table > tbody > tr > td > div.dataTables_sizing {
   height: 0;
   overflow: hidden;
   margin: 0 !important;
@@ -418,8 +425,8 @@ table.dataTable td {
 .dataTables_wrapper.no-footer .dataTables_scrollBody {
   border-bottom: 1px solid #111;
 }
-.dataTables_wrapper.no-footer div.dataTables_scrollHead table,
-.dataTables_wrapper.no-footer div.dataTables_scrollBody table {
+.dataTables_wrapper.no-footer div.dataTables_scrollHead table.dataTable,
+.dataTables_wrapper.no-footer div.dataTables_scrollBody > table {
   border-bottom: none;
 }
 .dataTables_wrapper:after {
@@ -432,7 +439,7 @@ table.dataTable td {
 
 @media screen and (max-width: 767px) {
   .dataTables_wrapper .dataTables_info,
-  .dataTables_wrapper .dataTables_paginate {
+.dataTables_wrapper .dataTables_paginate {
     float: none;
     text-align: center;
   }
@@ -442,7 +449,7 @@ table.dataTable td {
 }
 @media screen and (max-width: 640px) {
   .dataTables_wrapper .dataTables_length,
-  .dataTables_wrapper .dataTables_filter {
+.dataTables_wrapper .dataTables_filter {
     float: none;
     text-align: center;
   }
