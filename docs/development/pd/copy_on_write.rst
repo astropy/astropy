@@ -14,7 +14,7 @@ Reference tracking
 ------------------
 
 To be able to determine if we have to make a copy when writing into a DataFrame,
-we have to be aware if the values are shared with another DataFrame. pandas
+we have to be aware if the values are shared with another DataFrame. astropy
 keeps track of all ``Blocks`` that share values with another block internally to
 be able to tell when a copy needs to be triggered. The reference tracking
 mechanism is implemented on the Block level.

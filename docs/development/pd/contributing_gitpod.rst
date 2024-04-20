@@ -1,14 +1,14 @@
 .. _contributing-gitpod:
 
-Using Gitpod for pandas development
+Using Gitpod for astropy development
 ===================================
 
 This section of the documentation will guide you through:
 
-*  using Gitpod for your pandas development environment
-*  creating a personal fork of the pandas repository on GitHub
-*  a quick tour of pandas and VSCode
-*  working on the pandas documentation in Gitpod
+*  using Gitpod for your astropy development environment
+*  creating a personal fork of the astropy repository on GitHub
+*  a quick tour of astropy and VSCode
+*  working on the astropy documentation in Gitpod
 
 Gitpod
 ------
@@ -33,16 +33,16 @@ We have built a python 3.10 environment and all development dependencies will
 install when the environment starts.
 
 
-Forking the pandas repository
+Forking the astropy repository
 -----------------------------
 
-The best way to work on pandas as a contributor is by making a fork of the
+The best way to work on astropy as a contributor is by making a fork of the
 repository first.
 
-#. Browse to the `pandas repository on GitHub`_ and `create your own fork`_.
+#. Browse to the `astropy repository on GitHub`_ and `create your own fork`_.
 
 #. Browse to your fork. Your fork will have a URL like
-   https://github.com/noatamir/pandas-dev, except with your GitHub username in place of
+   https://github.com/noatamir/astropy-dev, except with your GitHub username in place of
    ``noatamir``.
 
 Starting Gitpod
@@ -52,14 +52,14 @@ Once you have authenticated to Gitpod through GitHub, you can install the
 which will add a **Gitpod** button next to the **Code** button in the
 repository:
 
-.. image:: ./gitpod-imgs/pandas-github.png
-   :alt: pandas repository with Gitpod button screenshot
+.. image:: ./gitpod-imgs/astropy-github.png
+   :alt: astropy repository with Gitpod button screenshot
 
 #. If you install the extension - you can click the **Gitpod** button to start
    a new workspace.
 
 #. Alternatively, if you do not want to install the browser extension, you can
-   visit https://gitpod.io/#https://github.com/USERNAME/pandas replacing
+   visit https://gitpod.io/#https://github.com/USERNAME/astropy replacing
    ``USERNAME`` with your GitHub username.
 
 #. In both cases, this will open a new tab on your web browser and start
@@ -68,14 +68,14 @@ repository:
 
 #. Once the build is complete, you will be directed to your workspace,
    including the VSCode editor and all the dependencies you need to work on
-   pandas. The first time you start your workspace, you will notice that there
+   astropy. The first time you start your workspace, you will notice that there
    might be some actions running. This will ensure that you have a development
-   version of pandas installed.
+   version of astropy installed.
 
 #. When your workspace is ready, you can :ref:`test the build<contributing.running_tests>` by
    entering::
 
-      $ python -m pytest pandas
+      $ python -m pytest astropy
 
    Note that this command takes a while to run, so once you've confirmed it's running you may want to cancel it using ctrl-c.
 
@@ -91,17 +91,17 @@ Your workspace will look similar to the image below:
 
 We have marked some important sections in the editor:
 
-#. Your current Python interpreter - by default, this is ``pandas-dev`` and
+#. Your current Python interpreter - by default, this is ``astropy-dev`` and
    should be displayed in the status bar and on your terminal. You do not need
    to activate the conda environment as this will always be activated for you.
 #. Your current branch is always displayed in the status bar. You can also use
    this button to change or create branches.
 #. GitHub Pull Requests extension - you can use this to work with Pull Requests
    from your workspace.
-#. Marketplace extensions - we have added some essential extensions to the pandas
+#. Marketplace extensions - we have added some essential extensions to the astropy
    Gitpod. Still, you can also install other extensions or syntax highlighting
    themes for your user, and these will be preserved for you.
-#. Your workspace directory - by default, it is ``/workspace/pandas-dev``. **Do not
+#. Your workspace directory - by default, it is ``/workspace/astropy-dev``. **Do not
    change this** as this is the only directory preserved in Gitpod.
 
 We have also pre-installed a few tools and VSCode extensions to help with the
@@ -115,7 +115,7 @@ development experience:
 Development workflow with Gitpod
 --------------------------------
 The  :ref:`contributing` section of this documentation contains
-information regarding the pandas development workflow. Make sure to check this
+information regarding the astropy development workflow. Make sure to check this
 before working on your contributions.
 
 When using Gitpod, git is pre configured for you:
@@ -127,15 +127,15 @@ When using Gitpod, git is pre configured for you:
    ``git config --global user.email “your-secret-email@users.noreply.github.com”``
    to set your email address to the one you use to make commits with your github
    profile.
-#. As you started your workspace from your own pandas fork, you will by default
+#. As you started your workspace from your own astropy fork, you will by default
    have both ``upstream`` and ``origin`` added as remotes. You can verify this by
    typing ``git remote`` on your terminal or by clicking on the **branch name**
    on the status bar (see image below).
 
-   .. image:: ./gitpod-imgs/pandas-gitpod-branches.png
+   .. image:: ./gitpod-imgs/astropy-gitpod-branches.png
       :alt: Gitpod workspace branches plugin screenshot
 
-Rendering the pandas documentation
+Rendering the astropy documentation
 ----------------------------------
 You can find the detailed documentation on how rendering the documentation with
 Sphinx works in the :ref:`contributing.howto-build-docs` section. To build the full
@@ -153,7 +153,7 @@ You have two main options to render the documentation in Gitpod.
 Option 1: using Liveserve
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#. View the documentation in ``pandas/doc/build/html``.
+#. View the documentation in ``astropy/doc/build/html``.
 #. To see the rendered version of a page, you can right-click on the ``.html``
    file and click on **Open with Live Serve**. Alternatively, you can open the
    file in the editor and click on the **Go live** button on the status bar.
@@ -206,7 +206,7 @@ Can I come back to a previous workspace?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Yes, let's say you stepped away for a while and you want to carry on working on
-your pandas contributions. You need to visit https://gitpod.io/workspaces and
+your astropy contributions. You need to visit https://gitpod.io/workspaces and
 click on the workspace you want to spin up again. All your changes will be there
 as you last left them.
 
@@ -268,7 +268,7 @@ Acknowledgments
 This page is lightly adapted from the `NumPy`_ project .
 
 .. _Gitpod: https://www.gitpod.io/
-.. _pandas repository on GitHub: https://github.com/astropy/astropy
+.. _astropy repository on GitHub: https://github.com/astropy/astropy
 .. _create your own fork: https://help.github.com/en/articles/fork-a-repo
 .. _VSCode docs: https://code.visualstudio.com/docs/getstarted/tips-and-tricks
 .. _NumPy: https://www.numpy.org/

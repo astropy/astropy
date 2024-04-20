@@ -4,7 +4,7 @@
 Debugging C extensions
 ======================
 
-pandas uses Cython and C/C++ `extension modules <https://docs.python.org/3/extending/extending.html>`_ to optimize performance. Unfortunately, the standard Python debugger does not allow you to step into these extensions. Cython extensions can be debugged with the `Cython debugger <https://docs.cython.org/en/latest/src/userguide/debugging.html>`_ and C/C++ extensions can be debugged using the tools shipped with your platform's compiler.
+astropy uses Cython and C/C++ `extension modules <https://docs.python.org/3/extending/extending.html>`_ to optimize performance. Unfortunately, the standard Python debugger does not allow you to step into these extensions. Cython extensions can be debugged with the `Cython debugger <https://docs.cython.org/en/latest/src/userguide/debugging.html>`_ and C/C++ extensions can be debugged using the tools shipped with your platform's compiler.
 
 For Python developers with limited or no C/C++ experience this can seem a daunting task. Core developer Will Ayd has written a 3 part blog series to help guide you from the standard Python debugger into these other tools:
 
@@ -15,7 +15,7 @@ For Python developers with limited or no C/C++ experience this can seem a daunti
 Debugging locally
 -----------------
 
-By default building pandas from source will generate a release build. To generate a development build you can type::
+By default building astropy from source will generate a release build. To generate a development build you can type::
 
     pip install -ve . --no-build-isolation --config-settings=builddir="debug" --config-settings=setup-args="-Dbuildtype=debug"
 
@@ -28,15 +28,15 @@ By specifying ``builddir="debug"`` all of the targets will be built and placed i
 Using Docker
 ------------
 
-To simplify the debugging process, pandas has created a Docker image with a debug build of Python and the gdb/Cython debuggers pre-installed. You may either ``docker pull pandas/pandas-debug`` to get access to this image or build it from the ``tooling/debug`` folder locallly.
+To simplify the debugging process, astropy has created a Docker image with a debug build of Python and the gdb/Cython debuggers pre-installed. You may either ``docker pull astropy/astropy-debug`` to get access to this image or build it from the ``tooling/debug`` folder locallly.
 
-You can then mount your pandas repository into this image via:
+You can then mount your astropy repository into this image via:
 
 .. code-block:: sh
 
-   docker run --rm -it -w /data -v ${PWD}:/data pandas/pandas-debug
+   docker run --rm -it -w /data -v ${PWD}:/data astropy/astropy-debug
 
-Inside the image, you can use meson to build/install pandas and place the build artifacts into a ``debug`` folder using a command as follows:
+Inside the image, you can use meson to build/install astropy and place the build artifacts into a ``debug`` folder using a command as follows:
 
 .. code-block:: sh
 

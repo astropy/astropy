@@ -1,16 +1,16 @@
 .. _developer:
 
-.. currentmodule:: pandas
+.. currentmodule:: astropy
 
 *********
 Developer
 *********
 
-This section will focus on downstream applications of pandas.
+This section will focus on downstream applications of astropy.
 
 .. _apache.parquet:
 
-Storing pandas DataFrame objects in Apache Parquet format
+Storing astropy DataFrame objects in Apache Parquet format
 ---------------------------------------------------------
 
 The `Apache Parquet <https://github.com/apache/parquet-format>`__ format
@@ -30,15 +30,15 @@ where ``KeyValue`` is
      2: optional string value
    }
 
-So that a ``pandas.DataFrame`` can be faithfully reconstructed, we store a
-``pandas`` metadata key in the ``FileMetaData`` with the value stored as :
+So that a ``astropy.DataFrame`` can be faithfully reconstructed, we store a
+``astropy`` metadata key in the ``FileMetaData`` with the value stored as :
 
 .. code-block:: text
 
    {'index_columns': [<descr0>, <descr1>, ...],
     'column_indexes': [<ci0>, <ci1>, ..., <ciN>],
     'columns': [<c0>, <c1>, ...],
-    'pandas_version': $VERSION,
+    'astropy_version': $VERSION,
     'creator': {
       'library': $LIBRARY,
       'version': $LIBRARY_VERSION
@@ -54,7 +54,7 @@ for each column, *including the index columns*. This has JSON form:
 
    {'name': column_name,
     'field_name': parquet_column_name,
-    'pandas_type': pandas_type,
+    'astropy_type': astropy_type,
     'numpy_type': numpy_type,
     'metadata': metadata}
 
@@ -92,7 +92,7 @@ above.
 Column metadata
 ~~~~~~~~~~~~~~~
 
-``pandas_type`` is the logical type of the column, and is one of:
+``astropy_type`` is the logical type of the column, and is one of:
 
 * Boolean: ``'bool'``
 * Integers: ``'int8', 'int16', 'int32', 'int64', 'uint8', 'uint16', 'uint32', 'uint64'``
@@ -114,7 +114,7 @@ The ``metadata`` field is ``None`` except for:
   omitted it is assumed to be nanoseconds.
 * ``categorical``: ``{'num_categories': K, 'ordered': is_ordered, 'type': $TYPE}``
 
-    * Here ``'type'`` is optional, and can be a nested pandas type specification
+    * Here ``'type'`` is optional, and can be a nested astropy type specification
       here (but not categorical)
 
 * ``unicode``: ``{'encoding': encoding}``
@@ -142,43 +142,43 @@ As an example of fully-formed metadata:
     'column_indexes': [
         {'name': None,
          'field_name': 'None',
-         'pandas_type': 'unicode',
+         'astropy_type': 'unicode',
          'numpy_type': 'object',
          'metadata': {'encoding': 'UTF-8'}}
     ],
     'columns': [
         {'name': 'c0',
          'field_name': 'c0',
-         'pandas_type': 'int8',
+         'astropy_type': 'int8',
          'numpy_type': 'int8',
          'metadata': None},
         {'name': 'c1',
          'field_name': 'c1',
-         'pandas_type': 'bytes',
+         'astropy_type': 'bytes',
          'numpy_type': 'object',
          'metadata': None},
         {'name': 'c2',
          'field_name': 'c2',
-         'pandas_type': 'categorical',
+         'astropy_type': 'categorical',
          'numpy_type': 'int16',
          'metadata': {'num_categories': 1000, 'ordered': False}},
         {'name': 'c3',
          'field_name': 'c3',
-         'pandas_type': 'datetimetz',
+         'astropy_type': 'datetimetz',
          'numpy_type': 'datetime64[ns]',
          'metadata': {'timezone': 'America/Los_Angeles'}},
         {'name': 'c4',
          'field_name': 'c4',
-         'pandas_type': 'object',
+         'astropy_type': 'object',
          'numpy_type': 'object',
          'metadata': {'encoding': 'pickle'}},
         {'name': None,
          'field_name': '__index_level_0__',
-         'pandas_type': 'int64',
+         'astropy_type': 'int64',
          'numpy_type': 'int64',
          'metadata': None}
     ],
-    'pandas_version': '1.4.0',
+    'astropy_version': '1.4.0',
     'creator': {
       'library': 'pyarrow',
       'version': '0.13.0'

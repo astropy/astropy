@@ -4,21 +4,21 @@
 Contributor community
 =====================
 
-pandas is a community-driven open source project developed by a large group
+astropy is a community-driven open source project developed by a large group
 of `contributors <https://github.com/astropy/astropy/graphs/contributors>`_
-and a smaller group of `maintainers <https://pandas.pydata.org/about/team.html>`_.
-The pandas leadership has made a strong commitment to creating an open,
-inclusive, and positive community. Please read the pandas `Code of Conduct
-<https://pandas.pydata.org/community/coc.html>`_ for guidance on how to
+and a smaller group of `maintainers <https://astropy.pydata.org/about/team.html>`_.
+The astropy leadership has made a strong commitment to creating an open,
+inclusive, and positive community. Please read the astropy `Code of Conduct
+<https://astropy.pydata.org/community/coc.html>`_ for guidance on how to
 interact with others in a way that makes the community thrive.
 
 We offer several meetings and communication channels to share knowledge and
-connect with others within the pandas community.
+connect with others within the astropy community.
 
 Community meeting
 -----------------
 
-The pandas Community Meeting is a regular sync meeting for the project's
+The astropy Community Meeting is a regular sync meeting for the project's
 maintainers which is open to the community. Everyone is welcome to attend and
 contribute to conversations.
 
@@ -43,13 +43,13 @@ progress when possible, as well as get to know each other and share our
 learnings and experiences.
 
 The agenda for the next meeting and minutes of past meetings are available in
-`this HackMD <https://hackmd.io/@pandas-dev/HJgQt1Tei>`__.
+`this HackMD <https://hackmd.io/@astropy-dev/HJgQt1Tei>`__.
 
 Calendar
 --------
 
 This calendar shows all the community meetings. Our community meetings are
-ideal for anyone wanting to contribute to pandas, or just curious to know how
+ideal for anyone wanting to contribute to astropy, or just curious to know how
 current development is going.
 
 .. raw:: html
@@ -67,7 +67,7 @@ These will be published on the same calendar.
 `GitHub issue tracker <https://github.com/astropy/astropy/issues>`_
 ----------------------------------------------------------------------
 
-The pandas contributor community conducts conversations mainly via this channel.
+The astropy contributor community conducts conversations mainly via this channel.
 Any community member can open issues to:
 
 - Report bugs, e.g. "I noticed the behavior of a certain function is
@@ -77,8 +77,8 @@ Any community member can open issues to:
 - Ask questions, e.g. "I noticed the behavior of a certain function
   changed between versions. Is this expected?".
 
-    Ideally, your questions should be related to how pandas works rather
-    than how you use pandas. `StackOverflow <https://stackoverflow.com/>`_ is
+    Ideally, your questions should be related to how astropy works rather
+    than how you use astropy. `StackOverflow <https://stackoverflow.com/>`_ is
     better suited for answering usage questions, and we ask that all usage
     questions are first asked on StackOverflow. Thank you for respecting our
     time and wishes. 🙇
@@ -86,7 +86,7 @@ Any community member can open issues to:
 Maintainers and frequent contributors might also open issues to discuss the
 ongoing development of the project. For example:
 
-- Report issues with the CI, GitHub Actions, or the performance of pandas
+- Report issues with the CI, GitHub Actions, or the performance of astropy
 - Open issues relating to the internals
 - Start roadmap discussion aligning on proposals for what to do in future
   releases or changes to the API.
@@ -95,7 +95,7 @@ ongoing development of the project. For example:
 The developer mailing list
 --------------------------
 
-The pandas mailing list `pandas-dev@python.org <mailto://pandas-dev@python
+The astropy mailing list `astropy-dev@python.org <mailto://astropy-dev@python
 .org>`_ is used for long form
 conversations and to engage people in the wider community who might not
 be active on the issue tracker but we would like to include in discussions.
@@ -107,15 +107,15 @@ Community slack
 
 We have a chat platform for contributors, maintainers and potential
 contributors. This is not a space for user questions, rather for questions about
-contributing to pandas. The slack is a private space, specifically meant for
+contributing to astropy. The slack is a private space, specifically meant for
 people who are hesitant to bring up their questions or ideas on a large public
 mailing list or GitHub.
 
 If this sounds like the right place for you, you are welcome to join using
-`this link <https://join.slack.com/t/pandas-dev-community/shared_invite/zt-2blg6u9k3-K6_XvMRDZWeH7Id274UeIg>`_!
-Please remember to follow our `Code of Conduct <https://pandas.pydata.org/community/coc.html>`_,
+`this link <https://join.slack.com/t/astropy-dev-community/shared_invite/zt-2blg6u9k3-K6_XvMRDZWeH7Id274UeIg>`_!
+Please remember to follow our `Code of Conduct <https://astropy.pydata.org/community/coc.html>`_,
 and be aware that our admins are monitoring for irrelevant messages and will remove folks who use
 our
-slack for spam, advertisements and messages not related to the pandas contributing community. And
+slack for spam, advertisements and messages not related to the astropy contributing community. And
 please remember that slack is not meant to replace the mailing list or issue tracker - all important
 announcements and conversations should still happen there.

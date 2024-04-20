@@ -1,7 +1,7 @@
 .. _docstring:
 
 ======================
-pandas docstring guide
+astropy docstring guide
 ======================
 
 About docstrings and standards
@@ -61,7 +61,7 @@ The first conventions every Python docstring should follow are defined in
 `PEP-257 <https://www.python.org/dev/peps/pep-0257/>`_.
 
 As PEP-257 is quite broad, other more specific standards also exist. In the
-case of pandas, the NumPy docstring convention is followed. These conventions are
+case of astropy, the NumPy docstring convention is followed. These conventions are
 explained in this document:
 
 * `numpydoc docstring guide <https://numpydoc.readthedocs.io/en/latest/format.html>`_
@@ -76,11 +76,11 @@ about reStructuredText can be found in:
 * `Quick reStructuredText reference <https://docutils.sourceforge.io/docs/user/rst/quickref.html>`_
 * `Full reStructuredText specification <https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html>`_
 
-pandas has some helpers for sharing docstrings between related classes, see
+astropy has some helpers for sharing docstrings between related classes, see
 :ref:`docstring.sharing`.
 
 The rest of this document will summarize all the above guidelines, and will
-provide additional conventions specific to the pandas project.
+provide additional conventions specific to the astropy project.
 
 .. _docstring.tutorial:
 
@@ -104,14 +104,14 @@ backticks. The following are considered inline code:
 * The name of a parameter
 * Python code, a module, function, built-in, type, literal... (e.g. ``os``,
   ``list``, ``numpy.abs``, ``datetime.date``, ``True``)
-* A pandas class (in the form ``:class:`pandas.Series```)
-* A pandas method (in the form ``:meth:`pandas.Series.sum```)
-* A pandas function (in the form ``:func:`pandas.to_datetime```)
+* A astropy class (in the form ``:class:`astropy.Series```)
+* A astropy method (in the form ``:meth:`astropy.Series.sum```)
+* A astropy function (in the form ``:func:`astropy.to_datetime```)
 
 .. note::
     To display only the last component of the linked class, method or
-    function, prefix it with ``~``. For example, ``:class:`~pandas.Series```
-    will link to ``pandas.Series`` but only display the last part, ``Series``
+    function, prefix it with ``~``. For example, ``:class:`~astropy.Series```
+    will link to ``astropy.Series`` but only display the last part, ``Series``
     as the link text. See `Sphinx cross-referencing syntax
     <https://www.sphinx-doc.org/en/stable/domains.html#cross-referencing-syntax>`_
     for details.
@@ -124,7 +124,7 @@ backticks. The following are considered inline code:
         """
         Add the values in ``arr``.
 
-        This is equivalent to Python ``sum`` of :meth:`pandas.Series.sum`.
+        This is equivalent to Python ``sum`` of :meth:`astropy.Series.sum`.
 
         Some sections are omitted here for simplicity.
         """
@@ -388,14 +388,14 @@ If the type is in a package, the module must be also specified:
 * numpy.ndarray
 * scipy.sparse.coo_matrix
 
-If the type is a pandas type, also specify pandas except for Series and
+If the type is a astropy type, also specify astropy except for Series and
 DataFrame:
 
 * Series
 * DataFrame
-* pandas.Index
-* pandas.Categorical
-* pandas.arrays.SparseArray
+* astropy.Index
+* astropy.Categorical
+* astropy.arrays.SparseArray
 
 If the exact type is not relevant, but must be compatible with a NumPy
 array, array-like can be specified. If Any type that can be iterated is
@@ -504,7 +504,7 @@ If the method yields its value:
 Section 5: see also
 ~~~~~~~~~~~~~~~~~~~
 
-This section is used to let users know about pandas functionality
+This section is used to let users know about astropy functionality
 related to the one being documented. In rare cases, if no related methods
 or functions can be found at all, this section can be skipped.
 
@@ -524,9 +524,9 @@ examples:
 * ``fillna`` and ``dropna``, as both methods are used to handle missing values
 * ``read_csv`` and ``to_csv``, as they are complementary
 * ``merge`` and ``join``, as one is a generalization of the other
-* ``astype`` and ``pandas.to_datetime``, as users may be reading the
+* ``astype`` and ``astropy.to_datetime``, as users may be reading the
   documentation of ``astype`` to know how to cast as a date, and the way to do
-  it is with ``pandas.to_datetime``
+  it is with ``astropy.to_datetime``
 * ``where`` is related to ``numpy.where``, as its functionality is based on it
 
 When deciding what is related, you should mainly use your common sense and
@@ -612,7 +612,7 @@ be added with blank lines before and after them.
 
 The way to present examples is as follows:
 
-1. Import required libraries (except ``numpy`` and ``pandas``)
+1. Import required libraries (except ``numpy`` and ``astropy``)
 
 2. Create the data required for the example
 
@@ -641,7 +641,7 @@ A simple example could be:
 
             Return
             ------
-            pandas.Series
+            astropy.Series
                 Subset of the original series with the n first values.
 
             See Also
@@ -685,7 +685,7 @@ shown:
 .. code-block:: python
 
     import numpy as np
-    import pandas as pd
+    import astropy as pd
 
 Any other module used in the examples must be explicitly imported, one per line (as
 recommended in :pep:`8#imports`)
@@ -815,7 +815,7 @@ positional arguments ``head(3)``.
         """
         A sample DataFrame method.
 
-        Do not import NumPy and pandas.
+        Do not import NumPy and astropy.
 
         Try to use meaningful data, when it makes the example easier
         to understand.
@@ -831,7 +831,7 @@ positional arguments ``head(3)``.
         Examples
         --------
         >>> import numpy as np
-        >>> import pandas as pd
+        >>> import astropy as pd
         >>> df = pd.DataFrame(np.random.randn(3, 3),
         ...                   columns=('a', 'b', 'c'))
         >>> df.method(1)
@@ -850,8 +850,8 @@ Tips for getting your examples pass the doctests
 Getting the examples pass the doctests in the validation script can sometimes
 be tricky. Here are some attention points:
 
-* Import all needed libraries (except for pandas and NumPy, those are already
-  imported as ``import pandas as pd`` and ``import numpy as np``) and define
+* Import all needed libraries (except for astropy and NumPy, those are already
+  imported as ``import astropy as pd`` and ``import numpy as np``) and define
   all variables you use in the example.
 
 * Try to avoid using random data. However random data might be OK in some
@@ -899,7 +899,7 @@ be tricky. Here are some attention points:
 Plots in examples
 ^^^^^^^^^^^^^^^^^
 
-There are some methods in pandas returning plots. To render the plots generated
+There are some methods in astropy returning plots. To render the plots generated
 by the examples in the documentation, the ``.. plot::`` directive exists.
 
 To use it, place the next code after the "Examples" header as shown below. The
@@ -928,7 +928,7 @@ plot will be generated automatically when building the documentation.
 Sharing docstrings
 ------------------
 
-pandas has a system for sharing docstrings, with slight variations, between
+astropy has a system for sharing docstrings, with slight variations, between
 classes. This helps us keep docstrings consistent, while keeping things clear
 for the user reading. It comes at the cost of some complexity when writing.
 
@@ -937,8 +937,8 @@ Each shared docstring will have a base template with variables, like
 Finally, docstrings can also be appended to with the ``doc`` decorator.
 
 In this example, we'll create a parent docstring normally (this is like
-``pandas.core.generic.NDFrame``). Then we'll have two children (like
-``pandas.core.series.Series`` and ``pandas.DataFrame``). We'll
+``astropy.core.generic.NDFrame``). Then we'll have two children (like
+``astropy.core.series.Series`` and ``astropy.DataFrame``). We'll
 substitute the class names in this docstring.
 
 .. code-block:: python
@@ -992,6 +992,6 @@ where ``template`` may come from a module-level ``_shared_docs`` dictionary
 mapping function names to docstrings. Wherever possible, we prefer using
 ``doc``, since the docstring-writing processes is slightly closer to normal.
 
-See ``pandas.core.generic.NDFrame.fillna`` for an example template, and
-``pandas.core.series.Series.fillna`` and ``pandas.core.generic.frame.fillna``
+See ``astropy.core.generic.NDFrame.fillna`` for an example template, and
+``astropy.core.series.Series.fillna`` and ``astropy.core.generic.frame.fillna``
 for the filled versions.

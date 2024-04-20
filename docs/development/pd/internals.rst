@@ -4,13 +4,13 @@
 Internals
 *********
 
-This section will provide a look into some of pandas internals. It's primarily
-intended for developers of pandas itself.
+This section will provide a look into some of astropy internals. It's primarily
+intended for developers of astropy itself.
 
 Indexing
 --------
 
-In pandas there are a few objects implemented which can serve as valid
+In astropy there are a few objects implemented which can serve as valid
 containers for the axis labels:
 
 * :class:`Index`: the generic "ordered set" object, an ndarray of object dtype
@@ -59,7 +59,7 @@ that this is true, but if you compute the levels and codes yourself, please be c
 Values
 ~~~~~~
 
-pandas extends NumPy's type system with custom types, like :class:`Categorical` or
+astropy extends NumPy's type system with custom types, like :class:`Categorical` or
 datetimes with a timezone, so we have multiple notions of "values". For 1-D
 containers (``Index`` classes and ``Series``) we have the following convention:
 
@@ -68,9 +68,9 @@ containers (``Index`` classes and ``Series``) we have the following convention:
 
 So, for example, ``Series[category]._values`` is a ``Categorical``.
 
-.. _ref-subclassing-pandas:
+.. _ref-subclassing-astropy:
 
-Subclassing pandas data structures
+Subclassing astropy data structures
 ----------------------------------
 
-This section has been moved to :ref:`extending.subclassing-pandas`.
+This section has been moved to :ref:`extending.subclassing-astropy`.

@@ -4,15 +4,15 @@
 Contributing to the documentation
 =================================
 
-Contributing to the documentation benefits everyone who uses pandas.
+Contributing to the documentation benefits everyone who uses astropy.
 We encourage you to help us improve the documentation, and
-you don't have to be an expert on pandas to do so! In fact,
+you don't have to be an expert on astropy to do so! In fact,
 there are sections of the docs that are worse off after being written by
 experts. If something in the docs doesn't make sense to you, updating the
 relevant section after you figure it out is a great way to ensure it will help
 the next person. Please visit the `issues page <https://github.com/astropy/astropy/issues?page=1&q=is%3Aopen+sort%3Aupdated-desc+label%3ADocs>`__
 for a full list of issues that are currently open regarding the
-pandas documentation.
+astropy documentation.
 
 
 
@@ -20,7 +20,7 @@ pandas documentation.
    :local:
 
 
-About the pandas documentation
+About the astropy documentation
 --------------------------------
 
 The documentation is written in **reStructuredText**, which is almost like writing
@@ -31,7 +31,7 @@ complex changes to the documentation as well.
 
 Some other important things to know about the docs:
 
-* The pandas documentation consists of two parts: the docstrings in the code
+* The astropy documentation consists of two parts: the docstrings in the code
   itself and the docs in this folder ``doc/``.
 
   The docstrings provide a clear explanation of the usage of the individual
@@ -39,8 +39,8 @@ Some other important things to know about the docs:
   overviews per topic together with some other information (what's new,
   installation, etc).
 
-* The docstrings follow a pandas convention, based on the **Numpy Docstring
-  Standard**. Follow the :ref:`pandas docstring guide <docstring>` for detailed
+* The docstrings follow a astropy convention, based on the **Numpy Docstring
+  Standard**. Follow the :ref:`astropy docstring guide <docstring>` for detailed
   instructions on how to write a correct docstring.
 
   .. toctree::
@@ -95,24 +95,24 @@ The utility script ``scripts/validate_docstrings.py`` can be used to get a csv
 summary of the API documentation. And also validate common errors in the docstring
 of a specific class, function or method. The summary also compares the list of
 methods documented in the files in ``doc/source/reference`` (which is used to generate
-the `API Reference <https://pandas.pydata.org/pandas-docs/stable/api.html>`_ page)
+the `API Reference <https://astropy.pydata.org/astropy-docs/stable/api.html>`_ page)
 and the actual public methods.
 This will identify methods documented in ``doc/source/reference`` that are not actually
 class methods, and existing methods that are not documented in ``doc/source/reference``.
 
 
-Updating a pandas docstring
+Updating a astropy docstring
 -----------------------------
 
 When improving a single function or method's docstring, it is not necessarily
 needed to build the full documentation (see next section).
 However, there is a script that checks a docstring (for example for the ``DataFrame.mean`` method)::
 
-    python scripts/validate_docstrings.py pandas.DataFrame.mean
+    python scripts/validate_docstrings.py astropy.DataFrame.mean
 
 This script will indicate some formatting errors if present, and will also
 run and test the examples included in the docstring.
-Check the :ref:`pandas docstring guide <docstring>` for a detailed guide
+Check the :ref:`astropy docstring guide <docstring>` for a detailed guide
 on how to format the docstring.
 
 The examples in the docstring ('doctests') must be valid Python code,
@@ -127,13 +127,13 @@ output of the validation script in a comment on github.
 
 .. _contributing.howto-build-docs:
 
-How to build the pandas documentation
+How to build the astropy documentation
 ---------------------------------------
 
 Requirements
 ~~~~~~~~~~~~
 
-First, you need to have a development environment to be able to build pandas
+First, you need to have a development environment to be able to build astropy
 (see the docs on :ref:`creating a development environment <contributing_environment>`).
 
 Building the documentation
@@ -171,7 +171,7 @@ reducing the turn-around time for checking your changes.
 
     # compile the reference docs for a single function
     python make.py clean
-    python make.py --single pandas.DataFrame.join
+    python make.py --single astropy.DataFrame.join
 
     # compile whatsnew and API section (to resolve links in the whatsnew)
     python make.py clean
@@ -196,9 +196,9 @@ And you'll have the satisfaction of seeing your new and improved documentation!
 Building main branch documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When pull requests are merged into the pandas ``main`` branch, the main parts of
+When pull requests are merged into the astropy ``main`` branch, the main parts of
 the documentation are also built by Travis-CI. These docs are then hosted `here
-<https://pandas.pydata.org/docs/dev/>`__, see also
+<https://astropy.pydata.org/docs/dev/>`__, see also
 the :any:`Continuous Integration <contributing.ci>` section.
 
 Previewing changes

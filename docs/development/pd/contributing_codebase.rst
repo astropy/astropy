@@ -14,9 +14,9 @@ Writing good code is not just about what you write. It is also about *how* you
 write it. During :ref:`Continuous Integration <contributing.ci>` testing, several
 tools will be run to check your code for stylistic errors.
 Generating any warnings will cause the test to fail.
-Thus, good style is a requirement for submitting code to pandas.
+Thus, good style is a requirement for submitting code to astropy.
 
-There are a couple of tools in pandas to help contributors verify their changes
+There are a couple of tools in astropy to help contributors verify their changes
 before contributing to the project
 
 - ``./ci/code_checks.sh``: a script validates the doctests, formatting in docstrings,
@@ -45,7 +45,7 @@ in :ref:`Setting up your development environment <contributing_environment>`) an
 
     pre-commit install
 
-from the root of the pandas repository. Now all of the styling checks will be
+from the root of the astropy repository. Now all of the styling checks will be
 run each time you commit changes without your needing to run each one manually.
 In addition, using ``pre-commit`` will also allow you to more easily
 remain up-to-date with our code checks as they change.
@@ -89,7 +89,7 @@ Optional dependencies
 ---------------------
 
 Optional dependencies (e.g. matplotlib) should be imported with the private helper
-``pandas.compat._optional.import_optional_dependency``. This ensures a
+``astropy.compat._optional.import_optional_dependency``. This ensures a
 consistent error message when the dependency is not met.
 
 All methods using an optional dependency should include a test asserting that an
@@ -98,23 +98,23 @@ should be skipped if the library is present.
 
 All optional dependencies should be documented in
 :ref:`install.optional_dependencies` and the minimum required version should be
-set in the ``pandas.compat._optional.VERSIONS`` dict.
+set in the ``astropy.compat._optional.VERSIONS`` dict.
 
 Backwards compatibility
 -----------------------
 
-Please try to maintain backward compatibility. pandas has lots of users with lots of
+Please try to maintain backward compatibility. astropy has lots of users with lots of
 existing code, so don't break it if at all possible.  If you think breakage is required,
 clearly state why as part of the pull request.  Also, be careful when changing method
 signatures and add deprecation warnings where needed. Also, add the deprecated sphinx
 directive to the deprecated functions or methods.
 
 If a function with the same arguments as the one being deprecated exist, you can use
-the ``pandas.util._decorators.deprecate``:
+the ``astropy.util._decorators.deprecate``:
 
 .. code-block:: python
 
-    from pandas.util._decorators import deprecate
+    from astropy.util._decorators import deprecate
 
     deprecate('old_func', 'new_func', '1.1.0')
 
@@ -123,7 +123,7 @@ Otherwise, you need to do it manually:
 .. code-block:: python
 
     import warnings
-    from pandas.util._exceptions import find_stack_level
+    from astropy.util._exceptions import find_stack_level
 
 
     def old_func():
@@ -146,7 +146,7 @@ Otherwise, you need to do it manually:
 You'll also need to
 
 1. Write a new test that asserts a warning is issued when calling with the deprecated argument
-2. Update all of pandas existing tests and code to use the new argument
+2. Update all of astropy existing tests and code to use the new argument
 
 See :ref:`contributing.warnings` for more.
 
@@ -155,7 +155,7 @@ See :ref:`contributing.warnings` for more.
 Type hints
 ----------
 
-pandas strongly encourages the use of :pep:`484` style type hints. New development should contain type hints and pull requests to annotate existing code are accepted as well!
+astropy strongly encourages the use of :pep:`484` style type hints. New development should contain type hints and pull requests to annotate existing code are accepted as well!
 
 Style guidelines
 ~~~~~~~~~~~~~~~~
@@ -186,7 +186,7 @@ In some cases you may be tempted to use ``cast`` from the typing module when you
 
    from typing import cast
 
-   from pandas.core.dtypes.common import is_number
+   from astropy.core.dtypes.common import is_number
 
    def cannot_infer_bad(obj: Union[str, int, float]):
 
@@ -209,16 +209,16 @@ The limitation here is that while a human can reasonably understand that ``is_nu
 
 With custom types and inference this is not always possible so exceptions are made, but every effort should be exhausted to avoid ``cast`` before going down such paths.
 
-pandas-specific types
+astropy-specific types
 ~~~~~~~~~~~~~~~~~~~~~
 
-Commonly used types specific to pandas will appear in `pandas._typing <https://github.com/astropy/astropy/blob/main/pandas/_typing.py>`_ and you should use these where applicable. This module is private for now but ultimately this should be exposed to third party libraries who want to implement type checking against pandas.
+Commonly used types specific to astropy will appear in `astropy._typing <https://github.com/astropy/astropy/blob/main/astropy/_typing.py>`_ and you should use these where applicable. This module is private for now but ultimately this should be exposed to third party libraries who want to implement type checking against astropy.
 
-For example, quite a few functions in pandas accept a ``dtype`` argument. This can be expressed as a string like ``"object"``, a ``numpy.dtype`` like ``np.int64`` or even a pandas ``ExtensionDtype`` like ``pd.CategoricalDtype``. Rather than burden the user with having to constantly annotate all of those options, this can simply be imported and reused from the pandas._typing module
+For example, quite a few functions in astropy accept a ``dtype`` argument. This can be expressed as a string like ``"object"``, a ``numpy.dtype`` like ``np.int64`` or even a astropy ``ExtensionDtype`` like ``pd.CategoricalDtype``. Rather than burden the user with having to constantly annotate all of those options, this can simply be imported and reused from the astropy._typing module
 
 .. code-block:: python
 
-   from pandas._typing import Dtype
+   from astropy._typing import Dtype
 
    def as_type(dtype: Dtype) -> ...:
        ...
@@ -228,48 +228,48 @@ This module will ultimately house types for repeatedly used concepts like "path-
 Validating type hints
 ~~~~~~~~~~~~~~~~~~~~~
 
-pandas uses `mypy <http://mypy-lang.org>`_ and `pyright <https://github.com/microsoft/pyright>`_ to statically analyze the code base and type hints. After making any change you can ensure your type hints are consistent by running
+astropy uses `mypy <http://mypy-lang.org>`_ and `pyright <https://github.com/microsoft/pyright>`_ to statically analyze the code base and type hints. After making any change you can ensure your type hints are consistent by running
 
 .. code-block:: shell
 
     pre-commit run --hook-stage manual --all-files mypy
     pre-commit run --hook-stage manual --all-files pyright
     pre-commit run --hook-stage manual --all-files pyright_reportGeneralTypeIssues
-    # the following might fail if the installed pandas version does not correspond to your local git version
+    # the following might fail if the installed astropy version does not correspond to your local git version
     pre-commit run --hook-stage manual --all-files stubtest
 
 in your python environment.
 
 .. warning::
 
-    * Please be aware that the above commands will use the current python environment. If your python packages are older/newer than those installed by the pandas CI, the above commands might fail. This is often the case when the ``mypy`` or ``numpy`` versions do not match. Please see :ref:`how to setup the python environment <contributing.mamba>` or select a `recently succeeded workflow <https://github.com/astropy/astropy/actions/workflows/code-checks.yml?query=branch%3Amain+is%3Asuccess>`_, select the "Docstring validation, typing, and other manual pre-commit hooks" job, then click on "Set up Conda" and "Environment info" to see which versions the pandas CI installs.
+    * Please be aware that the above commands will use the current python environment. If your python packages are older/newer than those installed by the astropy CI, the above commands might fail. This is often the case when the ``mypy`` or ``numpy`` versions do not match. Please see :ref:`how to setup the python environment <contributing.mamba>` or select a `recently succeeded workflow <https://github.com/astropy/astropy/actions/workflows/code-checks.yml?query=branch%3Amain+is%3Asuccess>`_, select the "Docstring validation, typing, and other manual pre-commit hooks" job, then click on "Set up Conda" and "Environment info" to see which versions the astropy CI installs.
 
 .. _contributing.ci:
 
-Testing type hints in code using pandas
+Testing type hints in code using astropy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. warning::
 
-    * pandas is not yet a py.typed library (:pep:`561`)!
-      The primary purpose of locally declaring pandas as a py.typed library is to test and
-      improve the pandas-builtin type annotations.
+    * astropy is not yet a py.typed library (:pep:`561`)!
+      The primary purpose of locally declaring astropy as a py.typed library is to test and
+      improve the astropy-builtin type annotations.
 
-Until pandas becomes a py.typed library, it is possible to easily experiment with the type
-annotations shipped with pandas by creating an empty file named "py.typed" in the pandas
+Until astropy becomes a py.typed library, it is possible to easily experiment with the type
+annotations shipped with astropy by creating an empty file named "py.typed" in the astropy
 installation folder:
 
 .. code-block:: none
 
-   python -c "import pandas; import pathlib; (pathlib.Path(pandas.__path__[0]) / 'py.typed').touch()"
+   python -c "import astropy; import pathlib; (pathlib.Path(astropy.__path__[0]) / 'py.typed').touch()"
 
-The existence of the py.typed file signals to type checkers that pandas is already a py.typed
-library. This makes type checkers aware of the type annotations shipped with pandas.
+The existence of the py.typed file signals to type checkers that astropy is already a py.typed
+library. This makes type checkers aware of the type annotations shipped with astropy.
 
 Testing with continuous integration
 -----------------------------------
 
-The pandas test suite will run automatically on `GitHub Actions <https://github.com/features/actions/>`__
+The astropy test suite will run automatically on `GitHub Actions <https://github.com/features/actions/>`__
 continuous integration services, once your pull request is submitted.
 However, if you wish to run the test suite on a branch prior to submitting the pull request,
 then the continuous integration services need to be hooked to your GitHub repository. Instructions are here
@@ -287,7 +287,7 @@ This is an example of a green build.
 Test-driven development
 -----------------------
 
-pandas is serious about testing and strongly encourages contributors to embrace
+astropy is serious about testing and strongly encourages contributors to embrace
 `test-driven development (TDD) <https://en.wikipedia.org/wiki/Test-driven_development>`_.
 This development process "relies on the repetition of a very short development cycle:
 first the developer writes an (initially failing) automated test case that defines a desired
@@ -296,7 +296,7 @@ So, before actually writing any code, you should write your tests.  Often the te
 taken from the original GitHub issue.  However, it is always worth considering additional
 use cases and writing corresponding tests.
 
-Adding tests is one of the most common requests after code is pushed to pandas.  Therefore,
+Adding tests is one of the most common requests after code is pushed to astropy.  Therefore,
 it is worth getting in the habit of writing tests ahead of time so this is never an issue.
 
 Writing tests
@@ -330,7 +330,7 @@ be located.
 
      .. note::
 
-          No file in ``tests.tslibs`` should import from any pandas modules
+          No file in ``tests.tslibs`` should import from any astropy modules
           outside of ``pd._libs.tslibs``
 
    - tests.scalar
@@ -423,8 +423,8 @@ be located.
 
       .. code-block:: python
 
-           import pandas as pd
-           import pandas._testing as tm
+           import astropy as pd
+           import astropy._testing as tm
 
            def test_getitem_listlike_of_ints():
                ser = pd.Series(range(5))
@@ -477,7 +477,7 @@ be located.
 
    - tests.indexes
 
-8) Is your test for one of the pandas-provided ExtensionArrays (``Categorical``,
+8) Is your test for one of the astropy-provided ExtensionArrays (``Categorical``,
    ``DatetimeArray``, ``TimedeltaArray``, ``PeriodArray``, ``IntervalArray``,
    ``NumpyExtensionArray``, ``FloatArray``, ``BoolArray``, ``StringArray``)?
    This test likely belongs in one of:
@@ -495,7 +495,7 @@ Using ``pytest``
 Test structure
 ^^^^^^^^^^^^^^
 
-pandas existing test structure is *mostly* class-based, meaning that you will typically find tests wrapped in a class.
+astropy existing test structure is *mostly* class-based, meaning that you will typically find tests wrapped in a class.
 
 .. code-block:: python
 
@@ -622,7 +622,7 @@ lack of ownership of the server that is being connected to. To mock this interac
 Example
 ^^^^^^^
 
-Here is an example of a self-contained set of tests in a file ``pandas/tests/test_cool_feature.py``
+Here is an example of a self-contained set of tests in a file ``astropy/tests/test_cool_feature.py``
 that illustrate multiple features that we like to use. Please remember to add the GitHub Issue Number
 as a comment to a new test.
 
@@ -630,7 +630,7 @@ as a comment to a new test.
 
    import pytest
    import numpy as np
-   import pandas as pd
+   import astropy as pd
 
 
    @pytest.mark.parametrize('dtype', ['int8', 'int16', 'int32', 'int64'])
@@ -669,7 +669,7 @@ A test run of this yields
 
 .. code-block:: shell
 
-   ((pandas) bash-3.2$ pytest  test_cool_feature.py  -v
+   ((astropy) bash-3.2$ pytest  test_cool_feature.py  -v
    =========================== test session starts ===========================
    platform darwin -- Python 3.6.2, pytest-3.6.0, py-1.4.31, pluggy-0.4.0
    collected 11 items
@@ -691,7 +691,7 @@ Tests that we have ``parametrized`` are now accessible via the test name, for ex
 
 .. code-block:: shell
 
-   ((pandas) bash-3.2$ pytest  test_cool_feature.py  -v -k int8
+   ((astropy) bash-3.2$ pytest  test_cool_feature.py  -v -k int8
    =========================== test session starts ===========================
    platform darwin -- Python 3.6.2, pytest-3.6.0, py-1.4.31, pluggy-0.4.0
    collected 11 items
@@ -735,7 +735,7 @@ This test shows off several useful features of Hypothesis, as well as
 demonstrating a good use-case: checking properties that should hold over
 a large or complicated domain of inputs.
 
-To keep the pandas test suite running quickly, parametrized tests are
+To keep the astropy test suite running quickly, parametrized tests are
 preferred if the inputs or logic are simple, with Hypothesis tests reserved
 for cases with complex logic or where there are too many combinations of
 options or subtle interactions to test (or think of!) all of them.
@@ -746,34 +746,34 @@ Running the test suite
 ----------------------
 
 The tests can then be run directly inside your Git clone (without having to
-install pandas) by typing::
+install astropy) by typing::
 
-    pytest pandas
+    pytest astropy
 
 .. note::
 
-    If a handful of tests don't pass, it may not be an issue with your pandas installation.
+    If a handful of tests don't pass, it may not be an issue with your astropy installation.
     Some tests (e.g. some SQLAlchemy ones) require additional setup, others might start
     failing because a non-pinned library released a new version, and others might be flaky
-    if run in parallel. As long as you can import pandas from your locally built version,
+    if run in parallel. As long as you can import astropy from your locally built version,
     your installation is probably fine and you can start contributing!
 
 Often it is worth running only a subset of tests first around your changes before running the
-entire suite (tip: you can use the `pandas-coverage app <https://pandas-coverage-12d2130077bc.herokuapp.com/>`_)
+entire suite (tip: you can use the `astropy-coverage app <https://astropy-coverage-12d2130077bc.herokuapp.com/>`_)
 to find out which tests hit the lines of code you've modified, and then run only those).
 
 The easiest way to do this is with::
 
-    pytest pandas/path/to/test.py -k regex_matching_test_name
+    pytest astropy/path/to/test.py -k regex_matching_test_name
 
 Or with one of the following constructs::
 
-    pytest pandas/tests/[test-module].py
-    pytest pandas/tests/[test-module].py::[TestClass]
-    pytest pandas/tests/[test-module].py::[TestClass]::[test_method]
+    pytest astropy/tests/[test-module].py
+    pytest astropy/tests/[test-module].py::[TestClass]
+    pytest astropy/tests/[test-module].py::[TestClass]::[test_method]
 
 Using `pytest-xdist <https://pypi.org/project/pytest-xdist>`_, which is
-included in our 'pandas-dev' environment, one can speed up local testing on
+included in our 'astropy-dev' environment, one can speed up local testing on
 multicore machines. The ``-n`` number flag then can be specified when running
 pytest to parallelize a test run across the number of specified cores or auto to
 utilize all the available cores on your machine.
@@ -781,17 +781,17 @@ utilize all the available cores on your machine.
 .. code-block:: bash
 
    # Utilize 4 cores
-   pytest -n 4 pandas
+   pytest -n 4 astropy
 
    # Utilizes all available cores
-   pytest -n auto pandas
+   pytest -n auto astropy
 
 If you'd like to speed things along further a more advanced use of this
 command would look like this
 
 .. code-block:: bash
 
-    pytest pandas -n 4 -m "not slow and not network and not db and not single_cpu" -r sxX
+    pytest astropy -n 4 -m "not slow and not network and not db and not single_cpu" -r sxX
 
 In addition to the multithreaded performance increase this improves test
 speed by skipping some tests using the ``-m`` mark flag:
@@ -829,14 +829,14 @@ for setting a seed on windows
 .. code-block:: bash
 
     set PYTHONHASHSEED=314159265
-    pytest pandas -n 4 -m "not slow and not network and not db and not single_cpu" -r sxX
+    pytest astropy -n 4 -m "not slow and not network and not db and not single_cpu" -r sxX
 
 On Unix use
 
 .. code-block:: bash
 
     export PYTHONHASHSEED=314159265
-    pytest pandas -n 4 -m "not slow and not network and not db and not single_cpu" -r sxX
+    pytest astropy -n 4 -m "not slow and not network and not db and not single_cpu" -r sxX
 
 For more, see the `pytest <https://docs.pytest.org/en/latest/>`_ documentation.
 
@@ -846,17 +846,17 @@ Furthermore one can run
 
    pd.test()
 
-with an imported pandas to run tests similarly.
+with an imported astropy to run tests similarly.
 
 Running the performance test suite
 ----------------------------------
 
 Performance matters and it is worth considering whether your code has introduced
-performance regressions. pandas is in the process of migrating to
+performance regressions. astropy is in the process of migrating to
 `asv benchmarks <https://github.com/airspeed-velocity/asv>`__
-to enable easy monitoring of the performance of critical pandas operations.
-These benchmarks are all found in the ``pandas/asv_bench`` directory, and the
-test results can be found `here <https://asv-runner.github.io/asv-collection/pandas>`__.
+to enable easy monitoring of the performance of critical astropy operations.
+These benchmarks are all found in the ``astropy/asv_bench`` directory, and the
+test results can be found `here <https://asv-runner.github.io/asv-collection/astropy>`__.
 
 To use all features of asv, you will need either ``conda`` or
 ``virtualenv``. For more details please check the `asv installation
@@ -885,7 +885,7 @@ hardware and its resource utilization. However, usually it is sufficient to past
 only a subset of the results into the pull request to show that the committed changes
 do not cause unexpected performance regressions.  You can run specific benchmarks
 using the ``-b`` flag, which takes a regular expression. For example, this will
-only run benchmarks from a ``pandas/asv_bench/benchmarks/groupby.py`` file::
+only run benchmarks from a ``astropy/asv_bench/benchmarks/groupby.py`` file::
 
     asv continuous -f 1.1 upstream/main HEAD -b ^groupby
 
@@ -896,7 +896,7 @@ using ``.`` as a separator. For example::
 
 will only run the ``GroupByMethods`` benchmark defined in ``groupby.py``.
 
-You can also run the benchmark suite using the version of ``pandas``
+You can also run the benchmark suite using the version of ``astropy``
 already installed in your current Python environment. This can be
 useful if you do not have virtualenv or conda, or are using the
 ``setup.py develop`` approach discussed above; for the in-place build
@@ -952,5 +952,5 @@ directive is used. The sphinx syntax for that is:
 
 This will put the text *New in version 2.1.0* wherever you put the sphinx
 directive. This should also be put in the docstring when adding a new function
-or method (`example <https://github.com/astropy/astropy/blob/v0.20.2/pandas/core/frame.py#L1495>`__)
-or a new keyword argument (`example <https://github.com/astropy/astropy/blob/v0.20.2/pandas/core/generic.py#L568>`__).
+or method (`example <https://github.com/astropy/astropy/blob/v0.20.2/astropy/core/frame.py#L1495>`__)
+or a new keyword argument (`example <https://github.com/astropy/astropy/blob/v0.20.2/astropy/core/generic.py#L568>`__).

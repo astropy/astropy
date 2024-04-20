@@ -1,7 +1,7 @@
 .. _contributing:
 
 **********************
-Contributing to pandas
+Contributing to astropy
 **********************
 
 .. contents:: Table of contents:
@@ -16,17 +16,17 @@ enhancements, and ideas are welcome.
 Bug reports and enhancement requests
 ====================================
 
-Bug reports and enhancement requests are an important part of making pandas more stable and
+Bug reports and enhancement requests are an important part of making astropy more stable and
 are curated though Github issues. When reporting an issue or request, please select the `appropriate
 category and fill out the issue form fully <https://github.com/astropy/astropy/issues/new/choose>`_
 to ensure others and the core development team can fully understand the scope of the issue.
 
-The issue will then show up to the pandas community and be open to comments/ideas from others.
+The issue will then show up to the astropy community and be open to comments/ideas from others.
 
 Finding an issue to contribute to
 =================================
 
-If you are brand new to pandas or open-source development, we recommend searching
+If you are brand new to astropy or open-source development, we recommend searching
 the `GitHub "issues" tab <https://github.com/astropy/astropy/issues>`_
 to find issues that interest you. Unassigned issues labeled `Docs
 <https://github.com/astropy/astropy/issues?q=is%3Aopen+sort%3Aupdated-desc+label%3ADocs+no%3Aassignee>`_
@@ -48,7 +48,7 @@ that is assigned, feel free to kindly ask the current assignee if you can take i
 We have several :ref:`contributor community <community>` communication channels, which you are
 welcome to join, and ask questions as you figure things out. Among them are regular meetings for
 new contributors, dev meetings, a dev mailing list, and a Slack for the contributor community.
-All pandas contributors are welcome to these spaces, where they can connect with each other. Even
+All astropy contributors are welcome to these spaces, where they can connect with each other. Even
 maintainers who have been with us for a long time felt just like you when they started out, and
 are happy to welcome you and support you as you get to know how we work, and where things are.
 Take a look at the next sections to learn more.
@@ -63,7 +63,7 @@ Submitting a pull request
 Version control, Git, and GitHub
 --------------------------------
 
-pandas is hosted on `GitHub <https://www.github.com/astropy/astropy>`_, and to
+astropy is hosted on `GitHub <https://www.github.com/astropy/astropy>`_, and to
 contribute, you will need to sign up for a `free GitHub account
 <https://github.com/signup/free>`_. We use `Git <https://git-scm.com/>`_ for
 version control to allow many people to work together on the project.
@@ -99,22 +99,22 @@ you can work seamlessly between your local repository and GitHub.
 
 .. _contributing.forking:
 
-Create a fork of pandas
+Create a fork of astropy
 -----------------------
 
-You will need your own copy of pandas (aka fork) to work on the code. Go to the `pandas project
+You will need your own copy of astropy (aka fork) to work on the code. Go to the `astropy project
 page <https://github.com/astropy/astropy>`_ and hit the ``Fork`` button. Please uncheck the box to copy only the main branch before selecting ``Create Fork``.
 You will want to clone your fork to your machine
 
 .. code-block:: shell
 
-    git clone https://github.com/your-user-name/pandas.git pandas-yourname
-    cd pandas-yourname
+    git clone https://github.com/your-user-name/astropy.git astropy-yourname
+    cd astropy-yourname
     git remote add upstream https://github.com/astropy/astropy.git
     git fetch upstream
 
-This creates the directory ``pandas-yourname`` and connects your repository to
-the upstream (main project) *pandas* repository.
+This creates the directory ``astropy-yourname`` and connects your repository to
+the upstream (main project) *astropy* repository.
 
 .. note::
 
@@ -125,8 +125,8 @@ the upstream (main project) *pandas* repository.
 Creating a feature branch
 -------------------------
 
-Your local ``main`` branch should always reflect the current state of pandas repository.
-First ensure it's up-to-date with the main pandas repository.
+Your local ``main`` branch should always reflect the current state of astropy repository.
+First ensure it's up-to-date with the main astropy repository.
 
 .. code-block:: shell
 
@@ -141,7 +141,7 @@ Then, create a feature branch for making your changes. For example
 
 This changes your working branch from ``main`` to the ``shiny-new-feature`` branch.  Keep any
 changes in this branch specific to one bug or feature so it is clear
-what the branch brings to pandas. You can have many feature branches
+what the branch brings to astropy. You can have many feature branches
 and switch in between them using the ``git checkout`` command.
 
 When you want to update the feature branch with changes in main after
@@ -208,19 +208,19 @@ like
 
 .. code-block:: shell
 
-    origin  git@github.com:yourname/pandas.git (fetch)
-    origin  git@github.com:yourname/pandas.git (push)
+    origin  git@github.com:yourname/astropy.git (fetch)
+    origin  git@github.com:yourname/astropy.git (push)
     upstream        git://github.com/astropy/astropy.git (fetch)
     upstream        git://github.com/astropy/astropy.git (push)
 
-Now your code is on GitHub, but it is not yet a part of the pandas project. For that to
+Now your code is on GitHub, but it is not yet a part of the astropy project. For that to
 happen, a pull request needs to be submitted on GitHub.
 
 Making a pull request
 ---------------------
 
 One you have finished your code changes, your code change will need to follow the
-:ref:`pandas contribution guidelines <contributing_codebase>` to be successfully accepted.
+:ref:`astropy contribution guidelines <contributing_codebase>` to be successfully accepted.
 
 If everything looks good, you are ready to make a pull request. A pull request is how
 code from your local repository becomes available to the GitHub community to review
@@ -230,7 +230,7 @@ and merged into project to appear the in the next release. To submit a pull requ
 #. Click on the ``Compare & pull request`` button
 #. You can then click on ``Commits`` and ``Files Changed`` to make sure everything looks
    okay one last time
-#. Write a descriptive title that includes prefixes. pandas uses a convention for title
+#. Write a descriptive title that includes prefixes. astropy uses a convention for title
    prefixes. Here are some common ones along with general guidelines for when to use them:
 
     * ENH: Enhancement, new functionality
@@ -257,8 +257,8 @@ Based on the review you get on your pull request, you will probably need to make
 some changes to the code. You can follow the :ref:`code committing steps <contributing.commit-code>`
 again to address any feedback and update your pull request.
 
-It is also important that updates in the pandas ``main`` branch are reflected in your pull request.
-To update your feature branch with changes in the pandas ``main`` branch, run:
+It is also important that updates in the astropy ``main`` branch are reflected in your pull request.
+To update your feature branch with changes in the astropy ``main`` branch, run:
 
 .. code-block:: shell
 
@@ -300,7 +300,7 @@ and restart the :ref:`Continuous Integration <contributing.ci>` checks.
 Updating the development environment
 ------------------------------------
 
-It is important to periodically update your local ``main`` branch with updates from the pandas ``main``
+It is important to periodically update your local ``main`` branch with updates from the astropy ``main``
 branch and update your development environment to reflect any changes to the various packages that
 are used during development.
 
@@ -311,7 +311,7 @@ If using :ref:`mamba <contributing.mamba>`, run:
     git checkout main
     git fetch upstream
     git merge upstream/main
-    mamba activate pandas-dev
+    mamba activate astropy-dev
     mamba env update -f environment.yml --prune
 
 If using :ref:`pip <contributing.pip>` , do:
