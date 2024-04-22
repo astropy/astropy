@@ -236,7 +236,6 @@ lint.unfixable = [
     "RET505",  # superfluous-else-return
 ]
 "astropy/convolution/*" = [
-    "PLR0911",  # too-many-return-statements
     "RET505",  # superfluous-else-return
     "RET506",  # superfluous-else-raise
 ]

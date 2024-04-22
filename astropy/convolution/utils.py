@@ -85,7 +85,9 @@ def add_kernel_arrays_2D(array_1, array_2):
     return array_2 + array_1
 
 
-def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
+def discretize_model(  # noqa: PLR0911
+    model, x_range, y_range=None, mode="center", factor=10
+):
     """
     Evaluate an analytical model function on a pixel grid.
 
