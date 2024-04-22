@@ -6,12 +6,28 @@ None of the functions in the module are meant for use outside of the
 package.
 """
 
+from __future__ import annotations
+
 import io
 import re
 from fractions import Fraction
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 from numpy import finfo
+
+if TYPE_CHECKING:
+    from collections.abc import Generator, Sequence
+    from numbers import Complex, Real
+    from typing import Literal, SupportsFloat, TypeVar
+
+    from numpy.typing import ArrayLike, NDArray
+
+    from .core import Quantity, UnitBase
+
+    DType = TypeVar("DType", bound=np.generic)
+    FloatLike = TypeVar("FloatLike", bound=SupportsFloat)
+
 
 _float_finfo = finfo(float)
 # take float here to ensure comparison with another float is fast
@@ -20,7 +36,7 @@ _JUST_BELOW_UNITY = float(1.0 - 4.0 * _float_finfo.epsneg)
 _JUST_ABOVE_UNITY = float(1.0 + 4.0 * _float_finfo.eps)
 
 
-def _get_first_sentence(s):
+def _get_first_sentence(s: str) -> str:
     """
     Get the first sentence from a string and remove any carriage
     returns.
@@ -31,7 +47,9 @@ def _get_first_sentence(s):
     return s.replace("\n", " ")
 
 
-def _iter_unit_summary(namespace):
+def _iter_unit_summary(
+    namespace: dict[str, object],
+) -> Generator[tuple[UnitBase, str, str, str, Literal["Yes", "No"]], None, None]:
     """
     Generates the ``(unit, doc, represents, aliases, prefixes)``
     tuple used to format the unit summary docs in `generate_unit_summary`.
@@ -77,7 +95,7 @@ def _iter_unit_summary(namespace):
         )
 
 
-def generate_unit_summary(namespace):
+def generate_unit_summary(namespace: dict[str, object]) -> str:
     """
     Generates a summary of units from a given namespace.  This is used
     to generate the docstring for the modules that define the actual
@@ -121,7 +139,7 @@ def generate_unit_summary(namespace):
     return docstring.getvalue()
 
 
-def generate_prefixonly_unit_summary(namespace):
+def generate_prefixonly_unit_summary(namespace: dict[str, object]) -> str:
     """
     Generates table entries for units in a namespace that are just prefixes
     without the base unit.  Note that this is intended to be used *after*
@@ -160,7 +178,7 @@ def generate_prefixonly_unit_summary(namespace):
     return docstring.getvalue()
 
 
-def is_effectively_unity(value):
+def is_effectively_unity(value: Complex) -> bool:
     # value is *almost* always real, except, e.g., for u.mag**0.5, when
     # it will be complex.  Use try/except to ensure normal case is fast
     try:
@@ -172,7 +190,7 @@ def is_effectively_unity(value):
         )
 
 
-def sanitize_scale(scale):
+def sanitize_scale(scale: Complex) -> Complex:
     if is_effectively_unity(scale):
         return 1.0
 
@@ -201,7 +219,7 @@ def sanitize_scale(scale):
         return scale.real
 
 
-def maybe_simple_fraction(p, max_denominator=100):
+def maybe_simple_fraction(p: Real, max_denominator: int = 100) -> Real:
     """Fraction very close to x with denominator at most max_denominator.
 
     The fraction has to be such that fraction/x is unity to within 4 ulp.
@@ -230,7 +248,7 @@ def maybe_simple_fraction(p, max_denominator=100):
     return p
 
 
-def validate_power(p):
+def validate_power(p: FloatLike | ArrayLike[FloatLike]) -> FloatLike:
     """Check that a power can be converted to a floating point value.
 
     Parameters
@@ -267,7 +285,7 @@ def validate_power(p):
         return p
 
 
-def sanitize_power(p):
+def sanitize_power(p: Real) -> Real:
     """Convert the power to a float, an integer, or a Fraction.
 
     If a fractional power can be represented exactly as a floating point
@@ -307,7 +325,7 @@ def sanitize_power(p):
     return p
 
 
-def resolve_fractions(a, b):
+def resolve_fractions(a: Real, b: Real) -> tuple[Real, Real]:
     """
     If either input is a Fraction, convert the other to a Fraction
     (at least if it does not have a ridiculous denominator).
@@ -329,7 +347,15 @@ def resolve_fractions(a, b):
     return a, b
 
 
-def quantity_asanyarray(a, dtype=None):
+@overload
+def quantity_asanyarray(a: Sequence[int]) -> NDArray[int]: ...
+@overload
+def quantity_asanyarray(a: Sequence[int], dtype: DType) -> NDArray[DType]: ...
+@overload
+def quantity_asanyarray(a: Sequence[Quantity]) -> Quantity: ...
+def quantity_asanyarray(
+    a: Sequence[int] | Sequence[Quantity], dtype: DType | None = None
+) -> NDArray[int] | NDArray[DType] | Quantity:
     from .quantity import Quantity
 
     if (
