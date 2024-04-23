@@ -18,6 +18,7 @@ from astropy.utils import isiterable
 from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
 
 from . import formats
+from ._wrap import needs_wrapping, wrap_at
 
 __all__ = ["Angle", "Latitude", "Longitude"]
 
@@ -403,36 +404,16 @@ class Angle(SpecificTypeQuantity):
         # Convert the wrap angle and 360 degrees to the native unit of
         # this Angle, then do all the math on raw Numpy arrays rather
         # than Quantity objects for speed.
-        a360 = u.degree.to(self.unit, 360.0)
-        wrap_angle = wrap_angle.to_value(self.unit)
         self_angle = self.view(np.ndarray)
-        if NUMPY_LT_2_0:
-            # Ensure ndim>=1 so that comparison is done using the angle dtype.
-            self_angle = self_angle[np.newaxis]
-        else:
-            # Use explicit float to ensure casting to self_angle.dtype (NEP 50).
-            wrap_angle = float(wrap_angle)
-        wrap_angle_floor = wrap_angle - a360
-        # Do the wrapping, but only if any angles need to be wrapped
-        #
-        # Catch any invalid warnings from the floor division.
-
-        # See if any wrapping is necessary and return early otherwise.
-        # It is useful to avoid this since the array may be read-only
-        # (e.g. due to broadcasting).
-        # Note that since comparisons with NaN always return False,
-        # this also ensures that no adjustments are made for a
-        # read-only array with some NaN but otherwise OK elements.
-        out_of_range = (self_angle < wrap_angle_floor) | (self_angle >= wrap_angle)
-        if not out_of_range.any():
-            return
-
-        wraps = (self_angle - wrap_angle_floor) // a360
-
-        self_angle -= wraps * a360
-        # Rounding errors can cause problems.
-        self_angle[self_angle >= wrap_angle] -= a360
-        self_angle[self_angle < wrap_angle_floor] += a360
+        a360 = np.asarray(u.degree.to(self.unit, 360.0), dtype=self_angle.dtype)
+        wrap_angle = wrap_angle.to_value(self.unit).astype(
+            self_angle.dtype, copy=COPY_IF_NEEDED
+        )
+        readonly = self_angle.data.readonly
+        if not readonly:
+            wrap_at(self_angle, wrap_angle, a360, out=self_angle)
+        elif needs_wrapping(self_angle, wrap_angle, a360).any():
+            raise ValueError("Angle needs wrapping but is readonly")
 
     def wrap_at(self, wrap_angle, inplace=False):
         """
