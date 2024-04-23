@@ -3,8 +3,8 @@ methods now emit a warning if they have to perform a coordinate transformation
 that is not a pure rotation to inform the user that the angular separation can
 depend on the direction of the transformation.
 It is possible to modify this behaviour with the new optional keyword-only
-``frame_origin_mismatch`` argument.
-Specifying ``frame_origin_mismatch="ignore"`` allows any transformation to
+``origin_mismatch`` argument.
+Specifying ``origin_mismatch="ignore"`` allows any transformation to
 succeed without warning, which has been the behaviour so far.
-``frame_origin_mismatch="error"`` forbids all transformations that are not
+``origin_mismatch="error"`` forbids all transformations that are not
 pure rotations.
