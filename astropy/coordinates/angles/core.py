@@ -626,7 +626,11 @@ class Latitude(Angle):
         else:
             limit = u.degree.to(angles.unit, 90.0)
 
-        angles_view = angles.view(np.ndarray).ravel()
+        if hasattr(angles, "distribution"):
+            angles_view = angles.distribution.view(np.ndarray).ravel()
+        else:
+            angles_view = angles.view(np.ndarray).ravel()
+
         limit = np.asarray(limit, dtype=angles_view.dtype)
 
         if any_invalid_lat(angles_view, limit):
