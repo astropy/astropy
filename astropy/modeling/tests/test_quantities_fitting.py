@@ -2,6 +2,8 @@
 """
 Tests that relate to fitting models with quantity parameters
 """
+import contextlib
+import sys
 
 import numpy as np
 import pytest
@@ -111,7 +113,13 @@ def test_fitting_with_initial_values(fitter):
 
     # Fit the data using a Gaussian with units
     g_init = models.Gaussian1D(amplitude=1.0 * u.mJy, mean=3 * u.cm, stddev=2 * u.mm)
-    g = fitter(g_init, x, y)
+    # https://github.com/astropy/astropy/issues/16320 (scipy can be flaky in OSX ARM64)
+    if sys.platform == "darwin":
+        ctx = np.errstate(invalid="ignore")
+    else:
+        ctx = contextlib.nullcontext()
+    with ctx:
+        g = fitter(g_init, x, y)
 
     # TODO: update actual numerical results once implemented, but these should
     # be close to the values below.

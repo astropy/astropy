@@ -12,6 +12,7 @@ as methods on the coordinate objects.
 In the examples below, we will assume that the following imports have already
 been executed::
 
+    >>> import numpy as np
     >>> import astropy.units as u
     >>> from astropy.coordinates import SkyCoord
 
@@ -250,7 +251,7 @@ the catalog:
 .. doctest-requires:: scipy
 
     >>> matches = catalog[idx]
-    >>> (matches.separation_3d(c) == d3d).all()
+    >>> np.allclose(matches.separation_3d(c), d3d)
     True
     >>> dra, ddec = c.spherical_offsets_to(matches)
 
