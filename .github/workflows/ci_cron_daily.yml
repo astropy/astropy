@@ -52,6 +52,13 @@ jobs:
             toxargs: -v
             toxposargs: --remote-data=any
 
+          - name: Python 3.12 on macOS (intel x86)
+            os: macos-12
+            python: '3.12'
+            toxenv: py312-test-alldeps
+            toxargs: -v
+            toxposargs: --remote-data=any
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
