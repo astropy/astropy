@@ -249,9 +249,11 @@ the catalog:
 
 .. doctest-requires:: scipy
 
+    >>> d3d # doctest: +FLOAT_CMP
+    <Quantity [1335.55538257] kpc>
     >>> matches = catalog[idx]
-    >>> (matches.separation_3d(c) == d3d).all()
-    True
+    >>> matches.separation_3d(c) # doctest: +FLOAT_CMP
+    <Distance [1335.55538257] kpc>
     >>> dra, ddec = c.spherical_offsets_to(matches)
 
 This functionality can also be accessed from the
