@@ -75,9 +75,13 @@ def test_homogeneous_list_works_with_generators():
     assert hl == [0, 1, 2]
 
 
+class OwnedList(collections._OwnedMixin, list):
+    pass
+
+
 class ListOwner:
     def __init__(self, data: list):
-        self._data = collections._OwnedList(
+        self._data = OwnedList(
             data,
             owner_class=self.__class__,
             public_attr_name="data",
