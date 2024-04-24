@@ -1429,19 +1429,15 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         if not self.has_data:
             return ""
 
-        if self.representation_type:
-            if hasattr(self.representation_type, "_unit_representation") and isinstance(
-                self.data, self.representation_type._unit_representation
-            ):
+        if rep_cls := self.representation_type:
+            if isinstance(self.data, getattr(rep_cls, "_unit_representation", ())):
                 rep_cls = self.data.__class__
-            else:
-                rep_cls = self.representation_type
 
+            dif_cls = None
             if "s" in self.data.differentials:
                 dif_cls = self.get_representation_cls("s")
-                dif_data = self.data.differentials["s"]
                 if isinstance(
-                    dif_data,
+                    dif_data := self.data.differentials["s"],
                     (
                         r.UnitSphericalDifferential,
                         r.UnitSphericalCosLatDifferential,
@@ -1450,55 +1446,43 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 ):
                     dif_cls = dif_data.__class__
 
-            else:
-                dif_cls = None
-
             data = self.represent_as(rep_cls, dif_cls, in_frame_units=True)
 
             data_repr = repr(data)
             # Generate the list of component names out of the repr string
             part1, _, remainder = data_repr.partition("(")
-            if remainder != "":
-                comp_str, _, part2 = remainder.partition(")")
-                comp_names = comp_str.split(", ")
+            if remainder:
+                comp_str, part2 = remainder.split(")", 1)
                 # Swap in frame-specific component names
                 invnames = {
                     nmrepr: nmpref
                     for nmpref, nmrepr in self.representation_component_names.items()
                 }
-                for i, name in enumerate(comp_names):
-                    comp_names[i] = invnames.get(name, name)
+                comp_names = (invnames.get(name, name) for name in comp_str.split(", "))
                 # Reassemble the repr string
-                data_repr = part1 + "(" + ", ".join(comp_names) + ")" + part2
+                data_repr = f"{part1}({', '.join(comp_names)}){part2}"
 
         else:
             data = self.data
             data_repr = repr(self.data)
 
-        if data_repr.startswith("<" + data.__class__.__name__):
-            # remove both the leading "<" and the space after the name, as well
-            # as the trailing ">"
-            data_repr = data_repr[(len(data.__class__.__name__) + 2) : -1]
+        if data_repr.startswith(class_prefix := f"<{type(data).__name__}"):
+            # `class_prefix` can be followed by at least " " or ":" which we remove too
+            data_repr = data_repr.removeprefix(class_prefix)[1:].removesuffix(">")
         else:
             data_repr = "Data:\n" + data_repr
 
-        if "s" in self.data.differentials:
-            data_repr_spl = data_repr.split("\n")
-            if "has differentials" in data_repr_spl[-1]:
-                diffrepr = repr(data.differentials["s"]).split("\n")
-                if diffrepr[0].startswith("<"):
-                    diffrepr[0] = " " + " ".join(diffrepr[0].split(" ")[1:])
-                for frm_nm, rep_nm in self.get_representation_component_names(
-                    "s"
-                ).items():
-                    diffrepr[0] = diffrepr[0].replace(rep_nm, frm_nm)
-                if diffrepr[-1].endswith(">"):
-                    diffrepr[-1] = diffrepr[-1][:-1]
-                data_repr_spl[-1] = "\n".join(diffrepr)
+        if "s" not in self.data.differentials:
+            return data_repr
 
-            data_repr = "\n".join(data_repr_spl)
-
-        return data_repr
+        data_repr_spl = data_repr.split("\n")
+        first, *middle, last = repr(data.differentials["s"]).split("\n")
+        if first.startswith("<"):
+            first = " " + first.split(" ", 1)[1]
+        for frm_nm, rep_nm in self.get_representation_component_names("s").items():
+            first = first.replace(rep_nm, frm_nm)
+        data_repr_spl[-1] = "\n".join((first, *middle, last.removesuffix(">")))
+        return "\n".join(data_repr_spl)
 
     def _frame_attrs_repr(self):
         """
