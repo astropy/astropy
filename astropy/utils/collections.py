@@ -82,7 +82,7 @@ def _locked_mutator(instance_method):
         msg = (
             f"Direct mutations of {cls_name}.{self._attr_name} "
             f"via {mtd_name} are deprecated since astropy 7.0 and "
-            "will raise a TypeError in the future. "
+            "will raise an exception in the future. "
         )
 
         if (repl := self._replacements.get(mtd_name)) is not None:
@@ -104,20 +104,21 @@ def _locked_mutator(instance_method):
     return owned_method
 
 
-class _OwnedList(list):
+class _OwnedMixin:
     """
-    A list that can only be mutated by some owner object.
+    A collection that can only be mutated by some owner object.
     This is meant as a helper class to prevent users from bypassing dedicated
-    APIs.
+    APIs by overriding mutating methods from the list API.
 
     As of astropy 7.0, direct mutations are considered deprecated so a warning
-    is emitted. In a future major release of astropy, an actual exception will be
-    raised instead.
+    is emitted. In a future major release of astropy, this class is meant to be
+    removed, and its instances should be made completely private, possibly
+    re-exposed as immutable properties (tuple).
 
-    This class may be combined with other list subclasses via multiple inheritance,
-    in which case it is assumed to appear first on the inheritance chain, e.g.
+    Within multiple inheritance, this class is assumed to appear first on the
+    inheritance chain, and be combined with (a subclass of) list e.g.
 
-    >>> class _OwnedHomogeneousList(_OwnedList, HomogeneousList):
+    >>> class _OwnedHomogeneousList(_OwnedMixin, HomogeneousList):
     ...     pass
 
     otherwise, deprecation messages' might not point to the correct line.
@@ -187,5 +188,5 @@ class _OwnedList(list):
         return super().__delitem__(key)
 
 
-class _OwnedHomogeneousList(_OwnedList, HomogeneousList):
+class _OwnedHomogeneousList(_OwnedMixin, HomogeneousList):
     pass
