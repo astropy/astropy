@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from astropy.utils.compat import NUMPY_LT_2_0
+from astropy.utils.decorators import deprecated
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
@@ -356,6 +357,7 @@ class IncompatibleShapeError(ValueError):
         super().__init__(shape_a, shape_a_idx, shape_b, shape_b_idx)
 
 
+@deprecated("7.0", alternative="np.broadcast_shapes")
 def check_broadcast(*shapes: tuple[int, ...]) -> tuple[int, ...]:
     """
     Determines whether two or more Numpy arrays can be broadcast with each

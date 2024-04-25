@@ -75,6 +75,17 @@ class _NoValue:
 NoValue = _NoValue()
 
 
+def _add_note_to_exception(exc: Exception, note: str) -> None:
+    import sys
+
+    if sys.version_info >= (3, 11):
+        exc.add_note(note)
+    else:
+        # mimic Python 3.11 behavior:
+        # preserve error message and traceback
+        exc.args += ("\n", note)
+
+
 def __getattr__(name: str):
     if name in ("ErfaError", "ErfaWarning"):
         import warnings

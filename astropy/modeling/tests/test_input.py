@@ -436,11 +436,7 @@ class TestSingleInputSingleOutputSingleModel:
         assert np.shape(y2) == (2, 2)
         assert np.all(y2 == [[111, 122], [211, 222]])
 
-        MESSAGE = (
-            r"self input argument 'x' of shape .* cannot be broadcast with parameter"
-            r" 'p1' of shape .*"
-        )
-        with pytest.raises(ValueError, match=MESSAGE):
+        with pytest.raises(ValueError, match="broadcast"):
             # Doesn't broadcast
             t([100, 200, 300])
 
@@ -466,11 +462,7 @@ class TestSingleInputSingleOutputSingleModel:
             ]
         )
 
-        MESSAGE = (
-            r"self input argument .* of shape .* cannot be broadcast with parameter .*"
-            r" of shape .*"
-        )
-        with pytest.raises(ValueError, match=MESSAGE):
+        with pytest.raises(ValueError, match="broadcast"):
             # Doesn't broadcast
             t([[100, 200, 300], [400, 500, 600]])
 
@@ -654,11 +646,7 @@ class TestSingleInputSingleOutputTwoModel:
         assert np.shape(y1) == (2, 3)
         assert np.all(y1 == [[111, 122, 133], [244, 255, 266]])
 
-        MESSAGE = (
-            r"Model input argument .* of shape .* cannot be broadcast with parameter .*"
-            r" of shape .*"
-        )
-        with pytest.raises(ValueError, match=MESSAGE):
+        with pytest.raises(ValueError, match="broadcast"):
             # Doesn't broadcast with the shape of the parameters, (3,)
             y2 = t([100, 200], model_set_axis=False)
 
@@ -682,11 +670,7 @@ class TestSingleInputSingleOutputTwoModel:
             ]
         )
 
-        MESSAGE = (
-            r"Model input argument .* of shape .* cannot be broadcast with parameter .*"
-            r" of shape .*"
-        )
-        with pytest.raises(ValueError, match=MESSAGE):
+        with pytest.raises(ValueError, match="broadcast"):
             y2 = t([[100, 200, 300], [400, 500, 600]])
 
         y2 = t([[[100, 200], [300, 400]], [[500, 600], [700, 800]]])
@@ -845,11 +829,7 @@ class TestSingleInputDoubleOutputSingleModel:
         assert np.all(y2 == [[111, 122], [211, 222]])
         assert np.all(z2 == [[1111, 2122], [1211, 2222]])
 
-        MESSAGE = (
-            r"self input argument .* of shape .* cannot be broadcast with parameter .*"
-            r" of shape .*"
-        )
-        with pytest.raises(ValueError, match=MESSAGE):
+        with pytest.raises(ValueError, match="broadcast"):
             # Doesn't broadcast
             y3, z3 = t([100, 200, 300])
 
@@ -885,11 +865,7 @@ class TestSingleInputDoubleOutputSingleModel:
             ]
         )
 
-        MESSAGE = (
-            r"self input argument .* of shape .* cannot be broadcast with parameter .*"
-            r" of shape .*"
-        )
-        with pytest.raises(ValueError, match=MESSAGE):
+        with pytest.raises(ValueError, match="broadcast"):
             # Doesn't broadcast
             y3, z3 = t([[100, 200, 300], [400, 500, 600]])
 
