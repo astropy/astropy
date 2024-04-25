@@ -880,7 +880,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         return self.inv_efunc(z) / (z + 1.0)
 
     def _abs_distance_integrand_scalar(self, z):
-        """Integrand of the absorption distance [1]_.
+        """Integrand of the absorption distance (eq. 4, [1]_).
 
         Parameters
         ----------
@@ -889,19 +889,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        X : float
-            The integrand for the absorption distance.
+        dX : float
+            The integrand for the absorption distance (dimensionless).
 
         References
         ----------
-        .. [1] Hogg, D. (1999). Distance measures in cosmology, section 11.
-               arXiv e-prints, astro-ph/9905116.
+        .. [1] Bahcall, John N. and Peebles, P.J.E. 1969, ApJ, 156L, 7B
         """
-        args = self._inv_efunc_scalar_args
-        return (z + 1.0) ** 2 * self._inv_efunc_scalar(z, *args)
+        return (z + 1.0) ** 2 * self._inv_efunc_scalar(z, *self._inv_efunc_scalar_args)
 
     def abs_distance_integrand(self, z):
-        """Integrand of the absorption distance [1]_.
+        """Integrand of the absorption distance (eq. 4, [1]_).
 
         Parameters
         ----------
@@ -910,13 +908,12 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        X : float or array
-            The integrand for the absorption distance.
+        dX : float or array
+            The integrand for the absorption distance (dimensionless).
 
         References
         ----------
-        .. [1] Hogg, D. (1999). Distance measures in cosmology, section 11.
-               arXiv e-prints, astro-ph/9905116.
+        .. [1] Bahcall, John N. and Peebles, P.J.E. 1969, ApJ, 156L, 7B
         """
         z = aszarr(z)
         return (z + 1.0) ** 2 * self.inv_efunc(z)
@@ -1304,11 +1301,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
     @vectorize_redshift_method
     def absorption_distance(self, z, /):
-        """Absorption distance at redshift ``z``.
+        """Absorption distance at redshift ``z`` (eq. 4, [1]_).
 
         This is used to calculate the number of objects with some cross section
         of absorption and number density intersecting a sightline per unit
-        redshift path ([1]_, [2]_).
+        redshift path [1]_.
 
         Parameters
         ----------
@@ -1317,15 +1314,13 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        d : float or ndarray
+        X : float or ndarray
             Absorption distance (dimensionless) at each input redshift.
             Returns `float` if input scalar, `~numpy.ndarray` otherwise.
 
         References
         ----------
-        .. [1] Hogg, D. (1999). Distance measures in cosmology, section 11.
-               arXiv e-prints, astro-ph/9905116.
-        .. [2] Bahcall, John N. and Peebles, P.J.E. 1969, ApJ, 156L, 7B
+        .. [1] Bahcall, John N. and Peebles, P.J.E. 1969, ApJ, 156L, 7B
         """
         return quad(self._abs_distance_integrand_scalar, 0, z)[0]
 
