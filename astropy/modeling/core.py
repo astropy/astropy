@@ -19,6 +19,8 @@ import copy
 import functools
 import inspect
 import operator
+import re
+import warnings
 from collections import defaultdict, deque
 from inspect import signature
 from textwrap import indent
@@ -30,8 +32,6 @@ from astropy.table import Table
 from astropy.units import Quantity, UnitsError, dimensionless_unscaled
 from astropy.units.utils import quantity_asanyarray
 from astropy.utils import (
-    IncompatibleShapeError,
-    check_broadcast,
     find_current_module,
     isiterable,
     metadata,
@@ -39,6 +39,7 @@ from astropy.utils import (
 )
 from astropy.utils.codegen import make_function_with_signature
 from astropy.utils.compat import COPY_IF_NEEDED
+from astropy.utils.exceptions import _add_note_to_exception
 
 from .bounding_box import CompoundBoundingBox, ModelBoundingBox
 from .parameters import InputParameterError, Parameter, _tofloat, param_repr_oneline
@@ -1063,11 +1064,12 @@ class Model(metaclass=_ModelMeta):
             )
 
         try:
-            input_shape = check_broadcast(*all_shapes)
-        except IncompatibleShapeError as e:
-            raise ValueError(
-                "All inputs must have identical shapes or must be scalars."
-            ) from e
+            input_shape = np.broadcast_shapes(*all_shapes)
+        except ValueError as exc:
+            _add_note_to_exception(
+                exc, "All inputs must have identical shapes or must be scalars."
+            )
+            raise exc
 
         return input_shape
 
@@ -1949,15 +1951,17 @@ class Model(metaclass=_ModelMeta):
             for param in params:
                 try:
                     if self.standard_broadcasting:
-                        broadcast = check_broadcast(input_shape, param.shape)
+                        broadcast = np.broadcast_shapes(input_shape, param.shape)
                     else:
                         broadcast = input_shape
-                except IncompatibleShapeError:
-                    raise ValueError(
+                except ValueError as exc:
+                    _add_note_to_exception(
+                        exc,
                         f"self input argument {self.inputs[idx]!r} of shape"
                         f" {input_shape!r} cannot be broadcast with parameter"
-                        f" {param.name!r} of shape {param.shape!r}."
+                        f" {param.name!r} of shape {param.shape!r}.",
                     )
+                    raise exc
 
                 if len(broadcast) > len(max_broadcast):
                     max_broadcast = broadcast
@@ -2012,17 +2016,19 @@ class Model(metaclass=_ModelMeta):
 
             for param in params:
                 try:
-                    check_broadcast(
+                    np.broadcast_shapes(
                         input_shape,
                         self._remove_axes_from_shape(param.shape, model_set_axis_param),
                     )
-                except IncompatibleShapeError:
-                    raise ValueError(
+                except ValueError as exc:
+                    _add_note_to_exception(
+                        exc,
                         f"Model input argument {self.inputs[idx]!r} of shape"
                         f" {input_shape!r} "
                         f"cannot be broadcast with parameter {param.name!r} of shape "
-                        f"{self._remove_axes_from_shape(param.shape, model_set_axis_param)!r}."
+                        f"{self._remove_axes_from_shape(param.shape, model_set_axis_param)!r}.",
                     )
+                    raise exc
 
                 if len(param.shape) - 1 > len(max_param_shape):
                     max_param_shape = self._remove_axes_from_shape(
@@ -2227,11 +2233,23 @@ class Model(metaclass=_ModelMeta):
 
     def _prepare_outputs_single_model(self, outputs, broadcasted_shapes):
         outputs = list(outputs)
+        shapes = broadcasted_shapes[0]
         for idx, output in enumerate(outputs):
-            try:
-                broadcast_shape = check_broadcast(*broadcasted_shapes[0])
-            except (IndexError, TypeError):
-                broadcast_shape = broadcasted_shapes[0][idx]
+            if None in shapes:
+                # Previously, we used our own function (check_broadcast) instead
+                # of np.broadcast_shapes in the following try block
+                # - check_broadcast raised an exception when passed a None.
+                # - as of numpy 1.26, np.broadcast raises a deprecation warning
+                # when passed a `None` value, but returns an empty tuple.
+                #
+                # Since () and None have different effects downstream of this function,
+                # and to preserve backward-compatibility, we handle this special here
+                broadcast_shape = shapes[idx]
+            else:
+                try:
+                    broadcast_shape = np.broadcast_shapes(*shapes)
+                except Exception:
+                    broadcast_shape = shapes[idx]
 
             outputs[idx] = self._prepare_output_single_model(output, broadcast_shape)
 
@@ -2742,18 +2760,45 @@ class Model(metaclass=_ModelMeta):
 
         # Now check mutual broadcastability of all shapes
         try:
-            check_broadcast(*all_shapes)
-        except IncompatibleShapeError as exc:
-            shape_a, shape_a_idx, shape_b, shape_b_idx = exc.args
-            param_a = self.param_names[shape_a_idx]
-            param_b = self.param_names[shape_b_idx]
-
-            raise InputParameterError(
-                f"Parameter {param_a!r} of shape {shape_a!r} cannot be broadcast with "
-                f"parameter {param_b!r} of shape {shape_b!r}.  All parameter arrays "
+            np.broadcast_shapes(*all_shapes)
+        except ValueError as exc:
+            # In a previous version, we used to have our own version of
+            # np.broadcast_shapes (check_broadcast). In order to preserve
+            # backward compatibility, we now have to go the extra mile and
+            # parse an error message controlled by numpy.
+            base_message = (
+                "All parameter arrays "
                 "must have shapes that are mutually compatible according "
                 "to the broadcasting rules."
             )
+            broadcast_shapes_error_re = re.compile(
+                r"shape mismatch: objects cannot be broadcast to a single shape\.  "
+                r"Mismatch is between "
+                r"arg (?P<argno_a>\d+) with shape (?P<shape_a>\((\d+(, ?)?)+\)) and "
+                r"arg (?P<argno_b>\d+) with shape (?P<shape_b>\((\d+(, ?)?)+\))\."
+            )
+            if (match := broadcast_shapes_error_re.fullmatch(str(exc))) is not None:
+                shape_a = match.group("shape_a")
+                shape_b = match.group("shape_b")
+                shape_a_idx = int(match.group("argno_a"))
+                shape_b_idx = int(match.group("argno_b"))
+                param_a = self.param_names[shape_a_idx]
+                param_b = self.param_names[shape_b_idx]
+                message = (
+                    f"Parameter {param_a!r} of shape {shape_a} cannot be broadcast with "
+                    f"parameter {param_b!r} of shape {shape_b}."
+                )
+            else:
+                warnings.warn(
+                    "Failed to parse error message from np.broadcast_shapes. "
+                    "Please report this at "
+                    "https://github.com/astropy/astropy/issues/new/choose",
+                    category=RuntimeWarning,
+                    stacklevel=1,
+                )
+                message = "Some parameters failed to broadcast with each other."
+
+            raise InputParameterError(f"{message} {base_message}") from None
 
     def _param_sets(self, raw=False, units=False):
         """

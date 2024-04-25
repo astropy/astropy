@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import re
+import sys
 from copy import deepcopy
 
 import numpy as np
@@ -38,6 +39,7 @@ from astropy.coordinates.representation import (
     REPRESENTATION_CLASSES,
     CartesianDifferential,
 )
+from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
@@ -254,12 +256,22 @@ def test_no_data_nonscalar_frames():
     assert a1.obstime.shape == (3, 10)
     assert a1.temperature.shape == (3, 10)
     assert a1.shape == (3, 10)
-    with pytest.raises(ValueError) as exc:
+
+    if sys.version_info >= (3, 11) and PYTEST_LT_8_0:
+        # Exception.__notes__ are available (and used here) but ignored in matching,
+        # so we'll match manually and post-mortem instead
+        match = None
+    else:
+        match = r".*inconsistent shapes.*"
+
+    with pytest.raises(ValueError, match=match) as exc:
         AltAz(
             obstime=Time("2012-01-01") + np.arange(10.0) * u.day,
             temperature=np.ones((3,)) * u.deg_C,
         )
-    assert "inconsistent shapes" in str(exc.value)
+
+    if match is None:
+        assert "inconsistent shapes" in "\n".join(exc.value.__notes__)
 
 
 def test_frame_repr():

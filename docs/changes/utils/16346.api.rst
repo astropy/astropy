@@ -1,0 +1,2 @@
+``astropy.utils.check_broadcast`` is now deprecated in favor of
+``numpy.broadcast_shapes``
