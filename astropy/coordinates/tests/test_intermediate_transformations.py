@@ -747,7 +747,7 @@ def test_teme_itrf():
     Test case transform from TEME to ITRF.
 
     Test case derives from example on appendix C of Vallado, Crawford, Hujsak & Kelso (2006).
-    See https://celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf
+    See https://celestrak.org/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf
     """
     v_itrf = CartesianDifferential(
         -3.225636520, -2.872451450, 5.531924446, unit=u.km / u.s
