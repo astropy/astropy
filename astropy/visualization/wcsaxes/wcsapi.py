@@ -23,6 +23,37 @@ IDENTITY.wcs.crval = [0.0, 0.0]
 IDENTITY.wcs.crpix = [1.0, 1.0]
 IDENTITY.wcs.cdelt = [1.0, 1.0]
 
+UCD_COORD_META_MAPPING = {
+    "lon": {"coord_type": "longitude"},
+    "lat": {"coord_type": "latitude"},
+    "ra": {"coord_type": "longitude", "format_unit": u.hourangle},
+    "dec": {"coord_type": "latitude"},
+    "alt": {"coord_type": "longitude"},
+    "az": {"coord_type": "latitude"},
+    "long": {"coord_type": "longitude"},
+}
+
+CUSTOM_UCD_COORD_META_MAPPING = {
+    "pos.helioprojective.lon": {
+        "coord_wrap": 180.0 * u.deg,
+        "format_unit": u.arcsec,
+        "coord_type": "longitude",
+    },
+    "pos.helioprojective.lat": {"format_unit": u.arcsec, "coord_type": "latitude"},
+    "pos.heliographic.stonyhurst.lon": {
+        "coord_wrap": 180.0 * u.deg,
+        "format_unit": u.deg,
+        "coord_type": "longitude",
+    },
+    "pos.heliographic.stonyhurst.lat": {"format_unit": u.deg, "coord_type": "latitude"},
+    "pos.heliographic.carrington.lon": {
+        "coord_wrap": 360.0 * u.deg,
+        "format_unit": u.deg,
+        "coord_type": "longitude",
+    },
+    "pos.heliographic.carrington.lat": {"format_unit": u.deg, "coord_type": "latitude"},
+}
+
 
 def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
     if slices is not None:
@@ -56,56 +87,33 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
         axis_unit = u.Unit(wcs.world_axis_units[idx])
         coord_wrap = None
         format_unit = axis_unit
-
         coord_type = "scalar"
+
+        dim_meta = {
+            "coord_type": coord_type,
+            "coord_wrap": coord_wrap,
+            "format_unit": format_unit,
+            "axis_unit": axis_unit,
+        }
 
         if axis_type is not None:
             axis_type_split = axis_type.split(".")
+
             if len(axis_type_split):
                 axis_type_split[0] = axis_type_split[0].replace("custom:", "")
 
-            if "pos.helioprojective.lon" in axis_type:
-                coord_wrap = 180.0 * u.deg
-                format_unit = u.arcsec
-                coord_type = "longitude"
-            elif "pos.helioprojective.lat" in axis_type:
-                format_unit = u.arcsec
-                coord_type = "latitude"
-            elif "pos.heliographic.stonyhurst.lon" in axis_type:
-                coord_wrap = 180.0 * u.deg
-                format_unit = u.deg
-                coord_type = "longitude"
-            elif "pos.heliographic.stonyhurst.lat" in axis_type:
-                format_unit = u.deg
-                coord_type = "latitude"
-            elif "pos.heliographic.carrington.lon" in axis_type:
-                coord_wrap = 360.0 * u.deg
-                format_unit = u.deg
-                coord_type = "longitude"
-            elif "pos.heliographic.carrington.lat" in axis_type:
-                format_unit = u.deg
-                coord_type = "latitude"
-            elif "pos" in axis_type_split:
-                if "lon" in axis_type_split:
-                    coord_type = "longitude"
-                elif "lat" in axis_type_split:
-                    coord_type = "latitude"
-                elif "ra" in axis_type_split:
-                    coord_type = "longitude"
-                    format_unit = u.hourangle
-                elif "dec" in axis_type_split:
-                    coord_type = "latitude"
-                elif "alt" in axis_type_split:
-                    coord_type = "longitude"
-                elif "az" in axis_type_split:
-                    coord_type = "latitude"
-                elif "long" in axis_type_split:
-                    coord_type = "longitude"
+            for ucd, meta in CUSTOM_UCD_COORD_META_MAPPING.items():
+                if ucd in axis_type:
+                    dim_meta.update(meta)
 
-        coord_meta["type"].append(coord_type)
-        coord_meta["wrap"].append(coord_wrap)
-        coord_meta["format_unit"].append(format_unit)
-        coord_meta["unit"].append(axis_unit)
+            for ucd, meta in UCD_COORD_META_MAPPING.items():
+                if ucd == axis_type_split[-1]:
+                    dim_meta.update(meta)
+
+        coord_meta["type"].append(dim_meta["coord_type"])
+        coord_meta["wrap"].append(dim_meta["coord_wrap"])
+        coord_meta["format_unit"].append(dim_meta["format_unit"])
+        coord_meta["unit"].append(dim_meta["axis_unit"])
 
         # For FITS-WCS, for backward-compatibility, we need to make sure that we
         # provide aliases based on CTYPE for the name.
