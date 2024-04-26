@@ -268,15 +268,17 @@ def test_coord_type_from_ctype(cube_wcs):
     assert coord_meta["wrap"] == [None, None]
 
     myframe_mapping = {
-        'custom:pos.myframe.lon':  {
+        "custom:pos.myframe.lon": {
             "coord_wrap": 180.0 * u.deg,
             "format_unit": u.arcsec,
-            "coord_type": "longitude"
+            "coord_type": "longitude",
         },
-        "custom:pos.myframe.lat": {"format_unit": u.arcsec, "coord_type": "latitude"}
+        "custom:pos.myframe.lat": {"format_unit": u.arcsec, "coord_type": "latitude"},
     }
 
-    astropy.visualization.wcsaxes.wcsapi.CUSTOM_UCD_COORD_META_MAPPING.update(myframe_mapping)
+    astropy.visualization.wcsaxes.wcsapi.CUSTOM_UCD_COORD_META_MAPPING.update(
+        myframe_mapping
+    )
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ["MFLN-TAN", "MFLT-TAN"]
@@ -294,7 +296,7 @@ def test_coord_type_from_ctype(cube_wcs):
 
     assert coord_meta["type"] == ["longitude", "latitude"]
     assert coord_meta["format_unit"] == [u.arcsec, u.arcsec]
-    assert coord_meta["wrap"] == [180*u.deg, None]
+    assert coord_meta["wrap"] == [180 * u.deg, None]
 
 
 def test_coord_type_1d_1d_wcs():
