@@ -366,6 +366,8 @@ linkcheck_ignore = [
 ]
 linkcheck_timeout = 180
 linkcheck_anchors = False
+linkcheck_report_timeouts_as_broken = True
+linkcheck_allow_unauthorized = False
 
 
 def rstjinja(app, docname, source):
