@@ -9,13 +9,13 @@ please see the example transform to `~astropy.coordinates.AltAz` below starting 
 the geocentric ITRS coordinate frame.
 
 Satellite data is normally provided in the Two-Line Element (TLE) format
-(see `here <https://www.celestrak.com/NORAD/documentation/tle-fmt.php>`_
+(see `here <https://celestrak.org/NORAD/documentation/tle-fmt.php>`_
 for a definition). These datasets are designed to be used in combination
 with a theory for orbital propagation model to predict the positions
 of satellites.
 
 The history of such models is discussed in detail in
-`Vallado et al (2006) <https://celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf>`_
+`Vallado et al (2006) <https://celestrak.org/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf>`_
 who also provide a reference implementation of the SGP4 orbital propagation
 code, designed to be compatible with the TLE sets provided by the United
 States Department of Defense, which are available from a source like
@@ -25,7 +25,7 @@ The output coordinate frame of the SGP4 model is the True Equator, Mean Equinox
 frame (TEME), which is one of the frames built-in to `astropy.coordinates`.
 TEME is an Earth-centered inertial frame (i.e., it does not rotate with respect
 to the stars). Several definitions exist; ``astropy`` uses the implementation described
-in `Vallado et al (2006) <https://celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf>`_.
+in `Vallado et al (2006) <https://celestrak.org/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf>`_.
 
 Finding TEME Coordinates from TLE Data
 ======================================
