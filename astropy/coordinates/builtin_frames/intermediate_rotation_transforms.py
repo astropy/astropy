@@ -25,7 +25,7 @@ from .utils import get_jd12, get_polar_motion
 def teme_to_itrs_mat(time):
     # Sidereal time, rotates from ITRS to mean equinox
     # Use 1982 model for consistency with Vallado et al (2006)
-    # http://www.celestrak.com/publications/aiaa/2006-6753/AIAA-2006-6753.pdf
+    # https://celestrak.org/publications/aiaa/2006-6753/AIAA-2006-6753.pdf
     gst = erfa.gmst82(*get_jd12(time, "ut1"))
 
     # Polar Motion
