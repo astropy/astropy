@@ -8,6 +8,7 @@ import numpy as np
 
 # LOCAL
 from astropy.constants import si as _si
+from astropy.utils import deprecated_renamed_argument
 from astropy.utils.misc import isiterable
 
 from . import astrophys, cgs, dimensionless_unscaled, misc, si
@@ -152,6 +153,9 @@ def spectral():
     )
 
 
+@deprecated_renamed_argument(
+    "factor", None, since="7.0", alternative='"wav" as a "Quantity"'
+)
 def spectral_density(wav, factor=None):
     """
     Returns a list of equivalence pairs that handle spectral density
@@ -162,13 +166,15 @@ def spectral_density(wav, factor=None):
     wav : `~astropy.units.Quantity`
         `~astropy.units.Quantity` associated with values being converted
         (e.g., wavelength or frequency).
+    factor : array_like
+        If ``wav`` is a |Unit| instead of a |Quantity| then ``factor``
+        is the value ``wav`` will be multiplied with to convert it to
+        a |Quantity|.
 
-    Notes
-    -----
-    The ``factor`` argument is left for backward-compatibility with the syntax
-    ``spectral_density(unit, factor)`` but users are encouraged to use
-    ``spectral_density(factor * unit)`` instead.
+        .. deprecated:: 7.0
 
+            ``factor`` is deprecated. Pass in ``wav`` as a |Quantity|,
+            not as a |Unit|.
     """
     from .core import UnitBase
 
