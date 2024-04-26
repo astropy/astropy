@@ -105,6 +105,7 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
             for ucd, meta in CUSTOM_UCD_COORD_META_MAPPING.items():
                 if ucd in axis_type:
                     dim_meta.update(meta)
+                    break
 
             for ucd, meta in UCD_COORD_META_MAPPING.items():
                 if ucd == axis_type_split[-1]:
