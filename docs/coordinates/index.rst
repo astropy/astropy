@@ -534,7 +534,7 @@ coordinate systems implemented here include:
 * Meeus, J. "Astronomical Algorithms"
     A valuable text describing details of a wide range of coordinate-related
     problems and concepts.
-* `Revisiting Spacetrack Report #3 <https://celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf>`_
+* `Revisiting Spacetrack Report #3 <https://celestrak.org/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf>`_
     A discussion of the simplified general perturbation (SGP) for satellite orbits, with a description of
     the True Equator Mean Equinox (TEME) coordinate frame.
 
