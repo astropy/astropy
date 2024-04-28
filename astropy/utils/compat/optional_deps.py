@@ -9,12 +9,15 @@ from importlib.util import find_spec
 # TODO: This list is a duplicate of the dependencies in pyproject.toml "all", but
 # some of the package names are different from the pip-install name (e.g.,
 # beautifulsoup4 -> bs4).
+# Some optional parts of the standard library also find a place here,
+# but don't appear in pyproject.toml
 _optional_deps = [
     "asdf_astropy",
     "bleach",
     "bottleneck",
     "bs4",
-    "bz2",
+    "bz2",  # stdlib
+    "certifi",
     "dask",
     "fsspec",
     "h5py",
@@ -33,7 +36,7 @@ _optional_deps = [
     "scipy",
     "skyfield",
     "sortedcontainers",
-    "lzma",
+    "lzma",  # stdlib
     "pyarrow",
     "pytest_mpl",
     "array_api_strict",

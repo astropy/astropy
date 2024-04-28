@@ -9,6 +9,7 @@ from astropy import units as u
 from astropy.modeling.convolution import Convolution
 from astropy.modeling.core import SPECIAL_OPERATORS, CompoundModel
 from astropy.nddata import support_nddata
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.console import human_file_size
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -54,12 +55,10 @@ def _next_fast_lengths(shape):
     Calculated directly with `scipy.fft.next_fast_len`, if available; otherwise
     looked up from list and scaled by powers of 10, if necessary.
     """
-    try:
+    if HAS_SCIPY:
         import scipy.fft
 
         return np.array([scipy.fft.next_fast_len(j) for j in shape])
-    except ImportError:
-        pass
 
     newshape = np.empty(len(np.atleast_1d(shape)), dtype=int)
     for i, j in enumerate(shape):

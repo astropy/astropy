@@ -4,9 +4,10 @@ Contains a class that makes it simple to stream out well-formed and
 nicely-indented XML.
 """
 
-# STDLIB
 import contextlib
 import textwrap
+
+from astropy.utils.compat.optional_deps import HAS_BLEACH
 
 from ._iterparser import escape_xml as xml_escape
 from ._iterparser import escape_xml_cdata as xml_escape_cdata
@@ -159,14 +160,13 @@ class XMLWriter:
 
         if method == "bleach_clean":
             # NOTE: bleach is imported locally to avoid importing it when
-            # it is not nocessary
-            try:
-                import bleach
-            except ImportError:
+            # it is not necessary
+            if not HAS_BLEACH:
                 raise ValueError(
                     "bleach package is required when HTML escaping is disabled.\n"
                     'Use "pip install bleach".'
                 )
+            import bleach
 
             if clean_kwargs is None:
                 clean_kwargs = {}

@@ -21,15 +21,9 @@ Examples
 import numpy as np
 
 from astropy import units as u
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .core import Model
-
-try:
-    from scipy.interpolate import interpn
-
-    has_scipy = True
-except ImportError:
-    has_scipy = False
 
 __all__ = ["tabular_model", "Tabular1D", "Tabular2D"]
 
@@ -237,8 +231,11 @@ class _Tabular(Model):
         shape = inputs[0].shape
         inputs = [inp.flatten() for inp in inputs[: self.n_inputs]]
         inputs = np.array(inputs).T
-        if not has_scipy:  # pragma: no cover
-            raise ImportError("Tabular model requires scipy.")
+        if not HAS_SCIPY:  # pragma: no cover
+            raise ModuleNotFoundError("Tabular model requires scipy.")
+
+        from scipy.interpolate import interpn
+
         result = interpn(
             self.points,
             self.lookup_table,
