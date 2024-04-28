@@ -70,7 +70,7 @@ recommended = [
 ]
 typing = [
     "typing_extensions>=4.0.0",
-    "pandas-stubs>=1.4",
+    "pandas-stubs>=1.5",
 ]
 all = [
     "astropy[recommended]",  # installs the [recommended] dependencies
