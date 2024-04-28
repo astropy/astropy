@@ -12,6 +12,7 @@ import warnings
 from copy import deepcopy
 
 from astropy.table import Column
+from astropy.utils.compat.optional_deps import HAS_BS4
 from astropy.utils.xml import writer
 
 from . import core
@@ -75,12 +76,11 @@ class HTMLInputter(core.BaseInputter):
         Convert the given input into a list of SoupString rows
         for further processing.
         """
-        try:
-            from bs4 import BeautifulSoup
-        except ImportError:
+        if not HAS_BS4:
             raise core.OptionalTableImportError(
                 "BeautifulSoup must be installed to read HTML tables"
             )
+        from bs4 import BeautifulSoup
 
         if "parser" not in self.html:
             with warnings.catch_warnings():

@@ -15,6 +15,7 @@ import numpy as np
 from astropy import units as u
 from astropy.constants import c as speed_of_light
 from astropy.utils.compat import COPY_IF_NEEDED
+from astropy.utils.compat.optional_deps import HAS_JPLEPHEM
 from astropy.utils.data import download_file
 from astropy.utils.decorators import classproperty, deprecated
 from astropy.utils.state import ScienceState
@@ -164,13 +165,12 @@ def _get_kernel(value):
     if value is None or value.lower() == "builtin":
         return None
 
-    try:
-        from jplephem.spk import SPK
-    except ImportError:
-        raise ImportError(
+    if not HAS_JPLEPHEM:
+        raise ModuleNotFoundError(
             "Solar system JPL ephemeris calculations require the jplephem package "
             "(https://pypi.org/project/jplephem/)"
         )
+    from jplephem.spk import SPK
 
     if value.lower() == "jpl":
         # Get the default JPL ephemeris URL

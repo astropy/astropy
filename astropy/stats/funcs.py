@@ -13,6 +13,8 @@ import math
 
 import numpy as np
 
+from astropy.utils.compat.optional_deps import HAS_SCIPY
+
 from . import _stats
 
 __all__ = [
@@ -1295,12 +1297,11 @@ def kuiper_false_positive_probability(D, N):
            and significance points", Biometrika, v.52, p.309, 1965.
 
     """
-    try:
-        from scipy.special import comb, factorial
-    except ImportError:
-        # Retained for backwards compatibility with older versions of scipy
-        # (factorial appears to have moved here in 0.14)
-        from scipy.misc import comb, factorial
+    if not HAS_SCIPY:
+        raise ModuleNotFoundError(
+            "scipy is required for kuiper_false_positive_probability"
+        )
+    from scipy.special import comb, factorial
 
     if D < 0.0 or D > 2.0:
         raise ValueError("Must have 0<=D<=2 by definition of the Kuiper test")

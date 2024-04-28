@@ -19,6 +19,7 @@ import numpy as np
 
 from astropy.units import Quantity
 from astropy.utils import metadata
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.masked import Masked
 
 from . import _np_utils
@@ -275,10 +276,9 @@ def join_distance(distance, kdtree_args=None, query_args=None):
            4    --   0.5
 
     """
-    try:
-        from scipy.spatial import KDTree
-    except ImportError as exc:
-        raise ImportError("scipy is required to use join_distance()") from exc
+    if not HAS_SCIPY:
+        raise ModuleNotFoundError("scipy is required to use join_distance()")
+    from scipy.spatial import KDTree
 
     if kdtree_args is None:
         kdtree_args = {}

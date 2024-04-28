@@ -10,6 +10,8 @@ import warnings
 
 import numpy as np
 
+from astropy.utils.compat.optional_deps import HAS_H5PY
+
 # NOTE: Do not import anything from astropy.table here.
 # https://github.com/astropy/astropy/issues/6604
 from astropy.utils.exceptions import AstropyUserWarning
@@ -52,12 +54,12 @@ def is_hdf5(origin, filepath, fileobj, *args, **kwargs):
     elif filepath is not None:
         return filepath.endswith((".hdf5", ".h5"))
 
-    try:
+    if HAS_H5PY:
         import h5py
-    except ImportError:
-        return False
-    else:
+
         return isinstance(args[0], (h5py.File, h5py.Group, h5py.Dataset))
+    else:
+        return False
 
 
 def read_table_hdf5(input, path=None, character_as_bytes=True):
@@ -81,10 +83,9 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
         If `True` then Table columns are left as bytes.
         If `False` then Table columns are converted to unicode.
     """
-    try:
-        import h5py
-    except ImportError:
-        raise Exception("h5py is required to read and write HDF5 files")
+    if not HAS_H5PY:
+        raise ModuleNotFoundError("h5py is required to read and write HDF5 files")
+    import h5py
 
     # This function is iterative, and only gets to writing the file when
     # the input is an hdf5 Group. Moreover, the input variable is changed in
@@ -254,10 +255,9 @@ def write_table_hdf5(
     """
     from astropy.table import meta
 
-    try:
-        import h5py
-    except ImportError:
-        raise Exception("h5py is required to read and write HDF5 files")
+    if not HAS_H5PY:
+        raise ModuleNotFoundError("h5py is required to read and write HDF5 files")
+    import h5py
 
     if path is None:
         # table is just an arbitrary, hardcoded string here.

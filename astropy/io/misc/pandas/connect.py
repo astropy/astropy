@@ -6,6 +6,7 @@ import os.path
 
 import astropy.io.registry as io_registry
 from astropy.table import Table
+from astropy.utils.compat.optional_deps import HAS_PANDAS
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 __all__ = ["PANDAS_FMTS"]
@@ -52,10 +53,9 @@ def import_html_libs():
 
 def _pandas_read(fmt, filespec, **kwargs):
     """Provide io Table connector to read table using pandas."""
-    try:
-        import pandas as pd
-    except ImportError:
-        raise ImportError("pandas must be installed to use pandas table reader")
+    if not HAS_PANDAS:
+        raise ModuleNotFoundError("pandas must be installed to use pandas table reader")
+    import pandas as pd
 
     pandas_fmt = fmt[len(PANDAS_PREFIX) :]  # chop the 'pandas.' in front
     read_func = getattr(pd, "read_" + pandas_fmt)

@@ -20,6 +20,7 @@ import numpy as np
 from packaging.version import Version
 
 from astropy.utils import data
+from astropy.utils.compat.optional_deps import HAS_DASK
 from astropy.utils.exceptions import AstropyUserWarning
 
 path_like = (str, bytes, os.PathLike)
@@ -894,19 +895,10 @@ def _rstrip_inplace(array):
 
 
 def _is_dask_array(data):
-    """Check whether data is a dask array.
-
-    We avoid importing dask unless it is likely it is a dask array,
-    so that non-dask code is not slowed down.
-    """
-    if not hasattr(data, "compute"):
+    """Check whether data is a dask array."""
+    if not HAS_DASK or not hasattr(data, "compute"):
         return False
 
-    try:
-        from dask.array import Array
-    except ImportError:
-        # If we cannot import dask, surely this cannot be a
-        # dask array!
-        return False
-    else:
-        return isinstance(data, Array)
+    from dask.array import Array
+
+    return isinstance(data, Array)

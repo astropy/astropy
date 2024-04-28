@@ -11,6 +11,7 @@ import erfa
 import numpy as np
 
 import astropy.units as u
+from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 from astropy.utils.decorators import classproperty, lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.masked import Masked
@@ -970,12 +971,9 @@ class TimePlotDate(TimeFromEpoch):
     @lazyproperty
     def epoch(self):
         """Reference epoch time from which the time interval is measured."""
-        try:
+        if HAS_MATPLOTLIB:
             from matplotlib.dates import get_epoch
-        except ImportError:
-            # If matplotlib is not installed then the epoch is '0001-01-01'
-            _epoch = self._epoch
-        else:
+
             # Get the matplotlib date epoch as an ISOT string in UTC
             epoch_utc = get_epoch()
             from erfa import ErfaWarning
@@ -985,6 +983,9 @@ class TimePlotDate(TimeFromEpoch):
                 warnings.filterwarnings("ignore", category=ErfaWarning)
                 _epoch = Time(epoch_utc, scale="utc", format="isot")
             _epoch.format = "jd"
+        else:
+            # If matplotlib is not installed then the epoch is '0001-01-01'
+            _epoch = self._epoch
 
         return _epoch
 

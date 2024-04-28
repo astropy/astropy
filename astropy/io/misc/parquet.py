@@ -12,6 +12,7 @@ import warnings
 import numpy as np
 
 from astropy.utils import minversion
+from astropy.utils.compat.optional_deps import HAS_PYARROW
 
 # NOTE: Do not import anything from astropy.table here.
 # https://github.com/astropy/astropy/issues/6604
@@ -501,11 +502,10 @@ def register_parquet():
 
 
 def get_pyarrow():
-    try:
-        import pyarrow as pa
-        from pyarrow import parquet
-    except ImportError:
-        raise Exception("pyarrow is required to read and write parquet files")
+    if not HAS_PYARROW:
+        raise ModuleNotFoundError("pyarrow is required to read and write parquet files")
+    import pyarrow as pa
+    from pyarrow import parquet
 
     if minversion(pa, "6.0.0"):
         writer_version = "2.4"
