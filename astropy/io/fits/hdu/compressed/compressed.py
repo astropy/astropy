@@ -15,7 +15,7 @@ from astropy.io.fits.hdu.compressed._tiled_compression import (
     compress_image_data,
 )
 from astropy.io.fits.hdu.compressed.compbintable import _CompBinTableHDU
-from astropy.io.fits.hdu.compressed.utils import _tile_shape
+from astropy.io.fits.hdu.compressed.utils import _tile_shape, _validate_tile_shape
 from astropy.io.fits.hdu.image import ImageHDU
 from astropy.io.fits.util import _is_int
 from astropy.io.fits.verify import _ErrList
@@ -40,7 +40,6 @@ from .settings import (
     DITHER_SEED_CHECKSUM,
     DITHER_SEED_CLOCK,
 )
-from .utils import _validate_tile_shape
 
 __all__ = ["CompImageHDU"]
 
