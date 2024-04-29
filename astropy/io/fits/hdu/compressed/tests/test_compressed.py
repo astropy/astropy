@@ -1258,3 +1258,10 @@ def test_header():
 
     with fits.open(filename) as hdulist:
         assert hdulist[1].header == fits.Header.fromstring(EXPECTED_HEADER, sep="\n")
+
+
+def test_rice_one_alias():
+    # Regression test for a bug that caused RICE_ONE (which we document as an
+    # acceptable alias) to no longer be recognized.
+    chdu = fits.CompImageHDU(np.zeros((3, 4, 5)))
+    chdu.compression_type = "RICE_ONE"
