@@ -1333,12 +1333,9 @@ class HDUList(list, _Verify):
                         hdu.header
                     ):
                         kwargs_comp = {
-                            key: kwargs[key]
-                            for key in {
-                                "scale_back",
-                                "uint",
-                                "do_not_scale_image_data",
-                            }.intersection(kwargs)
+                            key: val
+                            for key, val in kwargs.items()
+                            if key in ("scale_back", "uint", "do_not_scale_image_data")
                         }
                         hdu = CompImageHDU(bintable=hdu, **kwargs_comp)
 
