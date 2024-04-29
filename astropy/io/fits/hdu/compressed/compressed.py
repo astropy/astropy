@@ -42,13 +42,7 @@ from .settings import (
 )
 from .utils import _validate_tile_shape
 
-__all__ = ["COMPRESSION_ENABLED", "CompImageHDU"]
-
-# This global variable is used e.g., when calling fits.open with
-# disable_image_compression which temporarily changes the global variable to
-# False. This should ideally be refactored to avoid relying on global module
-# variables.
-COMPRESSION_ENABLED = True
+__all__ = ["CompImageHDU"]
 
 
 class CompImageHDU(ImageHDU):
@@ -446,7 +440,7 @@ class CompImageHDU(ImageHDU):
         if "ZIMAGE" not in header or not header["ZIMAGE"]:
             return False
 
-        return COMPRESSION_ENABLED
+        return True
 
     @property
     def compression_type(self):
