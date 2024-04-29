@@ -21,9 +21,9 @@ from typing import TYPE_CHECKING, NamedTuple
 import numpy as np
 
 from astropy import units as u
-from astropy.utils import ShapedLikeNDArray, check_broadcast
+from astropy.utils import ShapedLikeNDArray
 from astropy.utils.decorators import deprecated, format_doc, lazyproperty
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyWarning, _add_note_to_exception
 
 from . import representation as r
 from .angles import Angle, position_angle
@@ -344,11 +344,13 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         # Determine the overall shape of the frame.
         try:
-            self._shape = check_broadcast(*shapes)
-        except ValueError as err:
-            raise ValueError(
-                f"non-scalar data and/or attributes with inconsistent shapes: {shapes}"
-            ) from err
+            self._shape = np.broadcast_shapes(*shapes)
+        except ValueError as exc:
+            _add_note_to_exception(
+                exc,
+                f"non-scalar data and/or attributes with inconsistent shapes: {shapes}",
+            )
+            raise exc
 
         # Broadcast the data if necessary and set it
         if data is not None and data.shape != self._shape:

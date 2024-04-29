@@ -6,9 +6,16 @@ from hypothesis import given
 from hypothesis.extra.numpy import basic_indices
 from numpy.testing import assert_equal
 
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.shapes import check_broadcast, simplify_basic_index, unbroadcast
 
 
+def test_check_broadcast_deprecation():
+    with pytest.warns(AstropyDeprecationWarning):
+        check_broadcast((1,), (2,))
+
+
+@pytest.mark.filterwarnings("ignore")
 def test_check_broadcast():
     assert check_broadcast((10, 1), (3,)) == (10, 3)
     assert check_broadcast((10, 1), (3,), (4, 1, 1, 3)) == (4, 1, 10, 3)

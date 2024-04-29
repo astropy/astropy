@@ -125,9 +125,7 @@ def test_inconsistent_input_shapes():
     g = Gaussian2D()
     x = np.arange(-1.0, 1, 0.2)
     y = np.arange(-1.0, 1, 0.1)
-    with pytest.raises(
-        ValueError, match="All inputs must have identical shapes or must be scalars"
-    ):
+    with pytest.raises(ValueError, match="broadcast"):
         g(x, y)
 
 
