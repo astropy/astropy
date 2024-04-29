@@ -19,6 +19,7 @@ _optional_deps = [
     "fsspec",
     "h5py",
     "html5lib",
+    "ipykernel",
     "IPython",
     "jplephem",
     "lxml",

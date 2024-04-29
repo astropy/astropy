@@ -27,6 +27,7 @@ except ImportError:
     _CAN_RESIZE_TERMINAL = False
 
 from astropy import conf
+from astropy.utils.compat.optional_deps import HAS_IPYKERNEL, HAS_IPYTHON
 
 from .decorators import classproperty, deprecated
 from .misc import isiterable
@@ -49,42 +50,33 @@ class _IPython:
 
     @classproperty
     def get_ipython(cls):
-        try:
+        if HAS_IPYTHON:
             from IPython import get_ipython
-        except ImportError:
-            pass
-        return get_ipython
+
+            return get_ipython
+        raise ModuleNotFoundError("IPython is not installed")
 
     @classproperty
     def OutStream(cls):
         if not hasattr(cls, "_OutStream"):
-            cls._OutStream = None
-            try:
-                cls.get_ipython()
-            except NameError:
-                return None
-
-            try:
+            if HAS_IPYKERNEL:
                 from ipykernel.iostream import OutStream
-            except ImportError:
-                try:
-                    from IPython.zmq.iostream import OutStream
-                except ImportError:
-                    return None
 
-            cls._OutStream = OutStream
+                cls._OutStream = OutStream
+            else:
+                cls._OutStream = None
 
         return cls._OutStream
 
     @classproperty
     def ipyio(cls):
         if not hasattr(cls, "_ipyio"):
-            try:
+            if HAS_IPYTHON:
                 from IPython.utils import io
-            except ImportError:
-                cls._ipyio = None
-            else:
+
                 cls._ipyio = io
+            else:
+                cls._ipyio = None
         return cls._ipyio
 
 
@@ -108,26 +100,7 @@ def isatty(file):
     if _IPython.OutStream is None or (not isinstance(file, _IPython.OutStream)):
         return False
 
-    # File is an IPython OutStream. Check whether:
-    # - File name is 'stdout'; or
-    # - File wraps a Console
-    if getattr(file, "name", None) == "stdout":
-        return True
-
-    if hasattr(file, "stream"):
-        # FIXME: pyreadline has no had new release since 2015, drop it when
-        #        IPython minversion is 5.x.
-        # On Windows, in IPython 2 the standard I/O streams will wrap
-        # pyreadline.Console objects if pyreadline is available; this should
-        # be considered a TTY.
-        try:
-            from pyreadline.console import Console as PyreadlineConsole
-        except ImportError:
-            return False
-
-        return isinstance(file.stream, PyreadlineConsole)
-
-    return False
+    return getattr(file, "name", None) == "stdout"
 
 
 @deprecated("6.1", alternative="shutil.get_terminal_size")
