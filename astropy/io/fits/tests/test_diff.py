@@ -309,7 +309,13 @@ class TestDiff(FitsTestCase):
         assert diff.diff_keyword_comments == {"C": [("C", "E")]}
 
     def test_hierarch_keywords_identical(self):
-        ha = Header([("HIERARCH UPPER", 1), ("HIERARCH lower", 2), ("HIERARCH veryverylong", 3)])
+        ha = Header(
+            [
+                ("HIERARCH UPPER", 1),
+                ("HIERARCH lower", 2),
+                ("HIERARCH veryverylong", 3),
+            ]
+        )
         hb = ha.copy()
         assert HeaderDiff(ha, hb).identical
 
