@@ -308,6 +308,19 @@ class TestDiff(FitsTestCase):
         assert not diff.identical
         assert diff.diff_keyword_comments == {"C": [("C", "E")]}
 
+    def test_hierarch_keywords_identical(self):
+        ha = Header([("HIERARCH UPPER", 1), ("HIERARCH lower", 2), ("HIERARCH veryverylong", 3)])
+        hb = ha.copy()
+        assert HeaderDiff(ha, hb).identical
+
+    def test_hierarch_keywords_different(self):
+        ha = Header([("HIERARCH Both", 1)])
+        hb = Header([("HIERARCH BOTh", 1)])
+        diff = HeaderDiff(ha, hb)
+        assert not diff.identical
+        assert diff.common_keywords == []
+        assert diff.diff_keywords == (["Both"], ["BOTh"])
+
     def test_trivial_identical_images(self):
         ia = np.arange(100).reshape(10, 10)
         ib = np.arange(100).reshape(10, 10)
