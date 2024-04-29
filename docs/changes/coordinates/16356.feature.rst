@@ -1,0 +1,5 @@
+``BaseCoordinateFrame`` instances now have a ``frame`` property that returns
+the frame instance itself.
+This can be useful for any code that extracts the coordinate data from a
+``SkyCoord`` by accessing its ``frame`` attribute because such code can now
+treat ``SkyCoord`` and ``BaseCoordinateFrame`` instances in a uniform manner.

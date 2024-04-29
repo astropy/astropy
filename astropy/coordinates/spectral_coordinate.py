@@ -267,13 +267,9 @@ class SpectralCoord(SpectralQuantity):
         if coord is None:
             return
 
-        if not issubclass(coord.__class__, BaseCoordinateFrame):
-            if isinstance(coord, SkyCoord):
-                coord = coord.frame
-            else:
-                raise TypeError(
-                    f"{label} must be a SkyCoord or coordinate frame instance"
-                )
+        coord = getattr(coord, "frame", None)
+        if not isinstance(coord, BaseCoordinateFrame):
+            raise TypeError(f"{label} must be a SkyCoord or coordinate frame instance")
 
         # If the distance is not well-defined, ensure that it works properly
         # for generating differentials

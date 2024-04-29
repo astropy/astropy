@@ -147,11 +147,8 @@ def _get_frame_without_data(args, kwargs):
         if isinstance(arg, (Sequence, np.ndarray)) and len(args) == 1 and len(arg) > 0:
             arg = arg[0]
 
-        if isinstance(arg, BaseCoordinateFrame):
-            coord_frame_obj = arg
-        elif isinstance(arg, SkyCoord):
-            coord_frame_obj = arg.frame
-        else:
+        coord_frame_obj = getattr(arg, "frame", None)
+        if not isinstance(coord_frame_obj, BaseCoordinateFrame):
             continue
 
         coord_frame_cls = type(coord_frame_obj)
