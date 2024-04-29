@@ -447,6 +447,7 @@ class CompImageHDU(ImageHDU):
 
     @compression_type.setter
     def compression_type(self, value):
+        value = CMTYPE_ALIASES.get(value, value)
         if value in COMPRESSION_TYPES:
             self._compression_type = value
         else:
