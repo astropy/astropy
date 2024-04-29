@@ -10,7 +10,6 @@ from textwrap import indent
 
 import numpy as np
 
-from astropy.utils import check_broadcast
 from astropy.utils.compat import COPY_IF_NEEDED
 
 from .core import FittableModel, Model
@@ -1189,7 +1188,7 @@ class Polynomial2D(PolynomialModel):
         # still as expected by the broadcasting rules, even though the x and y
         # inputs are not used in the evaluation
         if self.degree == 0:
-            output_shape = check_broadcast(np.shape(coeffs[0]), x.shape)
+            output_shape = np.broadcast_shapes(np.shape(coeffs[0]), x.shape)
             if output_shape:
                 new_result = np.empty(output_shape)
                 new_result[:] = result
