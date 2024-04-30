@@ -13,6 +13,7 @@ from __future__ import annotations
 import collections
 import enum
 import itertools
+import sys
 import warnings
 from collections import Counter, OrderedDict
 from collections.abc import Mapping, Sequence
@@ -22,17 +23,16 @@ import numpy as np
 
 from astropy.units import Quantity
 from astropy.utils import metadata
-from astropy.utils.compat import PYTHON_LT_3_11
 from astropy.utils.masked import Masked
 
 from . import _np_utils
 from .np_utils import TableMergeError
 from .table import Column, MaskedColumn, QTable, Row, Table
 
-if PYTHON_LT_3_11:
-    from typing_extensions import assert_never
-else:
+if sys.version_info > (3, 11):
     from typing import assert_never
+else:
+    from typing_extensions import assert_never
 
 __all__ = [
     "join",
