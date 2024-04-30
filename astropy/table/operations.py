@@ -10,6 +10,7 @@
 
 import collections
 import itertools
+import warnings
 from collections import Counter, OrderedDict
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
@@ -360,6 +361,7 @@ def join(
     *,
     keys_left=None,
     keys_right=None,
+    keep_order=False,
     uniq_col_name="{col_name}_{table_name}",
     table_names=["1", "2"],
     metadata_conflicts="warn",
@@ -385,6 +387,11 @@ def join(
         column-like values with the same lengths as the left table.
     keys_right : str or list of str or list of column-like, optional
         Same as ``keys_left``, but for the right side of the join.
+    keep_order: bool, optional
+        By default, rows are sorted by the join keys. If True, preserve the order of
+        rows from the left table for "inner" or "left" joins, or from the right table
+        for "right" joins. For other join types this argument is ignored except that a
+        warning is issued if ``keep_order=True``.
     uniq_col_name : str or None
         String generate a unique output column name in case of a conflict.
         The default is '{col_name}_{table_name}'.
@@ -411,6 +418,22 @@ def join(
     if not isinstance(right, Table):
         right = Table(right)
 
+    # Define a magic key that won't conflict with any user column name. This is to
+    # support the keep_order argument. In this case a temporary column is added to the
+    # left or right table to keep track of the original row order. After joining, the
+    # order is restored and the temporary column is removed.
+    sort_table_index_key = "__astropy_table_keep_order_sort_index__"
+    sort_table = None
+    if keep_order:
+        if join_type not in ["left", "right", "inner"]:
+            warnings.warn(
+                "keep_order=True is only supported for left, right, and inner joins",
+                UserWarning,
+            )
+        else:
+            sort_table = right if join_type == "right" else left
+            sort_table[sort_table_index_key] = np.arange(len(sort_table))
+
     col_name_map = OrderedDict()
     out = _join(
         left,
@@ -425,6 +448,13 @@ def join(
         keys_left=keys_left,
         keys_right=keys_right,
     )
+
+    if sort_table is not None:
+        # Sort the table back to the original order and remove the temporary columns.
+        # If sort_table is not None that implies keep_order=True.
+        out.sort(sort_table_index_key)
+        del out[sort_table_index_key]
+        del sort_table[sort_table_index_key]
 
     # Merge the column and table meta data. Table subclasses might override
     # these methods for custom merge behavior.
