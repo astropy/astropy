@@ -66,6 +66,7 @@ test_all = [
 ]
 recommended = [
     "scipy>=1.8",
+    "scipy!=1.13.0 ; platform_machine=='arm64' and platform_system=='Darwin'",
     "matplotlib>=3.3,!=3.4.0,!=3.5.2",
 ]
 typing = [
