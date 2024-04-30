@@ -863,7 +863,7 @@ class BinTableHDU(_TableBaseHDU):
             if isinstance(data, Table):
                 from astropy.io.fits.convenience import table_to_hdu
 
-                hdu = table_to_hdu(data)
+                hdu = table_to_hdu(data, character_as_bytes=character_as_bytes)
                 if header is not None:
                     hdu.header.update(header)
                 data = hdu.data
