@@ -29,29 +29,28 @@ Finding an issue to contribute to
 If you are brand new to astropy or open-source development, we recommend searching
 the `GitHub "issues" tab <https://github.com/astropy/astropy/issues>`_
 to find issues that interest you. Unassigned issues labeled `Docs
-<https://github.com/astropy/astropy/issues?q=is%3Aopen+sort%3Aupdated-desc+label%3ADocs+no%3Aassignee>`_
+<https://github.com/astropy/astropy/issues?q=is%3Aopen+is%3Aissue+label%3ADocs>`_
 and `good first issue
-<https://github.com/astropy/astropy/issues?q=is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+issue%22+no%3Aassignee>`_
+<https://github.com/astropy/astropy/issues?q=is%3Aopen+is%3Aissue+label%3ADocs+label%3A%22good+first+issue%22>`_
 are typically good for newer contributors.
 
-Once you've found an interesting issue, it's a good idea to assign the issue to yourself,
-so nobody else duplicates the work on it. On the Github issue, a comment with the exact
-text ``take`` to automatically assign you the issue
-(this will take seconds and may require refreshing the page to see it).
+Once you've found an interesting issue, it's a good idea to let others know you're
+working on it by leaving a comment on the issue. This helps to avoid duplicated work and
+might prompt a maintainer to provide some suggestions. If you want to work on an issue
+that is assigned, feel free to kindly ask the current assignee if you can take it,
+allowing at least a week of inactivity before considering work in the issue
+discontinued.
 
-If for whatever reason you are not able to continue working with the issue, please
-unassign it, so other people know it's available again. You can check the list of
-assigned issues, since people may not be working in them anymore. If you want to work on one
-that is assigned, feel free to kindly ask the current assignee if you can take it
-(please allow at least a week of inactivity before considering work in the issue discontinued).
+If for whatever reason you are not able to continue working with on issue you started,
+please comment to that effect to let others know it is available again.
 
-We have several :ref:`contributor community <community>` communication channels, which you are
-welcome to join, and ask questions as you figure things out. Among them are regular meetings for
-new contributors, dev meetings, a dev mailing list, and a Slack for the contributor community.
-All astropy contributors are welcome to these spaces, where they can connect with each other. Even
-maintainers who have been with us for a long time felt just like you when they started out, and
-are happy to welcome you and support you as you get to know how we work, and where things are.
-Take a look at the next sections to learn more.
+We have several :ref:`contributor community <community>` communication channels, which
+you are welcome to join, and ask questions as you figure things out. Among them are
+regular meetings dev meetings, a dev mailing list, and a Slack for the contributor
+community. All astropy contributors are welcome to these spaces, where they can connect
+with each other. Even maintainers who have been with us for a long time felt just like
+you when they started out, and are happy to welcome you and support you as you get to
+know how we work, and where things are. Take a look at the next sections to learn more.
 
 .. _contributing.github:
 
@@ -63,7 +62,7 @@ Submitting a pull request
 Version control, Git, and GitHub
 --------------------------------
 
-astropy is hosted on `GitHub <https://www.github.com/astropy/astropy>`_, and to
+Astropy is hosted on `GitHub <https://www.github.com/astropy/astropy>`_, and to
 contribute, you will need to sign up for a `free GitHub account
 <https://github.com/signup/free>`_. We use `Git <https://git-scm.com/>`_ for
 version control to allow many people to work together on the project.
