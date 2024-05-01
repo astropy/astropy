@@ -2273,6 +2273,18 @@ def test_join_keep_sort_order(join_type):
     assert np.all(t12t[sort_key_true] == sorted([t12t[sort_key_true]]))
 
 
+def test_join_keep_sort_order_exception():
+    """Test that exception in join(..., keep_order=True) leaves table unchanged"""
+    t1 = Table([[1, 2]], names=["id"])
+    t2 = Table([[2, 3]], names=["id"])
+    with pytest.raises(
+        TableMergeError, match=r"Left table does not have key column 'not-a-key'"
+    ):
+        table.join(t1, t2, keys="not-a-key", join_type="inner", keep_order=True)
+    assert t1.colnames == ["id"]
+    assert t2.colnames == ["id"]
+
+
 def test_vstack_bytes(operation_table_type):
     """
     Test for issue #5617 when vstack'ing bytes columns in Py3.

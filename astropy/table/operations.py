@@ -426,6 +426,8 @@ def join(
     sort_table = None
     if keep_order:
         if join_type not in ["left", "right", "inner"]:
+            # Keep order is not meaningful for an outer join and cartesian join is
+            # already ordered by left (primary) then right (secondary).
             warnings.warn(
                 "keep_order=True is only supported for left, right, and inner joins",
                 UserWarning,
@@ -436,26 +438,31 @@ def join(
             sort_table[sort_table_index_key] = np.arange(len(sort_table))
 
     col_name_map = OrderedDict()
-    out = _join(
-        left,
-        right,
-        keys,
-        join_type,
-        uniq_col_name,
-        table_names,
-        col_name_map,
-        metadata_conflicts,
-        join_funcs,
-        keys_left=keys_left,
-        keys_right=keys_right,
-    )
 
-    if sort_table is not None:
-        # Sort the table back to the original order and remove the temporary columns.
-        # If sort_table is not None that implies keep_order=True.
-        out.sort(sort_table_index_key)
-        del out[sort_table_index_key]
-        del sort_table[sort_table_index_key]
+    # In case keep_order=True we need try/finally to ensure that the temporary column
+    # is removed even if an exception is raised.
+    try:
+        out = _join(
+            left,
+            right,
+            keys,
+            join_type,
+            uniq_col_name,
+            table_names,
+            col_name_map,
+            metadata_conflicts,
+            join_funcs,
+            keys_left=keys_left,
+            keys_right=keys_right,
+        )
+        if sort_table is not None:
+            # Sort joined table to the original order and remove the temporary column.
+            out.sort(sort_table_index_key)
+            del out[sort_table_index_key]
+    finally:
+        if sort_table is not None:
+            # If sort_table is not None that implies keep_order=True.
+            del sort_table[sort_table_index_key]
 
     # Merge the column and table meta data. Table subclasses might override
     # these methods for custom merge behavior.
