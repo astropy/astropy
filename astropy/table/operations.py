@@ -429,6 +429,7 @@ def join(
             warnings.warn(
                 "keep_order=True is only supported for left, right, and inner joins",
                 UserWarning,
+                stacklevel=2,
             )
         else:
             sort_table = right if join_type == "right" else left
