@@ -2217,6 +2217,74 @@ def test_unique(operation_table_type):
     ]
 
 
+@pytest.mark.parametrize("join_type", ["inner", "outer", "left", "right", "cartesian"])
+def test_join_keep_sort_order(join_type):
+    """Test the keep_order argument for table.join.
+
+    See https://github.com/astropy/astropy/issues/11619.
+
+    This defines a left and right table which have an ``id`` column that is not sorted
+    and not unique. Each table has common and unique ``id`` key values along with an
+    ``order`` column to keep track of the original order.
+    """
+    keep_supported = join_type in ["left", "right", "inner"]
+    t1 = Table()
+    t1["id"] = [2, 8, 2, 0, 0, 1]  # Join key
+    t1["order"] = np.arange(len(t1))  # Original table order
+
+    t2 = Table()
+    t2["id"] = [2, 0, 1, 9, 0, 1]  # Join key
+    t2["order"] = np.arange(len(t2))  # Original table order
+
+    # No keys arg is allowed for cartesian join.
+    keys_kwarg = {} if join_type == "cartesian" else {"keys": "id"}
+
+    # Now do table joints with keep_order=False and keep_order=True.
+    t12f = table.join(t1, t2, join_type=join_type, keep_order=False, **keys_kwarg)
+    # For keep_order=True there should be a warning if keep_order is not supported for
+    # the join type.
+    ctx = (
+        nullcontext()
+        if keep_supported
+        else pytest.warns(
+            UserWarning,
+            match=r"keep_order=True is only supported for left, right, and inner joins",
+        )
+    )
+    with ctx:
+        t12t = table.join(t1, t2, join_type=join_type, keep_order=True, **keys_kwarg)
+
+    assert len(t12f) == len(t12t)
+    assert t12f.colnames == t12t.colnames
+
+    # Define expected sorting of join table for keep_order=False. Cartesian joins are
+    # always sorted by the native order of the left table, otherwise the table is sorted
+    # by the sort key ``id``.
+    sort_key_false = "order_1" if join_type == "cartesian" else "id"
+
+    # For keep_order=True the "order" column is sorted if keep is supported otherwise
+    # the table is sorted as for keep_order=False.
+    if keep_supported:
+        sort_key_true = "order_2" if join_type == "right" else "order_1"
+    else:
+        sort_key_true = sort_key_false
+
+    assert np.all(t12f[sort_key_false] == sorted(t12f[sort_key_false]))
+    assert np.all(t12t[sort_key_true] == sorted([t12t[sort_key_true]]))
+
+
+def test_join_keep_sort_order_exception():
+    """Test that exception in join(..., keep_order=True) leaves table unchanged"""
+    t1 = Table([[1, 2]], names=["id"])
+    t2 = Table([[2, 3]], names=["id"])
+    with pytest.raises(
+        TableMergeError, match=r"Left table does not have key column 'not-a-key'"
+    ):
+        table.join(t1, t2, keys="not-a-key", join_type="inner", keep_order=True)
+    assert t1.colnames == ["id"]
+    assert t2.colnames == ["id"]
+
+
 def test_vstack_bytes(operation_table_type):
     """
     Test for issue #5617 when vstack'ing bytes columns in Py3.
