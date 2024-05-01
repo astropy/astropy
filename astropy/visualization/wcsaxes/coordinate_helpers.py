@@ -675,8 +675,7 @@ class CoordinateHelper:
         # coordinate and once we have the tick positions, we can use the WCS
         # to determine the rotations.
 
-        # Find the range of coordinates in all directions
-        coord_range = self.parent_map.get_coord_range()
+        coord_range = self.parent_map._coord_range
 
         # First find the ticks we want to show
         tick_world_coordinates, self._fl_spacing = self.locator(
@@ -958,7 +957,7 @@ class CoordinateHelper:
         if self.coord_index is None:
             return
 
-        coord_range = self.parent_map.get_coord_range()
+        coord_range = self.parent_map._coord_range
 
         tick_world_coordinates, spacing = self.locator(*coord_range[self.coord_index])
         tick_world_coordinates_values = tick_world_coordinates.to_value(self.coord_unit)
@@ -1152,7 +1151,7 @@ class CoordinateHelper:
         world = self.transform.transform(pixel)
         field = world[:, self.coord_index].reshape(res, res).T
 
-        coord_range = self.parent_map.get_coord_range()
+        coord_range = self.parent_map._coord_range
 
         tick_world_coordinates, spacing = self.locator(*coord_range[self.coord_index])
 
