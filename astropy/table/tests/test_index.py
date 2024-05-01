@@ -606,7 +606,6 @@ def test_index_slice_exception():
         SlicedIndex(None, None)
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "masked",
     [pytest.param(False, id="raw-array"), pytest.param(True, id="masked array")],
