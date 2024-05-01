@@ -3846,7 +3846,6 @@ def test_unit_parse_strict(tmp_path):
         Table.read(path, unit_parse_strict="warn")
 
 
-@pytest.mark.xfail
 def test_invalid_table_array():
     # see https://github.com/astropy/astropy/issues/4580
     data = np.empty((5, 100), dtype=[("w", ">f8"), ("f", ">f4")])
