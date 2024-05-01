@@ -437,8 +437,6 @@ def join(
             sort_table = right if join_type == "right" else left
             sort_table[sort_table_index_key] = np.arange(len(sort_table))
 
-    col_name_map = OrderedDict()
-
     # In case keep_order=True we need try/finally to ensure that the temporary column
     # is removed even if an exception is raised.
     try:
@@ -449,7 +447,6 @@ def join(
             join_type,
             uniq_col_name,
             table_names,
-            col_name_map,
             metadata_conflicts,
             join_funcs,
             keys_left=keys_left,
