@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from astropy.io.misc.parquet import read_parquet_vot, write_parquet_vot
+from astropy.io.misc.parquet import read_parquet_votable, write_parquet_votable
 from astropy.table import Table
 import astropy.units as u
 from astropy.utils.exceptions import AstropyUserWarning
@@ -53,10 +53,10 @@ def test_parquet_votable(tmp_path):
     """Test writing and reading a votable into a parquet file"""
     filename = tmp_path / "test_votable.parq"
 
-    write_parquet_vot(input_table, column_metadata, filename)
+    write_parquet_votable(input_table, filename, metadata=column_metadata)
 
     with pytest.warns(AstropyUserWarning, match="No table::len"):
-        loaded_table = read_parquet_vot(filename)
+        loaded_table = read_parquet_votable(filename)
 
     assert np.all(input_table == loaded_table)
 
@@ -65,7 +65,7 @@ def test_compare_parquet_votable(tmp_path):
     """ Parquet votable preserves column units and metadata"""
 
     filename = tmp_path / "test_votable.parq"
-    write_parquet_vot(input_table, column_metadata, filename)
+    write_parquet_votable(input_table, filename, metadata=column_metadata)
 
     with pytest.warns(AstropyUserWarning, match="No table::len"):
         parquet = Table.read(filename)
