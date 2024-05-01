@@ -3844,3 +3844,17 @@ def test_unit_parse_strict(tmp_path):
 
     with pytest.warns(UnitsWarning):
         Table.read(path, unit_parse_strict="warn")
+
+
+@pytest.mark.xfail
+def test_invalid_table_array():
+    # see https://github.com/astropy/astropy/issues/4580
+    data = np.empty((5, 100), dtype=[("w", ">f8"), ("f", ">f4")])
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"Input data with shape \(5, 100\) is not a valid "
+            r"representation of a row-oriented table\."
+        ),
+    ):
+        fits.BinTableHDU(data, name="DATA")
