@@ -1,2 +1,0 @@
-Remove useless ``col_name_map`` argument from internal ``_join``, ``_hstack`` and
-``_vstack`` functions.
