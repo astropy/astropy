@@ -20,6 +20,14 @@ from . import config as _config
 from .utils import find_current_module
 from .utils.exceptions import AstropyUserWarning, AstropyWarning
 
+try:
+    # this name is only defined if running within ipython/jupyter
+    __IPYTHON__  # noqa: B018
+except NameError:
+    _WITHIN_IPYTHON = False
+else:
+    _WITHIN_IPYTHON = True
+
 __all__ = ["Conf", "conf", "log", "AstropyLogger", "LoggingError"]
 
 # import the logging levels from logging so that one can do:
@@ -306,15 +314,12 @@ class AstropyLogger(Logger):
         exclog : bool
             True if exception logging is on, False if not.
         """
-        try:
-            ip = get_ipython()
-        except NameError:
-            ip = None
+        if _WITHIN_IPYTHON:
+            from IPython import get_ipython
 
-        if ip is None:
-            return self._excepthook_orig is not None
+            return _AstLogIPYExc in get_ipython().custom_exceptions
         else:
-            return _AstLogIPYExc in ip.custom_exceptions
+            return self._excepthook_orig is not None
 
     def enable_exception_logging(self):
         """
@@ -325,20 +330,12 @@ class AstropyLogger(Logger):
 
         This can be disabled with ``disable_exception_logging``.
         """
-        try:
-            ip = get_ipython()
-        except NameError:
-            ip = None
-
         if self.exception_logging_enabled():
             raise LoggingError("Exception logging has already been enabled")
 
-        if ip is None:
-            # standard python interpreter
-            self._excepthook_orig = sys.excepthook
-            sys.excepthook = self._excepthook
-        else:
+        if _WITHIN_IPYTHON:
             # IPython has its own way of dealing with excepthook
+            from IPython import get_ipython
 
             # We need to locally define the function here, because IPython
             # actually makes this a member function of their own class
@@ -352,10 +349,16 @@ class AstropyLogger(Logger):
             # now register the function with IPython
             # note that we include _AstLogIPYExc so `disable_exception_logging`
             # knows that it's disabling the right thing
-            ip.set_custom_exc((BaseException, _AstLogIPYExc), ipy_exc_handler)
+            get_ipython().set_custom_exc(
+                (BaseException, _AstLogIPYExc), ipy_exc_handler
+            )
 
             # and set self._excepthook_orig to a no-op
             self._excepthook_orig = lambda etype, evalue, tb: None
+        else:
+            # standard python interpreter
+            self._excepthook_orig = sys.excepthook
+            sys.excepthook = self._excepthook
 
     def disable_exception_logging(self):
         """
@@ -366,15 +369,15 @@ class AstropyLogger(Logger):
 
         This can be re-enabled with ``enable_exception_logging``.
         """
-        try:
-            ip = get_ipython()
-        except NameError:
-            ip = None
-
         if not self.exception_logging_enabled():
             raise LoggingError("Exception logging has not been enabled")
 
-        if ip is None:
+        if _WITHIN_IPYTHON:
+            # IPython has its own way of dealing with exceptions
+            from IPython import get_ipython
+
+            get_ipython().set_custom_exc(tuple(), None)
+        else:
             # standard python interpreter
             if sys.excepthook != self._excepthook:
                 raise LoggingError(
@@ -384,9 +387,6 @@ class AstropyLogger(Logger):
                 )
             sys.excepthook = self._excepthook_orig
             self._excepthook_orig = None
-        else:
-            # IPython has its own way of dealing with exceptions
-            ip.set_custom_exc(tuple(), None)
 
     def enable_color(self):
         """
