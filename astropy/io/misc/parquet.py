@@ -549,7 +549,7 @@ def write_parquet_votable(table, output, *, metadata, overwrite=False):
     for field in votable_write.resources[0].tables[0].fields:
         for mkey in metadatakeys:
             if mkey in field._attr_list:
-                exec(f'field.{mkey} = metadata[field.name]["{mkey}"]')
+                setattr(field, mkey, metadata[field.name][mkey])
             else:
                 if (mkey == "description") & (field.description is not None):
                     field.description = metadata[field.name]["description"]
