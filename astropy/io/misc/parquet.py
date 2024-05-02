@@ -678,3 +678,13 @@ def read_parquet_vot(filename):
 
     return complete_table
 
+
+def register_parquet_votable():
+    """
+    Register Parquet VOT with Unified I/O.
+    """
+    from astropy.io import registry as io_registry
+    from astropy.table import Table
+
+    io_registry.register_reader("parquet.votable", Table, read_parquet_vot)
+    io_registry.register_writer("parquet.votable", Table, write_parquet_vot)
