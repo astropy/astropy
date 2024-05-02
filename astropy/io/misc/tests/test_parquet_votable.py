@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
+import astropy.units as u
 from astropy.io.misc.parquet import read_parquet_votable, write_parquet_votable
 from astropy.table import Table
-import astropy.units as u
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
@@ -63,20 +63,20 @@ def test_parquet_votable(tmp_path):
 
 
 def test_compare_parquet_votable(tmp_path):
-    """ Parquet votable preserves column units and metadata"""
+    """Parquet votable preserves column units and metadata"""
 
     filename = tmp_path / "test_votable.parq"
     write_parquet_votable(input_table, filename, metadata=column_metadata)
 
     with pytest.warns(AstropyUserWarning, match="No table::len"):
         parquet = Table.read(filename)
-        parquet_votable = Table.read(filename, format='parquet.votable')
+        parquet_votable = Table.read(filename, format="parquet.votable")
 
-    assert len(parquet['sfr'].meta) == 0
-    assert parquet['sfr'].unit is None
+    assert len(parquet["sfr"].meta) == 0
+    assert parquet["sfr"].unit is None
 
-    assert parquet_votable['sfr'].meta['ucd'] == 'phys.SFR'
-    assert parquet_votable['sfr'].unit == u.solMass / u.yr
+    assert parquet_votable["sfr"].meta["ucd"] == "phys.SFR"
+    assert parquet_votable["sfr"].unit == u.solMass / u.yr
 
 
 def test_read_write_existing(tmp_path):
