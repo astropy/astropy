@@ -545,7 +545,7 @@ def write_parquet_votable(table, output, *, metadata, overwrite=False):
     votable_write = votablefile.from_table(table[0:1])
 
     # Then add the other metadata keys to the FIELDS parameters of the VOTable
-    metadatakeys = list(metadata[list(metadata.keys())[0]].keys())
+    metadatakeys = list(metadata[next(iter(metadata.keys()))].keys())
     for field in votable_write.resources[0].tables[0].fields:
         for mkey in metadatakeys:
             if mkey in field._attr_list:
@@ -587,7 +587,7 @@ def write_parquet_votable(table, output, *, metadata, overwrite=False):
     pyarrow_table = pyarrow.Table.from_pydict({c: table[c] for c in table.colnames})
 
     # add the required Type 1 file-level metadata
-    original_metadata = pyarrow_table.schema.metadata or dict()
+    original_metadata = pyarrow_table.schema.metadata or {}
     updated_metadata = {
         **original_metadata,
         b"IVOA.VOTable-Parquet.version": b"1.0",
