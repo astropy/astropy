@@ -1745,9 +1745,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             )
         ):
             if origin_mismatch == "warn":
-                warnings.warn(NonRotationTransformationWarning(self, other.frame))
+                warnings.warn(NonRotationTransformationWarning(self, other))
             elif origin_mismatch == "error":
-                raise NonRotationTransformationError(self, other.frame)
+                raise NonRotationTransformationError(self, other)
             else:
                 raise ValueError(
                     f"{origin_mismatch=} is invalid. Allowed values are 'ignore', "
