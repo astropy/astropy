@@ -1,5 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from . import utils
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+    from numbers import Real
+    from typing import Literal
+
+    from astropy.units import NamedUnit, UnitBase
 
 
 class Base:
@@ -27,11 +39,11 @@ class Base:
         super().__init_subclass__(**kwargs)
 
     @classmethod
-    def _get_unit_name(cls, unit):
+    def _get_unit_name(cls, unit: NamedUnit) -> str:
         return unit.get_format_name(cls.name)
 
     @classmethod
-    def format_exponential_notation(cls, val, format_spec="g"):
+    def format_exponential_notation(cls, val: float, format_spec: str = "g") -> str:
         """
         Formats a value in exponential notation.
 
@@ -51,11 +63,11 @@ class Base:
         return format(val, format_spec)
 
     @classmethod
-    def _format_superscript(cls, number):
+    def _format_superscript(cls, number: str) -> str:
         return f"({number})" if "/" in number or "." in number else number
 
     @classmethod
-    def _format_unit_power(cls, unit, power=1):
+    def _format_unit_power(cls, unit: NamedUnit, power: Real = 1) -> str:
         """Format the unit for this format class raised to the given power.
 
         This is overridden in Latex where the name of the unit can depend on the power
@@ -67,13 +79,20 @@ class Base:
         return name
 
     @classmethod
-    def _format_unit_list(cls, units):
+    def _format_unit_list(cls, units: Iterable[tuple[NamedUnit, Real]]) -> str:
         return cls._space.join(
             cls._format_unit_power(base_, power) for base_, power in units
         )
 
     @classmethod
-    def _format_fraction(cls, scale, numerator, denominator, *, fraction="inline"):
+    def _format_fraction(
+        cls,
+        scale: str,
+        numerator: str,
+        denominator: str,
+        *,
+        fraction: Literal[True, "inline"] = "inline",
+    ) -> str:
         if not (fraction is True or fraction == "inline"):
             raise ValueError(
                 "format {cls.name!r} only supports inline fractions,"
@@ -87,7 +106,9 @@ class Base:
         return f"{scale}{numerator} / {denominator}"
 
     @classmethod
-    def to_string(cls, unit, *, fraction=True):
+    def to_string(
+        cls, unit: UnitBase, *, fraction: bool | Literal["inline", "multiline"] = True
+    ) -> str:
         """Convert a unit to its string representation.
 
         Implementation for `~astropy.units.UnitBase.to_string`.
@@ -144,7 +165,7 @@ class Base:
         return s
 
     @classmethod
-    def parse(cls, s):
+    def parse(cls, s: str) -> UnitBase:
         """
         Convert a string to a unit object.
         """
