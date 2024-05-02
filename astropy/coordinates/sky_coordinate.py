@@ -38,6 +38,8 @@ from .sky_coordinate_parsers import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from .typing import SupportsFrame
+
 __all__ = ["SkyCoord", "SkyCoordInfo"]
 
 
@@ -296,9 +298,9 @@ class SkyCoord(ShapedLikeNDArray):
     info = SkyCoordInfo()
 
     # Methods implemented by the underlying frame
-    position_angle: Callable[[BaseCoordinateFrame | SkyCoord], Angle]
-    separation: Callable[[BaseCoordinateFrame | SkyCoord], Angle]
-    separation_3d: Callable[[BaseCoordinateFrame | SkyCoord], Distance]
+    position_angle: Callable[[SupportsFrame], Angle]
+    separation: Callable[[SupportsFrame], Angle]
+    separation_3d: Callable[[SupportsFrame], Distance]
 
     def __init__(self, *args, copy=True, **kwargs):
         # these are frame attributes set on this SkyCoord but *not* a part of
@@ -371,7 +373,7 @@ class SkyCoord(ShapedLikeNDArray):
                 raise ValueError("Cannot create a SkyCoord without data")
 
     @property
-    def frame(self):
+    def frame(self) -> BaseCoordinateFrame:
         return self._sky_coord_frame
 
     @property

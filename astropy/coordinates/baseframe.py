@@ -40,8 +40,10 @@ if TYPE_CHECKING:
 
     from typing_extensions import Self
 
-    from astropy.coordinates import Latitude, Longitude, SkyCoord
+    from astropy.coordinates import Latitude, Longitude
     from astropy.units import Unit
+
+    from .typing import SupportsFrame
 
 # the graph used for all transformations between frames
 frame_transform_graph = TransformGraph()
@@ -661,7 +663,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         setattr(cls, attr_name, property(getter, doc=doc))
 
     @property
-    def frame(self) -> Self:
+    def frame(self) -> Self:  # To implement the `SupportsFrame` protocol.
         """A reference to this frame."""
         return self
 
@@ -1730,9 +1732,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         return np.logical_not(self == value)
 
     def _prepare_unit_sphere_coords(
-        self,
-        other: BaseCoordinateFrame | SkyCoord,
-        origin_mismatch: Literal["ignore", "warn", "error"],
+        self, other: SupportsFrame, origin_mismatch: Literal["ignore", "warn", "error"]
     ) -> tuple[Longitude, Latitude, Longitude, Latitude]:
         if not (
             origin_mismatch == "ignore"
@@ -1759,7 +1759,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         )
         return self_sph.lon, self_sph.lat, other_sph.lon, other_sph.lat
 
-    def position_angle(self, other: BaseCoordinateFrame | SkyCoord) -> Angle:
+    def position_angle(self, other: SupportsFrame) -> Angle:
         """Compute the on-sky position angle to another coordinate.
 
         Parameters
@@ -1794,7 +1794,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     def separation(
         self,
-        other: BaseCoordinateFrame | SkyCoord,
+        other: SupportsFrame,
         *,
         origin_mismatch: Literal["ignore", "warn", "error"] = "warn",
     ) -> Angle:
