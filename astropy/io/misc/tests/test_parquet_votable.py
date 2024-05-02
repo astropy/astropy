@@ -5,6 +5,7 @@ from astropy.io.misc.parquet import read_parquet_votable, write_parquet_votable
 from astropy.table import Table
 import astropy.units as u
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 # Skip all tests in this file if we cannot import pyarrow
 pyarrow = pytest.importorskip("pyarrow")
@@ -76,3 +77,14 @@ def test_compare_parquet_votable(tmp_path):
 
     assert parquet_votable['sfr'].meta['ucd'] == 'phys.SFR'
     assert parquet_votable['sfr'].unit == u.solMass / u.yr
+
+
+def test_read_write_existing(tmp_path):
+    """Test writing an existing file without overwriting."""
+    filename = tmp_path / "test_votable.parquet"
+    with open(filename, "w"):
+        # create empty file
+        pass
+
+    with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
+        write_parquet_votable(input_table, filename, metadata=column_metadata)
