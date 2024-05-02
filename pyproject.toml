@@ -58,7 +58,9 @@ test = [
 test_all = [
     "astropy[test]",  # installs the [test] dependencies
     "objgraph",
-    "ipython>=4.2",
+    "ipykernel",
+    "ipython>=7.32",
+    "ipywidgets",
     "coverage[toml]",
     "skyfield>=1.20",
     "sgp4>=2.3",
@@ -88,7 +90,9 @@ all = [
     "mpmath",
     "asdf-astropy>=0.3",
     "bottleneck",
-    "ipython>=4.2",
+    "ipykernel",
+    "ipython>=7.32",
+    "ipywidgets",
     "pytest>=7.0",
     "fsspec[http]>=2023.4.0",
     "s3fs>=2023.4.0",
