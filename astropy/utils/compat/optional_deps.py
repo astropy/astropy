@@ -21,6 +21,7 @@ _optional_deps = [
     "html5lib",
     "ipykernel",
     "IPython",
+    "ipywidgets",
     "jplephem",
     "lxml",
     "matplotlib",

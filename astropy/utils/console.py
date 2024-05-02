@@ -27,7 +27,11 @@ except ImportError:
     _CAN_RESIZE_TERMINAL = False
 
 from astropy import conf
-from astropy.utils.compat.optional_deps import HAS_IPYKERNEL, HAS_IPYTHON
+from astropy.utils.compat.optional_deps import (
+    HAS_IPYKERNEL,
+    HAS_IPYTHON,
+    HAS_IPYWIDGETS,
+)
 
 from .decorators import classproperty, deprecated
 from .misc import isiterable
@@ -47,14 +51,6 @@ __all__ = [
 
 class _IPython:
     """Singleton class given access to IPython streams, etc."""
-
-    @classproperty
-    def get_ipython(cls):
-        if HAS_IPYTHON:
-            from IPython import get_ipython
-
-            return get_ipython
-        raise ModuleNotFoundError("IPython is not installed")
 
     @classproperty
     def OutStream(cls):
@@ -559,9 +555,12 @@ class ProgressBar:
         """
         # Create and display an empty progress bar widget,
         # if none exists.
+
         if not hasattr(self, "_widget"):
             # Import only if an IPython widget, i.e., widget in iPython NB
-            _IPython.get_ipython()
+            if not HAS_IPYWIDGETS:
+                raise ModuleNotFoundError("ipywidgets is not installed")
+
             from ipywidgets import widgets
 
             self._widget = widgets.FloatProgress()
