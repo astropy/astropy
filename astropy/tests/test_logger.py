@@ -9,7 +9,7 @@ import warnings
 import pytest
 
 from astropy import log
-from astropy.logger import LoggingError, conf
+from astropy.logger import _WITHIN_IPYTHON, LoggingError, conf
 from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
 
 # Save original values of hooks. These are not the system values, but the
@@ -17,11 +17,6 @@ from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
 # this file gets executed.
 _excepthook = sys.__excepthook__
 _showwarning = warnings.showwarning
-
-try:
-    ip = get_ipython()
-except NameError:
-    ip = None
 
 
 def setup_function(function):
@@ -190,7 +185,7 @@ def test_exception_logging_enable_twice():
 
 
 @pytest.mark.skipif(
-    ip is not None, reason="Cannot override exception handler in IPython"
+    _WITHIN_IPYTHON, reason="Cannot override exception handler in IPython"
 )
 def test_exception_logging_overridden():
     log.enable_exception_logging()
@@ -205,7 +200,7 @@ def test_exception_logging_overridden():
         log.disable_exception_logging()
 
 
-@pytest.mark.xfail("ip is not None")
+@pytest.mark.xfail("_WITHIN_IPYTHON")
 def test_exception_logging():
     # Without exception logging
     with pytest.raises(Exception, match="This is an Exception"):
@@ -243,7 +238,7 @@ def test_exception_logging():
     assert len(log_list) == 0
 
 
-@pytest.mark.xfail("ip is not None")
+@pytest.mark.xfail("_WITHIN_IPYTHON")
 def test_exception_logging_origin():
     # The point here is to get an exception raised from another location
     # and make sure the error's origin is reported correctly
