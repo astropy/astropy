@@ -515,7 +515,7 @@ def get_pyarrow():
     return pa, parquet, writer_version
 
 
-def write_parquet_votable(table, output, *, metadata):
+def write_parquet_votable(table, output, *, metadata, overwrite=False):
     """
     Writes a Parquet file with a VOT (XML) metadata table included.
 
@@ -536,6 +536,13 @@ def write_parquet_votable(table, output, *, metadata):
     import pyarrow.parquet
 
     from astropy.io.votable.tree import VOTableFile
+
+    if os.path.exists(output):
+        if overwrite:
+            # We must remove the file prior to writing below.
+            os.remove(output)
+        else:
+            raise OSError(NOT_OVERWRITING_MSG.format(output))
 
     # Prepare the VOTable (XML)
     # We only use the first row of the astropy table to get the general
