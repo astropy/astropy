@@ -1509,6 +1509,15 @@ class TestMaskedRecarray(MaskedArraySetup):
             "               dtype=[('a', '<f8'), ('b', '<f8')])"
         )
 
+    def test_recarray_represent_as_dict(self):
+        rasd = self.mra.info._represent_as_dict()
+        assert type(rasd["data"]) is np.ma.MaskedArray
+        assert type(rasd["data"].base) is np.ndarray
+        mra2 = type(self.mra).info._construct_from_dict(rasd)
+        assert type(mra2) is type(self.mra)
+        assert_array_equal(mra2.unmasked, self.ra)
+        assert_array_equal(mra2.mask, self.mra.mask)
+
 
 class TestMaskedArrayInteractionWithNumpyMA(MaskedArraySetup):
     def test_masked_array_from_masked(self):
