@@ -1,2 +1,0 @@
-``indent()`` is deprecated.
-Use ``textwrap.indent()`` from Python standard library instead.

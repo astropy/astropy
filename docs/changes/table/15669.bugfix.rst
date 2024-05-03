@@ -1,4 +1,0 @@
-Fix a Table bug when setting items (via slice or index list) in a ``bytes`` type
-``MaskedColumn`` would cause the column mask to be set to all ``False``. A common way to
-trigger this bug was reading a FITS file with masked string data and then sorting the
-table.

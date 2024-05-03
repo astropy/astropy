@@ -1,2 +1,0 @@
-``astropy.table.vstack`` will no longer modify the input list even when it
-contains non-Table objects like ``astropy.table.Row``.

@@ -1,2 +1,0 @@
-Ensure that the names of mixin columns are properly propagated as
-labels for the MRT format.

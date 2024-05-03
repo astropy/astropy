@@ -1,2 +1,0 @@
-Update old dataTables.js version.
-This should not affect the end user.

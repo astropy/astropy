@@ -1,1 +1,0 @@
-Fix conversion of ``Table`` to ``BinTableHDU`` with ``character_as_bytes=True``.

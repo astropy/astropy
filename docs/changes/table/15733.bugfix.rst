@@ -1,3 +1,0 @@
-Fix slicing logic for Row.
-Previously, slicing a ``astropy.table.row.Row`` object would incorrectly return a column,
-now it correctly returns a list of values from that row.

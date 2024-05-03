@@ -1,3 +1,0 @@
-``show_in_browser`` is deprecated (pending feedback from the community).
-Please use https://github.com/astropy/astropy/issues/16067 if you are
-actively using the function.
