@@ -34,8 +34,8 @@ Updated minimum Python version to 3.10
 ======================================
 
 The minimum required version of Python has been upgraded to 3.10. This is in line with
-the `NumPy deprecation policy
-<https://numpy.org/neps/nep-0029-deprecation_policy.html>`_.
+the `scientific python ecosystem coordination guideline SPEC 0 — Minimum Supported
+Versions. <https://scientific-python.org/specs/spec-0000/>`_.
 
 .. _whatsnew-6.1-angular-separations:
 
