@@ -1522,6 +1522,11 @@ class ColDefs(NotifierMixin):
         self._init_from_coldefs(columns)
 
     def _init_from_array(self, array):
+        if array.ndim != 1:
+            raise ValueError(
+                f"Input data with shape {array.shape} is not a valid representation "
+                "of a row-oriented table. Expected a 1D array with rows as elements."
+            )
         self.columns = []
         for idx in range(len(array.dtype)):
             cname = array.dtype.names[idx]
