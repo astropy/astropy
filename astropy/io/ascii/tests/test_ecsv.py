@@ -22,8 +22,10 @@ from astropy.io.tests.mixin_columns import compare_attrs, mixin_cols, serialized
 from astropy.table import Column, QTable, Table
 from astropy.table.column import MaskedColumn
 from astropy.table.table_helpers import simple_table
+from astropy.time import Time
 from astropy.units import QuantityInfo
 from astropy.units import allclose as quantity_allclose
+from astropy.utils.masked import Masked
 
 from .common import TEST_DIR
 
@@ -1078,15 +1080,30 @@ def test_guess_ecsv_with_one_column():
     assert t["col"].description == "hello"
 
 
-def test_write_structured_masked_column():
-    mc = MaskedColumn(
-        [(1, 2), (3, 4)],
-        mask=[(True, False), (False, False)],
-        dtype="i,i",
-    )
+@pytest.mark.parametrize("masked", [MaskedColumn, Masked, np.ma.MaskedArray])
+def test_write_structured_masked_column(masked):
+    a = np.array([(1, 2), (3, 4)], dtype="i,i")
+    mc = masked(a, mask=[(True, False), (False, False)])
     t = Table([mc], names=["mc"])
     out = StringIO()
     t.write(out, format="ascii.ecsv")
     t2 = Table.read(out.getvalue(), format="ascii.ecsv")
+    assert type(t2["mc"]) is type(t["mc"])
     assert (t2["mc"] == mc).all()
     assert (t2["mc"].mask == mc.mask).all()
+
+
+def test_write_masked_time_ymdhms_mixin():
+    # Regression test for gh-16370
+    # Make a masked time,
+    t = Time({"year": 2000, "month": 1, "day": [1, 2]})
+    t[0] = np.ma.masked
+    # Create a table and write to a file
+    qt = QTable([t], names=["t"])
+    out = StringIO()
+    qt.write(out, format="ascii.ecsv")
+    # Read back and compare.
+    qt2 = QTable.read(out.getvalue(), format="ascii.ecsv")
+    # Note that value under time does not roundtrip
+    assert (qt2["t"] == t).all()
+    assert (qt2["t"].mask == t.mask).all()

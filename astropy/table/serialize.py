@@ -38,6 +38,7 @@ __construct_mixin_classes = (
     "astropy.table.column.Column",
     "astropy.table.column.MaskedColumn",
     "astropy.utils.masked.core.MaskedNDArray",
+    "astropy.utils.masked.core.MaskedRecarray",
     # Angles
     "astropy.coordinates.angles.core.Latitude",
     "astropy.coordinates.angles.core.Longitude",
@@ -193,7 +194,10 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols, exclude_classes=
         if not has_info_class(data, MixinInfo):
             col_cls = (
                 MaskedColumn
-                if (hasattr(data, "mask") and np.any(data.mask))
+                if (
+                    hasattr(data, "mask")
+                    and np.any(data.mask != np.zeros((), data.mask.dtype))
+                )
                 else Column
             )
             data = col_cls(data, name=new_name, **new_info)
