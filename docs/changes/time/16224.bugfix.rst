@@ -1,3 +1,0 @@
-Scalar ``Time`` instances are now hashable if they are not masked, also if one
-uses ``Masked`` internally, matching the behaviour prior to astropy 6.0 (and
-the current behaviour when masking using ``np.ma.MaskedArray``).

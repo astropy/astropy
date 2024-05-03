@@ -1,1 +1,0 @@
-Fix ``hasattr(Table, "iloc")`` raising an exception, preventing use of tables e.g. with scikit-learn.

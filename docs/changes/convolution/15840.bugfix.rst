@@ -1,2 +1,0 @@
-Avoid a segfault when calling ``astropy.convolution.convolve`` on an empty array.
-An exception is now raised instead.
