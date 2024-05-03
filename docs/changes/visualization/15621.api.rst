@@ -1,2 +1,0 @@
-Renamed the ``min_cut`` and ``max_cut`` keywords in ``simple_norm`` and
-``fits2bitmap`` to ``vmin`` and ``vmax``. The old names are deprecated.

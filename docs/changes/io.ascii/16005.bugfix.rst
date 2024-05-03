@@ -1,1 +1,0 @@
-Fixed reading IPAC tables for ``long`` column type on some platforms, e.g., Windows.

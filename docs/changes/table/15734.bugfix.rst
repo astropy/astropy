@@ -1,4 +1,0 @@
-Fix a ``ValueError`` raised by ``table.join`` when fed with large tables.
-This would typically happen in situations when the result joined table would be
-too large to fit in memory. In those situations, the error message is now much more
-clearly about the necessary memory size.

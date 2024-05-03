@@ -1,2 +1,0 @@
-The module ``astropy.io.typing`` has been added to provide type annotations for
-I/O-related functionality.

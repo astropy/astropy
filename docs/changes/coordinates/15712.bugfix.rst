@@ -1,2 +1,0 @@
-``Distance`` now accepts as ``parallax`` any angle-like value.
-This includes types like ``Column`` which have a unit but are not ``Quantity`` subclasses.
