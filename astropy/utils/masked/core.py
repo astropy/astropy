@@ -1335,3 +1335,11 @@ class MaskedRecarray(np.recarray, MaskedNDArray, data_cls=np.recarray):
                 return
 
         raise NotImplementedError("can only set existing field from structured dtype.")
+
+    def __repr__(self):
+        cls_name = type(self).__name__
+        out = super().__repr__().splitlines()
+        prefix, _, rest = out[0].partition("(")
+        out0 = cls_name + "(" + rest
+        extra_space = (len(cls_name) - len(prefix)) * " "
+        return "\n".join([out0] + [extra_space + o for o in out[1:]])
