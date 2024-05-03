@@ -22,11 +22,11 @@ In addition to these major changes, Astropy 6.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
 By the numbers:
 
-* 723 commits have been added since 6.0
-* 172 issues have been closed since 6.0
-* 276 pull requests have been merged since 6.0
-* 51 people have contributed since 6.0
-* 14 of which are new contributors
+* 759 commits have been added since 6.0
+* 188 issues have been closed since 6.0
+* 316 pull requests have been merged since 6.0
+* 54 people have contributed since 6.0
+* 16 of which are new contributors
 
 .. _whatsnew-6.1-minimum-python:
 
@@ -138,7 +138,7 @@ may need adjustments where the intention was to forbid unnecessary copies
 but allow the ones that couldn't be avoided.
 For portability across different versions of Numpy, we recommend that these
 instances of ``False`` be replaced with a ``COPY_IF_NEEDED`` constant defined
-as follow
+as follow::
 
     COPY_IF_NEEDED = False if np.__version__.startswith("1.") else None
 
@@ -227,10 +227,12 @@ The people who have contributed to the code for this release are:
   -  Simon Conseil
   -  Stephen Bailey  *
   -  Stuart Littlefair
+  -  Stuart Mumford
   -  Tanvi Pooranmal Meena  *
   -  Thomas Robitaille
   -  Tom Aldcroft
   -  William Jamieson
+  -  Zach Burnett  *
   -  omahs  *
 
 Where a * indicates that this release contains their first contribution to astropy.
