@@ -1076,3 +1076,17 @@ def test_guess_ecsv_with_one_column():
     t = ascii.read(txt)
     assert t["col"].dtype.kind == "U"  # would be int with basic format
     assert t["col"].description == "hello"
+
+
+def test_write_structured_masked_column():
+    mc = MaskedColumn(
+        [(1, 2), (3, 4)],
+        mask=[(True, False), (False, False)],
+        dtype="i,i",
+    )
+    t = Table([mc], names=["mc"])
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+    t2 = Table.read(out.getvalue(), format="ascii.ecsv")
+    assert (t2["mc"] == mc).all()
+    assert (t2["mc"].mask == mc.mask).all()
