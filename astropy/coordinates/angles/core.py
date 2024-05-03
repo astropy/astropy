@@ -315,12 +315,7 @@ class Angle(SpecificTypeQuantity):
             )
 
         if unit is None:
-            if sep == "dms":
-                unit = u.degree
-            elif sep == "hms":
-                unit = u.hourangle
-            else:
-                unit = self.unit
+            unit = {"dms": u.degree, "hms": u.hourangle}.get(sep, self.unit)
         else:
             unit = self._convert_unit_to_angle_unit(unit)
 
@@ -332,11 +327,11 @@ class Angle(SpecificTypeQuantity):
             },
             "unicode": {u.degree: "°′″", u.hourangle: "ʰᵐˢ"},
         }
-        # 'latex_inline' provides no functionality beyond what 'latex' offers,
-        # but it should be implemented to avoid ValueErrors in user code.
-        separators["latex_inline"] = separators["latex"]
         # Default separators are as for generic.
         separators[None] = separators["generic"]
+        # For Angle "latex_inline" is the same as "latex"
+        if format == "latex_inline":
+            format = "latex"
 
         # Create an iterator so we can format each element of what
         # might be an array.
@@ -359,7 +354,7 @@ class Angle(SpecificTypeQuantity):
             # TODO: could we use Quantity.to_string() here?
             if not (decimal and format is None):
                 unit_string = unit.to_string(format=format)
-                if format == "latex" or format == "latex_inline":
+                if format == "latex":
                     # Remove $ and add space in front if unit is not a superscript.
                     if "^" in unit_string:
                         unit_string = unit_string[1:-1]
@@ -377,23 +372,16 @@ class Angle(SpecificTypeQuantity):
         def do_format(val):
             # Check if value is not nan to avoid ValueErrors when turning it into
             # a hexagesimal string.
-            if not np.isnan(val):
-                s = func(float(val))
-                if alwayssign and not s.startswith("-"):
-                    s = "+" + s
-                if format == "latex" or format == "latex_inline":
-                    s = f"${s}$"
-                return s
-            s = f"{val}"
-            return s
+            if np.isnan(val):
+                return "nan"
+            s = func(float(val))
+            if alwayssign and not s.startswith("-"):
+                s = "+" + s
+            return f"${s}$" if format == "latex" else s
 
-        values = self.to_value(unit)
         format_ufunc = np.vectorize(do_format, otypes=["U"])
-        result = format_ufunc(values)
-
-        if result.ndim == 0:
-            result = result[()]
-        return result
+        result = format_ufunc(self.to_value(unit))
+        return result if result.ndim else result[()]
 
     def _wrap_at(self, wrap_angle):
         """
@@ -514,21 +502,17 @@ class Angle(SpecificTypeQuantity):
         is_within_bounds : bool
             `True` if all angles satisfy ``lower <= angle < upper``
         """
-        ok = True
-        if lower is not None:
-            ok &= np.all(Angle(lower) <= self)
-        if ok and upper is not None:
-            ok &= np.all(self < Angle(upper))
-        return bool(ok)
+        return bool(
+            (lower is None or (Angle(lower) <= self).all())
+            and (upper is None or (self < Angle(upper)).all())
+        )
 
     def _str_helper(self, format=None):
         if self.isscalar:
             return self.to_string(format=format)
-
-        def formatter(x):
-            return x.to_string(format=format)
-
-        return np.array2string(self, formatter={"all": formatter})
+        return np.array2string(
+            self, formatter={"all": lambda x: x.to_string(format=format)}
+        )
 
     def __str__(self):
         return self._str_helper()
