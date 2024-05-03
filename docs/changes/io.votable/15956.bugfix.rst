@@ -1,3 +1,0 @@
-When reading a VOTable, if some user-requested columns were not present then the
-resulting error message previously listed all the requested column names.
-Now only columns that are actually missing are shown.

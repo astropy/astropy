@@ -1,2 +1,0 @@
-Following the removal of ``np.ndarray.ptp`` in Numpy v2, ``Time.ptp`` is now
-deprecated in favor of ``np.ptp``.

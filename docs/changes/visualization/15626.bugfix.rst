@@ -1,1 +1,0 @@
-``WCSAxes`` will correctly set certain defaults when ``wcs.world_axis_physical_types`` contains ``custom:`` prefixes.
