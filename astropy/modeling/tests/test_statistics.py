@@ -7,7 +7,7 @@ import numpy as np
 
 # pylint: disable=invalid-name
 import pytest
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_allclose
 
 from astropy.modeling.models import Identity, Mapping
 from astropy.modeling.statistic import (
@@ -32,29 +32,29 @@ class TestLeastSquare_XD:
 
     def test_1d_no_weights(self):
         lsq = leastsquare_1d(self.data, self.model1D, None, self.x)
-        assert_almost_equal(lsq, self.lsq_exp)
+        assert_allclose(lsq, self.lsq_exp)
 
     def test_1d_with_weights(self):
         lsq = leastsquare_1d(self.data, self.model1D, np.ones(100), self.x)
-        assert_almost_equal(lsq, self.lsq_exp)
+        assert_allclose(lsq, self.lsq_exp)
 
     def test_2d_no_weights(self):
         lsq = leastsquare_2d(self.data, self.model2D, None, self.x, self.y)
-        assert_almost_equal(lsq, self.lsq_exp)
+        assert_allclose(lsq, self.lsq_exp)
 
     def test_2d_with_weights(self):
         lsq = leastsquare_2d(self.data, self.model2D, np.ones(100), self.x, self.y)
-        assert_almost_equal(lsq, self.lsq_exp)
+        assert_allclose(lsq, self.lsq_exp)
 
     def test_3d_no_weights(self):
         lsq = leastsquare_3d(self.data, self.model3D, None, self.x, self.y, self.z)
-        assert_almost_equal(lsq, self.lsq_exp)
+        assert_allclose(lsq, self.lsq_exp)
 
     def test_3d_with_weights(self):
         lsq = leastsquare_3d(
             self.data, self.model3D, np.ones(100), self.x, self.y, self.z
         )
-        assert_almost_equal(lsq, self.lsq_exp)
+        assert_allclose(lsq, self.lsq_exp)
 
 
 class TestLeastSquare_ND:
@@ -70,19 +70,19 @@ class TestLeastSquare_ND:
 
     def test_1d_no_weights(self):
         lsq = leastsquare(self.data, self.model1D, None, self.x)
-        assert_almost_equal(lsq, self.lsq_exp)
+        assert_allclose(lsq, self.lsq_exp)
 
     def test_1d_with_weights(self):
         lsq = leastsquare(self.data, self.model1D, np.ones(100), self.x)
-        assert_almost_equal(lsq, self.lsq_exp)
+        assert_allclose(lsq, self.lsq_exp)
 
     def test_3d_no_weights(self):
         lsq = leastsquare(self.data, self.model3D, None, self.x, self.y, self.z)
-        assert_almost_equal(lsq, self.lsq_exp)
+        assert_allclose(lsq, self.lsq_exp)
 
     def test_3d_with_weights(self):
         lsq = leastsquare(self.data, self.model3D, np.ones(100), self.x, self.y, self.z)
-        assert_almost_equal(lsq, self.lsq_exp)
+        assert_allclose(lsq, self.lsq_exp)
 
     def test_shape_mismatch(self):
         MESSAGE = r"Shape mismatch between model .* and measured .*"

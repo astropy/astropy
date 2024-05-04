@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose
 
 from astropy.timeseries.periodograms.lombscargle.implementations.utils import (
     bitceil,
@@ -12,7 +12,7 @@ from astropy.timeseries.periodograms.lombscargle.implementations.utils import (
 @pytest.mark.parametrize("N", 2 ** np.arange(1, 12))
 @pytest.mark.parametrize("offset", [-1, 0, 1])
 def test_bitceil(N, offset):
-    assert_equal(bitceil(N + offset), int(2 ** np.ceil(np.log2(N + offset))))
+    assert bitceil(N + offset) == int(2 ** np.ceil(np.log2(N + offset)))
 
 
 @pytest.fixture

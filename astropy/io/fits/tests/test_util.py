@@ -8,7 +8,7 @@ import threading
 
 import numpy as np
 import pytest
-from numpy.testing import assert_equal
+
 
 from astropy.io.fits import util
 from astropy.io.fits.util import _rstrip_inplace, ignore_sigint
@@ -177,24 +177,24 @@ def test_rstrip_inplace():
     # Bytes array
     s = np.array(["a ", " b", " c c   "], dtype="S6")
     _rstrip_inplace(s)
-    assert_equal(s, np.array(["a", " b", " c c"], dtype="S6"))
+    assert s == np.array(["a", " b", " c c"], dtype="S6")
 
     # Unicode array
     s = np.array(["a ", " b", " c c   "], dtype="U6")
     _rstrip_inplace(s)
-    assert_equal(s, np.array(["a", " b", " c c"], dtype="U6"))
+    assert s == np.array(["a", " b", " c c"], dtype="U6")
 
     # 2-dimensional array
     s = np.array([["a ", " b"], [" c c   ", " a "]], dtype="S6")
     _rstrip_inplace(s)
-    assert_equal(s, np.array([["a", " b"], [" c c", " a"]], dtype="S6"))
+    assert s == np.array([["a", " b"], [" c c", " a"]], dtype="S6")
 
     # 3-dimensional array
     s = np.repeat(" a a ", 24).reshape((2, 3, 4))
     _rstrip_inplace(s)
-    assert_equal(s, " a a")
+    assert s == " a a"
 
     # 3-dimensional non-contiguous array
     s = np.repeat(" a a ", 1000).reshape((10, 10, 10))[:2, :3, :4]
     _rstrip_inplace(s)
-    assert_equal(s, " a a")
+    assert s == " a a"

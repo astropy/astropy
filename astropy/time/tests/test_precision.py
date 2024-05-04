@@ -64,7 +64,7 @@ def quiet_erfa():
         yield
 
 
-def assert_almost_equal(a, b, *, rtol=None, atol=None, label=""):
+def assert_allclose(a, b, *, rtol=None, atol=None, label=""):
     """Assert numbers are almost equal.
 
     This version also lets hypothesis know how far apart the inputs are, so
@@ -323,7 +323,7 @@ def test_two_sum(i, f):
         a = Decimal(i) + Decimal(f)
         s, r = two_sum(i, f)
         b = Decimal(s) + Decimal(r)
-        assert_almost_equal(a, b, atol=Decimal(tiny), rtol=Decimal(0))
+        assert_allclose(a, b, atol=Decimal(tiny), rtol=Decimal(0))
 
 
 # The bounds are here since we want to be sure the sum does not go to infinity,
@@ -335,7 +335,7 @@ def test_two_sum(i, f):
     floats(min_value=np.finfo(float).min / 2, max_value=np.finfo(float).max / 2),
 )
 def test_two_sum_symmetric(f1, f2):
-    np.testing.assert_equal(two_sum(f1, f2), two_sum(f2, f1))
+    assert two_sum(f1, f2 == two_sum(f2, f1))
 
 
 @given(
@@ -362,7 +362,7 @@ def test_day_frac_harmless(i, f):
         a = Decimal(i) + Decimal(f)
         i_d, f_d = day_frac(i, f)
         a_d = Decimal(i_d) + Decimal(f_d)
-        assert_almost_equal(a, a_d, atol=Decimal(tiny), rtol=Decimal(0))
+        assert_allclose(a, a_d, atol=Decimal(tiny), rtol=Decimal(0))
 
 
 @given(integers(-(2**52) + 2, 2**52 - 2), floats(-0.5, 0.5))
@@ -561,7 +561,7 @@ def test_jd_add_subtract_round_trip(scale, jds, delta):
             if abs(delta) >= minimum_for_change:
                 assert t2 != t
             t3 = t2 - delta * u.day
-            assert_almost_equal(t3, t, atol=thresh, rtol=0)
+            assert_allclose(t3, t, atol=thresh, rtol=0)
     except ErfaError:
         assume(scale != "utc" or 2440000 < jd1 + jd2 < 2460000)
         raise
@@ -625,13 +625,13 @@ def test_timedelta_full_precision(scale, jds_a, jds_b):
     dt = t_b - t_a
     assert dt != (t_b + tiny) - t_a
     with quiet_erfa():
-        assert_almost_equal(
+        assert_allclose(
             t_b - dt / 2, t_a + dt / 2, atol=2 * dt_tiny, rtol=0, label="midpoint"
         )
-        assert_almost_equal(
+        assert_allclose(
             t_b + dt, t_a + 2 * dt, atol=2 * dt_tiny, rtol=0, label="up"
         )
-        assert_almost_equal(
+        assert_allclose(
             t_b - 2 * dt, t_a - dt, atol=2 * dt_tiny, rtol=0, label="down"
         )
 
@@ -653,7 +653,7 @@ def test_timedelta_full_precision_arithmetic(scale, jds_a, jds_b, x, y):
             dt = t_b - t_a
             dt_x = x * dt / (x + y)
             dt_y = y * dt / (x + y)
-            assert_almost_equal(dt_x + dt_y, dt, atol=(x + y) * dt_tiny, rtol=0)
+            assert_allclose(dt_x + dt_y, dt, atol=(x + y) * dt_tiny, rtol=0)
         except ErfaError:
             assume(
                 scale != "utc"
@@ -685,11 +685,11 @@ def test_timedelta_conversion(scale1, scale2, jds_a, jds_b):
         t_a_2 = getattr(t_a, scale2)
         t_b_2 = getattr(t_b, scale2)
         dt_2 = getattr(dt, scale2)
-        assert_almost_equal(
+        assert_allclose(
             t_b_2 - t_a_2, dt_2, atol=dt_tiny, rtol=0, label="converted"
         )
         # Implicit conversion
-        assert_almost_equal(
+        assert_allclose(
             t_b_2 - t_a_2, dt, atol=dt_tiny, rtol=0, label="not converted"
         )
 
@@ -707,7 +707,7 @@ _utc_bad = [
 def test_datetime_difference_agrees_with_timedelta(scale, dt1, dt2):
     t1 = Time(dt1, scale=scale)
     t2 = Time(dt2, scale=scale)
-    assert_almost_equal(
+    assert_allclose(
         t2 - t1,
         TimeDelta(dt2 - dt1, scale=None if scale == "utc" else scale),
         atol=2 * u.us,
@@ -743,7 +743,7 @@ def test_datetime_timedelta_roundtrip(scale, days, microseconds):
 def test_timedelta_datetime_roundtrip(scale, days, day_frac):
     td = TimeDelta(days, day_frac, format="jd", scale=scale)
     td.format = "datetime"
-    assert_almost_equal(td, TimeDelta(td.value, scale=scale), atol=2 * u.us)
+    assert_allclose(td, TimeDelta(td.value, scale=scale), atol=2 * u.us)
 
 
 @given(integers(-3000 * 365, 3000 * 365), floats(0, 1))
@@ -785,7 +785,7 @@ def test_datetime_timedelta_sum(scale, dt, td):
         assume(False)
     dt_a = Time(dt, scale=scale)
     td_a = TimeDelta(td, scale=None if scale == "utc" else scale)
-    assert_almost_equal(dt_a + td_a, Time(dt + td, scale=scale), atol=2 * u.us)
+    assert_allclose(dt_a + td_a, Time(dt + td, scale=scale), atol=2 * u.us)
 
 
 @given(
@@ -800,7 +800,7 @@ def test_sidereal_lat_independent(iers_b, kind, jds, lat1, lat2, lon):
     t1 = Time(jd1, jd2, scale="ut1", format="jd", location=(lon, lat1))
     t2 = Time(jd1, jd2, scale="ut1", format="jd", location=(lon, lat2))
     try:
-        assert_almost_equal(
+        assert_allclose(
             t1.sidereal_time(kind), t2.sidereal_time(kind), atol=1 * u.uas
         )
     except iers.IERSRangeError:
@@ -824,4 +824,4 @@ def test_sidereal_lon_independent(iers_b, kind, jds, lat, lon, lon_delta):
         assume(False)
     else:
         expected_degrees = (diff.to_value(u.degree) + 180) % 360
-        assert_almost_equal(expected_degrees, 180, atol=1 / (60 * 60 * 1000))
+        assert_allclose(expected_degrees, 180, atol=1 / (60 * 60 * 1000))

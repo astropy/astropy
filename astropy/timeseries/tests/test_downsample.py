@@ -4,7 +4,7 @@ import sys
 
 import numpy as np
 import pytest
-from numpy.testing import assert_equal
+
 
 from astropy import units as u
 from astropy.time import Time
@@ -27,14 +27,14 @@ def test_reduceat():
     add_output = np.add.reduceat(np.arange(8), [0, 4, 1, 5, 2, 6, 3, 7])
     # Similar to np.add for an array input.
     sum_output = reduceat(np.arange(8), [0, 4, 1, 5, 2, 6, 3, 7], np.sum)
-    assert_equal(sum_output, add_output)
+    assert sum_output == add_output
 
     mean_output = reduceat(np.arange(8), np.arange(8)[::2], np.mean)
-    assert_equal(mean_output, np.array([0.5, 2.5, 4.5, 6.5]))
+    assert mean_output == np.array([0.5, 2.5, 4.5, 6.5])
     nanmean_output = reduceat(np.arange(8), [0, 4, 1, 5, 2, 6, 3, 7], np.mean)
-    assert_equal(nanmean_output, np.array([1.5, 4, 2.5, 5, 3.5, 6, 4.5, 7.0]))
-    assert_equal(
-        reduceat(np.arange(8), np.arange(8)[::2], np.mean),
+    assert nanmean_output == np.array([1.5, 4, 2.5, 5, 3.5, 6, 4.5, 7.0])
+    assert (
+        reduceat(np.arange(8), np.arange(8)[::2], np.mean) ==
         reduceat(np.arange(8), np.arange(8)[::2], np.nanmean),
     )
 
@@ -70,15 +70,15 @@ def test_time_bin_conversion():
     down_start = aggregate_downsample(
         ts, time_bin_start=["2016-03-22T12:30:31"], time_bin_size=[1] * u.s
     )
-    assert_equal(down_start.time_bin_start.isot, ["2016-03-22T12:30:31.000"])
+    assert down_start.time_bin_start.isot == ["2016-03-22T12:30:31.000"]
 
     down_end = aggregate_downsample(
         ts,
         time_bin_start=["2016-03-22T12:30:31", "2016-03-22T12:30:33"],
         time_bin_end="2016-03-22T12:30:34",
     )
-    assert_equal(
-        down_end.time_bin_end.isot,
+    assert (
+        down_end.time_bin_end.isot ==
         ["2016-03-22T12:30:33.000", "2016-03-22T12:30:34.000"],
     )
 
@@ -91,8 +91,8 @@ def test_time_bin_end_auto():
     down_auto_end = aggregate_downsample(
         ts, time_bin_start=["2016-03-22T12:30:31", "2016-03-22T12:30:33"]
     )
-    assert_equal(
-        down_auto_end.time_bin_end.isot,
+    assert (
+        down_auto_end.time_bin_end.isot ==
         ["2016-03-22T12:30:33.000", "2016-03-22T12:30:35.000"],
     )
 
@@ -107,8 +107,8 @@ def test_time_bin_start_array():
     down_start_array = aggregate_downsample(
         ts, time_bin_end=["2016-03-22T12:30:33", "2016-03-22T12:30:35"]
     )
-    assert_equal(
-        down_start_array.time_bin_start.isot,
+    assert (
+        down_start_array.time_bin_start.isot ==
         ["2016-03-22T12:30:31.000", "2016-03-22T12:30:33.000"],
     )
 
@@ -118,8 +118,8 @@ def test_nbins():
 
     # n_bins should default to the number needed to fit all the original points
     down_nbins = aggregate_downsample(ts, n_bins=2)
-    assert_equal(
-        down_nbins.time_bin_start.isot,
+    assert (
+        down_nbins.time_bin_start.isot ==
         ["2016-03-22T12:30:31.000", "2016-03-22T12:30:33.000"],
     )
 
@@ -150,8 +150,8 @@ def test_downsample():
         ts, time_bin_size=time_bin_incr, time_bin_start=time_bin_start
     )
     u.isclose(down_1.time_bin_size, [1, 1, 1, 1, 1] * time_bin_incr)
-    assert_equal(
-        down_1.time_bin_start.isot,
+    assert (
+        down_1.time_bin_start.isot ==
         Time(
             [
                 "2016-03-22T12:30:31.000",
@@ -162,14 +162,14 @@ def test_downsample():
             ]
         ),
     )
-    assert_equal(down_1["a"].data.data, np.array([1, 2, 3, 4, 5]))
+    assert down_1["a"].data.data == np.array([1, 2, 3, 4, 5])
 
     down_2 = aggregate_downsample(
         ts, time_bin_size=2 * time_bin_incr, time_bin_start=time_bin_start
     )
     u.isclose(down_2.time_bin_size, [2, 2, 2] * time_bin_incr)
-    assert_equal(
-        down_2.time_bin_start.isot,
+    assert (
+        down_2.time_bin_start.isot ==
         Time(
             [
                 "2016-03-22T12:30:31.000",
@@ -178,46 +178,46 @@ def test_downsample():
             ]
         ),
     )
-    assert_equal(down_2["a"].data.data, np.array([1, 3, 5]))
+    assert down_2["a"].data.data == np.array([1, 3, 5])
 
     down_3 = aggregate_downsample(
         ts, time_bin_size=3 * time_bin_incr, time_bin_start=time_bin_start
     )
     u.isclose(down_3.time_bin_size, [3, 3] * time_bin_incr)
-    assert_equal(
-        down_3.time_bin_start.isot,
+    assert (
+        down_3.time_bin_start.isot ==
         Time(["2016-03-22T12:30:31.000", "2016-03-22T12:30:34.000"]),
     )
-    assert_equal(down_3["a"].data.data, np.array([2, 4]))
+    assert down_3["a"].data.data == np.array([2, 4])
 
     down_4 = aggregate_downsample(
         ts, time_bin_size=4 * time_bin_incr, time_bin_start=time_bin_start
     )
     u.isclose(down_4.time_bin_size, [4, 4] * time_bin_incr)
-    assert_equal(
-        down_4.time_bin_start.isot,
+    assert (
+        down_4.time_bin_start.isot ==
         Time(["2016-03-22T12:30:31.000", "2016-03-22T12:30:35.000"]),
     )
-    assert_equal(down_4["a"].data.data, np.array([2, 5]))
+    assert down_4["a"].data.data == np.array([2, 5])
 
     down_units = aggregate_downsample(
         ts_units, time_bin_size=4 * time_bin_incr, time_bin_start=time_bin_start
     )
     u.isclose(down_units.time_bin_size, [4, 4] * time_bin_incr)
-    assert_equal(
-        down_units.time_bin_start.isot,
+    assert (
+        down_units.time_bin_start.isot ==
         Time(["2016-03-22T12:30:31.000", "2016-03-22T12:30:35.000"]),
     )
     assert down_units["a"].unit.name == "ct"
-    assert_equal(down_units["a"].data, np.array([2.5, 5.0]))
+    assert down_units["a"].data == np.array([2.5, 5.0])
 
     # Contiguous bins with uneven bin sizes: `time_bin_size` is an array
     down_uneven_bins = aggregate_downsample(
         ts, time_bin_size=[2, 1, 1] * time_bin_incr, time_bin_start=time_bin_start
     )
     u.isclose(down_uneven_bins.time_bin_size, [2, 1, 1] * time_bin_incr)
-    assert_equal(
-        down_uneven_bins.time_bin_start.isot,
+    assert (
+        down_uneven_bins.time_bin_start.isot ==
         Time(
             [
                 "2016-03-22T12:30:31.000",
@@ -226,7 +226,7 @@ def test_downsample():
             ]
         ),
     )
-    assert_equal(down_uneven_bins["a"].data.data, np.array([1, 3, 4]))
+    assert down_uneven_bins["a"].data.data == np.array([1, 3, 4])
 
     # Uncontiguous bins with even bin sizes: `time_bin_start` and `time_bin_end` are both arrays
     down_time_array = aggregate_downsample(
@@ -235,11 +235,11 @@ def test_downsample():
         time_bin_end=Time(["2016-03-22T12:30:32.000", "2016-03-22T12:30:35.000"]),
     )
     u.isclose(down_time_array.time_bin_size, [1, 1] * u.second)
-    assert_equal(
-        down_time_array.time_bin_start.isot,
+    assert (
+        down_time_array.time_bin_start.isot ==
         Time(["2016-03-22T12:30:31.000", "2016-03-22T12:30:34.000"]),
     )
-    assert_equal(down_time_array["a"].data.data, np.array([1, 4]))
+    assert down_time_array["a"].data.data == np.array([1, 4])
 
     # Overlapping bins
     with pytest.warns(
@@ -254,7 +254,7 @@ def test_downsample():
             time_bin_start=Time(["2016-03-22T12:30:31.000", "2016-03-22T12:30:33.000"]),
             time_bin_end=Time(["2016-03-22T12:30:34", "2016-03-22T12:30:36.000"]),
         )
-        assert_equal(down_overlap_bins["a"].data, np.array([2, 5]))
+        assert down_overlap_bins["a"].data == np.array([2, 5])
 
 
 @pytest.mark.parametrize(

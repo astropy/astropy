@@ -2,7 +2,7 @@
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
@@ -1979,7 +1979,7 @@ def test_absolute_times(data, timedelta):
     mask1 = bls1.transit_mask(t, 0.2 * u.day, 0.05 * u.day, Time("2019-06-04T12:34:56"))
     mask2 = bls2.transit_mask(trel, 0.2 * u.day, 0.05 * u.day, 1 * u.day)
 
-    assert_equal(mask1, mask2)
+    assert mask1 == mask2
 
     # Check transit_mask validation
 

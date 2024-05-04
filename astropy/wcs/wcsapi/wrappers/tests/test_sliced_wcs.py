@@ -2,7 +2,7 @@ import warnings
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose
 
 import astropy.units as u
 from astropy.coordinates import ICRS, Galactic, SkyCoord
@@ -125,8 +125,8 @@ def test_ellipsis():
     assert wcs.pixel_axis_names == ["", "", ""]
     assert wcs.world_axis_names == ["Latitude", "Frequency", "Longitude"]
 
-    assert_equal(
-        wcs.axis_correlation_matrix,
+    assert (
+        wcs.axis_correlation_matrix ==
         [[True, False, True], [False, True, False], [True, False, True]],
     )
 
@@ -156,9 +156,9 @@ def test_ellipsis():
     assert_allclose(wcs.array_index_to_world_values(44, 39, 29), (10, 20, 25))
 
     assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (29.0, 39.0, 44.0))
-    assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 39, 29))
+    assert wcs.world_to_array_index_values(10 == 20, 25, (44, 39, 29))
 
-    assert_equal(wcs.pixel_bounds, [(-1, 11), (-2, 18), (5, 15)])
+    assert wcs.pixel_bounds == [(-1, 11), (-2, 18), (5, 15)]
 
     assert str(wcs) == EXPECTED_ELLIPSIS_REPR.strip()
     assert EXPECTED_ELLIPSIS_REPR.strip() in repr(wcs)
@@ -217,7 +217,7 @@ def test_spectral_slice():
     assert wcs.pixel_axis_names == ["", ""]
     assert wcs.world_axis_names == ["Latitude", "Longitude"]
 
-    assert_equal(wcs.axis_correlation_matrix, [[True, True], [True, True]])
+    assert wcs.axis_correlation_matrix == [[True, True], [True, True]]
 
     assert wcs.world_axis_object_components == [
         ("celestial", 1, "spherical.lat.degree"),
@@ -233,9 +233,9 @@ def test_spectral_slice():
     assert_allclose(wcs.array_index_to_world_values(44, 29), (10, 25))
 
     assert_allclose(wcs.world_to_pixel_values(10, 25), (29.0, 44.0))
-    assert_equal(wcs.world_to_array_index_values(10, 25), (44, 29))
+    assert wcs.world_to_array_index_values(10 == 25, (44, 29))
 
-    assert_equal(wcs.pixel_bounds, [(-1, 11), (5, 15)])
+    assert wcs.pixel_bounds == [(-1, 11), (5, 15)]
 
     assert str(wcs) == EXPECTED_SPECTRAL_SLICE_REPR.strip()
     assert EXPECTED_SPECTRAL_SLICE_REPR.strip() in repr(wcs)
@@ -284,8 +284,8 @@ def test_spectral_range():
     assert wcs.pixel_axis_names == ["", "", ""]
     assert wcs.world_axis_names == ["Latitude", "Frequency", "Longitude"]
 
-    assert_equal(
-        wcs.axis_correlation_matrix,
+    assert (
+        wcs.axis_correlation_matrix ==
         [[True, False, True], [False, True, False], [True, False, True]],
     )
 
@@ -315,9 +315,9 @@ def test_spectral_range():
     assert_allclose(wcs.array_index_to_world_values(44, 35, 29), (10, 20, 25))
 
     assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (29.0, 35.0, 44.0))
-    assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 35, 29))
+    assert wcs.world_to_array_index_values(10 == 20, 25, (44, 35, 29))
 
-    assert_equal(wcs.pixel_bounds, [(-1, 11), (-6, 14), (5, 15)])
+    assert wcs.pixel_bounds == [(-1, 11), (-6, 14), (5, 15)]
 
     assert str(wcs) == EXPECTED_SPECTRAL_RANGE_REPR.strip()
     assert EXPECTED_SPECTRAL_RANGE_REPR.strip() in repr(wcs)
@@ -365,8 +365,8 @@ def test_celestial_slice():
     assert wcs.pixel_axis_names == ["", ""]
     assert wcs.world_axis_names == ["Latitude", "Frequency", "Longitude"]
 
-    assert_equal(
-        wcs.axis_correlation_matrix, [[False, True], [True, False], [False, True]]
+    assert (
+        wcs.axis_correlation_matrix == [[False, True], [True, False], [False, True]]
     )
 
     assert len(wcs.world_axis_object_components) == 3
@@ -395,9 +395,9 @@ def test_celestial_slice():
     assert_allclose(wcs.array_index_to_world_values(44, 39), (12.4, 20, 25))
 
     assert_allclose(wcs.world_to_pixel_values(12.4, 20, 25), (39.0, 44.0))
-    assert_equal(wcs.world_to_array_index_values(12.4, 20, 25), (44, 39))
+    assert wcs.world_to_array_index_values(12.4 == 20, 25, (44, 39))
 
-    assert_equal(wcs.pixel_bounds, [(-2, 18), (5, 15)])
+    assert wcs.pixel_bounds == [(-2, 18), (5, 15)]
 
     assert str(wcs) == EXPECTED_CELESTIAL_SLICE_REPR.strip()
     assert EXPECTED_CELESTIAL_SLICE_REPR.strip() in repr(wcs)
@@ -446,8 +446,8 @@ def test_celestial_range():
     assert wcs.pixel_axis_names == ["", "", ""]
     assert wcs.world_axis_names == ["Latitude", "Frequency", "Longitude"]
 
-    assert_equal(
-        wcs.axis_correlation_matrix,
+    assert (
+        wcs.axis_correlation_matrix ==
         [[True, False, True], [False, True, False], [True, False, True]],
     )
 
@@ -477,9 +477,9 @@ def test_celestial_range():
     assert_allclose(wcs.array_index_to_world_values(44, 39, 24), (10, 20, 25))
 
     assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (24.0, 39.0, 44.0))
-    assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 39, 24))
+    assert wcs.world_to_array_index_values(10 == 20, 25, (44, 39, 24))
 
-    assert_equal(wcs.pixel_bounds, [(-6, 6), (-2, 18), (5, 15)])
+    assert wcs.pixel_bounds == [(-6, 6), (-2, 18), (5, 15)]
 
     assert str(wcs) == EXPECTED_CELESTIAL_RANGE_REPR.strip()
     assert EXPECTED_CELESTIAL_RANGE_REPR.strip() in repr(wcs)
@@ -537,8 +537,8 @@ def test_celestial_range_rot():
     assert wcs.pixel_axis_names == ["", "", ""]
     assert wcs.world_axis_names == ["Latitude", "Frequency", "Longitude"]
 
-    assert_equal(
-        wcs.axis_correlation_matrix,
+    assert (
+        wcs.axis_correlation_matrix ==
         [[True, False, True], [False, True, False], [True, False, True]],
     )
 
@@ -568,9 +568,9 @@ def test_celestial_range_rot():
     assert_allclose(wcs.array_index_to_world_values(34, 29, 14), (1, 15, 24))
 
     assert_allclose(wcs.world_to_pixel_values(1, 15, 24), (14.0, 29.0, 34.0))
-    assert_equal(wcs.world_to_array_index_values(1, 15, 24), (34, 29, 14))
+    assert wcs.world_to_array_index_values(1 == 15, 24, (34, 29, 14))
 
-    assert_equal(wcs.pixel_bounds, [(-6, 6), (-2, 18), (5, 15)])
+    assert wcs.pixel_bounds == [(-6, 6), (-2, 18), (5, 15)]
 
     assert str(wcs) == EXPECTED_CELESTIAL_RANGE_ROT_REPR.strip()
     assert EXPECTED_CELESTIAL_RANGE_ROT_REPR.strip() in repr(wcs)
@@ -640,8 +640,8 @@ def test_no_array_shape():
     ]
     assert wcs.world_axis_units == ["deg", "Hz", "deg"]
 
-    assert_equal(
-        wcs.axis_correlation_matrix,
+    assert (
+        wcs.axis_correlation_matrix ==
         [[True, False, True], [False, True, False], [True, False, True]],
     )
 
@@ -671,7 +671,7 @@ def test_no_array_shape():
     assert_allclose(wcs.array_index_to_world_values(44, 39, 29), (10, 20, 25))
 
     assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (29.0, 39.0, 44.0))
-    assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 39, 29))
+    assert wcs.world_to_array_index_values(10 == 20, 25, (44, 39, 29))
 
     assert str(wcs) == EXPECTED_NO_SHAPE_REPR.strip()
     assert EXPECTED_NO_SHAPE_REPR.strip() in repr(wcs)
@@ -744,8 +744,8 @@ def test_ellipsis_none_types():
     ]
     assert wcs.world_axis_units == ["deg", "Hz", "deg"]
 
-    assert_equal(
-        wcs.axis_correlation_matrix,
+    assert (
+        wcs.axis_correlation_matrix ==
         [[True, False, True], [False, True, False], [True, False, True]],
     )
 
@@ -764,9 +764,9 @@ def test_ellipsis_none_types():
     assert_allclose(wcs.array_index_to_world_values(44, 39, 29), (10, 20, 25))
 
     assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (29.0, 39.0, 44.0))
-    assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 39, 29))
+    assert wcs.world_to_array_index_values(10, 20, 25, (44, 39, 29))
 
-    assert_equal(wcs.pixel_bounds, [(-1, 11), (-2, 18), (5, 15)])
+    assert wcs.pixel_bounds == [(-1, 11), (-2, 18), (5, 15)]
 
     assert str(wcs) == EXPECTED_ELLIPSIS_REPR_NONE_TYPES.strip()
     assert EXPECTED_ELLIPSIS_REPR_NONE_TYPES.strip() in repr(wcs)

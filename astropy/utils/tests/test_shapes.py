@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from hypothesis import given
 from hypothesis.extra.numpy import basic_indices
-from numpy.testing import assert_equal
+
 
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.shapes import check_broadcast, simplify_basic_index, unbroadcast
@@ -31,7 +31,7 @@ def test_unbroadcast():
     y = np.broadcast_to(x, (2, 4, 3))
     z = unbroadcast(y)
     assert z.shape == (3,)
-    np.testing.assert_equal(z, x)
+    assert z == x
 
     x = np.ones((3, 5))
     y = np.broadcast_to(x, (5, 3, 5))
@@ -53,7 +53,7 @@ class TestSimplifyBasicIndex:
     @given(basic_indices(TEST_SHAPE))
     def test_indexing(self, index):
         new_index = simplify_basic_index(index, shape=self.shape)
-        assert_equal(self.data[index], self.data[new_index])
+        assert self.data[index] == self.data[new_index]
         assert isinstance(new_index, tuple)
         assert len(new_index) == len(self.shape)
         for idim, idx in enumerate(new_index):

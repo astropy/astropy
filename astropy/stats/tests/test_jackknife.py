@@ -2,7 +2,7 @@
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose
 
 from astropy.stats.jackknife import jackknife_resampling, jackknife_stats
 from astropy.utils.compat.optional_deps import HAS_SCIPY
@@ -11,7 +11,7 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 def test_jackknife_resampling():
     data = np.array([1, 2, 3, 4])
     answer = np.array([[2, 3, 4], [1, 3, 4], [1, 2, 4], [1, 2, 3]])
-    assert_equal(answer, jackknife_resampling(data))
+    assert answer == jackknife_resampling(data)
 
 
 # test jackknife stats, except confidence interval

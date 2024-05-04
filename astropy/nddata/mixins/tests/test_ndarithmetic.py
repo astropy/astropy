@@ -1346,24 +1346,24 @@ def test_nddata_bitmask_arithmetic():
     assert nref_nomask.multiply(nref_nomask, handle_mask=np.bitwise_or).mask is None
 
     # multiply masked by constant (mask * no mask)
-    np.testing.assert_equal(
-        nref_masked.multiply(1.0, handle_mask=np.bitwise_or).mask, mask
+    assert (
+        nref_masked.multiply(1.0, handle_mask=np.bitwise_or).mask == mask
     )
 
     # multiply masked by itself (mask * mask)
-    np.testing.assert_equal(
-        nref_masked.multiply(nref_masked, handle_mask=np.bitwise_or).mask, mask
+    assert (
+        nref_masked.multiply(nref_masked, handle_mask=np.bitwise_or).mask == mask
     )
 
     # multiply masked by no mask (mask * no mask)
-    np.testing.assert_equal(
-        nref_masked.multiply(nref_nomask, handle_mask=np.bitwise_or).mask, mask
+    assert (
+        nref_masked.multiply(nref_nomask, handle_mask=np.bitwise_or).mask == mask
     )
 
     # check bitwise logic still works
     other_mask = np.array([[64, 1, 0], [2, 1, 0], [8, 0, 2]])
     nref_mask_other = NDDataRef(array, mask=other_mask)
-    np.testing.assert_equal(
-        nref_mask_other.multiply(nref_masked, handle_mask=np.bitwise_or).mask,
+    assert (
+        nref_mask_other.multiply(nref_masked, handle_mask=np.bitwise_or).mask ==
         np.bitwise_or(mask, other_mask),
     )

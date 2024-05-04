@@ -8,7 +8,7 @@ import sys
 
 import numpy as np
 import pytest
-from numpy.testing import assert_equal
+
 
 from astropy.convolution import Gaussian2DKernel, convolve
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
@@ -49,14 +49,14 @@ def test_compute_intensity_1_float():
     image_r = random_array(np.float64)
     intensity = lupton_rgb.compute_intensity(image_r)
     assert image_r.dtype == intensity.dtype
-    assert_equal(image_r, intensity)
+    assert image_r == intensity
 
 
 def test_compute_intensity_1_uint():
     image_r = random_array(np.uint8)
     intensity = lupton_rgb.compute_intensity(image_r)
     assert image_r.dtype == intensity.dtype
-    assert_equal(image_r, intensity)
+    assert image_r == intensity
 
 
 def test_compute_intensity_3_float():
@@ -65,7 +65,7 @@ def test_compute_intensity_3_float():
     image_b = random_array(np.float64)
     intensity = lupton_rgb.compute_intensity(image_r, image_g, image_b)
     assert image_r.dtype == intensity.dtype
-    assert_equal(intensity, (image_r + image_g + image_b) / 3.0)
+    assert intensity == (image_r + image_g + image_b / 3.0)
 
 
 def test_compute_intensity_3_uint():
@@ -74,7 +74,7 @@ def test_compute_intensity_3_uint():
     image_b = random_array(np.uint8)
     intensity = lupton_rgb.compute_intensity(image_r, image_g, image_b)
     assert image_r.dtype == intensity.dtype
-    assert_equal(intensity, (image_r + image_g + image_b) // 3)
+    assert intensity == (image_r + image_g + image_b // 3)
 
 
 class TestLuptonRgb:

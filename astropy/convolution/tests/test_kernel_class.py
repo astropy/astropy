@@ -4,7 +4,7 @@ import itertools
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_almost_equal
+from numpy.testing import assert_allclose
 
 from astropy.convolution.convolve import convolve, convolve_fft
 from astropy.convolution.kernels import (
@@ -85,8 +85,8 @@ class TestKernels:
         scipy_1D = gaussian_filter(delta_pulse_1D, width)
         scipy_2D = gaussian_filter(delta_pulse_2D, width)
 
-        assert_almost_equal(astropy_1D, scipy_1D, decimal=12)
-        assert_almost_equal(astropy_2D, scipy_2D, decimal=12)
+        assert_allclose(astropy_1D, scipy_1D, decimal=12)
+        assert_allclose(astropy_2D, scipy_2D, decimal=12)
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
     @pytest.mark.parametrize("width", WIDTHS_ODD)
@@ -123,8 +123,8 @@ class TestKernels:
 
         # There is a slight deviation in the normalization. They differ by a
         # factor of ~1.0000284132604045. The reason is not known.
-        assert_almost_equal(astropy_1D, scipy_1D, decimal=5)
-        assert_almost_equal(astropy_2D, scipy_2D, decimal=5)
+        assert_allclose(astropy_1D, scipy_1D, decimal=5)
+        assert_allclose(astropy_2D, scipy_2D, decimal=5)
 
     @pytest.mark.parametrize(
         ("kernel_type", "width"), list(itertools.product(KERNEL_TYPES, WIDTHS_ODD))
@@ -147,7 +147,7 @@ class TestKernels:
             c2 = convolve(
                 delta_pulse_1D, kernel, boundary="fill", normalize_kernel=False
             )
-            assert_almost_equal(c1, c2, decimal=12)
+            assert_allclose(c1, c2, decimal=12)
         else:
             c1 = convolve_fft(
                 delta_pulse_2D, kernel, boundary="fill", normalize_kernel=False
@@ -155,7 +155,7 @@ class TestKernels:
             c2 = convolve(
                 delta_pulse_2D, kernel, boundary="fill", normalize_kernel=False
             )
-            assert_almost_equal(c1, c2, decimal=12)
+            assert_allclose(c1, c2, decimal=12)
 
     @pytest.mark.parametrize(
         ("kernel_type", "width"), list(itertools.product(KERNEL_TYPES, WIDTHS_ODD))
@@ -178,7 +178,7 @@ class TestKernels:
             c2 = convolve(
                 random_data_1D, kernel, boundary="fill", normalize_kernel=False
             )
-            assert_almost_equal(c1, c2, decimal=12)
+            assert_allclose(c1, c2, decimal=12)
         else:
             c1 = convolve_fft(
                 random_data_2D, kernel, boundary="fill", normalize_kernel=False
@@ -186,7 +186,7 @@ class TestKernels:
             c2 = convolve(
                 random_data_2D, kernel, boundary="fill", normalize_kernel=False
             )
-            assert_almost_equal(c1, c2, decimal=12)
+            assert_allclose(c1, c2, decimal=12)
 
     @pytest.mark.parametrize("width", WIDTHS_ODD)
     def test_uniform_smallkernel(self, width):
@@ -199,7 +199,7 @@ class TestKernels:
 
         c2 = convolve_fft(delta_pulse_2D, kernel, boundary="fill")
         c1 = convolve(delta_pulse_2D, kernel, boundary="fill")
-        assert_almost_equal(c1, c2, decimal=12)
+        assert_allclose(c1, c2, decimal=12)
 
     @pytest.mark.parametrize("width", WIDTHS_ODD)
     def test_smallkernel_vs_Box2DKernel(self, width):
@@ -212,7 +212,7 @@ class TestKernels:
         c2 = convolve_fft(delta_pulse_2D, kernel2, boundary="fill")
         c1 = convolve_fft(delta_pulse_2D, kernel1, boundary="fill")
 
-        assert_almost_equal(c1, c2, decimal=12)
+        assert_allclose(c1, c2, decimal=12)
 
     def test_convolve_1D_kernels(self):
         """
@@ -251,7 +251,7 @@ class TestKernels:
         """
         gauss = Gaussian1DKernel(3)
         gauss_new = number * gauss
-        assert_almost_equal(gauss_new.array, gauss.array * number, decimal=12)
+        assert_allclose(gauss_new.array, gauss.array * number, decimal=12)
 
     @pytest.mark.parametrize("number", NUMS)
     def test_multiply_scalar_type(self, number):
@@ -309,7 +309,7 @@ class TestKernels:
         model_gauss_kernel = Model1DKernel(gauss, x_size=21)
         model_gauss_kernel.normalize()
         gauss_kernel = Gaussian1DKernel(stddev, x_size=21)
-        assert_almost_equal(model_gauss_kernel.array, gauss_kernel.array, decimal=12)
+        assert_allclose(model_gauss_kernel.array, gauss_kernel.array, decimal=12)
 
     def test_model_2D_kernel(self):
         """
@@ -320,7 +320,7 @@ class TestKernels:
         model_gauss_kernel = Model2DKernel(gauss, x_size=21)
         model_gauss_kernel.normalize()
         gauss_kernel = Gaussian2DKernel(stddev, x_size=21)
-        assert_almost_equal(model_gauss_kernel.array, gauss_kernel.array, decimal=12)
+        assert_allclose(model_gauss_kernel.array, gauss_kernel.array, decimal=12)
 
     def test_custom_1D_kernel(self):
         """
@@ -334,7 +334,7 @@ class TestKernels:
 
         c2 = convolve(delta_pulse_1D, custom, boundary="fill")
         c1 = convolve(delta_pulse_1D, box, boundary="fill")
-        assert_almost_equal(c1, c2, decimal=12)
+        assert_allclose(c1, c2, decimal=12)
 
     def test_custom_2D_kernel(self):
         """
@@ -348,7 +348,7 @@ class TestKernels:
 
         c2 = convolve(delta_pulse_2D, custom, boundary="fill")
         c1 = convolve(delta_pulse_2D, box, boundary="fill")
-        assert_almost_equal(c1, c2, decimal=12)
+        assert_allclose(c1, c2, decimal=12)
 
     def test_custom_1D_kernel_list(self):
         """
@@ -424,14 +424,14 @@ class TestKernels:
             1 / 5.0 + 1 / 3.0,
             1 / 5.0,
         ]
-        assert_almost_equal(box_sum_1.array, ref, decimal=12)
-        assert_almost_equal(box_sum_2.array, ref, decimal=12)
-        assert_almost_equal(box_sum_3.array, ref, decimal=12)
+        assert_allclose(box_sum_1.array, ref, decimal=12)
+        assert_allclose(box_sum_2.array, ref, decimal=12)
+        assert_allclose(box_sum_3.array, ref, decimal=12)
 
         # Assert that the kernels haven't changed
-        assert_almost_equal(box_1.array, [0.2, 0.2, 0.2, 0.2, 0.2], decimal=12)
-        assert_almost_equal(box_2.array, [1 / 3.0, 1 / 3.0, 1 / 3.0], decimal=12)
-        assert_almost_equal(box_3.array, [1], decimal=12)
+        assert_allclose(box_1.array, [0.2, 0.2, 0.2, 0.2, 0.2], decimal=12)
+        assert_allclose(box_2.array, [1 / 3.0, 1 / 3.0, 1 / 3.0], decimal=12)
+        assert_allclose(box_3.array, [1], decimal=12)
 
     def test_add_2D_kernels(self):
         """
@@ -451,10 +451,10 @@ class TestKernels:
             [1 / 9.0, 1 / 9.0, 1 / 9.0],
             [1 / 9.0, 1 / 9.0, 1 / 9.0],
         ]
-        assert_almost_equal(box_2.array, [[1]], decimal=12)
-        assert_almost_equal(box_1.array, ref_1, decimal=12)
-        assert_almost_equal(box_sum_1.array, ref, decimal=12)
-        assert_almost_equal(box_sum_2.array, ref, decimal=12)
+        assert_allclose(box_2.array, [[1]], decimal=12)
+        assert_allclose(box_1.array, ref_1, decimal=12)
+        assert_allclose(box_sum_1.array, ref, decimal=12)
+        assert_allclose(box_sum_2.array, ref, decimal=12)
 
     def test_Gaussian1DKernel_even_size(self):
         """
@@ -509,7 +509,7 @@ class TestKernels:
 
         # Check normalization
         box.normalize()
-        assert_almost_equal(box._kernel_sum, 1.0, decimal=12)
+        assert_allclose(box._kernel_sum, 1.0, decimal=12)
 
         # Check separability
         assert box.separable
@@ -536,7 +536,7 @@ class TestKernels:
             c2 = convolve(
                 delta_pulse_1D, kernel, boundary="fill", normalize_kernel=False
             )
-            assert_almost_equal(c1, c2, decimal=12)
+            assert_allclose(c1, c2, decimal=12)
         else:
             c1 = convolve_fft(
                 delta_pulse_2D, kernel, boundary="fill", normalize_kernel=False
@@ -544,7 +544,7 @@ class TestKernels:
             c2 = convolve(
                 delta_pulse_2D, kernel, boundary="fill", normalize_kernel=False
             )
-            assert_almost_equal(c1, c2, decimal=12)
+            assert_allclose(c1, c2, decimal=12)
 
     @pytest.mark.parametrize("width", WIDTHS_EVEN)
     def test_box_kernels_even_size(self, width):

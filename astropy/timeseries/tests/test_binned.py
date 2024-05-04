@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
@@ -163,8 +163,8 @@ def test_even_contiguous():
         time_bin_start="2016-03-22T12:30:31", time_bin_size=3 * u.s, data=[[1, 4, 3]]
     )
 
-    assert_equal(
-        ts.time_bin_start.isot,
+    assert (
+        ts.time_bin_start.isot ==
         [
             "2016-03-22T12:30:31.000",
             "2016-03-22T12:30:34.000",
@@ -172,8 +172,8 @@ def test_even_contiguous():
         ],
     )
 
-    assert_equal(
-        ts.time_bin_center.isot,
+    assert (
+        ts.time_bin_center.isot ==
         [
             "2016-03-22T12:30:32.500",
             "2016-03-22T12:30:35.500",
@@ -181,8 +181,8 @@ def test_even_contiguous():
         ],
     )
 
-    assert_equal(
-        ts.time_bin_end.isot,
+    assert (
+        ts.time_bin_end.isot ==
         [
             "2016-03-22T12:30:34.000",
             "2016-03-22T12:30:37.000",
@@ -205,8 +205,8 @@ def test_uneven_contiguous():
         data=[[1, 4, 3]],
     )
 
-    assert_equal(
-        ts.time_bin_start.isot,
+    assert (
+        ts.time_bin_start.isot ==
         [
             "2016-03-22T12:30:31.000",
             "2016-03-22T12:30:32.000",
@@ -214,8 +214,8 @@ def test_uneven_contiguous():
         ],
     )
 
-    assert_equal(
-        ts.time_bin_center.isot,
+    assert (
+        ts.time_bin_center.isot ==
         [
             "2016-03-22T12:30:31.500",
             "2016-03-22T12:30:36.000",
@@ -223,8 +223,8 @@ def test_uneven_contiguous():
         ],
     )
 
-    assert_equal(
-        ts.time_bin_end.isot,
+    assert (
+        ts.time_bin_end.isot ==
         [
             "2016-03-22T12:30:32.000",
             "2016-03-22T12:30:40.000",
@@ -247,8 +247,8 @@ def test_uneven_non_contiguous():
         data=[[1, 4, 3]],
     )
 
-    assert_equal(
-        ts.time_bin_start.isot,
+    assert (
+        ts.time_bin_start.isot ==
         [
             "2016-03-22T12:30:31.000",
             "2016-03-22T12:30:38.000",
@@ -256,8 +256,8 @@ def test_uneven_non_contiguous():
         ],
     )
 
-    assert_equal(
-        ts.time_bin_center.isot,
+    assert (
+        ts.time_bin_center.isot ==
         [
             "2016-03-22T12:30:33.500",
             "2016-03-22T12:31:28.000",
@@ -265,8 +265,8 @@ def test_uneven_non_contiguous():
         ],
     )
 
-    assert_equal(
-        ts.time_bin_end.isot,
+    assert (
+        ts.time_bin_end.isot ==
         [
             "2016-03-22T12:30:36.000",
             "2016-03-22T12:32:18.000",
@@ -293,8 +293,8 @@ def test_uneven_non_contiguous_full():
         data=[[1, 4, 3]],
     )
 
-    assert_equal(
-        ts.time_bin_start.isot,
+    assert (
+        ts.time_bin_start.isot ==
         [
             "2016-03-22T12:30:31.000",
             "2016-03-22T12:30:33.000",
@@ -302,8 +302,8 @@ def test_uneven_non_contiguous_full():
         ],
     )
 
-    assert_equal(
-        ts.time_bin_center.isot,
+    assert (
+        ts.time_bin_center.isot ==
         [
             "2016-03-22T12:30:31.500",
             "2016-03-22T12:30:34.000",
@@ -311,8 +311,8 @@ def test_uneven_non_contiguous_full():
         ],
     )
 
-    assert_equal(
-        ts.time_bin_end.isot,
+    assert (
+        ts.time_bin_end.isot ==
         [
             "2016-03-22T12:30:32.000",
             "2016-03-22T12:30:35.000",
@@ -488,7 +488,7 @@ def test_periodogram(cls):
     p1 = cls.from_timeseries(ts, "a")
     assert isinstance(p1, cls)
     assert_allclose(p1.t.jd, ts.time_bin_center.jd)
-    assert_equal(p1.y, ts["a"])
+    assert p1.y == ts["a"]
     assert p1.dy is None
 
     p2 = cls.from_timeseries(ts, "a", uncertainty="b")

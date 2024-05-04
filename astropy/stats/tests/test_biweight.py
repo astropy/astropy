@@ -2,7 +2,7 @@
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_array_almost_equal_nulp, assert_equal
+from numpy.testing import assert_allclose, assert_array_almost_equal_nulp
 
 import astropy.units as u
 from astropy.stats.biweight import (
@@ -112,19 +112,19 @@ def test_biweight_location_axis_tuple():
     data = np.arange(24).reshape(2, 3, 4)
     data[0, 0] = 100.0
 
-    assert_equal(biweight_location(data, axis=0), biweight_location(data, axis=(0,)))
-    assert_equal(biweight_location(data, axis=-1), biweight_location(data, axis=(2,)))
-    assert_equal(
-        biweight_location(data, axis=(0, 1)), biweight_location(data, axis=(1, 0))
+    assert biweight_location(data , axis=0) == biweight_location(data, axis=(0,))
+    assert biweight_location(data , axis=-1) == biweight_location(data, axis=(2,))
+    assert (
+        biweight_location(data, axis=(0, 1)) == biweight_location(data, axis=(1, 0))
     )
-    assert_equal(
-        biweight_location(data, axis=(0, 2)), biweight_location(data, axis=(0, -1))
+    assert (
+        biweight_location(data, axis=(0, 2)) == biweight_location(data, axis=(0, -1))
     )
-    assert_equal(
-        biweight_location(data, axis=(0, 1, 2)), biweight_location(data, axis=(2, 0, 1))
+    assert (
+        biweight_location(data, axis=(0, 1, 2)) == biweight_location(data, axis=(2, 0, 1))
     )
-    assert_equal(
-        biweight_location(data, axis=(0, 1, 2)), biweight_location(data, axis=None)
+    assert (
+        biweight_location(data, axis=(0, 1, 2)) == biweight_location(data, axis=None)
     )
 
 
@@ -137,10 +137,10 @@ def test_biweight_location_ignore_nan():
     assert np.isnan(biweight_location(data1d, ignore_nan=False))
 
     biw_expected = biweight_location(data1d[:-1], ignore_nan=False)
-    assert_equal(biweight_location(data1d, ignore_nan=True), biw_expected)
+    assert biweight_location(data1d, ignore_nan=True == biw_expected)
 
-    assert_equal(biweight_location(data2d, axis=0, ignore_nan=True), data1d)
-    assert_equal(
+    assert biweight_location(data2d,  data1d, axis=0, ignore_nan=True)
+    assert (
         biweight_location(data2d, axis=1, ignore_nan=True), [biw_expected, biw_expected]
     )
 
@@ -177,11 +177,11 @@ def test_biweight_location_masked():
     data1d_masked = np.ma.masked_invalid(data1d)
     data2d_masked = np.ma.masked_invalid(data2d)
 
-    assert_equal(
-        biweight_location(data1d, ignore_nan=True), biweight_location(data1d_masked)
+    assert (
+        biweight_location(data1d, ignore_nan=True) == biweight_location(data1d_masked)
     )
-    assert_equal(
-        biweight_location(data2d, ignore_nan=True), biweight_location(data2d_masked)
+    assert (
+        biweight_location(data2d, ignore_nan=True) == biweight_location(data2d_masked)
     )
 
     bw_loc = biweight_location(data1d_masked)
@@ -192,11 +192,11 @@ def test_biweight_location_masked():
     bw_loc_masked = biweight_location(data2d_masked, axis=1)
     assert isinstance(bw_loc_masked, np.ma.MaskedArray)
     assert ~np.any(bw_loc_masked.mask)  # mask is all False
-    assert_equal(bw_loc, bw_loc_masked.data)
+    assert bw_loc == bw_loc_masked.data
 
     bw_loc = biweight_location(data2d, ignore_nan=True, axis=0)
     bw_loc_masked = biweight_location(data2d_masked, axis=0)
-    assert_equal(bw_loc_masked.data[:-1], bw_loc[:-1])
+    assert bw_loc_masked.data[:-1] == bw_loc[:-1]
     assert bw_loc_masked.mask[-1]  # last mask element is True
 
     data1d_masked.data[0] = np.nan  # unmasked NaN
@@ -204,8 +204,8 @@ def test_biweight_location_masked():
     assert not isinstance(bw_loc, np.ma.MaskedArray)
     assert np.isscalar(bw_loc)
     assert np.isnan(bw_loc)
-    assert_equal(
-        biweight_location(data1d_masked, ignore_nan=True),
+    assert (
+        biweight_location(data1d_masked, ignore_nan=True) ==
         biweight_location(data1d[1:], ignore_nan=True),
     )
 
@@ -302,14 +302,14 @@ def test_biweight_midvariance_ignore_nan():
 
     biw_var = biweight_midvariance(data1d[:-1], ignore_nan=False)
     biw_var_nonan = biweight_midvariance(data1d, ignore_nan=True)
-    assert_equal(biw_var_nonan, biw_var)
+    assert biw_var_nonan == biw_var
 
-    assert_equal(
-        biweight_midvariance(data2d, axis=0, ignore_nan=True),
+    assert (
+        biweight_midvariance(data2d, axis=0, ignore_nan=True) ==
         [0.0, 0.0, 0.0, 0.0, 0.0, np.nan],
     )
-    assert_equal(
-        biweight_midvariance(data2d, axis=1, ignore_nan=True),
+    assert (
+        biweight_midvariance(data2d, axis=1, ignore_nan=True) ==
         [biw_var_nonan, biw_var_nonan],
     )
 
@@ -390,15 +390,15 @@ def test_biweight_scale_axis_tuple():
     data = np.arange(24).reshape(2, 3, 4)
     data[0, 0] = 100.0
 
-    assert_equal(biweight_scale(data, axis=0), biweight_scale(data, axis=(0,)))
-    assert_equal(biweight_scale(data, axis=-1), biweight_scale(data, axis=(2,)))
-    assert_equal(biweight_scale(data, axis=(0, 1)), biweight_scale(data, axis=(1, 0)))
-    assert_equal(biweight_scale(data, axis=(0, 2)), biweight_scale(data, axis=(0, -1)))
-    assert_equal(
+    assert biweight_scale(data , axis=0), biweight_scale(data, axis=(0,))
+    assert biweight_scale(data , axis=-1), biweight_scale(data, axis=(2,))
+    assert biweight_scale(data , axis=(0, 1)), biweight_scale(data, axis=(1, 0))
+    assert biweight_scale(data , axis=(0, 2)), biweight_scale(data, axis=(0, -1))
+    assert (
         biweight_scale(data, axis=(0, 1, 2)), biweight_scale(data, axis=(2, 0, 1))
     )
-    assert_equal(biweight_scale(data, axis=(0, 1, 2)), biweight_scale(data, axis=None))
-    assert_equal(
+    assert biweight_scale(data , axis=(0, 1, 2)), biweight_scale(data, axis=None)
+    assert (
         biweight_scale(data, axis=(0, 2), modify_sample_size=True),
         biweight_scale(data, axis=(0, -1), modify_sample_size=True),
     )

@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 from hypothesis import given
 from hypothesis.extra.numpy import basic_indices
-from numpy.testing import assert_equal
+
 
 from astropy.io import fits
 from astropy.io.fits.hdu.compressed import (
@@ -851,7 +851,7 @@ class TestCompressedImage(FitsTestCase):
         hdulist.writeto(self.temp("test.fits"))
 
         actual = fits.getdata(self.temp("test.fits"))
-        assert_equal(orig, actual)
+        assert orig == actual
 
     def test_slice_and_write_comp_hdu(self):
         """
@@ -864,7 +864,7 @@ class TestCompressedImage(FitsTestCase):
 
         with fits.open(self.data("comp.fits")) as hdul1:
             with fits.open(self.temp("test.fits")) as hdul2:
-                assert_equal(hdul1[1].data[:200, :100], hdul2[1].data)
+                assert hdul1[1].data[:200 , :100] == hdul2[1].data
 
     def test_comp_image_deprecated_tile_size(self):
         # Ensure that tile_size works but is deprecated. This test
@@ -925,7 +925,7 @@ class TestCompressedImage(FitsTestCase):
             assert hdul[1].header["TFORM2"] == "PB(24)"
 
         with fits.open(tmp_path / "compressed.fits") as hdul:
-            assert_equal(hdul[1].data, data)
+            assert hdul[1].data == data
 
 
 class TestCompHDUSections:
@@ -956,13 +956,13 @@ class TestCompHDUSections:
 
     @given(basic_indices((13, 17, 25)))
     def test_section_slicing(self, index):
-        assert_equal(self.hdul[1].section[index], self.hdul[1].data[index])
-        assert_equal(self.hdul[1].section[index], self.data[index])
+        assert self.hdul[1].section[index] == self.hdul[1].data[index]
+        assert self.hdul[1].section[index] == self.data[index]
 
     @given(basic_indices((13, 17, 25)))
     def test_section_slicing_scaling(self, index):
-        assert_equal(self.hdul[2].section[index], self.hdul[2].data[index])
-        assert_equal(self.hdul[2].section[index], self.data[index] * 2 + 100)
+        assert self.hdul[2].section[index] == self.hdul[2].data[index]
+        assert self.hdul[2].section[index] == self.data[index] * 2 + 100
 
 
 def test_comphdu_fileobj():
@@ -1032,4 +1032,4 @@ def test_image_write_readonly(tmp_path):
     ghdu.writeto(filename)
 
     with fits.open(filename) as hdulist:
-        assert_equal(hdulist[1].data, [1.0, 2.0, 3.0])
+        assert hdulist[1].data == [1.0, 2.0, 3.0]

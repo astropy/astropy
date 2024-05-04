@@ -26,7 +26,6 @@ from astropy.coordinates.builtin_frames import (
     Supergalactic,
 )
 from astropy.coordinates.distances import Distance
-from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
 
@@ -166,7 +165,7 @@ def test_galactocentric():
         g1t = g1.transform_to(Galactic())
         g2t = g2.transform_to(Galactic())
 
-        assert_allclose(g1t.cartesian.xyz, g2t.cartesian.xyz[:, :, 0, 0])
+        np.testing.assert_allclose(g1t.cartesian.xyz, g2t.cartesian.xyz[:, :, 0, 0])
 
         g1 = Galactic(l=l, b=b, distance=d)
         g2 = Galactic(
@@ -178,7 +177,7 @@ def test_galactocentric():
         g1t = g1.transform_to(Galactocentric())
         g2t = g2.transform_to(Galactocentric())
 
-        np.testing.assert_almost_equal(
+        np.testing.assert_allclose(
             g1t.cartesian.xyz.value, g2t.cartesian.xyz.value[:, :, 0, 0]
         )
 
@@ -249,22 +248,22 @@ class TestHCRS:
         # test scalar transform
         transformed = self.sun_hcrs_t1.transform_to(ICRS())
         separation = transformed.separation_3d(self.sun_icrs_scalar)
-        assert_allclose(separation, 0 * u.km, atol=self.tolerance)
+        np.testing.assert_allclose(separation, 0 * u.km, atol=self.tolerance)
 
         # test non-scalar positions and times
         transformed = self.sun_hcrs_tarr.transform_to(ICRS())
         separation = transformed.separation_3d(self.sun_icrs_arr)
-        assert_allclose(separation, 0 * u.km, atol=self.tolerance)
+        np.testing.assert_allclose(separation, 0 * u.km, atol=self.tolerance)
 
     def test_from_icrs(self):
         # scalar positions
         transformed = self.sun_icrs_scalar.transform_to(HCRS(obstime=self.t1))
         separation = transformed.separation_3d(self.sun_hcrs_t1)
-        assert_allclose(separation, 0 * u.km, atol=self.tolerance)
+        np.testing.assert_allclose(separation, 0 * u.km, atol=self.tolerance)
         # nonscalar positions
         transformed = self.sun_icrs_arr.transform_to(HCRS(obstime=self.tarr))
         separation = transformed.separation_3d(self.sun_hcrs_tarr)
-        assert_allclose(separation, 0 * u.km, atol=self.tolerance)
+        np.testing.assert_allclose(separation, 0 * u.km, atol=self.tolerance)
 
 
 class TestHelioBaryCentric:
@@ -284,7 +283,7 @@ class TestHelioBaryCentric:
         helio = gcrs.transform_to(HCRS(obstime=self.obstime))
         # Check it doesn't change from previous times.
         previous = [-1.02597256e11, 9.71725820e10, 4.21268419e10] * u.m
-        assert_allclose(helio.cartesian.xyz, previous)
+        np.testing.assert_allclose(helio.cartesian.xyz, previous)
 
         # And that it agrees with SLALIB to within 14km
         helio_slalib = [-0.685820296, 0.6495585893, 0.2816005464] * u.au
@@ -294,7 +293,7 @@ class TestHelioBaryCentric:
         gcrs = self.wht_itrs.transform_to(GCRS(obstime=self.obstime))
         bary = gcrs.transform_to(ICRS())
         previous = [-1.02758958e11, 9.68331109e10, 4.19720938e10] * u.m
-        assert_allclose(bary.cartesian.xyz, previous)
+        np.testing.assert_allclose(bary.cartesian.xyz, previous)
 
         # And that it agrees with SLALIB answer to within 14km
         bary_slalib = [-0.6869012079, 0.6472893646, 0.2805661191] * u.au
@@ -389,11 +388,11 @@ def test_cirs_icrs():
 
     # now check that it round-trips
     moon2 = moon_topo.transform_to(moon_geo)
-    assert_allclose(moon_geo.cartesian.xyz, moon2.cartesian.xyz)
+    np.testing.assert_allclose(moon_geo.cartesian.xyz, moon2.cartesian.xyz)
 
     # now check ICRS transform gives a decent distance from Barycentre
     moon_icrs = moon_geo.transform_to(ICRS())
-    assert_allclose(moon_icrs.distance - 1 * u.au, 0.0 * u.R_sun, atol=3 * u.R_sun)
+    np.testing.assert_allclose(moon_icrs.distance - 1 * u.au, 0.0 * u.R_sun, atol=3 * u.R_sun)
 
 
 @pytest.mark.parametrize("frame", [LSR, GalacticLSR])

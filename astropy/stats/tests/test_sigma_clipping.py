@@ -2,7 +2,7 @@
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.stats import mad_std
@@ -65,7 +65,7 @@ def test_axis_none():
     data = np.arange(10.0)
     data[0] = 100
     result = sigma_clip(data, masked=False, axis=None)
-    assert_equal(result, data[1:])
+    assert result == data[1:]
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
@@ -81,7 +81,7 @@ def test_compare_to_scipy_sigmaclip():
         scipyres = stats.sigmaclip(randvar, 3, 3)[0]
 
         assert astropyres.count() == len(scipyres)
-        assert_equal(astropyres[~astropyres.mask].data, scipyres)
+        assert astropyres[~astropyres.mask].data == scipyres
 
 
 def test_sigma_clip_scalar_mask():
@@ -97,7 +97,7 @@ def test_sigma_clip_class():
         data[10] = 1.0e5
         sobj = SigmaClip(sigma=1, maxiters=2)
         sfunc = sigma_clip(data, sigma=1, maxiters=2)
-        assert_equal(sobj(data), sfunc)
+        assert sobj(data) == sfunc
 
 
 def test_sigma_clip_mean():
@@ -106,8 +106,8 @@ def test_sigma_clip_mean():
         data[2, 2] = 1.0e5
         sobj1 = SigmaClip(sigma=1, maxiters=2, cenfunc="mean")
         sobj2 = SigmaClip(sigma=1, maxiters=2, cenfunc=np.nanmean)
-        assert_equal(sobj1(data), sobj2(data))
-        assert_equal(sobj1(data, axis=0), sobj2(data, axis=0))
+        assert sobj1(data) == sobj2(data)
+        assert sobj1(data , axis=0) == sobj2(data, axis=0)
 
 
 def test_sigma_clip_invalid_cenfunc_stdfunc():
@@ -129,7 +129,7 @@ def test_sigma_clipped_stats():
     assert result == (1.0, 1.0, 0.0)
 
     result2 = sigma_clipped_stats(data, mask=mask, axis=0)
-    assert_equal(result, result2)
+    assert result == result2
 
     # test list data with mask_value
     result = sigma_clipped_stats(data, mask_value=0.0)
@@ -145,11 +145,11 @@ def test_sigma_clipped_stats():
     _data = np.arange(10)
     data = np.ma.MaskedArray([_data, _data, 10 * _data])
     mean = sigma_clip(data, axis=0, sigma=1).mean(axis=0)
-    assert_equal(mean, _data)
+    assert mean == _data
     mean, median, stddev = sigma_clipped_stats(data, axis=0, sigma=1)
-    assert_equal(mean, _data)
-    assert_equal(median, _data)
-    assert_equal(stddev, np.zeros_like(_data))
+    assert mean == _data
+    assert median == _data
+    assert stddev == np.zeros_like(_data)
 
 
 def test_sigma_clipped_stats_ddof():
@@ -188,8 +188,8 @@ def test_invalid_sigma_clip():
     with pytest.warns(AstropyUserWarning, match=r"Input data contains invalid values"):
         result_ma = sigma_clip(data_ma)
 
-    assert_equal(result.data, result_ma.data)
-    assert_equal(result.mask, result_ma.mask)
+    assert result.data == result_ma.data
+    assert result.mask == result_ma.mask
 
     # Pre #4051 if data contains any NaN or infs sigma_clip returns the
     # mask containing `False` only or TypeError if data also contains a
@@ -267,10 +267,10 @@ def test_sigmaclip_empty():
     data = np.array([])
     clipped_data = sigma_clip(data)
     assert isinstance(clipped_data, np.ma.MaskedArray)
-    assert_equal(data, clipped_data.data)
+    assert data == clipped_data.data
 
     clipped_data, low, high = sigma_clip(data, return_bounds=True)
-    assert_equal(data, clipped_data)
+    assert data == clipped_data
     assert np.isnan(low)
     assert np.isnan(high)
 
@@ -294,7 +294,7 @@ def test_sigma_clip_axis_tuple_3D():
     # Do the equivalent thing using sigma_clip:
     result = sigma_clip(data, sigma=1.5, cenfunc=np.mean, maxiters=1, axis=(0, -1))
 
-    assert_equal(result.mask, mask)
+    assert result.mask == mask
 
 
 def test_sigmaclip_repr():
@@ -354,13 +354,13 @@ def test_sigma_clip_masked_data_values():
     result = sigma_clip(data, sigma=1.5, maxiters=3, axis=None, masked=True, copy=True)
 
     assert result.dtype == data.dtype
-    assert_equal(result.data, data)
+    assert result.data == data
     assert not np.shares_memory(result.data, data)
 
     result = sigma_clip(data, sigma=1.5, maxiters=3, axis=None, masked=True, copy=False)
 
     assert result.dtype == data.dtype
-    assert_equal(result.data, data)
+    assert result.data == data
     assert np.shares_memory(result.data, data)
     # (The fact that the arrays share memory probably also means they're the
     # same, but doesn't strictly prove it, eg. one could be reversed.)
@@ -368,13 +368,13 @@ def test_sigma_clip_masked_data_values():
     result = sigma_clip(data, sigma=1.5, maxiters=3, axis=0, masked=True, copy=True)
 
     assert result.dtype == data.dtype
-    assert_equal(result.data, data)
+    assert result.data == data
     assert not np.shares_memory(result.data, data)
 
     result = sigma_clip(data, sigma=1.5, maxiters=3, axis=0, masked=True, copy=False)
 
     assert result.dtype == data.dtype
-    assert_equal(result.data, data)
+    assert result.data == data
     assert np.shares_memory(result.data, data)
 
 
@@ -512,7 +512,7 @@ def test_sigma_clip_dtypes(dtype):
 
     actual = sigma_clip(array.astype(dtype), copy=True, masked=False)
 
-    assert_equal(reference, actual)
+    assert reference == actual
 
 
 def test_mad_std():
@@ -526,13 +526,13 @@ def test_mad_std():
     result_std = sigma_clip(
         array, cenfunc="median", stdfunc="std", maxiters=1, sigma=5, masked=False
     )
-    assert_equal(result_std, array)
+    assert result_std == array
 
     # Whereas using mad_std should result in the high values being removed
     result_mad_std = sigma_clip(
         array, cenfunc="median", stdfunc="mad_std", maxiters=1, sigma=5, masked=False
     )
-    assert_equal(result_mad_std, [1, 4, 3])
+    assert result_mad_std == [1, 4, 3]
 
     # We now check this again but with the axis= keyword set since at the time
     # of writing this test this relies on a fast C implementation in which we
@@ -547,7 +547,7 @@ def test_mad_std():
         masked=False,
         axis=0,
     )
-    assert_equal(result_std, array)
+    assert result_std == array
 
     result_mad_std = sigma_clip(
         array,
@@ -558,7 +558,7 @@ def test_mad_std():
         masked=False,
         axis=0,
     )
-    assert_equal(result_mad_std, [1, np.nan, 4, 3, np.nan])
+    assert result_mad_std == [1, np.nan, 4, 3, np.nan]
 
 
 def test_mad_std_large():

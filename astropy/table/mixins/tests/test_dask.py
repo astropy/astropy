@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from numpy.testing import assert_equal
+
 
 from astropy.table import Table
 
@@ -14,11 +14,11 @@ class TestDaskHandler:
 
     def test_add_row(self):
         self.t.add_row(self.t[0])
-        assert_equal(self.t["a"].compute(), np.hstack([np.arange(10), 0]))
+        assert self.t["a"].compute() == np.hstack([np.arange(10), 0])
 
     def test_get_column(self):
         assert isinstance(self.t["a"], da.Array)
-        assert_equal(self.t["a"].compute(), np.arange(10))
+        assert self.t["a"].compute() == np.arange(10)
 
     def test_slicing_row_single(self):
         sub = self.t[5]
@@ -30,13 +30,13 @@ class TestDaskHandler:
         sub = self.t[5:]
         assert isinstance(sub["a"], da.Array)
         assert hasattr(sub["a"], "info")  # should be a mixin column
-        assert_equal(sub["a"].compute(), np.arange(5, 10))
+        assert sub["a"].compute() == np.arange(5, 10)
 
     def test_slicing_column_range(self):
         sub = self.t[("a",)]
         assert isinstance(sub["a"], da.Array)
         assert hasattr(sub["a"], "info")  # should be a mixin column
-        assert_equal(sub["a"].compute(), np.arange(10))
+        assert sub["a"].compute() == np.arange(10)
 
     def test_pformat(self):
         assert self.t.pformat_all() == [

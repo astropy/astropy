@@ -77,7 +77,7 @@ def test_constellations(recwarn):
     shortnames = ["UMa", "Aqr", "Ori", "Hya", "Com", "Lib", "CrA", "Men"]
 
     testcoos = FK5(ras * u.hour, decs * u.deg, equinox="B1950")
-    npt.assert_equal(get_constellation(testcoos, short_name=True), shortnames)
+    assert (get_constellation(testcoos, short_name=True) == shortnames)
 
     # test on a SkyCoord, *and* test Boötes, which is special in that it has a
     # non-ASCII character

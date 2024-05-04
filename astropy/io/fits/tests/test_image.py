@@ -7,7 +7,7 @@ import time
 
 import numpy as np
 import pytest
-from numpy.testing import assert_equal
+
 
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
@@ -1173,7 +1173,7 @@ def test_image_write_readonly(tmp_path):
     ghdu.writeto(filename)
 
     with fits.open(filename) as hdulist:
-        assert_equal(hdulist[1].data, [1, 2, 3])
+        assert hdulist[1].data == [1, 2, 3]
 
 
 def test_int8(tmp_path):
@@ -1186,5 +1186,5 @@ def test_int8(tmp_path):
         assert hdul[0].header["BITPIX"] == 8
         assert hdul[0].header["BZERO"] == -128
         assert hdul[0].header["BSCALE"] == 1.0
-        assert_equal(hdul[0].data, img)
+        assert hdul[0].data == img
         assert hdul[0].data.dtype == img.dtype

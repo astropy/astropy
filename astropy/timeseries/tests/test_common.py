@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
-from numpy.testing import assert_equal
+
 
 from astropy import units as u
 from astropy.table import QTable, Table, join, vstack
@@ -29,7 +29,7 @@ class CommonTimeSeriesTests:
         assert self.series[self.time_attr][1] == Time("2015-01-21T12:30:32")
 
     def test_column_indexing(self):
-        assert_equal(self.series["a"], [1, 2, 11])
+        assert self.series["a"] == [1, 2, 11]
 
     def test_column_slicing_notime(self):
         tab = self.series["a", "b"]

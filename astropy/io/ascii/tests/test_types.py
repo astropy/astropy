@@ -8,7 +8,6 @@ import pytest
 
 from astropy.io import ascii
 
-from .common import assert_equal
 
 
 def test_types_from_dat():
@@ -30,7 +29,7 @@ def test_rdb_write_types():
     out = StringIO()
     ascii.write(dat, out, format="rdb")
     outs = out.getvalue().splitlines()
-    assert_equal(outs[1], "N\tN\tS\tN")
+    assert outs[1] == "N\tN\tS\tN"
 
 
 def test_ipac_read_types():
@@ -51,7 +50,7 @@ def test_ipac_read_types():
         ascii.StrType,
     ]
     for col, expected_type in zip(reader.cols, types):
-        assert_equal(col.type, expected_type)
+        assert col.type == expected_type
 
 
 def test_ipac_read_long_columns():

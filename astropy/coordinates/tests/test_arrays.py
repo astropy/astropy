@@ -15,7 +15,6 @@ from astropy.coordinates import (
     Galactic,
     SkyCoord,
 )
-from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.utils.compat import NUMPY_LT_1_24
 
@@ -26,22 +25,22 @@ def test_angle_arrays():
     """
     # Tests incomplete
     a1 = Angle([0, 45, 90, 180, 270, 360, 720.0], unit=u.degree)
-    npt.assert_almost_equal([0.0, 45.0, 90.0, 180.0, 270.0, 360.0, 720.0], a1.value)
+    npt.assert_allclose([0.0, 45.0, 90.0, 180.0, 270.0, 360.0, 720.0], a1.value)
 
     a2 = Angle(np.array([-90, -45, 0, 45, 90, 180, 270, 360]), unit=u.degree)
-    npt.assert_almost_equal([-90, -45, 0, 45, 90, 180, 270, 360], a2.value)
+    npt.assert_allclose([-90, -45, 0, 45, 90, 180, 270, 360], a2.value)
 
     a3 = Angle(["12 degrees", "3 hours", "5 deg", "4rad"])
-    npt.assert_almost_equal([12.0, 45.0, 5.0, 229.18311805], a3.value)
+    npt.assert_allclose([12.0, 45.0, 5.0, 229.18311805], a3.value)
     assert a3.unit == u.degree
 
     a4 = Angle(["12 degrees", "3 hours", "5 deg", "4rad"], u.radian)
-    npt.assert_almost_equal(a4.degree, a3.value)
+    npt.assert_allclose(a4.degree, a3.value)
     assert a4.unit == u.radian
 
     a5 = Angle([0, 45, 90, 180, 270, 360], unit=u.degree)
     a6 = a5.sum()
-    npt.assert_almost_equal(a6.value, 945.0)
+    npt.assert_allclose(a6.value, 945.0)
     assert a6.unit is u.degree
 
     with ExitStack() as stack:
@@ -59,10 +58,10 @@ def test_angle_arrays():
         Angle([a1, a2, a3], unit=u.degree)
 
     a8 = Angle(["04:02:02", "03:02:01", "06:02:01"], unit=u.degree)
-    npt.assert_almost_equal(a8.value, [4.03388889, 3.03361111, 6.03361111])
+    npt.assert_allclose(a8.value, [4.03388889, 3.03361111, 6.03361111])
 
     a9 = Angle(np.array(["04:02:02", "03:02:01", "06:02:01"]), unit=u.degree)
-    npt.assert_almost_equal(a9.value, a8.value)
+    npt.assert_allclose(a9.value, a8.value)
 
     with pytest.raises(u.UnitsError):
         Angle(["04:02:02", "03:02:01", "06:02:01"])
@@ -71,21 +70,21 @@ def test_angle_arrays():
 def test_dms():
     a1 = Angle([0, 45.5, -45.5], unit=u.degree)
     d, m, s = a1.dms
-    npt.assert_almost_equal(d, [0, 45, -45])
-    npt.assert_almost_equal(m, [0, 30, -30])
-    npt.assert_almost_equal(s, [0, 0, -0])
+    npt.assert_allclose(d, [0, 45, -45])
+    npt.assert_allclose(m, [0, 30, -30])
+    npt.assert_allclose(s, [0, 0, -0])
 
 
 def test_hms():
     a1 = Angle([0, 11.5, -11.5], unit=u.hour)
     h, m, s = a1.hms
-    npt.assert_almost_equal(h, [0, 11, -11])
-    npt.assert_almost_equal(m, [0, 30, -30])
-    npt.assert_almost_equal(s, [0, 0, -0])
+    npt.assert_allclose(h, [0, 11, -11])
+    npt.assert_allclose(m, [0, 30, -30])
+    npt.assert_allclose(s, [0, 0, -0])
 
     hms = a1.hms
     hours = hms[0] + hms[1] / 60.0 + hms[2] / 3600.0
-    npt.assert_almost_equal(a1.hour, hours)
+    npt.assert_allclose(a1.hour, hours)
 
 
 def test_array_coordinates_creation():
@@ -221,13 +220,13 @@ def test_array_indexing():
     assert c2.dec.degree == -10
 
     c3 = c1[2:5]
-    assert_allclose(c3.ra, [80, 120, 160] * u.deg)
-    assert_allclose(c3.dec, [-50, -30, -10] * u.deg)
+    npt.assert_allclose(c3.ra, [80, 120, 160] * u.deg)
+    npt.assert_allclose(c3.dec, [-50, -30, -10] * u.deg)
 
     c4 = c1[np.array([2, 5, 8])]
 
-    assert_allclose(c4.ra, [80, 200, 320] * u.deg)
-    assert_allclose(c4.dec, [-50, 10, 70] * u.deg)
+    npt.assert_allclose(c4.ra, [80, 200, 320] * u.deg)
+    npt.assert_allclose(c4.dec, [-50, 10, 70] * u.deg)
 
     # now make sure the equinox is preserved
     assert c2.equinox == c1.equinox

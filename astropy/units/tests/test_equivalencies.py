@@ -90,7 +90,7 @@ def test_doppler_wavelength_0(function):
     rest = 105.01 * u.GHz
     q1 = 0.00285489437196 * u.m
     velo0 = q1.to(u.km / u.s, equivalencies=function(rest))
-    np.testing.assert_almost_equal(velo0.value, 0, decimal=6)
+    np.testing.assert_allclose(velo0.value, 0, decimal=6)
 
 
 @pytest.mark.parametrize("function", doppler_functions)
@@ -98,7 +98,7 @@ def test_doppler_energy_0(function):
     rest = 105.01 * u.GHz
     q1 = 0.0004342864648539744 * u.eV
     velo0 = q1.to(u.km / u.s, equivalencies=function(rest))
-    np.testing.assert_almost_equal(velo0.value, 0, decimal=6)
+    np.testing.assert_allclose(velo0.value, 0, decimal=6)
 
 
 @pytest.mark.parametrize("function", doppler_functions)
@@ -107,7 +107,7 @@ def test_doppler_frequency_circle(function):
     shifted = 105.03 * u.GHz
     velo = shifted.to(u.km / u.s, equivalencies=function(rest))
     freq = velo.to(u.GHz, equivalencies=function(rest))
-    np.testing.assert_almost_equal(freq.value, shifted.value, decimal=7)
+    np.testing.assert_allclose(freq.value, shifted.value, decimal=7)
 
 
 @pytest.mark.parametrize("function", doppler_functions)
@@ -116,7 +116,7 @@ def test_doppler_wavelength_circle(function):
     shifted = 105.03 * u.nm
     velo = shifted.to(u.km / u.s, equivalencies=function(rest))
     wav = velo.to(u.nm, equivalencies=function(rest))
-    np.testing.assert_almost_equal(wav.value, shifted.value, decimal=7)
+    np.testing.assert_allclose(wav.value, shifted.value, decimal=7)
 
 
 @pytest.mark.parametrize("function", doppler_functions)
@@ -125,7 +125,7 @@ def test_doppler_energy_circle(function):
     shifted = 1.0503 * u.eV
     velo = shifted.to(u.km / u.s, equivalencies=function(rest))
     en = velo.to(u.eV, equivalencies=function(rest))
-    np.testing.assert_almost_equal(en.value, shifted.value, decimal=7)
+    np.testing.assert_allclose(en.value, shifted.value, decimal=7)
 
 
 values_ghz = (999.899940784289, 999.8999307714406, 999.8999357778647)
@@ -138,7 +138,7 @@ def test_30kms(function, value):
     rest = 1000 * u.GHz
     velo = 30 * u.km / u.s
     shifted = velo.to(u.GHz, equivalencies=function(rest))
-    np.testing.assert_almost_equal(shifted.value, value, decimal=7)
+    np.testing.assert_allclose(shifted.value, value, decimal=7)
 
 
 bad_values = (5, 5 * u.Jy, None)
@@ -696,13 +696,13 @@ def test_brightness_temperature():
     omega_B = np.pi * (50 * u.arcsec) ** 2
     nu = u.GHz * 5
     tb = 7.052587837212582 * u.K
-    np.testing.assert_almost_equal(
+    np.testing.assert_allclose(
         tb.value,
         (1 * u.Jy).to_value(
             u.K, equivalencies=u.brightness_temperature(nu, beam_area=omega_B)
         ),
     )
-    np.testing.assert_almost_equal(
+    np.testing.assert_allclose(
         1.0,
         tb.to_value(
             u.Jy, equivalencies=u.brightness_temperature(nu, beam_area=omega_B)
@@ -713,7 +713,7 @@ def test_brightness_temperature():
 def test_surfacebrightness():
     sb = 50 * u.MJy / u.sr
     k = sb.to(u.K, u.brightness_temperature(50 * u.GHz))
-    np.testing.assert_almost_equal(k.value, 0.650965, 5)
+    np.testing.assert_allclose(k.value, 0.650965, 5)
     assert k.unit.is_equivalent(u.K)
 
 
@@ -721,12 +721,12 @@ def test_beam():
     # pick a beam area: 2 pi r^2 = area of a Gaussina with sigma=50 arcsec
     omega_B = 2 * np.pi * (50 * u.arcsec) ** 2
     new_beam = (5 * u.beam).to(u.sr, u.equivalencies.beam_angular_area(omega_B))
-    np.testing.assert_almost_equal(omega_B.to(u.sr).value * 5, new_beam.value)
+    np.testing.assert_allclose(omega_B.to(u.sr).value * 5, new_beam.value)
     assert new_beam.unit.is_equivalent(u.sr)
 
     # make sure that it's still consistent with 5 beams
     nbeams = new_beam.to(u.beam, u.equivalencies.beam_angular_area(omega_B))
-    np.testing.assert_almost_equal(nbeams.value, 5)
+    np.testing.assert_allclose(nbeams.value, 5)
 
     # test inverse beam equivalency
     # (this is just a sanity check that the equivalency is defined;
@@ -739,17 +739,17 @@ def test_beam():
         u.MJy / u.sr, u.equivalencies.beam_angular_area(omega_B)
     )
 
-    np.testing.assert_almost_equal(flux_density.value, 13.5425483146382)
+    np.testing.assert_allclose(flux_density.value, 13.5425483146382)
 
 
 def test_thermodynamic_temperature():
     nu = 143 * u.GHz
     tb = 0.0026320501262630277 * u.K
     eq = u.thermodynamic_temperature(nu, T_cmb=2.7255 * u.K)
-    np.testing.assert_almost_equal(
+    np.testing.assert_allclose(
         tb.value, (1 * (u.MJy / u.sr)).to_value(u.K, equivalencies=eq)
     )
-    np.testing.assert_almost_equal(1.0, tb.to_value(u.MJy / u.sr, equivalencies=eq))
+    np.testing.assert_allclose(1.0, tb.to_value(u.MJy / u.sr, equivalencies=eq))
 
 
 def test_equivalency_context():
