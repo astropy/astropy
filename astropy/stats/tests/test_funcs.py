@@ -2,7 +2,7 @@
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.stats import funcs
@@ -95,8 +95,8 @@ def test_median_absolute_deviation_masked():
 
 def test_median_absolute_deviation_nans():
     array = np.array([[1, 4, 3, np.nan], [2, 5, np.nan, 4]])
-    assert_equal(
-        funcs.median_absolute_deviation(array, func=np.nanmedian, axis=1), [1, 1]
+    assert (
+        funcs.median_absolute_deviation(array, func=np.nanmedian, axis=1) == [1, 1]
     )
 
     array = np.ma.masked_invalid(array)
@@ -113,7 +113,7 @@ def test_median_absolute_deviation_nans_masked():
     data2 = np.ma.masked_array(data1, mask=False)
     mad1 = funcs.median_absolute_deviation(data1, ignore_nan=True)
     mad2 = funcs.median_absolute_deviation(data2, ignore_nan=True)
-    assert_equal(mad1, mad2)
+    assert mad1 == mad2
 
     # ensure that input masked array is not modified
     assert np.isnan(data2[1])
@@ -123,8 +123,8 @@ def test_median_absolute_deviation_multidim_axis():
     array = np.ones((5, 4, 3)) * np.arange(5)[:, np.newaxis, np.newaxis]
     mad1 = funcs.median_absolute_deviation(array, axis=(1, 2))
     mad2 = funcs.median_absolute_deviation(array, axis=(2, 1))
-    assert_equal(mad1, np.zeros(5))
-    assert_equal(mad1, mad2)
+    assert mad1 == np.zeros(5)
+    assert mad1 == mad2
 
 
 def test_median_absolute_deviation_quantity():
@@ -279,7 +279,7 @@ def test_bootstrap():
     # test general bootstrapping
     answer = np.array([[7, 4, 8, 5, 7, 0, 3, 7, 8, 5], [4, 8, 8, 3, 6, 5, 2, 8, 6, 2]])
     with NumpyRNGContext(42):
-        assert_equal(answer, funcs.bootstrap(bootarr, 2))
+        assert answer == funcs.bootstrap(bootarr, 2)
 
     # test with a bootfunction
     with NumpyRNGContext(42):

@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose
 
 from astropy.io import fits
 from astropy.io.fits.hdu.compressed._codecs import PLIO1
@@ -49,7 +49,7 @@ def test_zblank_support(canonical_data_base_path, tmp_path):
     reference[1, 1] = np.nan
 
     with fits.open(canonical_data_base_path / "compressed_with_nan.fits") as hdul:
-        assert_equal(np.round(hdul[1].data), reference)
+        assert np.round(hdul[1].data) == reference
 
     # Now generate a file ourselves and check that the output has the ZBLANK
     # keyword set automatically
@@ -62,7 +62,7 @@ def test_zblank_support(canonical_data_base_path, tmp_path):
 
     with fits.open(tmp_path / "test_zblank.fits") as hdul:
         assert "ZBLANK" in hdul[1].header
-        assert_equal(np.round(hdul[1].data), reference)
+        assert np.round(hdul[1].data) == reference
 
 
 @pytest.mark.parametrize(

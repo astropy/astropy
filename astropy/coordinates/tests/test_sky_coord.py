@@ -1645,8 +1645,8 @@ def test_constellations():
     assert sc.get_constellation(short_name=True) == "UMa"
 
     scs = SkyCoord([135] * 2 * u.deg, [65] * 2 * u.deg)
-    npt.assert_equal(scs.get_constellation(), ["Ursa Major"] * 2)
-    npt.assert_equal(scs.get_constellation(short_name=True), ["UMa"] * 2)
+    assert (scs.get_constellation() == ["Ursa Major"] * 2)
+    assert (scs.get_constellation(short_name=True) == ["UMa"] * 2)
 
 
 @pytest.mark.remote_data

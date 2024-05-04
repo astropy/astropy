@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.coordinates import Angle, Galactic, HADec
@@ -63,16 +63,16 @@ def test_select_step_hour():
 
 
 def test_select_step_scalar():
-    assert_almost_equal(select_step_scalar(33122.0), 50000.0)
-    assert_almost_equal(select_step_scalar(433.0), 500.0)
-    assert_almost_equal(select_step_scalar(12.3), 10)
-    assert_almost_equal(select_step_scalar(3.3), 5.0)
-    assert_almost_equal(select_step_scalar(0.66), 0.5)
-    assert_almost_equal(select_step_scalar(0.0877), 0.1)
-    assert_almost_equal(select_step_scalar(0.00577), 0.005)
-    assert_almost_equal(select_step_scalar(0.00022), 0.0002)
-    assert_almost_equal(select_step_scalar(0.000012), 0.00001)
-    assert_almost_equal(select_step_scalar(0.000000443), 0.0000005)
+    assert_allclose(select_step_scalar(33122.0), 50000.0)
+    assert_allclose(select_step_scalar(433.0), 500.0)
+    assert_allclose(select_step_scalar(12.3), 10)
+    assert_allclose(select_step_scalar(3.3), 5.0)
+    assert_allclose(select_step_scalar(0.66), 0.5)
+    assert_allclose(select_step_scalar(0.0877), 0.1)
+    assert_allclose(select_step_scalar(0.00577), 0.005)
+    assert_allclose(select_step_scalar(0.00022), 0.0002)
+    assert_allclose(select_step_scalar(0.000012), 0.00001)
+    assert_allclose(select_step_scalar(0.000000443), 0.0000005)
 
 
 def test_get_coord_meta():

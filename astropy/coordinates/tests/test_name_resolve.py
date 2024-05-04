@@ -131,8 +131,8 @@ def test_names():
 
     # use precision of only 1 decimal here and below because the result can
     # change due to Sesame server-side changes.
-    np.testing.assert_almost_equal(icrs.ra.degree, icrs_true.ra.degree, 1)
-    np.testing.assert_almost_equal(icrs.dec.degree, icrs_true.dec.degree, 1)
+    np.testing.assert_allclose(icrs.ra.degree, icrs_true.ra.degree, 1)
+    np.testing.assert_allclose(icrs.dec.degree, icrs_true.dec.degree, 1)
 
     try:
         icrs = get_icrs_coordinates("castor")
@@ -141,8 +141,8 @@ def test_names():
         icrs = SkyCoord(ra=float(ra) * u.degree, dec=float(dec) * u.degree)
 
     icrs_true = SkyCoord(ra="07h 34m 35.87s", dec="+31d 53m 17.8s")
-    np.testing.assert_almost_equal(icrs.ra.degree, icrs_true.ra.degree, 1)
-    np.testing.assert_almost_equal(icrs.dec.degree, icrs_true.dec.degree, 1)
+    np.testing.assert_allclose(icrs.ra.degree, icrs_true.ra.degree, 1)
+    np.testing.assert_allclose(icrs.dec.degree, icrs_true.dec.degree, 1)
 
 
 @pytest.mark.remote_data

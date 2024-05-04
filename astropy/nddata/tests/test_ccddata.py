@@ -814,7 +814,7 @@ def test_wcs_keyword_removal_for_wcs_test_files():
             if isinstance(v, str):
                 assert header_from_wcs[k] == v
             else:
-                np.testing.assert_almost_equal(header_from_wcs[k], v)
+                np.testing.assert_allclose(header_from_wcs[k], v)
 
 
 def test_read_wcs_not_creatable(tmp_path):
@@ -924,7 +924,7 @@ def test_mask_arithmetic_ccd(operation):
     ccd_data.mask = ccd_data.data > 0
     method = getattr(ccd_data, operation)
     result = method(ccd_data2)
-    np.testing.assert_equal(result.mask, ccd_data.mask)
+    assert result.mask == ccd_data.mask
 
 
 def test_write_read_multiextensionfits_mask_default(tmp_path):

@@ -1,7 +1,7 @@
 from copy import copy
 
 import pytest
-from numpy.testing import assert_equal
+
 
 from astropy.table import Table
 from astropy.table.mixins.registry import (
@@ -85,7 +85,7 @@ def test_add_column():
 
     assert len(t) == 5
     assert isinstance(t["a"], SpamWrapper)
-    assert_equal(t["a"].data, [0, 1, 3, 4, 5])
+    assert t["a"].data == [0, 1, 3, 4, 5]
 
 
 def invalid_handler(obj):

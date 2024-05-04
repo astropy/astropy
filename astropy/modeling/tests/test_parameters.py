@@ -366,16 +366,16 @@ class TestParameters:
     def testPolynomial1D(self):
         d = {"c0": 11, "c1": 12, "c2": 13, "c3": 14}
         p1 = models.Polynomial1D(3, **d)
-        np.testing.assert_equal(p1.parameters, [11, 12, 13, 14])
+        assert p1.parameters == [11, 12, 13, 14]
 
     def test_poly1d_multiple_sets(self):
         p1 = models.Polynomial1D(3, n_models=3)
-        np.testing.assert_equal(
+        assert (
             p1.parameters, [0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         )
         np.testing.assert_array_equal(p1.c0, [0, 0, 0])
         p1.c0 = [10, 10, 10]
-        np.testing.assert_equal(
+        assert (
             p1.parameters, [10.0, 10.0, 10.0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         )
 
@@ -385,14 +385,14 @@ class TestParameters:
         """
         p1 = models.Polynomial1D(3, n_models=3)
         p1.c0[:2] = [10, 10]
-        np.testing.assert_equal(
+        assert (
             p1.parameters, [10.0, 10.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         )
 
     def test_poly2d(self):
         p2 = models.Polynomial2D(degree=3)
         p2.c0_0 = 5
-        np.testing.assert_equal(p2.parameters, [5, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        assert p2.parameters == [5, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     def test_poly2d_multiple_sets(self):
         kw = {
@@ -404,7 +404,7 @@ class TestParameters:
             "c1_1": [5, 5],
         }
         p2 = models.Polynomial2D(2, **kw)
-        np.testing.assert_equal(p2.parameters, [2, 3, 1, 2, 4, 5, 1, 1, 2, 2, 5, 5])
+        assert p2.parameters == [2, 3, 1, 2, 4, 5, 1, 1, 2, 2, 5, 5]
 
     def test_shift_model_parameters1d(self):
         sh1 = models.Shift(2)
@@ -868,7 +868,7 @@ class TestMultipleParameterSets:
         Test that a change to one parameter as a set propagates to param_sets.
         """
         self.gmodel.amplitude = [1, 10]
-        np.testing.assert_almost_equal(
+        np.testing.assert_allclose(
             self.gmodel.param_sets,
             np.array(
                 [
@@ -886,7 +886,7 @@ class TestMultipleParameterSets:
         param_sets.
         """
         self.gmodel.amplitude[0] = 11
-        np.testing.assert_almost_equal(
+        np.testing.assert_allclose(
             self.gmodel.param_sets,
             np.array(
                 [
@@ -900,8 +900,8 @@ class TestMultipleParameterSets:
 
     def test_change_parameters(self):
         self.gmodel.parameters = [13, 10, 9, 5.2, 0.4, 0.7]
-        np.testing.assert_almost_equal(self.gmodel.amplitude.value, [13.0, 10.0])
-        np.testing.assert_almost_equal(self.gmodel.mean.value, [9.0, 5.2])
+        np.testing.assert_allclose(self.gmodel.amplitude.value, [13.0, 10.0])
+        np.testing.assert_allclose(self.gmodel.mean.value, [9.0, 5.2])
 
 
 class TestParameterInitialization:
@@ -1257,4 +1257,4 @@ def test_setter():
     model = SetterModel(xc=-1, yc=3, p=np.pi)
 
     for x, y in pars:
-        np.testing.assert_almost_equal(model(x, y), (x + 1) ** 2 + (y - np.pi * 3) ** 2)
+        np.testing.assert_allclose(model(x, y), (x + 1) ** 2 + (y - np.pi * 3) ** 2)

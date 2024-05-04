@@ -154,7 +154,7 @@ class TestConvenience(FitsTestCase):
         assert hdu.header.get("NAXIS1") == 13
         assert hdu.header.get("NAXIS2") == 3
         assert hdu.header.get("PCOUNT") == 0
-        np.testing.assert_almost_equal(hdu.header.get("EXPTIME"), 3.21e1)
+        np.testing.assert_allclose(hdu.header.get("EXPTIME"), 3.21e1)
 
     @pytest.mark.parametrize("card", REMOVE_KEYWORDS)
     def test_table_to_hdu_warn_reserved(self, card):

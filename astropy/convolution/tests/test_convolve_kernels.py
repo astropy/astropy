@@ -4,7 +4,7 @@ import itertools
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_almost_equal
+from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.convolution.convolve import convolve, convolve_fft
@@ -81,7 +81,7 @@ class Test2DConvolutions:
         c2 = convolve_fft(x, kernel, boundary="fill")
         c1 = convolve(x, kernel, boundary="fill")
 
-        assert_almost_equal(c1, c2, decimal=12)
+        assert_allclose(c1, c2, decimal=12)
 
     @pytest.mark.parametrize("kernel", KERNELS)
     def test_random_makekernel(self, kernel):
@@ -97,7 +97,7 @@ class Test2DConvolutions:
         c1 = convolve(x, kernel, boundary="fill")
 
         # not clear why, but these differ by a couple ulps...
-        assert_almost_equal(c1, c2, decimal=12)
+        assert_allclose(c1, c2, decimal=12)
 
     @pytest.mark.parametrize(
         ("shape", "width"), list(itertools.product(SHAPES_ODD, WIDTHS))
@@ -122,7 +122,7 @@ class Test2DConvolutions:
         c2 = convolve_fft(x, kernel, boundary="fill")
         c1 = convolve(x, kernel, boundary="fill")
 
-        assert_almost_equal(c1, c2, decimal=12)
+        assert_allclose(c1, c2, decimal=12)
 
     @pytest.mark.parametrize(
         ("shape", "width"), list(itertools.product(SHAPES_ODD, [1, 3, 5]))
@@ -144,12 +144,12 @@ class Test2DConvolutions:
         c2 = convolve_fft(x, kernel2, boundary="fill")
         c1 = convolve_fft(x, kernel1, boundary="fill")
 
-        assert_almost_equal(c1, c2, decimal=12)
+        assert_allclose(c1, c2, decimal=12)
 
         c2 = convolve(x, kernel2, boundary="fill")
         c1 = convolve(x, kernel1, boundary="fill")
 
-        assert_almost_equal(c1, c2, decimal=12)
+        assert_allclose(c1, c2, decimal=12)
 
 
 def test_gaussian_2d_kernel_quantity():

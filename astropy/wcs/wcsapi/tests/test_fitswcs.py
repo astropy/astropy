@@ -8,7 +8,7 @@ from itertools import product
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_array_equal, assert_equal
+from numpy.testing import assert_allclose, assert_array_equal
 from packaging.version import Version
 
 from astropy import units as u
@@ -59,7 +59,7 @@ def test_empty():
     assert wcs.pixel_axis_names == [""]
     assert wcs.world_axis_names == [""]
 
-    assert_equal(wcs.axis_correlation_matrix, True)
+    assert wcs.axis_correlation_matrix == True
 
     assert wcs.world_axis_object_components == [("world", 0, "value")]
 
@@ -74,7 +74,7 @@ def test_empty():
     assert np.ndim(wcs.array_index_to_world_values(29)) == 0
 
     assert_allclose(wcs.world_to_pixel_values(29), 29)
-    assert_equal(wcs.world_to_array_index_values(29), (29,))
+    assert wcs.world_to_array_index_values(29) == (29,)
 
     assert np.ndim(wcs.world_to_pixel_values(29)) == 0
     assert np.ndim(wcs.world_to_array_index_values(29)) == 0
@@ -96,7 +96,7 @@ def test_empty():
     assert np.ndim(x) == 0
 
     i = wcs.world_to_array_index(coord)
-    assert_equal(i, 15)
+    assert i == 15
     assert np.ndim(i) == 0
 
 
@@ -138,7 +138,7 @@ def test_simple_celestial():
     assert wcs.pixel_axis_names == ["", ""]
     assert wcs.world_axis_names == ["", ""]
 
-    assert_equal(wcs.axis_correlation_matrix, True)
+    assert wcs.axis_correlation_matrix == True
 
     assert wcs.world_axis_object_components == [
         ("celestial", 0, "spherical.lon.degree"),
@@ -154,7 +154,7 @@ def test_simple_celestial():
     assert_allclose(wcs.array_index_to_world_values(39, 29), (10, 20))
 
     assert_allclose(wcs.world_to_pixel_values(10, 20), (29.0, 39.0))
-    assert_equal(wcs.world_to_array_index_values(10, 20), (39, 29))
+    assert wcs.world_to_array_index_values(10 == 20, (39, 29))
 
     # High-level API
 
@@ -177,8 +177,8 @@ def test_simple_celestial():
     assert_allclose(y, 39.0)
 
     i, j = wcs.world_to_array_index(coord)
-    assert_equal(i, 39)
-    assert_equal(j, 29)
+    assert i == 39
+    assert j == 29
 
     # Check that if the coordinates are passed in a different frame things still
     # work properly
@@ -190,8 +190,8 @@ def test_simple_celestial():
     assert_allclose(y, 39.0)
 
     i, j = wcs.world_to_array_index(coord_galactic)
-    assert_equal(i, 39)
-    assert_equal(j, 29)
+    assert i == 39
+    assert j == 29
 
     # Check that we can actually index the array
 
@@ -199,11 +199,11 @@ def test_simple_celestial():
 
     coord = SkyCoord(10, 20, unit="deg", frame="icrs")
     index = wcs.world_to_array_index(coord)
-    assert_equal(data[index], 2369)
+    assert data[index] == 2369
 
     coord = SkyCoord([10, 12], [20, 22], unit="deg", frame="icrs")
     index = wcs.world_to_array_index(coord)
-    assert_equal(data[index], [2369, 3550])
+    assert data[index] == [2369, 3550]
 
 
 ###############################################################################
@@ -257,9 +257,8 @@ def test_spectral_cube():
     assert wcs.pixel_axis_names == ["", "", ""]
     assert wcs.world_axis_names == ["Latitude", "Frequency", "Longitude"]
 
-    assert_equal(
-        wcs.axis_correlation_matrix,
-        [[True, False, True], [False, True, False], [True, False, True]],
+    assert (
+        wcs.axis_correlation_matrix == [[True, False, True], [False, True, False], [True, False, True]],
     )
 
     assert len(wcs.world_axis_object_components) == 3
@@ -288,7 +287,7 @@ def test_spectral_cube():
     assert_allclose(wcs.array_index_to_world_values(44, 39, 29), (10, 20, 25))
 
     assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (29.0, 39.0, 44.0))
-    assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 39, 29))
+    assert wcs.world_to_array_index_values(10 == 20, 25, (44, 39, 29))
 
     # High-level API
 
@@ -326,16 +325,16 @@ def test_spectral_cube():
 
     with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
         i, j, k = wcs.world_to_array_index(coord, spec)
-    assert_equal(i, 44)
-    assert_equal(j, 39)
-    assert_equal(k, 29)
+    assert i == 44
+    assert j == 39
+    assert k == 29
 
     # Order of world coordinates shouldn't matter
     with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
         i, j, k = wcs.world_to_array_index(spec, coord)
-    assert_equal(i, 44)
-    assert_equal(j, 39)
-    assert_equal(k, 29)
+    assert i == 44
+    assert j == 39
+    assert k == 29
 
 
 HEADER_SPECTRAL_CUBE_NONALIGNED = (
@@ -369,8 +368,8 @@ def test_spectral_cube_nonaligned():
     assert wcs.pixel_axis_names == ["", "", ""]
     assert wcs.world_axis_names == ["Latitude", "Frequency", "Longitude"]
 
-    assert_equal(
-        wcs.axis_correlation_matrix,
+    assert (
+        wcs.axis_correlation_matrix ==
         [
             [True, True, True],
             [False, True, True],
@@ -480,8 +479,8 @@ def test_time_cube():
     assert wcs.pixel_axis_names == ["", "", ""]
     assert wcs.world_axis_names == ["", "", ""]
 
-    assert_equal(
-        wcs.axis_correlation_matrix,
+    assert (
+        wcs.axis_correlation_matrix ==
         [[True, True, False], [True, True, False], [False, False, True]],
     )
 
@@ -515,8 +514,8 @@ def test_time_cube():
         wcs.world_to_pixel_values(14.8289418840003, 2.01824372640628, 2375.341),
         (-449.2, 2955.6, 0),
     )
-    assert_equal(
-        wcs.world_to_array_index_values(14.8289418840003, 2.01824372640628, 2375.341),
+    assert (
+        wcs.world_to_array_index_values(14.8289418840003, 2.01824372640628, 2375.341) ==
         (0, 2956, -449),
     )
 
@@ -550,15 +549,15 @@ def test_time_cube():
     assert_allclose(z, 44.0)
 
     i, j, k = wcs.world_to_array_index(coord, time)
-    assert_equal(i, 44)
-    assert_equal(j, 39)
-    assert_equal(k, 29)
+    assert i == 44
+    assert j == 39
+    assert k == 29
 
     # Order of world coordinates shouldn't matter
     i, j, k = wcs.world_to_array_index(time, coord)
-    assert_equal(i, 44)
-    assert_equal(j, 39)
-    assert_equal(k, 29)
+    assert i == 44
+    assert j == 39
+    assert k == 29
 
 
 ###############################################################################
@@ -843,29 +842,29 @@ def test_distortion_correlations():
     filename = get_pkg_data_filename("../../tests/data/sip.fits")
     with pytest.warns(FITSFixedWarning):
         w = WCS(filename)
-    assert_equal(w.axis_correlation_matrix, True)
+    assert w.axis_correlation_matrix == True
 
     # Changing PC to an identity matrix doesn't change anything since
     # distortions are still present.
     w.wcs.pc = [[1, 0], [0, 1]]
-    assert_equal(w.axis_correlation_matrix, True)
+    assert w.axis_correlation_matrix == True
 
     # Nor does changing the name of the axes to make them non-celestial
     w.wcs.ctype = ["X", "Y"]
-    assert_equal(w.axis_correlation_matrix, True)
+    assert w.axis_correlation_matrix == True
 
     # However once we turn off the distortions the matrix changes
     w.sip = None
-    assert_equal(w.axis_correlation_matrix, [[True, False], [False, True]])
+    assert w.axis_correlation_matrix == [[True, False], [False, True]]
 
     # If we go back to celestial coordinates then the matrix is all True again
     w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
-    assert_equal(w.axis_correlation_matrix, True)
+    assert w.axis_correlation_matrix == True
 
     # Or if we change to X/Y but have a non-identity PC
     w.wcs.pc = [[0.9, -0.1], [0.1, 0.9]]
     w.wcs.ctype = ["X", "Y"]
-    assert_equal(w.axis_correlation_matrix, True)
+    assert w.axis_correlation_matrix == True
 
 
 def test_custom_ctype_to_ucd_mappings():
@@ -1068,7 +1067,7 @@ def test_spectralcoord_frame(header_spectral_frames):
         assert isinstance(sc_topo, SpectralCoord)
         assert isinstance(sc_topo.observer, ITRS)
         assert sc_topo.observer.obstime.isot == obstime.isot
-        assert_equal(sc_topo.observer.data.differentials["s"].d_xyz.value, 0)
+        assert sc_topo.observer.data.differentials["s"].d_xyz.value == 0
 
         observatory = (
             EarthLocation.from_geodetic(144.2, -20.2)
@@ -1411,7 +1410,7 @@ def test_pixel_to_world_stokes(wcs_polarized):
     world = w.pixel_to_world(0, 0, 0)
     assert world[2] == 1
     assert isinstance(world[2], StokesCoord)
-    assert_equal(world[2].symbol, "I")
+    assert world[2].symbol == "I"
 
     world = w.pixel_to_world(0, 0, [0, 1, 2, 3])
     assert isinstance(world[2], StokesCoord)

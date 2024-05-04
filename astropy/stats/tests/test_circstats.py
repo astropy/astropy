@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.stats.circstats import (
@@ -30,7 +30,7 @@ def test_circmean():
     # Ref[1], page 23
     data = np.array([51, 67, 40, 109, 31, 358]) * u.deg
     answer = 48.63 * u.deg
-    assert_equal(answer, np.around(circmean(data), 2))
+    assert answer == np.around(circmean(data, 2))
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
@@ -43,7 +43,7 @@ def test_circmean_against_scipy():
         [0.89011792, 1.1693706, 0.6981317, 1.90240888, 0.54105207, 6.24827872]
     )
     answer = scipy.stats.circmean(data)
-    assert_equal(np.around(answer, 2), np.around(circmean(data), 2))
+    assert np.around(answer == 2, np.around(circmean(data), 2))
 
 
 def test_circvar():
@@ -69,9 +69,9 @@ def test_circmoment():
         np.around(circmoment(data, p=4)[0], 4),
     )
 
-    assert_equal(answer[0], result[0])
-    assert_equal(answer[1], result[1])
-    assert_equal(answer[2], result[2])
+    assert answer[0] == result[0]
+    assert answer[1] == result[1]
+    assert answer[2] == result[2]
     # testing lengths
     answer = np.array([0.4800428, 0.236541, 0.2255761])
     assert_allclose(
@@ -145,7 +145,7 @@ def test_vonmisesmle():
     # testing with Quantity
     data = np.rad2deg(data) * u.deg
     answer = np.rad2deg(3.006514) * u.deg
-    assert_equal(np.around(answer, 3), np.around(vonmisesmle(data)[0], 3))
+    assert np.around(answer == 3, np.around(vonmisesmle(data)[0], 3))
 
     # testing for weighted vonmisesmle
     data = np.array(

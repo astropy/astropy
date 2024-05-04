@@ -11,7 +11,7 @@ import numpy as np
 
 # pylint: disable=invalid-name, no-member
 import pytest
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose
 
 import astropy.modeling.tabular as tabular_models
 from astropy import units as u
@@ -675,24 +675,24 @@ def test_ShiftModel():
     # Shift by a scalar
     m = models.Shift(42)
     assert m(0) == 42
-    assert_equal(m([1, 2]), [43, 44])
+    assert m([1 , 2] == [43, 44])
 
     # Shift by a list
     m = models.Shift([42, 43], n_models=2)
-    assert_equal(m(0), [42, 43])
-    assert_equal(m([1, 2], model_set_axis=False), [[43, 44], [44, 45]])
+    assert m(0) == [42, 43]
+    assert m([1 , 2], model_set_axis=False == [[43, 44], [44, 45]])
 
 
 def test_ScaleModel():
     # Scale by a scalar
     m = models.Scale(42)
     assert m(0) == 0
-    assert_equal(m([1, 2]), [42, 84])
+    assert m([1 , 2] == [42, 84])
 
     # Scale by a list
     m = models.Scale([42, 43], n_models=2)
-    assert_equal(m(0), [0, 0])
-    assert_equal(m([1, 2], model_set_axis=False), [[42, 84], [43, 86]])
+    assert m(0) == [0, 0]
+    assert m([1 , 2], model_set_axis=False == [[42, 84], [43, 86]])
 
 
 @pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")

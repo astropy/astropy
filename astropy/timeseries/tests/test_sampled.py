@@ -3,7 +3,7 @@
 from datetime import datetime
 
 import pytest
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.table import Column, Table
@@ -43,14 +43,14 @@ def test_initialize_only_time():
     ts = TimeSeries(time=INPUT_TIME)
     assert ts["time"] is ts.time
     # NOTE: the object in the table is a copy
-    assert_equal(ts.time.isot, INPUT_TIME.isot)
+    assert ts.time.isot == INPUT_TIME.isot
 
 
 def test_initialization_with_data():
     ts = TimeSeries(time=INPUT_TIME, data=[[10, 2, 3], [4, 5, 6]], names=["a", "b"])
-    assert_equal(ts.time.isot, INPUT_TIME.isot)
-    assert_equal(ts["a"], [10, 2, 3])
-    assert_equal(ts["b"], [4, 5, 6])
+    assert ts.time.isot == INPUT_TIME.isot
+    assert ts["a"] == [10, 2, 3]
+    assert ts["b"] == [4, 5, 6]
 
 
 def test_initialize_only_data():
@@ -72,8 +72,8 @@ def test_initialization_with_time_delta():
         data=[[10, 2, 3], [4, 5, 6]],
         names=["a", "b"],
     )
-    assert_equal(
-        ts.time.isot,
+    assert (
+        ts.time.isot ==
         [
             "2018-07-01T10:10:10.000",
             "2018-07-01T10:10:13.000",
@@ -327,7 +327,7 @@ def test_pandas():
     df1.set_index(pandas.DatetimeIndex(INPUT_TIME.datetime64), inplace=True)
 
     ts = TimeSeries.from_pandas(df1)
-    assert_equal(ts.time.isot, INPUT_TIME.isot)
+    assert ts.time.isot == INPUT_TIME.isot
     assert ts.colnames == ["time", "a"]
     assert len(ts.indices) == 1
     assert (ts.indices["time"].columns[0] == INPUT_TIME).all()
@@ -504,7 +504,7 @@ def test_periodogram(cls):
     p1 = cls.from_timeseries(ts, "a")
     assert isinstance(p1, cls)
     assert_allclose(p1.t.jd, ts.time.jd)
-    assert_equal(p1.y, ts["a"])
+    assert p1.y == ts["a"]
     assert p1.dy is None
 
     p2 = cls.from_timeseries(ts, "a", uncertainty="b")

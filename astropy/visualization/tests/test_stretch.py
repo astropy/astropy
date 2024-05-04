@@ -2,7 +2,7 @@
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose
 
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.visualization.stretch import (
@@ -158,8 +158,8 @@ def test_sinh_a():
 def test_histeqstretch_invalid():
     data = np.array([-np.inf, 0.00, 0.25, 0.50, 0.75, 1.00, np.inf])
     result = np.array([0.0, 0.0, 0.25, 0.5, 0.75, 1.0, 1.0])
-    assert_equal(HistEqStretch(data)(data), result)
-    assert_equal(InvertedHistEqStretch(data)(data), result)
+    assert HistEqStretch(data)(data) == result
+    assert InvertedHistEqStretch(data)(data) == result
 
 
 def test_deprecated_attrs():

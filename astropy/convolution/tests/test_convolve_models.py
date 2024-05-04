@@ -4,7 +4,7 @@ import math
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_almost_equal
+from numpy.testing import assert_allclose
 
 from astropy.convolution.convolve import convolve, convolve_fft, convolve_models
 from astropy.modeling import fitting, models
@@ -95,4 +95,4 @@ class TestConvolve1DModels:
         fitted_model = fitter(init_model, x, fake_data)
 
         me = np.mean(fitted_model(x) - fake_data)
-        assert_almost_equal(me, 0.0, decimal=2)
+        assert_allclose(me, 0.0, decimal=2)

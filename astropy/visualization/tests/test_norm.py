@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 from numpy import ma
-from numpy.testing import assert_allclose, assert_array_equal, assert_equal
+from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB, HAS_PLT
 from astropy.visualization.interval import ManualInterval, PercentileInterval
@@ -112,11 +112,11 @@ class TestNormalize:
         norm = ImageNormalize(vmin=1.0, vmax=3.0, clip=False)
 
         output = norm(data, clip=True)
-        assert_equal(output.data, [0, 0, 0.5, 1.0, 1.0])
+        assert output.data == [0, 0, 0.5, 1.0, 1.0]
         assert np.all(~output.mask)
 
         output = norm(data, clip=False)
-        assert_equal(output.data, [-0.5, 0, 0.5, 1.0, 1.5])
+        assert output.data == [-0.5, 0, 0.5, 1.0, 1.5]
         assert np.all(~output.mask)
 
     def test_masked_clip(self):
@@ -161,24 +161,24 @@ class TestNormalize:
         # initialized without data
         norm = ImageNormalize(interval=interval)
         norm(data)  # sets vmin/vmax
-        assert_equal((norm.vmin, norm.vmax), (1.65, 22.35))
+        assert (norm.vmin == norm.vmax, (1.65, 22.35))
 
         # initialized with data
         norm2 = ImageNormalize(data, interval=interval)
-        assert_equal((norm2.vmin, norm2.vmax), (norm.vmin, norm.vmax))
+        assert (norm2.vmin == norm2.vmax, (norm.vmin, norm.vmax))
 
         norm3 = simple_norm(data, "linear", percent=percent)
-        assert_equal((norm3.vmin, norm3.vmax), (norm.vmin, norm.vmax))
+        assert (norm3.vmin == norm3.vmax, (norm.vmin, norm.vmax))
 
         assert_allclose(norm(data), norm2(data))
         assert_allclose(norm(data), norm3(data))
 
         norm4 = ImageNormalize()
         norm4(data)  # sets vmin/vmax
-        assert_equal((norm4.vmin, norm4.vmax), (0, 24))
+        assert (norm4.vmin == norm4.vmax, (0, 24))
 
         norm5 = ImageNormalize(data)
-        assert_equal((norm5.vmin, norm5.vmax), (norm4.vmin, norm4.vmax))
+        assert (norm5.vmin == norm5.vmax, (norm4.vmin, norm4.vmax))
 
     @pytest.mark.parametrize("stretch", STRETCHES)
     def test_invalid_keyword(self, stretch):
@@ -192,10 +192,10 @@ class TestNormalize:
         result1 = norm1(DATA3)
         result2 = norm2(DATA3)
         result3 = norm3(DATA3)
-        assert_equal(result1[0:2], (np.nan, np.nan))
-        assert_equal(result2[0:2], (-1.0, -1.0))
-        assert_equal(result1[2:], result2[2:])
-        assert_equal(result2, result3)
+        assert result1[0:2] == (np.nan, np.nan)
+        assert result2[0:2] == (-1.0, -1.0)
+        assert result1[2:] == result2[2:]
+        assert result2 == result3
 
 
 @pytest.mark.skipif(not HAS_MATPLOTLIB, reason="requires matplotlib")
@@ -219,7 +219,7 @@ class TestImageScaling:
         norm2 = ImageNormalize(
             stretch=stretch, vmin=-1, vmax=1, clip=False, invalid=invalid
         )
-        assert_equal(norm1(DATA3), norm2(DATA3))
+        assert norm1(DATA3) == norm2(DATA3)
 
     def test_power(self):
         """Test power scaling."""

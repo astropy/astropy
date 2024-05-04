@@ -13,7 +13,7 @@ from unittest import mock
 import numpy as np
 import pytest
 from numpy import linalg
-from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
+from numpy.testing import assert_allclose
 
 from astropy.modeling import models
 from astropy.modeling.core import Fittable2DModel, Parameter
@@ -124,12 +124,12 @@ class TestICheb2D:
         )
         z = self.cheb2(self.x, self.y)
         model = self.fitter(self.cheb2, self.x, self.y, z)
-        assert_almost_equal(model.parameters, p)
+        assert_allclose(model.parameters, p)
 
     def test_poly2D_cheb2D(self):
         model = self.fitter(self.cheb2, self.x, self.y, self.z)
         z1 = model(self.x, self.y)
-        assert_almost_equal(self.z, z1)
+        assert_allclose(self.z, z1)
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
     @pytest.mark.parametrize("fitter", non_linear_fitters)
@@ -1241,7 +1241,7 @@ def test_fitting_with_outlier_removal_niter():
     model, mask = fitter(models.Chebyshev1D(2, n_models=2), x, y)
 
     # Confirm that only the deviant point was rejected, in 2 iterations:
-    assert_equal(np.where(mask), [[0], [14]])
+    assert np.where(mask) == [[0], [14]]
     assert fitter.fit_info["niter"] == 2
 
     # Refit just the first row without any rejection iterations, to ensure
@@ -1495,7 +1495,7 @@ def test_non_linear_fit_zero_degree_polynomial_with_weights(fitter):
     weights = np.ones((10,))
 
     fit = fitter(model, x, y)
-    assert_almost_equal(fit.c0, 1.0)
+    assert_allclose(fit.c0, 1.0)
 
     fit = fitter(model, x, y, weights=weights)
-    assert_almost_equal(fit.c0, 1.0)
+    assert_allclose(fit.c0, 1.0)

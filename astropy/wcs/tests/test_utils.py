@@ -3,7 +3,7 @@ from contextlib import nullcontext
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
+from numpy.testing import assert_allclose
 from packaging.version import Version
 
 from astropy import units as u
@@ -432,7 +432,7 @@ def test_wcs_to_body_frame():
     assert issubclass(framem.representation_type, BaseBodycentricRepresentation)
     assert framem.name == "Mars"
     assert framem.representation_type._equatorial_radius == 3396190.0 * u.m
-    assert_almost_equal(framem.representation_type._flattening, 0.005888952031541227)
+    assert_allclose(framem.representation_type._flattening, 0.005888952031541227)
     assert framem.representation_type is not framev.representation_type
     assert framem is not framev
 
@@ -447,7 +447,7 @@ def test_wcs_to_body_frame():
     assert issubclass(frame, BaseCoordinateFrame)
     assert issubclass(frame.representation_type, BaseGeodeticRepresentation)
     assert frame.representation_type._equatorial_radius == 6378137.0 * u.m
-    assert_almost_equal(frame.representation_type._flattening, 0.0033528128981864433)
+    assert_allclose(frame.representation_type._flattening, 0.0033528128981864433)
 
     unknown_wcs = WCS(naxis=2)
     unknown_wcs.wcs.ctype = ["UTLN-TAN", "UTLT-TAN"]
@@ -610,7 +610,7 @@ def test_body_to_wcs_frame():
     assert mywcs.wcs.name == "Planetographic Body-Fixed"
     assert mywcs.wcs.aux.a_radius == 3396190.0
     assert mywcs.wcs.aux.b_radius == 3396190.0
-    assert_almost_equal(mywcs.wcs.aux.c_radius, 3376200.0)
+    assert_allclose(mywcs.wcs.aux.c_radius, 3376200.0)
 
     frame.representation_type = IAUMARS2000BodycentricRepresentation
     mywcs = celestial_frame_to_wcs(frame, projection="CAR")
@@ -620,7 +620,7 @@ def test_body_to_wcs_frame():
 
     assert mywcs.wcs.aux.a_radius == 3396190.0
     assert mywcs.wcs.aux.b_radius == 3396190.0
-    assert_almost_equal(mywcs.wcs.aux.c_radius, 3376200.0)
+    assert_allclose(mywcs.wcs.aux.c_radius, 3376200.0)
 
     class IAUMARSSphereFrame(BaseCoordinateFrame):
         name = "Mars"
@@ -663,27 +663,27 @@ def test_pixscale_nodrop():
     mywcs = WCS(naxis=2)
     mywcs.wcs.cdelt = [0.1, 0.2]
     mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
-    assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.2))
+    assert_allclose(proj_plane_pixel_scales(mywcs), (0.1, 0.2))
 
     mywcs.wcs.cdelt = [-0.1, 0.2]
-    assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.2))
+    assert_allclose(proj_plane_pixel_scales(mywcs), (0.1, 0.2))
 
 
 def test_pixscale_withdrop():
     mywcs = WCS(naxis=3)
     mywcs.wcs.cdelt = [0.1, 0.2, 1]
     mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN", "VOPT"]
-    assert_almost_equal(proj_plane_pixel_scales(mywcs.celestial), (0.1, 0.2))
+    assert_allclose(proj_plane_pixel_scales(mywcs.celestial), (0.1, 0.2))
 
     mywcs.wcs.cdelt = [-0.1, 0.2, 1]
-    assert_almost_equal(proj_plane_pixel_scales(mywcs.celestial), (0.1, 0.2))
+    assert_allclose(proj_plane_pixel_scales(mywcs.celestial), (0.1, 0.2))
 
 
 def test_pixscale_cd():
     mywcs = WCS(naxis=2)
     mywcs.wcs.cd = [[-0.1, 0], [0, 0.2]]
     mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
-    assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.2))
+    assert_allclose(proj_plane_pixel_scales(mywcs), (0.1, 0.2))
 
 
 @pytest.mark.parametrize("angle", (30, 45, 60, 75))
@@ -696,7 +696,7 @@ def test_pixscale_cd_rotated(angle):
         [scale * np.sin(rho), scale * np.cos(rho)],
     ]
     mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
-    assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.1))
+    assert_allclose(proj_plane_pixel_scales(mywcs), (0.1, 0.1))
 
 
 @pytest.mark.parametrize("angle", (30, 45, 60, 75))
@@ -707,7 +707,7 @@ def test_pixscale_pc_rotated(angle):
     mywcs.wcs.cdelt = [-scale, scale]
     mywcs.wcs.pc = [[np.cos(rho), -np.sin(rho)], [np.sin(rho), np.cos(rho)]]
     mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
-    assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.1))
+    assert_allclose(proj_plane_pixel_scales(mywcs), (0.1, 0.1))
 
 
 @pytest.mark.parametrize(
@@ -723,7 +723,7 @@ def test_pixel_scale_matrix(cdelt, pc, pccd):
     mywcs.wcs.cdelt = cdelt
     mywcs.wcs.pc = pc
 
-    assert_almost_equal(mywcs.pixel_scale_matrix, pccd)
+    assert_allclose(mywcs.pixel_scale_matrix, pccd)
 
 
 @pytest.mark.parametrize(
@@ -799,7 +799,7 @@ def test_noncelestial_scale(cdelt, pc, cd, check_warning):
 
     ps = non_celestial_pixel_scales(mywcs)
 
-    assert_almost_equal(ps.to_value(u.deg), np.array([0.1, 0.2]))
+    assert_allclose(ps.to_value(u.deg), np.array([0.1, 0.2]))
 
 
 @pytest.mark.parametrize("mode", ["all", "wcs"])
@@ -937,9 +937,9 @@ def test_pixel_to_world_correlation_matrix_celestial():
     wcs.wcs.ctype = "RA---TAN", "DEC--TAN"
     wcs.wcs.set()
 
-    assert_equal(wcs.axis_correlation_matrix, [[1, 1], [1, 1]])
+    assert wcs.axis_correlation_matrix == [[1, 1], [1, 1]]
     matrix, classes = _pixel_to_world_correlation_matrix(wcs)
-    assert_equal(matrix, [[1, 1]])
+    assert matrix == [[1, 1]]
     assert classes == [SkyCoord]
 
 
@@ -948,9 +948,9 @@ def test_pixel_to_world_correlation_matrix_spectral_cube_uncorrelated():
     wcs.wcs.ctype = "RA---TAN", "FREQ", "DEC--TAN"
     wcs.wcs.set()
 
-    assert_equal(wcs.axis_correlation_matrix, [[1, 0, 1], [0, 1, 0], [1, 0, 1]])
+    assert wcs.axis_correlation_matrix == [[1, 0, 1], [0, 1, 0], [1, 0, 1]]
     matrix, classes = _pixel_to_world_correlation_matrix(wcs)
-    assert_equal(matrix, [[1, 0, 1], [0, 1, 0]])
+    assert matrix == [[1, 0, 1], [0, 1, 0]]
     assert classes == [SkyCoord, Quantity]
 
 
@@ -960,9 +960,9 @@ def test_pixel_to_world_correlation_matrix_spectral_cube_correlated():
     wcs.wcs.cd = np.ones((3, 3))
     wcs.wcs.set()
 
-    assert_equal(wcs.axis_correlation_matrix, [[1, 1, 1], [1, 1, 1], [1, 1, 1]])
+    assert wcs.axis_correlation_matrix == [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
     matrix, classes = _pixel_to_world_correlation_matrix(wcs)
-    assert_equal(matrix, [[1, 1, 1], [1, 1, 1]])
+    assert matrix == [[1, 1, 1], [1, 1, 1]]
     assert classes == [SkyCoord, Quantity]
 
 
@@ -976,7 +976,7 @@ def test_pixel_to_pixel_correlation_matrix_celestial():
     wcs_out.wcs.set()
 
     matrix = _pixel_to_pixel_correlation_matrix(wcs_in, wcs_out)
-    assert_equal(matrix, [[1, 1], [1, 1]])
+    assert matrix == [[1, 1], [1, 1]]
 
 
 def test_pixel_to_pixel_correlation_matrix_spectral_cube_uncorrelated():
@@ -989,7 +989,7 @@ def test_pixel_to_pixel_correlation_matrix_spectral_cube_uncorrelated():
     wcs_out.wcs.set()
 
     matrix = _pixel_to_pixel_correlation_matrix(wcs_in, wcs_out)
-    assert_equal(matrix, [[1, 1, 0], [0, 0, 1], [1, 1, 0]])
+    assert matrix == [[1, 1, 0], [0, 0, 1], [1, 1, 0]]
 
 
 def test_pixel_to_pixel_correlation_matrix_spectral_cube_correlated():
@@ -1005,7 +1005,7 @@ def test_pixel_to_pixel_correlation_matrix_spectral_cube_correlated():
     wcs_out.wcs.set()
 
     matrix = _pixel_to_pixel_correlation_matrix(wcs_in, wcs_out)
-    assert_equal(matrix, [[1, 1, 1], [1, 1, 1], [1, 1, 1]])
+    assert matrix == [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
 
 
 def test_pixel_to_pixel_correlation_matrix_mismatch():
@@ -1106,7 +1106,7 @@ def test_pixel_to_pixel_correlation_matrix_nonsquare():
     assert matrix.shape == (4, 3)
 
     expected = np.array([[1, 1, 0], [1, 1, 0], [1, 1, 0], [0, 0, 1]])
-    assert_equal(matrix, expected)
+    assert matrix == expected
 
 
 def test_split_matrix():
@@ -1610,8 +1610,8 @@ def test_pixel_to_world_itrs(x_in, y_in):
     # Check round trip transformation.
     x, y = wcs.world_to_pixel(coord)
 
-    np.testing.assert_almost_equal(x, x_in)
-    np.testing.assert_almost_equal(y, y_in)
+    np.testing.assert_allclose(x, x_in)
+    np.testing.assert_allclose(y, y_in)
 
 
 @pytest.fixture

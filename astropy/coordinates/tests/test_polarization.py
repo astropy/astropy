@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-from numpy.testing import assert_equal
 
 from astropy.coordinates.polarization import (
     StokesCoord,
@@ -23,20 +22,20 @@ def test_vector():
     # to strings
     values = [1.2, 1.8, 2.0, 2.2, 2.8]
     sk = StokesCoord(values)
-    assert_equal(sk.value, values)
-    assert_equal(sk.symbol, np.array(["I", "Q", "Q", "Q", "U"]))
+    assert sk.value == values
+    assert sk.symbol == np.array(["I", "Q", "Q", "Q", "U"])
     assert repr(sk) == "StokesCoord(['I', 'Q', 'Q', 'Q', 'U'])" == str(sk)
 
 
 def test_vector_list_init():
     sk = StokesCoord(["I", "Q", "Q", "U", "U"])
     assert repr(sk) == "StokesCoord(['I', 'Q', 'Q', 'U', 'U'])" == str(sk)
-    assert_equal(sk.symbol, np.array(["I", "Q", "Q", "U", "U"]))
+    assert sk.symbol == np.array(["I", "Q", "Q", "U", "U"])
 
 
 def test_undefined():
     sk = StokesCoord(np.arange(-10, 7))
-    assert_equal(sk.symbol, "? ? YX XY YY XX LR RL LL RR ? I Q U V ? ?".split())
+    assert sk.symbol == "? ? YX XY YY XX LR RL LL RR ? I Q U V ? ?".split()
 
 
 def test_undefined_init():
@@ -57,15 +56,15 @@ def test_custom_symbol_mapping():
         values = [0.6, 1.7, 10000.1, 10002.4]
         sk1 = StokesCoord(values)
         assert repr(sk1) == "StokesCoord(['I', 'Q', 'A', 'C'])" == str(sk1)
-        assert_equal(sk1.value, values)
-        assert_equal(sk1.symbol, np.array(["I", "Q", "A", "C"]))
+        assert sk1.value == values
+        assert sk1.symbol == np.array(["I", "Q", "A", "C"])
 
     # Check that the mapping is not active outside the context manager
-    assert_equal(sk1.symbol, np.array(["I", "Q", "?", "?"]))
+    assert sk1.symbol == np.array(["I", "Q", "?", "?"])
 
     # Also not for new StokesCoords
     sk2 = StokesCoord(values)
-    assert_equal(sk2.symbol, np.array(["I", "Q", "?", "?"]))
+    assert sk2.symbol == np.array(["I", "Q", "?", "?"])
 
 
 def test_custom_symbol_mapping_overlap():
@@ -80,7 +79,7 @@ def test_custom_symbol_mapping_overlap():
 
     with custom_stokes_symbol_mapping(custom_mapping):
         sk = StokesCoord(np.arange(1, 7))
-        assert_equal(sk.symbol, np.array(["I", "Q", "A", "B", "C", "D"]))
+        assert sk.symbol == np.array(["I", "Q", "A", "B", "C", "D"])
 
 
 def test_custom_symbol_mapping_replace():
@@ -95,29 +94,29 @@ def test_custom_symbol_mapping_replace():
 
     with custom_stokes_symbol_mapping(custom_mapping, replace=True):
         sk = StokesCoord(np.arange(1, 7))
-        assert_equal(sk.symbol, np.array(["?", "?", "A", "B", "C", "D"]))
+        assert sk.symbol == np.array(["?", "?", "A", "B", "C", "D"])
 
 
 def test_comparison_scalar():
     sk = StokesCoord(np.arange(1, 6))
-    assert_equal("Q" == sk, [False, True, False, False, False])
-    assert_equal(sk == 1, [True, False, False, False, False])
-    assert_equal(sk == "Q", [False, True, False, False, False])
+    assert ("Q" == sk) == [False, True, False, False, False]
+    assert (sk == 1) == [True, False, False, False, False]
+    assert (sk == "Q") == [False, True, False, False, False]
 
 
 def test_comparison_vector():
     sk = StokesCoord(np.arange(1, 6))
-    assert_equal(
-        sk == np.array(["I", "Q", "I", "I", "Q"]), [True, True, False, False, False]
+    assert (
+        (sk == np.array(["I", "Q", "I", "I", "Q"])) == [True, True, False, False, False]
     )
 
 
 def test_comparison_other_coord():
     sk1 = StokesCoord(np.arange(1, 6))
     sk2 = StokesCoord("I")
-    assert_equal(sk1 == sk2, [True, False, False, False, False])
+    assert ((sk1 == sk2) == [True, False, False, False, False])
     sk3 = StokesCoord(np.repeat(2, 5))
-    assert_equal(sk1 == sk3, [False, True, False, False, False])
+    assert ((sk1 == sk3) == [False, True, False, False, False])
 
 
 def test_efficient():
@@ -130,7 +129,7 @@ def test_efficient():
     assert sk.symbol.shape == (512, 256, 4)
     assert unbroadcast(sk.value).shape == (4,)
     assert unbroadcast(sk.symbol).shape == (4,)
-    assert_equal(unbroadcast(sk.symbol), np.array(["I", "Q", "U", "V"]))
+    assert unbroadcast(sk.symbol) == np.array(["I", "Q", "U", "V"])
 
 
 def test_broadcast_to():
@@ -140,7 +139,7 @@ def test_broadcast_to():
     assert sk2.symbol.shape == (512, 256, 4)
     assert unbroadcast(sk2.value).shape == (4,)
     assert unbroadcast(sk2.symbol).shape == (4,)
-    assert_equal(unbroadcast(sk.symbol), np.array(["I", "Q", "U", "V"]))
+    assert unbroadcast(sk.symbol) == np.array(["I", "Q", "U", "V"])
 
 
 def test_table_vstack_stokes():

@@ -8,7 +8,7 @@ import unittest.mock as mk
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_almost_equal
+from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy import wcs
@@ -66,8 +66,8 @@ def test_Sky2Pix(code):
     model = getattr(projections, "Sky2Pix_" + code)
     tinv = model(*params)
     x, y = tinv(wcslibout["phi"], wcslibout["theta"])
-    assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
-    assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
+    assert_allclose(np.asarray(x), wcs_pix[:, 0])
+    assert_allclose(np.asarray(y), wcs_pix[:, 1])
 
     assert isinstance(tinv.prjprm, wcs.Prjprm)
 
@@ -96,8 +96,8 @@ def test_Pix2Sky(code):
     model = getattr(projections, "Pix2Sky_" + code)
     tanprj = model(*params)
     phi, theta = tanprj(*PIX_COORDINATES)
-    assert_almost_equal(np.asarray(phi), wcs_phi)
-    assert_almost_equal(np.asarray(theta), wcs_theta)
+    assert_allclose(np.asarray(phi), wcs_phi)
+    assert_allclose(np.asarray(theta), wcs_theta)
 
 
 @pytest.mark.parametrize(("code",), pars)
@@ -196,15 +196,15 @@ class TestZenithalPerspective:
         wcs_phi = wcslibout["phi"]
         wcs_theta = wcslibout["theta"]
         phi, theta = self.azp(-10, 30)
-        assert_almost_equal(np.asarray(phi), wcs_phi)
-        assert_almost_equal(np.asarray(theta), wcs_theta)
+        assert_allclose(np.asarray(phi), wcs_phi)
+        assert_allclose(np.asarray(theta), wcs_theta)
 
     def test_AZP_s2p(self):
         wcslibout = self.wazp.wcs.p2s([[-10, 30]], 1)
         wcs_pix = self.wazp.wcs.s2p(wcslibout["world"], 1)["pixcrd"]
         x, y = self.azp.inverse(wcslibout["phi"], wcslibout["theta"])
-        assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
-        assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
+        assert_allclose(np.asarray(x), wcs_pix[:, 0])
+        assert_allclose(np.asarray(y), wcs_pix[:, 1])
 
     def test_validate(self):
         MESSAGE = r"Zenithal perspective projection is not defined for mu = -1"
@@ -242,15 +242,15 @@ class TestCylindricalPerspective:
         wcs_phi = wcslibout["phi"]
         wcs_theta = wcslibout["theta"]
         phi, theta = self.azp(-10, 30)
-        assert_almost_equal(np.asarray(phi), wcs_phi)
-        assert_almost_equal(np.asarray(theta), wcs_theta)
+        assert_allclose(np.asarray(phi), wcs_phi)
+        assert_allclose(np.asarray(theta), wcs_theta)
 
     def test_CYP_s2p(self):
         wcslibout = self.wazp.wcs.p2s([[-10, 30]], 1)
         wcs_pix = self.wazp.wcs.s2p(wcslibout["world"], 1)["pixcrd"]
         x, y = self.azp.inverse(wcslibout["phi"], wcslibout["theta"])
-        assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
-        assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
+        assert_allclose(np.asarray(x), wcs_pix[:, 0])
+        assert_allclose(np.asarray(y), wcs_pix[:, 1])
 
     def test_validate(self):
         MESSAGE = r"CYP projection is not defined for .*"
@@ -376,9 +376,9 @@ def test_c_projection_striding():
 
     phi, theta = model(coords[:, 0], coords[:, 1])
 
-    assert_almost_equal(phi, [0.0, 2.2790416, 4.4889294, 6.6250643, 8.68301])
+    assert_allclose(phi, [0.0, 2.2790416, 4.4889294, 6.6250643, 8.68301])
 
-    assert_almost_equal(
+    assert_allclose(
         theta, [-76.4816918, -75.3594654, -74.1256332, -72.784558, -71.3406629]
     )
 

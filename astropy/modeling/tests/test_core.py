@@ -8,7 +8,7 @@ from inspect import signature
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose
 
 import astropy
 import astropy.units as u
@@ -1394,7 +1394,7 @@ def test_compound_model_mixed_array_scalar_bounding_box():
     # Everything works when its all in the bounding box
     value0 = model(x, y, slit_id)
     value1 = model(x, y, slit_id, with_bounding_box=True)
-    assert_equal(value0, value1)
+    assert value0 == value1
 
 
 def test_model_with_bounding_box_true_and_single_output():
@@ -1405,15 +1405,15 @@ def test_model_with_bounding_box_true_and_single_output():
     y = [3, 4]
 
     # Check baseline
-    assert_equal(model(x, y), [3, 4])
+    assert model((x , y) == [3, 4])
     # Check with_bounding_box=True should be the same
-    assert_equal(model(x, y, with_bounding_box=True), [3, 4])
+    assert model(x , y, with_bounding_box=True == [3, 4])
 
     model.bounding_box = ((-np.inf, np.inf), (-np.inf, np.inf))
     # Check baseline
-    assert_equal(model(x, y), [3, 4])
+    assert model(x , y == [3, 4])
     # Check with_bounding_box=True should be the same
-    assert_equal(model(x, y, with_bounding_box=True), [3, 4])
+    assert model(x , y, with_bounding_box=True == [3, 4])
 
 
 def test_compound_model_with_bounding_box_true_and_single_output():
@@ -1424,15 +1424,15 @@ def test_compound_model_with_bounding_box_true_and_single_output():
     y = [3, 4]
 
     # Check baseline
-    assert_equal(model(x, y), [4, 5])
+    assert model(x , y, [4, 5])
     # Check with_bounding_box=True should be the same
-    assert_equal(model(x, y, with_bounding_box=True), [4, 5])
+    assert model(x , y, with_bounding_box=True == [4, 5])
 
     model.bounding_box = ((-np.inf, np.inf), (-np.inf, np.inf))
     # Check baseline
-    assert_equal(model(x, y), [4, 5])
+    assert model(x , y, [4, 5])
     # Check with_bounding_box=True should be the same
-    assert_equal(model(x, y, with_bounding_box=True), [4, 5])
+    assert model(x , y, with_bounding_box=True == [4, 5])
 
 
 def test_bounding_box_pass_with_ignored():

@@ -96,7 +96,7 @@ def test_representations_api():
         lat=Angle([5 * u.deg, (6 * np.pi / 180) * u.rad]),
     )
     assert c2.lat.unit == u.deg and c2.lon.unit == u.hourangle
-    npt.assert_almost_equal(c2.lon[1].value, 9)
+    npt.assert_allclose(c2.lon[1].value, 9)
 
     # The Quantity initializer itself can also be used to force the unit even if the
     # first element doesn't have the right unit

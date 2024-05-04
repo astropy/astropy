@@ -500,11 +500,11 @@ def test_edge_axes():
     lon = ax.coords[0]
     lat = ax.coords[1]
     fig.canvas.draw()
-    np.testing.assert_equal(
-        lon.ticks.world["b"], np.array([90.0, 180.0, 180.0, 270.0, 0.0])
+    assert (
+        lon.ticks.world["b"] == np.array([90.0, 180.0, 180.0, 270.0, 0.0])
     )
-    np.testing.assert_equal(
-        lat.ticks.world["l"], np.array([-90.0, -60.0, -30.0, 0.0, 30.0, 60.0, 90.0])
+    assert (
+        lat.ticks.world["l"] == np.array([-90.0, -60.0, -30.0, 0.0, 30.0, 60.0, 90.0])
     )
 
 
