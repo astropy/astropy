@@ -290,7 +290,7 @@ latex_logo = "_static/astropy_logo.pdf"
 # (source start file, name, description, authors, manual section).
 man_pages = [("index", project.lower(), project + " Documentation", [author], 1)]
 
-# Setting this URL is requited by sphinx-astropy
+# Setting this URL is required by sphinx-astropy
 github_issues_url = "https://github.com/astropy/astropy/issues/"
 edit_on_github_branch = "main"
 
