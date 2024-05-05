@@ -1,2 +1,0 @@
-``TIME_FORMATS`` and ``TIME_DELTA_FORMATS`` in ``astropy.time.formats``
-are changed from ``OrderedDict`` to Python ``dict``.
