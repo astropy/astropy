@@ -1310,8 +1310,17 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         return hash((self.unmasked, self.mask))
 
 
+class MaskedRecarrayInfo(MaskedNDArrayInfo):
+    # Ensure that we output a plain MaskedArray, not a masked_recarray.
+    def _represent_as_dict(self):
+        masked_ndarray = self._parent.view(np.ndarray)
+        return masked_ndarray.info._represent_as_dict()
+
+
 class MaskedRecarray(np.recarray, MaskedNDArray, data_cls=np.recarray):
     # Explicit definition since we need to override some methods.
+
+    info = MaskedRecarrayInfo()
 
     def __array_finalize__(self, obj):
         # recarray.__array_finalize__ does not do super, so we do it
@@ -1335,3 +1344,11 @@ class MaskedRecarray(np.recarray, MaskedNDArray, data_cls=np.recarray):
                 return
 
         raise NotImplementedError("can only set existing field from structured dtype.")
+
+    def __repr__(self):
+        cls_name = type(self).__name__
+        out = super().__repr__().splitlines()
+        prefix, _, rest = out[0].partition("(")
+        out0 = cls_name + "(" + rest
+        extra_space = (len(cls_name) - len(prefix)) * " "
+        return "\n".join([out0] + [extra_space + o for o in out[1:]])
