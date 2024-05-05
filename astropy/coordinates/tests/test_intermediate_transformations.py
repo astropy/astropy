@@ -44,6 +44,7 @@ from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
 from astropy.utils import iers
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.compat.optional_deps import HAS_JPLEPHEM
 from astropy.utils.exceptions import AstropyWarning
 
@@ -1095,8 +1096,8 @@ def test_aa_hd_high_precision():
         moon_aa.alt.to_value(u.radian),
         lat.to_value(u.radian),
     )
-    ha = u.Quantity(ha, u.radian, copy=False)
-    dec = u.Quantity(dec, u.radian, copy=False)
+    ha = u.Quantity(ha, u.radian, copy=COPY_IF_NEEDED)
+    dec = u.Quantity(dec, u.radian, copy=COPY_IF_NEEDED)
     assert_allclose(moon_hd.ha, ha, atol=0.1 * u.uas, rtol=0)
     assert_allclose(moon_hd.dec, dec, atol=0.1 * u.uas, rtol=0)
 
