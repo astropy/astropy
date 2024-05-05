@@ -1502,6 +1502,22 @@ class TestMaskedRecarray(MaskedArraySetup):
         assert_array_equal(mra.a.unmasked, self.msa["b"].unmasked)
         assert_array_equal(mra.a.mask, self.msa["b"].mask)
 
+    def test_recarray_repr(self):
+        assert repr(self.mra) == (
+            "MaskedRecarray([[(———, ———), ( 3.,  4.)],\n"
+            "                [(11., ———), (———, 14.)]],\n"
+            "               dtype=[('a', '<f8'), ('b', '<f8')])"
+        )
+
+    def test_recarray_represent_as_dict(self):
+        rasd = self.mra.info._represent_as_dict()
+        assert type(rasd["data"]) is np.ma.MaskedArray
+        assert type(rasd["data"].base) is np.ndarray
+        mra2 = type(self.mra).info._construct_from_dict(rasd)
+        assert type(mra2) is type(self.mra)
+        assert_array_equal(mra2.unmasked, self.ra)
+        assert_array_equal(mra2.mask, self.mra.mask)
+
 
 class TestMaskedArrayInteractionWithNumpyMA(MaskedArraySetup):
     def test_masked_array_from_masked(self):

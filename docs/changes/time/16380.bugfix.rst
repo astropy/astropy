@@ -1,0 +1,2 @@
+Ensure Time in ymdhms format can also be serialized to files as part of a
+table if it is masked.
