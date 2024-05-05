@@ -1,0 +1,2 @@
+Fix writing a ``HDUList`` to file when numpy 2 is installed and at least some of
+the data is represented as dask arrays.
