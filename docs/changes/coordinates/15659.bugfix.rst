@@ -1,4 +1,0 @@
-Previously passing a ``SkyCoord`` instance to the ``BaseCoordinateFrame``
-``separation()`` or ``separation_3d()`` methods could produce wrong results,
-depending on what additional frame attributes were defined on the ``SkyCoord``,
-but now ``SkyCoord`` input can be used safely.

@@ -1,2 +1,0 @@
-``astropy.utils.console.terminal_size`` is now deprecated in favour of
-``shutil.get_terminal_size`` from the standard library.

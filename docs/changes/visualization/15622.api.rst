@@ -1,3 +1,0 @@
-If ``vmin == vmax``, the ``ImageNormalize`` class now maps the input
-data to 0. If ``vmin > vmax``, the ``ImageNormalize`` class now raises a
-``ValueError``.

@@ -1,2 +1,0 @@
-A warning is now emitted when ``Quantity`` values are inserted into empty ``Column`` objects
-via ``Table.insert_row`` or ``Table.add_row``.

@@ -1,2 +1,0 @@
-``Table`` now has a ``setdefault()`` method, analogous to
-``dict.setdefault()``.

@@ -1,6 +1,0 @@
-Updated bundled WCSLIB version to 8.2.2. This update fixes character buffer
-overflows in the comment string for the longitude and latitude axes triggered
-by some projections in ``wcshdo()``, and also the formatting for generic
-coordinate systems. For a full list of changes - see
-http://www.atnf.csiro.au/people/mcalabre/WCS/CHANGES or
-``astropy/cextern/wcslib/CHANGES``

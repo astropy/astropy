@@ -1,2 +1,0 @@
-Fix support in ``Masked`` for generalized ufuncs with more than a
-single core dimension (such as ``erfa.rxp``).
