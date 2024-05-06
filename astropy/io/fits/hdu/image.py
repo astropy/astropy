@@ -704,9 +704,8 @@ class _ImageBaseHDU(_ValidHDU):
             # NOTE: the inplace flag to byteswap needs to be False otherwise the array is
             # byteswapped in place every time it is computed and this affects
             # the input dask array.
-            output = output.map_blocks(M.byteswap, False).map_blocks(
-                M.newbyteorder, "S"
-            )
+            output = output.map_blocks(M.byteswap, False)
+            output = output.view(output.dtype.newbyteorder("S"))
 
         initial_position = fileobj.tell()
         n_bytes = output.nbytes
