@@ -1,7 +1,6 @@
 Version 6.1.0 (2024-05-03)
 ==========================
 
-
 New Features
 ------------
 
@@ -457,6 +456,142 @@ Other Changes and Additions
 - astropy is now compiled against NumPy 2.0, enabling runtime compatibility
   with this new major release. Compatibility with NumPy 1.23 and newer
   versions of NumPy 1.x is preserved through this change. [#16252]
+
+Version 6.0.1 (2024-03-25)
+==========================
+
+Bug Fixes
+---------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Previously passing a ``SkyCoord`` instance to the ``BaseCoordinateFrame``
+  ``separation()`` or ``separation_3d()`` methods could produce wrong results,
+  depending on what additional frame attributes were defined on the ``SkyCoord``,
+  but now ``SkyCoord`` input can be used safely. [#15659]
+
+- ``Distance`` now accepts as ``parallax`` any angle-like value.
+  This includes types like ``Column`` which have a unit but are not ``Quantity`` subclasses. [#15712]
+
+- The new default for the class method ``SkyCoord.from_name()``
+  is to look for coordinates first in SIMBAD, then in NED, and then in VizieR,
+  instead of having no specific order. [#16046]
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- Reading of CDS header files with multi-line descriptions where the continued line started with a number was broken. This is now fixed. [#15617]
+
+- Ensure that the names of mixin columns are properly propagated as
+  labels for the MRT format. [#15848]
+
+- Fixed reading IPAC tables for ``long`` column type on some platforms, e.g., Windows. [#15992]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix TDISP parsing for floating numbers. [#16007]
+
+- Fix a crash when calling FITS ``writeto`` methods with stdout as the output stream. [#16008]
+
+- Fix TDISP parsing for floating numbers in formats ES / EN. [#16015]
+
+astropy.stats
+^^^^^^^^^^^^^
+
+- Fix a spurious warning when calling ``sigma_clipped_stats`` on a ``MaskedColumn``. [#15844]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fix a Table bug when setting items (via slice or index list) in a ``bytes`` type
+  ``MaskedColumn`` would cause the column mask to be set to all ``False``. A common way to
+  trigger this bug was reading a FITS file with masked string data and then sorting the
+  table. [#15669]
+
+- Fix slicing logic for Row.
+  Previously, slicing a ``astropy.table.row.Row`` object would incorrectly return a column,
+  now it correctly returns a list of values from that row. [#15733]
+
+- Fix a ``ValueError`` raised by ``table.join`` when fed with large tables.
+  This would typically happen in situations when the result joined table would be
+  too large to fit in memory. In those situations, the error message is now much more
+  clearly about the necessary memory size. [#15734]
+
+- Fix an unintended exception being raised when attempting to compare two unequal ``Table`` instances. [#15845]
+
+- Ensure that if a ``Column`` is initialized with a ``Quantity`` it will use by
+  default a possible name defined on the quantity's ``.info``. [#15848]
+
+- The unit conversion ``convert_unit_to`` with MaskedColumn was
+  broken as it was storing the old unit in a dictionary attached
+  to underlying np.ma.MaskedArray. This fixes it by overwriting
+  the old unit after unit conversion. [#16118]
+
+- ``astropy.table.vstack`` will no longer modify the input list even when it
+  contains non-Table objects like ``astropy.table.Row``. [#16130]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Fix an issue with unicode string representations of units shown as
+  superscripts (like degree) when raised to some power. Like for
+  LaTeX representations, now the superscript unicode character is
+  replaced by the literal short name before adding the power. [#15755]
+
+- Fix a missing ``Sun`` unit in the list of VOUnits simple_units. [#15832]
+
+- Fix write/read roundtrips with empty ``Table`` dumped to ECSV. [#15885]
+
+- Fix a bug where LaTeX formatter would return empty strings for unity (1) input. [#15923]
+
+- Ensure powers of units are consistently as simple as possible. So, an
+  integer if possible, otherwise a float, or a fraction if the float is
+  really close to that. This also ensures the hash of a unit is unique
+  for any given unit (previously, the same power could be represented as
+  float, int or fraction, which made the hash different). [#16058]
+
+- Ensure that ``find_equivalent_units`` only returns actual units, not units
+  that raised to some power match the requested one.  With this fix,
+  ``(u.m**-3).find_equivalent_units()`` properly finds nothing, rather than all
+  units of length. [#16127]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Fix a bug where ``astropy.utils.console.Spinner`` would leak newlines for
+  messages longer than terminal width. [#16040]
+
+- Update ``report_diff_values`` so the diff no longer depends on the
+  console terminal size. [#16065]
+
+- Fix support in ``Masked`` for generalized ufuncs with more than a
+  single core dimension (such as ``erfa.rxp``). [#16120]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Fix an edge case where ``quantity_support`` would produce duplicate tick labels for small data ranges. [#15841]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Updated bundled WCSLIB version to 8.2.2. This update fixes character buffer
+  overflows in the comment string for the longitude and latitude axes triggered
+  by some projections in ``wcshdo()``, and also the formatting for generic
+  coordinate systems. For a full list of changes - see
+  http://www.atnf.csiro.au/people/mcalabre/WCS/CHANGES or
+  ``astropy/cextern/wcslib/CHANGES`` [#15795]
+
+- Fixed a bug in ``fit_wcs_from_points`` that does not set the default value of the ``cdelt`` of the returned WCS object. [#16027]
+
+Other Changes and Additions
+---------------------------
+
+- Given the potential breaking changes with the upcoming Numpy 2.0 release,
+  this release pins Numpy<2.0 and support for Numpy 2.0 will be added in the
+  v6.1.0 release.
 
 Version 6.0.0 (2023-11-25)
 ==========================
