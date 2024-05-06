@@ -989,7 +989,7 @@ def test__validate_input_shapes():
     assert (2, 2) == model._validate_input_shapes(inputs, model.inputs, 1)
 
     # Fail check_broadcast
-    MESSAGE = r"All inputs must have identical shapes or must be scalars"
+    MESSAGE = ".*All inputs must have identical shapes or must be scalars.*"
 
     # Fails because the input shape of the second input has one more axis which
     # for which the first input can be broadcasted to

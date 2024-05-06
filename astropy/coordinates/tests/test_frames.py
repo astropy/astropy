@@ -728,7 +728,7 @@ def test_time_inputs():
     assert c.shape == (2,)
 
     # If the shapes are not broadcastable, then we should raise an exception.
-    with pytest.raises(ValueError, match="inconsistent shapes"):
+    with pytest.raises(ValueError, match=".*inconsistent shapes.*"):
         FK4([1, 2, 3] * u.deg, [4, 5, 6] * u.deg, obstime=["J2000", "J2001"])
 
 
