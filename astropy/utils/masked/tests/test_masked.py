@@ -1503,10 +1503,10 @@ class TestMaskedRecarray(MaskedArraySetup):
         assert_array_equal(mra.a.mask, self.msa["b"].mask)
 
     def test_recarray_repr(self):
-        assert repr(self.mra) == (
+        # Omit dtype part with endian-dependence.
+        assert repr(self.mra).startswith(
             "MaskedRecarray([[(———, ———), ( 3.,  4.)],\n"
             "                [(11., ———), (———, 14.)]],\n"
-            "               dtype=[('a', '<f8'), ('b', '<f8')])"
         )
 
     def test_recarray_represent_as_dict(self):
