@@ -2,10 +2,10 @@
 
 import numpy as np
 import pytest
+from numpy import testing as npt
 
 from astropy import units as u
 from astropy.io import ascii
-from numpy import testing as npt
 
 from .common import (
     setup_function,  # noqa: F401
@@ -40,13 +40,14 @@ def test_description():
         assert table["El"].description == "a"
         assert table["ion"].description == "- Ionization stage (1 for neutral element)"
         assert (
-            table["loggf"].description ==
-            "log10 of the gf value - logarithm base 10 of stat. weight times "
-            "oscillator strength",
+            table["loggf"].description
+            == "log10 of the gf value - logarithm base 10 of stat. weight times "
+            "oscillator strength"
         )
         assert table["EW"].description == "Equivalent width (in mA)"
         assert (
-            table["Q"].description == "DAOSPEC quality parameter Q (large values are bad)"
+            table["Q"].description
+            == "DAOSPEC quality parameter Q (large values are bad)"
         )
 
 
@@ -229,7 +230,10 @@ def test_cds_no_whitespace():
     assert r.header.cols[6].null == ""
     assert r.header.cols[7].description == "Equivalent width (in mA)"
     assert r.header.cols[7].null == "-9.9"
-    assert r.header.cols[10].description == "DAOSPEC quality parameter Q (large values are bad)"
+    assert (
+        r.header.cols[10].description
+        == "DAOSPEC quality parameter Q (large values are bad)"
+    )
     assert r.header.cols[10].null == "-9.999"
 
 
