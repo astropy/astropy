@@ -20,7 +20,7 @@ from .conftest import _expand, fitsio_param_to_astropy_param
 
 # This is so that tox can force this file to be run, and not be silently
 # skipped on CI, but in all other test runs it's skipped if fitsio isn't present.
-if "ASTROPY_ALWAYS_TESTS_FITSIO" in os.environ:
+if "ASTROPY_ALWAYS_TEST_FITSIO" in os.environ:
     import fitsio
 else:
     fitsio = pytest.importorskip("fitsio")
