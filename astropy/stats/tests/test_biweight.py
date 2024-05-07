@@ -112,20 +112,14 @@ def test_biweight_location_axis_tuple():
     data = np.arange(24).reshape(2, 3, 4)
     data[0, 0] = 100.0
 
-    assert biweight_location(data , axis=0) == biweight_location(data, axis=(0,))
-    assert biweight_location(data , axis=-1) == biweight_location(data, axis=(2,))
-    assert (
-        biweight_location(data, axis=(0, 1)) == biweight_location(data, axis=(1, 0))
+    assert biweight_location(data, axis=0) == biweight_location(data, axis=(0,))
+    assert biweight_location(data, axis=-1) == biweight_location(data, axis=(2,))
+    assert biweight_location(data, axis=(0, 1)) == biweight_location(data, axis=(1, 0))
+    assert biweight_location(data, axis=(0, 2)) == biweight_location(data, axis=(0, -1))
+    assert biweight_location(data, axis=(0, 1, 2)) == biweight_location(
+        data, axis=(2, 0, 1)
     )
-    assert (
-        biweight_location(data, axis=(0, 2)) == biweight_location(data, axis=(0, -1))
-    )
-    assert (
-        biweight_location(data, axis=(0, 1, 2)) == biweight_location(data, axis=(2, 0, 1))
-    )
-    assert (
-        biweight_location(data, axis=(0, 1, 2)) == biweight_location(data, axis=None)
-    )
+    assert biweight_location(data, axis=(0, 1, 2)) == biweight_location(data, axis=None)
 
 
 @pytest.mark.filterwarnings("ignore:All-NaN slice encountered")
@@ -137,12 +131,13 @@ def test_biweight_location_ignore_nan():
     assert np.isnan(biweight_location(data1d, ignore_nan=False))
 
     biw_expected = biweight_location(data1d[:-1], ignore_nan=False)
-    assert biweight_location(data1d, ignore_nan=True == biw_expected)
+    assert biweight_location(data1d, ignore_nan=bool(biw_expected))
 
-    assert biweight_location(data2d,  data1d, axis=0, ignore_nan=True)
-    assert (
-        biweight_location(data2d, axis=1, ignore_nan=True), [biw_expected, biw_expected]
-    )
+    assert biweight_location(data2d, data1d, axis=0, ignore_nan=True)
+    assert biweight_location(data2d, axis=1, ignore_nan=True) == [
+        biw_expected,
+        biw_expected,
+    ]
 
 
 @pytest.mark.filterwarnings("ignore:All-NaN slice encountered")
@@ -177,11 +172,11 @@ def test_biweight_location_masked():
     data1d_masked = np.ma.masked_invalid(data1d)
     data2d_masked = np.ma.masked_invalid(data2d)
 
-    assert (
-        biweight_location(data1d, ignore_nan=True) == biweight_location(data1d_masked)
+    assert biweight_location(data1d, ignore_nan=True) == biweight_location(
+        data1d_masked
     )
-    assert (
-        biweight_location(data2d, ignore_nan=True) == biweight_location(data2d_masked)
+    assert biweight_location(data2d, ignore_nan=True) == biweight_location(
+        data2d_masked
     )
 
     bw_loc = biweight_location(data1d_masked)
@@ -204,9 +199,8 @@ def test_biweight_location_masked():
     assert not isinstance(bw_loc, np.ma.MaskedArray)
     assert np.isscalar(bw_loc)
     assert np.isnan(bw_loc)
-    assert (
-        biweight_location(data1d_masked, ignore_nan=True) ==
-        biweight_location(data1d[1:], ignore_nan=True),
+    assert biweight_location(data1d_masked, ignore_nan=True) == biweight_location(
+        data1d[1:], ignore_nan=True
     )
 
     # ensure that input masked array is not modified
@@ -304,14 +298,18 @@ def test_biweight_midvariance_ignore_nan():
     biw_var_nonan = biweight_midvariance(data1d, ignore_nan=True)
     assert biw_var_nonan == biw_var
 
-    assert (
-        biweight_midvariance(data2d, axis=0, ignore_nan=True) ==
-        [0.0, 0.0, 0.0, 0.0, 0.0, np.nan],
-    )
-    assert (
-        biweight_midvariance(data2d, axis=1, ignore_nan=True) ==
-        [biw_var_nonan, biw_var_nonan],
-    )
+    assert biweight_midvariance(data2d, axis=0, ignore_nan=True) == [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        np.nan,
+    ]
+    assert biweight_midvariance(data2d, axis=1, ignore_nan=True) == [
+        biw_var_nonan,
+        biw_var_nonan,
+    ]
 
 
 @pytest.mark.filterwarnings("ignore:All-NaN slice encountered")
@@ -390,17 +388,14 @@ def test_biweight_scale_axis_tuple():
     data = np.arange(24).reshape(2, 3, 4)
     data[0, 0] = 100.0
 
-    assert biweight_scale(data , axis=0), biweight_scale(data, axis=(0,))
-    assert biweight_scale(data , axis=-1), biweight_scale(data, axis=(2,))
-    assert biweight_scale(data , axis=(0, 1)), biweight_scale(data, axis=(1, 0))
-    assert biweight_scale(data , axis=(0, 2)), biweight_scale(data, axis=(0, -1))
-    assert (
-        biweight_scale(data, axis=(0, 1, 2)), biweight_scale(data, axis=(2, 0, 1))
-    )
-    assert biweight_scale(data , axis=(0, 1, 2)), biweight_scale(data, axis=None)
-    assert (
-        biweight_scale(data, axis=(0, 2), modify_sample_size=True),
-        biweight_scale(data, axis=(0, -1), modify_sample_size=True),
+    assert biweight_scale(data, axis=0), biweight_scale(data, axis=(0,))
+    assert biweight_scale(data, axis=-1), biweight_scale(data, axis=(2,))
+    assert biweight_scale(data, axis=(0, 1)), biweight_scale(data, axis=(1, 0))
+    assert biweight_scale(data, axis=(0, 2)), biweight_scale(data, axis=(0, -1))
+    assert biweight_scale(data, axis=(0, 1, 2)), biweight_scale(data, axis=(2, 0, 1))
+    assert biweight_scale(data, axis=(0, 1, 2)), biweight_scale(data, axis=None)
+    assert biweight_scale(data, axis=(0, 2), modify_sample_size=True) == biweight_scale(
+        data, axis=(0, -1), modify_sample_size=True
     )
 
 

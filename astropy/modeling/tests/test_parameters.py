@@ -370,14 +370,10 @@ class TestParameters:
 
     def test_poly1d_multiple_sets(self):
         p1 = models.Polynomial1D(3, n_models=3)
-        assert (
-            p1.parameters, [0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        )
+        assert p1.parameters == [0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         np.testing.assert_array_equal(p1.c0, [0, 0, 0])
         p1.c0 = [10, 10, 10]
-        assert (
-            p1.parameters, [10.0, 10.0, 10.0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        )
+        assert p1.parameters == [10.0, 10.0, 10.0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     def test_par_slicing(self):
         """
@@ -385,9 +381,7 @@ class TestParameters:
         """
         p1 = models.Polynomial1D(3, n_models=3)
         p1.c0[:2] = [10, 10]
-        assert (
-            p1.parameters, [10.0, 10.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        )
+        assert p1.parameters == [10.0, 10.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     def test_poly2d(self):
         p2 = models.Polynomial2D(degree=3)
