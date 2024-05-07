@@ -867,24 +867,15 @@ A\tB\tC
     assert_equal(table["C"].dtype.kind, "f")
 
     with pytest.raises(ValueError) as e:
-        text = "A\tB\tC\nN\tS\tN\n4\tb\ta"  # C column contains non-numeric data
-        read_rdb(
-            text,
-        )
+        read_rdb("A\tB\tC\nN\tS\tN\n4\tb\ta")  # C column contains non-numeric data
     assert "Column C failed to convert" in str(e.value)
 
     with pytest.raises(ValueError) as e:
-        text = "A\tB\tC\nN\tN\n1\t2\t3"  # not enough types specified
-        read_rdb(
-            text,
-        )
+        read_rdb("A\tB\tC\nN\tN\n1\t2\t3")  # not enough types specified
     assert "mismatch between number of column names and column types" in str(e.value)
 
     with pytest.raises(ValueError) as e:
-        text = "A\tB\tC\nN\tN\t5\n1\t2\t3"  # invalid type for column C
-        read_rdb(
-            text,
-        )
+        read_rdb("A\tB\tC\nN\tN\t5\n1\t2\t3")  # invalid type for column C
     assert "type definitions do not all match [num](N|S)" in str(e.value)
 
 

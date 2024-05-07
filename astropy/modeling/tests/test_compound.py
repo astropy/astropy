@@ -373,16 +373,16 @@ def test_fix_inputs_invalid():
         CompoundModel("#", g1, g1)
 
     MESSAGE = r"Too many input arguments - expected 1, got 2"
+    gg1 = fix_inputs(g1, {0: 1})
     with pytest.raises(ValueError, match=MESSAGE):
-        gg1 = fix_inputs(g1, {0: 1})
         gg1(2, y=2)
 
+    gg1 = fix_inputs(g1, {np.int32(0): 1})
     with pytest.raises(ValueError, match=MESSAGE):
-        gg1 = fix_inputs(g1, {np.int32(0): 1})
         gg1(2, y=2)
 
+    gg1 = fix_inputs(g1, {np.int64(0): 1})
     with pytest.raises(ValueError, match=MESSAGE):
-        gg1 = fix_inputs(g1, {np.int64(0): 1})
         gg1(2, y=2)
 
 

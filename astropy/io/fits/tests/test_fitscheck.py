@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import re
+import subprocess
 
 import pytest
 
@@ -19,11 +20,13 @@ class TestFitscheck(FitsTestCase):
         assert e.value.code == 0
 
     def test_version(self, capsys):
-        with pytest.raises(SystemExit) as e:
-            fitscheck.main(["--version"])
-            out = capsys.readouterr()[0]
-            assert out == f"fitscheck {version}"
-        assert e.value.code == 0
+        script = "fitscheck"
+        script_result = subprocess.run(
+            [script, "--version"], capture_output=True, text=True, check=False
+        )
+
+        assert script_result.returncode == 0
+        assert script_result.stdout.strip() == f"{script} {version}"
 
     def test_missing_file(self, capsys):
         assert fitscheck.main(["missing.fits"]) == 1
