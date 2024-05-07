@@ -126,7 +126,11 @@ class TickLabels(Text):
         """
         self.sort()
         skippable_chars = "0123456789."
-        skippable_chars += "\N{MINUS SIGN}" if rcParams["axes.unicode_minus"] else "-"
+        if rcParams["axes.unicode_minus"] and not rcParams["text.usetex"]:
+            skippable_chars += "\N{MINUS SIGN}"
+        else:
+            skippable_chars += "-"
+
         for axis in self.world:
             t1 = self.text[axis][0]
             for i in range(1, len(self.world[axis])):
