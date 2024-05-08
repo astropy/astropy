@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # pylint: disable=invalid-name
 import os
+import re
 import subprocess
 import sys
 import unittest.mock as mk
@@ -27,7 +28,7 @@ from astropy.modeling.core import (
 )
 from astropy.modeling.parameters import Parameter
 from astropy.modeling.separable import separability_matrix
-from astropy.tests.helper import assert_quantity_allclose
+from astropy.tests.helper import PYTEST_LT_8_0, assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
@@ -989,13 +990,24 @@ def test__validate_input_shapes():
     assert (2, 2) == model._validate_input_shapes(inputs, model.inputs, 1)
 
     # Fail check_broadcast
-    MESSAGE = r"All inputs must have identical shapes or must be scalars"
+    match = r".*All inputs must have identical shapes or must be scalars.*"
 
     # Fails because the input shape of the second input has one more axis which
     # for which the first input can be broadcasted to
     inputs = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8], [9, 10]])]
-    with pytest.raises(ValueError, match=MESSAGE):
+
+    if sys.version_info >= (3, 11) and PYTEST_LT_8_0:
+        # Exception.__notes__ are available but ignored in matching,
+        # so we'll match manually and post-mortem instead
+        direct_match = None
+    else:
+        direct_match = match
+
+    with pytest.raises(ValueError, match=direct_match) as exc:
         model._validate_input_shapes(inputs, model.inputs, 1)
+
+    if direct_match is None:
+        assert re.match(match, "\n".join(exc.value.__notes__))
 
 
 def test__remove_axes_from_shape():
