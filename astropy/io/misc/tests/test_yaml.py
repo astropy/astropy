@@ -9,7 +9,7 @@ from io import StringIO
 import numpy as np
 import pytest
 
-from astropy import units as u
+import astropy.units as u
 from astropy.coordinates import (
     Angle,
     CartesianDifferential,
@@ -29,6 +29,16 @@ from astropy.table import QTable, SerializedColumn
 from astropy.time import Time
 
 
+@pytest.fixture
+def without_legacy_printoptions():
+    # this can be removed when/after reverting
+    # https://github.com/astropy/astropy/pull/15096
+    legacy_val = np.get_printoptions()["legacy"]
+    np.set_printoptions(legacy=False)
+    yield
+    np.set_printoptions(legacy=legacy_val)
+
+
 @pytest.mark.parametrize(
     "c",
     [
@@ -45,6 +55,7 @@ from astropy.time import Time
         np.complex128(1.0 - 2**-52 + 1j * (1.0 - 2**-52)),
     ],
 )
+@pytest.mark.usefixtures("without_legacy_printoptions")
 def test_numpy_types(c):
     cy = load(dump(c))
     assert c == cy
