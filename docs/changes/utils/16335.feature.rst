@@ -1,0 +1,2 @@
+Added the ``astropy.system_info`` function to help document runtime systems in
+bug reports.
