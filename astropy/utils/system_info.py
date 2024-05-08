@@ -1,10 +1,10 @@
 r"""
 A helper script to automate system info in bug reports.
 
-This can be run as
-```
-python -c "import astropy; astropy.system_info()"
-```
+This can be run as::
+
+    python -c "import astropy; astropy.system_info()"
+
 (note that the interpreter might be called python3 instead of python, depending
 on your system's details)
 
@@ -54,11 +54,12 @@ def _report_packages() -> list[str]:
 
 
 def system_info() -> None:
-    """
+    """Print relevant system information for astropy bug reports.
+
     Examples
     --------
     >>> import astropy
-    >>> astropy.system_info()
+    >>> astropy.system_info()  # doctest: +ELLIPSIS 
     platform
     --------
     platform.platform() = ...
