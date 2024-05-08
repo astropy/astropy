@@ -59,7 +59,7 @@ def system_info() -> None:
     Examples
     --------
     >>> import astropy
-    >>> astropy.system_info()  # doctest: +ELLIPSIS 
+    >>> astropy.system_info()  # doctest: +ELLIPSIS
     platform
     --------
     platform.platform() = ...
