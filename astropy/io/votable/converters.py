@@ -8,6 +8,7 @@ to/from TABLEDATA_ and BINARY_ formats.
 import re
 import struct
 import sys
+from math import prod
 
 # THIRD-PARTY
 import numpy as np
@@ -598,11 +599,7 @@ class NumericArray(Array):
         self._base = base
         self._arraysize = arraysize
         self.format = f"{tuple(arraysize)}{base.format}"
-
-        self._items = 1
-        for dim in arraysize:
-            self._items *= dim
-
+        self._items = prod(arraysize)
         self._memsize = np.dtype(self.format).itemsize
         self._bigendian_format = ">" + self.format
 
