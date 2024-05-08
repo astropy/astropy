@@ -6,6 +6,7 @@ from __future__ import annotations
 import abc
 import numbers
 from itertools import zip_longest
+from math import prod
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -225,10 +226,7 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
     @property
     def size(self) -> int:
         """The size of the object, as calculated from its shape."""
-        size = 1
-        for sh in self.shape:
-            size *= sh
-        return size
+        return prod(self.shape)
 
     @property
     def isscalar(self) -> bool:
