@@ -89,7 +89,7 @@ the kernels with ``numpy`` or ``scipy`` convolution by passing the ``array``
 attribute. This will be faster in most cases than the ``astropy`` convolution,
 but will not work properly if NaN values are present in the data.
 
->>> smoothed = np.convolve(data_1D, box_kernel.array)
+>>> smoothed = np.convolve(data_1D, box_kernel.array, mode='same')
 
 ..
   EXAMPLE END
