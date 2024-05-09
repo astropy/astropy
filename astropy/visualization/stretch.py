@@ -7,8 +7,6 @@ another set of [0:1] values with a transformation.
 
 import numpy as np
 
-from astropy.utils.decorators import deprecated_attribute
-
 from .transform import BaseTransform, CompositeTransform
 
 __all__ = [
@@ -210,8 +208,6 @@ class PowerStretch(BaseStretch):
         than 0.
     """
 
-    power = deprecated_attribute("power", "6.0", alternative="a")
-
     @property
     def _supports_invalid_kw(self):
         return True
@@ -290,8 +286,6 @@ class PowerDistStretch(BaseStretch):
         1000.
     """
 
-    exp = deprecated_attribute("exp", "6.0", alternative="a")
-
     def __init__(self, a=1000.0):
         if a < 0 or a == 1:  # singularity
             raise ValueError("a must be >= 0, but cannot be set to 1")
@@ -328,8 +322,6 @@ class InvertedPowerDistStretch(BaseStretch):
         greater than or equal to 0, but cannot be set to 1.  Default is
         1000.
     """
-
-    exp = deprecated_attribute("exp", "6.0", alternative="a")
 
     def __init__(self, a=1000.0):
         if a < 0 or a == 1:  # singularity
@@ -384,8 +376,6 @@ class LogStretch(BaseStretch):
         The ``a`` parameter used in the above formula.  ``a`` must be
         greater than 0.  Default is 1000.
     """
-
-    exp = deprecated_attribute("exp", "6.0", alternative="a")
 
     @property
     def _supports_invalid_kw(self):
@@ -465,8 +455,6 @@ class InvertedLogStretch(BaseStretch):
         The ``a`` parameter used in the above formula.  ``a`` must be
         greater than 0.  Default is 1000.
     """
-
-    exp = deprecated_attribute("exp", "6.0", alternative="a")
 
     def __init__(self, a):
         super().__init__()
