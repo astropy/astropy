@@ -1,0 +1,1 @@
+Fix YAML table serialization compatibility with numpy 2.
