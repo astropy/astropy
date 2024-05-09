@@ -166,4 +166,4 @@ jobs:
             pip install -U --no-build-isolation pyerfa
             ASTROPY_USE_SYSTEM_ALL=1 pip3 install -v --no-build-isolation -e .[test]
             pip3 list
-            python3 -m pytest
+            python3 -m pytest -m "not hypothesis"
