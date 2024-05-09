@@ -66,12 +66,6 @@ jobs:
             toxenv: linkcheck
             toxposargs: --color
 
-          # This is sensitive to Python version.
-          - name: Run flynt to check string formatting
-            os: ubuntu-latest
-            python: '3.11'
-            toxenv: flynt
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
