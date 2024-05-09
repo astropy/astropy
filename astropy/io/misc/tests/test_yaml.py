@@ -29,16 +29,6 @@ from astropy.table import QTable, SerializedColumn
 from astropy.time import Time
 
 
-@pytest.fixture
-def without_legacy_printoptions():
-    # this can be removed when/after reverting
-    # https://github.com/astropy/astropy/pull/15096
-    legacy_val = np.get_printoptions()["legacy"]
-    np.set_printoptions(legacy=False)
-    yield
-    np.set_printoptions(legacy=legacy_val)
-
-
 @pytest.mark.parametrize(
     "c",
     [
