@@ -1,0 +1,1 @@
+Fix display of diff reports with numpy 2.
