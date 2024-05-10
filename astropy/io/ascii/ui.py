@@ -49,6 +49,67 @@ _read_trace = []
 _GUESS = True
 
 
+def _read_write_help(read_write, format=None, out=None):
+    """Helper function to output help documentation for read() or write().
+
+    This uses the ``Table.read/write.help()`` functionality and modifies the output
+    to look like the ``ascii.read/write()`` syntax.
+    """
+    help_func = getattr(Table, read_write).help
+    format_parts = ["ascii"] + ([format] if format else [])
+    help_str_io = StringIO()
+    help_func(format=".".join(format_parts), out=help_str_io)
+    help_str = help_str_io.getvalue()
+    # Replace e.g. Table.read(format='ascii.ecsv') with ascii.read(format='ecsv').
+    # Special case for format='ascii' which goes to ascii.read() or ascii.write().
+    help_str = re.sub(
+        r"Table\.(read|write)\(format='ascii\.(\w+)'\)",
+        r"ascii.\1(format='\2')",
+        help_str,
+    )
+    help_str = re.sub(
+        r"Table\.(read|write)\(format='ascii'\)",
+        r"ascii.\1()",
+        help_str,
+    )
+
+    if out is None:
+        import pydoc
+
+        pydoc.pager(help_str)
+    else:
+        out.write(help_str)
+
+
+READ_WRITE_HELP = """Output help documentation for ``ascii.{read_write}()`` for the specified ``format``.
+
+    By default the help output is printed to the console via ``pydoc.pager``.
+    Instead one can supplied a file handle object as ``out`` and the output
+    will be written to that handle.
+
+    Parameters
+    ----------
+    format : str, None
+        Format name, e.g. 'basic', 'ecsv' or 'html'
+    out : None or file-like
+        Output destination (default is stdout via a pager)
+    """
+
+
+def read_help(format=None, out=None):
+    _read_write_help("read", format=format, out=out)
+
+
+read_help.__doc__ = READ_WRITE_HELP.format(read_write="read")
+
+
+def write_help(format=None, out=None):
+    _read_write_help("write", format=format, out=out)
+
+
+write_help.__doc__ = READ_WRITE_HELP.format(read_write="write")
+
+
 def _probably_html(table, maxchars=100000):
     """
     Determine if ``table`` probably contains HTML content.  See PR #3693 and issue
@@ -446,6 +507,7 @@ def read(table, guess=None, **kwargs):
 
 
 read.__doc__ = core.READ_DOCSTRING
+read.help = read_help
 
 
 def _guess(table, read_kwargs, format, fast_reader):
@@ -1008,6 +1070,7 @@ def write(
 
 
 write.__doc__ = core.WRITE_DOCSTRING
+write.help = write_help
 
 
 def get_read_trace():
