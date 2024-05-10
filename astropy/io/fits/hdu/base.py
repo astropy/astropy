@@ -103,24 +103,16 @@ def _hdu_class_from_header(cls, header):
     Used primarily by _BaseHDU._readfrom_internal and _BaseHDU._from_data to
     find an appropriate HDU class to use based on values in the header.
     """
-    subclasses = list(itersubclasses(cls))
 
-    def _sort_key(cls):
-        return (
-            cls.__match_header_priority__,  # by requested priority
-            len(cls.mro()),  # then by depth (shallower first)
-            cls.__name__,  # and finally alphabetical
-        )
+    subclasses = reversed(list(itersubclasses(cls)))
 
-    # We then call sorted with reverse=True to get it by highest priority,
-    # deeper first, and reverse alphabetical.
-
-    for cls in sorted(subclasses, key=_sort_key, reverse=True):
-        print(cls, _sort_key(cls))
+    # Re-sort using __match_header_priority__ - items with the same priority
+    # will remain in the same order as sorted() is stable
+    subclasses = sorted(subclasses, key=lambda cls: -cls.__match_header_priority__)
 
     klass = cls  # By default, if no subclasses are defined
     if header:
-        for c in sorted(subclasses, key=_sort_key, reverse=True):
+        for c in subclasses:
             try:
                 # HDU classes built into astropy.io.fits are always considered,
                 # but extension HDUs must be explicitly registered
