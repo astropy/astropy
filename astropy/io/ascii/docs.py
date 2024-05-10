@@ -1,7 +1,12 @@
 READ_DOCSTRING = """
-    Read the input ``table`` and return the table.  Most of
-    the default behavior for various parameters is determined by the Reader
-    class.
+    Read the input ``table`` and return the table.  Most of the default behavior for
+    various parameters is determined by the ``format`` argument.
+
+    Help on the ``read()`` function arguments is available as shown in this example::
+
+      >>> from astropy.io import ascii
+      >>> ascii.read.help()  # Common help for all formats
+      >>> ascii.read.help("html")  # Common help plus "html" format-specific args
 
     See also:
 
@@ -122,6 +127,12 @@ READ_KWARG_TYPES = {
 WRITE_DOCSTRING = """
     Write the input ``table`` to ``filename``.  Most of the default behavior
     for various parameters is determined by the Writer class.
+
+    Help on the ``write()`` function arguments is available as shown in this example::
+
+      >>> from astropy.io import ascii
+      >>> ascii.write.help()  # Common help for all formats
+      >>> ascii.write.help("html")  # Common help plus "html" format-specific args
 
     See also:
 
