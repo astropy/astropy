@@ -211,13 +211,6 @@ Parameters for ``read()``
   This can be ``True`` or ``False``, and also be a ``dict`` with options.
   (see :ref:`fast_ascii_io`)
 
-**Reader** : Reader class (*deprecated* in favor of ``format``)
-  This specifies the top-level format of the ASCII table; for example,
-  if it is a basic character delimited table, fixed format table, or
-  a CDS-compatible table, etc. The value of this parameter must
-  be a Reader class. For basic usage this means one of the
-  built-in :ref:`extension_reader_classes`.
-
 Specifying Header and Data Location
 ===================================
 
