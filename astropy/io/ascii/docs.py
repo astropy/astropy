@@ -4,9 +4,9 @@ READ_DOCSTRING = """
 
     Help on the ``read()`` function arguments is available as shown in this example::
 
-      >>> from astropy.io import ascii
-      >>> ascii.read.help()  # Common help for all formats
-      >>> ascii.read.help("html")  # Common help plus "html" format-specific args
+      from astropy.io import ascii
+      ascii.read.help()  # Common help for all formats
+      ascii.read.help("html")  # Common help plus "html" format-specific args
 
     See also:
 
@@ -130,9 +130,9 @@ WRITE_DOCSTRING = """
 
     Help on the ``write()`` function arguments is available as shown in this example::
 
-      >>> from astropy.io import ascii
-      >>> ascii.write.help()  # Common help for all formats
-      >>> ascii.write.help("html")  # Common help plus "html" format-specific args
+      from astropy.io import ascii
+      ascii.write.help()  # Common help for all formats
+      ascii.write.help("html")  # Common help plus "html" format-specific args
 
     See also:
 
