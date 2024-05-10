@@ -22,10 +22,6 @@ READ_DOCSTRING = """
         Try to guess the table format. Defaults to None.
     format : str, `~astropy.io.ascii.BaseReader`
         Input table format
-    inputter_cls : `~astropy.io.ascii.BaseInputter`
-        Inputter class
-    outputter_cls : `~astropy.io.ascii.BaseOutputter`
-        Outputter class
     delimiter : str
         Column delimiter string
     comment : str
@@ -48,10 +44,6 @@ READ_DOCSTRING = """
         ``np.float32``; a list of such types which is tried in order until a
         successful conversion is achieved; or a list of converter tuples (see
         the `~astropy.io.ascii.convert_numpy` function for details).
-    data_splitter_cls : `~astropy.io.ascii.BaseSplitter`
-        Splitter class to split data columns
-    header_splitter_cls : `~astropy.io.ascii.BaseSplitter`
-        Splitter class to split header columns
     names : list
         List of names corresponding to each data column
     include_names : list
@@ -84,6 +76,14 @@ READ_DOCSTRING = """
 
     encoding : str
         Allow to specify encoding to read the file (default= ``None``).
+    inputter_cls : `~astropy.io.ascii.BaseInputter`
+        Inputter class
+    outputter_cls : `~astropy.io.ascii.BaseOutputter`
+        Outputter class
+    data_splitter_cls : `~astropy.io.ascii.BaseSplitter`
+        Splitter class to split data columns
+    header_splitter_cls : `~astropy.io.ascii.BaseSplitter`
+        Splitter class to split header columns
 
     Returns
     -------
