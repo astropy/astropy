@@ -221,15 +221,6 @@ details.
   to use the faster writer (described in :ref:`fast_ascii_io`) if possible.
   Specifying ``fast_writer=False`` disables this behavior.
 
-**Writer** : Writer class (*deprecated* in favor of ``format``)
-  This specifies the top-level format of the ASCII table to be written, such as
-  a basic character delimited table, fixed-format table, or a CDS-compatible
-  table, etc. The value of this parameter must be a Writer class. For basic
-  usage this means one of the built-in :ref:`extension_reader_classes`.
-  Note that Reader classes and Writer classes are synonymous; in other
-  words, Reader classes can also write, but for historical reasons they are
-  often called Reader classes.
-
 .. _cds_mrt_format:
 
 Machine-Readable Table Format

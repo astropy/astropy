@@ -22,7 +22,6 @@ import numpy as np
 
 from astropy.table import Table
 from astropy.utils.data import get_readable_fileobj
-from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
@@ -189,19 +188,14 @@ def get_reader(reader_cls=None, inputter_cls=None, outputter_cls=None, **kwargs)
     return reader
 
 
-def _get_format_class(format, reader_writer_cls, label):
-    if format is not None and reader_writer_cls is not None:
-        raise ValueError(f"Cannot supply both format and {label} keywords")
-
-    if format is not None:
-        if format in core.FORMAT_CLASSES:
-            reader_writer_cls = core.FORMAT_CLASSES[format]
-        else:
-            raise ValueError(
-                f"ASCII format {format!r} not in allowed list "
-                f"{sorted(core.FORMAT_CLASSES)}"
-            )
-    return reader_writer_cls
+def _get_format_class(format):
+    if format is None:
+        return None
+    if format in core.FORMAT_CLASSES:
+        return core.FORMAT_CLASSES[format]
+    raise ValueError(
+        f"ASCII format {format!r} not in allowed list " f"{sorted(core.FORMAT_CLASSES)}"
+    )
 
 
 def _get_fast_reader_dict(kwargs):
@@ -288,10 +282,10 @@ def read(table, guess=None, **kwargs):
     # logic (which is indeed complex) might not define `dat`, thus do so here.
     dat = None
 
-    # Specifically block `reader_cls` kwarg, which will otherwise allow a backdoor from
-    # read() to specify the reader class. Mostly for testing.
-    if "Reader" in kwargs:
-        raise TypeError("read() got an unexpected keyword argument 'Reader'")
+    # Specifically block `reader_cls` kwarg, which will otherwise cause a confusing
+    # exception later in the call to get_reader().
+    if "reader_cls" in kwargs:
+        raise TypeError("read() got an unexpected keyword argument 'reader_cls'")
 
     # Docstring defined below
     del _read_trace[:]
@@ -324,9 +318,7 @@ def read(table, guess=None, **kwargs):
     new_kwargs = copy.deepcopy(kwargs)
     kwargs["fast_reader"] = copy.deepcopy(fast_reader)
 
-    # Get the Reader class based on possible format and reader_cls kwarg inputs.
-    reader_cls = _get_format_class(format, None, "Reader")
-
+    reader_cls = _get_format_class(format)
     if reader_cls is not None:
         new_kwargs["reader_cls"] = reader_cls
         format = reader_cls._format_name
@@ -873,7 +865,6 @@ extra_writer_pars = (
 )
 
 
-@deprecated_renamed_argument("Writer", "writer_cls", "6.0")
 def get_writer(writer_cls=None, fast_writer=True, **kwargs):
     """
     Initialize a table writer allowing for common customizations.
@@ -933,12 +924,10 @@ def get_writer(writer_cls=None, fast_writer=True, **kwargs):
     return writer
 
 
-@deprecated_renamed_argument("Writer", None, "6.0", alternative='"format"')
 def write(
     table,
     output=None,
     format=None,
-    Writer=None,
     fast_writer=True,
     *,
     overwrite=False,
@@ -946,10 +935,10 @@ def write(
 ):
     # Docstring inserted below
 
-    # Specifically block `writer_cls` kwarg, which will otherwise allow a backdoor from
-    # read() to specify the reader class. Mostly for testing.
-    if "Writer" in kwargs:
-        raise TypeError("write() got an unexpected keyword argument 'Writer'")
+    # Specifically block the legacy `writer_cls` kwarg, which will otherwise cause a confusing
+    # exception later in the call to get_writer().
+    if "writer_cls" in kwargs:
+        raise TypeError("write() got an unexpected keyword argument 'writer_cls'")
 
     _validate_read_write_kwargs(
         "write", format=format, fast_writer=fast_writer, overwrite=overwrite, **kwargs
@@ -994,7 +983,7 @@ def write(
     if table.has_mixin_columns:
         fast_writer = False
 
-    writer_cls = _get_format_class(format, None, "Writer")
+    writer_cls = _get_format_class(format)
     writer = get_writer(writer_cls=writer_cls, fast_writer=fast_writer, **kwargs)
     if writer._format_name in core.FAST_CLASSES:
         writer.write(table, output)
