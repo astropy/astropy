@@ -315,10 +315,18 @@ class SigmaClip:
         # NaNs
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
-            self._max_value = self._cenfunc_parsed(data, axis=axis)
+            cen = self._cenfunc_parsed(data, axis=axis)
+            if np.isscalar(cen) and not isinstance(cen, np.float64):
+                # change bottleneck float scalar to np.float64
+                cen = np.float64(cen)
+
             std = self._stdfunc_parsed(data, axis=axis)
-            self._min_value = self._max_value - (std * self.sigma_lower)
-            self._max_value += std * self.sigma_upper
+            if np.isscalar(std) and not isinstance(std, np.float64):
+                # change bottleneck float scalar to np.float64
+                std = np.float64(std)
+
+            self._min_value = cen - (std * self.sigma_lower)
+            self._max_value = cen + (std * self.sigma_upper)
 
     def _sigmaclip_fast(
         self, data, axis=None, masked=True, return_bounds=False, copy=True
