@@ -9,6 +9,15 @@ Writing Tables
 object using the same class structure and basic user interface as for reading
 tables.
 
+Help on the ``write()`` function arguments is available interactively as shown in
+this example::
+
+.. doctest-skip::
+
+  >>> from astropy.io import ascii
+  >>> ascii.write.help()  # Common help for all formats
+  >>> ascii.write.help("html")  # Common help plus "html" format-specific args
+
 The |write| function provides a way to write a data table as a
 formatted ASCII table.
 

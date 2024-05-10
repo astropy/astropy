@@ -206,6 +206,19 @@ are compatible with the fast Cython/C engine for reading and writing.
 ``tab``                     Yes  Yes :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
 ========================= ===== ==== ============================================================================================
 
+Getting Help
+============
+
+Some formats have additional options that can be set to control the behavior of the
+reader or writer. For more information on these options, you can either see the
+documentation for the specific format class (e.g. :class:`~astropy.io.ascii.HTML`) or
+use the ``help`` function of the ``read`` or ``write`` functions. For example::
+
+.. doctest-skip::
+
+  >>> ascii.read.help()  # Common help for all formats
+  >>> ascii.read.help("html")  # Common help plus "html" format-specific args
+  >>> ascii.write.help("latex")  # Common help plus "html" format-specific args
 
 Using `astropy.io.ascii`
 ========================

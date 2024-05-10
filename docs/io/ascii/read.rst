@@ -15,6 +15,14 @@ Here ``table`` is the name of a file, a string representation of a table, or a
 list of table lines. The return value (``data`` in this case) is a :ref:`Table
 <astropy-table>` object.
 
+Help on the ``read()`` function arguments is available interactively as shown in
+this example::
+
+.. doctest-skip::
+
+  >>> ascii.read.help()  # Common help for all formats
+  >>> ascii.read.help("html")  # Common help plus "html" format-specific args
+
 By default, |read| will try to `guess the table format <#guess-table-format>`_
 by trying all of the supported formats.
 
