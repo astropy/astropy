@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import io
 import locale
 import pathlib
 import platform
@@ -22,7 +21,7 @@ from astropy.units import Unit
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2
 from astropy.utils.data import get_pkg_data_path
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils.exceptions import AstropyWarning
 
 # setup/teardown function to have the tests run in the correct directory
 from .common import (
@@ -2065,48 +2064,3 @@ def test_read_converters_simplified():
             t2 = Table.read(
                 out.getvalue(), format="ascii.basic", converters=converters, guess=False
             )
-
-
-def test_read_deprecations():
-    def check_warns(func, *args):
-        with pytest.warns(AstropyDeprecationWarning) as warns:
-            out = func(
-                *args,
-                Reader=ascii.Basic,
-                Inputter=ascii.BaseInputter,
-                Outputter=ascii.TableOutputter,
-                header_Splitter=ascii.DefaultSplitter,
-                data_Splitter=ascii.DefaultSplitter,
-            )
-            assert len(warns) == 5
-            for kwarg in (
-                "Reader",
-                "Inputter",
-                "Outputter",
-                "header_Splitter",
-                "data_Splitter",
-            ):
-                msg = f'"{kwarg}" was deprecated'
-                assert any(warn.message.args[0].startswith(msg) for warn in warns)
-            return out
-
-    tbl = check_warns(ascii.read, ["a b", "1 2"])
-    assert tbl.pformat_all() == [" a   b ", "--- ---", "  1   2"]
-
-    reader = check_warns(ascii.get_reader)
-    tbl = reader.read(["a b", "1 2"])
-    assert tbl.pformat_all() == [" a   b ", "--- ---", "  1   2"]
-
-
-def test_write_deprecations():
-    t = simple_table()
-    out = io.StringIO()
-    with pytest.warns(AstropyDeprecationWarning, match='"Writer" was deprecated'):
-        ascii.write(t, out, Writer=ascii.Csv)
-    assert out.getvalue().splitlines() == ["a,b,c", "1,1.0,c", "2,2.0,d", "3,3.0,e"]
-
-    with pytest.warns(AstropyDeprecationWarning, match='"Writer" was deprecated'):
-        writer = ascii.get_writer(Writer=ascii.Csv)
-    out = io.StringIO()
-    writer.write(t, out)
-    assert out.getvalue().splitlines() == ["a,b,c", "1,1.0,c", "2,2.0,d", "3,3.0,e"]
