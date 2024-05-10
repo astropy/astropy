@@ -16,7 +16,7 @@ list of table lines. The return value (``data`` in this case) is a :ref:`Table
 <astropy-table>` object.
 
 Help on the ``read()`` function arguments is available interactively as shown in
-this example::
+this example:
 
 .. doctest-skip::
 
