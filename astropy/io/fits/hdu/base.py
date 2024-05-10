@@ -93,15 +93,34 @@ def _hdu_class_from_header(cls, header):
     uniquely as possible.  Abstract types may choose to simply return False
     or raise NotImplementedError to be skipped.
 
+    Classes can define __match_header_priority__ to override the depth-first
+    order - a higher value will mean the class will be tried first. The default
+    value on all HDU classes is 0.
+
     If any unexpected exceptions are raised while evaluating
     match_header(), the type is taken to be _CorruptedHDU.
 
     Used primarily by _BaseHDU._readfrom_internal and _BaseHDU._from_data to
     find an appropriate HDU class to use based on values in the header.
     """
+    subclasses = list(itersubclasses(cls))
+
+    def _sort_key(cls):
+        return (
+            cls.__match_header_priority__,  # by requested priority
+            len(cls.mro()),  # then by depth (shallower first)
+            cls.__name__,  # and finally alphabetical
+        )
+
+    # We then call sorted with reverse=True to get it by highest priority,
+    # deeper first, and reverse alphabetical.
+
+    for cls in sorted(subclasses, key=_sort_key, reverse=True):
+        print(cls, _sort_key(cls))
+
     klass = cls  # By default, if no subclasses are defined
     if header:
-        for c in reversed(list(itersubclasses(cls))):
+        for c in sorted(subclasses, key=_sort_key, reverse=True):
             try:
                 # HDU classes built into astropy.io.fits are always considered,
                 # but extension HDUs must be explicitly registered
@@ -149,6 +168,8 @@ class _BaseHDU:
     _padding_byte = "\x00"
 
     _default_name = ""
+
+    __match_header_priority__ = 0
 
     # _header uses a descriptor to delay the loading of the fits.Header object
     # until it is necessary.
