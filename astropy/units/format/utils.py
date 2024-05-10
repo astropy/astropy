@@ -4,13 +4,27 @@
 Utilities shared by the different formats.
 """
 
+from __future__ import annotations
+
 import warnings
+from typing import TYPE_CHECKING
 
 from astropy.units.utils import maybe_simple_fraction
 from astropy.utils.misc import did_you_mean
 
+if TYPE_CHECKING:
+    from collections.abc import Callable, Container, Mapping, Sequence
+    from numbers import Real
+    from typing import TypeVar
 
-def get_grouped_by_powers(bases, powers):
+    from astropy.units import UnitBase
+
+    T = TypeVar("T")
+
+
+def get_grouped_by_powers(
+    bases: Sequence[T], powers: Sequence[int]
+) -> tuple[list[tuple[T, int]], list[tuple[T, int]]]:
     """
     Groups the powers and bases in the given
     `~astropy.units.CompositeUnit` into positive powers and
@@ -24,7 +38,7 @@ def get_grouped_by_powers(bases, powers):
 
     Returns
     -------
-    positives, negatives : tuple of lists
+    positives, negatives : list of tuple of |Unit| and power
        Each element in each list is tuple of the form (*base*,
        *power*).  The negatives have the sign of their power reversed
        (i.e. the powers are all positive).
@@ -41,7 +55,7 @@ def get_grouped_by_powers(bases, powers):
     return positive, negative
 
 
-def split_mantissa_exponent(v, format_spec=".8g"):
+def split_mantissa_exponent(v: Real, format_spec: str = ".8g") -> tuple[str, str]:
     """
     Given a number, split it into its mantissa and base 10 exponent
     parts, each as strings.  If the exponent is too small, it may be
@@ -49,14 +63,14 @@ def split_mantissa_exponent(v, format_spec=".8g"):
 
     Parameters
     ----------
-    v : float
+    v : number
 
     format_spec : str, optional
         Number representation formatting string
 
     Returns
     -------
-    mantissa, exponent : tuple of strings
+    mantissa, exponent : str
     """
     x = format(v, format_spec).split("e")
 
@@ -75,7 +89,9 @@ def split_mantissa_exponent(v, format_spec=".8g"):
     return m, ex
 
 
-def decompose_to_known_units(unit, func):
+def decompose_to_known_units(
+    unit: UnitBase, func: Callable[[UnitBase], None]
+) -> UnitBase:
     """
     Partially decomposes a unit so it is only composed of units that
     are "known" to a given format.
@@ -115,7 +131,7 @@ def decompose_to_known_units(unit, func):
         )
 
 
-def format_power(power):
+def format_power(power: Real) -> str:
     """
     Converts a value for a power (which may be floating point or a
     `fractions.Fraction` object), into a string looking like either
@@ -129,7 +145,9 @@ def format_power(power):
     return str(power)
 
 
-def _try_decomposed(unit, format_decomposed):
+def _try_decomposed(
+    unit: UnitBase, format_decomposed: Callable[[UnitBase], str | None]
+) -> str | None:
     represents = getattr(unit, "_represents", None)
     if represents is not None:
         try:
@@ -151,7 +169,12 @@ def _try_decomposed(unit, format_decomposed):
     return None
 
 
-def did_you_mean_units(s, all_units, deprecated_units, format_decomposed):
+def did_you_mean_units(
+    s: str,
+    all_units: Mapping[str, UnitBase],
+    deprecated_units: Container[str],
+    format_decomposed: Callable[[UnitBase], str | None],
+) -> str:
     """
     A wrapper around `astropy.utils.misc.did_you_mean` that deals with
     the display of deprecated units.
@@ -178,7 +201,7 @@ def did_you_mean_units(s, all_units, deprecated_units, format_decomposed):
         string.
     """
 
-    def fix_deprecated(x):
+    def fix_deprecated(x: str) -> list[str] | tuple[str]:
         if x in deprecated_units:
             results = [x + " (deprecated)"]
             decomposed = _try_decomposed(all_units[x], format_decomposed)
@@ -190,7 +213,12 @@ def did_you_mean_units(s, all_units, deprecated_units, format_decomposed):
     return did_you_mean(s, all_units, fix=fix_deprecated)
 
 
-def unit_deprecation_warning(s, unit, standard_name, format_decomposed):
+def unit_deprecation_warning(
+    s: str,
+    unit: UnitBase,
+    standard_name: str,
+    format_decomposed: Callable[[UnitBase], str | None],
+) -> None:
     """
     Raises a UnitsWarning about a deprecated unit in a given format.
     Suggests a decomposed alternative if one is available.
