@@ -2064,3 +2064,83 @@ def test_read_converters_simplified():
             t2 = Table.read(
                 out.getvalue(), format="ascii.basic", converters=converters, guess=False
             )
+
+
+def test_table_read_help_ascii():
+    """
+    Test dynamically created documentation help via the I/O registry for 'ascii'.
+    """
+    out = StringIO()
+    ascii.read.help(out=out)
+    doc = out.getvalue()
+
+    text = """\
+========================================
+ascii.read() documentation
+========================================
+
+Read the input ``table`` and return the table."""
+    assert doc.startswith(text)
+    assert "Parameters" in doc
+    assert "ASCII reader 'ascii' details" in doc
+    assert "Character-delimited table with a single header line" in doc
+
+
+def test_table_read_help_ascii_html():
+    """
+    Test dynamically created documentation help via the I/O registry for 'ascii.html'.
+    """
+    out = StringIO()
+    ascii.read.help("html", out=out)
+    doc = out.getvalue()
+
+    text = """\
+=============================================
+ascii.read(format='html') documentation
+=============================================
+
+Read the input ``table`` and return the table."""
+    assert doc.startswith(text)
+    assert "Parameters" in doc
+    assert "ASCII reader 'ascii.html' details" in doc
+    assert "**htmldict** : Dictionary of parameters for HTML input/output." in doc
+
+
+def test_table_write_help_ascii():
+    """
+    Test dynamically created documentation help via the I/O registry for 'ascii'.
+    """
+    out = StringIO()
+    ascii.write.help(out=out)
+    doc = out.getvalue()
+
+    text = """\
+=========================================
+ascii.write() documentation
+=========================================
+
+Write the input ``table`` to ``filename``."""
+    assert doc.startswith(text)
+    assert "Parameters" in doc
+    assert "ASCII writer 'ascii' details" in doc
+    assert "Character-delimited table with a single header line" in doc
+
+
+def test_table_write_help_ascii_html():
+    """
+    Test dynamically created documentation help via the I/O registry for 'ascii.html'.
+    """
+    out = StringIO()
+    ascii.write.help("html", out=out)
+    doc = out.getvalue()
+
+    text = """\
+==============================================
+ascii.write(format='html') documentation
+==============================================
+
+Write the input ``table`` to ``filename``."""
+    assert doc.startswith(text)
+    assert "Parameters" in doc
+    assert "ASCII writer 'ascii.html' details" in doc
+    assert "**htmldict** : Dictionary of parameters for HTML input/output." in doc
