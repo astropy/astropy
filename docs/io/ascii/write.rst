@@ -10,7 +10,7 @@ object using the same class structure and basic user interface as for reading
 tables.
 
 Help on the ``write()`` function arguments is available interactively as shown in
-this example::
+this example:
 
 .. doctest-skip::
 
