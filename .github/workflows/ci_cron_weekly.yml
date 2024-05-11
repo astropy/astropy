@@ -49,12 +49,6 @@ jobs:
             python: '3.10'
             toxenv: py310-test-devdeps
 
-          # https://github.com/astropy/astropy/issues/15701
-          - name: Python 3.11 with dev version of key dependencies without scipy
-            os: ubuntu-latest
-            python: '3.11'
-            toxenv: py311-test-devdeps-noscipy
-
           - name: Python 3.12 with dev version of infrastructure dependencies
             os: ubuntu-latest
             python: '3.12'
