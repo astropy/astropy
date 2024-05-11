@@ -19,6 +19,7 @@ from astropy.visualization.wcsaxes.frame import (
     RectangularFrame,
     RectangularFrame1D,
 )
+from astropy.visualization.wcsaxes.ticklabels import TickLabels
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
 from astropy.visualization.wcsaxes.utils import get_coord_meta
 from astropy.wcs import WCS
@@ -497,6 +498,43 @@ def test_simplify_labels_usetex(ignore_matplotlibrc, tmp_path):
     ax.grid()
 
     fig.savefig(tmp_path / "plot.png")
+
+
+@pytest.mark.parametrize(
+    "usetex, unicode_minus, label_str",
+    [
+        (True, True, "$-{}$"),
+        (True, False, "$-{}$"),
+        (False, True, "\N{MINUS SIGN}{}"),
+        (False, False, "-{}"),
+    ],
+)
+def test_simplify_labels_minus_sign(
+    ignore_matplotlibrc, usetex, unicode_minus, label_str
+):
+    # Ensure minus signs aren't removed from the front of labels across a grid of configuration possibilities
+    if usetex and TEX_UNAVAILABLE:
+        pytest.skip("TeX is unavailable")
+
+    ticklabels = TickLabels(None)
+    expected_labels = []
+    for i in range(1, 6):
+        label = label_str.format(i)
+        ticklabels.add(
+            axis="axis",
+            world=0,
+            angle=0,
+            text=label,
+            axis_displacement=0,
+            data=(i, i),
+        )
+        expected_labels.append(label)
+
+    with mpl.rc_context(
+        rc={"text.usetex": usetex, "axes.unicode_minus": unicode_minus}
+    ):
+        ticklabels.simplify_labels()
+    assert ticklabels.text["axis"] == expected_labels
 
 
 @pytest.mark.parametrize("frame_class", [RectangularFrame, EllipticalFrame])
