@@ -4283,12 +4283,10 @@ class Table:
                 nan = np.nan
                 if all(isinstance(x, string_types) or x is nan for x in data):
                     # Force any missing (null) values to b''.  Numpy will
-                    # upcast to str/unicode as needed.
-                    data[mask] = b""
-
-                    # When the numpy object array is represented as a list then
-                    # numpy initializes to the correct string or unicode type.
-                    data = np.array(list(data))
+                    # upcast to str/unicode as needed. We go via a list to
+                    # avoid replacing objects in a view of the pandas array and
+                    # to ensure numpy initializes to string or bytes correctly.
+                    data = np.array([b"" if m else d for (d, m) in zip(data, mask)])
 
             # Numpy datetime64
             if data.dtype.kind == "M":
