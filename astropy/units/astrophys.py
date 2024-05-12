@@ -124,6 +124,13 @@ def_unit(
     doc="Rydberg: Energy of a photon whose wavenumber is the Rydberg constant",
     format={"latex": r"R_{\infty}", "unicode": "R∞"},
 )
+def_unit(
+    ["foe", "Bethe", "bethe"],
+    1e51 * si.g * si.cm**2 / si.s**2,
+    namespace=_ns,
+    prefixes=False,
+    doc="foe or Bethe: 1e51 erg, used to measure energy emitted by a supernova",
+)
 
 ###########################################################################
 # ILLUMINATION
