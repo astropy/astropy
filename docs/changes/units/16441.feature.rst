@@ -1,0 +1,2 @@
+Add unit foe (or Bethe, equivalent to 1e51 erg) to ``astropy.units.astrophys``.
+This is commonly used to express the energy emitted by a supernova explosion.
