@@ -1,0 +1,1 @@
+Fix problems converting Pandas Series to ``Table`` with numpy >=2.0.
