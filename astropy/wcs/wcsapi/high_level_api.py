@@ -1,4 +1,5 @@
 import abc
+import numbers
 from collections import OrderedDict, defaultdict
 
 import numpy as np
@@ -241,8 +242,16 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
         else:
             world.append(rec_getattr(objects[key], attr))
 
-    # Strip of quantity-ness to return low-level objects
-    world = [world.value if isinstance(world, u.Quantity) else world]
+    # Check the type of the return values - should be scalars or plain Numpy
+    # arrays, not e.g. Quantity. Note that we deliberately use type(w) because
+    # we don't want to match Numpy subclasses.
+    for w in world:
+        if not isinstance(w, numbers.Number) and not type(w) == np.ndarray:
+            raise TypeError(
+                f"WCS world_axis_object_components results in "
+                f"values which are not scalars or plain Numpy "
+                f"arrays (got {type(w)})"
+            )
 
     return world
 
@@ -266,6 +275,16 @@ def values_to_high_level_objects(*world_values, low_level_wcs):
     low_level_wcs: `.BaseLowLevelWCS`
         The WCS object to use to interpret the coordinates.
     """
+    # Check the type of the input values - should be scalars or plain Numpy
+    # arrays, not e.g. Quantity. Note that we deliberately use type(w) because
+    # we don't want to match Numpy subclasses.
+    for w in world_values:
+        if not isinstance(w, numbers.Number) and not type(w) == np.ndarray:
+            raise TypeError(
+                f"Expected world coordinates as scalars or plain Numpy "
+                f"arrays (got {type(w)})"
+            )
+
     # Cache the classes and components since this may be expensive
     components = low_level_wcs.world_axis_object_components
     classes = low_level_wcs.world_axis_object_classes
