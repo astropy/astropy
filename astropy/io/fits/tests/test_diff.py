@@ -658,6 +658,7 @@ class TestDiff(FitsTestCase):
         assert "a: 2\n b: 3" in report
         assert "No differences found between common HDUs" in report
 
+    @pytest.mark.usefixtures("without_legacy_printoptions")
     def test_partially_identical_files2(self):
         """
         Test files that have some identical HDUs but one different HDU.

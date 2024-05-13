@@ -1112,7 +1112,8 @@ class ImageDataDiff(_BaseDiff):
             return
 
         for index, values in self.diff_pixels:
-            index = [x + 1 for x in reversed(index)]
+            # Convert to int to avoid np.int64 in list repr.
+            index = [int(x + 1) for x in reversed(index)]
             self._writeln(f" Data differs at {index}:")
             report_diff_values(
                 values[0],

@@ -1,6 +1,5 @@
 import difflib
 import functools
-import numbers
 import sys
 from textwrap import indent
 
@@ -126,12 +125,8 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=
         lnpad = " "
         sign_a = "a>"
         sign_b = "b>"
-        if isinstance(a, numbers.Number):
-            a = repr(a)
-            b = repr(b)
-        else:
-            a = str(a)
-            b = str(b)
+        a = str(a)
+        b = str(b)
     else:
         padding = max(len(typea.__name__), len(typeb.__name__)) + 3
         lnpad = (padding + 1) * " "
@@ -140,22 +135,8 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=
 
         is_a_str = isinstance(a, str)
         is_b_str = isinstance(b, str)
-        a = (
-            repr(a)
-            if (
-                (is_a_str and not is_b_str)
-                or (not is_a_str and isinstance(a, numbers.Number))
-            )
-            else str(a)
-        )
-        b = (
-            repr(b)
-            if (
-                (is_b_str and not is_a_str)
-                or (not is_b_str and isinstance(b, numbers.Number))
-            )
-            else str(b)
-        )
+        a = repr(a) if is_a_str and not is_b_str else str(a)
+        b = repr(b) if is_b_str and not is_a_str else str(b)
 
     identical = True
 
