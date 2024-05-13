@@ -1680,7 +1680,7 @@ class Field(
             column.unit = self.unit
         if (
             isinstance(self.converter, converters.FloatingPoint)
-            and self.converter.output_format != "{!r:>}"
+            and self.converter.output_format != "{!s:>}"
         ):
             column.format = self.converter.output_format
         elif isinstance(self.converter, converters.Char):
@@ -2780,7 +2780,11 @@ class TableElement(
                 try:
                     colnumbers = [names.index(x) for x in columns]
                 except ValueError:
-                    missing_columns = [name for name in columns if name not in names]
+                    # convert to builtin str because representation of numpy strings
+                    # differ in numpy 2 and may be confusing to users
+                    missing_columns = [
+                        str(name) for name in columns if name not in names
+                    ]
                     raise ValueError(
                         f"Columns {missing_columns} were not found in fields list"
                     ) from None
