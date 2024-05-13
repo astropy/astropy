@@ -2,6 +2,7 @@
 
 import inspect
 import os
+import pydoc
 import re
 
 from .base import IORegistryError
@@ -100,8 +101,6 @@ class UnifiedReadWrite:
                 reader_doc += inspect.cleandoc(doc)
 
         if out is None:
-            import pydoc
-
             pydoc.pager(reader_doc)
         else:
             out.write(reader_doc)
