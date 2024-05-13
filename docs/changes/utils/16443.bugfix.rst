@@ -1,0 +1,1 @@
+Fix bugs with how masked structured arrays were represented with numpy 2.
