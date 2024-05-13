@@ -1269,10 +1269,24 @@ def array_str(a, max_line_width=None, precision=None, suppress_small=None):
     # Override to change special treatment of array scalars, since the numpy
     # code turns the masked array scalar into a regular array scalar.
     # By going through MaskedFormat, we can replace the string as needed.
-    if a.shape == () and a.dtype.names is None:
-        return MaskedFormat(_array_str_scalar)(a), None, None
-    else:
-        return array2string(a, max_line_width, precision, suppress_small, " ", "")
+    if a.shape == ():
+        if a.dtype.names is None:
+            return MaskedFormat(_array_str_scalar)(a), None, None
+        elif not NUMPY_LT_2_0:
+            from numpy._core.arrayprint import StructuredVoidFormat, _format_options
+
+            # Following numpy._core.arrayprint._void_scalar_to_string
+            options = _format_options.copy()
+            if options.get("formatter") is None:
+                options["formatter"] = {}
+            options["formatter"].setdefault("float_kind", str)
+            return (
+                MaskedFormat(StructuredVoidFormat.from_data(a, **options))(a),
+                None,
+                None,
+            )
+
+    return array2string(a, max_line_width, precision, suppress_small, " ", "")
 
 
 # For the nanfunctions, we just treat any nan as an additional mask.
