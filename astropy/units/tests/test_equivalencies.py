@@ -649,7 +649,7 @@ def test_equivalent_units2():
     match = {
         u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr, u.lsec,
         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k, u.earthRad,
-        u.jupiterRad,
+        u.jupiterRad, u.foe,
     }  # fmt: skip
     assert units == match
 
@@ -662,7 +662,7 @@ def test_equivalent_units2():
             imperial.cal, u.cm, u.eV, u.erg, imperial.ft, imperial.fur,
             imperial.inch, imperial.kcal, u.lyr, u.m, imperial.mi, u.lsec,
             imperial.mil, u.micron, u.pc, u.solRad, imperial.yd, u.Bq, u.Ci,
-            imperial.nmi, u.k, u.earthRad, u.jupiterRad,
+            imperial.nmi, u.k, u.earthRad, u.jupiterRad, u.foe,
         }  # fmt: skip
         assert units == match
 
@@ -670,7 +670,7 @@ def test_equivalent_units2():
     match = {
         u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr, u.lsec,
         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k, u.earthRad,
-        u.jupiterRad,
+        u.jupiterRad, u.foe,
     }  # fmt: skip
     assert units == match
 

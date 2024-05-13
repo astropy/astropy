@@ -641,6 +641,7 @@ all kinds of things that ``Hz`` can be converted to::
     eV           | 1.60218e-19 m2 kg / s2 | electronvolt                     ,
     earthRad     | 6.3781e+06 m           | R_earth, Rearth                  ,
     erg          | 1e-07 m2 kg / s2       |                                  ,
+    foe          | 1e+44 m2 kg / s2       | Bethe, bethe                     ,
     jupiterRad   | 7.1492e+07 m           | R_jup, Rjup, R_jupiter, Rjupiter ,
     k            | 100 / m                | Kayser, kayser                   ,
     lsec         | 2.99792e+08 m          | lightsecond                      ,
