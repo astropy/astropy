@@ -76,6 +76,9 @@ READ_DOCSTRING = """
 
     encoding : str
         Allow to specify encoding to read the file (default= ``None``).
+
+    Other Parameters
+    ----------------
     inputter_cls : `~astropy.io.ascii.BaseInputter`
         Inputter class
     outputter_cls : `~astropy.io.ascii.BaseOutputter`

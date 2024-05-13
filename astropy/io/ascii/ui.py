@@ -12,9 +12,11 @@ import collections
 import contextlib
 import copy
 import os
+import pydoc
 import re
 import sys
 import time
+import typing
 import warnings
 from io import StringIO
 
@@ -22,6 +24,7 @@ import numpy as np
 
 from astropy.table import Table
 from astropy.utils.data import get_readable_fileobj
+from astropy.utils.decorators import format_doc
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
@@ -49,7 +52,9 @@ _read_trace = []
 _GUESS = True
 
 
-def _read_write_help(read_write, format=None, out=None):
+def _read_write_help(
+    read_write: str, format: str | None = None, out: typing.IO | None = None
+) -> None:
     """Helper function to output help documentation for read() or write().
 
     This uses the ``Table.read/write.help()`` functionality and modifies the output
@@ -74,8 +79,6 @@ def _read_write_help(read_write, format=None, out=None):
     )
 
     if out is None:
-        import pydoc
-
         pydoc.pager(help_str)
     else:
         out.write(help_str)
@@ -96,18 +99,14 @@ READ_WRITE_HELP = """Output help documentation for ``ascii.{read_write}()`` for 
     """
 
 
-def read_help(format=None, out=None):
+@format_doc(READ_WRITE_HELP, read_write="read")
+def read_help(format: str | None = None, out: typing.IO | None = None) -> None:
     _read_write_help("read", format=format, out=out)
 
 
-read_help.__doc__ = READ_WRITE_HELP.format(read_write="read")
-
-
-def write_help(format=None, out=None):
+@format_doc(READ_WRITE_HELP, read_write="write")
+def write_help(format: str | None = None, out: typing.IO | None = None) -> None:
     _read_write_help("write", format=format, out=out)
-
-
-write_help.__doc__ = READ_WRITE_HELP.format(read_write="write")
 
 
 def _probably_html(table, maxchars=100000):
