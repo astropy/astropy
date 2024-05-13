@@ -70,6 +70,7 @@ To recompose a unit with :meth:`~astropy.units.core.UnitBase.compose`::
   >>> x = u.Ry.decompose()
   >>> x.compose()
   [Unit("Ry"),
+   Unit("2.17987e-62 foe"),
    Unit("2.17987e-18 J"),
    Unit("2.17987e-11 erg"),
    Unit("13.6057 eV")]
