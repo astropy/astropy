@@ -15,6 +15,14 @@ Here ``table`` is the name of a file, a string representation of a table, or a
 list of table lines. The return value (``data`` in this case) is a :ref:`Table
 <astropy-table>` object.
 
+Help on the ``read()`` function arguments is available interactively as shown in
+this example:
+
+.. doctest-skip::
+
+  >>> ascii.read.help()  # Common help for all formats
+  >>> ascii.read.help("html")  # Common help plus "html" format-specific args
+
 By default, |read| will try to `guess the table format <#guess-table-format>`_
 by trying all of the supported formats.
 
@@ -194,6 +202,10 @@ Parameters for ``read()``
   This parameter takes precedence over ``fill_include_names``.  A value
   of `None` (default) does not exclude any columns.
 
+**fast_reader** : whether to use the C engine
+  This can be ``True`` or ``False``, and also be a ``dict`` with options.
+  (see :ref:`fast_ascii_io`)
+
 **outputter_cls** : Outputter class
   This converts the raw data tables value into the
   output object that gets returned by |read|. The default is
@@ -206,10 +218,6 @@ Parameters for ``read()``
 **data_splitter_cls** : Splitter class to split data columns
 
 **header_splitter_cls** : Splitter class to split header columns
-
-**fast_reader** : whether to use the C engine
-  This can be ``True`` or ``False``, and also be a ``dict`` with options.
-  (see :ref:`fast_ascii_io`)
 
 Specifying Header and Data Location
 ===================================
