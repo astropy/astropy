@@ -20,7 +20,6 @@ import numpy as np
 from astropy import config as _config
 from astropy.utils.compat.numpycompat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
-from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyWarning
 
 from .core import (
@@ -2071,19 +2070,6 @@ class Quantity(np.ndarray):
 
     def ediff1d(self, to_end=None, to_begin=None):
         return self._wrap_function(np.ediff1d, to_end, to_begin)
-
-    @deprecated("5.3", alternative="np.nansum", obj_type="method")
-    def nansum(self, axis=None, out=None, keepdims=False, *, initial=None, where=True):
-        if initial is not None:
-            initial = self._to_own_unit(initial)
-        return self._wrap_function(
-            np.nansum,
-            axis,
-            out=out,
-            keepdims=keepdims,
-            initial=initial,
-            where=where,
-        )
 
     def insert(self, obj, values, axis=None):
         """
