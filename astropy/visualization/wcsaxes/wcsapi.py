@@ -15,6 +15,7 @@ __all__ = [
     "transform_coord_meta_from_wcs",
     "WCSWorld2PixelTransform",
     "WCSPixel2WorldTransform",
+    "custom_ucd_wcscoord_mapping",
 ]
 
 IDENTITY = WCS(naxis=2)
@@ -53,6 +54,54 @@ CUSTOM_UCD_COORD_META_MAPPING = {
     },
     "pos.heliographic.carrington.lat": {"format_unit": u.deg, "coord_type": "latitude"},
 }
+
+
+class custom_ucd_wcscoord_mapping:
+    """
+    A context manager that makes it possible to temporarily add new UCD+ to WCS coordinate
+    plot metadata mappings.
+
+    Parameters
+    ----------
+    mapping : dict
+        A dictionary mapping a UCD to coordinate plot metadata
+
+    Examples
+    --------
+    >>> from astropy.wcs import WCS
+    >>> wcs = WCS(naxis=1)
+    >>> wcs.wcs.ctype = ['custom:pos.ham.eggs']
+
+
+    >>> fig = plt.figure()
+    >>> ax = fig.add_subplot(111, projection=wcs)
+    >>> ax.coords
+
+    >>> custom_meta = {'custom:pos.ham.eggs': {
+    >>>                 'coord_wrap': 360.0 * u.deg,
+    >>>                 'format_unit': u.deg,
+    >>>                 'coord_type': 'longitude'}}
+    >>> fig = plt.figure()
+    >>> with custom_ucd_wcscoord_mapping(custom_meta):
+    >>>     ax = fig.add_subplot(111, projection=wcs)
+    >>>     ax.coords
+
+    """
+
+    def __init__(self, mapping):
+        self.mapping = {}
+        for k, v in mapping.items():
+            if k in CUSTOM_UCD_COORD_META_MAPPING:
+                raise ValueError(f"UCD metadata mapping {k} already exists.")
+            CUSTOM_UCD_COORD_META_MAPPING[k] = v
+            self.mapping[k] = v
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, tb):
+        for k in self.mapping.keys():
+            del CUSTOM_UCD_COORD_META_MAPPING[k]
 
 
 def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
