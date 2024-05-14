@@ -68,24 +68,33 @@ class custom_ucd_wcscoord_mapping:
 
     Examples
     --------
-    >>> from astropy.wcs import WCS
-    >>> wcs = WCS(naxis=1)
-    >>> wcs.wcs.ctype = ['custom:pos.ham.eggs']
-
-
-    >>> fig = plt.figure()
-    >>> ax = fig.add_subplot(111, projection=wcs)
-    >>> ax.coords
-
-    >>> custom_meta = {'custom:pos.ham.eggs': {
-    >>>                 'coord_wrap': 360.0 * u.deg,
-    >>>                 'format_unit': u.deg,
-    >>>                 'coord_type': 'longitude'}}
-    >>> fig = plt.figure()
-    >>> with custom_ucd_wcscoord_mapping(custom_meta):
-    >>>     ax = fig.add_subplot(111, projection=wcs)
-    >>>     ax.coords
-
+        >>> from matplotlib import pyplot as plt
+        >>> from astropy.visualization.wcsaxes.wcsapi import custom_ucd_wcscoord_mapping
+        >>> from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping
+        >>> wcs = WCS(naxis=1)
+        >>> wcs.wcs.ctype = ["eggs"]
+        >>> wcs.wcs.cunit = ["deg"]
+        >>> custom_mapping = {"eggs": "custom:pos.eggs"}
+        >>> with custom_ctype_to_ucd_mapping(custom_mapping):
+        ...     custom_meta = {
+        ...         "pos.eggs": {
+        ...             "coord_wrap": 360.0 * u.deg,
+        ...             "format_unit": u.arcsec,
+        ...             "coord_type": "longitude",
+        ...         }
+        ...     }
+        ...     with custom_ucd_wcscoord_mapping(custom_meta):
+        ...        fig = plt.figure()
+        ...        ax = fig.add_subplot(111, projection=wcs)
+        ...        ax.coords
+        <CoordinatesMap with 1 world coordinates:
+        <BLANKLINE>
+          index       aliases           type   unit  wrap format_unit visible
+                                                     deg
+          ----- -------------------- --------- ---- ----- ----------- -------
+              0 custom:pos.eggs eggs longitude  deg 360.0      arcsec     yes
+        <BLANKLINE>
+        >
     """
 
     def __init__(self, mapping):
