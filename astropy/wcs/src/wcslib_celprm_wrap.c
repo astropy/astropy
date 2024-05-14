@@ -164,7 +164,7 @@ static PyObject* PyCelprm_copy(PyCelprm* self)
 
 static PyObject* PyCelprm_deepcopy(PyCelprm* self)
 {
-    PyCelprm* copy = PyCelprm_new(&PyCelprmType, NULL, NULL);
+    PyCelprm* copy = (PyCelprm*) PyCelprm_new(&PyCelprmType, NULL, NULL);
     if (copy == NULL) return NULL;
 
     memcpy(copy->x, self->x, sizeof(struct celprm));
@@ -321,7 +321,7 @@ static int PyCelprm_set_ref(PyCelprm* self, PyObject* value, void* closure)
         return 0;
     }
 
-    PyObject* value_array = PyArray_ContiguousFromAny(value, NPY_DOUBLE, 1, 1);
+    PyArrayObject* value_array = (PyArrayObject*) PyArray_ContiguousFromAny(value, NPY_DOUBLE, 1, 1);
     if (!value_array) return -1;
 
     size = PyArray_SIZE(value_array);
