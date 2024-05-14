@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2023, Mark Calabretta
+  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: log.c,v 8.2.1.1 2023/11/16 10:05:57 mcalabre Exp mcalabre $
+  $Id: log.c,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -47,20 +47,14 @@ int logx2s(
   int stat[])
 
 {
-  register int ix;
-  register int *statp;
-  register const double *xp;
-  register double *logcp;
-
-
   if (crval <= 0.0) {
     return LOGERR_BAD_LOG_REF_VAL;
   }
 
-  xp = x;
-  logcp = logc;
-  statp = stat;
-  for (ix = 0; ix < nx; ix++, xp += sx, logcp += slogc, statp++) {
+  const double *xp = x;
+  double *logcp = logc;
+  int *statp = stat;
+  for (int ix = 0; ix < nx; ix++, xp += sx, logcp += slogc, statp++) {
     *logcp = crval * exp((*xp) / crval);
     *statp = 0;
   }
@@ -80,22 +74,16 @@ int logs2x(
   int stat[])
 
 {
-  int status;
-  register int ilogc;
-  register int *statp;
-  register const double *logcp;
-  register double *xp;
-
-
   if (crval <= 0.0) {
     return LOGERR_BAD_LOG_REF_VAL;
   }
 
-  xp = x;
-  logcp = logc;
-  statp = stat;
-  status = 0;
-  for (ilogc = 0; ilogc < nlogc; ilogc++, logcp += slogc, xp += sx, statp++) {
+  double *xp = x;
+  const double *logcp = logc;
+  int *statp = stat;
+  int status = 0;
+  for (int ilogc = 0; ilogc < nlogc; ilogc++, logcp += slogc, xp += sx,
+       statp++) {
     if (*logcp > 0.0) {
       *xp = crval * log(*logcp / crval);
       *statp = 0;

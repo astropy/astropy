@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2023, Mark Calabretta
+  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.h,v 8.2.1.1 2023/11/16 10:05:57 mcalabre Exp mcalabre $
+  $Id: lin.h,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.2 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.3 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -42,7 +42,8 @@
 *
 * Six routines, linini(), lininit(), lindis(), lindist() lincpy(), and
 * linfree() are provided to manage the linprm struct, linsize() computes its
-* total size including allocated memory, and linprt() prints its contents.
+* total size including allocated memory, linenq() returns information about
+* the state of the struct, and linprt() prints its contents.
 *
 * linperr() prints the error message(s) (if any) stored in a linprm struct,
 * and the disprm structs that it may contain.
@@ -240,9 +241,9 @@
 *
 *                       The second element is the total size of memory
 *                       allocated in the struct, in bytes, assuming that the
-*                       allocation was done by linini().  This figure includes
-*                       memory allocated for members of constituent structs,
-*                       such as linprm::dispre.
+*                       allocation was done by lininit().  This figure
+*                       includes memory allocated for members of constituent
+*                       structs, *                       such as linprm::dispre.
 *
 *                       It is not an error for the struct not to have been set
 *                       up via linset(), which normally results in additional
@@ -251,6 +252,31 @@
 * Function return value:
 *             int       Status return value:
 *                         0: Success.
+*
+*
+* linenq() - enquire about the state of a linprm struct
+* -----------------------------------------------------
+* linenq() may be used to obtain information about the state of a linprm
+* struct.  The function returns a true/false answer for the enquiry asked.
+*
+* Given:
+*   lin       const struct linprm*
+*                       Linear transformation parameters.
+*
+*   enquiry   int       Enquiry according to the following parameters:
+*                         LINENQ_MEM: memory in the struct is being managed by
+*                                     WCSLIB (see lininit()).
+*                         LINENQ_SET: the struct has been set up by linset().
+*                         LINENQ_BYP: the struct is in bypass mode (see
+*                                     linset()).
+*                       These may be combined by logical OR, e.g.
+*                       LINENQ_MEM | LINENQ_SET.  The enquiry result will be
+*                       the logical AND of the individual results.
+*
+* Function return value:
+*             int       Enquiry result:
+*                         0: No.
+*                         1: Yes.
 *
 *
 * linprt() - Print routine for the linprm struct
@@ -297,6 +323,13 @@
 * Note that this routine need not be called directly; it will be invoked by
 * linp2x() and linx2p() if the linprm::flag is anything other than a
 * predefined magic value.
+*
+* linset() normally operates regardless of the value of linprm::flag; i.e.
+* even if a struct was previously set up it will be reset unconditionally.
+* However, a linprm struct may be put into "bypass" mode by invoking linset()
+* initially with linprm::flag == 1 (rather than 0).  linset() will return
+* immediately if invoked on a struct in that state.  To take a struct out of
+* bypass mode, simply reset linprm::flag to zero.  See also linenq().
 *
 * Given and returned:
 *   lin       struct linprm*
@@ -494,8 +527,8 @@
 * ("returned").
 *
 *   int flag
-*     (Given and returned) This flag must be set to zero whenever any of the
-*     following members of the linprm struct are set or modified:
+*     (Given and returned) This flag must be set to zero (or 1, see linset())
+*     whenever any of the following linprm members are set or changed:
 *
 *       - linprm::naxis (q.v., not normally set by the user),
 *       - linprm::pc,
@@ -664,6 +697,11 @@
 extern "C" {
 #endif
 
+enum linenq_enum {
+  LINENQ_MEM = 1,		// linprm struct memory is managed by WCSLIB.
+  LINENQ_SET = 2,		// linprm struct has been set up.
+  LINENQ_BYP = 4,		// linprm struct is in bypass mode.
+};
 
 extern const char *lin_errmsg[];
 
@@ -730,6 +768,8 @@ int lincpy(int alloc, const struct linprm *linsrc, struct linprm *lindst);
 int linfree(struct linprm *lin);
 
 int linsize(const struct linprm *lin, int sizes[2]);
+
+int linenq(const struct linprm *lin, int enquiry);
 
 int linprt(const struct linprm *lin);
 

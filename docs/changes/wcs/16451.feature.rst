@@ -1,0 +1,3 @@
+Updated bundled WCSLIB version to 8.3. This update changes the behavior of various ``*set`` functions in order to improve stability of WCSLIB in threaded applications. For a full list of changes - see
+http://www.atnf.csiro.au/people/mcalabre/WCS/CHANGES or
+``astropy/cextern/wcslib/CHANGES``

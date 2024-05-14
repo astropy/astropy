@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 8.2 and its test suite.
+# GNU makefile for building WCSLIB 8.3 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -31,7 +31,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 8.2.1.1 2023/11/16 10:05:57 mcalabre Exp mcalabre $
+# $Id: GNUmakefile,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := C
@@ -229,7 +229,8 @@ run_% : %
 	         echo 'PASS: C/$<' >> test_results ; \
 	       elif [ -f 'test/$<.out' ] ; then \
 	         trap 'rm -f run_$<.tmp' 0 1 2 3 15 ; \
-	         sed -e 's/$(ADDRE)/0x<address>/g' $<.out > \
+	         sed -e 's/$(ADDRE)/0x<address>/g' \
+	             -e 's/chksum:.*/chksum: <CHECKSUM>/' $<.out > \
 	           run_$<.tmp ; \
 	         mv -f run_$<.tmp $<.out ; \
 	         if cmp -s $<.out test/$<.out ; then \

@@ -1,5 +1,19 @@
 Platforms on which the installation procedures and test suite were exercised.
 
+WCSLIB version 8.3 (2024/05/14)
+-------------------------------
+
+* Dell Latitude XPS 15 9560 (Intel Core i7-7700HQ, 4 cores, 8 CPUs, x86_64)
+  KDE Neon User Edition 6.0 over Ubuntu 22.04 (Jammy Jellyfish)
+  uname -r (kernel version): 6.5.0-28-generic
+  gcc --version: gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+  gfortran --version: GNU Fortran (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+
+    and
+
+  gcc-12 --version: gcc-12 (Ubuntu 12.3.0-1ubuntu1~22.04) 12.3.0
+  gfortran-12 --version: GNU Fortran (Ubuntu 12.3.0-1ubuntu1~22.04) 12.3.0
+
 WCSLIB version 8.2.2 (2023/11/29)
 ---------------------------------
 
@@ -789,4 +803,4 @@ WCSLIB version 4.4 (2009/08/06)
           2004/04/23
 
 ------------------------------------------------------------------------------
-$Id: VALIDATION,v 8.2.1.2 2023/11/29 08:07:45 mcalabre Exp mcalabre $
+$Id: VALIDATION,v 8.3 2024/05/13 16:33:01 mcalabre Exp $

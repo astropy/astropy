@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2023, Mark Calabretta
+  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.l,v 8.2.1.1 2023/11/16 10:05:57 mcalabre Exp mcalabre $
+  $Id: wcspih.l,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -2028,10 +2028,8 @@ static int wcspih_timepixr(double timepixr);
 	    BEGIN(COMMENT);
 	
 	  } else {
-	    // Copy the keyvalue, skipping the initial quote.
-	    strncpy(strtmp, yytext+1, 80);
-	
-	    // Remove the terminating quote.
+	    // Copy the keyvalue minus the quotes.
+	    strncpy(strtmp, yytext+1, yyleng-2);
 	    strtmp[yyleng-2] = '\0';
 	
 	    // Strip off trailing blanks.
@@ -2084,7 +2082,8 @@ static int wcspih_timepixr(double timepixr);
 	}
 
 <RECFIELD>{FIELD} {
-	  strncpy(strtmp, yytext, 80);
+	  strncpy(strtmp, yytext, 72);
+	  strtmp[72] = '\0';
 	  BEGIN(RECCOLON);
 	}
 

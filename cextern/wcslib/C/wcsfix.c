@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2023, Mark Calabretta
+  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.c,v 8.2.1.2 2023/11/29 07:40:24 mcalabre Exp mcalabre $
+  $Id: wcsfix.c,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -316,9 +316,9 @@ int datfix(struct wcsprm *wcs)
   for (int i = 0; i < 5; i++) {
     // MJDREF is split into integer and fractional parts, wheres MJDOBS and
     // the rest are a single value.
-    const char *dateid;
-    char *date;
-    double *wcsmjd;
+    const char *dateid = 0x0;
+    char *date = 0x0;
+    double *wcsmjd = 0x0;
     if (i == 0) {
       // Note, DATEREF and MJDREF, not DATE-REF and MJD-REF (sigh).
       dateid = "REF";
@@ -922,7 +922,7 @@ int celfix(struct wcsprm *wcs)
 
   // Initialize if required.
   int status;
-  if (wcs->flag != WCSSET) {
+  if (abs(wcs->flag) != WCSSET) {
     if ((status = wcsset(wcs))) return fix_wcserr[status];
   }
 
@@ -1043,7 +1043,7 @@ int cylfix(const int naxis[], struct wcsprm *wcs)
 
   // Initialize if required.
   int status;
-  if (wcs->flag != WCSSET) {
+  if (abs(wcs->flag) != WCSSET) {
     if ((status = wcsset(wcs))) return fix_wcserr[status];
   }
 
@@ -1137,6 +1137,7 @@ int cylfix(const int naxis[], struct wcsprm *wcs)
   wcs->crval[wcs->lat] = world[0][wcs->lat];
   wcs->lonpole = phi[0] - phi0;
 
+  wcs->flag = (wcs->flag == -WCSSET) ? 1 : 0;
   return wcsset(wcs);
 }
 
@@ -1159,7 +1160,7 @@ int wcspcx(
   struct wcserr **err = &(wcs->err);
 
   int status;
-  if (wcs->flag != WCSSET) {
+  if (abs(wcs->flag) != WCSSET) {
     if ((status = wcsset(wcs))) return fix_wcserr[status];
   }
 
@@ -1405,6 +1406,7 @@ int wcspcx(
   free(mapto);
 
   // Reset the struct.
+  wcs->flag = (wcs->flag == -WCSSET) ? 1 : 0;
   if ((status = wcsset(wcs))) return fix_wcserr[status];
 
   return FIXERR_SUCCESS;
