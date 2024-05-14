@@ -146,7 +146,7 @@ static PyObject* PyPrjprm_copy(PyPrjprm* self)
 
 static PyObject* PyPrjprm_deepcopy(PyPrjprm* self)
 {
-    PyPrjprm* copy = PyPrjprm_new(&PyPrjprmType, NULL, NULL);
+    PyPrjprm* copy = (PyPrjprm*) PyPrjprm_new(&PyPrjprmType, NULL, NULL);
     if (copy == NULL) return NULL;
 
     memcpy(copy->x, self->x, sizeof(struct prjprm));
@@ -510,11 +510,12 @@ static PyObject* PyPrjprm_get_pv(PyPrjprm* self, void* closure)
     int k;
     Py_ssize_t size = PVN;
     double *pv;
-    PyObject* pv_array;
-
+    PyObject* pv_pyobj;
+    PyArrayObject* pv_array;
     if (is_prj_null(self)) return NULL;
 
-    pv_array = (PyArrayObject*) PyArray_SimpleNew(1, &size, NPY_DOUBLE);
+    pv_pyobj = PyArray_SimpleNew(1, &size, NPY_DOUBLE);
+    pv_array = (PyArrayObject*) pv_pyobj;
     if (pv_array == NULL) return NULL;
     pv = (double*) PyArray_DATA(pv_array);
 
@@ -526,7 +527,7 @@ static PyObject* PyPrjprm_get_pv(PyPrjprm* self, void* closure)
         }
     }
 
-    return pv_array;
+    return pv_pyobj;
 }
 
 
@@ -535,7 +536,7 @@ static int PyPrjprm_set_pv(PyPrjprm* self, PyObject* value, void* closure)
     int k, modified;
     npy_intp size;
     double *data;
-    PyObject* value_array = NULL;
+    PyArrayObject* value_array = NULL;
     int skip[PVN];
 
     if (is_prj_null(self) || is_readonly(self)) return -1;
@@ -550,7 +551,7 @@ static int PyPrjprm_set_pv(PyPrjprm* self, PyObject* value, void* closure)
         return 0;
     }
 
-    value_array = PyArray_ContiguousFromAny(value, NPY_DOUBLE, 1, 1);
+    value_array = (PyArrayObject*) PyArray_ContiguousFromAny(value, NPY_DOUBLE, 1, 1);
     if (!value_array) return -1;
 
     size = PyArray_SIZE(value_array);
@@ -654,7 +655,8 @@ static PyObject* PyPrjprm_set_pvi(PyPrjprm* self, PyObject* args, PyObject* kwds
     PyObject* index = NULL;
     PyObject* value = NULL;
     PyObject* flt_value = NULL;
-    PyObject* value_array = NULL;
+    PyObject* value_array_pyobj = NULL;
+    PyArrayObject* value_array = NULL;
     const char* keywords[] = { "index", "value", NULL };
     PyArray_Descr* dbl_descr = PyArray_DescrNewFromType(NPY_DOUBLE);
 
@@ -705,9 +707,10 @@ static PyObject* PyPrjprm_set_pvi(PyPrjprm* self, PyObject* args, PyObject* kwds
         }
 
     } else {
-        if (PyArray_Converter(value, &value_array) == NPY_FAIL) {
+        if (PyArray_Converter(value, &value_array_pyobj) == NPY_FAIL) {
             return NULL;
         }
+        value_array = (PyArrayObject*) value_array_pyobj;
 
         size = PyArray_SIZE(value_array);
         if (size != 1) {
@@ -771,11 +774,11 @@ static PyObject* PyPrjprm_get_w(PyPrjprm* self, void* closure)
     Py_ssize_t size = 10;
     int k;
     double *w;
-    PyObject* w_array;
+    PyArrayObject* w_array;
 
     if (is_prj_null(self)) return NULL;
 
-    w_array = (PyObject*) PyArray_SimpleNew(1, &size, NPY_DOUBLE);
+    w_array = (PyArrayObject*) PyArray_SimpleNew(1, &size, NPY_DOUBLE);
     if (w_array == NULL) return NULL;
     w = (double*) PyArray_DATA(w_array);
 
@@ -787,7 +790,7 @@ static PyObject* PyPrjprm_get_w(PyPrjprm* self, void* closure)
         }
     }
 
-    return w_array;
+    return (PyObject*) w_array;
 }
 
 
