@@ -1,4 +1,68 @@
                    Log of Changes Made to CFITSIO
+                   
+Version 4.4.0 - Feb 2024
+
+  - Reorganization of helper utility code; added fitsverify
+
+  - CMakeLists.txt: Changed install location of cfitsio-targets.cmake
+    to conform with the one listed in cfitsio-config.cmake.in (i.e.
+    including the extra "cfitsio" subdir of lib/cmake).
+
+  - calculator functions that read GTIs do more correct validity
+    checking of GTI input files
+  
+  - fits_insert_rows now works if input table starts with both no rows
+    and no columns
+
+  - Can now write internal memory files of size > 2^32 directly to a
+    gzip-compressed output file.
+    
+  - Added support for unsigned long long types to fits_update_key.
+  
+  - Added ability for Windows builds to handle UTF-8 needed for reading
+    filenames with non-ASCII characters.
+    
+  - Added 2-byte int test to speed.c utility.
+  
+  - Made fix to http file handler to expand the allowed URL length.
+  
+Version 4.3.1 - Nov 2023 (patch release)
+
+  - Patch fix needed for modify and delete keyword functions to fully
+    conform with v4.3.0 long string keyword read/write enhancements. 
+                   
+Version 4.3.0 - Jul 2023
+
+  - Bug fix to fits_make_hist[d] that was introduced in 4.2.0.
+  
+  - Added overflow checking for case of reading images with 8-byte
+    float values into 4-byte float arrays.
+    
+  - fits_write_key_longstr now handles case of writing a long keyword
+    in combination with a long keyword value string.
+    
+  - Add conversion of French locale comma-to-period in corner cases
+    appearing in ffr2e and ffd2e functions.
+    
+  - Increased the precision when writing version number to User-Agent
+    strings for http connections.  This is needed to fully conform to
+    3-field version string format.
+
+  - Bug fix to GTIOVERLAP() calculator function, which was being
+    treated as a boolean value in expressions, and is now correctly
+    treated as a floating point result.
+
+  - Bug fix to ARRAY() calculator function, which caused a memory
+    overflow error
+
+  - Enhancement to the ARRAY function, such that ARRAY(V,d) can
+    apply new dimensions to V, as long as the total number
+    of array/vector elements does not change.
+    
+  - Enhancement of long string keyword read/write functions to fully
+    conform with FITS standard specifications for multi-line value
+    and comment strings.  Two new functions have been added to 
+    implement this: fits_get_key_com_strlen and fits_read_string_key_com.
 
 Version 4.2.0 - Nov 2022
   
