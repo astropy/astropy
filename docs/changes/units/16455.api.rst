@@ -1,0 +1,4 @@
+The ``format.Fits`` formatter class has been renamed to ``format.FITS`` and the
+old name is deprecated.
+Specifying the FITS format for converting ``Quantity`` and ``UnitBase``
+instances to and from strings is not affected by this change.
