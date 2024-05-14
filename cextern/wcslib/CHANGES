@@ -1,3 +1,125 @@
+WCSLIB version 8.3 (2024/05/14)
+-------------------------------
+
+* C library
+
+  - Until now, wcsset() always operated unconditionally - the wcsprm
+    struct was set or reset regardless of its current state.  Likewise
+    the various *set() functions for the other structs.
+
+    However, in some situations, particularly in threaded applications,
+    it is desirable to have wcsset(), etc., check the state of the
+    struct and return immediately if it has already been set.  This may
+    now be accomplished by setting wcsprm::flag == 1 (instead of 0)
+    before calling wcsset().  Likewise for the other structs.  This sets
+    a "bypass" flag within the struct itself.
+
+  - A new function, wcsenq(), queries the state of the wcsprm struct,
+    specifically whether WCSLIB is managing its memory, whether the
+    struct has been set, and whether or not it is in bypass mode, and
+    whether it is self-consistent.  There are corresponding functions
+    for the other structs: celenq(), disenq(), linenq(), prjenq(),
+    spcenq(), and tabenq().  Please refer to the WCSLIB manual.
+
+  - In the C test suite, modified twcs to test wcsenq() and also
+    wcsset() in bypass mode.
+
+  - Quelled nuisance compiler warnings in wcsbth(), wcspih(), wcsp2s(),
+    and wcshdo().
+
+* Fortran wrappers
+
+  - Interprocedural Link Time Optimization (LTO), when used with the
+    strict compiler options required by some Linux distributions, may
+    place more stringent requirements on mixing code written in
+    different languages.  Specifically, as far as WCSLIB is concerned,
+    this applies for Fortran calling C (or vice versa) where the
+    function parameter list includes a character variable.
+
+    It is important to note that the existing Fortran wrappers work as
+    they did before, with or without LTO, that issues only arise when
+    strict LTO compiler options are enabled, and that wrappers without
+    a character argument are unaffected.
+
+    Fortran 2003 introduced the "language-binding-spec" attribute using
+    the keyword BIND.  The INTERFACE block for a procedure may be given
+    the BIND(C) attribute to specify the interface of an external,
+    interoperable C function.  Use of this BIND(C) attribute is now
+    virtually mandated by LTO (with said strict compiler options).
+
+    The WCSLIB Fortran wrappers are written in C, e.g. wcs_f.c, with a
+    Fortran-compliant interface, and these C functions are intended to
+    be called directly from Fortran applications.  Three options were
+    considered for achieving strict LTO compliance:
+
+      1) Require that all existing Fortran applications be modified to
+         conform to the Fortran 2003 language binding specification via
+         the addition of INTERFACE blocks bearing the BIND(C) attribute
+         for the existing wrappers.
+
+         This option is clearly untenable.
+
+      2) Rewrite the WCSLIB Fortran wrappers completely in Fortran 2003.
+
+         It seems that this option may be tenable as the BIND(C) spec
+         allows for C-equivalent derived types.  However, it would
+         require rewriting all of the wrappers, 5 kloc of C code, in
+         Fortran 2003 code that must directly manipulate the internals
+         of all of the WCSLIB structs.
+
+      3) Introduce a new layer of thin wrappers, written in Fortran
+         2003, that do nothing more than define the INTERFACE to the
+         existing wrappers written in C and then call them.
+         Essentially this extracts the changes required in option (1)
+         into a new set of wrappers.
+
+         This was the option chosen on the basis of simplicity - only
+         specific wrappers, namely those with character arguments, need
+         be rewrapped.  It also minimises WCSLIB's exposure to Fortran
+         2003, particularly for the sake of legacy astronomical packages
+         such as Miriad and AIPS.  Further, it admits the possibility of
+         the optional use of this extra layer of wrappers.
+
+    The new Fortran 2003 wrappers reside in the Fortran subdirectory in
+    files by the name of *_bindc.f90.  By default they are not compiled
+    and not used.  To use them, WCSLIB must be configure'd with the new
+    '--with-bindc' option.  This causes the new BIND(C) wrappers to be
+    compiled, and the names of the old wrappers to be changed, for
+    example from wcspih_() to wcspih_c().
+
+    LTO compile problems reported by Eli Schwartz, Gentoo maintainer.
+
+  - Added wrappers for celenq(), disenq(), linenq(), prjenq(), spcenq(),
+    tabenq(), and wcsenq().
+
+  - In the Fortran test suite, modified twcs to test WCSENQ and also
+    WCSSET in bypass mode.
+
+* PGSBOX
+
+  - Changes mirroring those described above for the Fortran wrappers,
+    the difference being that here we have a mix of C calling Fortran
+    (e.g. cpgsbox() calling PGSBOX) as well as Fortran calling C (e.g.
+    PGWCSL calling pgwcsl_c()).  As with the Fortran wrappers, the new
+    configure option, '--with-bindc', chooses whether to use the new
+    BIND(C) PGSBOX wrappers.
+
+* Installation
+
+  - Added '--with-bindc' as a new configure option (or BINDC=yes from
+    the environment) to signal the use of the new strictly LTO-compliant
+    Fortran wrappers.  See above.
+
+  - Modified 'configure' to report the version of gcc used.  Likewise,
+    for the 'show' rule in makedefs.
+
+* User manual
+
+  - Quelled a nuisance compiler warning in doxextr.
+
+  - Documentation generation moved to doxygen 1.10.0 (was 1.9.8).
+
+
 WCSLIB version 8.2.2 (2023/11/29)
 ---------------------------------
 
@@ -495,7 +617,7 @@ WCSLIB version 7.2 (2020/03/09)
 
 * Installation
 
-  - New configure option, --disable-shared, defeats generation of the
+  - New configure option, '--disable-shared', defeats generation of the
     sharable library.
 
 
@@ -3463,4 +3585,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 8.2.1.3 2023/11/29 08:04:47 mcalabre Exp mcalabre $
+$Id: CHANGES,v 8.3 2024/05/13 16:33:01 mcalabre Exp $
