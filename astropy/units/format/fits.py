@@ -12,7 +12,7 @@ import numpy as np
 from . import core, generic, utils
 
 
-class Fits(generic.Generic):
+class FITS(generic.Generic):
     """
     The FITS standard unit format.
 
