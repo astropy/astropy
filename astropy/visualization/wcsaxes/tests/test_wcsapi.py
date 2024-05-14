@@ -20,6 +20,7 @@ from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFra
 from astropy.visualization.wcsaxes.wcsapi import (
     WCSWorld2PixelTransform,
     apply_slices,
+    custom_ucd_wcscoord_mapping,
     transform_coord_meta_from_wcs,
 )
 from astropy.wcs import WCS
@@ -297,6 +298,42 @@ def test_coord_type_from_ctype(cube_wcs):
     assert coord_meta["type"] == ["longitude", "latitude"]
     assert coord_meta["format_unit"] == [u.arcsec, u.arcsec]
     assert coord_meta["wrap"] == [180 * u.deg, None]
+
+
+def test_custom_coord_type_from_ctype():
+    wcs = WCS(naxis=1)
+    wcs.wcs.ctype = ["eggs"]
+    wcs.wcs.cunit = ["deg"]
+
+    custom_mapping = {
+        "eggs": "custom:pos.eggs",
+    }
+    with custom_ctype_to_ucd_mapping(custom_mapping):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection=wcs)
+        assert ax.coords["eggs"].coord_type == "scalar"
+        assert ax.coords["eggs"].coord_wrap == None
+        assert ax.coords["eggs"].get_format_unit() == u.deg
+
+        custom_meta = {
+            "pos.eggs": {
+                "coord_wrap": 360.0 * u.deg,
+                "format_unit": u.arcsec,
+                "coord_type": "longitude",
+            }
+        }
+        with custom_ucd_wcscoord_mapping(custom_meta):
+            ax = fig.add_subplot(111, projection=wcs)
+            ax.coords
+            assert ax.coords["eggs"].coord_type == "longitude"
+            assert ax.coords["eggs"].coord_wrap == 360 * u.deg
+            assert ax.coords["eggs"].get_format_unit() == u.arcsec
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection=wcs)
+        assert ax.coords["eggs"].coord_type == "scalar"
+        assert ax.coords["eggs"].coord_wrap == None
+        assert ax.coords["eggs"].get_format_unit() == u.deg
 
 
 def test_coord_type_1d_1d_wcs():
