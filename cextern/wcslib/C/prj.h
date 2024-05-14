@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2023, Mark Calabretta
+  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.h,v 8.2.1.1 2023/11/16 10:05:57 mcalabre Exp mcalabre $
+  $Id: prj.h,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.2 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.3 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -52,7 +52,8 @@
 * Routine prjini() is provided to initialize the prjprm struct with default
 * values, prjfree() reclaims any memory that may have been allocated to store
 * an error message, prjsize() computes its total size including allocated
-* memory, and prjprt() prints its contents.
+* memory, prjenq() returns information about the state of the struct, and
+* prjprt() prints its contents.
 *
 * prjperr() prints the error message(s) (if any) stored in a prjprm struct.
 * prjbchk() performs bounds checking on native spherical coordinates.
@@ -210,6 +211,26 @@
 *                         0: Success.
 *
 *
+* prjenq() - enquire about the state of a prjprm struct
+* -----------------------------------------------------
+* prjenq() may be used to obtain information about the state of a prjprm
+* struct.  The function returns a true/false answer for the enquiry asked.
+*
+* Given:
+*   prj       const struct prjprm*
+*                       Projection parameters.
+*
+*   enquiry   int       Enquiry according to the following parameters:
+*                         PRJENQ_SET: the struct has been set up by prjset().
+*                         PRJENQ_BYP: the struct is in bypass mode (see
+*                                     prjset()).
+*
+* Function return value:
+*             int       Enquiry result:
+*                         0: No.
+*                         1: Yes.
+*
+*
 * prjprt() - Print routine for the prjprm struct
 * ----------------------------------------------
 * prjprt() prints the contents of a prjprm struct using wcsprintf().  Mainly
@@ -286,16 +307,23 @@
 * prjset() sets up a prjprm struct according to information supplied within
 * it.
 *
-* Note that this routine need not be called directly; it will be invoked by
-* prjx2s() and prjs2x() if prj.flag is anything other than a predefined magic
-* value.
-*
 * The one important distinction between prjset() and the setup routines for
 * the specific projections is that the projection code must be defined in the
 * prjprm struct in order for prjset() to identify the required projection.
 * Once prjset() has initialized the prjprm struct, prjx2s() and prjs2x() use
 * the pointers to the specific projection and deprojection routines contained
 * therein.
+*
+* Note that this routine need not be called directly; it will be invoked by
+* prjx2s() and prjs2x() if prj.flag is anything other than a predefined magic
+* value.
+*
+* prjset() normally operates regardless of the value of prjprm::flag; i.e.
+* even if a struct was previously set up it will be reset unconditionally.
+* However, a prjprm struct may be put into "bypass" mode by invoking prjset()
+* initially with prjprm::flag == 1 (rather than 0).  prjset() will return
+* immediately if invoked on a struct in that state.  To take a struct out of
+* bypass mode, simply reset prjprm::flag to zero.  See also prjenq().
 *
 * Given and returned:
 *   prj       struct prjprm*
@@ -493,8 +521,8 @@
 * while others are for internal use only.
 *
 *   int flag
-*     (Given and returned) This flag must be set to zero whenever any of the
-*     following prjprm struct members are set or changed:
+*     (Given and returned) This flag must be set to zero (or 1, see prjset())
+*     whenever any of the following prjprm members are set or changed:
 *
 *       - prjprm::code,
 *       - prjprm::r0,
@@ -655,6 +683,10 @@
 extern "C" {
 #endif
 
+enum prjenq_enum {
+  PRJENQ_SET = 2,		// prjprm struct has been set up.
+  PRJENQ_BYP = 4,		// prjprm struct is in bypass mode.
+};
 
 // Total number of projection parameters; 0 to PVN-1.
 #define PVN 30
@@ -743,6 +775,8 @@ int prjini(struct prjprm *prj);
 int prjfree(struct prjprm *prj);
 
 int prjsize(const struct prjprm *prj, int sizes[2]);
+
+int prjenq(const struct prjprm *prj, int enquiry);
 
 int prjprt(const struct prjprm *prj);
 
