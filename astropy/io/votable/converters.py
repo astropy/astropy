@@ -704,7 +704,7 @@ class FloatingPoint(Numeric):
         width = field.width
 
         if precision is None:
-            format_parts = ["{!r:>"]
+            format_parts = ["{!s:>"]
         else:
             format_parts = ["{:"]
 
@@ -772,7 +772,7 @@ class FloatingPoint(Numeric):
             result = self._output_format.format(value)
             if result.startswith("array"):
                 raise RuntimeError()
-            if self._output_format[2] == "r" and result.endswith(".0"):
+            if self._output_format[2] == "s" and result.endswith(".0"):
                 result = result[:-2]
             return result
         elif np.isnan(value):
@@ -1052,7 +1052,7 @@ class Complex(FloatingPoint, Array):
                 value = self.null
         real = self._output_format.format(float(value.real))
         imag = self._output_format.format(float(value.imag))
-        if self._output_format[2] == "r":
+        if self._output_format[2] == "s":
             if real.endswith(".0"):
                 real = real[:-2]
             if imag.endswith(".0"):

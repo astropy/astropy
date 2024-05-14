@@ -178,6 +178,7 @@ def _test_regression(tmp_path, _python_based=False, binary_mode=1):
 
 
 @pytest.mark.xfail("legacy_float_repr")
+@pytest.mark.usefixtures("without_legacy_printoptions")
 def test_regression(tmp_path):
     # W39: Bit values can not be masked
     with pytest.warns(W39), np.errstate(over="ignore"):
@@ -185,6 +186,7 @@ def test_regression(tmp_path):
 
 
 @pytest.mark.xfail("legacy_float_repr")
+@pytest.mark.usefixtures("without_legacy_printoptions")
 def test_regression_python_based_parser(tmp_path):
     # W39: Bit values can not be masked
     with pytest.warns(W39), np.errstate(over="ignore"):
@@ -192,6 +194,7 @@ def test_regression_python_based_parser(tmp_path):
 
 
 @pytest.mark.xfail("legacy_float_repr")
+@pytest.mark.usefixtures("without_legacy_printoptions")
 def test_regression_binary2(tmp_path):
     # W39: Bit values can not be masked
     with pytest.warns(W39), np.errstate(over="ignore"):
@@ -264,6 +267,7 @@ class TestReferences:
         pytest.param(["c1", "string_test", "c2"], ["c1", "c2"], id="list-only-missing"),
     ],
 )
+@pytest.mark.usefixtures("without_legacy_printoptions")
 def test_select_missing_columns_error_message(columns, expected_missing):
     # see https://github.com/astropy/astropy/pull/15956
     filename = get_pkg_data_filename("data/regression.xml")
@@ -457,6 +461,7 @@ class TestParse:
         )
         assert_array_equal(self.mask["long"], [False, True, False, False, True])
 
+    @pytest.mark.usefixtures("without_legacy_printoptions")
     def test_double(self):
         assert issubclass(self.array["double"].dtype.type, np.float64)
         assert_array_equal(
@@ -637,6 +642,7 @@ class TestParse:
             ],
         )
 
+    @pytest.mark.usefixtures("without_legacy_printoptions")
     def test_double_array(self):
         assert issubclass(self.array["doublearray"].dtype.type, np.object_)
         assert len(self.array["doublearray"][0]) == 0
@@ -692,6 +698,7 @@ class TestParse:
             info = self.votable.get_info_by_id("ErrorInfo")
             assert info.value == "One might expect to find some INFO here, too..."
 
+    @pytest.mark.usefixtures("without_legacy_printoptions")
     def test_repr(self):
         assert "3 tables" in repr(self.votable)
         assert (
@@ -870,6 +877,7 @@ def test_too_many_columns():
         parse(get_pkg_data_filename("data/too_many_columns.xml.gz"))
 
 
+@pytest.mark.usefixtures("without_legacy_printoptions")
 def test_build_from_scratch(tmp_path):
     # Create a new VOTable file...
     votable = tree.VOTableFile()
