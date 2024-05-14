@@ -4,17 +4,20 @@
 A collection of different unit formats.
 """
 
+import sys
+import warnings
+
+from astropy.utils.exceptions import AstropyDeprecationWarning
+
 # This is pretty atrocious, but it will prevent a circular import for those
 # formatters that need access to the units.core module An entry for it should
 # exist in sys.modules since astropy.units.core imports this module
-import sys
-
 core = sys.modules["astropy.units.core"]
 
 from .base import Base
 from .cds import CDS
 from .console import Console
-from .fits import Fits
+from .fits import FITS
 from .generic import Generic, Unscaled
 from .latex import Latex, LatexInline
 from .ogip import OGIP
@@ -26,7 +29,7 @@ __all__ = [
     "Generic",
     "CDS",
     "Console",
-    "Fits",
+    "FITS",
     "Latex",
     "LatexInline",
     "OGIP",
@@ -35,6 +38,19 @@ __all__ = [
     "VOUnit",
     "get_format",
 ]
+
+
+def __getattr__(name):
+    if name == "Fits":
+        warnings.warn(
+            AstropyDeprecationWarning(
+                'The class "Fits" has been renamed to "FITS" in version 7.0. The old '
+                "name is deprecated and may be removed in a future version.\n"
+                "        Use FITS instead."
+            )
+        )
+        return FITS
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def _known_formats():
