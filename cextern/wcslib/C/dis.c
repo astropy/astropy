@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2023, Mark Calabretta
+  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.c,v 8.2.1.2 2023/11/29 07:43:49 mcalabre Exp mcalabre $
+  $Id: dis.c,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -137,7 +137,7 @@ int dpfill(
     dp->value.i = i;
   }
 
-  return DISERR_SUCCESS;
+  return 0;
 }
 
 //----------------------------------------------------------------------------
@@ -299,7 +299,6 @@ int disinit(int alloc, int naxis, struct disprm *dis, int ndpmax)
 
 
   // Set defaults.
-  dis->flag  = 0;
   dis->naxis = naxis;
 
   if (naxis) {
@@ -316,7 +315,9 @@ int disinit(int alloc, int naxis, struct disprm *dis, int ndpmax)
     memset(dis->maxdis, 0, naxis*sizeof(double));
   }
 
-  return DISERR_SUCCESS;
+  dis->flag = 0;
+
+  return 0;
 }
 
 
@@ -350,7 +351,7 @@ int discpy(int alloc, const struct disprm *dissrc, struct disprm *disdst)
   disdst->totdis = dissrc->totdis;
   memcpy(disdst->maxdis, dissrc->maxdis, naxis*sizeof(double));
 
-  return DISERR_SUCCESS;
+  return 0;
 }
 
 //----------------------------------------------------------------------------
@@ -423,7 +424,7 @@ int disfree(struct disprm *dis)
 
   dis->flag = 0;
 
-  return DISERR_SUCCESS;
+  return 0;
 }
 
 //----------------------------------------------------------------------------
@@ -459,8 +460,8 @@ int dissize(const struct disprm *dis, int sizes[2])
   sizes[1] += exsizes[0] + exsizes[1];
 
   // The remaining arrays are allocated by disset().
-  if (dis->flag != DISSET) {
-    return DISERR_SUCCESS;
+  if (abs(dis->flag) != DISSET) {
+    return 0;
   }
 
   // dis::docorr[].
@@ -503,7 +504,35 @@ int dissize(const struct disprm *dis, int sizes[2])
   // dis::disx2p[].
   sizes[1] += naxis * sizeof(int (*)(DISX2P_ARGS));
 
-  return DISERR_SUCCESS;
+  return 0;
+}
+
+//----------------------------------------------------------------------------
+
+int disenq(const struct disprm *dis, int enquiry)
+
+{
+  // Initialize.
+  if (dis == 0x0) return DISERR_NULL_POINTER;
+
+  int answer = 0;
+
+  if (enquiry & DISENQ_MEM) {
+    if (dis->m_flag != DISSET) return 0;
+    answer = 1;
+  }
+
+  if (enquiry & DISENQ_SET) {
+    if (abs(dis->flag) != DISSET) return 0;
+    answer = 1;
+  }
+
+  if (enquiry & DISENQ_BYP) {
+    if (dis->flag != 1 && dis->flag != -DISSET) return 0;
+    answer = 1;
+  }
+
+  return answer;
 }
 
 //----------------------------------------------------------------------------
@@ -513,17 +542,16 @@ int disprt(const struct disprm *dis)
 {
   if (dis == 0x0) return DISERR_NULL_POINTER;
 
-  if (dis->flag != DISSET) {
+  if (abs(dis->flag) != DISSET) {
     wcsprintf("The disprm struct is UNINITIALIZED.\n");
-    return DISERR_SUCCESS;
+    return 0;
   }
 
   int naxis = dis->naxis;
 
 
-  wcsprintf("       flag: %d\n", dis->flag);
-
   // Parameters supplied.
+  wcsprintf("       flag: %d\n", dis->flag);
   wcsprintf("      naxis: %d\n", naxis);
 
   WCSPRINTF_PTR("      dtype: ", dis->dtype, "\n");
@@ -668,6 +696,8 @@ int disprt(const struct disprm *dis)
       wcsprintf("\n");
     }
   }
+
+  // Pointers to distortion functions.
   WCSPRINTF_PTR("     disx2p: ", dis->disx2p, "\n");
   for (int j = 0; j < naxis; j++) {
     wcsprintf("  disx2p[%d]: %s\n", j,
@@ -687,7 +717,7 @@ int disprt(const struct disprm *dis)
   if (dis->m_maxdis == dis->maxdis) wcsprintf("  (= maxdis)");
   wcsprintf("\n");
 
-  return DISERR_SUCCESS;
+  return 0;
 }
 
 //----------------------------------------------------------------------------
@@ -701,7 +731,7 @@ int disperr(const struct disprm *dis, const char *prefix)
     wcserr_prt(dis->err, prefix);
   }
 
-  return DISERR_SUCCESS;
+  return 0;
 }
 
 //----------------------------------------------------------------------------
@@ -742,6 +772,7 @@ int disset(struct disprm *dis)
   static const char *function = "disset";
 
   if (dis == 0x0) return DISERR_NULL_POINTER;
+  if (dis->flag == -DISSET) return 0;
   struct wcserr **err = &(dis->err);
 
   int naxis = dis->naxis;
@@ -1108,9 +1139,10 @@ int disset(struct disprm *dis)
   }
 
   dis->ndis = ndis;
-  dis->flag = DISSET;
 
-  return DISERR_SUCCESS;
+  dis->flag = (dis->flag == 1) ? -DISSET : DISSET;
+
+  return 0;
 }
 
 //----------------------------------------------------------------------------
@@ -1127,8 +1159,8 @@ int disp2x(
   if (dis == 0x0) return DISERR_NULL_POINTER;
   struct wcserr **err = &(dis->err);
 
-  int status = DISERR_SUCCESS;
-  if (dis->flag != DISSET) {
+  int status = 0;
+  if (abs(dis->flag) != DISSET) {
     if ((status = disset(dis))) return status;
   }
 
@@ -1210,8 +1242,8 @@ int disx2p(
   if (dis == 0x0) return DISERR_NULL_POINTER;
   struct wcserr **err = &(dis->err);
 
-  int status = DISERR_SUCCESS;
-  if (dis->flag != DISSET) {
+  int status = 0;
+  if (abs(dis->flag) != DISSET) {
     if ((status = disset(dis))) return status;
   }
 
@@ -1276,7 +1308,7 @@ int disx2p(
 
 
   // Iteratively invert the (well-behaved!) distortion function.
-  int convergence, iter;
+  int convergence = 0, iter;
   for (iter = 0; iter < itermax; iter++) {
     if ((status = disp2x(dis, rawcrd, dcrd0))) {
       wcserr_set(DIS_ERRMSG(status));
@@ -1427,10 +1459,10 @@ int diswarp(
   if (rmstot) *rmstot = 0.0;
 
   // Quick return if no distortions.
-  if (dis->ndis == 0) return DISERR_SUCCESS;
+  if (dis->ndis == 0) return 0;
 
   double *tmpmem;
-  if ((tmpmem = calloc(4*naxis, sizeof(double))) == 0x0) {
+  if ((tmpmem = calloc(4*(size_t)naxis, sizeof(double))) == 0x0) {
     status = wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
     goto cleanup;
   }
@@ -1460,7 +1492,7 @@ int diswarp(
 
   // Get some more memory for coordinate vectors.
   double *pix0, *pix1;
-  if ((pix0 = calloc(2*naxis, sizeof(double))) == 0x0) {
+  if ((pix0 = calloc(2*(size_t)naxis, sizeof(double))) == 0x0) {
     status = wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
     goto cleanup;
   }
