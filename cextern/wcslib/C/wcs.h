@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2023, Mark Calabretta
+  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.h,v 8.2.1.1 2023/11/16 10:05:57 mcalabre Exp mcalabre $
+  $Id: wcs.h,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.2 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.3 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -66,11 +66,10 @@
 *
 * wcsnpv(), wcsnps(), wcsini(), wcsinit(), wcssub(), wcsfree(), and wcstrim(),
 * are provided to manage the wcsprm struct, wcssize() computes its total size
-* including allocated memory, and wcsprt() prints its contents.  Refer to the
-* description of the wcsprm struct for an explanation of the anticipated usage
-* of these routines.  wcscopy(), which does a deep copy of one wcsprm struct
-* to another, is defined as a preprocessor macro function that invokes
-* wcssub().
+* including allocated memory, wcsenq() returns information about the state of
+* the struct, and wcsprt() prints its contents.  wcscopy(), which does a deep
+* copy of one wcsprm struct to another, is defined as a preprocessor macro
+* function that invokes wcssub().
 *
 * wcsperr() prints the error message(s) (if any) stored in a wcsprm struct,
 * and the linprm, celprm, prjprm, spcprm, and tabprm structs that it contains.
@@ -547,6 +546,35 @@
 *                         0: Success.
 *
 *
+* wcsenq() - enquire about the state of a wcsprm struct
+* -----------------------------------------------------
+* wcsenq() may be used to obtain information about the state of a wcsprm
+* struct.  The function returns a true/false answer for the enquiry asked.
+*
+* Given:
+*   wcs       const struct wcsprm*
+*                       Coordinate transformation parameters.
+*
+*   enquiry   int       Enquiry according to the following parameters:
+*                         WCSENQ_MEM: memory in the struct is being managed by
+*                                     WCSLIB (see wcsini()).
+*                         WCSENQ_SET: the struct has been set up by wcsset().
+*                         WCSENQ_BYP: the struct is in bypass mode (see
+*                                     wcsset()).
+*                         WCSENQ_CHK: the struct is self-consistent in that
+*                                     no changes have been made to any of the
+*                                     "parameters to be given" since the last
+*                                     call to wcsset().
+*                       These may be combined by logical OR, e.g.
+*                       WCSENQ_MEM | WCSENQ_SET.  The enquiry result will be
+*                       the logical AND of the individual results.
+*
+* Function return value:
+*             int       Enquiry result:
+*                         0: False.
+*                         1: True.
+*
+*
 * wcsprt() - Print routine for the wcsprm struct
 * ----------------------------------------------
 * wcsprt() prints the contents of a wcsprm struct using wcsprintf().  Mainly
@@ -626,6 +654,13 @@
 * Note that this routine need not be called directly; it will be invoked by
 * wcsp2s() and wcss2p() if the wcsprm::flag is anything other than a
 * predefined magic value.
+*
+* wcsset() normally operates regardless of the value of wcsprm::flag; i.e.
+* even if a struct was previously set up it will be reset unconditionally.
+* However, a wcsprm struct may be put into "bypass" mode by invoking wcsset()
+* initially with wcsprm::flag == 1 (rather than 0).  wcsset() will return
+* immediately if invoked on a struct in that state.  To take a struct out of
+* bypass mode, simply reset wcsprm::flag to zero.  See also wcsenq().
 *
 * Given and returned:
 *   wcs       struct wcsprm*
@@ -1135,8 +1170,8 @@
 * string members and null-fills the character array.
 *
 *   int flag
-*     (Given and returned) This flag must be set to zero whenever any of the
-*     following wcsprm struct members are set or changed:
+*     (Given and returned) This flag must be set to zero (or 1, see wcsset())
+*     whenever any of the following wcsprm members are set or changed:
 *
 *       - wcsprm::naxis (q.v., not normally set by the user),
 *       - wcsprm::crpix,
@@ -1803,6 +1838,12 @@
 *     is used for quadcube projections where the cube faces are stored on a
 *     separate axis (see wcs.h).
 *
+*   int chksum
+*     (Returned) Checksum of keyvalues provided (see wcsprm::flag).  Used by
+*     wcsenq() to validate the self-consistency of the struct.  Note that
+*     the checksum incorporates addresses and is therefore highly specific to
+*     the instance of the wcsprm struct.
+*
 *   int *types
 *     (Returned) Address of the first element of an array of int containing a
 *     four-digit type code for each axis.
@@ -1982,6 +2023,7 @@
 *   double bdis_obs
 *     Bodycentric distance of the observer (m).
 *
+*
 * Global variable: const char *wcs_errmsg[] - Status return messages
 * ------------------------------------------------------------------
 * Error messages to match the status value returned from each function.
@@ -1999,6 +2041,13 @@
 extern "C" {
 #define wtbarr wtbarr_s		// See prologue of wtbarr.h.
 #endif
+
+enum wcsenq_enum {
+  WCSENQ_MEM = 1,		// wcsprm struct memory is managed by WCSLIB.
+  WCSENQ_SET = 2,		// wcsprm struct has been set up.
+  WCSENQ_BYP = 4,		// wcsprm struct is in bypass mode.
+  WCSENQ_CHK = 8,		// wcsprm struct is self-consistent.
+};
 
 #define WCSSUB_LONGITUDE 0x1001
 #define WCSSUB_LATITUDE  0x1002
@@ -2181,7 +2230,7 @@ struct wcsprm {
   int    lng, lat, spec, time;	// Longitude, latitude, spectral, and time
 				// axis indices (0-relative).
   int    cubeface;		// True if there is a CUBEFACE axis.
-  int    dummy;			// Dummy for alignment purposes.
+  int    chksum;		// Checksum of keyvalues provided.
   int    *types;		// Coordinate type codes for each axis.
 
   struct linprm lin;		//    Linear transformation parameters.
@@ -2240,6 +2289,8 @@ int wcstrim(struct wcsprm *wcs);
 int wcssize(const struct wcsprm *wcs, int sizes[2]);
 
 int auxsize(const struct auxprm *aux, int sizes[2]);
+
+int wcsenq(const struct wcsprm *wcs, int enquiry);
 
 int wcsprt(const struct wcsprm *wcs);
 
