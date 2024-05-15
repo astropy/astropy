@@ -72,27 +72,6 @@ class FITS(generic.Generic):
         return names, deprecated_names, []
 
     @classmethod
-    def _validate_unit(cls, unit, detailed_exception=True):
-        if unit not in cls._units:
-            if detailed_exception:
-                raise ValueError(
-                    f"Unit '{unit}' not supported by the FITS standard. "
-                    + utils.did_you_mean_units(
-                        unit,
-                        cls._units,
-                        cls._deprecated_units,
-                        cls._to_decomposed_alternative,
-                    ),
-                )
-            else:
-                raise ValueError()
-
-        if unit in cls._deprecated_units:
-            utils.unit_deprecation_warning(
-                unit, cls._units[unit], "FITS", cls._to_decomposed_alternative
-            )
-
-    @classmethod
     def _parse_unit(cls, unit, detailed_exception=True):
         cls._validate_unit(unit, detailed_exception=detailed_exception)
         return cls._units[unit]

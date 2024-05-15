@@ -28,6 +28,7 @@ from astropy.utils.misc import did_you_mean
 
 from . import core
 from .base import Base
+from .utils import did_you_mean_units, unit_deprecation_warning
 
 if TYPE_CHECKING:
     from astropy.units import UnitBase
@@ -598,6 +599,25 @@ class Generic(Base):
                     raise
                 else:
                     raise ValueError(f"Syntax error parsing unit '{s}'")
+
+    @classmethod
+    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> None:
+        if unit not in cls._units:
+            if detailed_exception:
+                raise ValueError(
+                    f"Unit '{unit}' not supported by the {cls.__name__} standard. "
+                    + did_you_mean_units(
+                        unit,
+                        cls._units,
+                        cls._deprecated_units,
+                        cls._to_decomposed_alternative,
+                    ),
+                )
+            raise ValueError()
+        if unit in cls._deprecated_units:
+            unit_deprecation_warning(
+                unit, cls._units[unit], cls.__name__, cls._to_decomposed_alternative
+            )
 
     @classmethod
     def _to_decomposed_alternative(cls, unit: UnitBase) -> str:
