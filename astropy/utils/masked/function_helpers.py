@@ -138,7 +138,7 @@ if NUMPY_LT_2_0:
     # Safe in < 2.0, because it deferred to the method. Overridden in >= 2.0.
     MASKED_SAFE_FUNCTIONS |= {np.ptp}
     # Removed in numpy 2.0.  Just an alias to vstack.
-    MASKED_SAFE_FUNCTIONS |= {np.row_stack}
+    MASKED_SAFE_FUNCTIONS |= {np.row_stack}  # noqa: NPY201
     # renamed in numpy 2.0
     MASKED_SAFE_FUNCTIONS |= {np.trapz}
 else:
