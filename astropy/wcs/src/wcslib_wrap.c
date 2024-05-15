@@ -1351,6 +1351,7 @@ PyWcsprm_p2s(
   int            status     = 0;
   const char*    keywords[] = {
     "pixcrd", "origin", NULL };
+  PyWcsprm*      wcs_offset = NULL;
 
   if (!PyArg_ParseTupleAndKeywords(
           args, kwds, "Oi:p2s", (char **)keywords,
@@ -1408,12 +1409,24 @@ PyWcsprm_p2s(
 
   /* Make the call */
   Py_BEGIN_ALLOW_THREADS
+
+    // WCSLIB operates on 1-based pixel coordinates, but pixcrd is currently 0-based.
+    // We can't modify this array in-place because this won't work properly in a
+    // multi-threaded context, so instead we make a copy of the wcsprm and apply an
+    // offset to crpix to account for the different pixel conventions.
+    wcs_offset = (PyWcsprm*)PyWcsprm_cnew();
+    status = wcssub(1, &self->x, 0x0, 0x0, &wcs_offset->x);
+    if (origin == 0) {
+      for (int i = 0; i < wcs_offset->x.naxis; ++i) {
+        wcs_offset->x.crpix[i] -= 1.0;
+      }
+   }
+
   ncoord = PyArray_DIM(pixcrd, 0);
   nelem = PyArray_DIM(pixcrd, 1);
-  preoffset_array(pixcrd, origin);
-  wcsprm_python2c(&self->x);
+  wcsprm_python2c(&wcs_offset->x);
   status = wcsp2s(
-      &self->x,
+      &wcs_offset->x,
       ncoord,
       nelem,
       (double*)PyArray_DATA(pixcrd),
@@ -1422,9 +1435,11 @@ PyWcsprm_p2s(
       (double*)PyArray_DATA(theta),
       (double*)PyArray_DATA(world),
       (int*)PyArray_DATA(stat));
-  wcsprm_c2python(&self->x);
-  unoffset_array(pixcrd, origin);
-  /* unoffset_array(world, origin); */
+
+  // We can now get rid of the temporary WCS and don't need to call wcsprm_c2python
+  wcsfree(&wcs_offset->x);
+
+  // We can safely unoffset the array here because this is a new array allocated above
   unoffset_array(imgcrd, origin);
   if (status == 8) {
     set_invalid_to_nan(
@@ -1553,7 +1568,6 @@ PyWcsprm_s2p(
   Py_BEGIN_ALLOW_THREADS
   ncoord = (int)PyArray_DIM(world, 0);
   nelem = (int)PyArray_DIM(world, 1);
-  /* preoffset_array(world, origin); */
   wcsprm_python2c(&self->x);
   status = wcss2p(
       &self->x,
@@ -1566,7 +1580,7 @@ PyWcsprm_s2p(
       (double*)PyArray_DATA(pixcrd),
       (int*)PyArray_DATA(stat));
   wcsprm_c2python(&self->x);
-  /* unoffset_array(world, origin); */
+  // We can safely unoffset the arrays here because these are new arrays allocated above
   unoffset_array(pixcrd, origin);
   unoffset_array(imgcrd, origin);
   if (status == 9) {
