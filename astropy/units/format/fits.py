@@ -4,7 +4,6 @@
 Handles the "FITS" unit format.
 """
 
-import copy
 import keyword
 
 import numpy as np
@@ -131,17 +130,6 @@ class FITS(generic.Generic):
             parts.append(super().to_string(unit, fraction=fraction))
 
         return cls._scale_unit_separator.join(parts)
-
-    @classmethod
-    def _to_decomposed_alternative(cls, unit):
-        try:
-            s = cls.to_string(unit)
-        except core.UnitScaleError:
-            scale = unit.scale
-            unit = copy.copy(unit)
-            unit._scale = 1.0
-            return f"{cls.to_string(unit)} (with data multiplied by {scale})"
-        return s
 
     @classmethod
     def parse(cls, s, debug=False):

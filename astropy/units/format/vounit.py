@@ -3,7 +3,6 @@
 Handles the "VOUnit" unit format.
 """
 
-import copy
 import keyword
 import re
 import warnings
@@ -228,16 +227,3 @@ class VOUnit(generic.Generic):
             )
 
         return super().to_string(unit, fraction=fraction)
-
-    @classmethod
-    def _to_decomposed_alternative(cls, unit):
-        from astropy.units import core
-
-        try:
-            s = cls.to_string(unit)
-        except core.UnitScaleError:
-            scale = unit.scale
-            unit = copy.copy(unit)
-            unit._scale = 1.0
-            return f"{cls.to_string(unit)} (with data multiplied by {scale})"
-        return s

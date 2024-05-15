@@ -14,16 +14,23 @@
 Handles a "generic" string format for units
 """
 
+from __future__ import annotations
+
 import re
 import unicodedata
 import warnings
+from copy import copy
 from fractions import Fraction
+from typing import TYPE_CHECKING
 
 from astropy.utils import classproperty, deprecated, parsing
 from astropy.utils.misc import did_you_mean
 
 from . import core
 from .base import Base
+
+if TYPE_CHECKING:
+    from astropy.units import UnitBase
 
 
 class Generic(Base):
@@ -591,6 +598,18 @@ class Generic(Base):
                     raise
                 else:
                     raise ValueError(f"Syntax error parsing unit '{s}'")
+
+    @classmethod
+    def _to_decomposed_alternative(cls, unit: UnitBase) -> str:
+        from astropy.units.core import UnitScaleError
+
+        try:
+            return cls.to_string(unit)
+        except UnitScaleError:
+            scale = unit.scale
+            unit = copy(unit)
+            unit._scale = 1.0
+            return f"{cls.to_string(unit)} (with data multiplied by {scale})"
 
 
 # 2023-02-18: The statement in the docstring is no longer true, the class is not used
