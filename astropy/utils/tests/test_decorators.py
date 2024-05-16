@@ -31,6 +31,13 @@ class NewDeprecationWarning(AstropyDeprecationWarning):
     """
 
 
+class NewPendingDeprecationWarning(AstropyPendingDeprecationWarning):
+    """
+    New Warning subclass to be used to test the deprecated decorator's
+    ``pending_warning_type`` parameter.
+    """
+
+
 def test_deprecated_attribute():
     class DummyClass:
         def __init__(self):
@@ -39,6 +46,7 @@ def test_deprecated_attribute():
             self._bar = 4242
             self._message = "42"
             self._pending = {42}
+            self._pending_custom = {42}
 
         foo = deprecated_attribute("foo", "0.2")
 
@@ -49,6 +57,13 @@ def test_deprecated_attribute():
         message = deprecated_attribute("message", "0.2", message="MSG")
 
         pending = deprecated_attribute("pending", "0.2", pending=True)
+
+        pending_custom = deprecated_attribute(
+            "pending_custom",
+            "0.2",
+            pending=True,
+            pending_warning_type=NewPendingDeprecationWarning,
+        )
 
     dummy = DummyClass()
 
@@ -94,6 +109,12 @@ def test_deprecated_attribute():
         assert dummy.pending == {42}
     with pytest.warns(AstropyPendingDeprecationWarning, match=msg):
         dummy.pending = {24}
+
+    msg = r"^The pending_custom attribute will be deprecated in a future version\.$"
+    with pytest.warns(NewPendingDeprecationWarning, match=msg):
+        assert dummy.pending_custom == {42}
+    with pytest.warns(NewPendingDeprecationWarning, match=msg):
+        dummy.pending_custom = {24}
 
 
 # This needs to be defined outside of the test function, because we
