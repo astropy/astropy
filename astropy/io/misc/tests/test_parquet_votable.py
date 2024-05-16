@@ -59,21 +59,66 @@ def test_parquet_votable(tmp_path):
     with pytest.warns(AstropyUserWarning, match="No table::len"):
         loaded_table = read_parquet_votable(filename)
 
+    # Compare data content, but not metadata (input had none)
     assert np.all(input_table == loaded_table)
 
 
+def test_parquet_votable_input_column_unit(tmp_path):
+    """Test round trip of a table that has column units"""
+    filename = tmp_path / "test_votable.parq"
+
+    input_table['mass'].unit = u.jupiterMass
+    write_parquet_votable(input_table, filename, metadata=column_metadata)
+
+    with pytest.warns(AstropyUserWarning, match="No table::len"):
+        loaded_table = read_parquet_votable(filename)
+
+    # Compare data content
+    assert np.all(input_table == loaded_table)
+
+    assert input_table['mass'].unit == loaded_table['mass'].unit
+
+
+def test_parquet_votable_input_column_metadata(tmp_path):
+    """Test preservation of column metadata"""
+    filename = tmp_path / "test_votable.parq"
+
+    input_table['mass'].meta['foo'] = 'bar'
+    write_parquet_votable(input_table, filename, metadata=column_metadata)
+
+    with pytest.warns(AstropyUserWarning, match="No table::len"):
+        loaded_table = read_parquet_votable(filename)
+
+    assert 'foo' in loaded_table['mass'].meta
+    assert loaded_table['mass'].meta['foo'] == 'bar'
+
+
+def test_parquet_votable_input_metadata(tmp_path):
+    """Test preservation of table metadata"""
+    filename = tmp_path / "test_votable.parq"
+
+    input_table.meta['table_foo'] = 'table_bar'
+    write_parquet_votable(input_table, filename, metadata=column_metadata)
+
+    with pytest.warns(AstropyUserWarning, match="No table::len"):
+        loaded_table = read_parquet_votable(filename)
+
+    assert 'table_foo' in loaded_table.meta
+    assert loaded_table.meta['table_foo'] == 'table_bar'
+
+
 def test_compare_parquet_votable(tmp_path):
-    """Parquet votable preserves column units and metadata"""
+    """'parquet.votable' preserves column units and metadata unlike 'parquet'"""
 
     filename = tmp_path / "test_votable.parq"
     write_parquet_votable(input_table, filename, metadata=column_metadata)
 
     with pytest.warns(AstropyUserWarning, match="No table::len"):
-        parquet = Table.read(filename)
+        parquet_table = Table.read(filename, format="parquet")
         parquet_votable = Table.read(filename, format="parquet.votable")
 
-    assert len(parquet["sfr"].meta) == 0
-    assert parquet["sfr"].unit is None
+    assert len(parquet_table["sfr"].meta) == 0
+    assert parquet_table["sfr"].unit is None
 
     assert parquet_votable["sfr"].meta["ucd"] == "phys.SFR"
     assert parquet_votable["sfr"].unit == u.solMass / u.yr
