@@ -843,10 +843,8 @@ class HeaderDiff(_BaseDiff):
         valuesa, commentsa = get_header_values_comments(cardsa)
         valuesb, commentsb = get_header_values_comments(cardsb)
 
-        # Normalize all keyword to upper-case for comparison's sake;
-        # TODO: HIERARCH keywords should be handled case-sensitively I think
-        keywordsa = {k.upper() for k in valuesa}
-        keywordsb = {k.upper() for k in valuesb}
+        keywordsa = set(valuesa)
+        keywordsb = set(valuesb)
 
         self.common_keywords = sorted(keywordsa.intersection(keywordsb))
         if len(cardsa) != len(cardsb):
