@@ -138,6 +138,7 @@ py:class DT
 py:class Equivalency
 py:class Quantity
 py:class Unit
+py:class UnitBase
 py:func astropy.units.Quantity
 py:obj CompositeUnit
 py:obj Equivalency
