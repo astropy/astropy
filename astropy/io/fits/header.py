@@ -1069,10 +1069,10 @@ class Header:
                 card = Card(*((k,) + v))
             else:
                 raise ValueError(
-                    "Header update value for key %r is invalid; the "
+                    f"Header update value for key {k!r} is invalid; the "
                     "value must be either a scalar, a 1-tuple "
                     "containing the scalar value, or a 2-tuple "
-                    "containing the value and a comment string." % k
+                    "containing the value and a comment string."
                 )
             self._update(card)
 
