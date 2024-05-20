@@ -45,9 +45,9 @@ To get started, create a codespace for this repository by clicking this:
 
 |Codespaces|
 
-A codespace will open in a web-based version of Visual Studio Code. The dev container is fully configured with software needed for this project. For help, see the `GitHub Codespaces Support page <https://docs.github.com/en/codespaces>`_.
+A codespace will open in a web-based version of Visual Studio Code. The `dev container <.devcontainer/devcontainer.json>`_ is fully configured with software needed for this project. For help, see the `GitHub Codespaces Support page <https://docs.github.com/en/codespaces>`_.
 
-Note: Dev containers is an open spec which is supported by GitHub Codespaces and other tools.
+**Note**: Dev containers is an open spec which is supported by `GitHub Codespaces <https://github.com/codespaces>`_ and `other tools <https://containers.dev/supporting>`_.
 
 Supporting the Project
 ======================
