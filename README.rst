@@ -8,7 +8,8 @@ Astropy
 
 The Astropy Project (http://astropy.org/) is a community effort to develop a single core package for Astronomy in Python and foster interoperability between Python astronomy packages. This repository contains the core package which is intended to contain much of the core functionality and some common tools needed for performing astronomy and astrophysics with Python.
 
-## Table of Contents
+Table of Contents
+=================
 
 - `Installation <#installation>`_
 - `Contributing <#contributing>`_
@@ -79,26 +80,46 @@ If you locally cloned this repo before 7 Apr 2021, the primary branch for this r
 
 If you are using a GUI to manage your repos you'll have to find the equivalent commands as it's different for different programs. Alternatively, you can just delete your local clone and re-clone!
 
-.. |Actions Status| image:: URL
-    :target: URL
+.. |Actions Status| image:: https://github.com/astropy/astropy/actions/workflows/ci_workflows.yml/badge.svg
+    :target: https://github.com/astropy/astropy/actions
+    :alt: Astropy's GitHub Actions CI Status
 
-.. |CircleCI Status| image:: URL
-    :target: URL
+.. |CircleCI Status| image::  https://img.shields.io/circleci/build/github/astropy/astropy/main?logo=circleci&label=CircleCI
+    :target: https://circleci.com/gh/astropy/astropy
+    :alt: Astropy's CircleCI Status
 
-.. |Coverage Status| image:: URL
-    :target: URL
+.. |Coverage Status| image:: https://codecov.io/gh/astropy/astropy/branch/main/graph/badge.svg
+    :target: https://codecov.io/gh/astropy/astropy
+    :alt: Astropy's Coverage Status
 
-.. |PyPI Status| image:: URL
-    :target: URL
+.. |PyPI Status| image:: https://img.shields.io/pypi/v/astropy.svg
+    :target: https://pypi.org/project/astropy
+    :alt: Astropy's PyPI Status
 
-.. |Documentation Status| image:: URL
-    :target: URL
+.. |Zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4670728.svg
+   :target: https://doi.org/10.5281/zenodo.4670728
+   :alt: Zenodo DOI
 
-.. |Pre-Commit| image:: URL
-    :target: URL
+.. |Documentation Status| image:: https://img.shields.io/readthedocs/astropy/latest.svg?logo=read%20the%20docs&logoColor=white&label=Docs&version=stable
+    :target: https://docs.astropy.org/en/stable/?badge=stable
+    :alt: Documentation Status
 
-.. |Ruff| image:: URL
-    :target: URL
+.. |Pre-Commit| image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
+   :target: https://github.com/pre-commit/pre-commit
+   :alt: pre-commit
 
-.. |Zenodo| image:: URL
-    :target: URL
+.. |Ruff| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+    :target: https://github.com/astral-sh/ruff
+    :alt: Ruff
+
+.. |NumFOCUS| image:: https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A
+    :target: http://numfocus.org
+    :alt: Powered by NumFOCUS
+
+.. |Donate| image:: https://img.shields.io/badge/Donate-to%20Astropy-brightgreen.svg
+    :target: https://numfocus.salsalabs.org/donate-to-astropy/index.html
+
+.. |Codespaces| image:: https://github.com/codespaces/badge.svg
+    :target: https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=2081289
+    :alt: Open in GitHub Codespaces
+
