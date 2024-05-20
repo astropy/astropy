@@ -52,6 +52,8 @@ Note: Dev containers is an open spec which is supported by GitHub Codespaces and
 Supporting the Project
 ======================
 
+|NumFOCUS| |Donate|
+
 .. |NumFOCUS| image:: https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A
     :target: http://numfocus.org
     :alt: Powered by NumFOCUS
