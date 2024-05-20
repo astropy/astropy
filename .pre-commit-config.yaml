@@ -4,7 +4,7 @@ ci:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
       - id: check-added-large-files
         args: ["--enforce-all", "--maxkb=300"]
@@ -60,14 +60,14 @@ repos:
           - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.3.4"
+    rev: "v0.4.4"
     hooks:
       - id: ruff
         args: ["--fix", "--show-fixes"]
       - id: ruff-format
 
   - repo: https://github.com/scientific-python/cookie
-    rev: 2024.01.24
+    rev: 2024.04.23
     hooks:
       - id: sp-repo-review
 
