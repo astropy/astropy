@@ -130,6 +130,7 @@ py:class reference target not found: (k, v)
 # types
 py:class EllipsisType
 py:class ModuleType
+py:class Real
 # numpy.typing
 py:class NDArray
 # locally defined type variable for ndarray dtype

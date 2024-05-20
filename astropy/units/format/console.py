@@ -4,7 +4,17 @@
 Handles the "Console" unit format.
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from . import base, utils
+
+if TYPE_CHECKING:
+    from numbers import Real
+    from typing import ClassVar, Literal
+
+    from astropy.units import UnitBase
 
 
 class Console(base.Base):
@@ -25,20 +35,20 @@ class Console(base.Base):
       2.1798721*10^-18 m^2 kg / s^2
     """
 
-    _times = "*"
-    _line = "-"
-    _space = " "
+    _times: ClassVar[str] = "*"
+    _line: ClassVar[str] = "-"
+    _space: ClassVar[str] = " "
 
     @classmethod
-    def _format_mantissa(cls, m):
+    def _format_mantissa(cls, m: str) -> str:
         return m
 
     @classmethod
-    def _format_superscript(cls, number):
+    def _format_superscript(cls, number: str) -> str:
         return f"^{number}"
 
     @classmethod
-    def format_exponential_notation(cls, val, format_spec=".8g"):
+    def format_exponential_notation(cls, val: Real, format_spec: str = ".8g") -> str:
         m, ex = utils.split_mantissa_exponent(val, format_spec)
 
         parts = []
@@ -51,7 +61,13 @@ class Console(base.Base):
         return cls._times.join(parts)
 
     @classmethod
-    def _format_fraction(cls, scale, numerator, denominator, fraction="multiline"):
+    def _format_fraction(
+        cls,
+        scale: str,
+        numerator: str,
+        denominator: str,
+        fraction: Literal[True, "inline", "multiline"] = "multiline",
+    ) -> str:
         if fraction != "multiline":
             return super()._format_fraction(
                 scale, numerator, denominator, fraction=fraction
@@ -69,7 +85,9 @@ class Console(base.Base):
         )
 
     @classmethod
-    def to_string(cls, unit, fraction=False):
+    def to_string(
+        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+    ) -> str:
         # Change default of fraction to False, i.e., we typeset
         # without a fraction by default.
         return super().to_string(unit, fraction=fraction)
