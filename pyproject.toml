@@ -251,20 +251,6 @@ archs = ["auto", "aarch64"]
     syntax = "numpy"
 
 
-[tool.flynt]
-exclude= [
-    "astropy/extern",
-    "astropy/coordinates/angles/angle_lextab.py",
-    "astropy/units/format/cds_lextab.py",
-    "astropy/units/format/general_lextab.py",
-    "astropy/units/format/ogip_lextab.py",
-    "astropy/coordinates/angles/angle_parsetab.py",
-    "astropy/units/format/cds_parsetab.py",
-    "astropy/units/format/general_parsetab.py",
-    "astropy/units/format/ogip_parsetab.py",
-]
-
-
 [tool.coverage]
 
     [tool.coverage.run]
