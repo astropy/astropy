@@ -1,15 +1,7 @@
 Reference/API
 *************
 
-.. TODO: the :noindex: directives used below are necessary to avoid an issue related
-   to type hints (see https://github.com/sphinx-doc/sphinx/issues/9813 and possibly
-   https://github.com/sphinx-doc/sphinx/issues/11225) where the type hints are
-   incorrectly interpreted as references, leading Sphinx to think that there are
-   missing references. Resulting warnings are similar to
-   "WARNING: more than one target found for cross-reference 'Equivalency': astropy.units.Equivalency, astropy.units.equivalencies.Equivalency".
-
 .. automodapi:: astropy.units.quantity
-   :noindex:
 
 .. automodapi:: astropy.units
 
@@ -34,7 +26,6 @@ Reference/API
 .. automodapi:: astropy.units.physical
 
 .. automodapi:: astropy.units.equivalencies
-   :noindex:
 
 .. automodapi:: astropy.units.function.core
 
