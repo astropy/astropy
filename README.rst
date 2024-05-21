@@ -6,12 +6,11 @@ Astropy
 
     |Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status| |Pre-Commit| |Ruff| |Zenodo|
 
-The Astropy Project (https://astropy.org/) is a community effort to 
-develop a single core package for Astronomy in Python and foster 
-interoperability between Python astronomy packages. This repository 
-contains the core package which is intended to contain much of 
-the core functionality and some common tools needed for performing 
-astronomy and astrophysics with Python.
+The Astropy Project (https://astropy.org/) is a community effort to develop a 
+single core package for Astronomy in Python and foster interoperability between 
+Python astronomy packages. This repository contains the core package which is 
+intended to contain much of the core functionality and some common tools needed 
+for performing astronomy and astrophysics with Python.
 
 Table of Contents
 =================
@@ -28,6 +27,7 @@ Installation
 Releases are `registered on PyPI <https://pypi.org/project/astropy>`_, 
 and development is occurring at the 
 `project's GitHub page <https://github.com/astropy/astropy>`_. 
+
 For detailed installation instructions, see the 
 `online documentation <https://docs.astropy.org/>`_ 
 or `docs/install.rst <docs/install.rst>`_ in this source distribution.
@@ -41,23 +41,23 @@ To install `astropy` from PyPI, use:
 Contributing
 ============
 
-The Astropy Project is made both by and for its users, so we welcome 
-and encourage contributions of many kinds. Our goal is to keep this 
-a positive, inclusive, successful, and growing community by abiding 
-with the `Astropy Community Code of Conduct <https://www.astropy.org/about.html#codeofconduct>`_.
+The Astropy Project is made both by and for its users, so we welcome and 
+encourage contributions of many kinds. Our goal is to keep this a positive, 
+inclusive, successful, and growing community by abiding with the 
+`Astropy Community Code of Conduct <https://www.astropy.org/about.html#codeofconduct>`_.
 
-More detailed information on contributing to the project or submitting 
-feedback can be found on the `contributions page <https://www.astropy.org/contribute.html>`_. 
-A `summary of contribution guidelines <CONTRIBUTING.md>`_ can also 
-be used as a quick reference when you are ready to start writing 
-or validating code for submission.
+More detailed information on contributing to the project or submitting feedback 
+can be found on the `contributions page <https://www.astropy.org/contribute.html>`_. 
+A `summary of contribution guidelines <CONTRIBUTING.md>`_ can also be 
+used as a quick reference when you are ready to start writing or validating 
+code for submission.
 
 Getting Started with GitHub Codespaces
 ======================================
 
-Codespaces is a cloud development environment supported by GitHub. None of 
-the Astropy build machinery depends on it, but it is a convenient way to 
-quickly get started doing development on Astropy.
+Codespaces is a cloud development environment supported by GitHub. 
+None of the Astropy build machinery depends on it, but it is a 
+convenient way to quickly get started doing development on Astropy.
 
 To get started, create a codespace for this repository by clicking this:
 
@@ -77,17 +77,17 @@ Supporting the Project
 
 |NumFOCUS| |Donate|
 
-The Astropy Project is sponsored by NumFOCUS, a 501(c)(3) nonprofit 
-in the United States. You can donate to the project using the link above. 
-This donation will support our mission to promote a sustainable, 
-high-level code base for the astronomy community, open code development, 
-educational materials, and reproducible scientific research.
+The Astropy Project is sponsored by NumFOCUS, a 501(c)(3) nonprofit in the 
+United States. You can donate to the project using the link above, and this 
+donation will support our mission to promote a sustainable, high-level code base 
+for the astronomy community, open code development, educational materials, and 
+reproducible scientific research.
 
 License
 =======
 
-Astropy is licensed under a 3-clause BSD style license - 
-see the `LICENSE.rst <LICENSE.rst>`_ file.
+Astropy is licensed under a 3-clause BSD style license - see the 
+`LICENSE.rst <LICENSE.rst>`_ file.
 
 
 .. |Actions Status| image:: https://github.com/astropy/astropy/actions/workflows/ci_workflows.yml/badge.svg
@@ -132,4 +132,3 @@ see the `LICENSE.rst <LICENSE.rst>`_ file.
 .. |Codespaces| image:: https://github.com/codespaces/badge.svg
     :target: https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=2081289
     :alt: Open in GitHub Codespaces
-
