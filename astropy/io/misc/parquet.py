@@ -606,7 +606,6 @@ def write_parquet_votable(table, output, *, metadata, overwrite=False):
 
     # write the parquet file with required Type 1 metadata
     pyarrow.parquet.write_table(pyarrow_table, output)
-    print(f"parquet file written to {output}")
 
 
 def read_parquet_votable(filename):
@@ -641,7 +640,7 @@ def read_parquet_votable(filename):
     empty_table_with_columns_and_metadata = Table.read(votable.parse(vot_blob))
 
     # Load the data from the parquet table using the Table.read() functionality
-    data_table_with_no_metadata = Table.read(filename)
+    data_table_with_no_metadata = Table.read(filename, format="parquet")
 
     # Stitch the two tables together to create final table
     complete_table = vstack(
