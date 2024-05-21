@@ -6,7 +6,7 @@ Astropy
 
     |Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status| |Pre-Commit| |Ruff| |Zenodo|
 
-The Astropy Project (http://astropy.org/) is a community effort to develop a single core package for Astronomy in Python and foster interoperability between Python astronomy packages. This repository contains the core package which is intended to contain much of the core functionality and some common tools needed for performing astronomy and astrophysics with Python.
+The Astropy Project (https://astropy.org/) is a community effort to develop a single core package for Astronomy in Python and foster interoperability between Python astronomy packages. This repository contains the core package which is intended to contain much of the core functionality and some common tools needed for performing astronomy and astrophysics with Python.
 
 Table of Contents
 =================
@@ -21,7 +21,7 @@ Table of Contents
 Installation
 ============
 
-Releases are `registered on PyPI <https://pypi.org/project/astropy>`_, and development is occurring at the `project's GitHub page <http://github.com/astropy/astropy>`_. For detailed installation instructions, see the `online documentation <https://docs.astropy.org/>`_ or `docs/install.rst <docs/install.rst>`_ in this source distribution.
+Releases are `registered on PyPI <https://pypi.org/project/astropy>`_, and development is occurring at the `project's GitHub page <https://github.com/astropy/astropy>`_. For detailed installation instructions, see the `online documentation <https://docs.astropy.org/>`_ or `docs/install.rst <docs/install.rst>`_ in this source distribution.
 
 To install Astropy, use:
 
@@ -32,9 +32,9 @@ To install Astropy, use:
 Contributing
 ============
 
-The Astropy Project is made both by and for its users, so we welcome and encourage contributions of many kinds. Our goal is to keep this a positive, inclusive, successful, and growing community by abiding with the `Astropy Community Code of Conduct <http://www.astropy.org/about.html#codeofconduct>`_.
+The Astropy Project is made both by and for its users, so we welcome and encourage contributions of many kinds. Our goal is to keep this a positive, inclusive, successful, and growing community by abiding with the `Astropy Community Code of Conduct <https://www.astropy.org/about.html#codeofconduct>`_.
 
-More detailed information on contributing to the project or submitting feedback can be found on the `contributions page <http://www.astropy.org/contribute.html>`_. A `summary of contribution guidelines <CONTRIBUTING.md>`_ can also be used as a quick reference when you are ready to start writing or validating code for submission.
+More detailed information on contributing to the project or submitting feedback can be found on the `contributions page <https://www.astropy.org/contribute.html>`_. A `summary of contribution guidelines <CONTRIBUTING.md>`_ can also be used as a quick reference when you are ready to start writing or validating code for submission.
 
 Getting Started with GitHub Codespaces
 ======================================
@@ -55,7 +55,7 @@ Supporting the Project
 |NumFOCUS| |Donate|
 
 .. |NumFOCUS| image:: https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A
-    :target: http://numfocus.org
+    :target: https://numfocus.org
     :alt: Powered by NumFOCUS
 
 .. |Donate| image:: https://img.shields.io/badge/Donate-to%20Astropy-brightgreen.svg
@@ -115,7 +115,7 @@ If you are using a GUI to manage your repos you'll have to find the equivalent c
     :alt: Ruff
 
 .. |NumFOCUS| image:: https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A
-    :target: http://numfocus.org
+    :target: https://numfocus.org
     :alt: Powered by NumFOCUS
 
 .. |Donate| image:: https://img.shields.io/badge/Donate-to%20Astropy-brightgreen.svg
