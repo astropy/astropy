@@ -6,10 +6,10 @@ Astropy
 
     |Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status| |Pre-Commit| |Ruff| |Zenodo|
 
-The Astropy Project (https://astropy.org/) is a community effort to develop a 
-single core package for Astronomy in Python and foster interoperability between 
-Python astronomy packages. This repository contains the core package which is 
-intended to contain much of the core functionality and some common tools needed 
+The Astropy Project (https://astropy.org/) is a community effort to develop a
+single core package for Astronomy in Python and foster interoperability between
+Python astronomy packages. This repository contains the core package which is
+intended to contain much of the core functionality and some common tools needed
 for performing astronomy and astrophysics with Python.
 
 Table of Contents
@@ -77,16 +77,16 @@ Supporting the Project
 
 |NumFOCUS| |Donate|
 
-The Astropy Project is sponsored by NumFOCUS, a 501(c)(3) nonprofit in the 
-United States. You can donate to the project using the link above, and this 
-donation will support our mission to promote a sustainable, high-level code base 
-for the astronomy community, open code development, educational materials, and 
+The Astropy Project is sponsored by NumFOCUS, a 501(c)(3) nonprofit in the
+United States. You can donate to the project by using the link above, and this
+donation will support our mission to promote sustainable, high-level code base
+for the astronomy community, open code development, educational materials, and
 reproducible scientific research.
 
 License
 =======
 
-Astropy is licensed under a 3-clause BSD style license - see the 
+Astropy is licensed under a 3-clause BSD style license - see the
 `LICENSE.rst <LICENSE.rst>`_ file.
 
 
