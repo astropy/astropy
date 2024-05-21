@@ -1,7 +1,7 @@
 Reference/API
 *************
 
-.. TODO: the :noindex: directive used below are necessary to avoid an issue related
+.. TODO: the :noindex: directives used below are necessary to avoid an issue related
    to type hints (see https://github.com/sphinx-doc/sphinx/issues/9813 and possibly
    https://github.com/sphinx-doc/sphinx/issues/11225) where the type hints are
    incorrectly interpreted as references, leading Sphinx to think that there are
