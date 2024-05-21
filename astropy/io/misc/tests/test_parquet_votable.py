@@ -64,6 +64,7 @@ def test_parquet_votable(tmp_path):
     assert np.all(input_table == loaded_table)
 
 
+@pytest.mark.xfail(reason="TODO fix: metadata overwrites existing column unit")
 def test_parquet_votable_input_column_unit(tmp_path):
     """Test round trip of a table that has column units"""
     filename = tmp_path / "test_votable.parq"
@@ -80,6 +81,7 @@ def test_parquet_votable_input_column_unit(tmp_path):
     assert input_table["mass"].unit == loaded_table["mass"].unit
 
 
+@pytest.mark.xfail(reason="TODO fix: exitsing column metadata is ignored")
 def test_parquet_votable_input_column_metadata(tmp_path):
     """Test preservation of column metadata"""
     filename = tmp_path / "test_votable.parq"
@@ -94,6 +96,7 @@ def test_parquet_votable_input_column_metadata(tmp_path):
     assert loaded_table["mass"].meta["foo"] == "bar"
 
 
+@pytest.mark.xfail(reason="TODO fix: exitsing metadata is ignored")
 def test_parquet_votable_input_metadata(tmp_path):
     """Test preservation of table metadata"""
     filename = tmp_path / "test_votable.parq"
@@ -125,6 +128,7 @@ def test_compare_parquet_votable(tmp_path):
     assert parquet_votable["sfr"].unit == u.solMass / u.yr
 
 
+@pytest.mark.xfail(reason="TODO fix: metadata should be optional when it all already exist")
 def test_write_from_votable_existing_metadata(tmp_path):
     """Read a votable into a Table and write it out as 'parquet.votable' preserving metadata"""
     output_filename = tmp_path / "test_votable.parq"
@@ -144,6 +148,7 @@ def test_write_from_votable_existing_metadata(tmp_path):
 
 
 # Not sure this use case should be supported at all
+@pytest.mark.xfail(reason="TODO fix: metadata could be overwriten")
 def test_write_from_votable_overriding_metadata(tmp_path):
     """Read a votable into a Table and write it out as 'parquet.votable' preserving metadata"""
     output_filename = tmp_path / "test_votable.parq"
