@@ -524,6 +524,11 @@ def write_parquet_votable(table, output, *, metadata, overwrite=False):
         of the columns containing a dictionary with metadata.
 
     """
+    # TODO cases to handle:
+    # - missing metadata kwarg, e.g. it could be inherited from the input table
+    # - overwriting metadata, metadata could be partially missing, the provided
+    #   one then could overwrite the existing one in the table
+
     import io
     import xml.etree.ElementTree
 
@@ -541,6 +546,8 @@ def write_parquet_votable(table, output, *, metadata, overwrite=False):
     # Prepare the VOTable (XML)
     # We only use the first row of the astropy table to get the general
     # information such as arraysize, ID, or datatype.
+
+    # TODO this step looses the metadata that the astropy Table input might have had, e.g. column units.
     votablefile = VOTableFile()
     votable_write = votablefile.from_table(table[0:1])
 
