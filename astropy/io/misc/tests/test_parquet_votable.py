@@ -4,6 +4,7 @@ import pytest
 import astropy.units as u
 from astropy.io.misc.parquet import read_parquet_votable, write_parquet_votable
 from astropy.table import Table
+from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
@@ -67,7 +68,7 @@ def test_parquet_votable_input_column_unit(tmp_path):
     """Test round trip of a table that has column units"""
     filename = tmp_path / "test_votable.parq"
 
-    input_table['mass'].unit = u.jupiterMass
+    input_table["mass"].unit = u.jupiterMass
     write_parquet_votable(input_table, filename, metadata=column_metadata)
 
     with pytest.warns(AstropyUserWarning, match="No table::len"):
@@ -76,35 +77,35 @@ def test_parquet_votable_input_column_unit(tmp_path):
     # Compare data content
     assert np.all(input_table == loaded_table)
 
-    assert input_table['mass'].unit == loaded_table['mass'].unit
+    assert input_table["mass"].unit == loaded_table["mass"].unit
 
 
 def test_parquet_votable_input_column_metadata(tmp_path):
     """Test preservation of column metadata"""
     filename = tmp_path / "test_votable.parq"
 
-    input_table['mass'].meta['foo'] = 'bar'
+    input_table["mass"].meta["foo"] = "bar"
     write_parquet_votable(input_table, filename, metadata=column_metadata)
 
     with pytest.warns(AstropyUserWarning, match="No table::len"):
         loaded_table = read_parquet_votable(filename)
 
-    assert 'foo' in loaded_table['mass'].meta
-    assert loaded_table['mass'].meta['foo'] == 'bar'
+    assert "foo" in loaded_table["mass"].meta
+    assert loaded_table["mass"].meta["foo"] == "bar"
 
 
 def test_parquet_votable_input_metadata(tmp_path):
     """Test preservation of table metadata"""
     filename = tmp_path / "test_votable.parq"
 
-    input_table.meta['table_foo'] = 'table_bar'
+    input_table.meta["table_foo"] = "table_bar"
     write_parquet_votable(input_table, filename, metadata=column_metadata)
 
     with pytest.warns(AstropyUserWarning, match="No table::len"):
         loaded_table = read_parquet_votable(filename)
 
-    assert 'table_foo' in loaded_table.meta
-    assert loaded_table.meta['table_foo'] == 'table_bar'
+    assert "table_foo" in loaded_table.meta
+    assert loaded_table.meta["table_foo"] == "table_bar"
 
 
 def test_compare_parquet_votable(tmp_path):
@@ -122,6 +123,51 @@ def test_compare_parquet_votable(tmp_path):
 
     assert parquet_votable["sfr"].meta["ucd"] == "phys.SFR"
     assert parquet_votable["sfr"].unit == u.solMass / u.yr
+
+
+def test_write_from_votable_existing_metadata(tmp_path):
+    """Read a votable into a Table and write it out as 'parquet.votable' preserving metadata"""
+    output_filename = tmp_path / "test_votable.parq"
+    input_data = get_pkg_data_filename("data/gaia_source_dr3_select_1_result.vot")
+
+    input_table = Table.read(input_data)
+
+    # Write out the VOTable into a parquet, preserving the metadata
+    # without providing an extra dictionary
+    input_table.write(output_filename, format="parquet.votable")
+
+    loaded_table = Table.read(output_filename, format="parquet.votable")
+
+    assert np.all(input_table == loaded_table)
+    for attr in ["meta", "unit", "dtype", "description"]:
+        assert getattr(input_table["ra"], attr) == getattr(loaded_table["ra"], attr)
+
+
+# Not sure this use case should be supported at all
+def test_write_from_votable_overriding_metadata(tmp_path):
+    """Read a votable into a Table and write it out as 'parquet.votable' preserving metadata"""
+    output_filename = tmp_path / "test_votable.parq"
+    input_data = get_pkg_data_filename("data/gaia_source_dr3_select_1_result.vot")
+
+    input_table = Table.read(input_data)
+
+    new_metadata = {
+        "SOURCE_ID": {
+            "description": "Updated description",
+        },
+    }
+    # Write out the VOTable into a parquet, preserving the metadata
+    # without providing an extra dictionary
+    input_table.write(
+        output_filename,
+        format="parquet.votable",
+        metadata=new_metadata,
+        metadata_overwrite=True,
+    )
+
+    loaded_table = Table.read(output_filename, format="parquet.votable")
+
+    assert loaded_table["SOURCE_ID"].description == "Updated description"
 
 
 def test_read_write_existing(tmp_path):
