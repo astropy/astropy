@@ -24,12 +24,12 @@ Table of Contents
 Installation
 ============
 
-Releases are `registered on PyPI <https://pypi.org/project/astropy>`_, 
-and development is occurring at the 
-`project's GitHub page <https://github.com/astropy/astropy>`_. 
+Releases are `registered on PyPI <https://pypi.org/project/astropy>`_,
+and development is occurring at the
+`project's GitHub page <https://github.com/astropy/astropy>`_.
 
-For detailed installation instructions, see the 
-`online documentation <https://docs.astropy.org/>`_ 
+For detailed installation instructions, see the
+`online documentation <https://docs.astropy.org/>`_
 or `docs/install.rst <docs/install.rst>`_ in this source distribution.
 
 To install `astropy` from PyPI, use:
@@ -41,35 +41,35 @@ To install `astropy` from PyPI, use:
 Contributing
 ============
 
-The Astropy Project is made both by and for its users, so we welcome and 
-encourage contributions of many kinds. Our goal is to keep this a positive, 
-inclusive, successful, and growing community by abiding with the 
+The Astropy Project is made both by and for its users, so we welcome and
+encourage contributions of many kinds. Our goal is to keep this a positive,
+inclusive, successful, and growing community by abiding with the
 `Astropy Community Code of Conduct <https://www.astropy.org/about.html#codeofconduct>`_.
 
-More detailed information on contributing to the project or submitting feedback 
-can be found on the `contributions page <https://www.astropy.org/contribute.html>`_. 
-A `summary of contribution guidelines <CONTRIBUTING.md>`_ can also be 
-used as a quick reference when you are ready to start writing or validating 
+More detailed information on contributing to the project or submitting feedback
+can be found on the `contributions page <https://www.astropy.org/contribute.html>`_.
+A `summary of contribution guidelines <CONTRIBUTING.md>`_ can also be
+used as a quick reference when you are ready to start writing or validating
 code for submission.
 
 Getting Started with GitHub Codespaces
 ======================================
 
-Codespaces is a cloud development environment supported by GitHub. 
-None of the Astropy build machinery depends on it, but it is a 
+Codespaces is a cloud development environment supported by GitHub.
+None of the Astropy build machinery depends on it, but it is a
 convenient way to quickly get started doing development on Astropy.
 
 To get started, create a codespace for this repository by clicking this:
 
 |Codespaces|
 
-A codespace will open in a web-based version of Visual Studio Code. 
-The `dev container <.devcontainer/devcontainer.json>`_ is fully configured 
-with software needed for this project. For help, see the `GitHub Codespaces 
+A codespace will open in a web-based version of Visual Studio Code.
+The `dev container <.devcontainer/devcontainer.json>`_ is fully configured
+with software needed for this project. For help, see the `GitHub Codespaces
 Support page <https://docs.github.com/en/codespaces>`_.
 
-**Note**: Dev containers is an open spec which is supported by 
-`GitHub Codespaces <https://github.com/codespaces>`_ and 
+**Note**: Dev containers is an open spec which is supported by
+`GitHub Codespaces <https://github.com/codespaces>`_ and
 `other tools <https://containers.dev/supporting>`_.
 
 Supporting the Project
