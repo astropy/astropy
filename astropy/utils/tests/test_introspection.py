@@ -15,6 +15,7 @@ from astropy.utils.introspection import (
     find_mod_objs,
     isinstancemethod,
     minversion,
+    resolve_name,
 )
 
 
@@ -139,3 +140,15 @@ def test_deprecated_isinstancemethod():
         assert isinstancemethod(MyClass, MyClass.a_staticmethod) is False
     with pytest.warns(AstropyDeprecationWarning, match=deprecation_message):
         assert isinstancemethod(MyClass, MyClass.an_instancemethod) is True
+
+
+def test_resolve_name_deprecation():
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            "^The resolve_name function is deprecated and may be removed in a future "
+            r"version\.\n        Use importlib \(e\.g\. importlib\.import_module for "
+            r"modules\) instead\.$"
+        ),
+    ):
+        assert resolve_name("astropy.utils.introspection") is introspection
