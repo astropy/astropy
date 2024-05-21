@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/votable-1.4.xsd">
+<RESOURCE type="results">
+<INFO name="QUERY_STATUS" value="OK"/>
+
+<INFO name="QUERY" value="SELECT TOP 1 source_id, ra, dec, parallax from gaiadr3.gaia_source"><![CDATA[SELECT TOP 1 source_id, ra, dec, parallax from gaiadr3.gaia_source]]></INFO>
+<INFO name="CAPTION" value=""/>
+<INFO name="CITATION" value="" ucd="meta.bib"/>
+<INFO name="PAGE" value=""/>
+<INFO name="PAGE_SIZE" value=""/>
+<INFO name="JOBID" value="1716255000252O"><![CDATA[1716255000252O]]></INFO>
+<INFO name="JOBNAME" value=""/>
+
+<PARAM name="RELEASE" ID="GaiaRelease" datatype="char" arraysize="*" value="Gaia DR3"/>
+
+<COOSYS ID="GAIADR3" epoch="J2016.0" system="ICRS"/>
+
+<RESOURCE>
+  <COOSYS ID="t11250306-coosys-1" epoch="J2016.0" system="ICRS"/>
+</RESOURCE>
+<TABLE>
+<FIELD ID="SOURCE_ID" datatype="long" name="source_id" ucd="meta.id">
+<DESCRIPTION>Unique source identifier (unique within a particular Data Release)</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="ra" ref="t11250306-coosys-1" ucd="pos.eq.ra;meta.main" unit="deg" utype="stc:AstroCoords.Position3D.Value3.C1">
+<DESCRIPTION>Right ascension</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="dec" ref="t11250306-coosys-1" ucd="pos.eq.dec;meta.main" unit="deg" utype="stc:AstroCoords.Position3D.Value3.C2">
+<DESCRIPTION>Declination</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="parallax" ucd="pos.parallax.trig" unit="mas">
+<DESCRIPTION>Parallax</DESCRIPTION>
+</FIELD>
+<DATA>
+<TABLEDATA>
+<TR><TD>3136752501901167744</TD><TD>112.5836308350694</TD><TD>4.667508081125457</TD><TD>0.30639294800127265</TD></TR>
+</TABLEDATA>
+</DATA>
+
+</TABLE>
+</RESOURCE>
+<RESOURCE type="meta" utype="adhoc:service" name="ancillary">
+    <DESCRIPTION>Retrieve DataLink file containing ancillary data for source</DESCRIPTION>
+    <PARAM name="standardID" datatype="char" arraysize="*" value="ivo://ivoa.net/std/DataLink#links-1.0"/>
+    <PARAM name="accessURL" datatype="char" arraysize="*" value="https://gea.esac.esa.int/data-server/datalink/links"/>
+    <PARAM name="contentType" datatype="char" arraysize="*" value="application/x-votable+xml;content=datalink"/>
+    <GROUP name="inputParams">
+        <PARAM name="ID" datatype="long" value="" ref="SOURCE_ID"/>
+        <PARAM name="RELEASE" ID="GaiaRelease" datatype="char" arraysize="*" value="Gaia DR3"/>
+    </GROUP>
+</RESOURCE>
+</VOTABLE>
