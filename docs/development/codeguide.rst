@@ -37,7 +37,7 @@ Interface and Dependencies
   statement, which will raise an ``ImportError`` if the dependency is
   not available. In the astropy core package, such optional dependencies should
   be recorded in the ``pyproject.toml`` file in the ``[project.optional-dependencies]``
-  entry (try to put it in the appropriate category of optional dependencies).
+  entry (put it in the appropriate category of optional dependencies).
 
   At the module level, one can subclass a class from an optional dependency
   like so::
