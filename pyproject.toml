@@ -47,35 +47,30 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = [
-    "pytest>=7.0",
-    "pytest-doctestplus>=0.12",
-    "pytest-astropy-header>=0.2.1",
-    "pytest-astropy>=0.10",
-    "pytest-xdist",
-    "threadpoolctl",
-]
-test_all = [
-    "astropy[test]",  # installs the [test] dependencies
-    "objgraph",
-    "ipykernel",
-    "ipython>=7.32",
-    "ipywidgets",
-    "coverage[toml]",
-    "skyfield>=1.20",
-    "sgp4>=2.3",
-    "array-api-strict",
-]
+# Recommended run-time dependencies to enable a lot of functionality within Astropy.
 recommended = [
     "scipy>=1.8",
     "matplotlib>=3.3,!=3.4.0,!=3.5.2",
 ]
-typing = [
-    "typing_extensions>=4.0.0"
+# Optional IPython-related behavior is in many places in Astropy. IPython is a complex
+# dependency that occasionally requires pinning one of it's upstream dependencies. If
+# you are using Astropy from an IPython-dependent IDE, like Jupyter, this should enforce
+# the minimum supported version of IPython.
+ipython = [
+    "ipython>=7.32",
 ]
+jupyter = [  # these are optional dependencies for `utils.console`
+    "astropy[ipython]",
+    "ipywidgets",
+    "ipykernel",
+]
+# This is ALL the run-time optional dependencies.
 all = [
-    "astropy[recommended]",  # installs the [recommended] dependencies
-    "astropy[typing]",
+    # Install grouped optional dependencies
+    "astropy[recommended]",
+    "astropy[ipython]",
+    "astropy[jupyter]",
+    # Install all remaining optional dependencies
     "certifi",
     "dask[array]",
     "h5py",
@@ -90,13 +85,32 @@ all = [
     "mpmath",
     "asdf-astropy>=0.3",
     "bottleneck",
-    "ipykernel",
-    "ipython>=7.32",
-    "ipywidgets",
-    "pytest>=7.0",
     "fsspec[http]>=2023.4.0",
     "s3fs>=2023.4.0",
+]
+# The base set of test-time dependencies.
+test = [
     "pre-commit",
+    "pytest>=7.0",
+    "pytest-doctestplus>=0.12",
+    "pytest-astropy-header>=0.2.1",
+    "pytest-astropy>=0.10",
+    "pytest-xdist",
+    "threadpoolctl",
+]
+test_all = [
+    # Install grouped optional dependencies
+    "astropy[all]",  # installs all optional run-time dependencies
+    "astropy[test]",
+    # Install all remaining dependencies
+    "objgraph",
+    "coverage[toml]",
+    "skyfield>=1.20",
+    "sgp4>=2.3",
+    "array-api-strict",
+]
+typing = [
+    "typing_extensions>=4.0.0"
 ]
 docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
@@ -109,6 +123,17 @@ docs = [
     "tomli; python_version < '3.11'",
     "sphinxcontrib-globalsubs >= 0.1.1",
     "matplotlib!=3.9.0",  # https://github.com/matplotlib/matplotlib/issues/28234
+]
+# These group together all the dependencies needed for developing in Astropy.
+dev = [
+    "astropy[recommended]",  # installs the most common optional dependencies
+    "astropy[test]",
+    "astropy[docs]",
+    "astropy[typing]",
+]
+dev_all = [
+    "astropy[dev]",
+    "astropy[test_all]",
 ]
 
 [project.urls]

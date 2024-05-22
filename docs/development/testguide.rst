@@ -39,8 +39,17 @@ option::
 
     python -m pip install --editable ".[test]"
 
-A detailed description of the plugins can be found in the :ref:`pytest-plugins`
-section.
+To test the full set of optional dependencies, use the ``test_all`` option::
+
+    python -m pip install --editable ".[test_all]"
+
+If you are looking to do development in Astropy beyond running the tests, e.g. building the documentation or doing static analysis, we provide the complete set of all
+dependencies with the ``dev_all`` option::
+
+    python -m pip install --editable ".[dev_all]"
+
+A detailed description of the |pytest-astropy| plugins can be found in the
+:ref:`pytest-plugins` section.
 
 .. _running-tests:
 
