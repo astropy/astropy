@@ -90,6 +90,7 @@ all = [
 ]
 # The base set of test-time dependencies.
 test = [
+    "coverage[toml]",
     "pre-commit",
     "pytest>=7.0",
     "pytest-doctestplus>=0.12",
@@ -104,13 +105,12 @@ test_all = [
     "astropy[test]",
     # Install all remaining dependencies
     "objgraph",
-    "coverage[toml]",
     "skyfield>=1.20",
     "sgp4>=2.3",
     "array-api-strict",
 ]
 typing = [
-    "typing_extensions>=4.0.0"
+    "typing_extensions>=4.0.0",
 ]
 docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
