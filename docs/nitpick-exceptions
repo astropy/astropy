@@ -134,18 +134,3 @@ py:class ModuleType
 py:class NDArray
 # locally defined type variable for ndarray dtype
 py:class DT
-# astropy.units
-py:class Equivalency
-py:class Quantity
-py:class Unit
-py:class UnitBase
-py:func astropy.units.Quantity
-py:obj CompositeUnit
-py:obj Equivalency
-py:obj PhysicalType
-py:obj PrefixUnit
-py:obj Quantity
-py:obj StructuredUnit
-py:obj Unit
-py:obj UnitBase
-py:obj UnrecognizedUnit
