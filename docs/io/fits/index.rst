@@ -486,9 +486,10 @@ to a new file, you can use the :meth:`HDUList.writeto` method (see below).
     See more information in :doc:`/io/fits/usage/image`.
 
 .. note::
-    `CCDData` provides a higher level interface to :ref:`read and write FITS
-    files <nddata_reading_writing>` with imaging data, with the possibility to
-    load data, uncertainty and mask from a multi-extension FITS (MEF) file.
+    `~astropy.nddata.CCDData` provides a higher level interface to :ref:`read
+    and write FITS files <nddata_reading_writing>` with imaging data, with the
+    possibility to load data, uncertainty and mask from a multi-extension FITS
+    (MEF) file.
 
 
 Working with Table Data
