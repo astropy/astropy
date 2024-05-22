@@ -1064,19 +1064,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         <SkyCoord (ICRS): (x, y, z) [dimensionless]
             (1., 0., 0.)>
         """
-        # For backwards compatibility (because in_frame_units used to be the
-        # 2nd argument), we check to see if `new_differential` is a boolean. If
-        # it is, we ignore the value of `new_differential` and warn about the
-        # position change
-        if isinstance(s, bool):
-            warnings.warn(
-                "The argument position for `in_frame_units` in `represent_as` has"
-                " changed. Use as a keyword argument if needed.",
-                AstropyWarning,
-            )
-            in_frame_units = s
-            s = "base"
-
         # In the future, we may want to support more differentials, in which
         # case one probably needs to define **kwargs above and use it here.
         # But for now, we only care about the velocity.
