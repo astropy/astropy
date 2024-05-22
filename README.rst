@@ -127,7 +127,7 @@ Astropy is licensed under a 3-clause BSD style license - see the
     :alt: Powered by NumFOCUS
 
 .. |Donate| image:: https://img.shields.io/badge/Donate-to%20Astropy-brightgreen.svg
-    :target: https://numfocus.salsalabs.org/donate-to-astropy/index.html
+    :target: https://numfocus.org/donate-to-astropy
 
 .. |Codespaces| image:: https://github.com/codespaces/badge.svg
     :target: https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=2081289
