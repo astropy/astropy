@@ -88,7 +88,7 @@ jobs:
         - name: Python 3.11 with all optional dependencies (MacOS X)
           macos: py311-test-alldeps
           posargs: --durations=50 --run-slow
-          runs-on: macos-12
+          runs-on: macos-latest
 
         - name: Python 3.10 Double test (Run tests twice)
           linux: py310-test-double
