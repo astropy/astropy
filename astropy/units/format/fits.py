@@ -77,12 +77,6 @@ class FITS(generic.Generic):
         return cls._units[unit]
 
     @classmethod
-    def _get_unit_name(cls, unit):
-        name = super()._get_unit_name(unit)
-        cls._validate_unit(name)
-        return name
-
-    @classmethod
     def to_string(cls, unit, fraction=False):
         # Remove units that aren't known to the format
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)

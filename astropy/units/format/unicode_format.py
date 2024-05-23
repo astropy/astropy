@@ -44,7 +44,7 @@ class Unicode(console.Console):
 
     @classmethod
     def _format_unit_power(cls, unit: NamedUnit, power: Real = 1) -> str:
-        name = cls._get_unit_name(unit)
+        name = unit.get_format_name(cls.name)
         # Check for superscript units
         if power != 1:
             if name in ("°", "e⁻", "″", "′", "ʰ"):

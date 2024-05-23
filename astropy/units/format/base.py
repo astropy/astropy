@@ -39,10 +39,6 @@ class Base:
         super().__init_subclass__(**kwargs)
 
     @classmethod
-    def _get_unit_name(cls, unit: NamedUnit) -> str:
-        return unit.get_format_name(cls.name)
-
-    @classmethod
     def format_exponential_notation(cls, val: float, format_spec: str = "g") -> str:
         """
         Formats a value in exponential notation.
@@ -73,7 +69,7 @@ class Base:
         This is overridden in Latex where the name of the unit can depend on the power
         (e.g., for degrees).
         """
-        name = cls._get_unit_name(unit)
+        name = unit.get_format_name(cls.name)
         if power != 1:
             name += cls._format_superscript(utils.format_power(power))
         return name

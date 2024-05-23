@@ -31,7 +31,7 @@ from .base import Base
 from .utils import did_you_mean_units, unit_deprecation_warning
 
 if TYPE_CHECKING:
-    from astropy.units import UnitBase
+    from astropy.units import NamedUnit, UnitBase
 
 
 class Generic(Base):
@@ -599,6 +599,12 @@ class Generic(Base):
                     raise
                 else:
                     raise ValueError(f"Syntax error parsing unit '{s}'")
+
+    @classmethod
+    def _get_unit_name(cls, unit: NamedUnit) -> str:
+        name = unit.get_format_name(cls.name)
+        cls._validate_unit(name)
+        return name
 
     @classmethod
     def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> None:
