@@ -236,6 +236,8 @@ changes as expected::
 ..
   EXAMPLE END
 
+.. _nddata_reading_writing:
+
 Reading and Writing
 -------------------
 
