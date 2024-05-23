@@ -2,6 +2,7 @@
 
 import numpy as np
 
+__all__ = ["quantity_support"]
 __doctest_skip__ = ["quantity_support"]
 
 
