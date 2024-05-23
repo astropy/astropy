@@ -364,12 +364,6 @@ class OGIP(generic.Generic):
                     raise ValueError(f"Syntax error parsing unit '{s}'")
 
     @classmethod
-    def _get_unit_name(cls, unit):
-        name = super()._get_unit_name(unit)
-        cls._validate_unit(name)
-        return name
-
-    @classmethod
     def _format_superscript(cls, number):
         return f"**({number})" if "/" in number else f"**{number}"
 
