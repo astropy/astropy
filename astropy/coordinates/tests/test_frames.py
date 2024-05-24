@@ -43,7 +43,7 @@ from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .test_representation import unitphysics  # this fixture is used below  # noqa: F401
 
@@ -936,11 +936,6 @@ def test_represent_as():
     rep2 = icrs.represent_as("cylindrical")
     assert isinstance(rep2, r.CylindricalRepresentation)
     assert isinstance(rep2.differentials["s"], r.CylindricalDifferential)
-
-    # single class with positional in_frame_units, verify that warning raised
-    with pytest.warns(AstropyWarning, match="argument position") as w:
-        icrs.represent_as(r.CylindricalRepresentation, False)
-    assert len(w) == 1
 
     # TODO: this should probably fail in the future once we figure out a better
     # workaround for dealing with UnitSphericalRepresentation's with
