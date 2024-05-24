@@ -11,10 +11,9 @@ import pytest
 from astropy import units as u
 from astropy.coordinates import (
     GCRS,
-    ICRS,
-    Galactic,
     NonRotationTransformationError,
     NonRotationTransformationWarning,
+    SkyCoord,
 )
 
 if TYPE_CHECKING:
@@ -22,14 +21,11 @@ if TYPE_CHECKING:
 
 
 class FrameDescription(NamedTuple):
-    frame: BaseCoordinateFrame
+    frame: BaseCoordinateFrame | SkyCoord
     description: str
     pytest_id: str
 
 
-galactic = FrameDescription(
-    Galactic(0 * u.deg, 0 * u.deg), "Galactic Frame", "Galactic"
-)
 gcrs_custom = FrameDescription(
     GCRS(
         0 * u.deg,
@@ -51,12 +47,19 @@ gcrs_default = FrameDescription(
     ),
     "default_GCRS",
 )
-icrs = FrameDescription(ICRS(0 * u.deg, 0 * u.deg), "ICRS Frame", "ICRS")
+skycoord_galactic = FrameDescription(
+    SkyCoord(0 * u.deg, 0 * u.deg, frame="galactic"),
+    "Galactic Frame",
+    "SkyCoord_Galactic",
+)
+skycoord_icrs = FrameDescription(
+    SkyCoord(0 * u.deg, 0 * u.deg), "ICRS Frame", "SkyCoord_ICRS"
+)
 
 
 @pytest.mark.parametrize(
     "coord_from,coord_to",
-    [pytest.param(icrs, gcrs_custom), pytest.param(gcrs_default, galactic)],
+    [(skycoord_icrs, gcrs_custom), (gcrs_default, skycoord_galactic)],
     ids=lambda x: x.pytest_id,
 )
 def test_NonRotationTransformationError_message(coord_from, coord_to):
@@ -69,7 +72,7 @@ def test_NonRotationTransformationError_message(coord_from, coord_to):
 
 @pytest.mark.parametrize(
     "coord_from,coord_to",
-    [pytest.param(icrs, gcrs_default), pytest.param(gcrs_custom, galactic)],
+    [(skycoord_icrs, gcrs_default), (gcrs_custom, skycoord_galactic)],
     ids=lambda x: x.pytest_id,
 )
 def test_NonRotationTransformationWarning_message(coord_from, coord_to):

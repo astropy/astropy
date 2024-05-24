@@ -9,7 +9,7 @@ from matplotlib.artist import Artist
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
 
-from astropy.coordinates import BaseCoordinateFrame, SkyCoord
+from astropy.coordinates import BaseCoordinateFrame
 from astropy.utils import minversion
 from astropy.utils.compat.optional_deps import HAS_PIL
 from astropy.wcs import WCS
@@ -295,12 +295,7 @@ class WCSAxes(Axes):
         Apply transformations to arguments to ``plot_coord`` and
         ``scatter_coord``.
         """
-        if isinstance(args[0], (SkyCoord, BaseCoordinateFrame)):
-            # Extract the frame from the first argument.
-            frame0 = args[0]
-            if isinstance(frame0, SkyCoord):
-                frame0 = frame0.frame
-
+        if isinstance(frame0 := getattr(args[0], "frame", None), BaseCoordinateFrame):
             native_frame = self._transform_pixel2world.frame_out
             # Transform to the native frame of the plot
             frame0 = frame0.transform_to(native_frame)

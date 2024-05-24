@@ -38,6 +38,8 @@ from .sky_coordinate_parsers import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from .typing import SupportsFrame
+
 __all__ = ["SkyCoord", "SkyCoordInfo"]
 
 
@@ -296,9 +298,9 @@ class SkyCoord(ShapedLikeNDArray):
     info = SkyCoordInfo()
 
     # Methods implemented by the underlying frame
-    position_angle: Callable[[BaseCoordinateFrame | SkyCoord], Angle]
-    separation: Callable[[BaseCoordinateFrame | SkyCoord], Angle]
-    separation_3d: Callable[[BaseCoordinateFrame | SkyCoord], Distance]
+    position_angle: Callable[[SupportsFrame], Angle]
+    separation: Callable[[SupportsFrame], Angle]
+    separation_3d: Callable[[SupportsFrame], Distance]
 
     def __init__(self, *args, copy=True, **kwargs):
         # these are frame attributes set on this SkyCoord but *not* a part of
@@ -371,7 +373,7 @@ class SkyCoord(ShapedLikeNDArray):
                 raise ValueError("Cannot create a SkyCoord without data")
 
     @property
-    def frame(self):
+    def frame(self) -> BaseCoordinateFrame:
         return self._sky_coord_frame
 
     @property
@@ -664,28 +666,26 @@ class SkyCoord(ShapedLikeNDArray):
         except Exception:
             pass
 
-        if isinstance(frame, SkyCoord):
-            frame = frame.frame  # Change to underlying coord frame instance
-
-        if isinstance(frame, BaseCoordinateFrame):
-            new_frame_cls = frame.__class__
-            # Get frame attributes, allowing defaults to be overridden by
-            # explicitly set attributes of the source if ``merge_attributes``.
-            for attr in frame_transform_graph.frame_attributes:
-                self_val = getattr(self, attr, None)
-                frame_val = getattr(frame, attr, None)
-                if frame_val is not None and not (
-                    merge_attributes and frame.is_frame_attr_default(attr)
-                ):
-                    frame_kwargs[attr] = frame_val
-                elif self_val is not None and not self.is_frame_attr_default(attr):
-                    frame_kwargs[attr] = self_val
-                elif frame_val is not None:
-                    frame_kwargs[attr] = frame_val
-        else:
+        frame = getattr(frame, "frame", None)
+        if not isinstance(frame, BaseCoordinateFrame):
             raise ValueError(
                 "Transform `frame` must be a frame name, class, or instance"
             )
+
+        new_frame_cls = frame.__class__
+        # Get frame attributes, allowing defaults to be overridden by
+        # explicitly set attributes of the source if ``merge_attributes``.
+        for attr in frame_transform_graph.frame_attributes:
+            self_val = getattr(self, attr, None)
+            frame_val = getattr(frame, attr, None)
+            if frame_val is not None and not (
+                merge_attributes and frame.is_frame_attr_default(attr)
+            ):
+                frame_kwargs[attr] = frame_val
+            elif self_val is not None and not self.is_frame_attr_default(attr):
+                frame_kwargs[attr] = self_val
+            elif frame_val is not None:
+                frame_kwargs[attr] = frame_val
 
         # Get the composite transform to the new frame
         trans = frame_transform_graph.get_transform(self.frame.__class__, new_frame_cls)

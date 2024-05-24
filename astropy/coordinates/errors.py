@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 from astropy.utils.exceptions import AstropyUserWarning
 
 if TYPE_CHECKING:
-    from astropy.coordinates import BaseCoordinateFrame
+    from .typing import SupportsFrame
 
 
 # TODO: consider if this should be used to `units`?
@@ -39,11 +39,9 @@ class NonRotationTransformationError(ValueError):
     depending on its direction.
     """
 
-    def __init__(
-        self, frame_to: BaseCoordinateFrame, frame_from: BaseCoordinateFrame
-    ) -> None:
-        self.frame_to = frame_to
-        self.frame_from = frame_from
+    def __init__(self, frame_to: SupportsFrame, frame_from: SupportsFrame) -> None:
+        self.frame_to = frame_to.frame
+        self.frame_from = frame_from.frame
 
     def __str__(self) -> str:
         return (
@@ -76,11 +74,9 @@ class NonRotationTransformationWarning(AstropyUserWarning):
     depending on its direction.
     """
 
-    def __init__(
-        self, frame_to: BaseCoordinateFrame, frame_from: BaseCoordinateFrame
-    ) -> None:
-        self.frame_to = frame_to
-        self.frame_from = frame_from
+    def __init__(self, frame_to: SupportsFrame, frame_from: SupportsFrame) -> None:
+        self.frame_to = frame_to.frame
+        self.frame_from = frame_from.frame
 
     def __str__(self) -> str:
         return (

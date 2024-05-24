@@ -38,8 +38,12 @@ from .transformations import (
 if TYPE_CHECKING:
     from typing import Literal
 
-    from astropy.coordinates import Latitude, Longitude, SkyCoord
+    from typing_extensions import Self
+
+    from astropy.coordinates import Latitude, Longitude
     from astropy.units import Unit
+
+    from .typing import SupportsFrame
 
 # the graph used for all transformations between frames
 frame_transform_graph = TransformGraph()
@@ -658,6 +662,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         setattr(cls, private_attr, value)
         setattr(cls, attr_name, property(getter, doc=doc))
 
+    @property
+    def frame(self) -> Self:  # To implement the `SupportsFrame` protocol.
+        """A reference to this frame."""
+        return self
+
     @lazyproperty
     def cache(self):
         """Cache for this frame, a dict.
@@ -1235,10 +1244,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 " https://github.com/astropy/astropy/issues/6280"
             )
 
-        if hasattr(new_frame, "_sky_coord_frame"):
-            # Input new_frame is not a frame instance or class and is most
-            # likely a SkyCoord object.
-            new_frame = new_frame._sky_coord_frame
+        new_frame = new_frame.frame
 
         trans = frame_transform_graph.get_transform(self.__class__, new_frame.__class__)
         if trans is None:
@@ -1713,37 +1719,34 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         return np.logical_not(self == value)
 
     def _prepare_unit_sphere_coords(
-        self,
-        other: BaseCoordinateFrame | SkyCoord,
-        origin_mismatch: Literal["ignore", "warn", "error"],
+        self, other: SupportsFrame, origin_mismatch: Literal["ignore", "warn", "error"]
     ) -> tuple[Longitude, Latitude, Longitude, Latitude]:
-        other_frame = getattr(other, "frame", other)
         if not (
             origin_mismatch == "ignore"
-            or self.is_equivalent_frame(other_frame)
+            or self.is_equivalent_frame(other.frame)
             or all(
                 isinstance(comp, (StaticMatrixTransform, DynamicMatrixTransform))
                 for comp in frame_transform_graph.get_transform(
-                    type(self), type(other_frame)
+                    type(self), type(other.frame)
                 ).transforms
             )
         ):
             if origin_mismatch == "warn":
-                warnings.warn(NonRotationTransformationWarning(self, other_frame))
+                warnings.warn(NonRotationTransformationWarning(self, other))
             elif origin_mismatch == "error":
-                raise NonRotationTransformationError(self, other_frame)
+                raise NonRotationTransformationError(self, other)
             else:
                 raise ValueError(
                     f"{origin_mismatch=} is invalid. Allowed values are 'ignore', "
                     "'warn' or 'error'."
                 )
         self_sph = self.represent_as(r.UnitSphericalRepresentation)
-        other_sph = other_frame.transform_to(self).represent_as(
+        other_sph = other.frame.transform_to(self).represent_as(
             r.UnitSphericalRepresentation
         )
         return self_sph.lon, self_sph.lat, other_sph.lon, other_sph.lat
 
-    def position_angle(self, other: BaseCoordinateFrame | SkyCoord) -> Angle:
+    def position_angle(self, other: SupportsFrame) -> Angle:
         """Compute the on-sky position angle to another coordinate.
 
         Parameters
@@ -1778,7 +1781,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     def separation(
         self,
-        other: BaseCoordinateFrame | SkyCoord,
+        other: SupportsFrame,
         *,
         origin_mismatch: Literal["ignore", "warn", "error"] = "warn",
     ) -> Angle:
