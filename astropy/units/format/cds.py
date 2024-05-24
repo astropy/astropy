@@ -12,7 +12,10 @@
 
 """Handles the CDS string format for units."""
 
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
 
 from astropy.units.utils import is_effectively_unity
 from astropy.utils import classproperty, parsing
@@ -20,6 +23,14 @@ from astropy.utils.misc import did_you_mean
 
 from . import core, utils
 from .base import Base
+
+if TYPE_CHECKING:
+    from numbers import Real
+    from typing import ClassVar, Literal
+
+    from astropy.extern.ply.lex import Lexer, LexToken
+    from astropy.units import UnitBase
+    from astropy.utils.parsing import ThreadSafeParser
 
 
 class CDS(Base):
@@ -32,11 +43,11 @@ class CDS(Base):
     by VOTable up to version 1.2.
     """
 
-    _space = "."
-    _times = "x"
-    _scale_unit_separator = ""
+    _space: ClassVar[str] = "."
+    _times: ClassVar[str] = "x"
+    _scale_unit_separator: ClassVar[str] = ""
 
-    _tokens = (
+    _tokens: ClassVar[tuple[str, ...]] = (
         "PRODUCT",
         "DIVISION",
         "OPEN_PAREN",
@@ -52,19 +63,19 @@ class CDS(Base):
     )
 
     @classproperty(lazy=True)
-    def _units(cls):
+    def _units(cls) -> dict[str, UnitBase]:
         return cls._generate_unit_names()
 
     @classproperty(lazy=True)
-    def _parser(cls):
+    def _parser(cls) -> ThreadSafeParser:
         return cls._make_parser()
 
     @classproperty(lazy=True)
-    def _lexer(cls):
+    def _lexer(cls) -> Lexer:
         return cls._make_lexer()
 
     @staticmethod
-    def _generate_unit_names():
+    def _generate_unit_names() -> dict[str, UnitBase]:
         from astropy import units as u
         from astropy.units import cds
 
@@ -77,7 +88,7 @@ class CDS(Base):
         return names
 
     @classmethod
-    def _make_lexer(cls):
+    def _make_lexer(cls) -> Lexer:
         tokens = cls._tokens
 
         t_PRODUCT = r"\."
@@ -135,7 +146,7 @@ class CDS(Base):
         )
 
     @classmethod
-    def _make_parser(cls):
+    def _make_parser(cls) -> ThreadSafeParser:
         """
         The grammar here is based on the description in the `Standards
         for Astronomical Catalogues 2.0
@@ -265,7 +276,7 @@ class CDS(Base):
         return parsing.yacc(tabmodule="cds_parsetab", package="astropy/units")
 
     @classmethod
-    def _get_unit(cls, t):
+    def _get_unit(cls, t: LexToken) -> UnitBase:
         try:
             return cls._parse_unit(t.value)
         except ValueError as e:
@@ -276,7 +287,7 @@ class CDS(Base):
             raise ValueError(f"At col {t.lexpos}, {str(e)}")
 
     @classmethod
-    def _parse_unit(cls, unit, detailed_exception=True):
+    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
         if unit not in cls._units:
             if detailed_exception:
                 raise ValueError(
@@ -289,7 +300,7 @@ class CDS(Base):
         return cls._units[unit]
 
     @classmethod
-    def parse(cls, s, debug=False):
+    def parse(cls, s: str, debug: bool = False) -> UnitBase:
         if " " in s:
             raise ValueError("CDS unit must not contain whitespace")
 
@@ -310,7 +321,7 @@ class CDS(Base):
                     raise ValueError("Syntax error")
 
     @classmethod
-    def format_exponential_notation(cls, val, format_spec=".8g"):
+    def format_exponential_notation(cls, val: Real, format_spec: str = ".8g") -> str:
         m, ex = utils.split_mantissa_exponent(val)
         parts = []
         if m not in ("", "1"):
@@ -322,11 +333,13 @@ class CDS(Base):
         return cls._times.join(parts)
 
     @classmethod
-    def _format_superscript(cls, number):
+    def _format_superscript(cls, number: str) -> str:
         return number
 
     @classmethod
-    def to_string(cls, unit, fraction=False):
+    def to_string(
+        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+    ) -> str:
         # Remove units that aren't known to the format
         unit = utils.decompose_to_known_units(
             unit, lambda x: x.get_format_name(cls.name)
