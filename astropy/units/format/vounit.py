@@ -145,10 +145,7 @@ class VOUnit(generic.Generic):
                     f"In '{unit}': VOUnit can not represent units with the 'd' "
                     "(deci) prefix"
                 )
-
-        name = super()._get_unit_name(unit)
-        cls._validate_unit(name)
-        return name
+        return super()._get_unit_name(unit)
 
     @classmethod
     def _def_custom_unit(cls, unit):

@@ -328,7 +328,9 @@ class CDS(Base):
     @classmethod
     def to_string(cls, unit, fraction=False):
         # Remove units that aren't known to the format
-        unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
+        unit = utils.decompose_to_known_units(
+            unit, lambda x: x.get_format_name(cls.name)
+        )
 
         if not unit.bases:
             if unit.scale == 1:
