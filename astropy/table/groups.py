@@ -271,24 +271,24 @@ class ColumnGroups(BaseGroups):
             return self._keys
 
     def aggregate(self, func):
-        from .column import MaskedColumn
-
         i0s, i1s = self.indices[:-1], self.indices[1:]
         par_col = self.parent_column
-        masked = isinstance(par_col, MaskedColumn)
-        reduceat = hasattr(func, "reduceat")
-        sum_case = func is np.sum
-        mean_case = func is np.mean
         try:
-            if not masked and (reduceat or sum_case or mean_case):
-                if mean_case:
+            # Short-cut for cases where .reduceat is known to work well.
+            if (
+                isinstance(par_col, np.ndarray)
+                and not hasattr(par_col, "mask")
+                and (hasattr(func, "reduceat") or func is np.sum or func is np.mean)
+            ):
+                if func is np.mean:
                     vals = np.add.reduceat(par_col, i0s) / np.diff(self.indices)
                 else:
-                    if sum_case:
+                    if func is np.sum:
                         func = np.add
                     vals = func.reduceat(par_col, i0s)
             else:
-                vals = np.array([func(par_col[i0:i1]) for i0, i1 in zip(i0s, i1s)])
+                # Count on class initializer to be able to concatenate lists.
+                vals = [func(par_col[i0:i1]) for i0, i1 in zip(i0s, i1s)]
             out = par_col.__class__(vals)
         except Exception as err:
             raise TypeError(
