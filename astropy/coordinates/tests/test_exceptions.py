@@ -15,6 +15,7 @@ from astropy.coordinates import (
     Galactic,
     NonRotationTransformationError,
     NonRotationTransformationWarning,
+    UnknownSiteException,
 )
 
 if TYPE_CHECKING:
@@ -77,4 +78,53 @@ def test_NonRotationTransformationWarning_message(coord_from, coord_to):
         f"transforming other coordinates from <{coord_from.description}> to "
         f"<{coord_to.description}>. Angular separation can depend on the direction of "
         "the transformation."
+    )
+
+
+@pytest.mark.parametrize(
+    "site,attribute,message",
+    [
+        (
+            "CERN",
+            "EarthLocation.get_site_names",
+            (
+                "\"Site 'CERN' not in database. Use EarthLocation.get_site_names to "
+                "see available sites. If 'CERN' exists in the online astropy-data "
+                "repository, use the 'refresh_cache=True' option to download the "
+                'latest version."'
+            ),
+        ),
+        (
+            "Fermilab",
+            "the 'names' attribute",
+            (
+                "\"Site 'Fermilab' not in database. Use the 'names' attribute to "
+                "see available sites. If 'Fermilab' exists in the online astropy-data "
+                "repository, use the 'refresh_cache=True' option to download the "
+                'latest version."'
+            ),
+        ),
+    ],
+)
+def test_UnknownSiteException(site, attribute, message):
+    assert str(UnknownSiteException(site, attribute)) == message
+
+
+@pytest.mark.parametrize(
+    "close_names,suggestion_str",
+    [
+        pytest.param(["greenwich"], "'greenwich'", id="one_suggestion"),
+        pytest.param(
+            ["greenwich", "Greenwich"], "'greenwich', 'Greenwich'", id="two_suggestions"
+        ),
+    ],
+)
+def test_UnknownSiteException_with_suggestions(close_names, suggestion_str):
+    assert str(
+        UnknownSiteException("grenwich", "EarthLocation.get_site_names", close_names)
+    ) == (
+        "\"Site 'grenwich' not in database. Use EarthLocation.get_site_names to see "
+        "available sites. If 'grenwich' exists in the online astropy-data repository, "
+        "use the 'refresh_cache=True' option to download the latest version. Did you "
+        f"mean one of: {suggestion_str}?'\""
     )
