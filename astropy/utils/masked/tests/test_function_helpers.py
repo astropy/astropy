@@ -17,6 +17,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
+import astropy.units as u
 from astropy.units.tests.test_quantity_non_ufuncs import (
     CheckSignatureCompatibilityBase,
     get_covered_functions,
@@ -532,12 +533,21 @@ class TestConcatenate(MaskedArraySetup):
 
     def test_block(self):
         self.check(np.block)
-
+        # Check that this also works on MaskedQuantity, properly propagating
+        # the fact that we are based on MaskedNDArray.
+        self.check(np.block, ma_list=[self.ma << u.m, self.mc << u.km])
+        # And check a mix of float and masked values, with different dtype.
         out = np.block([[0.0, Masked(1.0, True)], [Masked(1, False), Masked(2, False)]])
         expected = np.array([[0, 1.0], [1, 2]])
         expected_mask = np.array([[False, True], [False, False]])
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
+        # And check single array.
+        in2 = Masked([1.0], [True])
+        out2 = np.block(Masked([1.0], [True]))
+        assert not np.may_share_memory(out2, in2)
+        assert_array_equal(out2.unmasked, in2.unmasked)
+        assert_array_equal(out2.mask, in2.mask)
 
     def test_append(self):
         out = np.append(self.ma, self.mc, axis=1)
