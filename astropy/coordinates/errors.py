@@ -56,17 +56,20 @@ class NonRotationTransformationError(ValueError):
 
 class UnknownSiteException(KeyError):
     def __init__(self, site, attribute, close_names=None):
-        message = (
-            f"Site '{site}' not in database. Use {attribute} to see available sites."
-            f" If '{site}' exists in the online astropy-data repository, use the"
-            " 'refresh_cache=True' option to download the latest version."
-        )
-        if close_names:
-            message += " Did you mean one of: '{}'?'".format("', '".join(close_names))
         self.site = site
         self.attribute = attribute
         self.close_names = close_names
-        return super().__init__(message)
+
+    def __str__(self) -> str:
+        msg = (
+            f"Site {self.site!r} not in database. Use {self.attribute} to see "
+            f"available sites. If {self.site!r} exists in the online astropy-data "
+            "repository, use the 'refresh_cache=True' option to download the latest "
+            "version."
+        )
+        if self.close_names:
+            msg += f" Did you mean one of: {', '.join(map(repr, self.close_names))}?"
+        return msg
 
 
 class NonRotationTransformationWarning(AstropyUserWarning):
