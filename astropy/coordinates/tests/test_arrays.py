@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from contextlib import ExitStack
 
 import numpy as np
 import pytest
@@ -17,7 +16,6 @@ from astropy.coordinates import (
 )
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
-from astropy.utils.compat import NUMPY_LT_1_24
 
 
 def test_angle_arrays():
@@ -44,18 +42,7 @@ def test_angle_arrays():
     npt.assert_almost_equal(a6.value, 945.0)
     assert a6.unit is u.degree
 
-    with ExitStack() as stack:
-        if NUMPY_LT_1_24:
-            stack.enter_context(pytest.raises(TypeError))
-            stack.enter_context(
-                pytest.warns(
-                    np.VisibleDeprecationWarning,
-                    match="Creating an ndarray from ragged nested sequences",
-                )
-            )
-        else:
-            stack.enter_context(pytest.raises(ValueError))
-
+    with pytest.raises(ValueError):
         Angle([a1, a2, a3], unit=u.degree)
 
     a8 = Angle(["04:02:02", "03:02:01", "06:02:01"], unit=u.degree)
