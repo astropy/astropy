@@ -1102,3 +1102,17 @@ def test_null_propagation_in_table_read(tmp_path):
     # equal to NULL_VALUE
     t = Table.read(output_filename)
     assert t["a"].fill_value == NULL_VALUE
+
+
+def test_unsigned_int_dtype_propagation_for_zero_length_table():
+    # Regression test for gh-16501
+    tbl = Table(
+        [
+            Column(name="unsigned16", dtype="uint16"),
+            Column(name="unsigned32", dtype="uint32"),
+            Column(name="unsigned64", dtype="uint64"),
+        ]
+    )
+    hdu = BinTableHDU(tbl)
+    tbl2 = Table.read(hdu)
+    assert tbl.dtype == tbl2.dtype
