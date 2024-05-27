@@ -423,6 +423,18 @@ def concatenate(arrays, axis=0, out=None, **kwargs):
     return (arrays,), kwargs, unit, out
 
 
+def _block(arrays, max_depth, result_ndim, depth=0):
+    # Block by concatenation, copied from np._core.shape_base,
+    # but ensuring that we call regular concatenate.
+    if depth < max_depth:
+        arrs = [_block(arr, max_depth, result_ndim, depth+1)
+                for arr in arrays]
+        # The one difference with the numpy code.
+        return np.concatenate(arrs, axis=-(max_depth-depth))
+    else:
+        return np_core.shape_base._atleast_nd(arrays, result_ndim)
+
+
 @dispatched_function
 def block(arrays):
     # We need to override block since the numpy implementation can take two
@@ -430,25 +442,15 @@ def block(arrays):
     # result array in which parts are set.  Each assumes array input and
     # cannot be used directly.  Since it would be very costly to inspect all
     # arrays and then turn them back into a nested list, we just copy here the
-    # second implementation, np.core.shape_base._block_slicing, since it is
-    # shortest and easiest.
+    # first implementation, np.core.shape_base._block, which is the easiest to
+    # adjust while making sure that both units and class are properly kept.
     (arrays, list_ndim, result_ndim, final_size) = np_core.shape_base._block_setup(
         arrays
     )
-    shape, slices, arrays = np_core.shape_base._block_info_recursion(
-        arrays, list_ndim, result_ndim
-    )
-    # Here, one line of difference!
-    arrays, unit = _quantities2arrays(*arrays)
-    # Back to _block_slicing
-    dtype = np.result_type(*[arr.dtype for arr in arrays])
-    F_order = all(arr.flags["F_CONTIGUOUS"] for arr in arrays)
-    C_order = all(arr.flags["C_CONTIGUOUS"] for arr in arrays)
-    order = "F" if F_order and not C_order else "C"
-    result = np.empty(shape=shape, dtype=dtype, order=order)
-    for the_slice, arr in zip(slices, arrays):
-        result[(Ellipsis,) + the_slice] = arr
-    return result, unit, None
+    result = _block(arrays, list_ndim, result_ndim)
+    if list_ndim == 0:
+        result = result.copy()
+    return result, None, None
 
 
 @function_helper
