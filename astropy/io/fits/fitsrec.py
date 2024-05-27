@@ -368,20 +368,15 @@ class FITS_rec(np.recarray):
             arr = column.array
 
             if arr is None:
-                array_size = 0
-            else:
-                array_size = len(arr)
+                # The input column had an empty array, so just use the fill
+                # value
+                continue
 
-            n = min(array_size, nrows)
+            n = min(len(arr), nrows)
 
             # TODO: At least *some* of this logic is mostly redundant with the
             # _convert_foo methods in this class; see if we can eliminate some
             # of that duplication.
-
-            if not n:
-                # The input column had an empty array, so just use the fill
-                # value
-                continue
 
             field = _get_recarray_field(data, idx)
             name = column.name
