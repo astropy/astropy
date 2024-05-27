@@ -88,20 +88,20 @@ def test_NonRotationTransformationWarning_message(coord_from, coord_to):
             "CERN",
             "EarthLocation.get_site_names",
             (
-                "\"Site 'CERN' not in database. Use EarthLocation.get_site_names to "
+                "Site 'CERN' not in database. Use EarthLocation.get_site_names to "
                 "see available sites. If 'CERN' exists in the online astropy-data "
                 "repository, use the 'refresh_cache=True' option to download the "
-                'latest version."'
+                "latest version."
             ),
         ),
         (
             "Fermilab",
             "the 'names' attribute",
             (
-                "\"Site 'Fermilab' not in database. Use the 'names' attribute to "
+                "Site 'Fermilab' not in database. Use the 'names' attribute to "
                 "see available sites. If 'Fermilab' exists in the online astropy-data "
                 "repository, use the 'refresh_cache=True' option to download the "
-                'latest version."'
+                "latest version."
             ),
         ),
     ],
@@ -123,8 +123,8 @@ def test_UnknownSiteException_with_suggestions(close_names, suggestion_str):
     assert str(
         UnknownSiteException("grenwich", "EarthLocation.get_site_names", close_names)
     ) == (
-        "\"Site 'grenwich' not in database. Use EarthLocation.get_site_names to see "
+        "Site 'grenwich' not in database. Use EarthLocation.get_site_names to see "
         "available sites. If 'grenwich' exists in the online astropy-data repository, "
         "use the 'refresh_cache=True' option to download the latest version. Did you "
-        f"mean one of: {suggestion_str}?'\""
+        f"mean one of: {suggestion_str}?"
     )
