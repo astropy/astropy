@@ -348,6 +348,19 @@ class TestMaskedQuantityInitialization(TestMaskedArrayInitialization, QuantitySe
         assert_array_equal(mq.value.unmasked, a)
         assert_array_equal(mq.mask, m)
 
+    def test_initialization_with_list_of_masked_quantity_scalars(self):
+        mq = self.MQ([Masked(1 * u.m, True), 2 * u.km, Masked(3 * u.Mm, False)])
+        assert mq.unit == u.m
+        assert_array_equal(mq.value.unmasked, [1.0, 2e3, 3e6])
+        assert_array_equal(mq.mask, [True, False, False])
+
+    def test_initialization_with_list_of_masked_quantity_arrays(self):
+        ma = Masked(self.a, self.mask_a)
+        mq = self.MQ([ma, ma << u.km])
+        assert isinstance(mq, self.MQ)
+        assert_array_equal(mq.unmasked, u.Quantity([self.a, self.a << u.km]))
+        assert_array_equal(mq.mask, np.array([self.mask_a, self.mask_a]))
+
 
 class TestMaskSetting(ArraySetup):
     def test_whole_mask_setting_simple(self):
