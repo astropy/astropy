@@ -495,12 +495,11 @@ class Quantity(np.ndarray):
 
             elif isinstance(value, (list, tuple)) and len(value) > 0:
                 if all(isinstance(v, Quantity) for v in value):
-                    # If a list/tuple contains only quantities, convert all
-                    # to the same unit.
-                    if unit is None:
-                        unit = value[0].unit
-                    value = [q.to_value(unit) for q in value]
-                    value_unit = unit  # signal below that conversion has been done
+                    # If a list/tuple contains only quantities, stack them,
+                    # which also converts them to the same unit.
+                    value = np.stack(value)
+                    copy = False
+
                 elif (
                     dtype is None
                     and not hasattr(value, "dtype")
