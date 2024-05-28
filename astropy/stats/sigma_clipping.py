@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import functools
 import warnings
 
 import numpy as np
@@ -12,9 +13,6 @@ from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_BOTTLENECK
 from astropy.utils.exceptions import AstropyUserWarning
 
-if HAS_BOTTLENECK:
-    import bottleneck
-
 if NUMPY_LT_2_0:
     from numpy.core.multiarray import normalize_axis_index
 else:
@@ -23,66 +21,61 @@ else:
 __all__ = ["SigmaClip", "sigma_clip", "sigma_clipped_stats"]
 
 
-def _move_tuple_axes_first(array, axis):
-    """
-    Bottleneck can only take integer axis, not tuple, so this function
-    takes all the axes to be operated on and combines them into the
-    first dimension of the array so that we can then use axis=0.
-    """
-    # Figure out how many axes we are operating over
-    naxis = len(axis)
+if HAS_BOTTLENECK:
+    import bottleneck
 
-    # Add remaining axes to the axis tuple
-    axis += tuple(i for i in range(array.ndim) if i not in axis)
+    def _move_tuple_axes_first(array, axis):
+        """
+        Bottleneck can only take integer axis, not tuple, so this function
+        takes all the axes to be operated on and combines them into the
+        first dimension of the array so that we can then use axis=0.
+        """
+        # Figure out how many axes we are operating over
+        naxis = len(axis)
 
-    # The new position of each axis is just in order
-    destination = tuple(range(array.ndim))
+        # Add remaining axes to the axis tuple
+        axis += tuple(i for i in range(array.ndim) if i not in axis)
 
-    # Reorder the array so that the axes being operated on are at the
-    # beginning
-    array_new = np.moveaxis(array, axis, destination)
+        # The new position of each axis is just in order
+        destination = tuple(range(array.ndim))
 
-    # Collapse the dimensions being operated on into a single dimension
-    # so that we can then use axis=0 with the bottleneck functions
-    array_new = array_new.reshape((-1,) + array_new.shape[naxis:])
+        # Reorder the array so that the axes being operated on are at the
+        # beginning
+        array_new = np.moveaxis(array, axis, destination)
 
-    return array_new
+        # Collapse the dimensions being operated on into a single dimension
+        # so that we can then use axis=0 with the bottleneck functions
+        array_new = array_new.reshape((-1,) + array_new.shape[naxis:])
 
+        return array_new
 
-def _nanmean(array, axis=None):
-    """Bottleneck nanmean function that handle tuple axis."""
-    if isinstance(axis, tuple):
-        array = _move_tuple_axes_first(array, axis=axis)
-        axis = 0
+    def _apply_bottleneck(function, array, axis=None, **kwargs):
+        """Wrap bottleneck function to handle tuple axis.
 
-    if isinstance(array, Quantity):
-        return array.__array_wrap__(bottleneck.nanmean(array, axis=axis))
-    else:
-        return bottleneck.nanmean(array, axis=axis)
+        Also takes care to ensure the output is of the expected type,
+        i.e., a quantity, numpy array, or numpy scalar.
+        """
+        if isinstance(axis, tuple):
+            array = _move_tuple_axes_first(array, axis=axis)
+            axis = 0
 
+        result = function(array, axis=axis, **kwargs)
+        if isinstance(array, Quantity):
+            return array.__array_wrap__(result)
+        elif isinstance(result, float):
+            # For compatibility with numpy, always return a numpy scalar.
+            return np.float64(result)
+        else:
+            return result
 
-def _nanmedian(array, axis=None):
-    """Bottleneck nanmedian function that handle tuple axis."""
-    if isinstance(axis, tuple):
-        array = _move_tuple_axes_first(array, axis=axis)
-        axis = 0
+    _nanmean = functools.partial(_apply_bottleneck, bottleneck.nanmean)
+    _nanmedian = functools.partial(_apply_bottleneck, bottleneck.nanmedian)
+    _nanstd = functools.partial(_apply_bottleneck, bottleneck.nanstd)
 
-    if isinstance(array, Quantity):
-        return array.__array_wrap__(bottleneck.nanmedian(array, axis=axis))
-    else:
-        return bottleneck.nanmedian(array, axis=axis)
-
-
-def _nanstd(array, axis=None, ddof=0):
-    """Bottleneck nanstd function that handle tuple axis."""
-    if isinstance(axis, tuple):
-        array = _move_tuple_axes_first(array, axis=axis)
-        axis = 0
-
-    if isinstance(array, Quantity):
-        return array.__array_wrap__(bottleneck.nanstd(array, axis=axis, ddof=ddof))
-    else:
-        return bottleneck.nanstd(array, axis=axis, ddof=ddof)
+else:
+    _nanmean = np.nanmean
+    _nanmedian = np.nanmedian
+    _nanstd = np.nanstd
 
 
 def _nanmadstd(array, axis=None):
@@ -279,16 +272,10 @@ class SigmaClip:
     def _parse_cenfunc(cenfunc):
         if isinstance(cenfunc, str):
             if cenfunc == "median":
-                if HAS_BOTTLENECK:
-                    cenfunc = _nanmedian
-                else:
-                    cenfunc = np.nanmedian  # pragma: no cover
+                cenfunc = _nanmedian
 
             elif cenfunc == "mean":
-                if HAS_BOTTLENECK:
-                    cenfunc = _nanmean
-                else:
-                    cenfunc = np.nanmean  # pragma: no cover
+                cenfunc = _nanmean
 
             else:
                 raise ValueError(f"{cenfunc} is an invalid cenfunc.")
@@ -299,10 +286,7 @@ class SigmaClip:
     def _parse_stdfunc(stdfunc):
         if isinstance(stdfunc, str):
             if stdfunc == "std":
-                if HAS_BOTTLENECK:
-                    stdfunc = _nanstd
-                else:
-                    stdfunc = np.nanstd  # pragma: no cover
+                stdfunc = _nanstd
             elif stdfunc == "mad_std":
                 stdfunc = _nanmadstd
             else:
@@ -316,15 +300,7 @@ class SigmaClip:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
             cen = self._cenfunc_parsed(data, axis=axis)
-            if np.isscalar(cen) and not isinstance(cen, np.float64):
-                # change bottleneck float scalar to np.float64
-                cen = np.float64(cen)
-
             std = self._stdfunc_parsed(data, axis=axis)
-            if np.isscalar(std) and not isinstance(std, np.float64):
-                # change bottleneck float scalar to np.float64
-                std = np.float64(std)
-
             self._min_value = cen - (std * self.sigma_lower)
             self._max_value = cen + (std * self.sigma_upper)
 
@@ -1030,13 +1006,8 @@ def sigma_clipped_stats(
         data, axis=axis, masked=False, return_bounds=False, copy=True
     )
 
-    if HAS_BOTTLENECK:
-        mean = _nanmean(data_clipped, axis=axis)
-        median = _nanmedian(data_clipped, axis=axis)
-        std = _nanstd(data_clipped, ddof=std_ddof, axis=axis)
-    else:  # pragma: no cover
-        mean = np.nanmean(data_clipped, axis=axis)
-        median = np.nanmedian(data_clipped, axis=axis)
-        std = np.nanstd(data_clipped, ddof=std_ddof, axis=axis)
+    mean = _nanmean(data_clipped, axis=axis)
+    median = _nanmedian(data_clipped, axis=axis)
+    std = _nanstd(data_clipped, ddof=std_ddof, axis=axis)
 
     return mean, median, std
