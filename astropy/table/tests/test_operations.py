@@ -927,7 +927,6 @@ class TestJoin:
         with pytest.raises(ValueError, match=msg):
             table.join(t1, t2, keys_left=["a"], keys_right=["a"], join_funcs={})
 
-    @pytest.mark.usefixtures("without_legacy_printoptions")
     def test_join_structured_column(self):
         """Regression tests for gh-13271."""
         # Two tables with matching names, including a structured column.
@@ -1514,7 +1513,6 @@ class TestVStack:
         with pytest.raises(ValueError, match="representations are inconsistent"):
             table.vstack([t1, t3])
 
-    @pytest.mark.usefixtures("without_legacy_printoptions")
     def test_vstack_structured_column(self):
         """Regression tests for gh-13271."""
         # Two tables with matching names, including a structured column.
@@ -1740,7 +1738,6 @@ class TestDStack:
         assert skycoord_equal(sc1, t12["col0"][:, 0])
         assert skycoord_equal(sc2, t12["col0"][:, 1])
 
-    @pytest.mark.usefixtures("without_legacy_printoptions")
     def test_dstack_structured_column(self):
         """Regression tests for gh-13271."""
         # Two tables with matching names, including a structured column.

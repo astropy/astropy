@@ -46,7 +46,6 @@ from astropy.time import Time
         np.complex128(1.0 - 2**-52 + 1j * (1.0 - 2**-52)),
     ],
 )
-@pytest.mark.usefixtures("without_legacy_printoptions")
 def test_numpy_types(c):
     cy = load(dump(c))
     assert c == cy
