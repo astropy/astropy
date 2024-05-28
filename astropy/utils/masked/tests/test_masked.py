@@ -1405,7 +1405,6 @@ def test_masked_str_explicit_string():
     assert repr(msa) == repr_
 
 
-@pytest.mark.usefixtures("without_legacy_printoptions")
 def test_masked_str_explicit_structured():
     sa = np.array([(1.0, 2.0), (3.0, 4.0)], dtype="f8,f8")
     msa = Masked(sa, [(False, True), (False, False)])

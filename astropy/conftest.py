@@ -17,7 +17,6 @@ except ImportError:
     PYTEST_HEADER_MODULES = {}
     TESTED_VERSIONS = {}
 
-import numpy as np
 import pytest
 
 from astropy import __version__
@@ -61,17 +60,6 @@ def fast_thread_switching():
     sys.setswitchinterval(1e-6)
     yield
     sys.setswitchinterval(old)
-
-
-@pytest.fixture
-def without_legacy_printoptions():
-    # this can be removed when/after removing the call to np.set_printoptions
-    # at the top level
-    # reverting https://github.com/astropy/astropy/pull/15096
-    legacy_val = np.get_printoptions()["legacy"]
-    np.set_printoptions(legacy=False)
-    yield
-    np.set_printoptions(legacy=legacy_val)
 
 
 def pytest_configure(config):
