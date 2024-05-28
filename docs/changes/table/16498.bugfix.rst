@@ -1,0 +1,2 @@
+Aggregating table groups for ``MaskedColumn`` now ensures that fully-masked
+groups result in masked elements rather than ``NaN``.
