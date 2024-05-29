@@ -1,8 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This package defines the SI units.  They are also available in the
-`astropy.units` namespace.
-
+This package defines the SI units.  They are also available in
+(and should be used through) the `astropy.units` namespace.
 """
 
 import numpy as np

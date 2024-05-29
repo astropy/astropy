@@ -3,8 +3,12 @@
 """
 This module defines magnitude zero points and related photometric quantities.
 
-The corresponding magnitudes are given in the description of each unit
-(the actual definitions are in `~astropy.units.function.logarithmic`).
+The corresponding magnitudes are given in the description of each unit.
+(the actual definitions are in ``astropy.units.function.logarithmic``).
+
+Both the units and magnitudes are available in (and should be used
+through) the `astropy.units` namespace.
+
 """
 
 import numpy as np

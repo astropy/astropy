@@ -4,6 +4,9 @@ This package defines units that can also be used as functions of other units.
 If called, their arguments are used to initialize the corresponding function
 unit (e.g., ``u.mag(u.ct/u.s)``).  Note that the prefixed versions cannot be
 called, as it would be unclear what, e.g., ``u.mmag(u.ct/u.s)`` would mean.
+
+All units are also available in (and should be used through) the
+`astropy.units` namespace.
 """
 
 from astropy.units.core import UnitBase, _add_prefixes
