@@ -1740,13 +1740,13 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         >>> from astropy.coordinates import ICRS, SkyCoord
         >>> c1 = SkyCoord(0*u.deg, 0*u.deg)
         >>> c2 = ICRS(1*u.deg, 0*u.deg)
-        >>> c1.position_angle(c2).degree
-        90.0
-        >>> c2.position_angle(c1).degree
-        270.0
+        >>> c1.position_angle(c2).to(u.deg)
+        <Angle 90. deg>
+        >>> c2.position_angle(c1).to(u.deg)
+        <Angle 270. deg>
         >>> c3 = SkyCoord(1*u.deg, 1*u.deg)
-        >>> c1.position_angle(c3).degree  # doctest: +FLOAT_CMP
-        44.995636455344844
+        >>> c1.position_angle(c3).to(u.deg)  # doctest: +FLOAT_CMP
+        <Angle 44.995636455344844 deg>
         """
         return position_angle(*self._prepare_unit_sphere_coords(other, "ignore"))
 

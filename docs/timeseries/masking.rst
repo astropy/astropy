@@ -51,8 +51,8 @@ and operate on columns to ignore the masked entries::
 
     >>> import numpy as np
     >>> np.min(ts['flux'])
-    1.0
+    np.float64(1.0)
     >>> np.ma.median(ts['flux'])
-    4.0
+    np.float64(4.0)
 
 .. EXAMPLE END

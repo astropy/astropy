@@ -766,7 +766,6 @@ def test_repr():
     assert repr(sc_default) == "<SkyCoord (ICRS): (ra, dec) in deg\n    (0., 1.)>"
 
 
-@pytest.mark.usefixtures("without_legacy_printoptions")
 def test_repr_altaz():
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame="icrs", distance=1 * u.kpc)
 

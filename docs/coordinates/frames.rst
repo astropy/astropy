@@ -96,7 +96,7 @@ These same attributes can be used to access the data in the frames as
     >>> coo.ra  # doctest: +FLOAT_CMP
     <Longitude 1.1 deg>
     >>> coo.ra.value  # doctest: +FLOAT_CMP
-    1.1
+    np.float64(1.1)
     >>> coo.ra.to(u.hourangle)  # doctest: +FLOAT_CMP
     <Longitude 0.07333333 hourangle>
 

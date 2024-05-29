@@ -43,7 +43,7 @@ For example, consider the following dataset with a clear outlier::
 The mean is skewed by the outlier::
 
     >>> x.mean()
-    11.333333333333334
+    np.float64(11.333333333333334)
 
 Sigma-clipping (3 sigma by default) returns a masked array,
 and so functions like ``mean`` will ignore the outlier::
@@ -55,7 +55,7 @@ and so functions like ``mean`` will ignore the outlier::
                        False],
            fill_value=999999)
     >>> clipped.mean()
-    0.375
+    np.float64(0.375)
 
 If you need to access the original data directly, you can use the
 ``data`` property. Combined with the ``mask`` property, you can get the
@@ -87,7 +87,7 @@ To estimate the background of an image::
                  mask=[False, False, False, False,  True, False, False, False],
            fill_value=999999)
     >>> np.mean(data_clipped)  # doctest: +FLOAT_CMP
-    4.285714285714286
+    np.float64(4.285714285714286)
 
 ..
   EXAMPLE END
@@ -119,7 +119,7 @@ the calculation of statistics even more convenient. For example,
 median, and standard deviation of a sigma-clipped array::
 
      >>> stats.sigma_clipped_stats(data, sigma=2, maxiters=5)  # doctest: +FLOAT_CMP
-     (4.2857142857142856, 5.0, 2.2497165354319457)
+     (np.float64(4.285714285714286), np.float64(5.0), np.float64(2.249716535431946))
 
 There are also tools for calculating :ref:`robust statistics
 <stats-robust>`, sampling the data, :ref:`circular statistics

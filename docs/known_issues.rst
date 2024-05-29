@@ -188,12 +188,12 @@ the result may be misleading::
    >>> 0 * u.Celsius == 0 * u.m  # Correct
    False
    >>> 0 * u.Celsius == 0 == 0 * u.m  # Misleading
-   True
+   np.True_
 
 What the second comparison is really doing is this::
 
    >>> (0 * u.Celsius == 0) and (0 == 0 * u.m)
-   True
+   np.True_
 
 See: https://github.com/astropy/astropy/issues/15103
 
@@ -224,9 +224,9 @@ means that an upstream fix in NumPy is required in order for
 ``astropy.units`` to control decomposing the input in these functions::
 
     >>> np.int64((15 * u.km) / (15 * u.imperial.foot))
-    1
+    np.int64(1)
     >>> np.int_((15 * u.km) / (15 * u.imperial.foot))
-    1
+    np.int64(1)
     >>> int((15 * u.km) / (15 * u.imperial.foot))
     3280
 

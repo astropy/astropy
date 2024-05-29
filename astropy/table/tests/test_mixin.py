@@ -848,7 +848,6 @@ def test_quantity_representation():
         ),
     ],
 )
-@pytest.mark.usefixtures("without_legacy_printoptions")
 def test_representation_representation(c, expected_pformat):
     """
     Test that Representations are represented correctly.
@@ -900,7 +899,6 @@ def test_skycoord_representation():
 
 
 @pytest.mark.parametrize("as_ndarray_mixin", [True, False])
-@pytest.mark.usefixtures("without_legacy_printoptions")
 def test_ndarray_mixin(as_ndarray_mixin):
     """
     Test directly adding various forms of structured ndarray columns to a table.

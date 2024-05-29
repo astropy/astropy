@@ -319,7 +319,7 @@ a bounding box, then one can use the
 method ::
 
     >>> model1.bounding_box.bounding_box()
-    ((-4.0, 4.0), (-3.0, 3.0), (-2.0, 2.0))
+    ((np.float64(-4.0), np.float64(4.0)), (np.float64(-3.0), np.float64(3.0)), (np.float64(-2.0), np.float64(2.0)))
     >>> model2.bounding_box.bounding_box()
     (-1, 1)
     >>> model3.bounding_box.bounding_box()
@@ -430,7 +430,7 @@ or not. In this case, it makes sense for the selector argument to be ignored ::
     >>> model1(0.5, 1.5, 0, with_bounding_box=True)
     (1.5, 3.5, 0.0)
     >>> model1(0.5, 1.5, 1, with_bounding_box=True)
-    (nan, nan, nan)
+    (np.float64(nan), np.float64(nan), np.float64(nan))
 
 Multiple selector arguments can also be used, in this case the keys of the
 dictionary of bounding boxes need to be specified as tuples of values ::
@@ -493,7 +493,7 @@ dictionary of bounding boxes need to be specified as tuples of values ::
     >>> model2(0.5, 1.5, 0, 0, with_bounding_box=True)
     (1.5, 3.5, 0.0, 0.0)
     >>> model2(0.5, 1.5, 1, 1, with_bounding_box=True)
-    (nan, nan, nan, nan)
+    (np.float64(nan), np.float64(nan), np.float64(nan), np.float64(nan))
 
 Note that one can also specify the ordering for all the bounding boxes
 comprising the compound bounding using the ``order`` keyword argument.

@@ -132,12 +132,12 @@ of different data types to initialize a table::
   ...                 ([4., 5., 6.], [.4, .5, .6])], 'm,m/s')
   >>> QTable([a, b, c, d])
   <QTable length=2>
-    col0    col1   axis          col3 [f0, f1]
-                                    (m, m / s)
-  float64 int64[2] str1     (float64[3], float64[3])
-  ------- -------- ---- -------------------------------
-      1.0   2 .. 3    x ([1., 2., 3.], [0.1, 0.2, 0.3])
-      4.0   5 .. 6    y ([4., 5., 6.], [0.4, 0.5, 0.6])
+    col0    col1   axis           col3 [f0, f1]
+                                     (m, m / s)
+  float64 int64[2] str1      (float64[3], float64[3])
+  ------- -------- ---- ----------------------------------
+      1.0   2 .. 3    x ([1.0, 2.0, 3.0], [0.1, 0.2, 0.3])
+      4.0   5 .. 6    y ([4.0, 5.0, 6.0], [0.4, 0.5, 0.6])
 
 Notice that in the third column the existing column name ``'axis'`` is used.
 
@@ -355,8 +355,8 @@ including the simple structured array defined previously as a column::
   >>> print(table)
    name arr [a, b, c]
   ----- -------------
-  Micah  (1, 2., 'x')
-  Mazzy  (4, 5., 'y')
+  Micah (1, 2.0, 'x')
+  Mazzy (4, 5.0, 'y')
 
 You can access or print a single field in the structured column as follows::
 
@@ -1151,7 +1151,7 @@ Now see what we have from our specialized ``ParamsRow`` object::
   >>> t[1].keys()
   ['a', 'b', 'id', 'z']
   >>> t[1].values()
-  [2, 3.0, 123123, 'hello']
+  [np.int32(2), np.float32(3.0), 123123, 'hello']
 
 To make this example really useful, you might want to override
 ``Table.__getitem__()`` in order to allow table-level access to the parameter
