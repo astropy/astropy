@@ -16,7 +16,7 @@ from astropy.utils.decorators import classproperty
 from astropy.utils.metadata import MetaData
 
 from ._utils import all_parameters
-from .connect import (
+from .io._connect import (
     CosmologyFromFormat,
     CosmologyRead,
     CosmologyToFormat,
@@ -49,9 +49,8 @@ __all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin"]
 _COSMOLOGY_CLASSES = dict()
 
 # typing
-# NOTE: private b/c RTD error
-_CosmoT = TypeVar("_CosmoT", bound="Cosmology")
-_FlatCosmoT = TypeVar("_FlatCosmoT", bound="FlatCosmologyMixin")
+CosmoT = TypeVar("CosmoT", bound="Cosmology")
+FlatCosmoT = TypeVar("FlatCosmoT", bound="FlatCosmologyMixin")
 
 
 # dataclass transformation
@@ -205,7 +204,7 @@ class Cosmology(metaclass=ABCMeta):
         _COSMOLOGY_CLASSES[cls.__qualname__] = cls
 
         # register to YAML
-        from astropy.cosmology._io.yaml import register_cosmology_yaml
+        from astropy.cosmology.io._builtin.yaml import register_cosmology_yaml
 
         register_cosmology_yaml(cls)
 
@@ -480,7 +479,7 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
     _parameters: ClassVar[MappingProxyType[str, Parameter]]
     _parameters_derived: ClassVar[MappingProxyType[str, Parameter]]
 
-    def __init_subclass__(cls: type[_FlatCosmoT]) -> None:
+    def __init_subclass__(cls: type[FlatCosmoT]) -> None:
         super().__init_subclass__()
 
         # Determine the non-flat class.
@@ -491,7 +490,7 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
 
     @classmethod  # TODO! make metaclass-method
     def _get_nonflat_cls(
-        cls, kls: type[_CosmoT] | None = None
+        cls, kls: type[CosmoT] | None = None
     ) -> type[Cosmology] | None:
         """Find the corresponding non-flat class.
 
@@ -553,7 +552,7 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def nonflat(self: _FlatCosmoT) -> _CosmoT:
+    def nonflat(self: FlatCosmoT) -> CosmoT:
         """Return the equivalent non-flat-class instance of this cosmology."""
 
     def clone(

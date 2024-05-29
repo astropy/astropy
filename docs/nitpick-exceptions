@@ -134,4 +134,7 @@ py:class Real
 # numpy.typing
 py:class NDArray
 # locally defined type variable for ndarray dtype
+py:class CosmoT
 py:class DT
+py:class FlatCosmoT
+py:class MapT

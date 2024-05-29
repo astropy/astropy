@@ -5,7 +5,7 @@ import pytest
 import astropy.units as u
 from astropy.cosmology import Cosmology, FlatLambdaCDM, Planck18
 from astropy.cosmology import units as cu
-from astropy.cosmology._io.yaml import (
+from astropy.cosmology.io._builtin.yaml import (
     from_yaml,
     to_yaml,
     yaml_constructor,
