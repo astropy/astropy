@@ -1,6 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""Defines the physical types that correspond to different units."""
+"""Defines the physical types that correspond to different units.
+
+The classes and functions defined here are also available in
+(and should be used through) the `astropy.units` namespace.
+"""
 
 import numbers
 

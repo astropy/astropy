@@ -2,7 +2,7 @@
 
 """
 This subpackage contains classes and functions for defining and converting
-between different physical units.
+between different physical units, as well as the units themselves.
 
 This code is adapted from the `pynbody
 <https://github.com/pynbody/pynbody>`_ units module written by Andrew

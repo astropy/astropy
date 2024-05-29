@@ -1,5 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""A set of standard astronomical equivalencies."""
+"""
+A set of standard astronomical equivalencies.
+
+The equivalency class and all equivalency functions defined here are also
+available in (and should be used through) the `astropy.units` namespace.
+
+"""
 
 from collections import UserList
 
