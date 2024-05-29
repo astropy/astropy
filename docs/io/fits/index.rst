@@ -452,7 +452,7 @@ the second index. Similarly, the 1-indexed subsection of x=11 to 20
            [347, 348, 347, 348, 349, 349, 350, 349, 348, 348],
            [349, 349, 350, 348, 350, 347, 349, 349, 349, 348],
            [349, 348, 348, 348, 348, 348, 349, 347, 349, 348],
-           [349, 349, 349, 348, 350, 349, 349, 350, 348, 350]], dtype=int16)
+           [349, 349, 349, 348, 350, 349, 349, 350, 348, 350]], dtype='>i2')
 
 To update the value of a pixel or a subsection::
 
@@ -518,7 +518,7 @@ guide.
 To see the first row of the table::
 
     >>> print(data[0])
-    (1, 'abc', 3.7000000715255736, False)
+    (np.int32(1), 'abc', np.float64(3.7000000715255736), np.False_)
 
 Each row in the table is a :class:`FITS_record` object which looks like a
 (Python) tuple containing elements of heterogeneous data types. In this
@@ -618,7 +618,7 @@ Since each field is a ``numpy`` object, we will have the entire arsenal of
 take the mean of a column::
 
     >>> data['c3'].mean()  # doctest: +FLOAT_CMP
-    5.19999989271164
+    np.float64(5.19999989271164)
 
 and so on.
 

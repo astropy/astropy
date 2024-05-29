@@ -98,7 +98,7 @@ floating point or array values::
   >>> from astropy.cosmology import WMAP9 as cosmo
   >>> H0 = cosmo.H(0)
   >>> H0.value, H0.unit  # doctest: +FLOAT_CMP
-  (69.32, Unit("km / (Mpc s)"))
+  (np.float64(69.32), Unit("km / (Mpc s)"))
 
 
 Using `astropy.cosmology`
@@ -258,7 +258,7 @@ To make a copy of a cosmological instance using the ``clone`` operation:
   >>> WMAP9.Om0, newcosmo.Om0  # some changed  # doctest: +FLOAT_CMP
   (0.2865, 0.3141)
   >>> WMAP9.Ode0, newcosmo.Ode0  # Indirectly changed since this is flat  # doctest: +FLOAT_CMP
-  (0.7134130719051658, 0.6858130719051657)
+  (np.float64(0.7134130719051658), np.float64(0.6858130719051657))
 
 ..
   EXAMPLE END
@@ -378,7 +378,7 @@ be found as a function of redshift::
 
   >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
   >>> WMAP7.Ogamma0, WMAP7.Onu0  # Current epoch values  # doctest: +FLOAT_CMP
-  (4.985694972799396e-05, 3.442154948307989e-05)
+  (np.float64(4.985694972799396e-05), np.float64(3.442154948307989e-05))
   >>> z = np.array([0, 1.0, 2.0])
   >>> WMAP7.Ogamma(z), WMAP7.Onu(z)  # doctest: +FLOAT_CMP
   (array([4.98603986e-05, 2.74593395e-04, 4.99915942e-04]),
@@ -391,7 +391,7 @@ set ``Tcmb0`` to 0 (which is also the default)::
   >>> import astropy.units as u
   >>> cos = FlatLambdaCDM(70.4 * u.km / u.s / u.Mpc, 0.272, Tcmb0 = 0.0 * u.K)
   >>> cos.Ogamma0, cos.Onu0
-  (0.0, 0.0)
+  (np.float64(0.0), np.float64(0.0))
 
 You can include photons but exclude any contributions from neutrinos by setting
 ``Tcmb0`` to be non-zero (2.725 K is the standard value for our Universe) but

@@ -210,7 +210,7 @@ column with a numerical index::
 
 
   >>> t['a'][1]  # Row 1 of column 'a'
-  3
+  np.int32(3)
 
 When a table column is printed, it is formatted according to the ``format``
 attribute (see :ref:`table_format_string`). Note the difference between the
@@ -237,7 +237,7 @@ Likewise a table row and a column from that row can be selected::
      3.000     4     5
 
   >>> t[1]['a']  # Column 'a' of row 1
-  3
+  np.int32(3)
 
 A |Row| object has the same columns and metadata as its parent table::
 
@@ -341,7 +341,7 @@ In case of a single |Row| it is possible to use its
 
     >>> row = t[2]
     >>> row.get("c", -1)
-    8
+    np.int32(8)
     >>> row.get("y", -1)
     -1
 
@@ -834,10 +834,10 @@ the value, min and max are stored in the in the column as fields named ``val``,
     >>> t['a'] = [1, 2]
     >>> t['par'] = pars
     >>> print(t)
-     a    par [val, min, max]
-    --- ------------------------
-      1    (1.2345678, -20., 3.)
-      2 (12.345678, 4.5678, 33.)
+     a     par [val, min, max]
+    --- -------------------------
+      1   (1.2345678, -20.0, 3.0)
+      2 (12.345678, 4.5678, 33.0)
 
 
 However, setting the format string appropriately allows formatting each of the

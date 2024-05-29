@@ -26,9 +26,9 @@ class Row:
       ----- -----
           2     4
       >>> row['a']
-      2
+      np.int32(2)
       >>> row[1]
-      4
+      np.int32(4)
     """
 
     def __init__(self, table, index):
@@ -132,9 +132,9 @@ class Row:
         >>> from astropy.table import Table
         >>> t = Table({"a": [2, 3, 5], "b": [7, 11, 13]})
         >>> t[0].get("a")
-        2
+        np.int64(2)
         >>> t[1].get("b", 0)
-        11
+        np.int64(11)
         >>> t[2].get("c", 0)
         0
         """

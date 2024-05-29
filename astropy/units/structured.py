@@ -121,7 +121,7 @@ class StructuredUnit:
     Structured units share most methods with regular units::
 
         >>> su.physical_type
-        ((PhysicalType('length'), PhysicalType({'speed', 'velocity'})), PhysicalType('time'))
+        astropy.units.structured.Structure((astropy.units.structured.Structure((PhysicalType('length'), PhysicalType({'speed', 'velocity'})), dtype=[('f0', 'O'), ('f1', 'O')]), PhysicalType('time')), dtype=[('f0', 'O'), ('f1', 'O')])
         >>> su.si
         Unit("((1.49598e+11 m, 1.73146e+06 m / s), 3.15576e+07 s)")
 

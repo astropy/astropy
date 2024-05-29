@@ -46,7 +46,7 @@ value members::
 
     >>> q = 42.0 * u.meter
     >>> q.value
-    42.0
+    np.float64(42.0)
     >>> q.unit
     Unit("m")
 

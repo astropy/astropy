@@ -64,7 +64,6 @@ class TestFITSDiff_script(FitsTestCase):
         numdiff = fitsdiff.main([tmp_a, tmp_b])
         assert numdiff == 1
 
-    @pytest.mark.usefixtures("without_legacy_printoptions")
     def test_manydiff(self, capsys):
         a = np.arange(100).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)
@@ -95,7 +94,6 @@ class TestFITSDiff_script(FitsTestCase):
             "     100 different pixels found (100.00% different).",
         ]
 
-    @pytest.mark.usefixtures("without_legacy_printoptions")
     def test_outputfile(self):
         a = np.arange(100).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)
@@ -148,7 +146,6 @@ class TestFITSDiff_script(FitsTestCase):
         numdiff = fitsdiff.main(["-r", "1e-1", tmp_a, tmp_b])
         assert numdiff == 0
 
-    @pytest.mark.usefixtures("without_legacy_printoptions")
     def test_rtol_diff(self, capsys):
         a = np.arange(100, dtype=float).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)

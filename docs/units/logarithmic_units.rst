@@ -53,7 +53,7 @@ As for normal |Quantity| objects, you can access the value with the
 
     >>> logg = 5. * u.dex(u.cm / u.s**2)
     >>> logg.value
-    5.0
+    np.float64(5.0)
     >>> logg.physical  # doctest: +FLOAT_CMP
     <Quantity 100000. cm / s2>
 

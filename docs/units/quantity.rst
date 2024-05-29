@@ -63,7 +63,7 @@ The current unit and value can be accessed via the
     >>> q.unit
     Unit("m / s")
     >>> q.value
-    2.5
+    np.float64(2.5)
 
 .. note:: |Quantity| objects are converted to float by default. Furthermore, any
           data passed in are copied, which for large arrays may not be optimal.
@@ -110,7 +110,7 @@ If you want the value of the quantity in a different unit, you can use
 
     >>> q = 2.5 * u.m
     >>> q.to_value(u.cm)
-    250.0
+    np.float64(250.0)
 
 .. note:: You could get the value in ``cm`` also by using ``q.to(u.cm).value``.
           The difference is that :meth:`~astropy.units.Quantity.to_value` does
@@ -140,7 +140,7 @@ The use of `Python comparison operators
 supported::
 
     >>> 1*u.m < 50*u.cm
-    False
+    np.False_
 
 Plotting Quantities
 ===================
@@ -290,7 +290,7 @@ dimensionless and scale-free. For example:
 Which is different from:
 
     >>> 1. + (1. * u.m / u.km).value
-    2.0
+    np.float64(2.0)
 
 In the latter case, the result is ``2.0`` because the unit of ``(1. * u.m /
 u.km)`` is not scale-free by default:

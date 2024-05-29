@@ -235,9 +235,14 @@ doctest_subpackage_requires = [
     "astropy/cosmology/_io/table.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
     "astropy/table/table.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
     "astropy/table/mixins/dask.py = dask",
-    "docs/io/fits/index.rst = numpy<1.25",  # NUMPY_LT_1_25 (Issue 14545)
-    "docs/io/fits/usage/image.rst = numpy<1.25",  # NUMPY_LT_1_25 (Issue 14545)
-    "docs/io/fits/usage/unfamiliar.rst = numpy<1.25",  # NUMPY_LT_1_25 (Issue 14545)
+    "docs/* = numpy>=2.0.0rc1",   # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/stats/info_theory.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/stats/jackknife.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/table/row.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/time/formats.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/timeseries/periodograms/bls/core.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/timeseries/periodograms/lombscargle/core.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/units/structured.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
 ]
 markers = [
     "mpl_image_compare",

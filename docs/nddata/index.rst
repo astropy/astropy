@@ -231,7 +231,7 @@ changes as expected::
     >>> ccd2 = ccd.copy()
     >>> added_ccds = ccd.add(ccd2, handle_meta='first_found')
     >>> added_ccds.uncertainty.array[0, 0] / ccd.uncertainty.array[0, 0] / np.sqrt(2) # doctest: +FLOAT_CMP
-    0.99999999999999989
+    np.float64(0.99999999999999989)
 
 ..
   EXAMPLE END

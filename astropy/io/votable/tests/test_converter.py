@@ -134,7 +134,6 @@ def test_float_mask_permissive():
     assert c.parse("null", config=config) == (c.null, True)
 
 
-@pytest.mark.usefixtures("without_legacy_printoptions")
 def test_double_array():
     config = {"verify": "exception", "version_1_3_or_later": True}
     field = tree.Field(None, name="c", datatype="double", arraysize="3", config=config)
@@ -278,7 +277,6 @@ def test_integer_overflow():
         c.parse("-2208988800", config=config)
 
 
-@pytest.mark.usefixtures("without_legacy_printoptions")
 def test_float_default_precision():
     config = {"verify": "exception"}
 

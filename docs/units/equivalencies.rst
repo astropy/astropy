@@ -157,7 +157,7 @@ These equivalencies even work with non-base units::
   >>> # Inches to calories
   >>> from astropy.units import imperial
   >>> imperial.inch.to(imperial.Cal, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
-  1.869180759162485e-27
+  np.float64(1.869180759162485e-27)
 
 .. EXAMPLE END
 
@@ -590,7 +590,7 @@ illustrative::
     ... lambda x: (restfreq-x) / restfreq * si.c.to_value('km/s'),
     ... lambda x: (1-x/si.c.to_value('km/s')) * restfreq )]
     >>> u.Hz.to(u.km / u.s, 116e9, equivalencies=freq_to_vel)  # doctest: +FLOAT_CMP
-    -1895.4321928669262
+    np.float64(-1895.4321928669262)
     >>> (116e9 * u.Hz).to(u.km / u.s, equivalencies=freq_to_vel)  # doctest: +FLOAT_CMP
     <Quantity -1895.4321928669262 km / s>
 

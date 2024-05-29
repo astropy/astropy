@@ -293,7 +293,7 @@ can have higher precision than the standard 64-bit float::
 
   >>> tm = Time('51544.000000000000001', format='mjd')  # String input
   >>> tm.mjd  # float64 output loses last digit but Decimal gets it
-  51544.0
+  np.float64(51544.0)
   >>> tm.to_value('mjd', subfmt='decimal')  # doctest: +SKIP
   Decimal('51544.00000000000000099920072216264')
   >>> tm.to_value('mjd', subfmt='str')
@@ -416,7 +416,7 @@ returning scalar or array objects as appropriate::
   >>> from astropy.time import Time
   >>> t = Time(100.0, format='mjd')
   >>> t.jd
-  2400100.5
+  np.float64(2400100.5)
   >>> t = Time([100.0, 200.0, 300.], format='mjd')
   >>> t.jd  # doctest: +FLOAT_CMP
   array([2400100.5, 2400200.5, 2400300.5])
@@ -609,7 +609,7 @@ the highest precision. For example::
 
   >>> t = Time(100.0, 0.000001, format='mjd', scale='tt')
   >>> t.jd, t.jd1, t.jd2  # doctest: +FLOAT_CMP
-  (2400100.500001, 2400101.0, -0.499999)
+  (np.float64(2400100.500001), 2400101.0, -0.499999)
 
 format
 ^^^^^^
@@ -995,11 +995,11 @@ available format names is in the `time format`_ section.
 
   >>> t = Time('2010-01-01 00:00:00', format='iso', scale='utc')
   >>> t.jd        # JD representation of time in current scale (UTC)
-  2455197.5
+  np.float64(2455197.5)
   >>> t.iso       # ISO representation of time in current scale (UTC)
   '2010-01-01 00:00:00.000'
   >>> t.unix      # seconds since 1970.0 (UTC)
-  1262304000.0
+  np.float64(1262304000.0)
   >>> t.datetime  # Representation as datetime.datetime object
   datetime.datetime(2010, 1, 1, 0, 0)
 
@@ -1299,7 +1299,7 @@ Use of the |TimeDelta| object is illustrated in the few examples below::
   >>> dt
   <TimeDelta object: scale='tai' format='jd' value=31.0>
   >>> dt.sec
-  2678400.0
+  np.float64(2678400.0)
 
   >>> from astropy.time import TimeDelta
   >>> dt2 = TimeDelta(50.0, format='sec')
@@ -1347,7 +1347,7 @@ controlling the type of the output representation by providing either a format
 name and optional `subformat`_ or a valid ``astropy`` unit::
 
   >>> dt.to_value(u.hr)
-  744.0
+  np.float64(744.0)
   >>> dt.to_value('jd', 'str')
   '31.0'
 
@@ -1670,9 +1670,9 @@ from the `~astropy.time.TimeFromEpoch` class and define a few class attributes::
 
   >>> t = Time('2000-01-01')
   >>> t.unix_leap
-  946684832.0
+  np.float64(946684832.0)
   >>> t.unix_leap - t.unix
-  32.0
+  np.float64(32.0)
 
 .. EXAMPLE END
 
