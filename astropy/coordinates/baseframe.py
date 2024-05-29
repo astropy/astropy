@@ -755,10 +755,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         -------
         representation : `~astropy.coordinates.BaseRepresentation` or `~astropy.coordinates.BaseDifferential`.
         """
-        if which is not None:
-            return self._representation[which]
-        else:
-            return self._representation
+        return self._representation if which is None else self._representation[which]
 
     def set_representation_cls(self, base=None, s="base"):
         """Set representation and/or differential class for this frame's data.
@@ -867,28 +864,17 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         return self._get_representation_info()
 
     def get_representation_component_names(self, which="base"):
-        out = {}
-        repr_or_diff_cls = self.get_representation_cls(which)
-        if repr_or_diff_cls is None:
-            return out
-        data_names = repr_or_diff_cls.attr_classes.keys()
-        repr_names = self.representation_info[repr_or_diff_cls]["names"]
-        for repr_name, data_name in zip(repr_names, data_names):
-            out[repr_name] = data_name
-        return out
+        cls = self.get_representation_cls(which)
+        if cls is None:
+            return {}
+        return dict(zip(self.representation_info[cls]["names"], cls.attr_classes))
 
     def get_representation_component_units(self, which="base"):
-        out = {}
         repr_or_diff_cls = self.get_representation_cls(which)
         if repr_or_diff_cls is None:
-            return out
+            return {}
         repr_attrs = self.representation_info[repr_or_diff_cls]
-        repr_names = repr_attrs["names"]
-        repr_units = repr_attrs["units"]
-        for repr_name, repr_unit in zip(repr_names, repr_units):
-            if repr_unit:
-                out[repr_name] = repr_unit
-        return out
+        return {k: v for k, v in zip(repr_attrs["names"], repr_attrs["units"]) if v}
 
     representation_component_names = property(get_representation_component_names)
 
@@ -927,11 +913,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         for attr in self.frame_attributes:
             if attr not in self._attr_names_with_defaults and attr not in kwargs:
                 value = getattr(self, attr)
-                if copy:
-                    value = value.copy()
-
-                kwargs[attr] = value
-
+                kwargs[attr] = value.copy() if copy else value
         return self.__class__(data, copy=False, **kwargs)
 
     def replicate(self, copy=False, **kwargs):
@@ -1282,15 +1264,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         different attributes.
         """
         new_frame_cls = new_frame if isinstance(new_frame, type) else type(new_frame)
-        trans = frame_transform_graph.get_transform(self.__class__, new_frame_cls)
-
-        if trans is None:
-            if new_frame_cls is self.__class__:
-                return "same"
-            else:
-                return False
-        else:
+        if frame_transform_graph.get_transform(type(self), new_frame_cls):
             return True
+        return "same" if new_frame_cls is type(self) else False
 
     def is_frame_attr_default(self, attrnm):
         """
@@ -1388,12 +1364,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             If ``other`` isn't a `~astropy.coordinates.BaseCoordinateFrame` or subclass.
         """
         if self.__class__ == other.__class__:
-            for frame_attr_name in self.frame_attributes:
-                if not self._frameattr_equiv(
-                    getattr(self, frame_attr_name), getattr(other, frame_attr_name)
-                ):
-                    return False
-            return True
+            return all(
+                self._frameattr_equiv(getattr(self, attr), getattr(other, attr))
+                for attr in self.frame_attributes
+            )
         elif not isinstance(other, BaseCoordinateFrame):
             raise TypeError(
                 "Tried to do is_equivalent_frame on something that isn't a frame"
@@ -1851,15 +1825,15 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         """
         from .distances import Distance
 
-        if issubclass(self.data.__class__, r.UnitSphericalRepresentation):
+        if isinstance(self.data, r.UnitSphericalRepresentation):
             raise ValueError(
                 "This object does not have a distance; cannot compute 3d separation."
             )
 
         # do this first just in case the conversion somehow creates a distance
-        other_in_self_system = getattr(other, "frame", other).transform_to(self)
+        other = getattr(other, "frame", other).transform_to(self)
 
-        if issubclass(other_in_self_system.__class__, r.UnitSphericalRepresentation):
+        if isinstance(other, r.UnitSphericalRepresentation):
             raise ValueError(
                 "The other object does not have a distance; "
                 "cannot compute 3d separation."
@@ -1867,17 +1841,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         # drop the differentials to ensure they don't do anything odd in the
         # subtraction
-        self_car = self.data.without_differentials().represent_as(
-            r.CartesianRepresentation
-        )
-        other_car = other_in_self_system.data.without_differentials().represent_as(
-            r.CartesianRepresentation
-        )
-        dist = (self_car - other_car).norm()
-        if dist.unit == u.one:
-            return dist
-        else:
-            return Distance(dist)
+        dist = (
+            self.data.without_differentials().represent_as(r.CartesianRepresentation)
+            - other.data.without_differentials().represent_as(r.CartesianRepresentation)
+        ).norm()
+        return dist if dist.unit == u.one else Distance(dist)
 
     @property
     def cartesian(self):
