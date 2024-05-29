@@ -175,7 +175,7 @@ static PyObject* PyCelprm_deepcopy(PyCelprm* self)
 
     memcpy(copy->x, self->x, sizeof(struct celprm));
     copy->x->err = NULL;
-    self->x->flag = 0;
+    copy->x->flag = 0;
     return (PyObject*)copy;
 }
 
