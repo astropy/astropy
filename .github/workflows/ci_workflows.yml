@@ -62,8 +62,10 @@ jobs:
       envs: |
         # NOTE: this coverage test is needed for tests and code that
         #       run only with minimal dependencies.
+        # 2024-05-30: added predeps to ensure new PRs do not break numpy 2.0
+        # docs.  Fine to remove once numpy 2.0 is released (if problematic).
         - name: Python 3.12 with minimal dependencies and full coverage
-          linux: py312-test-cov
+          linux: py312-test-cov-predeps
           coverage: codecov
 
         - name: Python 3.11 in Parallel with all optional dependencies
