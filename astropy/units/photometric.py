@@ -4,7 +4,7 @@
 This module defines magnitude zero points and related photometric quantities.
 
 The corresponding magnitudes are given in the description of each unit.
-(the actual definitions are in ``astropy.units.function.logarithmic``).
+(the actual definitions are in `astropy.units.function.units`).
 
 Both the units and magnitudes are available in (and should be used
 through) the `astropy.units` namespace.
