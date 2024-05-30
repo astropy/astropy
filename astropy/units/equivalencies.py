@@ -34,6 +34,7 @@ __all__ = [
     "molar_mass_amu",
     "pixel_scale",
     "plate_scale",
+    "magnetic_flux_field",
     "Equivalency",
 ]
 
@@ -872,4 +873,23 @@ def plate_scale(platescale):
         [(si.m, si.radian, lambda d: d * platescale_val, lambda a: a / platescale_val)],
         "plate_scale",
         {"platescale": platescale},
+    )
+
+
+def magnetic_flux_field():
+    r"""
+    Convert magnetic field between magnetic field strength :math:`(\mathbf{H})` and
+    magnetic flux density :math:`(\mathbf{B})` in a vacuum.
+
+    .. math::
+
+        \mu_0 \mathbf{H} = \mathbf{B}
+
+    where :math:`\mu_0` is the vacuum permeability.
+
+    """
+    mu0 = _si.mu0.value
+    return Equivalency(
+        [(si.T, si.A / si.m, lambda x: x / mu0, lambda x: x * mu0)],
+        "magnetic_flux_field",
     )
