@@ -529,6 +529,33 @@ for more information.
 
 .. EXAMPLE END
 
+Magnetic Flux Density Magnetic Field Strength Equivalency
+---------------------------------------------------------
+
+The :func:`~astropy.units.equivalencies.magnetic_flux_field` equivalency allows
+conversion between Magnetic Flux Density (B) and its equivalent Magnetic Field
+Strength (H) in a vacuum, governed by the equation
+
+.. math::
+
+        \mathbf{B} = \mu_0 \mathbf{H}.
+
+Where :math:`\mu_0` is the vacuum permeability.
+
+Example
+^^^^^^^
+
+.. EXAMPLE START: Magnetic Flux Density Magnetic Field Strength Equivalency
+
+To convert between Magnetic Flux Density (B) and its equivalent Magnetic Field
+Strength (H) in a vacuum::
+
+    >>> B = 1 * u.T
+    >>> B.to(u.A / u.m, equivalencies=u.magnetic_flux_field())  # doctest: +FLOAT_CMP
+    <Quantity 795774.71502628 A / m>
+
+.. EXAMPLE END
+
 Writing New Equivalencies
 =========================
 
