@@ -940,7 +940,7 @@ class Quantity(np.ndarray):
         else:
             # to_value only copies if necessary
             value = self.to_value(unit, equivalencies)
-        return self._new_view(value, unit)
+        return value << unit
 
     def to_value(self, unit=None, equivalencies=[]):
         """

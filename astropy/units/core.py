@@ -2684,6 +2684,9 @@ def _condition_arg(value):
     if isinstance(value, (np.ndarray, float, int, complex, np.void)):
         return value
 
+    if hasattr(value, "__array_ufunc__"):
+        return value
+
     avalue = np.array(value)
     if avalue.dtype.kind not in ["i", "f", "c"]:
         raise ValueError(

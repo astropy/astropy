@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Separate tests specifically for equivalencies."""
 
+import dataclasses
 import numpy as np
 
 # THIRD-PARTY
@@ -625,6 +626,58 @@ def test_spectraldensity_not_allowed(from_unit, to_unit):
     # The other way
     with pytest.raises(u.UnitConversionError, match="not convertible"):
         to_unit.to(from_unit, 1, u.spectral_density(1 * u.AA))
+
+
+@dataclasses.dataclass(eq=False)
+class DuckQuantity(np.lib.mixins.NDArrayOperatorsMixin):
+
+    quantity: u.Quantity
+
+    def __array_ufunc__(self, function, method, *inputs, **kwargs):
+
+        inputs = [
+            inp.quantity if isinstance(inp, type(self)) else inp for inp in inputs
+        ]
+
+        result = getattr(function, method)(*inputs, **kwargs)
+        if result is not NotImplemented:
+            return type(self)(result)
+        return NotImplemented
+
+    def to(self, unit: u.Unit, equivalencies: list[tuple] = []) -> "DuckQuantity":
+        return type(self)(self.quantity.to(unit, equivalencies))
+
+    def to_value(
+        self, unit: None | u.Unit = None, equivalencies: list[tuple] = []
+    ) -> "DuckQuantity":
+        return type(self)(self.quantity.to_value(unit, equivalencies))
+
+
+@pytest.mark.parametrize(
+    argnames="energy",
+    argvalues=[
+        DuckQuantity(1 * u.erg),
+    ],
+)
+@pytest.mark.parametrize(
+    argnames="wavelength",
+    argvalues=[
+        DuckQuantity(300 * u.nm),
+    ],
+)
+def test_spectraldensity_duck(
+    energy: DuckQuantity,
+    wavelength: DuckQuantity,
+):
+    result = energy.to(
+        unit=u.ph,
+        equivalencies=u.spectral_density(wavelength),
+    )
+    result_expected = energy.quantity.to(
+        unit=u.ph,
+        equivalencies=u.spectral_density(wavelength.quantity),
+    )
+    assert np.all(result == result_expected)
 
 
 def test_equivalent_units():
