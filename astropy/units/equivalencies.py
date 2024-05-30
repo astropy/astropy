@@ -883,7 +883,7 @@ def magnetic_flux_field():
 
     .. math::
 
-        \mu_0 \mathbf{H} = \mathbf{B}
+        \mathbf{B} = \mu_0 \mathbf{H}
 
     where :math:`\mu_0` is the vacuum permeability.
 
