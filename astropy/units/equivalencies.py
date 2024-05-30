@@ -483,17 +483,7 @@ def doppler_relativistic(rest):
 
     References
     ----------
-    `NRAO site defining the conventions <https://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html>`_
-
-    Examples
-    --------
-    >>> import astropy.units as u
-    >>> CO_restfreq = 115.27120*u.GHz  # rest frequency of 12 CO 1-0 in GHz
-    >>> relativistic_CO_equiv = u.doppler_relativistic(CO_restfreq)
-    >>> measured_freq = 115.2832*u.GHz
-    >>> relativistic_velocity = measured_freq.to(u.km/u.s, equivalencies=relativistic_CO_equiv)
-    >>> relativistic_velocity  # doctest: +FLOAT_CMP
-    <Quantity -31.207467619351537 km / s>
+    ----------1.207467619351537 km / s>
     >>> measured_velocity = 1250 * u.km/u.s
     >>> relativistic_frequency = measured_velocity.to(u.GHz, equivalencies=relativistic_CO_equiv)
     >>> relativistic_frequency  # doctest: +FLOAT_CMP
@@ -883,7 +873,7 @@ def magnetic_flux_field():
 
     .. math::
 
-        \mu_0 \mathbf{H} = \mathbf{B}
+        \mathbf{B} = \mu_0 \mathbf{H}
 
     where :math:`\mu_0` is the vacuum permeability.
 
