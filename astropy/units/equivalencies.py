@@ -887,7 +887,7 @@ def magnetic_flux_field(mu_r=1):
 
     where:
         - :math:`\mu_0` is the vacuum permeability, a physical constant.
-        - :math:`\mu_r` is the relative permeability of the material, a dimensionless
+        - :math:`\mu_r` is the relative permeability of the media, a dimensionless
           quantity.
 
     The default setting (:math:`\mu_r=1`) represents conditions in a vacuum.
@@ -901,7 +901,7 @@ def magnetic_flux_field(mu_r=1):
     Examples
     --------
     >>> import astropy.units as u
-    >>> H = 1 * u.G
+    >>> H = 1 * u.Oe
     >>> H.to(u.G, equivalencies=u.magnetic_flux_field())
     <Quantity 1. G>
     >>> H.to(u.G, equivalencies=u.magnetic_flux_field(mu_r=0.8))

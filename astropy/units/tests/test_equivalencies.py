@@ -1025,3 +1025,5 @@ def test_magnetic_flux_field():
     B = 1 * u.G
     assert_allclose(H.to_value(u.G, u.magnetic_flux_field()), 1)
     assert_allclose(B.to_value(u.Oe, u.magnetic_flux_field()), 1)
+    assert_allclose(H.to_value(u.G, u.magnetic_flux_field(mu_r=0.8)), 0.8)
+    assert_allclose(B.to_value(u.Oe, u.magnetic_flux_field(mu_r=0.8)), 1.25)
