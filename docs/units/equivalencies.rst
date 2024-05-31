@@ -563,7 +563,7 @@ Strength (H) in a vacuum.
 Conversion in a medium with :math:`\mu_r=0.9`::
 
     >>> H.to(u.G, u.magnetic_flux_field(mu_r=0.9))  # doctest: +FLOAT_CMP
-    >>> <Quantity 0.9 G>
+    <Quantity 0.9 G>
     >>> B.to(u.A / u.m, equivalencies=u.magnetic_flux_field(mu_r=0.9))  # doctest: +FLOAT_CMP
     <Quantity 884194.12780697 A / m>
 
