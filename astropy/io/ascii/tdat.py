@@ -152,7 +152,7 @@ class TdatMeta:
             )
         self._line_fields = line_fields
 
-        # raise and erro if a required keyword is not present
+        # raise and error if a required keyword is not present
         for key in self._required_keywords:
             if key not in keywords:
                 raise TdatFormatError(
@@ -195,10 +195,10 @@ class TdatHeader(core.BaseHeader, TdatMeta):
             (?:\:(?P<fmt>[^\s_]+))?
             (?:_(?P<unit>[^\s_]+))?
             \s*
-            (?:\[(?P<ucd>[\w\.]+)\])?
-            \s+
+            (?:\[(?P<ucd>[\w\.\;]+)\])?
+            \s*
             (?:\((?P<idx>\w+)\))?
-            \s+
+            \s*
             (?:[//|#]+\s*(?P<desc>[^/#]*))?
             (?:[//|#]+\s*(?P<comment>[^/#]*))?
             \s*
@@ -218,6 +218,7 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                 col.idx = cmatch.group('idx')
                 col.description = cmatch.group('desc')
                 col.comment = cmatch.group('comment')
+                # setattr(self, line)
                 cols.append(col)
 
         self.names = [col.name for col in cols]
