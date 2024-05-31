@@ -135,3 +135,7 @@ py:class Real
 py:class NDArray
 # locally defined type variable for ndarray dtype
 py:class DT
+
+# Classes from `astropy.extern` that are nonetheless exposed in documentation
+py:class Lexer
+py:class LRParser
