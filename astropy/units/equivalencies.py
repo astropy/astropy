@@ -876,20 +876,45 @@ def plate_scale(platescale):
     )
 
 
-def magnetic_flux_field():
+def magnetic_flux_field(mu_r=1):
     r"""
     Convert magnetic field between magnetic field strength :math:`(\mathbf{H})` and
-    magnetic flux density :math:`(\mathbf{B})` in a vacuum.
+    magnetic flux density :math:`(\mathbf{B})` using the relationship:
 
     .. math::
 
-        \mathbf{B} = \mu_0 \mathbf{H}
+        \mathbf{B} = \mu_r \mu_0 \mathbf{H}
 
-    where :math:`\mu_0` is the vacuum permeability.
+    where:
+        - :math:`\mu_0` is the vacuum permeability, a physical constant.
+        - :math:`\mu_r` is the relative permeability of the material, a dimensionless
+          quantity.
+
+    The default setting (:math:`\mu_r=1`) represents conditions in a vacuum.
+
+    Parameters
+    ----------
+    mu_r : float, optional
+        The relative magnetic permeability of the media. This is a dimensionless quantity
+        and has a default value of :math:`\mu_r=1` which corresponds to free space (vacuum).
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> H = 1 * u.G
+    >>> H.to(u.G, equivalencies=u.magnetic_flux_field())
+    <Quantity 1. G>
+    >>> H.to(u.G, equivalencies=u.magnetic_flux_field(mu_r=0.8))
+    <Quantity 0.8 G>
+    >>> B = 1 * u.T
+    >>> B.to(u.A / u.m, equivalencies=u.magnetic_flux_field())  # doctest: +FLOAT_CMP
+    <Quantity 795774.71502628 A / m>
+    >>> B.to(u.A / u.m, equivalencies=u.magnetic_flux_field(mu_r=0.8))  # doctest: +FLOAT_CMP
+    <Quantity 994718.39378285 A / m>
 
     """
     mu0 = _si.mu0.value
     return Equivalency(
-        [(si.T, si.A / si.m, lambda x: x / mu0, lambda x: x * mu0)],
+        [(si.T, si.A / si.m, lambda x: x / (mu_r * mu0), lambda x: x * mu_r * mu0)],
         "magnetic_flux_field",
     )
