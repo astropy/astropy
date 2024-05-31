@@ -552,9 +552,9 @@ To convert between Magnetic Flux Density (B) and its equivalent Magnetic Field
 Strength (H) in a vacuum.
 
     >>> H = 1 * u.Oe
-    >>> H.to_value(u.G, u.magnetic_flux_field())
+    >>> H.to_value(u.G, u.magnetic_flux_field())  # doctest: +FLOAT_CMP
     <Quantity 1. G>
-    >>> H.to_value(u.T, u.magnetic_flux_field())
+    >>> H.to_value(u.T, u.magnetic_flux_field())  # doctest: +FLOAT_CMP
     <Quantity 0.0001 T>
     >>> B = 1 * u.T
     >>> B.to(u.A / u.m, equivalencies=u.magnetic_flux_field())  # doctest: +FLOAT_CMP
@@ -562,7 +562,7 @@ Strength (H) in a vacuum.
 
 Conversion in a medium with :math:`\mu_r=0.9`::
 
-    >>> H.to_value(u.G, u.magnetic_flux_field(mu_r=0.9))
+    >>> H.to_value(u.G, u.magnetic_flux_field(mu_r=0.9))  # doctest: +FLOAT_CMP
     >>> <Quantity 0.9 G>
     >>> B.to(u.A / u.m, equivalencies=u.magnetic_flux_field(mu_r=0.9))  # doctest: +FLOAT_CMP
     <Quantity 884194.12780697 A / m>
