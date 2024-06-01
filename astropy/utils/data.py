@@ -21,6 +21,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import zipfile
+from importlib import import_module
 from tempfile import NamedTemporaryFile, TemporaryDirectory, gettempdir, mkdtemp
 from warnings import warn
 
@@ -37,7 +38,7 @@ import astropy.config.paths
 from astropy import config as _config
 from astropy.utils.compat.optional_deps import HAS_FSSPEC
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
-from astropy.utils.introspection import find_current_module, resolve_name
+from astropy.utils.introspection import find_current_module
 
 # Order here determines order in the autosummary
 __all__ = [
@@ -1046,7 +1047,7 @@ def get_pkg_data_path(*path, package=None):
 
         # package errors if it isn't a str
         # so there is no need for checks in the containing if/else
-        module = resolve_name(package)
+        module = import_module(package)
 
     # module path within package
     module_path = os.path.dirname(module.__file__)
@@ -1054,8 +1055,7 @@ def get_pkg_data_path(*path, package=None):
 
     # Check that file is inside tree.
     rootpkgname = package.partition(".")[0]
-    rootpkg = resolve_name(rootpkgname)
-    root_dir = os.path.dirname(rootpkg.__file__)
+    root_dir = os.path.dirname(import_module(rootpkgname).__file__)
     if not _is_inside(full_path, root_dir):
         raise RuntimeError(
             f"attempted to get a local data file outside of the {rootpkgname} tree."
