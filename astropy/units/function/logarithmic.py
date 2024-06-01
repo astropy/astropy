@@ -10,12 +10,11 @@ from astropy.units import (
     UnitsError,
     UnitTypeError,
     dimensionless_unscaled,
-    photometric,
 )
+from astropy.utils import lazyproperty
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 from .core import FunctionQuantity, FunctionUnitBase
-from .units import dB, dex, mag
 
 __all__ = [
     "LogUnit",
@@ -26,10 +25,6 @@ __all__ = [
     "Magnitude",
     "Decibel",
     "Dex",
-    "STmag",
-    "ABmag",
-    "M_bol",
-    "m_bol",
 ]
 
 
@@ -52,8 +47,10 @@ class LogUnit(FunctionUnitBase):
     """
 
     # the four essential overrides of FunctionUnitBase
-    @property
+    @lazyproperty
     def _default_function_unit(self):
+        from .units import dex
+
         return dex
 
     @property
@@ -64,12 +61,17 @@ class LogUnit(FunctionUnitBase):
         """Transformation from value in physical to value in logarithmic units.
         Used in equivalency.
         """
+        # Local import to avoid circular dependency.
+        from .units import dex
+
         return dex.to(self._function_unit, np.log10(x))
 
     def to_physical(self, x):
         """Transformation from value in logarithmic to value in physical units.
         Used in equivalency.
         """
+        from .units import dex
+
         return 10 ** self._function_unit.to(dex, x)
 
     # ^^^^ the four essential overrides of FunctionUnitBase
@@ -143,8 +145,10 @@ class MagUnit(LogUnit):
         unit such as ``2 mag``.
     """
 
-    @property
+    @lazyproperty
     def _default_function_unit(self):
+        from .units import mag
+
         return mag
 
     @property
@@ -166,8 +170,10 @@ class DexUnit(LogUnit):
         unit such as ``0.5 dex``.
     """
 
-    @property
+    @lazyproperty
     def _default_function_unit(self):
+        from .units import dex
+
         return dex
 
     @property
@@ -198,8 +204,10 @@ class DecibelUnit(LogUnit):
         unit such as ``2 dB``.
     """
 
-    @property
+    @lazyproperty
     def _default_function_unit(self):
+        from .units import dB
+
         return dB
 
     @property
@@ -430,25 +438,3 @@ class Decibel(LogQuantity):
 
 class Magnitude(LogQuantity):
     _unit_class = MagUnit
-
-
-dex._function_unit_class = DexUnit
-dB._function_unit_class = DecibelUnit
-mag._function_unit_class = MagUnit
-
-
-STmag = MagUnit(photometric.STflux)
-STmag.__doc__ = "ST magnitude: STmag=-21.1 corresponds to 1 erg/s/cm2/A"
-
-ABmag = MagUnit(photometric.ABflux)
-ABmag.__doc__ = "AB magnitude: ABmag=-48.6 corresponds to 1 erg/s/cm2/Hz"
-
-M_bol = MagUnit(photometric.Bol)
-M_bol.__doc__ = (
-    f"Absolute bolometric magnitude: M_bol=0 corresponds to L_bol0={photometric.Bol.si}"
-)
-
-m_bol = MagUnit(photometric.bol)
-m_bol.__doc__ = (
-    f"Apparent bolometric magnitude: m_bol=0 corresponds to f_bol0={photometric.bol.si}"
-)

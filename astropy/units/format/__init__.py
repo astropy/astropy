@@ -2,6 +2,10 @@
 
 """
 A collection of different unit formats.
+
+General usage is by their name in the |Unit| constructor or
+in the :meth:`~astropy.units.UnitBase.to_string` method, i.e.,
+these classes rarely if ever need to be imported directly.
 """
 
 import sys
