@@ -3,11 +3,21 @@
 Wrappers for PLY to provide thread safety.
 """
 
+from __future__ import annotations
+
 import contextlib
 import functools
 import os
 import re
 import threading
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from types import ModuleType
+
+    from astropy.extern.ply.lex import Lexer
+    from astropy.extern.ply.yacc import LRParser
 
 __all__ = ["lex", "ThreadSafeParser", "yacc"]
 
@@ -27,7 +37,7 @@ _TAB_HEADER = """# -*- coding: utf-8 -*-
 _LOCK = threading.RLock()
 
 
-def _add_tab_header(filename, package):
+def _add_tab_header(filename: str, package: str) -> None:
     with open(filename) as f:
         contents = f.read()
 
@@ -37,7 +47,7 @@ def _add_tab_header(filename, package):
 
 
 @contextlib.contextmanager
-def _patch_get_caller_module_dict(module):
+def _patch_get_caller_module_dict(module: ModuleType) -> Generator[None, None, None]:
     """Temporarily replace the module's get_caller_module_dict.
 
     This is a function inside ``ply.lex`` and ``ply.yacc`` (each has a copy)
@@ -57,7 +67,7 @@ def _patch_get_caller_module_dict(module):
     module.get_caller_module_dict = original
 
 
-def lex(lextab, package, reflags=int(re.VERBOSE)):
+def lex(lextab: str, package: str, reflags: int = int(re.VERBOSE)) -> Lexer:
     """Create a lexer from local variables.
 
     It automatically compiles the lexer in optimized mode, writing to
@@ -110,7 +120,7 @@ class ThreadSafeParser:
     It provides a :meth:`parse` method that is thread-safe.
     """
 
-    def __init__(self, parser):
+    def __init__(self, parser: LRParser) -> None:
         self.parser = parser
         self._lock = threading.RLock()
 
@@ -120,7 +130,7 @@ class ThreadSafeParser:
             return self.parser.parse(*args, **kwargs)
 
 
-def yacc(tabmodule, package):
+def yacc(tabmodule: str, package: str) -> ThreadSafeParser:
     """Create a parser from local variables.
 
     It automatically compiles the parser in optimized mode, writing to
