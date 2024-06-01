@@ -1,0 +1,2 @@
+The ``introspection.resolve_name()`` function is deprecated.
+It is better to use the standard library ``importlib`` instead.
