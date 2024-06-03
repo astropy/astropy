@@ -107,7 +107,7 @@ explicitly enabled as well, e.g. by using the `namespace` argument::
 
 Now, the prefixed units can be parsed etc::
 
-  >>> print( u.Unit("megafoo").find_equivalent_units() )
+  >>> print(u.Unit("megafoo").find_equivalent_units())
   Primary name | Unit definition | Aliases
   [
     Fo           | irreducible     | foo     ,
