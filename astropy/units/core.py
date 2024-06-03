@@ -265,7 +265,7 @@ class _UnitRegistry:
         ----------
         equivalencies : list of tuple
             List of equivalent pairs, e.g., as returned by
-            `~astropy.units.equivalencies.dimensionless_angles`.
+            `~astropy.units.dimensionless_angles`.
         """
         self._reset_equivalencies()
         return self.add_enabled_equivalencies(equivalencies)
@@ -284,7 +284,7 @@ class _UnitRegistry:
         ----------
         equivalencies : list of tuple
             List of equivalent pairs, e.g., as returned by
-            `~astropy.units.equivalencies.dimensionless_angles`.
+            `~astropy.units.dimensionless_angles`.
         """
         # pre-normalize list to help catch mistakes
         equivalencies = _normalize_equivalencies(equivalencies)
@@ -484,7 +484,7 @@ def set_enabled_equivalencies(equivalencies):
     ----------
     equivalencies : list of tuple
         list of equivalent pairs, e.g., as returned by
-        `~astropy.units.equivalencies.dimensionless_angles`.
+        `~astropy.units.dimensionless_angles`.
 
     Examples
     --------
@@ -519,7 +519,7 @@ def add_enabled_equivalencies(equivalencies):
     ----------
     equivalencies : list of tuple
         list of equivalent pairs, e.g., as returned by
-        `~astropy.units.equivalencies.dimensionless_angles`.
+        `~astropy.units.dimensionless_angles`.
     """
     # get a context with a new registry, which is a copy of the current one
     context = _UnitContext(get_current_unit_registry())

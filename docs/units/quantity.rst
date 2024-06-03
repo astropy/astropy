@@ -56,8 +56,8 @@ configuration files, etc.):
     <Quantity 15. m / s>
 
 The current unit and value can be accessed via the
-`~astropy.units.quantity.Quantity.unit` and
-`~astropy.units.quantity.Quantity.value` attributes:
+:attr:`~astropy.units.Quantity.unit` and
+:attr:`~astropy.units.Quantity.value` attributes:
 
     >>> q = 2.5 * u.m / u.s
     >>> q.unit
@@ -80,7 +80,7 @@ Converting to Different Units
 =============================
 
 |Quantity| objects can be converted to different units using the
-:meth:`~astropy.units.quantity.Quantity.to` method.
+:meth:`~astropy.units.Quantity.to` method.
 
 Examples
 --------
@@ -93,8 +93,8 @@ To convert |Quantity| objects to different units:
     >>> q.to(u.km / u.h)  # doctest: +FLOAT_CMP
     <Quantity 8.28 km / h>
 
-For convenience, the :attr:`~astropy.units.quantity.Quantity.si` and
-:attr:`~astropy.units.quantity.Quantity.cgs` attributes can be used to convert
+For convenience, the :attr:`~astropy.units.Quantity.si` and
+:attr:`~astropy.units.Quantity.cgs` attributes can be used to convert
 the |Quantity| to base `SI
 <https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf>`_ or `CGS
 <https://en.wikipedia.org/wiki/Centimetre-gram-second_system_of_units>`_ units:
@@ -220,7 +220,7 @@ To perform these operations on |Quantity| objects:
     <Quantity 20. cm / m>
 
 For multiplication, you can change how to represent the resulting object by
-using the :meth:`~astropy.units.quantity.Quantity.to` method:
+using the :meth:`~astropy.units.Quantity.to` method:
 
     >>> (1.1 * u.m * 140.3 * u.cm).to(u.m**2)  # doctest: +FLOAT_CMP
     <Quantity 1.5433 m2>
@@ -229,7 +229,7 @@ using the :meth:`~astropy.units.quantity.Quantity.to` method:
 
 For division, if the units are equivalent, you may want to make the resulting
 object dimensionless by reducing the units. To do this, use the
-:meth:`~astropy.units.quantity.Quantity.decompose()` method:
+:meth:`~astropy.units.Quantity.decompose` method:
 
     >>> (20. * u.cm / (1. * u.m)).decompose()  # doctest: +FLOAT_CMP
     <Quantity 0.2>
