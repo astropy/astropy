@@ -1456,7 +1456,7 @@ def test_decompose_regression():
 
 def test_arrays():
     """
-    Test using quantites with array values
+    Test using quantities with array values
     """
 
     qsec = u.Quantity(np.arange(10), u.second)
