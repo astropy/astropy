@@ -530,7 +530,7 @@ for more information.
 .. EXAMPLE END
 
 Magnetic Flux Density and Field Strength Equivalency
----------------------------------------------------------
+----------------------------------------------------
 
 The :func:`~astropy.units.equivalencies.magnetic_flux_field` equivalency allows
 conversion between Magnetic Flux Density (B) and its equivalent Magnetic Field
