@@ -102,8 +102,8 @@ If new units are defined with prefixes enabled, the prefixed units must be
 explicitly enabled as well, e.g. by using the `namespace` argument::
   
   >>> new_units = dict()
-  >>> foo = u.def_unit(['Fo', 'foo'], prefixes = True, namespace = new_units)
-  >>> u.add_enabled_units(new_units.values() )
+  >>> foo = u.def_unit(['Fo', 'foo'], prefixes=True, namespace=new_units)
+  >>> u.add_enabled_units(new_units.values())
 
 Now, the prefixed units can be parsed etc::
 
