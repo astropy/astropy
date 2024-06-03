@@ -98,7 +98,7 @@ can be enabled by calling :func:`~astropy.units.add_enabled_units`::
     kmph         | 0.277778 m / s  |         ,
   ]
 
-If new units are defined with prefixes enabled, the prefixed units must be 
+If new units are defined with prefixes enabled, the prefixed units must be
 explicitly enabled as well, e.g. by using the `namespace` argument::
   
   >>> new_units = dict()
