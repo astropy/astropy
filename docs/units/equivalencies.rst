@@ -529,6 +529,46 @@ for more information.
 
 .. EXAMPLE END
 
+Magnetic Flux Density and Field Strength Equivalency
+----------------------------------------------------
+
+The :func:`~astropy.units.equivalencies.magnetic_flux_field` equivalency allows
+conversion between Magnetic Flux Density (B) and its equivalent Magnetic Field
+Strength (H), governed by the equation
+
+.. math::
+
+        \mathbf{B} = \mu_r \mu_0 \mathbf{H}.
+
+Where :math:`\mu_0` is the vacuum permeability and :math:`\mu_r` is the
+relative permeability of the medium. For a vacuum, :math:`\mu_r=1`.
+
+Example
+^^^^^^^
+
+.. EXAMPLE START: Magnetic Flux Density Magnetic Field Strength Equivalency
+
+To convert between Magnetic Flux Density (B) and its equivalent Magnetic Field
+Strength (H) in a vacuum.
+
+    >>> H = 1 * u.Oe
+    >>> H.to(u.G, u.magnetic_flux_field())  # doctest: +FLOAT_CMP
+    <Quantity 1. G>
+    >>> H.to(u.T, u.magnetic_flux_field())  # doctest: +FLOAT_CMP
+    <Quantity 0.0001 T>
+    >>> B = 1 * u.T
+    >>> B.to(u.A / u.m, equivalencies=u.magnetic_flux_field())  # doctest: +FLOAT_CMP
+    <Quantity 795774.71502628 A / m>
+
+Conversion in a medium with :math:`\mu_r=0.9`::
+
+    >>> H.to(u.G, u.magnetic_flux_field(mu_r=0.9))  # doctest: +FLOAT_CMP
+    <Quantity 0.9 G>
+    >>> B.to(u.A / u.m, equivalencies=u.magnetic_flux_field(mu_r=0.9))  # doctest: +FLOAT_CMP
+    <Quantity 884194.12780697 A / m>
+
+.. EXAMPLE END
+
 Writing New Equivalencies
 =========================
 

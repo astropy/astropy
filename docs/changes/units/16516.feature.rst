@@ -1,0 +1,2 @@
+Add ``magnetic_flux_field`` equivalency to convert magnetic field between
+magnetic field strength (H) and magnetic flux density (B).
