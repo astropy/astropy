@@ -1013,3 +1013,17 @@ def test_spectral_density_factor_deprecation():
             u.erg / u.Hz / u.cm**2 / u.s, 1, u.spectral_density(u.AA, factor=3500)
         )
     assert_quantity_allclose(a, 4.086160166177361e-12)
+
+
+def test_magnetic_flux_field():
+    H = 1 * u.A / u.m
+    B = (H * constants.mu0).to(u.T)
+    assert_allclose(H.to_value(u.T, u.magnetic_flux_field()), B.value)
+    assert_allclose(B.to_value(u.A / u.m, u.magnetic_flux_field()), H.value)
+
+    H = 1 * u.Oe
+    B = 1 * u.G
+    assert_allclose(H.to_value(u.G, u.magnetic_flux_field()), 1)
+    assert_allclose(B.to_value(u.Oe, u.magnetic_flux_field()), 1)
+    assert_allclose(H.to_value(u.G, u.magnetic_flux_field(mu_r=0.8)), 0.8)
+    assert_allclose(B.to_value(u.Oe, u.magnetic_flux_field(mu_r=0.8)), 1.25)
