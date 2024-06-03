@@ -529,7 +529,7 @@ for more information.
 
 .. EXAMPLE END
 
-Magnetic Flux Density Magnetic Field Strength Equivalency
+Magnetic Flux Density and Field Strength Equivalency
 ---------------------------------------------------------
 
 The :func:`~astropy.units.equivalencies.magnetic_flux_field` equivalency allows
