@@ -1792,9 +1792,9 @@ class SkyCoord(ShapedLikeNDArray):
 
           >>> vcorr_rel = vcorr.to(u.Hz, u.doppler_optical(1*u.Hz)).to(vcorr.unit, u.doppler_relativistic(1*u.Hz))  # doctest: +REMOTE_DATA
 
-        See also `~astropy.units.equivalencies.doppler_optical`,
-        `~astropy.units.equivalencies.doppler_radio`, and
-        `~astropy.units.equivalencies.doppler_relativistic` for more information on
+        See also `~astropy.units.doppler_optical`,
+        `~astropy.units.doppler_radio`, and
+        `~astropy.units.doppler_relativistic` for more information on
         the velocity conventions.
 
         The default is for this method to use the builtin ephemeris for

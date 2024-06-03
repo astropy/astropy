@@ -139,7 +139,7 @@ normally work:
     UnitConversionError: 'nm' (length) and 'Hz' (frequency) are not convertible
 
 But by passing an equivalency list, in this case
-:func:`~astropy.units.equivalencies.spectral`, it does:
+:func:`~astropy.units.spectral`, it does:
 
     >>> (1000 * u.nm).to(u.Hz, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
     <Quantity  2.99792458e+14 Hz>
