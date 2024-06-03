@@ -168,11 +168,12 @@ Coding Style/Conventions
   addition, these checks also enforce `isort <https://pycqa.github.io/isort/>`_ to sort
   the module imports and a large set of style-checks supported by ruff_.
 
-  * We provide a ``pre-commit`` hook which automatically enforces and fixes (whenever
-    possible) the coding style, see :ref:`pre-commit` for details on how to set up and
-    use this. We note that the particular set of |PEP8| and style-related checks that are
-    used in Astropy do not need to be used in affiliated packages. In particular, the
-    set of ruff_ checks is not required for affiliated packages.
+  * We provide a `pre-commit <https://pre-commit.com/>`_ configuration which
+    automatically enforces and fixes (whenever possible) the coding style, see
+    :ref:`pre-commit` for details on how to set up and use this. We note that the
+    particular set of |PEP8| and style-related checks that are used in Astropy do not
+    need to be used in affiliated packages. In particular, the set of ruff_ checks is
+    not required for affiliated packages.
 
   * Alternately, you can manually check and fix your changes by running the
     following `tox <https://tox.readthedocs.io/>`__ command::
@@ -190,20 +191,12 @@ Coding Style/Conventions
             See :doc:`codeguide_emacs` for some configuration options for Emacs
             that helps in ensuring conformance to PEP8.
 
-* Astropy source code should contain a comment at the beginning of the file (or
-  immediately after the ``#!/usr/bin env python`` command, if relevant)
-  pointing to the license for the Astropy source code.  This line should say::
+* ``astropy`` source code should contain a comment at the beginning of the file
+  pointing to the license for the ``astropy`` source code.  This line should say::
 
       # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-* The following naming conventions::
-
-    import numpy as np
-    import matplotlib as mpl
-    import matplotlib.pyplot as plt
-    import pandas as pd
-
-  should be used wherever relevant. The complete list of conventional aliases can be found `here <https://docs.astral.sh/ruff/settings/#flake8-import-conventions-aliases>`_ . On the other hand::
+* Star-imports, e.g.,
 
     from packagename import *
 
@@ -378,10 +371,10 @@ Properties vs. get\_/set\_
 --------------------------
 
 This example shows a sample class illustrating the guideline regarding the use
-of properties as opposed to getter/setter methods.
+of `properties <https://docs.python.org/3/library/functions.html#property>`_ as
+opposed to getter/setter methods.
 
-Let's assuming you've defined a ``Star`` class and create an instance
-like this::
+Let's assume you've defined a ``Star`` class and create an instance like this::
 
     >>> s = Star(B=5.48, V=4.83)
 
