@@ -112,7 +112,7 @@ Now, the prefixed units can be parsed etc::
   [
     Fo           | irreducible     | foo     ,
   ]
-  >>> print( u.Unit("megafoo").to(u.Unit("kFo")) )
+  >>> print(u.Unit("megafoo").to(u.Unit("kFo")))
   1000.0
 
 .. EXAMPLE END
