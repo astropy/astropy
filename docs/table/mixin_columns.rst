@@ -302,7 +302,7 @@ the ``astropy`` mixin test suite and is fully compliant as a mixin column.
 
   from astropy.utils.data_info import ParentDtypeInfo
 
-  class ArrayWrapper(object):
+  class ArrayWrapper:
       """
       Minimal mixin using a simple wrapper around a numpy array
       """
