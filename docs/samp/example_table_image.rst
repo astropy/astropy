@@ -108,7 +108,7 @@ We now set up a receiver class which will handle any received messages. We need
 to take care to write handlers for both notifications and calls (the difference
 between the two being that calls expect a reply)::
 
-    >>> class Receiver(object):
+    >>> class Receiver:
     ...     def __init__(self, client):
     ...         self.client = client
     ...         self.received = False
@@ -183,7 +183,7 @@ reads the table once it has::
     client.connect()
 
     # Set up a receiver class
-    class Receiver(object):
+    class Receiver:
         def __init__(self, client):
             self.client = client
             self.received = False
