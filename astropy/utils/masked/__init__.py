@@ -7,4 +7,5 @@ generates new subclasses for any data class that is itself a
 subclass of a predefined masked class, with `MaskedNDArray`
 providing such a predefined class for `~numpy.ndarray`.
 """
+
 from .core import *

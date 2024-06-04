@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+from functools import cache
+
 from astropy import units as u
 from astropy.coordinates.attributes import CoordinateAttribute, QuantityAttribute
 from astropy.coordinates.baseframe import BaseCoordinateFrame, frame_transform_graph
@@ -8,9 +11,8 @@ from astropy.coordinates.transformations import (
     FunctionTransform,
 )
 
-_skyoffset_cache = {}
 
-
+@cache
 def make_skyoffset_cls(framecls):
     """
     Create a new class that is the sky offset frame for a specific class of
@@ -38,16 +40,15 @@ def make_skyoffset_cls(framecls):
     just that class, as well as ensuring that only one example of such a class
     actually gets created in any given python session.
     """
-    if framecls in _skyoffset_cache:
-        return _skyoffset_cache[framecls]
-
     # Create a new SkyOffsetFrame subclass for this frame class.
     name = "SkyOffset" + framecls.__name__
     _SkyOffsetFramecls = type(
         name,
         (SkyOffsetFrame, framecls),
         {
-            "origin": CoordinateAttribute(frame=framecls, default=None),
+            "origin": CoordinateAttribute(
+                frame=framecls, default=None, doc="The origin of the offset frame"
+            ),
             # The following two have to be done because otherwise we use the
             # defaults of SkyOffsetFrame set by BaseCoordinateFrame.
             "_default_representation": framecls._default_representation,
@@ -91,7 +92,6 @@ def make_skyoffset_cls(framecls):
         # transpose is the inverse because R is a rotation matrix
         return matrix_transpose(R)
 
-    _skyoffset_cache[framecls] = _SkyOffsetFramecls
     return _SkyOffsetFramecls
 
 
@@ -135,8 +135,12 @@ class SkyOffsetFrame(BaseCoordinateFrame):
     of ``origin``.
     """
 
-    rotation = QuantityAttribute(default=0, unit=u.deg)
-    origin = CoordinateAttribute(default=None, frame=None)
+    rotation = QuantityAttribute(
+        default=0, unit=u.deg, doc="The rotation angle for the frame orientation"
+    )
+    origin = CoordinateAttribute(
+        default=None, frame=None, doc="The origin of the offset frame"
+    )
 
     def __new__(cls, *args, **kwargs):
         # We don't want to call this method if we've already set up

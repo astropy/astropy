@@ -6,7 +6,7 @@ from __future__ import annotations
 import concurrent.futures
 import dataclasses
 import warnings
-from typing import Callable, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
 import pytest
@@ -19,6 +19,9 @@ from astropy.units.quantity_helper.converters import UfuncHelpers
 from astropy.units.quantity_helper.helpers import helper_sqrt
 from astropy.utils.compat.numpycompat import NUMPY_LT_1_25, NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 if NUMPY_LT_2_0:
     from numpy.core import umath as np_umath

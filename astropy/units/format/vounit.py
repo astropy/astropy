@@ -3,8 +3,6 @@
 Handles the "VOUnit" unit format.
 """
 
-
-import copy
 import keyword
 import re
 import warnings
@@ -43,7 +41,7 @@ class VOUnit(generic.Generic):
             "solRad", "sr", "T", "u", "V", "voxel", "W", "Wb", "yr",
         ]  # fmt: skip
         binary_bases = ["bit", "byte", "B"]
-        simple_units = ["Angstrom", "angstrom", "AU", "au", "Ba", "dB", "mas"]
+        simple_units = ["Angstrom", "angstrom", "AU", "au", "Ba", "dB", "mas", "Sun"]
         si_prefixes = [
             "y", "z", "a", "f", "p", "n", "u", "m", "c", "d",
             "", "da", "h", "k", "M", "G", "T", "P", "E", "Z", "Y"
@@ -128,6 +126,11 @@ class VOUnit(generic.Generic):
         return cls._units[unit]
 
     @classmethod
+    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> None:
+        if unit not in cls._custom_units:
+            super()._validate_unit(unit, detailed_exception)
+
+    @classmethod
     def _get_unit_name(cls, unit):
         # The da- and d- prefixes are discouraged.  This has the
         # effect of adding a scale to value in the result.
@@ -142,21 +145,7 @@ class VOUnit(generic.Generic):
                     f"In '{unit}': VOUnit can not represent units with the 'd' "
                     "(deci) prefix"
                 )
-
-        name = super()._get_unit_name(unit)
-
-        if unit in cls._custom_units.values():
-            return name
-
-        if name not in cls._units:
-            raise ValueError(f"Unit {name!r} is not part of the VOUnit standard")
-
-        if name in cls._deprecated_units:
-            utils.unit_deprecation_warning(
-                name, unit, "VOUnit", cls._to_decomposed_alternative
-            )
-
-        return name
+        return super()._get_unit_name(unit)
 
     @classmethod
     def _def_custom_unit(cls, unit):
@@ -229,16 +218,3 @@ class VOUnit(generic.Generic):
             )
 
         return super().to_string(unit, fraction=fraction)
-
-    @classmethod
-    def _to_decomposed_alternative(cls, unit):
-        from astropy.units import core
-
-        try:
-            s = cls.to_string(unit)
-        except core.UnitScaleError:
-            scale = unit.scale
-            unit = copy.copy(unit)
-            unit._scale = 1.0
-            return f"{cls.to_string(unit)} (with data multiplied by {scale})"
-        return s

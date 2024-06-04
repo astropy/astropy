@@ -3,6 +3,7 @@
 
 Functions, including ufuncs, are tested in test_functions.py
 """
+
 import operator
 import sys
 
@@ -13,6 +14,8 @@ from numpy.testing import assert_array_equal
 from astropy import units as u
 from astropy.coordinates import Longitude
 from astropy.units import Quantity
+from astropy.utils.compat import NUMPY_LT_2_0
+from astropy.utils.compat.optional_deps import HAS_PLT
 from astropy.utils.masked import Masked, MaskedNDArray
 
 
@@ -289,6 +292,16 @@ class TestMaskedNDArraySubclassCreation:
         assert_array_equal(ma.unmasked, self.a.view(np.ndarray))
         assert_array_equal(ma.mask, self.m)
 
+    def test_viewing_independent_shape(self):
+        mms = Masked(self.a, mask=self.m)
+        mms2 = mms.view()
+        mms2.shape = mms2.shape[::-1]
+        assert mms2.shape == mms.shape[::-1]
+        assert mms2.mask.shape == mms.shape[::-1]
+        # This should not affect the original array!
+        assert mms.shape == self.a.shape
+        assert mms.mask.shape == self.a.shape
+
 
 class TestMaskedQuantityInitialization(TestMaskedArrayInitialization, QuantitySetup):
     @classmethod
@@ -334,6 +347,19 @@ class TestMaskedQuantityInitialization(TestMaskedArrayInitialization, QuantitySe
         assert isinstance(mq, self.MQ)
         assert_array_equal(mq.value.unmasked, a)
         assert_array_equal(mq.mask, m)
+
+    def test_initialization_with_list_of_masked_quantity_scalars(self):
+        mq = self.MQ([Masked(1 * u.m, True), 2 * u.km, Masked(3 * u.Mm, False)])
+        assert mq.unit == u.m
+        assert_array_equal(mq.value.unmasked, [1.0, 2e3, 3e6])
+        assert_array_equal(mq.mask, [True, False, False])
+
+    def test_initialization_with_list_of_masked_quantity_arrays(self):
+        ma = Masked(self.a, self.mask_a)
+        mq = self.MQ([ma, ma << u.km])
+        assert isinstance(mq, self.MQ)
+        assert_array_equal(mq.unmasked, u.Quantity([self.a, self.a << u.km]))
+        assert_array_equal(mq.mask, np.array([self.mask_a, self.mask_a]))
 
 
 class TestMaskSetting(ArraySetup):
@@ -434,13 +460,22 @@ class TestViewing(MaskedArraySetup):
         assert_array_equal(ma2.unmasked, self.a.view("c8"))
         assert_array_equal(ma2.mask, self.mask_a)
 
-    @pytest.mark.parametrize("new_dtype", ["2f4", "f8,f8,f8"])
+    def test_viewing_as_new_structured_dtype(self):
+        ma2 = self.ma.view("f8,f8,f8")
+        assert_array_equal(ma2.unmasked, self.a.view("f8,f8,f8"))
+        assert_array_equal(ma2.mask, self.mask_a.view("?,?,?"))
+        # Check round-trip
+        ma3 = ma2.view(self.ma.dtype)
+        assert_array_equal(ma3.unmasked, self.ma.unmasked)
+        assert_array_equal(ma3.mask, self.mask_a)
+
+    @pytest.mark.parametrize("new_dtype", ["f4", "2f4"])
     def test_viewing_as_new_dtype_not_implemented(self, new_dtype):
         # But cannot (yet) view in way that would need to create a new mask,
         # even though that view is possible for a regular array.
         check = self.a.view(new_dtype)
         with pytest.raises(NotImplementedError, match="different.*size"):
-            self.ma.view(check.dtype)
+            self.ma.view(new_dtype)
 
     def test_viewing_as_something_impossible(self):
         with pytest.raises(TypeError):
@@ -641,6 +676,15 @@ class MaskedItemTests(MaskedArraySetup):
         assert_array_equal(base.unmasked, self.a)
         assert_array_equal(base.mask, expected_mask)
 
+    @pytest.mark.parametrize("item", VARIOUS_ITEMS)
+    def test_hash(self, item):
+        ma_part = self.ma[item]
+        if ma_part.ndim > 0 or ma_part.mask.any():
+            with pytest.raises(TypeError, match="unhashable"):
+                hash(ma_part)
+        else:
+            assert hash(ma_part) == hash(ma_part.unmasked)
+
 
 class TestMaskedArrayItems(MaskedItemTests):
     @classmethod
@@ -742,6 +786,31 @@ class MaskedOperatorTests(MaskedArraySetup):
         expected_mask3 = np.logical_or.outer(np.zeros(3, bool), mask1)
         assert_array_equal(result3.mask, expected_mask3)
 
+    def test_matmul_axes(self):
+        m1 = Masked(np.arange(27.0).reshape(3, 3, 3))
+        m2 = Masked(np.arange(-27.0, 0.0).reshape(3, 3, 3))
+        mxm1 = np.matmul(m1, m2)
+        exp = np.matmul(m1.unmasked, m2.unmasked)
+        assert_array_equal(mxm1.unmasked, exp)
+        assert_array_equal(mxm1.mask, False)
+        m1.mask[0, 1, 2] = True
+        m2.mask[0, 2, 0] = True
+        axes = [(0, 2), (-2, -1), (0, 1)]
+        mxm2 = np.matmul(m1, m2, axes=axes)
+        exp2 = np.matmul(m1.unmasked, m2.unmasked, axes=axes)
+        # Any unmasked result will have all elements contributing unity,
+        # while masked entries mean the total will be lower.
+        mask2 = (
+            np.matmul(
+                (~m1.mask).astype(int),
+                (~m2.mask).astype(int),
+                axes=axes,
+            )
+            != m1.shape[axes[0][1]]
+        )
+        assert_array_equal(mxm2.unmasked, exp2)
+        assert_array_equal(mxm2.mask, mask2)
+
     def test_matvec(self):
         result = self.ma @ self.mb
         assert np.all(result.mask)
@@ -837,6 +906,16 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         assert_array_equal(ma_sum.unmasked, expected_data)
         assert_array_equal(ma_sum.mask, expected_mask)
 
+    def test_sum_hash(self):
+        ma_sum = self.ma.sum()
+        assert ma_sum.mask
+        # Masked scalars cannot be hashed.
+        with pytest.raises(TypeError, match="unhashable"):
+            hash(ma_sum)
+        ma_sum2 = Masked(self.a).sum()
+        # But an unmasked scalar can.
+        assert hash(ma_sum2) == hash(self.a.sum())
+
     @pytest.mark.parametrize("axis", (0, 1, None))
     def test_cumsum(self, axis):
         ma_sum = self.ma.cumsum(axis)
@@ -906,6 +985,10 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         ) | (~where_final).all(axis)
         assert_array_equal(ma_mean.unmasked, expected_data)
         assert_array_equal(ma_mean.mask, expected_mask)
+
+    def test_mean_hash(self):
+        ma_mean = self.ma.mean()
+        assert hash(ma_mean) == hash(ma_mean.unmasked[()])
 
     @pytest.mark.filterwarnings("ignore:.*encountered in.*divide")
     @pytest.mark.parametrize("axis", (0, 1, None))
@@ -1326,12 +1409,16 @@ def test_masked_str_explicit_structured():
     sa = np.array([(1.0, 2.0), (3.0, 4.0)], dtype="f8,f8")
     msa = Masked(sa, [(False, True), (False, False)])
     assert str(msa) == "[(1., ——) (3., 4.)]"
-    assert str(msa[0]) == "(1., ——)"
-    assert str(msa[1]) == "(3., 4.)" == str(sa[1])
+    assert str(msa[0]) == ("(1., ——)" if NUMPY_LT_2_0 else "(1.0, ———)")
+    assert str(msa[1]) == str(sa[1]) == ("(3., 4.)" if NUMPY_LT_2_0 else "(3.0, 4.0)")
     with np.printoptions(precision=3, floatmode="fixed"):
         assert str(msa) == "[(1.000,   ———) (3.000, 4.000)]"
-        assert str(msa[0]) == "(1.000,   ———)"
-        assert str(msa[1]) == "(3.000, 4.000)" == str(sa[1])
+        assert str(msa[0]) == ("(1.000,   ———)" if NUMPY_LT_2_0 else "(1.0, ———)")
+        assert (
+            str(msa[1])
+            == str(sa[1])
+            == ("(3.000, 4.000)" if NUMPY_LT_2_0 else "(3.0, 4.0)")
+        )
 
 
 def test_masked_repr_explicit_structured():
@@ -1433,6 +1520,22 @@ class TestMaskedRecarray(MaskedArraySetup):
         assert_array_equal(mra.a.unmasked, self.msa["b"].unmasked)
         assert_array_equal(mra.a.mask, self.msa["b"].mask)
 
+    def test_recarray_repr(self):
+        # Omit dtype part with endian-dependence.
+        assert repr(self.mra).startswith(
+            "MaskedRecarray([[(———, ———), ( 3.,  4.)],\n"
+            "                [(11., ———), (———, 14.)]],\n"
+        )
+
+    def test_recarray_represent_as_dict(self):
+        rasd = self.mra.info._represent_as_dict()
+        assert type(rasd["data"]) is np.ma.MaskedArray
+        assert type(rasd["data"].base) is np.ndarray
+        mra2 = type(self.mra).info._construct_from_dict(rasd)
+        assert type(mra2) is type(self.mra)
+        assert_array_equal(mra2.unmasked, self.ra)
+        assert_array_equal(mra2.mask, self.mra.mask)
+
 
 class TestMaskedArrayInteractionWithNumpyMA(MaskedArraySetup):
     def test_masked_array_from_masked(self):
@@ -1458,3 +1561,33 @@ class TestMaskedQuantityInteractionWithNumpyMA(
     TestMaskedArrayInteractionWithNumpyMA, QuantitySetup
 ):
     pass
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
+def test_plt_scatter_masked():
+    import matplotlib as mpl
+
+    from astropy.utils import minversion
+
+    MPL_LT_3_8 = not minversion(mpl, "3.8")
+
+    if MPL_LT_3_8:
+        pytest.skip("never worked before matplotlib 3.8")
+
+    # check that plotting Masked data doesn't raise an exception
+    # see https://github.com/astropy/astropy/issues/12481
+    import matplotlib.pyplot as plt
+
+    _, ax = plt.subplots()
+
+    # no mask
+    x = Masked([1, 2, 3])
+    ax.scatter(x, x, c=x)
+
+    # all masked
+    x = Masked([1, 2, 3], mask=True)
+    ax.scatter(x, x, c=x)
+
+    # *some* masked
+    x = Masked([1, 2, 3], mask=[False, True, False])
+    ax.scatter(x, x, c=x)

@@ -26123,8 +26123,8 @@ static const yy_state_type yy_NUL_trans[1458] =
 #define YY_RESTORE_YY_MORE_OFFSET
 #line 1 "wcsbth.l"
 /*============================================================================
-  WCSLIB 8.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2023, Mark Calabretta
+  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -26143,7 +26143,7 @@ static const yy_state_type yy_NUL_trans[1458] =
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsbth.c,v 8.2.1.1 2023/11/16 10:05:58 mcalabre Exp mcalabre $
+  $Id: wcsbth.c,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
 *=============================================================================
 *
 * wcsbth.l is a Flex description file containing the definition of a lexical
@@ -30069,10 +30069,8 @@ YY_RULE_SETUP
 	    BEGIN(COMMENT);
 	
 	  } else {
-	    // Copy the keyvalue, skipping the initial quote.
-	    strncpy(strtmp, yytext+1, 80);
-	
-	    // Remove the terminating quote.
+	    // Copy the keyvalue minus the quotes.
+	    strncpy(strtmp, yytext+1, yyleng-2);
 	    strtmp[yyleng-2] = '\0';
 	
 	    // Strip off trailing blanks.
@@ -30105,7 +30103,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 425:
 YY_RULE_SETUP
-#line 2897 "wcsbth.l"
+#line 2895 "wcsbth.l"
 {
 	  errmsg = "a string value was expected";
 	  BEGIN(ERROR);
@@ -30116,7 +30114,7 @@ case 426:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 2902 "wcsbth.l"
+#line 2900 "wcsbth.l"
 {
 	  if (ipass == 1) {
 	    // Do first-pass bookkeeping.
@@ -30239,7 +30237,7 @@ case 427:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 3019 "wcsbth.l"
+#line 3017 "wcsbth.l"
 {
 	  errmsg = "invalid keyvalue";
 	  BEGIN(ERROR);
@@ -30250,7 +30248,7 @@ case 428:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 3024 "wcsbth.l"
+#line 3022 "wcsbth.l"
 {
 	  errmsg = "invalid keyvalue";
 	  BEGIN(ERROR);
@@ -30261,7 +30259,7 @@ case 429:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 3029 "wcsbth.l"
+#line 3027 "wcsbth.l"
 {
 	  errmsg = "invalid keyvalue or malformed keycomment";
 	  BEGIN(ERROR);
@@ -30272,7 +30270,7 @@ case 430:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 3034 "wcsbth.l"
+#line 3032 "wcsbth.l"
 {
 	  errmsg = "malformed keycomment";
 	  BEGIN(ERROR);
@@ -30283,7 +30281,7 @@ case 431:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 3039 "wcsbth.l"
+#line 3037 "wcsbth.l"
 {
 	  if (ipass == npass) {
 	    if (ctrl < 0) {
@@ -30304,7 +30302,7 @@ case 432:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 3054 "wcsbth.l"
+#line 3052 "wcsbth.l"
 {
 	  if (ipass == npass) {
 	    (*nreject)++;
@@ -30324,7 +30322,7 @@ YY_RULE_SETUP
 case 433:
 /* rule 433 can match eol */
 YY_RULE_SETUP
-#line 3070 "wcsbth.l"
+#line 3068 "wcsbth.l"
 {
 	  if (ipass == npass && keep) {
 	    if (hptr < keep) {
@@ -30391,7 +30389,7 @@ case YY_STATE_EOF(COMMENT):
 case YY_STATE_EOF(DISCARD):
 case YY_STATE_EOF(ERROR):
 case YY_STATE_EOF(FLUSH):
-#line 3102 "wcsbth.l"
+#line 3100 "wcsbth.l"
 {
 	  // End-of-input.
 	  if (ipass == 1) {
@@ -30462,10 +30460,10 @@ case YY_STATE_EOF(FLUSH):
 	YY_BREAK
 case 434:
 YY_RULE_SETUP
-#line 3170 "wcsbth.l"
+#line 3168 "wcsbth.l"
 ECHO;
 	YY_BREAK
-#line 30469 "wcsbth.c"
+#line 30467 "wcsbth.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -31630,7 +31628,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 3170 "wcsbth.l"
+#line 3168 "wcsbth.l"
 
 
 /*----------------------------------------------------------------------------

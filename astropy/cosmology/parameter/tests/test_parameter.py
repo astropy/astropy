@@ -2,28 +2,20 @@
 
 """Testing :mod:`astropy.cosmology.parameter`."""
 
-##############################################################################
-# IMPORTS
+from collections.abc import Callable
 
-# STDLIB
-from typing import Callable
-
-# THIRD PARTY
 import numpy as np
 import pytest
 
-# LOCAL
 import astropy.units as u
 from astropy.cosmology import Cosmology, Parameter
-from astropy.cosmology.core import _COSMOLOGY_CLASSES
+from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
 from astropy.cosmology.parameter._converter import (
     _REGISTRY_FVALIDATORS,
     _validate_with_unit,
 )
 from astropy.cosmology.parameter._core import MISSING
 
-##############################################################################
-# TESTS
 ##############################################################################
 
 
@@ -152,7 +144,7 @@ class ParameterTestMixin:
         """Test :attr:`astropy.cosmology.Parameter.default`."""
         assert hasattr(all_parameter, "default")
         assert all_parameter.default is MISSING or isinstance(
-            all_parameter.default, (type(None), float, u.Quantity)
+            all_parameter.default, (type(None), int, float, u.Quantity)
         )
 
     # -------------------------------------------
@@ -174,10 +166,6 @@ class ParameterTestMixin:
         # test it's already set
         assert hasattr(cosmo, all_parameter._attr_name)
 
-        # and raises an error if set again
-        with pytest.raises(AttributeError, match="can't set attribute"):
-            setattr(cosmo, all_parameter.name, None)
-
     # -------------------------------------------
     # validate value
     # tested later.
@@ -196,22 +184,6 @@ class ParameterTestMixin:
         else:
             assert all_parameter.name in cosmo_cls.parameters
 
-    def test_Parameters_reorder_by_signature(self, cosmo_cls, clean_registry):
-        """Test parameters are reordered."""
-
-        class Example(cosmo_cls):
-            param = Parameter()
-
-            def __init__(self, param, *, name=None, meta=None):
-                pass  # never actually initialized
-
-        # param should be 1st, all other parameters next
-        assert next(iter(Example.parameters)) == "param"
-        # Check the other parameters are as expected.
-        # only run this test if "param" is not already on the cosmology
-        if next(iter(cosmo_cls.parameters)) != "param":
-            assert set(tuple(Example.parameters)[1:]) == set(cosmo_cls.parameters)
-
 
 # ========================================================================
 
@@ -223,28 +195,27 @@ class TestParameter(ParameterTestMixin):
     """
 
     def setup_class(self):
-        Param = Parameter(
+        theparam = Parameter(
+            default=15,
             doc="Description of example parameter.",
             unit=u.m,
             equivalencies=u.mass_energy(),
         )
 
+        @dataclass_decorator
         class Example1(Cosmology):
-            param = Param
-
-            def __init__(self, param=15):
-                self.param = param
+            param: Parameter = theparam.clone()
 
             @property
             def is_flat(self):
                 return super().is_flat()
 
         # with validator
+        @dataclass_decorator
         class Example2(Example1):
-            def __init__(self, param=15 * u.m):
-                self.param = param
+            param: Parameter = theparam.clone(default=15 * u.m)
 
-            @Param.validator
+            @param.validator
             def param(self, param, value):
                 return value.to(u.km)
 
@@ -253,7 +224,7 @@ class TestParameter(ParameterTestMixin):
 
     def teardown_class(self):
         for cls in self.classes.values():
-            _COSMOLOGY_CLASSES.pop(cls.__qualname__)
+            _COSMOLOGY_CLASSES.pop(cls.__qualname__, None)
 
     @pytest.fixture(scope="class", params=["Example1", "Example2"])
     def cosmo_cls(self, request):
@@ -285,7 +256,7 @@ class TestParameter(ParameterTestMixin):
         assert param.__doc__ == "Description of example parameter."
 
         # custom from init
-        assert param._unit == u.m
+        assert param.unit == u.m
         assert param.equivalencies == u.mass_energy()
         assert param.derived == np.False_
 
@@ -461,11 +432,9 @@ class TestParameter(ParameterTestMixin):
     def test_make_from_Parameter(self, cosmo_cls, clean_registry):
         """Test the parameter creation process. Uses ``__set__``."""
 
+        @dataclass_decorator
         class Example(cosmo_cls):
-            param = Parameter(unit=u.eV, equivalencies=u.mass_energy())
-
-            def __init__(self, param, *, name=None, meta=None):
-                self.param = param
+            param: Parameter = Parameter(unit=u.eV, equivalencies=u.mass_energy())
 
             @property
             def is_flat(self):

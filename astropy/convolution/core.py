@@ -48,6 +48,9 @@ class Kernel:
     _is_bool = True
     _model = None
 
+    # numpy should not try to do any arithmetic
+    __array_ufunc__ = None
+
     def __init__(self, array):
         self._array = np.asanyarray(array)
 
@@ -174,20 +177,11 @@ class Kernel:
         """
         return kernel_arithmetics(self, value, "mul")
 
-    def __array__(self):
+    def __array__(self, dtype=None, copy=None):
         """
         Array representation of the kernel.
         """
         return self._array
-
-    def __array_wrap__(self, array, context=None):
-        """
-        Wrapper for multiplication with numpy arrays.
-        """
-        if type(context[0]) == np.ufunc:
-            return NotImplemented
-        else:
-            return array
 
 
 class Kernel1D(Kernel):

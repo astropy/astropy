@@ -15,9 +15,11 @@ import numpy as np
 
 from astropy.units import Quantity
 from astropy.utils import isiterable
+from astropy.utils.compat import COPY_IF_NEEDED
 
 if TYPE_CHECKING:
-    from typing import Any, Callable
+    from collections.abc import Callable
+    from typing import Any
 
     from typing_extensions import Self
 
@@ -550,7 +552,9 @@ class _BoundingDomain(abc.ABC):
         List containing filled in output values and units
         """
         if valid_outputs_unit is not None:
-            return Quantity(outputs, valid_outputs_unit, copy=False, subok=True)
+            return Quantity(
+                outputs, valid_outputs_unit, copy=COPY_IF_NEEDED, subok=True
+            )
 
         return outputs
 
@@ -680,7 +684,9 @@ class ModelBoundingBox(_BoundingDomain):
         else:
             return self._intervals[self._get_index(key)]
 
-    def bounding_box(self, order: str | None = None):
+    def bounding_box(
+        self, order: str | None = None
+    ) -> tuple[float, float] | tuple[tuple[float, float], ...]:
         """
         Return the old tuple of tuples representation of the bounding_box
             order='C' corresponds to the old bounding_box ordering
@@ -813,7 +819,7 @@ class ModelBoundingBox(_BoundingDomain):
 
         return new
 
-    def fix_inputs(self, model, fixed_inputs: dict, _keep_ignored=False):
+    def fix_inputs(self, model, fixed_inputs: dict, _keep_ignored=False) -> Self:
         """
         Fix the bounding_box for a `fix_inputs` compound model.
 
@@ -844,7 +850,7 @@ class ModelBoundingBox(_BoundingDomain):
     def dimension(self):
         return len(self)
 
-    def domain(self, resolution, order: str | None = None):
+    def domain(self, resolution, order: str | None = None) -> list[np.ndarray]:
         inputs = self._model.inputs
         order = self._get_order(order)
         if order == "C":
@@ -1602,7 +1608,7 @@ class CompoundBoundingBox(_BoundingDomain):
             self.selector_args.add_ignore(self._model, argument),
         )
 
-    def fix_inputs(self, model, fixed_inputs: dict):
+    def fix_inputs(self, model, fixed_inputs: dict) -> Self:
         """
         Fix the bounding_box for a `fix_inputs` compound model.
 

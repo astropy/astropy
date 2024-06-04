@@ -1246,12 +1246,9 @@ class TestTableFunctions(FitsTestCase):
             tbhdu.columns.columns[3].array[0]
             == np.array([0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
         ).all()
-        assert (
-            isinstance(
-                v := (tbhdu.columns.columns[4].array[0] == np.True_), (bool, np.bool_)
-            )
-            and v
-        )
+        v = tbhdu.columns.columns[4].array[0] == np.True_
+        assert isinstance(v, (bool, np.bool_))
+        assert v
 
         assert tbhdu.data[3][1] == 33
         assert tbhdu.data._coldefs._arrays[1][3] == 33
@@ -1264,12 +1261,9 @@ class TestTableFunctions(FitsTestCase):
             tbhdu.columns.columns[3].array[3]
             == np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
         ).all()
-        assert (
-            isinstance(
-                v := (tbhdu.columns.columns[4].array[3] == np.True_), (bool, np.bool_)
-            )
-            and v
-        )
+        v = tbhdu.columns.columns[4].array[3] == np.True_
+        assert isinstance(v, (bool, np.bool_))
+        assert v
 
     def test_assign_multiple_rows_to_table(self):
         counts = np.array([312, 334, 308, 317])
@@ -1325,12 +1319,9 @@ class TestTableFunctions(FitsTestCase):
             tbhdu2.columns.columns[3].array[0]
             == np.array([0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
         ).all()
-        assert (
-            isinstance(
-                v := (tbhdu2.columns.columns[4].array[0] == np.True_), (bool, np.bool_)
-            )
-            and v
-        )
+        v = tbhdu2.columns.columns[4].array[0] == np.True_
+        assert isinstance(v, (bool, np.bool_))
+        assert v
 
         assert tbhdu2.data[4][1] == 112
         assert tbhdu2.data._coldefs._arrays[1][4] == 112
@@ -1343,12 +1334,9 @@ class TestTableFunctions(FitsTestCase):
             tbhdu2.columns.columns[3].array[4]
             == np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
         ).all()
-        assert (
-            isinstance(
-                v := (tbhdu2.columns.columns[4].array[4] == np.False_), (bool, np.bool_)
-            )
-            and v
-        )
+        v = tbhdu2.columns.columns[4].array[4] == np.False_
+        assert isinstance(v, (bool, np.bool_))
+        assert v
         assert tbhdu2.columns.columns[1].array[8] == 0
         assert tbhdu2.columns.columns[0].array[8] == ""
         assert tbhdu2.columns.columns[2].array[8] == ""
@@ -1356,12 +1344,9 @@ class TestTableFunctions(FitsTestCase):
             tbhdu2.columns.columns[3].array[8]
             == np.array([0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
         ).all()
-        assert (
-            isinstance(
-                v := (tbhdu2.columns.columns[4].array[8] == np.False_), (bool, np.bool_)
-            )
-            and v
-        )
+        v = tbhdu2.columns.columns[4].array[8] == np.False_
+        assert isinstance(v, (bool, np.bool_))
+        assert v
 
     def test_verify_data_references(self):
         counts = np.array([312, 334, 308, 317])
@@ -3739,8 +3724,6 @@ def test_regression_5383():
 
 
 def test_table_to_hdu():
-    from astropy.table import Table
-
     table = Table(
         [[1, 2, 3], ["a", "b", "c"], [2.3, 4.5, 6.7]],
         names=["a", "b", "c"],
@@ -3765,6 +3748,13 @@ def test_table_to_hdu():
 
     assert hdu.header["FOO"] == "bar"
     assert hdu.header["TEST"] == 1
+
+    with pytest.warns(
+        UnitsWarning, match="'not-a-unit' did not parse as fits unit"
+    ) as w:
+        hdu = fits.BinTableHDU(table, character_as_bytes=True)
+
+    assert np.array_equal(hdu.data["b"], [b"a", b"b", b"c"])
 
 
 def test_regression_scalar_indexing():
@@ -3854,3 +3844,16 @@ def test_unit_parse_strict(tmp_path):
 
     with pytest.warns(UnitsWarning):
         Table.read(path, unit_parse_strict="warn")
+
+
+def test_invalid_table_array():
+    # see https://github.com/astropy/astropy/issues/4580
+    data = np.empty((5, 100), dtype=[("w", ">f8"), ("f", ">f4")])
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"Input data with shape \(5, 100\) is not a valid "
+            r"representation of a row-oriented table\."
+        ),
+    ):
+        fits.BinTableHDU(data, name="DATA")

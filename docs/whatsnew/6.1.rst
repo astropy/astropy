@@ -1,30 +1,4 @@
-.. _whatsnew-6.1:
+:orphan:
 
-**************************
-What's New in Astropy 6.1?
-**************************
-
-Overview
-========
-
-Astropy 6.1 is a minor release that adds significant new functionality since
-the 6.0 release.
-
-In particular, this release includes:
-
-* nothing yet
-
-In addition to these major changes, Astropy v6.1 includes a large number of
-smaller improvements and bug fixes, which are described in the :ref:`changelog`.
-By the numbers:
-
-* X issues have been closed since v6.0
-* X pull requests have been merged since v6.0
-* X distinct people have contributed code
-
-
-Full change log
-===============
-
-To see a detailed list of all changes in version v6.0, including changes in
-API, please see the :ref:`changelog`.
+`What's New in Astropy 6.1?
+<https://docs.astropy.org/en/v6.1.0/whatsnew/6.1.html>`__

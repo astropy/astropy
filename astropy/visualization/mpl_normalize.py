@@ -8,6 +8,8 @@ import inspect
 import numpy as np
 from numpy import ma
 
+from astropy.utils.decorators import deprecated_renamed_argument
+
 from .interval import (
     AsymmetricPercentileInterval,
     BaseInterval,
@@ -26,7 +28,6 @@ from .stretch import (
 )
 
 try:
-    import matplotlib  # noqa: F401
     from matplotlib import pyplot as plt
     from matplotlib.colors import Normalize
 except ImportError:
@@ -75,6 +76,10 @@ class ImageNormalize(Normalize):
         matplotlib colormap "under" value (i.e., any finite value < 0).
         If `None`, then NaN values are not replaced.  This keyword has
         no effect if ``clip=True``.
+
+    Notes
+    -----
+    If ``vmin == vmax``, the input data will be mapped to 0.
     """
 
     def __init__(
@@ -174,19 +179,24 @@ class ImageNormalize(Normalize):
         # Define vmin and vmax if not None
         self._set_limits(values)
 
-        # Normalize based on vmin and vmax
-        np.subtract(values, self.vmin, out=values)
-        np.true_divide(values, self.vmax - self.vmin, out=values)
-
-        # Clip to the 0 to 1 range
-        if clip:
-            values = np.clip(values, 0.0, 1.0, out=values)
-
-        # Stretch values
-        if self.stretch._supports_invalid_kw:
-            values = self.stretch(values, out=values, clip=False, invalid=invalid)
+        if self.vmin == self.vmax:
+            values *= 0.0
+        elif self.vmin > self.vmax:
+            raise ValueError("vmin must be less than or equal to vmax")
         else:
-            values = self.stretch(values, out=values, clip=False)
+            # Normalize based on vmin and vmax
+            np.subtract(values, self.vmin, out=values)
+            np.true_divide(values, self.vmax - self.vmin, out=values)
+
+            # Clip to the 0 to 1 range
+            if clip:
+                values = np.clip(values, 0.0, 1.0, out=values)
+
+            # Stretch values
+            if self.stretch._supports_invalid_kw:
+                values = self.stretch(values, out=values, clip=False, invalid=invalid)
+            else:
+                values = self.stretch(values, out=values, clip=False)
 
         # Convert to masked array for matplotlib
         return ma.array(values, mask=mask)
@@ -202,13 +212,14 @@ class ImageNormalize(Normalize):
         return values_norm * (self.vmax - self.vmin) + self.vmin
 
 
+@deprecated_renamed_argument(["min_cut", "max_cut"], ["vmin", "vmax"], ["6.1", "6.1"])
 def simple_norm(
     data,
     stretch="linear",
     power=1.0,
     asinh_a=0.1,
-    min_cut=None,
-    max_cut=None,
+    vmin=None,
+    vmax=None,
     min_percent=None,
     max_percent=None,
     percent=None,
@@ -233,46 +244,45 @@ def simple_norm(
         The image array.
 
     stretch : {'linear', 'sqrt', 'power', log', 'asinh', 'sinh'}, optional
-        The stretch function to apply to the image.  The default is
+        The stretch function to apply to the image. The default is
         'linear'.
 
     power : float, optional
-        The power index for ``stretch='power'``.  The default is 1.0.
+        The power index for ``stretch='power'``. The default is 1.0.
 
     asinh_a : float, optional
         For ``stretch='asinh'``, the value where the asinh curve
         transitions from linear to logarithmic behavior, expressed as a
-        fraction of the normalized image.  Must be in the range between
-        0 and 1.  The default is 0.1.
+        fraction of the normalized image. Must be in the range between 0
+        and 1. The default is 0.1.
 
-    min_cut : float, optional
-        The pixel value of the minimum cut level.  Data values less than
-        ``min_cut`` will set to ``min_cut`` before stretching the image.
-        The default is the image minimum.  ``min_cut`` overrides
+    vmin : float, optional
+        The pixel value of the minimum cut level. Data values less
+        than ``vmin`` will set to ``vmin`` before stretching the
+        image. The default is the image minimum. ``vmin`` overrides
         ``min_percent``.
 
-    max_cut : float, optional
-        The pixel value of the maximum cut level.  Data values greater
-        than ``max_cut`` will set to ``max_cut`` before stretching the
-        image.  The default is the image maximum.  ``max_cut`` overrides
-        ``max_percent``.
+    vmax : float, optional
+        The pixel value of the maximum cut level. Data values greater
+        than ``vmax`` will set to ``vmax`` before stretching the image.
+        The default is the image maximum. ``vmax`` overrides
 
     min_percent : float, optional
         The percentile value used to determine the pixel value of
-        minimum cut level.  The default is 0.0.  ``min_percent``
-        overrides ``percent``.
+        minimum cut level. The default is 0.0. ``min_percent`` overrides
+        ``percent``.
 
     max_percent : float, optional
         The percentile value used to determine the pixel value of
-        maximum cut level.  The default is 100.0.  ``max_percent``
+        maximum cut level. The default is 100.0. ``max_percent``
         overrides ``percent``.
 
     percent : float, optional
         The percentage of the image values used to determine the pixel
-        values of the minimum and maximum cut levels.  The lower cut
+        values of the minimum and maximum cut levels. The lower cut
         level will set at the ``(100 - percent) / 2`` percentile, while
         the upper cut level will be set at the ``(100 + percent) / 2``
-        percentile.  The default is 100.0.  ``percent`` is ignored if
+        percentile. The default is 100.0. ``percent`` is ignored if
         either ``min_percent`` or ``max_percent`` is input.
 
     clip : bool, optional
@@ -283,12 +293,12 @@ def simple_norm(
         The log index for ``stretch='log'``. The default is 1000.
 
     invalid : None or float, optional
-        Value to assign NaN values generated by the normalization.  NaNs
-        in the input ``data`` array are not changed.  For matplotlib
+        Value to assign NaN values generated by the normalization. NaNs
+        in the input ``data`` array are not changed. For matplotlib
         normalization, the ``invalid`` value should map to the
         matplotlib colormap "under" value (i.e., any finite value < 0).
-        If `None`, then NaN values are not replaced.  This keyword has
-        no effect if ``clip=True``.
+        If `None`, then NaN values are not replaced. This keyword has no
+        effect if ``clip=True``.
 
     sinh_a : float, optional
         The scaling parameter for ``stretch='sinh'``. The default is
@@ -306,8 +316,8 @@ def simple_norm(
         interval = AsymmetricPercentileInterval(
             min_percent or 0.0, max_percent or 100.0
         )
-    elif min_cut is not None or max_cut is not None:
-        interval = ManualInterval(min_cut, max_cut)
+    elif vmin is not None or vmax is not None:
+        interval = ManualInterval(vmin, vmax)
     else:
         interval = MinMaxInterval()
 

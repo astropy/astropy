@@ -318,30 +318,43 @@ Reading
 ^^^^^^^
 
 If a FITS table file contains only a single table, then it can be read in
-with:
-
-.. doctest-skip::
+with::
 
     >>> from astropy.table import Table
-    >>> t = Table.read('data.fits')
+    >>> from astropy.utils.data import get_pkg_data_filename
+    >>> chandra_events = get_pkg_data_filename('data/chandra_time.fits',
+    ...                                        package='astropy.io.fits.tests')
+    >>> t = Table.read(chandra_events)
 
 If more than one table is present in the file, you can select the HDU
-as follows::
+by index or by name::
 
-    >>> t = Table.read('data.fits', hdu=3)  # doctest: +SKIP
+    >>> t = Table.read(chandra_events, hdu="EVENTS")
 
 In this case if the ``hdu`` argument is omitted, then the first table found
-will be read in and a warning will be emitted::
-
-    >>> t = Table.read('data.fits')  # doctest: +SKIP
-    WARNING: hdu= was not specified but multiple tables are present, reading in first available table (hdu=1) [astropy.io.fits.connect]
+will be read in and a warning will be emitted.
 
 You can also read a table from the HDUs of an in-memory FITS file. This will
 round-trip any :ref:`mixin_columns` that were written to that HDU, using the
 header information to reconstruct them::
 
-    >>> hdulist = astropy.io.fits.open('data.fits') # doctest: +SKIP
-    >>> t = Table.read(hdulist[1])  # doctest: +SKIP
+    >>> from astropy.io import fits
+    >>> with fits.open(chandra_events) as hdul:
+    ...     t = Table.read(hdul["EVENTS"])
+
+If a column contains unit information, it will have an associated
+`astropy.units` object::
+
+    >>> t["energy"].unit
+    Unit("eV")
+
+It is also possible to get directly a table with columns as
+`~astropy.units.Quantity` objects by using the `~astropy.table.QTable` class::
+
+    >>> from astropy.table import QTable
+    >>> t2 = QTable.read(chandra_events, hdu=1)
+    >>> t2['energy']
+    <Quantity [7782.7305, 5926.725 ] eV>
 
 Writing
 ^^^^^^^
@@ -1078,12 +1091,11 @@ the following functions / methods:
 .. csv-table::
     :header: "Format name", "Data Description", "Reader", "Writer"
     :widths: 25, 25, 25, 25
-    :delim: ;
 
-    ``pandas.csv``;`CSV <https://en.wikipedia.org/wiki/Comma-separated_values>`__;`read_csv() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-read-csv-table>`_;`to_csv() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-store-in-csv>`_
-    ``pandas.json``;`JSON <http://www.json.org/>`__;`read_json() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-json-reader>`_;`to_json() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-json-writer>`_
-    ``pandas.html``;`HTML <https://en.wikipedia.org/wiki/HTML>`__;`read_html() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-read-html>`_;`to_html() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-html>`_
-    ``pandas.fwf``;Fixed Width;`read_fwf() <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_fwf.html#pandas.read_fwf>`_;
+    ``pandas.csv``,`CSV <https://en.wikipedia.org/wiki/Comma-separated_values>`__,`read_csv() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-read-csv-table>`_,`to_csv() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-store-in-csv>`_
+    ``pandas.json``,`JSON <http://www.json.org/>`__,`read_json() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-json-reader>`_,`to_json() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-json-writer>`_
+    ``pandas.html``,`HTML <https://en.wikipedia.org/wiki/HTML>`__,`read_html() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-read-html>`_,`to_html() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-html>`_
+    ``pandas.fwf``,Fixed Width,`read_fwf() <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_fwf.html#pandas.read_fwf>`_,
 
 **Notes**:
 

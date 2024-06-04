@@ -132,12 +132,12 @@ of different data types to initialize a table::
   ...                 ([4., 5., 6.], [.4, .5, .6])], 'm,m/s')
   >>> QTable([a, b, c, d])
   <QTable length=2>
-    col0    col1   axis          col3 [f0, f1]
-                                    (m, m / s)
-  float64 int64[2] str1     (float64[3], float64[3])
-  ------- -------- ---- -------------------------------
-      1.0   2 .. 3    x ([1., 2., 3.], [0.1, 0.2, 0.3])
-      4.0   5 .. 6    y ([4., 5., 6.], [0.4, 0.5, 0.6])
+    col0    col1   axis           col3 [f0, f1]
+                                     (m, m / s)
+  float64 int64[2] str1      (float64[3], float64[3])
+  ------- -------- ---- ----------------------------------
+      1.0   2 .. 3    x ([1.0, 2.0, 3.0], [0.1, 0.2, 0.3])
+      4.0   5 .. 6    y ([4.0, 5.0, 6.0], [0.4, 0.5, 0.6])
 
 Notice that in the third column the existing column name ``'axis'`` is used.
 
@@ -355,8 +355,8 @@ including the simple structured array defined previously as a column::
   >>> print(table)
    name arr [a, b, c]
   ----- -------------
-  Micah  (1, 2., 'x')
-  Mazzy  (4, 5., 'y')
+  Micah (1, 2.0, 'x')
+  Mazzy (4, 5.0, 'y')
 
 You can access or print a single field in the structured column as follows::
 
@@ -1151,7 +1151,7 @@ Now see what we have from our specialized ``ParamsRow`` object::
   >>> t[1].keys()
   ['a', 'b', 'id', 'z']
   >>> t[1].values()
-  [2, 3.0, 123123, 'hello']
+  [np.int32(2), np.float32(3.0), 123123, 'hello']
 
 To make this example really useful, you might want to override
 ``Table.__getitem__()`` in order to allow table-level access to the parameter
@@ -1233,7 +1233,7 @@ object that provides an ``__astropy_table__()`` method. In this case the
 ``__astropy_table__()`` method will be called as follows::
 
   >>> data = SomeOtherTableClass({'a': [1, 2], 'b': [3, 4]})  # doctest: +SKIP
-  >>> t = QTable(data, copy=False, strict_copy=True)  # doctest: +SKIP
+  >>> t = QTable(data, copy=False, mask_invalid=True)  # doctest: +SKIP
 
 Internally the following call will be made to ask the ``data`` object
 to return a representation of itself as an ``astropy`` |Table|, respecting
@@ -1244,19 +1244,12 @@ the ``copy`` preference of the original call to ``QTable()``::
 Here ``cls`` is the |Table| class or subclass that is being instantiated
 (|QTable| in this example), ``copy`` indicates whether a copy of the values in
 ``data`` should be provided, and ``**kwargs`` are any extra keyword arguments
-which are not valid |Table| ``_init_()`` keyword arguments. In the example
-above, ``strict_copy=True`` would end up in ``**kwargs`` and get passed to
+which are not valid |Table| ``__init__()`` keyword arguments. In the example
+above, ``mask_invalid=True`` would end up in ``**kwargs`` and get passed to
 ``__astropy_table__()``.
 
-If ``copy`` is `True` then the ``__astropy_table__()`` method must ensure that
-a copy of the original data is returned. If ``copy`` is `False` then a
-reference to the table data should be returned if possible. If it is not
-possible (e.g., the original data are in a Python list or must be otherwise
-transformed in memory) then ``__astropy_table__()`` method is free to either
-return a copy or else raise an exception. This choice depends on the preference
-of the implementation. The implementation might choose to allow an additional
-keyword argument (e.g., ``strict_copy`` which gets passed via ``**kwargs``) to
-control the behavior in this case.
+The implementation might choose to allow additional keyword arguments (e.g.,
+``mask_invalid`` which gets passed via ``**kwargs``).
 
 As a concise example, imagine a dict-based table class. (Note that |Table|
 already can be initialized from a dict-like object, so this is a bit contrived
@@ -1277,11 +1270,11 @@ breakage in this case. ::
       This does not actually implement anything useful that makes
       this a table.
 
-      The non-standard ``strict_copy=False`` keyword arg here will be passed
+      The non-standard ``mask_invalid=False`` keyword arg here will be passed
       via the **kwargs of Table __init__().
       """
 
-      def __astropy_table__(self, cls, copy, strict_copy=False, **kwargs):
+      def __astropy_table__(self, cls, copy, mask_invalid=False, **kwargs):
           """
           Return an astropy Table of type ``cls``.
 
@@ -1291,9 +1284,9 @@ breakage in this case. ::
                Astropy ``Table`` class or subclass.
           copy : bool
                Copy input data (True) or return a reference (False).
-          strict_copy : bool, optional
-               Raise an exception if copy is False but reference is not
-               possible.
+          mask_invalid : bool, optional
+               Controls whether invalid values (NaNs) should be masked.
+               Default is False.
           **kwargs : dict, optional
                Additional keyword args (ignored currently).
           """
@@ -1303,15 +1296,10 @@ breakage in this case. ::
           cols = list(self.values())
           names = list(self.keys())
 
-          # If returning a reference to existing data (copy=False) and
-          # strict_copy=True, make sure that each column is a numpy ndarray.
-          # If a column is a Python list or tuple then it must be copied for
-          # representation in an astropy Table.
-
-          if not copy and strict_copy:
-              for name, col in zip(names, cols):
-                  if not isinstance(col, np.ndarray):
-                      raise ValueError(f'cannot have copy=False because column {name} is '
-                                       'not an ndarray')
+          if mask_invalid:
+              cols = [
+                  Masked(col, mask=mask) if np.any(mask := np.isnan(col)) else col
+                  for col in cols
+              ]
 
           return cls(cols, names=names, copy=copy)

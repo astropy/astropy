@@ -44,6 +44,7 @@ from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 from astropy.utils import isiterable
+from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.wcs import WCS
 
@@ -401,8 +402,12 @@ def test_equal():
     ne = sc1 != sc2
     assert np.all(eq == [True, False])
     assert np.all(ne == [False, True])
-    assert isinstance(v := (sc1[0] == sc2[0]), (bool, np.bool_)) and v
-    assert isinstance(v := (sc1[0] != sc2[0]), (bool, np.bool_)) and not v
+    v = sc1[0] == sc2[0]
+    assert isinstance(v, (bool, np.bool_))
+    assert v
+    v = sc1[0] != sc2[0]
+    assert isinstance(v, (bool, np.bool_))
+    assert not v
 
     # Broadcasting
     eq = sc1[0] == sc2
@@ -418,8 +423,12 @@ def test_equal():
     ne = sc1 != sc2
     assert np.all(eq == [True, False])
     assert np.all(ne == [False, True])
-    assert isinstance(v := (sc1[0] == sc2[0]), (bool, np.bool_)) and v
-    assert isinstance(v := (sc1[0] != sc2[0]), (bool, np.bool_)) and not v
+    v = sc1[0] == sc2[0]
+    assert isinstance(v, (bool, np.bool_))
+    assert v
+    v = sc1[0] != sc2[0]
+    assert isinstance(v, (bool, np.bool_))
+    assert not v
 
 
 def test_equal_different_type():
@@ -740,25 +749,6 @@ def test_to_string():
         assert with_kwargs == wrap("+01h02m03.000s +01d02m03.000s")
 
 
-@pytest.mark.parametrize("cls_other", [SkyCoord, ICRS])
-def test_seps(cls_other):
-    sc1 = SkyCoord(0 * u.deg, 1 * u.deg)
-    sc2 = cls_other(0 * u.deg, 2 * u.deg)
-
-    sep = sc1.separation(sc2)
-
-    assert (sep - 1 * u.deg) / u.deg < 1e-10
-
-    with pytest.raises(ValueError):
-        sc1.separation_3d(sc2)
-
-    sc3 = SkyCoord(1 * u.deg, 1 * u.deg, distance=1 * u.kpc)
-    sc4 = cls_other(1 * u.deg, 1 * u.deg, distance=2 * u.kpc)
-    sep3d = sc3.separation_3d(sc4)
-
-    assert sep3d == 1 * u.kpc
-
-
 def test_repr():
     sc1 = SkyCoord(0 * u.deg, 1 * u.deg, frame="icrs")
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame="icrs", distance=1 * u.kpc)
@@ -778,12 +768,18 @@ def test_repr():
 
 def test_repr_altaz():
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame="icrs", distance=1 * u.kpc)
+
+    if NUMPY_LT_2_0:
+        expected_el_repr = "(-2309223., -3695529., -4641767.)"
+    else:
+        expected_el_repr = "(-2309223.0, -3695529.0, -4641767.0)"
+
     loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)
     time = Time("2005-03-21 00:00:00")
     sc4 = sc2.transform_to(AltAz(location=loc, obstime=time))
     assert repr(sc4).startswith(
         "<SkyCoord (AltAz: obstime=2005-03-21 00:00:00.000, "
-        "location=(-2309223., -3695529., -4641767.) m, pressure=0.0 hPa, "
+        f"location={expected_el_repr} m, pressure=0.0 hPa, "
         "temperature=0.0 deg_C, relative_humidity=0.0, obswl=1.0 micron):"
         " (az, alt, distance) in (deg, deg, kpc)\n"
     )
@@ -862,33 +858,6 @@ def test_position_angle_directly():
     assert result.value == 0.0
 
 
-def test_sep_pa_equivalence():
-    """Regression check for bug in #5702.
-
-    PA and separation from object 1 to 2 should be consistent with those
-    from 2 to 1
-    """
-    cfk5 = SkyCoord(1 * u.deg, 0 * u.deg, frame="fk5")
-    cfk5B1950 = SkyCoord(1 * u.deg, 0 * u.deg, frame="fk5", equinox="B1950")
-    # test with both default and explicit equinox #5722 and #3106
-    sep_forward = cfk5.separation(cfk5B1950)
-    sep_backward = cfk5B1950.separation(cfk5)
-    assert sep_forward != 0 and sep_backward != 0
-    assert_allclose(sep_forward, sep_backward)
-    posang_forward = cfk5.position_angle(cfk5B1950)
-    posang_backward = cfk5B1950.position_angle(cfk5)
-    assert posang_forward != 0 and posang_backward != 0
-    assert 179 < (posang_forward - posang_backward).wrap_at(360 * u.deg).degree < 181
-    dcfk5 = SkyCoord(1 * u.deg, 0 * u.deg, frame="fk5", distance=1 * u.pc)
-    dcfk5B1950 = SkyCoord(
-        1 * u.deg, 0 * u.deg, frame="fk5", equinox="B1950", distance=1.0 * u.pc
-    )
-    sep3d_forward = dcfk5.separation_3d(dcfk5B1950)
-    sep3d_backward = dcfk5B1950.separation_3d(dcfk5)
-    assert sep3d_forward != 0 and sep3d_backward != 0
-    assert_allclose(sep3d_forward, sep3d_backward)
-
-
 def test_directional_offset_by():
     # Round-trip tests: where is sc2 from sc1?
     # Use those offsets from sc1 and verify you get to sc2.
@@ -927,11 +896,14 @@ def test_directional_offset_by():
         ]:
             # Find the displacement from sc1 to sc2,
             posang = sc1.position_angle(sc2)
-            sep = sc1.separation(sc2)
+            sep = sc1.separation(sc2, origin_mismatch="ignore")
 
             # then do the offset from sc1 and verify that you are at sc2
             sc2a = sc1.directional_offset_by(position_angle=posang, separation=sep)
-            assert np.max(np.abs(sc2.separation(sc2a).arcsec)) < 1e-3
+            assert (
+                np.max(np.abs(sc2.separation(sc2a, origin_mismatch="ignore").arcsec))
+                < 1e-3
+            )
 
     # Specific test cases
     # Go over the North pole a little way, and

@@ -5,6 +5,7 @@ This module tests some methods related to ``CDS`` format
 reader/writer.
 Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
+
 from io import StringIO
 
 import numpy as np
@@ -13,7 +14,7 @@ import pytest
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import ascii
-from astropy.table import Column, MaskedColumn, Table
+from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
@@ -427,16 +428,17 @@ def test_write_mixin_and_broken_cols():
         "--------------------------------------------------------------------------------",
         " Bytes Format Units  Label     Explanations",
         "--------------------------------------------------------------------------------",
-        "  1-  7  A7     ---    name    Description of name   ",
-        "  9- 74  A66    ---    Unknown Description of Unknown",
-        " 76-114  A39    ---    Unknown Description of Unknown",
-        "116-138  A23    ---    Unknown Description of Unknown",
+        "  1-  7  A7     ---    name    Description of name       ",
+        "  9- 74  A66    ---    Unknown Description of Unknown    ",
+        " 76-114  A39    ---    cart    Description of cart       ",
+        "116-138  A23    ---    time    Description of time       ",
+        "140-142  F3.1   m      q       [1.0/1.0] Description of q",
         "--------------------------------------------------------------------------------",
         "Notes:",
         "--------------------------------------------------------------------------------",
         "HD81809 <SkyCoord (ICRS): (ra, dec) in deg",
-        "    (330.564375, -61.65961111)> (0.41342785, -0.23329341, -0.88014294)  2019-01-01 00:00:00.000",
-        "random  12                                                                 (0.41342785, -0.23329341, -0.88014294)  2019-01-01 00:00:00.000",
+        "    (330.564375, -61.65961111)> (0.41342785, -0.23329341, -0.88014294)  2019-01-01 00:00:00.000 1.0",
+        "random  12                                                                 (0.41342785, -0.23329341, -0.88014294)  2019-01-01 00:00:00.000 1.0",
     ]
     t = Table()
     t["name"] = ["HD81809"]
@@ -445,6 +447,7 @@ def test_write_mixin_and_broken_cols():
     t.add_row(["random", 12])
     t["cart"] = coord.cartesian
     t["time"] = Time("2019-1-1")
+    t["q"] = u.Quantity(1.0, u.m)
     out = StringIO()
     t.write(out, format="ascii.mrt")
     lines = out.getvalue().splitlines()
@@ -548,3 +551,13 @@ def test_write_skycoord_with_format():
     lines = lines[i_bbb:]  # Select Byte-By-Byte section and following lines.
     # Check the written table.
     assert lines == exp_output
+
+
+def test_write_qtable():
+    # Regression test for gh-12804
+    qt = QTable([np.arange(4) * u.m, ["a", "b", "c", "ddd"]], names=["a", "b"])
+    out = StringIO()
+    qt.write(out, format="mrt")
+    result = out.getvalue()
+    assert "Description of a" in result
+    assert "Description of b" in result

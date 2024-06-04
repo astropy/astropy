@@ -32,6 +32,7 @@ from astropy.coordinates.representation import (
 )
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose_quantity
 from astropy.utils import isiterable
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import DuplicateRepresentationWarning
 
 # create matrices for use in testing ``.transform()`` methods
@@ -841,6 +842,25 @@ class TestPhysicsSphericalRepresentation:
         )
         assert representation_equal_up_to_angular_type(got, expected)
 
+        got = sph.represent_as(CylindricalRepresentation, CylindricalDifferential)
+        assert np.may_share_memory(sph.phi, got.phi)
+        expected = BaseRepresentation.represent_as(
+            sph, CylindricalRepresentation, CylindricalDifferential
+        )
+        assert_allclose_quantity(got.rho, expected.rho, atol=5e-17 * u.kpc)
+        assert_allclose_quantity(got.phi, expected.phi, atol=3e-16 * u.deg)
+        assert_array_equal(got.z, expected.z)
+
+    def test_to_cylindrical_at_the_origin(self):
+        """Test that the transformation to cylindrical at the origin preserves phi."""
+        sph = PhysicsSphericalRepresentation(
+            phi=270 * u.deg, theta=45 * u.deg, r=0 * u.kpc
+        )
+        cyl = sph.represent_as(CylindricalRepresentation)
+        assert cyl.rho == 0.0 * u.kpc
+        assert cyl.z == 0.0 * u.kpc
+        assert cyl.phi == 270 * u.deg  # phi is preserved exactly
+
     def test_initialize_with_nan(self):
         # Regression test for gh-11558: initialization used to fail.
         psr = PhysicsSphericalRepresentation(
@@ -1379,6 +1399,39 @@ class TestCylindricalRepresentation:
         assert_allclose_quantity(s3.z, expected.z)
         assert_allclose_quantity(s3.rho, expected.rho)
 
+    def test_representation_shortcuts(self):
+        """Test that shortcuts in ``represent_as`` don't fail."""
+        difs = CylindricalDifferential(
+            d_rho=4 * u.km / u.s, d_phi=5 * u.mas / u.yr, d_z=6 * u.km / u.s
+        )
+        cyl = CylindricalRepresentation(
+            rho=1 * u.kpc, phi=2 * u.deg, z=3 * u.kpc, differentials={"s": difs}
+        )
+
+        # PhysicsSpherical Representation
+        got = cyl.represent_as(
+            PhysicsSphericalRepresentation, PhysicsSphericalDifferential
+        )
+        expected = BaseRepresentation.represent_as(
+            cyl, PhysicsSphericalRepresentation, PhysicsSphericalDifferential
+        )
+        assert_allclose_quantity(got.r, expected.r)
+        assert_allclose_quantity(got.phi, expected.phi)
+        assert_allclose_quantity(got.theta, expected.theta)
+        assert representation_equal_up_to_angular_type(got, expected)
+
+    def test_to_physicsspherical_at_the_origin(self):
+        """Test that the transformation to physicsspherical at the origin preserves phi."""
+        cyl = CylindricalRepresentation(
+            rho=0 * u.kpc,
+            phi=23.5 * u.deg,
+            z=3 * u.kpc,
+        )
+        sph = cyl.represent_as(PhysicsSphericalRepresentation)
+        assert_allclose(sph.r, 3 * u.kpc)
+        assert_allclose(sph.theta, 0 * u.deg)
+        assert cyl.phi == 23.5 * u.deg  # phi is preserved exactly
+
 
 class TestUnitSphericalCosLatDifferential:
     @pytest.mark.parametrize("matrix", list(matrices.values()))
@@ -1614,9 +1667,9 @@ def test_subclass_representation():
         frame_specific_representation_info = (
             ICRS._frame_specific_representation_info.copy()
         )
-        frame_specific_representation_info[
-            SphericalWrap180Representation
-        ] = frame_specific_representation_info[SphericalRepresentation]
+        frame_specific_representation_info[SphericalWrap180Representation] = (
+            frame_specific_representation_info[SphericalRepresentation]
+        )
         default_representation = SphericalWrap180Representation
 
     c = ICRSWrap180(ra=-1 * u.deg, dec=-2 * u.deg, distance=1 * u.m)
@@ -1737,7 +1790,7 @@ class TestCartesianRepresentationWithDifferential:
 
         # make sure other kwargs are handled properly
         s1 = CartesianRepresentation(
-            x=1, y=2, z=3, differentials=diff, copy=False, unit=u.kpc
+            x=1, y=2, z=3, differentials=diff, copy=COPY_IF_NEEDED, unit=u.kpc
         )
         assert len(s1.differentials) == 1
         assert s1.differentials["s"] is diff
@@ -2220,7 +2273,8 @@ class TestInfo:
 )
 def test_differential_norm_noncartesian(cls):
     # The norm of a non-Cartesian differential without specifying `base` should error
-    rep = cls(0, 0, 0)
+    args = (0,) * len(cls.attr_classes)
+    rep = cls(*args)
     with pytest.raises(ValueError, match=r"`base` must be provided .* " + cls.__name__):
         rep.norm()
 

@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from contextlib import ExitStack
 
 import numpy as np
 import pytest
@@ -17,7 +16,6 @@ from astropy.coordinates import (
 )
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
-from astropy.utils.compat import NUMPY_LT_1_24
 
 
 def test_angle_arrays():
@@ -44,17 +42,7 @@ def test_angle_arrays():
     npt.assert_almost_equal(a6.value, 945.0)
     assert a6.unit is u.degree
 
-    with ExitStack() as stack:
-        if NUMPY_LT_1_24:
-            stack.enter_context(pytest.raises(TypeError))
-            stack.enter_context(
-                pytest.warns(
-                    DeprecationWarning, match="automatic object dtype is deprecated"
-                )
-            )
-        else:
-            stack.enter_context(pytest.raises(ValueError))
-
+    with pytest.raises(ValueError):
         Angle([a1, a2, a3], unit=u.degree)
 
     a8 = Angle(["04:02:02", "03:02:01", "06:02:01"], unit=u.degree)
@@ -206,23 +194,6 @@ def test_array_precession():
 
     npt.assert_array_less(0.05, np.abs(fk5.ra.degree - fk5_2.ra.degree))
     npt.assert_array_less(0.05, np.abs(fk5.dec.degree - fk5_2.dec.degree))
-
-
-def test_array_separation():
-    c1 = ICRS([0, 0] * u.deg, [0, 0] * u.deg)
-    c2 = ICRS([1, 2] * u.deg, [0, 0] * u.deg)
-
-    npt.assert_array_almost_equal(c1.separation(c2).degree, [1, 2])
-
-    c3 = ICRS([0, 3.0] * u.deg, [0.0, 0] * u.deg, distance=[1, 1.0] * u.kpc)
-    c4 = ICRS([1, 1.0] * u.deg, [0.0, 0] * u.deg, distance=[1, 1.0] * u.kpc)
-
-    # the 3-1 separation should be twice the 0-1 separation, but not *exactly* the same
-    sep = c3.separation_3d(c4)
-    sepdiff = sep[1] - (2 * sep[0])
-
-    assert abs(sepdiff.value) < 1e-5
-    assert sepdiff != 0
 
 
 def test_array_indexing():

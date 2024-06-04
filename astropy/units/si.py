@@ -1,15 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This package defines the SI units.  They are also available in the
-`astropy.units` namespace.
-
+This package defines the SI units.  They are also available in
+(and should be used through) the `astropy.units` namespace.
 """
 
-import numpy as _numpy
+import numpy as np
 
 from astropy.constants import si as _si
 
 from .core import Unit, UnitBase, def_unit
+
+__all__: list[str] = []  #  Units are added at the end
 
 _ns = globals()
 
@@ -89,7 +90,7 @@ def_unit(
 )
 def_unit(
     ["deg", "degree"],
-    _numpy.pi / 180.0 * rad,
+    np.pi / 180.0 * rad,
     namespace=_ns,
     prefixes=True,
     doc="degree: angular measurement 1/360 of full rotation",
@@ -444,15 +445,9 @@ bases = {m, s, kg, A, cd, rad, K, mol}
 
 
 ###########################################################################
-# CLEANUP
+# ALL & DOCSTRING
 
-del UnitBase
-del Unit
-del def_unit
-
-
-###########################################################################
-# DOCSTRING
+__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the

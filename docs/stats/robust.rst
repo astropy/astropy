@@ -112,9 +112,9 @@ calculation:
 
      >>> from astropy.stats import sigma_clipped_stats
      >>> y.mean(), np.median(y), y.std()  # doctest: +FLOAT_CMP
-     (0.7068938765410144, 0.013567387681385379, 3.599605215851649)
+     (np.float64(0.7068938765410144), np.float64(0.013567387681385379), np.float64(3.599605215851649))
      >>> sigma_clipped_stats(y, sigma=3, maxiters=10)  # doctest: +FLOAT_CMP
-     (-0.0228473012826993, -0.02356858871405204, 0.2079616996908159)
+     (np.float64(-0.0228473012826993), np.float64(-0.02356858871405204), np.float64(0.2079616996908159))
 
 :func:`~astropy.stats.sigma_clip` and
 :class:`~astropy.stats.SigmaClip` can be combined with other robust

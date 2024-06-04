@@ -22,18 +22,6 @@ class Latex(console.Console):
     _times = r" \times "
 
     @classmethod
-    def _get_unit_name(cls, unit):
-        # Do not use super() to help latex_inline subclass.
-        name = unit.get_format_name("latex")
-        if name == unit.name:
-            # This doesn't escape arbitrary LaTeX strings, but it should
-            # be good enough for unit names which are required to be alpha
-            # + "_" anyway.
-            return name.replace("_", r"\_")
-        else:
-            return name
-
-    @classmethod
     def _format_mantissa(cls, m):
         return m.replace("nan", r"{\rm NaN}").replace("inf", r"\infty")
 
@@ -43,7 +31,12 @@ class Latex(console.Console):
 
     @classmethod
     def _format_unit_power(cls, unit, power=1):
-        name = cls._get_unit_name(unit)
+        name = unit.get_format_name("latex")
+        if name == unit.name:
+            # This doesn't escape arbitrary LaTeX strings, but it should
+            # be good enough for unit names which are required to be alpha
+            # + "_" anyway.
+            name = name.replace("_", r"\_")
         if power != 1:
             # If the LaTeX representation of the base unit already ends with
             # a superscript, we need to spell out the unit to avoid double

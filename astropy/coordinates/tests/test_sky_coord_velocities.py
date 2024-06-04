@@ -178,17 +178,6 @@ def scmany():
     )
 
 
-@pytest.fixture(scope="module")
-def sc_for_sep():
-    return SkyCoord(
-        1 * u.deg, 2 * u.deg, pm_dec=1 * u.mas / u.yr, pm_ra_cosdec=2 * u.mas / u.yr
-    )
-
-
-def test_separation(sc, sc_for_sep):
-    sc.separation(sc_for_sep)
-
-
 def test_accessors(sc, scmany):
     sc.data.differentials["s"]
     sph = sc.spherical
@@ -233,35 +222,9 @@ def test_matching(sc, scmany):
     idx, d2d, d3d = sc.match_to_catalog_sky(scmany)
 
 
-def test_position_angle(sc, sc_for_sep):
-    sc.position_angle(sc_for_sep)
-
-
 def test_constellations(sc):
     const = sc.get_constellation()
     assert const == "Pisces"
-
-
-def test_separation_3d_with_differentials():
-    c1 = SkyCoord(
-        ra=138 * u.deg,
-        dec=-17 * u.deg,
-        distance=100 * u.pc,
-        pm_ra_cosdec=5 * u.mas / u.yr,
-        pm_dec=-7 * u.mas / u.yr,
-        radial_velocity=160 * u.km / u.s,
-    )
-    c2 = SkyCoord(
-        ra=138 * u.deg,
-        dec=-17 * u.deg,
-        distance=105 * u.pc,
-        pm_ra_cosdec=15 * u.mas / u.yr,
-        pm_dec=-74 * u.mas / u.yr,
-        radial_velocity=-60 * u.km / u.s,
-    )
-
-    sep = c1.separation_3d(c2)
-    assert_quantity_allclose(sep, 5 * u.pc)
 
 
 @pytest.mark.parametrize("sph_type", ["spherical", "unitspherical"])

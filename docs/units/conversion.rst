@@ -27,6 +27,30 @@ Arrays are permitted as arguments.
 
 .. EXAMPLE END
 
+Obtaining a Conversion Function
+-------------------------------
+
+.. EXAMPLE START: Obtaining a Conversion Function
+
+Finally, one may obtain a function that can be used to convert to the
+new unit. Normally this may seem like overkill when all one needs to
+do is multiply by a scale factor, but there are cases when the
+transformation between units may not be as simple as a single scale
+factor, for example when a custom equivalency table is in use.
+
+Conversion to different units involves obtaining a conversion function
+and then applying it to the value, or values to be converted.
+
+  >>> cms = u.cm / u.s
+  >>> cms_to_kmph = cms.get_converter(u.km / u.hour)
+  >>> cms_to_kmph(125.)
+  4.5
+  >>> cms_to_kmph([1000, 2000])
+  array([36., 72.])
+
+.. EXAMPLE END
+
+
 Incompatible Conversions
 ========================
 

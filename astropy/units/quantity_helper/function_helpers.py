@@ -47,7 +47,7 @@ from astropy.units.core import (
     dimensionless_unscaled,
 )
 from astropy.utils import isiterable
-from astropy.utils.compat import NUMPY_LT_1_24, NUMPY_LT_2_0
+from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_1_24, NUMPY_LT_2_0
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
@@ -90,7 +90,6 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.nansum, np.nancumsum, np.nanstd, np.nanvar,
     np.nanprod, np.nancumprod,
     np.einsum_path, np.linspace,
-    np.trapz,  # deprecated in not NUMPY_LT_2_0
     np.sort, np.partition, np.meshgrid,
     np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
     np.iscomplexobj, np.isrealobj,
@@ -98,15 +97,18 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.apply_along_axis, np.take_along_axis, np.put_along_axis,
     np.linalg.cond, np.linalg.multi_dot,
 }  # fmt: skip
-SUBCLASS_SAFE_FUNCTIONS |= {  # Deprecated
-    np.product, np.cumproduct,  # noqa: NPY003
-}  # fmt: skip
 
 SUBCLASS_SAFE_FUNCTIONS |= {np.median}
 
 if NUMPY_LT_2_0:
-    # functions removed in numpy 2.0; alias for np.round in NUMPY_LT_1_25
-    SUBCLASS_SAFE_FUNCTIONS |= {np.msort, np.round_}  # noqa: NPY003
+    # functions (re)moved in numpy 2.0; alias for np.round in NUMPY_LT_1_25
+    SUBCLASS_SAFE_FUNCTIONS |= {
+        np.msort,
+        np.round_,  # noqa: NPY003, NPY201
+        np.trapz,
+        np.product,  # noqa: NPY003
+        np.cumproduct,  # noqa: NPY003
+    }
 else:
     # Array-API compatible versions (matrix axes always at end).
     SUBCLASS_SAFE_FUNCTIONS |= {
@@ -123,6 +125,9 @@ else:
         np.astype,
     }  # fmt: skip
 
+    # trapz was renamed to trapezoid
+    SUBCLASS_SAFE_FUNCTIONS |= {np.trapezoid}
+
 # Implemented as methods on Quantity:
 # np.ediff1d is from setops, but we support it anyway; the others
 # currently return NotImplementedError.
@@ -134,9 +139,11 @@ UNSUPPORTED_FUNCTIONS |= {
     np.busday_count, np.busday_offset, np.datetime_as_string,
     np.is_busday, np.all, np.any,
 }  # fmt: skip
-UNSUPPORTED_FUNCTIONS |= {  # Deprecated
-    np.sometrue, np.alltrue,  # noqa: NPY003
-}  # fmt: skip
+
+if NUMPY_LT_2_0:
+    UNSUPPORTED_FUNCTIONS |= {  # removed in numpy 2.0
+        np.sometrue, np.alltrue,  # noqa: NPY003
+    }  # fmt: skip
 
 # Could be supported if we had a natural logarithm unit.
 UNSUPPORTED_FUNCTIONS |= {np.linalg.slogdet}
@@ -202,7 +209,7 @@ dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
         np.fft.fftn, np.fft.ifftn, np.fft.rfftn, np.fft.irfftn,
         np.fft.hfft, np.fft.ihfft,
         np.linalg.eigvals, np.linalg.eigvalsh,
-    } | ({np.asfarray} if NUMPY_LT_2_0 else set())
+    } | ({np.asfarray} if NUMPY_LT_2_0 else set())  # noqa: NPY201
 )
 # fmt: on
 def invariant_a_helper(a, *args, **kwargs):
@@ -336,7 +343,7 @@ def _as_quantity(a):
     from astropy.units import Quantity
 
     try:
-        return Quantity(a, copy=False, subok=True)
+        return Quantity(a, copy=COPY_IF_NEEDED, subok=True)
     except Exception:
         # If we cannot convert to Quantity, we should just bail.
         raise NotImplementedError
@@ -348,7 +355,7 @@ def _as_quantities(*args):
 
     try:
         # Note: this should keep the dtype the same
-        return tuple(Quantity(a, copy=False, subok=True, dtype=None) for a in args)
+        return tuple(Quantity(a, copy=COPY_IF_NEEDED, subok=True, dtype=None) for a in args)
     except Exception:
         # If we cannot convert to Quantity, we should just bail.
         raise NotImplementedError
@@ -416,6 +423,18 @@ def concatenate(arrays, axis=0, out=None, **kwargs):
     return (arrays,), kwargs, unit, out
 
 
+def _block(arrays, max_depth, result_ndim, depth=0):
+    # Block by concatenation, copied from np._core.shape_base,
+    # but ensuring that we call regular concatenate.
+    if depth < max_depth:
+        arrs = [_block(arr, max_depth, result_ndim, depth+1)
+                for arr in arrays]
+        # The one difference with the numpy code.
+        return np.concatenate(arrs, axis=-(max_depth-depth))
+    else:
+        return np_core.shape_base._atleast_nd(arrays, result_ndim)
+
+
 @dispatched_function
 def block(arrays):
     # We need to override block since the numpy implementation can take two
@@ -423,25 +442,15 @@ def block(arrays):
     # result array in which parts are set.  Each assumes array input and
     # cannot be used directly.  Since it would be very costly to inspect all
     # arrays and then turn them back into a nested list, we just copy here the
-    # second implementation, np.core.shape_base._block_slicing, since it is
-    # shortest and easiest.
+    # first implementation, np.core.shape_base._block, which is the easiest to
+    # adjust while making sure that both units and class are properly kept.
     (arrays, list_ndim, result_ndim, final_size) = np_core.shape_base._block_setup(
         arrays
     )
-    shape, slices, arrays = np_core.shape_base._block_info_recursion(
-        arrays, list_ndim, result_ndim
-    )
-    # Here, one line of difference!
-    arrays, unit = _quantities2arrays(*arrays)
-    # Back to _block_slicing
-    dtype = np.result_type(*[arr.dtype for arr in arrays])
-    F_order = all(arr.flags["F_CONTIGUOUS"] for arr in arrays)
-    C_order = all(arr.flags["C_CONTIGUOUS"] for arr in arrays)
-    order = "F" if F_order and not C_order else "C"
-    result = np.empty(shape=shape, dtype=dtype, order=order)
-    for the_slice, arr in zip(slices, arrays):
-        result[(Ellipsis,) + the_slice] = arr
-    return result, unit, None
+    result = _block(arrays, list_ndim, result_ndim)
+    if list_ndim == 0:
+        result = result.copy()
+    return result, None, None
 
 
 @function_helper
@@ -1200,7 +1209,7 @@ def solve(a, b, *args, **kwargs):
 
 
 @function_helper(module=np.linalg)
-def lstsq(a, b, rcond="warn"):
+def lstsq(a, b, rcond="warn" if NUMPY_LT_2_0 else None):
     a, b = _as_quantities(a, b)
 
     if rcond not in (None, "warn", -1):

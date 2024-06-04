@@ -711,6 +711,9 @@ def test_scale_error():
     [
         ("EN10.5", ("EN", "10", "5", None)),
         ("F6.2", ("F", "6", "2", None)),
+        ("F12.10", ("F", "12", "10", None)),
+        ("ES12.11", ("ES", "12", "11", None)),
+        ("EN12.11", ("EN", "12", "11", None)),
         ("B5.10", ("B", "5", "10", None)),
         ("E10.5E3", ("E", "10", "5", "3")),
         ("A21", ("A", "21", None, None)),
@@ -1099,3 +1102,17 @@ def test_null_propagation_in_table_read(tmp_path):
     # equal to NULL_VALUE
     t = Table.read(output_filename)
     assert t["a"].fill_value == NULL_VALUE
+
+
+def test_unsigned_int_dtype_propagation_for_zero_length_table():
+    # Regression test for gh-16501
+    tbl = Table(
+        [
+            Column(name="unsigned16", dtype="uint16"),
+            Column(name="unsigned32", dtype="uint32"),
+            Column(name="unsigned64", dtype="uint64"),
+        ]
+    )
+    hdu = BinTableHDU(tbl)
+    tbl2 = Table.read(hdu)
+    assert tbl.dtype == tbl2.dtype

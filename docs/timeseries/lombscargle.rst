@@ -167,14 +167,14 @@ To tune the heuristic using keywords passed to the
 
 >>> frequency, power = LombScargle(t, y, dy).autopower(nyquist_factor=2)
 >>> len(frequency), frequency.min(), frequency.max()  # doctest: +FLOAT_CMP
-(500, 0.0010327803641893758, 1.0317475838251864)
+(500, np.float64(0.0010327803641893758), np.float64(1.0317475838251864))
 
 Here the highest frequency is two times the average Nyquist frequency.
 If we increase the ``nyquist_factor``, we can probe higher frequencies:
 
 >>> frequency, power = LombScargle(t, y, dy).autopower(nyquist_factor=10)
 >>> len(frequency), frequency.min(), frequency.max()  # doctest: +FLOAT_CMP
-(2500, 0.0010327803641893758, 5.16286904058269)
+(2500, np.float64(0.0010327803641893758), np.float64(5.16286904058269))
 
 Alternatively, we can use the :func:`~astropy.timeseries.LombScargle.power`
 method to evaluate the periodogram at a user-specified set of frequencies:
@@ -542,7 +542,7 @@ this peak? We can address this question using the
 .. doctest-requires:: scipy
 
   >>> ls.false_alarm_probability(power.max())  # doctest: +FLOAT_CMP
-  0.028959671719328808
+  np.float64(0.028959671719328808)
 
 What this tells us is that under the assumption that there is no periodic
 signal in the data, we will observe a peak this high or higher approximately
@@ -598,7 +598,7 @@ which can be chosen using the ``method`` keyword:
 .. doctest-requires:: scipy
 
     >>> ls.false_alarm_probability(power.max(), method='baluev')  # doctest: +FLOAT_CMP
-    0.028959671719328808
+    np.float64(0.028959671719328808)
 
 - ``method="bootstrap"`` implements a bootstrap simulation: effectively it
   computes many Lomb-Scargle periodograms on simulated data at the same
@@ -611,7 +611,7 @@ which can be chosen using the ``method`` keyword:
 .. doctest-requires:: scipy
 
     >>> ls.false_alarm_probability(power.max(), method='bootstrap')  # doctest: +SKIP
-    0.0030000000000000027
+    np.float64(0.0030000000000000027)
 
 - ``method="davies"`` is related to the Baluev method, but loses accuracy
   at large false alarm probabilities.
@@ -619,7 +619,7 @@ which can be chosen using the ``method`` keyword:
 .. doctest-requires:: scipy
 
     >>> ls.false_alarm_probability(power.max(), method='davies')  # doctest: +FLOAT_CMP
-    0.029387277355227746
+    np.float64(0.029387277355227746)
 
 - ``method="naive"`` is a basic method based on the assumption that
   well-separated areas in the periodogram are independent. In general, it
@@ -629,7 +629,7 @@ which can be chosen using the ``method`` keyword:
 .. doctest-requires:: scipy
 
     >>> ls.false_alarm_probability(power.max(), method='naive')  # doctest: +FLOAT_CMP
-    0.00810080828660202
+    np.float64(0.00810080828660202)
 
 The following figure compares these false alarm estimates at a range of
 peak heights for 100 observations with a heavily aliased observing pattern:

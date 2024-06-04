@@ -1,6 +1,7 @@
 """
 This file tests the behavior of subclasses of Representation and Frames
 """
+
 from copy import deepcopy
 
 import astropy.coordinates
@@ -11,8 +12,8 @@ from astropy.coordinates.representation import (
     REPRESENTATION_CLASSES,
     SphericalRepresentation,
     UnitSphericalRepresentation,
+    get_reprdiff_cls_hash,
 )
-from astropy.coordinates.representation.base import _invalidate_reprdiff_cls_hash
 from astropy.coordinates.transformations import FunctionTransform
 
 # Classes setup, borrowed from SunPy.
@@ -28,7 +29,7 @@ def setup_function(func):
 def teardown_function(func):
     REPRESENTATION_CLASSES.clear()
     REPRESENTATION_CLASSES.update(func.REPRESENTATION_CLASSES_ORIG)
-    _invalidate_reprdiff_cls_hash()
+    get_reprdiff_cls_hash.cache_clear()
 
 
 def test_unit_representation_subclass():
@@ -57,11 +58,9 @@ def test_unit_representation_subclass():
         }
         frame_specific_representation_info[
             "unitsphericalwrap180"
-        ] = frame_specific_representation_info[
-            "sphericalwrap180"
-        ] = frame_specific_representation_info[
-            "spherical"
-        ]
+        ] = frame_specific_representation_info["sphericalwrap180"] = (
+            frame_specific_representation_info["spherical"]
+        )
 
     @frame_transform_graph.transform(
         FunctionTransform, MyFrame, astropy.coordinates.ICRS

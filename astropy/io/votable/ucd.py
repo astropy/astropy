@@ -3,7 +3,6 @@
 This file contains routines to verify the correctness of UCD strings.
 """
 
-
 # STDLIB
 import re
 

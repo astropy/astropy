@@ -1,7 +1,12 @@
 READ_DOCSTRING = """
-    Read the input ``table`` and return the table.  Most of
-    the default behavior for various parameters is determined by the Reader
-    class.
+    Read the input ``table`` and return the table.  Most of the default behavior for
+    various parameters is determined by the ``format`` argument.
+
+    Help on the ``read()`` function arguments is available as shown in this example::
+
+      from astropy.io import ascii
+      ascii.read.help()  # Common help for all formats
+      ascii.read.help("html")  # Common help plus "html" format-specific args
 
     See also:
 
@@ -17,10 +22,6 @@ READ_DOCSTRING = """
         Try to guess the table format. Defaults to None.
     format : str, `~astropy.io.ascii.BaseReader`
         Input table format
-    inputter_cls : `~astropy.io.ascii.BaseInputter`
-        Inputter class
-    outputter_cls : `~astropy.io.ascii.BaseOutputter`
-        Outputter class
     delimiter : str
         Column delimiter string
     comment : str
@@ -43,10 +44,6 @@ READ_DOCSTRING = """
         ``np.float32``; a list of such types which is tried in order until a
         successful conversion is achieved; or a list of converter tuples (see
         the `~astropy.io.ascii.convert_numpy` function for details).
-    data_splitter_cls : `~astropy.io.ascii.BaseSplitter`
-        Splitter class to split data columns
-    header_splitter_cls : `~astropy.io.ascii.BaseSplitter`
-        Splitter class to split header columns
     names : list
         List of names corresponding to each data column
     include_names : list
@@ -65,8 +62,6 @@ READ_DOCSTRING = """
 
         use_fast_converter: bool
             enable faster but slightly imprecise floating point conversion method
-        parallel: bool or int
-            multiprocessing conversion using ``cpu_count()`` or ``'number'`` processes
         exponent_style: str
             One-character string defining the exponent or ``'Fortran'`` to auto-detect
             Fortran-style scientific notation like ``'3.14159D+00'`` (``'E'``, ``'D'``, ``'Q'``),
@@ -81,6 +76,17 @@ READ_DOCSTRING = """
 
     encoding : str
         Allow to specify encoding to read the file (default= ``None``).
+
+    Other Parameters
+    ----------------
+    inputter_cls : `~astropy.io.ascii.BaseInputter`
+        Inputter class
+    outputter_cls : `~astropy.io.ascii.BaseOutputter`
+        Outputter class
+    data_splitter_cls : `~astropy.io.ascii.BaseSplitter`
+        Splitter class to split data columns
+    header_splitter_cls : `~astropy.io.ascii.BaseSplitter`
+        Splitter class to split header columns
 
     Returns
     -------
@@ -124,6 +130,12 @@ READ_KWARG_TYPES = {
 WRITE_DOCSTRING = """
     Write the input ``table`` to ``filename``.  Most of the default behavior
     for various parameters is determined by the Writer class.
+
+    Help on the ``write()`` function arguments is available as shown in this example::
+
+      from astropy.io import ascii
+      ascii.write.help()  # Common help for all formats
+      ascii.write.help("html")  # Common help plus "html" format-specific args
 
     See also:
 

@@ -1134,7 +1134,7 @@ FK4 => ICRS => FK4 and then compare::
 
   >>> sc1 = SkyCoord(1*u.deg, 2*u.deg, frame='fk4')
   >>> sc1.icrs.fk4 == sc1
-  False
+  np.False_
 
 Matching Within Tolerance
 -------------------------
@@ -1145,7 +1145,7 @@ To test if coordinates are within a certain angular distance of one other, use t
   >>> sc1.icrs.fk4.separation(sc1).to(u.arcsec)  # doctest: +SKIP
   <Angle 7.98873629e-13 arcsec>
   >>> sc1.icrs.fk4.separation(sc1) < 1e-9 * u.arcsec
-  True
+  np.True_
 
 Exact Equality
 --------------
@@ -1175,7 +1175,7 @@ In the first example we show simple comparisons using array-valued coordinates::
   >>> sc2 == sc2[1]  # Broadcasting comparison with a scalar
   array([False,  True])
   >>> sc2[0] == sc2[1]  # Scalar to scalar comparison
-  False
+  np.False_
   >>> sc1 != sc2  # Not equal
   array([False,  True])
 

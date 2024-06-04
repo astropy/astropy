@@ -4,7 +4,7 @@ import os
 
 from setuptools import Extension
 
-SRC_DIR = os.path.join(os.path.dirname(__file__), "src")
+SRC_DIR = os.path.relpath(os.path.join(os.path.dirname(__file__), "src"))
 
 
 def get_extensions():

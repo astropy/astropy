@@ -4,6 +4,7 @@
 This module tests some of the methods related to the ``ECSV``
 reader/writer.
 """
+
 import copy
 import os
 import sys
@@ -21,8 +22,10 @@ from astropy.io.tests.mixin_columns import compare_attrs, mixin_cols, serialized
 from astropy.table import Column, QTable, Table
 from astropy.table.column import MaskedColumn
 from astropy.table.table_helpers import simple_table
+from astropy.time import Time
 from astropy.units import QuantityInfo
 from astropy.units import allclose as quantity_allclose
+from astropy.utils.masked import Masked
 
 from .common import TEST_DIR
 
@@ -54,12 +57,15 @@ for dtype in DTYPES:
         data = np.array(["ab 0", "ab, 1", "ab2"])
     else:
         data = np.arange(3, dtype=dtype)
-    c = Column(
-        data, unit="m / s", description="descr_" + dtype, meta={"meta " + dtype: 1}
-    )
+    c = Column(data, unit="m / s", description="descr_" + dtype)
+    # Add meta in way that uses the default_factory type and not in alphabetical order
+    c.meta["meta " + dtype] = 1
+    c.meta["a"] = 2
     T_DTYPES[dtype] = c
 
+# Add meta in way that uses the default_factory type and not in alphabetical order
 T_DTYPES.meta["comments"] = ["comment1", "comment2"]
+T_DTYPES.meta["a"] = 3
 
 # Corresponds to simple_table()
 SIMPLE_LINES = [
@@ -102,24 +108,33 @@ def test_write_full():
         "#   unit: m / s",
         "#   datatype: bool",
         "#   description: descr_bool",
-        "#   meta: {meta bool: 1}",
+        "#   meta: !!omap",
+        "#   - {meta bool: 1}",
+        "#   - {a: 2}",
         "# - name: int64",
         "#   unit: m / s",
         "#   datatype: int64",
         "#   description: descr_int64",
-        "#   meta: {meta int64: 1}",
+        "#   meta: !!omap",
+        "#   - {meta int64: 1}",
+        "#   - {a: 2}",
         "# - name: float64",
         "#   unit: m / s",
         "#   datatype: float64",
         "#   description: descr_float64",
-        "#   meta: {meta float64: 1}",
+        "#   meta: !!omap",
+        "#   - {meta float64: 1}",
+        "#   - {a: 2}",
         "# - name: str",
         "#   unit: m / s",
         "#   datatype: string",
         "#   description: descr_str",
-        "#   meta: {meta str: 1}",
+        "#   meta: !!omap",
+        "#   - {meta str: 1}",
+        "#   - {a: 2}",
         "# meta: !!omap",
         "# - comments: [comment1, comment2]",
+        "# - {a: 3}",
         "# schema: astropy-2.0",
         "bool int64 float64 str",
         'False 0 0.0 "ab 0"',
@@ -154,6 +169,15 @@ def test_write_read_roundtrip():
             for name in t.colnames:
                 assert t[name].attrs_equal(t2[name])
                 assert np.all(t[name] == t2[name])
+
+
+def test_write_read_roundtrip_empty_table(tmp_path):
+    # see https://github.com/astropy/astropy/issues/13191
+    sfile = tmp_path / "x.ecsv"
+    Table().write(sfile)
+    t = Table.read(sfile)
+    assert len(t) == 0
+    assert len(t.colnames) == 0
 
 
 def test_bad_delimiter():
@@ -311,6 +335,12 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
         else:
             assert np.all(a1 == a2)
 
+    # Check meta values and key order but allow None to be equivalent to {}
+    meta1 = obj1.info.meta or {}
+    meta2 = obj2.info.meta or {}
+    assert meta1 == meta2
+    assert meta1.keys() == meta2.keys()
+
     # For no attrs that means we just compare directly.
     if not attrs:
         if isinstance(obj1, np.ndarray) and obj1.dtype.kind == "f":
@@ -435,6 +465,7 @@ def test_ecsv_mixins_per_column(table_cls, name_col, ndim):
     col = make_multidim(col, ndim)
     t = table_cls([c, col, c], names=["c1", name, "c2"])
     t[name].info.description = "description"
+    t[name].info.meta = {"b": 2, "a": 1}
 
     out = StringIO()
     t.write(out, format="ascii.ecsv")
@@ -1047,3 +1078,32 @@ def test_guess_ecsv_with_one_column():
     t = ascii.read(txt)
     assert t["col"].dtype.kind == "U"  # would be int with basic format
     assert t["col"].description == "hello"
+
+
+@pytest.mark.parametrize("masked", [MaskedColumn, Masked, np.ma.MaskedArray])
+def test_write_structured_masked_column(masked):
+    a = np.array([(1, 2), (3, 4)], dtype="i,i")
+    mc = masked(a, mask=[(True, False), (False, False)])
+    t = Table([mc], names=["mc"])
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+    t2 = Table.read(out.getvalue(), format="ascii.ecsv")
+    assert type(t2["mc"]) is type(t["mc"])
+    assert (t2["mc"] == mc).all()
+    assert (t2["mc"].mask == mc.mask).all()
+
+
+def test_write_masked_time_ymdhms_mixin():
+    # Regression test for gh-16370
+    # Make a masked time,
+    t = Time({"year": 2000, "month": 1, "day": [1, 2]})
+    t[0] = np.ma.masked
+    # Create a table and write to a file
+    qt = QTable([t], names=["t"])
+    out = StringIO()
+    qt.write(out, format="ascii.ecsv")
+    # Read back and compare.
+    qt2 = QTable.read(out.getvalue(), format="ascii.ecsv")
+    # Note that value under time does not roundtrip
+    assert (qt2["t"] == t).all()
+    assert (qt2["t"].mask == t.mask).all()

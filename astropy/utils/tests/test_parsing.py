@@ -2,6 +2,7 @@
 
 import importlib
 import secrets
+from py_compile import compile
 from textwrap import dedent
 
 import pytest
@@ -34,6 +35,9 @@ def test_generate_parser(tmp_path, monkeypatch):
                 r'\d+'
                 t.value = int(t.value)
                 return t
+
+            def t_error(t):
+                raise ValueError('Invalid character')
 
             return lex('test_parsing_lextab_{suffix}', 'test_parsing_lexer_{suffix}')
         """
@@ -70,9 +74,24 @@ def test_generate_parser(tmp_path, monkeypatch):
     result = parser.parse("1+2+3", lexer=lexer)
     assert result == 6
 
-    lextab = (tmp_path / f"test_parsing_lextab_{suffix}.py").read_text()
+    lextab_path = tmp_path / f"test_parsing_lextab_{suffix}.py"
+    lextab = lextab_path.read_text()
     assert lextab.startswith(_TAB_HEADER.format(package=f"test_parsing_lexer_{suffix}"))
-    parsetab = (tmp_path / f"test_parsing_parsetab_{suffix}.py").read_text()
+    parsetab_path = tmp_path / f"test_parsing_parsetab_{suffix}.py"
+    parsetab = parsetab_path.read_text()
     assert parsetab.startswith(
         _TAB_HEADER.format(package=f"test_parsing_parser_{suffix}")
     )
+
+    # Now test bytecode-only distribution of the parsetab and lextab
+
+    lexer_mod = importlib.reload(lexer_mod)
+    parser_mod = importlib.reload(parser_mod)
+    for path in lextab_path, parsetab_path:
+        compile(path, cfile=path.with_suffix(".pyc"), doraise=True)
+        path.unlink()
+
+    lexer = lexer_mod.make_lexer()
+    parser = parser_mod.make_parser()
+    result = parser.parse("1+2+3", lexer=lexer)
+    assert result == 6

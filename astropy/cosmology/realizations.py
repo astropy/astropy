@@ -20,16 +20,18 @@ __all__ = [  # noqa: F822 (undefined name)
     "Planck18",
 ]
 
-# STDLIB
 import pathlib
 import sys
+from typing import TYPE_CHECKING
 
-# LOCAL
 from astropy.utils.data import get_pkg_data_path
 from astropy.utils.state import ScienceState
 
 from . import _io  # Ensure IO methods are registered, to read realizations # noqa: F401
 from .core import Cosmology
+
+if TYPE_CHECKING:
+    from typing import ClassVar
 
 __doctest_requires__ = {"*": ["scipy"]}
 
@@ -48,7 +50,7 @@ available = (
 )
 
 
-def __getattr__(name):
+def __getattr__(name: str) -> Cosmology:
     """Make specific realizations from data files with lazy import from ``PEP 562``.
 
     Raises
@@ -62,9 +64,11 @@ def __getattr__(name):
     cosmo = Cosmology.read(
         str(_COSMOLOGY_DATA_DIR / name) + ".ecsv", format="ascii.ecsv"
     )
-    cosmo.__doc__ = (
+    object.__setattr__(
+        cosmo,
+        "__doc__",
         f"{name} instance of {cosmo.__class__.__qualname__} "
-        f"cosmology\n(from {cosmo.meta['reference']})"
+        f"cosmology\n(from {cosmo.meta['reference']})",
     )
 
     # Cache in this module so `__getattr__` is only called once per `name`.
@@ -73,7 +77,7 @@ def __getattr__(name):
     return cosmo
 
 
-def __dir__():
+def __dir__() -> list[str]:
     """Directory, including lazily-imported objects."""
     return __all__
 
@@ -106,8 +110,8 @@ class default_cosmology(ScienceState):
                       Om0=0.30966, ...
     """
 
-    _default_value = "Planck18"
-    _value = "Planck18"
+    _default_value: ClassVar[str] = "Planck18"
+    _value: ClassVar[str | Cosmology] = "Planck18"
 
     @classmethod
     def validate(cls, value: Cosmology | str | None) -> Cosmology | None:

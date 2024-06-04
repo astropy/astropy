@@ -1,5 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""A set of standard astronomical equivalencies."""
+"""
+A set of standard astronomical equivalencies.
+
+The equivalency class and all equivalency functions defined here are also
+available in (and should be used through) the `astropy.units` namespace.
+
+"""
 
 from collections import UserList
 
@@ -8,6 +14,7 @@ import numpy as np
 
 # LOCAL
 from astropy.constants import si as _si
+from astropy.utils import deprecated_renamed_argument
 from astropy.utils.misc import isiterable
 
 from . import astrophys, cgs, dimensionless_unscaled, misc, si
@@ -33,6 +40,7 @@ __all__ = [
     "molar_mass_amu",
     "pixel_scale",
     "plate_scale",
+    "magnetic_flux_field",
     "Equivalency",
 ]
 
@@ -52,7 +60,7 @@ class Equivalency(UserList):
     def __init__(self, equiv_list, name="", kwargs=None):
         self.data = equiv_list
         self.name = [name]
-        self.kwargs = [kwargs] if kwargs is not None else [dict()]
+        self.kwargs = [kwargs] if kwargs is not None else [{}]
 
     def __add__(self, other):
         if isinstance(other, Equivalency):
@@ -152,6 +160,9 @@ def spectral():
     )
 
 
+@deprecated_renamed_argument(
+    "factor", None, since="7.0", alternative='"wav" as a "Quantity"'
+)
 def spectral_density(wav, factor=None):
     """
     Returns a list of equivalence pairs that handle spectral density
@@ -162,13 +173,15 @@ def spectral_density(wav, factor=None):
     wav : `~astropy.units.Quantity`
         `~astropy.units.Quantity` associated with values being converted
         (e.g., wavelength or frequency).
+    factor : array_like
+        If ``wav`` is a |Unit| instead of a |Quantity| then ``factor``
+        is the value ``wav`` will be multiplied with to convert it to
+        a |Quantity|.
 
-    Notes
-    -----
-    The ``factor`` argument is left for backward-compatibility with the syntax
-    ``spectral_density(unit, factor)`` but users are encouraged to use
-    ``spectral_density(factor * unit)`` instead.
+        .. deprecated:: 7.0
 
+            ``factor`` is deprecated. Pass in ``wav`` as a |Quantity|,
+            not as a |Unit|.
     """
     from .core import UnitBase
 
@@ -758,9 +771,7 @@ def thermodynamic_temperature(frequency, T_cmb=None):
         return x**2 * np.exp(x) / np.expm1(x) ** 2
 
     def convert_Jy_to_K(x_jybm):
-        factor = (f(nu) * 2 * _si.k_B * si.K * nu**2 / _si.c**2).to_value(
-            astrophys.Jy
-        )
+        factor = (f(nu) * 2 * _si.k_B * si.K * nu**2 / _si.c**2).to_value(astrophys.Jy)
         return x_jybm / factor
 
     def convert_K_to_Jy(x_K):
@@ -868,4 +879,48 @@ def plate_scale(platescale):
         [(si.m, si.radian, lambda d: d * platescale_val, lambda a: a / platescale_val)],
         "plate_scale",
         {"platescale": platescale},
+    )
+
+
+def magnetic_flux_field(mu_r=1):
+    r"""
+    Convert magnetic field between magnetic field strength :math:`(\mathbf{H})` and
+    magnetic flux density :math:`(\mathbf{B})` using the relationship:
+
+    .. math::
+
+        \mathbf{B} = \mu_r \mu_0 \mathbf{H}
+
+    where:
+        - :math:`\mu_0` is the vacuum permeability, a physical constant.
+        - :math:`\mu_r` is the relative permeability of the medium, a dimensionless
+          quantity.
+
+    The default setting (:math:`\mu_r=1`) represents conditions in a vacuum.
+
+    Parameters
+    ----------
+    mu_r : float, optional
+        The relative magnetic permeability of the medium. This is a dimensionless quantity
+        and has a default value of :math:`\mu_r=1` which corresponds to free space (vacuum).
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> H = 1 * u.Oe
+    >>> H.to(u.G, equivalencies=u.magnetic_flux_field())  # doctest: +FLOAT_CMP
+    <Quantity 1. G>
+    >>> H.to(u.G, equivalencies=u.magnetic_flux_field(mu_r=0.8))  # doctest: +FLOAT_CMP
+    <Quantity 0.8 G>
+    >>> B = 1 * u.T
+    >>> B.to(u.A / u.m, equivalencies=u.magnetic_flux_field())  # doctest: +FLOAT_CMP
+    <Quantity 795774.71502628 A / m>
+    >>> B.to(u.A / u.m, equivalencies=u.magnetic_flux_field(mu_r=0.8))  # doctest: +FLOAT_CMP
+    <Quantity 994718.39378285 A / m>
+
+    """
+    mu0 = _si.mu0.value
+    return Equivalency(
+        [(si.T, si.A / si.m, lambda x: x / (mu_r * mu0), lambda x: x * mu_r * mu0)],
+        "magnetic_flux_field",
     )

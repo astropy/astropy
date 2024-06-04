@@ -1,11 +1,7 @@
 Reference/API
 *************
 
-.. automodapi:: astropy.units.quantity
-
 .. automodapi:: astropy.units
-
-.. automodapi:: astropy.units.format
 
 .. automodapi:: astropy.units.si
 
@@ -25,12 +21,7 @@ Reference/API
 
 .. automodapi:: astropy.units.physical
 
-.. automodapi:: astropy.units.equivalencies
-
-.. automodapi:: astropy.units.function.core
-
-.. automodapi:: astropy.units.function.logarithmic
-   :include-all-objects:
+.. automodapi:: astropy.units.format
 
 .. automodapi:: astropy.units.deprecated
 

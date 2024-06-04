@@ -9,6 +9,8 @@ from astropy.io.fits.hdu.compressed._tiled_compression import (
 from astropy.io.fits.hdu.compressed.utils import _data_shape, _n_tiles, _tile_shape
 from astropy.utils.shapes import simplify_basic_index
 
+__all__ = ["CompImageSection"]
+
 
 class CompImageSection:
     """

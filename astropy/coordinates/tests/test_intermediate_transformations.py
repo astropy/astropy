@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Accuracy tests for GCRS coordinate transformations, primarily to/from AltAz.
+"""Accuracy tests for GCRS coordinate transformations, primarily to/from AltAz."""
 
-"""
 import warnings
 from importlib import metadata
 
@@ -45,6 +44,7 @@ from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
 from astropy.utils import iers
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.compat.optional_deps import HAS_JPLEPHEM
 from astropy.utils.exceptions import AstropyWarning
 
@@ -748,7 +748,7 @@ def test_teme_itrf():
     Test case transform from TEME to ITRF.
 
     Test case derives from example on appendix C of Vallado, Crawford, Hujsak & Kelso (2006).
-    See https://celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf
+    See https://celestrak.org/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf
     """
     v_itrf = CartesianDifferential(
         -3.225636520, -2.872451450, 5.531924446, unit=u.km / u.s
@@ -1096,8 +1096,8 @@ def test_aa_hd_high_precision():
         moon_aa.alt.to_value(u.radian),
         lat.to_value(u.radian),
     )
-    ha = u.Quantity(ha, u.radian, copy=False)
-    dec = u.Quantity(dec, u.radian, copy=False)
+    ha = u.Quantity(ha, u.radian, copy=COPY_IF_NEEDED)
+    dec = u.Quantity(dec, u.radian, copy=COPY_IF_NEEDED)
     assert_allclose(moon_hd.ha, ha, atol=0.1 * u.uas, rtol=0)
     assert_allclose(moon_hd.dec, dec, atol=0.1 * u.uas, rtol=0)
 

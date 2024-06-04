@@ -22,32 +22,22 @@ DIFFERENTIAL_CLASSES = {}
 # set for tracking duplicates
 DUPLICATE_REPRESENTATIONS = set()
 
-# a hash for the content of the above two dicts, cached for speed.
-_REPRDIFF_HASH = None
-
 
 def _fqn_class(cls):
     """Get the fully qualified name of a class."""
     return cls.__module__ + "." + cls.__qualname__
 
 
+@functools.cache
 def get_reprdiff_cls_hash():
     """
     Returns a hash value that should be invariable if the
     `REPRESENTATION_CLASSES` and `DIFFERENTIAL_CLASSES` dictionaries have not
     changed.
     """
-    global _REPRDIFF_HASH
-    if _REPRDIFF_HASH is None:
-        _REPRDIFF_HASH = hash(tuple(REPRESENTATION_CLASSES.items())) + hash(
-            tuple(DIFFERENTIAL_CLASSES.items())
-        )
-    return _REPRDIFF_HASH
-
-
-def _invalidate_reprdiff_cls_hash():
-    global _REPRDIFF_HASH
-    _REPRDIFF_HASH = None
+    return hash(tuple(REPRESENTATION_CLASSES.items())) + hash(
+        tuple(DIFFERENTIAL_CLASSES.items())
+    )
 
 
 class BaseRepresentationOrDifferentialInfo(MixinInfo):
@@ -496,16 +486,10 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
 
     @property
     def _unitstr(self):
-        units_set = set(self._units.values())
-        if len(units_set) == 1:
-            unitstr = units_set.pop().to_string()
-        else:
-            unitstr = "({})".format(
-                ", ".join(
-                    self._units[component].to_string() for component in self.components
-                )
-            )
-        return unitstr
+        units = self._units.values()
+        if len(units_set := set(units)) == 1:
+            return str(units_set.pop())
+        return f"({', '.join(map(str, units))})"
 
     def __str__(self):
         return f"{np.array2string(self._values, separator=', ')} {self._unitstr:s}"
@@ -515,35 +499,14 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         arrstr = np.array2string(self._values, prefix=prefixstr, separator=", ")
 
         diffstr = ""
-        if getattr(self, "differentials", None):
-            diffstr = "\n (has differentials w.r.t.: {})".format(
-                ", ".join([repr(key) for key in self.differentials.keys()])
-            )
+        if diffs := getattr(self, "differentials", None):
+            diffstr = f"\n (has differentials w.r.t.: {', '.join(map(repr, diffs))})"
 
         unitstr = ("in " + self._unitstr) if self._unitstr else "[dimensionless]"
         return (
             f"<{self.__class__.__name__} ({', '.join(self.components)})"
             f" {unitstr:s}\n{prefixstr}{arrstr}{diffstr}>"
         )
-
-
-def _make_getter(component):
-    """Make an attribute getter for use in a property.
-
-    Parameters
-    ----------
-    component : str
-        The name of the component that should be accessed.  This assumes the
-        actual value is stored in an attribute of that name prefixed by '_'.
-    """
-    # This has to be done in a function to ensure the reference to component
-    # is not lost/redirected.
-    component = "_" + component
-
-    def get_component(self):
-        return getattr(self, component)
-
-    return get_component
 
 
 class RepresentationInfo(BaseRepresentationOrDifferentialInfo):
@@ -651,7 +614,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 raise ValueError(f'Representation "{repr_name}" already defined')
 
         REPRESENTATION_CLASSES[repr_name] = cls
-        _invalidate_reprdiff_cls_hash()
+        get_reprdiff_cls_hash.cache_clear()
 
         # define getters for any component that does not yet have one.
         for component in cls.attr_classes:
@@ -660,7 +623,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                     cls,
                     component,
                     property(
-                        _make_getter(component),
+                        lambda self, comp=f"_{component}": getattr(self, comp),
                         doc=f"The '{component}' component of the points(s).",
                     ),
                 )
@@ -812,7 +775,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         if not self.differentials and differential_class:
             raise ValueError("No differentials associated with this representation!")
 
-        elif (
+        if (
             len(self.differentials) == 1
             and isinstance(differential_class, type)
             and issubclass(differential_class, BaseDifferential)
@@ -841,8 +804,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                         "compatible with the desired "
                         f"representation class {new_rep.__class__}"
                     ) from err
-                else:
-                    raise
+                raise
 
         return new_diffs
 
@@ -1303,7 +1265,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
             raise ValueError(f"Differential class {repr_name} already defined")
 
         DIFFERENTIAL_CLASSES[repr_name] = cls
-        _invalidate_reprdiff_cls_hash()
+        get_reprdiff_cls_hash.cache_clear()
 
         # If not defined explicitly, create properties for the components.
         for component in cls.attr_classes:
@@ -1312,7 +1274,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
                     cls,
                     component,
                     property(
-                        _make_getter(component),
+                        lambda self, comp=f"_{component}": getattr(self, comp),
                         doc=f"Component '{component}' of the Differential.",
                     ),
                 )

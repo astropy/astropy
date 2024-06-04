@@ -100,10 +100,10 @@ processing, and data analysis.
     .. grid-item-card::
         :img-top: _static/index-images/api.svg
 
-        Project details
+        Project Details
         ^^^^^^^^^^^^^^^
 
-        More details about the project (changelog and what's new pages).
+        What's new in the latest release, changelog, and other project details.
 
         +++
 

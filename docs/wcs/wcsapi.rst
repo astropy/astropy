@@ -61,6 +61,7 @@ simple image with two celestial axes (Right Ascension and Declination)::
     >>> wcs = WCS(hdu.header)  # doctest: +REMOTE_DATA
     >>> wcs  # doctest: +REMOTE_DATA
     WCS Keywords
+    <BLANKLINE>
     Number of WCS axes: 2
     CTYPE : 'RA---TAN'  'DEC--TAN'
     CRVAL : 266.4  -28.93333
@@ -131,7 +132,7 @@ the nearest integer values::
     >>> index  # doctest: +REMOTE_DATA
     (357, 357)
     >>> hdu.data[index]  # doctest: +REMOTE_DATA +FLOAT_CMP
-    563.7532
+    np.float32(563.7532)
     >>> hdulist.close()  # doctest: +REMOTE_DATA
 
 Advanced usage
@@ -199,7 +200,7 @@ And as before we can index array values using::
     >>> index  # doctest: +REMOTE_DATA
     (7, 71, 8)
     >>> hdu.data[index]  # doctest: +REMOTE_DATA +FLOAT_CMP
-    0.22262384
+    np.float32(0.22262384)
     >>> hdulist.close()  # doctest: +REMOTE_DATA
 
 If you are interested in converting to/from world values as simple Python scalars

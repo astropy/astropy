@@ -133,9 +133,9 @@ class _ImageBaseHDU(_ValidHDU):
         # Set the name attribute if it was provided (if this is an ImageHDU
         # this will result in setting the EXTNAME keyword of the header as
         # well)
-        if "name" in kwargs and kwargs["name"]:
+        if kwargs.get("name"):
             self.name = kwargs["name"]
-        if "ver" in kwargs and kwargs["ver"]:
+        if kwargs.get("ver"):
             self.ver = kwargs["ver"]
 
         # Set to True if the data or header is replaced, indicating that
@@ -704,9 +704,8 @@ class _ImageBaseHDU(_ValidHDU):
             # NOTE: the inplace flag to byteswap needs to be False otherwise the array is
             # byteswapped in place every time it is computed and this affects
             # the input dask array.
-            output = output.map_blocks(M.byteswap, False).map_blocks(
-                M.newbyteorder, "S"
-            )
+            output = output.map_blocks(M.byteswap, False)
+            output = output.view(output.dtype.newbyteorder("S"))
 
         initial_position = fileobj.tell()
         n_bytes = output.nbytes

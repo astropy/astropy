@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 from numpy import ma
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose, assert_array_equal, assert_equal
 
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB, HAS_PLT
 from astropy.visualization.interval import ManualInterval, PercentileInterval
@@ -32,6 +32,11 @@ class TestNormalize:
         with pytest.raises(TypeError):
             ImageNormalize(vmin=2.0, vmax=10.0, interval=ManualInterval, clip=True)
 
+    def test_invalid_vmin_vmax(self):
+        with pytest.raises(ValueError):
+            norm = ImageNormalize(vmin=10.0, vmax=2.0)
+            norm(10)
+
     def test_invalid_stretch(self):
         with pytest.raises(TypeError):
             ImageNormalize(vmin=2.0, vmax=10.0, stretch=SqrtStretch, clip=True)
@@ -47,6 +52,11 @@ class TestNormalize:
         )
         assert_allclose(norm(6), 0.70710678)
         assert_allclose(norm(6), norm2(6))
+
+    def test_vmin_vmax_equal(self):
+        norm = ImageNormalize(vmin=2.0, vmax=2.0)
+        data = np.arange(10) - 5.0
+        assert_array_equal(norm(data), 0)
 
     def test_clip(self):
         norm = ImageNormalize(vmin=2.0, vmax=10.0, stretch=SqrtStretch(), clip=True)
@@ -204,7 +214,7 @@ class TestImageScaling:
     def test_sqrt_invalid_kw(self, invalid):
         stretch = SqrtStretch()
         norm1 = simple_norm(
-            DATA3, stretch="sqrt", min_cut=-1, max_cut=1, clip=False, invalid=invalid
+            DATA3, stretch="sqrt", vmin=-1, vmax=1, clip=False, invalid=invalid
         )
         norm2 = ImageNormalize(
             stretch=stretch, vmin=-1, vmax=1, clip=False, invalid=invalid
@@ -252,7 +262,7 @@ class TestImageScaling:
 
     def test_min(self):
         """Test linear scaling."""
-        norm = simple_norm(DATA2, stretch="linear", min_cut=1.0, clip=True)
+        norm = simple_norm(DATA2, stretch="linear", vmin=1.0, clip=True)
         assert_allclose(norm(DATA2), [0.0, 0.0, 1.0], atol=0, rtol=1.0e-5)
 
     def test_percent(self):

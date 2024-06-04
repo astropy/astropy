@@ -4,9 +4,15 @@ ci:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
       - id: check-added-large-files
+        args: ["--enforce-all", "--maxkb=300"]
+        exclude: "^(\
+            cextern/wcslib/C/flexed/.*|\
+            CHANGES.rst|\
+            astropy/extern/jquery/data/js/jquery.dataTables.js|\
+        )$"
         # Prevent giant files from being committed.
       - id: check-case-conflict
         # Check for files with names that would conflict on a case-insensitive
@@ -54,13 +60,14 @@ repos:
           - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.1.9"
+    rev: "v0.4.4"
     hooks:
       - id: ruff
         args: ["--fix", "--show-fixes"]
+      - id: ruff-format
 
   - repo: https://github.com/scientific-python/cookie
-    rev: 2023.12.21
+    rev: 2024.04.23
     hooks:
       - id: sp-repo-review
 
@@ -100,11 +107,6 @@ repos:
               docs/ |
               examples/
           )
-
-  - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 23.12.1
-    hooks:
-      - id: black
 
   - repo: local
     hooks:

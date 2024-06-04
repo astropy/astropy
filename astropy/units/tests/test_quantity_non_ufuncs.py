@@ -1,7 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+from __future__ import annotations
+
 import inspect
 import itertools
-from types import FunctionType, ModuleType
+from typing import TYPE_CHECKING
 
 import numpy as np
 import numpy.lib.recfunctions as rfn
@@ -23,6 +26,10 @@ from astropy.utils.compat import (
     NUMPY_LT_1_25,
     NUMPY_LT_2_0,
 )
+
+if TYPE_CHECKING:
+    from types import FunctionType, ModuleType
+
 
 VAR_POSITIONAL = inspect.Parameter.VAR_POSITIONAL
 VAR_KEYWORD = inspect.Parameter.VAR_KEYWORD
@@ -315,8 +322,8 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
     @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.asfarray is removed in NumPy 2.0")
     @needs_array_function
     def test_asfarray(self):
-        self.check(np.asfarray)
-        farray = np.asfarray(a=self.q)
+        self.check(np.asfarray)  # noqa: NPY201
+        farray = np.asfarray(a=self.q)  # noqa: NPY201
         assert_array_equal(farray, self.q)
 
     def test_empty_like(self):
@@ -667,13 +674,13 @@ class TestUfuncReductions(InvariantUnitTestSetup):
         with pytest.raises(TypeError):
             np.all(self.q)
 
-    # NUMPY_LT_1_25
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.sometrue is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`sometrue` is deprecated as of NumPy 1.25.0")
     def test_sometrue(self):
         with pytest.raises(TypeError):
             np.sometrue(self.q)  # noqa: NPY003
 
-    # NUMPY_LT_1_25
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.alltrue is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`alltrue` is deprecated as of NumPy 1.25.0")
     def test_alltrue(self):
         with pytest.raises(TypeError):
@@ -683,7 +690,7 @@ class TestUfuncReductions(InvariantUnitTestSetup):
         with pytest.raises(u.UnitsError):
             np.prod(self.q)
 
-    # NUMPY_LT_1_25
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.product is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`product` is deprecated as of NumPy 1.25.0")
     def test_product(self):
         with pytest.raises(u.UnitsError):
@@ -693,7 +700,9 @@ class TestUfuncReductions(InvariantUnitTestSetup):
         with pytest.raises(u.UnitsError):
             np.cumprod(self.q)
 
-    # NUMPY_LT_1_25
+    @pytest.mark.skipif(
+        not NUMPY_LT_2_0, reason="np.cumproduct is removed in NumPy 2.0"
+    )
     @pytest.mark.filterwarnings("ignore:`cumproduct` is deprecated as of NumPy 1.25.0")
     def test_cumproduct(self):
         with pytest.raises(u.UnitsError):
@@ -708,11 +717,10 @@ class TestUfuncLike(InvariantUnitTestSetup):
     def test_round(self):
         self.check(np.round)
 
-    # NUMPY_LT_1_25
     @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.round_ is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`round_` is deprecated as of NumPy 1.25.0")
     def test_round_(self):
-        self.check(np.round_)  # noqa: NPY003
+        self.check(np.round_)  # noqa: NPY003, NPY201
 
     def test_around(self):
         self.check(np.around)
@@ -1171,22 +1179,31 @@ class TestVariousProductFunctions:
 
 
 class TestIntDiffFunctions:
-    @pytest.mark.filterwarnings("ignore:`trapz` is deprecated. Use `scipy.*")
-    def test_trapz(self):
+    def check_trapezoid(self, func):
         y = np.arange(9.0) * u.m / u.s
-        out = np.trapz(y)
-        expected = np.trapz(y.value) * y.unit
+        out = func(y)
+        expected = func(y.value) * y.unit
         assert np.all(out == expected)
 
         dx = 10.0 * u.s
-        out = np.trapz(y, dx=dx)
-        expected = np.trapz(y.value, dx=dx.value) * y.unit * dx.unit
+        out = func(y, dx=dx)
+        expected = func(y.value, dx=dx.value) * y.unit * dx.unit
         assert np.all(out == expected)
 
         x = np.arange(9.0) * u.s
-        out = np.trapz(y, x)
-        expected = np.trapz(y.value, x.value) * y.unit * x.unit
+        out = func(y, x)
+        expected = func(y.value, x.value) * y.unit * x.unit
         assert np.all(out == expected)
+
+    if NUMPY_LT_2_0:
+
+        def test_trapz(self):
+            self.check_trapezoid(np.trapz)
+
+    else:
+
+        def test_trapezoid(self):
+            self.check_trapezoid(np.trapezoid)
 
     def test_diff(self):
         # Simple diff works out of the box.
@@ -1990,7 +2007,7 @@ class TestSetOpsFunctions:
             assert_array_equal(res, values)
 
     @needs_array_function
-    @pytest.mark.parametrize("kwargs", (dict(), dict(return_indices=True)))
+    @pytest.mark.parametrize("kwargs", ({}, dict(return_indices=True)))
     def test_intersect1d(self, kwargs):
         self.check2(np.intersect1d, **kwargs)
 
@@ -2617,15 +2634,7 @@ class TestFunctionHelpersCompleteness:
         assert IGNORED_FUNCTIONS | TBD_FUNCTIONS == untested_functions
 
 
-@pytest.mark.parametrize(
-    "target, helper",
-    sorted(
-        itertools.chain(FUNCTION_HELPERS.items(), DISPATCHED_FUNCTIONS.items()),
-        key=lambda items: items[0].__name__,
-    ),
-    ids=lambda func: func.__name__,
-)
-class TestFunctionHelpersSignatureCompatibility:
+class CheckSignatureCompatibilityBase:
     """
     Check that a helper function's signature is *at least* as flexible
     as the helped (target) function's. E.g., any argument that is allowed positionally,
@@ -2635,6 +2644,10 @@ class TestFunctionHelpersSignatureCompatibility:
     duplication, and also help with forward and backward compatibility.
     See https://github.com/astropy/astropy/issues/15703
     """
+
+    # this is an abstract base test class, meant to allow reuse with minimal
+    # code duplication. Concrete implementations should be decorated with
+    # @pytest.mark.parametrize("target, helper", ...)
 
     @staticmethod
     def have_catchall_argument(parameters, kind) -> bool:
@@ -2679,7 +2692,8 @@ class TestFunctionHelpersSignatureCompatibility:
 
             if kt in (KEYWORD_ONLY, POSITIONAL_OR_KEYWORD):
                 if nt in params_helper:
-                    assert (kh := params_helper[nt].kind) is kt, (
+                    kh = params_helper[nt].kind
+                    assert kh is kt, (
                         f"helper is not re-exposing argument {nt!r} properly: "
                         f"expected {kt}, got {kh}"
                     )
@@ -2736,7 +2750,8 @@ class TestFunctionHelpersSignatureCompatibility:
             name for name in keyword_allowed_helper if not name.startswith("_")
         }
 
-        assert not (diff := keyword_allowed_helper - keyword_allowed_target), (
+        diff = keyword_allowed_helper - keyword_allowed_target
+        assert not diff, (
             "Found some keyword-allowed parameters in helper "
             f"that are unknown to target: {diff}"
         )
@@ -2754,3 +2769,15 @@ class TestFunctionHelpersSignatureCompatibility:
                 f"Default value mismatch for argument {name!r}. "
                 f"Helper has {ph.default!r}, target has {pt.default!r}"
             )
+
+
+@pytest.mark.parametrize(
+    "target, helper",
+    sorted(
+        (*FUNCTION_HELPERS.items(), *DISPATCHED_FUNCTIONS.items()),
+        key=lambda items: items[0].__name__,
+    ),
+    ids=lambda func: func.__name__,
+)
+class TestFunctionHelpersSignatureCompatibility(CheckSignatureCompatibilityBase):
+    pass

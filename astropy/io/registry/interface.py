@@ -2,6 +2,7 @@
 
 import inspect
 import os
+import pydoc
 import re
 
 from .base import IORegistryError
@@ -63,7 +64,7 @@ class UnifiedReadWrite:
         ----------
         format : str
             Unified I/O format name, e.g. 'fits' or 'ascii.ecsv'
-        out : None or path-like
+        out : None or file-like
             Output destination (default is stdout via a pager)
         """
         cls = self._cls
@@ -100,8 +101,6 @@ class UnifiedReadWrite:
                 reader_doc += inspect.cleandoc(doc)
 
         if out is None:
-            import pydoc
-
             pydoc.pager(reader_doc)
         else:
             out.write(reader_doc)

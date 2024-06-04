@@ -4,6 +4,7 @@ This file contains pytest configuration settings that are astropy-specific
 (i.e.  those that would not necessarily be shared by affiliated packages
 making use of astropy's test runner).
 """
+
 import builtins
 import os
 import sys
@@ -19,12 +20,6 @@ except ImportError:
 import pytest
 
 from astropy import __version__
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
-
-if not NUMPY_LT_2_0:
-    import numpy as np
-
-    np.set_printoptions(legacy="1.25")
 
 # This is needed to silence a warning from matplotlib caused by
 # PyInstaller's matplotlib runtime hook.  This can be removed once the
@@ -40,7 +35,7 @@ if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 
 if HAS_MATPLOTLIB:
-    import matplotlib
+    import matplotlib as mpl
 
 matplotlibrc_cache = {}
 
@@ -78,9 +73,9 @@ def pytest_configure(config):
     if HAS_MATPLOTLIB:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            matplotlibrc_cache.update(matplotlib.rcParams)
-            matplotlib.rcdefaults()
-            matplotlib.use("Agg")
+            matplotlibrc_cache.update(mpl.rcParams)
+            mpl.rcdefaults()
+            mpl.use("Agg")
 
     # Make sure we use temporary directories for the config and cache
     # so that the tests are insensitive to local configuration. Note that this
@@ -103,6 +98,21 @@ def pytest_configure(config):
     PYTEST_HEADER_MODULES["asdf-astropy"] = "asdf_astropy"
     TESTED_VERSIONS["Astropy"] = __version__
 
+    # Limit the number of threads used by each worker when pytest-xdist is in
+    # use.  Lifted from https://github.com/scipy/scipy/pull/14441
+    # and https://github.com/scikit-learn/scikit-learn/pull/25918
+    try:
+        from threadpoolctl import threadpool_limits
+    except ImportError:
+        pass
+    else:
+        xdist_worker_count = os.environ.get("PYTEST_XDIST_WORKER_COUNT")
+        if xdist_worker_count is not None:
+            # use number of physical cores, assume hyperthreading
+            max_threads = os.cpu_count() // 2
+            threads_per_worker = max(max_threads // int(xdist_worker_count), 1)
+            threadpool_limits(threads_per_worker)
+
 
 def pytest_unconfigure(config):
     from astropy.utils.iers import conf as iers_conf
@@ -115,7 +125,7 @@ def pytest_unconfigure(config):
     if HAS_MATPLOTLIB:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            matplotlib.rcParams.update(matplotlibrc_cache)
+            mpl.rcParams.update(matplotlibrc_cache)
             matplotlibrc_cache.clear()
 
     if builtins._xdg_config_home_orig is None:
@@ -132,7 +142,8 @@ def pytest_unconfigure(config):
 def pytest_terminal_summary(terminalreporter):
     """Output a warning to IPython users in case any tests failed."""
     try:
-        get_ipython()
+        # this name is only defined if running within ipython/jupyter
+        __IPYTHON__  # noqa: B018
     except NameError:
         return
 

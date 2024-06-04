@@ -171,10 +171,11 @@ def test_formats(format, expected):
         ax = fig.add_subplot(1, 1, 1)
         # Getting unix time and plot_date requires going through a scale for
         # which ERFA emits a warning about the date being dubious
-        with pytest.warns(ErfaWarning) if format in [
-            "unix",
-            "plot_date",
-        ] else nullcontext():
+        with (
+            pytest.warns(ErfaWarning)
+            if format in ["unix", "plot_date"]
+            else nullcontext()
+        ):
             ax.set_xlim(
                 Time("2014-03-22T12:30:30.9", scale=DEFAULT_SCALE),
                 Time("2077-03-22T12:30:32.1", scale=DEFAULT_SCALE),
@@ -191,10 +192,11 @@ def test_auto_formats(format, expected):
         ax = fig.add_subplot(1, 1, 1)
         # Getting unix time and plot_date requires going through a scale for
         # which ERFA emits a warning about the date being dubious
-        with pytest.warns(ErfaWarning) if format in [
-            "unix",
-            "plot_date",
-        ] else nullcontext():
+        with (
+            pytest.warns(ErfaWarning)
+            if format in ["unix", "plot_date"]
+            else nullcontext()
+        ):
             ax.set_xlim(
                 Time(Time("2014-03-22T12:30:30.9", scale=DEFAULT_SCALE), format=format),
                 Time("2077-03-22T12:30:32.1", scale=DEFAULT_SCALE),

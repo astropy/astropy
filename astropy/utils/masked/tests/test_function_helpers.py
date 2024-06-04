@@ -10,13 +10,16 @@ TODO: finish full coverage (see also `~astropy.utils.masked.function_helpers`)
 - np.fft (is there any point?)
 
 """
+
 import itertools
 
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
+import astropy.units as u
 from astropy.units.tests.test_quantity_non_ufuncs import (
+    CheckSignatureCompatibilityBase,
     get_covered_functions,
     get_wrapped_functions,
 )
@@ -24,6 +27,7 @@ from astropy.utils.compat import (
     NUMPY_LT_1_24,
     NUMPY_LT_1_25,
     NUMPY_LT_2_0,
+    NUMPY_LT_2_1,
 )
 from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.masked.function_helpers import (
@@ -177,14 +181,24 @@ class TestArgFunctions(MaskedArraySetup):
     def test_nonzero(self):
         self.check(np.nonzero, fill_value=0.0)
 
+    @pytest.mark.skipif(
+        not NUMPY_LT_2_1, reason="support for 0d arrays was removed in numpy 2.1"
+    )
     @pytest.mark.filterwarnings("ignore:Calling nonzero on 0d arrays is deprecated")
-    def test_nonzero_0d(self):
+    def test_nonzero_0d_np_lt_2_1(self):
         res1 = Masked(1, mask=False).nonzero()
         assert len(res1) == 1
-        assert_array_equal(res1[0], np.ones(()).nonzero()[0])
+        assert_array_equal(res1[0], 0)
         res2 = Masked(1, mask=True).nonzero()
         assert len(res2) == 1
-        assert_array_equal(res2[0], np.zeros(()).nonzero()[0])
+        assert_array_equal(res2[0], 0)
+
+    @pytest.mark.skipif(
+        NUMPY_LT_2_1, reason="support for 0d arrays was removed in numpy 2.1"
+    )
+    def test_nonzero_0d_np_ge_2_1(self):
+        with pytest.raises(ValueError):
+            Masked(1, mask=False).nonzero()
 
     def test_argwhere(self):
         self.check(np.argwhere, fill_value=0.0)
@@ -288,8 +302,8 @@ class TestCopyAndCreation(InvariantMaskTestSetup):
 
     @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.asfarray is removed in NumPy 2.0")
     def test_asfarray(self):
-        self.check(np.asfarray)
-        farray = np.asfarray(a=self.ma)
+        self.check(np.asfarray)  # noqa: NPY201
+        farray = np.asfarray(a=self.ma)  # noqa: NPY201
         assert_array_equal(farray, self.ma)
 
     if not NUMPY_LT_2_0:
@@ -519,12 +533,21 @@ class TestConcatenate(MaskedArraySetup):
 
     def test_block(self):
         self.check(np.block)
-
+        # Check that this also works on MaskedQuantity, properly propagating
+        # the fact that we are based on MaskedNDArray.
+        self.check(np.block, ma_list=[self.ma << u.m, self.mc << u.km])
+        # And check a mix of float and masked values, with different dtype.
         out = np.block([[0.0, Masked(1.0, True)], [Masked(1, False), Masked(2, False)]])
         expected = np.array([[0, 1.0], [1, 2]])
         expected_mask = np.array([[False, True], [False, False]])
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
+        # And check single array.
+        in2 = Masked([1.0], [True])
+        out2 = np.block(Masked([1.0], [True]))
+        assert not np.may_share_memory(out2, in2)
+        assert_array_equal(out2.unmasked, in2.unmasked)
+        assert_array_equal(out2.mask, in2.mask)
 
     def test_append(self):
         out = np.append(self.ma, self.mc, axis=1)
@@ -617,12 +640,12 @@ class TestMethodLikes(MaskedArraySetup):
     def test_all(self):
         self.check(np.all)
 
-    # NUMPY_LT_1_25
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.sometrue is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`sometrue` is deprecated as of NumPy 1.25.0")
     def test_sometrue(self):
         self.check(np.sometrue, method="any")  # noqa: NPY003
 
-    # NUMPY_LT_1_25
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.alltrue is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`alltrue` is deprecated as of NumPy 1.25.0")
     def test_alltrue(self):
         self.check(np.alltrue, method="all")  # noqa: NPY003
@@ -630,7 +653,7 @@ class TestMethodLikes(MaskedArraySetup):
     def test_prod(self):
         self.check(np.prod)
 
-    # NUMPY_LT_1_25
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.product is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`product` is deprecated as of NumPy 1.25.0")
     def test_product(self):
         self.check(np.product, method="prod")  # noqa: NPY003
@@ -638,7 +661,9 @@ class TestMethodLikes(MaskedArraySetup):
     def test_cumprod(self):
         self.check(np.cumprod)
 
-    # NUMPY_LT_1_25
+    @pytest.mark.skipif(
+        not NUMPY_LT_2_0, reason="np.cumproduct is removed in NumPy 2.0"
+    )
     @pytest.mark.filterwarnings("ignore:`cumproduct` is deprecated as of NumPy 1.25.0")
     def test_cumproduct(self):
         self.check(np.cumproduct, method="cumprod")  # noqa: NPY003
@@ -646,11 +671,10 @@ class TestMethodLikes(MaskedArraySetup):
     def test_round(self):
         self.check(np.round, method="round")
 
-    # NUMPY_LT_1_25
     @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.round_ is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`round_` is deprecated as of NumPy 1.25.0")
     def test_round_(self):
-        self.check(np.round_, method="round")  # noqa: NPY003
+        self.check(np.round_, method="round")  # noqa: NPY003, NPY201
 
     def test_around(self):
         self.check(np.around, method="round")
@@ -1003,13 +1027,22 @@ class TestIntDiffFunctions(MaskedArraySetup):
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
 
-    @pytest.mark.filterwarnings("ignore:`trapz` is deprecated. Use `scipy.*")
-    def test_trapz(self):
+    def check_trapezoid(self, func):
         ma = self.ma.copy()
         ma.mask[1] = False
-        out = np.trapz(ma)
-        assert_array_equal(out.unmasked, np.trapz(self.a))
+        out = func(ma)
+        assert_array_equal(out.unmasked, func(self.a))
         assert_array_equal(out.mask, np.array([True, False]))
+
+    if NUMPY_LT_2_0:
+
+        def test_trapz(self):
+            self.check_trapezoid(np.trapz)
+
+    else:
+
+        def test_trapezoid(self):
+            self.check_trapezoid(np.trapezoid)
 
     def test_gradient(self):
         out = np.gradient(self.ma)
@@ -1052,11 +1085,12 @@ class TestSpaceFunctions:
         expected_mask = np.broadcast_to(
             self.mask_a | self.mask_b, expected.shape
         ).copy()
-        # TODO: make implementation that also ensures start point mask is
-        # determined just by start point? (as for geomspace in numpy 1.20)?
-        expected_mask[-1] = self.mask_b
+        # TODO: make implementations that ensure both start and stop masks
+        # are determined just by their respective point?
         if function is np.geomspace:
             expected_mask[0] = self.mask_a
+        if NUMPY_LT_2_0 or function is not np.geomspace:
+            expected_mask[-1] = self.mask_b
 
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
@@ -1441,6 +1475,198 @@ class TestNaNFunctions:
         self.check(np.nanpercentile, q=50)
 
 
+class TestArraySetOps:
+    """Tests based on those from numpy.ma.tests.test_extras.
+
+    Adjusted to take into account that comparing masked values should
+    result in masked equality.
+
+    """
+
+    @classmethod
+    def setup_class(self):
+        # Setup for unique (names as in unique_all NamedTuple)
+        # input data, unique values, indices in data to those,
+        # inverse indices in values to reconstruct data, counts.
+        self.data = Masked([1, 1, 1, 2, 2, 3], mask=[0, 0, 1, 0, 1, 0])
+        self.values = Masked([1, 2, 3, 1, 2], mask=[0, 0, 0, 1, 1])
+        self.indices = np.array([0, 3, 5, 2, 4])
+        self.inverse_indices = np.array([0, 0, 3, 1, 4, 2])
+        self.counts = np.array([2, 1, 1, 1, 1])
+
+    @pytest.mark.parametrize("dtype", [int, float, object])
+    def test_unique(self, dtype):
+        values, indices, inverse_indices = np.unique(
+            self.data.astype(dtype), return_index=True, return_inverse=True
+        )
+        assert_masked_equal(values, self.values.astype(dtype))
+        assert_array_equal(indices, self.indices)
+        assert_array_equal(inverse_indices, self.inverse_indices)
+        # All masked
+        data2 = Masked([2, 1, 3], mask=True)
+        values2, indices2, inverse_indices2 = np.unique(
+            data2.astype(dtype), return_index=True, return_inverse=True
+        )
+        expected_values2 = Masked([1, 2, 3], mask=True)
+        assert_masked_equal(values2, expected_values2.astype(dtype))
+        assert_array_equal(indices2, [1, 0, 2])
+        assert_array_equal(inverse_indices2, [1, 0, 2])
+
+    @pytest.mark.skipif(NUMPY_LT_2_0, reason="new in numpy 2.0")
+    def check_unique(self, test):
+        for name in test._fields:
+            assert_array_equal(getattr(test, name), getattr(self, name))
+
+    @pytest.mark.skipif(NUMPY_LT_2_0, reason="new in numpy 2.0")
+    def test_unique_all(self):
+        test = np.unique_all(self.data)
+        assert len(test) == 4
+        self.check_unique(test)
+
+    @pytest.mark.skipif(NUMPY_LT_2_0, reason="new in numpy 2.0")
+    def test_unique_counts(self):
+        test = np.unique_counts(self.data)
+        assert len(test) == 2
+        self.check_unique(test)
+
+    @pytest.mark.skipif(NUMPY_LT_2_0, reason="new in numpy 2.0")
+    def test_unique_inverse(self):
+        test = np.unique_inverse(self.data)
+        assert len(test) == 2
+        self.check_unique(test)
+
+    @pytest.mark.skipif(NUMPY_LT_2_0, reason="new in numpy 2.0")
+    def test_unique_values(self):
+        test = np.unique_values(self.data)
+        assert isinstance(test, Masked)
+        assert_array_equal(test, self.values)
+
+    def test_ediff1d(self):
+        x = Masked(np.arange(5), mask=[1, 0, 0, 0, 1])
+        control = Masked([1, 1, 1, 1], mask=[1, 0, 0, 1])
+        test = np.ediff1d(x)
+        assert_masked_equal(test, control)
+        # Test ediff1d w/ to_begin
+        test2 = np.ediff1d(x, to_begin=Masked(10, mask=True))
+        control2 = Masked([10, 1, 1, 1, 1], mask=[1, 1, 0, 0, 1])
+        assert_masked_equal(test2, control2)
+        test3 = np.ediff1d(x, to_begin=[1, 2, 3])
+        control3 = Masked([1, 2, 3, 1, 1, 1, 1], mask=[0, 0, 0, 1, 0, 0, 1])
+        assert_masked_equal(test3, control3)
+        # Test ediff1d w/ to_end
+        test4 = np.ediff1d(x, to_end=Masked(10, mask=True))
+        control4 = Masked([1, 1, 1, 1, 10], mask=[1, 0, 0, 1, 1])
+        assert_masked_equal(test4, control4)
+        test5 = np.ediff1d(x, to_end=[1, 2, 3])
+        control5 = Masked([1, 1, 1, 1, 1, 2, 3], mask=[1, 0, 0, 1, 0, 0, 0])
+        assert_masked_equal(test5, control5)
+        # Test ediff1d w/ to_begin and to_end
+        test6 = np.ediff1d(
+            x, to_end=Masked(10, mask=True), to_begin=Masked(20, mask=True)
+        )
+        control6 = Masked([20, 1, 1, 1, 1, 10], mask=[1, 1, 0, 0, 1, 1])
+        assert_masked_equal(test6, control6)
+        test7 = np.ediff1d(x, to_end=[1, 2, 3], to_begin=Masked(10, mask=True))
+        control7 = Masked([10, 1, 1, 1, 1, 1, 2, 3], mask=[1, 1, 0, 0, 1, 0, 0, 0])
+        assert_masked_equal(test7, control7)
+        # Test ediff1d w/ a ndarray
+        test8 = np.ediff1d(
+            np.arange(5), to_end=Masked(10, mask=True), to_begin=Masked(20, mask=True)
+        )
+        control8 = Masked([20, 1, 1, 1, 1, 10], mask=[1, 0, 0, 0, 0, 1])
+        assert_masked_equal(test8, control8)
+
+    def test_intersect1d(self):
+        x = Masked([1, 3, 3, 3, 4], mask=[0, 0, 0, 1, 1])
+        y = Masked([3, 1, 1, 1, 4], mask=[0, 0, 0, 1, 1])
+        test = np.intersect1d(x, y)
+        control = Masked([1, 3, 4], mask=[0, 0, 1])
+        assert_masked_equal(test, control)
+
+    def test_setxor1d(self):
+        a = Masked([1, 2, 5, 7, -1], mask=[0, 0, 0, 0, 1])
+        b = Masked([1, 2, 3, 4, 5, -1], mask=[0, 0, 0, 0, 0, 1])
+        test = np.setxor1d(a, b)
+        assert_masked_equal(test, Masked([3, 4, 7]))
+        a = Masked([1, 2, 5, 7, -1], mask=[0, 0, 0, 0, 1])
+        b = [1, 2, 3, 4, 5]
+        test = np.setxor1d(a, b)
+        assert_masked_equal(test, Masked([3, 4, 7, -1], mask=[0, 0, 0, 1]))
+        a = Masked([1, 8, 2, 3], mask=[0, 1, 0, 0])
+        b = Masked([6, 5, 4, 8], mask=[0, 0, 0, 1])
+        test = np.setxor1d(a, b)
+        assert_masked_equal(test, Masked([1, 2, 3, 4, 5, 6]))
+        #
+        assert_masked_equal(np.setxor1d(Masked([]), []), Masked([]))
+
+    @pytest.mark.parametrize("dtype", [int, float, object])
+    def test_isin(self, dtype):
+        a = np.arange(24).reshape((2, 3, 4))
+        mask = np.zeros(a.shape, bool)
+        mask[1, 2, 0] = 1  # 20
+        mask[1, 2, 1] = 1  # 21
+        a = Masked(a, mask=mask)
+        b = Masked([0, 10, 20, 30, 1, 3, 11, 21, 33], mask=[0, 1, 0, 1, 0, 1, 0, 1, 0])
+        # unmasked 0, 20, 1, 11, 33, masked 10, 30, 3, 21
+        ec = np.zeros((2, 3, 4), dtype=bool)
+        ec[0, 0, 0] = True  # 0
+        ec[0, 0, 1] = True  # 1
+        ec[0, 2, 3] = True  # 11
+        ec[1, 2, 1] = True  # masked 21
+        ec = Masked(ec, mask)
+        c = np.isin(a.astype(dtype), b.astype(dtype))
+        assert_masked_equal(c, ec)
+
+    @pytest.mark.filterwarnings("ignore:in1d.*deprecated")  # not NUMPY_LT_2_0
+    def test_in1d(self):
+        # Once we require numpy>=2.0, these tests should be joined with np.isin.
+        a = Masked([1, 2, 5, -2, -1], mask=[0, 0, 0, 1, 1])
+        b = Masked([1, 2, 3, 4, 5, -2], mask=[0, 0, 0, 0, 0, 1])
+        test = np.in1d(a, b)
+        assert_masked_equal(test, Masked([True, True, True, True, False], mask=a.mask))
+        assert_array_equal(np.in1d(a, b, invert=True), ~test)
+
+        a = Masked([5, 5, 2, -2, -1], mask=[0, 0, 0, 1, 1])
+        b = Masked([1, 5, -1], mask=[0, 0, 1])
+        test = np.in1d(a, b)
+        assert_masked_equal(test, Masked([True, True, False, False, True], mask=a.mask))
+
+        assert_masked_equal(np.in1d(Masked([]), []), Masked([]))
+        assert_masked_equal(np.in1d(Masked([]), [], invert=True), Masked([]))
+
+    @pytest.mark.skipif(NUMPY_LT_1_24, reason="kind introduced in numpy 1.24")
+    def test_in1d_kind_table_error(self):
+        with pytest.raises(ValueError, match="'table' method is not supported"):
+            np.in1d(Masked([1, 2, 3]), [4, 5], kind="table")
+
+    @pytest.mark.parametrize("dtype", [int, float, object])
+    def test_union1d(self, dtype):
+        a = Masked([1, 2, 5, 7, 5, 5], mask=[0, 0, 0, 0, 0, 1])
+        b = Masked([1, 2, 3, 4, 5, 6], mask=[0, 0, 0, 0, 0, 1])
+        control = Masked([1, 2, 3, 4, 5, 7, 5, 6], mask=[0, 0, 0, 0, 0, 0, 1, 1])
+        test = np.union1d(a.astype(dtype), b.astype(dtype))
+        assert_masked_equal(test, control.astype(dtype))
+
+        assert_masked_equal(np.union1d(Masked([]), []), Masked([]))
+
+    def test_setdiff1d(self):
+        a = Masked([6, 5, 4, 7, 7, 1, 2, 1], mask=[0, 0, 0, 0, 0, 0, 0, 1])
+        b = np.array([2, 4, 3, 3, 2, 1, 5])
+        test = np.setdiff1d(a, b)
+        assert_masked_equal(test, Masked([6, 7, 1], mask=[0, 0, 1]))
+        b2 = Masked(b, mask=[1, 1, 1, 1, 0, 0, 0])
+        test2 = np.setdiff1d(a, b2)
+        assert_masked_equal(test2, Masked([4, 6, 7, 1], mask=[0, 0, 0, 1]))
+
+        a = Masked(np.array([], dtype=np.uint32), mask=[])
+        assert np.setdiff1d(a, []).dtype == np.uint32
+
+        a = Masked(["a", "b", "c"], mask=[0, 1, 1])
+        b = Masked(["a", "b", "s"], mask=[0, 1, 1])
+        test3 = np.setdiff1d(a, b, assume_unique=True)
+        assert_masked_equal(test3, Masked(["c"], True))
+
+
 # Get wrapped and covered functions.
 all_wrapped_functions = get_wrapped_functions(np)
 tested_functions = get_covered_functions(locals())
@@ -1499,3 +1725,15 @@ class TestFunctionHelpersCompleteness:
     @pytest.mark.xfail(reason="coverage not completely set up yet")
     def test_ignored_are_untested(self):
         assert IGNORED_FUNCTIONS == untested_functions
+
+
+@pytest.mark.parametrize(
+    "target, helper",
+    sorted(
+        DISPATCHED_FUNCTIONS.items(),
+        key=lambda items: items[0].__name__,
+    ),
+    ids=lambda func: func.__name__,
+)
+class TestFunctionHelpersSignatureCompatibility(CheckSignatureCompatibilityBase):
+    pass

@@ -7,6 +7,7 @@ from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
+from astropy.utils.compat.optional_deps import HAS_ARRAY_API_STRICT
 
 
 class TestQuantityArrayCopy:
@@ -347,37 +348,6 @@ class TestQuantityStatsFuncs:
         q1.cumsum(out=q1)
         assert np.all(q2 == qi)
 
-    @pytest.mark.filterwarnings("ignore:The nansum method is deprecated")
-    def test_nansum(self):
-        q1 = np.array([1.0, 2.0, np.nan]) * u.m
-        assert np.all(q1.nansum() == 3.0 * u.m)
-        assert np.all(np.nansum(q1) == 3.0 * u.m)
-
-        q2 = np.array([[np.nan, 5.0, 9.0], [1.0, np.nan, 1.0]]) * u.s
-        assert np.all(q2.nansum(0) == np.array([1.0, 5.0, 10.0]) * u.s)
-        assert np.all(np.nansum(q2, 0) == np.array([1.0, 5.0, 10.0]) * u.s)
-
-    @pytest.mark.filterwarnings("ignore:The nansum method is deprecated")
-    def test_nansum_inplace(self):
-        q1 = np.array([1.0, 2.0, np.nan]) * u.m
-        qi = 1.5 * u.s
-        qout = q1.nansum(out=qi)
-        assert qout is qi
-        assert qi == np.nansum(q1.value) * q1.unit
-
-        qi2 = 1.5 * u.s
-        qout2 = np.nansum(q1, out=qi2)
-        assert qout2 is qi2
-        assert qi2 == np.nansum(q1.value) * q1.unit
-
-    @pytest.mark.filterwarnings("ignore:The nansum method is deprecated")
-    def test_nansum_where(self):
-        q1 = np.array([1.0, 2.0, np.nan, 4.0]) * u.m
-        initial = 0 * u.m
-        where = q1 < 4 * u.m
-        assert np.all(q1.nansum(initial=initial, where=where) == 3.0 * u.m)
-        assert np.all(np.nansum(q1, initial=initial, where=where) == 3.0 * u.m)
-
     def test_prod(self):
         q1 = np.array([1, 2, 6]) * u.m
         with pytest.raises(u.UnitsError) as exc:
@@ -642,13 +612,11 @@ class TestStructuredArray:
         assert value.dtype.names == ("x", "y", "z")
 
 
-@pytest.mark.filterwarnings(
-    "ignore: The numpy.array_api submodule is still experimental. See NEP 47."
-)
+@pytest.mark.skipif(not HAS_ARRAY_API_STRICT, reason="requires array_api_strict")
 def test_array_api_init():
-    import numpy.array_api as np_api
+    import array_api_strict as xp
 
-    array = np_api.asarray([1, 2, 3])
+    array = xp.asarray([1, 2, 3])
     quantity_array = u.Quantity(array, u.m)
     assert type(quantity_array) is u.Quantity
     assert_array_equal(quantity_array, [1, 2, 3] * u.m)

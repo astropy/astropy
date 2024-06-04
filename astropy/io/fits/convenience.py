@@ -450,6 +450,13 @@ def writeto(
     checksum : bool, optional
         If `True`, adds both ``DATASUM`` and ``CHECKSUM`` cards to the
         headers of all HDU's written to the file.
+
+    Notes
+    -----
+    gzip, zip and bzip2 compression algorithms are natively supported.
+    Compression mode is determined from the filename extension
+    ('.gz', '.zip' or '.bz2' respectively).  It is also possible to pass a
+    compressed file object, e.g. `gzip.GzipFile`.
     """
     hdu = _makehdu(data, header)
     if hdu.is_image and not isinstance(hdu, PrimaryHDU):

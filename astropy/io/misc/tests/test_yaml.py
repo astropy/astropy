@@ -8,8 +8,9 @@ from io import StringIO
 
 import numpy as np
 import pytest
+from yaml import SafeDumper
 
-from astropy import units as u
+import astropy.units as u
 from astropy.coordinates import (
     Angle,
     CartesianDifferential,
@@ -24,7 +25,7 @@ from astropy.coordinates import (
     UnitSphericalRepresentation,
 )
 from astropy.coordinates.tests.test_representation import representation_equal
-from astropy.io.misc.yaml import dump, load, load_all
+from astropy.io.misc.yaml import AstropyDumper, dump, load, load_all
 from astropy.table import QTable, SerializedColumn
 from astropy.time import Time
 
@@ -48,6 +49,16 @@ from astropy.time import Time
 def test_numpy_types(c):
     cy = load(dump(c))
     assert c == cy
+
+
+@pytest.mark.parametrize("c", [float("inf"), float("-inf"), np.inf, -np.inf])
+def test_astropydumper_represent_float_override(c):
+    # AstropyDumper overrides SafeDumper.represent_float, which has multiple
+    # branches, not all of which are intended to deviate.
+    # Check that the subclass behave as its parent in these cases.
+    d1 = SafeDumper(stream=StringIO())
+    d2 = AstropyDumper(stream=StringIO())
+    assert d2.represent_float(c).value == d1.represent_float(c).value
 
 
 @pytest.mark.parametrize(

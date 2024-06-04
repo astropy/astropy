@@ -6,6 +6,7 @@ import numpy as np
 # Project
 from astropy import units as u
 from astropy.utils import ShapedLikeNDArray
+from astropy.utils.compat import COPY_IF_NEEDED
 
 __all__ = [
     "Attribute",
@@ -51,14 +52,32 @@ class Attribute:
     secondary_attribute : str
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
+    doc : str
+        Description of the frame attribute for help and documentation.
+        Information on the default value will be appended to this description.
     """
 
     name = "<unbound>"
 
-    def __init__(self, default=None, secondary_attribute=""):
+    def __init__(
+        self, default=None, secondary_attribute="", *, doc="A frame attribute"
+    ):
         self.default = default
         self.secondary_attribute = secondary_attribute
         super().__init__()
+
+        # Replace the class docstring with the custom docstring
+        self.__doc__ = doc
+
+        # Add information on the default value
+        if self.default is not None:
+            self.__doc__ += f"\n\nDefault: {self.default}"
+        elif self.secondary_attribute != "":
+            self.__doc__ += (
+                f"\n\nDefault: taken from `{self.secondary_attribute}` frame attribute"
+            )
+        else:
+            self.__doc__ += "\n\nNo default value"
 
     def __set_name__(self, owner, name):
         self.name = name
@@ -99,11 +118,12 @@ class Attribute:
 
     def __get__(self, instance, frame_cls=None):
         if instance is None:
-            out = self.default
-        else:
-            out = getattr(instance, "_" + self.name, self.default)
-            if out is None:
-                out = getattr(instance, self.secondary_attribute, self.default)
+            # Return the descriptor instance to enable the retrieval of the docstring
+            return self
+
+        out = getattr(instance, "_" + self.name, self.default)
+        if out is None:
+            out = getattr(instance, self.secondary_attribute, self.default)
 
         out, converted = self.convert_input(out)
         if instance is not None:
@@ -152,6 +172,8 @@ class TimeAttribute(Attribute):
     secondary_attribute : str
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
+    doc : str
+        Description of the frame attribute for help and documentation
     """
 
     def convert_input(self, value):
@@ -211,10 +233,12 @@ class CartesianRepresentationAttribute(Attribute):
     unit : unit-like or None
         Name of a unit that the input will be converted into. If None, no
         unit-checking or conversion is performed
+    doc : str
+        Description of the frame attribute for help and documentation
     """
 
-    def __init__(self, default=None, secondary_attribute="", unit=None):
-        super().__init__(default, secondary_attribute)
+    def __init__(self, default=None, secondary_attribute="", unit=None, **kwargs):
+        super().__init__(default, secondary_attribute, **kwargs)
         self.unit = unit
 
     def convert_input(self, value):
@@ -289,9 +313,13 @@ class QuantityAttribute(Attribute):
         unit-checking or conversion is performed
     shape : tuple or None, optional
         If given, specifies the shape the attribute must be
+    doc : str
+        Description of the frame attribute for help and documentation
     """
 
-    def __init__(self, default=None, secondary_attribute="", unit=None, shape=None):
+    def __init__(
+        self, default=None, secondary_attribute="", unit=None, shape=None, **kwargs
+    ):
         if default is None and unit is None:
             raise ValueError(
                 "Either a default quantity value must be provided, or a unit must "
@@ -304,7 +332,7 @@ class QuantityAttribute(Attribute):
         self.unit = unit
         self.shape = shape
         default = self.convert_input(default)[0]
-        super().__init__(default, secondary_attribute)
+        super().__init__(default, secondary_attribute, **kwargs)
 
     def convert_input(self, value):
         """
@@ -341,7 +369,7 @@ class QuantityAttribute(Attribute):
             )
 
         oldvalue = value
-        value = u.Quantity(oldvalue, self.unit, copy=False)
+        value = u.Quantity(oldvalue, self.unit, copy=COPY_IF_NEEDED)
         if self.shape is not None and value.shape != self.shape:
             if value.shape == () and oldvalue == 0:
                 # Allow a single 0 to fill whatever shape is needed.
@@ -370,6 +398,8 @@ class EarthLocationAttribute(Attribute):
     secondary_attribute : str
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
+    doc : str
+        Description of the frame attribute for help and documentation
     """
 
     def convert_input(self, value):
@@ -428,11 +458,13 @@ class CoordinateAttribute(Attribute):
     secondary_attribute : str
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
+    doc : str
+        Description of the frame attribute for help and documentation
     """
 
-    def __init__(self, frame, default=None, secondary_attribute=""):
+    def __init__(self, frame, default=None, secondary_attribute="", **kwargs):
         self._frame = frame
-        super().__init__(default, secondary_attribute)
+        super().__init__(default, secondary_attribute, **kwargs)
 
     def convert_input(self, value):
         """
@@ -485,15 +517,19 @@ class DifferentialAttribute(Attribute):
     secondary_attribute : str
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
+    doc : str
+        Description of the frame attribute for help and documentation
     """
 
-    def __init__(self, default=None, allowed_classes=None, secondary_attribute=""):
+    def __init__(
+        self, default=None, allowed_classes=None, secondary_attribute="", **kwargs
+    ):
         if allowed_classes is not None:
             self.allowed_classes = tuple(allowed_classes)
         else:
             self.allowed_classes = BaseDifferential
 
-        super().__init__(default, secondary_attribute)
+        super().__init__(default, secondary_attribute, **kwargs)
 
     def convert_input(self, value):
         """

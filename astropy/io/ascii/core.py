@@ -8,7 +8,6 @@ core.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-
 import copy
 import csv
 import fnmatch
@@ -19,11 +18,10 @@ import operator
 import os
 import re
 import warnings
-from collections import OrderedDict
 from contextlib import suppress
 from io import StringIO
 
-import numpy
+import numpy as np
 
 from astropy.table import Table
 from astropy.utils.data import get_readable_fileobj
@@ -158,7 +156,7 @@ class CsvWriter:
         return row_string
 
 
-class MaskedConstant(numpy.ma.core.MaskedConstant):
+class MaskedConstant(np.ma.core.MaskedConstant):
     """A trivial extension of numpy.ma.masked.
 
     We want to be able to put the generic term ``masked`` into a dictionary.
@@ -763,9 +761,8 @@ class BaseHeader:
             and self.__class__.__name__ != "EcsvHeader"
         ):
             raise ValueError(
-                "Table format guessing requires at least two columns, got {}".format(
-                    list(self.colnames)
-                )
+                "Table format guessing requires at least two columns, "
+                f"got {list(self.colnames)}"
             )
 
         if names is not None and len(names) != len(self.colnames):
@@ -908,7 +905,7 @@ class BaseData:
         """READ: Replace string values in col.str_vals and set masks."""
         if self.fill_values:
             for col in (col for col in cols if col.fill_values):
-                col.mask = numpy.zeros(len(col.str_vals), dtype=bool)
+                col.mask = np.zeros(len(col.str_vals), dtype=bool)
                 for i, str_val in (
                     (i, x) for i, x in enumerate(col.str_vals) if x in col.fill_values
                 ):
@@ -1002,7 +999,7 @@ def convert_numpy(numpy_type):
         the required type.
     """
     # Infer converter type from an instance of numpy_type.
-    type_name = numpy.array([], dtype=numpy_type).dtype.name
+    type_name = np.array([], dtype=numpy_type).dtype.name
     if "int" in type_name:
         converter_type = IntType
     elif "float" in type_name:
@@ -1020,26 +1017,26 @@ def convert_numpy(numpy_type):
         for any other string values.
         """
         if len(vals) == 0:
-            return numpy.array([], dtype=bool)
+            return np.array([], dtype=bool)
 
         # Try a smaller subset first for a long array
         if len(vals) > 10000:
-            svals = numpy.asarray(vals[:1000])
-            if not numpy.all(
+            svals = np.asarray(vals[:1000])
+            if not np.all(
                 (svals == "False") | (svals == "True") | (svals == "0") | (svals == "1")
             ):
                 raise ValueError('bool input strings must be False, True, 0, 1, or ""')
-        vals = numpy.asarray(vals)
+        vals = np.asarray(vals)
 
         trues = (vals == "True") | (vals == "1")
         falses = (vals == "False") | (vals == "0")
-        if not numpy.all(trues | falses):
+        if not np.all(trues | falses):
             raise ValueError('bool input strings must be only False, True, 0, 1, or ""')
 
         return trues
 
     def generic_converter(vals):
-        return numpy.array(vals, numpy_type)
+        return np.array(vals, numpy_type)
 
     converter = bool_converter if converter_type is BoolType else generic_converter
 
@@ -1068,7 +1065,7 @@ class BaseOutputter:
         try:
             # Don't allow list-like things that dtype accepts
             assert type(converters) is type
-            converters = [numpy.dtype(converters)]
+            converters = [np.dtype(converters)]
         except (AssertionError, TypeError):
             pass
 
@@ -1121,7 +1118,10 @@ class BaseOutputter:
 
                 converter_func, converter_type = col.converters[0]
                 if not issubclass(converter_type, col.type):
-                    raise TypeError("converter type does not match column type")
+                    raise TypeError(
+                        f"converter type {converter_type.__name__} does not match"
+                        f" column type {col.type.__name__} for column {col.name}"
+                    )
 
                 try:
                     col.data = converter_func(col.str_vals)
@@ -1175,7 +1175,14 @@ class TableOutputter(BaseOutputter):
     Output the table as an astropy.table.Table object.
     """
 
-    default_converters = [convert_numpy(int), convert_numpy(float), convert_numpy(str)]
+    default_converters = [
+        # Use `np.int64` to ensure large integers can be read as ints
+        # on platforms such as Windows
+        # https://github.com/astropy/astropy/issues/5744
+        convert_numpy(np.int64),
+        convert_numpy(float),
+        convert_numpy(str),
+    ]
 
     def __call__(self, cols, meta):
         # Sets col.data to numpy array and col.type to io.ascii Type class (e.g.
@@ -1183,8 +1190,8 @@ class TableOutputter(BaseOutputter):
         self._convert_vals(cols)
 
         t_cols = [
-            numpy.ma.MaskedArray(x.data, mask=x.mask)
-            if hasattr(x, "mask") and numpy.any(x.mask)
+            np.ma.MaskedArray(x.data, mask=x.mask)
+            if hasattr(x, "mask") and np.any(x.mask)
             else x.data
             for x in cols
         ]
@@ -1348,7 +1355,7 @@ class BaseReader(metaclass=MetaBaseReader):
         # Metadata, consisting of table-level meta and column-level meta.  The latter
         # could include information about column type, description, formatting, etc,
         # depending on the table meta format.
-        self.meta = OrderedDict(table=OrderedDict(), cols=OrderedDict())
+        self.meta = {"table": {}, "cols": {}}
 
     def _check_multidim_table(self, table):
         """Check that the dimensions of columns in ``table`` are acceptable.

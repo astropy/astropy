@@ -6,9 +6,9 @@ to/from TABLEDATA_ and BINARY_ formats.
 
 # STDLIB
 import re
+import struct
 import sys
-from struct import pack as _struct_pack
-from struct import unpack as _struct_unpack
+from math import prod
 
 # THIRD-PARTY
 import numpy as np
@@ -55,10 +55,6 @@ files in the wild use them.
 _zero_int = b"\0\0\0\0"
 _empty_bytes = b""
 _zero_byte = b"\0"
-
-
-struct_unpack = _struct_unpack
-struct_pack = _struct_pack
 
 
 if sys.byteorder == "little":
@@ -154,7 +150,7 @@ def bool_to_bitarray(value):
     if bit_no != 7:
         bytes.append(byte)
 
-    return struct_pack(f"{len(bytes)}B", *bytes)
+    return struct.pack(f"{len(bytes)}B", *bytes)
 
 
 class Converter:
@@ -182,11 +178,11 @@ class Converter:
 
     @staticmethod
     def _parse_length(read):
-        return struct_unpack(">I", read(4))[0]
+        return struct.unpack(">I", read(4))[0]
 
     @staticmethod
     def _write_length(length):
-        return struct_pack(">I", int(length))
+        return struct.pack(">I", int(length))
 
     def supports_empty_values(self, config):
         """
@@ -379,7 +375,7 @@ class Char(Converter):
         return read(length).decode("ascii"), False
 
     def _binparse_fixed(self, read):
-        s = struct_unpack(self._struct_format, read(self.arraysize))[0]
+        s = struct.unpack(self._struct_format, read(self.arraysize))[0]
         end = s.find(_zero_byte)
         s = s.decode("ascii")
         if end != -1:
@@ -404,7 +400,7 @@ class Char(Converter):
                 value = value.encode("ascii")
             except ValueError:
                 vo_raise(E24, (value, self.field_name))
-        return struct_pack(self._struct_format, value)
+        return struct.pack(self._struct_format, value)
 
 
 class UnicodeChar(Converter):
@@ -453,7 +449,7 @@ class UnicodeChar(Converter):
         return read(length * 2).decode("utf_16_be"), False
 
     def _binparse_fixed(self, read):
-        s = struct_unpack(self._struct_format, read(self.arraysize * 2))[0]
+        s = struct.unpack(self._struct_format, read(self.arraysize * 2))[0]
         s = s.decode("utf_16_be")
         end = s.find("\0")
         if end != -1:
@@ -469,7 +465,7 @@ class UnicodeChar(Converter):
     def _binoutput_fixed(self, value, mask):
         if mask:
             value = ""
-        return struct_pack(self._struct_format, value.encode("utf_16_be"))
+        return struct.pack(self._struct_format, value.encode("utf_16_be"))
 
 
 class Array(Converter):
@@ -603,11 +599,7 @@ class NumericArray(Array):
         self._base = base
         self._arraysize = arraysize
         self.format = f"{tuple(arraysize)}{base.format}"
-
-        self._items = 1
-        for dim in arraysize:
-            self._items *= dim
-
+        self._items = prod(arraysize)
         self._memsize = np.dtype(self.format).itemsize
         self._bigendian_format = ">" + self.format
 
@@ -712,7 +704,7 @@ class FloatingPoint(Numeric):
         width = field.width
 
         if precision is None:
-            format_parts = ["{!r:>"]
+            format_parts = ["{!s:>"]
         else:
             format_parts = ["{:"]
 
@@ -780,7 +772,7 @@ class FloatingPoint(Numeric):
             result = self._output_format.format(value)
             if result.startswith("array"):
                 raise RuntimeError()
-            if self._output_format[2] == "r" and result.endswith(".0"):
+            if self._output_format[2] == "s" and result.endswith(".0"):
                 result = result[:-2]
             return result
         elif np.isnan(value):
@@ -1060,7 +1052,7 @@ class Complex(FloatingPoint, Array):
                 value = self.null
         real = self._output_format.format(float(value.real))
         imag = self._output_format.format(float(value.imag))
-        if self._output_format[2] == "r":
+        if self._output_format[2] == "s":
             if real.endswith(".0"):
                 real = real[:-2]
             if imag.endswith(".0"):

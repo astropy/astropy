@@ -210,7 +210,7 @@ column with a numerical index::
 
 
   >>> t['a'][1]  # Row 1 of column 'a'
-  3
+  np.int32(3)
 
 When a table column is printed, it is formatted according to the ``format``
 attribute (see :ref:`table_format_string`). Note the difference between the
@@ -237,7 +237,7 @@ Likewise a table row and a column from that row can be selected::
      3.000     4     5
 
   >>> t[1]['a']  # Column 'a' of row 1
-  3
+  np.int32(3)
 
 A |Row| object has the same columns and metadata as its parent table::
 
@@ -341,7 +341,7 @@ In case of a single |Row| it is possible to use its
 
     >>> row = t[2]
     >>> row.get("c", -1)
-    8
+    np.int32(8)
     >>> row.get("y", -1)
     -1
 
@@ -351,12 +351,18 @@ Table Equality
 
 We can check table data equality using two different methods:
 
-- The ``==`` comparison operator. This returns a `True` or `False` for
-  each row if the *entire row* matches. This is the same as the behavior of
-  ``numpy`` structured arrays.
+- The ``==`` comparison operators. In the general case, this returns a 1D array
+  with ``dtype=bool`` mapping each row to ``True`` if and only if the *entire row*
+  matches. For incomparable data (different ``dtype`` or unbroacastable lengths),
+  a boolean ``False`` is returned.
+  This is in contrast to the behavior of ``numpy`` where trying to compare
+  structured arrays might raise exceptions.
 - Table :meth:`~astropy.table.Table.values_equal` to compare table values
   element-wise. This returns a boolean `True` or `False` for each table
   *element*, so you get a `~astropy.table.Table` of values.
+
+.. note:: both methods will report equality *after* broadcasting, which
+  matches ``numpy`` array comparison.
 
 Examples
 ^^^^^^^^
@@ -453,7 +459,6 @@ To print a formatted table::
    240  241  242  243  244  245  246 ...   263   264   265   266   267   268   269
    270  271  272  273  274  275  276 ...   293   294   295   296   297   298   299
    ...  ...  ...  ...  ...  ...  ... ...   ...   ...   ...   ...   ...   ...   ...
-  2670 2671 2672 2673 2674 2675 2676 ...  2693  2694  2695  2696  2697  2698  2699
   2700 2701 2702 2703 2704 2705 2706 ...  2723  2724  2725  2726  2727  2728  2729
   2730 2731 2732 2733 2734 2735 2736 ...  2753  2754  2755  2756  2757  2758  2759
   2760 2761 2762 2763 2764 2765 2766 ...  2783  2784  2785  2786  2787  2788  2789
@@ -829,10 +834,10 @@ the value, min and max are stored in the in the column as fields named ``val``,
     >>> t['a'] = [1, 2]
     >>> t['par'] = pars
     >>> print(t)
-     a    par [val, min, max]
-    --- ------------------------
-      1    (1.2345678, -20., 3.)
-      2 (12.345678, 4.5678, 33.)
+     a     par [val, min, max]
+    --- -------------------------
+      1   (1.2345678, -20.0, 3.0)
+      2 (12.345678, 4.5678, 33.0)
 
 
 However, setting the format string appropriately allows formatting each of the

@@ -361,7 +361,7 @@ def test_download_with_sources_and_bogus_original(
         )
     else:
         rs = [
-            download_file(u, cache=True, sources=sources.get(u, None))
+            download_file(u, cache=True, sources=sources.get(u))
             for (u, c, c_bad) in urls
         ]
     assert len(rs) == len(urls)
@@ -1098,10 +1098,14 @@ def test_data_noastropy_fallback(monkeypatch):
     assert os.path.isfile(fnout)
 
     # clearing the cache should be a no-up that doesn't affect fnout
-    with pytest.warns(
-        CacheMissingWarning, match=r".*Not clearing data cache - cache inaccessible.*"
-    ):
+    with pytest.warns(CacheMissingWarning) as record:
         clear_download_cache(TESTURL)
+    assert len(record) == 2
+    assert (
+        record[0].message.args[0]
+        == "Remote data cache could not be accessed due to OSError"
+    )
+    assert "Not clearing data cache - cache inaccessible" in record[1].message.args[0]
     assert os.path.isfile(fnout)
 
     # now remove it so tests don't clutter up the temp dir this should get
@@ -1142,10 +1146,11 @@ def test_read_unicode(filename):
     contents = get_pkg_data_contents(os.path.join("data", filename), encoding="binary")
     assert isinstance(contents, bytes)
     x = contents.splitlines()[1]
-    assert x == (
+    expected = (
         b"\xff\xd7\x94\xd7\x90\xd7\xa1\xd7\x98\xd7\xa8\xd7\x95\xd7\xa0\xd7\x95"
         b"\xd7\x9e\xd7\x99 \xd7\xa4\xd7\x99\xd7\x99\xd7\xaa\xd7\x95\xd7\x9f"[1:]
     )
+    assert x == expected
 
 
 def test_compressed_stream():

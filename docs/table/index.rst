@@ -109,12 +109,6 @@ by altering the `astropy.table.conf.default_notebook_table_class
 .. image:: table_repr_html.png
    :width: 450px
 
-Or you can get a fancier notebook interface with in-browser search, and sort
-using :meth:`~astropy.table.Table.show_in_notebook`:
-
-.. image:: table_show_in_nb.png
-   :width: 450px
-
 If you print the table (either from the notebook or in a text console session)
 then a formatted version appears::
 
@@ -171,7 +165,7 @@ syntax::
   5
 
   >>> t['a'][1]    # Row 1 of column 'a'
-  4
+  np.int32(4)
 
   >>> t[1]         # Row 1 of the table
   <Row index=1>
@@ -183,7 +177,7 @@ syntax::
 
 
   >>> t[1]['a']    # Column 'a' of row 1
-  4
+  np.int32(4)
 
 You can retrieve a subset of a table by rows (using a :class:`slice`) or by
 columns (using column names), where the subset is returned as a new table::

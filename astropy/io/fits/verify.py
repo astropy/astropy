@@ -2,8 +2,8 @@
 
 import operator
 import warnings
+from textwrap import indent
 
-from astropy.utils import indent
 from astropy.utils.exceptions import AstropyUserWarning
 
 
@@ -153,7 +153,7 @@ class _ErrList(list):
         for item in self:
             if not isinstance(item, _ErrList):
                 if filter is None or filter(item):
-                    yield item[0], indent(item[1], shift=shift)
+                    yield item[0], indent(item[1], 4 * shift * " ")
 
         # second time go through the next level items, each of the next level
         # must present, even it has nothing.
@@ -169,7 +169,7 @@ class _ErrList(list):
                     if self.unit:
                         # This line is sort of a header for the next level in
                         # the hierarchy
-                        yield None, indent(f"{self.unit} {element}:", shift=shift)
+                        yield None, indent(f"{self.unit} {element}:", 4 * shift * " ")
                     yield first_line
 
                 yield from next_lines

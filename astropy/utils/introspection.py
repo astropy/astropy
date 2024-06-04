@@ -1,37 +1,32 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Functions related to Python runtime introspection."""
 
-import collections
-import importlib
+from __future__ import annotations
+
 import inspect
 import os
 import sys
-import types
-from importlib import metadata
+from importlib import import_module, metadata
+from importlib.metadata import packages_distributions
+from typing import TYPE_CHECKING
 
 from packaging.version import Version
+
+from .decorators import deprecated
+
+if TYPE_CHECKING:
+    from types import FrameType, ModuleType
+    from typing import Literal
 
 __all__ = ["resolve_name", "minversion", "find_current_module", "isinstancemethod"]
 
 __doctest_skip__ = ["find_current_module"]
 
-if sys.version_info[:2] >= (3, 10):
-    from importlib.metadata import packages_distributions
-else:
 
-    def packages_distributions():
-        """
-        Return a mapping of top-level packages to their distributions.
-        Note: copied from https://github.com/python/importlib_metadata/pull/287.
-        """
-        pkg_to_dist = collections.defaultdict(list)
-        for dist in metadata.distributions():
-            for pkg in (dist.read_text("top_level.txt") or "").split():
-                pkg_to_dist[pkg].append(dist.metadata["Name"])
-        return dict(pkg_to_dist)
-
-
-def resolve_name(name, *additional_parts):
+@deprecated(
+    since="7.0", alternative="importlib (e.g. importlib.import_module for modules)"
+)
+def resolve_name(name: str, *additional_parts: str) -> object:
     """Resolve a name like ``module.object`` to an object and return it.
 
     This ends up working like ``from module import object`` but is easier
@@ -49,13 +44,6 @@ def resolve_name(name, *additional_parts):
     additional_parts : iterable, optional
         If more than one positional arguments are given, those arguments are
         automatically dotted together with ``name``.
-
-    Examples
-    --------
-    >>> resolve_name('astropy.utils.introspection.resolve_name')
-    <function resolve_name at 0x...>
-    >>> resolve_name('astropy', 'utils', 'introspection', 'resolve_name')
-    <function resolve_name at 0x...>
 
     Raises
     ------
@@ -100,7 +88,7 @@ def resolve_name(name, *additional_parts):
     return ret
 
 
-def minversion(module, version, inclusive=True):
+def minversion(module: ModuleType | str, version: str, inclusive: bool = True) -> bool:
     """
     Returns `True` if the specified Python module satisfies a minimum version
     requirement, and `False` if not.
@@ -126,14 +114,14 @@ def minversion(module, version, inclusive=True):
     >>> minversion(astropy, '0.4.4')
     True
     """
-    if isinstance(module, types.ModuleType):
+    if inspect.ismodule(module):
         module_name = module.__name__
         module_version = getattr(module, "__version__", None)
     elif isinstance(module, str):
         module_name = module
         module_version = None
         try:
-            module = resolve_name(module_name)
+            module = import_module(module_name)
         except ImportError:
             return False
     else:
@@ -160,7 +148,9 @@ def minversion(module, version, inclusive=True):
         return Version(module_version) > Version(version)
 
 
-def find_current_module(depth=1, finddiff=False):
+def find_current_module(
+    depth: int = 1, finddiff: bool | list[Literal[True] | str | ModuleType] = False
+) -> ModuleType | None:
     """
     Determines the module/package from which this function is called.
 
@@ -253,7 +243,7 @@ def find_current_module(depth=1, finddiff=False):
                 if inspect.ismodule(fd):
                     diffmods.append(fd)
                 elif isinstance(fd, str):
-                    diffmods.append(importlib.import_module(fd))
+                    diffmods.append(import_module(fd))
                 elif fd is True:
                     diffmods.append(currmod)
                 else:
@@ -269,7 +259,7 @@ def find_current_module(depth=1, finddiff=False):
         return _get_module_from_frame(frm)
 
 
-def _get_module_from_frame(frm):
+def _get_module_from_frame(frm: FrameType) -> ModuleType | None:
     """Uses inspect.getmodule() to get the module that the current frame's
     code is running in.
 
@@ -310,6 +300,7 @@ def _get_module_from_frame(frm):
     return None
 
 
+@deprecated(since="6.1")
 def find_mod_objs(modname, onlylocals=False):
     """Returns all the public attributes of a module referenced by name.
 
@@ -344,7 +335,7 @@ def find_mod_objs(modname, onlylocals=False):
         the other arguments)
 
     """
-    mod = resolve_name(modname)
+    mod = import_module(modname)
 
     if hasattr(mod, "__all__"):
         pkgitems = [(k, mod.__dict__[k]) for k in mod.__all__]
@@ -377,6 +368,7 @@ def find_mod_objs(modname, onlylocals=False):
 
 # Note: I would have preferred call this is_instancemethod, but this naming is
 # for consistency with other functions in the `inspect` module
+@deprecated(since="6.1")
 def isinstancemethod(cls, obj):
     """
     Returns `True` if the given object is an instance method of the class
@@ -393,35 +385,8 @@ def isinstancemethod(cls, obj):
         A member of the provided class (the membership is not checked directly,
         but this function will always return `False` if the given object is not
         a member of the given class).
-
-    Examples
-    --------
-    >>> class MetaClass(type):
-    ...     def a_classmethod(cls): pass
-    ...
-    >>> class MyClass(metaclass=MetaClass):
-    ...     def an_instancemethod(self): pass
-    ...
-    ...     @classmethod
-    ...     def another_classmethod(cls): pass
-    ...
-    ...     @staticmethod
-    ...     def a_staticmethod(): pass
-    ...
-    >>> isinstancemethod(MyClass, MyClass.a_classmethod)
-    False
-    >>> isinstancemethod(MyClass, MyClass.another_classmethod)
-    False
-    >>> isinstancemethod(MyClass, MyClass.a_staticmethod)
-    False
-    >>> isinstancemethod(MyClass, MyClass.an_instancemethod)
-    True
     """
-    return _isinstancemethod(cls, obj)
-
-
-def _isinstancemethod(cls, obj):
-    if not isinstance(obj, types.FunctionType):
+    if not inspect.isfunction(obj):
         return False
 
     # Unfortunately it seems the easiest way to get to the original

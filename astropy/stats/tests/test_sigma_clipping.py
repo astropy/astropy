@@ -7,6 +7,7 @@ from numpy.testing import assert_allclose, assert_equal
 from astropy import units as u
 from astropy.stats import mad_std
 from astropy.stats.sigma_clipping import SigmaClip, sigma_clip, sigma_clipped_stats
+from astropy.table import MaskedColumn
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import NumpyRNGContext
@@ -161,6 +162,15 @@ def test_sigma_clipped_stats_ddof():
         assert median1 == median2
         assert_allclose(stddev1, 0.98156805711673156)
         assert_allclose(stddev2, 0.98161731654802831)
+
+
+def test_sigma_clipped_stats_masked_col():
+    # see https://github.com/astropy/astropy/issues/13281
+    arr = np.ma.masked_array([1, 2, 3], mask=[False, True, False])
+    sigma_clipped_stats(arr)
+
+    col = MaskedColumn(data=arr)
+    sigma_clipped_stats(col)
 
 
 def test_invalid_sigma_clip():

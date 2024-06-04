@@ -56,14 +56,14 @@ configuration files, etc.):
     <Quantity 15. m / s>
 
 The current unit and value can be accessed via the
-`~astropy.units.quantity.Quantity.unit` and
-`~astropy.units.quantity.Quantity.value` attributes:
+:attr:`~astropy.units.Quantity.unit` and
+:attr:`~astropy.units.Quantity.value` attributes:
 
     >>> q = 2.5 * u.m / u.s
     >>> q.unit
     Unit("m / s")
     >>> q.value
-    2.5
+    np.float64(2.5)
 
 .. note:: |Quantity| objects are converted to float by default. Furthermore, any
           data passed in are copied, which for large arrays may not be optimal.
@@ -80,7 +80,7 @@ Converting to Different Units
 =============================
 
 |Quantity| objects can be converted to different units using the
-:meth:`~astropy.units.quantity.Quantity.to` method.
+:meth:`~astropy.units.Quantity.to` method.
 
 Examples
 --------
@@ -93,8 +93,8 @@ To convert |Quantity| objects to different units:
     >>> q.to(u.km / u.h)  # doctest: +FLOAT_CMP
     <Quantity 8.28 km / h>
 
-For convenience, the :attr:`~astropy.units.quantity.Quantity.si` and
-:attr:`~astropy.units.quantity.Quantity.cgs` attributes can be used to convert
+For convenience, the :attr:`~astropy.units.Quantity.si` and
+:attr:`~astropy.units.Quantity.cgs` attributes can be used to convert
 the |Quantity| to base `SI
 <https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf>`_ or `CGS
 <https://en.wikipedia.org/wiki/Centimetre-gram-second_system_of_units>`_ units:
@@ -110,7 +110,7 @@ If you want the value of the quantity in a different unit, you can use
 
     >>> q = 2.5 * u.m
     >>> q.to_value(u.cm)
-    250.0
+    np.float64(250.0)
 
 .. note:: You could get the value in ``cm`` also by using ``q.to(u.cm).value``.
           The difference is that :meth:`~astropy.units.Quantity.to_value` does
@@ -140,12 +140,12 @@ The use of `Python comparison operators
 supported::
 
     >>> 1*u.m < 50*u.cm
-    False
+    np.False_
 
 Plotting Quantities
 ===================
 
-|Quantity| objects can be conveniently plotted using `Matplotlib`_ — see
+|Quantity| objects can be conveniently plotted using |Matplotlib| — see
 :ref:`plotting-quantities` for more details.
 
 .. _quantity_arithmetic:
@@ -220,7 +220,7 @@ To perform these operations on |Quantity| objects:
     <Quantity 20. cm / m>
 
 For multiplication, you can change how to represent the resulting object by
-using the :meth:`~astropy.units.quantity.Quantity.to` method:
+using the :meth:`~astropy.units.Quantity.to` method:
 
     >>> (1.1 * u.m * 140.3 * u.cm).to(u.m**2)  # doctest: +FLOAT_CMP
     <Quantity 1.5433 m2>
@@ -229,7 +229,7 @@ using the :meth:`~astropy.units.quantity.Quantity.to` method:
 
 For division, if the units are equivalent, you may want to make the resulting
 object dimensionless by reducing the units. To do this, use the
-:meth:`~astropy.units.quantity.Quantity.decompose()` method:
+:meth:`~astropy.units.Quantity.decompose` method:
 
     >>> (20. * u.cm / (1. * u.m)).decompose()  # doctest: +FLOAT_CMP
     <Quantity 0.2>
@@ -272,7 +272,7 @@ Or `Dimensionless Quantities`_::
     >>> np.exp(-h * nu / (k_B * T))  # doctest: +FLOAT_CMP
     <Quantity 0.99521225>
 
-.. note:: Support for functions from other packages, such as `scipy`_, is more
+.. note:: Support for functions from other packages, such as |SciPy|, is more
           incomplete (contributions to improve this are welcomed!).
 
 Dimensionless Quantities
@@ -290,7 +290,7 @@ dimensionless and scale-free. For example:
 Which is different from:
 
     >>> 1. + (1. * u.m / u.km).value
-    2.0
+    np.float64(2.0)
 
 In the latter case, the result is ``2.0`` because the unit of ``(1. * u.m /
 u.km)`` is not scale-free by default:

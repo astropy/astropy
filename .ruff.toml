@@ -6,7 +6,6 @@ lint.ignore = [
     # flake8-annotations (ANN) : static typing
     "ANN001",  # Function argument without type annotation
     "ANN003",  # `**kwargs` without type annotation
-    "ANN201",  # Public function without return type annotation
     "ANN202",  # Private function without return type annotation
     "ANN401",  # Use of `Any` type
 
@@ -83,9 +82,6 @@ lint.ignore = [
     "FIX001",  # Line contains FIXME.  this should be fixed or at least FIXME replaced with TODO
     "FIX004",  # Line contains HACK. replace HACK with NOTE.
 
-    # flake8-import-conventions (ICN)  : use conventional import aliases
-    "ICN001",  # import-conventions
-
     # pep8-naming (N)
     # NOTE: some of these can/should be fixed, but this changes the API.
     "N801",  # invalid-class-name
@@ -106,14 +102,10 @@ lint.ignore = [
     "PERF203",  # `try`-`except` within a loop incurs performance overhead
     "PERF401",  # Use a list comprehension to create a transformed list
 
-    # pygrep-hooks (PGH)
-    "PGH001",  # eval
-
     # Pylint (PLC, PLE, PLR, PLW)
     "PLE0101",  # return-in-init
     "PLR0124",  # Name compared with itself
     "PLR0402",  # ConsiderUsingFromImport
-    "PLR0911",  # too-many-return-statements
     "PLR0912",  # too-many-branches
     "PLR0913",  # too-many-args
     "PLR0915",  # too-many-statements
@@ -162,8 +154,6 @@ lint.ignore = [
     "RET502",  # implicit-return-value
     "RET503",  # implicit-return
     "RET504",  # unnecessary-assign
-    "RET505",  # superfluous-else-return
-    "RET506",  # superfluous-else-raise
     "RET507",  # superfluous-else-continue
 
     # flake8-raise (RSE)
@@ -213,10 +203,11 @@ lint.ignore = [
     "TRY002",  # raise-vanilla-class
     "TRY003",  # raise-vanilla-args
     "TRY004",  # prefer-type-error
-    "TRY200",  # reraise-no-cause
     "TRY201",  # verbose-raise
-    "TRY300",  # Consider `else` block
     "TRY301",  # raise-within-try
+
+    # pyupgrade (UP)
+    "UP038",  # isinstance using union separators. The code is slower as of Python 3.10-3.12
 
     # flake8-quotes (Q)
     "Q000",  # use double quotes
@@ -234,65 +225,119 @@ lint.unfixable = [
 # When a general exclusion is being fixed, but it affects many subpackages, it
 # is better to fix for subpackages individually. The general exclusion should be
 # copied to these subpackage sections and fixed there.
-"astropy/__init__.py" = ["C408"]
 "astropy/config/*" = [
     "PTH114",  # os-path-islink
     "PTH206",  # Replace `.split(os.sep)` with `Path.parts`
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
 ]
-"astropy/constants/*" = ["N817"]  # camelcase-imported-as-acronym
-"astropy/convolution/*" = []
+"astropy/constants/*" = [
+    "N817",  # camelcase-imported-as-acronym
+    "RET505",  # superfluous-else-return
+]
+"astropy/convolution/*" = [
+    "PLR0911",  # too-many-return-statements
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
+]
 "astropy/coordinates/*" = [
     "DTZ007",  # call-datetime-strptime-without-zone
+    "RET505",  # superfluous-else-return
 ]
 "astropy/cosmology/*" = [
     "C408",  # unnecessary-collection-call
     "PT019",   # pytest-fixture-param-without-value
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
 ]
 "astropy/io/*" = [
     "G001",  # logging-string-format
     "G004",  # logging-f-string
+    "PLR0911",  # too-many-return-statements
     "PTH116",  # os-stat
     "PTH117",  # os-path-isabs
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
     "SLOT000",  # Subclasses of `str` should define `__slots__`
     "TD005",  # Missing issue description after `TODO`
     "TRY400",  # error-instead-of-exception
+    "TRY300",  # Consider `else` block
 ]
-"astropy/logger.py" = ["C408"]
+"astropy/logger.py" = ["C408", "RET505"]
 "astropy/modeling/*" = [
-    "C408",  # unnecessary-collection-call
+    "PLR0911",  # too-many-return-statements
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
+    "TRY300",  # Consider `else` block
 ]
-"astropy/nddata/*" = ["C408"]
-"astropy/samp/*" = []
-"astropy/stats/*" = []
+"astropy/nddata/*" = [
+    "C408",
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
+]
+"astropy/samp/*" = [
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
+]
+"astropy/stats/*" = [
+    "PLR0911",  # too-many-return-statements
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
+]
 "astropy/table/*" = [
-    "C408",  # unnecessary-collection-call
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
     "S605",  # Starting a process with a shell, possible injection detected
+    "TRY300",  # Consider `else` block
 ]
-"astropy/tests/*" = ["C408"]
+"astropy/tests/*" = ["C408", "RET505"]
 "astropy/time/*" = [
-    "C408",  # unnecessary-collection-call
     "FIX003",  # Line contains XXX.  replace XXX with TODO
     "PIE794",  # duplicate-class-field-definition
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
 ]
-"astropy/timeseries/*" = ["C408"]
+"astropy/timeseries/*" = [
+    "PLR0911",  # too-many-return-statements
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
+]
 "astropy/units/*" = [
-    "C408",  # unnecessary-collection-call
     "F821",  # undefined-name
     "N812",  # lowercase-imported-as-non-lowercase
+    "PLR0911",  # too-many-return-statements
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
+    "TRY300",  # Consider `else` block
 ]
-"astropy/uncertainty/*" = ["C408"]
+"astropy/uncertainty/*" = [
+    "C408",
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
+]
 "astropy/utils/*" = [
-    "C408",  # unnecessary-collection-call
     "N811",  # constant-imported-as-non-constant
+    "PLR0911",  # too-many-return-statements
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
     "S321",  # Suspicious-ftp-lib-usage
+    "TRY300",  # Consider `else` block
 ]
-"astropy/visualization/*" = ["B015", "C408"]
+"astropy/visualization/*" = [
+    "B015",
+    "PLR0911",  # too-many-return-statements
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
+]
 "astropy/wcs/*" = [
     "C408",  # unnecessary-collection-call
     "F821",  # undefined-name
     "S608",  # Posslibe SQL injection
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
     "SIM202",  # NegateNotEqualOp
+    "TRY300",  # Consider `else` block
 ]
 "docs/*" = []
 "examples/coordinates/*" = []

@@ -14,6 +14,7 @@ from astropy.constants import c as speed_of_light
 from astropy.table import QTable
 from astropy.time import Time
 from astropy.utils import ShapedLikeNDArray
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -35,7 +36,7 @@ from .sky_coordinate_parsers import (
 )
 
 if TYPE_CHECKING:
-    from typing import Callable
+    from collections.abc import Callable
 
 __all__ = ["SkyCoord", "SkyCoordInfo"]
 
@@ -835,12 +836,12 @@ class SkyCoord(ShapedLikeNDArray):
             new_distance = Distance(parallax=starpm[4] << u.arcsec)
 
         icrs2 = ICRS(
-            ra=u.Quantity(starpm[0], u.radian, copy=False),
-            dec=u.Quantity(starpm[1], u.radian, copy=False),
-            pm_ra=u.Quantity(starpm[2], u.radian / u.yr, copy=False),
-            pm_dec=u.Quantity(starpm[3], u.radian / u.yr, copy=False),
+            ra=u.Quantity(starpm[0], u.radian, copy=COPY_IF_NEEDED),
+            dec=u.Quantity(starpm[1], u.radian, copy=COPY_IF_NEEDED),
+            pm_ra=u.Quantity(starpm[2], u.radian / u.yr, copy=COPY_IF_NEEDED),
+            pm_dec=u.Quantity(starpm[3], u.radian / u.yr, copy=COPY_IF_NEEDED),
             distance=new_distance,
-            radial_velocity=u.Quantity(starpm[5], u.km / u.s, copy=False),
+            radial_velocity=u.Quantity(starpm[5], u.km / u.s, copy=COPY_IF_NEEDED),
             differential_type=SphericalDifferential,
         )
 
@@ -1791,9 +1792,9 @@ class SkyCoord(ShapedLikeNDArray):
 
           >>> vcorr_rel = vcorr.to(u.Hz, u.doppler_optical(1*u.Hz)).to(vcorr.unit, u.doppler_relativistic(1*u.Hz))  # doctest: +REMOTE_DATA
 
-        See also `~astropy.units.equivalencies.doppler_optical`,
-        `~astropy.units.equivalencies.doppler_radio`, and
-        `~astropy.units.equivalencies.doppler_relativistic` for more information on
+        See also `~astropy.units.doppler_optical`,
+        `~astropy.units.doppler_radio`, and
+        `~astropy.units.doppler_relativistic` for more information on
         the velocity conventions.
 
         The default is for this method to use the builtin ephemeris for
@@ -2013,8 +2014,7 @@ class SkyCoord(ShapedLikeNDArray):
                     f'Found column "{v.name}" in table, but it was already provided as'
                     ' "{k}" keyword to guess_from_table function.'
                 )
-            else:
-                coord_kwargs[k] = v
+            coord_kwargs[k] = v
 
         return cls(**coord_kwargs)
 

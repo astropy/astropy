@@ -9,7 +9,7 @@ Object Separation
 -----------------
 
 When calculating the separation between objects, it is important to bear in mind that
-:meth:`~astropy.coordinates.BaseCoordinateFrame.separation` gives a different
+:meth:`~astropy.coordinates.BaseCoordinateFrame.separation` can give a different
 answer depending upon the order in which is used.
 For example::
 
@@ -20,10 +20,15 @@ For example::
     >>> t = Time("2010-05-22T00:00")
     >>> moon = SkyCoord(104.29*u.deg, 23.51*u.deg, 359367.3*u.km, frame=GCRS(obstime=t))
     >>> star = SkyCoord(101.4*u.deg, 23.02*u.deg, frame='icrs')
-    >>> star.separation(moon) # doctest: +FLOAT_CMP
+    >>> star.separation(moon) # doctest: +FLOAT_CMP, +SHOW_WARNINGS
     <Angle 139.84211884 deg>
-    >>> moon.separation(star) # doctest: +FLOAT_CMP
+    NonRotationTransformationWarning: transforming other coordinates from
+    <GCRS Frame (obstime=2010-05-22T00:00:00.000, obsgeoloc=(0., 0., 0.) m,
+    obsgeovel=(0., 0., 0.) m / s)> to <ICRS Frame>. Angular separation can
+    depend on the direction of the transformation.
+    >>> moon.separation(star) # doctest: +FLOAT_CMP, +SHOW_WARNINGS
     <Angle 2.70390995 deg>
+    NonRotationTransformationWarning: transforming other coordinates from...
 
 Why do these give such different answers?
 
@@ -33,6 +38,25 @@ So ``star.separation(moon)`` gives the angular separation in the ICRS frame.
 This is the separation as it would appear from the Solar System Barycenter.
 For a geocentric observer, ``moon.separation(star)`` gives the correct answer,
 since ``moon`` is in a geocentric frame.
+As can be seen from the above example, by default an appropriate warning is
+emitted if the coordinate transformation can cause the angular separation value
+to be order-dependent.
+It is possible to always suppress the warning::
+
+    >>> moon.separation(star, origin_mismatch="ignore") # doctest: +FLOAT_CMP
+    <Angle 2.70390995 deg>
+
+It is also possible to forbid coordinate transformations that are not pure
+rotations::
+
+    >>> moon.separation(star, origin_mismatch="error")
+    Traceback (most recent call last):
+        ...
+    astropy.coordinates.errors.NonRotationTransformationError: refusing to
+    transform other coordinates from <ICRS Frame> to <GCRS Frame
+    (obstime=2010-05-22T00:00:00.000, obsgeoloc=(0., 0., 0.) m,
+    obsgeovel=(0., 0., 0.) m / s)> because angular separation can depend on
+    the direction of the transformation
 
 AltAz calculations for Earth-based objects
 ------------------------------------------

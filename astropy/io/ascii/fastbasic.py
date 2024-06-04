@@ -2,7 +2,6 @@
 
 import copy
 import re
-from collections import OrderedDict
 
 from astropy.table import Table
 from astropy.utils.misc import _set_locale
@@ -160,7 +159,7 @@ class FastBasic(metaclass=core.MetaBaseReader):
 
     def make_table(self, data, comments):
         """Actually make the output table give the data and comments."""
-        meta = OrderedDict()
+        meta = {}
         if comments:
             meta["comments"] = comments
 
@@ -300,7 +299,7 @@ class FastCommentedHeader(FastBasic):
         slightly different from the base FastBasic method in the way comments
         are handled.
         """
-        meta = OrderedDict()
+        meta = {}
         if comments:
             idx = self.header_start
             if idx < 0:

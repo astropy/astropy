@@ -2,6 +2,7 @@
 """
 Regression tests for the units.format package
 """
+
 import warnings
 from contextlib import nullcontext
 from fractions import Fraction
@@ -15,6 +16,7 @@ from astropy.constants import si
 from astropy.units import PrefixUnit, Unit, UnitBase, UnitsWarning, dex
 from astropy.units import format as u_format
 from astropy.units.utils import is_effectively_unity
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 @pytest.mark.parametrize(
@@ -305,13 +307,13 @@ class TestRoundtripVOUnit(RoundtripBase):
 
 class TestRoundtripFITS(RoundtripBase):
     format_ = "fits"
-    deprecated_units = u_format.Fits._deprecated_units
+    deprecated_units = u_format.FITS._deprecated_units
 
     @pytest.mark.parametrize(
         "unit",
         [
             unit
-            for unit in u_format.Fits._units.values()
+            for unit in u_format.FITS._units.values()
             if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
         ],
     )
@@ -387,7 +389,7 @@ class TestRoundtripOGIP(RoundtripBase):
 
 
 def test_fits_units_available():
-    u_format.Fits._units
+    u_format.FITS._units
 
 
 def test_vo_units_available():
@@ -565,7 +567,7 @@ def test_fits_to_string_function_error():
     """
 
     with pytest.raises(TypeError, match="unit argument must be"):
-        u_format.Fits.to_string(None)
+        u_format.FITS.to_string(None)
 
 
 def test_fraction_repr():
@@ -649,7 +651,7 @@ def test_fits_function(string):
     # Function units cannot be written, so ensure they're not parsed either.
     with pytest.raises(ValueError):
         print(string)
-        u_format.Fits().parse(string)
+        u_format.FITS().parse(string)
 
 
 @pytest.mark.parametrize("string", ["mag(ct/s)", "dB(mW)", "dex(cm s**-2)"])
@@ -680,6 +682,15 @@ def test_vounit_details():
     assert u.Unit("Pa", format="vounit") is u.Pascal
     assert u.Unit("ka", format="vounit") == u.Unit("1000 yr")
     assert u.Unit("pix", format="vounit") == u.Unit("pixel", format="vounit")
+
+    # Regression test for astropy/astroquery#2480
+    assert u.Unit("Sun", format="vounit") is u.Sun
+
+    # Test that adding a prefix to a simple units raises a warning
+    with pytest.warns(
+        UnitsWarning, match="Unit 'kdB' not supported by the VOUnit standard.*"
+    ):
+        u.Unit("kdB", format="vounit")
 
     # The da- prefix is not allowed, and the d- prefix is discouraged
     assert u.dam.to_string("vounit") == "10m"
@@ -973,3 +984,36 @@ def test_function_format_styles(format_spec, string):
 def test_function_format_styles_non_default_fraction(format_spec, fraction, string):
     dbunit = u.decibel(u.m**-1)
     assert dbunit.to_string(format_spec, fraction=fraction) == string
+
+
+@pytest.mark.parametrize(
+    "format_spec, expected_mantissa",
+    [
+        ("", "1"),
+        (".1g", "1"),
+        (".3g", "1"),
+        (".1e", "1.0"),
+        (".1f", "1.0"),
+        (".3e", "1.000"),
+    ],
+)
+def test_format_latex_one(format_spec, expected_mantissa):
+    # see https://github.com/astropy/astropy/issues/12571
+    from astropy.units.format.utils import split_mantissa_exponent
+
+    m, ex = split_mantissa_exponent(1, format_spec)
+    assert ex == ""
+    assert m == expected_mantissa
+
+
+def test_Fits_name_deprecation():
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            r'^The class "Fits" has been renamed to "FITS" in version 7\.0\. '
+            r"The old name is deprecated and may be removed in a future version\.\n"
+            r"        Use FITS instead\.$"
+        ),
+    ):
+        from astropy.units.format import Fits
+    assert Fits is u.format.FITS

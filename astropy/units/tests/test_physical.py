@@ -3,6 +3,7 @@
 """
 Unit tests for the handling of physical types in `astropy.units`.
 """
+
 import pickle
 
 import pytest
@@ -22,6 +23,10 @@ unit_physical_type_pairs = [
     (u.erg / (u.cm**2 * u.s * u.AA), "spectral flux density wav"),
     (u.photon / (u.cm**2 * u.s * u.AA), "photon flux density wav"),
     (u.photon / (u.cm**2 * u.s * u.Hz), "photon flux density"),
+    (u.Jy / u.sr, "surface brightness"),
+    (u.J * u.m**-3 * u.s**-1 * u.sr**-1, "surface brightness wav"),
+    (u.photon / u.Hz / u.cm**2 / u.s / u.sr, "photon surface brightness"),
+    (u.photon / u.AA / u.cm**2 / u.s / u.sr, "photon surface brightness wav"),
     (u.byte, "data quantity"),
     (u.bit, "data quantity"),
     (u.imperial.mi / u.week, "speed"),
@@ -72,6 +77,7 @@ unit_physical_type_pairs = [
     (u.C / u.m**3, "electrical charge density"),
     (u.F / u.m, "permittivity"),
     (u.Wb, "magnetic flux"),
+    (u.Wb**2, "magnetic helicity"),
     (u.T, "magnetic flux density"),
     (u.A / u.m, "magnetic field strength"),
     (u.H / u.m, "electromagnetic field strength"),
@@ -377,7 +383,7 @@ def test_physical_type_hash():
     assert dictionary[length] == 42
 
 
-@pytest.mark.parametrize("multiplicand", [list(), 42, 0, -1])
+@pytest.mark.parametrize("multiplicand", [[], 42, 0, -1])
 def test_physical_type_multiplication(multiplicand):
     """
     Test that multiplication of a physical type returns `NotImplemented`

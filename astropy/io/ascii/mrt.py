@@ -599,10 +599,10 @@ class MrtHeader(cds.CdsHeader):
             # Convert all other ``mixin`` columns to ``Column`` objects.
             # Parsing these may still lead to errors!
             elif not isinstance(col, Column):
-                col = Column(col)
+                col = Column(col, name=self.colnames[i])
                 # If column values are ``object`` types, convert them to string.
                 if np.issubdtype(col.dtype, np.dtype(object).type):
-                    col = Column([str(val) for val in col])
+                    col = Column([str(val) for val in col], name=col.name)
                 self.cols[i] = col
 
         # Delete original ``SkyCoord`` columns, if there were any.

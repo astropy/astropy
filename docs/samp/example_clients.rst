@@ -7,7 +7,7 @@ Communication between Integrated Clients Objects
 ************************************************
 
 As shown in :doc:`example_table_image`, the |SAMPIntegratedClient| class can be
-used to communicate with other SAMP-enabled tools such as `TOPCAT`_,
+used to communicate with other SAMP-enabled tools such as |TOPCAT|,
 `SAO DS9 <http://ds9.si.edu/>`_, or `Aladin Desktop <https://aladin.unistra.fr>`_.
 
 In this section, we look at how we can set up two |SAMPIntegratedClient|

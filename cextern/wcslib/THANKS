@@ -95,7 +95,9 @@ Keith A. Scollick (GSFC/NASA)
 Arno Schoenmakers (ASTRON)
 Pim Schellart (Princeton U.)
 Corentin Schreiber (Oxford U.)
+Eli Schwartz (Gentoo Linux maintainer)
 Michael Seifert (Astropy)
+Manodeep Sinha (Astropy)
 Colin Slater (LSST)
 Hanno Spreeuw (ASTRON)
 Ole Streicher (Debian maintainer)
@@ -117,4 +119,4 @@ Daren Scot Wilson (NRAO)
 Tony Wong (ATNF/CSIRO)
 
 
-$Id: THANKS,v 8.2.1.1 2023/11/16 10:05:58 mcalabre Exp mcalabre $
+$Id: THANKS,v 8.3 2024/05/13 16:33:01 mcalabre Exp $

@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2023, Mark Calabretta
+  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: sph.c,v 8.2.1.1 2023/11/16 10:05:57 mcalabre Exp mcalabre $
+  $Id: sph.c,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -44,13 +44,7 @@ int sphx2s(
   double lat[])
 
 {
-  int jphi, mphi, mtheta, rowlen, rowoff;
-  double cosphi, costhe, costhe3, costhe4, dlng, dphi, sinphi, sinthe,
-         sinthe3, sinthe4, x, y, z;
-  register int iphi, itheta;
-  register const double *phip, *thetap;
-  register double *latp, *lngp;
-
+  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -65,15 +59,15 @@ int sphx2s(
   if (eul[4] == 0.0) {
     if (eul[1] == 0.0) {
       // Simple change in origin of longitude.
-      dlng = fmod(eul[0] + 180.0 - eul[2], 360.0);
+      double dlng = fmod(eul[0] + 180.0 - eul[2], 360.0);
 
-      jphi   = 0;
-      thetap = theta;
-      lngp   = lng;
-      latp   = lat;
-      for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-        phip = phi + (jphi%nphi)*spt;
-        for (iphi = 0; iphi < mphi; iphi++, phip += spt, jphi++) {
+      int jphi = 0;
+      const double *thetap = theta;
+      double *lngp   = lng;
+      double *latp   = lat;
+      for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+        const double *phip = phi + (jphi%nphi)*spt;
+        for (int iphi = 0; iphi < mphi; iphi++, phip += spt, jphi++) {
           *lngp = *phip + dlng;
           *latp = *thetap;
 
@@ -97,15 +91,15 @@ int sphx2s(
 
     } else {
       // Pole-flip with change in origin of longitude.
-      dlng = fmod(eul[0] + eul[2], 360.0);
+      double dlng = fmod(eul[0] + eul[2], 360.0);
 
-      jphi   = 0;
-      thetap = theta;
-      lngp   = lng;
-      latp   = lat;
-      for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-        phip = phi + (jphi%nphi)*spt;
-        for (iphi = 0; iphi < mphi; iphi++, phip += spt, jphi++) {
+      int jphi = 0;
+      const double *thetap = theta;
+      double *lngp   = lng;
+      double *latp   = lat;
+      for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+        const double *phip = phi + (jphi%nphi)*spt;
+        for (int iphi = 0; iphi < mphi; iphi++, phip += spt, jphi++) {
           *lngp = dlng - *phip;
           *latp = -(*thetap);
 
@@ -133,14 +127,14 @@ int sphx2s(
 
 
   // Do phi dependency.
-  phip = phi;
-  rowoff = 0;
-  rowlen = nphi*sll;
-  for (iphi = 0; iphi < nphi; iphi++, rowoff += sll, phip += spt) {
-    dphi = *phip - eul[2];
+  const double *phip = phi;
+  int rowoff = 0;
+  int rowlen = nphi*sll;
+  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sll, phip += spt) {
+    double dphi = *phip - eul[2];
 
-    lngp = lng + rowoff;
-    for (itheta = 0; itheta < mtheta; itheta++) {
+    double *lngp = lng + rowoff;
+    for (int itheta = 0; itheta < mtheta; itheta++) {
       *lngp = dphi;
       lngp += rowlen;
     }
@@ -148,28 +142,32 @@ int sphx2s(
 
 
   // Do theta dependency.
-  thetap = theta;
-  lngp = lng;
-  latp = lat;
-  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+  const double *thetap = theta;
+  double *lngp = lng;
+  double *latp = lat;
+  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    double sinthe, costhe;
     sincosd(*thetap, &sinthe, &costhe);
-    costhe3 = costhe*eul[3];
-    costhe4 = costhe*eul[4];
-    sinthe3 = sinthe*eul[3];
-    sinthe4 = sinthe*eul[4];
 
-    for (iphi = 0; iphi < mphi; iphi++, lngp += sll, latp += sll) {
-      dphi = *lngp;
+    double costhe3 = costhe*eul[3];
+    double costhe4 = costhe*eul[4];
+    double sinthe3 = sinthe*eul[3];
+    double sinthe4 = sinthe*eul[4];
+
+    for (int iphi = 0; iphi < mphi; iphi++, lngp += sll, latp += sll) {
+      double dphi = *lngp;
+      double sinphi, cosphi;
       sincosd(dphi, &sinphi, &cosphi);
 
       // Compute the celestial longitude.
-      x = sinthe4 - costhe3*cosphi;
+      double x = sinthe4 - costhe3*cosphi;
       if (fabs(x) < tol) {
         // Rearrange formula to reduce roundoff errors.
         x = -cosd(*thetap + eul[1]) + costhe3*(1.0 - cosphi);
       }
 
-      y = -costhe*sinphi;
+      double dlng;
+      double y = -costhe*sinphi;
       if (x != 0.0 || y != 0.0) {
         dlng = atan2d(y, x);
       } else {
@@ -201,7 +199,7 @@ int sphx2s(
         if (*latp >  90.0) *latp =  180.0 - *latp;
         if (*latp < -90.0) *latp = -180.0 - *latp;
       } else {
-        z = sinthe3 + costhe4*cosphi;
+        double z = sinthe3 + costhe4*cosphi;
         if (fabs(z) > 0.99) {
           // Use an alternative formula for greater accuracy.
           *latp = copysign(acosd(sqrt(x*x+y*y)), z);
@@ -229,13 +227,7 @@ int sphs2x(
   double theta[])
 
 {
-  int jlng, mlat, mlng, rowlen, rowoff;
-  double coslat, coslat3, coslat4, coslng, dlng, dphi, sinlat, sinlat3,
-         sinlat4, sinlng, x, y, z;
-  register int ilat, ilng;
-  register const double *latp, *lngp;
-  register double *phip, *thetap;
-
+  int mlng, mlat;
   if (nlat > 0) {
     mlng = nlng;
     mlat = nlat;
@@ -250,15 +242,15 @@ int sphs2x(
   if (eul[4] == 0.0) {
     if (eul[1] == 0.0) {
       // Simple change in origin of longitude.
-      dphi = fmod(eul[2] - 180.0 - eul[0], 360.0);
+      double dphi = fmod(eul[2] - 180.0 - eul[0], 360.0);
 
-      jlng   = 0;
-      latp   = lat;
-      phip   = phi;
-      thetap = theta;
-      for (ilat = 0; ilat < nlat; ilat++, latp += sll) {
-        lngp = lng + (jlng%nlng)*sll;
-        for (ilng = 0; ilng < mlng; ilng++, lngp += sll, jlng++) {
+      int jlng = 0;
+      const double *latp   = lat;
+      double *phip   = phi;
+      double *thetap = theta;
+      for (int ilat = 0; ilat < nlat; ilat++, latp += sll) {
+        const double *lngp = lng + (jlng%nlng)*sll;
+        for (int ilng = 0; ilng < mlng; ilng++, lngp += sll, jlng++) {
           *phip = fmod(*lngp + dphi, 360.0);
           *thetap = *latp;
 
@@ -276,15 +268,15 @@ int sphs2x(
 
     } else {
       // Pole-flip with change in origin of longitude.
-      dphi = fmod(eul[2] + eul[0], 360.0);
+      double dphi = fmod(eul[2] + eul[0], 360.0);
 
-      jlng   = 0;
-      latp   = lat;
-      phip   = phi;
-      thetap = theta;
-      for (ilat = 0; ilat < nlat; ilat++, latp += sll) {
-        lngp = lng + (jlng%nlng)*sll;
-        for (ilng = 0; ilng < mlng; ilng++, lngp += sll, jlng++) {
+      int jlng   = 0;
+      const double *latp   = lat;
+      double *phip   = phi;
+      double *thetap = theta;
+      for (int ilat = 0; ilat < nlat; ilat++, latp += sll) {
+        const double *lngp = lng + (jlng%nlng)*sll;
+        for (int ilng = 0; ilng < mlng; ilng++, lngp += sll, jlng++) {
           *phip = fmod(dphi - *lngp, 360.0);
           *thetap = -(*latp);
 
@@ -306,15 +298,14 @@ int sphs2x(
 
 
   // Do lng dependency.
-  lngp = lng;
-  rowoff = 0;
-  rowlen = nlng*spt;
-  for (ilng = 0; ilng < nlng; ilng++, rowoff += spt, lngp += sll) {
-    dlng = *lngp - eul[0];
+  const double *lngp = lng;
+  int rowoff = 0;
+  int rowlen = nlng*spt;
+  for (int ilng = 0; ilng < nlng; ilng++, rowoff += spt, lngp += sll) {
+    double dlng = *lngp - eul[0];
 
-    phip = phi + rowoff;
-    thetap = theta;
-    for (ilat = 0; ilat < mlat; ilat++) {
+    double *phip = phi + rowoff;
+    for (int ilat = 0; ilat < mlat; ilat++) {
       *phip = dlng;
       phip += rowlen;
     }
@@ -322,28 +313,32 @@ int sphs2x(
 
 
   // Do lat dependency.
-  latp = lat;
-  phip   = phi;
-  thetap = theta;
-  for (ilat = 0; ilat < nlat; ilat++, latp += sll) {
+  const double *latp = lat;
+  double *phip   = phi;
+  double *thetap = theta;
+  for (int ilat = 0; ilat < nlat; ilat++, latp += sll) {
+    double sinlat, coslat;
     sincosd(*latp, &sinlat, &coslat);
-    coslat3 = coslat*eul[3];
-    coslat4 = coslat*eul[4];
-    sinlat3 = sinlat*eul[3];
-    sinlat4 = sinlat*eul[4];
 
-    for (ilng = 0; ilng < mlng; ilng++, phip += spt, thetap += spt) {
-      dlng = *phip;
+    double coslat3 = coslat*eul[3];
+    double coslat4 = coslat*eul[4];
+    double sinlat3 = sinlat*eul[3];
+    double sinlat4 = sinlat*eul[4];
+
+    for (int ilng = 0; ilng < mlng; ilng++, phip += spt, thetap += spt) {
+      double dlng = *phip;
+      double sinlng, coslng;
       sincosd(dlng, &sinlng, &coslng);
 
       // Compute the native longitude.
-      x = sinlat4 - coslat3*coslng;
+      double x = sinlat4 - coslat3*coslng;
       if (fabs(x) < tol) {
         // Rearrange formula to reduce roundoff errors.
         x = -cosd(*latp+eul[1]) + coslat3*(1.0 - coslng);
       }
 
-      y = -coslat*sinlng;
+      double dphi;
+      double y = -coslat*sinlng;
       if (x != 0.0 || y != 0.0) {
         dphi = atan2d(y, x);
       } else {
@@ -369,7 +364,7 @@ int sphs2x(
         if (*thetap >  90.0) *thetap =  180.0 - *thetap;
         if (*thetap < -90.0) *thetap = -180.0 - *thetap;
       } else {
-        z = sinlat3 + coslat4*coslng;
+        double z = sinlat3 + coslat4*coslng;
         if (fabs(z) > 0.99) {
           // Use an alternative formula for greater accuracy.
           *thetap = copysign(acosd(sqrt(x*x+y*y)), z);
@@ -395,10 +390,8 @@ int sphdpa(
   double pa[])
 
 {
-  int i;
-  double eul[5];
-
   // Set the Euler angles for the coordinate transformation.
+  double eul[5];
   eul[0] = lng0;
   eul[1] = 90.0 - lat0;
   eul[2] = 0.0;
@@ -408,7 +401,7 @@ int sphdpa(
   // Transform field points to the new system.
   sphs2x(eul, nfield, 0, 1, 1, lng, lat, pa, dist);
 
-  for (i = 0; i < nfield; i++) {
+  for (int i = 0; i < nfield; i++) {
     // Angular distance is obtained from latitude in the new frame.
     dist[i] = 90.0 - dist[i];
 
@@ -432,17 +425,15 @@ int sphpad(
   double lat[])
 
 {
-  int i;
-  double eul[5];
-
   // Set the Euler angles for the coordinate transformation.
+  double eul[5];
   eul[0] = lng0;
   eul[1] = 90.0 - lat0;
   eul[2] = 0.0;
   eul[3] = cosd(eul[1]);
   eul[4] = sind(eul[1]);
 
-  for (i = 0; i < nfield; i++) {
+  for (int i = 0; i < nfield; i++) {
     // Latitude in the new frame is obtained from angular distance.
     lat[i] = 90.0 - dist[i];
 

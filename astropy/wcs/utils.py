@@ -1188,7 +1188,7 @@ def fit_wcs_from_points(
         wcs = celestial_frame_to_wcs(frame=world_coords.frame, projection=projection)
     else:  # if projection is not string, should be wcs object. use as template.
         wcs = copy.deepcopy(projection)
-        wcs.cdelt = (1.0, 1.0)  # make sure cdelt is 1
+        wcs.wcs.cdelt = (1.0, 1.0)  # make sure cdelt is 1
         wcs.sip = None
 
     # Change PC to CD, since cdelt will be set to 1

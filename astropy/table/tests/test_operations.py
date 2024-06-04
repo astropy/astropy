@@ -26,6 +26,7 @@ from astropy.table.operations import _get_out_class, join_distance, join_skycoor
 from astropy.time import Time, TimeDelta
 from astropy.units.quantity import Quantity
 from astropy.utils import metadata
+from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.metadata import MergeConflictError
 
@@ -944,13 +945,24 @@ class TestJoin:
             names=["structured", "string"],
         )
         t12 = table.join(t1, t2, ["structured"], join_type="outer")
-        assert t12.pformat() == [
-            "structured [f, i] string_1 string_2",
-            "----------------- -------- --------",
-            "          (1., 1)      one       --",
-            "          (2., 2)      two    three",
-            "          (4., 4)       --     four",
-        ]
+        assert (
+            t12.pformat()
+            == [
+                "structured [f, i] string_1 string_2",
+                "----------------- -------- --------",
+                "          (1., 1)      one       --",
+                "          (2., 2)      two    three",
+                "          (4., 4)       --     four",
+            ]
+            if NUMPY_LT_2_0
+            else [
+                "structured [f, i] string_1 string_2",
+                "----------------- -------- --------",
+                "         (1.0, 1)      one       --",
+                "         (2.0, 2)      two    three",
+                "         (4.0, 4)       --     four",
+            ]
+        )
 
 
 class TestSetdiff:
@@ -1519,14 +1531,26 @@ class TestVStack:
             names=["structured", "string"],
         )
         t12 = table.vstack([t1, t2])
-        assert t12.pformat() == [
-            "structured [f, i] string",
-            "----------------- ------",
-            "          (1., 1)    one",
-            "          (2., 2)    two",
-            "          (3., 3)  three",
-            "          (4., 4)   four",
-        ]
+        assert (
+            t12.pformat()
+            == [
+                "structured [f, i] string",
+                "----------------- ------",
+                "          (1., 1)    one",
+                "          (2., 2)    two",
+                "          (3., 3)  three",
+                "          (4., 4)   four",
+            ]
+            if NUMPY_LT_2_0
+            else [
+                "structured [f, i] string",
+                "----------------- ------",
+                "         (1.0, 1)    one",
+                "         (2.0, 2)    two",
+                "         (3.0, 3)  three",
+                "         (4.0, 4)   four",
+            ]
+        )
 
         # One table without the structured column.
         t3 = t2[("string",)]
@@ -1539,6 +1563,19 @@ class TestVStack:
             "               --  three",
             "               --   four",
         ]
+
+    def test_vstack_inputs_not_modified(self):
+        """Tests that inputs are not modified, see issue #16119"""
+        t1 = Table(data=dict(x=[1, 2, 3], y=["a", "b", "c"]))
+
+        rows = list(t1)  # Table -> list of Rows
+        rows0 = rows[0]
+        t2 = table.vstack(rows)
+        assert rows[0] is rows0
+
+        tables = [t1, t1]
+        t3 = table.vstack(tables)
+        assert tables[0] is t1
 
 
 class TestDStack:
@@ -1719,12 +1756,22 @@ class TestDStack:
             names=["structured", "string"],
         )
         t12 = table.dstack([t1, t2])
-        assert t12.pformat() == [
-            "structured [f, i]     string   ",
-            "------------------ ------------",
-            "(1., 1) .. (3., 3) one .. three",
-            "(2., 2) .. (4., 4)  two .. four",
-        ]
+        assert (
+            t12.pformat()
+            == [
+                "structured [f, i]     string   ",
+                "------------------ ------------",
+                "(1., 1) .. (3., 3) one .. three",
+                "(2., 2) .. (4., 4)  two .. four",
+            ]
+            if NUMPY_LT_2_0
+            else [
+                " structured [f, i]      string   ",
+                "-------------------- ------------",
+                "(1.0, 1) .. (3.0, 3) one .. three",
+                "(2.0, 2) .. (4.0, 4)  two .. four",
+            ]
+        )
 
         # One table without the structured column.
         t3 = t2[("string",)]
@@ -2204,6 +2251,74 @@ def test_unique(operation_table_type):
     ]
 
 
+@pytest.mark.parametrize("join_type", ["inner", "outer", "left", "right", "cartesian"])
+def test_join_keep_sort_order(join_type):
+    """Test the keep_order argument for table.join.
+
+    See https://github.com/astropy/astropy/issues/11619.
+
+    This defines a left and right table which have an ``id`` column that is not sorted
+    and not unique. Each table has common and unique ``id`` key values along with an
+    ``order`` column to keep track of the original order.
+    """
+    keep_supported = join_type in ["left", "right", "inner"]
+    t1 = Table()
+    t1["id"] = [2, 8, 2, 0, 0, 1]  # Join key
+    t1["order"] = np.arange(len(t1))  # Original table order
+
+    t2 = Table()
+    t2["id"] = [2, 0, 1, 9, 0, 1]  # Join key
+    t2["order"] = np.arange(len(t2))  # Original table order
+
+    # No keys arg is allowed for cartesian join.
+    keys_kwarg = {} if join_type == "cartesian" else {"keys": "id"}
+
+    # Now do table joints with keep_order=False and keep_order=True.
+    t12f = table.join(t1, t2, join_type=join_type, keep_order=False, **keys_kwarg)
+    # For keep_order=True there should be a warning if keep_order is not supported for
+    # the join type.
+    ctx = (
+        nullcontext()
+        if keep_supported
+        else pytest.warns(
+            UserWarning,
+            match=r"keep_order=True is only supported for left, right, and inner joins",
+        )
+    )
+    with ctx:
+        t12t = table.join(t1, t2, join_type=join_type, keep_order=True, **keys_kwarg)
+
+    assert len(t12f) == len(t12t)
+    assert t12f.colnames == t12t.colnames
+
+    # Define expected sorting of join table for keep_order=False. Cartesian joins are
+    # always sorted by the native order of the left table, otherwise the table is sorted
+    # by the sort key ``id``.
+    sort_key_false = "order_1" if join_type == "cartesian" else "id"
+
+    # For keep_order=True the "order" column is sorted if keep is supported otherwise
+    # the table is sorted as for keep_order=False.
+    if keep_supported:
+        sort_key_true = "order_2" if join_type == "right" else "order_1"
+    else:
+        sort_key_true = sort_key_false
+
+    assert np.all(t12f[sort_key_false] == sorted(t12f[sort_key_false]))
+    assert np.all(t12t[sort_key_true] == sorted([t12t[sort_key_true]]))
+
+
+def test_join_keep_sort_order_exception():
+    """Test that exception in join(..., keep_order=True) leaves table unchanged"""
+    t1 = Table([[1, 2]], names=["id"])
+    t2 = Table([[2, 3]], names=["id"])
+    with pytest.raises(
+        TableMergeError, match=r"Left table does not have key column 'not-a-key'"
+    ):
+        table.join(t1, t2, keys="not-a-key", join_type="inner", keep_order=True)
+    assert t1.colnames == ["id"]
+    assert t2.colnames == ["id"]
+
+
 def test_vstack_bytes(operation_table_type):
     """
     Test for issue #5617 when vstack'ing bytes columns in Py3.
@@ -2424,3 +2539,63 @@ def test_mixin_join_regression():
     t12 = table.join(t1, t2, keys=("index", "flux1", "flux2"), join_type="outer")
 
     assert len(t12) == 6
+
+
+@pytest.mark.parametrize(
+    "t1, t2",
+    [
+        # different names
+        (
+            Table([np.array([1])], names=["a"]),
+            Table([np.array([1])], names=["b"]),
+        ),
+        # different data (broadcastable)
+        (
+            Table([np.array([])], names=["a"]),
+            Table([np.array([1])], names=["a"]),
+        ),
+        # different data (not broadcastable)
+        (
+            Table([np.array([1, 2])], names=["a"]),
+            Table([np.array([1, 2, 3])], names=["a"]),
+        ),
+        # different names and data (broadcastable)
+        (
+            Table([np.array([])], names=["a"]),
+            Table([np.array([1])], names=["b"]),
+        ),
+        # different names and data (not broadcastable)
+        (
+            Table([np.array([1, 2])], names=["a"]),
+            Table([np.array([1, 2, 3])], names=["b"]),
+        ),
+        # different data and array type (broadcastable)
+        (
+            Table([np.array([])], names=["a"]),
+            Table([np.ma.MaskedArray([1])], names=["a"]),
+        ),
+        # different data and array type (not broadcastable)
+        (
+            Table([np.array([1, 2])], names=["a"]),
+            Table([np.ma.MaskedArray([1, 2, 3])], names=["a"]),
+        ),
+    ],
+)
+def test_table_comp(t1, t2):
+    # see https://github.com/astropy/astropy/issues/13421
+    try:
+        np.result_type(t1.dtype, t2.dtype)
+        np.broadcast_shapes((len(t1),), (len(t2),))
+    except (TypeError, ValueError):
+        # dtypes are not comparable or arrays can't be broadcasted:
+        # a simple bool should be returned
+        assert not t1 == t2
+        assert not t2 == t1
+        assert t1 != t2
+        assert t2 != t1
+    else:
+        # otherwise, the general case is to return a 1D array with dtype=bool
+        assert not any(t1 == t2)
+        assert not any(t2 == t1)
+        assert all(t1 != t2)
+        assert all(t2 != t1)

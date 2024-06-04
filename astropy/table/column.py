@@ -3,13 +3,13 @@
 import itertools
 import warnings
 import weakref
-from collections import OrderedDict
 from copy import deepcopy
 
 import numpy as np
 from numpy import ma
 
 from astropy.units import Quantity, StructuredUnit, Unit
+from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.metadata import MetaData
@@ -396,7 +396,7 @@ class ColumnInfo(BaseColumnInfo):
         else:
             units = [None] * len(names)
         for name, part_unit in zip(names, units):
-            part = Column(self._parent[name])
+            part = self._parent.__class__(self._parent[name])
             part.unit = part_unit
             part.description = None
             part.meta = {}
@@ -503,9 +503,7 @@ class ColumnInfo(BaseColumnInfo):
 
 
 class BaseColumn(_ColumnGetitemShim, np.ndarray):
-    meta = MetaData(default_factory=OrderedDict)
-    # It's important that the metadata is an OrderedDict so that the order of
-    # the metadata is preserved when the column is YAML serialized.
+    meta = MetaData(default_factory=dict)
 
     def __new__(
         cls,
@@ -518,7 +516,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         unit=None,
         format=None,
         meta=None,
-        copy=False,
+        copy=COPY_IF_NEEDED,
         copy_indices=True,
     ):
         if data is None:
@@ -553,6 +551,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
                     format = data.info.format
                 if meta is None:
                     meta = data.info.meta
+                if name is None:
+                    name = data.info.name
 
         else:
             if np.dtype(dtype).char == "S":
@@ -719,7 +719,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         if "info" in getattr(obj, "__dict__", {}):
             self.info = obj.info
 
-    def __array_wrap__(self, out_arr, context=None):
+    def __array_wrap__(self, out_arr, context=None, return_scalar=False):
         """
         __array_wrap__ is called at the end of every ufunc.
 
@@ -730,21 +730,27 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
            like sum() or mean()), a Column still linking to a parent_table
            makes little sense, so we return the output viewed as the
            column content (ndarray or MaskedArray).
-           For this case, we use "[()]" to select everything, and to ensure we
+           For this case, if numpy tells us to ``return_scalar`` (for numpy
+           >= 2.0, otherwise assume to be true), we use "[()]" to ensure we
            convert a zero rank array to a scalar. (For some reason np.sum()
            returns a zero rank scalar array while np.mean() returns a scalar;
-           So the [()] is needed for this case.
+           So the [()] is needed for this case.)
 
         2) When the output is created by any function that returns a boolean
            we also want to consistently return an array rather than a column
            (see #1446 and #1685)
         """
-        out_arr = super().__array_wrap__(out_arr, context)
+        if NUMPY_LT_2_0:
+            out_arr = super().__array_wrap__(out_arr, context)
+            return_scalar = True
+        else:
+            out_arr = super().__array_wrap__(out_arr, context, return_scalar)
+
         if self.shape != out_arr.shape or (
             isinstance(out_arr, BaseColumn)
             and (context is not None and context[0] in _comparison_functions)
         ):
-            return out_arr.data[()]
+            return out_arr.data[()] if return_scalar else out_arr.data
         else:
             return out_arr
 
@@ -1235,7 +1241,7 @@ class Column(BaseColumn):
         unit=None,
         format=None,
         meta=None,
-        copy=False,
+        copy=COPY_IF_NEEDED,
         copy_indices=True,
     ):
         if isinstance(data, MaskedColumn) and np.any(data.mask):
@@ -1594,7 +1600,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         unit=None,
         format=None,
         meta=None,
-        copy=False,
+        copy=COPY_IF_NEEDED,
         copy_indices=True,
     ):
         if mask is None:
@@ -1794,6 +1800,12 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         return out
 
+    def convert_unit_to(self, new_unit, equivalencies=[]):
+        # This is a workaround to fix gh-9521
+        super().convert_unit_to(new_unit, equivalencies)
+        self._basedict["_unit"] = new_unit
+        self._optinfo["_unit"] = new_unit
+
     def _copy_attrs_slice(self, out):
         # Fixes issue #3023: when calling getitem with a MaskedArray subclass
         # the original object attributes are not copied.
@@ -1836,4 +1848,3 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
     more = BaseColumn.more
     pprint = BaseColumn.pprint
     pformat = BaseColumn.pformat
-    convert_unit_to = BaseColumn.convert_unit_to

@@ -1275,8 +1275,9 @@ class LeapSeconds(QTable):
             with erfa.
         """
         current = cls(erfa.leap_seconds.get())
+        expires = erfa.leap_seconds.expires
         current._expires = Time(
-            "{0.year:04d}-{0.month:02d}-{0.day:02d}".format(erfa.leap_seconds.expires),
+            f"{expires.year:04d}-{expires.month:02d}-{expires.day:02d}",
             scale="tai",
         )
         if not built_in:

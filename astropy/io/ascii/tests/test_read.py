@@ -1,11 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import io
 import locale
 import pathlib
 import platform
 import re
-from collections import OrderedDict
 from io import BytesIO, StringIO
 
 import numpy as np
@@ -23,7 +21,7 @@ from astropy.units import Unit
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2
 from astropy.utils.data import get_pkg_data_path
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils.exceptions import AstropyWarning
 
 # setup/teardown function to have the tests run in the correct directory
 from .common import (
@@ -320,7 +318,7 @@ def test_daophot_types():
     assert (
         table["PIER"].dtype.char in "US"
     )  # string (data values are consistent with int)
-    assert table["ID"].dtype.char in "il"  # int or long
+    assert table["ID"].dtype.kind == "i"  # int types: int, long, int64
 
 
 def test_daophot_header_keywords():
@@ -638,14 +636,13 @@ def test_null_Ipac():
 
 
 def test_Ipac_meta():
-    keywords = OrderedDict(
-        (
-            ("intval", 1),
-            ("floatval", 2.3e3),
-            ("date", "Wed Sp 20 09:48:36 1995"),
-            ("key_continue", "IPAC keywords can continue across lines"),
-        )
-    )
+    keywords = {
+        "intval": 1,
+        "floatval": 2.3e3,
+        "date": "Wed Sp 20 09:48:36 1995",
+        "key_continue": "IPAC keywords can continue across lines",
+    }
+
     comments = ["This is an example of a valid comment"]
     f = "data/ipac.dat"
     testfile = get_testfiles(f)[0]
@@ -1924,8 +1921,8 @@ def test_include_names_rdb_fast():
     lines[0] = "a\ta_2\ta_1\ta_3\ta_4"
     dat = ascii.read(lines, fast_reader="force", include_names=["a", "a_2", "a_3"])
     assert len(dat) == 2
-    assert dat["a"].dtype == int
-    assert dat["a_2"].dtype == int
+    assert dat["a"].dtype.kind == "i"
+    assert dat["a_2"].dtype.kind == "i"
 
 
 @pytest.mark.parametrize("fast_reader", [False, "force"])
@@ -2069,46 +2066,57 @@ def test_read_converters_simplified():
             )
 
 
-def test_read_deprecations():
-    def check_warns(func, *args):
-        with pytest.warns(AstropyDeprecationWarning) as warns:
-            out = func(
-                *args,
-                Reader=ascii.Basic,
-                Inputter=ascii.BaseInputter,
-                Outputter=ascii.TableOutputter,
-                header_Splitter=ascii.DefaultSplitter,
-                data_Splitter=ascii.DefaultSplitter,
-            )
-            assert len(warns) == 5
-            for kwarg in (
-                "Reader",
-                "Inputter",
-                "Outputter",
-                "header_Splitter",
-                "data_Splitter",
-            ):
-                msg = f'"{kwarg}" was deprecated'
-                assert any(warn.message.args[0].startswith(msg) for warn in warns)
-            return out
+def test_table_read_help_ascii():
+    """
+    Test dynamically created documentation help via the I/O registry for 'ascii'.
+    """
+    out = StringIO()
+    ascii.read.help(out=out)
+    doc = out.getvalue()
 
-    tbl = check_warns(ascii.read, ["a b", "1 2"])
-    assert tbl.pformat_all() == [" a   b ", "--- ---", "  1   2"]
-
-    reader = check_warns(ascii.get_reader)
-    tbl = reader.read(["a b", "1 2"])
-    assert tbl.pformat_all() == [" a   b ", "--- ---", "  1   2"]
+    assert "ascii.read() documentation" in doc
+    assert "Parameters" in doc
+    assert "ASCII reader 'ascii' details" in doc
+    assert "Character-delimited table with a single header line" in doc
 
 
-def test_write_deprecations():
-    t = simple_table()
-    out = io.StringIO()
-    with pytest.warns(AstropyDeprecationWarning, match='"Writer" was deprecated'):
-        ascii.write(t, out, Writer=ascii.Csv)
-    assert out.getvalue().splitlines() == ["a,b,c", "1,1.0,c", "2,2.0,d", "3,3.0,e"]
+def test_table_read_help_ascii_html():
+    """
+    Test dynamically created documentation help via the I/O registry for 'ascii.html'.
+    """
+    out = StringIO()
+    ascii.read.help("html", out=out)
+    doc = out.getvalue()
 
-    with pytest.warns(AstropyDeprecationWarning, match='"Writer" was deprecated'):
-        writer = ascii.get_writer(Writer=ascii.Csv)
-    out = io.StringIO()
-    writer.write(t, out)
-    assert out.getvalue().splitlines() == ["a,b,c", "1,1.0,c", "2,2.0,d", "3,3.0,e"]
+    assert "ascii.read(format='html') documentation" in doc
+    assert "Parameters" in doc
+    assert "ASCII reader 'ascii.html' details" in doc
+    assert "**htmldict** : Dictionary of parameters for HTML input/output." in doc
+
+
+def test_table_write_help_ascii():
+    """
+    Test dynamically created documentation help via the I/O registry for 'ascii'.
+    """
+    out = StringIO()
+    ascii.write.help(out=out)
+    doc = out.getvalue()
+
+    assert "ascii.write() documentation" in doc
+    assert "Parameters" in doc
+    assert "ASCII writer 'ascii' details" in doc
+    assert "Character-delimited table with a single header line" in doc
+
+
+def test_table_write_help_ascii_html():
+    """
+    Test dynamically created documentation help via the I/O registry for 'ascii.html'.
+    """
+    out = StringIO()
+    ascii.write.help("html", out=out)
+    doc = out.getvalue()
+
+    assert "ascii.write(format='html') documentation" in doc
+    assert "Parameters" in doc
+    assert "ASCII writer 'ascii.html' details" in doc
+    assert "**htmldict** : Dictionary of parameters for HTML input/output." in doc

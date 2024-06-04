@@ -696,7 +696,7 @@ def test_timedelta_conversion(scale1, scale2, jds_a, jds_b):
 
 # UTC disagrees when there are leap seconds
 _utc_bad = [
-    (pytest.param(s, marks=pytest.mark.xfail) if s == "utc" else s)
+    (pytest.param(s, marks=[pytest.mark.xfail, pytest.mark.slow]) if s == "utc" else s)
     for s in STANDARD_TIME_SCALES
 ]
 

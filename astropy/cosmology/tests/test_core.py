@@ -2,18 +2,20 @@
 
 """Testing :mod:`astropy.cosmology.core`."""
 
+from __future__ import annotations
+
 import abc
 import inspect
 import pickle
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pytest
 
 import astropy.cosmology.units as cu
 import astropy.units as u
-from astropy.cosmology import Cosmology, FlatCosmologyMixin
-from astropy.cosmology.core import _COSMOLOGY_CLASSES
-from astropy.cosmology.parameter import Parameter
+from astropy.cosmology import Cosmology, FlatCosmologyMixin, Parameter
+from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
 from astropy.cosmology.parameter.tests.test_descriptors import (
     ParametersAttributeTestMixin,
 )
@@ -23,13 +25,15 @@ from astropy.cosmology.tests.test_connect import (
     ToFromFormatTestMixin,
 )
 from astropy.table import Column, QTable, Table
-from astropy.utils.compat import PYTHON_LT_3_11
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 ##############################################################################
 # SETUP / TEARDOWN
 
 
-def make_valid_zs(max_z: float = 1e5):
+def make_valid_zs(max_z: float = 1e5) -> tuple[list, NDArray[float], list, list]:
     """Make a list of valid redshifts for testing."""
     # scalar
     scalar_zs = [
@@ -62,18 +66,13 @@ invalid_zs = [
 ]
 
 
+@dataclass_decorator
 class SubCosmology(Cosmology):
     """Defined here to be serializable."""
 
-    H0 = Parameter(unit="km/(s Mpc)")
-    Tcmb0 = Parameter(default=0 * u.K, unit=u.K)
-    m_nu = Parameter(default=0 * u.eV, unit=u.eV)
-
-    def __init__(self, H0, Tcmb0=0 * u.K, m_nu=0 * u.eV, name=None, meta=None):
-        super().__init__(name=name, meta=meta)
-        self.H0 = H0
-        self.Tcmb0 = Tcmb0
-        self.m_nu = m_nu
+    H0: Parameter = Parameter(unit="km/(s Mpc)")
+    Tcmb0: Parameter = Parameter(default=0 * u.K, unit=u.K)
+    m_nu: Parameter = Parameter(default=0 * u.eV, unit=u.eV)
 
     @property
     def is_flat(self):
@@ -131,14 +130,14 @@ class CosmologyTest(
     @pytest.fixture(scope="function")  # ensure not cached.
     def ba(self):
         """Return filled `inspect.BoundArguments` for cosmology."""
-        ba = self.cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+        ba = inspect.signature(self.cls).bind(*self.cls_args, **self.cls_kwargs)
         ba.apply_defaults()
         return ba
 
     @pytest.fixture(scope="class")
     def cosmo(self, cosmo_cls):
         """The cosmology instance with which to test."""
-        ba = self.cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+        ba = inspect.signature(self.cls).bind(*self.cls_args, **self.cls_kwargs)
         ba.apply_defaults()
         return cosmo_cls(*ba.args, **ba.kwargs)
 
@@ -175,23 +174,6 @@ class CosmologyTest(
         assert UnRegisteredSubclassTest.parameters == cosmo_cls.parameters
         assert UnRegisteredSubclassTest.__qualname__ not in _COSMOLOGY_CLASSES
 
-    def test_init_signature(self, cosmo_cls, cosmo):
-        """Test class-property ``_init_signature``."""
-        # test presence
-        assert hasattr(cosmo_cls, "_init_signature")
-        assert hasattr(cosmo, "_init_signature")
-
-        # test internal consistency, so following tests can use either cls or instance.
-        assert cosmo_cls._init_signature == cosmo._init_signature
-
-        # test matches __init__, but without 'self'
-        sig = inspect.signature(cosmo.__init__)  # (instances don't have self)
-        assert set(sig.parameters) == set(cosmo._init_signature.parameters)
-        assert all(
-            np.all(sig.parameters[k].default == p.default)
-            for k, p in cosmo._init_signature.parameters.items()
-        )
-
     # ---------------------------------------------------------------
     # instance-level
 
@@ -208,18 +190,18 @@ class CosmologyTest(
 
     def test_name(self, cosmo):
         """Test property ``name``."""
-        assert cosmo.name is cosmo._name  # accesses private attribute
         assert cosmo.name is None or isinstance(cosmo.name, str)  # type
         assert cosmo.name == self.cls_kwargs["name"]  # test has expected value
 
-        # immutable
-        match = (
-            "can't set"
-            if PYTHON_LT_3_11
-            else f"property 'name' of {cosmo.__class__.__name__!r} object has no setter"
-        )
+    def test_name_immutable(self, cosmo):
+        """The name field should be immutable."""
+        match = "cannot assign to field 'name'"
         with pytest.raises(AttributeError, match=match):
             cosmo.name = None
+
+    def test_name_on_cls(self, cosmo_cls):
+        """Test accessing :attr:`~astropy.cosmology.Cosmology.name` from the class."""
+        assert cosmo_cls.name is None
 
     @abc.abstractmethod
     def test_is_flat(self, cosmo_cls, cosmo):
@@ -238,7 +220,7 @@ class CosmologyTest(
         c = cosmo.clone(name="cloned cosmo")
         assert c.name == "cloned cosmo"  # changed
         # show name is the only thing changed
-        c._name = cosmo.name  # first change name back
+        object.__setattr__(c, "name", cosmo.name)  # first change name back
         assert c == cosmo
         assert c.meta == cosmo.meta
 
@@ -299,34 +281,6 @@ class CosmologyTest(
         newcosmo = cosmo.clone(name="test_equality")
         assert (cosmo != newcosmo) and (newcosmo != cosmo)
         assert cosmo.__equiv__(newcosmo) and newcosmo.__equiv__(cosmo)
-
-    # ---------------------------------------------------------------
-
-    def test_repr(self, cosmo_cls, cosmo):
-        """Test method ``.__repr__()``.
-
-        This is a very general test and it is probably good to have a
-        hard-coded comparison.
-        """
-        r = repr(cosmo)
-
-        # class in string rep
-        assert cosmo_cls.__qualname__ in r
-        assert r.index(cosmo_cls.__qualname__) == 0  # it's the first thing
-        r = r[len(cosmo_cls.__qualname__) + 1 :]  # remove
-
-        # name in string rep
-        if cosmo.name is not None:
-            assert f"name={cosmo.name!r}" in r
-            assert r.index("name=") == 0
-            r = r[6 + len(cosmo.name) + 3 :]  # remove
-
-        # parameters in string rep
-        for k, v in cosmo.parameters.items():
-            sv = f"{k}={v!r}"
-            assert sv in r
-            assert r.index(k) == 0
-            r = r[len(sv) + 2 :]  # remove
 
     # ------------------------------------------------
 
@@ -536,10 +490,8 @@ def test__nonflatclass__multiple_nonflat_inheritance():
     """
 
     # Define a non-operable minimal subclass of Cosmology.
+    @dataclass_decorator
     class SubCosmology2(Cosmology):
-        def __init__(self, H0, Tcmb0=0 * u.K, m_nu=0 * u.eV, name=None, meta=None):
-            super().__init__(name=name, meta=meta)
-
         @property
         def is_flat(self):
             return False

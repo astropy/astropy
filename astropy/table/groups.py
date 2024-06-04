@@ -2,6 +2,7 @@
 
 import platform
 import warnings
+from itertools import pairwise
 
 import numpy as np
 
@@ -60,18 +61,16 @@ def _table_group_by(table, keys):
         table_keys = keys
         if len(table_keys) != len(table):
             raise ValueError(
-                "Input keys array length {} does not match table length {}".format(
-                    len(table_keys), len(table)
-                )
+                f"Input keys array length {len(table_keys)} does not match "
+                f"table length {len(table)}"
             )
         table_index = None
         grouped_by_table_cols = False
 
     else:
         raise TypeError(
-            "Keys input must be string, list, tuple, Table or numpy array, but got {}".format(
-                type(keys)
-            )
+            f"Keys input must be string, list, tuple, Table or numpy array, "
+            f"but got {type(keys)}"
         )
 
     # TODO: don't use represent_mixins_as_columns here, but instead ensure that
@@ -111,13 +110,17 @@ def _table_group_by(table, keys):
     # If the sort is not stable (preserves original table order) then sort idx_sort in
     # place within each group.
     if not stable_sort:
-        for i0, i1 in zip(indices[:-1], indices[1:]):
+        for i0, i1 in pairwise(indices):
             idx_sort[i0:i1].sort()
 
     # Make a new table and set the _groups to the appropriate TableGroups object.
     # Take the subset of the original keys at the indices values (group boundaries).
     out = table.__class__(table[idx_sort])
-    out_keys = table_keys[indices[:-1]]
+    if len(table) == 0:
+        out_keys = table_keys
+        indices = np.array([], dtype=int)
+    else:
+        out_keys = table_keys[indices[:-1]]
     if isinstance(out_keys, Table):
         out_keys.meta["grouped_by_table_cols"] = grouped_by_table_cols
     out._groups = TableGroups(out, indices=indices, keys=out_keys)
@@ -153,9 +156,8 @@ def column_group_by(column, keys):
 
     if len(keys_sort) != len(column):
         raise ValueError(
-            "Input keys array length {} does not match column length {}".format(
-                len(keys), len(column)
-            )
+            f"Input keys array length {len(keys)} does not match "
+            f"column length {len(column)}"
         )
 
     try:
@@ -269,30 +271,29 @@ class ColumnGroups(BaseGroups):
             return self._keys
 
     def aggregate(self, func):
-        from .column import MaskedColumn
-
         i0s, i1s = self.indices[:-1], self.indices[1:]
         par_col = self.parent_column
-        masked = isinstance(par_col, MaskedColumn)
-        reduceat = hasattr(func, "reduceat")
-        sum_case = func is np.sum
-        mean_case = func is np.mean
         try:
-            if not masked and (reduceat or sum_case or mean_case):
-                if mean_case:
+            # Short-cut for cases where .reduceat is known to work well.
+            if (
+                isinstance(par_col, np.ndarray)
+                and not hasattr(par_col, "mask")
+                and (hasattr(func, "reduceat") or func is np.sum or func is np.mean)
+            ):
+                if func is np.mean:
                     vals = np.add.reduceat(par_col, i0s) / np.diff(self.indices)
                 else:
-                    if sum_case:
+                    if func is np.sum:
                         func = np.add
                     vals = func.reduceat(par_col, i0s)
             else:
-                vals = np.array([func(par_col[i0:i1]) for i0, i1 in zip(i0s, i1s)])
+                # Count on class initializer to be able to concatenate lists.
+                vals = [func(par_col[i0:i1]) for i0, i1 in zip(i0s, i1s)]
             out = par_col.__class__(vals)
         except Exception as err:
             raise TypeError(
-                "Cannot aggregate column '{}' with type '{}': {}".format(
-                    par_col.info.name, par_col.info.dtype, err
-                )
+                f"Cannot aggregate column '{par_col.info.name}' "
+                f"with type '{par_col.info.dtype}': {err}"
             ) from err
 
         out_info = out.info

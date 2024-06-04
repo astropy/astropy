@@ -27,9 +27,9 @@ Interface and Dependencies
 * The core package should be importable with no
   dependencies other than components already in the Astropy core, the
   `Python Standard Library <https://docs.python.org/3/library/index.html>`_,
-  and NumPy_ |minimum_numpy_version| or later.
+  and |NumPy| |minimum_numpy_version| or later.
 
-* Additional dependencies - such as SciPy_, Matplotlib_, or other
+* Additional dependencies - such as |SciPy|, |Matplotlib|, or other
   third-party packages - are allowed for sub-modules or in function
   calls, but they must be noted in the package documentation and
   should only affect the relevant component.  In functions and
@@ -37,8 +37,7 @@ Interface and Dependencies
   statement, which will raise an ``ImportError`` if the dependency is
   not available. In the astropy core package, such optional dependencies should
   be recorded in the ``pyproject.toml`` file in the ``[project.optional-dependencies]``
-  entry, under ``all`` (or ``test_all`` if the dependency is only
-  needed for testing).
+  entry (put it in the appropriate category of optional dependencies).
 
   At the module level, one can subclass a class from an optional dependency
   like so::
@@ -136,29 +135,28 @@ Coding Style/Conventions
   using only 4 spaces for indentation, and never tabs.
 
   * ``astropy`` itself enforces this style guide using the
-    `black <https://black.readthedocs.io/en/stable/>`_ code formatter, see
-    `The Black Code Style <https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html>`_
-    for details.
+    `ruff format <https://docs.astral.sh/ruff/formatter/>`_ code formatter, which closely follows the
+    `The Black Code Style <https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html>`_.
 
-  * We recognize that sometimes ``black`` will autoformat things in undesirable
-    ways, e.g., matrices.  In the cases that ``black`` produces undesirable code
+  * We recognize that sometimes ruff_ will autoformat things in undesirable
+    ways, e.g., matrices.  In the cases that ruff_ produces undesirable code
     formatting:
 
       * one can wrap code the code in ``# fmt: off`` and ``# fmt: on`` to disable
-        ``black`` formatting over multiple lines.
+        ruff_ formatting over multiple lines.
 
       * or one can add a single ``# fmt: skip`` comment to the end of a line to
-        disable ``black`` formatting for that line.
+        disable ruff_ formatting for that line.
 
     This should be done sparingly, and only
-    when ``black`` produces undesirable formatting.
+    when ruff_ produces undesirable formatting.
 
       .. note::
         When a list or array should be formatted as one item per line then this is best
         achieved by using the
         `magic trailing comma <https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#the-magic-trailing-comma>`_.
         This is frequently sufficient for keeping matrices formatted as one row
-        per line while still allowing ``black`` to check the code::
+        per line while still allowing ruff_ to check the code::
 
             arr = [
                 [0, 1],
@@ -166,15 +164,16 @@ Coding Style/Conventions
             ]
 
 
-* Our testing infrastructure currently enforces a subset of the PEP8_ style guide. In
+* Our testing infrastructure currently enforces a subset of the |PEP8| style guide. In
   addition, these checks also enforce `isort <https://pycqa.github.io/isort/>`_ to sort
   the module imports and a large set of style-checks supported by ruff_.
 
-  * We provide a ``pre-commit`` hook which automatically enforces and fixes (whenever
-    possible) the coding style, see :ref:`pre-commit` for details on how to set up and
-    use this. We note that the particular set of PEP8_ and style-related checks that are
-    used in Astropy do not need to be used in affiliated packages. In particular, the
-    set of ruff_ checks is not required for affiliated packages.
+  * We provide a `pre-commit <https://pre-commit.com/>`_ configuration which
+    automatically enforces and fixes (whenever possible) the coding style, see
+    :ref:`pre-commit` for details on how to set up and use this. We note that the
+    particular set of |PEP8| and style-related checks that are used in Astropy do not
+    need to be used in affiliated packages. In particular, the set of ruff_ checks is
+    not required for affiliated packages.
 
   * Alternately, you can manually check and fix your changes by running the
     following `tox <https://tox.readthedocs.io/>`__ command::
@@ -192,19 +191,12 @@ Coding Style/Conventions
             See :doc:`codeguide_emacs` for some configuration options for Emacs
             that helps in ensuring conformance to PEP8.
 
-* Astropy source code should contain a comment at the beginning of the file (or
-  immediately after the ``#!/usr/bin env python`` command, if relevant)
-  pointing to the license for the Astropy source code.  This line should say::
+* ``astropy`` source code should contain a comment at the beginning of the file
+  pointing to the license for the ``astropy`` source code.  This line should say::
 
       # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-* The following naming conventions::
-
-    import numpy as np
-    import matplotlib as mpl
-    import matplotlib.pyplot as plt
-
-  should be used wherever relevant. On the other hand::
+* Star-imports, e.g.,
 
     from packagename import *
 
@@ -379,10 +371,10 @@ Properties vs. get\_/set\_
 --------------------------
 
 This example shows a sample class illustrating the guideline regarding the use
-of properties as opposed to getter/setter methods.
+of `properties <https://docs.python.org/3/library/functions.html#property>`_ as
+opposed to getter/setter methods.
 
-Let's assuming you've defined a ``Star`` class and create an instance
-like this::
+Let's assume you've defined a ``Star`` class and create an instance like this::
 
     >>> s = Star(B=5.48, V=4.83)
 
@@ -572,4 +564,4 @@ Further tips and hints relating to the coding guidelines are included below.
 .. _matplotlib: https://matplotlib.org/
 .. _Cython: https://cython.org/
 .. _PyPI: https://pypi.org/project
-.. _ruff: https://beta.ruff.rs/docs
+.. _ruff: https://docs.astral.sh/ruff/

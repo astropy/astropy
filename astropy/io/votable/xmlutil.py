@@ -3,7 +3,6 @@
 Various XML-related utilities.
 """
 
-
 # ASTROPY
 from astropy.logger import log
 from astropy.utils import data

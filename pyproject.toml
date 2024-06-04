@@ -9,7 +9,7 @@ authors = [
     { name = "The Astropy Developers", email = "astropy.team@gmail.com" }
 ]
 license = { text = "BSD-3-Clause" }
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: BSD License",
@@ -40,38 +40,37 @@ keywords = [
 ]
 dependencies = [
     "numpy>=1.23",
-    "pyerfa>=2.0",
-    "astropy-iers-data>=0.2024.1.1.0.33.39",
+    "pyerfa>=2.0.1.1",
+    "astropy-iers-data>=0.2024.5.27.0.30.8",
     "PyYAML>=3.13",
     "packaging>=19.0",
 ]
 
 [project.optional-dependencies]
-test = [
-    "pytest>=7.0",
-    "pytest-doctestplus>=0.12",
-    "pytest-astropy-header>=0.2.1",
-    "pytest-astropy>=0.10",
-    "pytest-xdist",
-]
-test_all = [
-    "astropy[test]",  # installs the [test] dependencies
-    "objgraph",
-    "ipython>=4.2",
-    "coverage[toml]",
-    "skyfield>=1.20",
-    "sgp4>=2.3",
-]
+# Recommended run-time dependencies to enable a lot of functionality within Astropy.
 recommended = [
     "scipy>=1.8",
     "matplotlib>=3.3,!=3.4.0,!=3.5.2",
 ]
-typing = [
-    "typing_extensions>=4.0.0",
+# Optional IPython-related behavior is in many places in Astropy. IPython is a complex
+# dependency that occasionally requires pinning one of it's upstream dependencies. If
+# you are using Astropy from an IPython-dependent IDE, like Jupyter, this should enforce
+# the minimum supported version of IPython.
+ipython = [
+    "ipython>=7.32",
 ]
+jupyter = [  # these are optional dependencies for `utils.console`
+    "astropy[ipython]",
+    "ipywidgets",
+    "ipykernel",
+]
+# This is ALL the run-time optional dependencies.
 all = [
-    "astropy[recommended]",  # installs the [recommended] dependencies
-    "astropy[typing]",
+    # Install grouped optional dependencies
+    "astropy[recommended]",
+    "astropy[ipython]",
+    "astropy[jupyter]",
+    # Install all remaining optional dependencies
     "certifi",
     "dask[array]",
     "h5py",
@@ -86,11 +85,32 @@ all = [
     "mpmath",
     "asdf-astropy>=0.3",
     "bottleneck",
-    "ipython>=4.2",
-    "pytest>=7.0",
     "fsspec[http]>=2023.4.0",
     "s3fs>=2023.4.0",
+]
+# The base set of test-time dependencies.
+test = [
+    "coverage[toml]",
     "pre-commit",
+    "pytest>=7.0",
+    "pytest-doctestplus>=0.12",
+    "pytest-astropy-header>=0.2.1",
+    "pytest-astropy>=0.10",
+    "pytest-xdist",
+    "threadpoolctl",
+]
+test_all = [
+    # Install grouped optional dependencies
+    "astropy[all]",  # installs all optional run-time dependencies
+    "astropy[test]",
+    # Install all remaining dependencies
+    "objgraph",
+    "skyfield>=1.20",
+    "sgp4>=2.3",
+    "array-api-strict",
+]
+typing = [
+    "typing_extensions>=4.0.0",
 ]
 docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
@@ -99,8 +119,21 @@ docs = [
     "pytest>=7.0",
     "sphinx-changelog>=1.2.0",
     "sphinx_design",
-    "Jinja2>=3.0",
+    "Jinja2>=3.1.3",
     "tomli; python_version < '3.11'",
+    "sphinxcontrib-globalsubs >= 0.1.1",
+    "matplotlib!=3.9.0",  # https://github.com/matplotlib/matplotlib/issues/28234
+]
+# These group together all the dependencies needed for developing in Astropy.
+dev = [
+    "astropy[recommended]",  # installs the most common optional dependencies
+    "astropy[test]",
+    "astropy[docs]",
+    "astropy[typing]",
+]
+dev_all = [
+    "astropy[dev]",
+    "astropy[test_all]",
 ]
 
 [project.urls]
@@ -123,7 +156,7 @@ wcslint = "astropy.wcs.wcslint:main"
 requires = ["setuptools",
             "setuptools_scm>=6.2",
             "cython>=3.0.0,<3.1.0",
-            "numpy>=1.25",
+            "numpy>=2.0.0rc1", # see https://github.com/astropy/astropy/issues/16257
             "extension-helpers==1.*"]
 build-backend = "setuptools.build_meta"
 
@@ -157,7 +190,7 @@ namespaces = true
 write_to = "astropy/_version.py"
 
 [tool.pytest.ini_options]
-minversion = 7.0
+minversion = "7.0"
 testpaths = [
     "astropy",
     "docs",
@@ -177,6 +210,7 @@ addopts = [
     "--doctest-rst",
     "--strict-config",
     "--strict-markers",
+    "-p no:legacypath",
 ]
 log_cli_level = "info"
 xfail_strict = true
@@ -190,11 +224,6 @@ filterwarnings = [
     "ignore:numpy\\.ufunc size changed:RuntimeWarning",
     "ignore:numpy\\.ndarray size changed:RuntimeWarning",
     "ignore:matplotlibrc text\\.usetex:UserWarning:matplotlib",
-    # Triggered by ProgressBar > ipykernel.iostream (revisit when we bump oldest deps versions)
-    "ignore:the imp module is deprecated:DeprecationWarning",
-    # Ignore a warning we emit about not supporting the parallel",
-    # reading option for now, can be removed once the issue is fixed",
-    "ignore:parallel reading does not currently work, so falling back to serial",
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",
@@ -206,9 +235,14 @@ doctest_subpackage_requires = [
     "astropy/cosmology/_io/table.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
     "astropy/table/table.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
     "astropy/table/mixins/dask.py = dask",
-    "docs/io/fits/index.rst = numpy<1.25",  # NUMPY_LT_1_25 (Issue 14545)
-    "docs/io/fits/usage/image.rst = numpy<1.25",  # NUMPY_LT_1_25 (Issue 14545)
-    "docs/io/fits/usage/unfamiliar.rst = numpy<1.25",  # NUMPY_LT_1_25 (Issue 14545)
+    "docs/* = numpy>=2.0.0rc1",   # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/stats/info_theory.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/stats/jackknife.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/table/row.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/time/formats.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/timeseries/periodograms/bls/core.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/timeseries/periodograms/lombscargle/core.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/units/structured.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
 ]
 markers = [
     "mpl_image_compare",
@@ -224,33 +258,15 @@ markers = [
 
 [tool.cibuildwheel]
 # We disable testing for the following wheels:
-# - MacOS X ARM (no native hardware, tests are skipped anyway, this avoids a warning)
 # - Linux AArch64 (no native hardware, tests take too long)
 # - MuslLinux (tests hang non-deterministically)
-test-skip = "*-macosx_arm64 *-manylinux_aarch64 *-musllinux_x86_64"
+test-skip = "*-manylinux_aarch64 *-musllinux_x86_64"
 
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"]
 
 [tool.cibuildwheel.linux]
 archs = ["auto", "aarch64"]
-
-[tool.black]
-force-exclude = """
-^/(
-  (
-    # Directories to always exclude (.gitignore is always excluded)
-      examples
-    | docs/wcs/examples
-    | docs/nddata/examples
-    | cextern
-    | astropy/extern
-  )/
-  # Individual files to always exclude
-  | astropy/coordinates/.*tab.py
-  | astropy/units/format/.*tab.py
-)
-"""
 
 
 [tool.docformatter]
@@ -261,20 +277,6 @@ force-exclude = """
     wrap-descriptions = 75
     black = true
     syntax = "numpy"
-
-
-[tool.flynt]
-exclude= [
-    "astropy/extern",
-    "astropy/coordinates/angles/angle_lextab.py",
-    "astropy/units/format/cds_lextab.py",
-    "astropy/units/format/general_lextab.py",
-    "astropy/units/format/ogip_lextab.py",
-    "astropy/coordinates/angles/angle_parsetab.py",
-    "astropy/units/format/cds_parsetab.py",
-    "astropy/units/format/general_parsetab.py",
-    "astropy/units/format/ogip_parsetab.py",
-]
 
 
 [tool.coverage]
@@ -315,7 +317,9 @@ exclude= [
             # Don't complain about IPython completion helper
             "def _ipython_key_completions_",
             # typing.TYPE_CHECKING is False at runtime
-            "if TYPE_CHECKING:"
+            "if TYPE_CHECKING:",
+            # Ignore typing overloads
+            "@overload",
         ]
 
 [tool.ruff]
@@ -359,6 +363,10 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     # flake8-fixme (FIX)
     "FIX002",  # Line contains TODO | notes for improvements are OK iff the code works
 
+    # ISC001 shouldn't be used with ruff format
+    # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+    "ISC001",
+
     # pep8-naming (N)
     "N803",  # invalid-argument-name. Physics variables are often poor code variables
     "N806",  # non-lowercase-variable-in-function. Physics variables are often poor code variables
@@ -385,9 +393,9 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     "D411",  # sphinx treats spaced example sections as real sections
 ]
 "test_*.py" = [
+    "ANN201",  # Public function without return type annotation
     "B018",  # UselessExpression
     "D",  # pydocstyle
-    "PGH001",  # No builtin eval() allowed
     "S101",  # Use of assert detected
 ]
 ".pyinstaller/*.py" = ["INP001"]  # Not a package.
@@ -404,6 +412,12 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
 [tool.ruff.lint.flake8-annotations]
 ignore-fully-untyped = true
 mypy-init-return = true
+
+[tool.ruff.lint.flake8-comprehensions]
+allow-dict-calls-with-keyword-arguments = true
+
+[tool.ruff.lint.flake8-type-checking]
+exempt-modules = []
 
 [tool.ruff.lint.isort]
 known-first-party = ["astropy", "extension_helpers"]
@@ -565,14 +579,14 @@ ignore = [
         type_incorrect_long = "The changelog file you added is not one of the allowed types. Please use one of the types described in the changelog [README](https://github.com/astropy/astropy/blob/main/docs/changes/README.rst)"
         number_incorrect_long = "The number in the changelog file you added does not match the number of this pull request. Please rename the file."
 
-    [tool.gilesbot.circleci_artifacts.py39-test-image-mpl334]
-        url = ".tmp/py39-test-image-mpl334/results/fig_comparison.html"
-        message = "Click details to see the figure test comparisons, for py39-test-image-mpl334."
+    [tool.gilesbot.circleci_artifacts.py310-test-image-mpl334]
+        url = ".tmp/py310-test-image-mpl334/results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons, for py310-test-image-mpl334."
         report_on_fail = true
 
-    [tool.gilesbot.circleci_artifacts.py39-test-image-mpldev]
-        url = ".tmp/py39-test-image-mpldev/results/fig_comparison.html"
-        message = "Click details to see the figure test comparisons for py39-test-image-mpldev."
+    [tool.gilesbot.circleci_artifacts.py310-test-image-mpldev]
+        url = ".tmp/py310-test-image-mpldev/results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons for py310-test-image-mpldev."
         report_on_fail = true
 
 [tool.codespell]

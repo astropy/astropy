@@ -12,7 +12,7 @@ dates. Specific emphasis is placed on supporting time scales (e.g., UTC, TAI,
 UT1, TDB) and time representations (e.g., JD, MJD, ISO 8601) that are used in
 astronomy and required to calculate, for example, sidereal times and barycentric
 corrections. The `astropy.time` package is based on fast and memory efficient
-PyERFA_ wrappers around the ERFA_ time and calendar routines.
+|PyERFA| wrappers around the |ERFA| time and calendar routines.
 
 All time manipulations and arithmetic operations are done internally using two
 64-bit floats to represent time. Floating point algorithms from [#]_ are used so
@@ -293,7 +293,7 @@ can have higher precision than the standard 64-bit float::
 
   >>> tm = Time('51544.000000000000001', format='mjd')  # String input
   >>> tm.mjd  # float64 output loses last digit but Decimal gets it
-  51544.0
+  np.float64(51544.0)
   >>> tm.to_value('mjd', subfmt='decimal')  # doctest: +SKIP
   Decimal('51544.00000000000000099920072216264')
   >>> tm.to_value('mjd', subfmt='str')
@@ -382,7 +382,7 @@ local  Local Time Scale          (LOCAL)
 ====== =================================
 
 .. [#] Wikipedia `time standard <https://en.wikipedia.org/wiki/Time_standard>`_ article
-.. [#] SOFA_ Time Scale and Calendar Tools
+.. [#] |SOFA| Time Scale and Calendar Tools
        `(PDF) <http://www.iausofa.org/sofa_ts_c.pdf>`_
 
 .. note:: The ``local`` time scale is meant for free-running clocks or
@@ -416,7 +416,7 @@ returning scalar or array objects as appropriate::
   >>> from astropy.time import Time
   >>> t = Time(100.0, format='mjd')
   >>> t.jd
-  2400100.5
+  np.float64(2400100.5)
   >>> t = Time([100.0, 200.0, 300.], format='mjd')
   >>> t.jd  # doctest: +FLOAT_CMP
   array([2400100.5, 2400200.5, 2400300.5])
@@ -487,10 +487,10 @@ Some arithmetic methods are supported as well: :meth:`~astropy.time.Time.min`,
 
 To apply arithmetic methods to |Time| instances::
 
-  >> t.max()
+  >>> t.max()
   <Time object: scale='utc' format='mjd' value=50002.5>
-  >> t.ptp(axis=0)  # doctest: +FLOAT_CMP
-  <TimeDelta object: scale='tai' format='jd' value=[2. 2.]>
+  >>> t.min()
+  <Time object: scale='utc' format='mjd' value=50000.0>
 
 .. EXAMPLE END
 
@@ -533,7 +533,7 @@ requiring no better than microsecond precision over human time scales (~100
 years) can safely ignore the internal representation details and skip this
 section.
 
-This representation is driven by the underlying ERFA_ C-library implementation.
+This representation is driven by the underlying |ERFA| C-library implementation.
 The ERFA routines take care throughout to maintain overall precision of the
 double pair. Users are free to choose the way in which total JD is
 provided, though internally one part contains integer days and the
@@ -576,7 +576,7 @@ val
 ^^^
 
 The ``val`` argument specifies the input time or times and can be a single
-string or number, or it can be a Python list or ```numpy`` array of strings or
+string or number, or it can be a Python list or ``numpy`` array of strings or
 numbers. To initialize a |Time| object based on a specified time, it *must* be
 present.
 
@@ -609,12 +609,12 @@ the highest precision. For example::
 
   >>> t = Time(100.0, 0.000001, format='mjd', scale='tt')
   >>> t.jd, t.jd1, t.jd2  # doctest: +FLOAT_CMP
-  (2400100.500001, 2400101.0, -0.499999)
+  (np.float64(2400100.500001), 2400101.0, -0.499999)
 
 format
 ^^^^^^
 
-The ```format`` argument sets the time `time format`_, and as mentioned it is
+The ``format`` argument sets the time `time format`_, and as mentioned it is
 required unless the format can be unambiguously determined from the input times.
 
 
@@ -633,7 +633,7 @@ precision
 The ``precision`` setting affects string formats when outputting a value that
 includes seconds. It must be an integer between 0 and 9. There is no effect
 when inputting time values from strings. The default precision is 3. Note
-that the limit of 9 digits is driven by the way that ERFA_ handles fractional
+that the limit of 9 digits is driven by the way that |ERFA| handles fractional
 seconds. In practice this should should not be an issue.  ::
 
   >>> t = Time('B1950.0', precision=3)
@@ -697,7 +697,7 @@ This optional parameter specifies the observer location, using an
 either a tuple with geocentric coordinates (X, Y, Z), or a tuple with geodetic
 coordinates (longitude, latitude, height; with height defaulting to zero).
 They are used for time scales that are sensitive to observer location
-(currently, only TDB, which relies on the PyERFA_ routine `erfa.dtdb` to
+(currently, only TDB, which relies on the |PyERFA| routine `erfa.dtdb` to
 determine the time offset between TDB and TT), as well as for sidereal time if
 no explicit longitude is given.
 
@@ -972,7 +972,7 @@ Prior to astropy 6.0, missing values in a `~astropy.time.TimeFormat` subclass
 object were marked by setting the corresponding entries of the ``jd2``
 attribute to be ``numpy.nan`` (but this was never done directly by the user).
 Since astropy 6.0, instead |Masked| arrays are used, and these are written to
-propagate properly through (almost) all numpy and `ERFA`_ functions.
+propagate properly through (almost) all numpy and |ERFA| functions.
 
 In general, very few modifications should be needed to support |Masked|
 arrays. Generally, on input, no changes are needed since the format will be
@@ -995,11 +995,11 @@ available format names is in the `time format`_ section.
 
   >>> t = Time('2010-01-01 00:00:00', format='iso', scale='utc')
   >>> t.jd        # JD representation of time in current scale (UTC)
-  2455197.5
+  np.float64(2455197.5)
   >>> t.iso       # ISO representation of time in current scale (UTC)
   '2010-01-01 00:00:00.000'
   >>> t.unix      # seconds since 1970.0 (UTC)
-  1262304000.0
+  np.float64(1262304000.0)
   >>> t.datetime  # Representation as datetime.datetime object
   datetime.datetime(2010, 1, 1, 0, 0)
 
@@ -1097,7 +1097,7 @@ Transformation Offsets
 
 Time scale transformations that cross one of the orange circles in the image
 above require an additional offset time value that is model or
-observation dependent. See SOFA_ `Time Scale and Calendar Tools
+observation dependent. See |SOFA| `Time Scale and Calendar Tools
 <http://www.iausofa.org/sofa_ts_c.pdf>`_ for further details.
 
 The two attributes :attr:`~astropy.time.Time.delta_ut1_utc` and
@@ -1143,7 +1143,7 @@ scale along with the auto-download feature::
 In the case of the TDB to TT offset, most users need only provide the ``lon``
 and ``lat`` values when creating the |Time| object. If the
 :attr:`~astropy.time.Time.delta_tdb_tt` attribute is not explicitly set, then
-the PyERFA_ routine `erfa.dtdb` will be used to compute the TDB to TT
+the |PyERFA| routine `erfa.dtdb` will be used to compute the TDB to TT
 offset. Note that if ``lon`` and ``lat`` are not explicitly initialized,
 values of 0.0 degrees for both will be used.
 
@@ -1152,7 +1152,7 @@ Example
 
 .. EXAMPLE START: Transformation Offsets in Time Objects
 
-The following code replicates an example in the SOFA_ `Time Scale and Calendar
+The following code replicates an example in the |SOFA| `Time Scale and Calendar
 Tools <http://www.iausofa.org/sofa_ts_c.pdf>`_ document. It does the transform
 from UTC to all supported time scales (TAI, TCB, TCG, TDB, TT, UT1, UTC). This
 requires an observer location (here, latitude and longitude).
@@ -1215,7 +1215,7 @@ Apparent or mean sidereal time can be calculated using
 :meth:`~astropy.time.Time.sidereal_time`. The method returns a |Longitude|
 with units of hour angle, which by default is for the longitude corresponding to
 the location with which the |Time| object is initialized. Like the scale
-transformations, ERFA_ C-library routines are used under the hood, which support
+transformations, |ERFA| C-library routines are used under the hood, which support
 calculations following different IAU resolutions.
 
 Similarly, one can calculate the Earth rotation angle with
@@ -1299,7 +1299,7 @@ Use of the |TimeDelta| object is illustrated in the few examples below::
   >>> dt
   <TimeDelta object: scale='tai' format='jd' value=31.0>
   >>> dt.sec
-  2678400.0
+  np.float64(2678400.0)
 
   >>> from astropy.time import TimeDelta
   >>> dt2 = TimeDelta(50.0, format='sec')
@@ -1347,7 +1347,7 @@ controlling the type of the output representation by providing either a format
 name and optional `subformat`_ or a valid ``astropy`` unit::
 
   >>> dt.to_value(u.hr)
-  744.0
+  np.float64(744.0)
   >>> dt.to_value('jd', 'str')
   '31.0'
 
@@ -1485,7 +1485,7 @@ the TDB timescale::
 .. EXAMPLE START: Calculating Light Travel Time Using JPL Ephemerides
 
 By default, the light travel time is calculated using the position and velocity
-of Earth and the Sun from ERFA_
+of Earth and the Sun from |ERFA|
 routines, but you can also get more precise calculations using the JPL
 ephemerides (which are derived from dynamical models). An example using the JPL
 ephemerides is:
@@ -1670,9 +1670,9 @@ from the `~astropy.time.TimeFromEpoch` class and define a few class attributes::
 
   >>> t = Time('2000-01-01')
   >>> t.unix_leap
-  946684832.0
+  np.float64(946684832.0)
   >>> t.unix_leap - t.unix
-  32.0
+  np.float64(32.0)
 
 .. EXAMPLE END
 
@@ -1781,10 +1781,10 @@ Reference/API
 Acknowledgments and Licenses
 ============================
 
-This package makes use of the PyERFA_ wrappers of the ERFA_ ANSI C library. The copyright of the ERFA_
+This package makes use of the |PyERFA| wrappers of the |ERFA| ANSI C library. The copyright of the |ERFA|
 software belongs to the NumFOCUS Foundation. The library is made available
 under the terms of the "BSD-three clauses" license.
 
-The ERFA_ library is derived, with permission, from the International
-Astronomical Union's "Standards of Fundamental Astronomy" (SOFA_) library,
+The |ERFA| library is derived, with permission, from the International
+Astronomical Union's "Standards of Fundamental Astronomy" (|SOFA|) library,
 available from http://www.iausofa.org.

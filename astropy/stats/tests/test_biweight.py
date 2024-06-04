@@ -454,7 +454,8 @@ def test_biweight_midcovariance_2d():
     d = [[5, 1, 10], [500, 5, 2]]
     cov = biweight_midcovariance(d)
     assert_allclose(
-        cov, [[14.54159077, -7.79026256], [-7.79026256, 6.92087252]]  # verified with R
+        cov,
+        [[14.54159077, -7.79026256], [-7.79026256, 6.92087252]],  # verified with R
     )
 
     cov = biweight_midcovariance(d, modify_sample_size=True)

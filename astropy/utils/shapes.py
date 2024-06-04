@@ -1,13 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """The ShapedLikeNDArray mixin class and shape-related functions."""
 
+from __future__ import annotations
+
 import abc
 import numbers
 from itertools import zip_longest
+from math import prod
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from astropy.utils.compat import NUMPY_LT_2_0
+from astropy.utils.decorators import deprecated
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
@@ -24,6 +29,16 @@ __all__ = [
     "simplify_basic_index",
     "unbroadcast",
 ]
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from types import EllipsisType
+    from typing import TypeVar
+
+    from numpy.typing import NDArray
+    from typing_extensions import Self
+
+    DT = TypeVar("DT", bound=np.generic)
 
 
 class NDArrayShapeMethods:
@@ -102,7 +117,7 @@ class NDArrayShapeMethods:
         return self._apply("transpose", *args, **kwargs)
 
     @property
-    def T(self):
+    def T(self) -> Self:
         """Return an instance with the data transposed.
 
         Parameters are as for :attr:`~numpy.ndarray.T`.  All internal
@@ -179,7 +194,7 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def shape(self):
+    def shape(self) -> tuple[int, ...]:
         """The shape of the underlying data."""
 
     @abc.abstractmethod
@@ -204,28 +219,25 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
         """
 
     @property
-    def ndim(self):
+    def ndim(self) -> int:
         """The number of dimensions of the instance and underlying arrays."""
         return len(self.shape)
 
     @property
-    def size(self):
+    def size(self) -> int:
         """The size of the object, as calculated from its shape."""
-        size = 1
-        for sh in self.shape:
-            size *= sh
-        return size
+        return prod(self.shape)
 
     @property
-    def isscalar(self):
+    def isscalar(self) -> bool:
         return self.shape == ()
 
-    def __len__(self):
+    def __len__(self) -> int:
         if self.isscalar:
             raise TypeError(f"Scalar {self.__class__.__name__!r} object has no len()")
         return self.shape[0]
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         """Any instance should evaluate to True, except when it is empty."""
         return self.size > 0
 
@@ -333,11 +345,18 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
 
 
 class IncompatibleShapeError(ValueError):
-    def __init__(self, shape_a, shape_a_idx, shape_b, shape_b_idx):
+    def __init__(
+        self,
+        shape_a: tuple[int, ...],
+        shape_a_idx: int,
+        shape_b: tuple[int, ...],
+        shape_b_idx: int,
+    ) -> None:
         super().__init__(shape_a, shape_a_idx, shape_b, shape_b_idx)
 
 
-def check_broadcast(*shapes):
+@deprecated("7.0", alternative="np.broadcast_shapes")
+def check_broadcast(*shapes: tuple[int, ...]) -> tuple[int, ...]:
     """
     Determines whether two or more Numpy arrays can be broadcast with each
     other based on their shape tuple alone.
@@ -385,7 +404,7 @@ def check_broadcast(*shapes):
     return tuple(full_shape[::-1])
 
 
-def unbroadcast(array):
+def unbroadcast(array: NDArray[DT]) -> NDArray[DT]:
     """
     Given an array, return a new array that is the smallest subset of the
     original array that can be re-broadcasted back to the original array.
@@ -408,7 +427,11 @@ def unbroadcast(array):
     return array.reshape(array.shape[first_not_unity:])
 
 
-def simplify_basic_index(basic_index, *, shape):
+def simplify_basic_index(
+    basic_index: int | slice | Sequence[int | slice | EllipsisType | None],
+    *,
+    shape: Sequence[int],
+) -> tuple[int | slice, ...]:
     """
     Given a Numpy basic index, return a tuple of integers and slice objects
     with no default values (`None`) if possible.

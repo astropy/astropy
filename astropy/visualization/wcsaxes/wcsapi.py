@@ -61,6 +61,8 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
 
         if axis_type is not None:
             axis_type_split = axis_type.split(".")
+            if len(axis_type_split):
+                axis_type_split[0] = axis_type_split[0].replace("custom:", "")
 
             if "pos.helioprojective.lon" in axis_type:
                 coord_wrap = 180.0 * u.deg
@@ -233,12 +235,12 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
     else:
         for index in range(len(coord_meta["type"])):
             if index in world_map:
-                coord_meta["default_axislabel_position"][
-                    index
-                ] = frame_class.spine_names
-                coord_meta["default_ticklabel_position"][
-                    index
-                ] = frame_class.spine_names
+                coord_meta["default_axislabel_position"][index] = (
+                    frame_class.spine_names
+                )
+                coord_meta["default_ticklabel_position"][index] = (
+                    frame_class.spine_names
+                )
                 coord_meta["default_ticks_position"][index] = frame_class.spine_names
 
     return transform, coord_meta

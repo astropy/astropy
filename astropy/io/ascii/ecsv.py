@@ -93,7 +93,7 @@ class EcsvHeader(basic.BasicHeader):
         header = {"cols": self.cols, "schema": "astropy-2.0"}
 
         if self.table_meta:
-            header["meta"] = self.table_meta
+            header["meta"] = OrderedDict(self.table_meta)
 
         # Set the delimiter only for the non-default option(s)
         if self.splitter.delimiter != " ":
@@ -171,13 +171,19 @@ class EcsvHeader(basic.BasicHeader):
             self.data.splitter.delimiter = delimiter
 
         # Create the list of io.ascii column objects from `header`
-        header_cols = OrderedDict((x["name"], x) for x in header["datatype"])
+        header_cols = {x["name"]: x for x in header["datatype"]}
+
         self.names = [x["name"] for x in header["datatype"]]
 
         # Read the first non-commented line of table and split to get the CSV
         # header column names.  This is essentially what the Basic reader does.
-        header_line = next(super().process_lines(raw_lines))
-        header_names = next(self.splitter([header_line]))
+        try:
+            header_line = next(super().process_lines(raw_lines))
+            header_names = next(self.splitter([header_line]))
+        except StopIteration:
+            # there are no non-commented lines
+            header_line = ""
+            header_names = []
 
         # Check for consistency of the ECSV vs. CSV header column names
         if header_names != self.names:

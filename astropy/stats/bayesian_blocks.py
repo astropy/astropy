@@ -44,6 +44,7 @@ References
    straight lines. J. Amer. Statist. Assoc. 64, 1079–1084.
    https://www.tandfonline.com/doi/abs/10.1080/01621459.1969.10501038
 """
+
 import warnings
 from inspect import signature
 

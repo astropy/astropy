@@ -5,7 +5,6 @@ Helper functions for table development, mostly creating useful
 tables for testing.
 """
 
-
 import string
 from itertools import cycle
 
@@ -106,7 +105,7 @@ def simple_table(size=3, cols=None, kinds="ifS", masked=False):
         elif kind == "O":
             indices = (np.arange(size) + jj) % len(letters)
             vals = letters[indices]
-            data = [{val: index} for val, index in zip(vals, indices)]
+            data = [{val.item(): index.item()} for val, index in zip(vals, indices)]
         else:
             raise ValueError("Unknown data kind")
         columns.append(Column(data))

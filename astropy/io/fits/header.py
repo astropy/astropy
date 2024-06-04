@@ -751,9 +751,8 @@ class Header:
             actual_block_size = _block_size(sep)
             if padding and len(blocks) % actual_block_size != 0:
                 raise OSError(
-                    "Header size ({}) is not a multiple of block size ({}).".format(
-                        len(blocks) - actual_block_size + BLOCK_SIZE, BLOCK_SIZE
-                    )
+                    f"Header size ({len(blocks) - actual_block_size + BLOCK_SIZE}) "
+                    f"is not a multiple of block size ({BLOCK_SIZE})."
                 )
 
             fileobj.flush()
@@ -1070,10 +1069,10 @@ class Header:
                 card = Card(*((k,) + v))
             else:
                 raise ValueError(
-                    "Header update value for key %r is invalid; the "
+                    f"Header update value for key {k!r} is invalid; the "
                     "value must be either a scalar, a 1-tuple "
                     "containing the scalar value, or a 2-tuple "
-                    "containing the value and a comment string." % k
+                    "containing the value and a comment string."
                 )
             self._update(card)
 

@@ -112,15 +112,15 @@ default, ICRS, the coordinate component names are ``ra`` and ``dec``::
     >>> c.ra  # doctest: +FLOAT_CMP
     <Longitude 10.68458 deg>
     >>> c.ra.hour  # doctest: +FLOAT_CMP
-    0.7123053333333335
+    np.float64(0.7123053333333335)
     >>> c.ra.hms  # doctest: +FLOAT_CMP
-    hms_tuple(h=0.0, m=42.0, s=44.299200000000525)
+    hms_tuple(h=np.float64(0.0), m=np.float64(42.0), s=np.float64(44.299200000000525))
     >>> c.dec  # doctest: +FLOAT_CMP
     <Latitude 41.26917 deg>
     >>> c.dec.degree  # doctest: +FLOAT_CMP
-    41.26917
+    np.float64(41.26917)
     >>> c.dec.radian  # doctest: +FLOAT_CMP
-    0.7202828960652683
+    np.float64(0.7202828960652683)
 
 Coordinates can be converted to strings using the
 :meth:`~astropy.coordinates.SkyCoord.to_string` method::
@@ -534,7 +534,7 @@ coordinate systems implemented here include:
 * Meeus, J. "Astronomical Algorithms"
     A valuable text describing details of a wide range of coordinate-related
     problems and concepts.
-* `Revisiting Spacetrack Report #3 <https://celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf>`_
+* `Revisiting Spacetrack Report #3 <https://celestrak.org/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf>`_
     A discussion of the simplified general perturbation (SGP) for satellite orbits, with a description of
     the True Equator Mean Equinox (TEME) coordinate frame.
 

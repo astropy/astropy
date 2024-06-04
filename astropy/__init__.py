@@ -9,6 +9,8 @@ managing them.
 import sys
 from pathlib import Path
 
+from astropy.utils.system_info import system_info
+
 from .version import version as __version__
 
 # The location of the online documentation for astropy
@@ -208,6 +210,7 @@ __dir_inc__ = [
     "conf",
     "physical_constants",
     "astronomical_constants",
+    "system_info",
 ]
 
 

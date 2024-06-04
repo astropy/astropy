@@ -4,6 +4,7 @@ This module contains a helper function to fill erfa.astrom struct and a
 ScienceState, which allows to speed up coordinate transformations at the
 expense of accuracy.
 """
+
 import warnings
 
 import erfa
