@@ -106,8 +106,8 @@ if NUMPY_LT_2_0:
         np.msort,
         np.round_,  # noqa: NPY003, NPY201
         np.trapz,
-        np.product,  # noqa: NPY003
-        np.cumproduct,  # noqa: NPY003
+        np.product,  # noqa: NPY003, NPY201
+        np.cumproduct,  # noqa: NPY003, NPY201
     }
 else:
     # Array-API compatible versions (matrix axes always at end).
@@ -142,7 +142,7 @@ UNSUPPORTED_FUNCTIONS |= {
 
 if NUMPY_LT_2_0:
     UNSUPPORTED_FUNCTIONS |= {  # removed in numpy 2.0
-        np.sometrue, np.alltrue,  # noqa: NPY003
+        np.sometrue, np.alltrue,  # noqa: NPY003, NPY201
     }  # fmt: skip
 
 # Could be supported if we had a natural logarithm unit.

@@ -643,12 +643,12 @@ class TestMethodLikes(MaskedArraySetup):
     @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.sometrue is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`sometrue` is deprecated as of NumPy 1.25.0")
     def test_sometrue(self):
-        self.check(np.sometrue, method="any")  # noqa: NPY003
+        self.check(np.sometrue, method="any")  # noqa: NPY003, NPY201
 
     @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.alltrue is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`alltrue` is deprecated as of NumPy 1.25.0")
     def test_alltrue(self):
-        self.check(np.alltrue, method="all")  # noqa: NPY003
+        self.check(np.alltrue, method="all")  # noqa: NPY003, NPY201
 
     def test_prod(self):
         self.check(np.prod)
@@ -656,7 +656,7 @@ class TestMethodLikes(MaskedArraySetup):
     @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.product is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`product` is deprecated as of NumPy 1.25.0")
     def test_product(self):
-        self.check(np.product, method="prod")  # noqa: NPY003
+        self.check(np.product, method="prod")  # noqa: NPY003, NPY201
 
     def test_cumprod(self):
         self.check(np.cumprod)
@@ -666,7 +666,7 @@ class TestMethodLikes(MaskedArraySetup):
     )
     @pytest.mark.filterwarnings("ignore:`cumproduct` is deprecated as of NumPy 1.25.0")
     def test_cumproduct(self):
-        self.check(np.cumproduct, method="cumprod")  # noqa: NPY003
+        self.check(np.cumproduct, method="cumprod")  # noqa: NPY003, NPY201
 
     def test_round(self):
         self.check(np.round, method="round")
