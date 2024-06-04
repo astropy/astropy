@@ -13,7 +13,6 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_equal
 
-import astropy.modeling.tabular as tabular_models
 from astropy import units as u
 from astropy.modeling import fitting, models
 from astropy.modeling.bounding_box import ModelBoundingBox
@@ -1010,6 +1009,8 @@ def test_tabular_str():
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_tabular_evaluate():
+    import scipy.interpolate as scipy_interpolate
+
     points = np.arange(5)
     lt = np.arange(5)[::-1]
     t = models.Tabular1D(points, lt)
@@ -1018,8 +1019,9 @@ def test_tabular_evaluate():
 
     t.n_outputs = 2
     value = [np.array([3, 2, 1]), np.array([1, 2, 3])]
+
     with mk.patch.object(
-        tabular_models, "interpn", autospec=True, return_value=value
+        scipy_interpolate, "interpn", autospec=True, return_value=value
     ) as mkInterpn:
         outputs = t.evaluate([1, 2, 3])
         for index, output in enumerate(outputs):

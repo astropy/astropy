@@ -25,18 +25,16 @@ from importlib import import_module
 from tempfile import NamedTemporaryFile, TemporaryDirectory, gettempdir, mkdtemp
 from warnings import warn
 
-try:
-    import certifi
-except ImportError:
-    # certifi support is optional; when available it will be used for TLS/SSL
-    # downloads
-    certifi = None
-
 import astropy_iers_data
 
 import astropy.config.paths
 from astropy import config as _config
-from astropy.utils.compat.optional_deps import HAS_FSSPEC
+from astropy.utils.compat.optional_deps import (
+    HAS_BZ2,
+    HAS_CERTIFI,
+    HAS_FSSPEC,
+    HAS_LZMA,
+)
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.introspection import find_current_module
 
@@ -406,14 +404,14 @@ def get_readable_fileobj(
             fileobj_new.seek(0)
             fileobj = fileobj_new
     elif signature[:3] == b"BZh":  # bzip2
-        try:
-            import bz2
-        except ImportError:
+        if not HAS_BZ2:
             for fd in close_fds:
                 fd.close()
             raise ModuleNotFoundError(
                 "This Python installation does not provide the bz2 module."
             )
+        import bz2
+
         try:
             # bz2.BZ2File does not support file objects, only filenames, so we
             # need to write the data to a temporary file
@@ -431,17 +429,17 @@ def get_readable_fileobj(
             close_fds.append(fileobj_new)
             fileobj = fileobj_new
     elif signature[:3] == b"\xfd7z":  # xz
-        try:
-            import lzma
-
-            fileobj_new = lzma.LZMAFile(fileobj, mode="rb")
-            fileobj_new.read(1)  # need to check that the file is really xz
-        except ImportError:
+        if not HAS_LZMA:
             for fd in close_fds:
                 fd.close()
             raise ModuleNotFoundError(
                 "This Python installation does not provide the lzma module."
             )
+        import lzma
+
+        try:
+            fileobj_new = lzma.LZMAFile(fileobj, mode="rb")
+            fileobj_new.read(1)  # need to check that the file is really xz
         except (OSError, EOFError):  # invalid xz file
             fileobj.seek(0)
             fileobj_new.close()
@@ -463,11 +461,9 @@ def get_readable_fileobj(
         # A bz2.BZ2File can not be wrapped by a TextIOWrapper,
         # so we decompress it to a temporary file and then
         # return a handle to that.
-        try:
+        if HAS_BZ2:
             import bz2
-        except ImportError:
-            pass
-        else:
+
             if isinstance(fileobj, bz2.BZ2File):
                 tmp = NamedTemporaryFile("wb", delete=False)
                 data = fileobj.read()
@@ -1182,7 +1178,9 @@ def _build_urlopener(ftp_tls=False, ssl_context=None, allow_insecure=False):
             "requires passing 'certfile' as well"
         )
 
-    if "cafile" not in ssl_context and certifi is not None:
+    if "cafile" not in ssl_context and HAS_CERTIFI:
+        import certifi
+
         ssl_context["cafile"] = certifi.where()
 
     ssl_context = ssl.create_default_context(**ssl_context)
