@@ -26,7 +26,7 @@ from astropy.table import (
     TableAttribute,
     TableReplaceWarning,
 )
-from astropy.tests.helper import PYTEST_LT_8_0, assert_follows_unicode_guidelines
+from astropy.tests.helper import assert_follows_unicode_guidelines
 from astropy.time import Time, TimeDelta
 from astropy.utils.compat import NUMPY_LT_1_25
 from astropy.utils.compat.optional_deps import HAS_PANDAS
@@ -2237,34 +2237,16 @@ class TestPandas:
         t["Source"].mask = [False, False, False]
 
         if use_nullable_int:  # Default
-            # No warning with the default use_nullable_int=True
             d = t.to_pandas(use_nullable_int=use_nullable_int)
         else:
-            from astropy.utils.introspection import minversion
+            from pandas.core.dtypes.cast import IntCastingNaNError
 
-            PANDAS_LT_2_0 = not minversion("pandas", "2.0")
-            if PANDAS_LT_2_0:
-                if PYTEST_LT_8_0:
-                    ctx = nullcontext()
-                else:
-                    ctx = pytest.warns(FutureWarning, match=".*IntCastingNaNError.*")
-                with (
-                    pytest.warns(
-                        TableReplaceWarning,
-                        match=r"converted column 'a' from int(32|64) to float64",
-                    ),
-                    ctx,
-                ):
-                    d = t.to_pandas(use_nullable_int=use_nullable_int)
-            else:
-                from pandas.core.dtypes.cast import IntCastingNaNError
-
-                with pytest.raises(
-                    IntCastingNaNError,
-                    match=r"Cannot convert non-finite values \(NA or inf\) to integer",
-                ):
-                    d = t.to_pandas(use_nullable_int=use_nullable_int)
-                return  # Do not continue
+            with pytest.raises(
+                IntCastingNaNError,
+                match=r"Cannot convert non-finite values \(NA or inf\) to integer",
+            ):
+                d = t.to_pandas(use_nullable_int=use_nullable_int)
+            return  # Do not continue
 
         t2 = table.Table.from_pandas(d)
 

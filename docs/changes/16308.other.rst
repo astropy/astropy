@@ -1,0 +1,2 @@
+The minimum supported version of Pandas is now v2.0.
+This is in line with https://scientific-python.org/specs/spec-0000/.

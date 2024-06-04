@@ -92,8 +92,6 @@ __doctest_skip__ = [
     "Table.convert_unicode_to_bytestring",
 ]
 
-__doctest_requires__ = {"*pandas": ["pandas>=1.1"]}
-
 _pprint_docs = """
     {__doc__}
 
@@ -4017,10 +4015,9 @@ class Table:
         index : None, bool, str
             Specify DataFrame index mode
         use_nullable_int : bool, default=True
-            Convert integer MaskedColumn to pandas nullable integer type.
-            If ``use_nullable_int=False`` or the pandas version does not support
-            nullable integer types (version < 0.24), then the column is converted
-            to float with NaN for missing elements and a warning is issued.
+            Convert integer MaskedColumn to pandas nullable integer type.  If
+            ``use_nullable_int=False`` then the column is converted to float
+            with NaN.
 
         Returns
         -------
@@ -4147,14 +4144,6 @@ class Table:
                         pd_dtype = pd_dtype.replace("i", "I").replace("u", "U")
                     out[name] = Series(out[name], dtype=pd_dtype)
 
-                    # If pandas is older than 0.24 the type may have turned to float
-                    if column.dtype.kind != out[name].dtype.kind:
-                        warnings.warn(
-                            f"converted column '{name}' from {column.dtype} to"
-                            f" {out[name].dtype}",
-                            TableReplaceWarning,
-                            stacklevel=3,
-                        )
                 elif column.dtype.kind not in ["f", "c"]:
                     out[name] = column.astype(object).filled(np.nan)
 

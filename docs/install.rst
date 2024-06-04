@@ -174,8 +174,6 @@ The further dependencies provide more specific features:
 
 - `pandas <https://pandas.pydata.org/>`_: To convert
   :class:`~astropy.table.Table` objects from/to pandas DataFrame objects.
-  Version 0.14 or higher is required to use the :ref:`table_io_pandas`
-  I/O functions to read/write :class:`~astropy.table.Table` objects.
 
 - `sortedcontainers <https://pypi.org/project/sortedcontainers/>`_ for faster
   ``SCEngine`` indexing engine with ``Table``, although this may still be

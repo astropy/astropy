@@ -78,7 +78,7 @@ all = [
     "beautifulsoup4",
     "html5lib",
     "bleach",
-    "pandas",
+    "pandas>=2.0",
     "sortedcontainers",
     "pytz",
     "jplephem",
