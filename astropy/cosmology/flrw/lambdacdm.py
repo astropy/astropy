@@ -386,7 +386,7 @@ class LambdaCDM(FLRW):
         -----
         The :func:`scipy.special.hyp2f1` code already implements the
         hypergeometric transformation suggested by Baes et al. [1]_ for use in
-        actual numerical evaulations.
+        actual numerical evaluations.
 
         References
         ----------

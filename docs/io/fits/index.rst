@@ -397,7 +397,7 @@ and/or updated as a consequence of common operations. For example, when:
 3. Writing a file. All the necessary keywords are deleted, updated or added to the header.
 4. Calling an HDU's verify method (e.g., :func:`PrimaryHDU.verify`). Some keywords can be fixed automatically.
 
-In these cases any hand-written values users might assign to those keywords will be overwrittten.
+In these cases any hand-written values users might assign to those keywords will be overwritten.
 
 Working with Image Data
 ^^^^^^^^^^^^^^^^^^^^^^^

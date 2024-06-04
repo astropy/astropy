@@ -678,13 +678,13 @@ class TestUfuncReductions(InvariantUnitTestSetup):
     @pytest.mark.filterwarnings("ignore:`sometrue` is deprecated as of NumPy 1.25.0")
     def test_sometrue(self):
         with pytest.raises(TypeError):
-            np.sometrue(self.q)  # noqa: NPY003
+            np.sometrue(self.q)  # noqa: NPY003, NPY201
 
     @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.alltrue is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`alltrue` is deprecated as of NumPy 1.25.0")
     def test_alltrue(self):
         with pytest.raises(TypeError):
-            np.alltrue(self.q)  # noqa: NPY003
+            np.alltrue(self.q)  # noqa: NPY003, NPY201
 
     def test_prod(self):
         with pytest.raises(u.UnitsError):
@@ -694,7 +694,7 @@ class TestUfuncReductions(InvariantUnitTestSetup):
     @pytest.mark.filterwarnings("ignore:`product` is deprecated as of NumPy 1.25.0")
     def test_product(self):
         with pytest.raises(u.UnitsError):
-            np.product(self.q)  # noqa: NPY003
+            np.product(self.q)  # noqa: NPY003, NPY201
 
     def test_cumprod(self):
         with pytest.raises(u.UnitsError):
@@ -706,7 +706,7 @@ class TestUfuncReductions(InvariantUnitTestSetup):
     @pytest.mark.filterwarnings("ignore:`cumproduct` is deprecated as of NumPy 1.25.0")
     def test_cumproduct(self):
         with pytest.raises(u.UnitsError):
-            np.cumproduct(self.q)  # noqa: NPY003
+            np.cumproduct(self.q)  # noqa: NPY003, NPY201
 
 
 class TestUfuncLike(InvariantUnitTestSetup):
@@ -1405,7 +1405,7 @@ class TestHistogramFunctions:
         if expected_units[0] is not None:
             expected_h = expected_h * expected_units[0]
         assert_array_equal(out_h, expected_h)
-        # Check bin edges.  Here, histogramdd returns an interable of the
+        # Check bin edges.  Here, histogramdd returns an iterable of the
         # bin edges as the second return argument, while histogram and
         # histogram2d return the bin edges directly.
         if function is np.histogramdd:
