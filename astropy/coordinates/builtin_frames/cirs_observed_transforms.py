@@ -38,7 +38,7 @@ def cirs_to_observed(cirs_coo, observed_frame):
         or cirs_coo.cartesian.x.unit == u.one
     )
 
-    # We used to do "astrometric" corrections here, but these are no longer necesssary
+    # We used to do "astrometric" corrections here, but these are no longer necessary
     # CIRS has proper topocentric behaviour
     usrepr = cirs_coo.represent_as(UnitSphericalRepresentation)
     cirs_ra = usrepr.lon.to_value(u.radian)
