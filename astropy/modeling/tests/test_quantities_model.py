@@ -56,7 +56,7 @@ def test_quantity_call():
 
 def test_no_quantity_call():
     """
-    Test that if not constructed with Quantites they can be called without quantities.
+    Test that if not constructed with Quantities they can be called without quantities.
     """
     g = Gaussian1D(mean=3, stddev=3, amplitude=3)
     assert isinstance(g, Gaussian1D)

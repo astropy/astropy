@@ -601,6 +601,7 @@ ignore-words-list = """
     cna,
     compiletime,
     coo,
+    Copin,
     datas,
     ded,
     dfine,

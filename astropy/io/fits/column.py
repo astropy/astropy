@@ -903,7 +903,7 @@ class Column(NotifierMixin):
 
         if not isinstance(coord_type, str) or len(coord_type) > 8:
             raise AssertionError(
-                "Coordinate/axis type must be a string of atmost 8 characters."
+                "Coordinate/axis type must be a string of at most 8 characters."
             )
 
     @ColumnAttribute("TCUNI")
@@ -1225,9 +1225,8 @@ class Column(NotifierMixin):
             elif len(coord_type) > 8:
                 msg = (
                     "Coordinate/axis type option (TCTYPn) must be a string "
-                    f"of atmost 8 characters (got {coord_type!r}). The invalid keyword "
-                    "will be ignored for the purpose of formatting this "
-                    "column."
+                    f"of at most 8 characters (got {coord_type!r}). The invalid "
+                    "keyword will be ignored for the purpose of formatting this column."
                 )
 
             if msg is None:

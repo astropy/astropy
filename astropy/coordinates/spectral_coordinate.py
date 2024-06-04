@@ -369,7 +369,7 @@ class SpectralCoord(SpectralQuantity):
         doppler_convention = doppler_convention or self.doppler_convention
         doppler_rest = doppler_rest or self.doppler_rest
 
-        # If value is being taken from self and copy is Tru
+        # If value is being taken from self and copy is True
         if copy:
             value = value.copy()
 
