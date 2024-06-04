@@ -511,7 +511,7 @@ functions. In the following::
         """Add two numbers."""
         return x + y
 
-    class TestAdd42(object):
+    class TestAdd42:
         """Test for add_nums with y=42."""
 
         def setup_class(self):
@@ -544,7 +544,7 @@ before and after *each* test. For this, use the ``setup_method`` and
         """Add two numbers."""
         return x + y
 
-    class TestAdd42(object):
+    class TestAdd42:
         """Test for add_nums with y=42."""
 
         def setup_method(self, method):

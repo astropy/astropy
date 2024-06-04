@@ -47,7 +47,7 @@ Interface and Dependencies
       except ImportError:
           warn(AstropyWarning('opdep is not present, so <functionality>'
                               'will not work.'))
-          class Superclass(object): pass
+          class Superclass: pass
 
       class Customclass(Superclass):
           ...
@@ -279,11 +279,9 @@ accept, and conservative in what you send."
 
 The following example class shows a way to implement this::
 
-    # -*- coding: utf-8 -*-
-
     from astropy import conf
 
-    class FloatList(object):
+    class FloatList:
         def __init__(self, init):
             if isinstance(init, str):
                 init = init.split('‖')
@@ -407,7 +405,7 @@ multiple inheritance case::
 
     # This is dangerous and bug-prone!
 
-    class A(object):
+    class A:
         def method(self):
             print('Doing A')
 
@@ -463,7 +461,7 @@ class should be handed control in the next `super` call::
 
     # This is safer
 
-    class A(object):
+    class A:
         def method(self):
             print('Doing A')
 
@@ -541,7 +539,7 @@ might read::
         # the function would be defined here
         pass
 
-    class AClass(object):
+    class AClass:
         # the class is defined here
         pass
 
