@@ -9,6 +9,8 @@ __all__ = ["lombscargle", "available_methods"]
 
 import numpy as np
 
+from astropy.utils.compat.optional_deps import HAS_SCIPY
+
 from .chi2_impl import lombscargle_chi2
 from .cython_impl import lombscargle_cython
 from .fast_impl import lombscargle_fast
@@ -30,11 +32,7 @@ def available_methods():
     methods = ["auto", "slow", "chi2", "cython", "fast", "fastchi2"]
 
     # Scipy required for scipy algorithm (obviously)
-    try:
-        import scipy  # noqa: F401
-    except ImportError:
-        pass
-    else:
+    if HAS_SCIPY:
         methods.append("scipy")
     return methods
 

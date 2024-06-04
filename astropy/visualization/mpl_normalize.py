@@ -8,6 +8,7 @@ import inspect
 import numpy as np
 from numpy import ma
 
+from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 from astropy.utils.decorators import deprecated_renamed_argument
 
 from .interval import (
@@ -27,10 +28,9 @@ from .stretch import (
     SqrtStretch,
 )
 
-try:
-    from matplotlib import pyplot as plt
+if HAS_MATPLOTLIB:
     from matplotlib.colors import Normalize
-except ImportError:
+else:
 
     class Normalize:
         def __init__(self, *args, **kwargs):
@@ -394,6 +394,14 @@ def imshow_norm(data, ax=None, **kwargs):
                                stretch=SqrtStretch())
         fig.colorbar(im)
     """
+    if ax is None:
+        if not HAS_MATPLOTLIB:
+            raise ModuleNotFoundError("matplotlib is required for imshow norm")
+
+        import matplotlib.pyplot as plt
+
+        ax = plt.gca()
+
     if "X" in kwargs:
         raise ValueError("Cannot give both ``X`` and ``data``")
 
@@ -412,10 +420,6 @@ def imshow_norm(data, ax=None, **kwargs):
             norm_kwargs[pname] = imshow_kwargs.pop(pname)
 
     imshow_kwargs["norm"] = ImageNormalize(**norm_kwargs)
-
-    if ax is None:
-        imshow_result = plt.imshow(data, **imshow_kwargs)
-    else:
-        imshow_result = ax.imshow(data, **imshow_kwargs)
+    imshow_result = ax.imshow(data, **imshow_kwargs)
 
     return imshow_result, imshow_kwargs["norm"]

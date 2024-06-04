@@ -8,6 +8,7 @@ import numpy as np
 
 from astropy import log
 from astropy.units import Quantity, Unit
+from astropy.utils.compat.optional_deps import HAS_DASK
 from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.metadata import MetaData
 from astropy.wcs.wcsapi import (
@@ -16,11 +17,6 @@ from astropy.wcs.wcsapi import (
     HighLevelWCSWrapper,
     SlicedLowLevelWCS,  # noqa: F401
 )
-
-try:
-    import dask.array as da
-except ImportError:
-    da = None
 
 from .nddata_base import NDDataBase
 from .nduncertainty import NDUncertainty, UnknownUncertainty
@@ -314,7 +310,12 @@ class NDData(NDDataBase):
         prefix = self.__class__.__name__ + "("
         # to support reprs for other non-ndarray `data` attributes,
         # add more cases here:
-        is_dask = da is not None and isinstance(self.data, da.Array)
+        if HAS_DASK:
+            import dask.array as da
+
+            is_dask = isinstance(self.data, da.Array)
+        else:
+            is_dask = False
 
         if (
             isinstance(self.data, (int, float, np.ndarray))
