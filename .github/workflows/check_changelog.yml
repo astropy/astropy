@@ -14,7 +14,7 @@ jobs:
     name: Check if towncrier change log entry is correct
     runs-on: ubuntu-latest
     steps:
-    - uses: scientific-python/action-towncrier-changelog@4755e7510a07c6f6817cb607ffb9a711d3d62422  # 0.1.1
+    - uses: scientific-python/action-towncrier-changelog@1d7332022f76e36fe8ce2d716b851f3f98063c62  # v1.0.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         BOT_USERNAME: gilesbot
