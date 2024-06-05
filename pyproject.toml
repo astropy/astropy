@@ -248,14 +248,6 @@ markers = [
     "mpl_image_compare",
 ]
 
-[tool.astropy-bot]
-    [tool.astropy-bot.autolabel]
-        # Comment this out to re-enable but then labeler Action needs to be disabled.
-        enabled = false
-
-    [tool.astropy-bot.changelog_checker]
-        enabled = false
-
 [tool.cibuildwheel]
 # We disable testing for the following wheels:
 # - Linux AArch64 (no native hardware, tests take too long)
