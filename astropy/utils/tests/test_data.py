@@ -192,9 +192,6 @@ def fake_readonly_cache(tmp_path, valid_urls, monkeypatch):
         """
         raise OSError(errno.EPERM, "os.mkdtemp monkeypatched out")
 
-    def no_TemporaryDirectory(*args, **kwargs):
-        raise OSError(errno.EPERM, "_SafeTemporaryDirectory monkeypatched out")
-
     with TemporaryDirectory(dir=tmp_path) as d:
         # other fixtures use the same tmp_path so we need a subdirectory
         # to make into the cache
@@ -205,9 +202,6 @@ def fake_readonly_cache(tmp_path, valid_urls, monkeypatch):
             files = set(d.iterdir())
             monkeypatch.setattr(os, "mkdir", no_mkdir)
             monkeypatch.setattr(tempfile, "mkdtemp", no_mkdtemp)
-            monkeypatch.setattr(
-                astropy.utils.data, "_SafeTemporaryDirectory", no_TemporaryDirectory
-            )
             yield urls
             assert set(d.iterdir()) == files
             check_download_cache()
