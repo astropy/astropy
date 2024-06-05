@@ -29,7 +29,7 @@ class TdatMeta:
     _comment = r'\s*(#|//)(.*)$'
 
     # keywords in the header: name = value
-    _keys = r'(?P<key>\w+)\s*=\s*([\'"`])?(?P<value>.*?)(?(2)\2|\s*$)'
+    _keys = r'(?P<key>\w+)\s*=\s*([\'])?(?P<value>.*?)(?(2)\2|\s*$)'
     # keywords in the header: name[text] = some_other_text; name: relate|line
     _extra_keys = r'\s*(relate|line)\[(\w+)\]\s*=\s*([\w\s]+)(?:\((\w+)\))?'
 
@@ -168,11 +168,15 @@ class TdatHeader(core.BaseHeader, TdatMeta):
     write_comment = "# "
 
     def update_meta(self, lines, meta):
-        """Extract meta information: comments and key/values in the header"""
-        
+        """
+        READ: Override the default update_meta
+        Extract meta information: comments and key/values in the header
+        """
+
         self._parse_header(lines)
         meta['table']['comments'] = self._comments
         meta['table']['keywords'] = self._keywords
+        meta['table']['col_lines'] = self._col_lines
         
 
     def process_lines(self, lines):
@@ -203,10 +207,10 @@ class TdatHeader(core.BaseHeader, TdatMeta):
             (?:[//|#]+\s*(?P<comment>[^/#]*))?
             \s*
             """, re.VERBOSE)
-        
+
         cols = []
         for line in self.process_lines(lines):
-            
+
             # look for field[..]= ... column definitions
             cmatch = col_parser.match(line)
             if cmatch:
@@ -223,7 +227,6 @@ class TdatHeader(core.BaseHeader, TdatMeta):
 
         self.names = [col.name for col in cols]
         self.cols = cols
-
         # check that cols and _line_fields are consistent or throw an error
         if sum([len(val) for val in self._line_fields.values()]) != len(cols):
             lsummary = [v for val in self._line_fields.values() for v in val]
@@ -233,6 +236,15 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                 f'"field" values: {self.names}\n'
                 f'line[..] values: {lsummary}'
             )
+
+    def write_comments(self, lines, meta):
+        """
+        WRITE: Override the default write_comments to include <HEADER> as first line
+        """
+        lines.append('<HEADER>')
+        if self.write_comment not in (False, None):
+            for comment in meta.get("comments", []):
+                lines.append(self.write_comment + comment)
 
     def write(self, lines):
         """Write the keywords and column descriptors"""
@@ -248,14 +260,22 @@ class TdatHeader(core.BaseHeader, TdatMeta):
             for key in ['table_description', 'table_document_url', 'table_security']:
                 if key in keywords:
                     lines.append(f'{key} = {keywords[key]}')
+        else:
+            lines.append('table_name = astropy_table')
         
         # add table columns as fields
         lines.append('#')
         lines.append('# Table Parameters')
         lines.append('#')
-        # for col in self.cols:
-        #     line = f'field[{col.name}] = '#{col.ctype}:{col.fmt}_{col.unit} [{col.ucd}] ({col.idx})'
-        #     lines.append(line)
+        col_lines = self.table_meta.get('col_lines', None)
+        if col_lines is not None:
+            for col in col_lines:
+                lines.append(col)
+        else:
+            for col in self.cols:
+                line = f'field[{col.name}] = {col.dtype}:{col.format}_{col.unit}'
+                lines.append(line)
+        lines.append('<DATA>')
                 
 class TdatDataSplitter(core.BaseSplitter):
     """Splitter for tdat data."""
