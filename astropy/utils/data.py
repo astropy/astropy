@@ -22,7 +22,7 @@ import urllib.parse
 import urllib.request
 import zipfile
 from importlib import import_module
-from tempfile import NamedTemporaryFile, TemporaryDirectory, gettempdir, mkdtemp
+from tempfile import NamedTemporaryFile, TemporaryDirectory, gettempdir
 from warnings import warn
 
 import astropy_iers_data
@@ -2028,32 +2028,6 @@ def check_download_cache(pkgname="astropy"):
         raise CacheDamaged("\n".join(messages), bad_files=bad_files)
 
 
-@contextlib.contextmanager
-def _SafeTemporaryDirectory(suffix=None, prefix=None, dir=None):
-    """Temporary directory context manager.
-
-    This will not raise an exception if the temporary directory goes away
-    before it's supposed to be deleted. Specifically, what is deleted will
-    be the directory *name* produced; if no such directory exists, no
-    exception will be raised.
-
-    It would be safer to delete it only if it's really the same directory
-    - checked by file descriptor - and if it's still called the same thing.
-    But that opens a platform-specific can of worms.
-
-    It would also be more robust to use ExitStack and TemporaryDirectory,
-    which is more aggressive about removing readonly things.
-    """
-    d = mkdtemp(suffix=suffix, prefix=prefix, dir=dir)
-    try:
-        yield d
-    finally:
-        try:
-            shutil.rmtree(d)
-        except OSError:
-            pass
-
-
 def _rmtree(path, replace=None):
     """More-atomic rmtree. Ignores missing directory."""
     with TemporaryDirectory(
@@ -2135,7 +2109,9 @@ def import_file_to_cache(
     cache_dirname = _url_to_dirname(url_key)
     local_dirname = os.path.join(cache_dir, cache_dirname)
     local_filename = os.path.join(local_dirname, "contents")
-    with _SafeTemporaryDirectory(prefix="temp_dir", dir=cache_dir) as temp_dir:
+    with TemporaryDirectory(
+        prefix="temp_dir", dir=cache_dir, ignore_cleanup_errors=True
+    ) as temp_dir:
         temp_filename = os.path.join(temp_dir, "contents")
         # Make sure we're on the same filesystem
         # This will raise an exception if the url_key doesn't turn into a valid filename
