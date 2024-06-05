@@ -426,14 +426,14 @@ def_unit(
     ["Bq", "becquerel"],
     1 / s,
     namespace=_ns,
-    prefixes=False,
+    prefixes=True,
     doc="becquerel: unit of radioactivity",
 )
 def_unit(
     ["Ci", "curie"],
     Bq * 3.7e10,
     namespace=_ns,
-    prefixes=False,
+    prefixes=True,
     doc="curie: unit of radioactivity",
 )
 
