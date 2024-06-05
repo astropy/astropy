@@ -104,6 +104,7 @@ explicitly enabled as well, e.g. by using the `namespace` argument::
   >>> new_units = dict()
   >>> foo = u.def_unit(['Fo', 'foo'], prefixes=True, namespace=new_units)
   >>> u.add_enabled_units(new_units)
+  <astropy.units.core._UnitContext object at ...>
 
 Now, the prefixed units can be parsed etc::
 
