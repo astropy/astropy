@@ -22,8 +22,7 @@ if TYPE_CHECKING:
 __all__ = ["lex", "ThreadSafeParser", "yacc"]
 
 
-_TAB_HEADER = """# -*- coding: utf-8 -*-
-# Licensed under a 3-clause BSD style license - see LICENSE.rst
+_TAB_HEADER = """# Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # This file was automatically generated from ply. To re-generate this file,
 # remove it from this folder, then build astropy and run the tests in-place:
