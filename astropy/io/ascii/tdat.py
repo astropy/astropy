@@ -6,6 +6,7 @@ not meant to be used directly, but instead are available as readers/writers in
 :Author: Abdu Zoghbi
 """
 
+import json
 import re
 from collections import OrderedDict
 from warnings import warn
@@ -179,7 +180,7 @@ class TdatHeader(core.BaseHeader, TdatMeta):
         self._parse_header(lines)
         meta["table"]["comments"] = self._comments
         meta["table"]["keywords"] = self._keywords
-        meta["table"]["col_lines"] = self._col_lines
+        meta["table"]["field_lines"] = self._col_lines
 
     def process_lines(self, lines):
         """Select lines between <HEADER> and <DATA>"""
@@ -216,14 +217,17 @@ class TdatHeader(core.BaseHeader, TdatMeta):
             cmatch = col_parser.match(line)
             if cmatch:
                 col = core.Column(name=cmatch.group("name"))
-                col.ctype = cmatch.group("ctype")
-                col.fmt = cmatch.group("fmt")
+                ctype = cmatch.group("ctype")
+                if "int" in ctype:
+                    col.dtype = int
+                elif "char" in ctype:
+                    col.dtype = str
+                else:
+                    col.dtype = float
                 col.unit = cmatch.group("unit")
-                col.ucd = cmatch.group("ucd")
-                col.idx = cmatch.group("idx")
-                col.description = cmatch.group("desc")
+                col.format = cmatch.group("fmt")
+                col.description = f'{cmatch.group("desc")}{cmatch.group("comment")}'
                 col.comment = cmatch.group("comment")
-                # setattr(self, line)
                 cols.append(col)
 
         self.names = [col.name for col in cols]
@@ -250,6 +254,7 @@ class TdatHeader(core.BaseHeader, TdatMeta):
     def write(self, lines):
         """Write the keywords and column descriptors"""
         keywords = self.table_meta.get("keywords", None)
+        col_lines = self.table_meta.get("field_lines", None)
         if keywords is not None:
             if "table_name" not in keywords:
                 raise TdatFormatError(
@@ -268,7 +273,6 @@ class TdatHeader(core.BaseHeader, TdatMeta):
         lines.append("#")
         lines.append("# Table Parameters")
         lines.append("#")
-        col_lines = self.table_meta.get("col_lines", None)
         if col_lines is not None:
             for col in col_lines:
                 lines.append(col)
@@ -276,8 +280,11 @@ class TdatHeader(core.BaseHeader, TdatMeta):
             for col in self.cols:
                 line = f"field[{col.name}] = {col.dtype}:{col.format}_{col.unit}"
                 lines.append(line)
-        lines.append("<DATA>")
-
+        lines.append("#")
+        lines.append("# Data Format Specification")
+        lines.append("#")
+        lines.append(f"line[1] = {' '.join([col.name for col in self.cols])}")
+        lines.append("#")
 
 class TdatDataSplitter(core.BaseSplitter):
     """Splitter for tdat data."""
@@ -324,7 +331,7 @@ class TdatData(core.BaseData, TdatMeta):
 
     def process_lines(self, lines):
         """Select lines between <DATA> and <END>"""
-        data_lines = [line for line in self._process_lines(lines, "data")]
+        data_lines = list(self._process_lines(lines, "data"))
         return data_lines
 
     def get_str_vals(self):
@@ -337,6 +344,27 @@ class TdatData(core.BaseData, TdatMeta):
         if hasattr(self.header, "_delimiter"):
             field_delimiter = self.header._delimiter
         return self.splitter(self.data_lines, field_delimiter, nlines)
+
+    def write(self, lines):
+        """Write ``self.cols`` in place to ``lines``.
+
+        Parameters
+        ----------
+        lines : list
+            List for collecting output of writing self.cols.
+        """
+        lines.append("<DATA>")
+        if callable(self.start_line):
+            raise TypeError("Start_line attribute cannot be callable for write()")
+        else:
+            data_start_line = self.start_line or 0
+        while len(lines) < data_start_line:
+            lines.append(itertools.cycle(self.write_spacer_lines))
+
+        col_str_iters = self.str_vals()
+        for vals in zip(*col_str_iters):
+            lines.append(self.splitter.join(vals)+"|")
+        lines.append("<END>")
 
 
 class Tdat(core.BaseReader):
