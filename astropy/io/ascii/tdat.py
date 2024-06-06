@@ -5,51 +5,57 @@ not meant to be used directly, but instead are available as readers/writers in
 
 :Author: Abdu Zoghbi
 """
+
 import re
 from collections import OrderedDict
 from warnings import warn
+
 from astropy.utils.exceptions import AstropyWarning
 
 from . import core
 
-_STD_MSG = 'See details in https://heasarc.gsfc.nasa.gov/docs/software/dbdocs/tdat.html'
+_STD_MSG = "See details in https://heasarc.gsfc.nasa.gov/docs/software/dbdocs/tdat.html"
+
 
 class TdatFormatError(Exception):
     """Tdat Format Error"""
+
     def __str__(self):
-        return "{}\n{}".format(super().__str__(),_STD_MSG)
+        return f"{super().__str__()}\n{_STD_MSG}"
+
 
 class TdatFormatWarning(AstropyWarning):
     """Tdat Format Warning"""
 
 
 class TdatMeta:
-
     # comments: # or //
-    _comment = r'\s*(#|//)(.*)$'
+    _comment = r"\s*(#|//)(.*)$"
 
     # keywords in the header: name = value
-    _keys = r'(?P<key>\w+)\s*=\s*([\'])?(?P<value>.*?)(?(2)\2|\s*$)'
+    _keys = r"(?P<key>\w+)\s*=\s*([\'])?(?P<value>.*?)(?(2)\2|\s*$)"
     # keywords in the header: name[text] = some_other_text; name: relate|line
-    _extra_keys = r'\s*(relate|line)\[(\w+)\]\s*=\s*([\w\s]+)(?:\((\w+)\))?'
+    _extra_keys = r"\s*(relate|line)\[(\w+)\]\s*=\s*([\w\s]+)(?:\((\w+)\))?"
 
     # descriptors that shouldn't be registered as comments
-    _desc_comments = ['Table Parameters', 'Virtual Parameters',
-                      'Relationship Definitions', 'Data Format Specification']
+    _desc_comments = [
+        "Table Parameters",
+        "Virtual Parameters",
+        "Relationship Definitions",
+        "Data Format Specification",
+    ]
 
     _comments = None
     _keywords = None
     _col_lines = None
     _line_fields = None
-    _delimiter = '|'
+    _delimiter = "|"
 
-    _deprecated_keywords = ('record_delimiter', 'field_delimiter')
-    _required_keywords = ('table_name',)
-    
-    
+    _deprecated_keywords = ("record_delimiter", "field_delimiter")
+    _required_keywords = ("table_name",)
+
     def _process_lines(self, lines, ltype):
         """Process the lines to separate header|data|comment"""
-
         is_header = False
         is_data = False
         comment_parser = re.compile(self._comment)
@@ -57,12 +63,11 @@ class TdatMeta:
         desc_comments = self._desc_comments
 
         for line in lines:
-
             # handle comments first
             cmatch = comment_parser.match(line)
 
             if cmatch:
-                if ltype != 'comment':
+                if ltype != "comment":
                     continue
                 add = True
                 for cc in desc_comments:
@@ -71,40 +76,40 @@ class TdatMeta:
                         add = False
                         break
                 # exclude empty comment lines
-                if cmatch.group(2) == '':
+                if cmatch.group(2) == "":
                     add = False
                 if not add:
                     continue
                 yield cmatch.group(2)
 
-            if '<header>' in line.lower():
+            if "<header>" in line.lower():
                 is_header = True
                 # we don't want <header> itself
                 continue
-            
-            if '<data>' in line.lower():
+
+            if "<data>" in line.lower():
                 is_header = False
                 is_data = True
                 continue
 
-            if '<end>' in line.lower():
+            if "<end>" in line.lower():
                 is_data = False
                 continue
 
-            if ltype == 'header' and is_header and cmatch is None:
-                yield line
-            
-            if ltype == 'data' and is_data and cmatch is None:
+            if ltype == "header" and is_header and cmatch is None:
                 yield line
 
+            if ltype == "data" and is_data and cmatch is None:
+                yield line
 
     def _parse_header(self, lines):
         """Parse header into keywords and comments and column descriptors"""
-
         # if already parsed, do not repeat
-        if (self._comments is not None and 
-            self._keywords is not None and
-            self._col_lines is not None):
+        if (
+            self._comments is not None
+            and self._keywords is not None
+            and self._col_lines is not None
+        ):
             return
 
         keywords = OrderedDict()
@@ -114,35 +119,35 @@ class TdatMeta:
         keys_parser = re.compile(self._keys)
         extra_keys_parser = re.compile(self._extra_keys)
 
-        for line in self._process_lines(lines, 'header'):
+        for line in self._process_lines(lines, "header"):
             kmatch = keys_parser.match(line)
             ematch = extra_keys_parser.match(line)
             if kmatch:
-                key = kmatch.group('key')
+                key = kmatch.group("key")
                 if key in self._deprecated_keywords:
                     warn(
                         f'"{key}" keyword is obsolete and will be ignored. {_STD_MSG}',
-                        TdatFormatWarning
+                        TdatFormatWarning,
                     )
                 else:
-                    keywords[kmatch.group('key')] = kmatch.group('value')
+                    keywords[kmatch.group("key")] = kmatch.group("value")
             elif ematch:
                 # match extra keywords
-                if ematch.group(1) == 'relate':
+                if ematch.group(1) == "relate":
                     warn(
                         f'"relate" keyword is obsolete and will be ignored. {_STD_MSG}',
-                        TdatFormatWarning
+                        TdatFormatWarning,
                     )
                     continue
-                if ematch.group(1) == 'line':
+                if ematch.group(1) == "line":
                     # fields in line; typically only 1, but can be more
                     line_fields[ematch.group(2)] = ematch.group(3).split()
             else:
-                if 'field' in line:
+                if "field" in line:
                     col_lines.append(line)
         # check we have the required keywords
 
-        self._comments = [c for c in self._process_lines(lines, 'comment')]
+        self._comments = [c for c in self._process_lines(lines, "comment")]
         self._col_lines = col_lines
 
         # raise an error if no 'line[...] is found in the header'
@@ -168,31 +173,26 @@ class TdatHeader(core.BaseHeader, TdatMeta):
     write_comment = "# "
 
     def update_meta(self, lines, meta):
-        """
+        """Extract meta information: comments and key/values in the header
         READ: Override the default update_meta
-        Extract meta information: comments and key/values in the header
         """
-
         self._parse_header(lines)
-        meta['table']['comments'] = self._comments
-        meta['table']['keywords'] = self._keywords
-        meta['table']['col_lines'] = self._col_lines
-        
+        meta["table"]["comments"] = self._comments
+        meta["table"]["keywords"] = self._keywords
+        meta["table"]["col_lines"] = self._col_lines
 
     def process_lines(self, lines):
         """Select lines between <HEADER> and <DATA>"""
-
         # if already processed, yield the lines
         self._parse_header(lines)
-        for line in self._col_lines:
-            yield line
-        
+        yield from self._col_lines
 
     def get_cols(self, lines):
         """Identify the columns and table description"""
         # generator returning valid header lines
 
-        col_parser = re.compile(r"""
+        col_parser = re.compile(
+            r"""
             \s*field
             \[(?P<name>\w+)\]\s*=\s*
             (?P<ctype>[^\W\s_]+)
@@ -206,22 +206,23 @@ class TdatHeader(core.BaseHeader, TdatMeta):
             (?:[//|#]+\s*(?P<desc>[^/#]*))?
             (?:[//|#]+\s*(?P<comment>[^/#]*))?
             \s*
-            """, re.VERBOSE)
+            """,
+            re.VERBOSE,
+        )
 
         cols = []
         for line in self.process_lines(lines):
-
             # look for field[..]= ... column definitions
             cmatch = col_parser.match(line)
             if cmatch:
-                col = core.Column(name=cmatch.group('name'))
-                col.ctype = cmatch.group('ctype')
-                col.fmt = cmatch.group('fmt')
-                col.unit = cmatch.group('unit')
-                col.ucd = cmatch.group('ucd')
-                col.idx = cmatch.group('idx')
-                col.description = cmatch.group('desc')
-                col.comment = cmatch.group('comment')
+                col = core.Column(name=cmatch.group("name"))
+                col.ctype = cmatch.group("ctype")
+                col.fmt = cmatch.group("fmt")
+                col.unit = cmatch.group("unit")
+                col.ucd = cmatch.group("ucd")
+                col.idx = cmatch.group("idx")
+                col.description = cmatch.group("desc")
+                col.comment = cmatch.group("comment")
                 # setattr(self, line)
                 cols.append(col)
 
@@ -232,57 +233,58 @@ class TdatHeader(core.BaseHeader, TdatMeta):
             lsummary = [v for val in self._line_fields.values() for v in val]
             raise TdatFormatError(
                 'The columns "field" descriptors are not consistent with '
-                'the line[..] keyword.\n'
+                "the line[..] keyword.\n"
                 f'"field" values: {self.names}\n'
-                f'line[..] values: {lsummary}'
+                f"line[..] values: {lsummary}"
             )
 
     def write_comments(self, lines, meta):
         """
         WRITE: Override the default write_comments to include <HEADER> as first line
         """
-        lines.append('<HEADER>')
+        lines.append("<HEADER>")
         if self.write_comment not in (False, None):
             for comment in meta.get("comments", []):
                 lines.append(self.write_comment + comment)
 
     def write(self, lines):
         """Write the keywords and column descriptors"""
-        keywords = self.table_meta.get('keywords', None)
+        keywords = self.table_meta.get("keywords", None)
         if keywords is not None:
-            if not 'table_name' in keywords:
+            if "table_name" not in keywords:
                 raise TdatFormatError(
                     '"table_name" keyword is required but not found in the header.\n'
                 )
             lines.append(f'table_name = {keywords["table_name"]}')
-            
+
             # loop through option table keywords
-            for key in ['table_description', 'table_document_url', 'table_security']:
+            for key in ["table_description", "table_document_url", "table_security"]:
                 if key in keywords:
-                    lines.append(f'{key} = {keywords[key]}')
+                    lines.append(f"{key} = {keywords[key]}")
         else:
-            lines.append('table_name = astropy_table')
-        
+            lines.append("table_name = astropy_table")
+
         # add table columns as fields
-        lines.append('#')
-        lines.append('# Table Parameters')
-        lines.append('#')
-        col_lines = self.table_meta.get('col_lines', None)
+        lines.append("#")
+        lines.append("# Table Parameters")
+        lines.append("#")
+        col_lines = self.table_meta.get("col_lines", None)
         if col_lines is not None:
             for col in col_lines:
                 lines.append(col)
         else:
             for col in self.cols:
-                line = f'field[{col.name}] = {col.dtype}:{col.format}_{col.unit}'
+                line = f"field[{col.name}] = {col.dtype}:{col.format}_{col.unit}"
                 lines.append(line)
-        lines.append('<DATA>')
-                
+        lines.append("<DATA>")
+
+
 class TdatDataSplitter(core.BaseSplitter):
     """Splitter for tdat data."""
 
-    delimiter = '|'
+    delimiter = "|"
 
-    def __call__(self, lines, field_delimiter='|', nlines=1):
+    def __call__(self, lines, field_delimiter="|", nlines=1):
         """Handle the case of multiple delimiter.
 
         The delimiter is specified in the header, and can have multiple values
@@ -299,8 +301,11 @@ class TdatDataSplitter(core.BaseSplitter):
             _lines.append(line)
             iline += 1
             if iline == nlines:
-                vals = [val for line in _lines
-                        for val in re.split(fr'[{field_delimiter}]', line)[:-1]]
+                vals = [
+                    val
+                    for line in _lines
+                    for val in re.split(rf"[{field_delimiter}]", line)[:-1]
+                ]
                 iline = 0
                 _lines = []
             else:
@@ -312,18 +317,15 @@ class TdatDataSplitter(core.BaseSplitter):
 
 
 class TdatData(core.BaseData, TdatMeta):
-    """Data Reader for TDAT format
-    """
+    """Data Reader for TDAT format"""
 
     write_comment = "# "
     splitter_class = TdatDataSplitter
 
     def process_lines(self, lines):
         """Select lines between <DATA> and <END>"""
-
-        data_lines = [line for line in self._process_lines(lines, 'data')]
+        data_lines = [line for line in self._process_lines(lines, "data")]
         return data_lines
-
 
     def get_str_vals(self):
         """Return a generator that returns a list of column values (as strings)
@@ -332,14 +334,13 @@ class TdatData(core.BaseData, TdatMeta):
         field_delimiter = self._delimiter
         nlines = len(self.header._line_fields)
         # if we have  self._delimiter from the header, user it.
-        if hasattr(self.header, '_delimiter'):
+        if hasattr(self.header, "_delimiter"):
             field_delimiter = self.header._delimiter
         return self.splitter(self.data_lines, field_delimiter, nlines)
 
 
 class Tdat(core.BaseReader):
-    r"""Read TDAT format
-    """
+    r"""Read TDAT format"""
 
     _format_name = "tdat"
     _description = "HEASARC tdat format"
@@ -351,6 +352,6 @@ class Tdat(core.BaseReader):
 
     def inconsistent_handler(self, str_vals, ncols):
         """Remove the last field separator if it exists"""
-        if len(str_vals) == ncols + 1 and str_vals[-1] == '':
+        if len(str_vals) == ncols + 1 and str_vals[-1] == "":
             str_vals = str_vals[:-1]
         return str_vals
