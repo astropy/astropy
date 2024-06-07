@@ -4,9 +4,18 @@
 Handles the "LaTeX" unit format.
 """
 
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
 
 from . import console, utils
+
+if TYPE_CHECKING:
+    from numbers import Real
+    from typing import ClassVar, Literal
+
+    from astropy.units import NamedUnit, UnitBase
 
 
 class Latex(console.Console):
@@ -17,20 +26,20 @@ class Latex(console.Console):
     <https://www.iau.org/static/publications/stylemanual1989.pdf>`_.
     """
 
-    _space = r"\,"
-    _scale_unit_separator = r"\,"
-    _times = r" \times "
+    _space: ClassVar[str] = r"\,"
+    _scale_unit_separator: ClassVar[str] = r"\,"
+    _times: ClassVar[str] = r" \times "
 
     @classmethod
-    def _format_mantissa(cls, m):
+    def _format_mantissa(cls, m: str) -> str:
         return m.replace("nan", r"{\rm NaN}").replace("inf", r"\infty")
 
     @classmethod
-    def _format_superscript(cls, number):
+    def _format_superscript(cls, number: str) -> str:
         return f"^{{{number}}}"
 
     @classmethod
-    def _format_unit_power(cls, unit, power=1):
+    def _format_unit_power(cls, unit: NamedUnit, power: Real = 1) -> str:
         name = unit.get_format_name("latex")
         if name == unit.name:
             # This doesn't escape arbitrary LaTeX strings, but it should
@@ -48,7 +57,14 @@ class Latex(console.Console):
         return name
 
     @classmethod
-    def _format_fraction(cls, scale, numerator, denominator, *, fraction="multiline"):
+    def _format_fraction(
+        cls,
+        scale: str,
+        numerator: str,
+        denominator: str,
+        *,
+        fraction: Literal[True, "inline", "multiline"] = "multiline",
+    ) -> str:
         if fraction != "multiline":
             return super()._format_fraction(
                 scale, numerator, denominator, fraction=fraction
@@ -57,7 +73,11 @@ class Latex(console.Console):
         return rf"{scale}\frac{{{numerator}}}{{{denominator}}}"
 
     @classmethod
-    def to_string(cls, unit, fraction="multiline"):
+    def to_string(
+        cls,
+        unit: UnitBase,
+        fraction: bool | Literal["inline", "multiline"] = "multiline",
+    ) -> str:
         s = super().to_string(unit, fraction=fraction)
         return rf"$\mathrm{{{s}}}$"
 
@@ -73,8 +93,10 @@ class LatexInline(Latex):
     <https://journals.aas.org/manuscript-preparation/>`_.
     """
 
-    name = "latex_inline"
+    name: ClassVar[str] = "latex_inline"
 
     @classmethod
-    def to_string(cls, unit, fraction=False):
+    def to_string(
+        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+    ) -> str:
         return super().to_string(unit, fraction=fraction)
