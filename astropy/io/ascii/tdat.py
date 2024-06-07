@@ -6,11 +6,10 @@ not meant to be used directly, but instead are available as readers/writers in
 :Author: Abdu Zoghbi
 """
 
-import json
 import re
 from collections import OrderedDict
-from warnings import warn
 from copy import deepcopy
+from warnings import warn
 
 from astropy.utils.exceptions import AstropyWarning
 
@@ -253,10 +252,8 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                 lines.append(self.write_comment + comment)
 
     def write(self, lines):
-        if self.splitter.delimiter not in [' ', '|']:
-            raise ValueError(
-                "only pipe and space delimitter is allowed in tdat format"
-            )
+        if self.splitter.delimiter not in [" ", "|"]:
+            raise ValueError("only pipe and space delimitter is allowed in tdat format")
         """Write the keywords and column descriptors"""
         keywords = deepcopy(self.table_meta.get("keywords", None))
         col_lines = self.table_meta.get("field_lines", None)
@@ -296,12 +293,14 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                     field_line += f"_{col.unit}"
                 lines.append(field_line)
         if keywords is not None and len(keywords) != 0:
-            if 'parameter_defaults' in keywords:
-                lines.append('#')
-                lines.append(f"{'parameter_defaults'} = {keywords.pop('parameter_defaults')}")
-            lines.append('#')
-            lines.append('# Virtual Parameters')
-            lines.append('#')
+            if "parameter_defaults" in keywords:
+                lines.append("#")
+                lines.append(
+                    f"{'parameter_defaults'} = {keywords.pop('parameter_defaults')}"
+                )
+            lines.append("#")
+            lines.append("# Virtual Parameters")
+            lines.append("#")
             for key in keywords:
                 lines.append(f"{key} = {keywords[key]}")
         lines.append("#")
@@ -309,6 +308,7 @@ class TdatHeader(core.BaseHeader, TdatMeta):
         lines.append("#")
         lines.append(f"line[1] = {' '.join([col.name for col in self.cols])}")
         lines.append("#")
+
 
 class TdatDataSplitter(core.BaseSplitter):
     """Splitter for tdat data."""
@@ -387,7 +387,7 @@ class TdatData(core.BaseData, TdatMeta):
 
         col_str_iters = self.str_vals()
         for vals in zip(*col_str_iters):
-            lines.append(self.splitter.join(vals)+"|")
+            lines.append(self.splitter.join(vals) + "|")
         lines.append("<END>")
 
 
