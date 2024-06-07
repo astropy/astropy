@@ -10,6 +10,7 @@ import json
 import re
 from collections import OrderedDict
 from warnings import warn
+from copy import deepcopy
 
 from astropy.utils.exceptions import AstropyWarning
 
@@ -171,7 +172,7 @@ class TdatHeader(core.BaseHeader, TdatMeta):
     """Header Reader for TDAT format"""
 
     start_line = 0
-    write_comment = "# "
+    write_comment = "#"
 
     def update_meta(self, lines, meta):
         """Extract meta information: comments and key/values in the header
@@ -252,8 +253,12 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                 lines.append(self.write_comment + comment)
 
     def write(self, lines):
+        if self.splitter.delimiter not in [' ', '|']:
+            raise ValueError(
+                "only pipe and space delimitter is allowed in tdat format"
+            )
         """Write the keywords and column descriptors"""
-        keywords = self.table_meta.get("keywords", None)
+        keywords = deepcopy(self.table_meta.get("keywords", None))
         col_lines = self.table_meta.get("field_lines", None)
         if keywords is not None:
             if "table_name" not in keywords:
@@ -265,7 +270,7 @@ class TdatHeader(core.BaseHeader, TdatMeta):
             # loop through option table keywords
             for key in ["table_description", "table_document_url", "table_security"]:
                 if key in keywords:
-                    lines.append(f"{key} = {keywords[key]}")
+                    lines.append(f"{key} = {keywords.pop(key)}")
         else:
             lines.append("table_name = astropy_table")
 
@@ -278,8 +283,27 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                 lines.append(col)
         else:
             for col in self.cols:
-                line = f"field[{col.name}] = {col.dtype}:{col.format}_{col.unit}"
-                lines.append(line)
+                if col.dtype == int:
+                    ctype = "integer"
+                elif col.dtype == float:
+                    ctype = "float"
+                else:
+                    ctype = f"char{str(col.dtype).split('<U')[-1]}"
+                field_line = f"field[{col.name}] = {ctype}"
+                if col.format is not None:
+                    field_line += f":{col.format}"
+                if col.unit is not None:
+                    field_line += f"_{col.unit}"
+                lines.append(field_line)
+        if keywords is not None and len(keywords) != 0:
+            if 'parameter_defaults' in keywords:
+                lines.append('#')
+                lines.append(f"{'parameter_defaults'} = {keywords.pop('parameter_defaults')}")
+            lines.append('#')
+            lines.append('# Virtual Parameters')
+            lines.append('#')
+            for key in keywords:
+                lines.append(f"{key} = {keywords[key]}")
         lines.append("#")
         lines.append("# Data Format Specification")
         lines.append("#")
