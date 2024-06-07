@@ -22,7 +22,7 @@ import math
 import warnings
 from fractions import Fraction
 
-from astropy.utils import parsing
+from astropy.utils import classproperty, parsing
 
 from . import core, generic, utils
 
@@ -103,8 +103,8 @@ class OGIP(generic.Generic):
 
         return names, deprecated_names, functions
 
-    @classmethod
-    def _make_lexer(cls):
+    @classproperty(lazy=True)
+    def _lexer(cls):
         tokens = cls._tokens
 
         t_DIVISION = r"/"
@@ -157,8 +157,8 @@ class OGIP(generic.Generic):
 
         return parsing.lex(lextab="ogip_lextab", package="astropy/units")
 
-    @classmethod
-    def _make_parser(cls):
+    @classproperty(lazy=True)
+    def _parser(cls):
         """
         The grammar here is based on the description in the
         `Specification of Physical Units within OGIP FITS files

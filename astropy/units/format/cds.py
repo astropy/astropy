@@ -64,18 +64,6 @@ class CDS(Base):
 
     @classproperty(lazy=True)
     def _units(cls) -> dict[str, UnitBase]:
-        return cls._generate_unit_names()
-
-    @classproperty(lazy=True)
-    def _parser(cls) -> ThreadSafeParser:
-        return cls._make_parser()
-
-    @classproperty(lazy=True)
-    def _lexer(cls) -> Lexer:
-        return cls._make_lexer()
-
-    @staticmethod
-    def _generate_unit_names() -> dict[str, UnitBase]:
         from astropy import units as u
         from astropy.units import cds
 
@@ -87,8 +75,8 @@ class CDS(Base):
 
         return names
 
-    @classmethod
-    def _make_lexer(cls) -> Lexer:
+    @classproperty(lazy=True)
+    def _lexer(cls) -> Lexer:
         tokens = cls._tokens
 
         t_PRODUCT = r"\."
@@ -145,8 +133,8 @@ class CDS(Base):
             lextab="cds_lextab", package="astropy/units", reflags=int(re.UNICODE)
         )
 
-    @classmethod
-    def _make_parser(cls) -> ThreadSafeParser:
+    @classproperty(lazy=True)
+    def _parser(cls) -> ThreadSafeParser:
         """
         The grammar here is based on the description in the `Standards
         for Astronomical Catalogues 2.0

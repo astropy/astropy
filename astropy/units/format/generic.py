@@ -76,15 +76,7 @@ class Generic(Base):
         return cls._all_units[2]
 
     @classproperty(lazy=True)
-    def _parser(cls):
-        return cls._make_parser()
-
-    @classproperty(lazy=True)
     def _lexer(cls):
-        return cls._make_lexer()
-
-    @classmethod
-    def _make_lexer(cls):
         tokens = cls._tokens
 
         t_COMMA = r"\,"
@@ -141,8 +133,8 @@ class Generic(Base):
             lextab="generic_lextab", package="astropy/units", reflags=int(re.UNICODE)
         )
 
-    @classmethod
-    def _make_parser(cls):
+    @classproperty(lazy=True)
+    def _parser(cls):
         """
         The grammar here is based on the description in the `FITS
         standard
