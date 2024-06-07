@@ -98,4 +98,22 @@ can be enabled by calling :func:`~astropy.units.add_enabled_units`::
     kmph         | 0.277778 m / s  |         ,
   ]
 
+If new units are defined with prefixes enabled, the prefixed units must be
+explicitly enabled as well, e.g., by using the ``namespace`` argument::
+
+  >>> new_units = dict()
+  >>> foo = u.def_unit(['Fo', 'foo'], prefixes=True, namespace=new_units)
+  >>> u.add_enabled_units(new_units)
+  <astropy.units.core._UnitContext object at ...>
+
+Now, the prefixed units can be parsed etc::
+
+  >>> print(u.Unit("megafoo").find_equivalent_units())
+  Primary name | Unit definition | Aliases
+  [
+    Fo           | irreducible     | foo     ,
+  ]
+  >>> print(u.Unit("megafoo").to(u.Unit("kFo")))
+  1000.0
+
 .. EXAMPLE END
