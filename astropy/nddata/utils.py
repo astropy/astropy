@@ -3,7 +3,10 @@
 This module includes helper functions for array operations.
 """
 
+from __future__ import annotations
+
 from copy import deepcopy
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
@@ -26,6 +29,15 @@ __all__ = [
 ]
 
 
+if TYPE_CHECKING:
+    from numbers import Complex
+    from typing import Literal, TypeVar
+
+    from numpy.typing import NDArray
+
+    DT = TypeVar("DT", bound=np.generic)
+
+
 class NoOverlapError(ValueError):
     """Raised when determining the overlap of non-overlapping arrays."""
 
@@ -34,7 +46,12 @@ class PartialOverlapError(ValueError):
     """Raised when arrays only partially overlap."""
 
 
-def overlap_slices(large_array_shape, small_array_shape, position, mode="partial"):
+def overlap_slices(
+    large_array_shape: int | tuple[int, ...],
+    small_array_shape: int | tuple[int, ...],
+    position: float | tuple[float, ...],
+    mode: Literal["partial", "trim", "strict"] = "partial",
+) -> tuple[tuple[slice, ...], tuple[slice, ...]]:
     """
     Get slices for the overlapping part of a small and a large array.
 
@@ -152,6 +169,28 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode="partial
     return slices_large, slices_small
 
 
+@overload
+def extract_array(
+    array_large: NDArray[DT],
+    shape: int | tuple[int, ...],
+    position: float | tuple[float, ...],
+    mode: Literal["partial", "trim", "strict"],
+    fill_value: Complex,
+    return_position: Literal[True],
+) -> tuple[NDArray[DT], tuple[Complex, ...]]: ...
+
+
+@overload
+def extract_array(
+    array_large: NDArray[DT],
+    shape: int | tuple[int, ...],
+    position: float | tuple[float, ...],
+    mode: Literal["partial", "trim", "strict"] = "partial",
+    fill_value: Complex = np.nan,
+    return_position: Literal[False] = False,
+) -> NDArray[DT]: ...
+
+
 def extract_array(
     array_large,
     shape,
@@ -264,7 +303,11 @@ def extract_array(
         return extracted_array
 
 
-def add_array(array_large, array_small, position):
+def add_array(
+    array_large: NDArray[DT],
+    array_small: NDArray[DT],
+    position: tuple[float, ...],
+) -> NDArray[DT]:
     """
     Add a smaller array at a given position in a larger array.
 
