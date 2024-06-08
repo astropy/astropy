@@ -56,7 +56,7 @@ documentation <https://pip.pypa.io/en/stable/user_guide/#user-installs>`_.
 
 Alternatively, if you intend to do development on other software that uses
 ``astropy``, such as an affiliated package, consider installing ``astropy``
-into a :ref:`virtualenv <astropy-dev:virtual_envs>`.
+into a `virtualenv <https://docs.astropy.org/en/latest/development/workflow/virtual_pythons.html#virtual-envs>`_.
 
 Do **not** install ``astropy`` or other third-party packages using ``sudo``
 unless you are fully aware of the risks.
@@ -123,8 +123,7 @@ source code directory, or :ref:`running-tests` for more details.
 
 {%else%}
 
-See the :ref:`latest documentation on how to test your installed version of
-astropy <astropy-dev:testing_installed_astropy>`.
+See the `latest documentation on how to test your installed version of astropy <https://docs.astropy.org/en/latest/install.html#testing-an-installed-astropy>`_.
 
 {%endif%}
 
@@ -549,7 +548,6 @@ would like more control over the testing process.
 
 {%else%}
 
-See the :ref:`latest documentation on how to run the tests in a source
-checkout of astropy <astropy-dev:sourcebuildtest>`
+See the `latest documentation on how to run the tests in a source checkout of astropy <https://docs.astropy.org/en/latest/install.html#testing-a-source-code-build-of-astropy>`_.
 
 {%endif%}
