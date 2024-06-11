@@ -37,7 +37,7 @@ processing, and data analysis.
 
    index_getting_started
    index_user_docs
-   index_dev
+   development/index
    index_project_details
 
 .. grid:: 2
@@ -90,7 +90,7 @@ processing, and data analysis.
 
         +++
 
-        .. button-ref:: index_dev
+        .. button-ref:: development/index
             :expand:
             :color: primary
             :click-parent:
