@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from astropy import units as u
-from astropy.coordinates import Angle, EarthLocation, SkyCoord
+from astropy.coordinates import HCRS, Angle, EarthLocation, SkyCoord
 from astropy.coordinates.builtin_frames import (
     FK5,
     ICRS,
@@ -366,3 +366,11 @@ def test_skyoffset_two_frames_interfering():
     target_icrs = target.transform_to(ICRS())
     # The line below was almost guaranteed to fail.
     dirs_icrs.transform_to(target_icrs.skyoffset_frame())
+
+
+def test_skyoffset_wrapping_vs_broadcasting():
+    # regression test for https://github.com/astropy/astropy/issues/16548
+    time = Time(["2021-01-01", "2021-01-01"])
+    origin = HCRS(0 * u.deg, 0 * u.deg, obstime=time)
+    frame = SkyOffsetFrame(origin=origin)
+    SkyCoord(240 * u.deg, 0 * u.deg, frame=frame)
