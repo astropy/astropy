@@ -7,8 +7,6 @@ available in (and should be used through) the `astropy.units` namespace.
 
 """
 
-from collections import UserList
-
 # THIRD-PARTY
 import numpy as np
 
@@ -45,7 +43,7 @@ __all__ = [
 ]
 
 
-class Equivalency(UserList):
+class Equivalency(list):
     """
     A container for a units equivalency.
 
@@ -58,18 +56,21 @@ class Equivalency(UserList):
     """
 
     def __init__(self, equiv_list, name="", kwargs=None):
-        self.data = equiv_list
+        super().__init__(equiv_list)
         self.name = [name]
         self.kwargs = [kwargs] if kwargs is not None else [{}]
 
     def __add__(self, other):
         if isinstance(other, Equivalency):
-            new = super().__add__(other)
-            new.name = self.name[:] + other.name
-            new.kwargs = self.kwargs[:] + other.kwargs
+            # The super() returns a list, which is really a bit weird,
+            # but that means we have to pass it back through the initializer.
+            new = self.__class__(super().__add__(other))
+            # Avoid the change to list of the name and kwargs arguments.
+            new.name = self.name + other.name
+            new.kwargs = self.kwargs + other.kwargs
             return new
         else:
-            return self.data.__add__(other)
+            return super().__add__(other)  # Let list take care.
 
     def __eq__(self, other):
         return (
