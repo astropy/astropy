@@ -273,36 +273,12 @@ If closing the pull request, then please comment on the original issue that
 "There's a stalled PR at #1234 that may be helpful.", and perhaps label the issue
 as "Good first issue" if the PR was relatively close to being accepted.
 
-Becoming a astropy maintainer
-----------------------------
-
-The full process is outlined in our `governance documents`_. In summary,
-we're happy to give triage permissions to anyone who shows interest by
-being helpful on the issue tracker.
-
-The required steps for adding a maintainer are:
-
-1. Contact the contributor and ask their interest to join.
-2. Add the contributor to the appropriate `GitHub Team <https://github.com/orgs/astropy-dev/teams>`_ if accepted the invitation.
-
-  * ``astropy-core`` is for core team members
-  * ``astropy-triage`` is for astropy triage members
-
-If adding to ``astropy-core``, there are two additional steps:
-
-3. Add the contributor to the astropy Google group.
-4. Create a pull request to add the contributor's GitHub handle to ``astropy/astropy/web/astropy/config.yml``.
-
-The current list of core-team members is at
-https://github.com/astropy/astropy/blob/main/web/astropy/config.yml
-
-
 .. _maintaining.merging:
 
 Merging pull requests
 ---------------------
 
-Only core team members can merge pull requests. We have a few guidelines.
+Only sub-package maintainers can merge pull requests. We have a few guidelines.
 
 1. You should typically not self-merge your own pull requests without approval.
    Exceptions include things like small changes to fix CI

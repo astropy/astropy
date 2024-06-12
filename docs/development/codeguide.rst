@@ -544,17 +544,6 @@ might read::
 This ensures that ``from submodule import *`` only imports ``foo`` and
 ``AClass``, but not `numpy.array` or `numpy.linspace`.
 
-
-Additional Resources
-====================
-
-Further tips and hints relating to the coding guidelines are included below.
-
-.. toctree::
-    :maxdepth: 1
-
-    codeguide_emacs
-
 .. _Numpy: https://numpy.org/
 .. _Scipy: https://www.scipy.org/
 .. _matplotlib: https://matplotlib.org/

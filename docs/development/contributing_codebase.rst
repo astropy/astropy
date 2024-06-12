@@ -34,6 +34,8 @@ as possible to avoid mass breakages.
 Optional dependencies
 ---------------------
 
+FIXME: do we have docs like this which apply to astropy?
+
 Optional dependencies (e.g. matplotlib) should be imported with the private helper
 ``astropy.compat._optional.import_optional_dependency``. This ensures a
 consistent error message when the dependency is not met.
@@ -49,11 +51,12 @@ set in the ``astropy.compat._optional.VERSIONS`` dict.
 Backwards compatibility
 -----------------------
 
-Please try to maintain backward compatibility. astropy has lots of users with lots of
+Please try to maintain backward compatibility. Astropy has many users with lots of
 existing code, so don't break it if at all possible.  If you think breakage is required,
 clearly state why as part of the pull request.  Also, be careful when changing method
-signatures and add deprecation warnings where needed. Also, add the deprecated sphinx
-directive to the deprecated functions or methods.
+signatures and add deprecation warnings where needed.
+
+FIXME: we should have docs on this
 
 If a function with the same arguments as the one being deprecated exist, you can use
 the ``astropy.util._decorators.deprecate``:
@@ -156,7 +159,7 @@ The limitation here is that while a human can reasonably understand that ``is_nu
 With custom types and inference this is not always possible so exceptions are made, but every effort should be exhausted to avoid ``cast`` before going down such paths.
 
 astropy-specific types
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 Commonly used types specific to astropy will appear in `astropy._typing <https://github.com/astropy/astropy/blob/main/astropy/_typing.py>`_ and you should use these where applicable. This module is private for now but ultimately this should be exposed to third party libraries who want to implement type checking against astropy.
 
@@ -193,7 +196,7 @@ in your python environment.
 .. _contributing.ci:
 
 Testing type hints in code using astropy
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. warning::
 
@@ -223,12 +226,8 @@ for `GitHub Actions <https://docs.github.com/en/actions/>`__.
 
 A pull-request will be considered for merging when you have an all 'green' build. If any tests are failing,
 then you will get a red 'X', where you can click through to see the individual failed tests.
-This is an example of a green build.
-
-.. image:: ../_static/ci.png
 
 .. _contributing.tdd:
-
 
 Test-driven development
 -----------------------
@@ -460,9 +459,8 @@ framework that will facilitate testing and developing. Thus, instead of writing 
 Preferred ``pytest`` idioms
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Functional tests named ``def test_*`` and *only* take arguments that are either fixtures or parameters.
+* Use functional tests named ``def test_*`` and *only* take arguments that are either fixtures or parameters.
 * Use a bare ``assert`` for testing scalars and truth-testing
-* Use ``tm.assert_series_equal(result, expected)`` and ``tm.assert_frame_equal(result, expected)`` for comparing :class:`Series` and :class:`DataFrame` results respectively.
 * Use `@pytest.mark.parameterize <https://docs.pytest.org/en/latest/how-to/parametrize.html>`__ when testing multiple cases.
 * Use `pytest.mark.xfail <https://docs.pytest.org/en/latest/reference/reference.html?#pytest.mark.xfail>`__ when a test case is expected to fail.
 * Use `pytest.mark.skip <https://docs.pytest.org/en/latest/reference/reference.html?#pytest.mark.skip>`__ when a test case is never expected to pass.

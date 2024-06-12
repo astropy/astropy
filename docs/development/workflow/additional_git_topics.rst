@@ -372,4 +372,4 @@ any merge that has conflicts--you can resolve any conflicts manually and then
 commit.  As long as the fix being merged is reasonably self-contained this
 usually requires little effort.
 
-.. include:: links.inc
+.. include:: ../links.inc

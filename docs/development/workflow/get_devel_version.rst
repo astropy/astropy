@@ -337,6 +337,6 @@ The actual version number you see will likely be different than this example,
 but it should not have ``'dev'`` in it.
 
 
-.. include:: links.inc
+.. include:: ../links.inc
 .. _Git Basics: https://git-scm.com/book/en/Getting-Started-Git-Basics
 .. _Set Up Git at GitHub: https://help.github.com/en/articles/set-up-git#set-up-git

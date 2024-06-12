@@ -141,7 +141,7 @@ merged into project to appear the in the next release.
 
 To submit a pull request follow the steps outlined in the GitHub documentation `Creating
 a pull request <
-https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`_.
+https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`.
 
 This request then goes to the repository maintainers, and they will review the code.
 

@@ -52,7 +52,7 @@ community :ref:`Slack <community.slack>`.
 . _contributing.forking:
 
 Create a fork of astropy
------------------------
+------------------------
 
 If you have not done so already, you will need your own copy of astropy (aka fork) to
 work on the code. Go to the `astropy project page <https://github.com/astropy/astropy>`_

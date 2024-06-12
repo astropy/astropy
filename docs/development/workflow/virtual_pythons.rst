@@ -1,6 +1,6 @@
 :orphan:
 
-.. include:: links.inc
+.. include:: ../links.inc
 .. _virtual_envs:
 
 ***************************

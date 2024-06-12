@@ -666,7 +666,7 @@ can delete any backup branches that may have been created::
 
     git branch -D tmp
 
-.. include:: links.inc
+.. include:: ../links.inc
 
 .. _Git Basics: https://git-scm.com/book/en/Getting-Started-Git-Basics
 .. _git book: https://git-scm.com/book/

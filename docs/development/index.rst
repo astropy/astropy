@@ -48,10 +48,11 @@ Details
 -------
 
 .. toctree::
-    :maxdepth: 2
+   :maxdepth: 2
 
    contributing_documentation
    contributing_codebase
+   contributing_docstring
    workflow/development_workflow
    workflow/git_edit_workflow_examples
    workflow/virtual_pythons
@@ -79,11 +80,11 @@ Maintaining astropy and affiliated packages
 .. toctree::
    :maxdepth: 2
 
-    maintainers/astropy-package-template
-    maintainers/maintainer_workflow
-    maintainers/releasing
-    maintainers/testhelpers
-    maintainers/maintaining
+   maintainers/astropy-package-template
+   maintainers/maintainer_workflow
+   maintainers/releasing
+   maintainers/testhelpers
+   maintainers/maintaining
 
 
 {%else%}

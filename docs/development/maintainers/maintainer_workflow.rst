@@ -322,4 +322,4 @@ it without another warning after another 4-5 months.
 In short, to truly reset the stale timer for a pull request, it is recommended
 that a new commit be pushed *and* the "Close?" label be removed.
 
-.. include:: links.inc
+.. include:: ../links.inc
