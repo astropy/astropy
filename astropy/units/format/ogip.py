@@ -60,21 +60,17 @@ class OGIP(generic.Generic):
             "Jy", "K", "lm", "lx", "m", "mol", "N", "ohm", "Pa",
             "pc", "rad", "s", "S", "sr", "T", "V", "W", "Wb",
         ]  # fmt: skip
-        deprecated_bases = []
         prefixes = [
             "y", "z", "a", "f", "p", "n", "u", "m", "c", "d",
             "", "da", "h", "k", "M", "G", "T", "P", "E", "Z", "Y",
         ]  # fmt: skip
 
-        for base in bases + deprecated_bases:
+        for base in bases:
             for prefix in prefixes:
                 key = prefix + base
                 if keyword.iskeyword(key):
                     continue
                 names[key] = getattr(u, key)
-        for base in deprecated_bases:
-            for prefix in prefixes:
-                deprecated_names.add(prefix + base)
         simple_units = [
             "angstrom", "arcmin", "arcsec", "AU", "barn", "bin",
             "byte", "chan", "count", "day", "deg", "erg", "G",
