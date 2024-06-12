@@ -21,7 +21,7 @@ maintainers.
 
 Substantial parts of this content have been adapted from the excellent
 `pandas developer documentation <https://pandas.pydata.org/pandas-docs/stable/development/index.html>`_.
-Astropy is grateful to the pandas team for sharing their documentation.
+Astropy is grateful to the pandas team for their documentation efforts.
 
 {% if is_development %}
 
@@ -32,6 +32,12 @@ This section provides a quickstart guide to contributing to Astropy. With minor
 changes the process will apply to contributing to coordinated and many affiliated
 packages.
 
+Astropy is hosted on `GitHub <https://www.github.com/astropy/astropy>`_, and to
+contribute, you will need to sign up for a `free GitHub account
+<https://github.com/signup/free>`_. We use `Git <https://git-scm.com/>`_ for
+version control to allow many people to work together on the project. More details
+and further resources are available in the :ref:`contributing.version_control` section.
+
 .. toctree::
    :maxdepth: 2
 
@@ -39,6 +45,7 @@ packages.
    contributing_environment
    contributing_documentation
    contributing_codebase
+   contributing_pull_request
    maintaining
    internals
    copy_on_write

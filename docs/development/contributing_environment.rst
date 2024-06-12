@@ -87,28 +87,37 @@ popular choice and generally works well, especially for newcomers.
 
 .. _contributing.conda:
 
-Install conda and dev astropy
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Install miniforge and conda
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* `Download and install miniforge <https://github.com/conda-forge/miniforge/blob/main/README.md>`_ to install ``conda``.
-* Make sure your conda is up to date (``conda update conda``)
-* Create and activate the ``astropy-dev`` conda environment using the following commands:
+If you do not already have ``conda`` installed, `download and install miniforge
+<https://github.com/conda-forge/miniforge/blob/main/README.md>`_. The details depend on
+your system but the end result is to provide a ``conda`` executable that you can use
+to create and manage isolated Python environments.
 
-.. code-block:: none
+Now create and activate an ``astropy-dev`` conda environment using the following::
 
-   conda create -n astropy-dev graphviz
+   conda create -n astropy-dev python graphviz
    conda activate astropy-dev
+
+Note the ``graphviz`` package is required for building the documentation.
+
+Install the development version of astropy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Now you can install the development version of astropy into your new environment. This
+will install the latest version of astropy from your local git repo, along with
+all the dependencies needed to build and fully test astropy.
+
    python -m pip install --editable ".[dev_all]"
 
 **Checking the build**
 
 At this point you should be able to import astropy from your locally built version::
 
-   $ python
+   python
    >>> import astropy
-   >>> print(astropy.__version__)  # note: the exact output may differ
-   2.0.0.dev0+880.g2b9e661fbb.dirty
-
+   >>> print(astropy.__version__)  # note: the exact output will differ
 
 At this point you may want to try
 `running the test suite <https://astropy.pydata.org/docs/dev/development/contributing_codebase.html#running-the-test-suite>`_.
@@ -136,9 +145,51 @@ If you would like to see this verbose output every time, you can set the ``edita
    to compile astropy.
 
 
-Step 4: install pre-commit hooks
----------------------------------
+.. _contributing.pre-commit:
 
-FIXME: This section is not yet complete.
+Install pre-commit
+------------------
 
-It's recommended to also install the :ref:`pre-commit hooks <contributing.pre-commit>`.
+This is optional, but *highly recommended*. Pre-commit is a tool that runs a number of
+:ref:`Continuous Integration (CI) <contributing.ci>` checks (e.g. code formatting) on
+your code before you commit it. If you skip this step then it is likely that one or more
+of those CI checks will fail when you make a pull request, resulting in lost time (yours
+and CI resources).
+
+Installation is straightforward. From the root of the astropy repository, run::
+
+    pre-commit install
+
+Now all of the styling checks will be
+run each time you commit changes without your needing to run each one manually.
+In addition, using ``pre-commit`` will also allow you to more easily
+remain up-to-date with our code checks as they change.
+
+Note that if needed, you can skip these checks with ``git commit --no-verify``.
+
+If you don't want to use ``pre-commit`` as part of your workflow, you can still use it
+to run its checks with one of the following::
+
+    pre-commit run --files <files you have modified>
+    pre-commit run --from-ref=upstream/main --to-ref=HEAD --all-files
+
+without needing to have done ``pre-commit install`` beforehand.
+
+Finally, we also have some slow pre-commit checks, which don't run on each commit
+but which do run during continuous integration. You can trigger them manually with::
+
+    pre-commit run --hook-stage manual --all-files
+
+.. note::
+
+    You may want to periodically run ``pre-commit gc``, to clean up repos
+    which are no longer used.
+
+.. note::
+
+    If you have conflicting installations of ``virtualenv``, then you may get an
+    error - see `here <https://github.com/pypa/virtualenv/issues/1875>`_.
+
+    Also, due to a `bug in virtualenv <https://github.com/pypa/virtualenv/issues/1986>`_,
+    you may run into issues if you're using conda. To solve this, you can downgrade
+    ``virtualenv`` to version ``20.0.33``.
