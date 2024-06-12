@@ -338,7 +338,7 @@ in the next places:
 - Git repo with a `new tag <https://github.com/astropy/astropy/tags>`_
 - Source distribution in a `GitHub release <https://github.com/astropy/astropy/releases>`_
 - Pip packages in the `PyPI <https://pypi.org/project/astropy/>`_
-- Conda/Mamba packages in `conda-forge <https://anaconda.org/conda-forge/astropy>`_
+- Conda/conda packages in `conda-forge <https://anaconda.org/conda-forge/astropy>`_
 
 The process for releasing a new version of astropy is detailed next section.
 

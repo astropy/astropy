@@ -305,3 +305,70 @@ virtual environment associated with the current directory:
 .. _conda installation instructions here: https://conda.io/projects/conda/en/latest/user-guide/install/index.html
 .. _documentation for the conda command: https://docs.conda.io/projects/conda/en/latest/commands.html
 .. _guide on how to manage environments: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html
+
+
+FIXME: SNIPS from pandas contributing_environment
+=================================================
+.. _contributing.pip:
+
+Option 2: using pip
+~~~~~~~~~~~~~~~~~~~
+
+You'll need to have at least the :ref:`minimum Python version <install.version>` that astropy supports.
+You also need to have ``setuptools`` 51.0.0 or later to build astropy.
+
+**Unix**/**macOS with virtualenv**
+
+.. code-block:: bash
+
+   # Create a virtual environment
+   # Use an ENV_DIR of your choice. We'll use ~/virtualenvs/astropy-dev
+   # Any parent directories should already exist
+   python3 -m venv ~/virtualenvs/astropy-dev
+
+   # Activate the virtualenv
+   . ~/virtualenvs/astropy-dev/bin/activate
+
+   # Install the build dependencies
+   python -m pip install -r requirements-dev.txt
+
+**Unix**/**macOS with pyenv**
+
+Consult the docs for setting up pyenv `here <https://github.com/pyenv/pyenv>`__.
+
+.. code-block:: bash
+
+   # Create a virtual environment
+   # Use an ENV_DIR of your choice. We'll use ~/Users/<yourname>/.pyenv/versions/astropy-dev
+   pyenv virtualenv <version> <name-to-give-it>
+
+   # For instance:
+   pyenv virtualenv 3.9.10 astropy-dev
+
+   # Activate the virtualenv
+   pyenv activate astropy-dev
+
+   # Now install the build dependencies in the cloned astropy repo
+   python -m pip install -r requirements-dev.txt
+
+**Windows**
+
+Below is a brief overview on how to set-up a virtual environment with Powershell
+under Windows. For details please refer to the
+`official virtualenv user guide <https://virtualenv.pypa.io/en/latest/user_guide.html#activators>`__.
+
+Use an ENV_DIR of your choice. We'll use ``~\\virtualenvs\\astropy-dev`` where
+``~`` is the folder pointed to by either ``$env:USERPROFILE`` (Powershell) or
+``%USERPROFILE%`` (cmd.exe) environment variable. Any parent directories
+should already exist.
+
+.. code-block:: powershell
+
+   # Create a virtual environment
+   python -m venv $env:USERPROFILE\virtualenvs\astropy-dev
+
+   # Activate the virtualenv. Use activate.bat for cmd.exe
+   ~\virtualenvs\astropy-dev\Scripts\Activate.ps1
+
+   # Install the build dependencies
+   python -m pip install -r requirements-dev.txt

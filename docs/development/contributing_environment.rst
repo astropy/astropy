@@ -4,23 +4,13 @@
 Creating a development environment
 ==================================
 
-To test out code changes, you'll need to build astropy from source, which
-requires a C/C++ compiler and Python environment. If you're making documentation
-changes, you can skip to :ref:`contributing to the documentation <contributing_documentation>` but if you skip
-creating the development environment you won't be able to build the documentation
-locally before pushing your changes. It's recommended to also install the :ref:`pre-commit hooks <contributing.pre-commit>`.
+To make and test code changes and build the documentation locally you will need to create a
+development environment. This requires a C/C++ compiler and an isolated Python environment.
 
-.. toctree::
-    :maxdepth: 2
-    :hidden:
+Install a C compiler
+--------------------
 
-    contributing_gitpod.rst
-
-Step 1: install a C compiler
-----------------------------
-
-How to do this will depend on your platform. If you choose to use ``Docker`` or ``GitPod``
-in the next step, then you can skip this step.
+How to do this will depend on your platform.
 
 **Windows**
 
@@ -41,7 +31,7 @@ and consult the ``Linux`` instructions below.
 
 **macOS**
 
-To use the :ref:`mamba <contributing.mamba>`-based compilers, you will need to install the
+To use the :ref:`conda <contributing.conda>`-based compilers, you will need to install the
 Developer Tools using ``xcode-select --install``.
 
 If you prefer to use a different compiler, general information can be found here:
@@ -49,228 +39,66 @@ https://devguide.python.org/setup/#macos
 
 **Linux**
 
-For Linux-based :ref:`mamba <contributing.mamba>` installations, you won't have to install any
-additional components outside of the mamba environment. The instructions
-below are only needed if your setup isn't based on mamba environments.
+For Linux-based :ref:`conda <contributing.conda>` installations, you won't have to install any
+additional components outside of the conda environment.
 
-Some Linux distributions will come with a pre-installed C compiler. To find out
-which compilers (and versions) are installed on your system::
 
-    # for Debian/Ubuntu:
-    dpkg --list | grep compiler
-    # for Red Hat/RHEL/CentOS/Fedora:
-    yum list installed | grep -i --color compiler
-
-`GCC (GNU Compiler Collection) <https://gcc.gnu.org/>`_, is a widely used
-compiler, which supports C and a number of other languages. If GCC is listed
-as an installed compiler nothing more is required.
-
-If no C compiler is installed, or you wish to upgrade, or you're using a different
-Linux distribution, consult your favorite search engine for compiler installation/update
-instructions.
+FIXME:
 
 Let us know if you have any difficulties by opening an issue or reaching out on our contributor
 community :ref:`Slack <community.slack>`.
 
-Step 2: create an isolated environment
-----------------------------------------
 
-Before we begin, please:
+. _contributing.forking:
 
-* Make sure that you have :any:`cloned the repository <contributing.forking>`
-* ``cd`` to the astropy source directory you just created with the clone command
+Create a fork of astropy
+-----------------------
 
-.. _contributing.mamba:
+If you have not done so already, you will need your own copy of astropy (aka fork) to
+work on the code. Go to the `astropy project page <https://github.com/astropy/astropy>`_
+and hit the ``Fork`` button. For more information see the `GitHub Fork documentation
+<https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo>`_.
 
-Option 1: using mamba (recommended)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Next you will want to clone your fork to your machine:
 
-* Install miniforge to get `mamba <https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html>`_
-* Make sure your mamba is up to date (``mamba update mamba``)
-* Create and activate the ``astropy-dev`` mamba environment using the following commands:
+.. code-block:: shell
+
+    git clone https://github.com/your-user-name/astropy.git astropy
+    cd astropy
+    git remote add upstream https://github.com/astropy/astropy.git
+    git fetch upstream
+
+This creates the directory ``astropy`` and connects your repository to
+the upstream (main project) *astropy* repository.
+
+
+Create an isolated development environment
+------------------------------------------
+
+A key requirement is to have an isolated Python environment, meaning that it is
+isolated from both your system Python and any other Python environments you may have
+for doing other work. This is important because the development environment may well
+be unstable and possibly broken at times, and you don't want to break your other work.
+
+There are *many* good options (see :ref:`virtual_envs` for discussion), but in this
+quickstart guide we will use the `conda <https://docs.conda.io/en/latest/>`_ package
+manager provided by `miniforge <https://github.com/conda-forge/miniforge>`_. This is a
+popular choice and generally works well, especially for newcomers.
+
+.. _contributing.conda:
+
+Install conda and dev astropy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* `Download and install miniforge <https://github.com/conda-forge/miniforge/blob/main/README.md>`_ to install ``conda``.
+* Make sure your conda is up to date (``conda update conda``)
+* Create and activate the ``astropy-dev`` conda environment using the following commands:
 
 .. code-block:: none
 
-   mamba env create --file environment.yml
-   mamba activate astropy-dev
-
-.. _contributing.pip:
-
-Option 2: using pip
-~~~~~~~~~~~~~~~~~~~
-
-You'll need to have at least the :ref:`minimum Python version <install.version>` that astropy supports.
-You also need to have ``setuptools`` 51.0.0 or later to build astropy.
-
-**Unix**/**macOS with virtualenv**
-
-.. code-block:: bash
-
-   # Create a virtual environment
-   # Use an ENV_DIR of your choice. We'll use ~/virtualenvs/astropy-dev
-   # Any parent directories should already exist
-   python3 -m venv ~/virtualenvs/astropy-dev
-
-   # Activate the virtualenv
-   . ~/virtualenvs/astropy-dev/bin/activate
-
-   # Install the build dependencies
-   python -m pip install -r requirements-dev.txt
-
-**Unix**/**macOS with pyenv**
-
-Consult the docs for setting up pyenv `here <https://github.com/pyenv/pyenv>`__.
-
-.. code-block:: bash
-
-   # Create a virtual environment
-   # Use an ENV_DIR of your choice. We'll use ~/Users/<yourname>/.pyenv/versions/astropy-dev
-   pyenv virtualenv <version> <name-to-give-it>
-
-   # For instance:
-   pyenv virtualenv 3.9.10 astropy-dev
-
-   # Activate the virtualenv
-   pyenv activate astropy-dev
-
-   # Now install the build dependencies in the cloned astropy repo
-   python -m pip install -r requirements-dev.txt
-
-**Windows**
-
-Below is a brief overview on how to set-up a virtual environment with Powershell
-under Windows. For details please refer to the
-`official virtualenv user guide <https://virtualenv.pypa.io/en/latest/user_guide.html#activators>`__.
-
-Use an ENV_DIR of your choice. We'll use ``~\\virtualenvs\\astropy-dev`` where
-``~`` is the folder pointed to by either ``$env:USERPROFILE`` (Powershell) or
-``%USERPROFILE%`` (cmd.exe) environment variable. Any parent directories
-should already exist.
-
-.. code-block:: powershell
-
-   # Create a virtual environment
-   python -m venv $env:USERPROFILE\virtualenvs\astropy-dev
-
-   # Activate the virtualenv. Use activate.bat for cmd.exe
-   ~\virtualenvs\astropy-dev\Scripts\Activate.ps1
-
-   # Install the build dependencies
-   python -m pip install -r requirements-dev.txt
-
-Option 3: using Docker
-~~~~~~~~~~~~~~~~~~~~~~
-
-astropy provides a ``DockerFile`` in the root directory to build a Docker image
-with a full astropy development environment.
-
-**Docker Commands**
-
-Build the Docker image::
-
-    # Build the image
-    docker build -t astropy-dev .
-
-Run Container::
-
-    # Run a container and bind your local repo to the container
-    # This command assumes you are running from your local repo
-    # but if not alter ${PWD} to match your local repo path
-    docker run -it --rm -v ${PWD}:/home/astropy astropy-dev
-
-*Even easier, you can integrate Docker with the following IDEs:*
-
-**Visual Studio Code**
-
-You can use the DockerFile to launch a remote session with Visual Studio Code,
-a popular free IDE, using the ``.devcontainer.json`` file.
-See https://code.visualstudio.com/docs/remote/containers for details.
-
-**PyCharm (Professional)**
-
-Enable Docker support and use the Services tool window to build and manage images as well as
-run and interact with containers.
-See https://www.jetbrains.com/help/pycharm/docker.html for details.
-
-Option 4: using Gitpod
-~~~~~~~~~~~~~~~~~~~~~~
-
-Gitpod is an open-source platform that automatically creates the correct development
-environment right in your browser, reducing the need to install local development
-environments and deal with incompatible dependencies.
-
-If you are a Windows user, unfamiliar with using the command line or building astropy
-for the first time, it is often faster to build with Gitpod. Here are the in-depth instructions
-for :ref:`building astropy with GitPod <contributing-gitpod>`.
-
-Step 3: build and install astropy
---------------------------------
-
-There are currently two supported ways of building astropy, pip/meson and setuptools(setup.py).
-Historically, astropy has only supported using setuptools to build astropy. However, this method
-requires a lot of convoluted code in setup.py and also has many issues in compiling astropy in parallel
-due to limitations in setuptools.
-
-The newer build system, invokes the meson backend through pip (via a `PEP 517 <https://peps.python.org/pep-0517/>`_ build).
-It automatically uses all available cores on your CPU, and also avoids the need for manual rebuilds by
-rebuilding automatically whenever astropy is imported (with an editable install).
-
-For these reasons, you should compile astropy with meson.
-Because the meson build system is newer, you may find bugs/minor issues as it matures. You can report these bugs
-`here <https://github.com/astropy/astropy/issues/49683>`_.
-
-To compile astropy with meson, run::
-
-   # Build and install astropy
-   # By default, this will print verbose output
-   # showing the "rebuild" taking place on import (see section below for explanation)
-   # If you do not want to see this, omit everything after --no-build-isolation
-   python -m pip install -ve . --no-build-isolation --config-settings editable-verbose=true
-
-.. note::
-   The version number is pulled from the latest repository tag. Be sure to fetch the latest tags from upstream
-   before building::
-
-      # set the upstream repository, if not done already, and fetch the latest tags
-      git remote add upstream https://github.com/astropy/astropy.git
-      git fetch upstream --tags
-
-**Build options**
-
-It is possible to pass options from the pip frontend to the meson backend if you would like to configure your
-install. Occasionally, you'll want to use this to adjust the build directory, and/or toggle debug/optimization levels.
-
-You can pass a build directory to astropy by appending ``--config-settings builddir="your builddir here"`` to your pip command.
-This option allows you to configure where meson stores your built C extensions, and allows for fast rebuilds.
-
-Sometimes, it might be useful to compile astropy with debugging symbols, when debugging C extensions.
-Appending ``--config-settings setup-args="-Ddebug=true"`` will do the trick.
-
-With pip, it is possible to chain together multiple config settings (for example specifying both a build directory
-and building with debug symbols would look like
-``--config-settings builddir="your builddir here" --config-settings=setup-args="-Dbuildtype=debug"``.
-
-**Compiling astropy with setup.py**
-
-.. note::
-   This method of compiling astropy will be deprecated and removed very soon, as the meson backend matures.
-
-To compile astropy with setuptools, run::
-
-   python setup.py develop
-
-.. note::
-   If astropy is already installed (via meson), you have to uninstall it first::
-
-        python -m pip uninstall astropy
-
-This is because python setup.py develop will not uninstall the loader script that ``meson-python``
-uses to import the extension from the build folder, which may cause errors such as an
-``FileNotFoundError`` to be raised.
-
-.. note::
-   You will need to repeat this step each time the C extensions change, for example
-   if you modified any file in ``astropy/_libs`` or if you did a fetch and merge from ``upstream/main``.
+   conda create -n astropy-dev graphviz
+   conda activate astropy-dev
+   python -m pip install --editable ".[dev_all]"
 
 **Checking the build**
 
@@ -306,3 +134,11 @@ If you would like to see this verbose output every time, you can set the ``edita
    If you ever find yourself wondering whether setuptools or meson was used to build your astropy,
    you can check the value of ``astropy._built_with_meson``, which will be true if meson was used
    to compile astropy.
+
+
+Step 4: install pre-commit hooks
+---------------------------------
+
+FIXME: This section is not yet complete.
+
+It's recommended to also install the :ref:`pre-commit hooks <contributing.pre-commit>`.

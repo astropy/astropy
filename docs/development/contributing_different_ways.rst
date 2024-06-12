@@ -1,56 +1,10 @@
 .. _contributing:
 
-**********************
-Contributing to astropy
-**********************
+*************************************
+Finding ways to contribute to astropy
+*************************************
 
-.. contents:: Table of contents:
-   :local:
-
-
-All contributions, bug reports, bug fixes, documentation improvements,
-enhancements, and ideas are welcome.
-
-.. _contributing.bug_reports:
-
-Bug reports and enhancement requests
-====================================
-
-Bug reports and enhancement requests are an important part of making astropy more stable and
-are curated though Github issues. When reporting an issue or request, please select the `appropriate
-category and fill out the issue form fully <https://github.com/astropy/astropy/issues/new/choose>`_
-to ensure others and the core development team can fully understand the scope of the issue.
-
-The issue will then show up to the astropy community and be open to comments/ideas from others.
-
-Finding an issue to contribute to
-=================================
-
-If you are brand new to astropy or open-source development, we recommend searching
-the `GitHub "issues" tab <https://github.com/astropy/astropy/issues>`_
-to find issues that interest you. Unassigned issues labeled `Docs
-<https://github.com/astropy/astropy/issues?q=is%3Aopen+is%3Aissue+label%3ADocs>`_
-and `good first issue
-<https://github.com/astropy/astropy/issues?q=is%3Aopen+is%3Aissue+label%3ADocs+label%3A%22good+first+issue%22>`_
-are typically good for newer contributors.
-
-Once you've found an interesting issue, it's a good idea to let others know you're
-working on it by leaving a comment on the issue. This helps to avoid duplicated work and
-might prompt a maintainer to provide some suggestions. If you want to work on an issue
-that is assigned, feel free to kindly ask the current assignee if you can take it,
-allowing at least a week of inactivity before considering work in the issue
-discontinued.
-
-If for whatever reason you are not able to continue working with on issue you started,
-please comment to that effect to let others know it is available again.
-
-We have several :ref:`contributor community <community>` communication channels, which
-you are welcome to join, and ask questions as you figure things out. Among them are
-regular meetings dev meetings, a dev mailing list, and a Slack for the contributor
-community. All astropy contributors are welcome to these spaces, where they can connect
-with each other. Even maintainers who have been with us for a long time felt just like
-you when they started out, and are happy to welcome you and support you as you get to
-know how we work, and where things are. Take a look at the next sections to learn more.
+FIXME - MOVE this content elsewhere
 
 .. _contributing.github:
 
@@ -96,31 +50,7 @@ Getting started with Git
 setting up your SSH key, and configuring git.  All these steps need to be completed before
 you can work seamlessly between your local repository and GitHub.
 
-.. _contributing.forking:
-
-Create a fork of astropy
------------------------
-
-You will need your own copy of astropy (aka fork) to work on the code. Go to the `astropy project
-page <https://github.com/astropy/astropy>`_ and hit the ``Fork`` button. Please uncheck the box to copy only the main branch before selecting ``Create Fork``.
-You will want to clone your fork to your machine
-
-.. code-block:: shell
-
-    git clone https://github.com/your-user-name/astropy.git astropy-yourname
-    cd astropy-yourname
-    git remote add upstream https://github.com/astropy/astropy.git
-    git fetch upstream
-
-This creates the directory ``astropy-yourname`` and connects your repository to
-the upstream (main project) *astropy* repository.
-
-.. note::
-
-    Performing a shallow clone (with ``--depth==N``, for some ``N`` greater
-    or equal to 1) might break some tests and features as ``pd.show_versions()``
-    as the version number cannot be computed anymore.
-
+.
 Creating a feature branch
 -------------------------
 
@@ -303,15 +233,15 @@ It is important to periodically update your local ``main`` branch with updates f
 branch and update your development environment to reflect any changes to the various packages that
 are used during development.
 
-If using :ref:`mamba <contributing.mamba>`, run:
+If using :ref:`conda <contributing.conda>`, run:
 
 .. code-block:: shell
 
     git checkout main
     git fetch upstream
     git merge upstream/main
-    mamba activate astropy-dev
-    mamba env update -f environment.yml --prune
+    conda activate astropy-dev
+    conda env update -f environment.yml --prune
 
 If using :ref:`pip <contributing.pip>` , do:
 

@@ -4,9 +4,24 @@
 Development
 ***********
 
-The developer documentation contains instructions for how to contribute to
-Astropy or affiliated packages, install and test the development version,
-as well as coding, documentation, and testing guidelines.
+The developer documentation contains instructions for how to contribute to Astropy or
+affiliated packages. This includes setting up a development environment, installing and
+testing the development version, as well as coding, documentation, and testing
+guidelines.
+
+This is divided into two sections, first a quickstart guide that provides an
+introduction to the development workflow, followed by a more detailed guide that covers
+all aspects of contributing to Astropy and provides a reference for both developers and
+maintainers.
+
+.. Important:: There are many useful ways to contribute to Astropy, many of which do not
+    require the developer workflow which is described here. For an
+    an overview see the `Contribute to Astropy <https://www.astropy.org/contribute.html>`_
+    page.
+
+Substantial parts of this content have been adapted from the excellent
+`pandas developer documentation <https://pandas.pydata.org/pandas-docs/stable/development/index.html>`_.
+Astropy is grateful to the pandas team for sharing their documentation.
 
 {% if is_development %}
 
@@ -20,7 +35,7 @@ packages.
 .. toctree::
    :maxdepth: 2
 
-   contributing
+   contributing_different_ways
    contributing_environment
    contributing_documentation
    contributing_codebase
@@ -33,8 +48,8 @@ packages.
    policies
    community
 
-Legacy documentation
---------------------
+Details
+-------
 
 .. toctree::
     :maxdepth: 2
