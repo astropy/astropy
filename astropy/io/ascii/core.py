@@ -1458,13 +1458,13 @@ class BaseReader(metaclass=MetaBaseReader):
             for j, col in enumerate(cols):
                 col.str_vals.append(str_vals[j])
 
-        self.data.masks(cols)
         if hasattr(self.header, "table_meta"):
             self.meta["table"].update(self.header.table_meta)
 
         _apply_include_exclude_names(
             self.header, self.names, self.include_names, self.exclude_names
         )
+        self.data.masks(cols)
 
         table = self.outputter(self.header.cols, self.meta)
         self.cols = self.header.cols
