@@ -1,8 +1,10 @@
 .. _maintaining:
 
-******************
+FIXME: this is from pandas, see if there is anything of use for astropy.
+
+*******************
 astropy maintenance
-******************
+*******************
 
 This guide is for astropy' maintainers. It may also be interesting to contributors
 looking to understand the astropy development process and what steps are necessary

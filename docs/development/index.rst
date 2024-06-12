@@ -41,19 +41,8 @@ and further resources are available in the :ref:`contributing.version_control` s
 .. toctree::
    :maxdepth: 2
 
-   contributing_different_ways
    contributing_environment
-   contributing_documentation
-   contributing_codebase
    contributing_pull_request
-   maintaining
-   internals
-   copy_on_write
-   debugging_extensions
-   extending
-   developer
-   policies
-   community
 
 Details
 -------
@@ -61,6 +50,8 @@ Details
 .. toctree::
     :maxdepth: 2
 
+   contributing_documentation
+   contributing_codebase
    workflow/development_workflow
    workflow/git_edit_workflow_examples
    workflow/virtual_pythons
@@ -88,7 +79,12 @@ Maintaining astropy and affiliated packages
 .. toctree::
    :maxdepth: 2
 
-   maintainers/maintainers-index
+    maintainers/astropy-package-template
+    maintainers/maintainer_workflow
+    maintainers/releasing
+    maintainers/testhelpers
+    maintainers/maintaining
+
 
 {%else%}
 
