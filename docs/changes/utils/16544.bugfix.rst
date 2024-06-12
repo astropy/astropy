@@ -1,0 +1,2 @@
+Fixed an edge-case bug in ``overlap_slices`` where the function could
+return an empty slice for non-overlapping slices.

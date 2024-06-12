@@ -44,7 +44,6 @@ test_slices = [
 
 subsampling = 5
 
-test_pos_bad = [(-1, -4), (-2, 0), (6, 2), (6, 6)]
 test_nonfinite_positions = [
     (np.nan, np.nan),
     (np.inf, np.inf),
@@ -67,11 +66,23 @@ def test_slices_pos_different_dim():
         overlap_slices((4, 5), (1, 2), (0, 0, 3))
 
 
-@pytest.mark.parametrize("pos", test_pos_bad)
-def test_slices_no_overlap(pos):
+@pytest.mark.parametrize(
+    "inputs",
+    [
+        ((5, 5), (2, 2), (-1, -4)),
+        ((5, 5), (2, 2), (-2, -0)),
+        ((5, 5), (2, 2), (6, 2)),
+        ((5, 5), (2, 2), (6, 6)),
+        ((7, 7), (0, 0), (-2, -2)),
+        ((7, 7), (3, 3), (-2, -2)),
+        ((7, 7), (3, 3), (-2, 2)),
+        ((7, 7), (3, 3), (2, -2)),
+    ],
+)
+def test_slices_no_overlap(inputs):
     """If there is no overlap between arrays, an error should be raised."""
     with pytest.raises(NoOverlapError):
-        overlap_slices((5, 5), (2, 2), pos)
+        overlap_slices(*inputs)
 
 
 def test_slices_partial_overlap():
