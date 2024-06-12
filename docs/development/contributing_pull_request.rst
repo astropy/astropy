@@ -99,7 +99,8 @@ commit message:
 
 .. code-block:: shell
 
-    git commit -a -m "your commit message goes here"
+    git add files-that-you-changed ...
+    git commit -m "your commit message goes here"
 
 .. _contributing.push-code:
 

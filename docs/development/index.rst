@@ -49,9 +49,15 @@ and further resources are available in the :ref:`contributing.version_control` s
    contributing_environment
    contributing_pull_request
 
-Now that you have read through the instructions and created your development
-environment, it is worthwhile reading  :ref:`astropy-fix-example` to see the process in
-action with a simple bug fix.
+Now that you have created your development environment and gotten familiar with the
+process, you should now read through the detailed tutorial below to see a real-life
+example with a simple bug fix. This includes more explanation of the steps and good
+advice for making a code change.
+
+.. toctree::
+   :maxdepth: 2
+
+   workflow/git_edit_workflow_examples
 
 Details
 -------
@@ -63,7 +69,6 @@ Details
    contributing_codebase
    contributing_docstring
    workflow/development_workflow
-   workflow/git_edit_workflow_examples
    workflow/virtual_pythons
    workflow/get_devel_version
    codeguide
