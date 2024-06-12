@@ -9,13 +9,18 @@ affiliated packages. This includes setting up a development environment, install
 testing the development version, as well as coding, documentation, and testing
 guidelines.
 
+For newcomers the process may initially seem overwhelming, but with a little patience
+and practice you will see that it is not so complex. The key is to follow the steps
+outlined here and `ask for help <https://www.astropy.org/help.html>`_ if you get stuck.
+The astropy community is welcoming and friendly and will help you!
+
 This is divided into two sections, first a quickstart guide that provides an
 introduction to the development workflow, followed by a more detailed guide that covers
 all aspects of contributing to Astropy and provides a reference for both developers and
 maintainers.
 
-.. Important:: There are many useful ways to contribute to Astropy, many of which do not
-    require the developer workflow which is described here. For an
+.. Important:: There are useful ways to contribute to Astropy without diving
+    into the developer workflow which is described here. For an
     an overview see the `Contribute to Astropy <https://www.astropy.org/contribute.html>`_
     page.
 
@@ -43,6 +48,10 @@ and further resources are available in the :ref:`contributing.version_control` s
 
    contributing_environment
    contributing_pull_request
+
+Now that you have read through the instructions and created your development
+environment, it is worthwhile reading  :ref:`astropy-fix-example` to see the process in
+action with a simple bug fix.
 
 Details
 -------

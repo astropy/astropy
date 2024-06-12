@@ -1,12 +1,13 @@
 .. _contributing.pull_request:
 
-*************************
-Submitting a pull request
-*************************
+**************************************
+Creating and submitting a contribution
+**************************************
 
-Submitting a GitHub pull request (PR) is the fundamental way to contribute bug fixes,
-new features, and documentation updates. This section will guide you through the
-process.
+You can contribute bug fixes, new features, and documentation updates by submitting a
+GitHub pull request (PR). This section will guide you through the process. We encourage
+you to `ask for help <https://www.astropy.org/help.html>`_ if you get stuck. The astropy
+community is welcoming and friendly and will help you!
 
 .. _contributing.version_control:
 
@@ -140,8 +141,7 @@ code from your local repository becomes available to the GitHub community to rev
 merged into project to appear the in the next release.
 
 To submit a pull request follow the steps outlined in the GitHub documentation `Creating
-a pull request <
-https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`.
+a pull request <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`_.
 
 This request then goes to the repository maintainers, and they will review the code.
 

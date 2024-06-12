@@ -1,8 +1,8 @@
 .. _contributing_documentation:
 
-=================================
-Contributing to the documentation
-=================================
+=====================================
+PD: Contributing to the documentation
+=====================================
 
 Contributing to the documentation benefits everyone who uses astropy.
 We encourage you to help us improve the documentation, and

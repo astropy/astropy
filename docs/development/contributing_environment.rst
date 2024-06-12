@@ -103,7 +103,7 @@ Now create and activate an ``astropy-dev`` conda environment using the following
 Note the ``graphviz`` package is required for building the documentation.
 
 Install the development version of astropy
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------
 
 Now you can install the development version of astropy into your new environment. This
 will install the latest version of astropy from your local git repo, along with
