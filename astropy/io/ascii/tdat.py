@@ -36,8 +36,10 @@ class TdatMeta:
     # keywords in the header: name = value
     _keys = r"(?P<key>\w+)\s*=\s*([\'])?(?P<value>.*?)(?(2)\2|\s*$)"
     # keywords in the header: name[text] = some_other_text; name: relate|line
-    _extra_keys = r"\s*(relate|line)\[(\w+)\]\s*=\s*([\w\s]+)(?:\((\w+)\))?"
-
+    _extra_keys = (
+        r"\s*(relate|line|parameter_defaults)\[(\w+)\]\s*=\s*([\w\s]+)(?:\((\w+)\))?"
+    )
+    _deprecated_keys = r"\s*(record_delimiter|field_delimiter)\s*=\s\"(.+)\""
     # descriptors that shouldn't be registered as comments
     _desc_comments = [
         "Table Parameters",
@@ -52,7 +54,7 @@ class TdatMeta:
     _line_fields = None
     _delimiter = "|"
 
-    _deprecated_keywords = ("record_delimiter", "field_delimiter")
+    # _deprecated_keywords = ("record_delimiter", "field_delimiter")
     _required_keywords = ("table_name",)
 
     def _process_lines(self, lines, ltype):
@@ -119,19 +121,30 @@ class TdatMeta:
 
         keys_parser = re.compile(self._keys)
         extra_keys_parser = re.compile(self._extra_keys)
+        deprecated_keys_parser = re.compile(self._deprecated_keys)
 
         for line in self._process_lines(lines, "header"):
             kmatch = keys_parser.match(line)
             ematch = extra_keys_parser.match(line)
-            if kmatch:
+            dmatch = deprecated_keys_parser.match(line)
+            if dmatch:
+                warn(
+                    f'"{dmatch.group(1)}" keyword is deprecated. {_STD_MSG}',
+                    TdatFormatWarning,
+                )
+                if dmatch.group(1) == "record_delimiter":
+                    self._record_delimiter = dmatch.group(2)
+                elif dmatch.group(1) == "field_delimiter":
+                    self._delimiter = dmatch.group(2)
+            elif kmatch:
                 key = kmatch.group("key")
-                if key in self._deprecated_keywords:
-                    warn(
-                        f'"{key}" keyword is obsolete and will be ignored. {_STD_MSG}',
-                        TdatFormatWarning,
-                    )
-                else:
-                    keywords[kmatch.group("key")] = kmatch.group("value")
+                # if key in self._deprecated_keywords:
+                #     warn(
+                #         f'"{key}" keyword is obsolete and will be ignored. {_STD_MSG}',
+                #         TdatFormatWarning,
+                #     )
+                # else:
+                keywords[kmatch.group("key")] = kmatch.group("value")
             elif ematch:
                 # match extra keywords
                 if ematch.group(1) == "relate":
@@ -143,6 +156,7 @@ class TdatMeta:
                 if ematch.group(1) == "line":
                     # fields in line; typically only 1, but can be more
                     line_fields[ematch.group(2)] = ematch.group(3).split()
+
             else:
                 if "field" in line:
                     col_lines.append(line)
@@ -262,14 +276,18 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                 raise TdatFormatError(
                     '"table_name" keyword is required but not found in the header.\n'
                 )
-            lines.append(f'table_name = {keywords["table_name"]}')
+            # Table names are limited to 20 characters
+            lines.append(f'table_name = {keywords["table_name"][:20]}')
 
             # loop through option table keywords
             for key in ["table_description", "table_document_url", "table_security"]:
-                if key in keywords:
+                if key == "table_description":
+                    lines.append(f"{key} = {keywords.pop(key)[:80]}")
+                elif key in keywords:
                     lines.append(f"{key} = {keywords.pop(key)}")
         else:
             lines.append("table_name = astropy_table")
+            lines.append("table_description = A table created via astropy")
 
         # add table columns as fields
         lines.append("#")
@@ -298,6 +316,7 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                 lines.append(
                     f"{'parameter_defaults'} = {keywords.pop('parameter_defaults')}"
                 )
+        if keywords is not None and len(keywords) != 0:
             lines.append("#")
             lines.append("# Virtual Parameters")
             lines.append("#")
@@ -315,7 +334,35 @@ class TdatDataSplitter(core.BaseSplitter):
 
     delimiter = "|"
 
-    def __call__(self, lines, field_delimiter="|", nlines=1):
+    def preprocess_data_lines(self, lines, record_delimiter):
+        """Handle the case of a record delimiter.
+
+        The record_delimiter (deprecated) can be specified in the header. By
+        default there is no record delimiter and new records should be set on
+        new lines.
+        The following list standard escaped character sequences and their
+        equivalent meanings can be used: \t (tab), \b (backspace), \r (carriage
+        return), \f (form feed), \v (vertical tab), \a (audible alert/bell),
+        and \### (where ### is a number between 1 and 127 and represents the
+        ASCII character with that numerical code). Note: Specifying a record
+        delimiter value of "" is interpreted as a single blank line between
+        records.
+
+        Parameters
+        ----------
+        lines : list
+        record_delimiter : str
+
+        Returns
+        -------
+        data_lines : list
+        """
+        data_lines = []
+        for line in lines:
+            data_lines += re.split(rf"[{record_delimiter}]", line)
+        return data_lines
+
+    def __call__(self, lines, field_delimiter="|", record_delimiter=None, nlines=1):
         """Handle the case of multiple delimiter.
 
         The delimiter is specified in the header, and can have multiple values
@@ -324,8 +371,11 @@ class TdatDataSplitter(core.BaseSplitter):
         nlines gives the number of lines to read at once to give one data row.
 
         """
+        if record_delimiter is not None:
+            lines = self.preprocess_data_lines(lines, record_delimiter)
         if self.process_line:
             lines = (self.process_line(x) for x in lines)
+
         iline = 0
         _lines = []
         for line in lines:
@@ -363,11 +413,14 @@ class TdatData(core.BaseData, TdatMeta):
         for each data line.
         """
         field_delimiter = self._delimiter
+        record_delimiter = None
         nlines = len(self.header._line_fields)
         # if we have  self._delimiter from the header, user it.
         if hasattr(self.header, "_delimiter"):
             field_delimiter = self.header._delimiter
-        return self.splitter(self.data_lines, field_delimiter, nlines)
+        if hasattr(self.header, "_record_delimiter"):
+            record_delimiter = self.header._record_delimiter
+        return self.splitter(self.data_lines, field_delimiter, record_delimiter, nlines)
 
     def write(self, lines):
         """Write ``self.cols`` in place to ``lines``.
