@@ -1,6 +1,6 @@
 :orphan:
 
-.. include:: ../links.inc
+.. include:: links.inc
 .. _astropy-fix-example:
 
 **********************************************

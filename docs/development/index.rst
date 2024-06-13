@@ -63,9 +63,8 @@ Details
 .. toctree::
    :maxdepth: 2
 
-   workflow/development_workflow
-   workflow/virtual_pythons
-   workflow/get_devel_version
+   development_details
+   virtual_pythons
    codeguide
    docguide
    style-guide
