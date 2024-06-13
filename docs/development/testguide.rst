@@ -21,6 +21,15 @@ The testing framework used by astropy (and packages using the
 Testing Dependencies
 ********************
 
+In most situations you should install the full suite of testing and development
+dependencies as follows:
+
+.. code-block:: shell
+
+    python -m pip install --editable ".[dev_all]"
+
+Details
+=======
 The dependencies used by the Astropy test runner are provided by a separate
 package called |pytest-astropy|. This package provides the ``pytest``
 dependency itself, in addition to several ``pytest`` plugins that are used by
@@ -29,25 +38,12 @@ Astropy, and will also be of general use to other packages.
 Since the testing dependencies are not actually required to install or use
 Astropy, in the ``pyproject.toml`` file they are not included under the
 ``[project]`` section in ``dependencies``. Instead, they are listed under the
-``[project.optional-dependences]`` section called ``test``.  Developers who want
-to run the test suite will need to either install pytest-astropy directly::
+``[project.optional-dependences]`` in named sections such as ``test`` or ``dev_all``.
 
-    python -m pip install pytest-astropy
-
-or install the core package in 'editable' mode specifying the ``[test]``
-option::
-
-    python -m pip install --editable ".[test]"
-
-To test the full set of optional dependencies, use the ``test_all`` option::
-
-    python -m pip install --editable ".[test_all]"
-
-If you are looking to do development in Astropy beyond running the tests, e.g. building
-the documentation or doing static analysis, we provide the complete set of all
-dependencies with the ``dev_all`` option::
-
-    python -m pip install --editable ".[dev_all]"
+In particular the ``test`` dependencies are the minimal set of dependencies for running
+astropy tests and you would use this primarily to check that tests pass *without* the
+optional dependencies. This is not common but would normally be done with ``tox -e
+test``.
 
 A detailed description of the |pytest-astropy| plugins can be found in the
 :ref:`pytest-plugins` section.

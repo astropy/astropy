@@ -24,7 +24,7 @@ maintainers.
     an overview see the `Contribute to Astropy <https://www.astropy.org/contribute.html>`_
     page.
 
-Substantial parts of this content have been adapted from the excellent
+Parts of this content have been adapted from the excellent
 `pandas developer documentation <https://pandas.pydata.org/pandas-docs/stable/development/index.html>`_.
 Astropy is grateful to the pandas team for their documentation efforts.
 
@@ -37,11 +37,10 @@ This section provides a quickstart guide to contributing to Astropy. With minor
 changes the process will apply to contributing to coordinated and many affiliated
 packages.
 
-Astropy is hosted on `GitHub <https://www.github.com/astropy/astropy>`_, and to
-contribute, you will need to sign up for a `free GitHub account
-<https://github.com/signup/free>`_. We use `Git <https://git-scm.com/>`_ for
-version control to allow many people to work together on the project. More details
-and further resources are available in the :ref:`contributing.version_control` section.
+If you are not sure where to contribute, take a look at the `Good First Issues
+<https://github.com/astropy/astropy/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`_
+list. These issues are the most accessible ones if you are not familiar with the Astropy
+source code.
 
 .. toctree::
    :maxdepth: 2

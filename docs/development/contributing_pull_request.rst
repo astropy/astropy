@@ -41,12 +41,6 @@ Below are some useful resources for learning more about forking and pull request
 * the `GitHub documentation for collaborating with pull requests <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests>`_.
 * the `GitHub documentation for working with forks <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks>`_.
 
-Getting started with Git
-------------------------
-
-`GitHub has instructions <https://docs.github.com/en/get-started/quickstart/set-up-git>`__ for installing git,
-setting up your SSH key, and configuring git.  All these steps need to be completed before
-you can work seamlessly between your local repository and GitHub.
 
 Creating a feature branch
 -------------------------
