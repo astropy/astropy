@@ -6,32 +6,28 @@
 Testing Guidelines
 ******************
 
-This section describes the testing framework and format standards for tests in
-Astropy core and coordinated packages, and also serves as recommendations for
-affiliated packages.
-
-Testing Framework
-*****************
-
-The testing framework used by astropy (and packages using the
-|OpenAstronomy Packaging Guide|) is the |pytest| framework.
+This section describes the  |pytest| testing framework and format standards for tests in
+Astropy core, coordinated packages, and packages using the |OpenAstronomy Packaging
+Guide|. It also serves as recommendations for affiliated packages.
 
 .. _testing-dependencies:
 
 Testing Dependencies
 ********************
 
-In most situations you should install the full suite of testing and development
-dependencies as follows:
-
-.. code-block:: shell
+Most commonly, you should install the full suite of testing and development
+dependencies::
 
     python -m pip install --editable ".[dev_all]"
+
+This will provide all dependencies for running the full test suite using ``tox``,
+``pytest`` and ``astropy.test()``. It will also allow running tests via any IDE which
+supports ``pytest`` integration.
 
 Details
 =======
 The dependencies used by the Astropy test runner are provided by a separate
-package called |pytest-astropy|. This package provides the ``pytest``
+package called |pytest-astropy| (see :ref:`pytest-plugins`). This package provides the ``pytest``
 dependency itself, in addition to several ``pytest`` plugins that are used by
 Astropy, and will also be of general use to other packages.
 
@@ -42,21 +38,17 @@ Astropy, in the ``pyproject.toml`` file they are not included under the
 
 In particular the ``test`` dependencies are the minimal set of dependencies for running
 astropy tests and you would use this primarily to check that tests pass *without* the
-optional dependencies. This is not common but would normally be done with ``tox -e
+optional dependencies. This is not common and would normally be done with ``tox -e
 test``.
-
-A detailed description of the |pytest-astropy| plugins can be found in the
-:ref:`pytest-plugins` section.
 
 .. _running-tests:
 
 Running Tests
 *************
 
-There are currently three different ways to invoke Astropy tests. Each
-method invokes |pytest| to run the tests but offers different options when
-calling. To run the tests, you will need to make sure you have the |pytest|
-package installed.
+There are three different ways to run Astropy tests: ``tox``,
+``pytest`` and ``astropy.test()``. Each of these invokes |pytest| to run
+the tests but each one addresses a different use-case.
 
 tox
 ===
@@ -71,19 +63,18 @@ issues related to undeclared package data, or missing dependencies. Since we use
 tox to run many of the tests on continuous integration services, it can also be
 used in many cases to reproduce issues seen on those services.
 
-then run the basic test suite with::
-
-    tox -e test
-
-or run the test suite with all optional dependencies with::
+You can run the test suite with all optional dependencies with::
 
     tox -e test-alldeps
 
-You can see a list of available test environments with::
+In order to check that the code works and tests pass *without* optional dependencies
+you can use::
+
+    tox -e test
+
+You can see a description of all available test environments with::
 
     tox -l -v
-
-which will also explain what each of them does.
 
 You can also run checks or commands not directly related to tests - for instance::
 
@@ -95,7 +86,7 @@ will run checks using the ``ruff`` tool.
     It is suggested that you automate the code-style checks using the provided
     pre-commit hook, as described in the :ref:`pre-commit` section.
 
-It is possible to pass options to pytest when running tox - to do this, add a
+It is possible to pass options to ``pytest`` when running tox - to do this, add a
 ``--`` after the regular tox command, and anything after this will be passed to
 pytest, e.g.::
 
@@ -123,40 +114,20 @@ pytest
 ======
 
 The test suite can also be run directly from the native ``pytest`` command,
-which is generally faster than using tox for iterative development. In
-this case, it is important for developers to be aware that they must manually
-rebuild any extensions by running::
+which is much faster than using ``tox`` for iterative development. In
+this case, it is important to rebuild any extensions that have changed by running::
 
-    python -m pip install --editable ".[test]"
-
-before running the test with pytest with::
-
-    pytest
-
-Instead of calling ``python -m pip install --editable ".[test]"``, you can also build the
-extensions with::
-
-    python setup.py build_ext --inplace
-
-which avoids also installing the developer version of astropy into your current
-environment - however note that the ``pip`` command is required if you need to
-test parts of the package that rely on certain `entry points
-<https://setuptools.readthedocs.io/en/latest/pkg_resources.html#entry-points>`_
-being installed.
+    python -m pip install --editable ".[dev_all]"
 
 It is possible to run only the tests for a particular subpackage or set of
-subpackages.  For example, to run only the ``wcs`` tests from the
+subpackages.  For example, to run only the ``wcs`` and ``utils`` tests from the
 commandline::
-
-    pytest -P wcs
-
-Or, to run only the ``wcs`` and ``utils`` tests::
 
     pytest -P wcs,utils
 
 You can also specify a single directory, a file (``.py`` python or ``.rst``
-doc file), or a specific test to check, or rerun only tests that failed in
-the previous run::
+doc file), or a specific test to check, rerun only tests that failed in
+the previous run, or require remote data::
 
     pytest astropy/modeling
     pytest astropy/wcs/tests/test_wcs.py
@@ -164,6 +135,7 @@ the previous run::
     pytest astropy/units/tests/test_quantity.py::TestQuantityCreation::test_float_dtype_promotion
     pytest astropy/wcs/index.rst
     pytest --last-failed
+    pytest --remote-data=any
 
 For more details, see the `pytest invocation guide
 <https://docs.pytest.org/en/stable/how-to/usage.html>`_ and the
@@ -176,7 +148,9 @@ description of `caching
 astropy.test()
 ==============
 
-Tests can be run from an installed version of Astropy with::
+Tests can be run from an installed version of Astropy as shown below. This is not common
+for most development workflows (use ``tox`` or ``pytest`` instead) but it can be useful
+for users to check that their installation is working correctly::
 
     import astropy
     astropy.test()
