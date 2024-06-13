@@ -71,18 +71,10 @@ Details
    docguide
    style-guide
    testguide
+   workflow/git_resources
    scripts
    building
    ccython
-
-Git resources
--------------
-.. toctree::
-   :maxdepth: 2
-
-   workflow/git_resources
-   workflow/additional_git_topics
-
 
 Maintaining astropy and affiliated packages
 -------------------------------------------

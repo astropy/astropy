@@ -471,7 +471,7 @@ it then you can open a pull request for that. Please run `git shortlog -es
 <https://git-scm.com/docs/git-shortlog>`_ locally first with your changes to make sure
 your edit is correct, and you only appear in the list once.
 
-.. include:: ../links.inc
+.. include:: links.inc
 
 .. _Git Basics: https://git-scm.com/book/en/Getting-Started-Git-Basics
 .. _git book: https://git-scm.com/book/
