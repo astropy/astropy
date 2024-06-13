@@ -71,10 +71,6 @@ issues related to undeclared package data, or missing dependencies. Since we use
 tox to run many of the tests on continuous integration services, it can also be
 used in many cases to reproduce issues seen on those services.
 
-To run the tests with tox, first make sure that tox is installed, e.g.::
-
-    python -m pip install tox
-
 then run the basic test suite with::
 
     tox -e test
