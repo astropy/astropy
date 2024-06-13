@@ -124,7 +124,6 @@ In addition, the sphinx-astropy_ includes a few small extensions:
 * ``sphinx_astropy.ext.doctest`` - an extension that makes it possible to
   add metadata about doctests inside ``.rst`` files
 
-.. _Sphinx: http://www.sphinx-doc.org/
 .. _sphinx-automodapi: https://github.com/astropy/sphinx-automodapi
 .. _astropy-sphinx-theme: https://github.com/astropy/astropy-sphinx-theme
 .. _sphinx-astropy: https://github.com/astropy/sphinx-astropy

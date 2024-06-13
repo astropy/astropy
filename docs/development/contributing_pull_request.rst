@@ -11,29 +11,23 @@ community is welcoming and friendly and will help you!
 
 .. _contributing.version_control:
 
-Version control, Git, and GitHub
---------------------------------
+GitHub and Git
+--------------
 
 Astropy is hosted on `GitHub <https://www.github.com/astropy/astropy>`_, and to
 contribute, you will need to sign up for a `free GitHub account
-<https://github.com/signup/free>`_. We use `Git <https://git-scm.com/>`_ for
-version control to allow many people to work together on the project.
+<https://github.com/signup/free>`_.
 
-If you are new to Git, you can reference some of these resources for learning Git. Feel free to reach out
-to the :ref:`contributor community <community>` for help if needed:
+We use `Git <https://git-scm.com/>`_ for version control and to allow many people to
+work together on the project. If you are new to Git then take a moment to look at the
+:ref:`git_resources` page.
 
-* `Git documentation <https://git-scm.com/doc>`_.
-* `Numpy's Git resources <https://numpy.org/doc/stable/dev/gitwash/git_resources.html>`_ tutorial.
-
-Also, the project follows a forking workflow further described on this page whereby
-contributors fork the repository, make changes and then create a pull request.
-So please be sure to read and follow all the instructions in this guide.
-
-If you are new to contributing to projects through forking on GitHub,
-take a look at the `GitHub documentation for contributing to projects <https://docs.github.com/en/get-started/quickstart/contributing-to-projects>`_.
-GitHub provides a quick tutorial using a test repository that may help you become more familiar
-with forking a repository, cloning a fork, creating a feature branch, pushing changes and
-making pull requests.
+If you are new to contributing to projects through forking on GitHub, take a look at the
+`GitHub documentation for contributing to projects
+<https://docs.github.com/en/get-started/quickstart/contributing-to-projects>`_. GitHub
+provides a quick tutorial using a test repository that may help you become more familiar
+with forking a repository, cloning a fork, creating a feature branch, pushing changes
+and making pull requests.
 
 Below are some useful resources for learning more about forking and pull requests on GitHub:
 
@@ -41,28 +35,31 @@ Below are some useful resources for learning more about forking and pull request
 * the `GitHub documentation for collaborating with pull requests <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests>`_.
 * the `GitHub documentation for working with forks <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks>`_.
 
-
 Creating a feature branch
 -------------------------
 
 Your local ``main`` branch should always reflect the current state of astropy repository.
-First ensure it's up-to-date with the main astropy repository.
-
-.. code-block:: shell
+First ensure it's up-to-date with the main astropy repository::
 
     git checkout main
     git pull upstream main --ff-only
 
-Then, create a feature branch for making your changes. For example
-
-.. code-block:: shell
+Now create a feature branch for making your changes. For example::
 
     git switch -c shiny-new-feature
 
-This changes your working branch from ``main`` to the ``shiny-new-feature`` branch.  Keep any
-changes in this branch specific to one bug or feature so it is clear
-what the branch brings to astropy. You can have many feature branches
-and switch in between them using the ``git switch`` command.
+This changes your working branch from ``main`` to the ``shiny-new-feature`` branch.
+Keep any changes in this branch specific to one bug or feature so it is clear what the
+branch brings to astropy. You can have many feature branches and switch in between them
+using the ``git switch`` command.
+
+Using a descriptive branch name can help you stay organized. For example
+`io-ascii-commented-header-15513` might be a good name for a branch that fixes the
+commented header issue `#15513 <https://github.com/astropy/astropy/issues/15513>`_ in
+the ``io.ascii`` sub-package.
+
+.. Important:: Never use the ``main`` branch for making changes. Always create a new
+   feature branch for your changes.
 
 When you want to update the feature branch with changes in main after
 you created the branch, check the section on
@@ -95,6 +92,12 @@ commit message:
 
     git add files-that-you-changed ...
     git commit -m "your commit message goes here"
+
+You should make frequent commits and always include a commit message. Each commit
+should represent one logical set of changes.
+
+.. Important:: Never merge changes from ``upstream/main`` into your feature branch. If
+   changes in ``main`` require changes to our code you must :ref:`rebase`.
 
 .. _contributing.push-code:
 
