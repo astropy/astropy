@@ -64,8 +64,6 @@ Details
 .. toctree::
    :maxdepth: 2
 
-   contributing_documentation
-   contributing_docstring
    workflow/development_workflow
    workflow/virtual_pythons
    workflow/get_devel_version
