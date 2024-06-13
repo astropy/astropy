@@ -106,7 +106,8 @@ pytest
 
 The test suite can also be run directly from the native ``pytest`` command,
 which is much faster than using ``tox`` for iterative development. In
-this case, it is important to rebuild any extensions that have changed by running::
+this case, it is important to rebuild any extensions that have changed by running
+the following. This assumes you are working in an :ref:`isolated development environment<create-isolated-env>`.
 
     python -m pip install --editable ".[dev_all]"
 

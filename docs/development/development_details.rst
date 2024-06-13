@@ -186,11 +186,14 @@ names and the like is encouraged.
 
 .. _pull-request:
 
-Ask for your changes to be reviewed
-***********************************
+Make a pull request
+*******************
 
 A *pull request* on GitHub is a request to merge the changes you have made into
 another repository.
+
+You can follow the steps outlined in the GitHub documentation `Creating
+a pull request <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`_, or follow the steps below.
 
 When you are ready to ask for someone to review your code and consider merging
 it into Astropy:
@@ -372,6 +375,67 @@ Once the modifications and new git history are successfully pushed to GitHub you
 can delete any backup branches that may have been created::
 
     git branch -D tmp
+
+
+Troubleshooting
+***************
+
+If you get an error directing use of option ``-std=c99`` or ``-std=gnu99``, you can try
+installing with::
+
+    CFLAGS='-std=c99' python -m pip install --editable .
+
+This is necessary for use with CentOS7.
+
+.. _external_c_libraries:
+
+External C Libraries
+********************
+
+The ``astropy`` source ships with the C source code of a number of
+libraries. By default, these internal copies are used to build
+``astropy``. However, if you wish to use the system-wide installation of
+one of those libraries, you can set environment variables with the
+pattern ``ASTROPY_USE_SYSTEM_???`` to ``1`` when building/installing
+the package.
+
+For example, to build ``astropy`` using the system's expat parser
+library, use::
+
+    ASTROPY_USE_SYSTEM_EXPAT=1 python -m pip install --editable .
+
+To build using all of the system libraries, use::
+
+    ASTROPY_USE_SYSTEM_ALL=1 python -m pip install --editable .
+
+The C libraries currently bundled with ``astropy`` include:
+
+- `wcslib <https://www.atnf.csiro.au/people/mcalabre/WCS/>`_ see
+  ``cextern/wcslib/README`` for the bundled version. To use the
+  system version, set ``ASTROPY_USE_SYSTEM_WCSLIB=1``.
+
+- `expat <https://libexpat.github.io/>`_ see ``cextern/expat/README`` for the
+  bundled version. To use the system version, set ``ASTROPY_USE_SYSTEM_EXPAT=1``.
+
+.. _install_astropy_nightly:
+
+Installing pre-built Development Versions of ``astropy``
+========================================================
+
+Most nights a development snapshot of ``astropy`` will be compiled.
+This is useful if you want to test against a development version of astropy but
+do not want to have to build it yourselves. You can see the
+`available astropy dev snapshots page <https://anaconda.org/astropy/astropy/files?type=pypi>`_
+to find out what is currently being offered.
+
+Installing these "nightlies" of ``astropy`` can be achieved by using ``pip``::
+
+  python -m pip install --upgrade --index-url https://pypi.anaconda.org/astropy/simple astropy --pre
+
+The extra index URL tells ``pip`` to check the ``pip`` index on
+pypi.anaconda.org, where the nightlies are stored, and the ``--pre`` command
+tells ``pip`` to install pre-release versions (in this case ``.dev`` releases).
+
 
 .. include:: links.inc
 

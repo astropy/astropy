@@ -29,12 +29,11 @@ Astropy is grateful to the pandas team for their documentation efforts.
 
 {% if is_development %}
 
-Contributing quickstart
+Development quickstart
 -----------------------
 
-This section provides a quickstart guide to contributing to Astropy. With minor
-changes the process will apply to contributing to coordinated and many affiliated
-packages.
+This section provides a development quickstart guide for Astropy. With minor changes the
+process will apply to contributing updates to coordinated and many affiliated packages.
 
 If you are not sure where to contribute, take a look at the `Good First Issues
 <https://github.com/astropy/astropy/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`_
@@ -48,7 +47,7 @@ source code.
 
 Now that you have created your development environment and gotten familiar with the
 process, you should now read through the detailed tutorial below to see a real-life
-example with a simple bug fix. This includes more explanation of the steps and good
+example of a simple bug fix. This includes more explanation of the steps and good
 advice for making a code change.
 
 .. toctree::
@@ -67,6 +66,7 @@ Details
    docguide
    style-guide
    testguide
+   doc_build
    git_resources
    scripts
    ccython

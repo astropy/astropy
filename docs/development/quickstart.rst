@@ -16,13 +16,9 @@ to `ask for help <https://www.astropy.org/help.html>`_.
 Set up GitHub and Git
 ---------------------
 
-Astropy is hosted in a `astropy GitHub repository
-<https://www.github.com/astropy/astropy>`_, and to contribute, you will need to sign up
-for a `free GitHub account <https://github.com/signup/free>`_.
-
-To contribute to the astropy repository, you will need to ensure that `Git
-<https://git-scm.com/>`_ is installed and configured on your machine. `GitHub has
-instructions <https://docs.github.com/en/get-started/quickstart/set-up-git>`__ for
+To contribute to the astropy repository or build from source, you will need to ensure
+that `Git <https://git-scm.com/>`_ is installed and configured on your machine. `GitHub
+has instructions <https://docs.github.com/en/get-started/quickstart/set-up-git>`__ for
 installing and configuring git.
 
 More details and further resources are available in the
@@ -60,13 +56,21 @@ https://devguide.python.org/setup/#macos.
 
 For Linux-based installations, you won't have to install any additional components.
 
-. _contributing.forking:
+.. _contributing.forking:
 
-Create a fork and clone of astropy
-----------------------------------
+Create a clone of astropy
+-------------------------
 
 If you have not done so already, you will need your own copy of ``astropy`` to
-work on the code.
+build it and/or contribute to the source. Astropy is hosted in the `astropy GitHub repository <https://www.github.com/astropy/astropy>`_ and you need to pull down a clone.
+
+If you *only want to build astropy* but not contribute, you can run the following and then skip to the `next section <create-isolated-env>`_::
+
+    git clone https://github.com/astropy/astropy.git
+    cd astropy
+
+If you plan to contribute a pull request, you will need a `free GitHub account
+<https://github.com/signup/free>`_.
 
 First, create a `GitHub Fork
 <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo>`_ by going to the `astropy project page <https://github.com/astropy/astropy>`_
@@ -83,6 +87,8 @@ Next, clone your GitHub fork to your machine:
 
 This creates the directory ``astropy`` and connects your repository to the upstream
 (main project) `astropy <https://github.com/astropy/astropy>`_ repository.
+
+.. _create-isolated-env:
 
 Create an isolated development environment
 ------------------------------------------
@@ -156,11 +162,11 @@ section.
 Install pre-commit
 ------------------
 
-This is optional, but *highly recommended*. Pre-commit is a tool that runs a number of
-:ref:`Continuous Integration (CI) <contributing.ci>` checks (e.g. code formatting) on
-your code before you commit it. If you skip this step then it is likely that one or more
-of those CI checks will fail when you make a pull request, resulting in lost time (yours
-and CI resources).
+This is optional, but *highly recommended* if you will contribute code. Pre-commit is a
+tool that runs a number of :ref:`Continuous Integration (CI) <contributing.ci>` checks
+(e.g. code formatting) on your code before you commit it. If you skip this step then it
+is likely that one or more of those CI checks will fail when you make a pull request,
+resulting in lost time (yours and CI resources).
 
 Installation is straightforward. From the root of the astropy repository, run::
 
@@ -169,7 +175,7 @@ Installation is straightforward. From the root of the astropy repository, run::
 Now all of the styling checks will be
 run each time you commit changes without your needing to run each one manually.
 
-.. tip:: To learn more about pre-commit, see the :ref`pre-commit` section.
+.. tip:: To learn more about pre-commit, see the :ref:`pre-commit` section.
 
 .. _contributing.pull_request:
 
@@ -212,15 +218,15 @@ First ensure it's up-to-date with the main astropy repository::
 
 Now create a feature branch for making your changes. For example::
 
-    git switch -c shiny-new-feature
+    git switch -c subpackage-new-feature
 
-This changes your working branch from ``main`` to the ``shiny-new-feature`` branch.
+This changes your working branch from ``main`` to the ``subpackage-new-feature`` branch.
 Keep any changes in this branch specific to one bug or feature so it is clear what the
 branch brings to astropy. You can have many feature branches and switch in between them
 using the ``git switch`` command.
 
 Using a descriptive branch name can help you stay organized. For example
-`io-ascii-commented-header-15513` might be a good name for a branch that fixes the
+```io-ascii-commented-header-15513``` might be a good name for a branch that fixes the
 commented header issue `#15513 <https://github.com/astropy/astropy/issues/15513>`_ in
 the ``io.ascii`` sub-package.
 
@@ -236,14 +242,19 @@ you created the branch, check the section on
 Making code or documentation changes
 ------------------------------------
 
-Before modifying any part of the astropy package, ensure you follow the
-:ref:`contributing environment <contributing_environment>` guidelines to set up an
-appropriate development environment. Next you will find it helpful to scan through the
-:ref:`astropy contribution guidelines <contributing_codebase>`.
+Now comes the fun part where you use your favorite editor or IDE to make changes to the
+code or documentation! At a high level this breaks into a few parts:
 
-Once you have made code or documentation changes you will want to test the code
-FIXME:LINK and/or build the documentation FIXME:LINK to ensure that your changes work as
-expected.
+- **Make changes**: Make the changes you want to make. This could be fixing a bug,
+  adding a new feature, or updating the documentation.
+- **Test changes**: For code changes, ensure that they work as expected following the
+  process outlined in the :ref:`testing-guidelines` section.
+- **Build documentation**: If you are updating the documentation, you will want to
+  `build the documentation <builddocs>` to ensure that it looks good.
+- **Add a changelog entry**: For most code changes you will need to
+  :ref:`add-changelog`.
+
+.. tip:: For more information and examples see :ref:`edit-flow` section.
 
 You can see all the changes you've currently made by running:
 
@@ -271,13 +282,14 @@ Pushing your changes
 --------------------
 
 When you want your changes to appear publicly on your GitHub page, push your
-forked feature branch's commits
+forked feature branch's commits::
 
-.. code-block:: shell
-
-    git push origin shiny-new-feature
+    git push origin subpackage-new-feature
 
 Here ``origin`` is the default name given to your remote repository on GitHub.
+
+
+
 You can see the remote repositories
 
 .. code-block:: shell
@@ -294,20 +306,37 @@ like
     upstream        https://github.com/astropy/astropy.git (fetch)
     upstream        https://github.com/astropy/astropy.git (push)
 
-Now your code is on GitHub, but it is not yet a part of astropy. For that to
-happen, a pull request needs to be submitted on GitHub.
+Now your code is on GitHub, but it is not visible to the Astropy maintainers. For that
+to happen, a pull request needs to be submitted on GitHub.
+
+The first time you push to a new branch on GitHub, you will see a message like below
+with a useful link to create a pull request:
+
+  remote: Create a pull request for 'subpackage-new-feature' on GitHub by visiting:
+  remote:      https://github.com/yourname/astropy/pull/new/subpackage-new-feature
+
+
+.. _quickstart-pull-request:
 
 Making a pull request
 ---------------------
 
-If everything looks good, you are ready to make a pull request. A pull request is how
+If everything looks good, you are ready to make a pull request (PR). A PR is how
 code from your local repository becomes available to the GitHub community to review and
 merged into project to appear the in the next release.
 
-To submit a pull request follow the steps outlined in the GitHub documentation `Creating
-a pull request <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`_.
+Most of the time you can just follow the link that ``git`` provide when you pushed
+your branch and create the PR. If you don't have that link (and for a few more details), you can follow the :ref:`pull-request` instructions.
 
-This request then goes to the repository maintainers, and they will review the code.
+Follow the instructions in the PR template and fill it out as completely as possible.
+
+If your PR is still a work in progress then instead of clicking "Create pull request",
+click on the small down arrow next to it and select "Create draft pull request".
+In addition, if your commits are not ready for CI testing, you
+should include ``[ci skip]`` the last commit message.
+
+Once submitted, this request goes to the astropy maintainers and they will review the
+PR.
 
 .. _contributing.update-pr:
 
@@ -316,17 +345,17 @@ Updating your pull request
 
 Based on the review you get on your pull request, you will probably need to make
 some changes to the code. You can follow the :ref:`code committing steps <contributing.commit-code>`
-again to address any feedback and update your pull request.
+again to address any feedback and update your pull request::
 
-
-.. code-block:: shell
-
-    git push origin shiny-new-feature
+    git push origin subpackage-new-feature
 
 Any ``git push`` will automatically update your pull request with your branch's changes
 and restart the :ref:`Continuous Integration <contributing.ci>` checks.
 
-FIXME: reference docs on rebasing if necessary.
+.. Important:: At this point please read (or at least skim) the sections :ref:`revise
+    and push`, :ref:`rebase`, and :ref:`squash-if-necessary`. The information here
+    covers situations that happen on occasion and can be cause trouble. As always if
+    you have questions, ask for help from the maintainer reviewing your PR.
 
 Tips for a successful pull request
 ----------------------------------
