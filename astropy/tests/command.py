@@ -95,12 +95,6 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             "Run tests that download remote data. Should be "
             "one of none/astropy/any (defaults to none).",
         ),
-        (
-            "pep8",
-            "8",
-            "Enable PEP8 checking and disable regular tests. "
-            "Requires the pytest-pep8 plugin.",
-        ),
         ("pdb", "d", "Start the interactive Python debugger on errors."),
         ("coverage", "c", "Create a coverage report. Requires the coverage package."),
         (

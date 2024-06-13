@@ -58,13 +58,6 @@ method invokes |pytest| to run the tests but offers different options when
 calling. To run the tests, you will need to make sure you have the |pytest|
 package installed.
 
-In addition to running the Astropy tests, these methods can also be called
-so that they check Python source code for |PEP8|. All of the PEP8 testing
-options require the `pytest-pep8 plugin
-<https://pypi.org/project/pytest-pep8>`_, which must be installed
-separately.
-
-
 tox
 ===
 
