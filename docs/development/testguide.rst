@@ -212,9 +212,6 @@ In addition, the ``test`` function supports any of the options that can be
 passed to :ref:`pytest.main() <pytest:pytest.main-usage>`
 and convenience options ``verbose=`` and ``pastebin=``.
 
-Enable PEP8 compliance testing with ``pep8=True`` in the call to
-``astropy.test``. This will enable PEP8 checking and disable regular tests.
-
 Astropy Test Function
 ---------------------
 
