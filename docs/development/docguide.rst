@@ -4,60 +4,51 @@
 Writing Documentation
 *********************
 
-High-quality, consistent documentation for astronomy code is one of the major
-goals of the Astropy Project.  Hence, we describe our documentation procedures
-and rules here.  For the astropy core project and coordinated packages we try to
-keep to these as closely as possible, and we encourage affiliated packages to
-also adhere to these as they encourage useful documentation, a characteristic
-often lacking in professional astronomy software.
+High-quality, consistent documentation for astronomy code is one of the major goals of
+the Astropy Project. We encourage you to help us improve the documentation, and you
+don't have to be an expert on ``astropy`` to do so!  If something in the docs doesn't
+make sense to you, updating the relevant section after you figure it out is a great way
+to contribute to Astropy and help others in the future.
 
-Adding a Git Commit
-===================
+In this section we describe our documentation procedures and rules that apply to the
+``astropy`` core package and coordinated packages. We encourage affiliated packages to
+do the same.
 
-When your changes only affect documentation (i.e., docstring or RST files)
-and do not include any code snippets that require doctest to run, you may
-add a ``[ci skip]`` in your commit message. For example::
+Astropy Documentation Overview
+==============================
 
-    git commit -m "Update documentation about this and that [ci skip]"
+The documentation is written in **reStructuredText**, which is almost like writing in
+plain English, and built using `Sphinx <https://www.sphinx-doc.org/en/master/>`_. The
+Sphinx Documentation has an excellent `introduction to reST
+<https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html>`_ that you should read.
 
-When this commit is pushed out to your branch associated with a pull request,
-all CI will be skipped because it is not required. This is because the
-the documentation build resides in RTD, which currently does not respect the
-``[ci skip]`` directive.
+The Astropy documentation consists of two parts. The code docstrings provide a clear
+explanation of the usage of individual functions, classes and modules. These are
+collected by Sphinx into the API documentation. The narrative documentation is contained
+in the source code ``docs`` directory and provides a more tutorial-like overview of each
+sub-package together with other topical information like What's New, Installation,
+Developer documentation, etc.
 
-However, due to branch protection rules, the merge button will be disabled
-even though RTD build succeeds when ``[ci skip]`` is used. Please ping
-``@astropy/devops-maintainers`` to review it, as they could override
-the block.
+The |OpenAstronomy Packaging Guide| provides a recommended general structure for
+documentation.
 
-Building the Documentation from source
+Building the Documentation from Source
 ======================================
 
 For information about building the documentation from source, see
 the :ref:`builddocs` section in the installation instructions.
 
-Astropy Documentation Rules and Guidelines
-==========================================
+Astropy Documentation Guidelines
+================================
 
 This section describes the standards for documentation that any contribution
 being considered for integration into the core package should follow, as well as
 the standard Astropy docstring format.
 
-* All documentation text should follow the :ref:`astropy-style-guide`.
+* Documentation text should follow the :ref:`astropy-style-guide`.
 
-* All documentation should be written using the `Sphinx`_
-  documentation tool.
-
-* ReST substitutions are centralized in ``docs/conf.py::rst_epilog`` for
-  consistency across the documentation and docstrings. These should be used over
-  custom redefinitions; and new substitutions should probably be placed there.
-
-* The |OpenAstronomy Packaging Guide| provides
-  a recommended general structure for documentation.
-
-* Docstrings must be provided for all public classes, methods, and functions.
-
-* Docstrings should follow the `numpydoc format
+* Docstrings must be provided for all public classes, methods, and functions, and be
+  written using the `numpydoc format
   <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
 
 * References in docstrings, **including internal Astropy links**, should use the
@@ -66,24 +57,26 @@ the standard Astropy docstring format.
   For example a link to the Astropy section on unit equivalencies would be
   `` :ref:`astropy:unit_equivalencies` ``.
   When built in Astropy, links starting with 'astropy' resolve to the current
-  build. In affiliate packages using ``sphinx-astropy``'s intersphinx mapping,
+  build. In affiliated packages using the ``sphinx-astropy`` intersphinx mapping,
   the links resolve to the stable version of Astropy. For linking to the
   development version, use the intersphinx target 'astropy-dev'.
 
 * Examples and/or tutorials are strongly encouraged for typical use-cases of a
   particular module or class.
 
-* Any external package dependencies must be explicitly mentioned in the
-  documentation. They should also be recorded in the ``pyproject.toml`` file in the
-  root of the astropy repository using an entry in ``[project.optional-dependencies]``,
-  under ``all``.
+* Optional package dependencies should be documented where feasible.
 
 * Configuration options using the :mod:`astropy.config` mechanisms must be
   explicitly mentioned in the documentation.
 
+Details for Package Maintainers
+===============================
+
+Following is useful information for package maintainers who are using the Astropy
+documentation infrastructure and may want to customize it for their package.
 
 Sphinx Documentation Themes
-===========================
+---------------------------
 
 An Astropy Project Sphinx HTML theme is included in the astropy-sphinx-theme_
 package. This allows the theme to be used by both Astropy and affiliated
@@ -105,7 +98,7 @@ configuration variables set in the global configuration.
   details on theming.
 
 Sphinx extensions
-=================
+-----------------
 
 The documentation build process for Astropy uses a number of sphinx extensions
 which are all installed automatically when installing sphinx-astropy_. These
