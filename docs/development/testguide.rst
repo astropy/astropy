@@ -67,28 +67,19 @@ You can run the test suite with all optional dependencies with::
 
     tox -e test-alldeps
 
-In order to check that the code works and tests pass *without* optional dependencies
-you can use::
+Other useful invocations include::
 
-    tox -e test
-
-You can see a description of all available test environments with::
-
-    tox -l -v
-
-You can also run checks or commands not directly related to tests - for instance::
-
-    tox -e codestyle
-
-will run checks using the ``ruff`` tool.
+    tox -e test  # Run the tests with the minimal set of dependencies
+    tox -l -v  # Print a description of all available test environments
+    tox -e codestyle  # Run code style checks using ``ruff``
 
 .. note::
     It is suggested that you automate the code-style checks using the provided
     pre-commit hook, as described in the :ref:`pre-commit` section.
 
-It is possible to pass options to ``pytest`` when running tox - to do this, add a
-``--`` after the regular tox command, and anything after this will be passed to
-pytest, e.g.::
+You can pass options directly to ``pytest`` when running tox by adding a
+``--`` after the regular tox command. For example to enable verbose output and
+debugging use::
 
     tox -e test -- -v --pdb
 
