@@ -1,11 +1,11 @@
-.. _development-workflow:
+.. _development-details:
 
-Some `git`_ resources
-=====================
+===================
+Development Details
+===================
 
-
-
-
+This document contains somewhat-independent sections that provide details on
+topics covered in the :ref:`development_quickstart` guide.
 
 .. _pre-commit:
 
@@ -60,130 +60,6 @@ Again, this will automatically apply the necessary changes to your code if possi
   Once you have made a pull-request the ``pre-commit.ci`` bot is available to assist
   you with fixing any issues with your code style, see :ref:`pre-commit_bot` for details
   on how to use this bot.
-
-Workflow
-********
-
-These, conceptually, are the steps you will follow in contributing to Astropy:
-
-#. :ref:`fetch-latest`
-#. :ref:`make-feature-branch`; you will make your changes on this branch.
-#. :ref:`install-branch`
-#. Follow :ref:`edit-flow` to write/edit/document/test code - make
-   frequent, small commits.
-#. :ref:`add-changelog`
-#. :ref:`push-to-github`
-#. From GitHub, :ref:`pull-request` to let the Astropy maintainers know
-   you have contributions to review.
-#. :ref:`revise and push` in response to comments on the pull
-   request. Pushing those changes to GitHub automatically updates the
-   pull request.
-
-This way of working helps to keep work well organized, with readable history.
-This in turn makes it easier for project maintainers (that might be you) to
-see what you've done, and why you did it.
-
-A worked example that follows these steps for fixing an Astropy issue is at
-:ref:`astropy-fix-example`.
-
-Some additional topics related to `git`_ are in :ref:`additional-git`.
-
-.. _delete-main:
-
-Deleting your main branch
-=========================
-
-It may sound strange, but deleting your own ``main`` branch can help reduce
-confusion about which branch you are on.  See `deleting main on github`_ for
-details.
-
-.. _fetch-latest:
-
-Fetch the latest Astropy
-************************
-
-From time to time you should fetch the development version (i.e., Astropy
-``astropy/main``) changes from GitHub::
-
-   git fetch astropy --tags
-
-This will pull down any commits you don't have, and set the remote branches to
-point to the latest commit. For example, 'trunk' is the branch referred to by
-``astropy/main``, and if there have been commits since
-you last checked, ``astropy/main`` will change after you do the fetch.
-
-.. _make-feature-branch:
-
-Make a new feature branch
-*************************
-
-Make the new branch
-===================
-
-When you are ready to make some changes to the code, you should start a new
-branch. Branches that are for a collection of related edits are often called
-'feature branches'.
-
-Making a new branch for each set of related changes will make it easier for
-someone reviewing your branch to see what you are doing.
-
-Choose an informative name for the branch to remind yourself and the rest of us
-what the changes in the branch are for. Branch names like ``add-ability-to-fly``
-or ``bugfix-for-issue-42`` clearly describe the purpose of the branch.
-
-Always make your branch from ``astropy/main`` so that you are basing your
-changes on the latest version of Astropy::
-
-    # Update the mirror of trunk
-    git fetch astropy --tags
-
-    # Make new feature branch starting at astropy/main
-    git branch my-new-feature astropy/main
-    git checkout my-new-feature
-
-Connect the branch to GitHub
-============================
-
-At this point you have made and checked out a new branch, but `git`_ does not
-know it should be connected to your fork on GitHub. You need that connection
-for your proposed changes to be managed by the Astropy maintainers on GitHub.
-
-The most convenient way for connecting your local branch to GitHub is to `git
-push`_ this new branch up to your GitHub repo with the ``--set-upstream``
-option::
-
-   git push --set-upstream origin my-new-feature
-
-From now on git will know that ``my-new-feature`` is related to the
-``my-new-feature`` branch in your GitHub fork of Astropy.
-
-You will still need to :ref:`push-to-github` periodically. The
-setup in this section will make that easier because any following pushes of
-this branch can be performed without having to write out the remote and branch
-names, but it never hurts to be explicit in typing out the commands.
-
-.. _install-branch:
-
-Install your branch
-*******************
-
-Ideally you should set up a Python virtual environment just for this fix;
-instructions for doing to are at :ref:`virtual_envs`. Doing so ensures you
-will not corrupt your main ``astropy`` install and makes it very easy to recover
-from mistakes, and thus, is recommended before you proceed.
-
-Assuming you have set up and activated this virtual environment, you need to
-install the version of ``astropy`` you are working on into it. Do that with:
-
-.. code-block:: bash
-
-    python -m pip install --editable ".[test_all]"
-
-This will install ``astropy`` itself, along with a few packages which will be
-useful for testing the changes you will make down the road.
-
-For more details on building ``astropy`` from source, see
-:ref:`dev-build-astropy-subpkg`.
 
 .. _edit-flow:
 
@@ -308,16 +184,6 @@ may not be valid in a future version of Astropy.  However, use of
 double-backticks for monospace rendering of module/class/function/argument
 names and the like is encouraged.
 
-.. _push-to-github:
-
-Push your changes to GitHub
-***************************
-
-To push your changes on a branch named ``my-new-feature`` to your
-GitHub fork of ``astropy`` with the same branch name::
-
-    git push origin my-new-feature
-
 .. _pull-request:
 
 Ask for your changes to be reviewed
@@ -359,15 +225,6 @@ it into Astropy:
    For usage of pre-commit hooks and directives, see :ref:`pre-commit` and :ref:`pre-commit_bot`.
 
 .. _revise and push:
-
-Revise and push as necessary
-****************************
-
-You may be asked to make changes in the discussion of the pull request. Make
-those changes in your local copy, commit them to your local repo and push them
-to GitHub. GitHub will automatically update your pull request.
-
-.. _no git pull:
 
 Do Not Create a Merge Commit
 ****************************

@@ -43,10 +43,9 @@ list. These issues are the most accessible ones if you are not familiar with the
 source code.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
-   contributing_environment
-   contributing_pull_request
+   quickstart
 
 Now that you have created your development environment and gotten familiar with the
 process, you should now read through the detailed tutorial below to see a real-life

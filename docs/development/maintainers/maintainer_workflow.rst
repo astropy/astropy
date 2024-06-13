@@ -8,7 +8,7 @@ This page is for maintainers |emdash| those of us who merge our own or other
 peoples' changes into the upstream repository.
 
 Being a maintainer with write access, you are expected to be on top of the basic stuff
-in :ref:`development-workflow`.
+in :ref:`development-details`.
 
 =========================================
 Integrating changes via the web interface
