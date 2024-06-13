@@ -43,8 +43,7 @@ Set up an isolated workspace
 
     git switch -b fix-1761 upstream/main
 
-+ Switch to your astropy development environment, assuming you are using the ``conda``
-  package manager (for other options see :ref:`virtual_envs`)::
++ Switch to your astropy development environment::
 
     conda activate astropy-dev
 

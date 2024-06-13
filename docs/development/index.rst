@@ -12,19 +12,18 @@ guidelines.
 For newcomers the process may initially seem overwhelming, but with a little patience
 and practice you will see that it is not so complex. The key is to follow the steps
 outlined here and `ask for help <https://www.astropy.org/help.html>`_ if you get stuck.
-The astropy community is welcoming and friendly and will help you!
+The Astropy community is welcoming and friendly and will help you!
 
 This is divided into two sections, first a quickstart guide that provides an
-introduction to the development workflow, followed by a more detailed guide that covers
-all aspects of contributing to Astropy and provides a reference for both developers and
-maintainers.
+introduction to the development workflow, followed by a number of detailed guides that
+cover provide a deeper dive and a reference for both developers and maintainers.
 
 .. Important:: There are useful ways to contribute to Astropy without diving
     into the developer workflow which is described here. For an
     an overview see the `Contribute to Astropy <https://www.astropy.org/contribute.html>`_
     page.
 
-Parts of this content have been adapted from the excellent
+Parts of this content have been adapted from the
 `pandas developer documentation <https://pandas.pydata.org/pandas-docs/stable/development/index.html>`_.
 Astropy is grateful to the pandas team for their documentation efforts.
 
@@ -43,7 +42,7 @@ list. These issues are the most accessible ones if you are not familiar with the
 source code.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    quickstart
 
@@ -53,9 +52,9 @@ example with a simple bug fix. This includes more explanation of the steps and g
 advice for making a code change.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   workflow/git_edit_workflow_examples
+   git_edit_workflow_examples
 
 Details
 -------
@@ -64,14 +63,12 @@ Details
    :maxdepth: 2
 
    development_details
-   virtual_pythons
    codeguide
    docguide
    style-guide
    testguide
-   workflow/git_resources
+   git_resources
    scripts
-   building
    ccython
 
 Maintaining astropy and affiliated packages

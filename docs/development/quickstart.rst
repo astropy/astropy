@@ -58,8 +58,7 @@ https://devguide.python.org/setup/#macos.
 
 **Linux**
 
-For Linux-based :ref:`conda <contributing.conda>` installations, you won't have to
-install any additional components.
+For Linux-based installations, you won't have to install any additional components.
 
 . _contributing.forking:
 
@@ -93,14 +92,17 @@ isolated from both your system Python and any other Python environments you may 
 for doing other work. This is important because the development environment will often
 be unstable and possibly broken at times, and you don't want to break your other work.
 
-There are *many* good options (see :ref:`virtual_envs` for discussion), but in this
-quickstart guide we use the `conda <https://docs.conda.io/en/latest/>`_ package
+There are many good options, including a number of virtual environment managers
+starting with the Python built-in `venv <https://docs.python.org/3/library/venv.html>`_
+module. Users who have a preference for a particular virtual environment manager are
+encouraged to use it! However, maintaining instructions for all of them here would be
+impractical.
+
+For this quickstart guide we use the `conda <https://docs.conda.io/en/latest/>`_ package
 manager provided by `miniforge <https://github.com/conda-forge/miniforge>`_. This is a
 popular choice and generally works well, especially for newcomers. It is easy to install
 and use on all platforms and it makes it easy to install different Python versions which
 can be useful for testing.
-
-.. _contributing.conda:
 
 Install miniforge and conda
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -110,9 +112,7 @@ If you do not already have ``conda`` installed, `download and install miniforge
 your system but the end result is to provide a ``conda`` executable that you can use
 to create and manage isolated Python environments.
 
-Now create and activate an ``astropy-dev`` conda environment using the following:
-
-.. code-block:: shell
+Now create and activate an ``astropy-dev`` conda environment using the following::
 
    conda create -n astropy-dev python graphviz
    conda activate astropy-dev
@@ -200,12 +200,6 @@ If you are new to contributing to projects through forking on GitHub, take a loo
 provides a quick tutorial using a test repository that may help you become more familiar
 with forking a repository, cloning a fork, creating a feature branch, pushing changes
 and making pull requests.
-
-Below are some useful resources for learning more about forking and pull requests on GitHub:
-
-* `GitHub documentation for forking a repo <https://docs.github.com/en/get-started/quickstart/fork-a-repo>`_.
-* `GitHub documentation for collaborating with pull requests <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests>`_.
-* `GitHub documentation for working with forks <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks>`_.
 
 Creating a feature branch
 -------------------------
