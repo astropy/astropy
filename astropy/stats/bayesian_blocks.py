@@ -56,6 +56,9 @@ import numpy as np
 from astropy.utils.exceptions import AstropyUserWarning
 
 if TYPE_CHECKING:
+    from collections.abc import KeysView
+    from typing import Literal
+
     from numpy.typing import ArrayLike, NDArray
 
 # TODO: implement other fitness functions from appendix C of Scargle 2013
@@ -475,7 +478,7 @@ class Events(FitnessFunc):
         t: ArrayLike,
         x: ArrayLike | None,
         sigma: float | ArrayLike | None,
-    ) -> tuple[ArrayLike, float | ArrayLike, float | ArrayLike]:
+    ) -> tuple[NDArray[float], NDArray[float], NDArray[float]]:
         t, x, sigma = super().validate_input(t, x, sigma)
         if x is not None and np.any(x % 1 > 0):
             raise ValueError("x must be integer counts for fitness='events'")
@@ -523,7 +526,7 @@ class RegularEvents(FitnessFunc):
         t: ArrayLike,
         x: ArrayLike | None = None,
         sigma: float | ArrayLike | None = None,
-    ) -> tuple[ArrayLike, float | ArrayLike, float | ArrayLike]:
+    ) -> tuple[NDArray[float], NDArray[float], NDArray[float]]:
         t, x, sigma = super().validate_input(t, x, sigma)
         if not np.all((x == 0) | (x == 1)):
             raise ValueError("Regular events must have only 0 and 1 in x")
@@ -585,7 +588,7 @@ class PointMeasures(FitnessFunc):
         t: ArrayLike,
         x: ArrayLike | None,
         sigma: float | ArrayLike | None,
-    ) -> tuple[ArrayLike, float | ArrayLike, float | ArrayLike]:
+    ) -> tuple[NDArray[float], NDArray[float], NDArray[float]]:
         if x is None:
             raise ValueError("x must be specified for point measures")
         return super().validate_input(t, x, sigma)
