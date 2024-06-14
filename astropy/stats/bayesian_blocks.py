@@ -67,7 +67,7 @@ def bayesian_blocks(
     t: ArrayLike,
     x: ArrayLike | None = None,
     sigma: ArrayLike | float | None = None,
-    fitness: str | FitnessFunc = "events",
+    fitness: Literal["events", "regular_events", "measures"] | FitnessFunc = "events",
     **kwargs,
 ) -> NDArray[float]:
     r"""Compute optimal segmentation of data with Scargle's Bayesian Blocks.
