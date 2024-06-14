@@ -8,14 +8,17 @@ import numpy as np
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from typing import TypeVar
 
     from numpy.typing import NDArray
+
+    DT = TypeVar("DT", bound=np.generic)
 
 __all__ = ["jackknife_resampling", "jackknife_stats"]
 __doctest_requires__ = {"jackknife_stats": ["scipy"]}
 
 
-def jackknife_resampling(data: NDArray) -> NDArray:
+def jackknife_resampling(data: NDArray[DT]) -> NDArray[DT]:
     """Performs jackknife resampling on numpy arrays.
 
     Jackknife resampling is a technique to generate 'n' deterministic samples
