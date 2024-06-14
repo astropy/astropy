@@ -248,11 +248,7 @@ No differences found.
         tmp_d = self.temp("sub/")
         assert fitsdiff.main(["-q", self.data_dir, tmp_d]) == 1
         assert fitsdiff.main(["-q", tmp_d, self.data_dir]) == 1
-        with pytest.warns(
-            UserWarning,
-            match=r"Field 'ORBPARM' has a repeat count of 0 in its format code",
-        ):
-            assert fitsdiff.main(["-q", self.data_dir, self.data_dir]) == 0
+        assert fitsdiff.main(["-q", self.data_dir, self.data_dir]) == 0
 
         # no match
         tmp_c = self.data("arange.fits")
@@ -261,11 +257,7 @@ No differences found.
         assert "'arange.fits' has no match in" in err
 
         # globbing
-        with pytest.warns(
-            UserWarning,
-            match=r"Field 'ORBPARM' has a repeat count of 0 in its format code",
-        ):
-            assert fitsdiff.main(["-q", self.data_dir + "/*.fits", self.data_dir]) == 0
+        assert fitsdiff.main(["-q", self.data_dir + "/*.fits", self.data_dir]) == 0
         assert fitsdiff.main(["-q", self.data_dir + "/g*.fits", tmp_d]) == 0
 
         # one file and a directory
