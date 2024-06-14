@@ -1,2 +1,0 @@
-Ensure that also zero-length tables preserve whether integer data are
-signed or unsigned.
