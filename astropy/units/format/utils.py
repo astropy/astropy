@@ -7,13 +7,21 @@ Utilities shared by the different formats.
 from __future__ import annotations
 
 import warnings
+from keyword import iskeyword
 from typing import TYPE_CHECKING
 
 from astropy.units.utils import maybe_simple_fraction
 from astropy.utils.misc import did_you_mean
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Container, Mapping, Sequence
+    from collections.abc import (
+        Callable,
+        Container,
+        Generator,
+        Iterable,
+        Mapping,
+        Sequence,
+    )
     from numbers import Real
     from typing import TypeVar
 
@@ -245,3 +253,12 @@ def unit_deprecation_warning(
     if decomposed is not None:
         message += f" Suggested: {decomposed}."
     warnings.warn(message, UnitsWarning)
+
+
+def get_non_keyword_units(
+    bases: Iterable[str], prefixes: Sequence[str]
+) -> Generator[tuple[str, str], None, None]:
+    for base in bases:
+        for prefix in prefixes:
+            if not iskeyword(unit := prefix + base):
+                yield unit, base
