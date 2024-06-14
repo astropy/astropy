@@ -50,7 +50,7 @@ dependencies = [
 # Recommended run-time dependencies to enable a lot of functionality within Astropy.
 recommended = [
     "scipy>=1.8",
-    "matplotlib>=3.5.0,!=3.5.2",
+    "matplotlib>=3.6.0",
 ]
 # Optional IPython-related behavior is in many places in Astropy. IPython is a complex
 # dependency that occasionally requires pinning one of it's upstream dependencies. If
