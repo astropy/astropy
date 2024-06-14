@@ -140,13 +140,13 @@ class RipleysKEstimator:
 
     def __call__(
         self,
-        data: NDArray,
-        radii: NDArray,
+        data: NDArray[float],
+        radii: NDArray[float],
         mode: Literal["none", "translation", "ohser", "var-width", "ripley"] = "none",
-    ) -> NDArray:
+    ) -> NDArray[float]:
         return self.evaluate(data=data, radii=radii, mode=mode)
 
-    def _pairwise_diffs(self, data: NDArray) -> NDArray:
+    def _pairwise_diffs(self, data: NDArray[float]) -> NDArray[float]:
         npts = len(data)
         diff = np.zeros(shape=(npts * (npts - 1) // 2, 2), dtype=np.double)
         k = 0
@@ -157,7 +157,7 @@ class RipleysKEstimator:
 
         return diff
 
-    def poisson(self, radii: NDArray) -> NDArray:
+    def poisson(self, radii: NDArray[float]) -> NDArray[float]:
         """
         Evaluates the Ripley K function for the homogeneous Poisson process,
         also known as Complete State of Randomness (CSR).
@@ -176,10 +176,10 @@ class RipleysKEstimator:
 
     def Lfunction(
         self,
-        data: NDArray,
-        radii: NDArray,
+        data: NDArray[float],
+        radii: NDArray[float],
         mode: Literal["none", "translation", "ohser", "var-width", "ripley"] = "none",
-    ) -> NDArray:
+    ) -> NDArray[float]:
         """
         Evaluates the L function at ``radii``. For parameter description
         see ``evaluate`` method.
@@ -188,10 +188,10 @@ class RipleysKEstimator:
 
     def Hfunction(
         self,
-        data: NDArray,
-        radii: NDArray,
+        data: NDArray[float],
+        radii: NDArray[float],
         mode: Literal["none", "translation", "ohser", "var-width", "ripley"] = "none",
-    ) -> NDArray:
+    ) -> NDArray[float]:
         """
         Evaluates the H function at ``radii``. For parameter description
         see ``evaluate`` method.
@@ -200,10 +200,10 @@ class RipleysKEstimator:
 
     def evaluate(
         self,
-        data: NDArray,
-        radii: NDArray,
+        data: NDArray[float],
+        radii: NDArray[float],
         mode: Literal["none", "translation", "ohser", "var-width", "ripley"] = "none",
-    ) -> NDArray:
+    ) -> NDArray[float]:
         """
         Evaluates the Ripley K estimator for a given set of values ``radii``.
 
