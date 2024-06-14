@@ -1,0 +1,1 @@
+Adds type annotations to all function (public and private, including class methods) call signatures in ``stats``.
