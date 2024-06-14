@@ -1,12 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from numpy.typing import NDArray
 
 __all__ = ["jackknife_resampling", "jackknife_stats"]
 __doctest_requires__ = {"jackknife_stats": ["scipy"]}
 
 
-def jackknife_resampling(data):
+def jackknife_resampling(data: NDArray) -> NDArray:
     """Performs jackknife resampling on numpy arrays.
 
     Jackknife resampling is a technique to generate 'n' deterministic samples
@@ -51,7 +60,11 @@ def jackknife_resampling(data):
     return resamples
 
 
-def jackknife_stats(data, statistic, confidence_level=0.95):
+def jackknife_stats(
+    data: NDArray,
+    statistic: Callable,
+    confidence_level: float | None = 0.95,
+) -> tuple[float | NDArray, float | NDArray, float | NDArray, NDArray]:
     """Performs jackknife estimation on the basis of jackknife resamples.
 
     This function requires `SciPy <https://www.scipy.org/>`_ to be installed.
