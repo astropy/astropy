@@ -237,7 +237,7 @@ class FitnessFunc:
         t: ArrayLike,
         x: ArrayLike | None = None,
         sigma: float | ArrayLike | None = None,
-    ) -> tuple[ArrayLike, float | ArrayLike, float | ArrayLike]:
+    ) -> tuple[NDArray[float], NDArray[float], NDArray[float]]:
         """Validate inputs to the model.
 
         Parameters
