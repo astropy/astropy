@@ -23,10 +23,6 @@ cover provide a deeper dive and a reference for both developers and maintainers.
     an overview see the `Contribute to Astropy <https://www.astropy.org/contribute.html>`_
     page.
 
-Parts of this content have been adapted from the
-`pandas developer documentation <https://pandas.pydata.org/pandas-docs/stable/development/index.html>`_.
-Astropy is grateful to the pandas team for their documentation efforts.
-
 {% if is_development %}
 
 Development quickstart
@@ -59,7 +55,7 @@ Details
 -------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    development_details
    codeguide
@@ -69,19 +65,10 @@ Details
    git_resources
    scripts
    ccython
+   maintainers/index
 
-Maintaining astropy and affiliated packages
--------------------------------------------
-
-.. toctree::
-   :maxdepth: 2
-
-   maintainers/astropy-package-template
-   maintainers/maintainer_workflow
-   maintainers/releasing
-   maintainers/testhelpers
-   maintainers/maintaining
-
+.. Note:: Parts of this guide were adapted from the
+    `pandas developer documentation <https://pandas.pydata.org/pandas-docs/stable/development/index.html>`_. Astropy is grateful to the pandas team for their documentation efforts.
 
 {%else%}
 

@@ -193,7 +193,7 @@ contribute, you will need to sign up for a `free GitHub account
 
 We use `Git <https://git-scm.com/>`_ for version control and to allow many people to
 work together on the project. If you are new to Git then take a moment to look at the
-:ref:`git_resources` page.
+:ref:`git-resources` page.
 
 If you are new to contributing to projects through forking on GitHub, take a look at the
 `GitHub documentation for contributing to projects
@@ -245,7 +245,7 @@ code or documentation! At a high level this breaks into a few parts:
 - **Test changes**: For code changes, ensure that they work as expected following the
   process outlined in the :ref:`testing-guidelines` section.
 - **Build documentation**: If you are updating the documentation, you will want to
-  `build the documentation <builddocs>` to ensure that it looks good.
+  :ref:`build the documentation <builddocs>` to ensure that it looks good.
 - **Add a changelog entry**: For most code changes you will need to
   :ref:`add-changelog`.
 

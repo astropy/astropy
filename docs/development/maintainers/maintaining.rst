@@ -169,7 +169,7 @@ their input.
 .. note::
     In the ``bisect run`` command above, commits are considered good if ``t.py`` exits
     with ``0`` and bad otherwise. When raising an exception is the desired behavior,
-    wrap the code in an appropriate ``try/except`` statement. See :issue:`35685` for
+    wrap the code in an appropriate ``try/except`` statement. See Issue #35685 for
     more examples.
 
 .. _maintaining.closing:

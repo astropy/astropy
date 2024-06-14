@@ -3,9 +3,9 @@
 .. include:: links.inc
 .. _astropy-fix-example:
 
-**********************************************
-Contributing code to Astropy, a worked example
-**********************************************
+***********************************
+Contributing Code: a Worked Example
+***********************************
 
 This example is based on fixing `Issue 1761`_ from the list
 of `astropy issues on GitHub <https://github.com/astropy/astropy/issues>`_.
