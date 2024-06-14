@@ -4,8 +4,6 @@
 Handles the "FITS" unit format.
 """
 
-import keyword
-
 import numpy as np
 
 from . import core, generic, utils
@@ -36,7 +34,6 @@ class FITS(generic.Generic):
             "F", "Wb", "T", "H", "lm", "lx", "a", "yr", "eV",
             "pc", "Jy", "mag", "R", "bit", "byte", "G", "barn",
         ]  # fmt: skip
-        deprecated_bases = []
         prefixes = [
             "y", "z", "a", "f", "p", "n", "u", "m", "c", "d",
             "", "da", "h", "k", "M", "G", "T", "P", "E", "Z", "Y",
@@ -44,18 +41,8 @@ class FITS(generic.Generic):
 
         special_cases = {"dbyte": u.Unit("dbyte", 0.1 * u.byte)}
 
-        for base in bases + deprecated_bases:
-            for prefix in prefixes:
-                key = prefix + base
-                if keyword.iskeyword(key):
-                    continue
-                elif key in special_cases:
-                    names[key] = special_cases[key]
-                else:
-                    names[key] = getattr(u, key)
-        for base in deprecated_bases:
-            for prefix in prefixes:
-                deprecated_names.add(prefix + base)
+        for key, _ in utils.get_non_keyword_units(bases, prefixes):
+            names[key] = special_cases[key] if key in special_cases else getattr(u, key)
         simple_units = [
             "deg", "arcmin", "arcsec", "mas", "min", "h", "d", "Ry",
             "solMass", "u", "solLum", "solRad", "AU", "lyr", "count",
