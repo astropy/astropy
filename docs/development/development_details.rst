@@ -377,11 +377,11 @@ can delete any backup branches that may have been created::
     git branch -D tmp
 
 
-Troubleshooting
-***************
+Troubleshooting the build
+*************************
 
-If you get an error directing use of option ``-std=c99`` or ``-std=gnu99``, you can try
-installing with::
+If when building you get an error directing use of option ``-std=c99`` or
+``-std=gnu99``, you can try installing with::
 
     CFLAGS='-std=c99' python -m pip install --editable .
 
@@ -416,26 +416,6 @@ The C libraries currently bundled with ``astropy`` include:
 
 - `expat <https://libexpat.github.io/>`_ see ``cextern/expat/README`` for the
   bundled version. To use the system version, set ``ASTROPY_USE_SYSTEM_EXPAT=1``.
-
-.. _install_astropy_nightly:
-
-Installing pre-built Development Versions of ``astropy``
-========================================================
-
-Most nights a development snapshot of ``astropy`` will be compiled.
-This is useful if you want to test against a development version of astropy but
-do not want to have to build it yourselves. You can see the
-`available astropy dev snapshots page <https://anaconda.org/astropy/astropy/files?type=pypi>`_
-to find out what is currently being offered.
-
-Installing these "nightlies" of ``astropy`` can be achieved by using ``pip``::
-
-  python -m pip install --upgrade --index-url https://pypi.anaconda.org/astropy/simple astropy --pre
-
-The extra index URL tells ``pip`` to check the ``pip`` index on
-pypi.anaconda.org, where the nightlies are stored, and the ``--pre`` command
-tells ``pip`` to install pre-release versions (in this case ``.dev`` releases).
-
 
 .. include:: links.inc
 

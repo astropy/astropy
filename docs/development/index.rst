@@ -63,10 +63,9 @@ Details
 
    development_details
    codeguide
+   testguide
    docguide
    style-guide
-   testguide
-   doc_build
    git_resources
    scripts
    ccython

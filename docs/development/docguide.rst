@@ -1,8 +1,8 @@
 .. _documentation-guidelines:
 
-*********************
-Writing Documentation
-*********************
+************************
+Documentation Guidelines
+************************
 
 High-quality, consistent documentation for astronomy code is one of the major goals of
 the Astropy Project. We encourage you to help us improve the documentation, and you
@@ -18,7 +18,7 @@ Astropy Documentation Overview
 ==============================
 
 The documentation is written in **reStructuredText**, which is almost like writing in
-plain English, and built using `Sphinx <https://www.sphinx-doc.org/en/master/>`_. The
+plain English, and built using Sphinx_. The
 Sphinx Documentation has an excellent `introduction to reST
 <https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html>`_ that you should read.
 
@@ -31,12 +31,6 @@ Developer documentation, etc.
 
 The |OpenAstronomy Packaging Guide| provides a recommended general structure for
 documentation.
-
-Building the Documentation from Source
-======================================
-
-For information about building the documentation from source, see
-the :ref:`builddocs` section in the installation instructions.
 
 Astropy Documentation Guidelines
 ================================
@@ -69,6 +63,92 @@ the standard Astropy docstring format.
 * Configuration options using the :mod:`astropy.config` mechanisms must be
   explicitly mentioned in the documentation.
 
+.. _builddocs:
+
+Building the Documentation from Source
+======================================
+
+There are two ways to build the Astropy documentation. The first way is to
+execute the following ``tox`` command from within the ``astropy`` source directory::
+
+    tox -e build_docs
+
+With this method you do not need to install any of the documentation dependencies. The
+documentation will be built in the ``docs/_build/html`` directory, and can be read by
+pointing a web browser to ``docs/_build/html/index.html``.
+
+The second method is to build the documentation manually. This requires that you are
+working in an isolated development environment as described in :ref:`contributing_environment`. The benefit of this method is that often you can
+rebuild the docs fairly quickly after making changes.
+
+::
+
+    cd docs
+    make html
+
+The documentation will be generated in the same location. In some cases if you make
+changes they will not be reflected in the build output and you need to start over after
+running ``make clean``.
+
+To use multiple cores for building faster, run::
+
+    SPHINXOPTS="-j auto" make html
+
+Dependencies
+------------
+
+Here we describe the key dependencies for building the documentation. These are
+provided by the ``docs`` optional dependencies in the ``astropy`` package (see
+the ``[docs]`` list in ``[project.optional-dependencies]`` in ``pyproject.toml``).
+
+The `sphinx-astropy <https://github.com/astropy/sphinx-astropy>`_ package provides
+configuration common to packages in the Astropy ecosystem and serves as a way to
+automatically get the other main dependencies, including:
+
+* `Sphinx <http://www.sphinx-doc.org>`_ - the main package we use to build
+  the documentation
+* `astropy-sphinx-theme <https://github.com/astropy/astropy-sphinx-theme>`_ -
+  the default 'bootstrap' theme used by ``astropy`` and a number of affiliated
+  packages
+* sphinx-automodapi_ - an extension
+  that makes it easy to automatically generate API documentation
+* sphinx-gallery_ - an
+  extension to generate example galleries
+* |numpydoc| - an extension to parse
+  docstrings in NumPyDoc format
+* `Graphviz <http://www.graphviz.org>`_ - generate inheritance graphs (available
+  as a conda package or a system install but not in pip)
+
+.. Note::
+    Both of the ``pip`` install methods above do not include `Graphviz
+    <http://www.graphviz.org>`_.  If you do not install this package separately
+    then the documentation build process will produce a very large number of
+    lengthy warnings (which can obscure bona fide warnings) and also not
+    generate inheritance graphs.
+
+Reporting Issues/Requesting Features
+------------------------------------
+
+As mentioned above, building the documentation depends on a number of Sphinx
+extensions and other packages. Since it is not always possible to know which
+package is causing issues or would need to have a new feature implemented, you
+can open an issue in the `core astropy package issue
+tracker <https://github.com/astropy/astropy/issues>`_. However, if you wish, you
+can also open issues in the repositories for some of the dependencies:
+
+* For requests/issues related to the appearance of the docs (e.g. related to
+  the CSS), you can open an issue in the `astropy-sphinx-theme issue tracker
+  <https://github.com/astropy/astropy-sphinx-theme/issues>`_.
+
+* For requests/issues related to the auto-generated API docs which appear to
+  be general issues rather than an issue with a specific docstring, you can use
+  the `sphinx-automodapi issue tracker
+  <https://github.com/astropy/sphinx-automodapi/issues>`_.
+
+* For issues related to the default configuration (e.g which extensions are
+  enabled by default), you can use the `sphinx-astropy issue tracker
+  <https://github.com/astropy/sphinx-astropy/issues>`_.
+
 Details for Package Maintainers
 ===============================
 
@@ -94,7 +174,7 @@ configuration variables set in the global configuration.
 
 * To use a custom theme, additionally: place the theme in
   ``package-name/docs/_themes`` and add ``'_themes'`` to the
-  ``html_theme_path`` variable. See the Sphinx_ documentation for more
+  ``html_theme_path`` variable. See the Sphinx documentation for more
   details on theming.
 
 Sphinx extensions

@@ -19,13 +19,11 @@ Set up GitHub and Git
 To contribute to the astropy repository or build from source, you will need to ensure
 that `Git <https://git-scm.com/>`_ is installed and configured on your machine. `GitHub
 has instructions <https://docs.github.com/en/get-started/quickstart/set-up-git>`__ for
-installing and configuring git.
+installing and configuring git, and more details and further resources are available in
+the :ref:`contributing.version_control` section.
 
-More details and further resources are available in the
-:ref:`contributing.version_control` section.
-
-Install a C compiler
---------------------
+Install a C compiler if needed
+------------------------------
 
 How to do this will depend on your platform.
 
@@ -62,9 +60,9 @@ Create a clone of astropy
 -------------------------
 
 If you have not done so already, you will need your own copy of ``astropy`` to
-build it and/or contribute to the source. Astropy is hosted in the `astropy GitHub repository <https://www.github.com/astropy/astropy>`_ and you need to pull down a clone.
+build it and/or contribute to the source. Astropy is hosted in the `astropy GitHub repository <https://www.github.com/astropy/astropy>`_ and you need to make a clone.
 
-If you *only want to build astropy* but not contribute, you can run the following and then skip to the `next section <create-isolated-env>`_::
+If you *only want to build astropy* but not contribute, you can run the following and then skip to the :ref:`next section<create-isolated-env>`::
 
     git clone https://github.com/astropy/astropy.git
     cd astropy
@@ -98,11 +96,10 @@ isolated from both your system Python and any other Python environments you may 
 for doing other work. This is important because the development environment will often
 be unstable and possibly broken at times, and you don't want to break your other work.
 
-There are many good options, including a number of virtual environment managers
-starting with the Python built-in `venv <https://docs.python.org/3/library/venv.html>`_
-module. Users who have a preference for a particular virtual environment manager are
-encouraged to use it! However, maintaining instructions for all of them here would be
-impractical.
+There are many good options for doing this, including a number of virtual environment
+managers (e.g. the Python built-in `venv <https://docs.python.org/3/library/venv.html>`_
+module). Users who have a preference for a particular virtual environment manager are
+encouraged to use it!
 
 For this quickstart guide we use the `conda <https://docs.conda.io/en/latest/>`_ package
 manager provided by `miniforge <https://github.com/conda-forge/miniforge>`_. This is a
@@ -130,9 +127,7 @@ Install the development version of astropy
 
 Now you can install the development version of astropy into your new environment. This
 will install the latest version of astropy from your local git repo, along with
-all the dependencies needed to build and fully test astropy.
-
-.. code-block:: shell
+all the dependencies needed to build and fully test astropy::
 
    python -m pip install --editable ".[dev_all]"
 
@@ -145,7 +140,7 @@ At this point you should be able to import astropy from your locally built versi
    >>> astropy.__version__  # note: the exact output will differ
    '7.0.0.dev303+gb394fda545.d20240613'
 
-At this point you may want to try running some or all of the ``astropy`` unit tests.
+Next you may want to try running some or all of the ``astropy`` unit tests.
 Running the full test suite can take a while, so you may want to start with a subset
 of only the coordinates tests::
 

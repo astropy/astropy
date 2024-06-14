@@ -247,7 +247,13 @@ The following packages can optionally be used when testing:
 Building from Source
 ********************
 
-If you want to build from source, follow the instructions for :ref:`contributing_environment`.
+If you want to build the code from source, follow the instructions for :ref:`contributing_environment`.
+
+Building the documentation is typically not necessary unless you are
+developing code or documentation or do not have internet access, because
+the latest (and archive) versions of Astropy's documentation are
+available at `docs.astropy.org <https://docs.astropy.org>`_ . The process
+is described in :ref:`astropy-dev:builddocs`.
 
 .. _sourcebuildtest:
 
@@ -270,3 +276,23 @@ See the :ref:`latest documentation on how to run the tests in a source
 checkout of astropy <astropy-dev:sourcebuildtest>`
 
 {%endif%}
+
+
+.. _install_astropy_nightly:
+
+Installing pre-built Development Versions of ``astropy``
+========================================================
+
+Most nights a development snapshot of ``astropy`` will be compiled.
+This is useful if you want to test against a development version of astropy but
+do not want to have to build it yourselves. You can see the
+`available astropy dev snapshots page <https://anaconda.org/astropy/astropy/files?type=pypi>`_
+to find out what is currently being offered.
+
+Installing these "nightlies" of ``astropy`` can be achieved by using ``pip``::
+
+  python -m pip install --upgrade --index-url https://pypi.anaconda.org/astropy/simple astropy --pre
+
+The extra index URL tells ``pip`` to check the ``pip`` index on
+pypi.anaconda.org, where the nightlies are stored, and the ``--pre`` command
+tells ``pip`` to install pre-release versions (in this case ``.dev`` releases).
