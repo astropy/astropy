@@ -1,1 +1,0 @@
-Fix bugs in io.votable related to numpy 2's representation of scalars.

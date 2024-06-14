@@ -1,3 +1,0 @@
-Ensure Masked versions of ``np.recarray`` will show the correct class
-name of ``MaskedRecarray`` in their ``repr``, and that they will be
-serialized correctly if part of a table.
