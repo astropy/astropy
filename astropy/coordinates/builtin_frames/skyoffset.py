@@ -110,7 +110,7 @@ class SkyOffsetFrame(BaseCoordinateFrame):
     object's ``lat`` will be pointed in the direction of Dec, while ``lon``
     will point in the direction of RA.
 
-    For more on skyoffset frames, see :ref:`astropy:astropy-skyoffset-frames`.
+    For more on skyoffset frames, see :ref:`astropy-skyoffset-frames`.
 
     Parameters
     ----------

@@ -3,7 +3,7 @@
 This package contains functions for reading and writing Parquet
 tables that are not meant to be used directly, but instead are
 available as readers/writers in `astropy.table`.  See
-:ref:`astropy:table_io` for more details.
+:ref:`table_io` for more details.
 """
 
 import os

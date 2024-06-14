@@ -69,14 +69,14 @@ two *lazy data loading* features available in Astropy:
    header and data attributes on demand rather than reading all HDUs at once.
    This parameter is set to ``True`` by default.  You do not need to pass it
    explicitly, unless you changed its default value in the
-   :ref:`astropy:astropy_config`.
+   :ref:`astropy_config`.
 2. The `ImageHDU.section` and `CompImageHDU.section` properties enables a
    subset of a data array to be read into memory without downloading the entire
-   image or cube. See the :ref:`astropy:data-sections` part of the documentation
+   image or cube. See the :ref:`data-sections` part of the documentation
    for more details.
 
 Additional tips for achieving good performance when working with remote files
-are provided in the :ref:`astropy:optimizing_fsspec` section further down
+are provided in the :ref:`optimizing_fsspec` section further down
 this page.
 
 .. note::

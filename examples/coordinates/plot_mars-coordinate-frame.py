@@ -5,7 +5,7 @@ Create a new coordinate frame class for Mars
 
 This example describes how to subclass and define a custom coordinate frame for a
 planetary body which can be described by a geodetic or bodycentric representation,
-as discussed in :ref:`astropy:astropy-coordinates-design` and
+as discussed in :ref:`astropy-coordinates-design` and
 :ref:`astropy-coordinates-create-geodetic`.
 
 Note that we use the frame here only to store coordinates. To use it to determine, e.g.,

@@ -2487,7 +2487,7 @@ class TableElement(
         file, can not be written out.  Any file read in with 'fits'
         format will be read out, by default, in 'tabledata' format.
 
-        See :ref:`astropy:votable-serialization`.
+        See :ref:`votable-serialization`.
         """
         return self._format
 
@@ -4271,7 +4271,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             be one of ``tabledata`` (text representation), ``binary`` or
             ``binary2``.  By default, use the format that was specified
             in each `TableElement` object as it was created or read in.  See
-            :ref:`astropy:votable-serialization`.
+            :ref:`votable-serialization`.
         """
         if tabledata_format is not None:
             if tabledata_format.lower() not in ("tabledata", "binary", "binary2"):

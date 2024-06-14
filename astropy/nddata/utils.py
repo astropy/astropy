@@ -374,7 +374,7 @@ class Cutout2D:
     will also contain a copy of the original WCS, but updated for the
     cutout array.
 
-    For example usage, see :ref:`astropy:cutout_images`.
+    For example usage, see :ref:`cutout_images`.
 
     .. warning::
 

@@ -94,7 +94,7 @@ class galactocentric_frame_defaults(ScienceState):
     :meth:`~astropy.coordinates.galactocentric_frame_defaults.get_from_registry`
     since it ensures the immutability of the registry.
 
-    See :ref:`astropy:astropy-coordinates-galactocentric-defaults` for more
+    See :ref:`astropy-coordinates-galactocentric-defaults` for more
     information.
 
     Examples
@@ -455,7 +455,7 @@ class Galactocentric(BaseCoordinateFrame):
     roughly towards the North Galactic Pole (:math:`b=90^\circ`).
 
     For a more detailed look at the math behind this transformation, see
-    the document :ref:`astropy:coordinates-galactocentric`.
+    the document :ref:`coordinates-galactocentric`.
 
     The frame attributes are listed under **Other Parameters**.
     """

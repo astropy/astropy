@@ -149,7 +149,7 @@ The ``psf`` attributes of a `~astropy.nddata.CCDData` object can be set two ways
   constructed with the ``psf`` argument.
 
 The ``psf`` attribute should be a normalized image representing the PSF at the center of the `~astropy.nddata.CCDData`, sized appropriately for the data; users are responsible for managing and interpreting it in context.
-For more on normalizing a PSF image, see :ref:`astropy:kernel_normalization`.
+For more on normalizing a PSF image, see :ref:`kernel_normalization`.
 
 The ``psf`` attribute is set to `None` in the output of an arithmetic operation, no matter the inputs. A warning message is emitted if either of the input images contain a non-`None` PSF; users are responsible for determining the appropriate thing to do in that context.
 

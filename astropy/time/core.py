@@ -3188,7 +3188,7 @@ class TimeDelta(TimeBase):
             The unit to convert to.
         equivalencies : list of tuple
             A list of equivalence pairs to try if the units are not directly
-            convertible (see :ref:`astropy:unit_equivalencies`). If `None`, no
+            convertible (see :ref:`unit_equivalencies`). If `None`, no
             equivalencies will be applied at all, not even any set globallyq
             or within a context.
 
@@ -3256,7 +3256,7 @@ class TimeDelta(TimeBase):
             The unit in which the value should be given.
         equivalencies : list of tuple
             A list of equivalence pairs to try if the units are not directly
-            convertible (see :ref:`astropy:unit_equivalencies`). If `None`, no
+            convertible (see :ref:`unit_equivalencies`). If `None`, no
             equivalencies will be applied at all, not even any set globally or
             within a context.
 

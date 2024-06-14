@@ -60,15 +60,15 @@ the standard Astropy docstring format.
 * Docstrings should follow the `numpydoc format
   <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
 
-* References in docstrings, **including internal Astropy links**, should use the
+* References in docstrings, should use the
   `intersphinx format
   <https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html>`_.
   For example a link to the Astropy section on unit equivalencies would be
-  `` :ref:`astropy:unit_equivalencies` ``.
-  When built in Astropy, links starting with 'astropy' resolve to the current
-  build. In affiliate packages using ``sphinx-astropy``'s intersphinx mapping,
-  the links resolve to the stable version of Astropy. For linking to the
-  development version, use direct URL linking.
+  `` :ref:`unit_equivalencies` ``. If linked from a downstream package,
+  it would be `` :ref:`astropy:unit_equivalencies` `` instead
+  (the ``astropy:`` tag is from ``sphinx-astropy`` and would point to the
+  latest stable release of ``astropy``).
+  For linking to the development version, use direct URL linking.
 
 * Examples and/or tutorials are strongly encouraged for typical use-cases of a
   particular module or class.

@@ -198,7 +198,7 @@ class _ImageBaseHDU(_ValidHDU):
         file that has been opened with the ``use_fsspec=True`` parameter.
         For example, you can use this feature to download a small cutout from
         a large FITS image hosted in the Amazon S3 cloud (see the
-        :ref:`astropy:fits-cloud-files` section of the Astropy
+        :ref:`fits-cloud-files` section of the Astropy
         documentation for more details.)
 
         For local files, sections are mostly obsoleted by memmap support, but
@@ -207,7 +207,7 @@ class _ImageBaseHDU(_ValidHDU):
         Note that sections cannot currently be written to.  Moreover, any
         in-memory updates to the image's ``.data`` property may not be
         reflected in the slices obtained via ``.section``. See the
-        :ref:`astropy:data-sections` section of the documentation for
+        :ref:`data-sections` section of the documentation for
         more details.
         """
         return Section(self)
@@ -965,7 +965,7 @@ class Section:
     Section slices cannot be assigned to, and modifications to a section are
     not saved back to the underlying file.
 
-    See the :ref:`astropy:data-sections` section of the Astropy documentation
+    See the :ref:`data-sections` section of the Astropy documentation
     for more details.
     """
 

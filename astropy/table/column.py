@@ -1024,7 +1024,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         equivalencies : list of tuple
            A list of equivalence pairs to try if the unit are not
-           directly convertible.  See :ref:`astropy:unit_equivalencies`.
+           directly convertible.  See :ref:`unit_equivalencies`.
 
         Raises
         ------

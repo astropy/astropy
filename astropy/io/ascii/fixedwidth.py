@@ -321,7 +321,7 @@ class FixedWidth(basic.Basic):
        1.2hello there   3
        2.4many words    7
 
-    See the :ref:`astropy:fixed_width_gallery` for specific usage examples.
+    See the :ref:`fixed_width_gallery` for specific usage examples.
 
     """
 
@@ -388,7 +388,7 @@ class FixedWidthNoHeader(FixedWidth):
     This class is just a convenience wrapper around the ``FixedWidth`` reader
     but with ``header_start=None`` and ``data_start=0``.
 
-    See the :ref:`astropy:fixed_width_gallery` for specific usage examples.
+    See the :ref:`fixed_width_gallery` for specific usage examples.
 
     """
 
@@ -454,7 +454,7 @@ class FixedWidthTwoLine(FixedWidth):
       |  2.4 | there world|
       +------+------------+
 
-    See the :ref:`astropy:fixed_width_gallery` for specific usage examples.
+    See the :ref:`fixed_width_gallery` for specific usage examples.
 
     """
 

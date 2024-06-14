@@ -580,8 +580,8 @@ class Column(NotifierMixin):
     ):
         """
         Construct a `Column` by specifying attributes.  All attributes
-        except ``format`` can be optional; see :ref:`astropy:column_creation`
-        and :ref:`astropy:creating_ascii_table` for more information regarding
+        except ``format`` can be optional; see :ref:`column_creation`
+        and :ref:`creating_ascii_table` for more information regarding
         ``TFORM`` keyword.
 
         Parameters

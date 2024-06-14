@@ -410,7 +410,7 @@ class Ipac(basic.Basic):
     of missing or bad data. On writing, this value defaults to ``null``.
     To specify a different null value, use the ``fill_values`` option to
     replace masked values with a string or number of your choice as
-    described in :ref:`astropy:io_ascii_write_parameters`::
+    described in :ref:`io_ascii_write_parameters`::
 
         >>> from astropy.io.ascii import masked
         >>> fill = [(masked, 'N/A', 'ra'), (masked, -999, 'sptype')]

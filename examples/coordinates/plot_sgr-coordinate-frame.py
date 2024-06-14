@@ -4,7 +4,7 @@ Create a new coordinate class (for the Sagittarius stream)
 ==========================================================
 
 This document describes in detail how to subclass and define a custom spherical
-coordinate frame, as discussed in :ref:`astropy:astropy-coordinates-design` and
+coordinate frame, as discussed in :ref:`astropy-coordinates-design` and
 the docstring for `~astropy.coordinates.BaseCoordinateFrame`. In this example,
 we will define a coordinate system defined by the plane of orbit of the
 Sagittarius Dwarf Galaxy (hereafter Sgr; as defined in Majewski et al. 2003).

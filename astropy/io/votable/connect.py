@@ -152,7 +152,7 @@ def write_table_votable(
     tabledata_format : str, optional
         The format of table data to write.  Must be one of ``tabledata``
         (text representation), ``binary`` or ``binary2``.  Default is
-        ``tabledata``.  See :ref:`astropy:votable-serialization`.
+        ``tabledata``.  See :ref:`votable-serialization`.
     """
     # Only those columns which are instances of BaseColumn or Quantity can be written
     unsupported_cols = input.columns.not_isinstance((BaseColumn, Quantity))

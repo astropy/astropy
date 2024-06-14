@@ -291,7 +291,7 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None, rename=
         >>> cosmo == Planck18
         True
 
-    For further examples, see :doc:`astropy:cosmology/io`.
+    For further examples, see :ref:`cosmology_io`.
     """
     # Get row from table
     # string index uses the indexed column on the table to find the row index.

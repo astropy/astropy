@@ -440,7 +440,7 @@ def writeto(
         ``"ignore"``, ``"warn"``, or ``"exception"``.  May also be any
         combination of ``"fix"`` or ``"silentfix"`` with ``"+ignore"``,
         ``+warn``, or ``+exception" (e.g. ``"fix+warn"``).  See
-        :ref:`astropy:verify` for more info.
+        :ref:`verify` for more info.
 
     overwrite : bool, optional
         If ``True``, overwrite the output file if it exists. Raises an

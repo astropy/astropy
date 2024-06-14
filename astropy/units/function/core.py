@@ -205,7 +205,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
 
         equivalencies : list of tuple
             A list of equivalence pairs to try if the units are not
-            directly convertible.  See :ref:`astropy:unit_equivalencies`.
+            directly convertible.  See :ref:`unit_equivalencies`.
             This list is in addition to the built-in equivalencies between the
             function unit and the physical one, as well as possible global
             defaults set by, e.g., `~astropy.units.set_enabled_equivalencies`.
@@ -245,7 +245,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
 
         equivalencies : list of tuple
             A list of equivalence pairs to try if the units are not
-            directly convertible.  See :ref:`astropy:unit_equivalencies`.
+            directly convertible.  See :ref:`unit_equivalencies`.
             This list is in meant to treat only equivalencies between different
             physical units; the built-in equivalency between the function
             unit and the physical one is automatically taken into account.

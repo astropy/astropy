@@ -44,7 +44,7 @@ class GCRS(BaseRADecFrame):
     center-of-mass rather than the solar system Barycenter.  That means this
     frame includes the effects of aberration (unlike ICRS). For more background
     on the GCRS, see the references provided in the
-    :ref:`astropy:astropy-coordinates-seealso` section of the documentation. (Of
+    :ref:`astropy-coordinates-seealso` section of the documentation. (Of
     particular note is Section 1.2 of
     `USNO Circular 179 <https://arxiv.org/abs/astro-ph/0602086>`_)
 

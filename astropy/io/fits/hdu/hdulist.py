@@ -163,7 +163,7 @@ def fitsopen(
         ``"silentfix"``, ``"ignore"``, ``"warn"``, or
         ``"exception"``.  May also be any combination of ``"fix"`` or
         ``"silentfix"`` with ``"+ignore"``, ``+warn``, or ``+exception"
-        (e.g. ``"fix+warn"``).  See :ref:`astropy:verify` for more info.
+        (e.g. ``"fix+warn"``).  See :ref:`verify` for more info.
 
     use_fsspec : bool, optional
         Use `fsspec.open` to open the file? Defaults to `False` unless
@@ -883,7 +883,7 @@ class HDUList(list, _Verify):
             ``"silentfix"``, ``"ignore"``, ``"warn"``, or
             ``"exception"``.  May also be any combination of ``"fix"`` or
             ``"silentfix"`` with ``"+ignore"``, ``+warn``, or ``+exception"
-            (e.g. ``"fix+warn"``).  See :ref:`astropy:verify` for more info.
+            (e.g. ``"fix+warn"``).  See :ref:`verify` for more info.
 
         verbose : bool
             When `True`, print verbose messages
@@ -987,7 +987,7 @@ class HDUList(list, _Verify):
             ``"silentfix"``, ``"ignore"``, ``"warn"``, or
             ``"exception"``.  May also be any combination of ``"fix"`` or
             ``"silentfix"`` with ``"+ignore"``, ``+warn``, or ``+exception"
-            (e.g. ``"fix+warn"``).  See :ref:`astropy:verify` for more info.
+            (e.g. ``"fix+warn"``).  See :ref:`verify` for more info.
 
         overwrite : bool, optional
             If ``True``, overwrite the output file if it exists. Raises an
@@ -1055,7 +1055,7 @@ class HDUList(list, _Verify):
             ``"silentfix"``, ``"ignore"``, ``"warn"``, or
             ``"exception"``.  May also be any combination of ``"fix"`` or
             ``"silentfix"`` with ``"+ignore"``, ``+warn``, or ``+exception"
-            (e.g. ``"fix+warn"``).  See :ref:`astropy:verify` for more info.
+            (e.g. ``"fix+warn"``).  See :ref:`verify` for more info.
 
         verbose : bool
             When `True`, print out verbose messages.

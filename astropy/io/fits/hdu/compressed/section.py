@@ -22,7 +22,7 @@ class CompImageSection:
     Section slices cannot be assigned to, and modifications to a section are
     not saved back to the underlying file.
 
-    See the :ref:`astropy:data-sections` section of the Astropy documentation
+    See the :ref:`data-sections` section of the Astropy documentation
     for more details.
     """
 

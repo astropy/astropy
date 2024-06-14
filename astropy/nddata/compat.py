@@ -265,7 +265,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
 
         equivalencies : list of tuple
            A list of equivalence pairs to try if the units are not
-           directly convertible.  See :ref:`astropy:unit_equivalencies`.
+           directly convertible.  See :ref:`unit_equivalencies`.
 
         Returns
         -------

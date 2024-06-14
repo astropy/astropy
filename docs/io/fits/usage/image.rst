@@ -242,7 +242,7 @@ However, it remains very useful in the following circumstances:
 * Memory mapping is insufficient for loading images larger than 2 to 4 GB on a 32-bit
   system — in such cases it may be necessary to use sections.
 * Memory mapping does not work for accessing remote FITS files.
-  In this case sections may be your only option. See :ref:`astropy:fits_io_cloud`.
+  In this case sections may be your only option. See :ref:`fits_io_cloud`.
 
 In addition, for compressed FITS files, :attr:`CompImageHDU.section` can be used
 to access and decompress only parts of the data, and can provide a significant

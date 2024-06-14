@@ -33,7 +33,7 @@ class ITRS(BaseCoordinateFrame):
     (ITRS).  This is approximately a geocentric system, although strictly it is
     defined by a series of reference locations near the surface of the Earth (the ITRF).
     For more background on the ITRS, see the references provided in the
-    :ref:`astropy:astropy-coordinates-seealso` section of the documentation.
+    :ref:`astropy-coordinates-seealso` section of the documentation.
 
     This frame also includes frames that are defined *relative* to the center of the Earth,
     but that are offset (in both position and velocity) from the center of the Earth. You

@@ -1109,7 +1109,7 @@ relax : bool or int
       standard.
 
     - `int`: a bit field selecting specific extensions to accept.  See
-      :ref:`astropy:relaxread` for details.
+      :ref:`relaxread` for details.
 
 keysel : sequence of flags
     Used to restrict the keyword types considered:
@@ -2500,7 +2500,7 @@ relax : bool or int
       standard.
 
     - `int`: a bit field selecting specific extensions to write.
-      See :ref:`astropy:relaxwrite` for details.
+      See :ref:`relaxwrite` for details.
 
 Returns
 -------
@@ -2658,7 +2658,7 @@ relax : bool or int, optional
       standard.
 
     - `int`: a bit field selecting specific extensions to accept.  See
-      :ref:`astropy:relaxread` for details.
+      :ref:`relaxread` for details.
 
 naxis : int, optional
     The number of world coordinates axes for the object.  (*naxis* may

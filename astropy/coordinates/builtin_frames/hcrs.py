@@ -34,7 +34,7 @@ class HCRS(BaseRADecFrame):
     of the order of 8 milli-arcseconds.
 
     For more background on the ICRS and related coordinate transformations, see
-    the references provided in the :ref:`astropy:astropy-coordinates-seealso`
+    the references provided in the :ref:`astropy-coordinates-seealso`
     section of the documentation.
 
     The frame attributes are listed under **Other Parameters**.

@@ -1216,7 +1216,7 @@ class Model(metaclass=_ModelMeta):
         that pertains to which model a parameter value pertains to--as
         specified when the model was initialized.
 
-        See the documentation on :ref:`astropy:modeling-model-sets`
+        See the documentation on :ref:`modeling-model-sets`
         for more details.
         """
         return self._model_set_axis
@@ -1420,7 +1420,7 @@ class Model(metaclass=_ModelMeta):
         this property just raises `NotImplementedError` by default (but may be
         assigned a custom value by a user).  ``bounding_box`` can be set
         manually to an array-like object of shape ``(model.n_inputs, 2)``. For
-        further usage, see :ref:`astropy:bounding-boxes`
+        further usage, see :ref:`bounding-boxes`
 
         The limits are ordered according to the `numpy` ``'C'`` indexing
         convention, and are the reverse of the model input order,
@@ -1665,7 +1665,7 @@ class Model(metaclass=_ModelMeta):
 
         This method will force extra model evaluations, which maybe computationally
         expensive. To avoid this, one can add a return_units property to the model,
-        see :ref:`astropy:models_return_units`.
+        see :ref:`models_return_units`.
         """
         units = self.return_units
 
@@ -1805,7 +1805,7 @@ class Model(metaclass=_ModelMeta):
 
         Examples
         --------
-        :ref:`astropy:bounding-boxes`
+        :ref:`bounding-boxes`
         """
         try:
             bbox = self.bounding_box
@@ -3934,7 +3934,7 @@ class CompoundModel(Model):
 
         Examples
         --------
-        :ref:`astropy:bounding-boxes`
+        :ref:`bounding-boxes`
         """
         bbox = self.get_bounding_box()
 
@@ -4305,7 +4305,7 @@ def bind_bounding_box(modelinstance, bounding_box, ignored=None, order="C"):
     modelinstance : `~astropy.modeling.Model` instance
         This is the model that the validated bounding box will be set on.
     bounding_box : tuple
-        A bounding box tuple, see :ref:`astropy:bounding-boxes` for details
+        A bounding box tuple, see :ref:`bounding-boxes` for details
     ignored : list
         List of the inputs to be ignored by the bounding box.
     order : str, optional
@@ -4333,11 +4333,11 @@ def bind_compound_bounding_box(
     modelinstance : `~astropy.modeling.Model` instance
         This is the model that the validated compound bounding box will be set on.
     bounding_boxes : dict
-        A dictionary of bounding box tuples, see :ref:`astropy:bounding-boxes`
+        A dictionary of bounding box tuples, see :ref:`bounding-boxes`
         for details.
     selector_args : list
         List of selector argument tuples to define selection for compound
-        bounding box, see :ref:`astropy:bounding-boxes` for details.
+        bounding box, see :ref:`bounding-boxes` for details.
     create_selector : callable, optional
         An optional callable with interface (selector_value, model) which
         can generate a bounding box based on a selector value and model if
@@ -4586,7 +4586,7 @@ def render_model(model, arr=None, coords=None):
 
     Examples
     --------
-    :ref:`astropy:bounding-boxes`
+    :ref:`bounding-boxes`
     """
     bbox = model.bounding_box
 

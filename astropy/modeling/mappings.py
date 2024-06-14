@@ -20,7 +20,7 @@ class Mapping(FittableModel):
     mapping : tuple
         A tuple of integers representing indices of the inputs to this model
         to return and in what order to return them.  See
-        :ref:`astropy:compound-model-mappings` for more details.
+        :ref:`compound-model-mappings` for more details.
     n_inputs : int
         Number of inputs; if `None` (default) then ``max(mapping) + 1`` is
         used (i.e. the highest input index used in the mapping).
