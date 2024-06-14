@@ -31,11 +31,6 @@ Development quickstart
 This section provides a development quickstart guide for Astropy. With minor changes the
 process will apply to contributing updates to coordinated and many affiliated packages.
 
-If you are not sure where to contribute, take a look at the `Good First Issues
-<https://github.com/astropy/astropy/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`_
-list. These issues are the most accessible ones if you are not familiar with the Astropy
-source code.
-
 .. toctree::
    :maxdepth: 2
 
@@ -50,6 +45,11 @@ advice for making a code change.
    :maxdepth: 1
 
    git_edit_workflow_examples
+
+Congratulations, now you are ready to be an Astropy contributor! If you are not sure where to contribute, take a look at the `Good First Issues
+<https://github.com/astropy/astropy/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`_
+list. These issues are the most accessible ones if you are not familiar with the Astropy
+source code.
 
 Details
 -------
