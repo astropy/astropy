@@ -340,7 +340,10 @@ class SigmaClip:
         return_bounds: bool | None = False,
         copy: bool | None = True,
     ) -> (
-        ArrayLike | tuple[ArrayLike, float, float] | tuple[ArrayLike, NDArray, NDArray]
+        NDArray
+        | np.ma.MaskedArray
+        | tuple[NDArray | np.ma.MaskedArray, float, float]
+        | tuple[NDArray | np.ma.MaskedArray, NDArray, NDArray]
     ):
         """
         Fast C implementation for simple use cases.
@@ -443,7 +446,7 @@ class SigmaClip:
         masked: bool | None = True,
         return_bounds: bool | None = False,
         copy: bool | None = True,
-    ) -> ArrayLike | tuple[ArrayLike, float, float]:
+    ) -> NDArray | np.ma.MaskedArray | tuple[NDArray | np.ma.MaskedArray, float, float]:
         """
         Sigma clip when ``axis`` is None and ``grow`` is not >0.
 
@@ -503,7 +506,10 @@ class SigmaClip:
         return_bounds: bool | None = False,
         copy: bool | None = True,
     ) -> (
-        ArrayLike | tuple[ArrayLike, float, float] | tuple[ArrayLike, NDArray, NDArray]
+        NDArray
+        | np.ma.MaskedArray
+        | tuple[NDArray | np.ma.MaskedArray, float, float]
+        | tuple[NDArray | np.ma.MaskedArray, NDArray, NDArray]
     ):
         """
         Sigma clip the data when ``axis`` or ``grow`` is specified.
@@ -614,7 +620,10 @@ class SigmaClip:
         return_bounds: bool | None = False,
         copy: bool | None = True,
     ) -> (
-        ArrayLike | tuple[ArrayLike, float, float] | tuple[ArrayLike, NDArray, NDArray]
+        NDArray
+        | np.ma.MaskedArray
+        | tuple[NDArray | np.ma.MaskedArray, float, float]
+        | tuple[NDArray | np.ma.MaskedArray, NDArray, NDArray]
     ):
         """
         Perform sigma clipping on the provided data.
