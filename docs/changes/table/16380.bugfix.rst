@@ -1,2 +1,0 @@
-Ensure structured ``MaskedColumn`` are serialized correctly, including
-the mask.

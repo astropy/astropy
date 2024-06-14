@@ -1,3 +1,82 @@
+Version 6.1.1 (2024-06-14)
+==========================
+
+
+Bug Fixes
+---------
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Let fitsdiff compare files with lower case HIERARCH keywords [#16357]
+
+- Fix writing a ``HDUList`` to file when numpy 2 is installed and at least some of
+  the data is represented as dask arrays. [#16384]
+
+- Fix display of diff reports with numpy 2. [#16426]
+
+- Ensure that also zero-length tables preserve whether integer data are
+  signed or unsigned. [#16505]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+- Fix YAML table serialization compatibility with numpy 2. [#16416]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Fix bugs in io.votable related to numpy 2's representation of scalars. [#16442]
+
+astropy.stats
+^^^^^^^^^^^^^
+
+- Ensure that return types from ``sigma_clip`` ``cenfunc`` and ``stdfunc``
+  are np.float64 for scalar values. [#16431]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Ensure structured ``MaskedColumn`` are serialized correctly, including
+  the mask. [#16380]
+
+- Fix problems converting Pandas Series to ``Table`` with numpy >=2.0. [#16439]
+
+astropy.time
+^^^^^^^^^^^^
+
+- Ensure Time in ymdhms format can also be serialized to files as part of a
+  table if it is masked. [#16380]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Ensure Masked versions of ``np.recarray`` will show the correct class
+  name of ``MaskedRecarray`` in their ``repr``, and that they will be
+  serialized correctly if part of a table. [#16380]
+
+- Fix bugs with how masked structured arrays were represented with numpy 2. [#16443]
+
+- ``MaskedQuantity`` now works properly with ``np.block``. [#16499]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Fix a bug where ``WCSAxes`` could be missing negative signs on axis labels when using matplotlib's ``usetex`` mode. [#16406]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fix compilation with gcc 14, avoid implicit pointer conversions. [#16450]
+
+
+Other Changes and Additions
+---------------------------
+
+- Updated bundled WCSLIB version to 8.3. This update changes the behavior of
+  various ``*set`` functions in order to improve stability of WCSLIB in threaded
+  applications. For a full list of changes - see ``astropy/cextern/wcslib/CHANGES``. [#16451]
+
 Version 6.1.0 (2024-05-03)
 ==========================
 
