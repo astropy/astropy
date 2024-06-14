@@ -3,7 +3,6 @@
 Handles the "VOUnit" unit format.
 """
 
-import keyword
 import re
 import warnings
 
@@ -54,14 +53,8 @@ class VOUnit(generic.Generic):
         }  # fmt: skip
 
         def do_defines(bases, prefixes, skips=[]):
-            for base in bases:
-                for prefix in prefixes:
-                    key = prefix + base
-                    if key in skips:
-                        continue
-                    if keyword.iskeyword(key):
-                        continue
-
+            for key, base in utils.get_non_keyword_units(bases, prefixes):
+                if key not in skips:
                     names[key] = getattr(u if hasattr(u, key) else uvo, key)
                     if base in deprecated_units:
                         deprecated_names.add(key)

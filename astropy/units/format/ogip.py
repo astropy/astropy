@@ -17,7 +17,6 @@ FITS files
 """
 
 import copy
-import keyword
 import math
 import warnings
 from fractions import Fraction
@@ -53,7 +52,6 @@ class OGIP(generic.Generic):
     def _generate_unit_names():
         from astropy import units as u
 
-        names = {}
         deprecated_names = set()
         bases = [
             "A", "C", "cd", "eV", "F", "g", "H", "Hz", "J",
@@ -65,12 +63,10 @@ class OGIP(generic.Generic):
             "", "da", "h", "k", "M", "G", "T", "P", "E", "Z", "Y",
         ]  # fmt: skip
 
-        for base in bases:
-            for prefix in prefixes:
-                key = prefix + base
-                if keyword.iskeyword(key):
-                    continue
-                names[key] = getattr(u, key)
+        names = {
+            unit: getattr(u, unit)
+            for unit, _ in utils.get_non_keyword_units(bases, prefixes)
+        }
         simple_units = [
             "angstrom", "arcmin", "arcsec", "AU", "barn", "bin",
             "byte", "chan", "count", "day", "deg", "erg", "G",
