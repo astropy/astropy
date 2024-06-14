@@ -790,7 +790,7 @@ hashes and images.
 
 To run the Astropy tests with the image comparison, use e.g.::
 
-    tox -e py310-test-image-mpl334-cov
+    tox -e py310-test-image-mpl360-cov
 
 However, note that the output can be sensitive to the operating system and
 specific version of libraries such as freetype. In general, using tox will
@@ -855,7 +855,7 @@ generate it, you should run the tests the first time with::
 
 for example::
 
-    tox -e py310-test-image-mpl334-cov -- --mpl-generate-hash-library=astropy/tests/figures/py310-test-image-mpl334-cov.json
+    tox -e py310-test-image-mpl360-cov -- --mpl-generate-hash-library=astropy/tests/figures/py310-test-image-mpl360-cov.json
 
 Then add and commit the new JSON file and try running the tests again. The tests
 may fail in the continuous integration if e.g. the freetype version does not
