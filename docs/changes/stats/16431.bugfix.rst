@@ -1,2 +1,0 @@
-Ensure that return types from ``sigma_clip`` ``cenfunc`` and ``stdfunc``
-are np.float64 for scalar values.

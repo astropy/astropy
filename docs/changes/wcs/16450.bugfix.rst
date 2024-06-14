@@ -1,1 +1,0 @@
-Fix compilation with gcc 14, avoid implicit pointer conversions.
