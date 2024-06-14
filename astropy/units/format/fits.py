@@ -4,8 +4,6 @@
 Handles the "FITS" unit format.
 """
 
-import keyword
-
 import numpy as np
 
 from . import core, generic, utils
@@ -43,15 +41,8 @@ class FITS(generic.Generic):
 
         special_cases = {"dbyte": u.Unit("dbyte", 0.1 * u.byte)}
 
-        for base in bases:
-            for prefix in prefixes:
-                key = prefix + base
-                if keyword.iskeyword(key):
-                    continue
-                elif key in special_cases:
-                    names[key] = special_cases[key]
-                else:
-                    names[key] = getattr(u, key)
+        for key, _ in utils.get_non_keyword_units(bases, prefixes):
+            names[key] = special_cases[key] if key in special_cases else getattr(u, key)
         simple_units = [
             "deg", "arcmin", "arcsec", "mas", "min", "h", "d", "Ry",
             "solMass", "u", "solLum", "solRad", "AU", "lyr", "count",
