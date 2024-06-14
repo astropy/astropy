@@ -84,7 +84,7 @@ Next, clone your GitHub fork to your machine:
     git fetch upstream
 
 This creates the directory ``astropy`` and connects your repository to the upstream
-(main project) `astropy <https://github.com/astropy/astropy>`_ repository.
+(main project) `astropy <https://github.com/astropy/astropy>`__ repository.
 
 .. _create-isolated-env:
 

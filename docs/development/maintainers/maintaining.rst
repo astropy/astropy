@@ -332,7 +332,7 @@ Prerequisites
 
 In order to be able to release a new astropy version, the next permissions are needed:
 
-- Merge rights to the `astropy <https://github.com/astropy/astropy/>`_ and
+- Merge rights to the `astropy <https://github.com/astropy/astropy>`__ and
   `astropy-feedstock <https://github.com/conda-forge/astropy-feedstock/>`_ repositories.
   For the latter, open a PR adding your GitHub username to the conda-forge recipe.
 - Permissions to push to ``main`` in the astropy repository, to push the new tags.
