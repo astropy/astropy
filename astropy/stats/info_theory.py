@@ -4,6 +4,8 @@
 This module contains simple functions for model selection.
 """
 
+from __future__ import annotations
+
 import numpy as np
 
 __all__ = [
@@ -19,7 +21,11 @@ __doctest_requires__ = {
 }
 
 
-def bayesian_info_criterion(log_likelihood, n_params, n_samples):
+def bayesian_info_criterion(
+    log_likelihood: float,
+    n_params: int,
+    n_samples: int,
+) -> float:
     r"""Computes the Bayesian Information Criterion (BIC) given the log of the
     likelihood function evaluated at the estimated (or analytically derived)
     parameters, the number of parameters, and the number of samples.
@@ -119,7 +125,11 @@ def bayesian_info_criterion(log_likelihood, n_params, n_samples):
 
 # NOTE: bic_t - bic_g doctest is skipped because it produced slightly
 # different result in arm64 and big-endian s390x CI jobs.
-def bayesian_info_criterion_lsq(ssr, n_params, n_samples):
+def bayesian_info_criterion_lsq(
+    ssr: float,
+    n_params: int,
+    n_samples: int,
+) -> float:
     r"""
     Computes the Bayesian Information Criterion (BIC) assuming that the
     observations come from a Gaussian distribution.
@@ -205,7 +215,11 @@ def bayesian_info_criterion_lsq(ssr, n_params, n_samples):
     )
 
 
-def akaike_info_criterion(log_likelihood, n_params, n_samples):
+def akaike_info_criterion(
+    log_likelihood: float,
+    n_params: int,
+    n_samples: int,
+) -> float:
     r"""
     Computes the Akaike Information Criterion (AIC).
 
@@ -310,7 +324,11 @@ def akaike_info_criterion(log_likelihood, n_params, n_samples):
     return aic
 
 
-def akaike_info_criterion_lsq(ssr, n_params, n_samples):
+def akaike_info_criterion_lsq(
+    ssr: float,
+    n_params: int,
+    n_samples: int,
+) -> float:
     r"""
     Computes the Akaike Information Criterion assuming that the observations
     are Gaussian distributed.
