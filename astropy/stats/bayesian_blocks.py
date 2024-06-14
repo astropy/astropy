@@ -320,8 +320,8 @@ class FitnessFunc:
     # the fitness_args property will return the list of arguments accepted by
     # the method fitness().  This allows more efficient computation below.
     @property
-    def _fitness_args(self) -> list[str]:
-        return list(signature(self.fitness).parameters.keys())
+    def _fitness_args(self) -> KeysView[str]:
+        return signature(self.fitness).parameters.keys()
 
     def compute_ncp_prior(self, N: int) -> float:
         """
