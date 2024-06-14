@@ -52,7 +52,7 @@ def biweight_location(
     axis: int | tuple[int, ...] | None = None,
     *,
     ignore_nan: bool | None = False,
-) -> float | NDArray:
+) -> float | NDArray[float]:
     r"""
     Compute the biweight location.
 
@@ -188,7 +188,7 @@ def biweight_scale(
     modify_sample_size: bool | None = False,
     *,
     ignore_nan: bool | None = False,
-) -> float | NDArray:
+) -> float | NDArray[float]:
     r"""
     Compute the biweight scale.
 
@@ -314,7 +314,7 @@ def biweight_midvariance(
     modify_sample_size: bool | None = False,
     *,
     ignore_nan: bool | None = False,
-) -> float | NDArray:
+) -> float | NDArray[float]:
     r"""
     Compute the biweight midvariance.
 
