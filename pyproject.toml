@@ -84,7 +84,7 @@ all = [
     "jplephem",
     "mpmath",
     "asdf-astropy>=0.3",
-    "bottleneck",
+    "bottleneck>=1.4.0rc5 ; platform_system!='Windows'",
     "fsspec[http]>=2023.4.0",
     "s3fs>=2023.4.0",
 ]
