@@ -84,7 +84,8 @@ all = [
     "jplephem",
     "mpmath",
     "asdf-astropy>=0.3",
-    "bottleneck",
+    # https://github.com/astropy/astropy/issues/16574
+    "bottleneck>=1.4.0rc5",
     "fsspec[http]>=2023.4.0",
     "s3fs>=2023.4.0",
 ]
