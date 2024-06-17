@@ -40,6 +40,8 @@ keywords = [
 ]
 dependencies = [
     "numpy>=1.23",
+    # https://github.com/astropy/astropy/issues/16578
+    "numpy < 2.0 ; platform_system=='Windows'",
     "pyerfa>=2.0.1.1",
     "astropy-iers-data>=0.2024.5.27.0.30.8",
     "PyYAML>=3.13",
@@ -127,7 +129,7 @@ wcslint = "astropy.wcs.wcslint:main"
 requires = ["setuptools",
             "setuptools_scm>=6.2",
             "cython>=3.0.0,<3.1.0",
-            "numpy>=2.0.0rc1", # see https://github.com/astropy/astropy/issues/16257
+            "numpy>=2.0.0",
             "extension-helpers==1.*"]
 build-backend = "setuptools.build_meta"
 
