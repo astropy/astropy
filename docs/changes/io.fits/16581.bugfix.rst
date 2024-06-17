@@ -1,0 +1,3 @@
+Skip an un-portable hack for Windows if NumPy 2.0 or newer is installed.
+This fixes a crash that occurred for files oopened via
+``fits.open(..., mode='update')``.
