@@ -4,7 +4,6 @@
 This module contains tests for the name resolve convenience module.
 """
 
-import re
 import time
 import urllib.request
 
@@ -114,10 +113,8 @@ def test_names():
     # "all" choice should ask for SIMBAD, then NED, then Vizier: "SNV" in the url
     with pytest.raises(
         NameResolveError,
-        match=re.escape(
-            "Unable to find coordinates for name 'm87h34hhh' "
-            "using https://cds.unistra.fr/cgi-bin/nph-sesame/SNV?m87h34hhh"
-        ),
+        # avoid hard-coding an exact url as it might depend on external state
+        match=r"Unable to find coordinates for name 'm87h34hhh' using http.*SNV.*",
     ):
         get_icrs_coordinates("m87h34hhh")
 
