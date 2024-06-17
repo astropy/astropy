@@ -74,7 +74,7 @@ def bayesian_blocks(
     sigma: ArrayLike | float | None = None,
     fitness: Literal["events", "regular_events", "measures"] | FitnessFunc = "events",
     **kwargs,
-) -> NDArray[float]:
+) -> NDArray[np.floating]:
     r"""Compute optimal segmentation of data with Scargle's Bayesian Blocks.
 
     This is a flexible implementation of the Bayesian Blocks algorithm
@@ -242,7 +242,7 @@ class FitnessFunc:
         t: ArrayLike,
         x: ArrayLike | None = None,
         sigma: float | ArrayLike | None = None,
-    ) -> tuple[NDArray[float], NDArray[float], NDArray[float]]:
+    ) -> tuple[NDArray[np.floating], NDArray[np.floating], NDArray[np.floating]]:
         """Validate inputs to the model.
 
         Parameters
@@ -348,7 +348,7 @@ class FitnessFunc:
         t: ArrayLike,
         x: ArrayLike | None = None,
         sigma: ArrayLike | float | None = None,
-    ) -> NDArray[float]:
+    ) -> NDArray[np.floating]:
         """Fit the Bayesian Blocks model given the specified fitness function.
 
         Parameters
@@ -471,7 +471,9 @@ class Events(FitnessFunc):
         If ``ncp_prior`` is specified, ``gamma`` and ``p0`` is ignored.
     """
 
-    def fitness(self, N_k: NDArray[float], T_k: NDArray[float]) -> NDArray[float]:
+    def fitness(
+        self, N_k: NDArray[np.floating], T_k: NDArray[np.floating]
+    ) -> NDArray[np.floating]:
         # eq. 19 from Scargle 2013
         return N_k * (np.log(N_k / T_k))
 
@@ -480,7 +482,7 @@ class Events(FitnessFunc):
         t: ArrayLike,
         x: ArrayLike | None,
         sigma: float | ArrayLike | None,
-    ) -> tuple[NDArray[float], NDArray[float], NDArray[float]]:
+    ) -> tuple[NDArray[np.floating], NDArray[np.floating], NDArray[np.floating]]:
         t, x, sigma = super().validate_input(t, x, sigma)
         if x is not None and np.any(x % 1 > 0):
             raise ValueError("x must be integer counts for fitness='events'")
@@ -528,13 +530,15 @@ class RegularEvents(FitnessFunc):
         t: ArrayLike,
         x: ArrayLike | None = None,
         sigma: float | ArrayLike | None = None,
-    ) -> tuple[NDArray[float], NDArray[float], NDArray[float]]:
+    ) -> tuple[NDArray[np.floating], NDArray[np.floating], NDArray[np.floating]]:
         t, x, sigma = super().validate_input(t, x, sigma)
         if not np.all((x == 0) | (x == 1)):
             raise ValueError("Regular events must have only 0 and 1 in x")
         return t, x, sigma
 
-    def fitness(self, T_k: NDArray[float], N_k: NDArray[float]) -> NDArray[float]:
+    def fitness(
+        self, T_k: NDArray[np.floating], N_k: NDArray[np.floating]
+    ) -> NDArray[np.floating]:
         # Eq. C23 of Scargle 2013
         M_k = T_k / self.dt
         N_over_M = N_k / M_k
@@ -581,7 +585,9 @@ class PointMeasures(FitnessFunc):
     ) -> None:
         super().__init__(p0, gamma, ncp_prior)
 
-    def fitness(self, a_k: NDArray[float], b_k: ArrayLike) -> NDArray[float]:
+    def fitness(
+        self, a_k: NDArray[np.floating], b_k: ArrayLike
+    ) -> NDArray[np.floating]:
         # eq. 41 from Scargle 2013
         return (b_k * b_k) / (4 * a_k)
 
@@ -590,7 +596,7 @@ class PointMeasures(FitnessFunc):
         t: ArrayLike,
         x: ArrayLike | None,
         sigma: float | ArrayLike | None,
-    ) -> tuple[NDArray[float], NDArray[float], NDArray[float]]:
+    ) -> tuple[NDArray[np.floating], NDArray[np.floating], NDArray[np.floating]]:
         if x is None:
             raise ValueError("x must be specified for point measures")
         return super().validate_input(t, x, sigma)

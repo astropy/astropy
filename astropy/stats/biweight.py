@@ -52,7 +52,7 @@ def biweight_location(
     axis: int | tuple[int, ...] | None = None,
     *,
     ignore_nan: bool | None = False,
-) -> float | NDArray[float]:
+) -> float | NDArray[np.floating]:
     r"""
     Compute the biweight location.
 
@@ -188,7 +188,7 @@ def biweight_scale(
     modify_sample_size: bool | None = False,
     *,
     ignore_nan: bool | None = False,
-) -> float | NDArray[float]:
+) -> float | NDArray[np.floating]:
     r"""
     Compute the biweight scale.
 
@@ -314,7 +314,7 @@ def biweight_midvariance(
     modify_sample_size: bool | None = False,
     *,
     ignore_nan: bool | None = False,
-) -> float | NDArray[float]:
+) -> float | NDArray[np.floating]:
     r"""
     Compute the biweight midvariance.
 
@@ -494,7 +494,7 @@ def biweight_midcovariance(
     c: float | None = 9.0,
     M: float | ArrayLike | None = None,
     modify_sample_size: bool | None = False,
-) -> NDArray[float]:
+) -> NDArray[np.floating]:
     r"""
     Compute the biweight midcovariance between pairs of multiple
     variables.
