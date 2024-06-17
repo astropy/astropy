@@ -24,6 +24,7 @@ from astropy.io.fits.util import (
 )
 from astropy.io.fits.verify import VerifyError, VerifyWarning, _ErrList, _Verify
 from astropy.utils import indent
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2
@@ -1506,7 +1507,7 @@ class HDUList(list, _Verify):
                     del hdu.data
                 hdu._file = ffo
 
-            if sys.platform.startswith("win"):
+            if sys.platform.startswith("win") and NUMPY_LT_2_0:
                 # On Windows, all the original data mmaps were closed above.
                 # However, it's possible that the user still has references to
                 # the old data which would no longer work (possibly even cause
@@ -1517,6 +1518,8 @@ class HDUList(list, _Verify):
                 # lead to odd behavior in practice.  Better to just not keep
                 # references to data from files that had to be resized upon
                 # flushing (on Windows--again, this is no problem on Linux).
+                # Note that this hack is only possible on numpy 1.x:
+                # in 2.x, we cannot write directly to the data attribute
                 for idx, mmap, arr in mmaps:
                     if mmap is not None:
                         # https://github.com/numpy/numpy/issues/8628
