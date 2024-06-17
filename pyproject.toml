@@ -105,6 +105,7 @@ docs = [
     "tomli; python_version < '3.11'",
     "sphinxcontrib-globalsubs >= 0.1.1",
     "matplotlib!=3.9.0",  # https://github.com/matplotlib/matplotlib/issues/28234
+    "numpy<2.0", # keep the docs consistent throughout branch history (v6.1.x)
 ]
 
 [project.urls]
