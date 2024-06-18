@@ -28,7 +28,7 @@ from astropy.utils.misc import did_you_mean
 
 from . import core
 from .base import Base
-from .utils import did_you_mean_units, unit_deprecation_warning
+from .utils import _try_decomposed, unit_deprecation_warning
 
 if TYPE_CHECKING:
     from astropy.units import NamedUnit, UnitBase
@@ -604,18 +604,41 @@ class Generic(Base):
             if detailed_exception:
                 raise ValueError(
                     f"Unit '{unit}' not supported by the {cls.__name__} standard. "
-                    + did_you_mean_units(
-                        unit,
-                        cls._units,
-                        cls._deprecated_units,
-                        cls._to_decomposed_alternative,
-                    ),
+                    + cls._did_you_mean_units(unit)
                 )
             raise ValueError()
         if unit in cls._deprecated_units:
             unit_deprecation_warning(
                 unit, cls._units[unit], cls.__name__, cls._to_decomposed_alternative
             )
+
+    @classmethod
+    def _did_you_mean_units(cls, unit: str) -> str:
+        """
+        A wrapper around `astropy.utils.misc.did_you_mean` that deals with
+        the display of deprecated units.
+
+        Parameters
+        ----------
+        unit : str
+            The invalid unit string
+
+        Returns
+        -------
+        msg : str
+            A message with alternatives, or the empty string.
+        """
+
+        def fix_deprecated(x: str) -> list[str]:
+            if x not in cls._deprecated_units:
+                return [x]
+            results = [x + " (deprecated)"]
+            decomposed = _try_decomposed(cls._units[x], cls._to_decomposed_alternative)
+            if decomposed is not None:
+                results.append(decomposed)
+            return results
+
+        return did_you_mean(unit, cls._units, fix=fix_deprecated)
 
     @classmethod
     def _to_decomposed_alternative(cls, unit: UnitBase) -> str:
