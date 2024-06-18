@@ -91,7 +91,7 @@ def parallel_fit_model_nd(
     ndim = data.ndim
     if not isinstance(fitting_axes, tuple):
         fitting_axes = (fitting_axes,)
-    fitting_axes = tuple([(fi if fi > 0 else ndim - fi) for fi in fitting_axes])
+    fitting_axes = tuple([(fi if fi >= 0 else ndim - fi) for fi in fitting_axes])
     iterating_axes = tuple([i for i in range(ndim) if i not in fitting_axes])
 
     # Determine the shape along the fitting dimensions and the iterating dimensions
