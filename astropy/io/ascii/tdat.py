@@ -10,7 +10,7 @@ import re
 from collections import OrderedDict
 from copy import deepcopy
 from warnings import warn
-
+import numpy as np
 from astropy.utils.exceptions import AstropyWarning
 
 from . import core
@@ -52,6 +52,7 @@ class TdatMeta:
     _keywords = None
     _col_lines = None
     _line_fields = None
+    _idx_lines = None
     _delimiter = "|"
 
     # _deprecated_keywords = ("record_delimiter", "field_delimiter")
@@ -118,6 +119,7 @@ class TdatMeta:
         keywords = OrderedDict()
         col_lines = []
         line_fields = OrderedDict()
+        idx_lines = {"key": None, "index": []}
 
         keys_parser = re.compile(self._keys)
         extra_keys_parser = re.compile(self._extra_keys)
@@ -160,10 +162,15 @@ class TdatMeta:
             else:
                 if "field" in line:
                     col_lines.append(line)
+                    if "(key)" in line:
+                        idx_lines["key"] = line.split("]")[0].split("[")[1]
+                    elif "(index)" in line:
+                        idx_lines["index"] += [line.split("]")[0].split("[")[1]]
         # check we have the required keywords
 
         self._comments = [c for c in self._process_lines(lines, "comment")]
         self._col_lines = col_lines
+        self._idx_lines = idx_lines
 
         # raise an error if no 'line[...] is found in the header'
         if len(line_fields) == 0:
@@ -186,6 +193,7 @@ class TdatHeader(core.BaseHeader, TdatMeta):
 
     start_line = 0
     write_comment = "#"
+    cols = None
 
     def update_meta(self, lines, meta):
         """Extract meta information: comments and key/values in the header
@@ -195,6 +203,7 @@ class TdatHeader(core.BaseHeader, TdatMeta):
         meta["table"]["comments"] = self._comments
         meta["table"]["keywords"] = self._keywords
         meta["table"]["field_lines"] = self._col_lines
+        meta["table"]["index_lines"] = self._idx_lines
 
     def process_lines(self, lines):
         """Select lines between <HEADER> and <DATA>"""
@@ -231,6 +240,8 @@ class TdatHeader(core.BaseHeader, TdatMeta):
             cmatch = col_parser.match(line)
             if cmatch:
                 col = core.Column(name=cmatch.group("name"))
+                col.meta = OrderedDict()
+
                 ctype = cmatch.group("ctype")
                 if "int" in ctype:
                     col.dtype = int
@@ -240,8 +251,10 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                     col.dtype = float
                 col.unit = cmatch.group("unit")
                 col.format = cmatch.group("fmt")
-                col.description = f'{cmatch.group("desc")}{cmatch.group("comment")}'
-                col.comment = cmatch.group("comment")
+                col.description = f'{cmatch.group("desc")}'
+                col.meta['comment'] = cmatch.group("comment")
+                col.meta['ucd'] = cmatch.group('ucd')
+                col.meta['index'] = cmatch.group('idx')
                 cols.append(col)
 
         self.names = [col.name for col in cols]
@@ -266,11 +279,54 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                 lines.append(self.write_comment + comment)
 
     def write(self, lines):
+        """Write the Table out to a TDAT formatted file.
+
+        The header will be auto-populated by information in the Table,
+        prioritizing information given in the Table.meta. The keys in the meta
+        are as follows:
+            comments : list or string, (optional)
+                Table information which provide context. This information is
+                included in the header preceding all other lines and commented
+                out.
+            keywords : OrderedDict, (optional, recommended)
+                Header keywords which will appear in the file as "name=value" lines.
+                Of particular importance are `table_name`, `table_description`,
+                and `table_document_url`.
+                `table_name` is a required keyword for the TDAT format and will
+                be autopopulated with "astropy_table" if not specified in
+                Table.meta["keywords"]
+            field_lines : list, (optional)
+                Specifications for each data column in the TDAT field format.
+                See https://heasarc.gsfc.nasa.gov/docs/software/dbdocs/tdat.html
+                for details. If this is not specified, field_lines will be
+                inferred fromt the Column information. The `name`, `unit`, `format`
+                and `description` are inferred directly from Column attributes,
+                and the `index` tag, `ucd` and `comment` specifications can be
+                included in Column.meta.
+                For `ucd`, see https://cdsweb.u-strasbg.fr/UCD/ for acceptable entries.
+
+        If there is no Table.meta, this writer will attempt to automatically
+        generate the appropriate header information based on the table and
+        column properties and the recommendations for the TDAT fromat by HEASARC.
+
+        Parameters
+        ----------
+        lines : _type_
+            _description_
+
+        Raises
+        ------
+        ValueError
+            _description_
+        TdatFormatError
+            _description_
+        """
         if self.splitter.delimiter not in [" ", "|"]:
             raise ValueError("only pipe and space delimitter is allowed in tdat format")
-        """Write the keywords and column descriptors"""
+        # Write the keywords and column descriptors
         keywords = deepcopy(self.table_meta.get("keywords", None))
         col_lines = self.table_meta.get("field_lines", None)
+
         if keywords is not None:
             if "table_name" not in keywords:
                 raise TdatFormatError(
@@ -287,7 +343,7 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                     lines.append(f"{key} = {keywords.pop(key)}")
         else:
             lines.append("table_name = astropy_table")
-            lines.append("table_description = A table created via astropy")
+            lines.append('table_description = "A table created via astropy"')
 
         # add table columns as fields
         lines.append("#")
@@ -308,8 +364,17 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                 if col.format is not None:
                     field_line += f":{col.format}"
                 if col.unit is not None:
-                    field_line += f"_{col.unit}"
+                    field_line += f"_{col.unit:vounit}"
+                if "ucd" in col.meta:
+                    field_line += f" [{col.meta['ucd']}]"
+                if "index" in col.meta:
+                    field_line += f" ({col.meta['index']})"
+                if col.description is not None:
+                    field_line += f" // {col.description}"
+                if "comment" in col.meta:
+                    field_line += f" // {col.meta['comment']}"
                 lines.append(field_line)
+
         if keywords is not None and len(keywords) != 0:
             if "parameter_defaults" in keywords:
                 lines.append("#")
@@ -440,8 +505,48 @@ class TdatData(core.BaseData, TdatMeta):
 
         col_str_iters = self.str_vals()
         for vals in zip(*col_str_iters):
+            # TDAT specification requires a delimiter at the end of each record
             lines.append(self.splitter.join(vals) + "|")
         lines.append("<END>")
+
+
+class TdatOutputter(core.TableOutputter):
+    """
+    Output the table as an astropy.table.Table object.
+    """
+
+    def __call__(self, cols, meta):
+        """
+        READ: Override the default outputter.
+        TDAT files may (optionally) specify which field lines should be used as
+        the primary index and secondary indices Astropy tables support adding
+        indices after creation. This overwrite adds labeled indices on read.
+        """
+        # Sets col.data to numpy array and col.type to io.ascii Type class (e.g.
+        # FloatType) for each col.
+        self._convert_vals(cols)
+
+        t_cols = [
+            np.ma.MaskedArray(x.data, mask=x.mask)
+            if hasattr(x, "mask") and np.any(x.mask)
+            else x.data
+            for x in cols
+        ]
+        out = core.Table(t_cols, names=[x.name for x in cols], meta=meta["table"])
+
+        for col, out_col in zip(cols, out.columns.values()):
+            for attr in ("format", "unit", "description"):
+                if hasattr(col, attr):
+                    setattr(out_col, attr, getattr(col, attr))
+            if hasattr(col, "meta"):
+                out_col.meta.update(col.meta)
+        # Add indices, if specified
+        if meta["table"]["index_lines"]["key"] is not None:
+            out.add_index(meta["table"]["index_lines"]["key"])
+        if len(meta["table"]["index_lines"]["index"]) > 0:
+            for idx in meta["table"]["index_lines"]["index"]:
+                out.add_index(idx)
+        return out
 
 
 class Tdat(core.BaseReader):
@@ -454,6 +559,7 @@ class Tdat(core.BaseReader):
 
     header_class = TdatHeader
     data_class = TdatData
+    outputter_class = TdatOutputter
 
     def inconsistent_handler(self, str_vals, ncols):
         """Remove the last field separator if it exists"""
