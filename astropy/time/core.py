@@ -1659,9 +1659,9 @@ class TimeBase(ShapedLikeNDArray):
     def ptp(self, axis=None, out=None, keepdims=False):
         """Peak to peak (maximum - minimum) along a given axis.
 
-        This is similar to :meth:`~numpy.ndarray.ptp`, but adapted to ensure
-        that the full precision given by the two doubles ``jd1`` and ``jd2``
-        is used.
+        This method is similar to the :func:`numpy.ptp` function, but
+        adapted to ensure that the full precision given by the two doubles
+        ``jd1`` and ``jd2`` is used.
 
         Note that the ``out`` argument is present only for compatibility with
         `~numpy.ptp`; since `Time` instances are immutable, it is not possible
