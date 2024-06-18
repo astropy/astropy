@@ -11,9 +11,11 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from typing import Literal
+    from typing import Literal, TypeAlias
 
     from numpy.typing import NDArray
+
+    _ModeOps: TypeAlias = Literal["none", "translation", "ohser", "var-width", "ripley"]
 
 __all__ = ["RipleysKEstimator"]
 
@@ -142,7 +144,7 @@ class RipleysKEstimator:
         self,
         data: NDArray[np.floating],
         radii: NDArray[np.floating],
-        mode: Literal["none", "translation", "ohser", "var-width", "ripley"] = "none",
+        mode: _ModeOps = "none",
     ) -> NDArray[np.floating]:
         return self.evaluate(data=data, radii=radii, mode=mode)
 
@@ -178,7 +180,7 @@ class RipleysKEstimator:
         self,
         data: NDArray[np.floating],
         radii: NDArray[np.floating],
-        mode: Literal["none", "translation", "ohser", "var-width", "ripley"] = "none",
+        mode: _ModeOps = "none",
     ) -> NDArray[np.floating]:
         """
         Evaluates the L function at ``radii``. For parameter description
@@ -190,7 +192,7 @@ class RipleysKEstimator:
         self,
         data: NDArray[np.floating],
         radii: NDArray[np.floating],
-        mode: Literal["none", "translation", "ohser", "var-width", "ripley"] = "none",
+        mode: _ModeOps = "none",
     ) -> NDArray[np.floating]:
         """
         Evaluates the H function at ``radii``. For parameter description
@@ -202,7 +204,7 @@ class RipleysKEstimator:
         self,
         data: NDArray[np.floating],
         radii: NDArray[np.floating],
-        mode: Literal["none", "translation", "ohser", "var-width", "ripley"] = "none",
+        mode: _ModeOps = "none",
     ) -> NDArray[np.floating]:
         """
         Evaluates the Ripley K estimator for a given set of values ``radii``.
