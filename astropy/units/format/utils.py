@@ -11,17 +11,9 @@ from keyword import iskeyword
 from typing import TYPE_CHECKING
 
 from astropy.units.utils import maybe_simple_fraction
-from astropy.utils.misc import did_you_mean
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        Callable,
-        Container,
-        Generator,
-        Iterable,
-        Mapping,
-        Sequence,
-    )
+    from collections.abc import Callable, Generator, Iterable, Sequence
     from numbers import Real
     from typing import TypeVar
 
@@ -175,50 +167,6 @@ def _try_decomposed(
             return decompose_string
 
     return None
-
-
-def did_you_mean_units(
-    s: str,
-    all_units: Mapping[str, UnitBase],
-    deprecated_units: Container[str],
-    format_decomposed: Callable[[UnitBase], str | None],
-) -> str:
-    """
-    A wrapper around `astropy.utils.misc.did_you_mean` that deals with
-    the display of deprecated units.
-
-    Parameters
-    ----------
-    s : str
-        The invalid unit string
-
-    all_units : dict
-        A mapping from valid unit names to unit objects.
-
-    deprecated_units : sequence
-        The deprecated unit names
-
-    format_decomposed : callable
-        A function to turn a decomposed version of the unit into a
-        string.  Should return `None` if not possible
-
-    Returns
-    -------
-    msg : str
-        A string message with a list of alternatives, or the empty
-        string.
-    """
-
-    def fix_deprecated(x: str) -> list[str] | tuple[str]:
-        if x in deprecated_units:
-            results = [x + " (deprecated)"]
-            decomposed = _try_decomposed(all_units[x], format_decomposed)
-            if decomposed is not None:
-                results.append(decomposed)
-            return results
-        return (x,)
-
-    return did_you_mean(s, all_units, fix=fix_deprecated)
 
 
 def unit_deprecation_warning(

@@ -92,12 +92,9 @@ class VOUnit(generic.Generic):
 
             if cls._custom_unit_regex.match(t.value):
                 warnings.warn(
-                    f"Unit {t.value!r} not supported by the VOUnit standard. "
-                    + utils.did_you_mean_units(
-                        t.value,
-                        cls._units,
-                        cls._deprecated_units,
-                        cls._to_decomposed_alternative,
+                    (
+                        f"Unit {t.value!r} not supported by the VOUnit standard. "
+                        + cls._did_you_mean_units(t.value)
                     ),
                     core.UnitsWarning,
                 )
