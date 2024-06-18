@@ -1,3 +1,5 @@
-Skip an un-portable hack for Windows if NumPy 2.0 or newer is installed.
-This fixes a crash that occurred for files oopened via
-``fits.open(..., mode='update')``.
+Fixed a crash that occurred for files opened via
+``fits.open(..., mode='update')``, on Windows, and with numpy 2.0 installed.
+It is possible, though unlikely, that this patch reveals memory issues
+for downstream code run under these exact conditions. Please report any
+regression found.
