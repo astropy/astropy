@@ -31,7 +31,8 @@ __all__ = [
 def _stat_functions(
     data: ArrayLike,
     ignore_nan: bool | None = False,
-) -> tuple[Callable, Callable]:
+) -> tuple[Callable[..., NDArray[np.floating]], Callable[..., NDArray[np.floating]]]:
+    # TODO: typing: update return Callables with custom callback protocol (https://mypy.readthedocs.io/en/stable/protocols.html#callback-protocols)
     if isinstance(data, np.ma.MaskedArray):
         median_func = np.ma.median
         sum_func = np.ma.sum
