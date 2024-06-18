@@ -105,14 +105,7 @@ class VOUnit(generic.Generic):
 
     @classmethod
     def _parse_unit(cls, unit, detailed_exception=True):
-        if unit not in cls._units:
-            raise ValueError()
-
-        if unit in cls._deprecated_units:
-            utils.unit_deprecation_warning(
-                unit, cls._units[unit], "VOUnit", cls._to_decomposed_alternative
-            )
-
+        super()._validate_unit(unit, detailed_exception=False)
         return cls._units[unit]
 
     @classmethod
