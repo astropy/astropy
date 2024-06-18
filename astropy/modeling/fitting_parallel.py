@@ -21,17 +21,14 @@ def fit_models_to_chunk(
     if data.ndim == 0 or data.size == 0 or block_info is None or block_info == []:
         return np.array(parameters)
 
-    # BUG: fitter doesn't work correctly if pickled/unpickled
-    from astropy.modeling.fitting import LMLSQFitter
-
-    fitter = LMLSQFitter()
+    parameters = np.array(parameters)
 
     # Iterate over the first axis and fit each model in turn
     for i in range(data.shape[0]):
         # Make a copy of the reference model and inject parameters
         model_i = model.copy()
         for ipar, name in enumerate(model_i.param_names):
-            setattr(model_i, name, parameters[ipar][i])
+            setattr(model_i, name, parameters[ipar, i])
 
         # Do the actual fitting
         model_fit = fitter(model_i, *world, data[i])
@@ -40,9 +37,9 @@ def fit_models_to_chunk(
         # created in-memory by dask and are local to this process so should be
         # safe to modify in-place
         for ipar, name in enumerate(model_fit.param_names):
-            parameters[ipar][i] = getattr(model_fit, name).value
+            parameters[ipar, i] = getattr(model_fit, name).value
 
-    return np.array(parameters)
+    return parameters
 
 
 def parallel_fit_model_nd(
