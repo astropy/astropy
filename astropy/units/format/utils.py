@@ -6,7 +6,6 @@ Utilities shared by the different formats.
 
 from __future__ import annotations
 
-import warnings
 from keyword import iskeyword
 from typing import TYPE_CHECKING
 
@@ -167,40 +166,6 @@ def _try_decomposed(
             return decompose_string
 
     return None
-
-
-def unit_deprecation_warning(
-    s: str,
-    unit: UnitBase,
-    standard_name: str,
-    format_decomposed: Callable[[UnitBase], str | None],
-) -> None:
-    """
-    Raises a UnitsWarning about a deprecated unit in a given format.
-    Suggests a decomposed alternative if one is available.
-
-    Parameters
-    ----------
-    s : str
-        The deprecated unit name.
-
-    unit : astropy.units.core.UnitBase
-        The unit object.
-
-    standard_name : str
-        The name of the format for which the unit is deprecated.
-
-    format_decomposed : callable
-        A function to turn a decomposed version of the unit into a
-        string.  Should return `None` if not possible
-    """
-    from astropy.units.core import UnitsWarning
-
-    message = f"The unit '{s}' has been deprecated in the {standard_name} standard."
-    decomposed = _try_decomposed(unit, format_decomposed)
-    if decomposed is not None:
-        message += f" Suggested: {decomposed}."
-    warnings.warn(message, UnitsWarning)
 
 
 def get_non_keyword_units(
