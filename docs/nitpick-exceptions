@@ -89,7 +89,6 @@ py:class np.number
 # numpy.typing
 py:class NDArray
 py:class ArrayLike
-py:class np.floating
 # np.ma
 py:class np.ma.MaskedArray
 # locally defined type variable for ndarray dtype
