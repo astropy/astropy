@@ -74,14 +74,13 @@ First, create a `GitHub Fork
 <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo>`_ by going to the `astropy project page <https://github.com/astropy/astropy>`_
 and hitting the ``Fork`` button.
 
-Next, clone your GitHub fork to your machine:
+Next, `clone <https://git-scm.com/docs/git-clone>`__ your GitHub fork to your machine:
 
 .. code-block:: shell
 
     git clone https://github.com/YOUR-USER-NAME/astropy.git
     cd astropy
     git remote add upstream https://github.com/astropy/astropy.git
-    git fetch upstream
 
 This creates the directory ``astropy`` and connects your repository to the upstream
 (main project) `astropy <https://github.com/astropy/astropy>`__ repository.
@@ -144,7 +143,6 @@ Next you may want to try running some or all of the ``astropy`` unit tests.
 Running the full test suite can take a while, so you may want to start with a subset
 of only the coordinates tests::
 
-.. code-block:: shell
 
    pytest astropy/coordinates
    pytest
@@ -188,8 +186,8 @@ GitHub and Git
 --------------
 
 Astropy is hosted on `GitHub <https://www.github.com/astropy/astropy>`_, and to
-contribute, you will need to sign up for a `free GitHub account
-<https://github.com/signup/free>`_.
+contribute, you will need to `create a GitHub account
+<https://docs.github.com/en/get-started/start-your-journey/creating-an-account-on-github>`_.
 
 We use `Git <https://git-scm.com/>`_ for version control and to allow many people to
 work together on the project. If you are new to Git then take a moment to look at the
@@ -218,15 +216,12 @@ Now create a feature branch for making your changes. For example::
 This changes your working branch from ``main`` to the ``subpackage-new-feature`` branch.
 Keep any changes in this branch specific to one bug or feature so it is clear what the
 branch brings to astropy. You can have many feature branches and switch in between them
-using the ``git switch`` command.
+using the `git switch <https://git-scm.com/docs/git-switch>`_ command.
 
 Using a descriptive branch name can help you stay organized. For example
-```io-ascii-commented-header-15513``` might be a good name for a branch that fixes the
+```io-ascii-commented-header``` might be a good name for a branch that fixes the
 commented header issue `#15513 <https://github.com/astropy/astropy/issues/15513>`_ in
 the ``io.ascii`` sub-package.
-
-.. Important:: Never use the ``main`` branch for making changes. Always create a new
-   feature branch for your changes.
 
 When you want to update the feature branch with changes in main after
 you created the branch, check the section on
@@ -258,7 +253,7 @@ You can see all the changes you've currently made by running:
     git status
 
 You can then commit your all your changes to your local repository with an explanatory
-commit message:
+`commit message <https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html>`_:
 
 .. code-block:: shell
 
@@ -305,7 +300,7 @@ Now your code is on GitHub, but it is not visible to the Astropy maintainers. Fo
 to happen, a pull request needs to be submitted on GitHub.
 
 The first time you push to a new branch on GitHub, you will see a message like below
-with a useful link to create a pull request:
+with a useful link to create a pull request::
 
   remote: Create a pull request for 'subpackage-new-feature' on GitHub by visiting:
   remote:      https://github.com/yourname/astropy/pull/new/subpackage-new-feature
