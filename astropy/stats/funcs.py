@@ -1536,7 +1536,7 @@ def kuiper_two(data1: ArrayLike, data2: ArrayLike) -> tuple[float, float]:
 
 def fold_intervals(
     intervals: list[tuple[float, float, float]],
-) -> tuple[NDArray[np.floating], NDArray[np.floating]]:
+) -> tuple[NDArray[float], NDArray[float]]:
     """Fold the weighted intervals to the interval (0,1).
 
     Convert a list of intervals (ai, bi, wi) to a list of non-overlapping
@@ -1588,9 +1588,7 @@ def fold_intervals(
     return np.array(breaks), totals
 
 
-def cdf_from_intervals(
-    breaks: NDArray[np.floating], totals: NDArray[np.floating]
-) -> Callable:
+def cdf_from_intervals(breaks: NDArray[float], totals: NDArray[float]) -> Callable:
     """Construct a callable piecewise-linear CDF from a pair of arrays.
 
     Take a pair of arrays in the format returned by fold_intervals and
@@ -1658,8 +1656,8 @@ def interval_overlap_length(i1: tuple[float, float], i2: tuple[float, float]) ->
 
 
 def histogram_intervals(
-    n: int, breaks: NDArray[np.floating], totals: NDArray[np.floating]
-) -> NDArray[np.floating]:
+    n: int, breaks: NDArray[float], totals: NDArray[float]
+) -> NDArray[float]:
     """Histogram of a piecewise-constant weight function.
 
     This function takes a piecewise-constant weight function and

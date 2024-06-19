@@ -31,7 +31,7 @@ __all__ = [
 def _stat_functions(
     data: ArrayLike,
     ignore_nan: bool | None = False,
-) -> tuple[Callable[..., NDArray[np.floating]], Callable[..., NDArray[np.floating]]]:
+) -> tuple[Callable[..., NDArray[float]], Callable[..., NDArray[float]]]:
     # TODO: typing: update return Callables with custom callback protocol (https://mypy.readthedocs.io/en/stable/protocols.html#callback-protocols)
     if isinstance(data, np.ma.MaskedArray):
         median_func = np.ma.median
@@ -53,7 +53,7 @@ def biweight_location(
     axis: int | tuple[int, ...] | None = None,
     *,
     ignore_nan: bool | None = False,
-) -> float | NDArray[np.floating]:
+) -> float | NDArray[float]:
     r"""
     Compute the biweight location.
 
@@ -189,7 +189,7 @@ def biweight_scale(
     modify_sample_size: bool | None = False,
     *,
     ignore_nan: bool | None = False,
-) -> float | NDArray[np.floating]:
+) -> float | NDArray[float]:
     r"""
     Compute the biweight scale.
 
@@ -315,7 +315,7 @@ def biweight_midvariance(
     modify_sample_size: bool | None = False,
     *,
     ignore_nan: bool | None = False,
-) -> float | NDArray[np.floating]:
+) -> float | NDArray[float]:
     r"""
     Compute the biweight midvariance.
 
@@ -495,7 +495,7 @@ def biweight_midcovariance(
     c: float | None = 9.0,
     M: float | ArrayLike | None = None,
     modify_sample_size: bool | None = False,
-) -> NDArray[np.floating]:
+) -> NDArray[float]:
     r"""
     Compute the biweight midcovariance between pairs of multiple
     variables.

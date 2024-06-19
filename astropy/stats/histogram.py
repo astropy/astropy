@@ -36,7 +36,7 @@ def calculate_bin_edges(
     | None = 10,
     range: tuple[int | float, int | float] | None = None,
     weights: ArrayLike | None = None,
-) -> NDArray[np.floating]:
+) -> NDArray[float]:
     """
     Calculate histogram bin edges like ``numpy.histogram_bin_edges``.
 
