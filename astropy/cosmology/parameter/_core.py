@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 _VT = TypeVar("_VT")  # the type of the VParameter value
-FValidateCallableT: TypeAlias = Callable[["Cosmology", "Parameter", Any], _VT]
+_FValidateCallable: TypeAlias = Callable[["Cosmology", "Parameter", Any], _VT]
 
 
 class Sentinel(Enum):
@@ -56,11 +56,11 @@ class _UnitField:
 
 @dataclass(frozen=True)
 class _FValidateField(Generic[_VT]):
-    default: FValidateCallableT[_VT] | str = "default"
+    default: _FValidateCallable[_VT] | str = "default"
 
     def __get__(
         self, obj: Parameter | None, objcls: type[Parameter] | None
-    ) -> FValidateCallableT[_VT] | str:
+    ) -> _FValidateCallable[_VT] | str:
         if obj is None:  # calling `Parameter.fvalidate` from the class
             return self.default
         return obj._fvalidate  # calling `Parameter.fvalidate` from an instance
@@ -153,8 +153,8 @@ class Parameter(Generic[_VT]):
     """
 
     def __post_init__(self) -> None:
-        self._fvalidate_in: FValidateCallableT[_VT] | str
-        self._fvalidate: FValidateCallableT[_VT]
+        self._fvalidate_in: _FValidateCallable[_VT] | str
+        self._fvalidate: _FValidateCallable[_VT]
         object.__setattr__(self, "__doc__", self.doc)
         # Now setting a dummy attribute name. The cosmology class will call
         # `__set_name__`, passing the real attribute name. However, if Parameter is not
@@ -225,7 +225,7 @@ class Parameter(Generic[_VT]):
     # -------------------------------------------
     # validate value
 
-    def validator(self, fvalidate: FValidateCallableT[_VT]) -> Self:
+    def validator(self, fvalidate: _FValidateCallable[_VT]) -> Self:
         """Make new Parameter with custom ``fvalidate``.
 
         Note: ``Parameter.fvalidator`` must be the top-most descriptor decorator.
@@ -261,21 +261,21 @@ class Parameter(Generic[_VT]):
     @overload
     @staticmethod
     def register_validator(
-        key: str, fvalidate: FValidateCallableT[_VT]
-    ) -> FValidateCallableT[_VT]: ...
+        key: str, fvalidate: _FValidateCallable[_VT]
+    ) -> _FValidateCallable[_VT]: ...
 
     @overload
     @staticmethod
     def register_validator(
         key: str, fvalidate: None = None
-    ) -> Callable[[FValidateCallableT[_VT]], FValidateCallableT[_VT]]: ...
+    ) -> Callable[[_FValidateCallable[_VT]], _FValidateCallable[_VT]]: ...
 
     @staticmethod
     def register_validator(
-        key: str, fvalidate: FValidateCallableT[_VT] | None = None
+        key: str, fvalidate: _FValidateCallable[_VT] | None = None
     ) -> (
-        FValidateCallableT[_VT]
-        | Callable[[FValidateCallableT[_VT]], FValidateCallableT[_VT]]
+        _FValidateCallable[_VT]
+        | Callable[[_FValidateCallable[_VT]], _FValidateCallable[_VT]]
     ):
         """Decorator to register a new kind of validator function.
 
