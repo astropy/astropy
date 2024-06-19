@@ -19,6 +19,7 @@ from __future__ import annotations
 import re
 import unicodedata
 import warnings
+from contextlib import suppress
 from copy import copy
 from fractions import Fraction
 from typing import TYPE_CHECKING
@@ -28,7 +29,6 @@ from astropy.utils.misc import did_you_mean
 
 from . import core
 from .base import Base
-from .utils import _try_decomposed
 
 if TYPE_CHECKING:
     from astropy.units import NamedUnit, UnitBase
@@ -613,10 +613,7 @@ class Generic(Base):
             message = (
                 f"The unit '{unit}' has been deprecated in the {cls.__name__} standard."
             )
-            decomposed = _try_decomposed(
-                cls._units[unit], cls._to_decomposed_alternative
-            )
-            if decomposed is not None:
+            if (decomposed := cls._try_decomposed(cls._units[unit])) is not None:
                 message += f" Suggested: {decomposed}."
             warnings.warn(message, UnitsWarning)
 
@@ -641,12 +638,21 @@ class Generic(Base):
             if x not in cls._deprecated_units:
                 return [x]
             results = [x + " (deprecated)"]
-            decomposed = _try_decomposed(cls._units[x], cls._to_decomposed_alternative)
-            if decomposed is not None:
+            if (decomposed := cls._try_decomposed(cls._units[x])) is not None:
                 results.append(decomposed)
             return results
 
         return did_you_mean(unit, cls._units, fix=fix_deprecated)
+
+    @classmethod
+    def _try_decomposed(cls, unit: UnitBase) -> str | None:
+        if (represents := getattr(unit, "_represents", None)) is not None:
+            with suppress(ValueError):
+                return cls._to_decomposed_alternative(represents)
+        if (decomposed := unit.decompose()) is not unit:
+            with suppress(ValueError):
+                return cls._to_decomposed_alternative(decomposed)
+        return None
 
     @classmethod
     def _to_decomposed_alternative(cls, unit: UnitBase) -> str:

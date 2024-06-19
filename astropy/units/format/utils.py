@@ -144,30 +144,6 @@ def format_power(power: Real) -> str:
     return str(power)
 
 
-def _try_decomposed(
-    unit: UnitBase, format_decomposed: Callable[[UnitBase], str | None]
-) -> str | None:
-    represents = getattr(unit, "_represents", None)
-    if represents is not None:
-        try:
-            represents_string = format_decomposed(represents)
-        except ValueError:
-            pass
-        else:
-            return represents_string
-
-    decomposed = unit.decompose()
-    if decomposed is not unit:
-        try:
-            decompose_string = format_decomposed(decomposed)
-        except ValueError:
-            pass
-        else:
-            return decompose_string
-
-    return None
-
-
 def get_non_keyword_units(
     bases: Iterable[str], prefixes: Sequence[str]
 ) -> Generator[tuple[str, str], None, None]:
