@@ -106,27 +106,8 @@ releases which are compatible with the latest ``pytest`` and ``sphinx`` releases
 Testing an Installed ``astropy``
 ================================
 
-{% if is_development %}
-
-The easiest way to test if your installed version of ``astropy`` is running
-correctly is to use the :ref:`astropy.test()` function::
-
-    import astropy
-    astropy.test()
-
-The tests should run and print out any failures, which you can report at
-the `Astropy issue tracker <https://github.com/astropy/astropy/issues>`_.
-
-This way of running the tests may not work if you do it in the ``astropy`` source
-distribution. See :ref:`sourcebuildtest` for how to run the tests from the
-source code directory, or :ref:`running-tests` for more details.
-
-{%else%}
-
-See the :ref:`latest documentation on how to test your installed version of
-astropy <astropy-dev:testing_installed_astropy>`.
-
-{%endif%}
+See the :ref:`documentation on how to test your installed version of
+astropy <astropy-dev:running-tests-installed-astropy>`.
 
 .. _astropy-main-req:
 

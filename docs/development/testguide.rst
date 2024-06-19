@@ -20,8 +20,8 @@ dependencies::
 
     python -m pip install --editable ".[dev_all]"
 
-This will provide all dependencies for running the full test suite using ``tox``,
-``pytest`` and ``astropy.test()``. It will also allow running tests via any IDE which
+This will provide all dependencies for running the full test suite using `tox <https://tox.wiki/>`__
+and |pytest|. It will also allow running tests via any IDE which
 supports ``pytest`` integration.
 
 Details
@@ -46,8 +46,8 @@ test``.
 Running Tests
 *************
 
-There are three different ways to run Astropy tests: ``tox``,
-``pytest`` and ``astropy.test()``. Each of these invokes |pytest| to run
+There are two different ways to run Astropy tests: ``tox`` and
+``pytest``. Each of these invokes |pytest| to run
 the tests but each one addresses a different use-case.
 
 tox
@@ -134,51 +134,6 @@ For more details, see the `pytest invocation guide
 description of `caching
 <https://docs.pytest.org/en/stable/how-to/cache.html>`_.
 
-
-.. _astropy.test():
-
-astropy.test()
-==============
-
-Tests can be run from an installed version of Astropy as shown below. This is not common
-for most development workflows (use ``tox`` or ``pytest`` instead) but it can be useful
-for users to check that their installation is working correctly::
-
-    import astropy
-    astropy.test()
-
-This will run all the default tests for Astropy (but will not run the
-documentation tests in the ``.rst`` documentation since those files are
-not installed).
-
-Tests for a specific package can be run by specifying the package in the call
-to the ``test()`` function::
-
-    astropy.test(package='io.fits')
-
-This method works only with package names that can be mapped to Astropy
-directories. As an alternative you can test a specific directory or file
-with the ``test_path`` option::
-
-  astropy.test(test_path='wcs/tests/test_wcs.py')
-
-The ``test_path`` must be specified either relative to the working directory
-or absolutely.
-
-By default `astropy.test()`_ will skip tests which retrieve data from the
-internet. To turn these tests on use the ``remote_data`` flag::
-
-    astropy.test(package='io.fits', remote_data=True)
-
-In addition, the ``test`` function supports any of the options that can be
-passed to :ref:`pytest.main() <pytest:pytest.main-usage>`
-and convenience options ``verbose=`` and ``pastebin=``.
-
-Astropy Test Function
----------------------
-
-.. autofunction:: astropy.test
-
 Test-running options
 ====================
 
@@ -219,10 +174,23 @@ commandline option. For example, to use 4 processes::
 Pass ``-n auto`` to create the same number of processes as cores
 on your machine.
 
-Similarly, this feature can be invoked from ``astropy.test``::
+.. _running-tests-installed-astropy:
 
-    >>> import astropy
-    >>> astropy.test(parallel=4)
+Running tests on an installed ``astropy``
+-----------------------------------------
+
+You can also run the tests on an installed version of ``astropy``. First you need to
+ensure that the testing dependencies are installed::
+
+    python -m pip install "astropy[test]"
+
+Note that you can include the ``--dry-run`` option to see what would be installed. In
+particular ``astropy`` itself should not be re-installed since it already exists. Then
+from any directory other than an ``astropy`` source repository, run the following::
+
+    pytest --pyargs astropy
+
+You can also include other ``pytest`` options as needed.
 
 .. _writing-tests:
 
@@ -327,9 +295,8 @@ local copy of the file.
 Tests that may retrieve remote data should be marked with the
 ``@pytest.mark.remote_data`` decorator, or, if a doctest, flagged with the
 ``REMOTE_DATA`` flag.  Tests marked in this way will be skipped by default by
-``astropy.test()`` to prevent test runs from taking too long. These tests can
-be run by ``astropy.test()`` by adding the ``remote_data='any'`` flag.  Turn on
-the remote data tests at the command line with ``pytest --remote-data=any``.
+``pytest`` to prevent test runs from taking too long. These tests can be run
+with ``pytest --remote-data=any``.
 
 It is possible to mark tests using
 ``@pytest.mark.remote_data(source='astropy')``, which can be used to indicate
@@ -847,12 +814,6 @@ The Astropy test suite automatically detects and runs any doctests in the
 astropy source code or documentation, or in packages using the Astropy test
 running framework. For example doctests and detailed documentation on how to
 write them, see the full :mod:`doctest` documentation.
-
-.. note::
-
-   Since the narrative Sphinx documentation is not installed alongside the
-   astropy source code, it can only be tested by running ``pytest`` directly (or
-   via tox), not by ``import astropy; astropy.test()``.
 
 For more information on the ``pytest-doctestplus`` plugin used by Astropy, see
 :ref:`doctestplus-plugin`.

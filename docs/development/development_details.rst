@@ -88,28 +88,8 @@ In more detail
    bug as a different set of changes.
 
 #. Test that your changes do not lead to *regressions*, i.e. that your
-   changes do not break existing code, by running the Astropy tests. You can
-   run all of the Astropy tests from ipython with::
-
-     import astropy
-     astropy.test()
-
-   If your change involves only a small part of Astropy, e.g. Time, you can
-   run just those tests::
-
-     import astropy
-     astropy.test(package='time')
-
-   Tests can also be run from the command line while in the package
-   root directory, e.g.::
-
-     pytest
-
-   To run the tests in only a single package, e.g. Time, you can do::
-
-     pytest -P time
-
-   For more details on running tests, please see :ref:`testing-guidelines`.
+   changes do not break existing code, by running the Astropy tests
+   as described in :ref:`testing-guidelines`.
 
 #. Make sure your code includes appropriate docstrings, in the
    `Numpydoc format`_.
