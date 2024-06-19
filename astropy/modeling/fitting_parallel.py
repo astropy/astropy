@@ -1,4 +1,7 @@
-from math import prod
+import os
+import traceback
+import warnings
+from math import ceil, log10, prod
 
 import numpy as np
 from dask import array as da
@@ -13,6 +16,9 @@ def fit_models_to_chunk(
     model=None,
     fitter=None,
     world=None,
+    diagnostics=None,
+    diagnostics_path=None,
+    iterating_shape=None,
 ):
     """
     Function that gets passed to map_blocks and will fit models to a specific
@@ -30,14 +36,71 @@ def fit_models_to_chunk(
         for ipar, name in enumerate(model_i.param_names):
             setattr(model_i, name, parameters[ipar, i])
 
-        # Do the actual fitting
-        model_fit = fitter(model_i, *world, data[i])
+        output = diagnostics == "all"
+        error = ""
+        all_warnings = []
 
-        # Put fitted parameters back into parameters arrays. These arrays are
-        # created in-memory by dask and are local to this process so should be
-        # safe to modify in-place
-        for ipar, name in enumerate(model_fit.param_names):
-            parameters[ipar, i] = getattr(model_fit, name).value
+        # Do the actual fitting
+        try:
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter("always")
+                model_fit = fitter(model_i, *world, data[i])
+                all_warnings.extend(w)
+        except Exception as exc:
+            model_fit = None
+            if diagnostics == "failed":
+                output = True
+            error = traceback.format_exc()
+            for ipar, name in enumerate(model_i.param_names):
+                parameters[ipar, i] = np.nan
+        else:
+            # Put fitted parameters back into parameters arrays. These arrays are
+            # created in-memory by dask and are local to this process so should be
+            # safe to modify in-place
+            for ipar, name in enumerate(model_fit.param_names):
+                parameters[ipar, i] = getattr(model_fit, name).value
+
+        if diagnostics == "failed+warn" and len(all_warnings) > 0:
+            output = True
+
+        if output:
+            # Construct a folder name based on the iterating index. Currently i
+            # i a 1-d index but we need to re-convert it back to an N-dimensional
+            # index.
+
+            index = tuple(int(idx) for idx in np.unravel_index(i, iterating_shape))
+            maxlen = int(ceil(log10(max(iterating_shape))))
+            fmt = "{0:0" + str(maxlen) + "d}"
+            index_folder = os.path.join(
+                diagnostics_path, "_".join(fmt.format(idx) for idx in index)
+            )
+            os.makedirs(index_folder, exist_ok=True)
+
+            # Output error, if any
+            if error:
+                with open(os.path.join(index_folder, "error.log"), "w") as f:
+                    f.write(error)
+
+            if all_warnings:
+                with open(os.path.join(index_folder, "warn.log"), "w") as f:
+                    for warning in all_warnings:
+                        f.write(f"{warning}\n")
+
+            # Make a plot, if model is 1D
+            if data.ndim == 2:  # 2 here because extra iterating dimension
+                import matplotlib.pyplot as plt
+
+                fig = plt.figure()
+                ax = fig.add_subplot(1, 1, 1)
+                ax.set_title(str(index))
+                ax.plot(world[0], data[i], "k.")
+                if model_fit is None:
+                    ax.text(0.1, 0.9, "Fit failed!", color="r", transform=ax.transAxes)
+                else:
+                    xmodel = np.linspace(*ax.get_xlim(), 100)
+                    ax.plot(xmodel, model_fit(xmodel), color="r")
+                fig.savefig(os.path.join(index_folder, "fit.png"))
+                plt.close(fig)
 
     return parameters
 
@@ -48,8 +111,10 @@ def parallel_fit_model_nd(
     fitter,
     data,
     fitting_axes,
-    world,
+    world=None,
     chunk_n_max=None,
+    diagnostics=None,
+    diagnostics_path=None,
 ):
     """
     Fit a model in parallel to an N-dimensional dataset.
@@ -72,18 +137,37 @@ def parallel_fit_model_nd(
         The N-dimensional data to fit.
     fitting_axes : int or tuple
         The axes to keep for the fitting (other axes will be sliced/iterated over)
-    world : dict or APE-14-WCS
+    world : `None` or dict or APE-14-WCS
         This can be specified either as a dictionary mapping fitting axes to
         world axis values, or as a WCS for the whole cube. If the former, then
         the values in the dictionary can be either 1D arrays, or can be given
-        as N-dimensional arrays with shape broadcastable to the data shape.
+        as N-dimensional arrays with shape broadcastable to the data shape. If
+        not specified, the fitting is carried out in pixel coordinates.
     method : { 'dask' }
         The framework to use for the parallelization.
     chunk_n_max : int
         Maximum number of fits to include in a chunk. If this is made too large,
         then the workload will not be split properly over processes, and if it is
         too small it may be inefficient.
+    diagnostics : { None | 'failed' | 'failed+warn' | 'all' }, optional
+        Whether to output diagnostic information for fits. This can be either
+        `None` (nothing), ``'failed'`` (output information for failed fits), or
+        ``'all'`` (output information for all fits).
+    diagnostics_path : str, optional
+        If `diagnostics` is not `None`, this should be the path to a folder in
+        which a folder will be made for each fit that is output.
     """
+    if diagnostics in (None, "failed", "failed+warn", "all"):
+        if diagnostics is not None:
+            if diagnostics_path is None:
+                raise ValueError("diagnostics_path should be set")
+            else:
+                os.makedirs(diagnostics_path, exist_ok=True)
+    else:
+        raise ValueError(
+            "diagnostics should be None, 'failed', 'failed+warn', or 'all'"
+        )
+
     # Sanitize fitting_axes and determine iterating_axes
     ndim = data.ndim
     if not isinstance(fitting_axes, tuple):
@@ -109,6 +193,8 @@ def parallel_fit_model_nd(
     # Re-index world if a dict, make it a tuple in order of fitting_axes
     if isinstance(world, dict):
         world = tuple([world[axis] for axis in fitting_axes])
+    elif world is None:
+        world = tuple([np.arange(size) for size in fitting_shape])
 
     # Rechunk the array so that it is not chunked along the fitting axes
     chunk_shape = ("auto",) + (-1,) * len(fitting_axes)
@@ -153,6 +239,9 @@ def parallel_fit_model_nd(
         model=simple_model,
         fitter=fitter,
         world=world,
+        diagnostics=diagnostics,
+        diagnostics_path=diagnostics_path,
+        iterating_shape=iterating_shape,
     )
 
     parameter_arrays_fitted = result.compute(scheduler="processes")
