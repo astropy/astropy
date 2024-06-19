@@ -28,7 +28,7 @@ from astropy.utils.misc import did_you_mean
 
 from . import core
 from .base import Base
-from .utils import _try_decomposed, unit_deprecation_warning
+from .utils import _try_decomposed
 
 if TYPE_CHECKING:
     from astropy.units import NamedUnit, UnitBase
@@ -608,9 +608,17 @@ class Generic(Base):
                 )
             raise ValueError()
         if unit in cls._deprecated_units:
-            unit_deprecation_warning(
-                unit, cls._units[unit], cls.__name__, cls._to_decomposed_alternative
+            from astropy.units.core import UnitsWarning
+
+            message = (
+                f"The unit '{unit}' has been deprecated in the {cls.__name__} standard."
             )
+            decomposed = _try_decomposed(
+                cls._units[unit], cls._to_decomposed_alternative
+            )
+            if decomposed is not None:
+                message += f" Suggested: {decomposed}."
+            warnings.warn(message, UnitsWarning)
 
     @classmethod
     def _did_you_mean_units(cls, unit: str) -> str:
