@@ -96,7 +96,7 @@ for doing other work. This is important because the development environment will
 be unstable and possibly broken at times, and you don't want to break your other work.
 
 There are many good options for doing this, including a number of virtual environment
-managers (e.g. the Python built-in `venv <https://docs.python.org/3/library/venv.html>`_
+managers (e.g. the Python standard library `venv <https://docs.python.org/3/library/venv.html>`_
 module). Users who have a preference for a particular virtual environment manager are
 encouraged to use it!
 
@@ -128,20 +128,17 @@ Now you can install the development version of astropy into your new environment
 will install the latest version of astropy from your local git repo, along with
 all the dependencies needed to build and fully test astropy::
 
-   python -m pip install --editable ".[dev_all]"
+   python -m pip install --editable '.[dev_all]'
 
 **Checking the build**
 
 At this point you should be able to import astropy from your locally built version::
 
-   python
-   >>> import astropy
-   >>> astropy.__version__  # note: the exact output will differ
-   '7.0.0.dev303+gb394fda545.d20240613'
+   python -c 'import astropy; print(astropy.__version__)'
 
 Next you may want to try running some or all of the ``astropy`` unit tests.
-Running the full test suite can take a while, so you may want to start with a subset
-of only the coordinates tests::
+Running the full test suite can take a few minutes, so you may want to start with a
+single sub-package (e.g. `coordinates`)::
 
 
    pytest astropy/coordinates
@@ -155,7 +152,7 @@ section.
 Install pre-commit
 ------------------
 
-This is optional, but *highly recommended* if you will contribute code. Pre-commit is a
+This is optional, but *highly recommended*. `Pre-commit <https://pre-commit.com/>`_ is a
 tool that runs a number of :ref:`Continuous Integration (CI) <contributing.ci>` checks
 (e.g. code formatting) on your code before you commit it. If you skip this step then it
 is likely that one or more of those CI checks will fail when you make a pull request,
@@ -206,7 +203,7 @@ Creating a feature branch
 Your local ``main`` branch should always reflect the current state of astropy repository.
 First ensure it's up-to-date with the main astropy repository::
 
-    git checkout main
+    git switch main
     git pull upstream main --ff-only
 
 Now create a feature branch for making your changes. For example::
@@ -246,7 +243,7 @@ code or documentation! At a high level this breaks into a few parts:
 
 .. tip:: For more information and examples see :ref:`edit-flow` section.
 
-You can see all the changes you've currently made by running:
+You can see a summary of the changes you've currently made by running:
 
 .. code-block:: shell
 
@@ -276,7 +273,7 @@ forked feature branch's commits::
 
     git push origin subpackage-new-feature
 
-Here ``origin`` is the default name given to your remote repository on GitHub.
+Here ``origin`` is the default name given to your fork on GitHub.
 
 
 
@@ -284,7 +281,7 @@ You can see the remote repositories
 
 .. code-block:: shell
 
-    git remote -v
+    git remote --verbose
 
 If you added the upstream repository as described above you will see something
 like

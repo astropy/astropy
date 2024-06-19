@@ -4,7 +4,7 @@
 Development
 ***********
 
-The developer documentation contains instructions for how to contribute to Astropy or
+The developer documentation contains instructions for how to contribute to ``astropy`` or
 affiliated packages. This includes setting up a development environment, installing and
 testing the development version, as well as coding, documentation, and testing
 guidelines.
