@@ -66,7 +66,7 @@ def wcs_info_str(wcs):
     # fmt: on
 
     if wcs.pixel_bounds is None:
-        pixel_bounds = None
+        pixel_bounds = [None for _ in range(wcs.pixel_n_dim)]
     else:
         # converting to scalar arrays and back to Python with np.array(val).item()
         # guarantees that we end up with Python scalars (int or float) with
@@ -82,7 +82,8 @@ def wcs_info_str(wcs):
                 ('{0:' + str(pixel_nam_width) + 's}').format(wcs.pixel_axis_names[ipix] or 'None') + '  ' +
                 (" " * 5 + str(None) if pixel_shape[ipix] is None else
                 ('{0:' + str(pixel_siz_width) + 'g}').format(pixel_shape[ipix])) + '  ' +
-                '{:s}'.format(str(None if pixel_bounds is None else pixel_bounds[ipix]) + '\n'))
+                f"{pixel_bounds[ipix]}\n"
+              )
         # fmt: on
 
     s += "\n"
