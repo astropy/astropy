@@ -6,22 +6,13 @@ Utilities shared by the different formats.
 
 from __future__ import annotations
 
-import warnings
 from keyword import iskeyword
 from typing import TYPE_CHECKING
 
 from astropy.units.utils import maybe_simple_fraction
-from astropy.utils.misc import did_you_mean
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        Callable,
-        Container,
-        Generator,
-        Iterable,
-        Mapping,
-        Sequence,
-    )
+    from collections.abc import Callable, Generator, Iterable, Sequence
     from numbers import Real
     from typing import TypeVar
 
@@ -151,108 +142,6 @@ def format_power(power: Real) -> str:
             power = power.numerator
 
     return str(power)
-
-
-def _try_decomposed(
-    unit: UnitBase, format_decomposed: Callable[[UnitBase], str | None]
-) -> str | None:
-    represents = getattr(unit, "_represents", None)
-    if represents is not None:
-        try:
-            represents_string = format_decomposed(represents)
-        except ValueError:
-            pass
-        else:
-            return represents_string
-
-    decomposed = unit.decompose()
-    if decomposed is not unit:
-        try:
-            decompose_string = format_decomposed(decomposed)
-        except ValueError:
-            pass
-        else:
-            return decompose_string
-
-    return None
-
-
-def did_you_mean_units(
-    s: str,
-    all_units: Mapping[str, UnitBase],
-    deprecated_units: Container[str],
-    format_decomposed: Callable[[UnitBase], str | None],
-) -> str:
-    """
-    A wrapper around `astropy.utils.misc.did_you_mean` that deals with
-    the display of deprecated units.
-
-    Parameters
-    ----------
-    s : str
-        The invalid unit string
-
-    all_units : dict
-        A mapping from valid unit names to unit objects.
-
-    deprecated_units : sequence
-        The deprecated unit names
-
-    format_decomposed : callable
-        A function to turn a decomposed version of the unit into a
-        string.  Should return `None` if not possible
-
-    Returns
-    -------
-    msg : str
-        A string message with a list of alternatives, or the empty
-        string.
-    """
-
-    def fix_deprecated(x: str) -> list[str] | tuple[str]:
-        if x in deprecated_units:
-            results = [x + " (deprecated)"]
-            decomposed = _try_decomposed(all_units[x], format_decomposed)
-            if decomposed is not None:
-                results.append(decomposed)
-            return results
-        return (x,)
-
-    return did_you_mean(s, all_units, fix=fix_deprecated)
-
-
-def unit_deprecation_warning(
-    s: str,
-    unit: UnitBase,
-    standard_name: str,
-    format_decomposed: Callable[[UnitBase], str | None],
-) -> None:
-    """
-    Raises a UnitsWarning about a deprecated unit in a given format.
-    Suggests a decomposed alternative if one is available.
-
-    Parameters
-    ----------
-    s : str
-        The deprecated unit name.
-
-    unit : astropy.units.core.UnitBase
-        The unit object.
-
-    standard_name : str
-        The name of the format for which the unit is deprecated.
-
-    format_decomposed : callable
-        A function to turn a decomposed version of the unit into a
-        string.  Should return `None` if not possible
-    """
-    from astropy.units.core import UnitsWarning
-
-    message = f"The unit '{s}' has been deprecated in the {standard_name} standard."
-    decomposed = _try_decomposed(unit, format_decomposed)
-    if decomposed is not None:
-        message += f" Suggested: {decomposed}."
-    warnings.warn(message, UnitsWarning)
 
 
 def get_non_keyword_units(
