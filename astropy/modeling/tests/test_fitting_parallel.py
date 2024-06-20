@@ -69,3 +69,39 @@ def test_1d_model_fit_axes(iterating_shape, swapaxes_data, swapaxes_parameters, 
     assert_allclose(model_fit.amplitude.value, modify_axes(amplitude, iterating_shape, swapaxes_parameters))
     assert_allclose(model_fit.mean.value, modify_axes(mean, iterating_shape, swapaxes_parameters))
     assert_allclose(model_fit.stddev.value, modify_axes(stddev, iterating_shape, swapaxes_parameters))
+
+
+def test_2d_model_fit_axes():
+    # As for test_1d_model_fit_axes but fitting a 2D model, this checks that the
+    # fitting axes logic works when there is more than one fitting axis.
+    pass
+
+
+def test_no_world():
+    # Test not specifying world
+    pass
+
+
+def test_wcs_world():
+    # Test specifying world as a WCS
+    pass
+
+
+def test_world_array():
+    # Test specifying world as an array with dimensions matching the data
+    pass
+
+
+def test_diagnostics():
+    pass
+
+
+def test_dask_scheduler():
+    # Try all the different dask schedulers
+    pass
+
+
+def test_compound_model():
+    # Compound models have to be treated a little differently so check they
+    # work fine.
+    pass
