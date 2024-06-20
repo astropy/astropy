@@ -60,6 +60,11 @@ jobs:
             python: '3.12'
             toxenv: py312-test-devinfra
 
+          - name: Python 3.13-dev with dev versions of key dependencies
+            os: ubuntu-latest
+            python: '3.13-dev'
+            toxenv: py313-test-devdeps
+
           - name: Python 3.12 on macOS (x86_64) with all optional dependencies
             os: macos-13
             python: '3.12'
