@@ -1086,6 +1086,11 @@ class Table:
                     f'Cannot create an index on column "{col.info.name}", '
                     f'of type "{type(col)}"'
                 )
+            if col.ndim > 1:
+                raise ValueError(
+                    f"Multi-dimensional column {col.info.name!r} "
+                    "cannot be used as an index."
+                )
 
         is_primary = not self.indices
         index = Index(columns, engine=engine, unique=unique)
