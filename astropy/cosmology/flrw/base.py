@@ -19,7 +19,11 @@ from numpy import inf, sin
 
 import astropy.constants as const
 import astropy.units as u
-from astropy.cosmology._utils import aszarr, vectorize_redshift_method
+from astropy.cosmology._utils import (
+    aszarr,
+    deprecated_keywords,
+    vectorize_redshift_method,
+)
 from astropy.cosmology.core import Cosmology, FlatCosmologyMixin, dataclass_decorator
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.parameter._converter import (
@@ -84,18 +88,19 @@ class _ScaleFactorMixin:
         """
         return u.Quantity(self.scale_factor(0), unit=u.one)
 
-    def scale_factor(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def scale_factor(self, z):
         """Scale factor at redshift ``z``.
 
         The scale factor is defined as :math:`a = 1 / (1 + z)`.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -415,16 +420,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
     # ---------------------------------------------------------------
 
     @abstractmethod
-    def w(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def w(self, z):
         r"""The dark energy equation of state.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -443,16 +449,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         raise NotImplementedError("w(z) is not implemented")
 
-    def Otot(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def Otot(self, z):
         """The total density parameter at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshifts.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -462,16 +469,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self.Om(z) + self.Ogamma(z) + self.Onu(z) + self.Ode(z) + self.Ok(z)
 
-    def Om(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def Om(self, z):
         """Return the density parameter for non-relativistic matter at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -488,16 +496,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z = aszarr(z)
         return self._Om0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
 
-    def Ob(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def Ob(self, z):
         """Return the density parameter for baryonic matter at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -516,16 +525,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z = aszarr(z)
         return self._Ob0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
 
-    def Odm(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def Odm(self, z):
         """Return the density parameter for dark matter at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -552,16 +562,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z = aszarr(z)
         return self._Odm0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
 
-    def Ok(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def Ok(self, z):
         """Return the equivalent density parameter for curvature at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -574,16 +585,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
         return self._Ok0 * (z + 1.0) ** 2 * self.inv_efunc(z) ** 2
 
-    def Ode(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def Ode(self, z):
         """Return the density parameter for dark energy at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -597,16 +609,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
         return self._Ode0 * self.de_density_scale(z) * self.inv_efunc(z) ** 2
 
-    def Ogamma(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def Ogamma(self, z):
         """Return the density parameter for photons at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -618,16 +631,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z = aszarr(z)
         return self._Ogamma0 * (z + 1.0) ** 4 * self.inv_efunc(z) ** 2
 
-    def Onu(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def Onu(self, z):
         r"""Return the density parameter for neutrinos at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -644,16 +658,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
         return self.Ogamma(z) * self.nu_relative_density(z)
 
-    def Tcmb(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def Tcmb(self, z):
         """Return the CMB temperature at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -662,16 +677,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self._Tcmb0 * (aszarr(z) + 1.0)
 
-    def Tnu(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def Tnu(self, z):
         """Return the neutrino temperature at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -680,16 +696,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self._Tnu0 * (aszarr(z) + 1.0)
 
-    def nu_relative_density(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def nu_relative_density(self, z):
         r"""Neutrino density function relative to the energy density in photons.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -760,7 +777,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             Assumes scalar input, since this should only be called inside an
             integral.
 
-            .. versionchanged:: 6.1
+            .. versionchanged:: 7.0
                 The argument is positional-only.
 
         References
@@ -770,16 +787,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return 1.0 + self.w(exp(ln1pz) - 1.0)
 
-    def de_density_scale(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def de_density_scale(self, z):
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -824,16 +842,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             ival = quad(self._w_integrand, 0, log(z + 1.0))[0]
             return exp(3 * ival)
 
-    def efunc(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def efunc(self, z):
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -859,16 +878,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             + self._Ode0 * self.de_density_scale(z)
         )
 
-    def inv_efunc(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def inv_efunc(self, z):
         """Inverse of ``efunc``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -897,7 +917,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z : float, positional-only
             Input redshift.
 
-            .. versionchanged:: 6.1
+            .. versionchanged:: 7.0
                 The argument is positional-only.
 
         Returns
@@ -912,16 +932,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self._inv_efunc_scalar(z, *self._inv_efunc_scalar_args) / (z + 1.0)
 
-    def lookback_time_integrand(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def lookback_time_integrand(self, z):
         """Integrand of the lookback time (equation 30 of [1]_).
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -944,7 +965,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
 
-            .. versionchanged:: 6.1
+            .. versionchanged:: 7.0
                 The argument is positional-only.
 
         Returns
@@ -958,16 +979,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return (z + 1.0) ** 2 * self._inv_efunc_scalar(z, *self._inv_efunc_scalar_args)
 
-    def abs_distance_integrand(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def abs_distance_integrand(self, z):
         """Integrand of the absorption distance (eq. 4, [1]_).
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -981,16 +1003,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z = aszarr(z)
         return (z + 1.0) ** 2 * self.inv_efunc(z)
 
-    def H(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def H(self, z):
         """Hubble parameter (km/s/Mpc) at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -999,7 +1022,8 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self._H0 * self.efunc(z)
 
-    def lookback_time(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def lookback_time(self, z):
         """Lookback time in Gyr to redshift ``z``.
 
         The lookback time is the difference between the age of the Universe now
@@ -1007,11 +1031,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1035,7 +1059,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
 
-            .. versionchanged:: 6.1
+            .. versionchanged:: 7.0
                 The argument is positional-only.
 
         Returns
@@ -1057,7 +1081,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
 
-            .. versionchanged:: 6.1
+            .. versionchanged:: 7.0
                 The argument is positional-only.
 
         Returns
@@ -1068,7 +1092,8 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return quad(self._lookback_time_integrand_scalar, 0, z)[0]
 
-    def lookback_distance(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def lookback_distance(self, z):
         """The lookback distance is the light travel time distance to a given redshift.
 
         It is simply c * lookback_time. It may be used to calculate
@@ -1077,11 +1102,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1090,16 +1115,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return (self.lookback_time(z) * const.c).to(u.Mpc)
 
-    def age(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def age(self, z):
         """Age of the universe in Gyr at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1122,7 +1148,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
 
-            .. versionchanged:: 6.1
+            .. versionchanged:: 7.0
                 The argument is positional-only.
 
         Returns
@@ -1143,9 +1169,6 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
-
         Returns
         -------
         t : float or ndarray
@@ -1158,16 +1181,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return quad(self._lookback_time_integrand_scalar, z, inf)[0]
 
-    def critical_density(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def critical_density(self, z):
         """Critical density in grams per cubic cm at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1176,7 +1200,8 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self._critical_density0 * (self.efunc(z)) ** 2
 
-    def comoving_distance(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def comoving_distance(self, z):
         """Comoving line-of-sight distance in Mpc at a given redshift.
 
         The comoving distance along the line-of-sight between two objects
@@ -1184,11 +1209,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1208,8 +1233,8 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z1, z2 : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1230,8 +1255,8 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z1, z2 : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1252,8 +1277,8 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z1, z2 : Quantity-like ['redshift'] or array-like, positional-only
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1262,7 +1287,8 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self._hubble_distance * self._integral_comoving_distance_z1z2_scalar(z1, z2)  # fmt: skip
 
-    def comoving_transverse_distance(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def comoving_transverse_distance(self, z):
         r"""Comoving transverse distance in Mpc at a given redshift.
 
         This value is the transverse comoving distance at redshift ``z``
@@ -1272,11 +1298,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1302,8 +1328,8 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z1, z2 : Quantity-like ['redshift'], array-like, positional-only
             Input redshifts.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1325,7 +1351,8 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         else:
             return dh / sqrtOk0 * sin(sqrtOk0 * dc.value / dh.value)
 
-    def angular_diameter_distance(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def angular_diameter_distance(self, z):
         """Angular diameter distance in Mpc at a given redshift.
 
         This gives the proper (sometimes called 'physical') transverse
@@ -1334,11 +1361,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1354,7 +1381,8 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z = aszarr(z)
         return self.comoving_transverse_distance(z) / (z + 1.0)
 
-    def luminosity_distance(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def luminosity_distance(self, z):
         """Luminosity distance in Mpc at redshift ``z``.
 
         This is the distance to use when converting between the bolometric flux
@@ -1362,11 +1390,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1392,7 +1420,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z1, z2 : Quantity-like ['redshift'], array-like
             Input redshifts. For most practical applications such as
             gravitational lensing, ``z2`` should be larger than ``z1``. The
             method will work for ``z2 < z1``; however, this will return
@@ -1426,9 +1454,6 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
-
         Returns
         -------
         X : float or ndarray
@@ -1441,7 +1466,8 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return quad(self._abs_distance_integrand_scalar, 0, z)[0]
 
-    def distmod(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def distmod(self, z):
         """Distance modulus at redshift ``z``.
 
         The distance modulus is defined as the (apparent magnitude - absolute
@@ -1449,11 +1475,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1471,7 +1497,8 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         val = 5.0 * np.log10(abs(self.luminosity_distance(z).value)) + 25.0
         return u.Quantity(val, u.mag)
 
-    def comoving_volume(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def comoving_volume(self, z):
         r"""Comoving volume in cubic Mpc at redshift ``z``.
 
         This is the volume of the universe encompassed by redshifts less than
@@ -1480,11 +1507,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1506,7 +1533,8 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         else:
             return term1 * (term2 - 1.0 / sqrt(abs(Ok0)) * np.arcsin(term3))
 
-    def differential_comoving_volume(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def differential_comoving_volume(self, z):
         """Differential comoving volume at redshift z.
 
         Useful for calculating the effective comoving volume.
@@ -1517,11 +1545,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1532,16 +1560,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         dm = self.comoving_transverse_distance(z)
         return self._hubble_distance * (dm**2.0) / (self.efunc(z) << u.steradian)
 
-    def kpc_comoving_per_arcmin(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def kpc_comoving_per_arcmin(self, z):
         """Separation in transverse comoving kpc equal to an arcmin at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1551,16 +1580,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self.comoving_transverse_distance(z).to(u.kpc) / _radian_in_arcmin
 
-    def kpc_proper_per_arcmin(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def kpc_proper_per_arcmin(self, z):
         """Separation in transverse proper kpc equal to an arcminute at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1570,16 +1600,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return self.angular_diameter_distance(z).to(u.kpc) / _radian_in_arcmin
 
-    def arcsec_per_kpc_comoving(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def arcsec_per_kpc_comoving(self, z):
         """Angular separation in arcsec equal to a comoving kpc at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1589,16 +1620,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         """
         return _radian_in_arcsec / self.comoving_transverse_distance(z).to(u.kpc)
 
-    def arcsec_per_kpc_proper(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def arcsec_per_kpc_proper(self, z):
         """Angular separation in arcsec corresponding to a proper kpc at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1671,16 +1703,17 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         """Omega total; the total density/critical density at z=0."""
         return 1.0
 
-    def Otot(self, z, /):
+    @deprecated_keywords("z", since="7.0")
+    def Otot(self, z):
         """The total density parameter at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 6.1
-                The argument is positional-only.
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------

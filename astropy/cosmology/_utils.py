@@ -6,20 +6,22 @@ __all__: list[str] = []  # nothing is publicly scoped
 
 import functools
 import operator
+from collections.abc import Callable
 from dataclasses import Field
 from numbers import Number
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import numpy as np
 
 from astropy.units import Quantity
 
 from . import units as cu
+from ._signature_deprecations import _depr_kws_wrap
 
 if TYPE_CHECKING:
-    from typing import Any
-
     from astropy.cosmology import Parameter
+
+_F = TypeVar("_F", bound=Callable[..., Any])
 
 
 def vectorize_redshift_method(func=None, nin=1):
@@ -118,3 +120,23 @@ def all_parameters(obj: object, /) -> dict[str, Field | Parameter]:
             or (isinstance(v, Field) and isinstance(v.default, Parameter))
         )
     }
+
+
+def deprecated_keywords(*kws, since):
+    """Deprecate calling one or more arguments as keywords.
+
+    Parameters
+    ----------
+    *kws: str
+        Names of the arguments that will become positional-only.
+
+    since : str or number or sequence of str or number
+        The release at which the old argument became deprecated.
+    """
+    return functools.partial(_depr_kws, kws=kws, since=since)
+
+
+def _depr_kws(func: _F, /, kws: tuple[str, ...], since: str) -> _F:
+    wrapper = _depr_kws_wrap(func, kws, since)
+    functools.update_wrapper(wrapper, func)
+    return wrapper
