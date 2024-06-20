@@ -604,3 +604,21 @@ def test_hstack_qtable_table():
 def test_index_slice_exception():
     with pytest.raises(TypeError, match="index_slice must be tuple or slice"):
         SlicedIndex(None, None)
+
+
+@pytest.mark.parametrize(
+    "masked",
+    [pytest.param(False, id="raw-array"), pytest.param(True, id="masked array")],
+)
+def test_nd_columun_as_index(masked):
+    # see https://github.com/astropy/astropy/issues/13292
+    # and https://github.com/astropy/astropy/pull/16360
+    t = Table()
+    data = np.arange(0, 6)
+    if masked:
+        data = np.ma.masked_inside(data, 2, 4)
+    t.add_column(data.reshape(3, -1), name="arr")
+    with pytest.raises(
+        ValueError, match="Multi-dimensional column 'arr' cannot be used as an index."
+    ):
+        t.add_index("arr")
