@@ -107,7 +107,8 @@ def fit_models_to_chunk(
             # i a 1-d index but we need to re-convert it back to an N-dimensional
             # index.
 
-            index = tuple(int(idx) for idx in np.unravel_index(i, iterating_shape))
+            i_abs = i + block_info[0]["array-location"][0][0]
+            index = tuple(int(idx) for idx in np.unravel_index(i_abs, iterating_shape))
             maxlen = int(ceil(log10(max(iterating_shape))))
             fmt = "{0:0" + str(maxlen) + "d}"
             index_folder = os.path.join(
@@ -136,7 +137,9 @@ def fit_models_to_chunk(
                 if model_fit is None:
                     ax.text(0.1, 0.9, "Fit failed!", color="r", transform=ax.transAxes)
                 else:
-                    xmodel = np.linspace(*ax.get_xlim(), 100) * world[0].unit
+                    xmodel = np.linspace(*ax.get_xlim(), 100)
+                    if hasattr(world[0], "unit"):
+                        xmodel = xmodel * world[0].unit
                     ax.plot(xmodel, model_fit(xmodel), color="r")
                 fig.savefig(os.path.join(index_folder, "fit.png"))
                 plt.close(fig)
@@ -146,7 +149,9 @@ def fit_models_to_chunk(
     # and in principle we should be able to use drop_axis in map_blocks to
     # indicate that we no longer need these extra dimensions.
     parameters = parameters.reshape((parameters.shape[0], parameters.shape[1], 1))
-    parameters = np.broadcast_to(parameters, (parameters.shape[0], parameters.shape[1]) + data.shape[1:])
+    parameters = np.broadcast_to(
+        parameters, (parameters.shape[0], parameters.shape[1]) + data.shape[1:]
+    )
 
     return parameters
 
