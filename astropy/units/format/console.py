@@ -66,6 +66,7 @@ class Console(base.Base):
         scale: str,
         numerator: str,
         denominator: str,
+        *,
         fraction: Literal[True, "inline", "multiline"] = "multiline",
     ) -> str:
         if fraction != "multiline":
