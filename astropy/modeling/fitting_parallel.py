@@ -6,7 +6,43 @@ from math import ceil, log10, prod
 import numpy as np
 from dask import array as da
 
+from astropy.modeling import CompoundModel, models
+
 __all__ = ["parallel_fit_model_nd"]
+
+
+def _copy_with_new_parameters(model, parameters, shape=None):
+    if isinstance(model, CompoundModel):
+        if shape is None:
+            new_model = model.copy()
+        else:
+            new_model = _compound_model_with_array_parameters(model, shape)
+        for name, value in parameters.items():
+            setattr(new_model, name, value)
+    else:
+        constraints = {}
+        for constraint in model.parameter_constraints:
+            constraints[constraint] = getattr(model, constraint)
+        # HACK: we need a more general way, probably in astropy.modeling,
+        # to do this kind of copy.
+        if isinstance(model, models.Polynomial1D):
+            args = (model.degree,)
+        else:
+            args = ()
+        new_model = model.__class__(*args, **parameters, **constraints)
+    return new_model
+
+
+def _compound_model_with_array_parameters(model, shape):
+    if isinstance(model, CompoundModel):
+        return CompoundModel(
+            model.op,
+            _compound_model_with_array_parameters(model.left, shape),
+            _compound_model_with_array_parameters(model.right, shape),
+        )
+    else:
+        parameters = {name: np.zeros(shape) for name in model.param_names}
+        return _copy_with_new_parameters(model, parameters)
 
 
 def fit_models_to_chunk(
@@ -28,6 +64,9 @@ def fit_models_to_chunk(
         return np.array(parameters)
 
     parameters = np.array(parameters)
+
+    index = tuple([slice(None), slice(None)] + [0] * (parameters.ndim - 2))
+    parameters = parameters[index]
 
     # Iterate over the first axis and fit each model in turn
     for i in range(data.shape[0]):
@@ -97,12 +136,14 @@ def fit_models_to_chunk(
                 if model_fit is None:
                     ax.text(0.1, 0.9, "Fit failed!", color="r", transform=ax.transAxes)
                 else:
-                    xmodel = np.linspace(*ax.get_xlim(), 100)
+                    xmodel = np.linspace(*ax.get_xlim(), 100) * world[0].unit
                     ax.plot(xmodel, model_fit(xmodel), color="r")
                 fig.savefig(os.path.join(index_folder, "fit.png"))
                 plt.close(fig)
 
-    return parameters
+    parameters = parameters.reshape((parameters.shape[0], parameters.shape[1], 1))
+
+    return np.broadcast_to(parameters, (parameters.shape[0],) + data.shape)
 
 
 def parallel_fit_model_nd(
@@ -115,6 +156,7 @@ def parallel_fit_model_nd(
     chunk_n_max=None,
     diagnostics=None,
     diagnostics_path=None,
+    use_default_scheduler=False,
 ):
     """
     Fit a model in parallel to an N-dimensional dataset.
@@ -156,6 +198,10 @@ def parallel_fit_model_nd(
     diagnostics_path : str, optional
         If `diagnostics` is not `None`, this should be the path to a folder in
         which a folder will be made for each fit that is output.
+    use_default_scheduler : bool, optional
+        If `False` (the default), a local multi-processing scheduler will be
+        used. If `True`, whatever is the current default scheduler will be
+        used. Set this to `True` if using e.g. dask.distributed.
     """
     if diagnostics in (None, "failed", "failed+warn", "all"):
         if diagnostics is not None:
@@ -196,19 +242,23 @@ def parallel_fit_model_nd(
     elif world is None:
         world = tuple([np.arange(size) for size in fitting_shape])
 
+    # NOTE: dask tends to choose chunks that are too large for this kind of
+    # problem, so if chunk_n_max is not specified, we try and determine a
+    # sensible value of chunk_n_max.
+
+    # Determine a reasonable chunk_n_max if not specified
+    if not chunk_n_max:
+        chunk_n_max = max(10, data.shape[0] // 100)
+
     # Rechunk the array so that it is not chunked along the fitting axes
-    chunk_shape = ("auto",) + (-1,) * len(fitting_axes)
-    if chunk_n_max:
-        data = data.rechunk(
-            chunk_shape, block_size_limit=chunk_n_max * data.dtype.itemsize
-        )
-    else:
-        data = data.rechunk(chunk_shape)
+    chunk_shape = (chunk_n_max,) + (-1,) * len(fitting_axes)
+    data = data.rechunk(chunk_shape)
 
     # Extract the parameters arrays from the model, in the order in which they
     # appear in param_names, convert to dask arrays, and broadcast to shape of
     # iterable axes. We need to rechunk to the same chunk shape as the data
     # so that chunks line up and for map_blocks to work properly.
+    # https://github.com/dask/dask/issues/11188
     parameter_arrays = []
     for name in model.param_names:
         values = getattr(model, name).value
@@ -216,23 +266,22 @@ def parallel_fit_model_nd(
             da.broadcast_to(da.from_array(values), iterating_shape)
             .reshape(iterating_shape)
             .ravel()
-            .rechunk(data.chunksize)
+        )
+        array = array.reshape(array.shape + (1,) * len(fitting_shape))
+        array = da.broadcast_to(array, array.shape[:1] + fitting_shape).rechunk(
+            data.chunksize
         )
         parameter_arrays.append(array)
 
     # Define a model with default parameters to pass in to fit_models_to_chunk without copying all the parameter data
 
-    constraints = {}
-    for constraint in model.parameter_constraints:
-        constraints[constraint] = getattr(model, constraint)
-
-    simple_model = model.__class__(**constraints)
+    simple_model = _copy_with_new_parameters(model, {})
 
     result = da.map_blocks(
         fit_models_to_chunk,
         data,
         *parameter_arrays,
-        chunks=(3,) + data.chunksize,
+        # chunks=(len(parameter_arrays),) + data.chunksize,
         enforce_ndim=True,
         dtype=float,
         new_axis=0,
@@ -244,7 +293,14 @@ def parallel_fit_model_nd(
         iterating_shape=iterating_shape,
     )
 
-    parameter_arrays_fitted = result.compute(scheduler="processes")
+    if use_default_scheduler:
+        compute_kwargs = {}
+    else:
+        compute_kwargs = {"scheduler": "processes"}
+
+    parameter_arrays_fitted = result.compute(**compute_kwargs)
+
+    parameter_arrays_fitted = parameter_arrays_fitted[:, :, 0]
 
     # Set up new parameter arrays with fitted values
     parameters = {}
@@ -252,6 +308,6 @@ def parallel_fit_model_nd(
         parameters[name] = parameter_arrays_fitted[i].reshape(iterating_shape)
 
     # Instantiate new fitted model
-    model_fitted = model.__class__(**parameters, **constraints)
+    model_fitted = _copy_with_new_parameters(model, parameters, shape=iterating_shape)
 
     return model_fitted
