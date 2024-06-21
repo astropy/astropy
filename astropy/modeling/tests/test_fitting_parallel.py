@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import os
 import re
 
 import numpy as np
@@ -8,7 +9,7 @@ from numpy.testing import assert_allclose
 
 from astropy.modeling.fitting import LevMarLSQFitter
 from astropy.modeling.fitting_parallel import parallel_fit_model_nd
-from astropy.modeling.models import Gaussian1D, Linear1D, Planar2D
+from astropy.modeling.models import Const1D, Gaussian1D, Linear1D, Planar2D
 from astropy.wcs import WCS
 
 
@@ -238,19 +239,130 @@ def test_world_array():
     assert_allclose(model_fit.stddev.value, [0.5, 0.55])
 
 
-def test_diagnostics():
-    pass
+def test_diagnostics(tmp_path):
+    data = gaussian(np.arange(20), 2, 10, 1)
+    data = np.broadcast_to(data.reshape((20, 1)), (20, 3)).copy()
+
+    data[0, 0] = np.nan
+
+    model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
+    fitter = LevMarLSQFitter()
+
+    parallel_fit_model_nd(
+        data=data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        diagnostics="failed",
+        diagnostics_path=tmp_path / "diag1",
+    )
+
+    assert os.listdir(tmp_path / "diag1") == ["0"]
+    assert sorted(os.listdir(tmp_path / "diag1" / "0")) == ["error.log", "fit.png"]
+
+    parallel_fit_model_nd(
+        data=data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        diagnostics="all",
+        diagnostics_path=tmp_path / "diag2",
+    )
+
+    assert sorted(os.listdir(tmp_path / "diag2")) == ["0", "1", "2"]
 
 
-def test_dask_scheduler():
-    # Try all the different dask schedulers
-    pass
+@pytest.mark.parametrize(
+    "scheduler", ("synchronous", "processes", "threads", "default")
+)
+def test_dask_scheduler(scheduler):
+    N = 120
+    P = 20
+
+    rng = np.random.default_rng(12345)
+
+    x = np.linspace(-5, 30, P)
+
+    amplitude = rng.uniform(1, 10, N)
+    mean = rng.uniform(0, 25, N)
+    stddev = rng.uniform(1, 4, N)
+
+    data = gaussian(x[:, None], amplitude, mean, stddev)
+
+    # At this point, the data has shape (P, N)
+    # Set initial parameters to be close to but not exactly equal to true parameters
+
+    model = Gaussian1D(
+        amplitude=amplitude * rng.random(N),
+        mean=mean + rng.random(N),
+        stddev=stddev + rng.random(N),
+    )
+    fitter = LevMarLSQFitter()
+
+    model_fit = parallel_fit_model_nd(
+        data=data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        world={0: x},
+        scheduler=scheduler,
+    )
+
+    # Check that shape and values match
+
+    assert_allclose(model_fit.amplitude.value, amplitude)
+    assert_allclose(model_fit.mean.value, mean)
+    assert_allclose(model_fit.stddev.value, stddev)
 
 
 def test_compound_model():
     # Compound models have to be treated a little differently so check they
     # work fine.
-    pass
+
+    data = gaussian(
+        np.arange(20)[:, None],
+        np.array([2, 1.8]),
+        np.array([10, 11]),
+        np.array([1, 1.1]),
+    )
+
+    data[:, 0] += 2
+    data[:, 1] += 3
+
+    model1 = Gaussian1D(amplitude=1.5, mean=1.2, stddev=0.15)
+    model2 = Const1D(1)
+
+    model = model1 + model2
+
+    fitter = LevMarLSQFitter()
+
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = "OFFSET", "WAVE"
+    wcs.wcs.crval = 10, 0.1
+    wcs.wcs.crpix = 1, 1
+    wcs.wcs.cdelt = 10, 0.1
+
+    model_fit = parallel_fit_model_nd(
+        data=data, model=model, fitter=fitter, fitting_axes=0, world=wcs
+    )
+    assert_allclose(model_fit.amplitude_0.value, [2, 1.8])
+    assert_allclose(model_fit.mean_0.value, [1.1, 1.2])
+    assert_allclose(model_fit.stddev_0.value, [0.1, 0.11])
+    assert_allclose(model_fit.amplitude_1.value, [2, 3])
+
+    # Check that constraints work
+
+    model.amplitude_1 = 2
+    model.amplitude_1.fixed = True
+
+    model_fit = parallel_fit_model_nd(
+        data=data, model=model, fitter=fitter, fitting_axes=0, world=wcs
+    )
+
+    assert_allclose(model_fit.amplitude_0.value, [2, 1.63349282])
+    assert_allclose(model_fit.mean_0.value, [1.1, 1.145231])
+    assert_allclose(model_fit.stddev_0.value, [0.1, 0.73632987])
+    assert_allclose(model_fit.amplitude_1.value, [2, 2])
 
 
 def test_model_dimension_mismatch():
