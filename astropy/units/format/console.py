@@ -11,8 +11,9 @@ from typing import TYPE_CHECKING
 from . import base, utils
 
 if TYPE_CHECKING:
-    from numbers import Real
     from typing import ClassVar, Literal
+
+    import numpy as np
 
     from astropy.units import UnitBase
 
@@ -48,7 +49,9 @@ class Console(base.Base):
         return f"^{number}"
 
     @classmethod
-    def format_exponential_notation(cls, val: Real, format_spec: str = ".8g") -> str:
+    def format_exponential_notation(
+        cls, val: float | np.number, format_spec: str = ".8g"
+    ) -> str:
         m, ex = utils.split_mantissa_exponent(val, format_spec)
 
         parts = []

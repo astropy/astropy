@@ -11,6 +11,8 @@ if TYPE_CHECKING:
     from numbers import Real
     from typing import ClassVar, Literal
 
+    import numpy as np
+
     from astropy.units import NamedUnit, UnitBase
 
 
@@ -40,7 +42,9 @@ class Base:
         super().__init_subclass__(**kwargs)
 
     @classmethod
-    def format_exponential_notation(cls, val: float, format_spec: str = "g") -> str:
+    def format_exponential_notation(
+        cls, val: float | np.number, format_spec: str = "g"
+    ) -> str:
         """
         Formats a value in exponential notation.
 
