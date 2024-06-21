@@ -1,14 +1,37 @@
 import os
 import traceback
 import warnings
+from copy import deepcopy
 from math import ceil, log10, prod
 
 import numpy as np
 from dask import array as da
 
 from astropy.modeling import CompoundModel, models
+from astropy.wcs.wcsapi import BaseLowLevelWCS
 
 __all__ = ["parallel_fit_model_nd"]
+
+
+def _pixel_to_world_values_block(*pixel, wcs=None):
+    world = wcs.pixel_to_world_values(*pixel[::-1])[::-1]
+    world = np.array(world)
+    return world
+
+
+def _wcs_to_world_dask(wcs, data):
+    # Given a WCS and a data shape, return an iterable of dask arrays
+    # representing the world coordinates of the array.
+    pixel = tuple([np.arange(size) for size in data.shape])
+    pixel_nd = da.meshgrid(*pixel, indexing="ij")
+    world = da.map_blocks(
+        _pixel_to_world_values_block,
+        *pixel_nd,
+        wcs=deepcopy(wcs),
+        new_axis=0,
+        chunks=(3,) + data.chunksize,
+    )
+    return tuple([world[idx] for idx in range(len(data.shape))])
 
 
 def _copy_with_new_parameters(model, parameters, shape=None):
@@ -47,7 +70,7 @@ def _compound_model_with_array_parameters(model, shape):
 
 def fit_models_to_chunk(
     data,
-    *parameters,
+    *arrays,
     block_info=None,
     model=None,
     fitter=None,
@@ -60,6 +83,13 @@ def fit_models_to_chunk(
     Function that gets passed to map_blocks and will fit models to a specific
     chunk of the data.
     """
+    if world == "arrays":
+        ndim = model.n_inputs
+        world_arrays = arrays[:ndim]
+        parameters = arrays[ndim:]
+    else:
+        parameters = arrays
+
     if data.ndim == 0 or data.size == 0 or block_info is None or block_info == []:
         return np.array(parameters)
 
@@ -67,6 +97,11 @@ def fit_models_to_chunk(
 
     index = tuple([slice(None), slice(None)] + [0] * (parameters.ndim - 2))
     parameters = parameters[index]
+
+    if model.n_inputs > 1:
+        world_values = np.meshgrid(*world, indexing="ij")
+    else:
+        world_values = world
 
     # Iterate over the first axis and fit each model in turn
     for i in range(data.shape[0]):
@@ -79,11 +114,14 @@ def fit_models_to_chunk(
         error = ""
         all_warnings = []
 
+        if world == "arrays":
+            world_values = tuple([w[i] for w in world_arrays])
+
         # Do the actual fitting
         try:
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter("always")
-                model_fit = fitter(model_i, *world, data[i])
+                model_fit = fitter(model_i, *world_values, data[i])
                 all_warnings.extend(w)
         except Exception as exc:
             model_fit = None
@@ -148,7 +186,10 @@ def fit_models_to_chunk(
     # of the shape, then the rest of the data shape. However, this is wasteful
     # and in principle we should be able to use drop_axis in map_blocks to
     # indicate that we no longer need these extra dimensions.
-    parameters = parameters.reshape((parameters.shape[0], parameters.shape[1], 1))
+
+    parameters = parameters.reshape(
+        (parameters.shape[0], parameters.shape[1]) + (1,) * (data.ndim - 1)
+    )
     parameters = np.broadcast_to(
         parameters, (parameters.shape[0], parameters.shape[1]) + data.shape[1:]
     )
@@ -166,7 +207,7 @@ def parallel_fit_model_nd(
     chunk_n_max=None,
     diagnostics=None,
     diagnostics_path=None,
-    use_default_scheduler=False,
+    scheduler=None,
 ):
     """
     Fit a model in parallel to an N-dimensional dataset.
@@ -208,11 +249,15 @@ def parallel_fit_model_nd(
     diagnostics_path : str, optional
         If `diagnostics` is not `None`, this should be the path to a folder in
         which a folder will be made for each fit that is output.
-    use_default_scheduler : bool, optional
-        If `False` (the default), a local multi-processing scheduler will be
-        used. If `True`, whatever is the current default scheduler will be
-        used. Set this to `True` if using e.g. dask.distributed.
+    scheduler : str, optional
+        If not specified, a local multi-processing scheduler will be
+        used. If ``'default'``, whatever is the current default scheduler will be
+        used. You can also set this to anything that would be passed to
+        ``array.compute(scheduler=...)``
     """
+    if scheduler is None:
+        scheduler = "synchronous"
+
     if diagnostics in (None, "failed", "failed+warn", "all"):
         if diagnostics is not None:
             if diagnostics_path is None:
@@ -224,10 +269,24 @@ def parallel_fit_model_nd(
             "diagnostics should be None, 'failed', 'failed+warn', or 'all'"
         )
 
-    # Sanitize fitting_axes and determine iterating_axes
-    ndim = data.ndim
     if not isinstance(fitting_axes, tuple):
         fitting_axes = (fitting_axes,)
+
+    # Check dimensionality
+    if model.n_inputs != len(fitting_axes):
+        raise ValueError(
+            f"Model is {model.n_inputs}-dimensional, but got "
+            f"{len(fitting_axes)} value(s) in fitting_axes="
+        )
+
+    for fi in fitting_axes:
+        if fi <= -data.ndim or fi > data.ndim - 1:
+            raise ValueError(
+                f"Fitting index {fi} out of range for {data.ndim}-dimensional data"
+            )
+
+    # Sanitize fitting_axes and determine iterating_axes
+    ndim = data.ndim
     fitting_axes = tuple([(fi if fi >= 0 else ndim - fi) for fi in fitting_axes])
     iterating_axes = tuple([i for i in range(ndim) if i not in fitting_axes])
 
@@ -238,6 +297,56 @@ def parallel_fit_model_nd(
     # Make sure the input array is a dask array
     data = da.asarray(data)
 
+    world_arrays = []
+    if isinstance(world, BaseLowLevelWCS):
+        if world.pixel_n_dim != data.ndim:
+            raise ValueError(
+                "The WCS pixel_n_dim ({world.pixel_n_dim}) does not match the data dimensionality ({data.ndim})"
+            )
+
+        # Note that in future we could in principle consider supporting cases
+        # where the number of world dimensions does not match the number of
+        # data dimensions, provided the model returns a different number of
+        # outputs than it takes inputs. For example, one could consider fitting
+        # a 1D dataset with a model that takes two inputs and returns one
+        # output if the WCS provides two coordinates for each 1D pixel.
+        # However, this is a very advanced and unusual use case, so we don't
+        # cater for this for now.
+        if world.world_n_dim != data.ndim:
+            raise ValueError(
+                "The WCS world_n_dim ({world.world_n_dim}) does not match the data dimensionality ({data.ndim})"
+            )
+
+        # Construct dask arrays of world coordinates for every pixel in the cube.
+        # We will then iterate over this in map_blocks.
+        world_arrays = _wcs_to_world_dask(world, data)
+
+        # Extract world arrays for just fitting dimensions
+        world_arrays = [world_arrays[idx] for idx in fitting_axes]
+
+        world = "arrays"
+    elif isinstance(world, tuple):
+        for w in world:
+            if w.shape != data.shape:
+                raise ValueError(
+                    f"arrays in world tuple should have same shape as data (expected {data.shape}, got {w.shape})"
+                )
+        # Extract world arrays for just fitting dimensions
+        world_arrays = [da.asarray(world[idx]) for idx in fitting_axes]
+        world = "arrays"
+    elif isinstance(world, dict):
+        # Re-index world if a dict, make it a tuple in order of fitting_axes
+        for axis in fitting_axes:
+            if axis not in world:
+                raise KeyError(f"Values for axis {axis} missing from world")
+            elif len(world[axis]) != data.shape[axis]:
+                raise ValueError(
+                    f"world[{axis}] has length {len(world[axis])} but data along dimension {axis} has length {data.shape[axis]}"
+                )
+        world = tuple([world[axis] for axis in fitting_axes])
+    elif world is None:
+        world = tuple([np.arange(size) for size in fitting_shape])
+
     # Move all iterating dimensions to the front and flatten. We do this so
     # that fit_models_to_chunk can be agnostic of the complexity of the
     # iterating dimensions.
@@ -246,11 +355,13 @@ def parallel_fit_model_nd(
     data = da.moveaxis(data, original_axes, new_axes)
     data = data.reshape((prod(iterating_shape),) + fitting_shape)
 
-    # Re-index world if a dict, make it a tuple in order of fitting_axes
-    if isinstance(world, dict):
-        world = tuple([world[axis] for axis in fitting_axes])
-    elif world is None:
-        world = tuple([np.arange(size) for size in fitting_shape])
+    # Do the same to the world arrays, if present
+    world_arrays = [
+        da.moveaxis(w, original_axes, new_axes).reshape(
+            (prod(iterating_shape),) + fitting_shape
+        )
+        for w in world_arrays
+    ]
 
     # NOTE: dask tends to choose chunks that are too large for this kind of
     # problem, so if chunk_n_max is not specified, we try and determine a
@@ -263,6 +374,9 @@ def parallel_fit_model_nd(
     # Rechunk the array so that it is not chunked along the fitting axes
     chunk_shape = (chunk_n_max,) + (-1,) * len(fitting_axes)
     data = data.rechunk(chunk_shape)
+
+    # Rechunk world arrays (if provided)
+    world_arrays = [w.rechunk(chunk_shape) for w in world_arrays]
 
     # Extract the parameters arrays from the model, in the order in which they
     # appear in param_names, convert to dask arrays, and broadcast to shape of
@@ -290,6 +404,7 @@ def parallel_fit_model_nd(
     result = da.map_blocks(
         fit_models_to_chunk,
         data,
+        *world_arrays,
         *parameter_arrays,
         enforce_ndim=True,
         dtype=float,
@@ -302,14 +417,16 @@ def parallel_fit_model_nd(
         iterating_shape=iterating_shape,
     )
 
-    if use_default_scheduler:
+    if scheduler == "default":
         compute_kwargs = {}
     else:
-        compute_kwargs = {"scheduler": "processes"}
+        compute_kwargs = {"scheduler": scheduler}
 
     parameter_arrays_fitted = result.compute(**compute_kwargs)
 
-    parameter_arrays_fitted = parameter_arrays_fitted[:, :, 0]
+    index = (slice(None), slice(None)) + (0,) * (data.ndim - 1)
+
+    parameter_arrays_fitted = parameter_arrays_fitted[index]
 
     # Set up new parameter arrays with fitted values
     parameters = {}
