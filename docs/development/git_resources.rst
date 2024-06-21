@@ -112,7 +112,7 @@ these instructions::
 
    # change to the main branch (if you still have one, otherwise change to
    # another branch)
-   git checkout main
+   git switch main
 
    # delete branch locally
    # Note: -d tells git to check whether your branch has been merged somewhere
@@ -214,7 +214,7 @@ To do a rebase on main::
     git fetch upstream
 
     # Go to the feature branch
-    git checkout cool-feature
+    git switch cool-feature
 
     # Make a backup in case you mess up
     git branch tmp cool-feature
@@ -398,7 +398,7 @@ Then say you make a pull request of issue-branch against Astroy's main, and
 the pull request is accepted and merged.  When GitHub merges the pull request
 it's basically doing the following in the upstream repository::
 
-    $ git checkout main
+    $ git switch main
     $ git remote add yourfork file:///path/to/your/fork/astropy
     $ git fetch yourfork
     $ git merge --no-ff yourfork/issue-branch
@@ -453,7 +453,7 @@ upstream we also have a backport branch that we want to cherry pick "F" onto::
 
 We would do::
 
-    $ git checkout backport
+    $ git switch backport
     $ git cherry-pick -m 1 F
 
 But this applies the diff of "F" with "C", not of "F" with "G".  So clearly

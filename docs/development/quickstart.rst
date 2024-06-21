@@ -84,6 +84,17 @@ Next, `clone <https://git-scm.com/docs/git-clone>`__ your GitHub fork to your ma
 This creates the directory ``astropy`` and connects your repository to the upstream
 (main project) `astropy <https://github.com/astropy/astropy>`__ repository.
 
+You can see the remote repositories as follows::
+
+    git remote --verbose
+
+You will see something like::
+
+    origin  git@github.com:YOUR-USER-NAME/astropy.git (fetch)
+    origin  git@github.com:YOUR-USER-NAME/astropy.git (push)
+    upstream        https://github.com/astropy/astropy.git (fetch)
+    upstream        https://github.com/astropy/astropy.git (push)
+
 .. _create-isolated-env:
 
 Create an isolated development environment
@@ -252,24 +263,6 @@ forked feature branch's commits::
 
 Here ``origin`` is the default name given to your fork on GitHub.
 
-
-
-You can see the remote repositories
-
-.. code-block:: shell
-
-    git remote --verbose
-
-If you added the upstream repository as described above you will see something
-like
-
-.. code-block:: shell
-
-    origin  git@github.com:yourname/astropy.git (fetch)
-    origin  git@github.com:yourname/astropy.git (push)
-    upstream        https://github.com/astropy/astropy.git (fetch)
-    upstream        https://github.com/astropy/astropy.git (push)
-
 Now your code is on GitHub, but it is not visible to the Astropy maintainers. For that
 to happen, a pull request needs to be submitted on GitHub.
 
@@ -277,7 +270,7 @@ The first time you push to a new branch on GitHub, you will see a message like b
 with a useful link to create a pull request::
 
   remote: Create a pull request for 'subpackage-new-feature' on GitHub by visiting:
-  remote:      https://github.com/yourname/astropy/pull/new/subpackage-new-feature
+  remote:      https://github.com/YOUR-USER-NAME/astropy/pull/new/subpackage-new-feature
 
 
 .. _quickstart-pull-request:

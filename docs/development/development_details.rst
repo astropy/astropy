@@ -272,7 +272,7 @@ branch from the development branch and applying your changes to your branch.
 First, fetch the latest development astropy and go to your branch of interest::
 
     git fetch astropy main
-    git checkout my-new-feature
+    git switch my-new-feature
 
 Now, do the rebase::
 
