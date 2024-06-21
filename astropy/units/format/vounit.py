@@ -23,8 +23,8 @@ class VOUnit(generic.Generic):
     _space = "."
     _scale_unit_separator = ""
 
-    @staticmethod
-    def _generate_unit_names():
+    @classmethod
+    def _generate_unit_names(cls):
         from astropy import units as u
         from astropy.units import required_by_vounit as uvo
 

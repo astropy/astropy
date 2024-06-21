@@ -48,8 +48,8 @@ class OGIP(generic.Generic):
         "UNIT",
     )
 
-    @staticmethod
-    def _generate_unit_names():
+    @classmethod
+    def _generate_unit_names(cls):
         from astropy import units as u
 
         deprecated_names = set()

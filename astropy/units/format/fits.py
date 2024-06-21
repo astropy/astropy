@@ -17,8 +17,8 @@ class FITS(generic.Generic):
     Standard <https://fits.gsfc.nasa.gov/fits_standard.html>`_.
     """
 
-    @staticmethod
-    def _generate_unit_names():
+    @classmethod
+    def _generate_unit_names(cls):
         from astropy import units as u
 
         # add some units up-front for which we don't want to use prefixes
