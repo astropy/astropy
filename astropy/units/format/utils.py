@@ -16,6 +16,8 @@ if TYPE_CHECKING:
     from numbers import Real
     from typing import TypeVar
 
+    import numpy as np
+
     from astropy.units import UnitBase
 
     T = TypeVar("T")
@@ -54,7 +56,9 @@ def get_grouped_by_powers(
     return positive, negative
 
 
-def split_mantissa_exponent(v: Real, format_spec: str = ".8g") -> tuple[str, str]:
+def split_mantissa_exponent(
+    v: float | np.number, format_spec: str = ".8g"
+) -> tuple[str, str]:
     """
     Given a number, split it into its mantissa and base 10 exponent
     parts, each as strings.  If the exponent is too small, it may be
