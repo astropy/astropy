@@ -95,9 +95,15 @@ def fit_models_to_chunk(
 
     parameters = np.array(parameters)
 
+    # Because of the way map_blocks works, we need to have all arrays passed
+    # to map_blocks have the same shape, even though for the parameters this
+    # means there are extra unneeded dimensions. We slice these out here.
     index = tuple([slice(None), slice(None)] + [0] * (parameters.ndim - 2))
     parameters = parameters[index]
 
+    # The world argument is used to pass through 1D arrays of world coordinates
+    # (otherwise world_arrays is used) so if the model has more than one
+    # dimension we need to make these arrays N-dimensional.
     if model.n_inputs > 1:
         world_values = np.meshgrid(*world, indexing="ij")
     else:
@@ -424,8 +430,10 @@ def parallel_fit_model_nd(
 
     parameter_arrays_fitted = result.compute(**compute_kwargs)
 
+    # The returned parameters will have extra 'fake' dimensions that match the
+    # original data dimensions. We should ideally be able to get rid of this by
+    # using drop_axis in the map_blocks call.
     index = (slice(None), slice(None)) + (0,) * (data.ndim - 1)
-
     parameter_arrays_fitted = parameter_arrays_fitted[index]
 
     # Set up new parameter arrays with fitted values
