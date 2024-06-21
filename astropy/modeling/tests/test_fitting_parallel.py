@@ -3,8 +3,11 @@
 import os
 import re
 
-import numpy as np
+
 import pytest
+pytest.importorskip("dask")
+
+import numpy as np
 from numpy.testing import assert_allclose
 
 from astropy.modeling.fitting import LevMarLSQFitter
