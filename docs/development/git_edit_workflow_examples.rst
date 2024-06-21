@@ -41,7 +41,7 @@ Set up an isolated workspace
 
 + Make a new `git`_ branch for fixing this issue and switch to the branch::
 
-    git switch -b fix-1761 upstream/main
+    git switch -c fix-1761 upstream/main
 
 + Switch to your astropy development environment::
 
