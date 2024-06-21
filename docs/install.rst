@@ -228,7 +228,12 @@ The following packages can optionally be used when testing:
 Building from Source
 ********************
 
-If you want to build the code from source, follow the instructions for :ref:`contributing_environment`.
+If you want to build the code from source, follow the instructions for
+:ref:`contributing_environment`. Note that instead of cloning from your fork, you can
+choose to clone from the main repository::
+
+    git clone https://github.com/astropy/astropy.git
+    cd astropy
 
 Building the documentation is typically not necessary unless you are
 developing code or documentation or do not have internet access, because

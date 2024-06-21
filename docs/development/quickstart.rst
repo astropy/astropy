@@ -16,11 +16,18 @@ to `ask for help <https://www.astropy.org/help.html>`_.
 Set up GitHub and Git
 ---------------------
 
-To contribute to the astropy repository or build from source, you will need to ensure
-that `Git <https://git-scm.com/>`_ is installed and configured on your machine. `GitHub
-has instructions <https://docs.github.com/en/get-started/quickstart/set-up-git>`__ for
-installing and configuring git, and more details and further resources are available in
-the :ref:`contributing.version_control` section.
+Astropy is hosted on `GitHub <https://www.github.com/astropy/astropy>`_, and to
+contribute, you will need a `GitHub account
+<https://docs.github.com/en/get-started/start-your-journey/creating-an-account-on-github>`_.
+
+We use `Git <https://git-scm.com/>`_ for version control and to allow many people to
+work together on the project. See the `GitHub quickstart instructions
+<https://docs.github.com/en/get-started/quickstart/set-up-git>`__ for installing and
+configuring git, as well as the :ref:`git-resources` page.
+
+If you are new to contributing to projects through forking on GitHub, see the
+`GitHub documentation for contributing to projects
+<https://docs.github.com/en/get-started/quickstart/contributing-to-projects>`_.
 
 Install a C compiler if needed
 ------------------------------
@@ -61,14 +68,6 @@ Create a clone of astropy
 
 If you have not done so already, you will need your own copy of ``astropy`` to
 build it and/or contribute to the source. Astropy is hosted in the `astropy GitHub repository <https://www.github.com/astropy/astropy>`_ and you need to make a clone.
-
-If you *only want to build astropy* but not contribute, you can run the following and then skip to the :ref:`next section<create-isolated-env>`::
-
-    git clone https://github.com/astropy/astropy.git
-    cd astropy
-
-If you plan to contribute a pull request, you will need a `free GitHub account
-<https://github.com/signup/free>`_.
 
 First, create a `GitHub Fork
 <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo>`_ by going to the `astropy project page <https://github.com/astropy/astropy>`_
@@ -138,7 +137,7 @@ At this point you should be able to import astropy from your locally built versi
 
 Next you may want to try running some or all of the ``astropy`` unit tests.
 Running the full test suite can take a few minutes, so you may want to start with a
-single sub-package (e.g. `coordinates`)::
+single sub-package (e.g. :ref:`astropy-coordinates`)::
 
 
    pytest astropy/coordinates
@@ -177,25 +176,6 @@ GitHub pull request (PR). This section will guide you through the process. We en
 you to `ask for help <https://www.astropy.org/help.html>`_ if you get stuck. The astropy
 community is welcoming and friendly and will help you!
 
-.. _contributing.version_control:
-
-GitHub and Git
---------------
-
-Astropy is hosted on `GitHub <https://www.github.com/astropy/astropy>`_, and to
-contribute, you will need to `create a GitHub account
-<https://docs.github.com/en/get-started/start-your-journey/creating-an-account-on-github>`_.
-
-We use `Git <https://git-scm.com/>`_ for version control and to allow many people to
-work together on the project. If you are new to Git then take a moment to look at the
-:ref:`git-resources` page.
-
-If you are new to contributing to projects through forking on GitHub, take a look at the
-`GitHub documentation for contributing to projects
-<https://docs.github.com/en/get-started/quickstart/contributing-to-projects>`_. GitHub
-provides a quick tutorial using a test repository that may help you become more familiar
-with forking a repository, cloning a fork, creating a feature branch, pushing changes
-and making pull requests.
 
 Creating a feature branch
 -------------------------
@@ -257,9 +237,6 @@ You can then commit your all your changes to your local repository with an expla
     git add files-that-you-changed ...
     git commit -m "your commit message goes here"
 
-You should make frequent commits and always include a commit message. Each commit
-should represent one logical set of changes.
-
 .. Important:: Never merge changes from ``upstream/main`` into your feature branch. If
    changes in ``main`` require changes to our code you must :ref:`rebase`.
 
@@ -318,9 +295,10 @@ your branch and create the PR. If you don't have that link (and for a few more d
 Follow the instructions in the PR template and fill it out as completely as possible.
 
 If your PR is still a work in progress then instead of clicking "Create pull request",
-click on the small down arrow next to it and select "Create draft pull request".
+click on the small down arrow next to it and select "`Create draft pull request <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests#draft-pull-requests>`__".
 In addition, if your commits are not ready for CI testing, you
-should include ``[ci skip]`` the last commit message.
+should include ``[ci skip]`` the last commit message (but note that code formatting
+checks and documentation building will still be done).
 
 Once submitted, this request goes to the astropy maintainers and they will review the
 PR.
@@ -351,7 +329,10 @@ If you have made it to this point and submitted a pull request, one of the core
 maintainers will take a look. To make the process as smooth and efficient as possible,
 here are some tips:
 
-- **Reference an open issue** for non-trivial changes to clarify the PR's purpose.
+- **Reference an existing open issue** to `link to that issue <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests#draft-pull-requests>`_ and close the
+  issue if the PR is merged.
 - **Ensure you have appropriate tests**.
 - **Keep your pull requests as simple as possible** -- larger PRs take longer to review.
+- **When practical limit the scope of a PR to one sub-package** -- this means fewer
+  required reviewers and a faster review process.
 - **Ensure that CI is in a green state** -- any required failures should be addressed.
