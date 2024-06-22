@@ -9,7 +9,9 @@ from . import utils
 if TYPE_CHECKING:
     from collections.abc import Iterable
     from numbers import Real
-    from typing import Literal
+    from typing import ClassVar, Literal
+
+    import numpy as np
 
     from astropy.units import NamedUnit, UnitBase
 
@@ -19,9 +21,10 @@ class Base:
     The abstract base class of all unit formats.
     """
 
-    registry = {}
-    _space = " "
-    _scale_unit_separator = " "
+    registry: ClassVar[dict[str, type[Base]]] = {}
+    _space: ClassVar[str] = " "
+    _scale_unit_separator: ClassVar[str] = " "
+    name: ClassVar[str]  # Set by __init_subclass__ by the latest
 
     def __new__(cls, *args, **kwargs):
         # This __new__ is to make it clear that there is no reason to
@@ -39,7 +42,9 @@ class Base:
         super().__init_subclass__(**kwargs)
 
     @classmethod
-    def format_exponential_notation(cls, val: float, format_spec: str = "g") -> str:
+    def format_exponential_notation(
+        cls, val: float | np.number, format_spec: str = "g"
+    ) -> str:
         """
         Formats a value in exponential notation.
 
