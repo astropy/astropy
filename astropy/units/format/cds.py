@@ -25,8 +25,9 @@ from . import core, utils
 from .base import Base
 
 if TYPE_CHECKING:
-    from numbers import Real
     from typing import ClassVar, Literal
+
+    import numpy as np
 
     from astropy.extern.ply.lex import Lexer, LexToken
     from astropy.units import UnitBase
@@ -309,7 +310,9 @@ class CDS(Base):
                     raise ValueError("Syntax error")
 
     @classmethod
-    def format_exponential_notation(cls, val: Real, format_spec: str = ".8g") -> str:
+    def format_exponential_notation(
+        cls, val: float | np.number, format_spec: str = ".8g"
+    ) -> str:
         m, ex = utils.split_mantissa_exponent(val)
         parts = []
         if m not in ("", "1"):
