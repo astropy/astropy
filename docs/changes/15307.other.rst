@@ -1,0 +1,2 @@
+``typing_extensions``, the official backport package for new ``typing`` functionality,
+is now a dependency for Astropy.
