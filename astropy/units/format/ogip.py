@@ -16,14 +16,20 @@ FITS files
 <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__.
 """
 
+from __future__ import annotations
+
 import copy
 import math
 import warnings
 from fractions import Fraction
+from typing import TYPE_CHECKING
 
 from astropy.utils import classproperty, parsing
 
 from . import core, generic, utils
+
+if TYPE_CHECKING:
+    from typing import ClassVar
 
 
 class OGIP(generic.Generic):
@@ -47,6 +53,11 @@ class OGIP(generic.Generic):
         "UNKNOWN",
         "UNIT",
     )
+
+    _functions: ClassVar[list[str]] = [
+        "log", "ln", "exp", "sqrt", "sin", "cos", "tan",
+        "asin", "acos", "atan", "sinh", "cosh", "tanh",
+    ]  # fmt: skip
 
     @classmethod
     def _generate_unit_names(cls):
@@ -86,14 +97,9 @@ class OGIP(generic.Generic):
         deprecated_units = ["Crab", "mCrab"]
         for unit in deprecated_units:
             deprecated_names.add(unit)
-        functions = [
-            "log", "ln", "exp", "sqrt", "sin", "cos", "tan", "asin",
-            "acos", "atan", "sinh", "cosh", "tanh",
-        ]  # fmt: skip
-        for name in functions:
-            names[name] = name
+        names.update((name, name) for name in cls._functions)
 
-        return names, deprecated_names, functions
+        return names, deprecated_names
 
     @classproperty(lazy=True)
     def _lexer(cls):

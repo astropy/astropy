@@ -63,7 +63,7 @@ class VOUnit(generic.Generic):
         do_defines(binary_bases, si_prefixes + binary_prefixes, ["dB", "dbyte"])
         do_defines(simple_units, [""])
 
-        return names, deprecated_names, []
+        return names, deprecated_names
 
     @classmethod
     def parse(cls, s, debug=False):

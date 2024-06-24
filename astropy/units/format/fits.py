@@ -56,7 +56,7 @@ class FITS(generic.Generic):
         for unit in deprecated_units:
             deprecated_names.add(unit)
 
-        return names, deprecated_names, []
+        return names, deprecated_names
 
     @classmethod
     def _parse_unit(cls, unit, detailed_exception=True):
