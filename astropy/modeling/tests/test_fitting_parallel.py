@@ -274,6 +274,21 @@ def test_diagnostics(tmp_path):
 
     assert sorted(os.listdir(tmp_path / "diag2")) == ["0", "1", "2"]
 
+    # Make sure things world also with world=wcs
+
+    parallel_fit_model_nd(
+        data=data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        world=WCS(naxis=2),
+        diagnostics="failed",
+        diagnostics_path=tmp_path / "diag3",
+    )
+
+    assert os.listdir(tmp_path / "diag3") == ["0"]
+    assert sorted(os.listdir(tmp_path / "diag3" / "0")) == ["error.log", "fit.png"]
+
 
 @pytest.mark.parametrize(
     "scheduler", ("synchronous", "processes", "threads", "default")

@@ -177,7 +177,7 @@ def fit_models_to_chunk(
                 fig = plt.figure()
                 ax = fig.add_subplot(1, 1, 1)
                 ax.set_title(str(index))
-                ax.plot(world[0], data[i], "k.")
+                ax.plot(world_values[0], data[i], "k.")
                 if model_fit is None:
                     ax.text(0.1, 0.9, "Fit failed!", color="r", transform=ax.transAxes)
                 else:
