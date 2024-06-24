@@ -317,15 +317,98 @@ class TdatHeader(core.BaseHeader, TdatMeta):
         Raises
         ------
         ValueError
-            _description_
+            If an unsupported delimitter is given.
         TdatFormatError
-            _description_
+            If not all requisite information to write a TDAT file is provided.
+
+        Examples
+        --------
+        >>> from astropy.table import Table
+        >>> from io import StringIO
+        >>> t = Table(names=('reference_id', 'RA', 'Name'),
+        ...           data=[[1, 2, 3], [1.0, 2.0, 3.0], ['c', 'd', 'e']])
+        >>> out = StringIO()
+        >>> t.write(out, format="ascii.tdat")
+        >>> out.getvalue().splitlines()
+        ['<HEADER>',
+         'table_name = astropy_table',
+         'table_description = "A table created via astropy"',
+         '#',
+         '# Table Parameters',
+         '#',
+         'field[reference_id] = integer',
+         'field[RA] = float',
+         'field[Name] = char1',
+         '#',
+         '# Data Format Specification',
+         '#',
+         'line[1] = reference_id RA Name',
+         '#',
+         '<DATA>',
+         '1|1.0|c|',
+         '2|2.0|d|',
+         '3|3.0|e|',
+         '<END>']
+
+        Including relevant metadata for the table and columns seperately
+        is possible with a mixture of attribute assignment and additions to the
+        metadata.
+
+        >>> t = Table(names=('reference_id', 'RA', 'Name'),
+        ...           data=[[1, 2, 3], [1.0, 2.0, 3.0], ['c', 'd', 'e']])
+        >>> t.meta["table_name"] = "example_table"
+        >>> t.meta["table_description"] = "An example table for the tdat writer."
+        >>> 
+        >>> t.add_index('reference_id')
+        >>> t.columns['reference_id'].meta['comment'] = "For internal reference only"
+        >>> 
+        >>> t.add_index('RA')
+        >>> t.columns['RA'].unit = "degree"
+        >>> t.columns['RA'].format = ".4f"
+        >>> t.columns['RA'].meta['ucd'] = "pos.eq.ra"
+        >>> 
+        >>> t.columns['Name'].description = "The name of the source (if available)"
+        >>> out = StringIO()
+        >>> t.write(out, format="ascii.tdat")
+        >>> out.getvalue().splitlines()
+        ['<HEADER>',
+         'table_name = example_table',
+         'table_description = An example table for the tdat writer.',
+         '#',
+         '# Table Parameters',
+         '#',
+         'field[reference_id] = integer (key) // // For internal reference only',
+         'field[RA] = float:.4f_deg [pos.eq.ra] (index)',
+         'field[Name] = char1 // The name of the source (if available)',
+         '#',
+         '# Virtual Parameters',
+         '#',
+         'table_name = example_table',
+         '#',
+         '# Data Format Specification',
+         '#',
+         'line[1] = reference_id RA Name',
+         '#',
+         '<DATA>',
+         '1|1.0000|c|',
+         '2|2.0000|d|',
+         '3|3.0000|e|',
+         '<END>']
         """
         if self.splitter.delimiter not in [" ", "|"]:
             raise ValueError("only pipe and space delimitter is allowed in tdat format")
+
         # Write the keywords and column descriptors
         keywords = deepcopy(self.table_meta.get("keywords", None))
+        meta_keys = ["keywords", "comments", "field_lines", "index_lines"]
+        # In case a user puts a keyword direclty in meta, instead of meta.keywords
+        for key in [key.lower()
+                    for key in self.table_meta.keys()
+                    if key.lower() not in meta_keys ]:
+            keywords[key] = self.table_meta.get(key)
+
         col_lines = self.table_meta.get("field_lines", None)
+        indices = [col.name for col in self.cols if col.indices != []]
 
         if keywords is not None:
             if "table_name" not in keywords:
@@ -361,6 +444,7 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                 else:
                     ctype = f"char{str(col.dtype).split('<U')[-1]}"
                 field_line = f"field[{col.name}] = {ctype}"
+
                 if col.format is not None:
                     field_line += f":{col.format}"
                 if col.unit is not None:
@@ -369,8 +453,14 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                     field_line += f" [{col.meta['ucd']}]"
                 if "index" in col.meta:
                     field_line += f" ({col.meta['index']})"
+                elif (indices != []) and (col.name == indices[0]):
+                    field_line += " (key)"
+                elif col.name in indices:
+                    field_line += " (index)"
                 if col.description is not None:
                     field_line += f" // {col.description}"
+                elif "comment" in col.meta:
+                    field_line += f" //"
                 if "comment" in col.meta:
                     field_line += f" // {col.meta['comment']}"
                 lines.append(field_line)
