@@ -307,7 +307,7 @@ def parallel_fit_model_nd(
     if isinstance(world, BaseLowLevelWCS):
         if world.pixel_n_dim != data.ndim:
             raise ValueError(
-                "The WCS pixel_n_dim ({world.pixel_n_dim}) does not match the data dimensionality ({data.ndim})"
+                f"The WCS pixel_n_dim ({world.pixel_n_dim}) does not match the data dimensionality ({data.ndim})"
             )
 
         # Note that in future we could in principle consider supporting cases
