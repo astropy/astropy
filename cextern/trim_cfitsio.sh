@@ -31,7 +31,7 @@ rm -f cfitsio/docs/*.pdf
 rm -f cfitsio/docs/*.doc
 rm -f cfitsio/docs/*.toc
 rm -rf cfitsio/[^L]*.*
-
+rm -rf cfitsio/utilities
 
 # We only use a very small subset of fitsio2.h, so here we generate that
 # file. If there are compilation issues after updating, it may be that
