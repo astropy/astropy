@@ -275,7 +275,7 @@ def parallel_fit_model_nd(
         Keyword arguments to pass to the fitting when it is called.
     """
     if scheduler is None:
-        scheduler = "synchronous"
+        scheduler = "processes"
 
     if diagnostics in (None, "failed", "failed+warn", "all"):
         if diagnostics is not None:
