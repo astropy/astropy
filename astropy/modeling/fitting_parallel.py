@@ -115,6 +115,12 @@ def fit_models_to_chunk(
 
     # Iterate over the first axis and fit each model in turn
     for i in range(data.shape[0]):
+        # If all data values are NaN, just set parameters to NaN and move on
+        if np.all(np.isnan(data[i])):
+            for ipar, name in enumerate(model.param_names):
+                parameters[ipar, i] = np.nan
+            continue
+
         # Make a copy of the reference model and inject parameters
         model_i = model.copy()
         for ipar, name in enumerate(model_i.param_names):
