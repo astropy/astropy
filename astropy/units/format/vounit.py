@@ -48,9 +48,7 @@ class VOUnit(generic.Generic):
         # While zebi and yobi are part of the standard for binary prefixes,
         # they are not implemented here due to computation limitations
         binary_prefixes = ["Ki", "Mi", "Gi", "Ti", "Pi", "Ei"]
-        deprecated_units = {
-            "angstrom", "Angstrom", "Ba", "barn", "erg", "G", "ta",
-        }  # fmt: skip
+        deprecated_units = {"angstrom", "Angstrom", "Ba", "barn", "erg", "G", "ta"}
 
         def do_defines(bases, prefixes, skips=[]):
             for key, base in utils.get_non_keyword_units(bases, prefixes):

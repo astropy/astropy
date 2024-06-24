@@ -23,11 +23,7 @@ class FITS(generic.Generic):
 
         # add some units up-front for which we don't want to use prefixes
         # and that have different names from the astropy default.
-        names = {
-            "Celsius": u.deg_C,
-            "deg C": u.deg_C,
-        }
-        deprecated_names = set()
+        names = {"Celsius": u.deg_C, "deg C": u.deg_C}
         bases = [
             "m", "g", "s", "rad", "sr", "K", "A", "mol", "cd",
             "Hz", "J", "W", "V", "N", "Pa", "C", "Ohm", "S",
@@ -49,14 +45,9 @@ class FITS(generic.Generic):
             "ct", "photon", "ph", "pixel", "pix", "D", "Sun", "chan",
             "bin", "voxel", "adu", "beam", "erg", "Angstrom", "angstrom",
         ]  # fmt: skip
-        deprecated_units = []
+        names.update((unit, getattr(u, unit)) for unit in simple_units)
 
-        for unit in simple_units + deprecated_units:
-            names[unit] = getattr(u, unit)
-        for unit in deprecated_units:
-            deprecated_names.add(unit)
-
-        return names, deprecated_names
+        return names, set()
 
     @classmethod
     def _parse_unit(cls, unit, detailed_exception=True):
