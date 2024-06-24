@@ -63,7 +63,6 @@ class OGIP(generic.Generic):
     def _generate_unit_names(cls):
         from astropy import units as u
 
-        deprecated_names = set()
         bases = [
             "A", "C", "cd", "eV", "F", "g", "H", "Hz", "J",
             "Jy", "K", "lm", "lx", "m", "mol", "N", "ohm", "Pa",
@@ -84,22 +83,16 @@ class OGIP(generic.Generic):
             "h", "lyr", "mag", "min", "photon", "pixel",
             "voxel", "yr",
         ]  # fmt: skip
-        for unit in simple_units:
-            names[unit] = getattr(u, unit)
+        names.update((unit, getattr(u, unit)) for unit in simple_units)
 
         # Create a separate, disconnected unit for the special case of
         # Crab and mCrab, since OGIP doesn't define their quantities.
-        Crab = u.def_unit(["Crab"], prefixes=False, doc="Crab (X-ray flux)")
-        mCrab = u.Unit(10**-3 * Crab)
-        names["Crab"] = Crab
-        names["mCrab"] = mCrab
+        names["Crab"] = u.def_unit(["Crab"], prefixes=False, doc="Crab (X-ray flux)")
+        names["mCrab"] = u.Unit(10**-3 * names["Crab"])
 
-        deprecated_units = ["Crab", "mCrab"]
-        for unit in deprecated_units:
-            deprecated_names.add(unit)
         names.update((name, name) for name in cls._functions)
 
-        return names, deprecated_names
+        return names, {"Crab", "mCrab"}
 
     @classproperty(lazy=True)
     def _lexer(cls):
