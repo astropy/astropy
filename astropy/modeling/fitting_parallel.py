@@ -78,11 +78,15 @@ def fit_models_to_chunk(
     diagnostics=None,
     diagnostics_path=None,
     iterating_shape=None,
+    fitter_kwargs=None,
 ):
     """
     Function that gets passed to map_blocks and will fit models to a specific
     chunk of the data.
     """
+    if fitter_kwargs is None:
+        fitter_kwargs = {}
+
     if world == "arrays":
         ndim = model.n_inputs
         world_arrays = arrays[:ndim]
@@ -127,7 +131,7 @@ def fit_models_to_chunk(
         try:
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter("always")
-                model_fit = fitter(model_i, *world_values, data[i])
+                model_fit = fitter(model_i, *world_values, data[i], **fitter_kwargs)
                 all_warnings.extend(w)
         except Exception as exc:
             model_fit = None
@@ -214,6 +218,7 @@ def parallel_fit_model_nd(
     diagnostics=None,
     diagnostics_path=None,
     scheduler=None,
+    fitter_kwargs=None,
 ):
     """
     Fit a model in parallel to an N-dimensional dataset.
@@ -260,6 +265,8 @@ def parallel_fit_model_nd(
         used. If ``'default'``, whatever is the current default scheduler will be
         used. You can also set this to anything that would be passed to
         ``array.compute(scheduler=...)``
+    fitter_kwargs : None or dict
+        Keyword arguments to pass to the fitting when it is called.
     """
     if scheduler is None:
         scheduler = "synchronous"
@@ -421,6 +428,7 @@ def parallel_fit_model_nd(
         diagnostics=diagnostics,
         diagnostics_path=diagnostics_path,
         iterating_shape=iterating_shape,
+        fitter_kwargs=fitter_kwargs,
     )
 
     if scheduler == "default":

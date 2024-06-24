@@ -3,8 +3,8 @@
 import os
 import re
 
-
 import pytest
+
 pytest.importorskip("dask")
 
 import numpy as np
@@ -240,6 +240,28 @@ def test_world_array():
     assert_allclose(model_fit.amplitude.value, [2, 1.8])
     assert_allclose(model_fit.mean.value, [5, 10])
     assert_allclose(model_fit.stddev.value, [0.5, 0.55])
+
+
+def test_fitter_kwargs(tmp_path):
+    data = gaussian(np.arange(20), 2, 10, 1)
+    data = np.broadcast_to(data.reshape((20, 1)), (20, 3)).copy()
+
+    data[0, 0] = np.nan
+
+    model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
+    fitter = LevMarLSQFitter()
+
+    model_fit = parallel_fit_model_nd(
+        data=data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        fitter_kwargs={"filter_non_finite": True},
+    )
+
+    assert_allclose(model_fit.amplitude.value, 2)
+    assert_allclose(model_fit.mean.value, 10)
+    assert_allclose(model_fit.stddev.value, 1)
 
 
 def test_diagnostics(tmp_path):
