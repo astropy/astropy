@@ -181,33 +181,32 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
             # Expand a tilde-prefixed path if present in args[0]
             args = _expand_user_in_args(args)
 
+            path = None
+            fileobj = None
+
+            if len(args):
+                if isinstance(args[0], PATH_TYPES) and not os.path.isdir(args[0]):
+                    from astropy.utils.data import get_readable_fileobj
+
+                    # path might be a os.PathLike object
+                    if isinstance(args[0], os.PathLike):
+                        args = (os.fspath(args[0]),) + args[1:]
+                    path = args[0]
+                    try:
+                        ctx = get_readable_fileobj(
+                            args[0], encoding="binary", cache=cache
+                        )
+                        fileobj = ctx.__enter__()
+                    except OSError:
+                        raise
+                    except Exception:
+                        fileobj = None
+                    else:
+                        args = [fileobj] + list(args[1:])
+                elif hasattr(args[0], "read"):
+                    fileobj = args[0]
+
             if format is None:
-                path = None
-                fileobj = None
-
-                if len(args):
-                    if isinstance(args[0], PATH_TYPES) and not os.path.isdir(args[0]):
-                        from astropy.utils.data import get_readable_fileobj
-
-                        # path might be a os.PathLike object
-                        if isinstance(args[0], os.PathLike):
-                            args = (os.fspath(args[0]),) + args[1:]
-                        path = args[0]
-                        try:
-                            ctx = get_readable_fileobj(
-                                args[0], encoding="binary", cache=cache
-                            )
-                            fileobj = ctx.__enter__()
-                        except OSError:
-                            raise
-                        except Exception:
-                            fileobj = None
-                        else:
-                            args = [fileobj] + list(args[1:])
-                    elif hasattr(args[0], "read"):
-                        path = None
-                        fileobj = args[0]
-
                 format = self._get_valid_format(
                     "read", cls, path, fileobj, args, kwargs
                 )
