@@ -1507,7 +1507,7 @@ class HDUList(list, _Verify):
                     del hdu.data
                 hdu._file = ffo
 
-            if sys.platform.startswith("win") and NUMPY_LT_2_0:
+            if sys.platform.startswith("win"):
                 # On Windows, all the original data mmaps were closed above.
                 # However, it's possible that the user still has references to
                 # the old data which would no longer work (possibly even cause
@@ -1518,14 +1518,27 @@ class HDUList(list, _Verify):
                 # lead to odd behavior in practice.  Better to just not keep
                 # references to data from files that had to be resized upon
                 # flushing (on Windows--again, this is no problem on Linux).
-                # Note that this hack is only possible on numpy 1.x:
-                # in 2.x, we cannot write directly to the data attribute
                 for idx, mmap, arr in mmaps:
-                    if mmap is not None:
+                    if mmap is None:
+                        continue
+                    if NUMPY_LT_2_0:
+                        # Note that this hack is only possible on numpy 1.x:
+                        # in 2.x, we cannot write directly to the data attribute
                         # https://github.com/numpy/numpy/issues/8628
                         with warnings.catch_warnings():
                             warnings.simplefilter("ignore", category=DeprecationWarning)
                             arr.data = self[idx].data.data
+                    elif sys.getrefcount(arr) > 2:
+                        # 2 is the minimum number of references to this object
+                        # counting `arr` and a reference as an argument to getrefcount(),
+                        # see  https://docs.python.org/3/library/sys.html#sys.getrefcount
+                        warnings.warn(
+                            "Memory map object was closed but appears to still "
+                            "be referenced. Further access will result in undefined "
+                            "behavior (possibly including segmentation faults).",
+                            category=UserWarning,
+                            stacklevel=2,
+                        )
                 del mmaps  # Just to be sure
 
         else:
