@@ -37,8 +37,7 @@ There are some additional tools, mostly of use for maintainers, in the
 
 {%else%}
 
-To read the developer documentation, you will need to go to the :ref:`latest
-developer version of the documentation
-<astropy-dev:developer-docs>`.
+To read the developer documentation, you will need to go to the
+`latest developer version of the documentation <https://docs.astropy.org/en/latest/index_dev.html>`_.
 
 {%endif%}
