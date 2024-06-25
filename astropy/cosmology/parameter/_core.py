@@ -5,25 +5,25 @@ from __future__ import annotations
 __all__ = ["Parameter"]
 
 import copy
-from collections.abc import Callable
 from dataclasses import KW_ONLY, dataclass, field, fields, is_dataclass, replace
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, Generic, TypeAlias, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, overload
 
 import astropy.units as u
 
 from ._converter import _REGISTRY_FVALIDATORS, _register_validator
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
 
     from typing_extensions import Self
 
     from astropy.cosmology import Cosmology
 
+    from ._typing import _FValidateCallable
 
-_VT = TypeVar("_VT")  # the type of the VParameter value
-_FValidateCallable: TypeAlias = Callable[["Cosmology", "Parameter", Any], _VT]
+
+_VT = TypeVar("_VT")  # Runtime-required type of the Parameter's value used in Generic.
 
 
 class Sentinel(Enum):
@@ -169,14 +169,12 @@ class Parameter(Generic[_VT]):
     # descriptor and property-like methods
 
     @overload
-    def __get__(self, cosmology: None, cosmo_cls: Any) -> Parameter: ...
+    def __get__(self, cosmology: None, cosmo_cls: Any) -> Self: ...
 
     @overload
     def __get__(self, cosmology: Cosmology, cosmo_cls: Any) -> _VT: ...
 
-    def __get__(
-        self, cosmology: Cosmology | None, cosmo_cls: Any = None
-    ) -> Parameter | _VT:
+    def __get__(self, cosmology: Cosmology | None, cosmo_cls: Any = None) -> Self | _VT:
         # Get from class
         if cosmology is None:
             # If the Parameter is being set as part of a dataclass constructor, then we
@@ -301,7 +299,7 @@ class Parameter(Generic[_VT]):
 
         Parameters
         ----------
-        **kw : Any
+        **kw : dict, optional
             Passed to constructor. The current values, eg. ``fvalidate`` are
             used as the default values, so an empty ``**kw`` is an exact copy.
 
