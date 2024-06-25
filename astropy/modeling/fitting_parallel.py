@@ -447,6 +447,7 @@ def parallel_fit_model_nd(
         iterating_axes=iterating_axes,
         fitting_axes=fitting_axes,
         fitter_kwargs=fitter_kwargs,
+        name='fitting-results'
     )
 
     if scheduler == "default":
