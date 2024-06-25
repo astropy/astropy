@@ -2,19 +2,21 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, TypeAlias, TypeVar, overload
+from typing import TYPE_CHECKING, Any, overload
 
 import astropy.units as u
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from numpy.typing import NDArray
+
     from astropy.cosmology import Cosmology, Parameter
+
+    from ._typing import _FValidateCallable
 
 __all__: list[str] = []
 
-# Callable[[Cosmology, Parameter, Any], Any]
-_FValidateCallable: TypeAlias = Callable[["Cosmology", "Parameter", Any], Any]
-T = TypeVar("T")
 
 _REGISTRY_FVALIDATORS: dict[str, _FValidateCallable] = {}
 
@@ -92,14 +94,16 @@ def _validate_with_unit(cosmology: Cosmology, param: Parameter, value: Any) -> A
 
 
 @_register_validator("float")
-def _validate_to_float(cosmology: Cosmology, param: Parameter, value: Any) -> Any:
+def _validate_to_float(cosmology: Cosmology, param: Parameter, value: Any) -> float:
     """Parameter value validator with units, and converted to float."""
     value = _validate_with_unit(cosmology, param, value)
     return float(value)
 
 
 @_register_validator("scalar")
-def _validate_to_scalar(cosmology: Cosmology, param: Parameter, value: Any) -> Any:
+def _validate_to_scalar(
+    cosmology: Cosmology, param: Parameter, value: Any
+) -> NDArray[Any]:
     """"""
     value = _validate_with_unit(cosmology, param, value)
     if not value.isscalar:
@@ -108,7 +112,7 @@ def _validate_to_scalar(cosmology: Cosmology, param: Parameter, value: Any) -> A
 
 
 @_register_validator("non-negative")
-def _validate_non_negative(cosmology: Cosmology, param: Parameter, value: Any) -> Any:
+def _validate_non_negative(cosmology: Cosmology, param: Parameter, value: Any) -> float:
     """Parameter value validator where value is a positive float."""
     value = _validate_to_float(cosmology, param, value)
     if value < 0.0:
