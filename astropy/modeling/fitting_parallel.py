@@ -436,7 +436,6 @@ def parallel_fit_model_nd(
         combined_array,
         enforce_ndim=True,
         dtype=float,
-        new_axis=0,
         drop_axis=fitting_axes,
         model=simple_model,
         fitter=fitter,
