@@ -69,8 +69,7 @@ def _compound_model_with_array_parameters(model, shape):
 
 
 def fit_models_to_chunk(
-    data,
-    *arrays,
+    combined,
     block_info=None,
     model=None,
     fitter=None,
@@ -79,6 +78,8 @@ def fit_models_to_chunk(
     diagnostics_path=None,
     iterating_shape=None,
     fitter_kwargs=None,
+    iterating_axes=None,
+    fitting_axes=None,
 ):
     """
     Function that gets passed to map_blocks and will fit models to a specific
@@ -87,57 +88,68 @@ def fit_models_to_chunk(
     if fitter_kwargs is None:
         fitter_kwargs = {}
 
+    # Start off by re-ordering axes so that iterating axes come first followed
+    # by fitting axes
+    original_axes = tuple([0] + [idx + 1 for idx in (iterating_axes + fitting_axes)])
+    new_axes = tuple(range(combined.ndim))
+    combined = da.moveaxis(combined, original_axes, new_axes)
+
+    data = combined[0]
     if world == "arrays":
-        ndim = model.n_inputs
-        world_arrays = arrays[:ndim]
-        parameters = arrays[ndim:]
+        parameters = combined[1 : -model.n_inputs]
+        world_arrays = combined[-model.n_inputs :]
     else:
-        parameters = arrays
+        parameters = combined[1:]
 
-    if data.ndim == 0 or data.size == 0 or block_info is None or block_info == []:
-        return np.array(parameters)
-
-    parameters = np.array(parameters)
+    if (
+        combined.ndim == 0
+        or combined.size == 0
+        or block_info is None
+        or block_info == []
+    ):
+        return parameters
 
     # Because of the way map_blocks works, we need to have all arrays passed
     # to map_blocks have the same shape, even though for the parameters this
     # means there are extra unneeded dimensions. We slice these out here.
-    index = tuple([slice(None), slice(None)] + [0] * (parameters.ndim - 2))
+    index = tuple([slice(None)] * (1 + len(iterating_axes)) + [0] * len(fitting_axes))
     parameters = parameters[index]
 
     # The world argument is used to pass through 1D arrays of world coordinates
     # (otherwise world_arrays is used) so if the model has more than one
     # dimension we need to make these arrays N-dimensional.
-    if model.n_inputs > 1:
-        world_values = np.meshgrid(*world, indexing="ij")
-    else:
-        world_values = world
+    if world != "arrays":
+        if model.n_inputs > 1:
+            world_values = np.meshgrid(*world, indexing="ij")
+        else:
+            world_values = world
 
-    # Iterate over the first axis and fit each model in turn
-    for i in range(data.shape[0]):
+    iterating_shape_chunk = data.shape[: len(iterating_axes)]
+
+    for index in np.ndindex(iterating_shape_chunk):
         # If all data values are NaN, just set parameters to NaN and move on
-        if np.all(np.isnan(data[i])):
+        if np.all(np.isnan(data[index])):
             for ipar, name in enumerate(model.param_names):
-                parameters[ipar, i] = np.nan
+                parameters[(ipar,) + index] = np.nan
             continue
 
         # Make a copy of the reference model and inject parameters
         model_i = model.copy()
         for ipar, name in enumerate(model_i.param_names):
-            setattr(model_i, name, parameters[ipar, i])
+            setattr(model_i, name, parameters[(ipar,) + index])
 
         output = diagnostics == "all"
         error = ""
         all_warnings = []
 
         if world == "arrays":
-            world_values = tuple([w[i] for w in world_arrays])
+            world_values = tuple([w[index] for w in world_arrays])
 
         # Do the actual fitting
         try:
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter("always")
-                model_fit = fitter(model_i, *world_values, data[i], **fitter_kwargs)
+                model_fit = fitter(model_i, *world_values, data[index], **fitter_kwargs)
                 all_warnings.extend(w)
         except Exception as exc:
             model_fit = None
@@ -145,13 +157,13 @@ def fit_models_to_chunk(
                 output = True
             error = traceback.format_exc()
             for ipar, name in enumerate(model_i.param_names):
-                parameters[ipar, i] = np.nan
+                parameters[(ipar,) + index] = np.nan
         else:
             # Put fitted parameters back into parameters arrays. These arrays are
             # created in-memory by dask and are local to this process so should be
             # safe to modify in-place
             for ipar, name in enumerate(model_fit.param_names):
-                parameters[ipar, i] = getattr(model_fit, name).value
+                parameters[(ipar,) + index] = getattr(model_fit, name).value
 
         if diagnostics == "failed+warn" and len(all_warnings) > 0:
             output = True
@@ -161,12 +173,14 @@ def fit_models_to_chunk(
             # i a 1-d index but we need to re-convert it back to an N-dimensional
             # index.
 
-            i_abs = i + block_info[0]["array-location"][0][0]
-            index = tuple(int(idx) for idx in np.unravel_index(i_abs, iterating_shape))
+            index_abs = np.array(index) + np.array(
+                [block_info[0]["array-location"][idx + 1][0] for idx in iterating_axes]
+            )
+            # index = tuple(int(idx) for idx in np.unravel_index(i_abs, iterating_shape))
             maxlen = int(ceil(log10(max(iterating_shape))))
             fmt = "{0:0" + str(maxlen) + "d}"
             index_folder = os.path.join(
-                diagnostics_path, "_".join(fmt.format(idx) for idx in index)
+                diagnostics_path, "_".join(fmt.format(idx) for idx in index_abs)
             )
             os.makedirs(index_folder, exist_ok=True)
 
@@ -181,13 +195,13 @@ def fit_models_to_chunk(
                         f.write(f"{warning}\n")
 
             # Make a plot, if model is 1D
-            if data.ndim == 2:  # 2 here because extra iterating dimension
+            if len(fitting_axes) == 1:  # 2 here because extra iterating dimension
                 import matplotlib.pyplot as plt
 
                 fig = plt.figure()
                 ax = fig.add_subplot(1, 1, 1)
                 ax.set_title(str(index))
-                ax.plot(world_values[0], data[i], "k.")
+                ax.plot(world_values[0], data[index], "k.")
                 if model_fit is None:
                     ax.text(0.1, 0.9, "Fit failed!", color="r", transform=ax.transAxes)
                 else:
@@ -197,18 +211,6 @@ def fit_models_to_chunk(
                     ax.plot(xmodel, model_fit(xmodel), color="r")
                 fig.savefig(os.path.join(index_folder, "fit.png"))
                 plt.close(fig)
-
-    # HACK: for now we need to return chunks with an extra dimension at the start
-    # of the shape, then the rest of the data shape. However, this is wasteful
-    # and in principle we should be able to use drop_axis in map_blocks to
-    # indicate that we no longer need these extra dimensions.
-
-    parameters = parameters.reshape(
-        (parameters.shape[0], parameters.shape[1]) + (1,) * (data.ndim - 1)
-    )
-    parameters = np.broadcast_to(
-        parameters, (parameters.shape[0], parameters.shape[1]) + data.shape[1:]
-    )
 
     return parameters
 
@@ -225,6 +227,7 @@ def parallel_fit_model_nd(
     diagnostics_path=None,
     scheduler=None,
     fitter_kwargs=None,
+    preserve_native_chunks=False,
 ):
     """
     Fit a model in parallel to an N-dimensional dataset.
@@ -273,6 +276,9 @@ def parallel_fit_model_nd(
         ``array.compute(scheduler=...)``
     fitter_kwargs : None or dict
         Keyword arguments to pass to the fitting when it is called.
+    preserve_native_chunks : bool, optional
+        If `True`, the native data chunks will be used, although an error will
+        be raised if this chunk size does not include the whole fitting axes.
     """
     if scheduler is None:
         scheduler = "processes"
@@ -304,6 +310,11 @@ def parallel_fit_model_nd(
                 f"Fitting index {fi} out of range for {data.ndim}-dimensional data"
             )
 
+    if preserve_native_chunks and not isinstance(data, da.core.Array):
+        raise ValueError(
+            "Can only set preserve_native_chunks=True if input data is a dask array"
+        )
+
     # Sanitize fitting_axes and determine iterating_axes
     ndim = data.ndim
     fitting_axes = tuple([(fi if fi >= 0 else ndim - fi) for fi in fitting_axes])
@@ -314,7 +325,8 @@ def parallel_fit_model_nd(
     iterating_shape = tuple([data.shape[i] for i in iterating_axes])
 
     # Make sure the input array is a dask array
-    data = da.asarray(data)
+    if not isinstance(data, da.core.Array):
+        data = da.asarray(data)
 
     world_arrays = []
     if isinstance(world, BaseLowLevelWCS):
@@ -366,36 +378,22 @@ def parallel_fit_model_nd(
     elif world is None:
         world = tuple([np.arange(size) for size in fitting_shape])
 
-    # Move all iterating dimensions to the front and flatten. We do this so
-    # that fit_models_to_chunk can be agnostic of the complexity of the
-    # iterating dimensions.
-    original_axes = iterating_axes + fitting_axes
-    new_axes = tuple(range(ndim))
-    data = da.moveaxis(data, original_axes, new_axes)
-    data = data.reshape((prod(iterating_shape),) + fitting_shape)
-
-    # Do the same to the world arrays, if present
-    world_arrays = [
-        da.moveaxis(w, original_axes, new_axes).reshape(
-            (prod(iterating_shape),) + fitting_shape
+    if preserve_native_chunks:
+        for idx in fitting_axes:
+            if data.chunksize[idx] != data.shape[idx]:
+                raise ValueError(
+                    "When using preserve_native_chunks=True, the chunk size should match the data size along the fitting axes"
+                )
+    else:
+        # Rechunk the array so that it is not chunked along the fitting axes
+        chunk_shape = tuple(
+            "auto" if idx in iterating_axes else -1 for idx in range(ndim)
         )
-        for w in world_arrays
-    ]
-
-    # NOTE: dask tends to choose chunks that are too large for this kind of
-    # problem, so if chunk_n_max is not specified, we try and determine a
-    # sensible value of chunk_n_max.
-
-    # Determine a reasonable chunk_n_max if not specified
-    if not chunk_n_max:
-        chunk_n_max = max(10, data.shape[0] // 100)
-
-    # Rechunk the array so that it is not chunked along the fitting axes
-    chunk_shape = (chunk_n_max,) + (-1,) * len(fitting_axes)
-    data = data.rechunk(chunk_shape)
-
-    # Rechunk world arrays (if provided)
-    world_arrays = [w.rechunk(chunk_shape) for w in world_arrays]
+        if chunk_n_max:
+            block_size_limit = chunk_n_max * prod(fitting_shape) * data.dtype.itemsize
+        else:
+            block_size_limit = None
+        data = data.rechunk(chunk_shape, block_size_limit=block_size_limit)
 
     # Extract the parameters arrays from the model, in the order in which they
     # appear in param_names, convert to dask arrays, and broadcast to shape of
@@ -405,33 +403,49 @@ def parallel_fit_model_nd(
     parameter_arrays = []
     for name in model.param_names:
         values = getattr(model, name).value
-        array = (
-            da.broadcast_to(da.from_array(values), iterating_shape)
-            .reshape(iterating_shape)
-            .ravel()
+        array = da.broadcast_to(da.from_array(values), iterating_shape).reshape(
+            iterating_shape
         )
-        array = array.reshape(array.shape + (1,) * len(fitting_shape))
-        array = array.rechunk(data.chunksize)
+        array = array.reshape(
+            tuple(
+                data.shape[idx] if idx in iterating_axes else 1 for idx in range(ndim)
+            )
+        )
+        array = da.broadcast_to(array, data.shape)
         parameter_arrays.append(array)
 
     # Define a model with default parameters to pass in to fit_models_to_chunk without copying all the parameter data
 
     simple_model = _copy_with_new_parameters(model, {})
 
+    # Define a single combined array that contains data, parameter arrays, and
+    # optionally world arrays
+
+    combined_array = da.stack([data] + parameter_arrays + world_arrays)
+
+    # Make sure that the combined array is not chunked along the first axis. At
+    # this point we are also assuming/hoping that the remainder of the chunk
+    # size is given by that of ``data``.
+
+    combined_array = combined_array.rechunk(
+        (combined_array.shape[0],) + combined_array.chunksize[1:]
+    )
+
     result = da.map_blocks(
         fit_models_to_chunk,
-        data,
-        *world_arrays,
-        *parameter_arrays,
+        combined_array,
         enforce_ndim=True,
         dtype=float,
         new_axis=0,
+        drop_axis=fitting_axes,
         model=simple_model,
         fitter=fitter,
         world=world,
         diagnostics=diagnostics,
         diagnostics_path=diagnostics_path,
         iterating_shape=iterating_shape,
+        iterating_axes=iterating_axes,
+        fitting_axes=fitting_axes,
         fitter_kwargs=fitter_kwargs,
     )
 
@@ -441,12 +455,6 @@ def parallel_fit_model_nd(
         compute_kwargs = {"scheduler": scheduler}
 
     parameter_arrays_fitted = result.compute(**compute_kwargs)
-
-    # The returned parameters will have extra 'fake' dimensions that match the
-    # original data dimensions. We should ideally be able to get rid of this by
-    # using drop_axis in the map_blocks call.
-    index = (slice(None), slice(None)) + (0,) * (data.ndim - 1)
-    parameter_arrays_fitted = parameter_arrays_fitted[index]
 
     # Set up new parameter arrays with fitted values
     parameters = {}
