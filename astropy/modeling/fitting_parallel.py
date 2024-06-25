@@ -411,9 +411,7 @@ def parallel_fit_model_nd(
             .ravel()
         )
         array = array.reshape(array.shape + (1,) * len(fitting_shape))
-        array = da.broadcast_to(array, array.shape[:1] + fitting_shape).rechunk(
-            data.chunksize
-        )
+        array = array.rechunk(data.chunksize)
         parameter_arrays.append(array)
 
     # Define a model with default parameters to pass in to fit_models_to_chunk without copying all the parameter data
