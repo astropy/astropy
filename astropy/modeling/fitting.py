@@ -771,7 +771,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                 "routine. Maybe check that weights are not null."
             )
 
-        a = None  # need for calculating covarience
+        a = None  # need for calculating covariance
 
         if (masked and len(model_copy) > 1) or (
             weights is not None and weights.ndim > 1
@@ -1097,7 +1097,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
     Parameters
     ----------
     calc_uncertainties : bool
-        If the covarience matrix should be computed and set in the fit_info.
+        If the covariance matrix should be computed and set in the fit_info.
         Default: False
     use_min_max_bounds : bool
         If the set parameter bounds for a model will be enforced each given
@@ -1382,7 +1382,7 @@ class LevMarLSQFitter(_NonLinearLSQFitter):
     Parameters
     ----------
     calc_uncertainties : bool
-        If the covarience matrix should be computed and set in the fit_info.
+        If the covariance matrix should be computed and set in the fit_info.
         Default: False
 
     Attributes
@@ -1460,7 +1460,7 @@ class _NLLSQFitter(_NonLinearLSQFitter):
     Wrapper class for `scipy.optimize.least_squares` method, which provides:
         - Trust Region Reflective
         - dogbox
-        - Levenberg-Marqueardt
+        - Levenberg-Marquardt
     algorithms using the least squares statistic.
 
     Parameters
@@ -1475,7 +1475,7 @@ class _NLLSQFitter(_NonLinearLSQFitter):
             Doesn’t handle bounds and sparse Jacobians. Usually the most
             efficient method for small unconstrained problems.
     calc_uncertainties : bool
-        If the covarience matrix should be computed and set in the fit_info.
+        If the covariance matrix should be computed and set in the fit_info.
         Default: False
     use_min_max_bounds: bool
         If the set parameter bounds for a model will be enforced each given
@@ -1560,7 +1560,7 @@ class TRFLSQFitter(_NLLSQFitter):
     Parameters
     ----------
     calc_uncertainties : bool
-        If the covarience matrix should be computed and set in the fit_info.
+        If the covariance matrix should be computed and set in the fit_info.
         Default: False
     use_min_max_bounds: bool
         If the set parameter bounds for a model will be enforced each given
@@ -1586,7 +1586,7 @@ class DogBoxLSQFitter(_NLLSQFitter):
     Parameters
     ----------
     calc_uncertainties : bool
-        If the covarience matrix should be computed and set in the fit_info.
+        If the covariance matrix should be computed and set in the fit_info.
         Default: False
     use_min_max_bounds: bool
         If the set parameter bounds for a model will be enforced each given
@@ -1612,7 +1612,7 @@ class LMLSQFitter(_NLLSQFitter):
     Parameters
     ----------
     calc_uncertainties : bool
-        If the covarience matrix should be computed and set in the fit_info.
+        If the covariance matrix should be computed and set in the fit_info.
         Default: False
 
     Attributes
