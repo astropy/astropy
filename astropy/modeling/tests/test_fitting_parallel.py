@@ -80,7 +80,7 @@ def test_1d_model_fit_axes(
         model=model,
         fitter=fitter,
         fitting_axes=fitting_axes,
-        world={fitting_axes: x},
+        world=(x,),
     )
 
     # Check that shape and values match
@@ -151,7 +151,7 @@ def test_2d_model_fit_axes(
         model=model,
         fitter=fitter,
         fitting_axes=fitting_axes,
-        world={fitting_axes[0]: x, fitting_axes[1]: y},
+        world=(x, y),
     )
 
     # Check that shape and values match
@@ -232,10 +232,8 @@ def test_world_array():
 
     world1 = np.array([np.linspace(0, 10, 21), np.linspace(5, 15, 21)]).T
 
-    world2 = np.broadcast_to(np.array([1, 2]), data.shape)
-
     model_fit = parallel_fit_model_nd(
-        data=data, model=model, fitter=fitter, fitting_axes=0, world=(world1, world2)
+        data=data, model=model, fitter=fitter, fitting_axes=0, world=(world1,)
     )
     assert_allclose(model_fit.amplitude.value, [2, 1.8])
     assert_allclose(model_fit.mean.value, [5, 10])
@@ -344,7 +342,7 @@ def test_dask_scheduler(scheduler):
         model=model,
         fitter=fitter,
         fitting_axes=0,
-        world={0: x},
+        world=(x,),
         scheduler=scheduler,
     )
 
@@ -470,5 +468,5 @@ def test_world_dimension_mismatch():
             model=model,
             fitter=fitter,
             fitting_axes=(1, 2),
-            world={1: np.arange(10), 2: np.arange(6)},
+            world=(np.arange(10), np.arange(6)),
         )
