@@ -173,7 +173,7 @@ class SigmaClip:
     -----
     The best performance will typically be obtained by setting
     ``cenfunc`` and ``stdfunc`` to one of the built-in functions
-    specified as as string. If one of the options is set to a string
+    specified as a string. If one of the options is set to a string
     while the other has a custom callable, you may in some cases see
     better performance if you have the `bottleneck`_ package installed.
 
@@ -811,7 +811,7 @@ def sigma_clip(
         ``data`` was a masked array, then the output `~numpy.ndarray`
         will also contain ``np.nan`` where the input mask was `True`.
         If ``return_bounds=True`` then the returned minimum and maximum
-        clipping thresholds will be be `~numpy.ndarray`\\s.
+        clipping thresholds will be `~numpy.ndarray`\\s.
 
     See Also
     --------
@@ -821,7 +821,7 @@ def sigma_clip(
     -----
     The best performance will typically be obtained by setting
     ``cenfunc`` and ``stdfunc`` to one of the built-in functions
-    specified as as string. If one of the options is set to a string
+    specified as a string. If one of the options is set to a string
     while the other has a custom callable, you may in some cases see
     better performance if you have the `bottleneck`_ package installed.
 
@@ -969,7 +969,7 @@ def sigma_clipped_stats(
     -----
     The best performance will typically be obtained by setting
     ``cenfunc`` and ``stdfunc`` to one of the built-in functions
-    specified as as string. If one of the options is set to a string
+    specified as a string. If one of the options is set to a string
     while the other has a custom callable, you may in some cases see
     better performance if you have the `bottleneck`_ package installed.
 
