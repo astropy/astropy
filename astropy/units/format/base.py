@@ -86,20 +86,9 @@ class Base:
         )
 
     @classmethod
-    def _format_fraction(
-        cls,
-        scale: str,
-        numerator: str,
-        denominator: str,
-        *,
-        fraction: Literal[True, "inline"] = "inline",
+    def _format_inline_fraction(
+        cls, scale: str, numerator: str, denominator: str
     ) -> str:
-        if not (fraction is True or fraction == "inline"):
-            raise ValueError(
-                "format {cls.name!r} only supports inline fractions,"
-                f"not fraction={fraction!r}."
-            )
-
         if cls._space in denominator:
             denominator = f"({denominator})"
         if scale and numerator == "1":
@@ -108,7 +97,7 @@ class Base:
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, *, fraction: bool | Literal["inline", "multiline"] = True
+        cls, unit: UnitBase, *, fraction: bool | Literal["inline"] = True
     ) -> str:
         """Convert a unit to its string representation.
 
@@ -133,6 +122,23 @@ class Base:
         ValueError
             If ``fraction`` is not recognized.
         """
+        string_components = cls._to_string_helper(unit, fraction)
+        if isinstance(string_components, str):
+            return string_components
+        if fraction is True or fraction == "inline":
+            return cls._format_inline_fraction(*string_components)
+        raise ValueError(
+            f"format {cls.name!r} only supports 'inline' fractions, not {fraction=!r}."
+        )
+
+    @classmethod
+    def _to_string_helper(
+        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"]
+    ) -> str | tuple[str, str, str]:
+        # The `unit` is converted to a string if there is no need to decide how
+        # to handle fractions. Otherwise the scale, numerator and denominator
+        # get returned so that `to_string()` could decide how to format them.
+
         # First the scale.  Normally unity, in which case we omit
         # it, but non-unity scale can happen, e.g., in decompositions
         # like u.Ry.decompose(), which gives "2.17987e-18 kg m2 / s2".
@@ -150,9 +156,7 @@ class Base:
         numerator, denominator = map(
             cls._format_unit_list, utils.get_grouped_by_powers(unit.bases, unit.powers)
         )
-        if not denominator:
-            return s + numerator
-        return cls._format_fraction(s, numerator or "1", denominator, fraction=fraction)
+        return (s, numerator or "1", denominator) if denominator else s + numerator
 
     @classmethod
     def parse(cls, s: str) -> UnitBase:

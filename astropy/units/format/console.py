@@ -64,19 +64,9 @@ class Console(base.Base):
         return cls._times.join(parts)
 
     @classmethod
-    def _format_fraction(
-        cls,
-        scale: str,
-        numerator: str,
-        denominator: str,
-        *,
-        fraction: Literal[True, "inline", "multiline"] = "multiline",
+    def _format_multiline_fraction(
+        cls, scale: str, numerator: str, denominator: str
     ) -> str:
-        if fraction != "multiline":
-            return super()._format_fraction(
-                scale, numerator, denominator, fraction=fraction
-            )
-
         fraclength = max(len(numerator), len(denominator))
         f = f"{{0:<{len(scale)}s}}{{1:^{fraclength}s}}"
 
@@ -92,6 +82,14 @@ class Console(base.Base):
     def to_string(
         cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
     ) -> str:
-        # Change default of fraction to False, i.e., we typeset
-        # without a fraction by default.
-        return super().to_string(unit, fraction=fraction)
+        string_components = cls._to_string_helper(unit, fraction)
+        if isinstance(string_components, str):
+            return string_components
+        if fraction is True or fraction == "inline":
+            return cls._format_inline_fraction(*string_components)
+        if fraction == "multiline":
+            return cls._format_multiline_fraction(*string_components)
+        raise ValueError(
+            f"format {cls.name!r} only supports 'inline' or 'multiline' "
+            f"fractions, not {fraction=!r}."
+        )
