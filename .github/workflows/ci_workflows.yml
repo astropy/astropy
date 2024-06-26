@@ -111,7 +111,7 @@ jobs:
 
   report_diff_coverage:
     needs: [ tests ]
-    if: github.event_name == 'pull_request_target'
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-python@v5
@@ -129,7 +129,8 @@ jobs:
       - run: coverage xml
       - run: diff-cover coverage.xml --compare-branch origin/${{ github.base_ref }} --markdown-report diff_coverage.md
       - run: cat diff_coverage.md >> $GITHUB_STEP_SUMMARY
-      - uses: thollander/actions-comment-pull-request@v2.5.0
+      - if: github.event_name == 'pull_request_target'
+        uses: thollander/actions-comment-pull-request@v2.5.0
         with:
           filePath: diff_coverage.md
           pr_number: ${{ github.event.number }}
