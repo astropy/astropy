@@ -435,45 +435,51 @@ def parallel_fit_model_nd(
         # See if world are quantities
         world_units = [getattr(w, "unit", None) for w in world]
 
-    # We now combine any instance-level input equivalencies with user
-    # specified ones at call-time.
+    if model._has_units or data_unit is not None:
 
-    input_units_equivalencies = _combine_equivalency_dict(
-        model.inputs, equivalencies, model.input_units_equivalencies
-    )
+        # We now combine any instance-level input equivalencies with user
+        # specified ones at call-time.
 
-    # If input_units is defined, we transform the input data into those
-    # expected by the model. We hard-code the input names 'x', and 'y'
-    # here since FittableModel instances have input names ('x',) or
-    # ('x', 'y')
+        input_units_equivalencies = _combine_equivalency_dict(
+            model.inputs, equivalencies, model.input_units_equivalencies
+        )
 
-    if model.input_units is not None:
-        world = [
-            unit.to(
-                model.input_units[model.inputs[i]],
-                equivalencies=input_units_equivalencies[model.inputs[i]],
-                value=w
-            )
-            if unit is not None else w
-            for i, (w, unit) in enumerate(zip(world, world_units))
-        ]
+        # If input_units is defined, we transform the input data into those
+        # expected by the model. We hard-code the input names 'x', and 'y'
+        # here since FittableModel instances have input names ('x',) or
+        # ('x', 'y')
 
-    # Create a dictionary mapping the real model inputs and outputs
-    # names to the data. This remapping of names must be done here, after
-    # the input data is converted to the correct units.
-    rename_data = {model.inputs[0]: (0,)*world_units[0]}
-    if len(world) == 2:
-        rename_data[model.outputs[0]] = (0,)*data_unit
-        rename_data[model.inputs[1]] = (0,)*world_units[1]
+        if model.input_units is not None:
+            world = [
+                unit.to(
+                    model.input_units[model.inputs[i]],
+                    equivalencies=input_units_equivalencies[model.inputs[i]],
+                    value=w
+                )
+                if unit is not None else w
+                for i, (w, unit) in enumerate(zip(world, world_units))
+            ]
+
+        # Create a dictionary mapping the real model inputs and outputs
+        # names to the data. This remapping of names must be done here, after
+        # the input data is converted to the correct units.
+        rename_data = {model.inputs[0]: (0,)*world_units[0]}
+        if len(world) == 2:
+            rename_data[model.outputs[0]] = (0,)*data_unit
+            rename_data[model.inputs[1]] = (0,)*world_units[1]
+        else:
+            rename_data[model.outputs[0]] = (0,)*data_unit
+            rename_data["z"] = None
+
+        # We now strip away the units from the parameters, taking care to
+        # first convert any parameters to the units that correspond to the
+        # input units (to make sure that initial guesses on the parameters)
+        # are in the right unit system
+        model = model.without_units_for_data(**rename_data)
+
     else:
-        rename_data[model.outputs[0]] = (0,)*data_unit
-        rename_data["z"] = None
 
-    # We now strip away the units from the parameters, taking care to
-    # first convert any parameters to the units that correspond to the
-    # input units (to make sure that initial guesses on the parameters)
-    # are in the right unit system
-    model = model.without_units_for_data(**rename_data)
+        world_units = tuple(None for w in world)
 
     # Extract the parameters arrays from the model, in the order in which they
     # appear in param_names, convert to dask arrays, and broadcast to shape of
