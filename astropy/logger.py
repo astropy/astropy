@@ -14,6 +14,7 @@ import os
 import sys
 import warnings
 from contextlib import contextmanager
+from logging import CRITICAL, DEBUG, ERROR, FATAL, INFO, NOTSET, WARNING
 
 from . import conf as _conf
 from . import config as _config
@@ -28,11 +29,14 @@ except NameError:
 else:
     _WITHIN_IPYTHON = True
 
-__all__ = ["Conf", "conf", "log", "AstropyLogger", "LoggingError"]
-
-# import the logging levels from logging so that one can do:
-# log.setLevel(log.DEBUG), for example
-logging_levels = [
+__all__ = [
+    "Conf",
+    "conf",
+    "log",
+    "AstropyLogger",
+    "LoggingError",
+    # import the logging levels from logging so that one can do:
+    # log.setLevel(log.DEBUG), for example
     "NOTSET",
     "DEBUG",
     "INFO",
@@ -41,9 +45,6 @@ logging_levels = [
     "CRITICAL",
     "FATAL",
 ]
-for level in logging_levels:
-    globals()[level] = getattr(logging, level)
-__all__ += logging_levels  # noqa: PLE0605
 
 
 # Initialize by calling _init_log()
