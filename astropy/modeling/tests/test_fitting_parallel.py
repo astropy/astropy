@@ -6,8 +6,8 @@ import re
 import pytest
 
 pytest.importorskip("dask")
-
 import numpy as np
+from dask import array as da
 from numpy.testing import assert_allclose
 
 from astropy.modeling.fitting import LevMarLSQFitter
@@ -469,4 +469,45 @@ def test_world_dimension_mismatch():
             fitter=fitter,
             fitting_axes=(1, 2),
             world=(np.arange(10), np.arange(6)),
+        )
+
+
+def test_preserve_native_chunks():
+    data = gaussian(np.arange(20), 2, 10, 1)
+    data = np.broadcast_to(data.reshape((20, 1)), (20, 3)).copy()
+    data = da.from_array(data, chunks=(20, 1))
+
+    model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
+    fitter = LevMarLSQFitter()
+
+    model_fit = parallel_fit_model_nd(
+        data=data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        preserve_native_chunks=True,
+    )
+
+    assert_allclose(model_fit.amplitude.value, 2)
+    assert_allclose(model_fit.mean.value, 10)
+    assert_allclose(model_fit.stddev.value, 1)
+
+
+def test_preserve_native_chunks_invalid():
+    data = gaussian(np.arange(20), 2, 10, 1)
+    data = np.broadcast_to(data.reshape((20, 1)), (20, 3)).copy()
+    data = da.from_array(data, chunks=(5, 2))
+
+    model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
+    fitter = LevMarLSQFitter()
+
+    with pytest.raises(
+        ValueError, match=re.escape("When using preserve_native_chunks=True")
+    ):
+        parallel_fit_model_nd(
+            data=data,
+            model=model,
+            fitter=fitter,
+            fitting_axes=0,
+            preserve_native_chunks=True,
         )

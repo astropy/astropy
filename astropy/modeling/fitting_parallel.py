@@ -11,7 +11,7 @@ from dask import array as da
 import astropy.units as u
 from astropy.modeling import CompoundModel, models
 from astropy.modeling.utils import _combine_equivalency_dict
-from astropy.wcs.wcsapi import BaseLowLevelWCS, BaseHighLevelWCS
+from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
 from astropy.wcs.wcsapi.wrappers import SlicedLowLevelWCS
 
 __all__ = ["parallel_fit_model_nd"]
@@ -351,12 +351,12 @@ def parallel_fit_model_nd(
         if chunk_n_max:
             block_size_limit = chunk_n_max * prod(fitting_shape) * data.dtype.itemsize
         else:
-            block_size_limit = dask.config.get('array.chunk-size')
+            block_size_limit = dask.config.get("array.chunk-size")
         if isinstance(data, da.core.Array):
             data = data.rechunk(chunk_shape, block_size_limit=block_size_limit)
         else:
-            with dask.config.set({'array.chunk-size': block_size_limit}):
-                data = da.from_array(data, chunks=chunk_shape, name='data')
+            with dask.config.set({"array.chunk-size": block_size_limit}):
+                data = da.from_array(data, chunks=chunk_shape, name="data")
 
     world_arrays = False
     if isinstance(world, BaseHighLevelWCS):
@@ -377,7 +377,10 @@ def parallel_fit_model_nd(
         # However, this is a very advanced and unusual use case, so we don't
         # cater for this for now.
 
-        fitting_world = SlicedLowLevelWCS(world, [slice(None) if i in fitting_axes else 0 for i in range(world.pixel_n_dim)])
+        fitting_world = SlicedLowLevelWCS(
+            world,
+            [slice(None) if i in fitting_axes else 0 for i in range(world.pixel_n_dim)],
+        )
         if fitting_world.world_n_dim != len(fitting_axes):
             raise ValueError(
                 "The WCS number of world axes corresponding to the fitting axes "
@@ -396,11 +399,9 @@ def parallel_fit_model_nd(
     elif isinstance(world, tuple):
         # If world is a tuple then we allow N inputs where N is the number of fitting_axes
         # Each array in the tuple should with be broadcastable to the shape of the fitting_axes
-        # or it should be one dimenional and the broadcasting can happen later
+        # or it should be one dimensional and the broadcasting can happen later
         if len(world) != len(fitting_axes):
-            raise ValueError(
-                "Number of world arrays must match number of fitting axes"
-            )
+            raise ValueError("Number of world arrays must match number of fitting axes")
         world_units = []
         for w in world:
             if (unit := getattr(w, "unit", None)) is not None:
@@ -436,7 +437,6 @@ def parallel_fit_model_nd(
         world_units = [getattr(w, "unit", None) for w in world]
 
     if model._has_units or data_unit is not None:
-
         # We now combine any instance-level input equivalencies with user
         # specified ones at call-time.
 
@@ -454,21 +454,22 @@ def parallel_fit_model_nd(
                 unit.to(
                     model.input_units[model.inputs[i]],
                     equivalencies=input_units_equivalencies[model.inputs[i]],
-                    value=w
+                    value=w,
                 )
-                if unit is not None else w
+                if unit is not None
+                else w
                 for i, (w, unit) in enumerate(zip(world, world_units))
             ]
 
         # Create a dictionary mapping the real model inputs and outputs
         # names to the data. This remapping of names must be done here, after
         # the input data is converted to the correct units.
-        rename_data = {model.inputs[0]: (0,)*world_units[0]}
+        rename_data = {model.inputs[0]: (0,) * world_units[0]}
         if len(world) == 2:
-            rename_data[model.outputs[0]] = (0,)*data_unit
-            rename_data[model.inputs[1]] = (0,)*world_units[1]
+            rename_data[model.outputs[0]] = (0,) * data_unit
+            rename_data[model.inputs[1]] = (0,) * world_units[1]
         else:
-            rename_data[model.outputs[0]] = (0,)*data_unit
+            rename_data[model.outputs[0]] = (0,) * data_unit
             rename_data["z"] = None
 
         # We now strip away the units from the parameters, taking care to
@@ -478,7 +479,6 @@ def parallel_fit_model_nd(
         model = model.without_units_for_data(**rename_data)
 
     else:
-
         world_units = tuple(None for w in world)
 
     # Extract the parameters arrays from the model, in the order in which they
@@ -535,7 +535,7 @@ def parallel_fit_model_nd(
         iterating_axes=iterating_axes,
         fitting_axes=fitting_axes,
         fitter_kwargs=fitter_kwargs,
-        name='fitting-results'
+        name="fitting-results",
     )
 
     if scheduler == "default":
