@@ -17,7 +17,7 @@ Interface and Dependencies
   <https://github.com/astropy/astropy/blob/main/pyproject.toml>`_ file of the
   core package.
 
-* Usage of ``six``, ``__future__``, and ``2to3`` is no longer acceptable.
+* Usage of ``six`` and ``2to3`` is no longer acceptable.
 
 * `f-strings <https://docs.python.org/3/reference/lexical_analysis.html#f-strings>`_
   should be used when possible, and if not, Python 3

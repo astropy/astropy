@@ -1,10 +1,10 @@
 .. _developer-docs:
 
-***********
-Development
-***********
+************
+Contributing
+************
 
-The developer documentation contains instructions for how to contribute to ``astropy`` or
+The contributor documentation contains instructions for how to contribute to ``astropy`` or
 affiliated packages. This includes setting up a development environment, installing and
 testing the development version, as well as coding, documentation, and testing
 guidelines.
@@ -25,10 +25,10 @@ cover provide a deeper dive and a reference for both developers and maintainers.
 
 {% if is_development %}
 
-Development quickstart
+Contributing quickstart
 -----------------------
 
-This section provides a development quickstart guide for Astropy. With minor changes the
+This section provides a contributing quickstart guide for Astropy. With minor changes the
 process will apply to contributing updates to coordinated and many affiliated packages.
 
 .. toctree::

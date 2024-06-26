@@ -1,7 +1,7 @@
-.. _development_quickstart:
+.. _contributing_quickstart:
 
 =========================
-Development Quickstart
+Contributing Quickstart
 =========================
 
 .. _contributing_environment:
@@ -36,14 +36,14 @@ How to do this will depend on your platform.
 
 **Windows**
 
-You will need `Build Tools for Visual Studio 2022
-<https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022>`_.
+You will need `Build Tools for Visual Studio
+<https://visualstudio.microsoft.com/downloads/?q=build+tools>`_.
 
 .. note::
-        You DO NOT need to install Visual Studio 2022.
-        You only need "Build Tools for Visual Studio 2022" found by
-        scrolling down to "All downloads" -> "Tools for Visual Studio".
-        In the installer, select the "Desktop development with C++" Workloads.
+        You DO NOT need to install Visual Studio.
+        You only need "Build Tools for Visual Studio" found by
+        scrolling down to "All downloads" -> "Tools for Visual Studio" -> "Build Tools
+        for Visual Studio".
 
 Alternative options include:
 
@@ -154,7 +154,7 @@ single sub-package (e.g. :ref:`astropy-coordinates`)::
 
    # run a sub set of the test suite
    pytest astropy/coordinates
-   
+
    # or the whole suite
    pytest
 
@@ -192,8 +192,8 @@ you to `ask for help <https://www.astropy.org/help.html>`_ if you get stuck. The
 community is welcoming and friendly and will help you!
 
 
-Creating a feature branch
--------------------------
+Creating a branch
+-----------------
 
 Your local ``main`` branch should always reflect the current state of astropy repository.
 First ensure it's up-to-date with the main astropy repository::
@@ -201,11 +201,11 @@ First ensure it's up-to-date with the main astropy repository::
     git switch main
     git pull upstream main --ff-only
 
-Now create a feature branch for making your changes. For example::
+Now create a development branch for making your changes. For example::
 
-    git switch -c subpackage-new-feature
+    git switch -c subpackage-bug-fix
 
-This changes your working branch from ``main`` to the ``subpackage-new-feature`` branch.
+This changes your working branch from ``main`` to the ``subpackage-bug-fix`` branch.
 Keep any changes in this branch specific to one bug or feature so it is clear what the
 branch brings to astropy. You can have many feature branches and switch in between them
 using the `git switch <https://git-scm.com/docs/git-switch>`_ command.
@@ -263,7 +263,7 @@ Pushing your changes
 When you want your changes to appear publicly on your GitHub page, push your
 forked feature branch's commits::
 
-    git push origin subpackage-new-feature
+    git push origin --set-upstream subpackage-bug-fix
 
 Here ``origin`` is the default name given to your fork on GitHub.
 
@@ -273,8 +273,8 @@ to happen, a pull request needs to be submitted on GitHub.
 The first time you push to a new branch on GitHub, you will see a message like below
 with a useful link to create a pull request::
 
-  remote: Create a pull request for 'subpackage-new-feature' on GitHub by visiting:
-  remote:      https://github.com/YOUR-USER-NAME/astropy/pull/new/subpackage-new-feature
+  remote: Create a pull request for 'subpackage-bug-fix' on GitHub by visiting:
+  remote:      https://github.com/YOUR-USER-NAME/astropy/pull/new/subpackage-bug-fix
 
 
 .. _quickstart-pull-request:
@@ -309,7 +309,7 @@ Based on the review you get on your pull request, you will probably need to make
 some adjustments. You can follow the :ref:`code committing steps <contributing.commit-code>`
 again to address any feedback and update your pull request::
 
-    git push origin subpackage-new-feature
+    git push origin subpackage-bug-fix
 
 Any ``git push`` will automatically update your pull request with your branch's changes
 and restart the :ref:`Continuous Integration <contributing.ci>` checks.

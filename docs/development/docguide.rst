@@ -6,7 +6,7 @@ Documentation Guidelines
 
 High-quality, consistent documentation for astronomy code is one of the major goals of
 the Astropy Project. We encourage you to help us improve the documentation, and you
-don't have to be an expert on ``astropy`` to do so!  If something in the docs doesn't
+do not have to be an expert on ``astropy`` to do so!  If something in the docs does not
 make sense to you, updating the relevant section after you figure it out is a great way
 to contribute to Astropy and help others in the future.
 

@@ -5,7 +5,7 @@ Development Details
 ===================
 
 This document contains somewhat-independent sections that provide details on
-topics covered in the :ref:`development_quickstart` guide.
+topics covered in the :ref:`contributing_quickstart` guide.
 
 .. _pre-commit:
 

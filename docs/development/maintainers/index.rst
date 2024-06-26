@@ -8,4 +8,3 @@ Maintaining astropy and affiliated packages
    maintainer_workflow
    releasing
    testhelpers
-   maintaining

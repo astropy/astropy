@@ -24,23 +24,6 @@ This will provide all dependencies for running the full test suite using `tox <h
 and |pytest|. It will also allow running tests via any IDE which
 supports ``pytest`` integration.
 
-Details
-=======
-The dependencies used by the Astropy test runner are provided by a separate
-package called |pytest-astropy| (see :ref:`pytest-plugins`). This package provides the ``pytest``
-dependency itself, in addition to several ``pytest`` plugins that are used by
-Astropy, and will also be of general use to other packages.
-
-Since the testing dependencies are not actually required to install or use
-Astropy, in the ``pyproject.toml`` file they are not included under the
-``[project]`` section in ``dependencies``. Instead, they are listed under the
-``[project.optional-dependences]`` in named sections such as ``test`` or ``dev_all``.
-
-In particular the ``test`` dependencies are the minimal set of dependencies for running
-astropy tests and you would use this primarily to check that tests pass *without* the
-optional dependencies. This is not common and would normally be done with ``tox -e
-test``.
-
 .. _running-tests:
 
 Running Tests
