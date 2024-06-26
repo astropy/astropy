@@ -95,7 +95,7 @@ def fit_models_to_chunk(
     # by fitting axes
     original_axes = tuple([0] + [idx + 1 for idx in (iterating_axes + fitting_axes)])
     new_axes = tuple(range(combined.ndim))
-    combined = da.moveaxis(combined, original_axes, new_axes)
+    combined = np.moveaxis(combined, original_axes, new_axes)
 
     data = combined[0]
     if world is None:
