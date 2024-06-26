@@ -4,6 +4,7 @@ import warnings
 from copy import deepcopy
 from math import ceil, log10, prod
 
+import dask
 import numpy as np
 from dask import array as da
 
@@ -332,10 +333,6 @@ def parallel_fit_model_nd(
     fitting_shape = tuple([data.shape[i] for i in fitting_axes])
     iterating_shape = tuple([data.shape[i] for i in iterating_axes])
 
-    # Make sure the input array is a dask array
-    if not isinstance(data, da.core.Array):
-        data = da.asarray(data)
-
     world_arrays = False
     if isinstance(world, BaseHighLevelWCS):
         world = world.low_level_wcs
@@ -472,7 +469,11 @@ def parallel_fit_model_nd(
             block_size_limit = chunk_n_max * prod(fitting_shape) * data.dtype.itemsize
         else:
             block_size_limit = None
-        data = data.rechunk(chunk_shape, block_size_limit=block_size_limit)
+        if isinstance(data, da.core.Array):
+            data = data.rechunk(chunk_shape, block_size_limit=block_size_limit)
+        else:
+            with dask.config.set({'array.chunk-size': block_size_limit}):
+                data = da.from_array(data, chunks=chunk_shape, name='data')
 
     # Extract the parameters arrays from the model, in the order in which they
     # appear in param_names, convert to dask arrays, and broadcast to shape of
