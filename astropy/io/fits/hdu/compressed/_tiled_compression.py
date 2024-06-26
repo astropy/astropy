@@ -467,10 +467,7 @@ def decompress_image_data_section(
             if zblank is not None:
                 if not tile_data.flags.writeable:
                     tile_data = tile_data.copy()
-                if zbitpix > 0:
-                    blank = zblank_header
-                else:
-                    blank = np.nan
+                blank = zblank_header if zbitpix > 0 else np.nan
                 tile_data[blank_mask] = blank
 
         image_data[tile_slices] = tile_data
