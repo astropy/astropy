@@ -73,7 +73,8 @@ def _compound_model_with_array_parameters(model, shape):
 
 
 def fit_models_to_chunk(
-    combined,
+    data,
+    *arrays,
     block_info=None,
     model=None,
     fitter=None,
@@ -94,23 +95,20 @@ def fit_models_to_chunk(
 
     # Start off by re-ordering axes so that iterating axes come first followed
     # by fitting axes
-    original_axes = tuple([0] + [idx + 1 for idx in (iterating_axes + fitting_axes)])
-    new_axes = tuple(range(combined.ndim))
-    combined = np.moveaxis(combined, original_axes, new_axes)
+    original_axes = tuple([idx for idx in (iterating_axes + fitting_axes)])
+    new_axes = tuple(range(data.ndim))
+    data = np.moveaxis(data, original_axes, new_axes)
+    arrays = [np.moveaxis(array, original_axes, new_axes) for array in arrays]
 
-    data = combined[0]
     if world is None:
-        parameters = combined[1 : -model.n_inputs]
-        world_arrays = combined[-model.n_inputs :]
+        parameters = arrays[: -model.n_inputs]
+        world_arrays = arrays[-model.n_inputs :]
     else:
-        parameters = combined[1:]
+        parameters = arrays
 
-    if (
-        combined.ndim == 0
-        or combined.size == 0
-        or block_info is None
-        or block_info == []
-    ):
+    parameters = np.array(parameters)
+
+    if data.ndim == 0 or data.size == 0 or block_info is None or block_info == []:
         return parameters
 
     # Because of the way map_blocks works, we need to have all arrays passed
@@ -498,36 +496,24 @@ def parallel_fit_model_nd(
             )
         )
         array = da.broadcast_to(array, data.shape)
+        array = array.rechunk(data.chunksize)
         parameter_arrays.append(array)
 
     # Define a model with default parameters to pass in to fit_models_to_chunk without copying all the parameter data
 
     simple_model = _copy_with_new_parameters(model, {})
 
-    # Define a single combined array that contains data, parameter arrays, and
-    # optionally world arrays
-
-    if world_arrays:
-        combined_array = da.stack([data] + parameter_arrays + world)
-    else:
-        combined_array = da.stack([data] + parameter_arrays)
-
-    # Make sure that the combined array is not chunked along the first axis. At
-    # this point we are also assuming/hoping that the remainder of the chunk
-    # size is given by that of ``data``.
-
-    combined_array = combined_array.rechunk(
-        (combined_array.shape[0],) + combined_array.chunksize[1:]
-    )
-
     result = da.map_blocks(
         fit_models_to_chunk,
-        combined_array,
+        data,
+        *parameter_arrays,
+        *(world if world_arrays else []),
         enforce_ndim=True,
         dtype=float,
         drop_axis=fitting_axes,
         model=simple_model,
         fitter=fitter,
+        new_axis=0,
         world=world if not world_arrays else None,
         diagnostics=diagnostics,
         diagnostics_path=diagnostics_path,
