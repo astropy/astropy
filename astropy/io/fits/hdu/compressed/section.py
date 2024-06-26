@@ -29,12 +29,8 @@ class CompImageSection:
     def __init__(self, hdu):
         self.hdu = hdu
 
-        if self.hdu._bintable is None:
-            self._data_shape = self.hdu.data.shape
-            self._tile_shape = self.hdu.tile_shape
-        else:
-            self._data_shape = _data_shape(self.hdu._bintable.header)
-            self._tile_shape = _tile_shape(self.hdu._bintable.header)
+        self._data_shape = self.hdu.shape
+        self._tile_shape = self.hdu.tile_shape
 
         self._n_dim = len(self._data_shape)
         self._n_tiles = np.array(
@@ -47,11 +43,11 @@ class CompImageSection:
 
     @property
     def ndim(self):
-        return self.hdu._bintable.header["ZNAXIS"]
+        return len(self.hdu.shape)
 
     @property
     def dtype(self):
-        return np.dtype(BITPIX2DTYPE[self.hdu._bintable.header["ZBITPIX"]])
+        return np.dtype(BITPIX2DTYPE[self.hdu._bitpix])
 
     def __getitem__(self, index):
         if self.hdu._bintable is None:

@@ -45,9 +45,6 @@ class CompImageHeader(Header):
     regular `~astropy.io.fits.Header`.
     """
 
-    # TODO: The difficulty of implementing this screams a need to rewrite this
-    # module
-
     _keyword_remaps = {
         "SIMPLE": "ZSIMPLE",
         "XTENSION": "ZTENSION",
@@ -651,118 +648,84 @@ def _image_header_to_empty_bintable(
                 after="ZQUANTIZ",
             )
 
-    if image_header:
-        # Move SIMPLE card from the image header to the
-        # table header as ZSIMPLE card.
+    # Move SIMPLE card from the image header to the
+    # table header as ZSIMPLE card.
 
-        if "SIMPLE" in image_header:
-            bintable.header.set(
-                "ZSIMPLE",
-                image_header["SIMPLE"],
-                image_header.comments["SIMPLE"],
-                before="ZBITPIX",
-            )
+    if "SIMPLE" in image_header:
+        bintable.header.set(
+            "ZSIMPLE",
+            image_header["SIMPLE"],
+            image_header.comments["SIMPLE"],
+            before="ZBITPIX",
+        )
 
-        # Move EXTEND card from the image header to the
-        # table header as ZEXTEND card.
+    # Move EXTEND card from the image header to the
+    # table header as ZEXTEND card.
 
-        if "EXTEND" in image_header:
-            bintable.header.set(
-                "ZEXTEND", image_header["EXTEND"], image_header.comments["EXTEND"]
-            )
+    if "EXTEND" in image_header:
+        bintable.header.set(
+            "ZEXTEND", image_header["EXTEND"], image_header.comments["EXTEND"]
+        )
 
-        # Move BLOCKED card from the image header to the
-        # table header as ZBLOCKED card.
+    # Move BLOCKED card from the image header to the
+    # table header as ZBLOCKED card.
 
-        if "BLOCKED" in image_header:
-            bintable.header.set(
-                "ZBLOCKED",
-                image_header["BLOCKED"],
-                image_header.comments["BLOCKED"],
-            )
+    if "BLOCKED" in image_header:
+        bintable.header.set(
+            "ZBLOCKED",
+            image_header["BLOCKED"],
+            image_header.comments["BLOCKED"],
+        )
 
-        # Move XTENSION card from the image header to the
-        # table header as ZTENSION card.
+    # Move XTENSION card from the image header to the
+    # table header as ZTENSION card.
 
-        # Since we only handle compressed IMAGEs, ZTENSION should
-        # always be IMAGE, even if the caller has passed in a header
-        # for some other type of extension.
-        if "XTENSION" in image_header:
-            bintable.header.set(
-                "ZTENSION",
-                "IMAGE",
-                image_header.comments["XTENSION"],
-                before="ZBITPIX",
-            )
+    # Since we only handle compressed IMAGEs, ZTENSION should
+    # always be IMAGE, even if the caller has passed in a header
+    # for some other type of extension.
+    if "XTENSION" in image_header:
+        bintable.header.set(
+            "ZTENSION",
+            "IMAGE",
+            image_header.comments["XTENSION"],
+            before="ZBITPIX",
+        )
 
-        # Move PCOUNT and GCOUNT cards from image header to the table
-        # header as ZPCOUNT and ZGCOUNT cards.
+    # Move PCOUNT and GCOUNT cards from image header to the table
+    # header as ZPCOUNT and ZGCOUNT cards.
 
-        if "PCOUNT" in image_header:
-            bintable.header.set(
-                "ZPCOUNT",
-                image_header["PCOUNT"],
-                image_header.comments["PCOUNT"],
-                after=last_znaxis,
-            )
+    if "PCOUNT" in image_header:
+        bintable.header.set(
+            "ZPCOUNT",
+            image_header["PCOUNT"],
+            image_header.comments["PCOUNT"],
+            after=last_znaxis,
+        )
 
-        if "GCOUNT" in image_header:
-            bintable.header.set(
-                "ZGCOUNT",
-                image_header["GCOUNT"],
-                image_header.comments["GCOUNT"],
-                after="ZPCOUNT",
-            )
+    if "GCOUNT" in image_header:
+        bintable.header.set(
+            "ZGCOUNT",
+            image_header["GCOUNT"],
+            image_header.comments["GCOUNT"],
+            after="ZPCOUNT",
+        )
 
-        # Move CHECKSUM and DATASUM cards from the image header to the
-        # table header as XHECKSUM and XDATASUM cards.
+    # Move CHECKSUM and DATASUM cards from the image header to the
+    # table header as XHECKSUM and XDATASUM cards.
 
-        if "CHECKSUM" in image_header:
-            bintable.header.set(
-                "ZHECKSUM",
-                image_header["CHECKSUM"],
-                image_header.comments["CHECKSUM"],
-            )
+    if "CHECKSUM" in image_header:
+        bintable.header.set(
+            "ZHECKSUM",
+            image_header["CHECKSUM"],
+            image_header.comments["CHECKSUM"],
+        )
 
-        if "DATASUM" in image_header:
-            bintable.header.set(
-                "ZDATASUM",
-                image_header["DATASUM"],
-                image_header.comments["DATASUM"],
-            )
-    else:
-        # Move XTENSION card from the image header to the
-        # table header as ZTENSION card.
-
-        # Since we only handle compressed IMAGEs, ZTENSION should
-        # always be IMAGE, even if the caller has passed in a header
-        # for some other type of extension.
-        if "XTENSION" in image_header:
-            bintable.header.set(
-                "ZTENSION",
-                "IMAGE",
-                image_header.comments["XTENSION"],
-                before="ZBITPIX",
-            )
-
-        # Move PCOUNT and GCOUNT cards from image header to the table
-        # header as ZPCOUNT and ZGCOUNT cards.
-
-        if "PCOUNT" in image_header:
-            bintable.header.set(
-                "ZPCOUNT",
-                image_header["PCOUNT"],
-                image_header.comments["PCOUNT"],
-                after=last_znaxis,
-            )
-
-        if "GCOUNT" in image_header:
-            bintable.header.set(
-                "ZGCOUNT",
-                image_header["GCOUNT"],
-                image_header.comments["GCOUNT"],
-                after="ZPCOUNT",
-            )
+    if "DATASUM" in image_header:
+        bintable.header.set(
+            "ZDATASUM",
+            image_header["DATASUM"],
+            image_header.comments["DATASUM"],
+        )
 
     # When we have an image checksum we need to ensure that the same
     # number of blank cards exist in the table header as there were in
@@ -770,15 +733,10 @@ def _image_header_to_empty_bintable(
     # over to the image header when the hdu is uncompressed.
 
     if "ZHECKSUM" in bintable.header:
-        required_blanks = image_header._countblanks()
         image_blanks = image_header._countblanks()
         table_blanks = bintable.header._countblanks()
 
-        for _ in range(required_blanks - image_blanks):
-            image_header.append()
-            table_blanks += 1
-
-        for _ in range(required_blanks - table_blanks):
+        for _ in range(image_blanks - table_blanks):
             bintable.header.append()
 
     bintable.columns = cols
@@ -787,8 +745,8 @@ def _image_header_to_empty_bintable(
     # FIXME: don't use keyword_remaps, instead define an actual list to check
     # including regular expressions for NAXIS and other similar keywords
     for card in image_header.cards:
-        if card.keyword == "":
-            continue  # TODO: investigate why some cards have empty keyword
+        if card.keyword == "":  # BLANK
+            continue
         elif card.keyword == "COMMENT":
             bintable.header.add_comment(card.value)
         elif card.keyword == "HISTORY":
