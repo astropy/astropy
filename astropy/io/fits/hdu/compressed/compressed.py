@@ -302,17 +302,21 @@ class CompImageHDU(ImageHDU):
                 scale_back=scale_back,
             )
 
-            if data is DELAYED:
-                # Reading the HDU from a file
-                self._bintable = _CompBinTableHDU(
-                    data=data, header=CompImageHeader(header)
-                )
-            else:
-                self._bintable = bintable
-                self._bintable._load_variable_length_data = False
-                self._bintable._manages_own_heap = True
-                self._bintable._new = False
-                self._bitpix = self._bintable.header["ZBITPIX"]
+            # NOTE: for now we don't ever read in CompImageHDU directly from
+            # files, instead we read in BinTableHDU and pass it in here. In
+            # future if we do want to read CompImageHDU in directly, we can
+            # use the following code.
+            # if data is DELAYED:
+            #     # Reading the HDU from a file
+            #     self._bintable = _CompBinTableHDU(data=data, header=header)
+            # else:
+
+            # If bintable is passed in, it should be a BinTableHDU
+            self._bintable = bintable
+            self._bintable._load_variable_length_data = False
+            self._bintable._manages_own_heap = True
+            self._bintable._new = False
+            self._bitpix = self._bintable.header["ZBITPIX"]
 
             self._header = self._bintable_to_image_header()
             self._header._modified = False
