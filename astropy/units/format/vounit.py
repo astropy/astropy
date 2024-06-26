@@ -23,8 +23,8 @@ class VOUnit(generic.Generic):
     _space = "."
     _scale_unit_separator = ""
 
-    @staticmethod
-    def _generate_unit_names():
+    @classmethod
+    def _generate_unit_names(cls):
         from astropy import units as u
         from astropy.units import required_by_vounit as uvo
 
@@ -48,9 +48,7 @@ class VOUnit(generic.Generic):
         # While zebi and yobi are part of the standard for binary prefixes,
         # they are not implemented here due to computation limitations
         binary_prefixes = ["Ki", "Mi", "Gi", "Ti", "Pi", "Ei"]
-        deprecated_units = {
-            "angstrom", "Angstrom", "Ba", "barn", "erg", "G", "ta",
-        }  # fmt: skip
+        deprecated_units = {"angstrom", "Angstrom", "Ba", "barn", "erg", "G", "ta"}
 
         def do_defines(bases, prefixes, skips=[]):
             for key, base in utils.get_non_keyword_units(bases, prefixes):
@@ -63,7 +61,7 @@ class VOUnit(generic.Generic):
         do_defines(binary_bases, si_prefixes + binary_prefixes, ["dB", "dbyte"])
         do_defines(simple_units, [""])
 
-        return names, deprecated_names, []
+        return names, deprecated_names
 
     @classmethod
     def parse(cls, s, debug=False):

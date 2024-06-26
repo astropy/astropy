@@ -72,10 +72,6 @@ class Generic(Base):
         return cls._all_units[1]
 
     @classproperty(lazy=True)
-    def _functions(cls):
-        return cls._all_units[2]
-
-    @classproperty(lazy=True)
     def _lexer(cls):
         tokens = cls._tokens
 
