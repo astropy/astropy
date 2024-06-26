@@ -333,6 +333,31 @@ def parallel_fit_model_nd(
     fitting_shape = tuple([data.shape[i] for i in fitting_axes])
     iterating_shape = tuple([data.shape[i] for i in iterating_axes])
 
+    if data_unit is None and isinstance(data, u.Quantity):
+        data_unit = data.unit
+        data = data.value
+
+    if preserve_native_chunks:
+        for idx in fitting_axes:
+            if data.chunksize[idx] != data.shape[idx]:
+                raise ValueError(
+                    "When using preserve_native_chunks=True, the chunk size should match the data size along the fitting axes"
+                )
+    else:
+        # Rechunk the array so that it is not chunked along the fitting axes
+        chunk_shape = tuple(
+            "auto" if idx in iterating_axes else -1 for idx in range(ndim)
+        )
+        if chunk_n_max:
+            block_size_limit = chunk_n_max * prod(fitting_shape) * data.dtype.itemsize
+        else:
+            block_size_limit = dask.config.get('array.chunk-size')
+        if isinstance(data, da.core.Array):
+            data = data.rechunk(chunk_shape, block_size_limit=block_size_limit)
+        else:
+            with dask.config.set({'array.chunk-size': block_size_limit}):
+                data = da.from_array(data, chunks=chunk_shape, name='data')
+
     world_arrays = False
     if isinstance(world, BaseHighLevelWCS):
         world = world.low_level_wcs
@@ -406,10 +431,6 @@ def parallel_fit_model_nd(
     else:
         raise TypeError("world should be None, a WCS object or a tuple of arrays")
 
-    if data_unit is None and isinstance(data, u.Quantity):
-        data_unit = data.unit
-        data = data.value
-
     if world_units is None:
         # See if world are quantities
         world_units = [getattr(w, "unit", None) for w in world]
@@ -453,27 +474,6 @@ def parallel_fit_model_nd(
     # input units (to make sure that initial guesses on the parameters)
     # are in the right unit system
     model = model.without_units_for_data(**rename_data)
-
-    if preserve_native_chunks:
-        for idx in fitting_axes:
-            if data.chunksize[idx] != data.shape[idx]:
-                raise ValueError(
-                    "When using preserve_native_chunks=True, the chunk size should match the data size along the fitting axes"
-                )
-    else:
-        # Rechunk the array so that it is not chunked along the fitting axes
-        chunk_shape = tuple(
-            "auto" if idx in iterating_axes else -1 for idx in range(ndim)
-        )
-        if chunk_n_max:
-            block_size_limit = chunk_n_max * prod(fitting_shape) * data.dtype.itemsize
-        else:
-            block_size_limit = None
-        if isinstance(data, da.core.Array):
-            data = data.rechunk(chunk_shape, block_size_limit=block_size_limit)
-        else:
-            with dask.config.set({'array.chunk-size': block_size_limit}):
-                data = da.from_array(data, chunks=chunk_shape, name='data')
 
     # Extract the parameters arrays from the model, in the order in which they
     # appear in param_names, convert to dask arrays, and broadcast to shape of
