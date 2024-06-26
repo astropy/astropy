@@ -35,6 +35,8 @@ __all__ = [
     "log",
     "AstropyLogger",
     "LoggingError",
+    # import the logging levels from logging so that one can do:
+    # log.setLevel(log.DEBUG), for example
     "NOTSET",
     "DEBUG",
     "INFO",
