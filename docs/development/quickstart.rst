@@ -80,6 +80,7 @@ Next, `clone <https://git-scm.com/docs/git-clone>`__ your GitHub fork to your ma
     git clone https://github.com/YOUR-USER-NAME/astropy.git
     cd astropy
     git remote add upstream https://github.com/astropy/astropy.git
+    git fetch upstream --tags
 
 This creates the directory ``astropy`` and connects your repository to the upstream
 (main project) `astropy <https://github.com/astropy/astropy>`__ repository.
@@ -106,7 +107,7 @@ for doing other work. This is important because the development environment will
 be unstable and possibly broken at times, and you don't want to break your other work.
 
 There are many good options for doing this, including a number of virtual environment
-managers (e.g. the Python standard library `venv <https://docs.python.org/3/library/venv.html>`_
+managers (e.g., the Python standard library `venv <https://docs.python.org/3/library/venv.html>`_
 module). Users who have a preference for a particular virtual environment manager are
 encouraged to use it!
 
@@ -144,14 +145,17 @@ all the dependencies needed to build and fully test astropy::
 
 At this point you should be able to import astropy from your locally built version::
 
-   python -c 'import astropy; print(astropy.__version__)'
+   python -c 'import astropy; astropy.system_info()'
 
 Next you may want to try running some or all of the ``astropy`` unit tests.
 Running the full test suite can take a few minutes, so you may want to start with a
 single sub-package (e.g. :ref:`astropy-coordinates`)::
 
 
+   # run a sub set of the test suite
    pytest astropy/coordinates
+   
+   # or the whole suite
    pytest
 
 Details on running and writing tests can be found in the :ref:`testing-guidelines`
@@ -282,7 +286,7 @@ If everything looks good, you are ready to make a pull request (PR). A PR is how
 code from your local repository becomes available to the GitHub community to review and
 merged into project to appear the in the next release.
 
-Most of the time you can just follow the link that ``git`` provide when you pushed
+Most of the time you can just follow the link that ``git`` provided when you pushed
 your branch and create the PR. If you don't have that link (and for a few more details), you can follow the :ref:`pull-request` instructions.
 
 Follow the instructions in the PR template and fill it out as completely as possible.
@@ -293,8 +297,8 @@ In addition, if your commits are not ready for CI testing, you
 should include ``[ci skip]`` the last commit message (but note that code formatting
 checks and documentation building will still be done).
 
-Once submitted, this request goes to the astropy maintainers and they will review the
-PR.
+Once submitted (and marked as ready), this request goes to the astropy maintainers and
+they will review the PR.
 
 .. _contributing.update-pr:
 
@@ -302,7 +306,7 @@ Updating your pull request
 --------------------------
 
 Based on the review you get on your pull request, you will probably need to make
-some changes to the code. You can follow the :ref:`code committing steps <contributing.commit-code>`
+some adjustments. You can follow the :ref:`code committing steps <contributing.commit-code>`
 again to address any feedback and update your pull request::
 
     git push origin subpackage-new-feature
@@ -322,10 +326,10 @@ If you have made it to this point and submitted a pull request, one of the core
 maintainers will take a look. To make the process as smooth and efficient as possible,
 here are some tips:
 
-- **Reference an existing open issue** to `link to that issue <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests#draft-pull-requests>`_ and close the
+- **Reference any existing open issue** to `link to that issue <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests#draft-pull-requests>`_ and close the
   issue if the PR is merged.
 - **Ensure you have appropriate tests**.
 - **Keep your pull requests as simple as possible** -- larger PRs take longer to review.
-- **When practical limit the scope of a PR to one sub-package** -- this means fewer
+- **When practical, limit the scope of a PR to one sub-package** -- this means fewer
   required reviewers and a faster review process.
 - **Ensure that CI is in a green state** -- any required failures should be addressed.
