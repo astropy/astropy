@@ -493,6 +493,26 @@ class TestRunner(TestRunnerBase):
         return [f"--remote-data={remote_data}"]
 
     @keyword()
+    def pep8(self, pep8, kwargs):
+        """
+        pep8 : bool, optional
+            Turn on PEP8 checking via the pytest-pep8 plugin and disable normal
+            tests. Same as specifying ``--pep8 -k pep8`` in ``args``.
+        """
+        if pep8:
+            try:
+                import pytest_pep8  # noqa: F401
+            except ImportError:
+                raise ImportError(
+                    "PEP8 checking requires pytest-pep8 plugin: "
+                    "https://pypi.org/project/pytest-pep8"
+                )
+            else:
+                return ["--pep8", "-k", "pep8"]
+
+        return []
+
+    @keyword()
     def pdb(self, pdb, kwargs):
         """
         pdb : bool, optional
