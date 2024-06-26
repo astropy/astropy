@@ -2684,6 +2684,12 @@ def _condition_arg(value):
     if isinstance(value, (np.ndarray, float, int, complex, np.void)):
         return value
 
+    if (
+        value.__class__.__module__ == "dask.array.core"
+        and value.__class__.__name__ == "Array"
+    ):
+        return value
+
     avalue = np.array(value)
     if avalue.dtype.kind not in ["i", "f", "c"]:
         raise ValueError(

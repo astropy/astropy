@@ -983,3 +983,23 @@ def test_hash_represents_unit(unit, power):
     assert hash(tu) == hash(unit)
     tu2 = (unit ** (1 / power)) ** power
     assert hash(tu2) == hash(unit)
+
+
+def test_dask_arrays():
+    # Make sure that dask arrays can be passed in/out of Unit.to()
+
+    da = pytest.importorskip("dask.array")
+
+    data1 = da.from_array([1, 2, 3])
+
+    data2 = u.m.to(u.km, value=data1)
+
+    assert isinstance(data2, da.core.Array)
+
+    assert_allclose(data2.compute(), [0.001, 0.002, 0.003])
+
+    data3 = u.K.to(u.deg_C, value=data1, equivalencies=u.temperature())
+
+    assert isinstance(data3, da.core.Array)
+
+    assert_allclose(data3.compute(), [-272.15, -271.15, -270.15])
