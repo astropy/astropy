@@ -7,8 +7,10 @@ from math import ceil, log10, prod
 import numpy as np
 from dask import array as da
 
+import astropy.units as u
 from astropy.modeling import CompoundModel, models
-from astropy.wcs.wcsapi import BaseLowLevelWCS
+from astropy.modeling.utils import _combine_equivalency_dict
+from astropy.wcs.wcsapi import BaseLowLevelWCS, BaseHighLevelWCS
 
 __all__ = ["parallel_fit_model_nd"]
 
@@ -95,7 +97,7 @@ def fit_models_to_chunk(
     combined = da.moveaxis(combined, original_axes, new_axes)
 
     data = combined[0]
-    if world == "arrays":
+    if world is None:
         parameters = combined[1 : -model.n_inputs]
         world_arrays = combined[-model.n_inputs :]
     else:
@@ -118,7 +120,7 @@ def fit_models_to_chunk(
     # The world argument is used to pass through 1D arrays of world coordinates
     # (otherwise world_arrays is used) so if the model has more than one
     # dimension we need to make these arrays N-dimensional.
-    if world != "arrays":
+    if world is not None:
         if model.n_inputs > 1:
             world_values = np.meshgrid(*world, indexing="ij")
         else:
@@ -142,7 +144,7 @@ def fit_models_to_chunk(
         error = ""
         all_warnings = []
 
-        if world == "arrays":
+        if world is None:
             world_values = tuple([w[index] for w in world_arrays])
 
         # Do the actual fitting
@@ -220,6 +222,7 @@ def parallel_fit_model_nd(
     model,
     fitter,
     data,
+    data_unit=None,
     fitting_axes,
     world=None,
     chunk_n_max=None,
@@ -228,6 +231,7 @@ def parallel_fit_model_nd(
     scheduler=None,
     fitter_kwargs=None,
     preserve_native_chunks=False,
+    equivalencies=None,
 ):
     """
     Fit a model in parallel to an N-dimensional dataset.
@@ -248,6 +252,9 @@ def parallel_fit_model_nd(
         The fitter to use in the fitting process.
     data : `numpy.ndarray` or `dask.array.core.Array`
         The N-dimensional data to fit.
+    data_units : `astropy.units.Unit`
+        Units for the data array, for when the data array is not a ``Quantity``
+        instance.
     fitting_axes : int or tuple
         The axes to keep for the fitting (other axes will be sliced/iterated over)
     world : `None` or dict or APE-14-WCS
@@ -328,7 +335,10 @@ def parallel_fit_model_nd(
     if not isinstance(data, da.core.Array):
         data = da.asarray(data)
 
-    world_arrays = []
+    world_arrays = False
+    if isinstance(world, BaseHighLevelWCS):
+        world = world.low_level_wcs
+
     if isinstance(world, BaseLowLevelWCS):
         if world.pixel_n_dim != data.ndim:
             raise ValueError(
@@ -345,38 +355,103 @@ def parallel_fit_model_nd(
         # cater for this for now.
         if world.world_n_dim != data.ndim:
             raise ValueError(
-                "The WCS world_n_dim ({world.world_n_dim}) does not match the data dimensionality ({data.ndim})"
+                f"The WCS world_n_dim ({world.world_n_dim}) does not match the data dimensionality ({data.ndim})"
             )
+
+        world_units = [u.Unit(world.world_axis_units[idx]) for idx in fitting_axes]
 
         # Construct dask arrays of world coordinates for every pixel in the cube.
         # We will then iterate over this in map_blocks.
-        world_arrays = _wcs_to_world_dask(world, data)
+        world = _wcs_to_world_dask(world, data)
 
         # Extract world arrays for just fitting dimensions
-        world_arrays = [world_arrays[idx] for idx in fitting_axes]
-
-        world = "arrays"
+        world = [world[idx] for idx in fitting_axes]
+        world_arrays = True
     elif isinstance(world, tuple):
+        # If world is a tuple then we allow N inputs where N is the number of fitting_axes
+        # Each array in the tuple should with be broadcastable to the shape of the fitting_axes
+        # or it should be one dimenional and the broadcasting can happen later
+        if len(world) != len(fitting_axes):
+            raise ValueError(
+                "Number of world arrays must match number of fitting axes"
+            )
+        world_units = []
         for w in world:
-            if w.shape != data.shape:
-                raise ValueError(
-                    f"arrays in world tuple should have same shape as data (expected {data.shape}, got {w.shape})"
-                )
-        # Extract world arrays for just fitting dimensions
-        world_arrays = [da.asarray(world[idx]) for idx in fitting_axes]
-        world = "arrays"
-    elif isinstance(world, dict):
-        # Re-index world if a dict, make it a tuple in order of fitting_axes
-        for axis in fitting_axes:
-            if axis not in world:
-                raise KeyError(f"Values for axis {axis} missing from world")
-            elif len(world[axis]) != data.shape[axis]:
-                raise ValueError(
-                    f"world[{axis}] has length {len(world[axis])} but data along dimension {axis} has length {data.shape[axis]}"
-                )
-        world = tuple([world[axis] for axis in fitting_axes])
+            if unit := getattr(w, "unit", None) is not None:
+                w = w.value
+            world_units.append(unit)
+
+        if all(w.ndim == 1 for w in world):
+            for i, (w, fit_shape) in zip(fitting_axes, zip(world, fitting_shape)):
+                if w.shape[0] != fit_shape:
+                    raise ValueError(
+                        f"world[{i}] has length {w.shape[0]} but data along dimension {i} has length {fit_shape}"
+                    )
+            world_arrays = False
+        else:
+            for w in world:
+                try:
+                    w = np.broadcast_shapes(w.shape, data.shape)
+                except ValueError as e:
+                    raise ValueError(
+                        f"arrays in world tuple should be broadcastable to the shape of the data ({data.shape}), got {w.shape})"
+                    ) from e
+            # Extract world arrays for just fitting dimensions
+            world = [da.asarray(world[idx]) for idx in fitting_axes]
+            world_arrays = True
     elif world is None:
         world = tuple([np.arange(size) for size in fitting_shape])
+        world_units = [None] * len(fitting_axes)
+    else:
+        raise TypeError("world should be None, a WCS object or a tuple of arrays")
+
+    if data_unit is None and isinstance(data, u.Quantity):
+        data_unit = data.unit
+        data = data.value
+
+    if world_units is None:
+        # See if world are quantities
+        world_units = [getattr(w, "unit", None) for w in world]
+
+    # We now combine any instance-level input equivalencies with user
+    # specified ones at call-time.
+
+    input_units_equivalencies = _combine_equivalency_dict(
+        model.inputs, equivalencies, model.input_units_equivalencies
+    )
+
+    # If input_units is defined, we transform the input data into those
+    # expected by the model. We hard-code the input names 'x', and 'y'
+    # here since FittableModel instances have input names ('x',) or
+    # ('x', 'y')
+
+    if model.input_units is not None:
+        world = [
+            unit.to(
+                model.input_units[model.inputs[i]],
+                equivalencies=input_units_equivalencies[model.inputs[i]],
+                value=w
+            )
+            if unit is not None else w
+            for i, (w, unit) in enumerate(zip(world, world_units))
+        ]
+
+    # Create a dictionary mapping the real model inputs and outputs
+    # names to the data. This remapping of names must be done here, after
+    # the input data is converted to the correct units.
+    rename_data = {model.inputs[0]: world[0]}
+    if len(world) == 2:
+        rename_data[model.outputs[0]] = (0,)*data_unit
+        rename_data[model.inputs[1]] = world[1]
+    else:
+        rename_data[model.outputs[0]] = (0,)*data_unit
+        rename_data["z"] = None
+
+    # We now strip away the units from the parameters, taking care to
+    # first convert any parameters to the units that correspond to the
+    # input units (to make sure that initial guesses on the parameters)
+    # are in the right unit system
+    model = model.without_units_for_data(**rename_data)
 
     if preserve_native_chunks:
         for idx in fitting_axes:
@@ -421,7 +496,10 @@ def parallel_fit_model_nd(
     # Define a single combined array that contains data, parameter arrays, and
     # optionally world arrays
 
-    combined_array = da.stack([data] + parameter_arrays + world_arrays)
+    if world_arrays:
+        combined_array = da.stack([data] + parameter_arrays + world)
+    else:
+        combined_array = da.stack([data] + parameter_arrays)
 
     # Make sure that the combined array is not chunked along the first axis. At
     # this point we are also assuming/hoping that the remainder of the chunk
@@ -439,7 +517,7 @@ def parallel_fit_model_nd(
         drop_axis=fitting_axes,
         model=simple_model,
         fitter=fitter,
-        world=world,
+        world=world if not world_arrays else None,
         diagnostics=diagnostics,
         diagnostics_path=diagnostics_path,
         iterating_shape=iterating_shape,
