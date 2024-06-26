@@ -11,6 +11,7 @@ import astropy.units as u
 from astropy.modeling import CompoundModel, models
 from astropy.modeling.utils import _combine_equivalency_dict
 from astropy.wcs.wcsapi import BaseLowLevelWCS, BaseHighLevelWCS
+from astropy.wcs.wcsapi.wrappers import SlicedLowLevelWCS
 
 __all__ = ["parallel_fit_model_nd"]
 
@@ -353,9 +354,12 @@ def parallel_fit_model_nd(
         # output if the WCS provides two coordinates for each 1D pixel.
         # However, this is a very advanced and unusual use case, so we don't
         # cater for this for now.
-        if world.world_n_dim != data.ndim:
+
+        fitting_world = SlicedLowLevelWCS(world, [slice(None) if i in fitting_axes else 0 for i in range(world.pixel_n_dim)])
+        if fitting_world.world_n_dim != len(fitting_axes):
             raise ValueError(
-                f"The WCS world_n_dim ({world.world_n_dim}) does not match the data dimensionality ({data.ndim})"
+                "The WCS number of world axes corresponding to the fitting axes "
+                f"({fitting_world.world_n_dim}) does not match the number of fitting axes ({len(fitting_axes)})"
             )
 
         world_units = [u.Unit(world.world_axis_units[idx]) for idx in fitting_axes]
@@ -377,7 +381,7 @@ def parallel_fit_model_nd(
             )
         world_units = []
         for w in world:
-            if unit := getattr(w, "unit", None) is not None:
+            if (unit := getattr(w, "unit", None)) is not None:
                 w = w.value
             world_units.append(unit)
 
@@ -439,10 +443,10 @@ def parallel_fit_model_nd(
     # Create a dictionary mapping the real model inputs and outputs
     # names to the data. This remapping of names must be done here, after
     # the input data is converted to the correct units.
-    rename_data = {model.inputs[0]: world[0]}
+    rename_data = {model.inputs[0]: (0,)*world_units[0]}
     if len(world) == 2:
         rename_data[model.outputs[0]] = (0,)*data_unit
-        rename_data[model.inputs[1]] = world[1]
+        rename_data[model.inputs[1]] = (0,)*world_units[1]
     else:
         rename_data[model.outputs[0]] = (0,)*data_unit
         rename_data["z"] = None
