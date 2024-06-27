@@ -111,7 +111,7 @@ jobs:
 
   report_diff_test_coverage:
     needs: [ tests ]
-    if: github.event_name == 'pull_request'
+    if: always() && github.event_name == 'pull_request'
     name: report diff test coverage
     runs-on: ubuntu-latest
     steps:
