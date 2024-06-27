@@ -421,10 +421,11 @@ def parallel_fit_model_nd(
         # or it should be one dimensional and the broadcasting can happen later
         if len(world) != len(fitting_axes):
             raise ValueError("Number of world arrays must match number of fitting axes")
+        world = list(world)
         world_units = []
-        for w in world:
+        for iw, w in enumerate(world):
             if (unit := getattr(w, "unit", None)) is not None:
-                w = w.value
+                world[iw] = w.value
             world_units.append(unit)
 
         if all(w.ndim == 1 for w in world):
