@@ -1117,6 +1117,21 @@ def test_data_noastropy_fallback(monkeypatch):
 
 
 @pytest.mark.parametrize(
+    "encoding, expected_type, expected_lines",
+    [
+        pytest.param("utf-8", str, ["האסטרונומי פייתון"], id="utf-8"),
+        pytest.param(
+            "binary",
+            bytes,
+            [
+                b"\xd7\x94\xd7\x90\xd7\xa1\xd7\x98\xd7\xa8\xd7\x95\xd7\xa0\xd7\x95"
+                b"\xd7\x9e\xd7\x99 \xd7\xa4\xd7\x99\xd7\x99\xd7\xaa\xd7\x95\xd7\x9f"
+            ],
+            id="binary",
+        ),
+    ],
+)
+@pytest.mark.parametrize(
     "filename",
     [
         "unicode.txt",
@@ -1131,20 +1146,12 @@ def test_data_noastropy_fallback(monkeypatch):
         ),
     ],
 )
-def test_read_unicode(filename):
-    contents = get_pkg_data_contents(os.path.join("data", filename), encoding="utf-8")
-    assert isinstance(contents, str)
-    contents = contents.splitlines()[1]
-    assert contents == "האסטרונומי פייתון"
-
-    contents = get_pkg_data_contents(os.path.join("data", filename), encoding="binary")
-    assert isinstance(contents, bytes)
-    x = contents.splitlines()[1]
-    expected = (
-        b"\xff\xd7\x94\xd7\x90\xd7\xa1\xd7\x98\xd7\xa8\xd7\x95\xd7\xa0\xd7\x95"
-        b"\xd7\x9e\xd7\x99 \xd7\xa4\xd7\x99\xd7\x99\xd7\xaa\xd7\x95\xd7\x9f"[1:]
-    )
-    assert x == expected
+def test_read_unicode(filename, encoding, expected_type, expected_lines):
+    contents = get_pkg_data_contents(os.path.join("data", filename), encoding=encoding)
+    assert type(contents) is expected_type
+    # Using splitlines() instead of split("\n") here for portability as
+    # newlines can be represented differently in different OSes.
+    assert contents.splitlines() == expected_lines
 
 
 def test_compressed_stream():
