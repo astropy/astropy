@@ -176,7 +176,7 @@ def fit_models_to_chunk(
             # index.
 
             index_abs = np.array(index) + np.array(
-                [block_info[0]["array-location"][idx + 1][0] for idx in iterating_axes]
+                [block_info[0]["array-location"][idx][0] for idx in iterating_axes]
             )
             # index = tuple(int(idx) for idx in np.unravel_index(i_abs, iterating_shape))
             maxlen = int(ceil(log10(max(iterating_shape))))
