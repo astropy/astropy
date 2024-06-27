@@ -109,9 +109,10 @@ jobs:
           linux: py312-test-devdeps
           posargs: --remote-data=any --verbose
 
-  report_diff_coverage:
+  report_diff_test_coverage:
     needs: [ tests ]
     if: github.event_name == 'pull_request'
+    name: report diff test coverage
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-python@v5
