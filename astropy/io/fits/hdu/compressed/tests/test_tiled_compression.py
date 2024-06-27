@@ -69,7 +69,7 @@ def test_zblank_support(canonical_data_base_path, tmp_path):
 def test_integer_blank_support(canonical_data_base_path, tmp_path):
     # This uses a test 64x64 section of the m13 image to which three NaN values are added.
     # It is converted to an integer image with blank values and compressed.
-    # Then 2 variations of the BLANK/ZBLANK specification are created by
+    # Then 3 variations of the BLANK/ZBLANK specification are created by
     # editing the header and compressed data table.
     # When these are read in, the result is a float image that should be the same
     # as the original (including NaNs for blanks).
@@ -86,7 +86,8 @@ def test_integer_blank_support(canonical_data_base_path, tmp_path):
     reference[[1, 2, 3], [1, 2, 3]] = np.nan
 
     # set blanks in the int16 image and BLANK keyword in header
-    blank = -32768
+    # choose a blank value that differs from the default
+    blank = -16384
     data[np.isnan(reference)] = blank
     header["BLANK"] = blank
 
@@ -108,7 +109,9 @@ def test_integer_blank_support(canonical_data_base_path, tmp_path):
     # replace ZBLANK in header with with ZBLANK in table column
     # This creates a file structure that is unlikely to be encountered in the wild
     # but that is apparently allowed by the FITS standard.
+    # Two versions are created, one without the BLANK keyword and one with it.
     cfile3 = tmp_path / "compressed_with_zblank_column.fits"
+    cfile4 = tmp_path / "compressed_with_zblank_column_and_blank.fits"
     with fits.open(cfile2, disable_image_compression=True) as hdul:
         phdu = hdul[0]
         thdu = hdul[1]
@@ -133,13 +136,16 @@ def test_integer_blank_support(canonical_data_base_path, tmp_path):
         del new_thdu.header["ZBLANK"]
         new_hdul = fits.HDUList([phdu, new_thdu])
         new_hdul.writeto(cfile3, overwrite=True, checksum=False)
+        new_thdu.header["BLANK"] = blank
+        new_hdul = fits.HDUList([phdu, new_thdu])
+        new_hdul.writeto(cfile4, overwrite=True, checksum=False)
 
-    # now test the 3 files to confirm they all uncompress correctly
-    for filename in (cfile1, cfile2):
+    # now test the 4 files to confirm they all uncompress correctly
+    for filename in (cfile1, cfile2, cfile4):
         with fits.open(canonical_data_base_path / filename) as hdul:
             assert_equal(hdul[1].data, reference)
             # ensure that the uncompressed header is created with BLANK keyword
-            assert hdul[1].header.get("BLANK") == -32768
+            assert hdul[1].header.get("BLANK") == blank
 
     # this one generates an expected warning
     with pytest.warns(
