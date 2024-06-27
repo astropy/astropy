@@ -511,3 +511,7 @@ def test_preserve_native_chunks_invalid():
             fitting_axes=0,
             preserve_native_chunks=True,
         )
+
+
+# Add a test to make sure that units are never passed to the fitter - perhaps
+# we could create a custom fitter callable and check the arguments.
