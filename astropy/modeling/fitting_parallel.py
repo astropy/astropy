@@ -217,6 +217,27 @@ def fit_models_to_chunk(
     return parameters
 
 
+class ParameterContainer:
+    def __init__(self, values, iterating_shape, iterating_axes, data_shape):
+        self._values = values
+        self.shape = data_shape
+        self.ndim = len(data_shape)
+        self.dtype = float
+        self._iterating_shape = iterating_shape
+        self._iterating_axes = iterating_axes
+
+    def __getitem__(self, item):
+        values = np.broadcast_to(self._values, self._iterating_shape)
+        values = values.reshape(
+            tuple(
+                self.shape[idx] if idx in self._iterating_axes else 1
+                for idx in range(self.ndim)
+            )
+        )
+        values = np.broadcast_to(values, self.shape)
+        return values[item]
+
+
 def parallel_fit_model_nd(
     *,
     model,
@@ -480,24 +501,24 @@ def parallel_fit_model_nd(
         world_units = tuple(None for w in world)
 
     # Extract the parameters arrays from the model, in the order in which they
-    # appear in param_names, convert to dask arrays, and broadcast to shape of
-    # iterable axes. We need to rechunk to the same chunk shape as the data
-    # so that chunks line up and for map_blocks to work properly.
-    # https://github.com/dask/dask/issues/11188
+    # appear in param_names. We need to broadcast these up to the data shape so
+    # that map_blocks can then iterate over both the data and parameters. We
+    # need to rechunk to the same chunk shape as the data so that chunks line
+    # up and for map_blocks to work properly as noted in
+    # https://github.com/dask/dask/issues/11188. However, rather than use dask
+    # operations to broadcast these up, which creates a complex graph and
+    # results in high memory usage, we use a ParameterContainer which does the
+    # broadcasting on-the-fly as needed.
     parameter_arrays = []
     for name in model.param_names:
         values = getattr(model, name).value
-        array = da.broadcast_to(da.from_array(values), iterating_shape).reshape(
-            iterating_shape
-        )
-        array = array.reshape(
-            tuple(
-                data.shape[idx] if idx in iterating_axes else 1 for idx in range(ndim)
+        parameter_arrays.append(
+            da.from_array(
+                ParameterContainer(values, iterating_shape, iterating_axes, data.shape),
+                chunks=data.chunksize,
+                name="parameter-" + name,
             )
         )
-        array = da.broadcast_to(array, data.shape)
-        array = array.rechunk(data.chunksize)
-        parameter_arrays.append(array)
 
     # Define a model with default parameters to pass in to fit_models_to_chunk without copying all the parameter data
 
