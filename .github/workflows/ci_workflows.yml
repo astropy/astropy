@@ -127,6 +127,8 @@ jobs:
         with:
           pattern: ".coverage*"
           merge-multiple: true
+      - run: |
+          [ "$(ls -A .coverage*)" ] && exit 0 || exit 1
       - run: coverage xml
       - run: diff-cover coverage.xml --compare-branch origin/${{ github.base_ref }} --markdown-report diff_coverage.md
       - run: cat diff_coverage.md >> $GITHUB_STEP_SUMMARY
