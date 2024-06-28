@@ -1625,7 +1625,6 @@ class TestArraySetOps:
         b = Masked([6, 5, 4, 8], mask=[0, 0, 0, 1])
         test = np.setxor1d(a, b)
         assert_masked_equal(test, Masked([1, 2, 3, 4, 5, 6]))
-        #
         assert_masked_equal(np.setxor1d(Masked([]), []), Masked([]))
 
     @pytest.mark.parametrize("dtype", [int, float, object])

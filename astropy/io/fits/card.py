@@ -45,7 +45,9 @@ class Card(_Verify):
     # String for a FITS standard compliant (FSC) keyword.
     _keywd_FSC_RE = re.compile(r"^[A-Z0-9_-]{0,%d}$" % KEYWORD_LENGTH)
     # This will match any printable ASCII character excluding '='
-    _keywd_hierarch_RE = re.compile(r"^(?:HIERARCH +)?(?:^[ -<>-~]+ ?)+$", re.I)
+    _keywd_hierarch_RE = re.compile(
+        r"^(?:HIERARCH +)?(?:^[ -<>-~]+ ?)+$", re.IGNORECASE
+    )
 
     # A number sub-string, either an integer or a float in fixed or
     # scientific notation.  One for FSC and one for non-FSC (NFSC) format:
