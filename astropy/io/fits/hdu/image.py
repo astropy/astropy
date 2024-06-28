@@ -1106,8 +1106,9 @@ class PrimaryHDU(_ImageBaseHDU):
 
         ignore_blank : bool, optional
             If `True`, the BLANK header keyword will be ignored if present.
-            Otherwise, pixels equal to this value will be replaced with
-            NaNs. (default: False)
+            Otherwise, integer data will be converted to float and pixels
+            originally equal to this value will be replaced with NaNs.
+            (default: False)
 
         uint : bool, optional
             Interpret signed integer data where ``BZERO`` is the
@@ -1192,6 +1193,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         name=None,
         do_not_scale_image_data=False,
         uint=True,
+        ignore_blank=False,
         scale_back=None,
         ver=None,
     ):
@@ -1214,6 +1216,12 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         do_not_scale_image_data : bool, optional
             If `True`, image data is not scaled using BSCALE/BZERO values
             when read. (default: False)
+
+        ignore_blank : bool, optional
+            If `True`, the BLANK header keyword will be ignored if present.
+            Otherwise, integer data will be converted to float and pixels
+            originally equal to this value will be replaced with NaNs.
+            (default: False)
 
         uint : bool, optional
             Interpret signed integer data where ``BZERO`` is the
@@ -1246,6 +1254,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
             name=name,
             do_not_scale_image_data=do_not_scale_image_data,
             uint=uint,
+            ignore_blank=ignore_blank,
             scale_back=scale_back,
             ver=ver,
         )
