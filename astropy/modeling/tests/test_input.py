@@ -1042,7 +1042,7 @@ class TInputFormatter(Model):
 
     n_inputs = 2
     n_outputs = 2
-    outputs = ("x", "y")
+    _outputs = ("x", "y")
 
     @staticmethod
     def evaluate(x, y):
