@@ -601,6 +601,8 @@ skip = """
     tab.h,
     spc.h,
     cython*,
+    astropy/CITATION,
+    docs/credits.rst,
 """
 # The following list of words for codespell to ignore may contain some
 # misspellings that should be revisited and fixed in the future.
@@ -610,7 +612,6 @@ ignore-words-list = """
     ans,
     clen,
     coo,
-    Copin,
     datas,
     ded,
     dfine,
@@ -620,9 +621,7 @@ ignore-words-list = """
     dum,
     fo,
     fot,
-    hart,
     hel,
-    hendler,
     inout,
     lightyear,
     lod,
