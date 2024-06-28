@@ -1203,7 +1203,7 @@ class TestIntDiffFunctions:
     if NUMPY_LT_2_0:
 
         def test_trapz(self):
-            self.check_trapezoid(np.trapz)
+            self.check_trapezoid(np.trapz)  # noqa: NPY201
 
     else:
 
@@ -2034,11 +2034,11 @@ class TestSetOpsFunctions:
     @needs_array_function
     @pytest.mark.filterwarnings("ignore:`in1d` is deprecated. Use `np.isin` instead.")
     def test_in1d(self):
-        self.check2(np.in1d, unit=None)
+        self.check2(np.in1d, unit=None)  # noqa: NPY201
         # Check zero is treated as having any unit.
-        assert np.in1d(np.zeros(1), self.q2)
+        assert np.in1d(np.zeros(1), self.q2)  # noqa: NPY201
         with pytest.raises(u.UnitsError):
-            np.in1d(np.ones(1), self.q2)
+            np.in1d(np.ones(1), self.q2)  # noqa: NPY201
 
     @needs_array_function
     def test_isin(self):

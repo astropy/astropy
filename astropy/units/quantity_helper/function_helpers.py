@@ -110,7 +110,7 @@ if NUMPY_LT_2_0:
     SUBCLASS_SAFE_FUNCTIONS |= {
         np.msort,
         np.round_,  # noqa: NPY003, NPY201
-        np.trapz,
+        np.trapz,  # noqa: NPY201
         np.product,  # noqa: NPY003, NPY201
         np.cumproduct,  # noqa: NPY003, NPY201
     }
