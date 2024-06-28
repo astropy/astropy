@@ -260,6 +260,7 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
     "TRY300",  # Consider `else` block
+    "F811",  # see https://github.com/astropy/astropy/pull/16633
 ]
 "astropy/nddata/*" = [
     "C408",

@@ -152,9 +152,9 @@ class _ModelMeta(abc.ABCMeta):
         pdict = {}
         for base in bases:
             for tbase in base.__mro__:
-                if issubclass(tbase, Model):
-                    for parname, val in cls._parameters_.items():
-                        pdict[parname] = val
+                if not issubclass(tbase, Model):
+                    continue
+                pdict |= cls._parameters_
         cls._handle_special_methods(members, pdict)
 
     def __repr__(cls):
@@ -809,6 +809,7 @@ class Model(metaclass=_ModelMeta):
 
     @property
     def n_inputs(self):
+        """The number of inputs."""
         # TODO: remove the code in the ``if`` block when support
         # for models with ``inputs`` as class variables is removed.
         if hasattr(self.__class__, "n_inputs") and isinstance(
@@ -826,6 +827,7 @@ class Model(metaclass=_ModelMeta):
 
     @property
     def n_outputs(self):
+        """The number of outputs."""
         # TODO: remove the code in the ``if`` block when support
         # for models with ``outputs`` as class variables is removed.
         if hasattr(self.__class__, "n_outputs") and isinstance(

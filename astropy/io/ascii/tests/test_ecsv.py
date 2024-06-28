@@ -932,9 +932,9 @@ def test_specialized_columns(name, col, exp):
     assert hdr["datatype"] == exp
     t2 = Table.read(out.getvalue(), format="ascii.ecsv")
     assert t2.colnames == t.colnames
-    for name in t2.colnames:
-        assert t2[name].dtype == t[name].dtype
-        for val1, val2 in zip(t2[name], t[name]):
+    for colname in t2.colnames:
+        assert t2[colname].dtype == t[colname].dtype
+        for val1, val2 in zip(t2[colname], t[colname]):
             if isinstance(val1, np.ndarray):
                 assert val1.dtype == val2.dtype
             assert np.all(val1 == val2)
