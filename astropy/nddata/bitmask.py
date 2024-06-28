@@ -42,7 +42,7 @@ def _is_bit_flag(n):
     if n < 1:
         return False
 
-    return (n).bit_count() == 1
+    return n.bit_count() == 1
 
 
 def _is_int(n):
