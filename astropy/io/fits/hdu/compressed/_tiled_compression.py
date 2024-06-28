@@ -359,7 +359,9 @@ def decompress_image_data_section(
     else:
         zzero_column = None
 
-    zblank_header = compressed_header.get("ZBLANK", None)
+    zblank_header = compressed_header.get(
+        "ZBLANK", compressed_header.get("BLANK", None)
+    )
 
     gzip_compressed_data_column = None
     gzip_compressed_data_dtype = None
@@ -465,7 +467,7 @@ def decompress_image_data_section(
             if zblank is not None:
                 if not tile_data.flags.writeable:
                     tile_data = tile_data.copy()
-                tile_data[blank_mask] = np.nan
+                tile_data[blank_mask] = zblank_header if zbitpix > 0 else np.nan
 
         image_data[tile_slices] = tile_data
 

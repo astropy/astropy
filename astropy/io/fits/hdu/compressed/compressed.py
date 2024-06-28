@@ -3,6 +3,7 @@
 import ctypes
 import math
 import time
+import warnings
 from contextlib import suppress
 
 import numpy as np
@@ -21,6 +22,7 @@ from astropy.io.fits.util import (
 )
 from astropy.utils import lazyproperty
 from astropy.utils.decorators import deprecated_renamed_argument
+from astropy.utils.exceptions import AstropyUserWarning
 
 from .header import (
     CompImageHeader,
@@ -362,6 +364,28 @@ class CompImageHDU(BinTableHDU):
         self._orig_bscale = self._bscale
         self._orig_bitpix = self._bitpix
 
+        if (
+            self._bitpix > 0
+            and "BLANK" not in self._header
+            and "ZBLANK" not in self._header
+        ):
+            # check for column named "ZBLANK"
+            for i in range(1, self._header["TFIELDS"] + 1):
+                if self._header[f"TTYPE{i}"] == "ZBLANK":
+                    # required BLANK keyword is missing
+                    # use most negative value as default
+                    self._header["BLANK"] = -(1 << (self._bitpix - 1))
+                    warnings.warn(
+                        f"Setting default value {self._header['BLANK']} for missing BLANK keyword in compressed extension",
+                        AstropyUserWarning,
+                    )
+                    break
+
+        if self._bitpix > 0:
+            self._blank = self._header.get("BLANK", self._header.get("ZBLANK"))
+        else:
+            self._blank = None
+
     def _remove_unnecessary_default_extnames(self, header):
         """Remove default EXTNAME values if they are unnecessary.
 
@@ -537,14 +561,14 @@ class CompImageHDU(BinTableHDU):
             self.name = name
 
     def _scale_data(self, data):
-        if self._orig_bzero != 0 or self._orig_bscale != 1:
-            new_dtype = self._dtype_for_bitpix()
-            data = np.array(data, dtype=new_dtype)
-
-            if "BLANK" in self._header:
-                blanks = data == np.array(self._header["BLANK"], dtype="int32")
+        if self._orig_bzero != 0 or self._orig_bscale != 1 or self._blank is not None:
+            if self._blank is not None:
+                blanks = data == np.array(self._blank, dtype=data.dtype)
             else:
                 blanks = None
+
+            new_dtype = self._dtype_for_bitpix()
+            data = np.array(data, dtype=new_dtype)
 
             if self._orig_bscale != 1:
                 np.multiply(data, self._orig_bscale, data)
@@ -556,7 +580,10 @@ class CompImageHDU(BinTableHDU):
                 np.add(data, self._orig_bzero, out=data, casting="unsafe")
 
             if blanks is not None:
-                data = np.where(blanks, np.nan, data)
+                # use float32 version of nan to reduce data size for uint conversion
+                # result will still be float64 for larger uint sizes (e.g., uint32)
+                # for float types np.where retains the type of the data array
+                data = np.where(blanks, np.float32(np.nan), data)
 
         return data
 

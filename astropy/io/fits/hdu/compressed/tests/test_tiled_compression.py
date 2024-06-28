@@ -8,6 +8,7 @@ from numpy.testing import assert_allclose, assert_equal
 from astropy.io import fits
 from astropy.io.fits.hdu.compressed._codecs import PLIO1
 from astropy.io.fits.hdu.compressed._compression import CfitsioException
+from astropy.utils.exceptions import AstropyUserWarning
 
 from .conftest import fitsio_param_to_astropy_param
 
@@ -63,6 +64,97 @@ def test_zblank_support(canonical_data_base_path, tmp_path):
     with fits.open(tmp_path / "test_zblank.fits") as hdul:
         assert "ZBLANK" in hdul[1].header
         assert_equal(np.round(hdul[1].data), reference)
+
+
+def test_integer_blank_support(canonical_data_base_path, tmp_path):
+    # This uses a test 64x64 section of the m13 image to which three NaN values are added.
+    # It is converted to an integer image with blank values and compressed.
+    # Then 3 variations of the BLANK/ZBLANK specification are created by
+    # editing the header and compressed data table.
+    # When these are read in, the result is a float image that should be the same
+    # as the original (including NaNs for blanks).
+
+    with fits.open(canonical_data_base_path / "m13.fits") as hdul:
+        # pick a 64x64 pixel subset
+        data = hdul[0].data[116:180, 116:180]
+        header = hdul[0].header.copy()
+        del header["CHECKSUM"]
+        del header["DATASUM"]
+
+    # float version of image with NaNs as blanks
+    reference = data.astype(np.float32)
+    reference[[1, 2, 3], [1, 2, 3]] = np.nan
+
+    # set blanks in the int16 image and BLANK keyword in header
+    # choose a blank value that differs from the default
+    blank = -16384
+    data[np.isnan(reference)] = blank
+    header["BLANK"] = blank
+
+    # create the compressed file
+    cfile1 = tmp_path / "compressed_with_blank.fits"
+    hdu = fits.CompImageHDU(
+        data=data, header=header, compression_type="RICE_1", tile_shape=(16, 16)
+    )
+    hdu.writeto(cfile1, overwrite=True, checksum=False)
+
+    # replace BLANK keyword in header with ZBLANK keyword
+    cfile2 = tmp_path / "compressed_with_zblank.fits"
+    with fits.open(cfile1, disable_image_compression=True) as hdul:
+        assert "ZBLANK" not in hdul[1].header
+        hdul[1].header["ZBLANK"] = hdul[1].header["BLANK"]
+        del hdul[1].header["BLANK"]
+        hdul.writeto(cfile2, overwrite=True, checksum=False)
+
+    # replace ZBLANK in header with with ZBLANK in table column
+    # This creates a file structure that is unlikely to be encountered in the wild
+    # but that is apparently allowed by the FITS standard.
+    # Two versions are created, one without the BLANK keyword and one with it.
+    cfile3 = tmp_path / "compressed_with_zblank_column.fits"
+    cfile4 = tmp_path / "compressed_with_zblank_column_and_blank.fits"
+    with fits.open(cfile2, disable_image_compression=True) as hdul:
+        phdu = hdul[0]
+        thdu = hdul[1]
+        orig_table = hdul[1].data
+        orig_cols = orig_table.columns
+        zblank = thdu.header["ZBLANK"]
+        new_cols = fits.ColDefs(
+            [
+                fits.Column(
+                    name="COMPRESSED_DATA",
+                    format="1PB()",
+                    array=thdu.data.field("COMPRESSED_DATA"),
+                ),
+                fits.Column(
+                    name="ZBLANK",
+                    format="I",
+                    array=np.zeros(len(orig_table), dtype=np.int32) + zblank,
+                ),
+            ]
+        )
+        new_thdu = fits.BinTableHDU.from_columns(new_cols, header=thdu.header)
+        del new_thdu.header["ZBLANK"]
+        new_hdul = fits.HDUList([phdu, new_thdu])
+        new_hdul.writeto(cfile3, overwrite=True, checksum=False)
+        new_thdu.header["BLANK"] = blank
+        new_hdul = fits.HDUList([phdu, new_thdu])
+        new_hdul.writeto(cfile4, overwrite=True, checksum=False)
+
+    # now test the 4 files to confirm they all uncompress correctly
+    for filename in (cfile1, cfile2, cfile4):
+        with fits.open(canonical_data_base_path / filename) as hdul:
+            assert_equal(hdul[1].data, reference)
+            # ensure that the uncompressed header is created with BLANK keyword
+            assert hdul[1].header.get("BLANK") == blank
+
+    # this one generates an expected warning
+    with pytest.warns(
+        AstropyUserWarning,
+        match="Setting default value -32768 for missing BLANK keyword in compressed extension",
+    ):
+        with fits.open(cfile3) as hdul:
+            assert_equal(hdul[1].data, reference)
+            assert hdul[1].header.get("BLANK") == -32768
 
 
 @pytest.mark.parametrize(

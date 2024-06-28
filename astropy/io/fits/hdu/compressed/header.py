@@ -467,6 +467,14 @@ def _bintable_header_to_image_header(bintable_header):
         del image_header["PCOUNT"]
         del image_header["GCOUNT"]
 
+    # Fill in BLANK keyword if necessary
+    if (
+        image_header["BITPIX"] > 0
+        and "BLANK" not in image_header
+        and "ZBLANK" in bintable_header
+    ):
+        image_header["BLANK"] = bintable_header["ZBLANK"]
+
     # Look to see if there are any blank cards in the table
     # header.  If there are, there should be the same number
     # of blank cards in the image header.  Add blank cards to
