@@ -827,6 +827,11 @@ class _ImageBaseHDU(_ValidHDU):
         data = None
         if not (self._orig_bzero == 0 and self._orig_bscale == 1):
             data = self._convert_pseudo_integer(raw_data)
+            if not (self._blank is None or data is None or data.dtype.kind != "u"):
+                raw_data = data
+                data = None
+                self._uint = False  # Reset this to enable conversion to float
+                self._blank += self._orig_bzero  # Same scaling to uint as for data
 
         if data is None:
             # In these cases, we end up with floating-point arrays and have to
