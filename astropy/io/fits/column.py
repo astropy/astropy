@@ -200,7 +200,7 @@ ATTRIBUTE_TO_KEYWORD = OrderedDict(zip(KEYWORD_ATTRIBUTES, KEYWORD_NAMES))
 
 # TFORMn regular expression
 TFORMAT_RE = re.compile(
-    r"(?P<repeat>^[0-9]*)(?P<format>[LXBIJKAEDCMPQ])(?P<option>[!-~]*)", re.I
+    r"(?P<repeat>^[0-9]*)(?P<format>[LXBIJKAEDCMPQ])(?P<option>[!-~]*)", re.IGNORECASE
 )
 
 # TFORMn for ASCII tables; two different versions depending on whether
