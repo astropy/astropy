@@ -952,7 +952,7 @@ def get_pkg_data_fileobjs(datadir, package=None, pattern="*", encoding=None):
 
 
 def compute_hash(localfn):
-    """Computes the SHA256 hash for a file.
+    """Computes the MD5 hash for a file.
 
     The hash for a data file is used for looking up data files in a unique
     fashion. This is of particular use for tests; a test may require a
@@ -977,7 +977,7 @@ def compute_hash(localfn):
         ``localfn`` file.
     """
     with open(localfn, "rb") as f:
-        h = hashlib.sha256()
+        h = hashlib.md5()
         block = f.read(conf.compute_hash_block_size)
         while block:
             h.update(block)
@@ -1854,7 +1854,7 @@ def clear_download_cache(hashorurl=None, pkgname="astropy"):
                 filepath = os.path.join(dldir, d)
             if os.path.exists(filepath):
                 _rmtree(filepath)
-            elif len(hashorurl) == 2 * hashlib.sha256().digest_size and re.match(
+            elif len(hashorurl) == 2 * hashlib.md5().digest_size and re.match(
                 r"[0-9a-f]+", hashorurl
             ):
                 # It's the hash of some file contents, we have to find the right file
@@ -1914,7 +1914,7 @@ def _url_to_dirname(url):
     if urlobj[0].lower() in ["http", "https"] and urlobj[1] and urlobj[2] == "":
         urlobj[2] = "/"
     url_c = urllib.parse.urlunsplit(urlobj)
-    return hashlib.sha256(url_c.encode("utf-8")).hexdigest()
+    return hashlib.md5(url_c.encode("utf-8")).hexdigest()
 
 
 class ReadOnlyDict(dict):
