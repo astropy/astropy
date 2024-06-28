@@ -14,7 +14,7 @@ def test_imports():
         # any warnings which happen to be caught because of our pytest
         # settings (e.g., DeprecationWarning).
         try:
-            raise
+            raise  # noqa: PLE0704
         except Warning:
             pass
 
