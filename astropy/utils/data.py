@@ -977,7 +977,7 @@ def compute_hash(localfn):
         ``localfn`` file.
     """
     with open(localfn, "rb") as f:
-        h = hashlib.md5()
+        h = hashlib.md5(usedforsecurity=False)
         block = f.read(conf.compute_hash_block_size)
         while block:
             h.update(block)
@@ -1854,7 +1854,7 @@ def clear_download_cache(hashorurl=None, pkgname="astropy"):
                 filepath = os.path.join(dldir, d)
             if os.path.exists(filepath):
                 _rmtree(filepath)
-            elif len(hashorurl) == 2 * hashlib.md5().digest_size and re.match(
+            elif len(hashorurl) == 2 * hashlib.md5(usedforsecurity=False).digest_size and re.match(
                 r"[0-9a-f]+", hashorurl
             ):
                 # It's the hash of some file contents, we have to find the right file
@@ -1914,7 +1914,7 @@ def _url_to_dirname(url):
     if urlobj[0].lower() in ["http", "https"] and urlobj[1] and urlobj[2] == "":
         urlobj[2] = "/"
     url_c = urllib.parse.urlunsplit(urlobj)
-    return hashlib.md5(url_c.encode("utf-8")).hexdigest()
+    return hashlib.md5(url_c.encode("utf-8"), usedforsecurity=False).hexdigest()
 
 
 class ReadOnlyDict(dict):

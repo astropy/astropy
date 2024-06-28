@@ -1,1 +1,3 @@
-Replace usages of hashlib.md5 with hashlib.sha256 for FIPS compliance.
+Explicitly set usedforsecurity=False when using hashlib.md5. Without this, hashlib.md5 will be blocked in FIPS mode.
+FIPS (Federal Information Processing Standards) is a set of standards created by NIST (National Institute of Standards and Technology) for US government agencies regarding computer security and interoperability.
+Read more here: https://en.wikipedia.org/wiki/Federal_Information_Processing_Standards
