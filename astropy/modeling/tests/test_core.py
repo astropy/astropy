@@ -371,7 +371,7 @@ def test_custom_inverse_reset():
 
     class TestModel(Model):
         n_inputs = 0
-        outputs = ("y",)
+        _outputs = ("y",)
 
         @property
         def inverse(self):
