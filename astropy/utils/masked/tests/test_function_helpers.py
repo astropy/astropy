@@ -1066,7 +1066,7 @@ class TestIntDiffFunctions(MaskedArraySetup):
     if NUMPY_LT_2_0:
 
         def test_trapz(self):
-            self.check_trapezoid(np.trapz)
+            self.check_trapezoid(np.trapz)  # noqa: NPY201
 
     else:
 
@@ -1651,22 +1651,22 @@ class TestArraySetOps:
         # Once we require numpy>=2.0, these tests should be joined with np.isin.
         a = Masked([1, 2, 5, -2, -1], mask=[0, 0, 0, 1, 1])
         b = Masked([1, 2, 3, 4, 5, -2], mask=[0, 0, 0, 0, 0, 1])
-        test = np.in1d(a, b)
+        test = np.in1d(a, b)  # noqa: NPY201
         assert_masked_equal(test, Masked([True, True, True, True, False], mask=a.mask))
-        assert_array_equal(np.in1d(a, b, invert=True), ~test)
+        assert_array_equal(np.in1d(a, b, invert=True), ~test)  # noqa: NPY201
 
         a = Masked([5, 5, 2, -2, -1], mask=[0, 0, 0, 1, 1])
         b = Masked([1, 5, -1], mask=[0, 0, 1])
-        test = np.in1d(a, b)
+        test = np.in1d(a, b)  # noqa: NPY201
         assert_masked_equal(test, Masked([True, True, False, False, True], mask=a.mask))
 
-        assert_masked_equal(np.in1d(Masked([]), []), Masked([]))
-        assert_masked_equal(np.in1d(Masked([]), [], invert=True), Masked([]))
+        assert_masked_equal(np.in1d(Masked([]), []), Masked([]))  # noqa: NPY201
+        assert_masked_equal(np.in1d(Masked([]), [], invert=True), Masked([]))  # noqa: NPY201
 
     @pytest.mark.skipif(NUMPY_LT_1_24, reason="kind introduced in numpy 1.24")
     def test_in1d_kind_table_error(self):
         with pytest.raises(ValueError, match="'table' method is not supported"):
-            np.in1d(Masked([1, 2, 3]), [4, 5], kind="table")
+            np.in1d(Masked([1, 2, 3]), [4, 5], kind="table")  # noqa: NPY201
 
     @pytest.mark.parametrize("dtype", [int, float, object])
     def test_union1d(self, dtype):
