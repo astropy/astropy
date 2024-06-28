@@ -753,20 +753,60 @@ class TestImageFunctions(FitsTestCase):
         with fits.open(self.temp(filename)) as hdul:
             assert (hdul[0].data == 0).all()
 
-    def test_blanks(self):
+    @pytest.mark.parametrize(("ext"), (0, 1))
+    @pytest.mark.parametrize(("ignore_blank"), (False, True))
+    def test_blanks(self, ext, ignore_blank):
         """Test image data with blank spots in it (which should show up as
-        NaNs in the data array.
+        NaNs in the data array, unless 'ignore_blank' is set).
         """
 
         arr = np.zeros((10, 10), dtype=np.int32)
         # One row will be blanks
         arr[1] = 999
-        hdu = fits.ImageHDU(data=arr)
-        hdu.header["BLANK"] = 999
-        hdu.writeto(self.temp("test_new.fits"))
 
-        with fits.open(self.temp("test_new.fits")) as hdul:
-            assert np.isnan(hdul[1].data[1]).all()
+        if ext == 0:
+            hdu = fits.PrimaryHDU(data=arr)
+        else:
+            hdu = fits.ImageHDU(data=arr)
+        hdu.header["BLANK"] = 999
+        hdu.writeto(self.temp("test_blank.fits"))
+
+        with fits.open(self.temp("test_blank.fits"), ignore_blank=ignore_blank) as hdul:
+            if ignore_blank:
+                assert hdul[ext].data.dtype == '>i4'
+                assert (hdul[ext].data[1] == hdu.header["BLANK"]).all()
+            else:
+                assert hdul[ext].data.dtype == np.float64
+                assert np.isnan(hdul[ext].data[1]).all()
+
+    @pytest.mark.parametrize(("ext"), (0, 1))
+    @pytest.mark.parametrize(("ignore_blank"), (False, True))
+    def test_uint_blanks(self, ext, ignore_blank):
+        """Test uint image data with blank spots in it (should be controlled
+        by 'ignore_blank' in the same way as for unscaled integers).
+        """
+
+        arr = np.arange(100, dtype=np.uint16).reshape((10, 10))
+        # One row will be blanks - set to a value outside of the internal '>i2' range
+        # to test that BZERO offset is correctly added in.
+        blank = 65535
+        arr[-1] = blank
+
+        if ext == 0:
+            hdu = fits.PrimaryHDU(data=arr)
+        else:
+            hdu = fits.ImageHDU(data=arr)
+        hdu.header["BLANK"] = blank - hdu.header["BZERO"]
+        hdu.writeto(self.temp("test_blank.fits"))
+
+        with fits.open(self.temp("test_blank.fits"), ignore_blank=ignore_blank) as hdul:
+            if ignore_blank:
+                assert hdul[ext].data.dtype == np.uint16
+                assert hdul[ext].data.min() == 0
+                assert (hdul[ext].data[-1] == blank).all()
+            else:
+                assert hdul[ext].data.dtype == np.float32
+                assert np.isnan(hdul[ext].data[-1]).all()
 
     def test_invalid_blanks(self):
         """
