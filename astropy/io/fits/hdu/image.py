@@ -779,9 +779,9 @@ class _ImageBaseHDU(_ValidHDU):
         Handle "pseudo-unsigned" integers, if the user requested it.  Returns
         the converted data array if so; otherwise returns None.
 
-        In this case case, we don't need to handle BLANK to convert it to NAN,
-        since we can't do NaNs with integers, anyway, i.e. the user is
-        responsible for managing blanks.
+        Handling of BLANK is done outside of this function on the converted
+        uint data, meaning that BLANK needs to be shifted by BZERO as well
+        before conversion of the corresponding values to NaN.
         """
         dtype = self._dtype_for_bitpix()
         # bool(dtype) is always False--have to explicitly compare to None; this

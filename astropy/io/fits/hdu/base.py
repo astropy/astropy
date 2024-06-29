@@ -374,7 +374,7 @@ class _BaseHDU:
     def writeto(self, name, output_verify="exception", overwrite=False, checksum=False):
         """
         Write the HDU to a new file. This is a convenience method to
-        provide a user easier output interface if only one HDU needs
+        provide a user friendly output interface if only one HDU needs
         to be written to a file.
 
         Parameters
@@ -1600,9 +1600,8 @@ class ExtensionHDU(_ValidHDU):
 
     def writeto(self, name, output_verify="exception", overwrite=False, checksum=False):
         """
-        Works similarly to the normal writeto(), but prepends a default
-        `PrimaryHDU` are required by extension HDUs (which cannot stand on
-        their own).
+        Works similarly to :func:`PrimaryHDU.writeto`, but prepends a default
+        `PrimaryHDU` as required by extension HDUs (which cannot be written on their own).
         """
         from .hdulist import HDUList
         from .image import PrimaryHDU
