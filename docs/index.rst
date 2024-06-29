@@ -44,6 +44,7 @@ processing, and data analysis.
 
     .. grid-item-card::
         :img-top: _static/index-images/getting_started.svg
+        :text-align: center
 
         Getting Started
         ^^^^^^^^^^^^^^^
@@ -62,6 +63,7 @@ processing, and data analysis.
 
     .. grid-item-card::
         :img-top: _static/index-images/user_guide.svg
+        :text-align: center
 
         User Guide
         ^^^^^^^^^^
@@ -80,6 +82,7 @@ processing, and data analysis.
 
     .. grid-item-card::
         :img-top: _static/index-images/contributor.svg
+        :text-align: center
 
         Contributor's Guide
         ^^^^^^^^^^^^^^^^^^^
@@ -99,6 +102,7 @@ processing, and data analysis.
 
     .. grid-item-card::
         :img-top: _static/index-images/api.svg
+        :text-align: center
 
         Project Details
         ^^^^^^^^^^^^^^^
