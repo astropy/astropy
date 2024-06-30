@@ -52,7 +52,9 @@ Alternative options include:
 
 **MacOS**
 
-Install the Developer Tools using ``xcode-select --install``.
+Install the Developer Tools using ``xcode-select --install``. There is no need to
+install the full Xcode application and this command will install only the command line
+tools and developer utilities.
 
 Further details and related information can be found at
 https://devguide.python.org/setup/#macos.
@@ -176,8 +178,9 @@ Installation is straightforward. From the root of the astropy repository, run::
 
     pre-commit install
 
-Now all of the styling checks will be
-run each time you commit changes without your needing to run each one manually.
+Now all of the styling checks will be run each time you commit changes, ensuring that
+the CI formatting checks for your :ref:`pull request <quickstart-pull-request>` will
+pass.
 
 .. tip:: To learn more about pre-commit, see the :ref:`pre-commit` section.
 

@@ -8,7 +8,7 @@ Installing ``astropy``
 **********************
 
 If you are new to Python and/or do not have familiarity with `Python virtual
-environments <https://docs.python.org/3/tutorial/venv.html>`_, then we recommend
+environments <https://docs.python.org/3/tutorial/venv.html>`__, then we recommend
 starting by installing the `Anaconda Distribution
 <https://www.anaconda.com/download/>`_. This works on all platforms (linux,
 Mac, Windows) and installs a full-featured scientific Python in a user directory
@@ -45,21 +45,18 @@ In most cases, this will install a pre-compiled version (called a *wheel*) of
 astropy, but if you are using a very recent version of Python, if a new version
 of astropy has just been released, or if you are building astropy for a platform
 that is not common, astropy will be installed from a source file. Note that in
-this case you will need a C compiler (e.g., ``gcc`` or ``clang``) to be installed
+this case you will need a C compiler to be installed
 (see `Building from source`_ below) for the installation to succeed.
 
 If you get a ``PermissionError`` this means that you do not have the required
 administrative access to install new packages to your Python installation. In
-this case you may consider using the ``--user`` option to install the package
-into your home directory. You can read more about how to do this in the `pip
-documentation <https://pip.pypa.io/en/stable/user_guide/#user-installs>`_.
+this case you should first create and activate a Python environment using either
+:ref:`Conda <anaconda_install>` or a `Python virtual
+environment <https://docs.python.org/3/tutorial/venv.html>`__. Both of these options
+will also allow you to do development on other software that uses
+``astropy``, such as an affiliated package.
 
-Alternatively, if you intend to do development on other software that uses
-``astropy``, such as an affiliated package, consider installing ``astropy``
-into a :ref:`virtualenv <astropy-dev:virtual_envs>`.
-
-Do **not** install ``astropy`` or other third-party packages using ``sudo``
-unless you are fully aware of the risks.
+.. warning:: Do **not** install ``astropy`` or other third-party packages using ``sudo``.
 
 .. _anaconda_install:
 
@@ -237,7 +234,7 @@ choose to clone from the main repository::
 
 Building the documentation is typically not necessary unless you are
 developing code or documentation or do not have internet access, because
-the latest (and archive) versions of Astropy's documentation are
+the stable, latest, and archived versions of Astropy's documentation are
 available at `docs.astropy.org <https://docs.astropy.org>`_ . The process
 is described in :ref:`astropy-dev:builddocs`.
 
@@ -282,3 +279,6 @@ Installing these "nightlies" of ``astropy`` can be achieved by using ``pip``::
 The extra index URL tells ``pip`` to check the ``pip`` index on
 pypi.anaconda.org, where the nightlies are stored, and the ``--pre`` command
 tells ``pip`` to install pre-release versions (in this case ``.dev`` releases).
+
+You can test this installation by running the tests as described in the section
+:ref:`astropy-dev:running-tests-installed-astropy`.
