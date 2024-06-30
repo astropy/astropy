@@ -47,7 +47,12 @@ from astropy.units.core import (
     dimensionless_unscaled,
 )
 from astropy.utils import isiterable
-from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_1_24, NUMPY_LT_2_0
+from astropy.utils.compat import (
+    COPY_IF_NEEDED,
+    NUMPY_LT_1_24,
+    NUMPY_LT_2_0,
+    NUMPY_LT_2_1,
+)
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
@@ -109,7 +114,7 @@ if NUMPY_LT_2_0:
         np.product,  # noqa: NPY003, NPY201
         np.cumproduct,  # noqa: NPY003, NPY201
     }
-else:
+if not NUMPY_LT_2_0:
     # Array-API compatible versions (matrix axes always at end).
     SUBCLASS_SAFE_FUNCTIONS |= {
         np.matrix_transpose, np.linalg.matrix_transpose,
@@ -127,6 +132,8 @@ else:
 
     # trapz was renamed to trapezoid
     SUBCLASS_SAFE_FUNCTIONS |= {np.trapezoid}
+if not NUMPY_LT_2_1:
+    SUBCLASS_SAFE_FUNCTIONS |= {np.unstack}
 
 # Implemented as methods on Quantity:
 # np.ediff1d is from setops, but we support it anyway; the others
