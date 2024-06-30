@@ -1,0 +1,2 @@
+Declare ``np.unstack`` as subclass-safe (fix incompatibility between ``Masked``
+and NumPy 2.1).
