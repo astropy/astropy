@@ -103,8 +103,8 @@ releases which are compatible with the latest ``pytest`` and ``sphinx`` releases
 Testing an Installed ``astropy``
 ================================
 
-See the :ref:`documentation on how to test your installed version of
-astropy <astropy-dev:running-tests-installed-astropy>`.
+See the `documentation on how to test your installed version of
+astropy <https://docs.astropy.org/en/latest/development/testguide.html#running-tests-installed-astropy>`_.
 
 .. _astropy-main-req:
 
@@ -236,7 +236,7 @@ Building the documentation is typically not necessary unless you are
 developing code or documentation or do not have internet access, because
 the stable, latest, and archived versions of Astropy's documentation are
 available at `docs.astropy.org <https://docs.astropy.org>`_ . The process
-is described in :ref:`astropy-dev:builddocs`.
+is described in `Building the Documentation from Source <https://docs.astropy.org/en/latest/development/docguide.html#builddocs>`_.
 
 .. _sourcebuildtest:
 
@@ -255,8 +255,8 @@ would like more control over the testing process.
 
 {%else%}
 
-See the :ref:`latest documentation on how to run the tests in a source
-checkout of astropy <astropy-dev:sourcebuildtest>`
+See the `latest documentation on how to run the tests in a source
+checkout of astropy <https://docs.astropy.org/en/latest/install.html#testing-a-source-code-build-of-astropy>`_.
 
 {%endif%}
 
@@ -281,4 +281,4 @@ pypi.anaconda.org, where the nightlies are stored, and the ``--pre`` command
 tells ``pip`` to install pre-release versions (in this case ``.dev`` releases).
 
 You can test this installation by running the tests as described in the section
-:ref:`astropy-dev:running-tests-installed-astropy`.
+`Running tests on an installed astropy <https://docs.astropy.org/en/latest/development/testguide.html#running-tests-installed-astropy>`_.

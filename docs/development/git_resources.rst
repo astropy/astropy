@@ -2,9 +2,9 @@
 
 .. _git-resources:
 
-***************
+*************
 Git Resources
-***************
+*************
 
 Git is central to astropy development. While Git is undeniably complex and at times
 inscrutable, in practice there is only a very small subset of commands that you will
@@ -136,7 +136,7 @@ If you want to work on some stuff with other people, where you are all
 committing into the same repository, or even the same branch, then just
 share it via GitHub.
 
-First fork Astropy into your account, as from :ref:`fork_a_copy`.
+First fork Astropy into your account, as from :ref:`contributing.forking`.
 
 Then, go to your forked repository GitHub page, e.g.,
 ``https://github.com/your-user-name/astropy``
@@ -180,7 +180,7 @@ Rebasing on main
 =================
 
 Let's say you thought of some work you'd like to do. You
-:ref:`fetch-latest` and :ref:`make-feature-branch` called
+``git fetch upstream --tags`` and :ref:`make-feature-branch` called
 ``cool-feature``. At this stage main is at some commit, let's call it E. Now
 you make some new commits on your ``cool-feature`` branch, let's call them A,
 B, C. Maybe your changes take a while, or you come back to them after a while.
