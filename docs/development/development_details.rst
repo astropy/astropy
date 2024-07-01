@@ -271,12 +271,12 @@ branch from the development branch and applying your changes to your branch.
 
 First, fetch the latest development astropy and go to your branch of interest::
 
-    git fetch astropy main
+    git fetch upstream main
     git switch my-new-feature
 
 Now, do the rebase::
 
-    git rebase astropy/main
+    git rebase upstream/main
 
 You are more likely to run into *conflicts* here — places where the changes you made
 conflict with changes that someone else made — than anywhere else. Ask for help if you
@@ -329,8 +329,8 @@ the GitHub pull request page. If this is not possible, we typically squash using
 rebase --interactive <https://git-scm.com/docs/git-rebase#_interactive_mode>`_. In
 particular, you can rebase and squash within the existing branch using::
 
-  git fetch astropy
-  git rebase -i astropy/main
+  git fetch upstream main
+  git rebase -i upstream/main
 
 The last command will open an editor with all your commits, allowing you to
 squash several commits together, rename them, etc. Helpfully, the file you are

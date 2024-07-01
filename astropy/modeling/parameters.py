@@ -121,21 +121,19 @@ class Parameter:
     This class represents a model's parameter (in a somewhat broad sense). It
     serves a number of purposes:
 
-    1) A type to be recognized by models and treated specially at class
-    initialization (i.e., if it is found that there is a class definition
-    of a Parameter, the model initializer makes a copy at the instance level).
+    #. A type to be recognized by models and treated specially at class
+       initialization (i.e., if it is found that there is a class definition
+       of a Parameter, the model initializer makes a copy at the instance level).
 
-    2) Managing the handling of allowable parameter values and once defined,
-    ensuring updates are consistent with the Parameter definition. This
-    includes the optional use of units and quantities as well as transforming
-    values to an internally consistent representation (e.g., from degrees to
-    radians through the use of getters and setters).
+    #. Managing the handling of allowable parameter values and once defined,
+       ensuring updates are consistent with the Parameter definition. This
+       includes the optional use of units and quantities as well as transforming
+       values to an internally consistent representation (e.g., from degrees to
+       radians through the use of getters and setters).
 
-    3) Holding attributes of parameters relevant to fitting, such as whether
-    the parameter may be varied in fitting, or whether there are constraints
-    that must be satisfied.
-
-
+    #. Holding attributes of parameters relevant to fitting, such as whether
+       the parameter may be varied in fitting, or whether there are constraints
+       that must be satisfied.
 
     See :ref:`astropy:modeling-parameters` for more details.
 

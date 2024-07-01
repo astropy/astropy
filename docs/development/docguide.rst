@@ -53,7 +53,7 @@ the standard Astropy docstring format.
   When built in Astropy, links starting with 'astropy' resolve to the current
   build. In affiliated packages using the ``sphinx-astropy`` intersphinx mapping,
   the links resolve to the stable version of Astropy. For linking to the
-  development version, use the intersphinx target 'astropy-dev'.
+  development version, use direct URL linking.
 
 * Examples and/or tutorials are strongly encouraged for typical use-cases of a
   particular module or class.

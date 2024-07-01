@@ -111,7 +111,6 @@ del intersphinx_mapping["astropy"]
 # add any custom intersphinx for astropy
 intersphinx_mapping.update(
     {
-        "astropy-dev": ("https://docs.astropy.org/en/latest/", None),
         "pyerfa": ("https://pyerfa.readthedocs.io/en/stable/", None),
         "pytest": ("https://docs.pytest.org/en/stable/", None),
         "ipython": ("https://ipython.readthedocs.io/en/stable/", None),
@@ -385,29 +384,22 @@ def rstjinja(app, docname, source):
         source[0] = rendered
 
 
-def resolve_astropy_and_dev_reference(app, env, node, contnode):
+def resolve_astropy_reference(app, env, node, contnode):
     """
-    Reference targets for ``astropy:`` and ``astropy-dev:`` are special cases.
+    Reference targets for ``astropy:`` are special cases.
 
     Documentation links in astropy can be set up as intersphinx links so that
     affiliate packages do not have to override the docstrings when building
     the docs.
 
-    If we are building the development docs it is a local ref targeting the
-    label ``astropy-dev:<label>``, but for stable docs it should be an
-    intersphinx resolution to the development docs.
-
-    See https://github.com/astropy/astropy/issues/11366
     """
     # should the node be processed?
     reftarget = node.get("reftarget")  # str or None
     if str(reftarget).startswith("astropy:"):
         # This allows Astropy to use intersphinx links to itself and have
         # them resolve to local links. Downstream packages will see intersphinx.
-        # TODO! deprecate this if sphinx-doc/sphinx/issues/9169 is implemented.
+        # TODO: Remove this when https://github.com/sphinx-doc/sphinx/issues/9169 is implemented upstream.
         process, replace = True, "astropy:"
-    elif dev and str(reftarget).startswith("astropy-dev:"):
-        process, replace = True, "astropy-dev:"
     else:
         process, replace = False, ""
 
@@ -591,6 +583,6 @@ def setup(app):
     # Generate the page from Jinja template
     app.connect("source-read", rstjinja)
     # Set this to higher priority than intersphinx; this way when building
-    # dev docs astropy-dev: targets will go to the local docs instead of the
+    # docs astropy: targets will go to the local docs instead of the
     # intersphinx mapping
-    app.connect("missing-reference", resolve_astropy_and_dev_reference, priority=400)
+    app.connect("missing-reference", resolve_astropy_reference, priority=400)
