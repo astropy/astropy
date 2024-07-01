@@ -132,10 +132,4 @@ jobs:
       - run: coverage xml
       - run: diff-cover coverage.xml --compare-branch origin/${{ github.base_ref }} --markdown-report diff_coverage.md
       - run: cat diff_coverage.md >> $GITHUB_STEP_SUMMARY
-      - if: github.event_name == 'pull_request_target'
-        uses: thollander/actions-comment-pull-request@v2.5.0
-        with:
-          filePath: diff_coverage.md
-          pr_number: ${{ github.event.number }}
-          comment_tag: diff-coverage
 
