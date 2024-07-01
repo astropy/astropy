@@ -12,16 +12,19 @@ the 6.1 release.
 
 In particular, this release includes:
 
-*
+* :ref:`whatsnew_7_0_quantity_to_string_formatter`
+* :ref:`whatsnew_7_0_ecsv_meta_default_dict`
+* :ref:`whatsnew_7_0_contributor_doc_improvement`
 
 In addition to these major changes, Astropy v7.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
 By the numbers:
 
-* X issues have been closed since v6.0
-* X pull requests have been merged since v6.0
+* X issues have been closed since v6.1
+* X pull requests have been merged since v6.1
 * X distinct people have contributed code
 
+.. _whatsnew_7_0_quantity_to_string_formatter:
 
 ``Quantity.to_string`` supports ``formatter`` for formatting
 ==============================================================
@@ -48,7 +51,7 @@ Example:
     >>> q.to_string(precision=3, format='latex')
     '$123 \\; \\mathrm{m}$'
 
-
+.. _whatsnew_7_0_ecsv_meta_default_dict:
 
 Change default type for ``meta`` attribute to ``dict`` and update ECSV writer
 =============================================================================
@@ -64,6 +67,7 @@ convention conforms to the `ECSV specification
 existing ECSV readers. Previously the ``meta`` attribute could be written as an ordinary
 YAML map, which is not guaranteed to preserve the order of the keys.
 
+.. _whatsnew_7_0_contributor_doc_improvement:
 
 Improve the Contributor Documentation
 =====================================
