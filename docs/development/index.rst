@@ -14,6 +14,8 @@ and practice you will see that it is not so complex. The key is to follow the st
 outlined here and `ask for help <https://www.astropy.org/help.html>`_ if you get stuck.
 The Astropy community is welcoming and friendly and will help you!
 
+{% if is_development %}
+
 This is divided into two sections, first a quickstart guide that provides an
 introduction to the development workflow, followed by a number of detailed guides that
 cover provide a deeper dive and a reference for both developers and maintainers.
@@ -23,7 +25,6 @@ cover provide a deeper dive and a reference for both developers and maintainers.
     an overview see the `Contribute to Astropy <https://www.astropy.org/contribute.html>`_
     page.
 
-{% if is_development %}
 
 Contributing quickstart
 -----------------------
@@ -72,7 +73,7 @@ Details
 
 {%else%}
 
-To read the developer documentation, you will need to go to the :ref:`latest
+To read the full contributor documentation, you will need to go to the :ref:`latest
 developer version of the documentation
 <astropy-dev:developer-docs>`.
 
