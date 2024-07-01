@@ -2029,11 +2029,11 @@ class TestSetOpsFunctions:
     @needs_array_function
     @pytest.mark.filterwarnings("ignore:`in1d` is deprecated. Use `np.isin` instead.")
     def test_in1d(self):
-        self.check2(np.in1d, unit=None)
+        self.check2(np.isin, unit=None)
         # Check zero is treated as having any unit.
-        assert np.in1d(np.zeros(1), self.q2)
+        assert np.isin(np.zeros(1), self.q2)
         with pytest.raises(u.UnitsError):
-            np.in1d(np.ones(1), self.q2)
+            np.isin(np.ones(1), self.q2)
 
     @needs_array_function
     def test_isin(self):
