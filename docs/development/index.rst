@@ -73,8 +73,7 @@ Details
 
 {%else%}
 
-To read the full contributor documentation, you will need to go to the :ref:`latest
-developer version of the documentation
-<astropy-dev:developer-docs>`.
+To read the developer documentation, you will need to go to the
+`latest developer version of the documentation <https://docs.astropy.org/en/latest/development/index.html>`_.
 
 {%endif%}

@@ -95,7 +95,7 @@ the original pull request.
 
 But let's say the author is okay with you taking over...
 
-First, check out the ``astropy`` repository and :ref:`set_upstream_main`.
+First, :ref:`contributing.forking`.
 Now, you need to point a remote to the pull request author's fork.
 In this example, the author's username is ``octocat`` and the pull request
 branch name is ``cool-feature`` that is tied to pull request number 99999::
