@@ -41,6 +41,7 @@ class TestImageFunctions(FitsTestCase):
 
     def test_constructor_ver_arg(self):
         def assert_ver_is(hdu, reference_ver):
+            __tracebackhide__ = True
             assert hdu.ver == reference_ver
             assert hdu.header["EXTVER"] == reference_ver
 
