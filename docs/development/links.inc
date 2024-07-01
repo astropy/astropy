@@ -51,3 +51,4 @@
 .. other stuff
 .. |emdash| unicode:: U+02014
 .. vim: ft=rst
+.. _`Astropy GitHub`: https://github.com/astropy/astropy

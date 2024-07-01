@@ -132,6 +132,7 @@ dev = [
     "astropy[typing]",
 ]
 dev_all = [
+    "tox",
     "astropy[dev]",
     "astropy[test_all]",
 ]
@@ -641,6 +642,7 @@ ignore-words-list = """
     precessing,
     pres,
     rotat,
+    ser,
     siz,
     som,
     splitted,

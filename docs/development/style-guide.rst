@@ -1,8 +1,8 @@
 .. _astropy-style-guide:
 
-******************************************************************
-Astropy Narrative Style Guide: A Writing Resource for Contributors
-******************************************************************
+*****************************
+Astropy Narrative Style Guide
+*****************************
 
 The purpose of this style guide is to provide the Astropy community with a set
 of style and formatting guidelines that can be referenced when writing Astropy
