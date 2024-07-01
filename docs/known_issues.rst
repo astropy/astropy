@@ -293,28 +293,3 @@ see something like::
 
 If so, you can go ahead and try running ``pip`` again (in the new
 terminal).
-
-
-Failing Logging Tests When Running the Tests in IPython
--------------------------------------------------------
-
-When running the Astropy tests using ``astropy.test()`` in an IPython
-interpreter, some of the tests in the ``astropy/tests/test_logger.py`` *might*
-fail depending on the version of IPython or other factors.
-This is due to mutually incompatible behaviors in IPython and pytest, and is
-not due to a problem with the test itself or the feature being tested.
-
-See: https://github.com/astropy/astropy/issues/717
-
-Test runner fails when asdf-astropy is installed
-------------------------------------------------
-
-When you have ``asdf-astropy`` installed and then run ``astropy.test()``,
-you will see a traceback that complains about the following::
-
-    PytestAssertRewriteWarning: Module already imported so cannot be rewritten: asdf
-
-To run ``astropy.test()`` anyway, please first uninstall ``asdf-astropy``.
-If you do not want to do that, use ``pytest`` or ``tox`` instead of the test runner.
-
-See: https://github.com/astropy/astropy/issues/16165

@@ -17,7 +17,7 @@ Interface and Dependencies
   <https://github.com/astropy/astropy/blob/main/pyproject.toml>`_ file of the
   core package.
 
-* Usage of ``six``, ``__future__``, and ``2to3`` is no longer acceptable.
+* Usage of ``six`` and ``2to3`` is no longer acceptable.
 
 * `f-strings <https://docs.python.org/3/reference/lexical_analysis.html#f-strings>`_
   should be used when possible, and if not, Python 3
@@ -188,8 +188,6 @@ Coding Style/Conventions
 
   .. note:: There are multiple options for testing PEP8 compliance of code,
             see :doc:`testguide` for more information.
-            See :doc:`codeguide_emacs` for some configuration options for Emacs
-            that helps in ensuring conformance to PEP8.
 
 * ``astropy`` source code should contain a comment at the beginning of the file
   pointing to the license for the ``astropy`` source code.  This line should say::
@@ -545,17 +543,6 @@ might read::
 
 This ensures that ``from submodule import *`` only imports ``foo`` and
 ``AClass``, but not `numpy.array` or `numpy.linspace`.
-
-
-Additional Resources
-====================
-
-Further tips and hints relating to the coding guidelines are included below.
-
-.. toctree::
-    :maxdepth: 1
-
-    codeguide_emacs
 
 .. _Numpy: https://numpy.org/
 .. _Scipy: https://www.scipy.org/

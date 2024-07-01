@@ -64,6 +64,18 @@ convention conforms to the `ECSV specification
 existing ECSV readers. Previously the ``meta`` attribute could be written as an ordinary
 YAML map, which is not guaranteed to preserve the order of the keys.
 
+
+Improve the Contributor Documentation
+=====================================
+
+The `Contributor documentation <https://docs.astropy.org/en/latest/development/>`_ has
+been significantly improved. It now includes a `Quickstart Guide
+<https://docs.astropy.org/en/latest/development/quickstart.html>`_ with concise
+instructions on setting up a development environment and making a pull request. In
+addition, the developer documentation was reorganized and simplified where possible to
+improve readability and accessibility. We welcome continued feedback on how to make
+contributing to Astropy even easier and more enjoyable.
+
 Full change log
 ===============
 

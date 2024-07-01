@@ -3,9 +3,9 @@
 .. include:: links.inc
 .. _astropy-fix-example:
 
-**********************************************
-Contributing code to Astropy, a worked example
-**********************************************
+***********************************
+Contributing Code: a Worked Example
+***********************************
 
 This example is based on fixing `Issue 1761`_ from the list
 of `astropy issues on GitHub <https://github.com/astropy/astropy/issues>`_.
@@ -21,21 +21,9 @@ seemed like the best place to start out!
 Before you begin
 ================
 
-Make sure you have a local copy of astropy set up as described in
-:ref:`get_devel`. In a nutshell, the output of ``git remote -v``, run in the
-directory where your local of ``astropy`` resides, should be something like this::
-
-    astropy   git@github.com:astropy/astropy.git (fetch)
-    astropy   git@github.com:astropy/astropy.git (push)
-    origin    git@github.com:your-user-name/astropy.git (fetch)
-    origin    git@github.com:your-user-name/astropy.git (push)
-
-The precise form of the URLs for ``origin`` depends on the
-authentication method you set up with GitHub.
-
-The important point is that ``astropy`` should point to the official ``astropy``
-repo and ``origin`` should point to *your* copy of ``astropy`` on GitHub.
-
+Make sure you have created a development environment for astropy as described in
+:ref:`contributing_environment`. The rest of this tutorial assumes you have done that
+and are working in your local copy of the astropy git repository.
 
 Grab the latest updates to astropy
 ==================================
@@ -46,38 +34,27 @@ separately to outline the process in words as well as code.
 Inform your local copy of ``astropy`` about the latest changes in the development
 version with::
 
-    git fetch astropy --tags
+    git fetch upstream --tags
 
 Set up an isolated workspace
 ============================
 
 + Make a new `git`_ branch for fixing this issue and switch to the branch::
 
-    git checkout astropy/main -b fix-1761
+    git switch -c fix-1761 upstream/main
 
-+ Make a Python environment just for this fix and switch to that environment.
-  The example below shows the necessary steps in the Miniconda/Anaconda Python
-  distribution::
++ Switch to your astropy development environment::
 
-    conda create --name apy-1761 python=3.12 # replace 3.12 with desired version
-    conda activate apy-1761
+    conda activate astropy-dev
 
-  If you are using a different distribution, see :ref:`virtual_envs` for
-  instructions for creating and activating a new environment.
++ Install our branch of ``astropy`` along with all development dependencies in this
+  environment with::
 
-+ Install our branch in this environment with::
+    python -m pip install --editable ".[dev_all]"
 
-    python -m pip install --editable ".[test]"
-
-Do you really have to set up a separate Python environment for each fix? No,
-but you definitely want to have a Python environment for your work on code
-contributions. Making new environments is fast, does not take much space, and
-provide a way to keep your work organized.
-
-If installation fails, try to upgrade ``pip`` using
-``python -m pip install pip --upgrade`` command. It is also a good practice to
-keep your ``conda`` up-to-date by running ``conda update conda --name base``
-when prompted to do so; maybe ``git`` too.
+If installation fails, try to upgrade ``pip`` using ``python -m pip install pip
+--upgrade`` command. It is also a good practice to occasionally keep your ``conda``
+up-to-date by running ``conda update conda --name base`` when prompted to do so.
 
 Test first, please
 ==================
@@ -99,7 +76,7 @@ Run the current tests in that directory with::
     pytest astropy/coordinates/tests
 
 If the bug you are working on involves remote data access, you need to run
-the tests with an extra flag, i.e., ``pytest ... --remote-data``.
+the tests with an extra flag, i.e., ``pytest astropy/coordinates/tests --remote-data``.
 
 In the event where all the tests passed with the bug present, new tests are
 needed to expose this bug.
@@ -212,10 +189,12 @@ Use ``git diff`` to see what changes have been made::
     +
     +    assert len(c) == input_length
 
-A graphical interface to git makes keeping track of these sorts of changes
-even easier; see this
-`list of GUI Clients <https://git-scm.com/downloads/guis/>`_ if you are
-interested.
+A graphical interface to git makes keeping track of these sorts of changes even easier;
+see this `list of GUI Clients <https://git-scm.com/downloads/guis/>`_ if you are
+interested. You may also find it helpful to use a full featured Interactive Development
+Environment (IDE) like `PyCharm <https://www.jetbrains.com/pycharm/>`_ or `Visual Studio
+Code <https://code.visualstudio.com/>`_. Both of these IDEs have built-in git support.
+
 
 Stage the change
 ----------------

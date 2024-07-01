@@ -1,9 +1,99 @@
 :orphan:
 
+.. _git-resources:
+
+***************
+Git Resources
+***************
+
+Git is central to astropy development. While Git is undeniably complex and at times
+inscrutable, in practice there is only a very small subset of commands that you will
+need to know to make contributions to Astropy. This page provides Astropy-specific
+guidance to using Git along with a list of resources for learning more about Git.
+
+**FIXME**: links in this page should be reviewed and trimmed to only the highest quality resources instead of just a grab-bag of links.
+
+If you have never used git or have limited experience with it, take a few
+minutes to look at `Git Basics`_, part of a much longer `git book`_.
+
+Essential `git`_ commands
+*************************
+
+Here are a few ``git`` commands you are likely to encounter in contributing
+to Astropy. In general if you google "git <command>" you will get the appropriate documentation page from `git-scm.com <https://git-scm.com/docs>`_.
+
+* ``git fetch`` gets the latest development version of Astropy, which you will
+  use as the basis for making your changes.
+* ``git pull`` will fetch from and integrate with another repository or a local branch.
+* ``git switch`` changes to a different development branch, optionally creating it.
+* ``git add`` stages files you have changed or created for addition to `git`_.
+* ``git commit`` adds your staged changes to the repository.
+* ``git push`` copies the changes you committed to GitHub
+* ``git status`` to see a list of files that have been modified or created.
+
+.. note::
+    A good graphical interface to git makes some of these steps much
+    easier.
+    You might find this
+    `list of GUI Clients <https://git-scm.com/downloads/guis/>`_ to be helpful.
+    You may also consider using an Interactive Development
+    Environment (IDE) like `PyCharm <https://www.jetbrains.com/pycharm/>`_ or `Visual Studio Code <https://code.visualstudio.com/>`_. Both of these IDEs have
+    built-in Git support.
+
+If something goes wrong
+************************
+
+`git`_ provides a number of ways to recover from errors. If you end up making a
+`git`_ mistake, do not hesitate to ask for help. An additional resource that
+walks you through recovering from `git`_ mistakes is the
+`git choose-your-own-adventure`_.
+
+.. _astropy-git:
+
+Tutorials and summaries
+***********************
+
+* `GitHub Help`_ has an excellent series of how-to guides.
+* `learn.github`_ has an excellent series of tutorials
+* The `pro git book`_ is a good in-depth book on git.
+* A `git cheat sheet`_ is a page giving summaries of common commands.
+* The `git user manual`_
+* The `git tutorial`_
+* The `git community book`_
+* `git casts`_ |emdash| video snippets giving git how-tos.
+* The `git parable`_ is an easy read explaining the concepts behind git.
+* `git foundation`_ expands on the `git parable`_.
+* Fernando Perez's `ipython notebook on using git in science`_
+* A good but technical page on `git concepts`_
+
 .. _additional-git:
 
-Some other things you might want to do
-**************************************
+Additional Tips and Tricks
+**************************
+
+About Names in `git`_
+=====================
+
+.. Important::
+    tl;dr: Never work in your main branch, always work in a feature branch.
+
+`git`_ is a *distributed* version control system. Each clone of
+a repository is, itself, a repository. That can lead to some confusion,
+especially for the branch called ``main``. If you list all of the branches
+your clone of git knows about with ``git branch -a`` you will see there are
+*three* different branches called ``main``::
+
+    * main                              # this is main in your local repo
+    remotes/upstream/main               # the official main branch of Astropy
+    remotes/origin/main                 # main on your fork of Astropy on GitHub
+
+The naming scheme used by `git`_ will also be used here. A plain branch name,
+like ``main`` means a branch in your local copy of Astropy. A branch on a
+remote, like ``upstream`` , is labeled by that remote, ``upstream/main``.
+
+This duplication of names can get very confusing when working with pull
+requests, especially when the official main branch, ``upstream/main``,
+changes due to other contributions before your contributions are merged in.
 
 Delete a branch on GitHub
 =========================
@@ -22,7 +112,7 @@ these instructions::
 
    # change to the main branch (if you still have one, otherwise change to
    # another branch)
-   git checkout main
+   git switch main
 
    # delete branch locally
    # Note: -d tells git to check whether your branch has been merged somewhere
@@ -86,50 +176,50 @@ repo.
 
 .. _rebase-on-trunk:
 
-Rebasing on trunk
+Rebasing on main
 =================
 
 Let's say you thought of some work you'd like to do. You
 :ref:`fetch-latest` and :ref:`make-feature-branch` called
-``cool-feature``. At this stage trunk is at some commit, let's call it E. Now
+``cool-feature``. At this stage main is at some commit, let's call it E. Now
 you make some new commits on your ``cool-feature`` branch, let's call them A,
 B, C. Maybe your changes take a while, or you come back to them after a while.
-In the meantime, trunk has progressed from commit E to commit (say) G::
+In the meantime, main has progressed from commit E to commit (say) G::
 
           A---B---C cool-feature
          /
-    D---E---F---G trunk
+    D---E---F---G main
 
-At this stage you consider merging trunk into your feature branch, and you
+At this stage you consider merging main into your feature branch, and you
 remember that this here page sternly advises you not to do that, because the
 history will get messy. Most of the time you can just ask for a review, and
-not worry that trunk has got a little ahead. But sometimes, the changes in
-trunk might affect your changes, and you need to harmonize them. In this
+not worry that main has got a little ahead. But sometimes, the changes in
+main might affect your changes, and you need to harmonize them. In this
 situation you may prefer to do a rebase.
 
 Rebase takes your changes (A, B, C) and replays them as if they had been made
-to the current state of ``trunk``. In other words, in this case, it takes the
+to the current state of ``main``. In other words, in this case, it takes the
 changes represented by A, B, C and replays them on top of G. After the rebase,
 your history will look like this::
 
                   A'--B'--C' cool-feature
                  /
-    D---E---F---G trunk
+    D---E---F---G main
 
 See `rebase without tears`_ for more detail.
 
-To do a rebase on trunk::
+To do a rebase on main::
 
-    # Update the mirror of trunk
+    # Update the mirror of main
     git fetch upstream
 
     # Go to the feature branch
-    git checkout cool-feature
+    git switch cool-feature
 
     # Make a backup in case you mess up
     git branch tmp cool-feature
 
-    # Rebase cool-feature onto trunk
+    # Rebase cool-feature onto main
     git rebase --onto upstream/main upstream/main cool-feature
 
 In this situation, where you are already on branch ``cool-feature``, the last
@@ -144,7 +234,7 @@ When all looks good you can delete your backup branch::
 If it doesn't look good you may need to have a look at
 :ref:`recovering-from-mess-up`.
 
-If you have made changes to files that have also changed in trunk, this may
+If you have made changes to files that have also changed in main, this may
 generate merge conflicts that you need to resolve - see the `git rebase`_ man
 page for some instructions at the end of the "Description" section. There is
 some related help on merging in the git user manual - see `resolving a
@@ -308,7 +398,7 @@ Then say you make a pull request of issue-branch against Astroy's main, and
 the pull request is accepted and merged.  When GitHub merges the pull request
 it's basically doing the following in the upstream repository::
 
-    $ git checkout main
+    $ git switch main
     $ git remote add yourfork file:///path/to/your/fork/astropy
     $ git fetch yourfork
     $ git merge --no-ff yourfork/issue-branch
@@ -363,7 +453,7 @@ upstream we also have a backport branch that we want to cherry pick "F" onto::
 
 We would do::
 
-    $ git checkout backport
+    $ git switch backport
     $ git cherry-pick -m 1 F
 
 But this applies the diff of "F" with "C", not of "F" with "G".  So clearly
@@ -372,4 +462,19 @@ any merge that has conflicts--you can resolve any conflicts manually and then
 commit.  As long as the fix being merged is reasonably self-contained this
 usually requires little effort.
 
+
+Git mailmap
+===========
+
+If you need to edit `.mailmap <https://git-scm.com/docs/gitmailmap>`_ and know how to do
+it then you can open a pull request for that. Please run `git shortlog -es
+<https://git-scm.com/docs/git-shortlog>`_ locally first with your changes to make sure
+your edit is correct, and you only appear in the list once.
+
 .. include:: links.inc
+
+.. _Git Basics: https://git-scm.com/book/en/Getting-Started-Git-Basics
+.. _git book: https://git-scm.com/book/
+.. _Astropy issue list: https://github.com/astropy/astropy/issues
+.. _git choose-your-own-adventure: http://sethrobertson.github.io/GitFixUm/fixup.html
+.. _numpydoc format: https://numpydoc.readthedocs.io/en/latest/format.html
