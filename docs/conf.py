@@ -250,7 +250,7 @@ html_theme_options.update(
 html_title = f"{project} v{release}"
 
 html_favicon = "_static/astropy_logo.ico"
-
+html_static_path = ["_static"]
 html_css_files = ["astropy.css"]
 html_copy_source = False
 
