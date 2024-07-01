@@ -1,5 +1,3 @@
-:orphan:
-
 .. _git-resources:
 
 *************
@@ -10,8 +8,6 @@ Git is central to astropy development. While Git is undeniably complex and at ti
 inscrutable, in practice there is only a very small subset of commands that you will
 need to know to make contributions to Astropy. This page provides Astropy-specific
 guidance to using Git along with a list of resources for learning more about Git.
-
-**FIXME**: links in this page should be reviewed and trimmed to only the highest quality resources instead of just a grab-bag of links.
 
 If you have never used git or have limited experience with it, take a few
 minutes to look at `Git Basics`_, part of a much longer `git book`_.
