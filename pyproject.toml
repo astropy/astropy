@@ -373,6 +373,12 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     # flake8-todos (TD)
     "TD002",  # Missing author in TODO
 
+    # flake8-return (RET)
+    # RET can sometimes help find places where refactoring is very helpful,
+    # but enforcing it everywhere might create undesirable churn
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
+
     # Ruff-specific rules (RUF)
     "RUF005",  # unpack-instead-of-concatenating-to-collection-literal -- it's not clearly faster.
 ]
