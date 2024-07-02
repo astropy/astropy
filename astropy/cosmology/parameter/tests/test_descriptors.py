@@ -16,7 +16,7 @@ from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.parameter._descriptors import ParametersAttribute
 
 if TYPE_CHECKING:
-    from astropy.cosmology.core import Cosmology
+    from astropy.cosmology import Cosmology
 
 
 class Obj:

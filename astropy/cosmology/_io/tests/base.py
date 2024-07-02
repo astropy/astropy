@@ -5,7 +5,7 @@ import pytest
 import astropy.units as u
 from astropy.cosmology import Cosmology, Parameter, realizations
 from astropy.cosmology import units as cu
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
+from astropy.cosmology._core import _COSMOLOGY_CLASSES, dataclass_decorator
 from astropy.cosmology.realizations import available
 
 cosmo_instances = [getattr(realizations, name) for name in available]

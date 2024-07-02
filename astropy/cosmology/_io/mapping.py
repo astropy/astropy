@@ -140,8 +140,8 @@ import copy
 import inspect
 from collections.abc import Mapping
 
+from astropy.cosmology._core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology.connect import convert_registry
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 
 
 def _rename_map(map, /, renames):

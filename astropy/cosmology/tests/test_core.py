@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""Testing :mod:`astropy.cosmology.core`."""
+"""Testing :mod:`astropy.cosmology._core`."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ import pytest
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import Cosmology, FlatCosmologyMixin, Parameter
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
+from astropy.cosmology._core import _COSMOLOGY_CLASSES, dataclass_decorator
 from astropy.cosmology.parameter.tests.test_descriptors import (
     ParametersAttributeTestMixin,
 )
@@ -379,7 +379,7 @@ class TestCosmology(CosmologyTest):
 
 
 class FlatCosmologyMixinTest:
-    """Tests for :class:`astropy.cosmology.core.FlatCosmologyMixin` subclasses.
+    """Tests for :class:`astropy.cosmology...FlatCosmologyMixin` subclasses.
 
     The test suite structure mirrors the implementation of the tested code.
     Just like :class:`astropy.cosmology.FlatCosmologyMixin` is an abstract
@@ -393,7 +393,7 @@ class FlatCosmologyMixinTest:
     """
 
     def test_nonflat_class_(self, cosmo_cls, cosmo):
-        """Test :attr:`astropy.cosmology.core.FlatCosmologyMixin.nonflat_cls`."""
+        """Test :attr:`astropy.cosmology...FlatCosmologyMixin.nonflat_cls`."""
         # Test it's a method on the class
         assert issubclass(cosmo_cls, cosmo_cls.__nonflatclass__)
 
@@ -412,7 +412,7 @@ class FlatCosmologyMixinTest:
         assert cosmo.is_flat is True
 
     def test_nonflat(self, cosmo):
-        """Test :attr:`astropy.cosmology.core.FlatCosmologyMixin.nonflat`."""
+        """Test :attr:`astropy.cosmology...FlatCosmologyMixin.nonflat`."""
         assert cosmo.nonflat.is_equivalent(cosmo)
         assert cosmo.is_equivalent(cosmo.nonflat)
 
@@ -441,7 +441,7 @@ class FlatCosmologyMixinTest:
     # ------------------------------------------------
 
     def test_is_equivalent(self, cosmo):
-        """Test :meth:`astropy.cosmology.core.FlatCosmologyMixin.is_equivalent`.
+        """Test :meth:`astropy.cosmology...FlatCosmologyMixin.is_equivalent`.
 
         Normally this would pass up via super(), but ``__equiv__`` is meant
         to be overridden, so we skip super().
@@ -485,7 +485,7 @@ class FlatCosmologyMixinTest:
 
 def test__nonflatclass__multiple_nonflat_inheritance():
     """
-    Test :meth:`astropy.cosmology.core.FlatCosmologyMixin.__nonflatclass__`
+    Test :meth:`astropy.cosmology...FlatCosmologyMixin.__nonflatclass__`
     when there's more than one non-flat class in the inheritance.
     """
 

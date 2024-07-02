@@ -19,8 +19,8 @@ from numpy import inf, sin
 
 import astropy.constants as const
 import astropy.units as u
+from astropy.cosmology._core import Cosmology, FlatCosmologyMixin, dataclass_decorator
 from astropy.cosmology._utils import aszarr, vectorize_redshift_method
-from astropy.cosmology.core import Cosmology, FlatCosmologyMixin, dataclass_decorator
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.parameter._converter import (
     _validate_non_negative,

@@ -3,8 +3,8 @@
 import pytest
 
 from astropy.cosmology import Cosmology
+from astropy.cosmology._core import _COSMOLOGY_CLASSES
 from astropy.cosmology._io.table import from_table, to_table
-from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.table import QTable, Table, vstack
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase
