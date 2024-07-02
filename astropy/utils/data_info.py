@@ -490,17 +490,17 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
             info["name"] = name
 
         options = option if isinstance(option, (list, tuple)) else [option]
-        for option in options:
-            if isinstance(option, str):
-                if hasattr(self, "info_summary_" + option):
-                    option = getattr(self, "info_summary_" + option)
+        for opt in options:
+            if isinstance(opt, str):
+                if hasattr(self, "info_summary_" + opt):
+                    opt = getattr(self, "info_summary_" + opt)
                 else:
-                    raise ValueError(f"{option=} is not an allowed information type")
+                    raise ValueError(f"option={opt} is not an allowed information type")
 
             with warnings.catch_warnings():
                 for ignore_kwargs in IGNORE_WARNINGS:
                     warnings.filterwarnings("ignore", **ignore_kwargs)
-                info.update(option(dat))
+                info.update(opt(dat))
 
         if hasattr(dat, "mask"):
             n_bad = np.count_nonzero(dat.mask)
