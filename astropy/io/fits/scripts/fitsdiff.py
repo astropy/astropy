@@ -80,7 +80,7 @@ class StoreListAction(argparse.Action):
                 log.warning(f"{self.dest} argument {value} does not exist")
                 return
             try:
-                values = [v.strip() for v in open(value).readlines()]
+                values = [v.strip() for v in open(value)]
                 setattr(namespace, self.dest, values)
             except OSError as exc:
                 log.warning(

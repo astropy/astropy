@@ -409,7 +409,7 @@ class FITS_rec(np.recarray):
                 # TODO: Maybe this step isn't necessary at all if _scale_back
                 # will handle it?
                 inarr = np.where(inarr == np.False_, ord("F"), ord("T"))
-            elif columns[idx]._physical_values and columns[idx]._pseudo_unsigned_ints:
+            elif column._physical_values and column._pseudo_unsigned_ints:
                 # Temporary hack...
                 bzero = column.bzero
                 converted = np.zeros(field.shape, dtype=inarr.dtype)

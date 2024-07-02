@@ -4285,8 +4285,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         }
         kwargs.update(self._get_version_checks())
 
-        with util.convert_to_writable_filelike(fd, compressed=compressed) as fd:
-            w = XMLWriter(fd)
+        with util.convert_to_writable_filelike(fd, compressed=compressed) as fh:
+            w = XMLWriter(fh)
             version = self.version
             if _astropy_version is None:
                 lib_version = astropy_version
