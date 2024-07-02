@@ -353,7 +353,7 @@ def test_configitem_options(tmp_path):
     with open(f, "wb") as fd:
         apycfg.write(fd)
     with open(f, encoding="utf-8") as fd:
-        lns = [x.strip() for x in fd.readlines()]
+        lns = [x.strip() for x in fd]
 
     assert "tstnmo = op2" in lns
 
