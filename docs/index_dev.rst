@@ -35,7 +35,7 @@ process will apply to contributing updates to coordinated and many affiliated pa
 .. toctree::
    :maxdepth: 2
 
-   quickstart
+   development/quickstart
 
 Now that you have created your development environment and gotten familiar with the
 process, you should now read through the detailed tutorial below to see a real-life
@@ -45,7 +45,7 @@ advice for making a code change.
 .. toctree::
    :maxdepth: 1
 
-   git_edit_workflow_examples
+   development/git_edit_workflow_examples
 
 Congratulations, now you are ready to be an Astropy contributor! If you are not sure where to contribute, take a look at the `Good First Issues
 <https://github.com/astropy/astropy/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`_
@@ -58,15 +58,15 @@ Details
 .. toctree::
    :maxdepth: 1
 
-   development_details
-   codeguide
-   testguide
-   docguide
-   style-guide
-   git_resources
-   scripts
-   ccython
-   maintainers/index
+   development/development_details
+   development/codeguide
+   development/testguide
+   development/docguide
+   development/style-guide
+   development/git_resources
+   development/scripts
+   development/ccython
+   development/maintainers/index
 
 .. Note:: Parts of this guide were adapted from the
     `pandas developer documentation <https://pandas.pydata.org/pandas-docs/stable/development/index.html>`_. Astropy is grateful to the pandas team for their documentation efforts.
@@ -74,6 +74,6 @@ Details
 {%else%}
 
 To read the developer documentation, you will need to go to the
-`latest developer version of the documentation <https://docs.astropy.org/en/latest/development/index.html>`_.
+`latest developer version of the documentation <https://docs.astropy.org/en/latest/index_dev.html>`_.
 
 {%endif%}
