@@ -197,7 +197,7 @@ community is welcoming and friendly and will help you!
 If you are new to the Astropy Project and interested to submit a large patch
 (e.g., a new big feature or significant refactoring), we encourage you to first
 discuss your ideas on |astropy-dev mailing list| to increase the chance of your PR
-being accepted. We thank you for your patience!
+being accepted.
 
 Creating a branch
 -----------------
