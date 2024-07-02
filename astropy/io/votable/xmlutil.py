@@ -60,9 +60,7 @@ def check_token(token, attr_name, config=None, pos=None):
 
     As defined by XML Schema Part 2.
     """
-    if token is not None and not xml_check.check_token(token):
-        return False
-    return True
+    return token is None or xml_check.check_token(token)
 
 
 def check_mime_content_type(content_type, config=None, pos=None):
