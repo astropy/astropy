@@ -3,9 +3,12 @@
 Regression tests for the units.format package
 """
 
+from __future__ import annotations
+
 import warnings
 from contextlib import nullcontext
 from fractions import Fraction
+from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
 import pytest
@@ -18,10 +21,28 @@ from astropy.units import format as u_format
 from astropy.units.utils import is_effectively_unity
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+
+class StringUnitPair(NamedTuple):
+    string: str
+    unit: UnitBase
+
+
+def list_string_unit_pairs(
+    *test_cases: tuple[Iterable[str], UnitBase],
+) -> list[StringUnitPair]:
+    return [
+        StringUnitPair(string, unit)
+        for strings, unit in test_cases
+        for string in strings
+    ]
+
 
 @pytest.mark.parametrize(
-    "strings, unit",
-    [
+    "test_pair",
+    list_string_unit_pairs(
         (["m s", "m*s", "m.s"], u.m * u.s),
         (["m/s", "m*s**-1", "m /s", "m / s", "m/ s"], u.m / u.s),
         (["m**2", "m2", "m**(2)", "m**+2", "m+2", "m^(+2)"], u.m**2),
@@ -37,12 +58,11 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
         (["mag(ct/s)"], u.MagUnit(u.ct / u.s)),
         (["dex"], u.dex),
         (["dex(cm s**-2)", "dex(cm/s2)"], u.DexUnit(u.cm / u.s**2)),
-    ],
+    ),
+    ids=lambda x: x.string,
 )
-def test_unit_grammar(strings, unit):
-    for s in strings:
-        unit2 = u_format.Generic.parse(s)
-        assert unit2 == unit
+def test_unit_grammar(test_pair: StringUnitPair):
+    assert u_format.Generic.parse(test_pair.string) == test_pair.unit
 
 
 @pytest.mark.parametrize(
@@ -54,8 +74,8 @@ def test_unit_grammar_fail(string):
 
 
 @pytest.mark.parametrize(
-    "strings, unit",
-    [
+    "test_pair",
+    list_string_unit_pairs(
         (["0.1nm"], u.AA),
         (["mW/m2"], u.Unit(u.erg / u.cm**2 / u.s)),
         (["mW/(m2)"], u.Unit(u.erg / u.cm**2 / u.s)),
@@ -94,12 +114,11 @@ def test_unit_grammar_fail(string):
         (["[cm/s2]"], dex(u.cm / u.s**2)),
         (["[K]"], dex(u.K)),
         (["[-]"], dex(u.dimensionless_unscaled)),
-    ],
+    ),
+    ids=lambda x: x.string,
 )
-def test_cds_grammar(strings, unit):
-    for s in strings:
-        unit2 = u_format.CDS.parse(s)
-        assert unit2 == unit
+def test_cds_grammar(test_pair: StringUnitPair):
+    assert u_format.CDS.parse(test_pair.string) == test_pair.unit
 
 
 @pytest.mark.parametrize(
@@ -147,8 +166,8 @@ def test_cds_log10_dimensionless():
 # These examples are taken from the EXAMPLES section of
 # https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/
 @pytest.mark.parametrize(
-    "strings, unit",
-    [
+    "test_pair",
+    list_string_unit_pairs(
         (
             ["count /s", "count/s", "count s**(-1)", "count / s", "count /s "],
             u.count / u.s,
@@ -213,12 +232,11 @@ def test_cds_log10_dimensionless():
             ],
             (u.count / u.s) * (1.0 / (u.pixel * u.s)),
         ),
-    ],
+    ),
+    ids=lambda x: x.string,
 )
-def test_ogip_grammar(strings, unit):
-    for s in strings:
-        unit2 = u_format.OGIP.parse(s)
-        assert unit2 == unit
+def test_ogip_grammar(test_pair: StringUnitPair):
+    assert u_format.OGIP.parse(test_pair.string) == test_pair.unit
 
 
 @pytest.mark.parametrize(
