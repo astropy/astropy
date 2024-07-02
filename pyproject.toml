@@ -367,6 +367,9 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     # pandas-vet (PD)
     "PD",
 
+    # flake8-simplify (SIM)
+    "SIM103", # needless-bool (cannot be safely applied in all contexts (np.True_ is not True))
+
     # flake8-self (SLF)
     "SLF001", # private member access
 
