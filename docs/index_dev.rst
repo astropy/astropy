@@ -74,6 +74,6 @@ Details
 {%else%}
 
 To read the developer documentation, you will need to go to the
-`latest developer version of the documentation <https://docs.astropy.org/en/latest/dev_index.html>`_.
+`latest developer version of the documentation <https://docs.astropy.org/en/latest/index_dev.html>`_.
 
 {%endif%}
