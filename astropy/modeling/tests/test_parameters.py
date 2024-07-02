@@ -6,7 +6,6 @@ Tests models.parameters
 
 import functools
 import itertools
-import sys
 import unittest.mock as mk
 
 import numpy as np
@@ -755,14 +754,6 @@ class TestParameters:
         param._internal_value = 4
         assert param._raw_value == 4
 
-    @pytest.mark.xfail(
-        sys.version_info >= (3, 13),
-        reason=(
-            "this test is known-broken in Python 3.13.0rc1 "
-            "and we don't want it to start passing silently. "
-            "Reference https://github.com/astropy/astropy/pull/16659"
-        ),
-    )
     def test__create_value_wrapper(self):
         param = Parameter(name="test", default=[1, 2, 3, 4])
 
@@ -800,10 +791,12 @@ class TestParameters:
         # model is not None
         param._model_required = False
         model = mk.MagicMock()
-        with mk.patch.object(functools, "partial", autospec=True) as mkPartial:
-            assert (
-                param._create_value_wrapper(wrapper2, model) == mkPartial.return_value
-            )
+        partial_wrapper = param._create_value_wrapper(wrapper2, model)
+        assert isinstance(partial_wrapper, functools.partial)
+        assert partial_wrapper.func is wrapper2
+        assert partial_wrapper.args == ()
+        assert list(partial_wrapper.keywords.keys()) == ["b"]
+        assert partial_wrapper.keywords["b"] is model
 
         # wrapper with more than 2 arguments
         def wrapper3(a, b, c):
