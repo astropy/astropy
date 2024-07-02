@@ -12,6 +12,7 @@ the 6.1 release.
 
 In particular, this release includes:
 
+* :ref:`whatsnew-7.0-table-masked-quantity`
 * :ref:`whatsnew_7_0_quantity_to_string_formatter`
 * :ref:`whatsnew_7_0_ecsv_meta_default_dict`
 * :ref:`whatsnew_7_0_contributor_doc_improvement`
@@ -23,6 +24,20 @@ By the numbers:
 * X issues have been closed since v6.1
 * X pull requests have been merged since v6.1
 * X distinct people have contributed code
+
+.. _whatsnew-7.0-table-masked-quantity:
+
+Full ``MaskedQuantity`` Support in ``QTable``
+=============================================
+
+Masked quantities were already used in many table functions, like reading from
+files, and are now fully supported throughout, i.e., ``MaskedQuantity`` are
+now always used in ``QTable`` to represent masked quantities (or when the
+``QTable`` is created with ``masked=True``). This removes the last vestiges of
+a work-around where a normal ``Quantity`` was used with a stub of a mask, and
+fixes functions like reading of table data from a list of dict that includes
+quantities with missing entries, and aggregation of ``MaskedQuantity`` in
+table groups.
 
 .. _whatsnew_7_0_quantity_to_string_formatter:
 

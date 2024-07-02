@@ -5,9 +5,11 @@ from collections.abc import Mapping
 
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 import astropy.units as u
 from astropy.table import Column, MaskedColumn, QTable, Table, TableColumns
+from astropy.utils.masked import Masked
 
 
 class DictLike(Mapping):
@@ -221,6 +223,27 @@ class TestInitFromListOfDicts(BaseInitFromListLike):
             assert type(t["a"]) is (MaskedColumn if t.masked else Column)
             assert type(t["b"]) is MaskedColumn
             assert type(t["c"]) is MaskedColumn
+
+
+def test_qtable_uses_masked_quantity_as_needed():
+    data = [{"a": 1 * u.m, "b": 1}, {"a": 2 * u.Mm, "b": 2}]
+    data_ragged = [{"a": 1 * u.m, "b": 1}, {"a": 2 * u.Mm}, {"b": 3}]
+    t = QTable(data)
+    assert t.colnames == ["a", "b"]
+    assert isinstance(t["a"], u.Quantity)
+    assert isinstance(t["b"], Column)
+    assert t["a"].unit == u.m
+    assert_array_equal(t["a"], [1, 2000000] * u.m)
+    assert not t.masked
+
+    t2 = QTable(data_ragged)
+    assert t2.colnames == ["a", "b"]
+    assert isinstance(t2["a"], Masked(u.Quantity))
+    assert isinstance(t2["b"], MaskedColumn)
+    assert t2["a"].unit == u.m
+    assert np.all(t2["a"] == [1, 2000000, 0] * u.m)
+    assert_array_equal(t2["a"].mask, [False, False, True])
+    assert_array_equal(t2["b"].mask, [False, True, False])
 
 
 class TestInitFromListOfMapping(TestInitFromListOfDicts):

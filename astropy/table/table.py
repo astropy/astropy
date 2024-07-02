@@ -1234,10 +1234,11 @@ class Table:
             for name, indexes in missing_indexes.items():
                 col = self[name]
                 # Ensure that any Column subclasses with MISSING values can support
-                # setting masked values. As of astropy 4.0 the test condition below is
-                # always True since _init_from_dict cannot result in mixin columns.
+                # setting masked values.
                 if isinstance(col, Column) and not isinstance(col, MaskedColumn):
                     self[name] = self.MaskedColumn(col, copy=False)
+                elif isinstance(col, Quantity) and not isinstance(col, Masked):
+                    self[name] = Masked(col)
 
                 # Finally do the masking in a mixin-safe way.
                 self[name][indexes] = np.ma.masked
@@ -1454,6 +1455,8 @@ class Table:
         if self.masked:
             if isinstance(col, Column) and not isinstance(col, self.MaskedColumn):
                 col_cls = self.MaskedColumn
+            elif isinstance(col, Quantity) and not isinstance(col, Masked):
+                col_cls = Masked(col_cls)
         else:
             if isinstance(col, MaskedColumn):
                 if not isinstance(col, self.MaskedColumn):
@@ -4363,7 +4366,11 @@ class QTable(Table):
         return has_info_class(col, MixinInfo)
 
     def _convert_col_for_table(self, col):
-        if isinstance(col, Column) and getattr(col, "unit", None) is not None:
+        if isinstance(col, Quantity):
+            if self.masked and not isinstance(col, Masked):
+                col = Masked(col)
+
+        elif isinstance(col, Column) and getattr(col, "unit", None) is not None:
             # We need to turn the column into a quantity; use subok=True to allow
             # Quantity subclasses identified in the unit (such as u.mag()).
             q_cls = Masked(Quantity) if isinstance(col, MaskedColumn) else Quantity
@@ -4384,3 +4391,13 @@ class QTable(Table):
             col = super()._convert_col_for_table(col)
 
         return col
+
+    def _convert_data_to_col(
+        self, data, copy=True, default_name=None, dtype=None, name=None
+    ):
+        if self.masked and isinstance(data, Quantity):
+            data = Masked(data)
+
+        return super()._convert_data_to_col(
+            data, copy=copy, default_name=default_name, dtype=dtype, name=name
+        )

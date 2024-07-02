@@ -469,6 +469,7 @@ def test_table_aggregate(T1):
     t1m = QTable(T1, masked=True)
     t1m["c"].mask[4:6] = True
     t1m["d"].mask[4:6] = True
+    t1m["q"].mask[4:6] = True
     tg = t1m.group_by("a")
 
     if PYTEST_LT_8_0:
@@ -483,8 +484,8 @@ def test_table_aggregate(T1):
         " a   c    d    q  ",
         "               m  ",
         "--- ---- ---- ----",
-        "  0   --   --  4.0",
-        "  1  3.0 13.0 18.0",
+        "  0   --   --  ———",
+        "  1  3.0 13.0  ———",
         "  2 22.0  6.0  6.0",
     ]
 
