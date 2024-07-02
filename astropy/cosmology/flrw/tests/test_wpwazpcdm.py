@@ -7,8 +7,7 @@ import pytest
 
 import astropy.cosmology.units as cu
 import astropy.units as u
-from astropy.cosmology import FlatwpwaCDM, wpwaCDM
-from astropy.cosmology.parameter import Parameter
+from astropy.cosmology import FlatwpwaCDM, Parameter, wpwaCDM
 from astropy.cosmology.tests.test_core import ParameterTestMixin
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
