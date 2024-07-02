@@ -304,7 +304,7 @@ def isreadable(f):
 
     # Not closed, has a 'read()' method, and either has no known mode or a
     # readable mode--should be good enough to assume 'readable'
-    return not (hasattr(f, "mode") and not any(c in f.mode for c in "r+"))
+    return (not hasattr(f, "mode")) or any(c in f.mode for c in "r+")
 
 
 def iswritable(f):
@@ -324,7 +324,7 @@ def iswritable(f):
 
     # Note closed, has a 'write()' method, and either has no known mode or a
     # mode that supports writing--should be good enough to assume 'writable'
-    return not (hasattr(f, "mode") and not any(c in f.mode for c in "wa+"))
+    return (not hasattr(f, "mode")) or any(c in f.mode for c in "wa+")
 
 
 def isfile(f):
