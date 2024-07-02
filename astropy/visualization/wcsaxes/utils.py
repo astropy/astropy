@@ -112,7 +112,8 @@ def get_coord_meta(frame):
     # Add dummy data to the frame to determine the longitude wrap angle and the units
     frame = frame.realize_frame(UnitSphericalRepresentation(0 * u.deg, 0 * u.deg))
     coord_meta["wrap"] = (frame.spherical.lon.wrap_angle, None)
-    coord_meta["unit"] = (frame.spherical.lon.unit, frame.spherical.lat.unit)
+    coord_meta["unit"] = (u.deg, u.deg)
+    coord_meta["format_unit"] = (frame.spherical.lon.unit, frame.spherical.lat.unit)
 
     return coord_meta
 
