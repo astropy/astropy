@@ -1033,3 +1033,48 @@ def test_image_write_readonly(tmp_path):
 
     with fits.open(filename) as hdulist:
         assert_equal(hdulist[1].data, [1.0, 2.0, 3.0])
+
+
+@pytest.mark.parametrize(
+    "init_kwargs, expected_max_diff",
+    [
+        pytest.param(
+            dict(quantize_level=-32, data=np.array([0.0])),
+            np.float32(0.99950135),
+            id="quantize_level_w_data",
+        ),
+        pytest.param(
+            dict(quantize_level=-32),
+            np.float32(0.99950135),
+            id="quantize_level_wo_data",
+        ),
+        pytest.param(
+            dict(quantize_method=2, dither_seed=1, data=np.array([0.0])),
+            np.float32(0.0152435005),
+            id="quantize_level_dither_seed_w_data",
+        ),
+        pytest.param(
+            dict(quantize_method=2, dither_seed=1),
+            np.float32(0.0152435005),
+            id="quantize_level_dither_seed_wo_data",
+        ),
+    ],
+)
+def test_compression_options_with_mutated_data(
+    init_kwargs, expected_max_diff, tmp_path
+):
+    # see https://github.com/astropy/astropy/issues/12216
+    prng = np.random.default_rng(seed=0)
+    data = prng.random((50, 30)).astype("float32")
+
+    hdu = fits.CompImageHDU(**init_kwargs)
+    hdu.data = data.copy()
+
+    hdul = fits.HDUList([fits.PrimaryHDU(), hdu])
+    hdul.writeto(tmp_path / "t.fits")
+
+    # max abs. difference due to compression
+    with fits.open(tmp_path / "t.fits") as hdul2:
+        max_diff = np.abs(hdul2[1].data - data).max()
+
+    assert max_diff == expected_max_diff
