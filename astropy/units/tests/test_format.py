@@ -41,7 +41,6 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 )
 def test_unit_grammar(strings, unit):
     for s in strings:
-        print(s)
         unit2 = u_format.Generic.parse(s)
         assert unit2 == unit
 
@@ -51,7 +50,6 @@ def test_unit_grammar(strings, unit):
 )
 def test_unit_grammar_fail(string):
     with pytest.raises(ValueError):
-        print(string)
         u_format.Generic.parse(string)
 
 
@@ -100,7 +98,6 @@ def test_unit_grammar_fail(string):
 )
 def test_cds_grammar(strings, unit):
     for s in strings:
-        print(s)
         unit2 = u_format.CDS.parse(s)
         assert unit2 == unit
 
@@ -134,7 +131,6 @@ def test_cds_grammar(strings, unit):
 )
 def test_cds_grammar_fail(string):
     with pytest.raises(ValueError):
-        print(string)
         u_format.CDS.parse(string)
 
 
@@ -221,7 +217,6 @@ def test_cds_log10_dimensionless():
 )
 def test_ogip_grammar(strings, unit):
     for s in strings:
-        print(s)
         unit2 = u_format.OGIP.parse(s)
         assert unit2 == unit
 
@@ -239,7 +234,6 @@ def test_ogip_grammar(strings, unit):
 )
 def test_ogip_grammar_fail(string):
     with pytest.raises(ValueError):
-        print(string)
         u_format.OGIP.parse(string)
 
 
@@ -650,7 +644,6 @@ def test_deprecated_did_you_mean_units():
 def test_fits_function(string):
     # Function units cannot be written, so ensure they're not parsed either.
     with pytest.raises(ValueError):
-        print(string)
         u_format.FITS().parse(string)
 
 
