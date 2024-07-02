@@ -636,11 +636,6 @@ def test_column_filter():
     Table groups filtering
     """
 
-    def all_positive(column):
-        if np.any(column < 0):
-            return False
-        return True
-
     # Negative value in 'a' column should not filter because it is a key col
     t = Table.read(
         [
@@ -658,7 +653,7 @@ def test_column_filter():
         format="ascii",
     )
     tg = t.group_by("a")
-    c2 = tg["c"].groups.filter(all_positive)
+    c2 = tg["c"].groups.filter(lambda column: np.all(column >= 0))
     assert len(c2.groups) == 3
     assert c2.groups[0].pformat() == [" c ", "---", "7.0", "5.0"]
     assert c2.groups[1].pformat() == [" c ", "---", "0.0"]
