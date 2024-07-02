@@ -1,0 +1,44 @@
+name: report diff test coverage
+
+on:
+  pull_request_target:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  report_diff_coverage:
+    name: report diff test coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3
+      - run: pip install diff-cover coverage
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: pip install .
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ".coverage*"
+          merge-multiple: true
+      - run: |
+          [ "$(ls -A .coverage*)" ] && exit 0 || exit 1
+      - run: coverage xml
+      - run: diff-cover coverage.xml --compare-branch origin/${{ github.base_ref }} --markdown-report diff_coverage.md
+      - run: cat diff_coverage.md >> $GITHUB_STEP_SUMMARY
+      - uses: peter-evans/find-comment@v3
+        id: comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: Diff
+      - uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-id: ${{ steps.comment.outputs.comment-id }}
+          body-path: diff_coverage.md
+          edit-mode: replace
+
