@@ -40,7 +40,7 @@ class TParModel(Model):
 
     # standard_broadasting = False
     n_inputs = 1
-    outputs = ("x",)
+    _outputs = ("x",)
     coeff = Parameter()
     e = Parameter()
 
