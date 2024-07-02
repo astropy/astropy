@@ -86,20 +86,9 @@ class Base:
         )
 
     @classmethod
-    def _format_fraction(
-        cls,
-        scale: str,
-        numerator: str,
-        denominator: str,
-        *,
-        fraction: Literal[True, "inline"] = "inline",
+    def _format_inline_fraction(
+        cls, scale: str, numerator: str, denominator: str
     ) -> str:
-        if not (fraction is True or fraction == "inline"):
-            raise ValueError(
-                "format {cls.name!r} only supports inline fractions,"
-                f"not fraction={fraction!r}."
-            )
-
         if cls._space in denominator:
             denominator = f"({denominator})"
         if scale and numerator == "1":
@@ -108,7 +97,7 @@ class Base:
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, *, fraction: bool | Literal["inline", "multiline"] = True
+        cls, unit: UnitBase, *, fraction: bool | Literal["inline"] = True
     ) -> str:
         """Convert a unit to its string representation.
 
@@ -133,37 +122,49 @@ class Base:
         ValueError
             If ``fraction`` is not recognized.
         """
+        string_components = cls._to_string_helper(unit, fraction)
+        if isinstance(string_components, str):
+            return string_components
+        if fraction is True or fraction == "inline":
+            return cls._format_inline_fraction(*string_components)
+        raise ValueError(
+            f"format {cls.name!r} only supports 'inline' fractions, not {fraction=!r}."
+        )
+
+    @classmethod
+    def _to_string_helper(
+        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"]
+    ) -> str | tuple[str, str, str]:
+        # The `unit` is converted to a string if there is no need to decide how
+        # to handle fractions. Otherwise the scale, numerator and denominator
+        # get returned so that `to_string()` could decide how to format them.
+
         # First the scale.  Normally unity, in which case we omit
         # it, but non-unity scale can happen, e.g., in decompositions
         # like u.Ry.decompose(), which gives "2.17987e-18 kg m2 / s2".
-        if unit.scale == 1:
-            s = ""
-        else:
-            s = cls.format_exponential_notation(unit.scale)
+        s = "" if unit.scale == 1 else cls.format_exponential_notation(unit.scale)
 
-        # Now the unit baes, taking care that dimensionless does not have any
-        # (but can have a scale; e.g., u.percent.decompose() gives "0.01").
-        if len(unit.bases):
-            if s:
-                s += cls._scale_unit_separator
-            if fraction:
-                numerator, denominator = utils.get_grouped_by_powers(
-                    unit.bases, unit.powers
-                )
-            else:
-                numerator = list(zip(unit.bases, unit.powers))
-                denominator = []
-            if len(denominator):
-                if len(numerator):
-                    numerator = cls._format_unit_list(numerator)
-                else:
-                    numerator = "1"
-                denominator = cls._format_unit_list(denominator)
-                s = cls._format_fraction(s, numerator, denominator, fraction=fraction)
-            else:
-                s += cls._format_unit_list(numerator)
+        # dimensionless does not have any bases, but can have a scale;
+        # e.g., u.percent.decompose() gives "0.01".
+        if not unit.bases:
+            return s
 
-        return s
+        if s:
+            s += cls._scale_unit_separator
+        if not fraction:
+            return s + cls._format_unit_list(zip(unit.bases, unit.powers))
+        positive = []
+        negative = []
+        for base, power in zip(unit.bases, unit.powers):
+            if power < 0:
+                negative.append((base, -power))
+            elif power > 0:
+                positive.append((base, power))
+            else:
+                raise ValueError("Unit with 0 power")
+        numerator = cls._format_unit_list(positive)
+        denominator = cls._format_unit_list(negative)
+        return (s, numerator or "1", denominator) if denominator else s + numerator
 
     @classmethod
     def parse(cls, s: str) -> UnitBase:
