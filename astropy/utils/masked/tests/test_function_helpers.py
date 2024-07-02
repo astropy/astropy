@@ -606,6 +606,10 @@ class TestSplit:
     def test_dsplit(self):
         self.check(np.dsplit, [1])
 
+    @pytest.mark.skipif(NUMPY_LT_2_1, reason="np.unstack is new in Numpy 2.1")
+    def test_unstack(self):
+        self.check(np.unstack)
+
 
 class TestMethodLikes(MaskedArraySetup):
     def check(self, function, *args, method=None, **kwargs):

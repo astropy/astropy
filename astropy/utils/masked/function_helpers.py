@@ -15,7 +15,7 @@ import warnings
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
-from astropy.utils.compat import NUMPY_LT_1_24, NUMPY_LT_2_0
+from astropy.utils.compat import NUMPY_LT_1_24, NUMPY_LT_2_0, NUMPY_LT_2_1
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
@@ -141,13 +141,16 @@ if NUMPY_LT_2_0:
     MASKED_SAFE_FUNCTIONS |= {np.row_stack}  # noqa: NPY201
     # renamed in numpy 2.0
     MASKED_SAFE_FUNCTIONS |= {np.trapz}
-else:
+if not NUMPY_LT_2_0:
     # new in numpy 2.0
     MASKED_SAFE_FUNCTIONS |= {
         np.astype, np.trapezoid,
         np.unique_all, np.unique_counts, np.unique_inverse, np.unique_values,
     }  # fmt: skip
-
+if not NUMPY_LT_2_1:
+    MASKED_SAFE_FUNCTIONS |= {
+        np.unstack,
+    }  # fmt: skip
 IGNORED_FUNCTIONS = {
     # I/O - useless for Masked, since no way to store the mask.
     np.save, np.savez, np.savetxt, np.savez_compressed,
