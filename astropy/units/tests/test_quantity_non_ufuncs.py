@@ -25,6 +25,7 @@ from astropy.utils.compat import (
     NUMPY_LT_1_24,
     NUMPY_LT_1_25,
     NUMPY_LT_2_0,
+    NUMPY_LT_2_1,
 )
 
 if TYPE_CHECKING:
@@ -645,6 +646,10 @@ class TestSplit:
 
     def test_dsplit(self):
         self.check(np.dsplit, [1])
+
+    @pytest.mark.skipif(NUMPY_LT_2_1, reason="np.unstack is new in Numpy 2.1")
+    def test_unstack(self):
+        self.check(np.unstack)
 
 
 class TestUfuncReductions(InvariantUnitTestSetup):
