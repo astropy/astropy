@@ -5,7 +5,7 @@
 import numpy as np
 from numpy import sqrt
 
-from astropy.cosmology._utils import aszarr
+from astropy.cosmology._utils import aszarr, deprecated_keywords
 from astropy.cosmology.core import dataclass_decorator
 from astropy.cosmology.parameter import Parameter
 
@@ -117,13 +117,17 @@ class wCDM(FLRW):
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
+    @deprecated_keywords("z", since="7.0")
     def w(self, z):
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -141,13 +145,17 @@ class wCDM(FLRW):
         z = aszarr(z)
         return self._w0 * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
 
+    @deprecated_keywords("z", since="7.0")
     def de_density_scale(self, z):
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -163,13 +171,17 @@ class wCDM(FLRW):
         """
         return (aszarr(z) + 1.0) ** (3.0 * (1.0 + self._w0))
 
+    @deprecated_keywords("z", since="7.0")
     def efunc(self, z):
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -190,13 +202,17 @@ class wCDM(FLRW):
             + self._Ode0 * zp1 ** (3.0 * (1.0 + self._w0))
         )
 
+    @deprecated_keywords("z", since="7.0")
     def inv_efunc(self, z):
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -313,13 +329,17 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
+    @deprecated_keywords("z", since="7.0")
     def efunc(self, z):
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -339,13 +359,17 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
             zp1**3 * (Or * zp1 + self._Om0) + self._Ode0 * zp1 ** (3.0 * (1 + self._w0))
         )
 
+    @deprecated_keywords("z", since="7.0")
     def inv_efunc(self, z):
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
