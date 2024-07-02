@@ -1,0 +1,1 @@
+``NDData`` objects now supports comparison operators ``==`` and ``!=``.
