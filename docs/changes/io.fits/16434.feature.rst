@@ -1,0 +1,1 @@
+Allow HDU sub-classes to request a higher priority when match_header is used by defining __match_header_priority__

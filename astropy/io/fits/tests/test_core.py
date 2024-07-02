@@ -1505,3 +1505,59 @@ def test_deprecated_hdu_classes():
         _ExtensionHDU()
     with pytest.warns(AstropyDeprecationWarning):
         _NonstandardExtHDU()
+
+
+def test_match_priority_default(tmp_path):
+    # It is possible to define a __match_header_priority__ on HDU classes to
+    # influence the order in which classes are checked for matching headers.
+    # This is a unit test for this functionality.
+
+    class MyImage1(fits.ImageHDU):
+        @classmethod
+        def match_header(cls, header):
+            return "SPAM" in header
+
+    class MyImage2(MyImage1):
+        pass
+
+    class MyImage3(MyImage1):
+        pass
+
+    hdulist = fits.HDUList([fits.PrimaryHDU(), fits.ImageHDU()])
+    hdulist[1].data = np.arange(5)
+    hdulist[1].header["SPAM"] = "EGG"
+    hdulist.writeto(tmp_path / "test.fits")
+
+    # By default match by reverse depth (deeper first) and reverse alphabetical
+
+    with fits.open(tmp_path / "test.fits") as hdulist2:
+        assert isinstance(hdulist2[1], MyImage3)
+
+    # Setting __match_header_priority__ can make MyImage2 be selected
+
+    MyImage2.__match_header_priority__ = 1000
+
+    with fits.open(tmp_path / "test.fits") as hdulist2:
+        assert isinstance(hdulist2[1], MyImage2)
+
+    # We can also make a less deep class higher priority
+
+    MyImage1.__match_header_priority__ = 2000
+    MyImage3.__match_header_priority__ = 1000
+
+    with fits.open(tmp_path / "test.fits") as hdulist2:
+        assert isinstance(hdulist2[1], MyImage1)
+        assert not isinstance(hdulist2[1], MyImage2)
+        assert not isinstance(hdulist2[1], MyImage3)
+
+    # Or we can use negative values to make these lower priority than the built-in defaults
+
+    MyImage1.__match_header_priority__ = -1000
+    MyImage2.__match_header_priority__ = -1000
+    MyImage3.__match_header_priority__ = -1000
+
+    with fits.open(tmp_path / "test.fits") as hdulist2:
+        assert isinstance(hdulist2[1], fits.ImageHDU)
+        assert not isinstance(hdulist2[1], MyImage1)
+        assert not isinstance(hdulist2[1], MyImage2)
+        assert not isinstance(hdulist2[1], MyImage3)
