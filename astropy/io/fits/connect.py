@@ -184,10 +184,11 @@ def read_table_fits(
     """
     if isinstance(input, HDUList):
         # Parse all table objects
-        tables = {}
-        for ihdu, hdu_item in enumerate(input):
-            if isinstance(hdu_item, (TableHDU, BinTableHDU, GroupsHDU)):
-                tables[ihdu] = hdu_item
+        tables = {
+            ihdu: hdu_item
+            for ihdu, hdu_item in enumerate(input)
+            if isinstance(hdu_item, (TableHDU, BinTableHDU, GroupsHDU))
+        }
 
         if len(tables) > 1:
             if hdu is None:

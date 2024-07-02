@@ -138,7 +138,7 @@ def _get_lines_from_file(qdp_file):
         lines = qdp_file.split("\n")
     elif isinstance(qdp_file, str):
         with open(qdp_file) as fobj:
-            lines = [line.strip() for line in fobj.readlines()]
+            lines = [line.strip() for line in fobj]
     elif isinstance(qdp_file, Iterable):
         lines = qdp_file
     else:
