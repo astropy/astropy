@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import annotations
+
 import os
 
 from numpy import get_include as get_numpy_include
@@ -10,7 +12,7 @@ SRCFILES = ["wirth_select.c", "compute_bounds.c", "fast_sigma_clip.c"]
 SRCFILES = [os.path.join(ROOT, "src", srcfile) for srcfile in SRCFILES]
 
 
-def get_extensions():
+def get_extensions() -> list[Extension, Extension]:
     _sigma_clip_ext = Extension(
         name="astropy.stats._fast_sigma_clip",
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],

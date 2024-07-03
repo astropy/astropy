@@ -1,7 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import annotations
+
 import functools
 import warnings
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -18,13 +21,22 @@ if NUMPY_LT_2_0:
 else:
     from numpy.lib.array_utils import normalize_axis_index
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from typing import Literal
+
+    from numpy.typing import ArrayLike, NDArray
+
 __all__ = ["SigmaClip", "sigma_clip", "sigma_clipped_stats"]
 
 
 if HAS_BOTTLENECK:
     import bottleneck
 
-    def _move_tuple_axes_first(array, axis):
+    def _move_tuple_axes_first(
+        array: ArrayLike,
+        axis: tuple[int, ...] | None = None,
+    ) -> ArrayLike:
         """
         Bottleneck can only take integer axis, not tuple, so this function
         takes all the axes to be operated on and combines them into the
@@ -49,7 +61,12 @@ if HAS_BOTTLENECK:
 
         return array_new
 
-    def _apply_bottleneck(function, array, axis=None, **kwargs):
+    def _apply_bottleneck(
+        function: Callable,
+        array: ArrayLike,
+        axis: int | tuple[int, ...] | None = None,
+        **kwargs,
+    ) -> float | NDArray | Quantity:
         """Wrap bottleneck function to handle tuple axis.
 
         Also takes care to ensure the output is of the expected type,
@@ -78,7 +95,10 @@ else:
     _nanstd = np.nanstd
 
 
-def _nanmadstd(array, axis=None):
+def _nanmadstd(
+    array: ArrayLike,
+    axis: int | tuple[int, ...] | None = None,
+) -> float | NDArray:
     """mad_std function that ignores NaNs by default."""
     return mad_std(array, axis=axis, ignore_nan=True)
 
@@ -218,14 +238,14 @@ class SigmaClip:
 
     def __init__(
         self,
-        sigma=3.0,
-        sigma_lower=None,
-        sigma_upper=None,
-        maxiters=5,
-        cenfunc="median",
-        stdfunc="std",
-        grow=False,
-    ):
+        sigma: float | None = 3.0,
+        sigma_lower: float | None = None,
+        sigma_upper: float | None = None,
+        maxiters: int | None = 5,
+        cenfunc: Literal["median", "mean"] | Callable | None = "median",
+        stdfunc: Literal["std", "mad_std"] | Callable | None = "std",
+        grow: float | Literal[False] | None = False,
+    ) -> None:
         self.sigma = sigma
         self.sigma_lower = sigma_lower or sigma
         self.sigma_upper = sigma_upper or sigma
@@ -246,14 +266,14 @@ class SigmaClip:
 
             self._binary_dilation = binary_dilation
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"SigmaClip(sigma={self.sigma}, sigma_lower={self.sigma_lower},"
             f" sigma_upper={self.sigma_upper}, maxiters={self.maxiters},"
             f" cenfunc={self.cenfunc!r}, stdfunc={self.stdfunc!r}, grow={self.grow})"
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         lines = ["<" + self.__class__.__name__ + ">"]
         attrs = [
             "sigma",
@@ -269,7 +289,9 @@ class SigmaClip:
         return "\n".join(lines)
 
     @staticmethod
-    def _parse_cenfunc(cenfunc):
+    def _parse_cenfunc(
+        cenfunc: Literal["median", "mean"] | Callable | None,
+    ) -> Callable | None:
         if isinstance(cenfunc, str):
             if cenfunc == "median":
                 cenfunc = _nanmedian
@@ -283,7 +305,9 @@ class SigmaClip:
         return cenfunc
 
     @staticmethod
-    def _parse_stdfunc(stdfunc):
+    def _parse_stdfunc(
+        stdfunc: Literal["std", "mad_std"] | Callable | None,
+    ) -> Callable | None:
         if isinstance(stdfunc, str):
             if stdfunc == "std":
                 stdfunc = _nanstd
@@ -294,7 +318,11 @@ class SigmaClip:
 
         return stdfunc
 
-    def _compute_bounds(self, data, axis=None):
+    def _compute_bounds(
+        self,
+        data: ArrayLike,
+        axis: int | tuple[int, ...] | None = None,
+    ) -> None:
         # ignore RuntimeWarning if the array (or along an axis) has only
         # NaNs
         with warnings.catch_warnings():
@@ -305,7 +333,17 @@ class SigmaClip:
             self._max_value = cen + (std * self.sigma_upper)
 
     def _sigmaclip_fast(
-        self, data, axis=None, masked=True, return_bounds=False, copy=True
+        self,
+        data: ArrayLike,
+        axis: int | tuple[int, ...] | None = None,
+        masked: bool | None = True,
+        return_bounds: bool | None = False,
+        copy: bool | None = True,
+    ) -> (
+        NDArray
+        | np.ma.MaskedArray
+        | tuple[NDArray | np.ma.MaskedArray, float, float]
+        | tuple[NDArray | np.ma.MaskedArray, NDArray, NDArray]
     ):
         """
         Fast C implementation for simple use cases.
@@ -402,7 +440,13 @@ class SigmaClip:
         else:
             return result
 
-    def _sigmaclip_noaxis(self, data, masked=True, return_bounds=False, copy=True):
+    def _sigmaclip_noaxis(
+        self,
+        data: ArrayLike,
+        masked: bool | None = True,
+        return_bounds: bool | None = False,
+        copy: bool | None = True,
+    ) -> NDArray | np.ma.MaskedArray | tuple[NDArray | np.ma.MaskedArray, float, float]:
         """
         Sigma clip when ``axis`` is None and ``grow`` is not >0.
 
@@ -455,7 +499,17 @@ class SigmaClip:
             return filtered_data
 
     def _sigmaclip_withaxis(
-        self, data, axis=None, masked=True, return_bounds=False, copy=True
+        self,
+        data: ArrayLike,
+        axis: int | tuple[int, ...] | None = None,
+        masked: bool | None = True,
+        return_bounds: bool | None = False,
+        copy: bool | None = True,
+    ) -> (
+        NDArray
+        | np.ma.MaskedArray
+        | tuple[NDArray | np.ma.MaskedArray, float, float]
+        | tuple[NDArray | np.ma.MaskedArray, NDArray, NDArray]
     ):
         """
         Sigma clip the data when ``axis`` or ``grow`` is specified.
@@ -558,7 +612,19 @@ class SigmaClip:
         else:
             return filtered_data
 
-    def __call__(self, data, axis=None, masked=True, return_bounds=False, copy=True):
+    def __call__(
+        self,
+        data: ArrayLike,
+        axis: int | tuple[int, ...] | None = None,
+        masked: bool | None = True,
+        return_bounds: bool | None = False,
+        copy: bool | None = True,
+    ) -> (
+        NDArray
+        | np.ma.MaskedArray
+        | tuple[NDArray | np.ma.MaskedArray, float, float]
+        | tuple[NDArray | np.ma.MaskedArray, NDArray, NDArray]
+    ):
         """
         Perform sigma clipping on the provided data.
 
@@ -668,19 +734,19 @@ class SigmaClip:
 
 
 def sigma_clip(
-    data,
-    sigma=3,
-    sigma_lower=None,
-    sigma_upper=None,
-    maxiters=5,
-    cenfunc="median",
-    stdfunc="std",
-    axis=None,
-    masked=True,
-    return_bounds=False,
-    copy=True,
-    grow=False,
-):
+    data: ArrayLike,
+    sigma: float | None = 3.0,
+    sigma_lower: float | None = None,
+    sigma_upper: float | None = None,
+    maxiters: int | None = 5,
+    cenfunc: Literal["median", "mean"] | Callable | None = "median",
+    stdfunc: Literal["std", "mad_std"] | Callable | None = "std",
+    axis: int | tuple[int, ...] | None = None,
+    masked: bool | None = True,
+    return_bounds: bool | None = False,
+    copy: bool | None = True,
+    grow: float | Literal[False] | None = False,
+) -> ArrayLike | tuple[ArrayLike, float, float] | tuple[ArrayLike, ...]:
     """
     Perform sigma-clipping on the provided data.
 
@@ -877,19 +943,19 @@ def sigma_clip(
 
 
 def sigma_clipped_stats(
-    data,
-    mask=None,
-    mask_value=None,
-    sigma=3.0,
-    sigma_lower=None,
-    sigma_upper=None,
-    maxiters=5,
-    cenfunc="median",
-    stdfunc="std",
-    std_ddof=0,
-    axis=None,
-    grow=False,
-):
+    data: ArrayLike,
+    mask: NDArray | None = None,
+    mask_value: float | None = None,
+    sigma: float | None = 3.0,
+    sigma_lower: float | None = None,
+    sigma_upper: float | None = None,
+    maxiters: int | None = 5,
+    cenfunc: Literal["median", "mean"] | Callable | None = "median",
+    stdfunc: Literal["std", "mad_std"] | Callable | None = "std",
+    std_ddof: int | None = 0,
+    axis: int | tuple[int, ...] | None = None,
+    grow: float | Literal[False] | None = False,
+) -> tuple[float, float, float]:
     """
     Calculate sigma-clipped statistics on the provided data.
 

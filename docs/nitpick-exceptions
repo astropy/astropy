@@ -88,6 +88,9 @@ py:class Real
 py:class np.number
 # numpy.typing
 py:class NDArray
+py:class ArrayLike
+# np.ma
+py:class np.ma.MaskedArray
 # locally defined type variable for ndarray dtype
 py:class DT
 
