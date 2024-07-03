@@ -16,7 +16,7 @@ In particular, this release includes:
 * :ref:`whatsnew_7_0_quantity_to_string_formatter`
 * :ref:`whatsnew_7_0_ecsv_meta_default_dict`
 * :ref:`whatsnew_7_0_contributor_doc_improvement`
-* :ref:`whatsnew_7_0_typing`
+* :ref:`whatsnew_7_0_typing_stats`
 
 In addition to these major changes, Astropy v7.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -96,10 +96,10 @@ addition, the developer documentation was reorganized and simplified where possi
 improve readability and accessibility. We welcome continued feedback on how to make
 contributing to Astropy even easier and more enjoyable.
 
-.. _whatsnew_7_0_typing:
+.. _whatsnew_7_0_typing_stats:
 
-Typing in astropy
-=================
+Typing in astropy.stats
+=======================
 
 The ``astropy.stats`` module is now fully typed. This is the first subpackage for
 which this the case.
