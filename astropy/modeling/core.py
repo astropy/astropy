@@ -971,7 +971,7 @@ class Model(metaclass=_ModelMeta):
         inputs, broadcasted_shapes = self.prepare_inputs(*args, **kwargs)
 
         # Setup actual model evaluation method
-        parameters = self._param_sets(raw=True, units=True)
+        parameters = self._param_sets(raw=True, units=self._has_units)
 
         def evaluate(_inputs):
             return self.evaluate(*_inputs, *parameters)
