@@ -891,6 +891,31 @@ class TestUfuncLikeTests:
         assert np.array_equiv(self.mb, np.stack([self.mb, self.mb]))
 
 
+class TestArrayAPI:
+    @classmethod
+    def setup_class(self):
+        self.a = np.tile(np.arange(5.0), 2).reshape(2, 5)
+        self.mask_a = np.array([[False] * 5, [True] * 4 + [False]])
+        self.ma = Masked(self.a, mask=self.mask_a)
+
+    def check(self, func, *args, **kwargs):
+        out = func(self.ma, *args, **kwargs)
+        expected = func(self.a, *args, **kwargs)
+        assert type(out) is MaskedNDArray
+        assert out.dtype.kind == "f"
+        assert_array_equal(out.unmasked, expected)
+        assert_array_equal(out.mask, self.mask_a)
+        assert not np.may_share_memory(out.mask, self.mask_a)
+
+    @pytest.mark.skipif(NUMPY_LT_2_1, reason="np.cumulative_prod is new in NumPy 2.1")
+    def test_cumulative_prod(self):
+        self.check(np.cumulative_prod, axis=0)
+
+    @pytest.mark.skipif(NUMPY_LT_2_1, reason="np.cumulative_sum is new in NumPy 2.1")
+    def test_cumulative_sum(self):
+        self.check(np.cumulative_sum, axis=0)
+
+
 class TestOuterLikeFunctions(MaskedArraySetup):
     def test_outer(self):
         result = np.outer(self.ma, self.mb)
