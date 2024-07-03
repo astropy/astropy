@@ -1501,6 +1501,7 @@ def test_non_linear_fit_zero_degree_polynomial_with_weights(fitter):
     assert_almost_equal(fit.c0, 1.0)
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_sync_constraints_after_fitting():
 
     # Check that Model.sync_constraints is True after fitting - this is a
