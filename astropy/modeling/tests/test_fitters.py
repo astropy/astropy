@@ -1503,7 +1503,6 @@ def test_non_linear_fit_zero_degree_polynomial_with_weights(fitter):
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_sync_constraints_after_fitting():
-
     # Check that Model.sync_constraints is True after fitting - this is a
     # regression test for a bug that caused sync_constraints to be False
     # after fitting a model with some non-linear fitters.
@@ -1515,4 +1514,4 @@ def test_sync_constraints_after_fitting():
     m = fitter(m_init, x, y)
     assert m.sync_constraints is True
     m.amplitude.fixed = True
-    assert m.fixed == {'amplitude': True, 'mean': False, 'stddev': False}
+    assert m.fixed == {"amplitude": True, "mean": False, "stddev": False}
