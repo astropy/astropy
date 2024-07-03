@@ -133,7 +133,7 @@ if not NUMPY_LT_2_0:
     # trapz was renamed to trapezoid
     SUBCLASS_SAFE_FUNCTIONS |= {np.trapezoid}
 if not NUMPY_LT_2_1:
-    SUBCLASS_SAFE_FUNCTIONS |= {np.unstack}
+    SUBCLASS_SAFE_FUNCTIONS |= {np.unstack, np.cumulative_prod, np.cumulative_sum}
 
 # Implemented as methods on Quantity:
 # np.ediff1d is from setops, but we support it anyway; the others
