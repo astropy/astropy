@@ -1952,7 +1952,9 @@ class Model(metaclass=_ModelMeta):
 
             for param in params:
                 try:
-                    if self.standard_broadcasting:
+                    # bypass the broadcast_shapes call for performance reasons
+                    # if parameter is a scalar
+                    if self.standard_broadcasting and param.shape:
                         broadcast = np.broadcast_shapes(input_shape, param.shape)
                     else:
                         broadcast = input_shape
