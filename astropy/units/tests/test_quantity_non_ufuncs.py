@@ -671,6 +671,10 @@ class TestUfuncReductions(InvariantUnitTestSetup):
     def test_cumsum(self):
         self.check(np.cumsum)
 
+    @pytest.mark.skipif(NUMPY_LT_2_1, reason="np.cumulative_sum is new in NumPy 2.1")
+    def test_cumulative_sum(self):
+        self.check(np.cumulative_sum, axis=1)
+
     def test_any(self):
         with pytest.raises(TypeError):
             np.any(self.q)
@@ -712,6 +716,11 @@ class TestUfuncReductions(InvariantUnitTestSetup):
     def test_cumproduct(self):
         with pytest.raises(u.UnitsError):
             np.cumproduct(self.q)  # noqa: NPY003, NPY201
+
+    @pytest.mark.skipif(NUMPY_LT_2_1, reason="np.cumulative_prod is new in NumPy 2.1")
+    def test_cumulative_prod(self):
+        with pytest.raises(u.UnitsError):
+            np.cumulative_prod(self.q, axis=1)
 
 
 class TestUfuncLike(InvariantUnitTestSetup):
