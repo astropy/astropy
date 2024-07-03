@@ -1063,15 +1063,17 @@ class Model(metaclass=_ModelMeta):
                 )
             )
 
+        # If we only have one input we don't need to broadcast it
+        if self.n_inputs == 1:
+            return all_shapes[0]
+
         try:
-            input_shape = np.broadcast_shapes(*all_shapes)
+            return np.broadcast_shapes(*all_shapes)
         except ValueError as exc:
             _add_note_to_exception(
                 exc, "All inputs must have identical shapes or must be scalars."
             )
             raise exc
-
-        return input_shape
 
     def input_shape(self, inputs):
         """Get input shape for bounding_box evaluation."""
