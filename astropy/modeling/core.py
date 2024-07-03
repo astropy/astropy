@@ -1064,7 +1064,7 @@ class Model(metaclass=_ModelMeta):
             )
 
         # If we only have one input we don't need to broadcast it
-        if self.n_inputs == 1:
+        if len(all_shapes) == 1:
             return all_shapes[0]
 
         try:
