@@ -2689,7 +2689,7 @@ def _condition_arg(value):
         value = np.array(value)
         dtype = value.dtype
 
-    if dtype.kind not in ["i", "f", "c"]:
+    if dtype.kind not in "ifc":
         raise ValueError(
             "Value not scalar compatible or convertible to "
             "an int, float, or complex array"
