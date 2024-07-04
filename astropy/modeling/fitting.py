@@ -1176,7 +1176,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         if weights is None:
             weights = 1.0
 
-        if any(model.fixed.values()) or any(model.tied.values()):
+        if model.has_fixed or model.has_tied:
             # update the parameters with the current values from the fitter
             fitter_to_model_params(model, params)
             if z is None:
@@ -2002,9 +2002,9 @@ def fitter_to_model_params(model, fps, use_min_max_bounds=True):
     """
     _, fit_param_indices, _ = model_to_fit_params(model)
 
-    has_tied = any(model.tied.values())
-    has_fixed = any(model.fixed.values())
-    has_bound = any(b != (None, None) for b in model.bounds.values())
+    has_tied = model.has_tied
+    has_fixed = model.has_fixed
+    has_bound = model.has_bounds
     parameters = model.parameters
 
     if not (has_tied or has_fixed or has_bound):
@@ -2069,7 +2069,7 @@ def model_to_fit_params(model):
     fitparam_indices = list(range(len(model.param_names)))
     model_params = model.parameters
     model_bounds = list(model.bounds.values())
-    if any(model.fixed.values()) or any(model.tied.values()):
+    if model.has_fixed or model.has_tied:
         params = list(model_params)
         param_metrics = model._param_metrics
         for idx, name in list(enumerate(model.param_names))[::-1]:
@@ -2100,16 +2100,13 @@ def _validate_constraints(supported_constraints, model):
     """Make sure model constraints are supported by the current fitter."""
     message = "Optimizer cannot handle {0} constraints."
 
-    if any(model.fixed.values()) and "fixed" not in supported_constraints:
+    if model.has_fixed and "fixed" not in supported_constraints:
         raise UnsupportedConstraintError(message.format("fixed parameter"))
 
-    if any(model.tied.values()) and "tied" not in supported_constraints:
+    if model.has_tied and "tied" not in supported_constraints:
         raise UnsupportedConstraintError(message.format("tied parameter"))
 
-    if (
-        any(tuple(b) != (None, None) for b in model.bounds.values())
-        and "bounds" not in supported_constraints
-    ):
+    if model.has_bounds and "bounds" not in supported_constraints:
         raise UnsupportedConstraintError(message.format("bound parameter"))
 
     if model.eqcons and "eqcons" not in supported_constraints:
