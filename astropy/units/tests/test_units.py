@@ -12,6 +12,7 @@ from numpy.testing import assert_allclose
 from astropy import constants as c
 from astropy import units as u
 from astropy.units import utils
+from astropy.utils.compat.optional_deps import HAS_DASK
 
 
 def test_initialisation():
@@ -985,10 +986,12 @@ def test_hash_represents_unit(unit, power):
     assert hash(tu2) == hash(unit)
 
 
+@pytest.mark.skipif(not HAS_DASK, reason="tests dask.array")
 def test_dask_arrays():
+
     # Make sure that dask arrays can be passed in/out of Unit.to()
 
-    da = pytest.importorskip("dask.array")
+    from dask import array as da
 
     data1 = da.from_array([1, 2, 3])
 

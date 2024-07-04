@@ -2684,19 +2684,17 @@ def _condition_arg(value):
     if isinstance(value, (np.ndarray, float, int, complex, np.void)):
         return value
 
-    if (
-        value.__class__.__module__ == "dask.array.core"
-        and value.__class__.__name__ == "Array"
-    ):
-        return value
+    dtype = getattr(value, "dtype", None)
+    if dtype is None:
+        value = np.array(value)
+        dtype = value.dtype
 
-    avalue = np.array(value)
-    if avalue.dtype.kind not in ["i", "f", "c"]:
+    if dtype.kind not in ["i", "f", "c"]:
         raise ValueError(
             "Value not scalar compatible or convertible to "
             "an int, float, or complex array"
         )
-    return avalue
+    return value
 
 
 def unit_scale_converter(val):
