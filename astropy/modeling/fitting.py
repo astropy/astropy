@@ -1371,7 +1371,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
             model_copy, y, init_values, cov_x, fitparams, farg, weights
         )
 
-        model.sync_constraints = True
+        model_copy.sync_constraints = True
         return model_copy
 
 
