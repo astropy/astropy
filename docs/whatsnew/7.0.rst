@@ -121,6 +121,8 @@ value in ``Unit.to`` and have those arrays not be converted to Numpy arrays::
     >>> u.m.to(u.km, value=arr)
     dask.array<mul, shape=(10,), dtype=float64, chunksize=(10,), chunktype=numpy.ndarray>
 
+Note that it is not yet possible to use ``Quantity`` with dask arrays directly.
+
 Full change log
 ===============
 
