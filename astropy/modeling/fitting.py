@@ -1173,7 +1173,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         model.stds = StandardDeviations(cov_matrix, free_param_names)
 
     @staticmethod
-    def _wrap_deriv(params, model, weights, x, y, z=None):
+    def _wrap_deriv(params, model, weights, *args):
         """
         Wraps the method calculating the Jacobian of the function to account
         for model constraints.
@@ -1182,6 +1182,14 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         constraints, instead of using p directly, we set the parameter list in
         this function.
         """
+        if len(args) == 4:
+            x, y, z = args[:-1]
+        else:
+            x, y = args[:-1]
+            z = None
+
+        context = args[-1]
+
         if weights is None:
             weights = 1.0
 
@@ -1516,13 +1524,11 @@ class _NLLSQFitter(_NonLinearLSQFitter):
             dfunc = "2-point"
         else:
 
-            def _dfunc(params, model, weights, x, y, z=None):
+            def _dfunc(params, model, weights, *args):
                 if model.col_fit_deriv:
-                    return np.transpose(
-                        self._wrap_deriv(params, model, weights, x, y, z)
-                    )
+                    return np.transpose(self._wrap_deriv(params, model, weights, *args))
                 else:
-                    return self._wrap_deriv(params, model, weights, x, y, z)
+                    return self._wrap_deriv(params, model, weights, *args)
 
             dfunc = _dfunc
 
@@ -2089,12 +2095,7 @@ def fitter_to_model_params(model, fps, use_min_max_bounds=True):
     parameters = fitter_to_model_params_array(
         model, fps, use_min_max_bounds, fit_param_indices=fit_param_indices
     )
-
-    # Only call _array_to_parameters again if we don't have tied params because
-    # if we do we already called it and updated the model in place
-    if not any(model.fixed.values()):
-        model.parameters = parameters
-        model._array_to_parameters()
+    model.parameters = parameters
 
 
 def model_to_fit_params(model):
