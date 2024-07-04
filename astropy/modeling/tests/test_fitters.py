@@ -1499,3 +1499,19 @@ def test_non_linear_fit_zero_degree_polynomial_with_weights(fitter):
 
     fit = fitter(model, x, y, weights=weights)
     assert_almost_equal(fit.c0, 1.0)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_sync_constraints_after_fitting():
+    # Check that Model.sync_constraints is True after fitting - this is a
+    # regression test for a bug that caused sync_constraints to be False
+    # after fitting a model with some non-linear fitters.
+
+    x = np.arange(10, dtype=float)
+    y = np.ones((10,))
+    m_init = models.Gaussian1D()
+    fitter = TRFLSQFitter()
+    m = fitter(m_init, x, y)
+    assert m.sync_constraints is True
+    m.amplitude.fixed = True
+    assert m.fixed == {"amplitude": True, "mean": False, "stddev": False}
