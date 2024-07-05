@@ -135,7 +135,12 @@ if "templates_path" not in locals():  # in case parent conf.py defines it
     templates_path = []
 templates_path.append("_templates")
 
-extensions += ["sphinx_changelog", "sphinx_design", "sphinxcontrib.globalsubs"]
+extensions += [
+    "matplotlib.sphinxext.roles",
+    "sphinx_changelog",
+    "sphinx_design",
+    "sphinxcontrib.globalsubs",
+]
 
 # Grab minversion from pyproject.toml
 with (Path(__file__).parents[1] / "pyproject.toml").open("rb") as f:
