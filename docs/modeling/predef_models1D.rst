@@ -34,10 +34,10 @@ These models provide shapes, often used to model general x, y data.
   line parameterizied by the slope and y-intercept
 
 - :class:`~astropy.modeling.functional_models.Sine1D` model provides a sine
-  parameterized by an amplitude, frequency, and phase.
+  parameterized by an amplitude, frequency, and phase shift.
 
 - :class:`~astropy.modeling.functional_models.Cosine1D` model provides a
-  cosine parameterized by an amplitude, frequency, and phase.
+  cosine parameterized by an amplitude, frequency, and phase shift.
 
 .. plot::
 
