@@ -999,10 +999,14 @@ def test_fit_multiplied_compound_model_with_mixed_units():
     fit_output = fit(x)
 
     assert unfit_output.unit == fit_output.unit == (u.kg * u.m / u.s)
-    assert_allclose(unfit_output, fit_output)
 
-    for name in truth.param_names:
-        assert getattr(truth, name) == getattr(fit, name)
+    # The unfit model is 10 kg m^2 / s for x=0s and goes up to 60 kg m^2 / s
+    # for x=1s, whereas the actual data being fit goes from 5 to 10, so we need
+    # to correct this.
+    assert_allclose(unfit_output / 10 + 4 * u.kg * u.m / u.s, fit_output)
+
+    # There are degeneracies between the parameters of this model, so we cannot
+    # reliably check the values of the fit parameters.
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
@@ -1020,16 +1024,20 @@ def test_fit_multiplied_recursive_compound_model_with_mixed_units():
     m2 = Linear1D(slope=0.0 * u.kg / u.s, intercept=10.0 * u.kg)
     m3 = Linear1D(slope=0.0 * u.m / u.s, intercept=10.0 * u.m)
     truth = m1 * m2 * m3
-    fit = fitter(truth, x, y)
+    fit = fitter(truth, x, y, maxiter=1000)
 
     unfit_output = truth(x)
     fit_output = fit(x)
 
     assert unfit_output.unit == fit_output.unit == (u.kg * u.m * u.m / u.s)
-    assert_allclose(unfit_output, fit_output)
 
-    for name in truth.param_names:
-        assert getattr(truth, name) == getattr(fit, name)
+    # The unfit model is 100 kg m^2 / s for x=0s and goes up to 600 kg m^2 / s
+    # for x=1s, whereas the actual data being fit goes from 5 to 10, so we need
+    # to correct this.
+    assert_allclose(unfit_output / 100 + 4 * u.kg * u.m * u.m / u.s, fit_output)
+
+    # There are degeneracies between the parameters of this model, so we cannot
+    # reliably check the values of the fit parameters.
 
     x = np.linspace(0, 1, 101) * u.s
     y = np.linspace(5, 10, 101) * u.m * u.m * u.kg * u.kg / u.s
@@ -1041,16 +1049,20 @@ def test_fit_multiplied_recursive_compound_model_with_mixed_units():
     m11 = m1 * m2
     m22 = m3 * m4
     truth = m11 * m22
-    fit = fitter(truth, x, y)
+    fit = fitter(truth, x, y, maxiter=1000)
 
     unfit_output = truth(x)
     fit_output = fit(x)
 
     assert unfit_output.unit == fit_output.unit == (u.kg * u.kg * u.m * u.m / u.s)
-    assert_allclose(unfit_output, fit_output)
 
-    for name in truth.param_names:
-        assert getattr(truth, name) == getattr(fit, name)
+    # The unfit model is 1000 kg m^2 / s for x=0s and goes up to 6000 kg m^2 / s
+    # for x=1s, whereas the actual data being fit goes from 5 to 10, so we need
+    # to correct this.
+    assert_allclose(unfit_output / 1000 + 4 * u.kg * u.kg * u.m * u.m / u.s, fit_output)
+
+    # There are degeneracies between the parameters of this model, so we cannot
+    # reliably check the values of the fit parameters.
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
@@ -1066,16 +1078,20 @@ def test_fit_divided_compound_model_with_mixed_units():
     m1 = Linear1D(slope=5 * u.kg * u.m / u.s, intercept=1.0 * u.kg * u.m)
     m2 = Linear1D(slope=0.0 * u.s / u.s, intercept=10.0 * u.s)
     truth = m1 / m2
-    fit = fitter(truth, x, y)
+    fit = fitter(truth, x, y, maxiter=1000)
 
     unfit_output = truth(x)
     fit_output = fit(x)
 
     assert unfit_output.unit == fit_output.unit == (u.kg * u.m / u.s)
-    assert_allclose(unfit_output, fit_output)
 
-    for name in truth.param_names:
-        assert getattr(truth, name) == getattr(fit, name)
+    # The unfit model is 0.1 kg m / s for x=0s and goes up to 0.5 kg m / s for
+    # x=1s, whereas the actual data being fit goes from 5 to 10, so we need
+    # to correct this.
+    assert_allclose(unfit_output * 10 + 4 * u.kg * u.m / u.s, fit_output, rtol=1e-4)
+
+    # There are degeneracies between the parameters of this model, so we cannot
+    # reliably check the values of the fit parameters.
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
@@ -1093,16 +1109,20 @@ def test_fit_mixed_recursive_compound_model_with_mixed_units():
     m2 = Linear1D(slope=0.0 * u.s / u.s, intercept=10.0 * u.s)
     m3 = Linear1D(slope=0.0 * u.m / u.s, intercept=10.0 * u.m)
     truth = m1 / m2 * m3
-    fit = fitter(truth, x, y)
+    fit = fitter(truth, x, y, maxiter=1000)
 
     unfit_output = truth(x)
     fit_output = fit(x)
 
     assert unfit_output.unit == fit_output.unit == (u.kg * u.m * u.m / u.s)
-    assert_allclose(unfit_output, fit_output)
 
-    for name in truth.param_names:
-        assert getattr(truth, name) == getattr(fit, name)
+    # The unfit model is 1 kg m^2 / s for x=0s and goes up to 6 kg m^2 / s for
+    # x=1s, whereas the actual data being fit goes from 5 to 10, so we need
+    # to correct this.
+    assert_allclose(unfit_output + 4 * u.kg * u.m * u.m / u.s, fit_output)
+
+    # There are degeneracies between the parameters of this model, so we cannot
+    # reliably check the values of the fit parameters.
 
     x = np.linspace(0, 1, 101) * u.s
     y = np.linspace(5, 10, 101) * u.kg * u.kg * u.m * u.m / u.s
@@ -1114,13 +1134,18 @@ def test_fit_mixed_recursive_compound_model_with_mixed_units():
     m11 = m1 / m2
     m22 = m3 * m4
     truth = m11 * m22
-    fit = fitter(truth, x, y)
+    fit = fitter(truth, x, y, maxiter=1000)
 
     unfit_output = truth(x)
     fit_output = fit(x)
 
     assert unfit_output.unit == fit_output.unit == (u.kg * u.kg * u.m * u.m / u.s)
-    assert_allclose(unfit_output, fit_output)
 
-    for name in truth.param_names:
-        assert getattr(truth, name) == getattr(fit, name)
+    # The unfit model is 10 kg^2 m^2 / s for x=0s and goes up to 60 kg^2 m^2 / s
+    # for x=1s, whereas the actual data being fit goes from 5 to 10, so we need
+    # to correct this.
+
+    assert_allclose(unfit_output / 10 + 4 * u.kg * u.kg * u.m * u.m / u.s, fit_output)
+
+    # There are degeneracies between the parameters of this model, so we cannot
+    # reliably check the values of the fit parameters.
