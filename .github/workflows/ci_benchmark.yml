@@ -71,8 +71,8 @@ jobs:
           ASV_SKIP_SLOW: 1
         run: |
           set -x
-          python -m pip install pip setuptools --upgrade
           python -m pip install asv virtualenv packaging
+          python -m pip freeze
 
           git clone -b main https://github.com/astropy/astropy-benchmarks.git --single-branch
 
