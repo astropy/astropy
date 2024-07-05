@@ -988,7 +988,6 @@ def test_hash_represents_unit(unit, power):
 
 @pytest.mark.skipif(not HAS_DASK, reason="tests dask.array")
 def test_dask_arrays():
-
     # Make sure that dask arrays can be passed in/out of Unit.to()
 
     from dask import array as da
