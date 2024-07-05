@@ -6,7 +6,7 @@ from astropy.io.fits.hdu.base import BITPIX2DTYPE
 from astropy.io.fits.hdu.compressed._tiled_compression import (
     decompress_image_data_section,
 )
-from astropy.io.fits.hdu.compressed.utils import _data_shape, _n_tiles, _tile_shape
+from astropy.io.fits.hdu.compressed.utils import _n_tiles
 from astropy.utils.shapes import simplify_basic_index
 
 __all__ = ["CompImageSection"]

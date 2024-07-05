@@ -14,7 +14,6 @@ from astropy.io.fits.hdu.compressed._tiled_compression import (
     _get_compression_setting,
     compress_image_data,
 )
-from astropy.io.fits.hdu.compressed.compbintable import _CompBinTableHDU
 from astropy.io.fits.hdu.compressed.utils import _tile_shape, _validate_tile_shape
 from astropy.io.fits.hdu.image import ImageHDU
 from astropy.io.fits.util import _is_int
