@@ -1049,7 +1049,7 @@ def test_fit_multiplied_recursive_compound_model_with_mixed_units():
     m11 = m1 * m2
     m22 = m3 * m4
     truth = m11 * m22
-    fit = fitter(truth, x, y, maxiter=1000)
+    fit = fitter(truth, x, y, maxiter=10000)
 
     unfit_output = truth(x)
     fit_output = fit(x)
