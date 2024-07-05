@@ -745,8 +745,8 @@ def _image_header_to_empty_bintable(
     # FIXME: don't use keyword_remaps, instead define an actual list to check
     # including regular expressions for NAXIS and other similar keywords
     for card in image_header.cards:
-        if card.keyword == "":  # BLANK
-            continue
+        if card.keyword == "":
+            bintable.header.add_blank()
         elif card.keyword == "COMMENT":
             bintable.header.add_comment(card.value)
         elif card.keyword == "HISTORY":
