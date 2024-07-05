@@ -191,9 +191,13 @@ Creating and submitting a pull request
 
 You can contribute bug fixes, new features, and documentation updates by submitting a
 GitHub pull request (PR). This section will guide you through the process. We encourage
-you to `ask for help <https://www.astropy.org/help.html>`_ if you get stuck. The astropy
+you to `ask for help <https://www.astropy.org/help.html>`_ if you get stuck. The Astropy
 community is welcoming and friendly and will help you!
 
+If you are new to the Astropy Project and interested to submit a large patch
+(e.g., a new big feature or significant refactoring), we encourage you to first
+discuss your ideas on GitHub to increase the chance of your PR
+being accepted.
 
 Creating a branch
 -----------------
