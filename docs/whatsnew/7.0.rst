@@ -113,7 +113,7 @@ Converting units on dask and other array-like objects
 It is now possible to pass in array-like objects such as dask arrays as the
 value in ``Unit.to`` and have those arrays not be converted to Numpy arrays::
 
-.. doctest-requires:: scipy
+.. doctest-requires:: dask
 
     >>> from dask import array as da
     >>> from astropy import units as u
