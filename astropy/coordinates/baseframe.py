@@ -1429,9 +1429,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             data = self.data
             data_repr = repr(self.data)
 
-        if data_repr.startswith(class_prefix := f"<{type(data).__name__}"):
-            # `class_prefix` can be followed by at least " " or ":" which we remove too
-            data_repr = data_repr.removeprefix(class_prefix)[1:].removesuffix(">")
+        if data_repr.startswith(class_prefix := f"<{type(data).__name__} "):
+            data_repr = data_repr.removeprefix(class_prefix).removesuffix(">")
         else:
             data_repr = "Data:\n" + data_repr
 

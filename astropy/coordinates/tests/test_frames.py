@@ -1330,14 +1330,14 @@ def test_representation_subclass():
         attr_classes = r.UnitSphericalRepresentation.attr_classes
 
         def __repr__(self):
-            return "<NewUnitSphericalRepresentation: spam spam spam>"
+            return "<NewUnitSphericalRepresentation spam spam spam>"
 
     frame = FK5(
         NewUnitSphericalRepresentation(lon=32 * u.deg, lat=20 * u.deg),
         representation_type=NewSphericalRepresentation,
     )
 
-    assert repr(frame) == "<FK5 Coordinate (equinox=J2000.000):  spam spam spam>"
+    assert repr(frame) == "<FK5 Coordinate (equinox=J2000.000): spam spam spam>"
 
 
 def test_getitem_representation():
