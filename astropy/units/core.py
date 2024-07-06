@@ -2684,13 +2684,17 @@ def _condition_arg(value):
     if isinstance(value, (np.ndarray, float, int, complex, np.void)):
         return value
 
-    avalue = np.array(value)
-    if avalue.dtype.kind not in ["i", "f", "c"]:
+    dtype = getattr(value, "dtype", None)
+    if dtype is None:
+        value = np.array(value)
+        dtype = value.dtype
+
+    if dtype.kind not in "ifc":
         raise ValueError(
             "Value not scalar compatible or convertible to "
             "an int, float, or complex array"
         )
-    return avalue
+    return value
 
 
 def unit_scale_converter(val):
