@@ -12,6 +12,7 @@ from numpy.testing import assert_allclose
 from astropy import constants as c
 from astropy import units as u
 from astropy.units import utils
+from astropy.utils.compat.optional_deps import HAS_DASK
 
 
 def test_initialisation():
@@ -983,3 +984,24 @@ def test_hash_represents_unit(unit, power):
     assert hash(tu) == hash(unit)
     tu2 = (unit ** (1 / power)) ** power
     assert hash(tu2) == hash(unit)
+
+
+@pytest.mark.skipif(not HAS_DASK, reason="tests dask.array")
+def test_dask_arrays():
+    # Make sure that dask arrays can be passed in/out of Unit.to()
+
+    from dask import array as da
+
+    data1 = da.from_array([1, 2, 3])
+
+    data2 = u.m.to(u.km, value=data1)
+
+    assert isinstance(data2, da.core.Array)
+
+    assert_allclose(data2.compute(), [0.001, 0.002, 0.003])
+
+    data3 = u.K.to(u.deg_C, value=data1, equivalencies=u.temperature())
+
+    assert isinstance(data3, da.core.Array)
+
+    assert_allclose(data3.compute(), [-272.15, -271.15, -270.15])

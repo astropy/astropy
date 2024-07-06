@@ -17,6 +17,7 @@ In particular, this release includes:
 * :ref:`whatsnew_7_0_ecsv_meta_default_dict`
 * :ref:`whatsnew_7_0_contributor_doc_improvement`
 * :ref:`whatsnew_7_0_typing_stats`
+* :ref:`whatsnew_7_0_unit_conversion_array_like`
 
 In addition to these major changes, Astropy v7.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -103,6 +104,24 @@ Typing in astropy.stats
 
 The ``astropy.stats`` module is now fully typed. This is the first subpackage for
 which this the case.
+
+.. _whatsnew_7_0_unit_conversion_array_like:
+
+Converting units on dask and other array-like objects
+=====================================================
+
+It is now possible to pass in array-like objects such as dask arrays as the
+value in ``Unit.to`` and have those arrays not be converted to Numpy arrays::
+
+.. doctest-requires:: dask
+
+    >>> from dask import array as da
+    >>> from astropy import units as u
+    >>> arr = da.arange(10)
+    >>> u.m.to(u.km, value=arr)
+    dask.array<mul, shape=(10,), dtype=float64, chunksize=(10,), chunktype=numpy.ndarray>
+
+Note that it is not yet possible to use ``Quantity`` with dask arrays directly.
 
 Full change log
 ===============
