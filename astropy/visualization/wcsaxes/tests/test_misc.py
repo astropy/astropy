@@ -161,13 +161,13 @@ def test_set_label_properties(ignore_matplotlibrc):
     ax.set_xlabel("Test x label", labelpad=2, color="red")
     ax.set_ylabel("Test y label", labelpad=3, color="green")
 
-    assert ax.coords[0].axislabels.get_text() == "Test x label"
-    assert ax.coords[0].axislabels.get_minpad("b") == 2
-    assert ax.coords[0].axislabels.get_color() == "red"
+    assert ax.coords[0]._axislabels.get_text() == "Test x label"
+    assert ax.coords[0]._axislabels.get_minpad("b") == 2
+    assert ax.coords[0]._axislabels.get_color() == "red"
 
-    assert ax.coords[1].axislabels.get_text() == "Test y label"
-    assert ax.coords[1].axislabels.get_minpad("l") == 3
-    assert ax.coords[1].axislabels.get_color() == "green"
+    assert ax.coords[1]._axislabels.get_text() == "Test y label"
+    assert ax.coords[1]._axislabels.get_minpad("l") == 3
+    assert ax.coords[1]._axislabels.get_color() == "green"
 
     assert ax.get_xlabel() == "Test x label"
     assert ax.get_ylabel() == "Test y label"
