@@ -520,10 +520,10 @@ class WCSAxes(Axes):
             for coord in coords:
                 coord._draw_ticks(renderer, self._bboxes)
 
-                visible_ticks.extend(coord.ticklabels.get_visible_axes())
+                visible_ticks.extend(coord._ticklabels.get_visible_axes())
                 # Save ticklabel bboxes
-                ticklabels_bbox[coord] = coord.ticklabels._axis_bboxes
-                self._bboxes += coord.ticklabels._all_bboxes
+                ticklabels_bbox[coord] = coord._ticklabels._axis_bboxes
+                self._bboxes += coord._ticklabels._all_bboxes
 
         for coords in self._all_coords:
             # Draw axis labels
@@ -583,8 +583,8 @@ class WCSAxes(Axes):
                 )
         for coord in self.coords:
             if (
-                "b" in coord.axislabels.get_visible_axes()
-                or "h" in coord.axislabels.get_visible_axes()
+                "b" in coord._axislabels.get_visible_axes()
+                or "h" in coord._axislabels.get_visible_axes()
             ):
                 coord.set_axislabel(xlabel, minpad=labelpad, **kwargs)
                 break
@@ -603,8 +603,8 @@ class WCSAxes(Axes):
 
         for coord in self.coords:
             if (
-                "l" in coord.axislabels.get_visible_axes()
-                or "c" in coord.axislabels.get_visible_axes()
+                "l" in coord._axislabels.get_visible_axes()
+                or "c" in coord._axislabels.get_visible_axes()
             ):
                 coord.set_axislabel(ylabel, minpad=labelpad, **kwargs)
                 break
@@ -612,8 +612,8 @@ class WCSAxes(Axes):
     def get_xlabel(self):
         for coord in self.coords:
             if (
-                "b" in coord.axislabels.get_visible_axes()
-                or "h" in coord.axislabels.get_visible_axes()
+                "b" in coord._axislabels.get_visible_axes()
+                or "h" in coord._axislabels.get_visible_axes()
             ):
                 return coord.get_axislabel()
 
@@ -623,8 +623,8 @@ class WCSAxes(Axes):
 
         for coord in self.coords:
             if (
-                "l" in coord.axislabels.get_visible_axes()
-                or "c" in coord.axislabels.get_visible_axes()
+                "l" in coord._axislabels.get_visible_axes()
+                or "c" in coord._axislabels.get_visible_axes()
             ):
                 return coord.get_axislabel()
 
@@ -891,7 +891,7 @@ class WCSAxes(Axes):
             spine = "b" if axis == "x" else "l"
 
             for coord in self.coords:
-                if spine in coord.axislabels.get_visible_axes():
+                if spine in coord._axislabels.get_visible_axes():
                     coord.tick_params(**kwargs)
 
 
