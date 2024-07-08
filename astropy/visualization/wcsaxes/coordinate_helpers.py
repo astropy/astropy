@@ -414,6 +414,12 @@ class CoordinateHelper:
         """
         self.ticks.set_visible_axes(position)
 
+    def get_ticks_position(self):
+        """
+        Get where tick labels will appear.
+        """
+        return self.ticks.get_visible_axes()
+
     def set_ticks_visible(self, visible):
         """
         Set whether ticks are visible or not.
@@ -478,6 +484,12 @@ class CoordinateHelper:
             tick labels to be shown on the left and bottom axis.
         """
         self.ticklabels.set_visible_axes(position)
+
+    def get_ticklabel_position(self):
+        """
+        Get where tick labels will appear.
+        """
+        return self.ticklabels.get_visible_axes()
 
     def set_ticklabel_visible(self, visible):
         """
@@ -575,6 +587,12 @@ class CoordinateHelper:
             axis label to be shown on the left and bottom axis.
         """
         self.axislabels.set_visible_axes(position)
+
+    def get_axislabel_position(self):
+        """
+        Get where axis labels will appear.
+        """
+        return self.axislabels.get_visible_axes()
 
     def set_axislabel_visibility_rule(self, rule):
         """
