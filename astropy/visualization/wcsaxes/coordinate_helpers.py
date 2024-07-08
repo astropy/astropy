@@ -112,7 +112,9 @@ class CoordinateHelper:
         # Initialize ticks
         self.dpi_transform = Affine2D()
         self.offset_transform = ScaledTranslation(0, 0, self.dpi_transform)
-        self.ticks = Ticks(transform=parent_axes.transData + self.offset_transform)
+        self.ticks = Ticks(
+            frame=self.frame, transform=parent_axes.transData + self.offset_transform
+        )
 
         # Initialize tick labels
         self.ticklabels = TickLabels(

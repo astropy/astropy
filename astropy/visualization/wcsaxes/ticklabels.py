@@ -174,9 +174,9 @@ class TickLabels(Text):
 
     def get_visible_axes(self):
         if self._visible_axes == "all":
-            return self.world.keys()
+            return list(self._frame.keys())
         else:
-            return [x for x in self._visible_axes if x in self.world]
+            return [x for x in self._visible_axes if x in self._frame]
 
     def set_exclude_overlapping(self, exclude_overlapping):
         self._exclude_overlapping = exclude_overlapping
