@@ -85,6 +85,7 @@ def fit_models_to_chunk(
     fitter_kwargs=None,
     iterating_axes=None,
     fitting_axes=None,
+    weights_specified=None,
 ):
     """
     Function that gets passed to map_blocks and will fit models to a specific
@@ -99,6 +100,12 @@ def fit_models_to_chunk(
     new_axes = tuple(range(data.ndim))
     data = np.moveaxis(data, original_axes, new_axes)
     arrays = [np.moveaxis(array, original_axes, new_axes) for array in arrays]
+
+    if weights_specified:
+        weights = arrays[0]
+        arrays = arrays[1:]
+    else:
+        weights = None
 
     if world is None:
         parameters = arrays[: -model.n_inputs]
@@ -146,6 +153,9 @@ def fit_models_to_chunk(
 
         if world is None:
             world_values = tuple([w[index] for w in world_arrays])
+
+        if weights is not None:
+            fitter_kwargs["weights"] = weights[index]
 
         # Do the actual fitting
         try:
@@ -244,7 +254,8 @@ def parallel_fit_model_nd(
     fitter,
     data,
     data_unit=None,
-    fitting_axes,
+    weights=None,
+    fitting_axes=None,
     world=None,
     chunk_n_max=None,
     diagnostics=None,
@@ -276,6 +287,9 @@ def parallel_fit_model_nd(
     data_units : `astropy.units.Unit`
         Units for the data array, for when the data array is not a ``Quantity``
         instance.
+    weights : `numpy.ndarray` or `dask.array.core.Array`
+        The weights to use in the fitting. See the documentation for specific
+        fitters for more information about the meaning of weights.
     fitting_axes : int or tuple
         The axes to keep for the fitting (other axes will be sliced/iterated over)
     world : `None` or dict or APE-14-WCS
@@ -338,10 +352,15 @@ def parallel_fit_model_nd(
                 f"Fitting index {fi} out of range for {data.ndim}-dimensional data"
             )
 
-    if preserve_native_chunks and not isinstance(data, da.core.Array):
-        raise ValueError(
-            "Can only set preserve_native_chunks=True if input data is a dask array"
-        )
+    if preserve_native_chunks:
+        if not isinstance(data, da.core.Array):
+            raise TypeError(
+                "Can only set preserve_native_chunks=True if input data is a dask array"
+            )
+        if weights and not isinstance(weights, da.core.Array):
+            raise TypeError(
+                "Can only set preserve_native_chunks=True if input weights is a dask array (if specified)"
+            )
 
     # Sanitize fitting_axes and determine iterating_axes
     ndim = data.ndim
@@ -362,20 +381,32 @@ def parallel_fit_model_nd(
                 raise ValueError(
                     "When using preserve_native_chunks=True, the chunk size should match the data size along the fitting axes"
                 )
+        if data.chunksize != weights.chunksize:
+            raise ValueError(
+                "When using preserve_native_chunks=True, the weights should have the same chunk size as the data"
+            )
     else:
         # Rechunk the array so that it is not chunked along the fitting axes
         chunk_shape = tuple(
             "auto" if idx in iterating_axes else -1 for idx in range(ndim)
         )
+
         if chunk_n_max:
             block_size_limit = chunk_n_max * prod(fitting_shape) * data.dtype.itemsize
         else:
             block_size_limit = dask.config.get("array.chunk-size")
+
         if isinstance(data, da.core.Array):
             data = data.rechunk(chunk_shape, block_size_limit=block_size_limit)
         else:
             with dask.config.set({"array.chunk-size": block_size_limit}):
                 data = da.from_array(data, chunks=chunk_shape, name="data")
+
+        if weights is not None:
+            if isinstance(weights, da.core.Array):
+                weights = weights.rechunk(data.chunksize)
+            else:
+                weights = da.from_array(weights, chunks=data.chunksize, name="weights")
 
     world_arrays = False
     if isinstance(world, BaseHighLevelWCS):
@@ -525,9 +556,12 @@ def parallel_fit_model_nd(
 
     simple_model = _copy_with_new_parameters(model, {})
 
+    weights_array = [] if weights is None else [weights]
+
     result = da.map_blocks(
         fit_models_to_chunk,
         data,
+        *weights_array,
         *parameter_arrays,
         *(world if world_arrays else []),
         enforce_ndim=True,
@@ -544,6 +578,7 @@ def parallel_fit_model_nd(
         fitting_axes=fitting_axes,
         fitter_kwargs=fitter_kwargs,
         name="fitting-results",
+        weights_specified=weights is not None,
     )
 
     if scheduler == "default":

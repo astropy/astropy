@@ -189,9 +189,6 @@ def test_no_world():
 def test_wcs_world_1d():
     # Test specifying world as a WCS, for the 1D model case
 
-    # TODO: decide if WCS dimensionality should match cube or just the fitting
-    # dimensions.
-
     data = gaussian(
         np.arange(20)[:, None],
         np.array([2, 1.8]),
@@ -217,9 +214,6 @@ def test_wcs_world_1d():
 
 def test_world_array():
     # Test specifying world as a tuple of arrays with dimensions matching the data
-
-    # TODO: decide if should pass as many arrays as dimensions in cube or
-    # fitting dimensions.
 
     data = gaussian(
         np.arange(21)[:, None],
@@ -511,6 +505,36 @@ def test_preserve_native_chunks_invalid():
             fitting_axes=0,
             preserve_native_chunks=True,
         )
+
+
+def test_weights():
+    # Test specifying world as a tuple of arrays with dimensions matching the data
+
+    data = gaussian(
+        np.arange(21)[:, None],
+        np.array([2, 1.8]),
+        np.array([5, 10]),
+        np.array([1, 1.1]),
+    )
+
+    # Introduce outliers but then adjust weights to ignore them
+    data[10, 0] = 1000.0
+    data[20, 1] = 2000.0
+    weights = (data < 100.0).astype(float)
+
+    model = Gaussian1D(amplitude=1.5, mean=7, stddev=2)
+    fitter = LevMarLSQFitter()
+
+    model_fit = parallel_fit_model_nd(
+        data=data,
+        weights=weights,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+    )
+    assert_allclose(model_fit.amplitude.value, [2, 1.8])
+    assert_allclose(model_fit.mean.value, [5, 10])
+    assert_allclose(model_fit.stddev.value, [1.0, 1.1])
 
 
 # Add a test to make sure that units are never passed to the fitter - perhaps
