@@ -717,7 +717,11 @@ class CoordinateHelper:
         label : str
             The axis label
         """
-        return self._axislabels.get_text()
+        label = self._axislabels.get_text()
+        if self._auto_axislabel and not label:
+            return self._get_default_axislabel()
+        else:
+            return label
 
     def set_auto_axislabel(self, auto_label):
         """
@@ -845,7 +849,7 @@ class CoordinateHelper:
 
     def _draw_axislabels(self, renderer, bboxes, ticklabels_bbox, visible_ticks):
         # Render the default axis label if no axis label is set.
-        if self._auto_axislabel and not self.get_axislabel():
+        if self._auto_axislabel and not self.axislabels.get_text():
             self.set_axislabel(self._get_default_axislabel())
 
         renderer.open_group("axis labels")
