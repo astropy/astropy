@@ -89,7 +89,7 @@ YAML map, which is not guaranteed to preserve the order of the keys.
 Improve the Contributor Documentation
 =====================================
 
-The `Contributor documentation <https://docs.astropy.org/en/latest/development/>`_ has
+The `Contributor documentation <https://docs.astropy.org/en/latest/index_dev.html>`_ has
 been significantly improved. It now includes a `Quickstart Guide
 <https://docs.astropy.org/en/latest/development/quickstart.html>`_ with concise
 instructions on setting up a development environment and making a pull request. In
