@@ -9,7 +9,14 @@ from matplotlib.figure import Figure
 from matplotlib.patches import Circle, Rectangle
 
 from astropy import units as u
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import (
+    ICRS,
+    RepresentationMapping,
+    SkyCoord,
+    SphericalRepresentation,
+    StaticMatrixTransform,
+    frame_transform_graph,
+)
 from astropy.io import fits
 from astropy.tests.figures import figure_test
 from astropy.utils.data import get_pkg_data_filename
@@ -1265,5 +1272,70 @@ def test_tickable_gridlines():
     overlay[1].set_ticklabel_position(("const-glon", "r"))
     overlay[1].set_ticklabel(color="blue")
     overlay[1].set_axislabel("Galactic latitude", color="blue")
+
+    return fig
+
+
+@pytest.fixture
+def nondegree_frame():
+    # Provide a frame where the default units are not degrees for either longitude or latitude
+    class FakeICRS(ICRS):
+        frame_specific_representation_info = {
+            SphericalRepresentation: [
+                RepresentationMapping("lon", "ra", u.hourangle),
+                RepresentationMapping("lat", "dec", u.arcmin),
+            ]
+        }
+
+    # We need valid transformations to/from a real frame, and they are just identity transformations
+    trans1 = StaticMatrixTransform(
+        np.identity(3), ICRS, FakeICRS, register_graph=frame_transform_graph
+    )
+    trans2 = StaticMatrixTransform(
+        np.identity(3), FakeICRS, ICRS, register_graph=frame_transform_graph
+    )
+
+    yield FakeICRS
+
+    # Clean up the transformation graph so that other tests are not affected
+    trans1.unregister(frame_transform_graph)
+    trans2.unregister(frame_transform_graph)
+
+
+@figure_test
+def test_overlay_nondegree_unit(nondegree_frame):
+    wcs = WCS(
+        {
+            "CTYPE1": "RA---TAN",
+            "CTYPE2": "DEC--TAN",
+            "CDELT1": -1,
+            "CDELT2": 1,
+            "CRPIX1": 20 + 0.5,
+            "CRPIX2": 0 + 0.5,
+            "CRVAL1": 0,
+            "CRVAL2": 0,
+        }
+    )
+
+    fig = Figure()
+    ax = fig.add_subplot(projection=wcs)
+
+    ax.set_xlim(-0.5, 20 - 0.5)
+    ax.set_ylim(-0.5, 20 - 0.5)
+    ax.set_aspect("equal")
+
+    ax.coords[0].set_ticks_position("b")
+    ax.coords[0].grid()
+    ax.coords[1].set_ticks_position("l")
+    ax.coords[1].set_ticks(color="b")
+    ax.coords[1].set_ticklabel(color="b")
+    ax.coords[1].grid(color="b")
+
+    overlay = ax.get_coords_overlay(nondegree_frame())
+    overlay[0].set_ticks_position("t")
+    overlay[1].set_ticks_position("r")
+    overlay[1].set_ticks(color="r")
+    overlay[1].set_ticklabel(color="r")
+    overlay[1].grid(color="r", linestyle="dashed")
 
     return fig
