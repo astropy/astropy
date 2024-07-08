@@ -199,11 +199,14 @@ def test_future_altaz():
 
     # check that these message(s) appear among any other warnings
     if PYTEST_LT_8_0:
-        ctx1 = nullcontext()
+        ctx = nullcontext()
     else:
-        ctx1 = pytest.warns(erfa.core.ErfaWarning)
-    with ctx1, pytest.warns(
-        AstropyWarning,
-        match="Tried to get polar motions for times after IERS data is valid.*",
+        ctx = pytest.warns(erfa.core.ErfaWarning)
+    with (
+        ctx,
+        pytest.warns(
+            AstropyWarning,
+            match="Tried to get polar motions for times after IERS data is valid.*",
+        ),
     ):
         SkyCoord(1 * u.deg, 2 * u.deg).transform_to(AltAz(location=location, obstime=t))

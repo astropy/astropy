@@ -243,12 +243,14 @@ class TestIERS_Auto:
         self.t = Time.now() + TimeDelta(10, format="jd") * np.arange(self.N)
 
         # This group of tests requires auto downloading to be on
+        self._auto_download = iers.conf.auto_download
         iers.conf.auto_download = True
 
         # auto_download = False is tested in test_IERS_B_parameters_loading_into_IERS_Auto()
 
     def teardown_class(self):
-        iers.conf.auto_download = False
+        # Restore the auto downloading setting
+        iers.conf.auto_download = self._auto_download
 
     def teardown_method(self, method):
         """Run this after every test."""
@@ -367,10 +369,9 @@ class TestIERS_Auto:
 
 
 def test_IERS_B_parameters_loading_into_IERS_Auto():
-    # Double-check that auto downloading is off
-    assert not iers.conf.auto_download
-
-    A = iers.IERS_Auto.open()
+    # Make sure that auto downloading is off
+    with iers.conf.set_temp("auto_download", False):
+        A = iers.IERS_Auto.open()
     B = iers.IERS_B.open()
 
     ok_A = A["MJD"] <= B["MJD"][-1]
