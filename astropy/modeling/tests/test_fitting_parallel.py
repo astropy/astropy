@@ -275,7 +275,7 @@ def test_diagnostics(tmp_path):
     )
 
     assert os.listdir(tmp_path / "diag1") == ["0"]
-    assert sorted(os.listdir(tmp_path / "diag1" / "0")) == ["error.log", "fit.png"]
+    assert sorted(os.listdir(tmp_path / "diag1" / "0")) == ["error.log"]
 
     parallel_fit_model_nd(
         data=data,
@@ -301,7 +301,33 @@ def test_diagnostics(tmp_path):
     )
 
     assert os.listdir(tmp_path / "diag3") == ["0"]
-    assert sorted(os.listdir(tmp_path / "diag3" / "0")) == ["error.log", "fit.png"]
+    assert sorted(os.listdir(tmp_path / "diag3" / "0")) == ["error.log"]
+
+    # And check that we can pass in a callable
+
+    def custom_callable(path, world, data, weights, model, fitting_kwargs):
+        import matplotlib.pyplot as plt
+
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.plot(world[0], data, "k.")
+        ax.text(0.1, 0.9, "Fit failed!", color="r", transform=ax.transAxes)
+        fig.savefig(os.path.join(path, "fit.png"))
+        plt.close(fig)
+
+    parallel_fit_model_nd(
+        data=data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        world=WCS(naxis=2),
+        diagnostics="failed",
+        diagnostics_path=tmp_path / "diag4",
+        diagnostics_callable=custom_callable,
+    )
+
+    assert os.listdir(tmp_path / "diag4") == ["0"]
+    assert sorted(os.listdir(tmp_path / "diag4" / "0")) == ["error.log", "fit.png"]
 
 
 @pytest.mark.parametrize(
