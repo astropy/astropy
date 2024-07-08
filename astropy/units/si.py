@@ -66,10 +66,14 @@ def_unit(
 ###########################################################################
 # AREA
 
+def_unit(
+    ["ha", "hectare"], # CAVE: ha could be confused with hecto-annum
+    1e4 * m**2,
+    namespace=_ns,
+    prefixes=False,
+    doc="hectare: unit of area. Is used to express land area",
+)
 
-
-
-###########################################################################
 
 ###########################################################################
 # VOLUMES
@@ -202,7 +206,7 @@ def_unit(
     365.25 * d,
     namespace=_ns,
     prefixes=True,
-    exclude_prefixes=["P"],
+    exclude_prefixes=["P", "h"], # CAVE: ha could be confused with hectare
 )
 def_unit(
     ["yr", "year"],
@@ -255,6 +259,13 @@ def_unit(
     namespace=_ns,
     prefixes=True,
     doc="mole: amount of a chemical substance in SI.",
+)
+def_unit(
+    ["kat", "katal"],
+    mol * s**-1,
+    namespace=_ns,
+    prefixes=True,
+    doc="katal: catalytic activity.",
 )
 
 
@@ -443,6 +454,20 @@ def_unit(
     namespace=_ns,
     prefixes=True,
     doc="curie: unit of radioactivity",
+)
+def_unit(
+    ["Gy", "gray"],
+    m**2 * s**-2,
+    namespace=_ns,
+    prefixes=True,
+    doc="gray: absorbed dose of ionizing radiation, kerma",
+)
+def_unit(
+    ["Sv", "sievert"],
+    m**2 * s**-2,
+    namespace=_ns,
+    prefixes=True,
+    doc="sievert: equivalent dose of ionizing radiation",
 )
 
 
