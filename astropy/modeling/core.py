@@ -747,6 +747,10 @@ class Model(metaclass=_ModelMeta):
         self._initialize_slices()
         self._initialize_unit_support()
 
+        # Initialize the cache for the constraints (used primarily when
+        # sync_constraints is False)
+        self._constraints_cache = {}
+
     def _default_inputs_outputs(self):
         if self.n_inputs == 1 and self.n_outputs == 1:
             self._inputs = ("x",)
@@ -1293,14 +1297,30 @@ class Model(metaclass=_ModelMeta):
             raise ValueError("sync_constraints only accepts True or False as values")
         self._sync_constraints = value
 
+        # We need to invalidate the cache whenever sync_constraints is changed.
+        # If we are setting sync_constraints to True, then this will ensure
+        # that we recompute the properties next time they are called, and if
+        # setting to False, it will allow us to make sure the cache is up-to-date
+        # below before disabling syncing.
+        self._constraints_cache.clear()
+
+        # If setting to False, cache all the values with the present state
+        # to make sure we don't ever update the cache once the syncing is
+        # disabled. Note that these will automatically then cause 'fixed',
+        # 'bounds' and 'tied' to be called.
+        if not value:
+            _ = self.has_fixed
+            _ = self.has_bounds
+            _ = self.has_tied
+
     @property
     def fixed(self):
         """
         A ``dict`` mapping parameter names to their fixed constraint.
         """
-        if not hasattr(self, "_fixed") or self.sync_constraints:
-            self._fixed = _ConstraintsDict(self, "fixed")
-        return self._fixed
+        if "fixed" not in self._constraints_cache or self.sync_constraints:
+            self._constraints_cache["fixed"] = _ConstraintsDict(self, "fixed")
+        return self._constraints_cache["fixed"]
 
     @property
     def bounds(self):
@@ -1308,18 +1328,47 @@ class Model(metaclass=_ModelMeta):
         A ``dict`` mapping parameter names to their upper and lower bounds as
         ``(min, max)`` tuples or ``[min, max]`` lists.
         """
-        if not hasattr(self, "_bounds") or self.sync_constraints:
-            self._bounds = _ConstraintsDict(self, "bounds")
-        return self._bounds
+        if "bounds" not in self._constraints_cache or self.sync_constraints:
+            self._constraints_cache["bounds"] = _ConstraintsDict(self, "bounds")
+        return self._constraints_cache["bounds"]
 
     @property
     def tied(self):
         """
         A ``dict`` mapping parameter names to their tied constraint.
         """
-        if not hasattr(self, "_tied") or self.sync_constraints:
-            self._tied = _ConstraintsDict(self, "tied")
-        return self._tied
+        if "tied" not in self._constraints_cache or self.sync_constraints:
+            self._constraints_cache["tied"] = _ConstraintsDict(self, "tied")
+        return self._constraints_cache["tied"]
+
+    @property
+    def has_fixed(self):
+        """
+        Whether the model has any fixed constraints.
+        """
+        if "has_fixed" not in self._constraints_cache or self.sync_constraints:
+            self._constraints_cache["has_fixed"] = any(self.fixed.values())
+        return self._constraints_cache["has_fixed"]
+
+    @property
+    def has_bounds(self):
+        """
+        Whether the model has any bounds constraints.
+        """
+        if "has_bounds" not in self._constraints_cache or self.sync_constraints:
+            self._constraints_cache["has_bounds"] = any(
+                b != (None, None) for b in self.bounds.values()
+            )
+        return self._constraints_cache["has_bounds"]
+
+    @property
+    def has_tied(self):
+        """
+        Whether the model has any tied constraints.
+        """
+        if "has_tied" not in self._constraints_cache or self.sync_constraints:
+            self._constraints_cache["has_tied"] = any(self.tied.values())
+        return self._constraints_cache["has_tied"]
 
     @property
     def eqcons(self):
@@ -3170,6 +3219,10 @@ class CompoundModel(Model):
         self.ineqcons = []
         self.n_left_params = len(self.left.parameters)
         self._map_parameters()
+
+        # Initialize the cache for the constraints (used primarily when
+        # sync_constraints is False)
+        self._constraints_cache = {}
 
     def _get_left_inputs_from_args(self, args):
         return args[: self.left.n_inputs]

@@ -1505,3 +1505,68 @@ def test_model_string_indexing():
 
     assert compound["Model1"] == gauss
     assert compound["Model2"] == airy
+
+
+def test_has_constraints():
+    model1 = models.Gaussian1D()
+
+    assert not model1.has_tied
+    assert not model1.has_fixed
+    assert model1.has_bounds
+
+    model1.amplitude.fixed = True
+
+    assert model1.has_fixed
+
+    model1.mean.tied = lambda model: model.amplitude
+
+    assert model1.has_tied
+
+    model2 = models.Linear1D()
+
+    assert not model2.has_tied
+    assert not model2.has_fixed
+    assert not model2.has_bounds
+
+    model2.slope.bounds = (1, 2)
+
+    assert model2.has_bounds
+
+
+def test_has_constraints_with_sync_constraints():
+    # Check that has_tied/has_fixed/has_bounds works when sync_constraints is used
+
+    model = models.Linear1D()
+
+    assert not model.has_tied
+    assert not model.has_fixed
+    assert not model.has_bounds
+
+    model.sync_constraints = False
+
+    model.slope.fixed = True
+    model.intercept.tied = lambda model: model.slope
+    model.intercept.bounds = (1, 2)
+
+    assert not model.has_tied
+    assert not model.has_fixed
+    assert not model.has_bounds
+
+    model.slope.fixed = False
+
+    model.sync_constraints = True
+
+    assert model.has_tied
+    assert not model.has_fixed
+    assert model.has_bounds
+
+    model.slope.fixed = True
+
+    # If we set sync_constraints to False, model.has_fixed should then still
+    # return the correct result because the above line was called before
+    # sync_constraints was set to False. Basically we need any change in
+    # sync_constraints to invalidate the cache.
+
+    model.sync_constraints = False
+
+    assert model.has_fixed
