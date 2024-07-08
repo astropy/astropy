@@ -81,6 +81,7 @@ def _fit_models_to_chunk(
     world=None,
     diagnostics=None,
     diagnostics_path=None,
+    diagnostics_callable=None,
     iterating_shape=None,
     fitter_kwargs=None,
     iterating_axes=None,
@@ -154,14 +155,22 @@ def _fit_models_to_chunk(
         if world is None:
             world_values = tuple([w[index] for w in world_arrays])
 
-        if weights is not None:
-            fitter_kwargs["weights"] = weights[index]
+        if weights is None:
+            weights_kwargs = {}
+        else:
+            weights_kwargs = dict(weights=weights[index])
 
         # Do the actual fitting
         try:
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter("always")
-                model_fit = fitter(model_i, *world_values, data[index], **fitter_kwargs)
+                model_fit = fitter(
+                    model_i,
+                    *world_values,
+                    data[index],
+                    **weights_kwargs,
+                    **fitter_kwargs,
+                )
                 all_warnings.extend(w)
         except Exception as exc:
             model_fit = None
@@ -206,23 +215,15 @@ def _fit_models_to_chunk(
                     for warning in all_warnings:
                         f.write(f"{warning}\n")
 
-            # Make a plot, if model is 1D
-            if len(fitting_axes) == 1:  # 2 here because extra iterating dimension
-                import matplotlib.pyplot as plt
-
-                fig = plt.figure()
-                ax = fig.add_subplot(1, 1, 1)
-                ax.set_title(str(index))
-                ax.plot(world_values[0], data[index], "k.")
-                if model_fit is None:
-                    ax.text(0.1, 0.9, "Fit failed!", color="r", transform=ax.transAxes)
-                else:
-                    xmodel = np.linspace(*ax.get_xlim(), 100)
-                    if hasattr(world[0], "unit"):
-                        xmodel = xmodel * world[0].unit
-                    ax.plot(xmodel, model_fit(xmodel), color="r")
-                fig.savefig(os.path.join(index_folder, "fit.png"))
-                plt.close(fig)
+            if diagnostics_callable is not None:
+                diagnostics_callable(
+                    index_folder,
+                    world_values,
+                    data[index],
+                    None if weights is None else weights[index],
+                    model_fit,
+                    fitter_kwargs,
+                )
 
     return parameters
 
@@ -260,6 +261,7 @@ def parallel_fit_model_nd(
     chunk_n_max=None,
     diagnostics=None,
     diagnostics_path=None,
+    diagnostics_callable=None,
     scheduler=None,
     fitter_kwargs=None,
     preserve_native_chunks=False,
@@ -311,6 +313,15 @@ def parallel_fit_model_nd(
     diagnostics_path : str, optional
         If `diagnostics` is not `None`, this should be the path to a folder in
         which a folder will be made for each fit that is output.
+    diagnostics_callable : callable
+        By default, any warnings or errors are output to `diagnostics_path`.
+        However, you can also specify a callable that can e.g. make a plot or
+        write out information in a custom format. The callable should take the
+        following arguments: the path to the subfolder of ``diagnostics_path``
+        for the specific index being fit, a list of the coordinates passed to
+        the fitter, the data array, the weights array (or `None` if no weights
+        are being used), the model that was fit (or `None` if the fit failed),
+        and a dictionary of other keyword arguments passed to the fitter.
     scheduler : str, optional
         If not specified, a local multi-processing scheduler will be
         used. If ``'default'``, whatever is the current default scheduler will be
@@ -573,6 +584,7 @@ def parallel_fit_model_nd(
         world=world if not world_arrays else None,
         diagnostics=diagnostics,
         diagnostics_path=diagnostics_path,
+        diagnostics_callable=diagnostics_callable,
         iterating_shape=iterating_shape,
         iterating_axes=iterating_axes,
         fitting_axes=fitting_axes,
