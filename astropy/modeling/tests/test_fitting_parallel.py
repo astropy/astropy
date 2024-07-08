@@ -10,9 +10,11 @@ import numpy as np
 from dask import array as da
 from numpy.testing import assert_allclose
 
+from astropy import units as u
 from astropy.modeling.fitting import LevMarLSQFitter
 from astropy.modeling.fitting_parallel import parallel_fit_model_nd
 from astropy.modeling.models import Const1D, Gaussian1D, Linear1D, Planar2D
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.wcs import WCS
 
 
@@ -563,5 +565,29 @@ def test_weights():
     assert_allclose(model_fit.stddev.value, [1.0, 1.1])
 
 
-# Add a test to make sure that units are never passed to the fitter - perhaps
-# we could create a custom fitter callable and check the arguments.
+def test_units():
+    # Make sure that fitting with units works
+
+    data = (
+        gaussian(
+            np.arange(21)[:, None],
+            np.array([2, 1.8]),
+            np.array([5, 10]),
+            np.array([1, 1.1]),
+        )
+        * u.Jy
+    )
+
+    model = Gaussian1D(amplitude=1.5 * u.Jy, mean=7 * u.um, stddev=2 * u.um)
+    fitter = LevMarLSQFitter()
+
+    model_fit = parallel_fit_model_nd(
+        data=data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        world=(np.arange(21) * u.nm,),
+    )
+    assert_quantity_allclose(model_fit.amplitude.value, [2, 1.8] * u.Jy)
+    assert_quantity_allclose(model_fit.mean.value, [5, 10] * u.um)
+    assert_quantity_allclose(model_fit.stddev.value, [1.0, 1.1] * u.um)
