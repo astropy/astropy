@@ -265,9 +265,9 @@ therefore recommend the following guidelines:
 
  * Set ``astropy.utils.iers.conf.auto_download = False`` in your ``astropy`` config
    file (see :ref:`astropy_config`) or in your code so that ``astropy`` will not
-   automatically attempt to download a newer version of the IERS-A table than
-   the one already bundled in the ``astropy-iers-data`` package.  To update the
-   IERS-A table, do one of the following:
+   attempt to download a newer version of the IERS-A table than the one already
+   bundled in the ``astropy-iers-data`` package.  To update the IERS-A table, do
+   one of the following:
 
    * Upgrade the ``astropy-iers-data`` package.
    * Write a simple script that sets ``astropy.utils.iers.conf.auto_download =

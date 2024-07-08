@@ -167,7 +167,7 @@ class Conf(_config.ConfigNamespace):
         True,
         "Enable auto-downloading of the latest IERS-A data.  If set to False "
         "then the bundled IERS-A file will be used by default (even if a "
-        "newer version of the IERS-A file was already downloaded and cached). "
+        "newer version of the IERS-A file was previously downloaded and cached). "
         "This parameter also controls whether internet resources will be "
         "queried to update the leap second table if the installed version is "
         "out of date. Default is True.",
@@ -545,7 +545,7 @@ class IERS_A(IERS):
 
     Notes
     -----
-    If the package IERS A file (```iers.IERS_A_FILE``) is out of date, a new
+    If the package IERS A file (``iers.IERS_A_FILE``) is out of date, a new
     version can be downloaded from ``iers.IERS_A_URL`` or ``iers.IERS_A_URL_MIRROR``.
     See ``iers.__doc__`` for instructions on use in ``Time``, etc.
     """
@@ -684,7 +684,7 @@ class IERS_B(IERS):
 
     Notes
     -----
-    If the package IERS B file (```iers.IERS_B_FILE``) is out of date, a new
+    If the package IERS B file (``iers.IERS_B_FILE``) is out of date, a new
     version can be downloaded from ``iers.IERS_B_URL``.
 
     See `~astropy.utils.iers.IERS_B.read` for instructions on how to read
@@ -821,7 +821,9 @@ class IERS_Auto(IERS_A):
             # Issue a warning here, perhaps user is offline.  An exception
             # will be raised downstream if actually trying to interpolate
             # predictive values.
-            warn("unable to download valid IERS file, using local IERS-A", IERSWarning)
+            warn(
+                "unable to download valid IERS file, using bundled IERS-A", IERSWarning
+            )
             cls.iers_table = cls.read()
 
         return cls.iers_table
