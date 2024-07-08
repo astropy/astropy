@@ -203,7 +203,7 @@ class CoordinateHelper:
         coord_wrap : `~astropy.units.Quantity`, optional
             The value to wrap at for angular coordinates.
         """
-        self.coord_type = coord_type
+        self._coord_type = coord_type
 
         if coord_wrap is not None and not isinstance(coord_wrap, u.Quantity):
             warnings.warn(
@@ -237,6 +237,9 @@ class CoordinateHelper:
             raise ValueError(
                 "coord_type should be one of 'scalar', 'longitude', or 'latitude'"
             )
+
+    def get_coord_type(self):
+        return self._coord_type
 
     def set_major_formatter(self, formatter):
         """
@@ -277,7 +280,7 @@ class CoordinateHelper:
             if self._coord_scale_to_deg is not None:
                 value *= self._coord_scale_to_deg
 
-            if self.coord_type == "longitude":
+            if self._coord_type == "longitude":
                 value = wrap_angle_at(value, self.coord_wrap.to_value(u.deg))
             value = value * u.degree
             value = value.to_value(fl._unit)
@@ -553,7 +556,7 @@ class CoordinateHelper:
     def _get_default_axislabel(self):
         unit = self.get_format_unit() or self.coord_unit
 
-        if not unit or unit is u.one or self.coord_type in ("longitude", "latitude"):
+        if not unit or unit is u.one or self._coord_type in ("longitude", "latitude"):
             return f"{self.default_label}"
         else:
             return f"{self.default_label} [{unit:latex}]"
@@ -747,7 +750,7 @@ class CoordinateHelper:
                 # Rotate by 90 degrees
                 dx, dy = -dy, dx
 
-                if self.coord_type == "longitude":
+                if self._coord_type == "longitude":
                     if self._coord_scale_to_deg is not None:
                         dx *= self._coord_scale_to_deg
                         dy *= self._coord_scale_to_deg
@@ -778,7 +781,7 @@ class CoordinateHelper:
             w1 = spine.world[:-1, self.coord_index]
             w2 = spine.world[1:, self.coord_index]
 
-            if self.coord_type == "longitude":
+            if self._coord_type == "longitude":
                 if self._coord_scale_to_deg is not None:
                     w1 = w1 * self._coord_scale_to_deg
                     w2 = w2 * self._coord_scale_to_deg
@@ -820,7 +823,7 @@ class CoordinateHelper:
     def _compute_ticks(
         self, tick_world_coordinates, spine, axis, w1, w2, tick_angle, ticks="major"
     ):
-        if self.coord_type == "longitude":
+        if self._coord_type == "longitude":
             tick_world_coordinates_values = tick_world_coordinates.to_value(u.deg)
             tick_world_coordinates_values = np.hstack(
                 [tick_world_coordinates_values, tick_world_coordinates_values + 360]
@@ -870,7 +873,7 @@ class CoordinateHelper:
                         delta_angle += 360.0
                     angle_i = tick_angle[imin] + frac * delta_angle
 
-                if self.coord_type == "longitude":
+                if self._coord_type == "longitude":
                     if self._coord_scale_to_deg is not None:
                         t *= self._coord_scale_to_deg
 
@@ -1129,7 +1132,7 @@ class CoordinateHelper:
         )
 
     def _get_gridline(self, xy_world, pixel, xy_world_round):
-        if self.coord_type == "scalar":
+        if self._coord_type == "scalar":
             return get_gridline_path(xy_world, pixel)
         else:
             return get_lon_lat_path(xy_world, pixel, xy_world_round)
@@ -1165,7 +1168,7 @@ class CoordinateHelper:
         # tick_world_coordinates is a Quantities array and we only needs its values
         tick_world_coordinates_values = tick_world_coordinates.value
 
-        if self.coord_type == "longitude":
+        if self._coord_type == "longitude":
             # Find biggest gap in tick_world_coordinates and wrap in middle
             # For now just assume spacing is equal, so any mid-point will do
             mid = 0.5 * (
