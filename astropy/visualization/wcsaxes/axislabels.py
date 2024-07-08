@@ -39,7 +39,7 @@ class AxisLabels(Text):
 
     def get_visible_axes(self):
         if self._visible_axes == "all":
-            return self._frame.keys()
+            return list(self._frame.keys())
         else:
             return [x for x in self._visible_axes if x in self._frame]
 
