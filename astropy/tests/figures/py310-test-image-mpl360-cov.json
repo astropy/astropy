@@ -48,6 +48,7 @@
   "astropy.visualization.wcsaxes.tests.test_images.test_1d_plot_put_varying_axis_on_bottom_lon[slices1-hplt]": "0a14e5153eb91e2a3a96501f02a21581effc7d6b7ae31e29a402a3abf30d5b12",
   "astropy.visualization.wcsaxes.tests.test_images.test_allsky_labels_wrap": "8908818b526d4a506505da890eff47121b23ee41656dc15dff3e19f7d03094af",
   "astropy.visualization.wcsaxes.tests.test_images.test_tickable_gridlines": "9d91bcf571af6dcc1425b6dfd76fb92e3e0180fb9fd0c852f9eba3fb06e079fc",
+  "astropy.visualization.wcsaxes.tests.test_images.test_overlay_nondegree_unit": "aa9b85520da54dc61d4db2988883ff184fb59cd27c52a04899cb33599fcab4b7",
   "astropy.visualization.wcsaxes.tests.test_transform_coord_meta.TestTransformCoordMeta.test_coords_overlay": "0a87473ff8e5b5610f4adac1518c608afcd2178b25584fb42f77bcc594c4f47a",
   "astropy.visualization.wcsaxes.tests.test_transform_coord_meta.TestTransformCoordMeta.test_coords_overlay_auto_coord_meta": "2f737bb70fb1a5452cb0efa79010376614dc559e9aff607f638f044ac6b04448",
   "astropy.visualization.wcsaxes.tests.test_transform_coord_meta.TestTransformCoordMeta.test_direct_init": "1f24c5243bfdf0f30e88afc4f2f5d66db85954cea50a2910af94975ff8765b45",
