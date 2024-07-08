@@ -72,7 +72,7 @@ def _compound_model_with_array_parameters(model, shape):
         return _copy_with_new_parameters(model, parameters)
 
 
-def fit_models_to_chunk(
+def _fit_models_to_chunk(
     data,
     *arrays,
     block_info=None,
@@ -381,7 +381,7 @@ def parallel_fit_model_nd(
                 raise ValueError(
                     "When using preserve_native_chunks=True, the chunk size should match the data size along the fitting axes"
                 )
-        if data.chunksize != weights.chunksize:
+        if weights is not None and data.chunksize != weights.chunksize:
             raise ValueError(
                 "When using preserve_native_chunks=True, the weights should have the same chunk size as the data"
             )
@@ -552,14 +552,14 @@ def parallel_fit_model_nd(
             )
         )
 
-    # Define a model with default parameters to pass in to fit_models_to_chunk without copying all the parameter data
+    # Define a model with default parameters to pass in to _fit_models_to_chunk without copying all the parameter data
 
     simple_model = _copy_with_new_parameters(model, {})
 
     weights_array = [] if weights is None else [weights]
 
     result = da.map_blocks(
-        fit_models_to_chunk,
+        _fit_models_to_chunk,
         data,
         *weights_array,
         *parameter_arrays,
