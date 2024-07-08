@@ -95,14 +95,14 @@ class CoordinateHelper:
         default_label=None,
     ):
         # Keep a reference to the parent axes and the transform
-        self.parent_axes = parent_axes
-        self.parent_map = parent_map
-        self.transform = transform
-        self.coord_index = coord_index
-        self.coord_unit = coord_unit
+        self._parent_axes = parent_axes
+        self._parent_map = parent_map
+        self._transform = transform
+        self._coord_index = coord_index
+        self._coord_unit = coord_unit
         self._format_unit = format_unit
-        self.frame = frame
-        self.default_label = default_label or ""
+        self._frame = frame
+        self._default_label = default_label or ""
         self._auto_axislabel = True
         # Disable auto label for elliptical frames as it puts labels in
         # annoying places.
@@ -146,6 +146,191 @@ class CoordinateHelper:
             "alpha": rcParams["grid.alpha"],
             "transform": self.parent_axes.transData,
         }
+
+    @property
+    def parent_axes(self):
+        """
+        The axes the coordinate helper belongs to.
+        """
+        return self._parent_axes
+
+    @parent_axes.setter
+    def parent_axes(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.parent_axes directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._parent_axes = value
+
+    @property
+    def parent_map(self):
+        """
+        The :class:`~astropy.visualization.wcsaxes.CoordinatesMap` object this
+        coordinate belongs to.
+        """
+        return self._parent_map
+
+    @parent_map.setter
+    def parent_map(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.parent_map directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._parent_map = value
+
+    @property
+    def transform(self):
+        """
+        The transform corresponding to this coordinate system.
+        """
+        return self._transform
+
+    @transform.setter
+    def transform(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.transform directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._transform = value
+
+    @property
+    def coord_index(self):
+        """
+        The index of this coordinate in the
+        :class:`~astropy.visualization.wcsaxes.CoordinatesMap`.
+        """
+        return self._coord_index
+
+    @coord_index.setter
+    def coord_index(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.coord_index directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._coord_index = value
+
+    @property
+    def coord_type(self):
+        """
+        The type of this coordinate (e.g., ``'longitude'``)
+        """
+        return self._coord_type
+
+    @coord_type.setter
+    def coord_type(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.coord_type directly is deprecated, use CoordinateHelper.set_coord_type instead",
+            AstropyDeprecationWarning,
+        )
+        self._coord_type = value
+
+    @property
+    def coord_unit(self):
+        """
+        The unit that this coordinate is in given the output of transform.
+        """
+        return self._coord_unit
+
+    @coord_unit.setter
+    def coord_unit(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.coord_unit directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._coord_unit = value
+
+    @property
+    def coord_wrap(self):
+        """
+        The angle at which the longitude wraps (defaults to 360 degrees).
+        """
+        return self._coord_wrap
+
+    @coord_wrap.setter
+    def coord_wrap(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.coord_wrap directly is deprecated, use CoordinateHelper.set_coord_type instead",
+            AstropyDeprecationWarning,
+        )
+        self._coord_wrap = value
+
+    @property
+    def frame(self):
+        """
+        The frame of the :class:`~astropy.visualization.wcsaxes.WCSAxes`.
+        """
+        return self._frame
+
+    @frame.setter
+    def frame(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.frame directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._frame = value
+
+    @property
+    def default_label(self):
+        """
+        The axis label to show by default if none is set later.
+        """
+        return self._default_label
+
+    @default_label.setter
+    def default_label(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.default_label directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._default_label = value
+
+    @property
+    def ticks(self):
+        warnings.warn(
+            "CoordinateHelper.ticks should not be accessed directly and is deprecated",
+            AstropyDeprecationWarning,
+        )
+        return self._ticks
+
+    @ticks.setter
+    def ticks(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.ticks directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._ticks = value
+
+    @property
+    def ticklabels(self):
+        warnings.warn(
+            "CoordinateHelper.ticklabels should not be accessed directly and is deprecated",
+            AstropyDeprecationWarning,
+        )
+        return self._ticks
+
+    @ticklabels.setter
+    def ticklabels(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.ticklabels directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._ticklabels = value
+
+    @property
+    def axislabels(self):
+        warnings.warn(
+            "CoordinateHelper.ticks should not be accessed directly and is deprecated",
+            AstropyDeprecationWarning,
+        )
+        return self._axislabels
+
+    @axislabels.setter
+    def axislabels(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.axislabels directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._axislabels = value
 
     def grid(self, draw_grid=True, grid_type=None, **kwargs):
         """
@@ -212,13 +397,13 @@ class CoordinateHelper:
             coord_wrap = coord_wrap * u.deg
 
         if coord_type == "longitude" and coord_wrap is None:
-            self.coord_wrap = 360 * u.deg
+            self._coord_wrap = 360 * u.deg
         elif coord_type != "longitude" and coord_wrap is not None:
             raise NotImplementedError(
                 "coord_wrap is not yet supported for non-longitude coordinates"
             )
         else:
-            self.coord_wrap = coord_wrap
+            self._coord_wrap = coord_wrap
 
         # Initialize tick formatter/locator
         if coord_type == "scalar":
@@ -280,7 +465,7 @@ class CoordinateHelper:
             if self._coord_scale_to_deg is not None:
                 value *= self._coord_scale_to_deg
 
-            if self._coord_type == "longitude":
+            if self.coord_type == "longitude":
                 value = wrap_angle_at(value, self.coord_wrap.to_value(u.deg))
             value = value * u.degree
             value = value.to_value(fl._unit)
@@ -562,7 +747,7 @@ class CoordinateHelper:
     def _get_default_axislabel(self):
         unit = self.get_format_unit() or self.coord_unit
 
-        if not unit or unit is u.one or self._coord_type in ("longitude", "latitude"):
+        if not unit or unit is u.one or self.coord_type in ("longitude", "latitude"):
             return f"{self.default_label}"
         else:
             return f"{self.default_label} [{unit:latex}]"
@@ -755,7 +940,7 @@ class CoordinateHelper:
                 # Rotate by 90 degrees
                 dx, dy = -dy, dx
 
-                if self._coord_type == "longitude":
+                if self.coord_type == "longitude":
                     if self._coord_scale_to_deg is not None:
                         dx *= self._coord_scale_to_deg
                         dy *= self._coord_scale_to_deg
@@ -786,7 +971,7 @@ class CoordinateHelper:
             w1 = spine.world[:-1, self.coord_index]
             w2 = spine.world[1:, self.coord_index]
 
-            if self._coord_type == "longitude":
+            if self.coord_type == "longitude":
                 if self._coord_scale_to_deg is not None:
                     w1 = w1 * self._coord_scale_to_deg
                     w2 = w2 * self._coord_scale_to_deg
@@ -828,7 +1013,7 @@ class CoordinateHelper:
     def _compute_ticks(
         self, tick_world_coordinates, spine, axis, w1, w2, tick_angle, ticks="major"
     ):
-        if self._coord_type == "longitude":
+        if self.coord_type == "longitude":
             tick_world_coordinates_values = tick_world_coordinates.to_value(u.deg)
             tick_world_coordinates_values = np.hstack(
                 [tick_world_coordinates_values, tick_world_coordinates_values + 360]
@@ -878,7 +1063,7 @@ class CoordinateHelper:
                         delta_angle += 360.0
                     angle_i = tick_angle[imin] + frac * delta_angle
 
-                if self._coord_type == "longitude":
+                if self.coord_type == "longitude":
                     if self._coord_scale_to_deg is not None:
                         t *= self._coord_scale_to_deg
 
@@ -1137,7 +1322,7 @@ class CoordinateHelper:
         )
 
     def _get_gridline(self, xy_world, pixel, xy_world_round):
-        if self._coord_type == "scalar":
+        if self.coord_type == "scalar":
             return get_gridline_path(xy_world, pixel)
         else:
             return get_lon_lat_path(xy_world, pixel, xy_world_round)
@@ -1173,7 +1358,7 @@ class CoordinateHelper:
         # tick_world_coordinates is a Quantities array and we only needs its values
         tick_world_coordinates_values = tick_world_coordinates.value
 
-        if self._coord_type == "longitude":
+        if self.coord_type == "longitude":
             # Find biggest gap in tick_world_coordinates and wrap in middle
             # For now just assume spacing is equal, so any mid-point will do
             mid = 0.5 * (
