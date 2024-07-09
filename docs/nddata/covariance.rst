@@ -54,7 +54,7 @@ construct a :class:`~astropy.nddata.covariance.Covariance` object.
     distribution::
 
     >>> import numpy as np
-    >>> from mangadap.util.covariance import Covariance
+    >>> from astropy.nddata.covariance import Covariance
     >>> m = np.zeros(10, dtype=float)
     >>> c = (np.diag(np.full(10-2, 0.2, dtype=float), k=-2)
     ...         + np.diag(np.full(10-1, 0.5, dtype=float), k=-1)
@@ -77,7 +77,7 @@ construct a :class:`~astropy.nddata.covariance.Covariance` object.
     multiplication::
 
     >>> import numpy as np
-    >>> from mangadap.util.covariance import Covariance
+    >>> from astropy.nddata.covariance import Covariance
     >>> c = (np.diag(np.full(10-2, 0.2, dtype=float), k=-2)
     ...         + np.diag(np.full(10-1, 0.5, dtype=float), k=-1)
     ...         + np.diag(np.full(10, 1.0, dtype=float), k=0)
@@ -101,7 +101,7 @@ construct a :class:`~astropy.nddata.covariance.Covariance` object.
     True
 
  #. Finally, you can construct the covariance matrix from a previous
-    instance that was saved to a fits file using the
+    instance that was saved to a FITS file using the
     :ref:`nddata-covariance-fitsio`.
 
 .. _nddata-covariance-access:
@@ -150,17 +150,17 @@ a covariance matrix, use
 
 .. _nddata-covariance-fitsio:
 
-Fits file I/O methods
+FITS file I/O methods
 =====================
 
 :class:`~astropy.nddata.covariance.Covariance` objects can be saved as a binary
-table in a fits file using the
+table in a FITS file using the
 :func:`~astropy.nddata.covariance.Covariance.write` method. To reload the
 covariance matrix, use the
 :func:`~astropy.nddata.covariance.Covariance.from_fits` instantiation method::
 
 >>> import numpy as np
->>> from mangadap.util.covariance import Covariance
+>>> from astropy.nddata.covariance import Covariance
 >>> ofile = 'test_covar_io.fits'
 >>> m = np.zeros(10, dtype=float)
 >>> c = (np.diag(np.full(10-2, 0.2, dtype=float), k=-2)
