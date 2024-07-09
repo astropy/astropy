@@ -120,7 +120,7 @@ def _fit_models_to_chunk(
 
     # Start off by re-ordering axes so that iterating axes come first followed
     # by fitting axes
-    original_axes = tuple([idx for idx in (iterating_axes + fitting_axes)])
+    original_axes = tuple(idx for idx in (iterating_axes + fitting_axes))
     new_axes = tuple(range(data.ndim))
     data = np.moveaxis(data, original_axes, new_axes)
     arrays = [np.moveaxis(array, original_axes, new_axes) for array in arrays]
@@ -478,7 +478,7 @@ def parallel_fit_dask(
                 f"({fitting_world.world_n_dim}) does not match the number of fitting axes ({len(fitting_axes)})"
             )
 
-        world_units = [u.Unit(world.world_axis_units[idx]) for idx in fitting_axes]
+        world_units = list(map(u.Unit, fitting_world.world_axis_units[::-1]))
 
         # Construct dask arrays of world coordinates for every pixel in the cube.
         # We will then iterate over this in map_blocks.
