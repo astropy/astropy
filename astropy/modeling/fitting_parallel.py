@@ -14,7 +14,7 @@ from astropy.modeling.utils import _combine_equivalency_dict
 from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
 from astropy.wcs.wcsapi.wrappers import SlicedLowLevelWCS
 
-__all__ = ["parallel_fit_model_nd"]
+__all__ = ["parallel_fit_dask"]
 
 
 def _pixel_to_world_values_block(*pixel, wcs=None):
@@ -249,7 +249,7 @@ class ParameterContainer:
         return values[item]
 
 
-def parallel_fit_model_nd(
+def parallel_fit_dask(
     *,
     model,
     fitter,
