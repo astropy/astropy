@@ -578,7 +578,7 @@ def test_units():
         * u.Jy
     )
 
-    model = Gaussian1D(amplitude=1.5 * u.Jy, mean=7 * u.um, stddev=2 * u.um)
+    model = Gaussian1D(amplitude=1.5 * u.Jy, mean=7 * u.um, stddev=0.002 * u.mm)
     fitter = LevMarLSQFitter()
 
     model_fit = parallel_fit_model_nd(
@@ -586,8 +586,9 @@ def test_units():
         model=model,
         fitter=fitter,
         fitting_axes=0,
-        world=(np.arange(21) * u.nm,),
+        world=(1000 * np.arange(21) * u.nm,),
     )
-    assert_quantity_allclose(model_fit.amplitude.value, [2, 1.8] * u.Jy)
-    assert_quantity_allclose(model_fit.mean.value, [5, 10] * u.um)
-    assert_quantity_allclose(model_fit.stddev.value, [1.0, 1.1] * u.um)
+
+    assert_quantity_allclose(model_fit.amplitude.quantity, [2, 1.8] * u.Jy)
+    assert_quantity_allclose(model_fit.mean.quantity, [5, 10] * u.um)
+    assert_quantity_allclose(model_fit.stddev.quantity, [1.0, 1.1] * u.um)

@@ -526,10 +526,10 @@ def parallel_fit_model_nd(
         # Create a dictionary mapping the real model inputs and outputs
         # names to the data. This remapping of names must be done here, after
         # the input data is converted to the correct units.
-        rename_data = {model.inputs[0]: (0,) * world_units[0]}
+        rename_data = {model.inputs[0]: (0,) * model.input_units[model.inputs[0]]}
         if len(world) == 2:
             rename_data[model.outputs[0]] = (0,) * data_unit
-            rename_data[model.inputs[1]] = (0,) * world_units[1]
+            rename_data[model.inputs[1]] = (0,) * model.input_units[model.inputs[1]]
         else:
             rename_data[model.outputs[0]] = (0,) * data_unit
             rename_data["z"] = None
@@ -539,9 +539,11 @@ def parallel_fit_model_nd(
         # input units (to make sure that initial guesses on the parameters)
         # are in the right unit system
         model = model.without_units_for_data(**rename_data)
+        add_back_units = True
 
     else:
         world_units = tuple(None for w in world)
+        add_back_units = False
 
     # Extract the parameters arrays from the model, in the order in which they
     # appear in param_names. We need to broadcast these up to the data shape so
@@ -607,5 +609,9 @@ def parallel_fit_model_nd(
 
     # Instantiate new fitted model
     model_fitted = _copy_with_new_parameters(model, parameters, shape=iterating_shape)
+
+    # Add back units if needed
+    if add_back_units:
+        model_fitted = model_fitted.with_units_from_data(**rename_data)
 
     return model_fitted
