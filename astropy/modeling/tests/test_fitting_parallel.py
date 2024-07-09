@@ -641,3 +641,49 @@ def test_units_with_wcs():
     assert_allclose(model_fit.amplitude.quantity, 2 * u.Jy)
     assert_allclose(model_fit.mean.quantity, 1.1 * u.um)
     assert_allclose(model_fit.stddev.quantity, 0.1 * u.um)
+
+
+def test_units_with_wcs_2d():
+    # Fit a 2D model with mixed units to a dataset
+
+    N = 3
+    P = 20
+    Q = 10
+
+    wcs = WCS(naxis=3)
+    wcs.wcs.ctype = "OFFSET", "WEIGHTS", "WAVE"
+    wcs.wcs.crval = 10, 0.1, 0.2
+    wcs.wcs.crpix = 1, 1, 1
+    wcs.wcs.cdelt = 10, 0.1, 0.2
+    wcs.wcs.cunit = "deg", "kg", "mm"
+
+    rng = np.random.default_rng(12345)
+
+    x = wcs.pixel_to_world(0, 0, np.arange(P))[2]
+    y = wcs.pixel_to_world(0, np.arange(Q), 0)[1]
+
+    slope_x = [1, 3, 2] * u.Jy / u.mm
+    slope_y = [-1, 2, 3] * u.Jy / u.kg
+    intercept = [5, 6, 7] * u.Jy
+
+    data = slope_x * x[:, None, None] + slope_y * y[None, :, None] + intercept
+
+    # At this point, the data has shape (P, Q, N)
+
+    model = Planar2D(
+        slope_x=slope_x * rng.uniform(0.9, 1.1, N),
+        slope_y=slope_y * rng.uniform(0.9, 1.1, N),
+        intercept=intercept * rng.uniform(0.9, 1.1, N),
+    )
+    fitter = LevMarLSQFitter()
+
+    model_fit = parallel_fit_dask(
+        data=data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=(0, 1),
+        world=wcs,
+    )
+    assert_allclose(model_fit.slope_x.quantity, slope_x)
+    assert_allclose(model_fit.slope_y.quantity, slope_y)
+    assert_allclose(model_fit.intercept.quantity, intercept)
