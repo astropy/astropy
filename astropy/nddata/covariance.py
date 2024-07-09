@@ -259,19 +259,19 @@ class Covariance:
         quiet=False,
     ):
         r"""
-        Read covariance data from a fits file.
+        Read covariance data from a FITS file.
 
-        This read operation matches the data saved to a fits file using
+        This read operation matches the data saved to a FITS file using
         :func:`write`. The class can read covariance data written by other
         programs *as long as they have a commensurate format*. See the
         description of the :func:`write` method.
 
         If the extension names and column names are correct, :class:`Covariance`
-        can read fits files that were not produced explicitly by this method.
+        can read FITS files that were not produced explicitly by this method.
         This is useful for files that include the covariance data extensions
         among others. The methods :func:`output_hdus` and
         :func:`coordinate_data` are provided to produce the data that can be
-        placed in any fits file.
+        placed in any FITS file.
 
         The method determines if the output data were reshaped by checking the
         number of columns in the binary table.
@@ -290,7 +290,7 @@ class Covariance:
         ----------
         source : :obj:`str`, `Path`, `astropy.io.fits.HDUList`
             Initialize the object using an `astropy.io.fits.HDUList` object or
-            path to a fits file.
+            path to a FITS file.
 
         ivar_ext : :obj:`int`, :obj:`str`, optional
             The name or index of the extension (see ``source``) with the inverse
@@ -751,7 +751,7 @@ class Covariance:
         coordinate format.
 
         This procedure is primarily used when constructing the data arrays to
-        write to a fits file.
+        write to a FITS file.
 
         Regardless of whether or not the current internal data is a covariance
         matrix or a correlation matrix, the data is always returned as a
@@ -905,12 +905,12 @@ class Covariance:
 
     def write(self, ofile, reshape=False, hdr=None, overwrite=False):
         r"""
-        Write the covariance object to a fits file.
+        Write the covariance object to a FITS file.
 
         Objects written using this function can be reinstantiated using
         :func:`from_fits`.
 
-        The covariance matrix is stored in "coordinate" format using fits binary
+        The covariance matrix is stored in "coordinate" format using FITS binary
         tables; see `scipy.sparse.coo_matrix`. The matrix is *always* stored as
         a correlation matrix, even if the object is currently in the state
         holding the covariance data.
@@ -969,7 +969,7 @@ class Covariance:
                 f"{ofile} exists!  Use 'overwrite=True' to overwrite."
             )
 
-        # Construct HDUList and write the fits file
+        # Construct HDUList and write the FITS file
         _hdr, ivar_hdu, covar_hdu = self.output_hdus(reshape=reshape, hdr=hdr)
         fits.HDUList([fits.PrimaryHDU(header=_hdr), ivar_hdu, covar_hdu]).writeto(
             ofile, overwrite=overwrite, checksum=True
