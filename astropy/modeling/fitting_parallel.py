@@ -511,10 +511,13 @@ def parallel_fit_dask(
         # here since FittableModel instances have input names ('x',) or
         # ('x', 'y')
 
-        if model.input_units is not None:
+        if model.input_units is None:
+            target_units = world_units[:]
+        else:
+            target_units = [model.input_units[model.inputs[i]] for i in range(model.n_inputs)]
             world = [
                 unit.to(
-                    model.input_units[model.inputs[i]],
+                    target_units[i],
                     equivalencies=input_units_equivalencies[model.inputs[i]],
                     value=w,
                 )
@@ -526,12 +529,12 @@ def parallel_fit_dask(
         # Create a dictionary mapping the real model inputs and outputs
         # names to the data. This remapping of names must be done here, after
         # the input data is converted to the correct units.
-        rename_data = {model.inputs[0]: (0,) * model.input_units[model.inputs[0]]}
+        rename_data = {}
+        rename_data[model.inputs[0]] = (0,) * target_units[0]
+        rename_data[model.outputs[0]] = (0,) * data_unit
         if len(world) == 2:
-            rename_data[model.outputs[0]] = (0,) * data_unit
-            rename_data[model.inputs[1]] = (0,) * model.input_units[model.inputs[1]]
+            rename_data[model.inputs[1]] = (0,) * target_units[1]
         else:
-            rename_data[model.outputs[0]] = (0,) * data_unit
             rename_data["z"] = None
 
         # We now strip away the units from the parameters, taking care to
