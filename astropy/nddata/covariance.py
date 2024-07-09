@@ -10,6 +10,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy import sparse
 
+from astropy import log
 from astropy.io import fits
 
 __all__ = ["Covariance"]
@@ -329,7 +330,8 @@ class Covariance:
             )
 
         # Open the provided source, if it hasn't been yet
-        hdu = source if isinstance(source, fits.HDUList) else fits.open(source)
+        source_is_hdu = isinstance(source, fits.HDUList)
+        hdu = source if source_is_hdu else fits.open(source)
 
         # Read coordinate data
         shape = eval(hdu[covar_ext].header["COVSHAPE"])
@@ -362,6 +364,10 @@ class Covariance:
         # Inverse variance data
         ivar = None if ivar_ext is None else hdu[ivar_ext].data
 
+        # Done with the hdu so close it, if necessary
+        if not source_is_hdu:
+            hdu.close()
+
         # Set correlation data
         if ivar is not None:
             if transpose_ivar:
@@ -377,14 +383,13 @@ class Covariance:
         cov = sparse.coo_matrix((cij, (i, j)), shape=shape).tocsr()
 
         # Report
-        # TODO: Convert report to use logging
         if not quiet:
-            print("Read covariance cube:")
-            print(
+            log.info("Read covariance cube:")
+            log.info(
                 f'       output type: {"Correlation" if correlation else "Covariance"}'
             )
-            print(f"             shape: {shape}")
-            print(f"   non-zero values: {nnz}")
+            log.info(f"             shape: {shape}")
+            log.info(f"   non-zero values: {nnz}")
 
         return cls(cov, correlation=correlation, raw_shape=raw_shape)
 
