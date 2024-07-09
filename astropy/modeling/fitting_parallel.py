@@ -18,14 +18,20 @@ __all__ = ["parallel_fit_dask"]
 
 
 def _pixel_to_world_values_block(*pixel, wcs=None):
+    """
+    Convert a block of pixel values to world values using a WCS. This is for
+    use in map_blocks.
+    """
     world = wcs.pixel_to_world_values(*pixel[::-1])[::-1]
     world = np.array(world)
     return world
 
 
 def _wcs_to_world_dask(wcs, data):
-    # Given a WCS and a data shape, return an iterable of dask arrays
-    # representing the world coordinates of the array.
+    """
+    Given a WCS and a data shape, return an iterable of dask arrays
+    representing the world coordinates of the array.
+    """
     pixel = tuple([np.arange(size) for size in data.shape])
     pixel_nd = da.meshgrid(*pixel, indexing="ij")
     world = da.map_blocks(
@@ -39,6 +45,16 @@ def _wcs_to_world_dask(wcs, data):
 
 
 def _copy_with_new_parameters(model, parameters, shape=None):
+    """
+    This function takes a model, as well as a dictionary of parameters, and
+    the final desired shape of the parameter arrays, and copies the model and
+    sets all the parameters to arrays with the desired shape. This is
+    essentially a workaround for the fact that if one has a scalar model, the
+    parameters cannot be changed to arrays. This issue is described in more
+    detail in https://github.com/astropy/astropy/issues/16593. Once that
+    issue is fixed, we should be able to remove this function and the
+    function below. Note that this preserves the constraints.
+    """
     if isinstance(model, CompoundModel):
         if shape is None:
             new_model = model.copy()
@@ -50,8 +66,11 @@ def _copy_with_new_parameters(model, parameters, shape=None):
         constraints = {}
         for constraint in model.parameter_constraints:
             constraints[constraint] = getattr(model, constraint)
-        # HACK: we need a more general way, probably in astropy.modeling,
-        # to do this kind of copy.
+        # HACK: for some models, there are additional non-parameter arguments.
+        # We hard-code the fix for Polynomial1D but other models will need a
+        # similar treatment. However, rather than hard-coding all possible
+        # models here we should fix the underlying issue that would make this
+        # whole function unecessary.
         if isinstance(model, models.Polynomial1D):
             args = (model.degree,)
         else:
@@ -61,6 +80,10 @@ def _copy_with_new_parameters(model, parameters, shape=None):
 
 
 def _compound_model_with_array_parameters(model, shape):
+    """
+    This is a helper to recursively copy compound models replacing the
+    parameter values with arrays.
+    """
     if isinstance(model, CompoundModel):
         return CompoundModel(
             model.op,
@@ -108,14 +131,21 @@ def _fit_models_to_chunk(
     else:
         weights = None
 
+    # World coordinates can be specified either as Nd world arrays (in which
+    # case the world kwarg is set to `None`), or passed in via the world kwarg
+    # (if the world coordinates are given as 1D arrays)
     if world is None:
         parameters = arrays[: -model.n_inputs]
         world_arrays = arrays[-model.n_inputs :]
     else:
         parameters = arrays
 
+    # Make the parameters into an Nd array, as this is what we will return. We
+    # then modify this array in-place in the rest of the function.
     parameters = np.array(parameters)
 
+    # In some cases, dask calls this function with empty arrays, so we can
+    # take a short-cut here.
     if data.ndim == 0 or data.size == 0 or block_info is None or block_info == []:
         return parameters
 
