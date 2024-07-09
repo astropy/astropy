@@ -11,7 +11,7 @@ body:
         quick look to see if you are satisfied by the resolution.
         If not please go ahead and open an issue!
         Please check that the
-        [development version](https://docs.astropy.org/en/latest/development/workflow/get_devel_version.html)
+        [development version](https://docs.astropy.org/en/latest/development/quickstart.html#install-the-development-version-of-astropy)
         still produces the same bug.
   - type: textarea
     attributes:

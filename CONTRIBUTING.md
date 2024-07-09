@@ -53,7 +53,7 @@ requests](https://help.github.com/en/github/collaborating-with-issues-and-pull-r
 from GitHub users' forks of the [astropy
 repository](https://github.com/astropy/astropy). If you are new to this
 style of development, you will want to read over our [development
-workflow](https://docs.astropy.org/en/latest/development/workflow/development_workflow.html).
+workflow](https://docs.astropy.org/en/latest/development/quickstart.html).
 
 You may also/instead be interested in contributing to an
 [astropy affiliated package](https://www.astropy.org/affiliated/).

@@ -8,9 +8,9 @@ https://github.com/astropy/astropy/blob/main/CODE_OF_CONDUCT.md . -->
 
 <!-- If you are new or need to be re-acquainted with Astropy
 contributing workflow, please see
-http://docs.astropy.org/en/latest/development/workflow/development_workflow.html .
+https://docs.astropy.org/en/latest/development/quickstart.html .
 There is even a practical example at
-https://docs.astropy.org/en/latest/development/workflow/git_edit_workflow_examples.html#astropy-fix-example . -->
+https://docs.astropy.org/en/latest/development/git_edit_workflow_examples.html . -->
 
 <!-- Please just have a quick search on GitHub to see if a similar
 pull request has already been posted.
