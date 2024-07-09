@@ -23,7 +23,8 @@ if TYPE_CHECKING:
 
     from numpy.typing import ArrayLike, NDArray
 
-    from .core import Quantity, UnitBase
+    from .core import UnitBase
+    from .quantity import Quantity
 
     DType = TypeVar("DType", bound=np.generic)
     FloatLike = TypeVar("FloatLike", bound=SupportsFloat)
