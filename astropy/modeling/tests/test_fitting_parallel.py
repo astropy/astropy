@@ -592,3 +592,24 @@ def test_units():
     assert_quantity_allclose(model_fit.amplitude.quantity, [2, 1.8] * u.Jy)
     assert_quantity_allclose(model_fit.mean.quantity, [5, 10] * u.um)
     assert_quantity_allclose(model_fit.stddev.quantity, [1.0, 1.1] * u.um)
+
+
+def test_units_no_input_units():
+    # Make sure that fitting with units works for models without input_units defined
+
+    data = (np.repeat(3, 20) * u.Jy).reshape((20, 1))
+
+    model = Const1D(1 * u.mJy)
+    fitter = LevMarLSQFitter()
+
+    assert not model.input_units
+
+    model_fit = parallel_fit_dask(
+        data=data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        world=(1000 * np.arange(20) * u.nm,),
+    )
+
+    assert_quantity_allclose(model_fit.amplitude.quantity, 3 * u.Jy)

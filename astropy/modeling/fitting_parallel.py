@@ -70,7 +70,7 @@ def _copy_with_new_parameters(model, parameters, shape=None):
         # We hard-code the fix for Polynomial1D but other models will need a
         # similar treatment. However, rather than hard-coding all possible
         # models here we should fix the underlying issue that would make this
-        # whole function unecessary.
+        # whole function unnecessary.
         if isinstance(model, models.Polynomial1D):
             args = (model.degree,)
         else:
@@ -544,7 +544,9 @@ def parallel_fit_dask(
         if model.input_units is None:
             target_units = world_units[:]
         else:
-            target_units = [model.input_units[model.inputs[i]] for i in range(model.n_inputs)]
+            target_units = [
+                model.input_units[model.inputs[i]] for i in range(model.n_inputs)
+            ]
             world = [
                 unit.to(
                     target_units[i],
