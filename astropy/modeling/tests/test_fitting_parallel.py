@@ -12,7 +12,7 @@ from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.modeling.fitting import LevMarLSQFitter
-from astropy.modeling.fitting_parallel import parallel_fit_model_nd
+from astropy.modeling.fitting_parallel import parallel_fit_dask
 from astropy.modeling.models import Const1D, Gaussian1D, Linear1D, Planar2D
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.wcs import WCS
@@ -77,7 +77,7 @@ def test_1d_model_fit_axes(
     )
     fitter = LevMarLSQFitter()
 
-    model_fit = parallel_fit_model_nd(
+    model_fit = parallel_fit_dask(
         data=data,
         model=model,
         fitter=fitter,
@@ -148,7 +148,7 @@ def test_2d_model_fit_axes(
     )
     fitter = LevMarLSQFitter()
 
-    model_fit = parallel_fit_model_nd(
+    model_fit = parallel_fit_dask(
         data=data,
         model=model,
         fitter=fitter,
@@ -177,7 +177,7 @@ def test_no_world():
     data = gaussian(np.arange(20), 2, 10, 1)
     model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
     fitter = LevMarLSQFitter()
-    model_fit = parallel_fit_model_nd(
+    model_fit = parallel_fit_dask(
         data=data,
         model=model,
         fitter=fitter,
@@ -206,7 +206,7 @@ def test_wcs_world_1d():
     wcs.wcs.crpix = 1, 1
     wcs.wcs.cdelt = 10, 0.1
 
-    model_fit = parallel_fit_model_nd(
+    model_fit = parallel_fit_dask(
         data=data, model=model, fitter=fitter, fitting_axes=0, world=wcs
     )
     assert_allclose(model_fit.amplitude.value, [2, 1.8])
@@ -228,7 +228,7 @@ def test_world_array():
 
     world1 = np.array([np.linspace(0, 10, 21), np.linspace(5, 15, 21)]).T
 
-    model_fit = parallel_fit_model_nd(
+    model_fit = parallel_fit_dask(
         data=data, model=model, fitter=fitter, fitting_axes=0, world=(world1,)
     )
     assert_allclose(model_fit.amplitude.value, [2, 1.8])
@@ -245,7 +245,7 @@ def test_fitter_kwargs(tmp_path):
     model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
     fitter = LevMarLSQFitter()
 
-    model_fit = parallel_fit_model_nd(
+    model_fit = parallel_fit_dask(
         data=data,
         model=model,
         fitter=fitter,
@@ -267,7 +267,7 @@ def test_diagnostics(tmp_path):
     model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
     fitter = LevMarLSQFitter()
 
-    parallel_fit_model_nd(
+    parallel_fit_dask(
         data=data,
         model=model,
         fitter=fitter,
@@ -279,7 +279,7 @@ def test_diagnostics(tmp_path):
     assert os.listdir(tmp_path / "diag1") == ["0"]
     assert sorted(os.listdir(tmp_path / "diag1" / "0")) == ["error.log"]
 
-    parallel_fit_model_nd(
+    parallel_fit_dask(
         data=data,
         model=model,
         fitter=fitter,
@@ -292,7 +292,7 @@ def test_diagnostics(tmp_path):
 
     # Make sure things world also with world=wcs
 
-    parallel_fit_model_nd(
+    parallel_fit_dask(
         data=data,
         model=model,
         fitter=fitter,
@@ -317,7 +317,7 @@ def test_diagnostics(tmp_path):
         fig.savefig(os.path.join(path, "fit.png"))
         plt.close(fig)
 
-    parallel_fit_model_nd(
+    parallel_fit_dask(
         data=data,
         model=model,
         fitter=fitter,
@@ -359,7 +359,7 @@ def test_dask_scheduler(scheduler):
     )
     fitter = LevMarLSQFitter()
 
-    model_fit = parallel_fit_model_nd(
+    model_fit = parallel_fit_dask(
         data=data,
         model=model,
         fitter=fitter,
@@ -402,7 +402,7 @@ def test_compound_model():
     wcs.wcs.crpix = 1, 1
     wcs.wcs.cdelt = 10, 0.1
 
-    model_fit = parallel_fit_model_nd(
+    model_fit = parallel_fit_dask(
         data=data, model=model, fitter=fitter, fitting_axes=0, world=wcs
     )
     assert_allclose(model_fit.amplitude_0.value, [2, 1.8])
@@ -415,7 +415,7 @@ def test_compound_model():
     model.amplitude_1 = 2
     model.amplitude_1.fixed = True
 
-    model_fit = parallel_fit_model_nd(
+    model_fit = parallel_fit_dask(
         data=data, model=model, fitter=fitter, fitting_axes=0, world=wcs
     )
 
@@ -434,7 +434,7 @@ def test_model_dimension_mismatch():
         ValueError,
         match=re.escape("Model is 2-dimensional, but got 1 value(s) in fitting_axes="),
     ):
-        parallel_fit_model_nd(
+        parallel_fit_dask(
             data=data,
             model=model,
             fitter=fitter,
@@ -449,7 +449,7 @@ def test_model_dimension_mismatch():
         ValueError,
         match=re.escape("Model is 1-dimensional, but got 2 value(s) in fitting_axes="),
     ):
-        parallel_fit_model_nd(
+        parallel_fit_dask(
             data=data,
             model=model,
             fitter=fitter,
@@ -466,7 +466,7 @@ def test_data_dimension_mismatch():
         ValueError,
         match=re.escape("Fitting index 4 out of range for 3-dimensional data"),
     ):
-        parallel_fit_model_nd(
+        parallel_fit_dask(
             data=data,
             model=model,
             fitter=fitter,
@@ -485,7 +485,7 @@ def test_world_dimension_mismatch():
             "world[2] has length 6 but data along dimension 2 has length 5"
         ),
     ):
-        parallel_fit_model_nd(
+        parallel_fit_dask(
             data=data,
             model=model,
             fitter=fitter,
@@ -502,7 +502,7 @@ def test_preserve_native_chunks():
     model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
     fitter = LevMarLSQFitter()
 
-    model_fit = parallel_fit_model_nd(
+    model_fit = parallel_fit_dask(
         data=data,
         model=model,
         fitter=fitter,
@@ -526,7 +526,7 @@ def test_preserve_native_chunks_invalid():
     with pytest.raises(
         ValueError, match=re.escape("When using preserve_native_chunks=True")
     ):
-        parallel_fit_model_nd(
+        parallel_fit_dask(
             data=data,
             model=model,
             fitter=fitter,
@@ -553,7 +553,7 @@ def test_weights():
     model = Gaussian1D(amplitude=1.5, mean=7, stddev=2)
     fitter = LevMarLSQFitter()
 
-    model_fit = parallel_fit_model_nd(
+    model_fit = parallel_fit_dask(
         data=data,
         weights=weights,
         model=model,
@@ -581,7 +581,7 @@ def test_units():
     model = Gaussian1D(amplitude=1.5 * u.Jy, mean=7 * u.um, stddev=0.002 * u.mm)
     fitter = LevMarLSQFitter()
 
-    model_fit = parallel_fit_model_nd(
+    model_fit = parallel_fit_dask(
         data=data,
         model=model,
         fitter=fitter,
