@@ -207,7 +207,11 @@ def test_wcs_world_1d():
     wcs.wcs.cdelt = 10, 0.1
 
     model_fit = parallel_fit_dask(
-        data=data, model=model, fitter=fitter, fitting_axes=0, world=wcs
+        data=data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        world=wcs,
     )
     assert_allclose(model_fit.amplitude.value, [2, 1.8])
     assert_allclose(model_fit.mean.value, [1.1, 1.2])
@@ -597,7 +601,7 @@ def test_units():
 def test_units_no_input_units():
     # Make sure that fitting with units works for models without input_units defined
 
-    data = (np.repeat(3, 20) * u.Jy).reshape((20, 1))
+    data = (np.repeat(3, 20)).reshape((20, 1)) * u.Jy
 
     model = Const1D(1 * u.mJy)
     fitter = LevMarLSQFitter()
@@ -613,3 +617,27 @@ def test_units_no_input_units():
     )
 
     assert_quantity_allclose(model_fit.amplitude.quantity, 3 * u.Jy)
+
+
+def test_units_with_wcs():
+    data = gaussian(np.arange(20), 2, 10, 1).reshape((20, 1)) * u.Jy
+    model = Gaussian1D(amplitude=1.5 * u.Jy, mean=7 * u.um, stddev=0.002 * u.mm)
+    fitter = LevMarLSQFitter()
+
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = "OFFSET", "WAVE"
+    wcs.wcs.crval = 10, 0.1
+    wcs.wcs.crpix = 1, 1
+    wcs.wcs.cdelt = 10, 0.1
+    wcs.wcs.cunit = "deg", "um"
+
+    model_fit = parallel_fit_dask(
+        data=data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        world=wcs,
+    )
+    assert_allclose(model_fit.amplitude.quantity, 2 * u.Jy)
+    assert_allclose(model_fit.mean.quantity, 1.1 * u.um)
+    assert_allclose(model_fit.stddev.quantity, 0.1 * u.um)
