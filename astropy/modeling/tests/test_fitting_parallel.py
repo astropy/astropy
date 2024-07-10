@@ -276,7 +276,7 @@ def test_diagnostics(tmp_path):
         model=model,
         fitter=fitter,
         fitting_axes=0,
-        diagnostics="failed",
+        diagnostics="error",
         diagnostics_path=tmp_path / "diag1",
     )
 
@@ -302,7 +302,7 @@ def test_diagnostics(tmp_path):
         fitter=fitter,
         fitting_axes=0,
         world=WCS(naxis=2),
-        diagnostics="failed",
+        diagnostics="error",
         diagnostics_path=tmp_path / "diag3",
     )
 
@@ -327,7 +327,7 @@ def test_diagnostics(tmp_path):
         fitter=fitter,
         fitting_axes=0,
         world=WCS(naxis=2),
-        diagnostics="failed",
+        diagnostics="error",
         diagnostics_path=tmp_path / "diag4",
         diagnostics_callable=custom_callable,
     )
