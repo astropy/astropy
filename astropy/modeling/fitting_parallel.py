@@ -9,7 +9,6 @@ import numpy as np
 from dask import array as da
 
 import astropy.units as u
-from astropy.modeling import CompoundModel, models
 from astropy.modeling.utils import _combine_equivalency_dict
 from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
 from astropy.wcs.wcsapi.wrappers import SlicedLowLevelWCS
@@ -55,6 +54,8 @@ def _copy_with_new_parameters(model, parameters, shape=None):
     issue is fixed, we should be able to remove this function and the
     function below. Note that this preserves the constraints.
     """
+    # Avoid circular imports
+    from astropy.modeling import CompoundModel, models
     if isinstance(model, CompoundModel):
         if shape is None:
             new_model = model.copy()
@@ -84,6 +85,8 @@ def _compound_model_with_array_parameters(model, shape):
     This is a helper to recursively copy compound models replacing the
     parameter values with arrays.
     """
+    # Avoid circular imports
+    from astropy.modeling import CompoundModel
     if isinstance(model, CompoundModel):
         return CompoundModel(
             model.op,
@@ -204,7 +207,7 @@ def _fit_models_to_chunk(
                 all_warnings.extend(w)
         except Exception as exc:
             model_fit = None
-            if diagnostics == "failed":
+            if diagnostics == "error":
                 output = True
             error = traceback.format_exc()
             for ipar, name in enumerate(model_i.param_names):
@@ -216,7 +219,7 @@ def _fit_models_to_chunk(
             for ipar, name in enumerate(model_fit.param_names):
                 parameters[(ipar,) + index] = getattr(model_fit, name).value
 
-        if diagnostics == "failed+warn" and len(all_warnings) > 0:
+        if diagnostics == "error+warn" and len(all_warnings) > 0:
             output = True
 
         if output:
@@ -312,7 +315,7 @@ def parallel_fit_dask(
         The model to fit, specifying the initial parameter values. The shape
         of the parameters should be broadcastable to the shape of the iterating
         axes.
-    fitter : :class:`astropy.modeling.Fitter`
+    fitter : :class:`astropy.modeling.fitting.Fitter`
         The fitter to use in the fitting process.
     data : `numpy.ndarray` or `dask.array.core.Array`
         The N-dimensional data to fit.
@@ -330,27 +333,26 @@ def parallel_fit_dask(
         the values in the dictionary can be either 1D arrays, or can be given
         as N-dimensional arrays with shape broadcastable to the data shape. If
         not specified, the fitting is carried out in pixel coordinates.
-    method : { 'dask' }
-        The framework to use for the parallelization.
     chunk_n_max : int
-        Maximum number of fits to include in a chunk. If this is made too large,
-        then the workload will not be split properly over processes, and if it is
-        too small it may be inefficient.
-    diagnostics : { None | 'failed' | 'failed+warn' | 'all' }, optional
+        Maximum number of fits to include in a chunk. If this is made too
+        large, then the workload will not be split properly over processes, and
+        if it is too small it may be inefficient. If not specified, this will
+        default to 500.
+    diagnostics : { None | 'error' | 'error+warn' | 'all' }, optional
         Whether to output diagnostic information for fits. This can be either
-        `None` (nothing), ``'failed'`` (output information for failed fits), or
-        ``'all'`` (output information for all fits).
+        `None` (nothing), ``'error'`` (output information for fits that raised
+        exceptions), or ``'all'`` (output information for all fits).
     diagnostics_path : str, optional
-        If `diagnostics` is not `None`, this should be the path to a folder in
+        If ``diagnostics`` is not `None`, this should be the path to a folder in
         which a folder will be made for each fit that is output.
     diagnostics_callable : callable
-        By default, any warnings or errors are output to `diagnostics_path`.
+        By default, any warnings or errors are output to ``diagnostics_path``.
         However, you can also specify a callable that can e.g. make a plot or
         write out information in a custom format. The callable should take the
         following arguments: the path to the subfolder of ``diagnostics_path``
         for the specific index being fit, a list of the coordinates passed to
         the fitter, the data array, the weights array (or `None` if no weights
-        are being used), the model that was fit (or `None` if the fit failed),
+        are being used), the model that was fit (or `None` if the fit errored),
         and a dictionary of other keyword arguments passed to the fitter.
     scheduler : str, optional
         If not specified, a local multi-processing scheduler will be
@@ -366,7 +368,7 @@ def parallel_fit_dask(
     if scheduler is None:
         scheduler = "processes"
 
-    if diagnostics in (None, "failed", "failed+warn", "all"):
+    if diagnostics in (None, "error", "error+warn", "all"):
         if diagnostics is not None:
             if diagnostics_path is None:
                 raise ValueError("diagnostics_path should be set")
@@ -374,7 +376,7 @@ def parallel_fit_dask(
                 os.makedirs(diagnostics_path, exist_ok=True)
     else:
         raise ValueError(
-            "diagnostics should be None, 'failed', 'failed+warn', or 'all'"
+            "diagnostics should be None, 'error', 'error+warn', or 'all'"
         )
 
     if not isinstance(fitting_axes, tuple):
@@ -432,10 +434,10 @@ def parallel_fit_dask(
             "auto" if idx in iterating_axes else -1 for idx in range(ndim)
         )
 
-        if chunk_n_max:
-            block_size_limit = chunk_n_max * prod(fitting_shape) * data.dtype.itemsize
-        else:
-            block_size_limit = dask.config.get("array.chunk-size")
+        if chunk_n_max is None:
+            chunk_n_max = 500
+
+        block_size_limit = chunk_n_max * prod(fitting_shape) * data.dtype.itemsize
 
         if isinstance(data, da.core.Array):
             data = data.rechunk(chunk_shape, block_size_limit=block_size_limit)

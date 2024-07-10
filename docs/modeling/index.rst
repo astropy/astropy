@@ -87,6 +87,7 @@ Advanced Topics
    Extending Fitters <new-fitter.rst>
    Adding support for units to models <add-units.rst>
    Joint Fitting <jointfitter.rst>
+   Parallel Fitting <parallel-fitting.rst>
 
 
 Pre-Defined Models
