@@ -416,16 +416,12 @@ class TestRoundtripOGIP(RoundtripBase):
             self.check_roundtrip_decompose(unit)
 
 
-def test_fits_units_available():
-    u_format.FITS._units
-
-
-def test_vo_units_available():
-    u_format.VOUnit._units
-
-
-def test_cds_units_available():
-    u_format.CDS._units
+@pytest.mark.parametrize(
+    "unit_formatter_class,n_units",
+    [(u_format.FITS, 765), (u_format.VOUnit, 1297), (u_format.CDS, 3124)],
+)
+def test_units_available(unit_formatter_class, n_units):
+    assert len(unit_formatter_class._units) == n_units
 
 
 def test_cds_non_ascii_unit():
