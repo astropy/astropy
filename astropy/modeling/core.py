@@ -4160,7 +4160,6 @@ class CompoundModel(Model):
         base method.
         """
         if self.op in ["*", "/"]:
-            model = self.copy()
             inputs = {inp: kwargs[inp] for inp in self.inputs}
 
             left_units = self.left.output_units(**kwargs)
@@ -4204,7 +4203,7 @@ class CompoundModel(Model):
                 right_kwargs["_right_kwargs"] = right[2]
                 right = right[0]
 
-            model._set_sub_models_and_parameter_units(left, right)
+            model = CompoundModel(self.op, left, right, name=self.name)
 
             return model, left_kwargs, right_kwargs
         else:
