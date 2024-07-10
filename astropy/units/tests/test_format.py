@@ -25,9 +25,18 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
 
+class FormatStringPair(NamedTuple):
+    format: str
+    string: str
+
+
 class StringUnitPair(NamedTuple):
     string: str
     unit: UnitBase
+
+
+def list_format_string_pairs(*test_cases: tuple[str, str]) -> list[FormatStringPair]:
+    return [FormatStringPair(format, string) for format, string in test_cases]
 
 
 def list_string_unit_pairs(
@@ -292,6 +301,7 @@ class TestRoundtripGeneric(RoundtripBase):
             for unit in u.__dict__.values()
             if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
         ],
+        ids=lambda x: str(x),
     )
     def test_roundtrip(self, unit):
         self.check_roundtrip(unit)
@@ -310,6 +320,7 @@ class TestRoundtripVOUnit(RoundtripBase):
             for unit in u_format.VOUnit._units.values()
             if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
         ],
+        ids=lambda x: str(x),
     )
     def test_roundtrip(self, unit):
         self.check_roundtrip(unit)
@@ -328,6 +339,7 @@ class TestRoundtripFITS(RoundtripBase):
             for unit in u_format.FITS._units.values()
             if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
         ],
+        ids=lambda x: str(x),
     )
     def test_roundtrip(self, unit):
         self.check_roundtrip(unit)
@@ -343,6 +355,7 @@ class TestRoundtripCDS(RoundtripBase):
             for unit in u_format.CDS._units.values()
             if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
         ],
+        ids=lambda x: str(x),
     )
     def test_roundtrip(self, unit):
         self.check_roundtrip(unit)
@@ -353,7 +366,9 @@ class TestRoundtripCDS(RoundtripBase):
         self.check_roundtrip_decompose(unit)
 
     @pytest.mark.parametrize(
-        "unit", [u.dex(unit) for unit in (u.cm / u.s**2, u.K, u.Lsun)]
+        "unit",
+        [u.dex(unit) for unit in (u.cm / u.s**2, u.K, u.Lsun)],
+        ids=lambda x: str(x),
     )
     def test_roundtrip_dex(self, unit):
         string = unit.to_string(format="cds")
@@ -372,6 +387,7 @@ class TestRoundtripOGIP(RoundtripBase):
             for unit in u_format.OGIP._units.values()
             if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
         ],
+        ids=lambda x: str(x),
     )
     def test_roundtrip(self, unit):
         if str(unit) in ("d", "0.001 Crab"):
@@ -554,18 +570,18 @@ def test_console_out():
 
 
 @pytest.mark.parametrize(
-    "format,string",
-    [
+    "test_pair",
+    list_format_string_pairs(
         ("generic", "10"),
         ("console", "10"),
         ("unicode", "10"),
         ("cds", "10"),
         ("latex", r"$\mathrm{10}$"),
-    ],
+    ),
+    ids=lambda x: x.format,
 )
-def test_scale_only(format, string):
-    unit = u.Unit(10)
-    assert unit.to_string(format) == string
+def test_scale_only(test_pair: FormatStringPair):
+    assert u.Unit(10).to_string(test_pair.format) == test_pair.string
 
 
 def test_flexible_float():
@@ -966,19 +982,20 @@ def test_celsius_fits():
 
 
 @pytest.mark.parametrize(
-    "format_spec, string",
-    [
+    "test_pair",
+    list_format_string_pairs(
         ("generic", "dB(1 / m)"),
         ("latex", r"$\mathrm{dB}$$\mathrm{\left( \mathrm{\frac{1}{m}} \right)}$"),
         ("latex_inline", r"$\mathrm{dB}$$\mathrm{\left( \mathrm{m^{-1}} \right)}$"),
         ("console", "dB(m^-1)"),
         ("unicode", "dB(m⁻¹)"),
-    ],
+    ),
+    ids=lambda x: x.format,
 )
-def test_function_format_styles(format_spec, string):
+def test_function_format_styles(test_pair: FormatStringPair):
     dbunit = u.decibel(u.m**-1)
-    assert dbunit.to_string(format_spec) == string
-    assert f"{dbunit:{format_spec}}" == string
+    assert dbunit.to_string(test_pair.format) == test_pair.string
+    assert f"{dbunit:{test_pair.format}}" == test_pair.string
 
 
 @pytest.mark.parametrize(
