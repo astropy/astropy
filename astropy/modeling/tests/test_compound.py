@@ -30,6 +30,7 @@ from astropy.modeling.models import (
     fix_inputs,
 )
 from astropy.modeling.parameters import Parameter
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
@@ -993,6 +994,11 @@ def test_fit_multiplied_compound_model_with_mixed_units():
     m1 = Linear1D(slope=5 * u.m / u.s / u.s, intercept=1.0 * u.m / u.s)
     m2 = Linear1D(slope=0.0 * u.kg / u.s, intercept=10.0 * u.kg)
     truth = m1 * m2
+
+    # We need to fix some of the parameters to avoid degeneracies
+    truth.slope_1.fixed = True
+    truth.intercept_0.fixed = True
+
     fit = fitter(truth, x, y)
 
     unfit_output = truth(x)
@@ -1005,8 +1011,10 @@ def test_fit_multiplied_compound_model_with_mixed_units():
     # to correct this.
     assert_allclose(unfit_output / 10 + 4 * u.kg * u.m / u.s, fit_output)
 
-    # There are degeneracies between the parameters of this model, so we cannot
-    # reliably check the values of the fit parameters.
+    assert_quantity_allclose(fit.slope_0, 1 * u.m / u.s / u.s)
+    assert_quantity_allclose(fit.intercept_0, 1.0 * u.m / u.s)
+    assert_quantity_allclose(fit.slope_1, 0 * u.kg / u.s)
+    assert_quantity_allclose(fit.intercept_1, 5 * u.kg)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
@@ -1024,7 +1032,14 @@ def test_fit_multiplied_recursive_compound_model_with_mixed_units():
     m2 = Linear1D(slope=0.0 * u.kg / u.s, intercept=10.0 * u.kg)
     m3 = Linear1D(slope=0.0 * u.m / u.s, intercept=10.0 * u.m)
     truth = m1 * m2 * m3
-    fit = fitter(truth, x, y, maxiter=1000)
+
+    # We need to fix some of the parameters to avoid degeneracies
+    truth.slope_1.fixed = True
+    truth.slope_2.fixed = True
+    truth.intercept_0.fixed = True
+    truth.intercept_1.fixed = True
+
+    fit = fitter(truth, x, y)
 
     unfit_output = truth(x)
     fit_output = fit(x)
@@ -1036,8 +1051,12 @@ def test_fit_multiplied_recursive_compound_model_with_mixed_units():
     # to correct this.
     assert_allclose(unfit_output / 100 + 4 * u.kg * u.m * u.m / u.s, fit_output)
 
-    # There are degeneracies between the parameters of this model, so we cannot
-    # reliably check the values of the fit parameters.
+    assert_quantity_allclose(fit.slope_0, 1 * u.m / u.s / u.s)
+    assert_quantity_allclose(fit.intercept_0, 1.0 * u.m / u.s)
+    assert_quantity_allclose(fit.slope_1, 0 * u.kg / u.s)
+    assert_quantity_allclose(fit.intercept_1, 10 * u.kg)
+    assert_quantity_allclose(fit.slope_2, 0 * u.m / u.s)
+    assert_quantity_allclose(fit.intercept_2, 0.5 * u.m)
 
     x = np.linspace(0, 1, 101) * u.s
     y = np.linspace(5, 10, 101) * u.m * u.m * u.kg * u.kg / u.s
@@ -1049,7 +1068,16 @@ def test_fit_multiplied_recursive_compound_model_with_mixed_units():
     m11 = m1 * m2
     m22 = m3 * m4
     truth = m11 * m22
-    fit = fitter(truth, x, y, maxiter=10000)
+
+    # We need to fix some of the parameters to avoid degeneracies
+    truth.slope_1.fixed = True
+    truth.slope_2.fixed = True
+    truth.slope_3.fixed = True
+    truth.intercept_0.fixed = True
+    truth.intercept_1.fixed = True
+    truth.intercept_2.fixed = True
+
+    fit = fitter(truth, x, y)
 
     unfit_output = truth(x)
     fit_output = fit(x)
@@ -1061,8 +1089,14 @@ def test_fit_multiplied_recursive_compound_model_with_mixed_units():
     # to correct this.
     assert_allclose(unfit_output / 1000 + 4 * u.kg * u.kg * u.m * u.m / u.s, fit_output)
 
-    # There are degeneracies between the parameters of this model, so we cannot
-    # reliably check the values of the fit parameters.
+    assert_quantity_allclose(fit.slope_0, 1 * u.m / u.s / u.s)
+    assert_quantity_allclose(fit.intercept_0, 1.0 * u.m / u.s)
+    assert_quantity_allclose(fit.slope_1, 0 * u.kg / u.s)
+    assert_quantity_allclose(fit.intercept_1, 10 * u.kg)
+    assert_quantity_allclose(fit.slope_2, 0 * u.m / u.s)
+    assert_quantity_allclose(fit.intercept_2, 10 * u.m)
+    assert_quantity_allclose(fit.slope_3, 0 * u.kg / u.s)
+    assert_quantity_allclose(fit.intercept_3, 0.05 * u.kg)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
@@ -1078,7 +1112,12 @@ def test_fit_divided_compound_model_with_mixed_units():
     m1 = Linear1D(slope=5 * u.kg * u.m / u.s, intercept=1.0 * u.kg * u.m)
     m2 = Linear1D(slope=0.0 * u.s / u.s, intercept=10.0 * u.s)
     truth = m1 / m2
-    fit = fitter(truth, x, y, maxiter=1000)
+
+    # We need to fix some of the parameters to avoid degeneracies
+    truth.slope_1.fixed = True
+    truth.intercept_0.fixed = True
+
+    fit = fitter(truth, x, y)
 
     unfit_output = truth(x)
     fit_output = fit(x)
@@ -1090,8 +1129,10 @@ def test_fit_divided_compound_model_with_mixed_units():
     # to correct this.
     assert_allclose(unfit_output * 10 + 4 * u.kg * u.m / u.s, fit_output, rtol=1e-4)
 
-    # There are degeneracies between the parameters of this model, so we cannot
-    # reliably check the values of the fit parameters.
+    assert_quantity_allclose(fit.slope_0, 1 * u.kg * u.m / u.s)
+    assert_quantity_allclose(fit.intercept_0, 1.0 * u.kg * u.m)
+    assert_quantity_allclose(fit.slope_1, 0 * u.s / u.s)
+    assert_quantity_allclose(fit.intercept_1, 0.2 * u.s)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
@@ -1109,7 +1150,14 @@ def test_fit_mixed_recursive_compound_model_with_mixed_units():
     m2 = Linear1D(slope=0.0 * u.s / u.s, intercept=10.0 * u.s)
     m3 = Linear1D(slope=0.0 * u.m / u.s, intercept=10.0 * u.m)
     truth = m1 / m2 * m3
-    fit = fitter(truth, x, y, maxiter=1000)
+
+    # We need to fix some of the parameters to avoid degeneracies
+    truth.slope_1.fixed = True
+    truth.slope_2.fixed = True
+    truth.intercept_0.fixed = True
+    truth.intercept_1.fixed = True
+
+    fit = fitter(truth, x, y)
 
     unfit_output = truth(x)
     fit_output = fit(x)
@@ -1121,8 +1169,12 @@ def test_fit_mixed_recursive_compound_model_with_mixed_units():
     # to correct this.
     assert_allclose(unfit_output + 4 * u.kg * u.m * u.m / u.s, fit_output)
 
-    # There are degeneracies between the parameters of this model, so we cannot
-    # reliably check the values of the fit parameters.
+    assert_quantity_allclose(fit.slope_0, 1 * u.kg * u.m / u.s)
+    assert_quantity_allclose(fit.intercept_0, 1.0 * u.kg * u.m)
+    assert_quantity_allclose(fit.slope_1, 0 * u.s / u.s)
+    assert_quantity_allclose(fit.intercept_1, 10 * u.s)
+    assert_quantity_allclose(fit.slope_2, 0 * u.m / u.s)
+    assert_quantity_allclose(fit.intercept_2, 50 * u.m)
 
     x = np.linspace(0, 1, 101) * u.s
     y = np.linspace(5, 10, 101) * u.kg * u.kg * u.m * u.m / u.s
@@ -1134,7 +1186,16 @@ def test_fit_mixed_recursive_compound_model_with_mixed_units():
     m11 = m1 / m2
     m22 = m3 * m4
     truth = m11 * m22
-    fit = fitter(truth, x, y, maxiter=1000)
+
+    # We need to fix some of the parameters to avoid degeneracies
+    truth.slope_1.fixed = True
+    truth.slope_2.fixed = True
+    truth.slope_3.fixed = True
+    truth.intercept_0.fixed = True
+    truth.intercept_1.fixed = True
+    truth.intercept_2.fixed = True
+
+    fit = fitter(truth, x, y)
 
     unfit_output = truth(x)
     fit_output = fit(x)
@@ -1147,5 +1208,11 @@ def test_fit_mixed_recursive_compound_model_with_mixed_units():
 
     assert_allclose(unfit_output / 10 + 4 * u.kg * u.kg * u.m * u.m / u.s, fit_output)
 
-    # There are degeneracies between the parameters of this model, so we cannot
-    # reliably check the values of the fit parameters.
+    assert_quantity_allclose(fit.slope_0, 1 * u.kg * u.m / u.s)
+    assert_quantity_allclose(fit.intercept_0, 1.0 * u.kg * u.m)
+    assert_quantity_allclose(fit.slope_1, 0 * u.s / u.s)
+    assert_quantity_allclose(fit.intercept_1, 10 * u.s)
+    assert_quantity_allclose(fit.slope_2, 0 * u.m / u.s)
+    assert_quantity_allclose(fit.intercept_2, 10 * u.m)
+    assert_quantity_allclose(fit.slope_3, 0 * u.kg / u.s)
+    assert_quantity_allclose(fit.intercept_3, 5 * u.kg)
