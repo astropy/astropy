@@ -1011,23 +1011,23 @@ def test_function_format_styles_non_default_fraction(format_spec, fraction, stri
 
 
 @pytest.mark.parametrize(
-    "format_spec, expected_mantissa",
-    [
+    "test_pair",
+    list_format_string_pairs(
         ("", "1"),
         (".1g", "1"),
         (".3g", "1"),
         (".1e", "1.0"),
         (".1f", "1.0"),
         (".3e", "1.000"),
-    ],
+    ),
+    ids=lambda x: repr(x.format),
 )
-def test_format_latex_one(format_spec, expected_mantissa):
+def test_format_latex_one(test_pair: FormatStringPair):
     # see https://github.com/astropy/astropy/issues/12571
-    from astropy.units.format.utils import split_mantissa_exponent
-
-    m, ex = split_mantissa_exponent(1, format_spec)
-    assert ex == ""
-    assert m == expected_mantissa
+    assert (
+        u_format.Latex.format_exponential_notation(1, test_pair.format)
+        == test_pair.string
+    )
 
 
 def test_Fits_name_deprecation():
