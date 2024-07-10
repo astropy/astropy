@@ -956,16 +956,16 @@ def test_age_in_special_cosmologies():
     Some analytic solutions fail at these critical points.
     """
     c_dS = FlatLambdaCDM(100, 0, Tcmb0=0)
-    assert u.allclose(c_dS.age(z=0), np.inf * u.Gyr)
-    assert u.allclose(c_dS.age(z=1), np.inf * u.Gyr)
-    assert u.allclose(c_dS.lookback_time(z=0), 0 * u.Gyr)
-    assert u.allclose(c_dS.lookback_time(z=1), 6.777539216261741 * u.Gyr)
+    assert u.allclose(c_dS.age(0), np.inf * u.Gyr)
+    assert u.allclose(c_dS.age(1), np.inf * u.Gyr)
+    assert u.allclose(c_dS.lookback_time(0), 0 * u.Gyr)
+    assert u.allclose(c_dS.lookback_time(1), 6.777539216261741 * u.Gyr)
 
     c_EdS = FlatLambdaCDM(100, 1, Tcmb0=0)
-    assert u.allclose(c_EdS.age(z=0), 6.518614811154189 * u.Gyr)
-    assert u.allclose(c_EdS.age(z=1), 2.3046783684542738 * u.Gyr)
-    assert u.allclose(c_EdS.lookback_time(z=0), 0 * u.Gyr)
-    assert u.allclose(c_EdS.lookback_time(z=1), 4.213936442699092 * u.Gyr)
+    assert u.allclose(c_EdS.age(0), 6.518614811154189 * u.Gyr)
+    assert u.allclose(c_EdS.age(1), 2.3046783684542738 * u.Gyr)
+    assert u.allclose(c_EdS.lookback_time(0), 0 * u.Gyr)
+    assert u.allclose(c_EdS.lookback_time(1), 4.213936442699092 * u.Gyr)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
@@ -975,20 +975,20 @@ def test_distance_in_special_cosmologies():
     Some analytic solutions fail at these critical points.
     """
     c_dS = FlatLambdaCDM(100, 0, Tcmb0=0)
-    assert u.allclose(c_dS.comoving_distance(z=0), 0 * u.Mpc)
-    assert u.allclose(c_dS.comoving_distance(z=1), 2997.92458 * u.Mpc)
+    assert u.allclose(c_dS.comoving_distance(0), 0 * u.Mpc)
+    assert u.allclose(c_dS.comoving_distance(1), 2997.92458 * u.Mpc)
 
     c_EdS = FlatLambdaCDM(100, 1, Tcmb0=0)
-    assert u.allclose(c_EdS.comoving_distance(z=0), 0 * u.Mpc)
-    assert u.allclose(c_EdS.comoving_distance(z=1), 1756.1435599923348 * u.Mpc)
+    assert u.allclose(c_EdS.comoving_distance(0), 0 * u.Mpc)
+    assert u.allclose(c_EdS.comoving_distance(1), 1756.1435599923348 * u.Mpc)
 
     c_dS = LambdaCDM(100, 0, 1, Tcmb0=0)
-    assert u.allclose(c_dS.comoving_distance(z=0), 0 * u.Mpc)
-    assert u.allclose(c_dS.comoving_distance(z=1), 2997.92458 * u.Mpc)
+    assert u.allclose(c_dS.comoving_distance(0), 0 * u.Mpc)
+    assert u.allclose(c_dS.comoving_distance(1), 2997.92458 * u.Mpc)
 
     c_EdS = LambdaCDM(100, 1, 0, Tcmb0=0)
-    assert u.allclose(c_EdS.comoving_distance(z=0), 0 * u.Mpc)
-    assert u.allclose(c_EdS.comoving_distance(z=1), 1756.1435599923348 * u.Mpc)
+    assert u.allclose(c_EdS.comoving_distance(0), 0 * u.Mpc)
+    assert u.allclose(c_EdS.comoving_distance(1), 1756.1435599923348 * u.Mpc)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")

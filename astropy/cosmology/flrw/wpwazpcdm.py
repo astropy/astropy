@@ -5,7 +5,7 @@
 from numpy import exp
 
 from astropy.cosmology import units as cu
-from astropy.cosmology._utils import aszarr
+from astropy.cosmology._utils import aszarr, deprecated_keywords
 from astropy.cosmology.core import dataclass_decorator
 from astropy.cosmology.parameter import Parameter
 
@@ -161,13 +161,17 @@ class wpwaCDM(FLRW):
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
+    @deprecated_keywords("z", since="7.0")
     def w(self, z):
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'] or array-like
             Input redshift.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -186,13 +190,17 @@ class wpwaCDM(FLRW):
         apiv = 1.0 / (1.0 + self._zp.value)
         return self._wp + self._wa * (apiv - 1.0 / (aszarr(z) + 1.0))
 
+    @deprecated_keywords("z", since="7.0")
     def de_density_scale(self, z):
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+        z : Quantity-like ['redshift'] or array-like
             Input redshift.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
