@@ -1132,3 +1132,22 @@ def test_Schechter1D_errors():
     )
     with pytest.raises(u.UnitsError, match=MESSAGE):
         model(-23 * u.mag)
+
+
+def test_compound_without_units_for_data_parameters():
+    # Regression test for a bug that caused models returned by
+    # CompoundModel.without_units_for_data to return a model that has top-level
+    # parameters decoupled from the parameters on the individual models.
+
+    g1 = Gaussian1D(amplitude=2 * u.Jy, stddev=4 * u.nm, mean=1000 * u.nm)
+    g2 = Gaussian1D(amplitude=1 * u.Jy, stddev=2 * u.nm, mean=500 * u.nm)
+
+    gg = g1 * g2
+
+    gg_nounit = gg.without_units_for_data(x=1 * u.nm, y=2 * u.Jy**2)[0]
+
+    gg_nounit.amplitude_0 = 5
+    assert gg_nounit.left.amplitude == 5
+
+    gg_nounit.amplitude_1 = 6
+    assert gg_nounit.right.amplitude == 6
