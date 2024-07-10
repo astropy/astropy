@@ -5,7 +5,12 @@ import pytest
 
 import astropy.units as u
 from astropy.cosmology import utils
-from astropy.cosmology._utils import all_cls_vars, aszarr, vectorize_redshift_method
+from astropy.cosmology._utils import (
+    all_cls_vars,
+    aszarr,
+    deprecated_keywords,
+    vectorize_redshift_method,
+)
 from astropy.utils.compat.optional_deps import HAS_PANDAS
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -112,3 +117,95 @@ def test_all_cls_vars():
     assert public_all_vars == {"a": 1, "b": 2, "c": 3}
     assert "a" not in vars(ClassB)
     assert "b" not in vars(ClassB)
+
+
+class TestDeprecatedKeywords:
+    @classmethod
+    def setup_class(cls):
+        def noop(a, b, c, d):
+            # a minimal function that does nothing,
+            # with multiple positional-or-keywords arguments
+            return
+
+        cls.base_func = noop
+        cls.depr_funcs = {
+            1: deprecated_keywords("a", since="999.999.999")(noop),
+            2: deprecated_keywords("a", "b", since="999.999.999")(noop),
+            4: deprecated_keywords("a", "b", "c", "d", since="999.999.999")(noop),
+        }
+
+    def test_type_safety(self):
+        dec = deprecated_keywords(b"a", since="999.999.999")
+        with pytest.raises(TypeError, match=r"names\[0\] must be a string"):
+            dec(self.base_func)
+
+        dec = deprecated_keywords("a", since=b"999.999.999")
+        with pytest.raises(TypeError, match=r"since must be a string"):
+            dec(self.base_func)
+
+    @pytest.mark.parametrize("n_deprecated_keywords", [1, 2, 4])
+    def test_no_warn(self, n_deprecated_keywords):
+        func = self.depr_funcs[n_deprecated_keywords]
+        func(1, 2, 3, 4)
+
+    @pytest.mark.parametrize(
+        "n_deprecated_keywords, args, kwargs, match",
+        [
+            pytest.param(
+                1,
+                (),
+                {"a": 1, "b": 2, "c": 3, "d": 4},
+                r"Passing 'a' as keyword is deprecated since",
+                id="1 deprecation, 1 warn",
+            ),
+            pytest.param(
+                2,
+                (1,),
+                {"b": 2, "c": 3, "d": 4},
+                r"Passing 'b' as keyword is deprecated since",
+                id="2 deprecation, 1 warn",
+            ),
+            pytest.param(
+                2,
+                (),
+                {"a": 1, "b": 2, "c": 3, "d": 4},
+                r"Passing \['a', 'b'\] arguments as keywords is deprecated since",
+                id="2 deprecations, 2 warns",
+            ),
+            pytest.param(
+                4,
+                (),
+                {"a": 1, "b": 2, "c": 3, "d": 4},
+                (
+                    r"Passing \['a', 'b', 'c', 'd'\] arguments as keywords "
+                    "is deprecated since"
+                ),
+                id="4 deprecations, 4 warns",
+            ),
+            pytest.param(
+                4,
+                (1,),
+                {"b": 2, "c": 3, "d": 4},
+                r"Passing \['b', 'c', 'd'\] arguments as keywords is deprecated since",
+                id="4 deprecations, 3 warns",
+            ),
+            pytest.param(
+                4,
+                (1, 2),
+                {"c": 3, "d": 4},
+                r"Passing \['c', 'd'\] arguments as keywords is deprecated since",
+                id="4 deprecations, 2 warns",
+            ),
+            pytest.param(
+                4,
+                (1, 2, 3),
+                {"d": 4},
+                r"Passing 'd' as keyword is deprecated since",
+                id="4 deprecations, 1 warn",
+            ),
+        ],
+    )
+    def test_warn(self, n_deprecated_keywords, args, kwargs, match):
+        func = self.depr_funcs[n_deprecated_keywords]
+        with pytest.warns(FutureWarning, match=match):
+            func(*args, **kwargs)
