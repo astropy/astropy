@@ -94,9 +94,9 @@ that relate to automatic IERS downloading. Four of the most
 important to consider are the following:
 
   auto_download:
-    Enable auto-downloading of the latest IERS-A data.  If set to ``False`` then
-    the bundled IERS-A file will be used by default (even if a newer
-    versions of the IERS-A file was already downloaded and cached).  This
+    Enable auto-downloading of the latest IERS data.  If set to ``False`` then
+    the local IERS-A and IERS-B files will be used by default (even if the full
+    IERS file with predictions was already downloaded and cached).  This
     parameter also controls whether internet resources will be queried to update
     the leap second table if the installed version is out of date.
 
@@ -109,10 +109,12 @@ important to consider are the following:
 
   iers_degraded_accuracy:
     Some time conversions like UTC -> UT1 require IERS-A Earth rotation data
-    for full accuracy.  This parameter controls the behavior when computations
-    use only the IERS-B data and full accuracy is not possible.  ``'error'``
-    (the default) will raise an exception, ``'warn'`` will issue a warning, and
-    ``'ignore'`` will ignore the problem (i.e., the inaccuracy is acceptable).
+    for full accuracy. In cases where full accuracy is not required and
+    downloading the IERS-A is not possible or desired (for instance running on
+    a cluster) then this option can be set to either ``'warn'`` or ``'ignore'``.
+    The default is ``'error'`` which will raise an exception if full accuracy
+    is not possible for a time conversion, ``'warn'`` will issue a warning, and
+    ``'ignore'`` will ignore the problem and use available IERS-B data.
 
 Auto refresh behavior
 ---------------------
