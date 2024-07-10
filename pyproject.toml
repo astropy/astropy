@@ -452,6 +452,11 @@ ignore = [
         showcontent = true
 
     [[tool.towncrier.type]]
+        directory = "perf"
+        name = "Performance Improvements"
+        showcontent = true
+
+    [[tool.towncrier.type]]
         directory = "other"
         name = "Other Changes and Additions"
         showcontent = true
