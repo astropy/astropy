@@ -480,7 +480,7 @@ def test_iers_download_error_handling(tmp_path):
                     "malformed IERS table from https://google.com"
                 )
                 assert str(record[2].message).startswith(
-                    "unable to download valid IERS file, using local IERS-A"
+                    "unable to download valid IERS file, using bundled IERS-A"
                 )
 
 
