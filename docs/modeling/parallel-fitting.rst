@@ -155,7 +155,8 @@ to fit all spectra in the cube:
     ...                               data=data,
     ...                               world=wcs,
     ...                               fitting_axes=0,
-    ...                               data_unit=u.one)  # doctest: +SKIP
+    ...                               data_unit=u.one,
+    ...                               scheduler='synchronous')  # doctest: +SKIP
 
 The arguments in this case are as follows:
 
@@ -224,7 +225,8 @@ We can set the bounds on the mean and try the fit again
     ...                               data=data,
     ...                               world=wcs,
     ...                               fitting_axes=0,
-    ...                               data_unit=u.one)  # doctest: +SKIP
+    ...                               data_unit=u.one,
+    ...                               scheduler='synchronous')  # doctest: +SKIP
 
 and we can visualize the results:
 
