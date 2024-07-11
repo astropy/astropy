@@ -24,7 +24,7 @@ from copy import copy
 from fractions import Fraction
 from typing import TYPE_CHECKING
 
-from astropy.utils import classproperty, deprecated, parsing
+from astropy.utils import classproperty, parsing
 from astropy.utils.misc import did_you_mean
 
 from . import core
@@ -661,21 +661,3 @@ class Generic(Base):
             unit = copy(unit)
             unit._scale = 1.0
             return f"{cls.to_string(unit)} (with data multiplied by {scale})"
-
-
-# 2023-02-18: The statement in the docstring is no longer true, the class is not used
-# anywhere so can be safely removed in 6.0.
-@deprecated("5.3", alternative="Generic")
-class Unscaled(Generic):
-    """
-    A format that doesn't display the scale part of the unit, other
-    than that, it is identical to the `Generic` format.
-
-    This is used in some error messages where the scale is irrelevant.
-    """
-
-    @classmethod
-    def to_string(cls, unit):
-        if unit.scale != 1:
-            unit = core.Unit(unit / unit.scale)
-        return super().to_string(unit)
