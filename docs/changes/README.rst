@@ -14,6 +14,7 @@ Each file should be named like ``<PULL REQUEST>.<TYPE>.rst``, where
 * ``feature``: New feature.
 * ``api``: API change.
 * ``bugfix``: Bug fix.
+* ``perf``: Performance improvement (this should be significant enough to be measurable using the public API).
 * ``other``: Other changes and additions.
 
 If the change concerns a sub-package, the file should go in the sub-directory
