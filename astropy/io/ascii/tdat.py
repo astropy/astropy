@@ -117,7 +117,7 @@ class TdatMeta:
             return
 
         keywords = OrderedDict()
-        col_lines = []
+        col_lines = {}
         line_fields = OrderedDict()
         idx_lines = {"key": None, "index": []}
 
@@ -161,7 +161,7 @@ class TdatMeta:
 
             else:
                 if "field" in line:
-                    col_lines.append(line)
+                    col_lines[line.split("]")[0].split("[")[1]] = line
                     if "(key)" in line:
                         idx_lines["key"] = line.split("]")[0].split("[")[1]
                     elif "(index)" in line:
@@ -209,7 +209,7 @@ class TdatHeader(core.BaseHeader, TdatMeta):
         """Select lines between <HEADER> and <DATA>"""
         # if already processed, yield the lines
         self._parse_header(lines)
-        yield from self._col_lines
+        yield from self._col_lines.values()
 
     def get_cols(self, lines):
         """Identify the columns and table description"""
@@ -225,7 +225,7 @@ class TdatHeader(core.BaseHeader, TdatMeta):
             \s*
             (?:\[(?P<ucd>[\w\.\;]+)\])?
             \s*
-            (?:\((?P<idx>\w+)\))?
+            (?:\((?P<index>\w+)\))?
             \s*
             (?:[//|#]+\s*(?P<desc>[^/#]*))?
             (?:[//|#]+\s*(?P<comment>[^/#]*))?
@@ -252,9 +252,9 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                 col.unit = cmatch.group("unit")
                 col.format = cmatch.group("fmt")
                 col.description = f'{cmatch.group("desc")}'
-                col.meta['comment'] = cmatch.group("comment")
-                col.meta['ucd'] = cmatch.group('ucd')
-                col.meta['index'] = cmatch.group('idx')
+                for val in ["comment", "ucd", "index"]:
+                    if cmatch.group(val) is not None:
+                        col.meta[val] = cmatch.group(val)
                 cols.append(col)
 
         self.names = [col.name for col in cols]
@@ -399,7 +399,7 @@ class TdatHeader(core.BaseHeader, TdatMeta):
             raise ValueError("only pipe and space delimitter is allowed in tdat format")
 
         # Write the keywords and column descriptors
-        keywords = deepcopy(self.table_meta.get("keywords", None))
+        keywords = deepcopy(self.table_meta.get("keywords", {}))
         meta_keys = ["keywords", "comments", "field_lines", "index_lines"]
         # In case a user puts a keyword direclty in meta, instead of meta.keywords
         for key in [key.lower()
@@ -411,30 +411,40 @@ class TdatHeader(core.BaseHeader, TdatMeta):
         indices = [col.name for col in self.cols if col.indices != []]
 
         if keywords is not None:
-            if "table_name" not in keywords:
-                raise TdatFormatError(
-                    '"table_name" keyword is required but not found in the header.\n'
-                )
-            # Table names are limited to 20 characters
-            lines.append(f'table_name = {keywords["table_name"][:20]}')
+            if "table_name" in keywords:
+                lines.append(f'table_name = {keywords["table_name"][:20]}')
+            else:
+                warn("'table_name' must be specified\n"\
+                +f"{_STD_MSG}\n"\
+                +"This should be specified in the Table.metadata.\n"\
+                +"default value of 'astropy_table' being assigned.",
+                     TdatFormatWarning)
+                lines.append("table_name = astropy_table")
 
             # loop through option table keywords
-            for key in ["table_description", "table_document_url", "table_security"]:
+            table_keywords = {"table_description",
+                              "table_document_url",
+                              "table_security"}
+            table_keywords = table_keywords & set(keywords.keys())
+            for key in table_keywords:
                 if key == "table_description":
-                    lines.append(f"{key} = {keywords.pop(key)[:80]}")
+                    new_desc = keywords.pop(key)[:80].replace("'",  "")
+                    new_desc = new_desc.replace('"', "")
+                    lines.append(f'{key} = "{new_desc}"')
                 elif key in keywords:
-                    lines.append(f"{key} = {keywords.pop(key)}")
-        else:
-            lines.append("table_name = astropy_table")
-            lines.append('table_description = "A table created via astropy"')
+                    lines.append(f"{key} = {keywords.pop(key)}")            
 
         # add table columns as fields
         lines.append("#")
         lines.append("# Table Parameters")
         lines.append("#")
-        if col_lines is not None:
-            for col in col_lines:
-                lines.append(col)
+        col_names = [col.name for col in self.cols]
+        if (
+            (col_lines is not None)
+            and all(k in col_lines.keys() for k in col_names)
+        ):
+            for k in col_names:
+                lines.append(col_lines[k])
         else:
             for col in self.cols:
                 if col.dtype == int:
