@@ -1112,7 +1112,7 @@ UT1 - UTC and TDB - TT, respectively. As an example::
 
 For the UT1 to UTC offset, you have to interpolate the observed values provided
 by the `International Earth Rotation and Reference Systems (IERS) Service
-<http://www.iers.org>`_. ``astropy`` will automatically download and use values
+<https://www.iers.org>`_. ``astropy`` will automatically download and use values
 from the IERS which cover times spanning from 1973-Jan-01 through one year into
 the future. In addition, the ``astropy`` package is bundled with a data table of
 values provided in Bulletin B, which cover the period from 1962 to shortly
