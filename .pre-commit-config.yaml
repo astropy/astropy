@@ -114,10 +114,10 @@ repos:
         name: changelog filenames
         language: fail
         entry: >-
-          changelog files must be named <sub-package>/####.(bugfix|feature|api).rst
+          changelog files must be named <sub-package>/####.(bugfix|feature|api|perf).rst
           or ####.other.rst (in the root directory only)
         exclude: >-
-          ^docs/changes/[\w\.]+/(\d+\.(bugfix|feature|api)(\.\d)?.rst|.gitkeep)
+          ^docs/changes/[\w\.]+/(\d+\.(bugfix|feature|api|perf)(\.\d)?.rst|.gitkeep)
         files: ^docs/changes/[\w\.]+/
       - id: changelogs-rst-other
         name: changelog filenames for other category
