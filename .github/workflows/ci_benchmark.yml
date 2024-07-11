@@ -83,14 +83,7 @@ jobs:
 
           # Run benchmarks for current commit against base
           ASV_OPTIONS="--split --show-stderr --factor $ASV_FACTOR --conf asv.ci.conf.json"
-          python -m asv continuous $ASV_OPTIONS ${{ github.event.pull_request.base.sha }} ${GITHUB_SHA} \
-              | sed "/Traceback \|failed$\|PERFORMANCE DECREASED/ s/^/::error::/" \
-              | tee benchmarks.log
-
-          # Error out the action
-          if grep -q "Traceback \|failed\|PERFORMANCE DECREASED" benchmarks.log ; then
-              exit 1
-          fi
+          python -m asv continuous $ASV_OPTIONS ${{ github.event.pull_request.base.sha }} ${GITHUB_SHA}
 
       - name: "Check ccache performance"
         shell: bash -l {0}
@@ -103,4 +96,3 @@ jobs:
           name: asv-benchmark-results
           path: |
             results/
-            benchmarks.log

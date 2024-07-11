@@ -158,7 +158,7 @@ requires = ["setuptools",
             "setuptools_scm>=6.2",
             "cython>=3.0.0,<3.1.0",
             "numpy>=2.0.0",
-            "extension-helpers==1.*"]
+            "extension-helpers>=1,<2"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
