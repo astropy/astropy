@@ -126,7 +126,6 @@ def test_write_full():
              '#',
              '# Virtual Parameters',
              '#',
-             'table_name = heasarc_simple',
              'frequency_regime = Gamma-ray',
              'observatory_name = GAMMA-RAY BURSTS',
              'row_type = GRB',
@@ -192,7 +191,7 @@ def test_bad_delimiter():
     out = StringIO()
     with pytest.raises(ValueError) as err:
         test_table.write(out, format="ascii.tdat", delimiter=",")
-    assert "only pipe and space delimitter is allowed in tdat format" in str(err.value)
+        assert "only pipe and space delimitter is allowed in tdat format" in str(err.value)
 
 
 def test_bad_header_start():

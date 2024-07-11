@@ -6,11 +6,14 @@ not meant to be used directly, but instead are available as readers/writers in
 :Author: Abdu Zoghbi
 """
 
+import itertools
 import re
 from collections import OrderedDict
 from copy import deepcopy
 from warnings import warn
+
 import numpy as np
+
 from astropy.utils.exceptions import AstropyWarning
 
 from . import core
@@ -30,6 +33,9 @@ class TdatFormatWarning(AstropyWarning):
 
 
 class TdatMeta:
+    """A base class for the Header and Data classes
+    """
+
     # comments: # or //
     _comment = r"\s*(#|//)(.*)$"
 
@@ -54,6 +60,7 @@ class TdatMeta:
     _line_fields = None
     _idx_lines = None
     _delimiter = "|"
+    _record_delimiter = None
 
     # _deprecated_keywords = ("record_delimiter", "field_delimiter")
     _required_keywords = ("table_name",)
@@ -168,7 +175,7 @@ class TdatMeta:
                         idx_lines["index"] += [line.split("]")[0].split("[")[1]]
         # check we have the required keywords
 
-        self._comments = [c for c in self._process_lines(lines, "comment")]
+        self._comments = list(self._process_lines(lines, "comment"))
         self._col_lines = col_lines
         self._idx_lines = idx_lines
 
@@ -307,7 +314,7 @@ class TdatHeader(core.BaseHeader, TdatMeta):
 
         If there is no Table.meta, this writer will attempt to automatically
         generate the appropriate header information based on the table and
-        column properties and the recommendations for the TDAT fromat by HEASARC.
+        column properties and the recommendations for the TDAT format by HEASARC.
 
         Parameters
         ----------
@@ -358,15 +365,15 @@ class TdatHeader(core.BaseHeader, TdatMeta):
         ...           data=[[1, 2, 3], [1.0, 2.0, 3.0], ['c', 'd', 'e']])
         >>> t.meta["table_name"] = "example_table"
         >>> t.meta["table_description"] = "An example table for the tdat writer."
-        >>> 
+        >>>
         >>> t.add_index('reference_id')
         >>> t.columns['reference_id'].meta['comment'] = "For internal reference only"
-        >>> 
+        >>>
         >>> t.add_index('RA')
         >>> t.columns['RA'].unit = "degree"
         >>> t.columns['RA'].format = ".4f"
         >>> t.columns['RA'].meta['ucd'] = "pos.eq.ra"
-        >>> 
+        >>>
         >>> t.columns['Name'].description = "The name of the source (if available)"
         >>> out = StringIO()
         >>> t.write(out, format="ascii.tdat")
@@ -402,47 +409,55 @@ class TdatHeader(core.BaseHeader, TdatMeta):
         keywords = deepcopy(self.table_meta.get("keywords", {}))
         meta_keys = ["keywords", "comments", "field_lines", "index_lines"]
         # In case a user puts a keyword direclty in meta, instead of meta.keywords
-        for key in [key.lower()
-                    for key in self.table_meta.keys()
-                    if key.lower() not in meta_keys ]:
+        for key in [
+            key.lower()
+            for key in self.table_meta.keys()
+            if key.lower() not in meta_keys
+        ]:
             keywords[key] = self.table_meta.get(key)
 
         col_lines = self.table_meta.get("field_lines", None)
         indices = [col.name for col in self.cols if col.indices != []]
 
-        if keywords is not None:
-            if "table_name" in keywords:
-                lines.append(f'table_name = {keywords["table_name"][:20]}')
-            else:
-                warn("'table_name' must be specified\n"\
-                +f"{_STD_MSG}\n"\
-                +"This should be specified in the Table.metadata.\n"\
-                +"default value of 'astropy_table' being assigned.",
+        if "table_name" in keywords:
+            if len(keywords["table_name"]) > 20:
+                warn("'table_name' is too long, truncating to 20 characters",
                      TdatFormatWarning)
-                lines.append("table_name = astropy_table")
+            lines.append(f'table_name = {keywords.pop("table_name")[:20]}')
+        else:
+            warn(
+                "'table_name' must be specified\n"  # noqa: ISC003
+                + f"{_STD_MSG}\n"
+                + "This should be specified in the Table.meta.\n"
+                + "default value of 'astropy_table' being assigned.",
+                TdatFormatWarning,
+            )
+            lines.append("table_name = astropy_table")
 
-            # loop through option table keywords
-            table_keywords = {"table_description",
-                              "table_document_url",
-                              "table_security"}
-            table_keywords = table_keywords & set(keywords.keys())
-            for key in table_keywords:
-                if key == "table_description":
-                    new_desc = keywords.pop(key)[:80].replace("'",  "")
-                    new_desc = new_desc.replace('"', "")
-                    lines.append(f'{key} = "{new_desc}"')
-                elif key in keywords:
-                    lines.append(f"{key} = {keywords.pop(key)}")            
+        # loop through optional table keywords
+        table_keywords = [
+            "table_description",
+            "table_document_url",
+            "table_security",
+        ]
+        table_keywords = [kw for kw in table_keywords if kw in keywords.keys()]
+        for key in table_keywords:
+            if key == "table_description":
+                if len(keywords[key]) > 80:
+                    warn("'table_description' is too long, truncating to 80 characters",
+                         TdatFormatWarning)
+                new_desc = keywords.pop(key)[:80].replace("'", "")
+                new_desc = new_desc.replace('"', "")
+                lines.append(f'{key} = "{new_desc}"')
+            elif key in keywords:
+                lines.append(f"{key} = {keywords.pop(key)}")
 
         # add table columns as fields
         lines.append("#")
         lines.append("# Table Parameters")
         lines.append("#")
         col_names = [col.name for col in self.cols]
-        if (
-            (col_lines is not None)
-            and all(k in col_lines.keys() for k in col_names)
-        ):
+        if (col_lines is not None) and all(k in col_lines.keys() for k in col_names):
             for k in col_names:
                 lines.append(col_lines[k])
         else:
@@ -452,7 +467,7 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                 elif col.dtype == float:
                     ctype = "float"
                 else:
-                    ctype = f"char{str(col.dtype).split('<U')[-1]}"
+                    ctype = f"char{str(col.dtype).rsplit('<U', maxsplit=1)[-1]}"
                 field_line = f"field[{col.name}] = {ctype}"
 
                 if col.format is not None:
@@ -470,18 +485,18 @@ class TdatHeader(core.BaseHeader, TdatMeta):
                 if col.description is not None:
                     field_line += f" // {col.description}"
                 elif "comment" in col.meta:
-                    field_line += f" //"
+                    field_line += " //"
                 if "comment" in col.meta:
                     field_line += f" // {col.meta['comment']}"
                 lines.append(field_line)
 
-        if keywords is not None and len(keywords) != 0:
+        if len(keywords) != 0:
             if "parameter_defaults" in keywords:
                 lines.append("#")
                 lines.append(
                     f"{'parameter_defaults'} = {keywords.pop('parameter_defaults')}"
                 )
-        if keywords is not None and len(keywords) != 0:
+        if len(keywords) != 0:
             lines.append("#")
             lines.append("# Virtual Parameters")
             lines.append("#")
@@ -508,7 +523,7 @@ class TdatDataSplitter(core.BaseSplitter):
         The following list standard escaped character sequences and their
         equivalent meanings can be used: \t (tab), \b (backspace), \r (carriage
         return), \f (form feed), \v (vertical tab), \a (audible alert/bell),
-        and \### (where ### is a number between 1 and 127 and represents the
+        and \\### (where ### is a number between 1 and 127 and represents the
         ASCII character with that numerical code). Note: Specifying a record
         delimiter value of "" is interpreted as a single blank line between
         records.
