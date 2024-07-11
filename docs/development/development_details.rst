@@ -143,6 +143,7 @@ number, and ``<TYPE>`` is one of:
 * ``feature``: New feature.
 * ``api``: API change.
 * ``bugfix``: Bug fix.
+* ``perf``: Performance improvement (this should be significant enough to be measurable using the public API).
 * ``other``: Other changes and additions.
 
 An example entry, for the changes in `PR 1845
