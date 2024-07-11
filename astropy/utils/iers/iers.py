@@ -792,7 +792,7 @@ class IERS_Auto(IERS_A):
         if not conf.auto_download:
             # If auto_download is changed to False mid-session, iers_table may have already been
             # made from non-bundled files, so it should be remade from bundled files
-            if not getattr(cls, "_iers_table_bundled", None):
+            if not hasattr(cls, "_iers_table_bundled"):
                 cls._iers_table_bundled = cls.read()
             cls.iers_table = cls._iers_table_bundled
             return cls.iers_table
