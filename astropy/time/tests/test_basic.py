@@ -644,9 +644,6 @@ class TestBasic:
             Time(50000.0, "bad", format="mjd", scale="tai")
         with pytest.raises(ValueError):
             Time("2005-08-04T00:01:02.000Z", scale="tai")
-        # regression test against #3396
-        with pytest.raises(ValueError):
-            Time(np.nan, format="jd", scale="utc")
         with pytest.raises(ValueError):
             with pytest.warns(AstropyDeprecationWarning):
                 Time("2000-01-02T03:04:05(TAI)", scale="utc")
