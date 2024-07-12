@@ -1517,6 +1517,7 @@ def test_sync_constraints_after_fitting():
     assert m.fixed == {"amplitude": True, "mean": False, "stddev": False}
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_fit_model_with_parameters_change_shape():
     # Regression test for a bug that caused fitting to fail if a user used
     # Parameter.value to change the shape of a parameter.
