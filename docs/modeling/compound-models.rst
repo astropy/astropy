@@ -87,8 +87,8 @@ Astropy models also support convolution through the function
 `~astropy.convolution.convolve_models`, which returns a compound model.
 
 For instance, the convolution of two Gaussian functions is also a Gaussian
-function in which the resulting mean (variance) is the sum of the means
-(variances) of each Gaussian.
+function in which the resulting mean position is the average of the
+mean positions and the variance is the sum of the variances.
 
 .. plot::
     :include-source:
@@ -103,9 +103,11 @@ function in which the resulting mean (variance) is the sum of the means
     g3 = convolve_models(g1, g2)
 
     x = np.linspace(-3, 3, 50)
-    plt.plot(x, g1(x), 'k-')
-    plt.plot(x, g2(x), 'k-')
-    plt.plot(x, g3(x), 'k-')
+    plt.figure(figsize=(8, 5))
+    plt.plot(x, g1(x), label='g1')
+    plt.plot(x, g2(x), label='g2')
+    plt.plot(x, g3(x), label='g3 (Convolution)')
+    plt.legend()
 
 
 .. _compound-models:
