@@ -131,14 +131,14 @@ few terms where there have been points of confusion:
   - All models in `astropy.modeling`, whether it represents some
     `function <astropy.modeling.functional_models>`, a
     `rotation <astropy.modeling.rotations>`, etc., are represented in the
-    abstract by a model *class*--specifically a subclass of
-    `~astropy.modeling.Model`--that encapsulates the routine for evaluating the
-    model, a list of its required parameters, and other metadata about the
-    model.
+    abstract by a model *class* --- specifically a subclass of
+    `~astropy.modeling.Model` --- that encapsulates the routine for
+    evaluating the model, a list of its required parameters, and other
+    metadata about the model.
 
   - Per typical object-oriented parlance, a model *instance* is the object
-    created when calling a model class with some arguments--in most cases
-    values for the model's parameters.
+    created when calling a model class with some arguments --- in most
+    cases values for the model's parameters.
 
   A model class, by itself, cannot be used to perform any computation because
   most models, at least, have one or more parameters that must be specified
@@ -175,7 +175,7 @@ few terms where there have been points of confusion:
 
 - A *compound model* can be created by combining two or more existing model instances
   which can be models that come with Astropy, :doc:`user defined models <new-model>`, or
-  other compound models--using Python expressions consisting of one or more of the
+  other compound models --- using Python expressions consisting of one or more of the
   supported binary operators.
 
 - In some places the term *composite model* is used interchangeably with
@@ -232,7 +232,7 @@ components are the `~astropy.modeling.functional_models.Gaussian1D` objects).
 
 Each component of a compound model is a single, non-compound model.  This is
 the case even when including an existing compound model in a new expression.
-The existing compound model is not treated as a single model--instead the
+The existing compound model is not treated as a single model --- instead the
 expression represented by that compound model is extended.  An expression
 involving two or more compound models results in a new expression that is the
 concatenation of all involved models' expressions::
@@ -271,8 +271,9 @@ objects in Python.
 
 .. note::
 
-    In the case of division ``/`` always means floating point division--integer
-    division and the ``//`` operator is not supported for models).
+    In the case of division ``/`` always means floating point division
+    --- integer division and the ``//`` operator is not supported for
+    models.
 
 As demonstrated in previous examples, for models that have a single output
 the result of evaluating a model like ``A + B`` is to evaluate ``A`` and
@@ -457,7 +458,7 @@ combines two models into a single, fully separable transformation.  That is, it
 makes a new model that takes the inputs to the left-hand model, concatenated
 with the inputs to the right-hand model, and returns a tuple consisting of the
 two models' outputs concatenated together, without mixing in any way.  In other
-words, it simply evaluates the two models in parallel--it can be thought of as
+words, it simply evaluates the two models in parallel --- it can be thought of as
 something like a tuple of models.
 
 For example, given two coordinate axes, we can scale each coordinate
@@ -604,13 +605,13 @@ of operations.  For example::
                 1.1         2.1         3.1
 
 
-In this example the expression is evaluated ``(B * C) + A``--that is, the
+In this example the expression is evaluated ``(B * C) + A`` --- that is, the
 multiplication is evaluated before the addition per usual arithmetic rules.
 However, the components of this model are simply read off left to right from
 the expression ``A + B * C``, with ``A -> 0``, ``B -> 1``, ``C -> 2``.  If we
 had instead defined ``M = C * B + A`` then the indices would be reversed
 (though the expression is mathematically equivalent).  This convention is
-chosen for simplicity--given the list of components it is not necessary to
+chosen for simplicity --- given the list of components it is not necessary to
 jump around when mentally mapping them to the expression.
 
 We can pull out each individual component of the compound model ``M`` by using
@@ -715,7 +716,7 @@ In this case ``M['B']`` is equivalent to ``M[1]``.  But by using the name we do
 not have to worry about what index that component is in (this becomes
 especially useful when combining multiple compound models).  A current
 limitation, however, is that each component of a compound model must have a
-unique name--if some components have duplicate names then they can only be
+unique name --- if some components have duplicate names then they can only be
 accessed by their integer index.
 
 Slicing also works with names.  When using names the start and end points are
@@ -746,7 +747,7 @@ Parameters
 A question that frequently comes up when first encountering compound models is
 how exactly all the parameters are dealt with.  By now we've seen a few
 examples that give some hints, but a more detailed explanation is in order.
-This is also one of the biggest areas for possible improvements--the current
+This is also one of the biggest areas for possible improvements --- the current
 behavior is meant to be practical, but is not ideal.  (Some possible
 improvements include being able to rename parameters, and providing a means of
 narrowing down the number of parameters in a compound model.)
@@ -952,9 +953,9 @@ number of outputs the `~astropy.modeling.mappings.Mapping` should produce.  A
 1-tuple means that whatever inputs come in to the
 `~astropy.modeling.mappings.Mapping`, only one will be output.  And so on for
 2-tuple or higher (though the length of the tuple cannot be greater than the
-number of inputs--it will not pull values out of thin air).  The elements of
+number of inputs --- it will not pull values out of thin air).  The elements of
 this mapping are integers corresponding to the indices of the inputs.  For
-example, a mapping of ``Mapping((0,))`` is equivalent to ``Identity(1)``--it
+example, a mapping of ``Mapping((0,))`` is equivalent to ``Identity(1)`` --- it
 simply takes the first (0-th) input and returns it:
 
 .. graphviz::
