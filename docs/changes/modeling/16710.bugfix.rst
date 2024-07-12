@@ -1,0 +1,2 @@
+Fixed a bug that caused fitting models to fail if the parameter values were
+changed via Parameter.value to have a different shape.
