@@ -1570,3 +1570,15 @@ def test_has_constraints_with_sync_constraints():
     model.sync_constraints = False
 
     assert model.has_fixed
+
+
+def test_set_parameter_values():
+    # Regression test for a bug that caused the parameters attribute to not
+    # be correct if parameter value shapes were changed.
+
+    poly = models.Polynomial1D(2, c0=[1, 2], c1=[2, 3], c2=[3, 4])
+    poly.c0.value = 1
+    poly.c1.value = 2
+    poly.c2.value = 3
+
+    assert_allclose(poly.parameters, [1, 2, 3])

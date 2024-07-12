@@ -1515,3 +1515,20 @@ def test_sync_constraints_after_fitting():
     assert m.sync_constraints is True
     m.amplitude.fixed = True
     assert m.fixed == {"amplitude": True, "mean": False, "stddev": False}
+
+
+def test_fit_model_with_parameters_change_shape():
+    # Regression test for a bug that caused fitting to fail if a user used
+    # Parameter.value to change the shape of a parameter.
+
+    poly = models.Polynomial1D(2, c0=[1, 2], c1=[2, 3], c2=[3, 4])
+    poly.c0.value = 1
+    poly.c1.value = 2
+    poly.c2.value = 3
+
+    fitter = LevMarLSQFitter()
+    poly_result = fitter(poly, [1, 2, 3, 4, 5], [4, 12, 26, 46, 72])
+
+    assert_allclose(poly_result.c0.value, 2)
+    assert_allclose(poly_result.c1.value, -1)
+    assert_allclose(poly_result.c2.value, 3)
