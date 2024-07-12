@@ -25,10 +25,10 @@ The resulting object ``g1_plus_2`` is itself a new model.
 .. note::
     The model ``g1_plus_2`` is a `~astropy.modeling.CompoundModel` which contains
     the models ``g1`` and ``g2`` without any parameter duplication. Meaning changes
-    to the parameters of ``g1_plus_2`` will effect the parameters of ``g1`` or ``g2``
+    to the parameters of ``g1_plus_2`` will affect the parameters of ``g1`` or ``g2``
     and vice versa; if one does not want this to occur one can copy the models prior
     to adding them using the ``.copy()`` method ``g1.copy() + g2.copy()``. In
-    general applies to any `~astropy.modeling.CompoundModel` constructed using a
+    general this applies to any `~astropy.modeling.CompoundModel` constructed using a
     binary operation, so that `~astropy.modeling.CompoundModel` follows the Python
     convention for construction of container objects. For more information on this
     please see the `API Changes in astropy.modeling <https://docs.astropy.org/en/v4.0.x/whatsnew/4.0.html#whatsnew-4-0-modeling-api>`__
@@ -137,7 +137,7 @@ few terms where there have been points of confusion:
     model.
 
   - Per typical object-oriented parlance, a model *instance* is the object
-    created when when calling a model class with some arguments--in most cases
+    created when calling a model class with some arguments--in most cases
     values for the model's parameters.
 
   A model class, by itself, cannot be used to perform any computation because
@@ -382,7 +382,7 @@ model *instances*:
     plt.ylabel('Flux')
     plt.legend()
 
-When working with models with multiple inputs and outputs the same idea
+When working with models with multiple inputs and outputs, the same idea
 applies.  If each input is thought of as a coordinate axis, then this defines a
 pipeline of transformations for the coordinates on each axis (though it does
 not necessarily guarantee that these transformations are separable).  For
@@ -660,7 +660,7 @@ subexpression ``B * C``::
         m = m1 * m2 + m3
 
     and one sliced by
-    using ``m[1:3]`` previously that would return the model: ``m2 + m3``
+    using ``m[1:3]``, previously that would return the model: ``m2 + m3``
     even though there was never any such submodel of m. Starting with 4.0
     a slice must correspond to a submodel (something that corresponds
     to an intermediate result of the computational chain of evaluating
@@ -675,8 +675,8 @@ subexpression ``B * C``::
         m = m1 + m2 + m3 + m4
 
     where any slice should be valid in
-    principle, only slices that include m1 are since it is part of
-    all submodules (since the order of evaluation is::
+    principle, only slices that include m1 are valid since it is part of
+    all submodules. The order of evaluation is::
 
         ((m1 + m2) + m3) + m4
 
@@ -684,7 +684,7 @@ subexpression ``B * C``::
     is advised to use parentheses explicitly  or define intermediate
     models to be used in subsequent expressions so that they can be
     extracted with a slice or simple index depending on the context.
-    For example, to make ``m2 + m3`` accessible by slice define ``m`` as::
+    For example, to make ``m2 + m3`` accessible by slice, define ``m`` as::
 
         m = m1 + (m2 + m3) + m4. In this case ``m[1:3]`` will work.
 
