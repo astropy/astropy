@@ -1521,14 +1521,14 @@ def test_fit_model_with_parameters_change_shape():
     # Regression test for a bug that caused fitting to fail if a user used
     # Parameter.value to change the shape of a parameter.
 
-    poly = models.Polynomial1D(2, c0=[1, 2], c1=[2, 3], c2=[3, 4])
-    poly.c0.value = 1
-    poly.c1.value = 2
-    poly.c2.value = 3
+    gauss = models.Gaussian1D(amplitude=[1, 2], mean=[2, 3], stddev=[3, 4])
+    gauss.amplitude.value = 1
+    gauss.mean.value = 2
+    gauss.stddev.value = 3
 
     fitter = LevMarLSQFitter()
-    poly_result = fitter(poly, [1, 2, 3, 4, 5], [4, 12, 26, 46, 72])
+    gauss_result = fitter(gauss, [1, 2, 3, 4, 5], [1, 2, 5, 2, 1])
 
-    assert_allclose(poly_result.c0.value, 2)
-    assert_allclose(poly_result.c1.value, -1)
-    assert_allclose(poly_result.c2.value, 3)
+    assert_allclose(gauss_result.amplitude.value, 4.742467378491489)
+    assert_allclose(gauss_result.mean.value, 3)
+    assert_allclose(gauss_result.stddev.value, 0.8430777585419369)
