@@ -43,59 +43,13 @@ def _wcs_to_world_dask(wcs, data):
     return tuple([world[idx] for idx in range(len(data.shape))])
 
 
-def _copy_with_new_parameters(model, parameters, shape=None):
-    """
-    This function takes a model, as well as a dictionary of parameters, and
-    the final desired shape of the parameter arrays, and copies the model and
-    sets all the parameters to arrays with the desired shape. This is
-    essentially a workaround for the fact that if one has a scalar model, the
-    parameters cannot be changed to arrays. This issue is described in more
-    detail in https://github.com/astropy/astropy/issues/16593. Once that
-    issue is fixed, we should be able to remove this function and the
-    function below. Note that this preserves the constraints.
-    """
-    # Avoid circular imports
-    from astropy.modeling import CompoundModel, models
-    if isinstance(model, CompoundModel):
-        if shape is None:
-            new_model = model.copy()
-        else:
-            new_model = _compound_model_with_array_parameters(model, shape)
-        for name, value in parameters.items():
-            setattr(new_model, name, value)
-    else:
-        constraints = {}
-        for constraint in model.parameter_constraints:
-            constraints[constraint] = getattr(model, constraint)
-        # HACK: for some models, there are additional non-parameter arguments.
-        # We hard-code the fix for Polynomial1D but other models will need a
-        # similar treatment. However, rather than hard-coding all possible
-        # models here we should fix the underlying issue that would make this
-        # whole function unnecessary.
-        if isinstance(model, models.Polynomial1D):
-            args = (model.degree,)
-        else:
-            args = ()
-        new_model = model.__class__(*args, **parameters, **constraints)
-    return new_model
-
-
-def _compound_model_with_array_parameters(model, shape):
-    """
-    This is a helper to recursively copy compound models replacing the
-    parameter values with arrays.
-    """
-    # Avoid circular imports
-    from astropy.modeling import CompoundModel
-    if isinstance(model, CompoundModel):
-        return CompoundModel(
-            model.op,
-            _compound_model_with_array_parameters(model.left, shape),
-            _compound_model_with_array_parameters(model.right, shape),
-        )
-    else:
-        parameters = {name: np.zeros(shape) for name in model.param_names}
-        return _copy_with_new_parameters(model, parameters)
+def _copy_with_new_parameters(model, parameters):
+    # Make a copy of the model, setting the parameters to new values
+    model_new = model.copy()
+    for name, value in parameters.items():
+        parameter = getattr(model_new, name)
+        parameter.value = value
+    return model_new
 
 
 def _fit_models_to_chunk(
@@ -177,9 +131,13 @@ def _fit_models_to_chunk(
             continue
 
         # Make a copy of the reference model and inject parameters
-        model_i = model.copy()
-        for ipar, name in enumerate(model_i.param_names):
-            setattr(model_i, name, parameters[(ipar,) + index])
+        model_i = _copy_with_new_parameters(
+            model,
+            {
+                name: parameters[(ipar,) + index]
+                for ipar, name in enumerate(model.param_names)
+            },
+        )
 
         output = diagnostics == "all"
         error = ""
@@ -375,9 +333,7 @@ def parallel_fit_dask(
             else:
                 os.makedirs(diagnostics_path, exist_ok=True)
     else:
-        raise ValueError(
-            "diagnostics should be None, 'error', 'error+warn', or 'all'"
-        )
+        raise ValueError("diagnostics should be None, 'error', 'error+warn', or 'all'")
 
     if not isinstance(fitting_axes, tuple):
         fitting_axes = (fitting_axes,)
@@ -645,7 +601,7 @@ def parallel_fit_dask(
         parameters[name] = parameter_arrays_fitted[i].reshape(iterating_shape)
 
     # Instantiate new fitted model
-    model_fitted = _copy_with_new_parameters(model, parameters, shape=iterating_shape)
+    model_fitted = _copy_with_new_parameters(model, parameters)
 
     # Add back units if needed
     if add_back_units:
