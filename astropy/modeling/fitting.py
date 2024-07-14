@@ -256,8 +256,8 @@ def fitter_unit_support(func):
                 # are in the right unit system
                 model = model.without_units_for_data(**rename_data)
                 if isinstance(model, tuple):
-                    rename_data["_left_kwargs"] = model[1]
-                    rename_data["_right_kwargs"] = model[2]
+                    rename_data["left_kwargs"] = model[1]
+                    rename_data["right_kwargs"] = model[2]
                     model = model[0]
 
                 # We strip away the units from the input itself

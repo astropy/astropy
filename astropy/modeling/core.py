@@ -4197,14 +4197,14 @@ class CompoundModel(Model):
 
             left = self.left.without_units_for_data(**left_kwargs)
             if isinstance(left, tuple):
-                left_kwargs["_left_kwargs"] = left[1]
-                left_kwargs["_right_kwargs"] = left[2]
+                left_kwargs["left_kwargs"] = left[1]
+                left_kwargs["right_kwargs"] = left[2]
                 left = left[0]
 
             right = self.right.without_units_for_data(**right_kwargs)
             if isinstance(right, tuple):
-                right_kwargs["_left_kwargs"] = right[1]
-                right_kwargs["_right_kwargs"] = right[2]
+                right_kwargs["left_kwargs"] = right[1]
+                right_kwargs["right_kwargs"] = right[2]
                 right = right[0]
 
             model = CompoundModel(self.op, left, right, name=self.name)
@@ -4218,6 +4218,13 @@ class CompoundModel(Model):
         See `~astropy.modeling.Model.with_units_from_data` for overview
         of this method.
 
+        Parameters
+        ----------
+        left_kwargs : Dict[str, Any]
+            The left operand inputs. Returned from CompoundModel.without_units_for_data().
+        right_kwargs : Dict[str, Any]
+            The right operand inputs. Returned from CompoundModel.without_units_for_data().
+
         Notes
         -----
         This modifies the behavior of the base method to account for the
@@ -4226,14 +4233,38 @@ class CompoundModel(Model):
         in that case it is reasonable to mix the output units. In order to
         do this it requires some additional information output by
         `~astropy.modeling.CompoundModel.without_units_for_data` passed as
-        keyword arguments under the keywords ``_left_kwargs`` and ``_right_kwargs``.
+        keyword arguments under the keywords ``left_kwargs`` and ``right_kwargs``.
 
         Outside the mixed output units, this method is identical to the
         base method.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import astropy.units as u
+        >>> from astropy.modeling import models
+        >>> freq_left = 1.0 # frequency of the first signal
+        >>> freq_right = 3.0 # frequency of the second signal
+        >>> amp_left = 1.2 # amplitude of the first signal
+        >>> amp_right = 1.0 # amplitude of the second signal
+
+        >>> input_data = np.linspace(0, 4 * np.pi, 1000) * u.radian
+        >>> output_data = (amp_left * np.sin(freq_left * input_data)) * (amp_right * np.sin(freq_right * input_data))
+
+        >>> left_sine = models.Sine1D(amplitude=amp_left, frequency=freq_left)
+        >>> right_sine = models.Sine1D(amplitude=amp_right, frequency=freq_right)
+
+        >>> compound_model = left_sine * right_sine
+        >>> unitless_model, left_kwargs, right_kwargs = compound_model.without_units_for_data(x=input_data, y=output_data)
+        >>> unitless_model
+        <CompoundModel(amplitude_0=1.2, frequency_0=1., phase_0=0., amplitude_1=1., frequency_1=3., phase_1=0.)>
+        >>> compound_model_with_units = compound_model.with_units_from_data(left_kwargs=left_kwargs, right_kwargs=right_kwargs)
+        >>> compound_model_with_units
+        <CompoundModel(amplitude_0=1.2 , frequency_0=1. 1 / rad, phase_0=0., amplitude_1=1. , frequency_1=3. 1 / rad, phase_1=0.)>
         """
         if self.op in ["*", "/"]:
-            left_kwargs = kwargs.pop("_left_kwargs")
-            right_kwargs = kwargs.pop("_right_kwargs")
+            left_kwargs = kwargs.pop("left_kwargs")
+            right_kwargs = kwargs.pop("right_kwargs")
 
             left = self.left.with_units_from_data(**left_kwargs)
             right = self.right.with_units_from_data(**right_kwargs)
