@@ -42,33 +42,62 @@ pars = [(x,) for x in projections.projcodes]
 #   https://www.atnf.csiro.au/people/mcalabre/WCS/example_data.html
 pars.remove(("XPH",))
 
-
-@pytest.mark.parametrize(("code",), pars)
-def test_Sky2Pix(code):
-    """Check astropy model eval against wcslib eval"""
-
-    wcs_map = os.path.join(MAPS_DIR, f"1904-66_{code}.hdr")
-    test_file = get_pkg_data_filename(wcs_map)
-    header = fits.Header.fromfile(test_file, endcard=False, padding=False)
-
+# this is an attempt to make this test better.
+# - do not read any files in a unit test
+# - the unit test should be very short. put everything else in helper functions
+# - make the names of the tests more descriptive
+# - let me know if I can help you with your tests. 
+def get_PV2_values(header):
     params = []
     for i in range(3):
         key = f"PV2_{i + 1}"
         if key in header:
             params.append(header[key])
+    return params
 
+
+def create_w(header):
     w = wcs.WCS(header)
     w.wcs.crval = [0.0, 0.0]
     w.wcs.crpix = [0, 0]
     w.wcs.cdelt = [1, 1]
+    return w
+
+
+# TODO: get actual header data. But not from a file!
+HEADER = "a,b,c"
+
+
+# TODO: still need a better name for this function
+def setup_something(code):
+    params =get_PV2_values(HEADER)
+    w = create_w(HEADER)
+
     wcslibout = w.wcs.p2s([PIX_COORDINATES], 1)
     wcs_pix = w.wcs.s2p(wcslibout["world"], 1)["pixcrd"]
     model = getattr(projections, "Sky2Pix_" + code)
     tinv = model(*params)
     x, y = tinv(wcslibout["phi"], wcslibout["theta"])
+    return x,y,wcs_pix
+
+
+@pytest.mark.parametrize(("code",), pars)
+def test_astropy_model_eveal_against_wcslib_eval(code):
+    x, y, wcs_pix = setup_something(code)
     assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
     assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
 
+
+def setup_tinv(code):
+    params =get_PV2_values(HEADER)
+    model = getattr(projections, "Sky2Pix_" + code)
+    tinv = model(*params)
+    return tinv
+
+
+@pytest.mark.parametrize(("code",), pars)
+def test_tinv_is_instance_of_wcs(code):
+    tinv = setup_tinv(code)
     assert isinstance(tinv.prjprm, wcs.Prjprm)
 
 
