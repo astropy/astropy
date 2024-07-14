@@ -1,5 +1,5 @@
 {
-  "astropy.visualization.wcsaxes.tests.test_frame.TestFrame.test_custom_frame": "cceb87beabe25ac4187b2ade40b1d4af551dbb77a35f71b59d41cbfb85a2c769",
+  "astropy.visualization.wcsaxes.tests.test_frame.TestFrame.test_custom_frame": "d79ed179997672de0a929aedee3c2ac590e04b544558808ac9bace8937a60275",
   "astropy.visualization.wcsaxes.tests.test_frame.TestFrame.test_update_clip_path_rectangular": "30e13643c770a26b2707745143f50a735daa6f37a6a8258e733ae35338a4a1bb",
   "astropy.visualization.wcsaxes.tests.test_frame.TestFrame.test_update_clip_path_nonrectangular": "37de34740cef2897effc9de5e6726ef3955a3449d0fa6a929350301500557b8e",
   "astropy.visualization.wcsaxes.tests.test_frame.TestFrame.test_update_clip_path_change_wcs": "c68e961f0a21cc0dcc43c523cee1c564d94bd96c795f976d51e5198fc52f83cc",
