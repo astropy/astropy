@@ -145,6 +145,7 @@ class NDUncertainty(metaclass=ABCMeta):
 
         if copy:
             array = deepcopy(array)
+            # TODO: Why is this not above the lines above that set 'self._unit'?
             unit = deepcopy(unit)
 
         self.array = array
@@ -406,7 +407,7 @@ class NDUncertainty(metaclass=ABCMeta):
             # assume this is a collapsing operation:
             result = self._propagate_collapse(operation, axis)
 
-        return self.__class__(result, copy=False)
+        return self.__class__(array=result, copy=False)
 
     def _convert_uncertainty(self, other_uncert):
         """Checks if the uncertainties are compatible for propagation.
