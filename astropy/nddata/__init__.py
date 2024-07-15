@@ -14,6 +14,7 @@ from .bitmask import *
 from .blocks import *
 from .ccddata import *
 from .compat import *
+from .covariance import *
 from .decorators import *
 from .flag_collection import *
 from .mixins.ndarithmetic import *
