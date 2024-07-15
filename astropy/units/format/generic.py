@@ -31,6 +31,8 @@ from . import core
 from .base import Base
 
 if TYPE_CHECKING:
+    import numpy as np
+
     from astropy.units import NamedUnit, UnitBase
 
 
@@ -661,3 +663,9 @@ class Generic(Base):
             unit = copy(unit)
             unit._scale = 1.0
             return f"{cls.to_string(unit)} (with data multiplied by {scale})"
+
+    @classmethod
+    def format_exponential_notation(
+        cls, val: float | np.number, format_spec: str = "g"
+    ) -> str:
+        return format(val, format_spec)
