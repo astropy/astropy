@@ -79,13 +79,12 @@ def get_format(format=None):
 
     Parameters
     ----------
-    format : str or `astropy.units.format.Base` instance or subclass
-        The name of the format, or the format instance or subclass
-        itself.
+    format : str or `astropy.units.format.Base` subclass
+        The name of the format, or the formatter class itself.
 
     Returns
     -------
-    format : `astropy.units.format.Base` instance
+    format : `astropy.units.format.Base` subclass
         The requested formatter.
     """
     if format is None:
@@ -95,8 +94,7 @@ def get_format(format=None):
         return format
     elif not (isinstance(format, str) or format is None):
         raise TypeError(
-            f"Formatter must a subclass or instance of a subclass of {Base!r} "
-            f"or a string giving the name of the formatter. {_known_formats()}."
+            f"Expected a formatter name, not {format!r}.  {_known_formats()}."
         )
 
     format_lower = format.lower()

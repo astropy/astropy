@@ -393,8 +393,8 @@ class FunctionUnitBase(metaclass=ABCMeta):
 
         Parameters
         ----------
-        format : `astropy.units.format.Base` instance or str
-            The name of a format or a formatter object.  If not
+        format : `astropy.units.format.Base` subclass or str
+            The name of a format or a formatter class.  If not
             provided, defaults to the generic format.
         """
         supported_formats = (
