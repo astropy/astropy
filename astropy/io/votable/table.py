@@ -101,12 +101,12 @@ def parse(
         Therefore, *filename* is only required when source is a
         file-like object.
 
-    unit_format : str, astropy.units.format.Base instance or None, optional
+    unit_format : str, astropy.units.format.Base subclass or None, optional
         The unit format to use when parsing unit attributes.  If a
         string, must be the name of a unit formatter. The built-in
         formats include ``generic``, ``fits``, ``cds``, and
         ``vounit``.  A custom formatter may be provided by passing a
-        `~astropy.units.UnitBase` instance.  If `None` (default),
+        `~astropy.units.format.Base` subclass.  If `None` (default),
         the unit format to use will be the one specified by the
         VOTable specification (which is ``cds`` up to version 1.3 of
         VOTable, and ``vounit`` in more recent versions of the spec).
