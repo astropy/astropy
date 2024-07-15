@@ -1521,6 +1521,7 @@ def test_sync_constraints_after_fitting():
 def test_fit_model_with_parameters_change_shape():
     # Regression test for a bug that caused fitting to fail if a user used
     # Parameter.value to change the shape of a parameter.
+    # see https://github.com/astropy/astropy/pull/16710
 
     gauss = models.Gaussian1D(amplitude=[1, 2], mean=[2, 3], stddev=[3, 4])
     gauss.amplitude.value = 1
