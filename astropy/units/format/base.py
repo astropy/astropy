@@ -62,13 +62,17 @@ class Base:
         str
             The value in exponential notation in a this class's format.
         """
-        m, ex = utils.split_mantissa_exponent(val, format_spec)
-        parts = []
-        if m := cls._format_mantissa(m):
-            parts.append(m)
-        if ex:
-            parts.append(f"10{cls._format_superscript(ex)}")
-        return cls._times.join(parts)
+        x = format(val, format_spec).split("e")
+        if len(x) != 2:
+            return cls._format_mantissa(x[0])  # no exponent
+        ex = x[1].lstrip("0+")
+        if not ex:
+            return cls._format_mantissa(x[0])  # exponent was zero
+        if ex.startswith("-"):
+            ex = "-" + ex[1:].lstrip("0")
+        ex = f"10{cls._format_superscript(ex)}"
+        m = cls._format_mantissa("" if x[0].rstrip("0") == "1." else x[0])
+        return f"{m}{cls._times}{ex}" if m else ex
 
     @classmethod
     def _format_mantissa(cls, m: str) -> str:

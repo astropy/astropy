@@ -16,8 +16,6 @@ if TYPE_CHECKING:
     from numbers import Real
     from typing import TypeVar
 
-    import numpy as np
-
     from astropy.units import UnitBase
 
     T = TypeVar("T")
@@ -54,42 +52,6 @@ def get_grouped_by_powers(
         else:
             raise ValueError("Unit with 0 power")
     return positive, negative
-
-
-def split_mantissa_exponent(
-    v: float | np.number, format_spec: str = ".8g"
-) -> tuple[str, str]:
-    """
-    Given a number, split it into its mantissa and base 10 exponent
-    parts, each as strings.  If the exponent is too small, it may be
-    returned as the empty string.
-
-    Parameters
-    ----------
-    v : number
-
-    format_spec : str, optional
-        Number representation formatting string
-
-    Returns
-    -------
-    mantissa, exponent : str
-    """
-    x = format(v, format_spec).split("e")
-
-    if len(x) == 2:
-        ex = x[1].lstrip("0+")
-        if len(ex) > 0 and ex[0] == "-":
-            ex = "-" + ex[1:].lstrip("0")
-    else:
-        ex = ""
-
-    if ex == "" or (x[0] != "1." + "0" * (len(x[0]) - 2)):
-        m = x[0]
-    else:
-        m = ""
-
-    return m, ex
 
 
 def decompose_to_known_units(
