@@ -22,7 +22,7 @@ from .base import Base
 from .cds import CDS
 from .console import Console
 from .fits import FITS
-from .generic import Generic, Unscaled
+from .generic import Generic
 from .latex import Latex, LatexInline
 from .ogip import OGIP
 from .unicode_format import Unicode
@@ -38,7 +38,6 @@ __all__ = [
     "LatexInline",
     "OGIP",
     "Unicode",
-    "Unscaled",
     "VOUnit",
     "get_format",
 ]

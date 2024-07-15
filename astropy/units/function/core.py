@@ -399,7 +399,6 @@ class FunctionUnitBase(metaclass=ABCMeta):
         """
         supported_formats = (
             "generic",
-            "unscaled",
             "latex",
             "latex_inline",
             "unicode",

@@ -1076,7 +1076,7 @@ class UnitBase:
                     pass
 
         def get_err_str(unit):
-            unit_str = unit.to_string("unscaled")
+            unit_str = unit.to_string("generic")
             physical_type = unit.physical_type
             if physical_type != "unknown":
                 unit_str = f"'{unit_str}' ({physical_type})"
