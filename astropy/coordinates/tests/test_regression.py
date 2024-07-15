@@ -252,10 +252,11 @@ def test_regression_futuretimes_4302():
     else:
         ctx1 = nullcontext()
 
+    ctx2 = pytest.warns(ErfaWarning, match=".*dubious year.*")
+
     if PYTEST_LT_8_0:
-        ctx2 = ctx3 = nullcontext()
+        ctx3 = nullcontext()
     else:
-        ctx2 = pytest.warns(ErfaWarning, match=".*dubious year.*")
         ctx3 = pytest.warns(AstropyWarning, match=".*times after IERS data is valid.*")
 
     with ctx1, ctx2, ctx3:
