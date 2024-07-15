@@ -2745,6 +2745,8 @@ class Model(metaclass=_ModelMeta):
             param_metrics[name]["shape"] = param_shape
             param_metrics[name]["size"] = param_size
             total_size += param_size
+        # We avoid re-allocating the array if it is already allocated and has
+        # the right size, for performance.
         if self._parameters is None or self._parameters.size != total_size:
             self._parameters = np.empty(total_size, dtype=np.float64)
 

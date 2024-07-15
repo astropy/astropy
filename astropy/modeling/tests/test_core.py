@@ -1581,4 +1581,4 @@ def test_set_parameter_values():
     poly.c1.value = 2
     poly.c2.value = 3
 
-    assert_allclose(poly.parameters, [1, 2, 3])
+    assert_equal(poly.parameters, [1, 2, 3])
