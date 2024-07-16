@@ -618,6 +618,14 @@ def test_masking_Cds_Mrt():
         assert not hasattr(data["Fit"], "mask")
 
 
+def test_dashes_Cds_Mrt():
+    f = "data/cds_mrt_dashes.txt"
+    for testfile in get_testfiles(f):
+        data = ascii.read(f, **testfile["opts"])
+        assert len(data) == testfile["nrows"]
+        print(data)
+
+
 def test_null_Ipac():
     f = "data/ipac.dat"
     testfile = get_testfiles(f)[0]
@@ -788,6 +796,24 @@ def get_testfiles(name=None):
             "name": "data/cds.dat",
             "nrows": 1,
             "opts": {"format": "mrt"},
+        },
+        {
+            "cols": (
+                "DefaultName",
+                "#CompsOnThisRow",
+            ),
+            "name": "data/cds_mrt_dashes.txt",
+            "nrows": 8,
+            "opts": {"format": "mrt"},
+        },
+        {
+            "cols": (
+                "DefaultName",
+                "#CompsOnThisRow",
+            ),
+            "name": "data/cds_mrt_dashes.txt",
+            "nrows": 8,
+            "opts": {"format": "cds"},
         },
         # Test malformed CDS file (issues #2241 #467)
         {
