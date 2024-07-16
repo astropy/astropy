@@ -17,7 +17,7 @@ class ReadWriteHTMLTestMixin(ReadWriteTestMixinBase):
     Tests for a Cosmology[Read/Write] with ``format="ascii.html"``.
     This class will not be directly called by :mod:`pytest` since its name does
     not begin with ``Test``. To activate the contained tests this class must
-    be inherited in a subclass. Subclasses must dfine a :func:`pytest.fixture`
+    be inherited in a subclass. Subclasses must define a :func:`pytest.fixture`
     ``cosmo`` that returns/yields an instance of a |Cosmology|.
     See ``TestCosmology`` for an example.
     """

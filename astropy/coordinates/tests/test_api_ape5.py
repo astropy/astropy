@@ -319,7 +319,7 @@ def test_transform_api():
         _ = newobj.obstime
         _ = fk5frame.equinox
         # ... build a *cartesian* transform matrix using `eq` that transforms from
-        # the `newobj` frame as observed at `ot` to FK5 an equinox `eq`
+        # the `newobj` frame as observed at `obstime` to FK5 an equinox `eq`
         matrix = np.eye(3)
         return matrix
 

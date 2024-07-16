@@ -175,7 +175,7 @@ def test_names_parse():
     # a few test cases for parsing embedded coordinates from object name
     test_names = [
         "CRTS SSS100805 J194428-420209",
-        "MASTER OT J061451.7-272535.5",
+        "MASTER OT J061451.7-272535.5",  # codespell:ignore ot
         "2MASS J06495091-0737408",
         "1RXS J042555.8-194534",
         "SDSS J132411.57+032050.5",
