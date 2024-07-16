@@ -99,7 +99,7 @@ def test_initialize_from_FITS(tmp_path):
     ccd_data = create_ccd_data()
     hdu = fits.PrimaryHDU(ccd_data)
     hdulist = fits.HDUList([hdu])
-    filename = str(tmp_path / "afile.fits")
+    filename = str(tmp_path / "a_file.fits")
     hdulist.writeto(filename)
     cd = CCDData.read(filename, unit=u.electron)
     assert cd.shape == (DEFAULT_DATA_SIZE, DEFAULT_DATA_SIZE)
@@ -113,7 +113,7 @@ def test_initialize_from_fits_with_unit_in_header(tmp_path):
     fake_img = np.zeros([2, 2])
     hdu = fits.PrimaryHDU(fake_img)
     hdu.header["bunit"] = u.adu.to_string()
-    filename = str(tmp_path / "afile.fits")
+    filename = str(tmp_path / "a_file.fits")
     hdu.writeto(filename)
     ccd = CCDData.read(filename)
     # ccd should pick up the unit adu from the fits header...did it?
@@ -128,7 +128,7 @@ def test_initialize_from_fits_with_ADU_in_header(tmp_path):
     fake_img = np.zeros([2, 2])
     hdu = fits.PrimaryHDU(fake_img)
     hdu.header["bunit"] = "ADU"
-    filename = str(tmp_path / "afile.fits")
+    filename = str(tmp_path / "a_file.fits")
     hdu.writeto(filename)
     ccd = CCDData.read(filename)
     # ccd should pick up the unit adu from the fits header...did it?
@@ -138,7 +138,7 @@ def test_initialize_from_fits_with_ADU_in_header(tmp_path):
 def test_initialize_from_fits_with_invalid_unit_in_header(tmp_path):
     hdu = fits.PrimaryHDU(np.ones((2, 2)))
     hdu.header["bunit"] = "definetely-not-a-unit"
-    filename = str(tmp_path / "afile.fits")
+    filename = str(tmp_path / "a_file.fits")
     hdu.writeto(filename)
     with pytest.raises(ValueError):
         CCDData.read(filename)
@@ -147,7 +147,7 @@ def test_initialize_from_fits_with_invalid_unit_in_header(tmp_path):
 def test_initialize_from_fits_with_technically_invalid_but_not_really(tmp_path):
     hdu = fits.PrimaryHDU(np.ones((2, 2)))
     hdu.header["bunit"] = "ELECTRONS/S"
-    filename = str(tmp_path / "afile.fits")
+    filename = str(tmp_path / "a_file.fits")
     hdu.writeto(filename)
     ccd = CCDData.read(filename)
     assert ccd.unit == u.electron / u.s
@@ -158,7 +158,7 @@ def test_initialize_from_fits_with_data_in_different_extension(tmp_path):
     hdu1 = fits.PrimaryHDU()
     hdu2 = fits.ImageHDU(fake_img)
     hdus = fits.HDUList([hdu1, hdu2])
-    filename = str(tmp_path / "afile.fits")
+    filename = str(tmp_path / "a_file.fits")
     hdus.writeto(filename)
     ccd = CCDData.read(filename, unit="adu")
     # ccd should pick up the unit adu from the fits header...did it?
@@ -174,7 +174,7 @@ def test_initialize_from_fits_with_extension(tmp_path):
     hdu1 = fits.ImageHDU(fake_img1, name="first", ver=1)
     hdu2 = fits.ImageHDU(fake_img2, name="second", ver=1)
     hdus = fits.HDUList([hdu0, hdu1, hdu2])
-    filename = str(tmp_path / "afile.fits")
+    filename = str(tmp_path / "a_file.fits")
     hdus.writeto(filename)
     ccd = CCDData.read(filename, hdu=2, unit="adu")
     # ccd should pick up the unit adu from the fits header...did it?
@@ -252,7 +252,7 @@ def test_fromMEF(tmp_path):
     hdu2 = fits.PrimaryHDU(2 * ccd_data.data)
     hdulist = fits.HDUList(hdu)
     hdulist.append(hdu2)
-    filename = str(tmp_path / "afile.fits")
+    filename = str(tmp_path / "a_file.fits")
     hdulist.writeto(filename)
     # by default, we reading from the first extension
     cd = CCDData.read(filename, unit=u.electron)
@@ -849,7 +849,7 @@ def test_read_wcs_not_creatable(tmp_path):
     )
     hdr = fits.Header.fromstring(hdr_txt_example_WCS, sep="\n")
     hdul = fits.HDUList([fits.PrimaryHDU(np.ones((4241, 1104)), header=hdr)])
-    filename = str(tmp_path / "afile.fits")
+    filename = str(tmp_path / "a_file.fits")
     hdul.writeto(filename)
     # The hdr cannot be converted to a WCS object because of an
     # InconsistentAxisTypesError but it should still open the file
@@ -931,7 +931,7 @@ def test_write_read_multiextensionfits_mask_default(tmp_path):
     # Test that if a mask is present the mask is saved and loaded by default.
     ccd_data = create_ccd_data()
     ccd_data.mask = ccd_data.data > 10
-    filename = str(tmp_path / "afile.fits")
+    filename = str(tmp_path / "a_file.fits")
     ccd_data.write(filename)
     ccd_after = CCDData.read(filename)
     assert ccd_after.mask is not None
@@ -945,7 +945,7 @@ def test_write_read_multiextensionfits_uncertainty_default(tmp_path, uncertainty
     # Test that if a uncertainty is present it is saved and loaded by default.
     ccd_data = create_ccd_data()
     ccd_data.uncertainty = uncertainty_type(ccd_data.data * 10)
-    filename = str(tmp_path / "afile.fits")
+    filename = str(tmp_path / "a_file.fits")
     ccd_data.write(filename)
     ccd_after = CCDData.read(filename)
     assert ccd_after.uncertainty is not None
@@ -964,7 +964,7 @@ def test_write_read_multiextensionfits_uncertainty_different_uncertainty_key(
     # Test that if a uncertainty is present it is saved and loaded by default.
     ccd_data = create_ccd_data()
     ccd_data.uncertainty = uncertainty_type(ccd_data.data * 10)
-    filename = str(tmp_path / "afile.fits")
+    filename = str(tmp_path / "a_file.fits")
     ccd_data.write(filename, key_uncertainty_type="Blah")
     ccd_after = CCDData.read(filename, key_uncertainty_type="Blah")
     assert ccd_after.uncertainty is not None
@@ -979,7 +979,7 @@ def test_write_read_multiextensionfits_not(tmp_path):
     ccd_data = create_ccd_data()
     ccd_data.mask = ccd_data.data > 10
     ccd_data.uncertainty = StdDevUncertainty(ccd_data.data * 10)
-    filename = str(tmp_path / "afile.fits")
+    filename = str(tmp_path / "a_file.fits")
     ccd_data.write(filename, hdu_mask=None, hdu_uncertainty=None)
     ccd_after = CCDData.read(filename)
     assert ccd_after.uncertainty is None
@@ -991,7 +991,7 @@ def test_write_read_multiextensionfits_custom_ext_names(tmp_path):
     ccd_data = create_ccd_data()
     ccd_data.mask = ccd_data.data > 10
     ccd_data.uncertainty = StdDevUncertainty(ccd_data.data * 10)
-    filename = str(tmp_path / "afile.fits")
+    filename = str(tmp_path / "a_file.fits")
     ccd_data.write(filename, hdu_mask="Fun", hdu_uncertainty="NoFun")
 
     # Try reading with defaults extension names

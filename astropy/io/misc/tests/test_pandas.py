@@ -62,7 +62,7 @@ def test_write_overwrite(tmp_path, fmt):
         [[1, 2, 3], [1.0, 2.5, 5.0], ["a", "b", "c"]], dtype=(np.int64, np.float64, str)
     )
 
-    # works when file DNE
+    # works when file does not exist
     t.write(tmpfile, format=pandas_fmt)
 
     # fails when cannot overwrite

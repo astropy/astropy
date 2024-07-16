@@ -74,15 +74,15 @@ class Card(_Verify):
 
     # Checks for a valid value/comment string.  It returns a match object
     # for a valid value/comment string.
-    # The valu group will return a match if a FITS string, boolean,
+    # The value group will return a match if a FITS string, boolean,
     # number, or complex value is found, otherwise it will return
     # None, meaning the keyword is undefined.  The comment field will
     # return a match if the comment separator is found, though the
     # comment maybe an empty string.
     # fmt: off
     _value_FSC_RE = re.compile(
-        r'(?P<valu_field> *'
-            r'(?P<valu>'
+        r'(?P<value_field> *'
+            r'(?P<value>'
 
                 #  The <strg> regex is not correct for all cases, but
                 #  it comes pretty darn close.  It appears to find the
@@ -114,8 +114,8 @@ class Card(_Verify):
 
     # fmt: off
     _value_NFSC_RE = re.compile(
-        r'(?P<valu_field> *'
-            r'(?P<valu>'
+        r'(?P<value_field> *'
+            r'(?P<value>'
                 rf'{_strg}|'
                 r'(?P<bool>[FT])|'
                 r'(?P<numr>' + _numr_NFSC + r')|'
@@ -797,7 +797,7 @@ class Card(_Verify):
             value = UNDEFINED
 
         if not self._valuestring:
-            self._valuestring = m.group("valu")
+            self._valuestring = m.group("value")
         return value
 
     def _parse_comment(self):

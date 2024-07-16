@@ -57,7 +57,7 @@ def __getattr__(name):
 
 
 def _known_formats():
-    inout = [
+    in_out = [
         name
         for name, cls in Base.registry.items()
         if cls.parse.__func__ is not Base.parse.__func__
@@ -68,7 +68,7 @@ def _known_formats():
         if cls.parse.__func__ is Base.parse.__func__
     ]
     return (
-        f"Valid formatter names are: {inout} for input and output, "
+        f"Valid formatter names are: {in_out} for input and output, "
         f"and {out_only} for output only."
     )
 
