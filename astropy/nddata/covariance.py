@@ -381,7 +381,7 @@ class Covariance(NDUncertainty):
 
         # Set covariance data
         cij = correl["RHOIJ"].data * np.sqrt(_var[i] * _var[j])
-        cov = sparse.coo_matrix((cij, (i, j)), shape=shape).tocsr()
+        cov = coo_matrix((cij, (i, j)), shape=shape).tocsr()
 
         # Report
         if not quiet:
