@@ -623,7 +623,6 @@ def test_dashes_Cds_Mrt():
     for testfile in get_testfiles(f):
         data = ascii.read(f, **testfile["opts"])
         assert len(data) == testfile["nrows"]
-        print(data)
 
 
 def test_null_Ipac():
