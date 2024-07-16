@@ -294,7 +294,103 @@ class Covariance(NDUncertainty):
             _covar[abs(_covar) < cov_tol] = 0.0
         return cls(_covar, **kwargs)
 
-    # TODO: Fix doc, and test transpose
+    @classmethod
+    def from_tables(cls, var, correl, quiet=False):
+        r"""
+        Construct the covariance matrix from a variance array and a table with
+        the correlation matrix in coordinate format.
+
+        This is the inverse operation of :func:`to_tables`.  The class can
+        read covariance data written by other programs *as long as they have a
+        commensurate format*.
+
+        The method determines if the output data were reshaped by checking for
+        the ``COVRWSHP`` keyword in the metadata dictionary in ``correl``.  The
+        provided variance array *must* have the correct number of elements, but
+        it can be passed as a flat array.
+
+        .. warning::
+
+            The storage of covariance matrices for higher dimensional data
+            assume a row-major flattening of the relevant data arrays.
+
+        Parameters
+        ----------
+        var : `~numpy.ndarray`
+            Array with the variance data; i.e. the diagonal of the covariance
+            matrix.  The product of its shape elements must match the product of
+            the ``COVRWSHP`` keyword and the length of one side of the
+            covariance matrix.
+
+        correl : `~astropy.table.Table`
+            The correlation matrix in coordinate format. The table should have
+            three columns: ``INDXI``, ``INDXJ``, and ``RHOIJ``.  See
+            :func:`to_tables`.  The shape of the covariance matrix must be
+            provided by the ``COVSHAPE`` keyword in the table metadata
+            dictionary (``correl.meta``).  If the unit of the covariance data is
+            defined, it must be in the ``BUNIT`` keyword of the table metadata.
+
+        quiet : :obj:`bool`, optional
+            Suppress terminal output.
+
+        Returns
+        -------
+        :class:`Covariance`
+            The covariance matrix constructed from the tabulated data.
+
+        Raises
+        ------
+        ValueError
+            Raised if ``correl.meta`` is None, if the provide variance array
+            does not have the correct size, or if the data is multidimensional
+            and the table columns do not have the right shape.
+        """
+        if correl.meta is None:
+            raise ValueError("Provided correlation matrix table must have metadata.")
+
+        # Read shapes
+        shape = eval(correl.meta["COVSHAPE"])
+        raw_shape = eval(correl.meta["COVRWSHP"]) if "COVRWSHP" in correl.meta else None
+
+        if var.size != shape[0]:
+            raise ValueError(
+                f"Incorrect size of variance array; expected {shape[0]}, "
+                f"found {var.size}."
+            )
+        _var = var.ravel()
+
+        # Number of non-zero elements
+        nnz = len(correl)
+
+        # Read coordinate data
+        # WARNING: If the data is written correctly, it should always be true that i<=j
+        if raw_shape is None:
+            i = correl["INDXI"].data
+            j = correl["INDXJ"].data
+        else:
+            ndim = correl["INDXI"].shape[1]
+            if len(raw_shape) != ndim:
+                raise ValueError(
+                    "Mismatch between COVRWSHP keyword and tabulated data."
+                )
+            i = np.ravel_multi_index(correl["INDXI"].data.T, raw_shape)
+            j = np.ravel_multi_index(correl["INDXJ"].data.T, raw_shape)
+
+        # Units
+        unit = correl.meta.get("BUNIT", None)
+
+        # Set covariance data
+        cij = correl["RHOIJ"].data * np.sqrt(_var[i] * _var[j])
+        cov = sparse.coo_matrix((cij, (i, j)), shape=shape).tocsr()
+
+        # Report
+        if not quiet:
+            log.info("Parsed covariance matrix:")
+            log.info(f"             shape: {shape}")
+            log.info(f"   non-zero values: {nnz}")
+
+        return cls(array=cov, raw_shape=raw_shape, unit=unit)
+
     @classmethod
     def from_tables(cls, var, correl):
         r"""
