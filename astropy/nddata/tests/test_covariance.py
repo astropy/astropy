@@ -156,22 +156,32 @@ def test_copy():
 
 def test_tbls():
     cov = Covariance(array=sparse.csr_matrix(mock_cov()))
-    var, correl = cov.output_tables()
+    var, correl = cov.to_tables()
     assert isinstance(var, np.ndarray), "variance should be output as an array"
     assert isinstance(correl, Table), "correlation data should be output as a table"
     assert len(correl) == 44, "Incorrect number of table entries"
     assert len(correl.colnames) == 3, "Incorrect number of columns"
     assert correl["INDXI"].ndim == 1, "Incorrect shape for index array"
 
+    _cov = Covariance.from_tables(var, correl, quiet=True)
+    assert np.array_equal(
+        cov.toarray(), _cov.toarray()
+    ), "Bad convert/revert from tables"
+
     raw_shape, c = mock_cov_3d()
     cov = Covariance(array=sparse.csr_matrix(c), impose_triu=True, raw_shape=raw_shape)
-    var, correl = cov.output_tables()
+    var, correl = cov.to_tables()
     assert len(correl) == 51, "Incorrect number of table entries"
     assert len(correl.colnames) == 3, "Incorrect number of columns"
     assert correl["INDXI"].ndim == 2, "Incorrect shape for index array"
     assert (
         correl["INDXI"].shape[1] == var.ndim
     ), "Dimensionality mismatch between var and indices"
+
+    _cov = Covariance.from_tables(var, correl, quiet=True)
+    assert np.array_equal(
+        cov.toarray(), _cov.toarray()
+    ), "Bad convert/revert from tables"
 
 
 def test_samples():

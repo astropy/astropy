@@ -32,7 +32,7 @@ construct a :class:`~astropy.nddata.covariance.Covariance` object.
     ...         + np.diag(np.full(10, 1.0, dtype=float), k=0)
     ...         + np.diag(np.full(10-1, 0.5, dtype=float), k=1)
     ...         + np.diag(np.full(10-2, 0.2, dtype=float), k=2))
-    >>> covar = Covariance.from_array(c)
+    >>> covar = Covariance(array=c)
     >>> np.array_equal(covar.toarray(), c)
     True
     >>> covar.toarray()
@@ -114,12 +114,11 @@ and IO utility. Internally, the object only keeps the upper triangle of the
 matrix, which means that use of the :attr:`cov` attribute is *not* recommended
 unless you know what you're doing.
 
-There are two ways to access the full covariance matrix, the
-:func:`~astropy.nddata.covariance.Covariance.full` and
-:func:`~astropy.nddata.covariance.Covariance.toarray` methods depending on
-whether you want a sparse or dense matrix, respectively.  The output of these
-two methods can be used as you would use any `scipy.sparse.csr_matrix` or
-`numpy.ndarray` object, respectively.
+There are two ways to access the full covariance matrix: Use 
+:func:`~astropy.nddata.covariance.Covariance.full` to produce a sparse matrix
+and :func:`~astropy.nddata.covariance.Covariance.toarray` for a dense matrix.
+The output of these two methods can be used as you would use any
+`scipy.sparse.csr_matrix` or `numpy.ndarray` object, respectively.
 
 To show the covariance matrix, you can use its
 :func:`~astropy.nddata.covariance.Covariance.show` method to quickly produce a
@@ -172,14 +171,14 @@ covariance matrix, use the
 >>> covar = Covariance.from_samples(s.T, cov_tol=0.1)
 >>> covar.write(ofile)
 >>> from astropy.io import fits
->>> hdu = fits.open(ofile)
->>> hdu.info()
+>>> with fits.open(ofile) as hdu:
+...     hdu.info()
 Filename: test_covar_io.fits
 No.    Name      Ver    Type      Cards   Dimensions   Format
   0  PRIMARY       1 PrimaryHDU       7   ()
-  1  IVAR          1 ImageHDU         9   (10,)   float64
-  2  CORREL        1 BinTableHDU     18   27R x 3C   [1J, 1J, 1D]
->>> _covar = Covariance.from_fits(ofile)
+  1  VAR           1 ImageHDU         9   (10,)   float64
+  2  CORREL        1 BinTableHDU     18   27R x 3C   [K, K, D]
+>>> _covar = Covariance.from_fits(ofile, quiet=True)
 >>> np.allclose(covar.toarray(), _covar.toarray())
 True
 
