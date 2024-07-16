@@ -11,7 +11,8 @@ Byte-by-byte Description of file: apjsad24e2t4_mrt.txt
   87-  87 I1     ---      #CompsOnThisRow         Number of known components for this row 
 --------------------------------------------------------------------------------
 Note (1): This is a subset from Table 4 of Kirkpatrick et al. 2024 (https://content.cld.iop.org/journals/0067-0049/271/2/55/revision2/apjsad24e2t4_mrt.txt)
---------------------------------------------------------------------------------
+Note (2): The separator line below has trailing spaces for testing purposes. Please do not remove them.
+--------------------------------------------------------------------------------    
 Sun                                                                                   1
 --LP 704-15                                                                           3
 ----LP 704-15 Aa                                                                      2

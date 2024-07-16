@@ -39,7 +39,7 @@ def _is_section_delimiter(line):
         True if the line is a section delimiter, False otherwise.
 
     """
-    return line.startswith(("------", "=======")) and len(set(line)) == 1
+    return line.startswith(("------", "=======")) and len(set(line.strip())) == 1
 
 
 class CdsHeader(core.BaseHeader):
