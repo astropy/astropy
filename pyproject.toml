@@ -594,6 +594,8 @@ skip = """
     *extern/*,
     astropy/CITATION,
     docs/credits.rst,
+    *_lextab.py,
+    *_parsetab.py,
 """
 # The following list of words for codespell to ignore may contain some
 # misspellings that should be revisited and fixed in the future.
@@ -615,7 +617,6 @@ ignore-words-list = """
     hel,
     inout,
     lightyear,
-    lod,
     lond,
     mapp,
     milimeter,
