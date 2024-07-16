@@ -618,13 +618,6 @@ def test_masking_Cds_Mrt():
         assert not hasattr(data["Fit"], "mask")
 
 
-def test_dashes_Cds_Mrt():
-    f = "data/cds_mrt_dashes.txt"
-    for testfile in get_testfiles(f):
-        data = ascii.read(f, **testfile["opts"])
-        assert len(data) == testfile["nrows"]
-
-
 def test_null_Ipac():
     f = "data/ipac.dat"
     testfile = get_testfiles(f)[0]
@@ -796,6 +789,7 @@ def get_testfiles(name=None):
             "nrows": 1,
             "opts": {"format": "mrt"},
         },
+        # Test CDS and MRT files with dashes in column name
         {
             "cols": (
                 "DefaultName",
