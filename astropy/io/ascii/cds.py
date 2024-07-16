@@ -216,8 +216,13 @@ class CdsData(core.BaseData):
         # attribute.
         if self.header.readme and self.table_name:
             return lines
+        # Check that line starts with either 6 "-" or "="
+        # and that it contains only a single repeated character.
+        # Latter condition fixes cases where a regular row starts with 6 "-"
         i_sections = [
-            i for i, x in enumerate(lines) if x.startswith(("------", "======="))
+            i
+            for i, x in enumerate(lines)
+            if x.startswith(("------", "=======")) and len(set(x)) == 1
         ]
         if not i_sections:
             raise core.InconsistentTableError(
