@@ -6,7 +6,6 @@ Defines a class used to store and interface with covariance matrices.
 from pathlib import Path
 
 import numpy as np
-from matplotlib import pyplot as plt
 from scipy import sparse
 
 from astropy import log, table
@@ -16,6 +15,9 @@ from astropy.units import Quantity
 from .nddata import NDUncertainty
 
 __all__ = ["Covariance"]
+
+# Disabling doctests when scipy isn't present.
+__doctest_requires__ = {("Covariance",): ["scipy.sparse"]}
 
 
 class Covariance(NDUncertainty):
@@ -290,7 +292,103 @@ class Covariance(NDUncertainty):
             **kwargs,
         )
 
-    # TODO: Fix doc, and test transpose
+    @classmethod
+    def from_tables(cls, var, correl, quiet=False):
+        r"""
+        Construct the covariance matrix from a variance array and a table with
+        the correlation matrix in coordinate format.
+
+        This is the inverse operation of :func:`to_tables`.  The class can
+        read covariance data written by other programs *as long as they have a
+        commensurate format*.
+
+        The method determines if the output data were reshaped by checking for
+        the ``COVRWSHP`` keyword in the metadata dictionary in ``correl``.  The
+        provided variance array *must* have the correct number of elements, but
+        it can be passed as a flat array.
+
+        .. warning::
+
+            The storage of covariance matrices for higher dimensional data
+            assume a row-major flattening of the relevant data arrays.
+
+        Parameters
+        ----------
+        var : `~numpy.ndarray`
+            Array with the variance data; i.e. the diagonal of the covariance
+            matrix.  The product of its shape elements must match the product of
+            the ``COVRWSHP`` keyword and the length of one side of the
+            covariance matrix.
+
+        correl : `~astropy.table.Table`
+            The correlation matrix in coordinate format. The table should have
+            three columns: ``INDXI``, ``INDXJ``, and ``RHOIJ``.  See
+            :func:`to_tables`.  The shape of the covariance matrix must be
+            provided by the ``COVSHAPE`` keyword in the table metadata
+            dictionary (``correl.meta``).  If the unit of the covariance data is
+            defined, it must be in the ``BUNIT`` keyword of the table metadata.
+
+        quiet : :obj:`bool`, optional
+            Suppress terminal output.
+
+        Returns
+        -------
+        :class:`Covariance`
+            The covariance matrix constructed from the tabulated data.
+
+        Raises
+        ------
+        ValueError
+            Raised if ``correl.meta`` is None, if the provide variance array
+            does not have the correct size, or if the data is multidimensional
+            and the table columns do not have the right shape.
+        """
+        if correl.meta is None:
+            raise ValueError("Provided correlation matrix table must have metadata.")
+
+        # Read shapes
+        shape = eval(correl.meta["COVSHAPE"])
+        raw_shape = eval(correl.meta["COVRWSHP"]) if "COVRWSHP" in correl.meta else None
+
+        if var.size != shape[0]:
+            raise ValueError(
+                f"Incorrect size of variance array; expected {shape[0]}, "
+                f"found {var.size}."
+            )
+        _var = var.ravel()
+
+        # Number of non-zero elements
+        nnz = len(correl)
+
+        # Read coordinate data
+        # WARNING: If the data is written correctly, it should always be true that i<=j
+        if raw_shape is None:
+            i = correl["INDXI"].data
+            j = correl["INDXJ"].data
+        else:
+            ndim = correl["INDXI"].shape[1]
+            if len(raw_shape) != ndim:
+                raise ValueError(
+                    "Mismatch between COVRWSHP keyword and tabulated data."
+                )
+            i = np.ravel_multi_index(correl["INDXI"].data.T, raw_shape)
+            j = np.ravel_multi_index(correl["INDXJ"].data.T, raw_shape)
+
+        # Units
+        unit = correl.meta.get("BUNIT", None)
+
+        # Set covariance data
+        cij = correl["RHOIJ"].data * np.sqrt(_var[i] * _var[j])
+        cov = sparse.coo_matrix((cij, (i, j)), shape=shape).tocsr()
+
+        # Report
+        if not quiet:
+            log.info("Parsed covariance matrix:")
+            log.info(f"             shape: {shape}")
+            log.info(f"   non-zero values: {nnz}")
+
+        return cls(array=cov, raw_shape=raw_shape, unit=unit)
+
     @classmethod
     def from_fits(cls, source, var_ext="VAR", covar_ext="CORREL", quiet=False):
         r"""
@@ -352,57 +450,20 @@ class Covariance(NDUncertainty):
         source_is_hdu = isinstance(source, fits.HDUList)
         hdu = source if source_is_hdu else fits.open(source)
 
-        # Read shapes
-        shape = eval(hdu[covar_ext].header["COVSHAPE"])
-        raw_shape = (
-            eval(hdu[covar_ext].header["COVRWSHP"])
-            if "COVRWSHP" in hdu[covar_ext].header
-            else None
-        )
-
-        # Read coordinate data
-        if raw_shape is None:
-            i = hdu[covar_ext].data["INDXI"]
-            j = hdu[covar_ext].data["INDXJ"]
+        # Parse data
+        if var_ext is None:
+            shape = eval(hdu[covar_ext].header["COVSHAPE"])
+            var = np.ones(shape[1:], dtype=float)
         else:
-            ndim = hdu[covar_ext].data["INDXI"].shape[1]
-            if len(raw_shape) != ndim:
-                raise ValueError(
-                    "Mismatch between COVRWSHP keyword and tabulated data."
-                )
-            i = np.ravel_multi_index(hdu[covar_ext].data["INDXI"].T, raw_shape)
-            j = np.ravel_multi_index(hdu[covar_ext].data["INDXJ"].T, raw_shape)
-        # WARNING: If the data is written correctly, it should always be true that i<=j
-        rhoij = hdu[covar_ext].data["RHOIJ"]
-
-        # Number of non-zero elements
-        nnz = len(rhoij)
-
-        # (Read) Variance data
-        var = (
-            np.ones(shape[1:], dtype=float)
-            if var_ext is None
-            else hdu[var_ext].data.ravel()
-        )
-
-        # Units
-        unit = hdu[covar_ext].header.get("BUNIT", None)
+            var = hdu[var_ext].data.ravel()
+        correl = table.Table(hdu[covar_ext].data, meta=dict(hdu[covar_ext].header))
 
         # Done with the hdu so close it, if necessary
         if not source_is_hdu:
             hdu.close()
 
-        # Set covariance data
-        cij = rhoij * np.sqrt(var[i] * var[j])
-        cov = sparse.coo_matrix((cij, (i, j)), shape=shape).tocsr()
-
-        # Report
-        if not quiet:
-            log.info("Read covariance cube:")
-            log.info(f"             shape: {shape}")
-            log.info(f"   non-zero values: {nnz}")
-
-        return cls(array=cov, raw_shape=raw_shape, unit=unit)
+        # Construct and return
+        return cls.from_tables(var, correl, quiet=quiet)
 
     @classmethod
     def from_matrix_multiplication(cls, T, Sigma, **kwargs):
@@ -619,54 +680,6 @@ class Covariance(NDUncertainty):
             Dense array with the full covariance matrix.
         """
         return self.full().toarray()
-
-    def show(self, zoom=None, ofile=None, log10=False):
-        """
-        Show a covariance/correlation matrix data.
-
-        This converts the covariance matrix to a filled array and plots the
-        array using `~matplotlib.pyplot.imshow`. If an output file is provided,
-        the image is redirected to the designated output file; otherwise, the
-        image is plotted to the screen.
-
-        Parameters
-        ----------
-        zoom : :obj:`float`, optional
-            Factor by which to zoom in on the center of the image by *removing
-            the other regions of the array*. E.g. ``zoom=2`` will show only the
-            central quarter of the covariance matrix.
-
-        ofile : :obj:`str`, optional
-            If provided, the plot is output to this file instead of being
-            plotted to the screen.
-
-        log10 : :obj:`bool`, optional
-            Plot the base-10 log of the covariance value.
-        """
-        # Convert the covariance matrix to an array
-        a = self.toarray()
-
-        # Remove some fraction of the array to effectively zoom in on
-        # the center of the covariance matrix
-        if zoom is not None:
-            xs = int(self.shape[0] / 2 - self.shape[0] / 2 / zoom)
-            xe = xs + int(self.shape[0] / zoom) + 1
-            ys = int(self.shape[1] / 2 - self.shape[1] / 2 / zoom)
-            ye = ys + int(self.shape[1] / zoom) + 1
-            a = a[xs:xe, ys:ye]
-
-        # Create the plot
-        fig = plt.figure(1)
-        im = plt.imshow(np.ma.log10(a) if log10 else a, interpolation="nearest")
-        plt.colorbar()
-        if ofile is None:
-            # Print the plot to the screen if no output file is provided.
-            plt.show()
-        else:
-            # Print the plot to the designated output file
-            fig.canvas.print_figure(ofile)
-        fig.clear()
-        plt.close(fig)
 
     def find(self):
         """
@@ -936,7 +949,7 @@ class Covariance(NDUncertainty):
             )
         return i, j, rhoij, self.var.copy()
 
-    def output_tables(self):
+    def to_tables(self):
         r"""
         Return the covariance data separated into a variance array and a
         `~astropy.table.Table` with the correlation data in coordinate format.
@@ -947,12 +960,12 @@ class Covariance(NDUncertainty):
 
         The output correlation table has three columns:
 
-            - 'INDXI': The row index in the covariance matrix.
+            - ``'INDXI'``: The row index in the covariance matrix.
 
-            - 'INDXJ': The column index in the covariance matrix.
+            - ``'INDXJ'``: The column index in the covariance matrix.
 
-            - 'RHOIJ': The correlation coefficient at the relevant :math:`i,j`
-              coordinate.
+            - ``'RHOIJ'``: The correlation coefficient at the relevant
+              :math:`i,j` coordinate.
 
         If :attr:`raw_shape` is set, the output variance array is appropriately
         reshaped, and the correlation matrix indices are reformatted to match
@@ -1001,7 +1014,7 @@ class Covariance(NDUncertainty):
         )
         return var, correl
 
-    def output_hdus(self, hdr=None):
+    def to_hdus(self, hdr=None):
         r"""
         Construct FITS HDUs and header objects that contain the covariance data.
 
@@ -1034,7 +1047,7 @@ class Covariance(NDUncertainty):
         # Add the shape of the covariance to the primary header
         _hdr["COVSHAPE"] = (str(self.shape), "Shape of the correlation matrix")
         # Get the output data
-        var, correl = self.output_tables()
+        var, correl = self.to_tables()
         # Construct and return the HDUs
         return (
             _hdr,
@@ -1099,7 +1112,7 @@ class Covariance(NDUncertainty):
             )
 
         # Construct HDUList and write the FITS file
-        _hdr, ivar_hdu, covar_hdu = self.output_hdus(hdr=hdr)
+        _hdr, ivar_hdu, covar_hdu = self.to_hdus(hdr=hdr)
         fits.HDUList([fits.PrimaryHDU(header=_hdr), ivar_hdu, covar_hdu]).writeto(
             ofile, overwrite=overwrite, checksum=True
         )
