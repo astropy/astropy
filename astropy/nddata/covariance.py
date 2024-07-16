@@ -6,13 +6,35 @@ Defines a class used to store and interface with covariance matrices.
 from pathlib import Path
 
 import numpy as np
-from scipy import sparse
 
 from astropy import log, table
 from astropy.io import fits
 from astropy.units import Quantity
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .nddata import NDUncertainty
+
+# Required scipy.sparse imports
+if HAS_SCIPY:
+    from scipy.sparse import coo_matrix, csr_matrix, find, isspmatrix_csr, triu
+else:
+    err = "Use of 'astropy.nddata.Covariance' requires 'scipy.sparse' module!"
+
+    def find(*args, **kwargs):
+        raise ModuleNotFoundError(err)
+
+    def triu(*args, **kwargs):
+        raise ModuleNotFoundError(err)
+
+    def csr_matrix(*args, **kwargs):
+        raise ModuleNotFoundError(err)
+
+    def coo_matrix(*args, **kwargs):
+        raise ModuleNotFoundError(err)
+
+    def isspmatrix_csr(*args, **kwargs):
+        raise ModuleNotFoundError(err)
+
 
 __all__ = ["Covariance"]
 
@@ -96,9 +118,9 @@ class Covariance(NDUncertainty):
 
     def __init__(self, array=None, impose_triu=False, raw_shape=None, unit=None):
         # Check the input type
-        if array is not None and not sparse.isspmatrix_csr(array):
+        if array is not None and not isspmatrix_csr(array):
             try:
-                _array = sparse.csr_matrix(array)
+                _array = csr_matrix(array)
             except ValueError:
                 raise TypeError(
                     "Input covariance matrix is not a scipy.csr_matrix and could "
@@ -284,7 +306,7 @@ class Covariance(NDUncertainty):
         indx = _covar > 0.0
         i, j = np.meshgrid(np.arange(n), np.arange(n), indexing="ij")
         return cls(
-            array=sparse.coo_matrix(
+            array=coo_matrix(
                 (_covar[indx].ravel(), (i[indx].ravel(), j[indx].ravel())), shape=(n, n)
             ).tocsr(),
             impose_triu=True,
@@ -379,7 +401,7 @@ class Covariance(NDUncertainty):
 
         # Set covariance data
         cij = correl["RHOIJ"].data * np.sqrt(_var[i] * _var[j])
-        cov = sparse.coo_matrix((cij, (i, j)), shape=shape).tocsr()
+        cov = coo_matrix((cij, (i, j)), shape=shape).tocsr()
 
         # Report
         if not quiet:
@@ -527,23 +549,15 @@ class Covariance(NDUncertainty):
                 f"({nx},{nx}) or ({nx},)."
             )
         # If it isn't already, convert T to a csr_matrix
-        _T = T if isinstance(T, sparse.csr_matrix) else sparse.csr_matrix(T)
+        _T = T if isinstance(T, csr_matrix) else csr_matrix(T)
         # Set the covariance matrix in X
         _Sigma = (
-            sparse.coo_matrix(
-                (Sigma, (np.arange(nx), np.arange(nx))), shape=(nx, nx)
-            ).tocsr()
+            coo_matrix((Sigma, (np.arange(nx), np.arange(nx))), shape=(nx, nx)).tocsr()
             if Sigma.ndim == 1
-            else (
-                Sigma
-                if isinstance(Sigma, sparse.csr_matrix)
-                else sparse.csr_matrix(Sigma)
-            )
+            else (Sigma if isinstance(Sigma, csr_matrix) else csr_matrix(Sigma))
         )
         # Construct the covariance matrix
-        return cls(
-            array=sparse.triu(_T.dot(_Sigma.dot(_T.transpose()))).tocsr(), **kwargs
-        )
+        return cls(array=triu(_T.dot(_Sigma.dot(_T.transpose()))).tocsr(), **kwargs)
 
     @classmethod
     def from_variance(cls, variance, **kwargs):
@@ -563,7 +577,7 @@ class Covariance(NDUncertainty):
         :class:`Covariance`
             The diagonal covariance matrix.
         """
-        return cls(array=sparse.csr_matrix(np.diagflat(variance)), **kwargs)
+        return cls(array=csr_matrix(np.diagflat(variance)), **kwargs)
 
     def _impose_upper_triangle(self):
         """
@@ -572,7 +586,7 @@ class Covariance(NDUncertainty):
         """
         # TODO: Could also save space by not saving all the 1s along the
         # diagonal...
-        self.cov = sparse.triu(self.cov).tocsr()
+        self.cov = triu(self.cov).tocsr()
         self.nnz = self.cov.nnz
 
     def full(self):
@@ -590,7 +604,7 @@ class Covariance(NDUncertainty):
             (with symmetric information).
         """
         a = self.cov
-        return sparse.triu(a) + sparse.triu(a, 1).T
+        return triu(a) + triu(a, 1).T
 
     def apply_new_variance(self, var):
         """
@@ -628,10 +642,10 @@ class Covariance(NDUncertainty):
             self.to_correlation()
 
         # Pull out the non-zero values
-        i, j, c = sparse.find(self.cov)
+        i, j, c = find(self.cov)
         # Apply the new variance
         new_cov = Covariance(
-            array=sparse.coo_matrix(
+            array=coo_matrix(
                 (c * np.sqrt(var[i] * var[j]), (i, j)), shape=self.shape
             ).tocsr(),
             raw_shape=self.raw_shape,
@@ -699,7 +713,7 @@ class Covariance(NDUncertainty):
             ``j`` contain the index coordinates of the non-zero values, and
             ``c`` contains the values themselves.
         """
-        return sparse.find(self.full())
+        return find(self.full())
 
     def cov2raw_indices(self, i, j):
         """
@@ -931,7 +945,7 @@ class Covariance(NDUncertainty):
             self.to_correlation()
 
         # Get the data
-        i, j, rhoij = sparse.find(self.cov)
+        i, j, rhoij = find(self.cov)
 
         # If object was originally a covariance matrix, revert it back
         if not is_correlation:
@@ -1169,8 +1183,8 @@ class Covariance(NDUncertainty):
         self.variance()
 
         self.is_correlation = True
-        i, j, c = sparse.find(self.cov)
-        self.cov = sparse.coo_matrix(
+        i, j, c = find(self.cov)
+        self.cov = coo_matrix(
             (c / np.sqrt(self.var[i] * self.var[j]), (i, j)), shape=self.shape
         ).tocsr()
 
@@ -1186,8 +1200,8 @@ class Covariance(NDUncertainty):
         if not self.is_correlation:
             return
 
-        i, j, c = sparse.find(self.cov)
-        self.cov = sparse.coo_matrix(
+        i, j, c = find(self.cov)
+        self.cov = coo_matrix(
             (c * np.sqrt(self.var[i] * self.var[j]), (i, j)), shape=self.shape
         ).tocsr()
         self.is_correlation = False
