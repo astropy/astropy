@@ -261,6 +261,9 @@ html_copy_source = False
 # Output file base name for HTML help builder.
 htmlhelp_basename = project + "doc"
 
+# Set canonical URL from the Read the Docs Domain
+html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
+
 # A dictionary of values to pass into the template engine's context for all pages.
 html_context = {
     "default_mode": "light",
@@ -270,6 +273,8 @@ html_context = {
     "github_repo": "astropy",
     "github_version": "main",
     "doc_path": "docs",
+    # Tell Jinja2 templates the build is running on Read the Docs
+    "READTHEDOCS": os.environ.get("READTHEDOCS", "") == "True",
 }
 
 # Add any extra paths that contain custom files (such as robots.txt or
