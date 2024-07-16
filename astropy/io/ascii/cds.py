@@ -39,6 +39,9 @@ def _is_section_delimiter(line):
         True if the line is a section delimiter, False otherwise.
 
     """
+    # Check that line starts with either 6 "-" or "="
+    # and that it contains only a single repeated character.
+    # Latter condition fixes cases where a regular row starts with 6 "-".
     return line.startswith(("------", "=======")) and len(set(line.strip())) == 1
 
 
@@ -237,9 +240,6 @@ class CdsData(core.BaseData):
         # attribute.
         if self.header.readme and self.table_name:
             return lines
-        # Check that line starts with either 6 "-" or "="
-        # and that it contains only a single repeated character.
-        # Latter condition fixes cases where a regular row starts with 6 "-"
         i_sections = [i for i, x in enumerate(lines) if _is_section_delimiter(x)]
         if not i_sections:
             raise core.InconsistentTableError(
