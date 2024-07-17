@@ -264,6 +264,12 @@ def test_ogip_grammar_fail(string):
         u_format.OGIP.parse(string)
 
 
+@pytest.mark.parametrize("string", ["sqrt(m)**3", "sqrt(m**3)", "(sqrt(m))**3"])
+def test_ogip_sqrt(string):
+    # Regression test for #16743 - sqrt(m)**3 caused a ValueError
+    assert u_format.OGIP.parse(string) == u.m ** Fraction(3, 2)
+
+
 class RoundtripBase:
     deprecated_units = set()
 
