@@ -1,0 +1,4 @@
+The OGIP parser is now less restrictive with strings that represent a unit that
+includes the ``sqrt`` function.
+For example, ``u.Unit("sqrt(m)**3", format="ogip")`` no longer causes a
+``ValueError``.

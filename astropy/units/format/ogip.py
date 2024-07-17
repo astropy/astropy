@@ -219,7 +219,7 @@ class OGIP(generic.Generic):
 
             if len(p) == 7:
                 if p1_str == "sqrt":
-                    p[0] = p[1] * p[3] ** (0.5 * p[6])
+                    p[0] = p[3] ** (0.5 * p[6])
                 else:
                     p[0] = p[1] * p[3] ** p[6]
             elif len(p) == 6:
