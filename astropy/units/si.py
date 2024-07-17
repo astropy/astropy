@@ -67,11 +67,11 @@ def_unit(
 # AREA
 
 def_unit(
-    ["ha", "hectare"], # CAVE: ha could be confused with hecto-annum
+    ["ha", "hectare"],
     1e4 * m**2,
     namespace=_ns,
     prefixes=False,
-    doc="hectare: unit of area. Is used to express land area",
+    doc="hectare: unit of area, used to express area of land",
 )
 
 
@@ -206,7 +206,7 @@ def_unit(
     365.25 * d,
     namespace=_ns,
     prefixes=True,
-    exclude_prefixes=["P", "h"], # CAVE: ha could be confused with hectare
+    exclude_prefixes=["P", "h"],  # Avoid possible confusion with Pascal and hectare
 )
 def_unit(
     ["yr", "year"],
@@ -457,14 +457,14 @@ def_unit(
 )
 def_unit(
     ["Gy", "gray"],
-    m**2 * s**-2,
+    J * kg**-1,
     namespace=_ns,
     prefixes=True,
-    doc="gray: absorbed dose of ionizing radiation, kerma",
+    doc="gray: absorbed dose of ionizing radiation or kinetic energy released per unit mass (kerma)",
 )
 def_unit(
     ["Sv", "sievert"],
-    m**2 * s**-2,
+    J * kg**-1,
     namespace=_ns,
     prefixes=True,
     doc="sievert: equivalent dose of ionizing radiation",
