@@ -111,7 +111,7 @@ _units_and_physical_types = [
     (si.m * si.s**-5, "crackle"),
     (si.m * si.s**-6, {"pop", "pounce"}),
     (si.K / si.m, "temperature gradient"),
-    (si.J / si.kg, "specific energy"),
+    (si.J / si.kg, {"specific energy", "dose of ionizing radiation"}),
     (si.mol * si.m**-3 * si.s**-1, "reaction rate"),
     (si.kg * si.m**2, "moment of inertia"),
     (si.mol / si.s, "catalytic activity"),
