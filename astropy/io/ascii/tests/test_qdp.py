@@ -2,9 +2,44 @@ import numpy as np
 import pytest
 
 from astropy.io import ascii
-from astropy.io.ascii.qdp import _get_lines_from_file, _read_table_qdp, _write_table_qdp
+from astropy.io.ascii.qdp import (
+    _determine_qdp_line_type,
+    _get_lines_from_file,
+    _read_table_qdp,
+    _write_table_qdp,
+)
 from astropy.table import Column, MaskedColumn, Table
 from astropy.utils.exceptions import AstropyUserWarning
+
+
+def test_determine_qdp_line_type_recognizes_commands():
+    assert(_determine_qdp_line_type("READ SERR 3") == "command")
+
+
+def test_determine_qdp_line_type_recognizes_comments():
+    assert(_determine_qdp_line_type("! a comment") == "comment")
+    assert(_determine_qdp_line_type("   ") == "comment")
+
+
+def test_determine_qdp_line_type_recognizes_data():
+    assert(_determine_qdp_line_type(" 21345.45")=="data,1")
+    assert(_determine_qdp_line_type(" 21345.45 1.53e-3 1e-3 .04 NO nan") == "data,6")
+    assert(_determine_qdp_line_type(" 21345.45 ! a comment to disturb") == "data,1")
+
+
+def test_determine_qdp_line_type_recognizes_new():
+    assert(_determine_qdp_line_type("NO NO NO NO NO")=="new")
+
+
+def test_determine_qdp_line_type_functions_with_delimiter():
+    assert(_determine_qdp_line_type(" 21345.45,1.53e-3,1e-3,.04,NO,nan", delimiter=',') == "data,6")
+    assert(_determine_qdp_line_type("NO,NO,NO,NO,NO", delimiter=',')=="new")
+
+
+def test_determine_qdp_line_type_throws_for_unrecognized_comment():
+    pytest.raises(ValueError, _determine_qdp_line_type, " \\n    !some gibberish")
+    pytest.raises(ValueError, _determine_qdp_line_type, "N O N NOON OON O")
+    pytest.raises(ValueError, _determine_qdp_line_type, " some non-comment gibberish")
 
 
 def test_get_tables_from_qdp_file(tmp_path):
