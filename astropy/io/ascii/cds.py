@@ -22,7 +22,7 @@ __doctest_skip__ = ["*"]
 
 
 def _is_section_delimiter(line):
-    """Check if line is a section delimiter
+    """Check if line is a section delimiter.
 
     CDS/MRT tables use dashes or equal signs ("------" or "======") to
     separate sections. This function checks if a line contains only either
@@ -35,7 +35,7 @@ def _is_section_delimiter(line):
 
     Returns
     -------
-    bool
+    status : bool
         True if the line is a section delimiter, False otherwise.
 
     """
