@@ -789,6 +789,25 @@ def get_testfiles(name=None):
             "nrows": 1,
             "opts": {"format": "mrt"},
         },
+        # Test CDS and MRT files with dashes in column name
+        {
+            "cols": (
+                "DefaultName",
+                "#CompsOnThisRow",
+            ),
+            "name": "data/cds_mrt_dashes.txt",
+            "nrows": 8,
+            "opts": {"format": "mrt"},
+        },
+        {
+            "cols": (
+                "DefaultName",
+                "#CompsOnThisRow",
+            ),
+            "name": "data/cds_mrt_dashes.txt",
+            "nrows": 8,
+            "opts": {"format": "cds"},
+        },
         # Test malformed CDS file (issues #2241 #467)
         {
             "cols": (
