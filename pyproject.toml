@@ -154,7 +154,7 @@ volint = "astropy.io.votable.volint:main"
 wcslint = "astropy.wcs.wcslint:main"
 
 [build-system]
-requires = ["setuptools",
+requires = ["setuptools!=71.0.0,!=71.0.1",
             "setuptools_scm>=6.2",
             "cython>=3.0.0,<3.1.0",
             "numpy>=2.0.0",
