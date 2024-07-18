@@ -95,8 +95,8 @@ class LambdaCDM(FLRW):
         # about what is being done here.
         if self._Tcmb0.value == 0:
             inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc_norel
-            inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0)
-            if self._Ok0 != 0:
+            inv_efunc_scalar_args = (self._Om0, self._Ode0, self.Ok0)
+            if self.Ok0 != 0:
                 object.__setattr__(
                     self,
                     "_comoving_distance_z1z2",
@@ -107,16 +107,16 @@ class LambdaCDM(FLRW):
             inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
-                self._Ok0,
-                self._Ogamma0 + self._Onu0,
+                self.Ok0,
+                self.Ogamma0 + self.Onu0,
             )
         else:
             inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc
             inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
-                self._Ok0,
-                self._Ogamma0,
+                self.Ok0,
+                self.Ogamma0,
                 self._neff_per_nu,
                 self._nmasslessnu,
                 self._nu_y_list,
@@ -124,7 +124,7 @@ class LambdaCDM(FLRW):
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
-        if self._Tcmb0.value == 0 and self._Ok0 == 0:
+        if self._Tcmb0.value == 0 and self.Ok0 == 0:
             self._optimize_flat_norad()
 
     def _optimize_flat_norad(self):
@@ -241,10 +241,10 @@ class LambdaCDM(FLRW):
 
         # The analytic solution is not valid for any of Om0, Ode0, Ok0 == 0.
         # Use the explicit integral solution for these cases.
-        if self._Om0 == 0 or self._Ode0 == 0 or self._Ok0 == 0:
+        if self._Om0 == 0 or self._Ode0 == 0 or self.Ok0 == 0:
             return self._integral_comoving_distance_z1z2(z1, z2)
 
-        b = -(27.0 / 2) * self._Om0**2 * self._Ode0 / self._Ok0**3
+        b = -(27.0 / 2) * self._Om0**2 * self._Ode0 / self.Ok0**3
         kappa = b / abs(b)
         if (b < 0) or (2 < b):
 
@@ -260,8 +260,8 @@ class LambdaCDM(FLRW):
             g = 1 / sqrt(A)
             k2 = (2 * A + kappa * (1 + 3 * y1)) / (4 * A)
 
-            phi_z1 = phi_z(self._Om0, self._Ok0, kappa, y1, A, z1)
-            phi_z2 = phi_z(self._Om0, self._Ok0, kappa, y1, A, z2)
+            phi_z1 = phi_z(self._Om0, self.Ok0, kappa, y1, A, z1)
+            phi_z2 = phi_z(self._Om0, self.Ok0, kappa, y1, A, z2)
         # Get lower-right 0<b<2 solution in Om0, Ode0 plane.
         # Fot the upper-left 0<b<2 solution the Big Bang didn't happen.
         elif (0 < b) and (b < 2) and self._Om0 > self._Ode0:
@@ -276,12 +276,12 @@ class LambdaCDM(FLRW):
             y3 = (1.0 / 3) * (-1 + yb - yc)
             g = 2 / sqrt(y1 - y2)
             k2 = (y1 - y3) / (y1 - y2)
-            phi_z1 = phi_z(self._Om0, self._Ok0, y1, y2, z1)
-            phi_z2 = phi_z(self._Om0, self._Ok0, y1, y2, z2)
+            phi_z1 = phi_z(self._Om0, self.Ok0, y1, y2, z1)
+            phi_z2 = phi_z(self._Om0, self.Ok0, y1, y2, z2)
         else:
             return self._integral_comoving_distance_z1z2(z1, z2)
 
-        prefactor = self._hubble_distance / sqrt(abs(self._Ok0))
+        prefactor = self.hubble_distance / sqrt(abs(self.Ok0))
         return prefactor * g * (ellipkinc(phi_z1, k2) - ellipkinc(phi_z2, k2))
 
     def _dS_comoving_distance_z1z2(self, z1, z2, /):
@@ -314,7 +314,7 @@ class LambdaCDM(FLRW):
         except ValueError as e:
             raise ValueError("z1 and z2 have different shapes") from e
 
-        return self._hubble_distance * (z2 - z1)
+        return self.hubble_distance * (z2 - z1)
 
     def _EdS_comoving_distance_z1z2(self, z1, z2, /):
         r"""Einstein-de Sitter comoving LoS distance in Mpc between two redshifts.
@@ -347,7 +347,7 @@ class LambdaCDM(FLRW):
         except ValueError as e:
             raise ValueError("z1 and z2 have different shapes") from e
 
-        prefactor = 2 * self._hubble_distance
+        prefactor = 2 * self.hubble_distance
         return prefactor * ((z1 + 1.0) ** (-1.0 / 2) - (z2 + 1.0) ** (-1.0 / 2))
 
     def _hypergeometric_comoving_distance_z1z2(self, z1, z2, /):
@@ -388,7 +388,7 @@ class LambdaCDM(FLRW):
 
         s = ((1 - self._Om0) / self._Om0) ** (1.0 / 3)
         # Use np.sqrt here to handle negative s (Om0>1).
-        prefactor = self._hubble_distance / np.sqrt(s * self._Om0)
+        prefactor = self.hubble_distance / np.sqrt(s * self._Om0)
         return prefactor * (
             self._T_hypergeometric(s / (z1 + 1.0))
             - self._T_hypergeometric(s / (z2 + 1.0))
@@ -435,7 +435,7 @@ class LambdaCDM(FLRW):
             The age of the universe in Gyr at each input redshift.
         """
         t = inf if isinstance(z, Number) else np.full_like(z, inf, dtype=float)
-        return self._hubble_time * t
+        return self.hubble_time * t
 
     def _EdS_age(self, z, /):
         r"""Age of the universe in Gyr at redshift ``z``.
@@ -461,7 +461,7 @@ class LambdaCDM(FLRW):
         .. [1] Thomas, R., & Kantowski, R. (2000). Age-redshift relation for
                standard cosmology. PRD, 62(10), 103507.
         """
-        return (2.0 / 3) * self._hubble_time * (aszarr(z) + 1.0) ** (-1.5)
+        return (2.0 / 3) * self.hubble_time * (aszarr(z) + 1.0) ** (-1.5)
 
     def _flat_age(self, z, /):
         r"""Age of the universe in Gyr at redshift ``z``.
@@ -489,7 +489,7 @@ class LambdaCDM(FLRW):
         """
         # Use np.sqrt, np.arcsinh instead of math.sqrt, math.asinh
         # to handle properly the complex numbers for 1 - Om0 < 0
-        prefactor = (2.0 / 3) * self._hubble_time / np.emath.sqrt(1 - self._Om0)
+        prefactor = (2.0 / 3) * self.hubble_time / np.emath.sqrt(1 - self._Om0)
         arg = np.arcsinh(
             np.emath.sqrt((1 / self._Om0 - 1 + 0j) / (aszarr(z) + 1.0) ** 3)
         )
@@ -548,7 +548,7 @@ class LambdaCDM(FLRW):
         t : `~astropy.units.Quantity` ['time']
             Lookback time in Gyr to each input redshift.
         """
-        return self._hubble_time * log(aszarr(z) + 1.0)
+        return self.hubble_time * log(aszarr(z) + 1.0)
 
     def _flat_lookback_time(self, z, /):
         r"""Lookback time in Gyr to redshift ``z``.
@@ -596,14 +596,14 @@ class LambdaCDM(FLRW):
         """
         # We override this because it takes a particularly simple
         # form for a cosmological constant
-        Or = self._Ogamma0 + (
-            self._Onu0
+        Or = self.Ogamma0 + (
+            self.Onu0
             if not self._massivenu
-            else self._Ogamma0 * self.nu_relative_density(z)
+            else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
-        return np.sqrt(zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) + self._Ode0)
+        return np.sqrt(zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self.Ok0) + self._Ode0)
 
     @deprecated_keywords("z", since="7.0")
     def inv_efunc(self, z):
@@ -624,14 +624,14 @@ class LambdaCDM(FLRW):
             Returns `float` if the input is scalar.
             Defined such that :math:`H_z = H_0 / E`.
         """
-        Or = self._Ogamma0 + (
-            self._Onu0
+        Or = self.Ogamma0 + (
+            self.Onu0
             if not self._massivenu
-            else self._Ogamma0 * self.nu_relative_density(z)
+            else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
-        return (zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) + self._Ode0) ** (
+        return (zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self.Ok0) + self._Ode0) ** (
             -0.5
         )
 
@@ -706,21 +706,21 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
             inv_efunc_scalar_args = (self._Om0, self._Ode0)
             # Repeat the optimization reassignments here because the init
             # of the LambaCDM above didn't actually create a flat cosmology.
-            # That was done through the explicit tweak setting self._Ok0.
+            # That was done through the explicit tweak setting self.Ok0.
             self._optimize_flat_norad()
         elif not self._massivenu:
             inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
-                self._Ogamma0 + self._Onu0,
+                self.Ogamma0 + self.Onu0,
             )
         else:
             inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc
             inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
-                self._Ogamma0,
+                self.Ogamma0,
                 self._neff_per_nu,
                 self._nmasslessnu,
                 self._nu_y_list,
@@ -749,10 +749,10 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
         """
         # We override this because it takes a particularly simple
         # form for a cosmological constant
-        Or = self._Ogamma0 + (
-            self._Onu0
+        Or = self.Ogamma0 + (
+            self.Onu0
             if not self._massivenu
-            else self._Ogamma0 * self.nu_relative_density(z)
+            else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
@@ -777,10 +777,10 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
             Returns `float` if the input is scalar.
             Defined such that :math:`H_z = H_0 / E`.
         """
-        Or = self._Ogamma0 + (
-            self._Onu0
+        Or = self.Ogamma0 + (
+            self.Onu0
             if not self._massivenu
-            else self._Ogamma0 * self.nu_relative_density(z)
+            else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
         return (zp1**3 * (Or * zp1 + self._Om0) + self._Ode0) ** (-0.5)

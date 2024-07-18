@@ -111,7 +111,7 @@ class w0waCDM(FLRW):
             inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
-                self._Ok0,
+                self.Ok0,
                 self._w0,
                 self._wa,
             )
@@ -120,8 +120,8 @@ class w0waCDM(FLRW):
             inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
-                self._Ok0,
-                self._Ogamma0 + self._Onu0,
+                self.Ok0,
+                self.Ogamma0 + self.Onu0,
                 self._w0,
                 self._wa,
             )
@@ -130,8 +130,8 @@ class w0waCDM(FLRW):
             inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
-                self._Ok0,
-                self._Ogamma0,
+                self.Ok0,
+                self.Ogamma0,
                 self._neff_per_nu,
                 self._nmasslessnu,
                 self._nu_y_list,
@@ -294,7 +294,7 @@ class Flatw0waCDM(FlatFLRWMixin, w0waCDM):
             inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
-                self._Ogamma0 + self._Onu0,
+                self.Ogamma0 + self.Onu0,
                 self._w0,
                 self._wa,
             )
@@ -303,7 +303,7 @@ class Flatw0waCDM(FlatFLRWMixin, w0waCDM):
             inv_efunc_scalar_args = (
                 self._Om0,
                 self._Ode0,
-                self._Ogamma0,
+                self.Ogamma0,
                 self._neff_per_nu,
                 self._nmasslessnu,
                 self._nu_y_list,
