@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 
 import astropy.units as u
-from astropy.cosmology import utils
 from astropy.cosmology._utils import (
     all_cls_vars,
     aszarr,
@@ -12,19 +11,8 @@ from astropy.cosmology._utils import (
     vectorize_redshift_method,
 )
 from astropy.utils.compat.optional_deps import HAS_PANDAS
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .test_core import invalid_zs, valid_zs, z_arr
-
-
-def test_deprecated():
-    match = "this private function has been moved to the private module `astropy.cosmology._utils`"
-
-    with pytest.warns(AstropyDeprecationWarning, match=match):
-        utils.vectorize_redshift_method()
-
-    with pytest.warns(AstropyDeprecationWarning, match=match):
-        utils.aszarr(1)
 
 
 def test_vectorize_redshift_method():
