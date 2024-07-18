@@ -276,6 +276,60 @@ def test_var():
     ), "Result should be an identity matrix"
 
 
+def test_shape():
+    cov = Covariance(array=mock_cov(), impose_triu=True)
+    assert len(cov.data_shape) == 1, "Incorrect dimensionality"
+    assert cov.data_shape == (mock_cov().shape[0],), "Bad data shape"
+
+    # 2D
+    raw_shape, c = mock_cov_2d()
+    cov = Covariance(array=c, impose_triu=True, raw_shape=raw_shape)
+    assert len(cov.data_shape) == 2, "Incorrect dimensionality"
+    assert cov.data_shape == raw_shape, "Bad data shape"
+
+    # 3D
+    raw_shape, c = mock_cov_3d()
+    cov = Covariance(array=c, impose_triu=True, raw_shape=raw_shape)
+    assert len(cov.data_shape) == 3, "Incorrect dimensionality"
+    assert cov.data_shape == raw_shape, "Bad data shape"
+
+
+def test_sub_matrix():
+    c = mock_cov()
+    cov = Covariance(array=c, impose_triu=True)
+
+    # 1D
+    sub_cov = cov.sub_matrix(np.s_[:5])
+    assert isinstance(sub_cov, Covariance), "Submatrix should be a Covariance instance"
+    assert np.array_equal(sub_cov.toarray(), c[:5, :5]), "Bad submatrix"
+
+    # 2D
+    raw_shape, c = mock_cov_2d()
+    cov = Covariance(array=c, impose_triu=True, raw_shape=raw_shape)
+    # Reduce dimensionality
+    sub_cov = cov.sub_matrix(np.s_[:, 0])
+    assert sub_cov.raw_shape is None, "Submatrix should have reduced dimensionality"
+    assert sub_cov.shape == (3, 3), "Incorrect covariance submatrix shape"
+    # Still 2D
+    sub_cov = cov.sub_matrix(np.s_[1:, :])
+    assert sub_cov.raw_shape == (2, 2), "Submatrix does not have the correct shape"
+
+    # 3D
+    raw_shape, c = mock_cov_3d()
+    cov = Covariance(array=c, impose_triu=True, raw_shape=raw_shape)
+    # Reduce dimensionality to 1D
+    sub_cov = cov.sub_matrix(np.s_[:, 0, 0])
+    assert sub_cov.raw_shape is None, "Submatrix should have reduced dimensionality"
+    assert sub_cov.shape == (3, 3), "Incorrect covariance submatrix shape"
+    # Reduce dimensionality to 2D
+    sub_cov = cov.sub_matrix(np.s_[1:, :, 0])
+    assert sub_cov.raw_shape == (2, 2), "Submatrix does not have the correct shape"
+    # Still 3D
+    sub_cov = cov.sub_matrix(np.s_[1:, :, :-1])
+    assert sub_cov.raw_shape == (2, 2, 2), "Submatrix does not have the correct shape"
+    assert sub_cov.shape[0] == np.prod(sub_cov.raw_shape), "Shape mismatch"
+
+
 def test_correl():
     # Since the diagonal is 1, this is actually a correlation matrix
     c = mock_cov()

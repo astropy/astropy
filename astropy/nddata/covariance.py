@@ -44,18 +44,14 @@ __doctest_requires__ = {("Covariance",): ["scipy.sparse"]}
 
 class Covariance(NDUncertainty):
     r"""
-    A general utility for storing, manipulating, and file I/O of sparse
-    covariance matrices.
-
-    This subclasses from `~astropy.nddata.NDUncertainty` largely to enable more
-    seamless integration into `~specutils.Spectrum1D`.
+    A general utility for storing, manipulating, and I/O of covariance matrices.
 
     Parameters
     ----------
     array : array-like, `~scipy.sparse.csr_matrix`, optional
         Covariance matrix to store. Input **must** be covariance data, not
         correlation data.  If None, the covariance object is instantiated as
-        being empty.
+        being empty; however, this is generally discouraged.
 
     impose_triu : :obj:`bool`, optional
         Flag to force the array to only contain non-zero elements in its upper
@@ -70,8 +66,7 @@ class Covariance(NDUncertainty):
         For example, if the covariance data is for a 2D image with shape
         ``(nx,ny)`` -- the shape of the covariance array is be ``(nx*ny,
         nx*ny)`` -- set ``raw_shape=(nx,ny)``. This is primarily used for
-        reading and writing; see also :func:`transpose_raw_shape`.  If None, any
-        higher dimensionality is ignored.
+        reading and writing.  If None, any higher dimensionality is ignored.
 
     unit : unit-like, optional
         Unit for the covariance values.
@@ -108,7 +103,7 @@ class Covariance(NDUncertainty):
     var : `~numpy.ndarray`
         Array with the variance provided by the diagonal of the covariance
         matrix. This is only populated if necessary, either by being requested
-        (:func:`variance`) or if needed to convert between covariance and
+        (`variance`) or if needed to convert between covariance and
         correlation matrices.
 
     is_correlation : :obj:`bool`
@@ -137,6 +132,7 @@ class Covariance(NDUncertainty):
         self.nnz = None
         self.var = None
         self.is_correlation = False
+        self._data_index_map = None
 
         # Return empty object
         if self.cov is None:
@@ -214,12 +210,12 @@ class Covariance(NDUncertainty):
             Any correlation coefficient less than this is assumed to be
             equivalent to (and set to) 0.
 
-        **kwargs : dict
+        **kwargs : dict, optional
             Passed directly to main instantiation method.
 
         Returns
         -------
-        :class:`Covariance`
+        `Covariance`
             An :math:`N_{\rm par}\times N_{\rm par}` covariance matrix built
             using the provided samples.
 
@@ -267,15 +263,15 @@ class Covariance(NDUncertainty):
             shape.  For example, if the covariance data is for a 2D image with
             shape ``(nx,ny)`` -- the shape of the covariance array is be
             ``(nx*ny, nx*ny)`` -- set ``raw_shape=(nx,ny)``. This is primarily
-            used for reading and writing; see also :func:`transpose_raw_shape`.
-            If None, any higher dimensionality is ignored.
+            used for reading and writing.  If None, any higher dimensionality is
+            ignored.
 
-        **kwargs : dict
+        **kwargs : dict, optional
             Passed directly to main instantiation method.
 
         Returns
         -------
-        :class:`Covariance`
+        `Covariance`
             The covariance matrix built using the provided array.
 
         Raises
@@ -320,7 +316,7 @@ class Covariance(NDUncertainty):
         Construct the covariance matrix from a variance array and a table with
         the correlation matrix in coordinate format.
 
-        This is the inverse operation of :func:`to_tables`.  The class can
+        This is the inverse operation of `to_tables`.  The class can
         read covariance data written by other programs *as long as they have a
         commensurate format*.
 
@@ -345,7 +341,7 @@ class Covariance(NDUncertainty):
         correl : `~astropy.table.Table`
             The correlation matrix in coordinate format. The table should have
             three columns: ``INDXI``, ``INDXJ``, and ``RHOIJ``.  See
-            :func:`to_tables`.  The shape of the covariance matrix must be
+            `to_tables`.  The shape of the covariance matrix must be
             provided by the ``COVSHAPE`` keyword in the table metadata
             dictionary (``correl.meta``).  If the unit of the covariance data is
             defined, it must be in the ``BUNIT`` keyword of the table metadata.
@@ -355,7 +351,7 @@ class Covariance(NDUncertainty):
 
         Returns
         -------
-        :class:`Covariance`
+        `Covariance`
             The covariance matrix constructed from the tabulated data.
 
         Raises
@@ -417,11 +413,11 @@ class Covariance(NDUncertainty):
         Read covariance data from a FITS file.
 
         This read operation matches the data saved to a FITS file using
-        :func:`write`. The class can read covariance data written by other
+        `write`. The class can read covariance data written by other
         programs *as long as they have a commensurate format*. See the
-        description of the :func:`write` method.
+        description of the `write` method.
 
-        If the extension names and column names are correct, :class:`Covariance`
+        If the extension names and column names are correct, `Covariance`
         can read FITS files that were not produced explicitly by this method.
         This is useful for files that include the covariance data extensions
         among others.
@@ -437,7 +433,7 @@ class Covariance(NDUncertainty):
 
         Parameters
         ----------
-        source : :obj:`str`, `Path`, `astropy.io.fits.HDUList`
+        source : :obj:`str`, `~pathlib.Path`, `~astropy.io.fits.HDUList`
             Initialize the object using an `astropy.io.fits.HDUList` object or
             path to a FITS file.
 
@@ -454,7 +450,7 @@ class Covariance(NDUncertainty):
 
         Returns
         -------
-        :class:`Covariance`
+        `Covariance`
             The covariance matrix read from the provided source.
 
         Raises
@@ -526,12 +522,12 @@ class Covariance(NDUncertainty):
         Sigma : `~scipy.sparse.csr_matrix`, `~numpy.ndarray`
             Covariance matrix.  See above.
 
-        **kwargs : dict
+        **kwargs : dict, optional
             Passed directly to main instantiation method.
 
         Returns
         -------
-        :class:`Covariance`
+        `Covariance`
             The covariance matrix resulting from the matrix multiplication.
 
         Raises
@@ -569,20 +565,19 @@ class Covariance(NDUncertainty):
         variance : `~numpy.ndarray`
             The variance vector.
 
-        **kwargs : dict
+        **kwargs : dict, optional
             Passed directly to main instantiation method.
 
         Returns
         -------
-        :class:`Covariance`
+        `Covariance`
             The diagonal covariance matrix.
         """
         return cls(array=csr_matrix(np.diagflat(variance)), **kwargs)
 
     def _impose_upper_triangle(self):
         """
-        Force :attr:`cov` to only contain non-zero elements in its upper
-        triangle.
+        Force ``cov`` to only contain non-zero elements in its upper triangle.
         """
         # TODO: Could also save space by not saving all the 1s along the
         # diagonal...
@@ -594,7 +589,7 @@ class Covariance(NDUncertainty):
         Return a `~scipy.sparse.csr_matrix` object with both its upper and lower
         triangle filled, ensuring that they are symmetric.
 
-        This method is essentially equivalent to :func:`toarray`
+        This method is essentially equivalent to `toarray`
         except that it returns a sparse array.
 
         Returns
@@ -609,19 +604,19 @@ class Covariance(NDUncertainty):
     def apply_new_variance(self, var):
         """
         Using the same correlation coefficients, return a new
-        :class:`Covariance` object with the provided variance.
+        `Covariance` object with the provided variance.
 
         Parameters
         ----------
         var : `~numpy.ndarray`
             Variance vector. Must have a length that matches the shape of this
-            :class:`Covariance` instance.  Note that, if the covariance is for
+            `Covariance` instance.  Note that, if the covariance is for
             higher dimensional data, this variance array *must* be flattened to
             1D.
 
         Returns
         -------
-        :class:`Covariance`
+        `Covariance`
             A covariance matrix with the same shape and correlation coefficients
             and this object, but with the provided variance.
 
@@ -665,7 +660,7 @@ class Covariance(NDUncertainty):
 
         Returns
         -------
-        :class:`Covariance`
+        `Covariance`
             A copy of the current covariance matrix.
         """
         # If the data is saved as a correlation matrix, first revert to
@@ -701,10 +696,10 @@ class Covariance(NDUncertainty):
         upper triangle).
 
         Note that, if this matrix is in correlation format (i.e.,
-        :attr:`is_correlation` is True), the returned data is for the
-        correlation matrix only.
+        ``is_correlation`` is True), the returned data is for the correlation
+        matrix only.
 
-        This is a simple wrapper for :func:`full` and `~scipy.sparse.find`.
+        This is a simple wrapper for `full` and `~scipy.sparse.find`.
 
         Returns
         -------
@@ -731,7 +726,7 @@ class Covariance(NDUncertainty):
         -------
         tuple
             Two tuples providing the indices in the associate data array.  If
-            :attr:`raw_shape` is not defined, the input arrays are simply
+            ``raw_shape`` is not defined, the input arrays are simply
             returned (and not copied).  Otherwise, the code uses
             `~numpy.unravel_index` to calculate the relevant data-array indices;
             each element in the two-tuple is itself a tuple of N arrays, one
@@ -744,26 +739,26 @@ class Covariance(NDUncertainty):
         the covariance between data array elements [0,0] and [1,1], elements
         [0,1] and [2,0], and elements [1,0] and [1,1]::
 
-        >>> import numpy as np
-        >>> from astropy.nddata import Covariance
-        >>> cov = Covariance(
-        ...          array=np.diag(np.full(6 - 2, 0.2, dtype=float), k=-2)
-        ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=-1)
-        ...             + np.diag(np.full(6, 1.0, dtype=float), k=0)
-        ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=1)
-        ...             + np.diag(np.full(6 - 2, 0.2, dtype=float), k=2),
-        ...          impose_triu=True,
-        ...          raw_shape=(3,2),
-        ...      )
-        >>> cov.toarray()
-        array([[1. , 0.5, 0.2, 0. , 0. , 0. ],
-               [0.5, 1. , 0.5, 0.2, 0. , 0. ],
-               [0.2, 0.5, 1. , 0.5, 0.2, 0. ],
-               [0. , 0.2, 0.5, 1. , 0.5, 0.2],
-               [0. , 0. , 0.2, 0.5, 1. , 0.5],
-               [0. , 0. , 0. , 0.2, 0.5, 1. ]])
-        >>> cov.cov2raw_indices([0,1,2], [3,4,3])
-        ((array([0, 0, 1]), array([0, 1, 0])), (array([1, 2, 1]), array([1, 0, 1])))
+            >>> import numpy as np
+            >>> from astropy.nddata import Covariance
+            >>> cov = Covariance(
+            ...          array=np.diag(np.full(6 - 2, 0.2, dtype=float), k=-2)
+            ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=-1)
+            ...             + np.diag(np.full(6, 1.0, dtype=float), k=0)
+            ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=1)
+            ...             + np.diag(np.full(6 - 2, 0.2, dtype=float), k=2),
+            ...          impose_triu=True,
+            ...          raw_shape=(3,2),
+            ...      )
+            >>> cov.toarray()
+            array([[1. , 0.5, 0.2, 0. , 0. , 0. ],
+                   [0.5, 1. , 0.5, 0.2, 0. , 0. ],
+                   [0.2, 0.5, 1. , 0.5, 0.2, 0. ],
+                   [0. , 0.2, 0.5, 1. , 0.5, 0.2],
+                   [0. , 0. , 0.2, 0.5, 1. , 0.5],
+                   [0. , 0. , 0. , 0.2, 0.5, 1. ]])
+            >>> cov.cov2raw_indices([0,1,2], [3,4,3])
+            ((array([0, 0, 1]), array([0, 1, 0])), (array([1, 2, 1]), array([1, 0, 1])))
 
         """
         if self.raw_shape is None:
@@ -778,7 +773,7 @@ class Covariance(NDUncertainty):
         """
         Given indices of elements in the source data array, return the matrix
         coordinates with the associated covariance.  This is the inverse of
-        :func:`cov2raw_indices`.
+        `cov2raw_indices`.
 
         Parameters
         ----------
@@ -793,31 +788,31 @@ class Covariance(NDUncertainty):
         -------
         tuple
             A tuple of two arrays providing the indices in the covariance matrix
-            associated with the provided data array coordinates.  If
-            :attr:`raw_shape` is not defined, the input arrays are simply
-            returned (and not copied).  Otherwise, the code uses
-            `~numpy.ravel_multi_index` to calculate the relevant covariance
-            indices.
+            associated with the provided data array coordinates.  If ``raw_shape``
+            is not defined, the input arrays are simply returned (and not
+            copied).  Otherwise, the code uses `~numpy.ravel_multi_index` to
+            calculate the relevant covariance indices.
 
         Examples
         --------
         This is the inverse of the operation explained in the examples shown for
-        :func:`cov2raw_indices`::
+        `cov2raw_indices`::
 
-        >>> import numpy as np
-        >>> from astropy.nddata import Covariance
-        >>> cov = Covariance(
-        ...          array=np.diag(np.full(6 - 2, 0.2, dtype=float), k=-2)
-        ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=-1)
-        ...             + np.diag(np.full(6, 1.0, dtype=float), k=0)
-        ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=1)
-        ...             + np.diag(np.full(6 - 2, 0.2, dtype=float), k=2),
-        ...          impose_triu=True,
-        ...          raw_shape=(3,2),
-        ...      )
-        >>> i_data, j_data = cov.cov2raw_indices([0,1,2], [3,4,3])
-        >>> cov.raw2cov_indices(i_data, j_data)
-        (array([0, 1, 2]), array([3, 4, 3]))
+            >>> import numpy as np
+            >>> from astropy.nddata import Covariance
+            >>> cov = Covariance(
+            ...          array=np.diag(np.full(6 - 2, 0.2, dtype=float), k=-2)
+            ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=-1)
+            ...             + np.diag(np.full(6, 1.0, dtype=float), k=0)
+            ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=1)
+            ...             + np.diag(np.full(6 - 2, 0.2, dtype=float), k=2),
+            ...          impose_triu=True,
+            ...          raw_shape=(3,2),
+            ...      )
+            >>> i_data, j_data = cov.cov2raw_indices([0,1,2], [3,4,3])
+            >>> cov.raw2cov_indices(i_data, j_data)
+            (array([0, 1, 2]), array([3, 4, 3]))
+
         """
         if self.raw_shape is None:
             return i, j
@@ -861,15 +856,15 @@ class Covariance(NDUncertainty):
             - :math:`V_i`: The variance in each array element; i.e., the value
               of :math:`C_{ii} \forall i`.
 
-        If reshape is True and :attr:`raw_shape` is defined, the :math:`i,j`
-        indices are converted to the expected coordinates in the raw data array
-        using `~numpy.unravel_index`.  These can be reverted to the coordinates
-        in the covariance matrix using `~numpy.ravel_multi_index`; see examples.
+        If reshape is True and ``raw_shape`` is defined, the :math:`i,j` indices
+        are converted to the expected coordinates in the raw data array using
+        `~numpy.unravel_index`.  These can be reverted to the coordinates in the
+        covariance matrix using `~numpy.ravel_multi_index`; see examples.
 
         Parameters
         ----------
         reshape : :obj:`bool`, optional
-            Reshape the output according to :attr:`raw_shape`.
+            Reshape the output according to ``raw_shape``.
 
         Returns
         -------
@@ -885,57 +880,58 @@ class Covariance(NDUncertainty):
         --------
         Say we have a (3,2) data array::
 
-        >>> import numpy as np
-        >>> data = np.arange(6).astype(float).reshape(3,2) / 4 + 5
-        >>> data
-        array([[5.  , 5.25],
-               [5.5 , 5.75],
-               [6.  , 6.25]])
+            >>> import numpy as np
+            >>> data = np.arange(6).astype(float).reshape(3,2) / 4 + 5
+            >>> data
+            array([[5.  , 5.25],
+                   [5.5 , 5.75],
+                   [6.  , 6.25]])
 
         with the following covariance matrix between elements in the array::
 
-        >>> c = (
-        ...         np.diag(np.full(6 - 2, 0.2, dtype=float), k=-2)
-        ...         + np.diag(np.full(6 - 1, 0.5, dtype=float), k=-1)
-        ...         + np.diag(np.full(6, 1.0, dtype=float), k=0)
-        ...         + np.diag(np.full(6 - 1, 0.5, dtype=float), k=1)
-        ...         + np.diag(np.full(6 - 2, 0.2, dtype=float), k=2)
-        ...     )
-        >>> c
-        array([[1. , 0.5, 0.2, 0. , 0. , 0. ],
-               [0.5, 1. , 0.5, 0.2, 0. , 0. ],
-               [0.2, 0.5, 1. , 0.5, 0.2, 0. ],
-               [0. , 0.2, 0.5, 1. , 0.5, 0.2],
-               [0. , 0. , 0.2, 0.5, 1. , 0.5],
-               [0. , 0. , 0. , 0.2, 0.5, 1. ]])
+            >>> c = (
+            ...         np.diag(np.full(6 - 2, 0.2, dtype=float), k=-2)
+            ...         + np.diag(np.full(6 - 1, 0.5, dtype=float), k=-1)
+            ...         + np.diag(np.full(6, 1.0, dtype=float), k=0)
+            ...         + np.diag(np.full(6 - 1, 0.5, dtype=float), k=1)
+            ...         + np.diag(np.full(6 - 2, 0.2, dtype=float), k=2)
+            ...     )
+            >>> c
+            array([[1. , 0.5, 0.2, 0. , 0. , 0. ],
+                    [0.5, 1. , 0.5, 0.2, 0. , 0. ],
+                    [0.2, 0.5, 1. , 0.5, 0.2, 0. ],
+                    [0. , 0.2, 0.5, 1. , 0.5, 0.2],
+                    [0. , 0. , 0.2, 0.5, 1. , 0.5],
+                    [0. , 0. , 0. , 0.2, 0.5, 1. ]])
 
         Note that the shape of the covariance matrix is (6,6); the covariance
         matrix has one row and one column associated with each element of the
         original data array.  The mapping between covariance matrix elements to
-        the data array assumes a flattened set of coordinates (cf.
-        :func:`transpose_raw_shape`).  For example, the flattened index of
-        elements ``data[1,0]`` and ``data[2,0]`` are::
+        the data array assumes a (row-major) flattened set of coordinates.  For
+        example, the flattened index of elements ``data[1,0]`` and ``data[2,0]``
+        are::
 
-        >>> np.ravel_multi_index((np.array([1,2]), np.array([0,0])), (3,2))
-        array([2, 4])
+            >>> np.ravel_multi_index((np.array([1,2]), np.array([0,0])), (3,2))
+            array([2, 4])
 
         and we can use numpy functions to determine the relevant indices needed
         to find the covariance between these two elements in the data array::
 
-        >>> i_data = (np.array([1]), np.array([0]))
-        >>> j_data = (np.array([2]), np.array([0]))
-        >>> c[np.ravel_multi_index(i_data, (3,2)), np.ravel_multi_index(j_data, (3,2))]
-        array([0.2])
+            >>> i_data = (np.array([1]), np.array([0]))
+            >>> j_data = (np.array([2]), np.array([0]))
+            >>> c[np.ravel_multi_index(i_data, (3,2)), np.ravel_multi_index(j_data, (3,2))]
+            array([0.2])
 
-        When a :class:`Covariance` object has a defined :attr:`raw_shape`, which
-        is (3,2) in this example, the indices returned as the first two objects
-        in this function are equivalent to the ``i_data`` and ``j_data`` objects
-        in this example.
+        When a `Covariance` object has a defined ``raw_shape``, which is
+        (3,2) in this example, the indices returned as the first two objects in
+        this function are equivalent to the ``i_data`` and ``j_data`` objects in
+        this example.
+
         """
         if reshape and self.raw_shape is None:
             raise ValueError(
                 "If reshaping, the raw shape of the data before flattening to the "
-                "covariance array (`raw_shape`) must be defined."
+                "covariance array (``raw_shape``) must be defined."
             )
 
         # Only ever print correlation matrices
@@ -981,14 +977,14 @@ class Covariance(NDUncertainty):
             - ``'RHOIJ'``: The correlation coefficient at the relevant
               :math:`i,j` coordinate.
 
-        If :attr:`raw_shape` is set, the output variance array is appropriately
+        If ``raw_shape`` is set, the output variance array is appropriately
         reshaped, and the correlation matrix indices are reformatted to match
         the coordinates in the N-dimensional array.
 
         The `~astropy.table.Table` with the correlation data also contains
         metadata keys that provide the shape of the covariance matrix and the
         raw shape of the correlated data arrays, as needed to reconstruct the
-        :class:`Covariance` object.
+        `Covariance` object.
 
         Returns
         -------
@@ -997,7 +993,7 @@ class Covariance(NDUncertainty):
 
         correl : `~astropy.table.Table`
             Table with the correlation matrix in coordinate format and the
-            relevant metadata needed to reconstruct the :class:`Covariance`
+            relevant metadata needed to reconstruct the `Covariance`
             object.
         """
         meta = {}
@@ -1074,7 +1070,7 @@ class Covariance(NDUncertainty):
         Write the covariance object to a FITS file.
 
         Objects written using this function can be reinstantiated using
-        :func:`from_fits`.
+        `from_fits`.
 
         The covariance matrix is stored in "coordinate" format using FITS binary
         tables; see `~scipy.sparse.coo_matrix`. The matrix is *always* stored as
@@ -1084,7 +1080,7 @@ class Covariance(NDUncertainty):
         Independent of the dimensionality of the covariance matrix, the written
         file has a ``PRIMARY`` extension with the keyword ``COVSHAPE`` that
         specifies the original dimensions of the covariance matrix; see
-        :attr:`shape`.
+        ``shape``.
 
         The correlation data are written to the ``CORREL`` extension. The column
         names are:
@@ -1093,7 +1089,7 @@ class Covariance(NDUncertainty):
               columns will contain one value per dimension of the input data.
               If the dimensionality of the data is 2 or more, these indices must
               be "flattened" to produce the relevant indices in the correlation
-              matrix; see :func:`coordinate_data` and :attr:`raw_shape`.
+              matrix; see `coordinate_data` and ``raw_shape``.
 
             - ``RHOIJ``: The non-zero correlation coefficients located
               the specified coordinates.
@@ -1131,6 +1127,87 @@ class Covariance(NDUncertainty):
             ofile, overwrite=overwrite, checksum=True
         )
 
+    @property
+    def data_shape(self):
+        """
+        The expected shape of the data array associated with this covariance array.
+        """
+        return (self.shape[0],) if self.raw_shape is None else self.raw_shape
+
+    @property
+    def data_index_map(self):
+        """
+        An array mapping the index along each axis of the covariance matrix to
+        the raw shape of the associated data array.
+        """
+        if self._data_index_map is None:
+            self._data_index_map = np.arange(self.shape[0])
+            if self.raw_shape is not None:
+                self._data_index_map = self._data_index_map.reshape(self.raw_shape)
+        return self._data_index_map
+
+    def sub_matrix(self, data_slice):
+        """
+        Return a new Covariance instance with the submatrix associated with the
+        provided subsection of the data array.
+
+        Parameters
+        ----------
+        data_slice : slice, array-like
+            Anything that can be used to slice a `numpy.ndarray`.  To generate a
+            slice using syntax that mimics accessing numpy array elements, use
+            `numpy.s_` or ``numpy.index_exp``; see examples.
+
+        Returns
+        -------
+        `Covariance`
+            A new covariance object that is relevant to the selected submatrix
+            of the data array.
+
+        Examples
+        --------
+        Create a Covariance matrix::
+
+            >>> import numpy as np
+            >>> from scipy import sparse
+            >>> from astropy.nddata import Covariance
+            >>> diagonals = [
+            ...     np.ones(10, dtype=float),
+            ...     np.full(10-1, 0.5, dtype=float),
+            ...     np.full(10-2, 0.2, dtype=float),
+            ... ]
+            >>> cov = Covariance(array=sparse.diags(diagonals, [0, 1, 2]))
+            >>> cov.toarray()
+            array([[1. , 0.5, 0.2, 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+                   [0.5, 1. , 0.5, 0.2, 0. , 0. , 0. , 0. , 0. , 0. ],
+                   [0.2, 0.5, 1. , 0.5, 0.2, 0. , 0. , 0. , 0. , 0. ],
+                   [0. , 0.2, 0.5, 1. , 0.5, 0.2, 0. , 0. , 0. , 0. ],
+                   [0. , 0. , 0.2, 0.5, 1. , 0.5, 0.2, 0. , 0. , 0. ],
+                   [0. , 0. , 0. , 0.2, 0.5, 1. , 0.5, 0.2, 0. , 0. ],
+                   [0. , 0. , 0. , 0. , 0.2, 0.5, 1. , 0.5, 0.2, 0. ],
+                   [0. , 0. , 0. , 0. , 0. , 0.2, 0.5, 1. , 0.5, 0.2],
+                   [0. , 0. , 0. , 0. , 0. , 0. , 0.2, 0.5, 1. , 0.5],
+                   [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0.2, 0.5, 1. ]])
+
+        Construct a submatrix of every other data element::
+
+            >>> cov.sub_matrix(np.s_[::2])
+            <Covariance; shape = (5, 5)>
+            >>> cov.sub_matrix(np.s_[::2]).toarray()
+            array([[1. , 0.2, 0. , 0. , 0. ],
+                   [0.2, 1. , 0.2, 0. , 0. ],
+                   [0. , 0.2, 1. , 0.2, 0. ],
+                   [0. , 0. , 0.2, 1. , 0.2],
+                   [0. , 0. , 0. , 0.2, 1. ]])
+
+        """
+        sub_map = self.data_index_map[data_slice]
+        indx = sub_map.ravel()
+        return Covariance(
+            array=self.cov[np.ix_(indx, indx)],
+            raw_shape=None if len(sub_map.shape) == 1 else sub_map.shape,
+        )
+
     def variance(self, copy=True):
         """
         Return the variance vector of the covariance matrix.
@@ -1138,7 +1215,7 @@ class Covariance(NDUncertainty):
         Parameters
         ----------
         copy : :obj:`bool`, optional
-            If false, return a reference to :attr:`var`; otherwise, return a
+            If false, return a reference to ``var``; otherwise, return a
             copy.
 
         Returns
@@ -1157,9 +1234,9 @@ class Covariance(NDUncertainty):
         Convert the covariance matrix into a correlation matrix by dividing each
         element by the variances.
 
-        Specifically, construct :attr:`var` (:math:`V = \sigma^2`) and convert
-        :attr:`cov` from a covariance matrix with elements :math:`C_{ij}` to a
-        correlation matrix with :math:`\rho_{ij}` such that
+        Specifically, construct ``var`` (:math:`V = \sigma^2`) and convert ``cov``
+        from a covariance matrix with elements :math:`C_{ij}` to a correlation
+        matrix with :math:`\rho_{ij}` such that
 
         .. math::
 
@@ -1167,13 +1244,12 @@ class Covariance(NDUncertainty):
 
         where the variance is, e.g., :math:`\sigma^2_i = C_{ii}`.
 
-        If the matrix is a correlation matrix already (see
-        :attr:`is_correlation`), no operations are performed.  Otherwise, the
-        variance is computed, if necessary, and used to normalize the covariance
-        values.
+        If the matrix is a correlation matrix already (see ``is_correlation``), no
+        operations are performed.  Otherwise, the variance is computed, if
+        necessary, and used to normalize the covariance values.
 
-        A :class:`Covariance` object can be reverted from a correlation matrix
-        using :func:`revert_correlation`.
+        A `Covariance` object can be reverted from a correlation matrix
+        using `revert_correlation`.
         """
         # Object is already a correlation matrix
         if self.is_correlation:
@@ -1193,9 +1269,9 @@ class Covariance(NDUncertainty):
         Revert the object from a correlation matrix back to a full covariance
         matrix.
 
-        That is, this is the reverse operation of :func:`to_correlation`.
-        Nothing is done if the :attr:`is_correlation` flag is False.
-        Importantly, the variances must have already been calculated!
+        That is, this is the reverse operation of `to_correlation`.
+        Nothing is done if the ``is_correlation`` flag is False.  Importantly, the
+        variances must have already been calculated!
         """
         if not self.is_correlation:
             return
