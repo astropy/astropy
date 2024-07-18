@@ -481,7 +481,6 @@ def test_array():
         (_c > 0) & (_c < rho_tol)
     ), "Array includes elements below tolerance"
 
-
 @scipy_required
 def test_io():
     # Clean up in case of a failure
