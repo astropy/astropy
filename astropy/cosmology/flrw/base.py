@@ -356,64 +356,64 @@ class FLRW(Cosmology, _ScaleFactorMixin):
     # properties
 
     @property
-    def is_flat(self):
+    def is_flat(self) -> bool:
         """Return bool; `True` if the cosmology is flat."""
         return bool((self._Ok0 == 0.0) and (self.Otot0 == 1.0))
 
     @property
-    def Otot0(self):
+    def Otot0(self) -> float:
         """Omega total; the total density/critical density at z=0."""
         return self._Om0 + self._Ogamma0 + self._Onu0 + self._Ode0 + self._Ok0
 
     @property
-    def Odm0(self):
+    def Odm0(self) -> float | None:
         """Omega dark matter; dark matter density/critical density at z=0."""
         return self._Odm0
 
     @property
-    def Ok0(self):
+    def Ok0(self) -> float:
         """Omega curvature; the effective curvature density/critical density at z=0."""
         return self._Ok0
 
     @property
-    def Tnu0(self):
+    def Tnu0(self) -> u.Quantity:
         """Temperature of the neutrino background as |Quantity| at z=0."""
         return self._Tnu0
 
     @property
-    def has_massive_nu(self):
+    def has_massive_nu(self) -> bool:
         """Does this cosmology have at least one massive neutrino species?"""
         if self._Tnu0.value == 0:
             return False
         return self._massivenu
 
     @property
-    def h(self):
+    def h(self) -> float:
         """Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]."""
         return self._h
 
     @property
-    def hubble_time(self):
+    def hubble_time(self) -> u.Quantity:
         """Hubble time as `~astropy.units.Quantity`."""
         return self._hubble_time
 
     @property
-    def hubble_distance(self):
+    def hubble_distance(self) -> u.Quantity:
         """Hubble distance as `~astropy.units.Quantity`."""
         return self._hubble_distance
 
     @property
-    def critical_density0(self):
+    def critical_density0(self) -> u.Quantity:
         """Critical density as `~astropy.units.Quantity` at z=0."""
         return self._critical_density0
 
     @property
-    def Ogamma0(self):
+    def Ogamma0(self) -> float:
         """Omega gamma; the density/critical density of photons at z=0."""
         return self._Ogamma0
 
     @property
-    def Onu0(self):
+    def Onu0(self) -> float:
         """Omega nu; the density/critical density of neutrinos at z=0."""
         return self._Onu0
 
