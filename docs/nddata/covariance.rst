@@ -22,6 +22,8 @@ construct a `~astropy.nddata.covariance.Covariance` object.
    covariance matrix as a dense array and you want to construct a
    `~astropy.nddata.covariance.Covariance` object for further calculations::
 
+.. doctest-requires:: scipy
+
         >>> import numpy as np
         >>> from astropy.nddata.covariance import Covariance
         >>> var = np.ones(3, dtype=float)
@@ -54,6 +56,8 @@ construct a `~astropy.nddata.covariance.Covariance` object.
 #. You can construct a covariance matrix based on samples from a
    distribution::
 
+.. doctest-requires:: scipy
+
         >>> import numpy as np
         >>> from astropy.nddata.covariance import Covariance
         >>> m = np.zeros(10, dtype=float)
@@ -76,6 +80,8 @@ construct a `~astropy.nddata.covariance.Covariance` object.
 
 #. You can construct the covariance matrix that results from a matrix
    multiplication::
+
+.. doctest-requires:: scipy
 
         >>> import numpy as np
         >>> from astropy.nddata.covariance import Covariance
@@ -150,6 +156,8 @@ FITS file I/O methods
 in a FITS file using the `~astropy.nddata.covariance.Covariance.write` method.
 To reload the covariance matrix, use the
 `~astropy.nddata.covariance.Covariance.from_fits` instantiation method::
+
+.. doctest-requires:: scipy
 
     >>> import numpy as np
     >>> from astropy.nddata.covariance import Covariance
