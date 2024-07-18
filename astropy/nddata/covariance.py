@@ -219,7 +219,7 @@ class Covariance(NDUncertainty):
         **kwargs : dict, optional
             Passed directly to main instantiation method.
 
-        **kwargs : dict
+        **kwargs : dict, optional
             Passed directly to main instantiation method.
 
         Returns
@@ -300,7 +300,7 @@ class Covariance(NDUncertainty):
         Construct the covariance matrix from a variance array and a table with
         the correlation matrix in coordinate format.
 
-        This is the inverse operation of :func:`to_tables`.  The class can
+        This is the inverse operation of `to_tables`.  The class can
         read covariance data written by other programs *as long as they have a
         commensurate format*.
 
@@ -325,7 +325,7 @@ class Covariance(NDUncertainty):
         correl : `~astropy.table.Table`
             The correlation matrix in coordinate format. The table should have
             three columns: ``INDXI``, ``INDXJ``, and ``RHOIJ``.  See
-            :func:`to_tables`.  The shape of the covariance matrix must be
+            `to_tables`.  The shape of the covariance matrix must be
             provided by the ``COVSHAPE`` keyword in the table metadata
             dictionary (``correl.meta``).  If the unit of the covariance data is
             defined, it must be in the ``BUNIT`` keyword of the table metadata.
@@ -335,7 +335,7 @@ class Covariance(NDUncertainty):
 
         Returns
         -------
-        :class:`Covariance`
+        `Covariance`
             The covariance matrix constructed from the tabulated data.
 
         Raises
@@ -483,9 +483,9 @@ class Covariance(NDUncertainty):
         Read covariance data from a FITS file.
 
         This read operation matches the data saved to a FITS file using
-        :func:`write`. The class can read covariance data written by other
+        `write`. The class can read covariance data written by other
         programs *as long as they have a commensurate format*. See the
-        description of the :func:`write` method.
+        description of the `write` method.
 
         If the extension names and column names are correct, `Covariance`
         can read FITS files that were not produced explicitly by this method.
@@ -914,7 +914,7 @@ class Covariance(NDUncertainty):
         -------
         tuple
             Two tuples providing the indices in the associate data array.  If
-            :attr:`raw_shape` is not defined, the input arrays are simply
+            ``raw_shape`` is not defined, the input arrays are simply
             returned (and not copied).  Otherwise, the code uses
             `~numpy.unravel_index` to calculate the relevant data-array indices;
             each element in the two-tuple is itself a tuple of N arrays, one
@@ -927,26 +927,26 @@ class Covariance(NDUncertainty):
         the covariance between data array elements [0,0] and [1,1], elements
         [0,1] and [2,0], and elements [1,0] and [1,1]::
 
-        >>> import numpy as np
-        >>> from astropy.nddata import Covariance
-        >>> cov = Covariance(
-        ...          array=np.diag(np.full(6 - 2, 0.2, dtype=float), k=-2)
-        ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=-1)
-        ...             + np.diag(np.full(6, 1.0, dtype=float), k=0)
-        ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=1)
-        ...             + np.diag(np.full(6 - 2, 0.2, dtype=float), k=2),
-        ...          impose_triu=True,
-        ...          raw_shape=(3,2),
-        ...      )
-        >>> cov.toarray()
-        array([[1. , 0.5, 0.2, 0. , 0. , 0. ],
-               [0.5, 1. , 0.5, 0.2, 0. , 0. ],
-               [0.2, 0.5, 1. , 0.5, 0.2, 0. ],
-               [0. , 0.2, 0.5, 1. , 0.5, 0.2],
-               [0. , 0. , 0.2, 0.5, 1. , 0.5],
-               [0. , 0. , 0. , 0.2, 0.5, 1. ]])
-        >>> cov.cov2raw_indices([0,1,2], [3,4,3])
-        ((array([0, 0, 1]), array([0, 1, 0])), (array([1, 2, 1]), array([1, 0, 1])))
+            >>> import numpy as np
+            >>> from astropy.nddata import Covariance
+            >>> cov = Covariance(
+            ...          array=np.diag(np.full(6 - 2, 0.2, dtype=float), k=-2)
+            ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=-1)
+            ...             + np.diag(np.full(6, 1.0, dtype=float), k=0)
+            ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=1)
+            ...             + np.diag(np.full(6 - 2, 0.2, dtype=float), k=2),
+            ...          impose_triu=True,
+            ...          raw_shape=(3,2),
+            ...      )
+            >>> cov.toarray()
+            array([[1. , 0.5, 0.2, 0. , 0. , 0. ],
+                   [0.5, 1. , 0.5, 0.2, 0. , 0. ],
+                   [0.2, 0.5, 1. , 0.5, 0.2, 0. ],
+                   [0. , 0.2, 0.5, 1. , 0.5, 0.2],
+                   [0. , 0. , 0.2, 0.5, 1. , 0.5],
+                   [0. , 0. , 0. , 0.2, 0.5, 1. ]])
+            >>> cov.cov2raw_indices([0,1,2], [3,4,3])
+            ((array([0, 0, 1]), array([0, 1, 0])), (array([1, 2, 1]), array([1, 0, 1])))
 
         """
         if self.raw_shape is None:
@@ -961,7 +961,7 @@ class Covariance(NDUncertainty):
         """
         Given indices of elements in the source data array, return the matrix
         coordinates with the associated covariance.  This is the inverse of
-        :func:`cov2raw_indices`.
+        `cov2raw_indices`.
 
         Parameters
         ----------
@@ -976,31 +976,31 @@ class Covariance(NDUncertainty):
         -------
         tuple
             A tuple of two arrays providing the indices in the covariance matrix
-            associated with the provided data array coordinates.  If
-            :attr:`raw_shape` is not defined, the input arrays are simply
-            returned (and not copied).  Otherwise, the code uses
-            `~numpy.ravel_multi_index` to calculate the relevant covariance
-            indices.
+            associated with the provided data array coordinates.  If ``raw_shape``
+            is not defined, the input arrays are simply returned (and not
+            copied).  Otherwise, the code uses `~numpy.ravel_multi_index` to
+            calculate the relevant covariance indices.
 
         Examples
         --------
         This is the inverse of the operation explained in the examples shown for
-        :func:`cov2raw_indices`::
+        `cov2raw_indices`::
 
-        >>> import numpy as np
-        >>> from astropy.nddata import Covariance
-        >>> cov = Covariance(
-        ...          array=np.diag(np.full(6 - 2, 0.2, dtype=float), k=-2)
-        ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=-1)
-        ...             + np.diag(np.full(6, 1.0, dtype=float), k=0)
-        ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=1)
-        ...             + np.diag(np.full(6 - 2, 0.2, dtype=float), k=2),
-        ...          impose_triu=True,
-        ...          raw_shape=(3,2),
-        ...      )
-        >>> i_data, j_data = cov.cov2raw_indices([0,1,2], [3,4,3])
-        >>> cov.raw2cov_indices(i_data, j_data)
-        (array([0, 1, 2]), array([3, 4, 3]))
+            >>> import numpy as np
+            >>> from astropy.nddata import Covariance
+            >>> cov = Covariance(
+            ...          array=np.diag(np.full(6 - 2, 0.2, dtype=float), k=-2)
+            ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=-1)
+            ...             + np.diag(np.full(6, 1.0, dtype=float), k=0)
+            ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=1)
+            ...             + np.diag(np.full(6 - 2, 0.2, dtype=float), k=2),
+            ...          impose_triu=True,
+            ...          raw_shape=(3,2),
+            ...      )
+            >>> i_data, j_data = cov.cov2raw_indices([0,1,2], [3,4,3])
+            >>> cov.raw2cov_indices(i_data, j_data)
+            (array([0, 1, 2]), array([3, 4, 3]))
+
         """
         if self.raw_shape is None:
             return i, j

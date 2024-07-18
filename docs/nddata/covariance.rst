@@ -67,6 +67,7 @@ You can construct a covariance matrix based on samples from a distribution::
 
     >>> import numpy as np
     >>> from astropy.nddata.covariance import Covariance
+    >>> ofile = 'test_covar_io.fits'
     >>> m = np.zeros(10, dtype=float)
     >>> c = (np.diag(np.full(10-2, 0.2, dtype=float), k=-2)
     ...         + np.diag(np.full(10-1, 0.5, dtype=float), k=-1)
