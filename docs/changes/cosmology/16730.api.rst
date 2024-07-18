@@ -1,0 +1,2 @@
+Completed the deprecation of the ``cosmology.utils`` module. Any public API may
+be imported directly from the ``cosmology`` module.
