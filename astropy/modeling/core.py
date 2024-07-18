@@ -1264,7 +1264,7 @@ class Model(metaclass=_ModelMeta):
         stop = self._param_metrics[self.param_names[-1]]["slice"].stop
 
         try:
-            value = np.array(value).flatten()
+            value = np.asanyarray(value).ravel()
             self._parameters[start:stop] = value
         except ValueError as e:
             raise InputParameterError(

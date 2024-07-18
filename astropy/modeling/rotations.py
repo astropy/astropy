@@ -129,7 +129,7 @@ class RotationSequence3D(Model):
         # Note: If the original shape was () (an array scalar) convert to a
         # 1-element 1-D array on output for consistency with most other models
         orig_shape = x.shape or (1,)
-        inarr = np.array([x.flatten(), y.flatten(), z.flatten()])
+        inarr = np.array([x.ravel(), y.ravel(), z.ravel()])
         result = np.dot(_create_matrix(angles[0], self.axes_order), inarr)
         x, y, z = result[0], result[1], result[2]
         x.shape = y.shape = z.shape = orig_shape
@@ -183,8 +183,8 @@ class _EulerRotation:
     def evaluate(self, alpha, delta, phi, theta, psi, axes_order):
         shape = None
         if isinstance(alpha, np.ndarray):
-            alpha = alpha.flatten()
-            delta = delta.flatten()
+            alpha = alpha.ravel()
+            delta = delta.ravel()
             shape = alpha.shape
         inp = spherical2cartesian(alpha, delta)
         matrix = _create_matrix([phi, theta, psi], axes_order)
@@ -539,7 +539,7 @@ class Rotation2D(Model):
         # Note: If the original shape was () (an array scalar) convert to a
         # 1-element 1-D array on output for consistency with most other models
         orig_shape = x.shape or (1,)
-        inarr = np.array([x.flatten(), y.flatten()])
+        inarr = np.array([x.ravel(), y.ravel()])
         if isinstance(angle, u.Quantity):
             angle = angle.to_value(u.rad)
         result = np.dot(cls._compute_matrix(angle), inarr)

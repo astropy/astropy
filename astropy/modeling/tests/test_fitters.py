@@ -66,7 +66,7 @@ class TestPolynomial2D:
     def test_poly2D_fitting(self):
         fitter = LinearLSQFitter()
         v = self.model.fit_deriv(x=self.x, y=self.y)
-        p = linalg.lstsq(v, self.z.flatten(), rcond=-1)[0]
+        p = linalg.lstsq(v, self.z.ravel(), rcond=-1)[0]
         new_model = fitter(self.model, self.x, self.y, self.z)
         assert_allclose(new_model.parameters, p)
 
@@ -902,9 +902,9 @@ class TestWeightedFittingWithOutlierRemoval:
         self.weights = np.mod(self.x + self.y, 2) * 2 + 1  # 1,3 chessboard
         self.z[0, 0] = 1000.0  # outlier
         self.z[0, 1] = 1000.0  # outlier
-        self.x1d = self.x.flatten()
-        self.z1d = self.z.flatten()
-        self.weights1d = self.weights.flatten()
+        self.x1d = self.x.ravel()
+        self.z1d = self.z.ravel()
+        self.weights1d = self.weights.ravel()
 
     def test_1d_without_weights_without_sigma_clip(self):
         model = models.Polynomial1D(0)
@@ -1108,7 +1108,7 @@ def test_polynomial_poorly_conditioned(fixed, warns):
 def test_linear_fitter_with_weights_flat():
     """Same as the above #7035 test but with flattened inputs"""
     Xin, Yin = np.mgrid[0:21, 0:21]
-    Xin, Yin = Xin.flatten(), Yin.flatten()
+    Xin, Yin = Xin.ravel(), Yin.ravel()
     fitter = LinearLSQFitter()
 
     with NumpyRNGContext(_RANDOM_SEED):
