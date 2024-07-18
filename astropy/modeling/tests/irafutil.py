@@ -143,7 +143,7 @@ class IdentifyRecord(Record):
 
     def __init__(self, recstr):
         super().__init__(recstr)
-        self._flatcoeff = self.fields["coefficients"].flatten()
+        self._flatcoeff = self.fields["coefficients"].ravel()
         self.x = self.fields["features"][:, 0]
         self.y = self.get_ydata()
         self.z = self.fields["features"][:, 1]
@@ -201,7 +201,7 @@ class FitcoordsRecord(Record):
 
     def __init__(self, recstr):
         super().__init__(recstr)
-        self._surface = self.fields["surface"].flatten()
+        self._surface = self.fields["surface"].ravel()
         self.modelname = iraf_models_map[self._surface[0]]
         self.xorder = self._surface[1]
         self.yorder = self._surface[2]

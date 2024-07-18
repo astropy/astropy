@@ -229,7 +229,7 @@ class _Tabular(Model):
         inputs = np.broadcast_arrays(*inputs)
 
         shape = inputs[0].shape
-        inputs = [inp.flatten() for inp in inputs[: self.n_inputs]]
+        inputs = [inp.ravel() for inp in inputs[: self.n_inputs]]
         inputs = np.array(inputs).T
         if not HAS_SCIPY:  # pragma: no cover
             raise ModuleNotFoundError("Tabular model requires scipy.")

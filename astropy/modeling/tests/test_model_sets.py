@@ -114,9 +114,9 @@ def test_model1d_axis_2(model_class):
 
     y = p1(x, model_set_axis=False)
     assert y.shape == (1, 4, 3)
-    assert_allclose(y[:, :, 0].flatten(), t1(x))
-    assert_allclose(y[:, :, 1].flatten(), t2(x))
-    assert_allclose(y[:, :, 2].flatten(), t3(x))
+    assert_allclose(y[:, :, 0].ravel(), t1(x))
+    assert_allclose(y[:, :, 1].ravel(), t2(x))
+    assert_allclose(y[:, :, 2].ravel(), t3(x))
 
 
 @pytest.mark.parametrize(
@@ -181,9 +181,9 @@ def test_model2d_axis_2(model_class):
     y = p2(x, x, model_set_axis=False)
     assert y.shape == (1, 4, 3)
     # These are columns along the 2nd axis.
-    assert_allclose(y[:, :, 0].flatten(), t1(x, x))
-    assert_allclose(y[:, :, 1].flatten(), t2(x, x))
-    assert_allclose(y[:, :, 2].flatten(), t3(x, x))
+    assert_allclose(y[:, :, 0].ravel(), t1(x, x))
+    assert_allclose(y[:, :, 1].ravel(), t2(x, x))
+    assert_allclose(y[:, :, 2].ravel(), t3(x, x))
 
 
 def test_negative_axis():
@@ -478,7 +478,7 @@ def test_linear_fit_flat_2d_model_set_common_weight():
     )
 
     x, y = np.mgrid[0:5, 0:5]
-    x, y = x.flatten(), y.flatten()
+    x, y = x.ravel(), y.ravel()
     zz = np.array([1 + x - 0.5 * y + 0.1 * x * x, 2 * x + y - 0.2 * y * y])
     weights = np.ones(25)
 
@@ -517,7 +517,7 @@ def test_linear_fit_flat_2d_model_set_weights():
     )
 
     x, y = np.mgrid[0:5, 0:5]
-    x, y = x.flatten(), y.flatten()
+    x, y = x.ravel(), y.ravel()
     zz = np.array([1 + x - 0.5 * y + 0.1 * x * x, 2 * x + y - 0.2 * y * y])
     weights = np.ones((2, 25))
 

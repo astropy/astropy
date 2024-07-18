@@ -441,7 +441,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                 for j in range(len(model)):
                     mask = None
                     if masked:
-                        mask = y.mask[..., j].flatten()
+                        mask = y.mask[..., j].ravel()
                     xx = np.ma.array(x, mask=mask)
                     eval_y = model(xx, model_set_axis=False)
                     eval_y = np.rollaxis(eval_y, model.model_set_axis)[j]
@@ -704,11 +704,11 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                         weights = weights.T if model_axis == 0 else weights
                     else:
                         # Common weights for all the models:
-                        weights = weights.flatten()
+                        weights = weights.ravel()
             else:
-                rhs = z.flatten()
+                rhs = z.ravel()
                 if weights is not None:
-                    weights = weights.flatten()
+                    weights = weights.ravel()
 
         # If the derivative is defined along rows (as with non-linear models)
         if model_copy.col_fit_deriv:
@@ -830,7 +830,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         lacoef /= scl[:, np.newaxis] if scl.ndim < rhs.ndim else scl
         self.fit_info["params"] = lacoef
 
-        fitter_to_model_params(model_copy, lacoef.flatten())
+        fitter_to_model_params(model_copy, lacoef.ravel())
 
         # TODO: Only Polynomial models currently have an _order attribute;
         # maybe change this to read isinstance(model, PolynomialBase)
