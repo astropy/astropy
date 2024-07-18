@@ -1,11 +1,17 @@
 from pathlib import Path
 
 import numpy as np
-from scipy import sparse
+import pytest
 
 from astropy.io import fits
 from astropy.nddata import Covariance
 from astropy.table import Table
+from astropy.utils.compat.optional_deps import HAS_SCIPY
+
+if HAS_SCIPY:
+    from scipy.sparse import csr_matrix
+
+scipy_required = pytest.mark.skipif(not HAS_SCIPY, reason="scipy not installed")
 
 
 def mock_cov():
@@ -48,6 +54,7 @@ def test_empty_init():
     assert cov.array is None, "Array should not be defined"
 
 
+@scipy_required
 def test_init():
     c = mock_cov()
 
@@ -55,7 +62,7 @@ def test_init():
     cov = Covariance(array=c)
 
     # Convert to a CSR sparse matrix
-    c_csr = sparse.csr_matrix(c)
+    c_csr = csr_matrix(c)
     # And instantiate
     cov = Covariance(array=c_csr)
 
@@ -75,8 +82,9 @@ def test_init():
     assert np.array_equal(cov.toarray(), c), "Array should be filled"
 
 
+@scipy_required
 def test_nnz():
-    c_csr = sparse.csr_matrix(mock_cov())
+    c_csr = csr_matrix(mock_cov())
     cov = Covariance(array=c_csr)
 
     assert c_csr.nnz == cov.nnz, "Number of non-zero elements differ"
@@ -93,6 +101,7 @@ def test_nnz():
     ), "Number of non-zero elements in full array differ"
 
 
+@scipy_required
 def test_indices():
     raw_shape, c = mock_cov_2d()
     cov = Covariance(array=c, impose_triu=True, raw_shape=raw_shape)
@@ -107,16 +116,17 @@ def test_indices():
     assert np.array_equal(j_cov, _j_cov), "Inverse operation error"
 
 
+@scipy_required
 def test_coo():
     # 1D
-    cov = Covariance(array=sparse.csr_matrix(mock_cov()))
+    cov = Covariance(array=csr_matrix(mock_cov()))
     i, j, rhoij, var = cov.coordinate_data()
     assert i.size == cov.nnz, "Coordinate data length is the incorrect size"
     assert var.ndim == 1, "Incorrect dimensionality"
 
     # 2D
     raw_shape, c = mock_cov_2d()
-    c_csr = sparse.csr_matrix(c)
+    c_csr = csr_matrix(c)
     cov = Covariance(array=c_csr, impose_triu=True, raw_shape=raw_shape)
     # Try without reshaping
     ic, jc, rhoij, var = cov.coordinate_data(reshape=False)
@@ -138,7 +148,7 @@ def test_coo():
 
     # 3D
     raw_shape, c = mock_cov_3d()
-    c_csr = sparse.csr_matrix(c)
+    c_csr = csr_matrix(c)
     cov = Covariance(array=c_csr, impose_triu=True, raw_shape=raw_shape)
     i, j, rhoij, var = cov.coordinate_data(reshape=True)
     assert len(i) == len(raw_shape), "Dimensionality does not match"
@@ -146,16 +156,18 @@ def test_coo():
     assert var.shape == raw_shape, "Variance array has incorrect shape"
 
 
+@scipy_required
 def test_copy():
-    cov = Covariance(array=sparse.csr_matrix(mock_cov()))
+    cov = Covariance(array=csr_matrix(mock_cov()))
     _cov = cov.copy()
     assert cov is not _cov, "Objects have the same reference"
     assert cov.cov is not _cov.cov, "Object arrays have the same reference"
     assert np.array_equal(cov.toarray(), _cov.toarray()), "Arrays should be equal"
 
 
+@scipy_required
 def test_tbls():
-    cov = Covariance(array=sparse.csr_matrix(mock_cov()))
+    cov = Covariance(array=csr_matrix(mock_cov()))
     var, correl = cov.to_tables()
     assert isinstance(var, np.ndarray), "variance should be output as an array"
     assert isinstance(correl, Table), "correlation data should be output as a table"
@@ -169,7 +181,7 @@ def test_tbls():
     ), "Bad convert/revert from tables"
 
     raw_shape, c = mock_cov_3d()
-    cov = Covariance(array=sparse.csr_matrix(c), impose_triu=True, raw_shape=raw_shape)
+    cov = Covariance(array=csr_matrix(c), impose_triu=True, raw_shape=raw_shape)
     var, correl = cov.to_tables()
     assert len(correl) == 51, "Incorrect number of table entries"
     assert len(correl.colnames) == 3, "Incorrect number of columns"
@@ -184,6 +196,7 @@ def test_tbls():
     ), "Bad convert/revert from tables"
 
 
+@scipy_required
 def test_samples():
     # Fixed-seed RNG for repeatability
     rng = np.random.default_rng(seed=8001)
@@ -218,6 +231,7 @@ def test_samples():
     assert np.array_equal(coo, _coo), "Did not find the same indices"
 
 
+@scipy_required
 def test_mult():
     c = mock_cov()
     x = np.ones(10, dtype=float)
@@ -268,6 +282,7 @@ def test_mult():
     ), "Result should have off-diagonals = 0.5,0.2"
 
 
+@scipy_required
 def test_var():
     var = np.ones(3, dtype=float)
     covar = Covariance.from_variance(var)
@@ -276,6 +291,7 @@ def test_var():
     ), "Result should be an identity matrix"
 
 
+@scipy_required
 def test_shape():
     cov = Covariance(array=mock_cov(), impose_triu=True)
     assert len(cov.data_shape) == 1, "Incorrect dimensionality"
@@ -294,6 +310,7 @@ def test_shape():
     assert cov.data_shape == raw_shape, "Bad data shape"
 
 
+@scipy_required
 def test_sub_matrix():
     c = mock_cov()
     cov = Covariance(array=c, impose_triu=True)
@@ -330,6 +347,7 @@ def test_sub_matrix():
     assert sub_cov.shape[0] == np.prod(sub_cov.raw_shape), "Shape mismatch"
 
 
+@scipy_required
 def test_correl():
     # Since the diagonal is 1, this is actually a correlation matrix
     c = mock_cov()
@@ -362,6 +380,7 @@ def test_correl():
     assert np.allclose(_cov2matrix, cov2.toarray())
 
 
+@scipy_required
 def test_newvar():
     c = mock_cov()
     cov1 = Covariance(array=c, impose_triu=True)
@@ -374,6 +393,7 @@ def test_newvar():
     ), "Correlation matrices do not match"
 
 
+@scipy_required
 def test_array():
     # Construct the Covariance matrix from a pre-calculated array
     c = mock_cov()
@@ -382,6 +402,7 @@ def test_array():
     assert np.array_equal(covar.toarray(), c), "Arrays should be identical"
 
 
+@scipy_required
 def test_io():
     # Clean up in case of a failure
     ofile = Path("test_covar_io.fits")
