@@ -818,8 +818,8 @@ class Hermite2D(OrthoPolynomialBase):
         if x.shape != y.shape:
             raise ValueError("x and y must have the same shape")
 
-        x = x.flatten()
-        y = y.flatten()
+        x = x.ravel()
+        y = y.ravel()
         x_deriv = self._hermderiv1d(x, self.x_degree + 1).T
         y_deriv = self._hermderiv1d(y, self.y_degree + 1).T
 
@@ -1239,9 +1239,9 @@ class Polynomial2D(PolynomialModel):
             The Vandermonde matrix
         """
         if x.ndim == 2:
-            x = x.flatten()
+            x = x.ravel()
         if y.ndim == 2:
-            y = y.flatten()
+            y = y.ravel()
         if x.size != y.size:
             raise ValueError("Expected x and y to be of equal size")
 
@@ -1474,8 +1474,8 @@ class Chebyshev2D(OrthoPolynomialBase):
         if x.shape != y.shape:
             raise ValueError("x and y must have the same shape")
 
-        x = x.flatten()
-        y = y.flatten()
+        x = x.ravel()
+        y = y.ravel()
         x_deriv = self._chebderiv1d(x, self.x_degree + 1).T
         y_deriv = self._chebderiv1d(y, self.y_degree + 1).T
 
@@ -1630,8 +1630,8 @@ class Legendre2D(OrthoPolynomialBase):
         """
         if x.shape != y.shape:
             raise ValueError("x and y must have the same shape")
-        x = x.flatten()
-        y = y.flatten()
+        x = x.ravel()
+        y = y.ravel()
         x_deriv = self._legendderiv1d(x, self.x_degree + 1).T
         y_deriv = self._legendderiv1d(y, self.y_degree + 1).T
 
