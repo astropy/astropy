@@ -270,6 +270,12 @@ def test_ogip_sqrt(string):
     assert u_format.OGIP.parse(string) == u.m ** Fraction(3, 2)
 
 
+@pytest.mark.parametrize("string", ["m(s)**2", "m(s)"])
+def test_ogip_invalid_multiplication(string):
+    with pytest.raises(ValueError):
+        u_format.OGIP.parse(string)
+
+
 class RoundtripBase:
     deprecated_units = set()
 
