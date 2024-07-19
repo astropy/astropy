@@ -270,9 +270,30 @@ def test_ogip_sqrt(string):
     assert u_format.OGIP.parse(string) == u.m ** Fraction(3, 2)
 
 
-@pytest.mark.parametrize("string", ["m(s)**2", "m(s)"])
-def test_ogip_invalid_multiplication(string):
-    with pytest.raises(ValueError):
+@pytest.mark.parametrize(
+    "string,message",
+    [
+        pytest.param(
+            "m(s)**2",
+            (
+                r"^if 'm\(s\)\*\*2' was meant to be a multiplication, "
+                r"it should have been written as 'm \(s\)\*\*2'.$"
+            ),
+            id="m(s)**2",
+        ),
+        pytest.param(
+            "m(s)",
+            (
+                r"^if 'm\(s\)' was meant to be a multiplication, "
+                r"it should have been written as 'm \(s\)'.$"
+            ),
+            id="m(s)",
+        ),
+    ],
+)
+def test_ogip_invalid_multiplication(string, message):
+    # Regression test for #16749
+    with pytest.raises(ValueError, match=message):
         u_format.OGIP.parse(string)
 
 
