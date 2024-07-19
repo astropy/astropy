@@ -208,13 +208,13 @@ We can now take a look at the parameter maps:
     >>> fig = plt.figure(figsize=(10, 5))
     >>> ax = fig.add_subplot(1, 3, 1)
     >>> ax.set_title('Amplitude')  # doctest: +IGNORE_OUTPUT
-    >>> ax.imshow(model_fit.amplitude.value, vmin=0, vmax=5, origin='lower')
+    >>> ax.imshow(model_fit.amplitude.value, vmin=0, vmax=5, origin='lower')  # doctest: +IGNORE_OUTPUT
     >>> ax = fig.add_subplot(1, 3, 2)
     >>> ax.set_title('Mean')  # doctest: +IGNORE_OUTPUT
-    >>> ax.imshow(model_fit.mean.value, vmin=2500, vmax=6000, origin='lower')
+    >>> ax.imshow(model_fit.mean.value, vmin=2500, vmax=6000, origin='lower')  # doctest: +IGNORE_OUTPUT
     >>> ax = fig.add_subplot(1, 3, 3)
     >>> ax.set_title('Standard deviation')  # doctest: +IGNORE_OUTPUT
-    >>> ax.imshow(model_fit.stddev.value, vmin=0, vmax=2000, origin='lower')
+    >>> ax.imshow(model_fit.stddev.value, vmin=0, vmax=2000, origin='lower')  # doctest: +IGNORE_OUTPUT
 
 There are a number of pixels that appear to have issues. Inspecting the
 histogram of means, we can see that a lot of values are not at all in
@@ -256,13 +256,13 @@ and we can visualize the results:
     >>> fig = plt.figure(figsize=(10, 5))
     >>> ax = fig.add_subplot(1, 3, 1)
     >>> ax.set_title('Amplitude')  # doctest: +IGNORE_OUTPUT
-    >>> ax.imshow(model_fit.amplitude.value, vmin=0, vmax=5, origin='lower')
+    >>> ax.imshow(model_fit.amplitude.value, vmin=0, vmax=5, origin='lower')  # doctest: +IGNORE_OUTPUT
     >>> ax = fig.add_subplot(1, 3, 2)
     >>> ax.set_title('Mean')  # doctest: +IGNORE_OUTPUT
-    >>> ax.imshow(model_fit.mean.value, vmin=2500, vmax=6000, origin='lower')
+    >>> ax.imshow(model_fit.mean.value, vmin=2500, vmax=6000, origin='lower')  # doctest: +IGNORE_OUTPUT
     >>> ax = fig.add_subplot(1, 3, 3)
     >>> ax.set_title('Standard deviation')  # doctest: +IGNORE_OUTPUT
-    >>> ax.imshow(model_fit.stddev.value, vmin=0, vmax=2000, origin='lower')
+    >>> ax.imshow(model_fit.stddev.value, vmin=0, vmax=2000, origin='lower')  # doctest: +IGNORE_OUTPUT
 
 The amplitude map no longer contains any problematic pixels.
 
