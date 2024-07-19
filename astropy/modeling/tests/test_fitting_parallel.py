@@ -336,6 +336,41 @@ def test_diagnostics(tmp_path):
     assert sorted(os.listdir(tmp_path / "diag4" / "0")) == ["error.log", "fit.png"]
 
 
+def test_diagnostics_missing_path():
+    data = gaussian(np.arange(20), 2, 10, 1)
+    model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
+    fitter = LevMarLSQFitter()
+
+    with pytest.raises(ValueError, match="diagnostics_path should be set"):
+        parallel_fit_dask(
+            data=data,
+            model=model,
+            fitter=fitter,
+            fitting_axes=0,
+            diagnostics="error",
+        )
+
+
+def test_diagnostics_invalid():
+    data = gaussian(np.arange(20), 2, 10, 1)
+    model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
+    fitter = LevMarLSQFitter()
+
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "diagnostics should be None, " "'error', 'error+warn', or 'all'"
+        ),
+    ):
+        parallel_fit_dask(
+            data=data,
+            model=model,
+            fitter=fitter,
+            fitting_axes=0,
+            diagnostics="spam",
+        )
+
+
 @pytest.mark.parametrize(
     "scheduler", ("synchronous", "processes", "threads", "default")
 )
@@ -519,7 +554,7 @@ def test_preserve_native_chunks():
     assert_allclose(model_fit.stddev.value, 1)
 
 
-def test_preserve_native_chunks_invalid():
+def test_preserve_native_chunks_invalid_data_chunks():
     data = gaussian(np.arange(20), 2, 10, 1)
     data = np.broadcast_to(data.reshape((20, 1)), (20, 3)).copy()
     data = da.from_array(data, chunks=(5, 2))
@@ -528,10 +563,38 @@ def test_preserve_native_chunks_invalid():
     fitter = LevMarLSQFitter()
 
     with pytest.raises(
-        ValueError, match=re.escape("When using preserve_native_chunks=True")
+        ValueError,
+        match=re.escape(
+            "When using preserve_native_chunks=True, the chunk size should match the data size along the fitting axe"
+        ),
     ):
         parallel_fit_dask(
             data=data,
+            model=model,
+            fitter=fitter,
+            fitting_axes=0,
+            preserve_native_chunks=True,
+        )
+
+
+def test_preserve_native_chunks_invalid_weight_chunks():
+    data = gaussian(np.arange(20), 2, 10, 1)
+    data = np.broadcast_to(data.reshape((20, 1)), (20, 3)).copy()
+    data = da.from_array(data, chunks=(20, 3))
+    weights = da.random.random(data.shape).rechunk((18, 2))
+
+    model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
+    fitter = LevMarLSQFitter()
+
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "When using preserve_native_chunks=True, the weights should have the same chunk size as the data"
+        ),
+    ):
+        parallel_fit_dask(
+            data=data,
+            weights=weights,
             model=model,
             fitter=fitter,
             fitting_axes=0,
@@ -690,7 +753,6 @@ def test_units_with_wcs_2d():
 
 
 def test_skip_empty_data(tmp_path):
-
     # Test when one of the datasets being fit is all NaN
 
     data = gaussian(
@@ -710,8 +772,8 @@ def test_skip_empty_data(tmp_path):
         model=model,
         fitter=fitter,
         fitting_axes=0,
-        diagnostics='error+warn',
-        diagnostics_path=tmp_path
+        diagnostics="error+warn",
+        diagnostics_path=tmp_path,
     )
 
     # If we don't properly skip empty data sections, then the fitting would fail
