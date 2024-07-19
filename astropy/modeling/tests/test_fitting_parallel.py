@@ -11,7 +11,7 @@ from dask import array as da
 from numpy.testing import assert_allclose
 
 from astropy import units as u
-from astropy.modeling.fitting import LevMarLSQFitter
+from astropy.modeling.fitting import LevMarLSQFitter, TRFLSQFitter
 from astropy.modeling.fitting_parallel import parallel_fit_dask
 from astropy.modeling.models import Const1D, Gaussian1D, Linear1D, Planar2D
 from astropy.tests.helper import assert_quantity_allclose
@@ -687,3 +687,37 @@ def test_units_with_wcs_2d():
     assert_allclose(model_fit.slope_x.quantity, slope_x)
     assert_allclose(model_fit.slope_y.quantity, slope_y)
     assert_allclose(model_fit.intercept.quantity, intercept)
+
+
+def test_skip_empty_data(tmp_path):
+
+    # Test when one of the datasets being fit is all NaN
+
+    data = gaussian(
+        np.arange(21)[:, None],
+        np.array([2, 1.8]),
+        np.array([5, 10]),
+        np.array([1, 1.1]),
+    )
+
+    data[:, 1] = np.nan
+
+    model = Gaussian1D(amplitude=1.5, mean=7, stddev=2)
+    fitter = TRFLSQFitter()
+
+    model_fit = parallel_fit_dask(
+        data=data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        diagnostics='error+warn',
+        diagnostics_path=tmp_path
+    )
+
+    # If we don't properly skip empty data sections, then the fitting would fail
+    # and populate the diagnostics directory.
+    assert len(sorted(tmp_path.iterdir())) == 0
+
+    assert_allclose(model_fit.amplitude.value, [2, np.nan])
+    assert_allclose(model_fit.mean.value, [5, np.nan])
+    assert_allclose(model_fit.stddev.value, [1.0, np.nan])
