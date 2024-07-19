@@ -1,9 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""This package contains functions for reading and writing QDP tables that are
+"""This package contains functions for reading and writing TDAT tables that are
 not meant to be used directly, but instead are available as readers/writers in
 `astropy.table`. See :ref:`astropy:table_io` for more details.
 
 :Author: Abdu Zoghbi
+         Daniel Giles (daniel.k.giles@gmail.com)
 """
 
 import itertools
@@ -16,7 +17,7 @@ import numpy as np
 
 from astropy.utils.exceptions import AstropyWarning
 
-from . import core
+from . import basic, core
 
 _STD_MSG = "See details in https://heasarc.gsfc.nasa.gov/docs/software/dbdocs/tdat.html"
 
@@ -66,7 +67,13 @@ class TdatMeta:
     _required_keywords = ("table_name",)
 
     def _process_lines(self, lines, ltype):
-        """Process the lines to separate header|data|comment"""
+        """Generator to process lines to separate header|data|comment
+
+        Yields
+        ------
+        str
+            String value of a line which matches the criteria
+        """
         is_header = False
         is_data = False
         comment_parser = re.compile(self._comment)
@@ -98,19 +105,18 @@ class TdatMeta:
                 # we don't want <header> itself
                 continue
 
-            if "<data>" in line.lower():
+            elif "<data>" in line.lower():
                 is_header = False
                 is_data = True
                 continue
 
-            if "<end>" in line.lower():
-                is_data = False
-                continue
+            elif "<end>" in line.lower():
+                break
 
             if ltype == "header" and is_header and cmatch is None:
                 yield line
 
-            if ltype == "data" and is_data and cmatch is None:
+            elif ltype == "data" and is_data and cmatch is None:
                 yield line
 
     def _parse_header(self, lines):
@@ -147,12 +153,6 @@ class TdatMeta:
                     self._delimiter = dmatch.group(2)
             elif kmatch:
                 key = kmatch.group("key")
-                # if key in self._deprecated_keywords:
-                #     warn(
-                #         f'"{key}" keyword is obsolete and will be ignored. {_STD_MSG}',
-                #         TdatFormatWarning,
-                #     )
-                # else:
                 keywords[kmatch.group("key")] = kmatch.group("value")
             elif ematch:
                 # match extra keywords
@@ -162,7 +162,7 @@ class TdatMeta:
                         TdatFormatWarning,
                     )
                     continue
-                if ematch.group(1) == "line":
+                elif ematch.group(1) == "line":
                     # fields in line; typically only 1, but can be more
                     line_fields[ematch.group(2)] = ematch.group(3).split()
 
@@ -195,16 +195,13 @@ class TdatMeta:
         self._keywords = keywords
 
 
-class TdatHeader(core.BaseHeader, TdatMeta):
-    """Header Reader for TDAT format"""
-
-    start_line = 0
-    write_comment = "#"
+class TdatHeader(basic.BasicHeader, TdatMeta):
+    """TDAT table header"""
     cols = None
 
     def update_meta(self, lines, meta):
         """Extract meta information: comments and key/values in the header
-        READ: Override the default update_meta
+        READ: Overrides the default update_meta
         """
         self._parse_header(lines)
         meta["table"]["comments"] = self._comments
@@ -283,7 +280,7 @@ class TdatHeader(core.BaseHeader, TdatMeta):
         lines.append("<HEADER>")
         if self.write_comment not in (False, None):
             for comment in meta.get("comments", []):
-                lines.append(self.write_comment + comment)
+                lines.append(self.write_comment + comment.lstrip())
 
     def write(self, lines):
         """Write the Table out to a TDAT formatted file.
@@ -515,14 +512,14 @@ class TdatDataSplitter(core.BaseSplitter):
     delimiter = "|"
 
     def preprocess_data_lines(self, lines, record_delimiter):
-        """Handle the case of a record delimiter.
+        """Handle the case of a record delimiter. (deprecated)
 
-        The record_delimiter (deprecated) can be specified in the header. By
+        The record_delimiter can be specified in the header. By
         default there is no record delimiter and new records should be set on
         new lines.
         The following list standard escaped character sequences and their
-        equivalent meanings can be used: \t (tab), \b (backspace), \r (carriage
-        return), \f (form feed), \v (vertical tab), \a (audible alert/bell),
+        equivalent meanings can be used: \\t (tab), \\b (backspace), \\r (carriage
+        return), \\f (form feed), \\v (vertical tab), \\a (audible alert/bell),
         and \\### (where ### is a number between 1 and 127 and represents the
         ASCII character with that numerical code). Note: Specifying a record
         delimiter value of "" is interpreted as a single blank line between
@@ -543,17 +540,17 @@ class TdatDataSplitter(core.BaseSplitter):
         return data_lines
 
     def __call__(self, lines, field_delimiter="|", record_delimiter=None, nlines=1):
-        """Handle the case of multiple delimiter.
+        """Handle the case of multiple delimiters and multiline records. (deprecated)
 
-        The delimiter is specified in the header, and can have multiple values
-        e.g. field_delimiter = "|!"
+        The delimiter is specified in the header, and can potentially have
+        multiple values, e.g. field_delimiter = "|!" would treat both | and !
+        as individual delimiters.
 
         nlines gives the number of lines to read at once to give one data row.
-
         """
         if record_delimiter is not None:
             lines = self.preprocess_data_lines(lines, record_delimiter)
-        if self.process_line:
+        if hasattr(self, "process_line"):
             lines = (self.process_line(x) for x in lines)
 
         iline = 0
@@ -564,17 +561,17 @@ class TdatDataSplitter(core.BaseSplitter):
             if iline == nlines:
                 vals = [
                     val
-                    for line in _lines
-                    for val in re.split(rf"[{field_delimiter}]", line)[:-1]
+                    for _line in _lines
+                    for val in re.split(rf"[{field_delimiter}]", _line)[:-1]
                 ]
                 iline = 0
                 _lines = []
+                if hasattr(self, "process_val"):
+                    yield [self.process_val(x) for x in vals]
+                else:
+                    yield vals
             else:
                 continue
-            if self.process_val:
-                yield [self.process_val(x) for x in vals]
-            else:
-                yield vals
 
 
 class TdatData(core.BaseData, TdatMeta):
