@@ -33,6 +33,24 @@ interested in accessing the file, you can find it at
 :download:`l1448_13co.fits <http://www.astropy.org/astropy-data/l1448/l1448_13co.fits>`,
 but the code below will automatically download it).
 
+.. The following block is to make sure 'data' and 'wcs' are defined if we are not running with --remote-data
+
+.. plot::
+   :context: close-figs
+   :nofigs:
+
+    >>> import numpy as np
+    >>> from astropy.wcs import WCS
+    >>> wcs = WCS(naxis=3)
+    >>> wcs.wcs.ctype =  ['RA---SFL', 'DEC--SFL', 'VOPT']
+    >>> wcs.wcs.crval = [57.66, 0., -9959.44378305]
+    >>> wcs.wcs.crpix =  [-799.0, -4741.913, -187.0]
+    >>> wcs.wcs.cdelt = [-0.006388889, 0.006388889, 66.42361]
+    >>> wcs.wcs.cunit = ['deg', 'deg', 'm s-1']
+    >>> wcs._naxis = [105, 105, 53]
+    >>> wcs.wcs.set()
+    >>> data = np.broadcast_to(np.exp(-(np.arange(53) - 25)**2 / 6 ** 2).reshape((53, 1, 1)), (53, 105, 105))
+
 We start by downloading the cube and extracting the data and WCS:
 
 .. plot::
@@ -44,10 +62,10 @@ We start by downloading the cube and extracting the data and WCS:
     >>> from astropy.io import fits
     >>> from astropy.utils.data import get_pkg_data_filename
 
-    >>> filename = get_pkg_data_filename('l1448/l1448_13co.fits')
+    >>> filename = get_pkg_data_filename('l1448/l1448_13co.fits')  # doctest: +REMOTE_DATA
     >>> with fits.open(filename) as hdulist:
     ...     data = hdulist[0].data
-    ...     wcs = WCS(hdulist[0].header)
+    ...     wcs = WCS(hdulist[0].header)  # doctest: +REMOTE_DATA
 
 We extract a sub-cube spatially for the purpose of demonstration:
 
@@ -156,7 +174,7 @@ to fit all spectra in the cube:
     ...                               world=wcs,
     ...                               fitting_axes=0,
     ...                               data_unit=u.one,
-    ...                               scheduler='synchronous')  # doctest: +SKIP
+    ...                               scheduler='synchronous')
 
 The arguments in this case are as follows:
 
@@ -209,8 +227,8 @@ the spectral range we are fitting:
 
     >>> _ = plt.hist(model_fit.mean.value.ravel(), bins=100)
     >>> plt.yscale('log')
-    >>> plt.xlabel('mean')
-    >>> plt.ylabel('number')
+    >>> plt.xlabel('mean')  # doctest: +IGNORE_OUTPUT
+    >>> plt.ylabel('number')  # doctest: +IGNORE_OUTPUT
 
 We can set the bounds on the mean and try the fit again
 
@@ -226,7 +244,7 @@ We can set the bounds on the mean and try the fit again
     ...                               world=wcs,
     ...                               fitting_axes=0,
     ...                               data_unit=u.one,
-    ...                               scheduler='synchronous')  # doctest: +SKIP
+    ...                               scheduler='synchronous')
 
 and we can visualize the results:
 
@@ -237,13 +255,13 @@ and we can visualize the results:
 
     >>> fig = plt.figure(figsize=(10, 5))
     >>> ax = fig.add_subplot(1, 3, 1)
-    >>> ax.set_title('Amplitude')
+    >>> ax.set_title('Amplitude')  # doctest: +IGNORE_OUTPUT
     >>> ax.imshow(model_fit.amplitude.value, vmin=0, vmax=5, origin='lower')
     >>> ax = fig.add_subplot(1, 3, 2)
-    >>> ax.set_title('Mean')
+    >>> ax.set_title('Mean')  # doctest: +IGNORE_OUTPUT
     >>> ax.imshow(model_fit.mean.value, vmin=2500, vmax=6000, origin='lower')
     >>> ax = fig.add_subplot(1, 3, 3)
-    >>> ax.set_title('Standard deviation')
+    >>> ax.set_title('Standard deviation')  # doctest: +IGNORE_OUTPUT
     >>> ax.imshow(model_fit.stddev.value, vmin=0, vmax=2000, origin='lower')
 
 The amplitude map no longer contains any problematic pixels.
