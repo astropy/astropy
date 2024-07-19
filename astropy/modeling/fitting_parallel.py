@@ -30,6 +30,7 @@ def _wcs_to_world_dask(wcs, data):
     representing the world coordinates of the array.
     """
     import dask.array as da
+
     pixel = tuple([np.arange(size) for size in data.shape])
     pixel_nd = da.meshgrid(*pixel, indexing="ij")
     world = da.map_blocks(
@@ -322,7 +323,6 @@ def parallel_fit_dask(
         If `True`, the native data chunks will be used, although an error will
         be raised if this chunk size does not include the whole fitting axes.
     """
-
     try:
         import dask
         import dask.array as da
@@ -362,7 +362,7 @@ def parallel_fit_dask(
             raise TypeError(
                 "Can only set preserve_native_chunks=True if input data is a dask array"
             )
-        if weights and not isinstance(weights, da.core.Array):
+        if weights is not None and not isinstance(weights, da.core.Array):
             raise TypeError(
                 "Can only set preserve_native_chunks=True if input weights is a dask array (if specified)"
             )

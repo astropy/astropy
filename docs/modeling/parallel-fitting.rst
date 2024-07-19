@@ -312,7 +312,7 @@ to choose whether to output information about:
 * Fits with errors or warnings (``diagnostics='error+warn'``), or
 * All fits (``diagnostics='all'``).
 
-If the ``diagnositcs`` option is specified, you will also need to specify
+If the ``diagnostics`` option is specified, you will also need to specify
 ``diagnostics_path``, which should be the path to a folder that will contain all
 the output. Each fit that needs to be output will be assigned a sub-folder named
 after the indices along the axes of the data (excluding the fitting axes). The
