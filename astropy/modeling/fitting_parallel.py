@@ -4,9 +4,7 @@ import warnings
 from copy import deepcopy
 from math import ceil, log10, prod
 
-import dask
 import numpy as np
-from dask import array as da
 
 import astropy.units as u
 from astropy.modeling.utils import _combine_equivalency_dict
@@ -31,6 +29,7 @@ def _wcs_to_world_dask(wcs, data):
     Given a WCS and a data shape, return an iterable of dask arrays
     representing the world coordinates of the array.
     """
+    import dask.array as da
     pixel = tuple([np.arange(size) for size in data.shape])
     pixel_nd = da.meshgrid(*pixel, indexing="ij")
     world = da.map_blocks(
@@ -323,6 +322,13 @@ def parallel_fit_dask(
         If `True`, the native data chunks will be used, although an error will
         be raised if this chunk size does not include the whole fitting axes.
     """
+
+    try:
+        import dask
+        import dask.array as da
+    except ImportError:
+        raise ImportError("dask is required for this function")
+
     if scheduler is None:
         scheduler = "processes"
 
