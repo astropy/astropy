@@ -1,0 +1,1 @@
+The ``units.quantity_input`` decorator has been optimized, especially in the case that no equivalencies are provided to the decorator, and the speed-up is very noticeable when wrapping short functions.
