@@ -1,0 +1,4 @@
+The OGIP unit parser no longer accepts strings where a component unit is
+followed by a parenthesized unit without a separator in between, such as
+``'m(s)'`` or ``'m(s)**2'``.
+Such strings are not allowed by the OGIP standard.
