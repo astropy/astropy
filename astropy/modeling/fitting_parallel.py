@@ -164,7 +164,7 @@ def _fit_models_to_chunk(
                 all_warnings.extend(w)
         except Exception as exc:
             model_fit = None
-            if diagnostics == "error":
+            if diagnostics.startswith("error"):
                 output = True
             error = traceback.format_exc()
             for ipar, name in enumerate(model_i.param_names):
