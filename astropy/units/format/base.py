@@ -24,6 +24,7 @@ class Base:
     registry: ClassVar[dict[str, type[Base]]] = {}
     _space: ClassVar[str] = " "
     _scale_unit_separator: ClassVar[str] = " "
+    _times: ClassVar[str] = "*"
     name: ClassVar[str]  # Set by __init_subclass__ by the latest
 
     def __new__(cls, *args, **kwargs):
@@ -43,7 +44,7 @@ class Base:
 
     @classmethod
     def format_exponential_notation(
-        cls, val: float | np.number, format_spec: str = "g"
+        cls, val: float | np.number, format_spec: str = ".8g"
     ) -> str:
         """
         Formats a value in exponential notation.
@@ -61,7 +62,21 @@ class Base:
         str
             The value in exponential notation in a this class's format.
         """
-        return format(val, format_spec)
+        x = format(val, format_spec).split("e")
+        if len(x) != 2:
+            return cls._format_mantissa(x[0])  # no exponent
+        ex = x[1].lstrip("0+")
+        if not ex:
+            return cls._format_mantissa(x[0])  # exponent was zero
+        if ex.startswith("-"):
+            ex = "-" + ex[1:].lstrip("0")
+        ex = f"10{cls._format_superscript(ex)}"
+        m = cls._format_mantissa("" if x[0].rstrip("0") == "1." else x[0])
+        return f"{m}{cls._times}{ex}" if m else ex
+
+    @classmethod
+    def _format_mantissa(cls, m: str) -> str:
+        return m
 
     @classmethod
     def _format_superscript(cls, number: str) -> str:
