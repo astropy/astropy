@@ -27,8 +27,6 @@ from .base import Base
 if TYPE_CHECKING:
     from typing import ClassVar, Literal
 
-    import numpy as np
-
     from astropy.extern.ply.lex import Lexer, LexToken
     from astropy.units import UnitBase
     from astropy.utils.parsing import ThreadSafeParser
@@ -310,22 +308,12 @@ class CDS(Base):
                     raise ValueError("Syntax error")
 
     @classmethod
-    def format_exponential_notation(
-        cls, val: float | np.number, format_spec: str = ".8g"
-    ) -> str:
-        m, ex = utils.split_mantissa_exponent(val)
-        parts = []
-        if m not in ("", "1"):
-            parts.append(m)
-        if ex:
-            if not ex.startswith("-"):
-                ex = "+" + ex
-            parts.append(f"10{cls._format_superscript(ex)}")
-        return cls._times.join(parts)
+    def _format_mantissa(cls, m: str) -> str:
+        return "" if m == "1" else m
 
     @classmethod
     def _format_superscript(cls, number: str) -> str:
-        return number
+        return number if number.startswith("-") else "+" + number
 
     @classmethod
     def to_string(

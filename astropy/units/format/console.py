@@ -8,12 +8,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from . import base, utils
+from . import base
 
 if TYPE_CHECKING:
     from typing import ClassVar, Literal
-
-    import numpy as np
 
     from astropy.units import UnitBase
 
@@ -36,32 +34,12 @@ class Console(base.Base):
       2.1798721*10^-18 m^2 kg / s^2
     """
 
-    _times: ClassVar[str] = "*"
     _line: ClassVar[str] = "-"
     _space: ClassVar[str] = " "
 
     @classmethod
-    def _format_mantissa(cls, m: str) -> str:
-        return m
-
-    @classmethod
     def _format_superscript(cls, number: str) -> str:
         return f"^{number}"
-
-    @classmethod
-    def format_exponential_notation(
-        cls, val: float | np.number, format_spec: str = ".8g"
-    ) -> str:
-        m, ex = utils.split_mantissa_exponent(val, format_spec)
-
-        parts = []
-        if m:
-            parts.append(cls._format_mantissa(m))
-
-        if ex:
-            parts.append(f"10{cls._format_superscript(ex)}")
-
-        return cls._times.join(parts)
 
     @classmethod
     def _format_fraction(
