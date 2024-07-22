@@ -14,11 +14,13 @@ from astropy.time import Time
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.masked import MaskableShapedLikeNDArray
 
 from .angles import Angle
 from .baseframe import (
     BaseCoordinateFrame,
     CoordinateFrameInfo,
+    CoordinateSharedMethods,
     GenericFrame,
     frame_transform_graph,
 )
@@ -50,7 +52,7 @@ class SkyCoordInfo(CoordinateFrameInfo):
         return out
 
 
-class SkyCoord(ShapedLikeNDArray):
+class SkyCoord(CoordinateSharedMethods, MaskableShapedLikeNDArray):
     """High-level object providing a flexible interface for celestial coordinate
     representation, manipulation, and transformation between systems.
 
@@ -369,6 +371,11 @@ class SkyCoord(ShapedLikeNDArray):
 
           self.frame.data[item] = value.frame.data
         """
+        if value is np.ma.masked or value is np.ma.nomask:
+            self.data.__setitem__(item, value)
+            self.cache.clear()
+            return
+
         if self.__class__ is not value.__class__:
             raise TypeError(
                 "can only set from object of same class: "
