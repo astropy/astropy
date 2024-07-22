@@ -174,79 +174,209 @@ def test_2d_model_fit_axes(
     )
 
 
-def test_no_world():
-    # This also doubles as a test when there are no iterating dimensions
-    data = gaussian(np.arange(20), 2, 10, 1)
-    model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
-    fitter = LevMarLSQFitter()
-    model_fit = parallel_fit_dask(
-        data=data,
-        model=model,
-        fitter=fitter,
-        fitting_axes=0,
-        scheduler="synchronous",
-    )
-    assert_allclose(model_fit.amplitude.value, 2)
-    assert_allclose(model_fit.mean.value, 10)
-    assert_allclose(model_fit.stddev.value, 1)
+class TestWorld:
+    def test_no_world(self):
+        # This also doubles as a test when there are no iterating dimensions
+        data = gaussian(np.arange(20), 2, 10, 1)
+        model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
+        fitter = LevMarLSQFitter()
+        model_fit = parallel_fit_dask(
+            data=data,
+            model=model,
+            fitter=fitter,
+            fitting_axes=0,
+            scheduler="synchronous",
+        )
+        assert_allclose(model_fit.amplitude.value, 2)
+        assert_allclose(model_fit.mean.value, 10)
+        assert_allclose(model_fit.stddev.value, 1)
 
+    def test_wcs_1d(self):
+        # Test specifying world as a WCS, for the 1D model case
 
-def test_wcs_world_1d():
-    # Test specifying world as a WCS, for the 1D model case
+        data = gaussian(
+            np.arange(20)[:, None],
+            np.array([2, 1.8]),
+            np.array([10, 11]),
+            np.array([1, 1.1]),
+        )
+        model = Gaussian1D(amplitude=1.5, mean=1.2, stddev=0.15)
+        fitter = LevMarLSQFitter()
 
-    data = gaussian(
-        np.arange(20)[:, None],
-        np.array([2, 1.8]),
-        np.array([10, 11]),
-        np.array([1, 1.1]),
-    )
-    model = Gaussian1D(amplitude=1.5, mean=1.2, stddev=0.15)
-    fitter = LevMarLSQFitter()
+        wcs = WCS(naxis=2)
+        wcs.wcs.ctype = "OFFSET", "WAVE"
+        wcs.wcs.crval = 10, 0.1
+        wcs.wcs.crpix = 1, 1
+        wcs.wcs.cdelt = 10, 0.1
 
-    wcs = WCS(naxis=2)
-    wcs.wcs.ctype = "OFFSET", "WAVE"
-    wcs.wcs.crval = 10, 0.1
-    wcs.wcs.crpix = 1, 1
-    wcs.wcs.cdelt = 10, 0.1
+        model_fit = parallel_fit_dask(
+            data=data,
+            model=model,
+            fitter=fitter,
+            fitting_axes=0,
+            world=wcs,
+            scheduler="synchronous",
+        )
+        assert_allclose(model_fit.amplitude.value, [2, 1.8])
+        assert_allclose(model_fit.mean.value, [1.1, 1.2])
+        assert_allclose(model_fit.stddev.value, [0.1, 0.11])
 
-    model_fit = parallel_fit_dask(
-        data=data,
-        model=model,
-        fitter=fitter,
-        fitting_axes=0,
-        world=wcs,
-        scheduler="synchronous",
-    )
-    assert_allclose(model_fit.amplitude.value, [2, 1.8])
-    assert_allclose(model_fit.mean.value, [1.1, 1.2])
-    assert_allclose(model_fit.stddev.value, [0.1, 0.11])
+    def test_wcs_pixel_dimension_mismatch(self):
+        data = np.empty((20, 10))
+        model = Gaussian1D(amplitude=1.5, mean=1.2, stddev=0.15)
+        fitter = LevMarLSQFitter()
 
+        wcs = WCS(naxis=3)
 
-def test_world_array():
-    # Test specifying world as a tuple of arrays with dimensions matching the data
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "The WCS pixel_n_dim (3) does not match the number of "
+                "dimensions in the data (2)"
+            ),
+        ):
+            parallel_fit_dask(
+                data=data,
+                model=model,
+                fitter=fitter,
+                fitting_axes=0,
+                world=wcs,
+                scheduler="synchronous",
+            )
 
-    data = gaussian(
-        np.arange(21)[:, None],
-        np.array([2, 1.8]),
-        np.array([10, 10]),
-        np.array([1, 1.1]),
-    )
-    model = Gaussian1D(amplitude=1.5, mean=7, stddev=2)
-    fitter = LevMarLSQFitter()
+    def test_wcs_world_dimension_mismatch(self):
+        data = np.empty((20, 10))
+        model = Gaussian1D(amplitude=1.5, mean=1.2, stddev=0.15)
+        fitter = LevMarLSQFitter()
 
-    world1 = np.array([np.linspace(0, 10, 21), np.linspace(5, 15, 21)]).T
+        wcs = WCS(naxis=2)
+        wcs.wcs.ctype = "RA---TAN", "DEC--TAN"
+        wcs.wcs.crval = 10.0, 20.0
+        wcs.wcs.crpix = 1, 1
+        wcs.wcs.cdelt = 0.01, 0.01
 
-    model_fit = parallel_fit_dask(
-        data=data,
-        model=model,
-        fitter=fitter,
-        fitting_axes=0,
-        world=(world1,),
-        scheduler="synchronous",
-    )
-    assert_allclose(model_fit.amplitude.value, [2, 1.8])
-    assert_allclose(model_fit.mean.value, [5, 10])
-    assert_allclose(model_fit.stddev.value, [0.5, 0.55])
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "The number of WCS world axes corresponding to the fitting axes "
+                "(2) does not match the number of fitting axes (1)"
+            ),
+        ):
+            parallel_fit_dask(
+                data=data,
+                model=model,
+                fitter=fitter,
+                fitting_axes=0,
+                world=wcs,
+                scheduler="synchronous",
+            )
+
+    def test_array(self):
+        # Test specifying world as a tuple of arrays with dimensions matching the data
+
+        data = gaussian(
+            np.arange(21)[:, None],
+            np.array([2, 1.8]),
+            np.array([10, 10]),
+            np.array([1, 1.1]),
+        )
+        model = Gaussian1D(amplitude=1.5, mean=7, stddev=2)
+        fitter = LevMarLSQFitter()
+
+        world1 = np.array([np.linspace(0, 10, 21), np.linspace(5, 15, 21)]).T
+
+        model_fit = parallel_fit_dask(
+            data=data,
+            model=model,
+            fitter=fitter,
+            fitting_axes=0,
+            world=(world1,),
+            scheduler="synchronous",
+        )
+        assert_allclose(model_fit.amplitude.value, [2, 1.8])
+        assert_allclose(model_fit.mean.value, [5, 10])
+        assert_allclose(model_fit.stddev.value, [0.5, 0.55])
+
+    def test_array_length_mismatch(self):
+        data = np.empty((20, 2))
+        model = Gaussian1D(amplitude=1.5, mean=7, stddev=2)
+        fitter = LevMarLSQFitter()
+
+        world1 = np.array([np.linspace(0, 10, 21), np.linspace(5, 15, 21)]).T
+
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "The number of world arrays (2) must match number of fitting axes (1)"
+            ),
+        ):
+            parallel_fit_dask(
+                data=data,
+                model=model,
+                fitter=fitter,
+                fitting_axes=0,
+                world=(world1, world1),
+            )
+
+    def test_array_shape_mismatch(self):
+        data = np.empty((20, 2))
+        model = Gaussian1D(amplitude=1.5, mean=7, stddev=2)
+        fitter = LevMarLSQFitter()
+
+        world1 = np.array([np.linspace(0, 10, 31), np.linspace(5, 15, 31)]).T
+
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "The arrays in the world tuple should be broadcastable to the "
+                "shape of the data (expected (20, 2)), got (31, 2))"
+            ),
+        ):
+            parallel_fit_dask(
+                data=data,
+                model=model,
+                fitter=fitter,
+                fitting_axes=0,
+                world=(world1,),
+            )
+
+    def test_array_dimension_mismatch(self):
+        model = Planar2D()
+        data = np.empty((20, 10, 5))
+        fitter = LevMarLSQFitter()
+
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "world[2] has length 6 but data along dimension 2 has length 5"
+            ),
+        ):
+            parallel_fit_dask(
+                data=data,
+                model=model,
+                fitter=fitter,
+                fitting_axes=(1, 2),
+                world=(np.arange(10), np.arange(6)),
+            )
+
+    def test_invalid_type(self):
+        data = np.empty((20, 2))
+        model = Gaussian1D(amplitude=1.5, mean=7, stddev=2)
+        fitter = LevMarLSQFitter()
+
+        world1 = np.array([np.linspace(0, 10, 21), np.linspace(5, 15, 21)]).T
+
+        with pytest.raises(
+            TypeError,
+            match=re.escape("world should be None, a WCS object or a tuple of arrays"),
+        ):
+            parallel_fit_dask(
+                data=data,
+                model=model,
+                fitter=fitter,
+                fitting_axes=0,
+                world="banana",
+            )
 
 
 def test_fitter_kwargs(tmp_path):
@@ -552,26 +682,6 @@ def test_data_dimension_mismatch():
         )
 
 
-def test_world_dimension_mismatch():
-    model = Planar2D()
-    data = np.empty((20, 10, 5))
-    fitter = LevMarLSQFitter()
-
-    with pytest.raises(
-        ValueError,
-        match=re.escape(
-            "world[2] has length 6 but data along dimension 2 has length 5"
-        ),
-    ):
-        parallel_fit_dask(
-            data=data,
-            model=model,
-            fitter=fitter,
-            fitting_axes=(1, 2),
-            world=(np.arange(10), np.arange(6)),
-        )
-
-
 class TestDaskInput:
     # Check that things work correctly when passing dask arrays as input.
 
@@ -714,128 +824,126 @@ def test_weights():
     assert_allclose(model_fit.stddev.value, [1.0, 1.1])
 
 
-def test_units():
-    # Make sure that fitting with units works
+class TestUnits:
+    def test_basic(self):
+        # Make sure that fitting with units works
 
-    data = (
-        gaussian(
-            np.arange(21)[:, None],
-            np.array([2, 1.8]),
-            np.array([5, 10]),
-            np.array([1, 1.1]),
+        data = (
+            gaussian(
+                np.arange(21)[:, None],
+                np.array([2, 1.8]),
+                np.array([5, 10]),
+                np.array([1, 1.1]),
+            )
+            * u.Jy
         )
-        * u.Jy
-    )
 
-    model = Gaussian1D(amplitude=1.5 * u.Jy, mean=7 * u.um, stddev=0.002 * u.mm)
-    fitter = LevMarLSQFitter()
+        model = Gaussian1D(amplitude=1.5 * u.Jy, mean=7 * u.um, stddev=0.002 * u.mm)
+        fitter = LevMarLSQFitter()
 
-    model_fit = parallel_fit_dask(
-        data=data,
-        model=model,
-        fitter=fitter,
-        fitting_axes=0,
-        world=(1000 * np.arange(21) * u.nm,),
-        scheduler="synchronous",
-    )
+        model_fit = parallel_fit_dask(
+            data=data,
+            model=model,
+            fitter=fitter,
+            fitting_axes=0,
+            world=(1000 * np.arange(21) * u.nm,),
+            scheduler="synchronous",
+        )
 
-    assert_quantity_allclose(model_fit.amplitude.quantity, [2, 1.8] * u.Jy)
-    assert_quantity_allclose(model_fit.mean.quantity, [5, 10] * u.um)
-    assert_quantity_allclose(model_fit.stddev.quantity, [1.0, 1.1] * u.um)
+        assert_quantity_allclose(model_fit.amplitude.quantity, [2, 1.8] * u.Jy)
+        assert_quantity_allclose(model_fit.mean.quantity, [5, 10] * u.um)
+        assert_quantity_allclose(model_fit.stddev.quantity, [1.0, 1.1] * u.um)
 
+    def test_units_no_input_units(self):
+        # Make sure that fitting with units works for models without input_units defined
 
-def test_units_no_input_units():
-    # Make sure that fitting with units works for models without input_units defined
+        data = (np.repeat(3, 20)).reshape((20, 1)) * u.Jy
 
-    data = (np.repeat(3, 20)).reshape((20, 1)) * u.Jy
+        model = Const1D(1 * u.mJy)
+        fitter = LevMarLSQFitter()
 
-    model = Const1D(1 * u.mJy)
-    fitter = LevMarLSQFitter()
+        assert not model.input_units
 
-    assert not model.input_units
+        model_fit = parallel_fit_dask(
+            data=data,
+            model=model,
+            fitter=fitter,
+            fitting_axes=0,
+            world=(1000 * np.arange(20) * u.nm,),
+            scheduler="synchronous",
+        )
 
-    model_fit = parallel_fit_dask(
-        data=data,
-        model=model,
-        fitter=fitter,
-        fitting_axes=0,
-        world=(1000 * np.arange(20) * u.nm,),
-        scheduler="synchronous",
-    )
+        assert_quantity_allclose(model_fit.amplitude.quantity, 3 * u.Jy)
 
-    assert_quantity_allclose(model_fit.amplitude.quantity, 3 * u.Jy)
+    def test_units_with_wcs(self):
+        data = gaussian(np.arange(20), 2, 10, 1).reshape((20, 1)) * u.Jy
+        model = Gaussian1D(amplitude=1.5 * u.Jy, mean=7 * u.um, stddev=0.002 * u.mm)
+        fitter = LevMarLSQFitter()
 
+        wcs = WCS(naxis=2)
+        wcs.wcs.ctype = "OFFSET", "WAVE"
+        wcs.wcs.crval = 10, 0.1
+        wcs.wcs.crpix = 1, 1
+        wcs.wcs.cdelt = 10, 0.1
+        wcs.wcs.cunit = "deg", "um"
 
-def test_units_with_wcs():
-    data = gaussian(np.arange(20), 2, 10, 1).reshape((20, 1)) * u.Jy
-    model = Gaussian1D(amplitude=1.5 * u.Jy, mean=7 * u.um, stddev=0.002 * u.mm)
-    fitter = LevMarLSQFitter()
+        model_fit = parallel_fit_dask(
+            data=data,
+            model=model,
+            fitter=fitter,
+            fitting_axes=0,
+            world=wcs,
+            scheduler="synchronous",
+        )
+        assert_allclose(model_fit.amplitude.quantity, 2 * u.Jy)
+        assert_allclose(model_fit.mean.quantity, 1.1 * u.um)
+        assert_allclose(model_fit.stddev.quantity, 0.1 * u.um)
 
-    wcs = WCS(naxis=2)
-    wcs.wcs.ctype = "OFFSET", "WAVE"
-    wcs.wcs.crval = 10, 0.1
-    wcs.wcs.crpix = 1, 1
-    wcs.wcs.cdelt = 10, 0.1
-    wcs.wcs.cunit = "deg", "um"
+    def test_units_with_wcs_2d(self):
+        # Fit a 2D model with mixed units to a dataset
 
-    model_fit = parallel_fit_dask(
-        data=data,
-        model=model,
-        fitter=fitter,
-        fitting_axes=0,
-        world=wcs,
-        scheduler="synchronous",
-    )
-    assert_allclose(model_fit.amplitude.quantity, 2 * u.Jy)
-    assert_allclose(model_fit.mean.quantity, 1.1 * u.um)
-    assert_allclose(model_fit.stddev.quantity, 0.1 * u.um)
+        N = 3
+        P = 20
+        Q = 10
 
+        wcs = WCS(naxis=3)
+        wcs.wcs.ctype = "OFFSET", "WEIGHTS", "WAVE"
+        wcs.wcs.crval = 10, 0.1, 0.2
+        wcs.wcs.crpix = 1, 1, 1
+        wcs.wcs.cdelt = 10, 0.1, 0.2
+        wcs.wcs.cunit = "deg", "kg", "mm"
 
-def test_units_with_wcs_2d():
-    # Fit a 2D model with mixed units to a dataset
+        rng = np.random.default_rng(12345)
 
-    N = 3
-    P = 20
-    Q = 10
+        x = wcs.pixel_to_world(0, 0, np.arange(P))[2]
+        y = wcs.pixel_to_world(0, np.arange(Q), 0)[1]
 
-    wcs = WCS(naxis=3)
-    wcs.wcs.ctype = "OFFSET", "WEIGHTS", "WAVE"
-    wcs.wcs.crval = 10, 0.1, 0.2
-    wcs.wcs.crpix = 1, 1, 1
-    wcs.wcs.cdelt = 10, 0.1, 0.2
-    wcs.wcs.cunit = "deg", "kg", "mm"
+        slope_x = [1, 3, 2] * u.Jy / u.mm
+        slope_y = [-1, 2, 3] * u.Jy / u.kg
+        intercept = [5, 6, 7] * u.Jy
 
-    rng = np.random.default_rng(12345)
+        data = slope_x * x[:, None, None] + slope_y * y[None, :, None] + intercept
 
-    x = wcs.pixel_to_world(0, 0, np.arange(P))[2]
-    y = wcs.pixel_to_world(0, np.arange(Q), 0)[1]
+        # At this point, the data has shape (P, Q, N)
 
-    slope_x = [1, 3, 2] * u.Jy / u.mm
-    slope_y = [-1, 2, 3] * u.Jy / u.kg
-    intercept = [5, 6, 7] * u.Jy
+        model = Planar2D(
+            slope_x=slope_x * rng.uniform(0.9, 1.1, N),
+            slope_y=slope_y * rng.uniform(0.9, 1.1, N),
+            intercept=intercept * rng.uniform(0.9, 1.1, N),
+        )
+        fitter = LevMarLSQFitter()
 
-    data = slope_x * x[:, None, None] + slope_y * y[None, :, None] + intercept
-
-    # At this point, the data has shape (P, Q, N)
-
-    model = Planar2D(
-        slope_x=slope_x * rng.uniform(0.9, 1.1, N),
-        slope_y=slope_y * rng.uniform(0.9, 1.1, N),
-        intercept=intercept * rng.uniform(0.9, 1.1, N),
-    )
-    fitter = LevMarLSQFitter()
-
-    model_fit = parallel_fit_dask(
-        data=data,
-        model=model,
-        fitter=fitter,
-        fitting_axes=(0, 1),
-        world=wcs,
-        scheduler="synchronous",
-    )
-    assert_allclose(model_fit.slope_x.quantity, slope_x)
-    assert_allclose(model_fit.slope_y.quantity, slope_y)
-    assert_allclose(model_fit.intercept.quantity, intercept)
+        model_fit = parallel_fit_dask(
+            data=data,
+            model=model,
+            fitter=fitter,
+            fitting_axes=(0, 1),
+            world=wcs,
+            scheduler="synchronous",
+        )
+        assert_allclose(model_fit.slope_x.quantity, slope_x)
+        assert_allclose(model_fit.slope_y.quantity, slope_y)
+        assert_allclose(model_fit.intercept.quantity, intercept)
 
 
 def test_skip_empty_data(tmp_path):

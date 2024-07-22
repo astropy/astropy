@@ -165,7 +165,7 @@ def _fit_models_to_chunk(
                 all_warnings.extend(w)
         except Exception as exc:
             model_fit = None
-            if diagnostics.startswith("error"):
+            if diagnostics is not None and diagnostics.startswith("error"):
                 output = True
             error = traceback.format_exc()
             for ipar, name in enumerate(model_i.param_names):
@@ -420,7 +420,7 @@ def parallel_fit_dask(
     if isinstance(world, BaseLowLevelWCS):
         if world.pixel_n_dim != data.ndim:
             raise ValueError(
-                f"The WCS pixel_n_dim ({world.pixel_n_dim}) does not match the data dimensionality ({data.ndim})"
+                f"The WCS pixel_n_dim ({world.pixel_n_dim}) does not match the number of dimensions in the data ({data.ndim})"
             )
 
         # Note that in future we could in principle consider supporting cases
@@ -438,7 +438,7 @@ def parallel_fit_dask(
         )
         if fitting_world.world_n_dim != len(fitting_axes):
             raise ValueError(
-                "The WCS number of world axes corresponding to the fitting axes "
+                "The number of WCS world axes corresponding to the fitting axes "
                 f"({fitting_world.world_n_dim}) does not match the number of fitting axes ({len(fitting_axes)})"
             )
 
@@ -456,7 +456,10 @@ def parallel_fit_dask(
         # Each array in the tuple should with be broadcastable to the shape of the fitting_axes
         # or it should be one dimensional and the broadcasting can happen later
         if len(world) != len(fitting_axes):
-            raise ValueError("Number of world arrays must match number of fitting axes")
+            raise ValueError(
+                f"The number of world arrays ({len(world)}) must match "
+                f"number of fitting axes ({len(fitting_axes)})"
+            )
         world = list(world)
         world_units = []
         for iw, w in enumerate(world):
@@ -468,7 +471,8 @@ def parallel_fit_dask(
             for i, (w, fit_shape) in zip(fitting_axes, zip(world, fitting_shape)):
                 if w.shape[0] != fit_shape:
                     raise ValueError(
-                        f"world[{i}] has length {w.shape[0]} but data along dimension {i} has length {fit_shape}"
+                        f"world[{i}] has length {w.shape[0]} but data along "
+                        f"dimension {i} has length {fit_shape}"
                     )
             world_arrays = False
         else:
@@ -477,7 +481,8 @@ def parallel_fit_dask(
                     w = np.broadcast_shapes(w.shape, data.shape)
                 except ValueError as e:
                     raise ValueError(
-                        f"arrays in world tuple should be broadcastable to the shape of the data ({data.shape}), got {w.shape})"
+                        f"The arrays in the world tuple should be broadcastable to "
+                        f"the shape of the data (expected {data.shape}), got {w.shape})"
                     ) from e
             # Extract world arrays for just fitting dimensions
             world = [da.asarray(world[idx]) for idx in fitting_axes]
@@ -487,10 +492,6 @@ def parallel_fit_dask(
         world_units = [None] * len(fitting_axes)
     else:
         raise TypeError("world should be None, a WCS object or a tuple of arrays")
-
-    if world_units is None:
-        # See if world are quantities
-        world_units = [getattr(w, "unit", None) for w in world]
 
     if model._has_units or data_unit is not None:
         # We now combine any instance-level input equivalencies with user
