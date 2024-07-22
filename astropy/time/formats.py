@@ -677,7 +677,26 @@ class TimeDecimalYear(TimeNumeric):
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
 
+        if _isnan_scalar(val1, val2):
+            self.jd1 = self.jd2 = np.nan
+            return
+
         sum12, err12 = two_sum(val1, val2)
+
+        val1 = np.broadcast_to(val1, sum12.shape)
+        val2 = np.broadcast_to(val2, sum12.shape)
+
+        jd1 = np.empty_like(sum12)
+        jd2 = np.empty_like(sum12)
+        mask = np.isnan(sum12)
+        valid = ~mask
+
+        jd2[mask] = np.nan
+        sum12 = sum12[valid]
+        err12 = err12[valid]
+        val1 = val1[valid]
+        val2 = val2[valid]
+
         iy_start = np.trunc(sum12).astype(int)
         extra, y_frac = two_sum(sum12, -iy_start)
         y_frac += extra + err12
@@ -701,7 +720,8 @@ class TimeDecimalYear(TimeNumeric):
         t_end = Time(jd1_end, jd2_end, scale=self.scale, format="jd")
         t_frac = t_start + (t_end - t_start) * y_frac
 
-        self.jd1, self.jd2 = day_frac(t_frac.jd1, t_frac.jd2)
+        jd1[valid], jd2[valid] = day_frac(t_frac.jd1, t_frac.jd2)
+        self.jd1, self.jd2 = jd1, jd2
 
     def to_value(self, **kwargs):
         scale = self.scale.upper().encode("ascii")
