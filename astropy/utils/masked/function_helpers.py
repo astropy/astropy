@@ -646,7 +646,7 @@ def broadcast_arrays(*args, subok=False):
     results = np.broadcast_arrays(*data, subok=subok)
 
     return_type = list if NUMPY_LT_2_0 else tuple
-    shape = results[0].shape if isinstance(results, return_type) else results.shape
+    shape = results[0].shape
     masks = [
         (np.broadcast_to(arg.mask, shape, subok=subok) if is_masked else None)
         for arg, is_masked in zip(args, are_masked)
@@ -655,7 +655,7 @@ def broadcast_arrays(*args, subok=False):
         (Masked(result, mask) if mask is not None else result)
         for (result, mask) in zip(results, masks)
     )
-    return (results if len(results) > 1 else results[0]), None, None
+    return results, None, None
 
 
 @apply_to_both

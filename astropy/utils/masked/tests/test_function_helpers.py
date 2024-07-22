@@ -157,6 +157,13 @@ class TestShapeManipulation(BasicTestSetup):
     def test_broadcast_arrays(self):
         self.check2(np.broadcast_arrays)
         self.check2(np.broadcast_arrays, subok=False)
+        # Regression test for bug for single array
+        ba = np.broadcast_arrays(self.ma, subok=True)
+        assert isinstance(ba, list if NUMPY_LT_2_0 else tuple)
+        assert len(ba) == 1
+        assert_array_equal(ba[0].unmasked, self.a)
+        assert_array_equal(ba[0].mask, self.mask_a)
+        assert np.may_share_memory(ba[0], self.a)
 
 
 class TestArgFunctions(MaskedArraySetup):
