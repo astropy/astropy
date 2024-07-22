@@ -1042,8 +1042,8 @@ class Covariance(NDUncertainty):
                    [0. , 0.2, 0.5, 1. , 0.5, 0.2],
                    [0. , 0. , 0.2, 0.5, 1. , 0.5],
                    [0. , 0. , 0. , 0.2, 0.5, 1. ]])
-            >>> cov.cov2raw_indices([0,1,2], [3,4,3])
-            ((array([0, 0, 1]), array([0, 1, 0])), (array([1, 2, 1]), array([1, 0, 1])))
+            >>> cov.cov2raw_indices([0,1,2], [3,4,3])  # doctest: +ELLIPSIS
+            ((array([0, 0, 1]...), array([0, 1, 0])...), (array([1, 2, 1]...), array([1, 0, 1])...))
 
         """
         if self.raw_shape is None:
@@ -1095,128 +1095,8 @@ class Covariance(NDUncertainty):
             ...          raw_shape=(3,2),
             ...      )
             >>> i_data, j_data = cov.cov2raw_indices([0,1,2], [3,4,3])
-            >>> cov.raw2cov_indices(i_data, j_data)
-            (array([0, 1, 2]), array([3, 4, 3]))
-
-        """
-        if self.raw_shape is None:
-            return i, j
-        if len(i) != len(self.raw_shape):
-            raise ValueError(
-                "Length of input coordinate list (i) is incorrect; expected "
-                f"{len(self.raw_shape)}, found {len(i)}"
-            )
-        if len(j) != len(self.raw_shape):
-            raise ValueError(
-                "Length of input coordinate list (j) is incorrect; expected "
-                f"{len(self.raw_shape)}, found {len(i)}"
-            )
-        return np.ravel_multi_index(i, self.raw_shape), np.ravel_multi_index(
-            j, self.raw_shape
-        )
-
-    def cov2raw_indices(self, i, j):
-        """
-        Given indices along the two axes of the covariance matrix, return the
-        relevant indices in the data array.
-
-        Parameters
-        ----------
-        i : `~numpy.ndarray`
-            1D array with the index along the first axis of the covariance matrix
-        j : `~numpy.ndarray`
-            1D array with the index along the second axis of the covariance matrix
-
-        Returns
-        -------
-        tuple
-            Two tuples providing the indices in the associate data array.  If
-            :attr:`raw_shape` is not defined, the input arrays are simply
-            returned (and not copied).  Otherwise, the code uses
-            `~numpy.unravel_index` to calculate the relevant data-array indices;
-            each element in the two-tuple is itself a tuple of N arrays, one
-            array per dimension of the data array.
-
-        Examples
-        --------
-        Given a (6,6) covariance matrix associated with a (3,2) data array, the
-        covariance values at matrix locations (0,3), (1,4), and (2,3) provide
-        the covariance between data array elements [0,0] and [1,1], elements
-        [0,1] and [2,0], and elements [1,0] and [1,1]::
-
-            >>> import numpy as np
-            >>> from astropy.nddata import Covariance
-            >>> cov = Covariance(
-            ...          array=np.diag(np.full(6 - 2, 0.2, dtype=float), k=-2)
-            ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=-1)
-            ...             + np.diag(np.full(6, 1.0, dtype=float), k=0)
-            ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=1)
-            ...             + np.diag(np.full(6 - 2, 0.2, dtype=float), k=2),
-            ...          impose_triu=True,
-            ...          raw_shape=(3,2),
-            ...      )
-            >>> cov.toarray()
-            array([[1. , 0.5, 0.2, 0. , 0. , 0. ],
-                   [0.5, 1. , 0.5, 0.2, 0. , 0. ],
-                   [0.2, 0.5, 1. , 0.5, 0.2, 0. ],
-                   [0. , 0.2, 0.5, 1. , 0.5, 0.2],
-                   [0. , 0. , 0.2, 0.5, 1. , 0.5],
-                   [0. , 0. , 0. , 0.2, 0.5, 1. ]])
-            >>> cov.cov2raw_indices([0,1,2], [3,4,3])
-            ((array([0, 0, 1]), array([0, 1, 0])), (array([1, 2, 1]), array([1, 0, 1])))
-
-        """
-        if self.raw_shape is None:
-            return i, j
-        _i = np.atleast_1d(i).ravel()
-        _j = np.atleast_1d(j).ravel()
-        return np.unravel_index(_i, self.raw_shape), np.unravel_index(
-            _j, self.raw_shape
-        )
-
-    def raw2cov_indices(self, i, j):
-        """
-        Given indices of elements in the source data array, return the matrix
-        coordinates with the associated covariance.  This is the inverse of
-        `cov2raw_indices`.
-
-        Parameters
-        ----------
-        i : `tuple`
-            A tuple of N array-like objects providing the indices of elements in
-            the N-dimensional data array.
-        j : `tuple`
-            The same as ``i``, but providing a second set of coordinates at
-            which to access the covariance.
-
-        Returns
-        -------
-        tuple
-            A tuple of two arrays providing the indices in the covariance matrix
-            associated with the provided data array coordinates.  If ``raw_shape``
-            is not defined, the input arrays are simply returned (and not
-            copied).  Otherwise, the code uses `~numpy.ravel_multi_index` to
-            calculate the relevant covariance indices.
-
-        Examples
-        --------
-        This is the inverse of the operation explained in the examples shown for
-        `cov2raw_indices`::
-
-            >>> import numpy as np
-            >>> from astropy.nddata import Covariance
-            >>> cov = Covariance(
-            ...          array=np.diag(np.full(6 - 2, 0.2, dtype=float), k=-2)
-            ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=-1)
-            ...             + np.diag(np.full(6, 1.0, dtype=float), k=0)
-            ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=1)
-            ...             + np.diag(np.full(6 - 2, 0.2, dtype=float), k=2),
-            ...          impose_triu=True,
-            ...          raw_shape=(3,2),
-            ...      )
-            >>> i_data, j_data = cov.cov2raw_indices([0,1,2], [3,4,3])
-            >>> cov.raw2cov_indices(i_data, j_data)
-            (array([0, 1, 2]), array([3, 4, 3]))
+            >>> cov.raw2cov_indices(i_data, j_data)  # doctest: +ELLIPSIS
+            (array([0, 1, 2]...), array([3, 4, 3]...))
 
         """
         if self.raw_shape is None:
