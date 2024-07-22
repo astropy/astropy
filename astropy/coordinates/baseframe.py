@@ -9,6 +9,7 @@ from __future__ import annotations
 __all__ = [
     "BaseCoordinateFrame",
     "CoordinateFrameInfo",
+    "CoordinateSharedMethods",
     "frame_transform_graph",
     "GenericFrame",
     "RepresentationMapping",
@@ -27,6 +28,7 @@ from astropy.utils import ShapedLikeNDArray
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.decorators import deprecated, format_doc, lazyproperty
 from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.masked import MaskableShapedLikeNDArray, combine_masks
 
 from . import representation as r
 from .angles import Angle, position_angle
@@ -358,6 +360,64 @@ class CoordinateFrameInfo(MixinInfo):
         return out
 
 
+class CoordinateSharedMethods:
+    @property
+    def masked(self):
+        """Whether the underlying data is masked.
+
+        Raises
+        ------
+        ValueError
+            If the frame has no associated data.
+        """
+        return self.data.masked
+
+    def get_mask(self, *attrs):
+        """Get the mask associated with these coordinates.
+
+        Parameters
+        ----------
+        *attrs : str
+            Attributes from which to get the masks to combine. Items can be
+            dotted, like ``"data.lon", "data.lat"``. By default, get the
+            combined mask of all components (including from differentials).
+
+        Raises
+        ------
+        ValueError
+            If the coordinate frame has no associated data.
+
+        """
+        if attrs:
+            values = operator.attrgetter(*attrs)(self)
+            if not isinstance(values, tuple):
+                values = (values,)
+            masks = [getattr(v, "mask", None) for v in values]
+        elif self.data.masked:  # *not* self.masked - raise if no data.
+            masks = [diff.mask for diff in self.data.differentials.values()]
+            masks.append(self.data.mask)
+        else:
+            # Short-cut if the data is not masked.
+            masks = []
+
+        # Broadcast makes it readonly too.
+        return np.broadcast_to(combine_masks(masks), self.shape)
+
+    @property
+    def mask(self):
+        """The mask, taken from the underlying representation.
+
+        For spherical representations, the mask of the distance is ignored,
+        i.e., one gets the combined mask of the longitude and latitude.
+        """
+        angles = [
+            f"data.{c}"
+            for c, c_cls in self.data.attr_classes.items()
+            if issubclass(c_cls, Angle)
+        ]
+        return self.get_mask(*angles) if len(angles) == 2 else self.data.mask
+
+
 base_doc = """{__doc__}
     Parameters
     ----------
@@ -395,7 +455,7 @@ _components = """
 
 
 @format_doc(base_doc, components=_components, footer="")
-class BaseCoordinateFrame(ShapedLikeNDArray):
+class BaseCoordinateFrame(CoordinateSharedMethods, MaskableShapedLikeNDArray):
     """
     The base class for coordinate frames.
 
@@ -1759,6 +1819,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         return new
 
     def __setitem__(self, item, value):
+        if value is np.ma.masked or value is np.ma.nomask:
+            self.data.__setitem__(item, value)
+            self.cache.clear()
+            return
+
         if self.__class__ is not value.__class__:
             raise TypeError(
                 f"can only set from object of same class: {self.__class__.__name__} vs."

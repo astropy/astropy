@@ -1,0 +1,7 @@
+``SkyCoord`` and all coordinate frames have gained the ability to deal with
+``Masked`` data: they have a ``masked`` property to tell whether the
+underlying data is masked and a ``mask`` property that gives the mask.  The
+latter by default only takes into account the angular coordinates (for
+spherical distributions), i.e., does not include any mask on a possible
+distance.  For full control over what to include, a new ``get_mask()`` method
+is provided.
