@@ -6,16 +6,21 @@ import re
 import pytest
 
 pytest.importorskip("dask")
-import numpy as np
-from dask import array as da
-from numpy.testing import assert_allclose
+import numpy as np  # noqa: E402
+from dask import array as da  # noqa: E402
+from numpy.testing import assert_allclose  # noqa: E402
 
-from astropy import units as u
-from astropy.modeling.fitting import LevMarLSQFitter, TRFLSQFitter
-from astropy.modeling.fitting_parallel import parallel_fit_dask
-from astropy.modeling.models import Const1D, Gaussian1D, Linear1D, Planar2D
-from astropy.tests.helper import assert_quantity_allclose
-from astropy.wcs import WCS
+from astropy import units as u  # noqa: E402
+from astropy.modeling.fitting import LevMarLSQFitter, TRFLSQFitter  # noqa: E402
+from astropy.modeling.fitting_parallel import parallel_fit_dask  # noqa: E402
+from astropy.modeling.models import (  # noqa: E402
+    Const1D,
+    Gaussian1D,
+    Linear1D,
+    Planar2D,
+)
+from astropy.tests.helper import assert_quantity_allclose  # noqa: E402
+from astropy.wcs import WCS  # noqa: E402
 
 
 def gaussian(x, amplitude, mean, stddev):
