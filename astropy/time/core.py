@@ -14,6 +14,7 @@ import operator
 import os
 import sys
 import threading
+import warnings
 from collections import defaultdict
 from datetime import date, datetime, timezone
 from itertools import pairwise
@@ -828,7 +829,12 @@ class TimeBase(ShapedLikeNDArray):
                     break
 
             conv_func = getattr(erfa, sys1 + sys2)
-            jd1, jd2 = conv_func(*args)
+
+            # ignore warnings that are raised if nan are in inputs
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", message="invalid value")
+                warnings.filterwarnings("ignore", category=erfa.ErfaWarning)
+                jd1, jd2 = conv_func(*args)
 
         jd1, jd2 = day_frac(jd1, jd2)
 
