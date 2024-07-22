@@ -326,7 +326,7 @@ def parallel_fit_dask(
     try:
         import dask
         import dask.array as da
-    except ImportError:
+    except ImportError:  # pragma: no cover
         raise ImportError("dask is required for this function")
 
     if scheduler is None:

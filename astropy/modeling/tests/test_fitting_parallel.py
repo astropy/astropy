@@ -83,6 +83,7 @@ def test_1d_model_fit_axes(
         fitter=fitter,
         fitting_axes=fitting_axes,
         world=(x,),
+        scheduler="synchronous",
     )
 
     # Check that shape and values match
@@ -154,6 +155,7 @@ def test_2d_model_fit_axes(
         fitter=fitter,
         fitting_axes=fitting_axes,
         world=(x, y),
+        scheduler="synchronous",
     )
 
     # Check that shape and values match
@@ -182,6 +184,7 @@ def test_no_world():
         model=model,
         fitter=fitter,
         fitting_axes=0,
+        scheduler="synchronous",
     )
     assert_allclose(model_fit.amplitude.value, 2)
     assert_allclose(model_fit.mean.value, 10)
@@ -212,6 +215,7 @@ def test_wcs_world_1d():
         fitter=fitter,
         fitting_axes=0,
         world=wcs,
+        scheduler="synchronous",
     )
     assert_allclose(model_fit.amplitude.value, [2, 1.8])
     assert_allclose(model_fit.mean.value, [1.1, 1.2])
@@ -233,7 +237,12 @@ def test_world_array():
     world1 = np.array([np.linspace(0, 10, 21), np.linspace(5, 15, 21)]).T
 
     model_fit = parallel_fit_dask(
-        data=data, model=model, fitter=fitter, fitting_axes=0, world=(world1,)
+        data=data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        world=(world1,),
+        scheduler="synchronous",
     )
     assert_allclose(model_fit.amplitude.value, [2, 1.8])
     assert_allclose(model_fit.mean.value, [5, 10])
@@ -255,6 +264,7 @@ def test_fitter_kwargs(tmp_path):
         fitter=fitter,
         fitting_axes=0,
         fitter_kwargs={"filter_non_finite": True},
+        scheduler="synchronous",
     )
 
     assert_allclose(model_fit.amplitude.value, 2)
@@ -262,117 +272,136 @@ def test_fitter_kwargs(tmp_path):
     assert_allclose(model_fit.stddev.value, 1)
 
 
-def test_diagnostics(tmp_path):
-    data = gaussian(np.arange(20), 2, 10, 1)
-    data = np.broadcast_to(data.reshape((20, 1)), (20, 3)).copy()
+class TestDiagnostics:
+    def setup_method(self, method):
+        self.data = gaussian(np.arange(20), 2, 10, 1)
+        self.data = np.broadcast_to(self.data.reshape((20, 1)), (20, 3)).copy()
+        self.data_original = self.data.copy()
+        self.data[0, 0] = np.nan
+        self.model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
+        self.fitter = LevMarLSQFitter()
 
-    data[0, 0] = np.nan
-
-    model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
-    fitter = LevMarLSQFitter()
-
-    parallel_fit_dask(
-        data=data,
-        model=model,
-        fitter=fitter,
-        fitting_axes=0,
-        diagnostics="error",
-        diagnostics_path=tmp_path / "diag1",
-    )
-
-    assert os.listdir(tmp_path / "diag1") == ["0"]
-    assert sorted(os.listdir(tmp_path / "diag1" / "0")) == ["error.log"]
-
-    parallel_fit_dask(
-        data=data,
-        model=model,
-        fitter=fitter,
-        fitting_axes=0,
-        diagnostics="all",
-        diagnostics_path=tmp_path / "diag2",
-    )
-
-    assert sorted(os.listdir(tmp_path / "diag2")) == ["0", "1", "2"]
-
-    # Make sure things world also with world=wcs
-
-    parallel_fit_dask(
-        data=data,
-        model=model,
-        fitter=fitter,
-        fitting_axes=0,
-        world=WCS(naxis=2),
-        diagnostics="error",
-        diagnostics_path=tmp_path / "diag3",
-    )
-
-    assert os.listdir(tmp_path / "diag3") == ["0"]
-    assert sorted(os.listdir(tmp_path / "diag3" / "0")) == ["error.log"]
-
-    # And check that we can pass in a callable
-
-    def custom_callable(path, world, data, weights, model, fitting_kwargs):
-        import matplotlib.pyplot as plt
-
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
-        ax.plot(world[0], data, "k.")
-        ax.text(0.1, 0.9, "Fit failed!", color="r", transform=ax.transAxes)
-        fig.savefig(os.path.join(path, "fit.png"))
-        plt.close(fig)
-
-    parallel_fit_dask(
-        data=data,
-        model=model,
-        fitter=fitter,
-        fitting_axes=0,
-        world=WCS(naxis=2),
-        diagnostics="error",
-        diagnostics_path=tmp_path / "diag4",
-        diagnostics_callable=custom_callable,
-    )
-
-    assert os.listdir(tmp_path / "diag4") == ["0"]
-    assert sorted(os.listdir(tmp_path / "diag4" / "0")) == ["error.log", "fit.png"]
-
-
-def test_diagnostics_missing_path():
-    data = gaussian(np.arange(20), 2, 10, 1)
-    model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
-    fitter = LevMarLSQFitter()
-
-    with pytest.raises(ValueError, match="diagnostics_path should be set"):
+    def test_error(self, tmp_path):
         parallel_fit_dask(
-            data=data,
-            model=model,
-            fitter=fitter,
+            data=self.data,
+            model=self.model,
+            fitter=self.fitter,
             fitting_axes=0,
             diagnostics="error",
+            diagnostics_path=tmp_path / "diag1",
+            scheduler="synchronous",
         )
 
+        assert os.listdir(tmp_path / "diag1") == ["0"]
+        assert sorted(os.listdir(tmp_path / "diag1" / "0")) == ["error.log"]
 
-def test_diagnostics_invalid():
-    data = gaussian(np.arange(20), 2, 10, 1)
-    model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
-    fitter = LevMarLSQFitter()
-
-    with pytest.raises(
-        ValueError,
-        match=re.escape(
-            "diagnostics should be None, " "'error', 'error+warn', or 'all'"
-        ),
-    ):
+    def test_all(self, tmp_path):
         parallel_fit_dask(
-            data=data,
-            model=model,
-            fitter=fitter,
+            data=self.data,
+            model=self.model,
+            fitter=self.fitter,
             fitting_axes=0,
-            diagnostics="spam",
+            diagnostics="all",
+            diagnostics_path=tmp_path / "diag2",
+            scheduler="synchronous",
         )
+
+        assert sorted(os.listdir(tmp_path / "diag2")) == ["0", "1", "2"]
+
+    def test_all_world_wcs(self, tmp_path):
+        # Make sure things world also with world=wcs
+
+        parallel_fit_dask(
+            data=self.data,
+            model=self.model,
+            fitter=self.fitter,
+            fitting_axes=0,
+            world=WCS(naxis=2),
+            diagnostics="error",
+            diagnostics_path=tmp_path / "diag3",
+            scheduler="synchronous",
+        )
+
+        assert os.listdir(tmp_path / "diag3") == ["0"]
+        assert sorted(os.listdir(tmp_path / "diag3" / "0")) == ["error.log"]
+
+    def test_callable(self, tmp_path):
+        # And check that we can pass in a callable
+
+        def custom_callable(path, world, data, weights, model, fitting_kwargs):
+            import matplotlib.pyplot as plt
+
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 1, 1)
+            ax.plot(world[0], data, "k.")
+            ax.text(0.1, 0.9, "Fit failed!", color="r", transform=ax.transAxes)
+            fig.savefig(os.path.join(path, "fit.png"))
+            plt.close(fig)
+
+        # Note: here we keep the default scheduler ('processes') to make sure
+        # that callables are passed correctly to other processes. This test is
+        # not as fast as other ones anyway due to the plotting so this doesn't
+        # have a big performance impact.
+
+        parallel_fit_dask(
+            data=self.data,
+            model=self.model,
+            fitter=self.fitter,
+            fitting_axes=0,
+            world=WCS(naxis=2),
+            diagnostics="error",
+            diagnostics_path=tmp_path / "diag4",
+            diagnostics_callable=custom_callable,
+        )
+
+        assert os.listdir(tmp_path / "diag4") == ["0"]
+        assert sorted(os.listdir(tmp_path / "diag4" / "0")) == ["error.log", "fit.png"]
+
+    def test_warnings(self, tmp_path):
+        # Check that catching warnings works
+
+        parallel_fit_dask(
+            data=self.data_original,
+            model=self.model,
+            fitter=self.fitter,
+            fitting_axes=0,
+            diagnostics="error+warn",
+            diagnostics_path=tmp_path / "diag5",
+            fitter_kwargs={"maxiter": 2},
+            scheduler="synchronous",
+        )
+
+        assert sorted(os.listdir(tmp_path / "diag5")) == ["0", "1", "2"]
+        assert sorted(os.listdir(tmp_path / "diag5" / "0")) == ["warn.log"]
+
+    def test_missing_path(self):
+        with pytest.raises(ValueError, match="diagnostics_path should be set"):
+            parallel_fit_dask(
+                data=self.data,
+                model=self.model,
+                fitter=self.fitter,
+                fitting_axes=0,
+                diagnostics="error",
+            )
+
+    def test_invalid(self):
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "diagnostics should be None, " "'error', 'error+warn', or 'all'"
+            ),
+        ):
+            parallel_fit_dask(
+                data=self.data,
+                model=self.model,
+                fitter=self.fitter,
+                fitting_axes=0,
+                diagnostics="spam",
+            )
 
 
 @pytest.mark.parametrize(
-    "scheduler", ("synchronous", "processes", "threads", "default")
+    "scheduler", (None, "synchronous", "processes", "threads", "default")
 )
 def test_dask_scheduler(scheduler):
     N = 120
@@ -442,7 +471,12 @@ def test_compound_model():
     wcs.wcs.cdelt = 10, 0.1
 
     model_fit = parallel_fit_dask(
-        data=data, model=model, fitter=fitter, fitting_axes=0, world=wcs
+        data=data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        world=wcs,
+        scheduler="synchronous",
     )
     assert_allclose(model_fit.amplitude_0.value, [2, 1.8])
     assert_allclose(model_fit.mean_0.value, [1.1, 1.2])
@@ -455,7 +489,12 @@ def test_compound_model():
     model.amplitude_1.fixed = True
 
     model_fit = parallel_fit_dask(
-        data=data, model=model, fitter=fitter, fitting_axes=0, world=wcs
+        data=data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        world=wcs,
+        scheduler="synchronous",
     )
 
     assert_allclose(model_fit.amplitude_0.value, [2, 1.63349282])
@@ -533,73 +572,115 @@ def test_world_dimension_mismatch():
         )
 
 
-def test_preserve_native_chunks():
-    data = gaussian(np.arange(20), 2, 10, 1)
-    data = np.broadcast_to(data.reshape((20, 1)), (20, 3)).copy()
-    data = da.from_array(data, chunks=(20, 1))
+class TestDaskInput:
+    # Check that things work correctly when passing dask arrays as input.
 
-    model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
-    fitter = LevMarLSQFitter()
+    def setup_method(self, method):
+        self.base_data = gaussian(np.arange(20), 2, 10, 1)
+        self.base_data = np.broadcast_to(
+            self.base_data.reshape((20, 1)), (20, 3)
+        ).copy()
+        self.model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
+        self.fitter = LevMarLSQFitter()
 
-    model_fit = parallel_fit_dask(
-        data=data,
-        model=model,
-        fitter=fitter,
-        fitting_axes=0,
-        preserve_native_chunks=True,
-    )
-
-    assert_allclose(model_fit.amplitude.value, 2)
-    assert_allclose(model_fit.mean.value, 10)
-    assert_allclose(model_fit.stddev.value, 1)
-
-
-def test_preserve_native_chunks_invalid_data_chunks():
-    data = gaussian(np.arange(20), 2, 10, 1)
-    data = np.broadcast_to(data.reshape((20, 1)), (20, 3)).copy()
-    data = da.from_array(data, chunks=(5, 2))
-
-    model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
-    fitter = LevMarLSQFitter()
-
-    with pytest.raises(
-        ValueError,
-        match=re.escape(
-            "When using preserve_native_chunks=True, the chunk size should match the data size along the fitting axe"
-        ),
-    ):
-        parallel_fit_dask(
-            data=data,
-            model=model,
-            fitter=fitter,
+    @pytest.mark.parametrize("preserve_native_chunks", (False, True))
+    def test_data(self, preserve_native_chunks):
+        model_fit = parallel_fit_dask(
+            data=da.from_array(self.base_data, chunks=(20, 1)),
+            model=self.model,
+            fitter=self.fitter,
             fitting_axes=0,
-            preserve_native_chunks=True,
+            preserve_native_chunks=preserve_native_chunks,
+            scheduler="synchronous",
         )
 
+        assert_allclose(model_fit.amplitude.value, 2)
+        assert_allclose(model_fit.mean.value, 10)
+        assert_allclose(model_fit.stddev.value, 1)
 
-def test_preserve_native_chunks_invalid_weight_chunks():
-    data = gaussian(np.arange(20), 2, 10, 1)
-    data = np.broadcast_to(data.reshape((20, 1)), (20, 3)).copy()
-    data = da.from_array(data, chunks=(20, 3))
-    weights = da.random.random(data.shape).rechunk((18, 2))
+    @pytest.mark.parametrize("preserve_native_chunks", (False, True))
+    def test_data_and_weights(self, preserve_native_chunks):
+        data = self.base_data.copy()
+        data[0, 0] = 1000.0
+        data = da.from_array(data, chunks=(20, 1))
 
-    model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
-    fitter = LevMarLSQFitter()
+        weights = (data < 100).astype(float)
 
-    with pytest.raises(
-        ValueError,
-        match=re.escape(
-            "When using preserve_native_chunks=True, the weights should have the same chunk size as the data"
-        ),
-    ):
-        parallel_fit_dask(
+        model_fit = parallel_fit_dask(
             data=data,
             weights=weights,
-            model=model,
-            fitter=fitter,
+            model=self.model,
+            fitter=self.fitter,
             fitting_axes=0,
-            preserve_native_chunks=True,
+            preserve_native_chunks=preserve_native_chunks,
+            scheduler="synchronous",
         )
+
+        assert_allclose(model_fit.amplitude.value, 2)
+        assert_allclose(model_fit.mean.value, 10)
+        assert_allclose(model_fit.stddev.value, 1)
+
+    def test_preserve_native_chunks_invalid_data_chunks(self):
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "When using preserve_native_chunks=True, the chunk size should match the data size along the fitting axe"
+            ),
+        ):
+            parallel_fit_dask(
+                data=da.from_array(self.base_data, chunks=(5, 2)),
+                model=self.model,
+                fitter=self.fitter,
+                fitting_axes=0,
+                preserve_native_chunks=True,
+            )
+
+    def test_preserve_native_chunks_invalid_weight_chunks(self):
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "When using preserve_native_chunks=True, the weights should have the same chunk size as the data"
+            ),
+        ):
+            parallel_fit_dask(
+                data=da.from_array(self.base_data, chunks=(20, 1)),
+                weights=da.random.random(self.base_data.shape).rechunk((18, 2)),
+                model=self.model,
+                fitter=self.fitter,
+                fitting_axes=0,
+                preserve_native_chunks=True,
+            )
+
+    def test_preserve_native_chunks_invalid_input_data_type(self):
+        with pytest.raises(
+            TypeError,
+            match=re.escape(
+                "Can only set preserve_native_chunks=True if input data is a dask array"
+            ),
+        ):
+            parallel_fit_dask(
+                data=self.base_data,
+                model=self.model,
+                fitter=self.fitter,
+                fitting_axes=0,
+                preserve_native_chunks=True,
+            )
+
+    def test_preserve_native_chunks_invalid_input_weights_type(self):
+        with pytest.raises(
+            TypeError,
+            match=re.escape(
+                "Can only set preserve_native_chunks=True if input weights is a dask array (if specified)"
+            ),
+        ):
+            parallel_fit_dask(
+                data=da.from_array(self.base_data, chunks=(20, 1)),
+                weights=np.random.random(self.base_data.shape),
+                model=self.model,
+                fitter=self.fitter,
+                fitting_axes=0,
+                preserve_native_chunks=True,
+            )
 
 
 def test_weights():
@@ -626,6 +707,7 @@ def test_weights():
         model=model,
         fitter=fitter,
         fitting_axes=0,
+        scheduler="synchronous",
     )
     assert_allclose(model_fit.amplitude.value, [2, 1.8])
     assert_allclose(model_fit.mean.value, [5, 10])
@@ -654,6 +736,7 @@ def test_units():
         fitter=fitter,
         fitting_axes=0,
         world=(1000 * np.arange(21) * u.nm,),
+        scheduler="synchronous",
     )
 
     assert_quantity_allclose(model_fit.amplitude.quantity, [2, 1.8] * u.Jy)
@@ -677,6 +760,7 @@ def test_units_no_input_units():
         fitter=fitter,
         fitting_axes=0,
         world=(1000 * np.arange(20) * u.nm,),
+        scheduler="synchronous",
     )
 
     assert_quantity_allclose(model_fit.amplitude.quantity, 3 * u.Jy)
@@ -700,6 +784,7 @@ def test_units_with_wcs():
         fitter=fitter,
         fitting_axes=0,
         world=wcs,
+        scheduler="synchronous",
     )
     assert_allclose(model_fit.amplitude.quantity, 2 * u.Jy)
     assert_allclose(model_fit.mean.quantity, 1.1 * u.um)
@@ -746,6 +831,7 @@ def test_units_with_wcs_2d():
         fitter=fitter,
         fitting_axes=(0, 1),
         world=wcs,
+        scheduler="synchronous",
     )
     assert_allclose(model_fit.slope_x.quantity, slope_x)
     assert_allclose(model_fit.slope_y.quantity, slope_y)
@@ -774,6 +860,7 @@ def test_skip_empty_data(tmp_path):
         fitting_axes=0,
         diagnostics="error+warn",
         diagnostics_path=tmp_path,
+        scheduler="synchronous",
     )
 
     # If we don't properly skip empty data sections, then the fitting would fail
