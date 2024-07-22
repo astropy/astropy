@@ -2,6 +2,7 @@
 import datetime
 import fnmatch
 import functools
+import math
 import re
 import time
 import warnings
@@ -114,6 +115,16 @@ def _regexify_subfmts(subfmts):
         new_subfmts.append(subfmt_tuple)
 
     return tuple(new_subfmts)
+
+
+def _isscalar(a):
+    return np.asarray(a).shape == ()
+
+
+def _isnan_scalar(val1, val2):
+    return (
+        _isscalar(val1) and _isscalar(val2) and (math.isnan(val1) or math.isnan(val2))
+    )
 
 
 class TimeFormat:
@@ -747,6 +758,10 @@ class TimeFromEpoch(TimeNumeric):
         For an TimeFromEpoch subclass like TimeUnix these will be floats giving
         the effective seconds since an epoch time (e.g. 1970-01-01 00:00:00).
         """
+        if _isnan_scalar(val1, val2):
+            self.jd1 = self.jd2 = np.nan
+            return
+
         # Form new JDs based on epoch time + time from epoch (converted to JD).
         # One subtlety that might not be obvious is that 1.000 Julian days in
         # UTC can be 86400 or 86401 seconds.  For the TimeUnix format the
