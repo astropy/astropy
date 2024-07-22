@@ -1,18 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
 import astropy.coordinates.representation as r
 import astropy.units as u
+from astropy.coordinates import FK5, SkyCoord
 from astropy.coordinates.matrix_utilities import rotation_matrix
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.utils.masked import Masked
 
 
-class TestSphericalRepresentationSeparateMasks:
-    """Tests for mask propagation for Spherical with separate masks."""
-
+class MaskedSphericalSetup:
+    @classmethod
     def setup_class(self):
         self.lon = np.array([0.0, 3.0, 6.0, 12.0, 15.0, 18.0]) << u.hourangle
         self.lat = np.array([-15.0, 30.0, 60.0, -60.0, 89.0, -80.0]) << u.deg
@@ -26,6 +27,10 @@ class TestSphericalRepresentationSeparateMasks:
         self.msph = r.SphericalRepresentation(self.mlon, self.mlat, self.mdis)
         self.mask_ang = self.mask_lon | self.mask_lat
         self.mask = self.mask_ang | self.mask_dis
+
+
+class TestSphericalRepresentationSeparateMasks(MaskedSphericalSetup):
+    """Tests for mask propagation for Spherical with separate masks."""
 
     def test_initialization(self):
         assert_array_equal(self.msph.lon.mask, self.mask_lon)
@@ -182,3 +187,186 @@ class TestSphericalRepresentationSeparateMasks:
         msph2 = self.msph.with_differentials({"s": diff})
         assert msph2.masked
         assert msph2.differentials["s"].masked
+
+
+class TestFrame(MaskedSphericalSetup):
+    """Tests that mask is calculated properly for frames, using FK5."""
+
+    @classmethod
+    def setup_class(self):
+        super().setup_class()
+        self.fk5 = FK5(self.msph)
+
+    def test_initialization_directly(self):
+        d = Masked([50, 1.0] * u.kpc, mask=[False, True])
+        fk5 = FK5([0, 30] * u.deg, [-10, 10] * u.deg, distance=d)
+        assert fk5.masked
+        assert_array_equal(fk5.ra.mask, [False, False])
+        assert_array_equal(fk5.dec.mask, [False, False])
+        assert_array_equal(fk5.distance.mask, [False, True])
+        assert_array_equal(fk5.mask, [False, True])
+        assert_array_equal(fk5.get_mask("ra", "dec"), False)
+        assert "—" in repr(fk5)
+
+    def test_class_initialization(self):
+        assert_array_equal(self.fk5.ra.mask, self.mask_lon)
+        assert_array_equal(self.fk5.dec.mask, self.mask_lat)
+        assert_array_equal(self.fk5.distance.mask, self.mask_dis)
+
+        assert_array_equal(self.fk5.mask, self.mask)
+        assert_array_equal(self.fk5.get_mask("ra", "dec"), self.mask_ang)
+
+        unmasked = self.fk5.unmasked
+        assert_array_equal(unmasked.ra, self.lon)
+        assert_array_equal(unmasked.dec, self.lat)
+        assert_array_equal(unmasked.distance, self.dis)
+
+    def test_cache_clearing(self):
+        mfk5 = self.fk5.copy()
+        assert_array_equal(mfk5.ra.mask, self.mask_lon)
+        assert "—" in repr(mfk5)
+        mfk5[...] = np.ma.nomask
+        assert_array_equal(mfk5.data.mask, np.zeros(mfk5.shape, bool))
+        assert_array_equal(mfk5.ra.mask, np.zeros(mfk5.shape, bool))
+        assert "—" not in repr(mfk5)
+        mfk5[...] = self.fk5
+        assert_array_equal(mfk5.ra.mask, self.mask_lon)
+        assert "—" in repr(mfk5)
+
+    def test_cartesian(self):
+        mcart = FK5(self.msph.represent_as(r.CartesianRepresentation))
+        assert_array_equal(mcart.mask, self.mask)
+
+    def test_unit_spherical(self):
+        musph = FK5(self.msph.represent_as(r.UnitSphericalRepresentation))
+        assert_array_equal(musph.mask, self.mask_ang)
+        assert_array_equal(musph.get_mask(), self.mask_ang)
+
+    def test_physics_spherical(self):
+        mpsph = FK5(self.msph.represent_as(r.PhysicsSphericalRepresentation))
+        assert_array_equal(mpsph.mask, self.mask)
+        assert_array_equal(mpsph.get_mask("data.phi", "data.theta"), self.mask_ang)
+
+    def test_get_mask(self):
+        assert_array_equal(self.fk5.get_mask("ra"), self.mask_lon)
+        assert_array_equal(self.fk5.get_mask("ra", "dec"), self.mask_ang)
+        assert_array_equal(self.fk5.get_mask("data.lat"), self.mask_lat)
+        assert_array_equal(self.fk5.get_mask("data.lat", "data.lon"), self.mask_ang)
+        assert_array_equal(self.fk5.get_mask("cartesian"), self.mask)
+        assert_array_equal(self.fk5.get_mask("equinox"), np.zeros(self.fk5.shape, bool))
+
+    def test_unmasked_frame(self):
+        fk5 = self.fk5.unmasked
+        assert not fk5.masked
+        assert_array_equal(fk5.mask, np.zeros(fk5.shape, bool))
+        assert_array_equal(fk5.get_mask(), np.zeros(fk5.shape, bool))
+
+
+def test_frame_without_data():
+    fk5_no_data = FK5(equinox=["J2000", "J2001"])
+    with pytest.raises(ValueError, match="does not have associated data"):
+        fk5_no_data.masked
+    with pytest.raises(ValueError, match="does not have associated data"):
+        fk5_no_data.mask
+    with pytest.raises(ValueError, match="does not have associated data"):
+        fk5_no_data.get_mask()
+    assert_array_equal(fk5_no_data.get_mask("equinox"), np.zeros((2,), bool))
+
+
+class TestSkyCoord(TestFrame):
+    """Tests that mask is calculated properly for SkyCoord.
+
+    Note that this does all the tests from TestFrame, as well as a few
+    specific to SkyCoord, i.e., that use attributes the frame does not have.
+    """
+
+    @classmethod
+    def setup_class(self):
+        super().setup_class()
+        self.p = np.linspace(900, 1000, self.msph.size) << u.hPa
+        self.mask_p = np.array([True, False, False, False, False, False])
+        self.mp = Masked(self.p, self.mask_p)
+        # Ensure we have an attribute not associated with the frame.
+        self.fk5 = SkyCoord(self.msph, frame="fk5", pressure=self.mp)
+
+    def test_non_frame_attribute(self):
+        assert_array_equal(self.fk5.get_mask("pressure"), self.mask_p)
+        assert_array_equal(
+            self.fk5.get_mask("pressure", "data"), self.mask | self.mask_p
+        )
+
+
+class TestSkyCoordWithDifferentials:
+    @classmethod
+    def setup_class(self):
+        self.ra = [0.0, 3.0, 6.0, 12.0, 15.0, 18.0] << u.hourangle
+        self.dec = [-15.0, 30.0, 60.0, -60.0, 89.0, -80.0] << u.deg
+        self.dis = [10.0, 20.0, 30.0, 40.0, 50.0, 60.0] << u.pc
+        self.mask_dis = np.array([False, True, False, True, False, True])
+        self.pm_ra_cosdec = [1.0, 2.0, 3.0, -4.0, -5.0, -6.0] << (u.mas / u.yr)
+        self.mask_pm_ra_cosdec = np.array([False, False, True, False, False, True])
+        self.pm_dec = [-9.0, -7.0, 5.0, 3.0, 1.0, 0.0] << (u.mas / u.yr)
+        self.mask_pm_dec = np.array([False, False, True, True, False, True])
+        self.rv = [40.0, 50.0, 0.0, 0.0, -30.0, -10.0] << (u.km / u.s)
+        self.mask_rv = np.array([False, False, False, False, True, True])
+        self.mdis = Masked(self.dis, self.mask_dis)
+        self.mpm_ra_cosdec = Masked(self.pm_ra_cosdec, self.mask_pm_ra_cosdec)
+        self.mpm_dec = Masked(self.pm_dec, self.mask_pm_dec)
+        self.mrv = Masked(self.rv, self.mask_rv)
+        self.sc = SkyCoord(
+            ra=self.ra,
+            dec=self.dec,
+            distance=self.mdis,
+            pm_ra_cosdec=self.mpm_ra_cosdec,
+            pm_dec=self.mpm_dec,
+            radial_velocity=self.mrv,
+        )
+        self.mask = (
+            self.mask_dis | self.mask_pm_ra_cosdec | self.mask_pm_dec | self.mask_rv
+        )
+
+    def test_setup(self):
+        assert self.sc.masked
+        assert_array_equal(self.sc.ra.mask, False)
+        assert_array_equal(self.sc.dec.mask, False)
+        assert_array_equal(self.sc.distance.mask, self.mask_dis)
+        assert_array_equal(self.sc.pm_ra_cosdec.mask, self.mask_pm_ra_cosdec)
+        assert_array_equal(self.sc.pm_dec.mask, self.mask_pm_dec)
+        assert_array_equal(self.sc.radial_velocity.mask, self.mask_rv)
+        assert_array_equal(self.sc.mask, self.mask)
+
+    def test_get_mask(self):
+        assert_array_equal(self.sc.get_mask(), self.mask)
+        assert_array_equal(self.sc.get_mask("ra", "dec"), False)
+
+    @pytest.mark.parametrize(
+        "dt",
+        [
+            1 * u.yr,
+            Masked([1, 2, 3] * u.yr, mask=[False, True, False])[:, np.newaxis],
+        ],
+    )
+    def test_apply_space_motion(self, dt):
+        sc = self.sc.apply_space_motion(dt=dt)
+        # All parts of the coordinate influence the final positions.
+        expected_mask = self.sc.get_mask() | getattr(dt, "mask", False)
+        assert_array_equal(sc.mask, expected_mask)
+
+
+class TestSkyCoordWithOnlyDifferentialsMasked(TestSkyCoordWithDifferentials):
+    @classmethod
+    def setup_class(self):
+        super().setup_class()
+        # Overwrite SkyCoord using unmasked distance.
+        self.mask_dis = False
+        self.sc = SkyCoord(
+            ra=self.ra,
+            dec=self.dec,
+            distance=self.dis,
+            pm_ra_cosdec=self.mpm_ra_cosdec,
+            pm_dec=self.mpm_dec,
+            radial_velocity=self.mrv,
+        )
+        self.mask = (
+            self.mask_dis | self.mask_pm_ra_cosdec | self.mask_pm_dec | self.mask_rv
+        )
