@@ -1905,6 +1905,22 @@ class TimeBase(ShapedLikeNDArray):
     def __ge__(self, other):
         return self._time_comparison(other, operator.ge)
 
+    def __array_ufunc__(self, ufunc, method, *args, **kwargs):
+        """Override numpy ufuncs. For now only isnan and isnat are implemented."""
+        if ufunc in (np.isnan, np.isnat):
+            return self._isnat()
+
+        if ufunc is np.isfinite:
+            return ~self._isnat()
+
+        return NotImplemented
+
+    def _isnat(self):
+        if self.masked:
+            return np.isnan(self.jd2.filled(np.nan))
+        else:
+            return np.isnan(self.jd2)
+
 
 class Time(TimeBase):
     """
@@ -2984,6 +3000,7 @@ class TimeDelta(TimeBase):
         if (
             isinstance(self._time, TimeDeltaNumeric)
             and getattr(val, "unit", None) is None
+            and not np.isnan(val).all()
             and format is None
         ):
             warn(
