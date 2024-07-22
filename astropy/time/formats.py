@@ -292,20 +292,16 @@ class TimeFormat:
         """A helper function to TimeFormat._check_val_type that's meant to be
         optionally bypassed in subclasses that have _check_finite=False
         """
-        # val1 cannot contain nan, but val2 can contain nan
-        isfinite1 = np.isfinite(val1)
-        if val1.size > 1:  # Calling .all() on a scalar is surprisingly slow
-            isfinite1 = (
-                isfinite1.all()
-            )  # Note: arr.all() about 3x faster than np.all(arr)
-        elif val1.size == 0:
-            isfinite1 = False
         ok1 = (
-            val1.dtype.kind == "f"
-            and val1.dtype.itemsize >= 8
-            and isfinite1
+            val1 is None
+            or (
+                val1.dtype.kind == "f"
+                and val1.dtype.itemsize >= 8
+                and not np.any(np.isinf(val1))
+            )
             or val1.size == 0
         )
+
         ok2 = (
             val2 is None
             or (
@@ -315,6 +311,7 @@ class TimeFormat:
             )
             or val2.size == 0
         )
+
         if not (ok1 and ok2):
             raise TypeError(
                 f"Input values for {self.name} class must be finite doubles"
