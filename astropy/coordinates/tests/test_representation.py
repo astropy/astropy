@@ -394,6 +394,13 @@ class TestSphericalRepresentation:
         )
         assert representation_equal_up_to_angular_type(got, expected)
 
+        got = sph.represent_as(RadialRepresentation, RadialDifferential)
+        assert np.may_share_memory(sph.distance, got.distance)
+        expected = BaseRepresentation.represent_as(
+            sph, RadialRepresentation, RadialDifferential
+        )
+        assert representation_equal_up_to_angular_type(got, expected)
+
     def test_transform(self):
         """Test ``.transform()`` on rotation and general matrices."""
         # set up representation
@@ -850,6 +857,13 @@ class TestPhysicsSphericalRepresentation:
         assert_allclose_quantity(got.rho, expected.rho, atol=5e-17 * u.kpc)
         assert_allclose_quantity(got.phi, expected.phi, atol=3e-16 * u.deg)
         assert_array_equal(got.z, expected.z)
+
+        got = sph.represent_as(RadialRepresentation, RadialDifferential)
+        assert np.may_share_memory(sph.r, got.distance)
+        expected = BaseRepresentation.represent_as(
+            sph, RadialRepresentation, RadialDifferential
+        )
+        assert representation_equal_up_to_angular_type(got, expected)
 
     def test_to_cylindrical_at_the_origin(self):
         """Test that the transformation to cylindrical at the origin preserves phi."""
