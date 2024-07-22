@@ -2121,6 +2121,9 @@ class TimeEpochDateString(TimeString):
         for val, years in iterator:
             try:
                 time_str = to_string(val)
+                if time_str.lower() in ("nat", "nan"):
+                    years[...] = np.nan
+                    continue
                 epoch_type, year_str = time_str[0], time_str[1:]
                 year = float(year_str)
                 if epoch_type.upper() != epoch_prefix:
