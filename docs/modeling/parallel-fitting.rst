@@ -1,7 +1,7 @@
 .. _parallel-fitting:
 
-Fitting a model many times in parallel
-**************************************
+Fitting models in parallel with N-dimensional data
+**************************************************
 
 In some cases, you may want to fit a model many times to data. For example, you
 may have a spectral cube (with two celestial axes and one spectral axis) and you
@@ -18,11 +18,15 @@ suited to these use cases. It makes it simple to set up fitting of M-dimensional
 models to N-dimensional datasets and leverages the power of the `dask
 <https://www.dask.org/>`_ package to efficiently parallelize the problem,
 running it either on multiple processes of a single machine or in a distributed
-environment.
-
-Note that you do not need to know how to use dask in order to use this function,
+environment. You do not need to know how to use dask in order to use this function,
 but you will need to make sure you have `dask <https://www.dask.org/>`_
 installed.
+
+Note that the approach here is different from *model sets* which are described
+in :ref:`example-fitting-model-sets`, which are a way of fitting a linear model
+with a vector of parameters to a data array, as in that specific case the
+fitting can be truly vectorized, and will likely not benefit from the approach
+described here.
 
 Getting started
 ===============
@@ -265,6 +269,34 @@ and we can visualize the results:
     >>> ax.imshow(model_fit.stddev.value, vmin=0, vmax=2000, origin='lower')  # doctest: +IGNORE_OUTPUT
 
 The amplitude map no longer contains any problematic pixels.
+
+World input
+===========
+
+The example above demonstrated that it is possible to pass in a
+:class:`astropy.wcs.WCS` object to the ``world=`` argument in order to determine
+the world coordinates for the fit (e.g. the spectral axis values for a spectral
+fit). It is also possible to pass in a tuple of arrays - if you do this, the
+tuple should have one item per fitting axis. It is most efficient to pass in a
+tuple of 1D arrays, but if the world coordinates vary over the axes being
+iterated over, you can also pass in a tuple of N-d arrays, giving the
+coordinates of each individual pixel (it is also possible to pass in arrays that
+are not 1D but also not fully N-d as long as they can be broadcasted to the data
+shape).
+
+Multiprocessing
+===============
+
+By default, :func:`~astropy.modeling.fitting.parallel_fit_dask` will make use
+of multi-processing to parallelize the fitting. If you write a script to
+carry out the fitting, you will likely need to move your code inside a::
+
+    if __name__ == "__main__":
+
+        ...
+
+clause as otherwise Python will execute the whole code in the script many times,
+and potentially recursively, rather than just parallelizing the fitting.
 
 Performance
 ===========
