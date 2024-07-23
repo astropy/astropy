@@ -129,9 +129,9 @@ Note that it is not yet possible to use ``Quantity`` with dask arrays directly.
 Constructing, accessing, and storing covariance matrices for N-dimensional data
 ===============================================================================
 
-We provide a new utility class that provides, as yet, basic functionality for
-covariance matrices associated `~astropy.nddata.NDData` objects via the new
-`~astropy.nddata.Covariance` class.  See the full :ref:`nddata-covariance`
+We have implemented a new utility class that provides basic functionality for
+covariance matrices associated with `~astropy.nddata.NDData` objects,
+`~astropy.nddata.Covariance`.  See the full :ref:`nddata-covariance`
 documentation.
 
 Full change log
