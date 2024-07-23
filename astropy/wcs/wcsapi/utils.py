@@ -36,16 +36,21 @@ def deserialize_class(tpl, construct=True):
 def wcs_info_str(wcs):
     # Overall header
 
+    if wcs.array_shape is None:
+        array_shape = None
+    else:
+        array_shape = tuple(int(n) for n in wcs.array_shape)
+
     s = (
         f"{type(wcs).__name__} Transformation\n\n"
         f"This transformation has {wcs.pixel_n_dim} pixel and {wcs.world_n_dim} "
         "world dimensions\n\n"
-        f"Array shape (Numpy order): {wcs.array_shape}\n\n"
+        f"Array shape (Numpy order): {array_shape}\n\n"
     )
 
     # Pixel dimensions table
 
-    array_shape = wcs.array_shape or (0,)
+    array_shape = array_shape or (0,)
     pixel_shape = wcs.pixel_shape or (None,) * wcs.pixel_n_dim
 
     # Find largest between header size and value length
@@ -60,13 +65,25 @@ def wcs_info_str(wcs):
             'Bounds\n')
     # fmt: on
 
+    if wcs.pixel_bounds is None:
+        pixel_bounds = [None for _ in range(wcs.pixel_n_dim)]
+    else:
+        # converting to scalar arrays and back to Python with np.array(val).item()
+        # guarantees that we end up with Python scalars (int or float) with
+        # simple reprs, while not making any unnecessary type promotion
+        # (e.g. int to float)
+        pixel_bounds = [
+            tuple(np.array(b).item() for b in bounds) for bounds in wcs.pixel_bounds
+        ]
+
     for ipix in range(wcs.pixel_n_dim):
         # fmt: off
         s += (('{0:' + str(pixel_dim_width) + 'g}').format(ipix) + '  ' +
                 ('{0:' + str(pixel_nam_width) + 's}').format(wcs.pixel_axis_names[ipix] or 'None') + '  ' +
                 (" " * 5 + str(None) if pixel_shape[ipix] is None else
                 ('{0:' + str(pixel_siz_width) + 'g}').format(pixel_shape[ipix])) + '  ' +
-                '{:s}'.format(str(None if wcs.pixel_bounds is None else wcs.pixel_bounds[ipix]) + '\n'))
+                f"{pixel_bounds[ipix]}\n"
+              )
         # fmt: on
 
     s += "\n"
