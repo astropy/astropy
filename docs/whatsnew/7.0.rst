@@ -18,6 +18,7 @@ In particular, this release includes:
 * :ref:`whatsnew_7_0_contributor_doc_improvement`
 * :ref:`whatsnew_7_0_typing_stats`
 * :ref:`whatsnew_7_0_unit_conversion_array_like`
+* :ref:`whatsnew_7_0_nddata_covariance`
 
 In addition to these major changes, Astropy v7.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -122,6 +123,14 @@ value in ``Unit.to`` and have those arrays not be converted to Numpy arrays::
     dask.array<mul, shape=(10,), dtype=float64, chunksize=(10,), chunktype=numpy.ndarray>
 
 Note that it is not yet possible to use ``Quantity`` with dask arrays directly.
+
+Constructing, accessing, and storing covariance matrices for N-dimensional data
+===============================================================================
+
+We provide a new utility class that provides, as yet, basic functionality for
+covariance matrices associated `~astropy.nddata.NDData` objects via the new
+`~astropy.nddata.Covariance` class.  See the full :ref:`nddata-covariance`
+documentation.
 
 Full change log
 ===============
