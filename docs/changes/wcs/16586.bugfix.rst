@@ -1,0 +1,2 @@
+Fix a bug where ``wcs_info_str``'s results would look different in numpy 2 VS
+numpy 1.

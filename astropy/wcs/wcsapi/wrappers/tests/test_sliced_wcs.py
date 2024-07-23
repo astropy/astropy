@@ -702,6 +702,11 @@ HEADER_SPECTRAL_CUBE_NONE_TYPES = {
 WCS_SPECTRAL_CUBE_NONE_TYPES = WCS(header=HEADER_SPECTRAL_CUBE_NONE_TYPES)
 WCS_SPECTRAL_CUBE_NONE_TYPES.pixel_bounds = [(-1, 11), (-2, 18), (5, 15)]
 
+WCS_SPECTRAL_CUBE_NONE_TYPES_NP = WCS(header=HEADER_SPECTRAL_CUBE_NONE_TYPES)
+WCS_SPECTRAL_CUBE_NONE_TYPES_NP.pixel_bounds = [
+    tuple(np.int64(b) for b in t) for t in WCS_SPECTRAL_CUBE_NONE_TYPES.pixel_bounds
+]
+
 
 EXPECTED_ELLIPSIS_REPR_NONE_TYPES = """
 SlicedLowLevelWCS Transformation
@@ -769,6 +774,10 @@ def test_ellipsis_none_types():
     assert_equal(wcs.pixel_bounds, [(-1, 11), (-2, 18), (5, 15)])
 
     assert str(wcs) == EXPECTED_ELLIPSIS_REPR_NONE_TYPES.strip()
+    assert EXPECTED_ELLIPSIS_REPR_NONE_TYPES.strip() in repr(wcs)
+
+    wcs_np = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE_NONE_TYPES_NP, Ellipsis)
+    assert str(wcs_np) == EXPECTED_ELLIPSIS_REPR_NONE_TYPES.strip()
     assert EXPECTED_ELLIPSIS_REPR_NONE_TYPES.strip() in repr(wcs)
 
 
