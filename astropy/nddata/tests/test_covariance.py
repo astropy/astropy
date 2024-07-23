@@ -79,12 +79,14 @@ def test_empty_init():
     assert cov.array is None, "Array should not be defined"
 
 
+@scipy_required
 def test_bad_init_type():
     # It must be possible to convert the input array into a csr_matrix
     with pytest.raises(TypeError):
         cov = covariance.Covariance(array="test")
 
 
+@scipy_required
 def test_shape_mismatch():
     raw_shape, c = mock_cov_2d()
     bad_shape = (2, 2)
@@ -100,6 +102,7 @@ def test_uncertainty_string():
     assert cov.uncertainty_type == "cov", "Uncertainty type changed"
 
 
+@scipy_required
 def test_quantity():
     raw_shape, c = mock_cov_2d()
     cov = covariance.Covariance(array=c, raw_shape=raw_shape, unit="Jy^2")
