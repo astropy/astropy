@@ -1237,7 +1237,7 @@ def _try_url_open(
                 "misconfigured or your local root CA certificates are "
                 "out-of-date; in the latter case this can usually be "
                 'addressed by installing the Python package "certifi" '
-                "(see the documentation for astropy.utils.data.download_url)"
+                "(see the documentation for astropy.utils.data.download_file)"
             )
             if not allow_insecure:
                 msg += (
