@@ -1515,3 +1515,22 @@ def test_sync_constraints_after_fitting():
     assert m.sync_constraints is True
     m.amplitude.fixed = True
     assert m.fixed == {"amplitude": True, "mean": False, "stddev": False}
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_fit_model_with_parameters_change_shape():
+    # Regression test for a bug that caused fitting to fail if a user used
+    # Parameter.value to change the shape of a parameter.
+    # see https://github.com/astropy/astropy/pull/16710
+
+    gauss = models.Gaussian1D(amplitude=[1, 2], mean=[2, 3], stddev=[3, 4])
+    gauss.amplitude.value = 1
+    gauss.mean.value = 2
+    gauss.stddev.value = 3
+
+    fitter = LevMarLSQFitter()
+    gauss_result = fitter(gauss, [1, 2, 3, 4, 5], [1, 2, 5, 2, 1])
+
+    assert_allclose(gauss_result.amplitude.value, 4.742467378491489)
+    assert_allclose(gauss_result.mean.value, 3)
+    assert_allclose(gauss_result.stddev.value, 0.8430777585419369)

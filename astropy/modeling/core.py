@@ -743,6 +743,7 @@ class Model(metaclass=_ModelMeta):
         # Remaining keyword args are either parameter values or invalid
         # Parameter values must be passed in as keyword arguments in order to
         # distinguish them
+        self._parameters = None
         self._initialize_parameters(args, kwargs)
         self._initialize_slices()
         self._initialize_unit_support()
@@ -2744,11 +2745,15 @@ class Model(metaclass=_ModelMeta):
             param_metrics[name]["shape"] = param_shape
             param_metrics[name]["size"] = param_size
             total_size += param_size
-        self._parameters = np.empty(total_size, dtype=np.float64)
+        # We avoid re-allocating the array if it is already allocated and has
+        # the right size, for performance.
+        if self._parameters is None or self._parameters.size != total_size:
+            self._parameters = np.empty(total_size, dtype=np.float64)
 
     def _parameters_to_array(self):
         # Now set the parameter values (this will also fill
         # self._parameters)
+        self._initialize_slices()
         param_metrics = self._param_metrics
         for name in self.param_names:
             param = getattr(self, name)
@@ -3760,7 +3765,10 @@ class CompoundModel(Model):
             param_metrics[name]["shape"] = param_shape
             param_metrics[name]["size"] = param_size
             total_size += param_size
-        self._parameters = np.empty(total_size, dtype=np.float64)
+        # We avoid re-allocating the array if it is already allocated and has
+        # the right size, for performance.
+        if self._parameters is None or self._parameters.size != total_size:
+            self._parameters = np.empty(total_size, dtype=np.float64)
 
     @staticmethod
     def _recursive_lookup(branch, adict, key):
