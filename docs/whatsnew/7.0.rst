@@ -124,6 +124,8 @@ value in ``Unit.to`` and have those arrays not be converted to Numpy arrays::
 
 Note that it is not yet possible to use ``Quantity`` with dask arrays directly.
 
+.. _whatsnew_7_0_nddata_covariance:
+
 Constructing, accessing, and storing covariance matrices for N-dimensional data
 ===============================================================================
 
