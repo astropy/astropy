@@ -188,7 +188,7 @@ To reload the covariance matrix, use the
       0  PRIMARY       1 PrimaryHDU       7   ()
       1  VAR           1 ImageHDU         9   (10,)   float64
       2  CORREL        1 BinTableHDU     18   27R x 3C   [K, K, D]
-    >>> _covar = Covariance.from_fits(ofile, quiet=True)
+    >>> _covar = Covariance.from_fits(ofile)
     >>> np.allclose(covar.toarray(), _covar.toarray())
     True
 
