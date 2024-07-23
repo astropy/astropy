@@ -113,6 +113,37 @@ def test_quantity():
     assert np.array_equal(q.value, cov.toarray()), "Array mismatch"
 
 
+def test_bad_init_type():
+    # It must be possible to convert the input array into a csr_matrix
+    with pytest.raises(TypeError):
+        cov = covariance.Covariance(array="test")
+
+
+def test_shape_mismatch():
+    raw_shape, c = mock_cov_2d()
+    bad_shape = (2, 2)
+    assert (
+        bad_shape != raw_shape
+    ), "Shapes should not match for the test to work properly"
+    with pytest.raises(ValueError):
+        cov = covariance.Covariance(array=c, raw_shape=bad_shape)
+
+
+def test_uncertainty_string():
+    cov = covariance.Covariance()
+    assert cov.uncertainty_type == "cov", "Uncertainty type changed"
+
+
+def test_quantity():
+    raw_shape, c = mock_cov_2d()
+    cov = covariance.Covariance(array=c, raw_shape=raw_shape, unit="Jy^2")
+    q = cov.quantity
+
+    assert isinstance(q, units.Quantity), "Wrong type"
+    assert q.unit == cov.unit, "Unit mismatch"
+    assert np.array_equal(q.value, cov.toarray()), "Array mismatch"
+
+
 @scipy_required
 def test_init():
     c = mock_cov()
@@ -241,6 +272,15 @@ def test_copy():
     _cov = cov.copy()
     assert cov is not _cov, "Objects have the same reference"
     assert cov._rho is not _cov._rho, "Object arrays have the same reference"
+    assert np.array_equal(cov.toarray(), _cov.toarray()), "Arrays should be equal"
+
+    # Convert to correlation
+    cov.to_correlation()
+    _cov = cov.copy()
+    assert cov.cov is not _cov.cov, "Object arrays have the same reference"
+    assert _cov.is_correlation, "Should still be a correlation matrix"
+    cov.revert_correlation()
+    _cov.revert_correlation()
     assert np.array_equal(cov.toarray(), _cov.toarray()), "Arrays should be equal"
 
 

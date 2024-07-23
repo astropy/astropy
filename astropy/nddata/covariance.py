@@ -295,7 +295,7 @@ class Covariance(NDUncertainty):
         return cls(_covar, **kwargs)
 
     @classmethod
-    def from_tables(cls, var, correl, quiet=False):
+    def from_tables(cls, var, correl):
         r"""
         Construct the covariance matrix from a variance array and a table with
         the correlation matrix in coordinate format.
@@ -329,9 +329,6 @@ class Covariance(NDUncertainty):
             provided by the ``COVSHAPE`` keyword in the table metadata
             dictionary (``correl.meta``).  If the unit of the covariance data is
             defined, it must be in the ``BUNIT`` keyword of the table metadata.
-
-        quiet : :obj:`bool`, optional
-            Suppress terminal output.
 
         Returns
         -------
@@ -382,12 +379,6 @@ class Covariance(NDUncertainty):
         # Set covariance data
         cij = correl["RHOIJ"].data * np.sqrt(_var[i] * _var[j])
         cov = coo_matrix((cij, (i, j)), shape=shape).tocsr()
-
-        # Report
-        if not quiet:
-            log.info("Parsed covariance matrix:")
-            log.info(f"             shape: {shape}")
-            log.info(f"   non-zero values: {nnz}")
 
         return cls(array=cov, raw_shape=raw_shape, unit=unit)
 
@@ -1003,9 +994,14 @@ class Covariance(NDUncertainty):
         Parameters
         ----------
         i : `~numpy.ndarray`
-            1D array with the index along the first axis of the covariance matrix
+            1D array with the index along the first axis of the covariance
+            matrix.  Must be in the range 0..N-1, where N is the length of the
+            first axis.
+
         j : `~numpy.ndarray`
-            1D array with the index along the second axis of the covariance matrix
+            1D array with the index along the second axis of the covariance
+            matrix.  Must be in the range 0..N-1, where N is the length of the
+            second axis.
 
         Returns
         -------
@@ -1043,10 +1039,17 @@ class Covariance(NDUncertainty):
                    [0. , 0. , 0.2, 0.5, 1. , 0.5],
                    [0. , 0. , 0. , 0.2, 0.5, 1. ]])
             >>> cov.cov2raw_indices([0,1,2], [3,4,3])  # doctest: +ELLIPSIS
-            ((array([0, 0, 1]...), array([0, 1, 0])...), (array([1, 2, 1]...), array([1, 0, 1])...))
+            ((array([0, 0, 1]...), array([0, 1, 0])...), (array([1, 2, 1]...), array([1, 0, 1]...)))
 
         """
         if self.raw_shape is None:
+            if np.any(
+                (i < 0) | (i > self.shape[0] - 1) | (j < 0) | (j > self.shape[1] - 1)
+            ):
+                raise ValueError(
+                    "Some indices not valid for covariance matrix with shape "
+                    f"{self.shape}."
+                )
             return i, j
         _i = np.atleast_1d(i).ravel()
         _j = np.atleast_1d(j).ravel()
@@ -1062,10 +1065,13 @@ class Covariance(NDUncertainty):
 
         Parameters
         ----------
-        i : `tuple`
+        i : array-like, `tuple`
             A tuple of N array-like objects providing the indices of elements in
-            the N-dimensional data array.
-        j : `tuple`
+            the N-dimensional data array.  This can be an array-like object if
+            ``raw_shape`` is undefined, in which case the values must be in the
+            range 0..N-1, where N is the length of the data array.
+
+        j : array-like, `tuple`
             The same as ``i``, but providing a second set of coordinates at
             which to access the covariance.
 
@@ -1100,6 +1106,13 @@ class Covariance(NDUncertainty):
 
         """
         if self.raw_shape is None:
+            if np.any(
+                (i < 0) | (i > self.shape[0] - 1) | (j < 0) | (j > self.shape[1] - 1)
+            ):
+                raise ValueError(
+                    "Some indices not valid for covariance matrix with shape "
+                    f"{self.shape}."
+                )
             return i, j
         if len(i) != len(self.raw_shape):
             raise ValueError(
