@@ -92,7 +92,7 @@ Slicing or indexing (:ref:`nddata_slicing`) is possible (with warnings issued if
 some attribute cannot be sliced)::
 
     >>> ndd2[2:]  # discard the first two elements  # doctest: +FLOAT_CMP
-    NDDataRef([———, ———], unit='erg / s')
+    NDDataRef([ ———,  ———], unit='erg / s')
     >>> ndd2[1]   # get the second element  # doctest: +FLOAT_CMP
     NDDataRef(-1.5, unit='erg / s')
 

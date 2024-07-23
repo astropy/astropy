@@ -1,0 +1,3 @@
+Array printing methods now properly retrieve numpy printing options.
+In some cases, this may slightly affect the string representation of masked
+objects.

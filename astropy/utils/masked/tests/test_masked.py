@@ -1382,16 +1382,24 @@ def test_masked_str_repr_explicit_float():
     sa = np.array([np.pi, 2 * np.pi])
     msa = Masked(sa, [False, True])
     # Test masking  the array works as expected, including truncating digits
-    assert str(msa) == "[3.14159265        ———]"
+    assert (
+        str(msa) == "[3.14159265        ———]"
+        if NUMPY_LT_2_0
+        else "[ 3.14159265         ———]"
+    )
     # Test the digits are kept for scalars.
     assert str(msa[0]) == "3.141592653589793" == str(sa[0])
     # And that the masked string has the same length.
     assert str(msa[1]) == "              ———"
     # Test temporary precision change (which does not affect scalars).
     with np.printoptions(precision=3, floatmode="fixed"):
-        assert str(msa) == "[3.142   ———]"
+        assert str(msa) == "[3.142   ———]" if NUMPY_LT_2_0 else "[ 3.142    ———]"
         assert str(msa[0]) == "3.141592653589793" == str(sa[0])
-    assert repr(msa) == "MaskedNDArray([3.14159265,        ———])"
+    assert (
+        repr(msa) == "MaskedNDArray([3.14159265,        ———])"
+        if NUMPY_LT_2_0
+        else "MaskedNDArray([ 3.14159265,         ———])"
+    )
 
 
 def test_masked_str_explicit_string():
@@ -1408,11 +1416,17 @@ def test_masked_str_explicit_string():
 def test_masked_str_explicit_structured():
     sa = np.array([(1.0, 2.0), (3.0, 4.0)], dtype="f8,f8")
     msa = Masked(sa, [(False, True), (False, False)])
-    assert str(msa) == "[(1., ——) (3., 4.)]"
+    assert (
+        str(msa) == "[(1., ——) (3., 4.)]" if NUMPY_LT_2_0 else "[( 1., ———) ( 3.,  4.)]"
+    )
     assert str(msa[0]) == ("(1., ——)" if NUMPY_LT_2_0 else "(1.0, ———)")
     assert str(msa[1]) == str(sa[1]) == ("(3., 4.)" if NUMPY_LT_2_0 else "(3.0, 4.0)")
     with np.printoptions(precision=3, floatmode="fixed"):
-        assert str(msa) == "[(1.000,   ———) (3.000, 4.000)]"
+        assert (
+            str(msa) == "[(1.000,   ———) (3.000, 4.000)]"
+            if NUMPY_LT_2_0
+            else "[( 1.000,    ———) ( 3.000,  4.000)]"
+        )
         assert str(msa[0]) == ("(1.000,   ———)" if NUMPY_LT_2_0 else "(1.0, ———)")
         assert (
             str(msa[1])
@@ -1425,22 +1439,41 @@ def test_masked_repr_explicit_structured():
     # Use explicit endianness to ensure tests pass on all architectures
     sa = np.array([(1.0, 2.0), (3.0, 4.0)], dtype=">f8,>f8")
     msa = Masked(sa, [(False, True), (False, False)])
-    assert (
-        repr(msa)
-        == "MaskedNDArray([(1., ——), (3., 4.)], dtype=[('f0', '>f8'), ('f1', '>f8')])"
-    )
-    assert (
-        repr(msa[0]) == "MaskedNDArray((1., ——), dtype=[('f0', '>f8'), ('f1', '>f8')])"
-    )
-    assert (
-        repr(msa[1]) == "MaskedNDArray((3., 4.), dtype=[('f0', '>f8'), ('f1', '>f8')])"
-    )
+    if NUMPY_LT_2_0:
+        assert repr(msa) == (
+            "MaskedNDArray([(1., ——), (3., 4.)], dtype=[('f0', '>f8'), ('f1', '>f8')])"
+        )
+        assert (
+            repr(msa[0])
+            == "MaskedNDArray((1., ——), dtype=[('f0', '>f8'), ('f1', '>f8')])"
+        )
+        assert (
+            repr(msa[1])
+            == "MaskedNDArray((3., 4.), dtype=[('f0', '>f8'), ('f1', '>f8')])"
+        )
+    else:
+        assert repr(msa) == (
+            "MaskedNDArray([( 1., ———), ( 3.,  4.)],\n"
+            "              dtype=[('f0', '>f8'), ('f1', '>f8')])"
+        )
+        assert (
+            repr(msa[0])
+            == "MaskedNDArray(( 1., ———), dtype=[('f0', '>f8'), ('f1', '>f8')])"
+        )
+        assert (
+            repr(msa[1])
+            == "MaskedNDArray(( 3.,  4.), dtype=[('f0', '>f8'), ('f1', '>f8')])"
+        )
 
 
 def test_masked_repr_summary():
     ma = Masked(np.arange(15.0), mask=[True] + [False] * 14)
     with np.printoptions(threshold=2):
-        assert repr(ma) == "MaskedNDArray([———,  1.,  2., ..., 12., 13., 14.])"
+        assert (
+            repr(ma) == "MaskedNDArray([———,  1.,  2., ..., 12., 13., 14.])"
+            if NUMPY_LT_2_0
+            else "MaskedNDArray([ ———,   1.,   2., ...,  12.,  13.,  14.])"
+        )
 
 
 def test_masked_repr_nodata():
@@ -1523,8 +1556,15 @@ class TestMaskedRecarray(MaskedArraySetup):
     def test_recarray_repr(self):
         # Omit dtype part with endian-dependence.
         assert repr(self.mra).startswith(
-            "MaskedRecarray([[(———, ———), ( 3.,  4.)],\n"
-            "                [(11., ———), (———, 14.)]],\n"
+            (
+                "MaskedRecarray([[(———, ———), ( 3.,  4.)],\n"
+                "                [(11., ———), (———, 14.)]],\n"
+            )
+            if NUMPY_LT_2_0
+            else (
+                "MaskedRecarray([[( ———,  ———), (  3.,   4.)],\n"
+                "                [( 11.,  ———), ( ———,  14.)]],\n"
+            )
         )
 
     def test_recarray_represent_as_dict(self):

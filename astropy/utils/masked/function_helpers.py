@@ -1226,22 +1226,14 @@ def array2string(
     legacy=None,
 ):
     # Copied from numpy.core.arrayprint, but using _array2string above.
-    if NUMPY_LT_2_1:
-        if NUMPY_LT_2_0:
-            from numpy.core.arrayprint import _format_options
-        else:
-            from numpy._core.arrayprint import _format_options
-        options = _format_options.copy()
-    else:
-        from numpy._core.printoptions import format_options
-
-        options = format_options.get().copy()
-
     if NUMPY_LT_2_0:
-        from numpy.core.arrayprint import _make_options_dict
+        from numpy.core.arrayprint import _format_options, _make_options_dict
+
+        options = _format_options.copy()
     else:
         from numpy._core.arrayprint import _make_options_dict
 
+        options = np.get_printoptions()
     overrides = _make_options_dict(
         precision,
         threshold,
@@ -1289,15 +1281,7 @@ def array_str(a, max_line_width=None, precision=None, suppress_small=None):
             from numpy._core.arrayprint import StructuredVoidFormat
 
             # Following numpy._core.arrayprint._void_scalar_to_string
-            if NUMPY_LT_2_1:
-                from numpy._core.arrayprint import _format_options
-
-                options = _format_options.copy()
-            else:
-                from numpy._core.printoptions import format_options
-
-                options = format_options.get().copy()
-
+            options = np.get_printoptions()
             if options.get("formatter") is None:
                 options["formatter"] = {}
             options["formatter"].setdefault("float_kind", str)

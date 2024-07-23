@@ -1271,7 +1271,11 @@ class TestStringFunctions:
         assert out == "MaskedNDArray([—, 1, 2])"
         ma2 = self.ma.astype("f4")
         out2 = np.array_repr(ma2)
-        assert out2 == "MaskedNDArray([——, 1., 2.], dtype=float32)"
+        assert (
+            out2 == "MaskedNDArray([——, 1., 2.], dtype=float32)"
+            if NUMPY_LT_2_0
+            else "MaskedNDArray([———,  1.,  2.], dtype=float32)"
+        )
 
     def test_array_str(self):
         out = np.array_str(self.ma)

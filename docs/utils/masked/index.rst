@@ -34,10 +34,10 @@ as addition, etc.::
   >>> from astropy.utils.masked import Masked
   >>> ma = Masked([1., 2., 3.], mask=[False, False, True])
   >>> ma
-  MaskedNDArray([1., 2., ——])
+  MaskedNDArray([ 1.,  2., ———])
   >>> mq = ma * u.m
   >>> mq + 25 * u.cm
-  <MaskedQuantity [1.25, 2.25,  ———] m>
+  <MaskedQuantity [ 1.25,  2.25,   ———] m>
 
 You can get the values without the mask using
 `~astropy.utils.masked.Masked.unmasked`, or, if you need to control what
@@ -54,9 +54,9 @@ done directly::
 
   >>> ma = Masked([[0., 1.], [2., 3.]], mask=[[False, True], [False, False]])
   >>> ma.sum(axis=-1)
-  MaskedNDArray([——, 5.])
+  MaskedNDArray([———,  5.])
   >>> ma.sum()
-  MaskedNDArray(——)
+  MaskedNDArray(———)
 
 You might wonder why masked elements are propagated, instead of just being
 skipped (as is done in `~numpy.ma.MaskedArray`; see :ref:`below
@@ -100,7 +100,7 @@ have if the operations were done on the individual elements::
   >>> np_ma[0] * np_ma[1] * np_ma[2]
   masked
   >>> Masked(np_ma).prod()
-  MaskedNDArray(——)
+  MaskedNDArray(———)
 
 The rationale for this becomes clear again by thinking about subclasses like a
 masked |Quantity|.  For instance, consider an array ``s`` of lengths with
