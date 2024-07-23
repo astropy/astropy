@@ -4106,24 +4106,6 @@ class CompoundModel(Model):
         else:
             raise ValueError(f"No submodels found named {name}")
 
-    def _set_sub_models_and_parameter_units(self, left, right):
-        """
-        Provides a work-around to properly set the sub models and respective
-        parameters's units/values when using ``without_units_for_data``
-        or ``without_units_for_data`` methods.
-        """
-        model = CompoundModel(self.op, left, right)
-
-        self.left = left
-        self.right = right
-
-        for name in model.param_names:
-            model_parameter = getattr(model, name)
-            parameter = getattr(self, name)
-
-            parameter.value = model_parameter.value
-            parameter._set_unit(model_parameter.unit, force=True)
-
     def without_units_for_data(self, **kwargs):
         """
         See `~astropy.modeling.Model.without_units_for_data` for overview
@@ -4221,10 +4203,8 @@ class CompoundModel(Model):
             left = self.left.with_units_from_data(**left_kwargs)
             right = self.right.with_units_from_data(**right_kwargs)
 
-            model = self.copy()
-            model._set_sub_models_and_parameter_units(left, right)
+            return CompoundModel(self.op, left, right, name=self.name)
 
-            return model
         else:
             return super().with_units_from_data(**kwargs)
 
