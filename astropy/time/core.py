@@ -1922,10 +1922,7 @@ class TimeBase(ShapedLikeNDArray):
         return NotImplemented
 
     def _isnat(self):
-        if self.masked:
-            return np.isnan(self.jd2.filled(np.nan))
-        else:
-            return np.isnan(self.jd2)
+        return np.isnan(self.jd2)
 
 
 class Time(TimeBase):

@@ -96,3 +96,15 @@ def test_string_formats(fmt, example):
 
     t = Time(["NaT", example], format=fmt)
     assert np.all(np.isnat(t) == [True, False])
+
+
+@pytest.mark.parametrize("func", (np.isnan, np.isnat))
+def test_masked(func):
+    """Test isnan/isnat behaviour on masked Time"""
+    time = Time(np.ma.masked_array(np.nan, mask=True), format="mjd")
+    assert func(time).mask
+
+    mjd = np.ma.masked_array([np.nan, np.nan, 60e3], mask=[False, True, False])
+    time = Time(mjd, format="mjd")
+    expected = np.ma.masked_array([True, True, False], mask=time.mask)
+    np.testing.assert_array_equal(func(time), expected)
