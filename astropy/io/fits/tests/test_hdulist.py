@@ -19,6 +19,9 @@ from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 from .conftest import FitsTestCase
 
 
+@pytest.mark.filterwarnings(
+    "ignore:Memory map object was closed but appears to still be referenced:UserWarning"
+)
 class TestHDUListFunctions(FitsTestCase):
     def test_update_name(self):
         with fits.open(self.data("o4sp040b0_raw.fits")) as hdul:

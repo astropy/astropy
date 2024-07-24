@@ -234,6 +234,9 @@ class TestImageFunctions(FitsTestCase):
         with fits.open(self.temp("test.fits")) as hdul:
             assert hdul[0].name == "XPRIMARY2"
 
+    @pytest.mark.filterwarnings(
+        "ignore:Memory map object was closed but appears to still be referenced:UserWarning"
+    )
     def test_io_manipulation(self):
         # Get a keyword value.  An extension can be referred by name or by
         # number.  Both extension and keyword names are case insensitive.
