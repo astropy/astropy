@@ -54,10 +54,10 @@ class OGIP(generic.Generic):
         "UNIT",
     )
 
-    _functions: ClassVar[list[str]] = [
+    _functions: ClassVar[frozenset[str]] = frozenset((
         "log", "ln", "exp", "sqrt", "sin", "cos", "tan",
         "asin", "acos", "atan", "sinh", "cosh", "tanh",
-    ]  # fmt: skip
+    ))  # fmt: skip
 
     @classmethod
     def _generate_unit_names(cls):
@@ -205,25 +205,20 @@ class OGIP(generic.Generic):
                             | UNIT OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
                             | OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
             """
-            # If we run p[1] in cls._functions, it will try and parse each
-            # item in the list into a unit, which is slow. Since we know that
-            # all the items in the list are strings, we can simply convert
-            # p[1] to a string instead.
-            p1_str = str(p[1])
-
-            if p1_str in cls._functions and p1_str != "sqrt":
-                raise ValueError(
-                    f"The function '{p[1]}' is valid in OGIP, but not understood "
-                    "by astropy.units."
-                )
+            bad_function_message = (
+                "The function '{}' is valid in OGIP, but not understood "
+                "by astropy.units."
+            )
             bad_multiplication_message = (
                 "if '{0}{1}' was meant to be a multiplication, "
                 "it should have been written as '{0} {1}'."
             )
 
             if len(p) == 7:
-                if p1_str == "sqrt":
+                if p[1] == "sqrt":
                     p[0] = p[3] ** (0.5 * p[6])
+                elif p[1] in cls._functions:
+                    raise ValueError(bad_function_message.format(p[1]))
                 else:
                     raise ValueError(
                         bad_multiplication_message.format(p[1], f"({p[3]})**{p[6]}")
@@ -231,8 +226,10 @@ class OGIP(generic.Generic):
             elif len(p) == 6:
                 p[0] = p[2] ** p[5]
             elif len(p) == 5:
-                if p1_str == "sqrt":
+                if p[1] == "sqrt":
                     p[0] = p[3] ** 0.5
+                elif p[1] in cls._functions:
+                    raise ValueError(bad_function_message.format(p[1]))
                 else:
                     raise ValueError(
                         bad_multiplication_message.format(p[1], f"({p[3]})")
