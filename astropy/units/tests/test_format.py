@@ -264,6 +264,11 @@ def test_ogip_grammar_fail(string):
         u_format.OGIP.parse(string)
 
 
+@pytest.mark.xfail(reason="'acos' is not understood by astropy", raises=ValueError)
+def test_ogip_unusable_function():
+    u_format.OGIP.parse("acos(m)**2")
+
+
 @pytest.mark.parametrize("string", ["sqrt(m)**3", "sqrt(m**3)", "(sqrt(m))**3"])
 def test_ogip_sqrt(string):
     # Regression test for #16743 - sqrt(m)**3 caused a ValueError
