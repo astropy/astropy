@@ -56,7 +56,7 @@ documentation <https://pip.pypa.io/en/stable/user_guide/#user-installs>`_.
 
 Alternatively, if you intend to do development on other software that uses
 ``astropy``, such as an affiliated package, consider installing ``astropy``
-into a :ref:`virtualenv <astropy-dev:virtual_envs>`.
+into a `Python virtual environment <https://docs.python.org/3/tutorial/venv.html>`__.
 
 Do **not** install ``astropy`` or other third-party packages using ``sudo``
 unless you are fully aware of the risks.
