@@ -207,6 +207,7 @@ def get_readable_fileobj(
     sources=None,
     http_headers=None,
     *,
+    pkgname="astropy",
     use_fsspec=None,
     fsspec_kwargs=None,
     close_files=True,
@@ -279,6 +280,11 @@ def get_readable_fileobj(
         is not a remote HTTP URL.) In the default case (None), the headers are
         ``User-Agent: some_value`` and ``Accept: */*``, where ``some_value``
         is set by ``astropy.utils.data.conf.default_http_user_agent``.
+
+    pkgname : `str`, optional
+        The package name to use to locate the download cache. i.e. for
+        ``pkgname='astropy'`` the default cache location is
+        ``~/.astropy/cache``.
 
     use_fsspec : bool, optional
         Use `fsspec.open` to open the file? Defaults to `False` unless
@@ -361,6 +367,7 @@ def get_readable_fileobj(
                     timeout=remote_timeout,
                     sources=sources,
                     http_headers=http_headers,
+                    pkgname=pkgname,
                 )
             fileobj = io.FileIO(name_or_obj, "r")
             if is_url and not cache:
