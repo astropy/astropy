@@ -13,10 +13,10 @@ from astropy.units.utils import maybe_simple_fraction
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator, Iterable, Sequence
-    from numbers import Real
     from typing import TypeVar
 
     from astropy.units import UnitBase
+    from astropy.units.typing import Real
 
     T = TypeVar("T")
 
