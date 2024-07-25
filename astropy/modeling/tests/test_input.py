@@ -245,7 +245,7 @@ class TestFitting:
                 theta=[0, 0],
                 n_models=2,
             )
-            z = g2(self.x.flatten(), self.y.flatten())
+            z = g2(self.x.ravel(), self.y.ravel())
             _ = fitter(g2, self.x, self.y, z)
 
 
