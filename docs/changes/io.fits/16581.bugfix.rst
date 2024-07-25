@@ -1,5 +1,0 @@
-Fixed a crash that occurred for files opened via
-``fits.open(..., mode='update')``, on Windows, and with numpy 2.0 installed.
-A warning is now emitted in cases most likely to escalate into
-undefined behavior (e.g., segfaults), i.e., when a closed memory map object is
-still referenced by external code. Please report any regression found.

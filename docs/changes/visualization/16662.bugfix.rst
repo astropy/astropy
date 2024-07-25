@@ -1,1 +1,0 @@
-Fixed a WCSAxes bug when overlaying a frame with default units that are not degrees.

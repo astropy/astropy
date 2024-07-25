@@ -1,3 +1,0 @@
-Fixed a bug that caused models returned by non-linear fitters to have
-``sync_constraints`` set to `False`, which caused constraints accessed through, e.g.,
-``Model.fixed`` to not be in sync with the ``fixed`` attribute of the parameters.

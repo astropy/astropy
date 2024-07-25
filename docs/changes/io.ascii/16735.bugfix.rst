@@ -1,2 +1,0 @@
-When reading CDS and MRT files, only interpret a line as a section delimiter if
-it contains exclusively dashes or equal signs. This enables rows starting with dashes.
