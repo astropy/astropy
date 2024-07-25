@@ -3637,28 +3637,11 @@ class CompoundModel(Model):
                     self._parameters_[new_param_name] = param
                     self._param_names.append(new_param_name)
                     param_map[new_param_name] = (lindex, param_name)
-        self._param_metrics = {}
+        self._param_metrics = defaultdict(dict)
         self._param_map = param_map
         self._param_map_inverse = {v: k for k, v in param_map.items()}
         self._initialize_slices()
         self._param_names = tuple(self._param_names)
-
-    def _initialize_slices(self):
-        param_metrics = self._param_metrics
-        total_size = 0
-
-        for name in self.param_names:
-            param = getattr(self, name)
-            value = param.value
-            param_size = np.size(value)
-            param_shape = np.shape(value)
-            param_slice = slice(total_size, total_size + param_size)
-            param_metrics[name] = {}
-            param_metrics[name]["slice"] = param_slice
-            param_metrics[name]["shape"] = param_shape
-            param_metrics[name]["size"] = param_size
-            total_size += param_size
-        self._parameters = np.empty(total_size, dtype=np.float64)
 
     @staticmethod
     def _recursive_lookup(branch, adict, key):
