@@ -42,6 +42,8 @@
  * Helper functions                                                        *
  ***************************************************************************/
 
+static int WCSSET = 137;
+
 enum e_altlin {
   has_pc = 1,
   has_cd = 2,
@@ -1619,6 +1621,15 @@ static int
 PyWcsprm_cset(
     PyWcsprm* self,
     const int convert) {
+
+  /* A (previous) call to wcsset() will set the flag to WCSSET -
+  and if any of the fields got set from python, then the wcs->flag
+  gets changed to 0 by note_change(). Therefore, if x.flag == WCSSET,
+  there is no need to call wcsset() and we can return immediately. Was
+  needed to solve #16245 - memory race condition with multiple threads */
+  if(self->x.flag == WCSSET) {
+    return 0;
+  }
 
   int status = 0;
 
