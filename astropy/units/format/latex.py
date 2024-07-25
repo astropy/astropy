@@ -12,10 +12,10 @@ from typing import TYPE_CHECKING
 from . import console, utils
 
 if TYPE_CHECKING:
-    from numbers import Real
     from typing import ClassVar, Literal
 
     from astropy.units import NamedUnit, UnitBase
+    from astropy.units.typing import Real
 
 
 class Latex(console.Console):

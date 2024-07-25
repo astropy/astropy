@@ -8,12 +8,12 @@ from . import utils
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-    from numbers import Real
     from typing import ClassVar, Literal
 
     import numpy as np
 
     from astropy.units import NamedUnit, UnitBase
+    from astropy.units.typing import Real
 
 
 class Base:
