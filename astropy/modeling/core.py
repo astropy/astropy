@@ -19,8 +19,6 @@ import copy
 import functools
 import inspect
 import operator
-import re
-import warnings
 from collections import defaultdict, deque
 from inspect import signature
 from textwrap import indent
@@ -2815,43 +2813,12 @@ class Model(metaclass=_ModelMeta):
         try:
             np.broadcast_shapes(*all_shapes)
         except ValueError as exc:
-            # In a previous version, we used to have our own version of
-            # np.broadcast_shapes (check_broadcast). In order to preserve
-            # backward compatibility, we now have to go the extra mile and
-            # parse an error message controlled by numpy.
             base_message = (
                 "All parameter arrays "
                 "must have shapes that are mutually compatible according "
                 "to the broadcasting rules."
             )
-            broadcast_shapes_error_re = re.compile(
-                r"shape mismatch: objects cannot be broadcast to a single shape\.  "
-                r"Mismatch is between "
-                r"arg (?P<argno_a>\d+) with shape (?P<shape_a>\((\d+(, ?)?)+\)) and "
-                r"arg (?P<argno_b>\d+) with shape (?P<shape_b>\((\d+(, ?)?)+\))\."
-            )
-            if (match := broadcast_shapes_error_re.fullmatch(str(exc))) is not None:
-                shape_a = match.group("shape_a")
-                shape_b = match.group("shape_b")
-                shape_a_idx = int(match.group("argno_a"))
-                shape_b_idx = int(match.group("argno_b"))
-                param_a = self.param_names[shape_a_idx]
-                param_b = self.param_names[shape_b_idx]
-                message = (
-                    f"Parameter {param_a!r} of shape {shape_a} cannot be broadcast with "
-                    f"parameter {param_b!r} of shape {shape_b}."
-                )
-            else:
-                warnings.warn(
-                    "Failed to parse error message from np.broadcast_shapes. "
-                    "Please report this at "
-                    "https://github.com/astropy/astropy/issues/new/choose",
-                    category=RuntimeWarning,
-                    stacklevel=1,
-                )
-                message = "Some parameters failed to broadcast with each other."
-
-            raise InputParameterError(f"{message} {base_message}") from None
+            raise InputParameterError(f"{base_message} {repr(exc)}") from None
 
     def _param_sets(self, raw=False, units=False):
         """
