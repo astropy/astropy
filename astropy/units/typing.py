@@ -5,8 +5,10 @@ from __future__ import annotations
 __all__ = ["QuantityLike"]
 
 
+from fractions import Fraction
 from typing import TYPE_CHECKING
 
+import numpy as np
 import numpy.typing as npt
 
 from astropy.units import Quantity
@@ -64,3 +66,11 @@ Strings:
 For more examples see the :mod:`numpy.typing` definition of
 :obj:`numpy.typing.ArrayLike`.
 """
+
+
+# The classes from the standard library `numbers` module are not suitable for
+# type checking (https://github.com/python/mypy/issues/3186). For now we define
+# our own number types, but if a good definition becomes available upstream
+# then we should switch to that.
+Real: TypeAlias = int | float | Fraction | np.integer | np.floating
+Complex: TypeAlias = Real | complex | np.complexfloating

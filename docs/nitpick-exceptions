@@ -83,7 +83,6 @@ py:class a shallow copy of D
 # types
 py:class EllipsisType
 py:class ModuleType
-py:class Real
 # numpy
 py:class np.number
 # numpy.typing

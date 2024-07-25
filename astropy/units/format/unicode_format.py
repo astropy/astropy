@@ -11,10 +11,10 @@ from typing import TYPE_CHECKING
 from . import console, utils
 
 if TYPE_CHECKING:
-    from numbers import Real
     from typing import ClassVar
 
     from astropy.units import NamedUnit
+    from astropy.units.typing import Real
 
 
 class Unicode(console.Console):
