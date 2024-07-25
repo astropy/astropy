@@ -18,10 +18,11 @@ from numpy import finfo
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Sequence
-    from numbers import Complex, Real
     from typing import Literal, SupportsFloat, TypeVar
 
     from numpy.typing import ArrayLike, NDArray
+
+    from astropy.units.typing import Complex, Real
 
     from .core import UnitBase
     from .quantity import Quantity
