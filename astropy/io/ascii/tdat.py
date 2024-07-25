@@ -7,7 +7,6 @@ not meant to be used directly, but instead are available as readers/writers in
          Daniel Giles (daniel.k.giles@gmail.com)
 """
 
-import itertools
 import re
 from collections import OrderedDict
 from copy import deepcopy
@@ -33,20 +32,13 @@ class TdatFormatWarning(AstropyWarning):
     """Tdat Format Warning"""
 
 
-class TdatMeta:
-    """A base class for the Header and Data classes
-    """
+class TdatHeader(basic.BasicHeader):
+    """TDAT table header"""
 
+    cols = None
+    comment = r"\s*(#|//)"
     # comments: # or //
     _comment = r"\s*(#|//)(.*)$"
-
-    # keywords in the header: name = value
-    _keys = r"(?P<key>\w+)\s*=\s*([\'])?(?P<value>.*?)(?(2)\2|\s*$)"
-    # keywords in the header: name[text] = some_other_text; name: relate|line
-    _extra_keys = (
-        r"\s*(relate|line|parameter_defaults)\[(\w+)\]\s*=\s*([\w\s]+)(?:\((\w+)\))?"
-    )
-    _deprecated_keys = r"\s*(record_delimiter|field_delimiter)\s*=\s\"(.+)\""
     # descriptors that shouldn't be registered as comments
     _desc_comments = [
         "Table Parameters",
@@ -54,91 +46,41 @@ class TdatMeta:
         "Relationship Definitions",
         "Data Format Specification",
     ]
+    # keywords in the header: name = value
+    _keys = r"(?P<key>\w+)\s*=\s*([\'])?(?P<value>.*?)(?(2)\2|\s*$)"
+    # keywords in the header: name[text] = some_other_text;
+    # names: relate|line
+    _extra_keys = r"\s*(relate|line)\[(\w+)\]\s*=\s*([\w\s]+)(?:\((\w+)\))?"
+    _field_line = r"\s*field\[\w+\]\s*=\.*"
 
-    _comments = None
-    _keywords = None
-    _col_lines = None
-    _line_fields = None
-    _idx_lines = None
-    _delimiter = "|"
-    _record_delimiter = None
-
-    # _deprecated_keywords = ("record_delimiter", "field_delimiter")
+    _deprecated_keys = r"\s*(record_delimiter|field_delimiter)\s*=\s\"(.+)\""
     _required_keywords = ("table_name",)
 
-    def _process_lines(self, lines, ltype):
-        """Generator to process lines to separate header|data|comment
-
-        Yields
-        ------
-        str
-            String value of a line which matches the criteria
-        """
-        is_header = False
-        is_data = False
+    def _validate_comment(self, line) -> bool:
+        """Check if line is a valid comment, return comment if so"""
         comment_parser = re.compile(self._comment)
+        cmatch = comment_parser.match(line)
+        if cmatch:
+            # Ignore common section headers
+            for cc in self._desc_comments:
+                if cc in cmatch.group(2):
+                    return False
+            # Ignore empty comments
+            return cmatch.group(2) != ""
+        return False
 
-        desc_comments = self._desc_comments
+    def _process_comment(self, line: str) -> str:
+        line = re.sub("^" + self.comment, "", line).strip()
+        return line
 
-        for line in lines:
-            # handle comments first
-            cmatch = comment_parser.match(line)
-
-            if cmatch:
-                if ltype != "comment":
-                    continue
-                add = True
-                for cc in desc_comments:
-                    if cc in cmatch.group(2):
-                        # ignore keywords from desc_comments
-                        add = False
-                        break
-                # exclude empty comment lines
-                if cmatch.group(2) == "":
-                    add = False
-                if not add:
-                    continue
-                yield cmatch.group(2)
-
-            if "<header>" in line.lower():
-                is_header = True
-                # we don't want <header> itself
-                continue
-
-            elif "<data>" in line.lower():
-                is_header = False
-                is_data = True
-                continue
-
-            elif "<end>" in line.lower():
-                break
-
-            if ltype == "header" and is_header and cmatch is None:
-                yield line
-
-            elif ltype == "data" and is_data and cmatch is None:
-                yield line
-
-    def _parse_header(self, lines):
-        """Parse header into keywords and comments and column descriptors"""
-        # if already parsed, do not repeat
-        if (
-            self._comments is not None
-            and self._keywords is not None
-            and self._col_lines is not None
-        ):
-            return
-
-        keywords = OrderedDict()
-        col_lines = {}
+    def _process_keywords(self, lines):
         line_fields = OrderedDict()
-        idx_lines = {"key": None, "index": []}
-
+        keywords = getattr(self, "_keywords", OrderedDict())
         keys_parser = re.compile(self._keys)
         extra_keys_parser = re.compile(self._extra_keys)
         deprecated_keys_parser = re.compile(self._deprecated_keys)
 
-        for line in self._process_lines(lines, "header"):
+        for line in lines:
             kmatch = keys_parser.match(line)
             ematch = extra_keys_parser.match(line)
             dmatch = deprecated_keys_parser.match(line)
@@ -148,12 +90,9 @@ class TdatMeta:
                     TdatFormatWarning,
                 )
                 if dmatch.group(1) == "record_delimiter":
-                    self._record_delimiter = dmatch.group(2)
+                    self.record_delimiter = dmatch.group(2)
                 elif dmatch.group(1) == "field_delimiter":
-                    self._delimiter = dmatch.group(2)
-            elif kmatch:
-                key = kmatch.group("key")
-                keywords[kmatch.group("key")] = kmatch.group("value")
+                    self.delimiter = dmatch.group(2)
             elif ematch:
                 # match extra keywords
                 if ematch.group(1) == "relate":
@@ -161,64 +100,54 @@ class TdatMeta:
                         f'"relate" keyword is obsolete and will be ignored. {_STD_MSG}',
                         TdatFormatWarning,
                     )
-                    continue
                 elif ematch.group(1) == "line":
                     # fields in line; typically only 1, but can be more
                     line_fields[ematch.group(2)] = ematch.group(3).split()
 
-            else:
-                if "field" in line:
-                    col_lines[line.split("]")[0].split("[")[1]] = line
-                    if "(key)" in line:
-                        idx_lines["key"] = line.split("]")[0].split("[")[1]
-                    elif "(index)" in line:
-                        idx_lines["index"] += [line.split("]")[0].split("[")[1]]
-        # check we have the required keywords
+            elif kmatch:
+                key = kmatch.group("key")
+                keywords[key] = kmatch.group("value")
 
-        self._comments = list(self._process_lines(lines, "comment"))
-        self._col_lines = col_lines
-        self._idx_lines = idx_lines
-
-        # raise an error if no 'line[...] is found in the header'
-        if len(line_fields) == 0:
-            raise TdatFormatError(
-                '"line[..]" keyword is required but not found in the header.\n'
-            )
         self._line_fields = line_fields
 
-        # raise and error if a required keyword is not present
-        for key in self._required_keywords:
-            if key not in keywords:
-                raise TdatFormatError(
-                    f'"{key}" keyword is required but not found in the header.\n'
-                )
-        self._keywords = keywords
-
-
-class TdatHeader(basic.BasicHeader, TdatMeta):
-    """TDAT table header"""
-    cols = None
+        if len(keywords) > len(getattr(self, "_keywords", OrderedDict())):
+            self._keywords = keywords
 
     def update_meta(self, lines, meta):
         """Extract meta information: comments and key/values in the header
         READ: Overrides the default update_meta
         """
-        self._parse_header(lines)
-        meta["table"]["comments"] = self._comments
+        start_line = (
+            min(i for i, line in enumerate(lines) if line.strip() == "<HEADER>") + 1
+        )
+        end_line = min(i for i, line in enumerate(lines) if line.strip() == "<DATA>")
+
+        meta["table"]["comments"] = [
+            self._process_comment(line)
+            for line in lines[start_line:end_line]
+            if self._validate_comment(line)
+        ]
+        self._process_keywords(lines)
         meta["table"]["keywords"] = self._keywords
-        meta["table"]["field_lines"] = self._col_lines
-        meta["table"]["index_lines"] = self._idx_lines
 
     def process_lines(self, lines):
-        """Select lines between <HEADER> and <DATA>"""
-        # if already processed, yield the lines
-        self._parse_header(lines)
-        yield from self._col_lines.values()
+        """Select and process lines between <HEADER> and <DATA> lines
+        READ: Override default process_lines
+        """
+        fl_parser = re.compile(self._field_line)
+
+        start_line = (
+            min(i for i, line in enumerate(lines) if line.strip() == "<HEADER>") + 1
+        )
+        end_line = min(i for i, line in enumerate(lines) if line.strip() == "<DATA>")
+        for line in lines[start_line:end_line]:
+            if fl_parser.match(line):
+                yield line
 
     def get_cols(self, lines):
-        """Identify the columns and table description"""
-        # generator returning valid header lines
-
+        """Initialize the header Column objects from TDAT field lines
+        READ: Overrides default get_cols
+        """
         col_parser = re.compile(
             r"""
             \s*field
@@ -239,6 +168,7 @@ class TdatHeader(basic.BasicHeader, TdatMeta):
         )
 
         cols = []
+        keywords = getattr(self, "_keywords", OrderedDict())
         for line in self.process_lines(lines):
             # look for field[..]= ... column definitions
             cmatch = col_parser.match(line)
@@ -260,7 +190,8 @@ class TdatHeader(basic.BasicHeader, TdatMeta):
                     if cmatch.group(val) is not None:
                         col.meta[val] = cmatch.group(val)
                 cols.append(col)
-
+        if len(keywords) > len(getattr(self, "_keywords", OrderedDict())):
+            self._keywords = keywords
         self.names = [col.name for col in cols]
         self.cols = cols
         # check that cols and _line_fields are consistent or throw an error
@@ -274,7 +205,7 @@ class TdatHeader(basic.BasicHeader, TdatMeta):
             )
 
     def write_comments(self, lines, meta):
-        """
+        """Write comment lines in the header
         WRITE: Override the default write_comments to include <HEADER> as first line
         """
         lines.append("<HEADER>")
@@ -299,15 +230,6 @@ class TdatHeader(basic.BasicHeader, TdatMeta):
                 `table_name` is a required keyword for the TDAT format and will
                 be autopopulated with "astropy_table" if not specified in
                 Table.meta["keywords"]
-            field_lines : list, (optional)
-                Specifications for each data column in the TDAT field format.
-                See https://heasarc.gsfc.nasa.gov/docs/software/dbdocs/tdat.html
-                for details. If this is not specified, field_lines will be
-                inferred fromt the Column information. The `name`, `unit`, `format`
-                and `description` are inferred directly from Column attributes,
-                and the `index` tag, `ucd` and `comment` specifications can be
-                included in Column.meta.
-                For `ucd`, see https://cdsweb.u-strasbg.fr/UCD/ for acceptable entries.
 
         If there is no Table.meta, this writer will attempt to automatically
         generate the appropriate header information based on the table and
@@ -404,7 +326,7 @@ class TdatHeader(basic.BasicHeader, TdatMeta):
 
         # Write the keywords and column descriptors
         keywords = deepcopy(self.table_meta.get("keywords", {}))
-        meta_keys = ["keywords", "comments", "field_lines", "index_lines"]
+        meta_keys = ["keywords", "comments"]
         # In case a user puts a keyword direclty in meta, instead of meta.keywords
         for key in [
             key.lower()
@@ -413,13 +335,14 @@ class TdatHeader(basic.BasicHeader, TdatMeta):
         ]:
             keywords[key] = self.table_meta.get(key)
 
-        col_lines = self.table_meta.get("field_lines", None)
         indices = [col.name for col in self.cols if col.indices != []]
 
         if "table_name" in keywords:
             if len(keywords["table_name"]) > 20:
-                warn("'table_name' is too long, truncating to 20 characters",
-                     TdatFormatWarning)
+                warn(
+                    "'table_name' is too long, truncating to 20 characters",
+                    TdatFormatWarning,
+                )
             lines.append(f'table_name = {keywords.pop("table_name")[:20]}')
         else:
             warn(
@@ -441,8 +364,10 @@ class TdatHeader(basic.BasicHeader, TdatMeta):
         for key in table_keywords:
             if key == "table_description":
                 if len(keywords[key]) > 80:
-                    warn("'table_description' is too long, truncating to 80 characters",
-                         TdatFormatWarning)
+                    warn(
+                        "'table_description' is too long, truncating to 80 characters",
+                        TdatFormatWarning,
+                    )
                 new_desc = keywords.pop(key)[:80].replace("'", "")
                 new_desc = new_desc.replace('"', "")
                 lines.append(f'{key} = "{new_desc}"')
@@ -453,39 +378,34 @@ class TdatHeader(basic.BasicHeader, TdatMeta):
         lines.append("#")
         lines.append("# Table Parameters")
         lines.append("#")
-        col_names = [col.name for col in self.cols]
-        if (col_lines is not None) and all(k in col_lines.keys() for k in col_names):
-            for k in col_names:
-                lines.append(col_lines[k])
-        else:
-            for col in self.cols:
-                if col.dtype == int:
-                    ctype = "integer"
-                elif col.dtype == float:
-                    ctype = "float"
-                else:
-                    ctype = f"char{str(col.dtype).rsplit('<U', maxsplit=1)[-1]}"
-                field_line = f"field[{col.name}] = {ctype}"
+        for col in self.cols:
+            if col.dtype == int:
+                ctype = "integer"
+            elif col.dtype == float:
+                ctype = "float"
+            else:
+                ctype = f"char{str(col.dtype).rsplit('<U', maxsplit=1)[-1]}"
+            field_line = f"field[{col.name}] = {ctype}"
 
-                if col.format is not None:
-                    field_line += f":{col.format}"
-                if col.unit is not None:
-                    field_line += f"_{col.unit:vounit}"
-                if "ucd" in col.meta:
-                    field_line += f" [{col.meta['ucd']}]"
-                if "index" in col.meta:
-                    field_line += f" ({col.meta['index']})"
-                elif (indices != []) and (col.name == indices[0]):
-                    field_line += " (key)"
-                elif col.name in indices:
-                    field_line += " (index)"
-                if col.description is not None:
-                    field_line += f" // {col.description}"
-                elif "comment" in col.meta:
-                    field_line += " //"
-                if "comment" in col.meta:
-                    field_line += f" // {col.meta['comment']}"
-                lines.append(field_line)
+            if col.format is not None:
+                field_line += f":{col.format}"
+            if col.unit is not None:
+                field_line += f"_{col.unit:vounit}"
+            if "ucd" in col.meta:
+                field_line += f" [{col.meta['ucd']}]"
+            if "index" in col.meta:
+                field_line += f" ({col.meta['index']})"
+            elif (indices != []) and (col.name == indices[0]):
+                field_line += " (key)"
+            elif col.name in indices:
+                field_line += " (index)"
+            if col.description is not None:
+                field_line += f" // {col.description}"
+            elif "comment" in col.meta:
+                field_line += " //"
+            if "comment" in col.meta:
+                field_line += f" // {col.meta['comment']}"
+            lines.append(field_line)
 
         if len(keywords) != 0:
             if "parameter_defaults" in keywords:
@@ -507,47 +427,43 @@ class TdatHeader(basic.BasicHeader, TdatMeta):
 
 
 class TdatDataSplitter(core.BaseSplitter):
-    """Splitter for tdat data."""
+    """Splitter for tdat data.
+
+    Handle the (deprecated) cases of multiple data delimiters, record
+    delimiters, and multi-line records.
+    Multiple data delimiters - Multiple delimiters can be specified in the
+        header, e.g. field_delimiter = "|!" would treat both | and !
+        as individual delimiters. Default: "|"
+    Record Delimiters - The record_delimiter can be specified in the header. By
+        default there is no record delimiter and new records should be set on
+        new lines. The following list standard escaped character sequences and their
+        equivalent meanings can be used:
+        * \t (tab)
+        * \b (backspace)
+        * \r (carriage return)
+        * \f (form feed)
+        * \v (vertical tab)
+        * \a (audible alert/bell),
+        * \\### (where ### is a number between 1 and 127 and represents the
+        ASCII character with that numerical code).
+        Note: Specifying a record delimiter value of "" is interpreted as a
+            single blank line between records.
+    Multi-line records - A single record may take more than one line, indicated in the header
+
+    """
 
     delimiter = "|"
+    record_delimiter = None
 
     def preprocess_data_lines(self, lines, record_delimiter):
-        """Handle the case of a record delimiter. (deprecated)
-
-        The record_delimiter can be specified in the header. By
-        default there is no record delimiter and new records should be set on
-        new lines.
-        The following list standard escaped character sequences and their
-        equivalent meanings can be used: \\t (tab), \\b (backspace), \\r (carriage
-        return), \\f (form feed), \\v (vertical tab), \\a (audible alert/bell),
-        and \\### (where ### is a number between 1 and 127 and represents the
-        ASCII character with that numerical code). Note: Specifying a record
-        delimiter value of "" is interpreted as a single blank line between
-        records.
-
-        Parameters
-        ----------
-        lines : list
-        record_delimiter : str
-
-        Returns
-        -------
-        data_lines : list
-        """
+        """Split lines into multiple lines if a record_delimiter is specified."""
         data_lines = []
         for line in lines:
             data_lines += re.split(rf"[{record_delimiter}]", line)
         return data_lines
 
     def __call__(self, lines, field_delimiter="|", record_delimiter=None, nlines=1):
-        """Handle the case of multiple delimiters and multiline records. (deprecated)
-
-        The delimiter is specified in the header, and can potentially have
-        multiple values, e.g. field_delimiter = "|!" would treat both | and !
-        as individual delimiters.
-
-        nlines gives the number of lines to read at once to give one data row.
-        """
+        """ """
         if record_delimiter is not None:
             lines = self.preprocess_data_lines(lines, record_delimiter)
         if hasattr(self, "process_line"):
@@ -573,52 +489,48 @@ class TdatDataSplitter(core.BaseSplitter):
             else:
                 continue
 
+    def join(self, vals):
+        delimiter = getattr(self, "delimiter", "|")
+        # TDAT specification requires a delimiter at the end of each record
+        return delimiter.join(str(x) for x in vals) + delimiter
 
-class TdatData(core.BaseData, TdatMeta):
+
+class TdatData(core.BaseData):
     """Data Reader for TDAT format"""
 
+    comment = r"\s*(#|//)"
     write_comment = "# "
     splitter_class = TdatDataSplitter
 
-    def process_lines(self, lines):
-        """Select lines between <DATA> and <END>"""
-        data_lines = list(self._process_lines(lines, "data"))
-        return data_lines
+    def get_data_lines(self, lines):
+        """
+        READ: Override the default get_data_lines to find start and end lines.
+        """
+        # Select lines between <DATA> and <END> in file
+        start_line = (
+            min(i for i, line in enumerate(lines) if line.strip() == "<DATA>") + 1
+        )
+        end_line = min(i for i, line in enumerate(lines) if line.strip() == "<END>")
+        self.data_lines = self.process_lines(lines[start_line:end_line])
 
     def get_str_vals(self):
-        """Return a generator that returns a list of column values (as strings)
-        for each data line.
         """
-        field_delimiter = self._delimiter
-        record_delimiter = None
+        READ: Override the default get_str_vals to handle TDAT delimiters.
+        """
+        # if we have  delimiter from the header, use it.
+        field_delimiter = getattr(self.header, "delimiter", self.splitter.delimiter)
+        record_delimiter = getattr(
+            self.header, "record_delimiter", self.splitter.record_delimiter
+        )
         nlines = len(self.header._line_fields)
-        # if we have  self._delimiter from the header, user it.
-        if hasattr(self.header, "_delimiter"):
-            field_delimiter = self.header._delimiter
-        if hasattr(self.header, "_record_delimiter"):
-            record_delimiter = self.header._record_delimiter
         return self.splitter(self.data_lines, field_delimiter, record_delimiter, nlines)
 
     def write(self, lines):
-        """Write ``self.cols`` in place to ``lines``.
-
-        Parameters
-        ----------
-        lines : list
-            List for collecting output of writing self.cols.
+        """
+        WRITE: Override the default write to include <DATA> and <END> lines.
         """
         lines.append("<DATA>")
-        if callable(self.start_line):
-            raise TypeError("Start_line attribute cannot be callable for write()")
-        else:
-            data_start_line = self.start_line or 0
-        while len(lines) < data_start_line:
-            lines.append(itertools.cycle(self.write_spacer_lines))
-
-        col_str_iters = self.str_vals()
-        for vals in zip(*col_str_iters):
-            # TDAT specification requires a delimiter at the end of each record
-            lines.append(self.splitter.join(vals) + "|")
+        super().write(lines)
         lines.append("<END>")
 
 
@@ -645,19 +557,22 @@ class TdatOutputter(core.TableOutputter):
             for x in cols
         ]
         out = core.Table(t_cols, names=[x.name for x in cols], meta=meta["table"])
-
+        indices = []
         for col, out_col in zip(cols, out.columns.values()):
             for attr in ("format", "unit", "description"):
                 if hasattr(col, attr):
                     setattr(out_col, attr, getattr(col, attr))
             if hasattr(col, "meta"):
                 out_col.meta.update(col.meta)
+                if "index" in col.meta:
+                    if col.meta["index"] == "key":
+                        indices.insert(0, col.name)
+                    else:
+                        indices.append(col.name)
         # Add indices, if specified
-        if meta["table"]["index_lines"]["key"] is not None:
-            out.add_index(meta["table"]["index_lines"]["key"])
-        if len(meta["table"]["index_lines"]["index"]) > 0:
-            for idx in meta["table"]["index_lines"]["index"]:
-                out.add_index(idx)
+        if len(indices) > 0:
+            for name in indices:
+                out.add_index(name)
         return out
 
 
