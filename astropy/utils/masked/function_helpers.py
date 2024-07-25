@@ -1226,10 +1226,21 @@ def array2string(
     legacy=None,
 ):
     # Copied from numpy.core.arrayprint, but using _array2string above.
-    if NUMPY_LT_2_0:
-        from numpy.core.arrayprint import _format_options, _make_options_dict
+    if NUMPY_LT_2_1:
+        if NUMPY_LT_2_0:
+            from numpy.core.arrayprint import _format_options
+        else:
+            from numpy._core.arrayprint import _format_options
+        options = _format_options.copy()
     else:
-        from numpy._core.arrayprint import _format_options, _make_options_dict
+        from numpy._core.printoptions import format_options
+
+        options = format_options.get().copy()
+
+    if NUMPY_LT_2_0:
+        from numpy.core.arrayprint import _make_options_dict
+    else:
+        from numpy._core.arrayprint import _make_options_dict
 
     overrides = _make_options_dict(
         precision,
@@ -1243,7 +1254,6 @@ def array2string(
         formatter,
         floatmode,
     )
-    options = _format_options.copy()
     options.update(overrides)
 
     options["linewidth"] -= len(suffix)
@@ -1276,10 +1286,18 @@ def array_str(a, max_line_width=None, precision=None, suppress_small=None):
         if a.dtype.names is None:
             return MaskedFormat(_array_str_scalar)(a), None, None
         elif not NUMPY_LT_2_0:
-            from numpy._core.arrayprint import StructuredVoidFormat, _format_options
+            from numpy._core.arrayprint import StructuredVoidFormat
 
             # Following numpy._core.arrayprint._void_scalar_to_string
-            options = _format_options.copy()
+            if NUMPY_LT_2_1:
+                from numpy._core.arrayprint import _format_options
+
+                options = _format_options.copy()
+            else:
+                from numpy._core.printoptions import format_options
+
+                options = format_options.get().copy()
+
             if options.get("formatter") is None:
                 options["formatter"] = {}
             options["formatter"].setdefault("float_kind", str)
