@@ -1759,7 +1759,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         Computes on-sky separation between this coordinate and another.
 
         For more on how to use this (and related) functionality, see the
-        examples in :doc:`astropy:/coordinates/matchsep`.
+        examples in :ref:`astropy-coordinates-separations-matching`.
 
         Parameters
         ----------
@@ -1805,7 +1805,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         and another.
 
         For more on how to use this (and related) functionality, see the
-        examples in :doc:`astropy:/coordinates/matchsep`.
+        examples in :ref:`astropy-coordinates-separations-matching`.
 
         Parameters
         ----------
