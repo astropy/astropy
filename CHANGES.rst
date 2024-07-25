@@ -1,3 +1,58 @@
+Version 6.1.2 (2024-07-23)
+==========================
+
+Bug Fixes
+---------
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- When reading CDS and MRT files, only interpret a line as a section delimiter if
+  it contains exclusively dashes or equal signs. This enables rows starting with dashes. [#16735]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix a spurious exception when reading integer compressed images with blanks. [#16550]
+
+- Fixed a crash that occurred for files opened via
+  ``fits.open(..., mode='update')``, on Windows, and with numpy 2.0 installed.
+  A warning is now emitted in cases most likely to escalate into
+  undefined behavior (e.g., segfaults), i.e., when a closed memory map object is
+  still referenced by external code. Please report any regression found. [#16581]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Fixed a bug that caused models returned by non-linear fitters to have
+  ``sync_constraints`` set to `False`, which caused constraints accessed through, e.g.,
+  ``Model.fixed`` to not be in sync with the ``fixed`` attribute of the parameters. [#16664]
+
+- Fixed a bug that caused ``CompoundModel.without_units_for_data`` to return an
+  incorrectly constructed model when the compound model contained a * or /
+  operation, and which also caused fitting to not work correctly with compound
+  models that contained * or / operations. [#16678]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- The OGIP parser is now less restrictive with strings that represent a unit that
+  includes the ``sqrt`` function.
+  For example, ``u.Unit("sqrt(m)**3", format="ogip")`` no longer causes a
+  ``ValueError``. [#16743]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Fixed an edge-case bug in ``overlap_slices`` where the function could
+  return an empty slice for non-overlapping slices. [#16544]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Fixed a WCSAxes bug when overlaying a frame with default units that are not degrees. [#16662]
+
+
 Version 6.1.1 (2024-06-14)
 ==========================
 
