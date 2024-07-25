@@ -1,0 +1,4 @@
+Exception message for when broadcast shapes mismatch has changed.
+Previously, it used complicated regex to maintain backward compatibility.
+To ease maintenance, this regex has been removed and now directly
+passes exception from ``numpy.broadcast_shapes`` function.
