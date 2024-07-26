@@ -5,6 +5,7 @@ import io
 import os
 import subprocess
 import sys
+from contextlib import nullcontext
 
 import numpy as np
 import pytest
@@ -19,9 +20,6 @@ from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 from .conftest import FitsTestCase
 
 
-@pytest.mark.filterwarnings(
-    "ignore:Memory map object was closed but appears to still be referenced:UserWarning"
-)
 class TestHDUListFunctions(FitsTestCase):
     def test_update_name(self):
         with fits.open(self.data("o4sp040b0_raw.fits")) as hdul:
@@ -683,7 +681,15 @@ class TestHDUListFunctions(FitsTestCase):
             assert hdul[0].header == orig_header[:-1]
             assert (hdul[0].data == data).all()
 
-        with fits.open(self.temp("temp.fits"), mode="update") as hdul:
+        if sys.platform.startswith("win"):
+            ctx = pytest.warns(
+                UserWarning,
+                match="Memory map object was closed but appears to still be referenced",
+            )
+        else:
+            ctx = nullcontext()
+
+        with ctx, fits.open(self.temp("temp.fits"), mode="update") as hdul:
             idx = 101
             while len(str(hdul[0].header)) <= 2880 * 2:
                 hdul[0].header[f"TEST{idx}"] = idx
