@@ -84,6 +84,25 @@ class TdatHeader(basic.BasicHeader):
 
     _deprecated_keys = r"\s*(record_delimiter|field_delimiter)\s*=\s\"(.+)\""
     _required_keywords = ("table_name",)
+    _dtype_dict = {
+        "int": "int4",
+        "int32": "int4",
+        "int16": "int2",
+        "int8": "int1",
+        "float": "float8",
+        "float64": "float8",
+        "float32": "float4",
+        "float8": float,
+        "float4": np.float32,
+        "real": np.float32,
+        "int4": int,
+        "int2": np.int16,
+        "integer2": np.int16,
+        "smallint": np.int16,
+        "int1": np.int8,
+        "integer1": np.int8,
+        "tinyint": np.int8,
+    }
 
     def _validate_comment(self, line) -> bool:
         """Check if line is a valid comment, return comment if so"""
@@ -221,12 +240,18 @@ class TdatHeader(basic.BasicHeader):
                 col.meta = OrderedDict()
 
                 ctype = cmatch.group("ctype")
-                if "int" in ctype:
+                if ctype in self._dtype_dict:
+                    col.dtype = self._dtype_dict[ctype]
+                elif "int" in ctype:
                     col.dtype = int
+                elif "float" in ctype:
+                    col.dtype = float
                 elif "char" in ctype:
                     col.dtype = str
                 else:
-                    col.dtype = float
+                    raise TdatFormatError(
+                        f"Unrecognized data type {ctype} for {col.name}."
+                    )
                 col.unit = cmatch.group("unit")
                 col.format = cmatch.group("fmt")
                 col.description = f'{cmatch.group("desc")}'.strip()
@@ -323,12 +348,18 @@ class TdatHeader(basic.BasicHeader):
         lines.append("# Table Parameters")
         lines.append("#")
         for col in self.cols:
-            if col.dtype == int:
-                ctype = "integer"
-            elif col.dtype == float:
-                ctype = "float"
-            else:
+            if str(col.dtype) in self._dtype_dict:
+                ctype = self._dtype_dict[str(col.dtype)]
+            elif "int" in str(col.dtype):
+                ctype = "int4"
+            elif "float" in str(col.dtype):
+                ctype = "float8"
+            elif "<U" in str(col.dtype):
                 ctype = f"char{str(col.dtype).rsplit('<U', maxsplit=1)[-1]}"
+            else:
+                raise TdatFormatError(
+                    f"Unrecognized data type {col.dtype} for column {col.name}."
+                )
             field_line = f"field[{col.name}] = {ctype}"
 
             if col.format is not None:
