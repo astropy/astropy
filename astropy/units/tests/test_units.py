@@ -36,6 +36,23 @@ def test_initialisation():
     assert u.Unit() == u.dimensionless_unscaled
 
 
+@pytest.mark.parametrize(
+    "input_,power_value,power_type",
+    [
+        pytest.param(2.0, 2, int, id="integer_as_float"),
+        pytest.param(Fraction(2, 1), 2, int, id="numerator_is_one"),
+        pytest.param(Fraction(1, 2), 0.5, float, id=r"numerator_is_power_of_two"),
+        pytest.param(np.float64(117 / 1123), 117 / 1123, float, id="float-like"),
+        pytest.param(np.int64(3), 3, int, id="int-like"),
+    ],
+)
+def test_power_types(input_, power_value, power_type):
+    # Regression test for #16779 - power could sometimes be a numpy number
+    powers = (u.m**input_).powers
+    assert list(map(type, powers)) == [power_type]
+    assert_allclose(powers, power_value)
+
+
 def test_raise_to_power():
     x = u.m ** Fraction(1, 3)
     assert isinstance(x.powers[0], Fraction)
@@ -848,6 +865,13 @@ def test_sanitize_power_detect_fraction():
     assert isinstance(frac, Fraction)
     assert frac.numerator == 7
     assert frac.denominator == 6
+
+
+def test_sanitize_power_zero_like():
+    # Regression test for #16779 - 0 should always be an int after sanitizing
+    power = utils.sanitize_power(np.float64(0))
+    assert type(power) is int
+    assert power == 0
 
 
 def test_complex_fractional_rounding_errors():
