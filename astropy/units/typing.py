@@ -74,3 +74,5 @@ For more examples see the :mod:`numpy.typing` definition of
 # then we should switch to that.
 Real: TypeAlias = int | float | Fraction | np.integer | np.floating
 Complex: TypeAlias = Real | complex | np.complexfloating
+
+UnitPower: TypeAlias = int | float | Fraction

@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
     from numpy.typing import ArrayLike, NDArray
 
-    from astropy.units.typing import Complex, Real
+    from astropy.units.typing import Complex, Real, UnitPower
 
     from .core import UnitBase
     from .quantity import Quantity
@@ -221,7 +221,7 @@ def sanitize_scale(scale: Complex) -> Complex:
         return scale.real
 
 
-def maybe_simple_fraction(p: Real, max_denominator: int = 100) -> Real:
+def maybe_simple_fraction(p: Real, max_denominator: int = 100) -> UnitPower:
     """Fraction very close to x with denominator at most max_denominator.
 
     The fraction has to be such that fraction/x is unity to within 4 ulp.
@@ -232,8 +232,10 @@ def maybe_simple_fraction(p: Real, max_denominator: int = 100) -> Real:
 
     If the input is zero, an integer or `fractions.Fraction`, just return it.
     """
-    if p == 0 or p.__class__ is int or p.__class__ is Fraction:
+    if p.__class__ is int or p.__class__ is Fraction:
         return p
+    if p == 0:
+        return 0  # p might be some numpy number, but we want a Python int
     n, d = float(p).as_integer_ratio()
     a = n // d
     # Normally, start with 0,1 and 1,0; here we have applied first iteration.
@@ -247,7 +249,7 @@ def maybe_simple_fraction(p: Real, max_denominator: int = 100) -> Real:
         n0, n1 = n1, n0 + a * n1
         d0, d1 = d1, d0 + a * d1
 
-    return p
+    return float(p)
 
 
 def validate_power(p: FloatLike | ArrayLike[FloatLike]) -> FloatLike:
@@ -287,7 +289,7 @@ def validate_power(p: FloatLike | ArrayLike[FloatLike]) -> FloatLike:
         return p
 
 
-def sanitize_power(p: Real) -> Real:
+def sanitize_power(p: Real) -> UnitPower:
     """Convert the power to a float, an integer, or a Fraction.
 
     If a fractional power can be represented exactly as a floating point
@@ -317,7 +319,7 @@ def sanitize_power(p: Real) -> Real:
         denom = p.denominator
 
     if denom == 1:
-        p = p.numerator
+        return int(p.numerator)
 
     elif (denom & (denom - 1)) == 0:
         # Above is a bit-twiddling hack to see if denom is a power of two.

@@ -1,0 +1,3 @@
+A few edge cases that could result in a power of a unit to be a numerical value
+from ``numpy``, instead of the intended Python ``int``, ``float`` or
+``fractions.Fraction`` instance, have been fixed.
