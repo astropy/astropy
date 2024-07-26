@@ -3,8 +3,9 @@
 not meant to be used directly, but instead are available as readers/writers in
 `astropy.table`. See :ref:`astropy:table_io` for more details.
 
-:Author: Abdu Zoghbi
-         Daniel Giles (daniel.k.giles@gmail.com)
+:Author: Daniel Giles (daniel.k.giles@gmail.com)
+         Abdu Zoghbi
+
 """
 
 import re
@@ -19,6 +20,34 @@ from astropy.utils.exceptions import AstropyWarning
 from . import basic, core
 
 _STD_MSG = "See details in https://heasarc.gsfc.nasa.gov/docs/software/dbdocs/tdat.html"
+
+
+def make_example_data():
+    example_lines = [
+        "<HEADER>",
+        "# # and // are comments",
+        "table_name = example_table",
+        'table_description = "Example table"',
+        "#",
+        "# Table Parameters",
+        "#",
+        "field[id] = integer [meta.id] (key) // Unique ID",
+        "field[ra] = float:.4f_degree [pos.eq.ra] (index) // Right Ascension",
+        "field[name] = char12 [meta.id] // Name",
+        "#",
+        "# Virtual Parameters",
+        "#",
+        "table_author = Example et al.",
+        "#",
+        "# Data Format Specification",
+        "#",
+        "line[1] = id name ra",
+        "<DATA>",
+        "1|TargetOne|1.0|",
+        "2|TargetTwo|2.0|",
+        "<END>",
+    ]
+    return example_lines
 
 
 class TdatFormatError(Exception):
@@ -117,10 +146,18 @@ class TdatHeader(basic.BasicHeader):
         """Extract meta information: comments and key/values in the header
         READ: Overrides the default update_meta
         """
-        start_line = (
-            min(i for i, line in enumerate(lines) if line.strip() == "<HEADER>") + 1
-        )
-        end_line = min(i for i, line in enumerate(lines) if line.strip() == "<DATA>")
+        try:
+            start_line = (
+                min(i for i, line in enumerate(lines) if line.strip() == "<HEADER>") + 1
+            )
+        except ValueError:
+            raise TdatFormatError("<HEADER> not found in file." + _STD_MSG)
+        try:
+            end_line = min(
+                i for i, line in enumerate(lines) if line.strip() == "<DATA>"
+            )
+        except ValueError:
+            raise TdatFormatError("<DATA> not found in file." + _STD_MSG)
 
         meta["table"]["comments"] = [
             self._process_comment(line)
@@ -135,11 +172,18 @@ class TdatHeader(basic.BasicHeader):
         READ: Override default process_lines
         """
         fl_parser = re.compile(self._field_line)
-
-        start_line = (
-            min(i for i, line in enumerate(lines) if line.strip() == "<HEADER>") + 1
-        )
-        end_line = min(i for i, line in enumerate(lines) if line.strip() == "<DATA>")
+        try:
+            start_line = (
+                min(i for i, line in enumerate(lines) if line.strip() == "<HEADER>") + 1
+            )
+        except ValueError:
+            raise TdatFormatError("<HEADER> not found in file." + _STD_MSG)
+        try:
+            end_line = min(
+                i for i, line in enumerate(lines) if line.strip() == "<DATA>"
+            )
+        except ValueError:
+            raise TdatFormatError("<DATA> not found in file." + _STD_MSG)
         for line in lines[start_line:end_line]:
             if fl_parser.match(line):
                 yield line
@@ -167,7 +211,7 @@ class TdatHeader(basic.BasicHeader):
             re.VERBOSE,
         )
 
-        cols = []
+        cols = {}
         keywords = getattr(self, "_keywords", OrderedDict())
         for line in self.process_lines(lines):
             # look for field[..]= ... column definitions
@@ -185,24 +229,30 @@ class TdatHeader(basic.BasicHeader):
                     col.dtype = float
                 col.unit = cmatch.group("unit")
                 col.format = cmatch.group("fmt")
-                col.description = f'{cmatch.group("desc")}'
+                col.description = f'{cmatch.group("desc")}'.strip()
                 for val in ["comment", "ucd", "index"]:
                     if cmatch.group(val) is not None:
-                        col.meta[val] = cmatch.group(val)
-                cols.append(col)
+                        col.meta[val] = cmatch.group(val).strip()
+                cols[col.name] = col
         if len(keywords) > len(getattr(self, "_keywords", OrderedDict())):
             self._keywords = keywords
-        self.names = [col.name for col in cols]
-        self.cols = cols
+
+        self.names = [
+            val for line_field in self._line_fields.values() for val in line_field
+        ]
+
         # check that cols and _line_fields are consistent or throw an error
-        if sum([len(val) for val in self._line_fields.values()]) != len(cols):
-            lsummary = [v for val in self._line_fields.values() for v in val]
+        if len(self.names) != len(cols):
+            colnames = [col.name for col in cols]
             raise TdatFormatError(
                 'The columns "field" descriptors are not consistent with '
                 "the line[..] keyword.\n"
-                f'"field" values: {self.names}\n'
-                f"line[..] values: {lsummary}"
+                f'"field" values: {colnames}\n'
+                f"line[..] values: {self.names}"
             )
+        self.cols = []
+        for name in self.names:
+            self.cols.append(cols[name])
 
     def write_comments(self, lines, meta):
         """Write comment lines in the header
@@ -214,113 +264,7 @@ class TdatHeader(basic.BasicHeader):
                 lines.append(self.write_comment + comment.lstrip())
 
     def write(self, lines):
-        """Write the Table out to a TDAT formatted file.
-
-        The header will be auto-populated by information in the Table,
-        prioritizing information given in the Table.meta. The keys in the meta
-        are as follows:
-            comments : list or string, (optional)
-                Table information which provide context. This information is
-                included in the header preceding all other lines and commented
-                out.
-            keywords : OrderedDict, (optional, recommended)
-                Header keywords which will appear in the file as "name=value" lines.
-                Of particular importance are `table_name`, `table_description`,
-                and `table_document_url`.
-                `table_name` is a required keyword for the TDAT format and will
-                be autopopulated with "astropy_table" if not specified in
-                Table.meta["keywords"]
-
-        If there is no Table.meta, this writer will attempt to automatically
-        generate the appropriate header information based on the table and
-        column properties and the recommendations for the TDAT format by HEASARC.
-
-        Parameters
-        ----------
-        lines : _type_
-            _description_
-
-        Raises
-        ------
-        ValueError
-            If an unsupported delimitter is given.
-        TdatFormatError
-            If not all requisite information to write a TDAT file is provided.
-
-        Examples
-        --------
-        >>> from astropy.table import Table
-        >>> from io import StringIO
-        >>> t = Table(names=('reference_id', 'RA', 'Name'),
-        ...           data=[[1, 2, 3], [1.0, 2.0, 3.0], ['c', 'd', 'e']])
-        >>> out = StringIO()
-        >>> t.write(out, format="ascii.tdat")
-        >>> out.getvalue().splitlines()
-        ['<HEADER>',
-         'table_name = astropy_table',
-         'table_description = "A table created via astropy"',
-         '#',
-         '# Table Parameters',
-         '#',
-         'field[reference_id] = integer',
-         'field[RA] = float',
-         'field[Name] = char1',
-         '#',
-         '# Data Format Specification',
-         '#',
-         'line[1] = reference_id RA Name',
-         '#',
-         '<DATA>',
-         '1|1.0|c|',
-         '2|2.0|d|',
-         '3|3.0|e|',
-         '<END>']
-
-        Including relevant metadata for the table and columns seperately
-        is possible with a mixture of attribute assignment and additions to the
-        metadata.
-
-        >>> t = Table(names=('reference_id', 'RA', 'Name'),
-        ...           data=[[1, 2, 3], [1.0, 2.0, 3.0], ['c', 'd', 'e']])
-        >>> t.meta["table_name"] = "example_table"
-        >>> t.meta["table_description"] = "An example table for the tdat writer."
-        >>>
-        >>> t.add_index('reference_id')
-        >>> t.columns['reference_id'].meta['comment'] = "For internal reference only"
-        >>>
-        >>> t.add_index('RA')
-        >>> t.columns['RA'].unit = "degree"
-        >>> t.columns['RA'].format = ".4f"
-        >>> t.columns['RA'].meta['ucd'] = "pos.eq.ra"
-        >>>
-        >>> t.columns['Name'].description = "The name of the source (if available)"
-        >>> out = StringIO()
-        >>> t.write(out, format="ascii.tdat")
-        >>> out.getvalue().splitlines()
-        ['<HEADER>',
-         'table_name = example_table',
-         'table_description = An example table for the tdat writer.',
-         '#',
-         '# Table Parameters',
-         '#',
-         'field[reference_id] = integer (key) // // For internal reference only',
-         'field[RA] = float:.4f_deg [pos.eq.ra] (index)',
-         'field[Name] = char1 // The name of the source (if available)',
-         '#',
-         '# Virtual Parameters',
-         '#',
-         'table_name = example_table',
-         '#',
-         '# Data Format Specification',
-         '#',
-         'line[1] = reference_id RA Name',
-         '#',
-         '<DATA>',
-         '1|1.0000|c|',
-         '2|2.0000|d|',
-         '3|3.0000|e|',
-         '<END>']
-        """
+        """Write the Table out to a TDAT formatted file."""
         if self.splitter.delimiter not in [" ", "|"]:
             raise ValueError("only pipe and space delimitter is allowed in tdat format")
 
@@ -429,7 +373,7 @@ class TdatHeader(basic.BasicHeader):
 class TdatDataSplitter(core.BaseSplitter):
     """Splitter for tdat data.
 
-    Handle the (deprecated) cases of multiple data delimiters, record
+    Handles the (deprecated) cases of multiple data delimiters, record
     delimiters, and multi-line records.
     Multiple data delimiters - Multiple delimiters can be specified in the
         header, e.g. field_delimiter = "|!" would treat both | and !
@@ -507,10 +451,17 @@ class TdatData(core.BaseData):
         READ: Override the default get_data_lines to find start and end lines.
         """
         # Select lines between <DATA> and <END> in file
-        start_line = (
-            min(i for i, line in enumerate(lines) if line.strip() == "<DATA>") + 1
-        )
-        end_line = min(i for i, line in enumerate(lines) if line.strip() == "<END>")
+        try:
+            start_line = (
+                min(i for i, line in enumerate(lines) if line.strip() == "<DATA>") + 1
+            )
+        except ValueError:
+            raise TdatFormatError("<DATA> not found in file." + _STD_MSG)
+        try:
+            end_line = min(i for i, line in enumerate(lines) if line.strip() == "<END>")
+        except ValueError:
+            raise TdatFormatError("<END> not found in file." + _STD_MSG)
+
         self.data_lines = self.process_lines(lines[start_line:end_line])
 
     def get_str_vals(self):
@@ -577,7 +528,137 @@ class TdatOutputter(core.TableOutputter):
 
 
 class Tdat(core.BaseReader):
-    r"""Read TDAT format"""
+    """TDAT format
+    See: https://heasarc.gsfc.nasa.gov/docs/software/dbdocs/tdat.html"
+
+    Example::
+      <HEADER>
+      # # and // are comments
+      table_name = example_table
+      table_description = "Example table"
+      #
+      # Table Parameters
+      #
+      field[id] = integer [meta.id] (key) // Unique ID
+      field[ra] = float:.4f_degree [pos.eq.ra] (index) // Right Ascension
+      field[name] = char12 [meta.id] // Name
+      #
+      # Virtual Parameters
+      #
+      table_author = Example et al.
+      #
+      # Data Format Specification
+      #
+      line[1] = id name ra
+      <DATA>
+      1|TargetOne|1.0|
+      2|TargetTwo|2.0|
+      <END>
+
+    The comments and keywords defined in the header, excepting common header
+    section titles and blank comments, are avaialble via the output table
+    ``meta`` attribute::
+
+      >>> from astropy.io import ascii
+      >>> lines = ascii.tdat.make_example_lines()
+      >>> data = ascii.read(lines, format='tdat')
+      >>> print(data.meta['comments'])
+      ['# and // are comments']
+      >>> for name, keyword in data.meta['keywords'].items():
+      ...   print(name, keyword['value'])
+      table_name example_table
+      table_description "Example table"
+      table_author Example et al.
+
+
+    When writing to the TDAT format, the header will be auto-populated by
+    information in the Table, prioritizing information given in the Table.meta:
+        comments : list or string, (optional)
+            Table information which provide context. This information is
+            included in the header preceding all other lines and commented
+            out with #
+        keywords : OrderedDict, (optional, recommended)
+            Header keywords which will appear in the file as "name=value" lines.
+            Of particular importance are `table_name`, `table_description`,
+            and `table_document_url`.
+            `table_name` is a required keyword for the TDAT format and will
+            be autopopulated with "astropy_table" if not specified in
+            Table.meta["keywords"]
+    If there is no Table.meta, this writer will attempt to automatically
+    generate the appropriate header information based on the table and
+    column properties and the recommendations for the TDAT format by HEASARC.
+
+    Example::
+    >>> from astropy.table import Table
+    >>> from io import StringIO
+    >>> t = Table(names=('reference_id', 'RA', 'Name'),
+    ...           data=[[1, 2, 3], [1.0, 2.0, 3.0], ['c', 'd', 'e']])
+    >>> out = StringIO()
+    >>> t.write(out, format="ascii.tdat")
+    >>> out.getvalue().splitlines()
+    ['<HEADER>',
+     'table_name = astropy_table',
+     'table_description = "A table created via astropy"',
+     '#',
+     '# Table Parameters',
+     '#',
+     'field[reference_id] = integer',
+     'field[RA] = float',
+     'field[Name] = char1',
+     '#',
+     '# Data Format Specification',
+     '#',
+     'line[1] = reference_id RA Name',
+     '#',
+     '<DATA>',
+     '1|1.0|c|',
+     '2|2.0|d|',
+     '3|3.0|e|',
+     '<END>']
+
+    Including relevant metadata for the table and columns seperately
+    is possible with a mixture of attribute assignment and additions to the
+    metadata::
+    >>> from astropy.table import Table
+    >>> from io import StringIO
+    >>> t = Table(names=('reference_id', 'RA', 'Name'),
+    ...           data=[[1, 2, 3], [1.0, 2.0, 3.0], ['c', 'd', 'e']])
+    >>> t.meta["table_name"] = "example_table"
+    >>> t.meta["table_description"] = "An example table for the tdat writer."
+    >>> t.add_index('reference_id')
+    >>> t.columns['reference_id'].meta['comment'] = "For internal reference only"
+    >>> t.add_index('RA')
+    >>> t.columns['RA'].unit = "degree"
+    >>> t.columns['RA'].format = ".4f"
+    >>> t.columns['RA'].meta['ucd'] = "pos.eq.ra"
+    >>> t.columns['Name'].description = "The name of the source (if available)"
+    >>> out = StringIO()
+    >>> t.write(out, format="ascii.tdat")
+    >>> out.getvalue().splitlines()
+    ['<HEADER>',
+     'table_name = example_table',
+     'table_description = An example table for the tdat writer.',
+     '#',
+     '# Table Parameters',
+     '#',
+     'field[reference_id] = integer (key) // // For internal reference only',
+     'field[RA] = float:.4f_deg [pos.eq.ra] (index)',
+     'field[Name] = char1 // The name of the source (if available)',
+     '#',
+     '# Virtual Parameters',
+     '#',
+     'table_name = example_table',
+     '#',
+     '# Data Format Specification',
+     '#',
+     'line[1] = reference_id RA Name',
+     '#',
+     '<DATA>',
+     '1|1.0000|c|',
+     '2|2.0000|d|',
+     '3|3.0000|e|',
+     '<END>']
+    """
 
     _format_name = "tdat"
     _description = "HEASARC tdat format"

@@ -66,25 +66,25 @@ test_dat = [
 test_table = Table.read(test_dat, format="ascii.tdat")
 # Corresponds to simple_table()
 SIMPLE_LINES = [
-    '<HEADER>',
-    'table_name = astropy_table',
+    "<HEADER>",
+    "table_name = astropy_table",
     'table_description = "A table created via astropy"',
-    '#',
-    '# Table Parameters',
-    '#',
-    'field[a] = integer',
-    'field[b] = float',
-    'field[c] = char1',
-    '#',
-    '# Data Format Specification',
-    '#',
-    'line[1] = a b c',
-    '#',
-    '<DATA>',
-    '1|1.0|c|',
-    '2|2.0|d|',
-    '3|3.0|e|',
-    '<END>'
+    "#",
+    "# Table Parameters",
+    "#",
+    "field[a] = integer",
+    "field[b] = float",
+    "field[c] = char1",
+    "#",
+    "# Data Format Specification",
+    "#",
+    "line[1] = a b c",
+    "#",
+    "<DATA>",
+    "1|1.0|c|",
+    "2|2.0|d|",
+    "3|3.0|e|",
+    "<END>",
 ]
 
 
@@ -103,50 +103,52 @@ def test_write_simple():
 
 def test_write_full():
     """
-    Write a full-featured table with common types and explicitly checkout output
+    Write a full-featured table with common types and explicitly check output
     """
     t = test_table
-    lines = ['<HEADER>',
-             '# TABLE: heasarc_simple',
-             '# TOTAL ROWS: 7',
-             'table_name = heasarc_simple',
-             'table_description = "Test table"',
-             'table_security = public',
-             '#',
-             '# Table Parameters',
-             '#',
-             'field[record_number] = int4  [meta.id] (key) // Unique Identifier for Entry',
-             'field[id] = int4  [meta.id] (index) // Source ID Number',
-             'field[name] = char12  [meta.id;meta.main] (index) // String Name',
-             'field[ra] = float8:.4f_degree [pos.eq.ra] (index) // Right Ascension',
-             'field[dec] = float8:.4f_degree [pos.eq.dec] (index) // Declination',
-             'field[empty] = float8:.4f // Empty // Comment',
-             '#',
-             'parameter_defaults = name ra dec',
-             '#',
-             '# Virtual Parameters',
-             '#',
-             'frequency_regime = Gamma-ray',
-             'observatory_name = GAMMA-RAY BURSTS',
-             'row_type = GRB',
-             'table_author = Example et al.',
-             'table_priority = 3.01',
-             'table_type = Observation',
-             'unique_key = record_number',
-             '#',
-             '# Data Format Specification',
-             '#',
-             'line[1] = record_number id name ra dec empty',
-             '#',
-             '<DATA>',
-             '1|10|aaa|1.0000|1.0000||',
-             '2|20|b|2.0000|||',
-             '3|30|c||3.0000||',
-             '4|20|||||',
-             '5||||||',
-             '|60|f|6.0000|6.0000||',
-             '7|70|g|7.0000|7.0000||',
-             '<END>']
+    lines = [
+        "<HEADER>",
+        "# TABLE: heasarc_simple",
+        "# TOTAL ROWS: 7",
+        "table_name = heasarc_simple",
+        'table_description = "Test table"',
+        "table_security = public",
+        "#",
+        "# Table Parameters",
+        "#",
+        "field[record_number] = integer [meta.id] (key) // Unique Identifier for Entry",
+        "field[id] = integer [meta.id] (index) // Source ID Number",
+        "field[name] = char3 [meta.id;meta.main] (index) // String Name",
+        "field[ra] = float:.4f_deg [pos.eq.ra] (index) // Right Ascension",
+        "field[dec] = float:.4f_deg [pos.eq.dec] (index) // Declination",
+        "field[empty] = float:.4f // Empty // Comment",
+        "#",
+        "parameter_defaults = name ra dec",
+        "#",
+        "# Virtual Parameters",
+        "#",
+        "frequency_regime = Gamma-ray",
+        "observatory_name = GAMMA-RAY BURSTS",
+        "row_type = GRB",
+        "table_author = Example et al.",
+        "table_priority = 3.01",
+        "table_type = Observation",
+        "unique_key = record_number",
+        "#",
+        "# Data Format Specification",
+        "#",
+        "line[1] = record_number id name ra dec empty",
+        "#",
+        "<DATA>",
+        "1|10|aaa|1.0000|1.0000||",
+        "2|20|b|2.0000|||",
+        "3|30|c||3.0000||",
+        "4|20|||||",
+        "5||||||",
+        "|60|f|6.0000|6.0000||",
+        "7|70|g|7.0000|7.0000||",
+        "<END>",
+    ]
 
     out = StringIO()
     t.write(out, format="ascii.tdat")
@@ -170,8 +172,7 @@ def test_write_read_roundtrip():
         assert t.meta == t2.meta
         for name in t.colnames:
             assert t[name].attrs_equal(t2[name])
-            assert (np.all(t[name] == t2[name])
-                    or np.all(t[name].mask == t2[name].mask))
+            assert np.all(t[name] == t2[name]) or np.all(t[name].mask == t2[name].mask)
 
 
 def test_write_read_roundtrip_empty_table(tmp_path):
@@ -191,7 +192,9 @@ def test_bad_delimiter():
     out = StringIO()
     with pytest.raises(ValueError) as err:
         test_table.write(out, format="ascii.tdat", delimiter=",")
-        assert "only pipe and space delimitter is allowed in tdat format" in str(err.value)
+        assert "only pipe and space delimitter is allowed in tdat format" in str(
+            err.value
+        )
 
 
 def test_bad_header_start():
@@ -267,7 +270,7 @@ def test_round_trip_masked_table_default(tmp_path):
             # From formal perspective the round-trip columns are the "same"
             assert np.all(t2[name].mask == t[name].mask)
             assert np.all(t2[name] == t[name])
-    
+
             # But peeking under the mask shows that the underlying data are changed
             # because by default ECSV uses "" to represent masked elements.
             t[name].mask = False
