@@ -1,0 +1,2 @@
+Following the deprecation of the external package ``bleach``,
+``XMLWriter.xml_cleaning_method(method='bleach')`` is now pending deprecation.
