@@ -23,6 +23,7 @@ def assert_allclose_blsresults(blsresult, other, **kwargs):
         The other results object to compare.
 
     """
+    __tracebackhide__ = True
     for k, v in blsresult.items():
         if k not in other:
             raise AssertionError(f"missing key '{k}'")
