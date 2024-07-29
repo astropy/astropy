@@ -841,10 +841,7 @@ def pixel_scale(pixscale):
     pixscale : `~astropy.units.Quantity`
         The pixel scale either in units of <unit>/pixel or pixel/<unit>.
     """
-    decomposed = pixscale.unit.decompose()
-    dimensions = dict(zip(decomposed.bases, decomposed.powers))
-    pix_power = dimensions.get(misc.pix, 0)
-
+    pix_power = dict(pixscale.unit.decompose().components()).get(misc.pix, 0)
     if pix_power == -1:
         physical_unit = Unit(pixscale * misc.pix)
     elif pix_power == 1:

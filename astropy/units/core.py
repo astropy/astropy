@@ -4,10 +4,13 @@
 Core units classes and functions.
 """
 
+from __future__ import annotations
+
 import inspect
 import operator
 import textwrap
 import warnings
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -24,6 +27,11 @@ from .utils import (
     sanitize_scale,
     validate_power,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from astropy.units.typing import UnitPower
 
 __all__ = [
     "UnitsError",
@@ -691,8 +699,7 @@ class UnitBase:
         useful as a dictionary key.
         """
         if self._type_id is None:
-            unit = self.decompose()
-            self._type_id = tuple(zip((base.name for base in unit.bases), unit.powers))
+            self._type_id = tuple((b.name, p) for b, p in self.decompose().components())
 
         return self._type_id
 
@@ -743,6 +750,10 @@ class UnitBase:
         Return the powers of the unit.
         """
         return [1]
+
+    def components(self) -> Generator[tuple[UnitBase, UnitPower], None, None]:
+        """Yield the bases and powers of the unit."""
+        yield self, 1
 
     def to_string(self, format=unit_format.Generic, **kwargs):
         r"""Output the unit in the given format as a string.
@@ -1307,7 +1318,7 @@ class UnitBase:
                 # This allows us to factor out fractional powers
                 # without needing to do an exhaustive search.
                 if len(tunit_decomposed.bases) == 1:
-                    for base, power in zip(u.bases, u.powers):
+                    for base, power in u.components():
                         if tunit_decomposed._is_equivalent(base):
                             tunit = tunit**power
                             tunit_decomposed = tunit_decomposed**power
@@ -2413,6 +2424,10 @@ class CompositeUnit(UnitBase):
         """
         return self._powers
 
+    def components(self) -> Generator[tuple[UnitBase, UnitPower], None, None]:
+        """Yield the bases and powers of the composite unit."""
+        yield from zip(self._bases, self._powers, strict=True)
+
     def _expand_and_gather(self, decompose=False, bases=set()):
         def add_unit(unit, power, scale):
             if bases and unit not in bases:
@@ -2435,13 +2450,13 @@ class CompositeUnit(UnitBase):
         new_parts = {}
         scale = self._scale
 
-        for b, p in zip(self._bases, self._powers):
+        for b, p in self.components():
             if decompose and b not in bases:
                 b = b.decompose(bases=bases)
 
             if isinstance(b, CompositeUnit):
                 scale *= b._scale**p
-                for b_sub, p_sub in zip(b._bases, b._powers):
+                for b_sub, p_sub in b.components():
                     a, b = resolve_fractions(p_sub, p)
                     scale = add_unit(b_sub, a * b, scale)
             else:

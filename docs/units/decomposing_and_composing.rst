@@ -25,11 +25,9 @@ To decompose a unit with :meth:`~astropy.units.core.UnitBase.decompose`::
   Unit("2.17987e-18 m2 kg / s2")
 
 To get the list of units in the decomposition, the
-`~astropy.units.core.UnitBase.bases` and `~astropy.units.core.UnitBase.powers`
-properties can be used::
+:meth:`~astropy.units.core.UnitBase.components` method can be used::
 
-  >>> Ry = u.Ry.decompose()
-  >>> [unit**power for unit, power in zip(Ry.bases, Ry.powers)]
+  >>> [unit**power for unit, power in u.Ry.decompose().components()]
   [Unit("m2"), Unit("kg"), Unit("1 / s2")]
 
 You can limit the selection of units that you want to decompose by

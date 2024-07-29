@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = ["QuantityLike"]
+__all__ = ["QuantityLike", "UnitPower"]
 
 
 from fractions import Fraction
@@ -76,3 +76,4 @@ Real: TypeAlias = int | float | Fraction | np.integer | np.floating
 Complex: TypeAlias = Real | complex | np.complexfloating
 
 UnitPower: TypeAlias = int | float | Fraction
+"""A type alias for the possible powers of a unit."""
