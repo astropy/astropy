@@ -35,3 +35,8 @@ def assert_almost_equal(a, b, **kwargs):
 
 def assert_true(a):
     assert a
+
+
+def assert_equal_splitlines(arg1, arg2):
+    __tracebackhide__ = True
+    assert arg1.splitlines() == arg2.splitlines()

@@ -90,6 +90,7 @@ def assert_floatclose(x, y):
     """
     # The number used is set by the fact that the Windows FFT sometimes
     # returns an answer that is EXACTLY 10*np.spacing.
+    __tracebackhide__ = True
     assert_allclose(x, y, atol=10 * np.spacing(x.max()), rtol=0.0)
 
 

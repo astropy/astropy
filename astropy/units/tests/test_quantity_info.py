@@ -19,6 +19,7 @@ def assert_info_equal(a, b, ignore=set()):
 
 
 def assert_no_info(a):
+    __tracebackhide__ = True
     assert "info" not in a.__dict__
 
 

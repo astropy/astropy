@@ -29,10 +29,12 @@ from astropy.uncertainty import Distribution
 
 
 def assert_representation_equal(rep1, rep2):
+    __tracebackhide__ = True
     assert np.all(representation_equal(rep1, rep2))
 
 
 def assert_representation_allclose(rep1, rep2):
+    __tracebackhide__ = True
     result = True
     if type(rep1) is not type(rep2):
         return False

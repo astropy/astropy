@@ -456,6 +456,7 @@ def assert_table_name_col_equal(t, name, col):
     """
     Assert all(t[name] == col), with special handling for known mixin cols.
     """
+    __tracebackhide__ = True
     if isinstance(col, coordinates.SkyCoord):
         assert np.all(t[name].ra == col.ra)
         assert np.all(t[name].dec == col.dec)

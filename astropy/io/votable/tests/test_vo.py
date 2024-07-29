@@ -32,6 +32,7 @@ else:
 
 
 def assert_validate_schema(filename, version):
+    __tracebackhide__ = True
     if sys.platform.startswith("win"):
         return
 
