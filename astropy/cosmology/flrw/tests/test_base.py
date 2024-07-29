@@ -4,6 +4,7 @@
 
 import abc
 import copy
+from functools import cached_property
 
 import numpy as np
 import pytest
@@ -554,27 +555,23 @@ class FLRWTest(
     # Properties
 
     def test_Odm0(self, cosmo_cls, cosmo):
-        """Test property ``Odm0``."""
+        """Test ``cached_property`` ``Odm0``."""
         # on the class
-        assert isinstance(cosmo_cls.Odm0, property)
-        assert cosmo_cls.Odm0.fset is None  # immutable
+        assert isinstance(cosmo_cls.Odm0, cached_property)
 
         # on the instance
-        assert cosmo.Odm0 is cosmo._Odm0
-        # Odm0 can be None, if Ob0 is None. Otherwise DM = matter - baryons.
-        if cosmo.Ob0 is None:
-            assert cosmo.Odm0 is None
-        else:
-            assert np.allclose(cosmo.Odm0, cosmo.Om0 - cosmo.Ob0)
+        assert (
+            cosmo.Odm0 is None
+            if cosmo.Ob0 is None
+            else np.allclose(cosmo.Odm0, cosmo.Om0 - cosmo.Ob0)
+        )
 
     def test_Ok0(self, cosmo_cls, cosmo):
-        """Test property ``Ok0``."""
+        """Test ``cached_property`` ``Ok0``."""
         # on the class
-        assert isinstance(cosmo_cls.Ok0, property)
-        assert cosmo_cls.Ok0.fset is None  # immutable
+        assert isinstance(cosmo_cls.Ok0, cached_property)
 
         # on the instance
-        assert cosmo.Ok0 is cosmo._Ok0
         assert np.allclose(
             cosmo.Ok0, 1.0 - (cosmo.Om0 + cosmo.Ode0 + cosmo.Ogamma0 + cosmo.Onu0)
         )
@@ -590,13 +587,11 @@ class FLRWTest(
         assert cosmo.is_flat is bool((cosmo.Ok0 == 0.0) and (cosmo.Otot0 == 1.0))
 
     def test_Tnu0(self, cosmo_cls, cosmo):
-        """Test property ``Tnu0``."""
+        """Test ``cached_property`` ``Tnu0``."""
         # on the class
-        assert isinstance(cosmo_cls.Tnu0, property)
-        assert cosmo_cls.Tnu0.fset is None  # immutable
+        assert isinstance(cosmo_cls.Tnu0, cached_property)
 
         # on the instance
-        assert cosmo.Tnu0 is cosmo._Tnu0
         assert cosmo.Tnu0.unit == u.K
         assert u.allclose(cosmo.Tnu0, 0.7137658555036082 * cosmo.Tcmb0, rtol=1e-5)
 
@@ -613,56 +608,46 @@ class FLRWTest(
             assert cosmo.has_massive_nu is cosmo._massivenu
 
     def test_h(self, cosmo_cls, cosmo):
-        """Test property ``h``."""
+        """Test ``cached_property`` ``h``."""
         # on the class
-        assert isinstance(cosmo_cls.h, property)
-        assert cosmo_cls.h.fset is None  # immutable
+        assert isinstance(cosmo_cls.h, cached_property)
 
         # on the instance
-        assert cosmo.h is cosmo._h
         assert np.allclose(cosmo.h, cosmo.H0.value / 100.0)
 
     def test_hubble_time(self, cosmo_cls, cosmo):
-        """Test property ``hubble_time``."""
+        """Test ``cached_property`` ``hubble_time``."""
         # on the class
-        assert isinstance(cosmo_cls.hubble_time, property)
-        assert cosmo_cls.hubble_time.fset is None  # immutable
+        assert isinstance(cosmo_cls.hubble_time, cached_property)
 
         # on the instance
-        assert cosmo.hubble_time is cosmo._hubble_time
         assert u.allclose(cosmo.hubble_time, (1 / cosmo.H0) << u.Gyr)
 
     def test_hubble_distance(self, cosmo_cls, cosmo):
-        """Test property ``hubble_distance``."""
+        """Test ``cached_property`` ``hubble_distance``."""
         # on the class
-        assert isinstance(cosmo_cls.hubble_distance, property)
-        assert cosmo_cls.hubble_distance.fset is None  # immutable
+        assert isinstance(cosmo_cls.hubble_distance, cached_property)
 
         # on the instance
-        assert cosmo.hubble_distance is cosmo._hubble_distance
         assert cosmo.hubble_distance == (const.c / cosmo._H0).to(u.Mpc)
 
     def test_critical_density0(self, cosmo_cls, cosmo):
-        """Test property ``critical_density0``."""
+        """Test ``cached_property`` ``critical_density0``."""
         # on the class
-        assert isinstance(cosmo_cls.critical_density0, property)
-        assert cosmo_cls.critical_density0.fset is None  # immutable
+        assert isinstance(cosmo_cls.critical_density0, cached_property)
 
         # on the instance
-        assert cosmo.critical_density0 is cosmo._critical_density0
         assert cosmo.critical_density0.unit == u.g / u.cm**3
 
         cd0value = _critdens_const * (cosmo.H0.value * _H0units_to_invs) ** 2
         assert cosmo.critical_density0.value == cd0value
 
     def test_Ogamma0(self, cosmo_cls, cosmo):
-        """Test property ``Ogamma0``."""
+        """Test ``cached_property`` ``Ogamma0``."""
         # on the class
-        assert isinstance(cosmo_cls.Ogamma0, property)
-        assert cosmo_cls.Ogamma0.fset is None  # immutable
+        assert isinstance(cosmo_cls.Ogamma0, cached_property)
 
         # on the instance
-        assert cosmo.Ogamma0 is cosmo._Ogamma0
         # Ogamma cor \propto T^4/rhocrit
         expect = _a_B_c2 * cosmo.Tcmb0.value**4 / cosmo.critical_density0.value
         assert np.allclose(cosmo.Ogamma0, expect)
@@ -671,13 +656,11 @@ class FLRWTest(
             assert cosmo.Ogamma0 == 0
 
     def test_Onu0(self, cosmo_cls, cosmo):
-        """Test property ``Onu0``."""
+        """Test ``cached_property`` ``Onu0``."""
         # on the class
-        assert isinstance(cosmo_cls.Onu0, property)
-        assert cosmo_cls.Onu0.fset is None  # immutable
+        assert isinstance(cosmo_cls.Onu0, cached_property)
 
         # on the instance
-        assert cosmo.Onu0 is cosmo._Onu0
         # neutrino temperature <= photon temperature since the neutrinos
         # decouple first.
         if cosmo.has_massive_nu:  # Tcmb0 > 0 & has massive
@@ -1044,10 +1027,8 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
         super().test_init(cosmo_cls)
 
         cosmo = cosmo_cls(*self.cls_args, **self.cls_kwargs)
-        assert cosmo._Ok0 == 0.0
-        assert cosmo._Ode0 == 1.0 - (
-            cosmo._Om0 + cosmo._Ogamma0 + cosmo._Onu0 + cosmo._Ok0
-        )
+        assert cosmo.Ok0 == 0.0
+        assert cosmo.Ode0 == 1.0 - (cosmo.Om0 + cosmo.Ogamma0 + cosmo.Onu0 + cosmo.Ok0)
 
     def test_Ok0(self, cosmo_cls, cosmo):
         """Test property ``Ok0``."""
@@ -1119,13 +1100,15 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
         assert not nonflat.is_equivalent(cosmo)
         assert not cosmo.is_equivalent(nonflat)
 
-        # flat, but not FlatFLRWMixin
+        # Flat, but not FlatFLRWMixin
+        # This will require forcing flatness by overriding attribute values.
+        # Since Cosmology is frozen, the easiest way is via __dict__.
         flat = nonflat_cosmo_cls(
             *self.cls_args,
             Ode0=1.0 - cosmo.Om0 - cosmo.Ogamma0 - cosmo.Onu0,
             **self.cls_kwargs,
         )
-        object.__setattr__(flat, "_Ok0", 0.0)
+        flat.__dict__["Ok0"] = 0.0  # manually forcing flatness by setting `Ok0`.
         assert flat.is_equivalent(cosmo)
         assert cosmo.is_equivalent(flat)
 
