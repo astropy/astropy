@@ -9,6 +9,7 @@ import inspect
 import warnings
 from abc import abstractmethod
 from dataclasses import field
+from functools import cached_property
 from inspect import signature
 from math import exp, floor, log, pi, sqrt
 from numbers import Number
@@ -209,37 +210,6 @@ class FLRW(Cosmology, _ScaleFactorMixin):
     )
 
     def __post_init__(self):
-        # Derived quantities:
-        # Dark matter density; matter - baryons, if latter is not None.
-        object.__setattr__(
-            self, "_Odm0", (None if self._Ob0 is None else (self._Om0 - self._Ob0))
-        )
-
-        # 100 km/s/Mpc * h = H0 (so h is dimensionless)
-        object.__setattr__(self, "_h", self._H0.value / 100.0)
-        # Hubble distance
-        object.__setattr__(self, "_hubble_distance", (const.c / self._H0).to(u.Mpc))
-        # H0 in s^-1
-        H0_s = self._H0.value * _H0units_to_invs
-        # Hubble time
-        object.__setattr__(self, "_hubble_time", (_sec_to_Gyr / H0_s) << u.Gyr)
-
-        # Critical density at z=0 (grams per cubic cm)
-        cd0value = _critdens_const * H0_s**2
-        object.__setattr__(self, "_critical_density0", cd0value << u.g / u.cm**3)
-
-        # Compute photon density from Tcmb
-        object.__setattr__(
-            self,
-            "_Ogamma0",
-            _a_B_c2 * self._Tcmb0.value**4 / self._critical_density0.value,
-        )
-
-        # Compute Neutrino temperature:
-        # The constant in front is (4/11)^1/3 -- see any cosmology book for an
-        # explanation -- for example, Weinberg 'Cosmology' p 154 eq (3.1.21).
-        object.__setattr__(self, "_Tnu0", 0.7137658555036082 * self._Tcmb0)
-
         # Compute neutrino parameters:
         if self._m_nu is None:
             nneutrinos = 0
@@ -280,26 +250,12 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         # to do integrals with (perhaps surprisingly! But small python lists
         # are more efficient than small NumPy arrays).
         if self._massivenu:  # (`_massivenu` set in `m_nu`)
-            nu_y = (self._massivenu_mass / (_kB_evK * self._Tnu0)).value
+            nu_y = (self._massivenu_mass / (_kB_evK * self.Tnu0)).value
             nu_y_list = nu_y.tolist()
-            object.__setattr__(self, "_nu_y", nu_y)
-            object.__setattr__(self, "_nu_y_list", nu_y_list)
-            Onu0 = self._Ogamma0 * self.nu_relative_density(0)
         else:
-            # This case is particularly simple, so do it directly The 0.2271...
-            # is 7/8 (4/11)^(4/3) -- the temperature bit ^4 (blackbody energy
-            # density) times 7/8 for FD vs. BE statistics.
-            Onu0 = 0.22710731766 * self._Neff * self._Ogamma0
             nu_y = nu_y_list = None
-            object.__setattr__(self, "_nu_y", nu_y)
-            object.__setattr__(self, "_nu_y_list", nu_y_list)
-
-        object.__setattr__(self, "_Onu0", Onu0)
-
-        # Compute curvature density
-        object.__setattr__(
-            self, "_Ok0", 1.0 - self._Om0 - self._Ode0 - self._Ogamma0 - self._Onu0
-        )
+        object.__setattr__(self, "_nu_y", nu_y)
+        object.__setattr__(self, "_nu_y_list", nu_y_list)
 
         # Subclasses should override this reference if they provide
         #  more efficient scalar versions of inv_efunc.
@@ -356,66 +312,77 @@ class FLRW(Cosmology, _ScaleFactorMixin):
     # properties
 
     @property
-    def is_flat(self):
+    def is_flat(self) -> bool:
         """Return bool; `True` if the cosmology is flat."""
-        return bool((self._Ok0 == 0.0) and (self.Otot0 == 1.0))
+        return bool((self.Ok0 == 0.0) and (self.Otot0 == 1.0))
 
     @property
-    def Otot0(self):
+    def Otot0(self) -> float:
         """Omega total; the total density/critical density at z=0."""
-        return self._Om0 + self._Ogamma0 + self._Onu0 + self._Ode0 + self._Ok0
+        return self._Om0 + self.Ogamma0 + self.Onu0 + self._Ode0 + self.Ok0
 
-    @property
-    def Odm0(self):
+    @cached_property
+    def Odm0(self) -> float | None:
         """Omega dark matter; dark matter density/critical density at z=0."""
-        return self._Odm0
+        return None if self.Ob0 is None else (self.Om0 - self.Ob0)
 
-    @property
-    def Ok0(self):
+    @cached_property
+    def Ok0(self) -> float:
         """Omega curvature; the effective curvature density/critical density at z=0."""
-        return self._Ok0
+        return 1.0 - self.Om0 - self.Ode0 - self.Ogamma0 - self.Onu0
 
-    @property
-    def Tnu0(self):
+    @cached_property
+    def Tnu0(self) -> u.Quantity:
         """Temperature of the neutrino background as |Quantity| at z=0."""
-        return self._Tnu0
+        # The constant in front is (4/11)^1/3 -- see any cosmology book for an
+        # explanation -- for example, Weinberg 'Cosmology' p 154 eq (3.1.21).
+        return 0.7137658555036082 * self.Tcmb0
 
     @property
-    def has_massive_nu(self):
+    def has_massive_nu(self) -> bool:
         """Does this cosmology have at least one massive neutrino species?"""
-        if self._Tnu0.value == 0:
+        if self.Tnu0.value == 0:
             return False
         return self._massivenu
 
-    @property
-    def h(self):
+    @cached_property
+    def h(self) -> float:
         """Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]."""
-        return self._h
+        return self.H0.value / 100.0
 
-    @property
-    def hubble_time(self):
+    @cached_property
+    def hubble_time(self) -> u.Quantity:
         """Hubble time as `~astropy.units.Quantity`."""
-        return self._hubble_time
+        return (_sec_to_Gyr / (self.H0.value * _H0units_to_invs)) << u.Gyr
 
-    @property
-    def hubble_distance(self):
+    @cached_property
+    def hubble_distance(self) -> u.Quantity:
         """Hubble distance as `~astropy.units.Quantity`."""
-        return self._hubble_distance
+        return (const.c / self.H0).to(u.Mpc)
 
-    @property
-    def critical_density0(self):
+    @cached_property
+    def critical_density0(self) -> u.Quantity:
         """Critical density as `~astropy.units.Quantity` at z=0."""
-        return self._critical_density0
+        return (
+            _critdens_const * (self.H0.value * _H0units_to_invs) ** 2
+        ) << u.g / u.cm**3
 
-    @property
-    def Ogamma0(self):
+    @cached_property
+    def Ogamma0(self) -> float:
         """Omega gamma; the density/critical density of photons at z=0."""
-        return self._Ogamma0
+        # photon density from Tcmb
+        return _a_B_c2 * self.Tcmb0.value**4 / self.critical_density0.value
 
-    @property
-    def Onu0(self):
+    @cached_property
+    def Onu0(self) -> float:
         """Omega nu; the density/critical density of neutrinos at z=0."""
-        return self._Onu0
+        if self._massivenu:  # (`_massivenu` set in `m_nu`)
+            return self.Ogamma0 * self.nu_relative_density(0)
+        else:
+            # This case is particularly simple, so do it directly The 0.2271...
+            # is 7/8 (4/11)^(4/3) -- the temperature bit ^4 (blackbody energy
+            # density) times 7/8 for FD vs. BE statistics.
+            return 0.22710731766 * self.Neff * self.Ogamma0
 
     # ---------------------------------------------------------------
 
@@ -554,13 +521,13 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         This does not include neutrinos, even if non-relativistic at the
         redshift of interest.
         """
-        if self._Odm0 is None:
+        if self.Odm0 is None:
             raise ValueError(
                 "Baryonic density not set for this cosmology, "
                 "unclear meaning of dark matter density"
             )
         z = aszarr(z)
-        return self._Odm0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
+        return self.Odm0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
 
     @deprecated_keywords("z", since="7.0")
     def Ok(self, z):
@@ -581,9 +548,9 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             Returns `float` if the input is scalar.
         """
         z = aszarr(z)
-        if self._Ok0 == 0:  # Common enough to be worth checking explicitly
+        if self.Ok0 == 0:  # Common enough to be worth checking explicitly
             return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
-        return self._Ok0 * (z + 1.0) ** 2 * self.inv_efunc(z) ** 2
+        return self.Ok0 * (z + 1.0) ** 2 * self.inv_efunc(z) ** 2
 
     @deprecated_keywords("z", since="7.0")
     def Ode(self, z):
@@ -629,7 +596,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             Returns `float` if the input is scalar.
         """
         z = aszarr(z)
-        return self._Ogamma0 * (z + 1.0) ** 4 * self.inv_efunc(z) ** 2
+        return self.Ogamma0 * (z + 1.0) ** 4 * self.inv_efunc(z) ** 2
 
     @deprecated_keywords("z", since="7.0")
     def Onu(self, z):
@@ -654,7 +621,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             Returns `float` if the input is scalar.
         """
         z = aszarr(z)
-        if self._Onu0 == 0:  # Common enough to be worth checking explicitly
+        if self.Onu0 == 0:  # Common enough to be worth checking explicitly
             return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
         return self.Ogamma(z) * self.nu_relative_density(z)
 
@@ -694,7 +661,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         Tnu : `~astropy.units.Quantity` ['temperature']
             The temperature of the cosmic neutrino background in K.
         """
-        return self._Tnu0 * (aszarr(z) + 1.0)
+        return self.Tnu0 * (aszarr(z) + 1.0)
 
     @deprecated_keywords("z", since="7.0")
     def nu_relative_density(self, z):
@@ -866,15 +833,15 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         It is not necessary to override this method, but if de_density_scale
         takes a particularly simple form, it may be advantageous to.
         """
-        Or = self._Ogamma0 + (
-            self._Onu0
+        Or = self.Ogamma0 + (
+            self.Onu0
             if not self._massivenu
-            else self._Ogamma0 * self.nu_relative_density(z)
+            else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return np.sqrt(
-            zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0)
+            zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self.Ok0)
             + self._Ode0 * self.de_density_scale(z)
         )
 
@@ -897,15 +864,15 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             Returns `float` if the input is scalar.
         """
         # Avoid the function overhead by repeating code
-        Or = self._Ogamma0 + (
-            self._Onu0
+        Or = self.Ogamma0 + (
+            self.Onu0
             if not self._massivenu
-            else self._Ogamma0 * self.nu_relative_density(z)
+            else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return (
-            zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0)
+            zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self.Ok0)
             + self._Ode0 * self.de_density_scale(z)
         ) ** (-0.5)
 
@@ -1067,7 +1034,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         t : `~astropy.units.Quantity` ['time']
             Lookback time in Gyr to each input redshift.
         """
-        return self._hubble_time * self._integral_lookback_time(z)
+        return self.hubble_time * self._integral_lookback_time(z)
 
     @vectorize_redshift_method
     def _integral_lookback_time(self, z, /):
@@ -1156,7 +1123,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         t : `~astropy.units.Quantity` ['time']
             The age of the universe in Gyr at each input redshift.
         """
-        return self._hubble_time * self._integral_age(z)
+        return self.hubble_time * self._integral_age(z)
 
     @vectorize_redshift_method
     def _integral_age(self, z, /):
@@ -1198,7 +1165,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         rho : `~astropy.units.Quantity`
             Critical density in g/cm^3 at each input redshift.
         """
-        return self._critical_density0 * (self.efunc(z)) ** 2
+        return self.critical_density0 * (self.efunc(z)) ** 2
 
     @deprecated_keywords("z", since="7.0")
     def comoving_distance(self, z):
@@ -1285,7 +1252,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         d : `~astropy.units.Quantity` ['length']
             Comoving distance in Mpc between each input redshift.
         """
-        return self._hubble_distance * self._integral_comoving_distance_z1z2_scalar(z1, z2)  # fmt: skip
+        return self.hubble_distance * self._integral_comoving_distance_z1z2_scalar(z1, z2)  # fmt: skip
 
     @deprecated_keywords("z", since="7.0")
     def comoving_transverse_distance(self, z):
@@ -1340,12 +1307,12 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         -----
         This quantity is also called the 'proper motion distance' in some texts.
         """
-        Ok0 = self._Ok0
+        Ok0 = self.Ok0
         dc = self._comoving_distance_z1z2(z1, z2)
         if Ok0 == 0:
             return dc
         sqrtOk0 = sqrt(abs(Ok0))
-        dh = self._hubble_distance
+        dh = self.hubble_distance
         if Ok0 > 0:
             return dh / sqrtOk0 * np.sinh(sqrtOk0 * dc.value / dh.value)
         else:
@@ -1518,11 +1485,11 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         V : `~astropy.units.Quantity`
             Comoving volume in :math:`Mpc^3` at each input redshift.
         """
-        Ok0 = self._Ok0
+        Ok0 = self.Ok0
         if Ok0 == 0:
             return 4.0 / 3.0 * pi * self.comoving_distance(z) ** 3
 
-        dh = self._hubble_distance.value  # .value for speed
+        dh = self.hubble_distance.value  # .value for speed
         dm = self.comoving_transverse_distance(z).value
         term1 = 4.0 * pi * dh**3 / (2.0 * Ok0) * u.Mpc**3
         term2 = dm / dh * np.sqrt(1 + Ok0 * (dm / dh) ** 2)
@@ -1558,7 +1525,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             input redshift.
         """
         dm = self.comoving_transverse_distance(z)
-        return self._hubble_distance * (dm**2.0) / (self.efunc(z) << u.steradian)
+        return self.hubble_distance * (dm**2.0) / (self.efunc(z) << u.steradian)
 
     @deprecated_keywords("z", since="7.0")
     def kpc_comoving_per_arcmin(self, z):
@@ -1678,9 +1645,9 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         object.__setattr__(self, "_Ode0", 0)
         super().__post_init__()
         # Do some twiddling after the fact to get flatness
-        object.__setattr__(self, "_Ok0", 0.0)
-        object.__setattr__(
-            self, "_Ode0", 1.0 - (self._Om0 + self._Ogamma0 + self._Onu0 + self._Ok0)
+        self.__dict__["Ok0"] = 0.0
+        object.__setattr__(  # managed by a Parameter
+            self, "_Ode0", 1.0 - (self.Om0 + self.Ogamma0 + self.Onu0 + self.Ok0)
         )
 
     @lazyproperty
@@ -1693,8 +1660,9 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         # Make new instance, respecting args vs kwargs
         inst = self.__nonflatclass__(*ba.args, **ba.kwargs)
         # Because of machine precision, make sure parameters exactly match
-        for n in (*inst._parameters_all, "Ok0"):
+        for n in inst._parameters_all:
             object.__setattr__(inst, "_" + n, getattr(self, n))
+        inst.__dict__["Ok0"] = self.Ok0
 
         return inst
 
