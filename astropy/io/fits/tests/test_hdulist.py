@@ -13,6 +13,7 @@ import pytest
 from astropy.io import fits
 from astropy.io.fits.hdu.base import _NonstandardHDU, _ValidHDU
 from astropy.io.fits.verify import VerifyError, VerifyWarning
+from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.data import get_pkg_data_filenames
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
@@ -681,7 +682,7 @@ class TestHDUListFunctions(FitsTestCase):
             assert hdul[0].header == orig_header[:-1]
             assert (hdul[0].data == data).all()
 
-        if sys.platform.startswith("win"):
+        if sys.platform.startswith("win") and not NUMPY_LT_2_0:
             ctx = pytest.warns(
                 UserWarning,
                 match="Memory map object was closed but appears to still be referenced",
