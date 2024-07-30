@@ -1364,6 +1364,10 @@ class Quantity(np.ndarray):
                 "converted to Python scalars"
             )
 
+    def __round__(self, ndigits=0):
+        """Called by built-in function round()"""
+        return self.round(decimals=ndigits)
+
     def __index__(self):
         # for indices, we do not want to mess around with scaling at all,
         # so unlike for float, int, we insist here on unscaled dimensionless
