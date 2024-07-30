@@ -749,6 +749,12 @@ def test_quantity_ilshift():  # in-place conversion
     assert np.isclose(q, 10 * u.rad)
 
 
+def test_quantity_round():
+    q = u.Quantity(10.1289, unit=u.s)
+    assert np.isclose(round(q), 10 * u.s)
+    assert np.isclose(round(q, 2), 10.13 * u.s)
+
+
 def test_regression_12964():
     # This will fail if the fix to
     # https://github.com/astropy/astropy/issues/12964 doesn't work.
