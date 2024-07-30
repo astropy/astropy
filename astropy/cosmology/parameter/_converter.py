@@ -13,29 +13,29 @@ if TYPE_CHECKING:
 
     from astropy.cosmology import Cosmology, Parameter
 
-    from ._typing import _FValidateCallable
+    from ._typing import FValidateCallable
 
 __all__: list[str] = []
 
 
-_REGISTRY_FVALIDATORS: dict[str, _FValidateCallable] = {}
+_REGISTRY_FVALIDATORS: dict[str, FValidateCallable] = {}
 
 
 @overload
 def _register_validator(
-    key: str, fvalidate: _FValidateCallable
-) -> _FValidateCallable: ...
+    key: str, fvalidate: FValidateCallable
+) -> FValidateCallable: ...
 
 
 @overload
 def _register_validator(
     key: str, fvalidate: None = None
-) -> Callable[[_FValidateCallable], _FValidateCallable]: ...
+) -> Callable[[FValidateCallable], FValidateCallable]: ...
 
 
 def _register_validator(
-    key: str, fvalidate: _FValidateCallable | None = None
-) -> _FValidateCallable | Callable[[_FValidateCallable], _FValidateCallable]:
+    key: str, fvalidate: FValidateCallable | None = None
+) -> FValidateCallable | Callable[[FValidateCallable], FValidateCallable]:
     """Decorator to register a new kind of validator function.
 
     Parameters
@@ -60,7 +60,7 @@ def _register_validator(
         return fvalidate
 
     # for use as a decorator
-    def register(fvalidate: _FValidateCallable) -> _FValidateCallable:
+    def register(fvalidate: FValidateCallable) -> FValidateCallable:
         """Register validator function.
 
         Parameters

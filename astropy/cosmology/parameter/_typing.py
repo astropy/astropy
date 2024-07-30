@@ -10,4 +10,4 @@ from astropy.cosmology.core import Cosmology
 from ._core import Parameter
 
 VT = TypeVar("VT")
-_FValidateCallable: TypeAlias = Callable[[Cosmology, Parameter, Any], VT]  # noqa: PYI047
+FValidateCallable: TypeAlias = Callable[[Cosmology, Parameter, Any], VT]
