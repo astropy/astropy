@@ -77,7 +77,7 @@ all = [
     "certifi",
     "dask[array]",
     "h5py",
-    "pyarrow>=5.0.0",
+    "pyarrow>=7.0.0",
     "beautifulsoup4",
     "html5lib",
     "bleach",
