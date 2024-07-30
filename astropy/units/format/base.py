@@ -167,10 +167,18 @@ class Base:
         if s:
             s += cls._scale_unit_separator
         if not fraction:
-            return s + cls._format_unit_list(zip(unit.bases, unit.powers))
-        numerator, denominator = map(
-            cls._format_unit_list, utils.get_grouped_by_powers(unit.bases, unit.powers)
-        )
+            return s + cls._format_unit_list(zip(unit.bases, unit.powers, strict=True))
+        positive = []
+        negative = []
+        for base, power in zip(unit.bases, unit.powers, strict=True):
+            if power < 0:
+                negative.append((base, -power))
+            elif power > 0:
+                positive.append((base, power))
+            else:
+                raise ValueError("Unit with 0 power")
+        numerator = cls._format_unit_list(positive)
+        denominator = cls._format_unit_list(negative)
         return (s, numerator or "1", denominator) if denominator else s + numerator
 
     @classmethod
