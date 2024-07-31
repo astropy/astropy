@@ -302,6 +302,26 @@ def test_ogip_invalid_multiplication(string, message):
         u_format.OGIP.parse(string)
 
 
+@pytest.mark.parametrize(
+    "string,power",
+    [
+        pytest.param("s**-1", "-1", id="int_unit_power"),
+        pytest.param("m**-2.0", "-2.0", id="float_unit_power"),
+        pytest.param("10**-3 kg", "-3", id="int_scale_power"),
+    ],
+)
+def test_ogip_negative_exponent_parenthesis(string, power):
+    # Regression test for #16788 - negative powers without parenthesis were accepted
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"^negative exponents must be enclosed in parenthesis\. "
+            rf"Expected '\*\*\({power}\)' instead of '\*\*{power}'\.$"
+        ),
+    ):
+        u_format.OGIP.parse(string)
+
+
 class RoundtripBase:
     deprecated_units = set()
 
