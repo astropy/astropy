@@ -1,6 +1,5 @@
-=======
-Astropy
-=======
+|Astropy Logo|
+----
 
 .. container::
 
@@ -90,6 +89,10 @@ Astropy is licensed under a 3-clause BSD style license - see the
 `LICENSE.rst <LICENSE.rst>`_ file.
 
 
+.. |Astropy Logo| image:: https://github.com/jeffjennings/repo_stats/blob/main/images/astropy/astropy_banner_light.svg
+   :target: https://www.astropy.org/
+   :alt: Astropy
+    :align: center
 .. |Actions Status| image:: https://github.com/astropy/astropy/actions/workflows/ci_workflows.yml/badge.svg
     :target: https://github.com/astropy/astropy/actions
     :alt: Astropy's GitHub Actions CI Status
