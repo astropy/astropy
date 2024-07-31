@@ -5,6 +5,10 @@
 
     |Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status| |Pre-Commit| |Ruff| |Zenodo|
 
+----
+
+|User Stats|
+----
 The Astropy Project (https://astropy.org/) is a community effort to develop a
 single core package for Astronomy in Python and foster interoperability between
 Python astronomy packages. This repository contains the core package which is
@@ -90,9 +94,15 @@ Astropy is licensed under a 3-clause BSD style license - see the
 
 
 .. |Astropy Logo| image:: https://github.com/jeffjennings/repo_stats/blob/main/images/astropy/astropy_banner_light.svg
-   :target: https://www.astropy.org/
-   :alt: Astropy
-    :align: center
+    :target: https://www.astropy.org/
+    :alt: Astropy
+     :align: center
+
+.. |User Stats| image:: https://github.com/jeffjennings/repo_stats/blob/main/images/astropy/astropy_readme_stats.png
+    :target: https://docs.astropy.org/en/stable/
+    :alt: Astropy User Statistics
+     :align: center
+
 .. |Actions Status| image:: https://github.com/astropy/astropy/actions/workflows/ci_workflows.yml/badge.svg
     :target: https://github.com/astropy/astropy/actions
     :alt: Astropy's GitHub Actions CI Status
