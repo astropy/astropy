@@ -47,6 +47,10 @@ docs <https://docs.github.com/en/codespaces>`_.
 
 |Codespaces|
 
+Acknowledging and citing
+========================
+See the `acknowledgement and citation guide <https://www.astropy.org/acknowledging.html>`_ or the `CITATION file <https://github.com/astropy/astropy/blob/main/astropy/CITATION>`_.
+
 Supporting the Project
 ======================
 
