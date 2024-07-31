@@ -13,9 +13,9 @@ The Astropy Project is a community effort to develop a
 single core package for astronomy in Python and foster interoperability between packages used in the field.
 This repository contains the core library.
 
-* `Website <astropy.org ≤https://astropy.org/>`
-* `Documentation <docs.astropy.org <https://docs.astropy.org/>`_
-* `Slack <astropy.slack.com <https://astropy.slack.com/>`_
+* `Website <https://astropy.org/>`_
+* `Documentation <https://docs.astropy.org/>`_
+* `Slack <https://astropy.slack.com/>`_
 * `Open Astronomy Discourse <https://community.openastronomy.org/c/astropy/8>`_
 * `Astropy users mailing list <http://mail.python.org/mailman/listinfo/astropy>`_
 * `Astropy developers mailing list <http://mail.python.org/mailman/listinfo/astropy>`_
