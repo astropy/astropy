@@ -9,9 +9,16 @@
 
 |User Stats|
 ----
-The Astropy Project (https://astropy.org/; documentation at https://docs.astropy.org/) is a community effort to develop a
-single core package for astronomy in Python and foster interoperability between packages used in astronomy and astrophysics.
+The Astropy Project is a community effort to develop a
+single core package for astronomy in Python and foster interoperability between packages used in the field.
 This repository contains the core library.
+
+* `Website <astropy.org ≤https://astropy.org/>`
+* `Documentation <docs.astropy.org <https://docs.astropy.org/>`_
+* `Slack <astropy.slack.com <https://astropy.slack.com/>`_
+* `Open Astronomy Discourse <https://community.openastronomy.org/c/astropy/8>`_
+* `Astropy users mailing list <http://mail.python.org/mailman/listinfo/astropy>`_
+* `Astropy developers mailing list <http://mail.python.org/mailman/listinfo/astropy>`_
 
 Installation
 ============
@@ -40,16 +47,16 @@ and there's a `summary of contribution guidelines <CONTRIBUTING.md>`_.
 Developing with Codespaces
 ==========================
 
-GitHub Codespaces is a cloud development environment that can host a browser version of Visual Studio Code.
-This is a convenient way to quickly start developing Astropy, with our `dev container <.devcontainer/devcontainer.json>`_ configured
+GitHub Codespaces is a cloud development environment using Visual Studio Code in your browser.
+This is a convenient way to start developing Astropy, using our `dev container <.devcontainer/devcontainer.json>`_ configured
 with the required packages. For help, see the `GitHub Codespaces
 docs <https://docs.github.com/en/codespaces>`_.
 
 |Codespaces|
 
-Acknowledging and citing
+Acknowledging and Citing
 ========================
-See the `acknowledgement and citation guide <https://www.astropy.org/acknowledging.html>`_ or the `CITATION file <https://github.com/astropy/astropy/blob/main/astropy/CITATION>`_.
+See the `acknowledgement and citation guide <https://www.astropy.org/acknowledging.html>`_ and the `CITATION <https://github.com/astropy/astropy/blob/main/astropy/CITATION>`_ file.
 
 Supporting the Project
 ======================
