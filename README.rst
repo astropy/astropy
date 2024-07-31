@@ -39,10 +39,10 @@ encourage contributions of many kinds. Our goal is to keep this a positive,
 inclusive, successful, and growing community that abides by the
 `Astropy Community Code of Conduct <https://www.astropy.org/about.html#codeofconduct>`_.
 
-For more detailed information on contributing to the project or submitting feedback, see the
+For guidance on contributing to or submitting feedback for the Astropy Project, see the
 `contributions page <https://www.astropy.org/contribute.html>`_.
-The developer docs have a `guide <https://docs.astropy.org/en/latest/index_dev.html>`_ for contributing code,
-and there's a `summary of contribution guidelines <CONTRIBUTING.md>`_.
+For contributing code specifically, the developer docs have a `guide <https://docs.astropy.org/en/latest/index_dev.html>`_ with a quickstart.
+There's also a `summary of contribution guidelines <CONTRIBUTING.md>`_.
 
 Developing with Codespaces
 ==========================
