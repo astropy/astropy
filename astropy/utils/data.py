@@ -1854,7 +1854,8 @@ def clear_download_cache(hashorurl=None, pkgname="astropy"):
                 filepath = os.path.join(dldir, d)
             if os.path.exists(filepath):
                 _rmtree(filepath)
-            elif (len(hashorurl) == 2 * hashlib.md5(usedforsecurity=False).digest_size
+            elif (len(hashorurl) == 2 *
+                hashlib.md5(usedforsecurity=False).digest_size
                 and re.match(r"[0-9a-f]+", hashorurl)):
                 # It's the hash of some file contents, we have to find the right file
                 filename = _find_hash_fn(hashorurl)
