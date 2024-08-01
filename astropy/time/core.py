@@ -14,6 +14,7 @@ import operator
 import os
 import sys
 import threading
+import warnings
 from collections import defaultdict
 from datetime import date, datetime, timezone
 from itertools import pairwise
@@ -828,7 +829,12 @@ class TimeBase(ShapedLikeNDArray):
                     break
 
             conv_func = getattr(erfa, sys1 + sys2)
-            jd1, jd2 = conv_func(*args)
+
+            # ignore warnings that are raised if nan are in inputs
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", message="invalid value")
+                warnings.filterwarnings("ignore", category=erfa.ErfaWarning)
+                jd1, jd2 = conv_func(*args)
 
         jd1, jd2 = day_frac(jd1, jd2)
 
@@ -1904,6 +1910,19 @@ class TimeBase(ShapedLikeNDArray):
 
     def __ge__(self, other):
         return self._time_comparison(other, operator.ge)
+
+    def __array_ufunc__(self, ufunc, method, *args, **kwargs):
+        """Override numpy ufuncs. For now only isnan and isnat are implemented."""
+        if ufunc in (np.isnan, np.isnat):
+            return self._isnat()
+
+        if ufunc is np.isfinite:
+            return ~self._isnat()
+
+        return NotImplemented
+
+    def _isnat(self):
+        return np.isnan(self.jd2)
 
 
 class Time(TimeBase):
@@ -2984,6 +3003,7 @@ class TimeDelta(TimeBase):
         if (
             isinstance(self._time, TimeDeltaNumeric)
             and getattr(val, "unit", None) is None
+            and not np.isnan(val).all()
             and format is None
         ):
             warn(

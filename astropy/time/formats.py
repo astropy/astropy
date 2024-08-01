@@ -2,6 +2,7 @@
 import datetime
 import fnmatch
 import functools
+import math
 import re
 import time
 import warnings
@@ -114,6 +115,16 @@ def _regexify_subfmts(subfmts):
         new_subfmts.append(subfmt_tuple)
 
     return tuple(new_subfmts)
+
+
+def _isscalar(a):
+    return np.asarray(a).shape == ()
+
+
+def _isnan_scalar(val1, val2):
+    return (
+        _isscalar(val1) and _isscalar(val2) and (math.isnan(val1) or math.isnan(val2))
+    )
 
 
 class TimeFormat:
@@ -292,20 +303,16 @@ class TimeFormat:
         """A helper function to TimeFormat._check_val_type that's meant to be
         optionally bypassed in subclasses that have _check_finite=False
         """
-        # val1 cannot contain nan, but val2 can contain nan
-        isfinite1 = np.isfinite(val1)
-        if val1.size > 1:  # Calling .all() on a scalar is surprisingly slow
-            isfinite1 = (
-                isfinite1.all()
-            )  # Note: arr.all() about 3x faster than np.all(arr)
-        elif val1.size == 0:
-            isfinite1 = False
         ok1 = (
-            val1.dtype.kind == "f"
-            and val1.dtype.itemsize >= 8
-            and isfinite1
+            val1 is None
+            or (
+                val1.dtype.kind == "f"
+                and val1.dtype.itemsize >= 8
+                and not np.any(np.isinf(val1))
+            )
             or val1.size == 0
         )
+
         ok2 = (
             val2 is None
             or (
@@ -315,6 +322,7 @@ class TimeFormat:
             )
             or val2.size == 0
         )
+
         if not (ok1 and ok2):
             raise TypeError(
                 f"Input values for {self.name} class must be finite doubles"
@@ -669,7 +677,26 @@ class TimeDecimalYear(TimeNumeric):
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
 
+        if _isnan_scalar(val1, val2):
+            self.jd1 = self.jd2 = np.nan
+            return
+
         sum12, err12 = two_sum(val1, val2)
+
+        val1 = np.broadcast_to(val1, sum12.shape)
+        val2 = np.broadcast_to(val2, sum12.shape)
+
+        jd1 = np.empty_like(sum12)
+        jd2 = np.empty_like(sum12)
+        mask = np.isnan(sum12)
+        valid = ~mask
+
+        jd2[mask] = np.nan
+        sum12 = sum12[valid]
+        err12 = err12[valid]
+        val1 = val1[valid]
+        val2 = val2[valid]
+
         iy_start = np.trunc(sum12).astype(int)
         extra, y_frac = two_sum(sum12, -iy_start)
         y_frac += extra + err12
@@ -693,7 +720,8 @@ class TimeDecimalYear(TimeNumeric):
         t_end = Time(jd1_end, jd2_end, scale=self.scale, format="jd")
         t_frac = t_start + (t_end - t_start) * y_frac
 
-        self.jd1, self.jd2 = day_frac(t_frac.jd1, t_frac.jd2)
+        jd1[valid], jd2[valid] = day_frac(t_frac.jd1, t_frac.jd2)
+        self.jd1, self.jd2 = jd1, jd2
 
     def to_value(self, **kwargs):
         scale = self.scale.upper().encode("ascii")
@@ -750,6 +778,10 @@ class TimeFromEpoch(TimeNumeric):
         For an TimeFromEpoch subclass like TimeUnix these will be floats giving
         the effective seconds since an epoch time (e.g. 1970-01-01 00:00:00).
         """
+        if _isnan_scalar(val1, val2):
+            self.jd1 = self.jd2 = np.nan
+            return
+
         # Form new JDs based on epoch time + time from epoch (converted to JD).
         # One subtlety that might not be obvious is that 1.000 Julian days in
         # UTC can be 86400 or 86401 seconds.  For the TimeUnix format the
@@ -2089,6 +2121,9 @@ class TimeEpochDateString(TimeString):
         for val, years in iterator:
             try:
                 time_str = to_string(val)
+                if time_str.lower() in ("nat", "nan"):
+                    years[...] = np.nan
+                    continue
                 epoch_type, year_str = time_str[0], time_str[1:]
                 year = float(year_str)
                 if epoch_type.upper() != epoch_prefix:
