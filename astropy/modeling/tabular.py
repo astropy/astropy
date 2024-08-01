@@ -306,10 +306,8 @@ def tabular_model(dim, name=None):
 
     Examples
     --------
-    >>> table = np.array([[3., 0., 0.],
-    ...                   [0., 2., 0.],
-    ...                   [0., 0., 0.]])
-
+    >>> import numpy as np
+    >>> from astropy.modeling.models import tabular_model
     >>> tab = tabular_model(2, name='Tabular2D')
     >>> print(tab)
     <class 'astropy.modeling.tabular.Tabular2D'>
@@ -317,16 +315,17 @@ def tabular_model(dim, name=None):
     N_inputs: 2
     N_outputs: 1
 
+    Setting ``fill_value`` to `None` allows extrapolation.
+
     >>> points = ([1, 2, 3], [1, 2, 3])
-
-    Setting fill_value to None, allows extrapolation.
-    >>> m = tab(points, lookup_table=table, name='my_table',
-    ...         bounds_error=False, fill_value=None, method='nearest')
-
+    >>> table = np.array([[3., 0., 0.],
+    ...                   [0., 2., 0.],
+    ...                   [0., 0., 0.]])
+    >>> model = tab(points, lookup_table=table, name='my_table',
+    ...             bounds_error=False, fill_value=None, method='nearest')
     >>> xinterp = [0, 1, 1.5, 2.72, 3.14]
-    >>> m(xinterp, xinterp)  # doctest: +FLOAT_CMP
+    >>> model(xinterp, xinterp)  # doctest: +FLOAT_CMP
     array([3., 3., 3., 0., 0.])
-
     """
     if dim < 1:
         raise ValueError("Lookup table must have at least one dimension.")
