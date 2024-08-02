@@ -1,0 +1,2 @@
+``AstropyDeprecationWarning`` is now a subclass of both ``FutureWarning`` and
+``AstropyWarning``.
