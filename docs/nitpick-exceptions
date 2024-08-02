@@ -90,6 +90,8 @@ py:class NDArray
 py:class ArrayLike
 # np.ma
 py:class np.ma.MaskedArray
+# astropy.units.typing
+py:class UnitPower
 # locally defined type variable for ndarray dtype
 py:class DT
 

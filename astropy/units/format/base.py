@@ -166,7 +166,7 @@ class Base:
                     unit.bases, unit.powers
                 )
             else:
-                numerator = list(zip(unit.bases, unit.powers))
+                numerator = list(unit.components())
                 denominator = []
             if len(denominator):
                 if len(numerator):

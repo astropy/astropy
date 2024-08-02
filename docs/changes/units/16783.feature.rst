@@ -1,0 +1,2 @@
+``UnitBase`` instances now have a ``components()`` method, which enables
+convenient looping over the bases and powers of the unit.

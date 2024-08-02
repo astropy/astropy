@@ -79,7 +79,7 @@ def decompose_to_known_units(
 
     if isinstance(unit, core.CompositeUnit):
         new_unit = core.Unit(unit.scale)
-        for base, power in zip(unit.bases, unit.powers):
+        for base, power in unit.components():
             new_unit = new_unit * decompose_to_known_units(base, func) ** power
         return new_unit
     elif isinstance(unit, core.NamedUnit):
