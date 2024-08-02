@@ -80,8 +80,8 @@ class Gaussian1D(Fittable1DModel):
 
     Notes
     -----
-    Either all or none of input ``x``, ``mean`` and ``stddev`` must be provided
-    consistently with compatible units or as unitless numbers.
+    The ``x``, ``mean``, and ``stddev`` inputs must have compatible
+    units or be unitless numbers.
 
     Model formula:
 
@@ -274,8 +274,8 @@ class Gaussian2D(Fittable2DModel):
 
     Notes
     -----
-    Either all or none of input ``x, y``, ``[x,y]_mean`` and ``[x,y]_stddev``
-    must be provided consistently with compatible units or as unitless numbers.
+    The ``x, y``, ``[x,y]_mean``, and ``[x,y]_stddev`` inputs must have
+    compatible units or be unitless numbers.
 
     Model formula:
 
@@ -1587,8 +1587,8 @@ class Lorentz1D(Fittable1DModel):
 
     Notes
     -----
-    Either all or none of input ``x``, position ``x_0`` and ``fwhm`` must be provided
-    consistently with compatible units or as unitless numbers.
+    The ``x``, ``x_0``, and ``fwhm`` inputs must have compatible units
+    or be unitless numbers.
 
     Model formula:
 
@@ -1700,8 +1700,9 @@ class Voigt1D(Fittable1DModel):
 
     Notes
     -----
-    Either all or none of input ``x``, position ``x_0`` and the ``fwhm_*`` must be provided
-    consistently with compatible units or as unitless numbers.
+    The ``x``, ``x_0``, and ``fwhm_*`` inputs must have compatible units
+    or be unitless numbers.
+
     Voigt function is calculated as real part of the complex error function computed from either
     Humlicek's rational approximations (JQSRT 21:309, 1979; 27:437, 1982) following
     Schreier 2018 (MNRAS 479, 3068; and ``hum2zpf16m`` from his cpfX.py module); or
