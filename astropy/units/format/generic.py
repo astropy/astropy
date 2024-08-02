@@ -31,6 +31,8 @@ from . import core
 from .base import Base
 
 if TYPE_CHECKING:
+    from typing import ClassVar
+
     import numpy as np
 
     from astropy.units import NamedUnit, UnitBase
@@ -61,17 +63,7 @@ class Generic(Base):
         "UFLOAT",
     )
 
-    @classproperty(lazy=True)
-    def _all_units(cls):
-        return cls._generate_unit_names()
-
-    @classproperty(lazy=True)
-    def _units(cls):
-        return cls._all_units[0]
-
-    @classproperty(lazy=True)
-    def _deprecated_units(cls):
-        return cls._all_units[1]
+    _deprecated_units: ClassVar[frozenset[str]] = frozenset()
 
     @classproperty(lazy=True)
     def _lexer(cls):
