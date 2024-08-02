@@ -803,6 +803,9 @@ class Sersic1D(Fittable1DModel):
 
     Notes
     -----
+    The ``r`` and ``r_eff`` inputs must have compatible units or be
+    unitless numbers.
+
     Model formula:
 
     .. math::
@@ -3242,6 +3245,9 @@ class Sersic2D(Fittable2DModel):
 
     Notes
     -----
+    The ``x``, ``y``, ``x_0``, ``y_0``, and ``r_eff`` inputs must have
+    compatible units or be unitless numbers.
+
     Model formula:
 
     .. math::
