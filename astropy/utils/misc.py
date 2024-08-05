@@ -11,7 +11,6 @@ import json
 import locale
 import os
 import re
-import signal
 import sys
 import threading
 import traceback
@@ -289,21 +288,6 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
         webbrowser.open(resurl)
 
     return resurl
-
-
-def signal_number_to_name(signum):
-    """
-    Given an OS signal number, returns a signal name.  If the signal
-    number is unknown, returns ``'UNKNOWN'``.
-    """
-    # Since these numbers and names are platform specific, we use the
-    # builtin signal module and build a reverse mapping.
-
-    signal_to_name_map = {
-        k: v for v, k in signal.__dict__.items() if v.startswith("SIG")
-    }
-
-    return signal_to_name_map.get(signum, "UNKNOWN")
 
 
 # _has_hidden_attribute() can be deleted together with deprecated is_path_hidden() and
