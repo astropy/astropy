@@ -17,7 +17,7 @@ from astropy import units as u
 from astropy.modeling import fitting, models
 from astropy.modeling.bounding_box import ModelBoundingBox
 from astropy.modeling.core import FittableModel, Model, _ModelMeta
-from astropy.modeling.models import Gaussian2D
+from astropy.modeling.models import Gaussian2D, Lorentz2D
 from astropy.modeling.parameters import InputParameterError, Parameter
 from astropy.modeling.polynomial import PolynomialBase
 from astropy.modeling.powerlaws import (
@@ -390,9 +390,16 @@ class Fittable2DModelTester:
             new_model_no_deriv(xv_test, yv_test),
             rtol=1e-2,
         )
+
+        if isinstance(model_with_deriv, Lorentz2D):
+            atol = 1e-6
+        else:
+            atol = 0.1
         if model_class != Gaussian2D:
             assert_allclose(
-                new_model_with_deriv.parameters, new_model_no_deriv.parameters, rtol=0.1
+                new_model_with_deriv.parameters,
+                new_model_no_deriv.parameters,
+                rtol=atol,
             )
 
 
