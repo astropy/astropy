@@ -46,7 +46,11 @@ Explanation of keywords of the dictionaries:
 
 "deriv_initial" : list
     If given the test of the derivative will use these parameters as initial
-    values for the fit (optional)
+    values for the fit (optional).
+
+"deriv_atol" : float
+    If given the test of the derivative will use this value as the
+    absolute tolerance for the fit (optional).
 """
 
 import numpy as np
@@ -171,6 +175,7 @@ models_1D = {
         "integral": 1,
         "bbox_peak": True,
         "deriv_initial": [10, 0.5, 4],
+        "deriv_atol": 1e-6,
     },
     RickerWavelet1D: {
         "parameters": [1, 0, 1],
@@ -412,6 +417,7 @@ models_2D = {
         "x_lim": [-10, 10],
         "y_lim": [-10, 10],
         "deriv_initial": [10, 5, 5, 4],
+        "deriv_atol": 1e-6,
     },
     Polynomial2D: {
         "parameters": {"degree": 1, "c0_0": 1.0, "c1_0": 1.0, "c0_1": 1.0},
