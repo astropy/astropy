@@ -40,10 +40,6 @@ Explanation of keywords of the dictionaries:
 "integral" : float
     Approximate value of the integral in the range x_lim (and y_lim).
 
-"deriv_parameters" : list
-    If given the test of the derivative will use these parameters to create a
-    model (optional)
-
 "deriv_initial" : list
     If given the test of the derivative will use these parameters as initial
     values for the fit (optional).
@@ -206,7 +202,6 @@ models_1D = {
         "y_values": [1.0, 0.25, 0.25, 0.01, 0.01],
         "x_lim": [-10, 10],
         "integral": 1,
-        "deriv_parameters": [23.4, 1.2, 2.1, 2.3],
         "deriv_initial": [10, 1, 1, 1],
     },
     PowerLaw1D: {
@@ -341,7 +336,6 @@ models_2D = {
         "x_lim": [-10, 10],
         "y_lim": [-10, 10],
         "integral": 2 * np.pi,
-        "deriv_parameters": [137.0, 5.1, 5.4, 1.5, 2.0, np.pi / 4],
         "deriv_initial": [10, 5, 5, 4, 4, 0.5],
         "bbox_peak": True,
     },
