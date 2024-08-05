@@ -46,7 +46,11 @@ Explanation of keywords of the dictionaries:
 
 "deriv_initial" : list
     If given the test of the derivative will use these parameters as initial
-    values for the fit (optional)
+    values for the fit (optional).
+
+"deriv_atol" : float
+    If given the test of the derivative will use this value as the
+    absolute tolerance for the fit (optional).
 """
 
 import numpy as np
