@@ -1196,7 +1196,7 @@ def fit_wcs_from_points(
         wcs.wcs.cd = wcs.wcs.pc
         wcs.wcs.__delattr__("pc")
 
-    if (type(sip_degree) != type(None)) and (type(sip_degree) != int):
+    if (sip_degree is not None) and (type(sip_degree) != int):
         raise ValueError("sip_degree must be None, or integer.")
 
     # compute bounding box for sources in image coordinates:
