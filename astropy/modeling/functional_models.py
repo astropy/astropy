@@ -3264,6 +3264,10 @@ class Moffat2D(Fittable2DModel):
 
         f(x, y) = A \\left(1 + \\frac{\\left(x - x_{0}\\right)^{2} +
         \\left(y - y_{0}\\right)^{2}}{\\gamma^{2}}\\right)^{- \\alpha}
+
+    Note that if :math:`\\alpha` is 1, the `Moffat2D` profile is a
+    `Lorentz2D` profile. In that case, the integral of the profile is
+    infinite.
     """
 
     amplitude = Parameter(default=1, description="Amplitude (peak value) of the model")
