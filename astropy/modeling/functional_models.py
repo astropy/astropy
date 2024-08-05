@@ -1615,9 +1615,10 @@ class Lorentz1D(Fittable1DModel):
 
         for factor in range(1, 4):
             s1.amplitude = factor
-            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+            plt.plot(r, s1(r), lw=2, label=f'Amplitude={factor}')
 
         plt.axis([-5, 5, -1, 4])
+        plt.legend()
         plt.show()
     """
 
