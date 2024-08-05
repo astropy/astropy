@@ -31,6 +31,7 @@ __all__ = [
     "GeneralSersic2D",
     "Linear1D",
     "Lorentz1D",
+    "Lorentz2D",
     "RickerWavelet1D",
     "RickerWavelet2D",
     "RedshiftScaleFactor",
@@ -1586,7 +1587,7 @@ class Lorentz1D(Fittable1DModel):
 
     See Also
     --------
-    Gaussian1D, Box1D, RickerWavelet1D
+    Lorentz2D, Gaussian1D, Box1D, RickerWavelet1D
 
     Notes
     -----
@@ -1671,6 +1672,124 @@ class Lorentz1D(Fittable1DModel):
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
             "x_0": inputs_unit[self.inputs[0]],
+            "fwhm": inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
+
+
+class Lorentz2D(Fittable2DModel):
+    """
+    Two-dimensional Lorentzian model.
+
+    Parameters
+    ----------
+    amplitude : float or `~astropy.units.Quantity`.
+        Peak value.
+    x_0 : float or `~astropy.units.Quantity`.
+        Position of the peak in x.
+    y_0 : float or `~astropy.units.Quantity`.
+        Position of the peak in y.
+    fwhm : float or `~astropy.units.Quantity`.
+        Full width at half maximum (FWHM).
+
+    See Also
+    --------
+    Lorentz1D, Gaussian2D, Moffat2D
+
+    Notes
+    -----
+    The ``x``, ``y``, ``x_0``, ``y_0``, and ``fwhm`` inputs must have
+    compatible units or as unitless numbers.
+
+    Model formula:
+
+    .. math::
+
+        f(x, y) = \\frac{A \\gamma^{2}}{\\gamma^{2}
+                  + \\left(x - x_{0}\\right)^2 + \\left(y - y_{0}\\right)^{2}}
+
+    where :math:`\\gamma` is the half width at half maximum (HWHM), which
+    is half the FWHM.
+
+    The area under the `Lorentz2D` profile is infinite, therefore this
+    model profile cannot be normalized to sum to 1.
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Lorentz2D
+
+        plt.figure()
+        model = Lorentz2D(x_0=12, y_0=12, fwhm=3)
+        yy, xx = np.mgrid[:25, :25]
+        data = model(xx, yy)
+
+        plt.imshow(data)
+        plt.show()
+    """
+
+    amplitude = Parameter(default=1, description="Peak value")
+    x_0 = Parameter(default=0, description="Position of the peak in x")
+    y_0 = Parameter(default=0, description="Position of the peak in y")
+    fwhm = Parameter(default=1, description="Full width at half maximum")
+
+    @staticmethod
+    def evaluate(x, y, amplitude, x_0, y_0, fwhm):
+        """Two dimensional Lorentzian model function."""
+        return amplitude * (
+            ((fwhm / 2.0) ** 2) / ((x - x_0) ** 2 + (y - y_0) ** 2 + (fwhm / 2.0) ** 2)
+        )
+
+    @staticmethod
+    def fit_deriv(x, y, amplitude, x_0, y_0, fwhm):
+        """Two dimensional Lorentzian model derivative with respect to parameters."""
+        gamma = fwhm / 2.0
+        r2 = (x - x_0) ** 2 + (y - y_0) ** 2
+        denom = gamma**2 + r2
+        denom2 = denom**2
+        d_amplitude = gamma**2 / denom
+        d_x_0 = amplitude * gamma**2 * 2 * (x - x_0) / denom2
+        d_y_0 = amplitude * gamma**2 * 2 * (y - y_0) / denom2
+        d_fwhm = (amplitude * (fwhm / 2) * r2) / denom2
+        return [d_amplitude, d_x_0, d_y_0, d_fwhm]
+
+    def bounding_box(self, factor=25):
+        """Tuple defining the default ``bounding_box`` limits,
+        ``(x_low, x_high), (y_low, y_high)``.
+
+        Parameters
+        ----------
+        factor : float
+            The multiple of FWHM used to define the limits.
+            Default is chosen to include most (99%) of the
+            area under the curve, while still showing the
+            central feature of interest.
+        """
+        x0 = self.x_0
+        y0 = self.y_0
+        dx = factor * self.fwhm
+        return ((x0 - dx, x0 + dx), (y0 - dx, y0 + dx))
+
+    @property
+    def input_units(self):
+        x_unit = self.x_0.input_unit
+        y_unit = self.y_0.input_unit
+        if x_unit is None and y_unit is None:
+            return None
+
+        return {self.inputs[0]: x_unit, self.inputs[1]: y_unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
+            raise UnitsError("Units of 'x' and 'y' inputs should match")
+        return {
+            "x_0": inputs_unit[self.inputs[0]],
+            "y_0": inputs_unit[self.inputs[0]],
             "fwhm": inputs_unit[self.inputs[0]],
             "amplitude": outputs_unit[self.outputs[0]],
         }
