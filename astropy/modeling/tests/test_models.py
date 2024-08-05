@@ -390,9 +390,16 @@ class Fittable2DModelTester:
             new_model_no_deriv(xv_test, yv_test),
             rtol=1e-2,
         )
+
         if model_class != Gaussian2D:
+            try:
+                deriv_atol = test_parameters["deriv_atol"]
+            except KeyError:
+                deriv_atol = 0.1
             assert_allclose(
-                new_model_with_deriv.parameters, new_model_no_deriv.parameters, rtol=0.1
+                new_model_with_deriv.parameters,
+                new_model_no_deriv.parameters,
+                rtol=deriv_atol,
             )
 
 
@@ -629,8 +636,15 @@ class Fittable1DModelTester:
         new_model_no_deriv = fitter_no_deriv(
             model_no_deriv, x, data, estimate_jacobian=True
         )
+
+        try:
+            deriv_atol = test_parameters["deriv_atol"]
+        except KeyError:
+            deriv_atol = 0.15
         assert_allclose(
-            new_model_with_deriv.parameters, new_model_no_deriv.parameters, atol=0.15
+            new_model_with_deriv.parameters,
+            new_model_no_deriv.parameters,
+            atol=deriv_atol,
         )
 
 
