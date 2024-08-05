@@ -169,6 +169,7 @@ models_1D = {
         "x_lim": [-10, 10],
         "integral": 1,
         "bbox_peak": True,
+        "deriv_initial": [10, 0.5, 4],
     },
     RickerWavelet1D: {
         "parameters": [1, 0, 1],
