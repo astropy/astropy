@@ -852,7 +852,7 @@ class TestSubFormat:
         """Non-existent input subformat"""
         with pytest.raises(ValueError):
             Time(
-                "2000-01-01 01:01", format="iso", scale="tai", in_subfmt="doesnt exist"
+                "2000-01-01 01:01", format="iso", scale="tai", in_subfmt="doesn't exist"
             )
 
     def test_output_subformat(self):

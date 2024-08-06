@@ -146,7 +146,7 @@ class _AngleParser:
         t_DEGREE = r"d(eg(ree(s)?)?)?|°"
         t_HOUR = r"hour(s)?|h(r)?|ʰ"
         t_MINUTE = r"m(in(ute(s)?)?)?|′|\'|ᵐ"
-        t_SECOND = r"s(ec(ond(s)?)?)?|″|\"|ˢ"
+        t_SECOND = r"s(ec(ond(s)?)?)?|″|\"|ˢ"  # codespell:ignore ond
 
         # A string containing ignored characters (spaces)
         t_ignore = " "
