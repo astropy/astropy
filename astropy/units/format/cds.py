@@ -21,18 +21,18 @@ from astropy.units.utils import is_effectively_unity
 from astropy.utils import classproperty, parsing
 from astropy.utils.misc import did_you_mean
 
-from . import core, utils
-from .base import Base
+from . import utils
+from .generic import Generic
 
 if TYPE_CHECKING:
     from typing import ClassVar, Literal
 
-    from astropy.extern.ply.lex import Lexer, LexToken
+    from astropy.extern.ply.lex import Lexer
     from astropy.units import UnitBase
     from astropy.utils.parsing import ThreadSafeParser
 
 
-class CDS(Base):
+class CDS(Generic):
     """
     Support the `Centre de Données astronomiques de Strasbourg
     <https://cds.unistra.fr/>`_ `Standards for Astronomical
@@ -263,17 +263,6 @@ class CDS(Base):
         return parsing.yacc(tabmodule="cds_parsetab", package="astropy/units")
 
     @classmethod
-    def _get_unit(cls, t: LexToken) -> UnitBase:
-        try:
-            return cls._parse_unit(t.value)
-        except ValueError as e:
-            registry = core.get_current_unit_registry()
-            if t.value in registry.aliases:
-                return registry.aliases[t.value]
-
-            raise ValueError(f"At col {t.lexpos}, {str(e)}")
-
-    @classmethod
     def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
         if unit not in cls._units:
             if detailed_exception:
@@ -314,6 +303,12 @@ class CDS(Base):
     @classmethod
     def _format_superscript(cls, number: str) -> str:
         return number if number.startswith("-") else "+" + number
+
+    @classmethod
+    def format_exponential_notation(
+        cls, val: float | np.number, format_spec: str = ".8g"
+    ) -> str:
+        return super(Generic, cls).format_exponential_notation(val, format_spec)
 
     @classmethod
     def to_string(
