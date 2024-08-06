@@ -23,12 +23,6 @@ def test_isiterable():
     assert misc.isiterable(np.array([1, 2, 3])) is True
 
 
-def test_signal_number_to_name_no_failure():
-    # Regression test for #5340: ensure signal_number_to_name throws no
-    # AttributeError (it used ".iteritems()" which was removed in Python3).
-    misc.signal_number_to_name(0)
-
-
 @pytest.mark.remote_data
 def test_api_lookup():
     try:
