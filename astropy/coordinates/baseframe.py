@@ -834,17 +834,17 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 uns = repr_attrs[repr_diff_cls]["units"]
                 comptomap = {m.reprname: m for m in mappings}
                 for i, c in enumerate(repr_diff_cls.attr_classes.keys()):
-                    if c in comptomap:
-                        mapp = comptomap[c]
-                        nms[i] = mapp.framename
+                    if (mapping := comptomap.get(c)) is not None:
+                        nms[i] = mapping.framename
+                        defaultunit = mapping.defaultunit
 
                         # need the isinstance because otherwise if it's a unit it
                         # will try to compare to the unit string representation
                         if not (
-                            isinstance(mapp.defaultunit, str)
-                            and mapp.defaultunit == "recommended"
+                            isinstance(defaultunit, str)
+                            and defaultunit == "recommended"
                         ):
-                            uns[i] = mapp.defaultunit
+                            uns[i] = defaultunit
                             # else we just leave it as recommended_units says above
 
                 # Convert to tuples so that this can't mess with frame internals

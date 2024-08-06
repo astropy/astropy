@@ -749,7 +749,7 @@ def test_suggestions():
         ("M", "m"),
         ("metre", "meter"),
         ("angstroms", "Angstrom or angstrom"),
-        ("milimeter", "millimeter"),
+        ("milimeter", "millimeter"),  # codespell:ignore milimeter
         ("ångström", "Angstrom, angstrom, mAngstrom or mangstrom"),
         ("kev", "EV, eV, kV or keV"),
     ]:

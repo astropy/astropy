@@ -1751,7 +1751,7 @@ def test_distortion_header(tmp_path):
     """
     path = get_pkg_data_filename("data/dss.14.29.56-62.41.05.fits.gz")
     cen = np.array((50, 50))
-    siz = np.array((20, 20))
+    size = np.array((20, 20))
 
     if PYTEST_LT_8_0:
         ctx = nullcontext()
@@ -1761,7 +1761,7 @@ def test_distortion_header(tmp_path):
     with fits.open(path) as hdulist:
         with ctx, pytest.warns(wcs.FITSFixedWarning):
             w = wcs.WCS(hdulist[0].header)
-        cut = Cutout2D(hdulist[0].data, position=cen, size=siz, wcs=w)
+        cut = Cutout2D(hdulist[0].data, position=cen, size=size, wcs=w)
 
     # This converts the DSS plate solution model with AMD[XY]n coefficients into a
     # Template Polynomial Distortion model (TPD.FWD.n coefficients);
@@ -1786,7 +1786,7 @@ def test_distortion_header(tmp_path):
     assert w.pixel_to_world(*cen).separation(w0.pixel_to_world(*cen)) < 1.0e-3 * u.mas
 
     assert (
-        w.pixel_to_world(*cen).separation(w1.pixel_to_world(*(siz / 2)))
+        w.pixel_to_world(*cen).separation(w1.pixel_to_world(*(size / 2)))
         < 1.0e-3 * u.mas
     )
 
@@ -1797,7 +1797,7 @@ def test_distortion_header(tmp_path):
         w2 = wcs.WCS(hdulist[0].header)
 
     assert (
-        w.pixel_to_world(*cen).separation(w2.pixel_to_world(*(siz / 2)))
+        w.pixel_to_world(*cen).separation(w2.pixel_to_world(*(size / 2)))
         < 1.0e-3 * u.mas
     )
 
