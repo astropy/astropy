@@ -174,3 +174,11 @@ def test_copy_with_new_parameter_values(model):
     # Check the result
     assert_allclose(getattr(new_model, first_parameter), array)
     assert new_model.fixed[first_parameter]
+
+    for name in new_model.param_names:
+        print(name, first_parameter)
+        if name != first_parameter:
+            original_value = getattr(model, name).value
+            new_value = getattr(new_model, name).value
+            assert new_value.shape == (2, 3, 4)
+            assert np.all(original_value == new_value)

@@ -357,10 +357,14 @@ def copy_with_new_parameter_values(model, **parameters):
     # Avoid circular imports
     from astropy.modeling import CompoundModel, models
 
+    # TODO: detect case where new parameter shapes are not compatible with
+    # shape of existing parameters which will not get replaced.
+
+    shape = np.broadcast_shapes(
+        *list(np.shape(value) for value in parameters.values())
+    )
+
     if isinstance(model, CompoundModel):
-        shape = np.broadcast_shapes(
-            *list(np.shape(value) for value in parameters.values())
-        )
         new_model = _compound_model_with_array_parameters(model, shape)
         for name, value in parameters.items():
             setattr(new_model, name, value)
@@ -374,7 +378,12 @@ def copy_with_new_parameter_values(model, **parameters):
             args = (model.degree,)
         else:
             args = ()
-        new_model = model.__class__(*args, **parameters, **constraints)
+        all_parameters = parameters.copy()
+        for name in model.param_names:
+            if name not in parameters:
+                value = getattr(model, name)
+                all_parameters[name] = np.broadcast_to(value, shape)
+        new_model = model.__class__(*args, **all_parameters, **constraints)
     return new_model
 
 
@@ -393,5 +402,8 @@ def _compound_model_with_array_parameters(model, shape):
             _compound_model_with_array_parameters(model.right, shape),
         )
     else:
-        parameters = {name: np.zeros(shape) for name in model.param_names}
+        parameters = {}
+        for name in model.param_names:
+            value = getattr(model, name)
+            parameters[name] = np.broadcast_to(value, shape)
         return copy_with_new_parameter_values(model, **parameters)
