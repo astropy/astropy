@@ -1,0 +1,1 @@
+Fix bugs in ``astropy.io.ascii.qdp`` to allow one "NO" to start a new sector and allow any space-like characters ahead of the "NO".
