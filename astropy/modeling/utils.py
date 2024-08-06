@@ -360,9 +360,7 @@ def copy_with_new_parameter_values(model, **parameters):
     # TODO: detect case where new parameter shapes are not compatible with
     # shape of existing parameters which will not get replaced.
 
-    shape = np.broadcast_shapes(
-        *list(np.shape(value) for value in parameters.values())
-    )
+    shape = np.broadcast_shapes(*list(np.shape(value) for value in parameters.values()))
 
     if isinstance(model, CompoundModel):
         new_model = _compound_model_with_array_parameters(model, shape)
