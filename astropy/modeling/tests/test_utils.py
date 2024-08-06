@@ -5,10 +5,13 @@ from inspect import Parameter
 
 import numpy as np
 import pytest
+from numpy.testing import assert_allclose
 
+from astropy.modeling import models
 from astropy.modeling.utils import (
     _SpecialOperatorsDict,
     _validate_domain_window,
+    copy_with_new_parameter_values,
     get_inputs_and_params,
     poly_map_domain,
 )
@@ -143,3 +146,31 @@ class Test_SpecialOperatorsDict:
         assert special_operators[key1] == operator
 
         assert key0 != key1
+
+
+from .test_models_quantities import MODELS
+
+# For now reuse a list of models from another test file, but we should make
+# sure we use a complete list of all models.
+ALL_MODELS = [entry["class"](**entry["parameters"]) for entry in MODELS]
+
+# Add a compound model
+ALL_MODELS.append(models.Gaussian1D() + models.Polynomial1D(2))
+
+
+@pytest.mark.parametrize("model", ALL_MODELS, ids=lambda m: m.__class__.__name__)
+def test_copy_with_new_parameter_values(model):
+    # Extract first parameter name
+    first_parameter = model.param_names[0]
+
+    getattr(model, first_parameter).fixed = True
+
+    # Set up an array which will be used for the new parameter value
+    array = np.ones((2, 3, 4))
+
+    # Copy the model, replacing the first parameter with the array
+    new_model = copy_with_new_parameter_values(model, **{first_parameter: array})
+
+    # Check the result
+    assert_allclose(getattr(new_model, first_parameter), array)
+    assert new_model.fixed[first_parameter]
