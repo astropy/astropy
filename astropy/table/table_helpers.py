@@ -133,7 +133,7 @@ def complex_table():
         warnings.simplefilter("ignore")
         votable = parse(
             get_pkg_data_filename("../io/votable/tests/data/regression.xml"),
-            pedantic=False,
+            verify="ignore",
         )
     first_table = votable.get_first_table()
     table = first_table.to_table()
