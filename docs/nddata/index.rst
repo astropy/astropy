@@ -488,6 +488,7 @@ Using ``nddata``
    bitmask.rst
    decorator.rst
    nddata.rst
+   covariance.rst
    mixins/index.rst
    subclassing.rst
 
