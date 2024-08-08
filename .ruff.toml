@@ -247,7 +247,6 @@ lint.unfixable = [
 "astropy/io/*" = [
     "G001",  # logging-string-format
     "G004",  # logging-f-string
-    "PLR0911",  # too-many-return-statements
     "PTH116",  # os-stat
     "PTH117",  # os-path-isabs
     "SLOT000",  # Subclasses of `str` should define `__slots__`
