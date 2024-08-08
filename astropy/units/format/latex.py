@@ -57,19 +57,9 @@ class Latex(console.Console):
         return name
 
     @classmethod
-    def _format_fraction(
-        cls,
-        scale: str,
-        numerator: str,
-        denominator: str,
-        *,
-        fraction: Literal[True, "inline", "multiline"] = "multiline",
+    def _format_multiline_fraction(
+        cls, scale: str, numerator: str, denominator: str
     ) -> str:
-        if fraction != "multiline":
-            return super()._format_fraction(
-                scale, numerator, denominator, fraction=fraction
-            )
-
         return rf"{scale}\frac{{{numerator}}}{{{denominator}}}"
 
     @classmethod
