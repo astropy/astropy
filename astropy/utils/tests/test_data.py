@@ -1025,7 +1025,7 @@ def test_compute_hash(tmp_path):
         ntf.flush()
 
     chhash = compute_hash(filename)
-    shash = hashlib.md5(rands).hexdigest()
+    shash = hashlib.md5(rands, usedforsecurity=False).hexdigest()
 
     assert chhash == shash
 
