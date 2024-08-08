@@ -1,0 +1,1 @@
+Made the ```CompoundModel.with_units_from_data()``` API public and updated the documentation to reflect this change.
