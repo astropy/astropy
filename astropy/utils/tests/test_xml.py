@@ -93,6 +93,7 @@ def test_escape_xml_without_bleach():
             pass
 
 
+@pytest.mark.filterwarnings("ignore:The bleach package has been deprecated:")
 @pytest.mark.skipif(not HAS_BLEACH, reason="requires bleach")
 def test_escape_xml_with_bleach():
     fh = io.StringIO()

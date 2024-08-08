@@ -6,8 +6,10 @@ nicely-indented XML.
 
 import contextlib
 import textwrap
+import warnings
 
 from astropy.utils.compat.optional_deps import HAS_BLEACH
+from astropy.utils.exceptions import AstropyPendingDeprecationWarning
 
 from ._iterparser import escape_xml as xml_escape
 from ._iterparser import escape_xml_cdata as xml_escape_cdata
@@ -159,6 +161,15 @@ class XMLWriter:
         current_xml_escape_cdata = self.xml_escape_cdata
 
         if method == "bleach_clean":
+            warnings.warn(
+                "The bleach package has been deprecated. "
+                "Therefore, method='bleach_clean' will be deprecated in a future"
+                "version of astropy.\n"
+                "See https://github.com/astropy/astropy/issues/14316",
+                category=AstropyPendingDeprecationWarning,
+                stacklevel=2,
+            )
+
             # NOTE: bleach is imported locally to avoid importing it when
             # it is not necessary
             if not HAS_BLEACH:
