@@ -4,9 +4,18 @@
 Handles the "FITS" unit format.
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 
+from astropy.utils import classproperty
+
 from . import core, generic, utils
+
+if TYPE_CHECKING:
+    from astropy.units import UnitBase
 
 
 class FITS(generic.Generic):
@@ -17,8 +26,8 @@ class FITS(generic.Generic):
     Standard <https://fits.gsfc.nasa.gov/fits_standard.html>`_.
     """
 
-    @classmethod
-    def _generate_unit_names(cls):
+    @classproperty(lazy=True)
+    def _units(cls) -> dict[str, UnitBase]:
         from astropy import units as u
 
         # add some units up-front for which we don't want to use prefixes
@@ -47,7 +56,7 @@ class FITS(generic.Generic):
         ]  # fmt: skip
         names.update((unit, getattr(u, unit)) for unit in simple_units)
 
-        return names, set()
+        return names
 
     @classmethod
     def _parse_unit(cls, unit, detailed_exception=True):

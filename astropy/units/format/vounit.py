@@ -3,10 +3,18 @@
 Handles the "VOUnit" unit format.
 """
 
+from __future__ import annotations
+
 import re
 import warnings
+from typing import TYPE_CHECKING
+
+from astropy.utils import classproperty
 
 from . import core, generic, utils
+
+if TYPE_CHECKING:
+    from astropy.units import UnitBase
 
 
 class VOUnit(generic.Generic):
@@ -23,8 +31,8 @@ class VOUnit(generic.Generic):
     _space = "."
     _scale_unit_separator = ""
 
-    @classmethod
-    def _generate_unit_names(cls):
+    @classproperty(lazy=True)
+    def _all_units(cls) -> tuple[dict[str, UnitBase], frozenset[str]]:
         from astropy import units as u
         from astropy.units import required_by_vounit as uvo
 
@@ -61,7 +69,15 @@ class VOUnit(generic.Generic):
         do_defines(binary_bases, si_prefixes + binary_prefixes, ["dB", "dbyte"])
         do_defines(simple_units, [""])
 
-        return names, deprecated_names
+        return names, frozenset(deprecated_names)
+
+    @classproperty(lazy=True)
+    def _units(cls) -> dict[str, UnitBase]:
+        return cls._all_units[0]
+
+    @classproperty(lazy=True)
+    def _deprecated_units(cls) -> frozenset[str]:
+        return cls._all_units[1]
 
     @classmethod
     def parse(cls, s, debug=False):
