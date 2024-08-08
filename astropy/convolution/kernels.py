@@ -5,9 +5,9 @@ import math
 import numpy as np
 
 from astropy.modeling import models
-from astropy.modeling.core import Fittable1DModel, Fittable2DModel
+from astropy.modeling.core import Fittable1DModel, Fittable2DModel, Fittable3DModel
 
-from .core import Kernel, Kernel1D, Kernel2D
+from .core import Kernel, Kernel1D, Kernel2D, Kernel3D
 from .utils import KernelSizeError, has_even_axis
 
 __all__ = [
@@ -24,6 +24,7 @@ __all__ = [
     "Moffat2DKernel",
     "Model1DKernel",
     "Model2DKernel",
+    "Model3DKernel",
     "TrapezoidDisk2DKernel",
     "Ring2DKernel",
 ]
@@ -881,6 +882,7 @@ class Model1DKernel(Kernel1D):
     See Also
     --------
     Model2DKernel : Create kernel from `~astropy.modeling.Fittable2DModel`
+    Model3DKernel : Create kernel from `~astropy.modeling.Fittable3DModel`
     CustomKernel : Create kernel from list or array
 
     Examples
@@ -949,6 +951,7 @@ class Model2DKernel(Kernel2D):
     See Also
     --------
     Model1DKernel : Create kernel from `~astropy.modeling.Fittable1DModel`
+    Model3DKernel : Create kernel from `~astropy.modeling.Fittable3DModel`
     CustomKernel : Create kernel from list or array
 
     Examples
@@ -978,6 +981,64 @@ class Model2DKernel(Kernel2D):
         super().__init__(**kwargs)
 
 
+class Model3DKernel(Kernel3D):
+    """
+    Create kernel from 3D model.
+
+    The model has to be centered on x = 0 and y = 0.
+
+    Parameters
+    ----------
+    model : `~astropy.modeling.Fittable2DModel`
+        Kernel response function model
+    x_size : int, optional
+        Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
+        Must be odd.
+    y_size : int, optional
+        Size in y direction of the kernel array. Default = ⌊8*width +1⌋.
+    z_size : int, optional
+        Size in z direction of the kernel array. Default = ⌊8*width +1⌋.
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
+        One of the following discretization modes:
+            * 'center' (default)
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'linear_interp'
+                Discretize model by performing a bilinear interpolation
+                between the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
+
+    Raises
+    ------
+    TypeError
+        If model is not an instance of `~astropy.modeling.Fittable2DModel`
+
+    See Also
+    --------
+    Model1DKernel : Create kernel from `~astropy.modeling.Fittable1DModel`
+    Model2DKernel : Create kernel from `~astropy.modeling.Fittable2DModel`
+    CustomKernel : Create kernel from list or array
+    """
+
+    _is_bool = False
+    _separable = False
+
+    def __init__(self, model, **kwargs):
+        self._separable = False
+        if isinstance(model, Fittable3DModel):
+            self._model = model
+        else:
+            raise TypeError("Must be Fittable2DModel")
+        super().__init__(**kwargs)
+
+
 class CustomKernel(Kernel):
     """
     Create filter kernel from list or array.
@@ -996,7 +1057,9 @@ class CustomKernel(Kernel):
 
     See Also
     --------
-    Model2DKernel, Model1DKernel
+    Model1DKernel : Create kernel from `~astropy.modeling.Fittable1DModel`
+    Model2DKernel : Create kernel from `~astropy.modeling.Fittable2DModel`
+    Model3DKernel : Create kernel from `~astropy.modeling.Fittable3DModel`
 
     Examples
     --------
