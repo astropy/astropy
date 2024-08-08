@@ -3344,14 +3344,23 @@ class TableElement(
                 for row in range(len(array)):
                     array_row = array.data[row]
                     array_mask = array.mask[row]
-
                     if mode == 2:
                         flattened = np.array([np.all(x) for x in array_mask])
                         data.write(converters.bool_to_bitarray(flattened))
 
                     for i, converter in fields_basic:
                         try:
-                            chunk = converter(array_row[i], array_mask[i])
+                            # BINARY2 cannot handle individual array element masks
+                            converter_type = converter.__self__.__class__
+                            # Delegate converter to handle the mask
+                            delegate_condition = issubclass(
+                                converter_type, converters.Array
+                            )
+                            if mode == 1 or delegate_condition:
+                                chunk = converter(array_row[i], array_mask[i])
+                            else:
+                                # Mask is already handled by BINARY2 behaviour
+                                chunk = converter(array_row[i], None)
                             assert type(chunk) == bytes
                         except Exception as e:
                             vo_reraise(
