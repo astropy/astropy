@@ -18,6 +18,7 @@ from astropy.utils import isiterable
 from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
 
 from . import formats
+from ._validate_lat import any_invalid_lat
 
 __all__ = ["Angle", "Latitude", "Longitude"]
 
@@ -609,13 +610,18 @@ class Latitude(Angle):
         else:
             limit = u.degree.to(angles.unit, 90.0)
 
-        angles_view = angles.view(np.ndarray)
-        if NUMPY_LT_2_0:
-            # Ensure ndim>=1 so that comparison is done using the angle dtype.
-            # Otherwise, e.g., np.array(np.pi/2, 'f4') > np.pi/2 will yield True.
-            angles_view = angles_view[np.newaxis]
+        if hasattr(angles, "distribution"):
+            angles_view = angles.distribution.view(np.ndarray).ravel()
+        else:
+            angles_view = angles.view(np.ndarray).ravel()
 
-        if np.any(np.abs(angles_view) > limit):
+        limit = np.asarray(limit, dtype=angles_view.dtype)
+
+        # cython only supports native byteorder, falling back to copy on non-native
+        if not angles_view.dtype.isnative:
+            angles_view = angles_view.byteswap().newbyteorder()
+
+        if any_invalid_lat(angles_view, limit):
             raise ValueError(
                 "Latitude angle(s) must be within -90 deg <= angle <= 90 deg, "
                 f"got {angles.to(u.degree)}"
