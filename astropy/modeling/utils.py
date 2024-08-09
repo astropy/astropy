@@ -15,7 +15,12 @@ import numpy as np
 from astropy import units as u
 from astropy.utils.decorators import deprecated
 
-__all__ = ["poly_map_domain", "comb", "ellipse_extent"]
+__all__ = [
+    "poly_map_domain",
+    "comb",
+    "ellipse_extent",
+    "copy_with_new_parameter_values",
+]
 
 
 def make_binary_operator_eval(oper, f, g):
@@ -336,3 +341,67 @@ class _SpecialOperatorsDict(UserDict):
         self._set_value(key, operator)
 
         return key
+
+
+def copy_with_new_parameter_values(model, **parameters):
+    """
+    This function takes a model, as well as a dictionary of parameters, and
+    the final desired shape of the parameter arrays, and copies the model and
+    sets all the parameters to arrays with the desired shape. This is
+    essentially a workaround for the fact that if one has a scalar model, the
+    parameters cannot be changed to arrays. This issue is described in more
+    detail in https://github.com/astropy/astropy/issues/16593. Once that
+    issue is fixed, we should be able to remove this function and the
+    function below. Note that this preserves the constraints.
+    """
+    # Avoid circular imports
+    from astropy.modeling import CompoundModel, models
+
+    # TODO: detect case where new parameter shapes are not compatible with
+    # shape of existing parameters which will not get replaced.
+
+    shape = np.broadcast_shapes(*list(np.shape(value) for value in parameters.values()))
+
+    if isinstance(model, CompoundModel):
+        new_model = _compound_model_with_array_parameters(model, shape)
+        for name, value in parameters.items():
+            setattr(new_model, name, value)
+    else:
+        constraints = {}
+        for constraint in model.parameter_constraints:
+            constraints[constraint] = getattr(model, constraint)
+        # HACK: for some models, there are additional non-parameter arguments.
+        # We hard-code the fix for some models.
+        if isinstance(model, (models.Polynomial1D, models.Polynomial2D)):
+            args = (model.degree,)
+        else:
+            args = ()
+        all_parameters = parameters.copy()
+        for name in model.param_names:
+            if name not in parameters:
+                value = getattr(model, name)
+                all_parameters[name] = np.broadcast_to(value, shape)
+        new_model = model.__class__(*args, **all_parameters, **constraints)
+    return new_model
+
+
+def _compound_model_with_array_parameters(model, shape):
+    """
+    This is a helper to recursively copy compound models replacing the
+    parameter values with arrays.
+    """
+    # Avoid circular imports
+    from astropy.modeling import CompoundModel
+
+    if isinstance(model, CompoundModel):
+        return CompoundModel(
+            model.op,
+            _compound_model_with_array_parameters(model.left, shape),
+            _compound_model_with_array_parameters(model.right, shape),
+        )
+    else:
+        parameters = {}
+        for name in model.param_names:
+            value = getattr(model, name)
+            parameters[name] = np.broadcast_to(value, shape)
+        return copy_with_new_parameter_values(model, **parameters)
