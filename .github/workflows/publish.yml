@@ -47,8 +47,13 @@ jobs:
       # the build isolation and explicitly install the latest developer version of numpy as well as
       # the latest stable versions of all other build-time dependencies.
       env: |
-        CIBW_BEFORE_BUILD: '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple setuptools setuptools_scm cython numpy>=0.0.dev0 extension-helpers') || '' }}'
-        CIBW_BUILD_FRONTEND: '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'pip; args: --no-build-isolation') || 'build' }}'
+        CIBW_ENVIRONMENT:        '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'PIP_PRE=1 PIP_EXTRA_INDEX_URL=https://pypi.anaconda.org/scientific-python-nightly-wheels/simple') || '' }}'
+        CIBW_BEFORE_BUILD:       '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'pip install setuptools setuptools_scm cython numpy extension-helpers') || '' }}'
+        CIBW_BUILD_FRONTEND:     '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'pip; args: --no-build-isolation') || 'build' }}'
+        CIBW_ALLOW_EMPTY: true
+        CIBW_TEST_SKIP: '*cp313*'
+      # TODO: remove CIBW_TEST_SKIP for cp313 after
+      # https://github.com/astropy/astropy/pull/16659 is merged
 
       test_extras: test
       # FIXME: we exclude the test_data_out_of_range test since it
@@ -62,16 +67,19 @@ jobs:
         - cp310-manylinux_x86_64
         - cp311-manylinux_x86_64
         - cp312-manylinux_x86_64
+        - cp313-manylinux_x86_64
 
         # Note that following wheels are not currently tested:
 
         - cp310-manylinux_aarch64
         - cp311-manylinux_aarch64
         - cp312-manylinux_aarch64
+        - cp313-manylinux_aarch64
 
         - cp310-musllinux_x86_64
         - cp311-musllinux_x86_64
         - cp312-musllinux_x86_64
+        - cp313-musllinux_x86_64
 
         # MacOS X wheels - as noted in https://github.com/astropy/astropy/pull/12379 we deliberately
         # do not build universal2 wheels.
@@ -79,20 +87,24 @@ jobs:
         - cp310*macosx_x86_64
         - cp311*macosx_x86_64
         - cp312*macosx_x86_64
+        - cp313*macosx_x86_64
 
         - cp310*macosx_arm64
         - cp311*macosx_arm64
         - cp312*macosx_arm64
+        - cp313*macosx_arm64
 
         # Windows wheels
 
         - cp310*win32
         - cp311*win32
         - cp312*win32
+        - cp313*win32
 
         - cp310*win_amd64
         - cp311*win_amd64
         - cp312*win_amd64
+        - cp313*win_amd64
 
     secrets:
       pypi_token: ${{ secrets.pypi_token }}
