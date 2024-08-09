@@ -1,0 +1,4 @@
+Added ``Model.reset_parameters``, which can be used to reset
+parameters either to their default values, if not specified,
+or to specific new values given as positional or keyword
+arguments.
