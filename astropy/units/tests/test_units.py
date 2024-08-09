@@ -329,13 +329,6 @@ def test_empty_compose():
         u.m.compose(units=[])
 
 
-def _unit_as_str(unit):
-    # This function serves two purposes - it is used to sort the units to
-    # test alphabetically, and it is also use to allow pytest to show the unit
-    # in the [] when running the parametrized tests.
-    return str(unit)
-
-
 # We use a set to make sure we don't have any duplicates.
 COMPOSE_ROUNDTRIP = set()
 for val in u.__dict__.values():
@@ -343,9 +336,7 @@ for val in u.__dict__.values():
         COMPOSE_ROUNDTRIP.add(val)
 
 
-@pytest.mark.parametrize(
-    "unit", sorted(COMPOSE_ROUNDTRIP, key=_unit_as_str), ids=_unit_as_str
-)
+@pytest.mark.parametrize("unit", sorted(COMPOSE_ROUNDTRIP, key=str), ids=repr)
 def test_compose_roundtrip(unit):
     composed_list = unit.decompose().compose()
     found = False
@@ -372,9 +363,7 @@ for val in u.cgs.__dict__.values():
         COMPOSE_CGS_TO_SI.add(val)
 
 
-@pytest.mark.parametrize(
-    "unit", sorted(COMPOSE_CGS_TO_SI, key=_unit_as_str), ids=_unit_as_str
-)
+@pytest.mark.parametrize("unit", sorted(COMPOSE_CGS_TO_SI, key=str), ids=str)
 def test_compose_cgs_to_si(unit):
     si = unit.to_system(u.si)
     assert [x.is_equivalent(unit) for x in si]
@@ -393,9 +382,7 @@ for val in u.si.__dict__.values():
         COMPOSE_SI_TO_CGS.add(val)
 
 
-@pytest.mark.parametrize(
-    "unit", sorted(COMPOSE_SI_TO_CGS, key=_unit_as_str), ids=_unit_as_str
-)
+@pytest.mark.parametrize("unit", sorted(COMPOSE_SI_TO_CGS, key=str), ids=str)
 def test_compose_si_to_cgs(unit):
     # Can't convert things with Ampere to CGS without more context
     try:
