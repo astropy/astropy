@@ -198,6 +198,8 @@ filterwarnings = [
     "ignore:matplotlibrc text\\.usetex:UserWarning:matplotlib",
     # Triggered by ProgressBar > ipykernel.iostream (revisit when we bump oldest deps versions)
     "ignore:the imp module is deprecated:DeprecationWarning",
+    # https://github.com/h5py/h5py/pull/2416
+    "ignore:__array__ implementation doesn't accept a copy keyword:DeprecationWarning",
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",
