@@ -274,7 +274,7 @@ to find out what is currently being offered.
 
 Installing these "nightlies" of ``astropy`` can be achieved by using ``pip``::
 
-  python -m pip install --upgrade --index-url https://pypi.anaconda.org/astropy/simple astropy --pre
+  python -m pip install --upgrade --extra-index-url https://pypi.anaconda.org/astropy/simple astropy --pre
 
 The extra index URL tells ``pip`` to check the ``pip`` index on
 pypi.anaconda.org, where the nightlies are stored, and the ``--pre`` command
