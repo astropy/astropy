@@ -150,7 +150,7 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
     # Create a Table object
     from astropy.table import Table, meta, serialize
 
-    table = Table(np.array(input))
+    table = Table(np.array(input, copy=True), copy=False)
 
     # Read the meta-data from the file. For back-compatibility, we can read
     # the old file format where the serialized metadata were saved in the
