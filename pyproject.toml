@@ -225,6 +225,8 @@ filterwarnings = [
     "ignore:numpy\\.ufunc size changed:RuntimeWarning",
     "ignore:numpy\\.ndarray size changed:RuntimeWarning",
     "ignore:matplotlibrc text\\.usetex:UserWarning:matplotlib",
+    # https://github.com/h5py/h5py/pull/2416
+    "ignore:__array__ implementation doesn't accept a copy keyword:DeprecationWarning",
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",
