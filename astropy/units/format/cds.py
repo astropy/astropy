@@ -153,10 +153,10 @@ class CDS(Generic):
                  | factor
             """
             from astropy.units import dex
-            from astropy.units.core import Unit
+            from astropy.units.core import CompositeUnit, Unit
 
             if len(p) == 3:
-                p[0] = Unit(p[1] * p[2])
+                p[0] = CompositeUnit(p[1] * p[2].scale, p[2].bases, p[2].powers)
             elif len(p) == 4:
                 p[0] = dex(p[2])
             else:
