@@ -168,9 +168,9 @@ class OGIP(generic.Generic):
                  | scale_factor WHITESPACE complete_expression
             """
             if len(p) == 4:
-                p[0] = p[1] * p[3]
+                p[0] = core.CompositeUnit(p[1] * p[3].scale, p[3].bases, p[3].powers)
             elif len(p) == 3:
-                p[0] = p[1] * p[2]
+                p[0] = core.CompositeUnit(p[1] * p[2].scale, p[2].bases, p[2].powers)
             else:
                 p[0] = p[1]
 
@@ -352,7 +352,7 @@ class OGIP(generic.Generic):
             return cls._parse_unit(s, detailed_exception=False)
         except ValueError:
             try:
-                return core.Unit(cls._parser.parse(s, lexer=cls._lexer, debug=debug))
+                return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
             except ValueError as e:
                 if str(e):
                     raise
