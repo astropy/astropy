@@ -214,14 +214,14 @@ class Generic(Base):
                  | factor product inverse_unit
                  | factor
             """
-            from astropy.units.core import Unit
+            from astropy.units.core import CompositeUnit, Unit
 
             if len(p) == 2:
                 p[0] = Unit(p[1])
             elif len(p) == 3:
-                p[0] = Unit(p[1] * p[2])
+                p[0] = CompositeUnit(p[1] * p[2].scale, p[2].bases, p[2].powers)
             elif len(p) == 4:
-                p[0] = Unit(p[1] * p[3])
+                p[0] = CompositeUnit(p[1] * p[3].scale, p[3].bases, p[3].powers)
 
         def p_division_product_of_units(p):
             """
