@@ -13,7 +13,7 @@ __all__ = [
     "transform_contour_set_inplace",
 ]
 
-MATPLOTLIB_LT_3_8 = not minversion(mpl, "3.8.dev")
+MATPLOTLIB_LT_3_8 = not minversion(mpl, "3.8")
 
 
 def select_step_degree(dv):

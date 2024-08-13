@@ -29,7 +29,7 @@ from astropy.modeling.powerlaws import (
 )
 from astropy.modeling.separable import separability_matrix
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils import NumpyRNGContext, minversion
+from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .example_models import models_1D, models_2D
@@ -521,15 +521,6 @@ class Fittable1DModelTester:
         """
         Test if the parametric model works with the fitter.
         """
-        SCIPY_LT_1_6 = not minversion("scipy", "1.6")
-
-        if (
-            model_class == models.BrokenPowerLaw1D
-            and fitter == fitting.TRFLSQFitter
-            and SCIPY_LT_1_6
-        ):
-            pytest.xfail(reason="TRF fitter fails for BrokenPowerLaw1D in scipy < 1.6")
-
         fitter = fitter()
 
         x_lim = test_parameters["x_lim"]
