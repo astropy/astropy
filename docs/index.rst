@@ -31,6 +31,8 @@ processing, and data analysis.
    software or `affiliated packages`_ that depend on the astropy
    core package.
 
+|User Stats|
+
 .. toctree::
    :maxdepth: 1
    :hidden:
@@ -120,3 +122,7 @@ processing, and data analysis.
 
 .. _feedback@astropy.org: mailto:feedback@astropy.org
 .. _affiliated packages: https://www.astropy.org/affiliated/
+
+.. |User Stats| image:: https://github.com/jeffjennings/repo_stats/blob/cache/cache/astropy_user_stats_light.png?raw=true
+    :target: https://docs.astropy.org/en/latest/impact_health.html
+    :alt: Astropy User Statistics
