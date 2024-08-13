@@ -1573,7 +1573,6 @@ def test_has_constraints_with_sync_constraints():
 
 
 def test_reset_parameters_simple():
-
     # We test this as if it was a public method as once it has been used
     # successfully internally we may make it public.
 
@@ -1615,7 +1614,6 @@ def test_reset_parameters_simple():
 
 
 def test_reset_parameters_compound():
-
     # As above, but for compound models
 
     c = models.Gaussian1D(4, 2, 3) + models.Const1D(9)
