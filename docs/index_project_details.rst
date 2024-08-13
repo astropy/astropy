@@ -12,4 +12,5 @@ Project Details
    lts_policy
    known_issues
    credits
+   impact_health
    license
