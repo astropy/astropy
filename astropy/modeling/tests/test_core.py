@@ -1573,29 +1573,33 @@ def test_has_constraints_with_sync_constraints():
 
 
 def test_reset_parameters_simple():
+
+    # We test this as if it was a public method as once it has been used
+    # successfully internally we may make it public.
+
     g = models.Gaussian1D(4, 2, 3)
 
     # Check that calling reset_parameters with no arguments resets the
     # parameters to default values
-    g.reset_parameters()
+    g._reset_parameters()
     assert g.amplitude == 1
     assert g.mean == 0
     assert g.stddev == 1
 
     # Set parameters via positional arguments
-    g.reset_parameters(5, 6, 7)
+    g._reset_parameters(5, 6, 7)
     assert g.amplitude == 5
     assert g.mean == 6
     assert g.stddev == 7
 
     # Set only some of the parameters via keyword arguments
-    g.reset_parameters(mean=8)
+    g._reset_parameters(mean=8)
     assert g.amplitude == 1
     assert g.mean == 8
     assert g.stddev == 1
 
     # Set one of the parameters to an array
-    g.reset_parameters(amplitude=np.ones((2, 3, 4)))
+    g._reset_parameters(amplitude=np.ones((2, 3, 4)))
     assert_equal(g.amplitude, np.ones((2, 3, 4)))
     assert g.mean == 0
     assert g.stddev == 1
@@ -1607,33 +1611,36 @@ def test_reset_parameters_simple():
             "All parameter arrays must have shapes that are mutually compatible "
         ),
     ):
-        g.reset_parameters(amplitude=np.ones((2, 3, 4)), stddev=np.ones((8,)))
+        g._reset_parameters(amplitude=np.ones((2, 3, 4)), stddev=np.ones((8,)))
 
 
 def test_reset_parameters_compound():
+
+    # As above, but for compound models
+
     c = models.Gaussian1D(4, 2, 3) + models.Const1D(9)
 
     # Check that calling reset_parameters with no arguments resets the
     # parameters to default values
-    c.reset_parameters()
+    c._reset_parameters()
     assert c.amplitude_0 == 1
     assert c.mean_0 == 0
     assert c.stddev_0 == 1
 
     # Set parameters via positional arguments
-    c.reset_parameters(5, 6, 7)
+    c._reset_parameters(5, 6, 7)
     assert c.amplitude_0 == 5
     assert c.mean_0 == 6
     assert c.stddev_0 == 7
 
     # Set only some of the parameters via keyword arguments
-    c.reset_parameters(mean_0=8)
+    c._reset_parameters(mean_0=8)
     assert c.amplitude_0 == 1
     assert c.mean_0 == 8
     assert c.stddev_0 == 1
 
     # Set one of the parameters to an array
-    c.reset_parameters(amplitude_0=np.ones((2, 3, 4)))
+    c._reset_parameters(amplitude_0=np.ones((2, 3, 4)))
     assert_equal(c.amplitude_0, np.ones((2, 3, 4)))
     assert c.mean_0 == 0
     assert c.stddev_0 == 1
@@ -1645,4 +1652,4 @@ def test_reset_parameters_compound():
             "All parameter arrays must have shapes that are mutually compatible "
         ),
     ):
-        c.reset_parameters(amplitude_0=np.ones((2, 3, 4)), stddev_0=np.ones((8,)))
+        c._reset_parameters(amplitude_0=np.ones((2, 3, 4)), stddev_0=np.ones((8,)))
