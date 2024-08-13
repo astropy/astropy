@@ -2529,6 +2529,17 @@ class Model(metaclass=_ModelMeta):
             values = kwargs.pop(constraint, [])
             self._mconstraints[constraint] = values
 
+    def _reset_parameters(self, *args, **kwargs):
+        """
+        Reset parameters on the models to those specified.
+
+        Parameters can be specified either as positional arguments or keyword
+        arguments, as in the model initializer. Any parameters not specified
+        will be reset to their default values.
+        """
+        self._initialize_parameters(args, kwargs)
+        self._initialize_slices()
+
     def _initialize_parameters(self, args, kwargs):
         """
         Initialize the _parameters array that stores raw parameter values for
