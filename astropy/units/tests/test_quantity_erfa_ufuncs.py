@@ -3,7 +3,6 @@
 Test Structured units and quantities specifically with the ERFA ufuncs.
 """
 
-import erfa
 import numpy as np
 import pytest
 from erfa import ufunc as erfa_ufunc
@@ -11,9 +10,6 @@ from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils.introspection import minversion
-
-ERFA_LE_2_0_0 = not minversion(erfa, "2.0.0.1")
 
 
 def vvd(val, valok, dval, func, test, status):
@@ -45,10 +41,6 @@ class TestPVUfuncs:
             p2pv["v"], np.zeros(self.pv.shape + (3,), float) << u.m / u.s
         )
 
-    @pytest.mark.xfail(
-        erfa.__version__ <= "2.0.0",
-        reason="erfa bug; https://github.com/liberfa/pyerfa/issues/70)",
-    )
     def test_p2pv_inplace(self):
         # TODO: fix np.zeros_like.
         out = np.zeros_like(self.pv_value) << self.pv_unit
@@ -305,11 +297,6 @@ class TestPVUfuncs:
         )
 
 
-@pytest.mark.xfail(
-    erfa.__version__ < "1.7.3.1",
-    reason="dt_eraLDBODY incorrectly defined",
-    scope="class",
-)
 class TestEraStructUfuncs:
     def setup_class(self):
         ldbody = np.array(
@@ -482,7 +469,6 @@ class TestEraStructUfuncs:
             di2, 0.17293718391166087785 * u.rad, atol=1e-12 * u.rad
         )
 
-    @pytest.mark.xfail(erfa.__version__ < "2.0.0", reason="comparisons changed")
     def test_apio(self):
         sp = -3.01974337e-11 * u.rad
         theta = 3.14540971 * u.rad

@@ -71,7 +71,6 @@ def get_scipy_special_helpers():
 
     SCIPY_HELPERS = {}
     for name in dimensionless_to_dimensionless_sps_ufuncs:
-        # In SCIPY_LT_1_5, erfinv and erfcinv are not ufuncs.
         ufunc = getattr(sps, name, None)
         if isinstance(ufunc, np.ufunc):
             SCIPY_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
