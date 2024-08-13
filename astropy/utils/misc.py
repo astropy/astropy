@@ -83,6 +83,7 @@ def silence():
     sys.stderr = old_stderr
 
 
+@deprecated(since="7.0")
 def format_exception(msg, *args, **kwargs):
     """Fill in information about the exception that occurred.
 
