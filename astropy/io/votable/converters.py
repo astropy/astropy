@@ -609,7 +609,7 @@ class NumericArray(Array):
     def parse(self, value, config=None, pos=None):
         if config is None:
             config = {}
-        elif config["version_1_3_or_later"] and value == "":
+        elif config.get("version_1_3_or_later") and value == "":
             return np.zeros(self._arraysize, dtype=self._base.format), True
         parts = self._splitter(value, config, pos)
         if len(parts) != self._items:
@@ -832,7 +832,7 @@ class Integer(Numeric):
         if isinstance(value, str):
             value = value.lower()
             if value == "":
-                if config["version_1_3_or_later"]:
+                if config.get("version_1_3_or_later"):
                     mask = True
                 else:
                     warn_or_raise(W49, W49, (), config, pos)
@@ -1138,7 +1138,7 @@ class Bit(Converter):
             config = {}
         mapping = {"1": True, "0": False}
         if value is False or value.strip() == "":
-            if not config["version_1_3_or_later"]:
+            if not config.get("version_1_3_or_later"):
                 warn_or_raise(W49, W49, (), config, pos)
             return False, True
         else:
