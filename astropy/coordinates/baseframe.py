@@ -704,21 +704,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     def shape(self):
         return self._shape
 
-    # We have to override the ShapedLikeNDArray definitions, since our shape
-    # does not have to be that of the data.
-    def __len__(self):
-        return len(self.data)
-
     def __bool__(self):
         return self.has_data and self.size > 0
 
     @property
     def size(self):
         return self.data.size
-
-    @property
-    def isscalar(self):
-        return self.has_data and self.data.isscalar
 
     @classmethod
     def get_frame_attr_defaults(cls):
