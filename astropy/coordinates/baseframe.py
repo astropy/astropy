@@ -8,12 +8,14 @@ from __future__ import annotations
 
 __all__ = [
     "BaseCoordinateFrame",
+    "CoordinateFrameInfo",
     "frame_transform_graph",
     "GenericFrame",
     "RepresentationMapping",
 ]
 
 import copy
+import operator
 import warnings
 from collections import defaultdict
 from typing import TYPE_CHECKING, NamedTuple
@@ -22,6 +24,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.utils import ShapedLikeNDArray
+from astropy.utils.data_info import MixinInfo
 from astropy.utils.decorators import deprecated, format_doc, lazyproperty
 from astropy.utils.exceptions import AstropyWarning, _add_note_to_exception
 
@@ -134,6 +137,212 @@ class RepresentationMapping(NamedTuple):
     defaultunit: str | Unit = "recommended"
 
 
+class CoordinateFrameInfo(MixinInfo):
+    """
+    Container for meta information like name, description, format.  This is
+    required when the object is used as a mixin column within a table, but can
+    be used as a general way to store meta information.
+    """
+
+    attrs_from_parent = {"unit"}  # Unit is read-only
+    _supports_indexing = False
+
+    @staticmethod
+    def default_format(val):
+        repr_data = val.info._repr_data
+        formats = ["{0." + compname + ".value:}" for compname in repr_data.components]
+        return ",".join(formats).format(repr_data)
+
+    @property
+    def unit(self):
+        repr_data = self._repr_data
+        return (
+            ",".join(
+                str(getattr(repr_data, comp).unit) or "None"
+                for comp in repr_data.components
+            )
+            if repr_data is not None
+            else None
+        )
+
+    @property
+    def _repr_data(self):
+        coord = self._parent
+        if coord is None or not coord.has_data:
+            return None
+
+        if issubclass(
+            coord.representation_type, r.SphericalRepresentation
+        ) and isinstance(coord.data, r.UnitSphericalRepresentation):
+            repr_data = coord.represent_as(coord.data.__class__, in_frame_units=True)
+        else:
+            repr_data = coord.represent_as(
+                coord.representation_type, in_frame_units=True
+            )
+        return repr_data
+
+    def _represent_as_dict(self):
+        coord = self._parent
+        attrs = []
+        if coord.has_data:
+            attrs.extend(coord.representation_component_names)
+            # Don't output distance unless it's actually distance.
+            if isinstance(coord.data, r.UnitSphericalRepresentation):
+                attrs = attrs[:-1]
+
+            diff = coord.data.differentials.get("s")
+            if diff is not None:
+                diff_attrs = list(coord.get_representation_component_names("s"))
+                # Don't output proper motions if they haven't been specified.
+                if isinstance(diff, r.RadialDifferential):
+                    diff_attrs = diff_attrs[2:]
+                    # Don't output radial velocity unless it's actually velocity.
+                elif isinstance(
+                    diff,
+                    (r.UnitSphericalDifferential, r.UnitSphericalCosLatDifferential),
+                ):
+                    diff_attrs = diff_attrs[:-1]
+                attrs.extend(diff_attrs)
+
+        attrs.extend(frame_transform_graph.frame_attributes.keys())
+
+        out = super()._represent_as_dict(attrs)
+
+        out["representation_type"] = coord.representation_type.get_name()
+        # Note that coord.info.unit is a fake composite unit (e.g. 'deg,deg,None'
+        # or None,None,m) and is not stored. The individual attributes have
+        # units.
+
+        return out
+
+    def new_like(self, coords, length, metadata_conflicts="warn", name=None):
+        """A new consistent coordinate instance with the given length.
+
+        Return a new SkyCoord or BaseCoordinateFrame instance which is
+        consistent with the input coordinate objects ``coords`` and has
+        ``length`` rows.  Being "consistent" is defined as being able to set an
+        item from one to each of the rest without any exception being raised.
+
+        This is intended for creating a new coordinate instance whose elements
+        can be set in-place for table operations like join or vstack.  This is
+        used when a coordinate object is used as a mixin column in an astropy
+        Table.
+
+        The data values are not predictable and it is expected that the consumer
+        of the object will fill in all values.
+
+        Parameters
+        ----------
+        coords : list
+            List of input SkyCoord or BaseCoordinateFrame objects
+        length : int
+            Length of the output SkyCoord or BaseCoordinateFrame object
+        metadata_conflicts : str ('warn'|'error'|'silent')
+            How to handle metadata conflicts
+        name : str
+            Output name (sets output coord.info.name)
+
+        Returns
+        -------
+        coord : |SkyCoord|, |BaseFrame|
+            Instance of this class consistent with ``coords``
+
+        """
+        # Get merged info attributes like shape, dtype, format, description, etc.
+        attrs = self.merge_cols_attributes(
+            coords, metadata_conflicts, name, ("meta", "description")
+        )
+        coord0 = coords[0]
+
+        # Make a new coord object with the desired length and attributes
+        # by using the _apply / __getitem__ machinery to effectively return
+        # coord0[[0, 0, ..., 0, 0]]. This will have the all the right frame
+        # attributes with the right shape.
+        indexes = np.zeros(length, dtype=np.int64)
+        out = coord0[indexes]
+
+        # Use __setitem__ machinery to check for consistency of all coords
+        for coord in coords[1:]:
+            try:
+                out[0] = coord[0]
+            except Exception as err:
+                raise ValueError("Input coords are inconsistent.") from err
+
+        # Set (merged) info attributes
+        for attr in ("name", "meta", "description"):
+            if attr in attrs:
+                setattr(out.info, attr, attrs[attr])
+
+        return out
+
+    def _insert(self, obj, values, axis=0):
+        """
+        Make a copy with coordinate values inserted before the given indices.
+
+        The values to be inserted must conform to the rules for in-place setting
+        of the object.
+
+        The API signature matches the ``np.insert`` API, but is more limited.
+        The specification of insert index ``obj`` must be a single integer,
+        and the ``axis`` must be ``0`` for simple insertion before the index.
+
+        Parameters
+        ----------
+        obj : int
+            Integer index before which ``values`` is inserted.
+        values : array-like
+            Value(s) to insert.  If the type of ``values`` is different
+            from that of quantity, ``values`` is converted to the matching type.
+        axis : int, optional
+            Axis along which to insert ``values``.  Default is 0, which is the
+            only allowed value and will insert a row.
+
+        Returns
+        -------
+        coord : |SkyCoord|, |BaseFrame|
+            Copy of instance with new values inserted.
+        """
+        # TODO: move this up to MixinInfo, so it can be used for Time too?
+        coord = self._parent
+        # Validate inputs: obj arg is integer, axis=0, coord is not a scalar, and
+        # input index is in bounds.
+        try:
+            idx0 = operator.index(obj)
+        except TypeError:
+            raise TypeError("obj arg must be an integer")
+
+        if axis != 0:
+            raise ValueError("axis must be 0")
+
+        if not coord.shape:
+            raise TypeError(
+                f"cannot insert into scalar {coord.__class__.__name__} object"
+            )
+
+        if abs(idx0) > len(coord):
+            raise IndexError(
+                f"index {idx0} is out of bounds for axis 0 with size {len(coord)}"
+            )
+
+        # Turn negative index into positive
+        if idx0 < 0:
+            idx0 = len(coord) + idx0
+
+        n_values = len(values) if values.shape else 1
+
+        # Finally make the new object with the correct length and set values for the
+        # three sections, before insert, the insert, and after the insert.
+        out = self.new_like([coord], len(coord) + n_values, name=self.name)
+
+        # Set the output values. This is where validation of `values` takes place to ensure
+        # that it can indeed be inserted.
+        out[:idx0] = coord[:idx0]
+        out[idx0 : idx0 + n_values] = values
+        out[idx0 + n_values :] = coord[idx0:]
+
+        return out
+
+
 base_doc = """{__doc__}
     Parameters
     ----------
@@ -219,6 +428,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     frame_attributes = {}
     # Default empty frame_attributes dict
+
+    # Declare that BaseCoordinateFrame can be used as a Table column by defining
+    # the info property.
+    info = CoordinateFrameInfo()
 
     def __init_subclass__(cls, **kwargs):
         # We first check for explicitly set values for these:
@@ -1519,6 +1732,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         new._shape = new_shape
 
+        # Copy other 'info' attr only if it has actually been defined.
+        # See PR #3898 for further explanation and justification, along
+        # with Quantity.__array_finalize__
+        if "info" in self.__dict__:
+            new.info = self.info
+
         return new
 
     def __setitem__(self, item, value):
@@ -1573,6 +1792,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         # no need to set them here.
 
         self.cache.clear()
+
+    def insert(self, obj, values, axis=0):
+        return self.info._insert(obj, values, axis)
+
+    insert.__doc__ = CoordinateFrameInfo._insert.__doc__
 
     def __dir__(self):
         """
