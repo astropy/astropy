@@ -1,13 +1,14 @@
 |Astropy Logo|
 ----
 
+|User Stats|
+
+----
+
 .. container::
 
     |Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status| |Pre-Commit| |Ruff| |Zenodo|
 
-----
-
-|User Stats|
 ----
 The Astropy Project is a community effort to develop a
 single core package for astronomy in Python and foster interoperability between packages used in the field.
