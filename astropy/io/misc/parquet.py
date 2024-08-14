@@ -509,7 +509,8 @@ def get_pyarrow():
     return pa, parquet
 
 
-def write_parquet_votable(table, output, *, metadata, overwrite=False):
+def write_parquet_votable(table, output, *, metadata, overwrite=False,
+                          overwrite_metadata=False):
     """
     Writes a Parquet file with a VOT (XML) metadata table included.
 
@@ -521,13 +522,22 @@ def write_parquet_votable(table, output, *, metadata, overwrite=False):
         The filename to write the table to.
     metadata : dict
         Nested dictionary (keys = column names; sub-keys = meta keys) for each
-        of the columns containing a dictionary with metadata.
-
+        of the columns containing a dictionary with metadata. Existing metadata
+        takes precedent, use ``overwrite_metadata`` to ensure this dictionary is
+        being used in all cases.
+    overwrite : bool, optional
+        If `True`, overwrite the output file if it exists. Raises an
+        ``OSError`` if ``False`` and the output file exists. Default is `False`.
+    overwrite_metadata : bool, optional
+        If `True`, overwrite existing column metadata. Default is `False`.
     """
     # TODO cases to handle:
     # - missing metadata kwarg, e.g. it could be inherited from the input table
     # - overwriting metadata, metadata could be partially missing, the provided
     #   one then could overwrite the existing one in the table
+    # - make overwrite actually overwrite rather than delete the file upfront
+    # - warn for non VO standard units at write, not just at read time
+    # - deal better with non-VO units
 
     import io
     import xml.etree.ElementTree
@@ -556,9 +566,11 @@ def write_parquet_votable(table, output, *, metadata, overwrite=False):
     for field in votable_write.resources[0].tables[0].fields:
         for mkey in metadatakeys:
             if mkey in field._attr_list:
-                setattr(field, mkey, metadata[field.name][mkey])
+                if (getattr(field, mkey) is None) or overwrite_metadata:
+                    setattr(field, mkey, metadata[field.name][mkey])
             else:
-                if (mkey == "description") & (field.description is not None):
+                if ((mkey == "description")
+                    and ((field.description is None) or overwrite_metadata)):
                     field.description = metadata[field.name]["description"]
                 else:
                     print(f"Warning: '{mkey}' is not a valid VOT metadata key")
@@ -602,6 +614,7 @@ def write_parquet_votable(table, output, *, metadata, overwrite=False):
         b"IVOA.VOTable-Parquet.encoding": b"utf-8",
         b"IVOA.VOTable-Parquet.content": xml_str,
     }
+
     pyarrow_table = pyarrow_table.replace_schema_metadata(updated_metadata)
 
     # write the parquet file with required Type 1 metadata
