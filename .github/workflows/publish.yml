@@ -47,13 +47,10 @@ jobs:
       # the build isolation and explicitly install the latest developer version of numpy as well as
       # the latest stable versions of all other build-time dependencies.
       env: |
-        CIBW_ENVIRONMENT:        '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'PIP_PRE=1 PIP_EXTRA_INDEX_URL=https://pypi.anaconda.org/scientific-python-nightly-wheels/simple') || '' }}'
-        CIBW_BEFORE_BUILD:       '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'pip install setuptools setuptools_scm cython numpy extension-helpers') || '' }}'
-        CIBW_BUILD_FRONTEND:     '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'pip; args: --no-build-isolation') || 'build' }}'
+        CIBW_BEFORE_BUILD: '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'pip install setuptools setuptools_scm cython numpy extension-helpers') || '' }}'
+        CIBW_BUILD_FRONTEND: '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'pip; args: --no-build-isolation') || 'build' }}'
+        CIBW_ENVIRONMENT: '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'PIP_PRE=1 PIP_EXTRA_INDEX_URL=https://pypi.anaconda.org/scientific-python-nightly-wheels/simple') || '' }}'
         CIBW_ALLOW_EMPTY: true
-        CIBW_TEST_SKIP: '*cp313*'
-      # TODO: remove CIBW_TEST_SKIP for cp313 after
-      # https://github.com/astropy/astropy/pull/16659 is merged
 
       test_extras: test
       # FIXME: we exclude the test_data_out_of_range test since it
