@@ -620,8 +620,14 @@ class Fittable1DModelTester:
         new_model_no_deriv = fitter_no_deriv(
             model_no_deriv, x, data, estimate_jacobian=True
         )
+
+        if isinstance(model_with_deriv, models.Lorentz1D):
+            atol = 1e-6
+        else:
+            atol = 0.15
+
         assert_allclose(
-            new_model_with_deriv.parameters, new_model_no_deriv.parameters, atol=0.15
+            new_model_with_deriv.parameters, new_model_no_deriv.parameters, atol=atol
         )
 
 

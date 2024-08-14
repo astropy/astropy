@@ -1574,12 +1574,12 @@ class Lorentz1D(Fittable1DModel):
     Parameters
     ----------
     amplitude : float or `~astropy.units.Quantity`.
-        Peak value - for a normalized profile (integrating to 1),
-        set amplitude = 2 / (np.pi * fwhm)
+        Peak value. For a normalized profile (integrating to 1),
+        set amplitude = 2 / (np.pi * fwhm).
     x_0 : float or `~astropy.units.Quantity`.
-        Position of the peak
+        Position of the peak.
     fwhm : float or `~astropy.units.Quantity`.
-        Full width at half maximum (FWHM)
+        Full width at half maximum (FWHM).
 
     See Also
     --------
@@ -1596,7 +1596,8 @@ class Lorentz1D(Fittable1DModel):
 
         f(x) = \\frac{A \\gamma^{2}}{\\gamma^{2} + \\left(x - x_{0}\\right)^{2}}
 
-    where :math:`\\gamma` is half of given FWHM.
+    where :math:`\\gamma` is the half width at half maximum (HWHM),
+    which is half the FWHM.
 
     Examples
     --------
@@ -1632,9 +1633,11 @@ class Lorentz1D(Fittable1DModel):
     @staticmethod
     def fit_deriv(x, amplitude, x_0, fwhm):
         """One dimensional Lorentzian model derivative with respect to parameters."""
-        d_amplitude = fwhm**2 / (fwhm**2 + (x - x_0) ** 2)
-        d_x_0 = amplitude * d_amplitude * (2 * x - 2 * x_0) / (fwhm**2 + (x - x_0) ** 2)
-        d_fwhm = 2 * amplitude * d_amplitude / fwhm * (1 - d_amplitude)
+        gamma = fwhm / 2.0
+        denom = gamma**2 + (x - x_0) ** 2
+        d_amplitude = gamma**2 / denom
+        d_x_0 = amplitude * gamma**2 * 2 * (x - x_0) / denom**2
+        d_fwhm = amplitude * gamma * (x - x_0) ** 2 / denom**2
         return [d_amplitude, d_x_0, d_fwhm]
 
     def bounding_box(self, factor=25):
