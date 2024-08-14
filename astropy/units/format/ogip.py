@@ -345,19 +345,7 @@ class OGIP(generic.Generic):
 
     @classmethod
     def parse(cls, s, debug=False):
-        s = s.strip()
-        try:
-            # This is a short circuit for the case where the string is
-            # just a single unit name
-            return cls._parse_unit(s, detailed_exception=False)
-        except ValueError:
-            try:
-                return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
-            except ValueError as e:
-                if str(e):
-                    raise
-                else:
-                    raise ValueError(f"Syntax error parsing unit '{s}'")
+        return cls._do_parse(s.strip(), debug)
 
     @classmethod
     def _format_superscript(cls, number):

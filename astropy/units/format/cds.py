@@ -279,22 +279,9 @@ class CDS(Generic):
     def parse(cls, s: str, debug: bool = False) -> UnitBase:
         if " " in s:
             raise ValueError("CDS unit must not contain whitespace")
-
         if not isinstance(s, str):
             s = s.decode("ascii")
-
-        # This is a short circuit for the case where the string
-        # is just a single unit name
-        try:
-            return cls._parse_unit(s, detailed_exception=False)
-        except ValueError:
-            try:
-                return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
-            except ValueError as e:
-                if str(e):
-                    raise ValueError(str(e))
-                else:
-                    raise ValueError("Syntax error")
+        return cls._do_parse(s, debug)
 
     @classmethod
     def _format_mantissa(cls, m: str) -> str:
