@@ -783,7 +783,7 @@ class TestThroughBinary(TestParse):
         bio = io.BytesIO()
 
         # W31: NaN's can not be represented in integer field
-        with pytest.raises(W31):
+        with pytest.warns(W31):
             # https://github.com/astropy/astropy/issues/16090
             self.votable.to_xml(bio)
 
