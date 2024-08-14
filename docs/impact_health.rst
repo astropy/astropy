@@ -45,18 +45,18 @@ you're interested in contributing to astropy.
 
 |Open issue PR figure|
 
-.. |Citation figure| image:: https://github.com/jeffjennings/repo_stats/blob/cache/cache/astropy_citations.png?raw=true
+.. |Citation figure| image:: https://github.com/astropy/repo_stats/blob/cache/cache/astropy_citations.png?raw=true
   :width: 800
   :alt: Astropy citations
 
-.. |Commits figure| image:: https://github.com/jeffjennings/repo_stats/blob/cache/cache/astropy_authors.png?raw=true
+.. |Commits figure| image:: https://github.com/astropy/repo_stats/blob/cache/cache/astropy_authors.png?raw=true
   :width: 800
   :alt: Astropy commit author history
 
-.. |Issue PR history figure| image:: https://github.com/jeffjennings/repo_stats/blob/cache/cache/astropy_issues_PRs.png?raw=true
+.. |Issue PR history figure| image:: https://github.com/astropy/repo_stats/blob/cache/cache/astropy_issues_PRs.png?raw=true
   :width: 800
   :alt: Astropy issue and pull request history
 
-.. |Open issue PR figure| image:: https://github.com/jeffjennings/repo_stats/blob/cache/cache/astropy_open_items.png?raw=true
+.. |Open issue PR figure| image:: https://github.com/astropy/repo_stats/blob/cache/cache/astropy_open_items.png?raw=true
   :width: 800
   :alt: Astropy open issues and pull requests
