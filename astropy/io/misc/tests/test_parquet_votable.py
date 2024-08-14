@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 import pytest
 
@@ -64,21 +65,25 @@ def test_parquet_votable(tmp_path):
     assert np.all(input_table == loaded_table)
 
 
-@pytest.mark.xfail(reason="TODO fix: metadata overwrites existing column unit")
-def test_parquet_votable_input_column_unit(tmp_path):
+@pytest.mark.parametrize("overwrite_metadata", [True, False])
+def test_parquet_votable_input_column_unit(overwrite_metadata, tmp_path):
     """Test round trip of a table that has column units"""
     filename = tmp_path / "test_votable.parq"
 
-    input_table["mass"].unit = u.jupiterMass
-    write_parquet_votable(input_table, filename, metadata=column_metadata)
+    modified_input = copy.deepcopy(input_table)
+    modified_input["mass"].unit = u.kg
+
+    write_parquet_votable(modified_input, filename, metadata=column_metadata,
+                          overwrite_metadata=overwrite_metadata)
 
     with pytest.warns(AstropyUserWarning, match="No table::len"):
         loaded_table = read_parquet_votable(filename)
 
     # Compare data content
-    assert np.all(input_table == loaded_table)
+    assert np.all(modified_input == loaded_table)
 
-    assert input_table["mass"].unit == loaded_table["mass"].unit
+    assert (modified_input["mass"].unit == loaded_table["mass"].unit) is not overwrite_metadata
+    assert loaded_table["sfr"].unit == u.solMass / u.yr
 
 
 @pytest.mark.xfail(reason="TODO fix: exitsing column metadata is ignored")
@@ -86,8 +91,9 @@ def test_parquet_votable_input_column_metadata(tmp_path):
     """Test preservation of column metadata"""
     filename = tmp_path / "test_votable.parq"
 
-    input_table["mass"].meta["foo"] = "bar"
-    write_parquet_votable(input_table, filename, metadata=column_metadata)
+    modified_input = copy.deepcopy(input_table)
+    modified_input["mass"].meta["foo"] = "bar"
+    write_parquet_votable(modified_input, filename, metadata=column_metadata)
 
     with pytest.warns(AstropyUserWarning, match="No table::len"):
         loaded_table = read_parquet_votable(filename)
@@ -101,8 +107,9 @@ def test_parquet_votable_input_metadata(tmp_path):
     """Test preservation of table metadata"""
     filename = tmp_path / "test_votable.parq"
 
-    input_table.meta["table_foo"] = "table_bar"
-    write_parquet_votable(input_table, filename, metadata=column_metadata)
+    modified_input = copy.deepcopy(input_table)
+    modified_input.meta["table_foo"] = "table_bar"
+    write_parquet_votable(modified_input, filename, metadata=column_metadata)
 
     with pytest.warns(AstropyUserWarning, match="No table::len"):
         loaded_table = read_parquet_votable(filename)
@@ -134,17 +141,17 @@ def test_write_from_votable_existing_metadata(tmp_path):
     output_filename = tmp_path / "test_votable.parq"
     input_data = get_pkg_data_filename("data/gaia_source_dr3_select_1_result.vot")
 
-    input_table = Table.read(input_data)
+    input_t = Table.read(input_data)
 
     # Write out the VOTable into a parquet, preserving the metadata
     # without providing an extra dictionary
-    input_table.write(output_filename, format="parquet.votable")
+    input_t.write(output_filename, format="parquet.votable")
 
     loaded_table = Table.read(output_filename, format="parquet.votable")
 
-    assert np.all(input_table == loaded_table)
+    assert np.all(input_t == loaded_table)
     for attr in ["meta", "unit", "dtype", "description"]:
-        assert getattr(input_table["ra"], attr) == getattr(loaded_table["ra"], attr)
+        assert getattr(input_t["ra"], attr) == getattr(loaded_table["ra"], attr)
 
 
 # Not sure this use case should be supported at all
@@ -154,7 +161,7 @@ def test_write_from_votable_overriding_metadata(tmp_path):
     output_filename = tmp_path / "test_votable.parq"
     input_data = get_pkg_data_filename("data/gaia_source_dr3_select_1_result.vot")
 
-    input_table = Table.read(input_data)
+    input_t = Table.read(input_data)
 
     new_metadata = {
         "SOURCE_ID": {
@@ -163,11 +170,11 @@ def test_write_from_votable_overriding_metadata(tmp_path):
     }
     # Write out the VOTable into a parquet, preserving the metadata
     # without providing an extra dictionary
-    input_table.write(
+    input_t.write(
         output_filename,
         format="parquet.votable",
         metadata=new_metadata,
-        metadata_overwrite=True,
+        overwrite_metadata=True,
     )
 
     loaded_table = Table.read(output_filename, format="parquet.votable")
