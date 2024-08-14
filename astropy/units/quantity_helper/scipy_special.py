@@ -5,8 +5,6 @@ Available ufuncs in this module are at
 https://docs.scipy.org/doc/scipy/reference/special.html
 """
 
-import numpy as np
-
 from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
 
 from . import UFUNC_HELPERS
@@ -72,8 +70,7 @@ def get_scipy_special_helpers():
     SCIPY_HELPERS = {}
     for name in dimensionless_to_dimensionless_sps_ufuncs:
         ufunc = getattr(sps, name, None)
-        if isinstance(ufunc, np.ufunc):
-            SCIPY_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
+        SCIPY_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
 
     for ufunc in degree_to_dimensionless_sps_ufuncs:
         SCIPY_HELPERS[getattr(sps, ufunc)] = helper_degree_to_dimensionless
