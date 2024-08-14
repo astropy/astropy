@@ -53,6 +53,7 @@
      <OPTION name="bogus" value="whatever"/>
     </VALUES>
    </FIELD>
+   <FIELD ID="intNoNull" datatype="int" name="intNoNull"/>
    <FIELD ID="long" datatype="long" name="long">
     <VALUES ref="int_nulls"/>
     <LINK href="http://www.long-integers.com/"/>
@@ -121,6 +122,7 @@
       <TD>128</TD>
       <TD>4096</TD>
       <TD>268435456</TD>
+      <TD>3</TD>
       <TD>922337203685477</TD>
       <TD>8.9990234375</TD>
       <TD>1</TD>
@@ -151,6 +153,7 @@
       <TD>255</TD>
       <TD>32767</TD>
       <TD>2147483647</TD>
+      <TD>3</TD>
       <TD>123456789</TD>
       <TD>0</TD>
       <TD>0</TD>
@@ -181,6 +184,7 @@
       <TD>0</TD>
       <TD>-4096</TD>
       <TD>-268435456</TD>
+      <TD>3</TD>
       <TD>-1152921504606846976</TD>
       <TD>+InF</TD>
       <TD>+InF</TD>
@@ -211,6 +215,7 @@
       <TD>255</TD>
       <TD>32767</TD>
       <TD>268435455</TD>
+      <TD>3</TD>
       <TD>1152921504606846975</TD>
       <TD/>
       <TD>+InF</TD>
@@ -241,6 +246,7 @@
       <TD>255</TD>
       <TD>32767</TD>
       <TD>123456789</TD>
+      <TD>3</TD>
       <TD>123456789</TD>
       <TD>-InF</TD>
       <TD/>
@@ -281,6 +287,7 @@
        <TD>128</TD>
        <TD>4096</TD>
        <TD>268435456</TD>
+       <TD>3</TD>
        <TD>922337203685477</TD>
        <TD>8.9990234375</TD>
        <TD>1</TD>
