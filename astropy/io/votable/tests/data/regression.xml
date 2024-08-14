@@ -56,6 +56,7 @@ The VOTable format is an XML standard for the interchange of data represented as
   </VALUES>
   <IGNORE_ME/>
 </FIELD>
+<FIELD ID="intNoNull" datatype="int" name="intNoNull"/>
 <FIELD ID="long" name="long" datatype="long">
   <LINK href="http://www.long-integers.com/"/>
   <VALUES ref="int_nulls"/>
@@ -116,6 +117,7 @@ The VOTable format is an XML standard for the interchange of data represented as
   <TD>128</TD>
   <TD>4096</TD>
   <TD>268435456</TD>
+  <TD>3</TD>
   <TD>922337203685477</TD>
   <TD>8.9990234375</TD>
   <TD encoding="base64">P4AAAA==</TD>
@@ -146,6 +148,7 @@ The VOTable format is an XML standard for the interchange of data represented as
   <TD>256</TD> <!-- should overflow to 0 -->
   <TD>65536</TD> <!-- should overflow to 0-->
   <TD>2147483647</TD> <!-- overflowing here would raise a Numpy exception -->
+  <TD>3</TD>
   <TD></TD>
   <TD>1.0e-325</TD> <!-- underflow to 0 -->
   <TD>1.0e-46</TD> <!-- underflow to 0 -->
@@ -176,6 +179,7 @@ The VOTable format is an XML standard for the interchange of data represented as
   <TD>-23</TD> <!-- negative, should wrap around to positive -->
   <TD>-4096</TD> <!-- negative, perfectly valid -->
   <TD>-268435456</TD> <!-- negative, perfectly valid -->
+  <TD>3</TD>
   <TD>-1152921504606846976</TD>  <!-- negative, perfectly valid -->
   <TD>1.0E309</TD>
   <TD>1.0E45</TD>
@@ -206,6 +210,7 @@ The VOTable format is an XML standard for the interchange of data represented as
   <TD>0xff</TD> <!-- hex -->
   <TD>0xffff</TD> <!-- hex - negative value -->
   <TD>0xfffffff</TD>
+  <TD>3</TD>
   <TD>0xfffffffffffffff</TD>
   <TD>NaN</TD>
   <TD>+Inf</TD>
@@ -236,6 +241,7 @@ The VOTable format is an XML standard for the interchange of data represented as
   <TD>0x100</TD> <!-- hex, overflow -->
   <TD>0x10000</TD> <!-- hex, overflow -->
   <TD/>
+  <TD>3</TD>
   <TD/>
   <TD>-Inf</TD>
   <TD/>
@@ -276,6 +282,7 @@ The VOTable format is an XML standard for the interchange of data represented as
   <TD>128</TD>
   <TD>4096</TD>
   <TD>268435456</TD>
+  <TD>3</TD>
   <TD>922337203685477</TD>
   <TD>8.9990234375</TD>
   <TD encoding="base64">P4AAAA==</TD>
