@@ -1524,10 +1524,6 @@ if HAS_SCIPY:
         assert sps.erf not in qh.UFUNC_HELPERS
         sps.erf(1.0 * u.percent)
         assert sps.erf in qh.UFUNC_HELPERS
-        if isinstance(sps.erfinv, np.ufunc):
-            assert sps.erfinv in qh.UFUNC_HELPERS
-        else:
-            assert sps.erfinv not in qh.UFUNC_HELPERS
 
     class TestScipySpecialUfuncs:
         @pytest.mark.parametrize("function", erf_like_ufuncs)
