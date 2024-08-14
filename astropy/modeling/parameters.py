@@ -14,7 +14,7 @@ import operator
 
 import numpy as np
 
-from astropy.units import MagUnit, Quantity
+from astropy.units import MagUnit, Quantity, dimensionless_unscaled
 from astropy.utils import isiterable
 from astropy.utils.compat import COPY_IF_NEEDED
 
@@ -315,7 +315,7 @@ class Parameter:
         args = f"'{self._name}'"
         args += f", value={self.value}"
 
-        if self.unit is not None:
+        if self.unit is not None and self.unit != dimensionless_unscaled:
             args += f", unit={self.unit}"
 
         for cons in self.constraints:
@@ -768,7 +768,7 @@ def param_repr_oneline(param):
     rendering parameters with units like quantities.
     """
     out = array_repr_oneline(param.value)
-    if param.unit is not None:
+    if param.unit is not None and param.unit != dimensionless_unscaled:
         out = f"{out} {param.unit!s}"
     return out
 
