@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from astropy.utils import classproperty
+
 from . import utils
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Callable, Iterable
     from typing import ClassVar, Literal
 
     import numpy as np
@@ -41,6 +43,13 @@ class Base:
 
         Base.registry[cls.name] = cls
         super().__init_subclass__(**kwargs)
+
+    @classproperty(lazy=True)
+    def _fraction_formatters(cls) -> dict[bool | str, Callable[[str, str, str], str]]:
+        return {
+            True: cls._format_inline_fraction,
+            "inline": cls._format_inline_fraction,
+        }
 
     @classmethod
     def format_exponential_notation(
@@ -101,20 +110,9 @@ class Base:
         )
 
     @classmethod
-    def _format_fraction(
-        cls,
-        scale: str,
-        numerator: str,
-        denominator: str,
-        *,
-        fraction: Literal[True, "inline"] = "inline",
+    def _format_inline_fraction(
+        cls, scale: str, numerator: str, denominator: str
     ) -> str:
-        if not (fraction is True or fraction == "inline"):
-            raise ValueError(
-                "format {cls.name!r} only supports inline fractions,"
-                f"not fraction={fraction!r}."
-            )
-
         if cls._space in denominator:
             denominator = f"({denominator})"
         if scale and numerator == "1":
@@ -123,7 +121,7 @@ class Base:
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, *, fraction: bool | Literal["inline", "multiline"] = True
+        cls, unit: UnitBase, *, fraction: bool | Literal["inline"] = True
     ) -> str:
         """Convert a unit to its string representation.
 
@@ -167,7 +165,20 @@ class Base:
         )
         if not denominator:
             return s + numerator
-        return cls._format_fraction(s, numerator or "1", denominator, fraction=fraction)
+        try:
+            return cls._fraction_formatters[fraction](s, numerator or "1", denominator)
+        except KeyError:
+            # We accept Booleans, but don't advertise them in the error message
+            *all_but_last, last = (
+                repr(key) for key in cls._fraction_formatters if isinstance(key, str)
+            )
+            supported_formats = (
+                f"{', '.join(all_but_last)} or {last}" if all_but_last else last
+            )
+            raise ValueError(
+                f"{cls.name!r} format only supports {supported_formats} "
+                f"fractions, not {fraction=!r}."
+            ) from None
 
     @classmethod
     def parse(cls, s: str) -> UnitBase:
