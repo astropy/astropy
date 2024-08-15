@@ -158,15 +158,23 @@ class Base:
 
         if s:
             s += cls._scale_unit_separator
-        if not fraction:
+        # Unit powers are monotonically decreasing
+        if not fraction or unit.powers[-1] > 0:
             return s + cls._format_unit_list(zip(unit.bases, unit.powers, strict=True))
-        numerator, denominator = map(
-            cls._format_unit_list, utils.get_grouped_by_powers(unit.bases, unit.powers)
-        )
-        if not denominator:
-            return s + numerator
+
+        positive = []
+        negative = []
+        for base, power in zip(unit.bases, unit.powers, strict=True):
+            if power > 0:
+                positive.append((base, power))
+            else:
+                negative.append((base, -power))
         try:
-            return cls._fraction_formatters[fraction](s, numerator or "1", denominator)
+            return cls._fraction_formatters[fraction](
+                s,
+                cls._format_unit_list(positive) or "1",
+                cls._format_unit_list(negative),
+            )
         except KeyError:
             # We accept Booleans, but don't advertise them in the error message
             *all_but_last, last = (
