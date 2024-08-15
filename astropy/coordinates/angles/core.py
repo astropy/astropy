@@ -617,12 +617,16 @@ class Latitude(Angle):
 
         if np.any(np.abs(angles_view) > limit):
             if np.size(angles) < 5:
-                raise ValueError("Latitude angle(s) must be within -90 deg <= angle "
-                                     f"<= 90 deg, got {angles.to(u.degree)}")
+                raise ValueError(
+                    "Latitude angle(s) must be within -90 deg <= angle "
+                    f"<= 90 deg, got {angles.to(u.degree)}"
+                )
             else:
-                raise ValueError("Latitude angle(s) must be within -90 deg <= angle "
-                                 f"<= 90 deg, got {angles.min().to(u.degree)} <= "
-                                 f"angle <= {angles.max().to(u.degree)}")
+                raise ValueError(
+                    "Latitude angle(s) must be within -90 deg <= angle "
+                    f"<= 90 deg, got {angles.min().to(u.degree)} <= "
+                    f"angle <= {angles.max().to(u.degree)}"
+                )
 
     def __setitem__(self, item, value):
         # Forbid assigning a Long to a Lat.

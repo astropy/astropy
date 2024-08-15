@@ -698,9 +698,9 @@ def test_latitude():
 
     lim_exc = r"Latitude angle\(s\) must be within -90 deg <= angle <= 90 deg, got"
     with pytest.raises(ValueError, match=rf"{lim_exc} \[91. 89.\] deg"):
-        Latitude(['91d', '89d'])
+        Latitude(["91d", "89d"])
     with pytest.raises(ValueError, match=f"{lim_exc} -91.0 deg"):
-        Latitude('-91d')
+        Latitude("-91d")
 
     lat = Latitude(["90d", "89d"])
     # check that one can get items
@@ -721,7 +721,7 @@ def test_latitude():
 
     # Check error message for long-ish input arrays (#13994).
     with pytest.raises(
-            ValueError, match=rf"{lim_exc} -143.239\d* deg <= angle <= 171.887\d* deg"
+        ValueError, match=rf"{lim_exc} -143.239\d* deg <= angle <= 171.887\d* deg"
     ):
         lat = Latitude([0, 1, 2, 3, -2.5, -1, -0.5] * u.radian)
 
@@ -729,7 +729,7 @@ def test_latitude():
 def test_latitude_manipulation():
     """Test value manipulation operations on Latitude angles."""
 
-    lat = Latitude(['90d', '-29d'])
+    lat = Latitude(["90d", "-29d"])
     # conserve type on unit change (closes #1423)
     angle = lat.to("radian")
     assert type(angle) is Latitude
@@ -755,16 +755,16 @@ def test_latitude_manipulation():
 def test_lon_as_lat():
     """Test validation when trying to interoperate with longitudes."""
 
-    lon = Longitude(10, 'deg')
+    lon = Longitude(10, "deg")
     with pytest.raises(
-            TypeError, match="A Latitude angle cannot be created from a Longitude angle"
+        TypeError, match="A Latitude angle cannot be created from a Longitude angle"
     ):
         lat = Latitude(lon)
 
     with pytest.raises(
-            TypeError, match="A Longitude angle cannot be assigned to a Latitude angle"
+        TypeError, match="A Longitude angle cannot be assigned to a Latitude angle"
     ):
-        lat = Latitude([20], 'deg')
+        lat = Latitude([20], "deg")
         lat[0] = lon
 
     # Check we can work around the Lat vs Long checks by casting explicitly to Angle.
@@ -772,7 +772,7 @@ def test_lon_as_lat():
     assert lat.value == 10.0
 
     # Check setitem.
-    lat = Latitude([20], 'deg')
+    lat = Latitude([20], "deg")
     lat[0] = Angle(lon)
     assert lat.value[0] == 10.0
 
@@ -861,17 +861,17 @@ def test_longitude():
 def test_lat_as_lon():
     """Test validation when trying to interoperate with latitudes."""
 
-    lat = Latitude(10, 'deg')
+    lat = Latitude(10, "deg")
     # Test errors when trying to interoperate with latitudes.
     with pytest.raises(
-            TypeError, match="A Longitude angle cannot be created from a Latitude angle"
+        TypeError, match="A Longitude angle cannot be created from a Latitude angle"
     ):
         lon = Longitude(lat)
 
     with pytest.raises(
-            TypeError, match="A Latitude angle cannot be assigned to a Longitude angle"
+        TypeError, match="A Latitude angle cannot be assigned to a Longitude angle"
     ):
-        lon = Longitude([20], 'deg')
+        lon = Longitude([20], "deg")
         lon[0] = lat
 
     # Check we can work around the Lat vs Long checks by casting explicitly to Angle.
@@ -879,7 +879,7 @@ def test_lat_as_lon():
     assert lon.value == 10.0
 
     # Check setitem.
-    lon = Longitude([20], 'deg')
+    lon = Longitude([20], "deg")
     lon[0] = Angle(lat)
     assert lon.value[0] == 10.0
 
@@ -1209,8 +1209,11 @@ def test_latitude_out_of_limits(value, dtype):
     Test that values slightly larger than pi/2 are rejected for different dtypes.
     Test cases for issue #13708
     """
-    with pytest.raises(ValueError, match=r"Latitude angle\(s\) must be within -90 deg "
-                       r"<= angle <= 90 deg, got -?90.001\d* deg"):
+    with pytest.raises(
+        ValueError,
+        match=r"Latitude angle\(s\) must be within -90 deg "
+        r"<= angle <= 90 deg, got -?90.001\d* deg",
+    ):
         Latitude(value, u.rad, dtype=dtype)
 
 
