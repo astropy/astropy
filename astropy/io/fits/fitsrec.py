@@ -803,8 +803,8 @@ class FITS_rec(np.recarray):
             )
 
         for idx in range(len(self)):
-            offset = field[idx, 1] + self._heapoffset
-            count = field[idx, 0]
+            offset = int(field[idx, 1]) + self._heapoffset
+            count = int(field[idx, 0])
 
             if recformat.dtype == "S":
                 dt = np.dtype(recformat.dtype + str(1))
