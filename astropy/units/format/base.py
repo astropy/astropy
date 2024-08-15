@@ -151,34 +151,23 @@ class Base:
         # First the scale.  Normally unity, in which case we omit
         # it, but non-unity scale can happen, e.g., in decompositions
         # like u.Ry.decompose(), which gives "2.17987e-18 kg m2 / s2".
-        if unit.scale == 1:
-            s = ""
-        else:
-            s = cls.format_exponential_notation(unit.scale)
+        s = "" if unit.scale == 1 else cls.format_exponential_notation(unit.scale)
 
-        # Now the unit baes, taking care that dimensionless does not have any
-        # (but can have a scale; e.g., u.percent.decompose() gives "0.01").
-        if len(unit.bases):
-            if s:
-                s += cls._scale_unit_separator
-            if fraction:
-                numerator, denominator = utils.get_grouped_by_powers(
-                    unit.bases, unit.powers
-                )
-            else:
-                numerator = list(zip(unit.bases, unit.powers))
-                denominator = []
-            if len(denominator):
-                if len(numerator):
-                    numerator = cls._format_unit_list(numerator)
-                else:
-                    numerator = "1"
-                denominator = cls._format_unit_list(denominator)
-                s = cls._format_fraction(s, numerator, denominator, fraction=fraction)
-            else:
-                s += cls._format_unit_list(numerator)
+        # dimensionless does not have any bases, but can have a scale;
+        # e.g., u.percent.decompose() gives "0.01".
+        if not unit.bases:
+            return s
 
-        return s
+        if s:
+            s += cls._scale_unit_separator
+        if not fraction:
+            return s + cls._format_unit_list(zip(unit.bases, unit.powers, strict=True))
+        numerator, denominator = map(
+            cls._format_unit_list, utils.get_grouped_by_powers(unit.bases, unit.powers)
+        )
+        if not denominator:
+            return s + numerator
+        return cls._format_fraction(s, numerator or "1", denominator, fraction=fraction)
 
     @classmethod
     def parse(cls, s: str) -> UnitBase:
