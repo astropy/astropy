@@ -90,6 +90,31 @@ def test_namespace_warning():
     parse(io.BytesIO(good_namespace_13), verify="exception")
 
 
+def test_votable_values_empty_min_max():
+    """Regression test for https://github.com/astropy/astropy/issues/16825"""
+    with_empty_minmax = b"""<VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3" version="1.4">
+        <RESOURCE type="results">
+          <TABLE name="main">
+            <PARAM name="break" datatype="int" value=""/>
+          <FIELD ID="hd" datatype="int" name="hd" ucd="meta.id;meta.main">
+            <DESCRIPTION>HD number for this object</DESCRIPTION>
+            <VALUES null="-2147483648">
+              <MIN value=""/>
+              <MAX value=""/>
+            </VALUES>
+          </FIELD>
+          <DATA>
+            <BINARY>
+              <STREAM encoding="base64">AAMNIg==</STREAM>
+            </BINARY>
+          </DATA>
+        </TABLE>
+      </RESOURCE>
+    </VOTABLE>
+    """
+    parse(io.BytesIO(with_empty_minmax), verify="exception")
+
+
 def test_version():
     """
     VOTableFile.__init__ allows versions of '1.1', '1.2', '1.3' and '1.4'.

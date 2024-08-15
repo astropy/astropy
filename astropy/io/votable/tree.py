@@ -1053,7 +1053,7 @@ class Values(Element, _IDProperty):
     @min.setter
     def min(self, min):
         if hasattr(self._field, "converter") and min is not None:
-            self._min = self._field.converter.parse(min)[0]
+            self._min = self._field.converter.parse(min, config=self._config)[0]
         else:
             self._min = min
 
@@ -1089,7 +1089,7 @@ class Values(Element, _IDProperty):
     @max.setter
     def max(self, max):
         if hasattr(self._field, "converter") and max is not None:
-            self._max = self._field.converter.parse(max)[0]
+            self._max = self._field.converter.parse(max, config=self._config)[0]
         else:
             self._max = max
 
