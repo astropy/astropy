@@ -1,0 +1,1 @@
+Fix KeyError when parsing certain VOTables.
