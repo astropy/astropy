@@ -24,31 +24,29 @@ def _pixel_to_world_values_block(*pixel, wcs=None):
     return world
 
 
-def _wcs_to_world_dask(wcs, data):
+def _wcs_to_world_dask(wcs, shape, chunks=None):
     """
     Given a WCS and a data shape, return an iterable of dask arrays
     representing the world coordinates of the array.
     """
     import dask.array as da
 
-    pixel = tuple([np.arange(size) for size in data.shape])
+    pixel = tuple([np.arange(size) for size in shape])
     pixel_nd = da.meshgrid(*pixel, indexing="ij")
     world = da.map_blocks(
         _pixel_to_world_values_block,
         *pixel_nd,
         wcs=deepcopy(wcs),
         new_axis=0,
-        chunks=(3,) + data.chunksize,
+        chunks=(3,) + chunks,
     )
-    return tuple([world[idx] for idx in range(len(data.shape))])
+    return tuple([world[idx] for idx in range(len(shape))])
 
 
 def _copy_with_new_parameters(model, parameters):
     # Make a copy of the model, setting the parameters to new values
     model_new = model.copy()
-    for name, value in parameters.items():
-        parameter = getattr(model_new, name)
-        parameter.value = value
+    model_new._reset_parameters(**parameters)
     return model_new
 
 
@@ -446,7 +444,7 @@ def parallel_fit_dask(
 
         # Construct dask arrays of world coordinates for every pixel in the cube.
         # We will then iterate over this in map_blocks.
-        world = _wcs_to_world_dask(world, data)
+        world = _wcs_to_world_dask(world, data.shape, chunks=data.chunksize)
 
         # Extract world arrays for just fitting dimensions
         world = [world[idx] for idx in fitting_axes]
