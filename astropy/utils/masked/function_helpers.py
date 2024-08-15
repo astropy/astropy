@@ -140,7 +140,7 @@ if NUMPY_LT_2_0:
     # Removed in numpy 2.0.  Just an alias to vstack.
     MASKED_SAFE_FUNCTIONS |= {np.row_stack}  # noqa: NPY201
     # renamed in numpy 2.0
-    MASKED_SAFE_FUNCTIONS |= {np.trapz}
+    MASKED_SAFE_FUNCTIONS |= {np.trapz}  # noqa: NPY201
 if not NUMPY_LT_2_0:
     # new in numpy 2.0
     MASKED_SAFE_FUNCTIONS |= {
