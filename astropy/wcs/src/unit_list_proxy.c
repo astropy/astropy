@@ -91,8 +91,11 @@ PyUnitListProxy_New(
   if (units_dict == NULL) {
     return NULL;
   }
-
+#if PY_VERSION_HEX >= 0x030d00c1
+  PyDict_GetItemStringRef(units_dict, "Unit", &unit_class);
+#else
   unit_class = PyDict_GetItemString(units_dict, "Unit");
+#endif
   if (unit_class == NULL) {
     PyErr_SetString(PyExc_RuntimeError, "Could not import Unit class");
     return NULL;
@@ -111,6 +114,10 @@ PyUnitListProxy_New(
   self->size = size;
   self->array = array;
   self->unit_class = unit_class;
+
+#if PY_VERSION_HEX >= 0x030d00c1
+  Py_DECREF(unit_class);
+#endif
   return (PyObject*)self;
 }
 

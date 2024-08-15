@@ -571,7 +571,13 @@ static int PyPrjprm_set_pv(PyPrjprm* self, PyObject* value, void* closure)
 
     if (PyList_Check(value)) {
         for (k = 0; k < size; k++) {
+#if PY_VERSION_HEX >= 0x030d00c1
+            PyObject* item = PyList_GetItemRef(value, i);
+            skip[i] = (PyList_GetItemRef(value, i) == Py_None);
+            Py_DECREF(item);
+#else
             skip[k] = (PyList_GetItem(value, k) == Py_None);
+#endif
         }
     } else if (PyTuple_Check(value)) {
         for (k = 0; k < size; k++) {

@@ -341,7 +341,13 @@ static int PyCelprm_set_ref(PyCelprm* self, PyObject* value, void* closure)
 
     if (PyList_Check(value)) {
         for (i = 0; i < size; i++) {
+#if PY_VERSION_HEX >= 0x030d00c1
+            PyObject* item = PyList_GetItemRef(value, i);
+            skip[i] = (PyList_GetItemRef(value, i) == Py_None);
+            Py_DECREF(item);
+#else
             skip[i] = (PyList_GetItem(value, i) == Py_None);
+#endif
         }
     }
 
