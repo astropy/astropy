@@ -200,7 +200,7 @@ ATTRIBUTE_TO_KEYWORD = OrderedDict(zip(KEYWORD_ATTRIBUTES, KEYWORD_NAMES))
 
 # TFORMn regular expression
 TFORMAT_RE = re.compile(
-    r"(?P<repeat>^[0-9]*)(?P<format>[LXBIJKAEDCMPQ])(?P<option>[!-~]*)", re.I
+    r"(?P<repeat>^[0-9]*)(?P<format>[LXBIJKAEDCMPQ])(?P<option>[!-~]*)", re.IGNORECASE
 )
 
 # TFORMn for ASCII tables; two different versions depending on whether
@@ -1047,14 +1047,16 @@ class Column(NotifierMixin):
         # Currently we don't have any validation for name, unit, bscale, or
         # bzero so include those by default
         # TODO: Add validation for these keywords, obviously
-        for k, v in [
-            ("name", name),
-            ("unit", unit),
-            ("bscale", bscale),
-            ("bzero", bzero),
-        ]:
-            if v is not None and v != "":
-                valid[k] = v
+        valid |= {
+            k: v
+            for k, v in [
+                ("name", name),
+                ("unit", unit),
+                ("bscale", bscale),
+                ("bzero", bzero),
+            ]
+            if (v is not None and v != "")
+        }
 
         # Validate null option
         # Note: Enough code exists that thinks empty strings are sensible

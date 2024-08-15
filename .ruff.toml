@@ -116,9 +116,9 @@ lint.ignore = [
     "PLW2901",  # redefined-loop-name
 
     # flake8-pytest-style (PT)
-    "PT001",   # pytest-fixture-incorrect-parentheses-style
+    "PT001",   # pytest-fixture-incorrect-parentheses-style # updated in ruff 0.6.0
     "PT003",   # pytest-extraneous-scope-function
-    "PT004",   # pytest-missing-fixture-name-underscore
+    "PT004",   # pytest-missing-fixture-name-underscore # deprecated in ruff 0.6.0
     "PT006",   # pytest-parametrize-names-wrong-type
     "PT007",   # pytest-parametrize-values-wrong-type
     "PT011",   # pytest-raises-too-broad
@@ -126,7 +126,7 @@ lint.ignore = [
     "PT017",   # pytest-assert-in-exceptinstead
     "PT018",   # pytest-composite-assertion
     "PT022",   # pytest-useless-yield-fixture
-    "PT023",   # pytest-incorrect-mark-parentheses-style
+    "PT023",   # pytest-incorrect-mark-parentheses-style # updated in ruff 0.6.0
 
     # flake8-use-pathlib (PTH)
     "PTH100",  # os-path-abspath
@@ -260,6 +260,7 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
     "TRY300",  # Consider `else` block
+    "F811",  # see https://github.com/astropy/astropy/pull/16633
 ]
 "astropy/nddata/*" = [
     "C408",

@@ -352,10 +352,8 @@ def test_configitem_options(tmp_path):
     f = tmp_path / "astropy.cfg"
     with open(f, "wb") as fd:
         apycfg.write(fd)
-    with open(f, encoding="utf-8") as fd:
-        lns = [x.strip() for x in fd.readlines()]
 
-    assert "tstnmo = op2" in lns
+    assert "tstnmo = op2" in f.read_text().splitlines()
 
 
 def test_help(capsys):
