@@ -171,13 +171,9 @@ class VOUnit(generic.Generic):
         return super().format_exponential_notation(val, format_spec)
 
     @classmethod
-    def _format_fraction(cls, scale, numerator, denominator, *, fraction="inline"):
-        if not (fraction is True or fraction == "inline"):
-            raise ValueError(
-                "format {cls.name!r} only supports inline fractions,"
-                f"not fraction={fraction!r}."
-            )
-
+    def _format_inline_fraction(
+        cls, scale: str, numerator: str, denominator: str
+    ) -> str:
         if cls._space in denominator:
             denominator = f"({denominator})"
         if scale and numerator == "1":
