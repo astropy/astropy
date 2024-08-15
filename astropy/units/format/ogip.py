@@ -31,6 +31,8 @@ from . import core, generic, utils
 if TYPE_CHECKING:
     from typing import ClassVar
 
+    from astropy.units import UnitBase
+
 
 class OGIP(generic.Generic):
     """
@@ -54,13 +56,14 @@ class OGIP(generic.Generic):
         "UNIT",
     )
 
+    _deprecated_units: ClassVar[frozenset[str]] = frozenset(("Crab", "mCrab"))
     _functions: ClassVar[frozenset[str]] = frozenset((
         "log", "ln", "exp", "sqrt", "sin", "cos", "tan",
         "asin", "acos", "atan", "sinh", "cosh", "tanh",
     ))  # fmt: skip
 
-    @classmethod
-    def _generate_unit_names(cls):
+    @classproperty(lazy=True)
+    def _units(cls) -> dict[str, UnitBase]:
         from astropy import units as u
 
         bases = [
@@ -92,7 +95,7 @@ class OGIP(generic.Generic):
 
         names.update((name, name) for name in cls._functions)
 
-        return names, {"Crab", "mCrab"}
+        return names
 
     @classproperty(lazy=True)
     def _lexer(cls):
