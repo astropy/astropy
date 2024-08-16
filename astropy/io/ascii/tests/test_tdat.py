@@ -192,7 +192,7 @@ def test_bad_delimiter():
     out = StringIO()
     with pytest.raises(ValueError) as err:
         test_table.write(out, format="ascii.tdat", delimiter=",")
-        assert "only pipe and space delimitter is allowed in tdat format" in str(
+        assert "only pipe and space delimiter is allowed in tdat format" in str(
             err.value
         )
 
