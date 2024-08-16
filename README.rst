@@ -15,7 +15,7 @@ This repository contains the core library.
 * `Slack <https://astropy.slack.com/>`_
 * `Open Astronomy Discourse <https://community.openastronomy.org/c/astropy/8>`_
 * `Astropy users mailing list <http://mail.python.org/mailman/listinfo/astropy>`_
-* `Astropy developers mailing list <http://mail.python.org/mailman/listinfo/astropy>`_
+* `Astropy developers mailing list <https://groups.google.com/g/astropy-dev>`_
 
 Installation
 ============
