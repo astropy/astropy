@@ -291,12 +291,12 @@ class TdatHeader(basic.BasicHeader):
     def write(self, lines):
         """Write the Table out to a TDAT formatted file."""
         if self.splitter.delimiter not in [" ", "|"]:
-            raise ValueError("only pipe and space delimitter is allowed in tdat format")
+            raise ValueError("only pipe and space delimiter is allowed in tdat format")
 
         # Write the keywords and column descriptors
         keywords = deepcopy(self.table_meta.get("keywords", {}))
         meta_keys = ["keywords", "comments"]
-        # In case a user puts a keyword direclty in meta, instead of meta.keywords
+        # In case a user puts a keyword directly in meta, instead of meta.keywords
         for key in [
             key.lower()
             for key in self.table_meta.keys()
@@ -587,11 +587,11 @@ class Tdat(core.BaseReader):
       <END>
 
     The comments and keywords defined in the header, excepting common header
-    section titles and blank comments, are avaialble via the output table
+    section titles and blank comments, are available via the output table
     ``meta`` attribute::
 
       >>> from astropy.io import ascii
-      >>> lines = ascii.tdat.make_example_lines()
+      >>> lines = ascii.tdat.make_example_data()
       >>> data = ascii.read(lines, format='tdat')
       >>> print(data.meta['comments'])
       ['# and // are comments']
@@ -647,7 +647,7 @@ class Tdat(core.BaseReader):
      '3|3.0|e|',
      '<END>']
 
-    Including relevant metadata for the table and columns seperately
+    Including relevant metadata for the table and columns separately
     is possible with a mixture of attribute assignment and additions to the
     metadata::
     >>> from astropy.table import Table
