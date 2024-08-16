@@ -37,6 +37,12 @@ ECSV_DATATYPES = (
     "string",
 )  # Raise warning if not one of these standard dtypes
 
+NO_HEADER_MSG = (
+    'ECSV header line like "# %ECSV <version>" not found as first line.'
+    "  This is required for a ECSV file."
+)
+
+
 
 class InvalidEcsvDatatypeWarning(AstropyUserWarning):
     """
@@ -141,17 +147,12 @@ class EcsvHeader(basic.BasicHeader):
                              \. (?P<minor> \d+)
                              \.? (?P<bugfix> \d+)? $"""
 
-        no_header_msg = (
-            'ECSV header line like "# %ECSV <version>" not found as first line.'
-            "  This is required for a ECSV file."
-        )
-
         if not lines:
-            raise core.InconsistentTableError(no_header_msg)
+            raise core.InconsistentTableError(NO_HEADER_MSG)
 
         match = re.match(ecsv_header_re, lines[0].strip(), re.VERBOSE)
         if not match:
-            raise core.InconsistentTableError(no_header_msg)
+            raise core.InconsistentTableError(NO_HEADER_MSG)
 
         try:
             header = meta.get_header_from_yaml(lines)
@@ -494,6 +495,14 @@ class Ecsv(basic.Basic):
     outputter_class = EcsvOutputter
 
     max_ndim = None  # No limit on column dimensionality
+
+    def read(self, table):
+        # Check that the table starts with the expected first header line, if
+        # not then exit early
+        if table.startswith("# %ECSV"):
+            return super().read(table)
+        else:
+            raise core.InconsistentTableError(NO_HEADER_MSG)
 
     def update_table_data(self, table):
         """
