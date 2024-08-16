@@ -84,17 +84,12 @@ class TdatHeader(basic.BasicHeader):
 
     _deprecated_keys = r"\s*(record_delimiter|field_delimiter)\s*=\s\"(.+)\""
     _required_keywords = ("table_name",)
-    _dtype_dict = {
-        "int": "int4",
-        "int32": "int4",
-        "int16": "int2",
-        "int8": "int1",
-        "float": "float8",
-        "float64": "float8",
-        "float32": "float4",
+    _dtype_dict_in = {
+        "float": float,
         "float8": float,
         "float4": np.float32,
         "real": np.float32,
+        "int": int,
         "int4": int,
         "int2": np.int16,
         "integer2": np.int16,
@@ -102,6 +97,16 @@ class TdatHeader(basic.BasicHeader):
         "int1": np.int8,
         "integer1": np.int8,
         "tinyint": np.int8,
+    }
+
+    _dtype_dict_out = {
+        "int": "int4",
+        "int32": "int4",
+        "int16": "int2",
+        "int8": "int1",
+        "float": "float8",
+        "float64": "float8",
+        "float32": "float4",
     }
 
     def _validate_comment(self, line) -> bool:
@@ -240,8 +245,8 @@ class TdatHeader(basic.BasicHeader):
                 col.meta = OrderedDict()
 
                 ctype = cmatch.group("ctype")
-                if ctype in self._dtype_dict:
-                    col.dtype = self._dtype_dict[ctype]
+                if ctype in self._dtype_dict_in:
+                    col.dtype = self._dtype_dict_in[ctype]
                 elif "int" in ctype:
                     col.dtype = int
                 elif "float" in ctype:
@@ -348,8 +353,8 @@ class TdatHeader(basic.BasicHeader):
         lines.append("# Table Parameters")
         lines.append("#")
         for col in self.cols:
-            if str(col.dtype) in self._dtype_dict:
-                ctype = self._dtype_dict[str(col.dtype)]
+            if str(col.dtype) in self._dtype_dict_out:
+                ctype = self._dtype_dict_out[str(col.dtype)]
             elif "int" in str(col.dtype):
                 ctype = "int4"
             elif "float" in str(col.dtype):
