@@ -791,10 +791,12 @@ class TestParameters:
         # model is not None
         param._model_required = False
         model = mk.MagicMock()
-        with mk.patch.object(functools, "partial", autospec=True) as mkPartial:
-            assert (
-                param._create_value_wrapper(wrapper2, model) == mkPartial.return_value
-            )
+        partial_wrapper = param._create_value_wrapper(wrapper2, model)
+        assert isinstance(partial_wrapper, functools.partial)
+        assert partial_wrapper.func is wrapper2
+        assert partial_wrapper.args == ()
+        assert list(partial_wrapper.keywords.keys()) == ["b"]
+        assert partial_wrapper.keywords["b"] is model
 
         # wrapper with more than 2 arguments
         def wrapper3(a, b, c):
