@@ -336,7 +336,7 @@ def _expand_user_if_path(argument):
     return argument
 
 
-def read(table, guess=None, **kwargs):
+def read(table, guess=None, guess_limit_lines=None, **kwargs):
     # This the final output from reading. Static analysis indicates the reading
     # logic (which is indeed complex) might not define `dat`, thus do so here.
     dat = None
@@ -432,7 +432,7 @@ def read(table, guess=None, **kwargs):
         # then there was just one set of kwargs in the guess list so fall
         # through below to the non-guess way so that any problems result in a
         # more useful traceback.
-        dat = _guess(table, new_kwargs, format, fast_reader)
+        dat = _guess(table, new_kwargs, format, fast_reader, limit_lines=guess_limit_lines)
         if dat is None:
             guess = False
 
@@ -508,7 +508,7 @@ read.__doc__ = core.READ_DOCSTRING
 read.help = read_help
 
 
-def _guess(table, read_kwargs, format, fast_reader):
+def _guess(table, read_kwargs, format, fast_reader, limit_lines=None):
     """
     Try to read the table using various sets of keyword args.  Start with the
     standard guess list and filter to make it unique and consistent with
@@ -526,6 +526,8 @@ def _guess(table, read_kwargs, format, fast_reader):
         Table format
     fast_reader : dict
         Options for the C engine fast reader.  See read() function for details.
+    limit_lines : int, optional
+        If specified, imit the number of lines to use for guessing
 
     Returns
     -------
@@ -640,6 +642,25 @@ def _guess(table, read_kwargs, format, fast_reader):
             reader = get_reader(**guess_kwargs)
 
             reader.guessing = True
+
+            if limit_lines:
+
+                # First try with subset of lines - if this fails we can skip this
+                # format early. If it works, we still proceed to check with the
+                # full table since we need to then return the read data.
+
+                # Start off by checking what line endings are being used in file
+                line_ending = '\r\n' if '\r' in table else '\n'
+
+                # Now search for the position of the Nth line ending
+                pos = 0
+                for iter in range(limit_lines):
+                    pos = table.index(line_ending, pos + 1)
+
+                # Try reading the subset of the table - if it fails, it will
+                # allow us to exit early.
+                dat = reader.read(table[:pos])
+
             dat = reader.read(table)
             _read_trace.append(
                 {
