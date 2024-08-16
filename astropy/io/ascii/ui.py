@@ -432,7 +432,9 @@ def read(table, guess=None, guess_limit_lines=None, **kwargs):
         # then there was just one set of kwargs in the guess list so fall
         # through below to the non-guess way so that any problems result in a
         # more useful traceback.
-        dat = _guess(table, new_kwargs, format, fast_reader, limit_lines=guess_limit_lines)
+        dat = _guess(
+            table, new_kwargs, format, fast_reader, limit_lines=guess_limit_lines
+        )
         if dat is None:
             guess = False
 
@@ -643,14 +645,13 @@ def _guess(table, read_kwargs, format, fast_reader, limit_lines=None):
 
             reader.guessing = True
 
-            if limit_lines:
+            # Start off by checking what line endings are being used in file
+            line_ending = "\r\n" if "\r" in table else "\n"
 
+            if limit_lines:
                 # First try with subset of lines - if this fails we can skip this
                 # format early. If it works, we still proceed to check with the
                 # full table since we need to then return the read data.
-
-                # Start off by checking what line endings are being used in file
-                line_ending = '\r\n' if '\r' in table else '\n'
 
                 # Now search for the position of the Nth line ending
                 pos = 0
@@ -660,6 +661,15 @@ def _guess(table, read_kwargs, format, fast_reader, limit_lines=None):
                 # Try reading the subset of the table - if it fails, it will
                 # allow us to exit early.
                 dat = reader.read(table[:pos])
+
+            else:
+                if table.count(line_ending) > 10000:
+                    warnings.warn(
+                        "Input file contains many lines, so guessing the "
+                        "format may be slow. Consider setting ``guess_limit_lines``"
+                        "to limit the number of lines to use for guessing the format",
+                        UserWarning,
+                    )
 
             dat = reader.read(table)
             _read_trace.append(
