@@ -18,6 +18,7 @@ In particular, this release includes:
 * :ref:`whatsnew_7_0_contributor_doc_improvement`
 * :ref:`whatsnew_7_0_typing_stats`
 * :ref:`whatsnew_7_0_unit_conversion_array_like`
+* :ref:`whatsnew_7_0_tdat_reader`
 
 In addition to these major changes, Astropy v7.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -129,7 +130,7 @@ Reading and writing TDAT files with ``astropy.io.ascii``
 =======================================
 
 The TDAT format, specified by https://heasarc.gsfc.nasa.gov/docs/software/dbdocs/tdat.html,
-is now supported by the Unified File Read/Write Interface. 
+is now supported by the Unified File Read/Write Interface.
 
 Note that this format is compatible with ``Table`` objects with integer, float,
 and/or string data types, but not ``QTable`` objects or other data types.
