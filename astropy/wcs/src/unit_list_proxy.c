@@ -101,7 +101,9 @@ PyUnitListProxy_New(
     return NULL;
   }
 
+#if PY_VERSION_HEX < 0x030d00c1
   Py_INCREF(unit_class);
+#endif
 
   self = (PyUnitListProxy*)PyUnitListProxyType.tp_alloc(
       &PyUnitListProxyType, 0);
@@ -114,10 +116,6 @@ PyUnitListProxy_New(
   self->size = size;
   self->array = array;
   self->unit_class = unit_class;
-
-#if PY_VERSION_HEX >= 0x030d00c1
-  Py_DECREF(unit_class);
-#endif
   return (PyObject*)self;
 }
 
