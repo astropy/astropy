@@ -77,7 +77,7 @@ Astropy is licensed under a 3-clause BSD style license - see the
     :target: https://www.astropy.org/
     :alt: Astropy
 
-.. |User Stats| image:: https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_dark.png
+.. |User Stats| image:: https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats.png
     :target: https://docs.astropy.org/en/latest/impact_health.html
     :alt: Astropy User Statistics
 

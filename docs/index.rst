@@ -123,6 +123,6 @@ processing, and data analysis.
 .. _feedback@astropy.org: mailto:feedback@astropy.org
 .. _affiliated packages: https://www.astropy.org/affiliated/
 
-.. |User Stats| image:: https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_light.png?raw=true
+.. |User Stats| image:: https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats.png?raw=true
     :target: https://docs.astropy.org/en/latest/impact_health.html
     :alt: Astropy User Statistics
