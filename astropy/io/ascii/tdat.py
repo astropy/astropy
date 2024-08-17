@@ -601,7 +601,7 @@ class Tdat(core.BaseReader):
       >>> print(data.meta['comments'])
       ['# and // are comments']
       >>> for name, keyword in data.meta['keywords'].items():
-      ...   print(name, keyword['value'])
+      ...   print(name, keyword)
       table_name example_table
       table_description "Example table"
       table_author Example et al.
