@@ -654,7 +654,7 @@ class Tdat(core.BaseReader):
     >>> out = StringIO()
     >>> t.write(out, format="ascii.tdat")
     >>> out.getvalue().splitlines()
-    ['<HEADER>', 'table_name = example_table', 'table_description = An example table for the tdat writer.', '#', '# Table Parameters', '#', 'field[reference_id] = integer (key) // // For internal reference only', 'field[RA] = float:.4f_deg [pos.eq.ra] (index)', 'field[Name] = char1 // The name of the source (if available)', '#', '# Virtual Parameters', '#', 'table_name = example_table', '#', '# Data Format Specification', '#', 'line[1] = reference_id RA Name', '#', '<DATA>', '1|1.0000|c|', '2|2.0000|d|', '3|3.0000|e|', '<END>']
+    ['<HEADER>', 'table_name = example_table', 'table_description = "An example table for the tdat writer."', '#', '# Table Parameters', '#', 'field[reference_id] = int4 (key) // // For internal reference only', 'field[RA] = float8:.4f_deg [pos.eq.ra] (index)', 'field[Name] = char1 // The name of the source (if available)', '#', '# Data Format Specification', '#', 'line[1] = reference_id RA Name', '#', '<DATA>', '1|1.0000|c|', '2|2.0000|d|', '3|3.0000|e|', '<END>']
     """
 
     _format_name = "tdat"
