@@ -629,6 +629,7 @@ class Tdat(core.BaseReader):
     >>> from io import StringIO
     >>> t = Table(names=('reference_id', 'RA', 'Name'),
     ...           data=[[1, 2, 3], [1.0, 2.0, 3.0], ['c', 'd', 'e']])
+    >>> t.meta['table_name'] = "astropy_table"
     >>> out = StringIO()
     >>> t.write(out, format="ascii.tdat")
     >>> out.getvalue().splitlines()
