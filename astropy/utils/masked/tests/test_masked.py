@@ -14,10 +14,10 @@ from numpy.testing import assert_array_equal
 from astropy import units as u
 from astropy.coordinates import Longitude
 from astropy.units import Quantity
+from astropy.utils import minversion
 from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_PLT
 from astropy.utils.masked import Masked, MaskedNDArray
-from astropy.visualization.wcsaxes.utils import MATPLOTLIB_LT_3_8
 
 
 def assert_masked_equal(a, b):
@@ -1565,8 +1565,9 @@ class TestMaskedQuantityInteractionWithNumpyMA(
     pass
 
 
+# For grep'ing: test requires MATPLOTLIB_LT_3_8
 @pytest.mark.skipif(
-    (not HAS_PLT) or MATPLOTLIB_LT_3_8,
+    not HAS_PLT or not minversion("matplotlib", "3.8"),
     reason="requires matplotlib.pyplot and never worked before matplotlib 3.8",
 )
 def test_plt_scatter_masked():
