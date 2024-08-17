@@ -33,7 +33,12 @@ from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
-from astropy.utils.masked import MaskableShapedLikeNDArray, Masked
+from astropy.utils.masked import (
+    MaskableShapedLikeNDArray,
+    Masked,
+    combine_masks,
+    get_data_and_mask,
+)
 
 # Below, import TimeFromEpoch to avoid breaking code that followed the old
 # example of making a custom timescale in the documentation.
@@ -547,13 +552,13 @@ class TimeBase(MaskableShapedLikeNDArray):
 
         # If either of the input val, val2 are masked arrays then
         # find the masked elements and fill them.
-        mask = False
-        mask, val_data = get_mask_and_data(mask, val)
-        mask, val_data2 = get_mask_and_data(mask, val2)
+        data1, mask1 = get_data_and_mask(val)
+        data2, mask2 = get_data_and_mask(val2)
+        mask = combine_masks([mask1, mask2])
 
         # Parse / convert input values into internal jd1, jd2 based on format
         self._time = self._get_time_fmt(
-            val_data, val_data2, format, scale, precision, in_subfmt, out_subfmt, mask
+            data1, data2, format, scale, precision, in_subfmt, out_subfmt, mask
         )
         self._format = self._time.name
 
@@ -564,10 +569,10 @@ class TimeBase(MaskableShapedLikeNDArray):
             self._location = self._time._location
             del self._time._location
 
-        # If any inputs were masked then masked jd2 accordingly.  From above
-        # routine ``mask`` must be either Python bool False or an bool ndarray
-        # with shape broadcastable to jd2.
-        if mask is not False:
+        # If any inputs were masked then mask both jd1 and jd2 accordingly,
+        # using a shared mask.  From above, ``mask`` must be either Python
+        # bool False or an bool ndarray with the correct shape.
+        if mask is not False and np.any(mask):
             # Ensure that if the class is already masked, we do not lose it.
             self._time.jd1 = Masked(self._time.jd1, copy=False)
             self._time.jd1.mask |= mask
@@ -3366,46 +3371,6 @@ def _make_array(val, copy=COPY_IF_NEEDED):
         val = np.asanyarray(val, dtype=np.float64)
 
     return val
-
-
-def get_mask_and_data(mask, val):
-    """
-    Update ``mask`` in place and return unmasked ``val`` data.
-
-    If ``val`` is not masked then ``mask`` and ``val`` are returned
-    unchanged.
-
-    Parameters
-    ----------
-    mask : bool, ndarray(bool)
-        Mask to update
-    val: ndarray, np.ma.MaskedArray, Masked
-        Input val
-
-    Returns
-    -------
-    mask, val: bool, ndarray
-        Updated mask, unmasked data
-    """
-    if not isinstance(val, (np.ma.MaskedArray, Masked)):
-        return mask, val
-
-    if isinstance(val, np.ma.MaskedArray):
-        data = val.data
-    else:
-        data = val.unmasked
-
-    # For structured dtype, the mask is structured too.  We consider an
-    # array element masked if any field of the structure is masked.
-    if val.dtype.names:
-        val_mask = val.mask != np.zeros_like(val.mask, shape=())
-    else:
-        val_mask = val.mask
-    if np.any(val_mask):
-        # Final mask is the logical-or of inputs
-        mask = mask | val_mask
-
-    return mask, data
 
 
 class OperandTypeError(TypeError):
