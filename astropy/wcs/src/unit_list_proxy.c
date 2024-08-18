@@ -92,7 +92,13 @@ PyUnitListProxy_New(
     return NULL;
   }
 #if PY_VERSION_HEX >= 0x030d00c1
-  PyDict_GetItemStringRef(units_dict, "Unit", &unit_class);
+  int ret = PyDict_GetItemStringRef(units_dict, "Unit", &unit_class);
+  if(ret == -1) {
+    return NULL; // an exception is already raised ?
+  } else if(ret == 0) {
+    PyErr_SetString(PyExc_KeyError, "cannot find Unit in astropy.units");
+    return NULL;
+  }
 #else
   unit_class = PyDict_GetItemString(units_dict, "Unit");
 #endif
