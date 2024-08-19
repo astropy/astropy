@@ -117,25 +117,26 @@ def test_votable_values_empty_min_max():
 
 def test_version():
     """
-    VOTableFile.__init__ allows versions of '1.1', '1.2', '1.3' and '1.4'.
+    VOTableFile.__init__ allows versions of '1.1' through '1.5'.
     VOTableFile.__init__ does not allow version of '1.0' anymore and now raises a ValueError as it does to other versions not supported.
     """
     # Exercise the checks in __init__
-    for version in ("1.1", "1.2", "1.3", "1.4"):
+    for version in ("1.1", "1.2", "1.3", "1.4", "1.5"):
         VOTableFile(version=version)
-    for version in ("0.9", "1.0", "2.0"):
+    for version in ("0.9", "1.0", "1.6", "2.0"):
         with pytest.raises(
-            ValueError, match=r"should be in \('1.1', '1.2', '1.3', '1.4'\)."
+            ValueError, match=r"should be in \('1.1', '1.2', '1.3', '1.4', '1.5'\)."
         ):
             VOTableFile(version=version)
 
     # Exercise the checks in the setter
     vot = VOTableFile()
-    for version in ("1.1", "1.2", "1.3", "1.4"):
+    for version in ("1.1", "1.2", "1.3", "1.4", "1.5"):
         vot.version = version
-    for version in ("1.0", "2.0"):
+    for version in ("1.0", "1.6", "2.0"):
         with pytest.raises(
-            ValueError, match=r"supports VOTable versions '1.1', '1.2', '1.3', '1.4'$"
+            ValueError,
+            match=r"supports VOTable versions '1.1', '1.2', '1.3', '1.4', '1.5'$",
         ):
             vot.version = version
 
@@ -152,6 +153,7 @@ def test_version():
             io.BytesIO(begin + bversion + middle + bversion + end), verify="exception"
         )
     parse(io.BytesIO(begin + b"1.4" + middle + b"1.3" + end), verify="exception")
+    parse(io.BytesIO(begin + b"1.5" + middle + b"1.3" + end), verify="exception")
 
     if PYTEST_LT_8_0:
         ctx = nullcontext()
@@ -197,6 +199,11 @@ def test_votable_tag():
     assert 'xmlns="http://www.ivoa.net/xml/VOTable/v1.3"' in xml
     assert 'xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 ' in xml
     assert 'http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd"' in xml
+
+    xml = votable_xml_string("1.5")
+    assert 'xmlns="http://www.ivoa.net/xml/VOTable/v1.3"' in xml
+    assert 'xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 ' in xml
+    assert 'http://www.ivoa.net/xml/VOTable/VOTable-1.5.xsd"' in xml
 
 
 def _squash_xml(data):
