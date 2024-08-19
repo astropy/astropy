@@ -42,6 +42,18 @@ NO_HEADER_MSG = (
     "  This is required for a ECSV file."
 )
 
+def _validate_ecsv_header_line(header_line):
+
+    # Validate that this is a ECSV file
+
+    ecsv_header_re = r"""%ECSV [ ]
+                            (?P<major> \d+)
+                            \. (?P<minor> \d+)
+                            \.? (?P<bugfix> \d+)? $"""
+
+    match = re.match(ecsv_header_re, header_line.strip(), re.VERBOSE)
+    if not match:
+        raise core.InconsistentTableError(NO_HEADER_MSG)
 
 
 class InvalidEcsvDatatypeWarning(AstropyUserWarning):
@@ -141,18 +153,10 @@ class EcsvHeader(basic.BasicHeader):
         # Extract non-blank comment (header) lines with comment character stripped
         lines = list(self.process_lines(lines))
 
-        # Validate that this is a ECSV file
-        ecsv_header_re = r"""%ECSV [ ]
-                             (?P<major> \d+)
-                             \. (?P<minor> \d+)
-                             \.? (?P<bugfix> \d+)? $"""
-
         if not lines:
             raise core.InconsistentTableError(NO_HEADER_MSG)
 
-        match = re.match(ecsv_header_re, lines[0].strip(), re.VERBOSE)
-        if not match:
-            raise core.InconsistentTableError(NO_HEADER_MSG)
+        _validate_ecsv_header_line(lines[0].strip())
 
         try:
             header = meta.get_header_from_yaml(lines)
@@ -498,11 +502,9 @@ class Ecsv(basic.Basic):
 
     def read(self, table):
         # Check that the table starts with the expected first header line, if
-        # not then exit early
-        if table.startswith("# %ECSV"):
-            return super().read(table)
-        else:
-            raise core.InconsistentTableError(NO_HEADER_MSG)
+        # not then this will exit early
+        _validate_ecsv_header_line(table.split('\n', 1)[0].strip())
+        return super().read(table)
 
     def update_table_data(self, table):
         """
