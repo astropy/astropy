@@ -18,6 +18,7 @@ In particular, this release includes:
 * :ref:`whatsnew_7_0_contributor_doc_improvement`
 * :ref:`whatsnew_7_0_typing_stats`
 * :ref:`whatsnew_7_0_unit_conversion_array_like`
+* :ref:`whatsnew_7_0_faster_io_ascii_guessing`
 
 In addition to these major changes, Astropy v7.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -122,6 +123,24 @@ value in ``Unit.to`` and have those arrays not be converted to Numpy arrays::
     dask.array<mul, shape=(10,), dtype=float64, chunksize=(10,), chunktype=numpy.ndarray>
 
 Note that it is not yet possible to use ``Quantity`` with dask arrays directly.
+
+.. _whatsnew_7_0_faster_io_ascii_guessing:
+
+Faster guessing of formats in ``astropy.io.ascii``
+==================================================
+
+When reading text-based tables with ``astropy.io.ascii`` and without specifying the
+table format, guessing the format should now be faster for large tables as it is now
+based on a subset of the table - by default the first 10000 lines of the file. If
+needed, this limit can be modified with the following configuration item:
+
+.. code-block:: python
+
+    >>> from astropy.io.ascii import conf
+    >>> conf.guess_limit_lines = 100000
+
+and the limit can be disabled by setting this value to `None`. For large tables, it
+is however preferable to specify the format of the table explicitly when reading.
 
 Full change log
 ===============
