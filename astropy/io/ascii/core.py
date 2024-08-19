@@ -57,6 +57,52 @@ def _check_multidim_table(table, max_ndim):
         )
 
 
+def detect_table_type(table):
+    """Detect the type of table input.
+
+    This is a helper function for the ``BaseReader`` class to support the documented
+    ways that the ``read()`` method ``table`` argument can be specified:
+
+    - Path to a file (string)
+    - Single string containing all table lines separated by newlines
+    - File-like object with a callable read() method
+    - List of strings where each list element is a table line
+
+    Parameters
+    ----------
+    table : str, file-like, list-like
+        The table input.
+
+    Returns
+    -------
+    table_type : str
+        The type of table input: 'filename', 'data-str', 'file-like', or 'data-list'.
+    """
+    if isinstance(table, str):
+        # Either a filename or a string of data.
+        if "\n" in table or "\r" in table:
+            table_type = "data-str"
+        else:
+            table_type = "filename"
+    elif hasattr(table, "read"):
+        table_type = "file-like"
+    else:
+        # Check if it is list-like (supports indexing, slicing, iteration) and with at
+        # least one string-like element
+        try:
+            table[0] + ""
+            table[0:1]
+            iter(table)
+            table_type = "data-list"
+        except TypeError:
+            raise TypeError(
+                'Input "table" must be a string (filename or data) or an iterable'
+                ' or a file-like object with "read" method'
+            )
+
+    return table_type
+
+
 class CsvWriter:
     """
     Internal class to replace the csv writer ``writerow`` and ``writerows``
@@ -326,35 +372,23 @@ class BaseInputter:
         lines : list
             List of lines
         """
-        try:
-            if hasattr(table, "read") or (
-                "\n" not in table + "" and "\r" not in table + ""
-            ):
-                with get_readable_fileobj(table, encoding=self.encoding) as fileobj:
-                    table = fileobj.read()
-            if newline is None:
-                lines = table.splitlines()
-            else:
-                lines = table.split(newline)
-        except TypeError:
-            try:
-                # See if table supports indexing, slicing, and iteration
-                table[0]
-                table[0:1]
-                iter(table)
-                if len(table) > 1:
-                    lines = table
-                else:
-                    # treat single entry as if string had been passed directly
-                    if newline is None:
-                        lines = table[0].splitlines()
-                    else:
-                        lines = table[0].split(newline)
-
-            except TypeError:
-                raise TypeError(
-                    'Input "table" must be a string (filename or data) or an iterable'
-                )
+        table_type = detect_table_type(table)
+        data_str = None
+        if table_type in ("filename", "file-like"):
+            with get_readable_fileobj(table, encoding=self.encoding) as fileobj:
+                data_str = fileobj.read()
+        elif table_type == "data-str":
+            data_str = table
+        elif table_type == "data-list":
+            lines = table
+        else:
+            raise ValueError(
+                f"illegal return value from detect_table_type: {table_type}"
+            )
+        if data_str is not None:
+            lines = (
+                data_str.splitlines() if newline is None else data_str.split(newline)
+            )
 
         return self.process_lines(lines)
 
