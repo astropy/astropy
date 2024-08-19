@@ -150,7 +150,7 @@ class Parameter:
         # Now setting a dummy attribute name. The cosmology class will call
         # `__set_name__`, passing the real attribute name. However, if Parameter is not
         # init'ed as a descriptor then this ensures that all declared fields exist.
-        self.__set_name__(None, "_")
+        self.__set_name__(None, "name not initialized")
 
     def __set_name__(self, cosmo_cls: type, name: str) -> None:
         # attribute name on container cosmology class

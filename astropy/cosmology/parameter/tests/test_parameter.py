@@ -57,7 +57,7 @@ class Test_Parameter:
         assert param.unit is (u.Unit(unit) if unit is not None else None)
         assert param.equivalencies == kwargs.get("equivalencies", [])
         assert param.derived is kwargs.get("derived", False)
-        assert param.name == "_"
+        assert param.name == "name not initialized"
 
     def test_Parameter_default(self):
         """Test :attr:`astropy.cosmology.Parameter.default`."""
