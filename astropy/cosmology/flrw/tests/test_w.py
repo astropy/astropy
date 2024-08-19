@@ -20,10 +20,10 @@ class W1(FLRW):
 
     def __init__(self):
         super().__init__(70.0, 0.27, 0.73, Tcmb0=0.0, name="test_cos")
-        self._w0 = -0.9
+        self.__dict__["w0"] = -0.9
 
     def w(self, z):
-        return self._w0 * np.ones_like(z)
+        return self.w0 * np.ones_like(z)
 
 
 class W1nu(FLRW):
@@ -33,10 +33,10 @@ class W1nu(FLRW):
         super().__init__(
             70.0, 0.27, 0.73, Tcmb0=3.0, m_nu=0.1 * u.eV, name="test_cos_nu"
         )
-        self._w0 = -0.8
+        self.__dict__["w0"] = -0.8
 
     def w(self, z):
-        return self._w0 * np.ones_like(z)
+        return self.w0 * np.ones_like(z)
 
 
 ##############################################################################

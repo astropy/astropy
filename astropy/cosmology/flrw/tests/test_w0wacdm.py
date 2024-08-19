@@ -39,7 +39,7 @@ class ParameterwaTestMixin(ParameterTestMixin):
         assert wa.default == 0.0
 
         # on the instance
-        assert cosmo.wa is cosmo._wa
+        assert cosmo.wa is cosmo.__dict__["wa"]
         assert cosmo.wa == self.cls_kwargs["wa"]
 
     def test_init_wa(self, cosmo_cls, ba):

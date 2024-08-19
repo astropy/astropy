@@ -106,37 +106,37 @@ class w0waCDM(FLRW):
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
-        if self._Tcmb0.value == 0:
+        if self.Tcmb0.value == 0:
             inv_efunc_scalar = scalar_inv_efuncs.w0wacdm_inv_efunc_norel
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ok0,
-                self._w0,
-                self._wa,
+                self.w0,
+                self.wa,
             )
         elif not self._massivenu:
             inv_efunc_scalar = scalar_inv_efuncs.w0wacdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ok0,
                 self.Ogamma0 + self.Onu0,
-                self._w0,
-                self._wa,
+                self.w0,
+                self.wa,
             )
         else:
             inv_efunc_scalar = scalar_inv_efuncs.w0wacdm_inv_efunc
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ok0,
                 self.Ogamma0,
                 self._neff_per_nu,
                 self._nmasslessnu,
                 self._nu_y_list,
-                self._w0,
-                self._wa,
+                self.w0,
+                self.wa,
             )
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
@@ -168,7 +168,7 @@ class w0waCDM(FLRW):
         :math:`w(z) = w_0 + w_a (1 - a) = w_0 + w_a \frac{z}{1+z}`.
         """
         z = aszarr(z)
-        return self._w0 + self._wa * z / (z + 1.0)
+        return self.w0 + self.wa * z / (z + 1.0)
 
     @deprecated_keywords("z", since="7.0")
     def de_density_scale(self, z):
@@ -200,7 +200,7 @@ class w0waCDM(FLRW):
         """
         z = aszarr(z)
         zp1 = z + 1.0  # (converts z [unit] -> z [dimensionless])
-        return zp1 ** (3 * (1 + self._w0 + self._wa)) * exp(-3 * self._wa * z / zp1)
+        return zp1 ** (3 * (1 + self.w0 + self.wa)) * exp(-3 * self.wa * z / zp1)
 
 
 @dataclass_decorator
@@ -286,29 +286,29 @@ class Flatw0waCDM(FlatFLRWMixin, w0waCDM):
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
-        if self._Tcmb0.value == 0:
+        if self.Tcmb0.value == 0:
             inv_efunc_scalar = scalar_inv_efuncs.fw0wacdm_inv_efunc_norel
-            inv_efunc_scalar_args = (self._Om0, self._Ode0, self._w0, self._wa)
+            inv_efunc_scalar_args = (self.Om0, self.Ode0, self.w0, self.wa)
         elif not self._massivenu:
             inv_efunc_scalar = scalar_inv_efuncs.fw0wacdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ogamma0 + self.Onu0,
-                self._w0,
-                self._wa,
+                self.w0,
+                self.wa,
             )
         else:
             inv_efunc_scalar = scalar_inv_efuncs.fw0wacdm_inv_efunc
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ogamma0,
                 self._neff_per_nu,
                 self._nmasslessnu,
                 self._nu_y_list,
-                self._w0,
-                self._wa,
+                self.w0,
+                self.wa,
             )
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)

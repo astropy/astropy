@@ -38,7 +38,7 @@ class Parameterw0TestMixin(ParameterTestMixin):
         assert w0.default == -1.0
 
         # on the instance
-        assert cosmo.w0 is cosmo._w0
+        assert cosmo.w0 is cosmo.__dict__["w0"]
         assert cosmo.w0 == self.cls_kwargs["w0"]
 
     def test_init_w0(self, cosmo_cls, ba):

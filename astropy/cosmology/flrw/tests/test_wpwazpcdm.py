@@ -46,7 +46,7 @@ class ParameterwpTestMixin(ParameterTestMixin):
         assert wp.default == -1.0
 
         # on the instance
-        assert cosmo.wp is cosmo._wp
+        assert cosmo.wp is cosmo.__dict__["wp"]
         assert cosmo.wp == self.cls_kwargs["wp"]
 
     def test_init_wp(self, cosmo_cls, ba):
@@ -85,7 +85,7 @@ class ParameterzpTestMixin(ParameterTestMixin):
         assert zp.default == 0.0
 
         # on the instance
-        assert cosmo.zp is cosmo._zp
+        assert cosmo.zp is cosmo.__dict__["zp"]
         assert cosmo.zp == self.cls_kwargs["zp"] << cu.redshift
 
     def test_init_zp(self, cosmo_cls, ba):

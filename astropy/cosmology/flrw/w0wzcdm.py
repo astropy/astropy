@@ -99,37 +99,37 @@ class w0wzCDM(FLRW):
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
-        if self._Tcmb0.value == 0:
+        if self.Tcmb0.value == 0:
             inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_norel
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ok0,
-                self._w0,
-                self._wz,
+                self.w0,
+                self.wz,
             )
         elif not self._massivenu:
             inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ok0,
                 self.Ogamma0 + self.Onu0,
-                self._w0,
-                self._wz,
+                self.w0,
+                self.wz,
             )
         else:
             inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ok0,
                 self.Ogamma0,
                 self._neff_per_nu,
                 self._nmasslessnu,
                 self._nu_y_list,
-                self._w0,
-                self._wz,
+                self.w0,
+                self.wz,
             )
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
@@ -159,7 +159,7 @@ class w0wzCDM(FLRW):
         redshift z and :math:`\rho(z)` is the density at redshift z, both in
         units where c=1. Here this is given by :math:`w(z) = w_0 + w_z z`.
         """
-        return self._w0 + self._wz * aszarr(z)
+        return self.w0 + self.wz * aszarr(z)
 
     @deprecated_keywords("z", since="7.0")
     def de_density_scale(self, z):
@@ -195,9 +195,7 @@ class w0wzCDM(FLRW):
                      \exp \left(3 w_z z\right)
         """
         z = aszarr(z)
-        return (z + 1.0) ** (3.0 * (1.0 + self._w0 - self._wz)) * exp(
-            3.0 * self._wz * z
-        )
+        return (z + 1.0) ** (3.0 * (1.0 + self.w0 - self.wz)) * exp(3.0 * self.wz * z)
 
 
 @dataclass_decorator
@@ -270,29 +268,29 @@ class Flatw0wzCDM(FlatFLRWMixin, w0wzCDM):
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
-        if self._Tcmb0.value == 0:
+        if self.Tcmb0.value == 0:
             inv_efunc_scalar = scalar_inv_efuncs.fw0wzcdm_inv_efunc_norel
-            inv_efunc_scalar_args = (self._Om0, self._Ode0, self._w0, self._wz)
+            inv_efunc_scalar_args = (self.Om0, self.Ode0, self.w0, self.wz)
         elif not self._massivenu:
             inv_efunc_scalar = scalar_inv_efuncs.fw0wzcdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ogamma0 + self.Onu0,
-                self._w0,
-                self._wz,
+                self.w0,
+                self.wz,
             )
         else:
             inv_efunc_scalar = scalar_inv_efuncs.fw0wzcdm_inv_efunc
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ogamma0,
                 self._neff_per_nu,
                 self._nmasslessnu,
                 self._nu_y_list,
-                self._w0,
-                self._wz,
+                self.w0,
+                self.wz,
             )
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
