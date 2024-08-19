@@ -89,29 +89,29 @@ class wCDM(FLRW):
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
-        if self._Tcmb0.value == 0:
+        if self.Tcmb0.value == 0:
             inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_norel
-            inv_efunc_scalar_args = (self._Om0, self._Ode0, self.Ok0, self._w0)
+            inv_efunc_scalar_args = (self.Om0, self.Ode0, self.Ok0, self.w0)
         elif not self._massivenu:
             inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ok0,
                 self.Ogamma0 + self.Onu0,
-                self._w0,
+                self.w0,
             )
         else:
             inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ok0,
                 self.Ogamma0,
                 self._neff_per_nu,
                 self._nmasslessnu,
                 self._nu_y_list,
-                self._w0,
+                self.w0,
             )
 
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
@@ -143,7 +143,7 @@ class wCDM(FLRW):
         units where c=1. Here this is :math:`w(z) = w_0`.
         """
         z = aszarr(z)
-        return self._w0 * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
+        return self.w0 * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
 
     @deprecated_keywords("z", since="7.0")
     def de_density_scale(self, z):
@@ -169,7 +169,7 @@ class wCDM(FLRW):
         and in this case is given by
         :math:`I = \left(1 + z\right)^{3\left(1 + w_0\right)}`
         """
-        return (aszarr(z) + 1.0) ** (3.0 * (1.0 + self._w0))
+        return (aszarr(z) + 1.0) ** (3.0 * (1.0 + self.w0))
 
     @deprecated_keywords("z", since="7.0")
     def efunc(self, z):
@@ -198,8 +198,8 @@ class wCDM(FLRW):
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return sqrt(
-            zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self.Ok0)
-            + self._Ode0 * zp1 ** (3.0 * (1.0 + self._w0))
+            zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0)
+            + self.Ode0 * zp1 ** (3.0 * (1.0 + self.w0))
         )
 
     @deprecated_keywords("z", since="7.0")
@@ -229,8 +229,8 @@ class wCDM(FLRW):
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return (
-            zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self.Ok0)
-            + self._Ode0 * zp1 ** (3.0 * (1.0 + self._w0))
+            zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0)
+            + self.Ode0 * zp1 ** (3.0 * (1.0 + self.w0))
         ) ** (-0.5)
 
 
@@ -304,27 +304,27 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
-        if self._Tcmb0.value == 0:
+        if self.Tcmb0.value == 0:
             inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_norel
-            inv_efunc_scalar_args = (self._Om0, self._Ode0, self._w0)
+            inv_efunc_scalar_args = (self.Om0, self.Ode0, self.w0)
         elif not self._massivenu:
             inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ogamma0 + self.Onu0,
-                self._w0,
+                self.w0,
             )
         else:
             inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ogamma0,
                 self._neff_per_nu,
                 self._nmasslessnu,
                 self._nu_y_list,
-                self._w0,
+                self.w0,
             )
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
@@ -356,7 +356,7 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return sqrt(
-            zp1**3 * (Or * zp1 + self._Om0) + self._Ode0 * zp1 ** (3.0 * (1 + self._w0))
+            zp1**3 * (Or * zp1 + self.Om0) + self.Ode0 * zp1 ** (3.0 * (1 + self.w0))
         )
 
     @deprecated_keywords("z", since="7.0")
@@ -386,6 +386,5 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return (
-            zp1**3 * (Or * zp1 + self._Om0)
-            + self._Ode0 * zp1 ** (3.0 * (1.0 + self._w0))
+            zp1**3 * (Or * zp1 + self.Om0) + self.Ode0 * zp1 ** (3.0 * (1.0 + self.w0))
         ) ** (-0.5)

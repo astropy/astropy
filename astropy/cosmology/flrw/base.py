@@ -211,14 +211,14 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
     def __post_init__(self):
         # Compute neutrino parameters:
-        if self._m_nu is None:
+        if self.m_nu is None:
             nneutrinos = 0
             neff_per_nu = None
             massivenu = False
             massivenu_mass = None
             nmassivenu = nmasslessnu = None
         else:
-            nneutrinos = floor(self._Neff)
+            nneutrinos = floor(self.Neff)
 
             # We are going to share Neff between the neutrinos equally. In
             # detail this is not correct, but it is a standard assumption
@@ -226,16 +226,16 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             # the details of the massive neutrinos (e.g., their weak
             # interactions, which could be unusual if one is considering
             # sterile neutrinos).
-            neff_per_nu = self._Neff / nneutrinos
+            neff_per_nu = self.Neff / nneutrinos
 
             # Now figure out if we have massive neutrinos to deal with, and if
             # so, get the right number of masses. It is worth keeping track of
             # massless ones separately (since they are easy to deal with, and a
             # common use case is to have only one massive neutrino).
-            massive = np.nonzero(self._m_nu.value > 0)[0]
+            massive = np.nonzero(self.m_nu.value > 0)[0]
             massivenu = massive.size > 0
             nmassivenu = len(massive)
-            massivenu_mass = self._m_nu[massive].value if massivenu else None
+            massivenu_mass = self.m_nu[massive].value if massivenu else None
             nmasslessnu = nneutrinos - nmassivenu
 
         object.__setattr__(self, "_nneutrinos", nneutrinos)
@@ -287,7 +287,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         negative.
         """
         # Check if there are any neutrinos
-        if (nneutrinos := floor(self._Neff)) == 0 or self._Tcmb0.value == 0:
+        if (nneutrinos := floor(self.Neff)) == 0 or self.Tcmb0.value == 0:
             return None  # None, regardless of input
 
         # Validate / set units
@@ -319,7 +319,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
     @property
     def Otot0(self) -> float:
         """Omega total; the total density/critical density at z=0."""
-        return self._Om0 + self.Ogamma0 + self.Onu0 + self._Ode0 + self.Ok0
+        return self.Om0 + self.Ogamma0 + self.Onu0 + self.Ode0 + self.Ok0
 
     @cached_property
     def Odm0(self) -> float | None:
@@ -461,7 +461,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         redshift of interest; see `Onu`.
         """
         z = aszarr(z)
-        return self._Om0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
+        return self.Om0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
 
     @deprecated_keywords("z", since="7.0")
     def Ob(self, z):
@@ -487,10 +487,10 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         ValueError
             If ``Ob0`` is `None`.
         """
-        if self._Ob0 is None:
+        if self.Ob0 is None:
             raise ValueError("Baryon density not set for this cosmology")
         z = aszarr(z)
-        return self._Ob0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
+        return self.Ob0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
 
     @deprecated_keywords("z", since="7.0")
     def Odm(self, z):
@@ -572,9 +572,9 @@ class FLRW(Cosmology, _ScaleFactorMixin):
             Returns `float` if the input is scalar.
         """
         z = aszarr(z)
-        if self._Ode0 == 0:  # Common enough to be worth checking explicitly
+        if self.Ode0 == 0:  # Common enough to be worth checking explicitly
             return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
-        return self._Ode0 * self.de_density_scale(z) * self.inv_efunc(z) ** 2
+        return self.Ode0 * self.de_density_scale(z) * self.inv_efunc(z) ** 2
 
     @deprecated_keywords("z", since="7.0")
     def Ogamma(self, z):
@@ -642,7 +642,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         Tcmb : `~astropy.units.Quantity` ['temperature']
             The temperature of the CMB in K.
         """
-        return self._Tcmb0 * (aszarr(z) + 1.0)
+        return self.Tcmb0 * (aszarr(z) + 1.0)
 
     @deprecated_keywords("z", since="7.0")
     def Tnu(self, z):
@@ -721,7 +721,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         z = aszarr(z)
         if not self._massivenu:
             return (
-                prefac * self._Neff * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
+                prefac * self.Neff * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
             )
 
         # These are purely fitting constants -- see the Komatsu paper
@@ -841,8 +841,8 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return np.sqrt(
-            zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self.Ok0)
-            + self._Ode0 * self.de_density_scale(z)
+            zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0)
+            + self.Ode0 * self.de_density_scale(z)
         )
 
     @deprecated_keywords("z", since="7.0")
@@ -872,8 +872,8 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return (
-            zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self.Ok0)
-            + self._Ode0 * self.de_density_scale(z)
+            zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0)
+            + self.Ode0 * self.de_density_scale(z)
         ) ** (-0.5)
 
     def _lookback_time_integrand_scalar(self, z, /):
@@ -987,7 +987,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         H : `~astropy.units.Quantity` ['frequency']
             Hubble parameter at each input redshift.
         """
-        return self._H0 * self.efunc(z)
+        return self.H0 * self.efunc(z)
 
     @deprecated_keywords("z", since="7.0")
     def lookback_time(self, z):
@@ -1642,13 +1642,11 @@ class FlatFLRWMixin(FlatCosmologyMixin):
             raise TypeError(msg)
 
     def __post_init__(self):
-        object.__setattr__(self, "_Ode0", 0)
+        self.__dict__["Ode0"] = 0
         super().__post_init__()
         # Do some twiddling after the fact to get flatness
         self.__dict__["Ok0"] = 0.0
-        object.__setattr__(  # managed by a Parameter
-            self, "_Ode0", 1.0 - (self.Om0 + self.Ogamma0 + self.Onu0 + self.Ok0)
-        )
+        self.__dict__["Ode0"] = 1.0 - (self.Om0 + self.Ogamma0 + self.Onu0 + self.Ok0)
 
     @lazyproperty
     def nonflat(self: _FlatFLRWMixinT) -> _FLRWT:

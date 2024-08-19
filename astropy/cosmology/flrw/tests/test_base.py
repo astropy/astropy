@@ -86,7 +86,7 @@ class ParameterH0TestMixin(ParameterTestMixin):
             H0.validate(cosmo, [1, 2])
 
         # on the instance
-        assert cosmo.H0 is cosmo._H0
+        assert cosmo.H0 is cosmo.__dict__["H0"]
         assert cosmo.H0 == self._cls_args["H0"]
         assert isinstance(cosmo.H0, u.Quantity) and cosmo.H0.unit == unit
 
@@ -130,7 +130,7 @@ class ParameterOm0TestMixin(ParameterTestMixin):
             Om0.validate(cosmo, -1)
 
         # on the instance
-        assert cosmo.Om0 is cosmo._Om0
+        assert cosmo.Om0 is cosmo.__dict__["Om0"]
         assert cosmo.Om0 == self._cls_args["Om0"]
         assert isinstance(cosmo.Om0, float)
 
@@ -185,7 +185,7 @@ class ParameterOde0TestMixin(ParameterTestMixin):
     def test_Ode0(self, cosmo):
         """Test Parameter ``Ode0`` validation."""
         # if Ode0 is a parameter, test its value
-        assert cosmo.Ode0 is cosmo._Ode0
+        assert cosmo.Ode0 is cosmo.__dict__["Ode0"]
         assert cosmo.Ode0 == self._cls_args["Ode0"]
         assert isinstance(cosmo.Ode0, float)
 
@@ -237,7 +237,7 @@ class ParameterTcmb0TestMixin(ParameterTestMixin):
             Tcmb0.validate(cosmo, [1, 2])
 
         # on the instance
-        assert cosmo.Tcmb0 is cosmo._Tcmb0
+        assert cosmo.Tcmb0 is cosmo.__dict__["Tcmb0"]
         assert cosmo.Tcmb0 == self.cls_kwargs["Tcmb0"]
         assert isinstance(cosmo.Tcmb0, u.Quantity) and cosmo.Tcmb0.unit == u.K
 
@@ -281,7 +281,7 @@ class ParameterNeffTestMixin(ParameterTestMixin):
             Neff.validate(cosmo, -1)
 
         # on the instance
-        assert cosmo.Neff is cosmo._Neff
+        assert cosmo.Neff is cosmo.__dict__["Neff"]
         assert cosmo.Neff == self.cls_kwargs.get("Neff", 3.04)
         assert isinstance(cosmo.Neff, float)
 
@@ -442,7 +442,7 @@ class ParameterOb0TestMixin(ParameterTestMixin):
             Ob0.validate(cosmo, cosmo.Om0 + 1)
 
         # on the instance
-        assert cosmo.Ob0 is cosmo._Ob0
+        assert cosmo.Ob0 is cosmo.__dict__["Ob0"]
         assert cosmo.Ob0 == 0.03
 
     def test_init_Ob0(self, cosmo_cls, ba):
@@ -629,7 +629,7 @@ class FLRWTest(
         assert isinstance(cosmo_cls.hubble_distance, cached_property)
 
         # on the instance
-        assert cosmo.hubble_distance == (const.c / cosmo._H0).to(u.Mpc)
+        assert cosmo.hubble_distance == (const.c / cosmo.H0).to(u.Mpc)
 
     def test_critical_density0(self, cosmo_cls, cosmo):
         """Test ``cached_property`` ``critical_density0``."""
@@ -673,10 +673,10 @@ class FLRWTest(
             assert cosmo.Onu0 == 0
         else:
             # check the expected formula
-            assert cosmo.Onu0 == 0.22710731766 * cosmo._Neff * cosmo.Ogamma0
+            assert cosmo.Onu0 == 0.22710731766 * cosmo.__dict__["Neff"] * cosmo.Ogamma0
             # and check compatibility with nu_relative_density
             assert np.allclose(
-                cosmo.nu_relative_density(0), 0.22710731766 * cosmo._Neff
+                cosmo.nu_relative_density(0), 0.22710731766 * cosmo.__dict__["Neff"]
             )
 
     def test_Otot0(self, cosmo):
@@ -969,7 +969,7 @@ class ParameterFlatOde0TestMixin(ParameterOde0TestMixin):
 
     def test_Ode0(self, cosmo):
         """Test no-longer-Parameter ``Ode0``."""
-        assert cosmo.Ode0 is cosmo._Ode0
+        assert cosmo.Ode0 is cosmo.__dict__["Ode0"]
         assert cosmo.Ode0 == 1.0 - (cosmo.Om0 + cosmo.Ogamma0 + cosmo.Onu0)
 
     def test_init_Ode0(self, cosmo_cls, ba):
