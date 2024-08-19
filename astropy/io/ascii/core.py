@@ -57,8 +57,8 @@ def _check_multidim_table(table, max_ndim):
         )
 
 
-def detect_table_type(table):
-    """Detect the type of table input.
+def detect_source_type(source):
+    """Detect the type of source input.
 
     This is a helper function for the ``BaseReader`` class to support the documented
     ways that the ``read()`` method ``table`` argument can be specified:
@@ -70,37 +70,97 @@ def detect_table_type(table):
 
     Parameters
     ----------
-    table : str, file-like, list-like
+    source : str, file-like, list-like
         The table input.
 
     Returns
     -------
-    table_type : str
-        The type of table input: 'filename', 'data-str', 'file-like', or 'data-list'.
+    source_type : str
+        The type of source input: 'filename', 'data-str', 'file-like', or 'data-list'.
     """
-    if isinstance(table, str):
+    if isinstance(source, str):
         # Either a filename or a string of data.
-        if "\n" in table or "\r" in table:
-            table_type = "data-str"
+        if "\n" in source or "\r" in source:
+            source_type = "data-str"
         else:
-            table_type = "filename"
-    elif hasattr(table, "read"):
-        table_type = "file-like"
+            source_type = "filename"
+    elif hasattr(source, "read"):
+        source_type = "file-like"
     else:
         # Check if it is list-like (supports indexing, slicing, iteration) and with at
         # least one string-like element
         try:
-            table[0] + ""
-            table[0:1]
-            iter(table)
-            table_type = "data-list"
+            source[0] + ""
+            source[0:1]
+            iter(source)
+            source_type = "data-list"
         except TypeError:
             raise TypeError(
                 'Input "table" must be a string (filename or data) or an iterable'
                 ' or a file-like object with "read" method'
             )
 
-    return table_type
+    return source_type
+
+
+def get_lines_from_str_iter(source: str, newline: str | None = None) -> iter:
+    """Get an iterator over the source lines for a string of data lines.
+
+    Parameters
+    ----------
+    source : str
+        The input source as a single string.
+    newline : str, optional
+        The newline character to use for splitting the input string into lines. If
+        None, the newline character(s) is the regex pattern "\n|\r\n|\r".
+
+    Returns
+    -------
+    lines : iterator
+        An iterator over the table lines.
+    """
+    start = 0
+    if newline is None:
+        newline = "\n|\r\n|\r"
+    for match in re.finditer(newline, source):
+        end = match.start()
+        yield source[start:end]
+        start = match.end()
+
+    if start < len(source):
+        yield source[start:]
+
+
+def get_lines_iter(source, newline=None):
+    """Get an iterator over the source lines for any data source type.
+
+    Parameters
+    ----------
+    source : str, file-like, list
+        Can be either a file name, string (newline separated) with all header and data
+        lines (must have at least 2 lines), a file-like object with a
+        ``read()`` method, or a list of strings.
+    newline : str, optional
+        The newline character to use for splitting the input string into lines. If
+        None, the newline character(s) in the input string will be detected.
+
+    Returns
+    -------
+    lines : iterator
+        Iterator over the table lines.
+    """
+    source_type = detect_source_type(source)
+    if source_type == "filename":
+        with get_readable_fileobj(source) as fileobj:
+            yield from fileobj
+    elif source_type == "data-str":
+        yield from get_lines_from_str_iter(source, newline)
+    elif source_type == "file-like":
+        yield from source
+    elif source_type == "data-list":
+        yield from source
+    else:
+        raise ValueError(f"unsupported source type {source_type}")
 
 
 class CsvWriter:
@@ -372,7 +432,7 @@ class BaseInputter:
         lines : list
             List of lines
         """
-        table_type = detect_table_type(table)
+        table_type = detect_source_type(table)
         data_str = None
         if table_type in ("filename", "file-like"):
             with get_readable_fileobj(table, encoding=self.encoding) as fileobj:
