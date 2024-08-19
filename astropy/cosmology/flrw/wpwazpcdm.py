@@ -122,41 +122,41 @@ class wpwaCDM(FLRW):
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
-        apiv = 1.0 / (1.0 + self._zp.value)
-        if self._Tcmb0.value == 0:
+        apiv = 1.0 / (1.0 + self.zp.value)
+        if self.Tcmb0.value == 0:
             inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc_norel
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ok0,
-                self._wp,
+                self.wp,
                 apiv,
-                self._wa,
+                self.wa,
             )
         elif not self._massivenu:
             inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ok0,
                 self.Ogamma0 + self.Onu0,
-                self._wp,
+                self.wp,
                 apiv,
-                self._wa,
+                self.wa,
             )
         else:
             inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ok0,
                 self.Ogamma0,
                 self._neff_per_nu,
                 self._nmasslessnu,
                 self._nu_y_list,
-                self._wp,
+                self.wp,
                 apiv,
-                self._wa,
+                self.wa,
             )
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
@@ -187,8 +187,8 @@ class wpwaCDM(FLRW):
         units where c=1. Here this is :math:`w(z) = w_p + w_a (a_p - a)` where
         :math:`a = 1/1+z` and :math:`a_p = 1 / 1 + z_p`.
         """
-        apiv = 1.0 / (1.0 + self._zp.value)
-        return self._wp + self._wa * (apiv - 1.0 / (aszarr(z) + 1.0))
+        apiv = 1.0 / (1.0 + self.zp.value)
+        return self.wp + self.wa * (apiv - 1.0 / (aszarr(z) + 1.0))
 
     @deprecated_keywords("z", since="7.0")
     def de_density_scale(self, z):
@@ -222,9 +222,9 @@ class wpwaCDM(FLRW):
         """
         z = aszarr(z)
         zp1 = z + 1.0  # (converts z [unit] -> z [dimensionless])
-        apiv = 1.0 / (1.0 + self._zp.value)
-        return zp1 ** (3.0 * (1.0 + self._wp + apiv * self._wa)) * exp(
-            -3.0 * self._wa * z / zp1
+        apiv = 1.0 / (1.0 + self.zp.value)
+        return zp1 ** (3.0 * (1.0 + self.wp + apiv * self.wa)) * exp(
+            -3.0 * self.wa * z / zp1
         )
 
 
@@ -313,38 +313,38 @@ class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
-        apiv = 1.0 / (1.0 + self._zp)
-        if self._Tcmb0.value == 0:
+        apiv = 1.0 / (1.0 + self.zp)
+        if self.Tcmb0.value == 0:
             inv_efunc_scalar = scalar_inv_efuncs.fwpwacdm_inv_efunc_norel
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
-                self._wp,
+                self.Om0,
+                self.Ode0,
+                self.wp,
                 apiv,
-                self._wa,
+                self.wa,
             )
         elif not self._massivenu:
             inv_efunc_scalar = scalar_inv_efuncs.fwpwacdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ogamma0 + self.Onu0,
-                self._wp,
+                self.wp,
                 apiv,
-                self._wa,
+                self.wa,
             )
         else:
             inv_efunc_scalar = scalar_inv_efuncs.fwpwacdm_inv_efunc
             inv_efunc_scalar_args = (
-                self._Om0,
-                self._Ode0,
+                self.Om0,
+                self.Ode0,
                 self.Ogamma0,
                 self._neff_per_nu,
                 self._nmasslessnu,
                 self._nu_y_list,
-                self._wp,
+                self.wp,
                 apiv,
-                self._wa,
+                self.wa,
             )
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)

@@ -106,7 +106,7 @@ class IODirectTestBase(IOTestBase):
                 self, Tcmb0=0, name="cosmology with kwargs", meta=None, **kwargs
             ):
                 super().__init__(name=name, meta=meta)
-                self._Tcmb0 = Tcmb0 << u.K
+                self.__dict__["Tcmb0"] = Tcmb0 << u.K
 
         yield  # run tests
 

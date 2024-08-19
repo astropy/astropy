@@ -57,7 +57,7 @@ class Test_Parameter:
         assert param.unit is (u.Unit(unit) if unit is not None else None)
         assert param.equivalencies == kwargs.get("equivalencies", [])
         assert param.derived is kwargs.get("derived", False)
-        assert param.name is None
+        assert param.name == "_"
 
     def test_Parameter_default(self):
         """Test :attr:`astropy.cosmology.Parameter.default`."""
@@ -106,7 +106,6 @@ class ParameterTestMixin:
 
         # __set_name__
         assert hasattr(all_parameter, "name")
-        assert hasattr(all_parameter, "_attr_name")
 
     def test_Parameter_fvalidate(self, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.fvalidate`."""
@@ -119,7 +118,6 @@ class ParameterTestMixin:
         """Test :attr:`astropy.cosmology.Parameter.name`."""
         assert hasattr(all_parameter, "name")
         assert isinstance(all_parameter.name, str)
-        assert all_parameter._attr_name == f"_{all_parameter.name}"
 
     def test_Parameter_unit(self, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.unit`."""
@@ -159,12 +157,12 @@ class ParameterTestMixin:
 
         # from instance
         parameter = getattr(cosmo, all_parameter.name)
-        assert np.all(parameter == getattr(cosmo, all_parameter._attr_name))
+        assert np.all(parameter == cosmo.__dict__[all_parameter.name])
 
     def test_Parameter_descriptor_set(self, cosmo, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.__set__`."""
         # test it's already set
-        assert hasattr(cosmo, all_parameter._attr_name)
+        assert all_parameter.name in cosmo.__dict__
 
     # -------------------------------------------
     # validate value
@@ -262,7 +260,6 @@ class TestParameter(ParameterTestMixin):
 
         # custom from set_name
         assert param.name == "param"
-        assert param._attr_name == "_param"
 
     def test_Parameter_fvalidate(self, cosmo, param):
         """Test :attr:`astropy.cosmology.Parameter.fvalidate`."""

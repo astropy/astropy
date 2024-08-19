@@ -137,7 +137,7 @@ class Parameter:
     doc: str | None = None
     """Parameter description."""
 
-    name: str | None = field(init=False, compare=True, default=None, repr=False)
+    name: str = field(init=False, compare=True, default=None, repr=False)
     """The name of the Parameter on the Cosmology.
 
     Cannot be set directly.
@@ -150,13 +150,11 @@ class Parameter:
         # Now setting a dummy attribute name. The cosmology class will call
         # `__set_name__`, passing the real attribute name. However, if Parameter is not
         # init'ed as a descriptor then this ensures that all declared fields exist.
-        self.__set_name__(None, None)
+        self.__set_name__(None, "_")
 
-    def __set_name__(self, cosmo_cls: type, name: str | None) -> None:
+    def __set_name__(self, cosmo_cls: type, name: str) -> None:
         # attribute name on container cosmology class
-        self._attr_name: str
         object.__setattr__(self, "name", name)
-        object.__setattr__(self, "_attr_name", "_" + (name or ""))
 
     # -------------------------------------------
     # descriptor and property-like methods
@@ -175,15 +173,17 @@ class Parameter:
                 raise AttributeError
             return self
         # Get from instance
-        return getattr(cosmology, self._attr_name)
+        return cosmology.__dict__[self.name]
 
     def __set__(self, cosmology, value):
         """Allows attribute setting once.
 
         Raises AttributeError subsequently.
         """
-        # Raise error if setting 2nd time.
-        if hasattr(cosmology, self._attr_name):
+        # Raise error if setting 2nd time. The built-in Cosmology objects are frozen
+        # dataclasses and this is redundant, however user defined cosmology classes do
+        # not have to be frozen.
+        if self.name in cosmology.__dict__:
             raise AttributeError(f"cannot assign to field {self.name!r}")
 
         # Change `self` to the default value if default is MISSING.
@@ -202,7 +202,7 @@ class Parameter:
             value.setflags(write=False)
 
         # Set the value on the cosmology
-        object.__setattr__(cosmology, self._attr_name, value)
+        cosmology.__dict__[self.name] = value
 
     # -------------------------------------------
     # validate value
