@@ -79,6 +79,7 @@ from .exceptions import (
     W53,
     W54,
     W56,
+    W57,
     vo_raise,
     vo_reraise,
     vo_warn,
@@ -1810,7 +1811,7 @@ class CooSys(SimpleElement):
     name, documented below.
     """
 
-    _attr_list = ["ID", "equinox", "epoch", "system"]
+    _attr_list = ["ID", "equinox", "epoch", "system", "refposition"]
     _element_name = "COOSYS"
 
     def __init__(
@@ -1819,6 +1820,7 @@ class CooSys(SimpleElement):
         equinox=None,
         epoch=None,
         system=None,
+        refposition=None,
         id=None,
         config=None,
         pos=None,
@@ -1841,6 +1843,11 @@ class CooSys(SimpleElement):
         self.equinox = equinox
         self.epoch = epoch
         self.system = system
+        self.refposition = refposition
+
+        # refposition introduced in v1.5.
+        if self.refposition is not None and not config.get("version_1_5_or_later"):
+            warn_or_raise(W57, W57, (), config, pos)
 
         warn_unknown_attrs("COOSYS", extra.keys(), config, pos)
 
@@ -1886,7 +1893,10 @@ class CooSys(SimpleElement):
             "barycentric",
             "geo_app",
         ):
-            warn_or_raise(E16, E16, system, self._config, self._pos)
+            if not self._config.get("version_1_5_or_later"):
+                # Starting in v1.5, system values come from the IVOA refframe vocabulary
+                # (http://www.ivoa.net/rdf/refframe).  For now we are not checking those values.
+                warn_or_raise(E16, E16, system, self._config, self._pos)
         self._system = system
 
     @system.deleter
@@ -4152,6 +4162,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         config["version_1_2_or_later"] = util.version_compare(self.version, "1.2") >= 0
         config["version_1_3_or_later"] = util.version_compare(self.version, "1.3") >= 0
         config["version_1_4_or_later"] = util.version_compare(self.version, "1.4") >= 0
+        config["version_1_5_or_later"] = util.version_compare(self.version, "1.5") >= 0
         return config
 
     # Map VOTable version numbers to namespace URIs and schema information.
@@ -4193,6 +4204,14 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             "schema_location_value": (
                 "http://www.ivoa.net/xml/VOTable/v1.3"
                 " http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd"
+            ),
+        },
+        "1.5": {
+            "namespace_uri": "http://www.ivoa.net/xml/VOTable/v1.3",
+            "schema_location_attr": "xsi:schemaLocation",
+            "schema_location_value": (
+                "http://www.ivoa.net/xml/VOTable/v1.3"
+                " http://www.ivoa.net/xml/VOTable/VOTable-1.5.xsd"
             ),
         },
     }
