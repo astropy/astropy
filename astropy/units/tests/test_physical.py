@@ -485,7 +485,7 @@ class TestDefPhysType:
         """Reset the physical type of unit to "unknown"."""
         for name in list(unit.physical_type):
             del physical._unit_physical_mapping[name]
-        del physical._physical_unit_mapping[unit._get_physical_type_id()]
+        del physical._physical_unit_mapping[unit._physical_type_id]
         assert unit.physical_type == "unknown"
 
     def teardown_method(self):
