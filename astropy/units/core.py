@@ -4,10 +4,14 @@
 Core units classes and functions.
 """
 
+from __future__ import annotations
+
 import inspect
 import operator
 import textwrap
 import warnings
+from functools import cached_property
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -24,6 +28,9 @@ from .utils import (
     sanitize_scale,
     validate_power,
 )
+
+if TYPE_CHECKING:
+    from astropy.units.typing import UnitPower
 
 __all__ = [
     "UnitsError",
@@ -233,8 +240,7 @@ class _UnitRegistry:
             if not isinstance(unit, PrefixUnit):
                 self._non_prefix_units.add(unit)
 
-            hash = unit._get_physical_type_id()
-            self._by_physical_type.setdefault(hash, set()).add(unit)
+            self._by_physical_type.setdefault(unit._physical_type_id, set()).add(unit)
 
     def get_units_with_physical_type(self, unit):
         """
@@ -245,7 +251,7 @@ class _UnitRegistry:
         ----------
         unit : UnitBase instance
         """
-        return self._by_physical_type.get(unit._get_physical_type_id(), set())
+        return self._by_physical_type.get(unit._physical_type_id, set())
 
     @property
     def equivalencies(self):
@@ -651,7 +657,6 @@ class UnitBase:
     __array_priority__ = 1000
 
     _hash = None
-    _type_id = None
 
     def __deepcopy__(self, memo):
         # This may look odd, but the units conversion will be very
@@ -683,18 +688,16 @@ class UnitBase:
 
         return f'Unit("{string}")'
 
-    def _get_physical_type_id(self):
+    @cached_property
+    def _physical_type_id(self) -> tuple[tuple[str, UnitPower], ...]:
         """
         Returns an identifier that uniquely identifies the physical
         type of this unit.  It is comprised of the bases and powers of
         this unit, without the scale.  Since it is hashable, it is
         useful as a dictionary key.
         """
-        if self._type_id is None:
-            unit = self.decompose()
-            self._type_id = tuple(zip((base.name for base in unit.bases), unit.powers))
-
-        return self._type_id
+        unit = self.decompose()
+        return tuple(zip((base.name for base in unit.bases), unit.powers))
 
     @property
     def names(self):
@@ -939,7 +942,7 @@ class UnitBase:
         # hashes of strings vary between sessions.
         state = self.__dict__.copy()
         state.pop("_hash", None)
-        state.pop("_type_id", None)
+        state.pop("_physical_type_id", None)
         return state
 
     def __eq__(self, other):
@@ -1020,7 +1023,7 @@ class UnitBase:
         if isinstance(other, UnrecognizedUnit):
             return False
 
-        if self._get_physical_type_id() == other._get_physical_type_id():
+        if self._physical_type_id == other._physical_type_id:
             return True
         elif len(equivalencies):
             unit = self.decompose()
@@ -2076,7 +2079,7 @@ class _UnitMetaClass(type):
         parse_strict="raise",
     ):
         # Short-circuit if we're already a unit
-        if hasattr(s, "_get_physical_type_id"):
+        if hasattr(s, "_physical_type_id"):
             return s
 
         # turn possible Quantity input for s or represents into a Unit

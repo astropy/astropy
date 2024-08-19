@@ -1,7 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Function Units and Quantities."""
 
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
+from functools import cached_property
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -20,6 +24,9 @@ if NUMPY_LT_2_0:
     from numpy.core import umath as np_umath
 else:
     from numpy._core import umath as np_umath
+
+if TYPE_CHECKING:
+    from astropy.units.typing import UnitPower
 
 __all__ = ["FunctionUnitBase", "FunctionQuantity"]
 
@@ -184,9 +191,10 @@ class FunctionUnitBase(metaclass=ABCMeta):
         """Copy the current function unit with the physical unit in CGS."""
         return self._copy(self.physical_unit.cgs)
 
-    def _get_physical_type_id(self):
+    @cached_property
+    def _physical_type_id(self) -> tuple[tuple[str, UnitPower], ...]:
         """Get physical type corresponding to physical unit."""
-        return self.physical_unit._get_physical_type_id()
+        return self.physical_unit._physical_type_id
 
     @property
     def physical_type(self):

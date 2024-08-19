@@ -5,6 +5,7 @@ This module defines structured units and quantities.
 
 # Standard library
 import operator
+from functools import cached_property
 
 import numpy as np
 
@@ -297,9 +298,10 @@ class StructuredUnit:
         return self._recursively_apply(operator.attrgetter("cgs"))
 
     # Needed to pass through Unit initializer, so might as well use it.
-    def _get_physical_type_id(self):
+    @cached_property
+    def _physical_type_id(self):
         return self._recursively_apply(
-            operator.methodcaller("_get_physical_type_id"), cls=Structure
+            operator.attrgetter("_physical_type_id"), cls=Structure
         )
 
     @property
