@@ -13,45 +13,9 @@ from astropy.units.utils import maybe_simple_fraction
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator, Iterable, Sequence
-    from typing import TypeVar
 
     from astropy.units import UnitBase
     from astropy.units.typing import Real
-
-    T = TypeVar("T")
-
-
-def get_grouped_by_powers(
-    bases: Sequence[T], powers: Sequence[int]
-) -> tuple[list[tuple[T, int]], list[tuple[T, int]]]:
-    """
-    Groups the powers and bases in the given
-    `~astropy.units.CompositeUnit` into positive powers and
-    negative powers for easy display on either side of a solidus.
-
-    Parameters
-    ----------
-    bases : list of `astropy.units.UnitBase` instances
-
-    powers : list of int
-
-    Returns
-    -------
-    positives, negatives : list of tuple of |Unit| and power
-       Each element in each list is tuple of the form (*base*,
-       *power*).  The negatives have the sign of their power reversed
-       (i.e. the powers are all positive).
-    """
-    positive = []
-    negative = []
-    for base, power in zip(bases, powers):
-        if power < 0:
-            negative.append((base, -power))
-        elif power > 0:
-            positive.append((base, power))
-        else:
-            raise ValueError("Unit with 0 power")
-    return positive, negative
 
 
 def decompose_to_known_units(
