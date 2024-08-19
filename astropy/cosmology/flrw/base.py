@@ -1658,8 +1658,8 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         # Make new instance, respecting args vs kwargs
         inst = self.__nonflatclass__(*ba.args, **ba.kwargs)
         # Because of machine precision, make sure parameters exactly match
-        for n in inst._parameters_all:
-            object.__setattr__(inst, "_" + n, getattr(self, n))
+        inst.__dict__.update(inst.parameters)
+        inst.__dict__.update(inst._derived_parameters)
         inst.__dict__["Ok0"] = self.Ok0
 
         return inst
