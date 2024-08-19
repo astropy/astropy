@@ -336,7 +336,7 @@ def _expand_user_if_path(argument):
     return argument
 
 
-def read(table, guess=None, guess_limit_lines=None, **kwargs):
+def read(table, guess=None, **kwargs):
     # This the final output from reading. Static analysis indicates the reading
     # logic (which is indeed complex) might not define `dat`, thus do so here.
     dat = None
@@ -432,9 +432,7 @@ def read(table, guess=None, guess_limit_lines=None, **kwargs):
         # then there was just one set of kwargs in the guess list so fall
         # through below to the non-guess way so that any problems result in a
         # more useful traceback.
-        dat = _guess(
-            table, new_kwargs, format, fast_reader, limit_lines=guess_limit_lines
-        )
+        dat = _guess(table, new_kwargs, format, fast_reader)
         if dat is None:
             guess = False
 
@@ -510,7 +508,7 @@ read.__doc__ = core.READ_DOCSTRING
 read.help = read_help
 
 
-def _guess(table, read_kwargs, format, fast_reader, limit_lines=None):
+def _guess(table, read_kwargs, format, fast_reader):
     """
     Try to read the table using various sets of keyword args.  Start with the
     standard guess list and filter to make it unique and consistent with
@@ -528,8 +526,6 @@ def _guess(table, read_kwargs, format, fast_reader, limit_lines=None):
         Table format
     fast_reader : dict
         Options for the C engine fast reader.  See read() function for details.
-    limit_lines : int, optional
-        If specified, imit the number of lines to use for guessing
 
     Returns
     -------
@@ -631,6 +627,30 @@ def _guess(table, read_kwargs, format, fast_reader, limit_lines=None):
         cparser.CParserError,
     )
 
+    # Check what line endings are being used in file
+    line_ending = "\r\n" if "\r" in table else "\n"
+
+    # Determine whether we should limit the number of lines used in the guessing
+    from astropy.io.ascii import conf  # avoid circular imports
+
+    limit_lines = conf.guess_limit_lines
+
+    # Don't limit the number of lines if there are fewer than this number of
+    # lines in the table. In fact, we also don't limit the number of lines if
+    # there are just above the number of lines compared to the limit, up to a
+    # factor of 2, since it is fast to just go straight to the full table read.
+    if limit_lines and table.count(line_ending) > 2 * limit_lines:
+        # Now search for the position of the Nth line ending
+        pos = 0
+        for iter in range(limit_lines):
+            pos = table.index(line_ending, pos + 1)
+
+        # Define table subset
+        table_guess_subset = table[:pos]
+
+    else:
+        table_guess_subset = None
+
     # Now cycle through each possible reader and associated keyword arguments.
     # Try to read the table using those args, and if an exception occurs then
     # keep track of the failed guess and move on.
@@ -645,31 +665,11 @@ def _guess(table, read_kwargs, format, fast_reader, limit_lines=None):
 
             reader.guessing = True
 
-            # Start off by checking what line endings are being used in file
-            line_ending = "\r\n" if "\r" in table else "\n"
-
-            if limit_lines:
+            if table_guess_subset:
                 # First try with subset of lines - if this fails we can skip this
                 # format early. If it works, we still proceed to check with the
                 # full table since we need to then return the read data.
-
-                # Now search for the position of the Nth line ending
-                pos = 0
-                for iter in range(limit_lines):
-                    pos = table.index(line_ending, pos + 1)
-
-                # Try reading the subset of the table - if it fails, it will
-                # allow us to exit early.
-                dat = reader.read(table[:pos])
-
-            else:
-                if table.count(line_ending) > 10000:
-                    warnings.warn(
-                        "Input file contains many lines, so guessing the "
-                        "format may be slow. Consider setting ``guess_limit_lines``"
-                        "to limit the number of lines to use for guessing the format",
-                        UserWarning,
-                    )
+                reader.read(table_guess_subset)
 
             dat = reader.read(table)
             _read_trace.append(

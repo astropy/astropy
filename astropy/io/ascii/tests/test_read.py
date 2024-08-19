@@ -2137,3 +2137,40 @@ def test_table_write_help_ascii_html():
     assert "Parameters" in doc
     assert "ASCII writer 'ascii.html' details" in doc
     assert "**htmldict** : Dictionary of parameters for HTML input/output." in doc
+
+
+def test_table_guess_limit_lines():
+    """
+    Make sure that the guess_limit_lines configuration item has an effect.
+    """
+
+    # First, check that we can read ipac.tbl with guessing
+    ascii.read("data/ipac.dat")
+
+    # If we set guess_limit_lines to a very small value such as the header
+    # gets truncated, the reading should fail
+    with ascii.conf.set_temp("guess_limit_lines", 3):
+        with pytest.raises(ascii.InconsistentTableError, match="Unable to guess"):
+            ascii.read("data/ipac.dat")
+
+    # Setting this to 10 should work
+    with ascii.conf.set_temp("guess_limit_lines", 10):
+        ascii.read("data/ipac.dat")
+
+    # Now pick an example where the limit cuts through the data
+    with ascii.conf.set_temp("guess_limit_lines", 7):
+        table = ascii.read("data/sextractor2.dat")
+
+    assert table.colnames == [
+        "NUMBER",
+        "XWIN_IMAGE",
+        "YWIN_IMAGE",
+        "MAG_AUTO",
+        "MAGERR_AUTO",
+        "FLAGS",
+        "X2_IMAGE",
+        "X_MAMA",
+        "MU_MAX",
+    ]
+
+    assert len(table) == 5
