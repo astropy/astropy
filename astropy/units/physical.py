@@ -176,7 +176,7 @@ def _replace_temperatures_with_kelvin(unit):
     physical type.  Replacing the different temperature units with
     kelvin allows the physical type to be treated consistently.
     """
-    physical_type_id = unit._get_physical_type_id()
+    physical_type_id = unit._physical_type_id
 
     physical_type_id_components = []
     substitution_was_made = False
@@ -328,7 +328,6 @@ class PhysicalType:
 
     def __init__(self, unit, physical_types):
         self._unit = _replace_temperatures_with_kelvin(unit)
-        self._physical_type_id = self._unit._get_physical_type_id()
         self._physical_type = _standardize_physical_type_names(physical_types)
         self._physical_type_list = sorted(self._physical_type)
 
@@ -341,7 +340,7 @@ class PhysicalType:
         consistent with the physical type of the `PhysicalType` instance.
         """
         if isinstance(other, PhysicalType):
-            return self._physical_type_id == other._physical_type_id
+            return self._unit._physical_type_id == other._unit._physical_type_id
         elif isinstance(other, str):
             other = _standardize_physical_type_names(other)
             return other.issubset(self._physical_type)
@@ -414,7 +413,7 @@ class PhysicalType:
         return (self._unit**power).physical_type
 
     def __hash__(self):
-        return hash(self._physical_type_id)
+        return hash(self._unit._physical_type_id)
 
     def __len__(self):
         return len(self._physical_type)
@@ -455,7 +454,7 @@ def def_physical_type(unit, name):
     -----
     For a list of physical types, see `astropy.units.physical`.
     """
-    physical_type_id = unit._get_physical_type_id()
+    physical_type_id = unit._physical_type_id
     physical_type_names = _standardize_physical_type_names(name)
 
     if "unknown" in physical_type_names:
@@ -552,7 +551,7 @@ def get_physical_type(obj):
             raise TypeError(f"{obj} does not correspond to a physical type.") from exc
 
     unit = _replace_temperatures_with_kelvin(unit)
-    physical_type_id = unit._get_physical_type_id()
+    physical_type_id = unit._physical_type_id
     unit_has_known_physical_type = physical_type_id in _physical_unit_mapping
 
     if unit_has_known_physical_type:
