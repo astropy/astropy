@@ -289,11 +289,11 @@ class TestStructuredUnitAsMapping(StructuredTestBaseWithUnits):
 
 class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
     def test_physical_type_id(self):
-        pv_ptid = self.pv_unit._get_physical_type_id()
+        pv_ptid = self.pv_unit._physical_type_id
         assert len(pv_ptid) == 2
         assert pv_ptid.dtype.names == ("p", "v")
-        p_ptid = self.pv_unit["p"]._get_physical_type_id()
-        v_ptid = self.pv_unit["v"]._get_physical_type_id()
+        p_ptid = self.pv_unit["p"]._physical_type_id
+        v_ptid = self.pv_unit["v"]._physical_type_id
         # Expected should be (subclass of) void, with structured object dtype.
         expected = np.array((p_ptid, v_ptid), [("p", "O"), ("v", "O")])[()]
         assert pv_ptid == expected
@@ -305,8 +305,8 @@ class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
         assert pv_ptid[0] == p_ptid
         assert pv_ptid[1] == v_ptid
         # More complicated version.
-        pv_t_ptid = self.pv_t_unit._get_physical_type_id()
-        t_ptid = self.t_unit._get_physical_type_id()
+        pv_t_ptid = self.pv_t_unit._physical_type_id
+        t_ptid = self.t_unit._physical_type_id
         assert pv_t_ptid == np.array((pv_ptid, t_ptid), "O,O")[()]
         assert pv_t_ptid["pv"] == pv_ptid
         assert pv_t_ptid["t"] == t_ptid
